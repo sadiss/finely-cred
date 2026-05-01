@@ -1,0 +1,211 @@
+import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import type { Session, User } from '@supabase/supabase-js';
+import { isSupabaseConfigured, supabase } from '../lib/supabaseClient';
+import { isAdminEmail } from './admin';
+import { claimInvitedMembershipForUser, ensureFinelyPlatformAdminMembership } from '../data/tenantsRepo';
+
+type AuthContextValue = {
+  isConfigured: boolean;
+  isDevAuthEnabled: boolean;
+  isLoading: boolean;
+  session: Session | null;
+  user: User | null;
+  signUpWithEmail: (args: { email: string; password: string; metadata?: Record<string, any> }) => Promise<{ error?: string }>;
+  signInWithEmail: (args: { email: string; password: string }) => Promise<{ error?: string }>;
+  signOut: () => Promise<void>;
+};
+
+const AuthContext = createContext<AuthContextValue | null>(null);
+
+const DEV_USER_STORAGE_KEY = 'finely.devAuth.user.v1';
+
+function safeParseJson<T>(raw: string | null): T | null {
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw) as T;
+  } catch {
+    return null;
+  }
+}
+
+export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const [session, setSession] = useState<Session | null>(null);
+  const [mockUser, setMockUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const isDevAuthEnabled = import.meta.env.DEV && !isSupabaseConfigured;
+
+  const activeUser = session?.user ?? mockUser ?? null;
+
+  useEffect(() => {
+    // Demo-mode: reconcile “invited” memberships and ensure platform admins get a membership record.
+    const u = activeUser;
+    const email =
+      (u as any)?.email ||
+      (u as any)?.user_metadata?.email ||
+      (u as any)?.identities?.[0]?.identity_data?.email ||
+      '';
+    if (!u?.id || !email) return;
+    try {
+      claimInvitedMembershipForUser({ userId: u.id, email });
+    } catch {
+      // ignore
+    }
+    try {
+      if (isAdminEmail(email)) ensureFinelyPlatformAdminMembership({ userId: u.id, email });
+    } catch {
+      // ignore
+    }
+  }, [activeUser?.id, (activeUser as any)?.email, (activeUser as any)?.user_metadata?.email]);
+
+  useEffect(() => {
+    let mounted = true;
+
+    (async () => {
+      try {
+        if (isDevAuthEnabled) {
+          const saved = safeParseJson<User>(localStorage.getItem(DEV_USER_STORAGE_KEY));
+          if (!mounted) return;
+          setMockUser(saved);
+          setSession(null);
+        } else {
+          const { data } = await supabase.auth.getSession();
+          if (!mounted) return;
+          setSession(data.session ?? null);
+        }
+      } finally {
+        if (mounted) setIsLoading(false);
+      }
+    })();
+
+    if (isDevAuthEnabled) {
+      return () => {
+        mounted = false;
+      };
+    }
+
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+      setSession(nextSession);
+    });
+
+    return () => {
+      mounted = false;
+      sub.subscription.unsubscribe();
+    };
+  }, [isDevAuthEnabled]);
+
+  const value = useMemo<AuthContextValue>(() => {
+    const user = activeUser;
+    return {
+      isConfigured: isSupabaseConfigured,
+      isDevAuthEnabled,
+      isLoading,
+      session,
+      user,
+      signUpWithEmail: async ({ email, password, metadata }) => {
+        if (!isSupabaseConfigured) {
+          if (!isDevAuthEnabled) return { error: 'Supabase is not configured. Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY.' };
+          // Dev-mode mock auth (local only)
+          const now = new Date().toISOString();
+          const devUser = {
+            id: crypto?.randomUUID ? crypto.randomUUID() : `dev_${Math.random().toString(16).slice(2)}`,
+            aud: 'authenticated',
+            role: 'authenticated',
+            email,
+            email_confirmed_at: now,
+            phone: '',
+            confirmed_at: now,
+            last_sign_in_at: now,
+            app_metadata: { provider: 'email', providers: ['email'] },
+            user_metadata: metadata ?? {},
+            identities: [],
+            created_at: now,
+            updated_at: now,
+            is_anonymous: false,
+          } as unknown as User;
+          setMockUser(devUser);
+          try {
+            localStorage.setItem(DEV_USER_STORAGE_KEY, JSON.stringify(devUser));
+          } catch {
+            // ignore
+          }
+          return {};
+        }
+        const { error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: metadata ? { data: metadata } : undefined,
+        });
+        return error ? { error: error.message } : {};
+      },
+      signInWithEmail: async ({ email, password }) => {
+        if (!isSupabaseConfigured) {
+          if (!isDevAuthEnabled) return { error: 'Supabase is not configured. Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY.' };
+          // Dev-mode mock auth (accepts any non-empty credentials)
+          if (!email || !password) return { error: 'Email and password are required.' };
+
+          const existing = safeParseJson<User>(localStorage.getItem(DEV_USER_STORAGE_KEY));
+          const now = new Date().toISOString();
+          const devUser = (existing
+            ? {
+                ...existing,
+                email,
+                last_sign_in_at: now,
+                updated_at: now,
+              }
+            : ({
+                id: crypto?.randomUUID ? crypto.randomUUID() : `dev_${Math.random().toString(16).slice(2)}`,
+                aud: 'authenticated',
+                role: 'authenticated',
+                email,
+                email_confirmed_at: now,
+                phone: '',
+                confirmed_at: now,
+                last_sign_in_at: now,
+                app_metadata: { provider: 'email', providers: ['email'] },
+                user_metadata: {},
+                identities: [],
+                created_at: now,
+                updated_at: now,
+                is_anonymous: false,
+              } as unknown as User));
+
+          setMockUser(devUser);
+          try {
+            localStorage.setItem(DEV_USER_STORAGE_KEY, JSON.stringify(devUser));
+          } catch {
+            // ignore
+          }
+          return {};
+        }
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        return error ? { error: error.message } : {};
+      },
+      signOut: async () => {
+        try {
+          if (isDevAuthEnabled) {
+            setMockUser(null);
+            try {
+              localStorage.removeItem(DEV_USER_STORAGE_KEY);
+            } catch {
+              // ignore
+            }
+            return;
+          }
+          await supabase.auth.signOut();
+        } catch {
+          // no-op
+        }
+      },
+    };
+  }, [activeUser, isDevAuthEnabled, isLoading, session]);
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+}
+
+export function useAuth() {
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error('useAuth must be used within AuthProvider');
+  return ctx;
+}
+

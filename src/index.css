@@ -1,0 +1,1107 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;700;900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background: #0b1110;
+  color: white;
+  overflow-x: hidden;
+}
+
+/* --- Readability overrides (site-wide) --- */
+/* User preference: remove “digital/terminal” mono text everywhere. */
+.font-mono {
+  font-family: inherit !important;
+}
+
+/* Reduce extreme micro-label spacing so text is readable. */
+.tracking-widest {
+  letter-spacing: 0.06em !important;
+}
+
+/* Bump ultra-small arbitrary Tailwind sizes to readable minimums. */
+.text-\[9px\] {
+  font-size: 11px !important;
+}
+.text-\[10px\] {
+  font-size: 12px !important;
+}
+.text-\[11px\] {
+  font-size: 12px !important;
+}
+
+/* Pre/code should also read like normal body text (no mono). */
+pre,
+code,
+kbd,
+samp {
+  font-family: inherit !important;
+}
+
+:root {
+  /* White-label branding (overridden at runtime by active tenant). */
+  /* Default to a richer gold (less orange). */
+  --brand-primary: #fbbf24;
+  --brand-primary-rgb: 251 191 36;
+  --brand-name: Finely Cred;
+
+  /* Unified surfaces (slightly lighter so the dashboard isn't "too dark") */
+  --fc-bg: #0b1110;
+  --fc-panel: rgba(255, 255, 255, 0.04);
+  --fc-card: rgba(255, 255, 255, 0.06);
+  --fc-border: rgba(255, 255, 255, 0.10);
+  --fc-text-dim: rgba(255, 255, 255, 0.60);
+}
+
+@layer components {
+  .fc-container {
+    /* Wider, more “premium” content width (reduces cramped big-box feel). */
+    @apply mx-auto w-full px-4 sm:px-6 lg:px-8 2xl:px-10;
+    max-width: 1560px;
+  }
+
+  .fc-panel {
+    @apply rounded-3xl border border-white/10 backdrop-blur-xl;
+    background:
+      radial-gradient(1200px 420px at 20% 0%, rgba(var(--brand-primary-rgb), 0.10) 0%, transparent 65%),
+      linear-gradient(180deg, rgba(255,255,255,0.055) 0%, rgba(255,255,255,0.030) 100%);
+    box-shadow: 0 28px 80px -64px rgba(0,0,0,0.75);
+  }
+
+  .fc-card {
+    @apply rounded-2xl border border-white/10;
+    background:
+      radial-gradient(900px 320px at 15% 0%, rgba(255,255,255,0.08) 0%, transparent 60%),
+      linear-gradient(180deg, rgba(255,255,255,0.055) 0%, rgba(255,255,255,0.030) 100%);
+    box-shadow: 0 24px 70px -62px rgba(0,0,0,0.75);
+  }
+
+  .fc-pill {
+    @apply inline-flex items-center gap-2 px-4 py-2 rounded-full border text-sm font-medium transition-all;
+  }
+
+  .fc-pill-active {
+    /* Match the HERO orange CTA (Finely Gold metallic). */
+    @apply text-[#1a1400] border-white/30;
+    background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 15%, #f39c12 35%, #d68910 50%, #f39c12 65%, #fdcb6e 85%, #ffeaa7 100%);
+  }
+
+  .fc-pill-muted {
+    @apply bg-white/5 text-white/70 border-white/10 hover:bg-white/10 hover:text-white;
+  }
+
+  .fc-chip {
+    @apply px-4 py-2.5 rounded-xl border text-xs font-semibold tracking-wide transition-all;
+  }
+
+  .fc-chip-active {
+    /* Match the HERO orange CTA (Finely Gold metallic). */
+    @apply text-[#1a1400] border-white/30;
+    background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 15%, #f39c12 35%, #d68910 50%, #f39c12 65%, #fdcb6e 85%, #ffeaa7 100%);
+  }
+
+  .fc-chip-muted {
+    @apply bg-black/30 text-white/60 border-white/10 hover:bg-white/[0.03];
+  }
+
+  .fc-divider {
+    @apply h-px bg-white/10;
+  }
+
+  .fc-badge {
+    @apply inline-flex items-center gap-2 px-4 py-2 rounded-full border text-xs font-semibold uppercase tracking-wider;
+  }
+
+  .fc-badge-brand {
+    @apply fc-badge;
+    background: rgba(var(--brand-primary-rgb), 0.10);
+    border-color: rgba(var(--brand-primary-rgb), 0.30);
+    color: rgb(var(--brand-primary-rgb));
+  }
+
+  .fc-input {
+    @apply w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white/80 placeholder:text-white/30 focus:outline-none focus:border-[rgba(var(--brand-primary-rgb),0.55)] transition-colors;
+  }
+
+  .fc-button-soft {
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl border border-white/10 bg-black/30 hover:bg-white/[0.03] text-[10px] font-black uppercase tracking-widest text-white/70 transition-all;
+  }
+
+  /* Brand button surface (used by Button component + className usage) */
+  .fc-button-brand-surface {
+    /* Make the site's primary CTA match the HERO orange (Finely Gold). */
+    @apply rounded-xl text-[#1a1400] shadow-lg shadow-black/30 transition-all hover:brightness-110 border-t;
+    background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 15%, #f39c12 35%, #d68910 50%, #f39c12 65%, #fdcb6e 85%, #ffeaa7 100%);
+    border-top-color: rgba(255, 255, 255, 0.40);
+    position: relative;
+    overflow: hidden;
+  }
+  /* Metallic specular streak (same feel as hero gold buttons) */
+  .fc-button-brand-surface::after {
+    content: "";
+    position: absolute;
+    inset: -200%;
+    transform: rotate(35deg) translateX(-120%);
+    background: linear-gradient(to right, transparent, rgba(255,255,255,0.55), transparent);
+    opacity: 0.36;
+    transition: transform 700ms ease-out;
+    pointer-events: none;
+  }
+  .fc-button-brand-surface:hover::after {
+    transform: rotate(35deg) translateX(120%);
+  }
+
+  .fc-button-brand {
+    @apply fc-button-brand-surface inline-flex items-center justify-center gap-2 px-5 py-3 text-[10px] font-black uppercase tracking-widest;
+  }
+
+  /* If any legacy buttons still use bg-amber-500 directly, force them into the hero-gold CTA style. */
+  button.bg-amber-500,
+  a.bg-amber-500,
+  label.bg-amber-500,
+  [role="button"].bg-amber-500 {
+    background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 15%, #f39c12 35%, #d68910 50%, #f39c12 65%, #fdcb6e 85%, #ffeaa7 100%) !important;
+    color: #1a1400 !important;
+    border-top: 1px solid rgba(255,255,255,0.40) !important;
+    position: relative;
+    overflow: hidden;
+  }
+  button.bg-amber-500::after,
+  a.bg-amber-500::after,
+  label.bg-amber-500::after,
+  [role="button"].bg-amber-500::after {
+    content: "";
+    position: absolute;
+    inset: -200%;
+    transform: rotate(35deg) translateX(-120%);
+    background: linear-gradient(to right, transparent, rgba(255,255,255,0.55), transparent);
+    opacity: 0.30;
+    transition: transform 700ms ease-out;
+    pointer-events: none;
+  }
+  button.bg-amber-500:hover::after,
+  a.bg-amber-500:hover::after,
+  label.bg-amber-500:hover::after,
+  [role="button"].bg-amber-500:hover::after {
+    transform: rotate(35deg) translateX(120%);
+  }
+
+  /* Metallic button variants (site-wide) */
+  /* Surface only (no padding/typography) so components can size it. */
+  .fc-button-platinum-surface {
+    @apply text-[#0b1110] shadow-lg shadow-black/30 hover:brightness-110 border-t border-white/70;
+    background:
+      radial-gradient(circle at 30% 20%, rgba(255,255,255,0.98) 0%, rgba(245,245,245,0.93) 22%, rgba(210,210,210,0.90) 55%, rgba(160,162,168,0.98) 100%),
+      linear-gradient(135deg, rgba(255,255,255,0.70) 0%, rgba(255,255,255,0.00) 52%),
+      linear-gradient(180deg, rgba(255,255,255,0.18) 0%, rgba(0,0,0,0.12) 100%);
+    box-shadow:
+      0 12px 30px rgba(0,0,0,0.35),
+      inset 0 1px 0 rgba(255,255,255,0.75),
+      inset 0 -2px 0 rgba(0,0,0,0.18);
+  }
+
+  .fc-button-platinum {
+    @apply inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl text-[#0b1110] font-black uppercase tracking-widest text-[10px] transition-all hover:brightness-110 shadow-lg shadow-black/30 border-t border-white/70;
+    background: radial-gradient(circle at 30% 20%, rgba(255,255,255,0.95) 0%, rgba(245,245,245,0.92) 22%, rgba(210,210,210,0.92) 55%, rgba(168,169,173,0.95) 100%);
+    position: relative;
+    overflow: hidden;
+  }
+  .fc-button-platinum::after {
+    content: "";
+    position: absolute;
+    inset: -200%;
+    transform: rotate(35deg) translateX(-120%);
+    background: linear-gradient(to right, transparent, rgba(255,255,255,0.65), transparent);
+    opacity: 0.40;
+    transition: transform 700ms ease-out;
+    pointer-events: none;
+  }
+  .fc-button-platinum:hover::after {
+    transform: rotate(35deg) translateX(120%);
+  }
+
+  .fc-button-gold {
+    @apply inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl text-[#1a1400] font-black uppercase tracking-widest text-[10px] transition-all hover:brightness-110 shadow-lg shadow-black/30 border-t border-white/40;
+    background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 15%, #f39c12 35%, #d68910 50%, #f39c12 65%, #fdcb6e 85%, #ffeaa7 100%);
+  }
+
+  /* Shared focus ring (keyboard accessibility + clear affordance) */
+  .fc-focus-ring {
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2;
+    --tw-ring-color: rgba(var(--brand-primary-rgb), 0.62);
+    --tw-ring-offset-color: #0b1110;
+  }
+
+  /* Link that must read as clickable (used when something is an action, not body text) */
+  .fc-action-link {
+    @apply inline-flex items-center gap-2 px-2 py-1 rounded-lg text-[color:var(--brand-primary)] font-semibold;
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+  }
+  .fc-action-link:hover {
+    background: rgba(var(--brand-primary-rgb), 0.10);
+    text-decoration-thickness: 2px;
+  }
+
+  /* Clickable text chip (for tiny actions that still need affordance) */
+  .fc-action-chip {
+    @apply inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-white/10 bg-black/30 text-white/80 text-sm font-semibold transition-all;
+  }
+  .fc-action-chip:hover {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.16);
+  }
+
+  /* Clickable cards should never look like plain text blocks. */
+  .fc-clickable-card {
+    @apply w-full text-left rounded-2xl border border-white/15 backdrop-blur-xl p-6 transition-all;
+    background:
+      radial-gradient(900px 320px at 15% 0%, rgba(255,255,255,0.08) 0%, transparent 60%),
+      linear-gradient(180deg, rgba(255,255,255,0.055) 0%, rgba(255,255,255,0.030) 100%);
+    box-shadow:
+      0 22px 68px -56px rgba(0, 0, 0, 0.78),
+      inset 0 1px 0 rgba(255,255,255,0.10);
+    position: relative;
+    overflow: hidden;
+  }
+  .fc-clickable-card::before {
+    content: "";
+    position: absolute;
+    inset: -240%;
+    transform: rotate(28deg) translateX(-120%);
+    background: linear-gradient(to right, transparent, rgba(255,255,255,0.16), transparent);
+    opacity: 0.55;
+    transition: transform 750ms ease-out;
+    pointer-events: none;
+  }
+  .fc-clickable-card:hover {
+    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(255, 255, 255, 0.22);
+    transform: translateY(-1px);
+  }
+  .fc-clickable-card:hover::before {
+    transform: rotate(28deg) translateX(120%);
+  }
+  .fc-clickable-card:active {
+    transform: translateY(0px) scale(0.99);
+  }
+
+  /* Scroll region used for “clamped” long content. */
+  .fc-scroll-area {
+    padding-right: 6px; /* keep content off scrollbar */
+    scrollbar-gutter: stable;
+  }
+
+  /* Optional utility: hide scrollbars for app-only scroll containers. */
+  .fc-scrollbar-hide {
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE/Edge legacy */
+  }
+  .fc-scrollbar-hide::-webkit-scrollbar {
+    width: 0px;
+    height: 0px;
+  }
+
+  /* Bottom fade to hint there’s more content in the scroll area. */
+  .fc-clamp-fade {
+    position: sticky;
+    bottom: 0;
+    height: 44px;
+    width: 100%;
+    pointer-events: none;
+    background: linear-gradient(to bottom, rgba(11, 17, 16, 0), rgba(11, 17, 16, 0.92));
+  }
+
+  /* Subtle platinum sheen surfaces for premium boxes (keeps white text readable). */
+  .fc-surface-platinum {
+    @apply rounded-2xl border border-white/10;
+    background:
+      linear-gradient(135deg, rgba(255,255,255,0.10), rgba(255,255,255,0.03) 55%, rgba(0,0,0,0.10)),
+      radial-gradient(240px 160px at 18% 22%, rgba(255,255,255,0.10), transparent 60%),
+      radial-gradient(260px 180px at 84% 10%, rgba(255,255,255,0.06), transparent 62%);
+  }
+
+  /* Platinum metallic "frame" that keeps a black base surface.
+     Use alongside bg-black/30 (or similar) + platinum-shimmer for the sweep. */
+  .fc-platinum-frame {
+    @apply relative overflow-hidden;
+    box-shadow:
+      0 26px 70px -40px rgba(0,0,0,0.70),
+      inset 0 1px 0 rgba(255,255,255,0.12);
+  }
+  .fc-platinum-frame::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.42;
+    mix-blend-mode: overlay;
+    background-image:
+      /* specular highlight similar angle to platinum button */
+      linear-gradient(135deg, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0.08) 40%, rgba(0,0,0,0.18) 100%),
+      /* diamond grid (like hero platinum aesthetics) */
+      repeating-linear-gradient(45deg, rgba(255,255,255,0.10) 0 1px, transparent 1px 56px),
+      repeating-linear-gradient(-45deg, rgba(255,255,255,0.08) 0 1px, transparent 1px 56px),
+      /* soft edge vignettes */
+      radial-gradient(520px 320px at 78% 18%, rgba(255,255,255,0.28), transparent 62%),
+      radial-gradient(520px 320px at 18% 86%, rgba(0,0,0,0.34), transparent 72%);
+  }
+}
+
+/* TipTap editor content styling (keeps text readable + print-friendly). */
+.fc-tiptap .ProseMirror {
+  outline: none;
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 14px;
+  line-height: 1.7;
+}
+.fc-tiptap .ProseMirror p {
+  margin: 0 0 10px 0;
+}
+.fc-tiptap .ProseMirror p:last-child {
+  margin-bottom: 0;
+}
+.fc-tiptap .ProseMirror h1,
+.fc-tiptap .ProseMirror h2,
+.fc-tiptap .ProseMirror h3 {
+  color: rgba(255, 255, 255, 0.92);
+  margin: 14px 0 8px;
+  font-weight: 800;
+}
+.fc-tiptap .ProseMirror ul,
+.fc-tiptap .ProseMirror ol {
+  padding-left: 20px;
+  margin: 8px 0 10px;
+}
+.fc-tiptap .ProseMirror li {
+  margin: 4px 0;
+}
+.fc-tiptap .ProseMirror blockquote {
+  margin: 10px 0;
+  padding: 10px 12px;
+  border-left: 3px solid rgba(var(--brand-primary-rgb), 0.6);
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 12px;
+  color: rgba(255, 255, 255, 0.78);
+}
+.fc-tiptap .ProseMirror a {
+  color: rgba(var(--brand-primary-rgb), 0.95);
+  text-decoration: underline;
+}
+.fc-tiptap .ProseMirror .is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  color: rgba(255, 255, 255, 0.28);
+  pointer-events: none;
+  height: 0;
+}
+
+/* Paper preview "prose" (black ink). */
+.fc-paper-prose {
+  color: rgba(0, 0, 0, 0.86);
+  font-size: 12px;
+  line-height: 1.55;
+  font-family: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+}
+.fc-paper-prose p {
+  margin: 0 0 10px 0;
+}
+.fc-paper-prose ul,
+.fc-paper-prose ol {
+  padding-left: 18px;
+  margin: 8px 0 10px;
+}
+.fc-paper-prose li {
+  margin: 4px 0;
+}
+.fc-paper-prose blockquote {
+  margin: 10px 0;
+  padding: 10px 12px;
+  border-left: 3px solid rgba(0, 0, 0, 0.15);
+  background: rgba(0, 0, 0, 0.03);
+  border-radius: 12px;
+}
+.fc-paper-prose a {
+  color: rgba(0, 0, 0, 0.85);
+  text-decoration: underline;
+}
+
+/* Subtle world-map-like motif (no external assets). */
+.world-map-motif {
+  background-image:
+    radial-gradient(circle at 18% 38%, rgba(var(--brand-primary-rgb), 0.08) 0 1px, transparent 1px 100%),
+    radial-gradient(circle at 32% 42%, rgba(255, 255, 255, 0.06) 0 1px, transparent 1px 100%),
+    radial-gradient(circle at 48% 34%, rgba(255, 255, 255, 0.06) 0 1px, transparent 1px 100%),
+    radial-gradient(circle at 62% 44%, rgba(var(--brand-primary-rgb), 0.07) 0 1px, transparent 1px 100%),
+    radial-gradient(circle at 74% 36%, rgba(255, 255, 255, 0.05) 0 1px, transparent 1px 100%),
+    radial-gradient(circle at 82% 50%, rgba(255, 255, 255, 0.05) 0 1px, transparent 1px 100%),
+    radial-gradient(circle at 68% 58%, rgba(var(--brand-primary-rgb), 0.06) 0 1px, transparent 1px 100%),
+    radial-gradient(circle at 42% 60%, rgba(255, 255, 255, 0.05) 0 1px, transparent 1px 100%),
+    radial-gradient(circle at 26% 56%, rgba(255, 255, 255, 0.05) 0 1px, transparent 1px 100%),
+    radial-gradient(circle at 14% 52%, rgba(var(--brand-primary-rgb), 0.06) 0 1px, transparent 1px 100%);
+  background-size: 220px 180px;
+  background-repeat: repeat;
+  filter: blur(0.2px);
+  opacity: 0.35;
+  mix-blend-mode: screen;
+  mask-image: radial-gradient(ellipse 75% 55% at 55% 45%, rgba(0, 0, 0, 0.95), transparent 72%);
+  -webkit-mask-image: radial-gradient(ellipse 75% 55% at 55% 45%, rgba(0, 0, 0, 0.95), transparent 72%);
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(var(--brand-primary-rgb), 0.3);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(var(--brand-primary-rgb), 0.5);
+}
+
+/* Smooth scroll */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Marquee Animation */
+@keyframes marquee {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee {
+  animation: marquee 30s linear infinite;
+}
+
+.animate-marquee-slow {
+  animation: marquee 45s linear infinite;
+}
+
+/* Video fallback - hide when video is playing */
+video:not([src=""]) + .video-fallback {
+  display: none;
+}
+
+video[src=""] ~ .video-fallback,
+video:not([src]) ~ .video-fallback {
+  display: flex;
+}
+
+/* Hero skyline subtle pan + moving clouds */
+@keyframes skyline-pan {
+  0% { background-position: 50% 0%; }
+  100% { background-position: 56% 0%; }
+}
+
+.animate-skyline-pan {
+  animation: skyline-pan 180s linear infinite;
+}
+
+@keyframes clouds-drift {
+  0% { background-position: 0px 0px, 0px 0px, 0px 0px, 0px 0px, 0px 0px; }
+  100% { background-position: 1200px 0px, 900px 0px, 650px 0px, 480px 0px, 320px 0px; }
+}
+
+.hero-clouds {
+  /* Cloud bands focused in the sky region */
+  opacity: 0.38;
+  mix-blend-mode: screen;
+  filter: blur(0.45px);
+  will-change: background-position;
+  background-repeat: repeat;
+  background-size: 860px 380px, 640px 320px, 520px 280px, 420px 240px, 320px 220px;
+  background-image:
+    /* wide wisps */
+    radial-gradient(120% 80% at 20% 22%, rgba(255,255,255,0.18), transparent 62%),
+    radial-gradient(120% 85% at 72% 18%, rgba(255,255,255,0.14), transparent 64%),
+    /* softer banding */
+    linear-gradient(90deg, rgba(255,255,255,0.00) 0%, rgba(255,255,255,0.10) 38%, rgba(255,255,255,0.00) 78%),
+    /* puffs */
+    radial-gradient(80% 60% at 55% 30%, rgba(255,255,255,0.10), transparent 62%),
+    radial-gradient(85% 65% at 88% 26%, rgba(255,255,255,0.12), transparent 64%);
+  /* Medium speed */
+  animation: clouds-drift 28s linear infinite;
+  /* keep clouds mostly in sky area */
+  -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 55%, rgba(0,0,0,0) 90%);
+  mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 55%, rgba(0,0,0,0) 90%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-skyline-pan {
+    animation: none !important;
+  }
+  .hero-clouds {
+    animation: none !important;
+  }
+  .platinum-shimmer::after {
+    animation: none !important;
+  }
+  .card-lift {
+    transition: none !important;
+  }
+}
+
+/* Spin Slow Animation */
+@keyframes spin-slow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin-slow {
+  animation: spin-slow 8s linear infinite;
+}
+
+/* Animate In Utilities */
+.animate-in {
+  animation: animate-in 0.5s ease-out forwards;
+}
+
+.fade-in {
+  opacity: 0;
+}
+
+.slide-in-from-bottom-8 {
+  transform: translateY(2rem);
+}
+
+.slide-in-from-bottom-4 {
+  transform: translateY(1rem);
+}
+
+.slide-in-from-right-8 {
+  transform: translateX(2rem);
+}
+
+.slide-in-from-right {
+  transform: translateX(100%);
+}
+
+.slide-in-from-top-8 {
+  transform: translateY(-2rem);
+}
+
+.slide-in-from-left-8 {
+  transform: translateX(-2rem);
+}
+
+.zoom-in {
+  transform: scale(0.95);
+}
+
+.zoom-in-95 {
+  transform: scale(0.95);
+}
+
+@keyframes animate-in {
+  to {
+    opacity: 1;
+    transform: translateY(0) translateX(0) scale(1);
+  }
+}
+
+/* Pulse Glow */
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(var(--brand-primary-rgb), 0.3);
+  }
+  50% {
+    box-shadow: 0 0 40px rgba(var(--brand-primary-rgb), 0.6);
+  }
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+/* Float Animation */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+/* Platinum shimmer (premium card sweep) */
+@keyframes platinum-shimmer {
+  0% { transform: translateX(-140%) rotate(25deg); opacity: 0; }
+  18% { opacity: 0.0; }
+  35% { opacity: 0.55; }
+  55% { opacity: 0.18; }
+  100% { transform: translateX(140%) rotate(25deg); opacity: 0; }
+}
+
+.platinum-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+
+.platinum-shimmer::after {
+  content: "";
+  position: absolute;
+  inset: -80% -60%;
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.28) 35%, rgba(255,255,255,0.08) 55%, transparent 70%);
+  transform: translateX(-140%) rotate(25deg);
+  animation: platinum-shimmer 7.5s ease-in-out infinite;
+  pointer-events: none;
+  mix-blend-mode: overlay;
+}
+
+/* Premium geometric motion (no bubble circles) */
+@keyframes finely-prism-shift {
+  0% { background-position: 0% 0%, 100% 0%, 0% 100%; opacity: 0.32; }
+  50% { background-position: 70% 10%, 30% 90%, 60% 40%; opacity: 0.55; }
+  100% { background-position: 0% 0%, 100% 0%, 0% 100%; opacity: 0.32; }
+}
+
+.finely-prism-motion {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  mix-blend-mode: screen;
+  background-image:
+    linear-gradient(120deg, rgba(var(--brand-primary-rgb),0.18), transparent 56%),
+    linear-gradient(240deg, rgba(56,189,248,0.10), transparent 62%),
+    linear-gradient(15deg, rgba(255,255,255,0.08), transparent 58%);
+  background-size: 120% 120%, 140% 140%, 160% 160%;
+  filter: blur(0.4px);
+  animation: finely-prism-shift 18s ease-in-out infinite;
+}
+
+@keyframes finely-diagonal-drift {
+  0% { background-position: 0px 0px; }
+  100% { background-position: 420px 260px; }
+}
+
+.finely-diagonal-strata {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.30;
+  background-image:
+    repeating-linear-gradient(135deg, rgba(255,255,255,0.06) 0 1px, transparent 1px 16px),
+    repeating-linear-gradient(45deg, rgba(var(--brand-primary-rgb),0.05) 0 1px, transparent 1px 22px);
+  animation: finely-diagonal-drift 26s linear infinite;
+  mask-image: radial-gradient(ellipse 80% 55% at 50% 35%, black 0 60%, transparent 78%);
+  -webkit-mask-image: radial-gradient(ellipse 80% 55% at 50% 35%, black 0 60%, transparent 78%);
+}
+
+/* Premium lift utility */
+.card-lift {
+  transition: transform 250ms ease, box-shadow 250ms ease, border-color 250ms ease;
+  will-change: transform, box-shadow;
+}
+.card-lift:hover {
+  transform: translateY(-3px);
+}
+
+/* Range input styling */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+input[type="range"]::-webkit-slider-runnable-track {
+  background: rgba(255, 255, 255, 0.1);
+  height: 4px;
+  border-radius: 2px;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  margin-top: -6px;
+  background-color: var(--brand-primary);
+  height: 16px;
+  width: 16px;
+  border-radius: 50%;
+  box-shadow: 0 0 10px rgba(var(--brand-primary-rgb), 0.5);
+}
+
+/* Perspective utilities */
+.perspective-1000 {
+  perspective: 1000px;
+}
+
+.perspective-2000 {
+  perspective: 2000px;
+}
+
+.transform-style-3d {
+  transform-style: preserve-3d;
+}
+
+/* 3D Rotation utilities */
+.rotate-y-\[-22deg\] {
+  transform: rotateY(-22deg);
+}
+
+.rotate-y-\[-20deg\] {
+  transform: rotateY(-20deg);
+}
+
+.rotate-y-\[-10deg\] {
+  transform: rotateY(-10deg);
+}
+
+.rotate-y-\[-5deg\] {
+  transform: rotateY(-5deg);
+}
+
+.rotate-y-\[0deg\] {
+  transform: rotateY(0deg);
+}
+
+.rotate-y-\[18deg\] {
+  transform: rotateY(18deg);
+}
+
+.rotate-y-\[-90deg\] {
+  transform: rotateY(-90deg);
+}
+
+.rotate-x-\[12deg\] {
+  transform: rotateX(12deg);
+}
+
+.rotate-x-\[-8deg\] {
+  transform: rotateX(-8deg);
+}
+
+.rotate-x-\[5deg\] {
+  transform: rotateX(5deg);
+}
+
+.translate-z-\[20px\] {
+  transform: translateZ(20px);
+}
+
+.translate-z-\[10px\] {
+  transform: translateZ(10px);
+}
+
+.translate-z-\[50px\] {
+  transform: translateZ(50px);
+}
+
+/* Gradient text utility */
+.text-gradient {
+  background: linear-gradient(to bottom, #f59e0b, #d97706);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Glass morphism */
+.glass {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Custom selection */
+::selection {
+  background: #f59e0b;
+  color: black;
+}
+
+/* Shine animation for cards */
+@keyframes shine {
+  0% {
+    transform: translateX(-100%) rotate(45deg);
+  }
+  100% {
+    transform: translateX(100%) rotate(45deg);
+  }
+}
+
+.animate-shine {
+  animation: shine 3s ease-in-out infinite;
+}
+
+/* Gradient border */
+.gradient-border {
+  position: relative;
+}
+
+.gradient-border::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.5), transparent, rgba(245, 158, 11, 0.5));
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+}
+
+/* Noise texture overlay */
+.noise-overlay::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  opacity: 0.03;
+  pointer-events: none;
+}
+
+/* Container utility */
+.container {
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+@media (min-width: 640px) {
+  .container {
+    max-width: 640px;
+  }
+}
+
+@media (min-width: 768px) {
+  .container {
+    max-width: 768px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .container {
+    max-width: 1024px;
+  }
+}
+
+@media (min-width: 1280px) {
+  .container {
+    max-width: 1280px;
+  }
+}
+
+@media (min-width: 1536px) {
+  .container {
+    max-width: 1536px;
+  }
+}
+
+/* Shrink animation for toast progress */
+@keyframes shrink {
+  from {
+    width: 100%;
+  }
+  to {
+    width: 0%;
+  }
+}
+
+.animate-shrink {
+  animation: shrink 4s linear forwards;
+}
+
+/* Spin slow for dispute weaver */
+@keyframes spin-slow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin-slow {
+  animation: spin-slow 8s linear infinite;
+}
+
+/* Glow pulse */
+@keyframes glow-pulse {
+  0%, 100% {
+    opacity: 0.5;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+}
+
+.animate-glow-pulse {
+  animation: glow-pulse 2s ease-in-out infinite;
+}
+
+/* Slide up fade */
+@keyframes slide-up-fade {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-up-fade {
+  animation: slide-up-fade 0.5s ease-out forwards;
+}
+
+/* Bounce subtle */
+@keyframes bounce-subtle {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+.animate-bounce-subtle {
+  animation: bounce-subtle 2s ease-in-out infinite;
+}
+
+/* Card hover effects */
+.card-hover {
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card-hover:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 25px 50px -12px rgba(245, 158, 11, 0.25);
+}
+
+/* Gradient border animation */
+@keyframes gradient-border {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.animate-gradient-border {
+  background-size: 200% 200%;
+  animation: gradient-border 3s ease infinite;
+}
+
+/* Text shimmer */
+@keyframes text-shimmer {
+  0% {
+    background-position: -200% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
+}
+
+.animate-text-shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.1) 0%,
+    rgba(255, 255, 255, 0.4) 50%,
+    rgba(255, 255, 255, 0.1) 100%
+  );
+  background-size: 200% auto;
+  animation: text-shimmer 3s linear infinite;
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+/* Ripple effect */
+@keyframes ripple {
+  0% {
+    transform: scale(0);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(4);
+    opacity: 0;
+  }
+}
+
+.animate-ripple {
+  animation: ripple 0.6s linear;
+}
+
+/* Scan line effect */
+@keyframes scan-line {
+  0% {
+    top: 0%;
+  }
+  100% {
+    top: 100%;
+  }
+}
+
+.scan-line::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(245, 158, 11, 0.5), transparent);
+  animation: scan-line 3s linear infinite;
+}
+
+/* Inherit border radius */
+.rounded-inherit {
+  border-radius: inherit;
+}
+
+/* Slow spin animation for hologram effects */
+@keyframes spin-slow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin-slow {
+  animation: spin-slow 4s linear infinite;
+}
+
+/* Scale animation for hover effects */
+.group-hover\:scale-115:hover {
+  transform: scale(1.15);
+}

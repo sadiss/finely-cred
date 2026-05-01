@@ -1,0 +1,57 @@
+---
+description: Modern UI standard (cards, KPIs, page scroll, wider layouts)
+alwaysApply: true
+---
+
+# Modern UI Standard (Finely Cred)
+
+## Layout
+- Prefer **page-level scrolling**. Avoid tall nested scroll containers (`overflow-y-auto` + fixed heights) unless absolutely necessary.
+- Use **wider content** on admin/portal pages: default to `max-w-7xl` (or larger) for data-heavy screens.
+- Keep long content **collapsed by default** using accordions/`<details>`; show previews + “Expand” instead of giant always-open boxes.
+
+## Cards (no “big grey boxes”)
+- Use **card grids** for lists (`grid gap-4`) instead of stacked full-width blocks.
+- Promote key info into **KPI cards** (counts, totals, missing items, status) at the top of a page/section.
+- Keep cards visually premium: subtle borders, glass surfaces, strong typography hierarchy.
+
+## Interactions
+- For long bodies (letters, logs, guides), provide:
+  - **Compact header card** (title, meta, actions)
+  - **Expand** for full body (page scroll), not internal scrolling panes.
+
+## Selection-heavy workflows (premium pattern)
+- For workflows with many selectable items (disputes, documents, tasks):
+  - Show a **KPI row first**: selected count, missing requirements, readiness %, last action.
+  - Use **grouped collapsible cards** (`<details>`) to avoid long walls of UI.
+  - Use a **focused detail panel** (right column on desktop) for editing one item at a time.
+  - Provide a **sticky action bar** at the top or bottom of the page (not inline buttons on every row).
+- Never “fix” ugly layouts by adding more nested scrolling. Prefer collapsing, grouping, and focused panels.
+
+## Confirmations + permissions (safety UX)
+- For destructive actions (delete letters, revoke access):
+  - Use **2-step confirmation** (modal + explicit typed phrase like `DELETE`).
+  - Prefer **Archive** over Delete for partner-facing flows (undoable).
+  - Gate destructive actions behind **permissions** (admin-only hard delete).
+
+## Code pattern
+Example (KPI row + collapsible cards):
+
+```tsx
+<div className="grid md:grid-cols-4 gap-4">
+  <KpiCard label="Letters" value={letters.length} hint="Generated" tone="amber" />
+  <KpiCard label="Missing evidence" value={missingEv} tone="violet" />
+</div>
+
+<div className="grid lg:grid-cols-2 gap-4">
+  {items.map((x) => (
+    <details key={x.id} className="rounded-2xl border border-white/10 bg-black/30 p-5">
+      <summary className="cursor-pointer select-none text-white font-semibold">
+        {x.title}
+      </summary>
+      <div className="mt-4 text-white/70">{x.body}</div>
+    </details>
+  ))}
+</div>
+```
+
