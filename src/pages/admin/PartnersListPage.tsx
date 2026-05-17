@@ -1,7 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Search, UserPlus, ArrowRight, ArrowLeft, Upload } from 'lucide-react';
+import { Search, UserPlus, ArrowRight, ArrowLeft, Upload, Trash2, Badge } from 'lucide-react';
 import { PageShell } from '../../components/layout/PageShell';
-import { createPartner, listPartnersByTenant } from '../../data/partnersRepo';
+import { createPartner, listPartnersByTenant, listPartners } from '../../data/partnersRepo';
+import { deletePartnerCompletely } from '../../data/partnerDelete';
+import { syncPartnersFromSupabase } from '../../data/partnersSupabaseSync';
 import type { PartnerLane, PartnerRoute } from '../../domain/partners';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { getActiveTenantId } from '../../tenancy/activeTenant';
@@ -27,6 +29,9 @@ export default function PartnersListPage() {
   const [lane, setLane] = useState<PartnerLane | undefined>(() => (addAffiliate ? 'affiliate' : undefined));
   const [creating, setCreating] = useState(false);
   const [createErr, setCreateErr] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState<string | null>(null);
+  const [deleteErr, setDeleteErr] = useState<string | null>(null);
+  const [syncing, setSyncing] = useState(false);
 
   useEffect(() => {
     if (location.hash === '#create-partner') {
@@ -34,6 +39,27 @@ export default function PartnersListPage() {
       if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   }, [location.hash]);
+
+  // Sync partners from Supabase on page load
+  useEffect(() => {
+    const tenantId = getActiveTenantId();
+    if (!tenantId) {
+      console.log('[Sync] No tenant ID available');
+      return;
+    }
+    
+    syncPartnersFromSupabase({ tenantId })
+      .then((result) => {
+        if (result.ok && result.count > 0) {
+          console.log(`✅ Synced ${result.count} partners from Supabase`);
+          // Trigger a re-render to show newly synced partners
+          setVersion((v) => v + 1);
+        }
+      })
+      .catch((e) => {
+        console.error('[Sync] Exception:', e);
+      });
+  }, []); // Empty array: run only once on mount
 
   const partners = useMemo(() => {
     const tenantId = getActiveTenantId();
@@ -48,6 +74,77 @@ export default function PartnersListPage() {
       return hay.includes(query);
     });
   }, [auth.user, q, version]);
+
+
+
+  const handleDeletePartner = async (partner: (typeof partners)[0]) => {
+    const confirmed = window.confirm(
+      `Are you sure you want to delete "${partner.profile.fullName}" and all their data?\n\nThis includes:\n• All partner notes\n• All credit reports\n• All letters\n\nThis action cannot be undone.`
+    );
+
+    if (!confirmed) return;
+
+    setDeleting(partner.id);
+    setDeleteErr(null);
+
+    try {
+      const result = await deletePartnerCompletely(partner.id);
+      if (result.ok) {
+        setVersion((v) => v + 1);
+        setDeleting(null);
+      } else {
+        setDeleteErr(result.error || 'Failed to delete partner');
+        setDeleting(null);
+      }
+    } catch (e: any) {
+      setDeleteErr(e?.message || 'Failed to delete partner');
+      setDeleting(null);
+    }
+  };
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'active':
+        return { bg: 'bg-emerald-500/20', border: 'border-emerald-500/40', text: 'text-emerald-300', label: 'Active' };
+      case 'lead':
+        return { bg: 'bg-amber-500/20', border: 'border-amber-500/40', text: 'text-amber-300', label: 'Pending' };
+      case 'paused':
+        return { bg: 'bg-orange-500/20', border: 'border-orange-500/40', text: 'text-orange-300', label: 'Paused' };
+      default:
+        return { bg: 'bg-white/10', border: 'border-white/20', text: 'text-white/60', label: status };
+    }
+  };
+
+  const handleManualSync = async () => {
+    setSyncing(true);
+    setSyncMsg(null);
+    try {
+      const tenantId = getActiveTenantId();
+      console.log(`[Manual Sync] Starting for tenant: ${tenantId}`);
+      const result = await syncPartnersFromSupabase({ tenantId });
+      if (result.ok) {
+        const msg = result.count > 0 
+          ? `✅ Synced ${result.count} partner(s) from Supabase`
+          : 'ℹ️ No new partners in Supabase';
+        console.log(msg);
+        setSyncMsg(msg);
+        setVersion((v) => v + 1);
+        setTimeout(() => setSyncMsg(null), 3000);
+      } else {
+        const msg = `❌ Sync failed: ${result.error}`;
+        console.error(msg);
+        setSyncMsg(msg);
+        setTimeout(() => setSyncMsg(null), 4000);
+      }
+    } catch (e: any) {
+      const msg = `❌ Error: ${e?.message}`;
+      console.error(msg);
+      setSyncMsg(msg);
+      setTimeout(() => setSyncMsg(null), 4000);
+    } finally {
+      setSyncing(false);
+    }
+  };
 
   const canCreatePartner = useMemo(() => {
     const tenantId = getActiveTenantId();
@@ -95,6 +192,15 @@ export default function PartnersListPage() {
           <div className="flex items-center gap-2">
             <button
               type="button"
+              onClick={handleManualSync}
+              disabled={syncing}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-blue-500/25 bg-blue-500/10 hover:bg-blue-500/20 text-blue-200 text-[10px] font-black uppercase tracking-widest transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+              title="Sync partners from Supabase"
+            >
+              {syncing ? '⟳ Syncing…' : '⟳ Sync from Supabase'}
+            </button>
+            <button
+              type="button"
               onClick={() => navigate('/admin/partners/import')}
               className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-amber-500/25 bg-amber-500/10 text-amber-200 text-[10px] font-black uppercase tracking-widest hover:bg-amber-500/20 transition-all"
               title="Import partners from legacy software"
@@ -122,6 +228,12 @@ export default function PartnersListPage() {
           {createErr && (
             <div className="mt-4 p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-red-200/90 text-sm">
               {createErr}
+            </div>
+          )}
+
+          {deleteErr && (
+            <div className="mt-4 p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-red-200/90 text-sm">
+              {deleteErr}
             </div>
           )}
 
@@ -216,17 +328,29 @@ export default function PartnersListPage() {
         </div>
 
         <div className="rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-xl p-6">
-          <div className="flex items-center justify-between gap-4">
-            <div className="flex items-center gap-3 text-white/60">
-              <Search size={16} className="text-white/40" />
-              <input
-                value={q}
-                onChange={(e) => setQ(e.target.value)}
-                className="bg-transparent outline-none w-72 max-w-full text-white/80 placeholder:text-white/20"
-                placeholder="Search partners…"
-              />
+          <div className="space-y-4">
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3 text-white/60">
+                <Search size={16} className="text-white/40" />
+                <input
+                  value={q}
+                  onChange={(e) => setQ(e.target.value)}
+                  className="bg-transparent outline-none w-72 max-w-full text-white/80 placeholder:text-white/20"
+                  placeholder="Search partners…"
+                />
+              </div>
+              <div className="text-[10px] uppercase tracking-widest text-white/40">{partners.length} partners</div>
             </div>
-            <div className="text-[10px] uppercase tracking-widest text-white/40">{partners.length} partners</div>
+
+            <div className="text-[11px] text-white/50 leading-relaxed">
+              <div className="font-semibold text-white/70 mb-2">Partner Sources:</div>
+              <ul className="space-y-1 ml-3">
+                <li><span className="text-emerald-300">●</span> Created manually via "Create Partner" form</li>
+                <li><span className="text-amber-300">●</span> Signed up users (auto-created on first login)</li>
+              </ul>
+            </div>
+
+
           </div>
 
           <div className="mt-6 grid md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -239,13 +363,19 @@ export default function PartnersListPage() {
                 className="p-5"
               >
                 <div className="flex items-start justify-between gap-4">
-                  <div className="min-w-0">
+                  <div className="min-w-0 flex-1">
                     <p className="text-white font-semibold truncate">{p.profile.fullName}</p>
                     <p className="mt-1 text-[10px] uppercase tracking-widest text-white/40 font-mono truncate">
-                      {p.profile.email || 'no-email'} • {p.status}
+                      {p.profile.email || 'no-email'}
                     </p>
                   </div>
-                  <ArrowRight size={16} className="text-amber-400 shrink-0" />
+                  <div className="flex flex-col items-end gap-2">
+                    <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-[9px] font-bold uppercase tracking-widest whitespace-nowrap ${getStatusBadge(p.status).bg} ${getStatusBadge(p.status).border} ${getStatusBadge(p.status).text}`}>
+                      <Badge size={10} />
+                      {getStatusBadge(p.status).label}
+                    </div>
+                    <ArrowRight size={16} className="text-amber-400 shrink-0" />
+                  </div>
                 </div>
 
                 <div className="mt-4 flex flex-wrap gap-2">
@@ -279,6 +409,24 @@ export default function PartnersListPage() {
                     title="Open Partner notes"
                   >
                     Notes <ArrowRight size={12} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDeletePartner(p);
+                    }}
+                    disabled={deleting === p.id}
+                    className="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-red-500/30 bg-red-500/10 hover:bg-red-500/20 text-[10px] font-black uppercase tracking-widest text-red-400 transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+                    title="Delete partner and all associated data"
+                  >
+                    {deleting === p.id ? (
+                      <>Deleting…</>
+                    ) : (
+                      <>
+                        <Trash2 size={12} /> Delete
+                      </>
+                    )}
                   </button>
                 </div>
               </ClickableCard>
