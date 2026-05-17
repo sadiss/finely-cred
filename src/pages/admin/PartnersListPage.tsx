@@ -32,6 +32,7 @@ export default function PartnersListPage() {
   const [deleting, setDeleting] = useState<string | null>(null);
   const [deleteErr, setDeleteErr] = useState<string | null>(null);
   const [syncing, setSyncing] = useState(false);
+  const [syncMsg, setSyncMsg] = useState<string | null>(null);
 
   useEffect(() => {
     if (location.hash === '#create-partner') {
