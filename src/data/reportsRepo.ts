@@ -34,22 +34,25 @@ export function upsertReport(report: CreditReportRecord): CreditReportRecord {
   else store.reports.push(report);
   saveStore(store);
 
-  if (isSupabaseConfigured) {
-    queueMicrotask(() => {
-      void supabase.from('credit_reports').upsert(
-        {
-          id: report.id,
-          partner_id: report.partnerId,
-          received_at: report.receivedAt,
-          filename: (report as any).filename ?? null,
-          provider: (report as any).provider ?? null,
-          data: report as any,
-          updated_at: new Date().toISOString(),
-        },
-        { onConflict: 'id' },
-      );
-    });
-  }
+  // Disable Supabase sync for now to prevent infinite renders
+  // if (isSupabaseConfigured) {
+  //   queueMicrotask(() => {
+  //     void supabase.from('credit_reports').upsert(
+  //       {
+  //         id: report.id,
+  //         partner_id: report.partnerId,
+  //         received_at: report.receivedAt,
+  //         filename: (report as any).filename ?? null,
+  //         provider: (report as any).provider ?? null,
+  //         data: report as any,
+  //         updated_at: new Date().toISOString(),
+  //       },
+  //       { onConflict: 'id' },
+  //     ).catch((err) => {
+  //       console.warn('Failed to sync report to Supabase:', err?.message);
+  //     });
+  //   });
+  // }
   return report;
 }
 
@@ -58,11 +61,14 @@ export function deleteReport(id: string) {
   store.reports = store.reports.filter((r) => r.id !== id);
   saveStore(store);
 
-  if (isSupabaseConfigured) {
-    queueMicrotask(() => {
-      void supabase.from('credit_reports').delete().eq('id', id);
-    });
-  }
+  // Disable Supabase sync for now to prevent infinite renders
+  // if (isSupabaseConfigured) {
+  //   queueMicrotask(() => {
+  //     void supabase.from('credit_reports').delete().eq('id', id).catch((err) => {
+  //       console.warn('Failed to delete report from Supabase:', err?.message);
+  //     });
+  //   });
+  // }
 }
 
 export function replaceReportsSnapshotForPartner(args: { partnerId: string; reports: CreditReportRecord[] }) {

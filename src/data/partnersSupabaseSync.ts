@@ -9,10 +9,10 @@ function safeStr(v: any) {
 }
 
 export async function upsertPartnerToSupabase(args: { partner: Partner; user: User | null }) {
-  if (!isSupabaseConfigured) return { ok: false as const, error: 'Supabase not configured' };
+  if (!isSupabaseConfigured) return;
   const p = args.partner;
-  const userId = safeStr(args.user?.id || p.claimedUserId);
-  if (!p?.id || !userId) return { ok: false as const, error: 'Missing partner/user id' };
+  const userId = safeStr(args.user?.id || (p as any).claimedUserId);
+  if (!p?.id || !userId) return;
 
   const row: any = {
     id: p.id,
@@ -28,9 +28,14 @@ export async function upsertPartnerToSupabase(args: { partner: Partner; user: Us
     updated_at: p.updatedAt,
   };
 
-  const { error } = await supabase.from('partners').upsert(row, { onConflict: 'id' });
-  if (error) return { ok: false as const, error: error.message };
-  return { ok: true as const };
+  try {
+    const { error } = await supabase.from('partners').upsert(row, { onConflict: 'id' });
+    if (error) {
+      console.warn('Failed to upsert partner to Supabase:', error.message);
+    }
+  } catch (err: any) {
+    console.warn('Error upserting partner to Supabase:', err?.message || String(err));
+  }
 }
 
 /**

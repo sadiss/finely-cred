@@ -133,6 +133,11 @@ export function ReportUploader({
 
       onCreated(record);
       setNote('');
+      
+      // Refresh page after successful upload to avoid state cascade issues
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
     } catch (e: any) {
       setError(e?.message || 'Upload failed.');
     } finally {

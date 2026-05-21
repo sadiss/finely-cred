@@ -93,8 +93,12 @@ export function getOrCreatePartnerForSession(args: { user: User | null }) {
       // Best-effort: ensure DB partner row exists + hydrate billing cache from Supabase.
       queueMicrotask(() => {
         void upsertPartnerToSupabase({ partner: hydrated as any, user: args.user });
-        void pullBillingSnapshotFromSupabase({ partnerId: (hydrated as any)?.id });
-        void pullWorkflowSnapshotFromSupabase({ partnerId: (hydrated as any)?.id });
+        void pullBillingSnapshotFromSupabase({ partnerId: (hydrated as any)?.id }).catch(() => {
+          // silent
+        });
+        void pullWorkflowSnapshotFromSupabase({ partnerId: (hydrated as any)?.id }).catch(() => {
+          // silent
+        });
       });
       return hydrated;
     }
@@ -119,8 +123,12 @@ export function getOrCreatePartnerForSession(args: { user: User | null }) {
     const hydrated = maybeHydrateExistingPartner({ partner: existing as any, user: args.user });
     queueMicrotask(() => {
       void upsertPartnerToSupabase({ partner: hydrated as any, user: args.user });
-      void pullBillingSnapshotFromSupabase({ partnerId: (hydrated as any)?.id });
-      void pullWorkflowSnapshotFromSupabase({ partnerId: (hydrated as any)?.id });
+      void pullBillingSnapshotFromSupabase({ partnerId: (hydrated as any)?.id }).catch(() => {
+        // silent
+      });
+      void pullWorkflowSnapshotFromSupabase({ partnerId: (hydrated as any)?.id }).catch(() => {
+        // silent
+      });
     });
     return hydrated;
   }
@@ -245,8 +253,12 @@ export function getOrCreatePartnerForSession(args: { user: User | null }) {
   // Best-effort: ensure DB partner row exists + hydrate billing cache from Supabase.
   queueMicrotask(() => {
     void upsertPartnerToSupabase({ partner: partner as any, user: args.user });
-    void pullBillingSnapshotFromSupabase({ partnerId: partner.id });
-    void pullWorkflowSnapshotFromSupabase({ partnerId: partner.id });
+    void pullBillingSnapshotFromSupabase({ partnerId: partner.id }).catch(() => {
+      // silent
+    });
+    void pullWorkflowSnapshotFromSupabase({ partnerId: partner.id }).catch(() => {
+      // silent
+    });
   });
 
   return partner;

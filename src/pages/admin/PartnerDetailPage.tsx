@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState, Component, type ErrorInfo, type ReactNode } from 'react';
+import React, { useEffect, useMemo, useRef, useState, Component, type ErrorInfo, type ReactNode, useCallback } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import {
   ArrowLeft,
@@ -399,6 +399,7 @@ function PartnerDetailPageInner() {
   const [showAllSystemNotes, setShowAllSystemNotes] = useState(false);
   const [showAllManualNotes, setShowAllManualNotes] = useState(false);
   const [showAllDebtCases, setShowAllDebtCases] = useState(false);
+  const [reportsRefreshKey, setReportsRefreshKey] = useState(0);
   const didAutoTab = useRef(false);
   const generatedLettersRef = useRef<HTMLDivElement | null>(null);
   const analysisReportsRef = useRef<HTMLDivElement | null>(null);
@@ -463,7 +464,15 @@ function PartnerDetailPageInner() {
     return canDeleteLetters(m);
   }, [auth.user, notesVersion]);
 
-  const reports = useMemo(() => (partner ? listReportsByPartner(partner.id) : []), [partner, reportsVersion]);
+  // Memoize the report upload callback to prevent infinite re-renders
+  const handleReportCreated = useCallback((r: any) => {
+    upsertReport(r);
+    setSelectedReportId(r.id);
+    // Trigger refresh of reports list without cascading to notesVersion
+    setReportsRefreshKey((v) => v + 1);
+  }, []);
+
+  const reports = useMemo(() => (partner ? listReportsByPartner(partner.id) : []), [partner, reportsRefreshKey]);
   const selectedReport = useMemo(() => {
     if (!reports.length) return null;
     const idToUse = selectedReportId ?? reports[0].id;
@@ -2312,11 +2321,7 @@ function PartnerDetailPageInner() {
             <ReportUploader
               partnerId={partner.id}
               uploadedBy="admin"
-              onCreated={(r) => {
-                upsertReport(r);
-                setSelectedReportId(r.id);
-                setReportsVersion((v) => v + 1);
-              }}
+              onCreated={handleReportCreated}
             />
 
             <div className="grid lg:grid-cols-12 gap-6">
@@ -2387,7 +2392,7 @@ function PartnerDetailPageInner() {
                                     const reportDate = res.reportDate ?? (pdfText ? detectReportDateFromText(pdfText) : undefined);
                                     upsertReport({ ...r, provider, reportDate, pdfText, pdfMeta, parsed: res.parsed });
                                   }
-                                  setReportsVersion((v) => v + 1);
+                                  setReportsRefreshKey((v) => v + 1);
                                 } catch (err: any) {
                                   setReparseReportErr(err?.message || 'Re-parse failed.');
                                 } finally {
@@ -2419,7 +2424,12 @@ function PartnerDetailPageInner() {
                                   }
                                   deleteReport(r.id);
                                   if (selectedReportId === r.id) setSelectedReportId(null);
-                                  setReportsVersion((v) => v + 1);
+                                  setReportsRefreshKey((v) => v + 1);
+                                  
+                                  // Refresh page after successful deletion to avoid state cascade issues
+                                  setTimeout(() => {
+                                    window.location.reload();
+                                  }, 1000);
                                 } catch (err: any) {
                                   setDeleteReportErr(err?.message || 'Delete failed.');
                                 } finally {

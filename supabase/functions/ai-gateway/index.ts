@@ -192,15 +192,23 @@ Deno.serve(async (req) => {
   if (req.method !== 'POST') return json({ error: 'Method not allowed' }, { status: 405 });
 
   const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
-  const supabaseAnon = Deno.env.get('SUPABASE_ANON_KEY') || '';
-  if (!supabaseUrl || !supabaseAnon) return json({ error: 'Supabase env not configured' }, { status: 500 });
+  const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY') || '';
+  if (!supabaseUrl || !supabaseKey) return json({ error: 'Supabase env not configured' }, { status: 500 });
 
   const auth = req.headers.get('Authorization') || '';
   if (!auth.toLowerCase().startsWith('bearer ')) return json({ error: 'Missing Authorization bearer token' }, { status: 401 });
 
-  const supabase = createClient(supabaseUrl, supabaseAnon, { global: { headers: { Authorization: auth } } });
+  // Use Supabase client with the provided JWT - supabase/config.toml handles verification automatically
+  const supabase = createClient(supabaseUrl, supabaseKey, { 
+    global: { headers: { Authorization: auth } },
+    auth: { persistSession: false } // Disable session for Edge Functions
+  });
+  
   const { data: userRes, error: userErr } = await supabase.auth.getUser();
-  if (userErr || !userRes?.user) return json({ error: 'Unauthorized' }, { status: 401 });
+  if (userErr || !userRes?.user) {
+    console.error('Auth error:', userErr?.message);
+    return json({ error: 'Unauthorized' }, { status: 401 });
+  }
 
   let body: ReqBody;
   try {
