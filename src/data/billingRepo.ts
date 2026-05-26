@@ -404,7 +404,7 @@ export function grantEntitlement(args: {
   const store = loadStore();
   const now = nowIso();
 
-  const existingIdx = store.entitlements.findIndex(
+  const existing = store.entitlements.find(
     (e) =>
       e.partnerId === partnerId &&
       e.key === key &&
@@ -413,8 +413,8 @@ export function grantEntitlement(args: {
       (!e.endsAt || e.endsAt > now),
   );
 
-  if (existingIdx >= 0) {
-    return store.entitlements[existingIdx]!;
+  if (existing) {
+    return existing;
   }
 
   const revokedIdx = store.entitlements.findIndex(

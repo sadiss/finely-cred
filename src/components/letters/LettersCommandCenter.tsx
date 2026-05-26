@@ -1611,19 +1611,20 @@ useEffect(() => {
   // Auto-save is only needed in the standalone portal flow.
   if (layout === 'embedded') return;
 
-  const cleanRecord = <T,>(obj: Record<string, T | undefined | null>) =>
+  const cleanRecord = <T,>(obj: Record<string, T | undefined | null>): Record<string, NonNullable<T>> =>
     Object.fromEntries(
       Object.entries(obj || {}).filter(([, value]) => {
+        if (value === null) return false;
         if (Array.isArray(value)) return value.length > 0;
         if (value && typeof value === 'object') return Object.keys(value as any).length > 0;
         return value != null && String(value).trim() !== '';
       }),
-    );
+    ) as Record<string, NonNullable<T>>;
 
-  const cleanStringRecord = <K extends string>(obj: Record<K, string>) =>
+  const cleanStringRecord = <K extends string>(obj: Record<K, string>): Record<string, string> =>
     Object.fromEntries(
       Object.entries(obj || {}).filter(([, value]) => String(value || '').trim() !== ''),
-    ) as Partial<Record<K, string>>;
+    ) as Record<string, string>;
 
   const defaultSubjectLineByBureau: Record<Bureau, string> = {
     EXP: SUBJECT_LINE,
