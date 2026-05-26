@@ -1593,75 +1593,159 @@ export function LettersCommandCenter({
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [partner?.id, didRestore]);
+  }, [partner?.id]);
 
   // Auto-save progress (debounced).
-  useEffect(() => {
-    if (!partner) return;
-    const hasAnything =
-      selectedDisputes.length > 0 ||
-      Object.keys(evidenceByCandidateId).length > 0 ||
-      Object.keys(reasonsByCandidateId).length > 0 ||
-      Object.keys(aiNarrativeByCandidateKey).length > 0 ||
-      Boolean(senderName.trim() || senderAddressLine1.trim() || senderAddressLine2.trim() || senderCityStateZip.trim()) ||
-      Object.values(subjectLineByBureau).some((s) => Boolean(String(s || '').trim())) ||
-      Object.values(bureauAddressDraftByBureau).some((x) => Boolean(String(x?.name || '').trim() || String(x?.linesText || '').trim()));
+ // Auto-save progress (debounced).
+// Important:
+// - Disable in embedded/admin mode to avoid parent detail page render loops.
+// - Do not treat default bureau subject/address values as "draft content".
+// - Do not write the same snapshot repeatedly.
+// - Avoid triggering finely:store loops from saveLettersCommandCenterDraft.
+const lastSavedDraftJsonRef = React.useRef<string>('');
 
-    const t = window.setTimeout(() => {
-      if (!partner) return;
-      if (!hasAnything) {
-        clearLettersCommandCenterDraft(partner.id);
-        return;
-      }
-      saveLettersCommandCenterDraft(partner.id, {
-        selectedDisputes,
-        evidenceByCandidateId,
-        reasonsByCandidateId,
-        aiNarrativeByCandidateKey,
-        aiQuestionsByBureau,
-        toneByBureau: toneByBureau as any,
-        roundByBureau: roundByBureau as any,
-        introByBureau,
-        footerByBureau,
-        sender: {
-          name: senderName || undefined,
-          addressLine1: senderAddressLine1 || undefined,
-          addressLine2: senderAddressLine2 || undefined,
-          cityStateZip: senderCityStateZip || undefined,
-        },
-        subjectLineByBureau,
-        bureauAddressByBureau: Object.fromEntries(
-          (['EXP', 'EQF', 'TUC'] as Bureau[]).map((b) => {
-            const cur = bureauAddressDraftByBureau[b];
-            const name = String(cur?.name || '').trim();
-            const lines = String(cur?.linesText || '')
-              .split('\n')
-              .map((x) => x.trim())
-              .filter(Boolean);
-            return [b, { name: name || bureauDisputeAddress(b).name, lines: lines.length ? lines : bureauDisputeAddress(b).lines }];
-          }),
-        ) as any,
-      });
-    }, 500);
-    return () => window.clearTimeout(t);
-  }, [
-    partner?.id,
+useEffect(() => {
+  if (!partner?.id) return;
+
+  // In PartnerDetailPage, LettersCommandCenter is mounted as layout="embedded".
+  // Auto-save is only needed in the standalone portal flow.
+  if (layout === 'embedded') return;
+
+  const cleanRecord = <T,>(obj: Record<string, T | undefined | null>) =>
+    Object.fromEntries(
+      Object.entries(obj || {}).filter(([, value]) => {
+        if (Array.isArray(value)) return value.length > 0;
+        if (value && typeof value === 'object') return Object.keys(value as any).length > 0;
+        return value != null && String(value).trim() !== '';
+      }),
+    );
+
+  const cleanStringRecord = <K extends string>(obj: Record<K, string>) =>
+    Object.fromEntries(
+      Object.entries(obj || {}).filter(([, value]) => String(value || '').trim() !== ''),
+    ) as Partial<Record<K, string>>;
+
+  const defaultSubjectLineByBureau: Record<Bureau, string> = {
+    EXP: SUBJECT_LINE,
+    EQF: SUBJECT_LINE,
+    TUC: SUBJECT_LINE,
+  };
+
+  const subjectOverrides = Object.fromEntries(
+    (['EXP', 'EQF', 'TUC'] as Bureau[])
+      .map((b) => {
+        const current = String(subjectLineByBureau[b] || '').trim();
+        const defaultValue = String(defaultSubjectLineByBureau[b] || '').trim();
+        return [b, current && current !== defaultValue ? current : ''];
+      })
+      .filter(([, value]) => Boolean(value)),
+  ) as Partial<Record<Bureau, string>>;
+
+  const bureauAddressOverrides = Object.fromEntries(
+    (['EXP', 'EQF', 'TUC'] as Bureau[])
+      .map((b) => {
+        const cur = bureauAddressDraftByBureau[b];
+        const defaultAddr = bureauDisputeAddress(b);
+
+        const name = String(cur?.name || '').trim();
+        const linesText = String(cur?.linesText || '').trim();
+
+        const defaultName = String(defaultAddr.name || '').trim();
+        const defaultLinesText = defaultAddr.lines.join('\n').trim();
+
+        const changed = name !== defaultName || linesText !== defaultLinesText;
+        if (!changed) return null;
+
+        const lines = linesText
+          .split('\n')
+          .map((x) => x.trim())
+          .filter(Boolean);
+
+        return [
+          b,
+          {
+            name: name || defaultAddr.name,
+            lines: lines.length ? lines : defaultAddr.lines,
+          },
+        ];
+      })
+      .filter(Boolean) as Array<[Bureau, { name: string; lines: string[] }]>,
+  ) as Partial<Record<Bureau, { name: string; lines: string[] }>>;
+
+  const sender = {
+    name: senderName.trim() || undefined,
+    addressLine1: senderAddressLine1.trim() || undefined,
+    addressLine2: senderAddressLine2.trim() || undefined,
+    cityStateZip: senderCityStateZip.trim() || undefined,
+  };
+
+  const hasSender = Object.values(sender).some(Boolean);
+
+  const draftPayload = {
     selectedDisputes,
-    evidenceByCandidateId,
-    reasonsByCandidateId,
-    aiNarrativeByCandidateKey,
-    aiQuestionsByBureau,
-    toneByBureau,
-    roundByBureau,
+    evidenceByCandidateId: cleanRecord(evidenceByCandidateId),
+    reasonsByCandidateId: cleanRecord(reasonsByCandidateId),
+    aiNarrativeByCandidateKey: cleanStringRecord(aiNarrativeByCandidateKey),
+    aiQuestionsByBureau: cleanRecord(aiQuestionsByBureau as any),
+    toneByBureau: toneByBureau as any,
+    roundByBureau: roundByBureau as any,
     introByBureau,
     footerByBureau,
-    senderName,
-    senderAddressLine1,
-    senderAddressLine2,
-    senderCityStateZip,
-    subjectLineByBureau,
-    bureauAddressDraftByBureau,
-  ]);
+    sender: hasSender ? sender : undefined,
+    subjectLineByBureau: subjectOverrides,
+    bureauAddressByBureau: bureauAddressOverrides as any,
+  };
+
+  const hasAnything =
+    selectedDisputes.length > 0 ||
+    Object.keys(draftPayload.evidenceByCandidateId).length > 0 ||
+    Object.keys(draftPayload.reasonsByCandidateId).length > 0 ||
+    Object.keys(draftPayload.aiNarrativeByCandidateKey).length > 0 ||
+    Object.keys(draftPayload.aiQuestionsByBureau).length > 0 ||
+    hasSender ||
+    Object.keys(subjectOverrides).length > 0 ||
+    Object.keys(bureauAddressOverrides).length > 0;
+
+  const draftJson = JSON.stringify(draftPayload);
+
+  const t = window.setTimeout(() => {
+    if (!partner?.id) return;
+
+    if (!hasAnything) {
+      if (lastSavedDraftJsonRef.current !== '') {
+        clearLettersCommandCenterDraft(partner.id);
+        lastSavedDraftJsonRef.current = '';
+      }
+      return;
+    }
+
+    // Prevent repeated storage writes that trigger finely:store and re-render loops.
+    if (lastSavedDraftJsonRef.current === draftJson) return;
+
+    saveLettersCommandCenterDraft(partner.id, draftPayload);
+    lastSavedDraftJsonRef.current = draftJson;
+  }, 500);
+
+  return () => window.clearTimeout(t);
+}, [
+  partner?.id,
+  layout,
+  selectedDisputes,
+  evidenceByCandidateId,
+  reasonsByCandidateId,
+  aiNarrativeByCandidateKey,
+  aiQuestionsByBureau,
+  toneByBureau,
+  roundByBureau,
+  introByBureau,
+  footerByBureau,
+  senderName,
+  senderAddressLine1,
+  senderAddressLine2,
+  senderCityStateZip,
+  subjectLineByBureau,
+  bureauAddressDraftByBureau,
+]);
 
   const selectedByBureau = useMemo(() => {
     const m: Record<Bureau, SelectedDispute[]> = { EXP: [], EQF: [], TUC: [] };

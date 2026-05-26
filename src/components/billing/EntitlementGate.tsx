@@ -3,6 +3,7 @@ import { Lock, ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { grantEntitlement, hasEntitlement, listEntitlementsByPartner } from '../../data/billingRepo';
 
+
 export function EntitlementGate({
   partnerId,
   requiredKeys,
@@ -63,11 +64,28 @@ export function EntitlementGate({
             {canDevUnlock ? (
               <button
                 type="button"
-                onClick={() => {
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+
+                  let changed = false;
+
                   for (const key of requiredKeys) {
-                    grantEntitlement({ partnerId, key, status: 'active' });
+                    const hadAccess = hasEntitlement(partnerId, key);
+
+                    grantEntitlement({
+                      partnerId,
+                      key,
+                      status: 'active',
+                    });
+
+                    const hasAccessNow = hasEntitlement(partnerId, key);
+                    if (!hadAccess && hasAccessNow) changed = true;
                   }
-                  setVersion((v) => v + 1);
+
+                  if (changed) {
+                    setVersion((v) => v + 1);
+                  }
                 }}
                 className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 text-[10px] font-black uppercase tracking-widest text-white/70 transition-all"
                 title="Development-only: unlock on localhost without billing"

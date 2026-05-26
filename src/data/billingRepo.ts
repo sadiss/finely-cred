@@ -392,23 +392,68 @@ export function grantEntitlement(args: {
   status?: Entitlement['status'];
   endsAt?: string;
 }): Entitlement {
+  const partnerId = String(args.partnerId || '').trim();
+  const key = String(args.key || '').trim();
+  const tenantId = args.tenantId ?? FINELY_TENANT_ID;
+  const status = args.status ?? 'active';
+
+  if (!partnerId || !key) {
+    throw new Error('grantEntitlement requires partnerId and key.');
+  }
+
   const store = loadStore();
   const now = nowIso();
+
+  const existingIdx = store.entitlements.findIndex(
+    (e) =>
+      e.partnerId === partnerId &&
+      e.key === key &&
+      e.tenantId === tenantId &&
+      e.status === status &&
+      (!e.endsAt || e.endsAt > now),
+  );
+
+  if (existingIdx >= 0) {
+    return store.entitlements[existingIdx]!;
+  }
+
+  const revokedIdx = store.entitlements.findIndex(
+    (e) =>
+      e.partnerId === partnerId &&
+      e.key === key &&
+      e.tenantId === tenantId &&
+      e.status !== status,
+  );
+
+  if (revokedIdx >= 0) {
+    const next: Entitlement = {
+      ...store.entitlements[revokedIdx]!,
+      sourceAgreementId: args.sourceAgreementId ?? store.entitlements[revokedIdx]!.sourceAgreementId,
+      status,
+      startsAt: now,
+      endsAt: args.endsAt,
+    };
+
+    store.entitlements[revokedIdx] = next;
+    saveStore(store);
+    return next;
+  }
+
   const next: Entitlement = {
     id: newId('ent'),
-    tenantId: args.tenantId ?? FINELY_TENANT_ID,
-    partnerId: args.partnerId,
-    key: args.key,
+    tenantId,
+    partnerId,
+    key,
     sourceAgreementId: args.sourceAgreementId,
-    status: args.status ?? 'active',
+    status,
     startsAt: now,
     endsAt: args.endsAt,
   };
+
   store.entitlements.push(next);
   saveStore(store);
   return next;
 }
-
 export function setEntitlementStatus(entitlementId: string, status: Entitlement['status']): Entitlement | null {
   const id = (entitlementId || '').trim();
   if (!id) return null;

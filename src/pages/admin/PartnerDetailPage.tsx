@@ -624,14 +624,20 @@ function PartnerDetailPageInner() {
   useEffect(() => {
     // Ensure focus stays valid when list changes (e.g., switching reports).
     if (!candidates.length) {
-      setFocusedCandidateId(null);
-      setSelectedCandidateIds([]);
+      if (focusedCandidateId) setFocusedCandidateId(null);
+      if (selectedCandidateIds.length) setSelectedCandidateIds([]);
       return;
     }
-    if (focusedCandidateId && candidates.some((c) => c.id === focusedCandidateId)) return;
-    const nextFocus = selectedCandidateIds.find((cid) => candidates.some((c) => c.id === cid)) ?? candidates[0].id;
-    setFocusedCandidateId(nextFocus);
-  }, [candidates, focusedCandidateId, selectedCandidateIds]);
+    // Check if current focusedCandidateId already exists in candidates
+    if (focusedCandidateId && candidates.some((c) => c.id === focusedCandidateId)) {
+      return;
+    }
+    // Only update if we have a valid fallback
+    const nextFocus = selectedCandidateIds.find((cid) => candidates.some((c) => c.id === cid)) ?? candidates[0]?.id;
+    if (nextFocus && nextFocus !== focusedCandidateId) {
+      setFocusedCandidateId(nextFocus);
+    }
+  }, [candidates.length, focusedCandidateId, selectedCandidateIds]);
 
   const toggleCandidate = (candidateId: string) => {
     setSelectedCandidateIds((prev) => {
@@ -820,7 +826,8 @@ function PartnerDetailPageInner() {
       changed = true;
     }
     if (changed) setReasonsVersion((v) => v + 1);
-  }, [partner, selectedReport?.id, selectedReport?.parsed, selectedCandidates, setReasonsVersion]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [partner?.id, selectedReport?.id, selectedCandidates.map((c) => c.id).join('|')]);
 
   const getReasonsRecord = (c: DisputeCandidate): DisputeReasonsRecord | null => {
     if (!partner) return null;
