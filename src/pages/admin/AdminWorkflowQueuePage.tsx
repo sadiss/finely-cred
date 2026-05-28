@@ -40,7 +40,9 @@ export default function AdminWorkflowQueuePage() {
     const u = auth.user;
     if (!u) { setPartnerIds(new Set()); return; }
     getAccessiblePartnerIdsForAdmin({ userId: u.id, email: u.email, tenantId }).then(setPartnerIds);
-  }, [auth.user, version]); = useMemo(() => {
+  }, [auth.user, version]);
+
+  const unread = useMemo(() => {
     const all = listNotifications({ audience: 'admin', unreadOnly: true, limit: 200 });
     return all.filter((n) => !n.partnerId || partnerIds.has(n.partnerId));
   }, [partnerIds, version]);

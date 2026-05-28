@@ -5,7 +5,7 @@ import { PageShell } from '../../components/layout/PageShell';
 import { useAuth } from '../../auth/AuthProvider';
 import { getAccessiblePartnerIdsForAdmin } from '../../tenancy/adminPartnerScope';
 import { getActiveTenantId } from '../../tenancy/activeTenant';
-import { getPartner } from '../../data/partnersRepo';
+import { listPartnersByTenant } from '../../data/partnersRepo';
 import { createTask, listTasks, setTaskStatus, upsertTask } from '../../data/tasksRepo';
 import { createProject, listProjects } from '../../data/projectsRepo';
 import { getWorkboardSettings } from '../../data/settingsRepo';
@@ -52,19 +52,16 @@ export default function AdminTasksPage() {
     }
   }, [location.pathname, location.search]);
 
-  const partnerIds = useMemo(() => {
   const [partnerIds, setPartnerIds] = useState<Set<string>>(new Set());
   const [partnerById, setPartnerById] = useState<Map<string, import('../../domain/partners').Partner>>(new Map());
   useEffect(() => {
     const tenantId = getActiveTenantId();
     const u = auth.user;
     if (!u) { setPartnerIds(new Set()); setPartnerById(new Map()); return; }
-    import('../../data/partnersRepo').then(({ listPartnersByTenant }) => {
-      getAccessiblePartnerIdsForAdmin({ userId: u.id, email: u.email, tenantId }).then((ids) => {
-        setPartnerIds(ids);
-        listPartnersByTenant(tenantId).then((all) => {
-          setPartnerById(new Map(all.filter((p) => ids.has(p.id)).map((p) => [p.id, p])));
-        });
+    getAccessiblePartnerIdsForAdmin({ userId: u.id, email: u.email, tenantId }).then((ids) => {
+      setPartnerIds(ids);
+      listPartnersByTenant(tenantId).then((all) => {
+        setPartnerById(new Map(all.filter((p) => ids.has(p.id)).map((p) => [p.id, p])));
       });
     });
   }, [auth.user, version]);
@@ -87,11 +84,27 @@ export default function AdminTasksPage() {
       if (stageFilter !== 'all' && st !== stageFilter) return false;
       if (!q) return true;
       const partner = partnerById.get(t.partnerId) ?? null;
+      const project = t.projectId ? visibleProjects.find((p) => p.id === t.projectId) : null;
+      const hay = [
+        t.title,
+        t.kind,
+        t.partnerId,
+        partner?.profile?.fullName ?? '',
+        project?.title ?? '',
+        st,
+        (t.tags ?? []).join(' '),
+      ]
+        .join(' ')
+        .toLowerCase();
+      return hay.includes(q);
+    });
+  }, [tasks, partnerIds, partnerById, query, scope, projectId, stageFilter, visibleProjects]);
 
   const items: WorkBoardItem[] = useMemo(
     () =>
       filteredTasks.map((t) => {
         const partner = partnerById.get(t.partnerId) ?? null;
+        const proj = t.projectId ? visibleProjects.find((p) => p.id === t.projectId) : null;
         const categoryStage = String(t.stage ?? 'intake');
         return {
           id: t.id,
@@ -131,6 +144,7 @@ export default function AdminTasksPage() {
       .slice(0, 600)
       .map((p) => {
         const partner = partnerById.get(p.partnerId) ?? null;
+        const label = `${p.title} • ${(p.scope ?? 'personal')} • ${partner?.profile?.fullName ?? p.partnerId}`;
         return { id: p.id, label };
       });
   }, [visibleProjects, version]);
