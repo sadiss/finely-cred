@@ -34,14 +34,13 @@ export default function AdminWorkflowQueuePage() {
     return () => window.removeEventListener('finely:store', onStore as EventListener);
   }, []);
 
-  const partnerIds = useMemo(() => {
+  const [partnerIds, setPartnerIds] = useState<Set<string>>(new Set());
+  useEffect(() => {
     const tenantId = getActiveTenantId();
     const u = auth.user;
-    if (!u) return new Set<string>();
-    return getAccessiblePartnerIdsForAdmin({ userId: u.id, email: u.email, tenantId });
-  }, [auth.user, version]);
-
-  const unread = useMemo(() => {
+    if (!u) { setPartnerIds(new Set()); return; }
+    getAccessiblePartnerIdsForAdmin({ userId: u.id, email: u.email, tenantId }).then(setPartnerIds);
+  }, [auth.user, version]); = useMemo(() => {
     const all = listNotifications({ audience: 'admin', unreadOnly: true, limit: 200 });
     return all.filter((n) => !n.partnerId || partnerIds.has(n.partnerId));
   }, [partnerIds, version]);

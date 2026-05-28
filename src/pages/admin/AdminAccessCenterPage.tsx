@@ -90,10 +90,11 @@ export default function AdminAccessCenterPage() {
     };
   }, [isAllowlisted, membershipActive, membershipPlatform]);
 
-  const accessiblePartnerCount = useMemo(() => {
-    if (!user?.id) return 0;
-    const set = getAccessiblePartnerIdsForAdmin({ userId: user.id, email, tenantId: activeTenantId });
-    return set.size;
+  const [accessiblePartnerCount, setAccessiblePartnerCount] = useState(0);
+  useEffect(() => {
+    if (!user?.id) { setAccessiblePartnerCount(0); return; }
+    getAccessiblePartnerIdsForAdmin({ userId: user.id, email, tenantId: activeTenantId })
+      .then((set) => setAccessiblePartnerCount(set.size));
   }, [user?.id, email, activeTenantId, storeVersion]);
 
   const security = useMemo(() => loadSettings().security ?? { adminEmails: [] }, [storeVersion]);

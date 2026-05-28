@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ArrowLeft, BarChart3 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { PageShell } from '../../components/layout/PageShell';
@@ -15,32 +15,30 @@ export default function AdminAnalyticsPage() {
   const navigate = useNavigate();
   const auth = useAuth();
 
-  const stats = useMemo(() => {
+  const [stats, setStats] = useState({
+    leadsCount: 0, tasksCount: 0, openTasksCount: 0, casesCount: 0, openCasesCount: 0,
+    leads14: [] as number[], tasks14: [] as number[], cases14: [] as number[],
+  });
+  useEffect(() => {
     const tenantId = getActiveTenantId();
     const u = auth.user;
-    const partnerIds = u ? getAccessiblePartnerIdsForAdmin({ userId: u.id, email: u.email, tenantId }) : new Set<string>();
-
-    const leads = listLeadCaptures();
-    const tasks = listTasks().filter((t: any) => partnerIds.has(String((t as any).partnerId || '')));
-    const cases = listCases().filter((c) => partnerIds.has(c.partnerId));
-
-    const openTasks = tasks.filter((t: any) => t.status === 'pending' || t.status === 'in_progress');
-    const openCases = cases.filter((c) => c.status === 'open');
-
-    const leads14 = bucketCountsByDay({ items: leads, getIso: (l) => (l as any).createdAt, days: 14 }).values;
-    const tasks14 = bucketCountsByDay({ items: tasks, getIso: (t) => (t as any).createdAt, days: 14 }).values;
-    const cases14 = bucketCountsByDay({ items: cases, getIso: (c) => (c as any).createdAt, days: 14 }).values;
-
-    return {
-      leadsCount: leads.length,
-      tasksCount: tasks.length,
-      openTasksCount: openTasks.length,
-      casesCount: cases.length,
-      openCasesCount: openCases.length,
-      leads14,
-      tasks14,
-      cases14,
-    };
+    const pidsPromise = u
+      ? getAccessiblePartnerIdsForAdmin({ userId: u.id, email: u.email, tenantId })
+      : Promise.resolve(new Set<string>());
+    pidsPromise.then((partnerIds) => {
+      const leads = listLeadCaptures();
+      const tasks = listTasks().filter((t: any) => partnerIds.has(String((t as any).partnerId || '')));
+      const cases = listCases().filter((c) => partnerIds.has(c.partnerId));
+      const openTasks = tasks.filter((t: any) => t.status === 'pending' || t.status === 'in_progress');
+      const openCases = cases.filter((c) => c.status === 'open');
+      setStats({
+        leadsCount: leads.length, tasksCount: tasks.length, openTasksCount: openTasks.length,
+        casesCount: cases.length, openCasesCount: openCases.length,
+        leads14: bucketCountsByDay({ items: leads, getIso: (l) => (l as any).createdAt, days: 14 }).values,
+        tasks14: bucketCountsByDay({ items: tasks, getIso: (t) => (t as any).createdAt, days: 14 }).values,
+        cases14: bucketCountsByDay({ items: cases, getIso: (c) => (c as any).createdAt, days: 14 }).values,
+      });
+    });
   }, [auth.user]);
 
   return (

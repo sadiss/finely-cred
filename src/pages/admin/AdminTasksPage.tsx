@@ -53,10 +53,20 @@ export default function AdminTasksPage() {
   }, [location.pathname, location.search]);
 
   const partnerIds = useMemo(() => {
+  const [partnerIds, setPartnerIds] = useState<Set<string>>(new Set());
+  const [partnerById, setPartnerById] = useState<Map<string, import('../../domain/partners').Partner>>(new Map());
+  useEffect(() => {
     const tenantId = getActiveTenantId();
     const u = auth.user;
-    if (!u) return new Set<string>();
-    return getAccessiblePartnerIdsForAdmin({ userId: u.id, email: u.email, tenantId });
+    if (!u) { setPartnerIds(new Set()); setPartnerById(new Map()); return; }
+    import('../../data/partnersRepo').then(({ listPartnersByTenant }) => {
+      getAccessiblePartnerIdsForAdmin({ userId: u.id, email: u.email, tenantId }).then((ids) => {
+        setPartnerIds(ids);
+        listPartnersByTenant(tenantId).then((all) => {
+          setPartnerById(new Map(all.filter((p) => ids.has(p.id)).map((p) => [p.id, p])));
+        });
+      });
+    });
   }, [auth.user, version]);
 
   const tasks = useMemo(() => listTasks(), [version]);
@@ -76,28 +86,12 @@ export default function AdminTasksPage() {
       const st = String(t.stage ?? 'intake');
       if (stageFilter !== 'all' && st !== stageFilter) return false;
       if (!q) return true;
-      const partner = getPartner(t.partnerId);
-      const project = t.projectId ? visibleProjects.find((p) => p.id === t.projectId) : null;
-      const hay = [
-        t.title,
-        t.kind,
-        t.partnerId,
-        partner?.profile?.fullName ?? '',
-        project?.title ?? '',
-        st,
-        (t.tags ?? []).join(' '),
-      ]
-        .join(' ')
-        .toLowerCase();
-      return hay.includes(q);
-    });
-  }, [tasks, partnerIds, query, scope, projectId, stageFilter, visibleProjects]);
+      const partner = partnerById.get(t.partnerId) ?? null;
 
   const items: WorkBoardItem[] = useMemo(
     () =>
       filteredTasks.map((t) => {
-        const partner = getPartner(t.partnerId);
-        const proj = t.projectId ? visibleProjects.find((p) => p.id === t.projectId) : null;
+        const partner = partnerById.get(t.partnerId) ?? null;
         const categoryStage = String(t.stage ?? 'intake');
         return {
           id: t.id,
@@ -124,7 +118,7 @@ export default function AdminTasksPage() {
   const partnerOptions = useMemo(() => {
     return Array.from(partnerIds)
       .map((pid) => {
-        const p = getPartner(pid);
+        const p = partnerById.get(pid) ?? null;
         return { id: pid, label: p?.profile?.fullName ? `${p.profile.fullName} (${pid.slice(0, 6)})` : pid };
       })
       .sort((a, b) => a.label.localeCompare(b.label));
@@ -136,8 +130,7 @@ export default function AdminTasksPage() {
       .sort((a, b) => (a.updatedAt < b.updatedAt ? 1 : -1))
       .slice(0, 600)
       .map((p) => {
-        const partner = getPartner(p.partnerId);
-        const label = `${p.title} • ${(p.scope ?? 'personal')} • ${partner?.profile?.fullName ?? p.partnerId}`;
+        const partner = partnerById.get(p.partnerId) ?? null;
         return { id: p.id, label };
       });
   }, [visibleProjects, version]);
