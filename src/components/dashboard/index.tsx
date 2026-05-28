@@ -797,12 +797,12 @@ export function MasteryOSDashboard({ user, onLogout }: MasteryOSDashboardProps) 
       if (!latest?.parsed) { setDisputeCandidates([]); return; }
       setDisputeCandidates(deriveDisputeCandidates(latest.parsed, latest.id));
     });
-  }, [auth.user?.email, storeVersion]);
+  }, [auth.user?.email]);
 
   useEffect(() => {
     if (!isAdmin) { setAdminPartnersAll([]); return; }
     listPartners().then(setAdminPartnersAll);
-  }, [isAdmin, storeVersion]);
+  }, [isAdmin]);
 
   const adminPartnerCards = useMemo(() => {
     if (!isAdmin) return [];
@@ -869,7 +869,7 @@ export function MasteryOSDashboard({ user, onLogout }: MasteryOSDashboardProps) 
         reports14: bucketCountsByDay({ items: reports, getIso: (r: any) => r.receivedAt, days: 14 }).values,
       },
     };
-  }, [isAdmin, adminPartnersAll, currentPartner, disputeCandidates.length, partnerQuery, storeVersion]);
+  }, [isAdmin, adminPartnersAll, currentPartner, disputeCandidates.length, partnerQuery]);
 
   return (
     <div className="min-h-screen bg-[#0a0f0d] text-white flex flex-col animate-in fade-in duration-1000">

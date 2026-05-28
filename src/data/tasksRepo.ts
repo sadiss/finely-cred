@@ -94,8 +94,10 @@ function visibilityFromLegacyAssignedTo(v: any): TaskVisibility | undefined {
 
 function normStrArray(x: any, limit = 200): string[] | undefined {
   if (!Array.isArray(x)) return undefined;
-  const next = x.map((s) => String(s ?? '').trim()).filter(Boolean);
-  return next.slice(0, limit);
+  const next = x.map((s) => String(s ?? '').trim()).filter(Boolean).slice(0, limit);
+  // Return original reference if content is identical — enables reference-equality change detection
+  if (next.length === x.length && next.every((v, i) => v === x[i])) return x as string[];
+  return next;
 }
 
 function normEntityRefs(x: any) {
@@ -110,7 +112,10 @@ function normEntityRefs(x: any) {
       return { kind, id, label };
     })
     .filter(Boolean);
-  return (next as any[]).slice(0, 200);
+  const result = (next as any[]).slice(0, 200);
+  // Return original reference when content is unchanged
+  if (result.length === x.length && result.every((item, i) => JSON.stringify(item) === JSON.stringify(x[i]))) return x;
+  return result;
 }
 
 function normAttachments(x: any) {
@@ -128,7 +133,10 @@ function normAttachments(x: any) {
       return { evidenceId, blobRef, filename, mimeType, note, createdAt };
     })
     .filter(Boolean);
-  return (next as any[]).slice(0, 200);
+  const result = (next as any[]).slice(0, 200);
+  // Return original reference when content is unchanged
+  if (result.length === x.length && result.every((item, i) => JSON.stringify(item) === JSON.stringify(x[i]))) return x;
+  return result;
 }
 
 export function listTasks(): TaskItem[] {
