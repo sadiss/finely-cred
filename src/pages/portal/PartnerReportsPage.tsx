@@ -13,7 +13,7 @@ import { ParsedReportDiagnosticsPanel } from '../../components/reports/ParsedRep
 import { PdfReportFallbackView } from '../../components/reports/PdfReportFallbackView';
 import { isAdminEmail } from '../../auth/admin';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { getOrCreatePartnerForSession } from '../../portal/getOrCreatePartnerForSession';
+import { usePartnerSession } from '../../auth/PartnerSessionContext';
 import { ADMIN_PARTNER_OVERRIDE_KEY } from '../../portal/getOrCreatePartnerForSession';
 import { getBlobStore } from '../../storage/getBlobStore';
 import { parseCreditReportHtmlEnhanced } from '../../creditReports/parseHtmlReport';
@@ -46,7 +46,7 @@ export default function PartnerReportsPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const email = auth.user?.email || '';
-  const partner = useMemo(() => getOrCreatePartnerForSession({ user: auth.user }), [auth.user]);
+  const { partner } = usePartnerSession();
 
   // Admin accounts should not land on the Partner-facing reports uploader.
   // This prevents accidental creation of a "Partner" record for an admin email.

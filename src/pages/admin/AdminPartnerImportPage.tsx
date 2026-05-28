@@ -1,10 +1,11 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { ArrowLeft, ArrowRight, FileJson, Link, Upload } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { PageShell } from '../../components/layout/PageShell';
 import type { LegacyPartnerExportV1 } from '../../domain/imports';
 import { importLegacyPartners, listImportBatches } from '../../data/importsRepo';
-import { getPartner, listPartners } from '../../data/partnersRepo';
+import type { Partner } from '../../domain/partners';
+import { getPartner } from '../../data/partnersRepo';
 import { createInvite, getInvite, listInvitesByPartner, upsertInvite } from '../../data/invitesRepo';
 import { isFeatureEnabled } from '../../data/settingsRepo';
 import { sendInviteEmail, sendInviteSms } from '../../lib/inviteDeliveryClient';
@@ -49,23 +50,18 @@ export default function AdminPartnerImportPage() {
     return partners.slice(0, 8);
   }, [parsed]);
 
-  const existingByExternalId = useMemo(() => {
-    const all = listPartners();
-    const m = new Map<string, string>();
-    for (const p of all) {
-      if (p.importSource === 'laravel' && p.importExternalId) {
-        m.set(p.importExternalId, p.id);
-      }
-    }
-    return m;
+  const [existingByExternalId, setExistingByExternalId] = useState<Map<string, string>>(new Map());
+  useEffect(() => {
+    // No need to pre-check existing partners; import handles deduplication via Supabase
+    setExistingByExternalId(new Map());
   }, [raw]);
 
   const batches = useMemo(() => listImportBatches().slice(0, 6), [notice]);
 
-  const generateInvitesForPartnerIds = (partnerIds: string[]) => {
+  const generateInvitesForPartnerIds = async (partnerIds: string[]) => {
     const created: string[] = [];
     for (const id of partnerIds) {
-      const p = getPartner(id);
+      const p = await getPartner(id);
       if (!p) continue;
       const existing = listInvitesByPartner(p.id);
       if (existing.length) continue; // don’t spam duplicates by default
@@ -181,8 +177,8 @@ export default function AdminPartnerImportPage() {
                   }
                   setBusy(true);
                   try {
-                    const batch = importLegacyPartners({ exportData: parsed, claimBaseUrl, filename });
-                    const inviteIds = generateInvitesForPartnerIds(batch.createdPartnerIds);
+                    const batch = await importLegacyPartners({ exportData: parsed, claimBaseUrl, filename });
+                    const inviteIds = await generateInvitesForPartnerIds(batch.createdPartnerIds);
                     setLastInviteIds(inviteIds);
                     setNotice(
                       `Imported ${batch.createdPartnerIds.length}/${batch.partnerCount} partners. ` +

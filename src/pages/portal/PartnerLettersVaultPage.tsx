@@ -3,7 +3,7 @@ import { ArrowLeft, Download, ScrollText, Send, Archive } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { PageShell } from '../../components/layout/PageShell';
 import { useAuth } from '../../auth/AuthProvider';
-import { getOrCreatePartnerForSession } from '../../portal/getOrCreatePartnerForSession';
+import { usePartnerSession } from '../../auth/PartnerSessionContext';
 import { listLettersByPartner, setLetterArchived, upsertLetter } from '../../data/lettersRepo';
 import { listEvidenceByPartner } from '../../data/evidenceRepo';
 import { getBlobUrl } from '../../storage/getBlobUrl';
@@ -39,7 +39,7 @@ export default function PartnerLettersVaultPage() {
   const location = useLocation();
   const auth = useAuth();
   const email = auth.user?.email || '';
-  const partner = useMemo(() => getOrCreatePartnerForSession({ user: auth.user }), [auth.user]);
+  const { partner } = usePartnerSession();
   const letters = useMemo(() => (partner ? listLettersByPartner(partner.id) : []), [partner]);
   const analysisReports = useMemo(() => {
     if (!partner) return [];

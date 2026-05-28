@@ -40,11 +40,18 @@ export default function AdminProjectsPage() {
   const projects = useMemo(() => listProjects(), [version]);
   const tasks = useMemo(() => listTasks(), [version]);
 
-  const partnerIds = useMemo(() => {
-    const tenantId = getActiveTenantId();
+  const [partnerIds, setPartnerIds] = useState<Set<string>>(new Set());
+  const [partnerById, setPartnerById] = useState<Map<string, import('../../domain/partners').Partner>>(new Map());
+  useEffect(() => {
     const u = auth.user;
-    if (!u) return new Set<string>();
-    return getAccessiblePartnerIdsForAdmin({ userId: u.id, email: u.email, tenantId });
+    const tenantId = getActiveTenantId();
+    if (!u) { setPartnerIds(new Set()); setPartnerById(new Map()); return; }
+    getAccessiblePartnerIdsForAdmin({ userId: u.id, email: u.email, tenantId }).then((ids) => {
+      setPartnerIds(ids);
+      listPartnersByTenant(tenantId).then((all) => {
+        setPartnerById(new Map(all.filter((p) => ids.has(p.id)).map((p) => [p.id, p])));
+      });
+    });
   }, [auth.user, version]);
 
   const filtered = useMemo(() => {
@@ -55,7 +62,7 @@ export default function AdminProjectsPage() {
       if (stage !== 'all' && p.stage !== stage) return false;
       if (status !== 'all' && p.status !== status) return false;
       if (!q) return true;
-      const partner = getPartner(p.partnerId);
+      const partner = partnerById.get(p.partnerId) ?? null;
       const hay = [p.title, p.partnerId, partner?.profile.fullName ?? '', p.tags.join(' ')].join(' ').toLowerCase();
       return hay.includes(q);
     });
@@ -121,7 +128,7 @@ export default function AdminProjectsPage() {
           allowTask={false}
           partnerOptions={Array.from(partnerIds)
             .map((pid) => {
-              const p = getPartner(pid);
+              const p = partnerById.get(pid) ?? null;
               return { id: pid, label: p?.profile?.fullName ? `${p.profile.fullName} (${pid.slice(0, 6)})` : pid };
             })
             .sort((a, b) => a.label.localeCompare(b.label))}
@@ -200,7 +207,7 @@ export default function AdminProjectsPage() {
           <WorkKanbanBoard
             stages={PROJECT_PROGRESS_STAGES}
             items={filtered.map((p) => {
-              const partner = getPartner(p.partnerId);
+              const partner = partnerById.get(p.partnerId) ?? null;
               const phaseLabel = enabledStages.find((s) => s.id === p.stage)?.label ?? p.stage;
               return {
                 id: p.id,
@@ -259,7 +266,7 @@ export default function AdminProjectsPage() {
         ) : view === 'calendar' ? (
           <WorkCalendarView
             items={filtered.map((p) => {
-              const partner = getPartner(p.partnerId);
+              const partner = partnerById.get(p.partnerId) ?? null;
               return {
                 id: p.id,
                 title: p.title,
@@ -288,7 +295,7 @@ export default function AdminProjectsPage() {
             ) : (
               <div className="divide-y divide-white/10">
                 {filtered.slice(0, 250).map((p) => {
-                  const partner = getPartner(p.partnerId);
+                  const partner = partnerById.get(p.partnerId) ?? null;
                   const stat = taskStats.get(p.id) ?? { open: 0, total: 0 };
                   return (
                     <div key={p.id} className="px-5 py-4">

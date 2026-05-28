@@ -1,10 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Search, UserPlus, ArrowRight, ArrowLeft, Upload, Trash2, Badge } from 'lucide-react';
+import { Search, UserPlus, ArrowRight, ArrowLeft, Upload, Trash2, Badge, RefreshCcw } from 'lucide-react';
 import { PageShell } from '../../components/layout/PageShell';
-import { createPartner, listPartnersByTenant, listPartners } from '../../data/partnersRepo';
+import { createPartner, listPartnersByTenant } from '../../data/partnersRepo';
 import { deletePartnerCompletely } from '../../data/partnerDelete';
-import { syncPartnersFromSupabase } from '../../data/partnersSupabaseSync';
-import type { PartnerLane, PartnerRoute } from '../../domain/partners';
+import type { Partner, PartnerLane, PartnerRoute } from '../../domain/partners';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { getActiveTenantId } from '../../tenancy/activeTenant';
 import { getTenant } from '../../data/tenantsRepo';
@@ -22,7 +21,9 @@ export default function PartnersListPage() {
   const [searchParams] = useSearchParams();
   const addAffiliate = searchParams.get('add') === 'affiliate';
   const [q, setQ] = useState('');
-  const [version, setVersion] = useState(0);
+  const [fetchKey, setFetchKey] = useState(0);
+  const [partners, setPartners] = useState<Partner[]>([]);
+  const [loading, setLoading] = useState(true);
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [primaryRoute, setPrimaryRoute] = useState<PartnerRoute>('personal_restore');
@@ -31,8 +32,6 @@ export default function PartnersListPage() {
   const [createErr, setCreateErr] = useState<string | null>(null);
   const [deleting, setDeleting] = useState<string | null>(null);
   const [deleteErr, setDeleteErr] = useState<string | null>(null);
-  const [syncing, setSyncing] = useState(false);
-  const [syncMsg, setSyncMsg] = useState<string | null>(null);
 
   useEffect(() => {
     if (location.hash === '#create-partner') {
@@ -41,44 +40,35 @@ export default function PartnersListPage() {
     }
   }, [location.hash]);
 
-  // Sync partners from Supabase on page load
+  // Fetch partners directly from Supabase
   useEffect(() => {
+    if (!auth.user) { setLoading(false); return; }
     const tenantId = getActiveTenantId();
-    if (!tenantId) {
-      console.log('[Sync] No tenant ID available');
-      return;
-    }
-    
-    syncPartnersFromSupabase({ tenantId })
-      .then((result) => {
-        if (result.ok && result.count > 0) {
-          console.log(`✅ Synced ${result.count} partners from Supabase`);
-          // Trigger a re-render to show newly synced partners
-          setVersion((v) => v + 1);
-        }
+    setLoading(true);
+    getAccessiblePartnerIdsForAdmin({ userId: auth.user.id, email: auth.user.email, tenantId })
+      .then(async (allowed) => {
+        const all = await listPartnersByTenant(tenantId);
+        return all.filter((p) => allowed.has(p.id));
       })
-      .catch((e) => {
-        console.error('[Sync] Exception:', e);
-      });
-  }, []); // Empty array: run only once on mount
+      .then((data) => {
+        setPartners(data);
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  }, [auth.user, fetchKey]);
 
-  const partners = useMemo(() => {
-    const tenantId = getActiveTenantId();
-    const allowed = auth.user
-      ? getAccessiblePartnerIdsForAdmin({ userId: auth.user.id, email: auth.user.email, tenantId })
-      : new Set<string>();
-    const all = listPartnersByTenant(tenantId).filter((p) => allowed.has(p.id));
+  const filteredPartners = useMemo(() => {
     const query = q.trim().toLowerCase();
-    if (!query) return all;
-    return all.filter((p) => {
+    if (!query) return partners;
+    return partners.filter((p) => {
       const hay = `${p.profile.fullName} ${p.profile.email ?? ''} ${p.status}`.toLowerCase();
       return hay.includes(query);
     });
-  }, [auth.user, q, version]);
+  }, [partners, q]);
 
 
 
-  const handleDeletePartner = async (partner: (typeof partners)[0]) => {
+  const handleDeletePartner = async (partner: Partner) => {
     const confirmed = window.confirm(
       `Are you sure you want to delete "${partner.profile.fullName}" and all their data?\n\nThis includes:\n• All partner notes\n• All credit reports\n• All letters\n\nThis action cannot be undone.`
     );
@@ -91,7 +81,7 @@ export default function PartnersListPage() {
     try {
       const result = await deletePartnerCompletely(partner.id);
       if (result.ok) {
-        setVersion((v) => v + 1);
+        setFetchKey((v) => v + 1);
         setDeleting(null);
       } else {
         setDeleteErr(result.error || 'Failed to delete partner');
@@ -116,37 +106,6 @@ export default function PartnersListPage() {
     }
   };
 
-  const handleManualSync = async () => {
-    setSyncing(true);
-    setSyncMsg(null);
-    try {
-      const tenantId = getActiveTenantId();
-      console.log(`[Manual Sync] Starting for tenant: ${tenantId}`);
-      const result = await syncPartnersFromSupabase({ tenantId });
-      if (result.ok) {
-        const msg = result.count > 0 
-          ? `✅ Synced ${result.count} partner(s) from Supabase`
-          : 'ℹ️ No new partners in Supabase';
-        console.log(msg);
-        setSyncMsg(msg);
-        setVersion((v) => v + 1);
-        setTimeout(() => setSyncMsg(null), 3000);
-      } else {
-        const msg = `❌ Sync failed: ${result.error}`;
-        console.error(msg);
-        setSyncMsg(msg);
-        setTimeout(() => setSyncMsg(null), 4000);
-      }
-    } catch (e: any) {
-      const msg = `❌ Error: ${e?.message}`;
-      console.error(msg);
-      setSyncMsg(msg);
-      setTimeout(() => setSyncMsg(null), 4000);
-    } finally {
-      setSyncing(false);
-    }
-  };
-
   const canCreatePartner = useMemo(() => {
     const tenantId = getActiveTenantId();
     const u = auth.user;
@@ -160,24 +119,16 @@ export default function PartnersListPage() {
         if (membership.status !== 'active') return false;
         if (isPlatformAdmin(membership) || membership.role === 'tenant_owner' || canViewAllClients(membership)) return true;
       }
-      const allowed = getAccessiblePartnerIdsForAdmin({ userId: u.id, email: u.email, tenantId });
-      // If we can view any partners in-tenant, we treat this as an ops-capable account.
-      if (allowed.size > 0) {
-        // If no membership record exists yet, allow creation so ops can bootstrap the tenant.
-        if (!membership) return true;
-        // membership handled above
-        return false;
-      }
     } catch {
       // ignore
     }
     return false;
-  }, [auth.user, version]);
+  }, [auth.user]);
 
   const tenantName = useMemo(() => {
     const t = getTenant(getActiveTenantId());
     return t?.name || 'Finely Cred';
-  }, [version]);
+  }, []);
 
   return (
     <PageShell
@@ -193,12 +144,13 @@ export default function PartnersListPage() {
           <div className="flex items-center gap-2">
             <button
               type="button"
-              onClick={handleManualSync}
-              disabled={syncing}
+              onClick={() => setFetchKey((v) => v + 1)}
+              disabled={loading}
               className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-blue-500/25 bg-blue-500/10 hover:bg-blue-500/20 text-blue-200 text-[10px] font-black uppercase tracking-widest transition-all disabled:opacity-60 disabled:cursor-not-allowed"
-              title="Sync partners from Supabase"
+              title="Refresh partners from Supabase"
             >
-              {syncing ? '⟳ Syncing…' : '⟳ Sync from Supabase'}
+              <RefreshCcw size={12} />
+              {loading ? 'Loading…' : 'Refresh'}
             </button>
             <button
               type="button"
@@ -295,7 +247,7 @@ export default function PartnersListPage() {
             <button
               className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-amber-500 text-black font-black uppercase tracking-widest text-[10px] hover:brightness-110 transition-all disabled:opacity-60 disabled:cursor-not-allowed"
               disabled={!canCreatePartner || !fullName.trim() || creating}
-              onClick={() => {
+              onClick={async () => {
                 setCreateErr(null);
                 const name = fullName.trim();
                 if (!name) {
@@ -304,7 +256,7 @@ export default function PartnersListPage() {
                 }
                 setCreating(true);
                 try {
-                  const p = createPartner({
+                  const p = await createPartner({
                     tenantId: getActiveTenantId(),
                     fullName: name,
                     email: email.trim() || undefined,
@@ -314,7 +266,7 @@ export default function PartnersListPage() {
                   });
                   setFullName('');
                   setEmail('');
-                  setVersion((v) => v + 1);
+                  setFetchKey((v) => v + 1);
                   navigate(`/admin/partners/${p.id}?tab=reports`);
                 } catch (e: any) {
                   setCreateErr(e?.message || 'Failed to create partner.');
@@ -340,7 +292,7 @@ export default function PartnersListPage() {
                   placeholder="Search partners…"
                 />
               </div>
-              <div className="text-[10px] uppercase tracking-widest text-white/40">{partners.length} partners</div>
+              <div className="text-[10px] uppercase tracking-widest text-white/40">{filteredPartners.length} partners{loading ? ' (loading…)' : ''}</div>
             </div>
 
             <div className="text-[11px] text-white/50 leading-relaxed">
@@ -355,7 +307,7 @@ export default function PartnersListPage() {
           </div>
 
           <div className="mt-6 grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {partners.map((p) => (
+            {filteredPartners.map((p) => (
               <ClickableCard
                 key={p.id}
                 onClick={() => {

@@ -3,7 +3,7 @@ import { ArrowLeft, CreditCard, Shield, BadgeCheck, Clock, CheckCircle2, ArrowRi
 import { PageShell } from '../../components/layout/PageShell';
 import { useAuth } from '../../auth/AuthProvider';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { getOrCreatePartnerForSession } from '../../portal/getOrCreatePartnerForSession';
+import { usePartnerSession } from '../../auth/PartnerSessionContext';
 import { upsertPartner } from '../../data/partnersRepo';
 import { ENTITLEMENT_KEYS, ensurePartnerEntitlements, type EntitlementKey } from '../../billing/entitlements';
 import { getFeatureFlags } from '../../data/settingsRepo';
@@ -33,7 +33,7 @@ export default function PartnerBillingPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const email = auth.user?.email || '';
-  const partner = useMemo(() => getOrCreatePartnerForSession({ user: auth.user }), [auth.user]);
+  const { partner } = usePartnerSession();
   const [refreshKey, setRefreshKey] = useState(0);
   const [storeVersion, setStoreVersion] = useState(0);
   const [notice, setNotice] = useState<string | null>(null);
@@ -311,7 +311,7 @@ export default function PartnerBillingPage() {
                     type="button"
                     onClick={() => {
                       const nextPhone = phoneDraft.trim() || undefined;
-                      upsertPartner({ ...partner, profile: { ...partner.profile, phone: nextPhone } });
+                      void upsertPartner({ ...partner, profile: { ...partner.profile, phone: nextPhone } });
                       setNotice('Profile updated.');
                       setTimeout(() => setNotice(null), 2500);
                     }}
@@ -711,7 +711,7 @@ export default function PartnerBillingPage() {
                               [x.key]: e.target.checked ? now : undefined,
                             } as any,
                           };
-                          upsertPartner(next);
+                          void upsertPartner(next);
                           setRefreshKey((k) => k + 1);
                         }}
                         className="mt-1"

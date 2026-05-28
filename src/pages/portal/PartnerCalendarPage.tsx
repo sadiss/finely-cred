@@ -3,7 +3,7 @@ import { ArrowLeft, ArrowRight, Calendar, Clock, Download, Link as LinkIcon, Sen
 import { useNavigate } from 'react-router-dom';
 import { PageShell } from '../../components/layout/PageShell';
 import { useAuth } from '../../auth/AuthProvider';
-import { getOrCreatePartnerForSession } from '../../portal/getOrCreatePartnerForSession';
+import { usePartnerSession } from '../../auth/PartnerSessionContext';
 import {
   createConsultationRequest,
   listEventsByPartner,
@@ -35,7 +35,7 @@ const TOPICS: Array<{ id: ConsultationTopic; label: string; desc: string }> = [
 export default function PartnerCalendarPage() {
   const auth = useAuth();
   const navigate = useNavigate();
-  const partner = useMemo(() => getOrCreatePartnerForSession({ user: auth.user }), [auth.user]);
+  const { partner } = usePartnerSession();
   const [version, setVersion] = useState(0);
 
   useEffect(() => {

@@ -3,7 +3,7 @@ import { ArrowLeft, ArrowRight, BookOpen, CheckCircle2, GraduationCap, Lock } fr
 import { useNavigate } from 'react-router-dom';
 import { PageShell } from '../../components/layout/PageShell';
 import { useAuth } from '../../auth/AuthProvider';
-import { getOrCreatePartnerForSession } from '../../portal/getOrCreatePartnerForSession';
+import { usePartnerSession } from '../../auth/PartnerSessionContext';
 import { listPublishedCourses, getCourseProgress } from '../../data/coursesRepo';
 import { isFeatureEnabled } from '../../data/settingsRepo';
 import { EntitlementGate } from '../../components/billing/EntitlementGate';
@@ -12,7 +12,7 @@ import { ENTITLEMENT_KEYS } from '../../billing/entitlements';
 export default function PartnerCoursesPage() {
   const navigate = useNavigate();
   const auth = useAuth();
-  const partner = useMemo(() => getOrCreatePartnerForSession({ user: auth.user }), [auth.user]);
+  const { partner } = usePartnerSession();
   const features = useMemo(() => ({ courses: isFeatureEnabled('courses') }), []);
 
   const courses = useMemo(() => listPublishedCourses(), []);

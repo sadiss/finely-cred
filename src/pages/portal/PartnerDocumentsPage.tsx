@@ -7,7 +7,7 @@ import { listEvidenceByPartner, upsertEvidence, deleteEvidence } from '../../dat
 import { EvidenceUploader } from '../../components/evidence/EvidenceUploader';
 import { EvidenceList } from '../../components/evidence/EvidenceList';
 import { addAuditEvent } from '../../data/auditRepo';
-import { getOrCreatePartnerForSession } from '../../portal/getOrCreatePartnerForSession';
+import { usePartnerSession } from '../../auth/PartnerSessionContext';
 import { isFeatureEnabled } from '../../data/settingsRepo';
 import { processUploadedDocument } from '../../docIntel/processUploadedDocument';
 import { listProcessedDocumentsByPartner } from '../../data/documentsRepo';
@@ -25,7 +25,7 @@ export default function PartnerDocumentsPage() {
   const [query, setQuery] = useState('');
   const [kind, setKind] = useState<'all' | 'screenshot' | 'upload'>('all');
 
-  const partner = useMemo(() => getOrCreatePartnerForSession({ user: auth.user }), [auth.user]);
+  const { partner } = usePartnerSession();
   const evidence = useMemo(() => (partner ? listEvidenceByPartner(partner.id) : []), [partner, version]);
   const processed = useMemo(() => (partner ? listProcessedDocumentsByPartner(partner.id) : []), [partner, docVersion]);
 

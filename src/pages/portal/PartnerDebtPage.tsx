@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { PageShell } from '../../components/layout/PageShell';
 import { useAuth } from '../../auth/AuthProvider';
 import { listDebtByPartner, createDebtCase } from '../../data/debtRepo';
-import { getOrCreatePartnerForSession } from '../../portal/getOrCreatePartnerForSession';
+import { usePartnerSession } from '../../auth/PartnerSessionContext';
 import { EntitlementGate } from '../../components/billing/EntitlementGate';
 import { ENTITLEMENT_KEYS } from '../../billing/entitlements';
 import { KpiCard } from '../../components/ui';
@@ -12,7 +12,7 @@ import { KpiCard } from '../../components/ui';
 export default function PartnerDebtPage() {
   const auth = useAuth();
   const navigate = useNavigate();
-  const partner = useMemo(() => getOrCreatePartnerForSession({ user: auth.user }), [auth.user]);
+  const { partner } = usePartnerSession();
   const [showAdd, setShowAdd] = useState(false);
   const [addName, setAddName] = useState('');
   const [addType, setAddType] = useState<'debt' | 'summons'>('debt');

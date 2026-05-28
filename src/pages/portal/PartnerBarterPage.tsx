@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { ArrowRight, BadgeCheck, Handshake, Plus, Search, ShieldAlert, Stamp, Store, XCircle } from 'lucide-react';
 import { PageShell } from '../../components/layout/PageShell';
 import { useAuth } from '../../auth/AuthProvider';
-import { getOrCreatePartnerForSession } from '../../portal/getOrCreatePartnerForSession';
+import { usePartnerSession } from '../../auth/PartnerSessionContext';
 import { getActiveTenantId } from '../../tenancy/activeTenant';
 import { EntitlementGate } from '../../components/billing/EntitlementGate';
 import { ENTITLEMENT_KEYS } from '../../billing/entitlements';
@@ -33,7 +33,7 @@ function clone<T>(x: T): T {
 
 export default function PartnerBarterPage() {
   const auth = useAuth();
-  const partner = useMemo(() => getOrCreatePartnerForSession({ user: auth.user }), [auth.user]);
+  const { partner } = usePartnerSession();
   const [version, setVersion] = useState(0);
   const tenantId = useMemo(() => getActiveTenantId(), [version]);
 

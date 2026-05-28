@@ -3,13 +3,13 @@ import { ArrowLeft, ArrowRight, BookOpen, GraduationCap, Library, Scale } from '
 import { useNavigate } from 'react-router-dom';
 import { PageShell } from '../../components/layout/PageShell';
 import { useAuth } from '../../auth/AuthProvider';
-import { getOrCreatePartnerForSession } from '../../portal/getOrCreatePartnerForSession';
+import { usePartnerSession } from '../../auth/PartnerSessionContext';
 import { isFeatureEnabled } from '../../data/settingsRepo';
 
 export default function PartnerEducationPage() {
   const navigate = useNavigate();
   const auth = useAuth();
-  const partner = useMemo(() => getOrCreatePartnerForSession({ user: auth.user }), [auth.user]);
+  const { partner } = usePartnerSession();
 
   return (
     <PageShell

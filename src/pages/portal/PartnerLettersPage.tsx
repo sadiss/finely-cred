@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { PageShell } from '../../components/layout/PageShell';
 import { LettersCommandCenter } from '../../components/letters/LettersCommandCenter';
 import { useAuth } from '../../auth/AuthProvider';
-import { getOrCreatePartnerForSession } from '../../portal/getOrCreatePartnerForSession';
+import { usePartnerSession } from '../../auth/PartnerSessionContext';
 import { ENTITLEMENT_KEYS } from '../../billing/entitlements';
 import { EntitlementGate } from '../../components/billing/EntitlementGate';
 import { hasEntitlement } from '../../data/billingRepo';
@@ -12,7 +12,7 @@ import { hasEntitlement } from '../../data/billingRepo';
 export default function PartnerLettersPage() {
   const navigate = useNavigate();
   const auth = useAuth();
-  const partner = useMemo(() => getOrCreatePartnerForSession({ user: auth.user }), [auth.user]);
+  const { partner } = usePartnerSession();
   const [storeVersion, setStoreVersion] = useState(0);
 
   useEffect(() => {

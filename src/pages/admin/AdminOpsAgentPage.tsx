@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ArrowLeft, ArrowRight, Bot, Sparkles, Send, ClipboardCheck, RefreshCw } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { PageShell } from '../../components/layout/PageShell';
@@ -51,44 +51,38 @@ export default function AdminOpsAgentPage() {
 
   useEffect(() => saveHistory(history), [history]);
 
-  const snapshot = useMemo(() => {
+  const [snapshot, setSnapshot] = useState<any>(null);
+  useEffect(() => {
     const tenantId = getActiveTenantId();
-    const partners = listPartnersByTenant(tenantId);
-    const partnerIds = new Set(partners.map((p) => p.id));
-    const leads = listLeadCaptures();
-    const tasks = listTasks();
-    const cases = listCases();
-    const tenantTasks = tasks.filter((t: any) => partnerIds.has(String((t as any).partnerId || '')));
-    const tenantCases = cases.filter((c) => partnerIds.has(c.partnerId));
-    const agreements = listAgreementsByTenant(tenantId || FINELY_TENANT_ID);
-    const entitlements = listEntitlementsByTenant(tenantId || FINELY_TENANT_ID);
-
-    const openCases = tenantCases.filter((c) => c.status === 'open').length;
-    const openTasks = tenantTasks.filter((t: any) => t.status === 'pending' || t.status === 'in_progress').length;
-    const recentLeads = leads.slice().sort((a: any, b: any) => `${b.createdAt}`.localeCompare(`${a.createdAt}`)).slice(0, 10);
-
-    return {
-      generatedAt: nowIso(),
-      tenantId,
-      counts: {
-        partners: partners.length,
-        leads: leads.length,
-        openCases,
-        openTasks,
-        agreements: agreements.length,
-        entitlements: entitlements.length,
-      },
-      recentLeads: recentLeads.map((l: any) => ({
-        id: l.id,
-        createdAt: l.createdAt,
-        fullName: l.fullName,
-        email: l.email,
-        phone: l.phone,
-        offer: l.offer,
-        interest: l.interest,
-        source: l.source,
-      })),
-    };
+    listPartnersByTenant(tenantId).then((partners) => {
+      const partnerIds = new Set(partners.map((p) => p.id));
+      const leads = listLeadCaptures();
+      const tasks = listTasks();
+      const cases = listCases();
+      const tenantTasks = tasks.filter((t: any) => partnerIds.has(String((t as any).partnerId || '')));
+      const tenantCases = cases.filter((c) => partnerIds.has(c.partnerId));
+      const agreements = listAgreementsByTenant(tenantId || FINELY_TENANT_ID);
+      const entitlements = listEntitlementsByTenant(tenantId || FINELY_TENANT_ID);
+      const openCases = tenantCases.filter((c) => c.status === 'open').length;
+      const openTasks = tenantTasks.filter((t: any) => t.status === 'pending' || t.status === 'in_progress').length;
+      const recentLeads = leads.slice().sort((a: any, b: any) => `${b.createdAt}`.localeCompare(`${a.createdAt}`)).slice(0, 10);
+      setSnapshot({
+        generatedAt: nowIso(),
+        tenantId,
+        counts: {
+          partners: partners.length,
+          leads: leads.length,
+          openCases,
+          openTasks,
+          agreements: agreements.length,
+          entitlements: entitlements.length,
+        },
+        recentLeads: recentLeads.map((l: any) => ({
+          id: l.id, createdAt: l.createdAt, fullName: l.fullName, email: l.email,
+          phone: l.phone, offer: l.offer, interest: l.interest, source: l.source,
+        })),
+      });
+    });
   }, []);
 
   const send = async (prompt: string) => {

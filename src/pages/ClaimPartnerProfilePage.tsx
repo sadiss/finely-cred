@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { ArrowLeft, ArrowRight, CheckCircle2, KeyRound, ShieldAlert } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { PageShell } from '../components/layout/PageShell';
@@ -28,7 +28,11 @@ export default function ClaimPartnerProfilePage() {
   const [done, setDone] = useState(false);
 
   const invite = useMemo(() => (token ? findInviteByToken(token) : null), [token]);
-  const partner = useMemo(() => (invite ? getPartner(invite.partnerId) : null), [invite]);
+  const [partner, setPartner] = useState<any>(null);
+  useEffect(() => {
+    if (!invite) { setPartner(null); return; }
+    getPartner(invite.partnerId).then(setPartner);
+  }, [invite?.partnerId]);
 
   const loginRedirect = `/onboarding?next=${encodeURIComponent(`/claim${location.search}`)}`;
 
@@ -62,7 +66,7 @@ export default function ClaimPartnerProfilePage() {
     }
 
     markInviteClaimed(token, { userId: auth.user.id });
-    upsertPartner({
+    void upsertPartner({
       ...p,
       claimedUserId: auth.user.id,
       claimedAt: new Date().toISOString(),

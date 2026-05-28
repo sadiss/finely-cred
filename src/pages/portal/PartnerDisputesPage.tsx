@@ -5,7 +5,7 @@ import { PageShell } from '../../components/layout/PageShell';
 import { useAuth } from '../../auth/AuthProvider';
 import { listCasesByPartner } from '../../data/casesRepo';
 import { listReportsByPartner } from '../../data/reportsRepo';
-import { getOrCreatePartnerForSession } from '../../portal/getOrCreatePartnerForSession';
+import { usePartnerSession } from '../../auth/PartnerSessionContext';
 import { EntitlementGate } from '../../components/billing/EntitlementGate';
 import { ENTITLEMENT_KEYS } from '../../billing/entitlements';
 import { ActionLink, Button, ClickableCard, CollapsibleSection } from '../../components/ui';
@@ -34,7 +34,7 @@ export default function PartnerDisputesPage() {
   const [showAllAlready, setShowAllAlready] = useState(false);
   const [showAllCasesByBureau, setShowAllCasesByBureau] = useState<Record<string, boolean>>({});
 
-  const partner = useMemo(() => getOrCreatePartnerForSession({ user: auth.user }), [auth.user]);
+  const { partner } = usePartnerSession();
 
   const cases = useMemo(() => {
     if (!partner) return [];

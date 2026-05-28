@@ -78,13 +78,14 @@ export default function AdminSupportInboxPage() {
     return () => window.removeEventListener('finely:store', onStore as EventListener);
   }, []);
 
-  const partnerIndex = useMemo(() => {
-    const tenantId = getActiveTenantId();
+  const [partnerIndex, setPartnerIndex] = useState<Map<string, import('../../domain/partners').Partner>>(new Map());
+  useEffect(() => {
     const u = auth.user;
-    const allowed = u ? getAccessiblePartnerIdsForAdmin({ userId: u.id, email: u.email, tenantId }) : new Set<string>();
-    const all = listPartnersByTenant(tenantId).filter((p) => allowed.has(p.id));
-    const map = new Map(all.map((p) => [p.id, p]));
-    return map;
+    const tenantId = getActiveTenantId();
+    if (!u) { setPartnerIndex(new Map()); return; }
+    getAccessiblePartnerIdsForAdmin({ userId: u.id, email: u.email, tenantId })
+      .then((allowed) => listPartnersByTenant(tenantId).then((all) => new Map(all.filter((p) => allowed.has(p.id)).map((p) => [p.id, p]))))
+      .then(setPartnerIndex);
   }, [auth.user, version]);
   const partnerIds = useMemo(() => new Set(Array.from(partnerIndex.keys())), [partnerIndex]);
 
@@ -107,7 +108,11 @@ export default function AdminSupportInboxPage() {
 
   const messages = useMemo(() => (selected ? listMessagesByThread(selected.id) : []), [selected]);
 
-  const partner = useMemo(() => (selected ? getPartner(selected.partnerId) : null), [selected]);
+  const [partner, setPartner] = useState<import('../../domain/partners').Partner | null>(null);
+  useEffect(() => {
+    if (!selected) { setPartner(null); return; }
+    getPartner(selected.partnerId).then(setPartner);
+  }, [selected?.id]);
 
   const sendReply = (e: React.FormEvent) => {
     e.preventDefault();

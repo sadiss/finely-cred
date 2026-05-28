@@ -1,7 +1,8 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { ArrowRight, Search, ShieldAlert, Trash2 } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { PageShell } from '../../components/layout/PageShell';
+import type { Partner } from '../../domain/partners';
 import { listPartners } from '../../data/partnersRepo';
 import { ADMIN_PARTNER_OVERRIDE_KEY } from '../../portal/getOrCreatePartnerForSession';
 import { useAuth } from '../../auth/AuthProvider';
@@ -12,7 +13,8 @@ export default function PortalPartnerSelectPage() {
   const auth = useAuth();
 
   const [query, setQuery] = useState('');
-  const partners = useMemo(() => listPartners(), []);
+  const [partners, setPartners] = useState<Partner[]>([]);
+  useEffect(() => { listPartners().then(setPartners); }, []);
 
   const nextPath = useMemo(() => {
     try {

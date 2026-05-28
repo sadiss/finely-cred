@@ -3,7 +3,7 @@ import { ArrowLeft, FileText, ExternalLink } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { PageShell } from '../../components/layout/PageShell';
 import { useAuth } from '../../auth/AuthProvider';
-import { getOrCreatePartnerForSession } from '../../portal/getOrCreatePartnerForSession';
+import { usePartnerSession } from '../../auth/PartnerSessionContext';
 import { listEvidenceByPartner } from '../../data/evidenceRepo';
 import { getBlobUrl } from '../../storage/getBlobUrl';
 import { KpiCard } from '../../components/ui/KpiCards';
@@ -20,7 +20,7 @@ function fmtWhen(iso: string) {
 export default function PartnerAnalysisVaultPage() {
   const navigate = useNavigate();
   const auth = useAuth();
-  const partner = useMemo(() => getOrCreatePartnerForSession({ user: auth.user }), [auth.user]);
+  const { partner } = usePartnerSession();
   const [showAll, setShowAll] = useState(false);
   const LIMIT = 12;
 

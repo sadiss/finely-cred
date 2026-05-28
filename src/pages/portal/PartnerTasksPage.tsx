@@ -5,7 +5,7 @@ import { useAuth } from '../../auth/AuthProvider';
 import { createTask, listTasksByPartner, setTaskStatus, upsertTask } from '../../data/tasksRepo';
 import { addAuditEvent } from '../../data/auditRepo';
 import { useNavigate } from 'react-router-dom';
-import { getOrCreatePartnerForSession } from '../../portal/getOrCreatePartnerForSession';
+import { usePartnerSession } from '../../auth/PartnerSessionContext';
 import { listNotifications, markAllRead, markNotificationRead, unreadCount } from '../../data/notificationsRepo';
 import { EntitlementGate } from '../../components/billing/EntitlementGate';
 import { ENTITLEMENT_KEYS } from '../../billing/entitlements';
@@ -42,7 +42,7 @@ export default function PartnerTasksPage() {
     return () => window.removeEventListener('finely:store', onStore as EventListener);
   }, []);
 
-  const partner = useMemo(() => getOrCreatePartnerForSession({ user: auth.user }), [auth.user]);
+  const { partner } = usePartnerSession();
 
   const tasks = useMemo(() => {
     if (!partner) return [];

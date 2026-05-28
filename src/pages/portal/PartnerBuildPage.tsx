@@ -3,7 +3,7 @@ import { ArrowLeft, ArrowRight, TrendingUp, Target, CreditCard, Sparkles, Clock,
 import { useNavigate } from 'react-router-dom';
 import { PageShell } from '../../components/layout/PageShell';
 import { useAuth } from '../../auth/AuthProvider';
-import { getOrCreatePartnerForSession } from '../../portal/getOrCreatePartnerForSession';
+import { usePartnerSession } from '../../auth/PartnerSessionContext';
 import { BUNDLES, activateBundle } from '../../automation/bundleScheduler';
 import { createBundleActivation, getActiveBundleActivation, listBundleActivationsByPartner } from '../../data/productsRepo';
 import { listTasksByPartner } from '../../data/tasksRepo';
@@ -11,7 +11,7 @@ import { listTasksByPartner } from '../../data/tasksRepo';
 export default function PartnerBuildPage() {
   const auth = useAuth();
   const navigate = useNavigate();
-  const partner = useMemo(() => getOrCreatePartnerForSession({ user: auth.user }), [auth.user]);
+  const { partner } = usePartnerSession();
   const [version, setVersion] = useState(0);
   const [notice, setNotice] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);

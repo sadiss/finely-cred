@@ -5,7 +5,7 @@ import { PageShell } from '../../components/layout/PageShell';
 import { useAuth } from '../../auth/AuthProvider';
 import { getDebt, upsertDebt } from '../../data/debtRepo';
 import { listEvidenceByPartner, upsertEvidence, deleteEvidence } from '../../data/evidenceRepo';
-import { getOrCreatePartnerForSession } from '../../portal/getOrCreatePartnerForSession';
+import { usePartnerSession } from '../../auth/PartnerSessionContext';
 import type { DebtLetterType, DebtScenario } from '../../domain/debtLegal';
 import { EntitlementGate } from '../../components/billing/EntitlementGate';
 import { ENTITLEMENT_KEYS } from '../../billing/entitlements';
@@ -38,7 +38,7 @@ export default function PartnerDebtDetailPage() {
   const auth = useAuth();
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
-  const partner = useMemo(() => getOrCreatePartnerForSession({ user: auth.user }), [auth.user]);
+  const { partner } = usePartnerSession();
   const [debt, setDebtState] = useState(() => (id ? getDebt(id) : null));
   const [evidenceVersion, setEvidenceVersion] = useState(0);
 

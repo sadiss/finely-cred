@@ -1,11 +1,10 @@
-import type { User } from '@supabase/supabase-js';
+﻿import type { User } from '@supabase/supabase-js';
 import { isAdminEmail } from '../auth/admin';
 import type { PartnerRoute, PartnerRouteIntake } from '../domain/partners';
 import { createPartner, findPartnerByClaimedUserId, findPartnerByEmail, getPartner, upsertPartner } from '../data/partnersRepo';
 import { ensurePartnerTrialEntitlements } from '../billing/entitlements';
 import { ensureEnterpriseDefaultsOnce } from '../data/seedEnterpriseDefaults';
 import { ensureVendorCatalogDefaultsOnce } from '../data/vendorsRepo';
-import { upsertPartnerToSupabase } from '../data/partnersSupabaseSync';
 import { pullBillingSnapshotFromSupabase } from '../data/billingSupabaseSync';
 import { pullWorkflowSnapshotFromSupabase } from '../data/workflowSupabaseSync';
 import { isSupabaseConfigured } from '../lib/supabaseClient';
@@ -32,7 +31,7 @@ function applyOnboardingToIntake(intake: PartnerRouteIntake | undefined, patch: 
   } as any;
 }
 
-function maybeHydrateExistingPartner(args: { partner: any; user: User | null }): any {
+async function maybeHydrateExistingPartner(args: { partner: any; user: User | null }): Promise<any> {
   const p = args.partner;
   const meta: any = (args.user as any)?.user_metadata ?? {};
   const userData = readOnboardingDraft();
@@ -82,23 +81,17 @@ function maybeHydrateExistingPartner(args: { partner: any; user: User | null }):
   return p;
 }
 
-export function getOrCreatePartnerForSession(args: { user: User | null }) {
+export async function getOrCreatePartnerForSession(args: { user: User | null }): Promise<any> {
   const userId = args.user?.id || '';
   if (userId) {
-    const claimed = findPartnerByClaimedUserId(userId);
+    const claimed = await findPartnerByClaimedUserId(userId);
     if (claimed) {
       ensureEnterpriseDefaultsOnce({ tenantId: (claimed as any)?.tenantId });
       ensureVendorCatalogDefaultsOnce({ tenantId: (claimed as any)?.tenantId });
-      const hydrated = maybeHydrateExistingPartner({ partner: claimed as any, user: args.user });
-      // Best-effort: ensure DB partner row exists + hydrate billing cache from Supabase.
+      const hydrated = await maybeHydrateExistingPartner({ partner: claimed as any, user: args.user });
       queueMicrotask(() => {
-        void upsertPartnerToSupabase({ partner: hydrated as any, user: args.user });
-        void pullBillingSnapshotFromSupabase({ partnerId: (hydrated as any)?.id }).catch(() => {
-          // silent
-        });
-        void pullWorkflowSnapshotFromSupabase({ partnerId: (hydrated as any)?.id }).catch(() => {
-          // silent
-        });
+        void pullBillingSnapshotFromSupabase({ partnerId: (hydrated as any)?.id }).catch(() => {});
+        void pullWorkflowSnapshotFromSupabase({ partnerId: (hydrated as any)?.id }).catch(() => {});
       });
       return hydrated;
     }
@@ -107,28 +100,22 @@ export function getOrCreatePartnerForSession(args: { user: User | null }) {
   const email = args.user?.email || '';
   if (!email) return null;
   if (isAdminEmail(email)) {
-    // Admins should not create Partner records implicitly, but they can "view as" a selected partner (dev/demo tooling).
     const overrideId = (localStorage.getItem(ADMIN_PARTNER_OVERRIDE_KEY) || '').trim();
     if (overrideId) {
-      const p = getPartner(overrideId);
+      const p = await getPartner(overrideId);
       if (p) return p;
     }
     return null;
   }
 
-  const existing = findPartnerByEmail(email);
+  const existing = await findPartnerByEmail(email);
   if (existing) {
     ensureEnterpriseDefaultsOnce({ tenantId: (existing as any)?.tenantId });
     ensureVendorCatalogDefaultsOnce({ tenantId: (existing as any)?.tenantId });
-    const hydrated = maybeHydrateExistingPartner({ partner: existing as any, user: args.user });
+    const hydrated = await maybeHydrateExistingPartner({ partner: existing as any, user: args.user });
     queueMicrotask(() => {
-      void upsertPartnerToSupabase({ partner: hydrated as any, user: args.user });
-      void pullBillingSnapshotFromSupabase({ partnerId: (hydrated as any)?.id }).catch(() => {
-        // silent
-      });
-      void pullWorkflowSnapshotFromSupabase({ partnerId: (hydrated as any)?.id }).catch(() => {
-        // silent
-      });
+      void pullBillingSnapshotFromSupabase({ partnerId: (hydrated as any)?.id }).catch(() => {});
+      void pullWorkflowSnapshotFromSupabase({ partnerId: (hydrated as any)?.id }).catch(() => {});
     });
     return hydrated;
   }
@@ -145,7 +132,6 @@ export function getOrCreatePartnerForSession(args: { user: User | null }) {
 
   const rawGoal = `${meta.goal || userData.goal || ''}`.toLowerCase();
   const laneRaw = `${meta.lane || userData.lane || ''}`.toLowerCase();
-  // AU Sellers have their own portal and should not auto-create Partner records.
   if (laneRaw.includes('seller')) return null;
   const primaryRoute =
     rawGoal.includes('business') || laneRaw.includes('business')
@@ -185,7 +171,6 @@ export function getOrCreatePartnerForSession(args: { user: User | null }) {
     liabilityTier: meta.liabilityTier ?? userData.liabilityTier,
     urgency: meta.urgency ?? userData.urgency,
   };
-  // Personal mailing block (letters + identity validation)
   const addr1 = (meta.address1 ?? userData.address1 ?? '').trim();
   const addr2 = (meta.address2 ?? userData.address2 ?? '').trim();
   const city = (meta.city ?? userData.city ?? '').trim();
@@ -209,7 +194,7 @@ export function getOrCreatePartnerForSession(args: { user: User | null }) {
     };
   }
 
-  const partner = createPartner({
+  const partner = await createPartner({
     id: isSupabaseConfigured && userId ? `partner_${userId}` : undefined,
     tenantId: meta.tenantId ?? userData.tenantId,
     fullName: meta.name || userData.name || 'Partner',
@@ -240,8 +225,6 @@ export function getOrCreatePartnerForSession(args: { user: User | null }) {
     intake,
   });
 
-  // Grant a scoped 30-day trial based on onboarding intent (lane).
-  // This defines what a brand-new user can access before purchase.
   ensureEnterpriseDefaultsOnce({ tenantId: (partner as any)?.tenantId });
   ensureVendorCatalogDefaultsOnce({ tenantId: (partner as any)?.tenantId });
   try {
@@ -250,17 +233,10 @@ export function getOrCreatePartnerForSession(args: { user: User | null }) {
     // best-effort only
   }
 
-  // Best-effort: ensure DB partner row exists + hydrate billing cache from Supabase.
   queueMicrotask(() => {
-    void upsertPartnerToSupabase({ partner: partner as any, user: args.user });
-    void pullBillingSnapshotFromSupabase({ partnerId: partner.id }).catch(() => {
-      // silent
-    });
-    void pullWorkflowSnapshotFromSupabase({ partnerId: partner.id }).catch(() => {
-      // silent
-    });
+    void pullBillingSnapshotFromSupabase({ partnerId: partner.id }).catch(() => {});
+    void pullWorkflowSnapshotFromSupabase({ partnerId: partner.id }).catch(() => {});
   });
 
   return partner;
 }
-

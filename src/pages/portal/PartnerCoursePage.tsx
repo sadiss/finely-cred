@@ -3,7 +3,7 @@ import { ArrowLeft, CheckCircle2, Lock, PlayCircle } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { PageShell } from '../../components/layout/PageShell';
 import { useAuth } from '../../auth/AuthProvider';
-import { getOrCreatePartnerForSession } from '../../portal/getOrCreatePartnerForSession';
+import { usePartnerSession } from '../../auth/PartnerSessionContext';
 import { enrollPartnerInCourse, getCourse, getCourseProgress, isLessonUnlocked, markLessonComplete, nextUnlockedLesson } from '../../data/coursesRepo';
 import { isFeatureEnabled } from '../../data/settingsRepo';
 import type { CourseLesson } from '../../domain/courses';
@@ -24,7 +24,7 @@ export default function PartnerCoursePage() {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const auth = useAuth();
-  const partner = useMemo(() => getOrCreatePartnerForSession({ user: auth.user }), [auth.user]);
+  const { partner } = usePartnerSession();
   const [version, setVersion] = useState(0);
 
   useEffect(() => {

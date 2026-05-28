@@ -3,7 +3,7 @@ import { ArrowLeft, MessageSquare, Send, AlertCircle, Clock, CheckCircle, Scale,
 import { useNavigate } from 'react-router-dom';
 import { PageShell } from '../../components/layout/PageShell';
 import { useAuth } from '../../auth/AuthProvider';
-import { getOrCreatePartnerForSession } from '../../portal/getOrCreatePartnerForSession';
+import { usePartnerSession } from '../../auth/PartnerSessionContext';
 import { listEscalationsByPartner, createEscalation } from '../../data/escalationsRepo';
 import type { EscalationTopic, EscalationPriority } from '../../domain/escalations';
 import { EntitlementGate } from '../../components/billing/EntitlementGate';
@@ -47,7 +47,7 @@ function statusIcon(status: string) {
 export default function PartnerEscalationsPage() {
   const auth = useAuth();
   const navigate = useNavigate();
-  const partner = useMemo(() => getOrCreatePartnerForSession({ user: auth.user }), [auth.user]);
+  const { partner } = usePartnerSession();
   const escalations = useMemo(() => (partner ? listEscalationsByPartner(partner.id) : []), [partner]);
   const complaints = useMemo(() => (partner ? listRegulatoryComplaintsByPartner(partner.id) : []), [partner]);
   const cases = useMemo(() => (partner ? listCasesByPartner(partner.id) : []), [partner]);

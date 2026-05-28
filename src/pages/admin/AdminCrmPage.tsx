@@ -205,7 +205,8 @@ export default function AdminCrmPage() {
     return base.filter((p) => getCrmCategoryIdsForEntity('prospect', p.id).includes(crmCategoryFilter));
   }, [q, stage, target, version, crmCategoryFilter]);
 
-  const partners = useMemo(() => listPartnersByTenant(tenantId), [tenantId, version]);
+  const [partners, setPartners] = useState<import('../../domain/partners').Partner[]>([]);
+  useEffect(() => { listPartnersByTenant(tenantId).then(setPartners); }, [tenantId, version]);
   const filteredPartners = useMemo(() => {
     const q = partnerQuery.trim().toLowerCase();
     const base = !q

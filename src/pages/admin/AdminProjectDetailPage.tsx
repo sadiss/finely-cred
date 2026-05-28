@@ -46,12 +46,17 @@ export default function AdminProjectDetailPage() {
   }, []);
 
   const project = useMemo(() => (id ? getProject(id) : null), [id, version]);
-  const partner = useMemo(() => (project ? getPartner(project.partnerId) : null), [project]);
-  const partnerIds = useMemo(() => {
-    const tenantId = getActiveTenantId();
+  const [partner, setPartner] = useState<import('../../domain/partners').Partner | null>(null);
+  useEffect(() => {
+    if (!project) { setPartner(null); return; }
+    getPartner(project.partnerId).then(setPartner);
+  }, [project?.partnerId]);
+  const [partnerIds, setPartnerIds] = useState<Set<string>>(new Set());
+  useEffect(() => {
     const u = auth.user;
-    if (!u) return new Set<string>();
-    return getAccessiblePartnerIdsForAdmin({ userId: u.id, email: u.email, tenantId });
+    const tenantId = getActiveTenantId();
+    if (!u) { setPartnerIds(new Set()); return; }
+    getAccessiblePartnerIdsForAdmin({ userId: u.id, email: u.email, tenantId }).then(setPartnerIds);
   }, [auth.user, version]);
   const tasks = useMemo(() => {
     if (!project) return [];

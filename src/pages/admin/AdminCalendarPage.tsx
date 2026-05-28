@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { ArrowLeft, ArrowRight, Calendar, CheckCircle2, Clock, Link as LinkIcon, Plus, Send, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { PageShell } from '../../components/layout/PageShell';
@@ -47,11 +47,14 @@ export default function AdminCalendarPage() {
   const requests = useMemo(() => listConsultationRequests(), [version]);
   const publicRequests = useMemo(() => listPublicAppointmentRequests(), [version]);
   const events = useMemo(() => listCalendarEvents(), [version]);
-  const partners = useMemo(() => {
-    const tenantId = getActiveTenantId();
+  const [partners, setPartners] = useState<import('../../domain/partners').Partner[]>([]);
+  useEffect(() => {
     const u = auth.user;
-    const allowed = u ? getAccessiblePartnerIdsForAdmin({ userId: u.id, email: u.email, tenantId }) : new Set<string>();
-    return listPartnersByTenant(tenantId).filter((p) => allowed.has(p.id));
+    const tenantId = getActiveTenantId();
+    if (!u) { setPartners([]); return; }
+    getAccessiblePartnerIdsForAdmin({ userId: u.id, email: u.email, tenantId })
+      .then((allowed) => listPartnersByTenant(tenantId).then((all) => all.filter((p) => allowed.has(p.id))))
+      .then(setPartners);
   }, [auth.user, version]);
   const partnerIds = useMemo(() => new Set(partners.map((p) => p.id)), [partners]);
 

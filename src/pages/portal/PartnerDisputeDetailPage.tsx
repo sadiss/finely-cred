@@ -4,7 +4,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { PageShell } from '../../components/layout/PageShell';
 import { useAuth } from '../../auth/AuthProvider';
 import { getCase } from '../../data/casesRepo';
-import { getOrCreatePartnerForSession } from '../../portal/getOrCreatePartnerForSession';
+import { usePartnerSession } from '../../auth/PartnerSessionContext';
 import { EntitlementGate } from '../../components/billing/EntitlementGate';
 import { ENTITLEMENT_KEYS } from '../../billing/entitlements';
 import { ActionLink, Button } from '../../components/ui';
@@ -15,7 +15,7 @@ export default function PartnerDisputeDetailPage() {
   const { id } = useParams();
   const email = auth.user?.email || '';
 
-  const partner = useMemo(() => getOrCreatePartnerForSession({ user: auth.user }), [auth.user]);
+  const { partner } = usePartnerSession();
   const disputeCase = useMemo(() => (id ? getCase(id) : null), [id]);
 
   if (!partner) {

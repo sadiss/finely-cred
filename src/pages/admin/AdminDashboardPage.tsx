@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { ArrowLeft, ArrowRight, Gavel, Settings, Users, BarChart3, FileText, Layout, Package, CreditCard, FlaskConical, MessageSquareText, Bell, Calendar, FolderKanban, BookOpen, Bot, Mail, Library, Crown, UserCog, Globe, BadgeCheck, ListChecks, GraduationCap, Lock, PiggyBank, Trophy, Activity, Target, Sparkles, Film, BriefcaseBusiness, Shield } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { PageShell } from '../../components/layout/PageShell';
@@ -22,34 +22,45 @@ export default function AdminDashboardPage() {
   const auth = useAuth();
   const [showAllByGroup, setShowAllByGroup] = React.useState<Record<string, boolean>>({});
 
-  const stats = useMemo(() => {
-    const tenantId = getActiveTenantId();
+  const [stats, setStats] = useState({
+    partnersCount: 0, casesCount: 0, openCasesCount: 0, leadsCount: 0,
+    openTasksCount: 0, adminUnread: 0,
+    labels14: [] as string[], leads14: [] as number[], tasks14: [] as number[], cases14: [] as number[],
+  });
+  useEffect(() => {
     const u = auth.user;
-    const partnerIds = u ? getAccessiblePartnerIdsForAdmin({ userId: u.id, email: u.email, tenantId }) : new Set<string>();
-    const partners = listPartnersByTenant(tenantId).filter((p) => partnerIds.has(p.id));
-    const cases = listCases();
-    const tenantCases = cases.filter((c) => partnerIds.has(c.partnerId));
-    const openCases = tenantCases.filter((c) => c.status === 'open');
-    const leads = listLeadCaptures();
-    const tasks = listTasks();
-    const tenantTasks = tasks.filter((t: any) => partnerIds.has(String((t as any).partnerId || '')));
-    const openTasks = tenantTasks.filter((t: any) => t.status === 'pending' || t.status === 'in_progress');
-    const adminUnread = unreadCount({ audience: 'admin' });
-    const leads14 = bucketCountsByDay({ items: leads, getIso: (l) => (l as any).createdAt, days: 14 });
-    const tasks14 = bucketCountsByDay({ items: tenantTasks, getIso: (t) => (t as any).createdAt, days: 14 });
-    const cases14 = bucketCountsByDay({ items: tenantCases, getIso: (c) => (c as any).createdAt, days: 14 });
-    return {
-      partnersCount: partners.length,
-      casesCount: tenantCases.length,
-      openCasesCount: openCases.length,
-      leadsCount: leads.length,
-      openTasksCount: openTasks.length,
-      adminUnread,
-      labels14: leads14.labels,
-      leads14: leads14.values,
-      tasks14: tasks14.values,
-      cases14: cases14.values,
-    };
+    const tenantId = getActiveTenantId();
+    const partnerIdsPromise = u
+      ? getAccessiblePartnerIdsForAdmin({ userId: u.id, email: u.email, tenantId })
+      : Promise.resolve(new Set<string>());
+    partnerIdsPromise.then((partnerIds) => {
+      listPartnersByTenant(tenantId).then((partners) => {
+        const filtered = partners.filter((p) => partnerIds.has(p.id));
+        const cases = listCases();
+        const tenantCases = cases.filter((c) => partnerIds.has(c.partnerId));
+        const openCases = tenantCases.filter((c) => c.status === 'open');
+        const leads = listLeadCaptures();
+        const tasks = listTasks();
+        const tenantTasks = tasks.filter((t: any) => partnerIds.has(String((t as any).partnerId || '')));
+        const openTasks = tenantTasks.filter((t: any) => t.status === 'pending' || t.status === 'in_progress');
+        const adminUnread = unreadCount({ audience: 'admin' });
+        const leads14 = bucketCountsByDay({ items: leads, getIso: (l) => (l as any).createdAt, days: 14 });
+        const tasks14 = bucketCountsByDay({ items: tenantTasks, getIso: (t) => (t as any).createdAt, days: 14 });
+        const cases14 = bucketCountsByDay({ items: tenantCases, getIso: (c) => (c as any).createdAt, days: 14 });
+        setStats({
+          partnersCount: filtered.length,
+          casesCount: tenantCases.length,
+          openCasesCount: openCases.length,
+          leadsCount: leads.length,
+          openTasksCount: openTasks.length,
+          adminUnread,
+          labels14: leads14.labels,
+          leads14: leads14.values,
+          tasks14: tasks14.values,
+          cases14: cases14.values,
+        });
+      });
+    });
   }, [auth.user]);
 
   const opsCaps = useMemo(() => {

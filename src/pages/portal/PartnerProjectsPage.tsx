@@ -3,7 +3,7 @@ import { ArrowLeft, ArrowRight, Calendar, CheckCircle2, FolderOpen, Gavel, ListC
 import { useNavigate } from 'react-router-dom';
 import { PageShell } from '../../components/layout/PageShell';
 import { useAuth } from '../../auth/AuthProvider';
-import { getOrCreatePartnerForSession } from '../../portal/getOrCreatePartnerForSession';
+import { usePartnerSession } from '../../auth/PartnerSessionContext';
 import { createProject, ensureDefaultProjectForPartner, listProjectsByPartner, setProjectStage, setProjectStatus } from '../../data/projectsRepo';
 import { createTask, listTasksByPartner, setTaskStatus, upsertTask } from '../../data/tasksRepo';
 import type { TaskItem, TaskPriority, TaskStage, TaskStatus } from '../../domain/tasks';
@@ -50,7 +50,7 @@ function stageIcon(stage: TaskStage) {
 export default function PartnerProjectsPage() {
   const auth = useAuth();
   const navigate = useNavigate();
-  const partner = useMemo(() => getOrCreatePartnerForSession({ user: auth.user }), [auth.user]);
+  const { partner } = usePartnerSession();
   const [version, setVersion] = useState(0);
   const [view, setView] = useState<'kanban' | 'list' | 'calendar'>('kanban');
   const [scope, setScope] = useState<'personal' | 'business'>('personal');

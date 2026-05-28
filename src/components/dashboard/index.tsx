@@ -7,6 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../auth/AuthProvider';
 import { isAdminEmail } from '../../auth/admin';
 import { findPartnerByEmail, listPartners } from '../../data/partnersRepo';
+import type { Partner } from '../../domain/partners';
 import { listReportsByPartner } from '../../data/reportsRepo';
 import { listTasksByPartner } from '../../data/tasksRepo';
 import { listCasesByPartner } from '../../data/casesRepo';
@@ -781,24 +782,36 @@ export function MasteryOSDashboard({ user, onLogout }: MasteryOSDashboardProps) 
     { id: 'vault', label: 'Launchpad', icon: Lock },
   ];
 
-  const disputeCandidates = useMemo(() => {
+  const [disputeCandidates, setDisputeCandidates] = useState<DisputeCandidate[]>([]);
+  const [adminPartnersAll, setAdminPartnersAll] = useState<Partner[]>([]);
+  const [currentPartner, setCurrentPartner] = useState<Partner | null>(null);
+
+  useEffect(() => {
     const email = auth.user?.email;
-    if (!email) return [] as DisputeCandidate[];
-    const partner = findPartnerByEmail(email);
-    if (!partner) return [] as DisputeCandidate[];
-    const reports = listReportsByPartner(partner.id);
-    const latest = reports.find((r) => Boolean(r.parsed)) ?? null;
-    if (!latest?.parsed) return [] as DisputeCandidate[];
-    return deriveDisputeCandidates(latest.parsed, latest.id);
-  }, [auth.user?.email]);
+    if (!email) { setCurrentPartner(null); setDisputeCandidates([]); return; }
+    findPartnerByEmail(email).then((partner) => {
+      setCurrentPartner(partner);
+      if (!partner) { setDisputeCandidates([]); return; }
+      const reports = listReportsByPartner(partner.id);
+      const latest = reports.find((r) => Boolean(r.parsed)) ?? null;
+      if (!latest?.parsed) { setDisputeCandidates([]); return; }
+      setDisputeCandidates(deriveDisputeCandidates(latest.parsed, latest.id));
+    });
+  }, [auth.user?.email, storeVersion]);
+
+  useEffect(() => {
+    if (!isAdmin) { setAdminPartnersAll([]); return; }
+    listPartners().then(setAdminPartnersAll);
+  }, [isAdmin, storeVersion]);
 
   const adminPartnerCards = useMemo(() => {
     if (!isAdmin) return [];
     const q = partnerQuery.trim().toLowerCase();
-    const all = listPartners();
     const filtered = q
-      ? all.filter((p) => `${p.profile.fullName} ${p.profile.email ?? ''} ${p.status}`.toLowerCase().includes(q))
-      : all;
+      ? adminPartnersAll.filter((p) =>
+          `${p.profile.fullName} ${p.profile.email ?? ''} ${p.status}`.toLowerCase().includes(q)
+        )
+      : adminPartnersAll;
     return filtered.slice(0, 24).map((p) => {
       const reports = listReportsByPartner(p.id);
       const tasks = listTasksByPartner(p.id);
@@ -816,40 +829,34 @@ export function MasteryOSDashboard({ user, onLogout }: MasteryOSDashboardProps) 
         updatedAt: p.updatedAt,
       };
     });
-  }, [isAdmin, partnerQuery]);
+  }, [isAdmin, partnerQuery, adminPartnersAll]);
 
   const kpi = useMemo(() => {
-    const email = auth.user?.email || '';
-    const partner = email ? findPartnerByEmail(email) : null;
-
     if (isAdmin) {
-      const partners = listPartners();
       const leads = listLeadCaptures();
-      const allTasks = partners.flatMap((p) => listTasksByPartner(p.id));
-      const allCases = partners.flatMap((p) => listCasesByPartner(p.id));
+      const allTasks = adminPartnersAll.flatMap((p) => listTasksByPartner(p.id));
+      const allCases = adminPartnersAll.flatMap((p) => listCasesByPartner(p.id));
       const openTasks = allTasks.filter((t) => t.status === 'pending' || t.status === 'in_progress');
       const openCases = allCases.filter((c) => c.status === 'open');
-
       return {
         mode: 'admin' as const,
-        partnersCount: partners.length,
+        partnersCount: adminPartnersAll.length,
         openTasksCount: openTasks.length,
         openCasesCount: openCases.length,
         leadsCount: leads.length,
         series: {
-          tasks14: bucketCountsByDay({ items: allTasks, getIso: (t) => (t as any).createdAt, days: 14 }).values,
-          cases14: bucketCountsByDay({ items: allCases, getIso: (c) => (c as any).createdAt, days: 14 }).values,
-          leads14: bucketCountsByDay({ items: leads, getIso: (l) => (l as any).createdAt, days: 14 }).values,
+          tasks14: bucketCountsByDay({ items: allTasks, getIso: (t: any) => t.createdAt, days: 14 }).values,
+          cases14: bucketCountsByDay({ items: allCases, getIso: (c: any) => c.createdAt, days: 14 }).values,
+          leads14: bucketCountsByDay({ items: leads, getIso: (l: any) => l.createdAt, days: 14 }).values,
         },
       };
     }
-
+    const partner = currentPartner;
     const reports = partner ? listReportsByPartner(partner.id) : [];
     const tasks = partner ? listTasksByPartner(partner.id) : [];
     const cases = partner ? listCasesByPartner(partner.id) : [];
     const openTasks = tasks.filter((t) => t.status === 'pending' || t.status === 'in_progress');
     const openCases = cases.filter((c) => c.status === 'open');
-
     return {
       mode: 'partner' as const,
       reportsCount: reports.length,
@@ -857,12 +864,12 @@ export function MasteryOSDashboard({ user, onLogout }: MasteryOSDashboardProps) 
       openCasesCount: openCases.length,
       candidatesCount: disputeCandidates.length,
       series: {
-        tasks14: bucketCountsByDay({ items: tasks, getIso: (t) => (t as any).createdAt, days: 14 }).values,
-        cases14: bucketCountsByDay({ items: cases, getIso: (c) => (c as any).createdAt, days: 14 }).values,
-        reports14: bucketCountsByDay({ items: reports, getIso: (r) => (r as any).receivedAt, days: 14 }).values,
+        tasks14: bucketCountsByDay({ items: tasks, getIso: (t: any) => t.createdAt, days: 14 }).values,
+        cases14: bucketCountsByDay({ items: cases, getIso: (c: any) => c.createdAt, days: 14 }).values,
+        reports14: bucketCountsByDay({ items: reports, getIso: (r: any) => r.receivedAt, days: 14 }).values,
       },
     };
-  }, [auth.user?.email, isAdmin, storeVersion, disputeCandidates.length]);
+  }, [isAdmin, adminPartnersAll, currentPartner, disputeCandidates.length, partnerQuery, storeVersion]);
 
   return (
     <div className="min-h-screen bg-[#0a0f0d] text-white flex flex-col animate-in fade-in duration-1000">

@@ -3,7 +3,7 @@ import { ArrowLeft, Building2, FileText, LayoutGrid, Target, Users, Crown, BookO
 import { useNavigate } from 'react-router-dom';
 import { EntityDetailShell } from '../../components/layout/EntityDetailShell';
 import { useAuth } from '../../auth/AuthProvider';
-import { getOrCreatePartnerForSession } from '../../portal/getOrCreatePartnerForSession';
+import { usePartnerSession } from '../../auth/PartnerSessionContext';
 import { upsertPartner } from '../../data/partnersRepo';
 import { listCustomFieldDefinitionsByScope } from '../../data/customFieldsRepo';
 import { getFieldLayout } from '../../data/fieldLayoutsRepo';
@@ -14,7 +14,7 @@ import { FINELY_TENANT_ID } from '../../domain/tenants';
 export default function BusinessProfilePage() {
   const navigate = useNavigate();
   const auth = useAuth();
-  const partner = useMemo(() => getOrCreatePartnerForSession({ user: auth.user }), [auth.user]);
+  const { partner } = usePartnerSession();
 
   const business = useMemo(() => {
     const r: any = partner?.routes?.business_build ?? {};
@@ -136,7 +136,7 @@ export default function BusinessProfilePage() {
                           einLast4: einLast4.trim() || undefined,
                         },
                       };
-                      upsertPartner({ ...partner, primaryRoute: partner.primaryRoute ?? 'business_build', routes: nextRoutes });
+                      void upsertPartner({ ...partner, primaryRoute: partner.primaryRoute ?? 'business_build', routes: nextRoutes });
                     }}
                     className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-amber-500 text-black font-black uppercase tracking-widest text-[10px] hover:brightness-110 transition-all"
                   >

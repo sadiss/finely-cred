@@ -24,11 +24,11 @@ export function listImportBatches(): ImportBatch[] {
   return loadStore().batches.slice().sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 }
 
-export function importLegacyPartners(args: {
+export async function importLegacyPartners(args: {
   exportData: LegacyPartnerExportV1;
   claimBaseUrl: string;
   filename?: string;
-}): ImportBatch {
+}): Promise<ImportBatch> {
   const batch: ImportBatch = {
     id: newId('import'),
     source: 'laravel',
@@ -47,10 +47,10 @@ export function importLegacyPartners(args: {
       const fullName = String(p.fullName || '').trim();
       if (!fullName) throw new Error('Missing fullName');
 
-      const exists = findPartnerByImportExternalId({ source: 'laravel', externalId });
+      const exists = await findPartnerByImportExternalId({ source: 'laravel', externalId });
       if (exists) throw new Error(`Already imported (partnerId: ${exists.id})`);
 
-      const created = createPartner({
+      const created = await createPartner({
         fullName,
         email: p.email ? String(p.email).trim() : undefined,
         phone: p.phone ? String(p.phone).trim() : undefined,

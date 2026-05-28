@@ -3,7 +3,7 @@ import { ArrowLeft, ArrowRight, CreditCard, Building2, CheckCircle2, Clock, Shie
 import { PageShell } from '../../components/layout/PageShell';
 import { useAuth } from '../../auth/AuthProvider';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { getOrCreatePartnerForSession } from '../../portal/getOrCreatePartnerForSession';
+import { usePartnerSession } from '../../auth/PartnerSessionContext';
 import {
   createBillingAccount,
   getBillingAccountForPartner,
@@ -27,7 +27,7 @@ export default function PartnerCheckoutPage() {
   const auth = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const partner = useMemo(() => getOrCreatePartnerForSession({ user: auth.user }), [auth.user]);
+  const { partner } = usePartnerSession();
   const [storeVersion, setStoreVersion] = useState(0);
 
   useEffect(() => {

@@ -1,71 +1,137 @@
 import type { Partner, PartnerJourneyStage, PartnerLane, PartnerRoute, PartnerRouteIntake, PartnerStatus } from '../domain/partners';
 import { nowIso, normalizeEmail, FINELY_TENANT_ID } from '../domain/partners';
-import { loadJson, saveJson } from './localJsonStore';
+import { isSupabaseConfigured, supabase } from '../lib/supabaseClient';
 
-const KEY = 'finely.partners.v1';
-
-type Store = {
-  partners: Partner[];
-};
-
-function loadStore(): Store {
-  return loadJson<Store>(KEY, { partners: [] }, 1);
+function rowToPartner(row: any): Partner {
+  return {
+    id: row.id,
+    tenantId: row.tenant_id,
+    status: row.status || 'active',
+    profile: row.profile || { fullName: 'Partner' },
+    primaryRoute: row.primary_route || undefined,
+    lane: row.lane || undefined,
+    journeyStage: row.journey_stage || undefined,
+    journeySignals: row.journey_signals || {},
+    importSource: row.import_source || undefined,
+    importExternalId: row.import_external_id || undefined,
+    claimedUserId: row.claimed_user_id || undefined,
+    claimedAt: row.claimed_at || undefined,
+    routes: row.routes || {},
+    consents: row.consents || {},
+    assignedAdminId: row.assigned_admin_id || undefined,
+    assignedAgentId: row.assigned_agent_id || undefined,
+    notes: row.notes || undefined,
+    financial: row.financial || undefined,
+    denefits: row.denefits || undefined,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
 }
 
-function saveStore(store: Store) {
-  saveJson(KEY, store, 1);
+function partnerToRow(p: Partner): any {
+  return {
+    id: p.id,
+    tenant_id: p.tenantId || FINELY_TENANT_ID,
+    status: p.status || 'active',
+    profile: p.profile ?? {},
+    primary_route: p.primaryRoute ?? null,
+    lane: p.lane ?? null,
+    journey_stage: p.journeyStage ?? null,
+    journey_signals: p.journeySignals ?? {},
+    import_source: p.importSource ?? null,
+    import_external_id: p.importExternalId ?? null,
+    claimed_user_id: p.claimedUserId ?? null,
+    claimed_at: p.claimedAt ?? null,
+    routes: p.routes ?? {},
+    consents: p.consents ?? {},
+    assigned_admin_id: (p as any).assignedAdminId ?? null,
+    assigned_agent_id: p.assignedAgentId ?? null,
+    notes: p.notes ?? null,
+    financial: p.financial ?? null,
+    denefits: p.denefits ?? null,
+    created_at: p.createdAt,
+    updated_at: p.updatedAt,
+  };
 }
 
 /**
- * List all partners (cross-tenant - use for platform admins only)
+ * List all partners (cross-tenant — platform admins only)
  */
-export function listPartners(): Partner[] {
-  return loadStore().partners.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
+export async function listPartners(): Promise<Partner[]> {
+  if (!isSupabaseConfigured) return [];
+  const { data, error } = await supabase
+    .from('partners')
+    .select('*')
+    .order('updated_at', { ascending: false });
+  if (error) { console.warn('listPartners error:', error.message); return []; }
+  return (data ?? []).map(rowToPartner);
 }
 
 /**
  * List partners scoped to a specific tenant
  */
-export function listPartnersByTenant(tenantId: string): Partner[] {
-  return loadStore()
-    .partners.filter((p) => p.tenantId === tenantId)
-    .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
+export async function listPartnersByTenant(tenantId: string): Promise<Partner[]> {
+  if (!isSupabaseConfigured) return [];
+  const { data, error } = await supabase
+    .from('partners')
+    .select('*')
+    .eq('tenant_id', tenantId)
+    .order('updated_at', { ascending: false });
+  if (error) { console.warn('listPartnersByTenant error:', error.message); return []; }
+  return (data ?? []).map(rowToPartner);
 }
 
 /**
  * List partners assigned to a specific agent (within their tenant)
  */
-export function listPartnersByAgent(tenantId: string, agentId: string): Partner[] {
-  return loadStore()
-    .partners.filter((p) => p.tenantId === tenantId && p.assignedAgentId === agentId)
-    .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
+export async function listPartnersByAgent(tenantId: string, agentId: string): Promise<Partner[]> {
+  if (!isSupabaseConfigured) return [];
+  const { data, error } = await supabase
+    .from('partners')
+    .select('*')
+    .eq('tenant_id', tenantId)
+    .eq('assigned_agent_id', agentId)
+    .order('updated_at', { ascending: false });
+  if (error) { console.warn('listPartnersByAgent error:', error.message); return []; }
+  return (data ?? []).map(rowToPartner);
 }
 
-export function getPartner(id: string): Partner | null {
-  return loadStore().partners.find((p) => p.id === id) ?? null;
+export async function getPartner(id: string): Promise<Partner | null> {
+  if (!isSupabaseConfigured || !id?.trim()) return null;
+  const { data, error } = await supabase
+    .from('partners')
+    .select('*')
+    .eq('id', id.trim())
+    .maybeSingle();
+  if (error) { console.warn('getPartner error:', error.message); return null; }
+  return data ? rowToPartner(data) : null;
 }
 
 /**
- * Get partner with tenant scope check (returns null if partner exists but wrong tenant)
+ * Get partner with tenant scope check
  */
-export function getPartnerInTenant(id: string, tenantId: string): Partner | null {
-  const partner = loadStore().partners.find((p) => p.id === id);
-  if (!partner) return null;
-  if (partner.tenantId !== tenantId) return null;
-  return partner;
+export async function getPartnerInTenant(id: string, tenantId: string): Promise<Partner | null> {
+  if (!isSupabaseConfigured || !id?.trim()) return null;
+  const { data, error } = await supabase
+    .from('partners')
+    .select('*')
+    .eq('id', id.trim())
+    .eq('tenant_id', tenantId)
+    .maybeSingle();
+  if (error) { console.warn('getPartnerInTenant error:', error.message); return null; }
+  return data ? rowToPartner(data) : null;
 }
 
-export function upsertPartner(partner: Partner): Partner {
-  const store = loadStore();
-  const idx = store.partners.findIndex((p) => p.id === partner.id);
+export async function upsertPartner(partner: Partner): Promise<Partner> {
   const next = { ...partner, updatedAt: nowIso() };
-  if (idx >= 0) store.partners[idx] = next;
-  else store.partners.push(next);
-  saveStore(store);
+  if (!isSupabaseConfigured) return next;
+  const row = partnerToRow(next);
+  const { error } = await supabase.from('partners').upsert(row, { onConflict: 'id' });
+  if (error) { console.warn('upsertPartner error:', error.message); }
   return next;
 }
 
-export function createPartner(args: {
+export async function createPartner(args: {
   id?: string;
   tenantId?: string;
   status?: PartnerStatus;
@@ -82,7 +148,7 @@ export function createPartner(args: {
   claimedAt?: string;
   intake?: PartnerRouteIntake;
   assignedAgentId?: string;
-}): Partner {
+}): Promise<Partner> {
   const id =
     args.id ??
     (crypto?.randomUUID ? crypto.randomUUID() : `p_${Math.random().toString(16).slice(2)}_${Date.now().toString(16)}`);
@@ -113,31 +179,50 @@ export function createPartner(args: {
   return upsertPartner(partner);
 }
 
-export function findPartnerByEmail(email: string): Partner | null {
+export async function findPartnerByEmail(email: string): Promise<Partner | null> {
   const target = normalizeEmail(email);
-  if (!target) return null;
-  return loadStore().partners.find((p) => normalizeEmail(p.profile.email) === target) ?? null;
+  if (!target || !isSupabaseConfigured) return null;
+  const { data, error } = await supabase
+    .from('partners')
+    .select('*')
+    .filter('profile->>email', 'eq', target)
+    .maybeSingle();
+  if (error) { console.warn('findPartnerByEmail error:', error.message); return null; }
+  return data ? rowToPartner(data) : null;
 }
 
-export function findPartnerByClaimedUserId(userId: string): Partner | null {
+export async function findPartnerByClaimedUserId(userId: string): Promise<Partner | null> {
   const id = (userId || '').trim();
-  if (!id) return null;
-  return loadStore().partners.find((p) => p.claimedUserId === id) ?? null;
+  if (!id || !isSupabaseConfigured) return null;
+  const { data, error } = await supabase
+    .from('partners')
+    .select('*')
+    .eq('claimed_user_id', id)
+    .maybeSingle();
+  if (error) { console.warn('findPartnerByClaimedUserId error:', error.message); return null; }
+  return data ? rowToPartner(data) : null;
 }
 
-export function findPartnerByImportExternalId(args: { source: NonNullable<Partner['importSource']>; externalId: string }): Partner | null {
+export async function findPartnerByImportExternalId(args: {
+  source: NonNullable<Partner['importSource']>;
+  externalId: string;
+}): Promise<Partner | null> {
   const ext = (args.externalId || '').trim();
-  if (!ext) return null;
-  return loadStore().partners.find((p) => p.importSource === args.source && p.importExternalId === ext) ?? null;
+  if (!ext || !isSupabaseConfigured) return null;
+  const { data, error } = await supabase
+    .from('partners')
+    .select('*')
+    .eq('import_source', args.source)
+    .eq('import_external_id', ext)
+    .maybeSingle();
+  if (error) { console.warn('findPartnerByImportExternalId error:', error.message); return null; }
+  return data ? rowToPartner(data) : null;
 }
 
-export function deletePartner(id: string): boolean {
+export async function deletePartner(id: string): Promise<boolean> {
   const pid = (id || '').trim();
-  if (!pid) return false;
-  const store = loadStore();
-  const before = store.partners.length;
-  store.partners = store.partners.filter((p) => p.id !== pid);
-  const changed = store.partners.length !== before;
-  if (changed) saveStore(store);
-  return changed;
+  if (!pid || !isSupabaseConfigured) return false;
+  const { error } = await supabase.from('partners').delete().eq('id', pid);
+  if (error) { console.warn('deletePartner error:', error.message); return false; }
+  return true;
 }

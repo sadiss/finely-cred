@@ -22,12 +22,14 @@ export default function CasesPage() {
     return () => window.removeEventListener('finely:store', onStore as EventListener);
   }, []);
 
-  const partnerIndex = useMemo(() => {
-    const tenantId = getActiveTenantId();
+  const [partnerIndex, setPartnerIndex] = useState<Map<string, import('../../domain/partners').Partner>>(new Map());
+  useEffect(() => {
     const u = auth.user;
-    const allowed = u ? getAccessiblePartnerIdsForAdmin({ userId: u.id, email: u.email, tenantId }) : new Set<string>();
-    const all = listPartnersByTenant(tenantId).filter((p) => allowed.has(p.id));
-    return new Map(all.map((p) => [p.id, p]));
+    const tenantId = getActiveTenantId();
+    if (!u) { setPartnerIndex(new Map()); return; }
+    getAccessiblePartnerIdsForAdmin({ userId: u.id, email: u.email, tenantId })
+      .then((allowed) => listPartnersByTenant(tenantId).then((all) => new Map(all.filter((p) => allowed.has(p.id)).map((p) => [p.id, p]))))
+      .then(setPartnerIndex);
   }, [auth.user, version]);
   const partnerIds = useMemo(() => new Set(Array.from(partnerIndex.keys())), [partnerIndex]);
 

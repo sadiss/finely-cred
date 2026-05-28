@@ -77,7 +77,8 @@ export default function AdminTeamRolesPage() {
   }, [storeVersion]);
 
   const tenants = useMemo(() => listTenants().slice().sort((a, b) => a.name.localeCompare(b.name)), [storeVersion]);
-  const partners = useMemo(() => listPartnersByTenant(tenantId), [tenantId, storeVersion]);
+  const [partners, setPartners] = useState<import('../../domain/partners').Partner[]>([]);
+  useEffect(() => { listPartnersByTenant(tenantId).then(setPartners); }, [tenantId, storeVersion]);
 
   const members = useMemo(
     () => listMemberships(tenantId).slice().sort((a, b) => a.email.localeCompare(b.email)),

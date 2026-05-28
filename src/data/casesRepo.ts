@@ -13,6 +13,9 @@ const PROJECTS_KEY = 'finely.projects.v1';
 type Store = { cases: DisputeCase[] };
 type ProjectsStore = { projects: Project[] };
 
+// Module-level cache: prevents duplicate project creation and deferred-write races
+const _caseProjectIdCache = new Map<string, string>();
+
 function loadStore(): Store {
   return loadJson<Store>(KEY, { cases: [] }, 1);
 }
@@ -30,13 +33,19 @@ function saveProjectsStore(store: ProjectsStore) {
 }
 
 function ensureDefaultProjectIdForPartner(args: { partnerId: string; scope: 'personal' | 'business' }): string {
-  const store = loadProjectsStore();
   const scope = args.scope ?? 'personal';
+  const cacheKey = `${args.partnerId}::${scope}`;
+  if (_caseProjectIdCache.has(cacheKey)) return _caseProjectIdCache.get(cacheKey)!;
+
+  const store = loadProjectsStore();
   const projects = store.projects.map((p) => ({ ...p, scope: (p as any).scope ?? 'personal' }));
   const existing =
     projects.find((p) => p.partnerId === args.partnerId && (p.scope ?? 'personal') === scope && p.status === 'active') ??
     null;
-  if (existing?.id) return existing.id;
+  if (existing?.id) {
+    _caseProjectIdCache.set(cacheKey, existing.id);
+    return existing.id;
+  }
 
   const now = nowIso();
   const created: Project = {
@@ -51,8 +60,10 @@ function ensureDefaultProjectIdForPartner(args: { partnerId: string; scope: 'per
     createdAt: now,
     updatedAt: now,
   };
+  _caseProjectIdCache.set(cacheKey, created.id); // cache before deferred write
   store.projects.push(created);
-  saveProjectsStore(store);
+  // Defer write so it doesn't dispatch finely:store synchronously during React render
+  queueMicrotask(() => saveProjectsStore(store));
   return created.id;
 }
 
@@ -66,8 +77,9 @@ export function listCases(): DisputeCase[] {
     return { ...c, projectId };
   });
   if (changed) {
-    store.cases = normalized as any;
-    saveStore(store);
+    const snapshot = normalized as any;
+    // Defer write so it doesn't dispatch finely:store synchronously during React render
+    queueMicrotask(() => saveStore({ cases: snapshot }));
   }
   return normalized.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
 }

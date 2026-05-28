@@ -10,6 +10,9 @@ const PROJECTS_KEY = 'finely.projects.v1';
 type Store = { tasks: TaskItem[] };
 type ProjectsStore = { projects: Project[] };
 
+// Module-level cache: prevents duplicate project creation and deferred-write races
+const _taskProjectIdCache = new Map<string, string>();
+
 function nowIso() {
   return new Date().toISOString();
 }
@@ -31,13 +34,19 @@ function saveProjectsStore(store: ProjectsStore) {
 }
 
 function ensureDefaultProjectIdForPartner(args: { partnerId: string; scope: 'personal' | 'business' }): string {
-  const store = loadProjectsStore();
   const scope = args.scope ?? 'personal';
+  const cacheKey = `${args.partnerId}::${scope}`;
+  if (_taskProjectIdCache.has(cacheKey)) return _taskProjectIdCache.get(cacheKey)!;
+
+  const store = loadProjectsStore();
   const projects = store.projects.map((p) => ({ ...p, scope: (p as any).scope ?? 'personal' }));
   const existing =
     projects.find((p) => p.partnerId === args.partnerId && (p.scope ?? 'personal') === scope && p.status === 'active') ??
     null;
-  if (existing?.id) return existing.id;
+  if (existing?.id) {
+    _taskProjectIdCache.set(cacheKey, existing.id);
+    return existing.id;
+  }
 
   const now = nowIso();
   const created: Project = {
@@ -53,8 +62,10 @@ function ensureDefaultProjectIdForPartner(args: { partnerId: string; scope: 'per
     updatedAt: now,
   };
 
+  _taskProjectIdCache.set(cacheKey, created.id); // cache before deferred write
   store.projects.push(created);
-  saveProjectsStore(store);
+  // Defer write so it doesn't dispatch finely:store synchronously during React render
+  queueMicrotask(() => saveProjectsStore(store));
 
   // Best-effort: notify partner/admin that the project exists.
   try {
@@ -185,8 +196,9 @@ export function listTasks(): TaskItem[] {
     return next;
   });
   if (changed) {
-    store.tasks = normalized as any;
-    saveStore(store);
+    const snapshot = normalized as any;
+    // Defer write so it doesn't dispatch finely:store synchronously during React render
+    queueMicrotask(() => saveStore({ tasks: snapshot }));
   }
   return normalized.sort((a, b) => (a.dueAt || a.createdAt).localeCompare(b.dueAt || b.createdAt));
 }

@@ -415,11 +415,14 @@ function PartnerDetailPageInner() {
     return () => window.removeEventListener('finely:store', onStore as EventListener);
   }, []);
 
-  const partner = useMemo(() => {
-    if (!id) return null;
-    const p = getPartner(id);
-    if (!p || !p.profile || typeof p.profile.fullName !== 'string') return null;
-    return p;
+  const [partner, setPartner] = useState<any>(null);
+
+  useEffect(() => {
+    if (!id) { setPartner(null); return; }
+    getPartner(id).then((p) => {
+      if (!p || !p.profile || typeof p.profile.fullName !== 'string') setPartner(null);
+      else setPartner(p);
+    });
   }, [id, partnerVersion]);
 
   const profileRouteKey = useMemo<PartnerRoute>(() => (partner?.primaryRoute || 'personal_restore') as PartnerRoute, [partner?.primaryRoute]);
@@ -439,15 +442,19 @@ function PartnerDetailPageInner() {
     });
   }, [partner?.id, partner?.updatedAt, profilePersonal?.address1, profilePersonal?.postalCode]);
 
-  const access = useMemo(() => {
+  const [access, setAccess] = useState<{ ok: boolean; reason: string | null }>({ ok: false, reason: 'Loading...' });
+
+  useEffect(() => {
     const u = auth.user;
     const tenantId = getActiveTenantId();
-    if (!u || !id) return { ok: false, reason: 'Not signed in.' };
-    if (!partner) return { ok: false, reason: 'Partner not found.' };
-    if ((partner as any).tenantId && (partner as any).tenantId !== tenantId) return { ok: false, reason: 'Wrong tenant.' };
-    const allowed = getAccessiblePartnerIdsForAdmin({ userId: u.id, email: u.email, tenantId });
-    if (!allowed.has(partner.id)) return { ok: false, reason: 'Not assigned.' };
-    return { ok: true, reason: null as any };
+    if (!u || !id) { setAccess({ ok: false, reason: 'Not signed in.' }); return; }
+    if (!partner) { setAccess({ ok: false, reason: 'Partner not found.' }); return; }
+    if ((partner as any).tenantId && (partner as any).tenantId !== tenantId) { setAccess({ ok: false, reason: 'Wrong tenant.' }); return; }
+    getAccessiblePartnerIdsForAdmin({ userId: u.id, email: u.email, tenantId })
+      .then((allowed) => {
+        if (!allowed.has(partner.id)) setAccess({ ok: false, reason: 'Not assigned.' });
+        else setAccess({ ok: true, reason: null });
+      });
   }, [auth.user, id, partner]);
 
   const canHardDeleteLetters = useMemo(() => {
@@ -1047,8 +1054,8 @@ function PartnerDetailPageInner() {
                     <div className="text-[10px] uppercase tracking-widest text-white/40">Status</div>
                     <select
                       value={partner.status}
-                      onChange={(e) => {
-                        upsertPartner({ ...partner, status: e.target.value as any });
+                      onChange={async (e) => {
+                        await upsertPartner({ ...partner, status: e.target.value as any });
                         setPartnerVersion((v) => v + 1);
                         addAuditEvent({
                           partnerId: partner.id,
@@ -1149,12 +1156,12 @@ function PartnerDetailPageInner() {
                   <button
                     type="button"
                     className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-amber-500 text-black font-black uppercase tracking-widest text-[10px] hover:brightness-110 transition-all"
-                    onClick={() => {
+                    onClick={async () => {
                       const name = profileDraft.fullName.trim();
                       if (!name) return;
                       const email = profileDraft.email.trim().toLowerCase();
                       const phone = profileDraft.phone.trim();
-                      const next = upsertPartner({
+                      const next = await upsertPartner({
                         ...partner,
                         profile: { ...partner.profile, fullName: name, email: email || undefined, phone: phone || undefined },
                         routes: {
@@ -1243,8 +1250,8 @@ function PartnerDetailPageInner() {
                             type="button"
                             disabled={deletePhrase.trim().toUpperCase() !== 'DELETE'}
                             className="px-4 py-2 rounded-xl bg-rose-500 text-white text-[10px] font-black uppercase tracking-widest hover:brightness-110 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                            onClick={() => {
-                              const ok = deletePartner(partner.id);
+                            onClick={async () => {
+                              const ok = await deletePartner(partner.id);
                               if (ok) {
                                 addAuditEvent({
                                   partnerId: partner.id,
@@ -1538,11 +1545,11 @@ function PartnerDetailPageInner() {
                   <button
                     type="button"
                     className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-amber-500 text-black font-black uppercase tracking-widest text-[10px] hover:brightness-110 transition-all"
-                    onClick={() => {
+                    onClick={async () => {
                       const annual = Number(financialDraft.annualIncome);
                       const debt = Number(financialDraft.monthlyDebtPayments);
                       const housing = Number(financialDraft.monthlyHousing);
-                      upsertPartner({
+                      await upsertPartner({
                         ...partner,
                         financial: {
                           annualIncome: Number.isFinite(annual) && annual > 0 ? annual : undefined,
@@ -1603,7 +1610,7 @@ function PartnerDetailPageInner() {
                       type="button"
                       className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-amber-500 text-black font-black uppercase tracking-widest text-[10px] hover:brightness-110 transition-all disabled:opacity-60"
                       disabled={!denefitsContractUrlDraft.trim()}
-                      onClick={() => {
+                      onClick={async () => {
                         const url = denefitsContractUrlDraft.trim();
                         let ok = true;
                         try {
@@ -1616,7 +1623,7 @@ function PartnerDetailPageInner() {
                           window.alert('Invalid contract URL.');
                           return;
                         }
-                        upsertPartner({
+                        await upsertPartner({
                           ...partner,
                           denefits: {
                             contractUrl: url,
@@ -1654,8 +1661,8 @@ function PartnerDetailPageInner() {
                     <button
                       type="button"
                       className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl border border-rose-500/25 bg-rose-500/10 text-rose-200 text-[10px] font-black uppercase tracking-widest hover:bg-rose-500/15 transition-all"
-                      onClick={() => {
-                        upsertPartner({ ...partner, denefits: undefined });
+                      onClick={async () => {
+                        await upsertPartner({ ...partner, denefits: undefined });
                         setDenefitsContractUrlDraft('');
                         setDenefitsContractLabelDraft('');
                         setPartnerVersion((v) => v + 1);

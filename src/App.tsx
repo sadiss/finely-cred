@@ -23,6 +23,7 @@ import { PublicChatWidget } from './components/chat/PublicChatWidget';
 import { isSupabaseConfigured } from './lib/supabaseClient';
 import { installGlobalErrorReporting } from './lib/errorReporting';
 import { getOrCreatePartnerForSession } from './portal/getOrCreatePartnerForSession';
+import { PartnerSessionProvider, usePartnerSession } from './auth/PartnerSessionContext';
 import { tradelinePromoPackages } from './config/pricingCatalog';
 import { PackageCard, variantForTierIndex } from './components/pricing/PricingCards';
 
@@ -934,10 +935,7 @@ function AppInner() {
     location.pathname.startsWith('/au') ||
     location.pathname.startsWith('/seller');
 
-  const chatPartner = React.useMemo(
-    () => (auth.user ? getOrCreatePartnerForSession({ user: auth.user }) : null),
-    [auth.user],
-  );
+  const { partner: chatPartner } = usePartnerSession();
 
   // Vault-grade production guard:
   // In production builds we require Supabase to be configured. Otherwise, the app would fall back
@@ -2149,7 +2147,9 @@ export default function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <AppInner />
+        <PartnerSessionProvider>
+          <AppInner />
+        </PartnerSessionProvider>
       </AuthProvider>
     </BrowserRouter>
   );

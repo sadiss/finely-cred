@@ -3,7 +3,7 @@ import { ArrowRight, Lock, Sparkles, Crown, Building2, Landmark, BriefcaseBusine
 import { PageShell } from '../../components/layout/PageShell';
 import { useAuth } from '../../auth/AuthProvider';
 import { useNavigate } from 'react-router-dom';
-import { getOrCreatePartnerForSession } from '../../portal/getOrCreatePartnerForSession';
+import { usePartnerSession } from '../../auth/PartnerSessionContext';
 import { hasEntitlement } from '../../data/billingRepo';
 import { getFeatureFlags } from '../../data/settingsRepo';
 
@@ -58,7 +58,7 @@ const LANES: Lane[] = [
 export default function PartnerWealthPathsPage() {
   const auth = useAuth();
   const navigate = useNavigate();
-  const partner = useMemo(() => getOrCreatePartnerForSession({ user: auth.user }), [auth.user]);
+  const { partner } = usePartnerSession();
   const features = getFeatureFlags();
 
   const hasAnyAccess = useMemo(() => {

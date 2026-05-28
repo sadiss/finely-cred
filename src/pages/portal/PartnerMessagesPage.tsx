@@ -3,7 +3,7 @@ import { ArrowLeft, ArrowRight, Mail, MessageSquareText, Paperclip, Send, Smile,
 import { PageShell } from '../../components/layout/PageShell';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../auth/AuthProvider';
-import { getOrCreatePartnerForSession } from '../../portal/getOrCreatePartnerForSession';
+import { usePartnerSession } from '../../auth/PartnerSessionContext';
 import { listEvidenceByPartner, upsertEvidence } from '../../data/evidenceRepo';
 import { createTask } from '../../data/tasksRepo';
 import { addThreadMessage, createThread, listMessagesByThread, listThreadsByPartner, setThreadStatus } from '../../data/supportRepo';
@@ -156,7 +156,7 @@ export default function PartnerMessagesPage() {
   const navigate = useNavigate();
   const auth = useAuth();
   const [storeVersion, setStoreVersion] = useState(0);
-  const partner = useMemo(() => getOrCreatePartnerForSession({ user: auth.user }), [auth.user]);
+  const { partner } = usePartnerSession();
   const threads = useMemo(() => (partner ? listThreadsByPartner(partner.id) : []), [partner, storeVersion]);
   const [selectedThreadId, setSelectedThreadId] = useState<string | null>(null);
   const selectedThread = useMemo(

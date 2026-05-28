@@ -10,7 +10,7 @@ import { listCasesByPartner } from '../../data/casesRepo';
 import { listDebtByPartner } from '../../data/debtRepo';
 import { listPartnerNotesByPartner } from '../../data/partnerNotesRepo';
 import { listLettersByPartner } from '../../data/lettersRepo';
-import { getOrCreatePartnerForSession } from '../../portal/getOrCreatePartnerForSession';
+import { usePartnerSession } from '../../auth/PartnerSessionContext';
 import { KpiCard } from '../../components/ui/KpiCards';
 import { bucketCountsByDay } from '../../utils/timeSeries';
 import { upsertPartner } from '../../data/partnersRepo';
@@ -26,7 +26,7 @@ export default function PartnerDashboardPage() {
   const [showAllModules, setShowAllModules] = useState(false);
   const [showAllNextSteps, setShowAllNextSteps] = useState(false);
 
-  const partner = useMemo(() => getOrCreatePartnerForSession({ user: auth.user }), [auth.user]);
+  const { partner } = usePartnerSession();
   const reports = useMemo(() => (partner ? listReportsByPartner(partner.id) : []), [partner]);
   const evidence = useMemo(() => (partner ? listEvidenceByPartner(partner.id) : []), [partner]);
   const tasks = useMemo(() => (partner ? listTasksByPartner(partner.id) : []), [partner]);
@@ -90,7 +90,7 @@ export default function PartnerDashboardPage() {
               ? 'analysis'
               : 'complete';
     if (partner.journeyStage !== nextStage) {
-      upsertPartner({
+      await upsertPartner({
         ...partner,
         journeyStage: nextStage as any,
         journeySignals: {
