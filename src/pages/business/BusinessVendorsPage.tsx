@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { PageShell } from '../../components/layout/PageShell';
 import { BusinessReadinessChecklist } from '../../components/business/BusinessReadinessChecklist';
 import { useAuth } from '../../auth/AuthProvider';
-import { getOrCreatePartnerForSession } from '../../portal/getOrCreatePartnerForSession';
+import { usePartnerSession } from '../../auth/PartnerSessionContext';
 import { FINELY_TENANT_ID } from '../../domain/tenants';
 import { listVendors } from '../../data/vendorsRepo';
 import { listVendorProgress, setVendorProgress } from '../../data/vendorProgressRepo';
@@ -26,7 +26,7 @@ function tierBadge(tier: VendorTier) {
 export default function BusinessVendorsPage() {
   const navigate = useNavigate();
   const auth = useAuth();
-  const partner = useMemo(() => getOrCreatePartnerForSession({ user: auth.user }), [auth.user]);
+  const { partner } = usePartnerSession();
   const [version, setVersion] = useState(0);
 
   useEffect(() => {

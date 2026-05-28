@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, BadgeCheck, Clock, FileUp, Plus, ShieldCheck } from 'lucide-react';
 import { PageShell } from '../../components/layout/PageShell';
 import { useAuth } from '../../auth/AuthProvider';
-import { getOrCreatePartnerForSession } from '../../portal/getOrCreatePartnerForSession';
+import { usePartnerSession } from '../../auth/PartnerSessionContext';
 import { listAuBuyerOrdersByPartner } from '../../data/auBuyerOrdersRepo';
 
 function fmtUsd(cents: number) {
@@ -17,7 +17,7 @@ function prettyStatus(s: string) {
 export default function AuOrdersPage() {
   const navigate = useNavigate();
   const auth = useAuth();
-  const partner = useMemo(() => getOrCreatePartnerForSession({ user: auth.user }), [auth.user]);
+  const { partner } = usePartnerSession();
   const [version, setVersion] = useState(0);
 
   useEffect(() => {

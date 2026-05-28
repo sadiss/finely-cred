@@ -3,7 +3,7 @@ import { ArrowLeft, ArrowRight, Crown, FileText, LayoutGrid, Target, Users, Buil
 import { useNavigate } from 'react-router-dom';
 import { PageShell } from '../../components/layout/PageShell';
 import { useAuth } from '../../auth/AuthProvider';
-import { getOrCreatePartnerForSession } from '../../portal/getOrCreatePartnerForSession';
+import { usePartnerSession } from '../../auth/PartnerSessionContext';
 import type { CapitalDocKey, CapitalDocStatus, EntityRole, RelationshipStage } from '../../domain/capitalReadiness';
 import { computeReadinessScore } from '../../domain/capitalReadiness';
 import {
@@ -63,7 +63,7 @@ const REL_STAGE: { value: RelationshipStage; label: string }[] = [
 export default function BusinessBillionPathPage() {
   const navigate = useNavigate();
   const auth = useAuth();
-  const partner = useMemo(() => getOrCreatePartnerForSession({ user: auth.user }), [auth.user]);
+  const { partner } = usePartnerSession();
   const partnerId = partner?.id ?? '';
   const [version, setVersion] = useState(0);
   const [tab, setTab] = useState<'overview' | 'entities' | 'docs' | 'relationships'>('overview');

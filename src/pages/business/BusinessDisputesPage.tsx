@@ -3,7 +3,7 @@ import { ArrowLeft, ArrowRight, Building2, FileText, LayoutGrid, Target, Users, 
 import { useNavigate } from 'react-router-dom';
 import { PageShell } from '../../components/layout/PageShell';
 import { useAuth } from '../../auth/AuthProvider';
-import { getOrCreatePartnerForSession } from '../../portal/getOrCreatePartnerForSession';
+import { usePartnerSession } from '../../auth/PartnerSessionContext';
 import { createBusinessDispute, deleteBusinessDispute, listBusinessDisputes, upsertBusinessDispute } from '../../data/businessCreditRepo';
 import type { BusinessBureau } from '../../domain/businessCredit';
 
@@ -16,7 +16,7 @@ function navBtn(active: boolean) {
 export default function BusinessDisputesPage() {
   const navigate = useNavigate();
   const auth = useAuth();
-  const partner = useMemo(() => getOrCreatePartnerForSession({ user: auth.user }), [auth.user]);
+  const { partner } = usePartnerSession();
   const [version, setVersion] = useState(0);
   const disputes = useMemo(() => (partner ? listBusinessDisputes(partner.id) : []), [partner?.id, version]);
   const [newTitle, setNewTitle] = useState('');

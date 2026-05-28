@@ -270,8 +270,8 @@ export default function AdminCrmPage() {
     return 'personal_restore';
   };
 
-  const convertLeadToPartner = (lead: LeadCapture) => {
-    const existing = lead.email ? findPartnerByEmail(lead.email) : null;
+  const convertLeadToPartner = async (lead: LeadCapture) => {
+    const existing = lead.email ? await findPartnerByEmail(lead.email) : null;
     if (existing) {
       linkLeadToPartner(lead.id, existing.id);
       addLeadNote(lead.id, `Linked to existing partner: ${existing.id}`);
@@ -294,7 +294,7 @@ export default function AdminCrmPage() {
       return;
     }
 
-    const p = createPartner({
+    const p = await createPartner({
       status: 'lead',
       fullName: lead.fullName,
       email: lead.email,

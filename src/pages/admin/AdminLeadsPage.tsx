@@ -148,9 +148,9 @@ export default function AdminLeadsPage() {
     return 'personal_restore';
   };
 
-  const convertToPartner = (lead: LeadCapture) => {
+  const convertToPartner = async (lead: LeadCapture) => {
     // If partner exists, just link and open.
-    const existing = lead.email ? findPartnerByEmail(lead.email) : null;
+    const existing = lead.email ? await findPartnerByEmail(lead.email) : null;
     if (existing) {
       linkLeadToPartner(lead.id, existing.id);
       try {
@@ -171,7 +171,7 @@ export default function AdminLeadsPage() {
       return;
     }
 
-    const p = createPartner({
+    const p = await createPartner({
       status: 'lead',
       fullName: lead.fullName,
       email: lead.email,

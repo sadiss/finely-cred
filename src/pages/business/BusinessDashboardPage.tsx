@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { PageShell } from '../../components/layout/PageShell';
 import { BusinessReadinessChecklist } from '../../components/business/BusinessReadinessChecklist';
 import { useAuth } from '../../auth/AuthProvider';
-import { getOrCreatePartnerForSession } from '../../portal/getOrCreatePartnerForSession';
+import { usePartnerSession } from '../../auth/PartnerSessionContext';
 import { BusinessCreditLadderPanel } from '../../components/business/BusinessCreditLadderPanel';
 import { BusinessCreditRoadmapPanel } from '../../components/business/BusinessCreditRoadmapPanel';
 
@@ -17,7 +17,7 @@ function navBtn(active: boolean) {
 export default function BusinessDashboardPage() {
   const navigate = useNavigate();
   const auth = useAuth();
-  const partner = useMemo(() => getOrCreatePartnerForSession({ user: auth.user }), [auth.user]);
+  const { partner } = usePartnerSession();
   return (
     <PageShell
       badge="Business Portal"

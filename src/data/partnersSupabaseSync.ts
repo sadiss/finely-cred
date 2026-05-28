@@ -1,26 +1,8 @@
 import type { User } from '@supabase/supabase-js';
 import type { Partner } from '../domain/partners';
 import { isSupabaseConfigured, supabase } from '../lib/supabaseClient';
-
-/**
- * @deprecated upsertPartner in partnersRepo now writes directly to Supabase.
- * This function is kept for compatibility but is a no-op.
- */
-export async function upsertPartnerToSupabase(_args: { partner: Partner; user: User | null }) {
-  // No-op: upsertPartner handles Supabase writes directly.
-  if (!isSupabaseConfigured) return;
-}
-
-/**
- * @deprecated No longer needed — partnersRepo reads and writes Supabase directly.
- * Kept to avoid breaking any remaining import references.
- */
-export async function syncPartnersFromSupabase(
-  _args: { tenantId: string },
-): Promise<{ ok: boolean; count: number; error?: string }> {
-  return { ok: true, count: 0 };
-}
-
+import { FINELY_TENANT_ID } from '../domain/tenants';
+import { upsertPartner } from './partnersRepo';
 
 function safeStr(v: any) {
   return String(v ?? '').trim();

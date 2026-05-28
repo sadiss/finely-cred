@@ -16,9 +16,9 @@ export type RepoContext = {
 };
 
 export interface PartnersRepo {
-  listPartners(): Partner[];
-  getPartner(id: string): Partner | null;
-  upsertPartner(p: Partner): Partner;
+  listPartners(): Promise<Partner[]>;
+  getPartner(id: string): Promise<Partner | null>;
+  upsertPartner(p: Partner): Promise<Partner>;
 }
 
 export interface ReportsRepo {

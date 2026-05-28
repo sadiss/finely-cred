@@ -104,7 +104,7 @@ export async function runAutomationRule(rule: AutomationRule, mode: AgentMode): 
   const startedAt = nowIso();
   const actions: AutomationRunLog['actions'] = [];
 
-  const partners = listPartners();
+  const partners = await listPartners();
   const candidates = partners.filter((p) => rule.enabled && shouldRunForPartner(rule, p));
 
   for (const a of rule.actions || []) {

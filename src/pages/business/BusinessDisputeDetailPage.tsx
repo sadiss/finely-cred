@@ -3,7 +3,7 @@ import { ArrowLeft, ArrowRight, Plus, Trash2, FileText, Paperclip } from 'lucide
 import { useNavigate, useParams } from 'react-router-dom';
 import { PageShell } from '../../components/layout/PageShell';
 import { useAuth } from '../../auth/AuthProvider';
-import { getOrCreatePartnerForSession } from '../../portal/getOrCreatePartnerForSession';
+import { usePartnerSession } from '../../auth/PartnerSessionContext';
 import { EvidencePickerModal } from '../../components/evidence/EvidencePickerModal';
 import { listEvidenceByPartner, upsertEvidence, deleteEvidence } from '../../data/evidenceRepo';
 import { generateTextPdfToVault } from '../../letters/generateTextPdf';
@@ -74,7 +74,7 @@ export default function BusinessDisputeDetailPage() {
   const params = useParams();
   const disputeId = String(params.id || '').trim();
   const auth = useAuth();
-  const partner = useMemo(() => getOrCreatePartnerForSession({ user: auth.user }), [auth.user]);
+  const { partner } = usePartnerSession();
   const [version, setVersion] = useState(0);
   const dispute = useMemo(() => {
     if (!partner?.id || !disputeId) return null;

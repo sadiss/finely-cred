@@ -90,7 +90,7 @@ export default function PartnerDashboardPage() {
               ? 'analysis'
               : 'complete';
     if (partner.journeyStage !== nextStage) {
-      await upsertPartner({
+      void upsertPartner({
         ...partner,
         journeyStage: nextStage as any,
         journeySignals: {

@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, BadgeCheck, CheckCircle2, FileUp, ShieldAlert, ShieldCheck, Sparkles } from 'lucide-react';
 import { PageShell } from '../../components/layout/PageShell';
 import { useAuth } from '../../auth/AuthProvider';
-import { getOrCreatePartnerForSession } from '../../portal/getOrCreatePartnerForSession';
+import { usePartnerSession } from '../../auth/PartnerSessionContext';
 import { createTask } from '../../data/tasksRepo';
 import { getActiveTenantId } from '../../tenancy/activeTenant';
 import type { AuBuyerOrder, AuBuyerOrderEvidenceKind, AuBuyerOrderListing } from '../../domain/auBuyerOrders';
@@ -23,7 +23,7 @@ export default function AuRequestPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const auth = useAuth();
-  const partner = useMemo(() => getOrCreatePartnerForSession({ user: auth.user }), [auth.user]);
+  const { partner } = usePartnerSession();
 
   const qs = useMemo(() => new URLSearchParams(location.search), [location.search]);
   const orderId = (qs.get('orderId') || '').trim();

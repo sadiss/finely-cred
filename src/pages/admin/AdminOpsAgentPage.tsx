@@ -192,7 +192,7 @@ export default function AdminOpsAgentPage() {
               {Object.entries(snapshot.counts).map(([k, v]) => (
                 <div key={k} className="rounded-xl border border-white/10 bg-white/[0.02] p-4">
                   <div className="text-[10px] uppercase tracking-widest text-white/40">{k}</div>
-                  <div className="mt-1 text-2xl font-light text-white">{v}</div>
+                  <div className="mt-1 text-2xl font-light text-white">{String(v as any)}</div>
                 </div>
               ))}
             </div>
@@ -202,7 +202,7 @@ export default function AdminOpsAgentPage() {
                 {snapshot.recentLeads.length === 0 ? (
                   <div className="text-white/50 text-sm">No leads captured yet.</div>
                 ) : (
-                  snapshot.recentLeads.map((l) => (
+                  snapshot.recentLeads.map((l: any) => (
                     <div key={l.id} className="rounded-xl border border-white/10 bg-black/30 p-3">
                       <div className="text-white/80 text-sm font-semibold truncate">{l.fullName || l.email || l.id}</div>
                       <div className="mt-1 text-[10px] uppercase tracking-widest text-white/40 font-mono truncate">

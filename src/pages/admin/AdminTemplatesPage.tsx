@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { ArrowLeft, ArrowRight, ChevronDown, ChevronRight, Download, Eye, FileText, Heart, Pencil, Search, Star, Upload } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { PageShell } from '../../components/layout/PageShell';
@@ -135,8 +135,10 @@ export default function AdminTemplatesPage() {
   const [selectedBaseId, setSelectedBaseId] = useState<string>(TEMPLATE_BASES[0]?.id ?? '');
   const [countStates, setCountStates] = useState(true);
 
-  const partners = useMemo(() => listPartners(), []);
-  const [partnerId, setPartnerId] = useState<string>(partners[0]?.id ?? '');
+  const [partners, setPartners] = useState<Partner[]>([]);
+  useEffect(() => { listPartners().then(setPartners); }, []);
+  const [partnerId, setPartnerId] = useState<string>('');
+  useEffect(() => { if (!partnerId && partners[0]?.id) setPartnerId(partners[0].id); }, [partners, partnerId]);
   const partner = useMemo(() => partners.find((p) => p.id === partnerId) ?? null, [partners, partnerId]);
   const tenantId = partner?.tenantId ?? FINELY_TENANT_ID;
 

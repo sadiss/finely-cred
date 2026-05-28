@@ -21,7 +21,7 @@ import {
   Handshake,
 } from 'lucide-react';
 import { useAuth } from '../../auth/AuthProvider';
-import { getOrCreatePartnerForSession } from '../../portal/getOrCreatePartnerForSession';
+import { usePartnerSession } from '../../auth/PartnerSessionContext';
 import { listTasksByPartner } from '../../data/tasksRepo';
 import { unreadCount } from '../../data/notificationsRepo';
 import { ENTITLEMENT_KEYS } from '../../billing/entitlements';
@@ -67,7 +67,7 @@ export function PartnerPortalNav() {
     return () => window.removeEventListener('finely:store', onStore as EventListener);
   }, []);
 
-  const partner = useMemo(() => getOrCreatePartnerForSession({ user: auth.user }), [auth.user]);
+  const { partner } = usePartnerSession();
   const openTasks = useMemo(() => {
     if (!partner) return 0;
     const tasks = listTasksByPartner(partner.id);

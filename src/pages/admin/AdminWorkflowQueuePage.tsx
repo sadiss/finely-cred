@@ -4,7 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import { PageShell } from '../../components/layout/PageShell';
 import { listNotifications, markAllRead, markNotificationRead } from '../../data/notificationsRepo';
 import { listTasks, setTaskStatus } from '../../data/tasksRepo';
-import { getPartner } from '../../data/partnersRepo';
+import { getPartner, listPartnersByTenant } from '../../data/partnersRepo';
+import type { Partner } from '../../domain/partners';
 import { getActiveTenantId } from '../../tenancy/activeTenant';
 import { useAuth } from '../../auth/AuthProvider';
 import { getAccessiblePartnerIdsForAdmin } from '../../tenancy/adminPartnerScope';
@@ -35,12 +36,17 @@ export default function AdminWorkflowQueuePage() {
   }, []);
 
   const [partnerIds, setPartnerIds] = useState<Set<string>>(new Set());
+  const [partners, setPartners] = useState<Partner[]>([]);
   useEffect(() => {
     const tenantId = getActiveTenantId();
     const u = auth.user;
-    if (!u) { setPartnerIds(new Set()); return; }
-    getAccessiblePartnerIdsForAdmin({ userId: u.id, email: u.email, tenantId }).then(setPartnerIds);
+    if (!u) { setPartnerIds(new Set()); setPartners([]); return; }
+    getAccessiblePartnerIdsForAdmin({ userId: u.id, email: u.email, tenantId }).then((allowed) => {
+      setPartnerIds(allowed);
+      listPartnersByTenant(tenantId).then((all) => setPartners(all.filter((p) => allowed.has(p.id))));
+    });
   }, [auth.user, version]);
+  const partnerById = useMemo(() => new Map(partners.map((p) => [p.id, p])), [partners]);
 
   const unread = useMemo(() => {
     const all = listNotifications({ audience: 'admin', unreadOnly: true, limit: 200 });
@@ -113,7 +119,7 @@ export default function AdminWorkflowQueuePage() {
                 ) : (
                   <div className="grid sm:grid-cols-2 gap-3">
                   {(showAllUnread ? unread : unread.slice(0, UNREAD_LIMIT)).map((n) => {
-                    const p = n.partnerId ? getPartner(n.partnerId) : null;
+                    const p = n.partnerId ? partnerById.get(n.partnerId) : null;
                     return (
                       <button
                         key={n.id}
@@ -190,7 +196,7 @@ export default function AdminWorkflowQueuePage() {
                 ) : (
                   <div className="grid sm:grid-cols-2 gap-3">
                   {(showAllTasks ? openTasks : openTasks.slice(0, TASKS_LIMIT)).map((t) => {
-                    const p = getPartner(t.partnerId);
+                    const p = partnerById.get(t.partnerId);
                     const due = t.dueAt ? new Date(t.dueAt) : null;
                     return (
                       <div key={t.id} className="rounded-2xl border border-white/10 bg-white/[0.02] p-4 min-h-[132px]">

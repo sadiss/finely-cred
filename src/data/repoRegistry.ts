@@ -31,7 +31,7 @@ export const repos: {
     listPartners,
     getPartner: getPartnerLocal,
     upsertPartner: upsertPartnerLocal,
-  },
+  } as PartnersRepo,
   reports: {
     listReportsByPartner,
     upsertReport,

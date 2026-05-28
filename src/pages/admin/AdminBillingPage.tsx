@@ -13,6 +13,7 @@ import { useNavigate } from 'react-router-dom';
 import { PageShell } from '../../components/layout/PageShell';
 import { loadJson } from '../../data/localJsonStore';
 import { listPartners } from '../../data/partnersRepo';
+import type { Partner } from '../../domain/partners';
 import { hasEntitlement, revokeEntitlementsByPartnerKey, updateAgreementStatus, grantEntitlement } from '../../data/billingRepo';
 import type { Agreement, AgreementStatus, BillingProduct, PriceOption } from '../../domain/billing';
 import { ENTITLEMENT_KEYS } from '../../billing/entitlements';
@@ -52,7 +53,8 @@ export default function AdminBillingPage() {
     );
   }, [refreshKey]);
 
-  const partners = useMemo(() => listPartners(), [refreshKey]);
+  const [partners, setPartners] = useState<Partner[]>([]);
+  useEffect(() => { listPartners().then(setPartners); }, [refreshKey]);
   useEffect(() => {
     if (!entPartnerId && partners[0]?.id) setEntPartnerId(partners[0].id);
   }, [partners, entPartnerId]);

@@ -57,6 +57,7 @@ export default function AdminCalendarPage() {
       .then(setPartners);
   }, [auth.user, version]);
   const partnerIds = useMemo(() => new Set(partners.map((p) => p.id)), [partners]);
+  const partnerById = useMemo(() => new Map(partners.map((p) => [p.id, p])), [partners]);
 
   const openRequests = requests.filter((r) => partnerIds.has(r.partnerId)).filter((r) => r.status === 'new' || r.status === 'triaged');
   const openPublicRequests = publicRequests.filter((r) => r.status === 'new' || r.status === 'triaged');
@@ -256,7 +257,7 @@ export default function AdminCalendarPage() {
               <div>
                 <div className="text-white font-semibold">Schedule meeting</div>
                 <div className="mt-1 text-white/70 text-sm">
-                  {getPartner(scheduleReq.partnerId)?.profile.fullName ?? scheduleReq.partnerId} • {scheduleReq.topic.replace('_', ' ')}
+                  {partnerById.get(scheduleReq.partnerId)?.profile.fullName ?? scheduleReq.partnerId} • {scheduleReq.topic.replace('_', ' ')}
                 </div>
               </div>
               <button
@@ -517,7 +518,7 @@ export default function AdminCalendarPage() {
             ) : (
               <div className="space-y-3 max-h-[520px] overflow-y-auto pr-1">
                 {openRequests.map((r) => {
-                  const p = getPartner(r.partnerId);
+                  const p = partnerById.get(r.partnerId);
                   return (
                     <div key={r.id} className="rounded-2xl border border-white/10 bg-white/[0.02] p-4 space-y-3">
                       <div className="flex items-start justify-between gap-3">
@@ -588,7 +589,7 @@ export default function AdminCalendarPage() {
             ) : (
               <div className="space-y-3 max-h-[520px] overflow-y-auto pr-1">
                 {upcomingEvents.slice(0, 80).map((e) => {
-                  const p = getPartner(e.partnerId);
+                  const p = partnerById.get(e.partnerId);
                   return (
                     <div key={e.id} className="rounded-2xl border border-white/10 bg-black/30 p-4 space-y-2">
                       <div className="flex items-start justify-between gap-3">

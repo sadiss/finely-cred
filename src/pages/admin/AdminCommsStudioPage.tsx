@@ -4,7 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import { PageShell } from '../../components/layout/PageShell';
 import type { CommsChannel, CommsTemplate } from '../../domain/comms';
 import type { SupportTopic } from '../../domain/support';
-import { listPartners, getPartner } from '../../data/partnersRepo';
+import type { Partner } from '../../domain/partners';
+import { listPartners } from '../../data/partnersRepo';
 import { listCommsSends, listCommsTemplates, createCommsTemplate, deleteCommsTemplate, upsertCommsTemplate, setCommsTemplateEnabled } from '../../data/commsRepo';
 import { buildDefaultCommsContext, bulkSendPortalFromTemplate, renderCommsTemplate, sendEmailFromTemplate, sendPortalFromTemplate, sendSmsFromTemplate } from '../../lib/commsEngine';
 import { extractTemplateVars } from '../../utils/textTemplate';
@@ -62,13 +63,15 @@ export default function AdminCommsStudioPage() {
     return () => window.removeEventListener('finely:store', onStore as EventListener);
   }, []);
 
-  const partners = useMemo(() => listPartners(), [version]);
+  const [partners, setPartners] = useState<Partner[]>([]);
+  useEffect(() => { listPartners().then(setPartners); }, [version]);
   const templates = useMemo(() => listCommsTemplates(), [version]);
   const sends = useMemo(() => listCommsSends(60), [version]);
   const sequences = useMemo(() => listCommsSequences(), [version]);
 
   const selectedTpl = useMemo(() => (selectedTplId ? templates.find((t) => t.id === selectedTplId) ?? null : templates[0] ?? null), [selectedTplId, templates]);
-  const selectedPartner = useMemo(() => (selectedPartnerId ? getPartner(selectedPartnerId) : partners[0] ?? null), [selectedPartnerId, partners]);
+  const selectedPartner = useMemo(() => (selectedPartnerId ? partners.find((p) => p.id === selectedPartnerId) : partners[0]) ?? null, [selectedPartnerId, partners]);
+  const partnerById = useMemo(() => new Map(partners.map(p => [p.id, p])), [partners]);
 
   const [selectedSeqId, setSelectedSeqId] = useState<string | null>(null);
   useEffect(() => {
@@ -656,7 +659,7 @@ export default function AdminCommsStudioPage() {
                               let ok = 0;
                               let bad = 0;
                               for (const d of due.slice(0, 200)) {
-                                const partner = getPartner(d.enrollment.partnerId);
+                                const partner = partnerById.get(d.enrollment.partnerId);
                                 const tpl = templates.find((t) => t.id === d.templateId) ?? null;
                                 if (!partner || !tpl) {
                                   bad++;
@@ -714,7 +717,7 @@ export default function AdminCommsStudioPage() {
                         listEnrollmentsBySequence(seqEdit.id).slice(0, 80).map((e) => (
                           <div key={e.id} className="rounded-2xl border border-white/10 bg-white/[0.02] p-4 flex flex-wrap items-start justify-between gap-3">
                             <div className="min-w-0">
-                              <div className="text-white/85 font-semibold truncate">{getPartner(e.partnerId)?.profile.fullName ?? e.partnerId}</div>
+                              <div className="text-white/85 font-semibold truncate">{partnerById.get(e.partnerId)?.profile.fullName ?? e.partnerId}</div>
                               <div className="mt-1 text-[10px] uppercase tracking-widest text-white/40 font-mono">
                                 enrolled {fmtIso(e.enrolledAt)} • last step {e.lastSentStepIndex + 1}/{seqEdit.steps.length}{' '}
                                 {e.completedAt ? '• completed' : e.pausedAt ? '• paused' : ''}

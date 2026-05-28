@@ -3,7 +3,7 @@ import { ArrowLeft, ArrowRight, BookOpen, Building2, FileText, LayoutGrid, Targe
 import { useNavigate } from 'react-router-dom';
 import { PageShell } from '../../components/layout/PageShell';
 import { useAuth } from '../../auth/AuthProvider';
-import { getOrCreatePartnerForSession } from '../../portal/getOrCreatePartnerForSession';
+import { usePartnerSession } from '../../auth/PartnerSessionContext';
 import { deleteBusinessScoreSnapshot, listBusinessScoreSnapshots, upsertBusinessScoreSnapshot } from '../../data/businessCreditRepo';
 import type { BusinessBureau, BusinessScoreType } from '../../domain/businessCredit';
 
@@ -16,7 +16,7 @@ function navBtn(active: boolean) {
 export default function BusinessBureausPage() {
   const navigate = useNavigate();
   const auth = useAuth();
-  const partner = useMemo(() => getOrCreatePartnerForSession({ user: auth.user }), [auth.user]);
+  const { partner } = usePartnerSession();
   const snapshots = useMemo(() => (partner ? listBusinessScoreSnapshots(partner.id) : []), [partner?.id]);
 
   const [bureau, setBureau] = useState<BusinessBureau>('dnb');

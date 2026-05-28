@@ -94,7 +94,7 @@ export async function processUploadedDocument(args: {
   });
 
   // Auto-fill partner profile (best-effort) from extracted entities.
-  const partner = getPartner(args.partnerId);
+  const partner = await getPartner(args.partnerId);
   if (partner && (entities.ein || entities.businessLegalName || entities.state || entities.address)) {
     const einDigits = entities.ein ? normalizeEin(entities.ein) : '';
     const einLast4 = einDigits ? einDigits.slice(-4) : undefined;

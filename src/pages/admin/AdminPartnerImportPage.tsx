@@ -4,8 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import { PageShell } from '../../components/layout/PageShell';
 import type { LegacyPartnerExportV1 } from '../../domain/imports';
 import { importLegacyPartners, listImportBatches } from '../../data/importsRepo';
+import { getPartner, listPartners } from '../../data/partnersRepo';
 import type { Partner } from '../../domain/partners';
-import { getPartner } from '../../data/partnersRepo';
 import { createInvite, getInvite, listInvitesByPartner, upsertInvite } from '../../data/invitesRepo';
 import { isFeatureEnabled } from '../../data/settingsRepo';
 import { sendInviteEmail, sendInviteSms } from '../../lib/inviteDeliveryClient';
@@ -34,6 +34,7 @@ export default function AdminPartnerImportPage() {
   const [notice, setNotice] = useState<string | null>(null);
   const [lastInviteIds, setLastInviteIds] = useState<string[]>([]);
   const [sendBusyId, setSendBusyId] = useState<string | null>(null);
+  const [invitePartnerById, setInvitePartnerById] = useState<Map<string, Partner>>(new Map());
 
   const [claimBaseUrl, setClaimBaseUrl] = useState<string>(() => {
     try {
@@ -167,7 +168,7 @@ export default function AdminPartnerImportPage() {
               <button
                 type="button"
                 disabled={!parsed || busy}
-                onClick={() => {
+                onClick={async () => {
                   setErr(null);
                   setNotice(null);
                   setLastInviteIds([]);
@@ -180,6 +181,10 @@ export default function AdminPartnerImportPage() {
                     const batch = await importLegacyPartners({ exportData: parsed, claimBaseUrl, filename });
                     const inviteIds = await generateInvitesForPartnerIds(batch.createdPartnerIds);
                     setLastInviteIds(inviteIds);
+                    const loaded = await Promise.all(inviteIds.map((id) => getInvite(id)).filter(Boolean).map(async (inv: any) => getPartner(inv.partnerId)));
+                    const pmap = new Map<string, Partner>();
+                    for (const p of loaded) { if (p) pmap.set(p.id, p); }
+                    setInvitePartnerById(pmap);
                     setNotice(
                       `Imported ${batch.createdPartnerIds.length}/${batch.partnerCount} partners. ` +
                         `${inviteIds.length} claim link(s) generated. ` +
@@ -274,7 +279,7 @@ export default function AdminPartnerImportPage() {
                 </div>
                 <div className="space-y-2">
                   {lastInvites.map((inv) => {
-                    const p = getPartner(inv.partnerId);
+                    const p = invitePartnerById.get(inv.partnerId);
                     const email = inv.channels?.email?.to;
                     const phone = inv.channels?.sms?.to;
                     return (
