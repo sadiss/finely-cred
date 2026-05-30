@@ -1,16 +1,14 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Search, UserPlus, ArrowRight, ArrowLeft, Upload, Trash2, Badge, RefreshCcw } from 'lucide-react';
 import { PageShell } from '../../components/layout/PageShell';
-import { createPartner, listPartnersByTenant } from '../../data/partnersRepo';
+import { createPartner, listPartners } from '../../data/partnersRepo';
 import { deletePartnerCompletely } from '../../data/partnerDelete';
 import type { Partner, PartnerLane, PartnerRoute } from '../../domain/partners';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
-import { getActiveTenantId } from '../../tenancy/activeTenant';
-import { getTenant } from '../../data/tenantsRepo';
 import { useAuth } from '../../auth/AuthProvider';
 import { isAdminEmail } from '../../auth/admin';
-import { getAccessiblePartnerIdsForAdmin } from '../../tenancy/adminPartnerScope';
-import { canViewAllClients, getMembershipByUserAndTenant, isPlatformAdmin } from '../../data/tenantsRepo';
+import { canViewAllClients, getMembershipByUserAndTenant, isPlatformAdmin, getTenant } from '../../data/tenantsRepo';
+import { getActiveTenantId } from '../../tenancy/activeTenant';
 import { FINELY_TENANT_ID } from '../../domain/tenants';
 import { ActionLink, Button, ClickableCard } from '../../components/ui';
 
@@ -40,16 +38,12 @@ export default function PartnersListPage() {
     }
   }, [location.hash]);
 
-  // Fetch partners directly from Supabase
+  // Fetch partners directly from Supabase — no localStorage dependency.
+  // All admins query the same Supabase source so every browser shows the same list.
   useEffect(() => {
     if (!auth.user) { setLoading(false); return; }
-    const tenantId = getActiveTenantId();
     setLoading(true);
-    getAccessiblePartnerIdsForAdmin({ userId: auth.user.id, email: auth.user.email, tenantId })
-      .then(async (allowed) => {
-        const all = await listPartnersByTenant(tenantId);
-        return all.filter((p) => allowed.has(p.id));
-      })
+    listPartners()
       .then((data) => {
         setPartners(data);
         setLoading(false);
