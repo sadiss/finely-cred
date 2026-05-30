@@ -11,9 +11,13 @@ import { listDebtByPartner } from '../../data/debtRepo';
 import { listPartnerNotesByPartner } from '../../data/partnerNotesRepo';
 import { listLettersByPartner } from '../../data/lettersRepo';
 import { usePartnerSession } from '../../auth/PartnerSessionContext';
+import { ADMIN_PARTNER_OVERRIDE_KEY } from '../../portal/getOrCreatePartnerForSession';
+import { isAdminEmail } from '../../auth/admin';
+import { supabase } from '../../lib/supabaseClient';
 import { KpiCard } from '../../components/ui/KpiCards';
 import { bucketCountsByDay } from '../../utils/timeSeries';
-import { upsertPartner } from '../../data/partnersRepo';
+import { upsertPartner, fetchAllPartnersAsAdmin } from '../../data/partnersRepo';
+import type { Partner } from '../../domain/partners';
 import { JourneyRoadmap } from '../../components/journey/JourneyRoadmap';
 import { Button, ClickableCard, CollapsibleSection, ActionLink } from '../../components/ui';
 import { computePartnerOverallScore } from '../../utils/partnerOverallScore';
@@ -26,7 +30,38 @@ export default function PartnerDashboardPage() {
   const [showAllModules, setShowAllModules] = useState(false);
   const [showAllNextSteps, setShowAllNextSteps] = useState(false);
 
-  const { partner } = usePartnerSession();
+  const { partner, refresh } = usePartnerSession();
+
+  // Admin partner picker state
+  const [isAdmin, setIsAdmin] = useState(() => isAdminEmail(auth.user?.email));
+  const [allPartners, setAllPartners] = useState<Partner[]>([]);
+  const [partnerPickerLoading, setPartnerPickerLoading] = useState(false);
+
+  useEffect(() => {
+    const email = auth.user?.email;
+    if (!email) { setIsAdmin(false); return; }
+    if (isAdminEmail(email)) { setIsAdmin(true); return; }
+    supabase
+      .from('admin_emails')
+      .select('email')
+      .eq('email', email.trim().toLowerCase())
+      .maybeSingle()
+      .then(({ data }) => { if (data) setIsAdmin(true); });
+  }, [auth.user?.email]);
+
+  useEffect(() => {
+    if (!isAdmin || partner) return;
+    setPartnerPickerLoading(true);
+    fetchAllPartnersAsAdmin().then((list) => {
+      setAllPartners(list);
+      setPartnerPickerLoading(false);
+    }).catch(() => setPartnerPickerLoading(false));
+  }, [isAdmin, partner]);
+
+  function selectPartner(id: string) {
+    localStorage.setItem(ADMIN_PARTNER_OVERRIDE_KEY, id);
+    refresh();
+  }
   const reports = useMemo(() => (partner ? listReportsByPartner(partner.id) : []), [partner]);
   const evidence = useMemo(() => (partner ? listEvidenceByPartner(partner.id) : []), [partner]);
   const tasks = useMemo(() => (partner ? listTasksByPartner(partner.id) : []), [partner]);
@@ -112,16 +147,49 @@ export default function PartnerDashboardPage() {
       subtitle="Your home base: next steps, uploads, and dispute progress — organized so you always know what to do next."
     >
       {!partner ? (
-        <div className="space-y-4">
-          <div className="fc-panel p-6 text-white/60">
-            No partner profile found for this account. If you’re an admin, use Partner Management to pick a partner.
-          </div>
-          <button
-            onClick={() => navigate('/dashboard')}
-            className="fc-button-brand"
-          >
-            <ArrowLeft size={14} /> Back to Dashboard
-          </button>
+        <div className="space-y-6">
+          {isAdmin ? (
+            <>
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <div className="text-xs uppercase tracking-widest text-white/40 font-mono">Admin — Select a Partner</div>
+                  <div className="mt-1 text-white/60 text-sm">Click a partner below to view their portal dashboard.</div>
+                </div>
+                <button onClick={() => navigate('/dashboard')} className="fc-button-brand">
+                  <ArrowLeft size={14} /> Dashboard
+                </button>
+              </div>
+              {partnerPickerLoading ? (
+                <div className="fc-panel p-6 text-white/40 text-sm">Loading partners…</div>
+              ) : allPartners.length === 0 ? (
+                <div className="fc-panel p-6 text-white/40 text-sm">No partners found.</div>
+              ) : (
+                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {allPartners.map((p) => (
+                    <button
+                      key={p.id}
+                      type="button"
+                      onClick={() => selectPartner(p.id)}
+                      className="text-left rounded-2xl border border-white/10 bg-black/30 hover:bg-white/[0.04] transition-all p-5 space-y-2"
+                    >
+                      <div className="text-white font-semibold truncate">{p.profile.fullName || 'Unnamed'}</div>
+                      <div className="text-white/50 text-xs truncate">{p.profile.email || '—'}</div>
+                      <div className="text-[10px] uppercase tracking-widest font-mono text-white/30">{p.status}</div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </>
+          ) : (
+            <div className="space-y-4">
+              <div className="fc-panel p-6 text-white/60">
+                No partner profile found for this account. If you're an admin, use Partner Management to pick a partner.
+              </div>
+              <button onClick={() => navigate('/dashboard')} className="fc-button-brand">
+                <ArrowLeft size={14} /> Back to Dashboard
+              </button>
+            </div>
+          )}
         </div>
       ) : (
         <div className="space-y-8">
@@ -129,7 +197,21 @@ export default function PartnerDashboardPage() {
             <ActionLink to="/dashboard" title="Back to Finely Cred Dashboard" icon={<ArrowLeft size={16} />}>
               Dashboard
             </ActionLink>
-            <div className="text-[10px] uppercase tracking-widest text-white/40 font-mono">partner_id: {partner.id}</div>
+            <div className="flex items-center gap-3">
+              {isAdmin && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    localStorage.removeItem(ADMIN_PARTNER_OVERRIDE_KEY);
+                    refresh();
+                  }}
+                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl border border-white/10 bg-black/30 hover:bg-white/[0.04] text-[10px] uppercase tracking-widest text-white/50 font-mono transition-all"
+                >
+                  <ArrowLeft size={12} /> Change partner
+                </button>
+              )}
+              <div className="text-[10px] uppercase tracking-widest text-white/40 font-mono">partner_id: {partner.id}</div>
+            </div>
           </div>
 
           {overallScore ? (

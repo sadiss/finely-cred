@@ -2,7 +2,7 @@ import type { Partner, PartnerJourneyStage, PartnerLane, PartnerRoute, PartnerRo
 import { nowIso, normalizeEmail, FINELY_TENANT_ID } from '../domain/partners';
 import { isSupabaseConfigured, supabase } from '../lib/supabaseClient';
 
-function rowToPartner(row: any): Partner {
+export function rowToPartner(row: any): Partner {
   return {
     id: row.id,
     tenantId: row.tenant_id,
@@ -65,6 +65,36 @@ export async function listPartners(): Promise<Partner[]> {
     .order('updated_at', { ascending: false });
   if (error) { console.warn('listPartners error:', error.message); return []; }
   return (data ?? []).map(rowToPartner);
+}
+
+const FUNCTIONS_URL = (() => {
+  try {
+    const url = (import.meta as any).env?.VITE_SUPABASE_URL as string | undefined;
+    return url ? `${url.replace('/rest/v1', '').replace(/\/+$/, '')}/functions/v1` : null;
+  } catch { return null; }
+})();
+
+/**
+ * Fetch all partners as an admin — uses the admin-list-partners edge function
+ * (service_role, bypasses RLS) with a fallback to direct listPartners().
+ */
+export async function fetchAllPartnersAsAdmin(): Promise<Partner[]> {
+  if (FUNCTIONS_URL) {
+    try {
+      const session = await supabase.auth.getSession();
+      const token = session.data.session?.access_token;
+      if (token) {
+        const res = await fetch(`${FUNCTIONS_URL}/admin-list-partners`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (res.ok) {
+          const body = await res.json();
+          if (Array.isArray(body.partners)) return body.partners.map(rowToPartner);
+        }
+      }
+    } catch { /* fall through */ }
+  }
+  return listPartners();
 }
 
 /**

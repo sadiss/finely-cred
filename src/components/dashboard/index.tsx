@@ -6,7 +6,8 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../auth/AuthProvider';
 import { isAdminEmail } from '../../auth/admin';
-import { findPartnerByEmail, listPartners } from '../../data/partnersRepo';
+import { supabase } from '../../lib/supabaseClient';
+import { findPartnerByEmail, fetchAllPartnersAsAdmin } from '../../data/partnersRepo';
 import type { Partner } from '../../domain/partners';
 import { listReportsByPartner } from '../../data/reportsRepo';
 import { listTasksByPartner } from '../../data/tasksRepo';
@@ -740,7 +741,19 @@ export function MasteryOSDashboard({ user, onLogout }: MasteryOSDashboardProps) 
   const [activeTab, setActiveTab] = useState('overview');
   const auth = useAuth();
   const navigate = useNavigate();
-  const isAdmin = isAdminEmail(auth.user?.email);
+  const [isAdmin, setIsAdmin] = useState(() => isAdminEmail(auth.user?.email));
+
+  useEffect(() => {
+    const email = auth.user?.email;
+    if (!email) { setIsAdmin(false); return; }
+    if (isAdminEmail(email)) { setIsAdmin(true); return; }
+    supabase
+      .from('admin_emails')
+      .select('email')
+      .eq('email', email.trim().toLowerCase())
+      .maybeSingle()
+      .then(({ data }) => { if (data) setIsAdmin(true); });
+  }, [auth.user?.email]);
   const signedInEmail = auth.user?.email || '';
   const [storeVersion, setStoreVersion] = useState(0);
   const [automationView, setAutomationView] = useState<'workflows' | 'history'>('workflows');
@@ -801,7 +814,7 @@ export function MasteryOSDashboard({ user, onLogout }: MasteryOSDashboardProps) 
 
   useEffect(() => {
     if (!isAdmin) { setAdminPartnersAll([]); return; }
-    listPartners().then(setAdminPartnersAll);
+    fetchAllPartnersAsAdmin().then(setAdminPartnersAll);
   }, [isAdmin]);
 
   const adminPartnerCards = useMemo(() => {

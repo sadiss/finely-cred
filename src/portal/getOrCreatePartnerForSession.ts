@@ -7,7 +7,7 @@ import { ensureEnterpriseDefaultsOnce } from '../data/seedEnterpriseDefaults';
 import { ensureVendorCatalogDefaultsOnce } from '../data/vendorsRepo';
 import { pullBillingSnapshotFromSupabase } from '../data/billingSupabaseSync';
 import { pullWorkflowSnapshotFromSupabase } from '../data/workflowSupabaseSync';
-import { isSupabaseConfigured } from '../lib/supabaseClient';
+import { isSupabaseConfigured, supabase } from '../lib/supabaseClient';
 
 export const ADMIN_PARTNER_OVERRIDE_KEY = 'finely.admin.asPartnerId.v1';
 
@@ -106,6 +106,24 @@ export async function getOrCreatePartnerForSession(args: { user: User | null }):
       if (p) return p;
     }
     return null;
+  }
+
+  // Also check admin_emails table in Supabase (covers DB-registered admins not in hardcoded list)
+  if (isSupabaseConfigured) {
+    const adminResult = await supabase
+      .from('admin_emails')
+      .select('email')
+      .eq('email', email.trim().toLowerCase())
+      .maybeSingle()
+      .then((r) => r, () => ({ data: null }));
+    if (adminResult.data) {
+      const overrideId = (localStorage.getItem(ADMIN_PARTNER_OVERRIDE_KEY) || '').trim();
+      if (overrideId) {
+        const p = await getPartner(overrideId);
+        if (p) return p;
+      }
+      return null;
+    }
   }
 
   const existing = await findPartnerByEmail(email);

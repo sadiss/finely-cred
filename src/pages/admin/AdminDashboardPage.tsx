@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { ArrowLeft, ArrowRight, Gavel, Settings, Users, BarChart3, FileText, Layout, Package, CreditCard, FlaskConical, MessageSquareText, Bell, Calendar, FolderKanban, BookOpen, Bot, Mail, Library, Crown, UserCog, Globe, BadgeCheck, ListChecks, GraduationCap, Lock, PiggyBank, Trophy, Activity, Target, Sparkles, Film, BriefcaseBusiness, Shield } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { PageShell } from '../../components/layout/PageShell';
-import { listPartnersByTenant } from '../../data/partnersRepo';
+import { fetchAllPartnersAsAdmin } from '../../data/partnersRepo';
 import { listCases } from '../../data/casesRepo';
 import { listLeadCaptures } from '../../data/leadsRepo';
 import { listTasks } from '../../data/tasksRepo';
@@ -12,7 +12,6 @@ import { ActionLink, ClickableCard, CollapsibleSection, TimeSeriesAreaChart } fr
 import { bucketCountsByDay } from '../../utils/timeSeries';
 import { getActiveTenantId } from '../../tenancy/activeTenant';
 import { useAuth } from '../../auth/AuthProvider';
-import { getAccessiblePartnerIdsForAdmin } from '../../tenancy/adminPartnerScope';
 import { canManageTeam, canUseFinanceTools, canViewAllClients, getMembershipByUserAndTenant, isPlatformAdmin } from '../../data/tenantsRepo';
 import { FINELY_TENANT_ID } from '../../domain/tenants';
 import { isAdminEmail } from '../../auth/admin';
@@ -28,39 +27,32 @@ export default function AdminDashboardPage() {
     labels14: [] as string[], leads14: [] as number[], tasks14: [] as number[], cases14: [] as number[],
   });
   useEffect(() => {
-    const u = auth.user;
-    const tenantId = getActiveTenantId();
-    const partnerIdsPromise = u
-      ? getAccessiblePartnerIdsForAdmin({ userId: u.id, email: u.email, tenantId })
-      : Promise.resolve(new Set<string>());
-    partnerIdsPromise.then((partnerIds) => {
-      listPartnersByTenant(tenantId).then((partners) => {
-        const filtered = partners.filter((p) => partnerIds.has(p.id));
-        const cases = listCases();
-        const tenantCases = cases.filter((c) => partnerIds.has(c.partnerId));
-        const openCases = tenantCases.filter((c) => c.status === 'open');
-        const leads = listLeadCaptures();
-        const tasks = listTasks();
-        const tenantTasks = tasks.filter((t: any) => partnerIds.has(String((t as any).partnerId || '')));
-        const openTasks = tenantTasks.filter((t: any) => t.status === 'pending' || t.status === 'in_progress');
-        const adminUnread = unreadCount({ audience: 'admin' });
-        const leads14 = bucketCountsByDay({ items: leads, getIso: (l) => (l as any).createdAt, days: 14 });
-        const tasks14 = bucketCountsByDay({ items: tenantTasks, getIso: (t) => (t as any).createdAt, days: 14 });
-        const cases14 = bucketCountsByDay({ items: tenantCases, getIso: (c) => (c as any).createdAt, days: 14 });
-        setStats({
-          partnersCount: filtered.length,
-          casesCount: tenantCases.length,
-          openCasesCount: openCases.length,
-          leadsCount: leads.length,
-          openTasksCount: openTasks.length,
-          adminUnread,
-          labels14: leads14.labels,
-          leads14: leads14.values,
-          tasks14: tasks14.values,
-          cases14: cases14.values,
-        });
+    fetchAllPartnersAsAdmin().then((partners) => {
+      const partnerIdSet = new Set(partners.map((p) => p.id));
+      const cases = listCases();
+      const tenantCases = cases.filter((c) => partnerIdSet.has(c.partnerId));
+      const openCases = tenantCases.filter((c) => c.status === 'open');
+      const leads = listLeadCaptures();
+      const tasks = listTasks();
+      const tenantTasks = tasks.filter((t: any) => partnerIdSet.has(String((t as any).partnerId || '')));
+      const openTasks = tenantTasks.filter((t: any) => t.status === 'pending' || t.status === 'in_progress');
+      const adminUnread = unreadCount({ audience: 'admin' });
+      const leads14 = bucketCountsByDay({ items: leads, getIso: (l) => (l as any).createdAt, days: 14 });
+      const tasks14 = bucketCountsByDay({ items: tenantTasks, getIso: (t) => (t as any).createdAt, days: 14 });
+      const cases14 = bucketCountsByDay({ items: tenantCases, getIso: (c) => (c as any).createdAt, days: 14 });
+      setStats({
+        partnersCount: partners.length,
+        casesCount: tenantCases.length,
+        openCasesCount: openCases.length,
+        leadsCount: leads.length,
+        openTasksCount: openTasks.length,
+        adminUnread,
+        labels14: leads14.labels,
+        leads14: leads14.values,
+        tasks14: tasks14.values,
+        cases14: cases14.values,
       });
-    });
+    }).catch(() => {});
   }, [auth.user]);
 
   const opsCaps = useMemo(() => {

@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Search, UserPlus, ArrowRight, ArrowLeft, Upload, Trash2, Badge, RefreshCcw } from 'lucide-react';
 import { PageShell } from '../../components/layout/PageShell';
-import { createPartner, listPartners } from '../../data/partnersRepo';
+import { createPartner, fetchAllPartnersAsAdmin, listPartners, rowToPartner } from '../../data/partnersRepo';
 import { deletePartnerCompletely } from '../../data/partnerDelete';
 import type { Partner, PartnerLane, PartnerRoute } from '../../domain/partners';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
@@ -10,7 +10,9 @@ import { isAdminEmail } from '../../auth/admin';
 import { canViewAllClients, getMembershipByUserAndTenant, isPlatformAdmin, getTenant } from '../../data/tenantsRepo';
 import { getActiveTenantId } from '../../tenancy/activeTenant';
 import { FINELY_TENANT_ID } from '../../domain/tenants';
+import { supabase } from '../../lib/supabaseClient';
 import { ActionLink, Button, ClickableCard } from '../../components/ui';
+
 
 export default function PartnersListPage() {
   const navigate = useNavigate();
@@ -38,12 +40,12 @@ export default function PartnersListPage() {
     }
   }, [location.hash]);
 
-  // Fetch partners directly from Supabase — no localStorage dependency.
-  // All admins query the same Supabase source so every browser shows the same list.
+  // Fetch ALL partners via Edge Function (service_role server-side) — no localStorage,
+  // no RLS filtering. Every admin always sees the same complete list.
   useEffect(() => {
     if (!auth.user) { setLoading(false); return; }
     setLoading(true);
-    listPartners()
+    fetchAllPartnersAsAdmin()
       .then((data) => {
         setPartners(data);
         setLoading(false);
