@@ -1,4 +1,4 @@
-﻿import { deletePartner } from './partnersRepo';
+﻿import { adminDeletePartner } from './partnersRepo';
 import { listPartnerNotesByPartner, deletePartnerNote } from './partnerNotesRepo';
 import { listReportsByPartner, deleteReport } from './reportsRepo';
 import { listLettersByPartner, deleteLetter } from './lettersRepo';
@@ -12,7 +12,7 @@ export async function deletePartnerCompletely(partnerId: string): Promise<{ ok: 
   }
 
   try {
-    const deleted = await deletePartner(partnerId);
+    const deleted = await adminDeletePartner(partnerId);
     if (!deleted) {
       return { ok: false, error: 'Partner not found or could not be deleted' };
     }

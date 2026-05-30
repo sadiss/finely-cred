@@ -25,7 +25,7 @@ import { PageShell } from '../../components/layout/PageShell';
 import { EntityDetailShell } from '../../components/layout/EntityDetailShell';
 import { KpiCard } from '../../components/ui/KpiCards';
 import { PdfReportFallbackView } from '../../components/reports/PdfReportFallbackView';
-import { deletePartner, getPartner, upsertPartner } from '../../data/partnersRepo';
+import { adminDeletePartner, adminGetPartner, adminUpsertPartner, deletePartner, getPartner, upsertPartner } from '../../data/partnersRepo';
 import { deleteReport, listReportsByPartner, upsertReport } from '../../data/reportsRepo';
 import { listEvidenceByPartner, upsertEvidence, deleteEvidence } from '../../data/evidenceRepo';
 import { deleteLetter, listLettersByPartner, upsertLetter } from '../../data/lettersRepo';
@@ -419,7 +419,7 @@ function PartnerDetailPageInner() {
 
   useEffect(() => {
     if (!id) { setPartner(null); return; }
-    getPartner(id).then((p) => {
+    adminGetPartner(id).then((p) => {
       if (!p || !p.profile || typeof p.profile.fullName !== 'string') setPartner(null);
       else setPartner(p);
     });
@@ -1055,7 +1055,7 @@ function PartnerDetailPageInner() {
                     <select
                       value={partner.status}
                       onChange={async (e) => {
-                        await upsertPartner({ ...partner, status: e.target.value as any });
+                        await adminUpsertPartner({ ...partner, status: e.target.value as any });
                         setPartnerVersion((v) => v + 1);
                         addAuditEvent({
                           partnerId: partner.id,
@@ -1161,7 +1161,7 @@ function PartnerDetailPageInner() {
                       if (!name) return;
                       const email = profileDraft.email.trim().toLowerCase();
                       const phone = profileDraft.phone.trim();
-                      const next = await upsertPartner({
+                      const next = await adminUpsertPartner({
                         ...partner,
                         profile: { ...partner.profile, fullName: name, email: email || undefined, phone: phone || undefined },
                         routes: {
@@ -1251,7 +1251,7 @@ function PartnerDetailPageInner() {
                             disabled={deletePhrase.trim().toUpperCase() !== 'DELETE'}
                             className="px-4 py-2 rounded-xl bg-rose-500 text-white text-[10px] font-black uppercase tracking-widest hover:brightness-110 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                             onClick={async () => {
-                              const ok = await deletePartner(partner.id);
+                              const ok = await adminDeletePartner(partner.id);
                               if (ok) {
                                 addAuditEvent({
                                   partnerId: partner.id,
@@ -1549,7 +1549,7 @@ function PartnerDetailPageInner() {
                       const annual = Number(financialDraft.annualIncome);
                       const debt = Number(financialDraft.monthlyDebtPayments);
                       const housing = Number(financialDraft.monthlyHousing);
-                      await upsertPartner({
+                      await adminUpsertPartner({
                         ...partner,
                         financial: {
                           annualIncome: Number.isFinite(annual) && annual > 0 ? annual : undefined,
@@ -1623,7 +1623,7 @@ function PartnerDetailPageInner() {
                           window.alert('Invalid contract URL.');
                           return;
                         }
-                        await upsertPartner({
+                        await adminUpsertPartner({
                           ...partner,
                           denefits: {
                             contractUrl: url,
@@ -1662,7 +1662,7 @@ function PartnerDetailPageInner() {
                       type="button"
                       className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl border border-rose-500/25 bg-rose-500/10 text-rose-200 text-[10px] font-black uppercase tracking-widest hover:bg-rose-500/15 transition-all"
                       onClick={async () => {
-                        await upsertPartner({ ...partner, denefits: undefined });
+                        await adminUpsertPartner({ ...partner, denefits: undefined });
                         setDenefitsContractUrlDraft('');
                         setDenefitsContractLabelDraft('');
                         setPartnerVersion((v) => v + 1);

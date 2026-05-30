@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Search, UserPlus, ArrowRight, ArrowLeft, Upload, Trash2, Badge, RefreshCcw } from 'lucide-react';
 import { PageShell } from '../../components/layout/PageShell';
-import { createPartner, fetchAllPartnersAsAdmin, listPartners, rowToPartner } from '../../data/partnersRepo';
+import { adminUpsertPartner, createPartner, fetchAllPartnersAsAdmin, listPartners, rowToPartner } from '../../data/partnersRepo';
 import { deletePartnerCompletely } from '../../data/partnerDelete';
 import type { Partner, PartnerLane, PartnerRoute } from '../../domain/partners';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
@@ -259,6 +259,7 @@ export default function PartnersListPage() {
                     primaryRoute,
                     lane,
                     intake: {},
+                    asAdmin: true,
                   });
                   setFullName('');
                   setEmail('');
