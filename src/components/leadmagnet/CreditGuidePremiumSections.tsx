@@ -16,11 +16,12 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { LeadMagnetEbook, LeadMagnetDeviceShowcase } from './LeadMagnetHeroMockup';
+import { FreeDisputeGuideHeroVideo } from './FreeDisputeGuideHeroVideo';
 import { DisputeLetterGuideContentsList, DisputeLetterGuidePreview } from './DisputeLetterGuidePreview';
 import { FlashyIcon } from '../ui';
 import type { FreeGuide } from '../../resources/freeGuides';
 import type { LeadMagnetFunnelConfig } from '../../domain/leadMagnetFunnels';
-import { DISPUTE_LETTER_GUIDE_PAGE_COUNT } from '../../resources/disputeLetterGuideContent';
+import { DISPUTE_LETTER_GUIDE_ID, DISPUTE_LETTER_GUIDE_PAGE_COUNT } from '../../resources/disputeLetterGuideContent';
 import {
   formatTrialExpiryLabel,
   getLeadMagnetTrial,
@@ -101,13 +102,17 @@ export function CreditGuidePremiumLanding({
               </h1>
               <p className="text-white/70 text-base sm:text-lg mb-6 sm:mb-8 max-w-lg leading-relaxed">{guide.desc}</p>
 
-              <div className="mb-6 sm:mb-8 aspect-video max-w-lg rounded-2xl fg-video-tile flex items-center justify-center relative overflow-hidden group cursor-pointer">
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(57,255,20,0.15),transparent_60%)]" />
-                <div className="absolute top-3 left-3 px-2 py-1 rounded-lg bg-slate-900/60 border border-[#39ff14]/30 text-[9px] font-bold text-[#39ff14] uppercase tracking-wider">
-                  Preview dashboard
+              {guide.id === DISPUTE_LETTER_GUIDE_ID || config.id === 'credit' ? (
+                <FreeDisputeGuideHeroVideo className="mb-6 sm:mb-8" />
+              ) : (
+                <div className="mb-6 sm:mb-8 aspect-video max-w-lg rounded-2xl fg-video-tile flex items-center justify-center relative overflow-hidden group cursor-pointer">
+                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(57,255,20,0.15),transparent_60%)]" />
+                  <div className="absolute top-3 left-3 px-2 py-1 rounded-lg bg-slate-900/60 border border-[#39ff14]/30 text-[9px] font-bold text-[#39ff14] uppercase tracking-wider">
+                    Preview dashboard
+                  </div>
+                  <FlashyIcon icon={PlayCircle} color="emerald" size="lg" className="group-hover:scale-110 transition-transform" />
                 </div>
-                <FlashyIcon icon={PlayCircle} color="emerald" size="lg" className="group-hover:scale-110 transition-transform" />
-              </div>
+              )}
 
               <div className="flex flex-col sm:flex-row flex-wrap items-center gap-3 sm:gap-4">
                 <button
