@@ -51,7 +51,7 @@ export const FREE_GUIDES: FreeGuide[] = [
   {
     id: 'credit-dispute-letter-guide',
     title: 'Free Credit Dispute Letter Guide',
-    desc: 'The proven 5-step framework — FCRA overview, OCR tactics, example letter, mailing workflow, and complaints escalation. Complete Finely Cred edition (17 pages).',
+    desc: 'The proven 5-step framework — FCRA overview, OCR tactics, mailing workflow, law-per-negative citations, and complaints escalation. Complete Finely Cred edition.',
     sections: [
       {
         heading: 'Step 1 — Identify the target item',

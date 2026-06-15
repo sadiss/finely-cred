@@ -72,7 +72,7 @@ export const FINELY_KNOWLEDGE_BASE: KnowledgeArticle[] = [
     category: 'letters',
     tags: ['write', 'example', 'step by step', 'free guide'],
     content:
-      'The free Credit Dispute Guide teaches step-by-step letter writing plus one powerful example letter — not a bundle of copy-paste templates. Structure: header with your info, bureau address, account identifiers, specific dispute reasons, FCRA citation, request to delete or correct, enclosures list, signature.',
+      'The free Credit Dispute Guide teaches a step-by-step 5-step framework — FCRA rights, certified mail workflow, law-per-negative citations, and complaints escalation. Structure: header with your info, bureau address, account identifiers, specific dispute reasons, FCRA citation, request to delete or correct, enclosures list, signature.',
     links: [{ label: 'Free guide', path: '/free-guide' }],
   },
   {

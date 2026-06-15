@@ -445,7 +445,7 @@ function LandingRoute({ onGetStarted, onViewTradelines, onNavigate, addToCart, o
                     Get the <span className="text-emerald-700">Credit Dispute Letter Guide</span> — free.
                   </h2>
                   <p className="text-sm sm:text-lg max-w-xl mb-6 opacity-80">
-                    Step-by-step dispute instructions, one powerful example letter, bureau mailing kit, and a 15-day DIY portal trial. A $297 toolkit — yours at $0.
+                    Step-by-step dispute instructions, FCRA rights, law-per-negative citations, bureau mailing kit, and a 15-day DIY portal trial. A $297 toolkit — yours at $0.
                   </p>
                   <div className="grid sm:grid-cols-3 gap-2 text-[11px] uppercase tracking-wider mb-7">
                     <span className="rounded-xl border border-emerald-600/20 bg-emerald-500/10 px-3 py-2 inline-flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-700" /> Step-by-step</span>

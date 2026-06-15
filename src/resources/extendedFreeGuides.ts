@@ -128,6 +128,27 @@ export const EXTENDED_FREE_GUIDES: FreeGuide[] = [
       { heading: 'Chain of title requests', bullets: ['Ask for assignment history from original creditor → current collector.', 'Missing assignments weaken collection lawsuits and sometimes reporting.', 'Store every response — even “we cannot produce” is evidence for next round.'] },
       { heading: 'Metro2 collection field traps', bullets: ['Collection status codes vs balance fields — contradictions trigger reinvestigation.', 'Date of first delinquency must align across bureaus — classic deletion lever when wrong.', 'Original creditor name vs collector name mismatches — document and dispute.'] },
       { heading: 'When to escalate beyond letters', bullets: ['Summons = attorney immediately — letter strategy alone is insufficient.', 'CFPB complaint after documented bureau non-response.', 'State AG consumer division for pattern collectors — use with clean evidence only.'] },
+      {
+        heading: 'Validation first — never pay as default',
+        bullets: [
+          'Finely Cred doctrine: challenge inaccurate reporting and unvalidated debts — do not default to paying charge-offs, collections, or settlements as step one.',
+          'Within 30 days of a collector’s first written communication, send a validation request (certified mail).',
+          'Collector must cease collection until it validates — demand chain of assignment, signed agreement, itemization.',
+          'If validation is insufficient, escalate with affidavit of dispute and CFPB/state AG pattern documentation.',
+          'Avoid settling for less as step one, pay-for-delete without written contract, or paying charge-offs without field-level dispute work.',
+        ],
+      },
+      {
+        heading: 'Affidavits & court response system',
+        bullets: [
+          'Affidavit of dispute: sworn statement that you dispute the debt and lack knowledge of a valid contract.',
+          'Supports answer/motion when plaintiff cannot produce chain of title or signed agreement.',
+          'If a summons arrives before validation mail: calendar the response deadline immediately.',
+          'File answer + affidavit; assert FDCPA validation was never provided if applicable.',
+          'Challenge proper service — defective service may void judgment. Never ignore court mail — consult licensed attorney same week.',
+          'UCC §3-308 — party enforcing instrument bears burden of proof; debt buyers often lack original note and assignment chain.',
+        ],
+      },
       { heading: 'Disclaimer', bullets: ['Educational only; consult attorney for litigation or summons.'] },
     ],
   },

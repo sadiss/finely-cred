@@ -55,15 +55,15 @@ export const CREDIT_FUNNEL: LeadMagnetFunnelConfig = {
   heroSub: 'to master your credit.',
   valueStack: [
     { label: 'Step-by-step dispute writing playbook', value: '$49' },
-    { label: 'Powerful example dispute letter', value: '$39' },
     { label: 'Bureau mailing kit + FCRA rights', value: '$49' },
+    { label: 'Law-per-negative citation guide', value: '$39' },
     { label: '5-step score recovery roadmap', value: '$40' },
     { label: `${LEAD_MAGNET_TRIAL_DAYS}-day DIY portal + report upload`, value: '$79', trialFeature: 'report_upload_preview', locksAfterTrial: true },
     { label: 'AI restoration checklist + video', value: '$41', trialFeature: 'ai_checklist', locksAfterTrial: true },
   ],
   features: [
-    { icon: FileSignature, title: 'Step-by-step dispute writing', desc: 'A clear 5-step playbook for bureau letters — not copy-paste templates.' },
-    { icon: Target, title: 'One powerful example letter', desc: 'Attorney-style dispute letter you can study, adapt, and send.' },
+    { icon: FileSignature, title: 'Step-by-step dispute writing', desc: 'A clear 5-step playbook for bureau letters — evidence-first, one tradeline per letter.' },
+    { icon: Target, title: 'Law per negative', desc: 'Cite the right statute for charge-offs, inquiries, re-aging, and more.' },
     { icon: LayoutDashboard, title: `${LEAD_MAGNET_TRIAL_DAYS}-day DIY portal trial`, desc: 'Upload a report and preview the real dashboard.' },
     { icon: TrendingUp, title: '5-step score roadmap', desc: 'Utilization, mix, and timing sequence into the 700s.' },
     { icon: ShieldCheck, title: 'Know your FCRA rights', desc: 'Plain-English laws that force bureaus to verify or delete.' },

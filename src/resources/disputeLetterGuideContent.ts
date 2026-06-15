@@ -106,43 +106,6 @@ export const DISPUTE_LETTER_GUIDE_PROGRAMMATIC_PAGES: GeneratedGuidePage[] = [
     ],
   },
   {
-    id: 'example-letter',
-    title: 'Example Dispute Letter',
-    subtitle: 'Adapt this template — replace bracketed fields with your facts',
-    sections: [
-      {
-        paragraphs: [
-          '[Your Full Name]',
-          '[Your Address]',
-          '[City, State ZIP]',
-          '[Date]',
-          '',
-          '[Credit Bureau Name]',
-          '[Bureau Dispute Address]',
-          '',
-          'Re: Dispute of Inaccurate Information — Account #[XXXX]',
-          '',
-          'To Whom It May Concern:',
-          '',
-          'I am writing to dispute inaccurate information on my credit report pursuant to the Fair Credit Reporting Act, 15 U.S.C. Section 1681i.',
-          '',
-          'The following account is reporting inaccurately:',
-          '- Creditor: [Creditor Name]',
-          '- Account number: [Last 4 digits only]',
-          '- Reason for dispute: [Specific inaccuracy — e.g., balance, status, dates]',
-          '',
-          'I have enclosed [Exhibit A: supporting document] demonstrating that this reporting is incorrect. Please conduct a reasonable reinvestigation and provide the method of verification used.',
-          '',
-          'Please send me updated copies of my credit report reflecting any corrections within 30 days as required by law.',
-          '',
-          'Sincerely,',
-          '[Handwritten Signature]',
-          '[Printed Name]',
-        ],
-      },
-    ],
-  },
-  {
     id: 'online-traps',
     title: 'Online Dispute Traps',
     subtitle: 'Why certified mail beats one-click bureau portals',
@@ -243,35 +206,6 @@ export const DISPUTE_LETTER_GUIDE_PROGRAMMATIC_PAGES: GeneratedGuidePage[] = [
     ],
   },
   {
-    id: 'validation-first-doctrine',
-    title: 'Validation First — Never Pay as Default',
-    subtitle: 'Challenge debt on your terms before any payment conversation',
-    sections: [
-      {
-        paragraphs: [
-          'Finely Cred doctrine: we challenge inaccurate reporting and unvalidated debts — we do not default to paying charge-offs, collections, or settlements as a first option. Payment without validation waives leverage and may not fix reporting.',
-        ],
-      },
-      {
-        heading: 'FDCPA §809 validation sequence',
-        bullets: [
-          'Within 30 days of the collector’s first written communication, send a validation request (certified mail).',
-          'Collector must cease collection until it validates — demand chain of assignment, signed agreement, itemization.',
-          'If validation is insufficient, escalate with affidavit of dispute and CFPB/state AG pattern documentation.',
-          'Educational only — not legal advice. Consult counsel for active lawsuits or garnishment.',
-        ],
-      },
-      {
-        heading: 'What we never default to',
-        bullets: [
-          'Settling for less as step one — settlement remarks can block funding for years.',
-          'Pay-for-delete without written contract — verbal promises fail.',
-          'Paying charge-offs to “help” score without field-level dispute — often does not remove history.',
-        ],
-      },
-    ],
-  },
-  {
     id: 'law-per-negative',
     title: 'Law Per Negative — Cite the Right Statute',
     subtitle: 'Each tradeline type has a governing challenge framework',
@@ -302,37 +236,6 @@ export const DISPUTE_LETTER_GUIDE_PROGRAMMATIC_PAGES: GeneratedGuidePage[] = [
       {
         paragraphs: [
           'Letter Studio and Reasons OS attach these citations to drafts based on the negative type you select — one clean claim per letter.',
-        ],
-      },
-    ],
-  },
-  {
-    id: 'affidavit-court-system',
-    title: 'Affidavits & Court Response System',
-    subtitle: 'When validation is ignored or a summons arrives first',
-    sections: [
-      {
-        heading: 'Affidavit of dispute',
-        bullets: [
-          'Sworn statement that you dispute the debt and lack knowledge of a valid contract.',
-          'Supports answer/motion when plaintiff cannot produce chain of title or signed agreement.',
-          'Store in Documents vault — link to debt case in portal.',
-        ],
-      },
-      {
-        heading: 'If summons arrives before validation mail',
-        bullets: [
-          'Calendar the response deadline immediately — procedure beats slogans.',
-          'File answer + affidavit; assert FDCPA validation was never provided if applicable.',
-          'Challenge proper service — defective service may void judgment.',
-          'Never ignore court mail — consult licensed attorney same week.',
-        ],
-      },
-      {
-        heading: 'UCC & contract challenges (educational)',
-        bullets: [
-          'UCC §3-308 — party enforcing instrument bears burden of proof.',
-          'Debt buyers often lack original note and assignment chain — validation exposes gaps.',
         ],
       },
     ],
