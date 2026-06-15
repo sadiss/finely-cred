@@ -81,6 +81,8 @@
     "e2e:playwright:install": "playwright install chromium",
     "tour:capture": "npx tsx scripts/tour-capture.ts",
     "tour:scan": "npx tsx scripts/tour-site-scanner.ts",
+    "tour:scan:video": "npx tsx scripts/tour-site-scanner.ts --video",
+    "tour:demos:full": "npx tsx scripts/tour-site-scanner.ts --video --assemble",
     "tour:assemble": "npx tsx scripts/tour-assemble.ts",
     "tour:capture:audit": "node scripts/audit-tour-capture.mjs",
     "tour:narration:export": "npx tsx scripts/tour-export-narration.ts",

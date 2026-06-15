@@ -35,7 +35,9 @@ export default function AdminTourStudioPage() {
 
   const factoryCommands = useMemo(
     () => [
-      { id: 'scan-site', label: 'Site scanner (recorder)', cmd: 'npm run tour:scan' },
+      { id: 'scan-site', label: 'Site scanner (screenshots)', cmd: 'npm run tour:scan' },
+      { id: 'scan-video', label: 'Site scanner + MP4 record', cmd: 'npm run tour:scan:video' },
+      { id: 'demos-full', label: 'Full demo pipeline', cmd: 'npm run tour:demos:full' },
       { id: 'capture-all', label: 'Capture all tours', cmd: 'npm run tour:capture -- --all' },
       { id: 'narrate-all', label: 'Export narration', cmd: 'npm run tour:narration:export -- --all' },
       { id: 'voice-all', label: 'Voice prerender', cmd: 'npm run tour:voice:prerender -- --all' },
@@ -69,10 +71,9 @@ export default function AdminTourStudioPage() {
             </div>
             <p className={FINELY_OS_ENTITY_BODY}>
               {tourStats.total} tours · {tourStats.withSop} linked SOPs · {tourStats.lanes} lanes. Run{' '}
-              <code className="opacity-80">npm run tour:scan</code> to walk the site like a video recorder (highlighted buttons + screenshots), then{' '}
-              <code className="opacity-80">npm run tour:capture -- --all</code> ·{' '}
-              <code className="opacity-80">npm run tour:assemble</code>.
-              See <button type="button" className="underline" onClick={() => navigate('/admin/resources')}>Resources</button> for manual MP4 uploads.
+              <code className="opacity-80">npm run tour:scan:video</code> to record demo MP4s with cursor highlights + pulsing rings, then publish from{' '}
+              <code className="opacity-80">public/tours/demos/</code>. See{' '}
+              <button type="button" className="underline" onClick={() => navigate('/admin/resources')}>Resources</button> for manual uploads.
             </p>
           </div>
           <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => navigate('/resources#videos')}>
@@ -86,9 +87,9 @@ export default function AdminTourStudioPage() {
             <span>Site scanner — video-recorder mode</span>
           </div>
           <p className={FINELY_OS_ENTITY_BODY}>
-            Playwright walks each route below, scrolls to the highlighted control, draws a pulsing ring, and saves step screenshots +
-            <code className="opacity-80"> highlights.json</code> under <code className="opacity-80">public/tours/site-scan/</code>.
-            The tour player loads these for button highlights and per-step instruction checklists.
+            Playwright walks each route, scrolls to controls, draws a pulsing green ring + animated cursor + label chip, and saves screenshots to{' '}
+            <code className="opacity-80">public/tours/site-scan/</code>. With <code className="opacity-80">--video</code>, screen recordings land in{' '}
+            <code className="opacity-80">public/tours/demos/{'{target-id}'}.mp4</code> for training and sales.
           </p>
           <div className="grid md:grid-cols-2 gap-3">
             {SITE_SCAN_TARGETS.map((target) => (
@@ -105,9 +106,14 @@ export default function AdminTourStudioPage() {
               </div>
             ))}
           </div>
-          <button type="button" className={FINELY_OS_PRIMARY_BTN} onClick={() => void copyCmd('scan-site', 'npm run tour:scan')}>
-            <Copy size={14} /> {copiedCmd === 'scan-site' ? 'Copied!' : 'Copy npm run tour:scan'}
-          </button>
+          <div className="flex flex-wrap gap-2">
+            <button type="button" className={FINELY_OS_PRIMARY_BTN} onClick={() => void copyCmd('scan-video', 'npm run tour:scan:video')}>
+              <Copy size={14} /> {copiedCmd === 'scan-video' ? 'Copied!' : 'Copy tour:scan:video'}
+            </button>
+            <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => void copyCmd('scan-site', 'npm run tour:scan')}>
+              <Copy size={14} /> {copiedCmd === 'scan-site' ? 'Copied!' : 'Copy tour:scan'}
+            </button>
+          </div>
         </div>
 
         <div className={`${finelyOsCatalogCard('emerald')} !p-5 space-y-4`} data-fc-accent="emerald">
@@ -116,7 +122,7 @@ export default function AdminTourStudioPage() {
             <span>Regenerate pipeline</span>
           </div>
           <p className={FINELY_OS_ENTITY_BODY}>
-            Run these in order from the project root. Dev server must be on port 5175 for capture.
+            Run these in order from the project root. Dev server must be on port <strong>5173</strong> for capture.
           </p>
           <div className="flex flex-wrap gap-2">
             {factoryCommands.map((item) => (

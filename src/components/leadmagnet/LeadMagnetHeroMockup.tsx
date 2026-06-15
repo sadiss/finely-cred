@@ -84,6 +84,7 @@ export function FreeGuideBook({ className = '' }: { className?: string }) {
         />
         <div className="absolute inset-y-0 left-0 w-[10%] bg-gradient-to-r from-black/25 via-black/8 to-transparent pointer-events-none" />
         <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-transparent pointer-events-none" />
+        <div className="absolute bottom-0 left-0 right-0 h-[28%] bg-gradient-to-t from-black/88 via-black/45 to-transparent pointer-events-none z-10" />
         <div className="absolute bottom-0 left-0 right-0 z-20 pointer-events-none">
           <div className="fg-book-proof-strip flex flex-wrap items-center justify-center gap-x-2 gap-y-0.5 px-2 py-1.5 sm:py-2">
             <span className="inline-flex items-center gap-1 text-[6px] sm:text-[7px] font-bold uppercase tracking-wider text-white/90">
