@@ -1,0 +1,20 @@
+{
+  "tourId": "tour-agent-client-file",
+  "steps": [
+    {
+      "stepId": "s1",
+      "file": "step-01.png",
+      "path": "/credit-specialist/hub"
+    },
+    {
+      "stepId": "s2",
+      "file": "step-02.png",
+      "path": "/portal/dashboard"
+    },
+    {
+      "stepId": "s3",
+      "file": "step-03.png",
+      "path": "/portal/letters"
+    }
+  ]
+}

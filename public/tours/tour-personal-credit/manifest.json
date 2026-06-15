@@ -1,0 +1,15 @@
+{
+  "tourId": "tour-personal-credit",
+  "steps": [
+    {
+      "stepId": "s1",
+      "file": "step-01.png",
+      "path": "/personal-credit"
+    },
+    {
+      "stepId": "s2",
+      "file": "step-02.png",
+      "path": "/onboarding"
+    }
+  ]
+}

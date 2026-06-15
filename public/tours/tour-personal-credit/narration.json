@@ -1,0 +1,20 @@
+{
+  "tourId": "tour-personal-credit",
+  "title": "Personal credit packages explained",
+  "steps": [
+    {
+      "step": 1,
+      "stepId": "s1",
+      "label": "Packages tab",
+      "narrationPlain": "Compare restore and platinum packages.",
+      "mp3File": "step-01.mp3"
+    },
+    {
+      "step": 2,
+      "stepId": "s2",
+      "label": "Start intake",
+      "narrationPlain": "Tap Start intake when you are ready.",
+      "mp3File": "step-02.mp3"
+    }
+  ]
+}

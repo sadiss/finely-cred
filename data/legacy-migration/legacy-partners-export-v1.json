@@ -1,0 +1,1091 @@
+{
+  "version": 1,
+  "exportedAt": "2026-06-11T18:36:34.838Z",
+  "source": "laravel",
+  "partners": [
+    {
+      "externalId": "laravel:uid:20",
+      "fullName": "Hope D Cooper",
+      "email": "shescockyhair@yahoo.com",
+      "phone": "646-234-0858",
+      "primaryRoute": "personal_restore",
+      "lane": "funding_readiness",
+      "journeyStage": "intake",
+      "journeySignals": {
+        "legacyPartnersInfoId": "5",
+        "legacyUserId": "20",
+        "legacyApplicationStatus": 1,
+        "legacyApplicationStatusLabel": "Account opened",
+        "legacyDateSignedUp": "2020-04-28",
+        "legacyDocuments": [
+          {
+            "fileName": "credit restoration docs.pdf",
+            "uploadedAt": "2020-07-17 00:44:18"
+          },
+          {
+            "fileName": "Rectangle.png",
+            "uploadedAt": "2021-07-06 16:11:40"
+          }
+        ],
+        "legacyReports": [
+          {
+            "fileName": "M22230305_3-24-2020.html",
+            "uploadedAt": "2020-04-28 19:36:04"
+          },
+          {
+            "fileName": "M22461083_6-20-2020.html",
+            "uploadedAt": "2020-07-21 01:11:39"
+          }
+        ],
+        "legacyAddress": {
+          "street": "85 HighView Ave",
+          "apartment": "Apt A5",
+          "city": "Brooklyn",
+          "state": "NY",
+          "postalCode": "07621",
+          "dob": "2006-07-12"
+        },
+        "legacyDocCount": 2,
+        "legacyReportCount": 2,
+        "legacyLetterCount": 2
+      },
+      "notes": "adasdaasdsad",
+      "tasks": [
+        {
+          "title": "Upload remaining identity documents",
+          "kind": "evidence",
+          "stage": "evidence",
+          "priority": "high",
+          "status": "pending",
+          "tags": [
+            "legacy-import"
+          ]
+        }
+      ],
+      "legacyDocuments": [
+        {
+          "fileName": "credit restoration docs.pdf",
+          "uploadedAt": "2020-07-17 00:44:18"
+        },
+        {
+          "fileName": "Rectangle.png",
+          "uploadedAt": "2021-07-06 16:11:40"
+        }
+      ],
+      "legacyReports": [
+        {
+          "fileName": "M22230305_3-24-2020.html",
+          "uploadedAt": "2020-04-28 19:36:04"
+        },
+        {
+          "fileName": "M22461083_6-20-2020.html",
+          "uploadedAt": "2020-07-21 01:11:39"
+        }
+      ]
+    },
+    {
+      "externalId": "laravel:uid:165",
+      "fullName": "Sanz St. Louis",
+      "email": "sanzstlouis@gmail.com",
+      "phone": null,
+      "primaryRoute": "personal_restore",
+      "lane": "funding_readiness",
+      "journeyStage": "evidence",
+      "journeySignals": {
+        "legacyPartnersInfoId": "64",
+        "legacyUserId": "165",
+        "legacyApplicationStatus": 5,
+        "legacyApplicationStatusLabel": "CA sent",
+        "legacyDateSignedUp": "2024-05-13",
+        "legacyDocuments": [],
+        "legacyReports": [
+          {
+            "fileName": "Sanzs-Report.html",
+            "uploadedAt": "2024-07-05 07:21:56"
+          },
+          {
+            "fileName": "Sanzs-Report-2.html",
+            "uploadedAt": "2025-03-03 09:01:03"
+          }
+        ],
+        "legacyAddress": {
+          "street": "",
+          "apartment": "",
+          "city": "",
+          "state": "",
+          "postalCode": "",
+          "dob": "1986-05-23"
+        },
+        "legacyDocCount": 0,
+        "legacyReportCount": 2,
+        "legacyLetterCount": 0
+      },
+      "notes": "Your credit is perfect",
+      "tasks": [
+        {
+          "title": "Upload remaining identity documents",
+          "kind": "evidence",
+          "stage": "evidence",
+          "priority": "high",
+          "status": "pending",
+          "tags": [
+            "legacy-import"
+          ]
+        }
+      ],
+      "legacyDocuments": [],
+      "legacyReports": [
+        {
+          "fileName": "Sanzs-Report.html",
+          "uploadedAt": "2024-07-05 07:21:56"
+        },
+        {
+          "fileName": "Sanzs-Report-2.html",
+          "uploadedAt": "2025-03-03 09:01:03"
+        }
+      ]
+    },
+    {
+      "externalId": "laravel:uid:169",
+      "fullName": "Arielle Griffin",
+      "email": "agvimmelife@gmail.com",
+      "phone": "8603384339",
+      "primaryRoute": "personal_restore",
+      "lane": "funding_readiness",
+      "journeyStage": "evidence",
+      "journeySignals": {
+        "legacyPartnersInfoId": "66",
+        "legacyUserId": "169",
+        "legacyApplicationStatus": 5,
+        "legacyApplicationStatusLabel": "CA sent",
+        "legacyDateSignedUp": "2024-05-21",
+        "legacyDocuments": [
+          {
+            "fileName": "staples_scan (1).pdf",
+            "uploadedAt": "2024-06-20 13:50:04"
+          },
+          {
+            "fileName": "July 2024 bill Verizon (Arielle).pdf",
+            "uploadedAt": "2024-08-10 10:58:22"
+          },
+          {
+            "fileName": "Portfolio Recovery ( Arielle).pdf",
+            "uploadedAt": "2024-08-10 12:58:21"
+          }
+        ],
+        "legacyReports": [
+          {
+            "fileName": "Arielles-Report.html",
+            "uploadedAt": "2024-06-10 14:41:48"
+          }
+        ],
+        "legacyAddress": {
+          "street": "260 Northern Ave",
+          "apartment": "Apt 17c",
+          "city": "Avondale Estates",
+          "state": "GA",
+          "postalCode": "30002",
+          "dob": "1992-11-13"
+        },
+        "legacyDocCount": 3,
+        "legacyReportCount": 1,
+        "legacyLetterCount": 4
+      },
+      "notes": "Arielle Griffinrnfreeze donernpi,inquiry were already createdrnlate payment,collection letters editedrn07/16/24\n\n---\n\nArielle Griffin rnfreeze done on 07/01/2024rnpi letter createdrninquiry letter createdrnlate payments letter createdrncollections letter created\n\n---\n\nA bill from Verizon has been received and reviewed for Arielle.( Shelly)\n\n---\n\nCapital one Validation letter mailed 09/25/24\n\n---\n\nArielle Griffin Validation letters created",
+      "tasks": [
+        {
+          "title": "Upload remaining identity documents",
+          "kind": "evidence",
+          "stage": "evidence",
+          "priority": "high",
+          "status": "pending",
+          "tags": [
+            "legacy-import"
+          ]
+        }
+      ],
+      "legacyDocuments": [
+        {
+          "fileName": "staples_scan (1).pdf",
+          "uploadedAt": "2024-06-20 13:50:04"
+        },
+        {
+          "fileName": "July 2024 bill Verizon (Arielle).pdf",
+          "uploadedAt": "2024-08-10 10:58:22"
+        },
+        {
+          "fileName": "Portfolio Recovery ( Arielle).pdf",
+          "uploadedAt": "2024-08-10 12:58:21"
+        }
+      ],
+      "legacyReports": [
+        {
+          "fileName": "Arielles-Report.html",
+          "uploadedAt": "2024-06-10 14:41:48"
+        }
+      ]
+    },
+    {
+      "externalId": "laravel:uid:170",
+      "fullName": "Alande Duverly",
+      "email": "Aduverly@mail.com",
+      "phone": "5087189743",
+      "primaryRoute": "personal_restore",
+      "lane": "funding_readiness",
+      "journeyStage": "evidence",
+      "journeySignals": {
+        "legacyPartnersInfoId": "67",
+        "legacyUserId": "170",
+        "legacyApplicationStatus": 5,
+        "legacyApplicationStatusLabel": "CA sent",
+        "legacyDateSignedUp": "2024-05-21",
+        "legacyDocuments": [
+          {
+            "fileName": "Alande's Docs.jpeg",
+            "uploadedAt": "2024-05-31 06:11:21"
+          },
+          {
+            "fileName": "alande doc.jpg",
+            "uploadedAt": "2024-08-03 11:46:27"
+          },
+          {
+            "fileName": "Alande Duverly ct.PNG",
+            "uploadedAt": "2024-08-07 08:27:35"
+          },
+          {
+            "fileName": "alande bill 092824.jpg",
+            "uploadedAt": "2024-09-28 11:34:28"
+          }
+        ],
+        "legacyReports": [
+          {
+            "fileName": "Alandes-Report-.html",
+            "uploadedAt": "2024-06-20 10:07:57"
+          },
+          {
+            "fileName": "Alande-Report-2.html",
+            "uploadedAt": "2024-10-31 14:44:03"
+          },
+          {
+            "fileName": "Alandes-Report-3.html",
+            "uploadedAt": "2025-03-14 08:25:44"
+          },
+          {
+            "fileName": "Alandes-Report-4.html",
+            "uploadedAt": "2025-08-26 09:25:10"
+          }
+        ],
+        "legacyAddress": {
+          "street": "14 Coburn St",
+          "apartment": "APT 2",
+          "city": "Broctkon",
+          "state": "MA",
+          "postalCode": "02301",
+          "dob": ""
+        },
+        "legacyDocCount": 4,
+        "legacyReportCount": 4,
+        "legacyLetterCount": 0
+      },
+      "notes": "1. Freeze Bureausrn2. Send Court Letter rn3. Correct PIrn4. Remove Bankcruptcy\n\n---\n\n1.Need to create PI letter to send.....rnrn2.Need to create court letter to send for bankruptcies-Sanz\n\n---\n\nAlande Duverly rnInquiry,bankruptcy,court mailedrnpi already createdrncollection letter editedrnvalidation and verification letters triedrn07/16/24\n\n---\n\nAlande Duverlyrninquiry mailed 07/05/2024rnbankruptcy and district court mailed 07/05/2024rncourt response received on 07/31/2024rnpi mailed  08/06/2024rncollections letter created\n\n---\n\nneed to work on court response letter Laiba\n\n---\n\nAlande Duverly Brewster Ambulance Service Validation letter mailed 09/25/24\n\n---\n\nValidation letters created\n\n---\n\nnew bill uploaded 09/28/24\n\n---\n\nWe need to file complaints for the remaining 3 bureaus",
+      "tasks": [
+        {
+          "title": "Upload remaining identity documents",
+          "kind": "evidence",
+          "stage": "evidence",
+          "priority": "high",
+          "status": "pending",
+          "tags": [
+            "legacy-import"
+          ]
+        }
+      ],
+      "legacyDocuments": [
+        {
+          "fileName": "Alande's Docs.jpeg",
+          "uploadedAt": "2024-05-31 06:11:21"
+        },
+        {
+          "fileName": "alande doc.jpg",
+          "uploadedAt": "2024-08-03 11:46:27"
+        },
+        {
+          "fileName": "Alande Duverly ct.PNG",
+          "uploadedAt": "2024-08-07 08:27:35"
+        },
+        {
+          "fileName": "alande bill 092824.jpg",
+          "uploadedAt": "2024-09-28 11:34:28"
+        }
+      ],
+      "legacyReports": [
+        {
+          "fileName": "Alandes-Report-.html",
+          "uploadedAt": "2024-06-20 10:07:57"
+        },
+        {
+          "fileName": "Alande-Report-2.html",
+          "uploadedAt": "2024-10-31 14:44:03"
+        },
+        {
+          "fileName": "Alandes-Report-3.html",
+          "uploadedAt": "2025-03-14 08:25:44"
+        },
+        {
+          "fileName": "Alandes-Report-4.html",
+          "uploadedAt": "2025-08-26 09:25:10"
+        }
+      ]
+    },
+    {
+      "externalId": "laravel:uid:173",
+      "fullName": "Obed Julien",
+      "email": "julienobed509@gmail.com",
+      "phone": "6315683408",
+      "primaryRoute": "personal_restore",
+      "lane": "funding_readiness",
+      "journeyStage": "intake",
+      "journeySignals": {
+        "legacyPartnersInfoId": "70",
+        "legacyUserId": "173",
+        "legacyApplicationStatus": 1,
+        "legacyApplicationStatusLabel": "Account opened",
+        "legacyDateSignedUp": "2024-06-06",
+        "legacyDocuments": [
+          {
+            "fileName": "Obed's Docs.pdf",
+            "uploadedAt": "2024-06-06 12:31:30"
+          },
+          {
+            "fileName": "CamScanner 06-11-2024 17.32.pdf",
+            "uploadedAt": "2024-06-21 08:13:05"
+          },
+          {
+            "fileName": "obed bill.jpg",
+            "uploadedAt": "2024-09-28 10:33:13"
+          },
+          {
+            "fileName": "EX IDTheftReport_178291031.pdf",
+            "uploadedAt": "2024-10-04 08:26:18"
+          },
+          {
+            "fileName": "EQ IDTheftReport_178291031.pdf",
+            "uploadedAt": "2024-10-04 08:27:43"
+          },
+          {
+            "fileName": "TU IDTheftReport_178291031.pdf",
+            "uploadedAt": "2024-10-04 08:27:52"
+          },
+          {
+            "fileName": "Obed Julien CFPB.PNG",
+            "uploadedAt": "2024-10-04 08:28:00"
+          },
+          {
+            "fileName": "CamScanner 10-04-2024 14.19.pdf",
+            "uploadedAt": "2024-10-05 05:23:03"
+          }
+        ],
+        "legacyReports": [
+          {
+            "fileName": "Obeds-Report-.html",
+            "uploadedAt": "2024-06-10 20:47:52"
+          }
+        ],
+        "legacyAddress": {
+          "street": "53 Hilliard Ave",
+          "apartment": "",
+          "city": "Central Islip",
+          "state": "NY",
+          "postalCode": "11722",
+          "dob": "1985-11-10"
+        },
+        "legacyDocCount": 8,
+        "legacyReportCount": 1,
+        "legacyLetterCount": 0
+      },
+      "notes": "We have to work on PI and remove negative inquiries\n\n---\n\nInquiry letter mailedrnLaiba\n\n---\n\nOBED JULIENrninquiry mailed 07/01/2024\n\n---\n\nNo validation letters needed\n\n---\n\nObed new bill uploaded and new letters created (round 2 no response) 09/28/24\n\n---\n\nFTC Done, CFPB Done and uploaded waiting for clear bill to do letterstream 10/04/24rnBill uploaded and letterstream done 10/05/24",
+      "tasks": [
+        {
+          "title": "Upload remaining identity documents",
+          "kind": "evidence",
+          "stage": "evidence",
+          "priority": "high",
+          "status": "pending",
+          "tags": [
+            "legacy-import"
+          ]
+        }
+      ],
+      "legacyDocuments": [
+        {
+          "fileName": "Obed's Docs.pdf",
+          "uploadedAt": "2024-06-06 12:31:30"
+        },
+        {
+          "fileName": "CamScanner 06-11-2024 17.32.pdf",
+          "uploadedAt": "2024-06-21 08:13:05"
+        },
+        {
+          "fileName": "obed bill.jpg",
+          "uploadedAt": "2024-09-28 10:33:13"
+        },
+        {
+          "fileName": "EX IDTheftReport_178291031.pdf",
+          "uploadedAt": "2024-10-04 08:26:18"
+        },
+        {
+          "fileName": "EQ IDTheftReport_178291031.pdf",
+          "uploadedAt": "2024-10-04 08:27:43"
+        },
+        {
+          "fileName": "TU IDTheftReport_178291031.pdf",
+          "uploadedAt": "2024-10-04 08:27:52"
+        },
+        {
+          "fileName": "Obed Julien CFPB.PNG",
+          "uploadedAt": "2024-10-04 08:28:00"
+        },
+        {
+          "fileName": "CamScanner 10-04-2024 14.19.pdf",
+          "uploadedAt": "2024-10-05 05:23:03"
+        }
+      ],
+      "legacyReports": [
+        {
+          "fileName": "Obeds-Report-.html",
+          "uploadedAt": "2024-06-10 20:47:52"
+        }
+      ]
+    },
+    {
+      "externalId": "laravel:uid:175",
+      "fullName": "Shelly Aldonzar",
+      "email": "aldonzar@gmail.com",
+      "phone": "7187494604",
+      "primaryRoute": "personal_restore",
+      "lane": "funding_readiness",
+      "journeyStage": "mailing",
+      "journeySignals": {
+        "legacyPartnersInfoId": "71",
+        "legacyUserId": "175",
+        "legacyApplicationStatus": 8,
+        "legacyApplicationStatusLabel": "Letters sent",
+        "legacyDateSignedUp": "2024-06-10",
+        "legacyDocuments": [
+          {
+            "fileName": "Shelly's SS and ID.pdf",
+            "uploadedAt": "2024-06-21 13:47:37"
+          },
+          {
+            "fileName": "Shelly's Add Proof.pdf",
+            "uploadedAt": "2024-06-24 12:00:47"
+          }
+        ],
+        "legacyReports": [
+          {
+            "fileName": "Shellys-Report.html",
+            "uploadedAt": "2024-06-10 14:25:59"
+          },
+          {
+            "fileName": "Shellys-Report-2.html",
+            "uploadedAt": "2024-11-06 14:31:48"
+          },
+          {
+            "fileName": "Shellys-Report-3.html",
+            "uploadedAt": "2026-01-05 18:37:43"
+          }
+        ],
+        "legacyAddress": {
+          "street": "717 Eagle Rock Ave",
+          "apartment": "",
+          "city": "West Orange",
+          "state": "NJ",
+          "postalCode": "07052",
+          "dob": "1981-01-07"
+        },
+        "legacyDocCount": 2,
+        "legacyReportCount": 3,
+        "legacyLetterCount": 4
+      },
+      "notes": "Pi letter mailedrnLaiba\n\n---\n\nShelly Aldonzarrnpi,inquiry mailedrnstudent loan,late payment,collection letters,repo editedrn07/16/24\n\n---\n\nShelly Aldonzarrnpi mailed  07/01/2024rninquiry mailed 07/03/2024rncredit card collection mailed on 07/18/2024rnrepo collection mailed on 07/18/2024rnstudent loan mailed on 08/06/2024rnlate payments letter created\n\n---\n\nShelly Aldonzar JPMCB CARD mailed 09/25/24\n\n---\n\nValidation letters created\n\n---\n\nCredit Report can not upload. I tried to update new credit report, error messages kept appearing. (Shelly)\n\n---\n\nValidation Letters added for both, Credence Resource Management, LLC and ACIMA Digital FKA SIMP. 1/08/2026( Shelly)",
+      "tasks": [
+        {
+          "title": "Review dispute letters from legacy system",
+          "kind": "letters",
+          "stage": "letters",
+          "priority": "medium",
+          "status": "pending",
+          "tags": [
+            "legacy-import"
+          ]
+        }
+      ],
+      "legacyDocuments": [
+        {
+          "fileName": "Shelly's SS and ID.pdf",
+          "uploadedAt": "2024-06-21 13:47:37"
+        },
+        {
+          "fileName": "Shelly's Add Proof.pdf",
+          "uploadedAt": "2024-06-24 12:00:47"
+        }
+      ],
+      "legacyReports": [
+        {
+          "fileName": "Shellys-Report.html",
+          "uploadedAt": "2024-06-10 14:25:59"
+        },
+        {
+          "fileName": "Shellys-Report-2.html",
+          "uploadedAt": "2024-11-06 14:31:48"
+        },
+        {
+          "fileName": "Shellys-Report-3.html",
+          "uploadedAt": "2026-01-05 18:37:43"
+        }
+      ]
+    },
+    {
+      "externalId": "laravel:uid:176",
+      "fullName": "Ann Ahsley S Bonheur",
+      "email": "ann@gmail.com",
+      "phone": "3472948556",
+      "primaryRoute": "personal_restore",
+      "lane": "funding_readiness",
+      "journeyStage": "intake",
+      "journeySignals": {
+        "legacyPartnersInfoId": "72",
+        "legacyUserId": "176",
+        "legacyApplicationStatus": 1,
+        "legacyApplicationStatusLabel": "Account opened",
+        "legacyDateSignedUp": "2024-06-11",
+        "legacyDocuments": [
+          {
+            "fileName": "ASHLEY'S DRIVER LICENSE.pdf",
+            "uploadedAt": "2024-06-18 08:59:44"
+          },
+          {
+            "fileName": "Scan.jpeg",
+            "uploadedAt": "2024-06-18 09:05:04"
+          },
+          {
+            "fileName": "Ann Ashley Bills.pdf",
+            "uploadedAt": "2024-08-07 08:21:29"
+          },
+          {
+            "fileName": "Trans union  (1).pdf",
+            "uploadedAt": "2024-08-07 08:30:43"
+          },
+          {
+            "fileName": "ANNASHLEY S BONHEUR Analysis Report.pdf",
+            "uploadedAt": "2024-11-19 22:59:00"
+          },
+          {
+            "fileName": "ANN ASHLEY BONHEUR Analysis Report 2.pdf",
+            "uploadedAt": "2024-11-19 23:01:57"
+          }
+        ],
+        "legacyReports": [
+          {
+            "fileName": "Ashley-M47559205_1-14-2024.html",
+            "uploadedAt": "2024-06-19 17:37:04"
+          },
+          {
+            "fileName": "Anns-Report-2.html",
+            "uploadedAt": "2024-11-01 11:19:58"
+          }
+        ],
+        "legacyAddress": {
+          "street": "40 Van Houten Ave",
+          "apartment": "",
+          "city": "Jersey City",
+          "state": "NJ",
+          "postalCode": "07305",
+          "dob": "1990-09-30"
+        },
+        "legacyDocCount": 6,
+        "legacyReportCount": 2,
+        "legacyLetterCount": 1
+      },
+      "notes": "Pi letter mailedrnLaiba\n\n---\n\nAnn Bonheurrnpi,inquiry mailedrncollection,late payment letters editedrn07/16/24\n\n---\n\nAnn Bonheur  rnpi mailed  07/01/2024rninquiry mailed 07/05/2024rntransunion response (3rd party) letter received 07/22/2024rncollections letter createdrnlate payments letter created\n\n---\n\nwe get the third party letter from transunion that is uploaded in profile need to respond on it Laiba\n\n---\n\nAnn Bonheur  KOHLS/CAPONE validation letter mailed 09/25/24",
+      "tasks": [
+        {
+          "title": "Upload remaining identity documents",
+          "kind": "evidence",
+          "stage": "evidence",
+          "priority": "high",
+          "status": "pending",
+          "tags": [
+            "legacy-import"
+          ]
+        }
+      ],
+      "legacyDocuments": [
+        {
+          "fileName": "ASHLEY'S DRIVER LICENSE.pdf",
+          "uploadedAt": "2024-06-18 08:59:44"
+        },
+        {
+          "fileName": "Scan.jpeg",
+          "uploadedAt": "2024-06-18 09:05:04"
+        },
+        {
+          "fileName": "Ann Ashley Bills.pdf",
+          "uploadedAt": "2024-08-07 08:21:29"
+        },
+        {
+          "fileName": "Trans union  (1).pdf",
+          "uploadedAt": "2024-08-07 08:30:43"
+        },
+        {
+          "fileName": "ANNASHLEY S BONHEUR Analysis Report.pdf",
+          "uploadedAt": "2024-11-19 22:59:00"
+        },
+        {
+          "fileName": "ANN ASHLEY BONHEUR Analysis Report 2.pdf",
+          "uploadedAt": "2024-11-19 23:01:57"
+        }
+      ],
+      "legacyReports": [
+        {
+          "fileName": "Ashley-M47559205_1-14-2024.html",
+          "uploadedAt": "2024-06-19 17:37:04"
+        },
+        {
+          "fileName": "Anns-Report-2.html",
+          "uploadedAt": "2024-11-01 11:19:58"
+        }
+      ]
+    },
+    {
+      "externalId": "laravel:uid:177",
+      "fullName": "Guesta Moise",
+      "email": "guesta@gmail.com",
+      "phone": null,
+      "primaryRoute": "personal_restore",
+      "lane": "funding_readiness",
+      "journeyStage": "mailing",
+      "journeySignals": {
+        "legacyPartnersInfoId": "73",
+        "legacyUserId": "177",
+        "legacyApplicationStatus": 8,
+        "legacyApplicationStatusLabel": "Letters sent",
+        "legacyDateSignedUp": "2024-06-11",
+        "legacyDocuments": [
+          {
+            "fileName": "GUesta's ID.jpeg",
+            "uploadedAt": "2024-06-21 08:43:04"
+          },
+          {
+            "fileName": "Guesta's SS.jpeg",
+            "uploadedAt": "2024-06-21 08:43:28"
+          }
+        ],
+        "legacyReports": [
+          {
+            "fileName": "M50316141_10-24-2023.html",
+            "uploadedAt": "2024-06-16 16:06:13"
+          }
+        ],
+        "legacyAddress": {
+          "street": "10 Arverne Ter 2nd Floor",
+          "apartment": "",
+          "city": "Irvington",
+          "state": "NJ",
+          "postalCode": "07111",
+          "dob": "1979-07-27"
+        },
+        "legacyDocCount": 2,
+        "legacyReportCount": 1,
+        "legacyLetterCount": 0
+      },
+      "notes": "Guesta Moise     rnAlexis report there need guesta reportrn07/16/24\n\n---\n\nBill remaining Laiba",
+      "tasks": [
+        {
+          "title": "Review dispute letters from legacy system",
+          "kind": "letters",
+          "stage": "letters",
+          "priority": "medium",
+          "status": "pending",
+          "tags": [
+            "legacy-import"
+          ]
+        }
+      ],
+      "legacyDocuments": [
+        {
+          "fileName": "GUesta's ID.jpeg",
+          "uploadedAt": "2024-06-21 08:43:04"
+        },
+        {
+          "fileName": "Guesta's SS.jpeg",
+          "uploadedAt": "2024-06-21 08:43:28"
+        }
+      ],
+      "legacyReports": [
+        {
+          "fileName": "M50316141_10-24-2023.html",
+          "uploadedAt": "2024-06-16 16:06:13"
+        }
+      ]
+    },
+    {
+      "externalId": "laravel:uid:178",
+      "fullName": "Marie Celestin",
+      "email": "marieecelestin@gmail.com",
+      "phone": "3478673773",
+      "primaryRoute": "personal_restore",
+      "lane": "funding_readiness",
+      "journeyStage": "intake",
+      "journeySignals": {
+        "legacyPartnersInfoId": "74",
+        "legacyUserId": "178",
+        "legacyApplicationStatus": 1,
+        "legacyApplicationStatusLabel": "Account opened",
+        "legacyDateSignedUp": "2024-06-11",
+        "legacyDocuments": [
+          {
+            "fileName": "marie bill.pdf",
+            "uploadedAt": "2024-08-07 08:09:45"
+          },
+          {
+            "fileName": "Marie Celestin Picture.pdf",
+            "uploadedAt": "2024-08-09 13:58:54"
+          },
+          {
+            "fileName": "MARIE'S COUNTER AFFIDAVIT.pdf",
+            "uploadedAt": "2024-09-11 18:00:44"
+          }
+        ],
+        "legacyReports": [
+          {
+            "fileName": "Maries-Report.html",
+            "uploadedAt": "2024-06-21 12:36:44"
+          }
+        ],
+        "legacyAddress": {
+          "street": "717 EAGLE ROCK AVE",
+          "apartment": "",
+          "city": "WEST ORANGE",
+          "state": "NJ",
+          "postalCode": "07052",
+          "dob": "1967-05-15"
+        },
+        "legacyDocCount": 3,
+        "legacyReportCount": 1,
+        "legacyLetterCount": 0
+      },
+      "notes": "Marie Celestin   rninquiry,collection,late payments letters were createdrnNeed doc, no address feed in systemrnWaiting for dl to freezern07/16/24\n\n---\n\nMarie Celestinrninquiry letter createdrnlate payments letter createdrncollections letter created\n\n---\n\nMarie's ID and SSN have been updated.(Shelly)\n\n---\n\n09/11/24rnrnHad to create a counter affidavit for discover in response to a law suit. Affidavit will be sent to the courts, discover's attorneys and discover themselves.\n\n---\n\nDiscover bank Validation letter mailed 09/25/24\n\n---\n\nValidation letters created\n\n---\n\nNeed updated proof of Address 11/20/2024rn-Sanz St Louis",
+      "tasks": [
+        {
+          "title": "Upload remaining identity documents",
+          "kind": "evidence",
+          "stage": "evidence",
+          "priority": "high",
+          "status": "pending",
+          "tags": [
+            "legacy-import"
+          ]
+        }
+      ],
+      "legacyDocuments": [
+        {
+          "fileName": "marie bill.pdf",
+          "uploadedAt": "2024-08-07 08:09:45"
+        },
+        {
+          "fileName": "Marie Celestin Picture.pdf",
+          "uploadedAt": "2024-08-09 13:58:54"
+        },
+        {
+          "fileName": "MARIE'S COUNTER AFFIDAVIT.pdf",
+          "uploadedAt": "2024-09-11 18:00:44"
+        }
+      ],
+      "legacyReports": [
+        {
+          "fileName": "Maries-Report.html",
+          "uploadedAt": "2024-06-21 12:36:44"
+        }
+      ]
+    },
+    {
+      "externalId": "laravel:uid:181",
+      "fullName": "Jonathan Ward",
+      "email": "ward11@gmail.com",
+      "phone": null,
+      "primaryRoute": "personal_restore",
+      "lane": "funding_readiness",
+      "journeyStage": "intake",
+      "journeySignals": {
+        "legacyPartnersInfoId": "75",
+        "legacyUserId": "181",
+        "legacyApplicationStatus": 1,
+        "legacyApplicationStatusLabel": "Account opened",
+        "legacyDateSignedUp": "2024-06-11",
+        "legacyDocuments": [
+          {
+            "fileName": "Ward's Docs.pdf",
+            "uploadedAt": "2024-06-21 08:50:58"
+          }
+        ],
+        "legacyReports": [
+          {
+            "fileName": "Wards-Report.html",
+            "uploadedAt": "2024-06-20 10:47:02"
+          },
+          {
+            "fileName": "Wards-Credit-Report-.html",
+            "uploadedAt": "2025-07-06 15:00:11"
+          }
+        ],
+        "legacyAddress": {
+          "street": "2343 BATCHELDR ST 3F",
+          "apartment": "",
+          "city": "BROOKLYN",
+          "state": "NY",
+          "postalCode": "11229",
+          "dob": "1991-04-23"
+        },
+        "legacyDocCount": 1,
+        "legacyReportCount": 2,
+        "legacyLetterCount": 1
+      },
+      "notes": "Bill remaining rnLaiba\n\n---\n\nValidation letters created 09/25/24",
+      "tasks": [
+        {
+          "title": "Upload remaining identity documents",
+          "kind": "evidence",
+          "stage": "evidence",
+          "priority": "high",
+          "status": "pending",
+          "tags": [
+            "legacy-import"
+          ]
+        }
+      ],
+      "legacyDocuments": [
+        {
+          "fileName": "Ward's Docs.pdf",
+          "uploadedAt": "2024-06-21 08:50:58"
+        }
+      ],
+      "legacyReports": [
+        {
+          "fileName": "Wards-Report.html",
+          "uploadedAt": "2024-06-20 10:47:02"
+        },
+        {
+          "fileName": "Wards-Credit-Report-.html",
+          "uploadedAt": "2025-07-06 15:00:11"
+        }
+      ]
+    },
+    {
+      "externalId": "laravel:uid:183",
+      "fullName": "Stanley Henry",
+      "email": "Henry2015.sh@gmail.com",
+      "phone": "8626000502",
+      "primaryRoute": "personal_restore",
+      "lane": "funding_readiness",
+      "journeyStage": "intake",
+      "journeySignals": {
+        "legacyPartnersInfoId": "77",
+        "legacyUserId": "183",
+        "legacyApplicationStatus": 2,
+        "legacyApplicationStatusLabel": "Service agreement signed",
+        "legacyDateSignedUp": "2024-06-14",
+        "legacyDocuments": [
+          {
+            "fileName": "stanley's ID and SS.pdf",
+            "uploadedAt": "2024-06-26 12:32:40"
+          }
+        ],
+        "legacyReports": [
+          {
+            "fileName": "Stanley.html",
+            "uploadedAt": "2024-06-14 11:11:18"
+          },
+          {
+            "fileName": "Stanleys-Report-2-.html",
+            "uploadedAt": "2026-01-27 21:17:57"
+          }
+        ],
+        "legacyAddress": {
+          "street": "77 Old Beaver Run Road",
+          "apartment": "",
+          "city": "Lafayette",
+          "state": "NJ",
+          "postalCode": "07848",
+          "dob": "1972-03-09"
+        },
+        "legacyDocCount": 1,
+        "legacyReportCount": 2,
+        "legacyLetterCount": 0
+      },
+      "notes": "Stanley HenryrnFreeze donerninquiry letters were createdrnlate payment,collection letters editedrn07/16/24\n\n---\n\nStanley Henry rnfreeze done on 07/01/2024rninquiry letter createdrnlate payments letter createdrncollections letter created\n\n---\n\nBill remaining Laiba\n\n---\n\nValidation letters created 09/25/24rnLVNV Funding LLC,ONEMAIN,FIRST PREMIER BANK,FSB BLAZE validation letter mailed 09/29/24 only capital one remaining\n\n---\n\nAll Validation letters sent 9/30/24",
+      "tasks": [
+        {
+          "title": "Upload remaining identity documents",
+          "kind": "evidence",
+          "stage": "evidence",
+          "priority": "high",
+          "status": "pending",
+          "tags": [
+            "legacy-import"
+          ]
+        }
+      ],
+      "legacyDocuments": [
+        {
+          "fileName": "stanley's ID and SS.pdf",
+          "uploadedAt": "2024-06-26 12:32:40"
+        }
+      ],
+      "legacyReports": [
+        {
+          "fileName": "Stanley.html",
+          "uploadedAt": "2024-06-14 11:11:18"
+        },
+        {
+          "fileName": "Stanleys-Report-2-.html",
+          "uploadedAt": "2026-01-27 21:17:57"
+        }
+      ]
+    },
+    {
+      "externalId": "laravel:uid:186",
+      "fullName": "Yolie Benoit",
+      "email": "yoliejeanbenoit@gmail.com",
+      "phone": null,
+      "primaryRoute": "personal_restore",
+      "lane": "funding_readiness",
+      "journeyStage": "mailing",
+      "journeySignals": {
+        "legacyPartnersInfoId": "79",
+        "legacyUserId": "186",
+        "legacyApplicationStatus": 8,
+        "legacyApplicationStatusLabel": "Letters sent",
+        "legacyDateSignedUp": "2024-06-25",
+        "legacyDocuments": [
+          {
+            "fileName": "id and ssn.pdf",
+            "uploadedAt": "2024-09-23 13:01:16"
+          }
+        ],
+        "legacyReports": [
+          {
+            "fileName": "Yolies-credit-Report.html",
+            "uploadedAt": "2025-08-13 09:46:06"
+          },
+          {
+            "fileName": "Yolies-Report-(newest).html",
+            "uploadedAt": "2026-01-20 18:20:07"
+          }
+        ],
+        "legacyAddress": {
+          "street": "717 Eagle Rock Ave",
+          "apartment": "",
+          "city": "West Orange",
+          "state": "NJ",
+          "postalCode": "07052",
+          "dob": "2067-06-10"
+        },
+        "legacyDocCount": 1,
+        "legacyReportCount": 2,
+        "legacyLetterCount": 0
+      },
+      "notes": "I spoke with Yolie benoit, she working on getting her ID. she will let us know when she has done it. (Shelly).rnrnShe Has a Business and can qualify for Business Funding\n\n---\n\nid and ssn uploaded rnBill and html report remainingLaiba\n\n---\n\nBy Sept 15 Results for Yolie\n\n---\n\nChallenged 2 Portforlio Accounts, Both Validation and Disputes letter. Se will need to sign up with at least 1 credit Union",
+      "tasks": [
+        {
+          "title": "Review dispute letters from legacy system",
+          "kind": "letters",
+          "stage": "letters",
+          "priority": "medium",
+          "status": "pending",
+          "tags": [
+            "legacy-import"
+          ]
+        }
+      ],
+      "legacyDocuments": [
+        {
+          "fileName": "id and ssn.pdf",
+          "uploadedAt": "2024-09-23 13:01:16"
+        }
+      ],
+      "legacyReports": [
+        {
+          "fileName": "Yolies-credit-Report.html",
+          "uploadedAt": "2025-08-13 09:46:06"
+        },
+        {
+          "fileName": "Yolies-Report-(newest).html",
+          "uploadedAt": "2026-01-20 18:20:07"
+        }
+      ]
+    },
+    {
+      "externalId": "laravel:uid:187",
+      "fullName": "Randolph Hurley",
+      "email": "rhurley7171@yahoo.com",
+      "phone": "6466396486",
+      "primaryRoute": "personal_restore",
+      "lane": "funding_readiness",
+      "journeyStage": "intake",
+      "journeySignals": {
+        "legacyPartnersInfoId": "80",
+        "legacyUserId": "187",
+        "legacyApplicationStatus": 1,
+        "legacyApplicationStatusLabel": "Account opened",
+        "legacyDateSignedUp": "2024-06-26",
+        "legacyDocuments": [
+          {
+            "fileName": "Randy's  ID and SS.pdf",
+            "uploadedAt": "2024-06-26 15:04:57"
+          },
+          {
+            "fileName": "Randelle Caesar doc.Bill.jpeg",
+            "uploadedAt": "2024-08-11 16:52:38"
+          }
+        ],
+        "legacyReports": [],
+        "legacyAddress": {
+          "street": "807 NW 4th Ave Apt 1",
+          "apartment": "",
+          "city": "Fort Lauderdale",
+          "state": "FL",
+          "postalCode": "33311",
+          "dob": "1955-07-06"
+        },
+        "legacyDocCount": 2,
+        "legacyReportCount": 0,
+        "legacyLetterCount": 0
+      },
+      "notes": "Randolph Hurleyrnfreeze done,no report availablern07/16/24\n\n---\n\nRandolph Hurley rnfreeze done on 07/01/2024\n\n---\n\ndocument received and reviewed. ( Shelly)\n\n---\n\nBill and html report remaining Laiba\n\n---\n\nContract ended....Forbidden form doing business with Finely Cred for filing a false complaint-Sanz St Louis 11/26/24",
+      "tasks": [
+        {
+          "title": "Upload remaining identity documents",
+          "kind": "evidence",
+          "stage": "evidence",
+          "priority": "high",
+          "status": "pending",
+          "tags": [
+            "legacy-import"
+          ]
+        }
+      ],
+      "legacyDocuments": [
+        {
+          "fileName": "Randy's  ID and SS.pdf",
+          "uploadedAt": "2024-06-26 15:04:57"
+        },
+        {
+          "fileName": "Randelle Caesar doc.Bill.jpeg",
+          "uploadedAt": "2024-08-11 16:52:38"
+        }
+      ],
+      "legacyReports": []
+    }
+  ]
+}

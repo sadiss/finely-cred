@@ -1,0 +1,15 @@
+{
+  "tourId": "tour-admin-workflow",
+  "steps": [
+    {
+      "stepId": "s1",
+      "file": "step-01.png",
+      "path": "/admin/workflow"
+    },
+    {
+      "stepId": "s2",
+      "file": "step-02.png",
+      "path": "/admin/crm"
+    }
+  ]
+}

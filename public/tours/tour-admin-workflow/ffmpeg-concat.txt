@@ -1,0 +1,2 @@
+file 'E:/Finely-Cred/Tishobe/finely-cred-main/public/tours/tour-admin-workflow/seg-01.mp4'
+file 'E:/Finely-Cred/Tishobe/finely-cred-main/public/tours/tour-admin-workflow/seg-02.mp4'

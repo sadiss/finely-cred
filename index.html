@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/png" href="/brand/finely-cred-mark.png" />
+    <link rel="apple-touch-icon" href="/brand/finely-cred-mark.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Finely Cred — credit restore, dispute letters, business credit, debt OS, and partner portal." />
+    <meta name="theme-color" content="#0a100e" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="sitemap" type="application/xml" href="/sitemap.xml" />
+    <meta property="og:site_name" content="Finely Cred" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Finely Cred — Credit Restore, Disputes & Partner Portal" />
+    <meta property="og:description" content="Finely Cred — credit restore, dispute letters, business credit, debt OS, and partner portal." />
+    <meta property="og:image" content="https://finelycred.com/brand/finely-cred-logo-dark.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <title>Finely Cred — Credit Restore, Disputes & Partner Portal</title>
+    <meta name="application-name" content="Finely Cred" />
+    <style>
+      /* Critical boot styles — must work before JS/CSS bundles load */
+      html, body {
+        margin: 0;
+        min-height: 100%;
+        background: #060908;
+        color: #e2e8f0;
+      }
+      #app {
+        min-height: 100vh;
+      }
+      #fc-boot-loader {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 14px;
+        font-family: Inter, system-ui, sans-serif;
+        background: #060908;
+      }
+      #fc-boot-loader .fc-boot-logo {
+        display: block;
+        height: 40px;
+        width: auto;
+        max-width: 156px;
+        object-fit: contain;
+        image-rendering: auto;
+      }
+      #fc-boot-loader .fc-boot-spinner {
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        border: 2px solid rgba(251, 191, 36, 0.22);
+        border-top-color: #fbbf24;
+        animation: fc-boot-spin 0.75s linear infinite;
+      }
+      #fc-boot-loader .fc-boot-label {
+        font-size: 12px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        opacity: 0.55;
+        color: rgba(255, 255, 255, 0.72);
+      }
+      @keyframes fc-boot-spin {
+        to { transform: rotate(360deg); }
+      }
+      html.fc-app-ready #fc-boot-loader {
+        display: none !important;
+      }
+      #fc-boot-error {
+        display: none;
+        min-height: 100vh;
+        padding: 2rem;
+        font-family: Inter, system-ui, sans-serif;
+        max-width: 42rem;
+        margin: 0 auto;
+      }
+      html.fc-boot-failed #fc-boot-loader { display: none !important; }
+      html.fc-boot-failed #fc-boot-error { display: block; }
+    </style>
+    <script>
+      (function () {
+        try {
+          document.documentElement.setAttribute('data-fc-theme', 'dark');
+          document.documentElement.setAttribute('data-fc-theme-pref', localStorage.getItem('finely.siteTheme.v1') || 'system');
+          document.documentElement.style.colorScheme = 'dark';
+          // Clear stale service workers that cached blank shells (one-time boot fix).
+          if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(function (regs) {
+              for (var i = 0; i < regs.length; i++) regs[i].unregister();
+            });
+          }
+        } catch (e) {}
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="app">
+      <div id="fc-boot-loader">
+        <img class="fc-boot-logo" src="/brand/finely-cred-logo-dark.png" alt="Finely Cred" width="156" height="40" decoding="async" />
+        <div class="fc-boot-spinner" aria-hidden="true"></div>
+        <div class="fc-boot-label">Loading</div>
+      </div>
+      <div id="fc-boot-error">
+        <h1 style="font-size:1.25rem;margin:0 0 0.75rem">Finely Cred could not start</h1>
+        <p id="fc-boot-error-msg" style="opacity:0.8;line-height:1.5;margin:0 0 1rem"></p>
+        <p style="opacity:0.65;font-size:0.875rem;line-height:1.5;margin:0">
+          Try a hard refresh (Ctrl+Shift+R). Dev URL:
+          <strong>http://127.0.0.1:5173/</strong>
+        </p>
+      </div>
+    </div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

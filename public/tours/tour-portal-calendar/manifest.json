@@ -1,0 +1,20 @@
+{
+  "tourId": "tour-portal-calendar",
+  "steps": [
+    {
+      "stepId": "s1",
+      "file": "step-01.png",
+      "path": "/portal/calendar"
+    },
+    {
+      "stepId": "s2",
+      "file": "step-02.png",
+      "path": "/portal/calendar"
+    },
+    {
+      "stepId": "s3",
+      "file": "step-03.png",
+      "path": "/portal/calendar"
+    }
+  ]
+}

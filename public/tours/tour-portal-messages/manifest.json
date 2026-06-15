@@ -1,0 +1,20 @@
+{
+  "tourId": "tour-portal-messages",
+  "steps": [
+    {
+      "stepId": "s1",
+      "file": "step-01.png",
+      "path": "/portal/messages"
+    },
+    {
+      "stepId": "s2",
+      "file": "step-02.png",
+      "path": "/portal/messages?hub=ai"
+    },
+    {
+      "stepId": "s3",
+      "file": "step-03.png",
+      "path": "/portal/calendar"
+    }
+  ]
+}

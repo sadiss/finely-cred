@@ -1,0 +1,27 @@
+{
+  "tourId": "tour-portal-my-tasks",
+  "title": "Stay on top of follow-ups",
+  "steps": [
+    {
+      "step": 1,
+      "stepId": "s1",
+      "label": "My tasks",
+      "narrationPlain": "See what is due next on your file.",
+      "mp3File": "step-01.mp3"
+    },
+    {
+      "step": 2,
+      "stepId": "s2",
+      "label": "Clear overdue",
+      "narrationPlain": "Handle past-due follow-ups before new work.",
+      "mp3File": "step-02.mp3"
+    },
+    {
+      "step": 3,
+      "stepId": "s3",
+      "label": "Projects board",
+      "narrationPlain": "Open Kanban stages for your service bundle.",
+      "mp3File": "step-03.mp3"
+    }
+  ]
+}

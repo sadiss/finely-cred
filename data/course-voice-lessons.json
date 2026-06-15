@@ -1,0 +1,45 @@
+{
+  "description": "Stable course lesson IDs for Voice Studio prerender (Phase 4B). Maps to course template intro lessons.",
+  "lessons": [
+    {
+      "contentId": "course-dispute-rounds-mastery-intro",
+      "title": "Dispute Rounds Mastery — Lesson 1",
+      "description": "Round 1 dispute strategy, evidence discipline, and how to read bureau responses before escalating."
+    },
+    {
+      "contentId": "course-evidence-vault-discipline-intro",
+      "title": "Evidence Vault Discipline — Lesson 1",
+      "description": "Build exhibits, organize files, and stay audit-ready for every dispute round."
+    },
+    {
+      "contentId": "course-debt-validation-playbook-intro",
+      "title": "Debt Validation Playbook — Lesson 1",
+      "description": "Validation letters, FDCPA timelines, and how to escalate when collectors cannot verify."
+    },
+    {
+      "contentId": "course-business-credit-foundations-intro",
+      "title": "Business Credit Foundations — Lesson 1",
+      "description": "Entity hygiene, D-U-N-S alignment, and vendor sequencing from zero to fundable."
+    },
+    {
+      "contentId": "course-funding-readiness-sprint-intro",
+      "title": "Funding Readiness Sprint — Lesson 1",
+      "description": "Underwriting narrative, document stack, and relationship cadence before you apply."
+    },
+    {
+      "contentId": "course-credit-basics-no-fluff-intro",
+      "title": "Credit Basics (No Fluff) — Lesson 1",
+      "description": "Minimum knowledge to execute portal workflows without overwhelm or bad advice."
+    },
+    {
+      "contentId": "course-utilization-control-system-intro",
+      "title": "Utilization Control System — Lesson 1",
+      "description": "Reporting dates, statement balance buffers, and tracking utilization for underwriting optics."
+    },
+    {
+      "contentId": "course-tradelines-education-au-intro",
+      "title": "Tradelines Education (AU) — Lesson 1",
+      "description": "How authorized user tradelines work, what underwriters see, and how to evaluate fit."
+    }
+  ]
+}

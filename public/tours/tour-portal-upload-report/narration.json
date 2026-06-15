@@ -1,0 +1,27 @@
+{
+  "tourId": "tour-portal-upload-report",
+  "title": "How to upload your credit report",
+  "steps": [
+    {
+      "step": 1,
+      "stepId": "s1",
+      "label": "Reports page",
+      "narrationPlain": "Open Reports from your dashboard menu.",
+      "mp3File": "step-01.mp3"
+    },
+    {
+      "step": 2,
+      "stepId": "s2",
+      "label": "Upload file",
+      "narrationPlain": "Click Upload and choose your HTML or PDF export.",
+      "mp3File": "step-02.mp3"
+    },
+    {
+      "step": 3,
+      "stepId": "s3",
+      "label": "Review results",
+      "narrationPlain": "After upload, review scores and items on your report.",
+      "mp3File": "step-03.mp3"
+    }
+  ]
+}

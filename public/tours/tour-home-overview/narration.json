@@ -1,0 +1,27 @@
+{
+  "tourId": "tour-home-overview",
+  "title": "What is Finely Cred? (2 minutes)",
+  "steps": [
+    {
+      "step": 1,
+      "stepId": "s1",
+      "label": "Welcome",
+      "narrationPlain": "Finely Cred helps you fix credit and get funding-ready with a clear step-by-step system.",
+      "mp3File": "step-01.mp3"
+    },
+    {
+      "step": 2,
+      "stepId": "s2",
+      "label": "Start Here",
+      "narrationPlain": "Tap Start Here to pick your path — fix credit, refer people, or staff login.",
+      "mp3File": "step-02.mp3"
+    },
+    {
+      "step": 3,
+      "stepId": "s3",
+      "label": "Resources",
+      "narrationPlain": "Free guides and monitoring links live under Resources.",
+      "mp3File": "step-03.mp3"
+    }
+  ]
+}

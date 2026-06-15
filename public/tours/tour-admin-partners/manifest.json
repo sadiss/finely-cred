@@ -1,0 +1,20 @@
+{
+  "tourId": "tour-admin-partners",
+  "steps": [
+    {
+      "stepId": "s1",
+      "file": "step-01.png",
+      "path": "/admin/partners"
+    },
+    {
+      "stepId": "s2",
+      "file": "step-02.png",
+      "path": "/admin/partners"
+    },
+    {
+      "stepId": "s3",
+      "file": "step-03.png",
+      "path": "/admin/partners"
+    }
+  ]
+}

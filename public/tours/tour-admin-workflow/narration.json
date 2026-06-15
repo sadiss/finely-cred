@@ -1,0 +1,20 @@
+{
+  "tourId": "tour-admin-workflow",
+  "title": "How to triage today's work",
+  "steps": [
+    {
+      "step": 1,
+      "stepId": "s1",
+      "label": "Ops center",
+      "narrationPlain": "Start here each day for alerts and tasks.",
+      "mp3File": "step-01.mp3"
+    },
+    {
+      "step": 2,
+      "stepId": "s2",
+      "label": "CRM",
+      "narrationPlain": "Move hot leads from the CRM tab.",
+      "mp3File": "step-02.mp3"
+    }
+  ]
+}

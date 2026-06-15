@@ -1,0 +1,23 @@
+{
+  "name": "Finely Cred",
+  "short_name": "Finely Cred",
+  "description": "Credit restore, dispute letters, business credit, and partner portal.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#060908",
+  "theme_color": "#0a100e",
+  "icons": [
+    {
+      "src": "/brand/finely-cred-mark.png",
+      "sizes": "256x256",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/brand/finely-cred-logo-dark.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

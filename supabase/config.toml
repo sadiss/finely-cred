@@ -1,0 +1,81 @@
+# Supabase Edge Functions Configuration
+# verify_jwt = false allows ES256 JWT tokens (used by Supabase Auth)
+
+[functions.ai-gateway]
+verify_jwt = false
+
+[functions.image-generate]
+verify_jwt = false
+
+[functions.guide-audio]
+verify_jwt = false
+
+[functions.voice-studio]
+verify_jwt = false
+
+[functions.doc-intel]
+verify_jwt = false
+
+[functions.nora-capital]
+verify_jwt = false
+
+[functions.claim-profile]
+verify_jwt = false
+
+[functions.admin-events]
+verify_jwt = false
+
+# Webhooks (no JWT needed, but allow just in case)
+[functions.stripe-webhook]
+verify_jwt = false
+
+[functions.stripe-checkout]
+verify_jwt = false
+
+[functions.stripe-verify]
+verify_jwt = false
+
+[functions.nora-capital-webhook]
+verify_jwt = false
+
+[functions.denefits-webhook]
+verify_jwt = false
+
+[functions.lead-intel]
+verify_jwt = false
+
+[functions.mailer]
+verify_jwt = false
+
+[functions.send-email]
+verify_jwt = false
+
+[functions.send-sms]
+verify_jwt = false
+
+[functions.send-invite-email]
+verify_jwt = false
+
+[functions.send-invite-sms]
+verify_jwt = false
+
+[functions.report-error]
+verify_jwt = false
+
+[functions.nora-llc-api]
+verify_jwt = false
+
+[functions.finely-partner-api]
+verify_jwt = false
+
+[functions.admin-list-partners]
+verify_jwt = false
+
+[functions.meta-webhook]
+verify_jwt = false
+
+[functions.meta-oauth]
+verify_jwt = false
+
+[functions.twilio-webhook]
+verify_jwt = false

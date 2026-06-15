@@ -1,0 +1,20 @@
+{
+  "tourId": "tour-portal-billing",
+  "title": "How to pay your bill",
+  "steps": [
+    {
+      "step": 1,
+      "stepId": "s1",
+      "label": "Billing page",
+      "narrationPlain": "See your plan and payment status here.",
+      "mp3File": "step-01.mp3"
+    },
+    {
+      "step": 2,
+      "stepId": "s2",
+      "label": "Update card",
+      "narrationPlain": "Use the payment button to update your card.",
+      "mp3File": "step-02.mp3"
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "tourId": "tour-affiliate-toolkit",
+  "steps": [
+    {
+      "stepId": "s1",
+      "file": "step-01.png",
+      "path": "/affiliate/hub"
+    },
+    {
+      "stepId": "s2",
+      "file": "step-02.png",
+      "path": "/affiliate/hub"
+    }
+  ]
+}

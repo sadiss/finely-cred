@@ -1,0 +1,27 @@
+{
+  "tourId": "tour-portal-dispute-letter",
+  "title": "How to write a dispute letter",
+  "steps": [
+    {
+      "step": 1,
+      "stepId": "s1",
+      "label": "Disputes",
+      "narrationPlain": "See items that may need a dispute.",
+      "mp3File": "step-01.mp3"
+    },
+    {
+      "step": 2,
+      "stepId": "s2",
+      "label": "Letters",
+      "narrationPlain": "Open Letter Studio to draft your letter.",
+      "mp3File": "step-02.mp3"
+    },
+    {
+      "step": 3,
+      "stepId": "s3",
+      "label": "Evidence",
+      "narrationPlain": "Attach proof documents before you mail.",
+      "mp3File": "step-03.mp3"
+    }
+  ]
+}

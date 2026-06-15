@@ -1,0 +1,27 @@
+{
+  "tourId": "tour-business-vendors",
+  "title": "Build your business vendor stack",
+  "steps": [
+    {
+      "step": 1,
+      "stepId": "s1",
+      "label": "Business dashboard",
+      "narrationPlain": "See your EIN build progress and lanes.",
+      "mp3File": "step-01.mp3"
+    },
+    {
+      "step": 2,
+      "stepId": "s2",
+      "label": "Business profile",
+      "narrationPlain": "Complete entity and NAICS fields.",
+      "mp3File": "step-02.mp3"
+    },
+    {
+      "step": 3,
+      "stepId": "s3",
+      "label": "Vendor stack",
+      "narrationPlain": "Follow tier-1 vendor sequencing.",
+      "mp3File": "step-03.mp3"
+    }
+  ]
+}

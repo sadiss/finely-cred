@@ -1,0 +1,4 @@
+Contact: mailto:security@finelycred.com
+Preferred-Languages: en
+Canonical: https://finelycred.com/security.txt
+Policy: https://finelycred.com/privacy

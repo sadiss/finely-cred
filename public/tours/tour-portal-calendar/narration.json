@@ -1,0 +1,27 @@
+{
+  "tourId": "tour-portal-calendar",
+  "title": "Book a strategy call",
+  "steps": [
+    {
+      "step": 1,
+      "stepId": "s1",
+      "label": "Calendar",
+      "narrationPlain": "Open Calendar from your portal menu.",
+      "mp3File": "step-01.mp3"
+    },
+    {
+      "step": 2,
+      "stepId": "s2",
+      "label": "Pick a slot",
+      "narrationPlain": "Choose an open time on the booking panel.",
+      "mp3File": "step-02.mp3"
+    },
+    {
+      "step": 3,
+      "stepId": "s3",
+      "label": "My sessions",
+      "narrationPlain": "Join your video room when it is time.",
+      "mp3File": "step-03.mp3"
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "tourId": "tour-portal-billing",
+  "steps": [
+    {
+      "stepId": "s1",
+      "file": "step-01.png",
+      "path": "/portal/billing"
+    },
+    {
+      "stepId": "s2",
+      "file": "step-02.png",
+      "path": "/portal/billing"
+    }
+  ]
+}

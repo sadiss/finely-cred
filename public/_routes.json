@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "include": ["/*"],
+  "exclude": [
+    "/assets/*",
+    "/brand/*",
+    "/tours/*",
+    "/staff-portraits/*",
+    "/*.xml",
+    "/*.txt",
+    "/*.webmanifest",
+    "/*.js",
+    "/*.png",
+    "/*.jpg",
+    "/*.webp",
+    "/*.mp3",
+    "/*.mp4",
+    "/.well-known/*"
+  ]
+}

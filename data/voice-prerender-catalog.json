@@ -1,0 +1,258 @@
+{
+  "tenantId": "finely_cred",
+  "defaultProfile": "finely_female_warm",
+  "profiles": [
+    "finely_female_warm",
+    "finely_brand_primary",
+    "finely_male_calm",
+    "finely_documentary"
+  ],
+  "items": [
+    {
+      "contentType": "guide",
+      "contentId": "credit-dispute-letter-guide",
+      "title": "Free Credit Dispute Letter Guide",
+      "description": "Step-by-step FCRA dispute framework with example letters and bureau response handling."
+    },
+    {
+      "contentType": "guide",
+      "contentId": "primary-tradeline-insider",
+      "title": "Primary Tradeline Insider Field Manual",
+      "description": "How primaries post, age, and interact with underwriting — without the myths."
+    },
+    {
+      "contentType": "guide",
+      "contentId": "metro2-consistency-trap",
+      "title": "Metro2 Consistency Trap",
+      "description": "Field-level contradictions across bureaus that trigger reinvestigation."
+    },
+    {
+      "contentType": "guide",
+      "contentId": "bureau-response-decoder",
+      "title": "Bureau Response Decoder",
+      "description": "Translate bureau form letters into your next dispute branch."
+    },
+    {
+      "contentType": "guide",
+      "contentId": "collections-proof-pack",
+      "title": "Collections Proof Pack Checklist",
+      "description": "Documentation stack for collections disputes — what to upload and how to label it."
+    },
+    {
+      "contentType": "guide",
+      "contentId": "permissible-purpose-scriptbook",
+      "title": "Permissible Purpose Scriptbook",
+      "description": "Templates for disputing inquiries you do not recognize."
+    },
+    {
+      "contentType": "guide",
+      "contentId": "utilization-sniper-rules",
+      "title": "Utilization Control Rules",
+      "description": "Reporting dates, statement balance control, and underwriting optics."
+    },
+    {
+      "contentType": "guide",
+      "contentId": "business-sequence-ladder",
+      "title": "Business Sequence Ladder",
+      "description": "Entity hygiene, vendor stacking, and funding readiness sequencing."
+    },
+    {
+      "contentType": "guide",
+      "contentId": "ucc-article-3-primer",
+      "title": "UCC Article 3 Primer",
+      "description": "Plain-language overview of negotiable instruments — and what Article 3 does not do."
+    },
+    {
+      "contentType": "guide",
+      "contentId": "strawman-myths-reality",
+      "title": "Strawman Myth vs Reality",
+      "description": "Separate internet myths from real compliance so you do not self-sabotage your case."
+    },
+    {
+      "contentType": "guide",
+      "contentId": "business-credit-jumpstart",
+      "title": "Business Credit Jumpstart",
+      "description": "Entity hygiene, bureau alignment, and vendor stacking from zero to fundable."
+    },
+    {
+      "contentType": "guide",
+      "contentId": "loan-funding-sequence",
+      "title": "Loan Funding Sequence Playbook",
+      "description": "Stage personal and business funding with banking relationships and smart app timing."
+    },
+    {
+      "contentType": "guide",
+      "contentId": "ai-dispute-workflows",
+      "title": "AI Credit Workflows",
+      "description": "Use AI to organize disputes and draft cleaner letters without replacing human judgment."
+    },
+    {
+      "contentType": "guide",
+      "contentId": "combo-tradeline-ladder",
+      "title": "Combo Tradeline Ladder",
+      "description": "12 / 18 / 21 / 24-month combo logic and seasoning metrics underwriters measure."
+    },
+    {
+      "contentType": "guide",
+      "contentId": "ucc1-business-filing-primer",
+      "title": "UCC-1 Filing Primer",
+      "description": "What UCC-1 financing statements do for legitimate business credit."
+    },
+    {
+      "contentType": "guide",
+      "contentId": "smart-application-timing",
+      "title": "Smart Application Timing Matrix",
+      "description": "Calendar for cards, vendors, and loans — reporting dates and inquiry decay."
+    },
+    {
+      "contentType": "guide",
+      "contentId": "funding-ready-underwriting-optics",
+      "title": "Funding-Ready Underwriting Optics",
+      "description": "Signals manual underwriters scan in 90 seconds before approving funding."
+    },
+    {
+      "contentType": "guide",
+      "contentId": "inquiry-removal-advanced",
+      "title": "Advanced Inquiry Dispute Playbook",
+      "description": "Permissible purpose, CRA vs furnisher paths, and inquiry escalation."
+    },
+    {
+      "contentType": "guide",
+      "contentId": "collections-validation-deep-dive",
+      "title": "Collections Validation Deep Dive",
+      "description": "Chain of title, FDCPA validation windows, and Metro2 collection field traps."
+    },
+    {
+      "contentType": "guide",
+      "contentId": "metro2-k-segment-field-guide",
+      "title": "Metro2 K-Segment Field Guide",
+      "description": "Special comments, narrative codes, and K-segment traps in Metro2 reporting."
+    },
+    {
+      "contentType": "guide",
+      "contentId": "eoscar-acdv-decoder",
+      "title": "e-OSCAR ACDV Response Decoder",
+      "description": "ACDV codes, furnisher auto-confirm patterns, and Round 2 method-of-verification asks."
+    },
+    {
+      "contentType": "guide",
+      "contentId": "dofd-reaging-audit",
+      "title": "DOFD & Re-Aging Audit Worksheet",
+      "description": "Date of First Delinquency forensics, 7-year reporting math, and illegal date shifts."
+    },
+    {
+      "contentType": "guide",
+      "contentId": "fraud-alert-funding-timing",
+      "title": "Fraud Alerts & Funding Timing Matrix",
+      "description": "Extended fraud alerts, credit freezes, and thaw windows before funding applications."
+    },
+    {
+      "contentType": "guide",
+      "contentId": "student-loan-metro2-playbook",
+      "title": "Student Loan Metro2 Playbook (Free)",
+      "description": "Status codes, deferment remarks, and servicer transfer traps for student loan disputes."
+    },
+    {
+      "contentType": "guide",
+      "contentId": "bankruptcy-rebuild-sequencer",
+      "title": "Post-Bankruptcy Rebuild Sequencer",
+      "description": "Month-by-month roadmap after discharge — secured cards, inquiry budget, and dispute rules."
+    },
+    {
+      "contentType": "guide",
+      "contentId": "certified-mail-evidence-system",
+      "title": "Certified Mail & Evidence System",
+      "description": "Tracking numbers, return receipts, and exhibit labeling for dispute mail discipline."
+    },
+    {
+      "contentType": "guide",
+      "contentId": "round-2-method-verification",
+      "title": "Round 2 Method-of-Verification Playbook",
+      "description": "When Round 1 returns verified — MOFV asks, furnisher pivot, and CFPB packages."
+    },
+    {
+      "contentType": "guide",
+      "contentId": "vendor-tier-matrix-free",
+      "title": "Business Vendor Tier Matrix (Starter)",
+      "description": "Tier-1 net-30 vendor sequencing, application spacing, and Paydex-building discipline."
+    },
+    {
+      "contentType": "guide",
+      "contentId": "debt-settlement-tax-traps",
+      "title": "Debt Settlement & Tax Traps Primer",
+      "description": "1099-C income, settled-for-less remarks, and credit reporting after settlement."
+    },
+    {
+      "contentType": "guide",
+      "contentId": "mortgage-overlay-dispute-prep",
+      "title": "Mortgage Overlay Dispute Prep",
+      "description": "Finish disputes before rate shopping — overlay rules, re-pull timing, and tradeline updates."
+    },
+    {
+      "contentType": "guide",
+      "contentId": "identity-theft-block-unblock",
+      "title": "Identity Theft Block & Recovery",
+      "description": "FTC identity theft report, fraud alerts, blocks, and tradeline removal workflow."
+    },
+    {
+      "contentType": "ebook",
+      "contentId": "tradeline-funding-manual",
+      "title": "Tradeline & Funding Manual",
+      "description": "Primary tradelines, combo ladders, inquiry budgeting, and funding sequencing."
+    },
+    {
+      "contentType": "ebook",
+      "contentId": "ai-credit-operator",
+      "title": "AI Credit Operator",
+      "description": "AI for Metro2 mapping, bureau response parsing, and letter drafting with human review."
+    },
+    {
+      "contentType": "course_lesson",
+      "contentId": "course-dispute-rounds-mastery-intro",
+      "title": "Dispute Rounds Mastery — Lesson 1",
+      "description": "Round 1 dispute strategy, evidence discipline, and how to read bureau responses before escalating."
+    },
+    {
+      "contentType": "course_lesson",
+      "contentId": "course-evidence-vault-discipline-intro",
+      "title": "Evidence Vault Discipline — Lesson 1",
+      "description": "Build exhibits, organize files, and stay audit-ready for every dispute round."
+    },
+    {
+      "contentType": "course_lesson",
+      "contentId": "course-debt-validation-playbook-intro",
+      "title": "Debt Validation Playbook — Lesson 1",
+      "description": "Validation letters, FDCPA timelines, and how to escalate when collectors cannot verify."
+    },
+    {
+      "contentType": "course_lesson",
+      "contentId": "course-business-credit-foundations-intro",
+      "title": "Business Credit Foundations — Lesson 1",
+      "description": "Entity hygiene, D-U-N-S alignment, and vendor sequencing from zero to fundable."
+    },
+    {
+      "contentType": "course_lesson",
+      "contentId": "course-funding-readiness-sprint-intro",
+      "title": "Funding Readiness Sprint — Lesson 1",
+      "description": "Underwriting narrative, document stack, and relationship cadence before you apply."
+    },
+    {
+      "contentType": "course_lesson",
+      "contentId": "course-credit-basics-no-fluff-intro",
+      "title": "Credit Basics (No Fluff) — Lesson 1",
+      "description": "Minimum knowledge to execute portal workflows without overwhelm or bad advice."
+    },
+    {
+      "contentType": "course_lesson",
+      "contentId": "course-utilization-control-system-intro",
+      "title": "Utilization Control System — Lesson 1",
+      "description": "Reporting dates, statement balance buffers, and tracking utilization for underwriting optics."
+    },
+    {
+      "contentType": "course_lesson",
+      "contentId": "course-tradelines-education-au-intro",
+      "title": "Tradelines Education (AU) — Lesson 1",
+      "description": "How authorized user tradelines work, what underwriters see, and how to evaluate fit."
+    }
+  ]
+}

@@ -1,0 +1,3 @@
+file 'E:/Finely-Cred/Tishobe/finely-cred-main/public/tours/tour-portal-messages/seg-01.mp4'
+file 'E:/Finely-Cred/Tishobe/finely-cred-main/public/tours/tour-portal-messages/seg-02.mp4'
+file 'E:/Finely-Cred/Tishobe/finely-cred-main/public/tours/tour-portal-messages/seg-03.mp4'

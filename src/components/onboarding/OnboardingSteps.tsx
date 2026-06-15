@@ -1,0 +1,249 @@
+import React, { useMemo, useState } from 'react';
+import { ArrowLeft, Building2, CheckCircle2, Lock, Mail, Phone, User } from 'lucide-react';
+import { Button } from '../ui';
+
+type StepProps = {
+  next: () => void;
+  prev?: () => void;
+  data: any;
+  update: (data: any) => void;
+};
+
+function StepNavFooter({ prev, onNext, nextLabel = 'Continue', nextDisabled }: {
+  prev?: () => void;
+  onNext: () => void;
+  nextLabel?: string;
+  nextDisabled?: boolean;
+}) {
+  return (
+    <div className="flex flex-wrap items-center justify-between gap-4 pt-6">
+      {prev ? (
+        <button
+          type="button"
+          onClick={prev}
+          className="inline-flex items-center gap-2 px-5 py-3 fc-light-glass-panel fc-light-chrome-panel rounded-xl hover:bg-white/[0.09] text-[10px] font-black uppercase tracking-widest text-white/70 hover:text-white transition-all"
+        >
+          <ArrowLeft size={14} /> Previous
+        </button>
+      ) : (
+        <div />
+      )}
+      <Button onClick={onNext} disabled={nextDisabled} size="lg">
+        {nextLabel}
+      </Button>
+    </div>
+  );
+}
+
+export { AgentOperatingModelStep, AgentTierStep } from './AgentOperatingModelStep';
+
+export function ProfileAndAccountStep({
+  prev,
+  data,
+  update,
+  onSubmit,
+  isBusy = false,
+  error,
+  isConfigured = true,
+}: Omit<StepProps, 'next'> & {
+  onSubmit: () => void;
+  isBusy?: boolean;
+  error?: string | null;
+  isConfigured?: boolean;
+}) {
+  const role = data.role || 'client';
+  const showMailing = role === 'client';
+  const [useMailing, setUseMailing] = useState(
+    Boolean((data.address1 || '').trim() || (data.city || '').trim()),
+  );
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const passwordsMatch = !data.password || data.password === confirmPassword;
+  const passwordOk = (data.password || '').length >= 8;
+
+  const canSubmit =
+    Boolean((data.name || '').trim()) &&
+    Boolean((data.email || '').trim()) &&
+    Boolean((data.phone || '').trim()) &&
+    passwordOk &&
+    passwordsMatch &&
+    !isBusy;
+
+  return (
+    <div className="space-y-10 animate-in fade-in slide-in-from-bottom-8 duration-700 text-left">
+      <div className="space-y-3">
+        <p className="text-[10px] font-black tracking-[0.6em] text-fuchsia-400 uppercase">Profile & account</p>
+        <h2 className="text-4xl md:text-5xl font-light text-white leading-tight">
+          Your details in <span className="text-fuchsia-400">one place</span>
+        </h2>
+        <p className="text-white/45 text-lg font-light max-w-2xl">
+          Name, contact, login, and optional mailing address — saved to your profile and synced with your partner file.
+          Update anytime under Account settings after sign-in.
+        </p>
+      </div>
+
+      {!isConfigured && (
+        <div className="p-4 rounded-2xl bg-fuchsia-500/10 border border-fuchsia-500/30">
+          <p className="text-xs text-fuchsia-200/90 leading-relaxed">
+            Supabase is not configured — local demo mode will still create a test account in this browser.
+          </p>
+        </div>
+      )}
+
+      <div className="grid lg:grid-cols-2 gap-6 max-w-5xl">
+        <div className="fc-light-glass-panel fc-light-chrome-panel p-6 space-y-4">
+          <div className="flex items-center gap-2 text-white/50 text-[10px] font-black uppercase tracking-widest">
+            <User size={14} className="text-fuchsia-300" /> Personal
+          </div>
+          <label className="block space-y-2">
+            <span className="text-[10px] uppercase tracking-widest text-white/40">Full legal name</span>
+            <input
+              value={data.name || ''}
+              onChange={(e) => update({ name: e.target.value })}
+              placeholder="Jane Doe"
+              className="w-full bg-fc-input border border-white/[0.08] rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-violet-500"
+            />
+          </label>
+          <label className="block space-y-2">
+            <span className="text-[10px] uppercase tracking-widest text-white/40">Phone</span>
+            <div className="relative">
+              <Phone size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30" />
+              <input
+                value={data.phone || ''}
+                onChange={(e) => update({ phone: e.target.value })}
+                placeholder="(555) 555-5555"
+                className="w-full bg-fc-input border border-white/[0.08] rounded-xl pl-10 pr-4 py-3 text-white text-sm focus:outline-none focus:border-violet-500"
+                inputMode="tel"
+              />
+            </div>
+          </label>
+        </div>
+
+        <div className="fc-light-glass-panel fc-light-chrome-panel p-6 space-y-4">
+          <div className="flex items-center gap-2 text-white/50 text-[10px] font-black uppercase tracking-widest">
+            <Lock size={14} className="text-fuchsia-300" /> Login
+          </div>
+          <label className="block space-y-2">
+            <span className="text-[10px] uppercase tracking-widest text-white/40">Email</span>
+            <div className="relative">
+              <Mail size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30" />
+              <input
+                type="email"
+                value={data.email || ''}
+                onChange={(e) => update({ email: e.target.value.trim() })}
+                placeholder="you@email.com"
+                className="w-full bg-fc-input border border-white/[0.08] rounded-xl pl-10 pr-4 py-3 text-white text-sm focus:outline-none focus:border-violet-500"
+                autoComplete="email"
+              />
+            </div>
+          </label>
+          <label className="block space-y-2">
+            <span className="text-[10px] uppercase tracking-widest text-white/40">Password</span>
+            <input
+              type="password"
+              value={data.password || ''}
+              onChange={(e) => update({ password: e.target.value })}
+              placeholder="At least 8 characters"
+              className="w-full bg-fc-input border border-white/[0.08] rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-violet-500"
+              autoComplete="new-password"
+            />
+          </label>
+          <label className="block space-y-2">
+            <span className="text-[10px] uppercase tracking-widest text-white/40">Confirm password</span>
+            <input
+              type="password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              placeholder="Repeat password"
+              className="w-full bg-fc-input border border-white/[0.08] rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-violet-500"
+              autoComplete="new-password"
+            />
+            {confirmPassword && !passwordsMatch ? (
+              <div className="text-red-300 text-xs">Passwords do not match.</div>
+            ) : null}
+            {data.password && !passwordOk ? (
+              <div className="text-fuchsia-200/80 text-xs">Use at least 8 characters.</div>
+            ) : null}
+          </label>
+        </div>
+      </div>
+
+      {role === 'client' ? (
+        <div className="rounded-2xl border border-sky-500/20 bg-sky-500/5 p-6 space-y-4 max-w-5xl">
+          <div className="text-[10px] font-black uppercase tracking-widest text-sky-300">Funding goal (optional)</div>
+          <p className="text-white/45 text-sm">Sets your capital target on the dashboard — tied to readiness progress, not a guarantee.</p>
+          <div className="flex flex-wrap items-center gap-3 max-w-md">
+            <span className="text-white/50">$</span>
+            <input
+              value={data.fundingTarget || ''}
+              onChange={(e) => update({ fundingTarget: e.target.value.replace(/[^\d]/g, '') })}
+              placeholder="50000"
+              className="flex-1 min-w-[120px] bg-fc-input border border-white/[0.08] rounded-xl px-4 py-3 text-white text-sm font-mono focus:outline-none focus:border-sky-500"
+              inputMode="numeric"
+            />
+          </div>
+        </div>
+      ) : null}
+
+      {showMailing ? (
+        <div className="fc-light-glass-panel fc-light-chrome-panel p-6 space-y-4 max-w-5xl">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-2 text-white/50 text-[10px] font-black uppercase tracking-widest">
+              <Building2 size={14} className="text-fuchsia-300" /> Mailing address (for letters)
+            </div>
+            <label className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-white/60">
+              <input type="checkbox" checked={useMailing} onChange={(e) => setUseMailing(e.target.checked)} />
+              Add now
+            </label>
+          </div>
+          {useMailing ? (
+            <div className="grid md:grid-cols-2 gap-4">
+              <input
+                value={data.address1 || ''}
+                onChange={(e) => update({ address1: e.target.value })}
+                placeholder="Address line 1"
+                className="md:col-span-2 w-full bg-fc-input border border-white/[0.08] rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-violet-500"
+              />
+              <input
+                value={data.address2 || ''}
+                onChange={(e) => update({ address2: e.target.value })}
+                placeholder="Apt / Unit (optional)"
+                className="md:col-span-2 w-full bg-fc-input border border-white/[0.08] rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-violet-500"
+              />
+              <input
+                value={data.city || ''}
+                onChange={(e) => update({ city: e.target.value })}
+                placeholder="City"
+                className="w-full bg-fc-input border border-white/[0.08] rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-violet-500"
+              />
+              <input
+                value={data.state || ''}
+                onChange={(e) => update({ state: e.target.value.toUpperCase().slice(0, 2) })}
+                placeholder="State"
+                className="w-full bg-fc-input border border-white/[0.08] rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-violet-500 font-mono"
+              />
+              <input
+                value={data.postalCode || ''}
+                onChange={(e) => update({ postalCode: e.target.value.replace(/[^\d\-]/g, '').slice(0, 10) })}
+                placeholder="ZIP"
+                className="w-full bg-fc-input border border-white/[0.08] rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-violet-500 font-mono"
+              />
+            </div>
+          ) : (
+            <p className="text-white/45 text-sm">Optional — you can add this later in Account settings or when generating letters.</p>
+          )}
+        </div>
+      ) : null}
+
+      {error ? (
+        <div className="p-4 rounded-2xl bg-red-500/10 border border-red-500/30 text-sm text-red-200">{error}</div>
+      ) : null}
+
+      <StepNavFooter
+        prev={prev}
+        onNext={onSubmit}
+        nextLabel={isBusy ? 'Creating account…' : 'Create account & continue'}
+        nextDisabled={!canSubmit}
+      />
+    </div>
+  );
+}

@@ -1,0 +1,1 @@
+Complete entity and NAICS fields.

@@ -1,0 +1,27 @@
+{
+  "tourId": "tour-onboarding-start",
+  "title": "How to create your account",
+  "steps": [
+    {
+      "step": 1,
+      "stepId": "s1",
+      "label": "Onboarding",
+      "narrationPlain": "Follow each step to create your account.",
+      "mp3File": "step-01.mp3"
+    },
+    {
+      "step": 2,
+      "stepId": "s2",
+      "label": "Monitoring",
+      "narrationPlain": "Pick a monitoring partner for HTML exports — optional but recommended.",
+      "mp3File": "step-02.mp3"
+    },
+    {
+      "step": 3,
+      "stepId": "s3",
+      "label": "Dashboard",
+      "narrationPlain": "When done, you land in your dashboard with next steps.",
+      "mp3File": "step-03.mp3"
+    }
+  ]
+}

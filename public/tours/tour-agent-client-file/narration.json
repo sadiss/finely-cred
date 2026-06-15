@@ -1,0 +1,27 @@
+{
+  "tourId": "tour-agent-client-file",
+  "title": "Work a client file as specialist",
+  "steps": [
+    {
+      "step": 1,
+      "stepId": "s1",
+      "label": "Specialist Hub",
+      "narrationPlain": "Review economics and your capacity.",
+      "mp3File": "step-01.mp3"
+    },
+    {
+      "step": 2,
+      "stepId": "s2",
+      "label": "Client dashboard",
+      "narrationPlain": "Open the partner dashboard for your assigned client.",
+      "mp3File": "step-02.mp3"
+    },
+    {
+      "step": 3,
+      "stepId": "s3",
+      "label": "Letter Studio",
+      "narrationPlain": "Execute the letter and evidence workflow.",
+      "mp3File": "step-03.mp3"
+    }
+  ]
+}

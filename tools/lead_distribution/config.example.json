@@ -1,0 +1,12 @@
+{
+  "origin": "https://finelycred.com",
+  "webhook_endpoint": "",
+  "daily_cap_per_channel": 5,
+  "require_dry_run_first": true,
+  "default_referral_code": "finely-growth",
+  "assets": [
+    { "label": "Free guide", "path": "/free-guide", "utm_campaign": "lead_magnet_guide" },
+    { "label": "Consultation", "path": "/consultation", "utm_campaign": "consultation_book" },
+    { "label": "Pricing", "path": "/services/personal-credit-restore", "utm_campaign": "pricing_personal" }
+  ]
+}

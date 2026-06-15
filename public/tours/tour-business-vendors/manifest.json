@@ -1,0 +1,20 @@
+{
+  "tourId": "tour-business-vendors",
+  "steps": [
+    {
+      "stepId": "s1",
+      "file": "step-01.png",
+      "path": "/business/dashboard"
+    },
+    {
+      "stepId": "s2",
+      "file": "step-02.png",
+      "path": "/business/profile"
+    },
+    {
+      "stepId": "s3",
+      "file": "step-03.png",
+      "path": "/business/vendors"
+    }
+  ]
+}

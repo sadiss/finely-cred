@@ -1,0 +1,27 @@
+{
+  "tourId": "tour-portal-messages",
+  "title": "Use the Communication Hub",
+  "steps": [
+    {
+      "step": 1,
+      "stepId": "s1",
+      "label": "Communication Hub",
+      "narrationPlain": "AI coach and team threads are here.",
+      "mp3File": "step-01.mp3"
+    },
+    {
+      "step": 2,
+      "stepId": "s2",
+      "label": "Ask Finely",
+      "narrationPlain": "Open the AI tab for step-by-step help.",
+      "mp3File": "step-02.mp3"
+    },
+    {
+      "step": 3,
+      "stepId": "s3",
+      "label": "Book live help",
+      "narrationPlain": "Jump to Calendar if you need a call.",
+      "mp3File": "step-03.mp3"
+    }
+  ]
+}

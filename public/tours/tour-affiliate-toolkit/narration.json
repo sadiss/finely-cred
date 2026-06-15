@@ -1,0 +1,20 @@
+{
+  "tourId": "tour-affiliate-toolkit",
+  "title": "How to share your referral link",
+  "steps": [
+    {
+      "step": 1,
+      "stepId": "s1",
+      "label": "Affiliate Hub",
+      "narrationPlain": "Your links and tools are on this page.",
+      "mp3File": "step-01.mp3"
+    },
+    {
+      "step": 2,
+      "stepId": "s2",
+      "label": "Copy link",
+      "narrationPlain": "Copy a tracked link and share it with your audience.",
+      "mp3File": "step-02.mp3"
+    }
+  ]
+}

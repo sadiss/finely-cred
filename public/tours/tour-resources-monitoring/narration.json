@@ -1,0 +1,27 @@
+{
+  "tourId": "tour-resources-monitoring",
+  "title": "How to pick a monitoring service",
+  "steps": [
+    {
+      "step": 1,
+      "stepId": "s1",
+      "label": "Open Resources",
+      "narrationPlain": "This page has guides, monitoring links, and videos.",
+      "mp3File": "step-01.mp3"
+    },
+    {
+      "step": 2,
+      "stepId": "s2",
+      "label": "Monitoring section",
+      "narrationPlain": "Scroll to Credit monitoring tools. You will see four options.",
+      "mp3File": "step-02.mp3"
+    },
+    {
+      "step": 3,
+      "stepId": "s3",
+      "label": "HTML-friendly",
+      "narrationPlain": "MyScoreIQ, IdentityIQ, and SmartCredit work best for HTML upload in the portal.",
+      "mp3File": "step-03.mp3"
+    }
+  ]
+}

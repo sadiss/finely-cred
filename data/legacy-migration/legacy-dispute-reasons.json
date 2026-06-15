@@ -1,0 +1,3912 @@
+{
+  "exportedAt": "2026-06-11T18:41:04.968Z",
+  "sourceFile": "finelyno_finelycred.sql",
+  "categories": [
+    {
+      "id": 16,
+      "name": "COLLECTIONS – 3RD PARTY",
+      "parentId": 0,
+      "deleted": false
+    },
+    {
+      "id": 17,
+      "name": "unknown collection",
+      "parentId": 16,
+      "deleted": false
+    },
+    {
+      "id": 18,
+      "name": "not mine",
+      "parentId": 16,
+      "deleted": false
+    },
+    {
+      "id": 19,
+      "name": "belongs to someone else",
+      "parentId": 16,
+      "deleted": false
+    },
+    {
+      "id": 20,
+      "name": "section 609 states that you're required to send me the paperwork associated with this account. Furnish or remove",
+      "parentId": 16,
+      "deleted": false
+    },
+    {
+      "id": 21,
+      "name": "you didn't send anything to prove ownership",
+      "parentId": 16,
+      "deleted": false
+    },
+    {
+      "id": 22,
+      "name": "I need to see all paperwork associated with this account",
+      "parentId": 16,
+      "deleted": false
+    },
+    {
+      "id": 23,
+      "name": "how can you say that you verified this account when I haven't even heard back from the collection agency?",
+      "parentId": 16,
+      "deleted": false
+    },
+    {
+      "id": 24,
+      "name": "simply stating that this is a verified account doesn't change the fact that I don't know what it is or why it is on my credit report! I need to see everything you've \"verified\" this account with",
+      "parentId": 16,
+      "deleted": false
+    },
+    {
+      "id": 25,
+      "name": "section 623 states that if an account can possibly be inaccurate, there must be an address conspicuously listed and if not, this account cannot report",
+      "parentId": 16,
+      "deleted": false
+    },
+    {
+      "id": 26,
+      "name": "section 623 states that the creditor cannot continue to report it when disputed, unless they have proof to the contrary A11",
+      "parentId": 16,
+      "deleted": false
+    },
+    {
+      "id": 27,
+      "name": "I need to see the docs that the creditor sent to you that were used during the investigation to make the determination that this account is accurate. No proof? Then you cannot report",
+      "parentId": 16,
+      "deleted": false
+    },
+    {
+      "id": 28,
+      "name": "delete this unverified and inaccurate account",
+      "parentId": 16,
+      "deleted": false
+    },
+    {
+      "id": 29,
+      "name": "this account was never legally investigated or verified. You're reporting false info",
+      "parentId": 16,
+      "deleted": false
+    },
+    {
+      "id": 30,
+      "name": "how can there be late payments on this collection?",
+      "parentId": 16,
+      "deleted": false
+    },
+    {
+      "id": 31,
+      "name": "how can there be a past due on this collection?",
+      "parentId": 16,
+      "deleted": false
+    },
+    {
+      "id": 32,
+      "name": "Collection agency didn’t send me anything to verify this account, so how did you verify it? Where’s the documentation?",
+      "parentId": 16,
+      "deleted": false
+    },
+    {
+      "id": 33,
+      "name": "Unless you can furnish the signed documents that legally verify this account, it needs to be removed immediately",
+      "parentId": 16,
+      "deleted": false
+    },
+    {
+      "id": 34,
+      "name": "Why is the high balance lower than the balance on this collection? It’s impossible and needs to be removed!",
+      "parentId": 16,
+      "deleted": false
+    },
+    {
+      "id": 35,
+      "name": "You have the wrong open date",
+      "parentId": 16,
+      "deleted": false
+    },
+    {
+      "id": 36,
+      "name": "The open date is different on all 3 bureaus – this needs to be removed",
+      "parentId": 16,
+      "deleted": false
+    },
+    {
+      "id": 37,
+      "name": "I don’t understand how you can say that this collection was verified, when I haven’t seen any documentation whatsoever. This is a violation of my rights under section 609!",
+      "parentId": 16,
+      "deleted": false
+    },
+    {
+      "id": 38,
+      "name": "How is this collection verified, when I notified you that you’re reporting late payments and a past due on it?",
+      "parentId": 16,
+      "deleted": false
+    },
+    {
+      "id": 39,
+      "name": "Why do I have to notify you that it’s a violation of the FDCPA to report a collection with a past due and/or late payments?",
+      "parentId": 16,
+      "deleted": false
+    },
+    {
+      "id": 40,
+      "name": "LATE PAYMENTS",
+      "parentId": 0,
+      "deleted": false
+    },
+    {
+      "id": 41,
+      "name": "I was never late on this account",
+      "parentId": 40,
+      "deleted": false
+    },
+    {
+      "id": 42,
+      "name": "paid, never late",
+      "parentId": 40,
+      "deleted": false
+    },
+    {
+      "id": 43,
+      "name": "I paid on time but you're listing me as late - you need to update to paid as agreed",
+      "parentId": 40,
+      "deleted": false
+    },
+    {
+      "id": 44,
+      "name": "please send me the docs that prove that I was ever late",
+      "parentId": 40,
+      "deleted": false
+    },
+    {
+      "id": 45,
+      "name": "If you can't prove that you had proof, you need to remove this late payment",
+      "parentId": 40,
+      "deleted": false
+    },
+    {
+      "id": 46,
+      "name": "the first late payment listed on this account is wrong and you need to remove this account",
+      "parentId": 40,
+      "deleted": false
+    },
+    {
+      "id": 47,
+      "name": "remove due to inaccuracy - I never paid late",
+      "parentId": 40,
+      "deleted": false
+    },
+    {
+      "id": 48,
+      "name": "Why do you report that I am 90 days late when there are no late payments prior to that? Delete this immediately",
+      "parentId": 40,
+      "deleted": false
+    },
+    {
+      "id": 49,
+      "name": "I need to see all bank transactions and statements that belong to this company that would prove my payments were not accepted on time or you need to remove these unverified late payments immediately",
+      "parentId": 40,
+      "deleted": false
+    },
+    {
+      "id": 50,
+      "name": "I wrote the creditor and they said that I was never late, so how can it be that you're reporting me as late? That makes no sense at all",
+      "parentId": 40,
+      "deleted": false
+    },
+    {
+      "id": 51,
+      "name": "date of last payment is wrong",
+      "parentId": 40,
+      "deleted": false
+    },
+    {
+      "id": 52,
+      "name": "I can’t figure out how you verified this late payment, when the only legal form of verification is the actual bank statement belonging to this company – remove lates immediately",
+      "parentId": 40,
+      "deleted": false
+    },
+    {
+      "id": 53,
+      "name": "Please send me the proof that you ever did an investigation on this late payment",
+      "parentId": 40,
+      "deleted": false
+    },
+    {
+      "id": 54,
+      "name": "Each bureau has different info in the historical payment data – this is inaccurate and all lates need to be removed",
+      "parentId": 40,
+      "deleted": false
+    },
+    {
+      "id": 55,
+      "name": "You said that you verified this late payment but I sent you proof that I paid on time and I’m still seeing it on my credit report!",
+      "parentId": 40,
+      "deleted": false
+    },
+    {
+      "id": 56,
+      "name": "Please remove this late payment because it’s inaccurate and pulling down my credit score!",
+      "parentId": 40,
+      "deleted": false
+    },
+    {
+      "id": 57,
+      "name": "this student loan account needs to be removed immediately because the first late payment isn’t correct. This account is inaccurate!",
+      "parentId": 40,
+      "deleted": false
+    },
+    {
+      "id": 58,
+      "name": "This account was transferred and I was never late with this new company, so you need to remove it from my credit report for reporting lates on an account I was never late on!",
+      "parentId": 40,
+      "deleted": false
+    },
+    {
+      "id": 59,
+      "name": "Late payments on this collection are inaccurate and if you cannot furnish bank records that prove when my payments were accepted, the account needs to be removed",
+      "parentId": 40,
+      "deleted": false
+    },
+    {
+      "id": 60,
+      "name": "INQUIRIES",
+      "parentId": 0,
+      "deleted": false
+    },
+    {
+      "id": 61,
+      "name": "unknown inquiry",
+      "parentId": 60,
+      "deleted": false
+    },
+    {
+      "id": 62,
+      "name": "illegal inquiry",
+      "parentId": 60,
+      "deleted": false
+    },
+    {
+      "id": 63,
+      "name": "unverified inquiry",
+      "parentId": 60,
+      "deleted": false
+    },
+    {
+      "id": 64,
+      "name": "inquiry has not been verified",
+      "parentId": 60,
+      "deleted": false
+    },
+    {
+      "id": 65,
+      "name": "inquiry has not been validated",
+      "parentId": 60,
+      "deleted": false
+    },
+    {
+      "id": 66,
+      "name": "section 609 states that you need to provide the application that was filled out when this account was opened",
+      "parentId": 60,
+      "deleted": false
+    },
+    {
+      "id": 67,
+      "name": "you need to remove this inquiry under section 604",
+      "parentId": 60,
+      "deleted": false
+    },
+    {
+      "id": 68,
+      "name": "if the creditor couldn't send me anything, then what are you using to verify this inquiry?",
+      "parentId": 60,
+      "deleted": false
+    },
+    {
+      "id": 69,
+      "name": "creditor didn't respond",
+      "parentId": 60,
+      "deleted": false
+    },
+    {
+      "id": 70,
+      "name": "neither credit bureau responded, so how was this verified as accurate?",
+      "parentId": 60,
+      "deleted": false
+    },
+    {
+      "id": 71,
+      "name": "where's the copies of the docs that were filled out when I supposedly applied for an account?",
+      "parentId": 60,
+      "deleted": false
+    },
+    {
+      "id": 72,
+      "name": "I'm a victim of identity theft and I didn't apply for anything with this bank",
+      "parentId": 60,
+      "deleted": false
+    },
+    {
+      "id": 73,
+      "name": "I notified you that I'm a victim of identity theft and section 623 states that you're not allowed to continue reporting this without proving otherwise and yet, this inquiry is still on my credit",
+      "parentId": 60,
+      "deleted": false
+    },
+    {
+      "id": 74,
+      "name": "the only permissible purposes of an inquiry are employment, insurance, court order and firm offer of credit, neither of which apply - remove immediately",
+      "parentId": 60,
+      "deleted": false
+    },
+    {
+      "id": 75,
+      "name": "not mine",
+      "parentId": 60,
+      "deleted": false
+    },
+    {
+      "id": 76,
+      "name": "I do not recall this inquiry",
+      "parentId": 60,
+      "deleted": false
+    },
+    {
+      "id": 77,
+      "name": "I did not make this inquiry",
+      "parentId": 60,
+      "deleted": false
+    },
+    {
+      "id": 78,
+      "name": "this inquiry is unknown and should be removed",
+      "parentId": 60,
+      "deleted": false
+    },
+    {
+      "id": 79,
+      "name": "permissible purpose literally means that there must be a reason that they pulled my credit and",
+      "parentId": 60,
+      "deleted": false
+    },
+    {
+      "id": 80,
+      "name": "that it must conform to the FCRA – this doesn’t and needs to be removed",
+      "parentId": 60,
+      "deleted": false
+    },
+    {
+      "id": 81,
+      "name": "I still haven’t seen a signed application, are you telling me that it’s legal for them to report this without it? Delete immediately",
+      "parentId": 60,
+      "deleted": false
+    },
+    {
+      "id": 82,
+      "name": "I notified you that this inquiry doesn’t belong on my credit report and you didn’t do anything at all to verify. Delete immediately",
+      "parentId": 60,
+      "deleted": false
+    },
+    {
+      "id": 83,
+      "name": "There’s literally no proof that this inquiry was initiated by me. Please remove immediately",
+      "parentId": 60,
+      "deleted": false
+    },
+    {
+      "id": 84,
+      "name": "I know for a fact that you don’t have the application that was filled out, or even an IP trace, so HOW was this inquiry verified? Where’s the proof? This is a violation; delete immediately",
+      "parentId": 60,
+      "deleted": false
+    },
+    {
+      "id": 85,
+      "name": "You’ve continued to violation my rights by stating this has been verified. I contacted the creditor and was notified that you NEVER verified anything with them!",
+      "parentId": 60,
+      "deleted": false
+    },
+    {
+      "id": 86,
+      "name": "Remove this inquiry immediately because there’s no paperwork that verifies I ever obtained credit or a firm offer of credit from this company. There’s no permissible purpose!",
+      "parentId": 60,
+      "deleted": false
+    },
+    {
+      "id": 87,
+      "name": "JUDUGEMENTS/LIENS",
+      "parentId": 0,
+      "deleted": false
+    },
+    {
+      "id": 88,
+      "name": "unknown",
+      "parentId": 87,
+      "deleted": false
+    },
+    {
+      "id": 90,
+      "name": "not mine",
+      "parentId": 87,
+      "deleted": false
+    },
+    {
+      "id": 91,
+      "name": "I didn't file this",
+      "parentId": 87,
+      "deleted": false
+    },
+    {
+      "id": 92,
+      "name": "belongs to someone else",
+      "parentId": 87,
+      "deleted": false
+    },
+    {
+      "id": 93,
+      "name": "wrong filing date",
+      "parentId": 87,
+      "deleted": false
+    },
+    {
+      "id": 94,
+      "name": "3 different filing dates",
+      "parentId": 87,
+      "deleted": false
+    },
+    {
+      "id": 95,
+      "name": "2 different filing dates",
+      "parentId": 87,
+      "deleted": false
+    },
+    {
+      "id": 96,
+      "name": "wrong court name",
+      "parentId": 87,
+      "deleted": false
+    },
+    {
+      "id": 97,
+      "name": "inaccurate court name",
+      "parentId": 87,
+      "deleted": false
+    },
+    {
+      "id": 98,
+      "name": "recent changes to the law mandate that my personal info report per each public record. Due to the fact that there's no personal info reported, you must immediately remove from my credit report!",
+      "parentId": 87,
+      "deleted": false
+    },
+    {
+      "id": 99,
+      "name": "wrong plaintiff",
+      "parentId": 87,
+      "deleted": false
+    },
+    {
+      "id": 100,
+      "name": "you have the plaintiff reported wrong and this needs to be removed",
+      "parentId": 87,
+      "deleted": false
+    },
+    {
+      "id": 101,
+      "name": "how did you verify this as accurate when each bureau reports something different?",
+      "parentId": 87,
+      "deleted": false
+    },
+    {
+      "id": 102,
+      "name": "where's the paperwork that belongs to this, that would verify the accuracy? Remove immediately",
+      "parentId": 87,
+      "deleted": false
+    },
+    {
+      "id": 103,
+      "name": "I need to see all paperwork associated with this account. Failure to furnish is a violation of the FCRA",
+      "parentId": 87,
+      "deleted": false
+    },
+    {
+      "id": 104,
+      "name": "the other credit bureau removed this, so why are you still reporting it?",
+      "parentId": 87,
+      "deleted": false
+    },
+    {
+      "id": 105,
+      "name": "the other bureaus removed this account, so why are you still reporting it on my credit file? Where's the paperwork?",
+      "parentId": 87,
+      "deleted": false
+    },
+    {
+      "id": 106,
+      "name": "I didn't agree or provide my permission for this account to report on my credit. Pursuant to section 603, this must be removed",
+      "parentId": 87,
+      "deleted": false
+    },
+    {
+      "id": 107,
+      "name": "I am a victim of identity theft and this is not mine",
+      "parentId": 87,
+      "deleted": false
+    },
+    {
+      "id": 108,
+      "name": "Where’s my personal info that’s required to be on this account? I don’t see my name, social or anything else! Delete this immediately",
+      "parentId": 87,
+      "deleted": false
+    },
+    {
+      "id": 109,
+      "name": "I need for you to send me the actual court paperwork for this and if you can’t furnish it, then you’re reporting false info and that’s illegal",
+      "parentId": 87,
+      "deleted": false
+    },
+    {
+      "id": 110,
+      "name": "IDENTITY THEFT",
+      "parentId": 0,
+      "deleted": false
+    },
+    {
+      "id": 112,
+      "name": "not mine",
+      "parentId": 110,
+      "deleted": false
+    },
+    {
+      "id": 113,
+      "name": "does not belong to me",
+      "parentId": 110,
+      "deleted": false
+    },
+    {
+      "id": 114,
+      "name": "belongs to someone else",
+      "parentId": 110,
+      "deleted": false
+    },
+    {
+      "id": 115,
+      "name": "section 605B states that if this account is the result of identity theft, then it must be removed from my credit report. Please remove",
+      "parentId": 110,
+      "deleted": false
+    },
+    {
+      "id": 116,
+      "name": "I've disputed this account with an affidavit, letter and police report and yet, you're still reporting it. I need for you to remove this account immediately unless you have proof to the contrary",
+      "parentId": 110,
+      "deleted": false
+    },
+    {
+      "id": 117,
+      "name": "I disputed this account with the creditor and they notified me that they have nothing under my information so I don't get how you're verifying this account - remove it immediately",
+      "parentId": 110,
+      "deleted": false
+    },
+    {
+      "id": 118,
+      "name": "I need to see all paperwork and contracts with my signature that would verify ownership. If you do not have this paperwork, you need to remove the account immediately",
+      "parentId": 110,
+      "deleted": false
+    },
+    {
+      "id": 119,
+      "name": "these accounts don't belong to me",
+      "parentId": 110,
+      "deleted": false
+    },
+    {
+      "id": 120,
+      "name": "I've submitted CFPB complaints against you because you're still reporting accounts that are the result of identity theft",
+      "parentId": 110,
+      "deleted": false
+    },
+    {
+      "id": 121,
+      "name": "You didn’t send me anything at all that would verify the accuracy of this account. I notified you that I am a victim of identity theft and this must be removed immediately",
+      "parentId": 110,
+      "deleted": false
+    },
+    {
+      "id": 122,
+      "name": "Continuing to report this on my credit is a violation of the FCRA unless you can legally verify it!",
+      "parentId": 110,
+      "deleted": false
+    },
+    {
+      "id": 123,
+      "name": "Where’s the proof that you even investigated?",
+      "parentId": 110,
+      "deleted": false
+    },
+    {
+      "id": 124,
+      "name": "I told the creditor that this account doesn’t belong to me and they didn’t respond. Having said that, how did you verify this?",
+      "parentId": 110,
+      "deleted": false
+    },
+    {
+      "id": 125,
+      "name": "Why are you still reporting this account on my credit when I sent you the police report, affidavit and dispute letter?",
+      "parentId": 110,
+      "deleted": false
+    },
+    {
+      "id": 126,
+      "name": "I can’t see how it’s legal that you’d continue to report this auto account on my credit when #1 it resulted from identity theft #2 you never verified it and #3 the other bureaus removed it!",
+      "parentId": 110,
+      "deleted": false
+    },
+    {
+      "id": 127,
+      "name": "I need to see all paperwork with my signature that verifies this account as mine. In addition, I need to see all docs that prove you even did an investigation into this identity theft. Without it, this is false reporting",
+      "parentId": 110,
+      "deleted": false
+    },
+    {
+      "id": 128,
+      "name": "Section 623 states that if an account can possibly be fraud, the creditor cannot continue to report without proof. Where’s this “proof” showing my signature? Where’s your proof of",
+      "parentId": 110,
+      "deleted": false
+    },
+    {
+      "id": 129,
+      "name": "investigation?",
+      "parentId": 110,
+      "deleted": false
+    },
+    {
+      "id": 130,
+      "name": "Congress states that you’re required to perform an independent investigation to determine the accuracy of an account. I notified you that this doesn’t belong to me and you did nothing. Delete this immediately",
+      "parentId": 110,
+      "deleted": false
+    },
+    {
+      "id": 131,
+      "name": "I submitted enough information for you to determine and agree that this account resulted from identity theft. I now need to see all documentation from your investigation that proves otherwise, or this is false reporting and negligence.",
+      "parentId": 110,
+      "deleted": false
+    },
+    {
+      "id": 132,
+      "name": "How’s it even legal that you state this is verified, when it’s fraud? How’s it legal that the creditor sent me a 1099 for this account that was never applied for, obtained or used by me? Delete immediately!",
+      "parentId": 110,
+      "deleted": false
+    },
+    {
+      "id": 133,
+      "name": "REPOS",
+      "parentId": 0,
+      "deleted": false
+    },
+    {
+      "id": 134,
+      "name": "creditor was required to send me specific paperwork within a certain period of time regarding where it was sold and the balance on the",
+      "parentId": 133,
+      "deleted": false
+    },
+    {
+      "id": 135,
+      "name": "account. I didn't receive this paperwork and you need to remove this account immediately",
+      "parentId": 133,
+      "deleted": false
+    },
+    {
+      "id": 136,
+      "name": "monthly payment reported on this closed account - how can there be a monthly payment on an account that's not even open?",
+      "parentId": 133,
+      "deleted": false
+    },
+    {
+      "id": 137,
+      "name": "you have the wrong balance - remove this account immediately",
+      "parentId": 133,
+      "deleted": false
+    },
+    {
+      "id": 138,
+      "name": "date of last payment is wrong",
+      "parentId": 133,
+      "deleted": false
+    },
+    {
+      "id": 139,
+      "name": "date of last activity is wrong",
+      "parentId": 133,
+      "deleted": false
+    },
+    {
+      "id": 140,
+      "name": "status update date shows that this account wasn't even investigated, remove account",
+      "parentId": 133,
+      "deleted": false
+    },
+    {
+      "id": 141,
+      "name": "3 different open dates reported",
+      "parentId": 133,
+      "deleted": false
+    },
+    {
+      "id": 142,
+      "name": "3 different open dates reported",
+      "parentId": 133,
+      "deleted": false
+    },
+    {
+      "id": 143,
+      "name": "3 different open dates reported",
+      "parentId": 133,
+      "deleted": false
+    },
+    {
+      "id": 144,
+      "name": "3 different date of last activity dates reported",
+      "parentId": 133,
+      "deleted": false
+    },
+    {
+      "id": 145,
+      "name": "this account can't possibly have been verified because the status update date has not changed. You need to remove this immediately",
+      "parentId": 133,
+      "deleted": false
+    },
+    {
+      "id": 146,
+      "name": "this account has illegally been re-aged. Remove",
+      "parentId": 133,
+      "deleted": false
+    },
+    {
+      "id": 147,
+      "name": "bought by a collection agency but still shows a balance",
+      "parentId": 133,
+      "deleted": false
+    },
+    {
+      "id": 148,
+      "name": "bought by a collection agency but still shows a past due",
+      "parentId": 133,
+      "deleted": false
+    },
+    {
+      "id": 149,
+      "name": "bought by a collection agency but still shows a monthly payment",
+      "parentId": 133,
+      "deleted": false
+    },
+    {
+      "id": 150,
+      "name": "collection and creditor both show balances",
+      "parentId": 133,
+      "deleted": false
+    },
+    {
+      "id": 151,
+      "name": "date of last payment is different on each bureau",
+      "parentId": 133,
+      "deleted": false
+    },
+    {
+      "id": 152,
+      "name": "high balance is lower than balance",
+      "parentId": 133,
+      "deleted": false
+    },
+    {
+      "id": 153,
+      "name": "balance is higher than high balance",
+      "parentId": 133,
+      "deleted": false
+    },
+    {
+      "id": 154,
+      "name": "I’m absolutely appalled that you would continue to report this auto account that does NOT belong to me, after I’ve submitted enough info to prove it AND the other bureaus removed it!",
+      "parentId": 133,
+      "deleted": false
+    },
+    {
+      "id": 155,
+      "name": "Remove immediately for the following reasons: #1 this does NOT belong to me #2 the other bureaus removed it because it couldn’t be verified #3 no proper investigation was done #4 this is pure negligence",
+      "parentId": 133,
+      "deleted": false
+    },
+    {
+      "id": 156,
+      "name": "I never received the required paperwork regarding where this was sold, how much, balance, etc. This is required by federal law and it’s a violation to continue reporting it!",
+      "parentId": 133,
+      "deleted": false
+    },
+    {
+      "id": 157,
+      "name": "COLLECTION – DEBT BUYER",
+      "parentId": 0,
+      "deleted": false
+    },
+    {
+      "id": 158,
+      "name": "I don't know what this is",
+      "parentId": 157,
+      "deleted": false
+    },
+    {
+      "id": 159,
+      "name": "this doesn't belong to me",
+      "parentId": 157,
+      "deleted": false
+    },
+    {
+      "id": 160,
+      "name": "wrong creditor",
+      "parentId": 157,
+      "deleted": false
+    },
+    {
+      "id": 161,
+      "name": "wrong balance",
+      "parentId": 157,
+      "deleted": false
+    },
+    {
+      "id": 162,
+      "name": "this was paid but still has a balance",
+      "parentId": 157,
+      "deleted": false
+    },
+    {
+      "id": 163,
+      "name": "why is there a past due on this account?",
+      "parentId": 157,
+      "deleted": false
+    },
+    {
+      "id": 164,
+      "name": "why are there late payments on this account?",
+      "parentId": 157,
+      "deleted": false
+    },
+    {
+      "id": 165,
+      "name": "I disputed with the collection agency and they said they don't have record of this account",
+      "parentId": 157,
+      "deleted": false
+    },
+    {
+      "id": 166,
+      "name": "account is reporting that it will come off AFTER the statute of limitations have expired",
+      "parentId": 157,
+      "deleted": false
+    },
+    {
+      "id": 167,
+      "name": "this account was not legally verified",
+      "parentId": 157,
+      "deleted": false
+    },
+    {
+      "id": 168,
+      "name": "I sent a dispute to the collection agency and they said they would remove this account but I am still seeing it on my credit report",
+      "parentId": 157,
+      "deleted": false
+    },
+    {
+      "id": 169,
+      "name": "where's the proof that I had a legal obligation to pay this company and that this is my account?",
+      "parentId": 157,
+      "deleted": false
+    },
+    {
+      "id": 170,
+      "name": "this account is the result of identity theft and I have no legal obligation to pay this company and it doesn't belong on my credit report",
+      "parentId": 157,
+      "deleted": false
+    },
+    {
+      "id": 171,
+      "name": "3 different dates listed under \"date of last activity\"",
+      "parentId": 157,
+      "deleted": false
+    },
+    {
+      "id": 172,
+      "name": "3 different dates listed under \"date of last payment\" but I've never paid this company",
+      "parentId": 157,
+      "deleted": false
+    },
+    {
+      "id": 173,
+      "name": "I need to see the paperwork that proves this collection agency owns this account, because otherwise, I see no legal obligation to pay them",
+      "parentId": 157,
+      "deleted": false
+    },
+    {
+      "id": 174,
+      "name": "Why are there are late payments reported on the original account after it was sold to a collection agency? As far as I see it, that would make the account inaccurately reported, right?",
+      "parentId": 157,
+      "deleted": false
+    },
+    {
+      "id": 175,
+      "name": "This account shows that it was transferred, but why is there a past due reported on this account? This is a violation",
+      "parentId": 157,
+      "deleted": false
+    },
+    {
+      "id": 176,
+      "name": "The collection agency and creditor are both reporting balances – this is double jeopardy",
+      "parentId": 157,
+      "deleted": false
+    },
+    {
+      "id": 177,
+      "name": "Why is this reported on my credit when the original creditor didn’t verify the debt? How does that even make sense?",
+      "parentId": 157,
+      "deleted": false
+    },
+    {
+      "id": 178,
+      "name": "This collection agency bought an outdated debt and then re-aged the account so that it would stay on my credit report!",
+      "parentId": 157,
+      "deleted": false
+    },
+    {
+      "id": 179,
+      "name": "The date of last activity was re-aged when this collection agency falsely stated that it was “verified”. This needs to be removed immediately!",
+      "parentId": 157,
+      "deleted": false
+    },
+    {
+      "id": 180,
+      "name": "Please send all paperwork associated with this account to prove that it belongs to me. I notified you that it was unknown and sending me a statement that says “verified” doesn’t change this fact!",
+      "parentId": 157,
+      "deleted": false
+    },
+    {
+      "id": 181,
+      "name": "Please remove this unknown and unverified account – you sent me nothing at all to prove ownership",
+      "parentId": 157,
+      "deleted": false
+    },
+    {
+      "id": 182,
+      "name": "This account is outdated – it should have been removed automatically and yet, it shows as if it’s a new account!",
+      "parentId": 157,
+      "deleted": false
+    },
+    {
+      "id": 183,
+      "name": "The original account was never verified; how can this account continue to report on my credit?",
+      "parentId": 157,
+      "deleted": false
+    },
+    {
+      "id": 184,
+      "name": "This is unlawful reporting and unless I can see your proof, this must be removed immediately",
+      "parentId": 157,
+      "deleted": false
+    },
+    {
+      "id": 185,
+      "name": "The original account was paid and yet, this collection continues to report with a balance. You need to remove this immediately!",
+      "parentId": 157,
+      "deleted": false
+    },
+    {
+      "id": 186,
+      "name": "This account was paid, and yet, there’s no “date of last payment” listed. Remove for inaccuracy",
+      "parentId": 157,
+      "deleted": false
+    },
+    {
+      "id": 187,
+      "name": "The original account shows late payments AFTER this account was sold to a collection agency.",
+      "parentId": 157,
+      "deleted": false
+    },
+    {
+      "id": 188,
+      "name": "This account cannot report on my credit file",
+      "parentId": 157,
+      "deleted": false
+    },
+    {
+      "id": 189,
+      "name": "The original account shows a balance even though it was sold to this collection agency. This is double jeopardy – remove account",
+      "parentId": 157,
+      "deleted": false
+    },
+    {
+      "id": 190,
+      "name": "The original account shows a past due even though it was sold to this collection agency. This is double jeopardy – remove account",
+      "parentId": 157,
+      "deleted": false
+    },
+    {
+      "id": 191,
+      "name": "The original account shows a monthly payment even though it was sold to this collection agency. This is double jeopardy – remove account",
+      "parentId": 157,
+      "deleted": false
+    },
+    {
+      "id": 192,
+      "name": "You need to remove this collection immediately because the original account doesn’t state that it was sold",
+      "parentId": 157,
+      "deleted": false
+    },
+    {
+      "id": 193,
+      "name": "It’s a violation to continue reporting an unverified and disputed account!",
+      "parentId": 133,
+      "deleted": false
+    },
+    {
+      "id": 194,
+      "name": "CHARGE-OFFS",
+      "parentId": 0,
+      "deleted": false
+    },
+    {
+      "id": 195,
+      "name": "this account does not belong to me",
+      "parentId": 194,
+      "deleted": false
+    },
+    {
+      "id": 196,
+      "name": "this account has the wrong balance",
+      "parentId": 194,
+      "deleted": false
+    },
+    {
+      "id": 197,
+      "name": "this creditor does not own this account",
+      "parentId": 194,
+      "deleted": false
+    },
+    {
+      "id": 198,
+      "name": "this account was sold but still reports a balance",
+      "parentId": 194,
+      "deleted": false
+    },
+    {
+      "id": 199,
+      "name": "doesn't show transferred/sold but does not say paid and doesn't have a balance",
+      "parentId": 194,
+      "deleted": false
+    },
+    {
+      "id": 200,
+      "name": "each bureau reports a different date of last activity",
+      "parentId": 194,
+      "deleted": false
+    },
+    {
+      "id": 201,
+      "name": "account has been re-aged",
+      "parentId": 194,
+      "deleted": false
+    },
+    {
+      "id": 202,
+      "name": "I disputed this account and nothing was sent to me to legally verify this account",
+      "parentId": 194,
+      "deleted": false
+    },
+    {
+      "id": 203,
+      "name": "monthly payment reported on closed account",
+      "parentId": 194,
+      "deleted": false
+    },
+    {
+      "id": 204,
+      "name": "different dates listed under \"date of last payment\"",
+      "parentId": 194,
+      "deleted": false
+    },
+    {
+      "id": 205,
+      "name": "account shows different creditor names",
+      "parentId": 194,
+      "deleted": false
+    },
+    {
+      "id": 206,
+      "name": "I never had an account with this creditor",
+      "parentId": 194,
+      "deleted": false
+    },
+    {
+      "id": 207,
+      "name": "creditor stated they would remove this after payment and it's still on my credit report",
+      "parentId": 194,
+      "deleted": false
+    },
+    {
+      "id": 208,
+      "name": "I sent you proof directly from the creditor that this would be removed and does not belong on my credit report but I am still seeing it listed!",
+      "parentId": 194,
+      "deleted": false
+    },
+    {
+      "id": 209,
+      "name": "how can this account be closed and yet, it states that I am still paying on it in the monthly payment section? Once an account is closed, there should be no monthly payment unless the status says \"now paying, was charged-off\"!",
+      "parentId": 194,
+      "deleted": false
+    },
+    {
+      "id": 210,
+      "name": "this was paid but I am still seeing a balance",
+      "parentId": 194,
+      "deleted": false
+    },
+    {
+      "id": 211,
+      "name": "the past due is wrong",
+      "parentId": 194,
+      "deleted": false
+    },
+    {
+      "id": 212,
+      "name": "the high balance is lower than the balance",
+      "parentId": 194,
+      "deleted": false
+    },
+    {
+      "id": 213,
+      "name": "there shouldn't be any late payments after the account was closed!",
+      "parentId": 194,
+      "deleted": false
+    },
+    {
+      "id": 214,
+      "name": "why am I seeing years of late payments after the \"close date\"? It's not possible to be late on a closed account!",
+      "parentId": 194,
+      "deleted": false
+    },
+    {
+      "id": 215,
+      "name": "This account is outdated and needs to be removed",
+      "parentId": 194,
+      "deleted": false
+    },
+    {
+      "id": 216,
+      "name": "Stating that this account was “verified” does not change the fact that it’s still reporting inaccurately and needs to be removed",
+      "parentId": 194,
+      "deleted": false
+    },
+    {
+      "id": 217,
+      "name": "Stating that this account was “verified” does not change the fact that it’s still reporting inaccurately and needs to be removed",
+      "parentId": 194,
+      "deleted": false
+    },
+    {
+      "id": 218,
+      "name": "How was this sold to a collection agency when it was not legally verified? Is that even legal?",
+      "parentId": 194,
+      "deleted": false
+    },
+    {
+      "id": 219,
+      "name": "How can this still report on my credit when I notified you that it was paid and they said they’d remove it?",
+      "parentId": 194,
+      "deleted": false
+    },
+    {
+      "id": 220,
+      "name": "I received notification from the creditor that they couldn’t find record of this account, so how did you come back and say that it was verified as accurate?",
+      "parentId": 194,
+      "deleted": false
+    },
+    {
+      "id": 221,
+      "name": "You can’t send me something saying that you will not reinvestigate this account, when it is still reported inaccurately! Delete immediately for negligence",
+      "parentId": 194,
+      "deleted": false
+    },
+    {
+      "id": 222,
+      "name": "I disputed the balance and you said that it’s accurate, and yet there’s no paperwork to support your claim",
+      "parentId": 194,
+      "deleted": false
+    },
+    {
+      "id": 223,
+      "name": "Unverified and illegal reporting, remove immediately",
+      "parentId": 194,
+      "deleted": false
+    },
+    {
+      "id": 224,
+      "name": "Account was included in bankruptcy, remove immediately for inaccuracy",
+      "parentId": 194,
+      "deleted": false
+    },
+    {
+      "id": 225,
+      "name": "Doesn’t report paid, transferred or sold and yet, there’s no balance. This account is invalid and needs to be removed",
+      "parentId": 194,
+      "deleted": false
+    },
+    {
+      "id": 226,
+      "name": "Why are there late payments AFTER this was sold to a collection agency? Remove immediately",
+      "parentId": 194,
+      "deleted": false
+    },
+    {
+      "id": 228,
+      "name": "The original account shows a past due even though it was sold to this collection agency. This is double jeopardy – remove account",
+      "parentId": 194,
+      "deleted": false
+    },
+    {
+      "id": 229,
+      "name": "The original account shows a monthly payment even though it was sold to this collection agency. This is double jeopardy – remove account",
+      "parentId": 194,
+      "deleted": false
+    },
+    {
+      "id": 230,
+      "name": "The original account shows a balance even though it was sold to this collection agency. This is double jeopardy – remove account",
+      "parentId": 194,
+      "deleted": false
+    },
+    {
+      "id": 231,
+      "name": "Why doesn’t the status say that this was paid if there’s no balance? Delete for inaccuracy",
+      "parentId": 194,
+      "deleted": false
+    },
+    {
+      "id": 232,
+      "name": "I paid for this account and yet, the date of last payment isn’t reporting accurately! Remove",
+      "parentId": 194,
+      "deleted": false
+    },
+    {
+      "id": 233,
+      "name": "This is a paid charge-off but shows that it was settled. Delete immediate",
+      "parentId": 194,
+      "deleted": false
+    },
+    {
+      "id": 234,
+      "name": "The comments state that the high balance is the limit but that’s not correct! Delete immediately, because this has my “limits” reported wrong!",
+      "parentId": 194,
+      "deleted": false
+    },
+    {
+      "id": 235,
+      "name": "Account has been re-aged and shows 2 different years in the date of last activity! Remove for violation",
+      "parentId": 194,
+      "deleted": false
+    },
+    {
+      "id": 236,
+      "name": "Account has been re-aged and shows 3 different years in the date of last activity! Remove for violation",
+      "parentId": 194,
+      "deleted": false
+    },
+    {
+      "id": 237,
+      "name": "How can there be different years listed in the date of last activity?! This is the date that stipulates when my account will naturally fall off!",
+      "parentId": 194,
+      "deleted": false
+    },
+    {
+      "id": 238,
+      "name": "You haven’t updated this account to show the date it was paid in the historical payment data; delete immediately for inaccuracy",
+      "parentId": 194,
+      "deleted": false
+    },
+    {
+      "id": 239,
+      "name": "You have the wrong date listed for when this was paid in full. Remove account",
+      "parentId": 194,
+      "deleted": false
+    },
+    {
+      "id": 240,
+      "name": "You have the wrong date listed for when I was first late on this account, remove from my credit report",
+      "parentId": 194,
+      "deleted": false
+    },
+    {
+      "id": 241,
+      "name": "Why are there so many “late payments” listed on this account prior to when I paid it? You can’t report late payments on a closed account!",
+      "parentId": 194,
+      "deleted": false
+    },
+    {
+      "id": 242,
+      "name": "FORECLOSURES",
+      "parentId": 0,
+      "deleted": false
+    },
+    {
+      "id": 243,
+      "name": "this account does not belong to me",
+      "parentId": 242,
+      "deleted": false
+    },
+    {
+      "id": 244,
+      "name": "this account has the wrong balance",
+      "parentId": 242,
+      "deleted": false
+    },
+    {
+      "id": 245,
+      "name": "this creditor does not own this account",
+      "parentId": 242,
+      "deleted": false
+    },
+    {
+      "id": 246,
+      "name": "this account was sold but still reports a balance",
+      "parentId": 242,
+      "deleted": false
+    },
+    {
+      "id": 247,
+      "name": "doesn't show transferred/sold but does not say paid and doesn't have a balance",
+      "parentId": 242,
+      "deleted": false
+    },
+    {
+      "id": 248,
+      "name": "each bureau reports a different date of last activity",
+      "parentId": 242,
+      "deleted": false
+    },
+    {
+      "id": 249,
+      "name": "account has been re-aged",
+      "parentId": 242,
+      "deleted": false
+    },
+    {
+      "id": 250,
+      "name": "I disputed this account and nothing was sent to me to legally verify this account",
+      "parentId": 242,
+      "deleted": false
+    },
+    {
+      "id": 251,
+      "name": "monthly payment reported on closed account",
+      "parentId": 242,
+      "deleted": false
+    },
+    {
+      "id": 252,
+      "name": "different dates listed under \"date of last payment\"",
+      "parentId": 242,
+      "deleted": false
+    },
+    {
+      "id": 253,
+      "name": "account shows different creditor names",
+      "parentId": 242,
+      "deleted": false
+    },
+    {
+      "id": 254,
+      "name": "I never had an account with this creditor",
+      "parentId": 242,
+      "deleted": false
+    },
+    {
+      "id": 255,
+      "name": "creditor stated they would remove this after payment and it's still on my credit report",
+      "parentId": 242,
+      "deleted": false
+    },
+    {
+      "id": 256,
+      "name": "I sent you proof directly from the creditor that this would be removed and does not belong on my credit report but I am still seeing it listed!",
+      "parentId": 242,
+      "deleted": false
+    },
+    {
+      "id": 257,
+      "name": "how can this account be closed and yet, it states that I am still paying on it in the monthly payment section? Once an account is closed, there should be no monthly payment unless the status says \"now paying, was charged-off\"!",
+      "parentId": 242,
+      "deleted": false
+    },
+    {
+      "id": 258,
+      "name": "this was paid but I am still seeing a balance",
+      "parentId": 242,
+      "deleted": false
+    },
+    {
+      "id": 259,
+      "name": "the past due is wrong",
+      "parentId": 242,
+      "deleted": false
+    },
+    {
+      "id": 260,
+      "name": "the balance is higher than the high balance",
+      "parentId": 242,
+      "deleted": false
+    },
+    {
+      "id": 261,
+      "name": "the high balance is lower than the balance",
+      "parentId": 242,
+      "deleted": false
+    },
+    {
+      "id": 262,
+      "name": "should not say foreclosure",
+      "parentId": 242,
+      "deleted": false
+    },
+    {
+      "id": 263,
+      "name": "foreclosure was paid",
+      "parentId": 242,
+      "deleted": false
+    },
+    {
+      "id": 264,
+      "name": "why does this have late payments years after the account was closed? This is a violation!",
+      "parentId": 242,
+      "deleted": false
+    },
+    {
+      "id": 266,
+      "name": "BANKRUPTCY",
+      "parentId": 0,
+      "deleted": false
+    },
+    {
+      "id": 267,
+      "name": "bankruptcy does not belong to me",
+      "parentId": 266,
+      "deleted": false
+    },
+    {
+      "id": 268,
+      "name": "bankruptcy filing date is wrong",
+      "parentId": 266,
+      "deleted": false
+    },
+    {
+      "id": 269,
+      "name": "remove this bankruptcy because there are 2 different fling dates",
+      "parentId": 266,
+      "deleted": false
+    },
+    {
+      "id": 270,
+      "name": "court name is not accurate - each bureau must report the actual name of the court, followed by [city, state]. Remove immediately",
+      "parentId": 266,
+      "deleted": false
+    },
+    {
+      "id": 271,
+      "name": "I asked the court if they verify records with the credit bureaus and they stated they do NOT, so how did you legally verify this?",
+      "parentId": 266,
+      "deleted": false
+    },
+    {
+      "id": 272,
+      "name": "You're required to obtain verification from the DATA FURNISHER and the court told me that they don't verify with you, so HOW is anything else considered legal verification?",
+      "parentId": 266,
+      "deleted": false
+    },
+    {
+      "id": 273,
+      "name": "I need for you to send me the petition to verify this account. If you cannot do that, then this needs to be removed",
+      "parentId": 266,
+      "deleted": false
+    },
+    {
+      "id": 274,
+      "name": "I need for you to send me the petition to verify this account. If you cannot do that, then this needs to be removed",
+      "parentId": 266,
+      "deleted": false
+    },
+    {
+      "id": 275,
+      "name": "you have the wrong docket number",
+      "parentId": 266,
+      "deleted": false
+    },
+    {
+      "id": 276,
+      "name": "this was filed in my name by someone else and was fraud - remove immediately",
+      "parentId": 266,
+      "deleted": false
+    },
+    {
+      "id": 277,
+      "name": "I've submitted proof that this is not my signature on the petition - you need to remove this immediately",
+      "parentId": 266,
+      "deleted": false
+    },
+    {
+      "id": 278,
+      "name": "You've not furnished any documentation whatsoever and this means that you are reporting false info and just do not care. I've since made complaints against you with the CFPB",
+      "parentId": 266,
+      "deleted": false
+    },
+    {
+      "id": 279,
+      "name": "These accounts were not included in a bankruptcy and need to be removed",
+      "parentId": 266,
+      "deleted": false
+    },
+    {
+      "id": 280,
+      "name": "Why are these listed as included in bankruptcy, when there’s no bankruptcy reported on my credit?",
+      "parentId": 266,
+      "deleted": false
+    },
+    {
+      "id": 281,
+      "name": "The court has sent me an affidavit swearing that they do NOT verify or validate any public records with you. Delete this unverified account immediately",
+      "parentId": 266,
+      "deleted": false
+    },
+    {
+      "id": 282,
+      "name": "Congress states that you’re required to verify accounts with the original creditor and in this situation, the court is the original creditor and they do NOT verify records!",
+      "parentId": 266,
+      "deleted": false
+    },
+    {
+      "id": 283,
+      "name": "I sent you handwriting samples to prove that these bankruptcies do not belong to me",
+      "parentId": 266,
+      "deleted": false
+    },
+    {
+      "id": 284,
+      "name": "Please remove this bankruptcy – the filing date shows a year that is not in this century",
+      "parentId": 266,
+      "deleted": false
+    },
+    {
+      "id": 285,
+      "name": "STUDENT LOANS",
+      "parentId": 0,
+      "deleted": false
+    },
+    {
+      "id": 286,
+      "name": "this account has the wrong balance",
+      "parentId": 285,
+      "deleted": false
+    },
+    {
+      "id": 287,
+      "name": "this creditor does not own this account",
+      "parentId": 285,
+      "deleted": false
+    },
+    {
+      "id": 288,
+      "name": "this account was sold but still reports a balance",
+      "parentId": 285,
+      "deleted": false
+    },
+    {
+      "id": 289,
+      "name": "doesn't show transferred/sold but does not say paid and doesn't have a balance",
+      "parentId": 285,
+      "deleted": false
+    },
+    {
+      "id": 290,
+      "name": "each bureau reports a different date of last activity",
+      "parentId": 285,
+      "deleted": false
+    },
+    {
+      "id": 291,
+      "name": "account has been re-aged",
+      "parentId": 285,
+      "deleted": false
+    },
+    {
+      "id": 292,
+      "name": "I disputed this account and nothing was sent to me to legally verify this account",
+      "parentId": 285,
+      "deleted": false
+    },
+    {
+      "id": 293,
+      "name": "monthly payment reported on closed account",
+      "parentId": 285,
+      "deleted": false
+    },
+    {
+      "id": 294,
+      "name": "different dates listed under \"date of last payment\"",
+      "parentId": 285,
+      "deleted": false
+    },
+    {
+      "id": 295,
+      "name": "account shows different creditor names",
+      "parentId": 285,
+      "deleted": false
+    },
+    {
+      "id": 296,
+      "name": "I never had an account with this creditor",
+      "parentId": 285,
+      "deleted": false
+    },
+    {
+      "id": 297,
+      "name": "creditor stated they would remove this after payment and it's still on my credit report",
+      "parentId": 285,
+      "deleted": false
+    },
+    {
+      "id": 298,
+      "name": "I sent you proof directly from the creditor that this would be removed and does not belong on my credit report but I am still seeing it listed!",
+      "parentId": 285,
+      "deleted": false
+    },
+    {
+      "id": 299,
+      "name": "how can this account be closed and yet, it states that I am still paying on it in the monthly payment section? Once an account is closed, there should be no monthly payment unless the",
+      "parentId": 285,
+      "deleted": false
+    },
+    {
+      "id": 300,
+      "name": "status says \"now paying, was charged-off\"!",
+      "parentId": 285,
+      "deleted": false
+    },
+    {
+      "id": 301,
+      "name": "this was paid but I am still seeing a balance",
+      "parentId": 285,
+      "deleted": false
+    },
+    {
+      "id": 302,
+      "name": "the past due is wrong",
+      "parentId": 285,
+      "deleted": false
+    },
+    {
+      "id": 303,
+      "name": "the balance is higher than the high balance",
+      "parentId": 285,
+      "deleted": false
+    },
+    {
+      "id": 304,
+      "name": "the high balance is lower than the balance",
+      "parentId": 285,
+      "deleted": false
+    },
+    {
+      "id": 305,
+      "name": "there shouldn't be any late payments after the account was closed!",
+      "parentId": 285,
+      "deleted": false
+    },
+    {
+      "id": 306,
+      "name": "each bureau reports that I was late on a different date - remove for inaccuracy",
+      "parentId": 285,
+      "deleted": false
+    },
+    {
+      "id": 307,
+      "name": "Navient was sued for not applying payments to consumers accounts correctly. I was never late and this account needs to be removed",
+      "parentId": 285,
+      "deleted": false
+    },
+    {
+      "id": 308,
+      "name": "Navient was sued for not applying payments correctly to consumer accounts - please remove these late payments",
+      "parentId": 285,
+      "deleted": false
+    },
+    {
+      "id": 309,
+      "name": "You have all of these dates reported as being “late” but how is that possible, when this account was closed? Delete it!",
+      "parentId": 285,
+      "deleted": false
+    },
+    {
+      "id": 310,
+      "name": "You’re required to report this account as transferred. Delete it",
+      "parentId": 285,
+      "deleted": false
+    },
+    {
+      "id": 311,
+      "name": "The date that you have as “late” isn’t correct. Delete this account",
+      "parentId": 285,
+      "deleted": false
+    },
+    {
+      "id": 312,
+      "name": "I need to see all records pertaining to the verification or validation of this account to prove that there was an actual investigation. Without it, you need to remove it!",
+      "parentId": 285,
+      "deleted": false
+    },
+    {
+      "id": 313,
+      "name": "I know you didn’t verify this collection or even bother to reach out to the creditor. You need to remove this unverified account immediately",
+      "parentId": 285,
+      "deleted": false
+    },
+    {
+      "id": 314,
+      "name": "Where’s the proof that you did an independent investigation? Where’s the proof that you didn’t just repeat what they told you?",
+      "parentId": 285,
+      "deleted": false
+    },
+    {
+      "id": 315,
+      "name": "This account was re-aged and shows different YEARS in the date of last activity! Delete immediately",
+      "parentId": 285,
+      "deleted": false
+    },
+    {
+      "id": 316,
+      "name": "Account is missing the date last activity",
+      "parentId": 285,
+      "deleted": false
+    },
+    {
+      "id": 317,
+      "name": "Account is missing the date of last payment",
+      "parentId": 285,
+      "deleted": false
+    }
+  ],
+  "texts": [
+    {
+      "id": 15,
+      "categoryId": 14,
+      "description": "Add child category",
+      "deleted": false
+    },
+    {
+      "id": 17,
+      "categoryId": 16,
+      "description": "unknown collection",
+      "deleted": false
+    },
+    {
+      "id": 18,
+      "categoryId": 16,
+      "description": "not mine",
+      "deleted": false
+    },
+    {
+      "id": 19,
+      "categoryId": 16,
+      "description": "belongs to someone else",
+      "deleted": false
+    },
+    {
+      "id": 20,
+      "categoryId": 16,
+      "description": "section 609 states that you're required to send me the paperwork associated with this account. Furnish or remove",
+      "deleted": false
+    },
+    {
+      "id": 21,
+      "categoryId": 16,
+      "description": "you didn't send anything to prove ownership",
+      "deleted": false
+    },
+    {
+      "id": 22,
+      "categoryId": 16,
+      "description": "I need to see all paperwork associated with this account",
+      "deleted": false
+    },
+    {
+      "id": 23,
+      "categoryId": 16,
+      "description": "how can you say that you verified this account when I haven't even heard back from the collection agency?",
+      "deleted": false
+    },
+    {
+      "id": 24,
+      "categoryId": 16,
+      "description": "simply stating that this is a verified account doesn't change the fact that I don't know what it is or why it is on my credit report! I need to see everything you've \"verified\" this account with",
+      "deleted": false
+    },
+    {
+      "id": 25,
+      "categoryId": 16,
+      "description": "section 623 states that if an account can possibly be inaccurate, there must be an address conspicuously listed and if not, this account cannot report",
+      "deleted": false
+    },
+    {
+      "id": 26,
+      "categoryId": 16,
+      "description": "section 623 states that the creditor cannot continue to report it when disputed, unless they have proof to the contrary A11",
+      "deleted": false
+    },
+    {
+      "id": 27,
+      "categoryId": 16,
+      "description": "I need to see the docs that the creditor sent to you that were used during the investigation to make the determination that this account is accurate. No proof? Then you cannot report",
+      "deleted": false
+    },
+    {
+      "id": 28,
+      "categoryId": 16,
+      "description": "delete this unverified and inaccurate account",
+      "deleted": false
+    },
+    {
+      "id": 29,
+      "categoryId": 16,
+      "description": "this account was never legally investigated or verified. You're reporting false info",
+      "deleted": false
+    },
+    {
+      "id": 30,
+      "categoryId": 16,
+      "description": "how can there be late payments on this collection?",
+      "deleted": false
+    },
+    {
+      "id": 31,
+      "categoryId": 16,
+      "description": "how can there be a past due on this collection?",
+      "deleted": false
+    },
+    {
+      "id": 32,
+      "categoryId": 16,
+      "description": "Collection agency didn’t send me anything to verify this account, so how did you verify it? Where’s the documentation?",
+      "deleted": false
+    },
+    {
+      "id": 33,
+      "categoryId": 16,
+      "description": "Unless you can furnish the signed documents that legally verify this account, it needs to be removed immediately",
+      "deleted": false
+    },
+    {
+      "id": 34,
+      "categoryId": 16,
+      "description": "Why is the high balance lower than the balance on this collection? It’s impossible and needs to be removed!",
+      "deleted": false
+    },
+    {
+      "id": 35,
+      "categoryId": 16,
+      "description": "You have the wrong open date",
+      "deleted": false
+    },
+    {
+      "id": 36,
+      "categoryId": 16,
+      "description": "The open date is different on all 3 bureaus – this needs to be removed",
+      "deleted": false
+    },
+    {
+      "id": 37,
+      "categoryId": 16,
+      "description": "I don’t understand how you can say that this collection was verified, when I haven’t seen any documentation whatsoever. This is a violation of my rights under section 609!",
+      "deleted": false
+    },
+    {
+      "id": 38,
+      "categoryId": 16,
+      "description": "How is this collection verified, when I notified you that you’re reporting late payments and a past due on it?",
+      "deleted": false
+    },
+    {
+      "id": 39,
+      "categoryId": 16,
+      "description": "Why do I have to notify you that it’s a violation of the FDCPA to report a collection with a past due and/or late payments?",
+      "deleted": false
+    },
+    {
+      "id": 41,
+      "categoryId": 40,
+      "description": "I was never late on this account",
+      "deleted": false
+    },
+    {
+      "id": 42,
+      "categoryId": 40,
+      "description": "paid, never late",
+      "deleted": false
+    },
+    {
+      "id": 43,
+      "categoryId": 40,
+      "description": "I paid on time but you're listing me as late - you need to update to paid as agreed",
+      "deleted": false
+    },
+    {
+      "id": 44,
+      "categoryId": 40,
+      "description": "please send me the docs that prove that I was ever late",
+      "deleted": false
+    },
+    {
+      "id": 45,
+      "categoryId": 40,
+      "description": "If you can't prove that you had proof, you need to remove this late payment",
+      "deleted": false
+    },
+    {
+      "id": 46,
+      "categoryId": 40,
+      "description": "the first late payment listed on this account is wrong and you need to remove this account",
+      "deleted": false
+    },
+    {
+      "id": 47,
+      "categoryId": 40,
+      "description": "remove due to inaccuracy - I never paid late",
+      "deleted": false
+    },
+    {
+      "id": 48,
+      "categoryId": 40,
+      "description": "Why do you report that I am 90 days late when there are no late payments prior to that? Delete this immediately",
+      "deleted": false
+    },
+    {
+      "id": 49,
+      "categoryId": 40,
+      "description": "I need to see all bank transactions and statements that belong to this company that would prove my payments were not accepted on time or you need to remove these unverified late payments immediately",
+      "deleted": false
+    },
+    {
+      "id": 50,
+      "categoryId": 40,
+      "description": "I wrote the creditor and they said that I was never late, so how can it be that you're reporting me as late? That makes no sense at all",
+      "deleted": false
+    },
+    {
+      "id": 51,
+      "categoryId": 40,
+      "description": "date of last payment is wrong",
+      "deleted": false
+    },
+    {
+      "id": 52,
+      "categoryId": 40,
+      "description": "I can’t figure out how you verified this late payment, when the only legal form of verification is the actual bank statement belonging to this company – remove lates immediately",
+      "deleted": false
+    },
+    {
+      "id": 53,
+      "categoryId": 40,
+      "description": "Please send me the proof that you ever did an investigation on this late payment",
+      "deleted": false
+    },
+    {
+      "id": 54,
+      "categoryId": 40,
+      "description": "Each bureau has different info in the historical payment data – this is inaccurate and all lates need to be removed",
+      "deleted": false
+    },
+    {
+      "id": 55,
+      "categoryId": 40,
+      "description": "You said that you verified this late payment but I sent you proof that I paid on time and I’m still seeing it on my credit report!",
+      "deleted": false
+    },
+    {
+      "id": 56,
+      "categoryId": 40,
+      "description": "Please remove this late payment because it’s inaccurate and pulling down my credit score!",
+      "deleted": false
+    },
+    {
+      "id": 57,
+      "categoryId": 40,
+      "description": "this student loan account needs to be removed immediately because the first late payment isn’t correct. This account is inaccurate!",
+      "deleted": false
+    },
+    {
+      "id": 58,
+      "categoryId": 40,
+      "description": "This account was transferred and I was never late with this new company, so you need to remove it from my credit report for reporting lates on an account I was never late on!",
+      "deleted": false
+    },
+    {
+      "id": 59,
+      "categoryId": 40,
+      "description": "Late payments on this collection are inaccurate and if you cannot furnish bank records that prove when my payments were accepted, the account needs to be removed",
+      "deleted": false
+    },
+    {
+      "id": 61,
+      "categoryId": 60,
+      "description": "unknown inquiry",
+      "deleted": false
+    },
+    {
+      "id": 62,
+      "categoryId": 60,
+      "description": "illegal inquiry",
+      "deleted": false
+    },
+    {
+      "id": 63,
+      "categoryId": 60,
+      "description": "unverified inquiry",
+      "deleted": false
+    },
+    {
+      "id": 64,
+      "categoryId": 60,
+      "description": "inquiry has not been verified",
+      "deleted": false
+    },
+    {
+      "id": 65,
+      "categoryId": 60,
+      "description": "inquiry has not been validated",
+      "deleted": false
+    },
+    {
+      "id": 67,
+      "categoryId": 60,
+      "description": "you need to remove this inquiry under section 604",
+      "deleted": false
+    },
+    {
+      "id": 68,
+      "categoryId": 60,
+      "description": "if the creditor couldn't send me anything, then what are you using to verify this inquiry?",
+      "deleted": false
+    },
+    {
+      "id": 69,
+      "categoryId": 60,
+      "description": "creditor didn't respond",
+      "deleted": false
+    },
+    {
+      "id": 70,
+      "categoryId": 60,
+      "description": "neither credit bureau responded, so how was this verified as accurate?",
+      "deleted": false
+    },
+    {
+      "id": 71,
+      "categoryId": 60,
+      "description": "where's the copies of the docs that were filled out when I supposedly applied for an account?",
+      "deleted": false
+    },
+    {
+      "id": 72,
+      "categoryId": 60,
+      "description": "I'm a victim of identity theft and I didn't apply for anything with this bank",
+      "deleted": false
+    },
+    {
+      "id": 73,
+      "categoryId": 60,
+      "description": "I notified you that I'm a victim of identity theft and section 623 states that you're not allowed to continue reporting this without proving otherwise and yet, this inquiry is still on my credit",
+      "deleted": false
+    },
+    {
+      "id": 74,
+      "categoryId": 60,
+      "description": "the only permissible purposes of an inquiry are employment, insurance, court order and firm offer of credit, neither of which apply - remove immediately",
+      "deleted": false
+    },
+    {
+      "id": 75,
+      "categoryId": 60,
+      "description": "not mine",
+      "deleted": false
+    },
+    {
+      "id": 76,
+      "categoryId": 60,
+      "description": "I do not recall this inquiry",
+      "deleted": false
+    },
+    {
+      "id": 77,
+      "categoryId": 60,
+      "description": "I did not make this inquiry",
+      "deleted": false
+    },
+    {
+      "id": 78,
+      "categoryId": 60,
+      "description": "this inquiry is unknown and should be removed",
+      "deleted": false
+    },
+    {
+      "id": 79,
+      "categoryId": 60,
+      "description": "permissible purpose literally means that there must be a reason that they pulled my credit and",
+      "deleted": false
+    },
+    {
+      "id": 80,
+      "categoryId": 60,
+      "description": "that it must conform to the FCRA – this doesn’t and needs to be removed",
+      "deleted": false
+    },
+    {
+      "id": 81,
+      "categoryId": 60,
+      "description": "I still haven’t seen a signed application, are you telling me that it’s legal for them to report this without it? Delete immediately",
+      "deleted": false
+    },
+    {
+      "id": 82,
+      "categoryId": 60,
+      "description": "I notified you that this inquiry doesn’t belong on my credit report and you didn’t do anything at all to verify. Delete immediately",
+      "deleted": false
+    },
+    {
+      "id": 83,
+      "categoryId": 60,
+      "description": "There’s literally no proof that this inquiry was initiated by me. Please remove immediately",
+      "deleted": false
+    },
+    {
+      "id": 84,
+      "categoryId": 60,
+      "description": "I know for a fact that you don’t have the application that was filled out, or even an IP trace, so HOW was this inquiry verified? Where’s the proof? This is a violation; delete immediately",
+      "deleted": false
+    },
+    {
+      "id": 85,
+      "categoryId": 60,
+      "description": "You’ve continued to violation my rights by stating this has been verified. I contacted the creditor and was notified that you NEVER verified anything with them!",
+      "deleted": false
+    },
+    {
+      "id": 86,
+      "categoryId": 60,
+      "description": "Remove this inquiry immediately because there’s no paperwork that verifies I ever obtained credit or a firm offer of credit from this company. There’s no permissible purpose!",
+      "deleted": false
+    },
+    {
+      "id": 88,
+      "categoryId": 87,
+      "description": "unknown",
+      "deleted": false
+    },
+    {
+      "id": 90,
+      "categoryId": 87,
+      "description": "not mine",
+      "deleted": false
+    },
+    {
+      "id": 91,
+      "categoryId": 87,
+      "description": "I didn't file this",
+      "deleted": false
+    },
+    {
+      "id": 92,
+      "categoryId": 87,
+      "description": "belongs to someone else",
+      "deleted": false
+    },
+    {
+      "id": 93,
+      "categoryId": 87,
+      "description": "wrong filing date",
+      "deleted": false
+    },
+    {
+      "id": 94,
+      "categoryId": 87,
+      "description": "3 different filing dates",
+      "deleted": false
+    },
+    {
+      "id": 95,
+      "categoryId": 87,
+      "description": "2 different filing dates",
+      "deleted": false
+    },
+    {
+      "id": 96,
+      "categoryId": 87,
+      "description": "wrong court name",
+      "deleted": false
+    },
+    {
+      "id": 97,
+      "categoryId": 87,
+      "description": "inaccurate court name",
+      "deleted": false
+    },
+    {
+      "id": 98,
+      "categoryId": 87,
+      "description": "recent changes to the law mandate that my personal info report per each public record. Due to the fact that there's no personal info reported, you must immediately remove from my credit report!",
+      "deleted": false
+    },
+    {
+      "id": 99,
+      "categoryId": 87,
+      "description": "wrong plaintiff",
+      "deleted": false
+    },
+    {
+      "id": 100,
+      "categoryId": 87,
+      "description": "you have the plaintiff reported wrong and this needs to be removed",
+      "deleted": false
+    },
+    {
+      "id": 101,
+      "categoryId": 87,
+      "description": "how did you verify this as accurate when each bureau reports something different?",
+      "deleted": false
+    },
+    {
+      "id": 102,
+      "categoryId": 87,
+      "description": "where's the paperwork that belongs to this, that would verify the accuracy? Remove immediately",
+      "deleted": false
+    },
+    {
+      "id": 103,
+      "categoryId": 87,
+      "description": "I need to see all paperwork associated with this account. Failure to furnish is a violation of the FCRA",
+      "deleted": false
+    },
+    {
+      "id": 104,
+      "categoryId": 87,
+      "description": "the other credit bureau removed this, so why are you still reporting it?",
+      "deleted": false
+    },
+    {
+      "id": 105,
+      "categoryId": 87,
+      "description": "the other bureaus removed this account, so why are you still reporting it on my credit file? Where's the paperwork?",
+      "deleted": false
+    },
+    {
+      "id": 106,
+      "categoryId": 87,
+      "description": "I didn't agree or provide my permission for this account to report on my credit. Pursuant to section 603, this must be removed",
+      "deleted": false
+    },
+    {
+      "id": 107,
+      "categoryId": 87,
+      "description": "I am a victim of identity theft and this is not mine",
+      "deleted": false
+    },
+    {
+      "id": 108,
+      "categoryId": 87,
+      "description": "Where’s my personal info that’s required to be on this account? I don’t see my name, social or anything else! Delete this immediately",
+      "deleted": false
+    },
+    {
+      "id": 109,
+      "categoryId": 87,
+      "description": "I need for you to send me the actual court paperwork for this and if you can’t furnish it, then you’re reporting false info and that’s illegal",
+      "deleted": false
+    },
+    {
+      "id": 112,
+      "categoryId": 110,
+      "description": "not mine",
+      "deleted": false
+    },
+    {
+      "id": 113,
+      "categoryId": 110,
+      "description": "does not belong to me",
+      "deleted": false
+    },
+    {
+      "id": 114,
+      "categoryId": 110,
+      "description": "belongs to someone else",
+      "deleted": false
+    },
+    {
+      "id": 115,
+      "categoryId": 110,
+      "description": "section 605B states that if this account is the result of identity theft, then it must be removed from my credit report. Please remove",
+      "deleted": false
+    },
+    {
+      "id": 116,
+      "categoryId": 110,
+      "description": "I've disputed this account with an affidavit, letter and police report and yet, you're still reporting it. I need for you to remove this account immediately unless you have proof to the contrary",
+      "deleted": false
+    },
+    {
+      "id": 117,
+      "categoryId": 110,
+      "description": "I disputed this account with the creditor and they notified me that they have nothing under my information so I don't get how you're verifying this account - remove it immediately",
+      "deleted": false
+    },
+    {
+      "id": 118,
+      "categoryId": 110,
+      "description": "I need to see all paperwork and contracts with my signature that would verify ownership. If you do not have this paperwork, you need to remove the account immediately",
+      "deleted": false
+    },
+    {
+      "id": 119,
+      "categoryId": 110,
+      "description": "these accounts don't belong to me",
+      "deleted": false
+    },
+    {
+      "id": 120,
+      "categoryId": 110,
+      "description": "I've submitted CFPB complaints against you because you're still reporting accounts that are the result of identity theft",
+      "deleted": false
+    },
+    {
+      "id": 121,
+      "categoryId": 110,
+      "description": "You didn’t send me anything at all that would verify the accuracy of this account. I notified you that I am a victim of identity theft and this must be removed immediately",
+      "deleted": false
+    },
+    {
+      "id": 122,
+      "categoryId": 110,
+      "description": "Continuing to report this on my credit is a violation of the FCRA unless you can legally verify it!",
+      "deleted": false
+    },
+    {
+      "id": 123,
+      "categoryId": 110,
+      "description": "Where’s the proof that you even investigated?",
+      "deleted": false
+    },
+    {
+      "id": 124,
+      "categoryId": 110,
+      "description": "I told the creditor that this account doesn’t belong to me and they didn’t respond. Having said that, how did you verify this?",
+      "deleted": false
+    },
+    {
+      "id": 125,
+      "categoryId": 110,
+      "description": "Why are you still reporting this account on my credit when I sent you the police report, affidavit and dispute letter?",
+      "deleted": false
+    },
+    {
+      "id": 126,
+      "categoryId": 110,
+      "description": "I can’t see how it’s legal that you’d continue to report this auto account on my credit when #1 it resulted from identity theft #2 you never verified it and #3 the other bureaus removed it!",
+      "deleted": false
+    },
+    {
+      "id": 127,
+      "categoryId": 110,
+      "description": "I need to see all paperwork with my signature that verifies this account as mine. In addition, I need to see all docs that prove you even did an investigation into this identity theft. Without it, this is false reporting",
+      "deleted": false
+    },
+    {
+      "id": 128,
+      "categoryId": 110,
+      "description": "Section 623 states that if an account can possibly be fraud, the creditor cannot continue to report without proof. Where’s this “proof” showing my signature? Where’s your proof of",
+      "deleted": false
+    },
+    {
+      "id": 129,
+      "categoryId": 110,
+      "description": "investigation?",
+      "deleted": false
+    },
+    {
+      "id": 130,
+      "categoryId": 110,
+      "description": "Congress states that you’re required to perform an independent investigation to determine the accuracy of an account. I notified you that this doesn’t belong to me and you did nothing. Delete this immediately",
+      "deleted": false
+    },
+    {
+      "id": 131,
+      "categoryId": 110,
+      "description": "I submitted enough information for you to determine and agree that this account resulted from identity theft. I now need to see all documentation from your investigation that proves otherwise, or this is false reporting and negligence.",
+      "deleted": false
+    },
+    {
+      "id": 132,
+      "categoryId": 110,
+      "description": "How’s it even legal that you state this is verified, when it’s fraud? How’s it legal that the creditor sent me a 1099 for this account that was never applied for, obtained or used by me? Delete immediately!",
+      "deleted": false
+    },
+    {
+      "id": 134,
+      "categoryId": 133,
+      "description": "creditor was required to send me specific paperwork within a certain period of time regarding where it was sold and the balance on the",
+      "deleted": false
+    },
+    {
+      "id": 135,
+      "categoryId": 133,
+      "description": "account. I didn't receive this paperwork and you need to remove this account immediately",
+      "deleted": false
+    },
+    {
+      "id": 136,
+      "categoryId": 133,
+      "description": "monthly payment reported on this closed account - how can there be a monthly payment on an account that's not even open?",
+      "deleted": false
+    },
+    {
+      "id": 137,
+      "categoryId": 133,
+      "description": "you have the wrong balance - remove this account immediately",
+      "deleted": false
+    },
+    {
+      "id": 138,
+      "categoryId": 133,
+      "description": "date of last payment is wrong",
+      "deleted": false
+    },
+    {
+      "id": 139,
+      "categoryId": 133,
+      "description": "date of last activity is wrong",
+      "deleted": false
+    },
+    {
+      "id": 140,
+      "categoryId": 133,
+      "description": "status update date shows that this account wasn't even investigated, remove account",
+      "deleted": false
+    },
+    {
+      "id": 141,
+      "categoryId": 133,
+      "description": "3 different open dates reported",
+      "deleted": false
+    },
+    {
+      "id": 142,
+      "categoryId": 133,
+      "description": "3 different open dates reported",
+      "deleted": false
+    },
+    {
+      "id": 143,
+      "categoryId": 133,
+      "description": "3 different open dates reported",
+      "deleted": false
+    },
+    {
+      "id": 144,
+      "categoryId": 133,
+      "description": "3 different date of last activity dates reported",
+      "deleted": false
+    },
+    {
+      "id": 145,
+      "categoryId": 133,
+      "description": "this account can't possibly have been verified because the status update date has not changed. You need to remove this immediately",
+      "deleted": false
+    },
+    {
+      "id": 146,
+      "categoryId": 133,
+      "description": "this account has illegally been re-aged. Remove",
+      "deleted": false
+    },
+    {
+      "id": 147,
+      "categoryId": 133,
+      "description": "bought by a collection agency but still shows a balance",
+      "deleted": false
+    },
+    {
+      "id": 148,
+      "categoryId": 133,
+      "description": "bought by a collection agency but still shows a past due",
+      "deleted": false
+    },
+    {
+      "id": 149,
+      "categoryId": 133,
+      "description": "bought by a collection agency but still shows a monthly payment",
+      "deleted": false
+    },
+    {
+      "id": 150,
+      "categoryId": 133,
+      "description": "collection and creditor both show balances",
+      "deleted": false
+    },
+    {
+      "id": 151,
+      "categoryId": 133,
+      "description": "date of last payment is different on each bureau",
+      "deleted": false
+    },
+    {
+      "id": 152,
+      "categoryId": 133,
+      "description": "high balance is lower than balance",
+      "deleted": false
+    },
+    {
+      "id": 153,
+      "categoryId": 133,
+      "description": "balance is higher than high balance",
+      "deleted": false
+    },
+    {
+      "id": 154,
+      "categoryId": 133,
+      "description": "I’m absolutely appalled that you would continue to report this auto account that does NOT belong to me, after I’ve submitted enough info to prove it AND the other bureaus removed it!",
+      "deleted": false
+    },
+    {
+      "id": 155,
+      "categoryId": 133,
+      "description": "Remove immediately for the following reasons: #1 this does NOT belong to me #2 the other bureaus removed it because it couldn’t be verified #3 no proper investigation was done #4 this is pure negligence",
+      "deleted": false
+    },
+    {
+      "id": 156,
+      "categoryId": 133,
+      "description": "I never received the required paperwork regarding where this was sold, how much, balance, etc. This is required by federal law and it’s a violation to continue reporting it!",
+      "deleted": false
+    },
+    {
+      "id": 158,
+      "categoryId": 157,
+      "description": "I don't know what this is",
+      "deleted": false
+    },
+    {
+      "id": 159,
+      "categoryId": 157,
+      "description": "this doesn't belong to me",
+      "deleted": false
+    },
+    {
+      "id": 160,
+      "categoryId": 157,
+      "description": "wrong creditor",
+      "deleted": false
+    },
+    {
+      "id": 161,
+      "categoryId": 157,
+      "description": "wrong balance",
+      "deleted": false
+    },
+    {
+      "id": 162,
+      "categoryId": 157,
+      "description": "this was paid but still has a balance",
+      "deleted": false
+    },
+    {
+      "id": 163,
+      "categoryId": 157,
+      "description": "why is there a past due on this account?",
+      "deleted": false
+    },
+    {
+      "id": 164,
+      "categoryId": 157,
+      "description": "why are there late payments on this account?",
+      "deleted": false
+    },
+    {
+      "id": 165,
+      "categoryId": 157,
+      "description": "I disputed with the collection agency and they said they don't have record of this account",
+      "deleted": false
+    },
+    {
+      "id": 166,
+      "categoryId": 157,
+      "description": "account is reporting that it will come off AFTER the statute of limitations have expired",
+      "deleted": false
+    },
+    {
+      "id": 167,
+      "categoryId": 157,
+      "description": "this account was not legally verified",
+      "deleted": false
+    },
+    {
+      "id": 168,
+      "categoryId": 157,
+      "description": "I sent a dispute to the collection agency and they said they would remove this account but I am still seeing it on my credit report",
+      "deleted": false
+    },
+    {
+      "id": 169,
+      "categoryId": 157,
+      "description": "where's the proof that I had a legal obligation to pay this company and that this is my account?",
+      "deleted": false
+    },
+    {
+      "id": 170,
+      "categoryId": 157,
+      "description": "this account is the result of identity theft and I have no legal obligation to pay this company and it doesn't belong on my credit report",
+      "deleted": false
+    },
+    {
+      "id": 171,
+      "categoryId": 157,
+      "description": "3 different dates listed under \"date of last activity\"",
+      "deleted": false
+    },
+    {
+      "id": 172,
+      "categoryId": 157,
+      "description": "3 different dates listed under \"date of last payment\" but I've never paid this company",
+      "deleted": false
+    },
+    {
+      "id": 173,
+      "categoryId": 157,
+      "description": "I need to see the paperwork that proves this collection agency owns this account, because otherwise, I see no legal obligation to pay them",
+      "deleted": false
+    },
+    {
+      "id": 174,
+      "categoryId": 157,
+      "description": "Why are there are late payments reported on the original account after it was sold to a collection agency? As far as I see it, that would make the account inaccurately reported, right?",
+      "deleted": false
+    },
+    {
+      "id": 175,
+      "categoryId": 157,
+      "description": "This account shows that it was transferred, but why is there a past due reported on this account? This is a violation",
+      "deleted": false
+    },
+    {
+      "id": 176,
+      "categoryId": 157,
+      "description": "The collection agency and creditor are both reporting balances – this is double jeopardy",
+      "deleted": false
+    },
+    {
+      "id": 177,
+      "categoryId": 157,
+      "description": "Why is this reported on my credit when the original creditor didn’t verify the debt? How does that even make sense?",
+      "deleted": false
+    },
+    {
+      "id": 178,
+      "categoryId": 157,
+      "description": "This collection agency bought an outdated debt and then re-aged the account so that it would stay on my credit report!",
+      "deleted": false
+    },
+    {
+      "id": 179,
+      "categoryId": 157,
+      "description": "The date of last activity was re-aged when this collection agency falsely stated that it was “verified”. This needs to be removed immediately!",
+      "deleted": false
+    },
+    {
+      "id": 180,
+      "categoryId": 157,
+      "description": "Please send all paperwork associated with this account to prove that it belongs to me. I notified you that it was unknown and sending me a statement that says “verified” doesn’t change this fact!",
+      "deleted": false
+    },
+    {
+      "id": 181,
+      "categoryId": 157,
+      "description": "Please remove this unknown and unverified account – you sent me nothing at all to prove ownership",
+      "deleted": false
+    },
+    {
+      "id": 182,
+      "categoryId": 157,
+      "description": "This account is outdated – it should have been removed automatically and yet, it shows as if it’s a new account!",
+      "deleted": false
+    },
+    {
+      "id": 183,
+      "categoryId": 157,
+      "description": "The original account was never verified; how can this account continue to report on my credit?",
+      "deleted": false
+    },
+    {
+      "id": 184,
+      "categoryId": 157,
+      "description": "This is unlawful reporting and unless I can see your proof, this must be removed immediately",
+      "deleted": false
+    },
+    {
+      "id": 185,
+      "categoryId": 157,
+      "description": "The original account was paid and yet, this collection continues to report with a balance. You need to remove this immediately!",
+      "deleted": false
+    },
+    {
+      "id": 186,
+      "categoryId": 157,
+      "description": "This account was paid, and yet, there’s no “date of last payment” listed. Remove for inaccuracy",
+      "deleted": false
+    },
+    {
+      "id": 187,
+      "categoryId": 157,
+      "description": "The original account shows late payments AFTER this account was sold to a collection agency.",
+      "deleted": false
+    },
+    {
+      "id": 188,
+      "categoryId": 157,
+      "description": "This account cannot report on my credit file",
+      "deleted": false
+    },
+    {
+      "id": 189,
+      "categoryId": 157,
+      "description": "The original account shows a balance even though it was sold to this collection agency. This is double jeopardy – remove account",
+      "deleted": false
+    },
+    {
+      "id": 190,
+      "categoryId": 157,
+      "description": "The original account shows a past due even though it was sold to this collection agency. This is double jeopardy – remove account",
+      "deleted": false
+    },
+    {
+      "id": 191,
+      "categoryId": 157,
+      "description": "The original account shows a monthly payment even though it was sold to this collection agency. This is double jeopardy – remove account",
+      "deleted": false
+    },
+    {
+      "id": 192,
+      "categoryId": 157,
+      "description": "You need to remove this collection immediately because the original account doesn’t state that it was sold",
+      "deleted": false
+    },
+    {
+      "id": 193,
+      "categoryId": 133,
+      "description": "It’s a violation to continue reporting an unverified and disputed account!",
+      "deleted": false
+    },
+    {
+      "id": 195,
+      "categoryId": 194,
+      "description": "this account does not belong to me",
+      "deleted": false
+    },
+    {
+      "id": 196,
+      "categoryId": 194,
+      "description": "this account has the wrong balance",
+      "deleted": false
+    },
+    {
+      "id": 197,
+      "categoryId": 194,
+      "description": "this creditor does not own this account",
+      "deleted": false
+    },
+    {
+      "id": 198,
+      "categoryId": 194,
+      "description": "this account was sold but still reports a balance",
+      "deleted": false
+    },
+    {
+      "id": 199,
+      "categoryId": 194,
+      "description": "doesn't show transferred/sold but does not say paid and doesn't have a balance",
+      "deleted": false
+    },
+    {
+      "id": 200,
+      "categoryId": 194,
+      "description": "each bureau reports a different date of last activity",
+      "deleted": false
+    },
+    {
+      "id": 201,
+      "categoryId": 194,
+      "description": "account has been re-aged",
+      "deleted": false
+    },
+    {
+      "id": 202,
+      "categoryId": 194,
+      "description": "I disputed this account and nothing was sent to me to legally verify this account",
+      "deleted": false
+    },
+    {
+      "id": 203,
+      "categoryId": 194,
+      "description": "monthly payment reported on closed account",
+      "deleted": false
+    },
+    {
+      "id": 204,
+      "categoryId": 194,
+      "description": "different dates listed under \"date of last payment\"",
+      "deleted": false
+    },
+    {
+      "id": 205,
+      "categoryId": 194,
+      "description": "account shows different creditor names",
+      "deleted": false
+    },
+    {
+      "id": 206,
+      "categoryId": 194,
+      "description": "I never had an account with this creditor",
+      "deleted": false
+    },
+    {
+      "id": 207,
+      "categoryId": 194,
+      "description": "creditor stated they would remove this after payment and it's still on my credit report",
+      "deleted": false
+    },
+    {
+      "id": 208,
+      "categoryId": 194,
+      "description": "I sent you proof directly from the creditor that this would be removed and does not belong on my credit report but I am still seeing it listed!",
+      "deleted": false
+    },
+    {
+      "id": 209,
+      "categoryId": 194,
+      "description": "how can this account be closed and yet, it states that I am still paying on it in the monthly payment section? Once an account is closed, there should be no monthly payment unless the status says \"now paying, was charged-off\"!",
+      "deleted": false
+    },
+    {
+      "id": 210,
+      "categoryId": 194,
+      "description": "this was paid but I am still seeing a balance",
+      "deleted": false
+    },
+    {
+      "id": 211,
+      "categoryId": 194,
+      "description": "the past due is wrong",
+      "deleted": false
+    },
+    {
+      "id": 212,
+      "categoryId": 194,
+      "description": "the high balance is lower than the balance",
+      "deleted": false
+    },
+    {
+      "id": 213,
+      "categoryId": 194,
+      "description": "there shouldn't be any late payments after the account was closed!",
+      "deleted": false
+    },
+    {
+      "id": 214,
+      "categoryId": 194,
+      "description": "why am I seeing years of late payments after the \"close date\"? It's not possible to be late on a closed account!",
+      "deleted": false
+    },
+    {
+      "id": 215,
+      "categoryId": 194,
+      "description": "This account is outdated and needs to be removed",
+      "deleted": false
+    },
+    {
+      "id": 216,
+      "categoryId": 194,
+      "description": "Stating that this account was “verified” does not change the fact that it’s still reporting inaccurately and needs to be removed",
+      "deleted": false
+    },
+    {
+      "id": 217,
+      "categoryId": 194,
+      "description": "Stating that this account was “verified” does not change the fact that it’s still reporting inaccurately and needs to be removed",
+      "deleted": false
+    },
+    {
+      "id": 218,
+      "categoryId": 194,
+      "description": "How was this sold to a collection agency when it was not legally verified? Is that even legal?",
+      "deleted": false
+    },
+    {
+      "id": 219,
+      "categoryId": 194,
+      "description": "How can this still report on my credit when I notified you that it was paid and they said they’d remove it?",
+      "deleted": false
+    },
+    {
+      "id": 220,
+      "categoryId": 194,
+      "description": "I received notification from the creditor that they couldn’t find record of this account, so how did you come back and say that it was verified as accurate?",
+      "deleted": false
+    },
+    {
+      "id": 221,
+      "categoryId": 194,
+      "description": "You can’t send me something saying that you will not reinvestigate this account, when it is still reported inaccurately! Delete immediately for negligence",
+      "deleted": false
+    },
+    {
+      "id": 222,
+      "categoryId": 194,
+      "description": "I disputed the balance and you said that it’s accurate, and yet there’s no paperwork to support your claim",
+      "deleted": false
+    },
+    {
+      "id": 223,
+      "categoryId": 194,
+      "description": "Unverified and illegal reporting, remove immediately",
+      "deleted": false
+    },
+    {
+      "id": 224,
+      "categoryId": 194,
+      "description": "Account was included in bankruptcy, remove immediately for inaccuracy",
+      "deleted": false
+    },
+    {
+      "id": 225,
+      "categoryId": 194,
+      "description": "Doesn’t report paid, transferred or sold and yet, there’s no balance. This account is invalid and needs to be removed",
+      "deleted": false
+    },
+    {
+      "id": 226,
+      "categoryId": 194,
+      "description": "Why are there late payments AFTER this was sold to a collection agency? Remove immediately",
+      "deleted": false
+    },
+    {
+      "id": 228,
+      "categoryId": 194,
+      "description": "The original account shows a past due even though it was sold to this collection agency. This is double jeopardy – remove account",
+      "deleted": false
+    },
+    {
+      "id": 229,
+      "categoryId": 194,
+      "description": "The original account shows a monthly payment even though it was sold to this collection agency. This is double jeopardy – remove account",
+      "deleted": false
+    },
+    {
+      "id": 230,
+      "categoryId": 194,
+      "description": "The original account shows a balance even though it was sold to this collection agency. This is double jeopardy – remove account",
+      "deleted": false
+    },
+    {
+      "id": 231,
+      "categoryId": 194,
+      "description": "Why doesn’t the status say that this was paid if there’s no balance? Delete for inaccuracy",
+      "deleted": false
+    },
+    {
+      "id": 232,
+      "categoryId": 194,
+      "description": "I paid for this account and yet, the date of last payment isn’t reporting accurately! Remove",
+      "deleted": false
+    },
+    {
+      "id": 233,
+      "categoryId": 194,
+      "description": "This is a paid charge-off but shows that it was settled. Delete immediate",
+      "deleted": false
+    },
+    {
+      "id": 234,
+      "categoryId": 194,
+      "description": "The comments state that the high balance is the limit but that’s not correct! Delete immediately, because this has my “limits” reported wrong!",
+      "deleted": false
+    },
+    {
+      "id": 235,
+      "categoryId": 194,
+      "description": "Account has been re-aged and shows 2 different years in the date of last activity! Remove for violation",
+      "deleted": false
+    },
+    {
+      "id": 236,
+      "categoryId": 194,
+      "description": "Account has been re-aged and shows 3 different years in the date of last activity! Remove for violation",
+      "deleted": false
+    },
+    {
+      "id": 237,
+      "categoryId": 194,
+      "description": "How can there be different years listed in the date of last activity?! This is the date that stipulates when my account will naturally fall off!",
+      "deleted": false
+    },
+    {
+      "id": 238,
+      "categoryId": 194,
+      "description": "You haven’t updated this account to show the date it was paid in the historical payment data; delete immediately for inaccuracy",
+      "deleted": false
+    },
+    {
+      "id": 239,
+      "categoryId": 194,
+      "description": "You have the wrong date listed for when this was paid in full. Remove account",
+      "deleted": false
+    },
+    {
+      "id": 240,
+      "categoryId": 194,
+      "description": "You have the wrong date listed for when I was first late on this account, remove from my credit report",
+      "deleted": false
+    },
+    {
+      "id": 241,
+      "categoryId": 194,
+      "description": "Why are there so many “late payments” listed on this account prior to when I paid it? You can’t report late payments on a closed account!",
+      "deleted": false
+    },
+    {
+      "id": 243,
+      "categoryId": 242,
+      "description": "this account does not belong to me",
+      "deleted": false
+    },
+    {
+      "id": 244,
+      "categoryId": 242,
+      "description": "this account has the wrong balance",
+      "deleted": false
+    },
+    {
+      "id": 245,
+      "categoryId": 242,
+      "description": "this creditor does not own this account",
+      "deleted": false
+    },
+    {
+      "id": 246,
+      "categoryId": 242,
+      "description": "this account was sold but still reports a balance",
+      "deleted": false
+    },
+    {
+      "id": 247,
+      "categoryId": 242,
+      "description": "doesn't show transferred/sold but does not say paid and doesn't have a balance",
+      "deleted": false
+    },
+    {
+      "id": 248,
+      "categoryId": 242,
+      "description": "each bureau reports a different date of last activity",
+      "deleted": false
+    },
+    {
+      "id": 249,
+      "categoryId": 242,
+      "description": "account has been re-aged",
+      "deleted": false
+    },
+    {
+      "id": 250,
+      "categoryId": 242,
+      "description": "I disputed this account and nothing was sent to me to legally verify this account",
+      "deleted": false
+    },
+    {
+      "id": 251,
+      "categoryId": 242,
+      "description": "monthly payment reported on closed account",
+      "deleted": false
+    },
+    {
+      "id": 252,
+      "categoryId": 242,
+      "description": "different dates listed under \"date of last payment\"",
+      "deleted": false
+    },
+    {
+      "id": 253,
+      "categoryId": 242,
+      "description": "account shows different creditor names",
+      "deleted": false
+    },
+    {
+      "id": 254,
+      "categoryId": 242,
+      "description": "I never had an account with this creditor",
+      "deleted": false
+    },
+    {
+      "id": 255,
+      "categoryId": 242,
+      "description": "creditor stated they would remove this after payment and it's still on my credit report",
+      "deleted": false
+    },
+    {
+      "id": 256,
+      "categoryId": 242,
+      "description": "I sent you proof directly from the creditor that this would be removed and does not belong on my credit report but I am still seeing it listed!",
+      "deleted": false
+    },
+    {
+      "id": 257,
+      "categoryId": 242,
+      "description": "how can this account be closed and yet, it states that I am still paying on it in the monthly payment section? Once an account is closed, there should be no monthly payment unless the status says \"now paying, was charged-off\"!",
+      "deleted": false
+    },
+    {
+      "id": 258,
+      "categoryId": 242,
+      "description": "this was paid but I am still seeing a balance",
+      "deleted": false
+    },
+    {
+      "id": 259,
+      "categoryId": 242,
+      "description": "the past due is wrong",
+      "deleted": false
+    },
+    {
+      "id": 260,
+      "categoryId": 242,
+      "description": "the balance is higher than the high balance",
+      "deleted": false
+    },
+    {
+      "id": 261,
+      "categoryId": 242,
+      "description": "the high balance is lower than the balance",
+      "deleted": false
+    },
+    {
+      "id": 262,
+      "categoryId": 242,
+      "description": "should not say foreclosure",
+      "deleted": false
+    },
+    {
+      "id": 263,
+      "categoryId": 242,
+      "description": "foreclosure was paid",
+      "deleted": false
+    },
+    {
+      "id": 264,
+      "categoryId": 242,
+      "description": "why does this have late payments years after the account was closed? This is a violation!",
+      "deleted": false
+    },
+    {
+      "id": 267,
+      "categoryId": 266,
+      "description": "bankruptcy does not belong to me",
+      "deleted": false
+    },
+    {
+      "id": 268,
+      "categoryId": 266,
+      "description": "bankruptcy filing date is wrong",
+      "deleted": false
+    },
+    {
+      "id": 269,
+      "categoryId": 266,
+      "description": "remove this bankruptcy because there are 2 different filing dates",
+      "deleted": false
+    },
+    {
+      "id": 270,
+      "categoryId": 266,
+      "description": "court name is not accurate - each bureau must report the actual name of the court, followed by [city, state]. Remove immediately",
+      "deleted": false
+    },
+    {
+      "id": 271,
+      "categoryId": 266,
+      "description": "I asked the court if they verify records with the credit bureaus and they stated they do NOT, so how did you legally verify this?",
+      "deleted": false
+    },
+    {
+      "id": 272,
+      "categoryId": 266,
+      "description": "You're required to obtain verification from the DATA FURNISHER and the court told me that they don't verify with you, so HOW is anything else considered legal verification?",
+      "deleted": false
+    },
+    {
+      "id": 273,
+      "categoryId": 266,
+      "description": "I need for you to send me the petition to verify this account. If you cannot do that, then this needs to be removed",
+      "deleted": false
+    },
+    {
+      "id": 274,
+      "categoryId": 266,
+      "description": "I need for you to send me the petition to verify this account. If you cannot do that, then this needs to be removed",
+      "deleted": false
+    },
+    {
+      "id": 275,
+      "categoryId": 266,
+      "description": "you have the wrong docket number",
+      "deleted": false
+    },
+    {
+      "id": 276,
+      "categoryId": 266,
+      "description": "this was filed in my name by someone else and was fraud - remove immediately",
+      "deleted": false
+    },
+    {
+      "id": 277,
+      "categoryId": 266,
+      "description": "I've submitted proof that this is not my signature on the petition - you need to remove this immediately",
+      "deleted": false
+    },
+    {
+      "id": 278,
+      "categoryId": 266,
+      "description": "You've not furnished any documentation whatsoever and this means that you are reporting false info and just do not care. I've since made complaints against you with the CFPB",
+      "deleted": false
+    },
+    {
+      "id": 279,
+      "categoryId": 266,
+      "description": "These accounts were not included in a bankruptcy and need to be removed",
+      "deleted": false
+    },
+    {
+      "id": 280,
+      "categoryId": 266,
+      "description": "Why are these listed as included in bankruptcy, when there’s no bankruptcy reported on my credit?",
+      "deleted": false
+    },
+    {
+      "id": 281,
+      "categoryId": 266,
+      "description": "The court has sent me an affidavit swearing that they do NOT verify or validate any public records with you. Delete this unverified account immediately",
+      "deleted": false
+    },
+    {
+      "id": 282,
+      "categoryId": 266,
+      "description": "Congress states that you’re required to verify accounts with the original creditor and in this situation, the court is the original creditor and they do NOT verify records!",
+      "deleted": false
+    },
+    {
+      "id": 283,
+      "categoryId": 266,
+      "description": "I sent you handwriting samples to prove that these bankruptcies do not belong to me",
+      "deleted": false
+    },
+    {
+      "id": 284,
+      "categoryId": 266,
+      "description": "Please remove this bankruptcy – the filing date shows a year that is not in this century",
+      "deleted": false
+    },
+    {
+      "id": 286,
+      "categoryId": 285,
+      "description": "this account has the wrong balance",
+      "deleted": false
+    },
+    {
+      "id": 287,
+      "categoryId": 285,
+      "description": "this creditor does not own this account",
+      "deleted": false
+    },
+    {
+      "id": 288,
+      "categoryId": 285,
+      "description": "this account was sold but still reports a balance",
+      "deleted": false
+    },
+    {
+      "id": 289,
+      "categoryId": 285,
+      "description": "doesn't show transferred/sold but does not say paid and doesn't have a balance",
+      "deleted": false
+    },
+    {
+      "id": 290,
+      "categoryId": 285,
+      "description": "each bureau reports a different date of last activity",
+      "deleted": false
+    },
+    {
+      "id": 291,
+      "categoryId": 285,
+      "description": "account has been re-aged",
+      "deleted": false
+    },
+    {
+      "id": 292,
+      "categoryId": 285,
+      "description": "I disputed this account and nothing was sent to me to legally verify this account",
+      "deleted": false
+    },
+    {
+      "id": 293,
+      "categoryId": 285,
+      "description": "monthly payment reported on closed account",
+      "deleted": false
+    },
+    {
+      "id": 294,
+      "categoryId": 285,
+      "description": "different dates listed under \"date of last payment\"",
+      "deleted": false
+    },
+    {
+      "id": 295,
+      "categoryId": 285,
+      "description": "account shows different creditor names",
+      "deleted": false
+    },
+    {
+      "id": 296,
+      "categoryId": 285,
+      "description": "I never had an account with this creditor",
+      "deleted": false
+    },
+    {
+      "id": 297,
+      "categoryId": 285,
+      "description": "creditor stated they would remove this after payment and it's still on my credit report",
+      "deleted": false
+    },
+    {
+      "id": 298,
+      "categoryId": 285,
+      "description": "I sent you proof directly from the creditor that this would be removed and does not belong on my credit report but I am still seeing it listed!",
+      "deleted": false
+    },
+    {
+      "id": 299,
+      "categoryId": 285,
+      "description": "how can this account be closed and yet, it states that I am still paying on it in the monthly payment section? Once an account is closed, there should be no monthly payment unless the",
+      "deleted": false
+    },
+    {
+      "id": 300,
+      "categoryId": 285,
+      "description": "status says \"now paying, was charged-off\"!",
+      "deleted": false
+    },
+    {
+      "id": 301,
+      "categoryId": 285,
+      "description": "this was paid but I am still seeing a balance",
+      "deleted": false
+    },
+    {
+      "id": 302,
+      "categoryId": 285,
+      "description": "the past due is wrong",
+      "deleted": false
+    },
+    {
+      "id": 303,
+      "categoryId": 285,
+      "description": "the balance is higher than the high balance",
+      "deleted": false
+    },
+    {
+      "id": 304,
+      "categoryId": 285,
+      "description": "the high balance is lower than the balance",
+      "deleted": false
+    },
+    {
+      "id": 305,
+      "categoryId": 285,
+      "description": "there shouldn't be any late payments after the account was closed!",
+      "deleted": false
+    },
+    {
+      "id": 306,
+      "categoryId": 285,
+      "description": "each bureau reports that I was late on a different date - remove for inaccuracy",
+      "deleted": false
+    },
+    {
+      "id": 307,
+      "categoryId": 285,
+      "description": "Navient was sued for not applying payments to consumers accounts correctly. I was never late and this account needs to be removed",
+      "deleted": false
+    },
+    {
+      "id": 308,
+      "categoryId": 285,
+      "description": "Navient was sued for not applying payments correctly to consumer accounts - please remove these late payments",
+      "deleted": false
+    },
+    {
+      "id": 309,
+      "categoryId": 285,
+      "description": "You have all of these dates reported as being “late” but how is that possible, when this account was closed? Delete it!",
+      "deleted": false
+    },
+    {
+      "id": 310,
+      "categoryId": 285,
+      "description": "You’re required to report this account as transferred. Delete it",
+      "deleted": false
+    },
+    {
+      "id": 311,
+      "categoryId": 285,
+      "description": "The date that you have as “late” isn’t correct. Delete this account",
+      "deleted": false
+    },
+    {
+      "id": 312,
+      "categoryId": 285,
+      "description": "I need to see all records pertaining to the verification or validation of this account to prove that there was an actual investigation. Without it, you need to remove it!",
+      "deleted": false
+    },
+    {
+      "id": 313,
+      "categoryId": 285,
+      "description": "I know you didn’t verify this collection or even bother to reach out to the creditor. You need to remove this unverified account immediately",
+      "deleted": false
+    },
+    {
+      "id": 314,
+      "categoryId": 285,
+      "description": "Where’s the proof that you did an independent investigation? Where’s the proof that you didn’t just repeat what they told you?",
+      "deleted": false
+    },
+    {
+      "id": 315,
+      "categoryId": 285,
+      "description": "This account was re-aged and shows different YEARS in the date of last activity! Delete immediately",
+      "deleted": false
+    },
+    {
+      "id": 316,
+      "categoryId": 285,
+      "description": "Account is missing the date last activity",
+      "deleted": false
+    },
+    {
+      "id": 317,
+      "categoryId": 285,
+      "description": "Account is missing the date of last payment",
+      "deleted": false
+    },
+    {
+      "id": 318,
+      "categoryId": 285,
+      "description": "You have the wrong date of last payment",
+      "deleted": false
+    },
+    {
+      "id": 319,
+      "categoryId": 285,
+      "description": "You have the wrong date of last activity",
+      "deleted": false
+    },
+    {
+      "id": 320,
+      "categoryId": 285,
+      "description": "Why are you reporting late payments that are different than the other 2 bureaus?",
+      "deleted": false
+    },
+    {
+      "id": 321,
+      "categoryId": 285,
+      "description": "Why are you reporting this account when the other bureaus removed this?",
+      "deleted": false
+    },
+    {
+      "id": 322,
+      "categoryId": 285,
+      "description": "I need to see all signed-by-me paperwork to prove the validity of this account reporting",
+      "deleted": false
+    },
+    {
+      "id": 323,
+      "categoryId": 285,
+      "description": "You’re required to report the notice of dispute under section 623. Without it, this account cannot continue to report!",
+      "deleted": false
+    },
+    {
+      "id": 324,
+      "categoryId": 285,
+      "description": "Unless a creditor has proof to the contrary that this account belongs to me, section 623 states that it cannot continue to report!",
+      "deleted": false
+    }
+  ],
+  "library": {
+    "legacy_legacy_laravel": {
+      "label": "Legacy — Legacy Laravel",
+      "reasons": [
+        "Add child category"
+      ]
+    },
+    "legacy_collections_3rd_party": {
+      "label": "Legacy — COLLECTIONS – 3RD PARTY",
+      "reasons": [
+        "unknown collection",
+        "not mine",
+        "belongs to someone else",
+        "section 609 states that you're required to send me the paperwork associated with this account. Furnish or remove",
+        "you didn't send anything to prove ownership",
+        "I need to see all paperwork associated with this account",
+        "how can you say that you verified this account when I haven't even heard back from the collection agency?",
+        "simply stating that this is a verified account doesn't change the fact that I don't know what it is or why it is on my credit report! I need to see everything you've \"verified\" this account with",
+        "section 623 states that if an account can possibly be inaccurate, there must be an address conspicuously listed and if not, this account cannot report",
+        "section 623 states that the creditor cannot continue to report it when disputed, unless they have proof to the contrary A11",
+        "I need to see the docs that the creditor sent to you that were used during the investigation to make the determination that this account is accurate. No proof? Then you cannot report",
+        "delete this unverified and inaccurate account",
+        "this account was never legally investigated or verified. You're reporting false info",
+        "how can there be late payments on this collection?",
+        "how can there be a past due on this collection?",
+        "Collection agency didn’t send me anything to verify this account, so how did you verify it? Where’s the documentation?",
+        "Unless you can furnish the signed documents that legally verify this account, it needs to be removed immediately",
+        "Why is the high balance lower than the balance on this collection? It’s impossible and needs to be removed!",
+        "You have the wrong open date",
+        "The open date is different on all 3 bureaus – this needs to be removed",
+        "I don’t understand how you can say that this collection was verified, when I haven’t seen any documentation whatsoever. This is a violation of my rights under section 609!",
+        "How is this collection verified, when I notified you that you’re reporting late payments and a past due on it?",
+        "Why do I have to notify you that it’s a violation of the FDCPA to report a collection with a past due and/or late payments?"
+      ]
+    },
+    "legacy_late_payments": {
+      "label": "Legacy — LATE PAYMENTS",
+      "reasons": [
+        "I was never late on this account",
+        "paid, never late",
+        "I paid on time but you're listing me as late - you need to update to paid as agreed",
+        "please send me the docs that prove that I was ever late",
+        "If you can't prove that you had proof, you need to remove this late payment",
+        "the first late payment listed on this account is wrong and you need to remove this account",
+        "remove due to inaccuracy - I never paid late",
+        "Why do you report that I am 90 days late when there are no late payments prior to that? Delete this immediately",
+        "I need to see all bank transactions and statements that belong to this company that would prove my payments were not accepted on time or you need to remove these unverified late payments immediately",
+        "I wrote the creditor and they said that I was never late, so how can it be that you're reporting me as late? That makes no sense at all",
+        "date of last payment is wrong",
+        "I can’t figure out how you verified this late payment, when the only legal form of verification is the actual bank statement belonging to this company – remove lates immediately",
+        "Please send me the proof that you ever did an investigation on this late payment",
+        "Each bureau has different info in the historical payment data – this is inaccurate and all lates need to be removed",
+        "You said that you verified this late payment but I sent you proof that I paid on time and I’m still seeing it on my credit report!",
+        "Please remove this late payment because it’s inaccurate and pulling down my credit score!",
+        "this student loan account needs to be removed immediately because the first late payment isn’t correct. This account is inaccurate!",
+        "This account was transferred and I was never late with this new company, so you need to remove it from my credit report for reporting lates on an account I was never late on!",
+        "Late payments on this collection are inaccurate and if you cannot furnish bank records that prove when my payments were accepted, the account needs to be removed"
+      ]
+    },
+    "legacy_inquiries": {
+      "label": "Legacy — INQUIRIES",
+      "reasons": [
+        "unknown inquiry",
+        "illegal inquiry",
+        "unverified inquiry",
+        "inquiry has not been verified",
+        "inquiry has not been validated",
+        "you need to remove this inquiry under section 604",
+        "if the creditor couldn't send me anything, then what are you using to verify this inquiry?",
+        "creditor didn't respond",
+        "neither credit bureau responded, so how was this verified as accurate?",
+        "where's the copies of the docs that were filled out when I supposedly applied for an account?",
+        "I'm a victim of identity theft and I didn't apply for anything with this bank",
+        "I notified you that I'm a victim of identity theft and section 623 states that you're not allowed to continue reporting this without proving otherwise and yet, this inquiry is still on my credit",
+        "the only permissible purposes of an inquiry are employment, insurance, court order and firm offer of credit, neither of which apply - remove immediately",
+        "not mine",
+        "I do not recall this inquiry",
+        "I did not make this inquiry",
+        "this inquiry is unknown and should be removed",
+        "permissible purpose literally means that there must be a reason that they pulled my credit and",
+        "that it must conform to the FCRA – this doesn’t and needs to be removed",
+        "I still haven’t seen a signed application, are you telling me that it’s legal for them to report this without it? Delete immediately",
+        "I notified you that this inquiry doesn’t belong on my credit report and you didn’t do anything at all to verify. Delete immediately",
+        "There’s literally no proof that this inquiry was initiated by me. Please remove immediately",
+        "I know for a fact that you don’t have the application that was filled out, or even an IP trace, so HOW was this inquiry verified? Where’s the proof? This is a violation; delete immediately",
+        "You’ve continued to violation my rights by stating this has been verified. I contacted the creditor and was notified that you NEVER verified anything with them!",
+        "Remove this inquiry immediately because there’s no paperwork that verifies I ever obtained credit or a firm offer of credit from this company. There’s no permissible purpose!"
+      ]
+    },
+    "legacy_judugements_liens": {
+      "label": "Legacy — JUDUGEMENTS/LIENS",
+      "reasons": [
+        "unknown",
+        "not mine",
+        "I didn't file this",
+        "belongs to someone else",
+        "wrong filing date",
+        "3 different filing dates",
+        "2 different filing dates",
+        "wrong court name",
+        "inaccurate court name",
+        "recent changes to the law mandate that my personal info report per each public record. Due to the fact that there's no personal info reported, you must immediately remove from my credit report!",
+        "wrong plaintiff",
+        "you have the plaintiff reported wrong and this needs to be removed",
+        "how did you verify this as accurate when each bureau reports something different?",
+        "where's the paperwork that belongs to this, that would verify the accuracy? Remove immediately",
+        "I need to see all paperwork associated with this account. Failure to furnish is a violation of the FCRA",
+        "the other credit bureau removed this, so why are you still reporting it?",
+        "the other bureaus removed this account, so why are you still reporting it on my credit file? Where's the paperwork?",
+        "I didn't agree or provide my permission for this account to report on my credit. Pursuant to section 603, this must be removed",
+        "I am a victim of identity theft and this is not mine",
+        "Where’s my personal info that’s required to be on this account? I don’t see my name, social or anything else! Delete this immediately",
+        "I need for you to send me the actual court paperwork for this and if you can’t furnish it, then you’re reporting false info and that’s illegal"
+      ]
+    },
+    "legacy_identity_theft": {
+      "label": "Legacy — IDENTITY THEFT",
+      "reasons": [
+        "not mine",
+        "does not belong to me",
+        "belongs to someone else",
+        "section 605B states that if this account is the result of identity theft, then it must be removed from my credit report. Please remove",
+        "I've disputed this account with an affidavit, letter and police report and yet, you're still reporting it. I need for you to remove this account immediately unless you have proof to the contrary",
+        "I disputed this account with the creditor and they notified me that they have nothing under my information so I don't get how you're verifying this account - remove it immediately",
+        "I need to see all paperwork and contracts with my signature that would verify ownership. If you do not have this paperwork, you need to remove the account immediately",
+        "these accounts don't belong to me",
+        "I've submitted CFPB complaints against you because you're still reporting accounts that are the result of identity theft",
+        "You didn’t send me anything at all that would verify the accuracy of this account. I notified you that I am a victim of identity theft and this must be removed immediately",
+        "Continuing to report this on my credit is a violation of the FCRA unless you can legally verify it!",
+        "Where’s the proof that you even investigated?",
+        "I told the creditor that this account doesn’t belong to me and they didn’t respond. Having said that, how did you verify this?",
+        "Why are you still reporting this account on my credit when I sent you the police report, affidavit and dispute letter?",
+        "I can’t see how it’s legal that you’d continue to report this auto account on my credit when #1 it resulted from identity theft #2 you never verified it and #3 the other bureaus removed it!",
+        "I need to see all paperwork with my signature that verifies this account as mine. In addition, I need to see all docs that prove you even did an investigation into this identity theft. Without it, this is false reporting",
+        "Section 623 states that if an account can possibly be fraud, the creditor cannot continue to report without proof. Where’s this “proof” showing my signature? Where’s your proof of",
+        "investigation?",
+        "Congress states that you’re required to perform an independent investigation to determine the accuracy of an account. I notified you that this doesn’t belong to me and you did nothing. Delete this immediately",
+        "I submitted enough information for you to determine and agree that this account resulted from identity theft. I now need to see all documentation from your investigation that proves otherwise, or this is false reporting and negligence.",
+        "How’s it even legal that you state this is verified, when it’s fraud? How’s it legal that the creditor sent me a 1099 for this account that was never applied for, obtained or used by me? Delete immediately!"
+      ]
+    },
+    "legacy_repos": {
+      "label": "Legacy — REPOS",
+      "reasons": [
+        "creditor was required to send me specific paperwork within a certain period of time regarding where it was sold and the balance on the",
+        "account. I didn't receive this paperwork and you need to remove this account immediately",
+        "monthly payment reported on this closed account - how can there be a monthly payment on an account that's not even open?",
+        "you have the wrong balance - remove this account immediately",
+        "date of last payment is wrong",
+        "date of last activity is wrong",
+        "status update date shows that this account wasn't even investigated, remove account",
+        "3 different open dates reported",
+        "3 different date of last activity dates reported",
+        "this account can't possibly have been verified because the status update date has not changed. You need to remove this immediately",
+        "this account has illegally been re-aged. Remove",
+        "bought by a collection agency but still shows a balance",
+        "bought by a collection agency but still shows a past due",
+        "bought by a collection agency but still shows a monthly payment",
+        "collection and creditor both show balances",
+        "date of last payment is different on each bureau",
+        "high balance is lower than balance",
+        "balance is higher than high balance",
+        "I’m absolutely appalled that you would continue to report this auto account that does NOT belong to me, after I’ve submitted enough info to prove it AND the other bureaus removed it!",
+        "Remove immediately for the following reasons: #1 this does NOT belong to me #2 the other bureaus removed it because it couldn’t be verified #3 no proper investigation was done #4 this is pure negligence",
+        "I never received the required paperwork regarding where this was sold, how much, balance, etc. This is required by federal law and it’s a violation to continue reporting it!",
+        "It’s a violation to continue reporting an unverified and disputed account!"
+      ]
+    },
+    "legacy_collection_debt_buyer": {
+      "label": "Legacy — COLLECTION – DEBT BUYER",
+      "reasons": [
+        "I don't know what this is",
+        "this doesn't belong to me",
+        "wrong creditor",
+        "wrong balance",
+        "this was paid but still has a balance",
+        "why is there a past due on this account?",
+        "why are there late payments on this account?",
+        "I disputed with the collection agency and they said they don't have record of this account",
+        "account is reporting that it will come off AFTER the statute of limitations have expired",
+        "this account was not legally verified",
+        "I sent a dispute to the collection agency and they said they would remove this account but I am still seeing it on my credit report",
+        "where's the proof that I had a legal obligation to pay this company and that this is my account?",
+        "this account is the result of identity theft and I have no legal obligation to pay this company and it doesn't belong on my credit report",
+        "3 different dates listed under \"date of last activity\"",
+        "3 different dates listed under \"date of last payment\" but I've never paid this company",
+        "I need to see the paperwork that proves this collection agency owns this account, because otherwise, I see no legal obligation to pay them",
+        "Why are there are late payments reported on the original account after it was sold to a collection agency? As far as I see it, that would make the account inaccurately reported, right?",
+        "This account shows that it was transferred, but why is there a past due reported on this account? This is a violation",
+        "The collection agency and creditor are both reporting balances – this is double jeopardy",
+        "Why is this reported on my credit when the original creditor didn’t verify the debt? How does that even make sense?",
+        "This collection agency bought an outdated debt and then re-aged the account so that it would stay on my credit report!",
+        "The date of last activity was re-aged when this collection agency falsely stated that it was “verified”. This needs to be removed immediately!",
+        "Please send all paperwork associated with this account to prove that it belongs to me. I notified you that it was unknown and sending me a statement that says “verified” doesn’t change this fact!",
+        "Please remove this unknown and unverified account – you sent me nothing at all to prove ownership",
+        "This account is outdated – it should have been removed automatically and yet, it shows as if it’s a new account!",
+        "The original account was never verified; how can this account continue to report on my credit?",
+        "This is unlawful reporting and unless I can see your proof, this must be removed immediately",
+        "The original account was paid and yet, this collection continues to report with a balance. You need to remove this immediately!",
+        "This account was paid, and yet, there’s no “date of last payment” listed. Remove for inaccuracy",
+        "The original account shows late payments AFTER this account was sold to a collection agency.",
+        "This account cannot report on my credit file",
+        "The original account shows a balance even though it was sold to this collection agency. This is double jeopardy – remove account",
+        "The original account shows a past due even though it was sold to this collection agency. This is double jeopardy – remove account",
+        "The original account shows a monthly payment even though it was sold to this collection agency. This is double jeopardy – remove account",
+        "You need to remove this collection immediately because the original account doesn’t state that it was sold"
+      ]
+    },
+    "legacy_charge_offs": {
+      "label": "Legacy — CHARGE-OFFS",
+      "reasons": [
+        "this account does not belong to me",
+        "this account has the wrong balance",
+        "this creditor does not own this account",
+        "this account was sold but still reports a balance",
+        "doesn't show transferred/sold but does not say paid and doesn't have a balance",
+        "each bureau reports a different date of last activity",
+        "account has been re-aged",
+        "I disputed this account and nothing was sent to me to legally verify this account",
+        "monthly payment reported on closed account",
+        "different dates listed under \"date of last payment\"",
+        "account shows different creditor names",
+        "I never had an account with this creditor",
+        "creditor stated they would remove this after payment and it's still on my credit report",
+        "I sent you proof directly from the creditor that this would be removed and does not belong on my credit report but I am still seeing it listed!",
+        "how can this account be closed and yet, it states that I am still paying on it in the monthly payment section? Once an account is closed, there should be no monthly payment unless the status says \"now paying, was charged-off\"!",
+        "this was paid but I am still seeing a balance",
+        "the past due is wrong",
+        "the high balance is lower than the balance",
+        "there shouldn't be any late payments after the account was closed!",
+        "why am I seeing years of late payments after the \"close date\"? It's not possible to be late on a closed account!",
+        "This account is outdated and needs to be removed",
+        "Stating that this account was “verified” does not change the fact that it’s still reporting inaccurately and needs to be removed",
+        "How was this sold to a collection agency when it was not legally verified? Is that even legal?",
+        "How can this still report on my credit when I notified you that it was paid and they said they’d remove it?",
+        "I received notification from the creditor that they couldn’t find record of this account, so how did you come back and say that it was verified as accurate?",
+        "You can’t send me something saying that you will not reinvestigate this account, when it is still reported inaccurately! Delete immediately for negligence",
+        "I disputed the balance and you said that it’s accurate, and yet there’s no paperwork to support your claim",
+        "Unverified and illegal reporting, remove immediately",
+        "Account was included in bankruptcy, remove immediately for inaccuracy",
+        "Doesn’t report paid, transferred or sold and yet, there’s no balance. This account is invalid and needs to be removed",
+        "Why are there late payments AFTER this was sold to a collection agency? Remove immediately",
+        "The original account shows a past due even though it was sold to this collection agency. This is double jeopardy – remove account",
+        "The original account shows a monthly payment even though it was sold to this collection agency. This is double jeopardy – remove account",
+        "The original account shows a balance even though it was sold to this collection agency. This is double jeopardy – remove account",
+        "Why doesn’t the status say that this was paid if there’s no balance? Delete for inaccuracy",
+        "I paid for this account and yet, the date of last payment isn’t reporting accurately! Remove",
+        "This is a paid charge-off but shows that it was settled. Delete immediate",
+        "The comments state that the high balance is the limit but that’s not correct! Delete immediately, because this has my “limits” reported wrong!",
+        "Account has been re-aged and shows 2 different years in the date of last activity! Remove for violation",
+        "Account has been re-aged and shows 3 different years in the date of last activity! Remove for violation",
+        "How can there be different years listed in the date of last activity?! This is the date that stipulates when my account will naturally fall off!",
+        "You haven’t updated this account to show the date it was paid in the historical payment data; delete immediately for inaccuracy",
+        "You have the wrong date listed for when this was paid in full. Remove account",
+        "You have the wrong date listed for when I was first late on this account, remove from my credit report",
+        "Why are there so many “late payments” listed on this account prior to when I paid it? You can’t report late payments on a closed account!"
+      ]
+    },
+    "legacy_foreclosures": {
+      "label": "Legacy — FORECLOSURES",
+      "reasons": [
+        "this account does not belong to me",
+        "this account has the wrong balance",
+        "this creditor does not own this account",
+        "this account was sold but still reports a balance",
+        "doesn't show transferred/sold but does not say paid and doesn't have a balance",
+        "each bureau reports a different date of last activity",
+        "account has been re-aged",
+        "I disputed this account and nothing was sent to me to legally verify this account",
+        "monthly payment reported on closed account",
+        "different dates listed under \"date of last payment\"",
+        "account shows different creditor names",
+        "I never had an account with this creditor",
+        "creditor stated they would remove this after payment and it's still on my credit report",
+        "I sent you proof directly from the creditor that this would be removed and does not belong on my credit report but I am still seeing it listed!",
+        "how can this account be closed and yet, it states that I am still paying on it in the monthly payment section? Once an account is closed, there should be no monthly payment unless the status says \"now paying, was charged-off\"!",
+        "this was paid but I am still seeing a balance",
+        "the past due is wrong",
+        "the balance is higher than the high balance",
+        "the high balance is lower than the balance",
+        "should not say foreclosure",
+        "foreclosure was paid",
+        "why does this have late payments years after the account was closed? This is a violation!"
+      ]
+    },
+    "legacy_bankruptcy": {
+      "label": "Legacy — BANKRUPTCY",
+      "reasons": [
+        "bankruptcy does not belong to me",
+        "bankruptcy filing date is wrong",
+        "remove this bankruptcy because there are 2 different filing dates",
+        "court name is not accurate - each bureau must report the actual name of the court, followed by [city, state]. Remove immediately",
+        "I asked the court if they verify records with the credit bureaus and they stated they do NOT, so how did you legally verify this?",
+        "You're required to obtain verification from the DATA FURNISHER and the court told me that they don't verify with you, so HOW is anything else considered legal verification?",
+        "I need for you to send me the petition to verify this account. If you cannot do that, then this needs to be removed",
+        "you have the wrong docket number",
+        "this was filed in my name by someone else and was fraud - remove immediately",
+        "I've submitted proof that this is not my signature on the petition - you need to remove this immediately",
+        "You've not furnished any documentation whatsoever and this means that you are reporting false info and just do not care. I've since made complaints against you with the CFPB",
+        "These accounts were not included in a bankruptcy and need to be removed",
+        "Why are these listed as included in bankruptcy, when there’s no bankruptcy reported on my credit?",
+        "The court has sent me an affidavit swearing that they do NOT verify or validate any public records with you. Delete this unverified account immediately",
+        "Congress states that you’re required to verify accounts with the original creditor and in this situation, the court is the original creditor and they do NOT verify records!",
+        "I sent you handwriting samples to prove that these bankruptcies do not belong to me",
+        "Please remove this bankruptcy – the filing date shows a year that is not in this century"
+      ]
+    },
+    "legacy_student_loans": {
+      "label": "Legacy — STUDENT LOANS",
+      "reasons": [
+        "this account has the wrong balance",
+        "this creditor does not own this account",
+        "this account was sold but still reports a balance",
+        "doesn't show transferred/sold but does not say paid and doesn't have a balance",
+        "each bureau reports a different date of last activity",
+        "account has been re-aged",
+        "I disputed this account and nothing was sent to me to legally verify this account",
+        "monthly payment reported on closed account",
+        "different dates listed under \"date of last payment\"",
+        "account shows different creditor names",
+        "I never had an account with this creditor",
+        "creditor stated they would remove this after payment and it's still on my credit report",
+        "I sent you proof directly from the creditor that this would be removed and does not belong on my credit report but I am still seeing it listed!",
+        "how can this account be closed and yet, it states that I am still paying on it in the monthly payment section? Once an account is closed, there should be no monthly payment unless the",
+        "status says \"now paying, was charged-off\"!",
+        "this was paid but I am still seeing a balance",
+        "the past due is wrong",
+        "the balance is higher than the high balance",
+        "the high balance is lower than the balance",
+        "there shouldn't be any late payments after the account was closed!",
+        "each bureau reports that I was late on a different date - remove for inaccuracy",
+        "Navient was sued for not applying payments to consumers accounts correctly. I was never late and this account needs to be removed",
+        "Navient was sued for not applying payments correctly to consumer accounts - please remove these late payments",
+        "You have all of these dates reported as being “late” but how is that possible, when this account was closed? Delete it!",
+        "You’re required to report this account as transferred. Delete it",
+        "The date that you have as “late” isn’t correct. Delete this account",
+        "I need to see all records pertaining to the verification or validation of this account to prove that there was an actual investigation. Without it, you need to remove it!",
+        "I know you didn’t verify this collection or even bother to reach out to the creditor. You need to remove this unverified account immediately",
+        "Where’s the proof that you did an independent investigation? Where’s the proof that you didn’t just repeat what they told you?",
+        "This account was re-aged and shows different YEARS in the date of last activity! Delete immediately",
+        "Account is missing the date last activity",
+        "Account is missing the date of last payment",
+        "You have the wrong date of last payment",
+        "You have the wrong date of last activity",
+        "Why are you reporting late payments that are different than the other 2 bureaus?",
+        "Why are you reporting this account when the other bureaus removed this?",
+        "I need to see all signed-by-me paperwork to prove the validity of this account reporting",
+        "You’re required to report the notice of dispute under section 623. Without it, this account cannot continue to report!",
+        "Unless a creditor has proof to the contrary that this account belongs to me, section 623 states that it cannot continue to report!"
+      ]
+    }
+  }
+}

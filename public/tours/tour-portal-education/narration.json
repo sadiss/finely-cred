@@ -1,0 +1,27 @@
+{
+  "tourId": "tour-portal-education",
+  "title": "Learn the credit playbook",
+  "steps": [
+    {
+      "step": 1,
+      "stepId": "s1",
+      "label": "Education library",
+      "narrationPlain": "Curriculum and field guides live here.",
+      "mp3File": "step-01.mp3"
+    },
+    {
+      "step": 2,
+      "stepId": "s2",
+      "label": "Field guides",
+      "narrationPlain": "Pick a guide that matches your stage.",
+      "mp3File": "step-02.mp3"
+    },
+    {
+      "step": 3,
+      "stepId": "s3",
+      "label": "Apply it",
+      "narrationPlain": "Use what you learned in Dispute Center.",
+      "mp3File": "step-03.mp3"
+    }
+  ]
+}

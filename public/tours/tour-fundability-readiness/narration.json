@@ -1,0 +1,27 @@
+{
+  "tourId": "tour-fundability-readiness",
+  "title": "Check fundability readiness",
+  "steps": [
+    {
+      "step": 1,
+      "stepId": "s1",
+      "label": "Fundability hub",
+      "narrationPlain": "Personal and business funding readiness live on one page.",
+      "mp3File": "step-01.mp3"
+    },
+    {
+      "step": 2,
+      "stepId": "s2",
+      "label": "Pick your lane",
+      "narrationPlain": "Use the tabs for personal restore or business EIN build.",
+      "mp3File": "step-02.mp3"
+    },
+    {
+      "step": 3,
+      "stepId": "s3",
+      "label": "Start onboarding",
+      "narrationPlain": "Create your file when you are ready to move forward.",
+      "mp3File": "step-03.mp3"
+    }
+  ]
+}
