@@ -69,7 +69,7 @@ export function LeadMagnetSharePanel({ compact }: { compact?: boolean }) {
     <div className={`rounded-2xl border border-emerald-500/25 bg-emerald-500/5 ${compact ? 'p-4' : 'p-6'} space-y-4`}>
       <div className="inline-flex items-center gap-2 text-emerald-300">
         <Link2 size={16} />
-        <span className="text-[10px] font-black uppercase tracking-widest">Lead magnet links</span>
+        <span className="text-[10px] font-black uppercase tracking-widest">Share & signup links</span>
       </div>
       <p className="text-white/60 text-sm">
         Share on brochures, business cards, virtual cards, or SMS. Leads tag with your code <span className="font-mono text-emerald-200">{referralCode}</span>.
@@ -93,7 +93,7 @@ export function LeadMagnetSharePanel({ compact }: { compact?: boolean }) {
         </div>
         <div className="fc-light-glass-panel fc-light-chrome-panel rounded-xl p-4 flex flex-col items-center gap-3">
           <QrCode size={18} className="text-emerald-300" />
-          <img src={qrUrl} alt="QR code for lead magnet" className="rounded-lg border border-white/[0.08] w-[180px] h-[180px]" />
+          <img src={qrUrl} alt="QR code for signup link" className="rounded-lg border border-white/[0.08] w-[180px] h-[180px]" />
           <div className="text-[10px] text-white/45 text-center">Scan on physical cards · prints to brochure</div>
           <button
             type="button"

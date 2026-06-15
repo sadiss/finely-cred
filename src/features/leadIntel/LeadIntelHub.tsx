@@ -33,6 +33,12 @@ import {
   type LeadIntelView,
   type StagingLane,
 } from './leadIntelModel';
+import {
+  DAILY_LEAD_TARGET,
+  DAILY_SIGNUP_INTENT_TEMPLATES,
+  autoSelectHighIntent,
+  recommendedSignupPath,
+} from './leadIntelDailyBatch';
 import {FINELY_OS_BOARD_SHELL,
   FINELY_OS_CATALOG_SHELL,
   FINELY_OS_ENTITY_PANEL,
@@ -138,7 +144,7 @@ export function LeadIntelHub({ embedded = false, showCompliance = true }: Props)
   const [target, setTarget] = useState<ProspectTarget>('clients');
   const [query, setQuery] = useState('');
   const [location, setLocation] = useState('United States');
-  const [limit, setLimit] = useState(10);
+  const [limit, setLimit] = useState(25);
   const [enrich, setEnrich] = useState(true);
 
   const [busy, setBusy] = useState(false);
@@ -202,6 +208,47 @@ export function LeadIntelHub({ embedded = false, showCompliance = true }: Props)
     [filteredResults, staging],
   );
 
+  const runDailyGrowthBatch = async () => {
+    setBusy(true);
+    setErr(null);
+    setNotice(null);
+    try {
+      if (!features.leadIntel) throw new Error('Lead Intel is disabled (Feature Flags).');
+      if (!isSupabaseConfigured) throw new Error('Supabase is not configured.');
+      const batchQueries = [
+        ...DAILY_SIGNUP_INTENT_TEMPLATES.map((t) => t.query),
+        ...LEAD_INTEL_TEMPLATES.slice(0, 6).map((t) => t.query),
+      ];
+      setNotice(`Running daily growth batch (${batchQueries.length} queries) — target ${DAILY_LEAD_TARGET}+ prospects…`);
+      const { data, error } = await supabase.functions.invoke('lead-intel', {
+        body: {
+          target: 'clients',
+          queries: batchQueries,
+          location: location.trim() || 'United States',
+          limit: 40,
+          enrich: true,
+          signupIntent: true,
+          country: 'us',
+        },
+      });
+      if (error) throw new Error(error.message);
+      if (!data?.ok) throw new Error(data?.error || 'Batch search failed.');
+      const out = (data.results ?? []) as IntelResult[];
+      setResults(out);
+      setSelected(autoSelectHighIntent(out));
+      setStaging(buildStagingMap(out));
+      setView('staging');
+      const ready = out.filter((r) => buildStagingMap(out)[r.url] === 'ready').length;
+      setNotice(
+        `Daily batch complete: ${out.length} unique prospects (${ready} ready for CRM). Invite high-intent contacts to ${recommendedSignupPath('clients')}.`,
+      );
+    } catch (e: unknown) {
+      setErr((e as Error)?.message || 'Daily batch failed.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const run = async (overrides?: { target?: ProspectTarget; query?: string; location?: string; enrich?: boolean }) => {
     const runTarget = overrides?.target ?? target;
     const runQuery = (overrides?.query ?? query).trim();
@@ -236,7 +283,7 @@ export function LeadIntelHub({ embedded = false, showCompliance = true }: Props)
       const nextSel: Record<string, boolean> = {};
       const nextStage = buildStagingMap(out);
       out.forEach((r) => {
-        nextSel[r.url] = (r.score ?? 0) >= 40;
+        nextSel[r.url] = (r.score ?? 0) >= 35;
       });
       setSelected(nextSel);
       setStaging(nextStage);
@@ -370,6 +417,30 @@ function scoreChip(_score: number) {
 
       {view === 'discover' ? (
         <>
+          <div className={`${finelyOsCatalogCard('emerald')} !p-5 space-y-3`} data-fc-accent="emerald">
+            <FinelyOsSectionTitle icon={Target} label="Daily growth target" accent="emerald" />
+            <p className={FINELY_OS_ENTITY_BODY}>
+              Goal: <strong className="text-emerald-300">{DAILY_LEAD_TARGET}+ qualified prospects per day</strong> with email or phone —
+              routed to free signup funnels like <code className="opacity-80">{recommendedSignupPath('clients')}</code>.
+            </p>
+            <div className="h-2 rounded-full bg-white/10 overflow-hidden">
+              <div
+                className="h-full bg-gradient-to-r from-emerald-500 to-[#39ff14] transition-all duration-500"
+                style={{ width: `${Math.min(100, Math.round((results.length / DAILY_LEAD_TARGET) * 100))}%` }}
+              />
+            </div>
+            <div className="flex flex-wrap gap-2 text-xs text-white/60">
+              <span>Session: {results.length} / {DAILY_LEAD_TARGET}</span>
+              <span>•</span>
+              <span>Ready lane: {results.filter((r) => staging[r.url] === 'ready').length}</span>
+              <span>•</span>
+              <span>With email: {results.filter((r) => (r.emails?.length ?? 0) > 0).length}</span>
+            </div>
+            <button type="button" onClick={() => void runDailyGrowthBatch()} disabled={busy || !features.leadIntel} className={FINELY_OS_PRIMARY_BTN}>
+              <Sparkles size={14} /> {busy ? 'Running daily batch…' : `Run daily growth batch (${DAILY_LEAD_TARGET}+ leads)`}
+            </button>
+          </div>
+
           <LeadIntelSourceWizard
             busy={busy}
             onRun={({ source, target: t, query: q, location: loc, enrich: en }) => {
@@ -434,8 +505,8 @@ function scoreChip(_score: number) {
                   type="number"
                   value={limit}
                   min={1}
-                  max={20}
-                  onChange={(e) => setLimit(clampIntelLimit(Number(e.target.value || 10)))}
+                  max={50}
+                  onChange={(e) => setLimit(clampIntelLimit(Number(e.target.value || 25)))}
                   className={FINELY_OS_ENTITY_INPUT}
                 />
               </div>
@@ -573,6 +644,12 @@ function scoreChip(_score: number) {
                   </ul>
                 </div>
               ) : null}
+              <div>
+                <div className={FINELY_OS_ENTITY_SUBLABEL}>Recommended signup path</div>
+                <div className={`mt-1 ${FINELY_OS_ENTITY_VALUE}`}>
+                  {focused.recommendedFunnel ?? recommendedSignupPath(target)}
+                </div>
+              </div>
               <div>
                 <div className={FINELY_OS_ENTITY_SUBLABEL}>Recommended path</div>
                 <div className={`mt-1 ${FINELY_OS_ENTITY_VALUE}`}>{recommendedPathForTarget(target).nextActionLabel}</div>

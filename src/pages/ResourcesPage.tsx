@@ -364,7 +364,7 @@ export default function ResourcesPage() {
             <div className="max-w-2xl">
               <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-emerald-600/25 bg-emerald-500/15 mb-3">
                 <Sparkles className="w-3.5 h-3.5 text-emerald-700" />
-                <span className="text-[10px] uppercase tracking-widest text-emerald-800 font-black">Free lead magnet</span>
+                <span className="text-[10px] uppercase tracking-widest text-emerald-800 font-black">Free guide</span>
               </div>
               <h2 className="text-2xl sm:text-3xl font-black leading-tight">
                 Credit Dispute Letter Guide — <span className="text-emerald-700">5-step playbook</span>

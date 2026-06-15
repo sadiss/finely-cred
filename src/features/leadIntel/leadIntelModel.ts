@@ -11,6 +11,8 @@ export type IntelResult = {
   phones: string[];
   meta?: { description?: string; h1?: string };
   score: number;
+  signupIntent?: boolean;
+  recommendedFunnel?: string;
 };
 
 export type LeadIntelView = 'discover' | 'staging' | 'library' | 'copilot';
@@ -30,6 +32,12 @@ export const LEAD_INTEL_TEMPLATES: LeadIntelTemplate[] = [
     label: 'Clients • Credit repair demand (US)',
     target: 'clients',
     query: 'fix my credit help credit repair consultation',
+    location: 'United States',
+  },
+  {
+    label: 'Clients • Free guide / signup intent',
+    target: 'clients',
+    query: 'free credit dispute letter guide download email',
     location: 'United States',
   },
   {
@@ -62,6 +70,18 @@ export const LEAD_INTEL_TEMPLATES: LeadIntelTemplate[] = [
     query: 'business funding partner program merchant referral',
     location: 'United States',
   },
+  {
+    label: 'Clients • Metro2 / bureau dispute help',
+    target: 'clients',
+    query: 'credit bureau dispute letter help inaccurate reporting',
+    location: 'United States',
+  },
+  {
+    label: 'Affiliates • Referral / co-marketing partners',
+    target: 'affiliates',
+    query: 'financial literacy affiliate referral partner program',
+    location: 'United States',
+  },
 ];
 
 export const STAGING_COLUMNS: Array<{ id: StagingLane; label: string; hint: string; accent: 'sky' | 'violet' | 'emerald' | 'fuchsia' }> = [
@@ -72,14 +92,15 @@ export const STAGING_COLUMNS: Array<{ id: StagingLane; label: string; hint: stri
 ];
 
 export function clampIntelLimit(n: number) {
-  return Math.max(1, Math.min(20, Math.round(n)));
+  return Math.max(1, Math.min(50, Math.round(n)));
 }
 
 export function defaultStagingLane(r: IntelResult): StagingLane {
   const contacts = (r.emails?.length ?? 0) + (r.phones?.length ?? 0);
   if (!r.robotsOk || (r.score ?? 0) < 15) return 'pass';
-  if ((r.score ?? 0) >= 55 && contacts > 0) return 'ready';
-  if ((r.score ?? 0) >= 40) return 'qualified';
+  if ((r.score ?? 0) >= 50 && contacts > 0) return 'ready';
+  if ((r.score ?? 0) >= 38 && contacts > 0) return 'qualified';
+  if ((r.score ?? 0) >= 55) return 'qualified';
   return 'review';
 }
 

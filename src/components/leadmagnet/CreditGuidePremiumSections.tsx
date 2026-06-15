@@ -90,7 +90,7 @@ export function CreditGuidePremiumLanding({
             <div className="order-2 lg:order-1">
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full fg-kicker-pill mb-6 sm:mb-8">
                 <span className="h-2 w-2 rounded-full bg-[#39ff14] animate-pulse shadow-[0_0_8px_#39ff14]" />
-                <span className="text-[10px] sm:text-xs font-bold text-[#39ff14] uppercase tracking-widest">Free lead magnet</span>
+                <span className="text-[10px] sm:text-xs font-bold text-[#39ff14] uppercase tracking-widest">Free guide & toolkit</span>
               </div>
               <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black leading-[1.1] mb-4 sm:mb-6 text-white">
                 {headlineOverride ?? (

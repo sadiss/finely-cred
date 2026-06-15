@@ -16,11 +16,14 @@ type Target = 'clients' | 'affiliates' | 'agents' | 'teams' | 'au_sellers' | 'b2
 
 type ReqBody = {
   target: Target;
-  query: string;
+  query?: string;
+  /** Run multiple queries in one request (daily growth batch). */
+  queries?: string[];
   location?: string;
   country?: string; // e.g. "us"
-  limit?: number; // <= 20 recommended
+  limit?: number; // <= 50 recommended
   enrich?: boolean;
+  signupIntent?: boolean;
 };
 
 type SearchResult = {
@@ -118,15 +121,39 @@ function extractMeta(html: string): { description?: string; h1?: string } {
   return { description: desc?.trim(), h1: h1?.trim() };
 }
 
-function scoreProspect(args: { target: Target; html?: string; emails: string[]; phones: string[]; url: string; title?: string; snippet?: string }) {
+function scoreProspect(args: {
+  target: Target;
+  html?: string;
+  emails: string[];
+  phones: string[];
+  url: string;
+  title?: string;
+  snippet?: string;
+  signupIntent?: boolean;
+}) {
   let score = 10;
   if (args.emails.length) score += 30;
   if (args.phones.length) score += 20;
   if (args.url.includes('/contact')) score += 10;
+  if (args.url.includes('/signup') || args.url.includes('/register') || args.url.includes('/join')) score += 12;
   const hay = `${args.title ?? ''} ${args.snippet ?? ''} ${args.html ?? ''}`.toLowerCase();
   const bump = (w: string, n: number) => {
     if (hay.includes(w)) score += n;
   };
+  // Signup / guide intent — people likely to convert on free funnels
+  bump('free guide', 14);
+  bump('dispute letter', 12);
+  bump('sign up', 12);
+  bump('download', 10);
+  bump('get started', 10);
+  bump('free consultation', 11);
+  bump('credit repair help', 10);
+  bump('fix my credit', 10);
+  if (args.signupIntent) {
+    bump('free', 6);
+    bump('guide', 6);
+    bump('email', 4);
+  }
   if (args.target === 'au_sellers') {
     bump('tradeline', 10);
     bump('authorized user', 10);
@@ -156,7 +183,7 @@ async function serperSearch(args: { apiKey: string; q: string; location?: string
       q: args.q,
       gl: args.gl ?? 'us',
       location: args.location ?? undefined,
-      num: Math.max(1, Math.min(20, args.num)),
+      num: Math.max(1, Math.min(50, args.num)),
     }),
   });
   const txt = await res.text();
@@ -195,21 +222,37 @@ Deno.serve(async (req) => {
   }
 
   const target = (body?.target || 'clients') as Target;
-  const query = norm(body?.query);
   const location = norm(body?.location || '');
   const gl = norm(body?.country || 'us') || 'us';
-  const limit = Math.max(1, Math.min(20, Number(body?.limit ?? 10)));
+  const perQueryLimit = Math.max(1, Math.min(50, Number(body?.limit ?? 10)));
   const enrich = body?.enrich !== false;
-  if (!query) return json({ error: 'Missing query' }, { status: 400 });
+  const signupIntent = body?.signupIntent === true;
+  const queryList = Array.isArray(body?.queries) && body.queries.length
+    ? body.queries.map((q) => norm(q)).filter(Boolean).slice(0, 15)
+    : [norm(body?.query || '')].filter(Boolean);
+  if (!queryList.length) return json({ error: 'Missing query or queries' }, { status: 400 });
 
   const apiKey = (Deno.env.get('SERPER_API_KEY') || '').trim();
   if (!apiKey) return json({ error: 'SERPER_API_KEY missing' }, { status: 500 });
 
   try {
-    const results = await serperSearch({ apiKey, q: query, location: location || undefined, gl, num: limit });
+    const seen = new Set<string>();
+    const rawResults: SearchResult[] = [];
+    const perQ = Math.max(3, Math.ceil(perQueryLimit / queryList.length));
+
+    for (const q of queryList) {
+      const batch = await serperSearch({ apiKey, q, location: location || undefined, gl, num: perQ });
+      for (const r of batch) {
+        const link = safeUrl(r.link || '');
+        if (!link || seen.has(link)) continue;
+        seen.add(link);
+        rawResults.push(r);
+      }
+    }
+
     const enriched: any[] = [];
 
-    for (const r of results) {
+    for (const r of rawResults.slice(0, perQueryLimit * queryList.length)) {
       const link = safeUrl(r.link || '');
       if (!link) continue;
       let html = '';
@@ -235,7 +278,7 @@ Deno.serve(async (req) => {
         }
       }
 
-      const score = scoreProspect({ target, html, emails, phones, url: link, title: r.title, snippet: r.snippet });
+      const score = scoreProspect({ target, html, emails, phones, url: link, title: r.title, snippet: r.snippet, signupIntent });
       enriched.push({
         title: r.title ?? '',
         url: link,
@@ -247,17 +290,40 @@ Deno.serve(async (req) => {
         phones,
         meta,
         score,
+        signupIntent,
+        recommendedFunnel: target === 'clients' ? '/free-guide' : target === 'affiliates' ? '/affiliate/hub' : '/start-here',
       });
     }
+
+    enriched.sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
 
     await logEdgeEvent({
       namespace: 'lead-intel',
       level: 'info',
       event: 'search_completed',
-      meta: { userId: ctx.user.id, ip: ctx.ip, target, query, location: location || null, country: gl, limit, returned: enriched.length },
+      meta: {
+        userId: ctx.user.id,
+        ip: ctx.ip,
+        target,
+        queries: queryList,
+        location: location || null,
+        country: gl,
+        limit: perQueryLimit,
+        returned: enriched.length,
+        batch: queryList.length > 1,
+      },
     });
 
-    return json({ ok: true, target, query, location: location || null, country: gl, results: enriched });
+    return json({
+      ok: true,
+      target,
+      query: queryList[0],
+      queries: queryList,
+      location: location || null,
+      country: gl,
+      results: enriched,
+      dailyTarget: 50,
+    });
   } catch (e) {
     await logEdgeEvent({
       namespace: 'lead-intel',

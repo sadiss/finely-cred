@@ -253,7 +253,7 @@ export function LeadMagnetFunnelShell({
         ) : (
         <div className="bg-mesh min-h-screen">
           <FinelyUnifiedHubLayout
-            eyebrow="Free lead magnet"
+            eyebrow="Free guide & toolkit"
             title={activeConfig.heroHeadline}
             subtitle={guide.desc}
             accent="emerald"
@@ -265,7 +265,7 @@ export function LeadMagnetFunnelShell({
             <div className={`${finelyOsLeadMagnetPanel('emerald')} p-6 sm:p-10`} data-fc-accent="emerald">
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full fg-kicker-pill mb-6">
                 <span className="h-2 w-2 rounded-full bg-[#39ff14] animate-pulse" />
-                <span className="text-[10px] font-bold text-[#39ff14] uppercase tracking-widest">Free lead magnet</span>
+                <span className="text-[10px] font-bold text-[#39ff14] uppercase tracking-widest">Free guide & toolkit</span>
               </div>
               <h1 className="text-3xl sm:text-5xl font-black leading-tight mb-4">
                 {headlineOverride ?? (

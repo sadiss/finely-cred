@@ -58,7 +58,7 @@ export default function UnsubscribePage() {
           ) : (
             <>
               <p className={FINELY_OS_ENTITY_BODY}>
-                Enter the email you used on a lead magnet or consultation form. This updates marketing preferences stored on this platform instance.
+                Enter the email you used on a free guide signup or consultation form. This updates marketing preferences stored on this platform instance.
               </p>
               <form onSubmit={onSubmit} className="space-y-3">
                 <label className="block">
