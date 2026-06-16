@@ -32,6 +32,7 @@ import { LineChartCard, DonutChartCard } from '../../components/charts';
 import { ProfileGoalsReadinessPanel } from '../../components/profile/ProfileGoalsReadinessPanel';
 import { ProofDocumentsHub } from '../../components/evidence/ProofDocumentsHub';
 import { PartnerFundingCommandStrip } from '../../components/partner/PartnerFundingCommandStrip';
+import { FinelyBridgeConnectorPanel } from '../../components/bridge/FinelyBridgeConnectorPanel';
 import { PartnerOnboardingProgress } from '../../components/onboarding/PartnerOnboardingProgress';
 import { PartnerCreditLanesPanel } from '../../components/partner/PartnerCreditLanesPanel';
 import { ensurePartnerOnboardingTasks } from '../../lib/partnerOnboardingEngine';
@@ -430,6 +431,13 @@ export default function PartnerDashboardPage() {
                 else window.alert(r.error ?? 'Funding handoff failed.');
               });
             }}
+          />
+          <FinelyBridgeConnectorPanel
+            partner={partner}
+            reportCount={reports.length}
+            letterCount={letters.length}
+            mode="readiness"
+            onPartnerRefresh={() => refresh()}
           />
           <ProofDocumentsHub partner={partner} email={auth.user?.email} onUploaded={() => refresh()} />
           <div className="flex flex-wrap items-center justify-between gap-4">

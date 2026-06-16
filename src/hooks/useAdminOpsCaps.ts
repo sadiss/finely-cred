@@ -41,6 +41,7 @@ export function isAdminNavPathAllowed(path: string, caps: ReturnType<typeof useA
   const platformOnly = [
     '/admin/tenants',
     '/admin/nora-capital',
+    '/admin/finely-bridge-ops',
     '/admin/vault',
     '/admin/monitoring',
     '/admin/media-studio',

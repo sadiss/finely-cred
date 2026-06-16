@@ -153,6 +153,8 @@ const AdminLeadsOsPage = lazy(() => import('./pages/admin/AdminLeadsOsPage'));
 const AdminMediaStudioPage = lazy(() => import('./pages/admin/AdminMediaStudioPage'));
 const AdminVoiceStudioPage = lazy(() => import('./pages/admin/AdminVoiceStudioPage'));
 const AdminNoraCapitalPage = lazy(() => import('./pages/admin/AdminNoraCapitalPage'));
+const FinelyBridgeOpsPage = lazy(() => import('./pages/admin/FinelyBridgeOpsPage'));
+const FinelyCredServicesPage = lazy(() => import('./pages/FinelyCredServicesPage'));
 const AdminProductsPage = lazy(() => import('./pages/admin/AdminProductsPage'));
 const AdminCmsPage = lazy(() => import('./pages/admin/AdminCmsPage'));
 const AdminAnalyticsPage = lazy(() => import('./pages/admin/AdminAnalyticsPage'));
@@ -1548,6 +1550,7 @@ function AppInner() {
         <Route path="/about" element={<AboutRoute onNavigate={(v) => navigate(routeFromView(v))} />} />
         <Route path="/services" element={<PricingPage />} />
         <Route path="/services/tradelines" element={<Navigate to="/tradelines" replace />} />
+        <Route path="/services/finelycred" element={<FinelyCredServicesPage />} />
         <Route path="/services/:service" element={<PricingServicePage />} />
         <Route path="/pricing" element={<PricingPage />} />
         <Route path="/pricing/:service" element={<PricingServicePage />} />
@@ -2274,6 +2277,14 @@ function AppInner() {
           element={
             <ProtectedAdminRoute>
               <AdminLeadMagnetFunnelsPage />
+            </ProtectedAdminRoute>
+          }
+        />
+        <Route
+          path="/admin/finely-bridge-ops"
+          element={
+            <ProtectedAdminRoute>
+              <FinelyBridgeOpsPage />
             </ProtectedAdminRoute>
           }
         />

@@ -24,6 +24,7 @@ const LAUNCH_FUNCTIONS = [
   'meta-oauth',
   'meta-publish-post',
   'finely-partner-api',
+  'finely-bridge-webhook',
   'vault-intelligence',
   'admin-import-legacy',
   'nora-capital',

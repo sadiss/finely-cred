@@ -8,6 +8,7 @@ import { getFeatureFlags, isNoraCapitalConfigured } from '../../data/settingsRep
 import { PartnerFundingCommandStrip } from '../../components/partner/PartnerFundingCommandStrip';
 import { FundingLadderPanel } from '../../components/funding/FundingLadderPanel';
 import { submitPartnerFundingHandoff } from '../../lib/noraFundingHandoff';
+import { FinelyBridgeConnectorPanel } from '../../components/bridge/FinelyBridgeConnectorPanel';
 import { FinelyOsPageFooter } from '../../features/os/FinelyOsPageFooter';
 import { FinelyUnifiedHubLayout } from '../../features/unified/FinelyUnifiedHubLayout';
 import {
@@ -138,6 +139,16 @@ export default function PartnerWealthPathsPage() {
                       else window.alert(r.error ?? 'Funding handoff failed.');
                     });
                   }}
+                />
+              ) : null}
+
+              {partner ? (
+                <FinelyBridgeConnectorPanel
+                  partner={partner}
+                  reportCount={reportCount}
+                  letterCount={letterCount}
+                  mode="origination"
+                  onPartnerRefresh={() => refresh()}
                 />
               ) : null}
 

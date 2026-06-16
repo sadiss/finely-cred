@@ -6,6 +6,9 @@
 //
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.1';
 import { buildPartnerMlAdvisory, buildPartnerMlContext } from '../_shared/ncgMlEngine.ts';
+import { buildCreditProgram, assertPacketExportAllowed } from '../_shared/finelyBridgeCreditProgram.ts';
+import { buildBridgeOpsSnapshot, handleFundReadyBridgeHandoff } from '../_shared/finelyBridgeHandoff.ts';
+import { buildUnderwritingPacketV2 } from '../_shared/underwritingPacketV2.ts';
 import { corsHeaders } from '../_shared/cors.ts';
 import { getClientIp, json, logEdgeEvent, rateLimit, requireAllowlistedEmail, requireAuth, requireEnv } from '../_shared/edgeGuard.ts';
 
@@ -52,7 +55,11 @@ type Body =
   | { action: 'ml.funding_path'; partnerId?: string; email?: string }
   | { action: 'ml.dispute_strategy'; partnerId?: string; email?: string }
   | { action: 'ml.pipeline_insights'; tenantId?: string; limit?: number }
-  | { action: 'partner.enriched_profile'; partnerId?: string; email?: string };
+  | { action: 'partner.enriched_profile'; partnerId?: string; email?: string }
+  | { action: 'partner.credit_program'; partnerId?: string; email?: string }
+  | { action: 'partner.underwriting_packet_v2'; partnerId?: string; email?: string; adminOverride?: boolean }
+  | { action: 'bridge.fund_ready'; partnerId?: string; email?: string; force?: boolean }
+  | { action: 'bridge.ops_snapshot'; limit?: number };
 
 function buildReadiness(partner: any) {
   const signals = partner.journey_signals && typeof partner.journey_signals === 'object' ? partner.journey_signals : {};
@@ -141,6 +148,10 @@ Deno.serve(async (req) => {
         'ml.funding_path',
         'ml.dispute_strategy',
         'ml.pipeline_insights',
+        'partner.credit_program',
+        'partner.underwriting_packet_v2',
+        'bridge.fund_ready',
+        'bridge.ops_snapshot',
         'voice.catalog',
         'voice.asset',
         'voice.render',
@@ -301,6 +312,78 @@ Deno.serve(async (req) => {
           exportedAt: new Date().toISOString(),
         },
       });
+    } catch (e) {
+      return json({ ok: false, error: (e as Error).message }, { status: 500 });
+    }
+  }
+
+  if (action === 'partner.credit_program') {
+    const partnerId = String((body as any).partnerId || '').trim();
+    const email = String((body as any).email || '').trim().toLowerCase();
+    if (!partnerId && !email) return json({ ok: false, error: 'partnerId or email required' }, { status: 400 });
+    const data = await fetchPartner(partnerId || undefined, email || undefined);
+    if (!data) return json({ ok: false, error: 'Partner not found' }, { status: 404 });
+    const readiness = buildReadiness(data);
+    const counts = await fetchPartnerCounts(data.id);
+    const creditProgram = buildCreditProgram({
+      partner: data,
+      readinessScore: readiness.readinessScore,
+      letterCount: counts.letterCount,
+      reportCount: counts.reportCount,
+    });
+    return json({ ok: true, partnerId: data.id, creditProgram });
+  }
+
+  if (action === 'partner.underwriting_packet_v2') {
+    const partnerId = String((body as any).partnerId || '').trim();
+    const email = String((body as any).email || '').trim().toLowerCase();
+    if (!partnerId && !email) return json({ ok: false, error: 'partnerId or email required' }, { status: 400 });
+    const data = await fetchPartner(partnerId || undefined, email || undefined);
+    if (!data) return json({ ok: false, error: 'Partner not found' }, { status: 404 });
+    const readiness = buildReadiness(data);
+    const counts = await fetchPartnerCounts(data.id);
+    const creditProgram = buildCreditProgram({
+      partner: data,
+      readinessScore: readiness.readinessScore,
+      letterCount: counts.letterCount,
+      reportCount: counts.reportCount,
+    });
+    const gate = assertPacketExportAllowed(creditProgram, Boolean((body as any).adminOverride));
+    if (!gate.ok) return json({ ok: false, error: gate.blocker, exportGate: creditProgram }, { status: 403 });
+    const packet = buildUnderwritingPacketV2({
+      partner: data,
+      readinessScore: readiness.readinessScore,
+      blockers: readiness.blockers,
+      reportCount: counts.reportCount,
+      letterCount: counts.letterCount,
+      evidenceCount: counts.evidenceCount,
+    });
+    return json({ ok: true, packet });
+  }
+
+  if (action === 'bridge.fund_ready') {
+    const partnerId = String((body as any).partnerId || '').trim();
+    const email = String((body as any).email || '').trim().toLowerCase();
+    if (!partnerId && !email) return json({ ok: false, error: 'partnerId or email required' }, { status: 400 });
+    const handoff = await handleFundReadyBridgeHandoff(admin, {
+      partnerId: partnerId || undefined,
+      email: email || undefined,
+      force: Boolean((body as any).force),
+    });
+    if (!handoff.ok) return json({ ok: false, error: handoff.error }, { status: 422 });
+    return json({
+      ok: true,
+      partnerId: handoff.partnerId,
+      bridgeSuggestion: handoff.result.bridgeSuggestion,
+      bridgeTasksCreated: handoff.result.bridgeTasksCreated,
+      bridgeHandoffSuggestedAt: handoff.result.bridgeHandoffSuggestedAt,
+    });
+  }
+
+  if (action === 'bridge.ops_snapshot') {
+    try {
+      const snapshot = await buildBridgeOpsSnapshot(admin);
+      return json({ ok: true, ops: snapshot });
     } catch (e) {
       return json({ ok: false, error: (e as Error).message }, { status: 500 });
     }

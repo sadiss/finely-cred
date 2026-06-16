@@ -16,19 +16,19 @@ function StepNavFooter({ prev, onNext, nextLabel = 'Continue', nextDisabled }: {
   nextDisabled?: boolean;
 }) {
   return (
-    <div className="flex flex-wrap items-center justify-between gap-4 pt-6">
+    <div className="flex flex-col-reverse gap-3 pt-6 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-4">
       {prev ? (
         <button
           type="button"
           onClick={prev}
-          className="inline-flex items-center gap-2 px-5 py-3 fc-light-glass-panel fc-light-chrome-panel rounded-xl hover:bg-white/[0.09] text-[10px] font-black uppercase tracking-widest text-white/70 hover:text-white transition-all"
+          className="inline-flex w-full sm:w-auto items-center justify-center gap-2 px-5 py-3.5 min-h-[48px] fc-light-glass-panel fc-light-chrome-panel rounded-xl hover:bg-white/[0.09] text-[10px] font-black uppercase tracking-widest text-white/70 hover:text-white transition-all"
         >
           <ArrowLeft size={14} /> Previous
         </button>
       ) : (
-        <div />
+        <div className="hidden sm:block" />
       )}
-      <Button onClick={onNext} disabled={nextDisabled} size="lg">
+      <Button onClick={onNext} disabled={nextDisabled} size="lg" className="w-full sm:w-auto min-h-[48px]">
         {nextLabel}
       </Button>
     </div>
@@ -69,13 +69,13 @@ export function ProfileAndAccountStep({
     !isBusy;
 
   return (
-    <div className="space-y-10 animate-in fade-in slide-in-from-bottom-8 duration-700 text-left">
+    <div className="space-y-8 sm:space-y-10 animate-in fade-in slide-in-from-bottom-8 duration-700 text-left min-w-0">
       <div className="space-y-3">
-        <p className="text-[10px] font-black tracking-[0.6em] text-fuchsia-400 uppercase">Profile & account</p>
-        <h2 className="text-4xl md:text-5xl font-light text-white leading-tight">
+        <p className="text-[10px] font-black tracking-[0.35em] sm:tracking-[0.6em] text-fuchsia-400 uppercase">Profile & account</p>
+        <h2 className="fc-onboarding-step-title">
           Your details in <span className="text-fuchsia-400">one place</span>
         </h2>
-        <p className="text-white/45 text-lg font-light max-w-2xl">
+        <p className="text-white/45 text-base sm:text-lg font-light max-w-2xl">
           Name, contact, login, and optional mailing address — saved to your profile and synced with your partner file.
           Update anytime under Account settings after sign-in.
         </p>
@@ -89,8 +89,8 @@ export function ProfileAndAccountStep({
         </div>
       )}
 
-      <div className="grid lg:grid-cols-2 gap-6 max-w-5xl">
-        <div className="fc-light-glass-panel fc-light-chrome-panel p-6 space-y-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 max-w-5xl min-w-0">
+        <div className="fc-light-glass-panel fc-light-chrome-panel p-4 sm:p-6 space-y-4 min-w-0">
           <div className="flex items-center gap-2 text-white/50 text-[10px] font-black uppercase tracking-widest">
             <User size={14} className="text-fuchsia-300" /> Personal
           </div>
@@ -118,7 +118,7 @@ export function ProfileAndAccountStep({
           </label>
         </div>
 
-        <div className="fc-light-glass-panel fc-light-chrome-panel p-6 space-y-4">
+        <div className="fc-light-glass-panel fc-light-chrome-panel p-4 sm:p-6 space-y-4 min-w-0">
           <div className="flex items-center gap-2 text-white/50 text-[10px] font-black uppercase tracking-widest">
             <Lock size={14} className="text-fuchsia-300" /> Login
           </div>

@@ -4244,6 +4244,56 @@ html[data-fc-theme="dark"] .fc-testimonial-dossier.fc-accent-card {
   top: env(safe-area-inset-top, 0px);
 }
 
+/* Signup / sign-in shell — mobile & tablet */
+[data-fc-onboarding-shell="1"] {
+  -webkit-overflow-scrolling: touch;
+}
+
+[data-fc-onboarding-shell="1"] input,
+[data-fc-onboarding-shell="1"] select,
+[data-fc-onboarding-shell="1"] textarea {
+  font-size: max(16px, 1rem);
+}
+
+@media (min-width: 640px) {
+  [data-fc-onboarding-shell="1"] input,
+  [data-fc-onboarding-shell="1"] select,
+  [data-fc-onboarding-shell="1"] textarea {
+    font-size: 0.875rem;
+  }
+}
+
+.fc-onboarding-shell-scroll {
+  overflow-x: clip;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  padding-top: max(3.75rem, calc(env(safe-area-inset-top, 0px) + 2.75rem));
+  padding-bottom: max(1.5rem, env(safe-area-inset-bottom, 0px));
+  padding-left: max(1rem, env(safe-area-inset-left, 0px));
+  padding-right: max(1rem, env(safe-area-inset-right, 0px));
+}
+
+@media (min-width: 640px) {
+  .fc-onboarding-shell-scroll {
+    padding-top: max(2.5rem, calc(env(safe-area-inset-top, 0px) + 1.5rem));
+    padding-left: max(1.5rem, env(safe-area-inset-left, 0px));
+    padding-right: max(1.5rem, env(safe-area-inset-right, 0px));
+  }
+}
+
+.fc-onboarding-step-title {
+  font-size: clamp(1.625rem, 5vw, 3rem);
+  line-height: 1.15;
+  font-weight: 300;
+  color: rgb(255 255 255);
+}
+
+@media (min-width: 768px) {
+  .fc-onboarding-step-title {
+    font-size: clamp(2rem, 4vw, 3rem);
+  }
+}
+
 .fc-lane-jumper {
   display: flex;
   flex-wrap: wrap;

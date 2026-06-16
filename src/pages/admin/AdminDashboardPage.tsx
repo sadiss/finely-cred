@@ -305,6 +305,14 @@ export default function AdminDashboardPage() {
       hidden: !opsCaps.canManageTenants,
     },
     {
+      title: 'Finely Cred ? Bridge ops',
+      description: 'Fund-ready queue, Bridge handoffs, phase KPIs, and ML pipeline scan for Provider Gateway.',
+      path: '/admin/finely-bridge-ops',
+      icon: Sparkles,
+      stat: 'Bridge',
+      hidden: !opsCaps.canManageTenants,
+    },
+    {
       title: 'Nora Capital Group',
       description: 'Secure API integration shim (admin-only): test calls, audit responses, and monitor webhook events.',
       path: '/admin/nora-capital',
@@ -473,6 +481,7 @@ export default function AdminDashboardPage() {
           '/admin/finance',
           '/admin/monitoring',
           '/admin/nora-capital',
+          '/admin/finely-bridge-ops',
           '/admin/vault',
           '/admin/parsing-lab',
           '/admin/settings?tab=appearance',

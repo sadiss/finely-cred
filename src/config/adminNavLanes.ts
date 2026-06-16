@@ -110,6 +110,7 @@ export const ADMIN_NAV_GROUPS: AdminNavGroupDef[] = [
       { path: '/admin/monitoring', label: 'Monitoring', icon: Activity, hint: 'Telemetry' },
       { path: '/admin/integrations', label: 'Integrations', icon: Webhook, hint: 'Webhooks + API keys' },
       { path: '/admin/nora-capital', label: 'Nora Capital', icon: BriefcaseBusiness, hint: 'Integration' },
+      { path: '/admin/finely-bridge-ops', label: 'Bridge ops', icon: Sparkles, hint: 'Finely ↔ Bridge' },
       { path: '/admin/vault', label: 'Vault', icon: Lock, hint: 'Restricted' },
       { path: '/admin/parsing-lab', label: 'Parsing Lab', icon: FlaskConical, hint: 'Regression harness' },
       { path: '/admin/settings?tab=appearance', label: 'Appearance', icon: Settings, hint: 'Light theme admin preview' },

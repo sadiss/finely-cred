@@ -6,6 +6,7 @@
 //
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.1';
 import { corsHeaders } from '../_shared/cors.ts';
+import { handleFundReadyBridgeHandoff } from '../_shared/finelyBridgeHandoff.ts';
 import { json, logEdgeEvent, requireEnv } from '../_shared/edgeGuard.ts';
 
 async function hmacSha256Hex(secret: string, payload: Uint8Array): Promise<string> {
@@ -81,6 +82,27 @@ Deno.serve(async (req) => {
   const partnerId = String(parsed?.partnerId ?? parsed?.finelyPartnerId ?? parsed?.externalPartnerId ?? '').trim();
   const email = String(parsed?.email ?? parsed?.partnerEmail ?? '').trim().toLowerCase();
   const applicationId = String(parsed?.applicationId ?? parsed?.id ?? '').trim() || undefined;
+  const event = String(parsed?.event ?? '').trim().toLowerCase();
+
+  let bridgeResponse: Record<string, unknown> | null = null;
+
+  if ((event === 'fund_ready' || event === 'bridge.fund_ready') && (partnerId || email)) {
+    try {
+      const supabaseUrl = requireEnv('SUPABASE_URL');
+      const serviceRoleKey = requireEnv('SUPABASE_SERVICE_ROLE_KEY');
+      const admin = createClient(supabaseUrl, serviceRoleKey, { auth: { persistSession: false } });
+      const handoff = await handleFundReadyBridgeHandoff(admin, { partnerId: partnerId || undefined, email: email || undefined });
+      if (handoff.ok) {
+        bridgeResponse = {
+          bridgeSuggestion: handoff.result.bridgeSuggestion,
+          bridgeTasksCreated: handoff.result.bridgeTasksCreated,
+          bridgeHandoffSuggestedAt: handoff.result.bridgeHandoffSuggestedAt,
+        };
+      }
+    } catch (e) {
+      await logEdgeEvent({ namespace: 'nora-capital', level: 'warn', event: 'webhook.fund_ready_failed', meta: { error: String(e) } });
+    }
+  }
 
   if (stage && (partnerId || email)) {
     try {
@@ -125,5 +147,5 @@ Deno.serve(async (req) => {
     }
   }
 
-  return json({ ok: true, stage: stage ?? null, partnerId: partnerId || null });
+  return json({ ok: true, stage: stage ?? null, partnerId: partnerId || null, ...bridgeResponse });
 });

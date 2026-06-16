@@ -119,6 +119,8 @@ export const ADMIN_ROUTES: RouteSpec[] = [
   { path: '/admin/courses', title: 'Courses', badge: 'Admin' },
   { path: '/admin/media-studio', title: 'AI Media Studio', badge: 'Admin' },
   { path: '/admin/nora-capital', title: 'Nora Capital Group API', badge: 'Admin' },
+  { path: '/admin/finely-bridge-ops', title: 'Finely Cred ↔ Bridge ops', badge: 'Admin' },
+  { path: '/services/finelycred', title: 'Finely Cred Services', badge: 'Public' },
   { path: '/admin/vault', title: 'Secret Vault', badge: 'Admin' },
   { path: '/admin/testimonials', title: 'Testimonials', badge: 'Admin' },
   { path: '/admin/finance', title: 'Finance Allocator', badge: 'Admin' },

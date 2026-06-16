@@ -38,6 +38,7 @@ const ADMIN_NAV_COMMANDS: CommandItem[] = [
   { id: 'nav_portfolio', label: 'Portfolio dashboard', href: '/admin/projects/portfolio', group: 'Navigate' },
   { id: 'nav_crm_seq', label: 'CRM sequences', href: '/admin/crm/sequences', group: 'Navigate' },
   { id: 'nav_partners', label: 'Partners', href: '/admin/partners', group: 'Navigate' },
+  { id: 'nav_bridge_ops', label: 'Finely Cred ↔ Bridge ops', hint: 'Fund-ready + handoffs', href: '/admin/finely-bridge-ops', group: 'Navigate' },
 ];
 
 const PORTAL_NAV_COMMANDS: CommandItem[] = [

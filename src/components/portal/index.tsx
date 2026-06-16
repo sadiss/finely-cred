@@ -203,17 +203,19 @@ function StepNavFooter({ prev, onNext, nextLabel = 'Continue', nextDisabled }: {
   nextDisabled?: boolean;
 }) {
   return (
-    <div className="flex flex-wrap items-center justify-between gap-4 pt-6">
+    <div className="flex flex-col-reverse gap-3 pt-6 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-4">
       {prev ? (
         <button
           type="button"
           onClick={prev}
-          className="inline-flex items-center gap-2 px-5 py-3 fc-light-glass-panel fc-light-chrome-panel rounded-xl text-[10px] font-black uppercase tracking-widest text-white/70 hover:bg-white/[0.04] hover:border-white/20 transition-all"
+          className="inline-flex w-full sm:w-auto items-center justify-center gap-2 px-5 py-3.5 min-h-[48px] fc-light-glass-panel fc-light-chrome-panel rounded-xl text-[10px] font-black uppercase tracking-widest text-white/70 hover:bg-white/[0.04] hover:border-white/20 transition-all"
         >
           <ArrowLeft size={14} /> Previous
         </button>
-      ) : <div />}
-      <Button onClick={onNext} disabled={nextDisabled} size="lg">
+      ) : (
+        <div className="hidden sm:block" />
+      )}
+      <Button onClick={onNext} disabled={nextDisabled} size="lg" className="w-full sm:w-auto min-h-[48px]">
         {nextLabel}
       </Button>
     </div>
@@ -1166,10 +1168,10 @@ export function RoleStep({ next, data, update }: StepProps) {
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
       <div className="space-y-3">
         <p className="text-[10px] font-black tracking-[0.6em] text-fuchsia-400 uppercase">Step 01 // Role</p>
-        <h2 className="text-4xl md:text-5xl font-light text-white">
+        <h2 className="fc-onboarding-step-title">
           Which best <span className="text-fuchsia-400">describes you?</span>
         </h2>
-        <p className="text-white/45 text-lg font-light max-w-xl">
+        <p className="text-white/45 text-base sm:text-lg font-light max-w-xl">
           This sets up your account and unlocks the right tools. You can refine the details next.
         </p>
       </div>
@@ -1187,7 +1189,7 @@ export function RoleStep({ next, data, update }: StepProps) {
                   ...(r.lane ? { lane: r.lane, goal: r.goal } : { lane: 'other' as OnboardingLane }),
                 })
               }
-              className={`group text-left rounded-2xl border p-6 transition-all ${
+              className={`group text-left rounded-2xl border p-4 sm:p-6 transition-all min-h-[48px] ${
                 active ? 'border-fuchsia-500/50 bg-fuchsia-500/10' : 'border-white/[0.08] bg-white/[0.05] hover:border-violet-500/30'
               }`}
             >
@@ -1226,10 +1228,10 @@ export function FocusStep({ next, prev, data, update }: StepProps) {
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
       <div className="space-y-3">
         <p className="text-[10px] font-black tracking-[0.6em] text-fuchsia-400 uppercase">Step 02 // Focus</p>
-        <h2 className="text-4xl md:text-5xl font-light text-white">
+        <h2 className="fc-onboarding-step-title">
           What do you want to <span className="text-fuchsia-400">work on?</span>
         </h2>
-        <p className="text-white/45 text-lg font-light max-w-xl">
+        <p className="text-white/45 text-base sm:text-lg font-light max-w-xl">
           Pick your main focus — you can add more now or later in your dashboard. Some tools unlock right away; paid
           services activate after checkout (your admin can unlock them too).
         </p>
@@ -1243,7 +1245,7 @@ export function FocusStep({ next, prev, data, update }: StepProps) {
               key={c.id}
               type="button"
               onClick={() => toggle(c.id)}
-              className={`group text-left rounded-2xl border p-6 transition-all ${
+              className={`group text-left rounded-2xl border p-4 sm:p-6 transition-all min-h-[48px] ${
                 active ? 'border-fuchsia-500/50 bg-fuchsia-500/10' : 'border-white/[0.08] bg-white/[0.05] hover:border-violet-500/30'
               }`}
             >
@@ -1562,10 +1564,10 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
     const brand = (tenant.settings.brandName || tenant.name || 'Finely Cred').trim() || 'Finely Cred';
 
     return (
-      <div className="fixed inset-0 z-[100] bg-fc-shell/95 backdrop-blur-2xl flex flex-col items-center justify-center p-6 animate-in zoom-in duration-500 fc-senior-simple" data-fc-onboarding-shell="1">
+      <div className="fixed inset-0 z-[100] bg-fc-shell/95 backdrop-blur-2xl fc-onboarding-shell-scroll flex flex-col items-stretch sm:items-center sm:justify-center animate-in zoom-in duration-500 fc-senior-simple" data-fc-onboarding-shell="1">
         <OnboardingShellCloseButton onClose={onClose} />
-        <div className="max-w-6xl w-full grid md:grid-cols-[1.2fr_0.8fr] gap-8">
-          <div className="fc-light-glass-panel fc-light-chrome-panel rounded-3xl p-10 relative overflow-hidden">
+        <div className="max-w-6xl w-full mx-auto grid grid-cols-1 lg:grid-cols-[1.2fr_0.8fr] gap-5 sm:gap-6 lg:gap-8 min-w-0">
+          <div className="fc-light-glass-panel fc-light-chrome-panel rounded-2xl sm:rounded-3xl p-5 sm:p-8 lg:p-10 relative overflow-hidden min-w-0">
             <div className="absolute inset-0 pointer-events-none">
               <div
                 className="absolute -top-24 left-1/2 -translate-x-1/2 w-[920px] h-[420px] blur-3xl opacity-35"
@@ -1582,16 +1584,16 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
                 <FinelyCredLogo size="md" forceLight />
                 <span className="sr-only">{brand}</span>
               </div>
-              <div className="text-[10px] font-black uppercase tracking-[0.35em] text-white/55">Partner access</div>
-              <h2 className="mt-4 text-4xl md:text-5xl font-light text-white leading-tight">
+              <div className="text-[10px] font-black uppercase tracking-[0.25em] sm:tracking-[0.35em] text-white/55">Partner access</div>
+              <h2 className="mt-3 sm:mt-4 text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-light text-white leading-tight">
                 Your credit file, one step at a time.
               </h2>
-              <p className="mt-4 text-white/55 text-sm md:text-base leading-relaxed max-w-2xl">
+              <p className="mt-3 sm:mt-4 text-white/55 text-sm md:text-base leading-relaxed max-w-2xl">
                 Create your account, complete a short intake, and land in your dashboard with next steps,
                 dispute items, evidence, and letters — so you always know what to do next.
               </p>
 
-              <div className="mt-6 grid sm:grid-cols-2 gap-3">
+              <div className="mt-5 sm:mt-6 grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3">
                 {[
                   { icon: Target, t: 'Clear next steps', d: 'Now / Next / Later with a simple sequence.' },
                   { icon: UploadCloud, t: 'Upload reports', d: 'Reports turn into evidence and dispute items.' },
@@ -1612,7 +1614,7 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
                 ))}
               </div>
 
-              <div className="mt-6 flex flex-wrap items-center gap-3 text-xs text-white/45">
+              <div className="mt-5 sm:mt-6 flex flex-wrap items-center gap-2 sm:gap-3 text-xs text-white/45">
                 <div className="inline-flex items-center gap-2 px-3 py-2 rounded-full fc-light-glass-panel fc-light-chrome-panel border">
                   <Clock size={14} className="text-white/50" /> ~2 minutes
                 </div>
@@ -1626,18 +1628,17 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
             </div>
           </div>
 
-          <div className="flex flex-col gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-4 sm:gap-5 lg:gap-6 min-w-0">
             <div
               onClick={() => setAuthMode('signup')}
-              className="group cursor-pointer p-8 rounded-3xl border border-violet-100/80 border-white/[0.08] bg-white/[0.05] hover:bg-white/[0.04] hover:border-violet-500/30 transition-all duration-500 flex flex-col items-center text-center gap-5"
+              className="group cursor-pointer p-5 sm:p-6 lg:p-8 rounded-2xl sm:rounded-3xl border border-violet-100/80 border-white/[0.08] bg-white/[0.05] hover:bg-white/[0.04] hover:border-violet-500/30 transition-all duration-500 flex flex-col items-center text-center gap-4 sm:gap-5 min-h-[48px]"
             >
-              <div
-                className="w-18 h-18 w-20 h-20 rounded-2xl flex items-center justify-center border fc-metal-icon-box group-hover:scale-110 transition-transform"
-              >
-                <Fingerprint size={38} className="text-[#0b1110]" />
+              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl flex items-center justify-center border fc-metal-icon-box group-hover:scale-110 transition-transform shrink-0">
+                <Fingerprint size={32} className="sm:hidden text-[#0b1110]" />
+                <Fingerprint size={38} className="hidden sm:block text-[#0b1110]" />
               </div>
-              <div className="space-y-2">
-                <h3 className="text-2xl font-light text-white">Create account</h3>
+              <div className="space-y-1.5 sm:space-y-2">
+                <h3 className="text-xl sm:text-2xl font-light text-white">Create account</h3>
                 <p className="text-sm text-white/45">
                   Complete the intake, get a recommended path, and enter the dashboard.
                 </p>
@@ -1649,15 +1650,14 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
 
             <div
               onClick={() => setAuthMode('login')}
-              className="group cursor-pointer p-8 rounded-3xl border border-violet-100/80 border-white/[0.08] bg-white/[0.05] hover:bg-white/[0.04] hover:border-violet-500/30 transition-all duration-500 flex flex-col items-center text-center gap-5"
+              className="group cursor-pointer p-5 sm:p-6 lg:p-8 rounded-2xl sm:rounded-3xl border border-violet-100/80 border-white/[0.08] bg-white/[0.05] hover:bg-white/[0.04] hover:border-violet-500/30 transition-all duration-500 flex flex-col items-center text-center gap-4 sm:gap-5 min-h-[48px]"
             >
-              <div
-                className="w-20 h-20 rounded-2xl flex items-center justify-center border fc-metal-icon-box group-hover:scale-110 transition-transform"
-              >
-                <Key size={38} className="text-[#0b1110]" />
+              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl flex items-center justify-center border fc-metal-icon-box group-hover:scale-110 transition-transform shrink-0">
+                <Key size={32} className="sm:hidden text-[#0b1110]" />
+                <Key size={38} className="hidden sm:block text-[#0b1110]" />
               </div>
-              <div className="space-y-2">
-                <h3 className="text-2xl font-light text-white">Sign in</h3>
+              <div className="space-y-1.5 sm:space-y-2">
+                <h3 className="text-xl sm:text-2xl font-light text-white">Sign in</h3>
                 <p className="text-sm text-white/45">Return to your dashboard, documents, and workflows.</p>
               </div>
               <div className="pt-1 w-full">
@@ -1668,7 +1668,7 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
         </div>
         <button 
           onClick={onClose} 
-          className="mt-12 text-white/45 hover:text-white uppercase tracking-widest text-xs flex items-center gap-2 transition-colors"
+          className="mt-8 sm:mt-12 mx-auto text-white/45 hover:text-white uppercase tracking-widest text-xs flex items-center gap-2 transition-colors min-h-[48px] px-2"
         >
           <ArrowLeft size={14} /> Back to website
         </button>
@@ -1679,17 +1679,16 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
   // Login Screen
   if (authMode === 'login') {
     return (
-      <div className="fixed inset-0 z-[100] bg-fc-shell flex items-center justify-center p-6 animate-in slide-in-from-bottom duration-500 fc-senior-simple" data-fc-onboarding-shell="1">
+      <div className="fixed inset-0 z-[100] bg-fc-shell fc-onboarding-shell-scroll flex flex-col sm:items-center sm:justify-center animate-in slide-in-from-bottom duration-500 fc-senior-simple" data-fc-onboarding-shell="1">
         <OnboardingShellCloseButton onClose={onClose} />
-        <div className="max-w-md w-full p-8 fc-light-glass-panel fc-light-chrome-panel rounded-3xl relative overflow-hidden">
+        <div className="max-w-md w-full mx-auto min-w-0 p-5 sm:p-8 fc-light-glass-panel fc-light-chrome-panel rounded-2xl sm:rounded-3xl relative overflow-hidden my-auto">
           <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-white/70 to-transparent opacity-60" />
-          <div className="text-center space-y-6 mb-8">
-            <div
-              className="mx-auto w-16 h-16 rounded-2xl flex items-center justify-center border fc-metal-icon-box"
-            >
-              <Key size={24} className="text-[#0b1110]" />
+          <div className="text-center space-y-4 sm:space-y-6 mb-6 sm:mb-8">
+            <div className="mx-auto w-14 h-14 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center border fc-metal-icon-box">
+              <Key size={22} className="sm:hidden text-[#0b1110]" />
+              <Key size={24} className="hidden sm:block text-[#0b1110]" />
             </div>
-            <h3 className="text-3xl font-light text-white">Sign in</h3>
+            <h3 className="text-2xl sm:text-3xl font-light text-white">Sign in</h3>
           </div>
           <div className="space-y-4">
             <div className="space-y-1 text-left">
@@ -1698,16 +1697,19 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
                 type="email" 
                 value={loginEmail}
                 onChange={(e) => setLoginEmail(e.target.value)}
-                className="w-full rounded-xl border border-white/[0.08] bg-fc-input px-4 py-3 text-white/90 placeholder:text-white/30 focus:outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 backdrop-blur-sm transition-all" 
+                autoComplete="email"
+                inputMode="email"
+                className="w-full min-h-[48px] rounded-xl border border-white/[0.08] bg-fc-input px-4 py-3 text-white/90 placeholder:text-white/30 focus:outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 backdrop-blur-sm transition-all" 
               />
             </div>
             <div className="space-y-1 text-left">
-              <label className="text-[10px] font-bold text-white/45 uppercase tracking-widest">Secure Token</label>
+              <label className="text-[10px] font-bold text-white/45 uppercase tracking-widest">Password</label>
               <input 
                 type="password" 
                 value={loginPassword}
                 onChange={(e) => setLoginPassword(e.target.value)}
-                className="w-full rounded-xl border border-white/[0.08] bg-fc-input px-4 py-3 text-white/90 placeholder:text-white/30 focus:outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 backdrop-blur-sm transition-all" 
+                autoComplete="current-password"
+                className="w-full min-h-[48px] rounded-xl border border-white/[0.08] bg-fc-input px-4 py-3 text-white/90 placeholder:text-white/30 focus:outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 backdrop-blur-sm transition-all" 
               />
             </div>
             {!auth.isConfigured && auth.isDevAuthEnabled && (
@@ -1729,38 +1731,34 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
               onClick={handleLogin}
               disabled={authBusy || !loginEmail || !loginPassword}
               size="lg"
-              className="w-full"
+              className="w-full min-h-[48px]"
             >
               {authBusy ? 'Signing in…' : 'Sign in'}
             </Button>
           </div>
+          <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
           <button 
             onClick={() => setAuthMode('select')} 
-            className="w-full mt-6 text-center text-white/45 hover:text-white text-[10px] uppercase tracking-widest transition-colors"
+            className="w-full min-h-[44px] text-center text-white/45 hover:text-white text-[10px] uppercase tracking-widest transition-colors px-2 py-2"
           >
-            Cancel Access Request
+            Back
           </button>
           <button
             onClick={() => {
               setAuthError(null);
               setAuthMode('signup');
             }}
-            className="w-full mt-3 text-center text-white/45 hover:text-fuchsia-300 text-[10px] uppercase tracking-widest transition-colors"
+            className="w-full min-h-[44px] text-center text-white/45 hover:text-fuchsia-300 text-[10px] uppercase tracking-widest transition-colors px-2 py-2"
           >
-            Need an account? Create one
+            Create account
           </button>
           <button
             onClick={() => navigate('/forgot-password')}
-            className="w-full mt-2 text-center text-white/55 hover:text-white text-[10px] uppercase tracking-widest transition-colors"
+            className="w-full min-h-[44px] text-center text-white/55 hover:text-white text-[10px] uppercase tracking-widest transition-colors px-2 py-2 sm:col-span-2"
           >
             Forgot password?
           </button>
-          <button
-            onClick={() => navigate('/account/settings')}
-            className="w-full mt-2 text-center text-white/55 hover:text-white text-[10px] uppercase tracking-widest transition-colors"
-          >
-            Account settings
-          </button>
+          </div>
         </div>
       </div>
     );
@@ -1776,7 +1774,7 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
   } : null;
 
   return (
-    <div className="fixed inset-0 z-[100] bg-fc-shell overflow-y-auto flex flex-col relative fc-senior-simple" data-fc-onboarding-shell="1">
+    <div className="fixed inset-0 z-[100] bg-fc-shell overflow-y-auto overflow-x-clip flex flex-col relative fc-senior-simple fc-onboarding-shell-scroll !pt-0" data-fc-onboarding-shell="1">
       <OnboardingShellCloseButton onClose={onClose} />
       <div className="pointer-events-none absolute inset-0">
         <div className="absolute -top-40 left-[-20%] h-[520px] w-[520px] rounded-full bg-white/70 blur-3xl" />
@@ -1784,33 +1782,45 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
         <div className="absolute inset-0 bg-gradient-to-b from-white/[0.03] via-transparent to-transparent" />
       </div>
       {/* Header */}
-      <div className="sticky top-0 bg-fc-shell/85 backdrop-blur-2xl border-b border-slate-800/60 px-6 md:px-12 py-4 z-50">
-        <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <button 
-            onClick={onClose} 
-            className="flex items-center gap-2 text-[10px] font-bold text-white/45 hover:text-white uppercase tracking-widest transition-colors"
-          >
-            <ArrowLeft size={16} /> Exit setup
-          </button>
-          <div className="flex-1 max-w-md mx-8">
+      <div className="sticky top-0 bg-fc-shell/90 backdrop-blur-2xl border-b border-slate-800/60 px-4 sm:px-6 md:px-12 py-3 sm:py-4 z-50 pt-[max(0.75rem,env(safe-area-inset-top))]">
+        <div className="max-w-6xl mx-auto space-y-3">
+          <div className="flex items-center gap-3 pr-12 sm:pr-14 md:pr-0">
+            <button 
+              type="button"
+              onClick={onClose} 
+              className="inline-flex items-center gap-2 min-h-[44px] text-[10px] font-bold text-white/45 hover:text-white uppercase tracking-widest transition-colors shrink-0"
+            >
+              <ArrowLeft size={16} /> <span className="hidden sm:inline">Exit setup</span><span className="sm:hidden">Exit</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setAuthError(null);
+                setAuthMode('login');
+              }}
+              className="ml-auto md:hidden text-[10px] font-black uppercase tracking-widest text-white/45 hover:text-white transition-colors min-h-[44px] px-2"
+            >
+              Sign in
+            </button>
+          </div>
+          <div className="w-full max-w-lg mx-auto">
             <ProgressBar current={step} total={TOTAL_STEPS} />
-            <div className="mt-2 text-center text-[10px] font-black uppercase tracking-[0.35em] text-white/45">
+            <div className="mt-2 text-center text-[9px] sm:text-[10px] font-black uppercase tracking-[0.2em] sm:tracking-[0.35em] text-white/45">
               {getOnboardingStepLabel(currentKey)}
             </div>
             {userData.recommendedNextPath?.includes('/portal/checkout') ? (
               <div className="mt-1 text-center text-[10px] text-emerald-300/90">Checkout queued after signup</div>
             ) : null}
           </div>
-          <div className="w-11 shrink-0" aria-hidden />
         </div>
-        <div className="max-w-6xl mx-auto mt-3 flex items-center justify-end">
+        <div className="max-w-6xl mx-auto mt-2 hidden md:flex items-center justify-end">
           <button
             type="button"
             onClick={() => {
               setAuthError(null);
               setAuthMode('login');
             }}
-            className="text-[10px] font-black uppercase tracking-widest text-white/45 hover:text-white transition-colors"
+            className="text-[10px] font-black uppercase tracking-widest text-white/45 hover:text-white transition-colors min-h-[44px]"
             title="Already have an account?"
           >
             Already have an account? Sign in
@@ -1819,8 +1829,8 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
       </div>
 
       {/* Content */}
-      <div className="relative flex-1 container mx-auto px-6 md:px-12 py-12 md:py-24">
-        <div className="max-w-4xl mx-auto">
+      <div className="relative flex-1 w-full max-w-6xl mx-auto px-4 sm:px-6 md:px-12 py-8 sm:py-12 md:py-16 pb-[max(2rem,env(safe-area-inset-bottom))] min-w-0">
+        <div className="max-w-4xl mx-auto min-w-0">
           {promoContext ? (
             <div className="mb-6 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-4 text-sm text-emerald-100">
               <div className="text-[10px] uppercase tracking-widest font-black text-emerald-200/80">Tracked signup</div>

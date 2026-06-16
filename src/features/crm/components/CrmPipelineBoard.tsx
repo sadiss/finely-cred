@@ -5,6 +5,8 @@ import { formatForecastCents } from '../forecast/buildPipelineForecast';
 import { crmRecordDisplayName } from '../../../domain/crmRecords';
 import { CRM_PIPELINES } from '../pipelines';
 import { scoreCrmRecord } from '../../../lib/crmDealScoring';
+import { getFinelyBridgeBadges } from '../../../lib/finelyBridgeCreditProgram';
+import { listPartnersLocal } from '../../../data/partnersRepo';
 import { FINELY_OS_DRAG_HINT, FINELY_OS_ENTITY_BODY, FINELY_OS_ENTITY_INPUT, FINELY_OS_ENTITY_VALUE, finelyOsColumnThemeByColor, finelyOsStatusChip } from '../../os/finelyOsLightUi';
 import { useBoardDragDrop } from '../../os/useBoardDragDrop';
 
@@ -29,6 +31,11 @@ export function CrmPipelineBoard({
   onStageChange: (recordId: string, stage: CrmRecordStage) => void;
 }) {
   const pipeline = CRM_PIPELINES.find((p) => p.id === pipelineId) ?? CRM_PIPELINES[0];
+  const partnerById = useMemo(() => {
+    const map = new Map<string, ReturnType<typeof listPartnersLocal>[number]>();
+    for (const p of listPartnersLocal()) map.set(p.id, p);
+    return map;
+  }, [records]);
   const byStage = useMemo(() => {
     const map = new Map<CrmRecordStage, CrmRecord[]>();
     for (const s of pipeline.stages) map.set(s.id, []);
@@ -133,6 +140,24 @@ export function CrmPipelineBoard({
                             Work {record.workSignals.riskLevel}
                           </div>
                         ) : null}
+                        {(() => {
+                          if (!record.partnerId) return null;
+                          const badges = getFinelyBridgeBadges(partnerById.get(record.partnerId));
+                          if (!badges) return null;
+                          return (
+                            <div className="mt-2 flex flex-wrap gap-1">
+                              <span className={finelyOsStatusChip('ok')} title="Finely Cred credit phase">
+                                {badges.phaseLabel.replace('Phase ', 'P')}
+                              </span>
+                              {badges.handoffQueued ? (
+                                <span className={finelyOsStatusChip('warn')}>Handoff queued</span>
+                              ) : null}
+                              {badges.bridgeBadge ? (
+                                <span className={finelyOsStatusChip('ok')}>Bridge</span>
+                              ) : null}
+                            </div>
+                          );
+                        })()}
                         <select
                           {...stopDragOnControl}
                           value={record.stage}
