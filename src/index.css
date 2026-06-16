@@ -4281,12 +4281,17 @@ html[data-fc-theme="dark"] .fc-testimonial-dossier.fc-accent-card {
   }
 }
 
-.fc-onboarding-step-title {
-  font-size: clamp(1.625rem, 5vw, 3rem);
-  line-height: 1.15;
-  font-weight: 300;
-  color: rgb(255 255 255);
-}
+  .fc-onboarding-step-title {
+    font-size: clamp(1.625rem, 5vw, 3rem);
+    line-height: 1.15;
+    font-weight: 300;
+    color: rgb(255 255 255);
+  }
+
+  .fc-onboarding-step-nav {
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+  }
 
 @media (min-width: 768px) {
   .fc-onboarding-step-title {

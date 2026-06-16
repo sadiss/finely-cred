@@ -31,6 +31,7 @@ import { tradelinePromoPackages } from './config/pricingCatalog';
 import { PackageCard, variantForTierIndex } from './components/pricing/PricingCards';
 import { BackToSiteButton, consumeSignedOutFlag } from './components/navigation/BackToSiteButton';
 import { resolvePostAuthHomePath } from './lib/postAuthRouting';
+import { isAuthEntryPath, signupUrlForCareerPath } from './lib/onboardingRoleRouting';
 import { FreeGuideFunnelStyles } from './components/leadmagnet/FreeGuideFunnelStyles';
 import { LeadMagnetEbook } from './components/leadmagnet/LeadMagnetHeroMockup';
 import { AdminCommandPaletteHost } from './features/work/components/WorkCommandPalette';
@@ -1296,6 +1297,15 @@ function AppInner() {
   }
 
   const handleNavigate = (newView: string) => {
+    // During signup/login, career menu picks pre-select role and skip to the next wizard step.
+    if (newView.startsWith('/') && isAuthEntryPath(location.pathname)) {
+      const signupUrl = signupUrlForCareerPath(newView);
+      if (signupUrl) {
+        navigate(signupUrl);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+      }
+    }
     // Supports both legacy view ids and direct paths (used by dropdowns).
     if (newView.startsWith('/')) {
       navigate(newView);

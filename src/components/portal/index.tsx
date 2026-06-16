@@ -27,6 +27,13 @@ import { FinelyNoticedStrip } from '../tours/FinelyNoticedStrip';
 import { buildOnboardingMonitoringNoticedItems } from '../../lib/finelyProactiveSignals';
 import { ONBOARDING_MONITORING_NOW_DO_ITEMS } from '../../config/onboardingMonitoringHelp';
 import { HEAD_OF_SOCIETY_NAME, HETA_SOCIETY_SHORT } from '../../config/hetaSocietyProgram';
+import {
+  applyOnboardingRole,
+  laneFromParam,
+  laneToOnboardingRole,
+  normalizeOnboardingRole,
+  stepAfterRoleSelection,
+} from '../../lib/onboardingRoleRouting';
 
 type OnboardingLane =
   | 'au_tradelines'
@@ -203,21 +210,26 @@ function StepNavFooter({ prev, onNext, nextLabel = 'Continue', nextDisabled }: {
   nextDisabled?: boolean;
 }) {
   return (
-    <div className="flex flex-col-reverse gap-3 pt-6 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-4">
-      {prev ? (
-        <button
-          type="button"
-          onClick={prev}
-          className="inline-flex w-full sm:w-auto items-center justify-center gap-2 px-5 py-3.5 min-h-[48px] fc-light-glass-panel fc-light-chrome-panel rounded-xl text-[10px] font-black uppercase tracking-widest text-white/70 hover:bg-white/[0.04] hover:border-white/20 transition-all"
-        >
-          <ArrowLeft size={14} /> Previous
-        </button>
-      ) : (
-        <div className="hidden sm:block" />
-      )}
-      <Button onClick={onNext} disabled={nextDisabled} size="lg" className="w-full sm:w-auto min-h-[48px]">
-        {nextLabel}
-      </Button>
+    <div
+      data-fc-onboarding-nav="1"
+      className="fc-onboarding-step-nav sticky bottom-0 z-40 -mx-4 sm:-mx-6 md:-mx-12 px-4 sm:px-6 md:px-12 py-4 mt-6 bg-gradient-to-t from-fc-shell from-80% via-fc-shell/95 to-transparent border-t border-white/[0.08] pb-[max(0.75rem,env(safe-area-inset-bottom))]"
+    >
+      <div className="flex flex-col-reverse gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-4 max-w-4xl mx-auto">
+        {prev ? (
+          <button
+            type="button"
+            onClick={prev}
+            className="inline-flex w-full sm:w-auto items-center justify-center gap-2 px-5 py-3.5 min-h-[48px] fc-light-glass-panel fc-light-chrome-panel rounded-xl text-[10px] font-black uppercase tracking-widest text-white/70 hover:bg-white/[0.04] hover:border-white/20 transition-all"
+          >
+            <ArrowLeft size={14} /> Previous
+          </button>
+        ) : (
+          <div className="hidden sm:block sm:w-[140px]" aria-hidden />
+        )}
+        <Button onClick={onNext} disabled={nextDisabled} size="lg" className="w-full sm:w-auto min-h-[48px] sm:min-w-[200px] shadow-lg shadow-fuchsia-500/10">
+          {nextLabel}
+        </Button>
+      </div>
     </div>
   );
 }
@@ -1164,43 +1176,56 @@ const ROLE_CARDS: Array<{
 
 export function RoleStep({ next, data, update }: StepProps) {
   const role = data.role || '';
+
+  const pickRole = (r: (typeof ROLE_CARDS)[number]) => {
+    update(
+      applyOnboardingRole(
+        {
+          ...data,
+          agentTierId: r.id === 'agent' ? data.agentTierId || '' : '',
+        },
+        r.id,
+      ),
+    );
+    window.requestAnimationFrame(() => {
+      document.querySelector('[data-fc-onboarding-nav]')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    });
+  };
+
   return (
-    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-      <div className="space-y-3">
+    <div className="space-y-5 sm:space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-4">
+      <div className="space-y-2 sm:space-y-3">
         <p className="text-[10px] font-black tracking-[0.6em] text-fuchsia-400 uppercase">Step 01 // Role</p>
         <h2 className="fc-onboarding-step-title">
           Which best <span className="text-fuchsia-400">describes you?</span>
         </h2>
-        <p className="text-white/45 text-base sm:text-lg font-light max-w-xl">
-          This sets up your account and unlocks the right tools. You can refine the details next.
+        <p className="text-white/45 text-sm sm:text-base font-light max-w-xl">
+          Pick one to continue — you can refine details on the next screens.
         </p>
       </div>
-      <div className="grid md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
         {ROLE_CARDS.map((r) => {
           const active = role === r.id;
           return (
             <button
               key={r.id}
               type="button"
-              onClick={() =>
-                update({
-                  role: r.id,
-                  agentTierId: r.id === 'agent' ? data.agentTierId || '' : '',
-                  ...(r.lane ? { lane: r.lane, goal: r.goal } : { lane: 'other' as OnboardingLane }),
-                })
-              }
-              className={`group text-left rounded-2xl border p-4 sm:p-6 transition-all min-h-[48px] ${
-                active ? 'border-fuchsia-500/50 bg-fuchsia-500/10' : 'border-white/[0.08] bg-white/[0.05] hover:border-violet-500/30'
+              onClick={() => pickRole(r)}
+              className={`group text-left rounded-2xl border p-3.5 sm:p-5 transition-all min-h-[48px] ${
+                active ? 'border-fuchsia-500/50 bg-fuchsia-500/10 ring-1 ring-fuchsia-400/25' : 'border-white/[0.08] bg-white/[0.05] hover:border-violet-500/30'
               }`}
             >
-              <r.Icon size={24} className={active ? 'text-fuchsia-400' : 'text-white/45 group-hover:text-white'} />
-              <div className="mt-3 text-white font-semibold text-lg">{r.title}</div>
-              <div className="mt-1 text-white/45 text-sm leading-relaxed">{r.desc}</div>
+              <r.Icon size={22} className={active ? 'text-fuchsia-400' : 'text-white/45 group-hover:text-white'} />
+              <div className="mt-2 text-white font-semibold text-base sm:text-lg">{r.title}</div>
+              <div className="mt-1 text-white/45 text-xs sm:text-sm leading-relaxed line-clamp-3">{r.desc}</div>
+              {active ? (
+                <div className="mt-2 text-[10px] font-black uppercase tracking-widest text-fuchsia-300">Selected — tap Continue below</div>
+              ) : null}
             </button>
           );
         })}
       </div>
-      <StepNavFooter onNext={next} nextDisabled={!role} />
+      <StepNavFooter onNext={next} nextDisabled={!role} nextLabel={role ? 'Continue' : 'Select a role to continue'} />
     </div>
   );
 }
@@ -1349,7 +1374,9 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
     const authParam = (sp.get('auth') || sp.get('mode') || '').toLowerCase();
     const packageId = sp.get('package');
     const rail = sp.get('rail') as 'stripe' | 'in_house' | null;
-    const lane = sp.get('lane');
+    const laneParam = sp.get('lane');
+    const roleParam = normalizeOnboardingRole(sp.get('role'));
+    const skipRole = sp.get('skipRole') === '1' || sp.get('skip') === '1';
     const nextRaw = sp.get('next');
     const attr = captureLeadAttributionFromUrl(location.search, location.pathname);
     if (attr) {
@@ -1362,16 +1389,17 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
             : promoterRole === 'affiliate'
               ? 'affiliate'
               : '';
-      setUserData((prev) => ({
-        ...prev,
-        referralCode: attr.referralCode || prev.referralCode,
-        promoterRole: attr.promoterRole || prev.promoterRole,
-        promoType: attr.promoType || prev.promoType,
-        promoAsset: attr.promoAsset || prev.promoAsset,
-        role: prev.role || (mappedRole as any),
-        lane: prev.lane === 'other' && mappedRole === 'au_seller' ? 'au_seller' : prev.lane,
-        goal: prev.goal || (mappedRole === 'au_seller' ? 'au_seller' : mappedRole || prev.goal),
-      }));
+      setUserData((prev) => {
+        const next = {
+          ...prev,
+          referralCode: attr.referralCode || prev.referralCode,
+          promoterRole: attr.promoterRole || prev.promoterRole,
+          promoType: attr.promoType || prev.promoType,
+          promoAsset: attr.promoAsset || prev.promoAsset,
+          goal: prev.goal || (mappedRole === 'au_seller' ? 'au_seller' : mappedRole || prev.goal),
+        };
+        return mappedRole ? applyOnboardingRole(next, mappedRole) : next;
+      });
     }
 
     // Direct routes + query-driven mode
@@ -1404,44 +1432,49 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
       }
     }
 
-    if (lane) {
-      const l = safeDecode(lane).toLowerCase();
-      const mapped: OnboardingLane =
-        l.includes('seller')
-          ? 'au_seller'
-          :
-        l.includes('au')
-          ? 'au_tradelines'
-          : l.includes('primary')
-            ? 'primary_tradeline'
-            : l.includes('debt')
-              ? 'debt_kill'
-              : l.includes('business')
-                ? 'business_credit'
-                : l.includes('affiliate')
-                  ? 'affiliate'
-                  : l.includes('agent')
-                    ? 'agent'
-                    : 'other';
-      setUserData((prev) => ({
-        ...prev,
-        lane: mapped,
-        goal:
-          prev.goal ||
-          (mapped === 'debt_kill'
-            ? 'debt'
-            : mapped === 'business_credit'
-              ? 'business'
-              : mapped === 'au_seller'
-                ? 'au_seller'
-              : mapped === 'affiliate'
-                ? 'affiliate'
-                : mapped === 'agent'
-                  ? 'agent'
-                  : 'funding'),
-      }));
+    let mappedLane: OnboardingLane | null = null;
+    if (laneParam) {
+      mappedLane = laneFromParam(safeDecode(laneParam)) as OnboardingLane;
+      const laneRole = laneToOnboardingRole(mappedLane);
+      setUserData((prev) => {
+        const nextRole = roleParam || laneRole || prev.role;
+        const base = {
+          ...prev,
+          lane: mappedLane!,
+          goal:
+            prev.goal ||
+            (mappedLane === 'debt_kill'
+              ? 'debt'
+              : mappedLane === 'business_credit'
+                ? 'business'
+                : mappedLane === 'au_seller'
+                  ? 'au_seller'
+                  : mappedLane === 'affiliate'
+                    ? 'affiliate'
+                    : mappedLane === 'agent'
+                      ? 'agent'
+                      : 'funding'),
+        };
+        return nextRole ? applyOnboardingRole(base, nextRole as any) : base;
+      });
+    } else if (roleParam) {
+      setUserData((prev) => applyOnboardingRole(prev, roleParam));
     }
-  }, [isOpen, location.search]);
+
+    const effectiveRole = roleParam || (mappedLane ? laneToOnboardingRole(mappedLane) : '');
+    if (effectiveRole && skipRole && (authMode === 'signup' || location.pathname === '/signup' || authParam === 'signup')) {
+      setAuthMode('signup');
+      setStep((prevStep) => {
+        const afterRole = stepAfterRoleSelection({
+          role: effectiveRole,
+          focuses: userData.focuses,
+          lane: mappedLane ?? userData.lane,
+          agentTierId: userData.agentTierId,
+        });
+        return Math.max(prevStep, afterRole);
+      });
+    }
+  }, [isOpen, location.search, location.pathname]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -1774,7 +1807,7 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
   } : null;
 
   return (
-    <div className="fixed inset-0 z-[100] bg-fc-shell overflow-y-auto overflow-x-clip flex flex-col relative fc-senior-simple fc-onboarding-shell-scroll !pt-0" data-fc-onboarding-shell="1">
+    <div className="fixed inset-0 z-[100] bg-fc-shell overflow-hidden flex flex-col relative fc-senior-simple fc-onboarding-shell-scroll !pt-0" data-fc-onboarding-shell="1">
       <OnboardingShellCloseButton onClose={onClose} />
       <div className="pointer-events-none absolute inset-0">
         <div className="absolute -top-40 left-[-20%] h-[520px] w-[520px] rounded-full bg-white/70 blur-3xl" />
@@ -1782,7 +1815,7 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
         <div className="absolute inset-0 bg-gradient-to-b from-white/[0.03] via-transparent to-transparent" />
       </div>
       {/* Header */}
-      <div className="sticky top-0 bg-fc-shell/90 backdrop-blur-2xl border-b border-slate-800/60 px-4 sm:px-6 md:px-12 py-3 sm:py-4 z-50 pt-[max(0.75rem,env(safe-area-inset-top))]">
+      <div className="shrink-0 sticky top-0 bg-fc-shell/90 backdrop-blur-2xl border-b border-slate-800/60 px-4 sm:px-6 md:px-12 py-3 sm:py-4 z-50 pt-[max(0.75rem,env(safe-area-inset-top))]">
         <div className="max-w-6xl mx-auto space-y-3">
           <div className="flex items-center gap-3 pr-12 sm:pr-14 md:pr-0">
             <button 
@@ -1812,6 +1845,28 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
               <div className="mt-1 text-center text-[10px] text-emerald-300/90">Checkout queued after signup</div>
             ) : null}
           </div>
+          {currentKey === 'role' ? (
+            <div className="flex flex-wrap justify-center gap-2 pt-1">
+              {ROLE_CARDS.map((r) => (
+                <button
+                  key={r.id}
+                  type="button"
+                  onClick={() => {
+                    updateData(applyOnboardingRole({ ...userData, agentTierId: r.id === 'agent' ? userData.agentTierId || '' : '' }, r.id));
+                    const after = stepAfterRoleSelection({ role: r.id, focuses: userData.focuses, lane: applyOnboardingRole(userData, r.id).lane, agentTierId: userData.agentTierId });
+                    setStep(after);
+                  }}
+                  className={`rounded-full px-3 py-1.5 min-h-[36px] text-[10px] font-bold uppercase tracking-wider border transition-colors ${
+                    userData.role === r.id
+                      ? 'border-fuchsia-400/50 bg-fuchsia-500/15 text-fuchsia-200'
+                      : 'border-white/10 bg-white/[0.04] text-white/55 hover:text-white hover:border-white/20'
+                  }`}
+                >
+                  {r.title}
+                </button>
+              ))}
+            </div>
+          ) : null}
         </div>
         <div className="max-w-6xl mx-auto mt-2 hidden md:flex items-center justify-end">
           <button
@@ -1829,7 +1884,7 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
       </div>
 
       {/* Content */}
-      <div className="relative flex-1 w-full max-w-6xl mx-auto px-4 sm:px-6 md:px-12 py-8 sm:py-12 md:py-16 pb-[max(2rem,env(safe-area-inset-bottom))] min-w-0">
+      <div className="relative flex-1 min-h-0 overflow-y-auto overflow-x-clip w-full max-w-6xl mx-auto px-4 sm:px-6 md:px-12 py-6 sm:py-10 md:py-12 pb-[max(5rem,env(safe-area-inset-bottom))] min-w-0">
         <div className="max-w-4xl mx-auto min-w-0">
           {promoContext ? (
             <div className="mb-6 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-4 text-sm text-emerald-100">
@@ -1842,6 +1897,8 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
             </div>
           ) : null}
           <OnboardingExperienceShell
+            stepKeys={stepKeys}
+            currentKey={currentKey}
             stepIndex={step - 1}
             laneLabel={userData.lane && userData.lane !== 'other' ? userData.lane.replace(/_/g, ' ') : userData.goal || undefined}
           >

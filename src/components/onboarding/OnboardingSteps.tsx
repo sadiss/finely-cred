@@ -16,21 +16,26 @@ function StepNavFooter({ prev, onNext, nextLabel = 'Continue', nextDisabled }: {
   nextDisabled?: boolean;
 }) {
   return (
-    <div className="flex flex-col-reverse gap-3 pt-6 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-4">
-      {prev ? (
-        <button
-          type="button"
-          onClick={prev}
-          className="inline-flex w-full sm:w-auto items-center justify-center gap-2 px-5 py-3.5 min-h-[48px] fc-light-glass-panel fc-light-chrome-panel rounded-xl hover:bg-white/[0.09] text-[10px] font-black uppercase tracking-widest text-white/70 hover:text-white transition-all"
-        >
-          <ArrowLeft size={14} /> Previous
-        </button>
-      ) : (
-        <div className="hidden sm:block" />
-      )}
-      <Button onClick={onNext} disabled={nextDisabled} size="lg" className="w-full sm:w-auto min-h-[48px]">
-        {nextLabel}
-      </Button>
+    <div
+      data-fc-onboarding-nav="1"
+      className="fc-onboarding-step-nav sticky bottom-0 z-40 -mx-1 sm:-mx-2 px-1 sm:px-2 py-4 mt-6 bg-gradient-to-t from-fc-shell from-80% via-fc-shell/95 to-transparent border-t border-white/[0.08] pb-[max(0.75rem,env(safe-area-inset-bottom))]"
+    >
+      <div className="flex flex-col-reverse gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-4">
+        {prev ? (
+          <button
+            type="button"
+            onClick={prev}
+            className="inline-flex w-full sm:w-auto items-center justify-center gap-2 px-5 py-3.5 min-h-[48px] fc-light-glass-panel fc-light-chrome-panel rounded-xl hover:bg-white/[0.09] text-[10px] font-black uppercase tracking-widest text-white/70 hover:text-white transition-all"
+          >
+            <ArrowLeft size={14} /> Previous
+          </button>
+        ) : (
+          <div className="hidden sm:block sm:w-[140px]" aria-hidden />
+        )}
+        <Button onClick={onNext} disabled={nextDisabled} size="lg" className="w-full sm:w-auto min-h-[48px] sm:min-w-[200px]">
+          {nextLabel}
+        </Button>
+      </div>
     </div>
   );
 }
