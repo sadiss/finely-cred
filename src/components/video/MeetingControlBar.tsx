@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import type { JitsiMeetingControls } from '../../hooks/useJitsiMeetingApi';
 import {
   Camera,
   CameraOff,
@@ -26,6 +27,8 @@ type Props = {
   onCopyLink: () => void;
   onEndCall?: () => void;
   showEndCall?: boolean;
+  /** When set, mic/cam/share control the live Jitsi session. */
+  jitsi?: JitsiMeetingControls | null;
   children: React.ReactNode;
 };
 
@@ -36,6 +39,7 @@ export function MeetingControlBar({
   onCopyLink,
   onEndCall,
   showEndCall,
+  jitsi,
   children,
 }: Props) {
   const [micOn, setMicOn] = useState(true);
@@ -64,24 +68,35 @@ export function MeetingControlBar({
         <div className="shrink-0 flex flex-wrap items-center justify-center gap-2 px-3 py-3 border-b border-white/[0.08] bg-fc-chrome/80 backdrop-blur-md">
           <button
             type="button"
-            onClick={() => setMicOn((v) => !v)}
+            onClick={() => {
+              if (jitsi?.ready) jitsi.toggleAudio();
+              else setMicOn((v) => !v);
+            }}
             className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
-              micOn ? 'bg-white/10 border border-white/15 text-white' : 'bg-red-500/20 border border-red-500/30 text-red-200'
+              (jitsi?.ready ? !jitsi.audioMuted : micOn) ? 'bg-white/10 border border-white/15 text-white' : 'bg-red-500/20 border border-red-500/30 text-red-200'
             }`}
-            title="Toggle microphone (use Jitsi toolbar inside video for device control)"
+            title={jitsi?.ready ? 'Toggle microphone' : 'Toggle microphone (use Jitsi toolbar if iframe mode)'}
           >
-            {micOn ? <Mic size={14} /> : <MicOff size={14} />} {micOn ? 'Mic' : 'Muted'}
+            {(jitsi?.ready ? !jitsi.audioMuted : micOn) ? <Mic size={14} /> : <MicOff size={14} />} {(jitsi?.ready ? !jitsi.audioMuted : micOn) ? 'Mic' : 'Muted'}
           </button>
           <button
             type="button"
-            onClick={() => setCamOn((v) => !v)}
+            onClick={() => {
+              if (jitsi?.ready) jitsi.toggleVideo();
+              else setCamOn((v) => !v);
+            }}
             className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
-              camOn ? 'bg-white/10 border border-white/15 text-white' : 'bg-red-500/20 border border-red-500/30 text-red-200'
+              (jitsi?.ready ? !jitsi.videoMuted : camOn) ? 'bg-white/10 border border-white/15 text-white' : 'bg-red-500/20 border border-red-500/30 text-red-200'
             }`}
-            title="Toggle camera (use Jitsi toolbar inside video for device control)"
+            title={jitsi?.ready ? 'Toggle camera' : 'Toggle camera (use Jitsi toolbar if iframe mode)'}
           >
-            {camOn ? <Camera size={14} /> : <CameraOff size={14} />} {camOn ? 'Cam' : 'Off'}
+            {(jitsi?.ready ? !jitsi.videoMuted : camOn) ? <Camera size={14} /> : <CameraOff size={14} />} {(jitsi?.ready ? !jitsi.videoMuted : camOn) ? 'Cam' : 'Off'}
           </button>
+          {jitsi?.ready ? (
+            <button type="button" onClick={() => jitsi.toggleShare()} className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-white/[0.08] text-[10px] font-black uppercase text-white/70 hover:bg-white/5">
+              <MonitorUp size={14} /> Share
+            </button>
+          ) : null}
           <button
             type="button"
             onClick={() => setVirtualBg((v) => !v)}

@@ -38,8 +38,10 @@ import { FinelyOsPublicCommandStrip } from './features/os/FinelyOsPublicCommandS
 import { FinelySiteThemeProvider } from './features/os/FinelySiteThemeProvider';
 import { FinelyThemeToggle } from './features/os/FinelyThemeToggle';
 import { shouldShowPublicThemeToggle } from './lib/finelyThemeAccess';
-import { PUBLIC_PRIMARY_NAV } from './config/siteWayfinderLanes';
-import { FinelyPublicNavExploreMenu } from './features/os/FinelyPublicNavExploreMenu';
+import { PUBLIC_CORE_NAV, PUBLIC_HOS_NAV } from './config/siteWayfinderLanes';
+import { FinelyPublicNavResourcesMenu } from './features/os/FinelyPublicNavResourcesMenu';
+import { FinelyPublicNavContactMenu } from './features/os/FinelyPublicNavContactMenu';
+import { FinelyPublicNavCareerMenu } from './features/os/FinelyPublicNavCareerMenu';
 import { MarketingStaffChatStrip } from './components/marketing/MarketingStaffChatStrip';
 import {
   FINELY_OS_ENTITY_BODY,
@@ -58,6 +60,9 @@ import { FinelyOsComplianceStrip } from './features/os/FinelyOsComplianceStrip';
 import { isFeatureEnabled } from './data/settingsRepo';
 import { usePublicSeoMeta } from './hooks/usePublicSeoMeta';
 import { FinelyCredLogo } from './components/brand/FinelyCredLogo';
+import { SiteViewportPreview } from './components/layout/SiteViewportPreview';
+import { ScrollToTop } from './components/layout/ScrollToTop';
+import { inPreviewFrame } from './lib/inPreviewFrame';
 
 // Route-level code splitting (keeps main bundle lean)
 const PartnerReportsPage = lazy(() => import('./pages/portal/PartnerReportsPage'));
@@ -209,10 +214,13 @@ const ShortReferralRedirectPage = lazy(() => import('./pages/leadmagnet/ShortRef
 const FaqPage = lazy(() => import('./pages/FaqPage'));
 const UnsubscribePage = lazy(() => import('./pages/UnsubscribePage'));
 const ClaimPartnerProfilePage = lazy(() => import('./pages/ClaimPartnerProfilePage'));
+const PartnerSelfIntakePage = lazy(() => import('./pages/PartnerSelfIntakePage'));
 const TermsPage = lazy(() => import('./pages/legal/TermsPage'));
 const PrivacyPage = lazy(() => import('./pages/legal/PrivacyPage'));
 const DisclaimerPage = lazy(() => import('./pages/legal/DisclaimerPage'));
 const AffiliatePage = lazy(() => import('./pages/AffiliatePage'));
+const HetaSocietyPage = lazy(() => import('./pages/HetaSocietyPage'));
+const HetaSocietyPortalPage = lazy(() => import('./pages/portal/HetaSocietyPortalPage'));
 const AgentsPage = lazy(() => import('./pages/AgentsPage'));
 const AgencySignupPage = lazy(() => import('./pages/agency/AgencySignupPage'));
 const AgentHubPage = lazy(() => import('./pages/agent/AgentHubPage'));
@@ -1197,7 +1205,9 @@ function AppInner() {
     !location.pathname.startsWith('/au') &&
     !location.pathname.startsWith('/seller') &&
     !location.pathname.startsWith('/dashboard') &&
-    !location.pathname.startsWith('/account');
+    !location.pathname.startsWith('/account') &&
+    !location.pathname.startsWith('/claim') &&
+    !location.pathname.startsWith('/partner-setup');
 
   const hideFloatingHub =
     location.pathname.startsWith('/portal/messages') ||
@@ -1313,7 +1323,7 @@ function AppInner() {
           />
 
           {/* Public Navigation — blur on a backdrop layer so the logo stays sharp */}
-          <nav className="relative fixed top-0 w-full z-50 overflow-visible py-3 sm:py-4 lg:min-h-[3.75rem]">
+          <nav className="relative fixed top-0 w-full z-50 overflow-visible py-3 sm:py-4 lg:min-h-[3.75rem]" data-fc-public-nav="1">
             <div
               className="pointer-events-none absolute inset-0 border-b border-white/[0.08] bg-fc-chrome/90 backdrop-blur-xl"
               aria-hidden
@@ -1372,28 +1382,40 @@ function AppInner() {
               </div>
 
               {/* Desktop header — nav + actions (logo is viewport-anchored above) */}
-              <div className="hidden lg:flex items-center justify-between w-full overflow-visible">
-                <div className="flex items-center gap-2 xl:gap-3 min-w-0 flex-1">
-                    {PUBLIC_PRIMARY_NAV.map((item) => {
+              <div className="hidden lg:flex items-center justify-between w-full overflow-visible gap-4">
+                <div className="fc-nav-rail min-w-0">
+                    {PUBLIC_CORE_NAV.map((item) => {
                       const active = item.match(location.pathname);
                       return (
                         <button
                           key={item.id}
                           type="button"
                           onClick={() => handleNavigate(item.path)}
-                          className={active ? 'fc-nav-pill-active' : 'fc-nav-pill'}
+                          className={active ? 'fc-nav-pill-compact fc-nav-pill-active' : 'fc-nav-pill-compact'}
                         >
                           {item.label}
                         </button>
                       );
                     })}
-                    <FinelyPublicNavExploreMenu onNavigate={(path) => handleNavigate(path)} />
-                    <button type="button" onClick={() => handleNavigate('onboarding')} className="fc-nav-pill">
+                    <span className="fc-nav-rail-divider" aria-hidden />
+                    <FinelyPublicNavResourcesMenu pathname={location.pathname} onNavigate={(path) => handleNavigate(path)} />
+                    <FinelyPublicNavCareerMenu pathname={location.pathname} onNavigate={(path) => handleNavigate(path)} />
+                    <span className="fc-nav-rail-divider" aria-hidden />
+                    <button
+                      type="button"
+                      onClick={() => handleNavigate(PUBLIC_HOS_NAV.path)}
+                      className={PUBLIC_HOS_NAV.match(location.pathname) ? 'fc-nav-pill-hos-active fc-nav-pill-compact' : 'fc-nav-pill-hos fc-nav-pill-compact'}
+                      title={`${PUBLIC_HOS_NAV.label} — men's restoration program`}
+                    >
+                      {PUBLIC_HOS_NAV.shortLabel}
+                    </button>
+                    <FinelyPublicNavContactMenu pathname={location.pathname} onNavigate={(path) => handleNavigate(path)} />
+                </div>
+                <div className="flex items-center justify-end gap-2 shrink-0">
+                    {showPublicThemeToggle ? <FinelyThemeToggle compact /> : null}
+                    <button type="button" onClick={() => handleNavigate('onboarding')} className="fc-nav-pill-ghost">
                       Login
                     </button>
-                    {showPublicThemeToggle ? <FinelyThemeToggle /> : null}
-                </div>
-                <div className="flex items-center justify-end gap-4 shrink-0 ml-6">
                   {/* Cart */}
                   <button
                     onClick={() => handleNavigate('checkout')}
@@ -1445,7 +1467,11 @@ function AppInner() {
 
       <Suspense
         fallback={
-          <FullPageLoader label="Loading the next module…" />
+          inPreviewFrame() ? (
+            <div className="min-h-[40vh] flex items-center justify-center text-white/50 text-sm">Loading…</div>
+          ) : (
+            <FullPageLoader label="Loading the next module…" />
+          )
         }
       >
         <AppErrorBoundary onHome={() => navigate('/')}>
@@ -2581,6 +2607,19 @@ function AppInner() {
         <Route path="/unsubscribe" element={<UnsubscribePage />} />
         <Route path="/enlightenment-session" element={<EnlightenmentSessionPage />} />
         <Route path="/free-guide" element={<FreeGuideFunnelPage />} />
+        <Route path="/head-of-society" element={<HetaSocietyPage />} />
+        <Route path="/head-of-society/flyer" element={<Navigate to="/admin" replace />} />
+        <Route path="/heta-society" element={<Navigate to="/head-of-society" replace />} />
+        <Route path="/hos" element={<Navigate to="/head-of-society" replace />} />
+        <Route path="/portal/business" element={<Navigate to="/business/dashboard" replace />} />
+        <Route
+          path="/portal/hos"
+          element={
+            <ProtectedRoute>
+              <HetaSocietyPortalPage />
+            </ProtectedRoute>
+          }
+        />
         <Route path="/free-debt-guide" element={<DebtGuideFunnelPage />} />
         <Route path="/free-business-guide" element={<BusinessGuideFunnelPage />} />
         <Route path="/free-tradeline-guide" element={<TradelineGuideFunnelPage />} />
@@ -2593,6 +2632,7 @@ function AppInner() {
         <Route path="/consultation" element={<ConsultationCanonicalRedirect />} />
         <Route path="/faq" element={<FaqPage />} />
         <Route path="/claim" element={<ClaimPartnerProfilePage />} />
+        <Route path="/partner-setup" element={<PartnerSelfIntakePage />} />
 
         <Route
           path="*"
@@ -2611,10 +2651,13 @@ function AppInner() {
 export default function App() {
   return (
     <BrowserRouter>
+      <ScrollToTop />
       <AuthProvider>
         <FinelySiteThemeProvider>
           <PartnerSessionProvider>
-            <AppInner />
+            <SiteViewportPreview>
+              <AppInner />
+            </SiteViewportPreview>
           </PartnerSessionProvider>
         </FinelySiteThemeProvider>
       </AuthProvider>

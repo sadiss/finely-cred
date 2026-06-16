@@ -357,3 +357,35 @@ export function getPublicChatPersonaPresentation(persona: AgentPersona): PublicC
 export function getPublicChatPersonaPresentationById(id: AgentPersonaId): PublicChatPersonaPresentation {
   return getPublicChatPersonaPresentation(getAgentPersona(id) ?? getAgentPersona('finely_advisor')!);
 }
+
+/** Public widget AI receptionist — routes to live specialists after intake. */
+export const PUBLIC_CHAT_AI_PERSONA_ID: AgentPersonaId = 'nurture_concierge';
+export const AIA_GUIDE_STAFF_ID = 'staff-aia-guide';
+
+export function getPublicChatAiReceptionistPresentation(): PublicChatPersonaPresentation {
+  const aiaStaff = {
+    id: AIA_GUIDE_STAFF_ID,
+    firstName: 'Aia',
+    lastName: 'Guide',
+    portraitGender: 'feminine' as const,
+    avatarPath: '',
+  };
+  const avatarUrl = resolveStaffPortraitUrl(aiaStaff);
+  return {
+    firstName: 'Aia',
+    title: 'Finely AI Guide',
+    tagline: 'Your first point of contact — I connect you with the right specialist.',
+    welcome:
+      "Hi — I'm Aia, Finely Cred's AI guide. I'll help orient you, answer basics, and connect you with a live specialist when you're ready. What are you working on today?",
+    headerGradient: 'from-cyan-500/22 via-emerald-600/18 to-teal-500/12',
+    avatarGradient: 'from-cyan-400 to-emerald-500',
+    accentText: 'text-cyan-200',
+    accentBorder: 'border-cyan-400/35',
+    staffBubble:
+      'bg-gradient-to-br from-cyan-600/45 to-emerald-600/40 border-cyan-200/30 shadow-[0_4px_24px_-8px_rgba(34,211,238,0.28),inset_0_1px_0_rgba(255,255,255,0.1)]',
+    chipClass: 'bg-cyan-500/15 text-cyan-100 border-cyan-400/30',
+    initials: 'AI',
+    avatarUrl,
+    staffMemberId: AIA_GUIDE_STAFF_ID,
+  };
+}

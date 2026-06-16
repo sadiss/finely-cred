@@ -7,6 +7,7 @@ import { SITE_SCAN_TARGETS } from '../../config/tourSiteScanner';
 import { getPlatformSop } from '../../domain/platformSops';
 import { FinelyTourPlayer } from '../../components/tours/FinelyTourPlayer';
 import { TourVideoStatusBadge } from '../../components/tours/TourVideoStatusBadge';
+import { FreeDisputeGuideHeroVideo } from '../../components/leadmagnet/FreeDisputeGuideHeroVideo';
 import { FinelyOsPaginatedStack } from '../../features/os/FinelyOsPaginatedStack';
 import { FinelyOsPageFooter } from '../../features/os/FinelyOsPageFooter';
 import {
@@ -63,6 +64,15 @@ export default function AdminTourStudioPage() {
       subtitle="Manifest tours, step previews, and factory pipeline status — Part C Launch OS."
     >
       <div className={`${FINELY_OS_PAGE} space-y-6`}>
+        <div className={`${finelyOsCatalogCard('amber')} !p-5 border-amber-500/30`} data-fc-accent="amber">
+          <div className={`${FINELY_OS_ENTITY_SUBLABEL} text-amber-300`}>Public site — videos hidden</div>
+          <p className={`mt-2 ${FINELY_OS_ENTITY_BODY} text-sm max-w-3xl`}>
+            Demo and walkthrough videos are <strong>admin-only</strong> until polished. Visitors see static previews instead. Flip{' '}
+            <code className="opacity-80">PUBLIC_DEMO_VIDEOS_ENABLED</code> in{' '}
+            <code className="opacity-80">publicMediaPolicy.ts</code> when ready to go live.
+          </p>
+        </div>
+
         <div className={`${finelyOsCatalogCard('violet')} !p-6 flex flex-wrap items-center justify-between gap-4`} data-fc-accent="violet">
           <div className="max-w-2xl space-y-2">
             <div className={`inline-flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL} text-violet-300`}>
@@ -76,8 +86,8 @@ export default function AdminTourStudioPage() {
               <button type="button" className="underline" onClick={() => navigate('/admin/resources')}>Resources</button> for manual uploads.
             </p>
           </div>
-          <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => navigate('/resources#videos')}>
-            Public videos <ArrowRight size={14} />
+          <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => navigate('/free-guide')}>
+            Preview funnel <ArrowRight size={14} />
           </button>
         </div>
 
@@ -169,6 +179,16 @@ export default function AdminTourStudioPage() {
             );
           }}
         />
+
+        <div className={`${finelyOsCatalogCard('emerald')} !p-6 space-y-4`} data-fc-accent="emerald">
+          <div className={`${FINELY_OS_ENTITY_SUBLABEL} text-emerald-300`}>Draft — free guide hero video</div>
+          <p className={`${FINELY_OS_ENTITY_BODY} text-sm max-w-2xl`}>
+            This autoplay funnel video is hidden from <code className="opacity-80">/free-guide</code> until demos go public. Preview and refine here.
+          </p>
+          <div className="max-w-lg">
+            <FreeDisputeGuideHeroVideo />
+          </div>
+        </div>
 
         <FinelyOsPageFooter />
       </div>

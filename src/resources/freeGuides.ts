@@ -47,50 +47,29 @@ export type FreeGuide = {
   }[];
 };
 
+import { DISPUTE_GUIDE_FIVE_STEPS } from '../letters/consumerDisputeVoice';
+
 export const FREE_GUIDES: FreeGuide[] = [
   {
     id: 'credit-dispute-letter-guide',
     title: 'Free Credit Dispute Letter Guide',
-    desc: 'The proven 5-step framework — FCRA overview, OCR tactics, mailing workflow, law-per-negative citations, and complaints escalation. Complete Finely Cred edition.',
+    desc: 'The complete Finely Cred edition — expanded 5-step framework, first-person letter style, FCRA rights, OCR/Metro2 survival, certified mail, validation-first doctrine, law-per-negative, affidavits, and escalation.',
     sections: [
+      ...DISPUTE_GUIDE_FIVE_STEPS.map((step) => ({
+        heading: step.heading,
+        bullets: [step.lead, ...step.paragraphs, ...step.bullets, step.powerMove],
+      })),
       {
-        heading: 'Step 1 — Identify the target item',
+        heading: 'Also in your PDF download',
         bullets: [
-          'Pull your report and isolate ONE negative tradeline per letter (cleaner disputes win more often).',
-          'Screenshot the exact fields: status, balance, dates, payment history grid.',
-          'Store evidence in your Documents vault before you draft.',
-        ],
-      },
-      {
-        heading: 'Step 2 — Choose your dispute lane',
-        bullets: [
-          'Inaccurate reporting: internal contradictions across Metro2 fields.',
-          'Unverifiable: creditor cannot produce signed agreement or chain of title.',
-          'Incomplete: missing required data elements on the tradeline.',
-        ],
-      },
-      {
-        heading: 'Step 3 — Structure the letter',
-        bullets: [
-          'Opening: identity, bureau address, concise request for investigation.',
-          'Body: numbered reasons tied to evidence — not emotional arguments.',
-          'Closing: deadline for response, request for method of verification, signature block.',
-        ],
-      },
-      {
-        heading: 'Step 4 — Attach minimum proof',
-        bullets: [
-          'Only attach what proves the specific claim — over-attaching weakens the file.',
-          'Label exhibits (Exhibit A, B) and reference them in the letter body.',
-          'Keep copies of everything sent; track dates in your portal Tasks board.',
-        ],
-      },
-      {
-        heading: 'Step 5 — Follow-up cadence',
-        bullets: [
-          'Round 1 → wait for bureau response → re-evidence what changed.',
-          'Round 2 tightens the same claim with new contradictions from responses.',
-          'Never mix unrelated items in one letter — it reads as shotgun dispute.',
+          'FCRA rights — after you pull your report and research',
+          'OCR & Metro2 survival — format letters the machines can read',
+          'Online dispute traps vs certified mail',
+          'Letter stream workflow & round discipline',
+          'CFPB / FTC / state AG escalation',
+          'Validation first — challenge before you pay',
+          'Law per negative type + affidavit & court response system',
+          'Full example letter written in your own words',
         ],
       },
       {

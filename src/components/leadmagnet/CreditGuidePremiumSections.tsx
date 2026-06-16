@@ -1,17 +1,16 @@
 import React, { useMemo, useState } from 'react';
 import {
   ArrowRight,
-  Award,
   BookOpen,
   Check,
   CheckCircle2,
-  Download,
   ExternalLink,
-  Gift,
+  FileText,
   LayoutDashboard,
   Loader2,
-  Lock,
-  PlayCircle,
+  ShieldCheck,
+  Sparkles,
+  TrendingUp,
   Unlock,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -25,22 +24,113 @@ import { DISPUTE_LETTER_GUIDE_ID, DISPUTE_LETTER_GUIDE_PAGE_COUNT } from '../../
 import {
   formatTrialExpiryLabel,
   getLeadMagnetTrial,
-  isLeadMagnetFeatureUnlocked,
   isLeadMagnetTrialActive,
   LEAD_MAGNET_TRIAL_DAYS,
-  type LeadMagnetTrialFeatureId,
   type LeadMagnetTrialState,
 } from '../../lib/leadMagnetTrial';
 import { getLeadAttribution } from '../../lib/leadAttribution';
-import { finelyOsCatalogCard, finelyOsLeadMagnetPanel, type FinelyOsPublicAccent } from '../../features/os/finelyOsLightUi';
+import { finelyOsCatalogCard, type FinelyOsPublicAccent } from '../../features/os/finelyOsLightUi';
 
 const FEATURE_ACCENTS: FinelyOsPublicAccent[] = ['emerald', 'sky', 'violet', 'amber', 'fuchsia', 'emerald'];
 
-const LANDING_SECTIONS = [
-  { id: 'fg-hero', label: 'Overview' },
-  { id: 'fg-preview', label: 'Dashboard' },
-  { id: 'fg-value', label: 'Toolkit' },
-  { id: 'fg-cta', label: 'Get access' },
+const HERO_PROOF = [
+  'Exact dispute letter workflow',
+  'FCRA timing and bureau response tracker',
+  'Free portal preview with no credit card',
+] as const;
+
+const ISSUE_TRACKS = [
+  {
+    id: 'collections',
+    label: 'Collections',
+    promise: 'Validate, document, and dispute collection accounts with a paper trail.',
+    bestFor: 'Collection accounts, debt buyer entries, medical collections, and accounts you do not recognize.',
+    plan: ['Validation request angle', 'Evidence checklist', 'Response tracking timeline'],
+  },
+  {
+    id: 'chargeoffs',
+    label: 'Charge-offs',
+    promise: 'Challenge inaccurate balances, dates, ownership, and reporting details.',
+    bestFor: 'Charge-offs, sold accounts, duplicate entries, and accounts reporting inconsistent dates or balances.',
+    plan: ['Furnisher accuracy angle', 'Balance and date audit', 'Round-one letter structure'],
+  },
+  {
+    id: 'late-pays',
+    label: 'Late pays',
+    promise: 'Check payment history, reporting dates, and documentation before the first dispute.',
+    bestFor: '30, 60, 90, or 120 day late payments that may be inaccurate, duplicated, or unsupported.',
+    plan: ['Payment timeline review', 'Goodwill vs factual dispute path', 'Bureau response log'],
+  },
+  {
+    id: 'inquiries',
+    label: 'Inquiries',
+    promise: 'Separate authorized pulls from questionable inquiries and prepare the right request.',
+    bestFor: 'Hard inquiries, lender shopping, duplicate pulls, and inquiries you do not remember authorizing.',
+    plan: ['Authorization review', 'Inquiry dispute wording', 'Follow-up calendar'],
+  },
+] as const;
+
+const OFFER_PILLARS = [
+  {
+    icon: FileText,
+    title: 'Letters that move the file',
+    desc: 'Round-one dispute structure, evidence checklist, and language you can actually use.',
+  },
+  {
+    icon: LayoutDashboard,
+    title: 'A place to track the round',
+    desc: `${LEAD_MAGNET_TRIAL_DAYS}-day portal preview for uploads, deadlines, bureau responses, and next steps.`,
+  },
+  {
+    icon: TrendingUp,
+    title: 'A clear score path',
+    desc: 'See what to send first, what to watch for, and how to keep the process moving.',
+  },
+] as const;
+
+const ACTION_STEPS = [
+  {
+    step: '01',
+    title: 'Spot what is hurting approvals',
+    desc: 'Use the checklist to separate high-impact negatives from noise so round one starts in the right place.',
+  },
+  {
+    step: '02',
+    title: 'Match the dispute angle',
+    desc: 'Choose factual language and FCRA timing based on what the bureau or furnisher must verify.',
+  },
+  {
+    step: '03',
+    title: 'Send with a clean paper trail',
+    desc: 'Prepare the letter, evidence, and certified-mail workflow without wondering what comes next.',
+  },
+  {
+    step: '04',
+    title: 'Track responses like a file',
+    desc: 'Use the portal preview to log deadlines, bureau responses, next rounds, and follow-up tasks.',
+  },
+] as const;
+
+const TRUST_POINTS = [
+  'No credit card',
+  'Instant guide access',
+  'Educational, compliance-aware workflow',
+  `${LEAD_MAGNET_TRIAL_DAYS}-day portal preview included`,
+] as const;
+
+const OBJECTION_HANDLERS = [
+  {
+    title: 'Not another generic credit PDF',
+    desc: 'The guide is paired with a round-one workflow and portal preview so the next step is clear.',
+  },
+  {
+    title: 'No card or paid account required',
+    desc: 'Claim the guide first. The portal preview is included so you can see the system before deciding anything else.',
+  },
+  {
+    title: 'Built for action today',
+    desc: 'Start with what to dispute, what evidence to gather, and how to track bureau responses.',
+  },
 ] as const;
 
 const GUIDE_COURSE_RECOMMENDATIONS = [
@@ -48,208 +138,310 @@ const GUIDE_COURSE_RECOMMENDATIONS = [
   { id: 'portal_tour', label: 'Portal tour', title: 'Finely Cred Partner Portal Tour', desc: 'Upload, checklist, and letter vault walkthrough.', next: '/portal/dashboard' },
 ] as const;
 
-function scrollToSection(id: string) {
-  document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-}
-
 export function CreditGuidePremiumLanding({
   config,
   guide,
   onGoForm,
   headlineOverride,
   ctaOverride,
+  trustLabel = '10k+',
+  totalValue = 297,
+  captureForm,
 }: {
   config: LeadMagnetFunnelConfig;
   guide: FreeGuide;
   onGoForm: () => void;
   headlineOverride?: string;
   ctaOverride?: string;
+  trustLabel?: string;
+  totalValue?: number;
+  captureForm?: React.ReactNode;
 }) {
-  const trialState = getLeadMagnetTrial();
+  const goCapture = onGoForm;
+  const [selectedIssueId, setSelectedIssueId] = useState<(typeof ISSUE_TRACKS)[number]['id']>('collections');
+  const selectedIssue = ISSUE_TRACKS.find((item) => item.id === selectedIssueId) ?? ISSUE_TRACKS[0];
+  const navigate = useNavigate();
+  const trialActive = isLeadMagnetTrialActive(getLeadMagnetTrial());
 
   return (
-    <div className="bg-mesh min-h-screen">
-      <nav className="sticky top-0 z-30 fc-funnel-nav backdrop-blur border-b border-white/[0.08]">
-        <div className="container mx-auto px-4 sm:px-6 max-w-7xl flex gap-2 overflow-x-auto py-2.5">
-          {LANDING_SECTIONS.map((s) => (
-            <button
-              key={s.id}
-              type="button"
-              onClick={() => scrollToSection(s.id)}
-              className="shrink-0 px-3 py-1.5 rounded-lg text-[11px] font-bold uppercase tracking-wider border border-white/[0.08] text-white/60 hover:text-[#39ff14] hover:border-[#39ff14]/30 transition"
-            >
-              {s.label}
+    <div className="bg-mesh min-h-screen pb-14">
+      <nav className="sticky top-0 z-30 border-b border-white/[0.08] bg-[#0a0f14]/90 backdrop-blur-xl">
+        <div className="container mx-auto flex max-w-7xl items-center justify-between gap-2 px-4 py-3 sm:px-6">
+          <span className="text-[11px] font-black uppercase tracking-[0.24em] text-sky-200">Finely Cred guide</span>
+          <div className="flex items-center gap-2">
+            {trialActive ? (
+              <button
+                type="button"
+                onClick={() => navigate('/free-guide?step=track')}
+                className="rounded-full border border-emerald-400/35 bg-emerald-500/10 px-3 py-2 text-[10px] font-black uppercase tracking-wider text-emerald-100 sm:px-4"
+              >
+                Track dispute
+              </button>
+            ) : null}
+            <button type="button" onClick={goCapture} className="rounded-full border border-sky-300/30 bg-sky-300/10 px-3 py-2 text-[10px] font-black uppercase tracking-wider text-sky-100 sm:px-4">
+              Get free access
             </button>
-          ))}
+          </div>
         </div>
       </nav>
 
-      <header id="fg-hero" className="container mx-auto px-4 sm:px-6 pt-8 sm:pt-10 pb-10 sm:pb-14 max-w-7xl relative z-10 scroll-mt-16">
-        <div className={`${finelyOsLeadMagnetPanel('emerald')} p-5 sm:p-8 lg:p-12`} data-fc-accent="emerald">
-          <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
-            <div className="order-2 lg:order-1">
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full fg-kicker-pill mb-6 sm:mb-8">
-                <span className="h-2 w-2 rounded-full bg-[#39ff14] animate-pulse shadow-[0_0_8px_#39ff14]" />
-                <span className="text-[10px] sm:text-xs font-bold text-[#39ff14] uppercase tracking-widest">Free guide & toolkit</span>
-              </div>
-              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black leading-[1.1] mb-4 sm:mb-6 text-white">
-                {headlineOverride ?? (
-                  <>
-                    {config.heroHeadline}{' '}
-                    <span className="text-gradient-green">{config.heroHighlight}</span> {config.heroSub}
-                  </>
-                )}
-              </h1>
-              <p className="text-white/70 text-base sm:text-lg mb-6 sm:mb-8 max-w-lg leading-relaxed">{guide.desc}</p>
+      <header id="fg-hero" className="container relative z-10 mx-auto max-w-7xl px-4 pb-10 pt-8 sm:px-6 sm:pt-10">
+        <div className="fg-hero-shell relative overflow-x-clip rounded-[2rem] border border-white/[0.12] bg-[#101823]/90 p-4 shadow-[0_30px_100px_rgba(0,0,0,0.35)] sm:rounded-[2.5rem] sm:p-6 md:p-5 lg:p-8">
+          <div className="pointer-events-none absolute -right-24 -top-24 h-80 w-80 rounded-full bg-sky-400/16 blur-[90px]" />
+          <div className="pointer-events-none absolute -bottom-28 left-10 h-72 w-72 rounded-full bg-amber-300/10 blur-[90px]" />
 
-              {guide.id === DISPUTE_LETTER_GUIDE_ID || config.id === 'credit' ? (
-                <FreeDisputeGuideHeroVideo className="mb-6 sm:mb-8" />
-              ) : (
-                <div className="mb-6 sm:mb-8 aspect-video max-w-lg rounded-2xl fg-video-tile flex items-center justify-center relative overflow-hidden group cursor-pointer">
-                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(57,255,20,0.15),transparent_60%)]" />
-                  <div className="absolute top-3 left-3 px-2 py-1 rounded-lg bg-slate-900/60 border border-[#39ff14]/30 text-[9px] font-bold text-[#39ff14] uppercase tracking-wider">
-                    Preview dashboard
+          <div className="relative flex flex-col gap-5 md:flex-row md:items-start md:gap-5 lg:gap-6">
+            {/* Left: video then copy — stacks tight, no grid row stretch */}
+            <div className="min-w-0 flex-1 flex flex-col gap-5">
+              <div className="fg-video-hero-panel rounded-[1.65rem] border border-white/[0.08] bg-black/25 p-3 sm:p-4 lg:p-5">
+                <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="inline-flex w-fit items-center gap-2 rounded-full border border-sky-300/35 bg-sky-300/10 px-4 py-2">
+                    <Sparkles className="h-3.5 w-3.5 text-sky-200" />
+                    <span className="text-[10px] font-black uppercase tracking-[0.22em] text-sky-100">
+                      Watch the free guide intro
+                    </span>
                   </div>
-                  <FlashyIcon icon={PlayCircle} color="emerald" size="lg" className="group-hover:scale-110 transition-transform" />
+                  <span className="text-xs font-semibold uppercase tracking-wider text-white/45">Then claim the kit</span>
                 </div>
-              )}
-
-              <div className="flex flex-col sm:flex-row flex-wrap items-center gap-3 sm:gap-4">
-                <button
-                  type="button"
-                  onClick={onGoForm}
-                  className="fg-cta-primary text-base sm:text-lg py-4 px-6 sm:px-10 rounded-xl shadow-glow shadow-glow-hover inline-flex items-center justify-center gap-3 w-full sm:w-auto"
-                >
-                  {ctaOverride ?? 'Get free access now'} <ArrowRight className="w-5 h-5" />
-                </button>
-                <span className="text-xs text-gray-500 inline-flex items-center gap-1.5">
-                  <Lock className="w-3.5 h-3.5 text-emerald-600" /> No card. Instant download.
-                </span>
+                {guide.id === DISPUTE_LETTER_GUIDE_ID || config.id === 'credit' ? (
+                  <FreeDisputeGuideHeroVideo className="max-w-none rounded-[1.35rem] shadow-[0_30px_90px_rgba(0,0,0,0.38)]" />
+                ) : null}
+                <div className="mt-3 grid gap-2 md:grid-cols-1 lg:grid-cols-3">
+                  {HERO_PROOF.map((line, index) => (
+                    <div key={line} className={`rounded-2xl border p-3 text-sm font-semibold text-white/80 ${index === 0 ? 'border-sky-300/16 bg-sky-300/[0.07]' : index === 1 ? 'border-amber-300/16 bg-amber-300/[0.07]' : 'border-violet-300/16 bg-violet-300/[0.07]'}`}>
+                      <CheckCircle2 className={`mb-2 h-4 w-4 ${index === 0 ? 'text-sky-200' : index === 1 ? 'text-amber-200' : 'text-violet-200'}`} />
+                      {line}
+                    </div>
+                  ))}
+                </div>
               </div>
 
-              <div className="mt-6 flex flex-wrap gap-3 text-[10px] sm:text-xs text-white/50 uppercase tracking-wider">
-                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-[#39ff14]/20 bg-[#39ff14]/5 text-[#39ff14]">
-                  <Check className="w-3 h-3" /> Instant PDF
-                </span>
-                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-violet-500/30 bg-violet-500/10 text-violet-200">
-                  <Lock className="w-3 h-3" /> Secure portal preview
-                </span>
-              </div>
+              <div className="rounded-[1.65rem] border border-white/[0.1] bg-slate-900/55 p-5 sm:p-6 md:p-5 lg:p-8">
+                <h1 className="max-w-5xl text-3xl font-black leading-[1.02] tracking-tight text-white sm:text-4xl md:text-[1.65rem] md:leading-[1.08] lg:text-5xl xl:text-6xl">
+                  {headlineOverride ?? (
+                    <>
+                      Pick the negative item.
+                      <span className="mt-2 block text-gradient-blue">Get the dispute angle free.</span>
+                      <span className="mt-3 block text-xl font-black leading-tight text-white/85 sm:text-2xl md:text-lg lg:text-3xl">
+                        Letters, timing, tracking, and a first-round workflow
+                      </span>
+                    </>
+                  )}
+                </h1>
 
-              <div className="mt-6 grid sm:grid-cols-2 gap-2 max-w-xl">
-                {config.trustCerts.map((cert) => (
-                  <div key={cert} className="fg-trust-card rounded-2xl px-3 py-2.5 text-[11px] font-bold uppercase tracking-wider inline-flex items-center gap-2">
-                    <FlashyIcon icon={Award} color="emerald" size="xs" className="!w-8 !h-8 !rounded-lg shrink-0" /> {cert}
+                <p className="mt-4 max-w-3xl text-sm leading-relaxed text-white/70 sm:text-base md:text-sm lg:text-lg">
+                  {guide.desc} Watch the intro, choose the item hurting your file, then claim the kit and start with a focused plan instead of another vague credit tip.
+                </p>
+
+                <div className="fg-issue-picker mt-6 rounded-[1.5rem] border border-sky-300/14 bg-white/[0.05] p-4 sm:p-5">
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+                    <div>
+                      <p className="text-[10px] font-black uppercase tracking-[0.22em] text-sky-200">Start with your biggest blocker</p>
+                      <h2 className="mt-1 text-xl font-black text-white">What needs to be disputed first?</h2>
+                    </div>
+                    <span className="text-xs font-semibold text-white/45">Personalizes your kit</span>
                   </div>
-                ))}
+
+                  <div className="mt-4 grid grid-cols-2 gap-2 lg:grid-cols-4">
+                    {ISSUE_TRACKS.map((item) => {
+                      const active = item.id === selectedIssueId;
+                      return (
+                        <button
+                          key={item.id}
+                          type="button"
+                          onClick={() => setSelectedIssueId(item.id)}
+                          className={`rounded-2xl border px-3 py-3 text-left text-xs font-black uppercase tracking-wider transition ${
+                            active ? 'border-sky-300/60 bg-sky-300/10 text-sky-100' : 'border-white/[0.08] bg-slate-950/35 text-white/58 hover:border-sky-300/35 hover:text-white'
+                          }`}
+                        >
+                          {item.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  <div className="mt-4 rounded-2xl border border-amber-300/18 bg-amber-300/[0.06] p-4">
+                    <p className="text-[10px] font-black uppercase tracking-[0.22em] text-amber-100">Your first-round angle</p>
+                    <h3 className="mt-1 text-lg font-black leading-snug text-white">{selectedIssue.promise}</h3>
+                    <div className="mt-3 grid gap-2 md:grid-cols-1 lg:grid-cols-3">
+                      {selectedIssue.plan.map((line) => (
+                        <div key={line} className="rounded-xl border border-white/[0.08] bg-white/[0.04] px-3 py-2 text-xs font-semibold text-white/65">
+                          <CheckCircle2 className="mr-1.5 inline h-3.5 w-3.5 text-amber-100" /> {line}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-6 flex flex-col gap-3 lg:flex-row">
+                  <a href="#fg-preview" className="rounded-xl border border-white/[0.14] bg-white/[0.06] px-8 py-4 text-center text-sm font-black uppercase tracking-wider text-white/85 transition hover:border-sky-300/40 hover:text-sky-100">
+                    See portal preview
+                  </a>
+                  <a href="#fg-value" className="rounded-xl border border-sky-300/25 bg-sky-300/[0.08] px-8 py-4 text-center text-sm font-black uppercase tracking-wider text-sky-100 transition hover:border-sky-300/45 hover:bg-sky-300/[0.12]">
+                    What&apos;s in the free kit
+                  </a>
+                </div>
               </div>
             </div>
-            <div className="order-1 lg:order-2 flex justify-center lg:justify-end px-1 sm:px-0">
-              <LeadMagnetEbook />
+
+            {/* Right: e-book + form — independent column, no height coupling */}
+            <div className="flex w-full shrink-0 flex-col gap-4 md:w-[min(100%,300px)] md:gap-4 lg:w-[min(100%,340px)] lg:gap-5 xl:w-[min(100%,380px)]">
+              <div className="fg-offer-display relative overflow-visible rounded-[1.65rem] border border-sky-300/20 bg-[#101827]/88 p-4 md:p-4 lg:p-6">
+                <div className="absolute right-4 top-4 rounded-full border border-amber-300/35 bg-amber-300/10 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-amber-100">
+                  ${totalValue} free
+                </div>
+                <div className="flex justify-center overflow-visible px-2 pr-4 pt-2 md:pt-1">
+                  <LeadMagnetEbook />
+                </div>
+                <div className="mt-4 grid grid-cols-2 gap-2 md:gap-2.5 lg:mt-5 lg:gap-3">
+                  <div className="rounded-2xl border border-sky-300/14 bg-sky-300/[0.07] p-3 md:p-3 lg:p-4">
+                    <p className="text-xl font-black text-white md:text-lg lg:text-2xl">{LEAD_MAGNET_TRIAL_DAYS} days</p>
+                    <p className="mt-1 text-xs font-semibold uppercase tracking-wider text-white/45">Portal preview</p>
+                  </div>
+                  <div className="rounded-2xl border border-amber-300/14 bg-amber-300/[0.07] p-3 md:p-3 lg:p-4">
+                    <p className="text-xl font-black text-white md:text-lg lg:text-2xl">$0</p>
+                    <p className="mt-1 text-xs font-semibold uppercase tracking-wider text-white/45">No card needed</p>
+                  </div>
+                </div>
+                <div className="mt-3 rounded-2xl border border-white/[0.1] bg-slate-200/[0.06] p-4">
+                  <p className="text-[10px] font-black uppercase tracking-[0.22em] text-sky-200">Best for</p>
+                  <p className="mt-1 text-sm font-semibold leading-relaxed text-white/75">
+                    {selectedIssue.bestFor}
+                  </p>
+                </div>
+              </div>
+              {captureForm}
             </div>
           </div>
         </div>
       </header>
 
-      <section id="fg-preview" className="container mx-auto px-4 sm:px-6 max-w-6xl relative z-10 pb-10 sm:pb-16 scroll-mt-16">
-        <div className="fg-stage relative overflow-hidden rounded-[1.75rem] sm:rounded-[2.25rem] p-6 sm:p-10 lg:p-14">
-          <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
-            <div className="order-2 lg:order-1">
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full fg-kicker-pill mb-5">
-                <LayoutDashboard className="w-3.5 h-3.5 text-[#39ff14]" />
-                <span className="text-[10px] font-bold text-[#39ff14] uppercase tracking-widest">Bonus — live platform preview</span>
+      <section className="container relative z-10 mx-auto max-w-7xl px-4 pb-12 sm:px-6">
+        <div className="grid gap-4 md:grid-cols-3">
+          {OFFER_PILLARS.map(({ icon: Icon, title, desc }) => (
+            <div key={title} className="fg-conversion-box rounded-[1.5rem] border border-white/[0.1] bg-white/[0.045] p-5 backdrop-blur-xl sm:p-6">
+              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl border border-[#39ff14]/30 bg-[#39ff14]/10 text-[#39ff14]">
+                <Icon className="h-5 w-5" />
               </div>
-              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-white leading-tight mb-3">
-                Plus a peek at your <span className="text-gradient-green">restoration dashboard.</span>
-              </h2>
-              <p className="text-gray-400 text-sm sm:text-base max-w-lg mb-6">
-                Track dispute letters, monitor bureau responses, and keep every outcome organized in one place.
-              </p>
-              <ul className="space-y-2.5">
-                {[
-                  'Score trajectory views & round tracking',
-                  'Every bureau response logged in one timeline',
-                  'Mobile + desktop — your file travels with you',
-                ].map((line) => (
-                  <li key={line} className="flex items-center gap-2.5 text-gray-200 text-sm">
-                    <CheckCircle2 className="w-4 h-4 text-[#39ff14] shrink-0" />
-                    {line}
-                  </li>
-                ))}
-              </ul>
+              <h3 className="text-lg font-black text-white">{title}</h3>
+              <p className="mt-2 text-sm leading-relaxed text-white/60">{desc}</p>
             </div>
-            <div className="order-1 lg:order-2">
+          ))}
+        </div>
+      </section>
+
+      <section className="container relative z-10 mx-auto max-w-7xl px-4 pb-12 sm:px-6">
+        <div className="fg-path-section overflow-hidden rounded-[2rem] border border-white/[0.1] bg-white/[0.045] p-5 backdrop-blur-xl sm:p-8 lg:p-10">
+          <div className="grid gap-8 md:grid-cols-[0.92fr_1.08fr] md:items-center lg:grid-cols-[0.82fr_1.18fr]">
+            <div>
+              <p className="text-[11px] font-black uppercase tracking-[0.24em] text-[#39ff14]">Why people claim it</p>
+              <h2 className="mt-3 text-3xl font-black leading-tight text-white sm:text-4xl">
+                It turns “I need credit help” into <span className="text-gradient-green">what to do first.</span>
+              </h2>
+              <p className="mt-4 text-sm leading-relaxed text-white/60 sm:text-base">
+                This is not another generic PDF. It gives you a first-round plan, a toolkit, and a portal preview that makes the next action obvious.
+              </p>
+              <button type="button" onClick={goCapture} className="mt-6 fg-cta-primary rounded-xl px-8 py-4 text-sm inline-flex items-center justify-center gap-2">
+                Claim my free plan <ArrowRight className="h-4 w-4" />
+              </button>
+            </div>
+
+            <div className="grid gap-3 sm:grid-cols-2">
+              {ACTION_STEPS.map((item) => (
+                <div key={item.step} className="rounded-2xl border border-white/[0.09] bg-black/20 p-4 sm:p-5">
+                  <div className="mb-4 inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-[#39ff14]/25 bg-[#39ff14]/10 text-sm font-black text-[#39ff14]">
+                    {item.step}
+                  </div>
+                  <h3 className="text-base font-black text-white">{item.title}</h3>
+                  <p className="mt-2 text-sm leading-relaxed text-white/58">{item.desc}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="fg-preview" className="container mx-auto px-4 sm:px-6 max-w-6xl pb-12 scroll-mt-16">
+        <div className="fg-stage fg-preview-stage rounded-[1.75rem] sm:rounded-[2rem] p-6 sm:p-10 lg:p-12 xl:p-14 overflow-visible">
+          <div className="grid gap-12 sm:gap-14 lg:gap-20 xl:gap-24 lg:grid-cols-[minmax(0,0.4fr)_minmax(0,0.6fr)] lg:items-center">
+            <div className="min-w-0 lg:max-w-sm xl:max-w-md lg:pr-4 xl:pr-8">
+              <p className="text-[11px] font-bold uppercase tracking-widest text-[#39ff14] mb-3">Included free</p>
+              <h2 className="text-2xl sm:text-3xl font-black text-white leading-tight mb-3">
+                Track every dispute in the <span className="text-gradient-green">partner portal</span>, not spreadsheets.
+              </h2>
+              <p className="text-white/60 text-sm sm:text-base mb-6 max-w-md">
+                The PDF gives you the playbook. The portal preview makes it real: upload reports, log bureau responses, and see your next steps in one dashboard.
+              </p>
+              <button type="button" onClick={goCapture} className="fg-cta-primary py-3.5 px-8 rounded-xl inline-flex items-center gap-2 text-sm">
+                Claim the free kit <ArrowRight className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="min-w-0 overflow-visible lg:pl-6 xl:pl-10 2xl:pl-12">
               <LeadMagnetDeviceShowcase />
             </div>
           </div>
         </div>
       </section>
 
-      <div className="bg-[#151c2a] border-y border-[#39ff14]/15 py-4 overflow-hidden">
-        <div className="marquee-container gap-12 sm:gap-16 px-8 text-gray-400 font-bold text-xs sm:text-sm uppercase tracking-widest">
-          {['Equifax', 'Experian', 'TransUnion', 'Encrypted', 'Funding-readiness path'].map((label) => (
-            <span key={label} className="flex items-center gap-2 shrink-0">
-              {label === 'Encrypted' ? <Lock className="w-4 h-4 text-fuchsia-400" /> : <Check className="text-[#39ff14] w-4 h-4" />}
-              {label}
-            </span>
+      <section className="container mx-auto max-w-6xl px-4 pb-12 sm:px-6">
+        <div className="grid gap-4 md:grid-cols-3">
+          {OBJECTION_HANDLERS.map((item) => (
+            <div key={item.title} className="rounded-[1.5rem] border border-[#39ff14]/18 bg-[#07110d]/65 p-5 shadow-[0_24px_70px_rgba(0,0,0,0.22)] sm:p-6">
+              <ShieldCheck className="mb-4 h-6 w-6 text-[#39ff14]" />
+              <h3 className="text-base font-black text-white">{item.title}</h3>
+              <p className="mt-2 text-sm leading-relaxed text-white/58">{item.desc}</p>
+            </div>
           ))}
         </div>
-      </div>
+      </section>
 
-      <main id="fg-value" className="py-12 sm:py-20 container mx-auto px-4 sm:px-6 max-w-6xl relative z-10 scroll-mt-16">
-        <div className="text-center max-w-2xl mx-auto mb-10 sm:mb-14">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full fg-kicker-pill mb-4">
-            <Gift className="w-3.5 h-3.5 text-[#39ff14]" />
-            <span className="text-[10px] font-bold text-[#39ff14] uppercase tracking-widest">Everything you get — free</span>
-          </div>
-          <h2 className="text-3xl sm:text-4xl font-black text-white mb-3 leading-tight">
-            A complete <span className="text-gradient-green">dispute toolkit</span>, not just a PDF.
+      <main id="fg-value" className="container mx-auto px-4 sm:px-6 max-w-6xl pb-16 scroll-mt-16">
+        <div className="text-center max-w-2xl mx-auto mb-8">
+          <h2 className="text-2xl sm:text-3xl font-black text-white mb-2">
+            What you get <span className="text-gradient-green">free today</span>
           </h2>
+          <p className="text-white/55 text-sm">A valuable stack with one clear action: claim access and start round one.</p>
         </div>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-10">
           {config.features.map((f, i) => (
-            <div key={f.title} className={`${finelyOsCatalogCard(FEATURE_ACCENTS[i % FEATURE_ACCENTS.length])} !p-5 sm:!p-6 transition-all`} data-fc-accent={FEATURE_ACCENTS[i % FEATURE_ACCENTS.length]}>
-              <FlashyIcon icon={f.icon} color={FEATURE_ACCENTS[i % FEATURE_ACCENTS.length] === 'amber' ? 'amber' : FEATURE_ACCENTS[i % FEATURE_ACCENTS.length] === 'violet' ? 'violet' : FEATURE_ACCENTS[i % FEATURE_ACCENTS.length] === 'sky' ? 'sky' : FEATURE_ACCENTS[i % FEATURE_ACCENTS.length] === 'fuchsia' ? 'fuchsia' : 'emerald'} size="sm" className="mb-4" />
-              <h3 className="text-base sm:text-lg font-bold mb-1.5">{f.title}</h3>
-              <p className="text-xs sm:text-sm leading-relaxed opacity-80">{f.desc}</p>
+            <div key={f.title} className={`${finelyOsCatalogCard(FEATURE_ACCENTS[i % FEATURE_ACCENTS.length])} !p-4 sm:!p-5`} data-fc-accent={FEATURE_ACCENTS[i % FEATURE_ACCENTS.length]}>
+              <FlashyIcon icon={f.icon} color="emerald" size="xs" className="!w-8 !h-8 mb-2" />
+              <h3 className="text-sm font-bold mb-1">{f.title}</h3>
+              <p className="text-xs opacity-75 leading-relaxed">{f.desc}</p>
             </div>
           ))}
         </div>
 
-        <div id="fg-cta" className="mt-10 sm:mt-16 grid lg:grid-cols-2 gap-6 lg:gap-8 items-stretch scroll-mt-16">
-          <div className="flex flex-col justify-center">
-            <h3 className="text-2xl sm:text-3xl font-black text-white mb-2">
-              Real value: <span className="text-gray-500 line-through decoration-2">$297</span>{' '}
-              <span className="text-gradient-green">— yours $0 today.</span>
-            </h3>
-            <p className="text-gray-400 text-sm sm:text-base mb-6">
-              Full toolkit free — plus a {LEAD_MAGNET_TRIAL_DAYS}-day DIY portal trial.
-            </p>
-            <ul className="space-y-3">
-              {config.valueStack.map((v) => {
-                const locked = v.locksAfterTrial && v.trialFeature && !isLeadMagnetFeatureUnlocked(v.trialFeature as LeadMagnetTrialFeatureId, trialState);
-                return (
-                  <li key={v.label} className="flex items-center justify-between gap-4 border-b border-slate-700/50 pb-3">
-                    <span className="inline-flex items-center gap-2.5 text-gray-200 text-sm min-w-0">
-                      {locked ? <Lock className="w-4 h-4 text-gray-500 shrink-0" /> : <Check className="w-4 h-4 text-[#39ff14] shrink-0" />}
-                      {v.label}
-                    </span>
-                    <span className="text-emerald-400 font-bold text-sm shrink-0">{v.value}</span>
-                  </li>
-                );
-              })}
-            </ul>
-            <button type="button" onClick={onGoForm} className="mt-8 fg-cta-primary py-4 px-8 rounded-xl inline-flex items-center justify-center gap-2 w-full sm:w-auto">
-              {ctaOverride ?? 'Unlock everything free'} <ArrowRight className="w-5 h-5" />
-            </button>
+        <div id="fg-cta" className="fg-price-card rounded-2xl p-6 sm:p-8 max-w-2xl mx-auto text-center scroll-mt-16">
+          <p className="text-sm text-white/60 mb-2">Total value</p>
+          <p className="text-3xl sm:text-4xl font-black text-white mb-4">
+            <span className="line-through text-white/35 mr-2">${totalValue}</span>
+            <span className="text-gradient-green">$0</span>
+          </p>
+          <ul className="text-left space-y-2 mb-6 max-w-md mx-auto">
+            {config.valueStack.slice(0, 5).map((v) => (
+              <li key={v.label} className="flex items-center justify-between gap-3 text-sm text-white/80 border-b border-white/[0.06] pb-2">
+                <span className="inline-flex items-center gap-2 min-w-0">
+                  <Check className="w-4 h-4 text-[#39ff14] shrink-0" /> {v.label}
+                </span>
+                <span className="text-emerald-400 font-bold shrink-0">{v.value}</span>
+              </li>
+            ))}
+          </ul>
+          <div className="mb-6 grid gap-2 sm:grid-cols-2">
+            {TRUST_POINTS.map((point) => (
+              <div key={point} className="rounded-xl border border-white/[0.08] bg-white/[0.04] px-3 py-2 text-xs font-semibold text-white/65">
+                <CheckCircle2 className="mr-1.5 inline h-3.5 w-3.5 text-[#39ff14]" /> {point}
+              </div>
+            ))}
           </div>
-          <div className="rounded-2xl border border-[#39ff14]/20 bg-[#151c2a]/80 p-6 flex flex-col justify-center">
-            <p className="text-sm text-gray-400 mb-4">Join thousands of partners who started with this free playbook.</p>
-            <button type="button" onClick={onGoForm} className="fg-cta-secondary py-3 rounded-xl font-bold uppercase tracking-wider text-sm">
-              Start now — no card
-            </button>
-          </div>
+          <button type="button" onClick={goCapture} className="fg-cta-primary py-4 px-10 rounded-xl inline-flex items-center gap-2 text-base w-full sm:w-auto justify-center">
+            {ctaOverride ?? 'Get free access'} <ArrowRight className="w-5 h-5" />
+          </button>
+          <p className="mt-3 text-xs text-white/45">
+            <ShieldCheck className="w-3 h-3 inline mr-1" /> No credit card · Instant download · secure access
+          </p>
         </div>
       </main>
     </div>
@@ -293,7 +485,7 @@ export function CreditGuidePremiumDownload({
     <main className="min-h-screen py-12 sm:py-16 px-4 bg-fc-shell">
       <div className="max-w-5xl mx-auto grid lg:grid-cols-2 gap-6 lg:gap-10 items-start">
         <DisputeLetterGuidePreview className="w-full" />
-        <div className="bg-[#151c2a] border border-[#39ff14]/20 rounded-2xl sm:rounded-[2rem] p-6 sm:p-10 text-center shadow-[0_0_50px_rgba(57,255,20,0.1)]">
+        <div className="bg-[#151c2a] border border-[#39ff14]/20 rounded-2xl sm:rounded-[2rem] p-6 sm:p-10 text-center shadow-[0_0_50px_rgba(57,255,20,0.12)]">
           {generating ? (
             <div className="py-12">
               <Loader2 className="w-12 h-12 text-[#39ff14] animate-spin mx-auto mb-4" />

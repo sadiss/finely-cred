@@ -26,6 +26,7 @@ import { FinelyNowDoThisStrip } from '../tours/FinelyNowDoThisStrip';
 import { FinelyNoticedStrip } from '../tours/FinelyNoticedStrip';
 import { buildOnboardingMonitoringNoticedItems } from '../../lib/finelyProactiveSignals';
 import { ONBOARDING_MONITORING_NOW_DO_ITEMS } from '../../config/onboardingMonitoringHelp';
+import { HEAD_OF_SOCIETY_NAME, HETA_SOCIETY_SHORT } from '../../config/hetaSocietyProgram';
 
 type OnboardingLane =
   | 'au_tradelines'
@@ -37,6 +38,7 @@ type OnboardingLane =
   | 'agent'
   | 'funding_readiness'
   | 'wealth_builder'
+  | 'heta_society'
   | 'other';
 
 function safeDecode(s: string) {
@@ -122,6 +124,17 @@ function recommendNext(args: {
       nextPath: '/affiliate/hub',
       ctaLabel: 'Open Affiliate Hub',
       pills: ['Commission tracking', 'Referral links', 'Denefit stream', 'Partner-ready'],
+    };
+  }
+
+  if (args.lane === 'heta_society') {
+    return {
+      headline: `${HEAD_OF_SOCIETY_NAME} portal`,
+      reason:
+        `Your ${HETA_SOCIETY_SHORT} restoration file is ready — track disputes, access the free guide, and explore business credit modules.`,
+      nextPath: '/portal/hos',
+      ctaLabel: 'Open HOS portal',
+      pills: ['5 dispute slots', 'Free guide', 'Business credit starter'],
     };
   }
 
@@ -1118,6 +1131,20 @@ interface SovereignPortalProps {
   onComplete: (nextPath?: string) => void;
 }
 
+function OnboardingShellCloseButton({ onClose }: { onClose: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClose}
+      className="fixed z-[110] inline-flex h-11 w-11 items-center justify-center rounded-xl border border-white/[0.12] bg-fc-chrome/85 backdrop-blur-md text-white/70 hover:text-white hover:border-white/25 transition-colors fc-focus-ring top-[max(1rem,env(safe-area-inset-top))] right-[max(1rem,env(safe-area-inset-right))] sm:top-5 sm:right-6"
+      aria-label="Close and return to site"
+      title="Close"
+    >
+      <X size={20} />
+    </button>
+  );
+}
+
 // --- STEP: ROLE (defines the user's primary role first) ---
 const ROLE_CARDS: Array<{
   id: 'client' | 'au_seller' | 'agent' | 'affiliate';
@@ -1536,6 +1563,7 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
 
     return (
       <div className="fixed inset-0 z-[100] bg-fc-shell/95 backdrop-blur-2xl flex flex-col items-center justify-center p-6 animate-in zoom-in duration-500 fc-senior-simple" data-fc-onboarding-shell="1">
+        <OnboardingShellCloseButton onClose={onClose} />
         <div className="max-w-6xl w-full grid md:grid-cols-[1.2fr_0.8fr] gap-8">
           <div className="fc-light-glass-panel fc-light-chrome-panel rounded-3xl p-10 relative overflow-hidden">
             <div className="absolute inset-0 pointer-events-none">
@@ -1652,6 +1680,7 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
   if (authMode === 'login') {
     return (
       <div className="fixed inset-0 z-[100] bg-fc-shell flex items-center justify-center p-6 animate-in slide-in-from-bottom duration-500 fc-senior-simple" data-fc-onboarding-shell="1">
+        <OnboardingShellCloseButton onClose={onClose} />
         <div className="max-w-md w-full p-8 fc-light-glass-panel fc-light-chrome-panel rounded-3xl relative overflow-hidden">
           <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-white/70 to-transparent opacity-60" />
           <div className="text-center space-y-6 mb-8">
@@ -1748,6 +1777,7 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
 
   return (
     <div className="fixed inset-0 z-[100] bg-fc-shell overflow-y-auto flex flex-col relative fc-senior-simple" data-fc-onboarding-shell="1">
+      <OnboardingShellCloseButton onClose={onClose} />
       <div className="pointer-events-none absolute inset-0">
         <div className="absolute -top-40 left-[-20%] h-[520px] w-[520px] rounded-full bg-white/70 blur-3xl" />
         <div className="absolute -bottom-56 right-[-25%] h-[680px] w-[680px] rounded-full bg-white/70 blur-3xl" />
@@ -1771,9 +1801,7 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
               <div className="mt-1 text-center text-[10px] text-emerald-300/90">Checkout queued after signup</div>
             ) : null}
           </div>
-          <button onClick={onClose} className="text-white/45 hover:text-white transition-colors">
-            <X size={20} />
-          </button>
+          <div className="w-11 shrink-0" aria-hidden />
         </div>
         <div className="max-w-6xl mx-auto mt-3 flex items-center justify-end">
           <button

@@ -28,6 +28,8 @@ import { PublicInquiryBudgetCalculator } from '../funding/PublicInquiryBudgetCal
 import { loadSettings } from '../../data/settingsRepo';
 import { resolveLeadMagnetConfig } from '../../data/leadMagnetFunnelsRepo';
 import { CreditGuidePremiumDownload, CreditGuidePremiumLanding } from './CreditGuidePremiumSections';
+import { FunnelLeadCaptureForm } from './FunnelLeadCaptureForm';
+import { FunnelCollectionDisputePanel } from './FunnelCollectionDisputePanel';
 import { FinelyOsPaginatedStack } from '../../features/os/FinelyOsPaginatedStack';
 import { FinelyUnifiedHubLayout } from '../../features/unified/FinelyUnifiedHubLayout';
 import {
@@ -87,7 +89,14 @@ export function LeadMagnetFunnelShell({
   useEffect(() => {
     captureLeadAttributionFromUrl(window.location.search, window.location.pathname);
     ensureDefaultExperiments();
-  }, []);
+    const trial = getLeadMagnetTrial();
+    if (trial?.leadId) {
+      setLeadId((prev) => prev ?? trial.leadId ?? null);
+      if (trial.email) setEmail((prev) => prev || trial.email || '');
+    }
+    const trackStep = searchParams.get('step');
+    if (trackStep === 'track' || trackStep === 'success') setStep('success');
+  }, [searchParams]);
 
   const abVariant = useMemo(() => assignFunnelVariant(activeConfig.funnelId), [activeConfig.funnelId]);
   const experiment = useMemo(() => getExperimentForFunnel(activeConfig.funnelId), [activeConfig.funnelId]);
@@ -95,6 +104,7 @@ export function LeadMagnetFunnelShell({
   const ctaOverride = experiment?.ctaLabels?.[abVariant];
   const trustCount = loadSettings().site.funnelTrustClientCount ?? 10000;
   const trustLabel = trustCount >= 1000 ? `${Math.floor(trustCount / 1000)}k+` : `${trustCount}+`;
+  const isCreditPremium = variant === 'premium' && activeConfig.id === 'credit';
 
   useEffect(() => {
     if (step !== 'download') return;
@@ -164,6 +174,9 @@ export function LeadMagnetFunnelShell({
       }
       recordFunnelConversion(activeConfig.funnelId, abVariant);
       setStep('success');
+      queueMicrotask(() => {
+        document.getElementById('fg-dispute-track')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
     } catch (ex: unknown) {
       setErr((ex as Error)?.message || 'Could not submit. Try again.');
     } finally {
@@ -226,6 +239,23 @@ export function LeadMagnetFunnelShell({
   const totalValue = activeConfig.valueStack.reduce((sum, v) => sum + parseInt(v.value.replace(/\D/g, ''), 10), 0);
   const trialActive = Boolean(getLeadMagnetTrial()?.leadId);
 
+  const scrollToCapture = () => {
+    document.getElementById('fg-capture')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
+  const goForm = () => {
+    if (isCreditPremium) scrollToCapture();
+    else setStep('form');
+  };
+
+  useEffect(() => {
+    if (isCreditPremium && step === 'form') {
+      setStep('landing');
+      scrollToCapture();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isCreditPremium, step]);
+
   const assignedStaff = useMemo(() => resolveStaffOnDuty(activeConfig.agentPersonaId), [activeConfig.agentPersonaId]);
   const staffName = assignedStaff ? staffMemberFullName(assignedStaff) : activeConfig.agentDisplayName;
   const staffTitle = getAgentPersona(activeConfig.agentPersonaId)?.displayTitle ?? activeConfig.agentRole;
@@ -233,22 +263,48 @@ export function LeadMagnetFunnelShell({
   return (
     <div className="fg-funnel min-h-screen text-white overflow-x-hidden">
       <FreeGuideFunnelStyles />
-      <div className="fg-urgency-bar text-white text-center py-3 px-4 font-bold text-xs sm:text-sm tracking-wider">
-        <span className="inline-flex items-center justify-center gap-2 flex-wrap">
-          <Sparkles className="w-4 h-4 shrink-0 animate-pulse" />
-          {activeConfig.urgencyText}
-          <Sparkles className="w-4 h-4 shrink-0 animate-pulse" />
-        </span>
-      </div>
+      {!isCreditPremium ? (
+        <div className="fg-urgency-bar text-white text-center py-3 px-4 font-bold text-xs sm:text-sm tracking-wider">
+          <span className="inline-flex items-center justify-center gap-2 flex-wrap">
+            <Sparkles className="w-4 h-4 shrink-0 animate-pulse" />
+            {activeConfig.urgencyText}
+            <Sparkles className="w-4 h-4 shrink-0 animate-pulse" />
+          </span>
+        </div>
+      ) : null}
 
       {step === 'landing' && (
         variant === 'premium' && activeConfig.id === 'credit' ? (
           <CreditGuidePremiumLanding
             config={activeConfig}
             guide={guide}
-            onGoForm={() => setStep('form')}
+            onGoForm={goForm}
             headlineOverride={headlineOverride}
             ctaOverride={ctaOverride}
+            trustLabel={trustLabel}
+            totalValue={totalValue}
+            captureForm={
+              <FunnelLeadCaptureForm
+                firstName={firstName}
+                lastName={lastName}
+                email={email}
+                phone={phone}
+                consent={consent}
+                marketing={marketing}
+                busy={busy}
+                err={err}
+                submitLabel={ctaOverride ?? 'Get the free kit'}
+                totalValue={totalValue}
+                trustLabel={trustLabel}
+                onFirstNameChange={setFirstName}
+                onLastNameChange={setLastName}
+                onEmailChange={setEmail}
+                onPhoneChange={setPhone}
+                onConsentChange={setConsent}
+                onMarketingChange={setMarketing}
+                onSubmit={submitForm}
+              />
+            }
           />
         ) : (
         <div className="bg-mesh min-h-screen">
@@ -317,12 +373,38 @@ export function LeadMagnetFunnelShell({
         )
       )}
 
-      {step === 'form' && (
-        <div className="container mx-auto px-4 py-12 max-w-lg">
-          <div className={`${finelyOsCatalogCard('violet')} !p-6 sm:p-8`}>
-            <div className={`${FINELY_OS_ENTITY_SUBLABEL} mb-2`}>Step 1 of 2</div>
-            <h2 className="text-2xl font-black mb-2">Unlock your free stack</h2>
-            <p className={`text-sm ${FINELY_OS_ENTITY_BODY} mb-6`}>Your guide + bonuses unlock instantly. {staffName}, your {staffTitle}, may reach out to help.</p>
+      {step === 'form' && !isCreditPremium && (
+        <div className="container mx-auto px-4 py-10 sm:py-12 max-w-lg">
+          {activeConfig.id === 'credit' && variant === 'premium' ? (
+            <div className="mb-6 rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-3 text-center">
+              <p className="text-[11px] sm:text-xs font-black uppercase tracking-wider text-red-200">
+                Almost there — your free stack (${totalValue}+ value) is reserved for this session
+              </p>
+            </div>
+          ) : null}
+          <div className={`${finelyOsCatalogCard('violet')} !p-6 sm:p-8 fg-highlight-card`}>
+            <div className="flex items-center justify-between gap-3 mb-3">
+              <div className={`${FINELY_OS_ENTITY_SUBLABEL}`}>Step 1 of 2 — Instant unlock</div>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-400 inline-flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" /> Live
+              </span>
+            </div>
+            <h2 className="text-2xl sm:text-3xl font-black mb-2">Claim your free dispute toolkit</h2>
+            <p className={`text-sm ${FINELY_OS_ENTITY_BODY} mb-4`}>
+              PDF + bonuses unlock in seconds. No card. {staffName}, your {staffTitle}, can help you execute round 1.
+            </p>
+            {activeConfig.id === 'credit' ? (
+              <ul className="mb-6 space-y-2 text-xs text-white/70">
+                {activeConfig.valueStack.slice(0, 4).map((v) => (
+                  <li key={v.label} className="flex items-center justify-between gap-2 border-b border-white/[0.06] pb-2">
+                    <span className="inline-flex items-center gap-1.5 min-w-0">
+                      <Check className="w-3.5 h-3.5 text-[#39ff14] shrink-0" /> {v.label}
+                    </span>
+                    <span className="text-emerald-400 font-bold shrink-0">{v.value}</span>
+                  </li>
+                ))}
+              </ul>
+            ) : null}
             <form id="funnel-unlock-form" onSubmit={submitForm} className="space-y-3">
               <div className="grid grid-cols-2 gap-3">
                 <input value={firstName} onChange={(e) => setFirstName(e.target.value)} placeholder="First name" className={FINELY_OS_ENTITY_INPUT} />
@@ -445,6 +527,10 @@ export function LeadMagnetFunnelShell({
               />
             ) : null}
 
+            {leadId && activeConfig.id === 'credit' ? (
+              <FunnelCollectionDisputePanel leadId={leadId} email={email.trim()} />
+            ) : null}
+
             <div className={`${finelyOsInlineListItem()} p-4 flex flex-wrap items-center justify-between gap-3`}>
               <div className="text-left">
                 <div className={`text-sm font-bold ${FINELY_OS_ENTITY_VALUE}`}>{staffName} · {staffTitle}</div>
@@ -530,25 +616,33 @@ export function LeadMagnetFunnelShell({
       <FunnelExitIntentModal
         active={step === 'landing'}
         headline={`Get your free ${activeConfig.heroHighlight.trim() || 'guide'}`}
-        ctaLabel={ctaOverride ?? 'Get free access now'}
-        onAccept={() => setStep('form')}
+        ctaLabel={ctaOverride ?? (isCreditPremium ? 'Get the free kit' : 'Get free access now')}
+        onAccept={goForm}
       />
 
-      <div className="fixed bottom-0 inset-x-0 sm:hidden border-t border-white/[0.08] bg-fc-section/95 p-3 z-50">
-        {step === 'landing' ? (
-          <button type="button" onClick={() => setStep('form')} className="w-full fg-cta-primary py-3 rounded-xl text-sm font-black uppercase">
-            Get free access
+      {!isCreditPremium ? (
+        <div className="fixed bottom-0 inset-x-0 sm:hidden border-t border-white/[0.08] bg-fc-section/95 p-3 z-50">
+          {step === 'landing' ? (
+            <button type="button" onClick={goForm} className="w-full fg-cta-primary py-3 rounded-xl text-sm font-black uppercase">
+              Get free access
+            </button>
+          ) : step === 'form' ? (
+            <button
+              type="button"
+              onClick={() => (document.getElementById('funnel-unlock-form') as HTMLFormElement | null)?.requestSubmit()}
+              className="w-full fg-cta-primary py-3 rounded-xl text-sm font-black uppercase"
+            >
+              Unlock my free stack
+            </button>
+          ) : null}
+        </div>
+      ) : step === 'landing' ? (
+        <div className="fixed bottom-0 inset-x-0 sm:hidden border-t border-white/[0.08] bg-fc-section/95 p-3 z-50">
+          <button type="button" onClick={goForm} className="w-full fg-cta-primary py-3 rounded-xl text-sm font-black uppercase">
+            {ctaOverride ?? 'Get the free kit'}
           </button>
-        ) : step === 'form' ? (
-          <button
-            type="button"
-            onClick={() => (document.getElementById('funnel-unlock-form') as HTMLFormElement | null)?.requestSubmit()}
-            className="w-full fg-cta-primary py-3 rounded-xl text-sm font-black uppercase"
-          >
-            Unlock my free stack
-          </button>
-        ) : null}
-      </div>
+        </div>
+      ) : null}
     </div>
   );
 }

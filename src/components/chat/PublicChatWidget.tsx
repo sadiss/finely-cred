@@ -12,10 +12,12 @@ import { OPEN_PUBLIC_CHAT_EVENT, type PublicChatGoal } from '../../lib/publicCha
 import { emitPlatformEvent } from '../../domain/platformEvents';
 import { resolveToolPath, toolsForPersona } from '../../lib/agentPersonaTools';
 import type { AiGatewayMessage } from '../../lib/aiClient';
-import { getPublicChatPersonaPresentation, getPublicChatPersonaPresentationById } from './publicChatPersonaUi';
+import { getPublicChatPersonaPresentation, getPublicChatPersonaPresentationById, getPublicChatAiReceptionistPresentation, PUBLIC_CHAT_AI_PERSONA_ID } from './publicChatPersonaUi';
 import { PublicChatStaffAvatar } from './PublicChatStaffAvatar';
 import { playStaffReplyAudio, stopStaffReplyAudio } from '../../lib/publicChatStaffVoice';
 import { getVoiceStudioStatus } from '../../lib/voiceStudioClient';
+import { useAuth } from '../../auth/AuthProvider';
+import { openCommunicationHub } from './communicationHubModel';
 import {
   FINELY_OS_ENTITY_CHIP,
   FINELY_OS_ENTITY_INPUT,
@@ -37,7 +39,13 @@ type ChatMsg = {
 type Goal = 'personal' | 'business' | 'tradelines' | 'debt' | 'not_sure';
 
 const GENERIC_WELCOME =
-  "Hi — welcome to Finely Cred. Pick a lane below or describe what you're working on; we'll connect you with the right specialist.";
+  "Hi — I'm Aia, Finely Cred's AI guide. Pick a lane below or tell me what you're working on — I'll connect you with the right live specialist when you're ready.";
+
+const LIVE_AGENT_PATTERN =
+  /\b(live\s+(agent|person|human|rep|specialist)|real\s+(person|human|agent)|speak\s+(with|to)\s+(a\s+)?(human|person|agent|someone|live)|talk\s+to\s+(a\s+)?(human|real|live)|connect\s+me\s+(to|with)\s+(a\s+)?(human|person|live))/i;
+
+const AI_RECEPTIONIST_PROMPT =
+  'You are Aia, Finely Cred\'s AI receptionist on the public website. Be warm, concise, and educational — never legal advice. Orient guests, answer basics, and when they need deeper help or a live person, explain that you will connect them with an on-duty specialist after they pick a lane or share their goal. Do not pretend to be human; you are the AI guide that routes to real team members.';
 
 const LANE_OPTIONS = [
   {
@@ -113,6 +121,7 @@ function resolvePersona(goal: Goal | null, overrideId?: AgentPersonaId): AgentPe
 export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolean }) {
   const navigate = useNavigate();
   const { pathname } = useLocation();
+  const { user } = useAuth();
   const [open, setOpen] = useState(defaultOpen);
   const [busy, setBusy] = useState(false);
   const [voiceBusyId, setVoiceBusyId] = useState<string | null>(null);
@@ -136,8 +145,9 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
 
   const persona = useMemo(() => resolvePersona(goal, personaOverrideId), [goal, personaOverrideId]);
   const presentation = useMemo(() => getPublicChatPersonaPresentation(persona), [persona]);
-  const launcherPresentation = useMemo(() => getPublicChatPersonaPresentation(personaOnDutyAt()), []);
-  const showSpecialistIdentity = handoffComplete || handoffPhase === 'connecting' || Boolean(goal);
+  const aiPresentation = useMemo(() => getPublicChatAiReceptionistPresentation(), []);
+  const launcherPresentation = aiPresentation;
+  const showSpecialistIdentity = handoffPhase === 'connecting' || handoffComplete;
   const voiceStudio = useMemo(() => getVoiceStudioStatus(), [open]);
 
   const goalLabel = useMemo(() => {
@@ -174,12 +184,18 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
       seedWelcome(p);
     };
     if (opts?.immediate) finish();
-    else handoffTimerRef.current = setTimeout(finish, 480);
+    else handoffTimerRef.current = setTimeout(finish, 1400 + Math.floor(Math.random() * 900));
   };
 
   useEffect(() => {
-    const p = personaOnDutyAt();
-    setMessages([{ id: 'm0', role: 'bot', text: GENERIC_WELCOME, personaId: p.id }]);
+    setMessages([
+      {
+        id: 'm0',
+        role: 'bot',
+        text: GENERIC_WELCOME,
+        personaId: PUBLIC_CHAT_AI_PERSONA_ID,
+      },
+    ]);
   }, []);
 
   useEffect(() => {
@@ -209,10 +225,15 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
       if (detail.goal) {
         setGoal(detail.goal);
         const p = resolvePersona(detail.goal, detail.personaId);
-        beginHandoff(p, { immediate: Boolean(detail.personaId) });
+        pushBot(
+          `Got it — let me check who's on duty for ${p.displayTitle.toLowerCase()}. One moment while I connect you…`,
+          PUBLIC_CHAT_AI_PERSONA_ID,
+        );
+        window.setTimeout(() => beginHandoff(p), 700);
       } else if (detail.personaId) {
         const p = getAgentPersona(detail.personaId) ?? personaOnDutyAt();
-        beginHandoff(p, { immediate: true });
+        pushBot(`I'll connect you with our ${p.displayTitle.toLowerCase()} team — checking availability now…`, PUBLIC_CHAT_AI_PERSONA_ID);
+        window.setTimeout(() => beginHandoff(p), 700);
       }
       if (detail.leadId) {
         setLeadId(detail.leadId);
@@ -250,19 +271,50 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
     if (!res.ok) setVoiceErr(res.reason ?? 'Voice unavailable');
   };
 
+  const requestLiveAgent = () => {
+    if (!user) {
+      pushBot(
+        'Direct messages with our live team require a free partner account. Create one or log in — then we can connect you with a specialist in the Communication Hub.',
+        PUBLIC_CHAT_AI_PERSONA_ID,
+      );
+      return;
+    }
+    if (!handoffComplete) {
+      if (!goal) {
+        pushBot('Pick your lane above first — then I can connect you with a live specialist.', PUBLIC_CHAT_AI_PERSONA_ID);
+        return;
+      }
+      beginHandoff(resolvePersona(goal, personaOverrideId));
+      return;
+    }
+    openCommunicationHub({ tab: 'team', expanded: true });
+    pushBot(
+      `Opening the Communication Hub — you can message ${presentation.firstName}'s team directly there.`,
+      persona.id,
+    );
+  };
+
   const sendMessage = async (text: string, personaOverride?: AgentPersona) => {
     const trimmed = sanitize(text);
     if (!trimmed || busy) return;
     setDraft('');
     pushUser(trimmed);
+
+    if (LIVE_AGENT_PATTERN.test(trimmed)) {
+      requestLiveAgent();
+      return;
+    }
+
     const classified = classifyMessageIntent(trimmed);
-    let activePersona = personaOverride ?? persona;
-    if (classified.confidence >= 0.55) {
+    let activePersona = personaOverride ?? (handoffComplete ? persona : getAgentPersona(PUBLIC_CHAT_AI_PERSONA_ID)!);
+    const activePersonaId = handoffComplete ? activePersona.id : PUBLIC_CHAT_AI_PERSONA_ID;
+
+    if (handoffComplete && classified.confidence >= 0.55) {
       const routed = getAgentPersona(classified.suggestedPersonaId);
       if (routed) {
         activePersona = routed;
         setPersonaOverrideId(routed.id);
-        if (!handoffComplete) beginHandoff(routed);
+        beginHandoff(routed);
       }
       if (classified.intent === 'complaint') {
         emitPlatformEvent({
@@ -278,24 +330,36 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
           },
         });
       }
+    } else if (!handoffComplete && classified.confidence >= 0.55 && classified.suggestedPersonaId) {
+      const routed = getAgentPersona(classified.suggestedPersonaId);
+      if (routed) {
+        pushBot(
+          `Sounds like ${routed.displayTitle.toLowerCase()} is the right lane — connecting you now…`,
+          PUBLIC_CHAT_AI_PERSONA_ID,
+        );
+        setGoal((prev) => prev ?? 'not_sure');
+        window.setTimeout(() => beginHandoff(routed), 600);
+        return;
+      }
     }
+
     setBusy(true);
     try {
       const result = await converseWithFinelyAi({
         messages: aiHistory,
         userMessage: trimmed,
-        systemPromptBase: activePersona.systemPrompt,
+        systemPromptBase: handoffComplete ? activePersona.systemPrompt : AI_RECEPTIONIST_PROMPT,
         taskType: 'public_chat',
         context: {
           surface: 'public_widget',
           goal: goalLabel,
           userName: fullName || undefined,
-          personaId: activePersona.id,
+          personaId: activePersonaId,
           pathname,
         },
       });
       const kbRefs = result.knowledgeUsed.slice(0, 2).map((c) => c.article.title);
-      pushBot(result.text, activePersona.id, result.source, kbRefs.length ? kbRefs : undefined);
+      pushBot(result.text, activePersonaId, result.source, kbRefs.length ? kbRefs : undefined);
       setFollowUps(result.followUps);
       setAiHistory((prev) => [
         ...prev,
@@ -303,7 +367,7 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
         { role: 'assistant', content: result.text },
       ]);
     } catch (e: unknown) {
-      pushBot((e as Error)?.message || 'Something went wrong — try again or book a free session below.', activePersona.id);
+      pushBot((e as Error)?.message || 'Something went wrong — try again or book a free session below.', activePersonaId);
     } finally {
       setBusy(false);
     }
@@ -313,7 +377,8 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
     setGoal(g);
     const p = resolvePersona(g);
     setPersonaOverrideId(undefined);
-    beginHandoff(p);
+    pushBot(`Perfect — I'll connect you with our ${p.displayTitle.toLowerCase()} team. Checking who's available…`, PUBLIC_CHAT_AI_PERSONA_ID);
+    window.setTimeout(() => beginHandoff(p), 600);
   };
 
   const canSubmit = goal && sanitize(fullName) && sanitize(email) && sanitize(phone) && consent;
@@ -386,8 +451,8 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
         >
           <PublicChatStaffAvatar presentation={launcherPresentation} size="sm" />
           <div className="text-left min-w-0">
-            <div className="text-[10px] font-black uppercase tracking-[0.28em] text-emerald-300/90">Talk to our team</div>
-            <div className="text-xs text-white/80 truncate">We&apos;ll match you to a specialist</div>
+            <div className="text-[10px] font-black uppercase tracking-[0.28em] text-emerald-300/90">Chat with Aia</div>
+            <div className="text-xs text-white/80 truncate">AI guide · live specialist when ready</div>
           </div>
         </button>
       )}
@@ -450,11 +515,11 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
                       </>
                     ) : (
                       <>
-                        <span className="font-bold text-white text-base">Finely Cred team</span>
-                        <div className="text-xs font-medium text-emerald-200/80 mt-0.5">
-                          A specialist will join when we know your lane
+                        <span className="font-bold text-white text-base">{aiPresentation.firstName}</span>
+                        <div className="text-xs font-medium text-cyan-200/80 mt-0.5">
+                          {aiPresentation.title} · routing you to the right specialist
                         </div>
-                        <p className="text-[11px] text-white/45 mt-1 leading-snug">Educational guidance only · not legal advice</p>
+                        <p className="text-[11px] text-white/45 mt-1 leading-snug">{aiPresentation.tagline}</p>
                       </>
                     )}
                   </div>
@@ -533,11 +598,14 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
                   );
                 }
 
-                const msgPersona = m.personaId
-                  ? getPublicChatPersonaPresentation(getAgentPersona(m.personaId)!)
-                  : showSpecialistIdentity
-                    ? presentation
-                    : launcherPresentation;
+                const msgPersona =
+                  m.role === 'bot' && !handoffComplete
+                    ? aiPresentation
+                    : m.personaId
+                      ? getPublicChatPersonaPresentation(getAgentPersona(m.personaId)!)
+                      : showSpecialistIdentity
+                        ? presentation
+                        : aiPresentation;
                 return (
                   <div key={m.id} className="flex justify-start gap-2.5 pr-6">
                     <PublicChatStaffAvatar presentation={msgPersona} size="sm" />
@@ -598,7 +666,7 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
                       <span className="w-1.5 h-1.5 rounded-full bg-teal-400 animate-bounce [animation-delay:120ms]" />
                       <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-bounce [animation-delay:240ms]" />
                     </span>
-                    <span className="text-xs text-white/55">{handoffComplete ? `${presentation.firstName} is typing…` : 'Finely team is typing…'}</span>
+                    <span className="text-xs text-white/55">{handoffComplete ? `${presentation.firstName} is typing…` : `${aiPresentation.firstName} is typing…`}</span>
                   </div>
                 </div>
               ) : null}
@@ -636,7 +704,7 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
                   <summary className="cursor-pointer list-none p-3 flex flex-wrap items-center justify-between gap-2 [&::-webkit-details-marker]:hidden">
                     <div className="text-xs text-white/70 inline-flex items-center gap-2">
                       <ShieldCheck size={14} className="text-emerald-300 shrink-0" />
-                      Free strategy call with {presentation.firstName}'s team
+                      Free strategy call{handoffComplete ? ` with ${presentation.firstName}'s team` : ' with our specialists'}
                     </div>
                     <span className="text-[10px] font-black uppercase tracking-widest text-emerald-300 group-open:hidden">Reserve →</span>
                     <span className="text-[10px] font-black uppercase tracking-widest text-white/40 hidden group-open:inline">Collapse</span>
@@ -656,6 +724,33 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
                   </div>
                 </details>
               )}
+
+              <button
+                type="button"
+                onClick={requestLiveAgent}
+                className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-sky-400/25 bg-sky-500/10 text-[10px] font-black uppercase tracking-widest text-sky-100 hover:bg-sky-500/15 ml-1"
+              >
+                Speak with a live agent
+              </button>
+
+              {!user ? (
+                <div className="ml-1 flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={() => navigate('/login')}
+                    className="flex-1 min-w-[120px] py-2 rounded-xl border border-white/15 bg-white/5 text-[10px] font-black uppercase tracking-widest text-white/80 hover:bg-white/10"
+                  >
+                    Log in
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => navigate('/signup')}
+                    className="flex-1 min-w-[120px] py-2 rounded-xl bg-gradient-to-r from-emerald-400 to-teal-500 text-[10px] font-black uppercase tracking-widest text-black hover:brightness-105"
+                  >
+                    Sign up free
+                  </button>
+                </div>
+              ) : null}
 
               <button
                 type="button"
@@ -683,7 +778,7 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
               <input
                 value={draft}
                 onChange={(e) => setDraft(e.target.value)}
-                placeholder={handoffComplete ? `Message ${presentation.firstName}…` : 'Describe what you need…'}
+                placeholder={handoffComplete ? `Message ${presentation.firstName}…` : `Message ${aiPresentation.firstName}…`}
                 className="flex-1 min-w-0 bg-[#0a1210] border border-white/12 rounded-xl px-3 py-2.5 text-white text-sm placeholder:text-white/30 focus:border-emerald-400/50 focus:outline-none focus:ring-1 focus:ring-emerald-500/30"
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' && !e.shiftKey) {

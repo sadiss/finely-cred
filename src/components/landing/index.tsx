@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect, useRef } from 'react';
+import React, { useMemo, useState, useEffect, useLayoutEffect, useRef } from 'react';
 import { 
   Wifi, Globe, BarChart3, Clock, Calendar, Shield, CheckCircle2, 
   Sparkles, Verified, TrendingUp, Cpu, Activity, Users, Heart, Target,
@@ -366,6 +366,22 @@ export function HeroSection({ onGetStarted, onViewTradelines }: HeroSectionProps
     'Institutional-grade credit architecture for personal, business, debt resolution, tradelines, and capital readiness — concierge execution or sovereign DIY access.'
   ).trim();
 
+  // The card fan is designed on a fixed 520×480 stage. We scale that whole stage
+  // uniformly to fit the available column width so the cards stay pixel-perfect
+  // (no reflow / clipping / squished numbers) on phone and tablet.
+  const cardStageSlotRef = useRef<HTMLDivElement>(null);
+  const [cardStageScale, setCardStageScale] = useState(1);
+  useLayoutEffect(() => {
+    const el = cardStageSlotRef.current;
+    if (!el || typeof ResizeObserver === 'undefined') return;
+    const ro = new ResizeObserver((entries) => {
+      const w = entries[0]?.contentRect.width ?? el.clientWidth;
+      if (w > 0) setCardStageScale(Math.min(1, w / 520));
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
   return (
     <section className="relative min-h-0 lg:min-h-[92vh] flex items-center overflow-hidden py-16 lg:py-0 finely-wealth-hero">
       <div className="absolute inset-0 bg-fc-chrome" />
@@ -428,10 +444,10 @@ export function HeroSection({ onGetStarted, onViewTradelines }: HeroSectionProps
                 <Button variant="gold" onClick={() => navigate('/fundability-readiness')} size="lg">
                   Fundability hub <ArrowRight size={18} />
                 </Button>
-                <Button variant="gold" onClick={() => navigate('/start-here')} size="lg">
+                <Button variant="royal" onClick={() => navigate('/start-here')} size="lg">
                   Start here <ArrowRight size={18} />
                 </Button>
-                <Button variant="platinum" onClick={() => navigate('/free-guide')} size="lg">
+                <Button variant="emerald" onClick={() => navigate('/free-guide')} size="lg">
                   Free guide <ArrowRight size={18} />
                 </Button>
                 <Button variant="platinum" onClick={onViewTradelines} size="lg">
@@ -461,18 +477,29 @@ export function HeroSection({ onGetStarted, onViewTradelines }: HeroSectionProps
           </div>
 
           <Reveal delay={300} direction="right">
-            <div className="relative flex justify-center lg:justify-end w-full overflow-visible">
+            <div
+              ref={cardStageSlotRef}
+              className="relative w-full overflow-visible"
+              style={{ height: 480 * cardStageScale }}
+            >
               <div className="absolute -inset-8 rounded-[3rem] bg-gradient-to-br from-amber-500/10 via-transparent to-amber-600/5 blur-3xl pointer-events-none" />
-              <div className="relative w-full max-w-[min(100%,520px)] mx-auto lg:ml-auto lg:mr-0 aspect-[520/480] origin-center lg:origin-right scale-[0.82] sm:scale-95 lg:scale-100 lg:translate-x-6">
-                <div className="finely-card-pedestal" />
-                <div className="absolute transition-all duration-500 hover:brightness-[1.03] left-0 top-0" style={{ zIndex: 2 }}>
-                  <CreditCardAsset type="gold" className="w-[min(100%,330px)] max-w-[330px] shadow-[0_40px_80px_-24px_rgba(251,191,36,0.35)]" />
-                </div>
-                <div className="absolute transition-all duration-500 hover:brightness-[1.03] left-0" style={{ top: '47.8%', zIndex: 1 }}>
-                  <CreditCardAsset type="platinum" className="w-[min(100%,330px)] max-w-[330px] shadow-[0_32px_64px_-20px_rgba(255,255,255,0.12)]" />
-                </div>
-                <div className="absolute transition-all duration-500 hover:brightness-[1.03]" style={{ top: '23.9%', left: '30.8%', zIndex: 3 }}>
-                  <CreditCardAsset type="black" className="w-[min(100%,330px)] max-w-[330px] shadow-[0_48px_96px_-28px_rgba(0,0,0,0.75)]" />
+              {/* Positioning wrapper — centered on phone/tablet, right-aligned on desktop (unchanged desktop look) */}
+              <div className="absolute top-0 left-1/2 -translate-x-1/2 lg:left-auto lg:right-0 lg:translate-x-6">
+                {/* Fixed-size design stage, scaled uniformly to fit the column */}
+                <div
+                  className="relative origin-top lg:origin-top-right"
+                  style={{ width: 520, height: 480, transform: `scale(${cardStageScale})` }}
+                >
+                  <div className="finely-card-pedestal" />
+                  <div className="absolute transition-all duration-500 hover:brightness-[1.03] left-0 top-0" style={{ zIndex: 2 }}>
+                    <CreditCardAsset type="gold" className="w-[min(100%,330px)] max-w-[330px] shadow-[0_40px_80px_-24px_rgba(251,191,36,0.35)]" />
+                  </div>
+                  <div className="absolute transition-all duration-500 hover:brightness-[1.03] left-0" style={{ top: '47.8%', zIndex: 1 }}>
+                    <CreditCardAsset type="platinum" className="w-[min(100%,330px)] max-w-[330px] shadow-[0_32px_64px_-20px_rgba(255,255,255,0.12)]" />
+                  </div>
+                  <div className="absolute transition-all duration-500 hover:brightness-[1.03]" style={{ top: '23.9%', left: '30.8%', zIndex: 3 }}>
+                    <CreditCardAsset type="black" className="w-[min(100%,330px)] max-w-[330px] shadow-[0_48px_96px_-28px_rgba(0,0,0,0.75)]" />
+                  </div>
                 </div>
               </div>
             </div>
@@ -1193,18 +1220,12 @@ export function MasteryOSSection() {
                     <div className="w-1.5 h-1.5 rounded-full bg-[#0d1117]" />
                   </div>
                   
-                  {/* VIDEO PLAYER - Finely Cred Promo */}
-                  <video 
-                    autoPlay 
-                    loop 
-                    muted 
-                    playsInline
-                    className="absolute inset-0 w-full h-full object-cover"
-                    poster="/videos/finely-poster.jpg"
-                  >
-                    <source src="/videos/finely-promo.mp4" type="video/mp4" />
-                    <source src="/videos/finely-promo.webm" type="video/webm" />
-                  </video>
+                  {/* Static hero backdrop — promo video drafts are admin-only until launch-ready */}
+                  <div
+                    className="absolute inset-0 w-full h-full bg-gradient-to-br from-[#0b1210] via-[#141c28] to-[#0a0f0e]"
+                    aria-hidden
+                  />
+                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(57,255,20,0.18),transparent_55%)]" aria-hidden />
 
                   {/* Phone overlay: multi-service success story */}
                   <div className="absolute inset-x-2.5 top-[44px] bottom-3 z-20 rounded-2xl bg-fc-section/75 border border-white/[0.08] backdrop-blur-md p-2.5 flex flex-col gap-2 min-h-0">

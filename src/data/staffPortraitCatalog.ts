@@ -52,6 +52,7 @@ export const STAFF_PORTRAIT_CATALOG: Record<string, StaffPortraitSource> = {
   'staff-nora-finch': { portraitIndex: 74, warmShift: 2, saturation: 0.9 },
   'staff-quinn-hayes': { portraitIndex: 38, warmShift: 1, saturation: 0.9 },
   'staff-leo-vance': { portraitIndex: 95, warmShift: 0, saturation: 0.92 },
+  'staff-aia-guide': { portraitIndex: 22, warmShift: 2, saturation: 0.92 },
   'staff-ines-ortega': { portraitIndex: 51, warmShift: 4, saturation: 0.88 },
   'staff-adrian-stone': { portraitIndex: 96, warmShift: 2, saturation: 0.91 },
   'staff-brielle-monroe': { portraitIndex: 96, warmShift: 3, saturation: 0.88 },

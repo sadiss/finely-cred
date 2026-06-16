@@ -8,6 +8,7 @@ import { listCalendarEvents } from '../../data/calendarRepo';
 import { buildFinelyMeetingEmbedUrl, meetingRoomName } from '../../lib/meetingUrls';
 import { isAdminEmail } from '../../auth/admin';
 import { MeetingControlBar } from '../../components/video/MeetingControlBar';
+import { useJitsiMeetingApi } from '../../hooks/useJitsiMeetingApi';
 import {
   FINELY_OS_ENTITY_BODY,
   FINELY_OS_ENTITY_SUBLABEL,
@@ -68,6 +69,17 @@ export default function InstantVideoCallPage() {
   useEffect(() => {
     document.title = title ? `${title} — Finely Video` : 'Finely Video';
   }, [title]);
+
+  const jitsiContainerId = `finely-jitsi-${callId ?? 'room'}`;
+  const useExternalApi = Boolean(room);
+  const { controls: jitsi, error: jitsiErr } = useJitsiMeetingApi({
+    roomName: room,
+    displayName,
+    email,
+    subject: title,
+    containerId: jitsiContainerId,
+    enabled: useExternalApi && Boolean(canAccess),
+  });
 
   const copyLink = async () => {
     const url = `${window.location.origin}${joinPath}`;
@@ -138,23 +150,33 @@ export default function InstantVideoCallPage() {
           room={room}
           participants={participantLabels}
           onCopyLink={copyLink}
+          jitsi={jitsi}
           showEndCall={Boolean(instantCall)}
           onEndCall={
             instantCall
               ? () => {
+                  jitsi?.hangup();
                   endVideoCall(instantCall.id);
                   navigate('/portal/messages?hub=meetings');
                 }
               : undefined
           }
         >
-          <iframe
-            title={title}
-            src={embedSrc}
-            data-meeting-frame
-            allow="camera; microphone; fullscreen; display-capture; autoplay; clipboard-write"
-            className="w-full h-[calc(100vh-200px)] min-h-[420px] rounded-2xl border border-sky-500/20 bg-black shadow-[0_0_60px_rgba(14,165,233,0.08)]"
-          />
+          {jitsiErr ? (
+            <iframe
+              title={title}
+              src={embedSrc}
+              data-meeting-frame
+              allow="camera; microphone; fullscreen; display-capture; autoplay; clipboard-write"
+              className="w-full h-[calc(100vh-200px)] min-h-[420px] rounded-2xl border border-sky-500/20 bg-black shadow-[0_0_60px_rgba(14,165,233,0.08)]"
+            />
+          ) : (
+            <div
+              id={jitsiContainerId}
+              data-meeting-frame
+              className="w-full h-[calc(100vh-200px)] min-h-[420px] rounded-2xl border border-sky-500/20 bg-black overflow-hidden shadow-[0_0_60px_rgba(14,165,233,0.08)]"
+            />
+          )}
         </MeetingControlBar>
       </div>
 

@@ -1,6 +1,7 @@
 import { getBlobStore } from '../storage/getBlobStore';
 import type { Bureau, DisputeCandidate } from '../domain/creditReports';
 import { bureauDisputeAddress, SUBJECT_LINE } from './disputeLetterTemplate';
+import { consumerDisputeOpeningForTone } from './consumerDisputeVoice';
 import { downloadBlob } from '../utils/download';
 import { bureauShortCode } from '../utils/bureaus';
 
@@ -156,13 +157,9 @@ export async function downloadInlineDisputeLetterPdf(args: {
   }
   y -= 10;
 
-  // Intro by tone (single bureau letter, multiple items) — optionally overridden by the UI draft editor.
-  const introDefault =
-    args.tone === 'formal'
-      ? `TO WHOM IT MAY CONCERN,\n\nI am writing to dispute inaccurate and/or unverified information appearing on my credit file. This letter applies only to the items listed below.\n\nPlease investigate and provide written results. If any item cannot be verified as reported with competent evidence, it must be deleted or corrected.\n`
-      : args.tone === 'conversational'
-        ? `Hello,\n\nI’m reaching out because several items still look inaccurate or incomplete on my credit file. This letter applies only to the items listed below.\n\nPlease reinvestigate and send me the results in writing. If an item can’t be verified, please delete or correct it.\n`
-        : `Hello,\n\nI’m following up to dispute inaccurate and/or unverified information on my credit file. This letter applies only to the items listed below.\n\nPlease reinvestigate and provide written results. If verification cannot be produced, the item must be deleted or corrected.\n`;
+  const introDefault = `${consumerDisputeOpeningForTone(
+    args.tone === 'formal' ? 'formal' : args.tone === 'conversational' ? 'conversational' : 'neutral',
+  )}\n\nThis letter applies only to the specific item(s) listed below.\n`;
   const intro = (args.introOverride || '').trim() ? args.introOverride!.trim() + '\n' : introDefault;
 
   drawWrapped(intro, { color: rgb(0.12, 0.12, 0.12) });

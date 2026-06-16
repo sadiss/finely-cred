@@ -51,8 +51,8 @@ export function tonePhrases(tone: TemplateTone) {
   }
   return {
     request:
-      'I am requesting that you investigate the disputed items and correct or delete any information that is inaccurate or cannot be verified.',
-    thanks: 'Thank you for your prompt attention to this matter.',
+      'Please reinvestigate the item(s) below and correct or delete anything that is inaccurate or cannot be verified.',
+    thanks: 'Thank you for your prompt attention — an accurate file matters for my housing, transportation, and credit options.',
   };
 }
 

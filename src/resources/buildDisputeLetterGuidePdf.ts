@@ -1,8 +1,9 @@
 import {
+  DISPUTE_LETTER_GUIDE_COVER,
   DISPUTE_LETTER_GUIDE_PROGRAMMATIC_PAGES,
 } from './disputeLetterGuideContent';
 import { drawGuideContentPages, PDF_PAGE_W } from './buildFreeGuidePdf';
-import { drawDisputeGuideMockupCoverPage } from './guideMockupCoverPdf';
+import { drawDisputeGuideCoverImagePage, drawDisputeGuideIntroPage } from './guideMockupCoverPdf';
 import { downloadBlob } from '../utils/download';
 
 function sanitizeFilename(s: string) {
@@ -21,7 +22,16 @@ export async function buildDisputeLetterGuidePdf(args: {
   const fonts = { regular, bold };
 
   const coverPage = pdfDoc.addPage([PDF_PAGE_W, 792]);
-  await drawDisputeGuideMockupCoverPage(coverPage as Parameters<typeof drawDisputeGuideMockupCoverPage>[0], pdfDoc, fonts, rgb, {
+  await drawDisputeGuideCoverImagePage(
+    coverPage as Parameters<typeof drawDisputeGuideCoverImagePage>[0],
+    pdfDoc,
+    fonts,
+    rgb,
+    DISPUTE_LETTER_GUIDE_COVER,
+  );
+
+  const introPage = pdfDoc.addPage([PDF_PAGE_W, 792]);
+  drawDisputeGuideIntroPage(introPage as Parameters<typeof drawDisputeGuideIntroPage>[0], fonts, rgb, {
     fullName: args.fullName,
   });
 

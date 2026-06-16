@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react';
 import {
   ArrowLeft,
   ArrowRight,
+  Cross,
   BadgeCheck,
   BriefcaseBusiness,
   Crown,
@@ -16,6 +17,7 @@ import {
 } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { PageShell } from '../../components/layout/PageShell';
+import { HosAccessCodesAdminPanel } from '../../components/heta/HosAccessCodesAdminPanel';
 import { FinelyOsPageFooter } from '../../features/os/FinelyOsPageFooter';
 import { FinelyUnifiedHubLayout } from '../../features/unified/FinelyUnifiedHubLayout';
 import {
@@ -36,13 +38,13 @@ import { RoleWorkflowPanel } from '../../components/workflow/RoleWorkflowPanel';
 import { demoRoleWorkflowProgress } from '../../lib/roleWorkflowProgress';
 import { LAUNCH_ROLE_COURSES } from '../../config/launchRoleCourses';
 
-type RoleType = 'partner' | 'business' | 'agent' | 'affiliate' | 'au_seller' | 'au_buyer' | 'admin';
+type RoleType = 'partner' | 'business' | 'agent' | 'affiliate' | 'au_seller' | 'au_buyer' | 'heta_society' | 'admin';
 
 type RoleConfig = {
   title: string;
   shortLabel: string;
   icon: React.ComponentType<{ size?: number; className?: string }>;
-  accent: 'violet' | 'fuchsia' | 'emerald' | 'sky';
+  accent: 'violet' | 'fuchsia' | 'emerald' | 'sky' | 'amber';
   previewPath: string;
   addPath: string;
   addLabel: string;
@@ -182,6 +184,29 @@ const ROLE_CONFIG: Record<RoleType, RoleConfig> = {
     contracts: ['AU placement terms', 'Authorization and eligibility attestations'],
     payouts: ['N/A — buyer pays for tradeline placement'],
   },
+  heta_society: {
+    title: 'Head of Society (HOS)',
+    shortLabel: 'HOS',
+    icon: Cross,
+    accent: 'amber',
+    previewPath: '/head-of-society',
+    addPath: '/admin/role-preview?role=heta_society',
+    addLabel: 'Generate access keys',
+    preview: [
+      'Men\'s restoration & building program — invite-only at /head-of-society',
+      'Admin-generated access keys unlock member registration (no public signup)',
+      '5 dispute slots, free letter guide, business credit starter, and growth paths',
+      'Access key → lead capture → onboarding lane=heta_society → /portal/hos member hub',
+    ],
+    access: [
+      { label: 'HOS signup landing', path: '/head-of-society' },
+      { label: 'HOS member portal', path: '/portal/hos' },
+      { label: 'Free dispute guide', path: '/free-guide' },
+      { label: 'Member login', path: '/onboarding?lane=heta_society&next=/portal/hos' },
+    ],
+    contracts: ['HOS access key + program consent on registration', 'Dispute authorization when mailing round one'],
+    payouts: ['N/A — free member program; optional upsell to specialist/agent lanes'],
+  },
   admin: {
     title: 'Platform admin',
     shortLabel: 'Admin',
@@ -206,17 +231,19 @@ const ROLE_CONFIG: Record<RoleType, RoleConfig> = {
   },
 };
 
-const ROLE_ORDER: RoleType[] = ['partner', 'business', 'agent', 'affiliate', 'au_seller', 'au_buyer', 'admin'];
+const ROLE_ORDER: RoleType[] = ['partner', 'heta_society', 'business', 'agent', 'affiliate', 'au_seller', 'au_buyer', 'admin'];
 
 const ICON_BOX: Record<RoleConfig['accent'], string> = {
   violet: 'border-violet-500/30 bg-violet-500/10 text-violet-300',
   fuchsia: 'border-fuchsia-500/30 bg-fuchsia-500/10 text-fuchsia-300',
   emerald: 'border-emerald-500/30 bg-emerald-500/10 text-emerald-300',
   sky: 'border-sky-500/30 bg-sky-500/10 text-sky-300',
+  amber: 'border-amber-500/30 bg-amber-500/10 text-amber-300',
 };
 
-const TAB_ACCENTS: Record<RoleType, 'violet' | 'fuchsia' | 'emerald' | 'sky'> = {
+const TAB_ACCENTS: Record<RoleType, 'violet' | 'fuchsia' | 'emerald' | 'sky' | 'amber'> = {
   partner: 'sky',
+  heta_society: 'amber',
   business: 'emerald',
   agent: 'fuchsia',
   affiliate: 'violet',
@@ -236,6 +263,7 @@ type DetailTab = (typeof DETAIL_TABS)[number]['id'];
 
 const ROLE_COURSE_ID: Partial<Record<RoleType, string>> = {
   partner: 'course-partner-client',
+  heta_society: 'course-partner-client',
   affiliate: 'course-affiliate',
   agent: 'course-agent',
   admin: 'course-admin-ops',
@@ -299,14 +327,17 @@ export default function AdminRolePreviewPage() {
           secondaryAction={{ label: 'Open live view', onClick: () => window.open(config.previewPath, '_blank') }}
         >
           {detailTab === 'experience' && (
-            <ul className={`space-y-2 ${FINELY_OS_ENTITY_BODY}`}>
-              {config.preview.map((item, i) => (
-                <li key={i} className={`${finelyOsInlineListItem()} p-4 flex items-start gap-2`}>
-                  <span className="text-fuchsia-300">•</span>
-                  {item}
-                </li>
-              ))}
-            </ul>
+            <div className="space-y-4">
+              {role === 'heta_society' ? <HosAccessCodesAdminPanel /> : null}
+              <ul className={`space-y-2 ${FINELY_OS_ENTITY_BODY}`}>
+                {config.preview.map((item, i) => (
+                  <li key={i} className={`${finelyOsInlineListItem()} p-4 flex items-start gap-2`}>
+                    <span className="text-fuchsia-300">•</span>
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </div>
           )}
 
           {detailTab === 'routes' && (

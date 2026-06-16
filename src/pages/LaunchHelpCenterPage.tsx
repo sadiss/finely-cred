@@ -19,6 +19,7 @@ import {
 import { getTourById, TOUR_MANIFEST } from '../config/tourManifest';
 import { searchKnowledgeLocal } from '../lib/finelyBrain/finelyBrainOrchestrate';
 import { buildLaunchChecklistSnapshot } from '../lib/launchChecklistSnapshot';
+import { PUBLIC_DEMO_VIDEOS_ENABLED } from '../config/publicMediaPolicy';
 import { AdminGoLiveCommandPanel } from '../features/admin/AdminGoLiveCommandPanel';
 import { AdminLaunchPlanClosurePanel } from '../features/admin/AdminLaunchPlanClosurePanel';
 import { LAUNCH_ROLE_COURSES } from '../config/launchRoleCourses';
@@ -270,7 +271,7 @@ export default function LaunchHelpCenterPage() {
                     </p>
                   ) : null}
                   <div className="flex flex-wrap gap-2 items-center">
-                    {tour ? (
+                    {tour && PUBLIC_DEMO_VIDEOS_ENABLED ? (
                       <>
                         <button type="button" className={FINELY_OS_PRIMARY_BTN} onClick={() => setTourId(tour.id)}>
                           <Film size={14} /> Preview tour
@@ -293,7 +294,9 @@ export default function LaunchHelpCenterPage() {
         <FinelyOsPageFooter />
       </div>
 
+      {PUBLIC_DEMO_VIDEOS_ENABLED ? (
       <FinelyTourPlayer tour={previewTour} open={Boolean(previewTour)} onClose={() => setTourId(null)} />
+      ) : null}
     </PageShell>
   );
 }

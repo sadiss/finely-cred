@@ -175,9 +175,11 @@ export function PageShell({
     !pathname.startsWith('/au') &&
     !pathname.startsWith('/dashboard') &&
     !pathname.startsWith('/seller') &&
-    !pathname.startsWith('/account');
+    !pathname.startsWith('/account') &&
+    !pathname.startsWith('/claim') &&
+    !pathname.startsWith('/partner-setup');
   const showWayfinder = useLargeTopPad && pathname !== '/';
-  const topPad = useLargeTopPad ? (showWayfinder ? 'pt-52' : 'pt-28') : 'pt-10';
+  const topPad = useLargeTopPad ? (showWayfinder ? 'pt-52' : 'pt-28') : 'pt-[max(0.75rem,env(safe-area-inset-top))]';
   const isAdmin = pathname.startsWith('/admin');
   const isPortal = pathname.startsWith('/portal');
   const isBusiness = pathname.startsWith('/business');
@@ -189,6 +191,7 @@ export function PageShell({
     pathname.startsWith('/dashboard') ||
     pathname.startsWith('/seller') ||
     pathname.startsWith('/account');
+  const useAppTopChrome = isAppRoute;
 
   const appSurface = isPortal
     ? 'portal'
@@ -202,6 +205,22 @@ export function PageShell({
 
   const showAccountMenu = Boolean(auth.user) && isAppRoute;
   const showThemeToggle = shouldShowPublicThemeToggle(auth.user?.email);
+
+  const appTopChrome = useAppTopChrome ? (
+    <header
+      className="sticky top-0 z-[170] mb-4 flex items-center justify-between gap-3 py-2.5 border-b border-white/[0.08] bg-fc-deep/92 backdrop-blur-lg fc-app-top-chrome"
+      data-fc-app-top-chrome="1"
+    >
+      <BackToSiteButton variant="ghost" label="Back to site" className="!px-3 !py-2 !text-xs shrink-0" />
+      {showAccountMenu ? (
+        <div className="flex items-center gap-2 shrink-0">
+          {showThemeToggle ? <FinelyThemeToggle compact /> : null}
+          <NotificationsBell />
+          <UserAccountMenu />
+        </div>
+      ) : null}
+    </header>
+  ) : null;
 
   const effectiveBack = useMemo(() => {
     if (back) return back;
@@ -369,7 +388,7 @@ export function PageShell({
       data-fc-pageshell-root="1"
       data-fc-app-surface={appSurface}
       data-fc-pathname={pathname}
-      className={`relative bg-fc-deep text-white fc-premium-icons ${topPad} min-h-screen pb-28 md:pb-20`}
+      className={`relative bg-fc-deep text-white fc-premium-icons ${topPad} min-h-screen pb-28 md:pb-20 overflow-x-clip`}
     >
       {debugUi ? (
         <div
@@ -459,18 +478,13 @@ export function PageShell({
           </div>
         </div>
       ) : null}
-      {showAccountMenu && !isPortal ? (
-        <div className="fixed top-4 left-4 sm:top-5 sm:left-6 z-[180] hidden sm:block">
-          <BackToSiteButton variant="primary" className="shadow-xl" />
-        </div>
-      ) : null}
-      {showAccountMenu && showThemeToggle ? (
+      {!useAppTopChrome && showAccountMenu && showThemeToggle ? (
         <div className="fixed top-4 right-4 sm:top-5 sm:right-6 z-[180] flex items-center gap-2">
           <FinelyThemeToggle compact />
           <NotificationsBell />
           <UserAccountMenu />
         </div>
-      ) : showAccountMenu ? (
+      ) : !useAppTopChrome && showAccountMenu ? (
         <div className="fixed top-4 right-4 sm:top-5 sm:right-6 z-[180] flex items-center gap-2">
           <NotificationsBell />
           <UserAccountMenu />
@@ -494,13 +508,14 @@ export function PageShell({
         <div className="fc-pageshell-aurora-glow fc-pageshell-aurora-glow-emerald absolute bottom-0 -left-40 w-[800px] h-[480px] blur-3xl" />
       </div>
       <div
-        className={`relative ${
+        className={`relative min-w-0 overflow-x-clip ${
           // For admin, keep the left rail flush-left on desktop while preserving comfortable content padding.
           isAdmin ? 'w-full px-2 sm:px-4 lg:pl-0 lg:pr-6 2xl:pr-8' : 'fc-container'
         } ${
           isAppRoute ? 'flex flex-col' : ''
         }`}
       >
+        {isPortal && appTopChrome}
         {isPortal && <PartnerPortalNav />}
         {isPortal && <PartnerMobileWorkBar />}
         {isPortal && <PortalCommandPaletteHost />}
@@ -509,8 +524,9 @@ export function PageShell({
           <div className="grid lg:grid-cols-[340px_1fr] gap-8">
             <AdminNavRail />
             <div className="min-w-0 flex flex-col">
+              {appTopChrome}
               <AdminNavBar />
-              <div className="space-y-6 mb-8 md:mb-12 pt-16 sm:pt-0 fc-pageshell-hero">
+              <div className="space-y-6 mb-8 md:mb-12 fc-pageshell-hero">
                 {effectiveBack ? (
                   <button
                     type="button"
@@ -537,7 +553,7 @@ export function PageShell({
                 <div className="fc-divider" />
               </div>
               <div className="pb-16">
-                <div data-fc-route-content="1" data-fc-route-pathname={pathname} className="fc-light-black-scope fc-senior-simple">
+                <div data-fc-route-content="1" data-fc-route-pathname={pathname} className="fc-light-black-scope fc-senior-simple min-w-0 overflow-x-clip">
                   {children}
                 </div>
               </div>
@@ -545,7 +561,8 @@ export function PageShell({
           </div>
         ) : (
           <>
-            <div className="space-y-6 mb-8 md:mb-12 pt-16 sm:pt-0 fc-pageshell-hero">
+            {!isPortal ? appTopChrome : null}
+            <div className="space-y-6 mb-8 md:mb-12 fc-pageshell-hero">
               {effectiveBack ? (
                 <button
                   type="button"
@@ -561,18 +578,18 @@ export function PageShell({
                   <span className="text-xs font-semibold uppercase tracking-wider">{badge}</span>
                 </div>
               )}
-              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-light leading-tight tracking-tight">
+              <h1 className={`font-light leading-tight tracking-tight ${isPortal ? 'text-2xl sm:text-3xl md:text-4xl lg:text-5xl' : 'text-3xl sm:text-4xl md:text-5xl lg:text-6xl'}`}>
                 {title}
               </h1>
               {subtitle && (
-                <p className="text-white/55 text-base sm:text-lg leading-relaxed max-w-3xl">
+                <p className="text-white/55 text-sm sm:text-base md:text-lg leading-relaxed max-w-3xl">
                   {subtitle}
                 </p>
               )}
               <div className="fc-divider" />
             </div>
             <div className={isAppRoute ? 'pb-16' : ''}>
-              <div data-fc-route-content="1" data-fc-route-pathname={pathname} className="fc-light-black-scope fc-senior-simple">
+              <div data-fc-route-content="1" data-fc-route-pathname={pathname} className="fc-light-black-scope fc-senior-simple min-w-0 overflow-x-clip">
                 {children}
               </div>
             </div>

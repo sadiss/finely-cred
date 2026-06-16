@@ -18,6 +18,7 @@ import './lib/webhookHub'
 import './lib/automationEventBridge'
 import './lib/partnerLifecycleEngine'
 import { registerPwaServiceWorker } from './lib/pwaRegister'
+import { inPreviewFrame } from './lib/inPreviewFrame'
 import { ensureDefaultEmailDomainsOnce, refreshDefaultEmailSignatureBranding } from './data/emailDomainsRepo'
 
 function showBootError(message: string) {
@@ -30,17 +31,19 @@ function showBootError(message: string) {
   }
 }
 
-registerPwaServiceWorker()
-ensureBillingCommsTemplates()
-ensureDigestCommsTemplates()
-ensureNurtureCommsTemplatesOnce()
-ensureFunnelSessionCommsTemplates()
-ensureDefaultEmailDomainsOnce()
-refreshDefaultEmailSignatureBranding()
-ensureCoreAutomationRecipesOnce()
-void ensureStaffRosterSyncedOnce()
-void ensureSocialHubSyncedOnce()
-void ensureOpsPersistenceSyncedOnce()
+if (!inPreviewFrame()) {
+  registerPwaServiceWorker()
+  ensureBillingCommsTemplates()
+  ensureDigestCommsTemplates()
+  ensureNurtureCommsTemplatesOnce()
+  ensureFunnelSessionCommsTemplates()
+  ensureDefaultEmailDomainsOnce()
+  refreshDefaultEmailSignatureBranding()
+  ensureCoreAutomationRecipesOnce()
+  void ensureStaffRosterSyncedOnce()
+  void ensureSocialHubSyncedOnce()
+  void ensureOpsPersistenceSyncedOnce()
+}
 
 const mountEl = document.getElementById('app')
 

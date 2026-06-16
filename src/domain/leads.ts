@@ -1,4 +1,4 @@
-export type LeadSource = 'resources' | 'chat' | 'contact' | 'affiliate' | 'agent' | 'consultation' | 'lead_magnet' | 'purchase' | 'agency';
+export type LeadSource = 'resources' | 'chat' | 'contact' | 'affiliate' | 'agent' | 'consultation' | 'lead_magnet' | 'purchase' | 'agency' | 'heta_society';
 
 export type LeadGoal = 'credit' | 'debt' | 'business' | 'tradelines' | 'general';
 
@@ -16,7 +16,8 @@ export type LeadOffer =
   | 'portal_signup'
   | 'book_purchase'
   | 'tradeline_package'
-  | 'agency_workspace';
+  | 'agency_workspace'
+  | 'heta_society_signup';
 
 export type LeadCapture = {
   id: string;

@@ -9,6 +9,7 @@ const LANE_PACKAGE_MAP: Record<string, string> = {
   debt_relief: 'debt_kill_diy',
   debt_kill: 'debt_kill_diy',
   business_credit: 'business_foundation',
+  heta_society: 'personal_free',
 };
 
 /** Auto-provision lane Work OS project when a partner signs up from a funnel. */
@@ -58,11 +59,24 @@ export function bootstrapLaneProjectForPartner(args: {
     }
   }
 
+  if (lane === 'heta_society') {
+    try {
+      bootstrapBusinessCreditOsForPartner({
+        partnerId: args.partnerId,
+        funnelId: args.funnelId ?? 'heta_society',
+        leadId: args.leadId,
+      });
+    } catch {
+      /* non-blocking */
+    }
+  }
+
   return tagged;
 }
 
 export function laneFromFunnelPath(path?: string): string {
   const p = (path ?? '').toLowerCase();
+  if (p.includes('head-of-society') || p.includes('heta')) return 'heta_society';
   if (p.includes('debt')) return 'debt_relief';
   if (p.includes('business')) return 'business_credit';
   if (p.includes('tradeline')) return 'personal_restore';

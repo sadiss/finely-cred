@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { PageShell } from '../../components/layout/PageShell';
 import type { LegacyPartnerExportV1 } from '../../domain/imports';
 import { importLegacyPartners, importLegacyArtifactsForExistingPartners, listImportBatches } from '../../data/importsRepo';
+import { pushLegacyExportToServer } from '../../lib/legacyImportServerClient';
 import { getPartner, listPartners } from '../../data/partnersRepo';
 import type { Partner } from '../../domain/partners';
 import { createInvite, getInvite, listInvitesByPartner, upsertInvite } from '../../data/invitesRepo';
@@ -283,6 +284,47 @@ export default function AdminPartnerImportPage() {
                 >
                   <Database size={14} /> Load bundled export (13 real partners)
                 </button>
+                <button
+                  type="button"
+                  disabled={busy}
+                  className={`mt-3 w-full ${FINELY_OS_SUCCESS_BTN}`}
+                  onClick={async () => {
+                    setErr(null);
+                    setNotice(null);
+                    setFilename('legacy-partners-export-v1.json (bundled)');
+                    setAuditResult(null);
+                    const exportData = bundledExport as LegacyPartnerExportV1;
+                    setRaw(JSON.stringify(exportData, null, 2));
+                    setBusy(true);
+                    try {
+                      const batch = await importLegacyPartners({
+                        exportData,
+                        claimBaseUrl,
+                        filename: 'legacy-partners-export-v1.json (bundled)',
+                        importArtifacts: true,
+                      });
+                      let serverNote = '';
+                      try {
+                        const server = await pushLegacyExportToServer(exportData);
+                        serverNote =
+                          ` Server: ${server.partnersUpserted} partners · ${server.reportsUpserted} reports · ${server.evidenceUpserted} docs · ${server.lettersUpserted} letters.`;
+                      } catch (serverErr: any) {
+                        serverNote = ` Server sync failed: ${serverErr?.message || 'unknown'}.`;
+                      }
+                      setNotice(
+                        `Full legacy import complete — ${batch.createdPartnerIds.length}/${exportData.partners.length} partners processed.` +
+                          ` ${batch.errors.length ? `${batch.errors.length} skipped.` : ''}` +
+                          serverNote,
+                      );
+                    } catch (e: any) {
+                      setErr(e?.message || 'Bundled import failed.');
+                    } finally {
+                      setBusy(false);
+                    }
+                  }}
+                >
+                  Import all 13 bundled partners + workflow
+                </button>
                 {filename ? <div className={`mt-2 text-[11px] ${FINELY_OS_ENTITY_BODY} font-mono truncate`}>{filename}</div> : null}
               </div>
             </div>
@@ -355,6 +397,17 @@ export default function AdminPartnerImportPage() {
                   setBusy(true);
                   try {
                     const batch = await importLegacyPartners({ exportData: parsed, claimBaseUrl, filename, importArtifacts });
+                    let serverNote = '';
+                    if (importArtifacts) {
+                      try {
+                        const server = await pushLegacyExportToServer(parsed);
+                        serverNote =
+                          ` Server sync: ${server.partnersUpserted} partners · ${server.reportsUpserted} reports · ${server.evidenceUpserted} docs · ${server.lettersUpserted} letters` +
+                          (server.errors.length ? ` · ${server.errors.length} server error(s).` : '.');
+                      } catch (serverErr: any) {
+                        serverNote = ` Server sync failed (local import OK): ${serverErr?.message || 'unknown error'}. Deploy admin-import-legacy edge function if missing.`;
+                      }
+                    }
                     const inviteIds = await generateInvitesForPartnerIds(batch.createdPartnerIds);
                     const art = batch.artifacts;
                     setLastInviteIds(inviteIds);
@@ -377,7 +430,8 @@ export default function AdminPartnerImportPage() {
                         (art
                           ? ` Artifacts: ${art.evidenceCreated} docs · ${art.reportsCreated} reports · ${art.lettersCreated} letters · ${art.businessProfilesUpdated} business.`
                           : '') +
-                        deliveryNote,
+                        deliveryNote +
+                        serverNote,
                     );
                   } catch (e: any) {
                     setErr(e?.message || 'Import failed.');

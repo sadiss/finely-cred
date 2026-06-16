@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { ArrowLeft, Gavel, Settings, Users, BarChart3, FileText, Layout, Package, CreditCard, FlaskConical, MessageSquareText, Bell, Calendar, FolderKanban, BookOpen, Bot, Mail, Library, Crown, UserCog, Globe, BadgeCheck, ListChecks, GraduationCap, Lock, PiggyBank, Trophy, Activity, Target, Sparkles, Film, BriefcaseBusiness, Shield } from 'lucide-react';
+import { ArrowLeft, Gavel, KeyRound, Settings, Users, BarChart3, FileText, Layout, Package, CreditCard, FlaskConical, MessageSquareText, Bell, Calendar, FolderKanban, BookOpen, Bot, Mail, Library, Crown, UserCog, Globe, BadgeCheck, ListChecks, GraduationCap, Lock, PiggyBank, Trophy, Activity, Target, Sparkles, Film, BriefcaseBusiness, Shield } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { PageShell } from '../../components/layout/PageShell';
 import { fetchAllPartnersAsAdmin } from '../../data/partnersRepo';
@@ -35,6 +35,8 @@ import { FinelyNoticedStrip } from '../../components/tours/FinelyNoticedStrip';
 import { FinelyNowDoThisStrip } from '../../components/tours/FinelyNowDoThisStrip';
 import { buildAdminNoticedItems } from '../../lib/finelyProactiveSignals';
 import { getGoLivePillars } from '../../lib/goLiveCommandOps';
+import { HosAccessCodesAdminPanel } from '../../components/heta/HosAccessCodesAdminPanel';
+import { listHosAccessCodes } from '../../lib/hetaSocietyAccessCodes';
 
 type AdminDashSection = 'overview' | 'ops' | 'modules';
 
@@ -126,6 +128,13 @@ export default function AdminDashboardPage() {
 
   const cards = [
     {
+      title: 'Head of Society keys',
+      description: 'Generate invite-only HOS access keys  members enter on /head-of-society.',
+      path: '/admin/role-preview?role=heta_society',
+      icon: KeyRound,
+      stat: `${listHosAccessCodes().filter((c) => !c.revoked && c.useCount < c.maxUses).length} active key(s)`,
+    },
+    {
       title: 'Launch OS Help Center',
       description: 'SOP playbooks, tour previews, and launch checklist gates.',
       path: '/admin/launch-os',
@@ -156,14 +165,14 @@ export default function AdminDashboardPage() {
     },
     {
       title: 'Ops command center',
-      description: 'Alerts first, SLA risk, and paginated triage queues â€” not the support message inbox.',
+      description: 'Alerts first, SLA risk, and paginated triage queues  not the support message inbox.',
       path: '/admin/workflow',
       icon: Bell,
-      stat: `${stats.adminUnread} unread â€¢ ${stats.openTasksCount} open task${stats.openTasksCount !== 1 ? 's' : ''}`,
+      stat: `${stats.adminUnread} unread  ${stats.openTasksCount} open task${stats.openTasksCount !== 1 ? 's' : ''}`,
     },
     {
       title: 'Notifications Center',
-      description: 'Full alert history â€” leads, tasks, purchases, Meta inbox, trial reminders, and prefs.',
+      description: 'Full alert history  leads, tasks, purchases, Meta inbox, trial reminders, and prefs.',
       path: '/admin/notifications',
       icon: Bell,
       stat: `${stats.adminUnread} unread`,
@@ -194,7 +203,7 @@ export default function AdminDashboardPage() {
     },
     {
       title: 'Funnel A/B Lab',
-      description: 'Headline and CTA experiments on lead magnets â€” conversion tracking per variant.',
+      description: 'Headline and CTA experiments on lead magnets  conversion tracking per variant.',
       path: '/admin/funnel-experiments',
       icon: FlaskConical,
       stat: 'Convert',
@@ -202,14 +211,14 @@ export default function AdminDashboardPage() {
     },
     {
       title: 'Automation Studio',
-      description: 'Run long-horizon automations and â€œagentsâ€ (follow-ups, reminders, nudges).',
+      description: 'Run long-horizon automations and agents (follow-ups, reminders, nudges).',
       path: '/admin/automations',
       icon: Bot,
       stat: 'Automate',
     },
     {
       title: 'Hands-Free Ops',
-      description: 'Autopilot KPIs â€” letter drafts, mail confirm queue, compliance escalations, staff coverage gaps.',
+      description: 'Autopilot KPIs  letter drafts, mail confirm queue, compliance escalations, staff coverage gaps.',
       path: '/admin/ops-autopilot',
       icon: Activity,
       stat: 'Autopilot',
@@ -230,7 +239,7 @@ export default function AdminDashboardPage() {
       hidden: !opsCaps.canManageTenants,
     },
     {
-      title: 'Coâ€‘Owner Ops Agent',
+      title: 'Co?Owner Ops Agent',
       description: 'AI operator copilot: daily priorities, launch readiness, pipeline actions, and system tightening.',
       path: '/admin/ops-agent',
       icon: Crown,
@@ -249,10 +258,10 @@ export default function AdminDashboardPage() {
       description: 'Preview agent, affiliate, and AU seller dashboards. Quick links to add each role.',
       path: '/admin/role-preview',
       icon: Layout,
-      stat: 'Agents â€¢ Affiliates â€¢ Sellers',
+      stat: 'Agents  Affiliates  Sellers',
     },
     {
-      title: 'Tenants (Whiteâ€‘Label)',
+      title: 'Tenants (White?Label)',
       description: 'Create agency tenants and control branding, domains, and feature access.',
       path: '/admin/tenants',
       icon: Globe,
@@ -514,8 +523,8 @@ export default function AdminDashboardPage() {
             tone={stats.slaBreaches > 0 ? 'blocking' : 'warning'}
             message={
               stats.slaBreaches > 0
-                ? `Launch ops: ${stats.slaBreaches} SLA breach(es) Â· ${stats.partnersMissingReport} partner(s) missing reports Â· ${stats.lettersThisWeek} letters this week.`
-                : `Launch ops: ${stats.partnersMissingReport} partner(s) still need a credit report uploaded Â· ${stats.lettersThisWeek} letters generated this week.`
+                ? `Launch ops: ${stats.slaBreaches} SLA breach(es)  ${stats.partnersMissingReport} partner(s) missing reports  ${stats.lettersThisWeek} letters this week.`
+                : `Launch ops: ${stats.partnersMissingReport} partner(s) still need a credit report uploaded  ${stats.lettersThisWeek} letters generated this week.`
             }
           />
         ) : null}
@@ -533,7 +542,7 @@ export default function AdminDashboardPage() {
         <FinelyUnifiedHubLayout
           eyebrow="Command center"
           title="Admin dashboard"
-          subtitle="KPIs, ops intel, and modules â€” scroll or jump; nothing hidden behind tabs."
+          subtitle="KPIs, ops intel, and modules  scroll or jump; nothing hidden behind tabs."
           accent="violet"
           tabs={[
             { id: 'overview', label: 'Overview' },
@@ -584,6 +593,8 @@ export default function AdminDashboardPage() {
                   onClick={() => navigate('/admin/crm?pipeline=inbound')}
                 />
               </div>
+
+              <HosAccessCodesAdminPanel compact />
 
               <div className="grid sm:grid-cols-3 gap-4">
                 <KpiCard
@@ -657,7 +668,7 @@ export default function AdminDashboardPage() {
                       accentIndex: idx,
                     }))}
                     pageSize={6}
-                    searchPlaceholder={`Search ${g.title.toLowerCase()}â€¦`}
+                    searchPlaceholder={`Search ${g.title.toLowerCase()}`}
                     emptyMessage="No modules in this group."
                     showViewToggle={false}
                     initialView="grid"

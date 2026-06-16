@@ -39,6 +39,7 @@ function mkVendor(args: {
   prerequisites?: string[];
   notes?: string;
   tags?: string[];
+  businessTypes?: string[];
   sortOrder?: number;
 }): Vendor {
   const createdAt = nowIso();
@@ -53,6 +54,7 @@ function mkVendor(args: {
     prerequisites: args.prerequisites ?? [],
     notes: args.notes,
     tags: args.tags ?? [],
+    businessTypes: args.businessTypes ?? ['general'],
     sortOrder: args.sortOrder ?? 0,
     createdAt,
     updatedAt: createdAt,
@@ -103,7 +105,7 @@ export function ensureVendorCatalogDefaults(args?: { tenantId?: string }) {
     // Tier 1 (starter, low-risk)
     mkVendor({ tenantId, tier: 1, category: 'Office supplies', name: 'Quill', website: 'https://www.quill.com', tags: ['net-30', 'starter'], sortOrder: 10 }),
     mkVendor({ tenantId, tier: 1, category: 'Office supplies', name: 'Uline', website: 'https://www.uline.com', tags: ['net-30', 'starter'], sortOrder: 11 }),
-    mkVendor({ tenantId, tier: 1, category: 'Office supplies', name: 'Grainger', website: 'https://www.grainger.com', tags: ['industrial', 'starter'], sortOrder: 12 }),
+    mkVendor({ tenantId, tier: 1, category: 'Industrial', name: 'Grainger', website: 'https://www.grainger.com', tags: ['industrial', 'starter'], businessTypes: ['construction', 'general'], sortOrder: 12 }),
     mkVendor({ tenantId, tier: 1, category: 'Office supplies', name: 'Staples Business', website: 'https://www.staples.com', tags: ['office'], sortOrder: 13 }),
     mkVendor({ tenantId, tier: 1, category: 'Office supplies', name: 'Office Depot Business', website: 'https://www.officedepot.com', tags: ['office'], sortOrder: 14 }),
     mkVendor({ tenantId, tier: 1, category: 'Shipping', name: 'FedEx', website: 'https://www.fedex.com', tags: ['shipping'], sortOrder: 20 }),
@@ -205,6 +207,64 @@ export function ensureVendorCatalogDefaults(args?: { tenantId?: string }) {
       tags: ['card'],
       prerequisites: ['Tier 2 accounts established'],
       sortOrder: 302,
+    }),
+
+    // Tier 4 (capital & relationship lending)
+    mkVendor({
+      tenantId,
+      tier: 4,
+      category: 'Banking',
+      name: 'Business line of credit (relationship bank)',
+      website: undefined,
+      tags: ['loc', 'capital'],
+      businessTypes: ['general', 'professional', 'retail'],
+      prerequisites: ['Tier 3 maturity', '6+ months clean payments', 'Bank relationship', 'Lender Logic green'],
+      notes: 'Relationship-first LOC — run Lender Logic and bring bank statements + entity docs.',
+      sortOrder: 400,
+    }),
+    mkVendor({
+      tenantId,
+      tier: 4,
+      category: 'Banking',
+      name: 'SBA / term loan pathway',
+      website: 'https://www.sba.gov',
+      tags: ['term', 'capital'],
+      businessTypes: ['general', 'construction', 'hospitality'],
+      prerequisites: ['Tier 3 accounts', 'Revenue documentation', 'Underwriting package ready'],
+      sortOrder: 401,
+    }),
+    mkVendor({
+      tenantId,
+      tier: 4,
+      category: 'Banking',
+      name: 'Equipment financing (fleet / tools)',
+      website: undefined,
+      tags: ['equipment', 'fleet'],
+      businessTypes: ['construction', 'logistics'],
+      prerequisites: ['Tier 3 fleet or industrial history', 'Entity docs', 'Bank statements'],
+      sortOrder: 402,
+    }),
+    mkVendor({
+      tenantId,
+      tier: 4,
+      category: 'Technology',
+      name: 'Vendor-managed IT lease (enterprise)',
+      website: undefined,
+      tags: ['hardware', 'lease'],
+      businessTypes: ['technology', 'professional'],
+      prerequisites: ['Tier 3 card history', 'Stable cashflow', 'Clean bureau file'],
+      sortOrder: 403,
+    }),
+    mkVendor({
+      tenantId,
+      tier: 4,
+      category: 'Fuel',
+      name: 'Major fleet credit program',
+      website: undefined,
+      tags: ['fleet', 'capital'],
+      businessTypes: ['logistics', 'construction'],
+      prerequisites: ['Tier 3 fuel/fleet established', 'Higher limits on file'],
+      sortOrder: 404,
     }),
   ];
 

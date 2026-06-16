@@ -2,9 +2,9 @@ import type { LegacyPartnerExportV1 } from '../domain/imports';
 import type { LegacyLetterMeta } from '../lib/legacyMigrationPhase2';
 import { legacyLetterBodyPlain } from '../lib/legacyMigrationPhase2';
 import { newId } from '../utils/ids';
-import { listEvidenceByPartner, mergeEvidenceSnapshotForPartner } from './evidenceRepo';
-import { listReportsByPartner, mergeReportsSnapshotForPartner } from './reportsRepo';
-import { listLettersByPartner, mergeLettersSnapshotForPartner } from './lettersRepo';
+import { listEvidenceByPartner, upsertEvidence } from './evidenceRepo';
+import { listReportsByPartner, upsertReport } from './reportsRepo';
+import { listLettersByPartner, upsertLetter } from './lettersRepo';
 import { getBusinessCreditProfile, upsertBusinessCreditProfile } from './businessCreditRepo';
 import { logAffiliateAttribution } from './affiliateRepo';
 import type { EvidenceItem } from '../domain/evidence';
@@ -146,9 +146,9 @@ export async function importLegacyPartnerArtifacts(args: {
   }
 
   if (!args.dryRun) {
-    if (newEvidence.length) mergeEvidenceSnapshotForPartner({ partnerId, items: newEvidence });
-    if (newReports.length) mergeReportsSnapshotForPartner({ partnerId, reports: newReports });
-    if (newLetters.length) mergeLettersSnapshotForPartner({ partnerId, letters: newLetters });
+    for (const item of newEvidence) upsertEvidence(item);
+    for (const report of newReports) upsertReport(report);
+    for (const letter of newLetters) upsertLetter(letter);
 
     const biz = p.legacyBusiness;
     if (biz && (biz.businessName || biz.ein)) {

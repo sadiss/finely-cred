@@ -8,7 +8,10 @@ import {
 
 const PREVIEW_SLIDES = [
   { type: 'cover' as const, label: 'Cover' },
-  ...DISPUTE_LETTER_GUIDE_PROGRAMMATIC_PAGES.slice(0, 4).map((p) => ({
+  { type: 'intro' as const, label: 'Introduction' },
+  ...DISPUTE_LETTER_GUIDE_PROGRAMMATIC_PAGES.filter((p) =>
+    ['five-step-overview', 'step-1', 'step-3', 'example-letter', 'ocr-metro2-survival', 'validation-first-doctrine', 'affidavit-court-system'].includes(p.id),
+  ).map((p) => ({
     type: 'page' as const,
     page: p,
     label: p.title,
@@ -35,7 +38,11 @@ function GuidePagePreview({ page }: { page: (typeof DISPUTE_LETTER_GUIDE_PROGRAM
         <div className="space-y-3">
           {page.sections.map((sec, i) => (
             <div key={i} className="rounded-lg border border-[#39ff14]/20 bg-black/30 p-2.5">
-              {sec.heading ? <p className="text-[11px] font-bold text-[#39ff14] mb-1">{sec.heading}</p> : null}
+              {sec.heading ? (
+                <p className={`text-[11px] font-bold mb-1 ${sec.heading === 'Power move' ? 'text-amber-300' : 'text-[#39ff14]'}`}>
+                  {sec.heading}
+                </p>
+              ) : null}
               {sec.paragraphs?.map((p, j) => (
                 <p key={j} className="text-[10px] sm:text-xs text-white/75 leading-relaxed mb-1">
                   {p}
@@ -100,7 +107,7 @@ export function DisputeLetterGuidePreview({ compact, className = '' }: Props) {
           <img
             src={DISPUTE_LETTER_GUIDE_COVER}
             alt={slide.label}
-            className="absolute inset-0 w-full h-full object-contain p-1 sm:p-2"
+            className="absolute inset-0 w-full h-full object-contain object-center bg-white p-2 sm:p-3"
             loading="lazy"
             onError={(e) => {
               const el = e.currentTarget;
@@ -115,6 +122,27 @@ export function DisputeLetterGuidePreview({ compact, className = '' }: Props) {
             <p className="relative text-[#39ff14] text-xs font-black uppercase tracking-widest mb-2">Finely Cred</p>
             <h3 className="relative text-xl font-bold text-white mb-2">Free Credit Dispute Letter Guide</h3>
             <p className="relative text-sm text-white/65">5-step framework · FCRA rights · certified mail workflow</p>
+          </div>
+        ) : null}
+        {slide.type === 'intro' ? (
+          <div className="absolute inset-0 p-4 sm:p-6 flex flex-col justify-center text-left bg-gradient-to-br from-[#0b1210] via-[#111820] to-[#0a0f0e]">
+            <p className="text-[10px] font-black uppercase tracking-widest text-[#39ff14] mb-2">Finely Cred</p>
+            <h4 className="text-base sm:text-lg font-bold text-white mb-2">Your guide is ready</h4>
+            <p className="text-xs text-white/60 mb-4">Personalized introduction — educational only, not legal advice.</p>
+            <p className="text-xs font-bold text-white/85 mb-2">What you will learn:</p>
+            <ul className="space-y-1.5 text-xs text-white/75">
+              {[
+                'Your own words — denials, apartments, auto loans, deposits',
+                'Expanded 5-step framework (one page per step)',
+                'FCRA, OCR/Metro2, validation-first, law-per-negative',
+                'Example letter + affidavits & escalation paths',
+              ].map((item) => (
+                <li key={item} className="flex gap-2">
+                  <span className="text-[#39ff14] shrink-0">+</span>
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
           </div>
         ) : null}
         {slide.type === 'page' ? <GuidePagePreview page={slide.page} /> : null}

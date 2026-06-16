@@ -136,6 +136,65 @@ export function listStaffByRole(roleId: AgentPersonaId): StaffMember[] {
   return loadStaffRoster().filter((s) => s.active && s.primaryRoleId === roleId);
 }
 
+/** Black team members featured on public marketing for portrait diversity. */
+export const MARKETING_BLACK_STAFF_IDS = new Set([
+  'staff-marcus-reed',
+  'staff-jasmine-kerr',
+  'staff-renee-cole',
+  'staff-tyler-banks',
+  'staff-victor-stone',
+  'staff-adrian-stone',
+  'staff-cameron-blake',
+  'staff-omar-hassan',
+]);
+
+/**
+ * Curated public faces per lane — not the full roster.
+ * Each strip shows up to four people with at least three Black team members where possible.
+ */
+const MARKETING_DISPLAY_BY_ROLE: Partial<Record<AgentPersonaId, string[]>> = {
+  finely_advisor: ['staff-marcus-reed', 'staff-jasmine-kerr', 'staff-victor-stone', 'staff-morgan-hale'],
+  dispute_coach: ['staff-jasmine-kerr', 'staff-adrian-stone', 'staff-taylor-brooks', 'staff-dana-kim'],
+  funding_strategist: ['staff-marcus-reed', 'staff-cameron-blake', 'staff-mia-thompson', 'staff-derek-ford'],
+  nurture_concierge: ['staff-ruby-santos', 'staff-avery-luna', 'staff-cameron-blake', 'staff-jasmine-kerr'],
+  support_specialist: ['staff-tyler-banks', 'staff-jordan-patel', 'staff-lily-martinez', 'staff-ava-dunn'],
+  appointment_setter: ['staff-nina-cole', 'staff-sam-ortiz', 'staff-victor-stone', 'staff-renee-cole'],
+  sales_closer: ['staff-victor-stone', 'staff-adrian-stone', 'staff-riley-chen', 'staff-brielle-monroe'],
+  lead_converter: ['staff-cameron-blake', 'staff-alex-wright', 'staff-hannah-lee', 'staff-marcus-reed'],
+  debt_strategist: ['staff-omar-hassan', 'staff-casey-nguyen', 'staff-sienna-roy', 'staff-tyler-banks'],
+  education_coach: ['staff-nate-brooks', 'staff-olivia-park', 'staff-jasmine-kerr', 'staff-priya-shah'],
+  affiliate_specialist: ['staff-miles-chen', 'staff-harper-wells', 'staff-adrian-stone', 'staff-drew-sinclair'],
+  social_creator: ['staff-jamie-foster', 'staff-elise-hart', 'staff-ethan-cross', 'staff-renee-cole'],
+};
+
+function pickDiverseMarketingSubset(pool: StaffMember[], max: number): StaffMember[] {
+  if (pool.length <= max) return pool;
+  const black = pool.filter((s) => MARKETING_BLACK_STAFF_IDS.has(s.id));
+  const rest = pool.filter((s) => !MARKETING_BLACK_STAFF_IDS.has(s.id));
+  const picked: StaffMember[] = [];
+  for (const s of black) {
+    if (picked.length >= max) break;
+    picked.push(s);
+  }
+  for (const s of rest) {
+    if (picked.length >= max) break;
+    if (!picked.some((p) => p.id === s.id)) picked.push(s);
+  }
+  return picked.slice(0, max);
+}
+
+/** Public marketing strip — curated subset, not everyone on the roster. */
+export function listMarketingDisplayStaff(roleId: AgentPersonaId, max = 4): StaffMember[] {
+  const roster = loadStaffRoster().filter((s) => s.active);
+  const byId = new Map(roster.map((s) => [s.id, s]));
+  const curated = MARKETING_DISPLAY_BY_ROLE[roleId];
+  if (curated?.length) {
+    const picked = curated.map((id) => byId.get(id)).filter(Boolean) as StaffMember[];
+    if (picked.length) return picked.slice(0, max);
+  }
+  return pickDiverseMarketingSubset(listStaffByRole(roleId), max);
+}
+
 const SALES_MARKETING_ROLES: AgentPersonaId[] = [
   'sales_closer',
   'lead_converter',

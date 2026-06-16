@@ -634,6 +634,14 @@ export function drawGuideContentPages(
 
       for (const p of sec.paragraphs ?? []) {
 
+        if (!p.trim()) {
+
+          y -= 10;
+
+          continue;
+
+        }
+
         for (const line of wrapPdfText(fonts.regular as { widthOfTextAtSize: (t: string, s: number) => number }, 11, p, maxW)) {
 
           draw(line);

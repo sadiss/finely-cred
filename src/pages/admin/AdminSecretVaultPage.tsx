@@ -10,13 +10,14 @@ import { FINELY_TENANT_ID } from '../../domain/tenants';
 import { getBlobStore } from '../../storage/getBlobStore';
 import { getBlobUrl } from '../../storage/getBlobUrl';
 import { downloadBlob, openUrlInNewTab } from '../../utils/download';
-import {
-  createSecretVaultFileItem,
+import { createSecretVaultFileItem,
   createSecretVaultUrlItem,
   deleteSecretVaultItem,
   listSecretVaultItemsByTenant,
 } from '../../data/secretVaultRepo';
 import type { SecretVaultItem } from '../../domain/secretVault';
+import { SECRET_VAULT_MEDIA_LABELS } from '../../domain/secretVault';
+import { SecretVaultOpsHub } from '../../components/vault/SecretVaultOpsHub';
 import { FinelyOsPageFooter } from '../../features/os/FinelyOsPageFooter';
 import { FinelyOsPaginatedStack } from '../../features/os/FinelyOsPaginatedStack';
 import {
@@ -262,21 +263,31 @@ export default function AdminSecretVaultPage() {
         <div className={FINELY_OS_BANNER}>
           <Shield size={18} className="text-violet-400 shrink-0 mt-0.5" />
           <div className="flex-1">
-            <div className={FINELY_OS_ENTITY_SUBLABEL}>Vault protocol · local demo storage</div>
+            <div className={FINELY_OS_ENTITY_SUBLABEL}>Owner vault · multi-media + ML intelligence</div>
             <p className={`mt-2 ${FINELY_OS_ENTITY_BODY} leading-relaxed max-w-3xl`}>
-              Internal-only documents and sensitive operational assets. Items persist in this browser only until Supabase encrypted vault ships — not a production backup.
-            </p>
-            <p className={`mt-2 ${FINELY_OS_ENTITY_BODY} text-xs font-mono`}>
-              Tip: revoke access instantly from this page or from Team & Roles.
+              Store e-books, docs, videos, YouTube, audio, and web research. ML generates secret intel bundles; Nora Capital pulls shared items via{' '}
+              <span className="font-mono text-violet-200">vault.intel_feed</span>. Blobs sync to encrypted storage when Supabase is configured.
             </p>
           </div>
-          <label className={`${FINELY_OS_PRIMARY_BTN} cursor-pointer shrink-0`}>
-            <Upload size={14} /> Upload files
-            <input type="file" multiple onChange={(e) => void uploadFiles(e.target.files)} className="hidden" />
-          </label>
         </div>
 
-        <div className="grid lg:grid-cols-12 gap-6">
+        <SecretVaultOpsHub
+          tenantId={tenantId}
+          userId={auth.user?.id}
+          userEmail={auth.user?.email}
+          membershipRole={membership?.role ?? null}
+          isAdmin={isAdminEmail(auth.user?.email)}
+          items={items}
+          selected={selected}
+          onSelect={setSelectedId}
+          onRefresh={() => setVersion((v) => v + 1)}
+          onError={setErr}
+          onNotice={setNotice}
+          busy={busy}
+          setBusy={setBusy}
+        />
+
+        <div className="grid lg:grid-cols-12 gap-6 mt-6">
           <div className={`lg:col-span-4 ${finelyOsCatalogCard('violet')} !p-5 space-y-4`}>
             <div className="flex items-center justify-between gap-3">
               <div className={FINELY_OS_ENTITY_SUBLABEL}>Vault items</div>
@@ -310,7 +321,7 @@ export default function AdminSecretVaultPage() {
                       <div className="min-w-0">
                         <div className={`${FINELY_OS_ENTITY_VALUE} truncate`}>{i.title}</div>
                         <div className={`mt-1 ${FINELY_OS_ENTITY_SUBLABEL} font-mono truncate normal-case tracking-normal`}>
-                          {i.type} • {fmtWhen(i.createdAt)}
+                          {SECRET_VAULT_MEDIA_LABELS[i.mediaKind] ?? i.type} • {fmtWhen(i.createdAt)}
                         </div>
                       </div>
                       <span className={`shrink-0 ${FINELY_OS_ENTITY_SUBLABEL}`}>
@@ -325,7 +336,7 @@ export default function AdminSecretVaultPage() {
 
           <div className="lg:col-span-8 space-y-6">
             <div className={`${finelyOsCatalogCard('violet')} !p-5 space-y-4`}>
-              <div className={FINELY_OS_ENTITY_SUBLABEL}>Add URL</div>
+              <div className={FINELY_OS_ENTITY_SUBLABEL}>Quick URL (legacy panel)</div>
               <div className="grid md:grid-cols-3 gap-3">
                 <input value={urlTitle} onChange={(e) => setUrlTitle(e.target.value)} className={`md:col-span-1 ${FINELY_OS_ENTITY_INPUT}`} placeholder="Title (optional)" />
                 <input value={urlValue} onChange={(e) => setUrlValue(e.target.value)} className={`md:col-span-2 ${FINELY_OS_ENTITY_INPUT}`} placeholder="https://…" />

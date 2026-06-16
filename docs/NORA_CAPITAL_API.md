@@ -99,6 +99,80 @@ or
 }
 ```
 
+## Partner API v4 (Nora Capital Group — ML advisory)
+
+Version **v4** adds machine-learning advisory endpoints with OpenAI-powered suggestions and heuristic fallback.
+
+### ML advisory (full partner action plan)
+
+```json
+{ "action": "ml.advisory", "partnerId": "partner_…" }
+```
+
+Returns `executiveSummary`, `topPriorities`, detailed `suggestions[]` (title, rationale, steps, confidence, statutes), `fundingPath`, and `disputeStrategy`.
+
+### Funding path only
+
+```json
+{ "action": "ml.funding_path", "email": "partner@example.com" }
+```
+
+### Dispute strategy only
+
+```json
+{ "action": "ml.dispute_strategy", "partnerId": "partner_…" }
+```
+
+### Pipeline insights (NCG ops — aggregate)
+
+```json
+{ "action": "ml.pipeline_insights", "tenantId": "nora_capital", "limit": 20 }
+```
+
+### Enriched profile (full file + ML advisory)
+
+```json
+{ "action": "partner.enriched_profile", "partnerId": "partner_…" }
+```
+
+Client helpers: `noraMlAdvisory`, `noraMlFundingPath`, `noraMlDisputeStrategy`, `noraMlPipelineInsights`, `noraPartnerEnrichedProfile`.
+
+## Partner API v3 (Nora Capital Group — extended)
+
+All actions use **POST** `/functions/v1/finely-partner-api` with header `x-finely-partner-api-key`.
+
+### API catalog
+
+```json
+{ "action": "api.catalog" }
+```
+
+### Full partner profile (reports + evidence + letters)
+
+```json
+{ "action": "partner.full_profile", "partnerId": "partner_…" }
+```
+
+### Evidence manifest (underwriting pull)
+
+```json
+{ "action": "partner.evidence_manifest", "partnerId": "partner_…" }
+```
+
+### Owner vault intel feed (shared secrets for NCG ops)
+
+```json
+{ "action": "vault.intel_feed", "tenantId": "finely_cred", "limit": 25 }
+```
+
+### Cross-role recognition (Finely + NCG staff)
+
+```json
+{ "action": "roles.recognize", "email": "ops@noracapitalgroup.com", "tenantId": "finely_cred" }
+```
+
+Client helpers: `src/lib/noraPartnerApiClient.ts` — `noraApiCatalog`, `noraPartnerFullProfile`, `noraPartnerEvidenceManifest`, `noraVaultIntelFeed`, `noraRecognizeRole`.
+
 ## Partner API v2 (white-label)
 
 All actions use **POST** `/functions/v1/finely-partner-api` with header `x-finely-partner-api-key`.

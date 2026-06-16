@@ -3,8 +3,14 @@ import { useLocation } from 'react-router-dom';
 import { CheckCircle2, Sparkles, Menu, X } from 'lucide-react';
 import { FinelyOsPaginatedStack } from '../../features/os/FinelyOsPaginatedStack';
 import { FinelyThemeToggle } from '../../features/os/FinelyThemeToggle';
-import { finelyOsCatalogCard } from '../../features/os/finelyOsLightUi';
-import { PUBLIC_MOBILE_EXPLORE, PUBLIC_PRIMARY_NAV, SITE_WAYFINDER_LANES } from '../../config/siteWayfinderLanes';
+import {
+  PUBLIC_CAREER_PATHS,
+  PUBLIC_CONTACT_LINKS,
+  PUBLIC_CORE_NAV,
+  PUBLIC_HOS_NAV,
+  PUBLIC_RESOURCES_SECTIONS,
+  SITE_WAYFINDER_LANES,
+} from '../../config/siteWayfinderLanes';
 import { FinelyCredLogo } from '../brand/FinelyCredLogo';
 export { FullPageLoader } from './FullPageLoader';
 export { AppErrorBoundary } from './AppErrorBoundary';
@@ -98,7 +104,7 @@ export const CARD_CONFIGS: Record<string, any> = {
 // --- BUTTON COMPONENT (FIXED CONTRAST) ---
 interface ButtonProps {
   children: React.ReactNode;
-  variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'platinum' | 'gold';
+  variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'platinum' | 'gold' | 'emerald' | 'royal';
   size?: 'sm' | 'md' | 'lg';
   className?: string;
   onClick?: () => void;
@@ -138,6 +144,12 @@ export function Button({
 
     // Gold: Luxury metallic gradient (matches Finely Gold card)
     gold: `bg-[linear-gradient(135deg,#ffeaa7_0%,#fdcb6e_15%,#f39c12_35%,#d68910_50%,#f39c12_65%,#fdcb6e_85%,#ffeaa7_100%)] text-[#1a1400] font-black shadow-lg shadow-black/30 hover:brightness-110 border-t border-white/40`,
+
+    // Emerald: shiny green metallic (same material treatment as gold, green hue)
+    emerald: `bg-[linear-gradient(135deg,#ecfdf5_0%,#a7f3d0_15%,#34d399_35%,#059669_50%,#34d399_65%,#a7f3d0_85%,#ecfdf5_100%)] text-[#04130c] font-black shadow-lg shadow-black/30 hover:brightness-110 border-t border-white/40`,
+
+    // Royal: shiny violet metallic (distinct premium accent)
+    royal: `bg-[linear-gradient(135deg,#f5f3ff_0%,#ddd6fe_15%,#a78bfa_35%,#7c3aed_50%,#a78bfa_65%,#ddd6fe_85%,#f5f3ff_100%)] text-[#1a0b2e] font-black shadow-lg shadow-black/30 hover:brightness-110 border-t border-white/40`,
   };
 
   const sizes: Record<string, string> = {
@@ -747,7 +759,7 @@ export function MobileNav({ isOpen, onClose, onNavigate, showThemeToggle = false
   return (
     <div className="fixed inset-0 z-[200] lg:hidden">
       <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={onClose} />
-      <div className="absolute right-0 top-0 bottom-0 w-[88vw] max-w-[340px] bg-fc-section border-l border-white/[0.08] p-4 sm:p-6 animate-in slide-in-from-right duration-300 overflow-y-auto">
+      <div className="absolute right-0 top-0 bottom-0 w-[88vw] max-w-[340px] bg-fc-section border-l border-white/[0.08] p-4 sm:p-6 animate-in slide-in-from-right duration-300 overflow-y-auto fc-mobile-nav-panel">
         <div className="grid grid-cols-3 items-center mb-5">
           <div />
           <div className="text-center">
@@ -770,10 +782,10 @@ export function MobileNav({ isOpen, onClose, onNavigate, showThemeToggle = false
           </div>
         ) : null}
 
-        <nav className="space-y-4">
-          <div className="fc-light-glass-panel fc-light-chrome-panel overflow-hidden p-3 space-y-2">
-            <div className="text-[10px] font-black uppercase tracking-[0.22em] text-white/40 px-1">Primary</div>
-            {PUBLIC_PRIMARY_NAV.map((link) => (
+        <nav className="space-y-3">
+          <div className="fc-mobile-nav-section">
+            <div className="fc-public-nav-section-title px-1 mb-2">Main</div>
+            {PUBLIC_CORE_NAV.map((link) => (
               <button
                 key={link.id}
                 type="button"
@@ -781,27 +793,101 @@ export function MobileNav({ isOpen, onClose, onNavigate, showThemeToggle = false
                   onNavigate(link.path);
                   onClose();
                 }}
-                className={`w-full text-left px-3 py-2.5 rounded-xl border transition-colors text-sm font-semibold ${
-                  link.match(location.pathname) ? 'fc-nav-pill-active' : 'fc-nav-pill'
-                }`}
+                className={`w-full text-left fc-nav-pill-compact mb-1 ${link.match(location.pathname) ? 'fc-nav-pill-active' : ''}`}
               >
                 {link.label}
               </button>
             ))}
+          </div>
+
+          <div className="fc-mobile-nav-section">
+            <div className="fc-public-nav-section-title px-1 mb-2">Resources</div>
+            {PUBLIC_RESOURCES_SECTIONS.map((section) => (
+              <div key={section.id} className="mb-3">
+                <p className="px-1 mb-1 text-[10px] font-semibold uppercase tracking-wide text-white/40">{section.title}</p>
+                {section.links.map((link) => (
+                  <button
+                    key={link.id}
+                    type="button"
+                    onClick={() => {
+                      onNavigate(link.path);
+                      onClose();
+                    }}
+                    className="fc-public-nav-row w-full text-left mb-0.5"
+                  >
+                    <span className="text-sm font-semibold text-white/90">{link.label}</span>
+                    {link.hint ? <span className="mt-0.5 block text-xs text-white/48">{link.hint}</span> : null}
+                  </button>
+                ))}
+              </div>
+            ))}
+          </div>
+
+          <div className="fc-mobile-nav-section">
+            <div className="fc-public-nav-section-title px-1 mb-2">{PUBLIC_HOS_NAV.label}</div>
+            <p className="px-1 text-xs text-white/50">Separate member entrance — disputes, business credit, and the free guide.</p>
             <button
               type="button"
               onClick={() => {
-                onNavigate('onboarding');
+                onNavigate(PUBLIC_HOS_NAV.path);
                 onClose();
               }}
-              className="w-full text-left fc-nav-pill"
+              className={`w-full text-left px-3 py-2.5 rounded-xl border transition-colors text-sm font-semibold ${
+                PUBLIC_HOS_NAV.match(location.pathname) ? 'fc-nav-pill-hos-active' : 'fc-nav-pill-hos'
+              }`}
             >
-              Login / Signup
+              Join {PUBLIC_HOS_NAV.shortLabel}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                onNavigate(PUBLIC_HOS_NAV.loginPath);
+                onClose();
+              }}
+              className="w-full text-left fc-nav-pill text-sm"
+            >
+              HOS member login
             </button>
           </div>
 
-          <div className="fc-light-glass-panel fc-light-chrome-panel overflow-hidden p-3">
-            <div className="text-[10px] font-black uppercase tracking-[0.22em] text-white/40 px-1 mb-2">Pick a lane</div>
+          <div className="fc-mobile-nav-section">
+            <div className="fc-public-nav-section-title px-1 mb-2">Careers</div>
+            {PUBLIC_CAREER_PATHS.map((link) => (
+              <button
+                key={link.id}
+                type="button"
+                onClick={() => {
+                  onNavigate(link.path);
+                  onClose();
+                }}
+                className="w-full text-left fc-nav-pill !rounded-xl !py-2.5 text-sm"
+              >
+                <div className="font-semibold">{link.label}</div>
+                {link.hint ? <div className="text-xs opacity-70 font-normal">{link.hint}</div> : null}
+              </button>
+            ))}
+          </div>
+
+          <div className="fc-mobile-nav-section">
+            <div className="fc-public-nav-section-title px-1 mb-2">Contact</div>
+            {PUBLIC_CONTACT_LINKS.map((link) => (
+              <button
+                key={link.id}
+                type="button"
+                onClick={() => {
+                  onNavigate(link.path);
+                  onClose();
+                }}
+                className="fc-public-nav-row w-full text-left mb-0.5"
+              >
+                <span className="text-sm font-semibold text-white/90">{link.label}</span>
+                {link.hint ? <span className="mt-0.5 block text-xs text-white/48">{link.hint}</span> : null}
+              </button>
+            ))}
+          </div>
+
+          <div className="fc-mobile-nav-section">
+            <div className="fc-public-nav-section-title px-1 mb-2">Pick a lane</div>
             <div className="space-y-2">
               {SITE_WAYFINDER_LANES.map((lane) => (
                 <button
@@ -811,8 +897,7 @@ export function MobileNav({ isOpen, onClose, onNavigate, showThemeToggle = false
                     onNavigate(lane.path);
                     onClose();
                   }}
-                  data-fc-accent={lane.accent}
-                  className={`w-full text-left fc-nav-pill fc-accent-card !rounded-xl ${finelyOsCatalogCard(lane.accent)} !p-3`}
+                  className="w-full text-left fc-nav-pill !rounded-xl !p-3"
                 >
                   <div className="font-semibold">{lane.label}</div>
                   <div className="text-xs opacity-70">{lane.hint}</div>
@@ -821,27 +906,16 @@ export function MobileNav({ isOpen, onClose, onNavigate, showThemeToggle = false
             </div>
           </div>
 
-          <div className="fc-light-glass-panel fc-light-chrome-panel overflow-hidden p-3">
-            <div className="text-[10px] font-black uppercase tracking-[0.22em] text-white/40 px-1 mb-2">Explore more</div>
-            <FinelyOsPaginatedStack
-              items={PUBLIC_MOBILE_EXPLORE}
-              pageSize={PUBLIC_MOBILE_EXPLORE.length}
-              itemSpacingClassName="space-y-2"
-              renderItem={(link) => (
-                <button
-                  key={link.id}
-                  type="button"
-                  onClick={() => {
-                    onNavigate(link.path);
-                    onClose();
-                  }}
-                  className="w-full text-left fc-nav-pill text-sm"
-                >
-                  {link.label}
-                </button>
-              )}
-            />
-          </div>
+          <button
+            type="button"
+            onClick={() => {
+              onNavigate('onboarding');
+              onClose();
+            }}
+            className="w-full fc-nav-pill-ghost mt-2"
+          >
+            Login / Signup
+          </button>
         </nav>
       </div>
     </div>

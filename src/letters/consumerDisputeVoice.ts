@@ -1,0 +1,189 @@
+/**
+ * Canonical consumer voice for credit dispute letters and education.
+ * Human first — noticed something wrong, real-life impact, pulled report, learned FCRA, then dispute.
+ */
+
+export const CONSUMER_DISPUTE_OPENING = `To Whom It May Concern,
+
+I am writing because something on my credit report does not look right, and it is affecting my life in real ways. I have been turned down for credit, quoted higher rates, or denied for things I need — including financing for a car, an apartment, and other credit I was trying to obtain. This is not just a number on a page; it is blocking moves my family and I are trying to make.
+
+When I pulled my own credit report and compared it carefully to my records, I found information that appears inaccurate, incomplete, or impossible to verify. After doing my own research, I learned that under the Fair Credit Reporting Act (FCRA), 15 U.S.C. § 1681i, I have the right to dispute information I believe is wrong and to request a reinvestigation.
+
+I am not trying to avoid legitimate debts or obligations. I am asking you to review what is actually reporting on my file, investigate the specific item(s) below, and correct or delete anything that is inaccurate or cannot be verified. Please send me written results within the time frame the law requires.`;
+
+export const CONSUMER_DISPUTE_OPENING_CONVERSATIONAL = `Hello,
+
+Something on my credit report does not look right, and it is getting in the way of everyday life — I have been denied or quoted worse terms when trying to get credit, finance a car, rent an apartment, and move forward with goals that depend on a fair, accurate file.
+
+I pulled my report, compared it to my own records, and found reporting that does not add up. I also looked into my rights under the Fair Credit Reporting Act (FCRA) and learned that I can dispute information that appears wrong and ask for a reinvestigation.
+
+I am not disputing debts that are truly mine and correctly reported. I am asking you to look at the specific item(s) below, investigate, and fix or remove anything that is inaccurate or unverified. Please send me the results in writing.`;
+
+export const CONSUMER_ITEM_DISPUTE_STATEMENT = `When I reviewed my report, the fields reporting for this account do not match my records and/or contradict each other. I am disputing this specific negative information because I believe it is inaccurate, incomplete, or cannot be verified as currently reported.`;
+
+export const CONSUMER_REQUESTED_RESOLUTION = [
+  'Please conduct a complete reinvestigation of this item and verify the accuracy of every field reporting.',
+  'If the furnisher cannot substantiate this reporting with valid verification, please delete it from my file.',
+  'If anything is corrected, please send me an updated copy of my credit report showing the changes.',
+  'If you claim the item is verified, please include how it was verified and what information was relied on.',
+];
+
+export const CONSUMER_REQUEST_FOR_RESULTS = `Please send me written confirmation of your reinvestigation results. If you determine an item is "verified," I need to know exactly how it was verified and what records were used — not just a form letter saying it was checked.
+
+Thank you for taking this seriously. An accurate credit file matters for housing, transportation, and basic financial stability.`;
+
+/** Lines for the free guide example letter (PDF + preview). */
+export const CONSUMER_EXAMPLE_LETTER_LINES = [
+  '[Your Full Name]',
+  '[Your Address]',
+  '[City, State ZIP]',
+  '[Date]',
+  '',
+  '[Credit Bureau Name]',
+  '[Bureau Dispute Address]',
+  '',
+  'Re: Dispute of Inaccurate Information — Account #[Last 4 digits]',
+  '',
+  'To Whom It May Concern:',
+  '',
+  'I am writing because something on my credit report does not look right, and it is affecting my life in real ways. I have been denied for credit and turned down for things I need — including a car loan and an apartment I was applying for. When I pulled my own report and compared it to my records, I found information that appears inaccurate.',
+  '',
+  'After doing my own research, I learned that under the Fair Credit Reporting Act (FCRA), 15 U.S.C. § 1681i, I have the right to dispute information I believe is wrong. I am not trying to avoid legitimate debts. I am asking you to investigate what is reporting and fix what does not belong there or cannot be verified.',
+  '',
+  'The account I am disputing:',
+  '- Creditor / furnisher: [Creditor Name]',
+  '- Account number (last 4): [XXXX]',
+  '- What looks wrong: [e.g., balance, status, dates, payment history — be specific]',
+  '',
+  'When I reviewed my report, the fields for this account do not match my records. I have attached [Exhibit A: screenshot or document] showing the contradiction. Please reinvestigate, correct or delete inaccurate reporting, and tell me how you verified anything you keep on my file.',
+  '',
+  'Please send me updated results within the time frame required by law.',
+  '',
+  'Sincerely,',
+  '[Handwritten Signature]',
+  '[Printed Name]',
+];
+
+export type DisputeGuideStep = {
+  id: string;
+  heading: string;
+  lead: string;
+  paragraphs: string[];
+  bullets: string[];
+  powerMove: string;
+};
+
+/** Elaborated 5-step framework — shared by PDF guide, freeGuides, and funnel UI. */
+export const DISPUTE_GUIDE_FIVE_STEPS: DisputeGuideStep[] = [
+  {
+    id: 'step-1',
+    heading: 'Step 1 — Identify the target item',
+    lead: 'One clean target beats ten scattered complaints.',
+    paragraphs: [
+      'Start by pulling your own report from each bureau (or a tri-merge if you have one). Read it like a detective, not a victim: you are looking for one tradeline where the story on paper does not match reality.',
+      'Do not dispute everything at once. Bureaus and OCR systems flag “shotgun” letters. One negative per letter, one clear inaccuracy per round — that is how consumers win reinvestigations that actually stick.',
+    ],
+    bullets: [
+      'Download or request your report (AnnualCreditReport.com, monitoring service, or bureau directly). Same-day pulls are best when you are actively disputing.',
+      'Circle ONE negative tradeline per letter — the item hurting you most (collections, charge-offs, lates, wrong balances).',
+      'Screenshot the exact fields: account name, status, balance, credit limit, date opened, date of first delinquency, last reported, and the 24-month payment grid.',
+      'Write down why it looks wrong in plain English before you open a template (“status says paid but grid shows 90-day lates”).',
+      'Save screenshots to your Documents / Evidence vault before you draft — never dispute from memory.',
+      'Note which bureau page it appeared on (Equifax, Experian, or TransUnion) — you mail each bureau separately.',
+    ],
+    powerMove:
+      'Power move: If the same account reports differently on two bureaus, that inconsistency alone can be Round 1 — screenshot both side by side as Exhibit A.',
+  },
+  {
+    id: 'step-2',
+    heading: 'Step 2 — Choose your dispute lane',
+    lead: 'Pick the strongest honest angle — accuracy, verifiability, or completeness.',
+    paragraphs: [
+      'Every dispute falls into one of three lanes. You are not arguing feelings; you are pointing at what the file shows versus what can be proven.',
+      'The lane you choose determines which exhibits you attach and which FCRA duty you invoke. Switching lanes mid-round weakens your paper trail — commit to one clean theory per letter.',
+    ],
+    bullets: [
+      'Inaccurate reporting: internal contradictions (status vs payment history, balance vs limit, dates that do not timeline).',
+      'Unverifiable: the furnisher cannot produce a signed agreement, account ownership chain, or proof the debt is yours as reported.',
+      'Incomplete: required Metro2 fields missing, wrong account type, or masked identifiers that prevent you from confirming the tradeline.',
+      'Identity mismatch: name/address variants splitting your file — fix identity layer before heavy dispute rounds.',
+      'Never cite “illegal” or “fraud” without facts — factual findings tied to screenshots win reinvestigations.',
+      'Match the lane to your exhibit: inaccuracy needs contradictions; unverifiable needs validation request language.',
+    ],
+    powerMove:
+      'Power move: Metro2 “status vs grid” conflicts are high-win — e.g., “Current” status with derogatory history codes in the same account block.',
+  },
+  {
+    id: 'step-3',
+    heading: 'Step 3 — Structure the letter (your story, then your rights)',
+    lead: 'Start in your own words — then cite the law you researched.',
+    paragraphs: [
+      'Your opening should read like you explaining the problem to someone who can help: what looks wrong on your report, how it is affecting your life (denials, apartment, car, rates), that you pulled your report and looked up your rights, and what you are asking them to do — not like a copy-paste template from the internet.',
+      'After your opening paragraphs, list the account once, tie each reason to an exhibit, and close with a clear request for reinvestigation results and method of verification.',
+    ],
+    bullets: [
+      'Opening — part 1: What you noticed that does not look right on your report.',
+      'Opening — part 2: How it is hurting you (denied credit, apartment, auto loan, higher deposits, etc.).',
+      'Opening — part 3: You pulled your report, compared records, researched the FCRA, and you are exercising your dispute rights.',
+      'Body: One account block — furnisher, last 4 digits, specific fields that are wrong, numbered factual reasons.',
+      'Reference exhibits in the body (“See Exhibit A — report screenshot dated [date]”).',
+      'Closing: Request reinvestigation, corrected report copy, and method of verification if anything is maintained.',
+      'Hand-sign in ink; typed name and date; keep a full copy of everything mailed.',
+    ],
+    powerMove:
+      'Power move: Read your opening out loud. If it sounds like a robot, rewrite until it sounds like you explaining the problem to a neighbor.',
+  },
+  {
+    id: 'step-4',
+    heading: 'Step 4 — Attach minimum proof',
+    lead: 'Less is more — but zero proof is a wasted stamp.',
+    paragraphs: [
+      'Attach only what proves the specific claim in that letter. Over-attaching unrelated docs dilutes your argument and overwhelzes bureau intake.',
+      'Label every attachment Exhibit A, B, C and cite it in the letter body. The reinvestigation analyst should not have to guess why a page is included.',
+    ],
+    bullets: [
+      'Minimum identity pack: government ID + proof of address (utility bill, bank statement ≤ 90 days).',
+      'For the tradeline: full account panel screenshot + payment history grid + any statement or letter that contradicts the bureau.',
+      'One exhibit per major claim — do not dump 40 pages “just in case.”',
+      'Print on plain white paper, black ink; avoid neon highlights and all-caps rage paragraphs.',
+      'Keep a mailed copy: letter + exhibits + envelope front + certified mail receipt.',
+      'Upload the same packet to your portal Evidence vault and link it to the dispute task.',
+    ],
+    powerMove:
+      'Power move: On Exhibit A, use a simple arrow or circle (on paper or PDF) pointing at the exact field you are disputing — analysts move faster when you guide the eye.',
+  },
+  {
+    id: 'step-5',
+    heading: 'Step 5 — Follow-up cadence',
+    lead: 'Round 1 opens the file; Round 2 wins on their answer.',
+    paragraphs: [
+      'Mail once, then wait for the bureau response (typically 30 days). Your job is not to spam — it is to document what changed and tighten the same claim with new facts from their reply.',
+      'If they “verify” without explaining how, that itself becomes Round 2 ammunition — request method of verification in writing and cite new contradictions.',
+    ],
+    bullets: [
+      'Round 1: one tradeline, one lane, certified mail, minimum exhibits, log sent date in Tasks.',
+      'Day 35: if no response, follow up in writing referencing your certified mail tracking number.',
+      'When response arrives: scan immediately; note what changed, what did not, and any verification boilerplate.',
+      'Round 2: same account, new factual reason from their response — never recycle the identical paragraph.',
+      'Never add unrelated accounts to a follow-up letter; open a new letter stream instead.',
+      'Escalation path (CFPB, AG, BBB) only after your paper trail is organized — dates, tracking, exhibits.',
+    ],
+    powerMove:
+      'Power move: Create a one-page timeline (sent → delivered → response → next action). Funders and coaches take you seriously when your file is dated and disciplined.',
+  },
+];
+
+export function consumerDisputeOpeningForTone(tone: 'formal' | 'neutral' | 'conversational'): string {
+  if (tone === 'conversational') return CONSUMER_DISPUTE_OPENING_CONVERSATIONAL;
+  return CONSUMER_DISPUTE_OPENING;
+}
+
+export function consumerDisputeOpeningHtml(extraRequest?: string): string {
+  const text = extraRequest ? `${CONSUMER_DISPUTE_OPENING}\n\n${extraRequest}` : CONSUMER_DISPUTE_OPENING;
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/\n/g, '<br/>');
+}

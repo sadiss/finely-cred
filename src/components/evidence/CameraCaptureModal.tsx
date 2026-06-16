@@ -89,6 +89,7 @@ export function CameraCaptureModal({
   const [detectConfidence, setDetectConfidence] = useState(0);
   const [facingMode, setFacingMode] = useState<'environment' | 'user'>('environment');
   const [cameraReady, setCameraReady] = useState(false);
+  const [torchOn, setTorchOn] = useState(false);
 
   const loadPdfLib = async () => {
     const { PDFDocument } = await import('pdf-lib');
@@ -107,12 +108,23 @@ export function CameraCaptureModal({
       const stream = await navigator.mediaDevices.getUserMedia({
         video: {
           facingMode: { ideal: facingMode },
-          width: { ideal: 1920, min: 640 },
-          height: { ideal: 1080, min: 480 },
-        },
+          width: { ideal: 3840, min: 1280 },
+          height: { ideal: 2160, min: 720 },
+          frameRate: { ideal: 30, max: 60 },
+          exposureMode: 'continuous',
+          focusMode: 'continuous',
+          whiteBalanceMode: 'continuous',
+        } as MediaTrackConstraints,
         audio: false,
       });
       streamRef.current = stream;
+      if (torchOn) {
+        const track = stream.getVideoTracks()[0];
+        const caps = track?.getCapabilities?.() as MediaTrackCapabilities & { torch?: boolean };
+        if (caps?.torch) {
+          await track.applyConstraints({ advanced: [{ torch: true } as MediaTrackConstraintSet] });
+        }
+      }
       const video = videoRef.current;
       if (video) {
         video.srcObject = stream;
@@ -142,7 +154,7 @@ export function CameraCaptureModal({
       setCameraReady(false);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, defaultProfile, facingMode]);
+  }, [open, defaultProfile, facingMode, torchOn]);
 
   // Live document edge detection — focuses on ID/SSN even with hand/background clutter
   useEffect(() => {
@@ -400,6 +412,19 @@ export function CameraCaptureModal({
                   cameraReady={cameraReady && !starting}
                 />
                 <div className="absolute top-3 right-3 z-20 flex gap-2 pointer-events-auto">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setTorchOn((v) => !v);
+                      void ensureStream();
+                    }}
+                    className={`p-2 rounded-xl border text-white/80 hover:text-white ${
+                      torchOn ? 'bg-amber-500/30 border-amber-400/40' : 'bg-black/55 border-white/20'
+                    }`}
+                    title="Toggle flash / torch (rear camera)"
+                  >
+                    <Zap size={16} />
+                  </button>
                   <button
                     type="button"
                     onClick={() => setFacingMode((m) => (m === 'environment' ? 'user' : 'environment'))}

@@ -2,7 +2,7 @@
 
 import type { RoleWorkflowId } from './roleWorkflows';
 
-export type RoleCapabilityRole = 'partner' | 'business' | 'agent' | 'affiliate' | 'au_seller' | 'au_buyer' | 'admin';
+export type RoleCapabilityRole = 'partner' | 'business' | 'agent' | 'affiliate' | 'au_seller' | 'au_buyer' | 'heta_society' | 'admin';
 
 
 export type RoleCapabilityRow = {
@@ -57,6 +57,13 @@ export const ROLE_CAPABILITY_MATRIX: RoleCapabilityRow[] = [
     earnModel: 'Pays for tradeline placement — no outbound payouts',
   },
   {
+    role: 'heta_society',
+    label: 'Head of Society (HOS)',
+    primaryRoutes: ['/head-of-society', '/portal/hos', '/free-guide'],
+    entitlements: ['disputes (5 slots)', 'letters', 'businessBuild', 'reports', 'free guide'],
+    earnModel: 'Free member program — optional career path upsell to specialist/agent',
+  },
+  {
     role: 'admin',
     label: 'Platform admin',
     primaryRoutes: ['/admin', '/admin/partners', '/admin/leads-os', '/admin/settings'],
@@ -84,6 +91,8 @@ export function workflowIdForCapabilityRole(role: RoleCapabilityRole): RoleWorkf
       return 'au_seller';
     case 'au_buyer':
       return 'au_buyer';
+    case 'heta_society':
+      return 'client';
     default:
       return null;
   }

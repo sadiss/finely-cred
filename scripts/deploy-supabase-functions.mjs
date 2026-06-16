@@ -24,6 +24,8 @@ const LAUNCH_FUNCTIONS = [
   'meta-oauth',
   'meta-publish-post',
   'finely-partner-api',
+  'vault-intelligence',
+  'admin-import-legacy',
   'nora-capital',
   'nora-capital-webhook',
   'nora-llc-api',

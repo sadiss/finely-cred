@@ -70,8 +70,8 @@ export function FinelyUnifiedHubLayout({
   const tabId = activeTab ?? tabs?.[0]?.id;
 
   return (
-    <div className="space-y-5">
-      <div className={`fc-unified-hub-shell fc-light-black-scope fc-light-hero-panel fc-pop-surface fc-light-readable ${finelyOsCatalogCard(hubCatalogAccent(accent))} !p-6 overflow-hidden`} data-fc-accent={accent}>
+    <div className="space-y-5 min-w-0 overflow-x-clip">
+      <div className={`fc-unified-hub-shell fc-light-black-scope fc-light-hero-panel fc-pop-surface fc-light-readable min-w-0 ${finelyOsCatalogCard(hubCatalogAccent(accent))} !p-4 sm:!p-6 overflow-hidden`} data-fc-accent={accent}>
         <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-6">
           <div className="min-w-0 space-y-2">
             {eyebrow ? <p className={FINELY_OS_ENTITY_SUBLABEL}>{eyebrow}</p> : null}
@@ -111,25 +111,27 @@ export function FinelyUnifiedHubLayout({
       </div>
 
       {tabs?.length && onTabChange ? (
-        <div className={FINELY_OS_VIEW_TABS} role="tablist">
-          {tabs.map((t) => (
-            <button
-              key={t.id}
-              type="button"
-              role="tab"
-              aria-selected={tabId === t.id}
-              data-fc-hub-tab={t.id}
-              onClick={() => onTabChange(t.id)}
-              className={finelyOsViewTab(tabId === t.id, accent === 'rose' ? 'fuchsia' : accent)}
-            >
-              {t.label}
-              {t.badge != null && t.badge !== '' ? ` (${t.badge})` : ''}
-            </button>
-          ))}
+        <div className="-mx-1 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <div className={`${FINELY_OS_VIEW_TABS} min-w-max sm:min-w-0`} role="tablist">
+            {tabs.map((t) => (
+              <button
+                key={t.id}
+                type="button"
+                role="tab"
+                aria-selected={tabId === t.id}
+                data-fc-hub-tab={t.id}
+                onClick={() => onTabChange(t.id)}
+                className={`${finelyOsViewTab(tabId === t.id, accent === 'rose' ? 'fuchsia' : accent)} shrink-0`}
+              >
+                {t.label}
+                {t.badge != null && t.badge !== '' ? ` (${t.badge})` : ''}
+              </button>
+            ))}
+          </div>
         </div>
       ) : null}
 
-      <div className={`fc-unified-hub-content fc-light-black-scope fc-light-pop-card fc-pop-surface fc-light-readable ${finelyOsCatalogCard(hubCatalogAccent(accent))} !p-5`} data-fc-accent={accent}>{children}</div>
+      <div className={`fc-unified-hub-content fc-light-black-scope fc-light-pop-card fc-pop-surface fc-light-readable min-w-0 overflow-x-clip ${finelyOsCatalogCard(hubCatalogAccent(accent))} !p-4 sm:!p-5`} data-fc-accent={accent}>{children}</div>
 
       {detailSlot ? (
         <details

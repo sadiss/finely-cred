@@ -21,6 +21,13 @@ const STORAGE_KEY = 'finely.business.readiness.v1';
 
 const ITEMS: ChecklistItem[] = [
   {
+    id: 'foundation_gate',
+    category: 'Profile',
+    label: 'Foundation gate complete (unlocks Tier 1 vendors)',
+    desc: 'Legal name, state, EIN, address, domain email, D-U-N-S signals.',
+    path: '/business/profile',
+  },
+  {
     id: 'profile_entity',
     category: 'Profile',
     label: 'Entity basics complete (EIN, SOS, ownership)',
@@ -60,6 +67,13 @@ const ITEMS: ChecklistItem[] = [
     category: 'Vendors',
     label: 'Tier 3 cards / fleet / cash accounts opened',
     desc: 'Deeper approvals once maturity and banking are strong.',
+    path: '/business/vendors',
+  },
+  {
+    id: 'vendors_tier4',
+    category: 'Funding',
+    label: 'Tier 4 capital vendors (LOC / term / equipment)',
+    desc: 'Relationship lending after Tier 3 maturity and Lender Logic.',
     path: '/business/vendors',
   },
   {

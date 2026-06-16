@@ -1,6 +1,12 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { getStaffMemberById } from '../../data/staffRoster';
-import { resolveStaffPortraitDataUrl, resolveStaffPortraitFallbackUrl, resolveStaffPortraitUrl, STAFF_PORTRAIT_PHOTO_CLASS } from '../../lib/staffPortrait';
+import {
+  resolveStaffPortraitDataUrl,
+  resolveStaffPortraitFallbackUrl,
+  resolveStaffPortraitUrl,
+  STAFF_PORTRAIT_PHOTO_CLASS,
+} from '../../lib/staffPortrait';
+import { AIA_GUIDE_STAFF_ID } from './publicChatPersonaUi';
 import type { PublicChatPersonaPresentation } from './publicChatPersonaUi';
 
 type Props = {
@@ -14,30 +20,63 @@ const SIZE = {
   lg: { box: 'w-14 h-14', ring: 'ring-[3px]', text: 'text-sm' },
 };
 
+function resolvePresentationPortrait(presentation: PublicChatPersonaPresentation): string {
+  if (presentation.avatarUrl?.trim()) return presentation.avatarUrl;
+
+  const staffId = presentation.staffMemberId;
+  if (staffId) {
+    const roster = getStaffMemberById(staffId);
+    if (roster) return resolveStaffPortraitUrl(roster);
+    return resolveStaffPortraitUrl({
+      id: staffId,
+      firstName: presentation.firstName,
+      lastName: '',
+      portraitGender: staffId === AIA_GUIDE_STAFF_ID ? 'feminine' : 'neutral',
+      avatarPath: '',
+    });
+  }
+
+  return resolveStaffPortraitUrl({
+    id: `staff-${presentation.firstName.toLowerCase()}`,
+    firstName: presentation.firstName,
+    lastName: '',
+    portraitGender: 'neutral',
+    avatarPath: '',
+  });
+}
+
 export function PublicChatStaffAvatar({ presentation, size = 'md', showOnline = false }: Props) {
-  const [imgSrc, setImgSrc] = useState(presentation.avatarUrl);
+  const initialSrc = useMemo(() => resolvePresentationPortrait(presentation), [presentation]);
+  const [imgSrc, setImgSrc] = useState(initialSrc);
   const [imgFailed, setImgFailed] = useState(false);
   const s = SIZE[size];
 
   useEffect(() => {
-    setImgSrc(presentation.avatarUrl);
+    setImgSrc(resolvePresentationPortrait(presentation));
     setImgFailed(false);
-  }, [presentation.avatarUrl, presentation.staffMemberId]);
+  }, [presentation]);
 
   const handleError = () => {
-    if (presentation.staffMemberId) {
-      const staff = getStaffMemberById(presentation.staffMemberId);
-      if (staff) {
-        const fallback = resolveStaffPortraitFallbackUrl(staff);
-        if (fallback && fallback !== imgSrc) {
-          setImgSrc(fallback);
-          return;
-        }
-        const data = resolveStaffPortraitDataUrl(staff);
-        if (data !== imgSrc) {
-          setImgSrc(data);
-          return;
-        }
+    const staffId = presentation.staffMemberId;
+    if (staffId) {
+      const staff =
+        getStaffMemberById(staffId) ??
+        ({
+          id: staffId,
+          firstName: presentation.firstName,
+          lastName: '',
+          portraitGender: staffId === AIA_GUIDE_STAFF_ID ? 'feminine' : 'neutral',
+          avatarPath: '',
+        } as const);
+      const fallback = resolveStaffPortraitFallbackUrl(staff);
+      if (fallback && fallback !== imgSrc) {
+        setImgSrc(fallback);
+        return;
+      }
+      const data = resolveStaffPortraitDataUrl(staff);
+      if (data && data !== imgSrc) {
+        setImgSrc(data);
+        return;
       }
     }
     setImgFailed(true);

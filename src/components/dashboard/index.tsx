@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { 
-  Building2, ArrowRight, AlertTriangle, Target, Cpu, Gavel,
-  Layers, Lock, Zap, X, ChevronUp, Scale, FastForward, Crosshair, Users, UploadCloud, ListChecks, LayoutDashboard, Settings, CreditCard, Shield, ShieldAlert, Briefcase, BookOpen
+  Building2, ArrowRight, AlertTriangle, Target, Gavel,
+  Layers, Lock, Zap, X, Menu, ChevronUp, Scale, FastForward, Crosshair, Users, UploadCloud, ListChecks, LayoutDashboard, Settings, CreditCard, Shield, ShieldAlert, Briefcase, BookOpen
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../auth/AuthProvider';
@@ -37,6 +37,7 @@ import { DisputeWeaver } from './DisputeWeaver';
 import { FinelyOwnersGuidePanel } from '../guide/FinelyOwnersGuidePanel';
 import { ClickableCard } from '../ui/ClickableCard';
 import { FinelyCredLogo } from '../brand/FinelyCredLogo';
+import { BackToSiteButton } from '../navigation/BackToSiteButton';
 import { FinelyNowDoThisStrip } from '../tours/FinelyNowDoThisStrip';
 import { computePartnerOverallScore } from '../../utils/partnerOverallScore';
 import { getUserProfileMeta } from '../../auth/userProfile';
@@ -48,9 +49,6 @@ import {
   FINELY_OS_ENTITY_VALUE,
   FINELY_OS_GLASS_CATALOG,
   FINELY_OS_PAGE,
-  FINELY_OS_AI_WIDGET,
-  FINELY_OS_AI_WIDGET_HEADER,
-  FINELY_OS_AI_WIDGET_ICON,
   FINELY_OS_NOTICE_SUCCESS,
   FINELY_OS_PRIMARY_BTN,
   FINELY_OS_SECONDARY_BTN,
@@ -68,6 +66,7 @@ import {
   FINELY_OS_BADGE_WARN,
   type FinelyOsGlassAccent,
 } from '../../features/os/finelyOsLightUi';
+import { useIsMobileOrTabletViewport } from '../../hooks/useMediaQuery';
 
 const MODULE_SHELL_ACCENTS: FinelyOsGlassAccent[] = ['violet', 'emerald', 'sky', 'fuchsia', 'rose', 'violet'];
 function moduleShell(index: number) {
@@ -116,6 +115,8 @@ export function MasteryOSDashboard({ user, onLogout }: MasteryOSDashboardProps) 
     }
     return false;
   });
+  const isCompactViewport = useIsMobileOrTabletViewport();
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
   useEffect(() => {
     try {
@@ -143,6 +144,7 @@ export function MasteryOSDashboard({ user, onLogout }: MasteryOSDashboardProps) 
 
   const jumpToSection = (id: TabId) => {
     setActiveTab(id);
+    setMobileNavOpen(false);
     window.setTimeout(() => {
       document.getElementById(`dash-${id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }, 0);
@@ -299,10 +301,21 @@ export function MasteryOSDashboard({ user, onLogout }: MasteryOSDashboardProps) 
   }, [isAdmin, adminPartnersAll, currentPartner, disputeCandidates.length, partnerQuery]);
 
   return (
-    <div className="min-h-screen bg-fc-shell text-white flex flex-col animate-in fade-in duration-1000">
+    <div className="min-h-screen bg-fc-shell text-white flex flex-col animate-in fade-in duration-1000 overflow-x-clip">
       {/* Top Bar */}
-      <div className="h-16 border-b border-white/5 bg-fc-chrome/70 backdrop-blur-xl flex items-center justify-between px-4 md:px-8 z-50">
-        <div className="flex items-center gap-4 md:gap-8">
+      <div className="h-16 border-b border-white/5 bg-fc-chrome/70 backdrop-blur-xl flex items-center justify-between px-4 md:px-8 z-50 shrink-0 pt-[env(safe-area-inset-top,0px)]">
+        <div className="flex items-center gap-2 md:gap-6 min-w-0">
+          {isCompactViewport ? (
+            <button
+              type="button"
+              onClick={() => setMobileNavOpen((v) => !v)}
+              className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/[0.1] bg-white/[0.05] text-white/80"
+              aria-label={mobileNavOpen ? 'Close workspace menu' : 'Open workspace menu'}
+            >
+              {mobileNavOpen ? <X size={18} /> : <Menu size={18} />}
+            </button>
+          ) : null}
+          <BackToSiteButton variant="ghost" label="Back to site" className="!px-2.5 !py-2 !text-[10px] sm:!text-xs shrink-0" />
           <button
             type="button"
             onClick={() => {
@@ -328,39 +341,54 @@ export function MasteryOSDashboard({ user, onLogout }: MasteryOSDashboardProps) 
         </div>
       </div>
 
-      <div className="flex-1 flex overflow-hidden">
-        {/* Sidebar — matches admin / portal side-rail chrome */}
+      <div className="flex-1 flex overflow-hidden min-w-0">
+        {isCompactViewport && mobileNavOpen ? (
+          <button
+            type="button"
+            className="fixed inset-0 z-[190] bg-black/60 backdrop-blur-[2px] md:hidden"
+            aria-label="Close workspace menu"
+            onClick={() => setMobileNavOpen(false)}
+          />
+        ) : null}
+        {/* Sidebar — drawer on phone/tablet, rail on desktop */}
         <aside
-          className={`shrink-0 overflow-y-auto transition-[width] duration-300 ease-out p-2 bg-fc-shell ${
-            sidebarExpanded ? 'w-[17rem]' : 'w-[5.5rem]'
-          }`}
+          className={`${
+            isCompactViewport
+              ? `fixed inset-y-0 left-0 z-[200] w-[min(17rem,88vw)] transform transition-transform duration-300 ease-out shadow-2xl ${
+                  mobileNavOpen ? 'translate-x-0' : '-translate-x-full pointer-events-none'
+                }`
+              : `${sidebarExpanded ? 'w-[17rem]' : 'w-[5.5rem]'} shrink-0`
+          } overflow-y-auto p-2 bg-fc-shell`}
         >
-          <div className={`${FINELY_OS_SIDE_RAIL_SHELL} !max-h-[calc(100vh-5rem)] h-full ${sidebarExpanded ? '' : '!p-2'}`}>
+          <div className={`${FINELY_OS_SIDE_RAIL_SHELL} !max-h-[calc(100vh-5rem)] h-full ${sidebarExpanded || isCompactViewport ? '' : '!p-2'}`}>
             <div className={FINELY_OS_SIDE_RAIL_GLOW} />
 
-            <div className={`relative flex items-center ${sidebarExpanded ? 'justify-between px-1' : 'justify-center'}`}>
-              {sidebarExpanded ? <div className={FINELY_OS_SIDE_RAIL_LABEL}>Workspace</div> : null}
-              <button
-                type="button"
-                onClick={() => setSidebarExpanded((v) => !v)}
-                className={`${FINELY_OS_LUXURY_PAGINATION_BTN} ${sidebarExpanded ? 'px-3 py-2' : '!p-2.5'}`}
-                title={sidebarExpanded ? 'Collapse menu' : 'Expand menu'}
-              >
-                <span className="text-[10px] font-black uppercase tracking-widest">{sidebarExpanded ? 'Collapse' : 'Menu'}</span>
-              </button>
+            <div className={`relative flex items-center ${sidebarExpanded || isCompactViewport ? 'justify-between px-1' : 'justify-center'}`}>
+              {sidebarExpanded || isCompactViewport ? <div className={FINELY_OS_SIDE_RAIL_LABEL}>Workspace</div> : null}
+              {!isCompactViewport ? (
+                <button
+                  type="button"
+                  onClick={() => setSidebarExpanded((v) => !v)}
+                  className={`${FINELY_OS_LUXURY_PAGINATION_BTN} ${sidebarExpanded ? 'px-3 py-2' : '!p-2.5'}`}
+                  title={sidebarExpanded ? 'Collapse menu' : 'Expand menu'}
+                >
+                  <span className="text-[10px] font-black uppercase tracking-widest">{sidebarExpanded ? 'Collapse' : 'Menu'}</span>
+                </button>
+              ) : null}
             </div>
 
-            <div className={`relative space-y-2 ${sidebarExpanded ? '' : 'flex flex-col items-center'}`}>
+            <div className={`relative space-y-2 ${sidebarExpanded || isCompactViewport ? '' : 'flex flex-col items-center'}`}>
               {sidebarTabs.map((t) => {
                 const Icon = t.icon;
                 const isActive = activeTab === t.id;
+                const showExpanded = sidebarExpanded || isCompactViewport;
                 return (
                   <button
                     key={t.id}
                     onClick={() => jumpToSection(t.id)}
                     aria-current={isActive ? 'page' : undefined}
                     className={
-                      sidebarExpanded
+                      showExpanded
                         ? finelyOsSideRailNavItem(isActive)
                         : `flex flex-col items-center justify-center w-12 h-12 rounded-2xl border transition-all ${
                             isActive
@@ -370,8 +398,8 @@ export function MasteryOSDashboard({ user, onLogout }: MasteryOSDashboardProps) 
                     }
                     title={t.label}
                   >
-                    <Icon size={sidebarExpanded ? 18 : 20} className={sidebarExpanded ? 'shrink-0' : ''} />
-                    {sidebarExpanded ? (
+                    <Icon size={showExpanded ? 18 : 20} className={showExpanded ? 'shrink-0' : ''} />
+                    {showExpanded ? (
                       <div className="min-w-0 flex-1 text-left">
                         <div className="text-[10px] font-black uppercase tracking-widest">{t.label}</div>
                         <div className="text-[10px] text-white/45 font-normal normal-case tracking-normal">
@@ -396,7 +424,7 @@ export function MasteryOSDashboard({ user, onLogout }: MasteryOSDashboardProps) 
               })}
             </div>
 
-            {sidebarExpanded && (
+            {(sidebarExpanded || isCompactViewport) && (
               <div className="relative mt-auto pt-2 border-t border-white/[0.08]">
                 <div className={`${FINELY_OS_SIDE_RAIL_LABEL} px-1`}>Quick launch</div>
                 <div className="mt-2 space-y-1">
@@ -440,16 +468,16 @@ export function MasteryOSDashboard({ user, onLogout }: MasteryOSDashboardProps) 
         </aside>
 
         {/* Main Content */}
-        <main className="flex-1 relative overflow-hidden bg-fc-shell">
-          <div className="p-4 md:p-12 max-w-7xl mx-auto h-full flex flex-col min-w-0">
-            <header className="mb-8 md:mb-12 space-y-2">
-              <h2 className={`text-3xl md:text-4xl font-extralight tracking-tight ${FINELY_OS_ENTITY_VALUE}`}>
+        <main className="flex-1 relative overflow-hidden bg-fc-shell min-w-0 w-full">
+          <div className="p-4 sm:p-6 md:p-12 max-w-7xl mx-auto h-full flex flex-col min-w-0">
+            <header className="mb-6 md:mb-12 space-y-2">
+              <h2 className={`text-2xl sm:text-3xl md:text-4xl font-extralight tracking-tight ${FINELY_OS_ENTITY_VALUE}`}>
                 Finely Cred <span className="text-violet-300">Workspace</span>
               </h2>
-              <p className={`${FINELY_OS_ENTITY_SUBLABEL} md:text-xs tracking-[0.4em]`}>{workspaceSubtitle}</p>
+              <p className={`${FINELY_OS_ENTITY_SUBLABEL} text-[10px] sm:text-xs tracking-[0.28em] sm:tracking-[0.4em]`}>{workspaceSubtitle}</p>
             </header>
 
-            <div className={`flex-1 relative h-full overflow-y-auto ${FINELY_OS_PAGE} fc-senior-simple space-y-16 pb-24 pr-2`}>
+            <div className={`flex-1 relative h-full overflow-y-auto overflow-x-clip ${FINELY_OS_PAGE} fc-senior-simple space-y-12 md:space-y-16 pb-28 md:pb-24 pr-0 sm:pr-2`}>
               <section id="dash-overview" className="fc-scroll-section space-y-8 animate-in slide-in-from-bottom-4 duration-700">
                   <h2 className="fc-launch-lane-header">Overview</h2>
                   {/* Quick Actions (so you can reach partner + upload modules) */}
@@ -1045,11 +1073,11 @@ export function MasteryOSDashboard({ user, onLogout }: MasteryOSDashboardProps) 
                                 {w.badge}
                               </div>
                             </div>
-                            <div className="grid grid-cols-3 gap-3">
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3">
                               <button
                                 type="button"
                                 onClick={() => setConfigOpenFor(w.id)}
-                                className={FINELY_OS_SECONDARY_BTN}
+                                className={`${FINELY_OS_SECONDARY_BTN} w-full`}
                               >
                                 Configure
                               </button>
@@ -1061,7 +1089,7 @@ export function MasteryOSDashboard({ user, onLogout }: MasteryOSDashboardProps) 
                                   setAutomationRunMsg(run.summary);
                                   setStoreVersion((v) => v + 1);
                                 }}
-                                className={FINELY_OS_PRIMARY_BTN}
+                                className={`${FINELY_OS_PRIMARY_BTN} w-full`}
                               >
                                 Dry-run
                               </button>
@@ -1073,7 +1101,7 @@ export function MasteryOSDashboard({ user, onLogout }: MasteryOSDashboardProps) 
                                   setAutomationRunMsg(run.summary);
                                   setStoreVersion((v) => v + 1);
                                 }}
-                                className={FINELY_OS_SUCCESS_BTN}
+                                className={`${FINELY_OS_SUCCESS_BTN} w-full`}
                               >
                                 Run live
                               </button>
@@ -1307,27 +1335,34 @@ export function MasteryOSDashboard({ user, onLogout }: MasteryOSDashboardProps) 
               </section>
             </div>
           </div>
-
-          {/* AI Assistant */}
-          <div className={`fixed bottom-4 left-4 right-4 md:absolute md:bottom-12 md:left-12 md:right-auto md:w-80 ${FINELY_OS_AI_WIDGET} hover:scale-[1.02] transition-transform duration-300 z-40`}>
-            <div className={FINELY_OS_AI_WIDGET_HEADER}>
-              <div className={FINELY_OS_AI_WIDGET_ICON}>
-                <Cpu size={16} className="text-emerald-300" />
-              </div>
-              <p className="text-[10px] font-black uppercase tracking-[0.28em] text-emerald-200/90">Finely AI</p>
-            </div>
-            <p className={`text-[10px] ${FINELY_OS_ENTITY_BODY} leading-relaxed italic`}>
-              {activeTab === 'lender' 
-                ? "I've isolated institutional lenders matching your profile. Tune utilization and relationship signals to raise your approval probability."
-                : activeTab === 'debt'
-                ? "If you have active collections or summons, timing matters. Upload documents first, then we'll sequence the safest defense workflow."
-                : activeTab === 'remedy' 
-                ? "Three fractures identified. The FDCPA violation on the Experian file has a 94% removal probability via 15 U.S.C. § 1681."
-                : `Based on your ${user.fractures?.length || 0} foundational fractures, institutional readiness is projected in 90 days.`
-              }
-            </p>
-          </div>
         </main>
+
+        {isCompactViewport ? (
+          <nav
+            className="md:hidden fixed bottom-0 inset-x-0 z-[170] border-t border-white/10 bg-fc-chrome/95 backdrop-blur-xl px-2 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]"
+            aria-label="Workspace sections"
+          >
+            <div className="flex gap-1 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              {sidebarTabs.map((t) => {
+                const Icon = t.icon;
+                const isActive = activeTab === t.id;
+                return (
+                  <button
+                    key={t.id}
+                    type="button"
+                    onClick={() => jumpToSection(t.id)}
+                    className={`flex min-w-[4.25rem] shrink-0 flex-col items-center gap-1 rounded-xl px-2 py-2 text-[9px] font-black uppercase tracking-wider transition ${
+                      isActive ? 'bg-violet-600/30 text-white' : 'text-white/50 hover:text-white/80'
+                    }`}
+                  >
+                    <Icon size={16} />
+                    {t.label}
+                  </button>
+                );
+              })}
+            </div>
+          </nav>
+        ) : null}
       </div>
     </div>
   );

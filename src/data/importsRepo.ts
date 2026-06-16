@@ -4,6 +4,7 @@ import type { ImportBatch, LegacyPartnerExportV1 } from '../domain/imports';
 import { createPartner, findPartnerByImportExternalId, adminUpsertPartner } from './partnersRepo';
 import { createTask } from './tasksRepo';
 import { importLegacyPartnerArtifacts } from './legacyPartnerArtifactsImport';
+import { seedLegacyPartnerNotes } from './legacyPartnerNotesImport';
 import { addAuditEvent } from './auditRepo';
 
 const KEY = 'finely.imports.v1';
@@ -55,7 +56,33 @@ export async function importLegacyPartners(args: {
       if (!fullName) throw new Error('Missing fullName');
 
       const exists = await findPartnerByImportExternalId({ source: 'laravel', externalId });
-      if (exists) throw new Error(`Already imported (partnerId: ${exists.id})`);
+      if (exists) {
+        batch.createdPartnerIds.push(exists.id);
+        if (args.dryRun) continue;
+
+        const notesText = p.notes ? String(p.notes).trim() : '';
+        if (notesText) {
+          if (!exists.notes) {
+            await adminUpsertPartner({ ...exists, notes: notesText });
+          }
+          seedLegacyPartnerNotes({ partnerId: exists.id, notesText, externalId });
+        }
+
+        if (args.importArtifacts) {
+          const artifactResult = await importLegacyPartnerArtifacts({
+            partnerId: exists.id,
+            exportPartner: p,
+            dryRun: false,
+          });
+          if (batch.artifacts) {
+            batch.artifacts.evidenceCreated += artifactResult.evidenceCreated;
+            batch.artifacts.reportsCreated += artifactResult.reportsCreated;
+            batch.artifacts.lettersCreated += artifactResult.lettersCreated;
+            batch.artifacts.businessProfilesUpdated += artifactResult.businessProfilesUpdated;
+          }
+        }
+        continue;
+      }
 
       if (args.dryRun) {
         batch.createdPartnerIds.push(`dryrun:${externalId}`);
@@ -78,10 +105,12 @@ export async function importLegacyPartners(args: {
       batch.createdPartnerIds.push(created.id);
 
       if (p.notes) {
+        const notesText = String(p.notes).trim();
         await adminUpsertPartner({
           ...created,
-          notes: String(p.notes).trim(),
+          notes: notesText,
         });
+        seedLegacyPartnerNotes({ partnerId: created.id, notesText, externalId });
         addAuditEvent({
           partnerId: created.id,
           actorType: 'system',
@@ -192,6 +221,15 @@ export async function importLegacyArtifactsForExistingPartners(args: {
         exportPartner: p,
         dryRun: args.dryRun,
       });
+      if (!args.dryRun && p.notes) {
+        const notesText = String(p.notes).trim();
+        if (notesText) {
+          if (!existing.notes) {
+            await adminUpsertPartner({ ...existing, notes: notesText });
+          }
+          seedLegacyPartnerNotes({ partnerId: existing.id, notesText, externalId });
+        }
+      }
       batch.artifacts!.evidenceCreated += artifactResult.evidenceCreated;
       batch.artifacts!.reportsCreated += artifactResult.reportsCreated;
       batch.artifacts!.lettersCreated += artifactResult.lettersCreated;

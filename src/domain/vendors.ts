@@ -1,4 +1,4 @@
-export type VendorTier = 1 | 2 | 3;
+export type VendorTier = 1 | 2 | 3 | 4;
 
 export type VendorReportingBureau = 'DNB' | 'EXP' | 'EQF' | 'OTHER' | 'UNKNOWN';
 
@@ -26,6 +26,8 @@ export type Vendor = {
   prerequisites?: string[];
   /** Short “why” / operator guidance. */
   notes?: string;
+  /** Business types this vendor fits best (see businessVendorSequencing). */
+  businessTypes?: string[];
   /** Search/filter tags. */
   tags?: string[];
   sortOrder?: number;
@@ -53,6 +55,7 @@ export function createVendor(args: Omit<Vendor, 'id' | 'createdAt' | 'updatedAt'
     prerequisites: args.prerequisites ?? [],
     notes: args.notes,
     tags: args.tags ?? [],
+    businessTypes: args.businessTypes ?? ['general'],
     sortOrder: args.sortOrder ?? 0,
     createdAt,
     updatedAt: createdAt,

@@ -191,6 +191,8 @@ export async function getOrCreatePartnerForSession(args: { user: User | null }):
             ? 'affiliate'
             : laneRaw.includes('agent')
               ? 'agent'
+          : laneRaw.includes('heta')
+            ? 'heta_society'
           : laneRaw.includes('business')
             ? 'business_credit'
             : rawGoal.includes('business')

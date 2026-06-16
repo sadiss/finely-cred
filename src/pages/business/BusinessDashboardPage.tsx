@@ -62,7 +62,7 @@ export default function BusinessDashboardPage() {
     <PageShell
       badge="Business Portal"
       title="Business Dashboard"
-      subtitle="Fundability, structure, and vendor sequencing — one tab at a time."
+      subtitle="Fundability, structure, and Tier 1–4 vendor sequencing — restore personal credit and build business credit."
     >
       <div className={FINELY_OS_PAGE}>
         <BusinessNav />

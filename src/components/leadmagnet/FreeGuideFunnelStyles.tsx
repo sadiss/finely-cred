@@ -29,6 +29,12 @@ export function FreeGuideFunnelStyles() {
       -webkit-text-fill-color: transparent;
       background-clip: text;
     }
+    .fg-funnel .text-gradient-blue {
+      background: linear-gradient(to right, #bae6fd, #38bdf8, #fcd34d);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
     .fg-funnel .bg-mesh {
       position: relative;
       background-color: var(--bg-dark);
@@ -103,6 +109,69 @@ export function FreeGuideFunnelStyles() {
         linear-gradient(135deg, rgba(21, 28, 42, 0.92) 0%, rgba(8, 12, 10, 0.96) 100%);
       box-shadow: 0 0 60px rgba(57, 255, 20, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.04);
     }
+    .fg-funnel .fg-hero-shell {
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02)) border-box,
+        radial-gradient(ellipse at 78% 16%, rgba(56,189,248,0.16), transparent 42%),
+        radial-gradient(ellipse at 15% 82%, rgba(251,191,36,0.1), transparent 45%),
+        linear-gradient(135deg, rgba(17,24,39,0.98), rgba(15,23,42,0.98));
+      box-shadow:
+        0 34px 100px rgba(0,0,0,0.45),
+        inset 0 1px 0 rgba(255,255,255,0.08);
+    }
+    .fg-funnel .fg-video-hero-panel {
+      background:
+        radial-gradient(ellipse at 50% 0%, rgba(56,189,248,0.12), transparent 52%),
+        linear-gradient(145deg, rgba(2,6,23,0.58), rgba(255,255,255,0.04));
+      box-shadow:
+        0 34px 100px rgba(0,0,0,0.32),
+        inset 0 1px 0 rgba(255,255,255,0.07);
+    }
+    .fg-funnel .fg-offer-display,
+    .fg-funnel .fg-capture-card,
+    .fg-funnel .fg-conversion-box {
+      box-shadow:
+        0 26px 70px rgba(0,0,0,0.26),
+        inset 0 1px 0 rgba(255,255,255,0.06);
+    }
+    .fg-funnel .fg-offer-display {
+      background:
+        radial-gradient(ellipse at 50% 20%, rgba(56,189,248,0.12), transparent 58%),
+        radial-gradient(ellipse at 100% 0%, rgba(251,191,36,0.08), transparent 50%),
+        linear-gradient(145deg, rgba(15,23,42,0.96), rgba(30,41,59,0.88));
+    }
+    .fg-funnel .fg-capture-card {
+      background:
+        radial-gradient(ellipse at 12% 0%, rgba(56,189,248,0.12), transparent 45%),
+        radial-gradient(ellipse at 100% 10%, rgba(251,191,36,0.06), transparent 45%),
+        linear-gradient(145deg, rgba(248,250,252,0.085), rgba(15,23,42,0.5));
+    }
+    .fg-funnel .fg-issue-picker {
+      background:
+        radial-gradient(ellipse at 10% 15%, rgba(56,189,248,0.1), transparent 44%),
+        radial-gradient(ellipse at 90% 30%, rgba(251,191,36,0.06), transparent 44%),
+        linear-gradient(145deg, rgba(255,255,255,0.07), rgba(15,23,42,0.42));
+      box-shadow:
+        0 24px 80px rgba(0,0,0,0.22),
+        inset 0 1px 0 rgba(255,255,255,0.07);
+    }
+    .fg-funnel .fg-conversion-box {
+      transition: transform 0.22s ease, border-color 0.22s ease, background 0.22s ease;
+    }
+    .fg-funnel .fg-conversion-box:hover {
+      transform: translateY(-3px);
+      border-color: rgba(57,255,20,0.32);
+      background: rgba(255,255,255,0.065);
+    }
+    .fg-funnel .fg-path-section {
+      background:
+        radial-gradient(ellipse at 12% 18%, rgba(57,255,20,0.13), transparent 42%),
+        radial-gradient(ellipse at 85% 80%, rgba(16,185,129,0.12), transparent 46%),
+        linear-gradient(135deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03));
+      box-shadow:
+        0 30px 90px rgba(0,0,0,0.28),
+        inset 0 1px 0 rgba(255,255,255,0.07);
+    }
     .fg-funnel .marquee-container {
       display: flex;
       width: 200%;
@@ -128,6 +197,7 @@ export function FreeGuideFunnelStyles() {
     .fg-funnel .fg-book {
       filter: drop-shadow(0 26px 40px rgba(0,0,0,0.55)) drop-shadow(0 0 26px rgba(57,255,20,0.4));
       transition: transform 0.5s ease;
+      max-width: 100%;
     }
     .fg-funnel .fg-book:hover { transform: translateY(-4px); }
     .fg-funnel .fg-book-pages {
@@ -135,12 +205,16 @@ export function FreeGuideFunnelStyles() {
       box-shadow: 10px 16px 26px -10px rgba(0,0,0,0.5);
     }
     .fg-funnel .fg-book-cover {
-      box-shadow: inset 0 1px 0 rgba(255,255,255,0.9), inset -8px 0 18px -8px rgba(0,0,0,0.25), 0 0 30px rgba(57,255,20,0.18);
+      background: #ffffff;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.9), 0 0 30px rgba(57,255,20,0.18);
       border: 1px solid rgba(57,255,20,0.35);
     }
     .fg-funnel .fg-book-cover-img {
+      object-fit: cover;
+      object-position: center center;
+      background: #ffffff;
       image-rendering: auto;
-      filter: contrast(1.08) saturate(1.08) sharpen(0.2);
+      filter: contrast(1.05) saturate(1.05);
     }
     .fg-funnel .fg-book-spine {
       background: linear-gradient(180deg, #86efac 0%, #22c55e 45%, #0f7a3a 100%);
@@ -196,6 +270,259 @@ export function FreeGuideFunnelStyles() {
     .fg-funnel .fg-cta-secondary:hover {
       background: var(--accent-green);
       border-color: var(--accent-green);
+    }
+    .fg-funnel .fg-score-bar-fill {
+      animation: fg-score-bar-grow 1.2s ease-out forwards;
+      transform-origin: left center;
+    }
+    .fg-funnel .fg-score-pulse {
+      animation: fg-score-glow 2.8s ease-in-out infinite;
+    }
+    @keyframes fg-score-bar-grow {
+      from { transform: scaleX(0.35); opacity: 0.6; }
+      to { transform: scaleX(1); opacity: 1; }
+    }
+    @keyframes fg-score-glow {
+      0%, 100% { filter: brightness(1); }
+      50% { filter: brightness(1.12); }
+    }
+    .fg-funnel .fg-urgency-strip {
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.06);
+    }
+    .fg-funnel .fg-sticky-cta {
+      box-shadow: 0 -8px 32px rgba(0,0,0,0.45);
+    }
+    .fg-funnel .fg-book-shell {
+      overflow: visible;
+      padding-right: 0.65rem;
+    }
+    @media (min-width: 768px) and (max-width: 1023px) {
+      .fg-funnel .fg-offer-display {
+        overflow: visible;
+      }
+      .fg-funnel .fg-capture-card {
+        padding: 1rem;
+      }
+      .fg-funnel .fg-video-hero-panel {
+        padding: 0.85rem;
+      }
+    }
+    @media (max-width: 767px) {
+      .fg-funnel .fg-hero-shell {
+        padding: 0.75rem;
+        border-radius: 1.25rem;
+      }
+      .fg-funnel .fg-video-hero-panel {
+        padding: 0.65rem;
+      }
+      .fg-funnel .fg-capture-card {
+        padding: 0.85rem;
+      }
+      .fg-funnel .fg-offer-display {
+        padding: 0.85rem;
+      }
+      .fg-funnel #fg-dispute-track,
+      .fg-funnel .fg-conversion-box {
+        padding: 0.85rem;
+      }
+    }
+    /* Portal preview section — frameless, no clipping box */
+    .fg-funnel .fg-preview-stage {
+      overflow: visible;
+      border: none;
+      background:
+        radial-gradient(ellipse 72% 58% at 82% 38%, rgba(57, 255, 20, 0.07) 0%, transparent 58%),
+        linear-gradient(135deg, rgba(21, 28, 42, 0.72) 0%, rgba(8, 12, 10, 0.82) 100%);
+      box-shadow: none;
+    }
+    .fg-funnel .fg-device-showcase {
+      position: relative;
+      width: 100%;
+      max-width: 640px;
+      margin-left: auto;
+      margin-right: 0;
+      overflow: visible;
+      background: transparent;
+      border: none;
+      box-shadow: none;
+    }
+    @media (max-width: 1023px) {
+      .fg-funnel .fg-device-showcase {
+        margin-right: auto;
+      }
+    }
+    .fg-funnel .fg-device-composition {
+      position: relative;
+      width: 100%;
+      overflow: visible;
+      padding: 0;
+      background: transparent;
+      border: none;
+      box-shadow: none;
+    }
+    .fg-funnel .fg-device-ambient {
+      position: absolute;
+      left: 55%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      width: 105%;
+      height: 108%;
+      pointer-events: none;
+      z-index: 0;
+      background:
+        radial-gradient(ellipse 50% 44% at 50% 48%, rgba(57, 255, 20, 0.11) 0%, transparent 72%),
+        radial-gradient(ellipse 38% 34% at 22% 78%, rgba(16, 185, 129, 0.06) 0%, transparent 75%);
+      filter: blur(48px);
+      opacity: 0.75;
+    }
+    .fg-funnel .fg-device-browser {
+      position: relative;
+      z-index: 1;
+      border-radius: 1rem;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      background: #0a0f14;
+      box-shadow: 0 32px 64px -28px rgba(0, 0, 0, 0.82);
+    }
+    .fg-funnel .fg-device-browser-body {
+      position: relative;
+      padding: 0.65rem 0.75rem 0.85rem;
+      background: linear-gradient(165deg, var(--fc-shell, #0f1419) 0%, #0a100e 100%);
+    }
+    @media (min-width: 640px) {
+      .fg-funnel .fg-device-browser-body {
+        padding: 0.75rem 0.85rem 1.15rem;
+        padding-bottom: clamp(4.5rem, 20%, 6rem);
+      }
+    }
+    .fg-funnel .fg-device-browser-fade {
+      pointer-events: none;
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 48%;
+      background: linear-gradient(
+        to bottom,
+        transparent 0%,
+        rgba(10, 15, 20, 0.25) 45%,
+        rgba(10, 15, 20, 0.72) 78%,
+        rgba(10, 15, 20, 0.92) 100%
+      );
+      z-index: 2;
+    }
+    .fg-funnel .fg-device-phone-float {
+      position: absolute;
+      z-index: 4;
+      width: clamp(92px, 24%, 124px);
+      right: clamp(10px, 3.5%, 18px);
+      bottom: clamp(10px, 4.5%, 18px);
+      filter: drop-shadow(0 14px 28px rgba(0, 0, 0, 0.45));
+    }
+    @media (max-width: 639px) {
+      .fg-funnel .fg-device-phone-float {
+        position: relative;
+        right: auto;
+        bottom: auto;
+        width: min(132px, 38vw);
+        margin: 1rem auto 0;
+        filter: drop-shadow(0 12px 24px rgba(0, 0, 0, 0.42));
+      }
+      .fg-funnel .fg-device-browser-body {
+        padding-right: 0.75rem;
+        padding-bottom: 0.85rem;
+      }
+      .fg-funnel .fg-device-browser-fade {
+        height: 24%;
+      }
+    }
+    .fg-funnel .fg-device-phone-bezel {
+      border-radius: 1.65rem;
+      padding: 5px;
+      background: linear-gradient(155deg, #3d3d3d 0%, #141414 48%, #222 100%);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.14),
+        0 0 0 1px rgba(255, 255, 255, 0.06);
+    }
+    .fg-funnel .fg-device-phone-screen {
+      container-type: inline-size;
+      container-name: fgphone;
+      border-radius: 1.35rem;
+      overflow: hidden;
+      background: linear-gradient(180deg, #0f1419 0%, #0a100e 100%);
+      aspect-ratio: 9 / 19;
+      display: flex;
+      flex-direction: column;
+    }
+    .fg-funnel .fg-phone-notch {
+      position: absolute;
+      top: 6px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 32%;
+      height: 11px;
+      border-radius: 9999px;
+      background: #000;
+      z-index: 3;
+    }
+    .fg-funnel .fg-phone-ui {
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      padding: 1.65rem 0.5rem 0.45rem;
+      font-size: clamp(6.5px, 2.8cqw, 9.5px);
+      line-height: 1.3;
+    }
+    .fg-funnel .fg-phone-ui .fg-phone-label {
+      font-size: 0.72em;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.42);
+    }
+    .fg-funnel .fg-phone-ui .fg-phone-title {
+      font-size: 1.05em;
+      font-weight: 700;
+      color: rgba(255, 255, 255, 0.92);
+    }
+    .fg-funnel .fg-phone-ui .fg-phone-stat {
+      font-size: 1.05em;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      color: rgba(255, 255, 255, 0.95);
+    }
+    .fg-funnel .fg-phone-score {
+      font-size: clamp(1.2rem, 8.5cqw, 1.55rem);
+      font-weight: 200;
+      line-height: 1;
+      color: #6ee7b7;
+      font-variant-numeric: tabular-nums;
+      margin: 0.15em 0;
+    }
+    .fg-funnel .fg-mock-nav-row {
+      display: flex;
+      flex-wrap: nowrap;
+      gap: 0.25rem;
+      overflow: hidden;
+      mask-image: linear-gradient(to right, black 85%, transparent 100%);
+    }
+    .fg-funnel .fg-mock-nav-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.2rem;
+      white-space: nowrap;
+      padding: 0.2rem 0.45rem;
+      border-radius: 0.45rem;
+      font-size: 0.62rem;
+      font-weight: 700;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: rgba(255, 255, 255, 0.55);
+      background: rgba(255, 255, 255, 0.03);
+    }
+    .fg-funnel .fg-mock-nav-pill.is-active {
+      border-color: rgba(52, 211, 153, 0.35);
+      background: rgba(16, 185, 129, 0.14);
+      color: #a7f3d0;
     }
     `,
       }}

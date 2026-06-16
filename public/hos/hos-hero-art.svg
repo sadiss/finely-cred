@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 900" fill="none" role="img" aria-hidden="true">
+  <defs>
+    <linearGradient id="hos-sky" x1="720" y1="0" x2="720" y2="900" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#0c1018"/>
+      <stop offset="45%" stop-color="#07090e"/>
+      <stop offset="100%" stop-color="#030405"/>
+    </linearGradient>
+    <radialGradient id="hos-glow-l" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(220 120) rotate(90) scale(420 380)">
+      <stop offset="0%" stop-color="#f59e0b" stop-opacity="0.22"/>
+      <stop offset="55%" stop-color="#d97706" stop-opacity="0.06"/>
+      <stop offset="100%" stop-color="#030405" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="hos-glow-r" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(1180 180) rotate(90) scale(360 320)">
+      <stop offset="0%" stop-color="#8b5cf6" stop-opacity="0.12"/>
+      <stop offset="60%" stop-color="#030405" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="hos-horizon" x1="0" y1="520" x2="1440" y2="520" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#f59e0b" stop-opacity="0"/>
+      <stop offset="35%" stop-color="#fbbf24" stop-opacity="0.14"/>
+      <stop offset="50%" stop-color="#fde68a" stop-opacity="0.22"/>
+      <stop offset="65%" stop-color="#fbbf24" stop-opacity="0.12"/>
+      <stop offset="100%" stop-color="#f59e0b" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="hos-pillar" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#1a1f2e" stop-opacity="0.15"/>
+      <stop offset="100%" stop-color="#050608" stop-opacity="0.85"/>
+    </linearGradient>
+    <linearGradient id="hos-arch" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#fbbf24" stop-opacity="0.35"/>
+      <stop offset="100%" stop-color="#f59e0b" stop-opacity="0.08"/>
+    </linearGradient>
+  </defs>
+  <rect width="1440" height="900" fill="url(#hos-sky)"/>
+  <rect width="1440" height="900" fill="url(#hos-glow-l)"/>
+  <rect width="1440" height="900" fill="url(#hos-glow-r)"/>
+  <!-- soft horizon band -->
+  <ellipse cx="720" cy="540" rx="780" ry="90" fill="url(#hos-horizon)"/>
+  <!-- abstract column silhouettes  structure / building motif -->
+  <g opacity="0.55">
+    <rect x="120" y="280" width="48" height="420" rx="4" fill="url(#hos-pillar)"/>
+    <rect x="128" y="280" width="32" height="8" rx="2" fill="#fbbf24" fill-opacity="0.12"/>
+    <rect x="200" y="340" width="36" height="360" rx="3" fill="url(#hos-pillar)" opacity="0.7"/>
+    <rect x="1240" y="300" width="44" height="400" rx="4" fill="url(#hos-pillar)"/>
+    <rect x="1248" y="300" width="28" height="8" rx="2" fill="#fbbf24" fill-opacity="0.1"/>
+    <rect x="1160" y="360" width="32" height="340" rx="3" fill="url(#hos-pillar)" opacity="0.65"/>
+  </g>
+  <!-- central arch / gateway -->
+  <path d="M520 700 V420 a200 200 0 0 1 400 0 v280" stroke="url(#hos-arch)" stroke-width="1.5" fill="none" opacity="0.45"/>
+  <path d="M560 700 V460 a120 120 0 0 1 240 0 v240" stroke="#fbbf24" stroke-opacity="0.08" stroke-width="1" fill="none"/>
+  <!-- ascending steps  growth -->
+  <g opacity="0.35" stroke="#fde68a" stroke-opacity="0.25" stroke-width="1">
+    <path d="M640 680 h160 v24 H640 z M600 640 h240 v24 H600 z M560 600 h320 v24 H560 z"/>
+  </g>
+  <!-- subtle mesh dots -->
+  <g fill="#fbbf24" fill-opacity="0.06">
+    <circle cx="360" cy="200" r="1.5"/><circle cx="420" cy="240" r="1"/><circle cx="980" cy="220" r="1.5"/>
+    <circle cx="1040" cy="260" r="1"/><circle cx="720" cy="180" r="2"/><circle cx="800" cy="320" r="1"/>
+    <circle cx="640" cy="300" r="1"/><circle cx="1080" cy="380" r="1.5"/><circle cx="300" cy="360" r="1"/>
+  </g>
+  <!-- faint grid -->
+  <g stroke="#ffffff" stroke-opacity="0.025" stroke-width="1">
+    <line x1="0" y1="200" x2="1440" y2="200"/><line x1="0" y1="400" x2="1440" y2="400"/>
+    <line x1="0" y1="600" x2="1440" y2="600"/><line x1="360" y1="0" x2="360" y2="900"/>
+    <line x1="720" y1="0" x2="720" y2="900"/><line x1="1080" y1="0" x2="1080" y2="900"/>
+  </g>
+  <rect width="1440" height="900" fill="#030405" fill-opacity="0.35"/>
+</svg>

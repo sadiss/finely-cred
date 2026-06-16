@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { EntityDetailShell } from '../../components/layout/EntityDetailShell';
 import { usePartnerSession } from '../../auth/PartnerSessionContext';
 import { upsertPartner } from '../../data/partnersRepo';
+import { BUSINESS_TYPE_OPTIONS } from '../../lib/businessVendorSequencing';
 import { listCustomFieldDefinitionsByScope } from '../../data/customFieldsRepo';
 import { getFieldLayout } from '../../data/fieldLayoutsRepo';
 import { getCustomFieldValues, upsertCustomFieldValues } from '../../data/customFieldValuesRepo';
@@ -35,6 +36,10 @@ export default function BusinessProfilePage() {
   const [businessName, setBusinessName] = useState<string>(business.businessName || '');
   const [entityState, setEntityState] = useState<string>(business.entityState || '');
   const [einLast4, setEinLast4] = useState<string>(business.einLast4 || '');
+  const [businessType, setBusinessType] = useState<string>(business.businessType || 'general');
+  const [businessAddress, setBusinessAddress] = useState<string>(business.businessAddress || business.addressLine1 || '');
+  const [domainEmail, setDomainEmail] = useState<string>(business.domainEmail || '');
+  const [website, setWebsite] = useState<string>(business.website || '');
 
   const tenantId = (partner?.tenantId || '').trim() || FINELY_TENANT_ID;
   const fieldDefs = useMemo(() => listCustomFieldDefinitionsByScope('partners', tenantId), [tenantId]);
@@ -112,6 +117,34 @@ export default function BusinessProfilePage() {
                 <div className={`mt-2 text-[11px] ${FINELY_OS_ENTITY_SUBLABEL}`}>Tip: upload your EIN letter (CP 575) or Articles of Incorporation in Documents Vault to auto-fill.</div>
               </label>
 
+              <label className="block">
+                <div className={FINELY_OS_ENTITY_LABEL}>Business type (vendor matching)</div>
+                <select value={businessType} onChange={(e) => setBusinessType(e.target.value)} className={FINELY_OS_ENTITY_INPUT}>
+                  {BUSINESS_TYPE_OPTIONS.map((o) => (
+                    <option key={o.id} value={o.id}>{o.label}</option>
+                  ))}
+                </select>
+                <div className={`mt-1 text-[11px] ${FINELY_OS_ENTITY_SUBLABEL}`}>
+                  {BUSINESS_TYPE_OPTIONS.find((o) => o.id === businessType)?.hint}
+                </div>
+              </label>
+
+              <div className="grid md:grid-cols-2 gap-4">
+                <label className="block">
+                  <div className={FINELY_OS_ENTITY_LABEL}>Business address</div>
+                  <input value={businessAddress} onChange={(e) => setBusinessAddress(e.target.value)} className={FINELY_OS_ENTITY_INPUT} placeholder="123 Main St, Suite 100, City ST 12345" />
+                </label>
+                <label className="block">
+                  <div className={FINELY_OS_ENTITY_LABEL}>Domain email</div>
+                  <input value={domainEmail} onChange={(e) => setDomainEmail(e.target.value)} className={FINELY_OS_ENTITY_INPUT} placeholder="you@yourcompany.com" />
+                </label>
+              </div>
+
+              <label className="block">
+                <div className={FINELY_OS_ENTITY_LABEL}>Website (optional)</div>
+                <input value={website} onChange={(e) => setWebsite(e.target.value)} className={FINELY_OS_ENTITY_INPUT} placeholder="https://yourcompany.com" />
+              </label>
+
               <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
                 <button type="button" onClick={() => navigate('/portal/documents')} className={FINELY_OS_SECONDARY_BTN}>
                   Upload docs for auto-fill
@@ -129,6 +162,11 @@ export default function BusinessProfilePage() {
                         businessName: businessName.trim() || undefined,
                         entityState: entityState.trim() || undefined,
                         einLast4: einLast4.trim() || undefined,
+                        businessType: businessType.trim() || 'general',
+                        businessAddress: businessAddress.trim() || undefined,
+                        addressLine1: businessAddress.trim() || undefined,
+                        domainEmail: domainEmail.trim() || undefined,
+                        website: website.trim() || undefined,
                       },
                     };
                     void upsertPartner({ ...partner, primaryRoute: partner.primaryRoute ?? 'business_build', routes: nextRoutes });
@@ -144,7 +182,7 @@ export default function BusinessProfilePage() {
 
         <div className={`lg:col-span-5 min-w-0 ${finelyOsCatalogCard('amber')} !p-6 space-y-4`} data-fc-accent="amber">
           <p className={FINELY_OS_ENTITY_SUBLABEL}>Next action</p>
-          <div className={FINELY_OS_NOTICE_WARN}>Recommended sequence: confirm business profile → start Tier 1 vendors → run Lender Logic → only then apply for higher tiers.</div>
+          <div className={FINELY_OS_NOTICE_WARN}>Recommended sequence: complete foundation on profile → unlock Tier 1 vendors (matched to your business type) → Tier 2–4 as you open accounts → run Lender Logic before capital tier.</div>
         </div>
       </div>
 

@@ -13,6 +13,7 @@ export type PartnerLane =
   | 'primary_tradeline'
   | 'affiliate'
   | 'agent'
+  | 'heta_society'
   | 'other';
 
 /** Progress stage for “Now / Next / Later” roadmap. */

@@ -78,6 +78,8 @@ import { onDisputeLetterMailed } from '../../lib/disputeRoundEngine';
 import { createProject, listProjectsByPartner } from '../../data/projectsRepo';
 import { addThreadMessage, getOrCreateThreadBySubject } from '../../data/supportRepo';
 import { listPartnerNotesByPartner, createPartnerNote, deletePartnerNote, upsertPartnerNote } from '../../data/partnerNotesRepo';
+import { seedLegacyPartnerNotes } from '../../data/legacyPartnerNotesImport';
+import { pullWorkflowSnapshotFromSupabase } from '../../data/workflowSupabaseSync';
 import { listDebtByPartner } from '../../data/debtRepo';
 import { newId } from '../../utils/ids';
 import { listNotifications, markAllRead, markNotificationRead, unreadCount } from '../../data/notificationsRepo';
@@ -101,6 +103,7 @@ import { TASK_PROGRESS_STAGES, WorkBoardShell, WorkCalendarView, WorkKanbanBoard
 import type { WorkStageDefinition } from '../../domain/settings';
 import type { TaskStatus } from '../../domain/tasks';
 import { PartnerFinelyOsStrip } from '../../features/os/PartnerFinelyOsStrip';
+import { PartnerIntakeLinkPanel } from '../../components/admin/PartnerIntakeLinkPanel';
 import { PartnerCreditRestoreHud } from '../../features/partner/PartnerCreditRestoreHud';
 import { LegacyApplicationStatusBanner } from '../../components/admin/LegacyApplicationStatusBanner';
 import { PartnerCreditRestoreMiniRail } from '../../features/partner/PartnerCreditRestoreMiniRail';
@@ -456,6 +459,27 @@ function PartnerDetailPageInner() {
       else setPartner(p);
     });
   }, [id, partnerVersion]);
+
+  useEffect(() => {
+    if (!partner?.id) return;
+    let cancelled = false;
+    void (async () => {
+      await pullWorkflowSnapshotFromSupabase({ partnerId: partner.id });
+      if (cancelled) return;
+      if (partner.notes?.trim() && partner.importExternalId) {
+        seedLegacyPartnerNotes({
+          partnerId: partner.id,
+          notesText: partner.notes,
+          externalId: partner.importExternalId,
+        });
+      }
+      setNotesVersion((v) => v + 1);
+      setReportsVersion((v) => v + 1);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [partner?.id, partner?.notes, partner?.importExternalId]);
 
   const profileRouteKey = useMemo<PartnerRoute>(() => (partner?.primaryRoute || 'personal_restore') as PartnerRoute, [partner?.primaryRoute]);
   const profilePersonal = useMemo(() => ((partner?.routes?.[profileRouteKey] as any)?.personal as any) ?? {}, [partner?.id, profileRouteKey]);
@@ -1206,6 +1230,8 @@ function PartnerDetailPageInner() {
         />
       )}
       <div className="space-y-8">
+        <PartnerIntakeLinkPanel partner={partner} />
+
         <PartnerFinelyOsStrip partnerId={partner.id} email={partner.profile.email} onOpenTab={(t) => setTab(t)} />
 
         <PartnerCreditRestoreMiniRail

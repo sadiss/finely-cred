@@ -20,7 +20,7 @@ import {
 } from '../../config/portalNavLanes';
 import { FinelyPortalSimpleNav } from '../../features/os/FinelyPortalSimpleNav';
 import { persistPortalNavMode, readPortalNavMode, type FinelyPortalNavMode } from '../../lib/finelyPortalNavMode';
-import { BackToSiteButton } from '../navigation/BackToSiteButton';
+import { useIsMobileOrTabletViewport } from '../../hooks/useMediaQuery';
 
 function entitlementForPath(path: string) {
   if (path.startsWith('/portal/reports')) return ENTITLEMENT_KEYS.reports;
@@ -53,6 +53,8 @@ export function PartnerPortalNav() {
     return () => window.removeEventListener('finely:store', onStore as EventListener);
   }, []);
 
+  const isCompactViewport = useIsMobileOrTabletViewport();
+
   const setMode = (mode: FinelyPortalNavMode) => {
     setNavMode(mode);
     persistPortalNavMode(mode);
@@ -79,12 +81,9 @@ export function PartnerPortalNav() {
     return !hasEntitlement(partner.id, requiredKey);
   };
 
-  if (navMode === 'simple') {
+  if (navMode === 'simple' || isCompactViewport) {
     return (
       <div className="mb-8 space-y-3" data-fc-portal-nav="simple">
-        <div className="px-1">
-          <BackToSiteButton variant="ghost" label="Back to site" className="!px-3 !py-2 !text-xs" />
-        </div>
         <FinelyPortalSimpleNav onShowFullNav={() => setMode('full')} />
       </div>
     );
@@ -96,9 +95,6 @@ export function PartnerPortalNav() {
 
   return (
     <nav className="mb-8" data-fc-portal-nav="full">
-      <div className="px-2 mb-3">
-        <BackToSiteButton variant="ghost" label="Back to site" className="!px-3 !py-2 !text-xs" />
-      </div>
       <div className="-mx-2 overflow-x-auto md:overflow-visible">
         <div className={`${FINELY_OS_PORTAL_NAV_STRIP} min-w-max md:min-w-0 pb-2 px-2`}>
           {PORTAL_PRIMARY_LINKS.map(({ path, label, icon: Icon }) => {
@@ -180,7 +176,8 @@ export function PartnerPortalNav() {
         </div>
       </div>
       {letterFlowActive ? (
-        <div className={`${FINELY_OS_PORTAL_NAV_STRIP} mt-2 min-w-max md:min-w-0 px-2`}>
+        <div className="-mx-2 overflow-x-auto md:overflow-visible">
+          <div className={`${FINELY_OS_PORTAL_NAV_STRIP} mt-2 min-w-max md:min-w-0 px-2 pb-2`}>
           {PORTAL_LETTER_FLOW_LINKS.map(({ path, label }) => {
             const active =
               path === '/portal/disputes'
@@ -202,6 +199,7 @@ export function PartnerPortalNav() {
               </button>
             );
           })}
+          </div>
         </div>
       ) : null}
       <div className="flex flex-wrap items-center justify-between gap-2 px-2 mt-1">

@@ -45,6 +45,7 @@ import { TourVideoStatusBadge } from '../components/tours/TourVideoStatusBadge';
 import { TOUR_MANIFEST } from '../config/tourManifest';
 import { getTourPosterPublicUrl } from '../domain/tourPlayback';
 import { buildResourcesNoticedItems } from '../lib/finelyProactiveSignals';
+import { PUBLIC_DEMO_VIDEOS_ENABLED } from '../config/publicMediaPolicy';
 import { CreditMonitoringPartnerGrid, CREDIT_MONITORING_PARTNERS } from '../components/resources/CreditMonitoringPartnerGrid';
 import { listBookstoreProducts } from '../data/bookstoreRepo';
 import { formatPrice } from '../config/pricingCatalog';
@@ -99,7 +100,7 @@ export default function ResourcesPage() {
 
   useEffect(() => {
     const hash = (window.location.hash.replace('#', '') || '') as ResourcesSection;
-    if (hash === 'guides' || hash === 'monitoring' || hash === 'references' || hash === 'videos') {
+    if (hash === 'guides' || hash === 'monitoring' || hash === 'references' || (hash === 'videos' && PUBLIC_DEMO_VIDEOS_ENABLED)) {
       const t = window.setTimeout(() => jumpToSection(hash), 120);
       return () => window.clearTimeout(t);
     }
@@ -180,6 +181,7 @@ export default function ResourcesPage() {
     [storeVersion],
   );
   const resourceVideos = useMemo(() => listPublicResourceVideos(), [storeVersion]);
+  const showPublicVideos = PUBLIC_DEMO_VIDEOS_ENABLED;
   const blogFrom = searchParams.get('from') === 'blog';
   const blogSlug = searchParams.get('slug');
   const blogGuide = useMemo(() => findFreeGuideBySlugOrIdEffective(blogSlug), [blogSlug, storeVersion]);
@@ -304,19 +306,21 @@ export default function ResourcesPage() {
     <PageShell
       badge="Public"
       title="Resource Library"
-      subtitle="Free guides, credit monitoring links, and how-to videos — all on one page."
+      subtitle="Free guides, credit monitoring links, and playbooks — all on one page."
     >
       <div className={`${FINELY_OS_PAGE} fc-senior-simple`}>
         <FinelyNoticedStrip items={buildResourcesNoticedItems({ section: activeSection })} />
         <FinelyNowDoThisStrip currentIndex={activeSection === 'monitoring' ? 1 : activeSection === 'videos' ? 2 : 0} />
         <FinelyUnifiedHubLayout
           eyebrow="Resource library"
-          title="Guides, monitoring, and videos — scroll or jump"
+          title="Guides, monitoring, and references — scroll or jump"
           subtitle="Everything stays visible on one page. Use the lane buttons to jump — nothing is hidden behind tabs."
           accent="violet"
           kpis={[
             { label: 'Free guides', value: String(freeGuides.length), accent: 'emerald' },
-            { label: 'Videos', value: String(resourceVideos.length + TOUR_MANIFEST.length), accent: 'sky' },
+            ...(showPublicVideos
+              ? [{ label: 'Videos', value: String(resourceVideos.length + TOUR_MANIFEST.length), accent: 'sky' as const }]
+              : []),
             { label: 'Monitoring', value: String(CREDIT_MONITORING_PARTNERS.length), hint: 'Partners', accent: 'violet' },
             { label: 'References', value: String(quickRefs.length), accent: 'fuchsia' },
           ]}
@@ -324,7 +328,7 @@ export default function ResourcesPage() {
             { id: 'guides', label: 'Guides & playbooks' },
             { id: 'monitoring', label: 'Credit monitoring' },
             { id: 'references', label: 'Quick references' },
-            { id: 'videos', label: 'Video library' },
+            ...(showPublicVideos ? [{ id: 'videos', label: 'Video library' }] : []),
           ]}
           activeTab={activeSection}
           onTabChange={(id) => jumpToSection(id as ResourcesSection)}
@@ -551,6 +555,7 @@ export default function ResourcesPage() {
         </div>
         </section>
 
+        {showPublicVideos ? (
         <section id="videos" className="fc-scroll-section space-y-6">
         <h2 className="fc-launch-lane-header">Video library</h2>
           <div className={`space-y-4 ${finelyOsCatalogCard('violet')} !p-6`} data-fc-accent="violet">
@@ -646,6 +651,17 @@ export default function ResourcesPage() {
           </div>
           )}
         </section>
+        ) : isAdmin ? (
+          <div className={`${finelyOsCatalogCard('sky')} !p-6`} data-fc-accent="sky">
+            <div className={`${FINELY_OS_ENTITY_SUBLABEL} text-sky-700`}>Video demos — admin only</div>
+            <p className={`mt-2 ${FINELY_OS_ENTITY_BODY} text-sm`}>
+              Walkthrough and promo videos are hidden from the public site until they are polished. Preview and record drafts in Tour Studio.
+            </p>
+            <button type="button" className={`${FINELY_OS_PRIMARY_BTN} mt-4`} onClick={() => navigate('/admin/tour-studio')}>
+              Open Tour Studio <ArrowRight size={14} />
+            </button>
+          </div>
+        ) : null}
 
         </FinelyUnifiedHubLayout>
 
@@ -879,7 +895,9 @@ export default function ResourcesPage() {
           </div>
         </div>
       )}
+      {showPublicVideos ? (
       <FinelyTourPlayer tour={previewTour} open={Boolean(previewTour)} onClose={() => setPreviewTourId(null)} />
+      ) : null}
     </PageShell>
   );
 }

@@ -2,7 +2,6 @@ import React from 'react';
 import { ArrowRight } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { SITE_WAYFINDER_LANES } from '../../config/siteWayfinderLanes';
-import { finelyOsCatalogCard } from './finelyOsLightUi';
 import { FINELY_OS_ENTITY_BODY, FINELY_OS_ENTITY_SUBLABEL, FINELY_OS_ENTITY_VALUE } from './finelyOsLightUi';
 
 export function FinelySiteWayfinder() {
@@ -37,9 +36,8 @@ export function FinelySiteWayfinder() {
                 key={lane.id}
                 type="button"
                 onClick={() => navigate(lane.path)}
-                data-fc-accent={lane.accent}
-                className={`text-left p-3 sm:p-4 rounded-2xl border transition-all ${finelyOsCatalogCard(lane.accent)} ${
-                  active ? 'fc-wayfinder-lane-active' : ''
+                className={`fc-wayfinder-lane text-left p-3 sm:p-4 rounded-2xl border border-white/[0.1] bg-white/[0.04] transition-colors hover:bg-white/[0.07] ${
+                  active ? 'fc-wayfinder-lane-active border-amber-400/35' : ''
                 }`}
               >
                 <div className={`text-sm font-semibold ${FINELY_OS_ENTITY_VALUE}`}>{lane.label}</div>

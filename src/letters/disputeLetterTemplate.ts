@@ -1,8 +1,26 @@
+import {
+  CONSUMER_DISPUTE_OPENING,
+  CONSUMER_EXAMPLE_LETTER_LINES,
+  CONSUMER_ITEM_DISPUTE_STATEMENT,
+  CONSUMER_REQUESTED_RESOLUTION,
+  CONSUMER_REQUEST_FOR_RESULTS,
+  DISPUTE_GUIDE_FIVE_STEPS,
+} from './consumerDisputeVoice';
+
+export {
+  CONSUMER_DISPUTE_OPENING,
+  CONSUMER_EXAMPLE_LETTER_LINES,
+  CONSUMER_ITEM_DISPUTE_STATEMENT,
+  CONSUMER_REQUESTED_RESOLUTION,
+  CONSUMER_REQUEST_FOR_RESULTS,
+  DISPUTE_GUIDE_FIVE_STEPS,
+  consumerDisputeOpeningForTone,
+  consumerDisputeOpeningHtml,
+} from './consumerDisputeVoice';
+
 /**
  * Phase 5/6: Master dispute letter structure and copy.
- * Each bureau letter follows: Header (sender + date), Bureau address, Subject, Opening,
- * Disputed Items (per-item: furnisher, last4/balance/dates, exhibits, narrative, findings, resolution), Closing, Enclosures.
- * Use [DATA_NOT_READABLE] when account last-4 or key details cannot be read (no guessing).
+ * Consumer voice first — human impact, report pull, FCRA research, then factual dispute.
  */
 
 import type { Bureau } from '../domain/creditReports';
@@ -14,58 +32,35 @@ export function bureauDisputeAddress(bureau: Bureau): { name: string; lines: str
     case 'EXP':
       return {
         name: 'Experian',
-        lines: [
-          'Experian',
-          'P.O. Box 4500',
-          'Allen, TX 75013',
-        ],
+        lines: ['Experian', 'P.O. Box 4500', 'Allen, TX 75013'],
       };
     case 'EQF':
       return {
         name: 'Equifax',
-        lines: [
-          'Equifax',
-          'P.O. Box 740256',
-          'Atlanta, GA 30374-0256',
-        ],
+        lines: ['Equifax', 'P.O. Box 740256', 'Atlanta, GA 30374-0256'],
       };
     case 'TUC':
       return {
         name: 'TransUnion',
-        lines: [
-          'TransUnion',
-          'P.O. Box 2000',
-          'Chester, PA 19016-2000',
-        ],
+        lines: ['TransUnion', 'P.O. Box 2000', 'Chester, PA 19016-2000'],
       };
     default:
       return { name: String(bureau), lines: ['Dispute Center'] };
   }
 }
 
-export const SUBJECT_LINE = 'RE: NOTICE OF FACTUAL AUDIT & FORMAL DISPUTE PURSUANT TO 15 U.S.C. § 1681i';
+export const SUBJECT_LINE = 'RE: Dispute of Inaccurate Credit Reporting — Request for Reinvestigation (FCRA § 1681i)';
 
-export const OPENING_PARAGRAPHS = `To Whom It May Concern,
+export const OPENING_PARAGRAPHS = CONSUMER_DISPUTE_OPENING;
 
-I am writing to formally dispute inaccurate and/or unverifiable information currently reporting on my consumer credit file with your agency. I am requesting a complete reinvestigation of the items listed below. This inaccurate reporting is harming my ability to access fair credit and is creating real hardship in my life.
+export const DISPUTE_STATEMENT_PER_ITEM = CONSUMER_ITEM_DISPUTE_STATEMENT;
 
-I am not disputing my responsibility for any legitimate information. I am disputing the accuracy, completeness, and verifiability of the specific reporting currently appearing on my file.`;
+export const REQUESTED_RESOLUTION_BULLETS = CONSUMER_REQUESTED_RESOLUTION;
 
-export const DISPUTE_STATEMENT_PER_ITEM = `Based on a factual review of the reporting on my file, the fields shown for this account are inconsistent, incomplete, and/or do not match my records. I dispute the accuracy of the specific negative information reporting for this tradeline.`;
+export const REQUEST_FOR_RESULTS = CONSUMER_REQUEST_FOR_RESULTS;
 
-export const REQUESTED_RESOLUTION_BULLETS = [
-  'Conduct a complete reinvestigation and verify the accuracy and completeness of the reporting.',
-  'If the furnisher cannot substantiate the reporting with valid verification, please delete the item from my file.',
-  'If the item is corrected, please provide an updated copy of my credit report reflecting the changes.',
-];
+export const ENCLOSURES_LINE = 'Enclosures (if included): Proof of Identity, Proof of Address, Report Screenshots / Exhibits';
 
-export const REQUEST_FOR_RESULTS = `Please provide written confirmation of the results of your reinvestigation. If you determine an item is "verified," please include the details of how it was verified and what information was relied upon to maintain it.
-
-Thank you for your prompt attention to this matter.`;
-
-export const ENCLOSURES_LINE = 'Enclosures (if included): Proof of Identity, Proof of Address, Audit Exhibits, Report Excerpts';
-
-/** One disputed item for the letter engine. Last4, balance, dates use DATA_NOT_READABLE when missing. */
 export type LetterItem = {
   furnisher: string;
   accountLast4: string | null;
@@ -100,7 +95,7 @@ export function formatItemBlock(
     'Dispute Statement:',
     DISPUTE_STATEMENT_PER_ITEM,
     '',
-    'Forensic Findings / Reasons:',
+    'Factual Findings / Reasons:',
     ...item.reasons.map((r) => (r.trim() ? `• ${r.trim()}` : '')).filter(Boolean),
     '',
     'Requested Resolution:',
@@ -108,4 +103,18 @@ export function formatItemBlock(
     '',
   ];
   return lines.join('\n');
+}
+
+/** Build programmatic guide pages for the 5-step framework (one PDF page per step). */
+export function buildFiveStepGuidePages() {
+  return DISPUTE_GUIDE_FIVE_STEPS.map((step) => ({
+    id: step.id,
+    title: step.heading.replace(/^Step \d+ — /, ''),
+    subtitle: step.lead,
+    sections: [
+      ...step.paragraphs.map((p) => ({ paragraphs: [p] })),
+      { bullets: step.bullets },
+      { heading: 'Power move', paragraphs: [step.powerMove] },
+    ],
+  }));
 }

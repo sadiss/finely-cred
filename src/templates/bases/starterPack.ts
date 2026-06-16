@@ -1,5 +1,6 @@
 import type { TemplateBase, TemplateCategory, TemplateRenderContext, TemplateTone } from '../../domain/templates';
-import { bureauDisputeAddress, ENCLOSURES_LINE, OPENING_PARAGRAPHS, SUBJECT_LINE } from '../../letters/disputeLetterTemplate';
+import { bureauDisputeAddress, ENCLOSURES_LINE, SUBJECT_LINE } from '../../letters/disputeLetterTemplate';
+import { consumerDisputeOpeningHtml } from '../../letters/consumerDisputeVoice';
 import { esc, fmtDateLong, joinLines, tonePhrases, wrapLetterHtml } from '../helpers';
 
 function catLabel(c: TemplateCategory) {
@@ -52,17 +53,14 @@ function disclaimerFooter() {
 
 function openingByVersion(v: number, tone: TemplateTone) {
   const t = tonePhrases(tone);
+  const base = consumerDisputeOpeningHtml(t.request);
   if (v === 2) {
-    return `To Whom It May Concern,<br/><br/>I am submitting a formal dispute and request for reinvestigation regarding information currently reporting on my consumer file. ${esc(
-      t.request,
-    )}`;
+    return `${base}<br/><br/>${esc('This letter applies only to the specific item(s) listed below.')}`;
   }
   if (v === 3) {
-    return `To Whom It May Concern,<br/><br/>This letter is a notice of dispute regarding inaccurate and/or unverifiable reporting. ${esc(
-      t.request,
-    )}`;
+    return `${base}<br/><br/>${esc('Please limit your review to the disputed tradeline(s) identified in this notice.')}`;
   }
-  return esc(OPENING_PARAGRAPHS).replace(/\n/g, '<br/>') + `<br/><br/>${esc(t.request)}`;
+  return base;
 }
 
 function closingByTone(tone: TemplateTone) {

@@ -4,6 +4,7 @@ import { PageShell } from '../../components/layout/PageShell';
 import { adminUpsertPartner, createPartner, fetchAllPartnersAsAdmin, listPartners, rowToPartner } from '../../data/partnersRepo';
 import { deletePartnerCompletely } from '../../data/partnerDelete';
 import { createInvite } from '../../data/invitesRepo';
+import { partnerSetupBaseUrl } from '../../lib/partnerInviteLinks';
 import type { Partner, PartnerLane, PartnerRoute } from '../../domain/partners';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../auth/AuthProvider';
@@ -333,7 +334,7 @@ export default function PartnersListPage() {
                   try {
                     const inv = createInvite({
                       partnerId: p.id,
-                      claimUrl: `${window.location.origin}/claim`,
+                      claimUrl: partnerSetupBaseUrl(),
                       toEmail: emailVal || undefined,
                     });
                     claimUrl = inv.claimUrl;
@@ -359,7 +360,7 @@ export default function PartnersListPage() {
             <div className={`${FINELY_OS_NOTICE_SUCCESS} space-y-3`}>
               <div className="font-semibold">Partner “{createdInvite.name}” created.</div>
               <div className={FINELY_OS_ENTITY_BODY}>
-                Send this link to the partner so they can create their profile (set a password) and link to this record:
+                Send this link so they can enter their own profile details, upload documents, then sign in to claim:
               </div>
               {createdInvite.url ? (
                 <div className="flex flex-col sm:flex-row gap-2">

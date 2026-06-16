@@ -74,6 +74,16 @@ export function trialEntitlementsForLane(lane: PartnerLane): EntitlementKey[] {
   if (lane === 'debt_kill') return [...base, ENTITLEMENT_KEYS.debt, ENTITLEMENT_KEYS.escalations];
   if (lane === 'au_tradelines' || lane === 'primary_tradeline') return [ENTITLEMENT_KEYS.messages, ENTITLEMENT_KEYS.documents];
   if (lane === 'affiliate' || lane === 'agent') return [ENTITLEMENT_KEYS.messages];
+  if (lane === 'heta_society') {
+    return [
+      ...base,
+      ENTITLEMENT_KEYS.disputes,
+      ENTITLEMENT_KEYS.letters,
+      ENTITLEMENT_KEYS.identityTheft,
+      ENTITLEMENT_KEYS.businessBuild,
+      ENTITLEMENT_KEYS.reports,
+    ];
+  }
   // Default personal/funding readiness trial: disputes + identity theft, but keep templates gated unless upgraded.
   return [...base, ENTITLEMENT_KEYS.disputes, ENTITLEMENT_KEYS.identityTheft];
 }

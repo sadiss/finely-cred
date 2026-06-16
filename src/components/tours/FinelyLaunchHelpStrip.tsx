@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { Film, MessageCircle, Mic, MicOff, Volume2, Users } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 import { resolveFinelyPageContext, finelyBrainOrchestrate, pickPersonaForRoute } from '../../lib/finelyBrain/finelyBrainOrchestrate';
+import { canShowPublicDemoVideos } from '../../config/publicMediaPolicy';
 import { FinelyTourPlayer } from './FinelyTourPlayer';
 import { useFinelyVoiceInput, speakFinelyText } from '../../hooks/useFinelyVoiceInput';
 import { appendAiActionAudit } from '../../data/aiActionAuditLog';
@@ -37,6 +38,8 @@ export function FinelyLaunchHelpStrip() {
 
   if (!show) return null;
 
+  const showTourVideo = canShowPublicDemoVideos(pathname) && Boolean(ctx.tour);
+
   const runAsk = () => {
     const msg = askInput.trim() || 'What should I do on this page?';
     const result = finelyBrainOrchestrate({ pathname, userMessage: msg, seniorMode });
@@ -56,7 +59,7 @@ export function FinelyLaunchHelpStrip() {
   return (
     <>
       <div className="fixed bottom-6 left-6 z-[165] flex max-w-[min(100vw-2rem,420px)] flex-col gap-2">
-        {ctx.tour ? (
+        {showTourVideo ? (
           <button
             type="button"
             className={`fc-senior-tap-target fc-senior-simple ${FINELY_OS_PRIMARY_BTN} !text-base !py-4 !px-5 justify-center shadow-lg`}
@@ -132,7 +135,9 @@ export function FinelyLaunchHelpStrip() {
         ) : null}
       </div>
 
+      {showTourVideo && ctx.tour ? (
       <FinelyTourPlayer tour={ctx.tour} open={tourOpen} onClose={() => setTourOpen(false)} />
+      ) : null}
     </>
   );
 }

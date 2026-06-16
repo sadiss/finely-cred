@@ -79,13 +79,13 @@ export function finelyOsModuleAccentText(index: number) {
 }
 
 export const FINELY_OS_BADGE_LIVE =
-  'px-3 py-1.5 rounded-lg border border-emerald-500/35 bg-emerald-500/15 text-[9px] font-bold text-emerald-200 uppercase tracking-widest shrink-0';
+  'px-3 py-1.5 rounded-lg border border-emerald-500/35 bg-emerald-500/15 text-[9px] font-bold text-emerald-200 uppercase tracking-wide whitespace-nowrap shrink-0';
 
 export const FINELY_OS_BADGE_MUTED =
-  'px-2 py-1 rounded-full border border-white/15 bg-white/[0.07] text-[9px] font-bold text-white/55 uppercase tracking-widest';
+  'px-2 py-1 rounded-full border border-white/15 bg-white/[0.07] text-[9px] font-bold text-white/55 uppercase tracking-wide whitespace-nowrap';
 
 export const FINELY_OS_BADGE_WARN =
-  'px-2 py-1 rounded-full border border-fuchsia-500/35 bg-fuchsia-500/15 text-[9px] font-bold text-fuchsia-200 uppercase tracking-widest';
+  'px-2 py-1 rounded-full border border-fuchsia-500/35 bg-fuchsia-500/15 text-[9px] font-bold text-fuchsia-200 uppercase tracking-wide whitespace-nowrap';
 
 export const FINELY_OS_DRAG_HINT =
   'text-[10px] font-semibold uppercase tracking-wider text-violet-300/80 mb-2 flex items-center gap-1.5';
@@ -179,7 +179,7 @@ export function finelyOsViewTab(active: boolean, accent: 'emerald' | 'violet' | 
     fuchsia: 'bg-gradient-to-r from-fuchsia-600 to-violet-600 text-white shadow-md ring-1 ring-fuchsia-400/30',
     amber: 'bg-gradient-to-r from-amber-500 to-yellow-600 text-black shadow-md ring-1 ring-amber-400/40',
   };
-  return `inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all ${
+  return `inline-flex items-center justify-center gap-1.5 min-w-0 px-3 sm:px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wide whitespace-normal text-center leading-snug transition-all ${
     active ? activeStyles[accent] : 'text-white/55 hover:bg-white/[0.06] hover:text-white/90'
   }`;
 }
@@ -212,7 +212,7 @@ export const FINELY_OS_ENTITY_VALUE = 'font-semibold tracking-tight text-white/9
 export const FINELY_OS_ENTITY_INPUT = 'fc-input mt-2';
 
 export const FINELY_OS_ENTITY_CHIP =
-  'px-3 py-2 fc-light-glass-panel fc-light-chrome-panel rounded-xl text-white/70 text-[10px] font-black uppercase tracking-widest';
+  'px-3 py-2 fc-light-glass-panel fc-light-chrome-panel rounded-xl text-white/70 text-[10px] font-black uppercase tracking-wide whitespace-normal text-center leading-snug';
 
 export const FINELY_OS_ENTITY_EMPTY =
   'mt-4 rounded-xl border border-dashed border-white/12 bg-white/[0.03] p-4 text-sm text-white/55';
@@ -266,10 +266,10 @@ export const FINELY_OS_BACK_LINK = 'inline-flex items-center gap-2 text-sm text-
 export const FINELY_OS_PRIMARY_BTN = 'fc-button-brand';
 
 export const FINELY_OS_SUCCESS_BTN =
-  'inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-4 py-2 text-[10px] font-black uppercase tracking-widest text-white shadow-md ring-1 ring-emerald-400/30 hover:brightness-110 transition-all disabled:opacity-60';
+  'inline-flex items-center justify-center gap-2 min-w-0 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-3 sm:px-4 py-2 text-[10px] font-black uppercase tracking-wide whitespace-normal text-center leading-snug text-white shadow-md ring-1 ring-emerald-400/30 hover:brightness-110 transition-all disabled:opacity-60';
 
 export const FINELY_OS_DANGER_BTN =
-  'inline-flex items-center gap-2 rounded-xl border border-rose-500/50 bg-gradient-to-r from-rose-600 to-rose-700 px-4 py-2 text-[10px] font-black uppercase tracking-widest text-white shadow-md ring-1 ring-rose-400/40 hover:brightness-110 transition-all disabled:opacity-60';
+  'inline-flex items-center justify-center gap-2 min-w-0 rounded-xl border border-rose-500/50 bg-gradient-to-r from-rose-600 to-rose-700 px-3 sm:px-4 py-2 text-[10px] font-black uppercase tracking-wide whitespace-normal text-center leading-snug text-white shadow-md ring-1 ring-rose-400/40 hover:brightness-110 transition-all disabled:opacity-60';
 
 export const FINELY_OS_DANGER_PANEL =
   'rounded-2xl border border-rose-500/35 bg-[radial-gradient(900px_320px_at_0%_0%,rgba(244,63,94,0.16)_0%,transparent_60%)] p-5 backdrop-blur-md ring-1 ring-inset ring-rose-400/15';

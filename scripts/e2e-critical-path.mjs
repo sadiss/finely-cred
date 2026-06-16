@@ -1739,7 +1739,7 @@ const lightSolidWave25Ok =
   launchSnapshot.includes('sitewide_light_solid_wave25') &&
   fs.readFileSync(path.join(root, 'src/index.css'), 'utf8').includes('fc-accent-card') &&
   fs.readFileSync(path.join(root, 'src/index.css'), 'utf8').includes('fc-flashy-icon-solid') &&
-  fs.existsSync(path.join(root, 'src/features/os/FinelyPublicNavExploreMenu.tsx'));
+  fs.existsSync(path.join(root, 'src/features/os/FinelyPublicNavResourcesMenu.tsx'));
 console.log(`${lightSolidWave25Ok ? '✓' : '✗'} Launch checklist: light solid accent wave 25`);
 if (!lightSolidWave25Ok) failed += 1;
 

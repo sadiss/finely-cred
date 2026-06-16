@@ -1,10 +1,8 @@
 import React, { useMemo } from 'react';
-import { MessageCircle, Sparkles } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
 import type { AgentPersonaId } from '../../domain/agentPersonas';
-import { listStaffByRole } from '../../data/staffRoster';
-import { staffMemberFullName } from '../../domain/staffMember';
+import { listMarketingDisplayStaff } from '../../data/staffRoster';
 import { openPublicChat, type PublicChatGoal } from '../../lib/publicChatEvents';
-import { openCommunicationHub } from '../chat/communicationHubModel';
 import { StaffPortraitImg } from '../staff/StaffPortraitImg';
 import {
   FINELY_OS_ENTITY_BODY,
@@ -23,16 +21,16 @@ type Props = {
 };
 
 export function MarketingStaffChatStrip({ roleId, goal, roleLabel, subline }: Props) {
-  const staffPool = useMemo(() => listStaffByRole(roleId), [roleId]);
+  const staffPool = useMemo(() => listMarketingDisplayStaff(roleId), [roleId]);
   if (!staffPool.length) return null;
 
   return (
     <div className={`${finelyOsCatalogCard('violet')} !p-5 space-y-4`}>
       <div className="min-w-0">
-        <div className={`${FINELY_OS_ENTITY_VALUE} text-sm`}>Chat with our {roleLabel} team</div>
+        <div className={`${FINELY_OS_ENTITY_VALUE} text-sm`}>Meet part of our {roleLabel} team</div>
         {subline ? <p className={`${FINELY_OS_ENTITY_BODY} text-xs mt-0.5`}>{subline}</p> : null}
         <p className={`${FINELY_OS_ENTITY_SUBLABEL} text-[10px] mt-1`}>
-          Pick anyone below — AI chat or direct message in your portal.
+          Start with Aia, our AI guide — she connects you to a live specialist. Direct messages unlock after you sign up or log in.
         </p>
       </div>
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
@@ -45,34 +43,18 @@ export function MarketingStaffChatStrip({ roleId, goal, roleLabel, subline }: Pr
                 <div className={`${FINELY_OS_ENTITY_SUBLABEL} text-[9px] line-clamp-2`}>{staff.bioLine}</div>
               </div>
             </div>
-            <div className="flex flex-wrap gap-1 mt-auto">
-              <button
-                type="button"
-                onClick={() =>
-                  openPublicChat({
-                    goal,
-                    personaId: staff.primaryRoleId,
-                  })
-                }
-                className="flex-1 inline-flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg border border-emerald-500/30 bg-emerald-500/10 text-[9px] font-black uppercase text-emerald-100 hover:bg-emerald-500/20"
-              >
-                <Sparkles size={10} /> AI
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  openCommunicationHub({ tab: 'team', expanded: true });
-                  window.dispatchEvent(
-                    new CustomEvent('finely:staff-direct-message', {
-                      detail: { staffId: staff.id, staffName: staffMemberFullName(staff) },
-                    }),
-                  );
-                }}
-                className="flex-1 inline-flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg border border-sky-500/30 bg-sky-500/10 text-[9px] font-black uppercase text-sky-100 hover:bg-sky-500/20"
-              >
-                <MessageCircle size={10} /> DM
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={() =>
+                openPublicChat({
+                  goal,
+                  personaId: roleId,
+                })
+              }
+              className="mt-auto w-full inline-flex items-center justify-center gap-1 px-2 py-2 rounded-lg border border-emerald-500/30 bg-emerald-500/10 text-[9px] font-black uppercase text-emerald-100 hover:bg-emerald-500/20"
+            >
+              <Sparkles size={10} /> Chat with Aia
+            </button>
           </div>
         ))}
       </div>
