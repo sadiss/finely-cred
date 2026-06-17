@@ -33,6 +33,7 @@ import { staffMemberFullName, type StaffMember, type StaffShiftBlock } from '../
 import { StaffPortraitImg } from '../../components/staff/StaffPortraitImg';
 import type { PersonaShiftBlock } from '../../data/agentPersonasRepo';
 import { syncStaffRosterToSupabase } from '../../data/staffSupabaseSync';
+import { AdminAgentPersonaEditor } from '../../components/admin/AdminAgentPersonaEditor';
 
 type Tab = 'on_duty' | 'roster' | 'personas' | 'routing';
 
@@ -391,7 +392,9 @@ export default function AdminAgentStaffPage() {
         ) : null}
 
         {tab === 'personas' ? (
-          <FinelyOsGlassPanel icon={Bot} title="Behavior roles (AI personas)" accent="amber">
+          <>
+            <AdminAgentPersonaEditor />
+            <FinelyOsGlassPanel icon={Bot} title="Behavior roles (AI personas)" accent="amber">
             <p className={`${FINELY_OS_ENTITY_BODY} text-sm mb-4`}>
               Roles define tone, tools, and routing. Named staff members map to these roles for chat presentation.
             </p>
@@ -415,6 +418,7 @@ export default function AdminAgentStaffPage() {
               ))}
             </div>
           </FinelyOsGlassPanel>
+          </>
         ) : null}
 
         {tab === 'routing' ? (

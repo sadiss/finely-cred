@@ -3,10 +3,13 @@ import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from './AuthProvider';
 import { getOrCreatePartnerForSession, ADMIN_PARTNER_OVERRIDE_KEY } from '../portal/getOrCreatePartnerForSession';
 import { isAdminEmail } from './admin';
+import { usePartnerSession } from './PartnerSessionContext';
+import { PartnerAccessGate } from '../components/portal/PartnerAccessGate';
 
 export function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isLoading, user } = useAuth();
   const location = useLocation();
+  const { partner, loading: partnerLoading } = usePartnerSession();
 
   if (isLoading) {
     return (
@@ -33,6 +36,24 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
         return <Navigate to={`/portal/select-partner?next=${next}`} replace />;
       }
     }
+  }
+
+  const email = (user as any)?.email || (user as any)?.user_metadata?.email || '';
+  const isAdmin = email ? isAdminEmail(String(email)) : false;
+  if (
+    location.pathname.startsWith('/portal') &&
+    !location.pathname.startsWith('/portal/select-partner') &&
+    !isAdmin &&
+    partner
+  ) {
+    if (partnerLoading) {
+      return (
+        <div className="min-h-screen bg-fc-section text-white flex items-center justify-center">
+          <div className="w-10 h-10 border-2 border-amber-500 border-t-transparent rounded-full animate-spin" />
+        </div>
+      );
+    }
+    return <PartnerAccessGate partner={partner}>{children}</PartnerAccessGate>;
   }
 
   return <>{children}</>;

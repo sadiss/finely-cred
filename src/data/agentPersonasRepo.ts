@@ -1,5 +1,6 @@
 import type { AgentPersona, AgentPersonaId } from '../domain/agentPersonas';
 import { AGENT_PERSONAS, getAgentPersona } from '../domain/agentPersonas';
+import { getEffectiveAgentPersona } from './agentPersonaOverridesRepo';
 import { loadJson, saveJson } from './localJsonStore';
 
 const KEY = 'finely.agentStaff.v1';
@@ -21,6 +22,7 @@ export type AgentStaffConfig = {
 };
 
 const DEFAULT_SHIFTS: PersonaShiftBlock[] = [
+  { personaId: 'support_specialist', days: [1, 2, 3, 4, 5], startHour: 8, endHour: 17 },
   { personaId: 'finely_advisor', days: [1, 2, 3, 4, 5], startHour: 8, endHour: 17 },
   { personaId: 'sales_closer', days: [1, 2, 3, 4, 5], startHour: 17, endHour: 21 },
   { personaId: 'nurture_concierge', days: [0, 6], startHour: 9, endHour: 20 },
@@ -30,7 +32,7 @@ const DEFAULT_SHIFTS: PersonaShiftBlock[] = [
 function defaultConfig(): AgentStaffConfig {
   return {
     shifts: DEFAULT_SHIFTS,
-    publicDefaultPersonaId: 'finely_advisor',
+    publicDefaultPersonaId: 'support_specialist',
     portalDefaultPersonaId: 'support_specialist',
     updatedAt: new Date().toISOString(),
   };
@@ -46,7 +48,7 @@ export function saveAgentStaffConfig(cfg: AgentStaffConfig) {
 }
 
 export function listAllPersonas(): AgentPersona[] {
-  return [...AGENT_PERSONAS];
+  return AGENT_PERSONAS.map((p) => getEffectiveAgentPersona(p.id));
 }
 
 export function personaOnDutyAt(date = new Date()): AgentPersona {
@@ -56,10 +58,10 @@ export function personaOnDutyAt(date = new Date()): AgentPersona {
   for (const block of cfg.shifts) {
     if (!block.days.includes(day)) continue;
     if (hour >= block.startHour && hour < block.endHour) {
-      return getAgentPersona(block.personaId) ?? getAgentPersona(cfg.publicDefaultPersonaId)!;
+      return getEffectiveAgentPersona(block.personaId);
     }
   }
-  return getAgentPersona(cfg.publicDefaultPersonaId) ?? AGENT_PERSONAS[0]!;
+  return getEffectiveAgentPersona(cfg.publicDefaultPersonaId);
 }
 
 export function portalPersonaForLane(lane?: string): AgentPersona {

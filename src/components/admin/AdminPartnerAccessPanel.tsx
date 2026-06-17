@@ -5,6 +5,9 @@ import { useAuth } from '../../auth/AuthProvider';
 import { sendPartnerWelcomeEmail } from '../../lib/partnerWelcomeEmail';
 import { isFeatureEnabled } from '../../data/settingsRepo';
 import { landingPathForRole, signupSummaryForRole } from '../../lib/signupOpsGuide';
+import { adminUpsertPartner } from '../../data/partnersRepo';
+import { patchPartnerAccessFlags, readPartnerAccessFlags } from '../../lib/partnerAccessControl';
+import { ensurePartnerEntitlements, ENTITLEMENT_KEYS, type EntitlementKey } from '../../billing/entitlements';
 import {
   FINELY_OS_ENTITY_BODY,
   FINELY_OS_ENTITY_SUBLABEL,
@@ -32,6 +35,25 @@ export function AdminPartnerAccessPanel({ partner, userRole }: Props) {
   const guide = useMemo(() => signupSummaryForRole(role === 'au_tradelines' ? 'au_seller' : role), [role]);
   const landing = landingPathForRole(role === 'au_tradelines' ? 'au_seller' : role);
   const commsOn = isFeatureEnabled('commsDelivery');
+  const accessFlags = useMemo(() => readPartnerAccessFlags(partner), [partner]);
+
+  const saveAccess = async (patch: Partial<ReturnType<typeof readPartnerAccessFlags>>) => {
+    setErr(null);
+    setNotice(null);
+    try {
+      let next = patchPartnerAccessFlags(partner, patch);
+      await adminUpsertPartner(next);
+      if (patch.paymentWaived) {
+        ensurePartnerEntitlements({
+          partnerId: partner.id,
+          keys: Object.values(ENTITLEMENT_KEYS) as EntitlementKey[],
+        });
+      }
+      setNotice('Access settings updated.');
+    } catch (e: unknown) {
+      setErr((e as Error)?.message || 'Failed to update access.');
+    }
+  };
 
   const sendReset = async () => {
     if (!email) {
@@ -128,6 +150,22 @@ export function AdminPartnerAccessPanel({ partner, userRole }: Props) {
 
       {notice ? <div className={FINELY_OS_NOTICE_SUCCESS}>{notice}</div> : null}
       {err ? <div className="text-rose-300 text-sm">{err}</div> : null}
+
+      <div className={`${FINELY_OS_ENTITY_BODY} text-sm space-y-2 border-t border-white/10 pt-3`}>
+        <div className={FINELY_OS_ENTITY_SUBLABEL}>Admin approval & unlock</div>
+        <label className="flex items-center gap-2">
+          <input type="checkbox" checked={accessFlags.accessApproved} onChange={(e) => void saveAccess({ accessApproved: e.target.checked })} />
+          Approve portal access (sets active when was lead)
+        </label>
+        <label className="flex items-center gap-2">
+          <input type="checkbox" checked={accessFlags.roleUnlocked} onChange={(e) => void saveAccess({ roleUnlocked: e.target.checked })} />
+          Unlock role / lane features
+        </label>
+        <label className="flex items-center gap-2">
+          <input type="checkbox" checked={accessFlags.paymentWaived} onChange={(e) => void saveAccess({ paymentWaived: e.target.checked })} />
+          Waive payment — grant entitlements without checkout
+        </label>
+      </div>
 
       <div className="flex flex-wrap gap-2">
         <button type="button" onClick={() => void sendReset()} disabled={!email || busy !== null} className={FINELY_OS_PRIMARY_BTN}>

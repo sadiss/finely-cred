@@ -19,6 +19,8 @@ export type ConversationalAiContext = {
   personaId?: AgentPersonaId;
   /** Current route for path-aware KB (Phase 34). */
   pathname?: string;
+  locale?: 'en' | 'ht' | 'fr';
+  conversationalAddendum?: string;
 };
 
 export type ConversationalAiResult = {
@@ -67,12 +69,13 @@ export async function converseWithFinelyAi(args: {
     args.context.goal ? `Stated goal: ${args.context.goal}` : null,
     args.context.lane ? `Lane: ${args.context.lane}` : null,
     args.context.journeyStage ? `Journey stage: ${args.context.journeyStage}` : null,
+    args.context.locale ? `Preferred locale: ${args.context.locale}` : null,
     `Surface: ${args.context.surface}`,
   ]
     .filter(Boolean)
     .join(' · ');
 
-  const system = `${args.systemPromptBase}\n\n${kbBlock}\n\nSession context: ${contextLine}`;
+  const system = `${args.systemPromptBase}\n\n${args.context.conversationalAddendum ?? ''}\n\n${kbBlock}\n\nSession context: ${contextLine}`.replace(/\n{3,}/g, '\n\n');
 
   const isPublicSurface =
     args.context.surface === 'public_homepage' ||

@@ -4,10 +4,29 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { submitLeadCapture } from '../../data/leadsRepo';
 import { converseWithFinelyAi } from '../../lib/conversationalAi';
 import { classifyMessageIntent } from '../../lib/intentClassifier';
-import { publicChatPersonaForGoal, getAgentPersona, type AgentPersona } from '../../domain/agentPersonas';
+import { publicChatPersonaForGoal, type AgentPersona } from '../../domain/agentPersonas';
+import { getEffectiveAgentPersona, getPersonaOverride } from '../../data/agentPersonaOverridesRepo';
 import { personaOnDutyAt } from '../../data/agentPersonasRepo';
 import { saveAgentHandoff } from '../../lib/agentHandoffBridge';
+import { createPublicAppointmentRequest } from '../../data/calendarRepo';
+import {
+  buildConversationalSystemAddendum,
+  detectPublicChatIntent,
+  extractStaffNameHint,
+  humanReplyDelayMs,
+  inferUserTone,
+  matchTrustedResources,
+  parseAppointmentDraft,
+  shouldUseAppointmentSetter,
+} from '../../lib/publicChatEngine';
+import {
+  CHAT_LOCALE_LABELS,
+  detectLocaleFromText,
+  t,
+  type ChatLocale,
+} from '../../lib/publicChatI18n';
 import type { AgentPersonaId } from '../../domain/agentPersonas';
+import { getAgentPersona } from '../../domain/agentPersonas';
 import { OPEN_PUBLIC_CHAT_EVENT, type PublicChatGoal } from '../../lib/publicChatEvents';
 import { emitPlatformEvent } from '../../domain/platformEvents';
 import { resolveToolPath, toolsForPersona } from '../../lib/agentPersonaTools';
@@ -103,7 +122,7 @@ function personalizeAgentWelcome(welcome: string, fullName?: string): string {
 }
 
 function resolvePersona(goal: Goal | null, overrideId?: AgentPersonaId): AgentPersona {
-  if (overrideId) return getAgentPersona(overrideId) ?? personaOnDutyAt();
+  if (overrideId) return getEffectiveAgentPersona(overrideId) ?? personaOnDutyAt();
   if (!goal) return personaOnDutyAt();
   const label =
     goal === 'personal'
@@ -135,6 +154,9 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
   const [consent, setConsent] = useState(true);
   const [submitted, setSubmitted] = useState<null | { remote: string; ref: string }>(null);
   const [leadId, setLeadId] = useState<string | null>(null);
+  const [locale, setLocale] = useState<ChatLocale>('en');
+  const [typingLabel, setTypingLabel] = useState<string | null>(null);
+  const [appointmentDraft, setAppointmentDraft] = useState<{ notes: string; email?: string; phone?: string } | null>(null);
 
   const [draft, setDraft] = useState('');
   const [followUps, setFollowUps] = useState<string[]>([]);
@@ -192,11 +214,11 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
       {
         id: 'm0',
         role: 'bot',
-        text: GENERIC_WELCOME,
+        text: t(locale, 'welcomeGeneric'),
         personaId: PUBLIC_CHAT_AI_PERSONA_ID,
       },
     ]);
-  }, []);
+  }, [locale]);
 
   useEffect(() => {
     return () => {
@@ -297,20 +319,41 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
   const sendMessage = async (text: string, personaOverride?: AgentPersona) => {
     const trimmed = sanitize(text);
     if (!trimmed || busy) return;
+
+    const detected = detectLocaleFromText(trimmed);
+    const activeLocale = detected ?? locale;
+    if (detected && detected !== locale) setLocale(detected);
+
     setDraft('');
     pushUser(trimmed);
 
-    if (LIVE_AGENT_PATTERN.test(trimmed)) {
+    const chatIntent = detectPublicChatIntent(trimmed);
+    const staffHint = extractStaffNameHint(trimmed);
+
+    if (chatIntent === 'specific_staff' && !user) {
+      pushBot(t(activeLocale, 'needPartnerForStaff'), PUBLIC_CHAT_AI_PERSONA_ID);
+      setAppointmentDraft((prev) => ({ notes: `${prev?.notes ?? ''} ${trimmed}`.trim(), ...parseAppointmentDraft(trimmed) }));
+      if (!handoffComplete) {
+        window.setTimeout(() => beginHandoff(getEffectiveAgentPersona('appointment_setter')), 500);
+      }
+    }
+
+    if (LIVE_AGENT_PATTERN.test(trimmed) || (chatIntent === 'specific_staff' && user)) {
       requestLiveAgent();
       return;
     }
 
     const classified = classifyMessageIntent(trimmed);
-    let activePersona = personaOverride ?? (handoffComplete ? persona : getAgentPersona(PUBLIC_CHAT_AI_PERSONA_ID)!);
+    let activePersona = personaOverride ?? (handoffComplete ? persona : getEffectiveAgentPersona(PUBLIC_CHAT_AI_PERSONA_ID));
     const activePersonaId = handoffComplete ? activePersona.id : PUBLIC_CHAT_AI_PERSONA_ID;
 
+    if (shouldUseAppointmentSetter(chatIntent) && handoffComplete) {
+      activePersona = getEffectiveAgentPersona('appointment_setter');
+      setPersonaOverrideId('appointment_setter');
+    }
+
     if (handoffComplete && classified.confidence >= 0.55) {
-      const routed = getAgentPersona(classified.suggestedPersonaId);
+      const routed = getEffectiveAgentPersona(classified.suggestedPersonaId);
       if (routed) {
         activePersona = routed;
         setPersonaOverrideId(routed.id);
@@ -331,7 +374,7 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
         });
       }
     } else if (!handoffComplete && classified.confidence >= 0.55 && classified.suggestedPersonaId) {
-      const routed = getAgentPersona(classified.suggestedPersonaId);
+      const routed = getEffectiveAgentPersona(classified.suggestedPersonaId);
       if (routed) {
         pushBot(
           `Sounds like ${routed.displayTitle.toLowerCase()} is the right lane — connecting you now…`,
@@ -343,8 +386,26 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
       }
     }
 
+    const tone = inferUserTone(trimmed);
+    const priorBot = messages.filter((m) => m.role === 'bot').map((m) => m.text);
+    const delayMs = getPersonaOverride(activePersona.id)?.typingDelayMs ?? humanReplyDelayMs({ userMessage: trimmed });
+
     setBusy(true);
+    setTypingLabel(`${presentation.firstName} ${t(activeLocale, 'typing')}`);
+    await new Promise((r) => window.setTimeout(r, delayMs));
+
     try {
+      const addendum = buildConversationalSystemAddendum({
+        locale: activeLocale,
+        tone,
+        priorBotSnippets: priorBot,
+        staffName: presentation.firstName,
+        onShiftRole: activePersona.displayTitle,
+        isPartner: Boolean(user),
+        origin: typeof window !== 'undefined' ? window.location.origin : '',
+        userMessage: trimmed,
+      });
+
       const result = await converseWithFinelyAi({
         messages: aiHistory,
         userMessage: trimmed,
@@ -356,19 +417,58 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
           userName: fullName || undefined,
           personaId: activePersonaId,
           pathname,
+          locale: activeLocale,
+          conversationalAddendum: addendum,
         },
       });
+
+      const trusted = matchTrustedResources(trimmed);
+      let replyText = result.text;
+      if (trusted.length && !replyText.includes('http') && !replyText.includes('/free-')) {
+        const linkLines = trusted.slice(0, 2).map((r) => `${r.label}: ${r.href.startsWith('http') ? r.href : `${window.location.origin}${r.href}`}`);
+        replyText = `${replyText}\n\n${t(activeLocale, 'trustedLinks')}:\n${linkLines.join('\n')}`;
+      }
+
       const kbRefs = result.knowledgeUsed.slice(0, 2).map((c) => c.article.title);
-      pushBot(result.text, activePersonaId, result.source, kbRefs.length ? kbRefs : undefined);
+      pushBot(replyText, activePersonaId, result.source, kbRefs.length ? kbRefs : undefined);
       setFollowUps(result.followUps);
       setAiHistory((prev) => [
         ...prev,
         { role: 'user', content: trimmed },
-        { role: 'assistant', content: result.text },
+        { role: 'assistant', content: replyText },
       ]);
+
+      const apptDraft = parseAppointmentDraft(`${appointmentDraft?.notes ?? ''} ${trimmed}`);
+      const apptEmail = apptDraft.email || sanitize(email) || appointmentDraft?.email;
+      const apptName = sanitize(fullName) || 'Guest';
+      if (
+        (chatIntent === 'appointment' || shouldUseAppointmentSetter(chatIntent)) &&
+        apptEmail &&
+        apptName.length > 1 &&
+        handoffComplete
+      ) {
+        createPublicAppointmentRequest({
+          topic: 'enlightenment',
+          fullName: apptName,
+          email: apptEmail,
+          phone: apptDraft.phone || sanitize(phone) || undefined,
+          availabilityNotes: apptDraft.availabilityNotes || trimmed,
+          notes: staffHint ? `Requested staff: ${staffHint}` : undefined,
+          meetingAgenda: goalLabel,
+        });
+        pushBot(t(activeLocale, 'appointmentSet'), activePersonaId);
+        setAppointmentDraft(null);
+      } else if (chatIntent === 'appointment' || shouldUseAppointmentSetter(chatIntent)) {
+        setAppointmentDraft({
+          notes: `${appointmentDraft?.notes ?? ''} ${trimmed}`.trim(),
+          email: apptDraft.email,
+          phone: apptDraft.phone,
+        });
+      }
     } catch (e: unknown) {
       pushBot((e as Error)?.message || 'Something went wrong — try again or book a free session below.', activePersonaId);
     } finally {
+      setTypingLabel(null);
       setBusy(false);
     }
   };
@@ -531,10 +631,25 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
                     setOpen(false);
                   }}
                   className={FINELY_OS_SECONDARY_BTN}
-                  aria-label="Close chat"
+                  aria-label={t(locale, 'close')}
                 >
                   <X size={16} />
                 </button>
+              </div>
+              <div className="mt-3 flex flex-wrap items-center gap-2">
+                <span className={FINELY_OS_ENTITY_SUBLABEL}>{t(locale, 'language')}:</span>
+                {(['en', 'ht', 'fr'] as ChatLocale[]).map((loc) => (
+                  <button
+                    key={loc}
+                    type="button"
+                    onClick={() => setLocale(loc)}
+                    className={`text-[10px] px-2 py-1 rounded-full border ${
+                      locale === loc ? 'border-emerald-400/50 bg-emerald-500/20 text-emerald-100' : 'border-white/15 text-white/50'
+                    }`}
+                  >
+                    {CHAT_LOCALE_LABELS[loc]}
+                  </button>
+                ))}
               </div>
             </div>
 
@@ -554,6 +669,13 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
                     </p>
                   </div>
                   <Loader2 size={18} className="text-emerald-200 animate-spin shrink-0 ml-auto" />
+                </div>
+              ) : null}
+
+              {typingLabel ? (
+                <div className="flex items-center gap-2 text-xs text-white/45 px-1">
+                  <Loader2 size={14} className="animate-spin text-emerald-300" />
+                  {typingLabel}
                 </div>
               ) : null}
 
@@ -589,7 +711,7 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
                   return (
                     <div key={m.id} className="flex justify-end pl-8">
                       <div className="max-w-[88%]">
-                        <div className="text-[9px] text-white/35 text-right mb-1 font-bold uppercase tracking-wider">You</div>
+                        <div className="text-[9px] text-white/35 text-right mb-1 font-bold uppercase tracking-wider">{t(locale, 'you')}</div>
                         <div className="rounded-2xl rounded-br-md px-4 py-3 text-sm leading-relaxed whitespace-pre-wrap text-emerald-50 bg-gradient-to-br from-emerald-600/90 via-emerald-700/85 to-teal-700/80 shadow-[0_4px_20px_-4px_rgba(16,185,129,0.45)] border border-emerald-400/35 font-medium">
                           {m.text}
                         </div>

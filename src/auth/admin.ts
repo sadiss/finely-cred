@@ -28,9 +28,8 @@ function stripPlusAddress(email: string): string {
 
 function listRuntimeAdminEmails(): Set<string> {
   const out = new Set<string>();
-  if (import.meta.env.DEV) {
-    for (const e of ADMIN_EMAIL_ALLOWLIST) out.add(e);
-  }
+  // All three platform bootstrap admins — always recognized in every environment.
+  for (const e of ADMIN_EMAIL_ALLOWLIST) out.add(e);
   try {
     // Demo-mode admin list is stored in browser storage under the settings key.
     const raw = localStorage.getItem('finely.settings.v1');
@@ -48,6 +47,10 @@ function listRuntimeAdminEmails(): Set<string> {
     // ignore
   }
   return out;
+}
+
+export function listBootstrapAdminEmails(): string[] {
+  return Array.from(ADMIN_EMAIL_ALLOWLIST).sort();
 }
 
 export function listAdminEmailRecipients(): string[] {

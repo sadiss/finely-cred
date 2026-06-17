@@ -239,6 +239,7 @@ export async function getOrCreatePartnerForSession(args: { user: User | null }):
   const partner = await createPartner({
     id: isSupabaseConfigured && userId ? `partner_${userId}` : undefined,
     tenantId: meta.tenantId ?? userData.tenantId,
+    status: 'active',
     fullName: meta.name || userData.name || 'Partner',
     email,
     phone: meta.phone ?? userData.phone,
@@ -252,6 +253,8 @@ export async function getOrCreatePartnerForSession(args: { user: User | null }):
     journeyStage: 'intake',
     journeySignals: {
       goal: meta.goal || userData.goal,
+      accessApproved: true,
+      roleUnlocked: true,
       score: meta.score ?? userData.score,
       fundingTarget: meta.funding_target ?? meta.target ?? userData.target,
       fractures: meta.fractures ?? userData.fractures,

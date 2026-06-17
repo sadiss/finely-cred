@@ -54,13 +54,13 @@ export const SIGNUP_ROLE_GUIDES: SignupRoleGuide[] = [
   },
   {
     id: 'admin',
-    label: 'Admin / Team',
-    signupPath: 'Admin → Team & Roles invite, or pre-seeded admin_emails + first login',
+    label: 'Admin / Team (3 platform admins)',
+    signupPath: 'Bootstrap admins: partnersupport@finelycred.com, sanzstlouis@finelycred.com, shellystlouis@finelycred.com — plus Admin Access Center extras and admin_emails in Supabase',
     postAuthHome: '/dashboard',
     passwordSetup:
-      'If invited via Team & Roles, user sets password on first signup. Platform admins use forgot-password if needed.',
+      'Bootstrap admins sign in with their email + password. Use /forgot-password or Admin → Partner detail → Send password reset.',
     welcomeEmail: 'No partner welcome email — admin/staff use dashboard access.',
-    adminReset: 'Team member uses /forgot-password, or another admin sends reset from partner/access panel if linked.',
+    adminReset: 'Any bootstrap admin can access /dashboard. Add more admins in Admin → Control Center or admin_emails table.',
   },
 ];
 
