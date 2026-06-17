@@ -103,6 +103,7 @@ import { TASK_PROGRESS_STAGES, WorkBoardShell, WorkCalendarView, WorkKanbanBoard
 import type { WorkStageDefinition } from '../../domain/settings';
 import type { TaskStatus } from '../../domain/tasks';
 import { PartnerFinelyOsStrip } from '../../features/os/PartnerFinelyOsStrip';
+import { AdminPartnerAccessPanel } from '../../components/admin/AdminPartnerAccessPanel';
 import { PartnerIntakeLinkPanel } from '../../components/admin/PartnerIntakeLinkPanel';
 import { PartnerCreditRestoreHud } from '../../features/partner/PartnerCreditRestoreHud';
 import { LegacyApplicationStatusBanner } from '../../components/admin/LegacyApplicationStatusBanner';
@@ -1233,6 +1234,7 @@ function PartnerDetailPageInner() {
         <PartnerIntakeLinkPanel partner={partner} />
 
         <PartnerFinelyOsStrip partnerId={partner.id} email={partner.profile.email} onOpenTab={(t) => setTab(t)} />
+        <AdminPartnerAccessPanel partner={partner} />
 
         <PartnerCreditRestoreMiniRail
           reportsCount={reports.length}

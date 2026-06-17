@@ -70,6 +70,9 @@ export type Prospect = {
     snippet?: string;
     robotsOk?: boolean;
     lastEnrichedAt?: string;
+    industry?: string;
+    intentTier?: 'hot' | 'warm' | 'cold' | 'unknown';
+    confidence?: number;
   };
 
   assignedTo?: { userId?: string; email?: string };

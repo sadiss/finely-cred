@@ -42,6 +42,7 @@ type AuthContextValue = {
   signOut: () => Promise<void>;
   updateUserProfile: (patch: UserProfileUpdate) => Promise<{ error?: string }>;
   updatePassword: (password: string) => Promise<{ error?: string }>;
+  requestPasswordReset: (args: { email: string; redirectTo?: string }) => Promise<{ error?: string }>;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -260,6 +261,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (isDevAuthEnabled) return { error: 'Password changes are not available in local demo mode.' };
         if (!isSupabaseConfigured) return { error: 'Supabase is not configured.' };
         const { error } = await supabase.auth.updateUser({ password });
+        return error ? { error: error.message } : {};
+      },
+      requestPasswordReset: async ({ email, redirectTo }) => {
+        const trimmed = (email || '').trim();
+        if (!trimmed) return { error: 'Email is required.' };
+        if (isDevAuthEnabled) return { error: 'Password reset is not available in local demo mode.' };
+        if (!isSupabaseConfigured) return { error: 'Supabase is not configured.' };
+        const redirect = redirectTo || `${window.location.origin}/reset-password`;
+        const { error } = await supabase.auth.resetPasswordForEmail(trimmed, { redirectTo: redirect });
         return error ? { error: error.message } : {};
       },
     };

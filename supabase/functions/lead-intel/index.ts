@@ -1,201 +1,251 @@
 // Supabase Edge Function: lead-intel
-// Compliant lead discovery + enrichment:
-// - Uses a configured Search API (Serper) instead of scraping restricted platforms.
-// - Enriches only public web pages and best-effort respects robots.txt ("Disallow: /" for user-agent *).
+// Compliant lead discovery + enrichment + AI outreach analysis.
 //
 // Secrets:
-// - SUPABASE_URL
-// - SUPABASE_ANON_KEY
-// - EDGE_ADMIN_EMAILS (comma-separated allowlist)
-// - SERPER_API_KEY
+// - SUPABASE_URL, SUPABASE_ANON_KEY
+// - EDGE_ADMIN_EMAILS
+// - SERPER_API_KEY (required for search)
+// - OPENAI_API_KEY (optional — AI analyze action)
 
 import { corsHeaders } from '../_shared/cors.ts';
 import { json, logEdgeEvent, rateLimit, requireAllowlistedEmail, requireAuth } from '../_shared/edgeGuard.ts';
-
-type Target = 'clients' | 'affiliates' | 'agents' | 'teams' | 'au_sellers' | 'b2b_partners';
+import {
+  analyzeProspectsWithOpenAI,
+  computeConfidence,
+  domainOf,
+  extractEmails,
+  extractKeywords,
+  extractMeta,
+  extractPhones,
+  extractSocialLinks,
+  fetchRobotsAllows,
+  inferIndustry,
+  inferIntentTier,
+  isBlockedDomain,
+  norm,
+  recommendedFunnelForTarget,
+  safeUrl,
+  scoreProspect,
+  serperSearch,
+  type AnalyzeInput,
+  type LeadIntelSearchMode,
+  type LeadIntelTarget,
+} from '../_shared/leadIntelEngine.ts';
 
 type ReqBody = {
-  target: Target;
+  action?: 'search' | 'analyze';
+  target?: LeadIntelTarget;
   query?: string;
-  /** Run multiple queries in one request (daily growth batch). */
   queries?: string[];
   location?: string;
-  country?: string; // e.g. "us"
-  limit?: number; // <= 50 recommended
+  country?: string;
+  limit?: number;
   enrich?: boolean;
   signupIntent?: boolean;
+  searchMode?: LeadIntelSearchMode;
+  excludeDomains?: string[];
+  minScore?: number;
+  industry?: string;
+  prospects?: AnalyzeInput[];
 };
 
-type SearchResult = {
-  title?: string;
-  link?: string;
-  snippet?: string;
-  position?: number;
-};
+async function runSearch(body: ReqBody, ctx: { user: { id: string }; ip: string }) {
+  const target = (body?.target || 'clients') as LeadIntelTarget;
+  const location = norm(body?.location || '');
+  const gl = norm(body?.country || 'us') || 'us';
+  const perQueryLimit = Math.max(1, Math.min(50, Number(body?.limit ?? 10)));
+  const enrich = body?.enrich !== false;
+  const signupIntent = body?.signupIntent === true;
+  const searchMode = (body?.searchMode || 'web') as LeadIntelSearchMode;
+  const excludeDomains = (body?.excludeDomains ?? []).map((d) => norm(d)).filter(Boolean);
+  const minScore = Math.max(0, Math.min(100, Number(body?.minScore ?? 0)));
+  const industryFilter = norm(body?.industry || '').toLowerCase();
 
-function norm(s: string) {
-  return String(s || '').trim();
-}
+  const queryList = Array.isArray(body?.queries) && body.queries.length
+    ? body.queries.map((q) => norm(q)).filter(Boolean).slice(0, 15)
+    : [norm(body?.query || '')].filter(Boolean);
+  if (!queryList.length) return json({ error: 'Missing query or queries' }, { status: 400 });
 
-function safeUrl(u: string): string {
-  try {
-    const url = new URL(u);
-    if (url.protocol !== 'http:' && url.protocol !== 'https:') return '';
-    return url.toString();
-  } catch {
-    return '';
-  }
-}
+  const apiKey = (Deno.env.get('SERPER_API_KEY') || '').trim();
+  if (!apiKey) return json({ error: 'SERPER_API_KEY missing' }, { status: 500 });
 
-function domainOf(url: string) {
-  try {
-    return new URL(url).hostname;
-  } catch {
-    return '';
-  }
-}
+  const seen = new Set<string>();
+  const rawResults: Array<{
+    title?: string;
+    link?: string;
+    snippet?: string;
+    position?: number;
+    date?: string;
+    address?: string;
+    rating?: number;
+    reviews?: number;
+    searchMode: LeadIntelSearchMode;
+  }> = [];
 
-async function fetchRobotsAllows(url: string): Promise<boolean> {
-  // Minimal robots support: if robots.txt explicitly disallows everything, skip.
-  const host = domainOf(url);
-  if (!host) return true;
-  try {
-    const res = await fetch(`https://${host}/robots.txt`, { method: 'GET' });
-    if (!res.ok) return true;
-    const txt = (await res.text()) || '';
-    const lines = txt.split('\n').map((l) => l.trim());
-    let inStar = false;
-    for (const line of lines) {
-      const lower = line.toLowerCase();
-      if (lower.startsWith('user-agent:')) {
-        const ua = lower.slice('user-agent:'.length).trim();
-        inStar = ua === '*' || ua === '"*"';
-        continue;
-      }
-      if (!inStar) continue;
-      if (lower.startsWith('disallow:')) {
-        const path = lower.slice('disallow:'.length).trim();
-        if (path === '/' || path === '/*') return false;
+  const perQ = Math.max(3, Math.ceil(perQueryLimit / queryList.length));
+  const modes: LeadIntelSearchMode[] =
+    searchMode === 'mixed' ? ['web', 'news', 'places'] : [searchMode];
+
+  for (const q of queryList) {
+    for (const mode of modes) {
+      const endpoint = mode === 'news' ? 'news' : mode === 'places' ? 'places' : 'search';
+      const batch = await serperSearch({
+        apiKey,
+        q: mode === 'places' && !q.toLowerCase().includes('near') && location
+          ? `${q} near ${location}`
+          : q,
+        location: location || undefined,
+        gl,
+        num: perQ,
+        endpoint,
+      });
+      for (const r of batch) {
+        const link = safeUrl(r.link || '');
+        if (!link || seen.has(link) || isBlockedDomain(link, excludeDomains)) continue;
+        seen.add(link);
+        rawResults.push({ ...r, searchMode: mode });
       }
     }
-    return true;
-  } catch {
-    return true;
   }
-}
 
-function uniq<T>(arr: T[]) {
-  return Array.from(new Set(arr));
-}
+  const enriched: any[] = [];
 
-function extractEmails(html: string): string[] {
-  const out: string[] = [];
-  const re = /[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}/gi;
-  const matches = html.match(re) ?? [];
-  for (const m of matches) {
-    const v = m.trim().toLowerCase();
-    if (v.includes('example.com')) continue;
-    if (v.includes('yourname@')) continue;
-    out.push(v);
+  for (const r of rawResults.slice(0, perQueryLimit * Math.max(1, queryList.length))) {
+    const link = safeUrl(r.link || '');
+    if (!link) continue;
+    let html = '';
+    let emails: string[] = [];
+    let phones: string[] = [];
+    let meta: any = {};
+    let socialLinks: Record<string, string> = {};
+    let robotsOk = true;
+
+    if (enrich && r.searchMode !== 'news') {
+      robotsOk = await fetchRobotsAllows(link);
+      if (robotsOk) {
+        try {
+          const page = await fetch(link, { method: 'GET', headers: { 'User-Agent': 'FinelyCredLeadIntel/2.0' } });
+          if (page.ok) {
+            html = await page.text();
+            emails = extractEmails(html);
+            phones = extractPhones(html);
+            meta = extractMeta(html);
+            socialLinks = extractSocialLinks(html, link);
+          }
+        } catch {
+          // ignore enrich failures
+        }
+      }
+    }
+
+    const hay = `${r.title ?? ''} ${r.snippet ?? ''} ${html}`.slice(0, 12000);
+    const industry = inferIndustry(hay);
+    const keywords = extractKeywords(hay);
+    const score = scoreProspect({
+      target,
+      html,
+      emails,
+      phones,
+      url: link,
+      title: r.title,
+      snippet: r.snippet,
+      signupIntent,
+      socialLinks,
+      industry,
+    });
+    const intentTier = inferIntentTier({ score, emails, phones, signupIntent, hay });
+    const confidence = computeConfidence({ score, emails, phones, robotsOk });
+
+    if (score < minScore) continue;
+    if (industryFilter && !(industry ?? '').toLowerCase().includes(industryFilter)) continue;
+
+    enriched.push({
+      title: r.title ?? '',
+      url: link,
+      snippet: r.snippet ?? '',
+      position: r.position ?? null,
+      domain: domainOf(link),
+      robotsOk,
+      emails,
+      phones,
+      meta,
+      socialLinks,
+      keywords,
+      industry,
+      intentTier,
+      confidence,
+      score,
+      signupIntent,
+      searchMode: r.searchMode,
+      newsDate: r.date ?? null,
+      place: r.address
+        ? { address: r.address, rating: r.rating ?? null, reviews: r.reviews ?? null }
+        : null,
+      recommendedFunnel: recommendedFunnelForTarget(target),
+    });
   }
-  return uniq(out).slice(0, 8);
-}
 
-function extractPhones(html: string): string[] {
-  // Best-effort US-ish phone patterns
-  const out: string[] = [];
-  const re = /(\+?1[\s.-]?)?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}/g;
-  const matches = html.match(re) ?? [];
-  for (const m of matches) {
-    const digits = m.replace(/[^\d]/g, '');
-    if (digits.length < 10) continue;
-    const last10 = digits.slice(-10);
-    out.push(`(${last10.slice(0, 3)}) ${last10.slice(3, 6)}-${last10.slice(6)}`);
-  }
-  return uniq(out).slice(0, 8);
-}
+  enriched.sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
 
-function extractMeta(html: string): { description?: string; h1?: string } {
-  const desc = /<meta\s+name=["']description["']\s+content=["']([^"']+)["']/i.exec(html)?.[1];
-  const h1 = /<h1[^>]*>([\s\S]*?)<\/h1>/i.exec(html)?.[1]?.replace(/<[^>]+>/g, ' ')?.replace(/\s+/g, ' ')?.trim();
-  return { description: desc?.trim(), h1: h1?.trim() };
-}
-
-function scoreProspect(args: {
-  target: Target;
-  html?: string;
-  emails: string[];
-  phones: string[];
-  url: string;
-  title?: string;
-  snippet?: string;
-  signupIntent?: boolean;
-}) {
-  let score = 10;
-  if (args.emails.length) score += 30;
-  if (args.phones.length) score += 20;
-  if (args.url.includes('/contact')) score += 10;
-  if (args.url.includes('/signup') || args.url.includes('/register') || args.url.includes('/join')) score += 12;
-  const hay = `${args.title ?? ''} ${args.snippet ?? ''} ${args.html ?? ''}`.toLowerCase();
-  const bump = (w: string, n: number) => {
-    if (hay.includes(w)) score += n;
-  };
-  // Signup / guide intent — people likely to convert on free funnels
-  bump('free guide', 14);
-  bump('dispute letter', 12);
-  bump('sign up', 12);
-  bump('download', 10);
-  bump('get started', 10);
-  bump('free consultation', 11);
-  bump('credit repair help', 10);
-  bump('fix my credit', 10);
-  if (args.signupIntent) {
-    bump('free', 6);
-    bump('guide', 6);
-    bump('email', 4);
-  }
-  if (args.target === 'au_sellers') {
-    bump('tradeline', 10);
-    bump('authorized user', 10);
-    bump('seasoned', 4);
-  } else if (args.target === 'affiliates') {
-    bump('affiliate', 15);
-    bump('partner program', 10);
-  } else if (args.target === 'agents' || args.target === 'teams') {
-    bump('credit repair', 10);
-    bump('financial services', 6);
-    bump('sales', 6);
-  } else if (args.target === 'clients') {
-    bump('fix credit', 8);
-    bump('credit repair', 10);
-    bump('business credit', 10);
-    bump('funding', 6);
-  }
-  score = Math.max(0, Math.min(100, score));
-  return score;
-}
-
-async function serperSearch(args: { apiKey: string; q: string; location?: string; gl?: string; num: number }): Promise<SearchResult[]> {
-  const res = await fetch('https://google.serper.dev/search', {
-    method: 'POST',
-    headers: { 'X-API-KEY': args.apiKey, 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      q: args.q,
-      gl: args.gl ?? 'us',
-      location: args.location ?? undefined,
-      num: Math.max(1, Math.min(50, args.num)),
-    }),
+  await logEdgeEvent({
+    namespace: 'lead-intel',
+    level: 'info',
+    event: 'search_completed',
+    meta: {
+      userId: ctx.user.id,
+      ip: ctx.ip,
+      target,
+      queries: queryList,
+      searchMode,
+      location: location || null,
+      country: gl,
+      limit: perQueryLimit,
+      returned: enriched.length,
+      batch: queryList.length > 1,
+    },
   });
-  const txt = await res.text();
-  if (!res.ok) throw new Error(`Search API error: ${res.status} ${txt}`);
-  const json = JSON.parse(txt) as any;
-  const organic = (json?.organic ?? []) as any[];
-  return organic.map((o, i) => ({
-    title: o?.title,
-    link: o?.link,
-    snippet: o?.snippet,
-    position: o?.position ?? i + 1,
-  }));
+
+  return json({
+    ok: true,
+    action: 'search',
+    target,
+    query: queryList[0],
+    queries: queryList,
+    searchMode,
+    location: location || null,
+    country: gl,
+    results: enriched,
+    dailyTarget: 50,
+    capabilities: {
+      modes: ['web', 'news', 'places', 'mixed'],
+      enrich: true,
+      aiAnalyze: Boolean((Deno.env.get('OPENAI_API_KEY') || '').trim()),
+    },
+  });
+}
+
+async function runAnalyze(body: ReqBody, ctx: { user: { id: string }; ip: string }) {
+  const target = (body?.target || 'clients') as LeadIntelTarget;
+  const prospects = Array.isArray(body?.prospects) ? body.prospects.slice(0, 8) : [];
+  if (!prospects.length) return json({ error: 'Missing prospects for analyze action' }, { status: 400 });
+
+  const openaiKey = (Deno.env.get('OPENAI_API_KEY') || '').trim();
+  if (!openaiKey) return json({ error: 'OPENAI_API_KEY missing — required for AI analyze' }, { status: 500 });
+
+  const analyzed = await analyzeProspectsWithOpenAI({
+    apiKey: openaiKey,
+    target,
+    prospects,
+  });
+
+  await logEdgeEvent({
+    namespace: 'lead-intel',
+    level: 'info',
+    event: 'analyze_completed',
+    meta: { userId: ctx.user.id, ip: ctx.ip, target, count: analyzed.length },
+  });
+
+  return json({ ok: true, action: 'analyze', target, analyses: analyzed });
 }
 
 Deno.serve(async (req) => {
@@ -210,8 +260,8 @@ Deno.serve(async (req) => {
     return json({ error: (e as Error)?.message || 'Unauthorized' }, { status: 401 });
   }
 
-  const rlUser = await rateLimit({ key: `lead-intel:user:${ctx.user.id}`, limit: 10, windowSeconds: 60 });
-  const rlIp = await rateLimit({ key: `lead-intel:ip:${ctx.ip}`, limit: 30, windowSeconds: 60 });
+  const rlUser = await rateLimit({ key: `lead-intel:user:${ctx.user.id}`, limit: 15, windowSeconds: 60 });
+  const rlIp = await rateLimit({ key: `lead-intel:ip:${ctx.ip}`, limit: 40, windowSeconds: 60 });
   if (!rlUser.ok || !rlIp.ok) return json({ ok: false, error: 'Rate limited.' }, { status: 429 });
 
   let body: ReqBody;
@@ -221,117 +271,18 @@ Deno.serve(async (req) => {
     return json({ error: 'Invalid JSON body' }, { status: 400 });
   }
 
-  const target = (body?.target || 'clients') as Target;
-  const location = norm(body?.location || '');
-  const gl = norm(body?.country || 'us') || 'us';
-  const perQueryLimit = Math.max(1, Math.min(50, Number(body?.limit ?? 10)));
-  const enrich = body?.enrich !== false;
-  const signupIntent = body?.signupIntent === true;
-  const queryList = Array.isArray(body?.queries) && body.queries.length
-    ? body.queries.map((q) => norm(q)).filter(Boolean).slice(0, 15)
-    : [norm(body?.query || '')].filter(Boolean);
-  if (!queryList.length) return json({ error: 'Missing query or queries' }, { status: 400 });
-
-  const apiKey = (Deno.env.get('SERPER_API_KEY') || '').trim();
-  if (!apiKey) return json({ error: 'SERPER_API_KEY missing' }, { status: 500 });
+  const action = body?.action === 'analyze' ? 'analyze' : 'search';
 
   try {
-    const seen = new Set<string>();
-    const rawResults: SearchResult[] = [];
-    const perQ = Math.max(3, Math.ceil(perQueryLimit / queryList.length));
-
-    for (const q of queryList) {
-      const batch = await serperSearch({ apiKey, q, location: location || undefined, gl, num: perQ });
-      for (const r of batch) {
-        const link = safeUrl(r.link || '');
-        if (!link || seen.has(link)) continue;
-        seen.add(link);
-        rawResults.push(r);
-      }
-    }
-
-    const enriched: any[] = [];
-
-    for (const r of rawResults.slice(0, perQueryLimit * queryList.length)) {
-      const link = safeUrl(r.link || '');
-      if (!link) continue;
-      let html = '';
-      let emails: string[] = [];
-      let phones: string[] = [];
-      let meta: any = {};
-      let robotsOk = true;
-
-      if (enrich) {
-        robotsOk = await fetchRobotsAllows(link);
-        if (robotsOk) {
-          try {
-            const page = await fetch(link, { method: 'GET', headers: { 'User-Agent': 'FinelyCredLeadIntel/1.0' } });
-            if (page.ok) {
-              html = await page.text();
-              emails = extractEmails(html);
-              phones = extractPhones(html);
-              meta = extractMeta(html);
-            }
-          } catch {
-            // ignore enrich failures
-          }
-        }
-      }
-
-      const score = scoreProspect({ target, html, emails, phones, url: link, title: r.title, snippet: r.snippet, signupIntent });
-      enriched.push({
-        title: r.title ?? '',
-        url: link,
-        snippet: r.snippet ?? '',
-        position: r.position ?? null,
-        domain: domainOf(link),
-        robotsOk,
-        emails,
-        phones,
-        meta,
-        score,
-        signupIntent,
-        recommendedFunnel: target === 'clients' ? '/free-guide' : target === 'affiliates' ? '/affiliate/hub' : '/start-here',
-      });
-    }
-
-    enriched.sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
-
-    await logEdgeEvent({
-      namespace: 'lead-intel',
-      level: 'info',
-      event: 'search_completed',
-      meta: {
-        userId: ctx.user.id,
-        ip: ctx.ip,
-        target,
-        queries: queryList,
-        location: location || null,
-        country: gl,
-        limit: perQueryLimit,
-        returned: enriched.length,
-        batch: queryList.length > 1,
-      },
-    });
-
-    return json({
-      ok: true,
-      target,
-      query: queryList[0],
-      queries: queryList,
-      location: location || null,
-      country: gl,
-      results: enriched,
-      dailyTarget: 50,
-    });
+    if (action === 'analyze') return await runAnalyze(body, ctx);
+    return await runSearch(body, ctx);
   } catch (e) {
     await logEdgeEvent({
       namespace: 'lead-intel',
       level: 'error',
-      event: 'search_failed',
+      event: action === 'analyze' ? 'analyze_failed' : 'search_failed',
       meta: { userId: ctx.user.id, ip: ctx.ip, error: (e as Error)?.message || String(e) },
     });
-    return json({ ok: false, error: (e as Error)?.message || 'Search failed' }, { status: 500 });
+    return json({ ok: false, error: (e as Error)?.message || `${action} failed` }, { status: 500 });
   }
 });
-

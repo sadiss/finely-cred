@@ -28,6 +28,7 @@ import {
   Film,
   BriefcaseBusiness,
   Lock,
+  KeyRound,
   FolderKanban,
   Inbox,
   ListChecks,
@@ -99,6 +100,7 @@ export const ADMIN_NAV_GROUPS: AdminNavGroupDef[] = [
     items: [
       { path: '/admin/access', label: 'Control Center', icon: Shield, hint: 'Access + settings + roles' },
       { path: '/admin/role-preview', label: 'Role preview', icon: Eye, hint: 'View every role’s access & payouts' },
+      { path: '/admin/signup-ops', label: 'Signup & access', icon: KeyRound, hint: 'Passwords, welcome email, roles' },
       { path: '/admin/team', label: 'Team & Roles', icon: UserCog, hint: 'RBAC-lite' },
       { path: '/admin/tenants', label: 'Tenants', icon: Globe, hint: 'White-label' },
       { path: '/admin/billing', label: 'Billing', icon: CreditCard, hint: 'Payments' },

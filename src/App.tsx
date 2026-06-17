@@ -150,12 +150,14 @@ const AdminSecretVaultPage = lazy(() => import('./pages/admin/AdminSecretVaultPa
 const AdminFinanceAllocatorPage = lazy(() => import('./pages/admin/AdminFinanceAllocatorPage'));
 const AdminMonitoringPage = lazy(() => import('./pages/admin/AdminMonitoringPage'));
 const AdminLeadIntelPage = lazy(() => import('./pages/admin/AdminLeadIntelPage'));
+const AdminSignupOpsPage = lazy(() => import('./pages/admin/AdminSignupOpsPage'));
 const AdminLeadsOsPage = lazy(() => import('./pages/admin/AdminLeadsOsPage'));
 const AdminMediaStudioPage = lazy(() => import('./pages/admin/AdminMediaStudioPage'));
 const AdminVoiceStudioPage = lazy(() => import('./pages/admin/AdminVoiceStudioPage'));
 const AdminNoraCapitalPage = lazy(() => import('./pages/admin/AdminNoraCapitalPage'));
 const FinelyBridgeOpsPage = lazy(() => import('./pages/admin/FinelyBridgeOpsPage'));
 const FinelyCredServicesPage = lazy(() => import('./pages/FinelyCredServicesPage'));
+const ResetPasswordPage = lazy(() => import('./pages/ResetPasswordPage'));
 const AdminProductsPage = lazy(() => import('./pages/admin/AdminProductsPage'));
 const AdminCmsPage = lazy(() => import('./pages/admin/AdminCmsPage'));
 const AdminAnalyticsPage = lazy(() => import('./pages/admin/AdminAnalyticsPage'));
@@ -1472,7 +1474,7 @@ function AppInner() {
 
       {/* Onboarding Portal */}
       <SovereignPortal 
-        isOpen={location.pathname === '/onboarding' || location.pathname === '/login' || location.pathname === '/signup'} 
+        isOpen={location.pathname === '/onboarding' || location.pathname === '/login' || location.pathname === '/signup' || location.pathname === '/forgot-password'} 
         onClose={() => navigate('/')}
         onComplete={(nextPath) => navigate(nextPath ?? resolvePostAuthHomePath(auth.user))}
       />
@@ -1555,6 +1557,7 @@ function AppInner() {
             />
           }
         />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route path="/tradelines" element={<TradelinesRoute addToCart={addToCart} onNavigate={(v) => navigate(routeFromView(v))} />} />
         <Route path="/checkout" element={<CheckoutPage cart={cart} setCart={setCart} />} />
         <Route path="/about" element={<AboutRoute onNavigate={(v) => navigate(routeFromView(v))} />} />
@@ -2239,6 +2242,14 @@ function AppInner() {
           element={
             <ProtectedAdminRoute>
               <AdminLeadIntelPage />
+            </ProtectedAdminRoute>
+          }
+        />
+        <Route
+          path="/admin/signup-ops"
+          element={
+            <ProtectedAdminRoute>
+              <AdminSignupOpsPage />
             </ProtectedAdminRoute>
           }
         />

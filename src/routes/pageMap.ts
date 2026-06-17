@@ -113,6 +113,7 @@ export const ADMIN_ROUTES: RouteSpec[] = [
   { path: '/admin/monitoring', title: 'Monitoring', badge: 'Admin' },
   { path: '/admin/crm', title: 'CRM', badge: 'Admin' },
   { path: '/admin/lead-intel', title: 'Lead Intelligence Agent', badge: 'Admin' },
+  { path: '/admin/signup-ops', title: 'Signup & access ops', badge: 'Admin' },
   { path: '/admin/workflow', title: 'Ops Inbox', badge: 'Admin' },
   { path: '/admin/projects', title: 'Projects & Tasks', badge: 'Admin' },
   { path: '/admin/tasks', title: 'Tasks', badge: 'Admin' },

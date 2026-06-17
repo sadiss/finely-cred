@@ -1,5 +1,16 @@
 import type { ProspectTarget } from '../../domain/crmProspects';
 
+export type IntelSearchMode = 'web' | 'news' | 'places' | 'mixed';
+export type IntentTier = 'hot' | 'warm' | 'cold' | 'unknown';
+
+export type IntelAiAnalysis = {
+  summary?: string;
+  outreachHook?: string;
+  outreachEmail?: string;
+  objection?: string;
+  nextStep?: string;
+};
+
 export type IntelResult = {
   title: string;
   url: string;
@@ -9,10 +20,19 @@ export type IntelResult = {
   robotsOk: boolean;
   emails: string[];
   phones: string[];
-  meta?: { description?: string; h1?: string };
+  meta?: { description?: string; h1?: string; ogTitle?: string };
   score: number;
   signupIntent?: boolean;
   recommendedFunnel?: string;
+  searchMode?: IntelSearchMode;
+  industry?: string;
+  intentTier?: IntentTier;
+  keywords?: string[];
+  socialLinks?: { linkedin?: string; facebook?: string; twitter?: string; instagram?: string };
+  confidence?: number;
+  aiAnalysis?: IntelAiAnalysis;
+  newsDate?: string | null;
+  place?: { address?: string; rating?: number | null; reviews?: number | null } | null;
 };
 
 export type LeadIntelView = 'discover' | 'staging' | 'library' | 'copilot';
@@ -98,9 +118,10 @@ export function clampIntelLimit(n: number) {
 export function defaultStagingLane(r: IntelResult): StagingLane {
   const contacts = (r.emails?.length ?? 0) + (r.phones?.length ?? 0);
   if (!r.robotsOk || (r.score ?? 0) < 15) return 'pass';
+  if (r.intentTier === 'hot' && contacts > 0) return 'ready';
   if ((r.score ?? 0) >= 50 && contacts > 0) return 'ready';
   if ((r.score ?? 0) >= 38 && contacts > 0) return 'qualified';
-  if ((r.score ?? 0) >= 55) return 'qualified';
+  if ((r.score ?? 0) >= 55 || r.intentTier === 'warm') return 'qualified';
   return 'review';
 }
 

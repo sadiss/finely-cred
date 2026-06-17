@@ -158,6 +158,8 @@ export async function getOrCreatePartnerForSession(args: { user: User | null }):
 
   const meta: any = (args.user as any)?.user_metadata ?? {};
   const userData = readOnboardingDraft();
+  const roleRaw = `${meta.role || userData.role || ''}`.toLowerCase();
+  const isAuSellerSignup = roleRaw === 'au_seller' || `${meta.lane || userData.lane || ''}`.toLowerCase() === 'au_seller';
 
   const business = {
     businessName: meta.businessName ?? userData.businessName,
@@ -168,7 +170,7 @@ export async function getOrCreatePartnerForSession(args: { user: User | null }):
 
   const rawGoal = `${meta.goal || userData.goal || ''}`.toLowerCase();
   const laneRaw = `${meta.lane || userData.lane || ''}`.toLowerCase();
-  if (laneRaw.includes('seller')) return null;
+  if (laneRaw.includes('seller') && !isAuSellerSignup) return null;
   const primaryRoute =
     rawGoal.includes('business') || laneRaw.includes('business')
       ? 'business_build'
@@ -179,7 +181,9 @@ export async function getOrCreatePartnerForSession(args: { user: User | null }):
           : undefined;
 
   const lane =
-    laneRaw.includes('seller')
+    isAuSellerSignup || laneRaw === 'au_seller'
+      ? 'au_tradelines'
+      : laneRaw.includes('seller')
       ? 'other'
       : laneRaw.includes('au')
       ? 'au_tradelines'

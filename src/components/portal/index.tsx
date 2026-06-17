@@ -1301,12 +1301,14 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
   const auth = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
-  const [authMode, setAuthMode] = useState<'select' | 'login' | 'signup'>('select');
+  const [authMode, setAuthMode] = useState<'select' | 'login' | 'signup' | 'forgot'>('select');
   const [step, setStep] = useState(1);
   const [authBusy, setAuthBusy] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
+  const [authNotice, setAuthNotice] = useState<string | null>(null);
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
+  const [forgotEmail, setForgotEmail] = useState('');
   const [userData, setUserData] = useState({
     name: '',
     email: '',
@@ -1358,7 +1360,7 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
     try {
       const raw = localStorage.getItem(ONBOARDING_STORAGE_KEY);
       if (!raw) return;
-      const parsed = JSON.parse(raw) as { userData?: any; step?: number; authMode?: 'select' | 'login' | 'signup' };
+      const parsed = JSON.parse(raw) as { userData?: any; step?: number; authMode?: 'select' | 'login' | 'signup' | 'forgot' };
       if (parsed?.userData) setUserData((prev) => ({ ...prev, ...parsed.userData }));
       if (typeof parsed?.step === 'number') setStep(Math.min(Math.max(1, parsed.step), TOTAL_STEPS));
       if (parsed?.authMode) setAuthMode(parsed.authMode);
@@ -1405,8 +1407,10 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
     // Direct routes + query-driven mode
     if (location.pathname === '/login') setAuthMode('login');
     if (location.pathname === '/signup') setAuthMode('signup');
+    if (location.pathname === '/forgot-password') setAuthMode('forgot');
     if (authParam === 'login' || authParam === 'signin') setAuthMode('login');
     if (authParam === 'signup' || authParam === 'register') setAuthMode('signup');
+    if (authParam === 'forgot' || authParam === 'reset') setAuthMode('forgot');
 
     if (packageId) {
       const pkg = getPackageById(packageId);
@@ -1514,6 +1518,31 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
     }
   };
 
+  const handleForgotPassword = async () => {
+    const email = forgotEmail.trim() || loginEmail.trim();
+    if (!email) {
+      setAuthError('Enter your account email.');
+      return;
+    }
+    setAuthError(null);
+    setAuthNotice(null);
+    setAuthBusy(true);
+    try {
+      const res = await auth.requestPasswordReset({
+        email,
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+      if (res.error) {
+        setAuthError(res.error);
+        return;
+      }
+      setAuthNotice(`If an account exists for ${email}, a reset link was sent. Check spam, then open the link to set a new password.`);
+      setForgotEmail(email);
+    } finally {
+      setAuthBusy(false);
+    }
+  };
+
   const handleSignup = async () => {
     const email = (userData.email || '').trim();
     const password = userData.password || '';
@@ -1572,11 +1601,21 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
       // If email confirmations are enabled, the session may not be available immediately.
       // In that case, we keep the user in the portal with a clear message.
       if (!auth.user) {
-        setAuthError('Account created. Please check your email to confirm, then return and log in.');
+        setAuthNotice(null);
+        setAuthError(
+          'Account created. Check your email to confirm your address (if required by Supabase), then log in with the password you just set. A welcome email sends after your first successful login when Comms delivery is enabled.',
+        );
         setAuthMode('login');
         setLoginEmail(email);
         setLoginPassword('');
         return;
+      }
+
+      try {
+        const { getOrCreatePartnerForSession } = await import('../../portal/getOrCreatePartnerForSession');
+        await getOrCreatePartnerForSession({ user: auth.user });
+      } catch {
+        // partner creation is best-effort; session routing still proceeds
       }
 
       if (userData.role === 'agent' && auth.user.id && userData.agentOperatingModel) {
@@ -1709,6 +1748,54 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
     );
   }
 
+  // Forgot password
+  if (authMode === 'forgot') {
+    return (
+      <div className="fixed inset-0 z-[100] bg-fc-shell fc-onboarding-shell-scroll flex flex-col sm:items-center sm:justify-center animate-in slide-in-from-bottom duration-500 fc-senior-simple" data-fc-onboarding-shell="1">
+        <OnboardingShellCloseButton onClose={onClose} />
+        <div className="max-w-md w-full mx-auto min-w-0 p-5 sm:p-8 fc-light-glass-panel fc-light-chrome-panel rounded-2xl sm:rounded-3xl relative overflow-hidden my-auto">
+          <div className="text-center space-y-4 sm:space-y-6 mb-6 sm:mb-8">
+            <div className="mx-auto w-14 h-14 rounded-2xl flex items-center justify-center border fc-metal-icon-box">
+              <Key size={22} className="text-[#0b1110]" />
+            </div>
+            <h3 className="text-2xl sm:text-3xl font-light text-white">Reset password</h3>
+            <p className="text-white/45 text-sm">We&apos;ll email a secure link. You choose a new password on the reset page — admins never see your password.</p>
+          </div>
+          <div className="space-y-4">
+            <div className="space-y-1 text-left">
+              <label className="text-[10px] font-bold text-white/55 uppercase tracking-widest">Account email</label>
+              <input
+                type="email"
+                value={forgotEmail || loginEmail}
+                onChange={(e) => setForgotEmail(e.target.value)}
+                autoComplete="email"
+                className="w-full min-h-[48px] rounded-xl border border-white/[0.08] bg-fc-input px-4 py-3 text-white/90 focus:outline-none focus:border-violet-500"
+              />
+            </div>
+            {authNotice ? (
+              <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-left">
+                <p className="text-xs text-emerald-200/90">{authNotice}</p>
+              </div>
+            ) : null}
+            {authError ? (
+              <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-left">
+                <p className="text-xs text-red-200/90">{authError}</p>
+              </div>
+            ) : null}
+            <Button onClick={() => void handleForgotPassword()} disabled={authBusy || !(forgotEmail.trim() || loginEmail.trim())} size="lg" className="w-full min-h-[48px]">
+              {authBusy ? 'Sending…' : 'Send reset link'}
+            </Button>
+          </div>
+          <div className="mt-6 flex flex-col gap-2">
+            <button type="button" onClick={() => { setAuthError(null); setAuthNotice(null); setAuthMode('login'); }} className="w-full min-h-[44px] text-white/45 hover:text-white text-[10px] uppercase tracking-widest">
+              Back to sign in
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   // Login Screen
   if (authMode === 'login') {
     return (
@@ -1786,7 +1873,12 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
             Create account
           </button>
           <button
-            onClick={() => navigate('/forgot-password')}
+            onClick={() => {
+              setAuthError(null);
+              setAuthNotice(null);
+              setAuthMode('forgot');
+              navigate('/forgot-password?auth=forgot');
+            }}
             className="w-full min-h-[44px] text-center text-white/55 hover:text-white text-[10px] uppercase tracking-widest transition-colors px-2 py-2 sm:col-span-2"
           >
             Forgot password?

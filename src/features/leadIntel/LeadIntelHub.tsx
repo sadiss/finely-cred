@@ -10,6 +10,8 @@ import {
   ShieldAlert,
   Sparkles,
   Target,
+  Brain,
+  Copy,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { isSupabaseConfigured, supabase } from '../../lib/supabaseClient';
@@ -30,6 +32,8 @@ import {
   buildStagingMap,
   clampIntelLimit,
   type IntelResult,
+  type IntelSearchMode,
+  type IntentTier,
   type LeadIntelView,
   type StagingLane,
 } from './leadIntelModel';
@@ -102,6 +106,9 @@ function importResultsToCrm(args: {
           snippet: existing.intel?.snippet ?? r.snippet,
           robotsOk: r.robotsOk,
           lastEnrichedAt: new Date().toISOString(),
+          industry: r.industry ?? existing.intel?.industry,
+          intentTier: r.intentTier ?? existing.intel?.intentTier,
+          confidence: r.confidence ?? existing.intel?.confidence,
         },
       } as Partial<Prospect>);
       imported += 1;
@@ -126,6 +133,9 @@ function importResultsToCrm(args: {
         snippet: r.snippet ?? '',
         robotsOk: r.robotsOk,
         lastEnrichedAt: new Date().toISOString(),
+        industry: r.industry,
+        intentTier: r.intentTier,
+        confidence: r.confidence,
       },
     });
     patchProspect(created.id, { nextAction: { label: rec.nextActionLabel } } as Partial<Prospect>);
@@ -146,6 +156,11 @@ export function LeadIntelHub({ embedded = false, showCompliance = true }: Props)
   const [location, setLocation] = useState('United States');
   const [limit, setLimit] = useState(25);
   const [enrich, setEnrich] = useState(true);
+  const [searchMode, setSearchMode] = useState<IntelSearchMode>('mixed');
+  const [signupIntent, setSignupIntent] = useState(false);
+  const [excludeDomains, setExcludeDomains] = useState('');
+  const [industryHint, setIndustryHint] = useState('');
+  const [analyzing, setAnalyzing] = useState(false);
 
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -160,6 +175,9 @@ export function LeadIntelHub({ embedded = false, showCompliance = true }: Props)
   const [requireEmail, setRequireEmail] = useState(false);
   const [requirePhone, setRequirePhone] = useState(false);
   const [robotsOnly, setRobotsOnly] = useState(false);
+  const [intentFilter, setIntentFilter] = useState<'all' | IntentTier>('all');
+  const [minConfidence, setMinConfidence] = useState(0);
+  const [hotOnly, setHotOnly] = useState(false);
 
   useEffect(() => {
     const onStore = () => setVersion((v) => v + 1);
@@ -186,11 +204,14 @@ export function LeadIntelHub({ embedded = false, showCompliance = true }: Props)
       if (requireEmail && !(r.emails?.length ?? 0)) return false;
       if (requirePhone && !(r.phones?.length ?? 0)) return false;
       if (robotsOnly && !r.robotsOk) return false;
+      if (hotOnly && r.intentTier !== 'hot') return false;
+      if (intentFilter !== 'all' && r.intentTier !== intentFilter) return false;
+      if ((r.confidence ?? 0) < minConfidence) return false;
       if (!q) return true;
       const hay = [r.title, r.domain, r.url, r.snippet, r.meta?.description].filter(Boolean).join(' ').toLowerCase();
       return hay.includes(q);
     });
-  }, [results, filterQ, minScore, requireEmail, requirePhone, robotsOnly]);
+  }, [results, filterQ, minScore, requireEmail, requirePhone, robotsOnly, intentFilter, minConfidence, hotOnly]);
 
   const focused = useMemo(() => results.find((r) => r.url === focusedUrl) ?? null, [results, focusedUrl]);
 
@@ -201,7 +222,7 @@ export function LeadIntelHub({ embedded = false, showCompliance = true }: Props)
         title: r.title || r.domain,
         subtitle: r.domain,
         description: r.meta?.description || r.snippet,
-        meta: [`Score ${r.score}`, `${r.emails?.length ?? 0} email`, `${r.phones?.length ?? 0} phone`],
+        meta: [`Score ${r.score}`, r.intentTier ?? '—', `${r.emails?.length ?? 0} email`, `${r.phones?.length ?? 0} phone`],
         accentIndex: i,
         groupKey: staging[r.url] ?? 'review',
       })),
@@ -228,6 +249,7 @@ export function LeadIntelHub({ embedded = false, showCompliance = true }: Props)
           limit: 40,
           enrich: true,
           signupIntent: true,
+          searchMode: 'mixed',
           country: 'us',
         },
       });
@@ -249,15 +271,25 @@ export function LeadIntelHub({ embedded = false, showCompliance = true }: Props)
     }
   };
 
-  const run = async (overrides?: { target?: ProspectTarget; query?: string; location?: string; enrich?: boolean }) => {
+  const run = async (overrides?: {
+    target?: ProspectTarget;
+    query?: string;
+    location?: string;
+    enrich?: boolean;
+    searchMode?: IntelSearchMode;
+    signupIntent?: boolean;
+  }) => {
     const runTarget = overrides?.target ?? target;
     const runQuery = (overrides?.query ?? query).trim();
     const runLocation = overrides?.location ?? location;
     const runEnrich = overrides?.enrich ?? enrich;
+    const runSearchMode = overrides?.searchMode ?? searchMode;
+    const runSignupIntent = overrides?.signupIntent ?? signupIntent;
     if (overrides?.target) setTarget(overrides.target);
     if (overrides?.query !== undefined) setQuery(overrides.query);
     if (overrides?.location !== undefined) setLocation(overrides.location);
     if (overrides?.enrich !== undefined) setEnrich(overrides.enrich);
+    if (overrides?.searchMode) setSearchMode(overrides.searchMode);
 
     setBusy(true);
     setErr(null);
@@ -266,6 +298,7 @@ export function LeadIntelHub({ embedded = false, showCompliance = true }: Props)
       if (!features.leadIntel) throw new Error('Lead Intel is disabled (Feature Flags).');
       if (!isSupabaseConfigured) throw new Error('Supabase is not configured.');
       if (!runQuery) throw new Error('Enter a search query.');
+      const excludeList = excludeDomains.split(/[\n,;]+/).map((s) => s.trim()).filter(Boolean);
       const { data, error } = await supabase.functions.invoke('lead-intel', {
         body: {
           target: runTarget,
@@ -273,6 +306,11 @@ export function LeadIntelHub({ embedded = false, showCompliance = true }: Props)
           location: runLocation.trim() || undefined,
           limit: clampIntelLimit(limit),
           enrich: runEnrich,
+          signupIntent: runSignupIntent,
+          searchMode: runSearchMode,
+          excludeDomains: excludeList.length ? excludeList : undefined,
+          industry: industryHint.trim() || undefined,
+          minScore: minScore > 0 ? minScore : undefined,
           country: 'us',
         },
       });
@@ -293,6 +331,56 @@ export function LeadIntelHub({ embedded = false, showCompliance = true }: Props)
       setErr((e as Error)?.message || 'Search failed.');
     } finally {
       setBusy(false);
+    }
+  };
+
+  const analyzeProspects = async (urls: string[]) => {
+    const picks = results.filter((r) => urls.includes(r.url));
+    if (!picks.length) return;
+    setAnalyzing(true);
+    setErr(null);
+    try {
+      const { data, error } = await supabase.functions.invoke('lead-intel', {
+        body: {
+          action: 'analyze',
+          target,
+          prospects: picks.map((r) => ({
+            title: r.title,
+            url: r.url,
+            snippet: r.snippet,
+            emails: r.emails,
+            phones: r.phones,
+            industry: r.industry,
+            score: r.score,
+            intentTier: r.intentTier,
+          })),
+        },
+      });
+      if (error) throw new Error(error.message);
+      if (!data?.ok) throw new Error(data?.error || 'AI analyze failed.');
+      const analyses = (data.analyses ?? []) as Array<{ url: string; summary: string; outreachHook: string; outreachEmail: string; objection: string; nextStep: string }>;
+      const byUrl = new Map(analyses.map((a) => [a.url, a]));
+      setResults((prev) =>
+        prev.map((r) => {
+          const a = byUrl.get(r.url);
+          if (!a) return r;
+          return {
+            ...r,
+            aiAnalysis: {
+              summary: a.summary,
+              outreachHook: a.outreachHook,
+              outreachEmail: a.outreachEmail,
+              objection: a.objection,
+              nextStep: a.nextStep,
+            },
+          };
+        }),
+      );
+      setNotice(`AI analysis complete for ${analyses.length} prospect(s). Open a card to view outreach copy.`);
+    } catch (e: unknown) {
+      setErr((e as Error)?.message || 'AI analyze failed.');
+    } finally {
+      setAnalyzing(false);
     }
   };
 
@@ -406,6 +494,24 @@ function scoreChip(_score: number) {
           <label className={`inline-flex items-center gap-2 text-xs ${FINELY_OS_ENTITY_BODY}`}>
             <input type="checkbox" checked={robotsOnly} onChange={(e) => setRobotsOnly(e.target.checked)} /> Crawl ok
           </label>
+          <label className={`inline-flex items-center gap-2 text-xs ${FINELY_OS_ENTITY_BODY}`}>
+            <input type="checkbox" checked={hotOnly} onChange={(e) => setHotOnly(e.target.checked)} /> Hot intent
+          </label>
+          <select value={intentFilter} onChange={(e) => setIntentFilter(e.target.value as 'all' | IntentTier)} className={FINELY_OS_ENTITY_SELECT}>
+            <option value="all">Any intent</option>
+            <option value="hot">Hot</option>
+            <option value="warm">Warm</option>
+            <option value="cold">Cold</option>
+          </select>
+          <select value={minConfidence} onChange={(e) => setMinConfidence(Number(e.target.value))} className={FINELY_OS_ENTITY_SELECT}>
+            <option value={0}>Any confidence</option>
+            <option value={40}>Conf 40+</option>
+            <option value={55}>Conf 55+</option>
+            <option value={70}>Conf 70+</option>
+          </select>
+          <button type="button" disabled={selectedCount === 0 || analyzing} onClick={() => void analyzeProspects(selectedUrls)} className={FINELY_OS_SECONDARY_BTN}>
+            <Brain size={14} /> {analyzing ? 'Analyzing…' : `AI analyze (${selectedCount})`}
+          </button>
           <button type="button" disabled={selectedCount === 0} onClick={() => importSelected()} className={FINELY_OS_PRIMARY_BTN}>
             <Download size={14} /> Import selected ({selectedCount})
           </button>
@@ -499,6 +605,15 @@ function scoreChip(_score: number) {
                 <div className={FINELY_OS_ENTITY_SUBLABEL}>Location</div>
                 <input value={location} onChange={(e) => setLocation(e.target.value)} placeholder="United States / City, ST" className={FINELY_OS_ENTITY_INPUT} />
               </div>
+              <div className="lg:col-span-2">
+                <div className={FINELY_OS_ENTITY_SUBLABEL}>Search mode</div>
+                <select value={searchMode} onChange={(e) => setSearchMode(e.target.value as IntelSearchMode)} className={FINELY_OS_ENTITY_SELECT}>
+                  <option value="mixed">Mixed (web + news + places)</option>
+                  <option value="web">Web only</option>
+                  <option value="news">News / articles</option>
+                  <option value="places">Places / local</option>
+                </select>
+              </div>
               <div className="lg:col-span-1 flex flex-col gap-2">
                 <div className={FINELY_OS_ENTITY_SUBLABEL}>Limit</div>
                 <input
@@ -511,9 +626,23 @@ function scoreChip(_score: number) {
                 />
               </div>
             </div>
+            <div className="grid lg:grid-cols-2 gap-4">
+              <div>
+                <div className={FINELY_OS_ENTITY_SUBLABEL}>Industry filter (optional)</div>
+                <input value={industryHint} onChange={(e) => setIndustryHint(e.target.value)} placeholder="e.g. credit repair, funding" className={FINELY_OS_ENTITY_INPUT} />
+              </div>
+              <div>
+                <div className={FINELY_OS_ENTITY_SUBLABEL}>Exclude domains (comma or newline)</div>
+                <textarea value={excludeDomains} onChange={(e) => setExcludeDomains(e.target.value)} placeholder="yelp.com, reddit.com" rows={2} className={FINELY_OS_ENTITY_INPUT} />
+              </div>
+            </div>
             <label className={`flex items-center gap-3 ${FINELY_OS_ENTITY_BODY}`}>
               <input type="checkbox" checked={enrich} onChange={(e) => setEnrich(e.target.checked)} className="accent-emerald-500" />
-              Enrich public pages (extract emails/phones; respects robots.txt)
+              Enrich public pages (emails, phones, social, industry signals; respects robots.txt)
+            </label>
+            <label className={`flex items-center gap-3 ${FINELY_OS_ENTITY_BODY}`}>
+              <input type="checkbox" checked={signupIntent} onChange={(e) => setSignupIntent(e.target.checked)} className="accent-fuchsia-500" />
+              Boost signup / free-guide intent scoring
             </label>
             <div className="flex flex-wrap gap-2">
               <button type="button" onClick={() => void run()} disabled={busy || !features.leadIntel} className={FINELY_OS_PRIMARY_BTN}>
@@ -618,8 +747,45 @@ function scoreChip(_score: number) {
               <p className={FINELY_OS_ENTITY_BODY}>{focused.meta?.description || focused.snippet}</p>
               <div className="flex flex-wrap gap-2">
                 <span className={scoreChip(focused.score)}>Score {focused.score}</span>
+                {focused.intentTier ? <span className={finelyOsStatusChip(focused.intentTier === 'hot' ? 'ok' : 'warn')}>{focused.intentTier}</span> : null}
+                {focused.confidence != null ? <span className={finelyOsStatusChip('ok')}>conf {focused.confidence}</span> : null}
                 <span className={finelyOsStatusChip(focused.robotsOk ? 'ok' : 'warn')}>{focused.robotsOk ? 'robots ok' : 'blocked'}</span>
+                {focused.searchMode ? <span className={finelyOsStatusChip('ok')}>{focused.searchMode}</span> : null}
               </div>
+              {focused.industry ? (
+                <div>
+                  <div className={FINELY_OS_ENTITY_SUBLABEL}>Industry</div>
+                  <div className={FINELY_OS_ENTITY_VALUE}>{focused.industry}</div>
+                </div>
+              ) : null}
+              {(focused.keywords?.length ?? 0) > 0 ? (
+                <div>
+                  <div className={FINELY_OS_ENTITY_SUBLABEL}>Keywords</div>
+                  <div className="flex flex-wrap gap-1 mt-1">
+                    {focused.keywords!.slice(0, 8).map((k) => (
+                      <span key={k} className={finelyOsStatusChip('ok')}>{k}</span>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+              {focused.socialLinks && Object.keys(focused.socialLinks).length > 0 ? (
+                <div>
+                  <div className={FINELY_OS_ENTITY_SUBLABEL}>Social</div>
+                  <ul className={`mt-1 ${FINELY_OS_ENTITY_BODY} text-xs space-y-1`}>
+                    {Object.entries(focused.socialLinks).map(([k, v]) => (
+                      <li key={k}>
+                        <a href={v} target="_blank" rel="noreferrer" className="text-sky-300 hover:underline">{k}</a>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
+              {focused.place?.address ? (
+                <div>
+                  <div className={FINELY_OS_ENTITY_SUBLABEL}>Place</div>
+                  <div className={FINELY_OS_ENTITY_BODY}>{focused.place.address}</div>
+                </div>
+              ) : null}
               {(focused.emails?.length ?? 0) > 0 ? (
                 <div>
                   <div className={FINELY_OS_ENTITY_SUBLABEL}>Emails</div>
@@ -654,6 +820,37 @@ function scoreChip(_score: number) {
                 <div className={FINELY_OS_ENTITY_SUBLABEL}>Recommended path</div>
                 <div className={`mt-1 ${FINELY_OS_ENTITY_VALUE}`}>{recommendedPathForTarget(target).nextActionLabel}</div>
               </div>
+              {focused.aiAnalysis ? (
+                <div className="space-y-3 border-t border-white/10 pt-3">
+                  <div className={FINELY_OS_ENTITY_SUBLABEL}>AI outreach intel</div>
+                  {focused.aiAnalysis.summary ? <p className={FINELY_OS_ENTITY_BODY}>{focused.aiAnalysis.summary}</p> : null}
+                  {focused.aiAnalysis.outreachHook ? (
+                    <div>
+                      <div className={FINELY_OS_ENTITY_SUBLABEL}>Hook</div>
+                      <p className={FINELY_OS_ENTITY_BODY}>{focused.aiAnalysis.outreachHook}</p>
+                    </div>
+                  ) : null}
+                  {focused.aiAnalysis.outreachEmail ? (
+                    <div>
+                      <div className="flex items-center justify-between gap-2">
+                        <div className={FINELY_OS_ENTITY_SUBLABEL}>Draft email</div>
+                        <button
+                          type="button"
+                          className={FINELY_OS_SECONDARY_BTN}
+                          onClick={() => void navigator.clipboard.writeText(focused.aiAnalysis!.outreachEmail!)}
+                        >
+                          <Copy size={12} /> Copy
+                        </button>
+                      </div>
+                      <pre className={`mt-1 whitespace-pre-wrap text-xs ${FINELY_OS_ENTITY_BODY} bg-black/20 p-3 rounded-lg`}>{focused.aiAnalysis.outreachEmail}</pre>
+                    </div>
+                  ) : null}
+                </div>
+              ) : (
+                <button type="button" disabled={analyzing} onClick={() => void analyzeProspects([focused.url])} className={FINELY_OS_SECONDARY_BTN}>
+                  <Brain size={14} /> {analyzing ? 'Analyzing…' : 'Run AI analyze'}
+                </button>
+              )}
             </FinelyOsSidePanel>
           ) : null}
         </div>

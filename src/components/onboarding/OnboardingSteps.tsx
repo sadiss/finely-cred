@@ -84,6 +84,10 @@ export function ProfileAndAccountStep({
           Name, contact, login, and optional mailing address — saved to your profile and synced with your partner file.
           Update anytime under Account settings after sign-in.
         </p>
+        <div className="rounded-2xl border border-fuchsia-500/25 bg-fuchsia-500/5 p-4 max-w-2xl text-sm text-white/55 leading-relaxed">
+          <strong className="text-fuchsia-200">You choose your password here</strong> (minimum 8 characters). Finely does not email a temporary password.
+          After signup, you may receive a Supabase confirmation email (if enabled) plus a welcome email when our comms system is active.
+        </div>
       </div>
 
       {!isConfigured && (

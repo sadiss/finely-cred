@@ -36,10 +36,12 @@ function markSent(partnerId: string) {
 export async function sendPartnerWelcomeEmail(args: {
   user: User | null | undefined;
   partner: Partner;
+  /** Admin resend — bypass local already-sent guard */
+  force?: boolean;
 }): Promise<{ sent: boolean; reason?: string }> {
   const email = (args.partner.profile.email || args.user?.email || '').trim();
   if (!email) return { sent: false, reason: 'no_email' };
-  if (alreadySent(args.partner.id)) return { sent: false, reason: 'already_sent' };
+  if (!args.force && alreadySent(args.partner.id)) return { sent: false, reason: 'already_sent' };
   if (!isFeatureEnabled('commsDelivery') || !isSupabaseConfigured) {
     return { sent: false, reason: 'comms_not_configured' };
   }
