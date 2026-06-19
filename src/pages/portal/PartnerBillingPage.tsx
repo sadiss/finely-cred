@@ -446,6 +446,21 @@ export default function PartnerBillingPage() {
                   label: 'I consent to communication regarding my case (email/in-app)',
                   href: '/portal/messages',
                 },
+                {
+                  key: 'ndaAcceptedAt' as const,
+                  label: 'Mutual NDA (confidentiality)',
+                  href: '/terms#confidentiality',
+                },
+                {
+                  key: 'servicesAgreementAcceptedAt' as const,
+                  label: 'Services agreement',
+                  href: '/terms#services',
+                },
+                {
+                  key: 'debtServicesAcceptedAt' as const,
+                  label: 'Debt & collections workflow acknowledgment',
+                  href: '/disclaimer#debt',
+                },
               ].map((x) => {
                 const acceptedAt = (partner.consents as any)?.[x.key] as string | undefined;
                 return (

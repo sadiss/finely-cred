@@ -59,7 +59,7 @@ export default function StartHerePage() {
     <PageShell
       badge="Start here"
       title="What do you want to do today?"
-      subtitle="One obvious next step — no jargon. Tap a lane below or use Watch how / Ask Finely in the corner."
+      subtitle="One obvious next step — no jargon. Tap a lane below or open chat in the corner for help."
     >
       <div className={`${FINELY_OS_PAGE} fc-senior-simple space-y-8`}>
         <FinelyNoticedStrip items={buildStartHereNoticedItems()} />

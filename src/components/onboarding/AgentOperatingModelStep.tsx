@@ -1,6 +1,5 @@
 import React, { useMemo } from 'react';
-import { ArrowLeft, CheckCircle2, Crown, GraduationCap, Layers } from 'lucide-react';
-import { Button } from '../ui';
+import { Crown, GraduationCap, Layers } from 'lucide-react';
 import { agencyTiers } from '../../config/pricingCatalog';
 import { CS } from '../../config/creditSpecialistProgram';
 import type { AgentOperatingModel, AgentSpecialtyId, PlatformLeverId } from '../../domain/agentProgram';
@@ -8,7 +7,6 @@ import {
   AGENT_SPECIALTIES,
   AGENT_TRAINING_PHASES,
   defaultAgentOperatingModel,
-  PLATFORM_VALUE_LEVERS,
 } from '../../domain/agentProgram';
 import { AgentSplitCalculator } from '../agent/AgentSplitCalculator';
 import { AgencySplitSummaryLine } from '../pricing/AgencySplitBreakdown';
@@ -70,27 +68,30 @@ export function AgentOperatingModelStep({ next, prev, data, update }: StepProps)
     patchModel({ levers: { ...model.levers, [leverId as PlatformLeverId]: performer } });
   };
 
-  const canContinue = model.specialties.length > 0 && Boolean(model.capacityTierId);
-
   return (
-    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+    <div
+      data-fc-agent-operating-step="1"
+      className="fc-agent-operating-step space-y-8 sm:space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700 min-w-0"
+    >
       <div className="space-y-3">
         <p className="text-[10px] font-black tracking-[0.6em] text-fuchsia-400 uppercase">{CS.programName}</p>
-        <h2 className="text-4xl md:text-5xl font-light text-white">
+        <h2 className="fc-onboarding-step-title">
           Build your <span className="text-fuchsia-400">operating model</span>
         </h2>
-        <p className="text-white/45 text-lg font-light max-w-2xl">
-          Pricing is <strong className="text-white/70 font-normal">revenue share only</strong> — no platform access fee. Your split is driven by
+        <p className="text-white/55 text-base sm:text-lg font-light max-w-2xl">
+          Pricing is <strong className="text-white/75 font-normal">revenue share only</strong> — no platform access fee. Your split is driven by
           training phase and who performs each lever: software, marketing, fulfillment, and mentoring.
         </p>
       </div>
 
-      <section className="space-y-4">
+      <section className="space-y-3 sm:space-y-4">
         <div className="inline-flex items-center gap-2 text-fuchsia-300">
           <Layers size={16} />
-          <span className="text-[10px] font-black uppercase tracking-widest">Specialty tracks</span>
+          <span className="text-[10px] font-black uppercase tracking-widest">
+            Specialty tracks · {AGENT_SPECIALTIES.length} options
+          </span>
         </div>
-        <div className="grid sm:grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 sm:gap-3">
           {AGENT_SPECIALTIES.map((spec) => {
             const active = model.specialties.includes(spec.id);
             return (
@@ -98,24 +99,24 @@ export function AgentOperatingModelStep({ next, prev, data, update }: StepProps)
                 key={spec.id}
                 type="button"
                 onClick={() => toggleSpecialty(spec.id)}
-                className={`text-left rounded-2xl border p-4 transition-all ${
-                  active ? 'border-fuchsia-500/50 bg-fuchsia-500/10' : 'border-white/[0.08] bg-white/[0.02] hover:border-white/20'
+                className={`text-left rounded-xl border p-3 sm:p-3.5 transition-all min-h-[72px] ${
+                  active ? 'border-fuchsia-500/50 bg-fuchsia-500/10' : 'border-white/[0.1] bg-white/[0.04] hover:border-white/20'
                 }`}
               >
-                <div className="text-white font-semibold">{spec.label}</div>
-                <div className="text-white/50 text-sm mt-1">{spec.description}</div>
+                <div className="text-white font-semibold text-sm sm:text-base">{spec.label}</div>
+                <div className="text-white/55 text-xs sm:text-sm mt-1 leading-snug">{spec.description}</div>
               </button>
             );
           })}
         </div>
       </section>
 
-      <section className="space-y-4">
+      <section className="space-y-3 sm:space-y-4">
         <div className="inline-flex items-center gap-2 text-fuchsia-300">
           <GraduationCap size={16} />
           <span className="text-[10px] font-black uppercase tracking-widest">Training phase</span>
         </div>
-        <div className="grid sm:grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-2.5 sm:gap-3">
           {AGENT_TRAINING_PHASES.map((phase) => {
             const active = model.trainingPhase === phase.id;
             return (
@@ -123,15 +124,15 @@ export function AgentOperatingModelStep({ next, prev, data, update }: StepProps)
                 key={phase.id}
                 type="button"
                 onClick={() => patchModel({ trainingPhase: phase.id })}
-                className={`text-left rounded-2xl border p-4 transition-all ${
-                  active ? 'border-emerald-500/40 bg-emerald-500/10' : 'border-white/[0.08] bg-white/[0.02] hover:border-white/20'
+                className={`text-left rounded-xl border p-3 sm:p-3.5 transition-all min-h-[88px] ${
+                  active ? 'border-emerald-500/40 bg-emerald-500/10' : 'border-white/[0.1] bg-white/[0.04] hover:border-white/20'
                 }`}
               >
                 <div className="flex items-center justify-between gap-2">
-                  <span className="text-white font-semibold">{phase.label}</span>
-                  <span className="text-[10px] font-mono text-white/45">~{phase.platformBasePct}% platform base</span>
+                  <span className="text-white font-semibold text-sm">{phase.label}</span>
+                  <span className="text-[10px] font-mono text-white/50 shrink-0">~{phase.platformBasePct}% base</span>
                 </div>
-                <div className="text-white/50 text-sm mt-1">{phase.description}</div>
+                <div className="text-white/55 text-xs sm:text-sm mt-1 leading-snug">{phase.description}</div>
               </button>
             );
           })}
@@ -145,13 +146,13 @@ export function AgentOperatingModelStep({ next, prev, data, update }: StepProps)
         onChangeSampleFee={(cents: number) => patchModel({ sampleClientFeeCents: cents })}
       />
 
-      <section className="space-y-4">
+      <section className="space-y-3 sm:space-y-4">
         <div className="inline-flex items-center gap-2 text-fuchsia-300">
           <Crown size={16} />
           <span className="text-[10px] font-black uppercase tracking-widest">Workspace capacity</span>
         </div>
-        <p className="text-white/45 text-sm">Revenue share is separate from capacity limits (clients & seats).</p>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        <p className="text-white/50 text-sm">Revenue share is separate from capacity limits (clients & seats).</p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 sm:gap-3">
           {tiers.map((t) => {
             const active = model.capacityTierId === t.id;
             return (
@@ -164,18 +165,18 @@ export function AgentOperatingModelStep({ next, prev, data, update }: StepProps)
                     trainingPhase: t.recommendedTrainingPhase ?? model.trainingPhase,
                   })
                 }
-                className={`text-left rounded-2xl border p-5 transition-all ${
-                  active ? 'border-fuchsia-500/50 bg-fuchsia-500/10' : 'border-white/[0.08] bg-white/[0.02] hover:border-white/20'
+                className={`text-left rounded-xl border p-4 sm:p-4 transition-all ${
+                  active ? 'border-fuchsia-500/50 bg-fuchsia-500/10' : 'border-white/[0.1] bg-white/[0.04] hover:border-white/20'
                 }`}
               >
                 <div className="flex items-start justify-between gap-2">
-                  <div className="text-white font-semibold">{t.name}</div>
-                  <div className="text-sm text-emerald-300 shrink-0">
+                  <div className="text-white font-semibold text-sm sm:text-base">{t.name}</div>
+                  <div className="text-xs sm:text-sm text-emerald-300 shrink-0">
                     <AgencySplitSummaryLine tier={t} />
                   </div>
                 </div>
                 <div className="text-white/50 text-xs mt-2 capitalize">{(t.whiteLabelLevel ?? '').replace(/_/g, ' ')}</div>
-                <div className="text-white/50 text-xs mt-2">
+                <div className="text-white/50 text-xs mt-1">
                   {t.activeClientLimit === -1 ? 'Unlimited' : t.activeClientLimit} clients •{' '}
                   {t.seatLimit === -1 ? 'Unlimited' : t.seatLimit} seats
                 </div>
@@ -184,23 +185,6 @@ export function AgentOperatingModelStep({ next, prev, data, update }: StepProps)
           })}
         </div>
       </section>
-
-      <div className="flex flex-wrap items-center justify-between gap-4 pt-2">
-        {prev ? (
-          <button
-            type="button"
-            onClick={prev}
-            className="inline-flex items-center gap-2 px-5 py-3 fc-light-glass-panel fc-light-chrome-panel rounded-xl hover:bg-white/[0.09] text-[10px] font-black uppercase tracking-widest text-white/70"
-          >
-            <ArrowLeft size={14} /> Previous
-          </button>
-        ) : (
-          <div />
-        )}
-        <Button onClick={next} disabled={!canContinue} size="lg">
-          Continue
-        </Button>
-      </div>
     </div>
   );
 }

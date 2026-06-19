@@ -37,8 +37,8 @@ type AuthContextValue = {
   isLoading: boolean;
   session: Session | null;
   user: User | null;
-  signUpWithEmail: (args: { email: string; password: string; metadata?: Record<string, any> }) => Promise<{ error?: string }>;
-  signInWithEmail: (args: { email: string; password: string }) => Promise<{ error?: string }>;
+  signUpWithEmail: (args: { email: string; password: string; metadata?: Record<string, any> }) => Promise<{ error?: string; user?: User | null }>;
+  signInWithEmail: (args: { email: string; password: string }) => Promise<{ error?: string; user?: User | null }>;
   signOut: () => Promise<void>;
   updateUserProfile: (patch: UserProfileUpdate) => Promise<{ error?: string }>;
   updatePassword: (password: string) => Promise<{ error?: string }>;
@@ -159,14 +159,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           } catch {
             // ignore
           }
-          return {};
+          return { user: devUser };
         }
-        const { error } = await supabase.auth.signUp({
+        const { data, error } = await supabase.auth.signUp({
           email,
           password,
           options: metadata ? { data: metadata } : undefined,
         });
-        return error ? { error: error.message } : {};
+        if (error) return { error: error.message };
+        if (data.session) setSession(data.session);
+        return { user: data.user ?? data.session?.user ?? null };
       },
       signInWithEmail: async ({ email, password }) => {
         if (!isSupabaseConfigured) {
@@ -206,10 +208,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           } catch {
             // ignore
           }
-          return {};
+          return { user: devUser };
         }
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
-        return error ? { error: error.message } : {};
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) return { error: error.message };
+        if (data.session) setSession(data.session);
+        return { user: data.user ?? data.session?.user ?? null };
       },
       signOut: async () => {
         try {

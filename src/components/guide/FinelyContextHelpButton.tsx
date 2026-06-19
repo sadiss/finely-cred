@@ -3,6 +3,7 @@ import { HelpCircle, X, BookOpen, Sparkles } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { contextHelpForPath, routeKnowledgeForPath, launchOsHelpForPath } from '../../lib/knowledgeBaseRouter';
 import { getModulePlaybookForPath } from '../../config/modulePlaybooks';
+import { canShowPublicDemoVideos } from '../../config/publicMediaPolicy';
 import {
   FINELY_OS_ENTITY_BODY,
   FINELY_OS_ENTITY_SUBLABEL,
@@ -71,7 +72,7 @@ export function FinelyContextHelpButton() {
                     <li key={s.order}>{s.label}</li>
                   ))}
                 </ol>
-                {launch.tour ? (
+                {launch.tour && canShowPublicDemoVideos(pathname) ? (
                   <p className="mt-2 text-amber-200/90">Tip: use Watch how for {launch.tour.title}.</p>
                 ) : null}
               </div>

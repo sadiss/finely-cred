@@ -62,7 +62,7 @@ export default function PrivacyPage() {
             </p>
           </section>
 
-          <section className={`space-y-3 ${FINELY_OS_ENTITY_BODY}`}>
+          <section id="data-security" className={`space-y-3 ${FINELY_OS_ENTITY_BODY}`}>
             <h2 className={`${FINELY_OS_ENTITY_VALUE} text-base`}>3. Data Security</h2>
             <p>
               We use industry-standard measures to protect your data, including access controls and secure transport (HTTPS). We
@@ -99,7 +99,7 @@ export default function PrivacyPage() {
             </p>
           </section>
 
-          <section className={`space-y-3 ${FINELY_OS_ENTITY_BODY}`}>
+          <section id="contact" className={`space-y-3 ${FINELY_OS_ENTITY_BODY}`}>
             <h2 className={`${FINELY_OS_ENTITY_VALUE} text-base`}>7. Contact</h2>
             <p>
               Privacy-related requests or questions may be sent to the contact information on our Contact page or in the

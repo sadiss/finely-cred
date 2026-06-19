@@ -1,4 +1,4 @@
-import type { Partner, PartnerJourneyStage, PartnerLane, PartnerRoute, PartnerRouteIntake, PartnerStatus } from '../domain/partners';
+import type { Partner, PartnerConsents, PartnerJourneyStage, PartnerLane, PartnerRoute, PartnerRouteIntake, PartnerStatus } from '../domain/partners';
 import { nowIso, normalizeEmail, FINELY_TENANT_ID } from '../domain/partners';
 import { isSupabaseConfigured, supabase } from '../lib/supabaseClient';
 import { loadJson, saveJson } from './localJsonStore';
@@ -317,6 +317,7 @@ export async function createPartner(args: {
   claimedAt?: string;
   intake?: PartnerRouteIntake;
   assignedAgentId?: string;
+  consents?: PartnerConsents;
   /** Use service_role edge function (bypasses RLS) — set true for admin creates */
   asAdmin?: boolean;
 }): Promise<Partner> {
@@ -342,7 +343,7 @@ export async function createPartner(args: {
     claimedUserId: args.claimedUserId,
     claimedAt: args.claimedAt,
     routes: args.primaryRoute && args.intake ? { [args.primaryRoute]: args.intake } : {},
-    consents: {},
+    consents: args.consents ?? {},
     assignedAgentId: args.assignedAgentId,
     createdAt,
     updatedAt: createdAt,

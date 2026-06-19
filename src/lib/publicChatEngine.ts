@@ -97,6 +97,7 @@ export function buildConversationalSystemAddendum(args: {
   isPartner?: boolean;
   origin?: string;
   userMessage?: string;
+  easyReadMode?: boolean;
 }): string {
   const antiRepeat =
     args.priorBotSnippets?.length ?
@@ -105,6 +106,10 @@ export function buildConversationalSystemAddendum(args: {
 
   const resources = args.userMessage ? matchTrustedResources(args.userMessage) : [];
   const linksBlock = formatTrustedLinksBlock(resources, args.origin);
+
+  const easyRead = args.easyReadMode
+    ? '\n- EASY READ MODE: Use grade-6 language, short sentences, one idea per sentence, and name the single next action.'
+    : '';
 
   return `
 CONVERSATIONAL RULES (critical):
@@ -117,6 +122,7 @@ CONVERSATIONAL RULES (critical):
 - If they want a specific named staff member: ${args.isPartner ? 'offer to open the Communication Hub team chat.' : 'explain they can book a strategy call to speak with that specialist (use appointment_setter flow).'}
 - You know Finely Cred services, portal modules, disputes, funding, tradelines, debt validation, affiliate/agent programs, and Haitian-American community needs (language, clarity, respect).
 - Appointment booking: collect name, email, timezone, and preferred times; confirm you submitted the request.
+${easyRead}
 ${antiRepeat}
 ${linksBlock}`.trim();
 }

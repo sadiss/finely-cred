@@ -34,6 +34,7 @@ export type LegacyPartnerExportV1 = {
     journeyStage?: PartnerJourneyStage | null;
     journeySignals?: Record<string, any> | null;
     notes?: string | null;
+    legacyNoteEntries?: Array<{ message: string; createdAt?: string }> | null;
     legacyDocuments?: Array<{ fileName: string; uploadedAt?: string }> | null;
     legacyReports?: Array<{ fileName: string; uploadedAt?: string }> | null;
     legacyLetters?: LegacyLetterMeta[] | null;

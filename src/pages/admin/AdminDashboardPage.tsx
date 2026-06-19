@@ -129,7 +129,7 @@ export default function AdminDashboardPage() {
   const cards = [
     {
       title: 'Head of Society keys',
-      description: 'Generate invite-only HOS access keys  members enter on /head-of-society.',
+      description: 'Generate invite-only HOS access keys ï¿½ members enter on /head-of-society.',
       path: '/admin/role-preview?role=heta_society',
       icon: KeyRound,
       stat: `${listHosAccessCodes().filter((c) => !c.revoked && c.useCount < c.maxUses).length} active key(s)`,
@@ -165,14 +165,14 @@ export default function AdminDashboardPage() {
     },
     {
       title: 'Ops command center',
-      description: 'Alerts first, SLA risk, and paginated triage queues  not the support message inbox.',
+      description: 'Alerts first, SLA risk, and paginated triage queues ï¿½ not the support message inbox.',
       path: '/admin/workflow',
       icon: Bell,
-      stat: `${stats.adminUnread} unread  ${stats.openTasksCount} open task${stats.openTasksCount !== 1 ? 's' : ''}`,
+      stat: `${stats.adminUnread} unread ï¿½ ${stats.openTasksCount} open task${stats.openTasksCount !== 1 ? 's' : ''}`,
     },
     {
       title: 'Notifications Center',
-      description: 'Full alert history  leads, tasks, purchases, Meta inbox, trial reminders, and prefs.',
+      description: 'Full alert history ï¿½ leads, tasks, purchases, Meta inbox, trial reminders, and prefs.',
       path: '/admin/notifications',
       icon: Bell,
       stat: `${stats.adminUnread} unread`,
@@ -203,7 +203,7 @@ export default function AdminDashboardPage() {
     },
     {
       title: 'Funnel A/B Lab',
-      description: 'Headline and CTA experiments on lead magnets  conversion tracking per variant.',
+      description: 'Headline and CTA experiments on lead magnets ï¿½ conversion tracking per variant.',
       path: '/admin/funnel-experiments',
       icon: FlaskConical,
       stat: 'Convert',
@@ -211,14 +211,14 @@ export default function AdminDashboardPage() {
     },
     {
       title: 'Automation Studio',
-      description: 'Run long-horizon automations and agents (follow-ups, reminders, nudges).',
+      description: 'Run long-horizon automations and ï¿½agentsï¿½ (follow-ups, reminders, nudges).',
       path: '/admin/automations',
       icon: Bot,
       stat: 'Automate',
     },
     {
       title: 'Hands-Free Ops',
-      description: 'Autopilot KPIs  letter drafts, mail confirm queue, compliance escalations, staff coverage gaps.',
+      description: 'Autopilot KPIs ï¿½ letter drafts, mail confirm queue, compliance escalations, staff coverage gaps.',
       path: '/admin/ops-autopilot',
       icon: Activity,
       stat: 'Autopilot',
@@ -258,7 +258,7 @@ export default function AdminDashboardPage() {
       description: 'Preview agent, affiliate, and AU seller dashboards. Quick links to add each role.',
       path: '/admin/role-preview',
       icon: Layout,
-      stat: 'Agents  Affiliates  Sellers',
+      stat: 'Agents ï¿½ Affiliates ï¿½ Sellers',
     },
     {
       title: 'Tenants (White?Label)',
@@ -532,8 +532,8 @@ export default function AdminDashboardPage() {
             tone={stats.slaBreaches > 0 ? 'blocking' : 'warning'}
             message={
               stats.slaBreaches > 0
-                ? `Launch ops: ${stats.slaBreaches} SLA breach(es)  ${stats.partnersMissingReport} partner(s) missing reports  ${stats.lettersThisWeek} letters this week.`
-                : `Launch ops: ${stats.partnersMissingReport} partner(s) still need a credit report uploaded  ${stats.lettersThisWeek} letters generated this week.`
+                ? `Launch ops: ${stats.slaBreaches} SLA breach(es) ï¿½ ${stats.partnersMissingReport} partner(s) missing reports ï¿½ ${stats.lettersThisWeek} letters this week.`
+                : `Launch ops: ${stats.partnersMissingReport} partner(s) still need a credit report uploaded ï¿½ ${stats.lettersThisWeek} letters generated this week.`
             }
           />
         ) : null}
@@ -551,7 +551,7 @@ export default function AdminDashboardPage() {
         <FinelyUnifiedHubLayout
           eyebrow="Command center"
           title="Admin dashboard"
-          subtitle="KPIs, ops intel, and modules  scroll or jump; nothing hidden behind tabs."
+          subtitle="KPIs, ops intel, and modules ï¿½ scroll or jump; nothing hidden behind tabs."
           accent="violet"
           tabs={[
             { id: 'overview', label: 'Overview' },
@@ -677,7 +677,7 @@ export default function AdminDashboardPage() {
                       accentIndex: idx,
                     }))}
                     pageSize={6}
-                    searchPlaceholder={`Search ${g.title.toLowerCase()}`}
+                    searchPlaceholder={`Search ${g.title.toLowerCase()}ï¿½`}
                     emptyMessage="No modules in this group."
                     showViewToggle={false}
                     initialView="grid"

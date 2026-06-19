@@ -23,14 +23,14 @@ export function getOnboardingStepKeys(data: OnboardingUserData): string[] {
   if (role === 'client') {
     const keys = ['role', 'focus'];
     if (needsClientContext(data)) keys.push('context');
-    keys.push('recommendation', 'profile');
+    keys.push('recommendation', 'legal', 'profile');
     return keys;
   }
 
-  if (role === 'agent') return ['role', 'agentTier', 'recommendation', 'profile'];
+  if (role === 'agent') return ['role', 'agentTier', 'recommendation', 'legal', 'profile'];
 
   // AU seller + affiliate: lean path
-  return ['role', 'recommendation', 'profile'];
+  return ['role', 'recommendation', 'legal', 'profile'];
 }
 
 export function getOnboardingStepLabel(key: string): string {
@@ -40,6 +40,7 @@ export function getOnboardingStepLabel(key: string): string {
     agentTier: 'Specialist operating model',
     context: 'Your situation',
     recommendation: 'Your path',
+    legal: 'Legal & agreements',
     profile: 'Profile & account',
   };
   return labels[key] || key;

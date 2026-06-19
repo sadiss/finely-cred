@@ -8,6 +8,8 @@ import {
   FINELY_OS_ENTITY_BODY,
   FINELY_OS_ENTITY_VALUE,
   FINELY_OS_NOTICE_WARN,
+  FINELY_OS_PRIMARY_BTN,
+  FINELY_OS_SECONDARY_BTN,
   finelyOsCatalogCard,
 } from '../../features/os/finelyOsLightUi';
 
@@ -18,6 +20,29 @@ export default function AdminSignupOpsPage() {
   return (
     <PageShell title="Signup & access ops" subtitle="How passwords, welcome emails, and role routing work">
       <div className="space-y-6 max-w-5xl">
+        <div className={`${finelyOsCatalogCard('emerald')} !p-5 space-y-4`}>
+          <FinelyOsSectionTitle icon={UserPlus} label="Onboard someone in 3 steps" accent="emerald" />
+          <ol className={`space-y-3 ${FINELY_OS_ENTITY_BODY} list-decimal pl-5`}>
+            <li>
+              <strong className={FINELY_OS_ENTITY_VALUE}>Admin → Partners → Create Partner</strong> — enter name, email, lane, and role route.
+            </li>
+            <li>
+              Copy the <strong className={FINELY_OS_ENTITY_VALUE}>claim link</strong> (or send via Invite delivery). They open it, set their own password, and complete profile — you never set or email a password for them.
+            </li>
+            <li>
+              After first login, open their card under <strong className={FINELY_OS_ENTITY_VALUE}>Partners</strong> to see onboarding progress, documents, and credit reports. Use <strong className={FINELY_OS_ENTITY_VALUE}>Access & auth → Send reset link</strong> if they forget their password.
+            </li>
+          </ol>
+          <div className="flex flex-wrap gap-2 pt-1">
+            <a href="/admin/partners" className={FINELY_OS_PRIMARY_BTN}>
+              Open Partners list
+            </a>
+            <a href="/admin/partner-import" className={FINELY_OS_SECONDARY_BTN}>
+              Bulk import
+            </a>
+          </div>
+        </div>
+
         <div className={`${finelyOsCatalogCard('violet')} !p-5 space-y-3`}>
           <FinelyOsSectionTitle icon={Shield} label="Quick answers" accent="violet" />
           <ul className={`space-y-2 ${FINELY_OS_ENTITY_BODY} list-disc pl-5`}>

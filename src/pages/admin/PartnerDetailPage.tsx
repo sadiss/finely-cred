@@ -472,10 +472,11 @@ function PartnerDetailPageInner() {
           partnerId: partner.id,
           notesText: partner.notes,
           externalId: partner.importExternalId,
+          forceRefresh: true,
         });
       }
       setNotesVersion((v) => v + 1);
-      setReportsVersion((v) => v + 1);
+      setReportsRefreshKey((v) => v + 1);
     })();
     return () => {
       cancelled = true;

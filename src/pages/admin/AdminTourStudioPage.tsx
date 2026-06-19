@@ -193,7 +193,7 @@ export default function AdminTourStudioPage() {
         <FinelyOsPageFooter />
       </div>
 
-      <FinelyTourPlayer tour={previewTour} open={Boolean(previewTour)} onClose={() => setPreviewId(null)} />
+      <FinelyTourPlayer tour={previewTour} open={Boolean(previewTour)} onClose={() => setPreviewId(null)} allowVoice />
     </PageShell>
   );
 }

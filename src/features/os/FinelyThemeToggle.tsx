@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { Monitor, Moon, Sun } from 'lucide-react';
 import { useFinelySiteTheme } from './FinelySiteThemeProvider';
 import type { FinelySiteThemePreference } from '../../lib/finelySiteTheme';
-import { themeToggleOptions } from '../../lib/finelyThemeAccess';
+import { themeToggleOptions, shouldShowPublicThemeToggle } from '../../lib/finelyThemeAccess';
 import { useAuth } from '../../auth/AuthProvider';
 
 const META: Record<
@@ -22,6 +22,10 @@ export function FinelyThemeToggle({ compact = false, adminPreview = false }: { c
     if (adminPreview) return (['light', 'dark', 'system'] as FinelySiteThemePreference[]);
     return themeToggleOptions(auth.user?.email);
   }, [adminPreview, auth.user?.email]);
+
+  if (!adminPreview && !shouldShowPublicThemeToggle(auth.user?.email)) {
+    return null;
+  }
 
   if (compact) {
     const active = META[preference] ?? META.dark;

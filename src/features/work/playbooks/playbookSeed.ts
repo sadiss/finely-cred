@@ -347,11 +347,47 @@ export const ALL_TASK_PLAYBOOKS = buildAllTaskPlaybooks();
 import type { WorkScope } from '../../../domain/projects';
 
 export function getCoreRestorationPlaybookIds(scope: WorkScope = 'personal'): string[] {
-  const slugs =
-    scope === 'business'
-      ? ['biz_ein_verify', 'biz_fundability_audit', 'biz_duns', 'biz_secrets', 'biz_vendor_net30', 'biz_sprint_kickoff']
-      : ['welcome_intake', 'upload_reports', 'upload_id_poa', 'dispute_candidates', 'draft_letters', 'mail_certified'];
   const category = scope === 'business' ? 'business_credit' : 'personal_credit';
+  const coreSlugs =
+    scope === 'business'
+      ? [
+          'biz_sprint_kickoff',
+          'biz_ein_verify',
+          'biz_sos',
+          'biz_fundability_audit',
+          'biz_duns',
+          'biz_secrets',
+          'biz_nexus',
+          'biz_vendor_net30',
+          'biz_tier1_vendors',
+          'biz_tier2_vendors',
+          'biz_ucc_review',
+          'biz_pg_strategy',
+          'biz_bank_account',
+          'biz_line_of_credit',
+          'biz_maintenance',
+        ]
+      : [
+          'welcome_intake',
+          'consent_docs',
+          'upload_reports',
+          'parse_reports',
+          'upload_id_poa',
+          'evidence_checklist',
+          'dispute_candidates',
+          'draft_letters',
+          'mail_certified',
+          'bureau_followup',
+          'collect_responses',
+          'debt_inventory',
+          'identity_theft_review',
+          'funding_readiness',
+          'monthly_checkin',
+        ];
+  const categorySlugs = ALL_TASK_PLAYBOOKS.filter((p) => p.categories.includes(category))
+    .map((p) => p.slug)
+    .filter((slug) => !coreSlugs.includes(slug));
+  const slugs = [...coreSlugs, ...categorySlugs.slice(0, 18)];
   return ALL_TASK_PLAYBOOKS.filter((p) => p.categories.includes(category) && slugs.includes(p.slug)).map((p) => p.id);
 }
 

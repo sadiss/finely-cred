@@ -5,7 +5,7 @@ import type { DisputeCase } from '../domain/cases';
 import { isSupabaseConfigured, supabase } from '../lib/supabaseClient';
 import { mergeEvidenceSnapshotForPartner } from './evidenceRepo';
 import { mergeLettersSnapshotForPartner } from './lettersRepo';
-import { replaceReportsSnapshotForPartner } from './reportsRepo';
+import { mergeReportsSnapshotForPartner } from './reportsRepo';
 import { replaceCasesSnapshotForPartner } from './casesRepo';
 
 function safeStr(v: any) {
@@ -93,7 +93,7 @@ export async function pullWorkflowSnapshotFromSupabase(args: { partnerId: string
       rounds: (r.rounds ?? []) as any,
     })) as any;
 
-    replaceReportsSnapshotForPartner({ partnerId, reports });
+    mergeReportsSnapshotForPartner({ partnerId, reports });
     // Use a non-destructive merge for evidence + letters so a blocked/failed
     // server write can't erase something the user just captured/generated.
     mergeEvidenceSnapshotForPartner({ partnerId, items: evidence });

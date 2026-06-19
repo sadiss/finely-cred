@@ -46,7 +46,7 @@ export default function TermsPage() {
             </p>
           </section>
 
-          <section className={`space-y-3 ${FINELY_OS_ENTITY_BODY}`}>
+          <section id="services" className={`space-y-3 ${FINELY_OS_ENTITY_BODY}`}>
             <h2 className={`${FINELY_OS_ENTITY_VALUE} text-base`}>2. Description of Services</h2>
             <p>
               Finely Cred provides educational content and software tools for credit awareness and workflow organization (for example:
@@ -80,16 +80,33 @@ export default function TermsPage() {
             </p>
           </section>
 
+          <section id="confidentiality" className={`space-y-3 ${FINELY_OS_ENTITY_BODY}`}>
+            <h2 className={`${FINELY_OS_ENTITY_VALUE} text-base`}>5. Confidentiality & NDA</h2>
+            <p>
+              Partner and client files may include highly sensitive personal and financial information. Both parties agree to use
+              confidential information only for authorized workflow purposes and to protect it with reasonable care. Platform
+              templates, pricing, workflows, and non-public business methods remain Finely Cred confidential information.
+            </p>
+          </section>
+
           <section className={`space-y-3 ${FINELY_OS_ENTITY_BODY}`}>
-            <h2 className={`${FINELY_OS_ENTITY_VALUE} text-base`}>5. Intellectual Property</h2>
+            <h2 className={`${FINELY_OS_ENTITY_VALUE} text-base`}>6. Intellectual Property</h2>
             <p>
               Content, branding, and technology on the platform are owned by Finely Cred or its licensors. You may not copy,
               modify, or distribute our materials without permission.
             </p>
           </section>
 
+          <section id="esign" className={`space-y-3 ${FINELY_OS_ENTITY_BODY}`}>
+            <h2 className={`${FINELY_OS_ENTITY_VALUE} text-base`}>7. Electronic Records & Signatures</h2>
+            <p>
+              You consent to receive agreements, notices, and workflow documents electronically. Electronic signatures and
+              acknowledgements in the portal have the same effect as handwritten signatures where permitted by law.
+            </p>
+          </section>
+
           <section className={`space-y-3 ${FINELY_OS_ENTITY_BODY}`}>
-            <h2 className={`${FINELY_OS_ENTITY_VALUE} text-base`}>6. Limitation of Liability</h2>
+            <h2 className={`${FINELY_OS_ENTITY_VALUE} text-base`}>8. Limitation of Liability</h2>
             <p>
               To the fullest extent permitted by law, Finely Cred is not liable for indirect, incidental, or consequential
               damages arising from your use of the platform. Our total liability is limited to the amount you paid for services
@@ -98,7 +115,7 @@ export default function TermsPage() {
           </section>
 
           <section className={`space-y-3 ${FINELY_OS_ENTITY_BODY}`}>
-            <h2 className={`${FINELY_OS_ENTITY_VALUE} text-base`}>7. Dispute Resolution</h2>
+            <h2 className={`${FINELY_OS_ENTITY_VALUE} text-base`}>9. Dispute Resolution</h2>
             <p>
               If you have a concern or dispute, please contact us first so we can attempt to resolve it. Any legal claims must be
               brought in a manner permitted by applicable law and subject to any additional dispute resolution terms you accept during
@@ -107,7 +124,7 @@ export default function TermsPage() {
           </section>
 
           <section className={`space-y-3 ${FINELY_OS_ENTITY_BODY}`}>
-            <h2 className={`${FINELY_OS_ENTITY_VALUE} text-base`}>8. Changes</h2>
+            <h2 className={`${FINELY_OS_ENTITY_VALUE} text-base`}>10. Changes</h2>
             <p>
               We may update these terms from time to time. Continued use after changes constitutes acceptance. Material changes
               may be communicated via email or in-app notice.
@@ -115,7 +132,7 @@ export default function TermsPage() {
           </section>
 
           <section className={`space-y-3 ${FINELY_OS_ENTITY_BODY}`}>
-            <h2 className={`${FINELY_OS_ENTITY_VALUE} text-base`}>9. Contact</h2>
+            <h2 className={`${FINELY_OS_ENTITY_VALUE} text-base`}>11. Contact</h2>
             <p>
               Questions about these terms may be sent to the contact information provided on our Contact page or in the
               platform footer.

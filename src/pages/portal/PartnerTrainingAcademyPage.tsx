@@ -13,7 +13,7 @@ import {
   PlayCircle,
   Shield,
 } from 'lucide-react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { PageShell } from '../../components/layout/PageShell';
 import { usePartnerSession } from '../../auth/PartnerSessionContext';
 import { useAuth } from '../../auth/AuthProvider';
@@ -23,6 +23,7 @@ import { FinelyOsPageFooter } from '../../features/os/FinelyOsPageFooter';
 import { FinelyUnifiedHubLayout } from '../../features/unified/FinelyUnifiedHubLayout';
 import { FinelyTourPlayer } from '../../components/tours/FinelyTourPlayer';
 import { getTourById } from '../../config/tourManifest';
+import { canShowPublicDemoVideos } from '../../config/publicMediaPolicy';
 import { PLATFORM_SOP_LIBRARY } from '../../domain/platformSops';
 import {
   CORE_TRACK_ID,
@@ -90,9 +91,10 @@ function LessonRow(props: {
   recipientName?: string;
   onRefresh: () => void;
   onOpenTour: (tourId: string) => void;
+  showTourVideos?: boolean;
 }) {
   const navigate = useNavigate();
-  const { lesson, module, done, partnerId, lane, isAdmin, recipientName, onRefresh, onOpenTour } = props;
+  const { lesson, module, done, partnerId, lane, isAdmin, recipientName, onRefresh, onOpenTour, showTourVideos = false } = props;
   const [quizPick, setQuizPick] = useState<number | null>(null);
   const [quizMsg, setQuizMsg] = useState<string | null>(null);
   const hasQuiz = Boolean(lesson.quiz?.length);
@@ -179,11 +181,13 @@ function LessonRow(props: {
             Resources <ExternalLink size={14} />
           </button>
         ) : null}
-        {lesson.tourIds?.map((tid) => (
-          <button key={tid} type="button" onClick={() => onOpenTour(tid)} className={FINELY_OS_PRIMARY_BTN}>
-            Watch tour <PlayCircle size={14} />
-          </button>
-        ))}
+        {showTourVideos
+          ? lesson.tourIds?.map((tid) => (
+              <button key={tid} type="button" onClick={() => onOpenTour(tid)} className={FINELY_OS_PRIMARY_BTN}>
+                Watch tour <PlayCircle size={14} />
+              </button>
+            ))
+          : null}
         {lesson.sopIds?.map((sid) => {
           const sop = PLATFORM_SOP_LIBRARY.find((s) => s.id === sid);
           return (
@@ -238,8 +242,9 @@ function TrackSection(props: {
   recipientName?: string;
   onRefresh: () => void;
   onOpenTour: (tourId: string) => void;
+  showTourVideos?: boolean;
 }) {
-  const { track, modules, completed, partnerId, lane, isAdmin, recipientName, onRefresh, onOpenTour } = props;
+  const { track, modules, completed, partnerId, lane, isAdmin, recipientName, onRefresh, onOpenTour, showTourVideos = false } = props;
   const lessons = modules.flatMap((m) => m.lessons.map((l) => ({ module: m, lesson: l })));
   const doneCount = lessons.filter(({ lesson }) => completed.has(lesson.id)).length;
   const pct = lessons.length ? Math.round((doneCount / lessons.length) * 100) : 0;
@@ -288,6 +293,7 @@ function TrackSection(props: {
                 recipientName={recipientName}
                 onRefresh={onRefresh}
                 onOpenTour={onOpenTour}
+                showTourVideos={showTourVideos}
               />
             ))}
           </div>
@@ -299,6 +305,8 @@ function TrackSection(props: {
 
 export default function PartnerTrainingAcademyPage() {
   const navigate = useNavigate();
+  const { pathname } = useLocation();
+  const showTourVideos = canShowPublicDemoVideos(pathname);
   const [searchParams] = useSearchParams();
   const focusLesson = searchParams.get('focus') ?? searchParams.get('lesson');
   const auth = useAuth();
@@ -437,6 +445,7 @@ export default function PartnerTrainingAcademyPage() {
                     recipientName={partner.profile.fullName ?? partner.profile.email}
                     onRefresh={() => setStoreVersion((v) => v + 1)}
                     onOpenTour={setTourId}
+                    showTourVideos={showTourVideos}
                   />
                 ) : null}
                 {roleTracks.map((track) => {
@@ -454,6 +463,7 @@ export default function PartnerTrainingAcademyPage() {
                       recipientName={partner.profile.fullName ?? partner.profile.email}
                       onRefresh={() => setStoreVersion((v) => v + 1)}
                       onOpenTour={setTourId}
+                      showTourVideos={showTourVideos}
                     />
                   );
                 })}
@@ -512,7 +522,9 @@ export default function PartnerTrainingAcademyPage() {
         </div>
       )}
 
-      <FinelyTourPlayer tour={previewTour} open={Boolean(previewTour)} onClose={() => setTourId(null)} />
+      {showTourVideos ? (
+        <FinelyTourPlayer tour={previewTour} open={Boolean(previewTour)} onClose={() => setTourId(null)} />
+      ) : null}
     </PageShell>
   );
 }

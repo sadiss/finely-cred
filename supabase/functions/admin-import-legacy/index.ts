@@ -5,6 +5,7 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.1';
 import { corsHeaders } from '../_shared/cors.ts';
 import { json, requireAuth, requireEnv } from '../_shared/edgeGuard.ts';
+import { classifyLegacyFileName } from '../_shared/classifyLegacyFileName.ts';
 
 const ADMIN_EMAILS = new Set([
   'partnersupport@finelycred.com',
@@ -156,6 +157,41 @@ Deno.serve(async (req) => {
       for (const doc of p.legacyDocuments ?? []) {
         const fileName = String(doc?.fileName || '').trim();
         if (!fileName) continue;
+        const classification = classifyLegacyFileName(fileName);
+        const receivedAt = parseReceivedAt(doc.uploadedAt);
+
+        if (classification.kind === 'credit_report') {
+          const id = stableId('report', externalId, fileName);
+          const fileType = fileName.toLowerCase().endsWith('.pdf') ? 'pdf' : 'html';
+          const record = {
+            id,
+            partnerId,
+            provider: 'unknown',
+            fileType,
+            uploadedBy: 'admin',
+            receivedAt,
+            filename: fileName,
+            mimeType: fileType === 'pdf' ? 'application/pdf' : 'text/html',
+            sizeBytes: 0,
+            rawBlobRef: legacyBlobRef(fileName),
+          };
+          const { error } = await adminClient.from('credit_reports').upsert(
+            {
+              id,
+              partner_id: partnerId,
+              received_at: receivedAt,
+              filename: fileName,
+              provider: 'unknown',
+              data: record,
+              updated_at: now,
+            },
+            { onConflict: 'id' },
+          );
+          if (error) throw new Error(`report: ${error.message}`);
+          summary.reportsUpserted += 1;
+          continue;
+        }
+
         const id = stableId('evidence', externalId, fileName);
         const { error } = await adminClient.from('evidence').upsert(
           {
@@ -163,12 +199,12 @@ Deno.serve(async (req) => {
             partner_id: partnerId,
             type: 'upload',
             source: 'upload',
-            caption: 'Legacy document — re-upload file from old server archive',
+            caption: classification.caption,
             filename: fileName,
             mime_type: 'application/octet-stream',
             size_bytes: 0,
             blob_ref: legacyBlobRef(fileName),
-            created_at: parseReceivedAt(doc.uploadedAt),
+            created_at: receivedAt,
           },
           { onConflict: 'id' },
         );

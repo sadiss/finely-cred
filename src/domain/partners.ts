@@ -43,6 +43,17 @@ export type PartnerConsents = {
   privacyAcceptedAt?: string;
   disclaimerAcceptedAt?: string;
   communicationConsentAt?: string;
+  /** Mutual NDA accepted at signup or enterprise onboarding. */
+  ndaAcceptedAt?: string;
+  /** Debt / collections workflow acknowledgment (when debt lane selected). */
+  debtServicesAcceptedAt?: string;
+  /** Role-specific services agreement (client portal, agent IC, affiliate, AU seller). */
+  servicesAgreementAcceptedAt?: string;
+  /** Exit, separation, and data portability terms accepted at signup. */
+  partnershipExitAcceptedAt?: string;
+  /** Typed legal name at e-sign during signup. */
+  legalAcceptedName?: string;
+  legalAcceptedAt?: string;
 };
 
 export type PartnerBaseProfile = {

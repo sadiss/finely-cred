@@ -43,10 +43,41 @@ function json(body: unknown, init?: ResponseInit) {
 function pickProvider(args: { taskType: string; hint?: ReqBody['providerHint'] }): 'openai' | 'gemini' | 'anthropic' {
   if (args.hint) return args.hint;
   const t = (args.taskType || '').toLowerCase();
-  if (t.includes('coowner') || t.includes('ops.coowner')) return 'anthropic';
-  if (t.includes('doc') || t.includes('extract') || t.includes('classify')) return 'gemini';
-  if (t.includes('legal') || t.includes('policy') || t.includes('compliance')) return 'anthropic';
+  if (t.includes('coowner') || t.includes('ops.coowner') || t.includes('ops.agent')) return 'anthropic';
+  if (t.includes('lead_intel') || t.includes('doc') || t.includes('extract') || t.includes('classify')) return 'gemini';
+  if (t.includes('legal') || t.includes('policy') || t.includes('compliance') || t.includes('admin_ops')) return 'anthropic';
   return 'openai';
+}
+
+function resolveOpenAiModel(taskType: string): string {
+  const t = (taskType || '').toLowerCase();
+  if (t.includes('lead_intel')) {
+    return Deno.env.get('OPENAI_INTEL_MODEL') || Deno.env.get('OPENAI_MODEL') || 'gpt-4.1';
+  }
+  if (t.includes('public_chat') || t.includes('concierge')) {
+    return Deno.env.get('OPENAI_CHAT_MODEL') || Deno.env.get('OPENAI_MODEL') || 'gpt-4.1';
+  }
+  return Deno.env.get('OPENAI_MODEL') || 'gpt-4.1';
+}
+
+function resolveGeminiModel(taskType: string): string {
+  const t = (taskType || '').toLowerCase();
+  if (t.includes('doc') || t.includes('extract') || t.includes('classify') || t.includes('lead_intel')) {
+    return Deno.env.get('GEMINI_INTEL_MODEL') || Deno.env.get('GEMINI_MODEL') || 'gemini-2.5-pro-preview-05-06';
+  }
+  return Deno.env.get('GEMINI_MODEL') || 'gemini-2.5-pro-preview-05-06';
+}
+
+function resolveAnthropicModel(taskType: string): string {
+  const t = (taskType || '').toLowerCase();
+  const coOwnerTask = t.includes('coowner') || t.includes('ops.coowner') || t.includes('ops.agent');
+  if (coOwnerTask) {
+    return Deno.env.get('ANTHROPIC_COOWNER_MODEL') || 'claude-opus-4-20250514';
+  }
+  if (t.includes('legal') || t.includes('compliance') || t.includes('admin_ops') || t.includes('lead_intel')) {
+    return Deno.env.get('ANTHROPIC_INTEL_MODEL') || Deno.env.get('ANTHROPIC_MODEL') || 'claude-sonnet-4-20250514';
+  }
+  return Deno.env.get('ANTHROPIC_MODEL') || 'claude-sonnet-4-20250514';
 }
 
 function maxTokensForTask(taskType: string): number {
@@ -255,15 +286,12 @@ Deno.serve(async (req) => {
     let out: { provider: string; model: string; text: string; raw: unknown };
     if (provider === 'openai') {
       const key = Deno.env.get('OPENAI_API_KEY') || '';
-      const model = Deno.env.get('OPENAI_MODEL') || 'gpt-4o';
+      const model = resolveOpenAiModel(taskType);
       if (!key) return json({ error: 'OPENAI_API_KEY missing' }, { status: 500 });
       out = await callOpenAI({ apiKey: key, model, messages, responseFormat });
     } else if (provider === 'anthropic') {
       const key = Deno.env.get('ANTHROPIC_API_KEY') || '';
-      const coOwnerTask = taskType.toLowerCase().includes('coowner');
-      const model =
-        Deno.env.get(coOwnerTask ? 'ANTHROPIC_COOWNER_MODEL' : 'ANTHROPIC_MODEL') ||
-        (coOwnerTask ? 'claude-opus-4-20250514' : 'claude-3-7-sonnet-latest');
+      const model = resolveAnthropicModel(taskType);
       if (!key) return json({ error: 'ANTHROPIC_API_KEY missing' }, { status: 500 });
       out = await callAnthropic({
         apiKey: key,
@@ -275,7 +303,7 @@ Deno.serve(async (req) => {
       });
     } else {
       const key = Deno.env.get('GEMINI_API_KEY') || '';
-      const model = Deno.env.get('GEMINI_MODEL') || 'gemini-2.0-flash';
+      const model = resolveGeminiModel(taskType);
       if (!key) return json({ error: 'GEMINI_API_KEY missing' }, { status: 500 });
       out = await callGemini({ apiKey: key, model, messages, images: body.images ?? [], responseFormat });
     }

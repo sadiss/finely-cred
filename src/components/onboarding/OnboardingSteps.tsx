@@ -1,6 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { ArrowLeft, Building2, CheckCircle2, Lock, Mail, Phone, User } from 'lucide-react';
-import { Button } from '../ui';
+import { Building2, CheckCircle2, Lock, Mail, Phone, User } from 'lucide-react';
 
 type StepProps = {
   next: () => void;
@@ -8,37 +7,6 @@ type StepProps = {
   data: any;
   update: (data: any) => void;
 };
-
-function StepNavFooter({ prev, onNext, nextLabel = 'Continue', nextDisabled }: {
-  prev?: () => void;
-  onNext: () => void;
-  nextLabel?: string;
-  nextDisabled?: boolean;
-}) {
-  return (
-    <div
-      data-fc-onboarding-nav="1"
-      className="fc-onboarding-step-nav sticky bottom-0 z-40 -mx-1 sm:-mx-2 px-1 sm:px-2 py-4 mt-6 bg-gradient-to-t from-fc-shell from-80% via-fc-shell/95 to-transparent border-t border-white/[0.08] pb-[max(0.75rem,env(safe-area-inset-bottom))]"
-    >
-      <div className="flex flex-col-reverse gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-4">
-        {prev ? (
-          <button
-            type="button"
-            onClick={prev}
-            className="inline-flex w-full sm:w-auto items-center justify-center gap-2 px-5 py-3.5 min-h-[48px] fc-light-glass-panel fc-light-chrome-panel rounded-xl hover:bg-white/[0.09] text-[10px] font-black uppercase tracking-widest text-white/70 hover:text-white transition-all"
-          >
-            <ArrowLeft size={14} /> Previous
-          </button>
-        ) : (
-          <div className="hidden sm:block sm:w-[140px]" aria-hidden />
-        )}
-        <Button onClick={onNext} disabled={nextDisabled} size="lg" className="w-full sm:w-auto min-h-[48px] sm:min-w-[200px]">
-          {nextLabel}
-        </Button>
-      </div>
-    </div>
-  );
-}
 
 export { AgentOperatingModelStep, AgentTierStep } from './AgentOperatingModelStep';
 
@@ -61,17 +29,9 @@ export function ProfileAndAccountStep({
   const [useMailing, setUseMailing] = useState(
     Boolean((data.address1 || '').trim() || (data.city || '').trim()),
   );
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const confirmPassword = data.confirmPassword || '';
   const passwordsMatch = !data.password || data.password === confirmPassword;
   const passwordOk = (data.password || '').length >= 8;
-
-  const canSubmit =
-    Boolean((data.name || '').trim()) &&
-    Boolean((data.email || '').trim()) &&
-    Boolean((data.phone || '').trim()) &&
-    passwordOk &&
-    passwordsMatch &&
-    !isBusy;
 
   return (
     <div className="space-y-8 sm:space-y-10 animate-in fade-in slide-in-from-bottom-8 duration-700 text-left min-w-0">
@@ -161,7 +121,7 @@ export function ProfileAndAccountStep({
             <input
               type="password"
               value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
+              onChange={(e) => update({ confirmPassword: e.target.value })}
               placeholder="Repeat password"
               className="w-full bg-fc-input border border-white/[0.08] rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-violet-500"
               autoComplete="new-password"
@@ -246,13 +206,6 @@ export function ProfileAndAccountStep({
       {error ? (
         <div className="p-4 rounded-2xl bg-red-500/10 border border-red-500/30 text-sm text-red-200">{error}</div>
       ) : null}
-
-      <StepNavFooter
-        prev={prev}
-        onNext={onSubmit}
-        nextLabel={isBusy ? 'Creating account…' : 'Create account & continue'}
-        nextDisabled={!canSubmit}
-      />
     </div>
   );
 }

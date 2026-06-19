@@ -6,7 +6,6 @@ import {
   ExternalLink,
   FileText,
   GitBranch,
-  Headphones,
   Landmark,
   Scale,
   Shield,
@@ -26,8 +25,6 @@ import { submitLeadCapture } from '../data/leadsRepo';
 import { MarketingConsentBlock } from '../components/fields/MarketingConsentBlock';
 import { findFreeGuideByTitleEffective, findFreeGuideBySlugOrIdEffective, listFreeGuidesEffective } from '../data/freeGuidesRepo';
 import { listPublicResourceVideos } from '../data/resourceVideosRepo';
-import { GuideAudioPlayer } from '../components/resources/GuideAudioPlayer';
-import { getGuideNarration } from '../resources/guideNarration';
 import { downloadFreeGuidePdf } from '../resources/downloadGuidePdf';
 import { getBlobUrl } from '../storage/getBlobUrl';
 import { ResourceVideoThumb } from '../components/resources/ResourceVideoThumb';
@@ -236,13 +233,6 @@ export default function ResourcesPage() {
   const emailOk = useMemo(() => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()), [email]);
   const phoneDigits = useMemo(() => phone.replace(/\D/g, ''), [phone]);
   const phoneOk = useMemo(() => phoneDigits.length >= 10 && phoneDigits.length <= 15, [phoneDigits]);
-
-  const [previewGuideId, setPreviewGuideId] = useState<string | null>(null);
-  const previewGuide = useMemo(() => freeGuides.find((g) => g.id === previewGuideId) ?? null, [freeGuides, previewGuideId]);
-  const previewNarration = useMemo(
-    () => (previewGuide ? getGuideNarration(previewGuide.id, previewGuide.title, previewGuide.sections) : null),
-    [previewGuide],
-  );
 
   const openLead = (interest: string) => {
     setLeadInterest(interest);
@@ -475,13 +465,6 @@ export default function ResourcesPage() {
                 <div className={`${FINELY_OS_ENTITY_BODY} text-sm leading-relaxed`}>{x.desc}</div>
                 <div className="flex flex-col gap-2">
                   <button
-                    type="button"
-                    onClick={() => setPreviewGuideId(previewGuideId === x.id ? null : x.id)}
-                    className={`w-full justify-center ${FINELY_OS_SECONDARY_BTN}`}
-                  >
-                    <Headphones size={14} /> {previewGuideId === x.id ? 'Hide audio' : 'Preview audio'}
-                  </button>
-                  <button
                     onClick={() => openLead(x.title)}
                     className={`${FINELY_OS_SUCCESS_BTN} w-full justify-center`}
                     title="Unlock via quick form"
@@ -490,9 +473,6 @@ export default function ResourcesPage() {
                     Request guide + session <ArrowRight size={14} />
                   </button>
                 </div>
-                {previewGuideId === x.id && previewNarration ? (
-                  <GuideAudioPlayer narration={previewNarration} autoPlayPreview />
-                ) : null}
               </div>
               )}
             />

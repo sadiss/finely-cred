@@ -20,6 +20,7 @@ import { FinelyNowDoThisStrip } from '../../components/tours/FinelyNowDoThisStri
 import { FinelyNoticedStrip } from '../../components/tours/FinelyNoticedStrip';
 import { buildDocumentsNoticedItems } from '../../lib/finelyProactiveSignals';
 import { listLettersByPartner } from '../../data/lettersRepo';
+import { listReportsByPartner } from '../../data/reportsRepo';
 import {
   FINELY_OS_PAGE,
   FINELY_OS_BACK_LINK,
@@ -74,16 +75,24 @@ export default function PartnerDocumentsPage() {
     () => (partner ? listLettersByPartner(partner.id).length : 0),
     [partner, version],
   );
+  const reportsCount = useMemo(
+    () => (partner ? listReportsByPartner(partner.id).length : 0),
+    [partner, version],
+  );
+  const legacyImportTotal = useMemo(
+    () => evidence.filter((e) => (e.tags ?? []).includes('legacy-import')).length + reportsCount + lettersCount,
+    [evidence, reportsCount, lettersCount],
+  );
   const idGateOk = useMemo(() => checkIdentityDocumentGate(evidence).ok, [evidence]);
 
   const docKpis = useMemo(
     () => [
-      { label: 'Files', value: String(evidenceCounts.total), hint: 'Total vault', accent: 'amber' as const },
-      { label: 'Screenshots', value: String(evidenceCounts.screenshots), hint: 'From reports', accent: 'violet' as const },
-      { label: 'Uploads', value: String(evidenceCounts.uploads), hint: 'PDFs & docs', accent: 'sky' as const },
-      { label: 'Processed', value: String(processed.length), hint: 'Doc intel', accent: 'emerald' as const },
+      { label: 'Vault files', value: String(evidenceCounts.total), hint: 'IDs & supporting docs', accent: 'amber' as const },
+      { label: 'Credit reports', value: String(reportsCount), hint: 'Reports hub', accent: 'emerald' as const },
+      { label: 'Letters', value: String(lettersCount), hint: 'Dispute & validation', accent: 'sky' as const },
+      { label: 'Processed', value: String(processed.length), hint: 'Doc intel', accent: 'violet' as const },
     ],
-    [evidenceCounts, processed.length],
+    [evidenceCounts, processed.length, reportsCount, lettersCount],
   );
 
   return (
@@ -132,6 +141,20 @@ export default function PartnerDocumentsPage() {
                 lettersCount,
               })}
             />
+
+            {legacyImportTotal > evidenceCounts.total ? (
+              <div className={`${FINELY_OS_NOTICE} text-sm`}>
+                Legacy import: {legacyImportTotal} total files across your account — {reportsCount} credit report(s) in{' '}
+                <button type="button" className="underline font-semibold" onClick={() => navigate('/portal/reports')}>
+                  Reports
+                </button>
+                , {lettersCount} letter(s) in{' '}
+                <button type="button" className="underline font-semibold" onClick={() => navigate('/portal/letters')}>
+                  Letters
+                </button>
+                , and {evidenceCounts.total} supporting file(s) in this vault.
+              </div>
+            ) : null}
 
             <FinelyNowDoThisStrip currentIndex={tab === 'vault' ? 1 : evidence.length > 0 ? 2 : 0} />
 

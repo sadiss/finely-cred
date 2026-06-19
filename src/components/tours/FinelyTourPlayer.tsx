@@ -18,18 +18,14 @@ import { FINELY_OS_ENTITY_BODY, FINELY_OS_ENTITY_VALUE, FINELY_OS_SECONDARY_BTN 
 
 
 type Props = {
-
   tour: SiteTourDefinition | null;
-
   open: boolean;
-
   onClose: () => void;
-
+  /** When false, hides MP3 narration and browser read-aloud (public site). */
+  allowVoice?: boolean;
 };
 
-
-
-export function FinelyTourPlayer({ tour, open, onClose }: Props) {
+export function FinelyTourPlayer({ tour, open, onClose, allowVoice = false }: Props) {
 
   const navigate = useNavigate();
 
@@ -72,7 +68,7 @@ export function FinelyTourPlayer({ tour, open, onClose }: Props) {
 
   useEffect(() => {
 
-    if (!open || !tour?.id) return;
+    if (!open || !tour?.id || !allowVoice) return;
 
     setNarrationPlaying(false);
 
@@ -118,7 +114,7 @@ export function FinelyTourPlayer({ tour, open, onClose }: Props) {
 
     };
 
-  }, [open, tour?.id, stepIdx]);
+  }, [open, tour?.id, stepIdx, allowVoice]);
 
 
 
@@ -268,7 +264,7 @@ export function FinelyTourPlayer({ tour, open, onClose }: Props) {
 
                 <p className="text-sm font-semibold opacity-70">Step {stepIdx + 1}: {step.label}</p>
 
-                {narrationAvailable ? (
+                {allowVoice && narrationAvailable ? (
 
                   <button
 
@@ -308,6 +304,7 @@ export function FinelyTourPlayer({ tour, open, onClose }: Props) {
 
                 ) : null}
 
+                {allowVoice ? (
                 <button
 
                   type="button"
@@ -323,6 +320,7 @@ export function FinelyTourPlayer({ tour, open, onClose }: Props) {
                   <Volume2 size={14} /> Read aloud
 
                 </button>
+                ) : null}
 
               </div>
 

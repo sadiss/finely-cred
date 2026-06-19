@@ -305,7 +305,7 @@ export default function AgentHubPage() {
               <div className="grid sm:grid-cols-2 gap-3">
                 <FinelyOsPaginatedStack
                   items={[...AGENCY_TIER_IDS]}
-                  pageSize={4}
+                  pageSize={6}
                   itemSpacingClassName="grid sm:grid-cols-2 gap-3"
                   renderItem={(id) => {
                     const t = getAgencyTierById(id);

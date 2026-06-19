@@ -72,13 +72,13 @@ export function buildLegacyMigrationFromSql(sql: string, sourceFile = 'finelyno_
     reportsByPartnerId.set(pid, (reportsByPartnerId.get(pid) ?? 0) + 1);
   }
 
-  const notesByUserId = new Map<string, string[]>();
+  const notesByUserId = new Map<string, Array<{ message: string; createdAt?: string }>>();
   for (const m of apmessages) {
     const uid = str(m.user_id);
     const msg = str(m.message);
     if (!uid || !msg) continue;
     const list = notesByUserId.get(uid) ?? [];
-    list.push(msg);
+    list.push({ message: msg, createdAt: str(m.created_at) || str(m.date) || undefined });
     notesByUserId.set(uid, list);
   }
 
@@ -115,9 +115,18 @@ export function buildLegacyMigrationFromSql(sql: string, sourceFile = 'finelyno_
 
     const appStatus = Number(user?.applicationstatus ?? 1);
     const journeyStage = mapLegacyApplicationStatus(appStatus) as PartnerJourneyStage;
-    const noteList = notesByUserId.get(uid) ?? [];
-    const docCount = docsByPartnerId.get(uid) ?? 0;
-    const reportCount = reportsByPartnerId.get(uid) ?? 0;
+    const keys = partnerFileKeys(infoId, uid);
+    const noteList = [...keys].flatMap((k) => notesByUserId.get(k) ?? []);
+    // de-dupe identical messages from dual key lookup
+    const seenNotes = new Set<string>();
+    const uniqueNotes = noteList.filter((n) => {
+      const key = `${n.createdAt}|${n.message}`;
+      if (seenNotes.has(key)) return false;
+      seenNotes.add(key);
+      return true;
+    });
+    const docCount = [...keys].reduce((n, k) => n + (docsByPartnerId.get(k) ?? 0), 0);
+    const reportCount = [...keys].reduce((n, k) => n + (reportsByPartnerId.get(k) ?? 0), 0);
     const letterCount = lettersByUserId.get(uid) ?? 0;
     const legacyLetters = buildLegacyLettersForPartner(uid, generateLetters);
 
@@ -134,28 +143,29 @@ export function buildLegacyMigrationFromSql(sql: string, sourceFile = 'finelyno_
       journeyStage,
       docCount,
       reportCount,
-      noteCount: noteList.length,
+      noteCount: uniqueNotes.length,
       letterCount,
       dateSignedUp: str(pi.date_signedup),
     });
 
     if (!real || !email) continue;
 
-    const documents = docFiles
-      .filter((d) => str(d.partner_id) === uid)
-      .map((d) => ({
-        fileName: str(d.file_name),
-        uploadedAt: str(d.created_at),
-      }));
+    const documents = filesForPartner(docFiles, keys).map((d) => ({
+      fileName: str(d.file_name),
+      uploadedAt: str(d.created_at),
+    }));
 
-    const reports = htmlFiles
-      .filter((h) => str(h.partner_id) === uid && Number(h.is_deleted) !== 1)
-      .map((h) => ({
-        fileName: str(h.file_name),
-        uploadedAt: str(h.created_at),
-      }));
+    const reports = filesForPartner(htmlFiles, keys, (h) => Number(h.is_deleted) !== 1).map((h) => ({
+      fileName: str(h.file_name),
+      uploadedAt: str(h.created_at),
+    }));
 
-    exportPartners.push({
+    const legacyNoteEntries = uniqueNotes.map((n) => ({
+      message: n.message,
+      createdAt: n.createdAt,
+    }));
+
+    const exportPartnerDraft: LegacyPartnerExportV1['partners'][0] = {
       externalId: `laravel:uid:${uid}`,
       fullName,
       email,
@@ -183,12 +193,15 @@ export function buildLegacyMigrationFromSql(sql: string, sourceFile = 'finelyno_
         legacyReportCount: reportCount,
         legacyLetterCount: letterCount,
       },
-      notes: noteList.length ? noteList.join('\n\n---\n\n') : null,
-      tasks: buildRestoreTasks(journeyStage, appStatus),
+      notes: uniqueNotes.length ? uniqueNotes.map((n) => n.message).join('\n\n---\n\n') : null,
+      legacyNoteEntries,
       legacyDocuments: documents,
       legacyReports: reports,
       legacyLetters: legacyLetters.length ? legacyLetters : undefined,
-    });
+      tasks: buildLegacyMigrationTasks(journeyStage, appStatus, undefined),
+    };
+    exportPartnerDraft.tasks = buildLegacyMigrationTasks(journeyStage, appStatus, exportPartnerDraft);
+    exportPartners.push(exportPartnerDraft);
   }
 
   const baseExport: LegacyPartnerExportV1 = {
@@ -214,9 +227,38 @@ export function buildLegacyMigrationFromSql(sql: string, sourceFile = 'finelyno_
   };
 }
 
-function buildRestoreTasks(stage: PartnerJourneyStage, appStatus: number) {
+function partnerFileKeys(infoId: string, uid: string): Set<string> {
+  return new Set([infoId, uid].filter(Boolean));
+}
+
+function filesForPartner<T extends { partner_id?: unknown }>(
+  rows: T[],
+  keys: Set<string>,
+  extraFilter?: (row: T) => boolean,
+): T[] {
+  return rows.filter((row) => keys.has(str(row.partner_id)) && (extraFilter ? extraFilter(row) : true));
+}
+
+export function buildLegacyMigrationTasks(
+  stage: PartnerJourneyStage | null | undefined,
+  appStatus: number,
+  partner?: LegacyPartnerExportV1['partners'][0],
+): NonNullable<LegacyPartnerExportV1['partners'][0]['tasks']> {
   const tasks: NonNullable<LegacyPartnerExportV1['partners'][0]['tasks']> = [];
-  if (appStatus < 6) {
+  const reportCount = partner?.legacyReports?.length ?? Number(partner?.journeySignals?.legacyReportCount ?? 0);
+  const docCount = partner?.legacyDocuments?.length ?? Number(partner?.journeySignals?.legacyDocCount ?? 0);
+  const letterCount = partner?.legacyLetters?.length ?? Number(partner?.journeySignals?.legacyLetterCount ?? 0);
+
+  tasks.push({
+    title: 'Review imported legacy client profile + notes',
+    kind: 'general',
+    stage: 'intake',
+    priority: 'high',
+    status: 'pending',
+    tags: ['legacy-import'],
+  });
+
+  if (appStatus < 6 || docCount < 2) {
     tasks.push({
       title: 'Upload remaining identity documents',
       kind: 'upload_document',
@@ -226,27 +268,152 @@ function buildRestoreTasks(stage: PartnerJourneyStage, appStatus: number) {
       tags: ['legacy-import'],
     });
   }
-  if (stage === 'letters' || stage === 'mailing') {
+
+  if (reportCount === 0) {
     tasks.push({
-      title: 'Review dispute letters from legacy system',
+      title: 'Re-upload credit reports from legacy archive (Experian / Equifax / TransUnion)',
+      kind: 'upload_document',
+      stage: 'reports',
+      priority: 'urgent',
+      status: 'pending',
+      notes: 'Legacy HTML/PDF credit reports were indexed but files must be re-attached from the old server backup.',
+      tags: ['legacy-import', 'credit-report'],
+    });
+  } else {
+    tasks.push({
+      title: `Re-attach ${reportCount} legacy credit report file(s) from archive`,
+      kind: 'upload_document',
+      stage: 'reports',
+      priority: 'high',
+      status: 'pending',
+      tags: ['legacy-import', 'credit-report'],
+    });
+    tasks.push({
+      title: 'Parse imported credit reports + refresh dispute candidates',
+      kind: 'review_results',
+      stage: 'reports',
+      priority: 'high',
+      status: 'pending',
+      tags: ['legacy-import'],
+    });
+  }
+
+  if (letterCount > 0 || stage === 'letters' || stage === 'mailing') {
+    tasks.push({
+      title: 'Review dispute letters imported from legacy system',
       kind: 'mail_letter',
+      stage: 'disputes',
+      priority: 'high',
+      status: 'pending',
+      tags: ['legacy-import', 'dispute-letter'],
+    });
+    tasks.push({
+      title: 'Verify bureau + creditor on each legacy letter',
+      kind: 'review_results',
       stage: 'disputes',
       priority: 'normal',
       status: 'pending',
       tags: ['legacy-import'],
     });
   }
+
+  if (docCount > 0) {
+    tasks.push({
+      title: `Classify ${docCount} legacy uploaded document(s) by type (report / letter / ID / collection)`,
+      kind: 'review_results',
+      stage: 'evidence',
+      priority: 'high',
+      status: 'pending',
+      tags: ['legacy-import'],
+    });
+  }
+
+  if (stage === 'analysis' || stage === 'evidence' || appStatus >= 4) {
+    tasks.push({
+      title: 'Build per-tradeline evidence checklist from legacy files',
+      kind: 'review_results',
+      stage: 'evidence',
+      priority: 'normal',
+      status: 'pending',
+      tags: ['legacy-import'],
+    });
+  }
+
+  if (appStatus >= 8 || stage === 'mailing') {
+    tasks.push({
+      title: 'Log certified mail tracking from legacy round',
+      kind: 'follow_up',
+      stage: 'disputes',
+      priority: 'normal',
+      status: 'pending',
+      tags: ['legacy-import'],
+    });
+  }
+
   if (appStatus >= 10) {
     tasks.push({
-      title: 'Follow up on bureau response (35-day window)',
+      title: 'Follow up on bureau response (35-day reinvestigation window)',
       kind: 'follow_up',
+      stage: 'disputes',
+      priority: 'high',
+      status: 'pending',
+      tags: ['legacy-import', 'bureau_timer'],
+    });
+    tasks.push({
+      title: 'Prepare round-2 disputes for unresolved tradelines',
+      kind: 'mail_letter',
       stage: 'disputes',
       priority: 'high',
       status: 'pending',
       tags: ['legacy-import'],
     });
   }
+
+  if (partner?.notes?.trim()) {
+    tasks.push({
+      title: 'Review staff notes imported from previous Finely Cred site',
+      kind: 'general',
+      stage: 'intake',
+      priority: 'high',
+      status: 'pending',
+      notes: 'See pinned timeline notes from legacy apmessage import.',
+      tags: ['legacy-import', 'legacy-notes'],
+    });
+  }
+
+  if (partner?.lane === 'debt_kill') {
+    tasks.push({
+      title: 'Inventory collection accounts from legacy uploads',
+      kind: 'review_results',
+      stage: 'debt',
+      priority: 'high',
+      status: 'pending',
+      tags: ['legacy-import', 'debt_os'],
+    });
+    tasks.push({
+      title: 'Send validation requests for open collection items',
+      kind: 'mail_letter',
+      stage: 'debt',
+      priority: 'high',
+      status: 'pending',
+      tags: ['legacy-import'],
+    });
+  }
+
+  tasks.push({
+    title: 'Legacy migration QA — confirm reports, letters, notes, and vault counts match export',
+    kind: 'review_results',
+    stage: 'complete',
+    priority: 'normal',
+    status: 'pending',
+    tags: ['legacy-import', 'migration-qa'],
+  });
+
   return tasks;
+}
+
+function buildRestoreTasks(stage: PartnerJourneyStage, appStatus: number, partner?: LegacyPartnerExportV1['partners'][0]) {
+  return buildLegacyMigrationTasks(stage, appStatus, partner);
 }
 
 /** CSV for admin audit download */

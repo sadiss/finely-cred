@@ -82,7 +82,7 @@ export default function LaunchHelpCenterPage() {
     <PageShell
       badge={isAdmin ? 'Admin' : 'Help'}
       title={isAdmin ? 'Launch OS Help Center' : 'Help center — plain English playbooks'}
-      subtitle="Every workflow in short steps. Use Watch how on any page, or preview tours here."
+      subtitle="Every workflow in short steps. Open playbooks here or ask in chat on any page."
     >
       <div className={`${FINELY_OS_PAGE} fc-senior-simple space-y-8`}>
         <FinelyNoticedStrip

@@ -4,6 +4,8 @@
  * every item maps to a real gap in the file/ops with one obvious button.
  */
 
+import { PUBLIC_DEMO_VIDEOS_ENABLED } from '../config/publicMediaPolicy';
+
 export type FinelyNoticedTone = 'info' | 'warn' | 'success';
 
 export type FinelyNoticedItem = {
@@ -996,9 +998,11 @@ export function buildHelpCenterNoticedItems(input: HelpCenterSignalInput): Finel
       {
         id: 'help-search',
         tone: 'info',
-        text: 'Open the matching playbook, then tap Watch how for a video walkthrough.',
-        actionLabel: 'Video tours',
-        to: '/resources#videos',
+        text: PUBLIC_DEMO_VIDEOS_ENABLED
+          ? 'Open the matching playbook, then tap Watch how for a video walkthrough.'
+          : 'Open the matching playbook for step-by-step instructions, or ask in chat.',
+        actionLabel: PUBLIC_DEMO_VIDEOS_ENABLED ? 'Video tours' : 'Playbooks',
+        to: PUBLIC_DEMO_VIDEOS_ENABLED ? '/resources#videos' : '/help-center',
       },
     ];
   }

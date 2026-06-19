@@ -29,6 +29,8 @@ type AgentSplitCalculatorProps = {
   onChangeSampleFee?: (cents: number) => void;
   compact?: boolean;
   showLeverControls?: boolean;
+  /** When true, levers scroll inside a short panel instead of expanding the page. */
+  leversScrollable?: boolean;
 };
 
 export function AgentSplitCalculator({
@@ -38,6 +40,7 @@ export function AgentSplitCalculator({
   onChangeSampleFee,
   compact = false,
   showLeverControls = true,
+  leversScrollable = false,
 }: AgentSplitCalculatorProps) {
   const split = useMemo(() => computeAgentRevenueSplit(model), [model]);
 
@@ -137,7 +140,11 @@ export function AgentSplitCalculator({
           <div className={`flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL}`}>
             <Sparkles size={12} /> Value levers — who does the work?
           </div>
-          <div className="grid md:grid-cols-2 gap-2 max-h-72 overflow-y-auto pr-1 fc-scroll-area">
+          <div
+            className={`grid sm:grid-cols-2 lg:grid-cols-3 gap-2.5 ${
+              leversScrollable ? 'max-h-72 overflow-y-auto pr-1 fc-scroll-area' : ''
+            }`}
+          >
             {PLATFORM_VALUE_LEVERS.map((lever) => {
               const performer = resolveLeverPerformer(model, lever.id);
               return (

@@ -326,7 +326,7 @@ export async function analyzeProspectsWithOpenAI(args: {
   target: LeadIntelTarget;
   prospects: AnalyzeInput[];
 }): Promise<Array<{ url: string; summary: string; outreachHook: string; outreachEmail: string; objection: string; nextStep: string }>> {
-  const model = args.model || 'gpt-4o-mini';
+  const model = args.model || Deno.env.get('OPENAI_INTEL_MODEL') || Deno.env.get('OPENAI_MODEL') || 'gpt-4.1';
   const payload = args.prospects.slice(0, 8).map((p) => ({
     title: p.title,
     url: p.url,

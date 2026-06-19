@@ -1427,7 +1427,7 @@ function AppInner() {
                 </div>
                 <div className="flex items-center justify-end gap-2 shrink-0">
                     {showPublicThemeToggle ? <FinelyThemeToggle compact /> : null}
-                    <button type="button" onClick={() => handleNavigate('onboarding')} className="fc-nav-pill-ghost">
+                    <button type="button" onClick={() => handleNavigate('/login')} className="fc-nav-pill-ghost">
                       Login
                     </button>
                   {/* Cart */}
@@ -1447,7 +1447,7 @@ function AppInner() {
 
                   {/* CTA Button - Desktop */}
                   <div className="hidden lg:block">
-                    <Button onClick={() => handleNavigate('onboarding')} size="sm">
+                    <Button onClick={() => handleNavigate('/onboarding')} size="sm">
                       Get Started
                     </Button>
                   </div>
@@ -1457,8 +1457,11 @@ function AppInner() {
             </div>
           </nav>
 
-          {/* Public AI concierge (homepage + public routes) */}
-          {isFeatureEnabled('publicChat') ? <PublicChatWidget /> : null}
+      {/* Public AI concierge (homepage + public routes) — hidden during auth portal so mobile taps reach signup controls */}
+      {isFeatureEnabled('publicChat') &&
+      !['/onboarding', '/login', '/signup', '/forgot-password', '/reset-password'].includes(location.pathname) ? (
+        <PublicChatWidget />
+      ) : null}
         </>
       )}
 
@@ -1522,7 +1525,7 @@ function AppInner() {
           path="/login"
           element={
             <LandingRoute
-              onGetStarted={() => navigate('/login?auth=login')}
+              onGetStarted={() => navigate('/signup')}
               onViewTradelines={() => navigate('/tradelines')}
               onNavigate={(v) => navigate(routeFromView(v))}
               addToCart={addToCart}

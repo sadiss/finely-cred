@@ -407,7 +407,7 @@ export default function AgentsPage() {
             </div>
             <FinelyOsPaginatedStack
               items={publicAgencyTiers}
-              pageSize={4}
+              pageSize={6}
               itemSpacingClassName="grid sm:grid-cols-2 lg:grid-cols-4 gap-3"
               renderItem={(tier, idx) => {
                 const accents = ['emerald', 'sky', 'violet', 'amber'] as const;

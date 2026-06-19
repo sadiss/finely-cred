@@ -66,12 +66,11 @@ export function LeadIntelCopilot({ target, query, results, selectedUrls, importe
           messages: history.map(({ role, content }) => ({ role, content })),
           userMessage: trimmed,
           systemPromptBase: `You are Finely Cred Lead Intelligence copilot for admin prospecting. Be concise and actionable. Current session context:\n${contextBlock}`,
-          taskType: 'admin_ops',
+          taskType: 'lead_intel',
           context: {
             surface: 'lead_intel',
             goal: `Lead intel • target: ${target} • query: ${query.trim() || '(none)'}`,
           },
-          providerHint: 'openai',
         });
         setMessages((prev) => [
           ...prev,

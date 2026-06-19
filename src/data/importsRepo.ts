@@ -5,6 +5,7 @@ import { createPartner, findPartnerByImportExternalId, adminUpsertPartner } from
 import { createTask } from './tasksRepo';
 import { importLegacyPartnerArtifacts } from './legacyPartnerArtifactsImport';
 import { seedLegacyPartnerNotes } from './legacyPartnerNotesImport';
+import { seedLegacyPartnerWorkPipeline } from '../lib/legacyMigrationWork';
 import { addAuditEvent } from './auditRepo';
 
 const KEY = 'finely.imports.v1';
@@ -61,12 +62,20 @@ export async function importLegacyPartners(args: {
         if (args.dryRun) continue;
 
         const notesText = p.notes ? String(p.notes).trim() : '';
-        if (notesText) {
-          if (!exists.notes) {
+        if (notesText || (p.legacyNoteEntries?.length ?? 0)) {
+          if (notesText && (!exists.notes || notesText.length > String(exists.notes).trim().length)) {
             await adminUpsertPartner({ ...exists, notes: notesText });
           }
-          seedLegacyPartnerNotes({ partnerId: exists.id, notesText, externalId });
+          seedLegacyPartnerNotes({
+            partnerId: exists.id,
+            notesText,
+            noteEntries: p.legacyNoteEntries,
+            externalId,
+            forceRefresh: Boolean(p.legacyNoteEntries?.length),
+          });
         }
+
+        seedLegacyPartnerWorkPipeline({ partnerId: exists.id, exportPartner: p });
 
         if (args.importArtifacts) {
           const artifactResult = await importLegacyPartnerArtifacts({
@@ -104,13 +113,21 @@ export async function importLegacyPartners(args: {
       });
       batch.createdPartnerIds.push(created.id);
 
-      if (p.notes) {
-        const notesText = String(p.notes).trim();
+      seedLegacyPartnerWorkPipeline({ partnerId: created.id, exportPartner: p });
+
+      if (p.notes || (p.legacyNoteEntries?.length ?? 0)) {
+        const notesText = String(p.notes || '').trim();
         await adminUpsertPartner({
           ...created,
-          notes: notesText,
+          notes: notesText || created.notes,
         });
-        seedLegacyPartnerNotes({ partnerId: created.id, notesText, externalId });
+        seedLegacyPartnerNotes({
+          partnerId: created.id,
+          notesText,
+          noteEntries: p.legacyNoteEntries,
+          externalId,
+          forceRefresh: Boolean(p.legacyNoteEntries?.length),
+        });
         addAuditEvent({
           partnerId: created.id,
           actorType: 'system',
@@ -145,6 +162,7 @@ export async function importLegacyPartners(args: {
           exportPartner: p,
           dryRun: false,
         });
+        seedLegacyPartnerWorkPipeline({ partnerId: created.id, exportPartner: p });
         if (batch.artifacts) {
           batch.artifacts.evidenceCreated += artifactResult.evidenceCreated;
           batch.artifacts.reportsCreated += artifactResult.reportsCreated;
@@ -221,14 +239,21 @@ export async function importLegacyArtifactsForExistingPartners(args: {
         exportPartner: p,
         dryRun: args.dryRun,
       });
-      if (!args.dryRun && p.notes) {
-        const notesText = String(p.notes).trim();
-        if (notesText) {
-          if (!existing.notes) {
-            await adminUpsertPartner({ ...existing, notes: notesText });
-          }
-          seedLegacyPartnerNotes({ partnerId: existing.id, notesText, externalId });
+      if (!args.dryRun) {
+        seedLegacyPartnerWorkPipeline({ partnerId: existing.id, exportPartner: p });
+      }
+      if (!args.dryRun && (p.notes || (p.legacyNoteEntries?.length ?? 0))) {
+        const notesText = String(p.notes || '').trim();
+        if (notesText && (!existing.notes || notesText.length > String(existing.notes).trim().length)) {
+          await adminUpsertPartner({ ...existing, notes: notesText });
         }
+        seedLegacyPartnerNotes({
+          partnerId: existing.id,
+          notesText,
+          noteEntries: p.legacyNoteEntries,
+          externalId,
+          forceRefresh: true,
+        });
       }
       batch.artifacts!.evidenceCreated += artifactResult.evidenceCreated;
       batch.artifacts!.reportsCreated += artifactResult.reportsCreated;

@@ -1,16 +1,18 @@
 import React, { useMemo, useState } from 'react';
-import { Film, MessageCircle, Mic, MicOff, Volume2, Users } from 'lucide-react';
+import { Film, MessageCircle, Users } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 import { resolveFinelyPageContext, finelyBrainOrchestrate, pickPersonaForRoute } from '../../lib/finelyBrain/finelyBrainOrchestrate';
 import { canShowPublicDemoVideos } from '../../config/publicMediaPolicy';
+import { isAdminVoiceSurface } from '../../lib/publicVoicePolicy';
 import { FinelyTourPlayer } from './FinelyTourPlayer';
-import { useFinelyVoiceInput, speakFinelyText } from '../../hooks/useFinelyVoiceInput';
 import { appendAiActionAudit } from '../../data/aiActionAuditLog';
 import { openPublicChat } from '../../lib/publicChatEvents';
 import { FINELY_OS_PRIMARY_BTN, FINELY_OS_SECONDARY_BTN } from '../../features/os/finelyOsLightUi';
 
+/** Admin-only preview strip — public Ask Finely / Watch how live in PublicChatWidget. */
 export function FinelyLaunchHelpStrip() {
   const { pathname } = useLocation();
+  const isAdmin = pathname.startsWith('/admin');
   const ctx = useMemo(() => resolveFinelyPageContext(pathname), [pathname]);
   const [tourOpen, setTourOpen] = useState(false);
   const [askOpen, setAskOpen] = useState(false);
@@ -18,26 +20,9 @@ export function FinelyLaunchHelpStrip() {
   const [askReply, setAskReply] = useState<string | null>(null);
   const [seniorMode, setSeniorMode] = useState(true);
 
-  const show =
-    pathname.startsWith('/admin') ||
-    pathname.startsWith('/portal') ||
-    pathname.startsWith('/business') ||
-    pathname.startsWith('/credit-specialist') ||
-    pathname.startsWith('/resources') ||
-    pathname.startsWith('/start-here') ||
-    pathname.startsWith('/help-center') ||
-    pathname.startsWith('/affiliate') ||
-    pathname.startsWith('/fundability-readiness') ||
-    pathname.startsWith('/personal-credit') ||
-    pathname.startsWith('/enlightenment-session') ||
-    pathname.startsWith('/consultation') ||
-    pathname.startsWith('/onboarding') ||
-    pathname === '/';
+  if (!isAdmin) return null;
 
-  const voice = useFinelyVoiceInput((text) => setAskInput(text));
-
-  if (!show) return null;
-
+  const voiceEnabled = isAdminVoiceSurface(pathname);
   const showTourVideo = canShowPublicDemoVideos(pathname) && Boolean(ctx.tour);
 
   const runAsk = () => {
@@ -93,31 +78,11 @@ export function FinelyLaunchHelpStrip() {
                   if (e.key === 'Enter') runAsk();
                 }}
               />
-              {voice.supported ? (
-                <button
-                  type="button"
-                  className={`${FINELY_OS_SECONDARY_BTN} !px-3`}
-                  title={voice.listening ? 'Stop listening' : 'Speak your question'}
-                  onClick={() => (voice.listening ? voice.stop() : voice.start())}
-                >
-                  {voice.listening ? <MicOff size={18} /> : <Mic size={18} />}
-                </button>
-              ) : null}
             </div>
             <div className="flex flex-wrap gap-2">
               <button type="button" className={`flex-1 ${FINELY_OS_PRIMARY_BTN} !py-3 !text-sm`} onClick={runAsk}>
                 Get answer
               </button>
-              {askReply ? (
-                <button
-                  type="button"
-                  className={FINELY_OS_SECONDARY_BTN}
-                  title="Read answer aloud"
-                  onClick={() => speakFinelyText(askReply)}
-                >
-                  <Volume2 size={16} />
-                </button>
-              ) : null}
             </div>
             {askReply ? <p className="text-base leading-relaxed opacity-90">{askReply}</p> : null}
             <button
@@ -136,7 +101,7 @@ export function FinelyLaunchHelpStrip() {
       </div>
 
       {showTourVideo && ctx.tour ? (
-      <FinelyTourPlayer tour={ctx.tour} open={tourOpen} onClose={() => setTourOpen(false)} />
+      <FinelyTourPlayer tour={ctx.tour} open={tourOpen} onClose={() => setTourOpen(false)} allowVoice={voiceEnabled} />
       ) : null}
     </>
   );

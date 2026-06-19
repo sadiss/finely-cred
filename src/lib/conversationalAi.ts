@@ -2,10 +2,12 @@ import { supabase, isSupabaseConfigured } from './supabaseClient';
 import { callAiGateway, callPublicAiGateway, type AiGatewayMessage } from './aiClient';
 import { isFeatureEnabled } from '../data/settingsRepo';
 import { routeKnowledgeForQuery, routeKnowledgeForPath } from './knowledgeBaseRouter';
+import { resolveAiProviderHint } from './aiTaskRouting';
 import { guardAiChatOutput } from './complianceEngine';
 import type { RetrievedKnowledgeChunk } from '../knowledge/retrieveKnowledge';
 import { suggestFollowUps } from '../knowledge/retrieveKnowledge';
 import type { AgentPersonaId } from '../domain/agentPersonas';
+import type { ChatLocale } from './publicChatI18n';
 
 export type ConversationalAiSurface = 'communication_hub' | 'public_homepage' | 'public_widget' | 'lead_intel';
 
@@ -19,7 +21,7 @@ export type ConversationalAiContext = {
   personaId?: AgentPersonaId;
   /** Current route for path-aware KB (Phase 34). */
   pathname?: string;
-  locale?: 'en' | 'ht' | 'fr';
+  locale?: ChatLocale;
   conversationalAddendum?: string;
 };
 
@@ -84,6 +86,8 @@ export async function converseWithFinelyAi(args: {
 
   const canUsePublicGateway = isPublicSurface && isFeatureEnabled('aiGateway') && isSupabaseConfigured;
 
+  const providerHint = resolveAiProviderHint(args.taskType, args.providerHint);
+
   if (canUsePublicGateway) {
     try {
       const prior = args.messages.filter((m) => m.role !== 'system');
@@ -96,7 +100,7 @@ export async function converseWithFinelyAi(args: {
         taskType: 'public_chat',
         messages: [{ role: 'system', content: system }, ...withUser],
         context: args.context as Record<string, unknown>,
-        providerHint: args.providerHint ?? 'openai',
+        providerHint,
       });
       return {
         text: guardAiChatOutput(res.text || '—'),
@@ -126,7 +130,7 @@ export async function converseWithFinelyAi(args: {
         taskType: args.taskType,
         messages: [{ role: 'system', content: system }, ...withUser],
         context: args.context as Record<string, unknown>,
-        providerHint: args.providerHint ?? 'openai',
+        providerHint,
       });
       return {
         text: guardAiChatOutput(res.text || '—'),

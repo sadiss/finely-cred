@@ -83,6 +83,15 @@ export default function DisclaimerPage() {
             </p>
           </section>
 
+          <section id="debt" className={`space-y-3 ${FINELY_OS_ENTITY_BODY}`}>
+            <h2 className={`${FINELY_OS_ENTITY_VALUE} text-base`}>Debt, Collections & Validation Workflows</h2>
+            <p>
+              Tools for debt validation, collection responses, and related correspondence are educational workflow aids only.
+              They do not create an attorney-client relationship and do not replace licensed legal counsel. You remain responsible
+              for court deadlines, service requirements, and any decisions to pay, settle, or litigate.
+            </p>
+          </section>
+
           <section className={`space-y-3 ${FINELY_OS_ENTITY_BODY}`}>
             <h2 className={`${FINELY_OS_ENTITY_VALUE} text-base`}>Contact</h2>
             <p>

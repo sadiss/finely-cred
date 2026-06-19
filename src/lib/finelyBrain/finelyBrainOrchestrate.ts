@@ -1,5 +1,6 @@
 import { findPlatformSopForRoute } from '../../domain/platformSops';
 import { findTourForPath, getTourById } from '../../config/tourManifest';
+import { PUBLIC_DEMO_VIDEOS_ENABLED } from '../../config/publicMediaPolicy';
 import type { AgentPersonaId } from '../../domain/agentPersonas';
 import {
   searchFinelyKnowledge,
@@ -38,7 +39,7 @@ export function resolveFinelyPageContext(pathname: string): FinelyPageContext {
   const tour = sop?.relatedTourId ? getTourById(sop.relatedTourId) : findTourForPath(pathname);
   const prompts = [
     sop ? `How do I: ${sop.title}?` : 'What is this page for?',
-    tour ? `Play video: ${tour.title}` : 'Show me a video tour',
+    PUBLIC_DEMO_VIDEOS_ENABLED && tour ? `Play video: ${tour.title}` : 'Explain step by step in plain English',
     'Explain step by step in plain English',
   ];
   return { pathname, sop, tour, personaId: pickPersonaForRoute(pathname), suggestedPrompts: prompts };
@@ -83,7 +84,8 @@ export function buildFinelyBrainPrompt(input: FinelyBrainInput, hits: FinelyKnow
   return [
     'You are Finely, the unified concierge for Finely Cred. Educational only — never legal advice.',
     senior,
-    'Always prefer the operating knowledge below and cite it by name. If a video tour exists, offer "Watch how".',
+    'Always prefer the operating knowledge below and cite it by name.',
+    PUBLIC_DEMO_VIDEOS_ENABLED ? 'If a video tour exists, offer "Watch how".' : 'Do not mention video tours — they are not public yet.',
     '',
     formatFinelyKnowledgeForPrompt(hits),
     '',
@@ -103,7 +105,7 @@ export function finelyBrainOrchestrate(input: FinelyBrainInput): FinelyBrainResu
   const citations: FinelyBrainCitation[] = hits.map((h) => ({ id: h.id, title: h.title, route: h.route, source: h.source }));
   const msg = input.userMessage.toLowerCase();
 
-  if (msg.includes('video') || msg.includes('watch')) {
+  if (PUBLIC_DEMO_VIDEOS_ENABLED && (msg.includes('video') || msg.includes('watch'))) {
     return {
       reply: ctx.tour
         ? `Tap "Watch how" to play: ${ctx.tour.title}. It walks through each step slowly with captions.`
@@ -115,9 +117,20 @@ export function finelyBrainOrchestrate(input: FinelyBrainInput): FinelyBrainResu
     };
   }
 
+  if (msg.includes('video') || msg.includes('watch')) {
+    return {
+      reply: ctx.sop
+        ? `${ctx.sop.title}. ${ctx.sop.whenToUse} Follow the numbered steps on this page, or ask me to walk through one step at a time.`
+        : 'Video walkthroughs are coming soon. Tell me what you are trying to do and I will guide you step by step.',
+      personaId: ctx.personaId,
+      citations,
+      sopId: ctx.sop?.id,
+    };
+  }
+
   if (ctx.sop) {
     const steps = ctx.sop.steps.map((s) => `${s.order}. ${s.label}`).join('  ');
-    const watch = ctx.tour ? ' Want to watch a short video? Tap "Watch how".' : '';
+    const watch = PUBLIC_DEMO_VIDEOS_ENABLED && ctx.tour ? ' Want to watch a short video? Tap "Watch how".' : '';
     return {
       reply: `${ctx.sop.title}. ${ctx.sop.whenToUse}\nSteps: ${steps}.${watch}`,
       personaId: ctx.personaId,
@@ -130,7 +143,7 @@ export function finelyBrainOrchestrate(input: FinelyBrainInput): FinelyBrainResu
   const top = hits[0];
   return {
     reply: top
-      ? `${top.title}: ${top.snippet}${ctx.tour ? ' Ask "watch how" for a video on this page.' : ''}`
+      ? `${top.title}: ${top.snippet}${PUBLIC_DEMO_VIDEOS_ENABLED && ctx.tour ? ' Ask "watch how" for a video on this page.' : ''}`
       : 'Tell me what you are trying to do — fix credit, upload a report, or refer someone — and I will guide you step by step.',
     personaId: ctx.personaId,
     citations,

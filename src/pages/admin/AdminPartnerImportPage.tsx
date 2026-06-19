@@ -9,12 +9,13 @@ import { getPartner, listPartners } from '../../data/partnersRepo';
 import type { Partner } from '../../domain/partners';
 import { createInvite, getInvite, listInvitesByPartner, upsertInvite } from '../../data/invitesRepo';
 import { isFeatureEnabled } from '../../data/settingsRepo';
-import { seedLegacyReferralAttributions } from '../../data/legacyPartnerArtifactsImport';
+import { seedLegacyReferralAttributions, formatLegacyArtifactImportSummary } from '../../data/legacyPartnerArtifactsImport';
 import { listAffiliatesByTenant } from '../../data/affiliateRepo';
 import { FINELY_TENANT_ID } from '../../domain/tenants';
 import { FinelyOsPageFooter } from '../../features/os/FinelyOsPageFooter';
 import { buildLegacyMigrationFromSql, auditRowsToCsv, type LegacyMigrationAuditResult } from '../../lib/legacyMigrationExport';
 import { assessLegacyMigrationSignOff } from '../../lib/legacyMigrationSignOff';
+import { formatLegacyArtifactBreakdown, summarizeLegacyExportArtifacts } from '../../lib/legacyArtifactBreakdown';
 import bundledExport from '../../../data/legacy-migration/legacy-partners-export-v1.json';
 import {
   FINELY_OS_PAGE,
@@ -100,11 +101,14 @@ export default function AdminPartnerImportPage() {
 
   const artifactPreview = useMemo(() => {
     const partners = parsed?.partners ?? [];
+    const classified = summarizeLegacyExportArtifacts(partners);
     return {
       letters: partners.reduce((n, p) => n + (p.legacyLetters?.length ?? 0), 0),
       docs: partners.reduce((n, p) => n + (p.legacyDocuments?.length ?? 0), 0),
       reports: partners.reduce((n, p) => n + (p.legacyReports?.length ?? 0), 0),
       business: partners.filter((p) => p.legacyBusiness?.businessName || p.legacyBusiness?.ein).length,
+      classified,
+      classifiedSummary: formatLegacyArtifactBreakdown(classified),
     };
   }, [parsed]);
 
@@ -383,9 +387,7 @@ export default function AdminPartnerImportPage() {
                       setNotice(
                         `Dry run OK — would import ${batch.createdPartnerIds.length}/${parsed.partners.length} partner(s). ` +
                           `${batch.errors.length ? `Skipped/errors: ${batch.errors.length}.` : 'No conflicts detected.'}` +
-                          (art
-                            ? ` Artifacts: ${art.evidenceCreated} docs · ${art.reportsCreated} reports · ${art.lettersCreated} letters · ${art.businessProfilesUpdated} business.`
-                            : ''),
+                          (art ? ` Artifacts: ${formatLegacyArtifactImportSummary(art)}` : ''),
                       );
                     } catch (e: any) {
                       setErr(e?.message || 'Dry run failed.');
@@ -428,7 +430,7 @@ export default function AdminPartnerImportPage() {
                         `${inviteIds.length} claim link(s) generated. ` +
                         `${batch.errors.length ? `Errors: ${batch.errors.length}.` : ''}` +
                         (art
-                          ? ` Artifacts: ${art.evidenceCreated} docs · ${art.reportsCreated} reports · ${art.lettersCreated} letters · ${art.businessProfilesUpdated} business.`
+                          ? ` Artifacts: ${formatLegacyArtifactImportSummary(art)}`
                           : '') +
                         deliveryNote +
                         serverNote,
@@ -463,9 +465,7 @@ export default function AdminPartnerImportPage() {
                     setNotice(
                       `${dryRunOnly ? 'Dry run — would backfill' : 'Backfilled'} artifacts for ${batch.createdPartnerIds.length} partner(s). ` +
                         `${batch.errors.length ? `Skipped/errors: ${batch.errors.length}.` : ''}` +
-                        (art
-                          ? ` ${art.evidenceCreated} docs · ${art.reportsCreated} reports · ${art.lettersCreated} letters · ${art.businessProfilesUpdated} business.`
-                          : ''),
+                        (art ? ` ${formatLegacyArtifactImportSummary(art)}` : ''),
                     );
                   } catch (e: any) {
                     setErr(e?.message || 'Artifact backfill failed.');
@@ -528,8 +528,13 @@ export default function AdminPartnerImportPage() {
                     <div className={`text-[11px] ${FINELY_OS_ENTITY_BODY}`}>Showing {preview.length} of {parsed.partners.length}.</div>
                   ) : null}
                   {parsed ? (
-                    <div className={`text-xs ${FINELY_OS_ENTITY_BODY} pt-2`}>
-                      Phase 2 preview — docs {artifactPreview.docs} · reports {artifactPreview.reports} · letters {artifactPreview.letters} · business {artifactPreview.business}
+                    <div className={`text-xs ${FINELY_OS_ENTITY_BODY} pt-2 space-y-1`}>
+                      <div>
+                        Raw export — doc_files {artifactPreview.docs} · html_reports {artifactPreview.reports} · generated_letters {artifactPreview.letters} · business {artifactPreview.business}
+                      </div>
+                      <div className="text-emerald-200/90">
+                        After classification — {artifactPreview.classifiedSummary}. Credit reports land in Reports hub; dispute/validation PDFs in Letters hub; IDs &amp; proof stay in Documents vault.
+                      </div>
                     </div>
                   ) : null}
                   {auditResult?.phase2 ? (

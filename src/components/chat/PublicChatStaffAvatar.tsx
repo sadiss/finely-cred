@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useLayoutEffect, useMemo, useState } from 'react';
 import { getStaffMemberById } from '../../data/staffRoster';
 import {
   resolveStaffPortraitDataUrl,
@@ -51,9 +51,14 @@ export function PublicChatStaffAvatar({ presentation, size = 'md', showOnline = 
   const [imgFailed, setImgFailed] = useState(false);
   const s = SIZE[size];
 
-  useEffect(() => {
-    setImgSrc(resolvePresentationPortrait(presentation));
+  useLayoutEffect(() => {
+    const next = resolvePresentationPortrait(presentation);
+    setImgSrc(next);
     setImgFailed(false);
+    if (next) {
+      const img = new Image();
+      img.src = next;
+    }
   }, [presentation]);
 
   const handleError = () => {
@@ -92,6 +97,9 @@ export function PublicChatStaffAvatar({ presentation, size = 'md', showOnline = 
             src={imgSrc}
             alt={`${presentation.firstName}, ${presentation.title}`}
             className={`w-full h-full bg-slate-900/30 ${STAFF_PORTRAIT_PHOTO_CLASS}`}
+            loading="eager"
+            decoding="async"
+            fetchPriority="high"
             onError={handleError}
           />
         ) : (

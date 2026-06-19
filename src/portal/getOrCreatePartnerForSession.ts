@@ -251,6 +251,10 @@ export async function getOrCreatePartnerForSession(args: { user: User | null }):
     primaryRoute,
     lane,
     journeyStage: 'intake',
+    consents:
+      (meta.legalConsents && typeof meta.legalConsents === 'object' ? meta.legalConsents : null) ??
+      (userData.legalConsents && typeof userData.legalConsents === 'object' ? userData.legalConsents : undefined) ??
+      {},
     journeySignals: {
       goal: meta.goal || userData.goal,
       accessApproved: true,

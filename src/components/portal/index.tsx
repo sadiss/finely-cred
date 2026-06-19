@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect, useRef, useCallback } from 'react';
 import { 
   Fingerprint, Trophy, Gavel, Building2, ShieldCheck, Clock, 
   ShieldAlert, Briefcase, Flame, Activity, Server, CheckCircle2,
@@ -13,7 +13,14 @@ import { getActiveTenant, getActiveTenantId } from '../../tenancy/activeTenant';
 import { getOnboardingStepKeys, getOnboardingStepLabel } from '../../onboarding/pipeline';
 import { AgentOperatingModelStep } from '../onboarding/AgentOperatingModelStep';
 import { ProfileAndAccountStep } from '../onboarding/OnboardingSteps';
+import { SignupLegalStep } from '../onboarding/SignupLegalStep';
 import { OnboardingExperienceShell } from '../onboarding/OnboardingExperienceShell';
+import { OnboardingFlowShell } from '../onboarding/OnboardingFlowShell';
+import {
+  OnboardingExitSetupBar,
+  OnboardingWizardDesktopToolbar,
+  OnboardingWizardMobileToolbar,
+} from '../onboarding/OnboardingExitSetupBar';
 import { CS } from '../../config/creditSpecialistProgram';
 import { AU_SELLER } from '../../config/auSellerProgram';
 import { computeAgentRevenueSplit, defaultAgentOperatingModel } from '../../domain/agentProgram';
@@ -34,6 +41,14 @@ import {
   normalizeOnboardingRole,
   stepAfterRoleSelection,
 } from '../../lib/onboardingRoleRouting';
+import { resolvePostAuthHomePath } from '../../lib/postAuthRouting';
+import { buildPartnerConsentsFromSignup, signupLegalItems, type SignupLegalItemId } from '../../lib/signupLegalPack';
+import { clearOnboardingProgress, ONBOARDING_STORAGE_KEY } from '../../lib/onboardingProgressStorage';
+import { resolveOnboardingWizardNav } from '../../lib/onboardingWizardNav';
+import {
+  OnboardingWizardHeaderContinue,
+  OnboardingWizardNavBar,
+} from '../onboarding/OnboardingStepNavFooter';
 
 type OnboardingLane =
   | 'au_tradelines'
@@ -212,7 +227,7 @@ function StepNavFooter({ prev, onNext, nextLabel = 'Continue', nextDisabled }: {
   return (
     <div
       data-fc-onboarding-nav="1"
-      className="fc-onboarding-step-nav sticky bottom-0 z-40 -mx-4 sm:-mx-6 md:-mx-12 px-4 sm:px-6 md:px-12 py-4 mt-6 bg-gradient-to-t from-fc-shell from-80% via-fc-shell/95 to-transparent border-t border-white/[0.08] pb-[max(0.75rem,env(safe-area-inset-bottom))]"
+      className="fc-onboarding-step-nav sticky bottom-0 z-40 -mx-4 sm:-mx-6 md:-mx-12 px-4 sm:px-6 md:px-12 py-4 mt-8 bg-gradient-to-t from-fc-shell from-70% via-fc-shell/98 to-transparent border-t border-white/[0.08] pb-[max(1.25rem,env(safe-area-inset-bottom))]"
     >
       <div className="flex flex-col-reverse gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-4 max-w-4xl mx-auto">
         {prev ? (
@@ -930,7 +945,7 @@ export function BlueprintRecommendation({ next, prev, data, update }: StepProps)
   };
 
   return (
-    <div className="space-y-10 animate-in fade-in slide-in-from-top-8 duration-700 text-left">
+    <div className="space-y-10 animate-in fade-in slide-in-from-top-8 duration-700 text-left min-w-0">
       <div className="space-y-3">
         <p className="text-[10px] font-black tracking-[0.55em] text-fuchsia-400 uppercase">Recommendation</p>
         <h2 className="text-4xl md:text-6xl font-extralight tracking-tight text-white leading-tight">
@@ -1145,14 +1160,56 @@ interface SovereignPortalProps {
   onComplete: (nextPath?: string) => void;
 }
 
-function OnboardingShellCloseButton({ onClose }: { onClose: () => void }) {
+function createDefaultOnboardingUserData() {
+  return {
+    name: '',
+    email: '',
+    password: '',
+    role: '' as '' | 'client' | 'au_seller' | 'agent' | 'affiliate',
+    focuses: [] as string[],
+    agentTierId: '',
+    agentSpecialties: [] as string[],
+    agentTrainingPhase: 'apprenticeship' as const,
+    agentOperatingModel: null as any,
+    phone: '',
+    address1: '',
+    address2: '',
+    city: '',
+    state: '',
+    postalCode: '',
+    goal: '',
+    lane: 'other' as OnboardingLane,
+    businessName: '',
+    entityState: '',
+    einLast4: '',
+    naics: '',
+    fractures: [] as string[],
+    liabilityTier: '',
+    fundingTarget: '' as string,
+    urgency: '',
+    selectedPackageId: '' as string,
+    selectedRail: '' as '' | 'stripe' | 'in_house',
+    recommendedNextPath: '' as string,
+    recommendedHeadline: '' as string,
+    recommendedReason: '' as string,
+    referralCode: '',
+    promoterRole: '',
+    promoType: '',
+    promoAsset: '',
+    legalChecks: {} as Partial<Record<SignupLegalItemId, boolean>>,
+    legalAcceptedName: '',
+    confirmPassword: '',
+  };
+}
+
+function OnboardingShellChrome({ onClose }: { onClose: () => void }) {
   return (
     <button
       type="button"
       onClick={onClose}
-      className="fixed z-[110] inline-flex h-11 w-11 items-center justify-center rounded-xl border border-white/[0.12] bg-fc-chrome/85 backdrop-blur-md text-white/70 hover:text-white hover:border-white/25 transition-colors fc-focus-ring top-[max(1rem,env(safe-area-inset-top))] right-[max(1rem,env(safe-area-inset-right))] sm:top-5 sm:right-6"
-      aria-label="Close and return to site"
-      title="Close"
+      className="lg:hidden fixed z-[110] inline-flex h-11 w-11 items-center justify-center rounded-xl border border-white/25 bg-white/[0.1] text-white/90 hover:text-white hover:border-white/40 hover:bg-white/[0.16] transition-colors fc-focus-ring top-[max(1rem,env(safe-area-inset-top))] right-[max(1rem,env(safe-area-inset-right))] sm:top-5 sm:right-6"
+      aria-label="Exit setup"
+      title="Exit setup"
     >
       <X size={20} />
     </button>
@@ -1188,12 +1245,12 @@ export function RoleStep({ next, data, update }: StepProps) {
       ),
     );
     window.requestAnimationFrame(() => {
-      document.querySelector('[data-fc-onboarding-nav]')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      document.querySelector('[data-fc-onboarding-scroll]')?.scrollTo({ top: 0, behavior: 'smooth' });
     });
   };
 
   return (
-    <div className="space-y-5 sm:space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-4">
+    <div className="space-y-5 sm:space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700 min-w-0">
       <div className="space-y-2 sm:space-y-3">
         <p className="text-[10px] font-black tracking-[0.6em] text-fuchsia-400 uppercase">Step 01 // Role</p>
         <h2 className="fc-onboarding-step-title">
@@ -1219,13 +1276,12 @@ export function RoleStep({ next, data, update }: StepProps) {
               <div className="mt-2 text-white font-semibold text-base sm:text-lg">{r.title}</div>
               <div className="mt-1 text-white/45 text-xs sm:text-sm leading-relaxed line-clamp-3">{r.desc}</div>
               {active ? (
-                <div className="mt-2 text-[10px] font-black uppercase tracking-widest text-fuchsia-300">Selected — tap Continue below</div>
+                <div className="mt-2 text-[10px] font-black uppercase tracking-widest text-fuchsia-300">Selected — tap Continue above</div>
               ) : null}
             </button>
           );
         })}
       </div>
-      <StepNavFooter onNext={next} nextDisabled={!role} nextLabel={role ? 'Continue' : 'Select a role to continue'} />
     </div>
   );
 }
@@ -1250,7 +1306,7 @@ export function FocusStep({ next, prev, data, update }: StepProps) {
     update({ focuses: nextFocuses, ...(primary ? { goal: primary.goal, lane: primary.lane } : {}) });
   };
   return (
-    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 min-w-0">
       <div className="space-y-3">
         <p className="text-[10px] font-black tracking-[0.6em] text-fuchsia-400 uppercase">Step 02 // Focus</p>
         <h2 className="fc-onboarding-step-title">
@@ -1292,7 +1348,6 @@ export function FocusStep({ next, prev, data, update }: StepProps) {
           );
         })}
       </div>
-      <StepNavFooter prev={prev} onNext={next} nextDisabled={focuses.length === 0} />
     </div>
   );
 }
@@ -1309,51 +1364,45 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
   const [forgotEmail, setForgotEmail] = useState('');
-  const [userData, setUserData] = useState({
-    name: '',
-    email: '',
-    password: '',
-    role: '' as '' | 'client' | 'au_seller' | 'agent' | 'affiliate',
-    focuses: [] as string[],
-    agentTierId: '',
-    agentSpecialties: [] as string[],
-    agentTrainingPhase: 'apprenticeship' as const,
-    agentOperatingModel: null as any,
-    phone: '',
-    address1: '',
-    address2: '',
-    city: '',
-    state: '',
-    postalCode: '',
-    goal: '',
-    lane: 'other' as OnboardingLane,
-    // Business persona (captured when lane === business_credit)
-    businessName: '',
-    entityState: '',
-    einLast4: '',
-    naics: '',
-    fractures: [] as string[],
-    liabilityTier: '',
-    fundingTarget: '' as string,
-    urgency: '',
-    selectedPackageId: '' as string,
-    selectedRail: '' as '' | 'stripe' | 'in_house',
-    recommendedNextPath: '' as string,
-    recommendedHeadline: '' as string,
-    recommendedReason: '' as string,
-    referralCode: '',
-    promoterRole: '',
-    promoType: '',
-    promoAsset: '',
-  });
+  const [userData, setUserData] = useState(createDefaultOnboardingUserData);
+  const onboardingScrollRef = useRef<HTMLDivElement | null>(null);
 
-  const ONBOARDING_STORAGE_KEY = 'finely.onboarding.v1';
   const stepKeys = useMemo(
     () => getOnboardingStepKeys({ role: userData.role, focuses: userData.focuses, lane: userData.lane, agentTierId: userData.agentTierId }),
     [userData.role, userData.focuses, userData.lane, userData.agentTierId],
   );
   const TOTAL_STEPS = stepKeys.length;
   const currentKey = stepKeys[Math.min(Math.max(1, step), TOTAL_STEPS) - 1] ?? 'role';
+
+  const resetOnboardingState = useCallback((opts?: { authMode?: 'select' | 'login' | 'signup' | 'forgot' }) => {
+    clearOnboardingProgress();
+    setUserData(createDefaultOnboardingUserData());
+    setStep(1);
+    setAuthError(null);
+    setAuthNotice(null);
+    setLoginEmail('');
+    setLoginPassword('');
+    setForgotEmail('');
+    if (opts?.authMode) setAuthMode(opts.authMode);
+  }, []);
+
+  const handleExitSetup = useCallback(() => {
+    resetOnboardingState({ authMode: 'select' });
+    onClose();
+  }, [onClose, resetOnboardingState]);
+
+  const handleStartOver = useCallback(() => {
+    resetOnboardingState({ authMode: 'signup' });
+    navigate('/onboarding', { replace: true });
+    window.requestAnimationFrame(() => {
+      onboardingScrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+  }, [navigate, resetOnboardingState]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    onboardingScrollRef.current?.scrollTo({ top: 0, behavior: 'auto' });
+  }, [isOpen, step, currentKey]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -1493,6 +1542,16 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
     setUserData(prev => ({ ...prev, ...newData }));
   };
 
+  const goToAuthMode = (mode: 'select' | 'login' | 'signup' | 'forgot') => {
+    setAuthError(null);
+    setAuthNotice(null);
+    setAuthMode(mode);
+    if (mode === 'login') navigate('/login', { replace: location.pathname === '/login' });
+    else if (mode === 'signup') navigate('/signup', { replace: location.pathname === '/signup' });
+    else if (mode === 'forgot') navigate('/forgot-password?auth=forgot', { replace: location.pathname === '/forgot-password' });
+    else if (location.pathname !== '/onboarding') navigate('/onboarding', { replace: true });
+  };
+
   const nextStep = () => {
     if (step >= TOTAL_STEPS) return;
     setStep(s => s + 1);
@@ -1507,12 +1566,14 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
     setAuthError(null);
     setAuthBusy(true);
     try {
-      const res = await auth.signInWithEmail({ email: loginEmail, password: loginPassword });
+      const res = await auth.signInWithEmail({ email: loginEmail.trim(), password: loginPassword });
       if (res.error) {
         setAuthError(res.error);
         return;
       }
-      onComplete(userData.recommendedNextPath || undefined);
+      const nextPath = userData.recommendedNextPath || resolvePostAuthHomePath(res.user ?? auth.user);
+      clearOnboardingProgress();
+      onComplete(nextPath);
     } finally {
       setAuthBusy(false);
     }
@@ -1550,6 +1611,25 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
       setAuthError('Email and password are required.');
       return;
     }
+    const legalCtx = {
+      role: (userData.role || '') as import('../../onboarding/pipeline').OnboardingRole,
+      focuses: userData.focuses ?? [],
+      lane: userData.lane,
+      goal: userData.goal,
+    };
+    const requiredLegal = signupLegalItems(legalCtx).filter((i) => i.required);
+    const missingLegal = requiredLegal.filter((i) => !userData.legalChecks?.[i.id]);
+    if (missingLegal.length > 0 || !(userData.legalAcceptedName || userData.name || '').trim()) {
+      setAuthError('Complete the Legal & agreements step before creating your account.');
+      setAuthMode('signup');
+      const legalStepIndex = stepKeys.indexOf('legal');
+      if (legalStepIndex >= 0) setStep(legalStepIndex + 1);
+      return;
+    }
+    const legalConsents = buildPartnerConsentsFromSignup({
+      acceptedIds: requiredLegal.map((i) => i.id).filter((id) => userData.legalChecks?.[id]),
+      acceptedName: (userData.legalAcceptedName || userData.name || '').trim(),
+    });
     setAuthError(null);
     setAuthBusy(true);
     try {
@@ -1590,6 +1670,8 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
           promoterRole: userData.promoterRole,
           promoType: userData.promoType,
           promoAsset: userData.promoAsset,
+          legalConsents,
+          legalAcceptedName: userData.legalAcceptedName,
         },
       });
 
@@ -1599,13 +1681,13 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
       }
 
       // If email confirmations are enabled, the session may not be available immediately.
-      // In that case, we keep the user in the portal with a clear message.
-      if (!auth.user) {
+      const signedInUser = res.user ?? auth.user;
+      if (!signedInUser) {
         setAuthNotice(null);
         setAuthError(
           'Account created. Check your email to confirm your address (if required by Supabase), then log in with the password you just set. A welcome email sends after your first successful login when Comms delivery is enabled.',
         );
-        setAuthMode('login');
+        goToAuthMode('login');
         setLoginEmail(email);
         setLoginPassword('');
         return;
@@ -1613,20 +1695,36 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
 
       try {
         const { getOrCreatePartnerForSession } = await import('../../portal/getOrCreatePartnerForSession');
-        await getOrCreatePartnerForSession({ user: auth.user });
+        await getOrCreatePartnerForSession({ user: signedInUser });
       } catch {
         // partner creation is best-effort; session routing still proceeds
       }
 
-      if (userData.role === 'agent' && auth.user.id && userData.agentOperatingModel) {
-        saveAgentOperatingModel(auth.user.id, defaultAgentOperatingModel(userData.agentOperatingModel));
+      if (userData.role === 'agent' && signedInUser.id && userData.agentOperatingModel) {
+        saveAgentOperatingModel(signedInUser.id, defaultAgentOperatingModel(userData.agentOperatingModel));
       }
 
-      onComplete(userData.recommendedNextPath || undefined);
+      const nextPath = userData.recommendedNextPath || resolvePostAuthHomePath(signedInUser);
+      clearOnboardingProgress();
+      onComplete(nextPath);
     } finally {
       setAuthBusy(false);
     }
   };
+
+  const wizardNav = useMemo(
+    () =>
+      resolveOnboardingWizardNav({
+        currentKey,
+        userData,
+        authBusy,
+        nextStep,
+        prevStep,
+        onSubmitSignup: () => void handleSignup(),
+      }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- handleSignup closes over latest userData
+    [currentKey, userData, authBusy, step],
+  );
 
   if (!isOpen) return null;
 
@@ -1636,9 +1734,14 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
     const brand = (tenant.settings.brandName || tenant.name || 'Finely Cred').trim() || 'Finely Cred';
 
     return (
-      <div className="fixed inset-0 z-[100] bg-fc-shell/95 backdrop-blur-2xl fc-onboarding-shell-scroll flex flex-col items-stretch sm:items-center sm:justify-center animate-in zoom-in duration-500 fc-senior-simple" data-fc-onboarding-shell="1">
-        <OnboardingShellCloseButton onClose={onClose} />
-        <div className="max-w-6xl w-full mx-auto grid grid-cols-1 lg:grid-cols-[1.2fr_0.8fr] gap-5 sm:gap-6 lg:gap-8 min-w-0">
+      <OnboardingFlowShell
+        active={isOpen}
+        chrome={<OnboardingShellChrome onClose={handleExitSetup} />}
+        header={<OnboardingExitSetupBar onExit={handleExitSetup} />}
+        shellClassName="bg-fc-shell/95 backdrop-blur-2xl animate-in zoom-in duration-500"
+        scrollClassName="fc-onboarding-shell-scroll"
+      >
+        <div className="max-w-6xl w-full mx-auto grid grid-cols-1 lg:grid-cols-[1.2fr_0.8fr] gap-5 sm:gap-6 lg:gap-8 min-w-0 p-4 sm:p-6 pb-10">
           <div className="fc-light-glass-panel fc-light-chrome-panel rounded-2xl sm:rounded-3xl p-5 sm:p-8 lg:p-10 relative overflow-hidden min-w-0">
             <div className="absolute inset-0 pointer-events-none">
               <div
@@ -1648,7 +1751,6 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
                     'radial-gradient(ellipse at 50% 50%, rgba(var(--brand-primary-rgb),0.22) 0%, transparent 62%)',
                 }}
               />
-              <div className="absolute inset-0 bg-gradient-to-b from-white/40 via-transparent to-violet-100/20" />
             </div>
 
             <div className="relative">
@@ -1658,52 +1760,19 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
               </div>
               <div className="text-[10px] font-black uppercase tracking-[0.25em] sm:tracking-[0.35em] text-white/55">Partner access</div>
               <h2 className="mt-3 sm:mt-4 text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-light text-white leading-tight">
-                Your credit file, one step at a time.
+                Sign in or create your account.
               </h2>
-              <p className="mt-3 sm:mt-4 text-white/55 text-sm md:text-base leading-relaxed max-w-2xl">
-                Create your account, complete a short intake, and land in your dashboard with next steps,
-                dispute items, evidence, and letters — so you always know what to do next.
+              <p className="mt-3 sm:mt-4 text-white/60 text-sm md:text-base leading-relaxed max-w-2xl">
+                Choose an option on the right to continue.
               </p>
-
-              <div className="mt-5 sm:mt-6 grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3">
-                {[
-                  { icon: Target, t: 'Clear next steps', d: 'Now / Next / Later with a simple sequence.' },
-                  { icon: UploadCloud, t: 'Upload reports', d: 'Reports turn into evidence and dispute items.' },
-                  { icon: Gavel, t: 'Dispute letters', d: 'Edit, preview, attach evidence, and send.' },
-                  { icon: ShieldCheck, t: 'Secure by design', d: 'Your data stays in your private portal.' },
-                ].map((x) => (
-                  <div key={x.t} className="fc-light-glass-panel fc-light-chrome-panel p-4">
-                    <div className="flex items-start gap-3">
-                      <div className="w-9 h-9 fc-light-glass-panel fc-light-chrome-panel rounded-xl flex items-center justify-center">
-                        <x.icon size={16} className="text-[color:var(--brand-primary)]" />
-                      </div>
-                      <div className="min-w-0">
-                        <div className="text-white font-semibold">{x.t}</div>
-                        <div className="mt-1 text-white/50 text-sm">{x.d}</div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <div className="mt-5 sm:mt-6 flex flex-wrap items-center gap-2 sm:gap-3 text-xs text-white/45">
-                <div className="inline-flex items-center gap-2 px-3 py-2 rounded-full fc-light-glass-panel fc-light-chrome-panel border">
-                  <Clock size={14} className="text-white/50" /> ~2 minutes
-                </div>
-                <div className="inline-flex items-center gap-2 px-3 py-2 rounded-full fc-light-glass-panel fc-light-chrome-panel border">
-                  <Lock size={14} className="text-white/50" /> Private by default
-                </div>
-                <div className="inline-flex items-center gap-2 px-3 py-2 rounded-full fc-light-glass-panel fc-light-chrome-panel border">
-                  <CheckCircle2 size={14} className="text-emerald-300" /> Instant dashboard access
-                </div>
-              </div>
             </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-4 sm:gap-5 lg:gap-6 min-w-0">
-            <div
-              onClick={() => setAuthMode('signup')}
-              className="group cursor-pointer p-5 sm:p-6 lg:p-8 rounded-2xl sm:rounded-3xl border border-violet-100/80 border-white/[0.08] bg-white/[0.05] hover:bg-white/[0.04] hover:border-violet-500/30 transition-all duration-500 flex flex-col items-center text-center gap-4 sm:gap-5 min-h-[48px]"
+            <button
+              type="button"
+              onClick={() => goToAuthMode('signup')}
+              className="group w-full text-left p-5 sm:p-6 lg:p-8 rounded-2xl sm:rounded-3xl border border-violet-100/80 border-white/[0.08] bg-white/[0.05] hover:bg-white/[0.04] hover:border-violet-500/30 transition-all duration-500 flex flex-col items-center text-center gap-4 sm:gap-5 min-h-[48px] touch-manipulation"
             >
               <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl flex items-center justify-center border fc-metal-icon-box group-hover:scale-110 transition-transform shrink-0">
                 <Fingerprint size={32} className="sm:hidden text-[#0b1110]" />
@@ -1718,11 +1787,12 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
               <div className="pt-1 w-full">
                 <div className="w-full fc-button-brand">Get started</div>
               </div>
-            </div>
+            </button>
 
-            <div
-              onClick={() => setAuthMode('login')}
-              className="group cursor-pointer p-5 sm:p-6 lg:p-8 rounded-2xl sm:rounded-3xl border border-violet-100/80 border-white/[0.08] bg-white/[0.05] hover:bg-white/[0.04] hover:border-violet-500/30 transition-all duration-500 flex flex-col items-center text-center gap-4 sm:gap-5 min-h-[48px]"
+            <button
+              type="button"
+              onClick={() => goToAuthMode('login')}
+              className="group w-full text-left p-5 sm:p-6 lg:p-8 rounded-2xl sm:rounded-3xl border border-violet-100/80 border-white/[0.08] bg-white/[0.05] hover:bg-white/[0.04] hover:border-violet-500/30 transition-all duration-500 flex flex-col items-center text-center gap-4 sm:gap-5 min-h-[48px] touch-manipulation"
             >
               <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl flex items-center justify-center border fc-metal-icon-box group-hover:scale-110 transition-transform shrink-0">
                 <Key size={32} className="sm:hidden text-[#0b1110]" />
@@ -1735,25 +1805,24 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
               <div className="pt-1 w-full">
                 <div className="w-full fc-button-brand">Open dashboard</div>
               </div>
-            </div>
+            </button>
           </div>
         </div>
-        <button 
-          onClick={onClose} 
-          className="mt-8 sm:mt-12 mx-auto text-white/45 hover:text-white uppercase tracking-widest text-xs flex items-center gap-2 transition-colors min-h-[48px] px-2"
-        >
-          <ArrowLeft size={14} /> Back to website
-        </button>
-      </div>
+      </OnboardingFlowShell>
     );
   }
 
   // Forgot password
   if (authMode === 'forgot') {
     return (
-      <div className="fixed inset-0 z-[100] bg-fc-shell fc-onboarding-shell-scroll flex flex-col sm:items-center sm:justify-center animate-in slide-in-from-bottom duration-500 fc-senior-simple" data-fc-onboarding-shell="1">
-        <OnboardingShellCloseButton onClose={onClose} />
-        <div className="max-w-md w-full mx-auto min-w-0 p-5 sm:p-8 fc-light-glass-panel fc-light-chrome-panel rounded-2xl sm:rounded-3xl relative overflow-hidden my-auto">
+      <OnboardingFlowShell
+        active={isOpen}
+        chrome={<OnboardingShellChrome onClose={handleExitSetup} />}
+        header={<OnboardingExitSetupBar onExit={handleExitSetup} />}
+        shellClassName="animate-in slide-in-from-bottom duration-500"
+        scrollClassName="fc-onboarding-shell-scroll flex flex-col"
+      >
+        <div className="max-w-md w-full mx-auto min-w-0 p-5 sm:p-8 fc-light-glass-panel fc-light-chrome-panel rounded-2xl sm:rounded-3xl relative overflow-visible mb-8">
           <div className="text-center space-y-4 sm:space-y-6 mb-6 sm:mb-8">
             <div className="mx-auto w-14 h-14 rounded-2xl flex items-center justify-center border fc-metal-icon-box">
               <Key size={22} className="text-[#0b1110]" />
@@ -1787,21 +1856,26 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
             </Button>
           </div>
           <div className="mt-6 flex flex-col gap-2">
-            <button type="button" onClick={() => { setAuthError(null); setAuthNotice(null); setAuthMode('login'); }} className="w-full min-h-[44px] text-white/45 hover:text-white text-[10px] uppercase tracking-widest">
+            <button type="button" onClick={() => goToAuthMode('login')} className="w-full min-h-[44px] text-white/45 hover:text-white text-[10px] uppercase tracking-widest">
               Back to sign in
             </button>
           </div>
         </div>
-      </div>
+      </OnboardingFlowShell>
     );
   }
 
   // Login Screen
   if (authMode === 'login') {
     return (
-      <div className="fixed inset-0 z-[100] bg-fc-shell fc-onboarding-shell-scroll flex flex-col sm:items-center sm:justify-center animate-in slide-in-from-bottom duration-500 fc-senior-simple" data-fc-onboarding-shell="1">
-        <OnboardingShellCloseButton onClose={onClose} />
-        <div className="max-w-md w-full mx-auto min-w-0 p-5 sm:p-8 fc-light-glass-panel fc-light-chrome-panel rounded-2xl sm:rounded-3xl relative overflow-hidden my-auto">
+      <OnboardingFlowShell
+        active={isOpen}
+        chrome={<OnboardingShellChrome onClose={handleExitSetup} />}
+        header={<OnboardingExitSetupBar onExit={handleExitSetup} />}
+        shellClassName="animate-in slide-in-from-bottom duration-500"
+        scrollClassName="fc-onboarding-shell-scroll flex flex-col p-4 sm:p-6"
+      >
+        <div className="max-w-md w-full mx-auto min-w-0 p-5 sm:p-8 fc-light-glass-panel fc-light-chrome-panel rounded-2xl sm:rounded-3xl relative overflow-visible mb-8">
           <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-white/70 to-transparent opacity-60" />
           <div className="text-center space-y-4 sm:space-y-6 mb-6 sm:mb-8">
             <div className="mx-auto w-14 h-14 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center border fc-metal-icon-box">
@@ -1811,6 +1885,13 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
             <h3 className="text-2xl sm:text-3xl font-light text-white">Sign in</h3>
           </div>
           <div className="space-y-4">
+            <form
+              className="space-y-4"
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (!authBusy && loginEmail && loginPassword) void handleLogin();
+              }}
+            >
             <div className="space-y-1 text-left">
               <label className="text-[10px] font-bold text-white/55 uppercase tracking-widest">Email</label>
               <input 
@@ -1848,44 +1929,40 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
               </div>
             )}
             <Button
-              onClick={handleLogin}
+              onClick={() => void handleLogin()}
               disabled={authBusy || !loginEmail || !loginPassword}
               size="lg"
               className="w-full min-h-[48px]"
             >
               {authBusy ? 'Signing in…' : 'Sign in'}
             </Button>
+            </form>
           </div>
           <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
           <button 
-            onClick={() => setAuthMode('select')} 
+            type="button"
+            onClick={() => goToAuthMode('select')} 
             className="w-full min-h-[44px] text-center text-white/45 hover:text-white text-[10px] uppercase tracking-widest transition-colors px-2 py-2"
           >
             Back
           </button>
           <button
-            onClick={() => {
-              setAuthError(null);
-              setAuthMode('signup');
-            }}
+            type="button"
+            onClick={() => goToAuthMode('signup')}
             className="w-full min-h-[44px] text-center text-white/45 hover:text-fuchsia-300 text-[10px] uppercase tracking-widest transition-colors px-2 py-2"
           >
             Create account
           </button>
           <button
-            onClick={() => {
-              setAuthError(null);
-              setAuthNotice(null);
-              setAuthMode('forgot');
-              navigate('/forgot-password?auth=forgot');
-            }}
+            type="button"
+            onClick={() => goToAuthMode('forgot')}
             className="w-full min-h-[44px] text-center text-white/55 hover:text-white text-[10px] uppercase tracking-widest transition-colors px-2 py-2 sm:col-span-2"
           >
             Forgot password?
           </button>
           </div>
         </div>
-      </div>
+      </OnboardingFlowShell>
     );
   }
 
@@ -1898,34 +1975,45 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
     asset: userData.promoAsset || attr?.promoAsset,
   } : null;
 
-  return (
-    <div className="fixed inset-0 z-[100] bg-fc-shell overflow-hidden flex flex-col relative fc-senior-simple fc-onboarding-shell-scroll !pt-0" data-fc-onboarding-shell="1">
-      <OnboardingShellCloseButton onClose={onClose} />
+  const wizardPrev =
+    wizardNav.prev ?? (currentKey === 'role' ? () => goToAuthMode('select') : undefined);
+
+  const wizardHeader = (
+    <>
       <div className="pointer-events-none absolute inset-0">
-        <div className="absolute -top-40 left-[-20%] h-[520px] w-[520px] rounded-full bg-white/70 blur-3xl" />
-        <div className="absolute -bottom-56 right-[-25%] h-[680px] w-[680px] rounded-full bg-white/70 blur-3xl" />
-        <div className="absolute inset-0 bg-gradient-to-b from-white/[0.03] via-transparent to-transparent" />
+        <div className="absolute -top-40 left-[-20%] h-[520px] w-[520px] rounded-full bg-fuchsia-600/12 blur-3xl" />
+        <div className="absolute -bottom-56 right-[-25%] h-[680px] w-[680px] rounded-full bg-violet-600/10 blur-3xl" />
       </div>
-      {/* Header */}
-      <div className="shrink-0 sticky top-0 bg-fc-shell/90 backdrop-blur-2xl border-b border-slate-800/60 px-4 sm:px-6 md:px-12 py-3 sm:py-4 z-50 pt-[max(0.75rem,env(safe-area-inset-top))]">
-        <div className="max-w-6xl mx-auto space-y-3">
-          <div className="flex items-center gap-3 pr-12 sm:pr-14 md:pr-0">
-            <button 
-              type="button"
-              onClick={onClose} 
-              className="inline-flex items-center gap-2 min-h-[44px] text-[10px] font-bold text-white/45 hover:text-white uppercase tracking-widest transition-colors shrink-0"
-            >
-              <ArrowLeft size={16} /> <span className="hidden sm:inline">Exit setup</span><span className="sm:hidden">Exit</span>
-            </button>
+      <div className="relative bg-fc-shell/90 backdrop-blur-2xl border-b border-slate-800/60 px-4 sm:px-6 md:px-12 py-2.5 sm:py-4 pt-[max(0.75rem,env(safe-area-inset-top))]">
+        <div className="max-w-6xl mx-auto space-y-2 sm:space-y-3">
+          <OnboardingWizardMobileToolbar
+            onExit={handleExitSetup}
+            prev={wizardPrev}
+            continueSlot={
+              <OnboardingWizardHeaderContinue
+                onNext={wizardNav.onNext}
+                nextLabel={wizardNav.nextLabel}
+                nextDisabled={wizardNav.nextDisabled}
+              />
+            }
+          />
+          <div className="hidden lg:flex items-center justify-end">
             <button
               type="button"
-              onClick={() => {
-                setAuthError(null);
-                setAuthMode('login');
-              }}
-              className="ml-auto md:hidden text-[10px] font-black uppercase tracking-widest text-white/45 hover:text-white transition-colors min-h-[44px] px-2"
+              onClick={handleStartOver}
+              className="text-[10px] font-black uppercase tracking-widest text-white/40 hover:text-fuchsia-300 transition-colors min-h-[44px] px-2 shrink-0"
+              title="Clear progress and begin again from step 1"
             >
-              Sign in
+              Start over
+            </button>
+          </div>
+          <div className="flex justify-center lg:hidden">
+            <button
+              type="button"
+              onClick={() => goToAuthMode('login')}
+              className="text-[10px] font-black uppercase tracking-widest text-white/45 hover:text-white transition-colors min-h-[36px] px-2"
+            >
+              Already have an account? Sign in
             </button>
           </div>
           <div className="w-full max-w-lg mx-auto">
@@ -1937,82 +2025,97 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
               <div className="mt-1 text-center text-[10px] text-emerald-300/90">Checkout queued after signup</div>
             ) : null}
           </div>
-          {currentKey === 'role' ? (
-            <div className="flex flex-wrap justify-center gap-2 pt-1">
-              {ROLE_CARDS.map((r) => (
-                <button
-                  key={r.id}
-                  type="button"
-                  onClick={() => {
-                    updateData(applyOnboardingRole({ ...userData, agentTierId: r.id === 'agent' ? userData.agentTierId || '' : '' }, r.id));
-                    const after = stepAfterRoleSelection({ role: r.id, focuses: userData.focuses, lane: applyOnboardingRole(userData, r.id).lane, agentTierId: userData.agentTierId });
-                    setStep(after);
-                  }}
-                  className={`rounded-full px-3 py-1.5 min-h-[36px] text-[10px] font-bold uppercase tracking-wider border transition-colors ${
-                    userData.role === r.id
-                      ? 'border-fuchsia-400/50 bg-fuchsia-500/15 text-fuchsia-200'
-                      : 'border-white/10 bg-white/[0.04] text-white/55 hover:text-white hover:border-white/20'
-                  }`}
-                >
-                  {r.title}
-                </button>
-              ))}
-            </div>
-          ) : null}
-        </div>
-        <div className="max-w-6xl mx-auto mt-2 hidden md:flex items-center justify-end">
-          <button
-            type="button"
-            onClick={() => {
-              setAuthError(null);
-              setAuthMode('login');
-            }}
-            className="text-[10px] font-black uppercase tracking-widest text-white/45 hover:text-white transition-colors min-h-[44px]"
-            title="Already have an account?"
-          >
-            Already have an account? Sign in
-          </button>
+          <OnboardingWizardDesktopToolbar
+            onExit={handleExitSetup}
+            onSignIn={() => goToAuthMode('login')}
+            center={
+              currentKey === 'role' ? (
+                ROLE_CARDS.map((r) => (
+                  <button
+                    key={r.id}
+                    type="button"
+                    onClick={() => {
+                      updateData(applyOnboardingRole({ ...userData, agentTierId: r.id === 'agent' ? userData.agentTierId || '' : '' }, r.id));
+                      const after = stepAfterRoleSelection({
+                        role: r.id,
+                        focuses: userData.focuses,
+                        lane: applyOnboardingRole(userData, r.id).lane,
+                        agentTierId: userData.agentTierId,
+                      });
+                      setStep(after);
+                    }}
+                    className={`rounded-full px-3 py-1.5 min-h-[36px] text-[10px] font-bold uppercase tracking-wider border transition-colors ${
+                      userData.role === r.id
+                        ? 'border-fuchsia-400/50 bg-fuchsia-500/15 text-fuchsia-200'
+                        : 'border-white/10 bg-white/[0.04] text-white/55 hover:text-white hover:border-white/20'
+                    }`}
+                  >
+                    {r.title}
+                  </button>
+                ))
+              ) : (
+                <span className="text-[10px] font-black uppercase tracking-widest text-white/45">
+                  {getOnboardingStepLabel(currentKey)}
+                </span>
+              )
+            }
+          />
         </div>
       </div>
+    </>
+  );
 
-      {/* Content */}
-      <div className="relative flex-1 min-h-0 overflow-y-auto overflow-x-clip w-full max-w-6xl mx-auto px-4 sm:px-6 md:px-12 py-6 sm:py-10 md:py-12 pb-[max(5rem,env(safe-area-inset-bottom))] min-w-0">
-        <div className="max-w-4xl mx-auto min-w-0">
-          {promoContext ? (
-            <div className="mb-6 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-4 text-sm text-emerald-100">
-              <div className="text-[10px] uppercase tracking-widest font-black text-emerald-200/80">Tracked signup</div>
-              <div className="mt-1">
-                Code <span className="font-mono text-white">{promoContext.code}</span>
-                {promoContext.role ? <> • Role {promoContext.role}</> : null}
-                {promoContext.asset ? <> • Asset {promoContext.asset}</> : null}
-              </div>
+  return (
+    <OnboardingFlowShell
+      active={isOpen}
+      chrome={<OnboardingShellChrome onClose={handleExitSetup} />}
+      header={wizardHeader}
+      scrollRef={onboardingScrollRef}
+      scrollClassName="fc-onboarding-wizard-scroll w-full max-w-6xl mx-auto px-4 sm:px-6 md:px-12 py-4 sm:py-6 lg:py-10 bg-fc-shell/95 backdrop-blur-md"
+      footer={
+        <OnboardingWizardNavBar
+          {...wizardNav}
+          prev={wizardPrev}
+          onStartOver={handleStartOver}
+        />
+      }
+    >
+      <div className="max-w-4xl mx-auto min-w-0">
+        {promoContext ? (
+          <div className="mb-6 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-4 text-sm text-emerald-100">
+            <div className="text-[10px] uppercase tracking-widest font-black text-emerald-200/80">Tracked signup</div>
+            <div className="mt-1">
+              Code <span className="font-mono text-white">{promoContext.code}</span>
+              {promoContext.role ? <> • Role {promoContext.role}</> : null}
+              {promoContext.asset ? <> • Asset {promoContext.asset}</> : null}
             </div>
-          ) : null}
-          <OnboardingExperienceShell
-            stepKeys={stepKeys}
-            currentKey={currentKey}
-            stepIndex={step - 1}
-            laneLabel={userData.lane && userData.lane !== 'other' ? userData.lane.replace(/_/g, ' ') : userData.goal || undefined}
-          >
-          {currentKey === 'role' && <RoleStep next={nextStep} data={userData} update={updateData} />}
-          {currentKey === 'focus' && <FocusStep next={nextStep} prev={prevStep} data={userData} update={updateData} />}
-          {currentKey === 'agentTier' && <AgentOperatingModelStep next={nextStep} prev={prevStep} data={userData} update={updateData} />}
-          {currentKey === 'context' && <FoundationalFractures next={nextStep} prev={prevStep} data={userData} update={updateData} />}
-          {currentKey === 'recommendation' && <BlueprintRecommendation next={nextStep} prev={prevStep} data={userData} update={updateData} />}
-          {currentKey === 'profile' && (
-            <ProfileAndAccountStep
-              prev={prevStep}
-              data={userData}
-              update={updateData}
-              onSubmit={() => void handleSignup()}
-              isBusy={authBusy}
-              error={authError}
-              isConfigured={auth.isConfigured}
-            />
-          )}
-          </OnboardingExperienceShell>
-        </div>
+          </div>
+        ) : null}
+        <OnboardingExperienceShell
+          stepKeys={stepKeys}
+          currentKey={currentKey}
+          stepIndex={step - 1}
+          laneLabel={userData.lane && userData.lane !== 'other' ? userData.lane.replace(/_/g, ' ') : userData.goal || undefined}
+        >
+        {currentKey === 'role' && <RoleStep next={nextStep} data={userData} update={updateData} />}
+        {currentKey === 'focus' && <FocusStep next={nextStep} prev={prevStep} data={userData} update={updateData} />}
+        {currentKey === 'agentTier' && <AgentOperatingModelStep next={nextStep} prev={prevStep} data={userData} update={updateData} />}
+        {currentKey === 'context' && <FoundationalFractures next={nextStep} prev={prevStep} data={userData} update={updateData} />}
+        {currentKey === 'recommendation' && <BlueprintRecommendation next={nextStep} prev={prevStep} data={userData} update={updateData} />}
+        {currentKey === 'legal' && <SignupLegalStep next={nextStep} prev={prevStep} data={userData} update={updateData} />}
+        {currentKey === 'profile' && (
+          <ProfileAndAccountStep
+            prev={prevStep}
+            data={userData}
+            update={updateData}
+            onSubmit={() => void handleSignup()}
+            isBusy={authBusy}
+            error={authError}
+            isConfigured={auth.isConfigured}
+          />
+        )}
+        </OnboardingExperienceShell>
       </div>
-    </div>
+    </OnboardingFlowShell>
   );
 }
