@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useMemo, useState } from '
 import type { Session, User } from '@supabase/supabase-js';
 import { isSupabaseConfigured, supabase } from '../lib/supabaseClient';
 import { isAdminEmail } from './admin';
+import { sendPasswordResetEmail } from '../lib/passwordResetEmail';
 import { claimInvitedMembershipForUser, ensureFinelyPlatformAdminMembership } from '../data/tenantsRepo';
 
 export type UserProfileUpdate = {
@@ -273,8 +274,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (isDevAuthEnabled) return { error: 'Password reset is not available in local demo mode.' };
         if (!isSupabaseConfigured) return { error: 'Supabase is not configured.' };
         const redirect = redirectTo || `${window.location.origin}/reset-password`;
+
+        const viaComms = await sendPasswordResetEmail({ email: trimmed, redirectTo: redirect });
+        if (viaComms.ok) return {};
+
+        // Fallback: Supabase Auth SMTP (if configured in project dashboard).
         const { error } = await supabase.auth.resetPasswordForEmail(trimmed, { redirectTo: redirect });
-        return error ? { error: error.message } : {};
+        if (error) {
+          return {
+            error:
+              viaComms.error ||
+              error.message ||
+              'Could not send password reset email. Check SendGrid and Supabase edge function deployment.',
+          };
+        }
+        return {};
       },
     };
   }, [activeUser, isDevAuthEnabled, isLoading, session]);

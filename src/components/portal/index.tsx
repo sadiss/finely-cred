@@ -1597,7 +1597,7 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
         setAuthError(res.error);
         return;
       }
-      setAuthNotice(`If an account exists for ${email}, a reset link was sent. Check spam, then open the link to set a new password.`);
+      setAuthNotice(`If an account exists for ${email}, a reset link was sent via email. Check spam, then open the link to set a new password. The link expires in about an hour.`);
       setForgotEmail(email);
     } finally {
       setAuthBusy(false);

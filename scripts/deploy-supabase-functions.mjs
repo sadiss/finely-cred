@@ -38,6 +38,7 @@ const LAUNCH_FUNCTIONS = [
   'send-invite-email',
   'send-invite-sms',
   'send-email',
+  'send-password-reset',
   'send-sms',
   'twilio-webhook',
   'mailer',

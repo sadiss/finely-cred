@@ -66,7 +66,7 @@ export function AdminPartnerAccessPanel({ partner, userRole }: Props) {
     try {
       const res = await auth.requestPasswordReset({ email, redirectTo: `${window.location.origin}/reset-password` });
       if (res.error) throw new Error(res.error);
-      setNotice(`Password reset email sent to ${email}. They will set a new password via the link (valid ~1 hour).`);
+      setNotice(`Password reset email sent to ${email}. They will set a new password via the secure link (valid ~1 hour). Works for admin, partner, affiliate, and all portal roles.`);
     } catch (e: unknown) {
       setErr((e as Error)?.message || 'Failed to send reset email.');
     } finally {
