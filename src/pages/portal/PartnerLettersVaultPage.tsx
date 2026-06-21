@@ -6,8 +6,7 @@ import { useAuth } from '../../auth/AuthProvider';
 import { usePartnerSession } from '../../auth/PartnerSessionContext';
 import { listLettersByPartner, setLetterArchived, upsertLetter } from '../../data/lettersRepo';
 import { listEvidenceByPartner } from '../../data/evidenceRepo';
-import { getBlobUrl } from '../../storage/getBlobUrl';
-import { openUrlInNewTab } from '../../utils/download';
+import { openBlobRefInNewTab } from '../../lib/openBlobRef';
 import type { LetterRecord, LetterStatus } from '../../domain/letters';
 import { isFeatureEnabled } from '../../data/settingsRepo';
 import { MailLetterModal } from '../../components/letters/MailLetterModal';
@@ -78,6 +77,7 @@ export default function PartnerLettersVaultPage() {
   const [highlightId, setHighlightId] = useState<string | null>(null);
   const [view, setView] = useState<'active' | 'archived'>('active');
   const [mailGateErr, setMailGateErr] = useState<string | null>(null);
+  const [openErr, setOpenErr] = useState<string | null>(null);
   type VaultTab = 'letters' | 'analysis';
   const [hubTab, setHubTab] = useState<VaultTab>('letters');
   const evidence = useMemo(() => (partner ? listEvidenceByPartner(partner.id) : []), [partner]);
@@ -154,18 +154,24 @@ export default function PartnerLettersVaultPage() {
   );
 
   const openPdf = async (l: LetterRecord) => {
-    if (!l.pdfBlobRef) return;
-    const res = await getBlobUrl(l.pdfBlobRef, { mimeType: 'application/pdf' });
-    if (!res?.url) return;
-    openUrlInNewTab({ url: res.url, revoke: res.revoke, revokeAfterMs: 60_000 });
+    setOpenErr(null);
+    if (!l.pdfBlobRef) {
+      setOpenErr('No PDF stored — use Preview letter text on the card or regenerate in Letter Studio.');
+      return;
+    }
+    const result = await openBlobRefInNewTab({ blobRef: l.pdfBlobRef, mimeType: 'application/pdf' });
+    if (!result.ok) setOpenErr(result.message);
   };
 
   const openEvidencePdf = async (e: any) => {
+    setOpenErr(null);
     const ref = String(e?.blobRef || '').trim();
-    if (!ref) return;
-    const res = await getBlobUrl(ref, { mimeType: 'application/pdf' });
-    if (!res?.url) return;
-    openUrlInNewTab({ url: res.url, revoke: res.revoke, revokeAfterMs: 60_000 });
+    if (!ref) {
+      setOpenErr('No file reference on this document.');
+      return;
+    }
+    const result = await openBlobRefInNewTab({ blobRef: ref, mimeType: 'application/pdf' });
+    if (!result.ok) setOpenErr(result.message);
   };
 
   const canMail = isFeatureEnabled('letterMailing');
@@ -310,6 +316,7 @@ export default function PartnerLettersVaultPage() {
           </button>
 
           {mailGateErr ? <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony text-sm text-rose-200 border border-rose-500/30 bg-rose-500/10`}>{mailGateErr}</div> : null}
+          {openErr ? <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony text-sm text-rose-200 border border-rose-500/30 bg-rose-500/10`}>{openErr}</div> : null}
 
           <FinelyUnifiedHubLayout
             eyebrow="Letters vault"

@@ -2,7 +2,9 @@ import React, { useMemo, useState } from 'react';
 import { Download, Eye, FileText, Maximize2, Minimize2, Tag, Trash2, X } from 'lucide-react';
 import type { EvidenceItem } from '../../domain/evidence';
 import { getBlobUrl } from '../../storage/getBlobUrl';
-import { openUrlInNewTab, triggerBrowserDownload } from '../../utils/download';
+import { openBlobRefInNewTab } from '../../lib/openBlobRef';
+import { isLegacyPendingReportBlob } from '../../lib/legacyPendingReport';
+import { triggerBrowserDownload } from '../../utils/download';
 import {
   FINELY_OS_ENTITY_BODY,
   finelyOsCatalogCard,
@@ -64,30 +66,51 @@ export function EvidenceList({
     setErr(null);
     setBusyId(item.id);
     try {
-      const res = await getBlobUrl(item.blobRef, { mimeType: item.mimeType });
-      if (!res?.url) {
-        setErr('Could not load this file from storage.');
+      if (isLegacyPendingReportBlob(item.blobRef)) {
+        const result = await openBlobRefInNewTab({ blobRef: item.blobRef, mimeType: item.mimeType });
+        if (!result.ok) setErr(result.message);
         return;
       }
 
-      // Images/videos: show modal. PDFs: open new tab. Others: download.
+      // Images/videos: show modal. PDFs: open new tab (popup opened synchronously inside helper).
       if (item.mimeType.startsWith('image/')) {
+        const res = await getBlobUrl(item.blobRef, { mimeType: item.mimeType });
+        if (!res?.url) {
+          setErr('Could not load this file from storage.');
+          return;
+        }
         preview?.revoke?.();
         setPreview({ item, url: res.url, revoke: res.revoke, kind: 'image' });
         return;
       }
 
       if (item.mimeType.startsWith('video/')) {
+        const res = await getBlobUrl(item.blobRef, { mimeType: item.mimeType });
+        if (!res?.url) {
+          setErr('Could not load this file from storage.');
+          return;
+        }
         preview?.revoke?.();
         setPreview({ item, url: res.url, revoke: res.revoke, kind: 'video' });
         return;
       }
 
-      if (item.mimeType === 'application/pdf') {
-        openUrlInNewTab({ url: res.url, revoke: res.revoke, revokeAfterMs: 60_000 });
+      const isPdf =
+        item.mimeType === 'application/pdf' || String(item.filename || '').toLowerCase().endsWith('.pdf');
+      if (isPdf) {
+        const result = await openBlobRefInNewTab({
+          blobRef: item.blobRef,
+          mimeType: 'application/pdf',
+        });
+        if (!result.ok) setErr(result.message);
         return;
       }
 
+      const res = await getBlobUrl(item.blobRef, { mimeType: item.mimeType });
+      if (!res?.url) {
+        setErr('Could not load this file from storage.');
+        return;
+      }
       triggerBrowserDownload({
         url: res.url,
         filename: item.filename || 'evidence',
@@ -203,6 +226,11 @@ export function EvidenceList({
                         {new Date(e.createdAt).toLocaleString()} • {(e.sizeBytes / 1024).toFixed(0)} KB • {e.type}
                       </div>
                       {e.caption && <div className={`mt-2 ${FINELY_OS_ENTITY_BODY}`}>{e.caption}</div>}
+                      {isLegacyPendingReportBlob(e.blobRef) ? (
+                        <div className={`mt-2 text-[11px] ${FINELY_OS_ENTITY_BODY} text-amber-200/90`}>
+                          Legacy import — re-upload this file from your archive to view it.
+                        </div>
+                      ) : null}
                       {onUpsert ? (
                         <div className="mt-3 flex flex-wrap items-center gap-2">
                           <div className={`inline-flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL}`}>

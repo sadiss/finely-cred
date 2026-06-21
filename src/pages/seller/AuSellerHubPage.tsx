@@ -16,13 +16,17 @@ import { PageShell } from '../../components/layout/PageShell';
 import { useAuth } from '../../auth/AuthProvider';
 import { getUserDisplayName } from '../../auth/userProfile';
 import { usePartnerSession } from '../../auth/PartnerSessionContext';
-import { AU_SELLER, AU_SELLER_OFFERINGS } from '../../config/auSellerProgram';
+import { AU_SELLER, AU_SELLER_ACTIVATION_BULLETS, AU_SELLER_MARKETING_HEADLINE, AU_SELLER_OFFERINGS } from '../../config/auSellerProgram';
+import { isAdminEmail } from '../../auth/admin';
+import { listEntitlementsByPartner } from '../../data/billingRepo';
+import { ENTITLEMENT_KEYS } from '../../billing/entitlements';
 import { DenefitsContractCalculator } from '../../components/calculators/BenefitsContractCalculator';
 import { DenefitsEnrollmentPanel } from '../../components/denefits/DenefitsEnrollmentPanel';
 import { RoleWorkflowPanel } from '../../components/workflow/RoleWorkflowPanel';
 import { computeRoleWorkflowProgress } from '../../lib/roleWorkflowProgress';
 import { UnifiedTrainingPanel } from '../../components/training/UnifiedTrainingPanel';
 import { BackToSiteButton } from '../../components/navigation/BackToSiteButton';
+import { AuSellerActivationPanel } from '../../components/seller/AuSellerActivationPanel';
 import { AuSellerCommandStrip } from '../../components/seller/AuSellerCommandStrip';
 import { AuSellerRoleAutomationPanel } from '../../components/seller/AuSellerRoleAutomationPanel';
 import { findAuSellerByEmailAsync } from '../../data/auSellerRepo';
@@ -84,6 +88,14 @@ export default function AuSellerHubPage() {
     [seller?.listings],
   );
 
+  const hasActivation = useMemo(() => {
+    if (!partner?.id) return false;
+    if (isAdminEmail(auth.user?.email)) return true;
+    return listEntitlementsByPartner(partner.id).some(
+      (e) => e.key === ENTITLEMENT_KEYS.auSeller && e.status === 'active',
+    );
+  }, [partner?.id, auth.user?.email]);
+
   const auSellerWorkflowProgress = useMemo(
     () =>
       computeRoleWorkflowProgress('au_seller', {
@@ -110,20 +122,37 @@ export default function AuSellerHubPage() {
     );
   }
 
+  if (partner && !hasActivation) {
+    return (
+      <PageShell
+        badge={AU_SELLER.programName}
+        title={AU_SELLER_MARKETING_HEADLINE}
+        subtitle={`${AU_SELLER.startupFeeLabel} one-time activation — first ${AU_SELLER.listingSeasonDays}-day marketing season included.`}
+        back={{ to: '/dashboard', label: 'Dashboard' }}
+      >
+        <div className={`${FINELY_OS_PAGE} max-w-3xl space-y-6`}>
+          <AuSellerActivationPanel variant="paywall" activated={false} />
+          <BackToSiteButton />
+          <FinelyOsPageFooter />
+        </div>
+      </PageShell>
+    );
+  }
+
   const marketplaceShare = typeof window !== 'undefined' ? `${window.location.origin}${AU_SELLER.marketplacePath}` : AU_SELLER.marketplacePath;
 
   return (
     <PageShell
       badge={AU_SELLER.programName}
       title={AU_SELLER.hubName}
-      subtitle={`Welcome${getUserDisplayName(auth.user) ? `, ${getUserDisplayName(auth.user)}` : ''} — list tradelines, fulfill buyers, and grow AU supply.`}
+      subtitle={`${AU_SELLER_MARKETING_HEADLINE}${getUserDisplayName(auth.user) ? ` — welcome, ${getUserDisplayName(auth.user)}` : ''}`}
       back={{ to: '/dashboard', label: 'Dashboard' }}
     >
       <div className={`${FINELY_OS_PAGE} max-w-5xl`}>
         <FinelyUnifiedHubLayout
           eyebrow={AU_SELLER.programName}
           title={AU_SELLER.hubName}
-          subtitle="List tradelines, fulfill buyers, and grow AU supply."
+          subtitle={AU_SELLER_MARKETING_HEADLINE}
           accent="violet"
           kpis={[
             { label: 'Listings', value: String(listingsCount), accent: 'violet' },
@@ -139,6 +168,7 @@ export default function AuSellerHubPage() {
         >
         {tab === 'overview' && (
           <>
+            <AuSellerActivationPanel variant="hub" activated={hasActivation} />
             <AuSellerCommandStrip seller={seller} loading={sellerLoading} />
             <div className={`grid md:grid-cols-3 gap-4 ${finelyOsCatalogCard('violet')} !p-5`} data-fc-accent="violet">
               <div className={finelyOsKpiTile(3)}>

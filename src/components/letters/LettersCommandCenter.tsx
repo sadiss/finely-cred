@@ -45,6 +45,7 @@ import { readActiveTemplateIdFromSession } from '../templates/TemplateLibraryHub
 import { LetterStudioDisputeRail, type DisputeRailItem } from './LetterStudioDisputeRail';
 import { bureauDisputeAddress, SUBJECT_LINE } from '../../letters/disputeLetterTemplate';
 import { getBlobUrl } from '../../storage/getBlobUrl';
+import { openBlobRefInNewTab } from '../../lib/openBlobRef';
 import { downloadBlob, downloadText, openUrlInNewTab, triggerBrowserDownload } from '../../utils/download';
 import { RichTextEditor } from '../ui/RichTextEditor';
 import { htmlToPlainText, isProbablyHtml, plainTextToHtml, sanitizeHtmlForPreview } from '../../utils/richText';
@@ -792,9 +793,10 @@ function InlineEvidenceThumb({ blobRef, mimeType, alt }: { blobRef: string; mime
         // (Object URLs can go blank if revoked on component cleanup.)
         void (async () => {
           try {
-            const res = await getBlobUrl(blobRef, { mimeType, preferSigned: true });
-            if (!res?.url) return;
-            openUrlInNewTab({ url: res.url, revoke: res.revoke, revokeAfterMs: 5 * 60_000 });
+            const result = await openBlobRefInNewTab({ blobRef, mimeType, preferSigned: true });
+            if (!result.ok) {
+              window.alert(result.message);
+            }
           } catch {
             // ignore
           }
@@ -2706,16 +2708,21 @@ useEffect(() => {
                         <button
                           type="button"
                           className="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-white/[0.08] bg-white/5 hover:bg-white/10 text-[10px] font-black uppercase tracking-widest text-white/70 transition-all"
-                          onClick={async () => {
+                          onClick={() => {
                             const ev = evidence.find((x) => x.id === draft.evidenceId) ?? null;
                             if (!ev?.blobRef) return;
-                            try {
-                              const res = await getBlobUrl(ev.blobRef, { mimeType: ev.mimeType, preferSigned: true });
-                              if (!res?.url) return;
-                              openUrlInNewTab({ url: res.url, revoke: res.revoke, revokeAfterMs: 60_000 });
-                            } catch {
-                              // ignore
-                            }
+                            void (async () => {
+                              try {
+                                const result = await openBlobRefInNewTab({
+                                  blobRef: ev.blobRef,
+                                  mimeType: ev.mimeType,
+                                  preferSigned: true,
+                                });
+                                if (!result.ok) window.alert(result.message);
+                              } catch {
+                                // ignore
+                              }
+                            })();
                           }}
                           title="Open the attached enclosure"
                         >
@@ -4103,15 +4110,19 @@ useEffect(() => {
                                           <button
                                             type="button"
                                             className="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-white/[0.08] bg-white/5 hover:bg-white/10 text-[10px] font-black uppercase tracking-widest text-white/70 transition-all"
-                                            onClick={async () => {
-                                              try {
-                                                const res = await getBlobUrl(ev.blobRef, { mimeType: ev.mimeType, preferSigned: true });
-                                                if (!res?.url) return;
-                                                window.open(res.url, '_blank', 'noopener,noreferrer');
-                                                if (res.revoke) window.setTimeout(() => res.revoke?.(), 60_000);
-                                              } catch {
-                                                // ignore
-                                              }
+                                            onClick={() => {
+                                              void (async () => {
+                                                try {
+                                                  const result = await openBlobRefInNewTab({
+                                                    blobRef: ev.blobRef,
+                                                    mimeType: ev.mimeType,
+                                                    preferSigned: true,
+                                                  });
+                                                  if (!result.ok) window.alert(result.message);
+                                                } catch {
+                                                  // ignore
+                                                }
+                                              })();
                                             }}
                                           >
                                             Open <ExternalLink size={14} />

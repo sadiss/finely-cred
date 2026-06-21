@@ -330,7 +330,7 @@ export function computeCreditIntelReadiness(args: {
 
   // Utilization quick signal (best-effort)
   const utilVals: number[] = [];
-  for (const t of parsed.tradelines ?? []) {
+  for (const t of (parsed.tradelines ?? []).filter(Boolean)) {
     const u = (t as any).utilizationPct as any;
     if (u && typeof u === 'object') {
       for (const v of Object.values(u)) {

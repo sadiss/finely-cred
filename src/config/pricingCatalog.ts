@@ -1366,6 +1366,29 @@ export const tradelinePromoPackages: PricingPackage[] = [
     badge: 'Best Value',
     entitlementKeys: ['tradeline_starter', 'tradeline_boost', 'tradeline_max'],
   },
+  {
+    id: 'au_seller_activation',
+    category: 'tradeline_promo',
+    name: 'AU Seller Activation',
+    tagline: 'We market your tradelines — you supply the cards',
+    description:
+      'One-time $50 activation for authorized-user sellers. Finely verifies your profile, lists inventory on our buyer marketplace, and runs buyer intake for your first 60-day marketing season.',
+    highlights: [
+      '$50 one-time activation (buyers pay separately for placements)',
+      'Done-for-you marketplace marketing & buyer intake',
+      'First 60-day listing season included',
+      'Seller hub: listings, contracts, payouts',
+      'Managed rotation guidance (~60 days per card season)',
+    ],
+    priceAmount: 5000,
+    interval: 'one_time',
+    rail: 'stripe',
+    delivery: 'DFY',
+    isPublic: false,
+    sortOrder: 10,
+    badge: 'AU Sellers',
+    entitlementKeys: ['portal.au_seller'],
+  },
 ];
 
 // ─────────────────────────────────────────────────────────────────────────────

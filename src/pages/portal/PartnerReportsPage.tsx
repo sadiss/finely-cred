@@ -13,6 +13,8 @@ import { EvidenceList } from '../../components/evidence/EvidenceList';
 import { ParsedReportOverviewPanel } from '../../components/reports/ParsedReportOverviewPanel';
 import { ParsedReportDiagnosticsPanel } from '../../components/reports/ParsedReportDiagnosticsPanel';
 import { PdfReportFallbackView } from '../../components/reports/PdfReportFallbackView';
+import { LegacyPendingReportNotice } from '../../components/reports/LegacyPendingReportNotice';
+import { isLegacyPendingReportBlob } from '../../lib/legacyPendingReport';
 import { isAdminEmail } from '../../auth/admin';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { usePartnerSession } from '../../auth/PartnerSessionContext';
@@ -542,7 +544,55 @@ export default function PartnerReportsPage() {
             </div>
 
             <div className="order-1 lg:order-2 lg:col-span-8 min-w-0">
-              {selected?.parsed ? (
+              {selected && isLegacyPendingReportBlob(selected.rawBlobRef) ? (
+                <div className="space-y-6">
+                  <LegacyPendingReportNotice
+                    filename={selected.filename}
+                    rawBlobRef={selected.rawBlobRef}
+                    variant="partner"
+                  />
+                  {selected.parsed ? (
+                    <>
+                      {creditIntelModel ? (
+                        <CreditIntelDashboardPanel
+                          model={creditIntelModel}
+                          onSpawnTask={(candidateId) => {
+                            if (!partner) return;
+                            const suggestion = creditIntelModel.nextDisputes.find((d) => d.candidateId === candidateId);
+                            if (!suggestion) return;
+                            const titles = listTasksByPartner(partner.id).map((t) => t.title);
+                            spawnDisputeTaskFromSuggestion({ partnerId: partner.id, suggestion, existingTaskTitles: titles });
+                          }}
+                        />
+                      ) : null}
+                      <ParsedReportOverviewPanel parsed={selected.parsed} filename={selected.filename} />
+                      <CreditIntelTabs
+                        parsed={selected.parsed}
+                        reportId={selected.id}
+                        partnerId={partner.id}
+                        evidence={evidence as any}
+                        availableReports={reports.map((r) => ({ id: r.id, receivedAt: r.receivedAt, filename: r.filename, parsed: r.parsed }))}
+                        onOpenEvidenceVault={() => setTab('evidence')}
+                        onOpenTasks={() => navigate('/portal/projects')}
+                        initialTab={(deepLink.intelTab as any) || undefined}
+                        initialScrollToAccount={deepLink.scrollToAccount}
+                        onStartDispute={(candidate: DisputeCandidate, reasonTexts: string[]) => {
+                          const item = candidateToCaseItem(candidate, { reasons: reasonTexts });
+                          const c = createDisputeCase({
+                            partnerId: partner.id,
+                            bureau: candidate.bureau,
+                            title: `${candidate.account} — ${candidate.type}`,
+                            latestReportId: selected?.id,
+                            items: [item],
+                            initialRound: { round: 'Round 1', tone: 'formal', createdAt: nowIso() },
+                          });
+                          navigate(`/portal/letters?caseId=${encodeURIComponent(c.id)}`);
+                        }}
+                      />
+                    </>
+                  ) : null}
+                </div>
+              ) : selected?.parsed ? (
                 <div className="space-y-6">
                   {creditIntelModel ? (
                     <CreditIntelDashboardPanel

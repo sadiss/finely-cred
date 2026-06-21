@@ -14,7 +14,7 @@ import type { CreditReportRecord } from '../domain/creditReports';
 import type { Bureau } from '../domain/creditReports';
 import type { DisputeLetterMeta, LetterRecord } from '../domain/letters';
 
-const LEGACY_BLOB_PREFIX = 'legacy:pending-reupload:';
+import { LEGACY_PENDING_BLOB_PREFIX } from '../lib/legacyPendingReport';
 
 export type LegacyArtifactImportResult = {
   evidenceCreated: number;
@@ -36,7 +36,7 @@ function nowIso() {
 }
 
 function legacyBlobRef(filename: string) {
-  return `${LEGACY_BLOB_PREFIX}${filename}`;
+  return `${LEGACY_PENDING_BLOB_PREFIX}${filename}`;
 }
 
 function hasLegacyImportTag(item: { tags?: string[]; filename?: string }, filename: string) {
@@ -46,7 +46,7 @@ function hasLegacyImportTag(item: { tags?: string[]; filename?: string }, filena
 
 function hasLegacyReportFile(existingReports: CreditReportRecord[], fileName: string) {
   return existingReports.some(
-    (r) => r.filename === fileName && r.rawBlobRef.startsWith(LEGACY_BLOB_PREFIX),
+    (r) => r.filename === fileName && r.rawBlobRef.startsWith(LEGACY_PENDING_BLOB_PREFIX),
   );
 }
 

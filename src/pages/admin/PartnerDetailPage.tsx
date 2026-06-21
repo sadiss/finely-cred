@@ -32,8 +32,8 @@ import { deleteReport, listReportsByPartner, upsertReport } from '../../data/rep
 import { listEvidenceByPartner, upsertEvidence, deleteEvidence } from '../../data/evidenceRepo';
 import { deleteLetter, listLettersByPartner, upsertLetter } from '../../data/lettersRepo';
 import { getBlobStore } from '../../storage/getBlobStore';
-import { getBlobUrl } from '../../storage/getBlobUrl';
-import { openUrlInNewTab } from '../../utils/download';
+import { openBlobRefInNewTab } from '../../lib/openBlobRef';
+import { isLegacyPendingReportBlob } from '../../lib/legacyPendingReport';
 import { bureauFullName, bureauShortCode } from '../../utils/bureaus';
 import { ReportUploader } from '../../components/reports/ReportUploader';
 import { CreditIntelTabs } from '../../components/creditIntel/CreditIntelTabs';
@@ -79,7 +79,9 @@ import { createProject, listProjectsByPartner } from '../../data/projectsRepo';
 import { addThreadMessage, getOrCreateThreadBySubject } from '../../data/supportRepo';
 import { listPartnerNotesByPartner, createPartnerNote, deletePartnerNote, upsertPartnerNote } from '../../data/partnerNotesRepo';
 import { seedLegacyPartnerNotes } from '../../data/legacyPartnerNotesImport';
+import { legacyNoteEntriesForPartner, legacyNotesExternalId } from '../../lib/legacyPartnerNotesHydrate';
 import { pullWorkflowSnapshotFromSupabase } from '../../data/workflowSupabaseSync';
+import { LegacyPendingReportNotice } from '../../components/reports/LegacyPendingReportNotice';
 import { listDebtByPartner } from '../../data/debtRepo';
 import { newId } from '../../utils/ids';
 import { listNotifications, markAllRead, markNotificationRead, unreadCount } from '../../data/notificationsRepo';
@@ -410,6 +412,7 @@ function PartnerDetailPageInner() {
   const [mailOpen, setMailOpen] = useState(false);
   const [mailLetter, setMailLetter] = useState<LetterRecord | null>(null);
   const [mailGateErr, setMailGateErr] = useState<string | null>(null);
+  const [docOpenErr, setDocOpenErr] = useState<string | null>(null);
   const [notesDraft, setNotesDraft] = useState('');
   const [notesVisibleToPartner, setNotesVisibleToPartner] = useState(false);
   const [notesPinned, setNotesPinned] = useState(false);
@@ -467,12 +470,14 @@ function PartnerDetailPageInner() {
     void (async () => {
       await pullWorkflowSnapshotFromSupabase({ partnerId: partner.id });
       if (cancelled) return;
-      if (partner.notes?.trim() && partner.importExternalId) {
+      const noteEntries = legacyNoteEntriesForPartner(partner);
+      if (noteEntries.length || partner.notes?.trim()) {
         seedLegacyPartnerNotes({
           partnerId: partner.id,
           notesText: partner.notes,
-          externalId: partner.importExternalId,
-          forceRefresh: true,
+          noteEntries,
+          externalId: legacyNotesExternalId(partner),
+          forceRefresh: noteEntries.length > 0,
         });
       }
       setNotesVersion((v) => v + 1);
@@ -763,6 +768,15 @@ function PartnerDetailPageInner() {
 
   const partnerName = partner?.profile.fullName ?? '';
   const actorEmail = auth.user?.email || undefined;
+
+  const openStoredDocument = async (args: { blobRef: string; mimeType?: string }) => {
+    setDocOpenErr(null);
+    const result = await openBlobRefInNewTab({
+      blobRef: args.blobRef,
+      mimeType: args.mimeType || 'application/pdf',
+    });
+    if (!result.ok) setDocOpenErr(result.message);
+  };
 
   // Generate the (free) Credit Analysis Report for a given uploaded report.
   // Shared by the Reports tab and the dedicated Analysis Report tab.
@@ -2368,7 +2382,28 @@ function PartnerDetailPageInner() {
                 </div>
               </div>
 
-              {sortedManualNotes.length === 0 ? (
+              {sortedManualNotes.length === 0 && partner.notes?.trim() ? (
+                <div className={`${finelyOsInlineListItem()} p-5 space-y-3`}>
+                  <div className={`${FINELY_OS_ENTITY_VALUE}`}>Imported from previous Finely Cred site</div>
+                  <div className={`${FINELY_OS_ENTITY_SUBLABEL}`}>Legacy profile notes (will sync to timeline on refresh)</div>
+                  <pre className={`whitespace-pre-wrap text-sm leading-relaxed ${FINELY_OS_ENTITY_BODY}`}>{partner.notes}</pre>
+                  <button
+                    type="button"
+                    className={FINELY_OS_SECONDARY_BTN}
+                    onClick={() => {
+                      seedLegacyPartnerNotes({
+                        partnerId: partner.id,
+                        notesText: partner.notes,
+                        externalId: partner.importExternalId || partner.id,
+                        forceRefresh: true,
+                      });
+                      setNotesVersion((v) => v + 1);
+                    }}
+                  >
+                    Import into notes timeline
+                  </button>
+                </div>
+              ) : sortedManualNotes.length === 0 ? (
                   <div className={FINELY_OS_ENTITY_BODY}>No manual notes yet.</div>
                 ) : (
                   <FinelyOsPaginatedStack
@@ -2554,6 +2589,22 @@ function PartnerDetailPageInner() {
                         <div className="mt-3 flex items-center justify-between gap-3">
                           <div className={`${FINELY_OS_ENTITY_SUBLABEL} font-mono opacity-70`}>report_id: {r.id}</div>
                           <div className="flex items-center gap-2">
+                            {!isLegacyPendingReportBlob(r.rawBlobRef) ? (
+                              <button
+                                type="button"
+                                className={FINELY_OS_SECONDARY_BTN}
+                                title="Open stored report file"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  void openStoredDocument({
+                                    blobRef: r.rawBlobRef,
+                                    mimeType: r.mimeType || (r.fileType === 'pdf' ? 'application/pdf' : 'text/html'),
+                                  });
+                                }}
+                              >
+                                <ExternalLink size={14} /> Open file
+                              </button>
+                            ) : null}
                             <button
                               type="button"
                               className={`${FINELY_OS_SECONDARY_BTN} disabled:opacity-60 disabled:cursor-not-allowed`}
@@ -2640,7 +2691,26 @@ function PartnerDetailPageInner() {
               </div>
 
               <div className="order-1 lg:order-2 lg:col-span-8">
-                {selectedReport?.parsed ? (
+                {selectedReport && isLegacyPendingReportBlob(selectedReport.rawBlobRef) ? (
+                  <div className="space-y-6">
+                    <LegacyPendingReportNotice
+                      filename={selectedReport.filename}
+                      rawBlobRef={selectedReport.rawBlobRef}
+                      variant="admin"
+                    />
+                    {selectedReport.parsed ? (
+                      <CreditIntelTabs
+                        parsed={selectedReport.parsed}
+                        reportId={selectedReport.id}
+                        partnerId={partner.id}
+                        availableReports={reports.map((r) => ({ id: r.id, receivedAt: r.receivedAt, filename: r.filename, parsed: r.parsed }))}
+                        onOpenLetterGenerator={() => setTab('disputes')}
+                        onOpenEvidenceVault={() => setEvidencePicker({})}
+                        onOpenTasks={() => setTab('tasks')}
+                      />
+                    ) : null}
+                  </div>
+                ) : selectedReport?.parsed ? (
                   <>
                     <div className="space-y-6">
                       <ParsedReportOverviewPanel parsed={selectedReport.parsed} filename={selectedReport.filename} />
@@ -2803,13 +2873,9 @@ function PartnerDetailPageInner() {
                         </div>
                         <button
                           type="button"
-                          onClick={async () => {
-                            const ref = String(r?.blobRef || '').trim();
-                            if (!ref) return;
-                            const res = await getBlobUrl(ref, { mimeType: 'application/pdf' });
-                            if (!res?.url) return;
-                            openUrlInNewTab({ url: res.url, revoke: res.revoke, revokeAfterMs: 60_000 });
-                          }}
+                          onClick={() =>
+                            void openStoredDocument({ blobRef: String(r?.blobRef || '').trim(), mimeType: 'application/pdf' })
+                          }
                           className={`mt-3 ${FINELY_OS_PRIMARY_BTN}`}
                         >
                           Open PDF
@@ -2825,6 +2891,9 @@ function PartnerDetailPageInner() {
 
         {tab === 'evidence' && (
           <div className="space-y-6">
+            {docOpenErr ? (
+              <div className="rounded-xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-100">{docOpenErr}</div>
+            ) : null}
             <EvidenceUploader
               partnerId={partner.id}
               reportId={selectedReport?.id}
@@ -2895,6 +2964,9 @@ function PartnerDetailPageInner() {
               <div className="mt-4 space-y-3">
                 {mailGateErr ? (
                   <div className="rounded-xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-100">{mailGateErr}</div>
+                ) : null}
+                {docOpenErr ? (
+                  <div className="rounded-xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-100">{docOpenErr}</div>
                 ) : null}
                 {mailOpen && partner && mailLetter ? (
                   <MailLetterModal
@@ -2999,12 +3071,13 @@ function PartnerDetailPageInner() {
                         letter={l}
                         highlighted={highlightLetterId === l.id}
                         canMail={isFeatureEnabled('letterMailing')}
-                        onOpenPdf={async () => {
+                        onOpenPdf={() => {
                           const ref = (l as any).pdfBlobRef as string | undefined;
-                          if (!ref) return;
-                          const res = await getBlobUrl(ref, { mimeType: 'application/pdf' });
-                          if (!res?.url) return;
-                          openUrlInNewTab({ url: res.url, revoke: res.revoke, revokeAfterMs: 60_000 });
+                          if (ref) {
+                            void openStoredDocument({ blobRef: ref, mimeType: 'application/pdf' });
+                            return;
+                          }
+                          setDocOpenErr('No PDF stored for this letter — expand Preview letter text below or regenerate the PDF in Disputes.');
                         }}
                         onMail={() => {
                           if (!(l as any).pdfBlobRef) return;
@@ -3033,7 +3106,7 @@ function PartnerDetailPageInner() {
                           setMailOpen(true);
                         }}
                         mailDisabled={!(l as any).pdfBlobRef}
-                        pdfDisabled={!(l as any).pdfBlobRef}
+                        pdfDisabled={false}
                         onDelete={
                           canHardDeleteLetters
                             ? () => {
@@ -3094,13 +3167,9 @@ function PartnerDetailPageInner() {
                         <div className="mt-4 flex flex-wrap items-center gap-2">
                           <button
                             type="button"
-                            onClick={async () => {
-                              const ref = String(r?.blobRef || '').trim();
-                              if (!ref) return;
-                              const res = await getBlobUrl(ref, { mimeType: 'application/pdf' });
-                              if (!res?.url) return;
-                              openUrlInNewTab({ url: res.url, revoke: res.revoke, revokeAfterMs: 60_000 });
-                            }}
+                            onClick={() =>
+                              void openStoredDocument({ blobRef: String(r?.blobRef || '').trim(), mimeType: 'application/pdf' })
+                            }
                             className={FINELY_OS_PRIMARY_BTN}
                           >
                             Open PDF

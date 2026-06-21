@@ -179,6 +179,7 @@ export function SavedLetterCard({
   const meta = typeMeta(letter.type);
   const Icon = meta.icon;
   const hasPdf = Boolean(letter.pdfBlobRef);
+  const canOpenContent = hasPdf || Boolean(letter.body);
   const bureau =
     letter.meta && typeof letter.meta === 'object' && 'bureau' in letter.meta
       ? String((letter.meta as { bureau?: Bureau }).bureau || '')
@@ -194,6 +195,13 @@ export function SavedLetterCard({
   const stats = disputeStats(letter);
   const bureauUi = bureauTheme(bureau);
   const steps = workflowSteps(letter.status, hasPdf);
+  const handleOpenContent = () => {
+    if (hasPdf && onOpenPdf) {
+      onOpenPdf();
+      return;
+    }
+    if (letter.body) setSnapshotOpen(true);
+  };
   const delivery = fmtDate(letter.mailing?.expectedDeliveryDate);
 
   return (
@@ -227,13 +235,13 @@ export function SavedLetterCard({
               <div className="text-sm font-semibold text-amber-50">Letter saved to your vault</div>
               <div className="text-xs text-amber-100/75 mt-0.5">Open the PDF, print, or mail when you are ready.</div>
             </div>
-            {onOpenPdf && hasPdf ? (
+            {onOpenPdf && canOpenContent ? (
               <button
                 type="button"
-                onClick={onOpenPdf}
+                onClick={handleOpenContent}
                 className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-amber-400 text-black font-black uppercase tracking-widest text-[10px] hover:brightness-110 shadow-[0_10px_30px_-14px_rgba(251,191,36,0.8)]"
               >
-                <Download size={14} /> Open now
+                <Download size={14} /> {hasPdf ? 'Open now' : 'View letter'}
               </button>
             ) : null}
           </div>
@@ -379,11 +387,11 @@ export function SavedLetterCard({
               {onOpenPdf ? (
                 <button
                   type="button"
-                  onClick={onOpenPdf}
-                  disabled={pdfDisabled || !hasPdf}
+                  onClick={handleOpenContent}
+                  disabled={pdfDisabled || !canOpenContent}
                   className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 text-black font-black uppercase tracking-widest text-[10px] hover:brightness-110 transition-all disabled:opacity-45 disabled:cursor-not-allowed shadow-[0_12px_32px_-14px_rgba(251,191,36,0.75)]"
                 >
-                  <Download size={15} /> Open PDF
+                  <Download size={15} /> {hasPdf ? 'Open PDF' : 'View letter'}
                 </button>
               ) : null}
               {canMail && onMail ? (

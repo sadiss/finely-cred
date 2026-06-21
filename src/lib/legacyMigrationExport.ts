@@ -74,12 +74,15 @@ export function buildLegacyMigrationFromSql(sql: string, sourceFile = 'finelyno_
 
   const notesByUserId = new Map<string, Array<{ message: string; createdAt?: string }>>();
   for (const m of apmessages) {
-    const uid = str(m.user_id);
     const msg = str(m.message);
-    if (!uid || !msg) continue;
-    const list = notesByUserId.get(uid) ?? [];
-    list.push({ message: msg, createdAt: str(m.created_at) || str(m.date) || undefined });
-    notesByUserId.set(uid, list);
+    if (!msg) continue;
+    const createdAt = str(m.created_at) || str(m.date) || str(m.updated_at) || undefined;
+    const keys = [str(m.user_id), str(m.partner_id), str(m.partners_info_id), str(m.uid)].filter(Boolean);
+    for (const key of keys) {
+      const list = notesByUserId.get(key) ?? [];
+      list.push({ message: msg, createdAt });
+      notesByUserId.set(key, list);
+    }
   }
 
   const lettersByUserId = new Map<string, number>();

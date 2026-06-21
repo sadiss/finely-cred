@@ -63,8 +63,17 @@ export async function importLegacyPartners(args: {
 
         const notesText = p.notes ? String(p.notes).trim() : '';
         if (notesText || (p.legacyNoteEntries?.length ?? 0)) {
+          const mergedSignals = {
+            ...((exists.journeySignals as any) ?? {}),
+            ...((p.journeySignals as any) ?? {}),
+            ...(Array.isArray(p.legacyNoteEntries) && p.legacyNoteEntries.length
+              ? { legacyNoteEntries: p.legacyNoteEntries }
+              : {}),
+          };
           if (notesText && (!exists.notes || notesText.length > String(exists.notes).trim().length)) {
-            await adminUpsertPartner({ ...exists, notes: notesText });
+            await adminUpsertPartner({ ...exists, notes: notesText, journeySignals: mergedSignals });
+          } else if (Array.isArray(p.legacyNoteEntries) && p.legacyNoteEntries.length) {
+            await adminUpsertPartner({ ...exists, journeySignals: mergedSignals });
           }
           seedLegacyPartnerNotes({
             partnerId: exists.id,
@@ -105,7 +114,12 @@ export async function importLegacyPartners(args: {
         primaryRoute: (p.primaryRoute as any) ?? undefined,
         lane: (p.lane as any) ?? undefined,
         journeyStage: (p.journeyStage as any) ?? undefined,
-        journeySignals: (p.journeySignals as any) ?? undefined,
+        journeySignals: {
+          ...((p.journeySignals as any) ?? {}),
+          ...(Array.isArray(p.legacyNoteEntries) && p.legacyNoteEntries.length
+            ? { legacyNoteEntries: p.legacyNoteEntries }
+            : {}),
+        },
         intake: buildIntakeFromLegacy(p),
         importSource: 'laravel',
         importExternalId: externalId,

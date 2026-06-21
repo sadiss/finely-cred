@@ -22,7 +22,7 @@ import {
   OnboardingWizardMobileToolbar,
 } from '../onboarding/OnboardingExitSetupBar';
 import { CS } from '../../config/creditSpecialistProgram';
-import { AU_SELLER } from '../../config/auSellerProgram';
+import { AU_SELLER, AU_SELLER_MARKETING_HEADLINE } from '../../config/auSellerProgram';
 import { computeAgentRevenueSplit, defaultAgentOperatingModel } from '../../domain/agentProgram';
 import { saveAgentOperatingModel } from '../../data/agentProgramRepo';
 import { captureLeadAttributionFromUrl, getLeadAttribution } from '../../lib/leadAttribution';
@@ -107,12 +107,12 @@ function recommendNext(args: {
 
   if (args.lane === 'au_seller') {
     return {
-      headline: 'AU Seller onboarding',
+      headline: AU_SELLER_MARKETING_HEADLINE,
       reason:
-        'Sellers submit verified supply listings with proof artifacts. We’ll guide contract acceptance, payouts, and inventory review.',
-      nextPath: AU_SELLER.hubPath,
-      ctaLabel: 'Open AU Seller Hub',
-      pills: ['Supply side', 'Proof required', 'Verification workflow'],
+        'Pay a one-time $50 activation and Finely markets your verified AU inventory to buyers — intake, orders, and your seller hub included. First 60-day listing season is included; rotate cards after each season to stay protected.',
+      nextPath: `/portal/checkout?package=${AU_SELLER.checkoutPackageId}&rail=stripe`,
+      ctaLabel: `Activate — ${AU_SELLER.startupFeeLabel}`,
+      pills: ['We bring buyers', '60-day seasons', 'Seller payouts', 'No buyer-side fee for you'],
     };
   }
 
@@ -1226,7 +1226,7 @@ const ROLE_CARDS: Array<{
   goal?: string;
 }> = [
   { id: 'client', title: 'Client', desc: 'Improve my credit, kill debt, build business credit, or get funding. (Most people choose this.)', Icon: ShieldCheck },
-  { id: 'au_seller', title: 'AU Seller', desc: 'Sell authorized-user tradeline supply — list inventory, accept contracts, get payouts.', Icon: Building2, lane: 'au_seller', goal: 'au_seller' },
+  { id: 'au_seller', title: 'AU Seller', desc: 'We market your AU tradelines — $50 activation, 60-day seasons, seller payouts.', Icon: Building2, lane: 'au_seller', goal: 'au_seller' },
   { id: 'agent', title: 'Credit Specialist', desc: 'Run client files as a Finely partner — revenue share, training, white-label, and a direct line to our team.', Icon: Briefcase, lane: 'agent', goal: 'agent' },
   { id: 'affiliate', title: 'Affiliate', desc: 'Refer partners and earn commissions with tracked links.', Icon: Trophy, lane: 'affiliate', goal: 'affiliate' },
 ];

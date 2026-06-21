@@ -22,6 +22,8 @@ export const ENTITLEMENT_KEYS = {
   packForeclosure: 'letters.pack.foreclosure',
   packStudentLoans: 'letters.pack.student_loans',
   packInquiries: 'letters.pack.inquiries',
+  /** AU Seller supply-side program (paid activation). */
+  auSeller: 'portal.au_seller',
 } as const;
 
 export type EntitlementKey = (typeof ENTITLEMENT_KEYS)[keyof typeof ENTITLEMENT_KEYS];

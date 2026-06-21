@@ -116,14 +116,28 @@ function scoreFamily(model: string): 'FICO' | 'VantageScore' | 'Other' {
   return 'Other';
 }
 
+function sanitizeTradelines(tradelines: ParsedCreditReport['tradelines'] | undefined | null): ParsedTradeline[] {
+  if (!Array.isArray(tradelines)) return [];
+  return tradelines.filter((t): t is ParsedTradeline => Boolean(t && typeof t === 'object'));
+}
+
 function getFieldValueByBureau(parsed: ParsedCreditReport, labelIncludes: string): Partial<Record<Bureau, string>>[] {
   const out: Partial<Record<Bureau, string>>[] = [];
   const needle = labelIncludes.toLowerCase();
-  for (const t of parsed.tradelines) {
+  for (const t of sanitizeTradelines(parsed.tradelines)) {
     const row = (t.fields ?? []).find((f) => f?.label?.toLowerCase?.().includes(needle));
-    if (row?.byBureau) out.push(row.byBureau);
+    if (row?.byBureau && typeof row.byBureau === 'object') out.push(row.byBureau);
   }
   return out;
+}
+
+const EMPTY_BUREAU_TOTAL = { balance: null, limit: null, utilizationPct: null } as const;
+
+function bureauTotal(
+  totals: Record<Bureau, { balance: number | null; limit: number | null; utilizationPct: number | null }> | null | undefined,
+  bureau: Bureau,
+) {
+  return totals?.[bureau] ?? EMPTY_BUREAU_TOTAL;
 }
 
 /** Try multiple label synonyms so utilization works across different provider exports. */
@@ -163,6 +177,7 @@ function computeMoneyTotals(parsed: ParsedCreditReport) {
     let balSum = 0;
     let balCount = 0;
     for (const m of balances) {
+      if (!m || typeof m !== 'object') continue;
       const v = parseMoney(m[b]);
       if (v != null) {
         balSum += v;
@@ -173,6 +188,7 @@ function computeMoneyTotals(parsed: ParsedCreditReport) {
     let limSum = 0;
     let limCount = 0;
     for (const m of limits) {
+      if (!m || typeof m !== 'object') continue;
       const v = parseMoney(m[b]);
       if (v != null) {
         limSum += v;
@@ -345,7 +361,7 @@ export function CreditIntelTabs({
     }
     return {
       ...parsed,
-      tradelines: Array.isArray(parsed.tradelines) ? parsed.tradelines : [],
+      tradelines: sanitizeTradelines(parsed.tradelines),
       sections: Array.isArray(parsed.sections) ? parsed.sections : undefined,
       scores: Array.isArray(parsed.scores) ? parsed.scores : undefined,
       creditorContacts: Array.isArray(parsed.creditorContacts) ? parsed.creditorContacts : undefined,
@@ -353,7 +369,7 @@ export function CreditIntelTabs({
     };
   }, [parsed]);
 
-  const [tab, setTab] = useState<TabKey>(initialTab ?? 'accounts');
+  const [tab, setTab] = useState<TabKey>(initialTab ?? 'overview');
   const [paydownAmount, setPaydownAmount] = useState<number>(1000);
   const [manualBalanceOverride, setManualBalanceOverride] = useState<string>('');
   const [manualLimitOverride, setManualLimitOverride] = useState<string>('');
@@ -670,7 +686,7 @@ export function CreditIntelTabs({
   const scoreFactors = useMemo(() => {
     const helping: string[] = [];
     const hurting: string[] = [];
-    const utilVals = [totals.EXP.utilizationPct, totals.EQF.utilizationPct, totals.TUC.utilizationPct].filter(
+    const utilVals = [bureauTotal(totals, 'EXP').utilizationPct, bureauTotal(totals, 'EQF').utilizationPct, bureauTotal(totals, 'TUC').utilizationPct].filter(
       (x): x is number => typeof x === 'number',
     );
     const utilAvg = utilVals.length ? Math.round(utilVals.reduce((a, b) => a + b, 0) / utilVals.length) : null;
@@ -1327,21 +1343,21 @@ export function CreditIntelTabs({
       },
       {
         field: 'Total balance (detected)',
-        exp: toUsd(totals.EXP.balance),
-        eqf: toUsd(totals.EQF.balance),
-        tuc: toUsd(totals.TUC.balance),
+        exp: toUsd(bureauTotal(totals, 'EXP').balance),
+        eqf: toUsd(bureauTotal(totals, 'EQF').balance),
+        tuc: toUsd(bureauTotal(totals, 'TUC').balance),
       },
       {
         field: 'Total limit/high credit (detected)',
-        exp: toUsd(totals.EXP.limit),
-        eqf: toUsd(totals.EQF.limit),
-        tuc: toUsd(totals.TUC.limit),
+        exp: toUsd(bureauTotal(totals, 'EXP').limit),
+        eqf: toUsd(bureauTotal(totals, 'EQF').limit),
+        tuc: toUsd(bureauTotal(totals, 'TUC').limit),
       },
       {
         field: 'Utilization % (estimated)',
-        exp: totals.EXP.utilizationPct != null ? `${totals.EXP.utilizationPct}%` : '-',
-        eqf: totals.EQF.utilizationPct != null ? `${totals.EQF.utilizationPct}%` : '-',
-        tuc: totals.TUC.utilizationPct != null ? `${totals.TUC.utilizationPct}%` : '-',
+        exp: bureauTotal(totals, 'EXP').utilizationPct != null ? `${bureauTotal(totals, 'EXP').utilizationPct}%` : '-',
+        eqf: bureauTotal(totals, 'EQF').utilizationPct != null ? `${bureauTotal(totals, 'EQF').utilizationPct}%` : '-',
+        tuc: bureauTotal(totals, 'TUC').utilizationPct != null ? `${bureauTotal(totals, 'TUC').utilizationPct}%` : '-',
       },
     ];
   }, [safeParsed.tradelines.length, disputeCandidates, totals]);
@@ -1349,7 +1365,7 @@ export function CreditIntelTabs({
   const actionPlan = useMemo(() => {
     const items: string[] = [];
     const anyDerog = disputeCandidates.length > 0;
-    const utilVals = [totals.EXP.utilizationPct, totals.EQF.utilizationPct, totals.TUC.utilizationPct].filter(
+    const utilVals = [bureauTotal(totals, 'EXP').utilizationPct, bureauTotal(totals, 'EQF').utilizationPct, bureauTotal(totals, 'TUC').utilizationPct].filter(
       (x): x is number => typeof x === 'number',
     );
     const utilAvg = utilVals.length ? Math.round(utilVals.reduce((a, b) => a + b, 0) / utilVals.length) : null;
@@ -1376,8 +1392,9 @@ export function CreditIntelTabs({
       TUC: { newBalance: null, newUtilPct: null },
     };
     (['EXP', 'EQF', 'TUC'] as const).forEach((b) => {
-      const bal = totals[b].balance ?? manualBal;
-      const lim = totals[b].limit ?? manualLim;
+      const bucket = bureauTotal(totals, b);
+      const bal = bucket.balance ?? manualBal;
+      const lim = bucket.limit ?? manualLim;
       if (bal == null || lim == null || lim <= 0) return;
       const newBalance = Math.max(0, bal - amt);
       const newUtilPct = Math.round((newBalance / lim) * 100);
@@ -1403,7 +1420,7 @@ export function CreditIntelTabs({
             </p>
           </div>
 
-          <div className={`${FINELY_OS_VIEW_TABS} flex-wrap`}>
+          <div className={`${FINELY_OS_VIEW_TABS} flex-nowrap overflow-x-auto pb-1 max-w-full`}>
             <button className={tabBtn(tab === 'overview')} onClick={() => setTab('overview')}>
               <Layers size={12} className="inline mr-2" /> Overview
             </button>
@@ -1777,6 +1794,45 @@ export function CreditIntelTabs({
 
                     {sectionNode ? (
                       <div className="space-y-4">{sectionNode}</div>
+                    ) : pi && (pi.fullName || pi.ssnMasked || pi.dob || (pi.addresses?.length ?? 0) > 0 || (pi.phones?.length ?? 0) > 0) ? (
+                      <div className="grid sm:grid-cols-2 gap-4">
+                        {pi.fullName ? (
+                          <div className="fc-soft-surface p-4">
+                            <div className="text-[10px] uppercase tracking-widest text-white/45">Name</div>
+                            <div className="mt-2 text-white/90 font-semibold">{pi.fullName}</div>
+                          </div>
+                        ) : null}
+                        {pi.ssnMasked ? (
+                          <div className="fc-soft-surface p-4">
+                            <div className="text-[10px] uppercase tracking-widest text-white/45">SSN (masked)</div>
+                            <div className="mt-2 text-white/90 font-mono">{pi.ssnMasked}</div>
+                          </div>
+                        ) : null}
+                        {pi.dob ? (
+                          <div className="fc-soft-surface p-4">
+                            <div className="text-[10px] uppercase tracking-widest text-white/45">Date of birth</div>
+                            <div className="mt-2 text-white/90 font-mono">{pi.dob}</div>
+                          </div>
+                        ) : null}
+                        {(pi.addresses ?? []).map((a, i) => (
+                          <div key={i} className="fc-soft-surface p-4 sm:col-span-2">
+                            <div className="text-[10px] uppercase tracking-widest text-white/45">Address {i + 1}</div>
+                            <div className="mt-2 text-white/85 text-sm whitespace-pre-wrap">
+                              {typeof a === 'string'
+                                ? a
+                                : [a.line1, a.city, a.state, a.zip].filter(Boolean).join(', ') || a.raw || '—'}
+                            </div>
+                          </div>
+                        ))}
+                        {(pi.phones ?? []).map((p, i) => (
+                          <div key={i} className="fc-soft-surface p-4">
+                            <div className="text-[10px] uppercase tracking-widest text-white/45">Phone {i + 1}</div>
+                            <div className="mt-2 text-white/90 font-mono">
+                              {typeof p === 'string' ? p : [p.number, p.type ? `(${p.type})` : ''].filter(Boolean).join(' ')}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                     ) : (
                       <p className="text-white/70 text-sm">
                         No structured Personal Information section was detected in this export. Next step is provider-specific PI parsing (names,
@@ -1860,6 +1916,8 @@ export function CreditIntelTabs({
               parsed={{ ...safeParsed, tradelines: collectionsDisplayTradelines }}
               partnerId={partnerId}
               reportId={reportId}
+              layout="grid"
+              showSequence
             />
           ) : (
             <p className="text-white/70 text-sm">
@@ -1941,6 +1999,8 @@ export function CreditIntelTabs({
               parsed={{ ...safeParsed, tradelines: latePaymentTradelines }}
               partnerId={partnerId}
               reportId={reportId}
+              layout="grid"
+              showSequence
             />
           ) : (
             <div className="fc-soft-surface-lg p-5">
@@ -2110,7 +2170,13 @@ export function CreditIntelTabs({
           <div className="space-y-4">
             <div className="text-white/90 font-semibold">Late payment tradelines (from Account History)</div>
             {latePaymentTradelines.length ? (
-              <ParsedReportViewer parsed={{ ...safeParsed, tradelines: latePaymentTradelines }} partnerId={partnerId} reportId={reportId} />
+              <ParsedReportViewer
+                parsed={{ ...safeParsed, tradelines: latePaymentTradelines }}
+                partnerId={partnerId}
+                reportId={reportId}
+                layout="grid"
+                showSequence
+              />
             ) : (
               <div className="text-white/60 text-sm">
                 No late-payment tradelines detected from the extracted data. This usually means the export doesn’t include payment history and doesn’t label late status in fields.

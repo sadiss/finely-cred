@@ -111,13 +111,19 @@ export function ParsedReportViewer({
   partnerId,
   reportId,
   scrollToCreditorName,
+  layout = 'list',
+  showSequence = false,
 }: {
   parsed: ParsedCreditReport;
   partnerId?: string;
   reportId?: string;
   scrollToCreditorName?: string | null;
+  /** Grid = card tiles (collections/negatives). List = full-width stack. Order is preserved. */
+  layout?: 'list' | 'grid';
+  showSequence?: boolean;
 }) {
-  const [openIndex, setOpenIndex] = useState<number | null>(0);
+  const isGrid = layout === 'grid';
+  const [openIndex, setOpenIndex] = useState<number | null>(isGrid ? null : 0);
   const [savingKey, setSavingKey] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [filterBureau, setFilterBureau] = useState<Bureau | ''>('');
@@ -127,7 +133,7 @@ export function ParsedReportViewer({
   const [query, setQuery] = useState<string>('');
   const [showAllFields, setShowAllFields] = useState(false);
   const [tradelinePage, setTradelinePage] = useState(0);
-  const TRADELINE_PAGE_SIZE = 12;
+  const TRADELINE_PAGE_SIZE = isGrid ? 9 : 12;
   const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
 
   const distinctTypes = useMemo(() => {
@@ -378,14 +384,18 @@ export function ParsedReportViewer({
 
       <CollapsibleSection
         variant="dark"
-        title="Tradelines"
-        subtitle="Accounts detected from your parsed report. Expand a tradeline to view bureau fields + evidence."
+        title={isGrid ? 'Account cards' : 'Tradelines'}
+        subtitle={
+          isGrid
+            ? 'Ordered tiles — tap a card to expand details, then capture a screenshot for evidence.'
+            : 'Accounts detected from your parsed report. Expand a tradeline to view bureau fields + evidence.'
+        }
         count={`${filteredTradelines.length}`}
         defaultOpen
-        storageKey={`reports.viewer.tradelines.${parsed.provider || 'unknown'}`}
+        storageKey={`reports.viewer.tradelines.${parsed.provider || 'unknown'}.${layout}`}
         bodyClassName="!p-0"
       >
-        <div className="p-5 md:p-6 space-y-4">
+        <div className={isGrid ? 'p-4 md:p-5 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4' : 'p-5 md:p-6 space-y-4'}>
           {visibleTradelines.map((t, pageIdx) => {
           const idx = safeTradelinePage * TRADELINE_PAGE_SIZE + pageIdx;
           const isOpen = openIndex === idx;
@@ -395,6 +405,7 @@ export function ParsedReportViewer({
           const by = accountNoRow?.byBureau ?? {};
           const acct = by.EXP || by.TUC || by.EQF;
           const screenshotKey = `${idx}_${t.creditorName}`;
+          const sequenceLabel = showSequence || isGrid ? idx + 1 : null;
 
           return (
             <div
@@ -403,21 +414,32 @@ export function ParsedReportViewer({
                 cardRefs.current[idx] = el;
               }}
               className={`rounded-2xl border overflow-hidden min-w-0 ${
+                isGrid ? 'flex flex-col h-full shadow-lg shadow-black/20 ' : ''
+              }${
                 rk === 'AU'
                   ? 'border-violet-500/35 bg-[radial-gradient(900px_320px_at_15%_0%,rgba(139,92,246,0.14)_0%,transparent_60%)]'
                   : rk === 'Primary'
                     ? 'border-emerald-500/35 bg-[radial-gradient(900px_320px_at_15%_0%,rgba(16,185,129,0.14)_0%,transparent_60%)]'
                     : rk === 'Joint'
                       ? 'border-sky-500/35 bg-[radial-gradient(900px_320px_at_15%_0%,rgba(14,165,233,0.14)_0%,transparent_60%)]'
-                      : `${finelyOsInlineListItem()} !p-0`
+                      : isGrid
+                        ? 'border-fuchsia-500/25 bg-white/[0.04]'
+                        : `${finelyOsInlineListItem()} !p-0`
               }`}
             >
               <button
-                className="w-full flex items-center justify-between gap-6 px-6 py-5 hover:bg-white/[0.04] transition-colors text-left"
+                className={`w-full flex items-start justify-between gap-4 text-left transition-colors ${
+                  isGrid ? 'px-4 py-4 hover:bg-white/[0.06]' : 'px-6 py-5 hover:bg-white/[0.04] items-center'
+                }`}
                 onClick={() => setOpenIndex(isOpen ? null : idx)}
               >
-                <div className="min-w-0">
-                  <p className={`${FINELY_OS_ENTITY_VALUE} text-xl leading-tight truncate`}>{t.creditorName}</p>
+                <div className="min-w-0 flex-1">
+                  {sequenceLabel ? (
+                    <span className="inline-flex mb-2 px-2 py-0.5 rounded-full border border-amber-500/40 bg-amber-500/15 text-amber-100 text-[10px] font-black uppercase tracking-widest">
+                      #{sequenceLabel}
+                    </span>
+                  ) : null}
+                  <p className={`${FINELY_OS_ENTITY_VALUE} ${isGrid ? 'text-base' : 'text-xl'} leading-tight line-clamp-2`}>{t.creditorName}</p>
                   <p className={`${FINELY_OS_ENTITY_SUBLABEL} font-mono normal-case`}>
                     acct: {safe(t.accountNumberMasked ?? acct)}
                   </p>
@@ -502,8 +524,8 @@ export function ParsedReportViewer({
                     </div>
                   )}
                 </div>
-                <div className="flex items-center gap-3">
-                  {partnerId && isOpen && (
+                <div className={`flex ${isGrid ? 'flex-col sm:flex-row' : ''} items-center gap-2 shrink-0`}>
+                  {partnerId && (isGrid || isOpen) ? (
                     <button
                       type="button"
                       onClick={(e) => {
@@ -511,20 +533,20 @@ export function ParsedReportViewer({
                         captureTradelineScreenshot({ idx, tradeline: t });
                       }}
                       data-no-capture="true"
-                      className={FINELY_OS_SECONDARY_BTN}
+                      className={`${FINELY_OS_SECONDARY_BTN} ${isGrid ? '!py-2 !text-[10px] w-full sm:w-auto' : ''}`}
                       disabled={Boolean(savingKey)}
                       title="Save screenshot to Evidence Vault — included when you download the dispute letter PDF (print-ready)"
                     >
                       <Camera size={14} className="text-amber-300" />
                       {savingKey === screenshotKey ? 'Saving…' : 'Screenshot'}
                     </button>
-                  )}
+                  ) : null}
                   <ChevronDown size={18} className={`text-white/45 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                 </div>
               </button>
 
               {isOpen && (
-                <div className="px-6 pb-6 space-y-6">
+                <div className={`${isGrid ? 'px-4 pb-4' : 'px-6 pb-6'} space-y-6 border-t border-white/[0.06]`}>
                   {(() => {
                     const fields = t.fields ?? [];
                     const norm = (s: string) => (s || '').toLowerCase().replace(/\s+/g, ' ').trim();
