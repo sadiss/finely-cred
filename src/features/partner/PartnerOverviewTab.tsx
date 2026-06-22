@@ -3,6 +3,7 @@ import { ArrowRight } from 'lucide-react';
 import { KpiCard } from '../../components/ui/KpiCards';
 import { bureauShortCode } from '../../utils/bureaus';
 import type { PartnerOverallScoreResult } from '../../utils/partnerOverallScore';
+import { PartnerActivityTimeline, type ActivityTimelineItem } from '../../components/partner/PartnerActivityTimeline';
 import {
   FINELY_OS_ENTITY_BODY,
   FINELY_OS_ENTITY_INPUT,
@@ -34,6 +35,7 @@ export function PartnerOverviewTab(args: {
   onOpenProfile: () => void;
   onOpenTab: (tab: string) => void;
   onNavigate: (path: string) => void;
+  activityItems?: ActivityTimelineItem[];
 }) {
   const { partner } = args;
   const primaryScore = args.latestScoresRows[0];
@@ -210,6 +212,14 @@ export function PartnerOverviewTab(args: {
             ))}
           </div>
         </div>
+      ) : null}
+
+      {args.activityItems?.length ? (
+        <PartnerActivityTimeline
+          items={args.activityItems}
+          emptyMessage="No recent activity."
+          accent="emerald"
+        />
       ) : null}
     </div>
   );

@@ -12,6 +12,8 @@ import {
   type MailAddressVerificationResult,
 } from '../../lib/mailerClient';
 import { buildLetterAgentChain } from '../../lib/letterAgentChain';
+import { canAffordMailSend, chargeMailSend, formatMailCreditsUsd } from '../../data/mailCreditsRepo';
+import { MailCreditsPanel } from '../mailing/MailCreditsPanel';
 import { LetterAgentChainStrip } from './LetterAgentChainStrip';
 import { appendAiActionAudit } from '../../data/aiActionAuditLog';
 
@@ -286,6 +288,11 @@ export function MailLetterModal({
       setErr('Please verify both addresses before mailing.');
       return;
     }
+    const afford = canAffordMailSend();
+    if (!afford.ok) {
+      setErr(`Insufficient mailing balance. Need ${formatMailCreditsUsd(afford.costCents)}; available ${formatMailCreditsUsd(afford.balanceCents)}. Replenish in Admin Settings or the mail panel.`);
+      return;
+    }
     setErr(null);
     setBusy(true);
     try {
@@ -300,6 +307,7 @@ export function MailLetterModal({
         from: fromClean,
         options: { color: true, doubleSided: true },
       });
+      chargeMailSend({ letterId: letter.id, partnerId });
       onMailed({
         providerId: res.providerId,
         expectedDeliveryDate: res.expectedDeliveryDate,
@@ -353,6 +361,7 @@ export function MailLetterModal({
             </div>
           ) : null}
           {err ? <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-red-100 text-sm">{err}</div> : null}
+          <MailCreditsPanel compact />
 
           {/* Preview */}
           <div className="fc-light-glass-panel fc-light-chrome-panel p-5 space-y-4">

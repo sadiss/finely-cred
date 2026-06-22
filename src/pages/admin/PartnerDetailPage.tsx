@@ -32,12 +32,14 @@ import { deleteReport, listReportsByPartner, upsertReport } from '../../data/rep
 import { listEvidenceByPartner, upsertEvidence, deleteEvidence } from '../../data/evidenceRepo';
 import { deleteLetter, listLettersByPartner, upsertLetter } from '../../data/lettersRepo';
 import { getBlobStore } from '../../storage/getBlobStore';
-import { isSupabaseBlobRef } from '../../storage/SupabaseBlobStore';
+import { canAccessReportBlob } from '../../lib/reportBlobAccess';
+import { reparseStoredCreditReport } from '../../lib/reportParsePipeline';
 import { supabase, isSupabaseConfigured } from '../../lib/supabaseClient';
 import { openBlobRefInNewTab } from '../../lib/openBlobRef';
 import { isLegacyPendingReportBlob } from '../../lib/legacyPendingReport';
 import { bureauFullName, bureauShortCode } from '../../utils/bureaus';
 import { ReportUploader } from '../../components/reports/ReportUploader';
+import { ReportActionsBar, ReportFileStrip } from '../../components/reports/ReportFileStrip';
 import { CreditIntelTabs } from '../../components/creditIntel/CreditIntelTabs';
 import { EvidenceUploader } from '../../components/evidence/EvidenceUploader';
 import { EvidenceList } from '../../components/evidence/EvidenceList';
@@ -54,6 +56,7 @@ function fmtWhen(iso: string) {
 }
 import { ParsedReportOverviewPanel } from '../../components/reports/ParsedReportOverviewPanel';
 import { ParsedReportDiagnosticsPanel } from '../../components/reports/ParsedReportDiagnosticsPanel';
+import { ParsedReportViewer } from '../../components/reports/ParsedReportViewer';
 import type { Bureau, DisputeCandidate } from '../../domain/creditReports';
 import type { LetterRecord } from '../../domain/letters';
 import { deriveDisputeCandidates } from '../../creditReports/disputeCandidates';
@@ -63,10 +66,6 @@ import { getDisputeReasons, upsertDisputeReasons } from '../../data/disputeReaso
 import type { DisputeReasonsRecord } from '../../domain/disputeReasons';
 import { computeDisputeReasonsId } from '../../domain/disputeReasons';
 import { buildFactualDisputeSuggestions } from '../../lib/disputeLetterBuilder';
-import { parseCreditReportHtmlEnhanced } from '../../creditReports/parseHtmlReport';
-import { detectProviderFromHtml, detectProviderFromText } from '../../creditReports/detectProvider';
-import { detectReportDateFromText } from '../../creditReports/parsePdfText';
-import { parseCreditReportPdf } from '../../creditReports/parsePdfReport';
 import { generateCreditAnalysisReportPdf } from '../../reports/generateCreditAnalysisReportPdf';
 import { downloadInlineDisputeLetterPdf } from '../../letters/generateDisputePdfInline';
 import { computePartnerOverallScore } from '../../utils/partnerOverallScore';
@@ -103,6 +102,8 @@ import { getFieldLayout } from '../../data/fieldLayoutsRepo';
 import { countPartnerEmptyFieldSections } from '../../features/partner/PartnerCollapsibleFieldLayout';
 import { PartnerOverviewTab } from '../../features/partner/PartnerOverviewTab';
 import { PartnerProfileTab } from '../../features/partner/PartnerProfileTab';
+import { PartnerNotesTab } from '../../features/partner/PartnerNotesTab';
+import { partnerNoteToTimelineItem } from '../../components/partner/PartnerActivityTimeline';
 import { listEntitlementsByPartner } from '../../data/billingRepo';
 import { ENTITLEMENT_KEYS, type EntitlementKey, ensurePartnerEntitlements } from '../../billing/entitlements';
 import { TASK_PROGRESS_STAGES, WorkBoardShell, WorkCalendarView, WorkKanbanBoard, WorkListView, type WorkBoardItem } from '../../components/workboard';
@@ -1131,24 +1132,32 @@ function PartnerDetailPageInner() {
       });
     }
 
-    // Recent audit events (last 5)
-    const recent = audit.slice(0, 5);
-    if (recent.length) {
+    // Recent audit events (one timeline entry each)
+    for (const e of audit.slice(0, 15)) {
+      const who = e.actorEmail ? `By ${e.actorEmail}` : 'System event';
       out.push({
-        createdAt: recent[0]!.createdAt,
-        title: 'Recent activity',
-        body: recent
-          .map((e) => {
-            const who = e.actorEmail ? ` (${e.actorEmail})` : '';
-            return `• ${new Date(e.createdAt).toLocaleString()} — ${e.action}${who}`;
-          })
-          .join('\n'),
+        createdAt: e.createdAt,
+        title: e.action.replace(/_/g, ' ').replace(/\./g, ' '),
+        body: who,
       });
     }
 
     // Keep newest-first by createdAt.
     return out.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
   })();
+
+  const overviewActivityItems = [
+    ...systemNotes.map((n, i) => ({
+      id: `sys-${i}-${n.createdAt}`,
+      createdAt: n.createdAt,
+      title: n.title,
+      body: n.body,
+      kind: 'system' as const,
+    })),
+    ...sortedManualNotes.slice(0, 8).map(partnerNoteToTimelineItem),
+  ]
+    .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+    .slice(0, 12);
 
   return (
     <EntityDetailShell
@@ -1308,6 +1317,7 @@ function PartnerDetailPageInner() {
             onOpenProfile={() => setTabAndUrl('profile')}
             onOpenTab={(t) => setTabAndUrl(t as TabKey)}
             onNavigate={(p) => navigate(p)}
+            activityItems={overviewActivityItems}
           />
         )}
 
@@ -1774,237 +1784,65 @@ function PartnerDetailPageInner() {
         )}
 
         {tab === 'notes' && (
-          <div className="grid lg:grid-cols-12 gap-6">
-            <div className={`lg:col-span-5 min-w-0 ${finelyOsCatalogCard('violet')} !p-5 space-y-5`}>
-              <div>
-                <p className={FINELY_OS_ENTITY_SUBLABEL}>Auto notes</p>
-                <p className={FINELY_OS_ENTITY_BODY}>
-                  These are generated from tasks, cases, letters, and audit events — giving you an always-up-to-date “what’s next / what happened” timeline.
-                </p>
-                <div className="mt-3">
-                  <button
-                    type="button"
-                    className={FINELY_OS_ENTITY_ACTION}
-                    onClick={() => setNotesVersion((v) => v + 1)}
-                    title="Refresh auto notes"
-                  >
-                    Refresh
-                  </button>
-                </div>
-              </div>
-              <PartnerCompactGrid
-                items={systemNotes}
-                initialShow={6}
-                columnsClassName="grid gap-3"
-                emptyMessage="No auto notes yet."
-                getKey={(n, i) => `${n.createdAt}-${n.title}-${i}`}
-                renderItem={(n) => (
-                  <div key={`${n.createdAt}-${n.title}`} className={`${finelyOsInlineListItem()} p-5`}>
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <div className={`${FINELY_OS_ENTITY_VALUE} truncate`}>{n.title}</div>
-                        <div className={`mt-1 ${FINELY_OS_ENTITY_SUBLABEL}`}>{new Date(n.createdAt).toLocaleString()}</div>
-                      </div>
-                    </div>
-                    <pre className={`mt-3 whitespace-pre-wrap text-sm leading-relaxed ${FINELY_OS_ENTITY_BODY}`}>{n.body}</pre>
-                  </div>
-                )}
-              />
-            </div>
-
-            <div className={`lg:col-span-7 min-w-0 ${finelyOsCatalogCard('violet')} !p-5 space-y-6`}>
-              <div>
-                <p className={FINELY_OS_ENTITY_SUBLABEL}>Manual notes</p>
-                <p className={FINELY_OS_ENTITY_BODY}>
-                  Use this for call summaries, promises made, missing docs, partner tone, objections, and underwriting context. (Internal by default.)
-                </p>
-              </div>
-
-              <div className={`${finelyOsInlineListItem()} p-5 space-y-3`}>
-                <label className={FINELY_OS_ENTITY_LABEL}>Add note</label>
-                <textarea
-                  value={notesDraft}
-                  onChange={(e) => setNotesDraft(e.target.value)}
-                  rows={5}
-                  className={`${FINELY_OS_ENTITY_INPUT} resize-y min-h-[120px]`}
-                  placeholder="Example: 2/2 call — partner will upload updated ID + proof of address by Friday. Wants business route, high urgency, funding target $75k. Needs help with utilization plan."
-                />
-                <div className="flex flex-wrap items-center gap-4">
-                  <label className={`inline-flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL} normal-case tracking-normal`}>
-                    <input
-                      type="checkbox"
-                      checked={notesVisibleToPartner}
-                      onChange={(e) => setNotesVisibleToPartner(e.target.checked)}
-                      className="accent-amber-500"
-                    />
-                    Visible to partner
-                  </label>
-                  <label className={`inline-flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL} normal-case tracking-normal`}>
-                    <input
-                      type="checkbox"
-                      checked={notesPinned}
-                      onChange={(e) => setNotesPinned(e.target.checked)}
-                      className="accent-amber-500"
-                    />
-                    Pinned
-                  </label>
-                  <div className={`text-[11px] ${FINELY_OS_ENTITY_BODY}`}>
-                    Partner will only see notes marked visible (recommended: actionable next steps).
-                  </div>
-                </div>
-                <div className="flex flex-wrap items-center gap-3">
-                  <button
-                    type="button"
-                    className={FINELY_OS_PRIMARY_BTN}
-                    disabled={!notesDraft.trim()}
-                    onClick={() => {
-                      const body = notesDraft.trim();
-                      if (!body) return;
-                      createPartnerNote({
-                        partnerId: partner.id,
-                        kind: 'manual',
-                        authorType: 'admin',
-                        authorEmail: actorEmail,
-                        visibility: notesVisibleToPartner ? 'partner' : 'internal',
-                        body,
-                        pinned: notesPinned,
-                      });
-                      addAuditEvent({
-                        partnerId: partner.id,
-                        actorType: 'admin',
-                        actorEmail,
-                        action: 'partner.note_created',
-                        entityType: 'partner_note',
-                        entityId: 'note',
-                        meta: { kind: 'manual', visibility: notesVisibleToPartner ? 'partner' : 'internal', pinned: notesPinned },
-                      });
-                      setNotesDraft('');
-                      setNotesVisibleToPartner(false);
-                      setNotesPinned(false);
-                      setNotesVersion((v) => v + 1);
-                    }}
-                  >
-                    Save note
-                  </button>
-                  <div className={`text-[11px] ${FINELY_OS_ENTITY_BODY}`}>
-                    Notes saved: <span className={`font-mono ${FINELY_OS_ENTITY_VALUE}`}>{manualNotes.length}</span>
-                  </div>
-                </div>
-              </div>
-
-              {sortedManualNotes.length === 0 && partner.notes?.trim() ? (
-                <div className={`${finelyOsInlineListItem()} p-5 space-y-3`}>
-                  <div className={`${FINELY_OS_ENTITY_VALUE}`}>Imported from previous Finely Cred site</div>
-                  <div className={`${FINELY_OS_ENTITY_SUBLABEL}`}>Legacy profile notes (will sync to timeline on refresh)</div>
-                  <pre className={`whitespace-pre-wrap text-sm leading-relaxed ${FINELY_OS_ENTITY_BODY}`}>{partner.notes}</pre>
-                  <button
-                    type="button"
-                    className={FINELY_OS_SECONDARY_BTN}
-                    onClick={() => {
-                      seedLegacyPartnerNotes({
-                        partnerId: partner.id,
-                        notesText: partner.notes,
-                        externalId: partner.importExternalId || partner.id,
-                        forceRefresh: true,
-                      });
-                      setNotesVersion((v) => v + 1);
-                    }}
-                  >
-                    Import into notes timeline
-                  </button>
-                </div>
-              ) : sortedManualNotes.length === 0 ? (
-                  <div className={FINELY_OS_ENTITY_BODY}>No manual notes yet.</div>
-                ) : (
-                  <PartnerCompactGrid
-                    items={sortedManualNotes}
-                    initialShow={6}
-                    columnsClassName="grid gap-3"
-                    emptyMessage="No manual notes yet."
-                    getKey={(n) => n.id}
-                    renderItem={(n) => (
-                      <div key={n.id} className={`${finelyOsInlineListItem()} p-5 space-y-3`}>
-                        <div className="min-w-0">
-                          <div className={`${FINELY_OS_ENTITY_VALUE} truncate`}>{n.title || 'Note'}</div>
-                          <div className={`mt-1 ${FINELY_OS_ENTITY_SUBLABEL}`}>
-                            {new Date(n.createdAt).toLocaleString()}
-                            {n.authorEmail ? ` • ${n.authorEmail}` : ''}
-                            {n.visibility === 'partner' ? ' • partner-visible' : ' • internal'}
-                            {n.pinned ? ' • pinned' : ''}
-                          </div>
-                        </div>
-                        <pre className={`whitespace-pre-wrap text-sm leading-relaxed ${FINELY_OS_ENTITY_BODY}`}>{n.body}</pre>
-                        <div className="flex flex-wrap gap-2 pt-2 border-t border-white/[0.08]">
-                          <button
-                            type="button"
-                            className={`inline-flex items-center justify-center gap-2 px-3 py-2 rounded-xl border text-[10px] font-black uppercase tracking-widest transition-all ${
-                              n.visibility === 'partner' ? FINELY_OS_ACTIVE_CHIP : FINELY_OS_ENTITY_CHIP
-                            }`}
-                            title="Toggle partner visibility"
-                            onClick={() => {
-                              upsertPartnerNote({ ...n, visibility: n.visibility === 'partner' ? 'internal' : 'partner' });
-                              addAuditEvent({
-                                partnerId: partner.id,
-                                actorType: 'admin',
-                                actorEmail,
-                                action: 'partner.note_visibility',
-                                entityType: 'partner_note',
-                                entityId: n.id,
-                                meta: { visibility: n.visibility === 'partner' ? 'internal' : 'partner' },
-                              });
-                              setNotesVersion((v) => v + 1);
-                            }}
-                          >
-                            {n.visibility === 'partner' ? 'Shown to partner' : 'Internal'}
-                          </button>
-                          <button
-                            type="button"
-                            className={`inline-flex items-center justify-center gap-2 px-3 py-2 rounded-xl border text-[10px] font-black uppercase tracking-widest transition-all ${
-                              n.pinned ? 'border-fuchsia-500/35 bg-fuchsia-500/15 text-fuchsia-200' : FINELY_OS_ENTITY_CHIP
-                            }`}
-                            title="Toggle pin"
-                            onClick={() => {
-                              upsertPartnerNote({ ...n, pinned: !Boolean(n.pinned) });
-                              addAuditEvent({
-                                partnerId: partner.id,
-                                actorType: 'admin',
-                                actorEmail,
-                                action: 'partner.note_pinned',
-                                entityType: 'partner_note',
-                                entityId: n.id,
-                                meta: { pinned: !Boolean(n.pinned) },
-                              });
-                              setNotesVersion((v) => v + 1);
-                            }}
-                          >
-                            {n.pinned ? 'Pinned' : 'Pin'}
-                          </button>
-                          <button
-                            type="button"
-                            className={FINELY_OS_ENTITY_ACTION}
-                            title="Delete note"
-                            onClick={() => {
-                              deletePartnerNote(n.id);
-                              addAuditEvent({
-                                partnerId: partner.id,
-                                actorType: 'admin',
-                                actorEmail,
-                                action: 'partner.note_deleted',
-                                entityType: 'partner_note',
-                                entityId: n.id,
-                              });
-                              setNotesVersion((v) => v + 1);
-                            }}
-                          >
-                            <Trash2 size={14} className="text-red-300" /> Delete
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                  />
-                )}
-            </div>
-          </div>
+          <PartnerNotesTab
+            systemNotes={systemNotes}
+            manualNotes={sortedManualNotes}
+            notesDraft={notesDraft}
+            setNotesDraft={setNotesDraft}
+            notesVisibleToPartner={notesVisibleToPartner}
+            setNotesVisibleToPartner={setNotesVisibleToPartner}
+            notesPinned={notesPinned}
+            setNotesPinned={setNotesPinned}
+            onSaveNote={() => {
+              const body = notesDraft.trim();
+              if (!body || !partner) return;
+              createPartnerNote({
+                partnerId: partner.id,
+                kind: 'manual',
+                authorType: 'admin',
+                authorEmail: actorEmail,
+                visibility: notesVisibleToPartner ? 'partner' : 'internal',
+                body,
+                pinned: notesPinned,
+              });
+              addAuditEvent({
+                partnerId: partner.id,
+                actorType: 'admin',
+                actorEmail,
+                action: 'partner.note_created',
+                entityType: 'partner_note',
+                entityId: 'note',
+                meta: { kind: 'manual', visibility: notesVisibleToPartner ? 'partner' : 'internal', pinned: notesPinned },
+              });
+              setNotesDraft('');
+              setNotesVisibleToPartner(false);
+              setNotesPinned(false);
+              setNotesVersion((v) => v + 1);
+            }}
+            onToggleVisibility={(n) => {
+              upsertPartnerNote({ ...n, visibility: n.visibility === 'partner' ? 'internal' : 'partner' });
+              setNotesVersion((v) => v + 1);
+            }}
+            onTogglePin={(n) => {
+              upsertPartnerNote({ ...n, pinned: !Boolean(n.pinned) });
+              setNotesVersion((v) => v + 1);
+            }}
+            onDeleteNote={(n) => {
+              if (!window.confirm('Delete this note?')) return;
+              deletePartnerNote(n.id);
+              setNotesVersion((v) => v + 1);
+            }}
+            legacyNotesText={partner.notes}
+            onImportLegacy={() => {
+              seedLegacyPartnerNotes({
+                partnerId: partner.id,
+                notesText: partner.notes,
+                externalId: partner.importExternalId || partner.id,
+                forceRefresh: true,
+              });
+              setNotesVersion((v) => v + 1);
+            }}
+          />
         )}
 
         {tab === 'debt' && (
@@ -2059,234 +1897,117 @@ function PartnerDetailPageInner() {
         )}
 
         {tab === 'reports' && (
-          <div className="space-y-6">
+          <div className="space-y-6 w-full max-w-full overflow-visible">
             <ReportUploader
               partnerId={partner.id}
               uploadedBy="admin"
               onCreated={handleReportCreated}
             />
 
-            <div className="grid lg:grid-cols-12 gap-6">
-              <div className={`order-2 lg:order-1 lg:col-span-4 ${finelyOsCatalogCard('violet')} !p-5`}>
-                <p className={FINELY_OS_ENTITY_SUBLABEL}>Reports</p>
+            <ReportFileStrip
+              reports={reports}
+              selectedId={selectedReportId}
+              onSelect={setSelectedReportId}
+              label="Uploaded reports"
+            />
 
-                {deleteReportErr && (
-                  <div className="mt-4 p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-red-200/90 text-sm">
-                    {deleteReportErr}
-                  </div>
-                )}
-                {reparseReportErr && (
-                  <div className="mt-4 p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-red-200/90 text-sm">
-                    {reparseReportErr}
-                  </div>
-                )}
-
-                <div className="mt-4">
-                  <PartnerCompactGrid
-                    items={reports}
-                    initialShow={6}
-                    columnsClassName="grid gap-3"
-                    emptyMessage="No reports uploaded for this Partner."
-                    getKey={(r) => r.id}
-                    renderItem={(r) => (
-                      <div
-                        key={r.id}
-                        className={finelyOsListItem((selectedReportId ?? reports[0]?.id) === r.id, 'violet')}
-                      >
-                        <button type="button" onClick={() => setSelectedReportId(r.id)} className="w-full text-left">
-                          <div className={`${FINELY_OS_ENTITY_VALUE} truncate`}>{r.filename}</div>
-                          <div className={`mt-1 ${FINELY_OS_ENTITY_SUBLABEL} font-mono`}>
-                            {r.fileType} • {r.provider} • {new Date(r.receivedAt).toLocaleString()}
-                          </div>
-                        </button>
-
-                        <div className="mt-3 flex items-center justify-between gap-3">
-                          <div className={`${FINELY_OS_ENTITY_SUBLABEL} font-mono opacity-70`}>report_id: {r.id}</div>
-                          <div className="flex items-center gap-2">
-                            {!isLegacyPendingReportBlob(r.rawBlobRef) ? (
-                              <button
-                                type="button"
-                                className={FINELY_OS_SECONDARY_BTN}
-                                title="Open stored report file"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  void openStoredDocument({
-                                    blobRef: r.rawBlobRef,
-                                    mimeType: r.mimeType || (r.fileType === 'pdf' ? 'application/pdf' : 'text/html'),
-                                  });
-                                }}
-                              >
-                                <ExternalLink size={14} /> Open file
-                              </button>
-                            ) : null}
-                            <button
-                              type="button"
-                              className={`${FINELY_OS_SECONDARY_BTN} disabled:opacity-60 disabled:cursor-not-allowed`}
-                              title={
-                                isLegacyPendingReportBlob(r.rawBlobRef)
-                                  ? 'File not yet in storage — re-upload the original file first'
-                                  : !isSupabaseBlobRef(r.rawBlobRef)
-                                    ? 'File was stored in a local session — re-upload the original file to re-parse'
-                                    : 'Re-run parsing from stored raw file'
-                              }
-                              disabled={Boolean(reparseReportId) || deletingReportId === r.id || isLegacyPendingReportBlob(r.rawBlobRef) || !isSupabaseBlobRef(r.rawBlobRef)}
-                              onClick={async (e) => {
-                                e.stopPropagation();
-                                setReparseReportErr(null);
-                                setReparseReportId(r.id);
-                                try {
-                                  if (isLegacyPendingReportBlob(r.rawBlobRef)) {
-                                    throw new Error('This report was migrated from the legacy system without the original file. Re-upload using the uploader above.');
-                                  }
-                                  if (!isSupabaseBlobRef(r.rawBlobRef)) {
-                                    throw new Error('This report was stored in a local browser session and is no longer accessible. Re-upload the original file to re-parse.');
-                                  }
-                                  const store = getBlobStore();
-                                  const blob = await store.get(r.rawBlobRef);
-                                  if (!blob) throw new Error('Stored report file not found.');
-
-                                  if (r.fileType === 'html') {
-                                    const html = await blob.text();
-                                    const parsed = await parseCreditReportHtmlEnhanced(html);
-                                    const provider = parsed.provider ?? detectProviderFromHtml(html);
-                                    upsertReport({ ...r, provider, reportDate: parsed.reportDate, parsed });
-                                  } else {
-                                    const file = new File([blob], r.filename || 'report.pdf', {
-                                      type: blob.type || r.mimeType || 'application/pdf',
-                                    });
-                                    const res = await parseCreditReportPdf(file);
-                                    const pdfText = res.pdfText;
-                                    const pdfMeta = { ...(res.pdfMeta as any), ocrUsed: Boolean(res.ocrUsed), ocrEngine: (res.pdfMeta as any)?.ocrEngine };
-                                    const provider = res.provider ?? (pdfText ? detectProviderFromText(pdfText) : 'unknown');
-                                    const reportDate = res.reportDate ?? (pdfText ? detectReportDateFromText(pdfText) : undefined);
-                                    upsertReport({ ...r, provider, reportDate, pdfText, pdfMeta, parsed: res.parsed });
-                                  }
-                                  setReportsRefreshKey((v) => v + 1);
-                                } catch (err: any) {
-                                  setReparseReportErr(err?.message || 'Re-parse failed.');
-                                } finally {
-                                  setReparseReportId(null);
-                                }
-                              }}
-                            >
-                              <RefreshCcw size={14} className="text-fuchsia-300" /> {reparseReportId === r.id ? 'Re-parsing…' : 'Re-parse'}
-                            </button>
-                            <button
-                              type="button"
-                              className={`${FINELY_OS_ENTITY_ACTION} disabled:opacity-60 disabled:cursor-not-allowed`}
-                              title="Delete report"
-                              disabled={deletingReportId === r.id || Boolean(reparseReportId)}
-                              onClick={async (e) => {
-                                e.stopPropagation();
-                                setDeleteReportErr(null);
-                                const ok = window.confirm(
-                                  `Delete this report?\n\n${r.filename}\n\nThis removes it from the Partner record (and deletes the stored file).`,
-                                );
-                                if (!ok) return;
-                                setDeletingReportId(r.id);
-                                try {
-                                  const store = getBlobStore();
-                                  try {
-                                    await store.delete(r.rawBlobRef);
-                                  } catch {
-                                    // ignore blob delete failures; still remove record
-                                  }
-                                  // Delete from Supabase immediately (synchronous, not debounced)
-                                  // so a page refresh doesn't pull the record back before the
-                                  // debounce timer fires.
-                                  if (isSupabaseConfigured) {
-                                    const { error } = await supabase
-                                      .from('credit_reports')
-                                      .delete()
-                                      .eq('id', r.id);
-                                    if (error) console.warn('Supabase report delete error:', error.message);
-                                  }
-                                  deleteReport(r.id);
-                                  if (selectedReportId === r.id) setSelectedReportId(null);
-                                  setReportsRefreshKey((v) => v + 1);
-                                } catch (err: any) {
-                                  setDeleteReportErr(err?.message || 'Delete failed.');
-                                } finally {
-                                  setDeletingReportId(null);
-                                }
-                              }}
-                            >
-                              <Trash2 size={14} className="text-red-300" /> {deletingReportId === r.id ? 'Deleting…' : 'Delete'}
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  />
-                </div>
+            {(deleteReportErr || reparseReportErr) && (
+              <div className="space-y-3">
+                {deleteReportErr ? (
+                  <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-red-200/90 text-sm">{deleteReportErr}</div>
+                ) : null}
+                {reparseReportErr ? (
+                  <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-red-200/90 text-sm">{reparseReportErr}</div>
+                ) : null}
               </div>
+            )}
 
-              <div className="order-1 lg:order-2 lg:col-span-8">
-                {selectedReport && isLegacyPendingReportBlob(selectedReport.rawBlobRef) ? (
-                  <div className="space-y-6">
-                    <LegacyPendingReportNotice
-                      filename={selectedReport.filename}
-                      rawBlobRef={selectedReport.rawBlobRef}
-                      variant="admin"
-                    />
-                    {selectedReport.parsed ? (
-                      <CreditIntelTabs
-                        parsed={selectedReport.parsed}
-                        reportId={selectedReport.id}
-                        partnerId={partner.id}
-                        availableReports={reports.map((r) => ({ id: r.id, receivedAt: r.receivedAt, filename: r.filename, parsed: r.parsed }))}
-                        onOpenLetterGenerator={() => setTabAndUrl('letters')}
-                        onOpenEvidenceVault={() => setEvidencePicker({})}
-                        onOpenTasks={() => setTabAndUrl('tasks')}
-                      />
-                    ) : null}
-                  </div>
-                ) : selectedReport?.parsed ? (
-                  <>
-                    <div className="space-y-6">
-                      <ParsedReportOverviewPanel parsed={selectedReport.parsed} filename={selectedReport.filename} />
-                      <ParsedReportDiagnosticsPanel
-                        parsed={selectedReport.parsed}
-                        filename={selectedReport.filename}
-                        variant="admin"
-                        pdfMeta={selectedReport.fileType === 'pdf' ? (selectedReport.pdfMeta as any) : undefined}
-                        defaultOpen={
-                          (selectedReport.parsed.tradelines?.length ?? 0) === 0 ||
-                          Boolean(selectedReport.parsed.debug?.fallbackTradelinesUsed) ||
-                          selectedReport.parsed.provider === 'unknown'
+            {selectedReport ? (
+              <div className={`${finelyOsCatalogCard('violet')} !p-4 md:!p-5 w-full`}>
+                <ReportActionsBar report={selectedReport}>
+                  {!isLegacyPendingReportBlob(selectedReport.rawBlobRef) ? (
+                    <button
+                      type="button"
+                      className={FINELY_OS_SECONDARY_BTN}
+                      title="Open stored report file"
+                      onClick={() =>
+                        void openStoredDocument({
+                          blobRef: selectedReport.rawBlobRef,
+                          mimeType: selectedReport.mimeType || (selectedReport.fileType === 'pdf' ? 'application/pdf' : 'text/html'),
+                        })
+                      }
+                    >
+                      <ExternalLink size={14} /> Open file
+                    </button>
+                  ) : null}
+                  <button
+                    type="button"
+                    className={`${FINELY_OS_SECONDARY_BTN} disabled:opacity-60 disabled:cursor-not-allowed`}
+                    disabled={
+                      Boolean(reparseReportId) ||
+                      deletingReportId === selectedReport.id ||
+                      isLegacyPendingReportBlob(selectedReport.rawBlobRef) ||
+                      !canAccessReportBlob(selectedReport.rawBlobRef)
+                    }
+                    onClick={async () => {
+                      setReparseReportErr(null);
+                      setReparseReportId(selectedReport.id);
+                      try {
+                        const updated = await reparseStoredCreditReport({ record: selectedReport });
+                        upsertReport(updated);
+                        setReportsRefreshKey((v) => v + 1);
+                      } catch (err: any) {
+                        setReparseReportErr(err?.message || 'Re-parse failed.');
+                      } finally {
+                        setReparseReportId(null);
+                      }
+                    }}
+                  >
+                    <RefreshCcw size={14} className="text-fuchsia-300" /> {reparseReportId === selectedReport.id ? 'Re-parsing…' : 'Re-parse'}
+                  </button>
+                  <button
+                    type="button"
+                    className={`${FINELY_OS_ENTITY_ACTION} disabled:opacity-60 disabled:cursor-not-allowed`}
+                    disabled={deletingReportId === selectedReport.id || Boolean(reparseReportId)}
+                    onClick={async () => {
+                      setDeleteReportErr(null);
+                      const ok = window.confirm(
+                        `Delete this report?\n\n${selectedReport.filename}\n\nThis removes it from the Partner record (and deletes the stored file).`,
+                      );
+                      if (!ok) return;
+                      setDeletingReportId(selectedReport.id);
+                      try {
+                        const store = getBlobStore();
+                        try {
+                          await store.delete(selectedReport.rawBlobRef);
+                        } catch {
+                          // ignore
                         }
-                      />
+                        if (isSupabaseConfigured) {
+                          const { error } = await supabase.from('credit_reports').delete().eq('id', selectedReport.id);
+                          if (error) console.warn('Supabase report delete error:', error.message);
+                        }
+                        deleteReport(selectedReport.id);
+                        if (selectedReportId === selectedReport.id) setSelectedReportId(null);
+                        setReportsRefreshKey((v) => v + 1);
+                      } catch (err: any) {
+                        setDeleteReportErr(err?.message || 'Delete failed.');
+                      } finally {
+                        setDeletingReportId(null);
+                      }
+                    }}
+                  >
+                    <Trash2 size={14} className="text-red-300" /> {deletingReportId === selectedReport.id ? 'Deleting…' : 'Delete'}
+                  </button>
+                </ReportActionsBar>
+              </div>
+            ) : null}
 
-                      <div className={`${finelyOsCatalogCard('violet')} !p-5 backdrop-blur-xl space-y-4`}>
-                        <div className="flex items-start justify-between gap-4">
-                          <div className="min-w-0">
-                            <div className={`${FINELY_OS_ENTITY_SUBLABEL} text-emerald-300`}>Free deliverable</div>
-                            <div className={`mt-2 ${FINELY_OS_ENTITY_TITLE} text-base`}>Credit Analysis Report (20+ pages)</div>
-                            <div className={`mt-1 ${FINELY_OS_ENTITY_BODY}`}>
-                              Generates a multi-page PDF with scores, negatives breakdown, and a roadmap. It will be saved into the partner’s record and shown in Letters → Analysis Reports.
-                            </div>
-                            <button
-                              type="button"
-                              onClick={() => setTabAndUrl('analysis')}
-                              className={`mt-3 inline-flex items-center gap-2 ${FINELY_OS_ENTITY_ACCENT_LINK}`}
-                              title="Open the Analysis Report tab"
-                            >
-                              Open Analysis Report tab <ExternalLink size={16} />
-                            </button>
-                          </div>
-                          <button
-                            type="button"
-                            className={FINELY_OS_PRIMARY_BTN}
-                            disabled={analysisBusy}
-                            onClick={() => runGenerateAnalysis(selectedReport)}
-                          >
-                            {analysisBusy ? 'Generating…' : 'Generate PDF'}
-                          </button>
-                        </div>
-                        {analysisNotice ? (
-                          <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony text-sm ${FINELY_OS_ENTITY_BODY}`}>{analysisNotice}</div>
-                        ) : null}
-                      </div>
+            {selectedReport && isLegacyPendingReportBlob(selectedReport.rawBlobRef) ? (
+              <div className="space-y-6 w-full max-w-full">
+                <LegacyPendingReportNotice filename={selectedReport.filename} rawBlobRef={selectedReport.rawBlobRef} variant="admin" />
+                {selectedReport.parsed ? (
+                  <>
                     <CreditIntelTabs
                       parsed={selectedReport.parsed}
                       reportId={selectedReport.id}
@@ -2296,33 +2017,95 @@ function PartnerDetailPageInner() {
                       onOpenEvidenceVault={() => setEvidencePicker({})}
                       onOpenTasks={() => setTabAndUrl('tasks')}
                     />
-                    </div>
+                    <section className="w-full max-w-full overflow-visible" id="fc-tradelines-full">
+                      <ParsedReportViewer parsed={selectedReport.parsed} partnerId={partner.id} reportId={selectedReport.id} />
+                    </section>
                   </>
-                ) : selectedReport ? (
-                  selectedReport.fileType === 'pdf' ? (
-                    <PdfReportFallbackView
-                      pdfText={selectedReport.pdfText}
-                      pdfMeta={selectedReport.pdfMeta as any}
-                      provider={selectedReport.provider as any}
-                      reportDate={selectedReport.reportDate}
-                      filename={selectedReport.filename}
-                      variant="admin"
-                    />
-                  ) : (
-                    <div className={`${finelyOsCatalogCard('violet')} !p-5 space-y-3`}>
-                      <div className={FINELY_OS_ENTITY_VALUE}>Parsing data missing</div>
-                      <div className={FINELY_OS_ENTITY_BODY}>
-                        This upload doesn’t currently have parsed tradelines attached. Use <span className={`font-semibold ${FINELY_OS_ENTITY_VALUE}`}>Re-parse</span> on the left to generate the overview and tradelines.
-                      </div>
-                    </div>
-                  )
-                ) : (
-                  <div className={`${finelyOsCatalogCard('violet')} !p-5 ${FINELY_OS_ENTITY_BODY}`}>
-                    Upload a report to view parsed tradelines.
-                  </div>
-                )}
+                ) : null}
               </div>
-            </div>
+            ) : selectedReport?.parsed ? (
+              <div className="space-y-6 w-full max-w-full overflow-visible">
+                <ParsedReportOverviewPanel parsed={selectedReport.parsed} filename={selectedReport.filename} />
+                <ParsedReportDiagnosticsPanel
+                  parsed={selectedReport.parsed}
+                  filename={selectedReport.filename}
+                  variant="admin"
+                  pdfMeta={selectedReport.fileType === 'pdf' ? (selectedReport.pdfMeta as any) : undefined}
+                  defaultOpen={
+                    (selectedReport.parsed.tradelines?.length ?? 0) === 0 ||
+                    Boolean(selectedReport.parsed.debug?.fallbackTradelinesUsed) ||
+                    selectedReport.parsed.provider === 'unknown'
+                  }
+                />
+
+                <div className={`${finelyOsCatalogCard('emerald')} !p-5 md:!p-6 backdrop-blur-xl space-y-4 w-full`}>
+                  <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
+                    <div className="min-w-0 flex-1">
+                      <div className={`${FINELY_OS_ENTITY_SUBLABEL} text-emerald-300`}>Free deliverable</div>
+                      <div className={`mt-2 ${FINELY_OS_ENTITY_TITLE} text-base`}>Credit Analysis Report</div>
+                      <div className={`mt-1 ${FINELY_OS_ENTITY_BODY}`}>
+                        Multi-page PDF with scores, negatives breakdown, positives, and a personalized roadmap. Saved to the partner record and listed under Analysis Report.
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setTabAndUrl('analysis')}
+                        className={`mt-3 inline-flex items-center gap-2 ${FINELY_OS_ENTITY_ACCENT_LINK}`}
+                        title="Open the Analysis Report tab"
+                      >
+                        Open Analysis Report tab <ExternalLink size={16} />
+                      </button>
+                    </div>
+                    <button
+                      type="button"
+                      className={`${FINELY_OS_PRIMARY_BTN} shrink-0`}
+                      disabled={analysisBusy}
+                      onClick={() => runGenerateAnalysis(selectedReport)}
+                    >
+                      {analysisBusy ? 'Generating…' : 'Generate PDF'}
+                    </button>
+                  </div>
+                  {analysisNotice ? (
+                    <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony text-sm ${FINELY_OS_ENTITY_BODY}`}>{analysisNotice}</div>
+                  ) : null}
+                </div>
+
+                <CreditIntelTabs
+                  parsed={selectedReport.parsed}
+                  reportId={selectedReport.id}
+                  partnerId={partner.id}
+                  availableReports={reports.map((r) => ({ id: r.id, receivedAt: r.receivedAt, filename: r.filename, parsed: r.parsed }))}
+                  onOpenLetterGenerator={() => setTabAndUrl('letters')}
+                  onOpenEvidenceVault={() => setEvidencePicker({})}
+                  onOpenTasks={() => setTabAndUrl('tasks')}
+                />
+
+                <section className="w-full max-w-full overflow-visible" id="fc-tradelines-full">
+                  <ParsedReportViewer parsed={selectedReport.parsed} partnerId={partner.id} reportId={selectedReport.id} />
+                </section>
+              </div>
+            ) : selectedReport ? (
+              selectedReport.fileType === 'pdf' ? (
+                <PdfReportFallbackView
+                  pdfText={selectedReport.pdfText}
+                  pdfMeta={selectedReport.pdfMeta as any}
+                  provider={selectedReport.provider as any}
+                  reportDate={selectedReport.reportDate}
+                  filename={selectedReport.filename}
+                  variant="admin"
+                />
+              ) : (
+                <div className={`${finelyOsCatalogCard('violet')} !p-5 space-y-3 w-full`}>
+                  <div className={FINELY_OS_ENTITY_VALUE}>Parsing data missing</div>
+                  <div className={FINELY_OS_ENTITY_BODY}>
+                    This upload doesn’t currently have parsed tradelines attached. Click <span className={`font-semibold ${FINELY_OS_ENTITY_VALUE}`}>Re-parse</span> above to generate the overview and tradelines.
+                  </div>
+                </div>
+              )
+            ) : (
+              <div className={`${finelyOsCatalogCard('violet')} !p-5 ${FINELY_OS_ENTITY_BODY} w-full`}>
+                Upload a report to view parsed tradelines.
+              </div>
+            )}
           </div>
         )}
 

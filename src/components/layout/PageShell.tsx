@@ -7,8 +7,6 @@ import { PortalCommandPaletteHost } from '../../features/work/components/WorkCom
 import { AdminNavBar, AdminNavRail } from '../admin/AdminNav';
 import { UserAccountMenu } from '../account/UserAccountMenu';
 import { NotificationsBell } from '../notifications/NotificationsBell';
-import { FinelyContextHelpButton } from '../guide/FinelyContextHelpButton';
-import { FinelyLaunchHelpStrip } from '../tours/FinelyLaunchHelpStrip';
 import { PublicLegalFooter } from '../legal/PublicLegalFooter';
 import { BackToSiteButton } from '../navigation/BackToSiteButton';
 import { FinelySiteWayfinder } from '../../features/os/FinelySiteWayfinder';
@@ -608,8 +606,6 @@ export function PageShell({
         )}
       </div>
       {!isAppRoute ? <PublicLegalFooter className="pb-8 px-6" /> : null}
-      <FinelyLaunchHelpStrip />
-      <FinelyContextHelpButton />
     </div>
   );
 }

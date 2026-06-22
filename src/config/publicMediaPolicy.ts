@@ -8,6 +8,6 @@ export function isAdminMediaPreviewRoute(pathname: string): boolean {
   return pathname.startsWith('/admin');
 }
 
-export function canShowPublicDemoVideos(pathname: string): boolean {
-  return PUBLIC_DEMO_VIDEOS_ENABLED || isAdminMediaPreviewRoute(pathname);
+export function canShowPublicDemoVideos(_pathname: string): boolean {
+  return PUBLIC_DEMO_VIDEOS_ENABLED;
 }

@@ -36,6 +36,7 @@ import { captureReactElementPng } from '../../utils/captureReactPng';
 import { toCsv, toTsv } from '../../utils/tabularExport';
 import { downloadText } from '../../utils/download';
 import {
+  FINELY_OS_ENTITY_BODY,
   FINELY_OS_ENTITY_INPUT,
   finelyOsCatalogCard,
   FINELY_OS_ENTITY_SELECT,
@@ -334,6 +335,7 @@ export function CreditIntelTabs({
   onOpenTasks,
   initialTab,
   initialScrollToAccount,
+  tradelinesExternalAnchor = 'fc-tradelines-full',
 }: {
   parsed: ParsedCreditReport;
   reportId?: string;
@@ -353,6 +355,8 @@ export function CreditIntelTabs({
   initialTab?: TabKey;
   /** Optional deep-link auto-scroll target (uses ParsedReportViewer scrollToCreditorName). */
   initialScrollToAccount?: string | null;
+  /** When the host page renders tradelines below Credit Intel, Accounts tab links there instead of duplicating. */
+  tradelinesExternalAnchor?: string | null;
 }) {
   /** Guard against malformed or legacy stored data: ensure arrays exist so we never throw on .length or .filter. */
   const safeParsed = useMemo((): ParsedCreditReport => {
@@ -1404,11 +1408,11 @@ export function CreditIntelTabs({
   }, [paydownAmount, totals, manualBalanceOverride, manualLimitOverride]);
 
   return (
-    <div className="space-y-6" data-fc-credit-intel="1">
+    <div className="space-y-6 w-full max-w-full overflow-visible" data-fc-credit-intel="1">
       {notice && (
         <div className={FINELY_OS_NOTICE}>{notice}</div>
       )}
-      <div className={`${finelyOsCatalogCard('violet')} !p-6`}>
+      <div className={`${finelyOsCatalogCard('violet')} !p-6 w-full max-w-full overflow-visible`}>
         <div className="flex flex-col gap-4">
           <div className="space-y-1">
             <div className="inline-flex items-center gap-2 text-fuchsia-300/90">
@@ -1896,12 +1900,32 @@ export function CreditIntelTabs({
       )}
 
       {tab === 'accounts' && (
+        tradelinesExternalAnchor ? (
+          <div className={`${finelyOsCatalogCard('sky')} !p-5 md:!p-6 w-full space-y-3`}>
+            <div className={FINELY_OS_ENTITY_VALUE}>Accounts & tradelines</div>
+            <p className={FINELY_OS_ENTITY_BODY}>
+              Full bureau field tables and 2-year payment history are in the dedicated section below — full page width so nothing is cut off at Equifax or the end of the grid.
+            </p>
+            <button
+              type="button"
+              className={FINELY_OS_SECONDARY_BTN}
+              onClick={() => {
+                document.getElementById(tradelinesExternalAnchor)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              }}
+            >
+              Jump to full tradelines section
+            </button>
+          </div>
+        ) : (
+        <div className="w-full max-w-full overflow-visible">
             <ParsedReportViewer
               parsed={safeParsed}
               partnerId={partnerId}
               reportId={reportId}
               scrollToCreditorName={scrollToAccount}
             />
+        </div>
+        )
           )}
 
       {tab === 'collections' && (

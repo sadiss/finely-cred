@@ -7,6 +7,7 @@ import {
   rankDisputeCandidates,
   type CandidateInsight,
 } from '../creditReports/creditIntelInsights';
+import { PaginatedPdfWriter, wrapTextLines } from './creditAnalysisPdfWriter';
 
 type Section = { title: string; bullets: string[] };
 export type AnalysisVariant = 'standard' | 'negatives_heavy' | 'funding_focus';
@@ -216,6 +217,44 @@ function buildSections(args: {
           : 'Upload a structured bureau export for ranked impact scoring and cross-bureau flag detection.',
       ],
     },
+  ];
+
+  const positiveTradelines = tradelines
+    .filter((t) => {
+      const status = safe(t.accountStatus).toLowerCase();
+      if (status.includes('charge') || status.includes('collection') || status.includes('derog')) return false;
+      return status.includes('open') || status.includes('current') || status.includes('paid');
+    })
+    .slice(0, 14);
+
+  sections.push({
+    title: 'Strengths and positive reporting',
+    bullets: positiveTradelines.length
+      ? positiveTradelines.map((t) => {
+          const parts = [t.creditorName || t.originalCreditor, t.accountType, t.accountStatus].filter(Boolean);
+          const util =
+            typeof t.balance === 'number' && typeof t.creditLimit === 'number' && t.creditLimit > 0
+              ? ` | util ${Math.round((t.balance / t.creditLimit) * 100)}%`
+              : '';
+          return `${parts.join(' | ')}${util}`;
+        })
+      : [
+          'No clearly positive tradelines were auto-detected from this export.',
+          'Focus dispute energy on verified inaccuracies first, then build new positive history through secured cards or authorized-user tradelines where appropriate.',
+        ],
+  });
+
+  sections.push(
+    {
+      title: 'Credit restore roadmap',
+      bullets: [
+        'Phase 1 — Stabilize: confirm identity data matches across bureaus; freeze or lock files if identity theft is suspected.',
+        'Phase 2 — Dispute: target highest-impact negatives with evidence-backed Round 1 letters; mail certified when stakes are high.',
+        'Phase 3 — Follow-up: log bureau responses, re-pull reports after updates post, and escalate if investigations stall.',
+        'Phase 4 — Build: optimize utilization, add positive tradelines, and maintain on-time payment streaks for 6+ months.',
+        'Phase 5 — Fund: once scores and utilization stabilize, begin lender-readiness documentation and relationship sequencing.',
+      ],
+    },
     {
       title: 'Now (0-7 days)',
       bullets:
@@ -246,7 +285,34 @@ function buildSections(args: {
           'Repeat: analyze -> evidence -> letters -> mail -> follow-up.',
         ],
     },
-  ];
+    {
+      title: 'Path options — funding readiness',
+      bullets: [
+        'Personal foundation: scores typically need stable 680+ for many unsecured business products; clean personal negatives first.',
+        'Business profile: EIN, business address, and vendor accounts (Net-30) create a reporting footprint separate from personal credit.',
+        'Documentation: keep bank statements, proof of income, and updated credit reports in your vault for lender conversations.',
+        'Sequencing: do not stack multiple hard inquiries until dispute rounds settle and utilization is under control.',
+      ],
+    },
+    {
+      title: 'Path options — home purchase readiness',
+      bullets: [
+        'Mortgage lenders weight the middle score; align all three bureaus before applying.',
+        'Target utilization under 30% (ideally under 10%) on revolving accounts for 60–90 days pre-application.',
+        'Avoid new credit applications 6 months before pre-approval; document any dispute activity with bureau mail copies.',
+        'Work with a mortgage-ready timeline: dispute -> re-pull -> stabilize -> pre-qualify.',
+      ],
+    },
+    {
+      title: 'Path options — authorized user (AU) strategy',
+      bullets: [
+        'AU tradelines can add age and positive payment history when the primary account is in good standing.',
+        'Verify the primary card reports to all three bureaus and has low utilization before being added.',
+        'Remove AU accounts that carry high balances or delinquencies — they can harm your profile.',
+        'AU is a supplement, not a substitute, for your own secured or primary accounts long term.',
+      ],
+    },
+  );
 
   if (args.variant === 'funding_focus') {
     sections.splice(1, 0, {
@@ -285,7 +351,7 @@ function buildSections(args: {
     });
   }
 
-  // Appendix pages to guarantee >= 20 pages.
+  // Appendix reference sections.
   sections.push(
     {
       title: 'Appendix - dispute round checklist',
@@ -354,9 +420,9 @@ export function buildAnalysisReportPreviewModel(args: {
     return { title: s.title, bullets: s.bullets, kind };
   });
 
-  const minTotal = Math.max(10, Math.min(80, template?.minPages ?? 22));
-  const contentPages = 2 + sections.length;
-  const estimatedPages = Math.max(contentPages, minTotal);
+  const minTotal = Math.max(4, template?.minPages ?? 0);
+  const contentPages = 3 + sections.length;
+  const estimatedPages = minTotal > contentPages ? minTotal : contentPages;
 
   return { sections, estimatedPages, negativesCount };
 }
@@ -380,100 +446,71 @@ export async function generateCreditAnalysisReportPdf(args: {
   const sections = buildSections({ partner: args.partner, report: args.report, parsed, candidates: args.candidates, variant, template });
 
   const now = new Date();
+  const partnerName = args.partner.profile.fullName || 'Partner';
   const title = template?.title || 'Credit Analysis Report';
-  const subtitle = `${args.partner.profile.fullName || 'Partner'} | ${now.toLocaleDateString()}`;
+  const reportDate = args.report.reportDate || parsed?.reportDate || parsed?.debug?.reportDateDetected || '';
+  const preparedLine = `Prepared for: ${partnerName}`;
+  const generatedLine = `Generated: ${now.toLocaleString()}`;
+  const reportLine = reportDate ? `Report date: ${fmtDate(reportDate)}` : `Provider: ${args.report.provider || parsed?.provider || 'Credit report'}`;
 
-  const accent = rgb(0.96, 0.62, 0.11); // amber-ish
+  const accent = rgb(0.96, 0.62, 0.11);
   const ink = rgb(0.08, 0.10, 0.10);
   const soft = rgb(0.45, 0.45, 0.48);
 
-  const drawHeader = (page: any, headerText: string) => {
-    const { width, height } = page.getSize();
-    page.drawRectangle({ x: 0, y: height - 72, width, height: 72, color: rgb(0.98, 0.98, 0.99) });
-    page.drawRectangle({ x: 0, y: height - 74, width, height: 2, color: accent });
-    page.drawText('Finely Cred', { x: 48, y: height - 46, size: 12, font: fontBold, color: ink });
-    page.drawText(headerText, { x: 48, y: height - 62, size: 9, font, color: soft });
-  };
-
-  const drawFooter = (page: any, pageNum: number, total: number) => {
-    const { width } = page.getSize();
-    page.drawRectangle({ x: 0, y: 0, width, height: 40, color: rgb(0.985, 0.985, 0.99) });
-    page.drawRectangle({ x: 0, y: 40, width, height: 1, color: rgb(0.92, 0.92, 0.94) });
-    page.drawText(`Page ${pageNum} / ${total}`, { x: width - 120, y: 14, size: 9, font, color: soft });
-  };
-
   // Cover
-  const cover = pdf.addPage([612, 792]); // US Letter
+  const cover = pdf.addPage([612, 792]);
   {
     const { width, height } = cover.getSize();
     cover.drawRectangle({ x: 0, y: 0, width, height, color: rgb(1, 1, 1) });
-    cover.drawRectangle({ x: 0, y: height - 170, width, height: 170, color: rgb(0.98, 0.98, 0.995) });
-    cover.drawRectangle({ x: 0, y: height - 172, width, height: 2, color: accent });
-    cover.drawText(title, { x: 48, y: height - 110, size: 34, font: fontBold, color: ink });
-    cover.drawText(subtitle, { x: 48, y: height - 140, size: 12, font, color: soft });
-    cover.drawRectangle({ x: 48, y: height - 240, width: width - 96, height: 18, color: rgb(0.07, 0.09, 0.09) });
-    cover.drawText(pdfSafe(template?.badgeLine || 'Premium deliverable | Strategy | Negatives | Next steps'), {
+    cover.drawRectangle({ x: 0, y: height - 200, width, height: 200, color: rgb(0.98, 0.98, 0.995) });
+    cover.drawRectangle({ x: 0, y: height - 202, width, height: 2, color: accent });
+    cover.drawText(pdfSafe('Finely Cred'), { x: 48, y: height - 72, size: 14, font: fontBold, color: accent });
+    cover.drawText(pdfSafe(title), { x: 48, y: height - 118, size: 30, font: fontBold, color: ink });
+    cover.drawText(pdfSafe(preparedLine), { x: 48, y: height - 152, size: 13, font: fontBold, color: ink });
+    cover.drawText(pdfSafe(generatedLine), { x: 48, y: height - 172, size: 11, font, color: soft });
+    cover.drawText(pdfSafe(reportLine), { x: 48, y: height - 190, size: 11, font, color: soft });
+    cover.drawRectangle({ x: 48, y: height - 280, width: width - 96, height: 20, color: rgb(0.07, 0.09, 0.09) });
+    cover.drawText(pdfSafe(template?.badgeLine || 'Credit restore strategy | Negatives | Roadmap | Next steps'), {
       x: 58,
-      y: height - 236,
+      y: height - 275,
       size: 10,
       font: fontBold,
       color: rgb(1, 1, 1),
     });
     const blurb =
       template?.coverBlurb ||
-      'This report summarizes your current credit snapshot, highlights key negatives, and provides a recommended sequence to dispute, follow up, and rebuild.\n\n' +
-        'Use it as your “single source of truth” for what to do now, next, and later.';
-    cover.drawText(pdfSafe(blurb), { x: 48, y: height - 320, size: 12, font, color: ink, lineHeight: 16, maxWidth: width - 96 });
+      'This deliverable summarizes your credit snapshot, ranks dispute priorities, documents strengths, and outlines restore paths for funding, home readiness, and authorized-user strategy.';
+    let blurbY = height - 320;
+    for (const line of wrapTextLines(pdfSafe(blurb), width - 96, 12, font)) {
+      cover.drawText(line, { x: 48, y: blurbY, size: 12, font, color: ink });
+      blurbY -= 16;
+    }
   }
 
-  // TOC
-  const toc = pdf.addPage([612, 792]);
-  drawHeader(toc, 'Table of contents');
+  // Table of contents
   {
-    const { width, height } = toc.getSize();
-    toc.drawText('Table of contents', { x: 48, y: height - 120, size: 20, font: fontBold, color: ink });
-    toc.drawText('', { x: 48, y: 0, size: 1, font, color: ink }); // noop
-    let y = height - 160;
-    const tocItems = [
-      'Executive summary',
-      'Now / Next / Later roadmap',
-      'Scores & tradeline summary',
-      'Negatives breakdown (by bureau/type)',
-      'Appendix',
-    ];
-    for (const item of tocItems) {
-      toc.drawText(`- ${item}`, { x: 58, y, size: 12, font, color: ink });
-      y -= 18;
-    }
-    toc.drawText('Note: Page numbers may shift as your negatives change.', { x: 48, y: 80, size: 10, font, color: soft });
-    toc.drawRectangle({ x: 48, y: 92, width: width - 96, height: 1, color: rgb(0.92, 0.92, 0.94) });
+    const writer = new PaginatedPdfWriter({ pdf, font, fontBold, accent, ink, soft });
+    writer.addPage('Table of contents');
+    writer.drawTitle('Table of contents');
+    const tocItems = sections.map((s) => s.title).concat(['Certification & signature']);
+    writer.drawBullets(tocItems, 'Table of contents');
+    writer.drawParagraph(
+      pdfSafe('Page numbers reflect final pagination after all sections are rendered.'),
+      10,
+      'Table of contents',
+    );
   }
 
-  // Content pages
-  const contentPages: any[] = [];
+  // Body sections
+  const bodyWriter = new PaginatedPdfWriter({ pdf, font, fontBold, accent, ink, soft });
   for (const s of sections) {
-    const page = pdf.addPage([612, 792]);
-    contentPages.push(page);
-    drawHeader(page, s.title);
-    const { width, height } = page.getSize();
-    page.drawText(pdfSafe(s.title), { x: 48, y: height - 120, size: 18, font: fontBold, color: ink });
-
-    // Accent badge
-    page.drawRectangle({ x: 48, y: height - 152, width: width - 96, height: 10, color: rgb(0.99, 0.97, 0.92) });
-    page.drawRectangle({ x: 48, y: height - 152, width: 40, height: 10, color: accent });
-
-    let y = height - 190;
-    const lineHeight = 14;
-    const maxWidth = width - 96;
-    for (const b of s.bullets.length ? s.bullets : ['-']) {
-      const text = pdfSafe(`- ${b}`);
-      page.drawText(text, { x: 58, y, size: 11, font, color: ink, maxWidth, lineHeight });
-      y -= lineHeight * 1.4;
-      if (y < 90) break;
-    }
+    const header = pdfSafe(s.title);
+    bodyWriter.addPage(header);
+    bodyWriter.drawTitle(header);
+    bodyWriter.drawBullets(s.bullets.map((b) => pdfSafe(b)), header);
   }
 
-  // Optional exhibits (images from Evidence Vault)
+  // Exhibits
   const exhibitsMax = Math.max(0, Math.min(50, template?.exhibits?.max ?? 10));
   const exhibits = (args.exhibits ?? []).slice(0, exhibitsMax);
   let exhibitsIncluded = 0;
@@ -494,14 +531,15 @@ export async function generateCreditAnalysisReportPdf(args: {
         if (!embed) continue;
 
         const page = pdf.addPage([612, 792]);
-        contentPages.push(page);
-        drawHeader(page, 'Appendix - exhibits');
         const { width, height } = page.getSize();
-        page.drawText('Appendix - exhibits', { x: 48, y: height - 120, size: 18, font: fontBold, color: ink });
+        page.drawRectangle({ x: 0, y: height - 72, width, height: 72, color: rgb(0.98, 0.98, 0.99) });
+        page.drawRectangle({ x: 0, y: height - 74, width, height: 2, color: accent });
+        page.drawText(pdfSafe('Finely Cred'), { x: 48, y: height - 46, size: 12, font: fontBold, color: ink });
+        page.drawText(pdfSafe('Appendix - exhibits'), { x: 48, y: height - 62, size: 9, font, color: soft });
+        page.drawText(pdfSafe('Appendix - exhibits'), { x: 48, y: height - 120, size: 18, font: fontBold, color: ink });
         const cap = safe(ex.caption || ex.filename || 'Exhibit');
-        if (cap) page.drawText(pdfSafe(cap), { x: 48, y: height - 146, size: 10, font, color: soft, maxWidth: width - 96 });
+        if (cap) page.drawText(pdfSafe(cap), { x: 48, y: height - 146, size: 10, font, color: soft });
 
-        // Fit image into a safe rectangle.
         const maxW = width - 96;
         const maxH = height - 220;
         const scale = Math.min(maxW / embed.width, maxH / embed.height, 1);
@@ -518,45 +556,38 @@ export async function generateCreditAnalysisReportPdf(args: {
     }
   }
 
-  // Guarantee minimum page count (>= 22) with premium-looking filler pages.
-  const minTotal = Math.max(10, Math.min(80, template?.minPages ?? 22));
-  while (pdf.getPageCount() < minTotal) {
-    const page = pdf.addPage([612, 792]);
-    contentPages.push(page);
-    drawHeader(page, 'Appendix - additional notes');
-    const { width, height } = page.getSize();
-    page.drawText('Appendix - additional notes', { x: 48, y: height - 120, size: 18, font: fontBold, color: ink });
-    page.drawText(
-      pdfSafe(template?.appendix?.additionalNotesText ||
-        'This page is reserved for future enhancements: trend charts across multiple report dates, bureau response tracking, and lender readiness scoring.\n\n' +
-          'As your account grows, this report becomes richer and more personalized.'),
-      { x: 48, y: height - 170, size: 12, font, color: ink, maxWidth: width - 96, lineHeight: 16 },
+  // Signature page
+  {
+    const sigWriter = new PaginatedPdfWriter({ pdf, font, fontBold, accent, ink, soft });
+    sigWriter.addPage('Certification');
+    sigWriter.drawTitle('Certification');
+    sigWriter.drawParagraph(
+      pdfSafe(
+        `This credit analysis report was prepared for ${partnerName} based on the uploaded report data and Finely Cred dispute intelligence at the time of generation (${generatedLine}).`,
+      ),
+      11,
+      'Certification',
     );
-    // Visual blocks
-    const blocks = [
-      { x: 48, y: 420, w: width - 96, h: 90 },
-      { x: 48, y: 300, w: (width - 110) / 2, h: 90 },
-      { x: 62 + (width - 110) / 2, y: 300, w: (width - 110) / 2, h: 90 },
-    ];
-    for (const b of blocks) {
-      page.drawRectangle({ x: b.x, y: b.y, width: b.w, height: b.h, color: rgb(0.98, 0.98, 0.99), borderColor: rgb(0.92, 0.92, 0.94), borderWidth: 1 });
-      page.drawRectangle({ x: b.x, y: b.y + b.h - 6, width: b.w, height: 6, color: accent });
-    }
+    sigWriter.drawParagraph(
+      pdfSafe(
+        'Recommendations are educational and strategic in nature. Outcomes depend on bureau responses, creditor reporting, and continued profile maintenance.',
+      ),
+      11,
+      'Certification',
+    );
+    sigWriter.ensureSpace(80, 'Certification');
+    sigWriter.drawParagraph(pdfSafe('Prepared by:'), 11, 'Certification');
+    sigWriter.drawParagraph(pdfSafe('Shelly St Louis'), 16, 'Certification');
+    sigWriter.drawParagraph(pdfSafe('Finely Cred — Credit Restoration Specialist'), 11, 'Certification');
+    sigWriter.drawParagraph(pdfSafe(generatedLine), 10, 'Certification');
   }
 
-  // Add footers with final page count.
+  const footerWriter = new PaginatedPdfWriter({ pdf, font, fontBold, accent, ink, soft });
+  footerWriter.drawFooters();
+
   const total = pdf.getPageCount();
-  for (let i = 0; i < total; i++) {
-    const page = pdf.getPage(i);
-    drawFooter(page, i + 1, total);
-  }
-
   const bytes = await pdf.save();
-  const filename = `Credit_Analysis_Report_${(args.partner.profile.fullName || 'Partner').replace(/\s+/g, '_')}_${now
-    .toISOString()
-    .slice(0, 10)}.pdf`;
-  // Some TS/dom lib combos are picky about Uint8Array<ArrayBufferLike> as a BlobPart.
-  // Runtime is fine; we cast to satisfy the compiler.
+  const filename = `Credit_Analysis_Report_${partnerName.replace(/\s+/g, '_')}_${now.toISOString().slice(0, 10)}.pdf`;
   return { blob: new Blob([bytes as unknown as BlobPart], { type: 'application/pdf' }), filename, pages: total, exhibitsIncluded };
 }
 

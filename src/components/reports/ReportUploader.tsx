@@ -1,9 +1,10 @@
 import React, { useMemo, useState } from 'react';
 import { FileUp, ShieldCheck } from 'lucide-react';
 import type { UploadActor, CreditReportFileType, CreditReportRecord } from '../../domain/creditReports';
-import { parseHtmlReportWithCache, parsePdfReportWithCache } from '../../lib/reportParsePipeline';
+import { parseHtmlReportWithCache, parsePdfReportWithCache, parseWarningForReport } from '../../lib/reportParsePipeline';
 import { computeReportIdentityCheck } from '../../creditReports/identityCheck';
 import { getBlobStore } from '../../storage/getBlobStore';
+import { isSupabaseBlobRef } from '../../storage/SupabaseBlobStore';
 import { newId } from '../../utils/ids';
 import { createTask, listTasksByPartner } from '../../data/tasksRepo';
 import { upsertReport, listReportsByPartner } from '../../data/reportsRepo';
@@ -35,6 +36,7 @@ export function ReportUploader({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [parseWarning, setParseWarning] = useState<string | null>(null);
+  const [storageNote, setStorageNote] = useState<string | null>(null);
   const [note, setNote] = useState('');
   const [progress, setProgress] = useState<string | null>(null);
 
@@ -44,20 +46,41 @@ export function ReportUploader({
     setBusy(true);
     setError(null);
     setParseWarning(null);
+    setStorageNote(null);
     setProgress(null);
+
+    const reportId = newId('report');
+    const fileType: CreditReportFileType = file.name.toLowerCase().endsWith('.pdf') ? 'pdf' : 'html';
+
+    let ref: string;
+    let sha256: string | undefined;
     try {
-      const fileType: CreditReportFileType = file.name.toLowerCase().endsWith('.pdf') ? 'pdf' : 'html';
-      const { ref, sha256 } = await blobStore.put(file, { partnerId, uploadedBy, note });
+      setProgress('Storing report file…');
+      const put = await blobStore.put(file, { partnerId, uploadedBy, note, kind: 'credit_report' });
+      ref = put.ref;
+      sha256 = put.sha256;
+      if (!isSupabaseBlobRef(ref)) {
+        setStorageNote(
+          'Report file saved in this browser (cloud storage unavailable). Re-parse and viewing still work here; configure Supabase storage for cross-device access.',
+        );
+      }
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : 'Storage failed';
+      setError(`Could not store the report file: ${msg}. Check your connection and try again.`);
+      setBusy(false);
+      setProgress(null);
+      return;
+    }
 
-      const reportId = newId('report');
+    let parsed;
+    let provider: CreditReportRecord['provider'] = 'unknown';
+    let pdfText: string | undefined;
+    let pdfMeta: CreditReportRecord['pdfMeta'] | undefined;
+    let reportDate: string | undefined;
 
-      let parsed;
-      let provider: any = 'unknown';
-      let pdfText: string | undefined;
-      let pdfMeta: CreditReportRecord['pdfMeta'] | undefined;
-      let reportDate: string | undefined;
-
+    try {
       if (fileType === 'html') {
+        setProgress('Parsing HTML report…');
         const html = await file.text();
         const bundle = await parseHtmlReportWithCache({
           reportId,
@@ -65,83 +88,80 @@ export function ReportUploader({
           onProgress: (s) => setProgress(s),
         });
         parsed = bundle.parsed;
-        provider = bundle.provider;
+        provider = (bundle.provider as CreditReportRecord['provider']) ?? 'unknown';
         reportDate = bundle.reportDate;
         pdfText = bundle.pdfText;
         pdfMeta = bundle.pdfMeta as CreditReportRecord['pdfMeta'];
         if (bundle.fromCache) setProgress('Loaded from parse cache');
       } else {
+        setProgress('Parsing PDF report…');
         const bundle = await parsePdfReportWithCache({
           reportId,
           file,
           onProgress: (s) => setProgress(s),
         });
         parsed = bundle.parsed;
-        provider = bundle.provider;
+        provider = (bundle.provider as CreditReportRecord['provider']) ?? 'unknown';
         reportDate = bundle.reportDate;
         pdfText = bundle.pdfText;
         pdfMeta = bundle.pdfMeta as CreditReportRecord['pdfMeta'];
         if (bundle.fromCache) setProgress('Loaded from parse cache');
       }
-
-      const identityCheck = computeReportIdentityCheck({ partnerId, parsed: (parsed as any) ?? null });
-
-      const record: CreditReportRecord = {
-        id: reportId,
-        partnerId,
-        provider,
-        fileType,
-        uploadedBy,
-        receivedAt: new Date().toISOString(),
-        reportDate,
-        filename: file.name,
-        mimeType: file.type || (fileType === 'pdf' ? 'application/pdf' : 'text/html'),
-        sizeBytes: file.size,
-        sha256,
-        rawBlobRef: ref,
-        parsed,
-        pdfText,
-        pdfMeta,
-        identityCheck,
-      };
-
-      if (identityCheck.faults.length) {
-        const tag = `identity_check:${reportId}`;
-        const existing = listTasksByPartner(partnerId).some((t) => (t.tags ?? []).includes(tag));
-        if (!existing) {
-          createTask({
-            partnerId,
-            title: 'Verify identity details from report upload',
-            kind: 'general',
-            stage: 'identity',
-            status: 'pending',
-            priority: identityCheck.faults.some((f) => f.severity === 'warn' || f.severity === 'error') ? 'high' : 'normal',
-            tags: [tag, 'identity', 'reports'],
-            notes: identityCheck.faults.map((f) => `- ${f.message}`).join('\n'),
-          });
-        }
-      }
-
-      upsertReport(record);
-      const tlCount = (parsed as any)?.tradelines?.length ?? 0;
-      const scoreCount = (parsed as any)?.scores?.length ?? 0;
-      if (tlCount === 0) {
-        setParseWarning(
-          'Partial parse — no tradelines extracted. Open the report and use Re-parse, or upload an HTML export from your monitoring service.',
-        );
-      } else if (scoreCount === 0) {
-        setParseWarning('Partial parse — tradelines found but scores were not detected. Review before disputing.');
-      }
-      const allReports = listReportsByPartner(partnerId);
-      handleReportUploadTimeline({ partnerId, newReportId: reportId, allReports });
-      onCreated(record);
-      setNote('');
-    } catch (e: any) {
-      setError(e?.message || 'Upload failed.');
-    } finally {
-      setBusy(false);
-      setProgress(null);
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : 'Parse failed';
+      setParseWarning(
+        `File uploaded but parsing hit an error: ${msg}. Open the report and click Re-parse, or try an HTML export from your monitoring service.`,
+      );
     }
+
+    const identityCheck = computeReportIdentityCheck({ partnerId, parsed: (parsed as any) ?? null });
+
+    const record: CreditReportRecord = {
+      id: reportId,
+      partnerId,
+      provider,
+      fileType,
+      uploadedBy,
+      receivedAt: new Date().toISOString(),
+      reportDate,
+      filename: file.name,
+      mimeType: file.type || (fileType === 'pdf' ? 'application/pdf' : 'text/html'),
+      sizeBytes: file.size,
+      sha256,
+      rawBlobRef: ref,
+      parsed,
+      pdfText,
+      pdfMeta,
+      identityCheck,
+    };
+
+    if (identityCheck.faults.length) {
+      const tag = `identity_check:${reportId}`;
+      const existing = listTasksByPartner(partnerId).some((t) => (t.tags ?? []).includes(tag));
+      if (!existing) {
+        createTask({
+          partnerId,
+          title: 'Verify identity details from report upload',
+          kind: 'general',
+          stage: 'identity',
+          status: 'pending',
+          priority: identityCheck.faults.some((f) => f.severity === 'warn' || f.severity === 'error') ? 'high' : 'normal',
+          tags: [tag, 'identity', 'reports'],
+          notes: identityCheck.faults.map((f) => `- ${f.message}`).join('\n'),
+        });
+      }
+    }
+
+    upsertReport(record);
+    const warn = parseWarningForReport(parsed);
+    if (warn) setParseWarning(warn);
+
+    const allReports = listReportsByPartner(partnerId);
+    handleReportUploadTimeline({ partnerId, newReportId: reportId, allReports });
+    onCreated(record);
+    setNote('');
+    setBusy(false);
+    setProgress(null);
   };
 
   return (
@@ -154,7 +174,7 @@ export function ReportUploader({
           </div>
           <h3 className={FINELY_OS_ENTITY_TITLE}>Upload Credit Report (HTML or PDF)</h3>
           <p className={FINELY_OS_ENTITY_BODY}>
-            Upload your exported report. HTML uploads are parsed immediately into tradelines + 2-year payment history.
+            Upload your exported report. HTML is parsed into tradelines + 2-year payment history; PDF uses text/OCR fallback when needed.
           </p>
         </div>
         <div className={`text-right ${FINELY_OS_ENTITY_SUBLABEL} font-mono normal-case shrink-0`}>
@@ -193,9 +213,9 @@ export function ReportUploader({
       </div>
 
       {error && <div className={FINELY_OS_NOTICE_ERROR}>{error}</div>}
+      {storageNote && !error ? <div className={FINELY_OS_NOTICE_WARN}>{storageNote}</div> : null}
       {parseWarning && !error ? <div className={FINELY_OS_NOTICE_WARN}>{parseWarning}</div> : null}
       {busy && progress && <div className={FINELY_OS_NOTICE}>{progress}</div>}
     </div>
   );
 }
-

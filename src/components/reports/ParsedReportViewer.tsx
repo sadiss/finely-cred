@@ -228,7 +228,7 @@ export function ParsedReportViewer({
   }
 
   return (
-    <div className="space-y-6 min-w-0">
+    <div className="space-y-6 w-full max-w-full overflow-visible" data-fc-parsed-report-viewer>
       {notice && <div className={FINELY_OS_NOTICE}>{notice}</div>}
       {parseQualityNote ? <div className={FINELY_OS_NOTICE_WARN}>{parseQualityNote}</div> : null}
       <div className={`${finelyOsGlassShell('catalog', 'sky')} flex items-start justify-between gap-6`}>
@@ -352,9 +352,10 @@ export function ParsedReportViewer({
         count={`${filteredTradelines.length}`}
         defaultOpen
         storageKey={`reports.viewer.tradelines.${parsed.provider || 'unknown'}.list`}
-        bodyClassName="!p-0"
+        className="!overflow-visible"
+        bodyClassName="!p-0 !overflow-visible"
       >
-        <div className="p-4 md:p-6 space-y-5">
+        <div className="p-4 md:p-6 space-y-5 w-full max-w-full overflow-visible">
           {visibleTradelines.map((t, pageIdx) => {
           const idx = safeTradelinePage * TRADELINE_PAGE_SIZE + pageIdx;
           const isOpen = openIndex === idx;
@@ -373,7 +374,7 @@ export function ParsedReportViewer({
               ref={(el) => {
                 cardRefs.current[idx] = el;
               }}
-              className={`rounded-2xl border overflow-hidden min-w-0 w-full ${finelyOsInlineListItem()} !p-0 ${
+              className={`rounded-2xl border overflow-visible min-w-0 w-full max-w-full ${finelyOsInlineListItem()} !p-0 ${
                 rk === 'AU'
                   ? 'border-violet-500/35'
                   : rk === 'Primary'
@@ -466,7 +467,7 @@ export function ParsedReportViewer({
               </button>
 
               {isOpen && (
-                <div className="px-4 pb-6 md:px-6 space-y-6 border-t border-white/[0.08] bg-black/20">
+                <div className="px-4 pb-6 md:px-6 space-y-6 border-t border-white/[0.08] bg-black/20 w-full max-w-full overflow-visible">
                   {(() => {
                     const fields = t.fields ?? [];
                     const norm = (s: string) => (s || '').toLowerCase().replace(/\s+/g, ' ').trim();
@@ -517,8 +518,9 @@ export function ParsedReportViewer({
                           </button>
                         </div>
 
-                        <div className="overflow-x-auto overflow-y-visible pr-1 min-w-0 -mx-1 px-1">
-                          <table className="min-w-[720px] w-full text-left text-sm border-separate border-spacing-0">
+                        <p className={`${FINELY_OS_ENTITY_SUBLABEL} mb-2`}>Bureau field table — scroll horizontally to see TransUnion, Experian, and Equifax</p>
+                        <div className="w-full max-w-full overflow-x-auto overflow-y-visible pb-2">
+                          <table className="min-w-[960px] w-full text-left text-sm border-separate border-spacing-0">
                             <thead className="sticky top-0 z-10 bg-[#070b09]/98 backdrop-blur-xl border-b border-white/[0.08]">
                               <tr className={FINELY_OS_ENTITY_SUBLABEL}>
                                 <th className="py-3 pr-4 text-left">Field</th>
@@ -547,9 +549,11 @@ export function ParsedReportViewer({
                   })()}
 
                   {t.paymentHistory2y ? (
-                    <div className={`${FINELY_OS_GLASS_CATALOG} overflow-x-auto overflow-y-visible min-w-0 p-4 md:p-5`}>
-                      <p className={`${FINELY_OS_ENTITY_SUBLABEL} mb-4`}>2-year payment history (full grid)</p>
-                      <table className="min-w-max text-[11px] md:text-xs border-separate border-spacing-0">
+                    <div className={`${FINELY_OS_GLASS_CATALOG} w-full max-w-full overflow-visible p-4 md:p-5`}>
+                      <p className={`${FINELY_OS_ENTITY_SUBLABEL} mb-2`}>2-year payment history (full grid)</p>
+                      <p className={`${FINELY_OS_ENTITY_BODY} text-xs mb-3 opacity-80`}>Scroll horizontally to view all months — Equifax column is at the far right.</p>
+                      <div className="w-full max-w-full overflow-x-auto pb-2">
+                      <table className="min-w-max w-full text-[11px] md:text-xs border-separate border-spacing-0">
                         <tbody>
                           {(() => {
                             const by = t.paymentHistory2y?.byBureau ?? {};
@@ -603,6 +607,7 @@ export function ParsedReportViewer({
                           })()}
                         </tbody>
                       </table>
+                      </div>
                     </div>
                   ) : (
                     <div className={`${FINELY_OS_GLASS_CATALOG} flex items-center gap-3`}>

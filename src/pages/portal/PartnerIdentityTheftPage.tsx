@@ -12,6 +12,7 @@ import {
   FINELY_OS_BACK_LINK,
   FINELY_OS_ENTITY_ACCENT_LINK,
   FINELY_OS_ENTITY_BODY,
+  FINELY_OS_ENTITY_SUBLABEL,
   finelyOsCatalogCard,
   FINELY_OS_ENTITY_VALUE,
   FINELY_OS_LUXURY_EMPTY,
@@ -20,6 +21,7 @@ import {
   FINELY_OS_SECONDARY_BTN,
   FINELY_OS_SUCCESS_BTN,
 } from '../../features/os/finelyOsLightUi';
+import { bureauLinksByGroup } from '../../lib/bureauFreezeCatalog';
 
 type IdTab = 'overview' | 'freeze' | 'recovery';
 
@@ -90,38 +92,48 @@ export default function PartnerIdentityTheftPage() {
               )}
 
               {tab === 'freeze' && (
-                <div className="grid sm:grid-cols-2 gap-4">
-                  <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony flex items-start gap-3`}>
-                    <FileCheck size={20} className="text-violet-300 shrink-0 mt-0.5" />
-                    <div>
-                      <div className={`${FINELY_OS_ENTITY_VALUE} text-sm`}>FTC Identity Theft Report</div>
-                      <a
-                        href="https://www.identitytheft.gov/"
-                        target="_blank"
-                        rel="noreferrer"
-                        className={`mt-1 inline-block ${FINELY_OS_ENTITY_ACCENT_LINK} text-xs`}
-                      >
-                        Open identitytheft.gov
-                      </a>
+                <div className="space-y-6 w-full">
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony flex items-start gap-3`}>
+                      <FileCheck size={20} className="text-violet-300 shrink-0 mt-0.5" />
+                      <div>
+                        <div className={`${FINELY_OS_ENTITY_VALUE} text-sm`}>FTC Identity Theft Report</div>
+                        <a
+                          href="https://www.identitytheft.gov/"
+                          target="_blank"
+                          rel="noreferrer"
+                          className={`mt-1 inline-block ${FINELY_OS_ENTITY_ACCENT_LINK} text-xs`}
+                        >
+                          Open identitytheft.gov
+                        </a>
+                      </div>
                     </div>
-                  </div>
-                  <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony flex items-start gap-3`}>
-                    <AlertTriangle size={20} className="text-violet-300 shrink-0 mt-0.5" />
-                    <div>
-                      <div className={`${FINELY_OS_ENTITY_VALUE} text-sm`}>Fraud alert & freeze</div>
-                      <div className="mt-1 space-y-1 text-xs">
-                        <a href="https://www.equifax.com/personal/credit-report-services/credit-freeze/" target="_blank" rel="noreferrer" className={`block ${FINELY_OS_ENTITY_ACCENT_LINK}`}>
-                          Equifax freeze
-                        </a>
-                        <a href="https://www.experian.com/freeze/center.html" target="_blank" rel="noreferrer" className={`block ${FINELY_OS_ENTITY_ACCENT_LINK}`}>
-                          Experian freeze
-                        </a>
-                        <a href="https://www.transunion.com/credit-freeze" target="_blank" rel="noreferrer" className={`block ${FINELY_OS_ENTITY_ACCENT_LINK}`}>
-                          TransUnion freeze
+                    <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony flex items-start gap-3`}>
+                      <AlertTriangle size={20} className="text-violet-300 shrink-0 mt-0.5" />
+                      <div>
+                        <div className={`${FINELY_OS_ENTITY_VALUE} text-sm`}>Prescreen opt-out</div>
+                        <a href="https://www.optoutprescreen.com/" target="_blank" rel="noreferrer" className={`mt-1 inline-block ${FINELY_OS_ENTITY_ACCENT_LINK} text-xs`}>
+                          OptOutPrescreen.com
                         </a>
                       </div>
                     </div>
                   </div>
+                  {(['credit_bureau', 'specialty', 'banking'] as const).map((group) => (
+                    <div key={group} className={`${finelyOsCatalogCard('violet')} !p-5`}>
+                      <div className={`${FINELY_OS_ENTITY_SUBLABEL} mb-3`}>
+                        {group === 'credit_bureau' ? 'Major credit bureaus' : group === 'specialty' ? 'Innovis, SageStream, NCTUE & more' : 'Banking reports'}
+                      </div>
+                      <ul className="grid sm:grid-cols-2 gap-2">
+                        {bureauLinksByGroup(group).map((l) => (
+                          <li key={l.href}>
+                            <a href={l.href} target="_blank" rel="noreferrer" className={`${FINELY_OS_ENTITY_ACCENT_LINK} text-sm`}>
+                              {l.label}
+                            </a>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ))}
                 </div>
               )}
 

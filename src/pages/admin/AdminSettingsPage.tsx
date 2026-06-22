@@ -35,6 +35,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { useLocation } from 'react-router-dom';
 import { PageShell } from '../../components/layout/PageShell';
+import { MailCreditsPanel } from '../../components/mailing/MailCreditsPanel';
 import { ADMIN_EMAIL_ALLOWLIST, isAdminEmail } from '../../auth/admin';
 import { useAuth } from '../../auth/AuthProvider';
 import {
@@ -1424,6 +1425,7 @@ export default function AdminSettingsPage() {
                       <span className="text-white/50">Off — letter studio hides physical mail actions</span>
                     )}
                   </div>
+                  {settings.features.letterMailing ? <MailCreditsPanel actorEmail={auth.user?.email || undefined} /> : null}
                 </div>
 
                 <div className="space-y-4">

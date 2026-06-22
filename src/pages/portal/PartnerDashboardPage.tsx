@@ -46,6 +46,7 @@ import { FinelyOsPaginatedStack } from '../../features/os/FinelyOsPaginatedStack
 import { FinelyOsDataErrorBanner } from '../../features/os/FinelyOsDataErrorBanner';
 import { FinelyUnifiedHubLayout } from '../../features/unified/FinelyUnifiedHubLayout';
 import { FinelyNoticedStrip } from '../../components/tours/FinelyNoticedStrip';
+import { PartnerActivityTimeline, partnerNoteToTimelineItem } from '../../components/partner/PartnerActivityTimeline';
 import { FinelyNowDoThisStrip } from '../../components/tours/FinelyNowDoThisStrip';
 import { buildPortalNoticedItems } from '../../lib/finelyProactiveSignals';
 import {
@@ -155,6 +156,35 @@ export default function PartnerDashboardPage() {
 
   const openTasks = tasks.filter((t) => t.status === 'pending' || t.status === 'in_progress');
   const doneTasks = tasks.filter((t) => t.status === 'completed');
+  const portalActivityItems = useMemo(() => {
+    const mailed = letters
+      .filter((l) => l.status === 'mailed' || l.mailing?.providerId)
+      .slice(0, 6)
+      .map((l) => ({
+        id: `letter-${l.id}`,
+        createdAt: l.mailing?.createdAt || l.createdAt,
+        title: 'Letter mailed',
+        body: l.title,
+        kind: 'system' as const,
+      }));
+    const completed = doneTasks.slice(0, 6).map((t) => ({
+      id: `task-${t.id}`,
+      createdAt: t.completedAt || t.updatedAt || t.createdAt,
+      title: 'Task completed',
+      body: t.title,
+      kind: 'system' as const,
+    }));
+    const uploads = reports.slice(0, 4).map((r) => ({
+      id: `report-${r.id}`,
+      createdAt: r.receivedAt,
+      title: 'Credit report uploaded',
+      body: `${r.provider}${r.reportDate ? ` · ${new Date(r.reportDate).toLocaleDateString()}` : ''}`,
+      kind: 'system' as const,
+    }));
+    return [...visibleNotes.map(partnerNoteToTimelineItem), ...mailed, ...completed, ...uploads]
+      .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+      .slice(0, 16);
+  }, [visibleNotes, letters, doneTasks, reports]);
   const openCases = cases.filter((c) => c.status === 'open');
   const openDebt = debtCases.filter((d) => d.status === 'open' || d.status === 'in_review');
   const restoreAlert = useMemo(
@@ -550,13 +580,13 @@ export default function PartnerDashboardPage() {
             </div>
           ) : null}
 
-          {visibleNotes.length > 0 && (
+          {visibleNotes.length > 0 ? (
             <CollapsibleSection
               variant="dark"
-              title={<span className="text-fuchsia-200">Staff notes</span>}
-              subtitle="Pinned items are highest priority. Complete tasks as you go."
+              title="Staff notes"
+              subtitle="Updates from your credit specialist team."
               count={`${visibleNotes.length} note${visibleNotes.length === 1 ? '' : 's'}`}
-              defaultOpen={false}
+              defaultOpen
               storageKey="portal.dashboard.staffNotes"
               className="border-fuchsia-500/25"
               headerClassName="border-white/[0.08]"
@@ -566,24 +596,13 @@ export default function PartnerDashboardPage() {
                 </Button>
               }
             >
-              <FinelyOsPaginatedStack
-                items={visibleNotes}
-                pageSize={4}
-                itemSpacingClassName="grid md:grid-cols-2 gap-4"
+              <PartnerActivityTimeline
+                items={visibleNotes.map(partnerNoteToTimelineItem)}
                 emptyMessage="No staff notes yet."
-                renderItem={(n) => (
-                  <div key={n.id} className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony space-y-2`}>
-                    <div className={FINELY_OS_ENTITY_VALUE}>{n.title || 'Note'}</div>
-                    <div className={FINELY_OS_ENTITY_SUBLABEL}>
-                      {new Date(n.createdAt).toLocaleString()}
-                      {n.pinned ? ' • pinned' : ''}
-                    </div>
-                    <pre className={`whitespace-pre-wrap ${FINELY_OS_ENTITY_BODY} leading-relaxed`}>{n.body}</pre>
-                  </div>
-                )}
+                accent="violet"
               />
             </CollapsibleSection>
-          )}
+          ) : null}
 
           {partner.lane === 'business_credit' && (
             <CollapsibleSection
@@ -717,7 +736,14 @@ export default function PartnerDashboardPage() {
 
             <section id="portal-dash-activity" className="fc-scroll-section space-y-6">
                 <h2 className="fc-launch-lane-header">Recent activity</h2>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-4">
+
+          <PartnerActivityTimeline
+            items={portalActivityItems}
+            emptyMessage="Your timeline will populate as reports upload, letters mail, and tasks complete."
+            accent="emerald"
+          />
+
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <KpiCard
               label="Open tasks"
               value={openTasks.length}

@@ -6,6 +6,8 @@ import { deleteReport, listReportsByPartner, upsertReport } from '../../data/rep
 import { isSupabaseConfigured } from '../../lib/supabaseClient';
 import { listEvidenceByPartner, upsertEvidence, deleteEvidence } from '../../data/evidenceRepo';
 import { ReportUploader } from '../../components/reports/ReportUploader';
+import { ReportActionsBar, ReportFileStrip } from '../../components/reports/ReportFileStrip';
+import { ParsedReportViewer } from '../../components/reports/ParsedReportViewer';
 import { CreditIntelTabs } from '../../components/creditIntel/CreditIntelTabs';
 import { CreditIntelDashboardPanel } from '../../components/creditIntel/CreditIntelDashboardPanel';
 import { EvidenceUploader } from '../../components/evidence/EvidenceUploader';
@@ -20,8 +22,8 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { usePartnerSession } from '../../auth/PartnerSessionContext';
 import { ADMIN_PARTNER_OVERRIDE_KEY } from '../../portal/getOrCreatePartnerForSession';
 import { getBlobStore } from '../../storage/getBlobStore';
-import { parseHtmlReportWithCache, parsePdfReportWithCache } from '../../lib/reportParsePipeline';
-import { detectProviderFromHtml } from '../../creditReports/detectProvider';
+import { canAccessReportBlob } from '../../lib/reportBlobAccess';
+import { reparseStoredCreditReport } from '../../lib/reportParsePipeline';
 import { computeReportIdentityCheck } from '../../creditReports/identityCheck';
 import { createDisputeCase } from '../../data/casesRepo';
 import { candidateToCaseItem, nowIso } from '../../domain/cases';
@@ -236,55 +238,22 @@ export default function PartnerReportsPage() {
     setReparseErr(null);
     setReparseId(r.id);
     try {
-      const store = getBlobStore();
-      const blob = await store.get(r.rawBlobRef);
-      if (!blob) throw new Error('Stored report file not found.');
-
-      if (r.fileType === 'html') {
-        const html = await blob.text();
-        const bundle = await parseHtmlReportWithCache({ reportId: r.id, html });
-        const provider = bundle.provider ?? detectProviderFromHtml(html);
-        upsertReport({
-          ...r,
-          provider,
-          reportDate: bundle.reportDate,
-          parsed: bundle.parsed,
-          pdfText: bundle.pdfText,
-          pdfMeta: bundle.pdfMeta as any,
-        });
-        if (partner && bundle.parsed) {
-          captureScoreSnapshotFromReport({
-            partnerId: partner.id,
-            reportId: r.id,
-            parsed: bundle.parsed,
-            provider: provider ?? undefined,
-          });
-          setReportsVersion((v) => v + 1);
-        }
-      } else {
-        const file = new File([blob], r.filename || 'report.pdf', {
-          type: blob.type || r.mimeType || 'application/pdf',
-        });
-        const bundle = await parsePdfReportWithCache({ reportId: r.id, file });
-        upsertReport({
-          ...r,
-          provider: bundle.provider,
-          reportDate: bundle.reportDate,
-          pdfText: bundle.pdfText,
-          pdfMeta: bundle.pdfMeta as any,
-          parsed: bundle.parsed,
-        });
-        if (partner && bundle.parsed) {
-          captureScoreSnapshotFromReport({
-            partnerId: partner.id,
-            reportId: r.id,
-            parsed: bundle.parsed,
-            provider: bundle.provider ?? undefined,
-          });
-          setReportsVersion((v) => v + 1);
-        }
+      if (isLegacyPendingReportBlob(r.rawBlobRef)) {
+        throw new Error('This report was migrated without the original file. Re-upload using the uploader above.');
       }
-
+      if (!canAccessReportBlob(r.rawBlobRef)) {
+        throw new Error('This report has no accessible stored file. Re-upload the original HTML or PDF export.');
+      }
+      const updated = await reparseStoredCreditReport({ record: r });
+      upsertReport(updated);
+      if (partner && updated.parsed) {
+        captureScoreSnapshotFromReport({
+          partnerId: partner.id,
+          reportId: r.id,
+          parsed: updated.parsed,
+          provider: updated.provider ?? undefined,
+        });
+      }
       setReportsVersion((v) => v + 1);
     } catch (e: any) {
       setReparseErr(e?.message || 'Re-parse failed.');
@@ -435,115 +404,83 @@ export default function PartnerReportsPage() {
         ) : null}
 
         {tab === 'reports' && (
-          <div className="grid lg:grid-cols-12 gap-6">
-            <div className={`order-2 lg:order-1 lg:col-span-4 min-w-0 ${finelyOsCatalogCard('violet')} !p-6`}>
-              <div className="flex items-center justify-between">
-                <div className="inline-flex items-center gap-2 text-violet-300">
-                  <ShieldCheck size={16} />
-                  <span className="text-xs font-semibold uppercase tracking-wider">Your uploads</span>
-                </div>
-                <span className={FINELY_OS_ENTITY_SUBLABEL}>{reports.length} files</span>
+          <div className="space-y-6 w-full max-w-full overflow-visible">
+            <ReportFileStrip
+              reports={reports}
+              selectedId={selectedReportId}
+              onSelect={setSelectedReportId}
+              label="Your uploads"
+              accent="amber"
+            />
+
+            {(deleteErr || reparseErr) && (
+              <div className="space-y-3">
+                {deleteErr ? <div className={FINELY_OS_NOTICE_ERROR}>{deleteErr}</div> : null}
+                {reparseErr ? <div className={FINELY_OS_NOTICE_ERROR}>{reparseErr}</div> : null}
               </div>
+            )}
 
-              {deleteErr && <div className={`mt-4 ${FINELY_OS_NOTICE_ERROR}`}>{deleteErr}</div>}
-              {reparseErr && <div className={`mt-4 ${FINELY_OS_NOTICE_ERROR}`}>{reparseErr}</div>}
-
-              <div className="mt-5">
-                {reports.length === 0 ? (
-                  <div className={FINELY_OS_ENTITY_BODY}>No uploads yet.</div>
-                ) : (
-                  <FinelyOsPaginatedStack
-                    pageSize={12}
-                    items={reports}
-                    emptyMessage="No uploads yet."
-                    renderItem={(r) => (
-                    <div
-                      key={r.id}
-                      className={`${finelyOsListItem((selectedReportId ?? reports[0]?.id) === r.id, 'amber')} !p-4`}
-                    >
-                      <button type="button" onClick={() => setSelectedReportId(r.id)} className="w-full text-left">
-                        <div className="flex items-start justify-between gap-4">
-                          <div className="min-w-0">
-                            <div className={`flex items-center gap-2 ${FINELY_OS_ENTITY_VALUE}`}>
-                              <FileText size={14} className="text-fuchsia-300/70 shrink-0" />
-                              <span className="truncate">{r.filename}</span>
-                            </div>
-                            <div className={`mt-1 ${FINELY_OS_ENTITY_SUBLABEL}`}>
-                              {r.fileType} • {r.provider} • {new Date(r.receivedAt).toLocaleString()}
-                            </div>
-                            {Array.isArray((r as any).identityCheck?.faults) && (r as any).identityCheck.faults.length ? (
-                              <div className="mt-2">
-                                <span className={finelyOsStatusChip('warn')}>
-                                  Identity check • {(r as any).identityCheck.faults.length} flag{(r as any).identityCheck.faults.length !== 1 ? 's' : ''}
-                                </span>
-                              </div>
-                            ) : null}
-                          </div>
-                          <div className={`text-right ${FINELY_OS_ENTITY_SUBLABEL}`}>
-                            {r.uploadedBy}
-                          </div>
-                        </div>
-                      </button>
-
-                      <div className="mt-3 flex items-center justify-between gap-3">
-                        <div className={FINELY_OS_ENTITY_SUBLABEL}>report_id: {r.id}</div>
-                        <div className="flex items-center gap-2">
-                          <button
-                            type="button"
-                            className={FINELY_OS_SECONDARY_BTN}
-                            title="Re-run parsing from stored raw file"
-                            disabled={Boolean(reparseId) || deletingId === r.id}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              void handleReparse(r);
-                            }}
-                          >
-                            <RefreshCcw size={14} className="text-violet-300" />
-                            {reparseId === r.id ? 'Re-parsing…' : 'Re-parse'}
-                          </button>
-                          <button
-                            type="button"
-                            className={FINELY_OS_SECONDARY_BTN}
-                            title="Delete report"
-                            disabled={deletingId === r.id || Boolean(reparseId)}
-                            onClick={async (e) => {
-                              e.stopPropagation();
-                              setDeleteErr(null);
-                              const ok = window.confirm(
-                                `Delete this report?\n\n${r.filename}\n\nThis removes it from your uploads list (and deletes the stored file).`,
-                              );
-                              if (!ok) return;
-                              setDeletingId(r.id);
-                              try {
-                                const store = getBlobStore();
-                                try {
-                                  await store.delete(r.rawBlobRef);
-                                } catch {
-                                  // ignore blob delete failures; still remove record
-                                }
-                                deleteReport(r.id);
-                                if (selectedReportId === r.id) setSelectedReportId(null);
-                                setReportsVersion((v) => v + 1);
-                              } catch (err: any) {
-                                setDeleteErr(err?.message || 'Delete failed.');
-                              } finally {
-                                setDeletingId(null);
-                              }
-                            }}
-                          >
-                            <Trash2 size={14} className="text-rose-600" />
-                            {deletingId === r.id ? 'Deleting…' : 'Delete'}
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                    )}
-                  />
-                )}
+            {selected ? (
+              <div className={`${finelyOsCatalogCard('violet')} !p-4 md:!p-5 w-full`}>
+                <ReportActionsBar report={selected}>
+                  <button
+                    type="button"
+                    className={FINELY_OS_SECONDARY_BTN}
+                    title={
+                      isLegacyPendingReportBlob(selected.rawBlobRef)
+                        ? 'File not yet in storage — re-upload first'
+                        : !canAccessReportBlob(selected.rawBlobRef)
+                          ? 'Stored file missing — re-upload to re-parse'
+                          : 'Re-run parsing from stored raw file'
+                    }
+                    disabled={
+                      Boolean(reparseId) ||
+                      deletingId === selected.id ||
+                      isLegacyPendingReportBlob(selected.rawBlobRef) ||
+                      !canAccessReportBlob(selected.rawBlobRef)
+                    }
+                    onClick={() => void handleReparse(selected as any)}
+                  >
+                    <RefreshCcw size={14} className="text-violet-300" />
+                    {reparseId === selected.id ? 'Re-parsing…' : 'Re-parse'}
+                  </button>
+                  <button
+                    type="button"
+                    className={FINELY_OS_SECONDARY_BTN}
+                    title="Delete report"
+                    disabled={deletingId === selected.id || Boolean(reparseId)}
+                    onClick={async () => {
+                      setDeleteErr(null);
+                      const ok = window.confirm(
+                        `Delete this report?\n\n${selected.filename}\n\nThis removes it from your uploads list (and deletes the stored file).`,
+                      );
+                      if (!ok) return;
+                      setDeletingId(selected.id);
+                      try {
+                        const store = getBlobStore();
+                        try {
+                          await store.delete(selected.rawBlobRef);
+                        } catch {
+                          // ignore
+                        }
+                        deleteReport(selected.id);
+                        if (selectedReportId === selected.id) setSelectedReportId(null);
+                        setReportsVersion((v) => v + 1);
+                      } catch (err: any) {
+                        setDeleteErr(err?.message || 'Delete failed.');
+                      } finally {
+                        setDeletingId(null);
+                      }
+                    }}
+                  >
+                    <Trash2 size={14} className="text-rose-600" />
+                    {deletingId === selected.id ? 'Deleting…' : 'Delete'}
+                  </button>
+                </ReportActionsBar>
               </div>
-            </div>
+            ) : null}
 
-            <div className="order-1 lg:order-2 lg:col-span-8 min-w-0">
+            <div className="w-full max-w-full overflow-visible">
               {selected && isLegacyPendingReportBlob(selected.rawBlobRef) ? (
                 <div className="space-y-6">
                   <LegacyPendingReportNotice
@@ -589,6 +526,9 @@ export default function PartnerReportsPage() {
                           navigate(`/portal/letters?caseId=${encodeURIComponent(c.id)}`);
                         }}
                       />
+                      <section className="w-full max-w-full overflow-visible" id="fc-tradelines-full">
+                        <ParsedReportViewer parsed={selected.parsed} partnerId={partner.id} reportId={selected.id} />
+                      </section>
                     </>
                   ) : null}
                 </div>
@@ -1135,6 +1075,10 @@ export default function PartnerReportsPage() {
                       navigate(`/portal/letters?caseId=${encodeURIComponent(c.id)}`);
                     }}
                   />
+
+                  <section className="w-full max-w-full overflow-visible" id="fc-tradelines-full">
+                    <ParsedReportViewer parsed={selected.parsed} partnerId={partner.id} reportId={selected.id} />
+                  </section>
                 </div>
               ) : selected ? (
                 selected.fileType === 'pdf' ? (
