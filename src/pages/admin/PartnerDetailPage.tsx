@@ -32,6 +32,7 @@ import { deleteReport, listReportsByPartner, upsertReport } from '../../data/rep
 import { listEvidenceByPartner, upsertEvidence, deleteEvidence } from '../../data/evidenceRepo';
 import { deleteLetter, listLettersByPartner, upsertLetter } from '../../data/lettersRepo';
 import { getBlobStore } from '../../storage/getBlobStore';
+import { isSupabaseBlobRef } from '../../storage/SupabaseBlobStore';
 import { openBlobRefInNewTab } from '../../lib/openBlobRef';
 import { isLegacyPendingReportBlob } from '../../lib/legacyPendingReport';
 import { bureauFullName, bureauShortCode } from '../../utils/bureaus';
@@ -2120,13 +2121,25 @@ function PartnerDetailPageInner() {
                             <button
                               type="button"
                               className={`${FINELY_OS_SECONDARY_BTN} disabled:opacity-60 disabled:cursor-not-allowed`}
-                              title="Re-run parsing from stored raw file"
-                              disabled={Boolean(reparseReportId) || deletingReportId === r.id}
+                              title={
+                                isLegacyPendingReportBlob(r.rawBlobRef)
+                                  ? 'File not yet in storage — re-upload the original file first'
+                                  : !isSupabaseBlobRef(r.rawBlobRef)
+                                    ? 'File was stored in a local session — re-upload the original file to re-parse'
+                                    : 'Re-run parsing from stored raw file'
+                              }
+                              disabled={Boolean(reparseReportId) || deletingReportId === r.id || isLegacyPendingReportBlob(r.rawBlobRef) || !isSupabaseBlobRef(r.rawBlobRef)}
                               onClick={async (e) => {
                                 e.stopPropagation();
                                 setReparseReportErr(null);
                                 setReparseReportId(r.id);
                                 try {
+                                  if (isLegacyPendingReportBlob(r.rawBlobRef)) {
+                                    throw new Error('This report was migrated from the legacy system without the original file. Re-upload using the uploader above.');
+                                  }
+                                  if (!isSupabaseBlobRef(r.rawBlobRef)) {
+                                    throw new Error('This report was stored in a local browser session and is no longer accessible. Re-upload the original file to re-parse.');
+                                  }
                                   const store = getBlobStore();
                                   const blob = await store.get(r.rawBlobRef);
                                   if (!blob) throw new Error('Stored report file not found.');
