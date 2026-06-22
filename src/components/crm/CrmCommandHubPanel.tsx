@@ -51,7 +51,7 @@ export function CrmCommandHubPanel({
         {[
           { id: 'prospects' as const, label: 'Prospects', value: prospectTotal, hint: `${prospectDueSoon} due soon`, icon: UserPlus },
           { id: 'inbound' as const, label: 'Inbound', value: inboundTotal, hint: 'Lead captures', icon: Inbox },
-          { id: 'partners' as const, label: 'Partners', value: partnerTotal, hint: 'Active clients', icon: Users },
+          { id: 'partners' as const, label: 'Partners', value: partnerTotal, hint: 'Active customers', icon: Users },
           { id: 'prospects' as const, label: 'Unassigned', value: prospectUnassigned, hint: 'Need owner', icon: Building2 },
         ].map((m, idx) => {
           const Icon = m.icon;

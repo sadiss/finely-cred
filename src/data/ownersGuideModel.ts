@@ -128,7 +128,7 @@ export const OWNERS_GUIDE_SECTIONS: OwnersGuideSection[] = [
     bullets: [
       'No separate training signup — /onboarding lane (restore, affiliate, specialist, AU seller, business, debt) selects your role track.',
       'Core Foundation (required) — compliance before mail, validation-first doctrine, Communication Hub, tasks cadence.',
-      'Role tracks unlock automatically — client restore, affiliate toolkit, credit specialist file ops, AU seller compliance, business vendors, debt validation, admin ops.',
+      'Role tracks unlock automatically — customer restore, affiliate toolkit, credit specialist file ops, AU seller compliance, business vendors, debt validation, admin ops.',
       'Lessons link to tours, SOPs, field guides, and Course Builder modules — one curriculum, no duplicate tracks.',
       'Certifications issue on module completion — visible in academy and certificates store.',
       'Affiliate / specialist / AU hub Training tabs deep-link to the same academy progress.',

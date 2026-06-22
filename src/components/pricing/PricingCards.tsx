@@ -264,7 +264,7 @@ export function AgencyTierCard({ tier, onSelect }: { tier: AgencyTier; onSelect:
 
       <div className="mb-4 flex gap-4 text-sm">
         <div>
-          <div className="text-white/50 text-xs uppercase tracking-wider">Clients</div>
+          <div className="text-white/50 text-xs uppercase tracking-wider">Customers</div>
           <div className="text-white font-semibold">{tier.activeClientLimit === -1 ? 'Unlimited' : tier.activeClientLimit}</div>
         </div>
         <div>

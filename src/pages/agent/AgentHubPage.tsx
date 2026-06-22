@@ -62,7 +62,7 @@ import {
 type HubTab = 'overview' | 'economics' | 'growth' | 'communications' | 'setup' | 'training' | 'operate' | 'command';
 
 const QUICK_TOOLS = [
-  { label: 'Client dashboard', path: '/portal/dashboard', icon: LayoutDashboard },
+  { label: 'Customer dashboard', path: '/portal/dashboard', icon: LayoutDashboard },
   { label: 'Partnership line', path: CS.messagesDeepLink, icon: MessageSquare },
   { label: 'Template library', path: '/portal/templates', icon: BookOpen },
   { label: 'Letter studio', path: '/portal/letters', icon: Rocket },
@@ -203,7 +203,7 @@ export default function AgentHubPage() {
     <PageShell
       badge={CS.programName}
       title={CS.hubName}
-      subtitle="Revenue-share partnership — train, message Finely, configure white-label, and run client files on one stack."
+      subtitle="Revenue-share partnership — train, message Finely, configure white-label, and run customer files on one stack."
       back={{ to: '/dashboard', label: 'Dashboard' }}
     >
       <div className={`${FINELY_OS_PAGE} max-w-5xl`}>
@@ -223,18 +223,18 @@ export default function AgentHubPage() {
         <FinelyUnifiedHubLayout
           eyebrow={CS.programName}
           title={CS.hubName}
-          subtitle="Revenue-share partnership — train, message Finely, configure white-label, and run client files on one stack."
+          subtitle="Revenue-share partnership — train, message Finely, configure white-label, and run customer files on one stack."
           accent="emerald"
           kpis={[
             { label: 'Your keep', value: `${split.agentSharePct}%`, accent: 'emerald' },
-            { label: 'Clients', value: String(managedClientsCount), accent: 'amber' },
+            { label: 'Customers', value: String(managedClientsCount), accent: 'amber' },
             { label: 'Open tasks', value: String(openTasks), accent: 'sky' },
             { label: 'Training', value: split.phaseLabel, accent: 'violet' },
           ]}
           tabs={TABS.map(({ id, label }) => ({ id, label }))}
           activeTab={tab}
           onTabChange={(id) => setTab(id as HubTab)}
-          primaryAction={{ label: 'Client dashboard', onClick: () => navigate('/portal/dashboard') }}
+          primaryAction={{ label: 'Customer dashboard', onClick: () => navigate('/portal/dashboard') }}
           secondaryAction={{ label: 'Partnership line', onClick: () => navigate(CS.messagesDeepLink) }}
         >
         {tab === 'overview' && (
@@ -344,7 +344,7 @@ export default function AgentHubPage() {
         {tab === 'operate' && (
           <div className={`space-y-4 ${finelyOsCatalogCard('emerald')} !p-6`} data-fc-accent="emerald">
             <p className={FINELY_OS_ENTITY_BODY}>
-              Day-to-day tools for running client files — disputes, comms, documents, and tasks. Your revenue share improves as you
+              Day-to-day tools for running customer files — disputes, comms, documents, and tasks. Your revenue share improves as you
               move levers from Finely → Shared → You.
             </p>
             <div className="flex flex-wrap gap-3">

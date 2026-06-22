@@ -13,7 +13,7 @@ export function recommendedPathForTarget(t: ProspectTarget): ProspectOfferPath {
   switch (t) {
     case 'clients':
       return {
-        title: 'Recommended offer path: Client acquisition',
+        title: 'Recommended offer path: Customer /acquisition',
         subtitle: 'Route to Services and let onboarding qualify + capture package intent.',
         ctas: [
           { label: 'Business credit programs', url: '/services?tab=business_credit' },
@@ -42,7 +42,7 @@ export function recommendedPathForTarget(t: ProspectTarget): ProspectOfferPath {
         defaultOutreach:
           `Hi — we’re expanding our partner network. Here’s our affiliate program:\n` +
           `/affiliate\n\n` +
-          `If you also run client files, here are the agency plans:\n` +
+          `If you also run customer files, here are the agency plans:\n` +
           `/services?tab=agency\n`,
       };
     case 'agents':

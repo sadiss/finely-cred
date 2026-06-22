@@ -66,7 +66,14 @@ import { getDisputeReasons, upsertDisputeReasons } from '../../data/disputeReaso
 import type { DisputeReasonsRecord } from '../../domain/disputeReasons';
 import { computeDisputeReasonsId } from '../../domain/disputeReasons';
 import { buildFactualDisputeSuggestions } from '../../lib/disputeLetterBuilder';
+import { rankEvidenceMatches, scoreEvidenceForAccount, evidenceMatchesAccount, describeEvidenceMismatch } from '../../utils/evidenceMatch';
 import { generateCreditAnalysisReportPdf } from '../../reports/generateCreditAnalysisReportPdf';
+import {
+  listCreditAnalysisReportsByPartner,
+  upsertCreditAnalysisReport,
+} from '../../data/creditAnalysisReportsRepo';
+import { CreditAnalysisDeliverableStrip } from '../../components/reports/CreditAnalysisDeliverableCard';
+import { sendPartnerOutreachMessage, defaultPartnerWelcomeMessage } from '../../lib/partnerMessaging';
 import { downloadInlineDisputeLetterPdf } from '../../letters/generateDisputePdfInline';
 import { computePartnerOverallScore } from '../../utils/partnerOverallScore';
 import { addAuditEvent, listAuditEventsByPartner } from '../../data/auditRepo';
@@ -142,15 +149,27 @@ import {
   FINELY_OS_NOTICE_WARN,
   FINELY_OS_BANNER,
   FINELY_OS_ACTIVE_CHIP,
+  FINELY_OS_VIEW_TABS,
   finelyOsEntityKpi,
   finelyOsInlineListItem,
   finelyOsListItem,
   finelyOsStatusChip,
+  finelyOsViewTab,
 } from '../../features/os/finelyOsLightUi';
 import { FinelyOsPageFooter } from '../../features/os/FinelyOsPageFooter';
 import { VoiceToTaskButton } from '../../features/work/components/VoiceToTaskButton';
 
 type TabKey = 'overview' | 'profile' | 'reports' | 'analysis' | 'evidence' | 'letters' | 'tasks' | 'notes' | 'debt';
+
+const PARTNER_STICKY_TABS: { key: TabKey; label: string; accent: 'emerald' | 'violet' | 'sky' | 'amber' }[] = [
+  { key: 'overview', label: 'Overview', accent: 'emerald' },
+  { key: 'profile', label: 'Profile', accent: 'violet' },
+  { key: 'reports', label: 'Reports', accent: 'sky' },
+  { key: 'letters', label: 'Letters', accent: 'amber' },
+  { key: 'tasks', label: 'Tasks', accent: 'emerald' },
+  { key: 'notes', label: 'Notes', accent: 'emerald' },
+  { key: 'debt', label: 'Debt', accent: 'violet' },
+];
 
 function generateDisputeLetter(args: { partnerName: string; candidate: DisputeCandidate }) {
   const { partnerName, candidate } = args;
@@ -417,6 +436,7 @@ function PartnerDetailPageInner() {
   const [mailLetter, setMailLetter] = useState<LetterRecord | null>(null);
   const [mailGateErr, setMailGateErr] = useState<string | null>(null);
   const [docOpenErr, setDocOpenErr] = useState<string | null>(null);
+  const [messageNotice, setMessageNotice] = useState<string | null>(null);
   const [notesDraft, setNotesDraft] = useState('');
   const [notesVisibleToPartner, setNotesVisibleToPartner] = useState(false);
   const [notesPinned, setNotesPinned] = useState(false);
@@ -566,12 +586,8 @@ function PartnerDetailPageInner() {
   const letters = useMemo(() => (partner ? listLettersByPartner(partner.id) : []), [partner, notesVersion]);
   const analysisReports = useMemo(() => {
     if (!partner) return [];
-    return evidence
-      .filter((e: any) => Array.isArray(e?.tags) && e.tags.includes('analysis_report'))
-      .filter((e: any) => String(e?.mimeType || '').toLowerCase() === 'application/pdf')
-      .slice()
-      .sort((a: any, b: any) => String(b.createdAt || '').localeCompare(String(a.createdAt || '')));
-  }, [partner, evidence]);
+    return listCreditAnalysisReportsByPartner(partner.id);
+  }, [partner, notesVersion]);
   const manualNotes = useMemo(() => (partner ? listPartnerNotesByPartner(partner.id) : []), [partner, notesVersion]);
   const sortedManualNotes = useMemo(
     () =>
@@ -807,6 +823,21 @@ function PartnerDetailPageInner() {
     if (!result.ok) setDocOpenErr(result.message);
   };
 
+  const sendWelcomeToPartner = () => {
+    if (!partner) return;
+    try {
+      sendPartnerOutreachMessage({
+        partnerId: partner.id,
+        partnerName: partner.profile.fullName || 'Partner',
+        body: defaultPartnerWelcomeMessage(partner.profile.fullName || 'Partner'),
+      });
+      setMessageNotice('Message sent — they will see it in Team chat when they log in.');
+      window.setTimeout(() => setMessageNotice(null), 5000);
+    } catch (e: any) {
+      setMessageNotice(e?.message || 'Could not send message.');
+    }
+  };
+
   // Generate the (free) Credit Analysis Report for a given uploaded report.
   // Shared by the Reports tab and the dedicated Analysis Report tab.
   const runGenerateAnalysis = async (report: any) => {
@@ -818,39 +849,34 @@ function PartnerDetailPageInner() {
     setAnalysisBusy(true);
     try {
       const candidates = deriveDisputeCandidates(report.parsed, report.id);
-      const { blob, filename, pages } = await generateCreditAnalysisReportPdf({
+      const { blob, filename, displayTitle, pages } = await generateCreditAnalysisReportPdf({
         partner: partner as any,
         report: report as any,
         candidates,
       });
       const store = getBlobStore();
       const put = await store.put(blob, { partnerId: partner.id, reportId: report.id, kind: 'analysis_report' });
-      const item = {
-        id: newId('evidence'),
+      const item = upsertCreditAnalysisReport({
         partnerId: partner.id,
         reportId: report.id,
-        type: 'upload' as const,
-        source: 'upload' as const,
-        caption: `Credit Analysis Report • ${report.filename}`,
-        tags: ['analysis_report'],
+        title: displayTitle,
         filename,
-        mimeType: 'application/pdf',
-        sizeBytes: blob.size,
         blobRef: put.ref,
-        createdAt: new Date().toISOString(),
-      };
-      upsertEvidence(item as any);
+        sizeBytes: blob.size,
+        pages,
+        sourceReportFilename: report.filename,
+      });
       setNotesVersion((v) => v + 1);
       addAuditEvent({
         partnerId: partner.id,
         actorType: 'admin',
         actorEmail: actorEmail || undefined,
         action: 'report.credit_analysis.generated',
-        entityType: 'evidence',
+        entityType: 'credit_analysis_report',
         entityId: item.id,
         meta: { pages, filename, reportId: report.id },
       });
-      setAnalysisNotice(`Generated and saved (${pages} pages). It's listed below and in the partner's Documents/Evidence.`);
+      setAnalysisNotice(`Generated ${pages}-page strategy report. Open or download it below — saved to this partner profile (not the evidence vault).`);
     } catch (e: any) {
       setAnalysisNotice(e?.message || 'Failed to generate report.');
     } finally {
@@ -973,10 +999,12 @@ function PartnerDetailPageInner() {
     });
 
     if (!matches.length) return null;
-    // Prefer evidence that matches this candidate's account (e.g. collection row / inquiry name) so per-card screenshots bind correctly
-    const withAccount = matches.filter((e) => accountLower && (e.creditorName || '').toLowerCase().trim() === accountLower);
-    const sorted = (withAccount.length ? withAccount : matches).slice().sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-    return sorted[0]!.id;
+    const withAccount = matches.filter((e) => {
+      if (!accountLower) return false;
+      return evidenceMatchesAccount({ accountName: c.account, candidateType: c.type, evidence: e });
+    });
+    const sorted = (withAccount.length ? withAccount : []).slice().sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+    return sorted[0]?.id ?? null;
   };
 
   // Seed defaults for evidence binding when selection changes.
@@ -1159,6 +1187,8 @@ function PartnerDetailPageInner() {
     .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
     .slice(0, 12);
 
+  const stickyActiveKey: TabKey = tab === 'analysis' || tab === 'evidence' ? 'reports' : tab;
+
   return (
     <EntityDetailShell
       badge="Admin"
@@ -1179,7 +1209,14 @@ function PartnerDetailPageInner() {
           </button>
         </div>
       }
-      headerRight={<div className={`${FINELY_OS_ENTITY_SUBLABEL} font-mono normal-case tracking-normal`}>partner_id: {partner.id}</div>}
+      headerRight={
+        <div className="flex flex-wrap items-center gap-2">
+          <button type="button" onClick={sendWelcomeToPartner} className={`${FINELY_OS_SECONDARY_BTN} !py-2 !text-xs`}>
+            <Send size={14} /> Message partner
+          </button>
+          <div className={`${FINELY_OS_ENTITY_SUBLABEL} font-mono normal-case tracking-normal`}>partner_id: {partner.id}</div>
+        </div>
+      }
       tabs={[
         { key: 'overview', label: 'Overview', icon: <Layers size={12} className="inline mr-2" /> },
         { key: 'profile', label: 'Profile', icon: <User size={12} className="inline mr-2" /> },
@@ -1203,28 +1240,18 @@ function PartnerDetailPageInner() {
           <span className={`text-xs ${FINELY_OS_ENTITY_BODY}`}>
             Partner workspace · <span className="text-violet-200/90 capitalize">{tab.replace('_', ' ')}</span>
           </span>
-          <div className="flex flex-wrap gap-2">
-            <button type="button" onClick={() => setTabAndUrl('overview')} className={`${FINELY_OS_SECONDARY_BTN} !py-2 !text-xs ${tab === 'overview' ? '!border-emerald-400/40' : ''}`}>
-              Overview
-            </button>
-            <button type="button" onClick={() => setTabAndUrl('profile')} className={`${FINELY_OS_SECONDARY_BTN} !py-2 !text-xs ${tab === 'profile' ? '!border-violet-400/40' : ''}`}>
-              Profile
-            </button>
-            <button type="button" onClick={() => setTabAndUrl('reports')} className={`${FINELY_OS_SECONDARY_BTN} !py-2 !text-xs`}>
-              Reports
-            </button>
-            <button type="button" onClick={() => setTabAndUrl('letters')} className={`${FINELY_OS_SECONDARY_BTN} !py-2 !text-xs`}>
-              Letters
-            </button>
-            <button type="button" onClick={() => setTabAndUrl('tasks')} className={`${FINELY_OS_SECONDARY_BTN} !py-2 !text-xs`}>
-              Tasks
-            </button>
-            <button type="button" onClick={() => setTabAndUrl('notes')} className={`${FINELY_OS_SECONDARY_BTN} !py-2 !text-xs`}>
-              Notes
-            </button>
-            <button type="button" onClick={() => setTabAndUrl('debt')} className={`${FINELY_OS_SECONDARY_BTN} !py-2 !text-xs`}>
-              Debt
-            </button>
+          <div className={`${FINELY_OS_VIEW_TABS} flex flex-wrap gap-1`}>
+            {PARTNER_STICKY_TABS.map(({ key, label, accent }) => (
+              <button
+                key={key}
+                type="button"
+                aria-current={stickyActiveKey === key ? 'page' : undefined}
+                onClick={() => setTabAndUrl(key)}
+                className={`${finelyOsViewTab(stickyActiveKey === key, accent)} !py-2 !text-xs`}
+              >
+                {label}
+              </button>
+            ))}
             {!reports.length ? (
               <button type="button" onClick={() => setTabAndUrl('reports')} className={`${FINELY_OS_PRIMARY_BTN} !py-2 !text-xs`}>
                 Upload report
@@ -1260,10 +1287,19 @@ function PartnerDetailPageInner() {
           items={evidence}
           selectedEvidenceId={evidencePicker.candidateId ? evidenceByCandidateId[evidencePicker.candidateId] : undefined}
           pickLabel="Attach"
+          matchAccount={evidencePickerCandidate?.account}
+          matchCandidateType={evidencePickerCandidate?.type}
+          strictAccountMatch={Boolean(evidencePicker.candidateId)}
           onPick={
             evidencePicker.candidateId
               ? (evidenceId) => {
                   const cid = evidencePicker.candidateId!;
+                  const c = selectedCandidates.find((x) => x.id === cid) ?? evidencePickerCandidate;
+                  const ev = evidence.find((x) => x.id === evidenceId) ?? null;
+                  if (c && ev && !evidenceMatchesAccount({ accountName: c.account, candidateType: c.type, evidence: ev })) {
+                    window.alert(describeEvidenceMismatch({ accountName: c.account, evidence: ev }));
+                    return;
+                  }
                   setEvidenceByCandidateId((prev) => ({ ...prev, [cid]: evidenceId }));
                   setEvidencePicker(null);
                 }
@@ -1286,6 +1322,9 @@ function PartnerDetailPageInner() {
         />
       )}
       <div className="space-y-8">
+        {messageNotice ? (
+          <div className={`${finelyOsCatalogCard('sky')} !p-4 text-sm ${FINELY_OS_ENTITY_BODY}`}>{messageNotice}</div>
+        ) : null}
         {tab === 'overview' && (
           <PartnerOverviewTab
             partner={partner}
@@ -2165,42 +2204,23 @@ function PartnerDetailPageInner() {
             </div>
 
             <div className={`${finelyOsCatalogCard('violet')} !p-5 backdrop-blur-xl`}>
-              <div className="flex items-center justify-between gap-4">
-                <div className={FINELY_OS_ENTITY_SUBLABEL}>Saved analysis reports</div>
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <div className={FINELY_OS_ENTITY_SUBLABEL}>Strategy reports</div>
+                  <div className={`mt-1 text-sm ${FINELY_OS_ENTITY_BODY}`}>
+                    Premium PDF deliverables for this partner — separate from dispute evidence.
+                  </div>
+                </div>
                 <div className={`${FINELY_OS_ENTITY_SUBLABEL} font-mono`}>
-                  {analysisReports.length} PDF{analysisReports.length === 1 ? '' : 's'}
+                  {analysisReports.length} saved
                 </div>
               </div>
-              {analysisReports.length === 0 ? (
-                <div className={`mt-3 ${FINELY_OS_ENTITY_BODY}`}>None yet — generate one above.</div>
-              ) : (
-                <div className="mt-4">
-                  <PartnerCompactGrid
-                    items={analysisReports}
-                    initialShow={6}
-                    columnsClassName="grid md:grid-cols-2 gap-3"
-                    emptyMessage="None yet — generate one above."
-                    getKey={(r: any) => r.id}
-                    renderItem={(r: any) => (
-                      <div key={r.id} className={`${finelyOsInlineListItem()} p-5`}>
-                        <div className={`${FINELY_OS_ENTITY_VALUE} truncate`}>{r.filename || 'Credit Analysis Report.pdf'}</div>
-                        <div className={`mt-1 ${FINELY_OS_ENTITY_SUBLABEL} font-mono`}>
-                          {fmtWhen(String(r.createdAt || ''))}
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() =>
-                            void openStoredDocument({ blobRef: String(r?.blobRef || '').trim(), mimeType: 'application/pdf' })
-                          }
-                          className={`mt-3 ${FINELY_OS_PRIMARY_BTN}`}
-                        >
-                          Open PDF
-                        </button>
-                      </div>
-                    )}
-                  />
-                </div>
-              )}
+              <div className="mt-4">
+                <CreditAnalysisDeliverableStrip
+                  items={analysisReports}
+                  emptyHint="None yet — generate one above after a credit report is parsed."
+                />
+              </div>
             </div>
           </div>
         )}
@@ -2436,58 +2456,21 @@ function PartnerDetailPageInner() {
             <div ref={analysisReportsRef} className={`mt-6 ${finelyOsCatalogCard('violet')} !p-5`}>
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div className="min-w-0">
-                  <p className={FINELY_OS_ENTITY_SUBLABEL}>Analysis reports</p>
-                  <div className={`mt-2 ${FINELY_OS_ENTITY_TITLE}`}>Saved analysis reports (PDF)</div>
-                  <div className={`mt-1 ${FINELY_OS_ENTITY_BODY}`}>Generated deliverables stored as evidence artifacts for this partner.</div>
+                  <p className={FINELY_OS_ENTITY_SUBLABEL}>Strategy reports</p>
+                  <div className={`mt-2 ${FINELY_OS_ENTITY_TITLE}`}>Credit analysis PDFs</div>
+                  <div className={`mt-1 ${FINELY_OS_ENTITY_BODY}`}>
+                    Saved on this partner profile — not mixed into dispute evidence.
+                  </div>
                 </div>
-                <div className={`${FINELY_OS_ENTITY_SUBLABEL} font-mono`}>
-                  {analysisReports.length} PDF{analysisReports.length === 1 ? '' : 's'}
-                </div>
+                <div className={`${FINELY_OS_ENTITY_SUBLABEL} font-mono`}>{analysisReports.length} saved</div>
               </div>
 
-              {analysisReports.length === 0 ? (
-                <div className={`mt-4 ${FINELY_OS_ENTITY_BODY}`}>
-                  None yet. Generate one (free) from the <span className={`font-semibold ${FINELY_OS_ENTITY_VALUE}`}>Reports</span> tab: upload or select a report, then click <span className={`font-semibold ${FINELY_OS_ENTITY_VALUE}`}>Generate PDF</span> under “Credit Analysis Report.”
-                </div>
-              ) : (
-                <div className="mt-5">
-                  <PartnerCompactGrid
-                    items={analysisReports}
-                    initialShow={6}
-                    columnsClassName="grid md:grid-cols-2 gap-3"
-                    emptyMessage="No analysis reports yet."
-                    getKey={(r: any) => r.id}
-                    renderItem={(r: any) => (
-                      <div key={r.id} className={`${finelyOsInlineListItem()} p-5`}>
-                        <div className={`${FINELY_OS_ENTITY_VALUE} truncate`}>{r.filename || 'Credit Analysis Report.pdf'}</div>
-                        <div className={`mt-1 ${FINELY_OS_ENTITY_SUBLABEL} font-mono`}>
-                          {fmtWhen(String(r.createdAt || ''))} • report_id:{String(r.reportId || '—').slice(0, 8)}
-                        </div>
-                        {r.caption ? <div className={`mt-2 ${FINELY_OS_ENTITY_BODY} line-clamp-2`}>{r.caption}</div> : null}
-                        <div className="mt-4 flex flex-wrap items-center gap-2">
-                          <button
-                            type="button"
-                            onClick={() =>
-                              void openStoredDocument({ blobRef: String(r?.blobRef || '').trim(), mimeType: 'application/pdf' })
-                            }
-                            className={FINELY_OS_PRIMARY_BTN}
-                          >
-                            Open PDF
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setTabAndUrl('evidence')}
-                            className={FINELY_OS_SECONDARY_BTN}
-                            title="View in Evidence Vault"
-                          >
-                            View evidence <ArrowRight size={14} />
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                  />
-                </div>
-              )}
+              <div className="mt-4">
+                <CreditAnalysisDeliverableStrip
+                  items={analysisReports}
+                  emptyHint='None yet. Generate from Reports → "Generate Free Analysis Report" after parsing a credit file.'
+                />
+              </div>
             </div>
           </div>
         )}
@@ -2501,7 +2484,7 @@ function PartnerDetailPageInner() {
         <section id="partner-client-journey" className={`${finelyOsCatalogCard('emerald')} !p-6 border-t-4 border-emerald-400/40 scroll-mt-8`}>
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
-              <p className={FINELY_OS_ENTITY_SUBLABEL}>Client journey</p>
+              <p className={FINELY_OS_ENTITY_SUBLABEL}>Customer journey</p>
               <p className={`mt-1 ${FINELY_OS_ENTITY_BODY} text-sm`}>
                 Stage control and restore progress — pinned at the bottom of every partner tab so it stays easy to find.
               </p>

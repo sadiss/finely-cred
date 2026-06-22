@@ -187,7 +187,7 @@ export default function PartnerEducationPage() {
               <span className={FINELY_OS_ENTITY_SUBLABEL}>Insider field guides ({guides.length})</span>
             </div>
             <p className={FINELY_OS_ENTITY_BODY}>
-              Client-first playbooks — tradelines, business credit, funding sequences, AI workflows, and topics most consumers never hear explained honestly.
+              Customer-first playbooks — tradelines, business credit, funding sequences, AI workflows, and topics most consumers never hear explained honestly.
             </p>
             <div className="grid md:grid-cols-2 gap-3">
               <FinelyOsPaginatedStack

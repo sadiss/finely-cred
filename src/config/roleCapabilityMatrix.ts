@@ -16,7 +16,7 @@ export type RoleCapabilityRow = {
 export const ROLE_CAPABILITY_MATRIX: RoleCapabilityRow[] = [
   {
     role: 'partner',
-    label: 'Partner (client)',
+    label: 'Partner (customer)',
     primaryRoutes: ['/portal/dashboard', '/portal/reports', '/portal/disputes', '/portal/billing'],
     entitlements: ['reports', 'disputes', 'letters', 'documents', 'tasks'],
     earnModel: 'Pays Finely — no outbound payouts',
@@ -26,14 +26,14 @@ export const ROLE_CAPABILITY_MATRIX: RoleCapabilityRow[] = [
     label: 'Business credit',
     primaryRoutes: ['/business/dashboard', '/portal/build', '/portal/billing'],
     entitlements: ['businessBuild', 'reports', 'documents'],
-    earnModel: 'Client pays business foundation / stacking packages',
+    earnModel: 'Customer pays business foundation / stacking packages',
   },
   {
     role: 'agent',
     label: 'Credit Specialist',
     primaryRoutes: ['/credit-specialist/hub', '/portal/dashboard', '/admin/partners'],
     entitlements: ['reports', 'disputes', 'letters', 'tasks', 'messages'],
-    earnModel: 'Revenue share — % keep on client files',
+    earnModel: 'Revenue share — % keep on customer files',
   },
   {
     role: 'affiliate',
@@ -68,7 +68,7 @@ export const ROLE_CAPABILITY_MATRIX: RoleCapabilityRow[] = [
     label: 'Platform admin',
     primaryRoutes: ['/admin', '/admin/partners', '/admin/leads-os', '/admin/settings'],
     entitlements: ['all modules + ops caps'],
-    earnModel: 'Internal — no client payouts',
+    earnModel: 'Internal — no customer payouts',
   },
 ];
 

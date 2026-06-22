@@ -59,7 +59,7 @@ function ruleBasedCrmCopilot(record: CrmRecord): CrmCopilotResult {
   const forecastWeight = stageWeights[String(record.stage)] ?? 0.1;
 
   const objectionDraft =
-    'I hear you on budget — many clients start with our DIY lane to prove momentum, then upgrade to DFY when they want us to run disputes and mail. Would a starter package at a lower monthly fit better for now?';
+    'I hear you on budget — many customers start with our DIY lane to prove momentum, then upgrade to DFY when they want us to run disputes and mail. Would a starter package at a lower monthly fit better for now?';
 
   return {
     source: 'rules',

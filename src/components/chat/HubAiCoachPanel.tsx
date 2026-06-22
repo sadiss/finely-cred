@@ -10,7 +10,7 @@ import { getAgentPersona } from '../../domain/agentPersonas';
 import { getPortalStaffPersona, portalPersonaForLane } from '../../data/agentPersonasRepo';
 import { consumeAgentHandoff } from '../../lib/agentHandoffBridge';
 import { resolveToolPath, toolsForPersona } from '../../lib/agentPersonaTools';
-import { listPortalStaffForLane, resolveStaffOnDuty, loadStaffRoster } from '../../data/staffRoster';
+import { listPortalStaffForLane, resolveStaffOnDuty, loadStaffRoster, listAllMessageableStaff } from '../../data/staffRoster';
 import { staffMemberFullName, type StaffMember } from '../../domain/staffMember';
 import { StaffPortraitImg } from '../staff/StaffPortraitImg';
 import { resolveStaffPortraitUrl, STAFF_PORTRAIT_PHOTO_CLASS } from '../../lib/staffPortrait';
@@ -44,6 +44,7 @@ type Props = {
   journeyStage?: string;
   compact?: boolean;
   userName?: string;
+  showAllAgents?: boolean;
 };
 
 type ChatMessage = AiGatewayMessage & { id: string; ts: string; source?: 'gateway' | 'knowledge_local' };
@@ -60,7 +61,7 @@ function buildCoachGreeting(firstName: string, userName?: string) {
   return `Hey — I'm ${firstName}, your in-dashboard coach. What's on your mind? Tap a suggestion below, or tell me what you're working on.`;
 }
 
-export function HubAiCoachPanel({ partnerId, lane, journeyStage, compact, userName }: Props) {
+export function HubAiCoachPanel({ partnerId, lane, journeyStage, compact, userName, showAllAgents }: Props) {
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const enabled = isFeatureEnabled('aiGateway');
@@ -77,7 +78,11 @@ export function HubAiCoachPanel({ partnerId, lane, journeyStage, compact, userNa
   const [routingChips, setRoutingChips] = useState<CommsRoutingSuggestion[]>([]);
   const [lastUserText, setLastUserText] = useState('');
 
-  const rosterTabs = useMemo(() => listPortalStaffForLane(lane), [lane]);
+  const rosterTabs = useMemo(
+    () => (showAllAgents ? listAllMessageableStaff() : listPortalStaffForLane(lane)),
+    [lane, showAllAgents],
+  );
+  const [agentPickerOpen, setAgentPickerOpen] = useState(false);
   const persona = useMemo(() => getPortalStaffPersona(personaId), [personaId]);
   const activeStaff: StaffMember | null = useMemo(() => {
     if (activeStaffId) return rosterTabs.find((s) => s.id === activeStaffId) ?? resolveStaffOnDuty(personaId);
@@ -349,8 +354,46 @@ export function HubAiCoachPanel({ partnerId, lane, journeyStage, compact, userNa
         </div>
 
         <p className="text-[10px] text-white/50">
-          Type your question — routing chips appear after each reply to connect you with the right specialist or team chat.
+          Type your question — or pick a specialist below to talk directly with that agent.
         </p>
+
+        <div className="space-y-2">
+          <button
+            type="button"
+            onClick={() => setAgentPickerOpen((v) => !v)}
+            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border border-emerald-500/25 text-emerald-200/90 hover:bg-emerald-500/10"
+          >
+            {agentPickerOpen ? 'Hide agent roster' : 'Choose agent'}
+          </button>
+          {agentPickerOpen ? (
+            <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1">
+              {rosterTabs.map((member) => {
+                const selected = activeStaff?.id === member.id;
+                return (
+                  <button
+                    key={member.id}
+                    type="button"
+                    onClick={() => {
+                      switchStaff(member);
+                      setAgentPickerOpen(false);
+                    }}
+                    className={`shrink-0 flex flex-col items-center gap-1 w-[4.5rem] p-1.5 rounded-xl border transition ${
+                      selected
+                        ? 'border-emerald-400/50 bg-emerald-500/15'
+                        : 'border-white/[0.08] bg-white/[0.04] hover:border-emerald-400/30'
+                    }`}
+                    title={staffMemberFullName(member)}
+                  >
+                    <StaffPortraitImg staff={member} className="w-9 h-9 rounded-full border border-emerald-400/25" />
+                    <span className="text-[8px] font-bold text-white/75 line-clamp-2 text-center leading-tight">
+                      {member.firstName}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          ) : null}
+        </div>
 
         <div className="flex flex-wrap gap-1">
           {toolsForPersona(personaId).map((tool) => (

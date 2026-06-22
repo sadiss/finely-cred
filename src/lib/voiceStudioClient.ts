@@ -316,7 +316,7 @@ export {
   voiceProfilesForTenant,
 } from '../resources/voiceProfiles';
 
-// Back-compat for guideAudioClient consumers
+// Back-compat for guideAudioCustomer /consumers
 export type GuideAudioVoice = Extract<VoiceProfile, 'finely_female_warm' | 'finely_male_calm' | 'finely_documentary'>;
 export type GuideAudioAsset = VoiceStudioAsset;
 

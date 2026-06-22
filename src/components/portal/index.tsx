@@ -168,7 +168,7 @@ function recommendNext(args: {
     const tierPath = tierId ? `/agency/signup?tier=${encodeURIComponent(tierId)}` : '/agency/signup';
     return {
       headline: tier ? `${tier.name} — ${split.agentSharePct}% your keep` : `${CS.programName} — ${split.agentSharePct}% your keep`,
-      reason: `${split.summary} Next: create your workspace, open ${CS.hubName} for training tracks and your Finely partnership line, then run client files in the portal.`,
+      reason: `${split.summary} Next: create your workspace, open ${CS.hubName} for training tracks and your Finely partnership line, then run customer files in the portal.`,
       nextPath: CS.hubPath,
       ctaLabel: `Open ${CS.hubName}`,
       pills: tier
@@ -333,7 +333,7 @@ export function ArchitecturalIntent({ next, prev, data, update }: StepProps) {
     {
       id: 'agent',
       title: 'Credit Specialist / Team',
-      desc: 'Operate client files with workflows, tasks, and communications.',
+      desc: 'Operate customer files with workflows, tasks, and communications.',
       icon: Cpu,
       goal: 'agent',
       lane: 'agent' as OnboardingLane,
@@ -1225,9 +1225,9 @@ const ROLE_CARDS: Array<{
   lane?: OnboardingLane;
   goal?: string;
 }> = [
-  { id: 'client', title: 'Client', desc: 'Improve my credit, kill debt, build business credit, or get funding. (Most people choose this.)', Icon: ShieldCheck },
+  { id: 'client', title: 'Customer', desc: 'Improve my credit, kill debt, build business credit, or get funding. (Most people choose this.)', Icon: ShieldCheck },
   { id: 'au_seller', title: 'AU Seller', desc: 'We market your AU tradelines — $50 activation, 60-day seasons, seller payouts.', Icon: Building2, lane: 'au_seller', goal: 'au_seller' },
-  { id: 'agent', title: 'Credit Specialist', desc: 'Run client files as a Finely partner — revenue share, training, white-label, and a direct line to our team.', Icon: Briefcase, lane: 'agent', goal: 'agent' },
+  { id: 'agent', title: 'Credit Specialist', desc: 'Run customer files as a Finely partner — revenue share, training, white-label, and a direct line to our team.', Icon: Briefcase, lane: 'agent', goal: 'agent' },
   { id: 'affiliate', title: 'Affiliate', desc: 'Refer partners and earn commissions with tracked links.', Icon: Trophy, lane: 'affiliate', goal: 'affiliate' },
 ];
 

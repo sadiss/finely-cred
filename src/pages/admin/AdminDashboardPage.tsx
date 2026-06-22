@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { ArrowLeft, Gavel, KeyRound, Settings, Users, BarChart3, FileText, Layout, Package, CreditCard, FlaskConical, MessageSquareText, Bell, Calendar, FolderKanban, BookOpen, Bot, Mail, Library, Crown, UserCog, Globe, BadgeCheck, ListChecks, GraduationCap, Lock, PiggyBank, Trophy, Activity, Target, Sparkles, Film, BriefcaseBusiness, Shield } from 'lucide-react';
+import { ArrowLeft, Gavel, KeyRound, Settings, Users, BarChart3, FileText, Layout, Package, CreditCard, FlaskConical, MessageSquareText, MessageCircle, Bell, Calendar, FolderKanban, BookOpen, Bot, Mail, Library, Crown, UserCog, Globe, BadgeCheck, ListChecks, GraduationCap, Lock, PiggyBank, Trophy, Activity, Target, Sparkles, Film, BriefcaseBusiness, Shield } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { PageShell } from '../../components/layout/PageShell';
 import { fetchAllPartnersAsAdmin } from '../../data/partnersRepo';
@@ -113,7 +113,7 @@ export default function AdminDashboardPage() {
     if (!u) return { canManageTeam: false, canManageTenants: false };
     // Allowlisted admins should always see full Admin modules even if local tenant membership storage is unavailable.
     if (isAdminEmail(u.email)) {
-      return { canManageTeam: true, canManageTenants: true, canViewAllClients: true, canUseFinanceTools: true };
+      return { canManageTeam: true, canManageTenants: true, canViewAllCustomers: true, canUseFinanceTools: true };
     }
     const membership =
       getMembershipByUserAndTenant(u.id, tenantId) ?? getMembershipByUserAndTenant(u.id, FINELY_TENANT_ID);
@@ -121,7 +121,7 @@ export default function AdminDashboardPage() {
     return {
       canManageTeam: ok || canManageTeam(membership),
       canManageTenants: ok,
-      canViewAllClients: ok || canViewAllClients(membership),
+      canViewAllCustomers: ok || canViewAllClients(membership),
       canUseFinanceTools: ok || canUseFinanceTools(membership),
     };
   }, [auth.user]);
@@ -195,7 +195,7 @@ export default function AdminDashboardPage() {
     },
     {
       title: 'Lead Intelligence Agent',
-      description: 'Search + enrich qualified prospects (clients, affiliates, agents, teams, AU sellers, B2B partners). Save into CRM.',
+      description: 'Search + enrich qualified prospects (customers, affiliates, agents, teams, AU sellers, B2B partners). Save into CRM.',
       path: '/admin/lead-intel',
       icon: Sparkles,
       stat: 'Prospect',
@@ -274,6 +274,13 @@ export default function AdminDashboardPage() {
       path: '/admin/au-sellers',
       icon: BadgeCheck,
       stat: 'Review supply',
+    },
+    {
+      title: 'Communication Hub',
+      description: 'Talk to any agent on your roster — same main hub as the portal (AI Coach + agent picker).',
+      path: '/admin/messages',
+      icon: MessageCircle,
+      stat: 'Agents',
     },
     {
       title: 'Comms Studio',
@@ -440,7 +447,7 @@ export default function AdminDashboardPage() {
       {
         key: 'core',
         title: 'Core ops',
-        subtitle: 'The daily control center (workflow, clients, cases, projects).',
+        subtitle: 'The daily control center (workflow, customers, cases, projects).',
         defaultOpen: true,
         cards: take([
           '/admin/workflow',

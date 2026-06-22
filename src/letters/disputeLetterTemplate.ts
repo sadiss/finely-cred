@@ -23,6 +23,7 @@ export {
  * Consumer voice first — human impact, report pull, FCRA research, then factual dispute.
  */
 
+import { formatNumberedDisputeReasons, DISPUTE_DELETE_NOW } from './disputeLetterFormat';
 import type { Bureau } from '../domain/creditReports';
 
 export const DATA_NOT_READABLE = '[DATA_NOT_READABLE]';
@@ -49,7 +50,7 @@ export function bureauDisputeAddress(bureau: Bureau): { name: string; lines: str
   }
 }
 
-export const SUBJECT_LINE = 'RE: Dispute of Inaccurate Credit Reporting — Request for Reinvestigation (FCRA § 1681i)';
+export const SUBJECT_LINE = 'RE: Factual Dispute of Inaccurate Credit Reporting — Request for Deletion (FCRA § 1681i)';
 
 export const OPENING_PARAGRAPHS = CONSUMER_DISPUTE_OPENING;
 
@@ -96,7 +97,9 @@ export function formatItemBlock(
     DISPUTE_STATEMENT_PER_ITEM,
     '',
     'Factual Findings / Reasons:',
-    ...item.reasons.map((r) => (r.trim() ? `• ${r.trim()}` : '')).filter(Boolean),
+    ...formatNumberedDisputeReasons(item.reasons),
+    '',
+    DISPUTE_DELETE_NOW,
     '',
     'Requested Resolution:',
     ...REQUESTED_RESOLUTION_BULLETS.map((b) => `• ${b}`),

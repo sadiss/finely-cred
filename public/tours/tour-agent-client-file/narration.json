@@ -1,6 +1,6 @@
 {
   "tourId": "tour-agent-client-file",
-  "title": "Work a client file as specialist",
+  "title": "Work a customer file as specialist",
   "steps": [
     {
       "step": 1,
@@ -12,8 +12,8 @@
     {
       "step": 2,
       "stepId": "s2",
-      "label": "Client dashboard",
-      "narrationPlain": "Open the partner dashboard for your assigned client.",
+      "label": "Customer dashboard",
+      "narrationPlain": "Open the partner dashboard for your assigned customer.",
       "mp3File": "step-02.mp3"
     },
     {

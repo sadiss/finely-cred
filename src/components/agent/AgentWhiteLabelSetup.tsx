@@ -25,7 +25,7 @@ const WHITE_LABEL_STEPS: Record<
     icon: Palette,
     items: [
       'Upload logo + brand colors in Tenants settings',
-      'Enable co-branded client portal emails',
+      'Enable co-branded customer portal emails',
       'Connect your domain CNAME (optional subpath)',
       'Launch co-branded lead magnet funnel',
     ],
@@ -35,10 +35,10 @@ const WHITE_LABEL_STEPS: Record<
     icon: Crown,
     items: [
       'Create agency workspace with full white-label theme',
-      'Map custom domain to client portal',
+      'Map custom domain to customer portal',
       'Configure Comms Studio from-address + DNS',
       'Publish paid ebooks & products under your brand',
-      'Assign team seats and client routing rules',
+      'Assign team seats and customer routing rules',
     ],
   },
   enterprise_white_label: {

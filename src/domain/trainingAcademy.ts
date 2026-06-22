@@ -76,7 +76,7 @@ function quizCompliance(): TrainingLesson['quiz'] {
   return [
     {
       question: 'Before mailing a dispute letter, what must pass first?',
-      options: ['Client verbal OK', 'Evidence gate + compliance review', 'Payment received', 'Social post approval'],
+      options: ['Customer /verbal OK', 'Evidence gate + compliance review', 'Payment received', 'Social post approval'],
       correctIndex: 1,
     },
     {
@@ -228,7 +228,7 @@ function roleTrackModules(role: TrainingRoleId): TrainingModule[] {
       {
         id: 'agent_file_ops',
         trackId: `track_${role}`,
-        title: 'Client file operations',
+        title: 'Customer file operations',
         description: 'Run files end-to-end as a credit specialist partner.',
         roles: [role],
         lessons: [
@@ -237,7 +237,7 @@ function roleTrackModules(role: TrainingRoleId): TrainingModule[] {
             tourIds: ['tour-agent-client-file'],
             hubPath: '/credit-specialist/hub',
           }),
-          lesson('agent_l2_white_label', 'White-label & client portal', ['Brand setup', 'Client onboarding'], 25, {
+          lesson('agent_l2_white_label', 'White-label & customer portal', ['Brand setup', 'Customer /onboarding'], 25, {
             hubPath: '/credit-specialist/hub',
           }),
         ],
@@ -385,7 +385,7 @@ function roleTrackModules(role: TrainingRoleId): TrainingModule[] {
           lesson('agency_l1_tenant', 'Workspace setup', ['Branding', 'Team roles'], 30, {
             hubPath: '/admin/access',
           }),
-          lesson('agency_l2_intake', 'Client intake at scale', ['CRM routing', 'Comms templates'], 25, {
+          lesson('agency_l2_intake', 'Customer /intake at scale', ['CRM routing', 'Comms templates'], 25, {
             hubPath: '/admin/crm',
           }),
         ],
@@ -409,7 +409,7 @@ export const TRAINING_ROLE_TRACKS: TrainingTrack[] = [
   {
     id: 'track_partner_client',
     role: 'partner_client',
-    title: 'Partner / Client Track',
+    title: 'Partner / Customer /Track',
     subtitle: 'Restore credit, disputes, funding readiness',
     accent: 'sky',
     hubPath: '/portal/dashboard',
@@ -428,7 +428,7 @@ export const TRAINING_ROLE_TRACKS: TrainingTrack[] = [
     id: 'track_credit_specialist',
     role: 'credit_specialist',
     title: 'Credit Specialist Track',
-    subtitle: 'Run client files, revenue share, white-label',
+    subtitle: 'Run customer files, revenue share, white-label',
     accent: 'amber',
     hubPath: '/credit-specialist/hub',
     moduleIds: ['agent_file_ops', 'agent_specialty_depth'],

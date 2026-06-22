@@ -85,7 +85,7 @@ export const AI_SUGGESTION_TREE: AiSuggestionNode[] = [
     label: 'Team & messaging',
     children: [
       { id: 't-draft', emoji: '✍️', label: 'Draft a support message', prompt: 'Help me write a clear message to the Finely team about my issue. Ask what happened.' },
-      { id: 't-specialist', emoji: '🎓', label: 'Specialist partnership', prompt: 'I am a credit specialist — how should I use the partnership line vs client threads?', navigate: '/portal/messages?hub=team&topic=credit_specialist_program' },
+      { id: 't-specialist', emoji: '🎓', label: 'Specialist partnership', prompt: 'I am a credit specialist — how should I use the partnership line vs customer threads?', navigate: '/portal/messages?hub=team&topic=credit_specialist_program' },
       { id: 't-meetings', emoji: '📅', label: 'Book a video session', prompt: 'I want to schedule a call — should I use Calendar or the Meetings tab?', navigate: '/portal/calendar' },
       { id: 't-escalate', emoji: '🚨', label: 'When to escalate', prompt: 'When should I open an escalation case vs continuing in support chat?', navigate: '/portal/escalations' },
     ],
@@ -116,7 +116,7 @@ Do not sound like a marketing homepage. Focus on their immediate workflow.
 If asked for legal advice, disclaim and focus on process and documentation.`;
 
 export const ROLE_CHANNELS: { role: string; label: string; emoji: string; path: string; desc: string }[] = [
-  { role: 'client', label: 'Client support threads', emoji: '👤', path: '/portal/messages', desc: 'You ↔ Finely ops & your specialist' },
+  { role: 'client', label: 'Customer /support threads', emoji: '👤', path: '/portal/messages', desc: 'You ↔ Finely ops & your specialist' },
   { role: 'specialist', label: 'Partnership line', emoji: '🎓', path: '/portal/messages?hub=team&topic=credit_specialist_program', desc: 'Specialist ↔ Finely program team' },
   { role: 'affiliate', label: 'Affiliate program', emoji: '📣', path: '/portal/messages?hub=team&topic=general', desc: 'Referrals, payouts, campaigns' },
   { role: 'admin', label: 'Admin support inbox', emoji: '🛡️', path: '/admin/support', desc: 'All partner threads (admin only)' },

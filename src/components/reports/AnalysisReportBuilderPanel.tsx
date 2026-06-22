@@ -12,7 +12,7 @@ import {
 import { FINELY_TENANT_ID } from '../../domain/partners';
 import { createTemplateVaultItem, defaultRequiredEntitlementsForCategory } from '../../data/templateVaultRepo';
 import { getBlobStore } from '../../storage/getBlobStore';
-import { upsertEvidence } from '../../data/evidenceRepo';
+import { upsertCreditAnalysisReport } from '../../data/creditAnalysisReportsRepo';
 import { newId } from '../../utils/ids';
 import { downloadBlob } from '../../utils/download';
 import { notifyAnalysisReportReady } from '../../lib/analysisReportDelivery';
@@ -123,7 +123,7 @@ export function AnalysisReportBuilderPanel({ partners, defaultPartnerId, compact
     setNotice(null);
     try {
       const candidates = deriveDisputeCandidates(selectedReport.parsed, selectedReport.id);
-      const { blob, filename, pages } = await generateCreditAnalysisReportPdf({
+      const { blob, filename, displayTitle, pages } = await generateCreditAnalysisReportPdf({
         partner,
         report: selectedReport,
         candidates,
@@ -132,20 +132,16 @@ export function AnalysisReportBuilderPanel({ partners, defaultPartnerId, compact
       });
       const store = getBlobStore();
       const put = await store.put(blob, { partnerId: partner.id, reportId: selectedReport.id, kind: 'analysis_report' });
-      upsertEvidence({
-        id: newId('evidence'),
+      upsertCreditAnalysisReport({
         partnerId: partner.id,
         reportId: selectedReport.id,
-        type: 'upload',
-        source: 'upload',
-        caption: `Credit Analysis Report • ${selectedReport.filename}`,
-        tags: ['analysis_report'],
+        title: displayTitle,
         filename,
-        mimeType: 'application/pdf',
-        sizeBytes: blob.size,
         blobRef: put.ref,
-        createdAt: new Date().toISOString(),
-      } as any);
+        sizeBytes: blob.size,
+        pages,
+        sourceReportFilename: selectedReport.filename,
+      });
       downloadBlob({ blob, filename });
       const emailResult = await notifyAnalysisReportReady({
         partner,
@@ -153,7 +149,7 @@ export function AnalysisReportBuilderPanel({ partners, defaultPartnerId, compact
         candidates,
       });
       setNotice(
-        `Generated ${pages}-page PDF and saved to Documents Vault.${emailResult.sent ? ' Analysis email sent.' : ''}`,
+        `Generated ${pages}-page PDF and saved to partner strategy reports.${emailResult.sent ? ' Analysis email sent.' : ''}`,
       );
     } catch (e: unknown) {
       setNotice((e as Error)?.message || 'Generation failed.');

@@ -180,7 +180,7 @@ Never wait for one bureau while others stall. Independent branches per bureau pe
 Finely partners track:
 
 - Mail date + statutory deadline
-- Client evidence upload SLA (48h)
+- Customer /evidence upload SLA (48h)
 - Response parsing within 24h of client upload
 
 ---

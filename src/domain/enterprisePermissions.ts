@@ -25,7 +25,7 @@ export const ENTERPRISE_PERMISSION_GROUPS = [
   'canViewPaymentHistory',
   'canManageInvoices',
 
-  // 3. Clients & partners (8)
+  // 3. Customers & partners (8)
   'canViewAllClients',
   'canCreatePartners',
   'canEditPartners',
@@ -185,14 +185,14 @@ export const ENTERPRISE_PERMISSIONS: Record<(typeof ENTERPRISE_PERMISSION_GROUPS
   canViewPaymentHistory: { label: 'View payment history', group: 'Billing & payments' },
   canManageInvoices: { label: 'Manage invoices', group: 'Billing & payments' },
 
-  canViewAllClients: { label: 'View all clients', group: 'Clients & partners' },
-  canCreatePartners: { label: 'Create partners', group: 'Clients & partners' },
-  canEditPartners: { label: 'Edit partners', group: 'Clients & partners' },
-  canDeletePartners: { label: 'Delete partners', group: 'Clients & partners' },
-  canImportPartners: { label: 'Import partners', group: 'Clients & partners' },
-  canViewPartnerPii: { label: 'View partner PII', group: 'Clients & partners' },
-  canMergePartners: { label: 'Merge partners', group: 'Clients & partners' },
-  canAssignPartnersToAgents: { label: 'Assign partners to agents', group: 'Clients & partners' },
+  canViewAllCustomers: { label: 'View all customers', group: 'Customers & partners' },
+  canCreatePartners: { label: 'Create partners', group: 'Customers & partners' },
+  canEditPartners: { label: 'Edit partners', group: 'Customers & partners' },
+  canDeletePartners: { label: 'Delete partners', group: 'Customers & partners' },
+  canImportPartners: { label: 'Import partners', group: 'Customers & partners' },
+  canViewPartnerPii: { label: 'View partner PII', group: 'Customers & partners' },
+  canMergePartners: { label: 'Merge partners', group: 'Customers & partners' },
+  canAssignPartnersToAgents: { label: 'Assign partners to agents', group: 'Customers & partners' },
 
   canExportData: { label: 'Export data', group: 'Data & export' },
   canExportPii: { label: 'Export PII', group: 'Data & export' },

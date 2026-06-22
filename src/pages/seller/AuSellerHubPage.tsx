@@ -237,7 +237,7 @@ export default function AuSellerHubPage() {
         {tab === 'economics' && (
           <div className="space-y-4">
             <div className={`${finelyOsCatalogCard('emerald')} !p-5 ${FINELY_OS_ENTITY_BODY}`}>
-              Many AU sellers also refer clients into Denefit in-house contracts for restoration packages — model that recurring stream alongside AU placement fees.
+              Many AU sellers also refer customers into Denefit in-house contracts for restoration packages — model that recurring stream alongside AU placement fees.
             </div>
             {seller ? <PayoutCenterPanel role="seller" ownerId={seller.id} ownerEmail={seller.email} seller={seller} /> : null}
             <DenefitsContractCalculator audience="affiliate" compact />

@@ -40,7 +40,7 @@ export function StartVideoCallButton({
             { role: userRole, label: displayName || 'You' },
             { role: 'finely_staff', label: 'Finely Cred team' },
             ...(userRole === 'specialist'
-              ? [{ role: 'client' as const, label: 'Client (invite via link)' }]
+              ? [{ role: 'client' as const, label: 'Customer /(invite via link)' }]
               : userRole === 'affiliate'
                 ? [{ role: 'affiliate' as const, label: 'Affiliate partner' }]
                 : [{ role: 'specialist' as const, label: 'Your credit specialist' }]),

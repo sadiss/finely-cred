@@ -65,8 +65,8 @@ export default function TermsPage() {
             </p>
             <p>
               If you are an agency user (including white-label use), you represent and warrant that you have all necessary authority,
-              consents, and permissions to upload and process your clients’ information and documents. You are responsible for your
-              communications with your clients and for complying with all applicable consumer protection and privacy laws.
+              consents, and permissions to upload and process your customers’ information and documents. You are responsible for your
+              communications with your customers and for complying with all applicable consumer protection and privacy laws.
             </p>
           </section>
 
@@ -83,7 +83,7 @@ export default function TermsPage() {
           <section id="confidentiality" className={`space-y-3 ${FINELY_OS_ENTITY_BODY}`}>
             <h2 className={`${FINELY_OS_ENTITY_VALUE} text-base`}>5. Confidentiality & NDA</h2>
             <p>
-              Partner and client files may include highly sensitive personal and financial information. Both parties agree to use
+              Partner and customer files may include highly sensitive personal and financial information. Both parties agree to use
               confidential information only for authorized workflow purposes and to protect it with reasonable care. Platform
               templates, pricing, workflows, and non-public business methods remain Finely Cred confidential information.
             </p>

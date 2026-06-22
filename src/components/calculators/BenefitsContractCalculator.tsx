@@ -119,7 +119,7 @@ export function DenefitsContractCalculator({
           <input type="range" min={1} max={10} value={termYears} onChange={(e) => setTermYears(e.target.value)} className="w-full mt-3 accent-emerald-600" />
           <input value={termYears} onChange={(e) => setTermYears(e.target.value)} className={`${calcInputClass} mt-2`} />
         </CalculatorField>
-        <CalculatorField label="Client pays / month ($)">
+        <CalculatorField label="Customer pays / month ($)">
           <input value={monthlyPayment} onChange={(e) => setMonthlyPayment(e.target.value)} className={calcInputClass} />
         </CalculatorField>
         <CalculatorField label={`Your share (${sharePct}%)`}>

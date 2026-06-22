@@ -121,6 +121,30 @@ export default function PartnerDashboardPage() {
   }, [searchParams, setSearchParams]);
 
   useEffect(() => {
+    const sectionIds: DashTab[] = ['overview', 'journey', 'activity', 'modules', 'workflow'];
+    const sections = sectionIds
+      .map((id) => document.getElementById(`portal-dash-${id}`))
+      .filter((el): el is HTMLElement => Boolean(el));
+    if (!sections.length) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries
+          .filter((e) => e.isIntersecting)
+          .sort((a, b) => b.intersectionRatio - a.intersectionRatio);
+        const top = visible[0]?.target;
+        if (!top?.id?.startsWith('portal-dash-')) return;
+        const id = top.id.replace('portal-dash-', '') as DashTab;
+        setDashTab((prev) => (prev === id ? prev : id));
+      },
+      { rootMargin: '-18% 0px -52% 0px', threshold: [0.08, 0.2, 0.4] },
+    );
+
+    sections.forEach((el) => observer.observe(el));
+    return () => observer.disconnect();
+  }, [partner?.id]);
+
+  useEffect(() => {
     if (!isAdmin || partner) return;
     setPartnerPickerLoading(true);
     setPartnerPickerErr(null);

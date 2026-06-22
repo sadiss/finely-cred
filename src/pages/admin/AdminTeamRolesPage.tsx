@@ -69,7 +69,7 @@ function defaultPermissionsForRole(role: MembershipRole): Record<string, boolean
       ).map((k) => [k, true]),
     );
   }
-  if (role === 'agent') return { canViewAllClients: false };
+  if (role === 'agent') return { canViewAllCustomers: false };
   return undefined;
 }
 
@@ -465,7 +465,7 @@ export default function AdminTeamRolesPage() {
                       <div className="pt-2 border-t border-white/[0.08]">
                         <CollapsibleSection
                           title="Assigned partners"
-                          subtitle="Only needed when “view all clients” is off."
+                          subtitle="Only needed when “view all customers” is off."
                           count={`${Array.isArray((m.permissions as any)?.assignedPartnerIds) ? (m.permissions as any).assignedPartnerIds.length : 0} assigned`}
                           defaultOpen={false}
                           storageKey={`admin.team.${tenantId}.${m.id}.assignedPartners`}
@@ -512,7 +512,7 @@ export default function AdminTeamRolesPage() {
                                 );
                               }}
                             />
-                            <div className={`${FINELY_OS_ENTITY_BODY} text-xs`}>Members without “view all clients” must be assigned partners to access client files.</div>
+                            <div className={`${FINELY_OS_ENTITY_BODY} text-xs`}>Members without “view all customers” must be assigned partners to access customer files.</div>
                           </div>
                         </CollapsibleSection>
                       </div>

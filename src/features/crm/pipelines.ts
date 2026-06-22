@@ -30,7 +30,7 @@ const LEAD_STAGES: CrmPipelineDef['stages'] = [
 ];
 
 export const CRM_PIPELINES: CrmPipelineDef[] = [
-  { id: 'clients', target: 'clients', label: 'Clients', kindFilter: ['prospect', 'inbound_lead'], stages: PROSPECT_STAGES },
+  { id: 'clients', target: 'clients', label: 'Customers', kindFilter: ['prospect', 'inbound_lead'], stages: PROSPECT_STAGES },
   { id: 'affiliates', target: 'affiliates', label: 'Affiliates', kindFilter: ['prospect', 'inbound_lead'], stages: PROSPECT_STAGES },
   { id: 'agents', target: 'agents', label: 'Credit specialists', kindFilter: ['prospect', 'inbound_lead'], stages: PROSPECT_STAGES },
   { id: 'teams', target: 'teams', label: 'Teams', kindFilter: ['prospect', 'inbound_lead'], stages: PROSPECT_STAGES },

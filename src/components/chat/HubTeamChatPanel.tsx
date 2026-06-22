@@ -28,6 +28,7 @@ import { routeCommsIntent, type CommsRoutingSuggestion } from '../../lib/commsIn
 import { recordCommsRoutingFeedback } from '../../lib/staffIntelligenceEngine';
 import { StartVideoCallButton } from '../video/StartVideoCallButton';
 import { resolveTeamContact, listAllTeamContacts } from '../../lib/staffMessagingContacts';
+import { TeamContactPicker } from './TeamContactPicker';
 import type { VideoCallParticipant } from '../../domain/videoCalls';
 import {
   FINELY_OS_AI_WIDGET_HEADER,
@@ -103,9 +104,10 @@ type Props = {
   initialTopic?: SupportTopic;
   initialThreadId?: string;
   lane?: string;
+  adminMode?: boolean;
 };
 
-export function HubTeamChatPanel({ partnerId, partnerDisplayName, compact, initialTopic, initialThreadId, lane }: Props) {
+export function HubTeamChatPanel({ partnerId, partnerDisplayName, compact, initialTopic, initialThreadId, lane, adminMode }: Props) {
   const navigate = useNavigate();
   const [version, setVersion] = useState(0);
   const [selectedThreadId, setSelectedThreadId] = useState<string | null>(initialThreadId ?? null);
@@ -281,7 +283,7 @@ export function HubTeamChatPanel({ partnerId, partnerDisplayName, compact, initi
           {
             role: 'system',
             content:
-              'Return JSON only: { "suggestions": [ { "title": string, "body": string } ] }. Provide 4 concise reply drafts for a credit repair client. Friendly, compliant, no legal advice.',
+              'Return JSON only: { "suggestions": [ { "title": string, "body": string } ] }. Provide 4 concise reply drafts for a credit repair customer. Friendly, compliant, no legal advice.',
           },
           { role: 'user', content: `Subject: ${selectedThread.subject}\n\n${transcript}` },
         ],
@@ -415,12 +417,24 @@ export function HubTeamChatPanel({ partnerId, partnerDisplayName, compact, initi
 
   if (!partnerId) {
     return (
-      <div className="p-6 text-sm text-white/60">
-        💬 Team chat requires a partner profile. Admins: use{' '}
-        <button type="button" onClick={() => navigate('/admin/support')} className="text-fuchsia-300 underline">
-          Support Inbox
-        </button>
-        .
+      <div className="p-6 text-sm text-white/60 space-y-3">
+        <p>
+          💬 Team threads are tied to a customer file. {adminMode ? 'To talk to agents live, use the AI Coach tab and tap Choose agent.' : 'Open a partner profile to message on their behalf.'}
+        </p>
+        <div className="flex flex-wrap gap-2">
+          {adminMode ? (
+            <button
+              type="button"
+              onClick={() => window.dispatchEvent(new CustomEvent('finely:hub-switch-tab', { detail: { tab: 'ai' } }))}
+              className="text-fuchsia-300 underline"
+            >
+              Switch to AI Coach
+            </button>
+          ) : null}
+          <button type="button" onClick={() => navigate(adminMode ? '/admin/messages' : '/admin/support')} className="text-fuchsia-300 underline">
+            {adminMode ? 'Admin Communication Hub' : 'Support Inbox'}
+          </button>
+        </div>
       </div>
     );
   }
@@ -534,9 +548,14 @@ export function HubTeamChatPanel({ partnerId, partnerDisplayName, compact, initi
                 <X size={14} />
               </button>
             </div>
+            <TeamContactPicker
+              selectedIds={selectedContactIds}
+              onChange={setSelectedContactIds}
+              hint="Pick credit specialists, dispute analysts, affiliates, AU sellers, funding advisors, or any staff member."
+            />
             <div className="rounded-xl border border-sky-500/25 bg-sky-500/5 p-3 space-y-2">
-              <p className="text-[9px] uppercase tracking-widest text-sky-200/80 font-black">Just type — AI routes to the right team</p>
-              <p className="text-[11px] text-white/55">No topic dropdown. Describe your issue; tap a suggestion chip to pick staff.</p>
+              <p className="text-[9px] uppercase tracking-widest text-sky-200/80 font-black">Or let AI suggest routing</p>
+              <p className="text-[11px] text-white/55">Describe your issue — tap a chip below to auto-select staff, or pick someone above.</p>
               {composeRouting.length ? (
                 <div className="flex flex-wrap gap-2 pt-1">
                   {composeRouting.map((chip) => (

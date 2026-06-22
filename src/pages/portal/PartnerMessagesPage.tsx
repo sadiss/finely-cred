@@ -92,7 +92,7 @@ export default function PartnerMessagesPage() {
               kpis={[
                 { label: 'Lane', value: (partner.lane ?? 'client').replace(/_/g, ' '), hint: 'Your path', accent: 'violet' },
                 { label: 'Stage', value: partner.journeyStage ?? 'intake', hint: 'Journey', accent: 'emerald' },
-                { label: 'Mode', value: isSpecialist ? 'Specialist' : 'Client', hint: 'Portal role', accent: 'amber' },
+                { label: 'Mode', value: isSpecialist ? 'Specialist' : 'Customer', hint: 'Portal role', accent: 'amber' },
                 { label: 'Tab', value: hubTab, hint: 'Active panel', accent: 'sky' },
               ]}
               tabs={[
@@ -113,7 +113,7 @@ export default function PartnerMessagesPage() {
             {isSpecialist ? (
               <FinelyOsAlertBanner
                 tone="info"
-                message={`${CS.supportThreadSubject} — pinned for Credit Specialists. Client threads stay separate in Team chat.`}
+                message={`${CS.supportThreadSubject} — pinned for Credit Specialists. Customer threads stay separate in Team chat.`}
               />
             ) : null}
 

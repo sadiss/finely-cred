@@ -15,8 +15,8 @@ export type SignupRoleGuide = {
 export const SIGNUP_ROLE_GUIDES: SignupRoleGuide[] = [
   {
     id: 'client',
-    label: 'Client / Partner',
-    signupPath: '/signup or /onboarding → role Client → Profile & account',
+    label: 'Customer / Partner',
+    signupPath: '/signup or /onboarding → role Customer → Profile & account',
     postAuthHome: '/portal/dashboard',
     passwordSetup:
       'User chooses their own password on the final Profile & account step (min 8 chars). No auto-generated password.',

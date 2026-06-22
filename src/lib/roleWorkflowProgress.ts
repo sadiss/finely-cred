@@ -15,7 +15,7 @@ export type RoleWorkflowProgressInput = {
   auOrdersCount?: number;
   /** Credit specialist saved operating model. */
   hasOperatingModel?: boolean;
-  /** Clients assigned to this agent (assignedAgentId). */
+  /** Customers assigned to this agent (assignedAgentId). */
   managedClientsCount?: number;
   affiliateHasReferralCode?: boolean;
   affiliateActive?: boolean;

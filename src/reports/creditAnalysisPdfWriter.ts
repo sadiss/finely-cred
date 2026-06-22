@@ -1,4 +1,5 @@
 import type { RGB, PDFFont, PDFPage, PDFDocument } from 'pdf-lib';
+import { rgb } from 'pdf-lib';
 
 export function wrapTextLines(text: string, maxWidth: number, fontSize: number, font: PDFFont): string[] {
   const words = text.split(/\s+/).filter(Boolean);
@@ -59,7 +60,7 @@ export class PaginatedPdfWriter {
     this.pages.push(this.page);
     const { accent, ink, soft, font, fontBold } = this.opts;
     const { width, height } = this.page.getSize();
-    this.page.drawRectangle({ x: 0, y: height - this.headerH, width, height: this.headerH, color: { type: 'RGB', red: 0.98, green: 0.98, blue: 0.99 } as RGB });
+    this.page.drawRectangle({ x: 0, y: height - this.headerH, width, height: this.headerH, color: rgb(0.98, 0.98, 0.99) });
     this.page.drawRectangle({ x: 0, y: height - this.headerH - 2, width, height: 2, color: accent });
     this.page.drawText('Finely Cred', { x: this.margin, y: height - 46, size: 12, font: fontBold, color: ink });
     this.page.drawText(headerText.slice(0, 90), { x: this.margin, y: height - 62, size: 9, font, color: soft });
@@ -110,7 +111,7 @@ export class PaginatedPdfWriter {
     for (let i = 0; i < total; i++) {
       const page = this.opts.pdf.getPage(i);
       const { width, height } = page.getSize();
-      page.drawRectangle({ x: 0, y: 0, width, height: this.footerH, color: { type: 'RGB', red: 0.985, green: 0.985, blue: 0.99 } as RGB });
+      page.drawRectangle({ x: 0, y: 0, width, height: this.footerH, color: rgb(0.985, 0.985, 0.99) });
       page.drawText(`Page ${i + 1} / ${total}`, { x: width - 120, y: 14, size: 9, font, color: soft });
     }
   }

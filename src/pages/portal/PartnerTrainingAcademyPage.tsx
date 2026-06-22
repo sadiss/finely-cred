@@ -390,7 +390,7 @@ export default function PartnerTrainingAcademyPage() {
             <p className={`${FINELY_OS_ENTITY_BODY} max-w-3xl`}>
               Everyone completes <strong className="text-white">Core Foundation</strong> (compliance, validation-first
               doctrine, platform safety). Your onboarding lane unlocks a <strong className="text-white">role track</strong>{' '}
-              — client restore, affiliate, credit specialist, AU seller, business credit, debt validation, admin, or agency.
+              — customer restore, affiliate, credit specialist, AU seller, business credit, debt validation, admin, or agency.
               Courses, tours, SOPs, and field guides link from each lesson — no duplicate curricula.
             </p>
             {progress ? (

@@ -154,7 +154,7 @@ export function createTextTestimonial(tenantId?: string): TextTestimonial {
     id: newId('ttxt'),
     tenantId: tId,
     service: 'Personal Restore',
-    name: 'Client name',
+    name: 'Customer name',
     review: 'Write the review…',
     visibility: 'draft',
     createdAt: now,

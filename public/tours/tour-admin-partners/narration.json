@@ -1,19 +1,19 @@
 {
   "tourId": "tour-admin-partners",
-  "title": "How to open a client file",
+  "title": "How to open a customer file",
   "steps": [
     {
       "step": 1,
       "stepId": "s1",
       "label": "Partner list",
-      "narrationPlain": "All clients appear in Partner Management.",
+      "narrationPlain": "All customers appear in Partner Management.",
       "mp3File": "step-01.mp3"
     },
     {
       "step": 2,
       "stepId": "s2",
       "label": "Click a card",
-      "narrationPlain": "Click the client name to open their full file.",
+      "narrationPlain": "Click the customer name to open their full file.",
       "mp3File": "step-02.mp3"
     },
     {

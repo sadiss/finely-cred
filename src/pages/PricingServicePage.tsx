@@ -15,6 +15,7 @@ import {
   categoryLabels,
   type PricingCategory,
   type PricingPackage,
+  isLetterPackPackage,
 } from '../config/pricingCatalog';
 import { AgencyTierCard } from '../components/pricing/PricingCards';
 import { PricingPackageCatalog } from '../components/pricing/PricingPackageCatalog';
@@ -205,9 +206,10 @@ export default function PricingServicePage() {
   const visible = useMemo(() => {
     if (!category || category === 'agency') return [] as PricingPackage[];
     if (category === 'bundle' || category === 'tradeline_promo') return scopedPkgs;
-    return scopedPkgs.filter((p) =>
-      mode === 'DIY' ? p.delivery === 'DIY' || p.delivery === 'HYBRID' : p.delivery === 'DFY' || p.delivery === 'HYBRID',
-    );
+    return scopedPkgs.filter((p) => {
+      if (mode === 'DFY' && isLetterPackPackage(p)) return false;
+      return mode === 'DIY' ? p.delivery === 'DIY' || p.delivery === 'HYBRID' : p.delivery === 'DFY' || p.delivery === 'HYBRID';
+    });
   }, [category, mode, scopedPkgs]);
 
   const Icon = category ? getIconFor(category) : Sparkles;

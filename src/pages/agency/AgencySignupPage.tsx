@@ -220,7 +220,7 @@ export default function AgencySignupPage() {
                   ) : null}
                   <div className={`${FINELY_OS_ENTITY_SUBLABEL} capitalize`}>{(tier.whiteLabelLevel ?? '').replace(/_/g, ' ')}</div>
                   <div className={FINELY_OS_ENTITY_BODY}>
-                    Seats: {tier.seatLimit === -1 ? 'Unlimited' : tier.seatLimit} • Clients:{' '}
+                    Seats: {tier.seatLimit === -1 ? 'Unlimited' : tier.seatLimit} • Customers:{' '}
                     {tier.activeClientLimit === -1 ? 'Unlimited' : tier.activeClientLimit}
                   </div>
                   <button type="button" onClick={() => navigate(CS.hubPath)} className={`mt-2 ${FINELY_OS_SECONDARY_BTN}`}>

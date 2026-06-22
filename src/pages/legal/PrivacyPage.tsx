@@ -66,7 +66,7 @@ export default function PrivacyPage() {
             <h2 className={`${FINELY_OS_ENTITY_VALUE} text-base`}>3. Data Security</h2>
             <p>
               We use industry-standard measures to protect your data, including access controls and secure transport (HTTPS). We
-              restrict access to partner/client files based on account permissions. Sensitive information may be stored or transmitted
+              restrict access to partner/customer files based on account permissions. Sensitive information may be stored or transmitted
               using encryption and short-lived access links where appropriate.
             </p>
             <p>

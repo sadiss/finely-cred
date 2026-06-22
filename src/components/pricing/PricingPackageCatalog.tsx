@@ -1,17 +1,22 @@
-import React, { useMemo } from 'react';
-import { ArrowRight } from 'lucide-react';
+import React, { useMemo, useState } from 'react';
+import { ArrowRight, Info } from 'lucide-react';
 import {
   FinelyOsCatalogBrowser,
   type FinelyOsCatalogItem,
 } from '../../features/os/FinelyOsCatalogBrowser';
-import { formatPrice, type PricingPackage } from '../../config/pricingCatalog';
+import {
+  formatPrice,
+  getPackageById,
+  type PricingPackage,
+} from '../../config/pricingCatalog';
 import { FINELY_OS_SECONDARY_BTN } from '../../features/os/finelyOsLightUi';
+import { ServicePackageDetailModal } from './ServicePackageDetailModal';
 
 /** Group keys for FinelyOsCatalogBrowser grouped view — avoids long flat tables. */
 export const PRICING_CATALOG_GROUP_LABELS: Record<string, string> = {
   free_core: 'Free & membership',
   restore_dfy: 'Restore programs (done-for-you)',
-  letter_packs: 'Specialty letter packs',
+  letter_packs: 'Specialty letter packs (DIY only)',
   diy_starter: 'DIY starter',
   build: 'Building & maintenance',
   tradeline: 'Tradeline packages',
@@ -132,23 +137,42 @@ export function PricingPackageCatalog({
   selectLabel = 'Select',
   emptyMessage = 'No packages match your search.',
 }: PricingPackageCatalogProps) {
+  const [detailId, setDetailId] = useState<string | null>(null);
+  const detailPkg = useMemo(
+    () => (detailId ? packages.find((p) => p.id === detailId) ?? getPackageById(detailId) ?? null : null),
+    [detailId, packages],
+  );
+
   const items = useMemo(
     () => pricingPackagesToCatalogItems(packages, { includePersonalCompare }),
     [packages, includePersonalCompare],
   );
 
   return (
-    <FinelyOsCatalogBrowser
-      items={items}
-      pageSize={pageSize}
-      initialView="grid"
-      groupLabels={PRICING_CATALOG_GROUP_LABELS}
-      searchPlaceholder={searchPlaceholder}
-      emptyMessage={emptyMessage}
-      showViewToggle
-      renderTrailing={
-        onSelect
-          ? (item) => (
+    <>
+      <FinelyOsCatalogBrowser
+        items={items}
+        pageSize={pageSize}
+        initialView="grid"
+        groupLabels={PRICING_CATALOG_GROUP_LABELS}
+        searchPlaceholder={searchPlaceholder}
+        emptyMessage={emptyMessage}
+        showViewToggle
+        titleClassName="text-lg sm:text-xl font-semibold"
+        renderTrailing={(item) => (
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setDetailId(item.id);
+              }}
+              className={FINELY_OS_SECONDARY_BTN}
+              title="View full scope and deliverables"
+            >
+              <Info size={12} /> What&apos;s included
+            </button>
+            {onSelect ? (
               <button
                 type="button"
                 onClick={(e) => {
@@ -159,10 +183,17 @@ export function PricingPackageCatalog({
               >
                 {selectLabel} <ArrowRight size={12} />
               </button>
-            )
-          : undefined
-      }
-      onItemClick={onSelect}
-    />
+            ) : null}
+          </div>
+        )}
+        onItemClick={(id) => setDetailId(id)}
+      />
+      <ServicePackageDetailModal
+        pkg={detailPkg}
+        onClose={() => setDetailId(null)}
+        onSelect={onSelect}
+        selectLabel={selectLabel}
+      />
+    </>
   );
 }

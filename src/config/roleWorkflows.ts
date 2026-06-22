@@ -12,7 +12,7 @@ export type WorkflowStep = {
 
 export const ROLE_WORKFLOWS: Record<RoleWorkflowId, { label: string; hubPath: string; steps: WorkflowStep[] }> = {
   client: {
-    label: 'Client',
+    label: 'Customer',
     hubPath: '/portal/dashboard',
     steps: [
       { title: 'Onboarding', description: 'Pick your focus (restore, debt, business, funding).', path: '/onboarding' },
@@ -30,7 +30,7 @@ export const ROLE_WORKFLOWS: Record<RoleWorkflowId, { label: string; hubPath: st
       { title: 'Onboarding', description: 'Pick tier, operating model, and training phase.', path: '/onboarding?lane=agent' },
       { title: 'Specialist Hub', description: 'Economics, Denefit calculator, growth pitch cards.', path: CS.hubPath },
       { title: 'Partnership line', description: 'Direct thread with Finely ops.', path: CS.messagesDeepLink },
-      { title: 'Client files', description: 'Portal dashboard, disputes, letters for each client.', path: '/portal/dashboard' },
+      { title: 'Customer files', description: 'Portal dashboard, disputes, letters for each customer.', path: '/portal/dashboard' },
       { title: 'Template library', description: 'Vault templates, reasons library, starter bases.', path: '/portal/templates' },
       { title: 'Letter studio', description: 'Execute rounds — draft, preview, save PDFs.', path: '/portal/letters' },
     ],
@@ -54,7 +54,7 @@ export const ROLE_WORKFLOWS: Record<RoleWorkflowId, { label: string; hubPath: st
       { title: 'Seller Hub', description: 'Overview, marketplace links, training.', path: AU_SELLER.hubPath },
       { title: 'Listings', description: 'Publish tradeline inventory with proof.', path: AU_SELLER.listingsPath },
       { title: 'Contracts & payouts', description: 'Fulfillment tracking and earnings.', path: AU_SELLER.contractsPath },
-      { title: 'Denefit (optional)', description: 'Refer clients into in-house Equifax-reporting contracts.', path: `${AU_SELLER.hubPath}?tab=economics` },
+      { title: 'Denefit (optional)', description: 'Refer customers into in-house Equifax-reporting contracts.', path: `${AU_SELLER.hubPath}?tab=economics` },
     ],
   },
   au_buyer: {

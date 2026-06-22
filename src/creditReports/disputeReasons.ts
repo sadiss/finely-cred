@@ -132,14 +132,14 @@ export function deriveTradelineContradictions(tl: ParsedTradeline, bureau?: Bure
     out.push(
       mk(
         'intra_balance_over_limit',
-        say(`The reported balance (${money(balance)}) exceeds the reported credit limit (${money(limit)}). Metro 2 fields on this tradeline are internally inconsistent.`),
+        say(`The reported balance of ${money(balance)} is higher than the reported credit limit of ${money(limit)} on this account screen.`),
       ),
     );
   } else if (balance != null && limit == null && high != null && high > 0 && balance > high * 1.001) {
     out.push(
       mk(
         'intra_balance_over_high',
-        say(`The reported balance (${money(balance)}) exceeds the reported high balance/high credit (${money(high)}). The balance and high-credit fields conflict on this tradeline.`),
+        say(`The reported balance of ${money(balance)} is higher than the reported high balance of ${money(high)} on this account screen.`),
       ),
     );
   }
@@ -322,12 +322,23 @@ export function suggestDisputeReasons(parsed: ParsedCreditReport, candidate: Dis
       ];
       const distinct = distinctNonEmpty(values);
       if (distinct.length >= 2) {
-        out.push(
-          mk(
-            `xb_${norm(label).replace(/[^a-z0-9]+/g, '_')}`,
-            `Cross-bureau inconsistency detected: "${label}" is reported differently across bureaus (${distinct.join(' | ')}).`,
-          ),
-        );
+        const b = candidate.bureau;
+        const here = (row.byBureau[b] || '').trim();
+        const otherB = (['EXP', 'EQF', 'TUC'] as Bureau[]).find((x) => x !== b && (row.byBureau[x] || '').trim());
+        const otherVal = otherB ? (row.byBureau[otherB] || '').trim() : '';
+        const acct = candidate.account.trim() || 'this account';
+        const field = label.toLowerCase();
+        const text =
+          here && otherB && otherVal
+            ? withBureauScreenshotLead(
+                b,
+                `${acct} shows ${field} as ${here}, but ${bureauLabel(otherB)} shows ${otherVal} for the same account.`,
+              )
+            : withBureauScreenshotLead(
+                b,
+                `the ${field} for ${acct} is reported differently across bureaus (${distinct.join(' versus ')}).`,
+              );
+        out.push(mk(`xb_${norm(label).replace(/[^a-z0-9]+/g, '_')}`, text));
       }
     }
 
@@ -351,7 +362,7 @@ export function suggestDisputeReasons(parsed: ParsedCreditReport, candidate: Dis
             `contradiction_status_history_${b}`,
             withBureauScreenshotLead(
               b,
-              `The status indicates current/paid-as-agreed, but the 24-month history shows derogatory codes (${codes.filter(Boolean).slice(0, 6).join(', ')}).`,
+              `the status line shows current or paid as agreed, but the payment history grid shows late or derogatory marks on this account.`,
             ),
           ),
         );
@@ -395,11 +406,7 @@ export function suggestDisputeReasons(parsed: ParsedCreditReport, candidate: Dis
     }
   }
 
-  // Data-specific contradictions (above) lead; generic + advanced type-specific
-  // reasons come after so the strongest, account-specific angles are listed first.
-  out.push(...suggestDisputeReasonsForCandidate(candidate));
-
-  // De-dup by id (stable) while preserving order.
+  // Data-specific contradictions only — no generic procedural library lines.
   const seen = new Set<string>();
   return out.filter((r) => {
     if (seen.has(r.id)) return false;

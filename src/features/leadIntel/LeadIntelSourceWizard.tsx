@@ -72,7 +72,7 @@ export function LeadIntelSourceWizard({ onRun, busy }: Props) {
           <label>
             <div className={FINELY_OS_ENTITY_SUBLABEL}>Target audience</div>
             <select value={target} onChange={(e) => setTarget(e.target.value as ProspectTarget)} className={FINELY_OS_ENTITY_SELECT}>
-              <option value="clients">Clients</option>
+              <option value="clients">Customers</option>
               <option value="affiliates">Affiliates</option>
               <option value="agents">Agents</option>
               <option value="teams">Teams</option>

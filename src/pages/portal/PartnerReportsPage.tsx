@@ -5,6 +5,7 @@ import { useAuth } from '../../auth/AuthProvider';
 import { deleteReport, listReportsByPartner, upsertReport } from '../../data/reportsRepo';
 import { isSupabaseConfigured } from '../../lib/supabaseClient';
 import { listEvidenceByPartner, upsertEvidence, deleteEvidence } from '../../data/evidenceRepo';
+import { listCreditAnalysisReportsByPartner, upsertCreditAnalysisReport } from '../../data/creditAnalysisReportsRepo';
 import { ReportUploader } from '../../components/reports/ReportUploader';
 import { ReportActionsBar, ReportFileStrip } from '../../components/reports/ReportFileStrip';
 import { ParsedReportViewer } from '../../components/reports/ParsedReportViewer';
@@ -659,7 +660,7 @@ export default function PartnerReportsPage() {
                                     .slice(0, 10)
                                     .map((e: any) => ({ blobRef: e.blobRef, filename: e.filename, mimeType: e.mimeType, caption: e.caption }))
                                 : [];
-                              const { blob, filename, pages, exhibitsIncluded } = await generateCreditAnalysisReportPdf({
+                              const { blob, filename, displayTitle, pages, exhibitsIncluded } = await generateCreditAnalysisReportPdf({
                                 partner,
                                 report: selected,
                                 candidates,
@@ -668,34 +669,29 @@ export default function PartnerReportsPage() {
                                 template: selectedAnalysisTemplateConfig,
                               });
                               const store = getBlobStore();
-                              const put = await store.put(blob, { partnerId: partner.id, reportId: selected.id, kind: 'reports' });
-                              const item = {
-                                id: newId('evidence'),
+                              const put = await store.put(blob, { partnerId: partner.id, reportId: selected.id, kind: 'analysis_report' });
+                              const item = upsertCreditAnalysisReport({
                                 partnerId: partner.id,
                                 reportId: selected.id,
-                                type: 'upload' as const,
-                                source: 'upload' as const,
-                                caption: `Credit Analysis Report • ${selected.filename} • variant:${analysisVariant}${exhibitsIncluded ? ` • exhibits:${exhibitsIncluded}` : ''}`,
-                                tags: ['analysis_report', `analysis_variant:${analysisVariant}`],
+                                title: displayTitle,
                                 filename,
-                                mimeType: 'application/pdf',
-                                sizeBytes: blob.size,
                                 blobRef: put.ref,
-                                createdAt: new Date().toISOString(),
-                              };
-                              upsertEvidence(item as any);
+                                sizeBytes: blob.size,
+                                pages,
+                                sourceReportFilename: selected.filename,
+                              });
                               setEvidenceVersion((v) => v + 1);
                               addAuditEvent({
                                 partnerId: partner.id,
                                 actorType: 'partner',
                                 actorEmail: email || undefined,
                                 action: 'report.credit_analysis.generated',
-                                entityType: 'evidence',
+                                entityType: 'credit_analysis_report',
                                 entityId: item.id,
                                 meta: { pages, filename, reportId: selected.id, variant: analysisVariant, exhibitsIncluded },
                               });
                               setAnalysisNotice(
-                                `Generated and saved (${pages} pages${exhibitsIncluded ? ` • ${exhibitsIncluded} exhibit(s)` : ''}). Find it in Documents Vault.`,
+                                `Generated and saved (${pages} pages${exhibitsIncluded ? ` • ${exhibitsIncluded} exhibit(s)` : ''}). Open it from Strategy reports below.`,
                               );
                               const emailResult = await notifyAnalysisReportReady({
                                 partner,

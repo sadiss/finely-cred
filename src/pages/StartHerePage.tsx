@@ -39,7 +39,7 @@ const PATHS = [
   {
     id: 'staff',
     title: 'Staff or partner login',
-    desc: 'Open your portal dashboard, cases, letters, and client files.',
+    desc: 'Open your portal dashboard, cases, letters, and customer files.',
     icon: LogIn,
     accent: 'sky' as const,
     primary: { label: 'Partner portal', to: '/portal/partner' },

@@ -17,10 +17,10 @@ export function useAdminOpsCaps() {
   return useMemo(() => {
     const u = auth.user;
     if (!u) {
-      return { canManageTeam: false, canManageTenants: false, canViewAllClients: false, canUseFinanceTools: false };
+      return { canManageTeam: false, canManageTenants: false, canViewAllCustomers: false, canUseFinanceTools: false };
     }
     if (isAdminEmail(u.email)) {
-      return { canManageTeam: true, canManageTenants: true, canViewAllClients: true, canUseFinanceTools: true };
+      return { canManageTeam: true, canManageTenants: true, canViewAllCustomers: true, canUseFinanceTools: true };
     }
     const tenantId = getActiveTenantId();
     const membership =
@@ -29,7 +29,7 @@ export function useAdminOpsCaps() {
     return {
       canManageTeam: ok || canManageTeam(membership),
       canManageTenants: ok,
-      canViewAllClients: ok || canViewAllClients(membership),
+      canViewAllCustomers: ok || canViewAllClients(membership),
       canUseFinanceTools: ok || canUseFinanceTools(membership),
     };
   }, [auth.user]);

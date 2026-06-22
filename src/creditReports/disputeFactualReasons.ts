@@ -1,4 +1,5 @@
 import type { Bureau, DisputeCandidate, ParsedTradeline } from '../domain/creditReports';
+import { sanitizeDisputeReasonText } from '../letters/disputeLetterFormat';
 
 function norm(s: string) {
   return String(s || '').toLowerCase().replace(/\s+/g, ' ').trim();
@@ -10,7 +11,7 @@ export function bureauLabel(b: Bureau) {
   return 'TransUnion';
 }
 
-/** Lead-in when a bureau screenshot accompanies the dispute (not "on my file"). */
+/** Lead-in when a bureau screenshot accompanies the dispute. */
 export function bureauScreenshotLead(b: Bureau): string {
   return `As you can see here on ${bureauLabel(b)},`;
 }
@@ -19,13 +20,9 @@ export function bureauScreenshotLead(b: Bureau): string {
 export function withBureauScreenshotLead(bureau: Bureau, text: string): string {
   const trimmed = text.trim();
   if (!trimmed) return trimmed;
-  if (/^as you can see/i.test(trimmed)) return trimmed;
+  if (/^as you can see/i.test(trimmed)) return sanitizeDisputeReasonText(trimmed);
   const body = trimmed.charAt(0).toLowerCase() + trimmed.slice(1);
-  return `${bureauScreenshotLead(bureau)} ${body}`;
-}
-
-function money(n: number) {
-  return `$${Math.round(n).toLocaleString()}`;
+  return sanitizeDisputeReasonText(`${bureauScreenshotLead(bureau)} ${body}`);
 }
 
 /** Statute demands, bureau commands, and generic filler — not forensic findings. */
@@ -46,6 +43,7 @@ const PROCEDURAL_MARKERS: RegExp[] = [
   /\bremove it from my file\b/i,
   /\bfurnish or remove\b/i,
   /\bconduct a (genuine|complete|reasonable) reinvestigation\b/i,
+  /\breinvestigation\b/i,
   /\bmethod of verification\b/i,
   /\bdisclose the method\b/i,
   /\bprovide (validation|documentation|written|the name, address)/i,
@@ -56,6 +54,10 @@ const PROCEDURAL_MARKERS: RegExp[] = [
   /the information appears inaccurate, incomplete/i,
   /cannot be verified with competent evidence/i,
   /under metro 2 and the fcra, i request reinvestigation/i,
+  /is reporting as a collection tradeline/i,
+  /is reporting as a collection\b/i,
+  /tradeline fields currently displayed are/i,
+  /reporting differently across bureaus \(/i,
 ];
 
 export function isProceduralDisputeReason(text: string): boolean {
@@ -64,12 +66,12 @@ export function isProceduralDisputeReason(text: string): boolean {
   return PROCEDURAL_MARKERS.some((re) => re.test(t));
 }
 
-/** Keep account-specific factual findings; drop commands and generic statute lines. */
+/** Keep account-specific factual findings; drop commands and generic filler. */
 export function filterFactualDisputeReasons(reasons: string[]): string[] {
   const seen = new Set<string>();
   const out: string[] = [];
   for (const raw of reasons) {
-    const t = raw.trim();
+    const t = sanitizeDisputeReasonText(raw);
     if (!t || isProceduralDisputeReason(t)) continue;
     const key = norm(t);
     if (seen.has(key)) continue;
@@ -104,77 +106,32 @@ function negativeTypeLabel(candidate: DisputeCandidate): string {
   return candidate.type.trim() || 'negative tradeline';
 }
 
-/** First-person factual statements describing exactly what the bureau file shows. */
-export function buildFactualNegativeSummary(args: {
+/**
+ * Screenshot-aware account label — use what the exhibit actually shows when it matches the dispute target.
+ */
+export function resolveDisputeAccountLabel(args: {
+  candidate: DisputeCandidate;
+  evidenceCreditorName?: string | null;
+}): string {
+  const target = args.candidate.account.trim() || 'this account';
+  const ev = (args.evidenceCreditorName || '').trim();
+  if (!ev) return target;
+  const a = norm(target);
+  const b = norm(ev);
+  if (a === b || a.includes(b) || b.includes(a)) return ev;
+  return target;
+}
+
+/** Deprecated weak summaries — factual reasons now come from contradictions only. */
+export function buildFactualNegativeSummary(_args: {
   candidate: DisputeCandidate;
   tradeline?: ParsedTradeline | null;
+  evidenceCreditorName?: string | null;
 }): string[] {
-  const { candidate } = args;
-  const tl = args.tradeline ?? null;
-  const lead = bureauScreenshotLead(candidate.bureau);
-  const creditor = candidate.account.trim() || 'this furnisher';
-  const negLabel = negativeTypeLabel(candidate);
-  const out: string[] = [];
-
-  out.push(
-    `${lead} ${creditor} is reporting as a ${negLabel}${candidate.subtype ? ` (${candidate.subtype})` : ''}.`,
-  );
-
-  if (candidate.status.trim()) {
-    out.push(
-      `${lead} the disputed status line for this account reads «${candidate.status.trim()}»${candidate.code.trim() ? ` (code/reference: ${candidate.code.trim()})` : ''}.`,
-    );
-  }
-
-  if (tl) {
-    const b = candidate.bureau;
-    const status = fieldOrRow(tl, tl.accountStatus, 'account status', b) || fieldOrRow(tl, null, 'payment status', b);
-    const balanceRaw = fieldOrRow(tl, tl.balance, 'balance', b);
-    const limitRaw = fieldOrRow(tl, tl.creditLimit, 'credit limit', b);
-    const highRaw = fieldOrRow(tl, tl.highBalance, 'high balance', b);
-    const opened = fieldOrRow(tl, tl.dateOpened, 'date opened', b);
-    const closed = fieldOrRow(tl, tl.dateClosed, 'date closed', b);
-    const dofd = fieldOrRow(tl, tl.dofd, 'first delinquency', b);
-    const pastDue = fieldOrRow(tl, tl.pastDue, 'past due', b);
-    const acctType = fieldOrRow(tl, tl.accountType, 'account type', b);
-
-    const parts: string[] = [];
-    if (acctType) parts.push(`account type «${acctType}»`);
-    if (status) parts.push(`status «${status}»`);
-    if (balanceRaw) parts.push(`balance «${balanceRaw}»`);
-    if (pastDue) parts.push(`past due «${pastDue}»`);
-    if (limitRaw) parts.push(`credit limit «${limitRaw}»`);
-    if (highRaw) parts.push(`high balance «${highRaw}»`);
-    if (opened) parts.push(`date opened «${opened}»`);
-    if (closed) parts.push(`date closed «${closed}»`);
-    if (dofd) parts.push(`date of first delinquency «${dofd}»`);
-
-    if (parts.length) {
-      out.push(`${lead} the tradeline fields currently displayed are: ${parts.join('; ')}.`);
-    }
-
-    const history = tl.paymentHistory2y?.byBureau?.[candidate.bureau] ?? tl.paymentHistory2y?.byBureau?.EXP ?? [];
-    const derogCodes = (history ?? [])
-      .map((c) => String(c.code || '').trim())
-      .filter((c) => /^(30|60|90|120|CO|COL|LATE)/i.test(c) || /late|charge|collect/i.test(c));
-    if (derogCodes.length) {
-      const uniq = [...new Set(derogCodes)].slice(0, 8);
-      out.push(`${lead} the 24-month payment grid shows derogatory codes (${uniq.join(', ')}) on this account.`);
-    }
-
-    const balNum = typeof tl.balance === 'number' ? tl.balance : null;
-    const limNum = typeof tl.creditLimit === 'number' ? tl.creditLimit : null;
-    if (balNum != null && limNum != null && limNum > 0 && balNum > limNum) {
-      out.push(
-        `${lead} the reported balance of ${money(balNum)} exceeds the credit limit of ${money(limNum)}, which overstates utilization and is internally inconsistent on this tradeline.`,
-      );
-    }
-  }
-
-  return out;
+  return [];
 }
 
 /** Rank: factual summaries and contradictions first; cap procedural leakage. */
-export function pickBestDisputeReasons(reasons: string[], max = 12): string[] {
+export function pickBestDisputeReasons(reasons: string[], max = 5): string[] {
   return filterFactualDisputeReasons(reasons).slice(0, max);
 }

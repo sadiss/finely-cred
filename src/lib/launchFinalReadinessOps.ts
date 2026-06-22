@@ -58,7 +58,7 @@ export function getLaunchFinalReadinessZones(): LaunchReadinessZone[] {
       ok: isSupabaseConfigured,
       tone: isSupabaseConfigured ? 'ok' : 'blocked',
       summary: isSupabaseConfigured
-        ? 'Client keys detected.'
+        ? 'Customer /keys detected.'
         : `${envSteps.filter((s) => !s.done).length} bootstrap step(s) open.`,
       hubPath: '/admin/launch-os#env-bootstrap',
     },

@@ -2,7 +2,7 @@
  * Multi-tenant domain types
  *
  * Tenants represent workspaces. The primary tenant is Finely Cred (direct consumers).
- * Agency partners get their own tenant so their clients are isolated.
+ * Agency partners get their own tenant so their customers are isolated.
  */
 
 export type TenantType = 'platform' | 'agency';

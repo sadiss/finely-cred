@@ -23,7 +23,7 @@ export const AFFILIATE_OFFERINGS = [
   },
   {
     title: 'Denefit referral stream',
-    description: 'Refer in-house Denefit contracts — clients build credit on Equifax as they pay; you earn over the contract term.',
+    description: 'Refer in-house Denefit contracts — customers build credit on Equifax as they pay; you earn over the contract term.',
     included: ['Equifax reporting story for prospects', 'Denefit calculator in hub', 'Stacks with upfront package commission'],
   },
   {

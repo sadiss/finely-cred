@@ -38,7 +38,7 @@ export const LAUNCH_ROLE_COURSES: LaunchRoleCourse[] = [
   {
     id: 'course-agent',
     role: 'Credit specialist',
-    title: 'Work client files',
+    title: 'Work customer files',
     desc: 'Hub economics, client dashboard, letter workflow execution.',
     lessonCount: 4,
     hubPath: '/credit-specialist/hub',

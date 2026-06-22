@@ -803,7 +803,7 @@ ${version === 2 ? 'Include brief factual clarifications where appropriate withou
 <div style="margin-top:6px;font-size:12px;opacity:0.8;">Effective date: ${esc(date)}</div>
 
 <div style="margin-top:14px;font-weight:700;">1. Purpose</div>
-<div style="margin-top:8px;">This agreement defines the terms for referring clients to Finely Cred services using your unique referral link.</div>
+<div style="margin-top:8px;">This agreement defines the terms for referring customers to Finely Cred services using your unique referral link.</div>
 
 <div style="margin-top:14px;font-weight:700;">2. Commission</div>
 <div style="margin-top:8px;">Commission structure: [TIER / PERCENT / FLAT]. Payment schedule: [SCHEDULE]. Chargeback policy: [POLICY].</div>
@@ -876,7 +876,7 @@ ${version === 2 ? '<br/><br/>Data handling: partner must follow privacy/security
   },
   {
     id: 'contract_client_portal_agreement',
-    title: 'Client Portal & DIY Services Agreement (draft)',
+    title: 'Customer Portal & DIY Services Agreement (draft)',
     category: 'contracts',
     description: 'Agreement for DIY portal access: report uploads, AI checklist, template library, and self-directed dispute workflow.',
     tags: ['client', 'diy', 'portal', 'subscription'],
@@ -885,31 +885,31 @@ ${version === 2 ? '<br/><br/>Data handling: partner must follow privacy/security
     renderHtml: ({ variant, tone, version, ...ctx }) => {
       const date = fmtDateLong(ctx.nowIso);
       const body = `
-<div style="font-weight:700;font-size:16px;">Client Portal & DIY Services Agreement (Draft)</div>
+<div style="font-weight:700;font-size:16px;">Customer Portal & DIY Services Agreement (Draft)</div>
 <div style="margin-top:6px;font-size:12px;opacity:0.8;">Effective date: ${esc(date)}</div>
 
 <div style="margin-top:14px;font-weight:700;">1. Services</div>
 <div style="margin-top:8px;">Finely Cred provides self-service tools including credit report upload, comparison workflows, dispute letter builders, AI restoration checklist, and document vault storage.</div>
 
-<div style="margin-top:14px;font-weight:700;">2. Client responsibilities</div>
-<div style="margin-top:8px;">Client certifies report accuracy, maintains login security, and acknowledges that DIY tools are educational — not legal advice.</div>
+<div style="margin-top:14px;font-weight:700;">2. Customer /responsibilities</div>
+<div style="margin-top:8px;">Customer /certifies report accuracy, maintains login security, and acknowledges that DIY tools are educational — not legal advice.</div>
 
 <div style="margin-top:14px;font-weight:700;">3. Fees & trial periods</div>
 <div style="margin-top:8px;">[SUBSCRIPTION / TRIAL TERMS]. Promotional trial access may expire unless client upgrades to a paid DIY plan.</div>
 
 <div style="margin-top:14px;font-weight:700;">4. Data & privacy</div>
-<div style="margin-top:8px;">Client authorizes processing of uploaded credit reports solely for restoration workflow purposes. Data retention follows the privacy policy.</div>
+<div style="margin-top:8px;">Customer /authorizes processing of uploaded credit reports solely for restoration workflow purposes. Data retention follows the privacy policy.</div>
 
 <div style="margin-top:14px;font-weight:700;">5. Limitation of liability</div>
-<div style="margin-top:8px;">No guarantee of score improvement or deletions. Client assumes responsibility for letters sent and disputes filed.</div>
+<div style="margin-top:8px;">No guarantee of score improvement or deletions. Customer /assumes responsibility for letters sent and disputes filed.</div>
 
 <div style="margin-top:14px;font-weight:700;">6. Signatures</div>
 <div style="margin-top:24px;display:flex;gap:36px;">
-  <div style="flex:1;border-top:1px solid #111;opacity:0.5;padding-top:8px;">Client: ${esc(ctx.partner.fullName)} • Date</div>
+  <div style="flex:1;border-top:1px solid #111;opacity:0.5;padding-top:8px;">Customer: ${esc(ctx.partner.fullName)} • Date</div>
   <div style="flex:1;border-top:1px solid #111;opacity:0.5;padding-top:8px;">Finely Cred representative • Date</div>
 </div>
       `.trim();
-      return wrapLetterHtml({ title: 'Client Portal Agreement (Draft)', variant, bodyHtml: body, footerNote: disclaimerFooter() });
+      return wrapLetterHtml({ title: 'Customer Portal Agreement (Draft)', variant, bodyHtml: body, footerNote: disclaimerFooter() });
     },
   },
   {
@@ -935,11 +935,11 @@ ${version === 2 ? '<br/><br/>Data handling: partner must follow privacy/security
 <div style="margin-top:14px;font-weight:700;">3. Compliance</div>
 <div style="margin-top:8px;">Specialist must obtain client consent, avoid unauthorized guarantees, and follow FCRA/CROA marketing rules.</div>
 
-<div style="margin-top:14px;font-weight:700;">4. Client data</div>
+<div style="margin-top:14px;font-weight:700;">4. Customer /data</div>
 <div style="margin-top:8px;">Specialist may not export client PII to unapproved systems. Platform audit logs may be reviewed for compliance.</div>
 
 <div style="margin-top:14px;font-weight:700;">5. Term & termination</div>
-<div style="margin-top:8px;">Either party may terminate with [NOTICE PERIOD]. Transition obligations for open client files apply.</div>
+<div style="margin-top:8px;">Either party may terminate with [NOTICE PERIOD]. Transition obligations for open customer files apply.</div>
 
 <div style="margin-top:14px;font-weight:700;">6. Signatures</div>
 <div style="margin-top:24px;display:flex;gap:36px;">
@@ -962,7 +962,7 @@ ${version === 2 ? '<br/><br/>Data handling: partner must follow privacy/security
       const date = fmtDateLong(ctx.nowIso);
       const body = `
 <div style="font-weight:700;font-size:16px;">Credit Data Processing & Privacy Authorization</div>
-<div style="margin-top:6px;font-size:12px;opacity:0.8;">Client: ${esc(ctx.partner.fullName)} • Date: ${esc(date)}</div>
+<div style="margin-top:6px;font-size:12px;opacity:0.8;">Customer: ${esc(ctx.partner.fullName)} • Date: ${esc(date)}</div>
 
 <div style="margin-top:14px;font-weight:700;">Authorization</div>
 <div style="margin-top:8px;">I authorize Finely Cred and its designated agents to receive, store, parse, and analyze my credit reports for restoration, dispute, and funding-readiness purposes.</div>
@@ -991,7 +991,7 @@ ${version === 2 ? '<br/><br/>Data handling: partner must follow privacy/security
       const date = fmtDateLong(ctx.nowIso);
       const body = `
 <div style="font-weight:700;font-size:16px;">Restoration Payment Plan Agreement (Draft)</div>
-<div style="margin-top:6px;font-size:12px;opacity:0.8;">Client: ${esc(ctx.partner.fullName)} • Effective: ${esc(date)}</div>
+<div style="margin-top:6px;font-size:12px;opacity:0.8;">Customer: ${esc(ctx.partner.fullName)} • Effective: ${esc(date)}</div>
 
 <div style="margin-top:14px;font-weight:700;">1. Total fees</div>
 <div style="margin-top:8px;">Total service fee: [TOTAL]. Down payment: [DOWN]. Remaining balance split across [N] installments of [AMOUNT].</div>
@@ -1003,11 +1003,11 @@ ${version === 2 ? '<br/><br/>Data handling: partner must follow privacy/security
 <div style="margin-top:8px;">Work continues while account is current. Paused accounts may suspend dispute rounds until brought current.</div>
 
 <div style="margin-top:14px;font-weight:700;">4. Cancellation</div>
-<div style="margin-top:8px;">[CANCELLATION / REFUND POLICY]. Client remains responsible for fees earned through date of cancellation.</div>
+<div style="margin-top:8px;">[CANCELLATION / REFUND POLICY]. Customer /remains responsible for fees earned through date of cancellation.</div>
 
 <div style="margin-top:14px;font-weight:700;">5. Signatures</div>
 <div style="margin-top:24px;display:flex;gap:36px;">
-  <div style="flex:1;border-top:1px solid #111;opacity:0.5;padding-top:8px;">Client • Date</div>
+  <div style="flex:1;border-top:1px solid #111;opacity:0.5;padding-top:8px;">Customer /• Date</div>
   <div style="flex:1;border-top:1px solid #111;opacity:0.5;padding-top:8px;">Finely Cred • Date</div>
 </div>
       `.trim();
@@ -1018,7 +1018,7 @@ ${version === 2 ? '<br/><br/>Data handling: partner must follow privacy/security
     id: 'contract_non_disclosure_agreement',
     title: 'Mutual Non-Disclosure Agreement (draft)',
     category: 'contracts',
-    description: 'NDA for partners, agents, and enterprise clients accessing proprietary workflows, templates, and pricing.',
+    description: 'NDA for partners, agents, and enterprise customers accessing proprietary workflows, templates, and pricing.',
     tags: ['nda', 'confidential', 'enterprise'],
     versions: 2,
     requiredFields: ['partner.fullName'],

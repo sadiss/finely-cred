@@ -27,7 +27,7 @@ export function AdminErrorOpsPanel() {
         <div>
           <div className={`inline-flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL} text-rose-300`}>
             <AlertTriangle size={16} />
-            <span>Client errors</span>
+            <span>Customer /errors</span>
           </div>
           <h3 className={FINELY_OS_ENTITY_TITLE}>Error ops (24h)</h3>
           <p className={FINELY_OS_ENTITY_BODY}>Captured in-browser — wire Sentry DSN in production for server-side alerts.</p>

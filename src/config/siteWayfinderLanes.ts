@@ -100,7 +100,7 @@ export const PUBLIC_HOS_NAV = {
 
 /** Career paths — earn · serve · grow. */
 export const PUBLIC_CAREER_PATHS: PublicNavLink[] = [
-  { id: 'specialists', label: 'Credit specialists', path: '/credit-specialists', hint: 'Train & run client files' },
+  { id: 'specialists', label: 'Credit specialists', path: '/credit-specialists', hint: 'Train & run customer files' },
   { id: 'affiliate', label: 'Affiliates', path: '/affiliate', hint: 'Referral commissions' },
   { id: 'au-seller', label: 'AU sellers', path: '/seller/dashboard', hint: 'Tradeline supply' },
   { id: 'agents', label: 'Agents program', path: '/agents', hint: 'Team operators' },

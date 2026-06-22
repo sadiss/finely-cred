@@ -547,7 +547,7 @@ export function buildCalendarNoticedItems(input: CalendarSignalInput): FinelyNot
 }
 
 export type AgentSignalInput = {
-  managedClients: number;
+  managedCustomers: number;
   openTasks: number;
   hasOperatingModel: boolean;
 };
@@ -559,17 +559,17 @@ export function buildAgentNoticedItems(input: AgentSignalInput): FinelyNoticedIt
     items.push({
       id: 'agent-tasks',
       tone: 'warn',
-      text: `${input.openTasks} open task${input.openTasks === 1 ? '' : 's'} on your file. Clear these before taking new clients.`,
+      text: `${input.openTasks} open task${input.openTasks === 1 ? '' : 's'} on your file. Clear these before taking new customers.`,
       actionLabel: 'My tasks',
       to: '/portal/my-tasks',
     });
   }
 
-  if (input.managedClients === 0) {
+  if (input.managedCustomers === 0) {
     items.push({
       id: 'no-clients',
       tone: 'info',
-      text: 'No assigned client files yet. Use Growth to share your specialist link.',
+      text: 'No assigned customer files yet. Use Growth to share your specialist link.',
       actionLabel: 'Growth tab',
       to: '/credit-specialist/hub?tab=growth',
     });
@@ -587,8 +587,8 @@ export function buildAgentNoticedItems(input: AgentSignalInput): FinelyNoticedIt
     items.push({
       id: 'agent-go',
       tone: 'success',
-      text: 'Hub is ready. Open a client dashboard and run the letter workflow.',
-      actionLabel: 'Client dashboard',
+      text: 'Hub is ready. Open a customer dashboard and run the letter workflow.',
+      actionLabel: 'Customer dashboard',
       to: '/portal/dashboard',
     });
   }
@@ -969,7 +969,7 @@ export function buildPartnersAdminNoticedItems(input: PartnersAdminSignalInput):
       {
         id: 'adm-empty',
         tone: 'warn',
-        text: 'No partners yet. Create a client file or import from legacy export.',
+        text: 'No partners yet. Create a customer file or import from legacy export.',
         actionLabel: 'Create partner',
         to: '/admin/partners#create-partner',
       },
@@ -979,7 +979,7 @@ export function buildPartnersAdminNoticedItems(input: PartnersAdminSignalInput):
     {
       id: 'adm-open',
       tone: 'info',
-      text: 'Open a client profile to upload reports or run letters on their behalf.',
+      text: 'Open a customer profile to upload reports or run letters on their behalf.',
       actionLabel: 'Ops queue',
       to: '/admin/workflow',
     },

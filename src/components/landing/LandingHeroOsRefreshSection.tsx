@@ -29,7 +29,7 @@ export function LandingHeroOsRefreshSection() {
                 </h2>
                 <p className="text-sm leading-relaxed opacity-80">
                   Tab-first hubs replace wall-of-scroll pages. Human automations, Reasons OS, and Work OS share the same lane logic — so
-                  clients always know the next step.
+                  customers always know the next step.
                 </p>
                 <div className="flex flex-wrap gap-3 pt-1">
                   <Button variant="gold" size="md" onClick={() => navigate('/fundability-readiness')}>

@@ -2,6 +2,7 @@ import { getBlobStore } from '../storage/getBlobStore';
 import type { Bureau, DisputeCandidate } from '../domain/creditReports';
 import { bureauDisputeAddress, SUBJECT_LINE } from './disputeLetterTemplate';
 import { consumerDisputeOpeningForTone } from './consumerDisputeVoice';
+import { formatNumberedDisputeReasons, DISPUTE_DELETE_NOW } from './disputeLetterFormat';
 import { downloadBlob } from '../utils/download';
 import { bureauShortCode } from '../utils/bureaus';
 
@@ -168,10 +169,10 @@ export async function downloadInlineDisputeLetterPdf(args: {
   // Strong CTA footer block (requested): response window + method of verification + privacy opts.
   const footerDefault =
     args.tone === 'formal'
-      ? `Please complete your reinvestigation and provide the results in writing within the time period required by applicable law (typically 30 days). If you verify any item, please provide the method of verification and a complete description of the procedures used to determine accuracy.\n\nI also request that you do not sell, share, or disclose my personal information beyond what is required to conduct this reinvestigation, and that you honor any applicable opt-out preferences. Please communicate results in writing.`
+      ? `Please review the attached exhibits and numbered factual reasons. Delete any account or field that is reporting inaccurately as described. Send me an updated copy of my credit report showing what was deleted or corrected within the time period required by applicable law (typically 30 days).\n\nPlease do not sell, share, or disclose my personal information beyond what is required to process this dispute.`
       : args.tone === 'conversational'
-        ? `Please send me the results in writing within the time period required by law (typically 30 days). If you say an item is verified, please tell me how you verified it.\n\nAlso, please don’t share or sell my personal information beyond what’s required to complete this investigation.`
-        : `Please complete your reinvestigation and provide the results in writing within the time period required by applicable law (typically 30 days). If you verify any item, please provide the method of verification.\n\nPlease do not sell or share my personal information beyond what is required to conduct this reinvestigation.`;
+        ? `Please review the exhibit and numbered reasons and delete what is reporting wrong. Send me an updated report in writing within the time required by law (typically 30 days).\n\nPlease do not share or sell my personal information beyond what is needed to handle this dispute.`
+        : `Please review the attached exhibits and numbered factual reasons and delete inaccurate reporting as described. Send written confirmation and an updated report within the time period required by applicable law (typically 30 days).\n\nPlease do not sell or share my personal information beyond what is required to process this dispute.`;
   const footer = (args.footerOverride || '').trim() ? args.footerOverride!.trim() + '\n' : footerDefault;
 
   // Items with inline evidence + reasons
@@ -242,10 +243,10 @@ export async function downloadInlineDisputeLetterPdf(args: {
       }
     }
 
-    // Reasons (optional) — do not print warnings when empty.
-    const reasons = (item.reasons ?? []).map((r) => r.trim()).filter(Boolean);
+    // Numbered factual reasons — one point each, then DELETE NOW.
+    const reasons = formatNumberedDisputeReasons(item.reasons ?? []);
     if (reasons.length) {
-      page.drawText('Dispute reasons:', {
+      page.drawText('Factual dispute reasons:', {
         x: margin,
         y,
         size: 10,
@@ -254,14 +255,23 @@ export async function downloadInlineDisputeLetterPdf(args: {
       });
       y -= 14;
       for (const r of reasons) {
-        const bulletLines = wrap(`• ${r}`, maxWidth, font, 10);
-        for (const line of bulletLines) {
+        const reasonLines = wrap(r, maxWidth, font, 10);
+        for (const line of reasonLines) {
           ensureSpace(12);
           page.drawText(line, { x: margin, y, size: 10, font, color: rgb(0.12, 0.12, 0.12) });
           y -= 12;
         }
+        y -= 4;
       }
-      y -= 6;
+      ensureSpace(20);
+      page.drawText(DISPUTE_DELETE_NOW, {
+        x: margin,
+        y,
+        size: 12,
+        font: fontBold,
+        color: rgb(0.12, 0.12, 0.12),
+      });
+      y -= 18;
     }
 
     // Optional narrative (AI drafted or user-entered) under reasons.

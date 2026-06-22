@@ -32,7 +32,8 @@ import { TEMPLATE_VARIANTS, TEMPLATE_TONES } from '../../templates/variants';
 import type { TemplateTone, TemplateVariantRecipe } from '../../domain/templates';
 import { renderTemplate } from '../../templates/render';
 import { DisputePickerModal, type SelectedDispute } from '../disputes/DisputePickerModal';
-import { rankEvidenceMatches, scoreEvidenceForAccount } from '../../utils/evidenceMatch';
+import { rankEvidenceMatches, scoreEvidenceForAccount, evidenceMatchesAccount, describeEvidenceMismatch, EVIDENCE_MATCH_ATTACH_MIN } from '../../utils/evidenceMatch';
+import { formatNumberedDisputeReasons, DISPUTE_DELETE_NOW } from '../../letters/disputeLetterFormat';
 import {
   clearLettersCommandCenterDraft,
   loadLettersCommandCenterDraft,
@@ -160,7 +161,7 @@ function renderDisputeSnapshotHtml(args: {
 
   const itemsHtml = (args.items || [])
     .map((it, idx) => {
-      const reasons = (it.reasons ?? []).map((r) => r.trim()).filter(Boolean);
+      const reasons = formatNumberedDisputeReasons(it.reasons ?? []);
       const narrative = (it.narrative || '').trim();
       const evName = (it.evidence?.filename || '').trim();
       return `
@@ -178,10 +179,11 @@ function renderDisputeSnapshotHtml(args: {
           }
           ${
             reasons.length
-              ? `<div style="margin-top:8px;color:rgba(255,255,255,0.7);font-size:12px">Reasons:</div>
-                 <ul style="margin-top:6px;color:rgba(255,255,255,0.75);font-size:12px;line-height:1.6">
-                   ${reasons.map((r) => `<li>${esc(r)}</li>`).join('')}
-                 </ul>`
+              ? `<div style="margin-top:8px;color:rgba(255,255,255,0.7);font-size:12px">Factual dispute reasons:</div>
+                 <ol style="margin-top:6px;color:rgba(255,255,255,0.75);font-size:12px;line-height:1.6;padding-left:18px">
+                   ${reasons.map((r) => `<li>${esc(r.replace(/^\d+\.\s*/, ''))}</li>`).join('')}
+                 </ol>
+                 <div style="margin-top:10px;font-weight:700;letter-spacing:0.08em">${esc(DISPUTE_DELETE_NOW)}</div>`
               : ''
           }
           ${
@@ -227,34 +229,30 @@ function renderDisputeSnapshotHtml(args: {
 
 function defaultDisputeIntro(tone: LetterTone) {
   if (tone === 'formal') {
-    return `TO WHOM IT MAY CONCERN,\n\nI am writing to dispute inaccurate and/or unverified information appearing on my credit file. This letter applies only to the items listed below.\n\nPlease investigate and provide written results. If any item cannot be verified as reported with competent evidence, it must be deleted or corrected.`;
+    return `TO WHOM IT MAY CONCERN,\n\nI am writing because inaccurate information on my credit report is blocking credit, housing, and financing I need. I pulled my report, compared it to my records and the attached screenshot exhibits, and found reporting that is factually wrong or internally inconsistent.\n\nThis letter applies only to the items listed below. Each numbered reason states one factual problem visible on my report. Please review the exhibit and delete inaccurate reporting.`;
   }
   if (tone === 'conversational') {
-    return `Hello,\n\nI’m reaching out because several items still look inaccurate or incomplete on my credit file. This letter applies only to the items listed below.\n\nPlease reinvestigate and send me the results in writing. If an item can’t be verified, please delete or correct it.`;
+    return `Hello,\n\nSomething on my credit report does not add up, and it is getting in the way of credit and housing goals I am working toward. I pulled my report, compared it to my records and the attached screenshots, and found reporting that is factually wrong.\n\nThis letter applies only to the items listed below. Please review each numbered reason and delete what is reporting incorrectly.`;
   }
-  return `Hello,\n\nI’m following up to dispute inaccurate and/or unverified information on my credit file. This letter applies only to the items listed below.\n\nPlease reinvestigate and provide written results. If verification cannot be produced, the item must be deleted or corrected.`;
+  return `Hello,\n\nI am disputing inaccurate information on my credit file that is affecting my ability to obtain credit. I pulled my report, compared it to my records and the attached exhibits, and found specific factual problems listed below.\n\nThis letter applies only to the items listed below. Please review the exhibit and delete inaccurate reporting.`;
 }
 
 function defaultDisputeFooter(tone: LetterTone) {
   if (tone === 'formal') {
     return (
-      `Please complete your reinvestigation and provide the results in writing within the time period required by applicable law (typically 30 days). ` +
-      `If you verify any item, please provide the method of verification and a complete description of the procedures used to determine accuracy.\n\n` +
-      `I also request that you do not sell, share, or disclose my personal information beyond what is required to conduct this reinvestigation, ` +
-      `and that you honor any applicable opt-out preferences. Please communicate results in writing.`
+      `Please review the attached exhibits and numbered factual reasons. Delete any account or field that is reporting inaccurately as described. Send me an updated copy of my credit report showing what was deleted or corrected within the time period required by applicable law (typically 30 days).\n\n` +
+      `Please do not sell, share, or disclose my personal information beyond what is required to process this dispute.`
     );
   }
   if (tone === 'conversational') {
     return (
-      `Please send me the results in writing within the time period required by law (typically 30 days). ` +
-      `If you say an item is verified, please tell me how you verified it.\n\n` +
-      `Also, please don’t share or sell my personal information beyond what’s required to complete this investigation.`
+      `Please review the exhibit and numbered reasons and delete what is reporting wrong. Send me an updated report in writing within the time required by law (typically 30 days).\n\n` +
+      `Please do not share or sell my personal information beyond what is needed to handle this dispute.`
     );
   }
   return (
-    `Please complete your reinvestigation and provide the results in writing within the time period required by applicable law (typically 30 days). ` +
-    `If you verify any item, please provide the method of verification.\n\n` +
-    `Please do not sell or share my personal information beyond what is required to conduct this reinvestigation.`
+    `Please review the attached exhibits and numbered factual reasons and delete inaccurate reporting as described. Send written confirmation and an updated report within the time period required by applicable law (typically 30 days).\n\n` +
+    `Please do not sell or share my personal information beyond what is required to process this dispute.`
   );
 }
 
@@ -466,7 +464,7 @@ function DisputeLetterPaperPreview({
                   <div className="space-y-6">
                     {p.blocks.map(({ it, idx }) => {
                       const key = it.candidate.id || it.candidate.account;
-                      const reasons = (it.reasons ?? []).map((r) => r.trim()).filter(Boolean);
+                      const reasons = formatNumberedDisputeReasons(it.reasons ?? []);
                       const img = imgByKey[key]?.url || '';
                       return (
                         <div key={key} className="space-y-2">
@@ -496,16 +494,19 @@ function DisputeLetterPaperPreview({
                             </div>
                           )}
 
-                          <div className="text-[11px] font-semibold">Dispute reasons:</div>
+                          <div className="text-[11px] font-semibold">Factual dispute reasons:</div>
                           {reasons.length ? (
-                            <ul className="list-disc pl-5 text-[12px] leading-5">
+                            <ol className="list-decimal pl-5 text-[12px] leading-5 space-y-1">
                               {reasons.map((r, ri) => (
-                                <li key={ri}>{r}</li>
+                                <li key={ri}>{r.replace(/^\d+\.\s*/, '')}</li>
                               ))}
-                            </ul>
+                            </ol>
                           ) : (
                             <div className="text-[11px] text-black/50">No reasons selected for this item.</div>
                           )}
+                          {reasons.length ? (
+                            <div className="mt-2 text-[12px] font-bold tracking-wide">{DISPUTE_DELETE_NOW}</div>
+                          ) : null}
 
                           {(it.narrative || '').trim() ? (
                             <>
@@ -1183,7 +1184,11 @@ export function LettersCommandCenter({
           candidate: s.candidate as any,
           parsed,
           existing: (reasonsByCandidateId[s.key] ?? []).map((x) => x.trim()).filter(Boolean),
-          maxReasons: 8,
+          evidence: (() => {
+            const evId = evidenceByCandidateId[s.key];
+            return evId ? evidence.find((x) => x.id === evId) ?? null : null;
+          })(),
+          maxReasons: 5,
         });
         return ({
         key: s.key,
@@ -1218,7 +1223,8 @@ Return ONLY valid JSON (no markdown). Schema:
 
 WRITING STANDARD:
 - For EACH item narrative: use SELECTED_REASONS and DETECTED_ISSUES as first-person factual statements (creditor name, status line, balance, dates, payment-grid codes, cross-bureau differences). Quote field values when provided in ACCOUNT_FACTS.
-- NEVER rewrite reasons as bureau commands ("please verify", "please delete", "pursuant to", "method of verification", "demand reinvestigation"). Those belong in the letter closing, not in per-item reasons.
+- NEVER rewrite reasons as bureau commands ("please verify", "please delete", "pursuant to", "method of verification", "demand reinvestigation", "reinvestigation"). Those belong in the letter closing, not in per-item reasons.
+- Each factual reason must be ONE clear point (one date problem, one balance contradiction, one cross-bureau difference). No semicolon field dumps or Metro 2 codes.
 - PLAYBOOK_HINT is internal strategy context only — do not paste command-style language from it.
 - Use ONLY provided facts. NEVER invent balances, dates, account numbers, or legal citations. Use [BRACKET] placeholders when facts are missing and add to "questions".
 - If EVIDENCE_ATTACHED is yes, note the exhibit supports the factual discrepancy described.
@@ -1383,6 +1389,20 @@ WRITING STANDARD:
     setPdfErr(null);
     setPdfBusyByBureau((prev) => ({ ...prev, [b]: true }));
     try {
+      const evidenceMismatches = items
+        .map((s) => {
+          const evId = evidenceByCandidateId[s.key];
+          const ev = evId ? evidence.find((x) => x.id === evId) : null;
+          if (!ev) return null;
+          if (evidenceMatchesAccount({ accountName: s.candidate.account, candidateType: s.candidate.type, evidence: ev })) return null;
+          return `${s.candidate.account}: ${describeEvidenceMismatch({ accountName: s.candidate.account, evidence: ev })}`;
+        })
+        .filter(Boolean) as string[];
+      if (evidenceMismatches.length) {
+        setPdfErr(`Evidence mismatch — fix before generating:\n${evidenceMismatches.join('\n')}`);
+        return;
+      }
+
       // Auto-fill: if an item has no selected reasons, apply the top suggested baseline reasons
       // so generation is never blocked by an empty reasons list.
       const autoFilledReasonsByCandidateId: Record<string, string[]> = { ...reasonsByCandidateId };
@@ -1393,11 +1413,14 @@ WRITING STANDARD:
         if (cur.length >= 3) continue;
         const rid = (s.source.kind === 'report' ? s.source.reportId : '') || s.candidate.reportId || '';
         const parsed = rid ? parsedByReportId.get(rid) : undefined;
+        const evId = evidenceByCandidateId[s.key];
+        const ev = evId ? evidence.find((x) => x.id === evId) : null;
         const aiRes = await buildDisputeReasonsWithAi({
           candidate: s.candidate as any,
           parsed,
           existing: cur,
-          maxReasons: 12,
+          evidence: ev,
+          maxReasons: 5,
           preferAi: true,
         });
         const enriched = aiRes.reasons;
@@ -1992,12 +2015,16 @@ useEffect(() => {
       const texts = buildEnrichedReasonsForCandidate({
         candidate: s.candidate as any,
         parsed,
-        maxReasons: 12,
+        evidence: (() => {
+          const evId = evidenceByCandidateId[s.key];
+          return evId ? evidence.find((x) => x.id === evId) ?? null : null;
+        })(),
+        maxReasons: 5,
       });
       m[s.key] = texts.map((text, idx) => ({ id: `${s.key}_${idx}`, text }));
     }
     return m;
-  }, [selectedDisputes, parsedByReportId]);
+  }, [selectedDisputes, parsedByReportId, evidenceByCandidateId, evidence]);
 
   // --- Validation/Court letter flow (Debt module) ---
   const debtCases = useMemo(() => (partner ? listDebtByPartner(partner.id) : []), [partner]);
@@ -2359,7 +2386,10 @@ useEffect(() => {
           items={evidencePickerItems}
           selectedEvidenceId={evidencePicker.candidateId ? evidenceByCandidateId[evidencePicker.candidateId] : undefined}
           filter="screenshots"
-          emptyHint="No screenshots taken yet. Capture screenshots from Reports (Accounts/Collections) or upload an image here."
+          matchAccount={evidencePickerCandidate?.candidate.account}
+          matchCandidateType={evidencePickerCandidate?.candidate.type}
+          strictAccountMatch={Boolean(evidencePicker.candidateId)}
+          emptyHint="No matching screenshots for this account. Capture a screenshot from Reports that shows this creditor name."
           onGoCapture={() => goCapture({ candidate: evidencePickerCandidate })}
           pickLabel="Attach"
           onPick={
@@ -2368,6 +2398,15 @@ useEffect(() => {
                   const cid = evidencePicker.candidateId!;
                   const s = selectedDisputes.find((x) => x.key === cid) ?? null;
                   const requested = evidence.find((x) => x.id === evidenceId) ?? null;
+                  if (s && requested && !evidenceMatchesAccount({
+                    accountName: s.candidate.account,
+                    candidateType: s.candidate.type,
+                    evidence: requested,
+                  })) {
+                    setPdfErr(describeEvidenceMismatch({ accountName: s.candidate.account, evidence: requested }));
+                    return;
+                  }
+
                   const requestedScore =
                     s && requested ? scoreEvidenceForAccount({ accountName: s.candidate.account, candidateType: s.candidate.type, evidence: requested }) : 0;
 
@@ -2378,9 +2417,18 @@ useEffect(() => {
 
                   const shouldAutoFix =
                     Boolean(s && best && best.evidenceId) &&
-                    (best!.score >= 0.78 && (requestedScore < 0.58 || best!.score >= requestedScore + 0.22));
+                    (best!.score >= 0.78 && (requestedScore < EVIDENCE_MATCH_ATTACH_MIN || best!.score >= requestedScore + 0.22));
 
                   const finalEvidenceId = shouldAutoFix ? best!.evidenceId : evidenceId;
+                  const finalEvidence = evidence.find((x) => x.id === finalEvidenceId) ?? null;
+                  if (s && finalEvidence && !evidenceMatchesAccount({
+                    accountName: s.candidate.account,
+                    candidateType: s.candidate.type,
+                    evidence: finalEvidence,
+                  })) {
+                    setPdfErr(describeEvidenceMismatch({ accountName: s.candidate.account, evidence: finalEvidence }));
+                    return;
+                  }
 
                   setEvidenceByCandidateId((prev) => ({ ...prev, [cid]: finalEvidenceId }));
                   setAutoMatchNoteByCandidateId((prev) => {
@@ -3991,14 +4039,20 @@ useEffect(() => {
 
                                   <div className="rounded-xl border border-white/[0.08] bg-black/40 p-4 space-y-3">
                                     {ev &&
-                                      scoreEvidenceForAccount({
+                                      !evidenceMatchesAccount({
                                         accountName: focused.candidate.account,
                                         candidateType: focused.candidate.type,
                                         evidence: ev,
-                                      }) < 0.4 && (
-                                        <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-amber-100/90 text-sm">
-                                          <ShieldAlert size={14} className="inline mr-2 align-text-bottom" />
-                                          Screenshot may not match this account. Consider replacing with a capture that clearly shows &quot;{focused.candidate.account}&quot; for a stronger dispute.
+                                      }) && (
+                                        <div className="rounded-xl border-2 border-red-500/50 bg-red-500/15 p-4 text-red-100 text-sm space-y-2">
+                                          <div className="flex items-start gap-3">
+                                            <ShieldAlert size={18} className="shrink-0 text-red-300 mt-0.5" />
+                                            <div>
+                                              <p className="font-bold uppercase tracking-wide text-red-200">Evidence mismatch</p>
+                                              <p className="mt-2 leading-relaxed">{describeEvidenceMismatch({ accountName: focused.candidate.account, evidence: ev })}</p>
+                                              <p className="mt-2 text-red-200/90">Replace this screenshot before generating the letter. Mismatched exhibits can cause bureau rejection.</p>
+                                            </div>
+                                          </div>
                                         </div>
                                       )}
                                     <div className="flex items-center justify-between gap-3">
@@ -4687,7 +4741,7 @@ useEffect(() => {
         {layout === 'embedded' ? (
           <details className="fc-light-glass-panel fc-light-chrome-panel p-4 mt-6">
             <summary className="cursor-pointer list-none flex flex-wrap items-center justify-between gap-3 [&::-webkit-details-marker]:hidden">
-              <div className="text-[10px] uppercase tracking-widest text-white/40">Client journey · letter workflow</div>
+              <div className="text-[10px] uppercase tracking-widest text-white/40">Customer journey · letter workflow</div>
               <div className="text-[10px] font-black uppercase tracking-widest text-white/70">{restoreHud.pct}% complete</div>
             </summary>
             <div className="mt-4 space-y-3 border-t border-white/10 pt-4">

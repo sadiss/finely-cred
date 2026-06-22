@@ -49,7 +49,7 @@ export function DashboardDoNextStrip({
           { id: 'hub', label: 'Hub', value: 'Open', accent: 'violet' as const, onClick: () => navigate('/credit-specialist/hub') },
           { id: 'disputes', label: 'Disputes', value: String(openCasesCount), accent: 'fuchsia' as const, onClick: () => navigate('/portal/disputes') },
           { id: 'messages', label: 'Partnership', value: 'Line', accent: 'sky' as const, onClick: () => navigate('/portal/messages?hub=team&topic=credit_specialist_program') },
-          { id: 'clients', label: 'Clients', value: 'CRM', accent: 'emerald' as const, onClick: () => navigate('/admin/partners') },
+          { id: 'clients', label: 'Customers', value: 'CRM', accent: 'emerald' as const, onClick: () => navigate('/admin/partners') },
         ],
         primary: { label: 'Specialist hub', onClick: () => navigate('/credit-specialist/hub') },
         secondary: { label: 'Letter studio', onClick: () => navigate('/portal/letters') },

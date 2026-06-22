@@ -113,6 +113,7 @@ const AdminSettingsPage = lazy(() => import('./pages/admin/AdminSettingsPage'));
 const AdminBillingPage = lazy(() => import('./pages/admin/AdminBillingPage'));
 const ParsingLabPage = lazy(() => import('./pages/admin/ParsingLabPage'));
 const AdminSupportInboxPage = lazy(() => import('./pages/admin/AdminSupportInboxPage'));
+const AdminMessagesPage = lazy(() => import('./pages/admin/AdminMessagesPage'));
 const AdminWorkflowQueuePage = lazy(() => import('./pages/admin/AdminWorkflowQueuePage'));
 const AdminAutomationsPage = lazy(() => import('./pages/admin/AdminAutomationsPage'));
 const AdminCommsStudioPage = lazy(() => import('./pages/admin/AdminCommsStudioPage'));
@@ -548,7 +549,7 @@ function LandingRoute({ onGetStarted, onViewTradelines, onNavigate, addToCart, o
                 <Trophy size={14} className="inline mr-2" /> Reviews
               </p>
               <h2 className="text-3xl lg:text-5xl font-light text-white mb-4">
-                Client <span className="text-amber-500">Success Stories</span>
+                Customer /<span className="text-amber-500">Success Stories</span>
               </h2>
             </Reveal>
           </div>
@@ -653,7 +654,7 @@ function LandingRoute({ onGetStarted, onViewTradelines, onNavigate, addToCart, o
                   backgroundClip: 'text',
                   color: 'transparent'
                 }}>
-                Join thousands of clients who have transformed their credit and secured funding for their dreams.
+                Join thousands of customers who have transformed their credit and secured funding for their dreams.
               </p>
             </Reveal>
             <Reveal delay={450}>
@@ -1289,7 +1290,7 @@ function AppInner() {
           <div className={`${FINELY_OS_ENTITY_PANEL_INNER} ${FINELY_OS_ENTITY_BODY} space-y-2`}>
             <div className={`${FINELY_OS_ENTITY_VALUE} font-semibold`}>Why this is required</div>
             <ul className="list-disc pl-5 space-y-1">
-              <li>Partner/client files can include sensitive personal information and documents.</li>
+              <li>Partner/customer files can include sensitive personal information and documents.</li>
               <li>Production storage must support access control, audit logging, and secure file delivery.</li>
               <li>Local-only browser storage is not considered “vault-grade.”</li>
             </ul>
@@ -2358,6 +2359,14 @@ function AppInner() {
           element={
             <ProtectedAdminRoute>
               <AdminSupportInboxPage />
+            </ProtectedAdminRoute>
+          }
+        />
+        <Route
+          path="/admin/messages"
+          element={
+            <ProtectedAdminRoute>
+              <AdminMessagesPage />
             </ProtectedAdminRoute>
           }
         />

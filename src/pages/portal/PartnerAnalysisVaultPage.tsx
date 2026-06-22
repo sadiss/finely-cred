@@ -1,34 +1,22 @@
 import React, { useMemo, useState } from 'react';
-import { ArrowLeft, FileText, ExternalLink } from 'lucide-react';
+import { ArrowLeft, FileText } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { PageShell } from '../../components/layout/PageShell';
 import { usePartnerSession } from '../../auth/PartnerSessionContext';
-import { listEvidenceByPartner } from '../../data/evidenceRepo';
-import { getBlobUrl } from '../../storage/getBlobUrl';
-import { openUrlInNewTab } from '../../utils/download';
+import { listCreditAnalysisReportsByPartner } from '../../data/creditAnalysisReportsRepo';
 import { EntitlementGate } from '../../components/billing/EntitlementGate';
 import { ENTITLEMENT_KEYS } from '../../billing/entitlements';
 import { FinelyOsEmptyState } from '../../features/os/FinelyOsEmptyState';
 import { FinelyOsPageFooter } from '../../features/os/FinelyOsPageFooter';
 import { FinelyUnifiedHubLayout } from '../../features/unified/FinelyUnifiedHubLayout';
-import { FinelyOsPaginatedStack } from '../../features/os/FinelyOsPaginatedStack';
+import { CreditAnalysisDeliverableStrip } from '../../components/reports/CreditAnalysisDeliverableCard';
 import {
   FINELY_OS_PAGE,
   FINELY_OS_BACK_LINK,
   FINELY_OS_ENTITY_BODY,
   finelyOsCatalogCard,
-  FINELY_OS_ENTITY_SUBLABEL,
-  FINELY_OS_ENTITY_VALUE,
   FINELY_OS_SUCCESS_BTN,
 } from '../../features/os/finelyOsLightUi';
-
-function fmtWhen(iso: string) {
-  try {
-    return new Date(iso).toLocaleString();
-  } catch {
-    return iso;
-  }
-}
 
 type VaultTab = 'overview' | 'reports';
 
@@ -36,35 +24,32 @@ export default function PartnerAnalysisVaultPage() {
   const navigate = useNavigate();
   const { partner } = usePartnerSession();
   const [tab, setTab] = useState<VaultTab>('reports');
+  const [version, setVersion] = useState(0);
 
   const items = useMemo(() => {
     if (!partner) return [];
-    const all = listEvidenceByPartner(partner.id);
-    return all
-      .filter((e) => (e.tags ?? []).includes('analysis_report'))
-      .slice()
-      .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-  }, [partner]);
+    return listCreditAnalysisReportsByPartner(partner.id);
+  }, [partner, version]);
+
+  React.useEffect(() => {
+    const onStore = () => setVersion((v) => v + 1);
+    window.addEventListener('finely:store', onStore as EventListener);
+    return () => window.removeEventListener('finely:store', onStore as EventListener);
+  }, []);
 
   const sourceReportCount = useMemo(() => new Set(items.map((x) => x.reportId).filter(Boolean)).size, [items]);
-
-  const openPdf = async (blobRef: string, mimeType?: string) => {
-    const res = await getBlobUrl(blobRef, { mimeType: mimeType || 'application/pdf' });
-    if (!res?.url) return;
-    openUrlInNewTab({ url: res.url, revoke: res.revoke, revokeAfterMs: 60_000 });
-  };
 
   return (
     <PageShell
       badge="Partner Portal"
-      title="Analysis Vault"
-      subtitle="Your saved Credit Analysis Reports (PDF). Generate new ones from Reports, and keep versions here."
+      title="Strategy Reports"
+      subtitle="Your saved credit analysis PDFs — a separate deliverable from dispute evidence."
     >
       {!partner ? (
         <FinelyOsEmptyState
           icon={FileText}
           title="No partner profile"
-          description="Sign in with a partner account to view saved analysis reports."
+          description="Sign in with a partner account to view saved strategy reports."
           primaryAction={{ label: 'Back to dashboard', onClick: () => navigate('/dashboard') }}
         />
       ) : (
@@ -75,15 +60,15 @@ export default function PartnerAnalysisVaultPage() {
             </button>
 
             <FinelyUnifiedHubLayout
-              eyebrow="Analysis vault"
-              title="Saved credit analysis PDFs"
-              subtitle="Generate new reports from Credit Intel — every version lands here for disputes and funding prep."
+              eyebrow="Strategy reports"
+              title="Your credit analysis library"
+              subtitle="Generate from Credit Intel after uploading a report — open or download any version here."
               accent="violet"
               kpis={[
                 { label: 'Saved', value: String(items.length), hint: 'PDF reports', accent: 'violet' },
                 { label: 'Sources', value: String(sourceReportCount), hint: 'Upload reports', accent: 'amber' },
-                { label: 'Latest', value: items[0] ? fmtWhen(items[0].createdAt).split(',')[0] : '—', hint: 'Most recent', accent: 'sky' },
-                { label: 'Vault', value: 'Linked', hint: 'Documents', accent: 'emerald' },
+                { label: 'Latest', value: items[0] ? new Date(items[0].createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : '—', hint: 'Most recent', accent: 'sky' },
+                { label: 'Format', value: 'PDF', hint: 'Open or download', accent: 'emerald' },
               ]}
               tabs={[
                 { id: 'overview', label: 'Overview' },
@@ -96,10 +81,9 @@ export default function PartnerAnalysisVaultPage() {
             >
               {tab === 'overview' && (
                 <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony ${FINELY_OS_ENTITY_BODY} space-y-3`}>
-                  <p>After you upload and parse a credit report, generate a Credit Analysis PDF from the Reports hub. Each saved version appears here with open-in-new-tab access.</p>
-                  <p>Use these PDFs for dispute prep, specialist review, and funding-readiness conversations.</p>
+                  <p>After you upload and parse a credit report, generate a strategy PDF from the Reports hub. Each version is saved here with open and download actions.</p>
                   <button type="button" onClick={() => navigate('/portal/reports')} className={FINELY_OS_SUCCESS_BTN}>
-                    Open Reports <ExternalLink size={14} />
+                    Open Reports
                   </button>
                 </div>
               )}
@@ -109,41 +93,12 @@ export default function PartnerAnalysisVaultPage() {
                   {items.length === 0 ? (
                     <FinelyOsEmptyState
                       icon={FileText}
-                      title="No analysis reports yet"
-                      description="Generate a Credit Analysis PDF from Reports after you upload and parse a credit file."
+                      title="No strategy reports yet"
+                      description="Generate a credit analysis PDF from Reports after you upload and parse a credit file."
                       primaryAction={{ label: 'Open Reports', onClick: () => navigate('/portal/reports') }}
                     />
                   ) : (
-                    <FinelyOsPaginatedStack
-                      items={items}
-                      pageSize={12}
-                      itemSpacingClassName="grid lg:grid-cols-2 gap-4"
-                      renderItem={(e) => (
-                        <div key={e.id} className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony space-y-3`}>
-                          <div className="flex items-start justify-between gap-4">
-                            <div className="min-w-0">
-                              <div className="flex items-center gap-2 text-violet-300">
-                                <FileText size={18} />
-                                <div className={`${FINELY_OS_ENTITY_VALUE} truncate`}>{e.caption || e.filename}</div>
-                              </div>
-                              <div className={`mt-2 text-[12px] ${FINELY_OS_ENTITY_BODY}`}>
-                                {fmtWhen(e.createdAt)}
-                                {e.reportId ? <span className="text-white/35"> • </span> : null}
-                                {e.reportId ? <span className="text-white/50">report: {String(e.reportId).slice(0, 8)}</span> : null}
-                              </div>
-                              <div className={`mt-1 text-[12px] truncate ${FINELY_OS_ENTITY_SUBLABEL}`}>{e.filename}</div>
-                            </div>
-                            <button
-                              type="button"
-                              onClick={() => void openPdf(e.blobRef, e.mimeType)}
-                              className={`shrink-0 ${FINELY_OS_SUCCESS_BTN}`}
-                            >
-                              Open <ExternalLink size={16} />
-                            </button>
-                          </div>
-                        </div>
-                      )}
-                    />
+                    <CreditAnalysisDeliverableStrip items={items} />
                   )}
                 </>
               )}

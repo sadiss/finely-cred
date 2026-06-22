@@ -6,6 +6,8 @@ import { useAuth } from '../../auth/AuthProvider';
 import { usePartnerSession } from '../../auth/PartnerSessionContext';
 import { listLettersByPartner, setLetterArchived, upsertLetter } from '../../data/lettersRepo';
 import { listEvidenceByPartner } from '../../data/evidenceRepo';
+import { listCreditAnalysisReportsByPartner } from '../../data/creditAnalysisReportsRepo';
+import { CreditAnalysisDeliverableStrip } from '../../components/reports/CreditAnalysisDeliverableCard';
 import { openBlobRefInNewTab } from '../../lib/openBlobRef';
 import type { LetterRecord, LetterStatus } from '../../domain/letters';
 import { isFeatureEnabled } from '../../data/settingsRepo';
@@ -65,11 +67,7 @@ export default function PartnerLettersVaultPage() {
   const letters = useMemo(() => (partner ? listLettersByPartner(partner.id) : []), [partner]);
   const analysisReports = useMemo(() => {
     if (!partner) return [];
-    return listEvidenceByPartner(partner.id)
-      .filter((e: any) => Array.isArray((e as any).tags) && (e as any).tags.includes('analysis_report'))
-      .filter((e: any) => String((e as any).mimeType || '').toLowerCase() === 'application/pdf')
-      .slice()
-      .sort((a: any, b: any) => String(b.createdAt || '').localeCompare(String(a.createdAt || '')));
+    return listCreditAnalysisReportsByPartner(partner.id);
   }, [partner]);
   const [status, setStatus] = useState<LetterStatus | 'all'>('all');
   const [mailOpen, setMailOpen] = useState(false);
@@ -451,36 +449,11 @@ export default function PartnerLettersVaultPage() {
             )}
 
             {hubTab === 'analysis' && (
-          <FinelyUnifiedSection title="Saved analysis reports" subtitle="Credit Analysis Reports from your uploads — stored as PDFs.">
-            {analysisReports.length === 0 ? (
-              <div className={FINELY_OS_ENTITY_BODY}>
-                None yet. Generate one from{' '}
-                <button type="button" className={FINELY_OS_ENTITY_ACCENT_LINK} onClick={() => navigate('/portal/reports')}>
-                  Reports
-                </button>
-                .
-              </div>
-            ) : (
-              <div className="grid lg:grid-cols-2 gap-4">
-                {analysisReports.slice(0, 12).map((r: any) => (
-                  <div key={r.id} className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony space-y-3`}>
-                    <div className={`${FINELY_OS_ENTITY_VALUE} truncate`}>{r.filename || 'Credit Analysis Report.pdf'}</div>
-                    <div className={FINELY_OS_ENTITY_SUBLABEL}>
-                      {fmtWhen(r.createdAt)} • report_id:{String(r.reportId || '—').slice(0, 8)}
-                    </div>
-                    {r.caption ? <div className={`${FINELY_OS_ENTITY_BODY} line-clamp-2`}>{r.caption}</div> : null}
-                    <div className="flex flex-wrap items-center gap-2">
-                      <button type="button" onClick={() => void openEvidencePdf(r)} className={FINELY_OS_SUCCESS_BTN}>
-                        <Download size={14} /> Open PDF
-                      </button>
-                      <button type="button" onClick={() => navigate('/portal/documents')} className={FINELY_OS_SECONDARY_BTN}>
-                        View in Documents <Send size={14} />
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
+          <FinelyUnifiedSection title="Strategy reports" subtitle="Credit analysis PDFs — separate from dispute evidence.">
+            <CreditAnalysisDeliverableStrip
+              items={analysisReports}
+              emptyHint="None yet. Generate one from Reports after uploading and parsing a credit file."
+            />
           </FinelyUnifiedSection>
             )}
           </FinelyUnifiedHubLayout>

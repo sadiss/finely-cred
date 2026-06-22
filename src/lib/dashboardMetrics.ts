@@ -66,7 +66,7 @@ export function buildDashboardMetrics(args: {
           id: 'denefits_stream',
           label: 'Denefit contracts',
           value: 'Model',
-          sublabel: 'In-house financing • Equifax reporting as clients pay',
+          sublabel: 'In-house financing • Equifax reporting as customers pay',
           accent: 'emerald',
           actionLabel: 'Denefit calculator',
           actionPath: `${CS.hubPath}?tab=economics`,

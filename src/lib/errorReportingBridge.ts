@@ -1,4 +1,4 @@
-/** Client error capture for ops monitoring — Sentry-ready hook (Phase 44). */
+/** Customer /error capture for ops monitoring — Sentry-ready hook (Phase 44). */
 import { loadJson, saveJson } from '../data/localJsonStore';
 
 const KEY = 'finely.errorReports.v1';

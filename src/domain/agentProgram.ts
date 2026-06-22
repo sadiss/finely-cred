@@ -118,7 +118,7 @@ export const AGENT_TRAINING_PHASES: {
   {
     id: 'apprenticeship',
     label: 'Apprenticeship',
-    description: 'We co-run client files while you learn. You keep at least ~28% while training — split improves as you graduate.',
+    description: 'We co-run customer files while you learn. You keep at least ~28% while training — split improves as you graduate.',
     platformBasePct: 70,
   },
   {
@@ -193,7 +193,7 @@ export const PLATFORM_VALUE_LEVERS: {
   {
     id: 'software_platform',
     label: 'Finely software stack',
-    description: 'CRM, client portal, disputes, letters, tasks, documents, billing rails.',
+    description: 'CRM, customer portal, disputes, letters, tasks, documents, billing rails.',
     weight: 10,
     category: 'platform',
     defaultByPhase: { apprenticeship: 'platform', guided: 'shared', independent: 'agent', partner: 'agent' },
@@ -248,7 +248,7 @@ export const PLATFORM_VALUE_LEVERS: {
   },
   {
     id: 'client_onboarding',
-    label: 'Client onboarding',
+    label: 'Customer /onboarding',
     description: 'Intake, credit pull coordination, welcome sequences, and kickoff calls.',
     weight: 6,
     category: 'fulfillment',
@@ -480,7 +480,7 @@ export const AGENT_TRAINING_MODULES: AgentTrainingModule[] = [
     id: 'platform_mastery',
     specialtyId: 'personal_build',
     title: 'Platform mastery',
-    description: 'CRM, tasks, messages, calendar, documents, and client portal best practices.',
+    description: 'CRM, tasks, messages, calendar, documents, and customer portal best practices.',
     estimatedHours: 3,
     checklist: ['Run a file end-to-end in sandbox', 'Set notification preferences', 'Book mentor checkpoint'],
     hubPath: '/portal/dashboard',

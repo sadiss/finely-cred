@@ -40,7 +40,7 @@ function servicesAgreementLabel(role: OnboardingRole): string {
   if (role === 'agent') return 'Independent Credit Specialist Agreement';
   if (role === 'affiliate') return 'Affiliate Agreement';
   if (role === 'au_seller') return 'AU Seller & Supply Agreement';
-  return 'Client Portal & Services Agreement';
+  return 'Customer Portal & Services Agreement';
 }
 
 function servicesAgreementSummary(role: OnboardingRole): string {

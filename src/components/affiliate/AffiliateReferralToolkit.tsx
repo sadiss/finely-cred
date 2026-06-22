@@ -111,7 +111,7 @@ export function AffiliateReferralToolkit() {
       <div className="fc-light-glass-panel fc-light-chrome-panel rounded-xl p-4 flex items-start gap-3 text-sm text-white/55">
         <QrCode size={18} className="text-sky-400 shrink-0 mt-0.5" />
         <p>
-          Tip: pair these links with your commission calculator numbers when pitching — upfront package commission plus recurring membership share, and Denefit contract streams when clients finance in-house.
+          Tip: pair these links with your commission calculator numbers when pitching — upfront package commission plus recurring membership share, and Denefit contract streams when customers finance in-house.
         </p>
       </div>
     </div>

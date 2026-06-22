@@ -1,8 +1,11 @@
 import type { EvidenceItem } from '../domain/evidence';
 
+const CORP_SUFFIX = /\b(llc|inc|corp|co|ltd|lp|llp|pllc|na|n\.a\.)\b/gi;
+
 function norm(raw: string): string {
   return (raw || '')
     .toLowerCase()
+    .replace(CORP_SUFFIX, '')
     .replace(/[^a-z0-9]+/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();
@@ -29,6 +32,9 @@ export type EvidenceMatch = {
   score: number; // 0..1
 };
 
+/** Minimum score to attach evidence to a dispute account without override. */
+export const EVIDENCE_MATCH_ATTACH_MIN = 0.58;
+
 export function inferSectionKeyFromCandidateType(candidateType: string): string | null {
   const t = norm(candidateType || '');
   if (!t) return null;
@@ -47,35 +53,65 @@ export function scoreEvidenceForAccount(args: {
   const account = norm(args.accountName || '');
   const evName = norm(args.evidence.creditorName || '');
   const cap = norm(args.evidence.caption || '');
+  const file = norm(args.evidence.filename || '');
 
   if (!account) return 0;
 
+  const accountTok = tokens(account);
+  const nameTok = tokens(evName);
+  const capTok = tokens(cap);
+  const fileTok = tokens(file);
+
   let score = 0;
 
-  // Strong name matches
-  if (evName && account === evName) score = Math.max(score, 1.0);
-  if (evName && (account.includes(evName) || evName.includes(account))) score = Math.max(score, 0.85);
+  if (evName && account === evName) score = 1;
+  else if (evName && (account.includes(evName) || evName.includes(account))) score = 0.9;
+  else {
+    const jName = jaccard(accountTok, nameTok);
+    const jCap = jaccard(accountTok, capTok);
+    const jFile = jaccard(accountTok, fileTok);
+    const j = Math.max(jName, jCap, jFile);
+    if (j >= 0.45) score = 0.62 + j * 0.35;
+    else if (j >= 0.3) score = 0.48 + j * 0.25;
+    else if (j >= 0.2) score = 0.28 + j * 0.2;
+  }
 
-  // Token overlap
-  const j = jaccard(tokens(account), tokens(evName || cap));
-  score = Math.max(score, 0.35 + j * 0.55);
+  // Hard penalty when evidence names a different creditor than the dispute target.
+  if (evName && score < 0.55) {
+    const j = jaccard(accountTok, nameTok);
+    if (j < 0.18) score = Math.min(score, 0.1);
+  }
 
-  // Prefer tradeline screenshots for tradeline-like matches
-  if (args.evidence.source === 'tradeline_screenshot') score += 0.05;
+  if (args.evidence.source === 'tradeline_screenshot' && score >= 0.45) score += 0.04;
 
-  // If the candidate implies a section type, prefer matching sectionKey
   const wantSectionKey = inferSectionKeyFromCandidateType(args.candidateType || '');
-  if (wantSectionKey && norm(args.evidence.sectionKey || '') === wantSectionKey) score += 0.08;
+  if (wantSectionKey && norm(args.evidence.sectionKey || '') === wantSectionKey && score >= 0.4) {
+    score += 0.04;
+  }
 
-  // Clamp
   if (score > 1) score = 1;
   if (score < 0) score = 0;
   return score;
 }
 
+export function evidenceMatchesAccount(args: {
+  accountName: string;
+  candidateType?: string;
+  evidence: EvidenceItem;
+}): boolean {
+  return scoreEvidenceForAccount(args) >= EVIDENCE_MATCH_ATTACH_MIN;
+}
+
 export function rankEvidenceMatches(args: { accountName: string; candidateType?: string; evidence: EvidenceItem[] }): EvidenceMatch[] {
   return (args.evidence || [])
-    .map((e) => ({ evidenceId: e.id, score: scoreEvidenceForAccount({ accountName: args.accountName, candidateType: args.candidateType, evidence: e }) }))
+    .map((e) => ({
+      evidenceId: e.id,
+      score: scoreEvidenceForAccount({ accountName: args.accountName, candidateType: args.candidateType, evidence: e }),
+    }))
     .sort((a, b) => b.score - a.score);
 }
 
+export function describeEvidenceMismatch(args: { accountName: string; evidence: EvidenceItem }): string {
+  const shown = args.evidence.creditorName?.trim() || args.evidence.caption?.trim() || args.evidence.filename;
+  return `This screenshot appears to show "${shown || 'another account'}", not "${args.accountName}". Attach a capture that clearly shows ${args.accountName} on the bureau report.`;
+}

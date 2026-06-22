@@ -48,7 +48,12 @@ export function EvidenceList({
   onDelete: (id: string) => void;
   onUpsert?: (item: EvidenceItem) => void;
 }) {
-  if (items.length === 0) {
+  const visibleItems = useMemo(
+    () => items.filter((e) => !(e.tags ?? []).includes('analysis_report')),
+    [items],
+  );
+
+  if (visibleItems.length === 0) {
     return <div className={FINELY_OS_ENTITY_BODY}>No evidence uploaded yet.</div>;
   }
 
@@ -187,9 +192,9 @@ export function EvidenceList({
 
       <div className="flex items-center justify-between gap-3">
         <div className={FINELY_OS_ENTITY_SUBLABEL}>
-          Evidence items <span className="font-mono normal-case">({items.length})</span>
+          Evidence items <span className="font-mono normal-case">({visibleItems.length})</span>
         </div>
-        {items.length > 8 ? (
+        {visibleItems.length > 8 ? (
           <button type="button" onClick={() => setExpanded((v) => !v)} className="fc-action-link fc-focus-ring">
             {expanded ? (
               <>
@@ -205,8 +210,8 @@ export function EvidenceList({
       </div>
 
       {(() => {
-        const clampOn = !expanded && items.length > 8;
-        const visible = clampOn ? items.slice(0, 10) : items;
+        const clampOn = !expanded && visibleItems.length > 8;
+        const visible = clampOn ? visibleItems.slice(0, 10) : visibleItems;
         return (
           <div className={clampOn ? 'relative overflow-hidden' : ''}>
             <div className="grid md:grid-cols-2 gap-3">
@@ -289,7 +294,7 @@ export function EvidenceList({
             </div>
             {clampOn ? (
               <div className={`mt-3 ${FINELY_OS_ENTITY_SUBLABEL} font-mono normal-case`}>
-                showing {visible.length} / {items.length}
+                showing {visible.length} / {visibleItems.length}
               </div>
             ) : null}
             {clampOn ? <div aria-hidden="true" className="fc-clamp-fade" /> : null}

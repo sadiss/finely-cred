@@ -1,4 +1,4 @@
-/** Client drain for server-enqueued automation rules (create_task / run_workflow). */
+/** Customer /drain for server-enqueued automation rules (create_task / run_workflow). */
 import type { AutomationRule } from '../domain/automationStudio';
 import { isSupabaseConfigured, supabase } from '../lib/supabaseClient';
 import { FINELY_TENANT_ID } from '../domain/tenants';

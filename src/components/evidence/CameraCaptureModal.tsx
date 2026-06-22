@@ -379,8 +379,8 @@ export function CameraCaptureModal({
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-[70] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="w-full max-w-6xl rounded-2xl border border-white/[0.08] bg-fc-shell shadow-2xl overflow-hidden">
+    <div className="fixed inset-0 z-[130] bg-black/85 backdrop-blur-md flex items-start sm:items-center justify-center p-0 sm:p-4 overflow-y-auto">
+      <div className="w-full max-w-6xl min-h-0 max-h-[100dvh] sm:max-h-[94vh] rounded-none sm:rounded-2xl border-0 sm:border border-white/[0.08] bg-fc-shell shadow-2xl overflow-hidden flex flex-col">
         <div className="flex items-center justify-between gap-4 p-4 border-b border-white/[0.08]">
           <div className="min-w-0">
             <div className="text-white font-semibold">{title}</div>
@@ -399,11 +399,11 @@ export function CameraCaptureModal({
           </button>
         </div>
 
-        <div className="grid lg:grid-cols-12 gap-0">
-          <div className="lg:col-span-7 border-r border-white/[0.08] p-4 space-y-3">
+        <div className="grid lg:grid-cols-12 gap-0 flex-1 min-h-0 overflow-y-auto">
+          <div className="lg:col-span-7 border-r border-white/[0.08] p-3 sm:p-4 space-y-3">
             <div className="fc-light-glass-panel fc-light-chrome-panel overflow-hidden">
-              <div className="aspect-[4/3] sm:aspect-video bg-black relative overflow-hidden">
-                <video ref={videoRef} className="w-full h-full object-cover" playsInline muted autoPlay />
+              <div className="aspect-[3/4] sm:aspect-[4/3] max-h-[52vh] bg-black relative overflow-hidden">
+                <video ref={videoRef} className="w-full h-full object-contain bg-black" playsInline muted autoPlay />
                 <DocumentScannerGuideFrame
                   profile={docProfile}
                   guideCrop={guideCrop}

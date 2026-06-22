@@ -159,6 +159,6 @@ export const LEGACY_APPLICATION_STATUS_LABELS: Record<number, string> = {
   8: 'Letters sent',
   9: 'Letters received by bureau',
   10: 'Waiting bureau response',
-  11: 'Client received response',
-  12: 'Client sent scanned copy',
+  11: 'Customer /received response',
+  12: 'Customer /sent scanned copy',
 };

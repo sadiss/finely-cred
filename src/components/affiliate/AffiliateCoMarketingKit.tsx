@@ -18,7 +18,7 @@ import {
 const SOCIAL_SNIPPETS = [
   'Start with our free dispute letter guide — see what Finely Cred can do before you commit.',
   'Business credit is a sequence, not luck. Finely maps vendors → lender logic → funding readiness.',
-  'Credit Specialists run client files on Finely OS — disputes, letters, vault, and partner portal in one stack.',
+  'Credit Specialists run customer files on Finely OS — disputes, letters, vault, and partner portal in one stack.',
 ];
 
 function slugifyCode(raw: string): string {

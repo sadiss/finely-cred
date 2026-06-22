@@ -8,6 +8,7 @@ import {
   type CandidateInsight,
 } from '../creditReports/creditIntelInsights';
 import { PaginatedPdfWriter, wrapTextLines } from './creditAnalysisPdfWriter';
+import { buildCreditAnalysisFilename, buildCreditAnalysisTitle } from '../lib/creditAnalysisReportNaming';
 
 type Section = { title: string; bullets: string[] };
 export type AnalysisVariant = 'standard' | 'negatives_heavy' | 'funding_focus';
@@ -434,7 +435,7 @@ export async function generateCreditAnalysisReportPdf(args: {
   variant?: AnalysisVariant;
   exhibits?: ExhibitImage[];
   template?: CreditAnalysisReportTemplateConfig | null;
-}): Promise<{ blob: Blob; filename: string; pages: number; exhibitsIncluded: number }> {
+}): Promise<{ blob: Blob; filename: string; displayTitle: string; pages: number; exhibitsIncluded: number }> {
   const { PDFDocument, StandardFonts, rgb } = await import('pdf-lib');
   const pdf = await PDFDocument.create();
   const font = await pdf.embedFont(StandardFonts.Helvetica);
@@ -582,12 +583,24 @@ export async function generateCreditAnalysisReportPdf(args: {
     sigWriter.drawParagraph(pdfSafe(generatedLine), 10, 'Certification');
   }
 
-  const footerWriter = new PaginatedPdfWriter({ pdf, font, fontBold, accent, ink, soft });
-  footerWriter.drawFooters();
+  new PaginatedPdfWriter({ pdf, font, fontBold, accent, ink, soft }).drawFooters();
 
   const total = pdf.getPageCount();
   const bytes = await pdf.save();
-  const filename = `Credit_Analysis_Report_${partnerName.replace(/\s+/g, '_')}_${now.toISOString().slice(0, 10)}.pdf`;
-  return { blob: new Blob([bytes as unknown as BlobPart], { type: 'application/pdf' }), filename, pages: total, exhibitsIncluded };
+  const copy = new Uint8Array(bytes.byteLength);
+  copy.set(bytes);
+  const filename = buildCreditAnalysisFilename({ partnerName, generatedAt: now });
+  const displayTitle = buildCreditAnalysisTitle({
+    partnerName,
+    generatedAt: now,
+    sourceReportFilename: args.report.filename,
+  });
+  return {
+    blob: new Blob([copy], { type: 'application/pdf' }),
+    filename,
+    displayTitle,
+    pages: total,
+    exhibitsIncluded,
+  };
 }
 

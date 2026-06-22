@@ -56,7 +56,7 @@ type RoleConfig = {
 
 const ROLE_CONFIG: Record<RoleType, RoleConfig> = {
   partner: {
-    title: 'Partner (client portal)',
+    title: 'Partner (customer portal)',
     shortLabel: 'Partner',
     icon: Users,
     accent: 'sky',
@@ -118,7 +118,7 @@ const ROLE_CONFIG: Record<RoleType, RoleConfig> = {
       { label: 'Assigned partner files', path: '/admin/partners' },
       { label: 'Ops tasks', path: '/admin/workflow' },
     ],
-    contracts: ['Agent operating agreement (program terms)', 'Client engagement under Finely brand'],
+    contracts: ['Agent operating agreement (program terms)', 'Customer /engagement under Finely brand'],
     payouts: ['Agent split on client revenue — see Finance / agent hub payout center', 'Configure method in agent profile'],
   },
   affiliate: {

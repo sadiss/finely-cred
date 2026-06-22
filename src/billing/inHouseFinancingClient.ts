@@ -2,7 +2,7 @@ import { loadJson, saveJson } from '../data/localJsonStore';
 import { newId } from '../utils/ids';
 
 /**
- * In-house financing rail (Denefit). User-facing brand: Denefit — contracts that report to Equifax as clients pay.
+ * In-house financing rail (Denefit). User-facing brand: Denefit — contracts that report to Equifax as customers pay.
  * Internal settings keys may still use `denefits` for API compatibility.
  */
 

@@ -632,7 +632,7 @@ function makeApprovals(): ApprovalItem[] {
 
   const out: ApprovalItem[] = [];
   for (let i = 0; i < 220; i++) {
-    const f = first[i % first.length] ?? 'Client';
+    const f = first[i % first.length] ?? 'Customer';
     const li = lastInitial[(i * 7) % lastInitial.length] ?? 'K';
     const b = banks[(i * 5) % banks.length] ?? banks[0]!;
     const amt = amounts[(i * 3) % amounts.length] ?? amounts[0]!;

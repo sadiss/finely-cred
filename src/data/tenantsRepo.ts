@@ -285,7 +285,7 @@ export function ensureFinelyPlatformAdminMembership(args: { userId: string; emai
     permissions: {
       canManageTeam: true,
       canManageBilling: true,
-      canViewAllClients: true,
+      canViewAllCustomers: true,
       canExportData: true,
     },
   });

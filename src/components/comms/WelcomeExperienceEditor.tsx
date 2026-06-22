@@ -72,7 +72,7 @@ export function WelcomeExperienceEditor({
             <span className="text-xs font-semibold uppercase tracking-wider">Welcome & intro experience</span>
           </div>
           <p className="mt-2 text-white/55 text-sm max-w-2xl">
-            Controls the banner clients see after sign-in, optional welcome email, and ties into{' '}
+            Controls the banner customers see after sign-in, optional welcome email, and ties into{' '}
             <button type="button" onClick={() => navigate('/admin/comms')} className="text-fuchsia-300 hover:text-fuchsia-200 underline">
               Comms Studio
             </button>{' '}

@@ -55,6 +55,7 @@ export function FinelyOsCatalogBrowser({
   renderTrailing,
   initialView = 'grid',
   showViewToggle = true,
+  titleClassName,
 }: {
   items: FinelyOsCatalogItem[];
   pageSize?: number;
@@ -68,6 +69,7 @@ export function FinelyOsCatalogBrowser({
   renderTrailing?: (item: FinelyOsCatalogItem) => React.ReactNode;
   initialView?: FinelyOsCatalogViewMode;
   showViewToggle?: boolean;
+  titleClassName?: string;
 }) {
   const [query, setQuery] = useState('');
   const [page, setPage] = useState(0);
@@ -123,7 +125,7 @@ export function FinelyOsCatalogBrowser({
             />
           ) : null}
           <div className="min-w-0 flex-1">
-            <div className={`${FINELY_OS_ENTITY_VALUE} ${compact ? 'text-sm line-clamp-1' : 'text-base line-clamp-2'}`}>{item.title}</div>
+            <div className={`${FINELY_OS_ENTITY_VALUE} ${titleClassName ?? ''} ${compact ? 'text-sm line-clamp-1' : 'text-base line-clamp-2'}`}>{item.title}</div>
             {item.subtitle ? <div className="text-[11px] text-violet-300/75 mt-1 font-medium font-mono">{item.subtitle}</div> : null}
           </div>
           {selectable ? (

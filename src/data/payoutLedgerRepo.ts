@@ -186,7 +186,7 @@ export function ensureAgentPayoutSeed(ownerId: string, ownerEmail?: string): Pay
     ownerId,
     ownerEmail,
     amountCents: agentShare,
-    source: 'Client revenue share • Restore package',
+    source: 'Customer /revenue share • Restore package',
     status: 'paid',
     paidAt: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000).toISOString(),
     notes: `Agent share on ${formatCents(clientFee)} client fee (platform ${formatCents(platformShare)})`,

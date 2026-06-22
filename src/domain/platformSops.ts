@@ -143,7 +143,7 @@ export const PLATFORM_SOP_LIBRARY: PlatformSop[] = [
   },
   {
     id: 'sop-admin-create-partner',
-    title: 'Create a client file (partner)',
+    title: 'Create a customer file (partner)',
     lane: 'admin',
     audience: 'admin',
     whenToUse: 'New client needs a partner record before reports or letters.',
@@ -164,7 +164,7 @@ export const PLATFORM_SOP_LIBRARY: PlatformSop[] = [
     whenToUse: 'Staff receives a client report and uploads on their behalf.',
     ownerRole: 'processing_agent',
     steps: [
-      { order: 1, label: 'Open client profile', detail: 'Find partner in directory.', route: '/admin/partners' },
+      { order: 1, label: 'Open customer profile', detail: 'Find partner in directory.', route: '/admin/partners' },
       { order: 2, label: 'Reports tab', detail: 'Upload HTML or PDF export.', route: '/admin/partners' },
       { order: 3, label: 'Verify parse', detail: 'Check analysis and dispute candidates.', route: '/admin/partners' },
     ],
@@ -377,10 +377,10 @@ export const PLATFORM_SOP_LIBRARY: PlatformSop[] = [
   },
   {
     id: 'sop-agent-client-file',
-    title: 'Work a client file as specialist',
+    title: 'Work a customer file as specialist',
     lane: 'agent',
     audience: 'agent',
-    whenToUse: 'Credit specialist managing assigned client disputes.',
+    whenToUse: 'Credit specialist managing assigned customer disputes.',
     ownerRole: 'dispute_coach',
     steps: [
       { order: 1, label: 'Specialist Hub', detail: 'Review economics and capacity.', route: '/credit-specialist/hub' },

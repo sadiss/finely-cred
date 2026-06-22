@@ -1,15 +1,17 @@
-import type { Bureau, DisputeCandidate, ParsedCreditReport } from '../domain/creditReports';
+import type { DisputeCandidate, ParsedCreditReport } from '../domain/creditReports';
 import type { DisputeReasonSuggestion } from '../domain/disputeReasons';
+import type { EvidenceItem } from '../domain/evidence';
 import {
   deriveTradelineContradictions,
   suggestDisputeReasons,
-  suggestDisputeReasonsForCandidate,
 } from '../creditReports/disputeReasons';
 import {
-  buildFactualNegativeSummary,
   filterFactualDisputeReasons,
   pickBestDisputeReasons,
+  resolveDisputeAccountLabel,
 } from '../creditReports/disputeFactualReasons';
+import { evidenceMatchesAccount } from '../utils/evidenceMatch';
+import { MAX_DISPUTE_REASONS } from '../letters/disputeLetterFormat';
 import { classifyCandidateNegativeType, NEGATIVE_PLAYBOOKS } from '../creditReports/negativePlaybooks';
 
 function norm(s: string) {
@@ -21,22 +23,22 @@ function findTradeline(parsed: ParsedCreditReport | undefined, account: string) 
   const needle = norm(account);
   return (
     parsed.tradelines.find(
-      (t) => norm(t.creditorName).includes(needle) || needle.includes(norm(t.creditorName)),
+      (t) => norm(t.creditorName) === needle || norm(t.creditorName).includes(needle) || needle.includes(norm(t.creditorName)),
     ) ?? null
   );
 }
 
 /**
- * Factual dispute findings only — what is reporting on the file and internal contradictions.
- * Excludes statute commands, "please verify/delete", legacy procedural snippets, and playbook demands.
+ * Factual dispute findings only — one clear fact per reason, tied to the account screenshot when present.
  */
 export function buildEnrichedReasonsForCandidate(args: {
   candidate: DisputeCandidate;
   parsed?: ParsedCreditReport | null;
   existing?: string[];
+  evidence?: EvidenceItem | null;
   maxReasons?: number;
 }): string[] {
-  const max = args.maxReasons ?? 12;
+  const max = args.maxReasons ?? MAX_DISPUTE_REASONS;
   const existing = filterFactualDisputeReasons((args.existing ?? []).map((x) => x.trim()).filter(Boolean));
   const seen = new Set(existing.map((x) => norm(x)));
   const out = [...existing];
@@ -48,26 +50,30 @@ export function buildEnrichedReasonsForCandidate(args: {
     out.push(t);
   };
 
+  const accountLabel = resolveDisputeAccountLabel({
+    candidate: args.candidate,
+    evidenceCreditorName: args.evidence?.creditorName,
+  });
   const tl = args.parsed ? findTradeline(args.parsed, args.candidate.account) : null;
 
-  for (const line of buildFactualNegativeSummary({ candidate: args.candidate, tradeline: tl })) {
-    push(line);
+  if (args.evidence && !evidenceMatchesAccount({
+    accountName: args.candidate.account,
+    candidateType: args.candidate.type,
+    evidence: args.evidence,
+  })) {
+    return pickBestDisputeReasons(existing, max);
   }
 
   for (const c of (tl ? deriveTradelineContradictions(tl as any, args.candidate.bureau) : [])) {
-    push(toFactualFinding(c.text));
+    push(c.text.replace(new RegExp(args.candidate.account.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi'), accountLabel));
   }
 
   if (args.parsed) {
     for (const c of suggestDisputeReasons(args.parsed, args.candidate)) {
       if (c.id.startsWith('xb_') || c.id.startsWith('sec_') || c.id.startsWith('contradiction_') || c.id.startsWith('intra_')) {
-        push(toFactualFinding(c.text));
+        push(c.text.replace(new RegExp(args.candidate.account.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi'), accountLabel));
       }
     }
-  }
-
-  for (const c of suggestDisputeReasonsForCandidate(args.candidate)) {
-    if (c.id.startsWith('factual_')) push(c.text);
   }
 
   return pickBestDisputeReasons(out, max);
@@ -83,6 +89,7 @@ export function buildFactualDisputeSuggestions(args: {
   candidate: DisputeCandidate;
   parsed?: ParsedCreditReport | null;
   existing?: string[];
+  evidence?: EvidenceItem | null;
   maxReasons?: number;
 }): DisputeReasonSuggestion[] {
   return buildEnrichedReasonsForCandidate(args).map((text, i) => ({
@@ -96,7 +103,6 @@ function toFactualFinding(text: string): string {
   t = t.replace(/\s*;?\s*please (verify|correct|delete)[^.]*\.?$/i, '.');
   t = t.replace(/\s*please correct the reporting or delete if unverifiable\.?$/i, '.');
   t = t.replace(/\s*or delete the item if it cannot be verified\.?$/i, '.');
-  t = t.replace(/\s*; please verify and correct this, or delete the item if it cannot be verified\.?$/i, '.');
   if (t && !t.endsWith('.')) t += '.';
   return filterFactualDisputeReasons([t])[0] ?? '';
 }
@@ -104,7 +110,7 @@ function toFactualFinding(text: string): string {
 export function buildCaseContextBlock(args: {
   candidate: DisputeCandidate;
   parsed?: ParsedCreditReport | null;
-  bureau: Bureau;
+  bureau: import('../domain/creditReports').Bureau;
   round: string;
   reasons: string[];
 }): string {

@@ -1,9 +1,15 @@
 import React, { useMemo, useState } from 'react';
-import { ExternalLink, Paperclip, Trash2, X } from 'lucide-react';
+import { AlertTriangle, ExternalLink, Paperclip, Trash2, X } from 'lucide-react';
 import type { EvidenceItem } from '../../domain/evidence';
 import { getBlobUrl } from '../../storage/getBlobUrl';
 import { openUrlInNewTab } from '../../utils/download';
 import { EvidenceUploader } from './EvidenceUploader';
+import {
+  EVIDENCE_MATCH_ATTACH_MIN,
+  describeEvidenceMismatch,
+  evidenceMatchesAccount,
+  scoreEvidenceForAccount,
+} from '../../utils/evidenceMatch';
 
 type CategoryKey =
   | ''
@@ -46,6 +52,9 @@ export function EvidencePickerModal({
   onOpenFullVault,
   onClose,
   autoPickOnUpload = true,
+  matchAccount,
+  matchCandidateType,
+  strictAccountMatch = true,
 }: {
   open: boolean;
   title: string;
@@ -64,10 +73,15 @@ export function EvidencePickerModal({
   onOpenFullVault?: () => void;
   onClose: () => void;
   autoPickOnUpload?: boolean;
+  /** When set, only matching screenshots can be attached (unless show-all override). */
+  matchAccount?: string;
+  matchCandidateType?: string;
+  strictAccountMatch?: boolean;
 }) {
   const [query, setQuery] = useState('');
   const [busyId, setBusyId] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
+  const [showNonMatching, setShowNonMatching] = useState(true);
 
   const baseItems = useMemo(() => {
     if (filter === 'screenshots') return items.filter((x) => x.type === 'screenshot');
@@ -76,12 +90,36 @@ export function EvidencePickerModal({
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return baseItems;
-    return baseItems.filter((x) => {
+    let list = baseItems;
+    if (matchAccount && strictAccountMatch && !showNonMatching) {
+      list = list.filter((e) =>
+        evidenceMatchesAccount({ accountName: matchAccount, candidateType: matchCandidateType, evidence: e }),
+      );
+    }
+    if (!q) return list;
+    return list.filter((x) => {
       const hay = `${x.filename || ''} ${x.caption || ''} ${x.sectionKey || ''} ${x.creditorName || ''}`.toLowerCase();
       return hay.includes(q);
     });
-  }, [baseItems, query]);
+  }, [baseItems, query, matchAccount, matchCandidateType, strictAccountMatch, showNonMatching]);
+
+  const tryPick = (evidenceId: string) => {
+    if (!onPick) return;
+    const item = items.find((x) => x.id === evidenceId);
+    if (matchAccount && item && strictAccountMatch) {
+      const score = scoreEvidenceForAccount({
+        accountName: matchAccount,
+        candidateType: matchCandidateType,
+        evidence: item,
+      });
+      if (score < EVIDENCE_MATCH_ATTACH_MIN) {
+        setErr(describeEvidenceMismatch({ accountName: matchAccount, evidence: item }));
+        return;
+      }
+    }
+    setErr(null);
+    onPick(evidenceId);
+  };
 
   if (!open) return null;
 
@@ -155,9 +193,28 @@ export function EvidencePickerModal({
             reportId={reportId}
             onCreated={(item) => {
               onUpsert(item);
-              if (autoPickOnUpload && onPick) onPick(item.id);
+              if (autoPickOnUpload && onPick) tryPick(item.id);
             }}
           />
+
+          {matchAccount && strictAccountMatch ? (
+            <div className="rounded-2xl border border-amber-500/40 bg-amber-500/15 p-4 text-amber-50 text-sm space-y-3">
+              <div className="flex items-start gap-3">
+                <AlertTriangle size={18} className="shrink-0 mt-0.5 text-amber-300" />
+                <div>
+                  <p className="font-semibold text-amber-100">Account match required</p>
+                  <p className="mt-1 leading-relaxed opacity-95">
+                    Only attach a screenshot that clearly shows <span className="font-semibold">{matchAccount}</span> on the bureau report.
+                    Mismatched exhibits weaken the dispute and can cause bureau rejection.
+                  </p>
+                </div>
+              </div>
+              <label className="inline-flex items-center gap-2 text-xs uppercase tracking-wider cursor-pointer opacity-90">
+                <input type="checkbox" checked={!showNonMatching} onChange={(e) => setShowNonMatching(!e.target.checked)} />
+                Hide non-matching screenshots
+              </label>
+            </div>
+          ) : null}
 
           {err ? (
             <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-red-200/90 text-sm">{err}</div>
@@ -192,19 +249,31 @@ export function EvidencePickerModal({
                 {filtered.map((e) => {
                   const busy = busyId === e.id;
                   const selected = selectedEvidenceId === e.id;
+                  const matchScore = matchAccount
+                    ? scoreEvidenceForAccount({ accountName: matchAccount, candidateType: matchCandidateType, evidence: e })
+                    : 1;
+                  const canAttach = !matchAccount || !strictAccountMatch || matchScore >= EVIDENCE_MATCH_ATTACH_MIN;
                   return (
                     <div
                       key={e.id}
                       className={`rounded-2xl border p-4 flex flex-wrap items-center justify-between gap-3 ${
-                        selected ? 'border-amber-500/40 bg-amber-500/10' : 'border-white/[0.08] bg-white/[0.02]'
+                        selected
+                          ? 'border-amber-500/40 bg-amber-500/10'
+                          : canAttach
+                            ? 'border-white/[0.08] bg-white/[0.02]'
+                            : 'border-red-500/25 bg-red-500/5 opacity-80'
                       }`}
                     >
                       <div className="min-w-0">
                         <div className="text-white font-semibold truncate">{e.filename}</div>
                         <div className="mt-1 text-[10px] uppercase tracking-widest text-white/40 font-mono">
                           {new Date(e.createdAt).toLocaleString()} • {e.mimeType}
+                          {e.creditorName ? ` • ${e.creditorName}` : ''}
                         </div>
                         {e.caption ? <div className="mt-1 text-white/60 text-sm">{e.caption}</div> : null}
+                        {matchAccount && !canAttach ? (
+                          <div className="mt-2 text-red-200/90 text-xs">{describeEvidenceMismatch({ accountName: matchAccount, evidence: e })}</div>
+                        ) : null}
                       </div>
 
                       <div className="flex flex-wrap items-center gap-2">
@@ -238,9 +307,10 @@ export function EvidencePickerModal({
                         {onPick ? (
                           <button
                             type="button"
-                            onClick={() => onPick(e.id)}
-                            className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-amber-500 text-black font-black uppercase tracking-widest text-[10px] hover:brightness-110 transition-all"
-                            title="Attach this evidence"
+                            onClick={() => tryPick(e.id)}
+                            disabled={!canAttach}
+                            className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-amber-500 text-black font-black uppercase tracking-widest text-[10px] hover:brightness-110 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                            title={canAttach ? 'Attach this evidence' : 'Screenshot does not match this account'}
                           >
                             <Paperclip size={14} />
                             {pickLabel}

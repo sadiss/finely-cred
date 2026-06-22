@@ -112,7 +112,7 @@ export function WorkAICopilotPanel({
         <div className="space-y-3">
           <p className={FINELY_OS_ENTITY_BODY}>{result.summary}</p>
           <div className={`inline-flex items-center gap-2 ${riskChip(result.riskScore)}`}>
-            Client risk: {result.riskScore}
+            Customer /risk: {result.riskScore}
           </div>
           {result.completionPrediction ? (
             <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony ${FINELY_OS_ENTITY_BODY} text-xs`}>
@@ -129,7 +129,7 @@ export function WorkAICopilotPanel({
           {result.clientSummaryDraft ? (
             <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony`}>
               <div className="flex items-center justify-between gap-2 mb-1">
-                <span className={FINELY_OS_ENTITY_SUBLABEL}>Client summary draft</span>
+                <span className={FINELY_OS_ENTITY_SUBLABEL}>Customer /summary draft</span>
                 <button type="button" onClick={() => void navigator.clipboard.writeText(result.clientSummaryDraft)} className="text-white/45 hover:text-white/80" title="Copy">
                   <Copy size={14} />
                 </button>

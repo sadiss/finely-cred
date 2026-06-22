@@ -385,7 +385,7 @@ function ensureSeedRules(store: Store) {
       updatedAt: now,
       trigger: { type: 'partner_stage_changed', stage: 'funding' },
       conditions: [{ type: 'always' }],
-      actions: [{ type: 'notify_admin', title: 'Partner funding stage', body: 'Client reached funding journey — review Nora queue.' }],
+      actions: [{ type: 'notify_admin', title: 'Partner funding stage', body: 'Customer /reached funding journey — review Nora queue.' }],
       meta: { seed: true, seedKey: 'event_partner_funding' },
     },
   ];

@@ -47,7 +47,7 @@ export type PartnerConsents = {
   ndaAcceptedAt?: string;
   /** Debt / collections workflow acknowledgment (when debt lane selected). */
   debtServicesAcceptedAt?: string;
-  /** Role-specific services agreement (client portal, agent IC, affiliate, AU seller). */
+  /** Role-specific services agreement (customer portal, agent IC, affiliate, AU seller). */
   servicesAgreementAcceptedAt?: string;
   /** Exit, separation, and data portability terms accepted at signup. */
   partnershipExitAcceptedAt?: string;

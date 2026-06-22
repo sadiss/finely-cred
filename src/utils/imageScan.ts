@@ -499,20 +499,28 @@ export function documentAspectForProfile(profile: DocScanProfile): number | unde
 }
 
 /** Centered guide frame crop — always visible in the live camera UI. */
-export function guideCropForProfile(profile: DocScanProfile, width: number, height: number, fill = 0.88): CropMargins {
+export function guideCropForProfile(profile: DocScanProfile, width: number, height: number, fill?: number): CropMargins {
+  const fillByProfile: Record<DocScanProfile, number> = {
+    id_card: 0.56,
+    ssn_card: 0.5,
+    bureau_mail: 0.72,
+    creditor_letter: 0.72,
+    general: 0.68,
+  };
   const aspect = documentAspectForProfile(profile) ?? 1.586;
+  const useFill = fill ?? fillByProfile[profile] ?? 0.68;
   const videoAspect = width / Math.max(1, height);
   let cropWFrac: number;
   let cropHFrac: number;
   if (videoAspect >= aspect) {
-    cropHFrac = fill;
+    cropHFrac = useFill;
     cropWFrac = (cropHFrac * height * aspect) / Math.max(1, width);
   } else {
-    cropWFrac = fill;
+    cropWFrac = useFill;
     cropHFrac = (cropWFrac * width / aspect) / Math.max(1, height);
   }
-  cropWFrac = Math.min(0.94, Math.max(0.35, cropWFrac));
-  cropHFrac = Math.min(0.94, Math.max(0.22, cropHFrac));
+  cropWFrac = Math.min(0.82, Math.max(0.28, cropWFrac));
+  cropHFrac = Math.min(0.82, Math.max(0.18, cropHFrac));
   const sideX = (1 - cropWFrac) / 2;
   const sideY = (1 - cropHFrac) / 2;
   return { left: sideX, top: sideY, right: sideX, bottom: sideY };
@@ -530,6 +538,14 @@ export function resolveCaptureCrop(
   detected: DocumentBounds,
 ): CropMargins {
   const guide = guideCropForProfile(profile, width, height);
+  const idLike = profile === 'id_card' || profile === 'ssn_card';
+  if (idLike) {
+    if (detected.confidence >= 0.55 && !isFullFrameCrop(detected.crop, 0.06)) {
+      const area = (1 - detected.crop.left - detected.crop.right) * (1 - detected.crop.top - detected.crop.bottom);
+      if (area <= 0.62) return detected.crop;
+    }
+    return guide;
+  }
   if (detected.confidence >= 0.38 && !isFullFrameCrop(detected.crop)) return detected.crop;
   return guide;
 }

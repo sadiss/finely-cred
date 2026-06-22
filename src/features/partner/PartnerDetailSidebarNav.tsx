@@ -39,6 +39,8 @@ export function PartnerDetailSidebarNav({
             <button
               key={t.key}
               type="button"
+              aria-current={active ? 'page' : undefined}
+              data-fc-tab-active={active ? 'true' : undefined}
               onClick={() => onTabChange(t.key)}
               className={
                 'w-full text-left rounded-2xl border px-4 py-3.5 transition-all flex items-center gap-3 min-h-[52px] ' +

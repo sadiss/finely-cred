@@ -55,7 +55,7 @@ export function SpecialistLeadGrowthPanel({ model }: Props) {
     { label: 'Template library', path: '/portal/templates', icon: BookOpen, note: 'Vault templates + reasons library for client disputes' },
     { label: 'Letter studio', path: '/portal/letters', icon: PenLine, note: 'Draft and generate bureau letters' },
     { label: 'Public specialist page', path: CS.publicPath, icon: Target, note: 'Share your program link with prospects' },
-    { label: 'Partner CRM intake', path: '/admin/partners', icon: Users, note: 'Create client files and route to portal' },
+    { label: 'Partner CRM intake', path: '/admin/partners', icon: Users, note: 'Create customer files and route to portal' },
     { label: 'Partnership line', path: CS.messagesDeepLink, icon: Users, note: 'Finely support for pricing & tier questions' },
   ];
 

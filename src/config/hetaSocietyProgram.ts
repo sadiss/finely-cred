@@ -53,7 +53,7 @@ export const HETA_SOCIETY_BENEFITS = [
 ] as const;
 
 export const HETA_SOCIETY_CAREER_PATHS = [
-  { id: 'specialist', title: 'Credit specialist', desc: 'Train on dispute workflow and client file management.', path: '/credit-specialist-apply' },
+  { id: 'specialist', title: 'Credit specialist', desc: 'Train on dispute workflow and customer file management.', path: '/credit-specialist-apply' },
   { id: 'agent', title: 'Agent / team operator', desc: 'Run files with tasks, letters, and partner communications.', path: '/onboarding?lane=agent' },
   { id: 'affiliate', title: 'Referral partner', desc: 'Share restoration resources and earn on qualified referrals.', path: '/affiliate' },
 ] as const;

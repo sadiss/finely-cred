@@ -312,7 +312,7 @@ export default function AccountSettingsPage() {
               </label>
               <label>
                 <span className={formLabel}>Title / headline</span>
-                <input value={title} onChange={(e) => setTitle(e.target.value)} className={formInput} placeholder="Client, Credit Specialist, AU Seller…" />
+                <input value={title} onChange={(e) => setTitle(e.target.value)} className={formInput} placeholder="Customer, Credit Specialist, AU Seller…" />
               </label>
               <label>
                 <span className={formLabel}>Role</span>

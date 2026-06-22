@@ -71,7 +71,7 @@ export function getUserRoleLabel(user: User | null | undefined): string | null {
   const role = (getUserProfileMeta(user).role || '').trim();
   if (!role) return null;
   const labels: Record<string, string> = {
-    client: 'Client',
+    client: 'Customer',
     au_seller: 'AU Seller',
     agent: 'Credit Specialist',
     affiliate: 'Affiliate',

@@ -27,7 +27,7 @@ function inferTimezone(record: CrmRecord): string {
   const phone = record.contact.phone?.replace(/\D/g, '') ?? '';
   if (phone.startsWith('1') && phone.length >= 10) return 'US time zones (infer from area code when scheduling)';
   if (record.contact.company) return 'Business hours — align to company HQ if known';
-  return 'Client local time — confirm on first reply';
+  return 'Customer /local time — confirm on first reply';
 }
 
 function scoreSlot(slot: Omit<CallTimeSlot, 'score' | 'reason'>, record: CrmRecord): CallTimeSlot {

@@ -294,7 +294,7 @@ function resolveFunnelCopy(args: {
       heroSubline: 'White-label tenant ready for your team',
       subheadline: 'Branding, seats, compliance workflows, and client onboarding — next steps inside.',
       preheader: 'Your agency tenant is created. Configure branding, team seats, and client workflows.',
-      intro: `Congratulations — your agency workspace is live. You now have a white-label tenant with compliance workflows, client portals, and revenue-share tools. Let's get branding and team seats configured in the next 15 minutes.`,
+      intro: `Congratulations — your agency workspace is live. You now have a white-label tenant with compliance workflows, customer portals, and revenue-share tools. Let's get branding and team seats configured in the next 15 minutes.`,
       primaryCta: 'Open admin console',
       secondaryCta: 'Book agency onboarding call',
       primaryHref: `${getPublicSiteOrigin()}/admin/access`,
@@ -309,13 +309,13 @@ function resolveFunnelCopy(args: {
     return {
       subject: portal ? 'Your specialist portal is ready' : 'Specialist program — application received',
       headline: portal ? `${first}, your specialist workspace is live` : `${first}, we received your application`,
-      heroHeadline: portal ? 'Clients · Disputes · Scale' : 'Apply · Train · Activate',
+      heroHeadline: portal ? 'Customers · Disputes · Scale' : 'Apply · Train · Activate',
       heroSubline: portal ? 'Credit specialist partner OS' : 'Credit specialist partnership track',
       preheader: portal
-        ? 'Client files, AI dispute workflows, and partnership line — inside your portal.'
+        ? 'Customer files, AI dispute workflows, and partnership line — inside your portal.'
         : 'Application received — preview the specialist toolkit while we review.',
       intro: portal
-        ? `Your specialist partner portal is ready. Manage client files, run AI-assisted dispute workflows, and access your dedicated partnership line — built for operators, not hobbyists.`
+        ? `Your specialist partner portal is ready. Manage customer files, run AI-assisted dispute workflows, and access your dedicated partnership line — built for operators, not hobbyists.`
         : `Thank you for applying to the Finely Cred specialist program. While our team reviews your application, explore the toolkit preview and book an activation call with <strong>${personaName}</strong>.`,
       primaryCta: portal ? 'Open specialist portal' : 'Preview specialist toolkit',
       secondaryCta: 'Book your activation call',

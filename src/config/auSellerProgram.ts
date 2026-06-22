@@ -25,7 +25,7 @@ export const AU_SELLER_OFFERINGS = [
   {
     title: 'Done-for-you buyer marketing',
     description:
-      'Finely lists your verified inventory on our buyer marketplace, runs intake, and routes qualified orders — no ads, no DMs, no chasing clients.',
+      'Finely lists your verified inventory on our buyer marketplace, runs intake, and routes qualified orders — no ads, no DMs, no chasing customers.',
     included: ['Public marketplace placement', 'Buyer intake & document flow', '60-day managed listing seasons', 'Seller support line'],
   },
   {

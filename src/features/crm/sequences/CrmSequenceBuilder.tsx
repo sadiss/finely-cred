@@ -220,7 +220,7 @@ export function CrmSequenceBuilder() {
                 }}
                 className={FINELY_OS_ENTITY_INPUT.replace('mt-2 ', '')}
               >
-                <option value="clients">Clients</option>
+                <option value="clients">Customers</option>
                 <option value="affiliates">Affiliates</option>
                 <option value="agents">Agents</option>
               </select>

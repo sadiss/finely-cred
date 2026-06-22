@@ -134,7 +134,7 @@ export const FINELY_KNOWLEDGE_BASE: KnowledgeArticle[] = [
     category: 'video',
     tags: ['video', 'call', 'jitsi', 'specialist', 'client', 'affiliate', 'calendar'],
     content:
-      'Schedule sessions on Calendar or start an instant video call from Team chat or Meetings tab. Rooms work for clients, credit specialists, affiliates, and Finely staff. Join in-browser with camera/mic; share screen when needed. Instant calls post a join link in the thread.',
+      'Schedule sessions on Calendar or start an instant video call from Team chat or Meetings tab. Rooms work for customers, credit specialists, affiliates, and Finely staff. Join in-browser with camera/mic; share screen when needed. Instant calls post a join link in the thread.',
     links: [
       { label: 'Calendar', path: '/portal/calendar' },
       { label: 'Meetings hub', path: '/portal/messages?hub=meetings' },
@@ -146,7 +146,7 @@ export const FINELY_KNOWLEDGE_BASE: KnowledgeArticle[] = [
     category: 'specialist',
     tags: ['specialist', 'agent', 'splits', 'apprenticeship', 'white label'],
     content:
-      'Credit specialists use the partnership line in Team chat, agent program economics (lane splits, apprenticeship floor), and can run client files in the portal. Video sessions support specialist↔client and specialist↔Finely program calls.',
+      'Credit specialists use the partnership line in Team chat, agent program economics (lane splits, apprenticeship floor), and can run customer files in the portal. Video sessions support specialist↔client and specialist↔Finely program calls.',
     links: [
       { label: 'Agents page', path: '/agents' },
       { label: 'Specialist thread', path: '/portal/messages?hub=team&topic=credit_specialist_program' },
@@ -258,7 +258,7 @@ export const FINELY_KNOWLEDGE_BASE: KnowledgeArticle[] = [
     category: 'portal',
     tags: ['escalate', 'case', 'stuck', 'legal'],
     content:
-      'Escalate when bureaus fail to respond, collectors sue, identity theft is active, or DFY clients need case management. Open escalation from portal; continue documenting in Team chat.',
+      'Escalate when bureaus fail to respond, collectors sue, identity theft is active, or DFY customers need case management. Open escalation from portal; continue documenting in Team chat.',
     links: [{ label: 'Escalations', path: '/portal/escalations' }],
   },
   {

@@ -6,7 +6,7 @@ export type TemplateVariableGroup = {
 
 export const TEMPLATE_VARIABLE_GROUPS: TemplateVariableGroup[] = [
   {
-    label: 'Client / partner',
+    label: 'Customer // partner',
     vars: [
       { key: 'partner.profile.fullName', label: 'Full name', example: 'Jane Doe' },
       { key: 'partner.profile.email', label: 'Email', example: 'jane@email.com' },
@@ -45,7 +45,7 @@ export const TEMPLATE_VARIABLE_GROUPS: TemplateVariableGroup[] = [
       { key: 'firstName', label: 'First name (short)', example: 'Jane' },
       { key: 'name', label: 'Full name (short)', example: 'Jane Doe' },
       { key: 'email', label: 'Email (short)', example: 'jane@…' },
-      { key: 'role', label: 'Role (short)', example: 'Client' },
+      { key: 'role', label: 'Role (short)', example: 'Customer' },
       { key: 'brandName', label: 'Brand (short)', example: 'Finely Cred' },
       { key: 'lane', label: 'Lane (short)', example: 'personal restore' },
     ],

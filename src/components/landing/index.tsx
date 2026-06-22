@@ -463,7 +463,7 @@ export function HeroSection({ onGetStarted, onViewTradelines }: HeroSectionProps
             <Reveal delay={600}>
               <div className="grid grid-cols-3 gap-2 sm:gap-4 pt-6 sm:pt-8 border-t border-amber-500/15">
                 {[
-                  { value: <><AnimatedCounter value={98} suffix="%" /></>, label: 'Client success' },
+                  { value: <><AnimatedCounter value={98} suffix="%" /></>, label: 'Customer /success' },
                   { value: <>24<span className="finely-gold-foil-text text-lg sm:text-xl">hr</span></>, label: 'Priority response' },
                   { value: <>$<AnimatedCounter value={500} />M+</>, label: 'Funding pathways' },
                 ].map((stat) => (

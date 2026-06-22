@@ -99,7 +99,7 @@ export interface AgencyTier {
   id: string;
   name: string;
   description: string;
-  /** Max active client files */
+  /** Max active customer files */
   activeClientLimit: number;
   /** Max team seats */
   seatLimit: number;
@@ -272,6 +272,12 @@ export const personalCreditPackages: PricingPackage[] = [
       'Credit maintenance window (starter)',
       'In-house financing option available (reports to Equifax)',
     ],
+    scopeBullets: [
+      'Negative load: lighter files (fewer complex tradelines/collections).',
+      'Dispute rounds: structured restore cadence — not unlimited elite rounds.',
+      'Cases: typically 3–8 negative items sequenced across bureaus.',
+      'Program access: starter maintenance window + roadmap.',
+    ],
     priceAmount: 75000, // $750
     interval: 'one_time',
     rail: 'both',
@@ -297,6 +303,11 @@ export const personalCreditPackages: PricingPackage[] = [
       '90-day access',
       'In-house financing option available (reports to Equifax)',
     ],
+    scopeBullets: [
+      'Negative load: multi-tradeline restore with unlimited dispute rounds.',
+      'Cases: multiple bureau accounts sequenced in your restore plan.',
+      'Program access: 90 days with evidence vault + progress dashboard.',
+    ],
     priceAmount: 150000, // $1,500
     interval: 'one_time',
     rail: 'both',
@@ -321,6 +332,11 @@ export const personalCreditPackages: PricingPackage[] = [
       'Business credit foundations intro',
       '6-month access',
       'In-house financing option available (reports to Equifax)',
+    ],
+    scopeBullets: [
+      'Negative load: heavier files with dedicated case manager oversight.',
+      'Cases: priority sequencing + expedited bureau follow-ups.',
+      'Program access: 6 months with tradeline strategy session.',
     ],
     priceAmount: 300000, // $3,000
     interval: 'one_time',
@@ -685,6 +701,11 @@ export const debtLegalPackages: PricingPackage[] = [
       'Reporting cleanup workflow (if the debt is on your credit)',
       'Support guidance (education-first)',
     ],
+    scopeBullets: [
+      'Debt lane: early-stage / lighter collection scenarios.',
+      'Cases: typically 1–2 active collection or reporting items.',
+      'DFY: validation drafting + deadline tracking included.',
+    ],
     priceAmount: 99700, // $997
     interval: 'one_time',
     rail: 'stripe',
@@ -708,6 +729,11 @@ export const debtLegalPackages: PricingPackage[] = [
       'Dispute + evidence workflows for collections/charge-offs',
       'Escalation tracking (CFPB/AG-style pathways when appropriate)',
       'Priority support + case manager',
+    ],
+    scopeBullets: [
+      'Debt lane: mid-complexity validation + challenge packets.',
+      'Cases: multiple reporting collections/charge-offs with DFY packet prep.',
+      'Includes case manager + priority support window.',
     ],
     priceAmount: 249700, // $2,497
     interval: 'one_time',
@@ -1413,7 +1439,7 @@ export const agencyTiers: AgencyTier[] = [
     recommendedTrainingPhase: 'apprenticeship',
     features: [
       'Revenue share only — no platform fee',
-      'Up to 20 active client files • 1 seat',
+      'Up to 20 active customer files • 1 seat',
       'Apprenticeship + live mentoring',
       'Full software, Comms, lead magnets & academy',
     ],
@@ -1436,7 +1462,7 @@ export const agencyTiers: AgencyTier[] = [
     whiteLabelLevel: 'co_branded',
     recommendedTrainingPhase: 'guided',
     features: [
-      'Up to 50 client files • 2 seats',
+      'Up to 50 customer files • 2 seats',
       'Co-branded portal + your logo',
       'Lead Intelligence + Comms sequences',
       'Priority support + onboarding call',
@@ -1461,7 +1487,7 @@ export const agencyTiers: AgencyTier[] = [
     whiteLabelLevel: 'co_branded',
     recommendedTrainingPhase: 'guided',
     features: [
-      'Up to 100 client files • 4 seats',
+      'Up to 100 customer files • 4 seats',
       'Advanced CRM routing + team workflows',
       'Marketing asset library + Media Studio',
       'Mentor checkpoints + certification path',
@@ -1472,7 +1498,7 @@ export const agencyTiers: AgencyTier[] = [
   {
     id: 'agency_pro',
     name: 'White-Label Pro',
-    description: 'Your brand on the client portal — you run fulfillment; Finely powers the engine.',
+    description: 'Your brand on the customer portal — you run fulfillment; Finely powers the engine.',
     activeClientLimit: 175,
     seatLimit: 6,
     pricingModel: 'revenue_share',
@@ -1485,7 +1511,7 @@ export const agencyTiers: AgencyTier[] = [
     whiteLabelLevel: 'white_label',
     recommendedTrainingPhase: 'independent',
     features: [
-      'Up to 175 client files • 6 seats',
+      'Up to 175 customer files • 6 seats',
       'Full white-label + custom domain',
       'API access + lead routing',
       'Dedicated account manager',
@@ -1497,7 +1523,7 @@ export const agencyTiers: AgencyTier[] = [
   {
     id: 'agency_scale',
     name: 'Scale Agency',
-    description: 'High-volume white-label operators — more seats and clients before enterprise custom agreements.',
+    description: 'High-volume white-label operators — more seats and customers before enterprise custom agreements.',
     activeClientLimit: 300,
     seatLimit: 10,
     pricingModel: 'revenue_share',
@@ -1510,7 +1536,7 @@ export const agencyTiers: AgencyTier[] = [
     whiteLabelLevel: 'white_label',
     recommendedTrainingPhase: 'independent',
     features: [
-      'Up to 300 client files • 10 seats',
+      'Up to 300 customer files • 10 seats',
       'White-label at scale + automation',
       'Quarterly strategy calls',
       'Certified partner track eligible',
@@ -1537,7 +1563,7 @@ export const agencyTiers: AgencyTier[] = [
     features: [
       'Custom revenue share — certified partner rates',
       'Enterprise white-label + custom domain',
-      'Unlimited clients & seats • SLA',
+      'Unlimited customers & seats • SLA',
       'Dedicated success team + custom integrations',
     ],
     isPublic: true,
@@ -1632,6 +1658,107 @@ export function formatPriceWithCents(cents: number): string {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   }).format(cents / 100);
+}
+
+/** Letter packs are DIY-only add-ons — never shown on DFY pricing lanes. */
+export function isLetterPackPackage(pkg: Pick<PricingPackage, 'id'>): boolean {
+  return pkg.id.startsWith('letters_pack_');
+}
+
+export type PackageDisplayDetails = {
+  name: string;
+  tagline: string;
+  description: string;
+  highlights: string[];
+  scopeBullets: string[];
+};
+
+/** Merge catalog copy + rail overrides + inferred scope when bullets are missing. */
+export function getPackageDisplayDetails(
+  pkg: PricingPackage,
+  rail?: Exclude<PricingRail, 'both'>,
+): PackageDisplayDetails {
+  const description =
+    (rail && pkg.descriptionByRail?.[rail]) || pkg.description;
+  const highlights =
+    (rail && pkg.highlightsByRail?.[rail]?.length ? pkg.highlightsByRail[rail] : pkg.highlights) ?? [];
+  const scopeBullets =
+    (rail && pkg.scopeBulletsByRail?.[rail]?.length ? pkg.scopeBulletsByRail[rail] : pkg.scopeBullets) ??
+    inferPackageScopeBullets(pkg);
+
+  return {
+    name: pkg.name,
+    tagline: (rail && pkg.taglineByRail?.[rail]) || pkg.tagline,
+    description,
+    highlights,
+    scopeBullets,
+  };
+}
+
+function inferPackageScopeBullets(pkg: PricingPackage): string[] {
+  const bullets: string[] = [];
+
+  if (pkg.id.startsWith('letters_pack_')) {
+    bullets.push('DIY only — specialty letter templates and dispute workflows (not done-for-you filing).');
+    bullets.push('One specialty negative lane per pack (bankruptcy, repossession, foreclosure, inquiries, etc.).');
+    bullets.push('Includes case tracker tasks and portal template access for that lane.');
+    return bullets;
+  }
+
+  if (pkg.delivery === 'DIY') {
+    bullets.push('You execute disputes and uploads — we provide tools, templates, and guided workflows.');
+  } else if (pkg.delivery === 'DFY') {
+    bullets.push('Done-for-you execution — our team builds strategy, packets, and tracking; you approve and sign.');
+  }
+
+  if (pkg.id === 'personal_starter') {
+    bullets.push('Best for: first-time DIY filers with a lighter negative load.');
+    bullets.push('Disputes: template-driven (not unlimited DFY rounds).');
+    bullets.push('Access window: 30 days from enrollment.');
+  } else if (pkg.id === 'personal_restore_starter') {
+    bullets.push('Negative items: lighter files (typically fewer complex tradelines/collections).');
+    bullets.push('Dispute rounds: structured restore cadence (not unlimited elite rounds).');
+    bullets.push('Program access: starter maintenance window included.');
+  } else if (pkg.id === 'personal_restore') {
+    bullets.push('Negative items: multi-tradeline restore with unlimited dispute rounds.');
+    bullets.push('Cases: multiple bureau accounts sequenced in your restore plan.');
+    bullets.push('Program access: 90 days with evidence vault + progress dashboard.');
+  } else if (pkg.id === 'personal_platinum') {
+    bullets.push('Negative items: heavier files with dedicated case manager oversight.');
+    bullets.push('Cases: priority sequencing + expedited bureau follow-ups.');
+    bullets.push('Program access: 6 months with strategy session included.');
+  } else if (pkg.id.startsWith('debt_kill')) {
+    if (pkg.id === 'debt_kill_diy') {
+      bullets.push('Debt lane: self-serve validation + collector response toolkit.');
+      bullets.push('Cases: you manage deadlines, packets, and credit reporting disputes.');
+    } else if (pkg.id === 'debt_kill_starter_dfy') {
+      bullets.push('Debt lane: early-stage / lighter collection scenarios.');
+      bullets.push('Cases: typically 1–2 active collection or reporting items.');
+    } else if (pkg.id === 'debt_kill_pro') {
+      bullets.push('Debt lane: mid-complexity validation + challenge packets.');
+      bullets.push('Cases: multiple reporting collections/charge-offs with DFY packet prep.');
+    } else if (pkg.id === 'debt_kill_plus') {
+      bullets.push('Debt lane: expanded documentation depth + multi-account sequencing.');
+      bullets.push('Cases: several active items with priority escalation workflow.');
+    } else if (pkg.id === 'debt_kill_premium') {
+      bullets.push('Debt lane: high-touch before high-balance institutional tiers.');
+      bullets.push('Cases: complex reporting with dedicated case manager.');
+    }
+  }
+
+  if (pkg.interval === 'month') {
+    bullets.push('Billing: recurring monthly membership — cancel per program terms.');
+  } else if (pkg.termMonths) {
+    bullets.push(`Program term: ${pkg.termMonths} month(s) access included.`);
+  }
+
+  if (pkg.rail === 'in_house') {
+    bullets.push('Payment rail: in-house financing (reports to Equifax when applicable).');
+  } else if (pkg.rail === 'both') {
+    bullets.push('Payment rails: card checkout or in-house financing at checkout.');
+  }
+
+  return bullets;
 }
 
 /**

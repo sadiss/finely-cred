@@ -21,6 +21,7 @@ import { FinelyUnifiedHubLayout } from '../../features/unified/FinelyUnifiedHubL
 import { FinelyNowDoThisStrip } from '../../components/tours/FinelyNowDoThisStrip';
 import { FinelyNoticedStrip } from '../../components/tours/FinelyNoticedStrip';
 import { buildPartnersAdminNoticedItems } from '../../lib/finelyProactiveSignals';
+import { sendPartnerOutreachMessage, defaultPartnerWelcomeMessage } from '../../lib/partnerMessaging';
 import {
   FINELY_OS_PAGE,
   FINELY_OS_BACK_LINK,
@@ -175,7 +176,7 @@ export default function PartnersListPage() {
     <PageShell
       badge="Admin"
       title="Partner Management"
-      subtitle="Partners are your clients. Every report, evidence item, dispute, and letter is anchored to a Partner profile for auditability."
+      subtitle="Partners are your customers. Every report, evidence item, dispute, and letter is anchored to a Partner profile for auditability."
     >
       <div className={FINELY_OS_PAGE}>
         <div className="flex items-center justify-between gap-4">
@@ -221,7 +222,7 @@ export default function PartnersListPage() {
         <FinelyNowDoThisStrip currentIndex={0} />
 
         <FinelyUnifiedHubLayout
-          eyebrow="Client management"
+          eyebrow="Customer management"
           title="Partner directory"
           subtitle="Browse partners, create records, and jump into profiles — paginated, not a wall of cards."
           accent="emerald"
@@ -242,7 +243,7 @@ export default function PartnersListPage() {
 
           {!canCreatePartner ? (
             <div className={FINELY_OS_ENTITY_EMPTY}>
-              Your role doesn’t allow creating new partners in this tenant. Ask an admin/owner to grant access or assign you clients.
+              Your role doesn’t allow creating new partners in this tenant. Ask an admin/owner to grant access or assign you customers.
             </div>
           ) : null}
 
@@ -341,6 +342,15 @@ export default function PartnersListPage() {
                   } catch {
                     // best-effort: partner is still created even if invite generation fails
                   }
+                  try {
+                    sendPartnerOutreachMessage({
+                      partnerId: p.id,
+                      partnerName: name,
+                      body: defaultPartnerWelcomeMessage(name),
+                    });
+                  } catch {
+                    // non-blocking welcome thread
+                  }
                   setFullName('');
                   setEmail('');
                   setFetchKey((v) => v + 1);
@@ -360,7 +370,7 @@ export default function PartnersListPage() {
             <div className={`${FINELY_OS_NOTICE_SUCCESS} space-y-3`}>
               <div className="font-semibold">Partner “{createdInvite.name}” created.</div>
               <div className={FINELY_OS_ENTITY_BODY}>
-                Send this link so they can enter their own profile details, upload documents, then sign in to claim:
+                A welcome message was queued in Team chat — they will see it when they log in. Send this link so they can claim their profile:
               </div>
               {createdInvite.url ? (
                 <div className="flex flex-col sm:flex-row gap-2">
@@ -390,6 +400,13 @@ export default function PartnersListPage() {
                 <div className={FINELY_OS_ENTITY_BODY}>Claim link unavailable. You can still open the partner profile below.</div>
               )}
               <div className="flex flex-wrap items-center gap-3 pt-1">
+                <button
+                  type="button"
+                  onClick={() => navigate(`/admin/support?partnerId=${createdInvite.partnerId}`)}
+                  className={FINELY_OS_SECONDARY_BTN}
+                >
+                  Open support inbox
+                </button>
                 <button
                   type="button"
                   onClick={() => navigate(`/admin/partners/${createdInvite.partnerId}?tab=reports`)}

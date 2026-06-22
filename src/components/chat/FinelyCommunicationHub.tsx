@@ -43,6 +43,10 @@ export type FinelyCommunicationHubProps = {
   initialTab?: HubTab;
   initialThreadId?: string;
   initialTopic?: SupportTopic;
+  /** Show full staff roster (admin ops) instead of lane-filtered agents. */
+  showAllAgents?: boolean;
+  /** Admin workspace — team tab links to support inbox instead of requiring a partner file. */
+  adminMode?: boolean;
 };
 
 export function FinelyCommunicationHub({
@@ -54,6 +58,8 @@ export function FinelyCommunicationHub({
   initialTab,
   initialThreadId,
   initialTopic,
+  showAllAgents,
+  adminMode,
 }: FinelyCommunicationHubProps) {
   const location = useLocation();
   const navigate = useNavigate();
@@ -127,6 +133,15 @@ export function FinelyCommunicationHub({
       window.removeEventListener(OPEN_HUB_EVENT, handler as EventListener);
       window.removeEventListener('finely:staff-direct-message', onStaffDm as EventListener);
     };
+  }, [switchTab]);
+
+  useEffect(() => {
+    const onSwitch = (e: Event) => {
+      const tab = (e as CustomEvent<{ tab?: HubTab }>).detail?.tab;
+      if (tab) switchTab(tab);
+    };
+    window.addEventListener('finely:hub-switch-tab', onSwitch as EventListener);
+    return () => window.removeEventListener('finely:hub-switch-tab', onSwitch as EventListener);
   }, [switchTab]);
 
   if (!chatEnabled && mode === 'floating') return null;
@@ -205,6 +220,7 @@ export function FinelyCommunicationHub({
             journeyStage={journeyStage}
             userName={partnerDisplayName}
             compact={!expanded && mode === 'floating'}
+            showAllAgents={showAllAgents}
           />
         )}
         {(tab === 'team') && (
@@ -216,6 +232,7 @@ export function FinelyCommunicationHub({
               initialThreadId={threadId}
               initialTopic={topic}
               lane={lane}
+              adminMode={adminMode}
             />
           ) : (
             <div className={`p-6 text-sm ${FINELY_OS_ENTITY_BODY}`}>

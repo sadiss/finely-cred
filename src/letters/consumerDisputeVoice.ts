@@ -5,30 +5,33 @@
 
 export const CONSUMER_DISPUTE_OPENING = `To Whom It May Concern,
 
-I am writing because something on my credit report does not look right, and it is affecting my life in real ways. I have been turned down for credit, quoted higher rates, or denied for things I need — including financing for a car, an apartment, and other credit I was trying to obtain. This is not just a number on a page; it is blocking moves my family and I are trying to make.
+I am writing because inaccurate information on my credit report is blocking real goals in my life. I have been denied credit, quoted higher rates, or turned down for housing and financing I need. This is not a minor reporting error — it is preventing me from moving forward.
 
-When I pulled my own credit report and compared it carefully to my records, I found information that appears inaccurate, incomplete, or impossible to verify. After doing my own research, I learned that under the Fair Credit Reporting Act (FCRA), 15 U.S.C. § 1681i, I have the right to dispute information I believe is wrong and to request a reinvestigation.
+When I pulled my credit report and compared it carefully to my records and the attached screenshot exhibits, I found reporting that is factually wrong, internally inconsistent, or impossible to reconcile with what actually occurred.
 
-I am not trying to avoid legitimate debts or obligations. I am asking you to review what is actually reporting on my file, investigate the specific item(s) below, and correct or delete anything that is inaccurate or cannot be verified. Please send me written results within the time frame the law requires.`;
+Under the Fair Credit Reporting Act (FCRA), 15 U.S.C. § 1681i, I have the right to dispute inaccurate information. I am not trying to avoid legitimate obligations. I am asking you to review the specific factual problems listed below and delete any field or account that is reporting incorrectly.
+
+This letter applies only to the item(s) listed below. Each numbered reason states one factual problem visible on my report. After reviewing the exhibit and the reasons, please delete the inaccurate reporting.`;
 
 export const CONSUMER_DISPUTE_OPENING_CONVERSATIONAL = `Hello,
 
-Something on my credit report does not look right, and it is getting in the way of everyday life — I have been denied or quoted worse terms when trying to get credit, finance a car, rent an apartment, and move forward with goals that depend on a fair, accurate file.
+Something on my credit report does not add up, and it is getting in the way of everyday life — I have been denied or quoted worse terms when trying to get credit, finance a car, rent an apartment, and move forward with goals that depend on a fair, accurate file.
 
-I pulled my report, compared it to my own records, and found reporting that does not add up. I also looked into my rights under the Fair Credit Reporting Act (FCRA) and learned that I can dispute information that appears wrong and ask for a reinvestigation.
+I pulled my report, compared it to my own records and the attached screenshots, and found reporting that is factually wrong or contradicts itself on the same account screen.
 
-I am not disputing debts that are truly mine and correctly reported. I am asking you to look at the specific item(s) below, investigate, and fix or remove anything that is inaccurate or unverified. Please send me the results in writing.`;
+I looked into my rights under the Fair Credit Reporting Act (FCRA) and learned that I can dispute information that is inaccurate. I am not disputing debts that are truly mine and correctly reported. I am asking you to review the specific item(s) below, look at the factual problems I list, and delete what is reporting incorrectly.
 
-export const CONSUMER_ITEM_DISPUTE_STATEMENT = `When I reviewed my report, the fields reporting for this account do not match my records and/or contradict each other. I am disputing this specific negative information because I believe it is inaccurate, incomplete, or cannot be verified as currently reported.`;
+This letter applies only to the items listed below.`;
+
+export const CONSUMER_ITEM_DISPUTE_STATEMENT = `The attached exhibit shows the account fields as they appear on my report. The numbered factual reasons below identify specific inaccuracies or contradictions visible on that screen.`;
 
 export const CONSUMER_REQUESTED_RESOLUTION = [
-  'Please conduct a complete reinvestigation of this item and verify the accuracy of every field reporting.',
-  'If the furnisher cannot substantiate this reporting with valid verification, please delete it from my file.',
-  'If anything is corrected, please send me an updated copy of my credit report showing the changes.',
-  'If you claim the item is verified, please include how it was verified and what information was relied on.',
+  'Review the attached exhibit and each numbered factual reason.',
+  'Delete any account or field that is reporting inaccurately as described.',
+  'Send me an updated copy of my credit report showing what was deleted or corrected.',
 ];
 
-export const CONSUMER_REQUEST_FOR_RESULTS = `Please send me written confirmation of your reinvestigation results. If you determine an item is "verified," I need to know exactly how it was verified and what records were used — not just a form letter saying it was checked.
+export const CONSUMER_REQUEST_FOR_RESULTS = `Please send written confirmation of what was deleted or corrected. If anything is maintained, explain exactly which field was verified and what documentation was relied upon.
 
 Thank you for taking this seriously. An accurate credit file matters for housing, transportation, and basic financial stability.`;
 

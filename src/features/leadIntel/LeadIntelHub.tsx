@@ -581,7 +581,7 @@ function scoreChip(_score: number) {
               <div className="lg:col-span-3">
                 <div className={FINELY_OS_ENTITY_SUBLABEL}>Target</div>
                 <select value={target} onChange={(e) => setTarget(e.target.value as ProspectTarget)} className={FINELY_OS_ENTITY_SELECT}>
-                  <option value="clients">Clients</option>
+                  <option value="clients">Customers</option>
                   <option value="affiliates">Affiliates</option>
                   <option value="agents">Credit Specialists</option>
                   <option value="teams">Teams</option>

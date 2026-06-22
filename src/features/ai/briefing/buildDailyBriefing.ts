@@ -65,7 +65,7 @@ export function buildDailyBriefing(args: {
       id: r.id,
       kind: 'crm',
       priority: 95,
-      title: r.contact.fullName || r.contact.email || 'Client at risk',
+      title: r.contact.fullName || r.contact.email || 'Customer /at risk',
       subtitle: `Work idle ${Math.round(r.workSignals!.idleDays)}d • ${r.workSignals!.slaBreachCount} SLA breach(es)`,
       href: `/admin/crm/records/${encodeURIComponent(r.id)}`,
       reason: 'Work OS churn risk — CRM re-engagement needed',

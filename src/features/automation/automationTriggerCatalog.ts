@@ -15,7 +15,7 @@ export const AUTOMATION_TRIGGER_CATALOG: TriggerCatalogEntry[] = [
   { id: 'form_submit', group: 'channels', label: 'Form submit', description: 'Public lead capture or funnel form submitted.', sample: { type: 'form_submit', formId: 'lead_capture' }, tier: 'preview' },
   { id: 'crm_record_created', group: 'crm', label: 'CRM record created', description: 'New prospect or inbound lead in CRM.', sample: { type: 'crm_record_created', pipelineId: 'inbound' }, tier: 'preview' },
   { id: 'crm_stage_changed', group: 'crm', label: 'CRM stage changed', description: 'Record moves to a pipeline stage.', sample: { type: 'crm_stage_changed', stage: 'booked' }, tier: 'live' },
-  { id: 'partner_stage_changed', group: 'partner', label: 'Partner stage changed', description: 'Client journey stage updated.', sample: { type: 'partner_stage_changed', stage: 'analysis' }, tier: 'live' },
+  { id: 'partner_stage_changed', group: 'partner', label: 'Partner stage changed', description: 'Customer journey stage updated.', sample: { type: 'partner_stage_changed', stage: 'analysis' }, tier: 'live' },
   { id: 'webhook_inbound', group: 'channels', label: 'Webhook inbound', description: 'Generic webhook ingress (Stripe, Nora, custom).', sample: { type: 'webhook_inbound', provider: 'generic' }, tier: 'preview' },
   { id: 'meta_message', group: 'meta', label: 'Meta message', description: 'Facebook Page or Instagram DM received.', sample: { type: 'meta_message_received', channel: 'messenger' }, tier: 'preview' },
   { id: 'meta_lead', group: 'meta', label: 'Meta Lead Ad', description: 'Lead Ads form submission from Facebook/Instagram.', sample: { type: 'meta_lead_form' }, tier: 'preview' },

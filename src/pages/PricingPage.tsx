@@ -15,6 +15,7 @@ import {
   categoryDescriptions,
   type PricingPackage,
   type PricingCategory,
+  isLetterPackPackage,
 } from '../config/pricingCatalog';
 import { AgencyTierCard } from '../components/pricing/PricingCards';
 import { PricingPackageCatalog } from '../components/pricing/PricingPackageCatalog';
@@ -185,6 +186,7 @@ export default function PricingPage() {
     // Bundles should be visible in both modes (no blank states)
     if (activeTab === 'bundle') return pkgs;
     return pkgs.filter((p) => {
+      if (deliveryMode === 'DFY' && isLetterPackPackage(p)) return false;
       if (deliveryMode === 'DIY') return p.delivery === 'DIY' || p.delivery === 'HYBRID';
       return p.delivery === 'DFY' || p.delivery === 'HYBRID';
     });
@@ -396,7 +398,7 @@ export default function PricingPage() {
                 <p className={FINELY_OS_ENTITY_SUBLABEL}>{CS.programName}</p>
                 <p className={`mt-2 text-xl font-semibold ${FINELY_OS_ENTITY_VALUE}`}>Revenue-share partnership — not flat SaaS</p>
                 <p className={`mt-2 ${FINELY_OS_ENTITY_BODY}`}>
-                  Run client credit files on Finely&apos;s operating stack with training, white-label portal, dispute studio, and a dedicated partnership line.
+                  Run customer credit files on Finely&apos;s operating stack with training, white-label portal, dispute studio, and a dedicated partnership line.
                 </p>
               </div>
               <div className="flex flex-wrap gap-3">

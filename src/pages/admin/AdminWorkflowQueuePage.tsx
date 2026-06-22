@@ -416,7 +416,7 @@ export default function AdminWorkflowQueuePage() {
               <FinelyOsPaginatedStack
                 items={workAtRiskRecords}
                 pageSize={4}
-                emptyMessage="No linked clients with Work idle or SLA risk."
+                emptyMessage="No linked customers with Work idle or SLA risk."
                 renderItem={(r) => (
                   <button
                     key={r.id}

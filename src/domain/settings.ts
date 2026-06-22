@@ -90,7 +90,7 @@ export interface SiteSettings {
   accentColor?: string;
   /** Shown on dashboard after sign-in. Supports {{name}}, {{firstName}}, {{email}}, {{role}}, {{brandName}}, {{lane}} */
   postLoginWelcome?: PostLoginWelcomeSettings;
-  /** Lead magnet trust line — "Join {n}+ clients" (Phase 11). */
+  /** Lead magnet trust line — "Join {n}+ customers" (Phase 11). */
   funnelTrustClientCount?: number;
 }
 

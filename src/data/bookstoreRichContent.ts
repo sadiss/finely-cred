@@ -144,7 +144,7 @@ Maintain a live folder: articles, EIN, lease, vendor statements, bank letters. U
 
 ## What this book is (and is not)
 
-This is **not** a collection of magic phrases. It is the escalation workflow Finely clients use when bureau processes stall — documented, timed, and compliance-safe.
+This is **not** a collection of magic phrases. It is the escalation workflow Finely customers use when bureau processes stall — documented, timed, and compliance-safe.
 
 It is **not** legal advice. Summons, lawsuits, and bankruptcy timing require licensed counsel.
 
@@ -199,7 +199,7 @@ Never mail a template you have not read aloud slowly once.
 
 If you are a Finely partner managing clients:
 
-- One project per client file branch
+- One project per customer file branch
 - Tasks for every mail date + statutory deadline
 - Evidence vault permissions scoped per case
 

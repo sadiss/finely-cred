@@ -1468,6 +1468,44 @@ html[data-fc-theme="light"] ::selection {
     box-shadow: var(--fc-glass-shadow), var(--fc-glass-inset) !important;
   }
 
+  html[data-fc-theme="light"] .fc-partner-sidebar-nav button {
+    border-color: rgba(15, 23, 20, 0.12) !important;
+    background: rgba(255, 255, 255, 0.72) !important;
+    color: rgba(15, 23, 20, 0.72) !important;
+  }
+  html[data-fc-theme="light"] .fc-partner-sidebar-nav button:hover {
+    background: rgba(255, 255, 255, 0.92) !important;
+    border-color: rgba(15, 23, 20, 0.18) !important;
+    color: var(--fc-light-heading) !important;
+  }
+  html[data-fc-theme="light"] .fc-partner-sidebar-nav [data-fc-tab-active="true"] {
+    font-weight: 700 !important;
+    transform: scale(1.01);
+    box-shadow:
+      0 0 0 2px rgba(139, 92, 246, 0.38),
+      0 10px 24px -14px rgba(15, 23, 20, 0.28) !important;
+  }
+  html[data-fc-theme="light"] .fc-partner-sidebar-nav [data-fc-tab-active="true"].border-emerald-400\/40 {
+    background: rgba(16, 185, 129, 0.16) !important;
+    border-color: rgba(16, 185, 129, 0.55) !important;
+    color: #065f46 !important;
+  }
+  html[data-fc-theme="light"] .fc-partner-sidebar-nav [data-fc-tab-active="true"].border-violet-400\/40 {
+    background: rgba(139, 92, 246, 0.14) !important;
+    border-color: rgba(139, 92, 246, 0.52) !important;
+    color: #5b21b6 !important;
+  }
+  html[data-fc-theme="light"] .fc-partner-sidebar-nav [data-fc-tab-active="true"].border-sky-400\/40 {
+    background: rgba(14, 165, 233, 0.14) !important;
+    border-color: rgba(14, 165, 233, 0.52) !important;
+    color: #0369a1 !important;
+  }
+  html[data-fc-theme="light"] .fc-partner-sidebar-nav [data-fc-tab-active="true"].border-amber-400\/35 {
+    background: rgba(245, 158, 11, 0.16) !important;
+    border-color: rgba(245, 158, 11, 0.55) !important;
+    color: #92400e !important;
+  }
+
   html[data-fc-theme="light"] [data-fc-entity-tab-nav="lanes"] .fc-wayfinder-lane-active {
     background: rgba(255, 255, 255, 0.82) !important;
     backdrop-filter: blur(14px) saturate(var(--fc-glass-saturate));
@@ -4439,11 +4477,17 @@ html.fc-onboarding-portal-open body {
 }
 
 .fc-launch-lane-header {
-  font-size: 1.25rem;
-  font-weight: 700;
-  letter-spacing: -0.01em;
+  font-size: 1.625rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
   scroll-margin-top: 6rem;
   margin-bottom: 0.25rem;
+}
+
+@media (min-width: 640px) {
+  .fc-launch-lane-header {
+    font-size: 1.875rem;
+  }
 }
 
 /* Site-wide responsive scaling — same design at every width; no alternate mobile layouts */

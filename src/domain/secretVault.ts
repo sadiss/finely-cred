@@ -87,7 +87,7 @@ export const SECRET_VAULT_SHARE_ROLES: Array<{ id: SecretVaultShareRole; label: 
   { id: 'platform_admin', label: 'Platform admin', hint: 'Full Finely ops' },
   { id: 'tenant_owner', label: 'Tenant owner', hint: 'Business owner / principal' },
   { id: 'agent', label: 'Credit specialist', hint: 'Assigned agents & staff' },
-  { id: 'partner', label: 'Partner (client)', hint: 'When explicitly shared' },
+  { id: 'partner', label: 'Partner (customer)', hint: 'When explicitly shared' },
   { id: 'ncg_ops', label: 'Nora Capital ops', hint: 'NCG integration team' },
   { id: 'ncg_underwriter', label: 'NCG underwriting', hint: 'Funding review lane' },
   { id: 'affiliate', label: 'Affiliate', hint: 'Referral partners' },
