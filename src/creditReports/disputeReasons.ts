@@ -99,6 +99,7 @@ function statusBlobOf(tl: ParsedTradeline): string {
 }
 
 export function deriveTradelineContradictions(tl: ParsedTradeline, bureau?: Bureau): DisputeReasonSuggestion[] {
+  if (!tl) return [];
   const out: DisputeReasonSuggestion[] = [];
   const money = (n: number) => `$${Math.round(n).toLocaleString()}`;
   const say = (text: string) => (bureau ? withBureauScreenshotLead(bureau, text) : text);

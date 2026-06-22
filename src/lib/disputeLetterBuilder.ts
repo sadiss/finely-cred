@@ -54,7 +54,7 @@ export function buildEnrichedReasonsForCandidate(args: {
     push(line);
   }
 
-  for (const c of deriveTradelineContradictions(tl as any, args.candidate.bureau)) {
+  for (const c of (tl ? deriveTradelineContradictions(tl as any, args.candidate.bureau) : [])) {
     push(toFactualFinding(c.text));
   }
 
