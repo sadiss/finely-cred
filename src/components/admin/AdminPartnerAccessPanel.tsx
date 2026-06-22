@@ -6,7 +6,7 @@ import { sendPartnerWelcomeEmail } from '../../lib/partnerWelcomeEmail';
 import { isFeatureEnabled } from '../../data/settingsRepo';
 import { landingPathForRole, signupSummaryForRole } from '../../lib/signupOpsGuide';
 import { adminUpsertPartner } from '../../data/partnersRepo';
-import { patchPartnerAccessFlags, readPartnerAccessFlags } from '../../lib/partnerAccessControl';
+import { patchPartnerAccessFlags, readPartnerAccessFlagsStored } from '../../lib/partnerAccessControl';
 import { ensurePartnerEntitlements, ENTITLEMENT_KEYS, type EntitlementKey } from '../../billing/entitlements';
 import {
   FINELY_OS_ENTITY_BODY,
@@ -22,24 +22,32 @@ import {
 type Props = {
   partner: Partner;
   userRole?: string;
+  onUpdated?: () => void;
 };
 
-export function AdminPartnerAccessPanel({ partner, userRole }: Props) {
+export function AdminPartnerAccessPanel({ partner, userRole, onUpdated }: Props) {
   const auth = useAuth();
-  const [busy, setBusy] = useState<'reset' | 'welcome' | null>(null);
+  const [busy, setBusy] = useState<'reset' | 'welcome' | 'access' | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
+  const [accessFlags, setAccessFlags] = useState(() => readPartnerAccessFlagsStored(partner));
+
+  React.useEffect(() => {
+    setAccessFlags(readPartnerAccessFlagsStored(partner));
+  }, [partner.id, partner.updatedAt, partner.journeySignals]);
 
   const email = (partner.profile.email || '').trim();
   const role = (userRole || partner.lane || 'client').toString();
   const guide = useMemo(() => signupSummaryForRole(role === 'au_tradelines' ? 'au_seller' : role), [role]);
   const landing = landingPathForRole(role === 'au_tradelines' ? 'au_seller' : role);
   const commsOn = isFeatureEnabled('commsDelivery');
-  const accessFlags = useMemo(() => readPartnerAccessFlags(partner), [partner]);
 
-  const saveAccess = async (patch: Partial<ReturnType<typeof readPartnerAccessFlags>>) => {
+  const saveAccess = async (patch: Partial<ReturnType<typeof readPartnerAccessFlagsStored>>) => {
     setErr(null);
     setNotice(null);
+    setBusy('access');
+    const optimistic = { ...accessFlags, ...patch };
+    setAccessFlags(optimistic);
     try {
       let next = patchPartnerAccessFlags(partner, patch);
       await adminUpsertPartner(next);
@@ -50,9 +58,17 @@ export function AdminPartnerAccessPanel({ partner, userRole }: Props) {
         });
       }
       setNotice('Access settings updated.');
+      onUpdated?.();
     } catch (e: unknown) {
+      setAccessFlags(readPartnerAccessFlagsStored(partner));
       setErr((e as Error)?.message || 'Failed to update access.');
+    } finally {
+      setBusy(null);
     }
+  };
+
+  const toggleFlag = (key: keyof ReturnType<typeof readPartnerAccessFlagsStored>, next: boolean) => {
+    void saveAccess({ [key]: next });
   };
 
   const sendReset = async () => {
@@ -151,20 +167,52 @@ export function AdminPartnerAccessPanel({ partner, userRole }: Props) {
       {notice ? <div className={FINELY_OS_NOTICE_SUCCESS}>{notice}</div> : null}
       {err ? <div className="text-rose-300 text-sm">{err}</div> : null}
 
-      <div className={`${FINELY_OS_ENTITY_BODY} text-sm space-y-2 border-t border-white/10 pt-3`}>
+      <div className={`${FINELY_OS_ENTITY_BODY} text-sm space-y-3 border-t border-white/10 pt-4 relative z-10`}>
         <div className={FINELY_OS_ENTITY_SUBLABEL}>Admin approval & unlock</div>
-        <label className="flex items-center gap-2">
-          <input type="checkbox" checked={accessFlags.accessApproved} onChange={(e) => void saveAccess({ accessApproved: e.target.checked })} />
-          Approve portal access (sets active when was lead)
-        </label>
-        <label className="flex items-center gap-2">
-          <input type="checkbox" checked={accessFlags.roleUnlocked} onChange={(e) => void saveAccess({ roleUnlocked: e.target.checked })} />
-          Unlock role / lane features
-        </label>
-        <label className="flex items-center gap-2">
-          <input type="checkbox" checked={accessFlags.paymentWaived} onChange={(e) => void saveAccess({ paymentWaived: e.target.checked })} />
-          Waive payment — grant entitlements without checkout
-        </label>
+        {[
+          {
+            key: 'accessApproved' as const,
+            label: 'Approve portal access',
+            hint: 'Sets partner active when they were a lead',
+          },
+          {
+            key: 'roleUnlocked' as const,
+            label: 'Unlock role / lane features',
+            hint: 'Allows portal modules for their lane',
+          },
+          {
+            key: 'paymentWaived' as const,
+            label: 'Waive payment — grant entitlements without checkout',
+            hint: 'Grants full entitlements immediately',
+          },
+        ].map((row) => (
+          <button
+            key={row.key}
+            type="button"
+            disabled={busy === 'access'}
+            onClick={() => toggleFlag(row.key, !accessFlags[row.key])}
+            className={
+              'w-full text-left flex items-start gap-3 rounded-xl border px-4 py-3 transition-all ' +
+              (accessFlags[row.key]
+                ? 'border-emerald-400/40 bg-emerald-500/15'
+                : 'border-white/12 bg-black/25 hover:border-white/25 hover:bg-white/5')
+            }
+          >
+            <span
+              className={
+                'mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md border text-xs font-bold ' +
+                (accessFlags[row.key] ? 'border-emerald-300 bg-emerald-400 text-black' : 'border-white/30 bg-transparent text-transparent')
+              }
+              aria-hidden
+            >
+              ✓
+            </span>
+            <span className="min-w-0">
+              <span className={`block text-sm font-semibold ${FINELY_OS_ENTITY_VALUE}`}>{row.label}</span>
+              <span className={`block text-xs mt-0.5 ${FINELY_OS_ENTITY_BODY}`}>{row.hint}</span>
+            </span>
+          </button>
+        ))}
       </div>
 
       <div className="flex flex-wrap gap-2">

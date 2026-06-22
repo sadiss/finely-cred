@@ -104,7 +104,6 @@ import { ENTITLEMENT_KEYS, type EntitlementKey, ensurePartnerEntitlements } from
 import { TASK_PROGRESS_STAGES, WorkBoardShell, WorkCalendarView, WorkKanbanBoard, WorkListView, type WorkBoardItem } from '../../components/workboard';
 import type { WorkStageDefinition } from '../../domain/settings';
 import type { TaskStatus } from '../../domain/tasks';
-import { PartnerFinelyOsStrip } from '../../features/os/PartnerFinelyOsStrip';
 import { AdminPartnerAccessPanel } from '../../components/admin/AdminPartnerAccessPanel';
 import { PartnerIntakeLinkPanel } from '../../components/admin/PartnerIntakeLinkPanel';
 import { PartnerCreditRestoreHud } from '../../features/partner/PartnerCreditRestoreHud';
@@ -114,7 +113,8 @@ import { RoleWorkflowPanel } from '../../components/workflow/RoleWorkflowPanel';
 import { workflowIdForPartner } from '../../config/roleWorkflows';
 import { computeRoleWorkflowProgress } from '../../lib/roleWorkflowProgress';
 import { entitlementLabel } from '../../billing/entitlementLabels';
-import { FinelyOsPaginatedStack } from '../../features/os/FinelyOsPaginatedStack';
+import { PartnerCompactGrid } from '../../features/partner/PartnerCompactGrid';
+import { PartnerBureauResourcesPanel } from '../../components/admin/PartnerBureauResourcesPanel';
 import {
   FINELY_OS_BOARD_SHELL,
   FINELY_OS_ENTITY_ACCENT_LINK,
@@ -444,7 +444,16 @@ function PartnerDetailPageInner() {
   const [denefitsContractLabelDraft, setDenefitsContractLabelDraft] = useState('');
   const [customFieldDraft, setCustomFieldDraft] = useState<Record<string, any>>({});
   const [reportsRefreshKey, setReportsRefreshKey] = useState(0);
-  const didAutoTab = useRef(false);
+  const setTabAndUrl = useCallback(
+    (next: TabKey) => {
+      setTab(next);
+      if (!id) return;
+      const sp = new URLSearchParams(location.search || '');
+      sp.set('tab', next);
+      navigate({ pathname: `/admin/partners/${id}`, search: `?${sp.toString()}` }, { replace: true });
+    },
+    [id, location.search, navigate],
+  );
   const generatedLettersRef = useRef<HTMLDivElement | null>(null);
   const analysisReportsRef = useRef<HTMLDivElement | null>(null);
 
@@ -750,7 +759,7 @@ function PartnerDetailPageInner() {
   }, [highlightLetterId]);
 
   const openSavedLetterVault = (args?: { letterId?: string }) => {
-    setTab('letters');
+    setTabAndUrl('letters');
     if (args?.letterId) setHighlightLetterId(args.letterId);
     setNotesVersion((v) => v + 1);
     window.setTimeout(() => {
@@ -873,30 +882,22 @@ function PartnerDetailPageInner() {
           ? 'reports'
           : t === 'analysis'
             ? 'analysis'
-          : t === 'evidence'
-            ? 'evidence'
-            : t === 'disputes'
-              ? 'disputes'
-              :       t === 'letters'
-                ? 'letters'
-                : t === 'notes'
-                  ? 'notes'
-                  : t === 'debt'
-                    ? 'debt'
-                    : null;
+            : t === 'evidence'
+              ? 'evidence'
+              : t === 'disputes'
+                ? 'disputes'
+                : t === 'letters'
+                  ? 'letters'
+                  : t === 'tasks'
+                    ? 'tasks'
+                    : t === 'notes'
+                      ? 'notes'
+                      : t === 'debt'
+                        ? 'debt'
+                        : null;
     if (next && next !== tab) setTab(next);
-
-    // If no explicit tab is requested and this is a brand-new partner with no reports,
-    // default them into the Reports tab so the “modules” feel immediately live.
-    const hasTabParam = Boolean(sp.get('tab'));
-    if (!hasTabParam && !didAutoTab.current) {
-      if (reports.length === 0 && tab === 'overview') {
-        setTab('reports');
-      }
-      didAutoTab.current = true;
-    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [location.search, partner?.id, reports.length]);
+  }, [location.search, partner?.id]);
 
   useEffect(() => {
     if (!partner) return;
@@ -1153,49 +1154,58 @@ function PartnerDetailPageInner() {
         { key: 'overview', label: 'Overview', icon: <Layers size={12} className="inline mr-2" /> },
         { key: 'reports', label: 'Reports', icon: <FileText size={12} className="inline mr-2" /> },
         { key: 'analysis', label: 'Analysis Report', icon: <BarChart3 size={12} className="inline mr-2" /> },
-        { key: 'evidence', label: 'Evidence', icon: <ShieldAlert size={12} className="inline mr-2" /> },
-        { key: 'disputes', label: 'Disputes', icon: <Gavel size={12} className="inline mr-2" /> },
-        { key: 'letters', label: 'Letters', icon: <PenLine size={12} className="inline mr-2" /> },
+        { key: 'evidence', label: 'Evidence', icon: <ShieldAlert size={14} className="inline mr-2" /> },
+        { key: 'disputes', label: 'Bureaus', icon: <Gavel size={14} className="inline mr-2" /> },
+        { key: 'letters', label: 'Letters', icon: <PenLine size={14} className="inline mr-2" /> },
         {
           key: 'tasks',
           label: partnerUnreadNotifs > 0 ? `Tasks (${partnerUnreadNotifs})` : 'Tasks',
-          icon: <ListChecks size={12} className="inline mr-2" />,
+          icon: <ListChecks size={14} className="inline mr-2" />,
         },
-        { key: 'notes', label: 'Notes', icon: <ScrollText size={12} className="inline mr-2" /> },
-        { key: 'debt', label: 'Debt & Summons', icon: <Scale size={12} className="inline mr-2" /> },
+        { key: 'notes', label: 'Notes', icon: <ScrollText size={14} className="inline mr-2" /> },
+        { key: 'debt', label: 'Debt Center', icon: <Scale size={14} className="inline mr-2" /> },
       ]}
       activeTabKey={tab}
-      useTabLanes
-      onTabChange={(k) => setTab(k as any)}
+      useSidebarNav
+      onTabChange={(k) => setTabAndUrl(k as TabKey)}
       stickyBar={
         <div className="flex flex-wrap items-center justify-between gap-3">
           <span className={`text-xs ${FINELY_OS_ENTITY_BODY}`}>
             Partner workspace · <span className="text-violet-200/90 capitalize">{tab.replace('_', ' ')}</span>
           </span>
           <div className="flex flex-wrap gap-2">
-            <button type="button" onClick={() => setTab('reports')} className={`${FINELY_OS_SECONDARY_BTN} !py-1.5 !text-xs`}>
+            <button type="button" onClick={() => setTabAndUrl('overview')} className={`${FINELY_OS_SECONDARY_BTN} !py-2 !text-xs ${tab === 'overview' ? '!border-emerald-400/40' : ''}`}>
+              Overview
+            </button>
+            <button type="button" onClick={() => setTabAndUrl('reports')} className={`${FINELY_OS_SECONDARY_BTN} !py-2 !text-xs`}>
               Reports
             </button>
-            <button type="button" onClick={() => setTab('disputes')} className={`${FINELY_OS_SECONDARY_BTN} !py-1.5 !text-xs`}>
-              Disputes
+            <button type="button" onClick={() => setTabAndUrl('disputes')} className={`${FINELY_OS_SECONDARY_BTN} !py-2 !text-xs`}>
+              Bureaus
             </button>
-            <button type="button" onClick={() => setTab('letters')} className={`${FINELY_OS_SECONDARY_BTN} !py-1.5 !text-xs`}>
+            <button type="button" onClick={() => setTabAndUrl('letters')} className={`${FINELY_OS_SECONDARY_BTN} !py-2 !text-xs`}>
               Letters
             </button>
-            <button type="button" onClick={() => setTab('tasks')} className={`${FINELY_OS_SECONDARY_BTN} !py-1.5 !text-xs`}>
+            <button type="button" onClick={() => setTabAndUrl('tasks')} className={`${FINELY_OS_SECONDARY_BTN} !py-2 !text-xs`}>
               Tasks
             </button>
+            <button type="button" onClick={() => setTabAndUrl('notes')} className={`${FINELY_OS_SECONDARY_BTN} !py-2 !text-xs`}>
+              Notes
+            </button>
+            <button type="button" onClick={() => setTabAndUrl('debt')} className={`${FINELY_OS_SECONDARY_BTN} !py-2 !text-xs`}>
+              Debt
+            </button>
             {!reports.length ? (
-              <button type="button" onClick={() => setTab('reports')} className={`${FINELY_OS_PRIMARY_BTN} !py-1.5 !text-xs`}>
+              <button type="button" onClick={() => setTabAndUrl('reports')} className={`${FINELY_OS_PRIMARY_BTN} !py-2 !text-xs`}>
                 Upload report
               </button>
             ) : !letters.length ? (
-              <button type="button" onClick={() => setTab('disputes')} className={`${FINELY_OS_PRIMARY_BTN} !py-1.5 !text-xs`}>
-                Start disputes
+              <button type="button" onClick={() => setTabAndUrl('disputes')} className={`${FINELY_OS_PRIMARY_BTN} !py-2 !text-xs`}>
+                Open bureaus
               </button>
             ) : (
-              <button type="button" onClick={() => setTab('disputes')} className={`${FINELY_OS_PRIMARY_BTN} !py-1.5 !text-xs`}>
-                Open letter studio
+              <button type="button" onClick={() => setTabAndUrl('letters')} className={`${FINELY_OS_PRIMARY_BTN} !py-2 !text-xs`}>
+                Letter studio
               </button>
             )}
           </div>
@@ -1239,46 +1249,13 @@ function PartnerDetailPageInner() {
           }}
           onOpenFullVault={() => {
             setEvidencePicker(null);
-            setTab('evidence');
+            setTabAndUrl('evidence');
           }}
           onClose={() => setEvidencePicker(null)}
           autoPickOnUpload={Boolean(evidencePicker.candidateId)}
         />
       )}
       <div className="space-y-8">
-        <PartnerIntakeLinkPanel partner={partner} />
-
-        <PartnerFinelyOsStrip partnerId={partner.id} email={partner.profile.email} onOpenTab={(t) => setTab(t)} />
-        <AdminPartnerAccessPanel partner={partner} />
-
-        <PartnerCreditRestoreMiniRail
-          reportsCount={reports.length}
-          evidenceCount={evidence.length}
-          lettersCount={letters.length}
-          onOpenTab={(t) => setTab(t)}
-        />
-
-        <PartnerCreditRestoreHud
-          reportsCount={reports.length}
-          negativesCount={candidates.length}
-          evidenceCount={evidence.length}
-          lettersCount={letters.length}
-          openCasesCount={openPartnerCases.length}
-          readinessScore={overallScore?.overall ?? null}
-          onOpenTab={(t) => setTab(t)}
-          primaryAction={
-            !reports.length
-              ? { label: 'Upload report', tab: 'reports' }
-              : !letters.length
-                ? { label: 'Start dispute letters', tab: 'disputes' }
-                : { label: 'Open letter studio', tab: 'disputes' }
-          }
-        />
-
-        <LegacyApplicationStatusBanner partner={partner} />
-
-        <RoleWorkflowPanel roleId={adminWorkflowId} compact completedSteps={adminWorkflowProgress} />
-
         {tab === 'overview' && (
           <div className="space-y-6">
             <div className="grid lg:grid-cols-12 gap-6">
@@ -1315,12 +1292,6 @@ function PartnerDetailPageInner() {
                     </select>
                   </div>
                 </div>
-
-                <JourneyStageAdminControl
-                  partner={partner}
-                  actorEmail={actorEmail}
-                  onUpdated={() => setPartnerVersion((v) => v + 1)}
-                />
 
                 <div className="mt-5 grid sm:grid-cols-2 gap-4">
                   <div className="sm:col-span-2">
@@ -2228,10 +2199,12 @@ function PartnerDetailPageInner() {
                   </button>
                 </div>
 
-                <FinelyOsPaginatedStack
+                <PartnerCompactGrid
                   items={partnerNotifs}
-                  pageSize={8}
+                  initialShow={6}
+                  columnsClassName="grid gap-2"
                   emptyMessage="No notifications yet. They'll appear when tasks are created/updated, support replies are sent, letters are generated, or cases change."
+                  getKey={(n) => n.id}
                   renderItem={(n) => (
                     <button
                       key={n.id}
@@ -2283,11 +2256,12 @@ function PartnerDetailPageInner() {
                   </button>
                 </div>
               </div>
-              <FinelyOsPaginatedStack
+              <PartnerCompactGrid
                 items={systemNotes}
-                pageSize={6}
+                initialShow={6}
+                columnsClassName="grid gap-3"
                 emptyMessage="No auto notes yet."
-                itemSpacingClassName="space-y-3"
+                getKey={(n, i) => `${n.createdAt}-${n.title}-${i}`}
                 renderItem={(n) => (
                   <div key={`${n.createdAt}-${n.title}`} className={`${finelyOsInlineListItem()} p-5`}>
                     <div className="flex items-start justify-between gap-3">
@@ -2406,11 +2380,12 @@ function PartnerDetailPageInner() {
               ) : sortedManualNotes.length === 0 ? (
                   <div className={FINELY_OS_ENTITY_BODY}>No manual notes yet.</div>
                 ) : (
-                  <FinelyOsPaginatedStack
+                  <PartnerCompactGrid
                     items={sortedManualNotes}
-                    pageSize={6}
+                    initialShow={6}
+                    columnsClassName="grid gap-3"
                     emptyMessage="No manual notes yet."
-                    itemSpacingClassName="space-y-3"
+                    getKey={(n) => n.id}
                     renderItem={(n) => (
                       <div key={n.id} className={`${finelyOsInlineListItem()} p-5 space-y-3`}>
                         <div className="min-w-0">
@@ -2517,11 +2492,12 @@ function PartnerDetailPageInner() {
                 No debt or summons cases for this partner yet. They can add cases from their portal (Debt & Summons Center).
               </div>
             ) : (
-              <FinelyOsPaginatedStack
+              <PartnerCompactGrid
                 items={debtCases}
-                pageSize={8}
+                initialShow={6}
+                columnsClassName="grid md:grid-cols-2 gap-3"
                 emptyMessage="No debt cases."
-                itemSpacingClassName="grid md:grid-cols-2 gap-3"
+                getKey={(d) => d.id}
                 renderItem={(d) => (
                   <div key={d.id} className={`${finelyOsInlineListItem()} p-4 flex items-center justify-between gap-4`}>
                     <div className="min-w-0">
@@ -2570,10 +2546,12 @@ function PartnerDetailPageInner() {
                 )}
 
                 <div className="mt-4">
-                  <FinelyOsPaginatedStack
+                  <PartnerCompactGrid
                     items={reports}
-                    pageSize={8}
+                    initialShow={6}
+                    columnsClassName="grid gap-3"
                     emptyMessage="No reports uploaded for this Partner."
+                    getKey={(r) => r.id}
                     renderItem={(r) => (
                       <div
                         key={r.id}
@@ -2704,9 +2682,9 @@ function PartnerDetailPageInner() {
                         reportId={selectedReport.id}
                         partnerId={partner.id}
                         availableReports={reports.map((r) => ({ id: r.id, receivedAt: r.receivedAt, filename: r.filename, parsed: r.parsed }))}
-                        onOpenLetterGenerator={() => setTab('disputes')}
+                        onOpenLetterGenerator={() => setTabAndUrl('disputes')}
                         onOpenEvidenceVault={() => setEvidencePicker({})}
-                        onOpenTasks={() => setTab('tasks')}
+                        onOpenTasks={() => setTabAndUrl('tasks')}
                       />
                     ) : null}
                   </div>
@@ -2736,7 +2714,7 @@ function PartnerDetailPageInner() {
                             </div>
                             <button
                               type="button"
-                              onClick={() => setTab('analysis')}
+                              onClick={() => setTabAndUrl('analysis')}
                               className={`mt-3 inline-flex items-center gap-2 ${FINELY_OS_ENTITY_ACCENT_LINK}`}
                               title="Open the Analysis Report tab"
                             >
@@ -2761,9 +2739,9 @@ function PartnerDetailPageInner() {
                       reportId={selectedReport.id}
                       partnerId={partner.id}
                       availableReports={reports.map((r) => ({ id: r.id, receivedAt: r.receivedAt, filename: r.filename, parsed: r.parsed }))}
-                      onOpenLetterGenerator={() => setTab('disputes')}
+                      onOpenLetterGenerator={() => setTabAndUrl('disputes')}
                       onOpenEvidenceVault={() => setEvidencePicker({})}
-                      onOpenTasks={() => setTab('tasks')}
+                      onOpenTasks={() => setTabAndUrl('tasks')}
                     />
                     </div>
                   </>
@@ -2809,7 +2787,7 @@ function PartnerDetailPageInner() {
               {reports.length === 0 ? (
                 <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony ${FINELY_OS_ENTITY_BODY}`}>
                   No credit report uploaded yet. Upload one in the{' '}
-                  <button type="button" onClick={() => setTab('reports')} className={FINELY_OS_ENTITY_ACCENT_LINK}>
+                  <button type="button" onClick={() => setTabAndUrl('reports')} className={FINELY_OS_ENTITY_ACCENT_LINK}>
                     Reports
                   </button>{' '}
                   tab first.
@@ -2861,10 +2839,12 @@ function PartnerDetailPageInner() {
                 <div className={`mt-3 ${FINELY_OS_ENTITY_BODY}`}>None yet — generate one above.</div>
               ) : (
                 <div className="mt-4">
-                  <FinelyOsPaginatedStack
+                  <PartnerCompactGrid
                     items={analysisReports}
-                    pageSize={6}
+                    initialShow={6}
+                    columnsClassName="grid md:grid-cols-2 gap-3"
                     emptyMessage="None yet — generate one above."
+                    getKey={(r: any) => r.id}
                     renderItem={(r: any) => (
                       <div key={r.id} className={`${finelyOsInlineListItem()} p-5`}>
                         <div className={`${FINELY_OS_ENTITY_VALUE} truncate`}>{r.filename || 'Credit Analysis Report.pdf'}</div>
@@ -2920,8 +2900,8 @@ function PartnerDetailPageInner() {
                 partner={partner as any}
                 layout="embedded"
                 onOpenVault={openSavedLetterVault}
-                onOpenReports={() => setTab('reports')}
-                onOpenDebtCenter={() => setTab('debt')}
+                onOpenReports={() => setTabAndUrl('reports')}
+                onOpenDebtCenter={() => setTabAndUrl('debt')}
                 onRequestGrantEntitlements={(keys) => {
                   ensurePartnerEntitlements({ partnerId: partner.id, keys: keys as any });
                   setNotesVersion((v) => v + 1);
@@ -2938,9 +2918,9 @@ function PartnerDetailPageInner() {
                 partner={partner as any}
                 layout="embedded"
                 onOpenVault={openSavedLetterVault}
-                onOpenReports={() => setTab('reports')}
-                onOpenDisputeCenter={() => setTab('disputes')}
-                onOpenDebtCenter={() => setTab('debt')}
+                onOpenReports={() => setTabAndUrl('reports')}
+                onOpenDisputeCenter={() => setTabAndUrl('disputes')}
+                onOpenDebtCenter={() => setTabAndUrl('debt')}
                 onRequestGrantEntitlements={(keys) => {
                   ensurePartnerEntitlements({ partnerId: partner.id, keys: keys as any });
                   setNotesVersion((v) => v + 1);
@@ -3060,11 +3040,12 @@ function PartnerDetailPageInner() {
                 ) : null}
 
                 <div className="mt-4">
-                  <FinelyOsPaginatedStack
+                  <PartnerCompactGrid
                     items={letters}
-                    pageSize={3}
-                    itemSpacingClassName="space-y-6"
-                    emptyMessage="No letters generated yet. Save a PDF from the Disputes tab to see it here."
+                    initialShow={4}
+                    columnsClassName="grid gap-4"
+                    emptyMessage="No letters generated yet. Save a PDF from the Bureaus tab to see it here."
+                    getKey={(l) => l.id}
                     renderItem={(l) => (
                       <SavedLetterCard
                         id={`letter-${l.id}`}
@@ -3153,10 +3134,12 @@ function PartnerDetailPageInner() {
                 </div>
               ) : (
                 <div className="mt-5">
-                  <FinelyOsPaginatedStack
+                  <PartnerCompactGrid
                     items={analysisReports}
-                    pageSize={6}
+                    initialShow={6}
+                    columnsClassName="grid md:grid-cols-2 gap-3"
                     emptyMessage="No analysis reports yet."
+                    getKey={(r: any) => r.id}
                     renderItem={(r: any) => (
                       <div key={r.id} className={`${finelyOsInlineListItem()} p-5`}>
                         <div className={`${FINELY_OS_ENTITY_VALUE} truncate`}>{r.filename || 'Credit Analysis Report.pdf'}</div>
@@ -3176,7 +3159,7 @@ function PartnerDetailPageInner() {
                           </button>
                           <button
                             type="button"
-                            onClick={() => setTab('evidence')}
+                            onClick={() => setTabAndUrl('evidence')}
                             className={FINELY_OS_SECONDARY_BTN}
                             title="View in Evidence Vault"
                           >
@@ -3191,6 +3174,55 @@ function PartnerDetailPageInner() {
             </div>
           </div>
         )}
+
+        {(tab === 'overview' || tab === 'reports' || tab === 'disputes' || tab === 'letters' || tab === 'debt') ? (
+          <PartnerBureauResourcesPanel />
+        ) : null}
+
+        <AdminPartnerAccessPanel partner={partner} onUpdated={() => setPartnerVersion((v) => v + 1)} />
+
+        <details className={`${finelyOsCatalogCard('violet')} !p-5 group`}>
+          <summary className="cursor-pointer list-none flex flex-wrap items-center justify-between gap-3 [&::-webkit-details-marker]:hidden">
+            <div>
+              <p className={FINELY_OS_ENTITY_SUBLABEL}>Client journey & workflow</p>
+              <p className={`mt-1 ${FINELY_OS_ENTITY_BODY} text-sm`}>Stage, restore progress, intake links — collapsed so primary tabs stay on top.</p>
+            </div>
+            <span className={`${FINELY_OS_ENTITY_SUBLABEL} text-xs group-open:hidden`}>Expand</span>
+          </summary>
+          <div className="mt-5 space-y-5 border-t border-white/10 pt-5">
+            <PartnerIntakeLinkPanel partner={partner} />
+            <JourneyStageAdminControl
+              partner={partner}
+              actorEmail={actorEmail}
+              onUpdated={() => setPartnerVersion((v) => v + 1)}
+            />
+            <RoleWorkflowPanel roleId={adminWorkflowId} compact completedSteps={adminWorkflowProgress} />
+            <PartnerCreditRestoreMiniRail
+              reportsCount={reports.length}
+              evidenceCount={evidence.length}
+              lettersCount={letters.length}
+              onOpenTab={(t) => setTabAndUrl(t as TabKey)}
+            />
+            <PartnerCreditRestoreHud
+              reportsCount={reports.length}
+              negativesCount={candidates.length}
+              evidenceCount={evidence.length}
+              lettersCount={letters.length}
+              openCasesCount={openPartnerCases.length}
+              readinessScore={overallScore?.overall ?? null}
+              onOpenTab={(t) => setTabAndUrl(t as TabKey)}
+              primaryAction={
+                !reports.length
+                  ? { label: 'Upload report', tab: 'reports' }
+                  : !letters.length
+                    ? { label: 'Open bureaus', tab: 'disputes' }
+                    : { label: 'Letter studio', tab: 'letters' }
+              }
+            />
+            <LegacyApplicationStatusBanner partner={partner} />
+          </div>
+        </details>
+
         <FinelyOsPageFooter />
 </div>
     </EntityDetailShell>

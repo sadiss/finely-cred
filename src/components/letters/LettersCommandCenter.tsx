@@ -2134,10 +2134,10 @@ useEffect(() => {
   }, [tplRendered?.baseId, tplRendered?.variantId, tplRendered?.tone, tplRendered?.version]);
 
   const tabKeys: Array<{ key: TabKey; label: string; icon: React.ReactNode; hidden?: boolean }> = [
-    { key: 'dispute', label: 'Dispute', icon: <Gavel size={12} className="inline mr-2" /> },
-    { key: 'validation', label: 'Validation / DV', icon: <ShieldAlert size={12} className="inline mr-2" /> },
-    { key: 'court', label: 'Court / Affidavit', icon: <Scale size={12} className="inline mr-2" /> },
-    { key: 'templates', label: 'Templates', icon: <ScrollText size={12} className="inline mr-2" />, hidden: !canSeeTemplates },
+    { key: 'dispute', label: 'Bureaus', icon: <Gavel size={14} className="inline mr-2" /> },
+    { key: 'validation', label: 'Validation / DV', icon: <ShieldAlert size={14} className="inline mr-2" /> },
+    { key: 'court', label: 'Court / Affidavit', icon: <Scale size={14} className="inline mr-2" /> },
+    { key: 'templates', label: 'Templates', icon: <ScrollText size={14} className="inline mr-2" />, hidden: !canSeeTemplates },
   ];
 
   const disputeEvidenceLinked = useMemo(() => {
@@ -3085,9 +3085,18 @@ useEffect(() => {
         ) : null}
 
         {!unifiedShell ? (
-        <div className="flex flex-wrap gap-3">
+        <div className="flex flex-wrap gap-2 p-1 rounded-2xl border border-white/10 bg-black/30">
           {tabKeys.filter((t) => !t.hidden).map((t) => (
-            <button key={t.key} className={tabBtn(tab === t.key)} onClick={() => setTab(t.key)}>
+            <button
+              key={t.key}
+              className={
+                (tab === t.key
+                  ? 'bg-amber-500 text-black border-amber-400'
+                  : 'bg-white/5 text-white/75 border-white/10 hover:bg-white/10') +
+                ' inline-flex items-center gap-2 px-5 py-3 rounded-xl border text-xs font-black uppercase tracking-widest transition-all'
+              }
+              onClick={() => setTab(t.key)}
+            >
               {t.icon} {t.label}
             </button>
           ))}
@@ -3184,74 +3193,6 @@ useEffect(() => {
                       title="Download dispute reasons library (reference text)"
                     >
                       <FileText size={14} /> Reasons OS
-                    </button>
-                  </div>
-                </div>
-
-                <div className="fc-light-glass-panel fc-light-chrome-panel p-4">
-                  <div className="flex flex-wrap items-center justify-between gap-3">
-                    <div className="text-[10px] uppercase tracking-widest text-white/40">Restore progress</div>
-                    <div className="text-[10px] font-black uppercase tracking-widest text-white/70">{restoreHud.pct}%</div>
-                  </div>
-                  <div className="mt-2 text-white/60 text-sm max-w-5xl">
-                    This is the dispute-letter workflow from start → saved PDF. Steps auto-complete based on your saved work (reports, screenshots,
-                    selected items, and reasons). If evidence is missing, PDF generation is blocked to keep your letter “mail-ready.”
-                  </div>
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    {restoreHud.steps.map((s) => (
-                      <div
-                        key={s.id}
-                        className={
-                          'px-3 py-2 rounded-xl border text-[10px] font-black uppercase tracking-widest transition-all ' +
-                          (s.done ? 'border-emerald-500/25 bg-emerald-500/10 text-emerald-100/90' : 'border-white/[0.08] bg-black/40 text-white/50')
-                        }
-                        title={`${s.hint} ${s.meta ? `(${s.meta})` : ''}`.trim()}
-                      >
-                        {s.label}
-                      </div>
-                    ))}
-                  </div>
-                  <div className="mt-3 flex flex-wrap items-center gap-2 text-[10px] font-black uppercase tracking-widest">
-                    <span className="px-3 py-2 rounded-xl border border-white/[0.08] bg-black/40 text-white/60">
-                      Reports <span className="text-white/80">{reports.length}</span>
-                    </span>
-                    <span className="px-3 py-2 rounded-xl border border-white/[0.08] bg-black/40 text-white/60">
-                      Screenshots <span className="text-white/80">{screenshotEvidence.length}</span>
-                    </span>
-                    <span className="px-3 py-2 rounded-xl border border-white/[0.08] bg-black/40 text-white/60">
-                      Disputes <span className="text-white/80">{selectedDisputes.length}</span>
-                    </span>
-                    <span className="px-3 py-2 rounded-xl border border-white/[0.08] bg-black/40 text-white/60">
-                      Evidence linked{' '}
-                      <span className="text-white/80">
-                        {disputeEvidenceLinked.linked}/{disputeEvidenceLinked.total}
-                      </span>
-                    </span>
-                    <span className="px-3 py-2 rounded-xl border border-white/[0.08] bg-black/40 text-white/60">
-                      Reasons{' '}
-                      <span className="text-white/80">
-                        {disputeReasonsSelected.withAny}/{disputeReasonsSelected.total}
-                      </span>
-                    </span>
-                    <span className="px-3 py-2 rounded-xl border border-white/[0.08] bg-black/40 text-white/60">
-                      Letters generated{' '}
-                      <span className="text-white/80">{Object.values(lastGeneratedAtByBureau).filter(Boolean).length}</span>
-                    </span>
-                  </div>
-                  <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
-                    <div className="text-white/55 text-sm">
-                      Next: <span className="text-white/85 font-semibold">{nextBestAction.label}</span>
-                      {nextBestAction.key === 'generate_pdf' ? (
-                        <span className="text-white/45 text-sm"> — saves to Letters Vault</span>
-                      ) : null}
-                    </div>
-                    <button
-                      type="button"
-                      onClick={runNextBestAction}
-                      className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-amber-500/25 bg-amber-500/15 hover:bg-amber-500/20 text-[10px] font-black uppercase tracking-widest text-amber-100 transition-all"
-                      title={nextBestAction.label}
-                    >
-                      Do next <ChevronRight size={14} />
                     </button>
                   </div>
                 </div>
@@ -4743,9 +4684,46 @@ useEffect(() => {
             </div>
           </EntitlementGate>
         )}
+        {layout === 'embedded' ? (
+          <details className="fc-light-glass-panel fc-light-chrome-panel p-4 mt-6">
+            <summary className="cursor-pointer list-none flex flex-wrap items-center justify-between gap-3 [&::-webkit-details-marker]:hidden">
+              <div className="text-[10px] uppercase tracking-widest text-white/40">Client journey · letter workflow</div>
+              <div className="text-[10px] font-black uppercase tracking-widest text-white/70">{restoreHud.pct}% complete</div>
+            </summary>
+            <div className="mt-4 space-y-3 border-t border-white/10 pt-4">
+              <div className="text-white/60 text-sm max-w-5xl">
+                Workflow from report upload → saved PDF. Steps auto-complete from saved work.
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {restoreHud.steps.map((s) => (
+                  <div
+                    key={s.id}
+                    className={
+                      'px-3 py-2 rounded-xl border text-[10px] font-black uppercase tracking-widest transition-all ' +
+                      (s.done ? 'border-emerald-500/25 bg-emerald-500/10 text-emerald-100/90' : 'border-white/[0.08] bg-black/40 text-white/50')
+                    }
+                    title={`${s.hint} ${s.meta ? `(${s.meta})` : ''}`.trim()}
+                  >
+                    {s.label}
+                  </div>
+                ))}
+              </div>
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div className="text-white/55 text-sm">
+                  Next: <span className="text-white/85 font-semibold">{nextBestAction.label}</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={runNextBestAction}
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-amber-500/25 bg-amber-500/15 hover:bg-amber-500/20 text-[10px] font-black uppercase tracking-widest text-amber-100 transition-all"
+                >
+                  Do next <ChevronRight size={14} />
+                </button>
+              </div>
+            </div>
+          </details>
+        ) : null}
       </div>
-    </>
-  );
 
       {reasonsLibraryOpen && partner ? (
         <DisputeReasonsLibraryPanel
@@ -4760,6 +4738,8 @@ useEffect(() => {
           }}
         />
       ) : null}
+    </>
+  );
 
   if (layout === 'embedded' || unifiedShell) return main;
 

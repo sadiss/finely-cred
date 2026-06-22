@@ -7,13 +7,23 @@ export type PartnerAccessFlags = {
   paymentWaived: boolean;
 };
 
-export function readPartnerAccessFlags(partner: Partner | null | undefined): PartnerAccessFlags {
+/** Stored flags only — use for admin toggles (not derived from status). */
+export function readPartnerAccessFlagsStored(partner: Partner | null | undefined): PartnerAccessFlags {
   const sig = (partner?.journeySignals ?? {}) as Record<string, unknown>;
+  return {
+    accessApproved: sig.accessApproved === true,
+    roleUnlocked: sig.roleUnlocked === true,
+    paymentWaived: sig.paymentWaived === true,
+  };
+}
+
+export function readPartnerAccessFlags(partner: Partner | null | undefined): PartnerAccessFlags {
+  const stored = readPartnerAccessFlagsStored(partner);
   const status = partner?.status ?? 'lead';
   return {
-    accessApproved: sig.accessApproved === true || status === 'active',
-    roleUnlocked: sig.roleUnlocked === true || status === 'active',
-    paymentWaived: sig.paymentWaived === true,
+    accessApproved: stored.accessApproved || status === 'active',
+    roleUnlocked: stored.roleUnlocked || status === 'active',
+    paymentWaived: stored.paymentWaived,
   };
 }
 

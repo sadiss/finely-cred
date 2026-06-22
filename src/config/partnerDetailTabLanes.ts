@@ -63,7 +63,7 @@ export function partnerDetailTabLabel(key: string): string {
     reports: 'Reports',
     analysis: 'Analysis Report',
     evidence: 'Evidence',
-    disputes: 'Disputes',
+    disputes: 'Bureaus',
     letters: 'Letters',
     tasks: 'Tasks',
     notes: 'Notes',

@@ -1,7 +1,6 @@
 import React from 'react';
 import { PageShell } from './PageShell';
-import { PARTNER_DETAIL_TAB_LANES, resolvePartnerDetailLaneId } from '../../config/partnerDetailTabLanes';
-import { FinelyEntityTabLaneNav } from '../../features/os/FinelyEntityTabLaneNav';
+import { PartnerDetailSidebarNav } from '../../features/partner/PartnerDetailSidebarNav';
 import { FINELY_OS_PAGE } from '../../features/os/finelyOsLightUi';
 
 type TabSpec = { key: string; label: string; icon?: React.ReactNode; hidden?: boolean };
@@ -17,12 +16,14 @@ export function EntityDetailShell(args: {
   activeTabKey?: string;
   onTabChange?: (key: string) => void;
   stickyBar?: React.ReactNode;
-  /** When true, group many tabs into 4 lanes with paginated pickers. */
+  /** Left sidebar with large section buttons (partner profile). */
+  useSidebarNav?: boolean;
+  /** @deprecated use useSidebarNav */
   useTabLanes?: boolean;
   children: React.ReactNode;
 }) {
   const tabs = (args.tabs ?? []).filter((t) => !t.hidden);
-  const useLanes = args.useTabLanes ?? tabs.length > 5;
+  const useSidebar = args.useSidebarNav ?? false;
 
   return (
     <PageShell badge={args.badge} title={args.title} subtitle={args.subtitle}>
@@ -36,32 +37,31 @@ export function EntityDetailShell(args: {
 
         {args.kpis ? <div>{args.kpis}</div> : null}
 
-        {tabs.length && args.activeTabKey && args.onTabChange ? (
-          useLanes ? (
-            <FinelyEntityTabLaneNav
-              tabs={tabs}
-              lanes={PARTNER_DETAIL_TAB_LANES}
-              activeTabKey={args.activeTabKey}
-              onTabChange={args.onTabChange}
-              resolveLaneId={resolvePartnerDetailLaneId}
-            />
-          ) : (
-            <FinelyEntityTabLaneNav
-              tabs={tabs}
-              lanes={[]}
-              activeTabKey={args.activeTabKey}
-              onTabChange={args.onTabChange}
-            />
-          )
-        ) : null}
-
-        {args.stickyBar ? (
-          <div className="sticky top-0 z-20 -mx-1 px-1 py-2 rounded-xl border border-violet-500/20 bg-fc-chrome/95 backdrop-blur-md shadow-lg shadow-black/10 fc-entity-sticky-bar">
-            {args.stickyBar}
+        {useSidebar && tabs.length && args.activeTabKey && args.onTabChange ? (
+          <div className="grid lg:grid-cols-[minmax(220px,280px)_minmax(0,1fr)] gap-6 lg:gap-8 items-start">
+            <PartnerDetailSidebarNav tabs={tabs} activeTabKey={args.activeTabKey} onTabChange={args.onTabChange} />
+            <div className="min-w-0 space-y-6">
+              {args.stickyBar ? (
+                <div className="sticky top-0 z-20 -mx-1 px-1 py-2 rounded-xl border border-violet-500/20 bg-fc-chrome/95 backdrop-blur-md shadow-lg shadow-black/10 fc-entity-sticky-bar">
+                  {args.stickyBar}
+                </div>
+              ) : null}
+              <div>{args.children}</div>
+            </div>
           </div>
-        ) : null}
-
-        <div>{args.children}</div>
+        ) : (
+          <>
+            {tabs.length && args.activeTabKey && args.onTabChange ? (
+              <PartnerDetailSidebarNav tabs={tabs} activeTabKey={args.activeTabKey} onTabChange={args.onTabChange} />
+            ) : null}
+            {args.stickyBar ? (
+              <div className="sticky top-0 z-20 -mx-1 px-1 py-2 rounded-xl border border-violet-500/20 bg-fc-chrome/95 backdrop-blur-md shadow-lg shadow-black/10 fc-entity-sticky-bar">
+                {args.stickyBar}
+              </div>
+            ) : null}
+            <div>{args.children}</div>
+          </>
+        )}
       </div>
     </PageShell>
   );
