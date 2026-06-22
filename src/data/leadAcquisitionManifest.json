@@ -1,0 +1,126 @@
+{
+  "version": 1,
+  "lanes": [
+    {
+      "id": "credit_restore",
+      "label": "Credit restore · dispute guide",
+      "audience": "consumer",
+      "path": "/free-guide",
+      "query": "guide=credit-dispute-letter-guide",
+      "sequenceId": "seq_credit_funnel",
+      "utmCampaign": "acq_credit_restore",
+      "utmMedium": "syndication",
+      "description": "Free credit dispute letter guide — PDF download + limited DIY portal trial."
+    },
+    {
+      "id": "score_roadmap",
+      "label": "Score roadmap",
+      "audience": "consumer",
+      "path": "/free-score-roadmap",
+      "sequenceId": "seq_score_roadmap_funnel",
+      "utmCampaign": "acq_score_roadmap",
+      "utmMedium": "syndication",
+      "description": "5-step score recovery sequence with portal preview."
+    },
+    {
+      "id": "debt_relief",
+      "label": "Debt validation guide",
+      "audience": "consumer",
+      "path": "/free-debt-guide",
+      "sequenceId": "seq_debt_funnel",
+      "utmCampaign": "acq_debt",
+      "utmMedium": "syndication",
+      "description": "Collections validation playbook — FDCPA workflows and portal preview."
+    },
+    {
+      "id": "business_credit",
+      "label": "Business credit guide",
+      "audience": "business",
+      "path": "/free-business-guide",
+      "sequenceId": "seq_business_funnel",
+      "utmCampaign": "acq_business_credit",
+      "utmMedium": "syndication",
+      "description": "Entity hygiene, vendor sequencing, and D-U-N-S checklist."
+    },
+    {
+      "id": "tradeline_au",
+      "label": "Tradeline / AU insider guide",
+      "audience": "consumer",
+      "path": "/free-tradeline-guide",
+      "sequenceId": "seq_tradeline_funnel",
+      "utmCampaign": "acq_tradeline",
+      "utmMedium": "syndication",
+      "description": "Authorized user tradelines — timing, risk, and restore fit."
+    },
+    {
+      "id": "agency_white_label",
+      "label": "Agency white-label guide",
+      "audience": "agency",
+      "path": "/free-agency-guide",
+      "sequenceId": "seq_agency_funnel",
+      "utmCampaign": "acq_agency",
+      "utmMedium": "syndication",
+      "description": "Scale a credit services agency with partner OS and compliance workflows."
+    },
+    {
+      "id": "credit_specialist",
+      "label": "Credit specialist apply",
+      "audience": "specialist",
+      "path": "/credit-specialist-apply",
+      "sequenceId": "seq_specialist_apply_funnel",
+      "utmCampaign": "acq_specialist",
+      "utmMedium": "syndication",
+      "description": "Apply to become a Finely Cred credit restoration specialist."
+    },
+    {
+      "id": "affiliate",
+      "label": "Affiliate toolkit",
+      "audience": "affiliate",
+      "path": "/affiliate-toolkit",
+      "sequenceId": "seq_affiliate_funnel",
+      "utmCampaign": "acq_affiliate",
+      "utmMedium": "syndication",
+      "description": "Referral links, QR kits, and compliant promo templates."
+    },
+    {
+      "id": "affiliate_program",
+      "label": "Affiliate program signup",
+      "audience": "affiliate",
+      "path": "/affiliate",
+      "sequenceId": "seq_affiliate_funnel",
+      "utmCampaign": "acq_affiliate_signup",
+      "utmMedium": "syndication",
+      "description": "Join the Finely Cred affiliate program — residual commissions."
+    },
+    {
+      "id": "au_seller",
+      "label": "AU seller signup",
+      "audience": "au_seller",
+      "path": "/signup",
+      "query": "role=au_seller",
+      "sequenceId": "seq_au_seller_onboard",
+      "utmCampaign": "acq_au_seller",
+      "utmMedium": "syndication",
+      "description": "List authorized user tradelines on the Finely marketplace."
+    },
+    {
+      "id": "au_marketplace",
+      "label": "AU marketplace (buyers)",
+      "audience": "consumer",
+      "path": "/au/marketplace",
+      "utmCampaign": "acq_au_marketplace",
+      "utmMedium": "syndication",
+      "description": "Browse authorized user tradeline inventory."
+    },
+    {
+      "id": "strategy_call",
+      "label": "Strategy call booking",
+      "audience": "consumer",
+      "path": "/enlightenment-session",
+      "sequenceId": "seq_strategy_session",
+      "utmCampaign": "acq_strategy_call",
+      "utmMedium": "syndication",
+      "description": "Free consultation for restore, business credit, debt, or funding paths."
+    }
+  ]
+}

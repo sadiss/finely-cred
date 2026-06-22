@@ -211,6 +211,7 @@ const PartnerBundlePurchasePage = lazy(() => import('./pages/portal/PartnerBundl
 const AdminAgentStaffPage = lazy(() => import('./pages/admin/AdminAgentStaffPage'));
 const AdminHandsFreeOpsPage = lazy(() => import('./pages/admin/AdminHandsFreeOpsPage'));
 const AdminLeadMagnetFunnelsPage = lazy(() => import('./pages/admin/AdminLeadMagnetFunnelsPage'));
+const AdminLeadAcquisitionPage = lazy(() => import('./pages/admin/AdminLeadAcquisitionPage'));
 const AdminFunnelExperimentsPage = lazy(() => import('./pages/admin/AdminFunnelExperimentsPage'));
 const AdminIntegrationHubPage = lazy(() => import('./pages/admin/AdminIntegrationHubPage'));
 const NotificationsCenterPage = lazy(() => import('./pages/NotificationsCenterPage'));
@@ -2293,6 +2294,14 @@ function AppInner() {
           element={
             <ProtectedAdminRoute>
               <AdminAgentStaffPage />
+            </ProtectedAdminRoute>
+          }
+        />
+        <Route
+          path="/admin/lead-acquisition"
+          element={
+            <ProtectedAdminRoute>
+              <AdminLeadAcquisitionPage />
             </ProtectedAdminRoute>
           }
         />

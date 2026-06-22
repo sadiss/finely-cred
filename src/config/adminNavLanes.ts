@@ -89,6 +89,7 @@ export const ADMIN_NAV_GROUPS: AdminNavGroupDef[] = [
     label: 'Automation & AI',
     items: [
       { path: '/admin/automations', label: 'Automation Studio', icon: Bot, hint: 'Run automations' },
+      { path: '/admin/lead-acquisition', label: 'Lead acquisition', icon: Globe, hint: 'Syndication feeds + webhook posting' },
       { path: '/admin/ops-agent', label: 'Ruth · Co-Owner', icon: Crown, hint: 'AI co-owner command' },
       { path: '/admin/phone-hub', label: 'Phone Hub', icon: Phone, hint: 'Calls & SMS' },
       { path: '/admin/lead-intel', label: 'Lead Intel (full)', icon: Sparkles, hint: 'Full-page intel workspace' },

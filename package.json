@@ -8,7 +8,7 @@
   "scripts": {
     "dev": "vite --host 127.0.0.1 --port 5173 --strictPort",
     "dev:host": "vite --host 0.0.0.0 --port 5173 --strictPort",
-    "build": "npm run sitemap:generate && npm run generate:staff-portraits && tsc && vite build && node scripts/verify-production-dist.mjs",
+    "build": "npm run sitemap:generate && npm run syndication:feeds && npm run generate:staff-portraits && tsc && vite build && node scripts/verify-production-dist.mjs",
     "typecheck": "tsc --noEmit",
     "preview": "vite preview",
     "start": "serve -s dist -l 8080",
@@ -42,6 +42,8 @@
     "supabase:db:push": "npx supabase db push",
     "dev:check": "npm run typecheck && npm run env:check",
     "sitemap:generate": "node scripts/generate-public-sitemap.mjs",
+    "syndication:feeds": "node scripts/generate-lead-syndication-feed.mjs",
+    "syndication:publish": "node scripts/publish-seo-signals.mjs",
     "brand:logo": "node scripts/process-finely-logo.mjs",
     "generate:staff-portraits": "npx tsx scripts/fetch-staff-portraits.ts",
     "e2e:smoke": "node scripts/e2e-critical-path.mjs",

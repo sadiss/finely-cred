@@ -1,0 +1,115 @@
+{
+  "version": 1,
+  "generatedAt": "2026-06-22T02:57:25.685Z",
+  "site": "https://finelycred.com",
+  "items": [
+    {
+      "id": "credit_restore",
+      "title": "Credit restore · dispute guide",
+      "link": "https://finelycred.com/free-guide?guide=credit-dispute-letter-guide&utm_source=syndication&utm_medium=syndication&utm_campaign=acq_credit_restore",
+      "description": "Free credit dispute letter guide — PDF download + limited DIY portal trial.",
+      "audience": "consumer",
+      "sequenceId": "seq_credit_funnel",
+      "pubDate": "Mon, 22 Jun 2026 02:57:25 GMT"
+    },
+    {
+      "id": "score_roadmap",
+      "title": "Score roadmap",
+      "link": "https://finelycred.com/free-score-roadmap?utm_source=syndication&utm_medium=syndication&utm_campaign=acq_score_roadmap",
+      "description": "5-step score recovery sequence with portal preview.",
+      "audience": "consumer",
+      "sequenceId": "seq_score_roadmap_funnel",
+      "pubDate": "Mon, 22 Jun 2026 02:57:25 GMT"
+    },
+    {
+      "id": "debt_relief",
+      "title": "Debt validation guide",
+      "link": "https://finelycred.com/free-debt-guide?utm_source=syndication&utm_medium=syndication&utm_campaign=acq_debt",
+      "description": "Collections validation playbook — FDCPA workflows and portal preview.",
+      "audience": "consumer",
+      "sequenceId": "seq_debt_funnel",
+      "pubDate": "Mon, 22 Jun 2026 02:57:25 GMT"
+    },
+    {
+      "id": "business_credit",
+      "title": "Business credit guide",
+      "link": "https://finelycred.com/free-business-guide?utm_source=syndication&utm_medium=syndication&utm_campaign=acq_business_credit",
+      "description": "Entity hygiene, vendor sequencing, and D-U-N-S checklist.",
+      "audience": "business",
+      "sequenceId": "seq_business_funnel",
+      "pubDate": "Mon, 22 Jun 2026 02:57:25 GMT"
+    },
+    {
+      "id": "tradeline_au",
+      "title": "Tradeline / AU insider guide",
+      "link": "https://finelycred.com/free-tradeline-guide?utm_source=syndication&utm_medium=syndication&utm_campaign=acq_tradeline",
+      "description": "Authorized user tradelines — timing, risk, and restore fit.",
+      "audience": "consumer",
+      "sequenceId": "seq_tradeline_funnel",
+      "pubDate": "Mon, 22 Jun 2026 02:57:25 GMT"
+    },
+    {
+      "id": "agency_white_label",
+      "title": "Agency white-label guide",
+      "link": "https://finelycred.com/free-agency-guide?utm_source=syndication&utm_medium=syndication&utm_campaign=acq_agency",
+      "description": "Scale a credit services agency with partner OS and compliance workflows.",
+      "audience": "agency",
+      "sequenceId": "seq_agency_funnel",
+      "pubDate": "Mon, 22 Jun 2026 02:57:25 GMT"
+    },
+    {
+      "id": "credit_specialist",
+      "title": "Credit specialist apply",
+      "link": "https://finelycred.com/credit-specialist-apply?utm_source=syndication&utm_medium=syndication&utm_campaign=acq_specialist",
+      "description": "Apply to become a Finely Cred credit restoration specialist.",
+      "audience": "specialist",
+      "sequenceId": "seq_specialist_apply_funnel",
+      "pubDate": "Mon, 22 Jun 2026 02:57:25 GMT"
+    },
+    {
+      "id": "affiliate",
+      "title": "Affiliate toolkit",
+      "link": "https://finelycred.com/affiliate-toolkit?utm_source=syndication&utm_medium=syndication&utm_campaign=acq_affiliate",
+      "description": "Referral links, QR kits, and compliant promo templates.",
+      "audience": "affiliate",
+      "sequenceId": "seq_affiliate_funnel",
+      "pubDate": "Mon, 22 Jun 2026 02:57:25 GMT"
+    },
+    {
+      "id": "affiliate_program",
+      "title": "Affiliate program signup",
+      "link": "https://finelycred.com/affiliate?utm_source=syndication&utm_medium=syndication&utm_campaign=acq_affiliate_signup",
+      "description": "Join the Finely Cred affiliate program — residual commissions.",
+      "audience": "affiliate",
+      "sequenceId": "seq_affiliate_funnel",
+      "pubDate": "Mon, 22 Jun 2026 02:57:25 GMT"
+    },
+    {
+      "id": "au_seller",
+      "title": "AU seller signup",
+      "link": "https://finelycred.com/signup?role=au_seller&utm_source=syndication&utm_medium=syndication&utm_campaign=acq_au_seller",
+      "description": "List authorized user tradelines on the Finely marketplace.",
+      "audience": "au_seller",
+      "sequenceId": "seq_au_seller_onboard",
+      "pubDate": "Mon, 22 Jun 2026 02:57:25 GMT"
+    },
+    {
+      "id": "au_marketplace",
+      "title": "AU marketplace (buyers)",
+      "link": "https://finelycred.com/au/marketplace?utm_source=syndication&utm_medium=syndication&utm_campaign=acq_au_marketplace",
+      "description": "Browse authorized user tradeline inventory.",
+      "audience": "consumer",
+      "sequenceId": null,
+      "pubDate": "Mon, 22 Jun 2026 02:57:25 GMT"
+    },
+    {
+      "id": "strategy_call",
+      "title": "Strategy call booking",
+      "link": "https://finelycred.com/enlightenment-session?utm_source=syndication&utm_medium=syndication&utm_campaign=acq_strategy_call",
+      "description": "Free consultation for restore, business credit, debt, or funding paths.",
+      "audience": "consumer",
+      "sequenceId": "seq_strategy_session",
+      "pubDate": "Mon, 22 Jun 2026 02:57:25 GMT"
+    }
+  ]
+}

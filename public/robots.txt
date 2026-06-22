@@ -2,3 +2,7 @@ User-agent: *
 Allow: /
 
 Sitemap: https://finelycred.com/sitemap.xml
+
+# Lead acquisition syndication feeds (RSS + JSON)
+# https://finelycred.com/feeds/leads.xml
+# https://finelycred.com/feeds/leads.json

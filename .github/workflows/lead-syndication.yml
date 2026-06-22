@@ -1,0 +1,42 @@
+name: Lead syndication publish
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - master
+      - launch/ready-sovereign-supreme
+    paths:
+      - 'public/**'
+      - 'src/data/leadAcquisitionManifest.json'
+      - 'src/data/publicSeoCatalog.ts'
+      - 'scripts/publish-seo-signals.mjs'
+      - 'scripts/generate-lead-syndication-feed.mjs'
+
+jobs:
+  syndicate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - name: Install
+        run: npm ci
+      - name: Publish SEO signals + feeds + optional webhooks
+        run: npm run syndication:publish
+        env:
+          SITE_URL: https://finelycred.com
+          INDEXNOW_KEY: ${{ secrets.INDEXNOW_KEY }}
+          SYNDICATION_WEBHOOK_URL: ${{ secrets.SYNDICATION_WEBHOOK_URL }}
+      - name: Upload feed artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: lead-syndication-feeds
+          path: |
+            public/feeds/leads.xml
+            public/feeds/leads.json
+            public/sitemap.xml
