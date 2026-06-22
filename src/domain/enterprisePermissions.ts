@@ -185,7 +185,7 @@ export const ENTERPRISE_PERMISSIONS: Record<(typeof ENTERPRISE_PERMISSION_GROUPS
   canViewPaymentHistory: { label: 'View payment history', group: 'Billing & payments' },
   canManageInvoices: { label: 'Manage invoices', group: 'Billing & payments' },
 
-  canViewAllCustomers: { label: 'View all customers', group: 'Customers & partners' },
+  canViewAllClients: { label: 'View all customers', group: 'Customers & partners' },
   canCreatePartners: { label: 'Create partners', group: 'Customers & partners' },
   canEditPartners: { label: 'Edit partners', group: 'Customers & partners' },
   canDeletePartners: { label: 'Delete partners', group: 'Customers & partners' },

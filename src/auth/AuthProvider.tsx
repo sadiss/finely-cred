@@ -162,10 +162,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }
           return { user: devUser };
         }
+        const siteUrl = import.meta.env.VITE_SITE_URL || 'https://finelycred.com';
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
-          options: metadata ? { data: metadata } : undefined,
+          options: {
+            ...(metadata ? { data: metadata } : {}),
+            emailRedirectTo: `${siteUrl}/onboarding?confirmed=1`,
+          },
         });
         if (error) return { error: error.message };
         if (data.session) setSession(data.session);

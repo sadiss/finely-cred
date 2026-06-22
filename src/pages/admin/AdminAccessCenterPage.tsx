@@ -97,14 +97,14 @@ export default function AdminAccessCenterPage() {
 
   const caps = useMemo(() => {
     if (isAllowlisted) {
-      return { canManageTeam: true, canManageTenants: true, canViewAllCustomers: true, canUseFinanceTools: true };
+      return { canManageTeam: true, canManageTenants: true, canViewAllClients: true, canUseFinanceTools: true };
     }
     const m = membershipActive ?? membershipPlatform;
     const ok = Boolean(m?.status === 'active' && (isPlatformAdmin(m) || m.role === 'tenant_owner'));
     return {
       canManageTeam: ok || canManageTeam(m),
       canManageTenants: ok,
-      canViewAllCustomers: ok || canViewAllClients(m),
+      canViewAllClients: ok || canViewAllClients(m),
       canUseFinanceTools: ok || canUseFinanceTools(m),
     };
   }, [isAllowlisted, membershipActive, membershipPlatform]);

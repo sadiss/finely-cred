@@ -213,7 +213,7 @@ export default function AgentHubPage() {
 
         <FinelyNoticedStrip
           items={buildAgentNoticedItems({
-            managedClients: managedClientsCount,
+            managedCustomers: managedClientsCount,
             openTasks,
             hasOperatingModel,
           })}
