@@ -129,7 +129,7 @@ export default function AdminPartnerImportPage() {
       });
       addLog(`ZIP contains ${fileMap.size / 2} file(s). Scanning all partners for pending report placeholders…`);
 
-      const allPartners = listPartners();
+      const allPartners = await listPartners();
       let matched = 0;
       let uploaded = 0;
       let skipped = 0;
@@ -189,7 +189,7 @@ export default function AdminPartnerImportPage() {
               ...report,
               rawBlobRef: ref,
               sha256,
-              provider,
+              provider: provider as any,
               reportDate,
               parsed,
               pdfText,
