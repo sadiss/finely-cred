@@ -111,6 +111,20 @@ function safe(s: any) {
   return String(s ?? '').trim();
 }
 
+/** Replace Unicode chars that WinAnsi (pdf-lib standard fonts) cannot encode. */
+function pdfSafe(s: string): string {
+  return s
+    .replace(/\u2192/g, '->')   // → (right arrow)
+    .replace(/\u2190/g, '<-')   // ←
+    .replace(/\u2022/g, '-')    // • (bullet)
+    .replace(/\u2013/g, '-')    // – (en dash)
+    .replace(/\u2014/g, '--')   // — (em dash)
+    .replace(/\u2018|\u2019/g, "'") // smart single quotes
+    .replace(/\u201C|\u201D/g, '"') // smart double quotes
+    .replace(/\u2026/g, '...')  // …
+    .replace(/[^\x00-\xFF]/g, '?'); // fallback for any other non-latin1
+}
+
 function fmtDate(d?: string) {
   if (!d) return '';
   try {
@@ -147,18 +161,18 @@ function formatNegativeBullet(c: DisputeCandidate, insight?: CandidateInsight): 
   if (insight?.keyFacts.pastDue != null) facts.push(`past due $${Math.round(insight.keyFacts.pastDue).toLocaleString()}`);
   if (insight?.keyFacts.dofd) facts.push(`DOFD ${fmtDate(insight.keyFacts.dofd)}`);
   if (insight?.keyFacts.recentDerogCount6) facts.push(`${insight.keyFacts.recentDerogCount6} derog mo (6)`);
-  const why = insight?.whyTop?.slice(0, 2).join(' · ');
+  const why = insight?.whyTop?.slice(0, 2).join(' / ');
   const contradiction = insight?.contradictions?.[0];
   let line = insight?.severity != null ? `[Impact ${insight.severity}/100] ` : '';
-  line += parts.join(' • ');
-  if (facts.length) line += ` — ${facts.join(' · ')}`;
+  line += parts.join(' | ');
+  if (facts.length) line += ` - ${facts.join(' / ')}`;
   if (why) line += ` | ${why}`;
   if (contradiction) line += ` | Flag: ${contradiction}`;
   return line;
 }
 
 function negativeBulletForCandidate(parsed: ParsedCreditReport | null, c: DisputeCandidate): string {
-  if (!parsed) return `${c.account} • ${c.status} • code ${c.code}`;
+  if (!parsed) return `${c.account} | ${c.status} | code ${c.code}`;
   const insight = buildCandidateInsight(parsed, c);
   return formatNegativeBullet(c, insight);
 }
@@ -176,7 +190,7 @@ function buildSections(args: {
   const reportDate = args.report.reportDate || args.parsed?.reportDate || args.parsed?.debug?.reportDateDetected || '';
   const scores = topScores(args.parsed?.scores);
   const scoreLine = scores.length
-    ? scores.map((s) => `${s.model}${s.bureau ? ` (${bureauShortCode(s.bureau)})` : ''}: ${s.value}`).join(' • ')
+    ? scores.map((s) => `${s.model}${s.bureau ? ` (${bureauShortCode(s.bureau)})` : ''}: ${s.value}`).join(' | ')
     : 'No scores extracted from this report (PDF text-only exports sometimes omit score blocks).';
   const neg = negativesFromCandidates(args.candidates);
   const tradelines = args.parsed?.tradelines ?? [];
@@ -191,17 +205,19 @@ function buildSections(args: {
       title: 'Executive summary',
       bullets: [
         `Prepared for: ${name}`,
-        `Provider: ${provider}${reportDate ? ` • Report date: ${fmtDate(reportDate)}` : ''}`,
+        `Provider: ${provider}${reportDate ? ` | Report date: ${fmtDate(reportDate)}` : ''}`,
+
         scoreLine,
         `Tradelines detected: ${tradelineMeta.total} (limits: ${tradelineMeta.withLimit}, balances: ${tradelineMeta.withBal}, closed: ${tradelineMeta.closed})`,
-        `Potential dispute candidates: ${neg.length}${ranked.length ? ` • High-impact (75+): ${highImpactCount}` : ''}`,
+        `Potential dispute candidates: ${neg.length}${ranked.length ? ` | High-impact (75+): ${highImpactCount}` : ''}`,
+
         ranked.length
-          ? `Top priority target: ${ranked[0].account} (${ranked[0].type}) — impact score ${topImpact}/100`
+          ? `Top priority target: ${ranked[0].account} (${ranked[0].type}) - impact score ${topImpact}/100`
           : 'Upload a structured bureau export for ranked impact scoring and cross-bureau flag detection.',
       ],
     },
     {
-      title: 'Now (0–7 days)',
+      title: 'Now (0-7 days)',
       bullets:
         args.template?.roadmap?.now ??
         [
@@ -211,7 +227,7 @@ function buildSections(args: {
         ],
     },
     {
-      title: 'Next (7–30 days)',
+      title: 'Next (7-30 days)',
       bullets:
         args.template?.roadmap?.next ??
         [
@@ -221,13 +237,13 @@ function buildSections(args: {
         ],
     },
     {
-      title: 'Later (30–90 days)',
+      title: 'Later (30-90 days)',
       bullets:
         args.template?.roadmap?.later ??
         [
           'Escalations if the bureaus fail to investigate properly.',
           'Begin build phase: utilization optimization, new accounts (as appropriate), and lane-specific steps.',
-          'Repeat: analyze → evidence → letters → mail → follow-up.',
+          'Repeat: analyze -> evidence -> letters -> mail -> follow-up.',
         ],
     },
   ];
@@ -256,7 +272,7 @@ function buildSections(args: {
   // Add a negatives detail section per bureau/type (ensures depth + page count).
   const bucket: Record<string, DisputeCandidate[]> = {};
   for (const c of neg) {
-    const k = `${bureauShortCode(c.bureau)} • ${c.type}`;
+    const k = `${bureauShortCode(c.bureau)} | ${c.type}`;
     (bucket[k] ||= []).push(c);
   }
   const keys = Object.keys(bucket);
@@ -264,7 +280,7 @@ function buildSections(args: {
     const items = bucket[k] || [];
     const max = Math.max(1, Math.min(80, args.template?.negatives?.maxPerBucket ?? (args.variant === 'negatives_heavy' ? 40 : 18)));
     sections.push({
-      title: `Negatives — ${k}`,
+      title: `Negatives - ${k}`,
       bullets: items.slice(0, max).map((x) => negativeBulletForCandidate(args.parsed, x)),
     });
   }
@@ -272,7 +288,7 @@ function buildSections(args: {
   // Appendix pages to guarantee >= 20 pages.
   sections.push(
     {
-      title: 'Appendix — dispute round checklist',
+      title: 'Appendix - dispute round checklist',
       bullets:
         args.template?.appendix?.checklist ??
         [
@@ -283,7 +299,7 @@ function buildSections(args: {
         ],
     },
     {
-      title: 'Appendix — glossary',
+      title: 'Appendix - glossary',
       bullets:
         args.template?.appendix?.glossary ??
         [
@@ -328,14 +344,13 @@ export function buildAnalysisReportPreviewModel(args: {
   let negativesCount = 0;
   const sections: AnalysisReportPreviewSection[] = raw.map((s) => {
     let kind: AnalysisReportPreviewSection['kind'] = 'standard';
-    if (/^Negatives —/.test(s.title)) {
-      kind = 'negative';
+      if (/^Negatives -/.test(s.title)) {
       negativesCount += s.bullets.length;
     } else if (/^Priority dispute targets/.test(s.title)) {
       kind = 'negative';
       negativesCount += s.bullets.length;
     } else if (/^Appendix/.test(s.title)) kind = 'appendix';
-    else if (/^(Now|Next|Later|Funding focus)/.test(s.title)) kind = 'roadmap';
+    else if (/^(Now \(|Next \(|Later \(|Funding focus)/.test(s.title)) kind = 'roadmap';
     return { title: s.title, bullets: s.bullets, kind };
   });
 
@@ -366,7 +381,7 @@ export async function generateCreditAnalysisReportPdf(args: {
 
   const now = new Date();
   const title = template?.title || 'Credit Analysis Report';
-  const subtitle = `${args.partner.profile.fullName || 'Partner'} • ${now.toLocaleDateString()}`;
+  const subtitle = `${args.partner.profile.fullName || 'Partner'} | ${now.toLocaleDateString()}`;
 
   const accent = rgb(0.96, 0.62, 0.11); // amber-ish
   const ink = rgb(0.08, 0.10, 0.10);
@@ -397,7 +412,7 @@ export async function generateCreditAnalysisReportPdf(args: {
     cover.drawText(title, { x: 48, y: height - 110, size: 34, font: fontBold, color: ink });
     cover.drawText(subtitle, { x: 48, y: height - 140, size: 12, font, color: soft });
     cover.drawRectangle({ x: 48, y: height - 240, width: width - 96, height: 18, color: rgb(0.07, 0.09, 0.09) });
-    cover.drawText(template?.badgeLine || 'Premium deliverable • Strategy • Negatives • Next steps', {
+    cover.drawText(pdfSafe(template?.badgeLine || 'Premium deliverable | Strategy | Negatives | Next steps'), {
       x: 58,
       y: height - 236,
       size: 10,
@@ -408,7 +423,7 @@ export async function generateCreditAnalysisReportPdf(args: {
       template?.coverBlurb ||
       'This report summarizes your current credit snapshot, highlights key negatives, and provides a recommended sequence to dispute, follow up, and rebuild.\n\n' +
         'Use it as your “single source of truth” for what to do now, next, and later.';
-    cover.drawText(blurb, { x: 48, y: height - 320, size: 12, font, color: ink, lineHeight: 16, maxWidth: width - 96 });
+    cover.drawText(pdfSafe(blurb), { x: 48, y: height - 320, size: 12, font, color: ink, lineHeight: 16, maxWidth: width - 96 });
   }
 
   // TOC
@@ -417,6 +432,7 @@ export async function generateCreditAnalysisReportPdf(args: {
   {
     const { width, height } = toc.getSize();
     toc.drawText('Table of contents', { x: 48, y: height - 120, size: 20, font: fontBold, color: ink });
+    toc.drawText('', { x: 48, y: 0, size: 1, font, color: ink }); // noop
     let y = height - 160;
     const tocItems = [
       'Executive summary',
@@ -426,7 +442,7 @@ export async function generateCreditAnalysisReportPdf(args: {
       'Appendix',
     ];
     for (const item of tocItems) {
-      toc.drawText(`• ${item}`, { x: 58, y, size: 12, font, color: ink });
+      toc.drawText(`- ${item}`, { x: 58, y, size: 12, font, color: ink });
       y -= 18;
     }
     toc.drawText('Note: Page numbers may shift as your negatives change.', { x: 48, y: 80, size: 10, font, color: soft });
@@ -440,7 +456,7 @@ export async function generateCreditAnalysisReportPdf(args: {
     contentPages.push(page);
     drawHeader(page, s.title);
     const { width, height } = page.getSize();
-    page.drawText(s.title, { x: 48, y: height - 120, size: 18, font: fontBold, color: ink });
+    page.drawText(pdfSafe(s.title), { x: 48, y: height - 120, size: 18, font: fontBold, color: ink });
 
     // Accent badge
     page.drawRectangle({ x: 48, y: height - 152, width: width - 96, height: 10, color: rgb(0.99, 0.97, 0.92) });
@@ -449,8 +465,8 @@ export async function generateCreditAnalysisReportPdf(args: {
     let y = height - 190;
     const lineHeight = 14;
     const maxWidth = width - 96;
-    for (const b of s.bullets.length ? s.bullets : ['—']) {
-      const text = `• ${b}`;
+    for (const b of s.bullets.length ? s.bullets : ['-']) {
+      const text = pdfSafe(`- ${b}`);
       page.drawText(text, { x: 58, y, size: 11, font, color: ink, maxWidth, lineHeight });
       y -= lineHeight * 1.4;
       if (y < 90) break;
@@ -479,11 +495,11 @@ export async function generateCreditAnalysisReportPdf(args: {
 
         const page = pdf.addPage([612, 792]);
         contentPages.push(page);
-        drawHeader(page, 'Appendix — exhibits');
+        drawHeader(page, 'Appendix - exhibits');
         const { width, height } = page.getSize();
-        page.drawText('Appendix — exhibits', { x: 48, y: height - 120, size: 18, font: fontBold, color: ink });
+        page.drawText('Appendix - exhibits', { x: 48, y: height - 120, size: 18, font: fontBold, color: ink });
         const cap = safe(ex.caption || ex.filename || 'Exhibit');
-        if (cap) page.drawText(cap, { x: 48, y: height - 146, size: 10, font, color: soft, maxWidth: width - 96 });
+        if (cap) page.drawText(pdfSafe(cap), { x: 48, y: height - 146, size: 10, font, color: soft, maxWidth: width - 96 });
 
         // Fit image into a safe rectangle.
         const maxW = width - 96;
@@ -507,13 +523,13 @@ export async function generateCreditAnalysisReportPdf(args: {
   while (pdf.getPageCount() < minTotal) {
     const page = pdf.addPage([612, 792]);
     contentPages.push(page);
-    drawHeader(page, 'Appendix — additional notes');
+    drawHeader(page, 'Appendix - additional notes');
     const { width, height } = page.getSize();
-    page.drawText('Appendix — additional notes', { x: 48, y: height - 120, size: 18, font: fontBold, color: ink });
+    page.drawText('Appendix - additional notes', { x: 48, y: height - 120, size: 18, font: fontBold, color: ink });
     page.drawText(
-      template?.appendix?.additionalNotesText ||
+      pdfSafe(template?.appendix?.additionalNotesText ||
         'This page is reserved for future enhancements: trend charts across multiple report dates, bureau response tracking, and lender readiness scoring.\n\n' +
-          'As your account grows, this report becomes richer and more personalized.',
+          'As your account grows, this report becomes richer and more personalized.'),
       { x: 48, y: height - 170, size: 12, font, color: ink, maxWidth: width - 96, lineHeight: 16 },
     );
     // Visual blocks
