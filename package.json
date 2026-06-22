@@ -146,6 +146,7 @@
     "@types/react-dom": "^19.2.3",
     "@xyflow/react": "^12.11.0",
     "html-to-image": "^1.11.13",
+    "jszip": "^3.10.1",
     "lucide-react": "^0.563.0",
     "pdf-lib": "^1.17.1",
     "pdfjs-dist": "^5.4.624",

@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { ArrowLeft, ArrowRight, Database, FileJson, Link, Upload } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Database, FileJson, FileArchive, Link, Upload } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import JSZip from 'jszip';
 import { PageShell } from '../../components/layout/PageShell';
 import type { LegacyPartnerExportV1 } from '../../domain/imports';
 import { importLegacyPartners, importLegacyArtifactsForExistingPartners, listImportBatches } from '../../data/importsRepo';
@@ -17,6 +18,12 @@ import { buildLegacyMigrationFromSql, auditRowsToCsv, type LegacyMigrationAuditR
 import { assessLegacyMigrationSignOff } from '../../lib/legacyMigrationSignOff';
 import { formatLegacyArtifactBreakdown, summarizeLegacyExportArtifacts } from '../../lib/legacyArtifactBreakdown';
 import bundledExport from '../../../data/legacy-migration/legacy-partners-export-v1.json';
+import { getBlobStore } from '../../storage/getBlobStore';
+import { listReportsByPartner, upsertReport } from '../../data/reportsRepo';
+import { isLegacyPendingReportBlob, legacyPendingReportFilename } from '../../lib/legacyPendingReport';
+import { parseHtmlReportWithCache, parsePdfReportWithCache } from '../../lib/reportParsePipeline';
+import { computeReportIdentityCheck } from '../../creditReports/identityCheck';
+import { detectProviderFromHtml, detectProviderFromText } from '../../creditReports/detectProvider';
 import {
   FINELY_OS_PAGE,
   FINELY_OS_BACK_LINK,
@@ -96,6 +103,117 @@ export default function AdminPartnerImportPage() {
     // No need to pre-check existing partners; import handles deduplication via Supabase
     setExistingByExternalId(new Map());
   }, [raw]);
+
+  const [zipBusy, setZipBusy] = useState(false);
+  const [zipLog, setZipLog] = useState<string[]>([]);
+  const [zipErr, setZipErr] = useState<string | null>(null);
+
+  const runZipRestore = async (file: File) => {
+    setZipBusy(true);
+    setZipLog([]);
+    setZipErr(null);
+    const log: string[] = [];
+    const addLog = (msg: string) => { log.push(msg); setZipLog([...log]); };
+    try {
+      addLog(`Reading ZIP: ${file.name} (${(file.size / 1024 / 1024).toFixed(1)} MB)…`);
+      const zip = await JSZip.loadAsync(file);
+
+      // Build a flat map of basename → JSZip entry (skip directories)
+      const fileMap = new Map<string, JSZip.JSZipObject>();
+      zip.forEach((relativePath, entry) => {
+        if (entry.dir) return;
+        const basename = relativePath.split('/').pop()!;
+        fileMap.set(basename, entry);
+        // Also index without extension variations
+        fileMap.set(basename.toLowerCase(), entry);
+      });
+      addLog(`ZIP contains ${fileMap.size / 2} file(s). Scanning all partners for pending report placeholders…`);
+
+      const allPartners = listPartners();
+      let matched = 0;
+      let uploaded = 0;
+      let skipped = 0;
+
+      for (const partner of allPartners) {
+        const reports = listReportsByPartner(partner.id);
+        for (const report of reports) {
+          if (!isLegacyPendingReportBlob(report.rawBlobRef)) continue;
+          const filename = legacyPendingReportFilename(report.rawBlobRef);
+          matched++;
+
+          // Try exact match then lowercase match
+          const entry = fileMap.get(filename) ?? fileMap.get(filename.toLowerCase());
+          if (!entry) {
+            addLog(`  ⚠ No file in ZIP for: ${filename} (${partner.profile?.fullName ?? partner.id})`);
+            skipped++;
+            continue;
+          }
+
+          addLog(`  ↑ Uploading ${filename} for ${partner.profile?.fullName ?? partner.id}…`);
+          try {
+            const bytes = await entry.async('arraybuffer');
+            const isPdf = filename.toLowerCase().endsWith('.pdf');
+            const mimeType = isPdf ? 'application/pdf' : 'text/html';
+            const blob = new Blob([bytes], { type: mimeType });
+            const fileObj = new File([blob], filename, { type: mimeType });
+
+            const store = getBlobStore();
+            const { ref, sha256 } = await store.put(fileObj, {
+              partnerId: partner.id,
+              kind: 'credit_report',
+              uploadedBy: 'admin_zip_restore',
+            });
+
+            let parsed: any;
+            let provider: string = 'unknown';
+            let reportDate: string | undefined;
+            let pdfText: string | undefined;
+            let pdfMeta: any;
+
+            if (isPdf) {
+              const bundle = await parsePdfReportWithCache({ reportId: report.id, file: fileObj });
+              parsed = bundle.parsed;
+              provider = bundle.provider;
+              reportDate = bundle.reportDate;
+              pdfText = bundle.pdfText;
+              pdfMeta = bundle.pdfMeta;
+            } else {
+              const html = await fileObj.text();
+              const bundle = await parseHtmlReportWithCache({ reportId: report.id, html });
+              parsed = bundle.parsed;
+              provider = bundle.provider ?? detectProviderFromHtml(html);
+              reportDate = bundle.reportDate;
+            }
+
+            upsertReport({
+              ...report,
+              rawBlobRef: ref,
+              sha256,
+              provider,
+              reportDate,
+              parsed,
+              pdfText,
+              pdfMeta,
+              sizeBytes: blob.size,
+              mimeType,
+            });
+            uploaded++;
+            const tlCount = parsed?.tradelines?.length ?? 0;
+            addLog(`  ✓ ${filename} — uploaded + parsed (${tlCount} tradelines, provider: ${provider})`);
+          } catch (e: any) {
+            addLog(`  ✗ ${filename} — error: ${e?.message || 'unknown'}`);
+            skipped++;
+          }
+        }
+      }
+
+      addLog(`Done. ${matched} pending report(s) found → ${uploaded} uploaded, ${skipped} skipped/unmatched.`);
+    } catch (e: any) {
+      setZipErr(e?.message || 'ZIP processing failed.');
+    } finally {
+      setZipBusy(false);
+    }
+  };
 
   const batches = useMemo(() => listImportBatches().slice(0, 6), [notice]);
 
@@ -784,6 +902,51 @@ export default function AdminPartnerImportPage() {
           </div>
         </div>
         ) : null}
+
+        {/* ── ZIP Bucket Restore ── */}
+        <div className={`${finelyOsCatalogCard('violet')} !p-5 space-y-4`}>
+          <div className={`inline-flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL} text-amber-300`}>
+            <FileArchive size={18} />
+            <span>Restore report files from Supabase bucket ZIP</span>
+          </div>
+          <p className={FINELY_OS_ENTITY_BODY}>
+            Download your old Supabase storage bucket as a ZIP, then upload it here. This tool scans all
+            partner records for <span className="font-mono">legacy:pending-reupload:</span> placeholders,
+            matches filenames against the ZIP contents, uploads each file to the current bucket, parses it,
+            and updates the report record — no manual re-upload per partner needed.
+          </p>
+          <div className="flex flex-wrap items-center gap-3">
+            <label className={`cursor-pointer ${FINELY_OS_PRIMARY_BTN} ${zipBusy ? 'opacity-60 cursor-not-allowed pointer-events-none' : ''}`}>
+              <Upload size={14} />
+              {zipBusy ? 'Processing…' : 'Choose ZIP file'}
+              <input
+                type="file"
+                accept=".zip,application/zip,application/x-zip-compressed"
+                className="hidden"
+                disabled={zipBusy}
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  if (f) void runZipRestore(f);
+                  e.currentTarget.value = '';
+                }}
+              />
+            </label>
+            {zipLog.length > 0 && !zipBusy && (
+              <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => setZipLog([])}>
+                Clear log
+              </button>
+            )}
+          </div>
+          {zipErr && <div className={FINELY_OS_NOTICE_ERROR}>{zipErr}</div>}
+          {zipLog.length > 0 && (
+            <div className="max-h-72 overflow-y-auto rounded-xl bg-black/30 border border-white/[0.08] p-4">
+              <pre className={`text-[11px] font-mono whitespace-pre-wrap ${FINELY_OS_ENTITY_BODY}`}>
+                {zipLog.join('\n')}
+              </pre>
+            </div>
+          )}
+        </div>
+
         <FinelyOsPageFooter />
 </div>
     </PageShell>
