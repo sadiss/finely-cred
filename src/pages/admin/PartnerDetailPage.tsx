@@ -33,6 +33,7 @@ import { listEvidenceByPartner, upsertEvidence, deleteEvidence } from '../../dat
 import { deleteLetter, listLettersByPartner, upsertLetter } from '../../data/lettersRepo';
 import { getBlobStore } from '../../storage/getBlobStore';
 import { isSupabaseBlobRef } from '../../storage/SupabaseBlobStore';
+import { supabase, isSupabaseConfigured } from '../../lib/supabaseClient';
 import { openBlobRefInNewTab } from '../../lib/openBlobRef';
 import { isLegacyPendingReportBlob } from '../../lib/legacyPendingReport';
 import { bureauFullName, bureauShortCode } from '../../utils/bureaus';
@@ -2190,14 +2191,19 @@ function PartnerDetailPageInner() {
                                   } catch {
                                     // ignore blob delete failures; still remove record
                                   }
+                                  // Delete from Supabase immediately (synchronous, not debounced)
+                                  // so a page refresh doesn't pull the record back before the
+                                  // debounce timer fires.
+                                  if (isSupabaseConfigured) {
+                                    const { error } = await supabase
+                                      .from('credit_reports')
+                                      .delete()
+                                      .eq('id', r.id);
+                                    if (error) console.warn('Supabase report delete error:', error.message);
+                                  }
                                   deleteReport(r.id);
                                   if (selectedReportId === r.id) setSelectedReportId(null);
                                   setReportsRefreshKey((v) => v + 1);
-                                  
-                                  // Refresh page after successful deletion to avoid state cascade issues
-                                  setTimeout(() => {
-                                    window.location.reload();
-                                  }, 1000);
                                 } catch (err: any) {
                                   setDeleteReportErr(err?.message || 'Delete failed.');
                                 } finally {
