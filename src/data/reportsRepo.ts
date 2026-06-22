@@ -2,6 +2,7 @@ import type { CreditReportRecord } from '../domain/creditReports';
 import { emitPlatformEvent } from '../domain/platformEvents';
 import { loadJson, saveJson } from './localJsonStore';
 import { isSupabaseConfigured, supabase } from '../lib/supabaseClient';
+import { addTombstone, filterTombstoned } from './deleteTombstoneStore';
 
 const KEY = 'finely.creditReports.v1';
 const SYNC_DEBOUNCE_MS = 600;
@@ -122,6 +123,7 @@ export function upsertReport(report: CreditReportRecord): CreditReportRecord {
 }
 
 export function deleteReport(id: string) {
+  addTombstone(id, 'report');
   const store = loadStore();
   store.reports = store.reports.filter((r) => r.id !== id);
   saveStore(store);
@@ -136,7 +138,7 @@ export function replaceReportsSnapshotForPartner(args: { partnerId: string; repo
 
 export function mergeReportsSnapshotForPartner(args: { partnerId: string; reports: CreditReportRecord[] }) {
   const store = loadStore();
-  const incoming = args.reports ?? [];
+  const incoming = filterTombstoned(args.reports ?? [], 'report');
   const incomingIds = new Set(incoming.map((r) => r.id));
   const localOnly = store.reports.filter((r) => r.partnerId === args.partnerId && !incomingIds.has(r.id));
   store.reports = [

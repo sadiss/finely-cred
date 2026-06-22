@@ -2,6 +2,7 @@ import type { EvidenceItem } from '../domain/evidence';
 import { loadJson, saveJson } from './localJsonStore';
 import { isSupabaseConfigured, supabase } from '../lib/supabaseClient';
 import { enrichEvidenceMetadata } from '../lib/evidenceFieldExtract';
+import { addTombstone, filterTombstoned } from './deleteTombstoneStore';
 
 const KEY = 'finely.evidence.v1';
 
@@ -63,6 +64,7 @@ export function upsertEvidence(item: EvidenceItem): EvidenceItem {
 }
 
 export function deleteEvidence(id: string) {
+  addTombstone(id, 'evidence');
   const store = loadStore();
   store.items = store.items.filter((i) => i.id !== id);
   saveStore(store);
@@ -76,7 +78,8 @@ export function deleteEvidence(id: string) {
 
 export function replaceEvidenceSnapshotForPartner(args: { partnerId: string; items: EvidenceItem[] }) {
   const store = loadStore();
-  store.items = [...store.items.filter((i) => i.partnerId !== args.partnerId), ...(args.items ?? [])];
+  const incoming = filterTombstoned(args.items ?? [], 'evidence');
+  store.items = [...store.items.filter((i) => i.partnerId !== args.partnerId), ...incoming];
   saveStore(store);
 }
 
@@ -88,7 +91,7 @@ export function replaceEvidenceSnapshotForPartner(args: { partnerId: string; ite
  */
 export function mergeEvidenceSnapshotForPartner(args: { partnerId: string; items: EvidenceItem[] }) {
   const store = loadStore();
-  const serverItems = args.items ?? [];
+  const serverItems = filterTombstoned(args.items ?? [], 'evidence');
   const serverIds = new Set(serverItems.map((i) => i.id));
   const localOnly = store.items.filter((i) => i.partnerId === args.partnerId && !serverIds.has(i.id));
   store.items = [

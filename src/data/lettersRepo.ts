@@ -2,6 +2,7 @@ import type { LetterRecord } from '../domain/letters';
 import { loadJson, saveJson } from './localJsonStore';
 import { createNotification } from './notificationsRepo';
 import { isSupabaseConfigured, supabase } from '../lib/supabaseClient';
+import { addTombstone, filterTombstoned } from './deleteTombstoneStore';
 
 const KEY = 'finely.letters.v1';
 
@@ -96,6 +97,7 @@ export function setLetterArchived(args: { letterId: string; archived: boolean })
 }
 
 export function deleteLetter(args: { letterId: string }): boolean {
+  addTombstone(args.letterId, 'letter');
   const store = loadStore();
   const before = store.letters.length;
   store.letters = store.letters.filter((l) => l.id !== args.letterId);
@@ -129,7 +131,7 @@ export function replaceLettersSnapshotForPartner(args: { partnerId: string; lett
  */
 export function mergeLettersSnapshotForPartner(args: { partnerId: string; letters: LetterRecord[] }) {
   const store = loadStore();
-  const serverLetters = args.letters ?? [];
+  const serverLetters = filterTombstoned(args.letters ?? [], 'letter');
   const serverIds = new Set(serverLetters.map((l) => l.id));
   const localOnly = store.letters.filter((l) => l.partnerId === args.partnerId && !serverIds.has(l.id));
   store.letters = [
