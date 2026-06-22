@@ -44,7 +44,7 @@ export function PartnerCreditRestoreCommandStrip({
 
   const primaryAction = useMemo(() => {
     if (reportsCount === 0) return { label: 'Upload report', tab: 'reports' as const };
-    if (lettersCount === 0) return { label: 'Open dispute letters', tab: 'disputes' as const };
+    if (lettersCount === 0) return { label: 'Open letter studio', tab: 'letters' as const };
     return { label: 'View saved letters', tab: 'letters' as const };
   }, [reportsCount, lettersCount]);
 

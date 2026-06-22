@@ -1,9 +1,9 @@
 export type PartnerDetailTabKey =
   | 'overview'
+  | 'profile'
   | 'reports'
   | 'analysis'
   | 'evidence'
-  | 'disputes'
   | 'letters'
   | 'tasks'
   | 'notes'
@@ -23,7 +23,7 @@ export const PARTNER_DETAIL_TAB_LANES: PartnerDetailTabLane[] = [
     label: 'File',
     hint: 'Overview & tasks',
     accent: 'emerald',
-    tabKeys: ['overview', 'tasks', 'notes'],
+    tabKeys: ['overview', 'profile', 'tasks', 'notes'],
   },
   {
     id: 'intel',
@@ -33,11 +33,11 @@ export const PARTNER_DETAIL_TAB_LANES: PartnerDetailTabLane[] = [
     tabKeys: ['reports', 'analysis', 'evidence'],
   },
   {
-    id: 'disputes',
-    label: 'Disputes',
-    hint: 'Letters workflow',
+    id: 'letters',
+    label: 'Letters',
+    hint: 'Dispute letters & vault',
     accent: 'amber',
-    tabKeys: ['disputes', 'letters'],
+    tabKeys: ['letters'],
   },
   {
     id: 'debt',
@@ -60,10 +60,10 @@ export function resolvePartnerDetailLaneId(activeTab: string): string {
 export function partnerDetailTabLabel(key: string): string {
   const labels: Record<string, string> = {
     overview: 'Overview',
+    profile: 'Profile',
     reports: 'Reports',
     analysis: 'Analysis Report',
     evidence: 'Evidence',
-    disputes: 'Bureaus',
     letters: 'Letters',
     tasks: 'Tasks',
     notes: 'Notes',

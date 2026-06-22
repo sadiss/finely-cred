@@ -9,7 +9,7 @@ import {
   FINELY_OS_PRIMARY_BTN,
 } from '../os/finelyOsLightUi';
 
-type PartnerTabKey = 'overview' | 'reports' | 'analysis' | 'evidence' | 'disputes' | 'letters' | 'tasks' | 'notes' | 'debt';
+type PartnerTabKey = 'overview' | 'profile' | 'reports' | 'analysis' | 'evidence' | 'letters' | 'tasks' | 'notes' | 'debt';
 
 type Props = {
   reportsCount: number;
@@ -55,10 +55,10 @@ export function PartnerCreditRestoreHud({
       hint: evidenceCount ? `${evidenceCount} files` : 'Capture proof',
     },
     {
-      key: 'disputes',
+      key: 'letters',
       label: '4. Dispute letters',
       done: lettersCount > 0 || openCasesCount > 0,
-      tab: 'disputes' as PartnerTabKey,
+      tab: 'letters' as PartnerTabKey,
       hint: lettersCount ? `${lettersCount} letters` : 'Draft & mail',
     },
   ];

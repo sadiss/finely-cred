@@ -6,7 +6,7 @@ function commonInputClass() {
   return 'mt-2 w-full bg-fc-input border border-white/[0.08] rounded-xl px-4 py-3 text-white/80 placeholder:text-white/20 focus:outline-none focus:border-amber-500 transition-colors';
 }
 
-function FieldInput(args: {
+export function FieldInput(args: {
   def: CustomFieldDefinition;
   value: any;
   onChange: (next: any, persist: boolean) => void;

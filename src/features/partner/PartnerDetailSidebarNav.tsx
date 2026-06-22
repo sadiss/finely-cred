@@ -4,10 +4,10 @@ import { FINELY_OS_ENTITY_SUBLABEL, FINELY_OS_ENTITY_VALUE } from '../os/finelyO
 
 const ACCENT_RING: Record<string, string> = {
   overview: 'border-emerald-400/40 bg-emerald-500/15 text-emerald-50',
+  profile: 'border-violet-400/40 bg-violet-500/15 text-violet-50',
   reports: 'border-sky-400/40 bg-sky-500/15 text-sky-50',
   analysis: 'border-sky-400/35 bg-sky-500/10 text-sky-100',
   evidence: 'border-sky-400/30 bg-sky-500/10 text-sky-100',
-  disputes: 'border-amber-400/45 bg-amber-500/15 text-amber-50',
   letters: 'border-amber-400/35 bg-amber-500/10 text-amber-100',
   tasks: 'border-emerald-400/35 bg-emerald-500/10 text-emerald-100',
   notes: 'border-emerald-400/30 bg-emerald-500/10 text-emerald-100',

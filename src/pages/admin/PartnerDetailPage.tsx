@@ -4,7 +4,6 @@ import {
   ArrowLeft,
   ArrowRight,
   FileText,
-  Gavel,
   Layers,
   PenLine,
   ShieldAlert,
@@ -20,6 +19,7 @@ import {
   Clock,
   Send,
   BarChart3,
+  User,
 } from 'lucide-react';
 import { downloadBlob } from '../../utils/download';
 import { PageShell } from '../../components/layout/PageShell';
@@ -98,7 +98,9 @@ import type { PartnerRoute } from '../../domain/partners';
 import { listCustomFieldDefinitionsByScope } from '../../data/customFieldsRepo';
 import { getCustomFieldValues, upsertCustomFieldValues } from '../../data/customFieldValuesRepo';
 import { getFieldLayout } from '../../data/fieldLayoutsRepo';
-import { FieldLayoutRenderer } from '../../components/fields/FieldLayoutRenderer';
+import { countPartnerEmptyFieldSections } from '../../features/partner/PartnerCollapsibleFieldLayout';
+import { PartnerOverviewTab } from '../../features/partner/PartnerOverviewTab';
+import { PartnerProfileTab } from '../../features/partner/PartnerProfileTab';
 import { listEntitlementsByPartner } from '../../data/billingRepo';
 import { ENTITLEMENT_KEYS, type EntitlementKey, ensurePartnerEntitlements } from '../../billing/entitlements';
 import { TASK_PROGRESS_STAGES, WorkBoardShell, WorkCalendarView, WorkKanbanBoard, WorkListView, type WorkBoardItem } from '../../components/workboard';
@@ -112,7 +114,6 @@ import { PartnerCreditRestoreMiniRail } from '../../features/partner/PartnerCred
 import { RoleWorkflowPanel } from '../../components/workflow/RoleWorkflowPanel';
 import { workflowIdForPartner } from '../../config/roleWorkflows';
 import { computeRoleWorkflowProgress } from '../../lib/roleWorkflowProgress';
-import { entitlementLabel } from '../../billing/entitlementLabels';
 import { PartnerCompactGrid } from '../../features/partner/PartnerCompactGrid';
 import { PartnerBureauResourcesPanel } from '../../components/admin/PartnerBureauResourcesPanel';
 import {
@@ -146,7 +147,7 @@ import {
 import { FinelyOsPageFooter } from '../../features/os/FinelyOsPageFooter';
 import { VoiceToTaskButton } from '../../features/work/components/VoiceToTaskButton';
 
-type TabKey = 'overview' | 'reports' | 'analysis' | 'evidence' | 'disputes' | 'letters' | 'tasks' | 'notes' | 'debt';
+type TabKey = 'overview' | 'profile' | 'reports' | 'analysis' | 'evidence' | 'letters' | 'tasks' | 'notes' | 'debt';
 
 function generateDisputeLetter(args: { partnerName: string; candidate: DisputeCandidate }) {
   const { partnerName, candidate } = args;
@@ -592,6 +593,21 @@ function PartnerDetailPageInner() {
     setCustomFieldDraft(customValues?.values ?? {});
   }, [partner?.id, notesVersion]);
 
+  const emptyCustomFieldSections = useMemo(
+    () => countPartnerEmptyFieldSections({ layout: partnerFieldLayout, definitions: customDefs, values: customFieldDraft || {} }),
+    [partnerFieldLayout, customDefs, customFieldDraft],
+  );
+
+  const mailingSummary = useMemo(() => {
+    const parts = [
+      profilePersonal.address1,
+      profilePersonal.city,
+      profilePersonal.state,
+      profilePersonal.postalCode,
+    ].filter(Boolean);
+    return parts.length ? parts.join(', ') : null;
+  }, [profilePersonal]);
+
   const updateCustomField = (key: string, value: any, persist: boolean) => {
     if (!partner) return;
     setCustomFieldDraft((prev) => {
@@ -600,6 +616,7 @@ function PartnerDetailPageInner() {
       return next;
     });
   };
+
   const partnerNotifs = useMemo(
     () => (partner ? listNotifications({ partnerId: partner.id, audience: 'partner', limit: 120 }) : []),
     [partner, notesVersion],
@@ -878,14 +895,16 @@ function PartnerDetailPageInner() {
     const next: TabKey | null =
       t === 'overview'
         ? 'overview'
-        : t === 'reports'
+        : t === 'profile'
+          ? 'profile'
+          : t === 'reports'
           ? 'reports'
           : t === 'analysis'
             ? 'analysis'
             : t === 'evidence'
               ? 'evidence'
               : t === 'disputes'
-                ? 'disputes'
+                ? 'letters'
                 : t === 'letters'
                   ? 'letters'
                   : t === 'tasks'
@@ -1152,10 +1171,10 @@ function PartnerDetailPageInner() {
       headerRight={<div className={`${FINELY_OS_ENTITY_SUBLABEL} font-mono normal-case tracking-normal`}>partner_id: {partner.id}</div>}
       tabs={[
         { key: 'overview', label: 'Overview', icon: <Layers size={12} className="inline mr-2" /> },
+        { key: 'profile', label: 'Profile', icon: <User size={12} className="inline mr-2" /> },
         { key: 'reports', label: 'Reports', icon: <FileText size={12} className="inline mr-2" /> },
         { key: 'analysis', label: 'Analysis Report', icon: <BarChart3 size={12} className="inline mr-2" /> },
         { key: 'evidence', label: 'Evidence', icon: <ShieldAlert size={14} className="inline mr-2" /> },
-        { key: 'disputes', label: 'Bureaus', icon: <Gavel size={14} className="inline mr-2" /> },
         { key: 'letters', label: 'Letters', icon: <PenLine size={14} className="inline mr-2" /> },
         {
           key: 'tasks',
@@ -1177,11 +1196,11 @@ function PartnerDetailPageInner() {
             <button type="button" onClick={() => setTabAndUrl('overview')} className={`${FINELY_OS_SECONDARY_BTN} !py-2 !text-xs ${tab === 'overview' ? '!border-emerald-400/40' : ''}`}>
               Overview
             </button>
+            <button type="button" onClick={() => setTabAndUrl('profile')} className={`${FINELY_OS_SECONDARY_BTN} !py-2 !text-xs ${tab === 'profile' ? '!border-violet-400/40' : ''}`}>
+              Profile
+            </button>
             <button type="button" onClick={() => setTabAndUrl('reports')} className={`${FINELY_OS_SECONDARY_BTN} !py-2 !text-xs`}>
               Reports
-            </button>
-            <button type="button" onClick={() => setTabAndUrl('disputes')} className={`${FINELY_OS_SECONDARY_BTN} !py-2 !text-xs`}>
-              Bureaus
             </button>
             <button type="button" onClick={() => setTabAndUrl('letters')} className={`${FINELY_OS_SECONDARY_BTN} !py-2 !text-xs`}>
               Letters
@@ -1200,8 +1219,8 @@ function PartnerDetailPageInner() {
                 Upload report
               </button>
             ) : !letters.length ? (
-              <button type="button" onClick={() => setTabAndUrl('disputes')} className={`${FINELY_OS_PRIMARY_BTN} !py-2 !text-xs`}>
-                Open bureaus
+              <button type="button" onClick={() => setTabAndUrl('letters')} className={`${FINELY_OS_PRIMARY_BTN} !py-2 !text-xs`}>
+                Open letters
               </button>
             ) : (
               <button type="button" onClick={() => setTabAndUrl('letters')} className={`${FINELY_OS_PRIMARY_BTN} !py-2 !text-xs`}>
@@ -1257,703 +1276,218 @@ function PartnerDetailPageInner() {
       )}
       <div className="space-y-8">
         {tab === 'overview' && (
-          <div className="space-y-6">
-            <div className="grid lg:grid-cols-12 gap-6">
-              <div className={`lg:col-span-5 ${finelyOsCatalogCard('violet')} !p-5`}>
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <p className={FINELY_OS_ENTITY_SUBLABEL}>Partner</p>
-                    <p className={`mt-2 ${FINELY_OS_ENTITY_TITLE}`}>{partner.profile.fullName}</p>
-                    <p className={`mt-1 ${FINELY_OS_ENTITY_BODY}`}>Edit contact + mailing info used across letters.</p>
-                  </div>
-                  <div className="text-right">
-                    <div className={FINELY_OS_ENTITY_SUBLABEL}>Status</div>
-                    <select
-                      value={partner.status}
-                      onChange={async (e) => {
-                        await adminUpsertPartner({ ...partner, status: e.target.value as any });
-                        setPartnerVersion((v) => v + 1);
-                        addAuditEvent({
-                          partnerId: partner.id,
-                          actorType: 'admin',
-                          actorEmail,
-                          action: `partner.status_set:${e.target.value}`,
-                          entityType: 'partner',
-                          entityId: partner.id,
-                          meta: { status: e.target.value },
-                        });
-                        setNotesVersion((v) => v + 1);
-                      }}
-                      className={`mt-2 w-[180px] ${FINELY_OS_ENTITY_INPUT}`}
-                    >
-                      <option value="lead">Lead</option>
-                      <option value="active">Active</option>
-                      <option value="paused">Paused</option>
-                    </select>
-                  </div>
-                </div>
+          <PartnerOverviewTab
+            partner={partner}
+            profileRouteKey={profileRouteKey}
+            mailingSummary={mailingSummary}
+            emptyCustomFieldSections={emptyCustomFieldSections}
+            reportsCount={reports.length}
+            evidenceCount={evidence.length}
+            lettersCount={letters.length}
+            debtCasesCount={debtCases.length}
+            overallScore={overallScore}
+            openPartnerTasksCount={openPartnerTasks.length}
+            openPartnerCasesCount={openPartnerCases.length}
+            latestScoresRows={latestScoresRows}
+            onStatusChange={async (status) => {
+              await adminUpsertPartner({ ...partner, status: status as any });
+              setPartnerVersion((v) => v + 1);
+              addAuditEvent({
+                partnerId: partner.id,
+                actorType: 'admin',
+                actorEmail,
+                action: `partner.status_set:${status}`,
+                entityType: 'partner',
+                entityId: partner.id,
+                meta: { status },
+              });
+              setNotesVersion((v) => v + 1);
+            }}
+            onOpenProfile={() => setTabAndUrl('profile')}
+            onOpenTab={(t) => setTabAndUrl(t as TabKey)}
+            onNavigate={(p) => navigate(p)}
+          />
+        )}
 
-                <div className="mt-5 grid sm:grid-cols-2 gap-4">
-                  <div className="sm:col-span-2">
-                    <label className={FINELY_OS_ENTITY_LABEL}>Full name</label>
-                    <input
-                      value={profileDraft.fullName}
-                      onChange={(e) => setProfileDraft((p) => ({ ...p, fullName: e.target.value }))}
-                      className={FINELY_OS_ENTITY_INPUT}
-                      placeholder="Full legal name"
-                    />
-                  </div>
-                  <div>
-                    <label className={FINELY_OS_ENTITY_LABEL}>Email</label>
-                    <input
-                      value={profileDraft.email}
-                      onChange={(e) => setProfileDraft((p) => ({ ...p, email: e.target.value }))}
-                      className={FINELY_OS_ENTITY_INPUT}
-                      placeholder="email@example.com"
-                    />
-                  </div>
-                  <div>
-                    <label className={FINELY_OS_ENTITY_LABEL}>Phone</label>
-                    <input
-                      value={profileDraft.phone}
-                      onChange={(e) => setProfileDraft((p) => ({ ...p, phone: e.target.value }))}
-                      className={FINELY_OS_ENTITY_INPUT}
-                      placeholder="(555) 555-5555"
-                    />
-                  </div>
-                  <div className="sm:col-span-2">
-                    <label className={FINELY_OS_ENTITY_LABEL}>Address line 1</label>
-                    <input
-                      value={profileDraft.address1}
-                      onChange={(e) => setProfileDraft((p) => ({ ...p, address1: e.target.value }))}
-                      className={FINELY_OS_ENTITY_INPUT}
-                      placeholder="123 Main St"
-                    />
-                  </div>
-                  <div className="sm:col-span-2">
-                    <label className={FINELY_OS_ENTITY_LABEL}>Address line 2</label>
-                    <input
-                      value={profileDraft.address2}
-                      onChange={(e) => setProfileDraft((p) => ({ ...p, address2: e.target.value }))}
-                      className={FINELY_OS_ENTITY_INPUT}
-                      placeholder="Apt, suite, unit (optional)"
-                    />
-                  </div>
-                  <div>
-                    <label className={FINELY_OS_ENTITY_LABEL}>City</label>
-                    <input
-                      value={profileDraft.city}
-                      onChange={(e) => setProfileDraft((p) => ({ ...p, city: e.target.value }))}
-                      className={FINELY_OS_ENTITY_INPUT}
-                      placeholder="City"
-                    />
-                  </div>
-                  <div>
-                    <label className={FINELY_OS_ENTITY_LABEL}>State</label>
-                    <input
-                      value={profileDraft.state}
-                      onChange={(e) => setProfileDraft((p) => ({ ...p, state: e.target.value }))}
-                      className={FINELY_OS_ENTITY_INPUT}
-                      placeholder="ST"
-                    />
-                  </div>
-                  <div className="sm:col-span-2">
-                    <label className={FINELY_OS_ENTITY_LABEL}>Postal code</label>
-                    <input
-                      value={profileDraft.postalCode}
-                      onChange={(e) => setProfileDraft((p) => ({ ...p, postalCode: e.target.value }))}
-                      className={FINELY_OS_ENTITY_INPUT}
-                      placeholder="12345"
-                    />
-                  </div>
-                </div>
-
-                <div className="mt-5 flex flex-wrap items-center gap-2">
-                  <button
-                    type="button"
-                    className={FINELY_OS_PRIMARY_BTN}
-                    onClick={async () => {
-                      const name = profileDraft.fullName.trim();
-                      if (!name) return;
-                      const email = profileDraft.email.trim().toLowerCase();
-                      const phone = profileDraft.phone.trim();
-                      const next = await adminUpsertPartner({
-                        ...partner,
-                        profile: { ...partner.profile, fullName: name, email: email || undefined, phone: phone || undefined },
-                        routes: {
-                          ...(partner.routes || {}),
-                          [profileRouteKey]: {
-                            ...(partner.routes?.[profileRouteKey] as any),
-                            personal: {
-                              ...(profilePersonal as any),
-                              address1: profileDraft.address1.trim() || undefined,
-                              address2: profileDraft.address2.trim() || undefined,
-                              city: profileDraft.city.trim() || undefined,
-                              state: profileDraft.state.trim() || undefined,
-                              postalCode: profileDraft.postalCode.trim() || undefined,
-                            },
-                          },
-                        } as any,
-                      });
-                      addAuditEvent({
-                        partnerId: partner.id,
-                        actorType: 'admin',
-                        actorEmail,
-                        action: 'partner.profile_updated',
-                        entityType: 'partner',
-                        entityId: partner.id,
-                        meta: { email: next.profile.email ?? null, phone: next.profile.phone ?? null, route: profileRouteKey },
-                      });
-                      setPartnerVersion((v) => v + 1);
-                      setNotesVersion((v) => v + 1);
-                    }}
-                    title="Save partner contact + mailing info"
-                  >
-                    Save changes
-                  </button>
-                  <button
-                    type="button"
-                    className={FINELY_OS_SECONDARY_BTN}
-                    onClick={() => {
-                      setProfileDraft({
-                        fullName: partner.profile.fullName || '',
-                        email: partner.profile.email || '',
-                        phone: partner.profile.phone || '',
-                        address1: String(profilePersonal.address1 || ''),
-                        address2: String(profilePersonal.address2 || ''),
-                        city: String(profilePersonal.city || ''),
-                        state: String(profilePersonal.state || ''),
-                        postalCode: String(profilePersonal.postalCode || ''),
-                      });
-                    }}
-                  >
-                    Reset
-                  </button>
-                </div>
-
-                {actorEmail && isAdminEmail(actorEmail) ? (
-                  <div className={FINELY_OS_DANGER_PANEL}>
-                    <div className={`${FINELY_OS_ENTITY_SUBLABEL} text-rose-300`}>Danger zone</div>
-                    <div className={`mt-2 ${FINELY_OS_ENTITY_BODY}`}>
-                      Hard delete removes the partner profile. (This does not yet purge all related records.)
-                    </div>
-                    <div className="mt-3 flex flex-wrap items-center gap-2">
-                      <button
-                        type="button"
-                        className={FINELY_OS_DANGER_BTN}
-                        onClick={() => {
-                          setDeleteOpen(true);
-                          setDeletePhrase('');
-                        }}
-                      >
-                        Delete partner
-                      </button>
-                    </div>
-
-                    {deleteOpen ? (
-                      <div className={`mt-4 rounded-xl border border-rose-500/35 bg-white/[0.07] p-4 space-y-3 ${FINELY_OS_ENTITY_BODY}`}>
-                        <div className={`${FINELY_OS_ENTITY_BODY} text-sm`}>
-                          Type <span className="font-mono font-semibold text-rose-300">DELETE</span> to confirm.
-                        </div>
-                        <input
-                          value={deletePhrase}
-                          onChange={(e) => setDeletePhrase(e.target.value)}
-                          className={`${FINELY_OS_ENTITY_INPUT} focus:border-rose-400`}
-                          placeholder="DELETE"
-                        />
-                        <div className="flex flex-wrap items-center gap-2">
-                          <button
-                            type="button"
-                            disabled={deletePhrase.trim().toUpperCase() !== 'DELETE'}
-                            className={`${FINELY_OS_DANGER_BTN} disabled:opacity-50 disabled:cursor-not-allowed`}
-                            onClick={async () => {
-                              const ok = await adminDeletePartner(partner.id);
-                              if (ok) {
-                                addAuditEvent({
-                                  partnerId: partner.id,
-                                  actorType: 'admin',
-                                  actorEmail,
-                                  action: 'partner.deleted',
-                                  entityType: 'partner',
-                                  entityId: partner.id,
-                                  meta: { hardDelete: true },
-                                });
-                              }
-                              navigate('/admin/partners');
-                            }}
-                          >
-                            Confirm delete
-                          </button>
-                          <button
-                            type="button"
-                            className={FINELY_OS_SECONDARY_BTN}
-                            onClick={() => setDeleteOpen(false)}
-                          >
-                            Cancel
-                          </button>
-                        </div>
-                      </div>
-                    ) : null}
-                  </div>
-                ) : null}
-              </div>
-
-              <div className={`lg:col-span-7 ${finelyOsCatalogCard('violet')} !p-5`}>
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div>
-                    <p className={FINELY_OS_ENTITY_SUBLABEL}>Custom fields</p>
-                    <p className={`mt-2 ${FINELY_OS_ENTITY_BODY}`}>
-                      Extra partner fields (PII, notes, internal attributes) live here. Manage definitions in{' '}
-                      <button
-                        type="button"
-                        onClick={() => navigate('/admin/settings')}
-                        className={FINELY_OS_ENTITY_ACCENT_LINK}
-                      >
-                        Admin Settings
-                      </button>
-                      .
-                    </p>
-                    <div className="mt-3 flex flex-wrap gap-2 text-[10px] font-black uppercase tracking-widest">
-                      <span className={FINELY_OS_ENTITY_CHIP}>
-                        tenant: <span className={`${FINELY_OS_ENTITY_VALUE} font-mono`}>{tenantId}</span>
-                      </span>
-                      <span className={FINELY_OS_ENTITY_CHIP}>
-                        defs <span className={FINELY_OS_ENTITY_VALUE}>{customDefs.length}</span>
-                      </span>
-                      <span className={FINELY_OS_ENTITY_CHIP}>
-                        layout <span className={FINELY_OS_ENTITY_VALUE}>{partnerFieldLayout ? 'custom' : 'default'}</span>
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                {customDefs.length === 0 ? (
-                  <div className={FINELY_OS_ENTITY_EMPTY}>No custom fields configured yet.</div>
-                ) : (
-                  <div className="mt-4">
-                    <FieldLayoutRenderer
-                      layout={partnerFieldLayout}
-                      definitions={customDefs}
-                      values={customFieldDraft || {}}
-                      onChangeValue={updateCustomField}
-                    />
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              <div className={finelyOsEntityKpi(0)}>
-                <p className={FINELY_OS_ENTITY_SUBLABEL}>Activity</p>
-                <p className={`mt-2 ${FINELY_OS_ENTITY_BODY}`}>
-                  Reports: <span className={FINELY_OS_ENTITY_VALUE}>{reports.length}</span>
-                </p>
-                <p className={`mt-1 ${FINELY_OS_ENTITY_BODY}`}>
-                  Evidence: <span className={FINELY_OS_ENTITY_VALUE}>{evidence.length}</span>
-                </p>
-                <p className={`mt-1 ${FINELY_OS_ENTITY_BODY}`}>
-                  Letters: <span className={FINELY_OS_ENTITY_VALUE}>{letters.length}</span>
-                </p>
-                <p className={`mt-1 ${FINELY_OS_ENTITY_BODY}`}>
-                  Debt / Summons: <span className={FINELY_OS_ENTITY_VALUE}>{debtCases.length}</span>
-                </p>
-              </div>
-              <div className={finelyOsEntityKpi(1)}>
-                <p className={FINELY_OS_ENTITY_SUBLABEL}>Timestamps</p>
-                <p className={`mt-2 ${FINELY_OS_ENTITY_BODY}`}>
-                  Created: <span className={FINELY_OS_ENTITY_VALUE}>{new Date(partner.createdAt).toLocaleString()}</span>
-                </p>
-                <p className={`mt-1 ${FINELY_OS_ENTITY_BODY}`}>
-                  Updated: <span className={FINELY_OS_ENTITY_VALUE}>{new Date(partner.updatedAt).toLocaleString()}</span>
-                </p>
-              </div>
-              <div className={finelyOsEntityKpi(2)}>
-                <p className={FINELY_OS_ENTITY_SUBLABEL}>Identity source</p>
-                <p className={`mt-2 ${FINELY_OS_ENTITY_BODY}`}>
-                  Route: <span className={FINELY_OS_ENTITY_VALUE}>{String(profileRouteKey).replaceAll('_', ' ')}</span>
-                </p>
-                <p className={`mt-1 ${FINELY_OS_ENTITY_BODY}`}>
-                  Claimed: <span className={FINELY_OS_ENTITY_VALUE}>{partner.claimedUserId ? 'Yes' : 'No'}</span>
-                </p>
-                <p className={`mt-1 ${FINELY_OS_ENTITY_BODY}`}>
-                  Tenant: <span className={`${FINELY_OS_ENTITY_VALUE} font-mono`}>{partner.tenantId}</span>
-                </p>
-              </div>
-            </div>
-
-            {overallScore ? (
-              <div className="space-y-4">
-                <div className="grid md:grid-cols-4 gap-4">
-                  <KpiCard
-                    label="Overall score"
-                    value={overallScore.overall}
-                    hint="Profile + execution readiness"
-                    tone={overallScore.overall >= 80 ? 'emerald' : overallScore.overall >= 60 ? 'amber' : 'violet'}
-                  />
-                  <KpiCard label="Open tasks" value={openPartnerTasks.length} hint="Queue" tone="fuchsia" />
-                  <KpiCard label="Open cases" value={openPartnerCases.length} hint="Disputes" tone="emerald" />
-                  <KpiCard label="Top improvements" value={overallScore.topActions.length} hint="Fast wins" tone="sky" />
-                </div>
-
-                {overallScore.topActions.length ? (
-                  <details className={`${finelyOsCatalogCard('violet')} !p-5 backdrop-blur-xl`}>
-                    <summary className={`cursor-pointer select-none ${FINELY_OS_ENTITY_VALUE}`}>Top improvements</summary>
-                    <div className="mt-4 grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {overallScore.topActions.slice(0, 6).map((a) => (
-                        <button
-                          key={a.key}
-                          type="button"
-                          onClick={() => navigate(a.path || `/portal/dashboard?debugUi=1`)}
-                          className={`text-left ${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony hover:border-violet-500/30 p-5 transition-all`}
-                          title={a.path ? `Open ${a.path}` : 'Open'}
-                        >
-                          <div className={`${FINELY_OS_ENTITY_SUBLABEL} text-violet-300/80`}>
-                            {a.severity === 'warn' ? 'Priority' : 'Improvement'}
-                          </div>
-                          <div className={`mt-2 ${FINELY_OS_ENTITY_TITLE} text-base`}>{a.title}</div>
-                          <div className={`mt-2 ${FINELY_OS_ENTITY_BODY}`}>{a.desc}</div>
-                          <div className={`mt-4 inline-flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL}`}>
-                            Open <ArrowRight size={12} />
-                          </div>
-                        </button>
-                      ))}
-                    </div>
-                  </details>
-                ) : null}
-              </div>
-            ) : null}
-
-            <div className={`${finelyOsCatalogCard('violet')} !p-5`}>
-              <div className="flex flex-wrap items-start justify-between gap-3">
-                <div>
-                  <p className={FINELY_OS_ENTITY_SUBLABEL}>Portal entitlements</p>
-                  <p className={`mt-2 ${FINELY_OS_ENTITY_BODY}`}>
-                    These keys control which Partner Portal modules show up (Templates, Debt/Validation/Court, Disputes, etc.).
-                  </p>
-                  <p className={`mt-1 text-xs font-mono ${FINELY_OS_ENTITY_BODY}`}>
-                    Active: {Array.from(activeEntitlementKeys).length} • Missing: {missingEntitlementKeys.length}
-                  </p>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  <button
-                    type="button"
-                    className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-amber-500 text-black font-black uppercase tracking-widest text-[10px] hover:brightness-110 transition-all"
-                    onClick={() => {
-                      if (!partner) return;
-                      ensurePartnerEntitlements({ partnerId: partner.id, keys: allPortalEntitlementKeys, sourceAgreementId: 'admin_unlock_all' });
-                      setNotesVersion((v) => v + 1);
-                      addAuditEvent({
-                        partnerId: partner.id,
-                        actorType: 'admin',
-                        actorEmail,
-                        action: 'partner.entitlements_granted_all',
-                        entityType: 'partner',
-                        entityId: partner.id,
-                        meta: { keys: allPortalEntitlementKeys },
-                      });
-                    }}
-                    title="Grant every portal module entitlement to this partner (dev/admin utility)"
-                  >
-                    Grant all portal modules
-                  </button>
-                  <button
-                    type="button"
-                    className={FINELY_OS_ENTITY_ACTION}
-                    onClick={() => setNotesVersion((v) => v + 1)}
-                    title="Refresh entitlements list"
-                  >
-                    <RefreshCcw size={14} /> Refresh
-                  </button>
-                </div>
-              </div>
-
-              <div className="mt-4 grid md:grid-cols-2 gap-3">
-                <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony`}>
-                  <div className={FINELY_OS_ENTITY_SUBLABEL}>Active keys</div>
-                  {Array.from(activeEntitlementKeys).length ? (
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      {Array.from(activeEntitlementKeys)
-                        .sort()
-                        .map((k) => (
-                          <span key={k} className={`${finelyOsStatusChip('ok')} normal-case tracking-normal font-semibold`}>
-                            {entitlementLabel(k)}
-                          </span>
-                        ))}
-                    </div>
-                  ) : (
-                    <div className={`mt-2 ${FINELY_OS_ENTITY_BODY}`}>None</div>
-                  )}
-                </div>
-                <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony`}>
-                  <div className={FINELY_OS_ENTITY_SUBLABEL}>Missing keys</div>
-                  {missingEntitlementKeys.length ? (
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      {missingEntitlementKeys
-                        .slice()
-                        .sort()
-                        .map((k) => (
-                          <span
-                            key={k}
-                            className="px-3 py-1.5 rounded-xl border border-amber-500/35 bg-amber-500/15 text-amber-100 text-xs font-semibold normal-case tracking-normal"
-                          >
-                            {entitlementLabel(k)}
-                          </span>
-                        ))}
-                    </div>
-                  ) : (
-                    <div className={`mt-2 ${FINELY_OS_ENTITY_BODY}`}>None</div>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            <div className="grid lg:grid-cols-12 gap-6">
-              <div className={`lg:col-span-7 min-w-0 ${finelyOsCatalogCard('violet')} !p-5 space-y-4`}>
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <p className={FINELY_OS_ENTITY_SUBLABEL}>Debt-to-income (DTI)</p>
-                    <p className={FINELY_OS_ENTITY_BODY}>
-                      Enter partner-provided income + monthly obligations to compute DTI. (Used for underwriting readiness and planning.)
-                    </p>
-                  </div>
-                  <div className="text-right shrink-0">
-                    <div className={FINELY_OS_ENTITY_SUBLABEL}>DTI</div>
-                    <div className={`mt-1 text-2xl font-semibold ${FINELY_OS_ENTITY_VALUE}`}>{dti == null ? '-' : `${dti}%`}</div>
-                  </div>
-                </div>
-
-                <div className="grid md:grid-cols-3 gap-4">
-                  <div>
-                    <label className={FINELY_OS_ENTITY_LABEL}>Annual income</label>
-                    <input
-                      type="number"
-                      value={financialDraft.annualIncome}
-                      onChange={(e) => setFinancialDraft((p) => ({ ...p, annualIncome: e.target.value }))}
-                      className={FINELY_OS_ENTITY_INPUT}
-                      placeholder="90000"
-                      min={0}
-                    />
-                  </div>
-                  <div>
-                    <label className={FINELY_OS_ENTITY_LABEL}>Monthly debt payments</label>
-                    <input
-                      type="number"
-                      value={financialDraft.monthlyDebtPayments}
-                      onChange={(e) => setFinancialDraft((p) => ({ ...p, monthlyDebtPayments: e.target.value }))}
-                      className={FINELY_OS_ENTITY_INPUT}
-                      placeholder="850"
-                      min={0}
-                    />
-                  </div>
-                  <div>
-                    <label className={FINELY_OS_ENTITY_LABEL}>Monthly housing</label>
-                    <input
-                      type="number"
-                      value={financialDraft.monthlyHousing}
-                      onChange={(e) => setFinancialDraft((p) => ({ ...p, monthlyHousing: e.target.value }))}
-                      className={FINELY_OS_ENTITY_INPUT}
-                      placeholder="1700"
-                      min={0}
-                    />
-                  </div>
-                </div>
-
-                <div className="flex flex-wrap items-center gap-3">
-                  <button
-                    type="button"
-                    className={FINELY_OS_PRIMARY_BTN}
-                    onClick={async () => {
-                      const annual = Number(financialDraft.annualIncome);
-                      const debt = Number(financialDraft.monthlyDebtPayments);
-                      const housing = Number(financialDraft.monthlyHousing);
-                      await adminUpsertPartner({
-                        ...partner,
-                        financial: {
-                          annualIncome: Number.isFinite(annual) && annual > 0 ? annual : undefined,
-                          monthlyDebtPayments: Number.isFinite(debt) && debt >= 0 ? debt : undefined,
-                          monthlyHousing: Number.isFinite(housing) && housing >= 0 ? housing : undefined,
-                        },
-                      });
-                      setPartnerVersion((v) => v + 1);
-                      addAuditEvent({
-                        partnerId: partner.id,
-                        actorType: 'admin',
-                        actorEmail,
-                        action: 'partner.financial_updated',
-                        entityType: 'partner',
-                        entityId: partner.id,
-                        meta: { annualIncome: annual, monthlyDebtPayments: debt, monthlyHousing: housing, dti },
-                      });
-                      setNotesVersion((v) => v + 1);
-                    }}
-                  >
-                    Save DTI inputs
-                  </button>
-                  <div className={`${FINELY_OS_ENTITY_BODY} text-xs`}>
-                    DTI formula: \( (monthlyDebt + monthlyHousing) \div (annualIncome/12) \)
-                  </div>
-                </div>
-              </div>
-
-              <div className={`lg:col-span-5 min-w-0 ${finelyOsCatalogCard('violet')} !p-5 space-y-4`}>
-                <p className={FINELY_OS_ENTITY_SUBLABEL}>Custom Denefit contract</p>
-                <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony space-y-3`}>
-                  <div className={FINELY_OS_ENTITY_BODY}>
-                    Assign any Denefit embed/contract URL directly to this partner (independent of packages). The partner will see it in{' '}
-                    <span className={`font-mono ${FINELY_OS_ENTITY_VALUE}`}>/portal/billing</span>.
-                  </div>
-                  <div className="grid md:grid-cols-2 gap-3">
-                    <div className="md:col-span-2">
-                      <label className={FINELY_OS_ENTITY_LABEL}>Contract URL</label>
-                      <input
-                        value={denefitsContractUrlDraft}
-                        onChange={(e) => setDenefitsContractUrlDraft(e.target.value)}
-                        className={`${FINELY_OS_ENTITY_INPUT} font-mono text-sm`}
-                        placeholder="https://… (Denefit embed/contract URL)"
-                      />
-                    </div>
-                    <div className="md:col-span-2">
-                      <label className={FINELY_OS_ENTITY_LABEL}>Label (optional)</label>
-                      <input
-                        value={denefitsContractLabelDraft}
-                        onChange={(e) => setDenefitsContractLabelDraft(e.target.value)}
-                        className={`${FINELY_OS_ENTITY_INPUT} text-sm`}
-                        placeholder="e.g. Custom contract — AU bundle"
-                      />
-                    </div>
-                  </div>
-                  <div className="flex flex-wrap gap-2 items-center">
-                    <button
-                      type="button"
-                      className={FINELY_OS_PRIMARY_BTN}
-                      disabled={!denefitsContractUrlDraft.trim()}
-                      onClick={async () => {
-                        const url = denefitsContractUrlDraft.trim();
-                        let ok = true;
-                        try {
-                          // eslint-disable-next-line no-new
-                          new URL(url);
-                        } catch {
-                          ok = false;
-                        }
-                        if (!ok) {
-                          window.alert('Invalid contract URL.');
-                          return;
-                        }
-                        await adminUpsertPartner({
-                          ...partner,
-                          denefits: {
-                            contractUrl: url,
-                            label: denefitsContractLabelDraft.trim() || undefined,
-                            assignedAt: new Date().toISOString(),
-                            assignedByEmail: actorEmail || undefined,
-                          },
-                        });
-                        setPartnerVersion((v) => v + 1);
-                        addAuditEvent({
-                          partnerId: partner.id,
-                          actorType: 'admin',
-                          actorEmail,
-                          action: 'partner.denefits_contract_assigned',
-                          entityType: 'partner',
-                          entityId: partner.id,
-                          meta: { contractUrl: url, label: denefitsContractLabelDraft.trim() || null },
-                        });
-                        setNotesVersion((v) => v + 1);
-                      }}
-                    >
-                      Assign contract
-                    </button>
-                    <button
-                      type="button"
-                      className={FINELY_OS_ENTITY_ACTION}
-                      onClick={() => {
-                        setDenefitsContractUrlDraft(partner.denefits?.contractUrl ?? '');
-                        setDenefitsContractLabelDraft(partner.denefits?.label ?? '');
-                      }}
-                      title="Discard unsaved changes"
-                    >
-                      Revert
-                    </button>
-                    <button
-                      type="button"
-                      className={FINELY_OS_DANGER_BTN}
-                      onClick={async () => {
-                        await adminUpsertPartner({ ...partner, denefits: undefined });
-                        setDenefitsContractUrlDraft('');
-                        setDenefitsContractLabelDraft('');
-                        setPartnerVersion((v) => v + 1);
-                        addAuditEvent({
-                          partnerId: partner.id,
-                          actorType: 'admin',
-                          actorEmail,
-                          action: 'partner.denefits_contract_cleared',
-                          entityType: 'partner',
-                          entityId: partner.id,
-                        });
-                        setNotesVersion((v) => v + 1);
-                      }}
-                      title="Remove assigned contract from partner"
-                    >
-                      Clear
-                    </button>
-                    {partner.denefits?.contractUrl ? (
-                      <a
-                        href={partner.denefits.contractUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className={`${FINELY_OS_SUCCESS_BTN} ml-auto`}
-                      >
-                        Open current
-                      </a>
-                    ) : null}
-                  </div>
-                  {partner.denefits?.assignedAt ? (
-                    <div className={`${FINELY_OS_ENTITY_SUBLABEL} font-mono`}>
-                      Assigned: {new Date(partner.denefits.assignedAt).toLocaleString()}
-                      {partner.denefits.assignedByEmail ? ` • by ${partner.denefits.assignedByEmail}` : ''}
-                    </div>
-                  ) : null}
-                </div>
-
-                <p className={FINELY_OS_ENTITY_SUBLABEL}>Scores (latest report)</p>
-                {latestScoresRows.length ? (
-                  <div className="space-y-3">
-                    {latestScoresRows.map((r) => (
-                      <div key={r.model} className={`${finelyOsInlineListItem()} p-4`}>
-                        <div className={FINELY_OS_ENTITY_VALUE}>{r.model}</div>
-                        <div className="mt-2 grid grid-cols-3 gap-2 text-[11px]">
-                          <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony`}>
-                            <div className={FINELY_OS_ENTITY_SUBLABEL}>EXP</div>
-                            <div className={`${FINELY_OS_ENTITY_VALUE} font-mono`}>{r.exp ?? '-'}</div>
-                          </div>
-                          <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony`}>
-                            <div className={FINELY_OS_ENTITY_SUBLABEL}>EQF</div>
-                            <div className={`${FINELY_OS_ENTITY_VALUE} font-mono`}>{r.eqf ?? '-'}</div>
-                          </div>
-                          <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony`}>
-                            <div className={FINELY_OS_ENTITY_SUBLABEL}>{bureauShortCode('TUC')}</div>
-                            <div className={`${FINELY_OS_ENTITY_VALUE} font-mono`}>{r.tuc ?? '-'}</div>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className={FINELY_OS_ENTITY_BODY}>
-                    No score values detected yet. Upload an HTML report that includes score summary (some exports omit it).
-                  </div>
-                )}
-
-                <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony text-[11px] space-y-2 ${FINELY_OS_ENTITY_BODY}`}>
-                  <div className={FINELY_OS_ENTITY_VALUE}>Model cheat-sheet</div>
-                  <div>FICO 8: common general lending score.</div>
-                  <div>Mortgage classics: EQF FICO 5, EXP FICO 2, Trans FICO 4 (many lenders still use these).</div>
-                  <div>VantageScore: common in monitoring apps; underwriting may differ by lender/product.</div>
-                </div>
-              </div>
-            </div>
-          </div>
+        {tab === 'profile' && (
+          <PartnerProfileTab
+            partner={partner}
+            tenantId={tenantId}
+            profileRouteKey={profileRouteKey}
+            profilePersonal={profilePersonal}
+            profileDraft={profileDraft}
+            setProfileDraft={setProfileDraft}
+            customDefs={customDefs}
+            partnerFieldLayout={partnerFieldLayout}
+            customFieldDraft={customFieldDraft}
+            updateCustomField={updateCustomField}
+            financialDraft={financialDraft}
+            setFinancialDraft={setFinancialDraft}
+            dti={dti}
+            denefitsContractUrlDraft={denefitsContractUrlDraft}
+            setDenefitsContractUrlDraft={setDenefitsContractUrlDraft}
+            denefitsContractLabelDraft={denefitsContractLabelDraft}
+            setDenefitsContractLabelDraft={setDenefitsContractLabelDraft}
+            activeEntitlementKeys={activeEntitlementKeys}
+            missingEntitlementKeys={missingEntitlementKeys}
+            allPortalEntitlementKeys={allPortalEntitlementKeys}
+            latestScoresRows={latestScoresRows}
+            actorEmail={actorEmail}
+            isAdmin={Boolean(actorEmail && isAdminEmail(actorEmail))}
+            deleteOpen={deleteOpen}
+            setDeleteOpen={setDeleteOpen}
+            deletePhrase={deletePhrase}
+            setDeletePhrase={setDeletePhrase}
+            onSaveProfile={async () => {
+              const name = profileDraft.fullName.trim();
+              if (!name) return;
+              const email = profileDraft.email.trim().toLowerCase();
+              const phone = profileDraft.phone.trim();
+              const next = await adminUpsertPartner({
+                ...partner,
+                profile: { ...partner.profile, fullName: name, email: email || undefined, phone: phone || undefined },
+                routes: {
+                  ...(partner.routes || {}),
+                  [profileRouteKey]: {
+                    ...(partner.routes?.[profileRouteKey] as any),
+                    personal: {
+                      ...(profilePersonal as any),
+                      address1: profileDraft.address1.trim() || undefined,
+                      address2: profileDraft.address2.trim() || undefined,
+                      city: profileDraft.city.trim() || undefined,
+                      state: profileDraft.state.trim() || undefined,
+                      postalCode: profileDraft.postalCode.trim() || undefined,
+                    },
+                  },
+                } as any,
+              });
+              addAuditEvent({
+                partnerId: partner.id,
+                actorType: 'admin',
+                actorEmail,
+                action: 'partner.profile_updated',
+                entityType: 'partner',
+                entityId: partner.id,
+                meta: { email: next.profile.email ?? null, phone: next.profile.phone ?? null, route: profileRouteKey },
+              });
+              setPartnerVersion((v) => v + 1);
+              setNotesVersion((v) => v + 1);
+            }}
+            onResetProfileDraft={() => {
+              setProfileDraft({
+                fullName: partner.profile.fullName || '',
+                email: partner.profile.email || '',
+                phone: partner.profile.phone || '',
+                address1: String(profilePersonal.address1 || ''),
+                address2: String(profilePersonal.address2 || ''),
+                city: String(profilePersonal.city || ''),
+                state: String(profilePersonal.state || ''),
+                postalCode: String(profilePersonal.postalCode || ''),
+              });
+            }}
+            onDeletePartner={async () => {
+              const ok = await adminDeletePartner(partner.id);
+              if (ok) {
+                addAuditEvent({
+                  partnerId: partner.id,
+                  actorType: 'admin',
+                  actorEmail,
+                  action: 'partner.deleted',
+                  entityType: 'partner',
+                  entityId: partner.id,
+                  meta: { hardDelete: true },
+                });
+              }
+              navigate('/admin/partners');
+            }}
+            onSaveFinancial={async () => {
+              const annual = Number(financialDraft.annualIncome);
+              const debt = Number(financialDraft.monthlyDebtPayments);
+              const housing = Number(financialDraft.monthlyHousing);
+              await adminUpsertPartner({
+                ...partner,
+                financial: {
+                  annualIncome: Number.isFinite(annual) && annual > 0 ? annual : undefined,
+                  monthlyDebtPayments: Number.isFinite(debt) && debt >= 0 ? debt : undefined,
+                  monthlyHousing: Number.isFinite(housing) && housing >= 0 ? housing : undefined,
+                },
+              });
+              setPartnerVersion((v) => v + 1);
+              addAuditEvent({
+                partnerId: partner.id,
+                actorType: 'admin',
+                actorEmail,
+                action: 'partner.financial_updated',
+                entityType: 'partner',
+                entityId: partner.id,
+                meta: { annualIncome: annual, monthlyDebtPayments: debt, monthlyHousing: housing, dti },
+              });
+              setNotesVersion((v) => v + 1);
+            }}
+            onAssignDenefits={async () => {
+              const url = denefitsContractUrlDraft.trim();
+              try {
+                new URL(url);
+              } catch {
+                window.alert('Invalid contract URL.');
+                return;
+              }
+              await adminUpsertPartner({
+                ...partner,
+                denefits: {
+                  contractUrl: url,
+                  label: denefitsContractLabelDraft.trim() || undefined,
+                  assignedAt: new Date().toISOString(),
+                  assignedByEmail: actorEmail || undefined,
+                },
+              });
+              setPartnerVersion((v) => v + 1);
+              addAuditEvent({
+                partnerId: partner.id,
+                actorType: 'admin',
+                actorEmail,
+                action: 'partner.denefits_contract_assigned',
+                entityType: 'partner',
+                entityId: partner.id,
+                meta: { contractUrl: url, label: denefitsContractLabelDraft.trim() || null },
+              });
+              setNotesVersion((v) => v + 1);
+            }}
+            onRevertDenefits={() => {
+              setDenefitsContractUrlDraft(partner.denefits?.contractUrl ?? '');
+              setDenefitsContractLabelDraft(partner.denefits?.label ?? '');
+            }}
+            onClearDenefits={async () => {
+              await adminUpsertPartner({ ...partner, denefits: undefined });
+              setDenefitsContractUrlDraft('');
+              setDenefitsContractLabelDraft('');
+              setPartnerVersion((v) => v + 1);
+              addAuditEvent({
+                partnerId: partner.id,
+                actorType: 'admin',
+                actorEmail,
+                action: 'partner.denefits_contract_cleared',
+                entityType: 'partner',
+                entityId: partner.id,
+              });
+              setNotesVersion((v) => v + 1);
+            }}
+            onGrantAllEntitlements={() => {
+              ensurePartnerEntitlements({ partnerId: partner.id, keys: allPortalEntitlementKeys, sourceAgreementId: 'admin_unlock_all' });
+              setNotesVersion((v) => v + 1);
+              addAuditEvent({
+                partnerId: partner.id,
+                actorType: 'admin',
+                actorEmail,
+                action: 'partner.entitlements_granted_all',
+                entityType: 'partner',
+                entityId: partner.id,
+                meta: { keys: allPortalEntitlementKeys },
+              });
+            }}
+            onRefreshEntitlements={() => setNotesVersion((v) => v + 1)}
+            onOpenSettings={() => navigate('/admin/settings')}
+          />
         )}
 
         {tab === 'tasks' && (
@@ -2682,7 +2216,7 @@ function PartnerDetailPageInner() {
                         reportId={selectedReport.id}
                         partnerId={partner.id}
                         availableReports={reports.map((r) => ({ id: r.id, receivedAt: r.receivedAt, filename: r.filename, parsed: r.parsed }))}
-                        onOpenLetterGenerator={() => setTabAndUrl('disputes')}
+                        onOpenLetterGenerator={() => setTabAndUrl('letters')}
                         onOpenEvidenceVault={() => setEvidencePicker({})}
                         onOpenTasks={() => setTabAndUrl('tasks')}
                       />
@@ -2739,7 +2273,7 @@ function PartnerDetailPageInner() {
                       reportId={selectedReport.id}
                       partnerId={partner.id}
                       availableReports={reports.map((r) => ({ id: r.id, receivedAt: r.receivedAt, filename: r.filename, parsed: r.parsed }))}
-                      onOpenLetterGenerator={() => setTabAndUrl('disputes')}
+                      onOpenLetterGenerator={() => setTabAndUrl('letters')}
                       onOpenEvidenceVault={() => setEvidencePicker({})}
                       onOpenTasks={() => setTabAndUrl('tasks')}
                     />
@@ -2893,24 +2427,6 @@ function PartnerDetailPageInner() {
           </div>
         )}
 
-        {tab === 'disputes' && (
-          <div className="space-y-6">
-            {partner ? (
-              <LettersCommandCenter
-                partner={partner as any}
-                layout="embedded"
-                onOpenVault={openSavedLetterVault}
-                onOpenReports={() => setTabAndUrl('reports')}
-                onOpenDebtCenter={() => setTabAndUrl('debt')}
-                onRequestGrantEntitlements={(keys) => {
-                  ensurePartnerEntitlements({ partnerId: partner.id, keys: keys as any });
-                  setNotesVersion((v) => v + 1);
-                }}
-              />
-            ) : null}
-          </div>
-        )}
-
         {tab === 'letters' && (
           <div className="space-y-6">
             {partner ? (
@@ -2919,7 +2435,6 @@ function PartnerDetailPageInner() {
                 layout="embedded"
                 onOpenVault={openSavedLetterVault}
                 onOpenReports={() => setTabAndUrl('reports')}
-                onOpenDisputeCenter={() => setTabAndUrl('disputes')}
                 onOpenDebtCenter={() => setTabAndUrl('debt')}
                 onRequestGrantEntitlements={(keys) => {
                   ensurePartnerEntitlements({ partnerId: partner.id, keys: keys as any });
@@ -3044,7 +2559,7 @@ function PartnerDetailPageInner() {
                     items={letters}
                     initialShow={4}
                     columnsClassName="grid gap-4"
-                    emptyMessage="No letters generated yet. Save a PDF from the Bureaus tab to see it here."
+                    emptyMessage="No letters generated yet. Save a PDF from the Letters studio above to see it here."
                     getKey={(l) => l.id}
                     renderItem={(l) => (
                       <SavedLetterCard
@@ -3175,33 +2690,26 @@ function PartnerDetailPageInner() {
           </div>
         )}
 
-        {(tab === 'overview' || tab === 'reports' || tab === 'disputes' || tab === 'letters' || tab === 'debt') ? (
+        {(tab === 'overview' || tab === 'reports' || tab === 'letters' || tab === 'debt') ? (
           <PartnerBureauResourcesPanel />
         ) : null}
 
         <AdminPartnerAccessPanel partner={partner} onUpdated={() => setPartnerVersion((v) => v + 1)} />
 
-        <details className={`${finelyOsCatalogCard('violet')} !p-5 group`}>
-          <summary className="cursor-pointer list-none flex flex-wrap items-center justify-between gap-3 [&::-webkit-details-marker]:hidden">
+        <section id="partner-client-journey" className={`${finelyOsCatalogCard('emerald')} !p-6 border-t-4 border-emerald-400/40 scroll-mt-8`}>
+          <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
-              <p className={FINELY_OS_ENTITY_SUBLABEL}>Client journey & workflow</p>
-              <p className={`mt-1 ${FINELY_OS_ENTITY_BODY} text-sm`}>Stage, restore progress, intake links — collapsed so primary tabs stay on top.</p>
+              <p className={FINELY_OS_ENTITY_SUBLABEL}>Client journey</p>
+              <p className={`mt-1 ${FINELY_OS_ENTITY_BODY} text-sm`}>
+                Stage control and restore progress — pinned at the bottom of every partner tab so it stays easy to find.
+              </p>
             </div>
-            <span className={`${FINELY_OS_ENTITY_SUBLABEL} text-xs group-open:hidden`}>Expand</span>
-          </summary>
-          <div className="mt-5 space-y-5 border-t border-white/10 pt-5">
-            <PartnerIntakeLinkPanel partner={partner} />
+          </div>
+          <div className="mt-5 space-y-5">
             <JourneyStageAdminControl
               partner={partner}
               actorEmail={actorEmail}
               onUpdated={() => setPartnerVersion((v) => v + 1)}
-            />
-            <RoleWorkflowPanel roleId={adminWorkflowId} compact completedSteps={adminWorkflowProgress} />
-            <PartnerCreditRestoreMiniRail
-              reportsCount={reports.length}
-              evidenceCount={evidence.length}
-              lettersCount={letters.length}
-              onOpenTab={(t) => setTabAndUrl(t as TabKey)}
             />
             <PartnerCreditRestoreHud
               reportsCount={reports.length}
@@ -3215,13 +2723,26 @@ function PartnerDetailPageInner() {
                 !reports.length
                   ? { label: 'Upload report', tab: 'reports' }
                   : !letters.length
-                    ? { label: 'Open bureaus', tab: 'disputes' }
+                    ? { label: 'Open letters', tab: 'letters' }
                     : { label: 'Letter studio', tab: 'letters' }
               }
             />
-            <LegacyApplicationStatusBanner partner={partner} />
+            <details className={`${finelyOsCatalogCard('violet')} !p-4 group`}>
+              <summary className={`cursor-pointer select-none ${FINELY_OS_ENTITY_VALUE}`}>Intake links, workflow & legacy status</summary>
+              <div className="mt-4 space-y-4 border-t border-white/10 pt-4">
+                <PartnerIntakeLinkPanel partner={partner} />
+                <RoleWorkflowPanel roleId={adminWorkflowId} compact completedSteps={adminWorkflowProgress} />
+                <PartnerCreditRestoreMiniRail
+                  reportsCount={reports.length}
+                  evidenceCount={evidence.length}
+                  lettersCount={letters.length}
+                  onOpenTab={(t) => setTabAndUrl(t as TabKey)}
+                />
+                <LegacyApplicationStatusBanner partner={partner} />
+              </div>
+            </details>
           </div>
-        </details>
+        </section>
 
         <FinelyOsPageFooter />
 </div>

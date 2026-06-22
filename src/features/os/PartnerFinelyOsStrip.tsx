@@ -5,7 +5,6 @@ import {
   BarChart3,
   FileText,
   FolderKanban,
-  Gavel,
   ListChecks,
   PenLine,
   Sparkles,
@@ -24,13 +23,12 @@ import {FINELY_OS_CATALOG_SHELL,
   finelyOsKpiTile,
   finelyOsCatalogCard,} from './finelyOsLightUi';
 
-type PartnerTabKey = 'overview' | 'reports' | 'analysis' | 'evidence' | 'disputes' | 'letters' | 'tasks' | 'notes' | 'debt';
+type PartnerTabKey = 'overview' | 'profile' | 'reports' | 'analysis' | 'evidence' | 'letters' | 'tasks' | 'notes' | 'debt';
 
 const FEATURE_TABS: { tab: PartnerTabKey; label: string; hint: string; icon: React.ComponentType<{ size?: number; className?: string }> }[] = [
   { tab: 'reports', label: 'Reports', hint: 'Credit pulls', icon: FileText },
   { tab: 'analysis', label: 'Analysis', hint: 'Report builder', icon: BarChart3 },
-  { tab: 'disputes', label: 'Disputes', hint: 'Tradeline picks', icon: Gavel },
-  { tab: 'letters', label: 'Letters', hint: 'Letter studio', icon: PenLine },
+  { tab: 'letters', label: 'Letters', hint: 'Letter studio & vault', icon: PenLine },
   { tab: 'tasks', label: 'Tasks', hint: 'Work queue', icon: ListChecks },
 ];
 

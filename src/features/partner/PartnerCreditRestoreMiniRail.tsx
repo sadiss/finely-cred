@@ -1,7 +1,7 @@
 import React from 'react';
 import { ArrowRight } from 'lucide-react';
 
-type PartnerTabKey = 'overview' | 'reports' | 'analysis' | 'evidence' | 'disputes' | 'letters' | 'tasks' | 'notes' | 'debt';
+type PartnerTabKey = 'overview' | 'profile' | 'reports' | 'analysis' | 'evidence' | 'letters' | 'tasks' | 'notes' | 'debt';
 
 type Step = {
   id: string;
@@ -21,7 +21,7 @@ export function PartnerCreditRestoreMiniRail({ reportsCount, evidenceCount, lett
   const steps: Step[] = [
     { id: 'report', label: 'Report', done: reportsCount > 0, tab: 'reports' },
     { id: 'evidence', label: 'Evidence', done: evidenceCount > 0, tab: 'evidence' },
-    { id: 'letters', label: 'Letters', done: lettersCount > 0, tab: 'disputes' },
+    { id: 'letters', label: 'Letters', done: lettersCount > 0, tab: 'letters' },
   ];
 
   return (
