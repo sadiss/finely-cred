@@ -1409,7 +1409,7 @@ export function CreditIntelTabs({
         <div className={FINELY_OS_NOTICE}>{notice}</div>
       )}
       <div className={`${finelyOsCatalogCard('violet')} !p-6`}>
-        <div className="flex flex-wrap items-center justify-between gap-4">
+        <div className="flex flex-col gap-4">
           <div className="space-y-1">
             <div className="inline-flex items-center gap-2 text-fuchsia-300/90">
               <BarChart3 size={16} />
@@ -1420,7 +1420,7 @@ export function CreditIntelTabs({
             </p>
           </div>
 
-          <div className={`${FINELY_OS_VIEW_TABS} flex-nowrap overflow-x-auto pb-1 max-w-full`}>
+          <div className={`${FINELY_OS_VIEW_TABS} flex flex-wrap gap-2 w-full`}>
             <button className={tabBtn(tab === 'overview')} onClick={() => setTab('overview')}>
               <Layers size={12} className="inline mr-2" /> Overview
             </button>
@@ -1916,7 +1916,6 @@ export function CreditIntelTabs({
               parsed={{ ...safeParsed, tradelines: collectionsDisplayTradelines }}
               partnerId={partnerId}
               reportId={reportId}
-              layout="grid"
               showSequence
             />
           ) : (
@@ -1999,7 +1998,6 @@ export function CreditIntelTabs({
               parsed={{ ...safeParsed, tradelines: latePaymentTradelines }}
               partnerId={partnerId}
               reportId={reportId}
-              layout="grid"
               showSequence
             />
           ) : (
@@ -2174,7 +2172,6 @@ export function CreditIntelTabs({
                 parsed={{ ...safeParsed, tradelines: latePaymentTradelines }}
                 partnerId={partnerId}
                 reportId={reportId}
-                layout="grid"
                 showSequence
               />
             ) : (

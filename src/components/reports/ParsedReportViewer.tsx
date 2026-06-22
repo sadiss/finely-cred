@@ -42,42 +42,6 @@ function toUsdShort(n?: number | null) {
   }
 }
 
-function codeKind(codeRaw: string): 'ok' | 'derog' | 'unknown' {
-  const c = (codeRaw || '').trim().toUpperCase();
-  if (!c || c === '·') return 'ok';
-  if (['OK', 'CUR', 'CURRENT', 'PAID', '0', '00', '1'].includes(c)) return 'ok';
-  if (['CO', 'COL', 'CL', 'CHARGE', 'CHARGE-OFF', 'CHARGE OFF'].includes(c)) return 'derog';
-  const n = Number(c);
-  if (Number.isFinite(n) && n >= 30) return 'derog';
-  if (c.includes('LATE') || c.includes('DELINQ') || c.includes('CHARGE') || c.includes('COLLECT')) return 'derog';
-  return 'unknown';
-}
-
-function pickHistoryRow(args: { t: ParsedTradeline; preferredBureau?: Bureau | '' }) {
-  const by = args.t.paymentHistory2y?.byBureau ?? {};
-  const pick = (b: Bureau) => by[b] ?? [];
-  const preferred = args.preferredBureau ? pick(args.preferredBureau as Bureau) : [];
-  const row =
-    preferred.length
-      ? preferred
-      : pick('TUC').length
-        ? pick('TUC')
-        : pick('EXP').length
-          ? pick('EXP')
-          : pick('EQF');
-  const bureauUsed: Bureau | null =
-    preferred.length
-      ? (args.preferredBureau as Bureau)
-      : pick('TUC').length
-        ? 'TUC'
-        : pick('EXP').length
-          ? 'EXP'
-          : pick('EQF').length
-            ? 'EQF'
-            : null;
-  return { bureauUsed, codes: row.map((x) => x.code || '').filter((x) => x != null) };
-}
-
 function hasBureauData(t: ParsedTradeline, bureau: Bureau): boolean {
   return (t.fields ?? []).some((row: TradelineRow) => ((row?.byBureau ?? {})[bureau] ?? '').trim().length > 0);
 }
@@ -118,12 +82,11 @@ export function ParsedReportViewer({
   partnerId?: string;
   reportId?: string;
   scrollToCreditorName?: string | null;
-  /** Grid = card tiles (collections/negatives). List = full-width stack. Order is preserved. */
   layout?: 'list' | 'grid';
   showSequence?: boolean;
 }) {
-  const isGrid = layout === 'grid';
-  const [openIndex, setOpenIndex] = useState<number | null>(isGrid ? null : 0);
+  const isGrid = false;
+  const [openIndex, setOpenIndex] = useState<number | null>(0);
   const [savingKey, setSavingKey] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [filterBureau, setFilterBureau] = useState<Bureau | ''>('');
@@ -131,9 +94,9 @@ export function ParsedReportViewer({
   const [filterStatus, setFilterStatus] = useState<string>('');
   const [filterResp, setFilterResp] = useState<'' | 'AU' | 'Primary' | 'Joint'>('');
   const [query, setQuery] = useState<string>('');
-  const [showAllFields, setShowAllFields] = useState(false);
+  const [showAllFieldsByIdx, setShowAllFieldsByIdx] = useState<Record<number, boolean>>({});
   const [tradelinePage, setTradelinePage] = useState(0);
-  const TRADELINE_PAGE_SIZE = isGrid ? 9 : 12;
+  const TRADELINE_PAGE_SIZE = 6;
   const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
 
   const distinctTypes = useMemo(() => {
@@ -384,18 +347,14 @@ export function ParsedReportViewer({
 
       <CollapsibleSection
         variant="dark"
-        title={isGrid ? 'Account cards' : 'Tradelines'}
-        subtitle={
-          isGrid
-            ? 'Ordered tiles — tap a card to expand details, then capture a screenshot for evidence.'
-            : 'Accounts detected from your parsed report. Expand a tradeline to view bureau fields + evidence.'
-        }
+        title="Tradelines"
+        subtitle="Full-width account view — expand any tradeline for bureau field table + 2-year payment history grid (as on the report)."
         count={`${filteredTradelines.length}`}
         defaultOpen
-        storageKey={`reports.viewer.tradelines.${parsed.provider || 'unknown'}.${layout}`}
+        storageKey={`reports.viewer.tradelines.${parsed.provider || 'unknown'}.list`}
         bodyClassName="!p-0"
       >
-        <div className={isGrid ? 'p-4 md:p-5 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4' : 'p-5 md:p-6 space-y-4'}>
+        <div className="p-4 md:p-6 space-y-5">
           {visibleTradelines.map((t, pageIdx) => {
           const idx = safeTradelinePage * TRADELINE_PAGE_SIZE + pageIdx;
           const isOpen = openIndex === idx;
@@ -404,8 +363,9 @@ export function ParsedReportViewer({
           const accountNoRow = fields.find((f) => f?.label?.toLowerCase?.()?.includes('account #'));
           const by = accountNoRow?.byBureau ?? {};
           const acct = by.EXP || by.TUC || by.EQF;
+          const showAllFields = showAllFieldsByIdx[idx] ?? true;
           const screenshotKey = `${idx}_${t.creditorName}`;
-          const sequenceLabel = showSequence || isGrid ? idx + 1 : null;
+          const sequenceLabel = showSequence ? idx + 1 : null;
 
           return (
             <div
@@ -413,24 +373,18 @@ export function ParsedReportViewer({
               ref={(el) => {
                 cardRefs.current[idx] = el;
               }}
-              className={`rounded-2xl border overflow-hidden min-w-0 ${
-                isGrid ? 'flex flex-col h-full shadow-lg shadow-black/20 ' : ''
-              }${
+              className={`rounded-2xl border overflow-hidden min-w-0 w-full ${finelyOsInlineListItem()} !p-0 ${
                 rk === 'AU'
-                  ? 'border-violet-500/35 bg-[radial-gradient(900px_320px_at_15%_0%,rgba(139,92,246,0.14)_0%,transparent_60%)]'
+                  ? 'border-violet-500/35'
                   : rk === 'Primary'
-                    ? 'border-emerald-500/35 bg-[radial-gradient(900px_320px_at_15%_0%,rgba(16,185,129,0.14)_0%,transparent_60%)]'
+                    ? 'border-emerald-500/35'
                     : rk === 'Joint'
-                      ? 'border-sky-500/35 bg-[radial-gradient(900px_320px_at_15%_0%,rgba(14,165,233,0.14)_0%,transparent_60%)]'
-                      : isGrid
-                        ? 'border-fuchsia-500/25 bg-white/[0.04]'
-                        : `${finelyOsInlineListItem()} !p-0`
+                      ? 'border-sky-500/35'
+                      : 'border-white/[0.08]'
               }`}
             >
               <button
-                className={`w-full flex items-start justify-between gap-4 text-left transition-colors ${
-                  isGrid ? 'px-4 py-4 hover:bg-white/[0.06]' : 'px-6 py-5 hover:bg-white/[0.04] items-center'
-                }`}
+                className="w-full flex items-start justify-between gap-4 text-left transition-colors px-5 py-4 md:px-6 md:py-5 hover:bg-white/[0.04] items-center"
                 onClick={() => setOpenIndex(isOpen ? null : idx)}
               >
                 <div className="min-w-0 flex-1">
@@ -439,7 +393,7 @@ export function ParsedReportViewer({
                       #{sequenceLabel}
                     </span>
                   ) : null}
-                  <p className={`${FINELY_OS_ENTITY_VALUE} ${isGrid ? 'text-base' : 'text-xl'} leading-tight line-clamp-2`}>{t.creditorName}</p>
+                  <p className={`${FINELY_OS_ENTITY_VALUE} text-lg md:text-xl leading-tight`}>{t.creditorName}</p>
                   <p className={`${FINELY_OS_ENTITY_SUBLABEL} font-mono normal-case`}>
                     acct: {safe(t.accountNumberMasked ?? acct)}
                   </p>
@@ -486,46 +440,12 @@ export function ParsedReportViewer({
                     ) : null}
                     {t.dofd ? <span className={`text-[10px] ${FINELY_OS_ENTITY_BODY} font-mono`}>DOFD: {t.dofd}</span> : null}
                   </div>
-                  {t.paymentHistory2y?.byBureau && (
-                    <div className="mt-3 flex items-center gap-2">
-                      {(() => {
-                        const { bureauUsed, codes } = pickHistoryRow({ t, preferredBureau: filterBureau });
-                        const last = codes.slice(-24);
-                        if (!last.length) return null;
-                        const derog = last.filter((c) => codeKind(c) === 'derog').length;
-                        return (
-                          <>
-                            <span className={`${FINELY_OS_ENTITY_SUBLABEL} font-mono normal-case shrink-0`}>
-                              24mo {bureauUsed ? bureauShortCode(bureauUsed) : ''}
-                              {derog ? ` • ${derog} derog` : ''}
-                            </span>
-                            <div className="flex gap-1 overflow-x-auto overflow-y-hidden pr-1">
-                              {last.map((c, i) => {
-                                const kind = codeKind(c);
-                                const cls =
-                                  kind === 'derog'
-                                    ? 'bg-red-200/80 border-red-300'
-                                    : kind === 'ok'
-                                      ? 'bg-emerald-200/70 border-emerald-300'
-                                      : 'bg-amber-200/70 border-amber-300';
-                                const label = (c || '·').toUpperCase();
-                                return (
-                                  <span
-                                    key={i}
-                                    className={`w-3.5 h-3.5 rounded-sm border ${cls} shrink-0`}
-                                    title={`${bureauUsed ?? ''} ${label}`.trim()}
-                                  />
-                                );
-                              })}
-                            </div>
-                          </>
-                        );
-                      })()}
-                    </div>
-                  )}
+                  {isOpen ? null : t.paymentHistory2y?.byBureau ? (
+                    <p className={`mt-2 text-xs ${FINELY_OS_ENTITY_BODY}`}>Expand to view full bureau field table + 2-year payment history grid.</p>
+                  ) : null}
                 </div>
-                <div className={`flex ${isGrid ? 'flex-col sm:flex-row' : ''} items-center gap-2 shrink-0`}>
-                  {partnerId && (isGrid || isOpen) ? (
+                <div className="flex items-center gap-2 shrink-0">
+                  {partnerId && isOpen ? (
                     <button
                       type="button"
                       onClick={(e) => {
@@ -533,7 +453,7 @@ export function ParsedReportViewer({
                         captureTradelineScreenshot({ idx, tradeline: t });
                       }}
                       data-no-capture="true"
-                      className={`${FINELY_OS_SECONDARY_BTN} ${isGrid ? '!py-2 !text-[10px] w-full sm:w-auto' : ''}`}
+                      className={FINELY_OS_SECONDARY_BTN}
                       disabled={Boolean(savingKey)}
                       title="Save screenshot to Evidence Vault — included when you download the dispute letter PDF (print-ready)"
                     >
@@ -546,7 +466,7 @@ export function ParsedReportViewer({
               </button>
 
               {isOpen && (
-                <div className={`${isGrid ? 'px-4 pb-4' : 'px-6 pb-6'} space-y-6 border-t border-white/[0.06]`}>
+                <div className="px-4 pb-6 md:px-6 space-y-6 border-t border-white/[0.08] bg-black/20">
                   {(() => {
                     const fields = t.fields ?? [];
                     const norm = (s: string) => (s || '').toLowerCase().replace(/\s+/g, ' ').trim();
@@ -588,13 +508,17 @@ export function ParsedReportViewer({
                               {!showAllFields ? ' (key fields)' : ''}.
                             </div>
                           </div>
-                          <button type="button" onClick={() => setShowAllFields((v) => !v)} className={FINELY_OS_SECONDARY_BTN}>
-                            {showAllFields ? 'Show key fields' : 'Show all fields'}
+                          <button
+                            type="button"
+                            onClick={() => setShowAllFieldsByIdx((cur) => ({ ...cur, [idx]: !showAllFields }))}
+                            className={FINELY_OS_SECONDARY_BTN}
+                          >
+                            {showAllFields ? 'Show key fields only' : 'Show all fields'}
                           </button>
                         </div>
 
-                        <div className="overflow-x-auto overflow-y-hidden pr-1 min-w-0">
-                          <table className="w-full text-left text-sm border-separate border-spacing-0">
+                        <div className="overflow-x-auto overflow-y-visible pr-1 min-w-0 -mx-1 px-1">
+                          <table className="min-w-[720px] w-full text-left text-sm border-separate border-spacing-0">
                             <thead className="sticky top-0 z-10 bg-[#070b09]/98 backdrop-blur-xl border-b border-white/[0.08]">
                               <tr className={FINELY_OS_ENTITY_SUBLABEL}>
                                 <th className="py-3 pr-4 text-left">Field</th>
@@ -623,9 +547,9 @@ export function ParsedReportViewer({
                   })()}
 
                   {t.paymentHistory2y ? (
-                    <div className={`${FINELY_OS_GLASS_CATALOG} overflow-x-auto overflow-y-hidden min-w-0`}>
-                      <p className={`${FINELY_OS_ENTITY_SUBLABEL} mb-4`}>2-year payment history</p>
-                      <table className="text-[11px] border-separate border-spacing-0">
+                    <div className={`${FINELY_OS_GLASS_CATALOG} overflow-x-auto overflow-y-visible min-w-0 p-4 md:p-5`}>
+                      <p className={`${FINELY_OS_ENTITY_SUBLABEL} mb-4`}>2-year payment history (full grid)</p>
+                      <table className="min-w-max text-[11px] md:text-xs border-separate border-spacing-0">
                         <tbody>
                           {(() => {
                             const by = t.paymentHistory2y?.byBureau ?? {};
