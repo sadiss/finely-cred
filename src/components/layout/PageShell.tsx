@@ -14,6 +14,7 @@ import { BackToSiteButton } from '../navigation/BackToSiteButton';
 import { FinelySiteWayfinder } from '../../features/os/FinelySiteWayfinder';
 import { FinelyThemeToggle } from '../../features/os/FinelyThemeToggle';
 import { shouldShowPublicThemeToggle } from '../../lib/finelyThemeAccess';
+import { persistAdminRailExpanded, readAdminRailExpanded } from '../../lib/finelyAdminRailExpanded';
 import { useAuth } from '../../auth/AuthProvider';
 import { applyTenantBranding, getActiveTenant } from '../../tenancy/activeTenant';
 
@@ -35,6 +36,7 @@ export function PageShell({
   const auth = useAuth();
   const pathname = location.pathname;
   const [storeVersion, setStoreVersion] = useState(0);
+  const [adminRailExpanded, setAdminRailExpanded] = useState(() => readAdminRailExpanded());
   const [nestedScrollSuspects, setNestedScrollSuspects] = useState<
     Array<{
       tag: string;
@@ -521,8 +523,17 @@ export function PageShell({
         {isPortal && <PortalCommandPaletteHost />}
 
         {isAdmin ? (
-          <div className="grid lg:grid-cols-[340px_1fr] gap-8">
-            <AdminNavRail />
+          <div className={`grid gap-8 ${adminRailExpanded ? 'lg:grid-cols-[17rem_1fr]' : 'lg:grid-cols-[5.5rem_1fr]'}`}>
+            <AdminNavRail
+              expanded={adminRailExpanded}
+              onToggleExpanded={() => {
+                setAdminRailExpanded((v) => {
+                  const next = !v;
+                  persistAdminRailExpanded(next);
+                  return next;
+                });
+              }}
+            />
             <div className="min-w-0 flex flex-col">
               {appTopChrome}
               <AdminNavBar />

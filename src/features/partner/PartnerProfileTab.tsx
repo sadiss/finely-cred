@@ -4,7 +4,7 @@ import type { CustomFieldDefinition } from '../../domain/customFields';
 import type { FieldLayout } from '../../domain/fieldLayouts';
 import type { EntitlementKey } from '../../billing/entitlements';
 import { entitlementLabel } from '../../billing/entitlementLabels';
-import { PartnerCollapsibleFieldLayout } from './PartnerCollapsibleFieldLayout';
+import { PartnerProfileFieldSections } from './PartnerProfileFieldSections';
 import { bureauShortCode } from '../../utils/bureaus';
 import {
   FINELY_OS_DANGER_BTN,
@@ -176,6 +176,41 @@ export function PartnerProfileTab(args: {
           </div>
         </div>
 
+        <div id="partner-profile-fields" className="mt-6 pt-6 border-t border-white/10">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <p className={FINELY_OS_ENTITY_SUBLABEL}>Profile field sections</p>
+              <p className={`mt-2 ${FINELY_OS_ENTITY_BODY}`}>
+                Tap a section to open it — identity, business, monitoring logins, bureau logins, and notes.{' '}
+                <button type="button" onClick={args.onOpenSettings} className={FINELY_OS_ENTITY_ACCENT_LINK}>
+                  Admin Settings
+                </button>
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-2 text-[10px] font-black uppercase tracking-widest">
+              <span className={FINELY_OS_ENTITY_CHIP}>
+                tenant: <span className={`${FINELY_OS_ENTITY_VALUE} font-mono`}>{args.tenantId}</span>
+              </span>
+              <span className={FINELY_OS_ENTITY_CHIP}>
+                defs <span className={FINELY_OS_ENTITY_VALUE}>{args.customDefs.length}</span>
+              </span>
+            </div>
+          </div>
+
+          {args.customDefs.length === 0 ? (
+            <div className={`mt-4 ${FINELY_OS_ENTITY_EMPTY}`}>No custom fields configured yet.</div>
+          ) : (
+            <div className="mt-4">
+              <PartnerProfileFieldSections
+                layout={args.partnerFieldLayout}
+                definitions={args.customDefs}
+                values={args.customFieldDraft || {}}
+                onChangeValue={args.updateCustomField}
+              />
+            </div>
+          )}
+        </div>
+
         <div className="mt-5 flex flex-wrap items-center gap-2">
           <button type="button" className={FINELY_OS_PRIMARY_BTN} onClick={() => void args.onSaveProfile()}>
             Save contact & mailing
@@ -184,39 +219,6 @@ export function PartnerProfileTab(args: {
             Reset
           </button>
         </div>
-      </div>
-
-      <div id="partner-profile-fields" className={`${finelyOsCatalogCard('emerald')} !p-5 w-full border border-emerald-400/25`}>
-        <div>
-          <p className={FINELY_OS_ENTITY_SUBLABEL}>Profile fields</p>
-          <p className={`mt-2 ${FINELY_OS_ENTITY_BODY}`}>
-            Monitoring logins, bureau credentials, business IDs, and notes — pick a section card below to enter or edit. Contact info stays in the block above.{' '}
-            <button type="button" onClick={args.onOpenSettings} className={FINELY_OS_ENTITY_ACCENT_LINK}>
-              Admin Settings
-            </button>
-          </p>
-          <div className="mt-3 flex flex-wrap gap-2 text-[10px] font-black uppercase tracking-widest">
-            <span className={FINELY_OS_ENTITY_CHIP}>
-              tenant: <span className={`${FINELY_OS_ENTITY_VALUE} font-mono`}>{args.tenantId}</span>
-            </span>
-            <span className={FINELY_OS_ENTITY_CHIP}>
-              defs <span className={FINELY_OS_ENTITY_VALUE}>{args.customDefs.length}</span>
-            </span>
-          </div>
-        </div>
-
-        {args.customDefs.length === 0 ? (
-          <div className={FINELY_OS_ENTITY_EMPTY}>No custom fields configured yet.</div>
-        ) : (
-          <div className="mt-4">
-            <PartnerCollapsibleFieldLayout
-              layout={args.partnerFieldLayout}
-              definitions={args.customDefs}
-              values={args.customFieldDraft || {}}
-              onChangeValue={args.updateCustomField}
-            />
-          </div>
-        )}
       </div>
 
       <details className={`${finelyOsCatalogCard('violet')} !p-5 group`}>

@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { ChevronDown, Shield } from 'lucide-react';
+import { ChevronDown, PanelLeftClose, PanelLeftOpen, Shield } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAdminOpsCaps, isAdminNavPathAllowed } from '../../hooks/useAdminOpsCaps';
 import {
@@ -10,6 +10,7 @@ import { FinelyAdminSimpleNav } from '../../features/os/FinelyAdminSimpleNav';
 import { persistAdminNavMode, readAdminNavMode, type FinelyAdminNavMode } from '../../lib/finelyAdminNavMode';
 import {
   FINELY_OS_ENTITY_SUBLABEL,
+  FINELY_OS_LUXURY_PAGINATION_BTN,
   FINELY_OS_SIDE_RAIL_BADGE,
   FINELY_OS_SIDE_RAIL_GLOW,
   FINELY_OS_SIDE_RAIL_GROUP,
@@ -100,7 +101,13 @@ export function AdminNavBar() {
   );
 }
 
-export function AdminNavRail() {
+export function AdminNavRail({
+  expanded,
+  onToggleExpanded,
+}: {
+  expanded: boolean;
+  onToggleExpanded: () => void;
+}) {
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const caps = useAdminOpsCaps();
@@ -123,102 +130,154 @@ export function AdminNavRail() {
   }, [query, caps]);
 
   const searching = Boolean(query.trim());
+  const flatItems = useMemo(() => groups.flatMap((g) => g.items), [groups]);
+
+  const navButton = (x: (typeof flatItems)[number], compact: boolean) => {
+    const active = isAdminNavPathActive(pathname, x.path);
+    const Icon = x.icon;
+    if (compact) {
+      return (
+        <button
+          key={x.path}
+          type="button"
+          onClick={() => navigate(x.path)}
+          title={x.hint || x.label}
+          className={`flex flex-col items-center justify-center w-11 h-11 rounded-2xl border transition-all ${
+            active
+              ? 'bg-gradient-to-br from-violet-600 to-fuchsia-600 text-white border-violet-400/40 shadow-md'
+              : 'bg-white/[0.06] border-white/[0.08] text-white/60 hover:text-white hover:bg-white/[0.05]'
+          }`}
+        >
+          <Icon size={18} />
+          <span className="sr-only">{x.label}</span>
+        </button>
+      );
+    }
+    return (
+      <button
+        key={x.path}
+        type="button"
+        onClick={() => navigate(x.path)}
+        className={finelyOsSideRailNavItem(active)}
+        title={x.hint || x.label}
+      >
+        <Icon size={16} className={active ? 'text-violet-300' : 'text-white/55'} />
+        <div className="min-w-0">
+          <div className="text-[11px] font-black uppercase tracking-widest truncate">{x.label}</div>
+          {x.hint ? <div className="text-[11px] text-white/45 truncate">{x.hint}</div> : null}
+        </div>
+      </button>
+    );
+  };
 
   return (
-    <aside className="hidden lg:block sticky top-24 self-start min-w-0">
-      <div className={FINELY_OS_SIDE_RAIL_SHELL}>
+    <aside className={`hidden lg:block sticky top-24 self-start shrink-0 ${expanded ? 'w-[17rem]' : 'w-[5.5rem]'}`}>
+      <div className={`${FINELY_OS_SIDE_RAIL_SHELL} !max-h-[calc(100vh-6rem)] ${expanded ? '' : '!p-2'}`}>
         <div className={FINELY_OS_SIDE_RAIL_GLOW} />
 
-        <div className="relative px-2 pb-3 border-b border-white/[0.06] mb-3">
-          <FinelyCredLogo size="sm" forceLight className="mx-auto lg:mx-0" />
+        <div className={`relative flex items-center ${expanded ? 'justify-between px-2 pb-3 border-b border-white/[0.06] mb-3' : 'justify-center pb-2 mb-2'}`}>
+          {expanded ? <FinelyCredLogo size="sm" forceLight className="lg:mx-0" /> : null}
+          <button
+            type="button"
+            onClick={onToggleExpanded}
+            className={`${FINELY_OS_LUXURY_PAGINATION_BTN} ${expanded ? 'px-3 py-2' : '!p-2.5'}`}
+            title={expanded ? 'Collapse menu' : 'Expand menu'}
+            aria-expanded={expanded}
+          >
+            {expanded ? (
+              <>
+                <PanelLeftClose size={14} className="shrink-0" />
+                <span className="text-[10px] font-black uppercase tracking-widest">Collapse</span>
+              </>
+            ) : (
+              <>
+                <PanelLeftOpen size={18} className="shrink-0" />
+                <span className="sr-only">Expand menu</span>
+              </>
+            )}
+          </button>
         </div>
 
-        <div className="relative px-2">
-          <div className={FINELY_OS_SIDE_RAIL_LABEL}>Admin</div>
-          <div className={`mt-2 ${FINELY_OS_SIDE_RAIL_TITLE}`}>Operate the platform</div>
-          <div className={`mt-1 ${FINELY_OS_SIDE_RAIL_HINT}`}>Fast navigation • search • ops modules</div>
-        </div>
+        {expanded ? (
+          <>
+            <div className="relative px-2">
+              <div className={FINELY_OS_SIDE_RAIL_LABEL}>Admin</div>
+              <div className={`mt-2 ${FINELY_OS_SIDE_RAIL_TITLE}`}>Operate the platform</div>
+              <div className={`mt-1 ${FINELY_OS_SIDE_RAIL_HINT}`}>Fast navigation • search • ops modules</div>
+            </div>
 
-        <div className="relative px-2">
-          <div className={FINELY_OS_SIDE_RAIL_LABEL}>Search</div>
-          <input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Partners, cases, settings…"
-            className="fc-input mt-2 text-[11px]"
-          />
-        </div>
+            <div className="relative px-2 mt-3">
+              <div className={FINELY_OS_SIDE_RAIL_LABEL}>Search</div>
+              <input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Partners, cases, settings…"
+                className="fc-input mt-2 text-[11px]"
+              />
+            </div>
+          </>
+        ) : null}
 
-        <div className="relative overflow-y-auto pr-1 fc-scroll-area min-w-0 flex-1">
-          <div className="space-y-3">
-            {groups.map((g) => {
-              const hasActive = g.items.some((x) => isAdminNavPathActive(pathname, x.path));
-              const initialOpen = hasActive || g.label === 'Core';
-              const isOpen = openGroups[g.label] ?? initialOpen;
+        <div className={`relative overflow-y-auto fc-scroll-area min-w-0 flex-1 ${expanded ? 'pr-1 mt-3' : 'mt-1 flex flex-col items-center'}`}>
+          {!expanded ? (
+            <div className="space-y-1.5 py-1">
+              {flatItems.map((x) => navButton(x, true))}
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {groups.map((g) => {
+                const hasActive = g.items.some((x) => isAdminNavPathActive(pathname, x.path));
+                const initialOpen = hasActive || g.label === 'Core';
+                const isOpen = openGroups[g.label] ?? initialOpen;
 
-              const items = (
-                <div className="px-2 pb-2 space-y-1">
-                  {g.items.map((x) => {
-                    const active = isAdminNavPathActive(pathname, x.path);
-                    const Icon = x.icon;
-                    return (
-                      <button
-                        key={x.path}
-                        type="button"
-                        onClick={() => navigate(x.path)}
-                        className={finelyOsSideRailNavItem(active)}
-                        title={x.hint || x.label}
-                      >
-                        <Icon size={16} className={active ? 'text-violet-300' : 'text-white/55'} />
-                        <div className="min-w-0">
-                          <div className="text-[11px] font-black uppercase tracking-widest truncate">{x.label}</div>
-                          {x.hint ? <div className="text-[11px] text-white/45 truncate">{x.hint}</div> : null}
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-              );
-
-              if (searching) {
-                return (
-                  <div key={g.label} className={FINELY_OS_SIDE_RAIL_GROUP}>
-                    <div className="px-3 py-2.5 flex items-center justify-between gap-3">
-                      <div className={FINELY_OS_SIDE_RAIL_LABEL}>{g.label}</div>
-                      <div className={FINELY_OS_SIDE_RAIL_BADGE}>{g.items.length}</div>
-                    </div>
-                    {items}
+                const items = (
+                  <div className="px-2 pb-2 space-y-1">
+                    {g.items.map((x) => navButton(x, false))}
                   </div>
                 );
-              }
 
-              return (
-                <details
-                  key={g.label}
-                  className={`group ${FINELY_OS_SIDE_RAIL_GROUP}`}
-                  open={isOpen}
-                  onToggle={(e) => {
-                    const next = (e.currentTarget as HTMLDetailsElement).open;
-                    setOpenGroups((cur) => ({ ...cur, [g.label]: next }));
-                  }}
-                >
-                  <summary className="fc-focus-ring list-none cursor-pointer px-3 py-2.5 rounded-2xl flex items-center justify-between gap-3 hover:bg-white/[0.04] transition-colors [&::-webkit-details-marker]:hidden">
-                    <div className={FINELY_OS_SIDE_RAIL_LABEL}>{g.label}</div>
-                    <div className="inline-flex items-center gap-2">
-                      <div className={FINELY_OS_SIDE_RAIL_BADGE}>{g.items.length}</div>
-                      <ChevronDown size={14} className="text-white/40 transition-transform group-open:rotate-180" />
+                if (searching) {
+                  return (
+                    <div key={g.label} className={FINELY_OS_SIDE_RAIL_GROUP}>
+                      <div className="px-3 py-2.5 flex items-center justify-between gap-3">
+                        <div className={FINELY_OS_SIDE_RAIL_LABEL}>{g.label}</div>
+                        <div className={FINELY_OS_SIDE_RAIL_BADGE}>{g.items.length}</div>
+                      </div>
+                      {items}
                     </div>
-                  </summary>
-                  {items}
-                </details>
-              );
-            })}
-          </div>
+                  );
+                }
+
+                return (
+                  <details
+                    key={g.label}
+                    className={`group ${FINELY_OS_SIDE_RAIL_GROUP}`}
+                    open={isOpen}
+                    onToggle={(e) => {
+                      const next = (e.currentTarget as HTMLDetailsElement).open;
+                      setOpenGroups((cur) => ({ ...cur, [g.label]: next }));
+                    }}
+                  >
+                    <summary className="fc-focus-ring list-none cursor-pointer px-3 py-2.5 rounded-2xl flex items-center justify-between gap-3 hover:bg-white/[0.04] transition-colors [&::-webkit-details-marker]:hidden">
+                      <div className={FINELY_OS_SIDE_RAIL_LABEL}>{g.label}</div>
+                      <div className="inline-flex items-center gap-2">
+                        <div className={FINELY_OS_SIDE_RAIL_BADGE}>{g.items.length}</div>
+                        <ChevronDown size={14} className="text-white/40 transition-transform group-open:rotate-180" />
+                      </div>
+                    </summary>
+                    {items}
+                  </details>
+                );
+              })}
+            </div>
+          )}
         </div>
 
-        <div className="relative px-2 pt-2 border-t border-white/[0.06]">
-          <p className={`${FINELY_OS_ENTITY_SUBLABEL} normal-case`}>Desktop rail · mobile uses simple 4-lane nav</p>
-        </div>
+        {expanded ? (
+          <div className="relative px-2 pt-2 border-t border-white/[0.06]">
+            <p className={`${FINELY_OS_ENTITY_SUBLABEL} normal-case`}>Desktop rail · mobile uses simple 4-lane nav</p>
+          </div>
+        ) : null}
       </div>
     </aside>
   );
