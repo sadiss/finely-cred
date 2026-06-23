@@ -1,5 +1,19 @@
 export type Aspect = '16:9' | '9:16' | '1:1';
 
+export type GenerationStatus = 'idle' | 'queued' | 'generating' | 'complete' | 'failed';
+
+export type VideoProvider = 'browser_slideshow' | 'gemini_veo' | 'runway' | 'luma' | 'kling' | 'manual';
+
+export type VoiceProvider = 'manual_upload' | 'elevenlabs' | 'openai_voice';
+
+export type CharacterReference = {
+  id: string;
+  name: string;
+  imageDataUrl: string;
+  notes?: string;
+  createdAt: string;
+};
+
 export type MediaTransition = {
   type: 'cut' | 'fade';
   /** Only used for fade. */
@@ -39,6 +53,15 @@ export type MediaScene = {
   /** Optional per-scene VO script (for future TTS / voice pipeline). */
   voiceoverText?: string;
   imageDataUrl?: string;
+  /** Phase 1 provider-ready AI video studio fields. */
+  videoClipUrl?: string;
+  videoClipBlobRef?: string;
+  videoStatus?: GenerationStatus;
+  videoError?: string;
+  voiceoverBlobRef?: string;
+  voiceoverStatus?: GenerationStatus;
+  characterRefIds?: string[];
+  motionPrompt?: string;
   createdAt: string;
   updatedAt: string;
 };
@@ -64,6 +87,9 @@ export type MediaProject = {
   renderPresetId?: string;
   captionStyle?: MediaCaptionStyle;
   audioTracks?: MediaAudioTrack[];
+  videoProvider?: VideoProvider;
+  voiceProvider?: VoiceProvider;
+  characterRefs?: CharacterReference[];
   renderHistory?: Array<{
     id: string;
     createdAt: string;
@@ -90,4 +116,3 @@ export function aspectToSize(aspect: Aspect): { width: number; height: number; i
   if (aspect === '1:1') return { width: 1024, height: 1024, imageSize: '1024x1024' };
   return { width: 1280, height: 720, imageSize: '1536x1024' };
 }
-
