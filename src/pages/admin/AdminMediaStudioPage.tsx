@@ -1,13 +1,30 @@
 import React, { useMemo, useState } from 'react';
-import { Bot, Download, Film, Image as ImageIcon, Music2, Plus, Sparkles, Trash2, ArrowUp, ArrowDown, SlidersHorizontal } from 'lucide-react';
+import {
+  ArrowDown,
+  ArrowUp,
+  Bot,
+  Download,
+  Film,
+  Image as ImageIcon,
+  Mic2,
+  Music2,
+  Plus,
+  SlidersHorizontal,
+  Sparkles,
+  Trash2,
+  UserRound,
+  Video,
+} from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { PageShell } from '../../components/layout/PageShell';
 import { getFeatureFlags } from '../../data/settingsRepo';
 import { callAiGateway } from '../../lib/aiClient';
+import { buildCharacterContinuityPrompt } from '../../lib/characterPrompt';
 import { generateImages } from '../../lib/imageGenClient';
+import { generateVoiceover } from '../../lib/voiceGenClient';
 import { downloadDataUrl, downloadBlob, exportScenesToWebm } from '../../lib/mediaExport';
 import { isSupabaseConfigured } from '../../lib/supabaseClient';
-import type { Aspect, MediaProject } from '../../domain/mediaStudio';
+import type { Aspect, MediaProject, VideoProvider, VoiceProvider } from '../../domain/mediaStudio';
 import { MEDIA_RENDER_PRESETS, aspectToSize } from '../../domain/mediaStudio';
 import { upsertResourceVideo } from '../../data/resourceVideosRepo';
 import { createVideoTestimonial, upsertTestimonial } from '../../data/testimonialsRepo';
@@ -61,6 +78,8 @@ export default function AdminMediaStudioPage() {
   const [exportDestination, setExportDestination] = useState<
     'download' | 'resources_private' | 'resources_public' | 'testimonial_draft' | 'testimonial_published'
   >('download');
+  const [exportProgress, setExportProgress] = useState(0);
+  const [exportStatusText, setExportStatusText] = useState('');
 
   const projects = useMemo(() => listMediaProjects(), [version]);
   const [activeId, setActiveId] = useState<string | null>(projects[0]?.id ?? null);
@@ -81,6 +100,43 @@ export default function AdminMediaStudioPage() {
     setActiveId(p.id);
     setVersion((v) => v + 1);
     return p;
+  };
+
+  const patchProject = (patch: Partial<MediaProject>) => {
+    const p = ensureProject();
+    upsertMediaProject({ ...p, ...patch });
+    setVersion((v) => v + 1);
+  };
+
+  const addCharacterReference = async (file: File) => {
+    const p = ensureProject();
+    const dataUrl = await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result || ''));
+      reader.onerror = () => reject(new Error('Failed to read character image.'));
+      reader.readAsDataURL(file);
+    });
+    const fallbackName = file.name.replace(/\.[^.]+$/, '') || 'Character';
+    const name = window.prompt('Character reference name?', fallbackName)?.trim() || fallbackName;
+    const notes = window.prompt('Optional character notes (outfit, voice, gesture, identity cues)?')?.trim() || undefined;
+    patchProject({
+      characterRefs: [
+        { id: `char_${Date.now().toString(16)}`, name, notes, imageDataUrl: dataUrl, createdAt: new Date().toISOString() },
+        ...((p.characterRefs ?? []) as any),
+      ],
+    });
+    setNotice(`Character reference saved: ${name}`);
+  };
+
+  const deleteCharacterReference = (characterId: string) => {
+    const p = ensureProject();
+    const nextRefs = (p.characterRefs ?? []).filter((c) => c.id !== characterId);
+    const scenes = p.scenes.map((s) => ({
+      ...s,
+      characterRefIds: (s.characterRefIds ?? []).filter((id) => id !== characterId),
+    }));
+    upsertMediaProject({ ...p, characterRefs: nextRefs, scenes });
+    setVersion((v) => v + 1);
   };
 
   const regenerateStoryboard = async () => {
@@ -135,6 +191,9 @@ export default function AdminMediaStudioPage() {
           caption: String(s.caption || '').trim(),
           durationSec: Math.max(3, Math.min(8, Math.round(Number(s.durationSec || 4)))),
           imageDataUrl: undefined,
+          motionPrompt: '',
+          voiceoverText: '',
+          characterRefIds: [],
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
         })),
@@ -162,9 +221,11 @@ export default function AdminMediaStudioPage() {
       const preset = STYLE_PRESETS.find((s) => s.id === p.stylePreset) ?? STYLE_PRESETS[0];
       const size = aspectToSize(p.aspect);
 
+      const continuity = buildCharacterContinuityPrompt(p, scene);
       const prompt =
         `${scene.prompt}\n` +
         `Style: ${preset.promptHint}\n` +
+        `${continuity}\n` +
         `No text overlays, no watermarks, no logos. Ultra-high quality.\n`;
 
       const gen = await generateImages({
@@ -213,10 +274,63 @@ export default function AdminMediaStudioPage() {
     }
   };
 
+  const generateSceneVideo = (sceneId: string) => {
+    const p = ensureProject();
+    const provider = p.videoProvider ?? 'browser_slideshow';
+    if (provider === 'browser_slideshow') {
+      setNotice('Browser slideshow uses the existing Export video path. Generate scene images, then export.');
+      return;
+    }
+    patchScene(p.id, sceneId, {
+      videoStatus: 'failed',
+      videoError: `Provider '${provider}' is not connected yet. Add API edge function in Phase 2.`,
+    } as any);
+    setVersion((v) => v + 1);
+    setErr(`Provider '${provider}' is not connected yet. Add API edge function in Phase 2.`);
+  };
+
+  const generateAllSceneVideos = () => {
+    const p = ensureProject();
+    const provider = p.videoProvider ?? 'browser_slideshow';
+    if (provider === 'browser_slideshow') {
+      setNotice('Browser slideshow uses the existing Export video path. Generate scene images, then export.');
+      return;
+    }
+    setErr(`Provider '${provider}' is not connected yet. Add API edge function in Phase 2.`);
+  };
+
+  const generateSceneVoiceover = async (sceneId: string) => {
+    const p = ensureProject();
+    const scene = p.scenes.find((s) => s.id === sceneId);
+    if (!scene) return;
+    try {
+      patchScene(p.id, sceneId, { voiceoverStatus: 'generating' } as any);
+      setVersion((v) => v + 1);
+      await generateVoiceover({ provider: p.voiceProvider ?? 'manual_upload', text: scene.voiceoverText ?? '' });
+      patchScene(p.id, sceneId, { voiceoverStatus: 'complete' } as any);
+      setVersion((v) => v + 1);
+    } catch (e: any) {
+      patchScene(p.id, sceneId, { voiceoverStatus: 'failed' } as any);
+      setVersion((v) => v + 1);
+      setErr(e?.message || 'Voiceover generation failed.');
+    }
+  };
+
+  const generateAllVoiceovers = async () => {
+    const p = ensureProject();
+    if ((p.voiceProvider ?? 'manual_upload') === 'manual_upload') {
+      setNotice('Manual upload selected. Upload a voiceover track in Audio tracks.');
+      return;
+    }
+    setErr(`Voice provider '${p.voiceProvider}' is not connected yet. Phase 2 required.`);
+  };
+
   const exportVideo = async () => {
     setBusy(true);
     setErr(null);
     setNotice(null);
+    setExportProgress(0);
+    setExportStatusText('Preparing export...');
     try {
       const p = ensureProject();
       const preset = MEDIA_RENDER_PRESETS.find((x) => x.id === (p as any).renderPresetId) ?? null;
@@ -256,6 +370,10 @@ export default function AdminMediaStudioPage() {
         fps: preset?.fps ?? 30,
         captionStyle: (p as any).captionStyle,
         audioTracks: audioBlobs.length ? audioBlobs : undefined,
+        onProgress: (progress, statusText) => {
+          setExportProgress(progress);
+          setExportStatusText(statusText);
+        },
       });
       const safe = (p.title || 'finely-video').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
       downloadBlob(blob, `${safe || 'finely-video'}.webm`);
@@ -310,6 +428,7 @@ export default function AdminMediaStudioPage() {
       setNotice('Video exported (WebM).');
     } catch (e: any) {
       setErr(e?.message || 'Export failed.');
+      setExportStatusText('Export failed.');
     } finally {
       setBusy(false);
     }
@@ -374,7 +493,6 @@ export default function AdminMediaStudioPage() {
           </div>
         ) : (
           <div className="grid lg:grid-cols-12 gap-6">
-            {/* left rail */}
             <div className="lg:col-span-4 space-y-4">
               <div className="fc-card p-5 space-y-3">
                 <div className="flex items-center justify-between gap-3">
@@ -444,7 +562,6 @@ export default function AdminMediaStudioPage() {
               </div>
             </div>
 
-            {/* main */}
             <div className="lg:col-span-8 space-y-4">
               {err && <div className="rounded-2xl border border-red-500/30 bg-red-500/10 p-4 text-red-200 text-sm">{err}</div>}
               {notice && <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-4 text-emerald-100 text-sm">{notice}</div>}
@@ -589,6 +706,18 @@ export default function AdminMediaStudioPage() {
                         </button>
                       </div>
                     </div>
+
+                    {exportStatusText ? (
+                      <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/10 p-4">
+                        <div className="flex items-center justify-between gap-3 text-xs text-emerald-100">
+                          <span>{exportStatusText}</span>
+                          <span className="font-mono">{exportProgress}%</span>
+                        </div>
+                        <div className="mt-2 h-2 rounded-full bg-black/40 overflow-hidden">
+                          <div className="h-full bg-emerald-400 transition-all" style={{ width: `${Math.max(0, Math.min(100, exportProgress))}%` }} />
+                        </div>
+                      </div>
+                    ) : null}
 
                     {!active ? (
                       <div className="text-white/60 text-sm">Create or select a project.</div>
@@ -736,6 +865,95 @@ export default function AdminMediaStudioPage() {
                       </div>
                     )}
                   </div>
+
+                  {active ? (
+                    <div className="fc-card p-6 space-y-5">
+                      <div className="flex flex-wrap items-start justify-between gap-3">
+                        <div>
+                          <div className="inline-flex items-center gap-2 text-amber-400">
+                            <Video size={18} />
+                            <span className="text-xs font-semibold uppercase tracking-wider">AI Provider Setup</span>
+                          </div>
+                          <div className="mt-1 text-white/55 text-sm">Phase 1 shell for long-form AI video, voiceover, and character continuity.</div>
+                        </div>
+                        <div className="text-[10px] uppercase tracking-widest text-white/40 font-mono">provider-ready</div>
+                      </div>
+
+                      <div className="grid md:grid-cols-2 gap-4">
+                        <label className="block">
+                          <div className="text-[10px] uppercase tracking-widest text-white/40">Video provider</div>
+                          <select
+                            value={active.videoProvider ?? 'browser_slideshow'}
+                            onChange={(e) => patchProject({ videoProvider: e.target.value as VideoProvider })}
+                            className="mt-2 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-3 text-sm text-white/80"
+                          >
+                            <option value="browser_slideshow">Browser slideshow (current exporter)</option>
+                            <option value="gemini_veo">Gemini / Veo (Phase 2)</option>
+                            <option value="runway">Runway (Phase 2)</option>
+                            <option value="luma">Luma (Phase 2)</option>
+                            <option value="kling">Kling (Phase 2)</option>
+                            <option value="manual">Manual clip upload (Phase 2)</option>
+                          </select>
+                        </label>
+                        <label className="block">
+                          <div className="text-[10px] uppercase tracking-widest text-white/40">Voice provider</div>
+                          <select
+                            value={active.voiceProvider ?? 'manual_upload'}
+                            onChange={(e) => patchProject({ voiceProvider: e.target.value as VoiceProvider })}
+                            className="mt-2 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-3 text-sm text-white/80"
+                          >
+                            <option value="manual_upload">Manual upload (current audio flow)</option>
+                            <option value="elevenlabs">ElevenLabs (Phase 2)</option>
+                            <option value="openai_voice">OpenAI Voice (Phase 2)</option>
+                          </select>
+                        </label>
+                      </div>
+
+                      <div className="rounded-2xl border border-white/10 bg-black/30 p-4 space-y-4">
+                        <div className="flex flex-wrap items-center justify-between gap-3">
+                          <div className="inline-flex items-center gap-2 text-white/80">
+                            <UserRound size={16} className="text-amber-300" />
+                            <div className="text-xs font-semibold uppercase tracking-wider">Character memory</div>
+                          </div>
+                          <label className="fc-button-soft cursor-pointer">
+                            <Plus size={14} /> Upload character
+                            <input
+                              type="file"
+                              accept="image/*"
+                              className="hidden"
+                              onChange={async (e) => {
+                                const f = e.target.files?.[0];
+                                e.currentTarget.value = '';
+                                if (!f) return;
+                                try {
+                                  await addCharacterReference(f);
+                                } catch (err2: any) {
+                                  setErr(err2?.message || 'Failed to add character reference.');
+                                }
+                              }}
+                            />
+                          </label>
+                        </div>
+
+                        {!(active.characterRefs ?? []).length ? (
+                          <div className="text-white/55 text-sm">No character references yet. Upload a face/character image to reuse across scenes.</div>
+                        ) : (
+                          <div className="grid md:grid-cols-3 gap-3">
+                            {(active.characterRefs ?? []).map((c) => (
+                              <div key={c.id} className="rounded-2xl border border-white/10 bg-black/40 p-3 space-y-2">
+                                <img src={c.imageDataUrl} className="w-full aspect-square object-cover rounded-xl border border-white/10" />
+                                <div className="text-white font-semibold text-sm truncate">{c.name}</div>
+                                {c.notes ? <div className="text-white/50 text-xs line-clamp-2">{c.notes}</div> : null}
+                                <button type="button" className="fc-button-soft w-full" onClick={() => deleteCharacterReference(c.id)}>
+                                  <Trash2 size={14} /> Remove
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ) : null}
 
                   <div className="fc-panel p-6 space-y-4">
                     <div className="flex flex-wrap items-center justify-between gap-3">
@@ -984,7 +1202,7 @@ export default function AdminMediaStudioPage() {
                                   </button>
                                 </div>
                               </div>
-                              <div className="lg:col-span-7 space-y-3">
+                              <div className="lg:col-span-7 space-y-4">
                                 <label className="block">
                                   <div className="text-[10px] uppercase tracking-widest text-white/40">Image prompt</div>
                                   <textarea
@@ -1066,12 +1284,77 @@ export default function AdminMediaStudioPage() {
                                     Fade blends into the next scene (best for smooth reels).
                                   </div>
                                 </div>
+
+                                <div className="rounded-2xl border border-amber-500/20 bg-amber-500/10 p-4 space-y-3">
+                                  <div className="inline-flex items-center gap-2 text-amber-300">
+                                    <Video size={16} />
+                                    <span className="text-[10px] font-black uppercase tracking-widest">AI Video & Voice Controls</span>
+                                  </div>
+                                  <label className="block">
+                                    <div className="text-[10px] uppercase tracking-widest text-white/40">Motion prompt</div>
+                                    <input
+                                      value={s.motionPrompt ?? ''}
+                                      onChange={(e) => {
+                                        patchScene(active.id, s.id, { motionPrompt: e.target.value });
+                                        setVersion((v) => v + 1);
+                                      }}
+                                      placeholder="Camera pushes in, subject gestures confidently, subtle parallax..."
+                                      className="fc-input mt-2"
+                                    />
+                                  </label>
+                                  <label className="block">
+                                    <div className="text-[10px] uppercase tracking-widest text-white/40">Voiceover text</div>
+                                    <textarea
+                                      value={s.voiceoverText ?? ''}
+                                      onChange={(e) => {
+                                        patchScene(active.id, s.id, { voiceoverText: e.target.value });
+                                        setVersion((v) => v + 1);
+                                      }}
+                                      placeholder="Write the line an AI voice should speak for this scene..."
+                                      className="mt-2 w-full min-h-[80px] rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-white/80 placeholder:text-white/20 focus:outline-none focus:border-amber-500 transition-colors"
+                                    />
+                                  </label>
+                                  <label className="block">
+                                    <div className="text-[10px] uppercase tracking-widest text-white/40">Attached character</div>
+                                    <select
+                                      value={(s.characterRefIds ?? [])[0] ?? ''}
+                                      onChange={(e) => {
+                                        patchScene(active.id, s.id, { characterRefIds: e.target.value ? [e.target.value] : [] });
+                                        setVersion((v) => v + 1);
+                                      }}
+                                      className="mt-2 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-3 text-sm text-white/80"
+                                    >
+                                      <option value="">None</option>
+                                      {(active.characterRefs ?? []).map((c) => (
+                                        <option key={c.id} value={c.id}>{c.name}</option>
+                                      ))}
+                                    </select>
+                                  </label>
+                                  <div className="flex flex-wrap gap-2">
+                                    <button type="button" className="fc-button-soft" onClick={() => generateSceneVideo(s.id)}>
+                                      <Video size={14} /> Generate scene video
+                                    </button>
+                                    <button type="button" className="fc-button-soft" onClick={() => void generateSceneVoiceover(s.id)}>
+                                      <Mic2 size={14} /> Generate voiceover
+                                    </button>
+                                  </div>
+                                  {s.videoError ? <div className="text-red-200 text-xs">{s.videoError}</div> : null}
+                                  {s.voiceoverStatus ? <div className="text-white/45 text-xs font-mono">voiceover: {s.voiceoverStatus}</div> : null}
+                                </div>
                               </div>
                             </div>
                           </div>
                         ))}
                       </div>
                     )}
+                    <div className="flex flex-wrap gap-2 pt-2">
+                      <button type="button" className="fc-button-soft" onClick={generateAllSceneVideos}>
+                        <Video size={14} /> Generate all scene videos
+                      </button>
+                      <button type="button" className="fc-button-soft" onClick={() => void generateAllVoiceovers()}>
+                        <Mic2 size={14} /> Generate all voiceovers
+                      </button>
+                    </div>
                   </div>
                 </>
               )}
@@ -1086,4 +1369,3 @@ export default function AdminMediaStudioPage() {
     </PageShell>
   );
 }
-
