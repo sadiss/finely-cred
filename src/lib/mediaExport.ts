@@ -111,7 +111,9 @@ export async function exportScenesToWebm(args: {
   fps?: number;
   captionStyle?: { enabled?: boolean; position?: 'bottom' | 'top'; backgroundOpacity?: number };
   audioTracks?: Array<{ blob: Blob; volume?: number; startSec?: number; endSec?: number }>;
+  onProgress?: (progress: number, statusText: string) => void;
 }): Promise<Blob> {
+  args.onProgress?.(10, 'Preparing scenes...');
   const fps = Math.max(10, Math.min(60, Math.round(args.fps ?? 30)));
   const scenes = args.scenes.filter((s) => s.imageDataUrl && s.durationSec > 0);
   if (!scenes.length) throw new Error('No scenes to export.');
@@ -123,6 +125,8 @@ export async function exportScenesToWebm(args: {
   if (!ctx) throw new Error('Canvas not supported.');
 
   const videoStream = canvas.captureStream(fps);
+
+  args.onProgress?.(30, 'Loading audio...');
 
   // Optional audio mix
   let stream: MediaStream = videoStream;
@@ -165,6 +169,9 @@ export async function exportScenesToWebm(args: {
       stream = new MediaStream([...videoStream.getVideoTracks(), ...dest.stream.getAudioTracks()]);
     }
   }
+
+  args.onProgress?.(60, 'Rendering video...');
+
   const mimeCandidates = ['video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm'];
   const mimeType = mimeCandidates.find((m) => (window as any).MediaRecorder?.isTypeSupported?.(m)) || 'video/webm';
   const rec = new MediaRecorder(stream, { mimeType, videoBitsPerSecond: 4_000_000 });
@@ -230,10 +237,13 @@ export async function exportScenesToWebm(args: {
     }
   }
 
+  args.onProgress?.(90, 'Saving/exporting...');
+
   const stopped = new Promise<void>((resolve) => (rec.onstop = () => resolve()));
   rec.stop();
   await stopped;
 
+  args.onProgress?.(100, 'Complete');
+
   return new Blob(chunks, { type: mimeType });
 }
-
