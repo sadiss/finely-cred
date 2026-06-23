@@ -99,43 +99,57 @@ export function requireAllowlistedEmail(ctx: GuardContext) {
 type RateLimitArgs = { key: string; limit: number; windowSeconds: number };
 
 export async function rateLimit(args: RateLimitArgs): Promise<{ ok: boolean; remaining: number; resetAt: number }> {
-  const kv = await Deno.openKv();
-  const now = Date.now();
-  const windowMs = Math.max(1, Math.round(args.windowSeconds * 1000));
-  const bucket = Math.floor(now / windowMs);
-  const k = ['rl', args.key, bucket];
+  // Fail open — if Deno KV is unavailable (tier/region), allow the request.
+  try {
+    const kv = await Deno.openKv();
+    const now = Date.now();
+    const windowMs = Math.max(1, Math.round(args.windowSeconds * 1000));
+    const bucket = Math.floor(now / windowMs);
+    const k = ['rl', args.key, bucket];
 
-  const res = await kv.get<number>(k);
-  const cur = res.value ?? 0;
-  const next = cur + 1;
-  const resetAt = (bucket + 1) * windowMs;
+    const res = await kv.get<number>(k);
+    const cur = res.value ?? 0;
+    const next = cur + 1;
+    const resetAt = (bucket + 1) * windowMs;
 
-  // Always write with TTL ~ 2 windows so we don't leak KV.
-  await kv.set(k, next, { expireIn: windowMs * 2 });
+    // Always write with TTL ~ 2 windows so we don't leak KV.
+    await kv.set(k, next, { expireIn: windowMs * 2 });
 
-  const ok = next <= args.limit;
-  return { ok, remaining: Math.max(0, args.limit - next), resetAt };
+    const ok = next <= args.limit;
+    return { ok, remaining: Math.max(0, args.limit - next), resetAt };
+  } catch {
+    return { ok: true, remaining: args.limit, resetAt: Date.now() + args.windowSeconds * 1000 };
+  }
 }
 
 export async function requireIdempotency(args: { namespace: string; key: string; ttlSeconds?: number }): Promise<boolean> {
-  const kv = await Deno.openKv();
-  const ttlMs = Math.max(60_000, Math.round((args.ttlSeconds ?? 24 * 60 * 60) * 1000));
-  const k = ['idem', args.namespace, args.key];
-  const got = await kv.get(k);
-  if (got.value) return false;
-  await kv.set(k, { seenAt: new Date().toISOString() }, { expireIn: ttlMs });
-  return true;
+  try {
+    const kv = await Deno.openKv();
+    const ttlMs = Math.max(60_000, Math.round((args.ttlSeconds ?? 24 * 60 * 60) * 1000));
+    const k = ['idem', args.namespace, args.key];
+    const got = await kv.get(k);
+    if (got.value) return false;
+    await kv.set(k, { seenAt: new Date().toISOString() }, { expireIn: ttlMs });
+    return true;
+  } catch {
+    return true;
+  }
 }
 
 export async function logEdgeEvent(args: { namespace: string; level: 'info' | 'warn' | 'error'; event: string; meta?: any }) {
-  const kv = await Deno.openKv();
-  const at = new Date().toISOString();
-  const id = `${at}_${crypto.randomUUID()}`;
-  const k = ['evt', args.namespace, at, id];
-  await kv.set(
-    k,
-    { id, at, namespace: args.namespace, level: args.level, event: args.event, meta: args.meta ?? null },
-    { expireIn: 1000 * 60 * 60 * 24 * 14 }, // 14 days
-  );
+  try {
+    const kv = await Deno.openKv();
+    const at = new Date().toISOString();
+    const id = `${at}_${crypto.randomUUID()}`;
+    const k = ['evt', args.namespace, at, id];
+    await kv.set(
+      k,
+      { id, at, namespace: args.namespace, level: args.level, event: args.event, meta: args.meta ?? null },
+      { expireIn: 1000 * 60 * 60 * 24 * 14 }, // 14 days
+    );
+  } catch {
+    // KV unavailable — log to console as fallback
+    console.log(JSON.stringify({ ...args, at: new Date().toISOString() }));
+  }
 }
 

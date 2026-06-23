@@ -252,37 +252,42 @@ Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
   if (req.method !== 'POST') return json({ error: 'Method not allowed' }, { status: 405 });
 
-  let ctx: Awaited<ReturnType<typeof requireAuth>>;
   try {
-    ctx = await requireAuth(req);
-    requireAllowlistedEmail(ctx);
+    let ctx: Awaited<ReturnType<typeof requireAuth>>;
+    try {
+      ctx = await requireAuth(req);
+      requireAllowlistedEmail(ctx);
+    } catch (e) {
+      return json({ error: (e as Error)?.message || 'Unauthorized' }, { status: 401 });
+    }
+
+    const rlUser = await rateLimit({ key: `lead-intel:user:${ctx.user.id}`, limit: 15, windowSeconds: 60 });
+    const rlIp = await rateLimit({ key: `lead-intel:ip:${ctx.ip}`, limit: 40, windowSeconds: 60 });
+    if (!rlUser.ok || !rlIp.ok) return json({ ok: false, error: 'Rate limited.' }, { status: 429 });
+
+    let body: ReqBody;
+    try {
+      body = (await req.json()) as ReqBody;
+    } catch {
+      return json({ error: 'Invalid JSON body' }, { status: 400 });
+    }
+
+    const action = body?.action === 'analyze' ? 'analyze' : 'search';
+
+    try {
+      if (action === 'analyze') return await runAnalyze(body, ctx);
+      return await runSearch(body, ctx);
+    } catch (e) {
+      await logEdgeEvent({
+        namespace: 'lead-intel',
+        level: 'error',
+        event: action === 'analyze' ? 'analyze_failed' : 'search_failed',
+        meta: { userId: ctx.user.id, ip: ctx.ip, error: (e as Error)?.message || String(e) },
+      });
+      return json({ ok: false, error: (e as Error)?.message || `${action} failed` }, { status: 500 });
+    }
   } catch (e) {
-    return json({ error: (e as Error)?.message || 'Unauthorized' }, { status: 401 });
-  }
-
-  const rlUser = await rateLimit({ key: `lead-intel:user:${ctx.user.id}`, limit: 15, windowSeconds: 60 });
-  const rlIp = await rateLimit({ key: `lead-intel:ip:${ctx.ip}`, limit: 40, windowSeconds: 60 });
-  if (!rlUser.ok || !rlIp.ok) return json({ ok: false, error: 'Rate limited.' }, { status: 429 });
-
-  let body: ReqBody;
-  try {
-    body = (await req.json()) as ReqBody;
-  } catch {
-    return json({ error: 'Invalid JSON body' }, { status: 400 });
-  }
-
-  const action = body?.action === 'analyze' ? 'analyze' : 'search';
-
-  try {
-    if (action === 'analyze') return await runAnalyze(body, ctx);
-    return await runSearch(body, ctx);
-  } catch (e) {
-    await logEdgeEvent({
-      namespace: 'lead-intel',
-      level: 'error',
-      event: action === 'analyze' ? 'analyze_failed' : 'search_failed',
-      meta: { userId: ctx.user.id, ip: ctx.ip, error: (e as Error)?.message || String(e) },
-    });
-    return json({ ok: false, error: (e as Error)?.message || `${action} failed` }, { status: 500 });
+    // Top-level catch — always return CORS headers so browser doesn't mask the real error.
+    return json({ ok: false, error: (e as Error)?.message || 'Internal server error' }, { status: 500 });
   }
 });
