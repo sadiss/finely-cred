@@ -15,7 +15,7 @@ export interface GenerateVoiceoverArgs {
   autoSaveToProject?: boolean;
   /** Optional explicit project id for autosave. If omitted, the most recently updated project is used. */
   projectId?: string;
-  /** Optional explicit scene id for autosave. If omitted, the scene matching the voiceover text is used. */
+  /** Optional explicit scene id for autosave. If omitted, the active/generating scene or matching voiceover text is used. */
   sceneId?: string;
   filename?: string;
 }
@@ -65,11 +65,14 @@ async function tryAutosaveVoiceover(args: {
     const cleanText = args.text.trim();
     const scene = args.sceneId
       ? project.scenes.find((s) => s.id === args.sceneId)
-      : project.scenes.find((s) => (s.voiceoverText || '').trim() === cleanText);
+      : project.scenes.find((s) => s.voiceoverStatus === 'generating' && (s.voiceoverText || '').trim() === cleanText) ??
+        project.scenes.find((s) => s.voiceoverStatus === 'generating') ??
+        project.scenes.find((s) => (s.voiceoverText || '').trim() === cleanText);
     if (!scene) return undefined;
 
+    const sceneNumber = project.scenes.findIndex((s) => s.id === scene.id) + 1;
     const blob = dataUrlToBlob(args.audioDataUrl);
-    const title = args.filename || `Scene ${project.scenes.findIndex((s) => s.id === scene.id) + 1} AI voiceover.mp3`;
+    const title = args.filename || `Scene ${sceneNumber || 1} AI voiceover.mp3`;
     const store = getBlobStore();
     const { ref } = await store.put(blob, {
       kind: 'media_audio',
@@ -80,12 +83,17 @@ async function tryAutosaveVoiceover(args: {
       source: 'ai_voiceover',
     } as any);
 
-    repo.addAudioTrack(project.id, {
-      kind: 'voiceover',
-      title,
-      blobRef: ref,
-      volume: 0.9,
-    });
+    const existingTracks = project.audioTracks ?? [];
+    const alreadyLinked = existingTracks.some((t) => t.blobRef === ref);
+    if (!alreadyLinked) {
+      repo.addAudioTrack(project.id, {
+        kind: 'voiceover',
+        title,
+        blobRef: ref,
+        volume: 0.9,
+      });
+    }
+
     repo.patchScene(project.id, scene.id, { voiceoverBlobRef: ref, voiceoverStatus: 'complete' } as any);
     window.dispatchEvent(new CustomEvent('finely:store'));
     return ref;
