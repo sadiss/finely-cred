@@ -30,13 +30,19 @@ export function listMediaProjects(): MediaProject[] {
         String((p as any).renderPresetId || '').trim() ||
         (MEDIA_RENDER_PRESETS[0]?.id ?? 'webm_720p_30'),
       renderHistory: Array.isArray((p as any).renderHistory) ? ((p as any).renderHistory as any) : [],
+      videoProvider: (p as any).videoProvider ?? 'browser_slideshow',
+      voiceProvider: (p as any).voiceProvider ?? 'manual_upload',
+      characterRefs: Array.isArray((p as any).characterRefs) ? ((p as any).characterRefs as any) : [],
     };
     if (
       (p as any).audioTracks !== next.audioTracks ||
       (p as any).captionStyle !== next.captionStyle ||
       (p as any).renderPresetId !== next.renderPresetId ||
       (p as any).renderHistory !== next.renderHistory ||
-      (p as any).assets !== next.assets
+      (p as any).assets !== next.assets ||
+      (p as any).videoProvider !== next.videoProvider ||
+      (p as any).voiceProvider !== next.voiceProvider ||
+      (p as any).characterRefs !== next.characterRefs
     ) {
       changed = true;
     }
@@ -70,6 +76,9 @@ export function createMediaProject(args?: Partial<Pick<MediaProject, 'title' | '
     captionStyle: { enabled: true, position: 'bottom', backgroundOpacity: 0.55 },
     renderPresetId: MEDIA_RENDER_PRESETS[0]?.id ?? 'webm_720p_30',
     renderHistory: [],
+    videoProvider: 'browser_slideshow',
+    voiceProvider: 'manual_upload',
+    characterRefs: [],
   };
   store.projects.unshift(project);
   saveStore(store);
@@ -88,6 +97,9 @@ export function upsertMediaProject(project: MediaProject): MediaProject {
       String((project as any).renderPresetId || '').trim() ||
       (MEDIA_RENDER_PRESETS[0]?.id ?? 'webm_720p_30'),
     renderHistory: Array.isArray((project as any).renderHistory) ? ((project as any).renderHistory as any) : [],
+    videoProvider: (project as any).videoProvider ?? 'browser_slideshow',
+    voiceProvider: (project as any).voiceProvider ?? 'manual_upload',
+    characterRefs: Array.isArray((project as any).characterRefs) ? ((project as any).characterRefs as any) : [],
     updatedAt: now,
   };
   const idx = store.projects.findIndex((p) => p.id === next.id);
@@ -212,4 +224,3 @@ export function addRenderHistory(projectId: string, entry: { presetId: string; f
   ].slice(0, 50);
   return upsertMediaProject({ ...project, renderHistory: next });
 }
-
