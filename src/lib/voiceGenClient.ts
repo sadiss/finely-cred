@@ -9,6 +9,9 @@ export interface GenerateVoiceoverArgs {
   voice?: string;
   model?: string;
   idempotencyKey?: string;
+  /** Phase 2 bridge: download the generated MP3 immediately when the caller has not wired storage yet. */
+  autoDownload?: boolean;
+  filename?: string;
 }
 
 export type GeneratedVoiceover = {
@@ -18,7 +21,25 @@ export type GeneratedVoiceover = {
   mimeType: string;
 };
 
-export async function generateVoiceover({ provider, text, voiceId, voice, model, idempotencyKey }: GenerateVoiceoverArgs): Promise<GeneratedVoiceover> {
+function downloadAudioDataUrl(dataUrl: string, filename: string) {
+  const a = document.createElement('a');
+  a.href = dataUrl;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+}
+
+export async function generateVoiceover({
+  provider,
+  text,
+  voiceId,
+  voice,
+  model,
+  idempotencyKey,
+  autoDownload = true,
+  filename = 'finely-voiceover.mp3',
+}: GenerateVoiceoverArgs): Promise<GeneratedVoiceover> {
   const cleanText = String(text || '').trim();
   if (!cleanText) {
     throw new Error('No voiceover text provided.');
@@ -51,10 +72,16 @@ export async function generateVoiceover({ provider, text, voiceId, voice, model,
   if (!data?.ok) throw new Error(data?.error || 'Voice generation failed.');
   if (!data.audioDataUrl) throw new Error('Voice generation returned no audio.');
 
-  return {
+  const result = {
     provider: String(data.provider || provider),
     model: String(data.model || ''),
     audioDataUrl: String(data.audioDataUrl),
     mimeType: String(data.mimeType || 'audio/mpeg'),
   };
+
+  if (autoDownload) {
+    downloadAudioDataUrl(result.audioDataUrl, filename);
+  }
+
+  return result;
 }
