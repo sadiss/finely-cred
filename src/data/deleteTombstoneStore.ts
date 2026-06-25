@@ -4,7 +4,7 @@
  * hasn't propagated yet at page-reload time).
  *
  * Tombstones older than EXPIRY_MS are pruned automatically to prevent unbounded
- * localStorage growth.
+ * localStorage growth. 
  */
 
 const KEY = 'finely.deleteTombstones.v1';
