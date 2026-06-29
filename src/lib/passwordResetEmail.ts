@@ -1,6 +1,6 @@
 import { supabase, isSupabaseConfigured } from './supabaseClient';
 
-/** Request a password reset email via SendGrid edge function (all roles). */
+/** Request a password reset email via the send-password-reset edge function (all roles). */
 export async function sendPasswordResetEmail(args: {
   email: string;
   redirectTo?: string;
@@ -16,7 +16,17 @@ export async function sendPasswordResetEmail(args: {
   });
 
   if (error) {
-    return { ok: false, error: error.message || 'Password reset request failed.' };
+    // supabase-js returns the generic "Edge Function returned a non-2xx status code"
+    // for all non-2xx responses. Try to read the real error message from the body.
+    let realError: string | undefined;
+    try {
+      // FunctionsHttpError exposes the raw Response on .context
+      const body = await (error as any).context?.json?.();
+      realError = body?.error || body?.message || body?.msg;
+    } catch {
+      // ignore — body already consumed or unavailable
+    }
+    return { ok: false, error: realError || error.message || 'Password reset request failed.' };
   }
   if (data?.error) {
     return { ok: false, error: String(data.error) };

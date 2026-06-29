@@ -1,11 +1,13 @@
 // deno-lint-ignore-file no-explicit-any
-import { SMTPClient } from 'https://deno.land/x/denomailer@1.3.0/mod.ts';
+// Uses nodemailer via npm specifier — more memory-efficient than denomailer for Supabase
+// edge workers, avoids the WORKER_RESOURCE_LIMIT (546) caused by raw TCP overhead.
+import nodemailer from 'npm:nodemailer@6.9.15';
 
 /**
  * Service-role SMTP send for edge functions.
  *
  * Required secrets:
- *   SMTP_HOST          e.g. smtp.gmail.com
+ *   SMTP_HOST          e.g. smtp.zoho.com
  *   SMTP_PORT          587 (STARTTLS) or 465 (implicit TLS)
  *   SMTP_USER          SMTP username / login
  *   SMTP_PASS          SMTP password / app-password
@@ -45,20 +47,27 @@ export async function sendServiceEmail(args: {
   const html = (args.html || '').trim();
   if (!subject || (!text && !html)) return { ok: false, error: 'Missing subject/body' };
 
-  const tls = (Deno.env.get('SMTP_SECURE') || '').toLowerCase() === 'true' || port === 465;
+  const secure = (Deno.env.get('SMTP_SECURE') || '').toLowerCase() === 'true' || port === 465;
 
-  const client = new SMTPClient({
-    connection: { hostname: host, port, tls, auth: { username, password } },
+  const transporter = nodemailer.createTransport({
+    host,
+    port,
+    secure,
+    auth: { user: username, pass: password },
+    // Tight timeouts so a slow SMTP server doesn't burn worker CPU time.
+    connectionTimeout: 10_000,
+    greetingTimeout: 5_000,
+    socketTimeout: 10_000,
   });
 
   try {
-    const to = args.toName ? `${args.toName} <${toEmail}>` : toEmail;
-    const from = `${fromName} <${fromEmail}>`;
-    await client.send({ from, to, subject, content: text || ' ', html: html || undefined });
+    const to = args.toName ? `"${args.toName}" <${toEmail}>` : toEmail;
+    const from = `"${fromName}" <${fromEmail}>`;
+    await transporter.sendMail({ from, to, subject, text: text || ' ', html: html || undefined });
     return { ok: true };
   } catch (e: unknown) {
     return { ok: false, error: e instanceof Error ? e.message : 'SMTP send failed' };
   } finally {
-    try { await client.close(); } catch { /* ignore */ }
+    try { transporter.close(); } catch { /* ignore */ }
   }
 }

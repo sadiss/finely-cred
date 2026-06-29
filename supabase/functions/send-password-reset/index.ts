@@ -147,12 +147,15 @@ Deno.serve(async (req) => {
     return json({ ok: false, error: sent.error || 'Could not send reset email.' }, { status: 500 });
   }
 
-  await logEdgeEvent({
+  // Log success to console (KV write skipped here to stay within worker memory budget;
+  // rate-limiter KV writes above already record activity).
+  console.log(JSON.stringify({
     namespace: 'send-password-reset',
     level: 'info',
     event: 'sent',
     meta: { email, ip: ctx.ip, requestedBy: ctx.user.id, redirectTo },
-  });
+    at: new Date().toISOString(),
+  }));
 
   return json({ ok: true });
 });

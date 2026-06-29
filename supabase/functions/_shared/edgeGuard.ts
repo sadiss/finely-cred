@@ -98,10 +98,19 @@ export function requireAllowlistedEmail(ctx: GuardContext) {
 
 type RateLimitArgs = { key: string; limit: number; windowSeconds: number };
 
+// Singleton KV handle — opened once per worker lifetime to avoid repeated
+// connection overhead (each open was consuming ~10–15 MB, which contributed
+// to WORKER_RESOURCE_LIMIT errors on functions that called it 3+ times).
+let _kvPromise: Promise<Deno.Kv> | null = null;
+function getKv(): Promise<Deno.Kv> {
+  if (!_kvPromise) _kvPromise = Deno.openKv().catch(() => { _kvPromise = null; throw new Error('KV unavailable'); });
+  return _kvPromise;
+}
+
 export async function rateLimit(args: RateLimitArgs): Promise<{ ok: boolean; remaining: number; resetAt: number }> {
   // Fail open — if Deno KV is unavailable (tier/region), allow the request.
   try {
-    const kv = await Deno.openKv();
+    const kv = await getKv();
     const now = Date.now();
     const windowMs = Math.max(1, Math.round(args.windowSeconds * 1000));
     const bucket = Math.floor(now / windowMs);
@@ -124,7 +133,7 @@ export async function rateLimit(args: RateLimitArgs): Promise<{ ok: boolean; rem
 
 export async function requireIdempotency(args: { namespace: string; key: string; ttlSeconds?: number }): Promise<boolean> {
   try {
-    const kv = await Deno.openKv();
+    const kv = await getKv();
     const ttlMs = Math.max(60_000, Math.round((args.ttlSeconds ?? 24 * 60 * 60) * 1000));
     const k = ['idem', args.namespace, args.key];
     const got = await kv.get(k);
@@ -138,7 +147,7 @@ export async function requireIdempotency(args: { namespace: string; key: string;
 
 export async function logEdgeEvent(args: { namespace: string; level: 'info' | 'warn' | 'error'; event: string; meta?: any }) {
   try {
-    const kv = await Deno.openKv();
+    const kv = await getKv();
     const at = new Date().toISOString();
     const id = `${at}_${crypto.randomUUID()}`;
     const k = ['evt', args.namespace, at, id];
