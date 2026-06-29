@@ -1,15 +1,16 @@
 // Supabase Edge Function: send-invite-email
-// Sends a partner claim link via SendGrid.
+// Sends a partner claim link via SMTP.
 //
 // Secrets:
 // - SUPABASE_URL
 // - SUPABASE_ANON_KEY
-// - SENDGRID_API_KEY
-// - SENDGRID_FROM_EMAIL (optional; can be overridden by request)
-// - SENDGRID_FROM_NAME (optional; can be overridden by request)
+// - SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, SMTP_FROM_EMAIL
+// - SMTP_FROM_NAME (optional, defaults to "Finely Cred")
+// - SMTP_SECURE    (optional, set "true" for port 465 implicit TLS)
 
 import { corsHeaders } from '../_shared/cors.ts';
 import { json, logEdgeEvent, rateLimit, requireAllowlistedEmail, requireAuth, requireIdempotency } from '../_shared/edgeGuard.ts';
+import { sendServiceEmail } from '../_shared/commsSendEmail.ts';
 
 type ReqBody = {
   to: { email: string; name?: string };
@@ -19,19 +20,6 @@ type ReqBody = {
   /** Optional: prevents accidental duplicate sends. */
   idempotencyKey?: string;
 };
-
-async function sendgridSend(args: { apiKey: string; payload: any }) {
-  const res = await fetch('https://api.sendgrid.com/v3/mail/send', {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${args.apiKey}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(args.payload),
-  });
-  if (!res.ok) throw new Error(`SendGrid error: ${res.status} ${await res.text()}`);
-  return true;
-}
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
@@ -62,13 +50,6 @@ Deno.serve(async (req) => {
     return json({ error: 'Invalid JSON body' }, { status: 400 });
   }
 
-  const apiKey = Deno.env.get('SENDGRID_API_KEY') || '';
-  if (!apiKey) return json({ error: 'SENDGRID_API_KEY missing' }, { status: 500 });
-
-  const fromEmail = body.from?.email || Deno.env.get('SENDGRID_FROM_EMAIL') || '';
-  const fromName = body.from?.name || Deno.env.get('SENDGRID_FROM_NAME') || 'Finely Cred';
-  if (!fromEmail) return json({ error: 'From email not configured' }, { status: 500 });
-
   const toEmail = (body.to?.email || '').trim();
   if (!toEmail) return json({ error: 'Missing to.email' }, { status: 400 });
   const subject = String(body.subject || '').trim();
@@ -80,30 +61,24 @@ Deno.serve(async (req) => {
     if (!ok) return json({ ok: true, deduped: true });
   }
 
-  const payload = {
-    personalizations: [{ to: [{ email: toEmail, name: body.to?.name || undefined }] }],
-    from: { email: fromEmail, name: fromName },
-    subject,
-    content: [{ type: 'text/plain', value: text }],
-  };
+  const sent = await sendServiceEmail({ toEmail, toName: body.to?.name, subject, text });
 
-  try {
-    await sendgridSend({ apiKey, payload });
-    await logEdgeEvent({
-      namespace: 'send-invite-email',
-      level: 'info',
-      event: 'sent',
-      meta: { userId: ctx.user.id, ip: ctx.ip, toEmail, subject: subject.slice(0, 120), textLen: text.length },
-    });
-    return json({ ok: true });
-  } catch (e) {
+  if (!sent.ok) {
     await logEdgeEvent({
       namespace: 'send-invite-email',
       level: 'error',
       event: 'send_failed',
-      meta: { userId: ctx.user.id, ip: ctx.ip, toEmail, error: (e as Error)?.message || String(e) },
+      meta: { userId: ctx.user.id, ip: ctx.ip, toEmail, error: sent.error },
     });
-    return json({ ok: false, error: (e as Error)?.message || 'Send failed' }, { status: 500 });
+    return json({ ok: false, error: sent.error || 'Send failed' }, { status: 500 });
   }
+
+  await logEdgeEvent({
+    namespace: 'send-invite-email',
+    level: 'info',
+    event: 'sent',
+    meta: { userId: ctx.user.id, ip: ctx.ip, toEmail, subject: subject.slice(0, 120), textLen: text.length },
+  });
+  return json({ ok: true });
 });
 

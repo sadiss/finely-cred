@@ -1,10 +1,10 @@
 // Supabase Edge Function: send-password-reset
-// Generates a Supabase recovery link (service role) and delivers it via SendGrid.
+// Generates a Supabase recovery link (service role) and delivers it via SMTP.
 // Works for all auth roles (admin, partner, affiliate, etc.) — not Supabase SMTP.
 //
 // Secrets: SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY,
-//          SENDGRID_API_KEY, SENDGRID_FROM_EMAIL, SENDGRID_FROM_NAME (optional)
-// Optional: PUBLIC_SITE_URL, PASSWORD_RESET_ALLOWED_ORIGINS (comma-separated origins)
+//          SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, SMTP_FROM_EMAIL
+// Optional: SMTP_FROM_NAME, SMTP_SECURE, PUBLIC_SITE_URL, PASSWORD_RESET_ALLOWED_ORIGINS
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.1';
 import { corsHeaders } from '../_shared/cors.ts';

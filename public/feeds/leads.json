@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-06-22T19:03:29.357Z",
+  "generatedAt": "2026-06-29T11:01:52.062Z",
   "site": "https://finelycred.com",
   "items": [
     {
@@ -10,7 +10,7 @@
       "description": "Free credit dispute letter guide — PDF download + limited DIY portal trial.",
       "audience": "consumer",
       "sequenceId": "seq_credit_funnel",
-      "pubDate": "Mon, 22 Jun 2026 19:03:29 GMT"
+      "pubDate": "Mon, 29 Jun 2026 11:01:52 GMT"
     },
     {
       "id": "score_roadmap",
@@ -19,7 +19,7 @@
       "description": "5-step score recovery sequence with portal preview.",
       "audience": "consumer",
       "sequenceId": "seq_score_roadmap_funnel",
-      "pubDate": "Mon, 22 Jun 2026 19:03:29 GMT"
+      "pubDate": "Mon, 29 Jun 2026 11:01:52 GMT"
     },
     {
       "id": "debt_relief",
@@ -28,7 +28,7 @@
       "description": "Collections validation playbook — FDCPA workflows and portal preview.",
       "audience": "consumer",
       "sequenceId": "seq_debt_funnel",
-      "pubDate": "Mon, 22 Jun 2026 19:03:29 GMT"
+      "pubDate": "Mon, 29 Jun 2026 11:01:52 GMT"
     },
     {
       "id": "business_credit",
@@ -37,7 +37,7 @@
       "description": "Entity hygiene, vendor sequencing, and D-U-N-S checklist.",
       "audience": "business",
       "sequenceId": "seq_business_funnel",
-      "pubDate": "Mon, 22 Jun 2026 19:03:29 GMT"
+      "pubDate": "Mon, 29 Jun 2026 11:01:52 GMT"
     },
     {
       "id": "tradeline_au",
@@ -46,7 +46,7 @@
       "description": "Authorized user tradelines — timing, risk, and restore fit.",
       "audience": "consumer",
       "sequenceId": "seq_tradeline_funnel",
-      "pubDate": "Mon, 22 Jun 2026 19:03:29 GMT"
+      "pubDate": "Mon, 29 Jun 2026 11:01:52 GMT"
     },
     {
       "id": "agency_white_label",
@@ -55,7 +55,7 @@
       "description": "Scale a credit services agency with partner OS and compliance workflows.",
       "audience": "agency",
       "sequenceId": "seq_agency_funnel",
-      "pubDate": "Mon, 22 Jun 2026 19:03:29 GMT"
+      "pubDate": "Mon, 29 Jun 2026 11:01:52 GMT"
     },
     {
       "id": "credit_specialist",
@@ -64,7 +64,7 @@
       "description": "Apply to become a Finely Cred credit restoration specialist.",
       "audience": "specialist",
       "sequenceId": "seq_specialist_apply_funnel",
-      "pubDate": "Mon, 22 Jun 2026 19:03:29 GMT"
+      "pubDate": "Mon, 29 Jun 2026 11:01:52 GMT"
     },
     {
       "id": "affiliate",
@@ -73,7 +73,7 @@
       "description": "Referral links, QR kits, and compliant promo templates.",
       "audience": "affiliate",
       "sequenceId": "seq_affiliate_funnel",
-      "pubDate": "Mon, 22 Jun 2026 19:03:29 GMT"
+      "pubDate": "Mon, 29 Jun 2026 11:01:52 GMT"
     },
     {
       "id": "affiliate_program",
@@ -82,7 +82,7 @@
       "description": "Join the Finely Cred affiliate program — residual commissions.",
       "audience": "affiliate",
       "sequenceId": "seq_affiliate_funnel",
-      "pubDate": "Mon, 22 Jun 2026 19:03:29 GMT"
+      "pubDate": "Mon, 29 Jun 2026 11:01:52 GMT"
     },
     {
       "id": "au_seller",
@@ -91,7 +91,7 @@
       "description": "List authorized user tradelines on the Finely marketplace.",
       "audience": "au_seller",
       "sequenceId": "seq_au_seller_onboard",
-      "pubDate": "Mon, 22 Jun 2026 19:03:29 GMT"
+      "pubDate": "Mon, 29 Jun 2026 11:01:52 GMT"
     },
     {
       "id": "au_marketplace",
@@ -100,7 +100,7 @@
       "description": "Browse authorized user tradeline inventory.",
       "audience": "consumer",
       "sequenceId": null,
-      "pubDate": "Mon, 22 Jun 2026 19:03:29 GMT"
+      "pubDate": "Mon, 29 Jun 2026 11:01:52 GMT"
     },
     {
       "id": "strategy_call",
@@ -109,7 +109,7 @@
       "description": "Free consultation for restore, business credit, debt, or funding paths.",
       "audience": "consumer",
       "sequenceId": "seq_strategy_session",
-      "pubDate": "Mon, 22 Jun 2026 19:03:29 GMT"
+      "pubDate": "Mon, 29 Jun 2026 11:01:52 GMT"
     }
   ]
 }
