@@ -205,7 +205,12 @@ export async function adminUpsertPartner(partner: Partner): Promise<Partner> {
   const row = partnerToRow(next);
 
   if (FUNCTIONS_URL) {
-    const session = await supabase.auth.getSession();
+    let session = await supabase.auth.getSession();
+    // Silently refresh if the session token is missing/expired.
+    if (!session.data.session) {
+      const refreshed = await supabase.auth.refreshSession();
+      if (refreshed.data.session) session = { data: { session: refreshed.data.session }, error: null };
+    }
     const token = session.data.session?.access_token;
     if (token) {
       const res = await fetch(`${FUNCTIONS_URL}/admin-list-partners`, {
@@ -218,9 +223,13 @@ export async function adminUpsertPartner(partner: Partner): Promise<Partner> {
       if (body.partner) return rowToPartner(body.partner);
       return next;
     }
+    // No token — session expired. Surface a clear error rather than silently
+    // falling back to a direct upsert that will fail RLS for admin-created rows.
+    throw new Error('Your session has expired. Please sign out and sign back in, then try again.');
   }
 
-  // Fallback: direct upsert (RLS applies)
+  // Fallback: only reached when Supabase is configured but no edge functions URL
+  // (should not happen in production).
   const { error } = await supabase.from('partners').upsert(row, { onConflict: 'id' });
   if (error) throw new Error(error.message);
   return next;
