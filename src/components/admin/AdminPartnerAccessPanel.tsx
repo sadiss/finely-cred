@@ -1,8 +1,9 @@
 import React, { useMemo, useState } from 'react';
-import { KeyRound, Link2, Mail, Shield, UserCheck, UserPlus } from 'lucide-react';
+import { KeyRound, Mail, Send, Shield, UserCheck, UserPlus } from 'lucide-react';
 import type { Partner } from '../../domain/partners';
 import { useAuth } from '../../auth/AuthProvider';
 import { sendPartnerWelcomeEmail } from '../../lib/partnerWelcomeEmail';
+import { sendPartnerInviteEmail } from '../../lib/partnerInviteEmail';
 import { isFeatureEnabled } from '../../data/settingsRepo';
 import { landingPathForRole, signupSummaryForRole } from '../../lib/signupOpsGuide';
 import { adminUpsertPartner } from '../../data/partnersRepo';
@@ -27,7 +28,7 @@ type Props = {
 
 export function AdminPartnerAccessPanel({ partner, userRole, onUpdated }: Props) {
   const auth = useAuth();
-  const [busy, setBusy] = useState<'reset' | 'welcome' | 'access' | null>(null);
+  const [busy, setBusy] = useState<'reset' | 'welcome' | 'access' | 'invite' | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [accessFlags, setAccessFlags] = useState(() => readPartnerAccessFlagsStored(partner));
@@ -69,6 +70,25 @@ export function AdminPartnerAccessPanel({ partner, userRole, onUpdated }: Props)
 
   const toggleFlag = (key: keyof ReturnType<typeof readPartnerAccessFlagsStored>, next: boolean) => {
     void saveAccess({ [key]: next });
+  };
+
+  const sendInvite = async () => {
+    if (!email) {
+      setErr('Partner has no email on file.');
+      return;
+    }
+    setBusy('invite');
+    setErr(null);
+    setNotice(null);
+    try {
+      const res = await sendPartnerInviteEmail({ partner, email });
+      if (!res.ok) throw new Error(res.error || 'Invite email not sent.');
+      setNotice(`Invite email sent to ${email}. They will receive a link to create their account with their email pre-filled.`);
+    } catch (e: unknown) {
+      setErr((e as Error)?.message || 'Failed to send invite email.');
+    } finally {
+      setBusy(null);
+    }
   };
 
   const sendReset = async () => {
@@ -223,28 +243,12 @@ export function AdminPartnerAccessPanel({ partner, userRole, onUpdated }: Props)
         {!partner.claimedUserId && email ? (
           <button
             type="button"
+            onClick={() => void sendInvite()}
+            disabled={busy !== null}
             className={FINELY_OS_PRIMARY_BTN}
-            onClick={() => {
-              const url = `${window.location.origin}/signup?auth=signup&email=${encodeURIComponent(email)}&invite=1`;
-              navigator.clipboard?.writeText(url).then(() => {
-                setNotice(`Invite link copied! Share it with ${email} — their email will be pre-filled and locked on the signup page.`);
-              }).catch(() => {
-                setNotice(`Invite link: ${url}`);
-              });
-            }}
           >
-            <UserPlus size={14} /> Copy invite link to sign up
+            <UserPlus size={14} /> {busy === 'invite' ? 'Sending…' : 'Send invite link to sign up'}
           </button>
-        ) : null}
-        {!partner.claimedUserId && email ? (
-          <a
-            href={`/signup?auth=signup&email=${encodeURIComponent(email)}&invite=1`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={FINELY_OS_SECONDARY_BTN}
-          >
-            <Link2 size={14} /> Open invite link
-          </a>
         ) : null}
         <button type="button" onClick={() => void sendReset()} disabled={!email || busy !== null} className={FINELY_OS_PRIMARY_BTN}>
           <KeyRound size={14} /> {busy === 'reset' ? 'Sending…' : 'Send password reset email'}
