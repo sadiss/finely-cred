@@ -59,13 +59,15 @@ export function FreeGuideFunnelStyles() {
       -webkit-text-fill-color: transparent;
       background-clip: text;
     }
-    .lm-theme-debt { background: #060a10; }
-    .lm-theme-business { background: #06080c; }
-    .lm-theme-tradeline { background: #08060e; }
-    .lm-theme-score { background: #060a08; }
-    .lm-theme-agency { background: #0a0608; }
-    .lm-theme-specialist { background: #06080c; }
-    .lm-theme-affiliate { background: #060a08; }
+    .lm-theme-debt,
+    .lm-theme-business,
+    .lm-theme-tradeline,
+    .lm-theme-score,
+    .lm-theme-agency,
+    .lm-theme-specialist,
+    .lm-theme-affiliate {
+      background: linear-gradient(180deg, #120a1f 0%, #0a0612 40%, #050308 100%);
+    }
     .fg-funnel .bg-mesh {
       position: relative;
       background-color: var(--bg-dark);
@@ -556,182 +558,533 @@ export function FreeGuideFunnelStyles() {
       color: #a7f3d0;
     }
 
-    /* ── Premium lead magnets — editorial / institutional ── */
-    .fg-funnel .lm-page { background: inherit; color: #f8fafc; }
+    /* ── Finely flyer lead magnets ── */
+    .fg-funnel .lm-flyer-page { color: #f8fafc; }
     .fg-funnel .lm-nav {
-      border-bottom: 1px solid rgba(255,255,255,0.06);
-      background: rgba(4,6,10,0.88);
-      backdrop-filter: blur(16px);
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      background: rgba(10,6,18,0.92);
+      backdrop-filter: blur(12px);
     }
     .fg-funnel .lm-nav-urgency {
       display: block;
-      font-size: 10px;
-      letter-spacing: 0.06em;
+      font-size: 11px;
+      color: rgba(249,115,22,0.85);
       margin-top: 2px;
-      opacity: 0.7;
     }
 
-    .fg-funnel .lm-hero-pro {
-      position: relative;
-      overflow: hidden;
-      max-height: 340px;
-    }
-    .fg-funnel .lm-hero-pro-bg {
-      position: absolute;
-      inset: 0;
-    }
-    .fg-funnel .lm-hero-pro-bg img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      object-position: center 30%;
-    }
-    .fg-funnel .lm-hero-pro-veil {
-      position: absolute;
-      inset: 0;
-    }
-
-    .fg-funnel .lm-text-accent {
-      color: rgba(255,255,255,0.92);
-    }
-    .fg-funnel .lm-text-gold-refined {
-      background: linear-gradient(135deg, #f5f0e6 0%, #c9a227 55%, #a88b2a 100%);
+    .fg-funnel .lm-text-finely-gradient {
+      background: linear-gradient(135deg, #f97316 0%, #fb923c 35%, #c084fc 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
     }
 
-    .fg-funnel .lm-cta {
+    .fg-funnel .lm-cta-finely {
       display: inline-flex;
       align-items: center;
       justify-content: center;
       gap: 0.5rem;
-      font-weight: 600;
+      padding: 0.65rem 1.25rem;
+      border-radius: 9999px;
       font-size: 0.8125rem;
-      letter-spacing: 0.02em;
-      border-radius: 6px;
-      transition: background 0.2s ease, border-color 0.2s ease, opacity 0.2s ease;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #0a0612;
+      background: linear-gradient(135deg, #f97316, #fb923c);
+      border: 2px solid #0a0612;
+      box-shadow: 0 4px 20px rgba(249,115,22,0.35);
+      transition: transform 0.2s ease, filter 0.2s ease;
     }
-    .fg-funnel .lm-cta-champagne {
-      background: #c9a227;
-      color: #0a0c10;
-      border: 1px solid #d4b84a;
+    .fg-funnel .lm-cta-finely:hover { transform: translateY(-1px); filter: brightness(1.05); }
+    .fg-funnel .lm-cta-finely-lg {
+      padding: 0.85rem 1.5rem;
+      font-size: 0.875rem;
     }
-    .fg-funnel .lm-cta-champagne:hover { background: #d4b84a; }
-    .fg-funnel .lm-cta-slate {
-      background: rgba(255,255,255,0.95);
-      color: #0a0c10;
-      border: 1px solid rgba(255,255,255,0.2);
-    }
-    .fg-funnel .lm-cta-slate:hover { background: #fff; }
 
-    .fg-funnel .lm-media-wrap { margin-top: -1rem; }
-    .fg-funnel .lm-media-frame {
-      position: relative;
-      border-radius: 10px;
+    .fg-funnel .lm-flyer-hero-card {
+      display: grid;
+      gap: 1.25rem;
+      border-radius: 16px;
       overflow: hidden;
-      border: 1px solid rgba(255,255,255,0.08);
-      background: #0a0c10;
-      box-shadow: 0 24px 64px rgba(0,0,0,0.4);
+      border: 1px solid rgba(255,255,255,0.1);
+      background: #0a0612;
+      box-shadow: 0 24px 80px rgba(0,0,0,0.45);
     }
-    .fg-funnel .lm-media-video,
-    .fg-funnel .lm-video-shell {
+    @media (min-width: 768px) {
+      .fg-funnel .lm-flyer-hero-card {
+        grid-template-columns: minmax(0, 42%) minmax(0, 1fr);
+        align-items: stretch;
+      }
+    }
+    .fg-funnel .lm-flyer-hero-img-wrap {
+      position: relative;
+      min-height: 200px;
+      max-height: 280px;
+    }
+    @media (min-width: 768px) {
+      .fg-funnel .lm-flyer-hero-img-wrap {
+        min-height: 100%;
+        max-height: none;
+      }
+    }
+    .fg-funnel .lm-flyer-hero-img-wrap img {
       width: 100%;
-      aspect-ratio: 16 / 9;
-      display: block;
+      height: 100%;
+      object-fit: cover;
+      object-position: center 25%;
+    }
+    .fg-funnel .lm-flyer-hero-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(76,29,149,0.55) 0%, rgba(10,6,18,0.75) 55%, rgba(249,115,22,0.25) 100%);
+    }
+    .fg-funnel .lm-flyer-hero-copy {
+      padding: 1.25rem 1.5rem 1.5rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    @media (min-width: 768px) {
+      .fg-funnel .lm-flyer-hero-copy { padding: 2rem 2.25rem; }
+    }
+    .fg-funnel .lm-flyer-category {
+      font-size: 0.75rem;
+      font-weight: 800;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: #c084fc;
+      margin-bottom: 0.75rem;
+    }
+    .fg-funnel .lm-flyer-headline {
+      font-size: clamp(1.75rem, 4.5vw, 2.75rem);
+      font-weight: 900;
+      font-style: italic;
+      line-height: 1.05;
+      letter-spacing: -0.02em;
+      text-transform: uppercase;
+      color: #fff;
+    }
+    .fg-funnel .lm-flyer-pill {
+      display: inline-block;
+      margin-top: 1rem;
+      padding: 0.5rem 1rem;
+      border-radius: 9999px;
+      background: #0a0612;
+      border: 1px solid rgba(249,115,22,0.5);
+      color: #fb923c;
+      font-size: 0.6875rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      max-width: 100%;
+    }
+    .fg-funnel .lm-flyer-sub {
+      margin-top: 1rem;
+      font-size: 1.125rem;
+      font-weight: 600;
+      line-height: 1.4;
+      color: rgba(255,255,255,0.88);
+    }
+    .fg-funnel .lm-flyer-desc {
+      margin-top: 0.75rem;
+      font-size: 0.9375rem;
+      line-height: 1.6;
+      color: rgba(255,255,255,0.5);
+    }
+
+    .fg-funnel .lm-showcase-section { margin-top: 0.5rem; }
+    .fg-funnel .lm-showcase-grid {
+      display: grid;
+      gap: 1.5rem;
+      align-items: center;
+    }
+    @media (min-width: 900px) {
+      .fg-funnel .lm-showcase-grid {
+        grid-template-columns: minmax(240px, 300px) minmax(0, 1fr);
+        gap: 2rem;
+      }
+    }
+    .fg-funnel .lm-showcase-ebook {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+    .fg-funnel .lm-showcase-guide-title {
+      margin-top: 1rem;
+      font-size: 0.9375rem;
+      font-weight: 600;
+      color: rgba(255,255,255,0.75);
+      max-width: 260px;
+    }
+    .fg-funnel .lm-ebook-hero-wrap {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .fg-funnel .lm-ebook-hero-wrap.is-hero .lm-ebook-gradient-ring {
+      position: absolute;
+      inset: -12px -16px;
+      border-radius: 20px;
+      background: linear-gradient(135deg, rgba(249,115,22,0.35), rgba(168,85,247,0.35));
+      filter: blur(20px);
+      z-index: 0;
+    }
+    .fg-funnel .lm-ebook-book {
+      position: relative;
+      z-index: 1;
+      filter: drop-shadow(0 28px 48px rgba(0,0,0,0.55));
+    }
+    .fg-funnel .lm-ebook-ribbon {
+      margin-top: 1rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.15rem;
+    }
+
+    .fg-funnel .lm-video-card {
+      border-radius: 12px;
+      overflow: hidden;
+      border: 2px solid rgba(168,85,247,0.35);
+      background: #000;
+      box-shadow: 0 16px 48px rgba(0,0,0,0.4);
+    }
+    .fg-funnel .lm-video-card-inner {
+      aspect-ratio: 16 / 10;
+      max-height: 220px;
+    }
+    @media (min-width: 900px) {
+      .fg-funnel .lm-video-card-inner { max-height: 260px; }
+    }
+    .fg-funnel .lm-video-glow {
+      background: radial-gradient(circle at 30% 30%, rgba(168,85,247,0.3), transparent 60%);
     }
     .fg-funnel .lm-video-placeholder {
       background-size: cover;
       background-position: center;
+      width: 100%;
+      height: 100%;
+      min-height: 180px;
       border: none;
       cursor: pointer;
-      width: 100%;
-      min-height: 100%;
     }
     .fg-funnel .lm-video-placeholder-veil {
       position: absolute;
       inset: 0;
-      background: rgba(0,0,0,0.45);
+      background: rgba(0,0,0,0.4);
     }
     .fg-funnel .lm-video-play-ring {
       display: flex;
       align-items: center;
       justify-content: center;
-      width: 3.5rem;
-      height: 3.5rem;
+      width: 4rem;
+      height: 4rem;
       border-radius: 50%;
-      border: 1px solid rgba(255,255,255,0.35);
-      background: rgba(0,0,0,0.5);
+      border: 2px solid rgba(255,255,255,0.4);
+      background: rgba(0,0,0,0.55);
     }
-    .fg-funnel .lm-media-ebook {
-      position: absolute;
-      right: 1rem;
-      bottom: -1.75rem;
-      z-index: 2;
-      pointer-events: none;
-    }
-    .fg-funnel .lm-ebook {
-      filter: drop-shadow(0 16px 32px rgba(0,0,0,0.5));
-    }
-    .fg-funnel .lm-media-wrap { padding-bottom: 2rem; }
 
-    .fg-funnel .lm-section-title {
-      font-size: 1.125rem;
-      font-weight: 600;
-      letter-spacing: -0.02em;
-      color: rgba(255,255,255,0.95);
+    .fg-funnel .lm-benefits-box {
+      margin-top: 1rem;
+      padding: 1rem 1.25rem;
+      border-radius: 12px;
+      background: #0a0612;
+      border: 2px solid rgba(249,115,22,0.45);
     }
-    .fg-funnel .lm-section-body {
-      margin-top: 0.75rem;
-      font-size: 0.9375rem;
-      line-height: 1.65;
-      color: rgba(255,255,255,0.48);
+    .fg-funnel .lm-benefits-box-title {
+      font-size: 0.8125rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #fb923c;
+      margin-bottom: 0.75rem;
     }
-    .fg-funnel .lm-pro-list {
+    .fg-funnel .lm-benefits-list {
       list-style: none;
       margin: 0;
       padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
     }
-    .fg-funnel .lm-pro-list li {
+    .fg-funnel .lm-benefits-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.5rem;
+      font-size: 0.875rem;
+      color: rgba(255,255,255,0.82);
+      line-height: 1.4;
+    }
+
+    .fg-funnel .lm-flyer-section-title {
+      font-size: clamp(1.125rem, 2.5vw, 1.5rem);
+      font-weight: 900;
+      font-style: italic;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: #a855f7;
+    }
+
+    .fg-funnel .lm-process-rail {
+      display: flex;
+      gap: 0.5rem;
+      overflow-x: auto;
+      padding: 1rem 0 0.5rem;
+      scroll-snap-type: x mandatory;
+    }
+    .fg-funnel .lm-process-step {
+      position: relative;
+      flex: 0 0 min(120px, 28vw);
+      scroll-snap-align: start;
+      text-align: center;
+    }
+    .fg-funnel .lm-process-icon {
+      width: 3.5rem;
+      height: 3.5rem;
+      margin: 0 auto;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      font-weight: 900;
+      color: #fff;
+      background: linear-gradient(135deg, #7c3aed, #f97316);
+      border: 2px solid rgba(255,255,255,0.2);
+    }
+    .fg-funnel .lm-process-label {
+      margin-top: 0.5rem;
+      font-size: 0.6875rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: rgba(255,255,255,0.75);
+    }
+    .fg-funnel .lm-process-arrow {
+      display: none;
+    }
+
+    .fg-funnel .lm-dual-panel {
       display: grid;
-      gap: 0.25rem;
-      padding: 0.85rem 0;
+      gap: 1rem;
+    }
+    @media (min-width: 768px) {
+      .fg-funnel .lm-dual-panel { grid-template-columns: 1fr 1.2fr; }
+    }
+    .fg-funnel .lm-results-panel {
+      padding: 1.25rem;
+      border-radius: 12px;
+      background: linear-gradient(135deg, rgba(124,58,237,0.25), rgba(76,29,149,0.15));
+      border: 1px solid rgba(168,85,247,0.3);
+    }
+    .fg-funnel .lm-access-panel {
+      padding: 1.25rem;
+      border-radius: 12px;
+      background: #0a0612;
+      border: 2px solid rgba(249,115,22,0.35);
+    }
+    .fg-funnel .lm-panel-title {
+      font-size: 0.8125rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #c084fc;
+      margin-bottom: 1rem;
+    }
+    .fg-funnel .lm-panel-title-light { color: #fb923c; }
+    .fg-funnel .lm-metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.75rem;
+    }
+    .fg-funnel .lm-metric-value {
+      font-size: 1.5rem;
+      font-weight: 900;
+      color: #fff;
+    }
+    .fg-funnel .lm-metric-label {
+      font-size: 0.625rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: rgba(255,255,255,0.5);
+      margin-top: 0.25rem;
+    }
+    .fg-funnel .lm-access-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.75rem;
+    }
+    .fg-funnel .lm-access-item {
+      text-align: center;
+      padding: 0.75rem 0.5rem;
+    }
+    .fg-funnel .lm-access-icon {
+      width: 2.5rem;
+      height: 2.5rem;
+      margin: 0 auto 0.5rem;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #7c3aed, #f97316);
+    }
+    .fg-funnel .lm-access-title {
+      font-size: 0.75rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      color: #fff;
+    }
+    .fg-funnel .lm-access-desc {
+      font-size: 0.6875rem;
+      color: rgba(255,255,255,0.45);
+      margin-top: 0.25rem;
+      line-height: 1.35;
+    }
+
+    .fg-funnel .lm-foundation-row {
+      display: grid;
+      gap: 1rem;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      margin-top: 1rem;
+    }
+    .fg-funnel .lm-foundation-item { text-align: center; }
+    .fg-funnel .lm-foundation-icon {
+      width: 3rem;
+      height: 3rem;
+      margin: 0 auto 0.5rem;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #a855f7, #f97316);
+      border: 2px solid rgba(255,255,255,0.15);
+    }
+    .fg-funnel .lm-foundation-title {
+      font-size: 0.8125rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      color: #fff;
+    }
+    .fg-funnel .lm-foundation-desc {
+      font-size: 0.75rem;
+      color: rgba(255,255,255,0.45);
+      margin-top: 0.35rem;
+      line-height: 1.4;
+    }
+
+    .fg-funnel .lm-kit-grid {
+      list-style: none;
+      margin: 1rem 0 0;
+      padding: 0;
+      display: grid;
+      gap: 0;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+    @media (min-width: 640px) {
+      .fg-funnel .lm-kit-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    .fg-funnel .lm-kit-grid li {
+      display: flex;
+      gap: 0.75rem;
+      padding: 1rem 1.25rem;
+      background: rgba(255,255,255,0.03);
       border-bottom: 1px solid rgba(255,255,255,0.06);
     }
-    .fg-funnel .lm-pro-list li:last-child { border-bottom: none; }
-    .fg-funnel .lm-pro-list-title {
+    .fg-funnel .lm-kit-num {
+      font-size: 1.25rem;
+      font-weight: 900;
+      color: rgba(168,85,247,0.6);
+    }
+    .fg-funnel .lm-kit-title {
       font-size: 0.9375rem;
-      font-weight: 500;
+      font-weight: 700;
+      color: #fff;
+    }
+    .fg-funnel .lm-kit-desc {
+      font-size: 0.8125rem;
+      color: rgba(255,255,255,0.45);
+      margin-top: 0.2rem;
+    }
+
+    .fg-funnel .lm-track-chip {
+      padding: 0.5rem 1rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      border: 1px solid rgba(255,255,255,0.15);
+      color: rgba(255,255,255,0.5);
+      background: transparent;
+      transition: all 0.15s ease;
+    }
+    .fg-funnel .lm-track-chip.is-active {
+      border-color: #f97316;
+      color: #fff;
+      background: linear-gradient(135deg, rgba(124,58,237,0.4), rgba(249,115,22,0.3));
+    }
+
+    .fg-funnel .lm-cta-banner {
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+      align-items: flex-start;
+      padding: 1.5rem 1.75rem;
+      border-radius: 16px;
+      background: linear-gradient(135deg, #f97316 0%, #ea580c 40%, #7c3aed 100%);
+      border: 2px solid #0a0612;
+      box-shadow: 0 20px 60px rgba(249,115,22,0.25);
+    }
+    @media (min-width: 768px) {
+      .fg-funnel .lm-cta-banner {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+      }
+    }
+    .fg-funnel .lm-cta-banner-headline {
+      font-size: clamp(1.25rem, 3vw, 1.75rem);
+      font-weight: 900;
+      font-style: italic;
+      text-transform: uppercase;
+      color: #0a0612;
+      line-height: 1.1;
+    }
+    .fg-funnel .lm-cta-banner-sub {
+      margin-top: 0.5rem;
+      font-size: 0.9375rem;
+      font-weight: 600;
+      color: rgba(10,6,18,0.75);
+    }
+
+    .fg-funnel .lm-capture-card {
+      padding: 1.5rem;
+      border-radius: 16px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(168,85,247,0.25);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+    }
+    .fg-funnel .lm-faq-item {
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+    .fg-funnel .lm-faq-trigger {
+      display: flex;
+      width: 100%;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      padding: 1rem 0;
+      text-align: left;
+      font-size: 0.9375rem;
+      font-weight: 600;
       color: rgba(255,255,255,0.9);
     }
-    .fg-funnel .lm-pro-list-desc {
-      font-size: 0.8125rem;
-      color: rgba(255,255,255,0.42);
-      line-height: 1.5;
+    .fg-funnel .lm-faq-answer {
+      padding-bottom: 1rem;
+      font-size: 0.875rem;
+      color: rgba(255,255,255,0.5);
+      line-height: 1.55;
     }
-
-    .fg-funnel .lm-tab {
-      padding: 0.5rem 0.75rem;
-      font-size: 0.75rem;
-      font-weight: 500;
-      color: rgba(255,255,255,0.4);
-      border-bottom: 2px solid transparent;
-      margin-bottom: -1px;
-      transition: color 0.15s ease, border-color 0.15s ease;
-    }
-    .fg-funnel .lm-tab.is-active {
-      color: rgba(255,255,255,0.92);
-      border-bottom-color: rgba(255,255,255,0.5);
-    }
-    .fg-funnel .lm-tab:hover { color: rgba(255,255,255,0.7); }
-
-    .fg-funnel .lm-capture-pro {
-      border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 10px;
-      background: rgba(255,255,255,0.02);
-      padding: 1.25rem;
-    }
-`,
 `,
       }}
     />

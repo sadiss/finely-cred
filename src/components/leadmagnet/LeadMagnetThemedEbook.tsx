@@ -8,33 +8,44 @@ type Props = {
   theme: LeadMagnetVisualTheme;
   totalValue: number;
   coverImageUrl?: string | null;
+  size?: 'default' | 'hero';
 };
 
-export function LeadMagnetThemedEbook({ guide, theme, totalValue, coverImageUrl }: Props) {
+export function LeadMagnetThemedEbook({ guide, theme, totalValue, coverImageUrl, size = 'default' }: Props) {
   const art = getGuideCoverArt(guide.id, theme);
+  const widthClass = size === 'hero' ? 'w-[200px] sm:w-[240px] md:w-[260px]' : 'w-[160px] sm:w-[180px]';
 
   return (
-    <div className="lm-ebook">
-      <div className="fg-book relative aspect-[723/1024] w-[148px] sm:w-[168px]">
-        <div className="fg-book-spine absolute inset-y-[2%] left-0 w-[6px] -translate-x-[3px] rounded-l-[3px] z-[5]" style={{ background: art.spine }} />
-        <div className="fg-book-pages absolute top-0 bottom-0 left-2.5 right-[-8px] rounded-[2px_10px_10px_2px] z-[8]" />
-        <div className="fg-book-cover absolute inset-y-0 left-[5px] right-0 rounded-[2px_10px_10px_2px] overflow-hidden z-[10] border border-white/10 shadow-2xl">
+    <div className={`lm-ebook-hero-wrap ${size === 'hero' ? 'is-hero' : ''}`}>
+      <div className="lm-ebook-gradient-ring" aria-hidden />
+      <div className={`fg-book relative aspect-[723/1024] ${widthClass} lm-ebook-book`}>
+        <div className="fg-book-spine absolute inset-y-[2%] left-0 w-[8px] -translate-x-[4px] rounded-l-[4px] z-[5]" style={{ background: art.spine }} />
+        <div className="fg-book-pages absolute top-0 bottom-0 left-3 right-[-12px] rounded-[3px_14px_14px_3px] z-[8]" />
+        <div className="fg-book-cover absolute inset-y-0 left-[7px] right-0 rounded-[3px_14px_14px_3px] overflow-hidden z-[10] border-2 border-white/15">
           {coverImageUrl ? (
-            <img src={coverImageUrl} alt={guide.title} className="absolute inset-0 w-full h-full object-cover" loading="lazy" />
+            <img src={coverImageUrl} alt={guide.title} className="absolute inset-0 w-full h-full object-cover" loading="eager" />
           ) : (
-            <div className="absolute inset-0 p-3 flex flex-col justify-between" style={{ background: art.gradient }}>
-              <div className="text-[7px] font-semibold uppercase tracking-[0.18em] text-white/50">{art.kicker}</div>
+            <div className="absolute inset-0 p-4 sm:p-5 flex flex-col justify-between" style={{ background: art.gradient }}>
               <div>
-                <div className="text-[10px] font-semibold leading-snug text-white/95">{guide.title}</div>
-                <div className="mt-2 text-[9px] text-white/45">Finely Cred</div>
-                <div className="text-sm font-semibold mt-1 tabular-nums" style={{ color: art.accent }}>
-                  ${totalValue}+
-                </div>
+                <div className="text-[9px] sm:text-[10px] font-bold uppercase tracking-[0.2em] text-white/55">{art.kicker}</div>
+                <div className="mt-3 text-sm sm:text-base font-bold leading-snug text-white">{guide.title}</div>
+              </div>
+              <div>
+                <div className="text-[9px] uppercase tracking-widest text-white/45">Finely Cred edition</div>
+                <div className="text-2xl sm:text-3xl font-black mt-1 tabular-nums lm-text-finely-gradient">${totalValue}+</div>
+                <div className="text-xs font-bold text-orange-400 mt-1">FREE PDF</div>
               </div>
             </div>
           )}
+          <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-purple-900/30 pointer-events-none" />
         </div>
       </div>
+      {size === 'hero' ? (
+        <div className="lm-ebook-ribbon">
+          <span className="lm-text-finely-gradient font-black">${totalValue}+</span>
+          <span className="text-white/70 text-xs font-semibold uppercase tracking-wider">Free kit</span>
+        </div>
+      ) : null}
     </div>
   );
 }

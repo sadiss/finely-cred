@@ -111,7 +111,7 @@ export function LeadMagnetFunnelHeroVideo({ config, theme, posterUrl, className 
         type="button"
         onClick={onGoForm}
         className={`lm-video-shell lm-video-placeholder group ${className}`}
-        style={{ backgroundImage: `url(${posterSrc ?? theme.heroImage})` }}
+        style={{ backgroundImage: `url(${posterSrc ?? theme.videoPosterImage})` }}
       >
         <div className="lm-video-placeholder-veil" />
         <div className="relative z-10 flex flex-col items-center gap-3 p-6">
@@ -127,10 +127,7 @@ export function LeadMagnetFunnelHeroVideo({ config, theme, posterUrl, className 
 
   return (
     <div className={`lm-video-shell relative overflow-hidden group ${className}`}>
-      <div
-        className="absolute inset-0 opacity-40 pointer-events-none z-[1]"
-        style={{ background: `radial-gradient(circle at 30% 30%, rgba(${theme.accentRgb},0.25), transparent 55%)` }}
-      />
+      <div className="absolute inset-0 opacity-30 pointer-events-none z-[1] lm-video-glow" aria-hidden />
       {loading ? (
         <div className="absolute inset-0 flex items-center justify-center bg-black/50 z-[2]">
           <div className="h-10 w-10 rounded-full border-2 border-white/20 border-t-white animate-spin" />
@@ -151,10 +148,7 @@ export function LeadMagnetFunnelHeroVideo({ config, theme, posterUrl, className 
         />
       ) : null}
       <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/10 to-black/30 pointer-events-none z-[1]" />
-      <div
-        className="absolute top-3 left-3 z-[2] px-3 py-1.5 rounded-full border text-[9px] font-bold uppercase tracking-wider backdrop-blur-md"
-        style={{ borderColor: `rgba(${theme.accentRgb},0.45)`, color: `rgb(${theme.accentRgb})`, background: `rgba(${theme.accentRgb},0.12)` }}
-      >
+      <div className="absolute top-3 left-3 z-[2] px-3 py-1.5 rounded-full border border-orange-400/40 text-[9px] font-bold uppercase tracking-wider text-orange-300 bg-black/50 backdrop-blur-md">
         {label}
       </div>
       {videoSrc ? (

@@ -16,9 +16,9 @@ const COVERS: Record<string, GuideCoverArt> = {
     kicker: 'Debt validation',
   },
   'business-credit-jumpstart': {
-    gradient: 'linear-gradient(155deg, #0a0e14 0%, #121820 48%, #1a2230 100%)',
-    spine: 'linear-gradient(180deg, #e8dcc8, #c9a227, #6b5a28)',
-    accent: '#c9a227',
+    gradient: 'linear-gradient(155deg, #4c1d95 0%, #1a1030 45%, #0f0a18 100%)',
+    spine: 'linear-gradient(180deg, #fbbf24, #f97316, #7c3aed)',
+    accent: '#f97316',
     kicker: 'Business credit',
   },
   'primary-tradeline-insider': {
@@ -56,9 +56,9 @@ const COVERS: Record<string, GuideCoverArt> = {
 export function getGuideCoverArt(guideId: FreeGuideId, theme: LeadMagnetVisualTheme): GuideCoverArt {
   return (
     COVERS[guideId] ?? {
-      gradient: `linear-gradient(145deg, rgba(${theme.accentRgb},0.35) 0%, #0f172a 55%, #020617 100%)`,
-      spine: `linear-gradient(180deg, rgba(${theme.accentRgb},0.9), rgba(${theme.accentRgb},0.4), #0f172a)`,
-      accent: `rgb(${theme.accentRgb})`,
+      gradient: 'linear-gradient(145deg, #4c1d95 0%, #1e1033 50%, #0f0a18 100%)',
+      spine: 'linear-gradient(180deg, #f97316, #a855f7, #4c1d95)',
+      accent: '#f97316',
       kicker: theme.badge,
     }
   );
