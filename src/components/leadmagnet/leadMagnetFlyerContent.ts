@@ -8,6 +8,7 @@ export type FlyerFoundation = { title: string; desc: string };
 export type LeadMagnetFlyerContent = {
   powerLine: string;
   categoryLabel: string;
+  taglineBar: string;
   benefitsTitle: string;
   processTitle: string;
   resultsTitle: string;
@@ -25,6 +26,7 @@ const FLYER: Record<string, LeadMagnetFlyerContent> = {
   debt: {
     powerLine: 'VALIDATE. DOCUMENT. TAKE CONTROL.',
     categoryLabel: 'DEBT VALIDATION KIT',
+    taglineBar: 'STRONG DOCUMENTATION TODAY. COLLECTOR LEVERAGE TOMORROW.',
     benefitsTitle: 'With this kit you can:',
     processTitle: 'Our proven validation process',
     resultsTitle: 'Powerful results',
@@ -59,6 +61,7 @@ const FLYER: Record<string, LeadMagnetFlyerContent> = {
   business: {
     powerLine: 'BUILD. STACK. FUND. SCALE.',
     categoryLabel: 'BUSINESS CREDIT JUMPSTART',
+    taglineBar: 'STRONG BUSINESS CREDIT TODAY. LIMITLESS FUNDING TOMORROW.',
     benefitsTitle: 'With strong business credit you can:',
     processTitle: 'Our proven business credit process',
     resultsTitle: 'Powerful results',
@@ -93,6 +96,7 @@ const FLYER: Record<string, LeadMagnetFlyerContent> = {
   tradeline: {
     powerLine: 'LEARN. TIME. BOOST. WIN.',
     categoryLabel: 'TRADELINE INSIDER KIT',
+    taglineBar: 'SMART TIMING TODAY. CLEANER FILES TOMORROW.',
     benefitsTitle: 'With this education you can:',
     processTitle: 'Smart tradeline process',
     resultsTitle: 'What changes',
@@ -127,6 +131,7 @@ const FLYER: Record<string, LeadMagnetFlyerContent> = {
   score_roadmap: {
     powerLine: 'SEQUENCE. LIFT. FUND. LIVE FREE.',
     categoryLabel: '700+ SCORE ROADMAP',
+    taglineBar: 'STRONG CREDIT TODAY. LIMITLESS OPTIONS TOMORROW.',
     benefitsTitle: 'With a sequenced plan you can:',
     processTitle: 'Our proven score process',
     resultsTitle: 'Powerful results',
@@ -161,6 +166,7 @@ const FLYER: Record<string, LeadMagnetFlyerContent> = {
   agency: {
     powerLine: 'SYSTEMIZE. SCALE. COMPLY. WIN.',
     categoryLabel: 'AGENCY GROWTH KIT',
+    taglineBar: 'SYSTEMS TODAY. SCALE WITHOUT BURNOUT TOMORROW.',
     benefitsTitle: 'With partner-grade OS you can:',
     processTitle: 'Agency scale process',
     resultsTitle: 'Operator results',
@@ -195,6 +201,7 @@ const FLYER: Record<string, LeadMagnetFlyerContent> = {
   specialist_apply: {
     powerLine: 'TRAIN. ACTIVATE. EXECUTE. EARN.',
     categoryLabel: 'SPECIALIST NETWORK',
+    taglineBar: 'TRAINING TODAY. ACTIVATED PARTNERS TOMORROW.',
     benefitsTitle: 'As a Finely specialist you can:',
     processTitle: 'Activation process',
     resultsTitle: 'What you get',
@@ -229,6 +236,7 @@ const FLYER: Record<string, LeadMagnetFlyerContent> = {
   affiliate: {
     powerLine: 'LINK. SHARE. TRACK. COMPOUND.',
     categoryLabel: 'AFFILIATE TOOLKIT',
+    taglineBar: 'CLEAN LINKS TODAY. COMPOUNDING REFERRALS TOMORROW.',
     benefitsTitle: 'With clean attribution you can:',
     processTitle: 'Referral growth process',
     resultsTitle: 'Partner metrics',

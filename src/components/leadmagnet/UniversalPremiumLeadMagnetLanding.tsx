@@ -10,6 +10,7 @@ import {
   getLeadMagnetVisualTheme,
   resolveLeadMagnetHeroImage,
   resolveLeadMagnetVideoPoster,
+  themeCssVars,
 } from './leadMagnetVisualThemes';
 import { LeadMagnetMediaStage } from './LeadMagnetMediaStage';
 import { LeadMagnetNavUrgency } from './LeadMagnetUrgencyRail';
@@ -44,6 +45,8 @@ export function UniversalPremiumLeadMagnetLanding({
   const flyer = getLeadMagnetFlyerContent(config);
   const heroImage = useMemo(() => resolveLeadMagnetHeroImage(config, theme), [config, theme]);
   const videoPoster = useMemo(() => resolveLeadMagnetVideoPoster(config, theme), [config, theme]);
+  const cssVars = useMemo(() => themeCssVars(theme), [theme]);
+  const powerLines = useMemo(() => flyer.powerLine.split('. ').filter(Boolean), [flyer.powerLine]);
   const [trackId, setTrackId] = useState(profile?.tracks[0]?.id ?? '');
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const selectedTrack = profile?.tracks.find((t) => t.id === trackId) ?? profile?.tracks[0];
@@ -51,46 +54,59 @@ export function UniversalPremiumLeadMagnetLanding({
   if (!profile) return null;
 
   const cta = ctaOverride ?? profile.captureHeadline;
+  const { accentRgb } = theme.colors;
 
   return (
-    <div className={`lm-page lm-flyer-page min-h-screen pb-10 ${theme.meshClass}`}>
+    <div
+      className={`lm-page lm-flyer-page min-h-screen pb-10 ${theme.meshClass}`}
+      data-lm-theme={theme.id}
+      style={cssVars}
+    >
       <nav className="lm-nav sticky top-0 z-40">
         <div className="container mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
           <div className="flex items-center gap-3 min-w-0">
             <FinelyCredLogo size="sm" forceLight />
-            <LeadMagnetNavUrgency config={config} accentRgb="249,115,22" />
+            <LeadMagnetNavUrgency config={config} accentRgb={accentRgb} />
           </div>
-          <button type="button" onClick={onGoForm} className="lm-cta-finely shrink-0">
+          <button type="button" onClick={onGoForm} className="lm-cta-theme shrink-0">
             Get access <ArrowRight className="w-4 h-4" />
           </button>
         </div>
       </nav>
 
-      <header className="container mx-auto max-w-6xl px-4 sm:px-6 pt-6 pb-4">
-        <div className="lm-flyer-hero-card">
-          <div className="lm-flyer-hero-img-wrap">
-            <img src={heroImage} alt={theme.heroImageAlt} loading="eager" />
-            <div className="lm-flyer-hero-overlay" />
-          </div>
-          <div className="lm-flyer-hero-copy">
-            <p className="lm-flyer-category">{flyer.categoryLabel}</p>
-            <h1 className="lm-flyer-headline">
-              {headlineOverride ?? (
-                <>
-                  {flyer.powerLine.split('. ').filter(Boolean).map((line, i) => (
-                    <span key={line} className={i === 0 ? 'lm-text-finely-gradient' : ''}>
-                      {line}.
-                      {i < flyer.powerLine.split('. ').filter(Boolean).length - 1 ? <br /> : null}
-                    </span>
-                  ))}
-                </>
-              )}
-            </h1>
-            <div className="lm-flyer-pill">{config.urgencyText}</div>
-            <p className="lm-flyer-sub">
-              {config.heroHeadline} <strong className="text-orange-400">{config.heroHighlight}</strong> {config.heroSub}
-            </p>
-            <p className="lm-flyer-desc">{guide.desc}</p>
+      <header className="lm-flyer-hero-band">
+        <div className="lm-flyer-hero-band-img">
+          <img src={heroImage} alt={theme.heroImageAlt} loading="eager" />
+          <div className="lm-flyer-hero-band-overlay" />
+        </div>
+        <div className="container mx-auto max-w-6xl px-4 sm:px-6 relative z-[2]">
+          <div className="lm-flyer-hero-band-grid">
+            <div className="lm-flyer-hero-copy">
+              <p className="lm-flyer-category">{flyer.categoryLabel}</p>
+              <h1 className="lm-flyer-headline">
+                {headlineOverride ?? (
+                  <>
+                    {powerLines.map((line, i) => (
+                      <span key={line} className={i === 0 ? 'lm-text-theme-gradient' : ''}>
+                        {line}.
+                        {i < powerLines.length - 1 ? <br /> : null}
+                      </span>
+                    ))}
+                  </>
+                )}
+              </h1>
+              <div className="lm-flyer-pill">{config.urgencyText}</div>
+              <p className="lm-flyer-sub">
+                {config.heroHeadline}{' '}
+                <strong className="lm-flyer-highlight">{config.heroHighlight}</strong> {config.heroSub}
+              </p>
+              <p className="lm-flyer-desc">{guide.desc}</p>
+            </div>
+
+            <div className="lm-flyer-hero-thumb" aria-hidden>
+              <img src={heroImage} alt="" loading="lazy" />
+              <div className="lm-flyer-hero-thumb-overlay" />
+            </div>
           </div>
         </div>
       </header>
@@ -103,6 +119,7 @@ export function UniversalPremiumLeadMagnetLanding({
         totalValue={totalValue}
         videoPoster={videoPoster}
         benefitsTitle={flyer.benefitsTitle}
+        taglineBar={flyer.taglineBar}
         onGoForm={onGoForm}
       />
 
@@ -126,7 +143,7 @@ export function UniversalPremiumLeadMagnetLanding({
             <div className="lm-metrics-grid">
               {flyer.metrics.map((m) => (
                 <div key={m.label} className="lm-metric">
-                  <div className="lm-metric-value">{m.value}</div>
+                  <div className="lm-metric-value lm-metric-value-accent">{m.value}</div>
                   <div className="lm-metric-label">{m.label}</div>
                 </div>
               ))}
@@ -200,7 +217,7 @@ export function UniversalPremiumLeadMagnetLanding({
             <h2 className="lm-cta-banner-headline">{flyer.ctaBannerLine}</h2>
             <p className="lm-cta-banner-sub">{flyer.ctaBannerSub}</p>
           </div>
-          <button type="button" onClick={onGoForm} className="lm-cta-finely lm-cta-finely-lg">
+          <button type="button" onClick={onGoForm} className="lm-cta-theme lm-cta-theme-lg lm-cta-banner-btn">
             <Rocket className="w-5 h-5" />
             {cta}
             <ArrowRight className="w-5 h-5" />
@@ -246,7 +263,7 @@ export function UniversalPremiumLeadMagnetLanding({
 
       <footer className="container mx-auto max-w-6xl px-4 sm:px-6 mt-10 py-8 border-t border-white/10">
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 text-center">
-          <ShieldCheck className="w-10 h-10 text-amber-400/80" />
+          <ShieldCheck className="w-10 h-10 lm-footer-shield" />
           <div>
             <p className="text-sm font-semibold text-white/80">100% legit · Secure process · Dedicated support</p>
             <p className="text-xs text-white/40 mt-1">{config.trustCerts.join(' · ')}</p>

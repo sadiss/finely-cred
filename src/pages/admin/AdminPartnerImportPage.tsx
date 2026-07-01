@@ -120,7 +120,7 @@ export default function AdminPartnerImportPage() {
 
       // Build a flat map of basename → JSZip entry (skip directories)
       const fileMap = new Map<string, JSZip.JSZipObject>();
-      zip.forEach((relativePath, entry) => {
+      zip.forEach((relativePath: string, entry: JSZip.JSZipObject) => {
         if (entry.dir) return;
         const basename = relativePath.split('/').pop()!;
         fileMap.set(basename, entry);

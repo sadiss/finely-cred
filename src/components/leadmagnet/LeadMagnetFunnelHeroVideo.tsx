@@ -148,7 +148,7 @@ export function LeadMagnetFunnelHeroVideo({ config, theme, posterUrl, className 
         />
       ) : null}
       <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/10 to-black/30 pointer-events-none z-[1]" />
-      <div className="absolute top-3 left-3 z-[2] px-3 py-1.5 rounded-full border border-orange-400/40 text-[9px] font-bold uppercase tracking-wider text-orange-300 bg-black/50 backdrop-blur-md">
+      <div className="absolute top-3 left-3 z-[2] px-3 py-1.5 rounded-full border text-[9px] font-bold uppercase tracking-wider bg-black/50 backdrop-blur-md lm-video-badge">
         {label}
       </div>
       {videoSrc ? (

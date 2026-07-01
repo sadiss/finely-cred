@@ -66,8 +66,667 @@ export function FreeGuideFunnelStyles() {
     .lm-theme-agency,
     .lm-theme-specialist,
     .lm-theme-affiliate {
-      background: linear-gradient(180deg, #120a1f 0%, #0a0612 40%, #050308 100%);
+      background: linear-gradient(180deg, var(--lm-bg-from, #120a1f) 0%, var(--lm-bg-to, #050308) 55%, #030208 100%);
     }
+    .fg-funnel .lm-flyer-page {
+      position: relative;
+      color: #f8fafc;
+    }
+    .fg-funnel .lm-flyer-page::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background:
+        radial-gradient(ellipse 55% 40% at 12% 8%, rgba(var(--lm-mesh-a), 0.18) 0%, transparent 62%),
+        radial-gradient(ellipse 45% 35% at 88% 18%, rgba(var(--lm-mesh-b), 0.14) 0%, transparent 58%);
+      z-index: 0;
+    }
+    .fg-funnel .lm-flyer-page > * { position: relative; z-index: 1; }
+
+    .fg-funnel .lm-nav {
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      background: rgba(6,8,14,0.9);
+      backdrop-filter: blur(12px);
+    }
+    .fg-funnel .lm-nav-urgency {
+      display: block;
+      font-size: 11px;
+      margin-top: 2px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+    }
+
+    .fg-funnel .lm-text-theme-gradient {
+      background: linear-gradient(135deg, var(--lm-grad-from) 0%, var(--lm-grad-mid) 45%, var(--lm-grad-to) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .fg-funnel .lm-cta-theme,
+    .fg-funnel .lm-cta-finely {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 0.65rem 1.25rem;
+      border-radius: 9999px;
+      font-size: 0.8125rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #0a0612;
+      background: linear-gradient(135deg, var(--lm-accent), var(--lm-accent-2));
+      border: 2px solid rgba(0,0,0,0.85);
+      box-shadow: 0 4px 24px rgba(var(--lm-accent-rgb), 0.4);
+      transition: transform 0.2s ease, filter 0.2s ease;
+    }
+    .fg-funnel .lm-cta-theme:hover,
+    .fg-funnel .lm-cta-finely:hover { transform: translateY(-1px); filter: brightness(1.06); }
+    .fg-funnel .lm-cta-theme-lg,
+    .fg-funnel .lm-cta-finely-lg { padding: 0.85rem 1.5rem; font-size: 0.875rem; }
+    .fg-funnel .lm-cta-banner-btn {
+      background: #0a0612 !important;
+      color: #fff !important;
+      border-color: rgba(255,255,255,0.15) !important;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.35) !important;
+    }
+
+    /* Flyer hero band — atmospheric image, copy-forward */
+    .fg-funnel .lm-flyer-hero-band {
+      position: relative;
+      padding: 1.5rem 0 2rem;
+      overflow: hidden;
+    }
+    .fg-funnel .lm-flyer-hero-band-img {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+    }
+    .fg-funnel .lm-flyer-hero-band-img img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center 30%;
+      opacity: 0.35;
+      filter: saturate(0.85);
+    }
+    .fg-funnel .lm-flyer-hero-band-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(105deg, var(--lm-overlay-from) 0%, rgba(6,8,14,0.92) 48%, var(--lm-overlay-to) 100%);
+    }
+    .fg-funnel .lm-flyer-hero-band-grid {
+      display: grid;
+      gap: 1.25rem;
+      align-items: center;
+    }
+    @media (min-width: 900px) {
+      .fg-funnel .lm-flyer-hero-band-grid {
+        grid-template-columns: minmax(0, 1fr) minmax(140px, 200px);
+      }
+    }
+    .fg-funnel .lm-flyer-hero-thumb {
+      display: none;
+      position: relative;
+      border-radius: 12px;
+      overflow: hidden;
+      aspect-ratio: 4/3;
+      border: 1px solid rgba(255,255,255,0.12);
+      opacity: 0.55;
+    }
+    @media (min-width: 900px) {
+      .fg-funnel .lm-flyer-hero-thumb { display: block; }
+    }
+    .fg-funnel .lm-flyer-hero-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .fg-funnel .lm-flyer-hero-thumb-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, transparent, rgba(0,0,0,0.55));
+    }
+    .fg-funnel .lm-flyer-hero-copy { max-width: 42rem; }
+    .fg-funnel .lm-flyer-category {
+      font-size: 0.8125rem;
+      font-weight: 800;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--lm-accent);
+      margin-bottom: 0.75rem;
+    }
+    .fg-funnel .lm-flyer-headline {
+      font-size: clamp(2rem, 5.5vw, 3.25rem);
+      font-weight: 900;
+      font-style: italic;
+      line-height: 1.02;
+      letter-spacing: -0.02em;
+      text-transform: uppercase;
+      color: #fff;
+    }
+    .fg-funnel .lm-flyer-pill {
+      display: inline-block;
+      margin-top: 1.1rem;
+      padding: 0.55rem 1.1rem;
+      border-radius: 9999px;
+      background: rgba(0,0,0,0.55);
+      border: 1px solid rgba(var(--lm-accent-rgb), 0.55);
+      color: var(--lm-accent);
+      font-size: 0.75rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .fg-funnel .lm-flyer-sub {
+      margin-top: 1.1rem;
+      font-size: clamp(1.125rem, 2.2vw, 1.375rem);
+      font-weight: 600;
+      line-height: 1.4;
+      color: rgba(255,255,255,0.9);
+    }
+    .fg-funnel .lm-flyer-highlight { color: var(--lm-accent); }
+    .fg-funnel .lm-flyer-desc {
+      margin-top: 0.85rem;
+      font-size: 1rem;
+      line-height: 1.65;
+      color: rgba(255,255,255,0.52);
+      max-width: 38rem;
+    }
+
+    /* Flyer tagline strip */
+    .fg-funnel .lm-flyer-tagline-bar {
+      margin: 0.5rem 0 1.25rem;
+      padding: 0.85rem 1.25rem;
+      text-align: center;
+      font-size: clamp(0.75rem, 2vw, 0.9375rem);
+      font-weight: 900;
+      font-style: italic;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: #fff;
+      background: #000;
+      border-top: 2px solid rgba(var(--lm-accent-rgb), 0.5);
+      border-bottom: 2px solid rgba(var(--lm-accent-rgb), 0.5);
+    }
+
+    /* Product stage — video spotlight + ebook overlap + benefits */
+    .fg-funnel .lm-showcase-section { margin-top: 0.25rem; }
+    .fg-funnel .lm-flyer-stage {
+      position: relative;
+      display: grid;
+      gap: 1rem;
+      min-height: 280px;
+    }
+    @media (min-width: 900px) {
+      .fg-funnel .lm-flyer-stage {
+        grid-template-columns: minmax(0, 1fr) minmax(260px, 320px);
+        grid-template-rows: auto auto;
+        gap: 1.25rem 1.5rem;
+        align-items: start;
+        min-height: 340px;
+        padding-bottom: 0.5rem;
+      }
+    }
+    .fg-funnel .lm-flyer-stage-video {
+      position: relative;
+      z-index: 3;
+      order: 1;
+    }
+    @media (min-width: 900px) {
+      .fg-funnel .lm-flyer-stage-video {
+        grid-column: 1;
+        grid-row: 1 / span 2;
+        padding-left: clamp(100px, 18%, 200px);
+      }
+    }
+    .fg-funnel .lm-video-spotlight-ring {
+      position: absolute;
+      inset: -8px -12px -16px -8px;
+      border-radius: 20px;
+      background: radial-gradient(ellipse at 50% 40%, rgba(var(--lm-accent-rgb), 0.35) 0%, transparent 68%);
+      filter: blur(18px);
+      z-index: 0;
+      pointer-events: none;
+    }
+    .fg-funnel .lm-video-card {
+      position: relative;
+      z-index: 1;
+      border-radius: 14px;
+      overflow: hidden;
+      background: #000;
+    }
+    .fg-funnel .lm-video-card-featured {
+      border: 3px solid rgba(var(--lm-accent-rgb), 0.65);
+      box-shadow:
+        0 0 0 1px rgba(255,255,255,0.08),
+        0 24px 64px rgba(0,0,0,0.55),
+        0 0 48px rgba(var(--lm-accent-rgb), 0.22);
+    }
+    .fg-funnel .lm-video-card-inner { aspect-ratio: 16 / 9; width: 100%; }
+    .fg-funnel .lm-video-card-featured-inner {
+      min-height: 200px;
+      max-height: none;
+    }
+    @media (min-width: 900px) {
+      .fg-funnel .lm-video-card-featured-inner { min-height: 300px; }
+    }
+    .fg-funnel .lm-video-glow {
+      background: radial-gradient(circle at 30% 30%, rgba(var(--lm-accent-rgb), 0.35), transparent 60%);
+    }
+    .fg-funnel .lm-video-placeholder {
+      background-size: cover;
+      background-position: center;
+      width: 100%;
+      height: 100%;
+      min-height: 200px;
+      border: none;
+      cursor: pointer;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .fg-funnel .lm-video-placeholder-veil {
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.38);
+    }
+    .fg-funnel .lm-video-play-ring {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 4.5rem;
+      height: 4.5rem;
+      border-radius: 50%;
+      border: 3px solid rgba(var(--lm-accent-rgb), 0.7);
+      background: rgba(0,0,0,0.6);
+      box-shadow: 0 0 32px rgba(var(--lm-accent-rgb), 0.35);
+    }
+    .fg-funnel .lm-video-badge {
+      border-color: rgba(var(--lm-accent-rgb), 0.45);
+      color: var(--lm-accent);
+    }
+
+    .fg-funnel .lm-flyer-stage-ebook {
+      position: relative;
+      z-index: 5;
+      order: 2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-top: -2rem;
+    }
+    @media (min-width: 900px) {
+      .fg-funnel .lm-flyer-stage-ebook {
+        position: absolute;
+        left: 0;
+        bottom: 1.5rem;
+        margin-top: 0;
+        align-items: flex-start;
+        width: clamp(168px, 22%, 240px);
+      }
+    }
+    .fg-funnel .lm-ebook-hero-wrap.is-stage {
+      transform: rotate(-6deg);
+      transform-origin: center bottom;
+    }
+    @media (min-width: 900px) {
+      .fg-funnel .lm-ebook-hero-wrap.is-stage {
+        transform: rotate(-8deg) translateY(8px);
+      }
+      .fg-funnel .lm-ebook-hero-wrap.is-stage:hover {
+        transform: rotate(-5deg) translateY(4px);
+        transition: transform 0.3s ease;
+      }
+    }
+    .fg-funnel .lm-ebook-hero-wrap.is-hero .lm-ebook-gradient-ring {
+      position: absolute;
+      inset: -14px -18px;
+      border-radius: 20px;
+      background: linear-gradient(135deg, rgba(var(--lm-accent-rgb), 0.4), rgba(var(--lm-accent-2-rgb), 0.35));
+      filter: blur(22px);
+      z-index: 0;
+    }
+    .fg-funnel .lm-ebook-book {
+      position: relative;
+      z-index: 1;
+      filter: drop-shadow(0 32px 56px rgba(0,0,0,0.65)) drop-shadow(0 0 28px rgba(var(--lm-accent-rgb), 0.25));
+    }
+    .fg-funnel .lm-ebook-free-label { color: var(--lm-accent); }
+    .fg-funnel .lm-ebook-ribbon {
+      margin-top: 0.85rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.15rem;
+    }
+    .fg-funnel .lm-showcase-guide-title {
+      margin-top: 0.65rem;
+      font-size: 0.8125rem;
+      font-weight: 700;
+      color: rgba(255,255,255,0.72);
+      text-align: center;
+      line-height: 1.35;
+    }
+    @media (min-width: 900px) {
+      .fg-funnel .lm-showcase-guide-title { text-align: left; }
+    }
+
+    .fg-funnel .lm-benefits-box {
+      padding: 1rem 1.25rem;
+      border-radius: 12px;
+      background: rgba(0,0,0,0.72);
+      border: 2px solid rgba(var(--lm-accent-rgb), 0.5);
+      backdrop-filter: blur(8px);
+    }
+    .fg-funnel .lm-benefits-box-flyer {
+      order: 3;
+      z-index: 2;
+    }
+    @media (min-width: 900px) {
+      .fg-funnel .lm-benefits-box-flyer {
+        grid-column: 2;
+        grid-row: 1 / span 2;
+        align-self: stretch;
+      }
+    }
+    .fg-funnel .lm-benefits-box-title {
+      font-size: 0.875rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--lm-accent);
+      margin-bottom: 0.85rem;
+    }
+    .fg-funnel .lm-benefits-check { color: var(--lm-accent); }
+    .fg-funnel .lm-benefits-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0.55rem;
+    }
+    .fg-funnel .lm-benefits-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.5rem;
+      font-size: 0.9375rem;
+      color: rgba(255,255,255,0.86);
+      line-height: 1.4;
+    }
+
+    .fg-funnel .lm-flyer-section-title {
+      font-size: clamp(1.25rem, 2.8vw, 1.75rem);
+      font-weight: 900;
+      font-style: italic;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--lm-accent);
+    }
+
+    .fg-funnel .lm-process-rail {
+      display: flex;
+      gap: 0.5rem;
+      overflow-x: auto;
+      padding: 1rem 0 0.5rem;
+      scroll-snap-type: x mandatory;
+    }
+    .fg-funnel .lm-process-step {
+      position: relative;
+      flex: 0 0 min(130px, 30vw);
+      scroll-snap-align: start;
+      text-align: center;
+    }
+    .fg-funnel .lm-process-icon {
+      width: 3.75rem;
+      height: 3.75rem;
+      margin: 0 auto;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      font-weight: 900;
+      color: #fff;
+      background: linear-gradient(135deg, var(--lm-accent-2), var(--lm-accent));
+      border: 2px solid rgba(255,255,255,0.2);
+    }
+    .fg-funnel .lm-process-label {
+      margin-top: 0.55rem;
+      font-size: 0.6875rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: rgba(255,255,255,0.78);
+    }
+
+    .fg-funnel .lm-dual-panel {
+      display: grid;
+      gap: 1rem;
+    }
+    @media (min-width: 768px) {
+      .fg-funnel .lm-dual-panel { grid-template-columns: 1fr 1.2fr; }
+    }
+    .fg-funnel .lm-results-panel {
+      padding: 1.35rem;
+      border-radius: 12px;
+      background: linear-gradient(135deg, rgba(var(--lm-accent-2-rgb), 0.22), rgba(var(--lm-accent-rgb), 0.08));
+      border: 1px solid rgba(var(--lm-accent-rgb), 0.35);
+    }
+    .fg-funnel .lm-access-panel {
+      padding: 1.35rem;
+      border-radius: 12px;
+      background: #000;
+      border: 2px solid rgba(var(--lm-accent-rgb), 0.45);
+    }
+    .fg-funnel .lm-panel-title {
+      font-size: 0.875rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--lm-accent-2);
+      margin-bottom: 1rem;
+    }
+    .fg-funnel .lm-panel-title-light { color: var(--lm-accent); }
+    .fg-funnel .lm-metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.75rem;
+    }
+    .fg-funnel .lm-metric-value {
+      font-size: clamp(1.35rem, 3vw, 1.75rem);
+      font-weight: 900;
+      color: #fff;
+    }
+    .fg-funnel .lm-metric-value-accent { color: var(--lm-accent); }
+    .fg-funnel .lm-metric-label {
+      font-size: 0.625rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: rgba(255,255,255,0.5);
+      margin-top: 0.25rem;
+    }
+    .fg-funnel .lm-access-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.75rem;
+    }
+    .fg-funnel .lm-access-item { text-align: center; padding: 0.75rem 0.5rem; }
+    .fg-funnel .lm-access-icon {
+      width: 2.5rem;
+      height: 2.5rem;
+      margin: 0 auto 0.5rem;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--lm-accent-2), var(--lm-accent));
+    }
+    .fg-funnel .lm-access-title {
+      font-size: 0.75rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      color: #fff;
+    }
+    .fg-funnel .lm-access-desc {
+      font-size: 0.6875rem;
+      color: rgba(255,255,255,0.45);
+      margin-top: 0.25rem;
+      line-height: 1.35;
+    }
+
+    .fg-funnel .lm-foundation-row {
+      display: grid;
+      gap: 1rem;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      margin-top: 1rem;
+    }
+    .fg-funnel .lm-foundation-item { text-align: center; }
+    .fg-funnel .lm-foundation-icon {
+      width: 3rem;
+      height: 3rem;
+      margin: 0 auto 0.5rem;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--lm-accent), var(--lm-accent-2));
+      border: 2px solid rgba(255,255,255,0.15);
+    }
+    .fg-funnel .lm-foundation-title {
+      font-size: 0.8125rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      color: #fff;
+    }
+    .fg-funnel .lm-foundation-desc {
+      font-size: 0.75rem;
+      color: rgba(255,255,255,0.45);
+      margin-top: 0.35rem;
+      line-height: 1.4;
+    }
+
+    .fg-funnel .lm-kit-grid {
+      list-style: none;
+      margin: 1rem 0 0;
+      padding: 0;
+      display: grid;
+      gap: 0;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+    @media (min-width: 640px) {
+      .fg-funnel .lm-kit-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    .fg-funnel .lm-kit-grid li {
+      display: flex;
+      gap: 0.75rem;
+      padding: 1rem 1.25rem;
+      background: rgba(255,255,255,0.03);
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    .fg-funnel .lm-kit-num {
+      font-size: 1.25rem;
+      font-weight: 900;
+      color: rgba(var(--lm-accent-rgb), 0.55);
+    }
+    .fg-funnel .lm-kit-title {
+      font-size: 0.9375rem;
+      font-weight: 700;
+      color: #fff;
+    }
+    .fg-funnel .lm-kit-desc {
+      font-size: 0.8125rem;
+      color: rgba(255,255,255,0.45);
+      margin-top: 0.2rem;
+    }
+
+    .fg-funnel .lm-track-chip {
+      padding: 0.5rem 1rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      border: 1px solid rgba(255,255,255,0.15);
+      color: rgba(255,255,255,0.5);
+      background: transparent;
+      transition: all 0.15s ease;
+    }
+    .fg-funnel .lm-track-chip.is-active {
+      border-color: var(--lm-accent);
+      color: #fff;
+      background: linear-gradient(135deg, rgba(var(--lm-accent-2-rgb), 0.35), rgba(var(--lm-accent-rgb), 0.25));
+    }
+
+    .fg-funnel .lm-cta-banner {
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+      align-items: flex-start;
+      padding: 1.75rem 2rem;
+      border-radius: 16px;
+      background: linear-gradient(135deg, var(--lm-accent) 0%, var(--lm-accent-2) 55%, var(--lm-grad-to) 100%);
+      border: 2px solid #0a0612;
+      box-shadow: 0 20px 60px rgba(var(--lm-accent-rgb), 0.28);
+    }
+    @media (min-width: 768px) {
+      .fg-funnel .lm-cta-banner {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+      }
+    }
+    .fg-funnel .lm-cta-banner-headline {
+      font-size: clamp(1.35rem, 3.2vw, 2rem);
+      font-weight: 900;
+      font-style: italic;
+      text-transform: uppercase;
+      color: #0a0612;
+      line-height: 1.08;
+    }
+    .fg-funnel .lm-cta-banner-sub {
+      margin-top: 0.5rem;
+      font-size: 1rem;
+      font-weight: 600;
+      color: rgba(10,6,18,0.78);
+    }
+
+    .fg-funnel .lm-capture-card {
+      padding: 1.5rem;
+      border-radius: 16px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(var(--lm-accent-rgb), 0.3);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+    }
+    .fg-funnel .lm-faq-item { border-bottom: 1px solid rgba(255,255,255,0.08); }
+    .fg-funnel .lm-faq-trigger {
+      display: flex;
+      width: 100%;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      padding: 1rem 0;
+      text-align: left;
+      font-size: 0.9375rem;
+      font-weight: 600;
+      color: rgba(255,255,255,0.9);
+    }
+    .fg-funnel .lm-faq-answer {
+      padding-bottom: 1rem;
+      font-size: 0.875rem;
+      color: rgba(255,255,255,0.5);
+      line-height: 1.55;
+    }
+    .fg-funnel .lm-footer-shield { color: var(--lm-accent); }
+
+    .fg-funnel .lm-text-finely-gradient {
+      background: linear-gradient(135deg, var(--lm-grad-from) 0%, var(--lm-grad-mid) 45%, var(--lm-grad-to) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
     .fg-funnel .bg-mesh {
       position: relative;
       background-color: var(--bg-dark);
@@ -556,534 +1215,6 @@ export function FreeGuideFunnelStyles() {
       border-color: rgba(52, 211, 153, 0.35);
       background: rgba(16, 185, 129, 0.14);
       color: #a7f3d0;
-    }
-
-    /* ── Finely flyer lead magnets ── */
-    .fg-funnel .lm-flyer-page { color: #f8fafc; }
-    .fg-funnel .lm-nav {
-      border-bottom: 1px solid rgba(255,255,255,0.08);
-      background: rgba(10,6,18,0.92);
-      backdrop-filter: blur(12px);
-    }
-    .fg-funnel .lm-nav-urgency {
-      display: block;
-      font-size: 11px;
-      color: rgba(249,115,22,0.85);
-      margin-top: 2px;
-    }
-
-    .fg-funnel .lm-text-finely-gradient {
-      background: linear-gradient(135deg, #f97316 0%, #fb923c 35%, #c084fc 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-
-    .fg-funnel .lm-cta-finely {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.5rem;
-      padding: 0.65rem 1.25rem;
-      border-radius: 9999px;
-      font-size: 0.8125rem;
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      color: #0a0612;
-      background: linear-gradient(135deg, #f97316, #fb923c);
-      border: 2px solid #0a0612;
-      box-shadow: 0 4px 20px rgba(249,115,22,0.35);
-      transition: transform 0.2s ease, filter 0.2s ease;
-    }
-    .fg-funnel .lm-cta-finely:hover { transform: translateY(-1px); filter: brightness(1.05); }
-    .fg-funnel .lm-cta-finely-lg {
-      padding: 0.85rem 1.5rem;
-      font-size: 0.875rem;
-    }
-
-    .fg-funnel .lm-flyer-hero-card {
-      display: grid;
-      gap: 1.25rem;
-      border-radius: 16px;
-      overflow: hidden;
-      border: 1px solid rgba(255,255,255,0.1);
-      background: #0a0612;
-      box-shadow: 0 24px 80px rgba(0,0,0,0.45);
-    }
-    @media (min-width: 768px) {
-      .fg-funnel .lm-flyer-hero-card {
-        grid-template-columns: minmax(0, 42%) minmax(0, 1fr);
-        align-items: stretch;
-      }
-    }
-    .fg-funnel .lm-flyer-hero-img-wrap {
-      position: relative;
-      min-height: 200px;
-      max-height: 280px;
-    }
-    @media (min-width: 768px) {
-      .fg-funnel .lm-flyer-hero-img-wrap {
-        min-height: 100%;
-        max-height: none;
-      }
-    }
-    .fg-funnel .lm-flyer-hero-img-wrap img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      object-position: center 25%;
-    }
-    .fg-funnel .lm-flyer-hero-overlay {
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(135deg, rgba(76,29,149,0.55) 0%, rgba(10,6,18,0.75) 55%, rgba(249,115,22,0.25) 100%);
-    }
-    .fg-funnel .lm-flyer-hero-copy {
-      padding: 1.25rem 1.5rem 1.5rem;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-    }
-    @media (min-width: 768px) {
-      .fg-funnel .lm-flyer-hero-copy { padding: 2rem 2.25rem; }
-    }
-    .fg-funnel .lm-flyer-category {
-      font-size: 0.75rem;
-      font-weight: 800;
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-      color: #c084fc;
-      margin-bottom: 0.75rem;
-    }
-    .fg-funnel .lm-flyer-headline {
-      font-size: clamp(1.75rem, 4.5vw, 2.75rem);
-      font-weight: 900;
-      font-style: italic;
-      line-height: 1.05;
-      letter-spacing: -0.02em;
-      text-transform: uppercase;
-      color: #fff;
-    }
-    .fg-funnel .lm-flyer-pill {
-      display: inline-block;
-      margin-top: 1rem;
-      padding: 0.5rem 1rem;
-      border-radius: 9999px;
-      background: #0a0612;
-      border: 1px solid rgba(249,115,22,0.5);
-      color: #fb923c;
-      font-size: 0.6875rem;
-      font-weight: 800;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      max-width: 100%;
-    }
-    .fg-funnel .lm-flyer-sub {
-      margin-top: 1rem;
-      font-size: 1.125rem;
-      font-weight: 600;
-      line-height: 1.4;
-      color: rgba(255,255,255,0.88);
-    }
-    .fg-funnel .lm-flyer-desc {
-      margin-top: 0.75rem;
-      font-size: 0.9375rem;
-      line-height: 1.6;
-      color: rgba(255,255,255,0.5);
-    }
-
-    .fg-funnel .lm-showcase-section { margin-top: 0.5rem; }
-    .fg-funnel .lm-showcase-grid {
-      display: grid;
-      gap: 1.5rem;
-      align-items: center;
-    }
-    @media (min-width: 900px) {
-      .fg-funnel .lm-showcase-grid {
-        grid-template-columns: minmax(240px, 300px) minmax(0, 1fr);
-        gap: 2rem;
-      }
-    }
-    .fg-funnel .lm-showcase-ebook {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      text-align: center;
-    }
-    .fg-funnel .lm-showcase-guide-title {
-      margin-top: 1rem;
-      font-size: 0.9375rem;
-      font-weight: 600;
-      color: rgba(255,255,255,0.75);
-      max-width: 260px;
-    }
-    .fg-funnel .lm-ebook-hero-wrap {
-      position: relative;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-    .fg-funnel .lm-ebook-hero-wrap.is-hero .lm-ebook-gradient-ring {
-      position: absolute;
-      inset: -12px -16px;
-      border-radius: 20px;
-      background: linear-gradient(135deg, rgba(249,115,22,0.35), rgba(168,85,247,0.35));
-      filter: blur(20px);
-      z-index: 0;
-    }
-    .fg-funnel .lm-ebook-book {
-      position: relative;
-      z-index: 1;
-      filter: drop-shadow(0 28px 48px rgba(0,0,0,0.55));
-    }
-    .fg-funnel .lm-ebook-ribbon {
-      margin-top: 1rem;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 0.15rem;
-    }
-
-    .fg-funnel .lm-video-card {
-      border-radius: 12px;
-      overflow: hidden;
-      border: 2px solid rgba(168,85,247,0.35);
-      background: #000;
-      box-shadow: 0 16px 48px rgba(0,0,0,0.4);
-    }
-    .fg-funnel .lm-video-card-inner {
-      aspect-ratio: 16 / 10;
-      max-height: 220px;
-    }
-    @media (min-width: 900px) {
-      .fg-funnel .lm-video-card-inner { max-height: 260px; }
-    }
-    .fg-funnel .lm-video-glow {
-      background: radial-gradient(circle at 30% 30%, rgba(168,85,247,0.3), transparent 60%);
-    }
-    .fg-funnel .lm-video-placeholder {
-      background-size: cover;
-      background-position: center;
-      width: 100%;
-      height: 100%;
-      min-height: 180px;
-      border: none;
-      cursor: pointer;
-    }
-    .fg-funnel .lm-video-placeholder-veil {
-      position: absolute;
-      inset: 0;
-      background: rgba(0,0,0,0.4);
-    }
-    .fg-funnel .lm-video-play-ring {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 4rem;
-      height: 4rem;
-      border-radius: 50%;
-      border: 2px solid rgba(255,255,255,0.4);
-      background: rgba(0,0,0,0.55);
-    }
-
-    .fg-funnel .lm-benefits-box {
-      margin-top: 1rem;
-      padding: 1rem 1.25rem;
-      border-radius: 12px;
-      background: #0a0612;
-      border: 2px solid rgba(249,115,22,0.45);
-    }
-    .fg-funnel .lm-benefits-box-title {
-      font-size: 0.8125rem;
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: #fb923c;
-      margin-bottom: 0.75rem;
-    }
-    .fg-funnel .lm-benefits-list {
-      list-style: none;
-      margin: 0;
-      padding: 0;
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
-    }
-    .fg-funnel .lm-benefits-list li {
-      display: flex;
-      align-items: flex-start;
-      gap: 0.5rem;
-      font-size: 0.875rem;
-      color: rgba(255,255,255,0.82);
-      line-height: 1.4;
-    }
-
-    .fg-funnel .lm-flyer-section-title {
-      font-size: clamp(1.125rem, 2.5vw, 1.5rem);
-      font-weight: 900;
-      font-style: italic;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-      color: #a855f7;
-    }
-
-    .fg-funnel .lm-process-rail {
-      display: flex;
-      gap: 0.5rem;
-      overflow-x: auto;
-      padding: 1rem 0 0.5rem;
-      scroll-snap-type: x mandatory;
-    }
-    .fg-funnel .lm-process-step {
-      position: relative;
-      flex: 0 0 min(120px, 28vw);
-      scroll-snap-align: start;
-      text-align: center;
-    }
-    .fg-funnel .lm-process-icon {
-      width: 3.5rem;
-      height: 3.5rem;
-      margin: 0 auto;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 0.75rem;
-      font-weight: 900;
-      color: #fff;
-      background: linear-gradient(135deg, #7c3aed, #f97316);
-      border: 2px solid rgba(255,255,255,0.2);
-    }
-    .fg-funnel .lm-process-label {
-      margin-top: 0.5rem;
-      font-size: 0.6875rem;
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      color: rgba(255,255,255,0.75);
-    }
-    .fg-funnel .lm-process-arrow {
-      display: none;
-    }
-
-    .fg-funnel .lm-dual-panel {
-      display: grid;
-      gap: 1rem;
-    }
-    @media (min-width: 768px) {
-      .fg-funnel .lm-dual-panel { grid-template-columns: 1fr 1.2fr; }
-    }
-    .fg-funnel .lm-results-panel {
-      padding: 1.25rem;
-      border-radius: 12px;
-      background: linear-gradient(135deg, rgba(124,58,237,0.25), rgba(76,29,149,0.15));
-      border: 1px solid rgba(168,85,247,0.3);
-    }
-    .fg-funnel .lm-access-panel {
-      padding: 1.25rem;
-      border-radius: 12px;
-      background: #0a0612;
-      border: 2px solid rgba(249,115,22,0.35);
-    }
-    .fg-funnel .lm-panel-title {
-      font-size: 0.8125rem;
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-      color: #c084fc;
-      margin-bottom: 1rem;
-    }
-    .fg-funnel .lm-panel-title-light { color: #fb923c; }
-    .fg-funnel .lm-metrics-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 0.75rem;
-    }
-    .fg-funnel .lm-metric-value {
-      font-size: 1.5rem;
-      font-weight: 900;
-      color: #fff;
-    }
-    .fg-funnel .lm-metric-label {
-      font-size: 0.625rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      color: rgba(255,255,255,0.5);
-      margin-top: 0.25rem;
-    }
-    .fg-funnel .lm-access-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 0.75rem;
-    }
-    .fg-funnel .lm-access-item {
-      text-align: center;
-      padding: 0.75rem 0.5rem;
-    }
-    .fg-funnel .lm-access-icon {
-      width: 2.5rem;
-      height: 2.5rem;
-      margin: 0 auto 0.5rem;
-      border-radius: 50%;
-      background: linear-gradient(135deg, #7c3aed, #f97316);
-    }
-    .fg-funnel .lm-access-title {
-      font-size: 0.75rem;
-      font-weight: 800;
-      text-transform: uppercase;
-      color: #fff;
-    }
-    .fg-funnel .lm-access-desc {
-      font-size: 0.6875rem;
-      color: rgba(255,255,255,0.45);
-      margin-top: 0.25rem;
-      line-height: 1.35;
-    }
-
-    .fg-funnel .lm-foundation-row {
-      display: grid;
-      gap: 1rem;
-      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-      margin-top: 1rem;
-    }
-    .fg-funnel .lm-foundation-item { text-align: center; }
-    .fg-funnel .lm-foundation-icon {
-      width: 3rem;
-      height: 3rem;
-      margin: 0 auto 0.5rem;
-      border-radius: 50%;
-      background: linear-gradient(135deg, #a855f7, #f97316);
-      border: 2px solid rgba(255,255,255,0.15);
-    }
-    .fg-funnel .lm-foundation-title {
-      font-size: 0.8125rem;
-      font-weight: 800;
-      text-transform: uppercase;
-      color: #fff;
-    }
-    .fg-funnel .lm-foundation-desc {
-      font-size: 0.75rem;
-      color: rgba(255,255,255,0.45);
-      margin-top: 0.35rem;
-      line-height: 1.4;
-    }
-
-    .fg-funnel .lm-kit-grid {
-      list-style: none;
-      margin: 1rem 0 0;
-      padding: 0;
-      display: grid;
-      gap: 0;
-      border-radius: 12px;
-      overflow: hidden;
-      border: 1px solid rgba(255,255,255,0.08);
-    }
-    @media (min-width: 640px) {
-      .fg-funnel .lm-kit-grid { grid-template-columns: repeat(2, 1fr); }
-    }
-    .fg-funnel .lm-kit-grid li {
-      display: flex;
-      gap: 0.75rem;
-      padding: 1rem 1.25rem;
-      background: rgba(255,255,255,0.03);
-      border-bottom: 1px solid rgba(255,255,255,0.06);
-    }
-    .fg-funnel .lm-kit-num {
-      font-size: 1.25rem;
-      font-weight: 900;
-      color: rgba(168,85,247,0.6);
-    }
-    .fg-funnel .lm-kit-title {
-      font-size: 0.9375rem;
-      font-weight: 700;
-      color: #fff;
-    }
-    .fg-funnel .lm-kit-desc {
-      font-size: 0.8125rem;
-      color: rgba(255,255,255,0.45);
-      margin-top: 0.2rem;
-    }
-
-    .fg-funnel .lm-track-chip {
-      padding: 0.5rem 1rem;
-      border-radius: 9999px;
-      font-size: 0.75rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      border: 1px solid rgba(255,255,255,0.15);
-      color: rgba(255,255,255,0.5);
-      background: transparent;
-      transition: all 0.15s ease;
-    }
-    .fg-funnel .lm-track-chip.is-active {
-      border-color: #f97316;
-      color: #fff;
-      background: linear-gradient(135deg, rgba(124,58,237,0.4), rgba(249,115,22,0.3));
-    }
-
-    .fg-funnel .lm-cta-banner {
-      display: flex;
-      flex-direction: column;
-      gap: 1.25rem;
-      align-items: flex-start;
-      padding: 1.5rem 1.75rem;
-      border-radius: 16px;
-      background: linear-gradient(135deg, #f97316 0%, #ea580c 40%, #7c3aed 100%);
-      border: 2px solid #0a0612;
-      box-shadow: 0 20px 60px rgba(249,115,22,0.25);
-    }
-    @media (min-width: 768px) {
-      .fg-funnel .lm-cta-banner {
-        flex-direction: row;
-        align-items: center;
-        justify-content: space-between;
-      }
-    }
-    .fg-funnel .lm-cta-banner-headline {
-      font-size: clamp(1.25rem, 3vw, 1.75rem);
-      font-weight: 900;
-      font-style: italic;
-      text-transform: uppercase;
-      color: #0a0612;
-      line-height: 1.1;
-    }
-    .fg-funnel .lm-cta-banner-sub {
-      margin-top: 0.5rem;
-      font-size: 0.9375rem;
-      font-weight: 600;
-      color: rgba(10,6,18,0.75);
-    }
-
-    .fg-funnel .lm-capture-card {
-      padding: 1.5rem;
-      border-radius: 16px;
-      background: rgba(255,255,255,0.04);
-      border: 1px solid rgba(168,85,247,0.25);
-      box-shadow: 0 20px 60px rgba(0,0,0,0.35);
-    }
-    .fg-funnel .lm-faq-item {
-      border-bottom: 1px solid rgba(255,255,255,0.08);
-    }
-    .fg-funnel .lm-faq-trigger {
-      display: flex;
-      width: 100%;
-      align-items: center;
-      justify-content: space-between;
-      gap: 1rem;
-      padding: 1rem 0;
-      text-align: left;
-      font-size: 0.9375rem;
-      font-weight: 600;
-      color: rgba(255,255,255,0.9);
-    }
-    .fg-funnel .lm-faq-answer {
-      padding-bottom: 1rem;
-      font-size: 0.875rem;
-      color: rgba(255,255,255,0.5);
-      line-height: 1.55;
     }
 `,
       }}
