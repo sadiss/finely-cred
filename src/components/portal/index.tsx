@@ -1364,6 +1364,7 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
   const [forgotEmail, setForgotEmail] = useState('');
+  const [lockedEmail, setLockedEmail] = useState(false);
   const [userData, setUserData] = useState(createDefaultOnboardingUserData);
   const onboardingScrollRef = useRef<HTMLDivElement | null>(null);
 
@@ -1460,6 +1461,14 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
     if (authParam === 'login' || authParam === 'signin') setAuthMode('login');
     if (authParam === 'signup' || authParam === 'register') setAuthMode('signup');
     if (authParam === 'forgot' || authParam === 'reset') setAuthMode('forgot');
+
+    // Invite link: pre-fill + lock the email field so the user can't change it.
+    const inviteEmail = (sp.get('email') || '').trim();
+    const isInvite = sp.get('invite') === '1';
+    if (inviteEmail && isInvite) {
+      setLockedEmail(true);
+      setUserData((prev) => ({ ...prev, email: inviteEmail }));
+    }
 
     if (packageId) {
       const pkg = getPackageById(packageId);
@@ -2112,6 +2121,7 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
             isBusy={authBusy}
             error={authError}
             isConfigured={auth.isConfigured}
+            lockedEmail={lockedEmail}
           />
         )}
         </OnboardingExperienceShell>

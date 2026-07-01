@@ -125,7 +125,9 @@ Deno.serve(async (req) => {
     linkError &&
     (/user not found/i.test(linkError.message) ||
       /no user found/i.test(linkError.message) ||
+      (linkError as any)?.status === 404 ||
       (linkError as any)?.status === 422 ||
+      (linkError as any)?.code === 'user_not_found' ||
       (linkError as any)?.code === 422);
 
   if (linkError && !isNoAccount) {
@@ -144,7 +146,7 @@ Deno.serve(async (req) => {
       },
     });
     return json(
-      { ok: false, sent: false, error: `generateLink failed: ${linkError.message} (status=${(linkError as any)?.status} code=${(linkError as any)?.code})` },
+      { ok: false, sent: false, error: 'Could not generate reset link. Please try again.' },
       { status: 500 },
     );
   }

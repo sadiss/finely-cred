@@ -18,11 +18,13 @@ export function ProfileAndAccountStep({
   isBusy = false,
   error,
   isConfigured = true,
+  lockedEmail = false,
 }: Omit<StepProps, 'next'> & {
   onSubmit: () => void;
   isBusy?: boolean;
   error?: string | null;
   isConfigured?: boolean;
+  lockedEmail?: boolean;
 }) {
   const role = data.role || 'client';
   const showMailing = role === 'client';
@@ -92,15 +94,22 @@ export function ProfileAndAccountStep({
             <Lock size={14} className="text-fuchsia-300" /> Login
           </div>
           <label className="block space-y-2">
-            <span className="text-[10px] uppercase tracking-widest text-white/40">Email</span>
+            <span className="text-[10px] uppercase tracking-widest text-white/40">
+              Email{lockedEmail ? <span className="ml-2 text-fuchsia-300/80">(pre-filled · cannot change)</span> : null}
+            </span>
             <div className="relative">
               <Mail size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30" />
               <input
                 type="email"
                 value={data.email || ''}
-                onChange={(e) => update({ email: e.target.value.trim() })}
+                onChange={lockedEmail ? undefined : (e) => update({ email: e.target.value.trim() })}
+                readOnly={lockedEmail}
                 placeholder="you@email.com"
-                className="w-full bg-fc-input border border-white/[0.08] rounded-xl pl-10 pr-4 py-3 text-white text-sm focus:outline-none focus:border-violet-500"
+                className={`w-full bg-fc-input border rounded-xl pl-10 pr-4 py-3 text-white text-sm focus:outline-none ${
+                  lockedEmail
+                    ? 'border-fuchsia-500/40 bg-fuchsia-500/10 cursor-not-allowed opacity-80'
+                    : 'border-white/[0.08] focus:border-violet-500'
+                }`}
                 autoComplete="email"
               />
             </div>
