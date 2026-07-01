@@ -42,6 +42,12 @@ const client = [
 const edge = [
   'SUPABASE_SERVICE_ROLE_KEY',
   'APP_BASE_URL',
+  'SMTP_HOST',
+  'SMTP_FROM_EMAIL',
+  'MAIL_API_ID',
+  'MAIL_API_KEY',
+  'SMS_API_ID',
+  'SMS_SENDER_ID',
   'SENDGRID_API_KEY',
   'TWILIO_AUTH_TOKEN',
   'STRIPE_SECRET_KEY',

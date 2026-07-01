@@ -80,7 +80,11 @@ export function AdminPartnerAccessPanel({ partner, userRole, onUpdated }: Props)
     setErr(null);
     setNotice(null);
     try {
-      const res = await auth.requestPasswordReset({ email, redirectTo: `${window.location.origin}/reset-password` });
+      const res = await auth.requestPasswordReset({
+        email,
+        userId: partner.claimedUserId,
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
       if (res.error) throw new Error(res.error);
       setNotice(`Password reset email sent to ${email}. They will set a new password via the secure link (valid ~1 hour). Works for admin, partner, affiliate, and all portal roles.`);
     } catch (e: unknown) {

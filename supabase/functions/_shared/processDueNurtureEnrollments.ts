@@ -1,5 +1,5 @@
 /** Process due nurture enrollments — dispatch email + advance steps (server cron). */
-import { sendServiceEmail } from './commsSendEmail.ts';
+import { isEmailDeliveryConfigured, sendServiceEmail } from './commsSendEmail.ts';
 import { getNurtureSequenceCatalog } from './nurtureSequencesCatalog.ts';
 import { buildNurtureStepEmail } from './nurtureStepEmailCopy.ts';
 
@@ -36,7 +36,7 @@ export async function processDueNurtureEnrollments(args: {
   const tenantId = args.tenantId ?? 'finely_cred';
   const now = new Date();
   const nowIso = now.toISOString();
-  const sendgridReady = Boolean((Deno.env.get('SENDGRID_API_KEY') || '').trim());
+  const emailReady = isEmailDeliveryConfigured();
 
   const { data } = await args.admin
     .from('nurture_enrollments')
@@ -79,7 +79,7 @@ export async function processDueNurtureEnrollments(args: {
 
     if (step.channel === 'email') {
       const toEmail = String(context.email ?? '').trim();
-      if (!toEmail || !sendgridReady) {
+      if (!toEmail || !emailReady) {
         emailsSkipped += 1;
       } else if (args.dryRun) {
         emailsSkipped += 1;

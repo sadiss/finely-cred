@@ -40,6 +40,7 @@ const LAUNCH_FUNCTIONS = [
   'send-email',
   'send-password-reset',
   'send-sms',
+  'comms-ping',
   'twilio-webhook',
   'mailer',
   'ai-gateway',

@@ -1,6 +1,6 @@
 import type { Partner } from '../domain/partners';
 import type { User } from '@supabase/supabase-js';
-import { getWelcomeEmailContent } from '../onboarding/welcomeMessage';
+import { getWelcomeConfig } from '../onboarding/welcomeMessage';
 import { sendEmail } from './commsDeliveryClient';
 import { isFeatureEnabled } from '../data/settingsRepo';
 import { isSupabaseConfigured } from './supabaseClient';
@@ -9,6 +9,8 @@ import { buildSignupWelcomeEmail, funnelIdForPartnerLane } from '../comms/signup
 import { resolveSequenceForLead, getNurtureSequence } from '../domain/nurtureSequences';
 import type { LeadCapture } from '../domain/leads';
 import { ensureDefaultEmailDomainsOnce, refreshDefaultEmailSignatureBranding } from '../data/emailDomainsRepo';
+import { renderTextTemplate } from '../utils/textTemplate';
+import { buildMessageContext } from '../comms/buildMessageContext';
 
 const WELCOME_SENT_KEY = 'finely.partnerWelcomeEmailSent';
 
@@ -49,60 +51,56 @@ export async function sendPartnerWelcomeEmail(args: {
   ensureDefaultEmailDomainsOnce();
   refreshDefaultEmailSignatureBranding();
 
-  const configured = getWelcomeEmailContent({ user: args.user, partner: args.partner });
-  let subject: string;
-  let text: string;
-  let html: string | undefined;
-  let emailDomainId: string | undefined;
+  const cfg = getWelcomeConfig();
+  if (cfg.sendWelcomeEmail === false) return { sent: false, reason: 'welcome_disabled' };
 
-  if (configured?.html || configured?.text) {
-    subject = configured.subject;
-    text = configured.text;
-    html = configured.html;
-  } else {
-    const laneFunnelId = funnelIdForPartnerLane(args.partner.lane);
-    const lead: LeadCapture = {
-      id: args.partner.id,
-      createdAt: new Date().toISOString(),
-      source: 'lead_magnet',
-      offer: 'portal_signup',
-      fullName: args.partner.profile.fullName || 'Partner',
-      email,
-      phone: args.partner.profile.phone || '',
-      funnelPath: '/onboarding',
-      consentToContact: true,
-      consentEmailMarketing: true,
-    };
-    const sequence =
-      getNurtureSequence(
-        args.partner.lane === 'au_tradelines'
-          ? 'seq_au_seller_onboard'
-          : args.partner.lane === 'affiliate'
-            ? 'seq_affiliate_funnel'
-            : args.partner.lane === 'agent'
-              ? 'seq_specialist_apply_funnel'
-              : 'seq_inbound_nurture',
-      ) ?? resolveSequenceForLead({ funnelPath: '/onboarding', offer: 'portal_signup' });
-    const portalPath =
-      args.partner.lane === 'affiliate'
-        ? '/affiliate/hub'
-        : args.partner.lane === 'agent'
-          ? '/agent/hub'
-          : args.partner.lane === 'au_tradelines'
-            ? '/au-seller/hub'
-            : '/portal/dashboard';
-    const built = buildSignupWelcomeEmail({
-      lead,
-      sequence,
-      guideTitle: 'your portal welcome kit',
-      overrideFunnelId: laneFunnelId,
-      portalPath,
-    });
-    subject = built.subject;
-    text = built.text;
-    html = built.html;
-    emailDomainId = built.emailDomainId;
-  }
+  const laneFunnelId = funnelIdForPartnerLane(args.partner.lane);
+  const lead: LeadCapture = {
+    id: args.partner.id,
+    createdAt: new Date().toISOString(),
+    source: 'lead_magnet',
+    offer: 'portal_signup',
+    fullName: args.partner.profile.fullName || 'Partner',
+    email,
+    phone: args.partner.profile.phone || '',
+    funnelPath: '/onboarding',
+    consentToContact: true,
+    consentEmailMarketing: true,
+  };
+  const sequence =
+    getNurtureSequence(
+      args.partner.lane === 'au_tradelines'
+        ? 'seq_au_seller_onboard'
+        : args.partner.lane === 'affiliate'
+          ? 'seq_affiliate_funnel'
+          : args.partner.lane === 'agent'
+            ? 'seq_specialist_apply_funnel'
+            : 'seq_inbound_nurture',
+    ) ?? resolveSequenceForLead({ funnelPath: '/onboarding', offer: 'portal_signup' });
+  const portalPath =
+    args.partner.lane === 'affiliate'
+      ? '/affiliate/hub'
+      : args.partner.lane === 'agent'
+        ? '/agent/hub'
+        : args.partner.lane === 'au_tradelines'
+          ? '/au-seller/hub'
+          : '/portal/dashboard';
+
+  const built = buildSignupWelcomeEmail({
+    lead,
+    sequence,
+    guideTitle: 'your portal welcome kit',
+    overrideFunnelId: laneFunnelId,
+    portalPath,
+  });
+
+  const ctx = buildMessageContext({ user: args.user, partner: args.partner });
+  const subject = cfg.emailSubject
+    ? renderTextTemplate(cfg.emailSubject, ctx)
+    : built.subject;
+  const text = built.text;
+  const html = built.html;
+  const emailDomainId = built.emailDomainId;
 
   const footer = buildMarketingEmailFooter({ email });
 

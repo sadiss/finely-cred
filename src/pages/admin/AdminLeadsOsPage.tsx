@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { ArrowLeft, Facebook, Globe, Instagram, Link2, Sparkles, Target, Users } from 'lucide-react';
+import { ArrowLeft, Bot, Facebook, Globe, Instagram, Link2, Sparkles, Target, Users } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { PageShell } from '../../components/layout/PageShell';
 import { listCrmRecords } from '../../data/crmRecordsRepo';
@@ -37,12 +37,14 @@ import { enrollLeadInNurtureSequence } from '../../lib/nurtureEngine';
 import { LeadBulkImportPanel } from '../../features/leadsOs/LeadBulkImportPanel';
 import { LeadScrapeSourcePicker } from '../../features/leadsOs/LeadScrapeSourcePicker';
 import { listInboxMessages } from '../../data/socialHubRepo';
+import { CmoUnifiedCommandCenter } from '../../components/cmo/CmoUnifiedCommandCenter';
 
-type LeadsTab = 'inbound' | 'intel' | 'distribution' | 'social' | 'routing';
+type LeadsTab = 'inbound' | 'intel' | 'distribution' | 'social' | 'routing' | 'cmo';
 
 const TABS: Array<{ id: LeadsTab; label: string; icon: typeof Target; accent: 'violet' | 'emerald' | 'sky' | 'fuchsia' | 'amber' }> = [
   { id: 'inbound', label: 'Inbound', icon: Target, accent: 'violet' },
   { id: 'intel', label: 'Intel Agent', icon: Sparkles, accent: 'fuchsia' },
+  { id: 'cmo', label: 'CMO Command', icon: Bot, accent: 'amber' },
   { id: 'distribution', label: 'Distribution', icon: Globe, accent: 'amber' },
   { id: 'social', label: 'Social Leads', icon: Facebook, accent: 'sky' },
   { id: 'routing', label: 'Routing', icon: Users, accent: 'emerald' },
@@ -317,6 +319,17 @@ export default function AdminLeadsOsPage() {
               <Link2 size={14} /> Open routing rules
             </button>
           </FinelyOsGlassPanel>
+        ) : null}
+
+        {tab === 'cmo' ? (
+          <div className="space-y-4">
+            <div className="flex flex-wrap gap-2">
+              <button type="button" onClick={() => navigate('/admin/cmo')} className={FINELY_OS_SECONDARY_BTN}>
+                Open full CMO Command page
+              </button>
+            </div>
+            <CmoUnifiedCommandCenter embedded defaultTab="staff" />
+          </div>
         ) : null}
         </FinelyUnifiedHubLayout>
 

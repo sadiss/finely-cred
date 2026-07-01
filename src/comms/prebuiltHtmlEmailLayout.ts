@@ -208,6 +208,32 @@ export function buildTrustStrip(): string {
 </p>`;
 }
 
+/** Three-step welcome journey — clean, not busy (inspired by partner roadmap flyers). */
+export function buildWelcomeJourneySteps(
+  steps: Array<{ num: string; title: string; body: string }>,
+): string {
+  const cells = steps
+    .map(
+      (s) => `<td width="33%" style="vertical-align:top;padding:6px;">
+      <div style="background:linear-gradient(145deg,#0f172a 0%,#1e293b 100%);border-radius:14px;padding:18px 16px;height:100%;border:1px solid rgba(245,158,11,0.25);">
+        <div style="font-size:11px;font-weight:800;letter-spacing:0.12em;color:#fbbf24;text-transform:uppercase;">Step ${s.num}</div>
+        <div style="font-size:15px;font-weight:700;color:#fffef5;margin:8px 0 6px;font-family:system-ui,sans-serif;">${s.title}</div>
+        <div style="font-size:13px;line-height:1.5;color:rgba(255,248,231,0.82);">${s.body}</div>
+      </div>
+    </td>`,
+    )
+    .join('');
+
+  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:24px 0;">
+  <tr>${cells}</tr>
+</table>`;
+}
+
+/** Gold accent divider for premium welcome emails. */
+export function buildGoldAccentDivider(): string {
+  return `<div style="height:3px;border-radius:999px;margin:24px 0;background:linear-gradient(90deg,transparent 0%,#b45309 35%,#fbbf24 50%,#b45309 65%,transparent 100%);"></div>`;
+}
+
 export function buildDefaultEmailFooter(email?: string): string {
   return buildMarketingEmailHtmlFooter({ email });
 }

@@ -1,4 +1,5 @@
 import type { FeatureFlags } from '../domain/settings';
+import { FINELY_MAIL_COPY } from '../lib/mailWhiteLabel';
 
 export type AdminFeatureMatrixRow = {
   flag: keyof FeatureFlags;
@@ -16,10 +17,10 @@ export const ADMIN_FEATURE_MATRIX: AdminFeatureMatrixRow[] = [
   { flag: 'aiGateway', label: 'AI Gateway', effect: 'Server-side LLM calls across admin + portal', secrets: 'OPENAI_API_KEY, EDGE_ADMIN_EMAILS (edge)' },
   { flag: 'portalChat', label: 'Portal Chat Widget', effect: 'Floating Communication Hub on portal pages', secrets: 'ai-gateway edge function' },
   { flag: 'docIntel', label: 'Document Intelligence', effect: 'OCR / classification pipelines', secrets: 'ai-gateway + storage buckets' },
-  { flag: 'letterMailing', label: 'Letter Mailing', effect: 'Physical mail send in letter studio', secrets: 'LOB / mail provider keys (edge)' },
+  { flag: 'letterMailing', label: 'Letter Mailing', effect: 'Physical mail send in letter studio', secrets: FINELY_MAIL_COPY.adminFeatureSecrets },
   { flag: 'partnerImport', label: 'Partner Import', effect: 'Legacy JSON/SQL import admin page', secrets: 'Supabase service role (edge)' },
-  { flag: 'inviteDelivery', label: 'Invite Delivery', effect: 'Email/SMS claim links after import', secrets: 'SENDGRID_API_KEY, TWILIO_* (edge)' },
-  { flag: 'commsDelivery', label: 'Comms Delivery', effect: 'Outbound email/SMS from Comms Studio', secrets: 'SENDGRID_API_KEY, TWILIO_* (edge)' },
+  { flag: 'inviteDelivery', label: 'Invite Delivery', effect: 'Email/SMS claim links after import', secrets: 'SMTP_* + SMS_* (edge)' },
+  { flag: 'commsDelivery', label: 'Comms Delivery', effect: 'Outbound email/SMS from Comms Studio', secrets: 'SMTP_* + SMS_* (edge)' },
   { flag: 'automationAutopilot', label: 'Automation Autopilot', effect: 'Hands-free dispute drafts + staff tasks on platform events', secrets: 'automation-runner edge + ai-gateway' },
   { flag: 'leadIntel', label: 'Lead Intelligence', effect: 'Prospecting + enrichment agent', secrets: 'ai-gateway, optional search APIs' },
   { flag: 'crm', label: 'CRM Pipelines', effect: 'Admin CRM workspace + copilot', secrets: 'Supabase tables + ai-gateway' },

@@ -11,6 +11,7 @@ import {
   type MailAddress,
   type MailAddressVerificationResult,
 } from '../../lib/mailerClient';
+import { FINELY_MAIL_COPY } from '../../lib/mailWhiteLabel';
 import { buildLetterAgentChain } from '../../lib/letterAgentChain';
 import { canAffordMailSend, chargeMailSend, formatMailCreditsUsd } from '../../data/mailCreditsRepo';
 import { MailCreditsPanel } from '../mailing/MailCreditsPanel';
@@ -226,22 +227,25 @@ export function MailLetterModal({
   }, [to, from, canMail]);
 
   const deliverability = useMemo(() => {
-    const toRaw = verifyRes?.to?.raw ?? null;
-    const fromRaw = verifyRes?.from?.raw ?? null;
-    // Lob typically returns deliverability at the top-level.
+    const toRaw = verifyRes?.to?.raw as { deliverability?: string; deliverability_analysis?: { deliverability?: string } } | null;
+    const fromRaw = verifyRes?.from?.raw as { deliverability?: string; deliverability_analysis?: { deliverability?: string } } | null;
+    if (toRaw?.deliverability === 'deferred' || fromRaw?.deliverability === 'deferred') {
+      return { toDel: 'valid_format', fromDel: 'valid_format', deferred: true as const };
+    }
     const toDel = toRaw ? (toRaw.deliverability ?? toRaw.deliverability_analysis?.deliverability ?? null) : null;
     const fromDel = fromRaw ? (fromRaw.deliverability ?? fromRaw.deliverability_analysis?.deliverability ?? null) : null;
-    return { toDel, fromDel };
+    return { toDel, fromDel, deferred: false as const };
   }, [verifyRes]);
 
   const verifiedOk = useMemo(() => {
     if (!verifyRes) return false;
+    if (deliverability.deferred) return true;
     const bad = new Set(['undeliverable', 'no_match']);
     const toDel = String(deliverability.toDel || '').toLowerCase();
     const fromDel = String(deliverability.fromDel || '').toLowerCase();
     if (!toDel || !fromDel) return false;
     return !bad.has(toDel) && !bad.has(fromDel);
-  }, [verifyRes, deliverability.toDel, deliverability.fromDel]);
+  }, [verifyRes, deliverability]);
 
   const agentChain = useMemo(
     () => buildLetterAgentChain({ letter, evidence }),
@@ -340,7 +344,7 @@ export function MailLetterModal({
           <div className="min-w-0">
             <div className="text-[10px] uppercase tracking-widest text-white/40">Mail letter</div>
             <div className="mt-2 text-2xl font-light text-white truncate">{letter.title}</div>
-            <div className="mt-1 text-white/60 text-sm">Send this PDF via US mail directly from Finely Cred (powered by provider API).</div>
+            <div className="mt-1 text-white/60 text-sm">{FINELY_MAIL_COPY.sendSubtitle}</div>
           </div>
           <button
             type="button"

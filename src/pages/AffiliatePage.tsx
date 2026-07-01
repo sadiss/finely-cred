@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { ArrowRight, BadgeCheck, DollarSign, ShieldAlert, Users, Share2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { PageShell } from '../components/layout/PageShell';
+import { CareersQuickNav } from '../components/careers/CareersQuickNav';
 import { createProgramApplication } from '../data/programApplicationsRepo';
 import { submitLeadCapture } from '../data/leadsRepo';
 import { addLeadNote } from '../data/leadOpsRepo';
@@ -122,6 +123,8 @@ export default function AffiliatePage() {
             Open {AF.hubName}
           </button>
         </div>
+
+        <CareersQuickNav active="affiliates" className="mt-6" />
 
         <FinelyUnifiedHubLayout
           eyebrow={AF.programName}

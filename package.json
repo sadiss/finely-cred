@@ -31,6 +31,8 @@
     "launch:gate": "node scripts/launch-gate.mjs",
     "seo:check": "node scripts/validate-public-seo.mjs",
     "secrets:summary": "node scripts/secrets-summary.mjs",
+    "comms:secrets": "node scripts/setup-comms-api-secrets.mjs",
+    "mail:secrets": "node scripts/setup-mail-secrets.mjs",
     "ci:check": "node scripts/ci-predeploy-check.mjs",
     "rls:check": "node scripts/rls-smoke-check.mjs",
     "migrations:check": "node scripts/run-migrations.mjs",

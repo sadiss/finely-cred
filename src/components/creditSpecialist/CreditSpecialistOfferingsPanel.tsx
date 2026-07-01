@@ -1,15 +1,8 @@
 import React from 'react';
-import { Check } from 'lucide-react';
+import { Check, Layers, Sparkles } from 'lucide-react';
 import { CREDIT_SPECIALIST_OFFERINGS } from '../../config/creditSpecialistProgram';
-import {
-  FINELY_OS_ENTITY_BODY,
-  FINELY_OS_ENTITY_LABEL,
-  FINELY_OS_ENTITY_SUBLABEL,
-  FINELY_OS_ENTITY_VALUE,
-  finelyOsCatalogCard,
-} from '../../features/os/finelyOsLightUi';
-
-const OFFERING_ACCENTS = ['violet', 'emerald', 'amber', 'sky', 'fuchsia'] as const;
+import { CS_PUBLIC } from './creditSpecialistPublicUi';
+import { finelyOsCatalogCard } from '../../features/os/finelyOsLightUi';
 
 type Props = {
   compact?: boolean;
@@ -17,55 +10,72 @@ type Props = {
 };
 
 export function CreditSpecialistOfferingsPanel({ compact = false, className = '' }: Props) {
-  const offerings = React.useMemo(() => {
-    const dedicated = CREDIT_SPECIALIST_OFFERINGS.find((item) => item.title === 'Dedicated partnership line');
-    const rest = CREDIT_SPECIALIST_OFFERINGS.filter((item) => item.title !== 'Dedicated partnership line');
-    if (!dedicated) return rest;
-    const contractIdx = rest.findIndex((item) => item.title.toLowerCase().includes('contracts'));
-    const next = rest.slice();
-    next.splice(contractIdx >= 0 ? contractIdx + 1 : 2, 0, dedicated);
-    return next;
-  }, []);
+  const featured = CREDIT_SPECIALIST_OFFERINGS.find((item) => item.title.toLowerCase().includes('platform'));
+  const stackItems = CREDIT_SPECIALIST_OFFERINGS.filter(
+    (item) => item !== featured && item.title !== 'Dedicated partnership line',
+  );
+  const partnership = CREDIT_SPECIALIST_OFFERINGS.find((item) => item.title === 'Dedicated partnership line');
 
   return (
-    <div className={`space-y-5 ${className}`}>
-      <div>
-        <p className={FINELY_OS_ENTITY_SUBLABEL}>What you get</p>
-        <h2 className={`mt-2 text-2xl md:text-3xl font-light ${FINELY_OS_ENTITY_VALUE}`}>Full operating stack + revenue share</h2>
-        <p className={`mt-2 max-w-3xl ${FINELY_OS_ENTITY_BODY}`}>
-          Everything included in the Credit Specialist Program — platform, training, white-label, partnership line, and lead magnets.
+    <div className={`space-y-8 sm:space-y-10 ${className}`}>
+      <header>
+        <p className={CS_PUBLIC.sectionKicker}>What you get</p>
+        <h2 className={`mt-2 ${CS_PUBLIC.sectionTitle}`}>Tools — not your pay %</h2>
+        <p className={`mt-3 ${CS_PUBLIC.sectionLead}`}>
+          Everyone gets the Finely platform. Your percentage is on the <strong>Tiers &amp; pay</strong> tab.
         </p>
-      </div>
-      <div className={`grid gap-4 ${compact ? 'sm:grid-cols-2' : 'md:grid-cols-2 lg:grid-cols-4'}`}>
-        {offerings.map((item, idx) => {
-          const accent = OFFERING_ACCENTS[idx % OFFERING_ACCENTS.length]!;
-          const featured = item.title.toLowerCase().includes('full operating');
-          return (
-            <div
-              key={item.title}
-              className={`${finelyOsCatalogCard(accent)} !p-5 space-y-3 ${featured ? 'ring-1 ring-emerald-400/35 md:col-span-2 lg:col-span-2' : ''}`}
-            >
-              <div>
-                <p className={FINELY_OS_ENTITY_LABEL}>{featured ? 'Featured' : 'Included'}</p>
-                <div className={`mt-1 font-semibold ${featured ? 'text-xl' : 'text-lg'} ${FINELY_OS_ENTITY_VALUE}`}>{item.title}</div>
-                <p className={`mt-2 text-sm ${FINELY_OS_ENTITY_BODY}`}>{item.description}</p>
-              </div>
-              {!compact ? (
-                <ul className="space-y-2">
-                  {item.included.map((line) => (
-                    <li key={line} className={`flex items-start gap-2 text-sm ${FINELY_OS_ENTITY_BODY}`}>
-                      <Check size={14} className="mt-0.5 text-emerald-400 shrink-0" />
-                      <span>{line}</span>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <div className={`text-xs ${FINELY_OS_ENTITY_BODY}`}>{item.included.slice(0, 2).join(' • ')}</div>
-              )}
+      </header>
+
+      {featured ? (
+        <div className="overflow-hidden rounded-2xl border-2 border-emerald-300 shadow-lg grid lg:grid-cols-12">
+          <div className="lg:col-span-5 p-8 bg-gradient-to-br from-slate-900 to-emerald-950 text-white">
+            <div className="text-sm font-bold uppercase tracking-widest text-amber-300 flex items-center gap-2">
+              <Layers size={18} /> All specialists
             </div>
-          );
-        })}
+            <h3 className="mt-4 text-2xl sm:text-3xl font-bold">{featured.title}</h3>
+            <p className="mt-4 text-lg text-white/80">{featured.description}</p>
+            <p className="mt-4 text-emerald-300 text-sm font-medium flex items-center gap-2">
+              <Sparkles size={16} /> Software you work in — not a pay tier
+            </p>
+          </div>
+          <div className="lg:col-span-7 p-6 sm:p-8 bg-white">
+            <ul className="grid sm:grid-cols-2 gap-3">
+              {featured.included.map((line) => (
+                <li key={line} className="flex gap-3 rounded-xl border-2 border-emerald-100 bg-emerald-50 p-4 text-base">
+                  <Check size={20} className="text-emerald-600 shrink-0" />
+                  {line}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      ) : null}
+
+      <div className={`grid gap-5 ${compact ? 'sm:grid-cols-2' : 'md:grid-cols-2'}`}>
+        {stackItems.map((item) => (
+          <div key={item.title} className={`${finelyOsCatalogCard('violet')} !p-6 sm:!p-8 border-2 space-y-3`}>
+            <h3 className={CS_PUBLIC.cardTitle}>{item.title}</h3>
+            <p className={CS_PUBLIC.body}>{item.description}</p>
+            {!compact ? (
+              <ul className="space-y-2">
+                {item.included.map((line) => (
+                  <li key={line} className={`flex gap-2 ${CS_PUBLIC.bodySm}`}>
+                    <Check size={16} className="text-emerald-600 shrink-0 mt-1" />
+                    {line}
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+          </div>
+        ))}
       </div>
+
+      {partnership && !compact ? (
+        <div className={`${finelyOsCatalogCard('sky')} !p-6 sm:!p-8 border-2`}>
+          <h3 className={CS_PUBLIC.cardTitle}>{partnership.title}</h3>
+          <p className={`mt-2 ${CS_PUBLIC.body}`}>{partnership.description}</p>
+        </div>
+      ) : null}
     </div>
   );
 }

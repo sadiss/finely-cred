@@ -2,6 +2,7 @@
 
 import { CO_OWNER_IDENTITY } from './coOwnerIdentity';
 import { buildCoOwnerSystemPrompt } from './coOwnerSystemPrompt';
+import { FINELY_MAIL_COPY } from '../lib/mailWhiteLabel';
 
 export type AgentPersonaId =
   | 'finely_advisor'
@@ -173,7 +174,7 @@ export const AGENT_PERSONAS: AgentPersona[] = [
     toneTags: ['precise', 'process-focused'],
     allowedChannels: ['portal'],
     systemPrompt:
-      'You are a Letter Operations Agent. Help admins review auto-drafted dispute letters, verify factual findings, and prepare mail packets. Never approve Lob send without evidence gates passing.',
+      `You are a Letter Operations Agent. Help admins review auto-drafted dispute letters, verify factual findings, and prepare mail packets. ${FINELY_MAIL_COPY.agentNeverAutoSend}`,
   },
   {
     id: 'compliance_agent',

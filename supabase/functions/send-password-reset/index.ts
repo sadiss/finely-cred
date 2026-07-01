@@ -9,10 +9,14 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.1';
 import { corsHeaders } from '../_shared/cors.ts';
 import { json, logEdgeEvent, rateLimit, requireEnv, resolveAuthContext } from '../_shared/edgeGuard.ts';
+import { isEmailDeliveryConfigured } from '../_shared/commsSendEmail.ts';
 import { sendServiceEmail } from '../_shared/commsSendEmail.ts';
+import { buildPasswordResetEmail } from '../_shared/passwordResetEmailTemplate.ts';
 
 type ReqBody = {
   email?: string;
+  /** When set, resolves the canonical auth email (fixes profile vs login email mismatches). */
+  userId?: string;
   redirectTo?: string;
 };
 
@@ -44,30 +48,6 @@ function safeRedirectTo(req: Request, redirectTo?: string): string {
   return fallback;
 }
 
-function buildPasswordResetEmail(args: { resetLink: string; email: string }) {
-  const subject = 'Reset your Finely Cred password';
-  const text = [
-    'You requested a password reset for your Finely Cred account.',
-    '',
-    'Open this secure link to choose a new password (valid for about 1 hour):',
-    args.resetLink,
-    '',
-    'If you did not request this, you can ignore this email.',
-    '',
-    '— Finely Cred',
-  ].join('\n');
-
-  const html = `<!DOCTYPE html>
-<html><body style="font-family:system-ui,sans-serif;line-height:1.5;color:#111;">
-  <p>You requested a password reset for <strong>${args.email}</strong>.</p>
-  <p><a href="${args.resetLink}" style="display:inline-block;padding:12px 20px;background:#c026d3;color:#fff;text-decoration:none;border-radius:8px;font-weight:600;">Set new password</a></p>
-  <p style="font-size:13px;color:#555;">Or copy this link:<br/><a href="${args.resetLink}">${args.resetLink}</a></p>
-  <p style="font-size:13px;color:#777;">This link expires in about an hour. If you did not request a reset, ignore this email.</p>
-</body></html>`;
-
-  return { subject, text, html };
-}
-
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
   if (req.method !== 'POST') return json({ error: 'Method not allowed' }, { status: 405 });
@@ -86,7 +66,22 @@ Deno.serve(async (req) => {
     return json({ error: 'Invalid JSON body' }, { status: 400 });
   }
 
-  const email = (body.email || '').trim().toLowerCase();
+  const redirectTo = safeRedirectTo(req, body.redirectTo);
+  const supabaseUrl = requireEnv('SUPABASE_URL');
+  const serviceRoleKey = requireEnv('SUPABASE_SERVICE_ROLE_KEY');
+  const admin = createClient(supabaseUrl, serviceRoleKey, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+
+  let email = (body.email || '').trim().toLowerCase();
+  const userId = (body.userId || '').trim();
+  if (userId) {
+    const { data: userData, error: userErr } = await admin.auth.admin.getUserById(userId);
+    if (!userErr && userData?.user?.email) {
+      email = userData.user.email.trim().toLowerCase();
+    }
+  }
+
   if (!email || !isValidEmail(email)) {
     return json({ error: 'A valid email address is required.' }, { status: 400 });
   }
@@ -109,12 +104,15 @@ Deno.serve(async (req) => {
     );
   }
 
-  const redirectTo = safeRedirectTo(req, body.redirectTo);
-  const supabaseUrl = requireEnv('SUPABASE_URL');
-  const serviceRoleKey = requireEnv('SUPABASE_SERVICE_ROLE_KEY');
-  const admin = createClient(supabaseUrl, serviceRoleKey, {
-    auth: { persistSession: false, autoRefreshToken: false },
-  });
+  if (!isEmailDeliveryConfigured()) {
+    await logEdgeEvent({
+      namespace: 'send-password-reset',
+      level: 'warn',
+      event: 'email_not_configured',
+      meta: { email, ip: ctx.ip },
+    });
+    return json({ ok: false, sent: false, error: 'Email delivery not configured on server.' }, { status: 503 });
+  }
 
   const { data: linkData, error: linkError } = await admin.auth.admin.generateLink({
     type: 'recovery',
@@ -122,15 +120,15 @@ Deno.serve(async (req) => {
     options: { redirectTo },
   });
 
-  // Do not reveal whether the account exists — same UX as Supabase default.
+  // Do not reveal whether the account exists to anonymous callers — but expose sent:false so the client can fall back.
   if (linkError || !linkData?.properties?.action_link) {
     await logEdgeEvent({
       namespace: 'send-password-reset',
       level: 'info',
       event: 'no_link_generated',
-      meta: { email, ip: ctx.ip, error: linkError?.message || 'missing_action_link' },
+      meta: { email, userId: userId || null, ip: ctx.ip, error: linkError?.message || 'missing_action_link' },
     });
-    return json({ ok: true });
+    return json({ ok: true, sent: false, reason: 'no_auth_account' });
   }
 
   const resetLink = String(linkData.properties.action_link);
@@ -144,18 +142,16 @@ Deno.serve(async (req) => {
       event: 'send_failed',
       meta: { email, ip: ctx.ip, error: sent.error },
     });
-    return json({ ok: false, error: sent.error || 'Could not send reset email.' }, { status: 500 });
+    return json({ ok: false, sent: false, error: sent.error || 'Could not send reset email.' }, { status: 500 });
   }
 
-  // Log success to console (KV write skipped here to stay within worker memory budget;
-  // rate-limiter KV writes above already record activity).
   console.log(JSON.stringify({
     namespace: 'send-password-reset',
     level: 'info',
     event: 'sent',
-    meta: { email, ip: ctx.ip, requestedBy: ctx.user.id, redirectTo },
+    meta: { email, userId: userId || null, ip: ctx.ip, requestedBy: ctx.user.id, redirectTo },
     at: new Date().toISOString(),
   }));
 
-  return json({ ok: true });
+  return json({ ok: true, sent: true });
 });

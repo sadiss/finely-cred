@@ -3,6 +3,7 @@ export const AU_SELLER = {
   programName: 'AU Seller Program',
   hubName: 'AU Seller Hub',
   hubPath: '/seller/hub',
+  publicPath: '/au-sellers',
   marketplacePath: '/au/marketplace',
   dashboardPath: '/seller/dashboard',
   listingsPath: '/seller/listings',

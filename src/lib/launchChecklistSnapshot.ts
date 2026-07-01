@@ -611,8 +611,8 @@ export function buildLaunchChecklistSnapshot(): LaunchCheckItem[] {
       label: 'Server nurture email',
       status: isSupabaseConfigured ? 'warn' : 'ok',
       detail: isSupabaseConfigured
-        ? 'Set SENDGRID_API_KEY + SENDGRID_FROM_EMAIL — server cron sends due nurture steps via SendGrid'
-        : 'Local browser nurture only until Supabase + SendGrid configured',
+        ? 'Set SMTP_FROM_EMAIL + mail API secrets — server cron sends due nurture steps'
+        : 'Local browser nurture only until Supabase + outbound email configured',
     },
     {
       id: 'server_automation_rules_db',

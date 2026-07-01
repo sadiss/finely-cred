@@ -37,7 +37,7 @@ export async function sendSms(args: { toPhone: string; body: string }) {
   if (!isSupabaseConfigured) throw new Error('Supabase is not configured.');
 
   const comms = getCommsSettings();
-  const from = comms.twilioFromPhone;
+  const from = comms.twilioFromPhone || comms.smsSenderId;
 
   const { data, error } = await supabase.functions.invoke('send-sms', {
     body: { to: args.toPhone, from: from ?? undefined, body: args.body },

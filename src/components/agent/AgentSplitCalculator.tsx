@@ -127,10 +127,16 @@ export function AgentSplitCalculator({
           />
           <div className="grid sm:grid-cols-3 gap-3 text-sm">
             <div className={FINELY_OS_ENTITY_BODY}>
-              Customer pays <span className={`${FINELY_OS_ENTITY_VALUE} font-semibold`}>{formatAgentMoney(split.example.clientFeeCents)}</span>
+              Client pays <span className={`${FINELY_OS_ENTITY_VALUE} font-bold tabular-nums`}>{formatAgentMoney(split.example.clientFeeCents)}</span>
             </div>
-            <div className="text-fuchsia-300">Finely {formatAgentMoney(split.example.platformCents)}</div>
-            <div className="text-emerald-300 font-semibold">You keep {formatAgentMoney(split.example.agentCents)}</div>
+            <div className={FINELY_OS_ENTITY_BODY}>
+              Finely share <span className="text-violet-700 font-bold tabular-nums">{formatAgentPct(split.platformSharePct)}</span>
+              <span className="block text-violet-600 tabular-nums">{formatAgentMoney(split.example.platformCents)}</span>
+            </div>
+            <div className={FINELY_OS_ENTITY_BODY}>
+              You keep <span className="text-emerald-700 font-bold tabular-nums">{formatAgentPct(split.agentSharePct)}</span>
+              <span className="block text-emerald-600 font-semibold tabular-nums">{formatAgentMoney(split.example.agentCents)}</span>
+            </div>
           </div>
         </div>
       ) : null}

@@ -12,6 +12,7 @@ import { resolveStaffOnDuty } from '../data/staffRoster';
 import { staffMemberFullName } from '../domain/staffMember';
 import { autoDraftDisputeLettersForPartner } from './disputeLetterAutomation';
 import { isFeatureEnabled } from '../data/settingsRepo';
+import { FINELY_MAIL_COPY } from './mailWhiteLabel';
 import { addDaysIso, nowIso } from '../domain/cases';
 
 const OPS_ACTION_TYPES = new Set([
@@ -188,7 +189,7 @@ export async function runEventScopedOpsActions(
         partnerId,
         partnerName,
         title,
-        body: 'Human review required before Lob send.',
+        body: FINELY_MAIL_COPY.humanReviewBeforeSend,
       });
       messages.push(`Queued letter review for ${partnerId}`);
       continue;
@@ -209,7 +210,7 @@ export async function runEventScopedOpsActions(
         partnerId,
         partnerName,
         title,
-        body: 'Evidence gates passed — confirm Lob send in Letter Studio.',
+        body: FINELY_MAIL_COPY.evidenceGatesConfirm,
       });
       createTask({
         partnerId,

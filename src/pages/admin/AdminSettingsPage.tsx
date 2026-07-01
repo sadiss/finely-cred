@@ -87,6 +87,7 @@ import { canManageCustomFields, canManageFieldLayouts, getMembershipByUserAndTen
 import { downloadText } from '../../utils/download';
 import { FinelyOsPaginatedStack } from '../../features/os/FinelyOsPaginatedStack';
 import { FinelyOsPageFooter } from '../../features/os/FinelyOsPageFooter';
+import { FINELY_MAIL_COPY } from '../../lib/mailWhiteLabel';
 import { ADMIN_FEATURE_MATRIX } from '../../data/adminFeatureMatrix';
 import { MetaIntegrationSettingsPanel } from '../../features/meta/MetaIntegrationSettingsPanel';
 import { FinelyAdminAppearancePanel } from '../../features/os/FinelyAdminAppearancePanel';
@@ -793,11 +794,15 @@ export default function AdminSettingsPage() {
               <div className={`${finelyOsCatalogCard('violet')} !p-5 space-y-4`}>
                 <div className="flex items-center gap-2 text-violet-400">
                   <Mail size={18} />
-                  <span className="text-xs font-semibold uppercase tracking-wider">SendGrid (from identity)</span>
+                  <span className="text-xs font-semibold uppercase tracking-wider">Email delivery</span>
                 </div>
                 <div className={`${FINELY_OS_NOTICE_WARN} space-y-2`}>
                   <div>
-                    API keys are stored <strong>server-side</strong> as Supabase secrets. This tab configures display/from fields.
+                    Credentials are stored <strong>server-side</strong> as Supabase secrets. Set{' '}
+                    <span className={`font-mono font-semibold ${FINELY_OS_ENTITY_VALUE}`}>SMTP_HOST</span>,{' '}
+                    <span className={`font-mono font-semibold ${FINELY_OS_ENTITY_VALUE}`}>SMTP_USER</span>,{' '}
+                    <span className={`font-mono font-semibold ${FINELY_OS_ENTITY_VALUE}`}>SMTP_PASS</span>, and{' '}
+                    <span className={`font-mono font-semibold ${FINELY_OS_ENTITY_VALUE}`}>SMTP_FROM_EMAIL</span>.
                   </div>
                 </div>
                 <div className="grid md:grid-cols-2 gap-4">
@@ -806,7 +811,7 @@ export default function AdminSettingsPage() {
                     value={(settings as any).comms?.sendgridFromEmail ?? ''}
                     onChange={(v) => handleCommsChange({ sendgridFromEmail: v || undefined })}
                     placeholder="no-reply@finelycred.com"
-                    helperText="Must be verified in SendGrid"
+                    helperText="Must match your verified sending domain"
                     type="email"
                   />
                   <TextInput
@@ -821,7 +826,15 @@ export default function AdminSettingsPage() {
               <div className={`lg:col-span-2 ${finelyOsCatalogCard('violet')} !p-5 space-y-4`}>
                 <div className="flex items-center gap-2 text-violet-400">
                   <Phone size={18} />
-                  <span className="text-xs font-semibold uppercase tracking-wider">Twilio (SMS from)</span>
+                  <span className="text-xs font-semibold uppercase tracking-wider">SMS delivery</span>
+                </div>
+                <div className={`${FINELY_OS_NOTICE_WARN} space-y-2 text-xs ${FINELY_OS_ENTITY_BODY}`}>
+                  <div>
+                    Configure outbound SMS secrets server-side: <span className={`font-mono ${FINELY_OS_ENTITY_VALUE}`}>SMS_API_ID</span>,{' '}
+                    <span className={`font-mono ${FINELY_OS_ENTITY_VALUE}`}>SMS_API_KEY</span>,{' '}
+                    <span className={`font-mono ${FINELY_OS_ENTITY_VALUE}`}>SMS_SENDER_ID</span>.
+                  </div>
+                  <div>Optional phone routing: <span className={`font-mono ${FINELY_OS_ENTITY_VALUE}`}>TWILIO_FROM_PHONE</span>.</div>
                 </div>
                 <div className="grid md:grid-cols-2 gap-4">
                   <TextInput
@@ -829,8 +842,15 @@ export default function AdminSettingsPage() {
                     value={(settings as any).comms?.twilioFromPhone ?? ''}
                     onChange={(v) => handleCommsChange({ twilioFromPhone: v || undefined })}
                     placeholder="+15551234567"
-                    helperText="Your Twilio-number capable of sending SMS"
+                    helperText="Outbound SMS caller ID shown to recipients"
                     type="tel"
+                  />
+                  <TextInput
+                    label="SMS Sender ID"
+                    value={(settings as any).comms?.smsSenderId ?? ''}
+                    onChange={(v) => handleCommsChange({ smsSenderId: v || undefined })}
+                    placeholder="FINELY"
+                    helperText="Registered sender name (also set SMS_SENDER_ID secret)"
                   />
                 </div>
               </div>
@@ -1339,7 +1359,7 @@ export default function AdminSettingsPage() {
                     label="Comms Delivery (Email/SMS)"
                     checked={settings.features.commsDelivery}
                     onChange={(v) => handleFeatureChange({ commsDelivery: v })}
-                    description="Enable general outbound messaging via SendGrid + Twilio Edge Functions (Comms Studio + automations)."
+                    description="Enable general outbound messaging via edge functions (Comms Studio + automations)."
                   />
                   <Toggle
                     label="Automation Autopilot (live ops)"
@@ -1420,7 +1440,7 @@ export default function AdminSettingsPage() {
                   <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony text-xs ${FINELY_OS_ENTITY_BODY}`}>
                     Provider status:{' '}
                     {settings.features.letterMailing ? (
-                      <span className="text-amber-300">Enable flag + configure <span className="font-mono">LOB_API_KEY</span> (or mailer edge secrets) in Supabase</span>
+                      <span className="text-amber-300">{FINELY_MAIL_COPY.adminSecretsHint}</span>
                     ) : (
                       <span className="text-white/50">Off — letter studio hides physical mail actions</span>
                     )}
@@ -1446,7 +1466,7 @@ export default function AdminSettingsPage() {
                     label="Invite Delivery (Email/SMS)"
                     checked={settings.features.inviteDelivery}
                     onChange={(v) => handleFeatureChange({ inviteDelivery: v })}
-                    description="Enable sending claim/invite links via SendGrid + Twilio Edge Functions."
+                    description="Enable sending claim/invite links via edge email/SMS functions."
                   />
                   <Toggle
                     label="API Access"

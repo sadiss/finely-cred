@@ -13,6 +13,7 @@ import { listCommsTemplates } from '../../data/commsRepo';
 import { AutomationRuleEditor } from '../../components/automation/AutomationRuleEditor';
 import { AutomationStudioShell } from '../../features/automation/AutomationStudioShell';
 import { AUTOMATION_EVENT_RECIPES, AUTOMATION_OPS_RECIPES } from '../../features/automation/automationRecipeLibrary';
+import { FINELY_MAIL_COPY } from '../../lib/mailWhiteLabel';
 import { HUMAN_AUTOMATION_RECIPES } from '../../features/automation/humanAutomationCatalog';
 import { AUTOMATION_TRIGGER_CATALOG } from '../../features/automation/automationTriggerCatalog';
 import { listServerAutomationHooks, runServerAutomationCronSweep } from '../../lib/serverAutomationClient';
@@ -940,7 +941,7 @@ export default function AdminAutomationsPage() {
               })()}
             </div>
             <p className={`${FINELY_OS_ENTITY_BODY} text-sm mb-4`}>
-              Enable recipes like <strong className="text-white/80">Report upload → auto-draft</strong> in Template library. Mail via Lob always requires human confirm.
+              Enable recipes like <strong className="text-white/80">Report upload → auto-draft</strong> in Template library. {FINELY_MAIL_COPY.humanConfirm}
             </p>
             <button type="button" onClick={() => navigate('/admin/ops-autopilot')} className={FINELY_OS_PRIMARY_BTN}>
               Open Hands-Free Ops command center

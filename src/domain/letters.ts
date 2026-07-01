@@ -86,7 +86,8 @@ export type LetterRecord = {
   pdfFilename?: string;
   /** Optional mailing metadata (in-app mail integration). */
   mailing?: {
-    provider: 'lob';
+    /** White-label mail provider id (always Finely-branded in UI). */
+    provider: 'finely' | 'lob';
     /** Provider letter id (available once sent). */
     providerId?: string;
     createdAt: string;

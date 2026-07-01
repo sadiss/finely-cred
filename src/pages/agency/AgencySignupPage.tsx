@@ -5,7 +5,8 @@ import { PageShell } from '../../components/layout/PageShell';
 import { useAuth } from '../../auth/AuthProvider';
 import { createTenant, createMembership } from '../../data/tenantsRepo';
 import { setActiveTenantId } from '../../tenancy/activeTenant';
-import { CS } from '../../config/creditSpecialistProgram';
+import { CareersQuickNav } from '../../components/careers/CareersQuickNav';
+import { AGENCY } from '../../config/agencyPartnersProgram';
 import { agencyTiers, getAgencyTierById } from '../../config/pricingCatalog';
 import { AgencySplitBreakdown, AgencySplitSummaryLine } from '../../components/pricing/AgencySplitBreakdown';
 import { FinelyOsPageFooter } from '../../features/os/FinelyOsPageFooter';
@@ -155,8 +156,10 @@ export default function AgencySignupPage() {
       <div className={FINELY_OS_PAGE}>
         {notice ? <div className={FINELY_OS_NOTICE_SUCCESS}>{notice}</div> : null}
 
+        <CareersQuickNav active="agency_partners" className="mb-6" />
+
         <FinelyUnifiedHubLayout
-          eyebrow={CS.programName}
+          eyebrow={AGENCY.programName}
           title="Create your agency workspace"
           subtitle="Spin up a white-label tenant, then configure branding, team seats, and feature access."
           accent="violet"
@@ -166,7 +169,7 @@ export default function AgencySignupPage() {
           ]}
           activeTab={laneTab}
           onTabChange={(id) => setLaneTab(id as typeof laneTab)}
-          primaryAction={{ label: CS.hubName, onClick: () => navigate(CS.hubPath) }}
+          primaryAction={{ label: 'Program overview', onClick: () => navigate(AGENCY.publicPath) }}
           secondaryAction={{ label: 'Compare tiers', onClick: () => navigate('/pricing?tab=agency') }}
         >
         <div className="grid lg:grid-cols-12 gap-6">
@@ -223,8 +226,8 @@ export default function AgencySignupPage() {
                     Seats: {tier.seatLimit === -1 ? 'Unlimited' : tier.seatLimit} • Customers:{' '}
                     {tier.activeClientLimit === -1 ? 'Unlimited' : tier.activeClientLimit}
                   </div>
-                  <button type="button" onClick={() => navigate(CS.hubPath)} className={`mt-2 ${FINELY_OS_SECONDARY_BTN}`}>
-                    Open {CS.hubName} →
+                  <button type="button" onClick={() => navigate(AGENCY.publicPath)} className={`mt-2 ${FINELY_OS_SECONDARY_BTN}`}>
+                    Program overview →
                   </button>
                 </div>
               ) : (

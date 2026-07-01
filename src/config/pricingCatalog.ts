@@ -1418,20 +1418,20 @@ export const tradelinePromoPackages: PricingPackage[] = [
 ];
 
 // ─────────────────────────────────────────────────────────────────────────────
-// AGENCY TIERS (White-Label / Credit Specialists)
+// AGENCY PARTNER CAPACITY TIERS (tenant · seats · white-label)
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const agencyTiers: AgencyTier[] = [
   {
     id: 'agency_solo',
-    name: 'Apprentice Specialist',
-    description: 'Finely-branded training mode — we co-run files while you learn. Best for new operators.',
+    name: 'Agency Starter',
+    description: 'Single-seat agency tenant in Finely-branded mode — launch your company on the OS while you build volume.',
     activeClientLimit: 20,
     seatLimit: 1,
     pricingModel: 'revenue_share',
     splitBreakdown: [
-      { label: 'While training', description: 'Finely co-runs files & mentoring', agentKeepPct: 30, platformPct: 70 },
-      { label: 'When certified', description: 'You lead relationships; we power the stack', agentKeepPct: 45, platformPct: 55 },
+      { label: 'While training', description: 'Finely co-runs tenant onboarding & mentoring', agentKeepPct: 30, platformPct: 70 },
+      { label: 'When certified', description: 'You lead the agency; we power the stack', agentKeepPct: 45, platformPct: 55 },
     ],
     platformShareMinPct: 55,
     platformShareMaxPct: 70,
@@ -1440,16 +1440,16 @@ export const agencyTiers: AgencyTier[] = [
     features: [
       'Revenue share only — no platform fee',
       'Up to 20 active customer files • 1 seat',
-      'Apprenticeship + live mentoring',
-      'Full software, Comms, lead magnets & academy',
+      'Agency onboarding + live mentoring',
+      'Full tenant software, Comms & academy',
     ],
     isPublic: true,
     sortOrder: 1,
   },
   {
     id: 'agency_growth',
-    name: 'Guided Agency',
-    description: 'Co-branded portal — you lead relationships; we back fulfillment and marketing on a lower split.',
+    name: 'Agency Growth',
+    description: 'Small agency with co-branded portal — you lead the company; Finely backs fulfillment and marketing.',
     activeClientLimit: 50,
     seatLimit: 2,
     pricingModel: 'revenue_share',
@@ -1473,8 +1473,8 @@ export const agencyTiers: AgencyTier[] = [
   },
   {
     id: 'agency_operator',
-    name: 'Operator',
-    description: 'For credit specialists running steady volume with shared QA — tighter capacity steps before full white-label.',
+    name: 'Agency Operator',
+    description: 'Growing agency with team workflows and shared QA — more files and seats before full white-label.',
     activeClientLimit: 100,
     seatLimit: 4,
     pricingModel: 'revenue_share',
@@ -1497,14 +1497,14 @@ export const agencyTiers: AgencyTier[] = [
   },
   {
     id: 'agency_pro',
-    name: 'White-Label Pro',
-    description: 'Your brand on the customer portal — you run fulfillment; Finely powers the engine.',
+    name: 'Agency White-Label Pro',
+    description: 'Your brand on the customer portal — your agency runs fulfillment; Finely powers the engine.',
     activeClientLimit: 175,
     seatLimit: 6,
     pricingModel: 'revenue_share',
     splitBreakdown: [
       { label: 'Launch phase', description: 'White-label go-live with Finely support', agentKeepPct: 50, platformPct: 50 },
-      { label: 'Independent operator', description: 'You run fulfillment on your brand', agentKeepPct: 62, platformPct: 38 },
+      { label: 'Independent operator', description: 'Your agency runs fulfillment on your brand', agentKeepPct: 62, platformPct: 38 },
     ],
     platformShareMinPct: 38,
     platformShareMaxPct: 50,
@@ -1522,8 +1522,8 @@ export const agencyTiers: AgencyTier[] = [
   },
   {
     id: 'agency_scale',
-    name: 'Scale Agency',
-    description: 'High-volume white-label operators — more seats and customers before enterprise custom agreements.',
+    name: 'Agency Scale',
+    description: 'High-volume white-label agencies — more seats and customers before enterprise custom agreements.',
     activeClientLimit: 300,
     seatLimit: 10,
     pricingModel: 'revenue_share',
@@ -1546,8 +1546,8 @@ export const agencyTiers: AgencyTier[] = [
   },
   {
     id: 'agency_enterprise',
-    name: 'Enterprise White-Label',
-    description: 'Pinnacle tier — your domain, dedicated infrastructure, custom revenue share, unlimited scale.',
+    name: 'Agency Enterprise',
+    description: 'Pinnacle agency tier — your domain, dedicated infrastructure, custom revenue share, unlimited scale.',
     activeClientLimit: -1,
     seatLimit: -1,
     pricingModel: 'custom',

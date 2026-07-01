@@ -11,6 +11,7 @@ import { runWorkflow } from './runWorkflows';
 import { addAutomationRun, listAutomationRules, upsertAutomationRule } from '../data/automationStudioRepo';
 import { addDaysIso, nowIso } from '../domain/cases';
 import { isFeatureEnabled } from '../data/settingsRepo';
+import { FINELY_MAIL_COPY } from '../lib/mailWhiteLabel';
 import { sendInviteEmail, sendInviteSms } from '../lib/inviteDeliveryClient';
 import { getCommsTemplate, hasRecentCommsSend } from '../data/commsRepo';
 import { sendEmailFromTemplate, sendPortalFromTemplate, sendSmsFromTemplate } from '../lib/commsEngine';
@@ -404,7 +405,7 @@ export async function runAutomationRule(rule: AutomationRule, mode: AgentMode): 
             partnerId: p.id,
             partnerName: p.profile?.fullName,
             title,
-            body: 'Human review required before Lob send.',
+            body: FINELY_MAIL_COPY.humanReviewBeforeSend,
           });
           actions.push({ type: 'created_task', partnerId: p.id, title });
         } else {
@@ -423,7 +424,7 @@ export async function runAutomationRule(rule: AutomationRule, mode: AgentMode): 
             partnerId: p.id,
             partnerName: p.profile?.fullName,
             title,
-            body: 'Evidence gates passed — confirm Lob send in Letter Studio.',
+            body: FINELY_MAIL_COPY.evidenceGatesConfirm,
           });
           createTask({
             partnerId: p.id,

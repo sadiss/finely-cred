@@ -153,6 +153,7 @@ const AdminMonitoringPage = lazy(() => import('./pages/admin/AdminMonitoringPage
 const AdminLeadIntelPage = lazy(() => import('./pages/admin/AdminLeadIntelPage'));
 const AdminSignupOpsPage = lazy(() => import('./pages/admin/AdminSignupOpsPage'));
 const AdminLeadsOsPage = lazy(() => import('./pages/admin/AdminLeadsOsPage'));
+const AdminCmoCommandPage = lazy(() => import('./pages/admin/AdminCmoCommandPage'));
 const AdminMediaStudioPage = lazy(() => import('./pages/admin/AdminMediaStudioPage'));
 const AdminVoiceStudioPage = lazy(() => import('./pages/admin/AdminVoiceStudioPage'));
 const AdminNoraCapitalPage = lazy(() => import('./pages/admin/AdminNoraCapitalPage'));
@@ -226,10 +227,12 @@ const TermsPage = lazy(() => import('./pages/legal/TermsPage'));
 const PrivacyPage = lazy(() => import('./pages/legal/PrivacyPage'));
 const DisclaimerPage = lazy(() => import('./pages/legal/DisclaimerPage'));
 const AffiliatePage = lazy(() => import('./pages/AffiliatePage'));
+const AuSellerPage = lazy(() => import('./pages/AuSellerPage'));
 const HetaSocietyPage = lazy(() => import('./pages/HetaSocietyPage'));
 const HetaSocietyPortalPage = lazy(() => import('./pages/portal/HetaSocietyPortalPage'));
 const AgentsPage = lazy(() => import('./pages/AgentsPage'));
 const AgencySignupPage = lazy(() => import('./pages/agency/AgencySignupPage'));
+const AgencyPartnersPage = lazy(() => import('./pages/agency/AgencyPartnersPage'));
 const AgentHubPage = lazy(() => import('./pages/agent/AgentHubPage'));
 const AffiliateHubPage = lazy(() => import('./pages/affiliate/AffiliateHubPage'));
 const AccountSettingsPage = lazy(() => import('./pages/account/AccountSettingsPage'));
@@ -1594,6 +1597,8 @@ function AppInner() {
         <Route path="/bookstore" element={<BookstorePage />} />
         <Route path="/bookstore/:id" element={<BookstoreProductPage />} />
         <Route path="/affiliate" element={<AffiliatePage />} />
+        <Route path="/au-sellers" element={<AuSellerPage />} />
+        <Route path="/au-seller" element={<Navigate to="/au-sellers" replace />} />
         <Route
           path="/affiliate/hub"
           element={
@@ -1603,6 +1608,7 @@ function AppInner() {
           }
         />
         <Route path="/credit-specialists" element={<AgentsPage />} />
+        <Route path="/agency-partners" element={<AgencyPartnersPage />} />
         <Route path="/agents" element={<Navigate to="/credit-specialists" replace />} />
         <Route
           path="/credit-specialist/hub"
@@ -2338,6 +2344,15 @@ function AppInner() {
             </ProtectedAdminRoute>
           }
         />
+        <Route
+          path="/admin/cmo"
+          element={
+            <ProtectedAdminRoute>
+              <AdminCmoCommandPage />
+            </ProtectedAdminRoute>
+          }
+        />
+        <Route path="/admin/cmo-command" element={<Navigate to="/admin/cmo" replace />} />
         <Route
           path="/admin/leads"
           element={

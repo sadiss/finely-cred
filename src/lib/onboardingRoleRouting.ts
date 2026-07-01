@@ -96,19 +96,31 @@ export function stepAfterRoleSelection(data: {
   return roleIdx >= 0 ? roleIdx + 2 : 2;
 }
 
-const CAREER_PATH_ROLE: Record<string, OnboardingRole> = {
+const CAREER_PATH_ROLE: Record<string, OnboardingRole | 'agency'> = {
   '/credit-specialists': 'agent',
+  '/agency-partners': 'agency',
   '/affiliate': 'affiliate',
+  '/au-sellers': 'au_seller',
   '/seller/dashboard': 'au_seller',
   '/seller/hub': 'au_seller',
   '/agents': 'agent',
 };
 
+function roleFromCareerId(id: string | undefined): OnboardingRole | 'agency' | '' {
+  if (!id) return '';
+  if (id === 'au_sellers' || id === 'au-seller') return 'au_seller';
+  if (id === 'affiliates' || id === 'affiliate') return 'affiliate';
+  if (id === 'agency_partners') return 'agency';
+  if (id === 'credit_specialists' || id === 'specialists' || id === 'agents') return 'agent';
+  return '';
+}
+
 /** During signup, career menu picks should land on the step after role selection. */
 export function signupUrlForCareerPath(path: string): string | null {
   const normalized = path.split('?')[0].replace(/\/+$/, '') || '/';
   const match = PUBLIC_CAREER_PATHS.find((p) => normalized === p.path || normalized.startsWith(`${p.path}/`));
-  const role = CAREER_PATH_ROLE[normalized] ?? (match?.id === 'au-seller' ? 'au_seller' : match?.id === 'affiliate' ? 'affiliate' : match?.id === 'specialists' || match?.id === 'agents' ? 'agent' : '');
+  const role = CAREER_PATH_ROLE[normalized] ?? roleFromCareerId(match?.id);
+  if (role === 'agency') return '/agency/signup';
   if (!role) return null;
   const qs = new URLSearchParams({ auth: 'signup', role, skipRole: '1' });
   if (role === 'au_seller') qs.set('lane', 'au_seller');

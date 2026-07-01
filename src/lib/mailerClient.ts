@@ -1,5 +1,8 @@
 import { supabase, isSupabaseConfigured } from './supabaseClient';
 import { isFeatureEnabled } from '../data/settingsRepo';
+import { FINELY_MAIL_PROVIDER, type FinelyMailProvider, normalizeMailProvider } from './mailWhiteLabel';
+
+export type MailProvider = FinelyMailProvider;
 
 export type MailAddress = {
   name: string;
@@ -11,15 +14,48 @@ export type MailAddress = {
 };
 
 export type MailAddressVerificationResult = {
-  provider: 'lob';
+  provider: MailProvider;
   /** Raw provider response (contains deliverability, components, etc.) */
-  raw: any;
+  raw: unknown;
 };
+
+export type MailLetterResult = {
+  provider: MailProvider;
+  providerId: string;
+  expectedDeliveryDate?: string;
+  status?: string;
+  batch?: string;
+  job?: string;
+  cost?: number;
+  authcode?: string;
+  message?: string;
+};
+
+export async function pingMailProvider(): Promise<{ ok: boolean; provider?: MailProvider; message?: string; error?: string }> {
+  if (!isFeatureEnabled('letterMailing')) {
+    throw new Error('Letter mailing is disabled (Feature Flags).');
+  }
+  if (!isSupabaseConfigured) {
+    throw new Error('Supabase is not configured (missing env).');
+  }
+
+  const { data, error } = await supabase.functions.invoke('mailer', {
+    body: { op: 'ping' },
+  });
+
+  if (error) throw new Error(error.message);
+  return {
+    ok: Boolean(data?.ok),
+    provider: normalizeMailProvider(data?.provider),
+    message: data?.message,
+    error: data?.error,
+  };
+}
 
 export async function verifyMailAddressesViaProvider(args: {
   to: MailAddress;
   from: MailAddress;
-}): Promise<{ provider: 'lob'; to: MailAddressVerificationResult; from: MailAddressVerificationResult }> {
+}): Promise<{ provider: MailProvider; to: MailAddressVerificationResult; from: MailAddressVerificationResult }> {
   if (!isFeatureEnabled('letterMailing')) {
     throw new Error('Letter mailing is disabled (Feature Flags).');
   }
@@ -37,10 +73,12 @@ export async function verifyMailAddressesViaProvider(args: {
 
   if (error) throw new Error(error.message);
   if (!data?.ok) throw new Error(data?.error || 'Verification failed.');
+
+  const provider = normalizeMailProvider(data.provider);
   return {
-    provider: 'lob',
-    to: { provider: 'lob', raw: data.to },
-    from: { provider: 'lob', raw: data.from },
+    provider,
+    to: { provider, raw: data.to },
+    from: { provider, raw: data.from },
   };
 }
 
@@ -50,8 +88,15 @@ export async function mailLetterViaProvider(args: {
   pdfBlobRef: string;
   to: MailAddress;
   from: MailAddress;
-  options?: { color?: boolean; doubleSided?: boolean };
-}): Promise<{ provider: 'lob'; providerId: string; expectedDeliveryDate?: string; status?: string }> {
+  options?: {
+    color?: boolean;
+    doubleSided?: boolean;
+    mailType?: 'firstclass' | 'certified' | 'certnoerr' | 'flat';
+    coverSheet?: boolean;
+    pages?: number;
+    preauth?: boolean;
+  };
+}): Promise<MailLetterResult> {
   if (!isFeatureEnabled('letterMailing')) {
     throw new Error('Letter mailing is disabled (Feature Flags).');
   }
@@ -72,12 +117,19 @@ export async function mailLetterViaProvider(args: {
   });
 
   if (error) throw new Error(error.message);
-  if (!data?.ok) throw new Error(data?.error || 'Mailing failed.');
+  if (!data?.ok) throw new Error(data?.error || data?.message || 'Mailing failed.');
+
   return {
-    provider: 'lob',
+    provider: normalizeMailProvider(data.provider),
     providerId: data.providerId,
     expectedDeliveryDate: data.expectedDeliveryDate ?? undefined,
     status: data.status ?? undefined,
+    batch: data.batch ?? undefined,
+    job: data.job ?? undefined,
+    cost: data.cost ?? undefined,
+    authcode: data.authcode ?? undefined,
+    message: data.message ?? undefined,
   };
 }
 
+export { FINELY_MAIL_PROVIDER };

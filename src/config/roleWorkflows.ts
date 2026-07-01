@@ -50,7 +50,7 @@ export const ROLE_WORKFLOWS: Record<RoleWorkflowId, { label: string; hubPath: st
     label: 'AU Seller',
     hubPath: AU_SELLER.hubPath,
     steps: [
-      { title: 'Onboarding', description: 'Seller lane → verify supply-side profile.', path: '/onboarding?lane=au_seller' },
+      { title: 'Onboarding', description: 'Seller lane → verify supply-side profile.', path: '/au-sellers' },
       { title: 'Seller Hub', description: 'Overview, marketplace links, training.', path: AU_SELLER.hubPath },
       { title: 'Listings', description: 'Publish tradeline inventory with proof.', path: AU_SELLER.listingsPath },
       { title: 'Contracts & payouts', description: 'Fulfillment tracking and earnings.', path: AU_SELLER.contractsPath },

@@ -115,11 +115,15 @@ export type PostLoginWelcomeSettings = {
 export interface CommsSettings {
   /** Used to generate absolute claim/invite links (optional). */
   appBaseUrl?: string;
-  /** From email/name shown to recipients (SendGrid send uses server-side API key). */
+  /** From email/name shown to recipients (server-side SMTP or SendGrid). */
   sendgridFromEmail?: string;
   sendgridFromName?: string;
-  /** From phone shown on SMS (Twilio send uses server-side credentials). */
+  /** From phone shown on SMS (Twilio or REST SMS gateway). */
   twilioFromPhone?: string;
+  /** REST SMS sender ID / header (stored for UI; server uses SMS_SENDER_ID secret). */
+  smsSenderId?: string;
+  /** twilio | rest — UI hint only; server auto-detects from secrets. */
+  smsProvider?: 'twilio' | 'rest';
 }
 
 /**
@@ -300,6 +304,8 @@ export const DEFAULT_SETTINGS: PlatformSettings = {
     sendgridFromEmail: undefined,
     sendgridFromName: undefined,
     twilioFromPhone: undefined,
+    smsSenderId: undefined,
+    smsProvider: undefined,
   },
   chat: {
     tenorApiKey: undefined,

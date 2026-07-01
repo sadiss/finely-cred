@@ -36,8 +36,8 @@ export const CREDIT_SPECIALIST_OFFERINGS: CreditSpecialistOffering[] = [
     included: ['Equifax build-as-they-pay positioning', 'Term-based Denefit commission calculator', 'Combines with service-fee revenue share'],
   },
   {
-    title: 'Full operating stack',
-    description: 'CRM, customer portal, dispute workflows, and document vault — the same engine Finely runs on.',
+    title: 'Finely platform (every level)',
+    description: 'CRM, portal, disputes, vault — the tools you work in. This is not a pay tier; apprentices and certified partners all use the same engine.',
     included: ['Customer dashboard & case routing', 'Letters studio + dispute center', 'Documents vault & task sequencing'],
   },
   {

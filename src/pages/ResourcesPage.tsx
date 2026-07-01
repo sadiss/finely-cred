@@ -86,7 +86,7 @@ export default function ResourcesPage() {
   const auth = useAuth();
   const isAdmin = isAdminEmail(auth.user?.email);
   const [storeVersion, setStoreVersion] = useState(0);
-  const [activeSection, setActiveSection] = useState<ResourcesSection>('monitoring');
+  const [activeSection, setActiveSection] = useState<ResourcesSection>('guides');
 
   const jumpToSection = (id: ResourcesSection) => {
     setActiveSection(id);
@@ -303,20 +303,20 @@ export default function ResourcesPage() {
         <FinelyNowDoThisStrip currentIndex={activeSection === 'guides' ? 1 : activeSection === 'videos' ? 2 : 0} />
         <FinelyUnifiedHubLayout
           eyebrow="Resource library"
-          title="Credit monitoring, guides, and references — scroll or jump"
-          subtitle="Credit monitoring is near the top so you can grab bureau links fast. Use the lane buttons to jump — nothing is hidden behind tabs."
+          title="Free guides, monitoring links, and quick references"
+          subtitle="Start with guides & playbooks if you're new. Jump to credit monitoring when you need bureau pull links. Each section scrolls on one page — pick a lane below."
           accent="violet"
           kpis={[
             { label: 'Free guides', value: String(freeGuides.length), accent: 'emerald' },
+            { label: 'Monitoring', value: String(CREDIT_MONITORING_PARTNERS.length), hint: 'Bureau links', accent: 'violet' },
+            { label: 'References', value: String(quickRefs.length), accent: 'fuchsia' },
             ...(showPublicVideos
               ? [{ label: 'Videos', value: String(resourceVideos.length + TOUR_MANIFEST.length), accent: 'sky' as const }]
               : []),
-            { label: 'Monitoring', value: String(CREDIT_MONITORING_PARTNERS.length), hint: 'Partners', accent: 'violet' },
-            { label: 'References', value: String(quickRefs.length), accent: 'fuchsia' },
           ]}
           tabs={[
-            { id: 'monitoring', label: 'Credit monitoring' },
             { id: 'guides', label: 'Guides & playbooks' },
+            { id: 'monitoring', label: 'Credit monitoring' },
             { id: 'references', label: 'Quick references' },
             ...(showPublicVideos ? [{ id: 'videos', label: 'Video library' }] : []),
           ]}
@@ -338,24 +338,6 @@ export default function ResourcesPage() {
             </button>
           ) : null}
         </div>
-
-        <section id="monitoring" className="fc-scroll-section space-y-6">
-        <h2 className="fc-launch-lane-header">Credit monitoring</h2>
-        <div className={`space-y-4 ${finelyOsCatalogCard('violet')} !p-6`} data-fc-accent="violet">
-          <div className="flex items-start justify-between gap-6">
-            <div>
-              <div className={`inline-flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL} text-violet-700`}>
-                <ShieldCheck size={18} />
-                <span>Credit monitoring tools</span>
-              </div>
-              <p className={`mt-2 ${FINELY_OS_ENTITY_BODY} text-sm max-w-3xl`}>
-                Prefer an <span className={`font-semibold ${FINELY_OS_ENTITY_VALUE}`}>HTML export</span> for best parse quality in the portal.
-              </p>
-            </div>
-          </div>
-          <CreditMonitoringPartnerGrid variant="resources" />
-        </div>
-        </section>
 
         <section id="guides" className="fc-scroll-section space-y-6">
         <h2 className="fc-launch-lane-header">Guides &amp; playbooks</h2>
@@ -494,6 +476,24 @@ export default function ResourcesPage() {
               </div>
               )}
             />
+        </div>
+        </section>
+
+        <section id="monitoring" className="fc-scroll-section space-y-6">
+        <h2 className="fc-launch-lane-header">Credit monitoring</h2>
+        <div className={`space-y-4 ${finelyOsCatalogCard('violet')} !p-6`} data-fc-accent="violet">
+          <div className="flex items-start justify-between gap-6">
+            <div>
+              <div className={`inline-flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL} text-violet-700`}>
+                <ShieldCheck size={18} />
+                <span>Credit monitoring tools</span>
+              </div>
+              <p className={`mt-2 ${FINELY_OS_ENTITY_BODY} text-sm max-w-3xl`}>
+                Prefer an <span className={`font-semibold ${FINELY_OS_ENTITY_VALUE}`}>HTML export</span> for best parse quality in the portal.
+              </p>
+            </div>
+          </div>
+          <CreditMonitoringPartnerGrid variant="resources" />
         </div>
         </section>
 

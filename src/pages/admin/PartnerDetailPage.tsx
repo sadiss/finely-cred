@@ -2312,7 +2312,7 @@ function PartnerDetailPageInner() {
                         ...mailLetter,
                         status: st,
                         mailing: {
-                          provider: 'lob',
+                          provider: 'finely',
                           providerId: mailLetter.mailing?.providerId,
                           createdAt: mailLetter.mailing?.createdAt ?? new Date().toISOString(),
                           expectedDeliveryDate: mailLetter.mailing?.expectedDeliveryDate,
@@ -2329,7 +2329,7 @@ function PartnerDetailPageInner() {
                         ...mailLetter,
                         status: 'mailed',
                         mailing: {
-                          provider: 'lob',
+                          provider: 'finely',
                           providerId,
                           createdAt: new Date().toISOString(),
                           expectedDeliveryDate,
@@ -2345,7 +2345,7 @@ function PartnerDetailPageInner() {
                         action: 'letter.mailed',
                         entityType: 'letter',
                         entityId: updated.id,
-                        meta: { provider: 'lob', providerId, expectedDeliveryDate: expectedDeliveryDate ?? null },
+                        meta: { provider: 'finely', providerId, expectedDeliveryDate: expectedDeliveryDate ?? null },
                       });
                       onDisputeLetterMailed({ letter: updated, actor: 'admin' });
                       setNotesVersion((v) => v + 1);

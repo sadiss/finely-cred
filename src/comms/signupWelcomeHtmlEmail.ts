@@ -8,9 +8,11 @@ import {
   buildCreditAdvantageCards,
   buildCreditHeroBanner,
   buildDefaultEmailFooter,
+  buildGoldAccentDivider,
   buildPrimaryCtaButton,
   buildSecondaryCtaLink,
   buildTrustStrip,
+  buildWelcomeJourneySteps,
   wrapFinelyEmailHtml,
 } from './prebuiltHtmlEmailLayout';
 import {
@@ -101,11 +103,13 @@ export function buildSignupWelcomeEmail(args: {
       headline: funnelCopy.heroHeadline ?? 'Restore · Dispute · Fund',
       subline: funnelCopy.heroSubline ?? 'Your personalized credit path starts here',
     })}
-    <p style="margin:0 0 16px;">Hi ${first},</p>
-    <p style="margin:0 0 16px;">${funnelCopy.intro}</p>
+    <p style="margin:0 0 16px;font-size:16px;">Hi ${first},</p>
+    <p style="margin:0 0 16px;font-size:15px;line-height:1.65;">${funnelCopy.intro}</p>
+    ${funnelCopy.showWelcomeSteps !== false ? buildWelcomeJourneySteps(funnelCopy.welcomeSteps ?? defaultWelcomeSteps(portalUrl)) : ''}
+    ${buildGoldAccentDivider()}
     ${funnelCopy.showAdvantageCards !== false ? buildCreditAdvantageCards() : ''}
     ${funnelCopy.showAnalysisPreview !== false ? buildAnalysisPreviewBlock() : ''}
-    ${buildPrimaryCtaButton({ label: funnelCopy.primaryCta, href: primaryHref })}
+    ${buildPrimaryCtaButton({ label: funnelCopy.primaryCta, href: primaryHref, color: '#059669' })}
     ${buildSecondaryCtaLink({ label: funnelCopy.secondaryCta, href: funnelCopy.secondaryHref ?? session })}
     ${funnelCopy.extraHtml}
     ${buildTrustStrip()}
@@ -148,8 +152,18 @@ type FunnelCopy = {
   plainText: string;
   showAdvantageCards?: boolean;
   showAnalysisPreview?: boolean;
+  showWelcomeSteps?: boolean;
+  welcomeSteps?: Array<{ num: string; title: string; body: string }>;
   headerTheme?: 'emerald' | 'gold' | 'slate' | 'violet';
 };
+
+function defaultWelcomeSteps(portalUrl: string) {
+  return [
+    { num: '1', title: 'Open your portal', body: 'Upload a tri-bureau report or monitoring export — we surface the highest-impact items first.' },
+    { num: '2', title: 'Run your checklist', body: 'AI-assisted disputes, evidence vault, and letter studio — organized round by round.' },
+    { num: '3', title: 'Track every win', body: `Dashboard, tasks, and messages keep you and your advisor aligned. <a href="${portalUrl}" style="color:#6366f1;">Open portal →</a>` },
+  ];
+}
 
 function resolveFunnelCopy(args: {
   funnelId: string;
@@ -428,17 +442,20 @@ function resolveFunnelCopy(args: {
   if (id === 'portal_client' || id === 'portal_funding') {
     return {
       subject: 'Welcome to Finely Cred — your portal is ready',
-      headline: `${first}, your portal is live`,
+      headline: `${first}, welcome aboard`,
       heroHeadline: 'Upload · Dispute · Fund',
-      heroSubline: 'Personal credit restoration with AI-assisted workflows',
-      subheadline: 'Upload a report, run the restoration checklist, and track every dispute.',
-      preheader: 'Your Finely Cred portal is ready. Upload a report to get started.',
-      intro: `Welcome to Finely Cred. Your personal restoration portal is ready — upload a credit report, let AI surface the highest-impact disputes, and track every letter and response in one place.`,
+      heroSubline: 'We are glad you are here — your credit journey starts now',
+      subheadline: 'Your personal portal is live — we built this workspace for you.',
+      preheader: 'Your Finely Cred portal is ready. Three simple steps to get momentum today.',
+      intro: `Welcome to Finely Cred — we're genuinely glad you're here. Your personal restoration portal is ready: upload a credit report, surface the highest-impact disputes, and track every letter and response without spreadsheet chaos.`,
       primaryCta: 'Open your portal',
       secondaryCta: 'Book a free strategy call',
       primaryHref: portalUrl,
-      extraHtml: `<p style="margin:16px 0 0;font-size:14px;color:#475569;">Your advisor <strong>${personaName}</strong> is available in portal messages once you're set up.</p>`,
-      plainText: `Hi ${first},\n\nPortal ready: ${portalUrl}\n\nBook strategy call: ${session}`,
+      headerTheme: 'gold',
+      showWelcomeSteps: true,
+      showAnalysisPreview: true,
+      extraHtml: `<p style="margin:16px 0 0;font-size:14px;color:#475569;">Your advisor <strong>${personaName}</strong> is available in portal messages once you're set up. Questions? Reply to this email.</p>`,
+      plainText: `Hi ${first},\n\nWelcome to Finely Cred — your portal is ready.\n\nOpen portal: ${portalUrl}\n\nBook strategy call: ${session}`,
     };
   }
 

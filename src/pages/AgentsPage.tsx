@@ -1,19 +1,16 @@
-import React, { useMemo, useState } from 'react';
-import { ArrowLeft, ArrowRight, BadgeCheck, Building2, GraduationCap, Percent, ShieldAlert, Sparkles, Users } from 'lucide-react';
+import React, { useState } from 'react';
+import { ArrowLeft, ArrowRight, BadgeCheck, Building2, ShieldAlert, Users } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { PageShell } from '../components/layout/PageShell';
-import { AgentSplitCalculator } from '../components/agent/AgentSplitCalculator';
-import { TogglePillGroup } from '../components/ui/TogglePillGroup';
+import { CareersQuickNav } from '../components/careers/CareersQuickNav';
+import { CreditSpecialistOfferingsPanel } from '../components/creditSpecialist/CreditSpecialistOfferingsPanel';
+import { CreditSpecialistCareerGuide } from '../components/creditSpecialist/CreditSpecialistCareerGuide';
+import { CS_PUBLIC } from '../components/creditSpecialist/creditSpecialistPublicUi';
 import { createProgramApplication } from '../data/programApplicationsRepo';
 import { submitLeadCapture } from '../data/leadsRepo';
 import { addLeadNote } from '../data/leadOpsRepo';
-import { AGENT_SPECIALTIES, AGENT_TRAINING_PHASES, defaultAgentOperatingModel, formatAgentMoney, resolvePrimarySpecialty, SPECIALTY_ECONOMICS } from '../domain/agentProgram';
-import type { AgentSpecialtyId } from '../domain/agentProgram';
 import { CS, CREDIT_SPECIALIST_COMMS_CHANNELS } from '../config/creditSpecialistProgram';
-import { agencyTiers } from '../config/pricingCatalog';
-import { CreditSpecialistOfferingsPanel } from '../components/creditSpecialist/CreditSpecialistOfferingsPanel';
 import { FinelyOsPageFooter } from '../features/os/FinelyOsPageFooter';
-import { FinelyOsPaginatedStack } from '../features/os/FinelyOsPaginatedStack';
 import { FinelyUnifiedHubLayout } from '../features/unified/FinelyUnifiedHubLayout';
 import { MarketingStaffChatStrip } from '../components/marketing/MarketingStaffChatStrip';
 import { usePublicSeoMeta } from '../hooks/usePublicSeoMeta';
@@ -69,29 +66,10 @@ export default function AgentsPage() {
   const [payoutPreference, setPayoutPreference] = useState<'stripe' | 'paypal' | 'zelle' | 'cash_app' | 'other'>('stripe');
   const [payoutHandle, setPayoutHandle] = useState('');
   const [notes, setNotes] = useState('');
-  const [previewSpecialties, setPreviewSpecialties] = useState<AgentSpecialtyId[]>(['personal_restore', 'business_credit']);
-  const [previewPhase, setPreviewPhase] = useState<'apprenticeship' | 'guided' | 'independent' | 'partner'>('apprenticeship');
-
-  const previewModel = useMemo(
-    () =>
-      defaultAgentOperatingModel({
-        specialties: previewSpecialties.length ? previewSpecialties : ['personal_restore'],
-        trainingPhase: previewPhase,
-        capacityTierId: 'agency_solo',
-      }),
-    [previewSpecialties, previewPhase],
-  );
-
-  const previewLaneLabel = useMemo(() => {
-    const primary = resolvePrimarySpecialty(previewSpecialties.length ? previewSpecialties : ['personal_restore']);
-    return SPECIALTY_ECONOMICS[primary].feeLabel;
-  }, [previewSpecialties]);
-
-  const publicAgencyTiers = useMemo(() => agencyTiers.filter((t) => t.isPublic !== false).slice(0, 4), []);
 
   const [status, setStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
   const [statusMsg, setStatusMsg] = useState<string | null>(null);
-  const [laneTab, setLaneTab] = useState<'program' | 'apply' | 'tiers'>('program');
+  const [laneTab, setLaneTab] = useState<'program' | 'economics' | 'apply'>('program');
 
   const canSubmit = fullName.trim().length > 1 && email.trim().includes('@') && status !== 'sending';
 
@@ -163,15 +141,17 @@ export default function AgentsPage() {
           </button>
         </div>
 
+        <CareersQuickNav active="credit_specialists" className="mt-6" />
+
         <FinelyUnifiedHubLayout
           eyebrow={CS.programName}
-          title="Credit specialist partnership"
-          subtitle="Revenue-share partnership — run partner credit files on Finely's operating stack."
+          title="Credit specialist program"
+          subtitle="Program & stack = tools · Tiers & pay = your percentage · Apply = join"
           accent="violet"
           tabs={[
-            { id: 'program', label: 'Program' },
-            { id: 'apply', label: 'Apply' },
-            { id: 'tiers', label: 'Agency tiers' },
+            { id: 'program', label: '① Tools & platform' },
+            { id: 'economics', label: '② Tiers & pay' },
+            { id: 'apply', label: '③ Apply' },
           ]}
           activeTab={laneTab}
           onTabChange={(id) => setLaneTab(id as typeof laneTab)}
@@ -181,97 +161,74 @@ export default function AgentsPage() {
 
         {laneTab === 'program' && (
         <>
-        <div className={`space-y-4 ${finelyOsCatalogCard('violet')} !p-6 lg:!p-8`} data-fc-accent="violet">
-          <div className="fc-section-kicker text-violet-700">Revenue-share partnership</div>
-          <h2 className="fc-section-title text-3xl md:text-4xl font-light tracking-tight">
-            Run partner credit files on Finely&apos;s operating stack
-          </h2>
-          <p className={`max-w-3xl ${FINELY_OS_ENTITY_BODY} text-base`}>
-            Credit Specialists are not employees — they are certified partners with revenue share, Denefit contracts, white-label portal, dispute studio, and a dedicated partnership line with Finely ops.
+        <div className={`space-y-5 ${finelyOsCatalogCard('violet')} !p-8 sm:!p-10 border-2`} data-fc-accent="violet">
+          <p className={CS_PUBLIC.pageKicker}>Credit specialist program</p>
+          <h2 className={CS_PUBLIC.pageTitle}>Run client files on Finely</h2>
+          <p className={CS_PUBLIC.pageLead}>
+            <strong className="text-slate-900">Credit specialist</strong> = you run restore, build, business, and debt files.
+            Pay starts around <strong className="text-emerald-700">30%</strong> per file — not 80%. Certified partner is the top step.
           </p>
-          <div className="flex flex-wrap gap-3 pt-2">
-            <button type="button" onClick={() => navigate('/onboarding?goal=agent')} className={FINELY_OS_PRIMARY_BTN}>
-              Apply to program <ArrowRight size={14} />
+          <div className="grid sm:grid-cols-3 gap-3 text-center">
+            {[
+              { n: '30%', label: 'Apprentice start', sub: 'typical keep' },
+              { n: 'Tools', label: 'Platform included', sub: 'every level' },
+              { n: '80%', label: 'Certified max', sub: 'top per-file keep' },
+            ].map((x) => (
+              <div key={x.label} className="rounded-xl border-2 border-violet-200 bg-white px-4 py-5">
+                <div className="text-3xl sm:text-4xl font-black text-violet-700">{x.n}</div>
+                <div className="mt-1 text-base font-bold text-slate-900">{x.label}</div>
+                <div className="text-sm text-slate-500">{x.sub}</div>
+              </div>
+            ))}
+          </div>
+          <p className={`${CS_PUBLIC.bodySm} max-w-3xl`}>
+            Building a company with team seats? See{' '}
+            <button type="button" className="underline font-semibold text-violet-700" onClick={() => navigate('/agency-partners')}>
+              Agency partners
             </button>
-            <button type="button" onClick={() => navigate('/agency/signup')} className={FINELY_OS_SECONDARY_BTN}>
-              Agency signup
+            {' '}— a separate track from solo specialists.
+          </p>
+          <div className="flex flex-wrap gap-3">
+            <button type="button" onClick={() => setLaneTab('economics')} className={FINELY_OS_PRIMARY_BTN}>
+              See tiers &amp; pay <ArrowRight size={16} />
+            </button>
+            <button type="button" onClick={() => navigate('/onboarding?goal=agent')} className={FINELY_OS_SECONDARY_BTN}>
+              Apply now
             </button>
           </div>
         </div>
 
         <CreditSpecialistOfferingsPanel />
 
-        <div className="space-y-4">
+        <div className="space-y-5">
           <div>
-            <div className="fc-section-kicker text-sky-300">Comms & growth</div>
-            <h3 className="fc-section-title mt-2 text-xl">How specialists stay connected</h3>
+            <p className={CS_PUBLIC.sectionKicker}>Stay connected</p>
+            <h3 className={`mt-2 ${CS_PUBLIC.sectionTitle}`}>How specialists work with Finely</h3>
           </div>
           <div className="grid md:grid-cols-2 gap-4">
-            {CREDIT_SPECIALIST_COMMS_CHANNELS.map((ch, idx) => {
-              const accents = ['sky', 'emerald', 'violet', 'amber'] as const;
-              return (
-                <div key={ch.title} className={`${finelyOsCatalogCard(accents[idx % accents.length])} !p-5 space-y-3`}>
-                  <div className={`font-semibold ${FINELY_OS_ENTITY_VALUE}`}>{ch.title}</div>
-                  <p className={`text-sm ${FINELY_OS_ENTITY_BODY}`}>{ch.description}</p>
-                  <button type="button" onClick={() => navigate(ch.path)} className={FINELY_OS_SECONDARY_BTN}>
-                    {ch.action} <ArrowRight size={14} />
-                  </button>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        <div className="grid md:grid-cols-3 gap-4">
-          {[
-            { icon: Percent, title: 'Revenue share', body: 'Not flat SaaS pricing. Your split reflects training phase, specialty lane (restore, build, business credit, debt, etc.), and who runs software, marketing, comms, and fulfillment.', accent: 'emerald' as const },
-            { icon: GraduationCap, title: 'Training tracks', body: 'Personal restore, personal build, business credit, debt & legal, tradelines, and funding — each with academy modules and certification checkpoints.', accent: 'amber' as const },
-            { icon: Sparkles, title: 'Platform stack', body: 'CRM, partner portal, Comms Studio, lead magnets, free & paid ebooks, AI Media Studio, and dispute workflows — included in the model.', accent: 'fuchsia' as const },
-          ].map(({ icon: Icon, title, body, accent }) => (
-            <div key={title} className={`space-y-2 ${finelyOsCatalogCard(accent)} !p-5`} data-fc-accent={accent}>
-              <div className="inline-flex items-center gap-2 text-fuchsia-400">
-                <Icon size={16} />
-                <span className={FINELY_OS_ENTITY_SUBLABEL}>{title}</span>
+            {CREDIT_SPECIALIST_COMMS_CHANNELS.map((ch) => (
+              <div key={ch.title} className={`${finelyOsCatalogCard('sky')} !p-6 sm:!p-8 border-2 space-y-3`}>
+                <h4 className={CS_PUBLIC.cardTitle}>{ch.title}</h4>
+                <p className={CS_PUBLIC.body}>{ch.description}</p>
+                <button type="button" onClick={() => navigate(ch.path)} className={FINELY_OS_SECONDARY_BTN}>
+                  {ch.action} <ArrowRight size={14} />
+                </button>
               </div>
-              <p className={FINELY_OS_ENTITY_BODY}>{body}</p>
-            </div>
-          ))}
-        </div>
-
-        <div className={`space-y-5 ${finelyOsCatalogCard('amber')} !p-6`} data-fc-accent="amber">
-          <div>
-            <div className={`${FINELY_OS_ENTITY_SUBLABEL} text-amber-300`}>Preview your split</div>
-            <p className={`mt-2 ${FINELY_OS_ENTITY_BODY}`}>
-              Tap a specialty and training phase — example fees and splits change by lane (personal restore vs business credit vs funding, etc.).
-            </p>
+            ))}
           </div>
-          <TogglePillGroup
-            label="Specialty tracks"
-            variant="white"
-            multiple
-            options={AGENT_SPECIALTIES.map((s) => ({
-              id: s.id,
-              label: s.label,
-              hint: `${s.description} · example ${formatAgentMoney(SPECIALTY_ECONOMICS[s.id].sampleClientFeeCents)} partner file`,
-            }))}
-            value={previewSpecialties}
-            onChange={(v) => setPreviewSpecialties(v as AgentSpecialtyId[])}
-          />
-          <TogglePillGroup
-            label="Training phase"
-            variant="emerald"
-            options={AGENT_TRAINING_PHASES.map((p) => ({ id: p.id, label: p.label, hint: p.description }))}
-            value={previewPhase}
-            onChange={(v) => setPreviewPhase(v as typeof previewPhase)}
-          />
-          <AgentSplitCalculator model={previewModel} showLeverControls={false} compact />
-          <p className={`text-xs ${FINELY_OS_ENTITY_BODY}`}>Example based on {previewLaneLabel} — actual splits vary by capacity tier and agreement.</p>
         </div>
         </>
         )}
 
+        {laneTab === 'economics' && <CreditSpecialistCareerGuide />}
+
         {laneTab === 'apply' && (
         <>
+        <header className="mb-8 space-y-3">
+          <p className={CS_PUBLIC.sectionKicker}>Step 3</p>
+          <h2 className={CS_PUBLIC.sectionTitle}>Apply to the program</h2>
+          <p className={CS_PUBLIC.sectionLead}>We review applications and reply by email with next steps.</p>
+        </header>
         {statusMsg ? (
           <div className={status === 'sent' ? FINELY_OS_NOTICE_SUCCESS : status === 'error' ? FINELY_OS_NOTICE_ERROR : `${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony`}>
             <div className="inline-flex items-center gap-2 font-semibold">
@@ -385,58 +342,6 @@ export default function AgentsPage() {
           </div>
         </div>
         </>
-        )}
-
-        {laneTab === 'tiers' && (
-        <section className={`relative overflow-hidden ${finelyOsCatalogCard('amber')} !p-6 lg:!p-8`} data-fc-accent="amber">
-          <div className="relative space-y-6">
-            <div className="flex flex-wrap items-start justify-between gap-4">
-              <div className="min-w-0">
-                <div className="inline-flex items-center gap-2 text-amber-300">
-                  <Building2 size={18} />
-                  <span className={FINELY_OS_ENTITY_SUBLABEL}>Agency capacity tiers</span>
-                </div>
-                <h2 className={`mt-2 ${FINELY_OS_ENTITY_TITLE} text-2xl sm:text-3xl`}>Scale partner files, seats & your keep</h2>
-                <p className={`mt-2 ${FINELY_OS_ENTITY_BODY} max-w-2xl`}>
-                  Revenue share only — no platform fee. Apprenticeship starts around 28–30% agent keep; certified partners cap at 80% with Finely retaining at least 20% for platform, growth, and support.
-                </p>
-              </div>
-              <button type="button" onClick={() => navigate('/pricing?tab=agency')} className={`shrink-0 ${FINELY_OS_PRIMARY_BTN} !py-4 !px-8`}>
-                Compare all agency tiers <ArrowRight size={16} />
-              </button>
-            </div>
-            <FinelyOsPaginatedStack
-              items={publicAgencyTiers}
-              pageSize={6}
-              itemSpacingClassName="grid sm:grid-cols-2 lg:grid-cols-4 gap-3"
-              renderItem={(tier, idx) => {
-                const accents = ['emerald', 'sky', 'violet', 'amber'] as const;
-                const accent = accents[idx % accents.length];
-                const topSplit = tier.splitBreakdown?.[0];
-                const certifiedSplit = tier.splitBreakdown?.[tier.splitBreakdown.length - 1];
-                return (
-                  <div key={tier.id} className={`space-y-2 ${finelyOsCatalogCard(accent)} !p-5`} data-fc-accent={accent}>
-                    <div className={FINELY_OS_ENTITY_VALUE}>{tier.name}</div>
-                    <div className={FINELY_OS_ENTITY_SUBLABEL}>
-                      {tier.activeClientLimit === -1 ? 'Unlimited' : tier.activeClientLimit} partner files ·{' '}
-                      {tier.seatLimit === -1 ? 'Unlimited' : tier.seatLimit} seats
-                    </div>
-                    {topSplit && certifiedSplit ? (
-                      <div className={`${FINELY_OS_ENTITY_BODY} space-y-1 pt-1`}>
-                        <div>
-                          <span className="text-amber-700 font-medium">{topSplit.label}:</span> you {topSplit.agentKeepPct}%
-                        </div>
-                        <div>
-                          <span className="text-emerald-700 font-medium">{certifiedSplit.label}:</span> you {certifiedSplit.agentKeepPct}%
-                        </div>
-                      </div>
-                    ) : null}
-                  </div>
-                );
-              }}
-            />
-          </div>
-        </section>
         )}
 
         </FinelyUnifiedHubLayout>

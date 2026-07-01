@@ -15,6 +15,7 @@ import {
   FINELY_OS_SECONDARY_BTN,
   finelyOsCatalogCard,
 } from '../../features/os/finelyOsLightUi';
+import { FINELY_MAIL_COPY } from '../../lib/mailWhiteLabel';
 
 const PRESET_AMOUNTS = [2500, 5000, 10000, 25000];
 
@@ -44,7 +45,7 @@ export function MailCreditsPanel({ actorEmail, compact = false }: { actorEmail?:
           </div>
           <div className={`mt-2 text-3xl font-light ${FINELY_OS_ENTITY_VALUE}`}>{formatMailCreditsUsd(wallet.balanceCents)}</div>
           <p className={`mt-1 ${FINELY_OS_ENTITY_BODY} text-sm`}>
-            Each certified color letter costs about {formatMailCreditsUsd(wallet.costPerLetterCents || DEFAULT_MAIL_COST_CENTS)} (LOB estimate). Replenish before mailing dispute packets.
+            Each certified color letter costs about {formatMailCreditsUsd(wallet.costPerLetterCents || DEFAULT_MAIL_COST_CENTS)} ({FINELY_MAIL_COPY.creditsEstimate}). Replenish before mailing dispute packets.
           </p>
         </div>
         <div className={`text-right ${FINELY_OS_ENTITY_SUBLABEL} font-mono normal-case`}>

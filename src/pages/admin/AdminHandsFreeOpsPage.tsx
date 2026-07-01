@@ -28,6 +28,7 @@ import { listAutomationRules } from '../../data/automationStudioRepo';
 import { listLettersByPartner } from '../../data/lettersRepo';
 import { listPartnersLocal } from '../../data/partnersRepo';
 import { listAiActionAudit } from '../../data/aiActionAuditLog';
+import { FINELY_MAIL_COPY } from '../../lib/mailWhiteLabel';
 
 type QueueTab = 'draft_review' | 'mail_confirm' | 'complaint' | 'staff_gap' | 'all';
 
@@ -179,7 +180,7 @@ export default function AdminHandsFreeOpsPage() {
             <ul className={`${FINELY_OS_ENTITY_BODY} text-sm space-y-2 list-disc pl-4`}>
               <li>Report uploaded → optional auto-draft with factual dispute findings only.</li>
               <li>Draft lands in partner vault + appears here for human review.</li>
-              <li>Mail via Lob requires explicit confirm — never auto-sent.</li>
+              <li>{FINELY_MAIL_COPY.humanConfirm}</li>
             </ul>
           </FinelyOsGlassPanel>
 
@@ -205,7 +206,7 @@ export default function AdminHandsFreeOpsPage() {
 
         <FinelyOsGlassPanel icon={Mail} title="Mail confirm gate" accent="rose">
           <p className={`${FINELY_OS_ENTITY_BODY} text-sm`}>
-            Letters with status <strong className="text-white/80">mail_pending</strong> or items in the mail confirm queue require admin approval in Letter Studio before Lob send.
+            Letters with status <strong className="text-white/80">mail_pending</strong> or items in the mail confirm queue require admin approval in Letter Studio before physical mail is sent.
           </p>
         </FinelyOsGlassPanel>
 
