@@ -1,0 +1,13 @@
+name: Compliance Daily
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '30 11 * * *'
+jobs:
+  compliance:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.11' }
+      - run: python scripts/compliance/lint_all_copy.py --dry-run

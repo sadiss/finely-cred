@@ -28,6 +28,8 @@ import { PublicInquiryBudgetCalculator } from '../funding/PublicInquiryBudgetCal
 import { loadSettings } from '../../data/settingsRepo';
 import { resolveLeadMagnetConfig } from '../../data/leadMagnetFunnelsRepo';
 import { CreditGuidePremiumDownload, CreditGuidePremiumLanding } from './CreditGuidePremiumSections';
+import { UniversalPremiumLeadMagnetLanding } from './UniversalPremiumLeadMagnetLanding';
+import { getLeadMagnetPremiumProfile } from './leadMagnetPremiumProfiles';
 import { FunnelLeadCaptureForm } from './FunnelLeadCaptureForm';
 import { FunnelCollectionDisputePanel } from './FunnelCollectionDisputePanel';
 import { FinelyOsPaginatedStack } from '../../features/os/FinelyOsPaginatedStack';
@@ -105,6 +107,8 @@ export function LeadMagnetFunnelShell({
   const trustCount = loadSettings().site.funnelTrustClientCount ?? 10000;
   const trustLabel = trustCount >= 1000 ? `${Math.floor(trustCount / 1000)}k+` : `${trustCount}+`;
   const isCreditPremium = variant === 'premium' && activeConfig.id === 'credit';
+  const isUniversalPremium = variant === 'premium' && activeConfig.id !== 'credit' && Boolean(getLeadMagnetPremiumProfile(activeConfig));
+  const isAnyPremiumLanding = isCreditPremium || isUniversalPremium;
 
   useEffect(() => {
     if (step !== 'download') return;
@@ -238,23 +242,24 @@ export function LeadMagnetFunnelShell({
 
   const totalValue = activeConfig.valueStack.reduce((sum, v) => sum + parseInt(v.value.replace(/\D/g, ''), 10), 0);
   const trialActive = Boolean(getLeadMagnetTrial()?.leadId);
+  const premiumProfile = getLeadMagnetPremiumProfile(activeConfig);
 
   const scrollToCapture = () => {
     document.getElementById('fg-capture')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
   const goForm = () => {
-    if (isCreditPremium) scrollToCapture();
+    if (isAnyPremiumLanding) scrollToCapture();
     else setStep('form');
   };
 
   useEffect(() => {
-    if (isCreditPremium && step === 'form') {
+    if (isAnyPremiumLanding && step === 'form') {
       setStep('landing');
       scrollToCapture();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isCreditPremium, step]);
+  }, [isAnyPremiumLanding, step]);
 
   const assignedStaff = useMemo(() => resolveStaffOnDuty(activeConfig.agentPersonaId), [activeConfig.agentPersonaId]);
   const staffName = assignedStaff ? staffMemberFullName(assignedStaff) : activeConfig.agentDisplayName;
@@ -263,7 +268,7 @@ export function LeadMagnetFunnelShell({
   return (
     <div className="fg-funnel min-h-screen text-white overflow-x-hidden">
       <FreeGuideFunnelStyles />
-      {!isCreditPremium ? (
+      {variant === 'standard' ? (
         <div className="fg-urgency-bar text-white text-center py-3 px-4 font-bold text-xs sm:text-sm tracking-wider">
           <span className="inline-flex items-center justify-center gap-2 flex-wrap">
             <Sparkles className="w-4 h-4 shrink-0 animate-pulse" />
@@ -274,7 +279,7 @@ export function LeadMagnetFunnelShell({
       ) : null}
 
       {step === 'landing' && (
-        variant === 'premium' && activeConfig.id === 'credit' ? (
+        isCreditPremium ? (
           <CreditGuidePremiumLanding
             config={activeConfig}
             guide={guide}
@@ -294,6 +299,40 @@ export function LeadMagnetFunnelShell({
                 busy={busy}
                 err={err}
                 submitLabel={ctaOverride ?? 'Get the free kit'}
+                totalValue={totalValue}
+                trustLabel={trustLabel}
+                onFirstNameChange={setFirstName}
+                onLastNameChange={setLastName}
+                onEmailChange={setEmail}
+                onPhoneChange={setPhone}
+                onConsentChange={setConsent}
+                onMarketingChange={setMarketing}
+                onSubmit={submitForm}
+              />
+            }
+          />
+        ) : isUniversalPremium ? (
+          <UniversalPremiumLeadMagnetLanding
+            config={activeConfig}
+            guide={guide}
+            onGoForm={goForm}
+            headlineOverride={headlineOverride}
+            ctaOverride={ctaOverride}
+            trustLabel={trustLabel}
+            totalValue={totalValue}
+            staffName={staffName}
+            staffTitle={staffTitle}
+            captureForm={
+              <FunnelLeadCaptureForm
+                firstName={firstName}
+                lastName={lastName}
+                email={email}
+                phone={phone}
+                consent={consent}
+                marketing={marketing}
+                busy={busy}
+                err={err}
+                submitLabel={ctaOverride ?? getLeadMagnetPremiumProfile(activeConfig)?.captureHeadline ?? 'Get free access'}
                 totalValue={totalValue}
                 trustLabel={trustLabel}
                 onFirstNameChange={setFirstName}
@@ -373,7 +412,7 @@ export function LeadMagnetFunnelShell({
         )
       )}
 
-      {step === 'form' && !isCreditPremium && (
+      {step === 'form' && !isAnyPremiumLanding && (
         <div className="container mx-auto px-4 py-10 sm:py-12 max-w-lg">
           {activeConfig.id === 'credit' && variant === 'premium' ? (
             <div className="mb-6 rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-3 text-center">
@@ -389,9 +428,14 @@ export function LeadMagnetFunnelShell({
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" /> Live
               </span>
             </div>
-            <h2 className="text-2xl sm:text-3xl font-black mb-2">Claim your free dispute toolkit</h2>
+            <h2 className="text-2xl sm:text-3xl font-black mb-2">
+              {activeConfig.id === 'credit'
+                ? 'Claim your free dispute toolkit'
+                : premiumProfile?.formStepTitle ?? `Unlock your free ${guide.title}`}
+            </h2>
             <p className={`text-sm ${FINELY_OS_ENTITY_BODY} mb-4`}>
-              PDF + bonuses unlock in seconds. No card. {staffName}, your {staffTitle}, can help you execute round 1.
+              {premiumProfile?.formStepSub ??
+                `PDF + bonuses unlock in seconds. No card. ${staffName}, your ${staffTitle}, can help you with next steps.`}
             </p>
             {activeConfig.id === 'credit' ? (
               <ul className="mb-6 space-y-2 text-xs text-white/70">
@@ -434,7 +478,7 @@ export function LeadMagnetFunnelShell({
           <div className="rounded-3xl border border-emerald-500/30 bg-emerald-500/10 p-8 space-y-6">
             <div className="text-center">
               <Check className="w-12 h-12 text-emerald-400 mx-auto mb-4" />
-              <h2 className="text-2xl font-black mb-2">You're in!</h2>
+              <h2 className="text-2xl font-black mb-2">{premiumProfile?.successHeadline ?? "You're in!"}</h2>
               <p className="text-white/70">
                 Reference {leadId}. {staffName}, your {staffTitle}, is on your team and will follow up by email.
                 {trialActive ? ` Your ${LEAD_MAGNET_TRIAL_DAYS}-day portal preview is active.` : ''}

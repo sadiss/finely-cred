@@ -2,5 +2,5 @@ import { LeadMagnetFunnelShell } from '../../components/leadmagnet/LeadMagnetFun
 import { AFFILIATE_FUNNEL } from '../../domain/leadMagnetFunnels';
 
 export default function AffiliateToolkitFunnelPage() {
-  return <LeadMagnetFunnelShell config={AFFILIATE_FUNNEL} />;
+  return <LeadMagnetFunnelShell config={AFFILIATE_FUNNEL} variant="premium" />;
 }

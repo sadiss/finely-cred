@@ -4,6 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import { PageShell } from '../../components/layout/PageShell';
 import { FinelyOsIconBadge } from '../../features/os/FinelyOsIconBadge';
 import { LeadIntelHub } from '../../features/leadIntel/LeadIntelHub';
+import { LeadIntelSwarmDashboard } from '../../features/overnight50/LeadIntelSwarmDashboard';
+import { Overnight50AdminNav } from '../../components/overnight50/Overnight50AdminNav';
 import {
   FINELY_OS_PAGE,
   FINELY_OS_BANNER,
@@ -38,6 +40,8 @@ export default function AdminLeadIntelPage() {
           </div>
         </div>
 
+        <Overnight50AdminNav className="mb-4" />
+
         <div className={FINELY_OS_BANNER}>
           <FinelyOsIconBadge icon={Sparkles} accent="fuchsia" size={18} className="p-2.5 mt-0.5" />
           <p className={`${FINELY_OS_ENTITY_BODY} leading-relaxed`}>
@@ -45,6 +49,8 @@ export default function AdminLeadIntelPage() {
             <strong className="text-fuchsia-200">CRM → Prospects</strong>. Pair with sequences and playbooks for outbound.
           </p>
         </div>
+
+        <LeadIntelSwarmDashboard />
 
         <LeadIntelHub />
 

@@ -38,6 +38,8 @@ import { LeadBulkImportPanel } from '../../features/leadsOs/LeadBulkImportPanel'
 import { LeadScrapeSourcePicker } from '../../features/leadsOs/LeadScrapeSourcePicker';
 import { listInboxMessages } from '../../data/socialHubRepo';
 import { CmoUnifiedCommandCenter } from '../../components/cmo/CmoUnifiedCommandCenter';
+import { LeadIntelSwarmDashboard } from '../../features/overnight50/LeadIntelSwarmDashboard';
+import { Overnight50AdminNav } from '../../components/overnight50/Overnight50AdminNav';
 
 type LeadsTab = 'inbound' | 'intel' | 'distribution' | 'social' | 'routing' | 'cmo';
 
@@ -219,6 +221,9 @@ export default function AdminLeadsOsPage() {
         ) : null}
 
         {tab === 'intel' ? (
+          <div className="space-y-4">
+            <Overnight50AdminNav compact />
+            <LeadIntelSwarmDashboard />
           <FinelyOsGlassPanel icon={Sparkles} title="Lead Intelligence Agent" subtitle="Discover → stage → import — full CRM-grade prospecting workspace." accent="fuchsia">
             <LeadScrapeSourcePicker
               onSelect={(_source, query) => {
@@ -235,6 +240,7 @@ export default function AdminLeadsOsPage() {
               <LeadIntelHub embedded showCompliance={false} />
             </div>
           </FinelyOsGlassPanel>
+          </div>
         ) : null}
 
         {tab === 'distribution' ? (
@@ -323,6 +329,7 @@ export default function AdminLeadsOsPage() {
 
         {tab === 'cmo' ? (
           <div className="space-y-4">
+            <Overnight50AdminNav compact />
             <div className="flex flex-wrap gap-2">
               <button type="button" onClick={() => navigate('/admin/cmo')} className={FINELY_OS_SECONDARY_BTN}>
                 Open full CMO Command page

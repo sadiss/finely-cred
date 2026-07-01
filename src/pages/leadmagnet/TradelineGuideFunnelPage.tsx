@@ -2,5 +2,5 @@ import { LeadMagnetFunnelShell } from '../../components/leadmagnet/LeadMagnetFun
 import { TRADELINE_FUNNEL } from '../../domain/leadMagnetFunnels';
 
 export default function TradelineGuideFunnelPage() {
-  return <LeadMagnetFunnelShell config={TRADELINE_FUNNEL} />;
+  return <LeadMagnetFunnelShell config={TRADELINE_FUNNEL} variant="premium" />;
 }

@@ -9,6 +9,9 @@ export type LeadAttribution = {
   utmMedium?: string;
   utmCampaign?: string;
   utmContent?: string;
+  /** Overnight50 geo — from ?city= or ?cluster= */
+  geoCity?: string;
+  geoCluster?: string;
   landingPath?: string;
   capturedAt: string;
 };
@@ -42,8 +45,10 @@ export function captureLeadAttributionFromUrl(search: string, pathname = '/') {
   const utmMedium = params.get('utm_medium')?.trim();
   const utmCampaign = params.get('utm_campaign')?.trim();
   const utmContent = params.get('utm_content')?.trim();
+  const geoCity = (params.get('city') || params.get('geo') || params.get('metro'))?.trim();
+  const geoCluster = (params.get('cluster') || params.get('dma'))?.trim();
 
-  if (!ref && !promoterRole && !promoType && !promoAsset && !utmSource && !utmMedium && !utmCampaign) {
+  if (!ref && !promoterRole && !promoType && !promoAsset && !utmSource && !utmMedium && !utmCampaign && !geoCity && !geoCluster) {
     return load();
   }
 
@@ -59,6 +64,8 @@ export function captureLeadAttributionFromUrl(search: string, pathname = '/') {
     utmMedium: utmMedium || existing?.utmMedium,
     utmCampaign: utmCampaign || existing?.utmCampaign,
     utmContent: utmContent || existing?.utmContent,
+    geoCity: geoCity || existing?.geoCity,
+    geoCluster: geoCluster || existing?.geoCluster,
     landingPath: pathname,
     capturedAt: new Date().toISOString(),
   };

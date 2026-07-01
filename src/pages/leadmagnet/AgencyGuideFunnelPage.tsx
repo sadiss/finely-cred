@@ -2,5 +2,5 @@ import { LeadMagnetFunnelShell } from '../../components/leadmagnet/LeadMagnetFun
 import { AGENCY_FUNNEL } from '../../domain/leadMagnetFunnels';
 
 export default function AgencyGuideFunnelPage() {
-  return <LeadMagnetFunnelShell config={AGENCY_FUNNEL} />;
+  return <LeadMagnetFunnelShell config={AGENCY_FUNNEL} variant="premium" />;
 }

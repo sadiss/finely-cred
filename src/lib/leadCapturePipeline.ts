@@ -13,6 +13,7 @@ import { emitPlatformEvent } from '../domain/platformEvents';
 import { ensureNurtureCommsTemplatesOnce } from '../data/commsNurtureSeed';
 import { getNurtureSequence } from '../domain/nurtureSequences';
 import { buildFunnelDownloadUrl } from './funnelPublicLinks';
+import { wireLeadToOvernight50 } from './overnight50Bridge';
 
 export type LeadCapturePipelineArgs = {
   lead: LeadCapture;
@@ -87,6 +88,11 @@ export async function runLeadCapturePipeline(args: LeadCapturePipelineArgs): Pro
   });
 
   await recordAffiliateLeadAttribution(lead);
+  try {
+    wireLeadToOvernight50(lead, { guideId: args.guideId, funnelId });
+  } catch {
+    // non-blocking
+  }
   recordReferralLeadCapture({ referralCode: lead.referralCode, leadId: lead.id, funnelId });
   if (lead.referralCode) {
     void import('./referralRewardsEngine').then(({ processReferralReward }) =>

@@ -10,6 +10,7 @@ import {
   HeartPulse,
   LineChart,
   MessageSquareText,
+  Moon,
   PieChart,
   Play,
   Send,
@@ -31,6 +32,11 @@ import { CmoForecastPanel } from './CmoForecastPanel';
 import { CmoLeadQuotaPanel } from './CmoLeadQuotaPanel';
 import { CmoBriefingPanel } from './CmoBriefingPanel';
 import { CmoActionGate } from './CmoActionGate';
+import { CmoBudgetAllocatorPanel } from './CmoBudgetAllocatorPanel';
+import { CmoIntegrationHealthPanel } from './CmoIntegrationHealthPanel';
+import { Overnight50AdminNav } from '../overnight50/Overnight50AdminNav';
+import { LeadIntelSwarmDashboard } from '../../features/overnight50/LeadIntelSwarmDashboard';
+import { SyntheticStaffFloor } from '../../features/overnight50/SyntheticStaffFloor';
 
 export type CmoCommandTab =
   | 'staff'
@@ -49,7 +55,8 @@ export type CmoCommandTab =
   | 'budget'
   | 'integrations'
   | 'brief'
-  | 'gates';
+  | 'gates'
+  | 'overnight';
 
 const TABS: Array<{ id: CmoCommandTab; label: string; icon: React.ComponentType<{ size?: number; className?: string }> }> = [
   { id: 'staff', label: 'Staff Room', icon: MessageSquareText },
@@ -68,6 +75,7 @@ const TABS: Array<{ id: CmoCommandTab; label: string; icon: React.ComponentType<
   { id: 'budget', label: 'Budget', icon: Wallet },
   { id: 'integrations', label: 'Integrations', icon: PieChart },
   { id: 'gates', label: 'Gates', icon: ShieldCheck },
+  { id: 'overnight', label: 'Overnight50', icon: Moon },
 ];
 
 type Props = {
@@ -135,6 +143,13 @@ export function CmoUnifiedCommandCenter({ embedded = false, defaultTab = 'staff'
         {tab === 'budget' ? <CmoBudgetAllocatorPanel /> : null}
         {tab === 'integrations' ? <CmoIntegrationHealthPanel /> : null}
         {tab === 'gates' ? <CmoActionGate /> : null}
+        {tab === 'overnight' ? (
+          <div className="space-y-6">
+            <Overnight50AdminNav />
+            <LeadIntelSwarmDashboard />
+            <SyntheticStaffFloor />
+          </div>
+        ) : null}
       </div>
     </div>
   );

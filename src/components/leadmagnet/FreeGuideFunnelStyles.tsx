@@ -35,6 +35,44 @@ export function FreeGuideFunnelStyles() {
       -webkit-text-fill-color: transparent;
       background-clip: text;
     }
+    .fg-funnel .text-gradient-gold {
+      background: linear-gradient(to right, #fde68a, #f59e0b, #fb923c);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .fg-funnel .text-gradient-violet {
+      background: linear-gradient(to right, #c4b5fd, #8b5cf6, #e879f9);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .fg-funnel .text-gradient-magenta {
+      background: linear-gradient(to right, #f0abfc, #d946ef, #fb7185);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .fg-funnel .text-gradient-lime {
+      background: linear-gradient(to right, #bef264, #84cc16, #34d399);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .lm-theme-debt { background: #0a1628; position: relative; }
+    .lm-theme-debt::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse 80% 50% at 20% 0%, rgba(34,211,238,0.12), transparent); pointer-events: none; }
+    .lm-theme-business { background: #1a1208; position: relative; }
+    .lm-theme-business::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse 70% 45% at 80% 10%, rgba(245,158,11,0.14), transparent); pointer-events: none; }
+    .lm-theme-tradeline { background: #120a1f; position: relative; }
+    .lm-theme-tradeline::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse 75% 50% at 50% 0%, rgba(139,92,246,0.13), transparent); pointer-events: none; }
+    .lm-theme-score { background: #0a1410; position: relative; }
+    .lm-theme-score::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse 80% 55% at 30% 0%, rgba(57,255,20,0.1), transparent); pointer-events: none; }
+    .lm-theme-agency { background: #1a0a14; position: relative; }
+    .lm-theme-agency::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse 70% 50% at 70% 0%, rgba(217,70,239,0.12), transparent); pointer-events: none; }
+    .lm-theme-specialist { background: #0a1220; position: relative; }
+    .lm-theme-specialist::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse 75% 45% at 40% 0%, rgba(56,189,248,0.12), transparent); pointer-events: none; }
+    .lm-theme-affiliate { background: #0f1a0a; position: relative; }
+    .lm-theme-affiliate::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse 80% 50% at 60% 0%, rgba(132,204,22,0.11), transparent); pointer-events: none; }
     .fg-funnel .bg-mesh {
       position: relative;
       background-color: var(--bg-dark);

@@ -5,6 +5,7 @@ import { cmoNowIso } from '../../domain/cmoPhase2';
 import { cmoSummary, getCmoSettings, listCmoCampaigns, listCmoDirectives, upsertCmoDirective } from '../../data/cmoPhase2Repo';
 import { buildDefaultPlaybooks, runSafeCmoPlaybook } from './cmoExecutionBridge';
 import { recommendChannels } from './cmoLearningEngine';
+import { buildExecutionAwareSystemPrompt, planGrowthExecution } from '../growth/growthExecutionEngine';
 
 type StaffReply = {
   text: string;
@@ -14,7 +15,7 @@ type StaffReply = {
 
 function systemPrompt() {
   const settings = getCmoSettings();
-  return `You are CMO Prime for Finely Cred. You speak like senior staff: strategic, direct, premium, serious, and funny when it sharpens the point. You are conversion-obsessed and compliance-aware. You do not bypass platform rules, spam, fake engagement, scrape where prohibited, evade rate limits, or make guaranteed credit/funding claims. Safe growth only. Daily lead target: ${settings.dailyLeadTarget}. Humor level: ${settings.humorLevel}/10. Creativity: ${settings.creativityLevel}/10. Technical depth: ${settings.technicalDepth}/10.`;
+  return `${buildExecutionAwareSystemPrompt('cmo')} Daily lead target: ${settings.dailyLeadTarget}. Humor: ${settings.humorLevel}/10.`;
 }
 
 function fallbackReply(message: string): StaffReply {
@@ -81,10 +82,11 @@ export async function askCmoPrime(message: string): Promise<StaffReply> {
             recentCampaigns: campaigns,
             pendingDirectives: directives,
             requiredOutput: {
-              text: 'staff-style response to the admin, direct and funny but professional',
+              text: 'staff-style response: answer + what you will execute now vs delegate vs needs approval',
               directiveTitle: 'optional directive title',
               priority: 'low|normal|high|urgent',
-              actions: ['short action labels'],
+              actions: ['executable action labels — swarm, playbook, comms, geo'],
+              executionPlan: planGrowthExecution(trimmed, 'cmo').map((s) => ({ delegate: s.delegate, action: s.action, label: s.label })),
             },
           }),
         },

@@ -44,6 +44,7 @@ import { FinelyPublicNavResourcesMenu } from './features/os/FinelyPublicNavResou
 import { FinelyPublicNavContactMenu } from './features/os/FinelyPublicNavContactMenu';
 import { FinelyPublicNavCareerMenu } from './features/os/FinelyPublicNavCareerMenu';
 import { MarketingStaffChatStrip } from './components/marketing/MarketingStaffChatStrip';
+import { ScrollToTop } from './components/layout/ScrollToTop';
 import {
   FINELY_OS_ENTITY_BODY,
   FINELY_OS_ENTITY_PANEL_INNER,
@@ -62,7 +63,7 @@ import { isFeatureEnabled } from './data/settingsRepo';
 import { usePublicSeoMeta } from './hooks/usePublicSeoMeta';
 import { FinelyCredLogo } from './components/brand/FinelyCredLogo';
 import { SiteViewportPreview } from './components/layout/SiteViewportPreview';
-import { ScrollToTop } from './components/layout/ScrollToTop';
+import { Overnight50SiteBootstrap } from './components/overnight50/Overnight50SiteBootstrap';
 import { inPreviewFrame } from './lib/inPreviewFrame';
 
 // Route-level code splitting (keeps main bundle lean)
@@ -163,6 +164,9 @@ const ResetPasswordPage = lazy(() => import('./pages/ResetPasswordPage'));
 const AdminProductsPage = lazy(() => import('./pages/admin/AdminProductsPage'));
 const AdminCmsPage = lazy(() => import('./pages/admin/AdminCmsPage'));
 const AdminAnalyticsPage = lazy(() => import('./pages/admin/AdminAnalyticsPage'));
+const AdminOvernight50Page = lazy(() => import('./pages/admin/AdminOvernight50Page'));
+const AdminGeoWarRoomPage = lazy(() => import('./pages/admin/AdminGeoWarRoomPage'));
+const AdminSyntheticStaffPage = lazy(() => import('./pages/admin/AdminSyntheticStaffPage'));
 
 const BusinessDashboardPage = lazy(() => import('./pages/business/BusinessDashboardPage'));
 const BusinessProfilePage = lazy(() => import('./pages/business/BusinessProfilePage'));
@@ -2257,6 +2261,30 @@ function AppInner() {
           }
         />
         <Route
+          path="/admin/overnight"
+          element={
+            <ProtectedAdminRoute>
+              <AdminOvernight50Page />
+            </ProtectedAdminRoute>
+          }
+        />
+        <Route
+          path="/admin/geo-war-room"
+          element={
+            <ProtectedAdminRoute>
+              <AdminGeoWarRoomPage />
+            </ProtectedAdminRoute>
+          }
+        />
+        <Route
+          path="/admin/synthetic-staff"
+          element={
+            <ProtectedAdminRoute>
+              <AdminSyntheticStaffPage />
+            </ProtectedAdminRoute>
+          }
+        />
+        <Route
           path="/admin/signup-ops"
           element={
             <ProtectedAdminRoute>
@@ -2720,6 +2748,7 @@ export default function App() {
   return (
     <BrowserRouter>
       <ScrollToTop />
+      <Overnight50SiteBootstrap />
       <AuthProvider>
         <FinelySiteThemeProvider>
           <PartnerSessionProvider>

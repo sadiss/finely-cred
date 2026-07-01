@@ -29,6 +29,7 @@ import { listLettersByPartner } from '../../data/lettersRepo';
 import { listPartnersLocal } from '../../data/partnersRepo';
 import { listAiActionAudit } from '../../data/aiActionAuditLog';
 import { FINELY_MAIL_COPY } from '../../lib/mailWhiteLabel';
+import { Overnight50AdminNav } from '../../components/overnight50/Overnight50AdminNav';
 
 type QueueTab = 'draft_review' | 'mail_confirm' | 'complaint' | 'staff_gap' | 'all';
 
@@ -150,6 +151,7 @@ export default function AdminHandsFreeOpsPage() {
   return (
     <PageShell title="Hands-Free Ops" subtitle="Autopilot queues — draft review, mail confirm, escalations">
       <div className="space-y-6">
+        <Overnight50AdminNav compact />
         <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
           <FinelyOsOverviewStatTile icon={FileText} label="Auto-drafted today" value={String(lettersToday)} accent="emerald" iconAccent="emerald" />
           <FinelyOsOverviewStatTile icon={FileText} label="Draft review queue" value={String(kpis.draftReview)} accent="amber" iconAccent="amber" />

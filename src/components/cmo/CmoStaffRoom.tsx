@@ -1,8 +1,14 @@
 import React, { useMemo, useState } from 'react';
-import { Bot, CheckCircle2, Crown, Play, Send, ShieldCheck, Sparkles } from 'lucide-react';
+import { Bot, CheckCircle2, Crown, Play, Send, ShieldAlert, ShieldCheck, Sparkles, Zap } from 'lucide-react';
 import { askCmoPrime, launchCmoPlaybookByIntent } from '../../lib/cmoPhase2/cmoStaffBrain';
 import { buildDefaultPlaybooks, executeApprovedCampaignBuildout, runSafeCmoPlaybook } from '../../lib/cmoPhase2/cmoExecutionBridge';
 import { listCmoCampaigns, listCmoDirectives, updateCmoSettings, getCmoSettings } from '../../data/cmoPhase2Repo';
+import {
+  delegateLabel,
+  planGrowthExecution,
+  runAllSafeGrowthSteps,
+  type GrowthExecutionStep,
+} from '../../lib/growth/growthExecutionEngine';
 
 export function CmoStaffRoom() {
   const [input, setInput] = useState('Build the next 200-leads/day campaign safely and tell me what needs approval.');
@@ -11,23 +17,50 @@ export function CmoStaffRoom() {
     { role: 'cmo', text: 'CMO Prime online. Give me the business goal. I will turn it into campaigns, assets, lead routing, and approved execution steps. Also, I will bully weak CTAs. Professionally.' },
   ]);
   const [version, setVersion] = useState(0);
+  const [execSteps, setExecSteps] = useState<GrowthExecutionStep[]>([]);
+  const [execBusy, setExecBusy] = useState(false);
   const playbooks = useMemo(() => buildDefaultPlaybooks(), []);
   const campaigns = useMemo(() => listCmoCampaigns(), [version]);
   const directives = useMemo(() => listCmoDirectives(8), [version]);
   const settings = useMemo(() => getCmoSettings(), [version]);
 
-  const submit = async () => {
+  const submit = async (autoRun = false) => {
     const msg = input.trim();
     if (!msg) return;
     setLog((cur) => [...cur, { role: 'admin', text: msg }]);
     setInput('');
     setBusy(true);
+    setExecSteps(planGrowthExecution(msg, 'cmo'));
     try {
       const reply = await askCmoPrime(msg);
-      setLog((cur) => [...cur, { role: 'cmo', text: reply.text }]);
+      let text = reply.text;
+      if (autoRun) {
+        setExecBusy(true);
+        const ran = await runAllSafeGrowthSteps(msg, 'cmo');
+        setExecSteps(ran.steps);
+        text += `\n\nExecuted:\n${ran.summary}`;
+        setExecBusy(false);
+      } else {
+        text += `\n\nI can run: ${planGrowthExecution(msg, 'cmo').map((s) => delegateLabel(s.delegate)).join(', ')}. Hit "Ask + execute".`;
+      }
+      setLog((cur) => [...cur, { role: 'cmo', text }]);
       setVersion((v) => v + 1);
     } finally {
       setBusy(false);
+    }
+  };
+
+  const runPlan = async () => {
+    const lastAdmin = [...log].reverse().find((m) => m.role === 'admin')?.text ?? input;
+    if (!lastAdmin.trim()) return;
+    setExecBusy(true);
+    try {
+      const ran = await runAllSafeGrowthSteps(lastAdmin, 'cmo');
+      setExecSteps(ran.steps);
+      setLog((cur) => [...cur, { role: 'cmo', text: `Delegation complete:\n${ran.summary}` }]);
+      setVersion((v) => v + 1);
+    } finally {
+      setExecBusy(false);
     }
   };
 
@@ -58,7 +91,7 @@ export function CmoStaffRoom() {
               <Crown size={14} /> CMO Staff Room
             </div>
             <h3 className="mt-3 text-xl font-black text-white">Talk to the CMO like staff.</h3>
-            <p className="mt-1 text-sm text-white/55">It can stage campaigns, directives, audiences, Comms drafts, Media projects, scheduler posts, and follow-up tasks.</p>
+            <p className="mt-1 text-sm text-white/55">Answers with full playbook knowledge — then executes or delegates (swarm, playbooks, Comms, geo).</p>
           </div>
           <button type="button" className="fc-button-soft text-xs" onClick={() => { updateCmoSettings({ approvalMode: settings.approvalMode === 'safe_auto_execute' ? 'approve_then_execute' : 'safe_auto_execute' }); setVersion((v) => v + 1); }}>
             Mode: {settings.approvalMode.replace(/_/g, ' ')}
@@ -77,12 +110,27 @@ export function CmoStaffRoom() {
         </div>
 
         <div className="mt-4 flex gap-2">
-          <textarea value={input} onChange={(e) => setInput(e.target.value)} className="fc-input min-h-[76px] flex-1 resize-none text-sm" placeholder="Tell CMO Prime what to build, scale, audit, or stage..." />
+          <textarea value={input} onChange={(e) => setInput(e.target.value)} className="fc-input min-h-[76px] flex-1 resize-none text-sm" placeholder="Tell CMO Prime what to build, scale, audit, or execute..." />
           <div className="flex w-44 flex-col gap-2">
-            <button type="button" disabled={busy} onClick={submit} className="fc-button-brand text-xs disabled:opacity-50"><Send size={14} /> Ask CMO</button>
+            <button type="button" disabled={busy || execBusy} onClick={() => void submit(false)} className="fc-button-brand text-xs disabled:opacity-50"><Send size={14} /> Ask CMO</button>
+            <button type="button" disabled={busy || execBusy} onClick={() => void submit(true)} className="fc-button-soft text-xs disabled:opacity-50"><Zap size={14} /> Ask + execute</button>
             <button type="button" onClick={launchFromIntent} className="fc-button-soft text-xs"><Play size={14} /> Stage from intent</button>
           </div>
         </div>
+
+        {execSteps.length > 0 ? (
+          <div className="mt-4 rounded-2xl border border-amber-400/20 bg-amber-400/5 p-4">
+            <div className="flex items-center justify-between gap-2 mb-2">
+              <span className="text-[10px] font-black uppercase tracking-widest text-amber-200 inline-flex items-center gap-2"><ShieldAlert size={12} /> Delegation queue</span>
+              <button type="button" disabled={execBusy} onClick={() => void runPlan()} className="fc-button-soft text-[10px]">{execBusy ? 'Running…' : 'Run plan'}</button>
+            </div>
+            <div className="space-y-1.5 max-h-32 overflow-y-auto">
+              {execSteps.map((s) => (
+                <div key={s.id} className="text-xs text-white/70"><span className="text-amber-200 font-bold">{delegateLabel(s.delegate)}</span> — {s.label} <span className="text-white/35">({s.status})</span></div>
+              ))}
+            </div>
+          </div>
+        ) : null}
       </div>
 
       <div className="space-y-5">
