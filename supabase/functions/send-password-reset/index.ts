@@ -120,24 +120,42 @@ Deno.serve(async (req) => {
     options: { redirectTo },
   });
 
-  // Real API / server error — surface it so the caller knows to retry.
-  if (linkError) {
+  // "User not found" means no auth account for this email — not a server error.
+  const isNoAccount =
+    linkError &&
+    (/user not found/i.test(linkError.message) ||
+      /no user found/i.test(linkError.message) ||
+      (linkError as any)?.status === 422 ||
+      (linkError as any)?.code === 422);
+
+  if (linkError && !isNoAccount) {
     await logEdgeEvent({
       namespace: 'send-password-reset',
       level: 'error',
       event: 'generate_link_failed',
-      meta: { email, userId: userId || null, ip: ctx.ip, error: linkError.message },
+      meta: {
+        email,
+        userId: userId || null,
+        ip: ctx.ip,
+        error: linkError.message,
+        errorStatus: (linkError as any)?.status,
+        errorCode: (linkError as any)?.code,
+        errorName: (linkError as any)?.name,
+      },
     });
-    return json({ ok: false, sent: false, error: 'Could not generate reset link. Please try again.' }, { status: 500 });
+    return json(
+      { ok: false, sent: false, error: `generateLink failed: ${linkError.message} (status=${(linkError as any)?.status} code=${(linkError as any)?.code})` },
+      { status: 500 },
+    );
   }
 
   // No matching auth account — do NOT reveal this to the caller (user enumeration protection).
-  if (!linkData?.properties?.action_link) {
+  if (isNoAccount || !linkData?.properties?.action_link) {
     await logEdgeEvent({
       namespace: 'send-password-reset',
       level: 'info',
       event: 'no_link_generated',
-      meta: { email, userId: userId || null, ip: ctx.ip, error: 'missing_action_link' },
+      meta: { email, userId: userId || null, ip: ctx.ip, error: linkError?.message || 'missing_action_link' },
     });
     return json({ ok: true, sent: false, reason: 'no_auth_account' });
   }
