@@ -18,8 +18,9 @@ insert into storage.buckets (id, name, public)
 values ('pii', 'pii', false)
 on conflict (id) do nothing;
 
--- 2) RLS on storage objects (enabled by default on Supabase; harmless if already on).
-alter table storage.objects enable row level security;
+-- 2) RLS on storage objects is always enabled on Supabase — no ALTER needed.
+-- (Removed: `alter table storage.objects enable row level security` fails because
+--  the migration runner is not the owner of that system table.)
 
 -- 3) Access policy: an authenticated user can read/write objects in the "pii"
 --    bucket for a partner they own - OR any partner if they are an admin.
