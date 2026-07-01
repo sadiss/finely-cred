@@ -120,13 +120,24 @@ Deno.serve(async (req) => {
     options: { redirectTo },
   });
 
-  // Do not reveal whether the account exists to anonymous callers — but expose sent:false so the client can fall back.
-  if (linkError || !linkData?.properties?.action_link) {
+  // Real API / server error — surface it so the caller knows to retry.
+  if (linkError) {
+    await logEdgeEvent({
+      namespace: 'send-password-reset',
+      level: 'error',
+      event: 'generate_link_failed',
+      meta: { email, userId: userId || null, ip: ctx.ip, error: linkError.message },
+    });
+    return json({ ok: false, sent: false, error: 'Could not generate reset link. Please try again.' }, { status: 500 });
+  }
+
+  // No matching auth account — do NOT reveal this to the caller (user enumeration protection).
+  if (!linkData?.properties?.action_link) {
     await logEdgeEvent({
       namespace: 'send-password-reset',
       level: 'info',
       event: 'no_link_generated',
-      meta: { email, userId: userId || null, ip: ctx.ip, error: linkError?.message || 'missing_action_link' },
+      meta: { email, userId: userId || null, ip: ctx.ip, error: 'missing_action_link' },
     });
     return json({ ok: true, sent: false, reason: 'no_auth_account' });
   }

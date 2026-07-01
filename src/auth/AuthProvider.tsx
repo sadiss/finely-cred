@@ -280,7 +280,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const redirect = redirectTo || `${window.location.origin}/reset-password`;
 
         const viaComms = await sendPasswordResetEmail({ email: trimmed, redirectTo: redirect, userId });
-        if (viaComms.ok && viaComms.sent) return {};
+        // ok:true covers both sent:true (email dispatched) and sent:false (no matching account —
+        // we never reveal whether the address is registered). Only ok:false is a real server error.
+        if (viaComms.ok) return {};
         return {
           error: viaComms.error || 'Could not send password reset email. Check SMTP secrets and edge function deployment.',
         };
