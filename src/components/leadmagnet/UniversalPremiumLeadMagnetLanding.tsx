@@ -21,7 +21,9 @@ import { getLeadAttribution } from '../../lib/leadAttribution';
 import { normalizeOvernightCity } from '../../lib/overnight50Bridge';
 import { DEFAULT_OVERNIGHT50_CITIES } from '../../features/overnight50/queryExpander';
 import { getLeadMagnetPremiumProfile } from './leadMagnetPremiumProfiles';
-import { getLeadMagnetVisualTheme, type LeadMagnetVisualTheme } from './leadMagnetVisualThemes';
+import { getLeadMagnetVisualTheme, resolveLeadMagnetHeroImage, type LeadMagnetVisualTheme } from './leadMagnetVisualThemes';
+import { LeadMagnetMediaStage } from './LeadMagnetMediaStage';
+import { LeadMagnetUrgencyRail } from './LeadMagnetUrgencyRail';
 
 type Props = {
   config: LeadMagnetFunnelConfig;
@@ -65,6 +67,7 @@ export function UniversalPremiumLeadMagnetLanding({
 }: Props) {
   const profile = getLeadMagnetPremiumProfile(config);
   const theme = getLeadMagnetVisualTheme(config);
+  const heroImage = useMemo(() => resolveLeadMagnetHeroImage(config, theme), [config, theme]);
   const [trackId, setTrackId] = useState(profile?.tracks[0]?.id ?? '');
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const geoCity = useMemo(() => normalizeOvernightCity(getLeadAttribution()?.geoCity), []);
@@ -93,9 +96,11 @@ export function UniversalPremiumLeadMagnetLanding({
         </div>
       </nav>
 
-      <header className="lm-hero">
+      <LeadMagnetUrgencyRail config={config} trustLabel={trustLabel} accentRgb={theme.accentRgb} />
+
+      <header className="lm-hero lm-hero-compact">
         <div className="lm-hero-bg" aria-hidden>
-          <img src={theme.heroImage} alt="" loading="eager" />
+          <img src={heroImage} alt="" loading="eager" />
         </div>
         <div className={`lm-hero-veil bg-gradient-to-b ${theme.heroOverlay}`} aria-hidden />
         <div
@@ -176,7 +181,16 @@ export function UniversalPremiumLeadMagnetLanding({
         </div>
       </header>
 
-      <section className="lm-stat-band py-8">
+      <LeadMagnetMediaStage
+        config={config}
+        guide={guide}
+        theme={theme}
+        totalValue={totalValue}
+        heroImage={heroImage}
+        onGoForm={onGoForm}
+      />
+
+      <section className="lm-stat-band py-8 mt-4">
         <div className="container mx-auto max-w-6xl px-4 sm:px-6">
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 text-center">
             <div>
@@ -295,6 +309,12 @@ export function UniversalPremiumLeadMagnetLanding({
       </section>
 
       <section id="fg-capture" className="container mx-auto max-w-6xl px-4 sm:px-6 py-14 sm:py-20 scroll-mt-24">
+        <div className="lm-capture-urgency mb-8 text-center">
+          <span className="inline-flex items-center gap-2 rounded-full border border-orange-500/30 bg-orange-500/10 px-4 py-2 text-[11px] font-bold uppercase tracking-wider text-orange-100">
+            <Sparkles className="w-3.5 h-3.5" />
+            Your kit is reserved for this session — unlock before the timer ends
+          </span>
+        </div>
         <div className="text-center mb-8">
           <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-emerald-400/90 mb-3">Instant unlock</p>
           <h2 className="text-2xl sm:text-4xl font-black text-white">{profile.captureHeadline}</h2>

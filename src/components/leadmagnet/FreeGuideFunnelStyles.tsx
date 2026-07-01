@@ -832,6 +832,130 @@ export function FreeGuideFunnelStyles() {
       color: rgba(255,255,255,0.75);
       margin-bottom: 1.25rem;
     }
+
+    .fg-funnel .lm-hero-compact {
+      min-height: min(72vh, 720px);
+      padding-bottom: 2rem;
+    }
+
+    .fg-funnel .lm-urgency-rail {
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      background: linear-gradient(90deg, rgba(234,88,12,0.08), rgba(0,0,0,0.35), rgba(234,88,12,0.08));
+      backdrop-filter: blur(10px);
+    }
+
+    .fg-funnel .lm-media-stage {
+      position: relative;
+      border-radius: 1.75rem;
+      border: 1px solid rgba(255,255,255,0.1);
+      background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(0,0,0,0.45));
+      overflow: hidden;
+      padding-bottom: 1.25rem;
+      box-shadow: 0 40px 120px rgba(0,0,0,0.45);
+    }
+    .fg-funnel .lm-media-stage-glow {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .fg-funnel .lm-media-video,
+    .fg-funnel .lm-video-shell {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      z-index: 1;
+    }
+    .fg-funnel .lm-video-placeholder {
+      background-size: cover;
+      background-position: center;
+      border: none;
+      cursor: pointer;
+      width: 100%;
+      display: block;
+    }
+    .fg-funnel .lm-video-placeholder-veil {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, rgba(0,0,0,0.35), rgba(0,0,0,0.72));
+    }
+    .fg-funnel .lm-video-play-ring {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 4.5rem;
+      height: 4.5rem;
+      border-radius: 9999px;
+      border: 2px solid rgba(255,255,255,0.35);
+      background: rgba(0,0,0,0.45);
+      backdrop-filter: blur(8px);
+      transition: transform 0.2s ease, border-color 0.2s ease;
+    }
+    .fg-funnel .lm-video-placeholder:hover .lm-video-play-ring {
+      transform: scale(1.06);
+      border-color: rgba(255,255,255,0.55);
+    }
+    .fg-funnel .lm-media-ebook-wrap {
+      position: relative;
+      z-index: 3;
+      margin-top: -4.5rem;
+      padding-bottom: 0.5rem;
+      pointer-events: none;
+    }
+    .fg-funnel .lm-media-stage-footer {
+      position: relative;
+      z-index: 2;
+      text-align: center;
+      padding: 0 1rem;
+    }
+    .fg-funnel .lm-ebook-stage {
+      position: relative;
+      display: flex;
+      justify-content: center;
+    }
+    .fg-funnel .lm-ebook-aura {
+      position: absolute;
+      left: 50%;
+      top: 55%;
+      width: 140%;
+      height: 120%;
+      transform: translate(-50%, -50%);
+      background: radial-gradient(circle, var(--lm-accent, #39ff14) 0%, transparent 65%);
+      filter: blur(40px);
+      opacity: 0.35;
+      pointer-events: none;
+    }
+    .fg-funnel .lm-ebook-float {
+      filter: drop-shadow(0 30px 50px rgba(0,0,0,0.55)) drop-shadow(0 0 30px rgba(57,255,20,0.15));
+      animation: lm-ebook-float 5s ease-in-out infinite;
+    }
+    @keyframes lm-ebook-float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-6px); }
+    }
+    .fg-funnel .lm-ebook-free-badge {
+      position: absolute;
+      top: -0.35rem;
+      right: -0.75rem;
+      z-index: 20;
+      background: linear-gradient(135deg, #39ff14, #22c55e);
+      color: #041008;
+      font-size: 0.62rem;
+      font-weight: 900;
+      letter-spacing: 0.12em;
+      padding: 0.35rem 0.55rem;
+      border-radius: 0.5rem;
+      border: 2px solid rgba(255,255,255,0.55);
+      transform: rotate(8deg);
+      box-shadow: 0 8px 24px rgba(57,255,20,0.45);
+    }
+    .fg-funnel .lm-capture-urgency {
+      animation: lm-pulse-border 2.5s ease-in-out infinite;
+    }
+    @keyframes lm-pulse-border {
+      0%, 100% { opacity: 0.85; }
+      50% { opacity: 1; }
+    }
 `,
       }}
     />

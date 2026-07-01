@@ -1,4 +1,5 @@
 import type { LeadMagnetFunnelConfig } from '../../domain/leadMagnetFunnels';
+import { getFunnelMediaForConfig } from '../../data/leadMagnetFunnelMediaRepo';
 
 export type LeadMagnetHeroVariant =
   | 'aurora'
@@ -39,8 +40,8 @@ const THEMES: Record<string, LeadMagnetVisualTheme> = {
     cardGlow: 'lm-glow-cyan',
     accentRgb: '34,211,238',
     heroVariant: 'aurora',
-    heroImage: 'https://images.unsplash.com/photo-1554224315-b72fcecbb375?auto=format&fit=crop&w=2000&q=85',
-    heroImageAlt: 'Professional reviewing financial documents — debt validation',
+    heroImage: 'https://images.unsplash.com/photo-1589829545856-d01d08cb2f0d?auto=format&fit=crop&w=2400&q=90',
+    heroImageAlt: 'Legal professional with documents — debt validation authority',
     heroOverlay: 'from-[#030712] via-[#0a1628]/88 to-[#030712]/95',
     badge: 'Debt validation kit',
     tagline: 'Take control before collectors control the conversation.',
@@ -56,8 +57,8 @@ const THEMES: Record<string, LeadMagnetVisualTheme> = {
     cardGlow: 'lm-glow-gold',
     accentRgb: '245,158,11',
     heroVariant: 'luxury',
-    heroImage: 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=2000&q=85',
-    heroImageAlt: 'Executive boardroom — business credit credibility',
+    heroImage: 'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?auto=format&fit=crop&w=2400&q=90',
+    heroImageAlt: 'Executive strategy session — business credit credibility',
     heroOverlay: 'from-[#0c0804] via-[#1a1208]/90 to-[#0c0804]/96',
     badge: 'Business credit jumpstart',
     tagline: 'Funders fund files that look real.',
@@ -73,8 +74,8 @@ const THEMES: Record<string, LeadMagnetVisualTheme> = {
     cardGlow: 'lm-glow-violet',
     accentRgb: '139,92,246',
     heroVariant: 'glass',
-    heroImage: 'https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?auto=format&fit=crop&w=2000&q=85',
-    heroImageAlt: 'Premium credit card and financial planning',
+    heroImage: 'https://images.unsplash.com/photo-1563013544-824ae1b704d3?auto=format&fit=crop&w=2400&q=90',
+    heroImageAlt: 'Premium payment cards — tradeline education',
     heroOverlay: 'from-[#08040f] via-[#120a1f]/92 to-[#08040f]/96',
     badge: 'Tradeline insider',
     tagline: 'Understand the tool before you buy the hype.',
@@ -90,8 +91,8 @@ const THEMES: Record<string, LeadMagnetVisualTheme> = {
     cardGlow: 'lm-glow-emerald',
     accentRgb: '57,255,20',
     heroVariant: 'pulse',
-    heroImage: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=2000&q=85',
-    heroImageAlt: 'Analytics dashboard showing upward financial growth',
+    heroImage: 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?auto=format&fit=crop&w=2400&q=90',
+    heroImageAlt: 'Live market chart — score growth momentum',
     heroOverlay: 'from-[#040a06] via-[#0a1410]/90 to-[#040a06]/96',
     badge: '700+ roadmap',
     tagline: 'Sequence beats random disputing.',
@@ -107,8 +108,8 @@ const THEMES: Record<string, LeadMagnetVisualTheme> = {
     cardGlow: 'lm-glow-fuchsia',
     accentRgb: '217,70,239',
     heroVariant: 'neon',
-    heroImage: 'https://images.unsplash.com/photo-1600880292203-757bb62b4baf?auto=format&fit=crop&w=2000&q=85',
-    heroImageAlt: 'Agency team strategy session — scale with systems',
+    heroImage: 'https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&w=2400&q=90',
+    heroImageAlt: 'Agency team whiteboard planning — scale with systems',
     heroOverlay: 'from-[#0a0408] via-[#1a0a14]/88 to-[#0a0408]/96',
     badge: 'Agency growth kit',
     tagline: 'Scale on systems — not burnout.',
@@ -124,8 +125,8 @@ const THEMES: Record<string, LeadMagnetVisualTheme> = {
     cardGlow: 'lm-glow-sky',
     accentRgb: '56,189,248',
     heroVariant: 'clean',
-    heroImage: 'https://images.unsplash.com/photo-1521737711867-e3b97375f902?auto=format&fit=crop&w=2000&q=85',
-    heroImageAlt: 'Specialist team collaborating with modern tools',
+    heroImage: 'https://images.unsplash.com/photo-1600880292089-90aede4d72b4?auto=format&fit=crop&w=2400&q=90',
+    heroImageAlt: 'Modern specialist workspace — partner tools',
     heroOverlay: 'from-[#030a14] via-[#0a1220]/90 to-[#030a14]/96',
     badge: 'Specialist network',
     tagline: 'Tools + training + partner OS.',
@@ -141,8 +142,8 @@ const THEMES: Record<string, LeadMagnetVisualTheme> = {
     cardGlow: 'lm-glow-lime',
     accentRgb: '132,204,22',
     heroVariant: 'growth',
-    heroImage: 'https://images.unsplash.com/photo-1553877522-43269d4ea984?auto=format&fit=crop&w=2000&q=85',
-    heroImageAlt: 'Partners closing a referral deal — affiliate growth',
+    heroImage: 'https://images.unsplash.com/photo-1521791136064-bc6b0fb6a410?auto=format&fit=crop&w=2400&q=90',
+    heroImageAlt: 'Partners handshake — referral growth',
     heroOverlay: 'from-[#060a04] via-[#0f1a0a]/88 to-[#060a04]/96',
     badge: 'Affiliate toolkit',
     tagline: 'Clean links. Compliant copy. Real attribution.',
@@ -152,4 +153,9 @@ const THEMES: Record<string, LeadMagnetVisualTheme> = {
 
 export function getLeadMagnetVisualTheme(config: LeadMagnetFunnelConfig): LeadMagnetVisualTheme {
   return THEMES[config.id] ?? THEMES.debt;
+}
+
+export function resolveLeadMagnetHeroImage(config: LeadMagnetFunnelConfig, theme: LeadMagnetVisualTheme): string {
+  const media = getFunnelMediaForConfig(config);
+  return media?.heroImageOverride?.trim() || theme.heroImage;
 }
