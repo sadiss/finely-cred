@@ -281,18 +281,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         const viaComms = await sendPasswordResetEmail({ email: trimmed, redirectTo: redirect, userId });
         if (viaComms.ok && viaComms.sent) return {};
-
-        // Fallback: Supabase Auth SMTP (if configured in project dashboard).
-        const { error } = await supabase.auth.resetPasswordForEmail(trimmed, { redirectTo: redirect });
-        if (error) {
-          return {
-            error:
-              viaComms.error ||
-              error.message ||
-              'Could not send password reset email. Check email delivery settings and edge function deployment.',
-          };
-        }
-        return {};
+        return {
+          error: viaComms.error || 'Could not send password reset email. Check SMTP secrets and edge function deployment.',
+        };
       },
     };
   }, [activeUser, isDevAuthEnabled, isLoading, session]);
