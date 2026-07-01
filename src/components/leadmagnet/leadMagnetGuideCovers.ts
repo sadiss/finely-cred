@@ -16,9 +16,9 @@ const COVERS: Record<string, GuideCoverArt> = {
     kicker: 'Debt validation',
   },
   'business-credit-jumpstart': {
-    gradient: 'linear-gradient(145deg, #78350f 0%, #451a03 40%, #b45309 100%)',
-    spine: 'linear-gradient(180deg, #fde68a, #d97706, #92400e)',
-    accent: '#fbbf24',
+    gradient: 'linear-gradient(155deg, #0a0e14 0%, #121820 48%, #1a2230 100%)',
+    spine: 'linear-gradient(180deg, #e8dcc8, #c9a227, #6b5a28)',
+    accent: '#c9a227',
     kicker: 'Business credit',
   },
   'primary-tradeline-insider': {

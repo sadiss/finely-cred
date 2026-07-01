@@ -59,20 +59,13 @@ export function FreeGuideFunnelStyles() {
       -webkit-text-fill-color: transparent;
       background-clip: text;
     }
-    .lm-theme-debt { background: #0a1628; position: relative; }
-    .lm-theme-debt::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse 80% 50% at 20% 0%, rgba(34,211,238,0.12), transparent); pointer-events: none; }
-    .lm-theme-business { background: #1a1208; position: relative; }
-    .lm-theme-business::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse 70% 45% at 80% 10%, rgba(245,158,11,0.14), transparent); pointer-events: none; }
-    .lm-theme-tradeline { background: #120a1f; position: relative; }
-    .lm-theme-tradeline::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse 75% 50% at 50% 0%, rgba(139,92,246,0.13), transparent); pointer-events: none; }
-    .lm-theme-score { background: #0a1410; position: relative; }
-    .lm-theme-score::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse 80% 55% at 30% 0%, rgba(57,255,20,0.1), transparent); pointer-events: none; }
-    .lm-theme-agency { background: #1a0a14; position: relative; }
-    .lm-theme-agency::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse 70% 50% at 70% 0%, rgba(217,70,239,0.12), transparent); pointer-events: none; }
-    .lm-theme-specialist { background: #0a1220; position: relative; }
-    .lm-theme-specialist::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse 75% 45% at 40% 0%, rgba(56,189,248,0.12), transparent); pointer-events: none; }
-    .lm-theme-affiliate { background: #0f1a0a; position: relative; }
-    .lm-theme-affiliate::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse 80% 50% at 60% 0%, rgba(132,204,22,0.11), transparent); pointer-events: none; }
+    .lm-theme-debt { background: #060a10; }
+    .lm-theme-business { background: #06080c; }
+    .lm-theme-tradeline { background: #08060e; }
+    .lm-theme-score { background: #060a08; }
+    .lm-theme-agency { background: #0a0608; }
+    .lm-theme-specialist { background: #06080c; }
+    .lm-theme-affiliate { background: #060a08; }
     .fg-funnel .bg-mesh {
       position: relative;
       background-color: var(--bg-dark);
@@ -563,308 +556,89 @@ export function FreeGuideFunnelStyles() {
       color: #a7f3d0;
     }
 
-    /* ── Premium lead magnet (vertical cinematic) ── */
-    .fg-funnel .lm-page { position: relative; isolation: isolate; }
-    .fg-funnel .lm-page > * { position: relative; z-index: 1; }
-
+    /* ── Premium lead magnets — editorial / institutional ── */
+    .fg-funnel .lm-page { background: inherit; color: #f8fafc; }
     .fg-funnel .lm-nav {
       border-bottom: 1px solid rgba(255,255,255,0.06);
-      background: rgba(3,7,18,0.72);
-      backdrop-filter: blur(20px) saturate(1.4);
+      background: rgba(4,6,10,0.88);
+      backdrop-filter: blur(16px);
+    }
+    .fg-funnel .lm-nav-urgency {
+      display: block;
+      font-size: 10px;
+      letter-spacing: 0.06em;
+      margin-top: 2px;
+      opacity: 0.7;
     }
 
-    .fg-funnel .lm-hero {
+    .fg-funnel .lm-hero-pro {
       position: relative;
-      min-height: min(92vh, 920px);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: flex-end;
-      text-align: center;
       overflow: hidden;
-      padding: 0 1rem 3.5rem;
+      max-height: 340px;
     }
-    .fg-funnel .lm-hero-bg {
+    .fg-funnel .lm-hero-pro-bg {
       position: absolute;
       inset: 0;
-      z-index: 0;
     }
-    .fg-funnel .lm-hero-bg img {
+    .fg-funnel .lm-hero-pro-bg img {
       width: 100%;
       height: 100%;
       object-fit: cover;
-      transform: scale(1.04);
-      animation: lm-kenburns 22s ease-in-out infinite alternate;
+      object-position: center 30%;
     }
-    @keyframes lm-kenburns {
-      from { transform: scale(1.04) translateY(0); }
-      to { transform: scale(1.1) translateY(-1.5%); }
-    }
-    .fg-funnel .lm-hero-veil {
+    .fg-funnel .lm-hero-pro-veil {
       position: absolute;
       inset: 0;
-      z-index: 1;
     }
-    .fg-funnel .lm-hero-glow {
-      position: absolute;
-      left: 50%;
-      top: 18%;
-      width: min(720px, 90vw);
-      height: 320px;
-      transform: translateX(-50%);
-      border-radius: 50%;
-      filter: blur(90px);
-      opacity: 0.55;
-      z-index: 2;
-      pointer-events: none;
+
+    .fg-funnel .lm-text-accent {
+      color: rgba(255,255,255,0.92);
     }
-    .fg-funnel .lm-hero-inner {
-      position: relative;
-      z-index: 3;
-      max-width: 52rem;
-      width: 100%;
-      margin: 0 auto;
-      padding-top: 7rem;
+    .fg-funnel .lm-text-gold-refined {
+      background: linear-gradient(135deg, #f5f0e6 0%, #c9a227 55%, #a88b2a 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
     }
 
     .fg-funnel .lm-cta {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      gap: 0.65rem;
-      font-weight: 800;
-      letter-spacing: 0.04em;
-      border-radius: 9999px;
-      border: 1px solid rgba(255,255,255,0.18);
-      transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
-    }
-    .fg-funnel .lm-cta:hover { transform: translateY(-2px); filter: brightness(1.06); }
-    .fg-funnel .lm-cta-cyan { background: linear-gradient(135deg, #22d3ee, #2563eb); color: #fff; box-shadow: 0 16px 48px rgba(34,211,238,0.35); }
-    .fg-funnel .lm-cta-gold { background: linear-gradient(135deg, #fbbf24, #ea580c); color: #111; box-shadow: 0 16px 48px rgba(245,158,11,0.35); }
-    .fg-funnel .lm-cta-violet { background: linear-gradient(135deg, #a78bfa, #c026d3); color: #fff; box-shadow: 0 16px 48px rgba(139,92,246,0.35); }
-    .fg-funnel .lm-cta-emerald { background: linear-gradient(135deg, #39ff14, #059669); color: #041008; box-shadow: 0 16px 48px rgba(57,255,20,0.32); }
-    .fg-funnel .lm-cta-fuchsia { background: linear-gradient(135deg, #e879f9, #db2777); color: #fff; box-shadow: 0 16px 48px rgba(217,70,239,0.35); }
-    .fg-funnel .lm-cta-sky { background: linear-gradient(135deg, #38bdf8, #4f46e5); color: #fff; box-shadow: 0 16px 48px rgba(56,189,248,0.35); }
-    .fg-funnel .lm-cta-lime { background: linear-gradient(135deg, #a3e635, #16a34a); color: #0a1404; box-shadow: 0 16px 48px rgba(132,204,22,0.35); }
-
-    .fg-funnel .lm-glow-cyan { box-shadow: 0 0 0 1px rgba(34,211,238,0.12), 0 24px 80px rgba(34,211,238,0.08); }
-    .fg-funnel .lm-glow-gold { box-shadow: 0 0 0 1px rgba(245,158,11,0.12), 0 24px 80px rgba(245,158,11,0.08); }
-    .fg-funnel .lm-glow-violet { box-shadow: 0 0 0 1px rgba(139,92,246,0.12), 0 24px 80px rgba(139,92,246,0.08); }
-    .fg-funnel .lm-glow-emerald { box-shadow: 0 0 0 1px rgba(57,255,20,0.12), 0 24px 80px rgba(57,255,20,0.08); }
-    .fg-funnel .lm-glow-fuchsia { box-shadow: 0 0 0 1px rgba(217,70,239,0.12), 0 24px 80px rgba(217,70,239,0.08); }
-    .fg-funnel .lm-glow-sky { box-shadow: 0 0 0 1px rgba(56,189,248,0.12), 0 24px 80px rgba(56,189,248,0.08); }
-    .fg-funnel .lm-glow-lime { box-shadow: 0 0 0 1px rgba(132,204,22,0.12), 0 24px 80px rgba(132,204,22,0.08); }
-
-    .fg-funnel .lm-proof-chip {
-      border: 1px solid rgba(255,255,255,0.1);
-      background: rgba(255,255,255,0.05);
-      backdrop-filter: blur(12px);
-      border-radius: 1rem;
-      padding: 0.85rem 1rem;
-      font-size: 0.8rem;
-      font-weight: 600;
-      color: rgba(255,255,255,0.88);
-      line-height: 1.35;
-    }
-
-    .fg-funnel .lm-stat-band {
-      border-top: 1px solid rgba(255,255,255,0.06);
-      border-bottom: 1px solid rgba(255,255,255,0.06);
-      background: rgba(255,255,255,0.02);
-      backdrop-filter: blur(8px);
-    }
-    .fg-funnel .lm-stat-num {
-      font-size: clamp(1.5rem, 4vw, 2.25rem);
-      font-weight: 900;
-      letter-spacing: -0.03em;
-      line-height: 1;
-    }
-
-    .fg-funnel .lm-glass-panel {
-      border: 1px solid rgba(255,255,255,0.09);
-      background: linear-gradient(145deg, rgba(255,255,255,0.07), rgba(255,255,255,0.02));
-      backdrop-filter: blur(18px);
-      border-radius: 1.75rem;
-    }
-
-    .fg-funnel .lm-bento {
-      display: grid;
-      gap: 0.85rem;
-      grid-template-columns: repeat(6, 1fr);
-      grid-auto-rows: minmax(120px, auto);
-    }
-    @media (max-width: 767px) {
-      .fg-funnel .lm-bento { grid-template-columns: repeat(2, 1fr); }
-    }
-    .fg-funnel .lm-bento-card {
-      border: 1px solid rgba(255,255,255,0.08);
-      background: rgba(255,255,255,0.04);
-      border-radius: 1.35rem;
-      padding: 1.25rem;
-      transition: transform 0.22s ease, border-color 0.22s ease, background 0.22s ease;
-    }
-    .fg-funnel .lm-bento-card:hover {
-      transform: translateY(-3px);
-      border-color: rgba(255,255,255,0.16);
-      background: rgba(255,255,255,0.06);
-    }
-
-    .fg-funnel .lm-scroll-row {
-      display: flex;
-      gap: 0.75rem;
-      overflow-x: auto;
-      scroll-snap-type: x mandatory;
-      padding-bottom: 0.35rem;
-      -ms-overflow-style: none;
-      scrollbar-width: none;
-    }
-    .fg-funnel .lm-scroll-row::-webkit-scrollbar { display: none; }
-    .fg-funnel .lm-scroll-card {
-      flex: 0 0 min(280px, 78vw);
-      scroll-snap-align: start;
-      border: 1px solid rgba(255,255,255,0.08);
-      background: rgba(255,255,255,0.04);
-      border-radius: 1.25rem;
-      padding: 1.15rem;
-    }
-
-    .fg-funnel .lm-path-pill {
-      border-radius: 9999px;
-      padding: 0.55rem 1.1rem;
-      font-size: 0.7rem;
-      font-weight: 800;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      border: 1px solid rgba(255,255,255,0.1);
-      color: rgba(255,255,255,0.5);
-      transition: all 0.2s ease;
-      white-space: nowrap;
-    }
-    .fg-funnel .lm-path-pill.is-active {
-      color: #fff;
-      border-color: rgba(255,255,255,0.28);
-      background: rgba(255,255,255,0.1);
-    }
-
-    .fg-funnel .lm-timeline {
-      display: flex;
-      gap: 0.65rem;
-      overflow-x: auto;
-      scroll-snap-type: x mandatory;
-      padding: 0.25rem 0 0.5rem;
-    }
-    .fg-funnel .lm-timeline-step {
-      flex: 0 0 min(200px, 70vw);
-      scroll-snap-align: center;
-      border-radius: 1.15rem;
-      border: 1px solid rgba(255,255,255,0.08);
-      background: rgba(255,255,255,0.03);
-      padding: 1rem;
-      text-align: center;
-    }
-
-    .fg-funnel .lm-capture-shell {
-      max-width: 32rem;
-      margin: 0 auto;
-      border-radius: 2rem;
-      border: 1px solid rgba(255,255,255,0.12);
-      background:
-        radial-gradient(ellipse at 50% 0%, rgba(255,255,255,0.08), transparent 55%),
-        linear-gradient(180deg, rgba(15,23,42,0.92), rgba(3,7,18,0.96));
-      box-shadow: 0 40px 120px rgba(0,0,0,0.45);
-      padding: 1.75rem;
-    }
-    @media (min-width: 640px) {
-      .fg-funnel .lm-capture-shell { padding: 2.25rem; }
-    }
-
-    .fg-funnel .lm-feature-rail .lm-feature-tile {
-      flex: 0 0 min(220px, 72vw);
-      scroll-snap-align: start;
-      border-radius: 1.15rem;
-      border: 1px solid rgba(255,255,255,0.08);
-      background: rgba(255,255,255,0.035);
-      padding: 1rem;
-    }
-
-    .fg-funnel .lm-cert-marquee {
-      display: flex;
-      width: max-content;
-      animation: fg-scroll 28s linear infinite;
-      gap: 0.65rem;
-    }
-
-    .fg-funnel .lm-value-float {
-      position: absolute;
-      right: clamp(1rem, 4vw, 2.5rem);
-      top: clamp(5.5rem, 12vh, 8rem);
-      z-index: 4;
-      border-radius: 1.25rem;
-      border: 1px solid rgba(255,255,255,0.14);
-      background: rgba(0,0,0,0.45);
-      backdrop-filter: blur(14px);
-      padding: 0.85rem 1.1rem;
-      text-align: left;
-    }
-    @media (max-width: 640px) {
-      .fg-funnel .lm-value-float {
-        position: relative;
-        right: auto;
-        top: auto;
-        margin: 1.25rem auto 0;
-        display: inline-block;
-      }
-    }
-
-    .fg-funnel .lm-announce {
-      display: inline-flex;
-      align-items: center;
       gap: 0.5rem;
-      border-radius: 9999px;
-      border: 1px solid rgba(255,255,255,0.12);
-      background: rgba(0,0,0,0.35);
-      backdrop-filter: blur(10px);
-      padding: 0.45rem 1rem;
-      font-size: 0.68rem;
-      font-weight: 700;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      color: rgba(255,255,255,0.75);
-      margin-bottom: 1.25rem;
+      font-weight: 600;
+      font-size: 0.8125rem;
+      letter-spacing: 0.02em;
+      border-radius: 6px;
+      transition: background 0.2s ease, border-color 0.2s ease, opacity 0.2s ease;
     }
-
-    .fg-funnel .lm-hero-compact {
-      min-height: min(72vh, 720px);
-      padding-bottom: 2rem;
+    .fg-funnel .lm-cta-champagne {
+      background: #c9a227;
+      color: #0a0c10;
+      border: 1px solid #d4b84a;
     }
-
-    .fg-funnel .lm-urgency-rail {
-      border-bottom: 1px solid rgba(255,255,255,0.06);
-      background: linear-gradient(90deg, rgba(234,88,12,0.08), rgba(0,0,0,0.35), rgba(234,88,12,0.08));
-      backdrop-filter: blur(10px);
+    .fg-funnel .lm-cta-champagne:hover { background: #d4b84a; }
+    .fg-funnel .lm-cta-slate {
+      background: rgba(255,255,255,0.95);
+      color: #0a0c10;
+      border: 1px solid rgba(255,255,255,0.2);
     }
+    .fg-funnel .lm-cta-slate:hover { background: #fff; }
 
-    .fg-funnel .lm-media-stage {
+    .fg-funnel .lm-media-wrap { margin-top: -1rem; }
+    .fg-funnel .lm-media-frame {
       position: relative;
-      border-radius: 1.75rem;
-      border: 1px solid rgba(255,255,255,0.1);
-      background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(0,0,0,0.45));
+      border-radius: 10px;
       overflow: hidden;
-      padding-bottom: 1.25rem;
-      box-shadow: 0 40px 120px rgba(0,0,0,0.45);
-    }
-    .fg-funnel .lm-media-stage-glow {
-      position: absolute;
-      inset: 0;
-      pointer-events: none;
-      z-index: 0;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: #0a0c10;
+      box-shadow: 0 24px 64px rgba(0,0,0,0.4);
     }
     .fg-funnel .lm-media-video,
     .fg-funnel .lm-video-shell {
-      position: relative;
       width: 100%;
       aspect-ratio: 16 / 9;
-      z-index: 1;
+      display: block;
     }
     .fg-funnel .lm-video-placeholder {
       background-size: cover;
@@ -872,90 +646,92 @@ export function FreeGuideFunnelStyles() {
       border: none;
       cursor: pointer;
       width: 100%;
-      display: block;
+      min-height: 100%;
     }
     .fg-funnel .lm-video-placeholder-veil {
       position: absolute;
       inset: 0;
-      background: linear-gradient(180deg, rgba(0,0,0,0.35), rgba(0,0,0,0.72));
+      background: rgba(0,0,0,0.45);
     }
     .fg-funnel .lm-video-play-ring {
       display: flex;
       align-items: center;
       justify-content: center;
-      width: 4.5rem;
-      height: 4.5rem;
-      border-radius: 9999px;
-      border: 2px solid rgba(255,255,255,0.35);
-      background: rgba(0,0,0,0.45);
-      backdrop-filter: blur(8px);
-      transition: transform 0.2s ease, border-color 0.2s ease;
+      width: 3.5rem;
+      height: 3.5rem;
+      border-radius: 50%;
+      border: 1px solid rgba(255,255,255,0.35);
+      background: rgba(0,0,0,0.5);
     }
-    .fg-funnel .lm-video-placeholder:hover .lm-video-play-ring {
-      transform: scale(1.06);
-      border-color: rgba(255,255,255,0.55);
-    }
-    .fg-funnel .lm-media-ebook-wrap {
-      position: relative;
-      z-index: 3;
-      margin-top: -4.5rem;
-      padding-bottom: 0.5rem;
-      pointer-events: none;
-    }
-    .fg-funnel .lm-media-stage-footer {
-      position: relative;
+    .fg-funnel .lm-media-ebook {
+      position: absolute;
+      right: 1rem;
+      bottom: -1.75rem;
       z-index: 2;
-      text-align: center;
-      padding: 0 1rem;
-    }
-    .fg-funnel .lm-ebook-stage {
-      position: relative;
-      display: flex;
-      justify-content: center;
-    }
-    .fg-funnel .lm-ebook-aura {
-      position: absolute;
-      left: 50%;
-      top: 55%;
-      width: 140%;
-      height: 120%;
-      transform: translate(-50%, -50%);
-      background: radial-gradient(circle, var(--lm-accent, #39ff14) 0%, transparent 65%);
-      filter: blur(40px);
-      opacity: 0.35;
       pointer-events: none;
     }
-    .fg-funnel .lm-ebook-float {
-      filter: drop-shadow(0 30px 50px rgba(0,0,0,0.55)) drop-shadow(0 0 30px rgba(57,255,20,0.15));
-      animation: lm-ebook-float 5s ease-in-out infinite;
+    .fg-funnel .lm-ebook {
+      filter: drop-shadow(0 16px 32px rgba(0,0,0,0.5));
     }
-    @keyframes lm-ebook-float {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-6px); }
+    .fg-funnel .lm-media-wrap { padding-bottom: 2rem; }
+
+    .fg-funnel .lm-section-title {
+      font-size: 1.125rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      color: rgba(255,255,255,0.95);
     }
-    .fg-funnel .lm-ebook-free-badge {
-      position: absolute;
-      top: -0.35rem;
-      right: -0.75rem;
-      z-index: 20;
-      background: linear-gradient(135deg, #39ff14, #22c55e);
-      color: #041008;
-      font-size: 0.62rem;
-      font-weight: 900;
-      letter-spacing: 0.12em;
-      padding: 0.35rem 0.55rem;
-      border-radius: 0.5rem;
-      border: 2px solid rgba(255,255,255,0.55);
-      transform: rotate(8deg);
-      box-shadow: 0 8px 24px rgba(57,255,20,0.45);
+    .fg-funnel .lm-section-body {
+      margin-top: 0.75rem;
+      font-size: 0.9375rem;
+      line-height: 1.65;
+      color: rgba(255,255,255,0.48);
     }
-    .fg-funnel .lm-capture-urgency {
-      animation: lm-pulse-border 2.5s ease-in-out infinite;
+    .fg-funnel .lm-pro-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
     }
-    @keyframes lm-pulse-border {
-      0%, 100% { opacity: 0.85; }
-      50% { opacity: 1; }
+    .fg-funnel .lm-pro-list li {
+      display: grid;
+      gap: 0.25rem;
+      padding: 0.85rem 0;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
     }
+    .fg-funnel .lm-pro-list li:last-child { border-bottom: none; }
+    .fg-funnel .lm-pro-list-title {
+      font-size: 0.9375rem;
+      font-weight: 500;
+      color: rgba(255,255,255,0.9);
+    }
+    .fg-funnel .lm-pro-list-desc {
+      font-size: 0.8125rem;
+      color: rgba(255,255,255,0.42);
+      line-height: 1.5;
+    }
+
+    .fg-funnel .lm-tab {
+      padding: 0.5rem 0.75rem;
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: rgba(255,255,255,0.4);
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+      transition: color 0.15s ease, border-color 0.15s ease;
+    }
+    .fg-funnel .lm-tab.is-active {
+      color: rgba(255,255,255,0.92);
+      border-bottom-color: rgba(255,255,255,0.5);
+    }
+    .fg-funnel .lm-tab:hover { color: rgba(255,255,255,0.7); }
+
+    .fg-funnel .lm-capture-pro {
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 10px;
+      background: rgba(255,255,255,0.02);
+      padding: 1.25rem;
+    }
+`,
 `,
       }}
     />

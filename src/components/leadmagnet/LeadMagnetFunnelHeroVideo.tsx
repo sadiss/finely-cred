@@ -73,7 +73,7 @@ export function LeadMagnetFunnelHeroVideo({ config, theme, posterUrl, className 
 
       if (!cancelled) {
         setVideoSrc(src);
-        setPosterSrc(poster ?? posterUrl ?? theme.heroImage);
+        setPosterSrc(poster ?? posterUrl ?? theme.videoPosterImage);
         setLoading(false);
       }
     }
@@ -92,7 +92,7 @@ export function LeadMagnetFunnelHeroVideo({ config, theme, posterUrl, className 
         }
       });
     };
-  }, [config, posterUrl, theme.heroImage]);
+  }, [config.funnelId, config.id, posterUrl, theme.videoPosterImage]);
 
   const toggleSound = () => {
     const el = videoRef.current;
