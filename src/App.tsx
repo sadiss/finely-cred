@@ -164,6 +164,8 @@ const ResetPasswordPage = lazy(() => import('./pages/ResetPasswordPage'));
 const AdminProductsPage = lazy(() => import('./pages/admin/AdminProductsPage'));
 const AdminCmsPage = lazy(() => import('./pages/admin/AdminCmsPage'));
 const AdminAnalyticsPage = lazy(() => import('./pages/admin/AdminAnalyticsPage'));
+const AdminSitewideUxCommandPage = lazy(() => import('./pages/admin/AdminSitewideUxCommandPage'));
+const AdminStudioUxCommandPage = lazy(() => import('./pages/admin/AdminStudioUxCommandPage'));
 const AdminOvernight50Page = lazy(() => import('./pages/admin/AdminOvernight50Page'));
 const AdminGeoWarRoomPage = lazy(() => import('./pages/admin/AdminGeoWarRoomPage'));
 const AdminSyntheticStaffPage = lazy(() => import('./pages/admin/AdminSyntheticStaffPage'));
@@ -2293,6 +2295,14 @@ function AppInner() {
           }
         />
         <Route
+          path="/admin/content-studio"
+          element={
+            <ProtectedAdminRoute>
+              <AdminMediaStudioPage />
+            </ProtectedAdminRoute>
+          }
+        />
+        <Route
           path="/admin/media-studio"
           element={
             <ProtectedAdminRoute>
@@ -2651,6 +2661,22 @@ function AppInner() {
           element={
             <ProtectedAdminRoute>
               <AdminIntegrationHubPage />
+            </ProtectedAdminRoute>
+          }
+        />
+        <Route
+          path="/admin/studio-ux-command"
+          element={
+            <ProtectedAdminRoute>
+              <AdminStudioUxCommandPage />
+            </ProtectedAdminRoute>
+          }
+        />
+        <Route
+          path="/admin/sitewide-ux"
+          element={
+            <ProtectedAdminRoute>
+              <AdminSitewideUxCommandPage />
             </ProtectedAdminRoute>
           }
         />

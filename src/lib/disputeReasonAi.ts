@@ -6,7 +6,7 @@ import { buildEnrichedReasonsForCandidate } from './disputeLetterBuilder';
 import { filterFactualDisputeReasons } from '../creditReports/disputeFactualReasons';
 import { isFeatureEnabled } from '../data/settingsRepo';
 import { guardLetterOutput } from './complianceEngine';
-import { MAX_DISPUTE_REASONS } from '../letters/disputeLetterFormat';
+import { MAX_DISPUTE_REASONS, MIN_DISPUTE_REASONS } from '../letters/disputeLetterFormat';
 
 export type DisputeAiReasonResult = {
   reasons: string[];
@@ -50,7 +50,7 @@ export async function buildDisputeReasonsWithAi(args: {
         {
           role: 'system',
           content:
-            `You are a credit dispute analyst. Pick the strongest ${max} FACTUAL FINDINGS from the list. Each reason must state ONE clear fact visible on the bureau screenshot (dates wrong, balance contradicts limit, status contradicts payment history, cross-bureau difference). Use "As you can see here on [Bureau]," when referencing report data. NEVER pick generic lines like "reporting as a collection", field dumps with semicolons, Metro 2 jargon, statute demands, reinvestigation language, or "please verify/delete". Return ONLY JSON: { "reasons": string[], "note": string }. Keep reason text verbatim from input when possible. No legal advice.`,
+            `You are a credit dispute analyst. Pick the strongest ${max} FACTUAL FINDINGS from the list and return at least ${Math.min(MIN_DISPUTE_REASONS, max)} when that many factual findings exist. Each reason must state ONE clear account-specific fact visible on the bureau screenshot (wrong dates, close/open/last-active mismatch, balance contradicts limit, status contradicts payment history, cross-bureau difference). Use "As you can see here on [Bureau]," when referencing report data. NEVER pick generic lines like "reporting as a collection", field dumps with semicolons, Metro 2 jargon, statute demands, reinvestigation language, or "please verify/delete". Return ONLY JSON: { "reasons": string[], "note": string }. Keep reason text verbatim from input when possible. No legal advice.`,
         },
         {
           role: 'user',
@@ -66,7 +66,7 @@ export async function buildDisputeReasonsWithAi(args: {
         ).slice(0, max)
       : [];
 
-    if (picked.length >= 1) {
+    if (picked.length >= Math.min(MIN_DISPUTE_REASONS, max) || picked.length >= baseline.length) {
       return {
         reasons: picked.map((r) => guardLetterOutput(r).split('\n\n')[0] ?? r),
         usedAi: true,

@@ -93,7 +93,7 @@ export const ADMIN_NAV_GROUPS: AdminNavGroupDef[] = [
       { path: '/admin/ops-agent', label: 'Ruth · Co-Owner', icon: Crown, hint: 'AI co-owner command' },
       { path: '/admin/phone-hub', label: 'Phone Hub', icon: Phone, hint: 'Calls & SMS' },
       { path: '/admin/lead-intel', label: 'Lead Intel (full)', icon: Sparkles, hint: 'Full-page intel workspace' },
-      { path: '/admin/media-studio', label: 'Media Studio', icon: Film, hint: 'Generate assets' },
+      { path: '/admin/content-studio', label: 'Content Studio', icon: Film, hint: 'Video, guides, voice, design, and assets' },
     ],
   },
   {

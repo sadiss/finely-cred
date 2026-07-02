@@ -420,7 +420,7 @@ export default function PartnerLettersVaultPage() {
                                   <FinelyOsPaginatedStack
                                     items={arr}
                                     pageSize={8}
-                                    itemSpacingClassName="grid gap-6"
+                                    itemSpacingClassName="grid gap-3 sm:grid-cols-2 xl:grid-cols-3"
                                     emptyMessage="No letters for this bureau."
                                     renderItem={(l) => renderVaultLetter(l)}
                                   />
@@ -433,7 +433,7 @@ export default function PartnerLettersVaultPage() {
                           <FinelyOsPaginatedStack
                             items={g.letters}
                             pageSize={8}
-                            itemSpacingClassName="grid gap-6"
+                            itemSpacingClassName="grid gap-3 sm:grid-cols-2 xl:grid-cols-3"
                             emptyMessage="No letters in this group."
                             renderItem={(l) => renderVaultLetter(l)}
                           />

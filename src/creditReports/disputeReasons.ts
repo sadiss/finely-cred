@@ -304,12 +304,19 @@ export function suggestDisputeReasons(parsed: ParsedCreditReport, candidate: Dis
       'Account Status',
       'Payment Status',
       'Account Type',
+      'Account Number',
+      'Responsibility',
       'Date Opened',
+      'Date Closed',
+      'Date of Last Activity',
+      'Last Activity',
       'Last Reported',
+      'Date of First Delinquency',
       'Balance',
       'Past Due',
       'Credit Limit',
       'High Balance',
+      'Monthly Payment',
     ];
 
     for (const label of keyFields) {

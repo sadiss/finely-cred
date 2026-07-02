@@ -7,6 +7,8 @@
 
 export type DebtLetterType =
   | 'validation_request'       // FDCPA § 809 — demand validation before collection
+  | 'validation_round2_deficiency' // second round — validation response was incomplete/deficient
+  | 'validation_round3_final_demand' // third round — final demand after failure to validate
   | 'cease_and_desist'        // FDCPA § 805(c) — stop contact
   | 'affidavit_of_dispute'    // Sworn statement disputing debt / no contract
   | 'time_barred_response'    // Statute of limitations defense

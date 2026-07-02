@@ -9,6 +9,7 @@ import { bureauShortCode } from '../utils/bureaus';
 export type DisputeLetterItem = {
   candidate: DisputeCandidate;
   evidence?: { filename: string; blobRef: string; mimeType: string } | null;
+  evidenceList?: Array<{ filename: string; blobRef: string; mimeType: string }>;
   reasons: string[];
   /** Optional narrative paragraph(s) per item (often AI drafted). */
   narrative?: string | null;
@@ -198,35 +199,40 @@ export async function downloadInlineDisputeLetterPdf(args: {
     // Evidence screenshot inline (optional in Full Mode — do not print warnings when missing/unreadable).
     const pad = 8;
 
-    if (item.evidence?.blobRef) {
-      const blobRaw = await store.get(item.evidence.blobRef);
+    const exhibits = (item.evidenceList?.length ? item.evidenceList : item.evidence ? [item.evidence] : []).slice(0, 5);
+    for (let exhibitIndex = 0; exhibitIndex < exhibits.length; exhibitIndex += 1) {
+      const exhibit = exhibits[exhibitIndex]!;
+      if (!exhibit?.blobRef) continue;
+      const blobRaw = await store.get(exhibit.blobRef);
       // Some storage providers return a Blob with an empty `type`; prefer metadata but fall back to the stored blob's type.
-      const metaMime = String(item.evidence.mimeType || '').trim();
+      const metaMime = String(exhibit.mimeType || '').trim();
       const blobMime = String((blobRaw as any)?.type || '').trim();
       const mime = metaMime || blobMime;
       const blob = blobRaw && (!blobMime && mime ? new Blob([blobRaw], { type: mime }) : blobRaw);
       const t = String((blob as any)?.type || mime || '').toLowerCase();
       const looksLikeImage =
-        t.startsWith('image/') || (!t && /\.(png|jpe?g|webp|gif)$/i.test(String(item.evidence.filename || '')));
+        t.startsWith('image/') || (!t && /\.(png|jpe?g|webp|gif)$/i.test(String(exhibit.filename || '')));
 
       if (blob && looksLikeImage) {
         try {
           // pdf-lib supports PNG/JPG. For other formats (webp/gif/etc), we fall back to a placeholder.
           const bytes = new Uint8Array(await blob.arrayBuffer());
-          const isPng = t.includes('png') || /\.png$/i.test(String(item.evidence.filename || ''));
-          const isJpg = t.includes('jpeg') || t.includes('jpg') || /\.(jpe?g)$/i.test(String(item.evidence.filename || ''));
+          const isPng = t.includes('png') || /\.png$/i.test(String(exhibit.filename || ''));
+          const isJpg = t.includes('jpeg') || t.includes('jpg') || /\.(jpe?g)$/i.test(String(exhibit.filename || ''));
           if (!isPng && !isJpg) throw new Error('unsupported image format');
 
           const img = isPng ? await pdfDoc.embedPng(bytes) : await pdfDoc.embedJpg(bytes);
 
           const availableW = maxWidth;
           // Make exhibits readable: use most of the writing column height when possible.
-          const maxImgH = 520;
+          const maxImgH = 330;
           const scale = Math.min(availableW / img.width, maxImgH / img.height);
           const w = img.width * scale;
           const h = img.height * scale;
 
-          ensureSpace(h + pad + 24);
+          ensureSpace(h + pad + 42);
+          drawWrapped(`Exhibit ${exhibitIndex + 1}${exhibits.length > 1 ? ` of ${exhibits.length}` : ''}: ${exhibit.filename || 'attached screenshot'}`, { size: 9, color: rgb(0.45, 0.45, 0.45) });
+          y -= 4;
           // Clean exhibit: no decorative frame; center to the writing column.
           page.drawImage(img, {
             x: margin + (availableW - w) / 2,

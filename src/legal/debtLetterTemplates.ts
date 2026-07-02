@@ -48,6 +48,18 @@ const BEST_EVIDENCE: LegalCitation = {
   shortName: 'Evidence',
   description: 'Party asserting claim bears burden. Original contract and assignment chain may be required; account statements alone may be insufficient.',
 };
+const STATE_COLLECTION_LICENSE: LegalCitation = {
+  category: 'consumer_protection',
+  cite: 'State debt collection licensing / registration requirements (varies by state)',
+  shortName: 'State collection license',
+  description: 'Many states require debt collectors, collection agencies, and sometimes debt buyers to be licensed or registered before collecting from consumers in that state.',
+};
+const TILA_ACCOUNTING: LegalCitation = {
+  category: 'banking_law',
+  cite: 'Truth in Lending Act / Regulation Z accounting principles (as applicable)',
+  shortName: 'TILA / Reg Z accounting',
+  description: 'Account-level charges, interest, fees, credits, and payments must be accurately calculated and disclosed where applicable.',
+};
 
 export const DEBT_LETTER_SPECS: DebtLetterSpec[] = [
   {
@@ -59,10 +71,38 @@ export const DEBT_LETTER_SPECS: DebtLetterSpec[] = [
       'Before paying or acknowledging the debt',
       'When you dispute the amount, the creditor, or whether you owe the debt',
     ],
-    legalBasis: [FDCPA_809, BEST_EVIDENCE],
-    contractLawAngle: 'You are not admitting the existence of a valid contract; you are demanding proof of the alleged obligation and chain of assignment before any further collection activity.',
-    bankingLawAngle: 'Under banking and UCC principles, the party claiming a right to collect must prove the underlying obligation and valid assignment. Validation shifts the burden to them.',
-    keyPrinciple: 'Validation shifts the burden to the collector. If they cannot validate, they must stop collecting.',
+    legalBasis: [FDCPA_809, STATE_COLLECTION_LICENSE, FCRA_623, TILA_ACCOUNTING, BEST_EVIDENCE],
+    contractLawAngle: 'You are not admitting the existence of a valid contract; you are demanding proof of the alleged obligation, the agreement terms, the complete assignment chain, and the collector’s present authority before any further collection activity.',
+    bankingLawAngle: 'The request is framed as procedural validation and account-level accounting: identify the owner/servicer, show the ledger, prove authority, and disclose whether any sale, assignment, insurance, credit, setoff, or third-party recovery affects the amount claimed. Do not argue that securitization automatically extinguishes the obligation.',
+    keyPrinciple: 'Validation shifts the burden to the collector: prove the debt, prove the amount, prove authority, prove licensing/compliance, and stop collection until adequate validation is supplied.',
+  },
+  {
+    id: 'validation_round2_deficiency',
+    title: 'Round 2 Validation Deficiency Notice',
+    shortDescription: 'Use when they respond with a statement, bill of sale, or generic packet but fail to fully validate account-level authority, accounting, licensing, or chain of title.',
+    whenToUse: [
+      'After a collector sends an incomplete validation response',
+      'When they provide a balance printout but no itemized ledger or assignment chain',
+      'When they continue reporting or collecting without answering your validation questions',
+    ],
+    legalBasis: [FDCPA_809, STATE_COLLECTION_LICENSE, FCRA_623, TILA_ACCOUNTING, BEST_EVIDENCE],
+    contractLawAngle: 'A partial packet does not prove formation, assignment, amount, or present authority. This letter identifies deficiencies and preserves the record.',
+    bankingLawAngle: 'Round 2 attacks missing accounting, sale/assignment credits, servicing authority, ledger gaps, and unsupported fees/interest.',
+    keyPrinciple: 'A response is not validation just because documents were sent. They must answer the account-level proof demands.',
+  },
+  {
+    id: 'validation_round3_final_demand',
+    title: 'Round 3 Final Validation Demand / Reporting Challenge',
+    shortDescription: 'Use after continued failure to validate, continued collection, or continued credit reporting despite unresolved deficiencies.',
+    whenToUse: [
+      'After Round 1 and Round 2 validation requests remain unanswered or incomplete',
+      'When they keep collecting, reporting, selling, or threatening action without full validation',
+      'Before CFPB/state AG complaint, bureau furnisher dispute, or attorney review',
+    ],
+    legalBasis: [FDCPA_809, FDCPA_805, STATE_COLLECTION_LICENSE, FCRA_623, TILA_ACCOUNTING, BEST_EVIDENCE],
+    contractLawAngle: 'The final notice creates a clean record of unresolved proof deficiencies before escalation.',
+    bankingLawAngle: 'The final demand presses accounting, licensing, authority, and ownership deficiencies as grounds to cease collection/reporting.',
+    keyPrinciple: 'If they cannot prove it after multiple written opportunities, the account should be closed/returned and any reporting deleted or corrected.',
   },
   {
     id: 'cease_and_desist',
@@ -171,13 +211,13 @@ export const SCENARIO_RECOMMENDATIONS: ScenarioRecommendation[] = [
     scenario: 'post_validation',
     label: 'After validation request',
     description: 'You sent validation; they responded or did not. You still dispute or want contact to stop.',
-    recommendedLetterTypes: ['debt_dispute_letter', 'cease_and_desist', 'affidavit_of_dispute'],
+    recommendedLetterTypes: ['validation_round2_deficiency', 'validation_round3_final_demand', 'debt_dispute_letter', 'cease_and_desist', 'affidavit_of_dispute'],
   },
   {
     scenario: 'unknown',
     label: 'Not sure which applies',
     description: 'Review the options below and select the scenario that fits. When in doubt, validation and dispute in writing preserve your rights.',
-    recommendedLetterTypes: ['validation_request', 'debt_dispute_letter', 'affidavit_of_dispute'],
+    recommendedLetterTypes: ['validation_request', 'validation_round2_deficiency', 'validation_round3_final_demand', 'debt_dispute_letter', 'affidavit_of_dispute'],
   },
 ];
 
@@ -266,23 +306,161 @@ export function getValidationRequestBody(args: {
 }): string {
   return `${formatPreamble(args)}
 
-RE: Demand for Validation of Alleged Debt — 15 U.S.C. § 1692g
+RE: Demand for Validation, Proof of Authority, Itemized Accounting, and State Collection Compliance — 15 U.S.C. § 1692g
 
 To Whom It May Concern:
 
-I am writing in response to your communication regarding an alleged debt. Under 15 U.S.C. § 1692g(a), I have the right to request validation of this debt within 30 days of the first communication. I am exercising that right now.
+I am writing in response to your communication regarding an alleged debt. I dispute this alleged debt, the amount claimed, and your authority to collect unless and until you provide complete validation. Under 15 U.S.C. § 1692g(a)-(b), I am exercising my right to request validation and I request that you cease collection activity until you mail proper validation.
 
-Please provide the following:
+This request is not a refusal to pay a proven, legally enforceable obligation. It is a demand that you prove the account, the amount, the ownership/servicing authority, and your legal capacity to collect before continuing collection, reporting, selling, assigning, or litigation activity.
 
-1. The name and address of the original creditor.
-2. Verification that you are licensed to collect debts in my state, if applicable.
-3. A copy of the signed contract or other competent evidence proving I agreed to pay this debt and that you or your principal have the right to collect it.
-4. An itemized accounting showing how the amount claimed was calculated, including any interest and fees.
-5. Proof of the chain of assignment from the original creditor to the current holder.
+Please provide the following validation and answer each numbered request in writing:
 
-Until you provide proper validation, you must cease all collection activity, including reporting to credit bureaus, under 15 U.S.C. § 1692g(b).
+1. Identify the original creditor, the current creditor/owner of the alleged account, the current servicer if different, and the entity on whose behalf you are attempting to collect.
 
-This is not a refusal to pay a valid debt. This is a request for validation as provided by federal law. I dispute the debt until such validation is provided.
+2. Provide the complete account number or masked account identifier you claim connects this alleged account to me, along with the date opened, date of last payment, date of last activity, date of charge-off or default, and date your company received or began servicing/collecting the account.
+
+3. Provide a copy of the original signed agreement, application, cardholder agreement, contract, promissory note, or other competent evidence bearing my name and showing the terms you claim bind me to this alleged debt.
+
+4. Provide the full itemized accounting ledger from account opening through the present balance. Include principal, purchases or advances, payments, credits, refunds, interest, fees, collection costs, charge-off entries, adjustments, insurance recoveries, setoffs, sale credits, and any other entries that increase or reduce the amount claimed.
+
+5. Explain how the current amount claimed was calculated. If interest, fees, attorney fees, collection fees, or post-charge-off charges are included, identify the contractual or statutory authority for each category.
+
+6. Provide the complete chain of title and assignment from the original creditor to the current owner. Include bills of sale, assignment schedules, purchase agreements or redacted account-level schedules sufficient to prove that this specific account was transferred.
+
+7. If you are collecting as a servicer, agent, attorney, debt buyer, or third-party collector, provide the written servicing agreement, agency authorization, placement letter, power of attorney, or other document proving your authority to collect this specific account.
+
+8. Identify whether the alleged account was sold, assigned, placed into a trust, pledged, insured, charged off, settled, credited, or otherwise transferred. If any third party, trust, debt buyer, insurer, servicer, or assignee is involved, identify the entity and explain its relationship to the account. I am not asserting that any transfer alone extinguishes an obligation; I am demanding proof of who currently owns or services the account and who has authority to collect.
+
+9. State whether your company, your client, or any predecessor has received payment, credit, insurance proceeds, tax recovery, sale proceeds, setoff, settlement, or other compensation related to this alleged account, and explain how those amounts were applied to the balance now claimed.
+
+10. Provide proof that you are licensed, bonded, registered, or otherwise authorized to collect consumer debts in my state, if required. Include your license/registration number, issuing authority, effective dates, and any trade names used to collect.
+
+11. Identify the state law, contract provision, or other authority you rely on to collect from me in my state, including the applicable statute of limitations date you contend applies and the last payment/activity date used to calculate it.
+
+12. If you have reported or furnished this alleged debt to any consumer reporting agency, identify each bureau, the reporting date, the balance reported, the status reported, and the legal/factual basis for reporting while validation is disputed.
+
+13. Provide the name, title, business address, and telephone number of the person with knowledge who can certify the accuracy of the account records, assignment chain, itemized accounting, and collection authority.
+
+14. Provide copies of all notices you claim were sent to me regarding this alleged debt, including the initial communication, validation notice, itemized statement, charge-off notice, assignment notice, and any notices required under state law.
+
+15. Confirm whether you will cease collection, calls, letters, credit reporting, sale, assignment, litigation threats, and any other collection activity until proper validation has been mailed to me as required by 15 U.S.C. § 1692g(b).
+
+If you cannot provide the requested validation, accounting, licensing proof, chain of title, and authority to collect, then you must cease collection activity and close or return this matter. If you are furnishing this alleged account to any consumer reporting agency without adequate validation, I dispute the accuracy, completeness, ownership, balance, and collectability of that reporting.
+
+Please preserve all records, communications, call notes, collection notes, account-level purchase records, placement records, assignment documents, payment history, ledger entries, and credit reporting records related to this alleged account.
+
+Sincerely,
+
+${args.debtorName}`;
+}
+
+export function getValidationRound2DeficiencyBody(args: {
+  creditorName: string;
+  debtorName: string;
+  date: string;
+  debtorAddress1?: string;
+  debtorAddress2?: string;
+  debtorCity?: string;
+  debtorState?: string;
+  debtorPostalCode?: string;
+  debtorPhone?: string;
+  debtorEmail?: string;
+  recipientName?: string;
+  recipientAddress?: string;
+}): string {
+  return `${formatPreamble(args)}
+
+RE: Second Notice — Deficient Validation Response and Continued Dispute
+
+To Whom It May Concern:
+
+I previously disputed the alleged debt associated with ${args.creditorName} and requested validation. Your response, if any, did not provide complete account-level validation. A generic statement, summary balance, screenshot, form letter, or bill of sale without account-level proof does not establish the amount, ownership, authority, licensing, or enforceability of this alleged debt.
+
+This is my second written notice. I continue to dispute the alleged debt, the balance, your authority to collect, and any credit reporting associated with this account.
+
+Your prior response remains deficient for the following reasons unless you have already provided complete written proof for each item:
+
+1. You have not provided the complete original contract, signed application, cardholder agreement, promissory note, or account-level agreement bearing my name and showing the specific terms allegedly owed.
+
+2. You have not provided a complete itemized ledger from account opening to the present balance, including all charges, payments, credits, reversals, refunds, interest, fees, charge-off entries, assignment credits, sale proceeds, insurance recoveries, setoffs, settlements, and adjustments.
+
+3. You have not provided a complete chain of title showing account-level transfer from the original creditor to the current owner or claimant.
+
+4. You have not provided a written servicing agreement, placement agreement, agency authorization, power of attorney, or other document proving that your company has present authority to collect this specific account.
+
+5. You have not provided proof that you are licensed, bonded, registered, or otherwise authorized to collect consumer debts in my state, if required by state law.
+
+6. You have not identified the current owner, servicer, debt buyer, trustee, insurer, assignee, or other third party with a financial or servicing interest in this alleged account.
+
+7. You have not explained whether any payment, credit, sale proceeds, insurance proceeds, tax recovery, setoff, or other third-party recovery has reduced the amount claimed.
+
+8. You have not identified the date of last payment, date of last activity, date of default, charge-off date, placement date, and statute-of-limitations date you contend applies.
+
+9. You have not identified the person with knowledge who can certify the accuracy of the records, balance, chain of title, and authority to collect.
+
+10. You have not provided the legal and factual basis for any consumer reporting while this debt remains disputed and inadequately validated.
+
+Until you cure these deficiencies with complete validation, cease collection activity, collection calls, letters, sale or assignment activity, litigation threats, and any credit reporting or furnishing related to this disputed alleged debt.
+
+If you cannot provide complete validation within a reasonable time, close or return the account and delete or correct any consumer reporting associated with this matter.
+
+Sincerely,
+
+${args.debtorName}`;
+}
+
+export function getValidationRound3FinalDemandBody(args: {
+  creditorName: string;
+  debtorName: string;
+  date: string;
+  debtorAddress1?: string;
+  debtorAddress2?: string;
+  debtorCity?: string;
+  debtorState?: string;
+  debtorPostalCode?: string;
+  debtorPhone?: string;
+  debtorEmail?: string;
+  recipientName?: string;
+  recipientAddress?: string;
+}): string {
+  return `${formatPreamble(args)}
+
+RE: Final Validation Demand — Continued Failure to Validate, Continued Dispute, and Notice of Escalation
+
+To Whom It May Concern:
+
+This is my final written validation demand regarding the alleged debt associated with ${args.creditorName}. I have disputed this alleged debt and requested validation. To date, you have not provided complete account-level proof of the debt, the amount, the ownership/assignment chain, your authority to collect, your licensing/registration status, or the factual basis for any credit reporting.
+
+I do not consent to unsupported collection activity, continued reporting, sale, assignment, litigation threats, or account placement based on incomplete validation.
+
+For the avoidance of doubt, the following validation items remain required:
+
+1. Original creditor identity, current owner identity, current servicer identity, and the entity authorizing your collection activity.
+
+2. Original contract, application, cardholder agreement, note, or competent account-level agreement showing the terms and obligation alleged.
+
+3. Complete itemized ledger proving the balance from account opening to the present, including every charge, payment, credit, refund, fee, interest entry, charge-off entry, recovery, sale credit, insurance credit, settlement, setoff, and adjustment.
+
+4. Complete chain of title from original creditor to current claimant, including account-level assignment schedule or redacted schedule sufficient to identify this specific account.
+
+5. Written proof of servicing, agency, attorney, or debt-buyer authority to collect this account.
+
+6. State license, bond, registration, or exemption proof authorizing collection activity in my state.
+
+7. Complete explanation of any consumer reporting, including bureau, date reported, status, balance, account type, and basis for reporting despite unresolved validation.
+
+8. Identification of the person with knowledge who can certify the records and testify to the account, ledger, assignments, and collection authority.
+
+9. Explanation of any sale, transfer, trust placement, insurance recovery, tax recovery, setoff, settlement, or other third-party compensation related to the alleged account and how it affects the amount claimed.
+
+10. Copies of all notices allegedly sent to me, including initial communication, validation notice, charge-off/assignment notices, itemized statements, and state-required notices.
+
+Because you have been given multiple opportunities to validate the alleged debt, failure to provide complete validation will be treated as confirmation that the account remains unsupported, disputed, and unsuitable for collection or reporting.
+
+If you cannot fully validate, immediately cease collection, return or close the file, stop furnishing the account to any consumer reporting agency, and delete or correct any reporting connected to this alleged debt. Continued collection or reporting without validation may be documented for CFPB, state attorney general, state licensing authority, bureau/furnisher dispute, and attorney review.
+
+This letter is made without waiver of any rights, remedies, defenses, claims, or objections.
 
 Sincerely,
 
@@ -326,15 +504,47 @@ export function getAffidavitOfDisputeBody(args: { debtorName: string; date: stri
 
 I, ${args.debtorName}, being duly sworn, state under penalty of perjury:
 
-1. I have been asked to respond to an alleged debt or claim concerning ${args.creditorOrPlaintiff}.
+1. I am the consumer/affiant named above. I make this affidavit from personal knowledge, review of my records, and lack of sufficient verified evidence supplied by the claimant or collector regarding the alleged matter concerning ${args.creditorOrPlaintiff}.
 
-2. I dispute the alleged debt. I do not have sufficient knowledge or information to admit the existence of a valid contract or obligation for the amount claimed.
+2. I dispute the alleged debt, the amount claimed, the account history, the ownership or assignment chain, and the alleged right of the claimant or collector to collect the amount demanded.
 
-3. I have not been provided with a signed contract, a complete chain of assignment, or other competent evidence establishing that the claimant has the right to collect the amount claimed.
+3. I have not been provided with a complete original contract, signed application, cardholder agreement, promissory note, or account-level agreement establishing the exact terms claimed against me.
 
-4. Under applicable contract law and burden-of-proof rules, the party asserting the claim bears the burden of proving the existence and terms of a valid obligation. I put the claimant to its proof.
+4. I have not been provided with a complete itemized accounting from account opening through the present claimed balance. I have not been shown how the claimed principal, interest, fees, costs, credits, refunds, charge-off entries, sale credits, insurance recoveries, setoffs, settlements, or other adjustments were calculated.
 
-5. The foregoing is true and correct to the best of my knowledge.
+5. I have not been provided with a complete chain of title showing how this specific account allegedly moved from the original creditor to the current claimant, debt buyer, servicer, collection agency, or law firm.
+
+6. I have not been provided with account-level assignment schedules or documents sufficient to identify this specific account as one that was transferred to the current claimant.
+
+7. I have not been provided with a written servicing agreement, agency authorization, placement letter, power of attorney, or other documentation establishing that the party contacting me has present authority to collect this specific account.
+
+8. I have not been provided with proof that the collector or claimant is licensed, bonded, registered, or otherwise authorized to collect consumer debt in my state if such licensing or registration is required.
+
+9. I have not been provided with a sworn statement from a person with first-hand or business-record knowledge who can certify the accuracy of the alleged account records, balance, assignment chain, and authority to collect.
+
+10. I have not been provided with proof that the alleged amount demanded accurately accounts for all payments, credits, adjustments, refunds, charge-offs, sale proceeds, insurance proceeds, settlements, recoveries, or setoffs.
+
+11. I deny that a mere statement, printout, bill of sale without account-level schedule, screenshot, spreadsheet, or summary balance is sufficient to prove the alleged obligation, amount, ownership, or right to collect.
+
+12. I deny that the claimant or collector has met the burden of proof necessary to treat the alleged debt as valid, enforceable, collectible, or reportable.
+
+13. I do not admit liability for the alleged debt. I do not admit the accuracy of the amount claimed. I do not admit that the claimant owns the account. I do not admit that the collector has authority to collect.
+
+14. I reserve all rights, claims, defenses, objections, and remedies available under applicable federal and state law, including but not limited to consumer protection, credit reporting, debt collection, contract, evidence, and civil procedure law.
+
+15. Under applicable contract law, the party asserting a claim must prove contract formation, terms, breach, amount, and damages. I dispute that those elements have been established.
+
+16. Under burden-of-proof and best-evidence principles, the party asserting a claim must produce competent account-level evidence, not unsupported summaries.
+
+17. Where a negotiable instrument or holder/enforcement theory is claimed, I dispute the claimant’s right to enforce unless it proves the signature, holder status, assignment, and authority required under applicable law, including UCC principles where applicable.
+
+18. If the alleged account has been sold, assigned, pooled, transferred, insured, credited, charged off, or otherwise handled by third parties, I demand that those facts be disclosed and accounted for in the claimed balance and authority to collect. I am not stating that transfer alone extinguishes an obligation; I am stating that ownership, servicing authority, and accurate accounting must be proven.
+
+19. If this matter is being reported to any consumer reporting agency, I dispute the reporting as inaccurate, incomplete, unsupported, and not properly validated.
+
+20. This affidavit is intended to preserve my dispute, document lack of validation, and put the claimant or collector to strict proof of every element of the alleged claim.
+
+21. The foregoing is true and correct to the best of my knowledge and belief.
 
 _________________________ (Signature)
 ${args.debtorName}
@@ -353,11 +563,27 @@ I, ${args.debtorName}, being duly sworn, state under penalty of perjury:
 
 1. I have been served with a summons and complaint in the matter${args.caseNumber ? ` bearing case number ${args.caseNumber}` : ''}, in which ${args.plaintiffName} is the plaintiff.
 
-2. I dispute the claim. I assert the following defenses, among others as may apply: (a) the statute of limitations has run on the alleged cause of action; (b) the plaintiff has not proven the existence of a valid contract or obligation; (c) the plaintiff has not proven chain of title or standing to collect; (d) the plaintiff failed to validate the debt upon my request as required by 15 U.S.C. § 1692g.
+2. I dispute the claim in its entirety. I do not admit the existence of a valid contract, the amount claimed, the plaintiff's ownership of the account, the plaintiff's right to collect, or the accuracy of any documents or summaries attached to the complaint.
 
-3. I do not admit the allegations in the complaint. The plaintiff bears the burden of proof. I put the plaintiff to its proof on all elements of its claim.
+3. I assert the following defenses, among others as may apply: statute of limitations, lack of contract formation, lack of consideration, lack of standing or authority, failure to prove chain of assignment, failure to validate upon request, inaccurate amount, failure to prove damages, failure to state a claim, and lack of competent business records.
 
-4. The foregoing is true and correct to the best of my knowledge.
+4. I deny that the plaintiff has provided a complete original agreement, complete itemized ledger, complete payment history, complete assignment chain, or sworn testimony from a competent witness with personal or business-record knowledge.
+
+5. I deny that a generic bill of sale, affidavit template, spreadsheet, charge-off statement, or account summary alone proves the alleged account, amount, assignment, or right to sue.
+
+6. I dispute any claimed interest, fees, attorney fees, collection costs, or post-charge-off charges unless the plaintiff proves the contractual or statutory basis for each amount and shows those amounts in a complete ledger.
+
+7. I dispute the plaintiff's standing and demand proof of the current owner, prior owners, assignment dates, purchase/placement dates, servicing authority, and the account-level schedule showing this specific account.
+
+8. I dispute the plaintiff's authority to collect or sue if required debt collection licensing, registration, bonding, or attorney authority is missing, expired, or not proven.
+
+9. I dispute the accuracy of any credit reporting or collection record connected to this matter unless the plaintiff or collector proves the account-level facts and correct reporting basis.
+
+10. I reserve all rights to raise additional defenses, counterclaims, objections to evidence, discovery requests, motions, and challenges to any affidavit, business record, assignment, or witness statement submitted by the plaintiff.
+
+11. I request that the plaintiff be required to prove every element of its claim with admissible evidence, including contract, breach, ownership, amount, authority, standing, and damages.
+
+12. The foregoing is true and correct to the best of my knowledge and belief.
 
 _________________________ (Signature)
 ${args.debtorName}
@@ -411,19 +637,33 @@ export function getDebtDisputeLetterBody(args: {
 }): string {
   return `${formatPreamble(args)}
 
-RE: Formal Dispute of Alleged Debt
+RE: Formal Dispute of Alleged Debt, Balance, Reporting, Ownership, and Collection Authority
 
 To Whom It May Concern:
 
-I am writing to formally dispute the alleged debt you have attributed to me concerning ${args.creditorName}. I dispute the amount, the validity of the debt, and/or your right to collect it.
+I am writing to formally dispute the alleged debt you have attributed to me concerning ${args.creditorName}. I dispute the alleged balance, the account history, the ownership/assignment chain, the reporting accuracy, and your legal authority to collect or furnish this account.
 
-Under the Fair Debt Collection Practices Act and the Fair Credit Reporting Act, I am entitled to verification and accurate reporting. I request that you:
+Under the Fair Debt Collection Practices Act and the Fair Credit Reporting Act, you may not treat disputed, inaccurate, incomplete, or unverifiable information as valid. If you are reporting this matter to any consumer reporting agency, I dispute the reporting and demand correction or deletion of any information you cannot fully substantiate.
 
-1. Provide verification of the debt and your authority to collect it.
-2. Cease reporting this account to credit bureaus until you have verified it.
-3. Provide me with the name of the original creditor and an itemized accounting.
+Please answer and provide the following in writing:
 
-Until this dispute is resolved, do not treat this account as valid or reported in compliance with the law without proper verification.
+1. Identify the original creditor, current owner, current servicer, debt buyer if any, and the entity authorizing you to collect.
+
+2. Provide the original contract, application, cardholder agreement, note, or other competent account-level evidence showing that I agreed to the exact obligation and terms you claim.
+
+3. Provide the full itemized account ledger showing charges, payments, credits, refunds, interest, fees, charge-off entries, sale credits, insurance recoveries, setoffs, and all adjustments used to calculate the current balance.
+
+4. Provide the chain of title and assignment documents proving that this specific account was transferred from the original creditor to the current owner or claimant.
+
+5. Provide proof that you are licensed, registered, bonded, or otherwise authorized to collect consumer debt in my state, if required, including license/registration number and effective dates.
+
+6. Identify every consumer reporting agency to which you have furnished this account, the date reported, the balance reported, the status reported, and the basis for reporting while this account is disputed.
+
+7. Identify the date of last payment, date of last activity, date of default, date of charge-off, date placed for collection, and the statute of limitations date you contend applies.
+
+8. Identify the person with knowledge who can certify the accuracy of the records, balance, assignment chain, and collection authority.
+
+Until this dispute is resolved with competent account-level evidence, do not continue credit reporting, collection escalation, sale, assignment, or litigation threats based on unsupported information. If you cannot verify the account, amount, ownership, authority, licensing, and reporting accuracy, delete or correct any reporting and cease collection activity.
 
 Sincerely,
 
@@ -478,6 +718,10 @@ export function getLetterBody(
   switch (letterType) {
     case 'validation_request':
       return getValidationRequestBody(args);
+    case 'validation_round2_deficiency':
+      return getValidationRound2DeficiencyBody(args);
+    case 'validation_round3_final_demand':
+      return getValidationRound3FinalDemandBody(args);
     case 'time_barred_response':
       return getTimeBarredResponseBody(args);
     case 'affidavit_of_dispute':

@@ -11,7 +11,7 @@ import {
   resolveDisputeAccountLabel,
 } from '../creditReports/disputeFactualReasons';
 import { evidenceMatchesAccount } from '../utils/evidenceMatch';
-import { MAX_DISPUTE_REASONS } from '../letters/disputeLetterFormat';
+import { MAX_DISPUTE_REASONS, MIN_DISPUTE_REASONS } from '../letters/disputeLetterFormat';
 import { classifyCandidateNegativeType, NEGATIVE_PLAYBOOKS } from '../creditReports/negativePlaybooks';
 
 function norm(s: string) {
@@ -26,6 +26,77 @@ function findTradeline(parsed: ParsedCreditReport | undefined, account: string) 
       (t) => norm(t.creditorName) === needle || norm(t.creditorName).includes(needle) || needle.includes(norm(t.creditorName)),
     ) ?? null
   );
+}
+
+function bureauLabel(b: import('../domain/creditReports').Bureau) {
+  if (b === 'EXP') return 'Experian';
+  if (b === 'EQF') return 'Equifax';
+  return 'TransUnion';
+}
+
+function valForBureau(tl: NonNullable<ReturnType<typeof findTradeline>>, labelIncludes: string, bureau: import('../domain/creditReports').Bureau): string {
+  const needle = norm(labelIncludes).trim();
+  const row = (tl.fields ?? []).find((r) => norm(r.label).includes(needle));
+  if (!row) return '';
+  return (row.byBureau[bureau] || row.byBureau.EXP || row.byBureau.EQF || row.byBureau.TUC || '').trim();
+}
+
+function supplementalAccountFindings(args: {
+  accountLabel: string;
+  candidate: DisputeCandidate;
+  tradeline: NonNullable<ReturnType<typeof findTradeline>> | null;
+}): string[] {
+  const { candidate, tradeline } = args;
+  const account = args.accountLabel || candidate.account || 'this account';
+  const bureau = bureauLabel(candidate.bureau);
+  const out: string[] = [];
+  const push = (text: string) => {
+    const cleaned = filterFactualDisputeReasons([text])[0];
+    if (cleaned && !out.some((x) => norm(x) === norm(cleaned))) out.push(cleaned);
+  };
+
+  if (tradeline) {
+    const opened = valForBureau(tradeline, 'date opened', candidate.bureau) || tradeline.dateOpened || '';
+    const closed = valForBureau(tradeline, 'date closed', candidate.bureau) || tradeline.dateClosed || '';
+    const lastActive =
+      valForBureau(tradeline, 'last activity', candidate.bureau) ||
+      valForBureau(tradeline, 'last active', candidate.bureau) ||
+      tradeline.dateLastActive ||
+      '';
+    const lastReported = valForBureau(tradeline, 'last reported', candidate.bureau) || tradeline.dateLastReported || '';
+    const dofd = valForBureau(tradeline, 'first delinquency', candidate.bureau) || tradeline.dofd || '';
+    const status = valForBureau(tradeline, 'account status', candidate.bureau) || valForBureau(tradeline, 'payment status', candidate.bureau) || tradeline.accountStatus || '';
+    const balance = valForBureau(tradeline, 'balance', candidate.bureau) || (tradeline.balance != null ? `$${tradeline.balance}` : '');
+    const pastDue = valForBureau(tradeline, 'past due', candidate.bureau) || (tradeline.pastDue != null ? `$${tradeline.pastDue}` : '');
+    const accountNumber = valForBureau(tradeline, 'account number', candidate.bureau) || tradeline.accountNumberMasked || '';
+
+    if (opened && (closed || lastActive || lastReported)) {
+      push(`As you can see here on ${bureau}, ${account} reports Date Opened as ${opened}${closed ? ` and Date Closed as ${closed}` : ''}${lastActive ? ` with Date of Last Activity as ${lastActive}` : ''}${lastReported ? ` and Date Last Reported as ${lastReported}` : ''}, making the account timeline a specific disputed reporting issue.`);
+    }
+    if (dofd && opened) {
+      push(`As you can see here on ${bureau}, ${account} reports Date of First Delinquency as ${dofd} while Date Opened is ${opened}, so the delinquency timeline must be evaluated against the account opening date shown on this report.`);
+    }
+    if (status && (balance || pastDue)) {
+      push(`As you can see here on ${bureau}, ${account} reports status as ${status}${balance ? ` with balance ${balance}` : ''}${pastDue ? ` and past-due amount ${pastDue}` : ''}, so the status, balance, and delinquency fields conflict or require account-level correction.`);
+    }
+    if (lastActive && lastReported) {
+      push(`As you can see here on ${bureau}, ${account} reports Date of Last Activity as ${lastActive} and Date Last Reported as ${lastReported}, making these activity/reporting dates specific disputed fields on this account.`);
+    }
+    if (accountNumber) {
+      push(`As you can see here on ${bureau}, ${account} reports account number ending/identifier ${accountNumber}, and this identifier must match the furnisher's records for the disputed account.`);
+    }
+  }
+
+  if (candidate.status) {
+    push(`As you can see here on ${bureau}, ${account} is reporting with status "${candidate.status}", making the account status itself a disputed factual field for this item.`);
+  }
+  if (candidate.code) {
+    push(`As you can see here on ${bureau}, ${account} is tied to reporting code "${candidate.code}", making the code classification a disputed factual field for this account.`);
+  }
+  if (candidate.type) {
+    push(`As you can see here on ${bureau}, ${account} is categorized as ${candidate.type}, and that category must accurately match the account history and documentation for this specific tradeline.`);
+  }
+  return out;
 }
 
 /**
@@ -73,6 +144,13 @@ export function buildEnrichedReasonsForCandidate(args: {
       if (c.id.startsWith('xb_') || c.id.startsWith('sec_') || c.id.startsWith('contradiction_') || c.id.startsWith('intra_')) {
         push(c.text.replace(new RegExp(args.candidate.account.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi'), accountLabel));
       }
+    }
+  }
+
+  if (out.length < Math.min(MIN_DISPUTE_REASONS, max)) {
+    for (const reason of supplementalAccountFindings({ accountLabel, candidate: args.candidate, tradeline: tl })) {
+      push(reason);
+      if (out.length >= Math.min(MIN_DISPUTE_REASONS, max)) break;
     }
   }
 

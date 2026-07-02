@@ -45,15 +45,6 @@ export default function PartnerLettersPage() {
     () => (partner ? hasEntitlement(partner.id, ENTITLEMENT_KEYS.letters) : false),
     [partner, storeVersion],
   );
-  const templatesUnlocked = useMemo(
-    () => (partner ? hasEntitlement(partner.id, ENTITLEMENT_KEYS.templates) : false),
-    [partner, storeVersion],
-  );
-
-  useEffect(() => {
-    if (!templatesUnlocked && studioTab === 'templates') setStudioTab('dispute');
-  }, [templatesUnlocked, studioTab]);
-
   if (!partner) {
     return (
       <PageShell
@@ -85,12 +76,7 @@ export default function PartnerLettersPage() {
     );
   }
 
-  const hubTabs = [
-    { id: 'dispute', label: 'Dispute' },
-    { id: 'validation', label: 'Validation / DV' },
-    { id: 'court', label: 'Court / Affidavit' },
-    ...(templatesUnlocked ? [{ id: 'templates', label: 'Templates' }] : []),
-  ];
+  const hubTabs = [{ id: 'dispute', label: 'Dispute Letters' }];
 
   return (
     <PageShell
@@ -121,7 +107,6 @@ export default function PartnerLettersPage() {
         activeTab={studioTab}
         onTabChange={(id) => setStudioTab(id as LettersStudioTab)}
         primaryAction={{ label: 'Letters vault', onClick: () => navigate('/portal/letters/vault') }}
-        secondaryAction={{ label: 'Template library', onClick: () => navigate('/portal/templates') }}
       >
         <LettersCommandCenter
           partner={partner}
