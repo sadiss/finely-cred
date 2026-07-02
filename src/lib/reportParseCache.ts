@@ -22,10 +22,11 @@ function saveStore(store: Store) {
 
 function simpleHash(text: string): string {
   let h = 0;
-  for (let i = 0; i < Math.min(text.length, 8000); i++) {
+  const len = Math.min(text.length, 48000);
+  for (let i = 0; i < len; i++) {
     h = (h * 31 + text.charCodeAt(i)) | 0;
   }
-  return String(h);
+  return `${len}:${h}`;
 }
 
 export function getCachedParsedReport(args: {

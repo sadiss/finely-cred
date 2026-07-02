@@ -10,7 +10,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { computeRecommendation } from '../../billing/intakeRecommendation';
 import { formatPrice, getAgencyTierById, getPackageById } from '../../config/pricingCatalog';
 import { getActiveTenant, getActiveTenantId } from '../../tenancy/activeTenant';
-import { getOnboardingStepKeys, getOnboardingStepLabel } from '../../onboarding/pipeline';
+import { getOnboardingStepKeys, getOnboardingStepLabel, getPartnerInviteStepKeys } from '../../onboarding/pipeline';
 import { AgentOperatingModelStep } from '../onboarding/AgentOperatingModelStep';
 import { ProfileAndAccountStep } from '../onboarding/OnboardingSteps';
 import { SignupLegalStep } from '../onboarding/SignupLegalStep';
@@ -41,6 +41,15 @@ import {
   normalizeOnboardingRole,
   stepAfterRoleSelection,
 } from '../../lib/onboardingRoleRouting';
+import {
+  bootstrapInviteUserDataFromUrl,
+  completePartnerInviteClaim,
+  hydrateInviteUserDataFromPartner,
+  isPartnerInviteUrl,
+  parsePartnerInviteSearch,
+  resetOnboardingStorageForInvite,
+} from '../../lib/partnerInviteBootstrap';
+import { landingPathForRole } from '../../lib/signupOpsGuide';
 import { resolvePostAuthHomePath } from '../../lib/postAuthRouting';
 import { buildPartnerConsentsFromSignup, signupLegalItems, type SignupLegalItemId } from '../../lib/signupLegalPack';
 import { clearOnboardingProgress, ONBOARDING_STORAGE_KEY } from '../../lib/onboardingProgressStorage';
@@ -1199,6 +1208,7 @@ function createDefaultOnboardingUserData() {
     legalChecks: {} as Partial<Record<SignupLegalItemId, boolean>>,
     legalAcceptedName: '',
     confirmPassword: '',
+    invitePartnerId: '' as string,
   };
 }
 
@@ -1356,7 +1366,14 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
   const auth = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
-  const [authMode, setAuthMode] = useState<'select' | 'login' | 'signup' | 'forgot'>('select');
+  const [authMode, setAuthMode] = useState<'select' | 'login' | 'signup' | 'forgot'>(() => {
+    if (typeof window === 'undefined') return 'select';
+    if (isPartnerInviteUrl(window.location.search)) return 'signup';
+    if (window.location.pathname === '/signup') return 'signup';
+    if (window.location.pathname === '/login') return 'login';
+    if (window.location.pathname === '/forgot-password') return 'forgot';
+    return 'select';
+  });
   const [step, setStep] = useState(1);
   const [authBusy, setAuthBusy] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
@@ -1364,12 +1381,21 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
   const [forgotEmail, setForgotEmail] = useState('');
-  const [userData, setUserData] = useState(createDefaultOnboardingUserData);
+  const [userData, setUserData] = useState(() => {
+    const base = createDefaultOnboardingUserData();
+    if (typeof window === 'undefined') return base;
+    const boot = bootstrapInviteUserDataFromUrl(window.location.search);
+    return boot ? ({ ...base, ...boot } as typeof base) : base;
+  });
   const onboardingScrollRef = useRef<HTMLDivElement | null>(null);
+  const partnerInviteFlow = useMemo(() => isPartnerInviteUrl(location.search), [location.search]);
 
   const stepKeys = useMemo(
-    () => getOnboardingStepKeys({ role: userData.role, focuses: userData.focuses, lane: userData.lane, agentTierId: userData.agentTierId }),
-    [userData.role, userData.focuses, userData.lane, userData.agentTierId],
+    () =>
+      partnerInviteFlow
+        ? getPartnerInviteStepKeys()
+        : getOnboardingStepKeys({ role: userData.role, focuses: userData.focuses, lane: userData.lane, agentTierId: userData.agentTierId }),
+    [partnerInviteFlow, userData.role, userData.focuses, userData.lane, userData.agentTierId],
   );
   const TOTAL_STEPS = stepKeys.length;
   const currentKey = stepKeys[Math.min(Math.max(1, step), TOTAL_STEPS) - 1] ?? 'role';
@@ -1406,6 +1432,10 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
 
   useEffect(() => {
     if (!isOpen) return;
+    if (isPartnerInviteUrl(location.search)) {
+      resetOnboardingStorageForInvite(location.search);
+      return;
+    }
     try {
       const raw = localStorage.getItem(ONBOARDING_STORAGE_KEY);
       if (!raw) return;
@@ -1416,7 +1446,7 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
     } catch {
       // ignore
     }
-  }, [isOpen]);
+  }, [isOpen, location.search, TOTAL_STEPS]);
 
   // URL-driven onboarding context (e.g., /onboarding?package=personal_restore&rail=in_house)
   useEffect(() => {
@@ -1430,9 +1460,11 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
     const skipRole = sp.get('skipRole') === '1' || sp.get('skip') === '1';
     const nextRaw = sp.get('next');
     const emailParam = safeDecode(sp.get('email') || '').trim();
+    const partnerIdParam = safeDecode(sp.get('partnerId') || '').trim();
+    const focusParam = safeDecode(sp.get('focus') || '').trim();
     const isInvite = sp.get('invite') === '1';
     const attr = captureLeadAttributionFromUrl(location.search, location.pathname);
-    if (attr) {
+    if (attr && !(isInvite && partnerIdParam)) {
       const promoterRole = (attr.promoterRole || '').toLowerCase();
       const mappedRole =
         promoterRole === 'seller'
@@ -1469,6 +1501,36 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
       setForgotEmail((prev) => prev || emailParam);
     }
 
+    if (isInvite) {
+      setAuthMode('signup');
+      setStep(1);
+      const invite = parsePartnerInviteSearch(location.search);
+      if (invite) {
+        void hydrateInviteUserDataFromPartner(createDefaultOnboardingUserData(), invite).then((hydrated) => {
+          setUserData((prev) => ({
+            ...(hydrated as ReturnType<typeof createDefaultOnboardingUserData>),
+            confirmPassword: prev.confirmPassword,
+            legalChecks: prev.legalChecks,
+            legalAcceptedName: prev.legalAcceptedName,
+          }));
+        });
+      } else if (roleParam) {
+        setUserData((prev) => ({
+          ...applyOnboardingRole(prev, roleParam),
+          recommendedNextPath: prev.recommendedNextPath || landingPathForRole(roleParam),
+        }));
+      }
+      if (partnerIdParam) {
+        setUserData((prev) => ({ ...prev, invitePartnerId: partnerIdParam }));
+      }
+      if (focusParam) {
+        setUserData((prev) => ({
+          ...prev,
+          focuses: prev.focuses?.length ? prev.focuses : [focusParam],
+        }));
+      }
+    }
+
     if (packageId) {
       const pkg = getPackageById(packageId);
       if (pkg) {
@@ -1494,7 +1556,7 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
     }
 
     let mappedLane: OnboardingLane | null = null;
-    if (laneParam) {
+    if (laneParam && !isInvite) {
       mappedLane = laneFromParam(safeDecode(laneParam)) as OnboardingLane;
       const laneRole = laneToOnboardingRole(mappedLane);
       setUserData((prev) => {
@@ -1518,12 +1580,12 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
         };
         return nextRole ? applyOnboardingRole(base, nextRole as any) : base;
       });
-    } else if (roleParam) {
+    } else if (roleParam && !isInvite) {
       setUserData((prev) => applyOnboardingRole(prev, roleParam));
     }
 
     const effectiveRole = roleParam || (mappedLane ? laneToOnboardingRole(mappedLane) : '');
-    if (effectiveRole && skipRole && (authMode === 'signup' || location.pathname === '/signup' || authParam === 'signup')) {
+    if (!isInvite && effectiveRole && skipRole && (authMode === 'signup' || location.pathname === '/signup' || authParam === 'signup')) {
       setAuthMode('signup');
       setStep((prevStep) => {
         const afterRole = stepAfterRoleSelection({
@@ -1539,12 +1601,24 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
 
   useEffect(() => {
     if (!isOpen) return;
+    if (isPartnerInviteUrl(location.search)) return;
     try {
       localStorage.setItem(ONBOARDING_STORAGE_KEY, JSON.stringify({ userData, step, authMode }));
     } catch {
       // ignore
     }
-  }, [authMode, isOpen, step, userData]);
+  }, [authMode, isOpen, location.search, step, userData]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const invite = parsePartnerInviteSearch(location.search);
+    if (!invite?.email || !auth.user?.email) return;
+    const sessionEmail = auth.user.email.trim().toLowerCase();
+    const inviteEmail = invite.email.trim().toLowerCase();
+    if (sessionEmail && inviteEmail && sessionEmail !== inviteEmail) {
+      void auth.signOut();
+    }
+  }, [auth, isOpen, location.search]);
 
   const updateData = (newData: Partial<typeof userData>) => {
     setUserData(prev => ({ ...prev, ...newData }));
@@ -1702,17 +1776,32 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
       }
 
       try {
-        const { getOrCreatePartnerForSession } = await import('../../portal/getOrCreatePartnerForSession');
-        await getOrCreatePartnerForSession({ user: signedInUser });
-      } catch {
-        // partner creation is best-effort; session routing still proceeds
+        if (userData.invitePartnerId) {
+          await completePartnerInviteClaim({
+            partnerId: userData.invitePartnerId,
+            userId: signedInUser.id,
+            email,
+          });
+        } else {
+          const { getOrCreatePartnerForSession } = await import('../../portal/getOrCreatePartnerForSession');
+          await getOrCreatePartnerForSession({ user: signedInUser });
+        }
+      } catch (claimErr: unknown) {
+        const message = claimErr instanceof Error ? claimErr.message : 'Could not link this invite to your account.';
+        setAuthError(message);
+        return;
       }
 
       if (userData.role === 'agent' && signedInUser.id && userData.agentOperatingModel) {
         saveAgentOperatingModel(signedInUser.id, defaultAgentOperatingModel(userData.agentOperatingModel));
       }
 
-      const nextPath = userData.recommendedNextPath || resolvePostAuthHomePath(signedInUser);
+      const invite = parsePartnerInviteSearch(location.search);
+      const inviteLanding =
+        userData.recommendedNextPath ||
+        (invite ? invite.nextPath : '') ||
+        (userData.role ? landingPathForRole(userData.role as 'client' | 'au_seller' | 'agent' | 'affiliate') : '');
+      const nextPath = inviteLanding || resolvePostAuthHomePath(signedInUser);
       clearOnboardingProgress();
       onComplete(nextPath);
     } finally {
@@ -2029,7 +2118,11 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
             <div className="mt-2 text-center text-[9px] sm:text-[10px] font-black uppercase tracking-[0.2em] sm:tracking-[0.35em] text-white/45">
               {getOnboardingStepLabel(currentKey)}
             </div>
-            {userData.recommendedNextPath?.includes('/portal/checkout') ? (
+            {partnerInviteFlow ? (
+              <div className="mt-1 text-center text-[10px] text-amber-200/90">
+                Finely Cred invite setup — email and access lane already attached
+              </div>
+            ) : userData.recommendedNextPath?.includes('/portal/checkout') ? (
               <div className="mt-1 text-center text-[10px] text-emerald-300/90">Checkout queued after signup</div>
             ) : null}
           </div>
@@ -2120,6 +2213,8 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
             isBusy={authBusy}
             error={authError}
             isConfigured={auth.isConfigured}
+            inviteMode={partnerInviteFlow}
+            emailLocked={partnerInviteFlow && Boolean(userData.email)}
           />
         )}
         </OnboardingExperienceShell>

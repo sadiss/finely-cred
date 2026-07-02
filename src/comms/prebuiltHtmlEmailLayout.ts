@@ -9,8 +9,10 @@ import { buildMarketingEmailHtmlFooter } from '../lib/commsUnsubscribeFooter';
 
 export const FINELY_EMAIL = {
   emerald: '#10b981',
+  emeraldDark: '#059669',
   violet: '#6366f1',
-  amber: '#f59e0b',
+  violetDark: '#4f46e5',
+  fuchsia: '#d946ef',
   slate900: '#0f172a',
   slate700: '#334155',
   slate600: '#475569',
@@ -160,7 +162,7 @@ export function buildNegativeTeaserRows(
     .slice(0, 5)
     .map((x) => {
       const barWidth = Math.max(8, Math.min(100, x.severity));
-      const color = x.severity >= 80 ? '#dc2626' : x.severity >= 60 ? '#ea580c' : FINELY_EMAIL.amber;
+      const color = x.severity >= 80 ? '#dc2626' : x.severity >= 60 ? '#7c3aed' : FINELY_EMAIL.emerald;
       return `<tr>
         <td style="padding:12px 0;border-bottom:1px solid #e2e8f0;">
           <div style="display:flex;justify-content:space-between;align-items:flex-start;">
@@ -178,8 +180,8 @@ export function buildNegativeTeaserRows(
     })
     .join('');
 
-  return `<div style="margin:24px 0;padding:20px;border-radius:12px;border:1px solid #fecaca;background:#fff7ed;">
-  <div style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#c2410c;margin-bottom:12px;">Priority negatives (preview)</div>
+  return `<div style="margin:24px 0;padding:20px;border-radius:12px;border:1px solid #c4b5fd;background:#f5f3ff;">
+  <div style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:${FINELY_EMAIL.violetDark};margin-bottom:12px;">Priority negatives (preview)</div>
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0">${rows}</table>
   <p style="margin:12px 0 0;font-size:12px;color:${FINELY_EMAIL.slate500};">Full ranked analysis with evidence checklists ships in your portal report.</p>
 </div>`;
@@ -208,30 +210,36 @@ export function buildTrustStrip(): string {
 </p>`;
 }
 
-/** Three-step welcome journey — clean, not busy (inspired by partner roadmap flyers). */
+/** Three-step welcome journey — equal-height cards for email clients. */
 export function buildWelcomeJourneySteps(
   steps: Array<{ num: string; title: string; body: string }>,
 ): string {
+  const colWidth = steps.length ? Math.floor(100 / steps.length) : 33;
   const cells = steps
     .map(
-      (s) => `<td width="33%" style="vertical-align:top;padding:6px;">
-      <div style="background:linear-gradient(145deg,#0f172a 0%,#1e293b 100%);border-radius:14px;padding:18px 16px;height:100%;border:1px solid rgba(245,158,11,0.25);">
-        <div style="font-size:11px;font-weight:800;letter-spacing:0.12em;color:#fbbf24;text-transform:uppercase;">Step ${s.num}</div>
-        <div style="font-size:15px;font-weight:700;color:#fffef5;margin:8px 0 6px;font-family:system-ui,sans-serif;">${s.title}</div>
-        <div style="font-size:13px;line-height:1.5;color:rgba(255,248,231,0.82);">${s.body}</div>
+      (s) => `<td width="${colWidth}%" style="vertical-align:top;padding:6px;">
+      <div style="background:linear-gradient(145deg,#0a100e 0%,#121a17 55%,#1e1b4b 100%);border-radius:14px;padding:18px 16px;min-height:168px;border:1px solid rgba(99,102,241,0.28);box-sizing:border-box;">
+        <div style="font-size:11px;font-weight:800;letter-spacing:0.12em;color:#a5b4fc;text-transform:uppercase;min-height:16px;">Step ${s.num}</div>
+        <div style="font-size:15px;font-weight:700;color:#f8fafc;margin:8px 0 6px;font-family:system-ui,sans-serif;min-height:44px;line-height:1.3;display:flex;align-items:flex-start;">${s.title}</div>
+        <div style="font-size:13px;line-height:1.55;color:rgba(226,232,240,0.88);min-height:72px;">${s.body}</div>
       </div>
     </td>`,
     )
     .join('');
 
-  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:24px 0;">
+  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:24px 0;table-layout:fixed;">
   <tr>${cells}</tr>
 </table>`;
 }
 
-/** Gold accent divider for premium welcome emails. */
+/** Brand accent divider — emerald + violet (no gold/orange). */
+export function buildBrandAccentDivider(): string {
+  return `<div style="height:3px;border-radius:999px;margin:24px 0;background:linear-gradient(90deg,transparent 0%,${FINELY_EMAIL.emerald} 28%,${FINELY_EMAIL.violet} 50%,${FINELY_EMAIL.emerald} 72%,transparent 100%);"></div>`;
+}
+
+/** @deprecated use buildBrandAccentDivider */
 export function buildGoldAccentDivider(): string {
-  return `<div style="height:3px;border-radius:999px;margin:24px 0;background:linear-gradient(90deg,transparent 0%,#b45309 35%,#fbbf24 50%,#b45309 65%,transparent 100%);"></div>`;
+  return buildBrandAccentDivider();
 }
 
 export function buildDefaultEmailFooter(email?: string): string {

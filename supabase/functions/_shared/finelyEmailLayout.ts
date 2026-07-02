@@ -34,7 +34,7 @@ export function wrapFinelyEmailHtml(args: {
 }): string {
   const themes = {
     emerald: 'linear-gradient(135deg,#0a100e 0%,#121a17 42%,#065f46 100%)',
-    gold: 'linear-gradient(135deg,#1a1400 0%,#3d2e06 38%,#b45309 100%)',
+    gold: 'linear-gradient(135deg,#0a100e 0%,#121a17 40%,#4c1d95 100%)',
     slate: 'linear-gradient(135deg,#0f172a 0%,#1e293b 55%,#334155 100%)',
     violet: 'linear-gradient(135deg,#0a0612 0%,#1e1b4b 50%,#4c1d95 100%)',
   };
@@ -93,6 +93,12 @@ export function buildPrimaryCtaButton(args: { label: string; href: string; color
     </td>
   </tr>
 </table>`;
+}
+
+export function buildTrustStrip(): string {
+  return `<p style="margin:20px 0 0;padding:16px;border-radius:10px;background:${FINELY.slate100};font-size:12px;line-height:1.5;color:${FINELY.slate600};">
+  <strong style="color:${FINELY.slate900};">Educational only</strong> — Finely Cred helps you organize disputes and evidence. We are not a law firm and this is not legal advice.
+</p>`;
 }
 
 export function buildDefaultEmailFooter(email?: string): string {

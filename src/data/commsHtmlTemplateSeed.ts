@@ -56,7 +56,7 @@ const PREBUILT_TEMPLATES: Array<Omit<CommsTemplate, 'createdAt' | 'updatedAt'> &
       bodyHtml: SIGNUP_WELCOME_BODY,
       signatureHtml: defaultSignatureHtml('Taylor Morgan', 'Credit Strategy Advisor', '(888) 555-0142'),
       footerHtml: buildDefaultEmailFooter('{{partner.profile.email}}'),
-      headerTheme: 'gold',
+      headerTheme: 'emerald',
     }),
     tags: ['marketing', 'signup', 'html', 'seed'],
     meta: { contentType: 'html', emailDomainId: 'domain_finely_primary' },

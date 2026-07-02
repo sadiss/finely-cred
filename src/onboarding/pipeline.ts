@@ -33,6 +33,11 @@ export function getOnboardingStepKeys(data: OnboardingUserData): string[] {
   return ['role', 'recommendation', 'legal', 'profile'];
 }
 
+/** Admin invite flow — skip public role/focus/recommendation picker. */
+export function getPartnerInviteStepKeys(): string[] {
+  return ['legal', 'profile'];
+}
+
 export function getOnboardingStepLabel(key: string): string {
   const labels: Record<string, string> = {
     role: 'Role',

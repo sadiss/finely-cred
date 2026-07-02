@@ -27,6 +27,8 @@ import {
   FINELY_OS_ENTITY_VALUE,
   FINELY_OS_NOTICE_WARN,
   FINELY_OS_TOOLBAR,
+  FINELY_OS_VIEW_TABS,
+  finelyOsViewTab,
   finelyOsInlineListItem,
 } from '../../features/os/finelyOsLightUi';
 import { FinelyOsPaginatedStack } from '../../features/os/FinelyOsPaginatedStack';
@@ -36,12 +38,14 @@ import { scoreLead, kanbanStageForLead } from '../../lib/leadScoring';
 import { enrollLeadInNurtureSequence } from '../../lib/nurtureEngine';
 import { LeadBulkImportPanel } from '../../features/leadsOs/LeadBulkImportPanel';
 import { LeadScrapeSourcePicker } from '../../features/leadsOs/LeadScrapeSourcePicker';
+import { LeadTrashPanel } from '../../features/studioCommandOs/LeadTrashPanel';
 import { listInboxMessages } from '../../data/socialHubRepo';
 import { CmoUnifiedCommandCenter } from '../../components/cmo/CmoUnifiedCommandCenter';
 import { LeadIntelSwarmDashboard } from '../../features/overnight50/LeadIntelSwarmDashboard';
 import { Overnight50AdminNav } from '../../components/overnight50/Overnight50AdminNav';
 
 type LeadsTab = 'inbound' | 'intel' | 'distribution' | 'social' | 'routing' | 'cmo';
+type InboundView = 'pipeline' | 'cleanup';
 
 const TABS: Array<{ id: LeadsTab; label: string; icon: typeof Target; accent: 'violet' | 'emerald' | 'sky' | 'fuchsia' | 'amber' }> = [
   { id: 'inbound', label: 'Inbound', icon: Target, accent: 'violet' },
@@ -59,6 +63,7 @@ export default function AdminLeadsOsPage() {
   const [selected, setSelected] = useState<CrmRecord | null>(null);
   const [version, setVersion] = useState(0);
   const [inboundQuery, setInboundQuery] = useState('');
+  const [inboundView, setInboundView] = useState<InboundView>('pipeline');
   const [intelSourceHint, setIntelSourceHint] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
 
@@ -152,6 +157,19 @@ export default function AdminLeadsOsPage() {
 
           {tab === 'inbound' ? (
           <>
+            <div className={`${FINELY_OS_VIEW_TABS} flex flex-wrap gap-1`}>
+              <button type="button" onClick={() => setInboundView('pipeline')} className={finelyOsViewTab(inboundView === 'pipeline', 'violet')}>
+                Pipeline board
+              </button>
+              <button type="button" onClick={() => setInboundView('cleanup')} className={finelyOsViewTab(inboundView === 'cleanup', 'fuchsia')}>
+                Lead cleanup & trash
+              </button>
+            </div>
+
+            {inboundView === 'cleanup' ? (
+              <LeadTrashPanel />
+            ) : (
+            <>
             <div className={FINELY_OS_TOOLBAR}>
               <input
                 value={inboundQuery}
@@ -217,6 +235,8 @@ export default function AdminLeadsOsPage() {
                 </FinelyOsGlassPanel>
               </div>
             </div>
+            </>
+            )}
           </>
         ) : null}
 

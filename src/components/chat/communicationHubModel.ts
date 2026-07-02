@@ -56,6 +56,8 @@ export const AI_SUGGESTION_TREE: AiSuggestionNode[] = [
       { id: 'now-stuck', emoji: '🧩', label: "I'm stuck on something", prompt: "I'm stuck on something in my credit journey. Help me figure out what's blocking me — ask what I'm working on." },
       { id: 'now-report', emoji: '📄', label: 'Just uploaded a report', prompt: 'I uploaded or am about to upload a credit report. What should I review first after parsing?' },
       { id: 'now-round', emoji: '⚖️', label: 'Planning a dispute round', prompt: 'Help me think through Round 1 disputes — what to include, what to skip, and how to sequence follow-up.' },
+      { id: 'now-debt', emoji: '🏛️', label: 'Debt or summons issue', prompt: 'I have a collection or summons situation — what should I document first in Finely Cred?' },
+      { id: 'now-funding', emoji: '🏦', label: 'Funding readiness', prompt: 'Based on where I am in restore, what should I focus on before applying for funding?' },
     ],
   },
   {
@@ -65,8 +67,21 @@ export const AI_SUGGESTION_TREE: AiSuggestionNode[] = [
     children: [
       { id: 'l-reasons', emoji: '💡', label: 'Pick dispute reasons', prompt: 'Help me choose strong dispute reasons for my situation. Ask what type of accounts I am targeting.' },
       { id: 'l-draft', emoji: '📝', label: 'Review my letter approach', prompt: 'Walk me through what a tight bureau letter needs — intro, reasons, evidence — without legal advice.' },
+      { id: 'l-evidence', emoji: '📸', label: 'Evidence for this round', prompt: 'What screenshots or documents should I attach before mailing my dispute letters this round?' },
       { id: 'l-round2', emoji: '🔁', label: 'Round 2 timing', prompt: 'When should I send Round 2 and what should change from Round 1?' },
+      { id: 'l-metro2', emoji: '🧾', label: 'Metro 2 red flags', prompt: 'Help me spot Metro 2 inconsistencies on my tradelines that make strong factual dispute reasons.' },
       { id: 'l-lib', emoji: '📚', label: 'Template library setup', prompt: 'What should I configure in Template Library before I draft in Letter Studio?', navigate: '/portal/templates' },
+    ],
+  },
+  {
+    id: 'debt',
+    emoji: '🏛️',
+    label: 'Debt & summons',
+    children: [
+      { id: 'd-validate', emoji: '📬', label: 'Validation letter help', prompt: 'Walk me through debt validation — what to request and what collector info I need on the letter.' },
+      { id: 'd-summons', emoji: '⚖️', label: 'Summons response', prompt: 'I received a summons or court notice — what should I gather before drafting a response?' },
+      { id: 'd-collector', emoji: '🏢', label: 'Find collector address', prompt: 'How do I find the correct mailing address for a collector showing on my credit report?' },
+      { id: 'd-settle', emoji: '🤝', label: 'Settlement vs dispute', prompt: 'When should I validate or dispute vs consider settlement? Keep it educational, not legal advice.' },
     ],
   },
   {

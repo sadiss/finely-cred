@@ -50,7 +50,7 @@ export async function processUploadedDocument(args: {
     imageDataUrl = await readAsDataUrl(args.file);
   }
 
-  const system = `You are a document intelligence engine for a credit/funding platform.\n\nTask:\n- Classify the document type.\n- Extract key entities into normalized keys.\n\nReturn ONLY valid JSON with this shape:\n{\n  \"docType\": \"articles_of_incorporation\"|\"ein_letter\"|\"id_document\"|\"ssn_card\"|\"utility_bill\"|\"bank_statement\"|\"credit_report\"|\"bureau_response\"|\"collection_notice\"|\"summons\"|\"contract\"|\"other\"|\"unknown\",\n  \"summary\": string,\n  \"confidence\": number,\n  \"entities\": {\n    \"ein\": string,\n    \"businessLegalName\": string,\n    \"state\": string,\n    \"address\": string,\n    \"personName\": string,\n    \"creditorName\": string,\n    \"collectorName\": string,\n    \"accountName\": string,\n    \"caseNumber\": string,\n    \"bureau\": string\n  }\n}\n\nRules:\n- bureau_response = Experian/Equifax/TransUnion investigation results, e-OSCAR mail, dispute outcome letters.\n- collection_notice = collector validation/demand letters.\n- summons = court complaint, civil summons, judgment papers.\n- ssn_card = Social Security card image.\n- If an entity is not present, omit it or use empty string.\n- EIN should be digits only (9 digits) if present.\n- Keep summary short (1-2 sentences).`;
+  const system = `You are a document intelligence engine for a credit/funding platform.\n\nTask:\n- Classify the document type.\n- Extract key entities into normalized keys.\n\nReturn ONLY valid JSON with this shape:\n{\n  \"docType\": \"articles_of_incorporation\"|\"ein_letter\"|\"id_document\"|\"ssn_card\"|\"utility_bill\"|\"bank_statement\"|\"credit_report\"|\"bureau_response\"|\"collection_notice\"|\"summons\"|\"contract\"|\"other\"|\"unknown\",\n  \"summary\": string,\n  \"confidence\": number,\n  \"entities\": {\n    \"ein\": string,\n    \"businessLegalName\": string,\n    \"state\": string,\n    \"address\": string,\n    \"personName\": string,\n    \"creditorName\": string,\n    \"collectorName\": string,\n    \"accountName\": string,\n    \"caseNumber\": string,\n    \"courtName\": string,\n    \"amountClaimed\": string,\n    \"amount\": string,\n    \"dateServed\": string,\n    \"phone\": string,\n    \"bureau\": string\n  }\n}\n\nRules:\n- bureau_response = Experian/Equifax/TransUnion investigation results, e-OSCAR mail, dispute outcome letters.\n- collection_notice = collector validation/demand letters.\n- summons = court complaint, civil summons, judgment papers.\n- ssn_card = Social Security card image.\n- If an entity is not present, omit it or use empty string.\n- EIN should be digits only (9 digits) if present.\n- Keep summary short (1-2 sentences).`;
 
   const userPayload = isPdf
     ? `CAPTION:\n${args.caption || ''}\n\nPDF_META:\n${JSON.stringify(pdfMeta)}\n\nTEXT:\n${extractedText.slice(0, 60_000)}`
@@ -131,6 +131,7 @@ export async function processUploadedDocument(args: {
     partnerId: args.partnerId,
     docType: created.docType,
     evidenceId: args.evidenceId,
+    processedDocumentId: created.id,
     entities: created.entities,
     caption: args.caption,
     filename: args.file.name,

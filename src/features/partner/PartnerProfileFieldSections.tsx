@@ -19,6 +19,7 @@ const SECTION_HINTS: Record<string, string> = {
   bureaus: 'Experian, TransUnion, Equifax portal logins',
   business: 'DUNS, Bradstreet, business identifiers',
   notes: 'LexisNexis opt-out, internal notes',
+  social: 'Facebook, Instagram, LinkedIn — verification & business context',
 };
 
 function isValueEmpty(v: unknown): boolean {

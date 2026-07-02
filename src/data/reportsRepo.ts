@@ -3,6 +3,7 @@ import { emitPlatformEvent } from '../domain/platformEvents';
 import { loadJson, saveJson } from './localJsonStore';
 import { isSupabaseConfigured, supabase } from '../lib/supabaseClient';
 import { addTombstone, filterTombstoned } from './deleteTombstoneStore';
+import { isLegacyPendingReportBlob, legacyPendingReportFilename } from '../lib/legacyPendingReport';
 
 const KEY = 'finely.creditReports.v1';
 const SYNC_DEBOUNCE_MS = 600;
@@ -93,6 +94,38 @@ export function listReportsByPartner(partnerId: string): CreditReportRecord[] {
     .sort((a, b) => b.receivedAt.localeCompare(a.receivedAt));
 }
 
+/** Re-use legacy placeholder or same-filename slot when re-uploading (avoids duplicate unparsed rows). */
+export function findReportSlotForUpload(partnerId: string, filename: string): CreditReportRecord | null {
+  const norm = filename.trim().toLowerCase();
+  if (!norm) return null;
+  const reports = listReportsByPartner(partnerId);
+  const legacy = reports.find(
+    (r) =>
+      isLegacyPendingReportBlob(r.rawBlobRef) &&
+      (legacyPendingReportFilename(r.rawBlobRef!).toLowerCase() === norm || (r.filename || '').toLowerCase() === norm),
+  );
+  if (legacy) return legacy;
+  const sameName = reports.filter((r) => (r.filename || '').toLowerCase() === norm);
+  if (sameName.length === 1) return sameName[0]!;
+  return null;
+}
+
+function reportRichness(r: CreditReportRecord | null | undefined): number {
+  if (!r?.parsed) return 0;
+  const t = (r.parsed.tradelines ?? []).length;
+  const s = (r.parsed.scores ?? []).length;
+  return t * 10 + s;
+}
+
+function pickRicherReport(local: CreditReportRecord, incoming: CreditReportRecord): CreditReportRecord {
+  const localScore = reportRichness(local);
+  const incScore = reportRichness(incoming);
+  if (localScore !== incScore) return localScore > incScore ? local : incoming;
+  const localTs = Date.parse(local.receivedAt || '') || 0;
+  const incTs = Date.parse(incoming.receivedAt || '') || 0;
+  return localTs >= incTs ? local : incoming;
+}
+
 export function getReport(id: string): CreditReportRecord | null {
   return loadStore().reports.find((r) => r.id === id) ?? null;
 }
@@ -140,13 +173,21 @@ export function mergeReportsSnapshotForPartner(args: { partnerId: string; report
   const store = loadStore();
   const incoming = filterTombstoned(args.reports ?? [], 'report');
   const incomingIds = new Set(incoming.map((r) => r.id));
+  const localById = new Map(
+    store.reports.filter((r) => r.partnerId === args.partnerId).map((r) => [r.id, r] as const),
+  );
+  const mergedIncoming = incoming.map((inc) => {
+    const local = localById.get(inc.id);
+    if (!local) return inc;
+    return pickRicherReport(local, inc);
+  });
   const localOnly = store.reports.filter((r) => r.partnerId === args.partnerId && !incomingIds.has(r.id));
   store.reports = [
     ...store.reports.filter((r) => r.partnerId !== args.partnerId),
-    ...incoming,
+    ...mergedIncoming,
     ...localOnly,
   ];
   saveStore(store);
-  for (const r of incoming) scheduleReportUpsert(r);
+  for (const r of mergedIncoming) scheduleReportUpsert(r);
 }
 

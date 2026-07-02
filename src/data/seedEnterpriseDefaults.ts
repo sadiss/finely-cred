@@ -120,6 +120,13 @@ export function ensureEnterpriseDefaults(args?: { tenantId?: string }) {
     mkField({ tenantId, scope: 'partners', key: 'bradstreet_username', label: 'D&B username', type: 'text' }),
     mkField({ tenantId, scope: 'partners', key: 'bradstreet_password', label: 'D&B password', type: 'text' }),
     mkField({ tenantId, scope: 'partners', key: 'profile_notes', label: 'Profile notes', type: 'textarea' }),
+    mkField({ tenantId, scope: 'partners', key: 'social_facebook', label: 'Facebook profile URL', type: 'text' }),
+    mkField({ tenantId, scope: 'partners', key: 'social_instagram', label: 'Instagram handle', type: 'text' }),
+    mkField({ tenantId, scope: 'partners', key: 'social_linkedin', label: 'LinkedIn profile URL', type: 'text' }),
+
+    mkField({ tenantId, scope: 'partners', key: 'social_facebook', label: 'Facebook profile URL', type: 'text' }),
+    mkField({ tenantId, scope: 'partners', key: 'social_instagram', label: 'Instagram handle', type: 'text' }),
+    mkField({ tenantId, scope: 'partners', key: 'social_linkedin', label: 'LinkedIn profile URL', type: 'text' }),
 
     // ── Projects (enterprise tracking)
     mkField({
@@ -190,6 +197,7 @@ export function ensureEnterpriseDefaults(args?: { tenantId?: string }) {
       { id: 'monitoring', title: 'Monitoring logins', fieldIds: [partnerFieldIds('credit_monitor_provider'), partnerFieldIds('credit_monitor_username'), partnerFieldIds('credit_monitor_password')] },
       { id: 'bureaus', title: 'Bureau logins (optional)', fieldIds: [partnerFieldIds('experian_username'), partnerFieldIds('experian_password'), partnerFieldIds('transunion_username'), partnerFieldIds('transunion_password'), partnerFieldIds('equifax_username'), partnerFieldIds('equifax_password')] },
       { id: 'business', title: 'Business identifiers (optional)', fieldIds: [partnerFieldIds('duns_number'), partnerFieldIds('bradstreet_username'), partnerFieldIds('bradstreet_password')] },
+      { id: 'social', title: 'Social & web', fieldIds: [partnerFieldIds('social_facebook'), partnerFieldIds('social_instagram'), partnerFieldIds('social_linkedin')] },
       { id: 'notes', title: 'Notes', fieldIds: [partnerFieldIds('lexisnexis_optout_status'), partnerFieldIds('profile_notes')] },
     ],
   });

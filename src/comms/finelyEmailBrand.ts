@@ -56,10 +56,10 @@ const HEADER_THEMES: Record<
     subColor: 'rgba(255,255,255,0.78)',
   },
   gold: {
-    bg: 'linear-gradient(135deg,#1a1400 0%,#3d2e06 38%,#b45309 100%)',
+    bg: 'linear-gradient(135deg,#0a100e 0%,#121a17 40%,#4c1d95 100%)',
     logoVariant: 'dark',
-    headlineColor: '#fffef5',
-    subColor: 'rgba(255,248,231,0.82)',
+    headlineColor: '#ffffff',
+    subColor: 'rgba(237,233,254,0.82)',
   },
   slate: {
     bg: 'linear-gradient(135deg,#0f172a 0%,#1e293b 55%,#334155 100%)',

@@ -3,6 +3,8 @@ import { ArrowRight, Copy, Link2, Mail, MessageSquare, RefreshCcw } from 'lucide
 import type { Partner } from '../../domain/partners';
 import { getOrCreatePartnerSetupInvite } from '../../lib/partnerInviteLinks';
 import { sendInviteEmail, sendInviteSms } from '../../lib/inviteDeliveryClient';
+import { canSimulateInviteDeliveryLocally, formatLocalInviteNotice } from '../../lib/inviteLocalDev';
+import { isSupabaseConfigured } from '../../lib/supabaseClient';
 import { isFeatureEnabled } from '../../data/settingsRepo';
 import {
   FINELY_OS_ENTITY_BODY,
@@ -27,6 +29,7 @@ export function PartnerIntakeLinkPanel({ partner, compact }: Props) {
   const [err, setErr] = useState<string | null>(null);
 
   const deliveryEnabled = isFeatureEnabled('inviteDelivery');
+  const localInviteSim = !isSupabaseConfigured && canSimulateInviteDeliveryLocally();
   const email = (partner.profile.email || '').trim();
   const phone = (partner.profile.phone || '').trim();
 
@@ -78,6 +81,12 @@ export function PartnerIntakeLinkPanel({ partner, compact }: Props) {
         </button>
       </div>
 
+      {localInviteSim ? (
+        <div className={`text-xs ${FINELY_OS_ENTITY_BODY} rounded-xl border border-amber-500/25 bg-amber-500/10 px-3 py-2`}>
+          Local dev mode: invites simulate without Supabase. Email opens a branded preview tab; SMS logs to the console.
+        </div>
+      ) : null}
+
       {err ? <div className="text-sm text-rose-300">{err}</div> : null}
       {msg && !inviteUrl ? <div className={`text-sm ${FINELY_OS_NOTICE_SUCCESS}`}>{msg}</div> : null}
 
@@ -98,15 +107,19 @@ export function PartnerIntakeLinkPanel({ partner, compact }: Props) {
             <button
               type="button"
               disabled={!email || !deliveryEnabled || busy === 'email'}
-              title={!email ? 'Add partner email first' : !deliveryEnabled ? 'Enable invite delivery in settings' : 'Send email'}
+              title={!email ? 'Add partner email first' : !deliveryEnabled ? 'Enable invite delivery in settings' : 'Send self-intake link email'}
               className={FINELY_OS_SECONDARY_BTN}
               onClick={async () => {
                 if (!email || !inviteUrl) return;
                 setBusy('email');
                 setErr(null);
                 try {
-                  await sendInviteEmail({ toEmail: email, toName: partner.profile.fullName, claimUrl: inviteUrl });
-                  setMsg(`Email sent to ${email}.`);
+                  await sendInviteEmail({ toEmail: email, toName: partner.profile.fullName, claimUrl: inviteUrl, partner, mode: 'claim' });
+                  setMsg(
+                    localInviteSim
+                      ? formatLocalInviteNotice({ ok: true, simulated: true, inviteUrl, previewOpened: true }, email)
+                      : `Self-intake email sent to ${email}.`,
+                  );
                 } catch (e: unknown) {
                   setErr((e as Error)?.message || 'Email failed.');
                 } finally {
@@ -114,7 +127,7 @@ export function PartnerIntakeLinkPanel({ partner, compact }: Props) {
                 }
               }}
             >
-              <Mail size={14} /> {busy === 'email' ? 'Sending…' : 'Email link'}
+              <Mail size={14} /> {busy === 'email' ? 'Sending…' : 'Email intake link'}
             </button>
             <button
               type="button"
@@ -127,7 +140,11 @@ export function PartnerIntakeLinkPanel({ partner, compact }: Props) {
                 setErr(null);
                 try {
                   await sendInviteSms({ toPhone: phone, claimUrl: inviteUrl });
-                  setMsg(`SMS sent to ${phone}.`);
+                  setMsg(
+                    localInviteSim
+                      ? `Local dev: SMS simulated to ${phone}. Message body logged in console — use the intake link above to test.`
+                      : `SMS sent to ${phone}.`,
+                  );
                 } catch (e: unknown) {
                   setErr((e as Error)?.message || 'SMS failed.');
                 } finally {
@@ -142,7 +159,8 @@ export function PartnerIntakeLinkPanel({ partner, compact }: Props) {
             </a>
           </div>
           <p className={`text-xs ${FINELY_OS_ENTITY_BODY}`}>
-            After they submit, they can sign in and claim the profile from the same link. Same email on signup links automatically.
+            Use <strong>Email intake link</strong> when you want them to submit contact info and documents through self-intake.
+            Account login invites live under <strong>Access &amp; auth</strong> on Overview or Profile.
           </p>
         </div>
       ) : null}

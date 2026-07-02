@@ -18,11 +18,15 @@ export function ProfileAndAccountStep({
   isBusy = false,
   error,
   isConfigured = true,
+  inviteMode = false,
+  emailLocked = false,
 }: Omit<StepProps, 'next'> & {
   onSubmit: () => void;
   isBusy?: boolean;
   error?: string | null;
   isConfigured?: boolean;
+  inviteMode?: boolean;
+  emailLocked?: boolean;
 }) {
   const role = data.role || 'client';
   const showMailing = role === 'client';
@@ -36,17 +40,28 @@ export function ProfileAndAccountStep({
   return (
     <div className="space-y-8 sm:space-y-10 animate-in fade-in slide-in-from-bottom-8 duration-700 text-left min-w-0">
       <div className="space-y-3">
-        <p className="text-[10px] font-black tracking-[0.35em] sm:tracking-[0.6em] text-fuchsia-400 uppercase">Profile & account</p>
+        <p className="text-[10px] font-black tracking-[0.35em] sm:tracking-[0.6em] text-fuchsia-400 uppercase">
+          {inviteMode ? 'Finish invite setup' : 'Profile & account'}
+        </p>
         <h2 className="fc-onboarding-step-title">
-          Your details in <span className="text-fuchsia-400">one place</span>
+          {inviteMode ? (
+            <>
+              Create your login for <span className="text-fuchsia-400">Finely Cred</span>
+            </>
+          ) : (
+            <>
+              Your details in <span className="text-fuchsia-400">one place</span>
+            </>
+          )}
         </h2>
         <p className="text-white/45 text-base sm:text-lg font-light max-w-2xl">
-          Name, contact, login, and optional mailing address — saved to your profile and synced with your partner file.
-          Update anytime under Account settings after sign-in.
+          {inviteMode
+            ? 'Your invite already attached your email and access lane. Confirm your details, choose your password, and finish setup.'
+            : 'Name, contact, login, and optional mailing address — saved to your profile and synced with your partner file. Update anytime under Account settings after sign-in.'}
         </p>
         <div className="rounded-2xl border border-fuchsia-500/25 bg-fuchsia-500/5 p-4 max-w-2xl text-sm text-white/55 leading-relaxed">
           <strong className="text-fuchsia-200">You choose your password here</strong> (minimum 8 characters). Finely does not email a temporary password.
-          After signup, you may receive a Supabase confirmation email (if enabled) plus a welcome email when our comms system is active.
+          {inviteMode ? ' This is your account-creation step — not a generic public signup.' : ' After signup, you may receive a Supabase confirmation email (if enabled) plus a welcome email when our comms system is active.'}
         </div>
       </div>
 
@@ -100,7 +115,11 @@ export function ProfileAndAccountStep({
                 value={data.email || ''}
                 onChange={(e) => update({ email: e.target.value.trim() })}
                 placeholder="you@email.com"
-                className="w-full bg-fc-input border border-white/[0.08] rounded-xl pl-10 pr-4 py-3 text-white text-sm focus:outline-none focus:border-violet-500"
+                readOnly={emailLocked}
+                className={
+                  'w-full bg-fc-input border border-white/[0.08] rounded-xl pl-10 pr-4 py-3 text-white text-sm focus:outline-none focus:border-violet-500 ' +
+                  (emailLocked ? 'opacity-80 cursor-not-allowed' : '')
+                }
                 autoComplete="email"
               />
             </div>

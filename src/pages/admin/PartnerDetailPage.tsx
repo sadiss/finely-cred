@@ -25,7 +25,6 @@ import {
 import { downloadBlob } from '../../utils/download';
 import { PageShell } from '../../components/layout/PageShell';
 import { EntityDetailShell } from '../../components/layout/EntityDetailShell';
-import { JourneyStageAdminControl } from '../../components/journey/JourneyStageAdminControl';
 import { KpiCard } from '../../components/ui/KpiCards';
 import { PdfReportFallbackView } from '../../components/reports/PdfReportFallbackView';
 import { adminDeletePartner, adminGetPartner, adminUpsertPartner, deletePartner, getPartner, upsertPartner } from '../../data/partnersRepo';
@@ -118,16 +117,10 @@ import { ENTITLEMENT_KEYS, type EntitlementKey, ensurePartnerEntitlements } from
 import { TASK_PROGRESS_STAGES, WorkBoardShell, WorkCalendarView, WorkKanbanBoard, WorkListView, type WorkBoardItem } from '../../components/workboard';
 import type { WorkStageDefinition } from '../../domain/settings';
 import type { TaskStatus } from '../../domain/tasks';
-import { AdminPartnerAccessPanel } from '../../components/admin/AdminPartnerAccessPanel';
-import { PartnerIntakeLinkPanel } from '../../components/admin/PartnerIntakeLinkPanel';
-import { PartnerCreditRestoreHud } from '../../features/partner/PartnerCreditRestoreHud';
-import { LegacyApplicationStatusBanner } from '../../components/admin/LegacyApplicationStatusBanner';
-import { PartnerCreditRestoreMiniRail } from '../../features/partner/PartnerCreditRestoreMiniRail';
-import { RoleWorkflowPanel } from '../../components/workflow/RoleWorkflowPanel';
+import { PartnerDetailAdminFooter } from '../../components/admin/PartnerDetailAdminFooter';
 import { workflowIdForPartner } from '../../config/roleWorkflows';
 import { computeRoleWorkflowProgress } from '../../lib/roleWorkflowProgress';
 import { PartnerCompactGrid } from '../../features/partner/PartnerCompactGrid';
-import { PartnerBureauResourcesPanel } from '../../components/admin/PartnerBureauResourcesPanel';
 import {
   FINELY_OS_BOARD_SHELL,
   FINELY_OS_ENTITY_ACCENT_LINK,
@@ -2502,7 +2495,7 @@ function PartnerDetailPageInner() {
                   <PartnerCompactGrid
                     items={disputeLetters}
                     initialShow={4}
-                    columnsClassName="grid gap-3 sm:grid-cols-2 xl:grid-cols-3"
+                    columnsClassName="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5"
                     emptyMessage="No bureau dispute letters generated yet. Validation and affidavits are now managed in Debt Center."
                     getKey={(l) => l.id}
                     renderItem={(l) => (
@@ -2597,59 +2590,23 @@ function PartnerDetailPageInner() {
           </div>
         )}
 
-        {(tab === 'overview' || tab === 'reports' || tab === 'letters' || tab === 'debt') ? (
-          <PartnerBureauResourcesPanel />
-        ) : null}
+        {(tab === 'overview' || tab === 'reports' || tab === 'letters' || tab === 'debt') ? null : null}
 
-        <AdminPartnerAccessPanel partner={partner} onUpdated={() => setPartnerVersion((v) => v + 1)} />
-
-        <section id="partner-client-journey" className={`${finelyOsCatalogCard('emerald')} !p-6 border-t-4 border-emerald-400/40 scroll-mt-8`}>
-          <div className="flex flex-wrap items-start justify-between gap-3">
-            <div>
-              <p className={FINELY_OS_ENTITY_SUBLABEL}>Customer journey</p>
-              <p className={`mt-1 ${FINELY_OS_ENTITY_BODY} text-sm`}>
-                Stage control and restore progress — pinned at the bottom of every partner tab so it stays easy to find.
-              </p>
-            </div>
-          </div>
-          <div className="mt-5 space-y-5">
-            <JourneyStageAdminControl
-              partner={partner}
-              actorEmail={actorEmail}
-              onUpdated={() => setPartnerVersion((v) => v + 1)}
-            />
-            <PartnerCreditRestoreHud
-              reportsCount={reports.length}
-              negativesCount={candidates.length}
-              evidenceCount={evidence.length}
-              lettersCount={letters.length}
-              openCasesCount={openPartnerCases.length}
-              readinessScore={overallScore?.overall ?? null}
-              onOpenTab={(t) => setTabAndUrl(t as TabKey)}
-              primaryAction={
-                !reports.length
-                  ? { label: 'Upload report', tab: 'reports' }
-                  : !letters.length
-                    ? { label: 'Open letters', tab: 'letters' }
-                    : { label: 'Letter studio', tab: 'letters' }
-              }
-            />
-            <details className={`${finelyOsCatalogCard('violet')} !p-4 group`}>
-              <summary className={`cursor-pointer select-none ${FINELY_OS_ENTITY_VALUE}`}>Intake links, workflow & legacy status</summary>
-              <div className="mt-4 space-y-4 border-t border-white/10 pt-4">
-                <PartnerIntakeLinkPanel partner={partner} />
-                <RoleWorkflowPanel roleId={adminWorkflowId} compact completedSteps={adminWorkflowProgress} />
-                <PartnerCreditRestoreMiniRail
-                  reportsCount={reports.length}
-                  evidenceCount={evidence.length}
-                  lettersCount={letters.length}
-                  onOpenTab={(t) => setTabAndUrl(t as TabKey)}
-                />
-                <LegacyApplicationStatusBanner partner={partner} />
-              </div>
-            </details>
-          </div>
-        </section>
+        <PartnerDetailAdminFooter
+          tab={tab}
+          partner={partner}
+          actorEmail={actorEmail}
+          reportsCount={reports.length}
+          evidenceCount={evidence.length}
+          lettersCount={letters.length}
+          negativesCount={candidates.length}
+          openCasesCount={openPartnerCases.length}
+          readinessScore={overallScore?.overall ?? null}
+          adminWorkflowId={adminWorkflowId}
+          adminWorkflowProgress={adminWorkflowProgress}
+          onUpdated={() => setPartnerVersion((v) => v + 1)}
+          onOpenTab={setTabAndUrl}
+        />
 
         <FinelyOsPageFooter />
 </div>

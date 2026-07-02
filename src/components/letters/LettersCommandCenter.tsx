@@ -22,7 +22,16 @@ import { addDaysIso, candidateToCaseItem, nowIso } from '../../domain/cases';
 import { createTask, listTasksByPartner } from '../../data/tasksRepo';
 import { ENTITLEMENT_KEYS } from '../../billing/entitlements';
 import { hasEntitlement } from '../../data/billingRepo';
-import { listDebtByPartner } from '../../data/debtRepo';
+import { listDebtByPartner, upsertDebt } from '../../data/debtRepo';
+import { listProcessedDocumentsByPartner } from '../../data/documentsRepo';
+import {
+  buildSummonsAffidavitContext,
+  captureSenderSnapshot,
+  extractReportDebtSignals,
+  formatSummonsContextForPrompt,
+  resolveDebtPartyInfo,
+} from '../../lib/debtCreditorIntel';
+import { DebtCreditorIntelPanel } from '../debt/DebtCreditorIntelPanel';
 import { DEBT_LETTER_SPECS, SCENARIO_RECOMMENDATIONS, recommendScenarioFromDebt, getLetterBody } from '../../legal/debtLetterTemplates';
 import type { DebtLetterType, DebtScenario } from '../../domain/debtLegal';
 import { EntitlementGate } from '../billing/EntitlementGate';
@@ -44,6 +53,7 @@ import type { TemplateVaultItem } from '../../domain/templateVault';
 import { createTemplateVaultItem, defaultRequiredEntitlementsForCategory, getTemplateVaultItem } from '../../data/templateVaultRepo';
 import { readActiveTemplateIdFromSession } from '../templates/TemplateLibraryHub';
 import { LetterStudioDisputeRail, type DisputeRailItem } from './LetterStudioDisputeRail';
+import { LetterDisputeCoachStrip } from './LetterDisputeCoachStrip';
 import { bureauDisputeAddress, SUBJECT_LINE } from '../../letters/disputeLetterTemplate';
 import { getBlobUrl } from '../../storage/getBlobUrl';
 import { openBlobRefInNewTab } from '../../lib/openBlobRef';
@@ -59,6 +69,14 @@ import { letterCategoryForCandidate } from '../../creditReports/letterCategory';
 import { getCustomFieldValues } from '../../data/customFieldValuesRepo';
 import { FINELY_TENANT_ID } from '../../domain/tenants';
 import { injectPrintSafeCss } from './paperPreviewSrcDoc';
+import {
+  hasCompleteLetterMailingAddress,
+  highlightMissingLetterPlaceholders,
+  letterDateDisplay,
+  resolveCityStateZip,
+  senderPreviewLines,
+} from '../../lib/letterSenderBlock';
+import { LetterEscalationPanel } from './LetterEscalationPanel';
 import { getCanonicalPartnerIdentity } from '../../utils/canonicalPartnerIdentity';
 import { bureauFullName, bureauShortCode } from '../../utils/bureaus';
 import {
@@ -619,19 +637,26 @@ function DisputeLetterIframePreview({
   }, [items.map((x) => `${x.candidate.id}:${x.evidence?.blobRef || ''}`).join('|')]);
 
   const srcDoc = useMemo(() => {
-    const senderName = (sender?.name || '').trim() || partnerName;
-    const senderLines = [senderName, sender?.addressLine1, sender?.addressLine2, sender?.cityStateZip]
-      .map((x) => String(x || '').trim())
-      .filter(Boolean);
+    const senderFields = {
+      name: (sender?.name || '').trim() || partnerName,
+      addressLine1: sender?.addressLine1,
+      addressLine2: sender?.addressLine2,
+      cityStateZip: sender?.cityStateZip,
+    };
+    const preview = senderPreviewLines(senderFields);
+    const senderName = preview.lines[0] || partnerName;
+    const senderRest = preview.lines.slice(1);
+    const missingClass = preview.missing ? ' class="fc-letter-missing"' : '';
     const bureauAddr = bureauAddress ?? bureauDisputeAddress(bureau);
-    const headerDate = new Date().toLocaleDateString();
+    const headerDate = letterDateDisplay();
     const subject = (subjectLine || '').trim() || SUBJECT_LINE;
 
     const body = `
       <div class="page">
         <div class="header">
           <div class="right">
-            ${senderLines.map((l) => `<div>${escText(l)}</div>`).join('')}
+            <div${missingClass}>${escText(senderName)}</div>
+            ${senderRest.map((l) => `<div${missingClass}>${escText(l)}</div>`).join('')}
             <div>${escText(headerDate)}</div>
           </div>
         </div>
@@ -711,6 +736,7 @@ function DisputeLetterIframePreview({
       .narrative{margin-top:6px;font-size:12px;line-height:1.5;white-space:normal}
       .sig{margin-top:20px;font-size:12px;line-height:1.55}
       .sigName{margin-top:20px}
+      .fc-letter-missing{color:#b91c1c!important;font-weight:700;background:#fef2f2;border:1px solid #fecaca;padding:0 2px;border-radius:2px}
     `.trim();
 
     return injectPrintSafeCss({ html: body, extraCss });
@@ -897,12 +923,18 @@ function InlineEvidenceThumb({ blobRef, mimeType, alt }: { blobRef: string; mime
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [blobRef, mimeType]);
 
-  if (!url) return null;
+  if (!url) {
+    return (
+      <div className="h-28 w-44 rounded-2xl border border-dashed border-white/15 bg-black/30 flex items-center justify-center text-[10px] text-white/40 uppercase tracking-widest">
+        Loading…
+      </div>
+    );
+  }
   return (
     <img
       src={url}
       alt={alt}
-      className="h-24 w-40 rounded-2xl border border-white/[0.08] bg-white object-contain cursor-pointer"
+      className="h-28 w-44 rounded-2xl border border-sky-400/25 bg-gradient-to-br from-slate-900 to-black object-contain shadow-lg shadow-sky-500/10 cursor-pointer ring-1 ring-white/10 hover:ring-sky-400/40 transition-all"
       title="Click to open full-size"
       onClick={(e) => {
         e.stopPropagation();
@@ -992,7 +1024,7 @@ export function LettersCommandCenter({
   }, [layout, partner.id, storeVersion]);
 
   // --- Dispute letter flow (multi-bureau, split per bureau) ---
-  const reports = useMemo(() => (partner ? listReportsByPartner(partner.id) : []), [partner]);
+  const reports = useMemo(() => (partner ? listReportsByPartner(partner.id) : []), [partner, storeVersion]);
   const disputeCases = useMemo(() => (partner ? listCasesByPartner(partner.id) : []), [partner, storeVersion]);
 
   const [pickerOpen, setPickerOpen] = useState(false);
@@ -1102,9 +1134,12 @@ export function LettersCommandCenter({
     });
   };
 
-  const openVault = (args?: { letterId?: string }) => {
+  const openVault = (args?: { letterId?: string; preview?: boolean }) => {
     if (onOpenVault) return onOpenVault(args);
-    const to = args?.letterId ? `/portal/letters/vault?letterId=${encodeURIComponent(args.letterId)}` : '/portal/letters/vault';
+    const qs = new URLSearchParams();
+    if (args?.letterId) qs.set('letterId', args.letterId);
+    if (args?.preview) qs.set('preview', '1');
+    const to = args?.letterId ? `/portal/letters/vault?${qs.toString()}` : '/portal/letters/vault';
     navigate(to);
   };
 
@@ -1431,15 +1466,24 @@ WRITING STANDARD:
     setDraftBusy(true);
     try {
       const spec = DEBT_LETTER_SPECS.find((s) => s.id === draft.specId) ?? null;
-      const debtName = debt?.name || 'Creditor / Collector';
-      const jurisdictionState = String((debt as any)?.stateJurisdiction || '').toUpperCase() || '';
-      const caseNumber = String((debt as any)?.courtCaseNumber || '').trim() || '';
+      const debtName = debt?.recipientName || debtPartyInfo?.recipientName || debt?.name || 'Creditor / Collector';
+      const jurisdictionState = String((debt as any)?.stateJurisdiction || summonsAffidavitContext.jurisdictionState || '').toUpperCase() || '';
+      const caseNumber = String((debt as any)?.courtCaseNumber || summonsAffidavitContext.caseNumber || '').trim() || '';
+      const recipientBlock = [
+        debtPartyInfo?.recipientName ? `RECIPIENT_NAME: ${debtPartyInfo.recipientName}` : '',
+        debtPartyInfo?.recipientAddress ? `RECIPIENT_ADDRESS: ${debtPartyInfo.recipientAddress}` : '',
+        debtPartyInfo?.accountNumberMasked ? `ACCOUNT_REF: ${debtPartyInfo.accountNumberMasked}` : '',
+        debtPartyInfo?.originalCreditor ? `ORIGINAL_CREDITOR: ${debtPartyInfo.originalCreditor}` : '',
+      ]
+        .filter(Boolean)
+        .join('\n');
+      const summonsBlock = draft.type === 'court' ? formatSummonsContextForPrompt(summonsAffidavitContext) : '';
 
       const legalBasis = spec?.legalBasis?.map((c) => `${c.shortName} (${c.cite}): ${c.description}`).join('\n') ?? '';
 
-      const system = `You draft print-ready consumer debt/legal letters. Return ONLY the letter body text (no JSON, no markdown).\n\nRules:\n- Do not invent facts (amounts, dates, account numbers, court deadlines). If missing, use placeholders like [DATE], [ACCOUNT_REF], [CASE_NUMBER], [STATE], [AMOUNT], [LAST_PAYMENT_DATE].\n- Keep it firm and professional. Avoid giving legal advice.\n- If citations are provided below, you may reference them, but do not add new citations that are not provided.\n`;
+      const system = `You draft print-ready consumer debt/legal letters. Return ONLY the letter body text (no JSON, no markdown).\n\nRules:\n- Do not invent facts (amounts, dates, account numbers, court deadlines). If missing, use placeholders like [DATE], [ACCOUNT_REF], [CASE_NUMBER], [STATE], [AMOUNT], [LAST_PAYMENT_DATE].\n- Keep it firm and professional. Avoid giving legal advice.\n- If citations are provided below, you may reference them, but do not add new citations that are not provided.\n- When SUMMONS_AND_EVIDENCE is provided, tailor defenses and factual paragraphs to those extracted facts — do not contradict uploaded document details.\n`;
 
-      const user = `DRAFT A LETTER.\n\nLETTER_TYPE: ${draft.type}\nSPEC: ${spec?.title || draft.specId}\nSCENARIO: ${String(recommendedScenario || 'unknown')}\nDEBT_CASE_NAME: ${debtName}\nSTATE: ${jurisdictionState || '[STATE]'}\nCASE_NUMBER: ${caseNumber || '[CASE_NUMBER]'}\nDEBT_TYPE: ${String((debt as any)?.type || '')}\n\nKEY_PRINCIPLE:\n${spec?.keyPrinciple || ''}\n\nWHEN_TO_USE:\n${(spec?.whenToUse || []).map((x) => `- ${x}`).join('\n')}\n\nLEGAL_BASIS:\n${legalBasis || '(none provided)'}\n\nOUTPUT:\n- Provide the body text only.\n- Include a short section that lists what documents you’re requesting (if applicable).\n- If this is a court/affidavit draft, keep it structured and include placeholders for jurisdiction-specific filings.`;
+      const user = `DRAFT A LETTER.\n\nLETTER_TYPE: ${draft.type}\nSPEC: ${spec?.title || draft.specId}\nSCENARIO: ${String(recommendedScenario || 'unknown')}\nDEBT_CASE_NAME: ${debtName}\nSTATE: ${jurisdictionState || '[STATE]'}\nCASE_NUMBER: ${caseNumber || '[CASE_NUMBER]'}\nDEBT_TYPE: ${String((debt as any)?.type || '')}\n\nRECIPIENT_AND_ACCOUNT:\n${recipientBlock || '(not provided)'}\n\n${summonsBlock ? `SUMMONS_AND_EVIDENCE:\n${summonsBlock}\n\n` : ''}KEY_PRINCIPLE:\n${spec?.keyPrinciple || ''}\n\nWHEN_TO_USE:\n${(spec?.whenToUse || []).map((x) => `- ${x}`).join('\n')}\n\nLEGAL_BASIS:\n${legalBasis || '(none provided)'}\n\nOUTPUT:\n- Provide the body text only.\n- Include a short section that lists what documents you’re requesting (if applicable).\n- If this is a court/affidavit draft, keep it structured and include placeholders for jurisdiction-specific filings.`;
 
       const ai = await callAiGateway({
         taskType: 'legal_debt_letter_draft',
@@ -1795,7 +1839,7 @@ WRITING STANDARD:
       });
       setFocusedKeyByBureau((prev) => ({ ...prev, [b]: null }));
 
-      openVault({ letterId: letter.id });
+      openVault({ letterId: letter.id, preview: true });
     } catch (e: any) {
       setPdfErr(e?.message || 'Failed to generate PDF.');
     } finally {
@@ -2152,9 +2196,14 @@ useEffect(() => {
   }, [selectedDisputes, parsedByReportId, evidenceByCandidateId, evidence]);
 
   // --- Validation/Court letter flow (Debt module) ---
-  const debtCases = useMemo(() => (partner ? listDebtByPartner(partner.id) : []), [partner]);
+  const debtCases = useMemo(() => (partner ? listDebtByPartner(partner.id) : []), [partner, storeVersion]);
   const [debtId, setDebtId] = useState<string>(debtCases[0]?.id ?? '');
   const debt = useMemo(() => debtCases.find((d) => d.id === debtId) ?? null, [debtCases, debtId]);
+  const processedDocuments = useMemo(
+    () => (partner ? listProcessedDocumentsByPartner(partner.id) : []),
+    [partner, storeVersion],
+  );
+  const [selectedSummonsDocId, setSelectedSummonsDocId] = useState<string | null>(null);
   const recommendedScenario = useMemo(() => (debt ? recommendScenarioFromDebt(debt as any) : 'unknown'), [debt]);
 
   const creditorContacts = useMemo(() => {
@@ -2191,6 +2240,7 @@ useEffect(() => {
   }, [debt?.id, debt?.name, creditorContacts]);
 
   const today = new Date().toISOString().slice(0, 10);
+  const letterDate = letterDateDisplay();
 
   const tenantId = safeText((partner as any)?.tenantId) || FINELY_TENANT_ID;
   const partnerCf = useMemo(() => getCustomFieldValues('partners', partner.id, tenantId), [partner.id, tenantId]);
@@ -2208,6 +2258,111 @@ useEffect(() => {
     setSenderCityStateZip((prev) => (prev.trim() ? prev : canonicalIdentity.cityStateZip || ''));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [canonicalIdentity.fullName, canonicalIdentity.address1, canonicalIdentity.address2, canonicalIdentity.addressLine1, canonicalIdentity.cityStateZip, partner.profile.fullName]);
+
+  const senderMailingComplete = useMemo(
+    () =>
+      hasCompleteLetterMailingAddress({
+        name: senderName || canonicalIdentity.fullName,
+        addressLine1: senderAddressLine1 || canonicalIdentity.address1 || canonicalIdentity.addressLine1,
+        addressLine2: senderAddressLine2 || canonicalIdentity.address2,
+        cityStateZip: senderCityStateZip || canonicalIdentity.cityStateZip,
+        city: canonicalIdentity.city,
+        state: canonicalIdentity.state,
+        postalCode: canonicalIdentity.postalCode,
+      }),
+    [
+      senderName,
+      senderAddressLine1,
+      senderAddressLine2,
+      senderCityStateZip,
+      canonicalIdentity.fullName,
+      canonicalIdentity.address1,
+      canonicalIdentity.addressLine1,
+      canonicalIdentity.address2,
+      canonicalIdentity.cityStateZip,
+      canonicalIdentity.city,
+      canonicalIdentity.state,
+      canonicalIdentity.postalCode,
+    ],
+  );
+
+  const debtPartyInfo = useMemo(
+    () =>
+      resolveDebtPartyInfo({
+        debt,
+        signals: extractReportDebtSignals(reports),
+        contacts: creditorContacts as never,
+        documents: processedDocuments,
+      }),
+    [debt, creditorContacts, processedDocuments, reports, storeVersion],
+  );
+
+  const summonsAffidavitContext = useMemo(
+    () =>
+      buildSummonsAffidavitContext({
+        debt,
+        documents: processedDocuments.filter((d) => !selectedSummonsDocId || d.id === selectedSummonsDocId),
+        party: debtPartyInfo,
+      }),
+    [debt, processedDocuments, selectedSummonsDocId, debtPartyInfo],
+  );
+
+  const handleDebtIntelChange = (next: import('../../domain/debt').DebtCase) => {
+    upsertDebt(next);
+    setDebtId(next.id);
+    try {
+      window.dispatchEvent(new CustomEvent('finely:store'));
+    } catch {
+      // ignore
+    }
+  };
+
+  const persistDebtSenderSnapshot = () => {
+    if (!debt) return;
+    const snap = captureSenderSnapshot({
+      fullName: senderName || canonicalIdentity.fullName || '',
+      address1: senderAddressLine1 || canonicalIdentity.address1 || canonicalIdentity.addressLine1,
+      address2: senderAddressLine2 || canonicalIdentity.address2,
+      city: canonicalIdentity.city,
+      state: canonicalIdentity.state,
+      postalCode: canonicalIdentity.postalCode,
+      phone: canonicalIdentity.phone,
+      email: partner.profile.email,
+    });
+    handleDebtIntelChange({ ...debt, senderSnapshot: snap });
+  };
+
+  const buildDebtLetterArgs = () => {
+    const recipientName = debt?.recipientName || debtPartyInfo?.recipientName || debt?.name || 'Creditor';
+    const recipientAddress = debt?.recipientAddress || debtPartyInfo?.recipientAddress;
+    return {
+      creditorName: recipientName,
+      debtorName: canonicalIdentity.fullName,
+      date: letterDate,
+      debtorAddress1: canonicalIdentity.address1 ?? canonicalIdentity.addressLine1,
+      debtorAddress2: canonicalIdentity.address2,
+      debtorCity: canonicalIdentity.city,
+      debtorState: canonicalIdentity.state,
+      debtorPostalCode: canonicalIdentity.postalCode,
+      debtorPhone: canonicalIdentity.phone,
+      debtorEmail: partner.profile.email,
+      recipientName,
+      recipientAddress,
+      caseNumber: (debt as any)?.courtCaseNumber,
+      stateNote: (debt as any)?.stateJurisdiction ? ` In ${(debt as any).stateJurisdiction}, the applicable SOL may apply.` : undefined,
+      summonsContext:
+        tab === 'court'
+          ? {
+              courtName: summonsAffidavitContext.courtName,
+              amountClaimed: summonsAffidavitContext.amountClaimed,
+              dateServed: summonsAffidavitContext.dateServed,
+              jurisdictionState: summonsAffidavitContext.jurisdictionState,
+              collectorName: summonsAffidavitContext.collectorName,
+              documentFacts: summonsAffidavitContext.entityFacts,
+            }
+          : undefined,
+    };
+  };
 
   const [draft, setDraft] = useState<null | { type: 'validation' | 'court'; specId: DebtLetterType; html: string; evidenceId?: string }>(null);
   const [draftBusy, setDraftBusy] = useState(false);
@@ -2426,7 +2581,7 @@ useEffect(() => {
     <>
       {/* Full paper preview modal (templates-style iframe) */}
       {previewModalBureau ? (
-        <div className="fixed inset-0 z-[160] flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[2000] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setPreviewModalBureau(null)} />
           <div
             className="relative w-full max-w-6xl max-h-[92vh] rounded-3xl border border-white/[0.08] bg-[#0a0f0d] shadow-2xl overflow-hidden flex flex-col"
@@ -2933,10 +3088,50 @@ useEffect(() => {
                       placeholder="Write your letter here…"
                       minHeightPx={520}
                     />
-                    <div className="text-[11px] text-white/40">Tip: keep your contact email off mailed letters; use only your name + mailing address.</div>
+                    <div className="text-[11px] text-white/40">
+                      Tip: keep your contact email off mailed letters; use only your name + mailing address.
+                      {!senderMailingComplete ? (
+                        <span className="block mt-1 text-red-300">Your mailing address is incomplete — fix sender fields in the dispute studio or profile before mailing.</span>
+                      ) : null}
+                    </div>
                   </div>
 
                   <div className="space-y-3">
+                    <div className="rounded-xl border border-white/[0.08] bg-black/40 p-4 space-y-3">
+                      <div className="text-[10px] uppercase tracking-widest text-white/40">Sender block (printed on letter)</div>
+                      {!senderMailingComplete ? (
+                        <div className="rounded-xl border border-red-500/40 bg-red-500/10 px-3 py-2 text-xs text-red-200">
+                          Add your mailing address before saving — missing lines appear in red on the preview.
+                        </div>
+                      ) : null}
+                      <div className="grid sm:grid-cols-2 gap-3">
+                        <input
+                          value={senderName}
+                          onChange={(e) => setSenderName(e.target.value)}
+                          className={`bg-black/40 border rounded-xl px-3 py-2 text-sm text-white/80 ${!senderName.trim() ? 'border-red-500/50' : 'border-white/[0.08]'}`}
+                          placeholder="Your name"
+                        />
+                        <input
+                          value={senderAddressLine1}
+                          onChange={(e) => setSenderAddressLine1(e.target.value)}
+                          className={`bg-black/40 border rounded-xl px-3 py-2 text-sm text-white/80 ${!senderAddressLine1.trim() ? 'border-red-500/50' : 'border-white/[0.08]'}`}
+                          placeholder="Street address"
+                        />
+                        <input
+                          value={senderAddressLine2}
+                          onChange={(e) => setSenderAddressLine2(e.target.value)}
+                          className="bg-black/40 border border-white/[0.08] rounded-xl px-3 py-2 text-sm text-white/80 sm:col-span-2"
+                          placeholder="Apt / unit (optional)"
+                        />
+                        <input
+                          value={senderCityStateZip}
+                          onChange={(e) => setSenderCityStateZip(e.target.value)}
+                          className={`bg-black/40 border rounded-xl px-3 py-2 text-sm text-white/80 sm:col-span-2 ${!resolveCityStateZip({ cityStateZip: senderCityStateZip, city: canonicalIdentity.city, state: canonicalIdentity.state, postalCode: canonicalIdentity.postalCode }).trim() ? 'border-red-500/50' : 'border-white/[0.08]'}`}
+                          placeholder="City, State ZIP"
+                        />
+                      </div>
+                      <div className="text-[11px] text-white/45">Letter date: <span className="text-white/75">{letterDate}</span></div>
+                    </div>
                     <div className="flex flex-wrap items-center justify-between gap-3">
                       <div className="text-white font-semibold">Paper preview</div>
                       <button
@@ -2951,7 +3146,7 @@ useEffect(() => {
                     <div className="rounded-2xl border border-white/[0.08] bg-black/20 p-3">
                       <div className="rounded-xl border border-black/10 bg-white shadow-xl overflow-hidden">
                         <div className={`mx-auto w-full max-w-[860px] ${draftPreviewFull ? 'p-10' : 'h-[1060px] p-10'}`}>
-                          <div className="fc-paper-prose" dangerouslySetInnerHTML={{ __html: sanitizeHtmlForPreview(draft.html || '') }} />
+                          <div className="fc-paper-prose" dangerouslySetInnerHTML={{ __html: highlightMissingLetterPlaceholders(sanitizeHtmlForPreview(draft.html || '')) }} />
                         </div>
                       </div>
                     </div>
@@ -2980,6 +3175,7 @@ useEffect(() => {
                       setDraftBusy(true);
                       setDraftErr(null);
                       try {
+                        persistDebtSenderSnapshot();
                         const createdAt = new Date().toISOString();
                         const title =
                           debt && DEBT_LETTER_SPECS.find((s) => s.id === draft.specId)
@@ -3094,6 +3290,7 @@ useEffect(() => {
                     setDraftBusy(true);
                     setDraftErr(null);
                     try {
+                      persistDebtSenderSnapshot();
                       const createdAt = new Date().toISOString();
                       const title =
                         debt && DEBT_LETTER_SPECS.find((s) => s.id === draft.specId)
@@ -3174,6 +3371,7 @@ useEffect(() => {
                     setDraftBusy(true);
                     setDraftErr(null);
                     try {
+                      persistDebtSenderSnapshot();
                       const createdAt = new Date().toISOString();
                       const title =
                         debt && DEBT_LETTER_SPECS.find((s) => s.id === draft.specId)
@@ -3358,6 +3556,8 @@ useEffect(() => {
             }
           >
             <div className="space-y-6">
+              <LetterDisputeCoachStrip bureau={workspaceBureau} partnerId={partner.id} />
+
               <div className="rounded-2xl border border-white/[0.08] bg-black/30 p-6 space-y-4">
                 <div className="flex flex-wrap items-start justify-between gap-4">
                   <div className="min-w-0">
@@ -3743,7 +3943,7 @@ useEffect(() => {
                       ) : null}
 
                       {studioOpen ? (
-                        <div className="grid lg:grid-cols-[1.2fr_0.8fr] gap-6">
+                        <div className="space-y-6">
                           <div className="space-y-4">
                             <div className="fc-light-glass-panel fc-light-chrome-panel p-5 space-y-4">
                               <div className="flex flex-wrap items-center justify-between gap-3">
@@ -3777,15 +3977,20 @@ useEffect(() => {
                                 </div>
                               </div>
 
-                              <div className="grid md:grid-cols-2 gap-4">
+                              <div className="space-y-4">
                                 <div className="rounded-xl border border-white/[0.08] bg-black/40 p-4 space-y-3">
                                   <div className="text-[10px] uppercase tracking-widest text-white/40">Sender (you)</div>
+                                  {!senderMailingComplete ? (
+                                    <div className="rounded-xl border border-red-500/40 bg-red-500/10 px-3 py-2 text-xs text-red-200">
+                                      Mailing address required — add your street and city/state/ZIP below. Missing fields show in <strong>red</strong> on the letter preview.
+                                    </div>
+                                  ) : null}
                                   <div>
                                     <div className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Name</div>
                                     <input
                                       value={senderName}
                                       onChange={(e) => setSenderName(e.target.value)}
-                                      className="mt-2 w-full bg-black/40 border border-white/[0.08] rounded-xl px-4 py-3 text-white/80 focus:outline-none focus:border-amber-500 transition-colors"
+                                      className={`mt-2 w-full bg-black/40 border rounded-xl px-4 py-3 text-white/80 focus:outline-none transition-colors ${!senderName.trim() ? 'border-red-500/50 focus:border-red-400' : 'border-white/[0.08] focus:border-amber-500'}`}
                                       placeholder={canonicalIdentity.fullName || 'Full legal name'}
                                     />
                                   </div>
@@ -3794,7 +3999,7 @@ useEffect(() => {
                                     <input
                                       value={senderAddressLine1}
                                       onChange={(e) => setSenderAddressLine1(e.target.value)}
-                                      className="mt-2 w-full bg-black/40 border border-white/[0.08] rounded-xl px-4 py-3 text-white/80 focus:outline-none focus:border-amber-500 transition-colors"
+                                      className={`mt-2 w-full bg-black/40 border rounded-xl px-4 py-3 text-white/80 focus:outline-none transition-colors ${!(senderAddressLine1.trim() || canonicalIdentity.address1) ? 'border-red-500/50 focus:border-red-400' : 'border-white/[0.08] focus:border-amber-500'}`}
                                       placeholder={canonicalIdentity.address1 || canonicalIdentity.addressLine1 || 'Street address'}
                                     />
                                   </div>
@@ -3812,10 +4017,11 @@ useEffect(() => {
                                     <input
                                       value={senderCityStateZip}
                                       onChange={(e) => setSenderCityStateZip(e.target.value)}
-                                      className="mt-2 w-full bg-black/40 border border-white/[0.08] rounded-xl px-4 py-3 text-white/80 focus:outline-none focus:border-amber-500 transition-colors"
+                                      className={`mt-2 w-full bg-black/40 border rounded-xl px-4 py-3 text-white/80 focus:outline-none transition-colors ${!resolveCityStateZip({ cityStateZip: senderCityStateZip, city: canonicalIdentity.city, state: canonicalIdentity.state, postalCode: canonicalIdentity.postalCode }).trim() ? 'border-red-500/50 focus:border-red-400' : 'border-white/[0.08] focus:border-amber-500'}`}
                                       placeholder={canonicalIdentity.cityStateZip || 'City, ST 00000'}
                                     />
                                   </div>
+                                  <div className="text-[11px] text-white/45">Date on letters: <span className="text-white/75">{letterDate}</span> (auto-filled)</div>
                                 </div>
 
                                 <div className="rounded-xl border border-white/[0.08] bg-black/40 p-4 space-y-3">
@@ -3982,7 +4188,7 @@ useEffect(() => {
 
                                           {!collapsed ? (
                                             <div className="p-5 pt-0">
-                                              <div className="grid md:grid-cols-2 gap-4">
+                                              <div className="space-y-3">
                                                 {g.items.map((s) => {
                                                   const evId = evidenceByCandidateId[s.key];
                                                   const reasonCount = (reasonsByCandidateId[s.key] ?? []).filter(Boolean).length;
@@ -3994,7 +4200,7 @@ useEffect(() => {
                                                       type="button"
                                                       onClick={() => setFocusedKeyByBureau((prev) => ({ ...prev, [b]: s.key }))}
                                                       className={
-                                                        'rounded-2xl border p-5 text-left space-y-3 transition-all ' +
+                                                        'w-full rounded-2xl border p-5 text-left space-y-3 transition-all ' +
                                                         (isFocused
                                                           ? 'border-amber-500/35 bg-amber-500/10'
                                                           : 'border-white/[0.08] bg-black/40 hover:bg-white/[0.03]')
@@ -4052,7 +4258,7 @@ useEffect(() => {
                           </div>
 
                           <div className="space-y-4">
-                            <div className="rounded-2xl border border-white/[0.08] bg-[#070b09] shadow-xl p-4 space-y-3 self-start">
+                            <div className="rounded-2xl border border-white/[0.08] bg-[#070b09] shadow-xl p-4 space-y-3">
                               <DisputeLetterIframePreview
                                 bureau={b}
                                 partnerName={senderName || canonicalIdentity.fullName || partner.profile.fullName || 'Partner'}
@@ -4550,6 +4756,8 @@ useEffect(() => {
                 }}
               />
             </div>
+
+            <LetterEscalationPanel track="bureau_dispute" accent="sky" />
           </EntitlementGate>
         )}
 
@@ -4643,6 +4851,28 @@ useEffect(() => {
                 </div>
               </div>
 
+              <DebtCreditorIntelPanel
+                partnerId={partner.id}
+                debt={debt}
+                reports={reports}
+                processedDocuments={processedDocuments}
+                mode={tab === 'court' ? 'court' : 'validation'}
+                senderFields={{
+                  fullName: senderName || canonicalIdentity.fullName || '',
+                  address1: senderAddressLine1 || canonicalIdentity.address1 || canonicalIdentity.addressLine1 || '',
+                  address2: senderAddressLine2 || canonicalIdentity.address2 || '',
+                  city: canonicalIdentity.city || '',
+                  state: canonicalIdentity.state || '',
+                  postalCode: canonicalIdentity.postalCode || '',
+                  phone: canonicalIdentity.phone || '',
+                  email: partner.profile.email || '',
+                }}
+                onDebtChange={handleDebtIntelChange}
+                onSenderPersist={persistDebtSenderSnapshot}
+                selectedSummonsDocId={selectedSummonsDocId ?? undefined}
+                onSummonsDocChange={setSelectedSummonsDocId}
+              />
+
               <div className="rounded-2xl border border-white/[0.08] bg-black/30 p-6 space-y-4">
                 <div className="text-[10px] uppercase tracking-widest text-white/40">
                   {tab === 'court' ? 'Build affidavit / court draft' : 'Build validation draft'}
@@ -4661,26 +4891,10 @@ useEffect(() => {
                           className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-500 text-black font-black uppercase tracking-widest text-[10px] hover:brightness-110 transition-all"
                           onClick={() => {
                             const isCourt = tab === 'court';
+                            persistDebtSenderSnapshot();
                             const baseText = canSeeTemplates
-                              ? getLetterBody(spec.id, {
-                                  creditorName: debt?.name || 'Creditor',
-                                  debtorName: canonicalIdentity.fullName,
-                                  date: today,
-                                  debtorAddress1: canonicalIdentity.address1 ?? canonicalIdentity.addressLine1,
-                                  debtorAddress2: canonicalIdentity.address2,
-                                  debtorCity: canonicalIdentity.city,
-                                  debtorState: canonicalIdentity.state,
-                                  debtorPostalCode: canonicalIdentity.postalCode,
-                                  debtorPhone: canonicalIdentity.phone,
-                                  debtorEmail: partner.profile.email,
-                                  recipientName: debt?.name || undefined,
-                                  recipientAddress: matchedCreditorContact?.address,
-                                  caseNumber: (debt as any)?.courtCaseNumber,
-                                  stateNote: (debt as any)?.stateJurisdiction
-                                    ? ` In ${(debt as any).stateJurisdiction}, the applicable SOL may apply.`
-                                    : undefined,
-                                })
-                              : `DATE: ${today}\n\nTO WHOM IT MAY CONCERN,\n\nI am writing regarding ${debt?.name || 'this matter'}.\n\n[Write your request here.]\n\nSincerely,\n${canonicalIdentity.fullName}\n`;
+                              ? getLetterBody(spec.id, buildDebtLetterArgs())
+                              : `DATE: ${today}\n\nTO WHOM IT MAY CONCERN,\n\nI am writing regarding ${debt?.recipientName || debt?.name || 'this matter'}.\n\n[Write your request here.]\n\nSincerely,\n${canonicalIdentity.fullName}\n`;
                             setDraft({ specId: spec.id, type: isCourt ? 'court' : 'validation', html: plainTextToHtml(baseText) });
                           }}
                           title="Build an editable draft and save it to your Letters Vault"
@@ -4701,6 +4915,8 @@ useEffect(() => {
                 scenario={recommendedScenario as DebtScenario}
                 debtName={debt?.name}
               />
+
+              <LetterEscalationPanel track={tab === 'court' ? 'debt_court' : 'debt_validation'} accent={tab === 'court' ? 'violet' : 'amber'} />
             </div>
           </EntitlementGate>
         )}

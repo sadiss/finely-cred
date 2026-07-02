@@ -96,7 +96,7 @@ export function WorkPartnerProjectsHub() {
         <span className={`text-xs ${FINELY_OS_ENTITY_BODY}`}>{projects.length} project{projects.length === 1 ? '' : 's'} · {openTasks.length} open tasks</span>
       </div>
 
-      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="space-y-3">
         {projects.map((p: Project, i) => {
           const prog = projectProgress(p.id, tasks);
           const lane = serviceLaneFromProjectTags(p.tags);
@@ -106,7 +106,7 @@ export function WorkPartnerProjectsHub() {
               key={p.id}
               type="button"
               onClick={() => navigate(`/portal/projects/${p.id}`)}
-              className={`text-left p-4 transition-all hover:shadow-md hover:border-emerald-400/30 ${finelyOsInlineListItem()} ${FINELY_OS_KPI_ACCENTS[i % FINELY_OS_KPI_ACCENTS.length]}`}
+              className={`w-full text-left p-5 transition-all hover:shadow-md hover:border-emerald-400/30 ${finelyOsInlineListItem()} ${FINELY_OS_KPI_ACCENTS[i % FINELY_OS_KPI_ACCENTS.length]}`}
             >
               <span className={`inline-flex text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border ${lane.className}`}>{lane.label}</span>
               <div className={`mt-2 line-clamp-2 ${FINELY_OS_ENTITY_VALUE}`}>{p.title}</div>

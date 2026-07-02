@@ -332,7 +332,7 @@ export function MailLetterModal({
   };
 
   return (
-    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-[300] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => (busy ? null : onClose())} />
       <div
         className="relative w-full max-w-4xl rounded-3xl border border-white/[0.08] bg-fc-shell shadow-2xl overflow-hidden"
@@ -358,6 +358,20 @@ export function MailLetterModal({
         </div>
 
         <div className="p-6 space-y-6 max-h-[78vh] overflow-y-auto">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {[
+              { label: 'PDF ready', value: canMail ? 'Yes' : 'No', accent: canMail ? 'text-emerald-300' : 'text-rose-300' },
+              { label: 'Type', value: letter.type, accent: 'text-violet-300' },
+              { label: 'Status', value: letter.status || 'generated', accent: 'text-sky-300' },
+              { label: 'Exhibits', value: String(evidence.length), accent: 'text-fuchsia-300' },
+            ].map((kpi) => (
+              <div key={kpi.label} className="rounded-xl border border-white/10 bg-black/25 px-3 py-3 text-center">
+                <div className={`text-sm font-black capitalize ${kpi.accent}`}>{kpi.value}</div>
+                <div className="text-[9px] uppercase tracking-widest text-white/45 mt-1">{kpi.label}</div>
+              </div>
+            ))}
+          </div>
+
           {letter.type === 'dispute' ? <LetterAgentChainStrip steps={agentChain.steps} /> : null}
           {!canMail ? (
             <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-red-100 text-sm">
@@ -401,8 +415,8 @@ export function MailLetterModal({
             )}
           </div>
 
-          {/* Addresses */}
-          <div className="grid md:grid-cols-2 gap-6">
+          {/* Addresses — stacked for clarity */}
+          <div className="space-y-4">
             <div className="fc-light-glass-panel fc-light-chrome-panel p-5 space-y-4">
               <div className="text-white font-semibold">Recipient address</div>
               {(['name', 'addressLine1', 'addressLine2', 'city', 'state', 'zip'] as const).map((k) => (

@@ -59,12 +59,12 @@ export const TEMPLATE_VARIABLE_GROUPS: TemplateVariableGroup[] = [
 export const ALL_TEMPLATE_VAR_KEYS: string[] = TEMPLATE_VARIABLE_GROUPS.flatMap((g) => g.vars.map((v) => v.key));
 
 export const WELCOME_HTML_STARTER = `<div style="font-family:system-ui,sans-serif;line-height:1.6;color:#f5f5f5;">
-  <p style="margin:0 0 12px;font-size:22px;font-weight:600;color:#fbbf24;">Welcome back, {{user.firstName}}</p>
+  <p style="margin:0 0 12px;font-size:22px;font-weight:600;color:#a5b4fc;">Welcome back, {{user.firstName}}</p>
   <p style="margin:0 0 16px;color:rgba(255,255,255,0.75);">
     Your {{brand.name}} dashboard is ready. Upload a credit report when you can — we'll turn it into disputes, evidence, and next steps.
   </p>
   <p style="margin:0;color:rgba(255,255,255,0.55);font-size:13px;">
-    Questions? Email <a href="mailto:{{brand.supportEmail}}" style="color:#fbbf24;">{{brand.supportEmail}}</a>
+    Questions? Email <a href="mailto:{{brand.supportEmail}}" style="color:#6366f1;">{{brand.supportEmail}}</a>
   </p>
 </div>`;
 

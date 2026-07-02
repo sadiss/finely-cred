@@ -54,6 +54,18 @@ export function createDebtCase(args: {
   lastPaymentDate?: string;
   dateServed?: string;
   stateJurisdiction?: string;
+  collectorName?: string;
+  originalCreditor?: string;
+  recipientName?: string;
+  recipientAddress?: string;
+  recipientPhone?: string;
+  accountNumberMasked?: string;
+  reportId?: string;
+  tradelineIndex?: number;
+  linkedEvidenceIds?: string[];
+  processedDocumentIds?: string[];
+  source?: DebtCase['source'];
+  senderSnapshot?: DebtCase['senderSnapshot'];
 }): DebtCase {
   const now = nowIso();
   const debt: DebtCase = {
@@ -70,6 +82,18 @@ export function createDebtCase(args: {
     lastPaymentDate: args.lastPaymentDate,
     dateServed: args.dateServed,
     stateJurisdiction: args.stateJurisdiction,
+    collectorName: args.collectorName,
+    originalCreditor: args.originalCreditor,
+    recipientName: args.recipientName,
+    recipientAddress: args.recipientAddress,
+    recipientPhone: args.recipientPhone,
+    accountNumberMasked: args.accountNumberMasked,
+    reportId: args.reportId,
+    tradelineIndex: args.tradelineIndex,
+    linkedEvidenceIds: args.linkedEvidenceIds,
+    processedDocumentIds: args.processedDocumentIds,
+    source: args.source ?? 'manual',
+    senderSnapshot: args.senderSnapshot,
     createdAt: now,
     updatedAt: now,
   };
