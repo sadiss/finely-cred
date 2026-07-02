@@ -17,6 +17,7 @@ type ReqBody = {
   from?: { email?: string; name?: string };
   subject: string;
   text: string;
+  html?: string;
   /** Optional: prevents accidental duplicate sends. */
   idempotencyKey?: string;
 };
@@ -54,14 +55,15 @@ Deno.serve(async (req) => {
   if (!toEmail) return json({ error: 'Missing to.email' }, { status: 400 });
   const subject = String(body.subject || '').trim();
   const text = String(body.text || '').trim();
-  if (!subject || !text) return json({ error: 'Missing subject/text' }, { status: 400 });
+  const html = String(body.html || '').trim();
+  if (!subject || (!text && !html)) return json({ error: 'Missing subject/body' }, { status: 400 });
 
   if (body.idempotencyKey) {
     const ok = await requireIdempotency({ namespace: 'send-invite-email', key: `${ctx.user.id}:${body.idempotencyKey}` });
     if (!ok) return json({ ok: true, deduped: true });
   }
 
-  const sent = await sendServiceEmail({ toEmail, toName: body.to?.name, subject, text });
+  const sent = await sendServiceEmail({ toEmail, toName: body.to?.name, subject, text, html });
 
   if (!sent.ok) {
     await logEdgeEvent({

@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { ArrowLeft, ArrowRight, BookOpen, ChevronRight, ExternalLink, FileText, Gavel, Lock, PenLine, Scale, ScrollText, ShieldAlert, Sparkles, X } from 'lucide-react';
+import { ArrowLeft, ArrowRight, BookOpen, ChevronRight, ExternalLink, FileText, Gavel, Lock, MessageCircle, PenLine, Scale, ScrollText, Send, ShieldAlert, Sparkles, X } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import type { Bureau, ParsedCreditReport } from '../../domain/creditReports';
 import type { Partner } from '../../domain/partners';
@@ -565,7 +565,7 @@ function DisputeLetterIframePreview({
   footerHtml,
   items,
   onOpenFull,
-  iframeHeightClassName = 'h-[720px]',
+  iframeHeightClassName = 'h-[420px]',
 }: {
   bureau: Bureau;
   partnerName: string;
@@ -730,8 +730,8 @@ function DisputeLetterIframePreview({
           </button>
         ) : null}
       </div>
-      <div className="rounded-2xl border border-white/15 bg-white overflow-hidden shadow-lg">
-        <div className="p-3 md:p-4 bg-white">
+      <div className="rounded-2xl border border-white/10 bg-white overflow-hidden shadow-lg shadow-black/20">
+        <div className="p-2 md:p-3 bg-white">
           <iframe
             title="Letter preview"
             srcDoc={srcDoc}
@@ -739,7 +739,123 @@ function DisputeLetterIframePreview({
           />
         </div>
       </div>
-      <div className="text-[11px] text-white/40">Preview is print-safe (forced black-on-white) and matches the saved PDF output.</div>
+      <div className="text-[11px] text-white/40">Compact preview. Use Full preview for page-by-page review.</div>
+    </div>
+  );
+}
+
+function DebtRemovalAdvisorPanel({
+  mode,
+  scenario,
+  debtName,
+}: {
+  mode: 'validation' | 'court';
+  scenario: DebtScenario;
+  debtName?: string;
+}) {
+  const [question, setQuestion] = useState('');
+  const [answer, setAnswer] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+  const scenarioInfo = SCENARIO_RECOMMENDATIONS.find((s) => s.scenario === scenario);
+  const recommended = (scenarioInfo?.recommendedLetterTypes ?? []).map((id) => DEBT_LETTER_SPECS.find((s) => s.id === id)).filter(Boolean);
+  const focus =
+    mode === 'validation'
+      ? [
+          'Send a heavy FDCPA 1692g validation request first when inside the validation window.',
+          'Demand licensing, authority to collect, owner/servicer identity, itemized accounting, chain of title, and credit reporting basis.',
+          'Do not admit liability, promise payment, or frame the theory as “securitization erased the debt.” Ask for proof and accounting.',
+        ]
+      : [
+          'Affidavits and summons responses are for litigation/summons scenarios. Calendar the court deadline first.',
+          'Raise burden of proof, contract formation, chain of assignment, standing/authority, SOL, and validation failure where applicable.',
+          'Use court filings carefully and consult licensed counsel for jurisdiction-specific procedure.',
+        ];
+
+  const ask = async () => {
+    const q = question.trim();
+    if (!q) return;
+    setBusy(true);
+    setErr(null);
+    setAnswer('');
+    const fallback = [
+      `Recommended next move for ${debtName || 'this matter'}:`,
+      '',
+      ...focus.map((x, i) => `${i + 1}. ${x}`),
+      '',
+      'Power laws/angles to review: FDCPA § 1692g, FDCPA § 1692c(c), FCRA § 1681s-2, state collection licensing, state SOL, contract formation/burden of proof, UCC § 3-308 where instrument enforcement is claimed, and TILA/Reg Z accounting issues where applicable.',
+      '',
+      `Based on the scenario, draw next: ${recommended.map((s) => s!.title).join(' → ') || (mode === 'validation' ? 'Debt Validation Request' : 'Affidavit of Dispute')}.`,
+    ].join('\n');
+    try {
+      if (!isFeatureEnabled('aiGateway')) throw new Error('AI Gateway disabled');
+      const res = await callAiGateway({
+        taskType: 'debt.removal.advisor',
+        responseFormat: 'text',
+        messages: [
+          {
+            role: 'system',
+            content:
+              'You are Finely Cred Debt Removal Advisor. Give strong consumer-favorable procedural next steps. You are educational only, not legal counsel. Use FDCPA, FCRA, TILA/Reg Z accounting, UCC where relevant, state SOL, state collection licensing, contract formation, chain of title, authority to collect, affidavits, and summons deadlines. Avoid frivolous claims that securitization automatically extinguishes debt. Be concise, numbered, and action-oriented.',
+          },
+          {
+            role: 'user',
+            content:
+              `Mode: ${mode}\nScenario: ${scenario}\nDebt: ${debtName || 'unknown'}\nRecommended letters: ${recommended.map((s) => s!.title).join(', ') || 'none'}\nQuestion: ${q}`,
+          },
+        ],
+      });
+      setAnswer(res.text.trim() || fallback);
+    } catch {
+      setAnswer(fallback);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className={`${finelyOsCatalogCard(mode === 'validation' ? 'amber' : 'violet')} !p-5 space-y-4`}>
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <div className={FINELY_OS_ENTITY_SUBLABEL}>Debt Removal Advisor</div>
+          <div className={`mt-2 text-xl font-black ${FINELY_OS_ENTITY_VALUE}`}>
+            {mode === 'validation' ? 'Validation kill path' : 'Affidavit / court defense path'}
+          </div>
+          <p className={`mt-2 max-w-3xl ${FINELY_OS_ENTITY_BODY}`}>
+            Ask what to send next, what law to lean on, and what proof to demand. Connected to the letter specs, debt scenario, and Finely knowledge strategy.
+          </p>
+        </div>
+        <div className="rounded-2xl border border-white/10 bg-black/25 p-3 text-xs text-white/55 max-w-sm">
+          <strong className="text-white/80">Scenario:</strong> {scenarioInfo?.label || scenario}
+          {scenarioInfo?.legalWarning ? <div className="mt-1 text-amber-100/80">{scenarioInfo.legalWarning}</div> : null}
+        </div>
+      </div>
+
+      <div className="grid lg:grid-cols-3 gap-3">
+        {focus.map((x, i) => (
+          <div key={x} className="rounded-2xl border border-white/10 bg-black/25 p-4">
+            <div className="text-[10px] uppercase tracking-widest text-white/40">Step {i + 1}</div>
+            <div className="mt-2 text-sm text-white/75 leading-relaxed">{x}</div>
+          </div>
+        ))}
+      </div>
+
+      <div className="rounded-2xl border border-white/10 bg-black/30 p-4 space-y-3">
+        <div className="inline-flex items-center gap-2 text-[10px] uppercase tracking-widest text-white/45 font-black">
+          <MessageCircle size={14} /> Ask debt strategy
+        </div>
+        <textarea
+          value={question}
+          onChange={(e) => setQuestion(e.target.value)}
+          className="w-full min-h-[90px] rounded-xl border border-white/10 bg-black/35 px-4 py-3 text-sm text-white/85 placeholder:text-white/30 focus:outline-none focus:border-amber-400/60"
+          placeholder="Example: They sent a bill of sale but no account-level schedule. What letter should I send next and what laws should I cite?"
+        />
+        <button type="button" onClick={() => void ask()} disabled={busy || !question.trim()} className={FINELY_OS_PRIMARY_BTN}>
+          <Send size={14} /> {busy ? 'Thinking…' : 'Get next-step advice'}
+        </button>
+        {err ? <div className="text-rose-300 text-sm">{err}</div> : null}
+        {answer ? <pre className="whitespace-pre-wrap rounded-2xl border border-white/10 bg-white/[0.035] p-4 text-sm text-white/75 leading-relaxed font-sans">{answer}</pre> : null}
+      </div>
     </div>
   );
 }
@@ -818,6 +934,7 @@ export function LettersCommandCenter({
   onOpenDisputeCenter,
   onOpenDebtCenter,
   onRequestGrantEntitlements,
+  debtCenterMode = false,
 }: {
   partner: Partner;
   layout?: 'standalone' | 'embedded';
@@ -829,6 +946,8 @@ export function LettersCommandCenter({
   onOpenDisputeCenter?: () => void;
   onOpenDebtCenter?: () => void;
   onRequestGrantEntitlements?: (keys: string[]) => void;
+  /** Dedicated validation/affidavit mode: hides dispute/template navigation and dispute shortcuts. */
+  debtCenterMode?: boolean;
 }) {
   const navigate = useNavigate();
   const location = useLocation();
@@ -879,6 +998,7 @@ export function LettersCommandCenter({
   const [pickerOpen, setPickerOpen] = useState(false);
   const [selectedDisputes, setSelectedDisputes] = useState<SelectedDispute[]>([]);
   const [evidenceByCandidateId, setEvidenceByCandidateId] = useState<Record<string, string | undefined>>({});
+  const [evidenceIdsByCandidateId, setEvidenceIdsByCandidateId] = useState<Record<string, string[]>>({});
   const [reasonsByCandidateId, setReasonsByCandidateId] = useState<Record<string, string[]>>({});
   const [reasonsLibraryOpen, setReasonsLibraryOpen] = useState(false);
   const [reasonLibraryFocusKey, setReasonLibraryFocusKey] = useState<string | null>(null);
@@ -1073,6 +1193,7 @@ export function LettersCommandCenter({
 
     setSelectedDisputes([]);
     setEvidenceByCandidateId({});
+    setEvidenceIdsByCandidateId({});
     setReasonsByCandidateId({});
     setAiNarrativeByCandidateKey({});
     setAiQuestionsByBureau({});
@@ -1185,7 +1306,7 @@ export function LettersCommandCenter({
           parsed,
           existing: (reasonsByCandidateId[s.key] ?? []).map((x) => x.trim()).filter(Boolean),
           evidence: (() => {
-            const evId = evidenceByCandidateId[s.key];
+            const evId = evidenceByCandidateId[s.key] || evidenceIdsByCandidateId[s.key]?.[0];
             return evId ? evidence.find((x) => x.id === evId) ?? null : null;
           })(),
           maxReasons: 5,
@@ -1201,7 +1322,7 @@ export function LettersCommandCenter({
         reasons: enrichedReasons,
         facts: factsFor(tl),
         contradictions: tl ? deriveTradelineContradictions(tl).map((r) => r.text) : [],
-        evidenceAttached: Boolean(evidenceByCandidateId[s.key]),
+        evidenceAttached: Boolean(evidenceByCandidateId[s.key] || evidenceIdsByCandidateId[s.key]?.length),
         caseContext: buildCaseContextBlock({
           candidate: s.candidate as any,
           parsed,
@@ -1390,12 +1511,14 @@ WRITING STANDARD:
     setPdfBusyByBureau((prev) => ({ ...prev, [b]: true }));
     try {
       const evidenceMismatches = items
-        .map((s) => {
-          const evId = evidenceByCandidateId[s.key];
-          const ev = evId ? evidence.find((x) => x.id === evId) : null;
-          if (!ev) return null;
-          if (evidenceMatchesAccount({ accountName: s.candidate.account, candidateType: s.candidate.type, evidence: ev })) return null;
-          return `${s.candidate.account}: ${describeEvidenceMismatch({ accountName: s.candidate.account, evidence: ev })}`;
+        .flatMap((s) => {
+          const ids = evidenceIdsByCandidateId[s.key]?.length ? evidenceIdsByCandidateId[s.key]! : evidenceByCandidateId[s.key] ? [evidenceByCandidateId[s.key]!] : [];
+          return ids.map((evId) => {
+            const ev = evidence.find((x) => x.id === evId) ?? null;
+            if (!ev) return null;
+            if (evidenceMatchesAccount({ accountName: s.candidate.account, candidateType: s.candidate.type, evidence: ev })) return null;
+            return `${s.candidate.account}: ${describeEvidenceMismatch({ accountName: s.candidate.account, evidence: ev })}`;
+          });
         })
         .filter(Boolean) as string[];
       if (evidenceMismatches.length) {
@@ -1413,7 +1536,7 @@ WRITING STANDARD:
         if (cur.length >= 3) continue;
         const rid = (s.source.kind === 'report' ? s.source.reportId : '') || s.candidate.reportId || '';
         const parsed = rid ? parsedByReportId.get(rid) : undefined;
-        const evId = evidenceByCandidateId[s.key];
+        const evId = evidenceByCandidateId[s.key] || evidenceIdsByCandidateId[s.key]?.[0];
         const ev = evId ? evidence.find((x) => x.id === evId) : null;
         const aiRes = await buildDisputeReasonsWithAi({
           candidate: s.candidate as any,
@@ -1437,11 +1560,13 @@ WRITING STANDARD:
       }
 
       const disputeItems: DisputeLetterItem[] = items.map((s) => {
-        const evId = evidenceByCandidateId[s.key];
-        const ev = evId ? evidence.find((x) => x.id === evId) : null;
+        const evIds = evidenceIdsByCandidateId[s.key]?.length ? evidenceIdsByCandidateId[s.key]! : evidenceByCandidateId[s.key] ? [evidenceByCandidateId[s.key]!] : [];
+        const linkedEvidence = evIds.map((id) => evidence.find((x) => x.id === id)).filter(Boolean) as typeof evidence;
+        const ev = linkedEvidence[0] ?? null;
         return {
           candidate: { ...s.candidate, id: s.key },
           evidence: ev ? { filename: ev.filename, blobRef: ev.blobRef, mimeType: ev.mimeType } : null,
+          evidenceList: linkedEvidence.map((item) => ({ filename: item.filename, blobRef: item.blobRef, mimeType: item.mimeType })),
           reasons: autoFilledReasonsByCandidateId[s.key] ?? [],
           narrative: (aiNarrativeByCandidateKey[s.key] || '').trim() || null,
         };
@@ -2161,10 +2286,7 @@ useEffect(() => {
   }, [tplRendered?.baseId, tplRendered?.variantId, tplRendered?.tone, tplRendered?.version]);
 
   const tabKeys: Array<{ key: TabKey; label: string; icon: React.ReactNode; hidden?: boolean }> = [
-    { key: 'dispute', label: 'Bureaus', icon: <Gavel size={14} className="inline mr-2" /> },
-    { key: 'validation', label: 'Validation / DV', icon: <ShieldAlert size={14} className="inline mr-2" /> },
-    { key: 'court', label: 'Court / Affidavit', icon: <Scale size={14} className="inline mr-2" /> },
-    { key: 'templates', label: 'Templates', icon: <ScrollText size={14} className="inline mr-2" />, hidden: !canSeeTemplates },
+    { key: 'dispute', label: 'Dispute Letters', icon: <Gavel size={14} className="inline mr-2" /> },
   ];
 
   const disputeEvidenceLinked = useMemo(() => {
@@ -2385,6 +2507,7 @@ useEffect(() => {
           partnerId={partner.id}
           items={evidencePickerItems}
           selectedEvidenceId={evidencePicker.candidateId ? evidenceByCandidateId[evidencePicker.candidateId] : undefined}
+          selectedEvidenceIds={evidencePicker.candidateId ? evidenceIdsByCandidateId[evidencePicker.candidateId] ?? [] : undefined}
           filter="screenshots"
           matchAccount={evidencePickerCandidate?.candidate.account}
           matchCandidateType={evidencePickerCandidate?.candidate.type}
@@ -2442,6 +2565,31 @@ useEffect(() => {
                     return next;
                   });
                   setEvidencePicker(null);
+                }
+              : undefined
+          }
+          onPickMany={
+            evidencePicker.candidateId
+              ? (evidenceIds) => {
+                  const cid = evidencePicker.candidateId!;
+                  const s = selectedDisputes.find((x) => x.key === cid) ?? null;
+                  if (s) {
+                    const mismatch = evidenceIds
+                      .map((id) => evidence.find((x) => x.id === id) ?? null)
+                      .find((ev) => ev && !evidenceMatchesAccount({ accountName: s.candidate.account, candidateType: s.candidate.type, evidence: ev }));
+                    if (mismatch) {
+                      setPdfErr(describeEvidenceMismatch({ accountName: s.candidate.account, evidence: mismatch }));
+                      return;
+                    }
+                  }
+                  setEvidenceIdsByCandidateId((prev) => ({ ...prev, [cid]: evidenceIds }));
+                  setEvidenceByCandidateId((prev) => ({ ...prev, [cid]: evidenceIds[0] }));
+                  setAutoMatchNoteByCandidateId((prev) => {
+                    const next = { ...prev };
+                    if (evidenceIds.length > 1) next[cid] = `${evidenceIds.length} screenshots attached for this account. The first one is used as the primary exhibit.`;
+                    else delete next[cid];
+                    return next;
+                  });
                 }
               : undefined
           }
@@ -3132,7 +3280,7 @@ useEffect(() => {
           </div>
         ) : null}
 
-        {!unifiedShell ? (
+        {!unifiedShell && !debtCenterMode ? (
         <div className="flex flex-wrap gap-2 p-1 rounded-2xl border border-white/10 bg-black/30">
           {tabKeys.filter((t) => !t.hidden).map((t) => (
             <button
@@ -3152,7 +3300,7 @@ useEffect(() => {
         ) : null}
 
         {/* Always-visible dispute selection shortcut (so it can't be missed). */}
-        <div className="fc-light-glass-panel fc-light-chrome-panel p-4 flex flex-wrap items-center justify-between gap-3">
+        {!debtCenterMode ? <div className="fc-light-glass-panel fc-light-chrome-panel p-4 flex flex-wrap items-center justify-between gap-3">
           <div className="text-white/60 text-sm">
             Disputes selected: <span className="text-white/90 font-semibold">{selectedDisputes.length}</span>
             {selectedDisputes.length ? (
@@ -3190,7 +3338,7 @@ useEffect(() => {
               Dispute Center <ChevronRight size={14} />
             </button>
           </div>
-        </div>
+        </div> : null}
 
         {tab === 'dispute' && (
           <EntitlementGate
@@ -3904,7 +4052,7 @@ useEffect(() => {
                           </div>
 
                           <div className="space-y-4">
-                            <div className="rounded-2xl border border-white/[0.08] bg-[#070b09] shadow-2xl p-5 space-y-3 lg:sticky lg:top-24 self-start">
+                            <div className="rounded-2xl border border-white/[0.08] bg-[#070b09] shadow-xl p-4 space-y-3 self-start">
                               <DisputeLetterIframePreview
                                 bureau={b}
                                 partnerName={senderName || canonicalIdentity.fullName || partner.profile.fullName || 'Partner'}
@@ -3937,6 +4085,7 @@ useEffect(() => {
                                   };
                                 })}
                                 onOpenFull={() => setPreviewModalBureau(b)}
+                                iframeHeightClassName="h-[360px]"
                               />
                             </div>
 
@@ -4365,6 +4514,14 @@ useEffect(() => {
                     }
                     return out;
                   });
+                  setEvidenceIdsByCandidateId((prev) => {
+                    const out: Record<string, string[]> = {};
+                    for (const k of Object.keys(prev)) if (nextKeys.has(k)) out[k] = prev[k];
+                    for (const s of next) {
+                      if ((!out[s.key] || out[s.key].length === 0) && s.prefillEvidenceId) out[s.key] = [s.prefillEvidenceId];
+                    }
+                    return out;
+                  });
                   setReasonsByCandidateId((prev) => {
                     const out: Record<string, string[]> = {};
                     for (const k of Object.keys(prev)) if (nextKeys.has(k)) out[k] = prev[k];
@@ -4414,6 +4571,40 @@ useEffect(() => {
             }
           >
             <div className="space-y-6">
+              {!debtCenterMode ? <div className="rounded-[2rem] border border-amber-500/20 bg-gradient-to-br from-amber-500/15 via-white/[0.04] to-violet-500/10 p-6 overflow-hidden">
+                <div className="grid lg:grid-cols-12 gap-5 items-start">
+                  <div className="lg:col-span-7">
+                    <div className="text-[10px] uppercase tracking-[0.28em] text-amber-200 font-black">Debt Removal Center</div>
+                    <h2 className="mt-3 text-3xl md:text-4xl font-black text-white tracking-tight">
+                      {tab === 'validation' ? 'Force proof before they collect.' : 'Build the affidavit and court-defense record.'}
+                    </h2>
+                    <p className="mt-3 text-white/65 leading-relaxed max-w-3xl">
+                      {tab === 'validation'
+                        ? 'Validation specializes in FDCPA proof demands, licensing, ownership/servicing authority, itemized accounting, chain of title, and credit reporting challenges.'
+                        : 'Affidavit/Court specializes in sworn dispute posture, burden of proof, SOL, contract formation, standing/authority, UCC where applicable, and summons-response discipline.'}
+                    </p>
+                  </div>
+                  <div className="lg:col-span-5 grid sm:grid-cols-2 gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setTab('validation')}
+                      className={`rounded-2xl border p-4 text-left transition ${tab === 'validation' ? 'border-amber-400/40 bg-amber-500/15' : 'border-white/10 bg-black/25 hover:bg-white/[0.04]'}`}
+                    >
+                      <div className="text-white font-black">Validation path</div>
+                      <div className="mt-2 text-xs text-white/55 leading-relaxed">Collectors, debt buyers, licensing, accounting, authority, reporting.</div>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setTab('court')}
+                      className={`rounded-2xl border p-4 text-left transition ${tab === 'court' ? 'border-violet-400/40 bg-violet-500/15' : 'border-white/10 bg-black/25 hover:bg-white/[0.04]'}`}
+                    >
+                      <div className="text-white font-black">Affidavit path</div>
+                      <div className="mt-2 text-xs text-white/55 leading-relaxed">Summons, sworn record, burden of proof, SOL, no contract, standing.</div>
+                    </button>
+                  </div>
+                </div>
+              </div> : null}
+
               <div className="rounded-2xl border border-white/[0.08] bg-black/30 p-6 space-y-4">
                 <div className="text-[10px] uppercase tracking-widest text-white/40">Context</div>
                 <div className="grid md:grid-cols-2 gap-4">
@@ -4453,7 +4644,9 @@ useEffect(() => {
               </div>
 
               <div className="rounded-2xl border border-white/[0.08] bg-black/30 p-6 space-y-4">
-                <div className="text-[10px] uppercase tracking-widest text-white/40">Build draft</div>
+                <div className="text-[10px] uppercase tracking-widest text-white/40">
+                  {tab === 'court' ? 'Build affidavit / court draft' : 'Build validation draft'}
+                </div>
                 <div className="grid md:grid-cols-2 gap-4">
                   {DEBT_LETTER_SPECS.filter((s) => {
                     const isCourt = s.id.includes('summons') || s.id.includes('answer') || s.id.includes('affidavit');
@@ -4502,6 +4695,12 @@ useEffect(() => {
                   ))}
                 </div>
               </div>
+
+              <DebtRemovalAdvisorPanel
+                mode={tab === 'court' ? 'court' : 'validation'}
+                scenario={recommendedScenario as DebtScenario}
+                debtName={debt?.name}
+              />
             </div>
           </EntitlementGate>
         )}

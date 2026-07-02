@@ -17,6 +17,7 @@ import {
   PlayCircle,
   CheckCircle2,
   Clock,
+  Plus,
   Send,
   BarChart3,
   User,
@@ -90,7 +91,8 @@ import { seedLegacyPartnerNotes } from '../../data/legacyPartnerNotesImport';
 import { legacyNoteEntriesForPartner, legacyNotesExternalId } from '../../lib/legacyPartnerNotesHydrate';
 import { pullWorkflowSnapshotFromSupabase } from '../../data/workflowSupabaseSync';
 import { LegacyPendingReportNotice } from '../../components/reports/LegacyPendingReportNotice';
-import { listDebtByPartner } from '../../data/debtRepo';
+import { createDebtCase, listDebtByPartner } from '../../data/debtRepo';
+import { onDebtCaseCreated } from '../../lib/debtWorkflowEngine';
 import { newId } from '../../utils/ids';
 import { listNotifications, markAllRead, markNotificationRead, unreadCount } from '../../data/notificationsRepo';
 import { getWorkboardSettings, isFeatureEnabled } from '../../data/settingsRepo';
@@ -165,6 +167,8 @@ const PARTNER_STICKY_TABS: { key: TabKey; label: string; accent: 'emerald' | 'vi
   { key: 'overview', label: 'Overview', accent: 'emerald' },
   { key: 'profile', label: 'Profile', accent: 'violet' },
   { key: 'reports', label: 'Reports', accent: 'sky' },
+  { key: 'analysis', label: 'Analysis Report', accent: 'sky' },
+  { key: 'evidence', label: 'Evidence', accent: 'sky' },
   { key: 'letters', label: 'Letters', accent: 'amber' },
   { key: 'tasks', label: 'Tasks', accent: 'emerald' },
   { key: 'notes', label: 'Notes', accent: 'emerald' },
@@ -584,6 +588,9 @@ function PartnerDetailPageInner() {
 
   const evidence = useMemo(() => (partner ? listEvidenceByPartner(partner.id) : []), [partner, notesVersion]);
   const letters = useMemo(() => (partner ? listLettersByPartner(partner.id) : []), [partner, notesVersion]);
+  const disputeLetters = useMemo(() => letters.filter((l) => l.type === 'dispute'), [letters]);
+  const validationLetters = useMemo(() => letters.filter((l) => l.type === 'validation'), [letters]);
+  const courtLetters = useMemo(() => letters.filter((l) => l.type === 'court'), [letters]);
   const analysisReports = useMemo(() => {
     if (!partner) return [];
     return listCreditAnalysisReportsByPartner(partner.id);
@@ -646,6 +653,36 @@ function PartnerDetailPageInner() {
   );
   const partnerCases = useMemo(() => (partner ? listCasesByPartner(partner.id) : []), [partner, notesVersion]);
   const debtCases = useMemo(() => (partner ? listDebtByPartner(partner.id) : []), [partner]);
+  const [adminDebtLetterPath, setAdminDebtLetterPath] = useState<'validation' | 'court'>('validation');
+  const [adminDebtDraftType, setAdminDebtDraftType] = useState<'debt' | 'summons'>('debt');
+  const [adminDebtDraftName, setAdminDebtDraftName] = useState('');
+  const [adminDebtDraftAmount, setAdminDebtDraftAmount] = useState('');
+  const [adminDebtDraftCaseNo, setAdminDebtDraftCaseNo] = useState('');
+  const createAdminDebtCase = () => {
+    if (!partner || !adminDebtDraftName.trim()) return;
+    const amountCents = Math.max(0, Math.round(Number(adminDebtDraftAmount || 0) * 100) || 0);
+    const created = createDebtCase({
+      partnerId: partner.id,
+      type: adminDebtDraftType,
+      name: adminDebtDraftName.trim(),
+      amountCents,
+      courtCaseNumber: adminDebtDraftType === 'summons' ? adminDebtDraftCaseNo.trim() || undefined : undefined,
+    });
+    onDebtCaseCreated(created);
+    addAuditEvent({
+      partnerId: partner.id,
+      actorType: 'admin',
+      actorEmail,
+      action: 'debt.case_created',
+      entityType: 'debt_case',
+      entityId: created.id,
+      meta: { type: created.type, name: created.name, amountCents: created.amountCents },
+    });
+    setAdminDebtDraftName('');
+    setAdminDebtDraftAmount('');
+    setAdminDebtDraftCaseNo('');
+    setNotesVersion((v) => v + 1);
+  };
   const openPartnerTasks = useMemo(
     () => partnerTasks.filter((t) => t.status === 'pending' || t.status === 'in_progress'),
     [partnerTasks],
@@ -1187,7 +1224,7 @@ function PartnerDetailPageInner() {
     .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
     .slice(0, 12);
 
-  const stickyActiveKey: TabKey = tab === 'analysis' || tab === 'evidence' ? 'reports' : tab;
+  const stickyActiveKey: TabKey = tab;
 
   return (
     <EntityDetailShell
@@ -1217,24 +1254,6 @@ function PartnerDetailPageInner() {
           <div className={`${FINELY_OS_ENTITY_SUBLABEL} font-mono normal-case tracking-normal`}>partner_id: {partner.id}</div>
         </div>
       }
-      tabs={[
-        { key: 'overview', label: 'Overview', icon: <Layers size={12} className="inline mr-2" /> },
-        { key: 'profile', label: 'Profile', icon: <User size={12} className="inline mr-2" /> },
-        { key: 'reports', label: 'Reports', icon: <FileText size={12} className="inline mr-2" /> },
-        { key: 'analysis', label: 'Analysis Report', icon: <BarChart3 size={12} className="inline mr-2" /> },
-        { key: 'evidence', label: 'Evidence', icon: <ShieldAlert size={14} className="inline mr-2" /> },
-        { key: 'letters', label: 'Letters', icon: <PenLine size={14} className="inline mr-2" /> },
-        {
-          key: 'tasks',
-          label: partnerUnreadNotifs > 0 ? `Tasks (${partnerUnreadNotifs})` : 'Tasks',
-          icon: <ListChecks size={14} className="inline mr-2" />,
-        },
-        { key: 'notes', label: 'Notes', icon: <ScrollText size={14} className="inline mr-2" /> },
-        { key: 'debt', label: 'Debt Center', icon: <Scale size={14} className="inline mr-2" /> },
-      ]}
-      activeTabKey={tab}
-      useSidebarNav
-      onTabChange={(k) => setTabAndUrl(k as TabKey)}
       stickyBar={
         <div className="flex flex-wrap items-center justify-between gap-3">
           <span className={`text-xs ${FINELY_OS_ENTITY_BODY}`}>
@@ -1886,52 +1905,155 @@ function PartnerDetailPageInner() {
 
         {tab === 'debt' && (
           <div className="space-y-6">
-            <div className={`${finelyOsCatalogCard('violet')} !p-5`}>
-              <p className={FINELY_OS_ENTITY_SUBLABEL}>Debt & Summons cases</p>
-              <p className={FINELY_OS_ENTITY_BODY}>
-                This partner manages debt and summons cases in their portal. Here you see the list; they get validation requests, affidavits, summons answers (e.g. 35-day), and full legal basis at <strong className={FINELY_OS_ENTITY_VALUE}>Debt & Summons Center</strong>.
-              </p>
-              <a
-                href={`/portal/debt`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={`mt-4 inline-flex items-center gap-2 ${FINELY_OS_SECONDARY_BTN}`}
-              >
-                <ExternalLink size={14} /> Open Debt Center (partner view)
-              </a>
-            </div>
-            {debtCases.length === 0 ? (
-              <div className={FINELY_OS_ENTITY_EMPTY}>
-                No debt or summons cases for this partner yet. They can add cases from their portal (Debt & Summons Center).
+            <div className="rounded-[2rem] border border-violet-400/20 bg-gradient-to-br from-violet-500/15 via-white/[0.04] to-amber-500/10 p-6">
+              <div className="grid lg:grid-cols-12 gap-5 items-start">
+                <div className="lg:col-span-7">
+                  <p className={`${FINELY_OS_ENTITY_SUBLABEL} text-violet-200`}>Debt Center</p>
+                  <h2 className="mt-2 text-3xl md:text-4xl font-black text-white tracking-tight">
+                    Validation and affidavits live here now.
+                  </h2>
+                  <p className={`mt-3 max-w-3xl ${FINELY_OS_ENTITY_BODY}`}>
+                    Letters tab is for bureau disputes only. Debt Center handles collector validation, debt-buyer proof demands, affidavits, summons response strategy, SOL, licensing, chain of title, and accounting pressure.
+                  </p>
+                </div>
+                <div className="lg:col-span-5 grid sm:grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setAdminDebtLetterPath('validation')}
+                    className={`rounded-2xl border p-4 text-left transition ${
+                      adminDebtLetterPath === 'validation' ? 'border-amber-400/40 bg-amber-500/15' : 'border-white/10 bg-black/25 hover:bg-white/[0.04]'
+                    }`}
+                  >
+                    <div className="text-white font-black">Validation path</div>
+                    <div className="mt-2 text-xs text-white/55 leading-relaxed">Collectors, debt buyers, licensing, accounting, authority, reporting.</div>
+                    <div className="mt-3 text-[10px] uppercase tracking-widest text-amber-200">{validationLetters.length} saved</div>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setAdminDebtLetterPath('court')}
+                    className={`rounded-2xl border p-4 text-left transition ${
+                      adminDebtLetterPath === 'court' ? 'border-violet-400/40 bg-violet-500/15' : 'border-white/10 bg-black/25 hover:bg-white/[0.04]'
+                    }`}
+                  >
+                    <div className="text-white font-black">Affidavit path</div>
+                    <div className="mt-2 text-xs text-white/55 leading-relaxed">Summons, sworn record, burden of proof, SOL, no contract, standing.</div>
+                    <div className="mt-3 text-[10px] uppercase tracking-widest text-violet-200">{courtLetters.length} saved</div>
+                  </button>
+                </div>
               </div>
-            ) : (
-              <PartnerCompactGrid
-                items={debtCases}
-                initialShow={6}
-                columnsClassName="grid md:grid-cols-2 gap-3"
-                emptyMessage="No debt cases."
-                getKey={(d) => d.id}
-                renderItem={(d) => (
-                  <div key={d.id} className={`${finelyOsInlineListItem()} p-4 flex items-center justify-between gap-4`}>
-                    <div className="min-w-0">
-                      <div className={`${FINELY_OS_ENTITY_VALUE} truncate`}>{d.name}</div>
-                      <div className={`${FINELY_OS_ENTITY_SUBLABEL} mt-0.5`}>
-                        {(d.amountCents / 100).toLocaleString('en-US', { style: 'currency', currency: 'USD' })} · {d.type} · {d.status}
-                        {d.courtCaseNumber ? ` · ${d.courtCaseNumber}` : ''}
-                      </div>
-                    </div>
-                    <a
-                      href={`/portal/debt/${d.id}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className={`${FINELY_OS_SECONDARY_BTN} shrink-0 text-[10px]`}
-                    >
-                      View <ExternalLink size={12} />
-                    </a>
+            </div>
+
+            <div className={`${finelyOsCatalogCard(adminDebtLetterPath === 'validation' ? 'amber' : 'violet')} !p-5`}>
+              <div className="flex flex-wrap items-start justify-between gap-4">
+                <div>
+                  <p className={FINELY_OS_ENTITY_SUBLABEL}>
+                    {adminDebtLetterPath === 'validation' ? 'Validation builder' : 'Affidavit builder'}
+                  </p>
+                  <p className={`mt-2 text-lg font-semibold ${FINELY_OS_ENTITY_VALUE}`}>
+                    {adminDebtLetterPath === 'validation' ? 'Build collector/debt-buyer validation letters' : 'Build affidavits and court-response support letters'}
+                  </p>
+                  <p className={`mt-1 max-w-3xl ${FINELY_OS_ENTITY_BODY}`}>
+                    {adminDebtLetterPath === 'validation'
+                      ? 'Use this for FDCPA validation, licensing, ownership, authority, accounting, chain-of-title, and reporting proof demands.'
+                      : 'Use this for summons, affidavit of dispute, burden of proof, contract formation, SOL, and standing/authority responses.'}
+                  </p>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <button type="button" onClick={() => setAdminDebtLetterPath('validation')} className={adminDebtLetterPath === 'validation' ? FINELY_OS_PRIMARY_BTN : FINELY_OS_SECONDARY_BTN}>
+                    Validation
+                  </button>
+                  <button type="button" onClick={() => setAdminDebtLetterPath('court')} className={adminDebtLetterPath === 'court' ? FINELY_OS_PRIMARY_BTN : FINELY_OS_SECONDARY_BTN}>
+                    Affidavits
+                  </button>
+                </div>
+              </div>
+              <div className="mt-5">
+                <LettersCommandCenter
+                  partner={partner as any}
+                  layout="embedded"
+                  activeTab={adminDebtLetterPath}
+                  debtCenterMode
+                  onTabChange={(next) => {
+                    if (next === 'validation' || next === 'court') setAdminDebtLetterPath(next);
+                  }}
+                  onOpenVault={openSavedLetterVault}
+                  onOpenReports={() => setTabAndUrl('reports')}
+                  onOpenDebtCenter={() => setTabAndUrl('debt')}
+                  onRequestGrantEntitlements={(keys) => {
+                    ensurePartnerEntitlements({ partnerId: partner.id, keys: keys as any });
+                    setNotesVersion((v) => v + 1);
+                  }}
+                />
+              </div>
+            </div>
+
+            <div className={`${finelyOsCatalogCard('violet')} !p-5 space-y-4`}>
+              <div>
+                <p className={FINELY_OS_ENTITY_SUBLABEL}>Debt case context</p>
+                <p className={`mt-1 ${FINELY_OS_ENTITY_BODY}`}>Cases are context for drafting. Validation and affidavit production stays above.</p>
+              </div>
+              <div className="rounded-2xl border border-white/10 bg-black/25 p-4 space-y-3">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <p className={FINELY_OS_ENTITY_VALUE}>Add debt/summons context</p>
+                    <p className={`mt-1 text-sm ${FINELY_OS_ENTITY_BODY}`}>Create the case here so validation and affidavit drafts have a named collector/plaintiff context.</p>
                   </div>
-                )}
-              />
-            )}
+                  <button type="button" disabled={!adminDebtDraftName.trim()} onClick={createAdminDebtCase} className={FINELY_OS_PRIMARY_BTN}>
+                    <Plus size={14} /> Add case
+                  </button>
+                </div>
+                <div className="grid md:grid-cols-4 gap-3">
+                  <label className="block">
+                    <div className={FINELY_OS_ENTITY_SUBLABEL}>Type</div>
+                    <select value={adminDebtDraftType} onChange={(e) => setAdminDebtDraftType(e.target.value as any)} className={FINELY_OS_ENTITY_SELECT}>
+                      <option value="debt">Debt / collection</option>
+                      <option value="summons">Summons / court</option>
+                    </select>
+                  </label>
+                  <label className="block md:col-span-2">
+                    <div className={FINELY_OS_ENTITY_SUBLABEL}>Collector / plaintiff</div>
+                    <input value={adminDebtDraftName} onChange={(e) => setAdminDebtDraftName(e.target.value)} placeholder="e.g. Midland Credit, Portfolio Recovery" className={FINELY_OS_ENTITY_INPUT} />
+                  </label>
+                  <label className="block">
+                    <div className={FINELY_OS_ENTITY_SUBLABEL}>Amount</div>
+                    <input type="number" min={0} step="0.01" value={adminDebtDraftAmount} onChange={(e) => setAdminDebtDraftAmount(e.target.value)} placeholder="0" className={FINELY_OS_ENTITY_INPUT} />
+                  </label>
+                  {adminDebtDraftType === 'summons' ? (
+                    <label className="block md:col-span-2">
+                      <div className={FINELY_OS_ENTITY_SUBLABEL}>Court case number</div>
+                      <input value={adminDebtDraftCaseNo} onChange={(e) => setAdminDebtDraftCaseNo(e.target.value)} placeholder="optional" className={FINELY_OS_ENTITY_INPUT} />
+                    </label>
+                  ) : null}
+                </div>
+              </div>
+              {debtCases.length === 0 ? (
+                <div className={FINELY_OS_ENTITY_EMPTY}>
+                  No debt or summons cases for this partner yet.
+                </div>
+              ) : (
+                <PartnerCompactGrid
+                  items={debtCases}
+                  initialShow={6}
+                  columnsClassName="grid md:grid-cols-2 gap-3"
+                  emptyMessage="No debt cases."
+                  getKey={(d) => d.id}
+                  renderItem={(d) => (
+                    <div key={d.id} className={`${finelyOsInlineListItem()} p-4 flex items-center justify-between gap-4`}>
+                      <div className="min-w-0">
+                        <div className={`${FINELY_OS_ENTITY_VALUE} truncate`}>{d.name}</div>
+                        <div className={`${FINELY_OS_ENTITY_SUBLABEL} mt-0.5`}>
+                          {(d.amountCents / 100).toLocaleString('en-US', { style: 'currency', currency: 'USD' })} · {d.type} · {d.status}
+                          {d.courtCaseNumber ? ` · ${d.courtCaseNumber}` : ''}
+                        </div>
+                      </div>
+                      <span className="shrink-0 rounded-xl border border-white/10 bg-black/25 px-3 py-2 text-[10px] font-black uppercase tracking-widest text-white/45">
+                        Context
+                      </span>
+                    </div>
+                  )}
+                />
+              )}
+            </div>
           </div>
         )}
 
@@ -2270,11 +2392,11 @@ function PartnerDetailPageInner() {
               <summary className="cursor-pointer list-none flex flex-wrap items-end justify-between gap-3 [&::-webkit-details-marker]:hidden">
                 <div>
                   <p className={FINELY_OS_ENTITY_SUBLABEL}>Letters vault</p>
-                  <p className={`mt-2 ${FINELY_OS_ENTITY_BODY}`}>Saved dispute PDFs — open, mail, or review snapshots.</p>
+                  <p className={`mt-2 ${FINELY_OS_ENTITY_BODY}`}>Saved bureau dispute PDFs only — validation and affidavits live in Debt Center.</p>
                 </div>
-                {letters.length ? (
+                {disputeLetters.length ? (
                   <span className={`${FINELY_OS_ENTITY_CHIP} text-emerald-200 border-emerald-500/30 bg-emerald-500/10`}>
-                    {letters.length} saved
+                    {disputeLetters.length} saved
                   </span>
                 ) : null}
               </summary>
@@ -2352,24 +2474,24 @@ function PartnerDetailPageInner() {
                     }}
                   />
                 ) : null}
-                {letters.length > 0 ? (
+                {disputeLetters.length > 0 ? (
                   <div className="mt-4 grid md:grid-cols-4 gap-4">
-                    <KpiCard label="Letters" value={letters.length} hint="Total" tone="amber" />
+                    <KpiCard label="Disputes" value={disputeLetters.length} hint="Bureau letters" tone="amber" />
                     <KpiCard
                       label="PDFs"
-                      value={letters.filter((x) => Boolean((x as any).pdfBlobRef)).length}
+                      value={disputeLetters.filter((x) => Boolean((x as any).pdfBlobRef)).length}
                       hint="Stored"
                       tone="sky"
                     />
                     <KpiCard
                       label="Mailed"
-                      value={letters.filter((x) => String((x as any).status || '').toLowerCase() === 'mailed').length}
+                      value={disputeLetters.filter((x) => String((x as any).status || '').toLowerCase() === 'mailed').length}
                       hint="Workflow"
                       tone="emerald"
                     />
                     <KpiCard
                       label="Needs PDF"
-                      value={letters.filter((x) => !Boolean((x as any).pdfBlobRef)).length}
+                      value={disputeLetters.filter((x) => !Boolean((x as any).pdfBlobRef)).length}
                       hint="Not stored"
                       tone="violet"
                     />
@@ -2378,10 +2500,10 @@ function PartnerDetailPageInner() {
 
                 <div className="mt-4">
                   <PartnerCompactGrid
-                    items={letters}
+                    items={disputeLetters}
                     initialShow={4}
-                    columnsClassName="grid gap-4"
-                    emptyMessage="No letters generated yet. Save a PDF from the Letters studio above to see it here."
+                    columnsClassName="grid gap-3 sm:grid-cols-2 xl:grid-cols-3"
+                    emptyMessage="No bureau dispute letters generated yet. Validation and affidavits are now managed in Debt Center."
                     getKey={(l) => l.id}
                     renderItem={(l) => (
                       <SavedLetterCard

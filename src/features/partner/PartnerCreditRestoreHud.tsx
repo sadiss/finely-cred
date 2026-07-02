@@ -77,8 +77,8 @@ export function PartnerCreditRestoreHud({
     <div className={`${finelyOsCatalogCard('violet')} !p-5 space-y-5`}>
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <p className={`${FINELY_OS_ENTITY_SUBLABEL} text-fuchsia-300/90`}>Partner · Role OS 2.0</p>
-          <p className={`mt-2 text-lg font-semibold ${FINELY_OS_ENTITY_VALUE}`}>Where this partner is in the restore journey</p>
+          <p className={`${FINELY_OS_ENTITY_SUBLABEL} text-fuchsia-300/90`}>Restore command path</p>
+          <p className={`mt-2 text-lg font-semibold ${FINELY_OS_ENTITY_VALUE}`}>Credit repair workflow status</p>
           <p className={`mt-1 max-w-2xl ${FINELY_OS_ENTITY_BODY}`}>
             Follow the steps left to right — reports, analysis, evidence, then dispute letters. Tap any step to jump there.
           </p>

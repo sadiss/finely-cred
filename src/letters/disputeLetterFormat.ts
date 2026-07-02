@@ -1,6 +1,7 @@
 /** Shared dispute letter reason + demand formatting (PDF, preview, HTML). */
 
 export const MAX_DISPUTE_REASONS = 5;
+export const MIN_DISPUTE_REASONS = 3;
 export const DISPUTE_DELETE_NOW = 'DELETE NOW';
 
 export function sanitizeDisputeReasonText(text: string): string {

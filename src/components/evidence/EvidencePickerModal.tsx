@@ -42,11 +42,13 @@ export function EvidencePickerModal({
   reportId,
   items,
   selectedEvidenceId,
+  selectedEvidenceIds,
   filter = 'all',
   emptyHint,
   onGoCapture,
   pickLabel = 'Attach',
   onPick,
+  onPickMany,
   onUpsert,
   onDelete,
   onOpenFullVault,
@@ -63,11 +65,13 @@ export function EvidencePickerModal({
   reportId?: string;
   items: EvidenceItem[];
   selectedEvidenceId?: string;
+  selectedEvidenceIds?: string[];
   filter?: 'all' | 'screenshots';
   emptyHint?: string;
   onGoCapture?: () => void;
   pickLabel?: string;
   onPick?: (evidenceId: string) => void;
+  onPickMany?: (evidenceIds: string[]) => void;
   onUpsert: (item: EvidenceItem) => void;
   onDelete: (evidenceId: string) => void;
   onOpenFullVault?: () => void;
@@ -104,7 +108,7 @@ export function EvidencePickerModal({
   }, [baseItems, query, matchAccount, matchCandidateType, strictAccountMatch, showNonMatching]);
 
   const tryPick = (evidenceId: string) => {
-    if (!onPick) return;
+    if (!onPick && !onPickMany) return;
     const item = items.find((x) => x.id === evidenceId);
     if (matchAccount && item && strictAccountMatch) {
       const score = scoreEvidenceForAccount({
@@ -118,7 +122,14 @@ export function EvidencePickerModal({
       }
     }
     setErr(null);
-    onPick(evidenceId);
+    if (onPickMany) {
+      const current = new Set(selectedEvidenceIds ?? []);
+      if (current.has(evidenceId)) current.delete(evidenceId);
+      else current.add(evidenceId);
+      onPickMany(Array.from(current));
+      return;
+    }
+    onPick?.(evidenceId);
   };
 
   if (!open) return null;
@@ -248,7 +259,7 @@ export function EvidencePickerModal({
               <div className="space-y-3">
                 {filtered.map((e) => {
                   const busy = busyId === e.id;
-                  const selected = selectedEvidenceId === e.id;
+                  const selected = selectedEvidenceId === e.id || Boolean(selectedEvidenceIds?.includes(e.id));
                   const matchScore = matchAccount
                     ? scoreEvidenceForAccount({ accountName: matchAccount, candidateType: matchCandidateType, evidence: e })
                     : 1;
@@ -313,7 +324,7 @@ export function EvidencePickerModal({
                             title={canAttach ? 'Attach this evidence' : 'Screenshot does not match this account'}
                           >
                             <Paperclip size={14} />
-                            {pickLabel}
+                            {onPickMany && selected ? 'Remove' : pickLabel}
                           </button>
                         ) : null}
 

@@ -1430,6 +1430,8 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
     const roleParam = normalizeOnboardingRole(sp.get('role'));
     const skipRole = sp.get('skipRole') === '1' || sp.get('skip') === '1';
     const nextRaw = sp.get('next');
+    const emailParam = safeDecode(sp.get('email') || '').trim();
+    const isInvite = sp.get('invite') === '1';
     const attr = captureLeadAttributionFromUrl(location.search, location.pathname);
     if (attr) {
       const promoterRole = (attr.promoterRole || '').toLowerCase();
@@ -1462,12 +1464,10 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
     if (authParam === 'signup' || authParam === 'register') setAuthMode('signup');
     if (authParam === 'forgot' || authParam === 'reset') setAuthMode('forgot');
 
-    // Invite link: pre-fill + lock the email field so the user can't change it.
-    const inviteEmail = (sp.get('email') || '').trim();
-    const isInvite = sp.get('invite') === '1';
-    if (inviteEmail && isInvite) {
-      setLockedEmail(true);
-      setUserData((prev) => ({ ...prev, email: inviteEmail }));
+    if (emailParam && (location.pathname === '/signup' || authParam === 'signup' || isInvite)) {
+      setUserData((prev) => ({ ...prev, email: prev.email || emailParam }));
+      setLoginEmail((prev) => prev || emailParam);
+      setForgotEmail((prev) => prev || emailParam);
     }
 
     if (packageId) {
