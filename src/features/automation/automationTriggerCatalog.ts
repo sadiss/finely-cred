@@ -33,5 +33,6 @@ export const AUTOMATION_TRIGGER_CATALOG: TriggerCatalogEntry[] = [
   { id: 'course_lesson_agent', group: 'core', label: 'Course lesson agent run', description: 'Course editor lesson agent narrated + spawned checklist tasks.', sample: { type: 'course_lesson_agent_run' }, tier: 'live' },
   { id: 'task_overdue', group: 'partner', label: 'Task overdue', description: 'Task passed SLA due date.', sample: { type: 'task_overdue' }, tier: 'live' },
   { id: 'dispute_letter_mailed', group: 'partner', label: 'Dispute letter mailed', description: 'FCRA bureau window starts.', sample: { type: 'dispute_letter_mailed' }, tier: 'live' },
+  { id: 'bankruptcy_scenario_selected', group: 'partner', label: 'Bankruptcy path selected', description: 'Partner chose a liberation scenario on the bankruptcy hub.', sample: { type: 'bankruptcy_scenario_selected' }, tier: 'live' },
   { id: 'lead_scored', group: 'crm', label: 'Lead scored', description: 'ML fit score computed on capture.', sample: { type: 'lead_scored', minScore: 58, band: 'hot' }, tier: 'live' },
 ];

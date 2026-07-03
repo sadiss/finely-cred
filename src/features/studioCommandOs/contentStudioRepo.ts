@@ -44,10 +44,14 @@ function providerPlanFor(intake: ContentStudioIntake): ContentStudioJob['provide
 
   if (['video', 'course_lesson_video', 'tour_demo', 'testimonial_video', 'social_clip'].includes(intake.requestedAssetType)) {
     providers.push(
-      { provider: 'voice_studio', purpose: 'Narration, timing map, voice style, dubbing-ready audio', status: 'planned' },
+      { provider: 'voice_studio', purpose: 'Narration via Voice Studio (ElevenLabs/Cartesia)', status: 'planned' },
+      { provider: 'elevenlabs', purpose: 'Premium neural voice — clone-approved when configured', status: 'planned' },
       { provider: 'openai_images', purpose: 'Scene visuals, thumbnails, posters, storyboard frames', status: 'planned' },
+      { provider: 'gemini_multimodal', purpose: 'Research, transcript, and video understanding', status: 'planned' },
       { provider: 'ffmpeg', purpose: 'Final assembly, captions, render, poster extraction', status: 'planned' },
-      { provider: 'runway', purpose: 'Optional cinematic B-roll/video generation adapter', status: 'blocked' },
+      { provider: 'kling', purpose: 'Long-form cinematic clip adapter (API key required)', status: 'blocked' },
+      { provider: 'runway', purpose: 'Cinematic B-roll / motion adapter (API key required)', status: 'blocked' },
+      { provider: 'luma', purpose: 'Dream machine / scene motion adapter (API key required)', status: 'blocked' },
       { provider: 'heygen', purpose: 'Optional avatar/explainer adapter', status: 'blocked' },
     );
   }
@@ -181,6 +185,19 @@ export function updateContentStudioAsset(assetId: string, patch: Partial<Omit<Co
   }
   saveStore(store);
   return next;
+}
+
+export function deleteContentStudioAsset(assetId: string): boolean {
+  const store = loadStore();
+  const before = store.assets.length;
+  store.assets = store.assets.filter((a) => a.id !== assetId);
+  if (store.assets.length === before) return false;
+  store.jobs = store.jobs.map((j) => ({
+    ...j,
+    assetIds: j.assetIds.filter((id) => id !== assetId),
+  }));
+  saveStore(store);
+  return true;
 }
 
 export function clearContentStudioDemoData() {

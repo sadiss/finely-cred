@@ -6,6 +6,110 @@
 
 export const FINELY_OS_PAGE = 'space-y-4';
 
+/** Compact workspace density — default for portal tools, coaches, escalations. */
+export const FINELY_OS_COMPACT_PAGE = 'space-y-3';
+export const FINELY_OS_COMPACT_TEXTAREA =
+  'w-full rounded-xl border border-white/10 bg-black/35 px-3 py-2 text-sm text-white/90 placeholder:text-white/35 focus:outline-none focus:border-violet-400/50 resize-y min-h-[3.25rem]';
+export const FINELY_OS_COMPACT_INPUT =
+  'w-full max-w-md rounded-xl border border-white/10 bg-black/35 px-3 py-2 text-sm text-white/90 placeholder:text-white/35 focus:outline-none focus:border-violet-400/50';
+
+/** Constrain form fields in workstations — not full-bleed horizontal bars. */
+export const FINELY_OS_FIELD_WIDTH = 'max-w-md w-full';
+export const FINELY_OS_FIELD_WIDTH_SM = 'max-w-xs w-full';
+
+export const FINELY_OS_LETTER_CHIP_BTN =
+  'inline-flex items-center gap-1 rounded-lg border border-white/15 bg-white/5 px-2.5 py-1 text-[9px] font-black uppercase tracking-widest text-white/80 hover:bg-white/10 transition';
+
+/** Accent-colored glow borders on dark fields/tiles — visible without focus (no ivory fills). */
+export type FinelyOsGlowAccent = 'violet' | 'emerald' | 'fuchsia' | 'sky' | 'amber' | 'rose';
+
+const FINELY_OS_GLOW: Record<
+  FinelyOsGlowAccent,
+  { border: string; shadow: string; focus: string; hover: string; active: string }
+> = {
+  violet: {
+    border: 'border-violet-400/45',
+    shadow: 'shadow-[0_0_0_1px_rgba(139,92,246,0.22),0_0_14px_rgba(139,92,246,0.12)]',
+    focus: 'focus:border-violet-400/75 focus:shadow-[0_0_0_1px_rgba(139,92,246,0.38),0_0_20px_rgba(139,92,246,0.24)]',
+    hover: 'hover:border-violet-400/55 hover:shadow-[0_0_0_1px_rgba(139,92,246,0.3),0_0_16px_rgba(139,92,246,0.18)]',
+    active:
+      'border-violet-400/65 bg-violet-500/12 shadow-[0_0_0_1px_rgba(139,92,246,0.38),0_0_20px_rgba(139,92,246,0.22)] ring-1 ring-violet-400/25',
+  },
+  emerald: {
+    border: 'border-emerald-400/45',
+    shadow: 'shadow-[0_0_0_1px_rgba(52,211,153,0.22),0_0_14px_rgba(52,211,153,0.12)]',
+    focus: 'focus:border-emerald-400/75 focus:shadow-[0_0_0_1px_rgba(52,211,153,0.38),0_0_20px_rgba(52,211,153,0.24)]',
+    hover: 'hover:border-emerald-400/55 hover:shadow-[0_0_0_1px_rgba(52,211,153,0.3),0_0_16px_rgba(52,211,153,0.18)]',
+    active:
+      'border-emerald-400/65 bg-emerald-500/12 shadow-[0_0_0_1px_rgba(52,211,153,0.38),0_0_20px_rgba(52,211,153,0.22)] ring-1 ring-emerald-400/25',
+  },
+  fuchsia: {
+    border: 'border-fuchsia-400/45',
+    shadow: 'shadow-[0_0_0_1px_rgba(217,70,239,0.22),0_0_14px_rgba(217,70,239,0.12)]',
+    focus: 'focus:border-fuchsia-400/75 focus:shadow-[0_0_0_1px_rgba(217,70,239,0.38),0_0_20px_rgba(217,70,239,0.24)]',
+    hover: 'hover:border-fuchsia-400/55 hover:shadow-[0_0_0_1px_rgba(217,70,239,0.3),0_0_16px_rgba(217,70,239,0.18)]',
+    active:
+      'border-fuchsia-400/65 bg-fuchsia-500/12 shadow-[0_0_0_1px_rgba(217,70,239,0.38),0_0_20px_rgba(217,70,239,0.22)] ring-1 ring-fuchsia-400/25',
+  },
+  sky: {
+    border: 'border-sky-400/45',
+    shadow: 'shadow-[0_0_0_1px_rgba(56,189,248,0.22),0_0_14px_rgba(56,189,248,0.12)]',
+    focus: 'focus:border-sky-400/75 focus:shadow-[0_0_0_1px_rgba(56,189,248,0.38),0_0_20px_rgba(56,189,248,0.24)]',
+    hover: 'hover:border-sky-400/55 hover:shadow-[0_0_0_1px_rgba(56,189,248,0.3),0_0_16px_rgba(56,189,248,0.18)]',
+    active:
+      'border-sky-400/65 bg-sky-500/12 shadow-[0_0_0_1px_rgba(56,189,248,0.38),0_0_20px_rgba(56,189,248,0.22)] ring-1 ring-sky-400/25',
+  },
+  amber: {
+    border: 'border-amber-400/45',
+    shadow: 'shadow-[0_0_0_1px_rgba(251,191,36,0.22),0_0_14px_rgba(251,191,36,0.12)]',
+    focus: 'focus:border-amber-400/75 focus:shadow-[0_0_0_1px_rgba(251,191,36,0.38),0_0_20px_rgba(251,191,36,0.24)]',
+    hover: 'hover:border-amber-400/55 hover:shadow-[0_0_0_1px_rgba(251,191,36,0.3),0_0_16px_rgba(251,191,36,0.18)]',
+    active:
+      'border-amber-400/65 bg-amber-500/12 shadow-[0_0_0_1px_rgba(251,191,36,0.38),0_0_20px_rgba(251,191,36,0.22)] ring-1 ring-amber-400/25',
+  },
+  rose: {
+    border: 'border-rose-400/45',
+    shadow: 'shadow-[0_0_0_1px_rgba(251,113,133,0.22),0_0_14px_rgba(251,113,133,0.12)]',
+    focus: 'focus:border-rose-400/75 focus:shadow-[0_0_0_1px_rgba(251,113,133,0.38),0_0_20px_rgba(251,113,133,0.24)]',
+    hover: 'hover:border-rose-400/55 hover:shadow-[0_0_0_1px_rgba(251,113,133,0.3),0_0_16px_rgba(251,113,133,0.18)]',
+    active:
+      'border-rose-400/65 bg-rose-500/12 shadow-[0_0_0_1px_rgba(251,113,133,0.38),0_0_20px_rgba(251,113,133,0.22)] ring-1 ring-rose-400/25',
+  },
+};
+
+export function finelyOsGlowField(accent: FinelyOsGlowAccent = 'violet', extra = '') {
+  const g = FINELY_OS_GLOW[accent];
+  return [
+    'w-full rounded-xl border bg-black/35 px-3 py-2.5 text-sm text-white/90 placeholder:text-white/35 focus:outline-none transition-all',
+    g.border,
+    g.shadow,
+    g.focus,
+    extra,
+  ]
+    .filter(Boolean)
+    .join(' ');
+}
+
+export function finelyOsGlowTextarea(accent: FinelyOsGlowAccent = 'violet') {
+  return finelyOsGlowField(accent, 'resize-y min-h-[3.25rem]');
+}
+
+export function finelyOsGlowTile(accent: FinelyOsGlowAccent = 'violet', active = false) {
+  const g = FINELY_OS_GLOW[accent];
+  if (active) return `rounded-xl ${g.active} transition-all`;
+  return `rounded-xl border bg-black/25 ${g.border} ${g.shadow} ${g.hover} transition-all`;
+}
+
+export function finelyOsGlowKpi(accent: FinelyOsGlowAccent = 'violet') {
+  const g = FINELY_OS_GLOW[accent];
+  return `rounded-xl border bg-black/25 ${g.border} ${g.shadow} transition-all`;
+}
+
+export function finelyOsGlowPanel(accent: FinelyOsGlowAccent = 'violet') {
+  const g = FINELY_OS_GLOW[accent];
+  return `rounded-xl border bg-black/20 ${g.border} ${g.shadow} transition-all`;
+}
+
 const DARK_RING = 'ring-1 ring-inset ring-white/[0.08]';
 
 /** Workspace surfaces — accent catalog cards (light + dark via CSS vars) */
@@ -169,7 +273,7 @@ export const FINELY_OS_CATALOG_SHELL = FINELY_OS_GLASS_CATALOG;
 
 /** View tab strip (List / Calendar / Board) — workspace chrome */
 export const FINELY_OS_VIEW_TABS =
-  `fc-view-tabs ${FC_LIGHT_CHROME_STRIP} inline-flex flex-wrap gap-1 p-1`;
+  `fc-view-tabs ${FC_LIGHT_CHROME_STRIP} inline-flex flex-wrap gap-2 p-1.5`;
 
 export function finelyOsViewTab(active: boolean, accent: 'emerald' | 'violet' | 'sky' | 'fuchsia' | 'amber' = 'emerald') {
   const activeStyles = {
@@ -179,9 +283,15 @@ export function finelyOsViewTab(active: boolean, accent: 'emerald' | 'violet' | 
     fuchsia: 'bg-gradient-to-r from-fuchsia-600 to-violet-600 text-white shadow-md ring-1 ring-fuchsia-400/30',
     amber: 'bg-gradient-to-r from-amber-500 to-yellow-600 text-black shadow-md ring-1 ring-amber-400/40',
   };
-  return `inline-flex items-center justify-center gap-1.5 min-w-0 px-3 sm:px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wide whitespace-normal text-center leading-snug transition-all ${
+  return `inline-flex items-center justify-center gap-1.5 min-w-[6.5rem] px-4 sm:px-5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold normal-case tracking-normal whitespace-nowrap text-center leading-snug transition-all ${
     active ? activeStyles[accent] : 'text-white/55 hover:bg-white/[0.06] hover:text-white/90'
   }`;
+}
+
+/** Wider hub tabs for debt / letter studios with longer labels */
+export function finelyOsHubTab(active: boolean, accent: 'emerald' | 'violet' | 'sky' | 'fuchsia' | 'amber' | 'rose' = 'emerald') {
+  const mapped = accent === 'rose' ? 'fuchsia' : accent;
+  return `${finelyOsViewTab(active, mapped)} !min-w-[7.5rem] sm:!min-w-[8.5rem] px-5 sm:px-6`;
 }
 
 export type FinelyOsGlassAccent = 'violet' | 'emerald' | 'sky' | 'amber' | 'rose' | 'fuchsia';
@@ -481,7 +591,7 @@ export const FINELY_OS_COMPLIANCE_FOOTNOTE =
   'text-[10px] sm:text-xs text-white/40 leading-relaxed text-center max-w-3xl mx-auto';
 
 /** Public marketing — rich accent catalog surface (harmonizes with mesh + nested content). */
-export type FinelyOsPublicAccent = 'violet' | 'emerald' | 'amber' | 'fuchsia' | 'sky';
+export type FinelyOsPublicAccent = 'violet' | 'emerald' | 'amber' | 'fuchsia' | 'sky' | 'rose';
 
 const PUBLIC_ACCENT: Record<FinelyOsPublicAccent, string> = {
   violet: 'border-violet-500/25 bg-[radial-gradient(900px_280px_at_12%_0%,rgba(139,92,246,0.14)_0%,transparent_58%)] hover:border-violet-400/40',
@@ -489,10 +599,16 @@ const PUBLIC_ACCENT: Record<FinelyOsPublicAccent, string> = {
   amber: 'border-amber-500/25 bg-[radial-gradient(900px_280px_at_12%_0%,rgba(245,158,11,0.12)_0%,transparent_58%)] hover:border-amber-400/40',
   fuchsia: 'border-fuchsia-500/25 bg-[radial-gradient(900px_280px_at_12%_0%,rgba(217,70,239,0.12)_0%,transparent_58%)] hover:border-fuchsia-400/40',
   sky: 'border-sky-500/25 bg-[radial-gradient(900px_280px_at_12%_0%,rgba(14,165,233,0.12)_0%,transparent_58%)] hover:border-sky-400/40',
+  rose: 'border-rose-500/25 bg-[radial-gradient(900px_280px_at_12%_0%,rgba(244,63,94,0.12)_0%,transparent_58%)] hover:border-rose-400/40',
 };
 
 export function finelyOsCatalogCard(accent: FinelyOsPublicAccent = 'violet') {
   return `fc-accent-card fc-luxury-glass fc-pop-surface fc-light-readable fc-surface-harmony rounded-2xl border backdrop-blur-md p-6 lg:p-8 transition-all ${PUBLIC_ACCENT[accent]}`;
+}
+
+/** Accent catalog card at compact padding (!p-4) — default for workspace tools. */
+export function finelyOsCatalogCardCompact(accent: FinelyOsPublicAccent = 'violet') {
+  return `${finelyOsCatalogCard(accent)} !p-4`;
 }
 
 /** Glass shell helper — delegates to accent catalog cards (Part CT token unification). */

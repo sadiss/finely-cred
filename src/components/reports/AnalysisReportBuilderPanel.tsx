@@ -5,10 +5,10 @@ import { listReportsByPartner } from '../../data/reportsRepo';
 import { deriveDisputeCandidates } from '../../creditReports/disputeCandidates';
 import {
   buildAnalysisReportPreviewModel,
-  generateCreditAnalysisReportPdf,
   type AnalysisVariant,
   type CreditAnalysisReportTemplateConfig,
 } from '../../reports/generateCreditAnalysisReportPdf';
+import { generatePartnerCreditAnalysisReport } from '../../reports/generatePartnerCreditAnalysisReport';
 import { FINELY_TENANT_ID } from '../../domain/partners';
 import { createTemplateVaultItem, defaultRequiredEntitlementsForCategory } from '../../data/templateVaultRepo';
 import { getBlobStore } from '../../storage/getBlobStore';
@@ -123,13 +123,15 @@ export function AnalysisReportBuilderPanel({ partners, defaultPartnerId, compact
     setNotice(null);
     try {
       const candidates = deriveDisputeCandidates(selectedReport.parsed, selectedReport.id);
-      const { blob, filename, displayTitle, pages } = await generateCreditAnalysisReportPdf({
+      const generated = await generatePartnerCreditAnalysisReport({
         partner,
         report: selectedReport,
         candidates,
         variant,
         template: templateConfig,
       });
+      const { blob, filename, displayTitle, pages } = generated;
+      const payloadSnapshot = 'payloadSnapshot' in generated ? generated.payloadSnapshot : undefined;
       const store = getBlobStore();
       const put = await store.put(blob, { partnerId: partner.id, reportId: selectedReport.id, kind: 'analysis_report' });
       upsertCreditAnalysisReport({
@@ -141,6 +143,8 @@ export function AnalysisReportBuilderPanel({ partners, defaultPartnerId, compact
         sizeBytes: blob.size,
         pages,
         sourceReportFilename: selectedReport.filename,
+        engine: templateConfig?.engine === 'paginated_text' ? 'paginated_text' : 'premium_spreads',
+        payloadSnapshot: payloadSnapshot as Record<string, unknown> | undefined,
       });
       downloadBlob({ blob, filename });
       const emailResult = await notifyAnalysisReportReady({

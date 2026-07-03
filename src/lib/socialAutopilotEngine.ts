@@ -6,8 +6,10 @@ import {
   type SocialSopTemplate,
 } from '../domain/socialContentSop';
 import { resolveStaffOnDuty } from '../data/staffRoster';
+import { findStaff, staffFullName } from '../features/staffCommandCenter/staffRoster';
 import { queueSocialPost, listScheduledPosts, updateSocialPostStatus, type SocialScheduledPost } from '../data/socialHubRepo';
 import { loadJson, saveJson } from '../data/localJsonStore';
+import { applySocialDisclosure, evaluateDisclosureReview } from './socialDisclosureLayer';
 
 export type SocialAutopilotConfig = {
   enabled: boolean;
@@ -70,11 +72,14 @@ export function reviewSocialCaptionCompliance(caption: string, sop?: SocialSopTe
 }
 
 export function draftCaptionFromSop(sop: SocialSopTemplate): string {
-  const staff = resolveStaffOnDuty(sop.assignedRoleId);
-  const name = staff ? `${staff.firstName} ${staff.lastName}` : 'Finely Cred team';
+  const staff = sop.assignedStaffId
+    ? findStaff(sop.assignedStaffId)
+    : resolveStaffOnDuty(sop.assignedRoleId);
+  const name = staff ? staffFullName(staff) : 'Finely Cred team';
   const body = sop.bodyOutline.map((line) => `• ${line}`).join('\n');
   const tags = sop.requiredHashtags.join(' ');
-  return `${sop.hookFormula}\n\n${body}\n\n${sop.cta}\n\n${tags}\n\n— ${name}, Finely Cred · Results vary · Educational only · Not legal advice.`;
+  const base = `${sop.hookFormula}\n\n${body}\n\n${sop.cta}\n\n${tags}`;
+  return applySocialDisclosure(base, { staffId: staff?.id ?? sop.assignedStaffId, staffName: name });
 }
 
 export type SocialAutopilotRunResult = {
@@ -109,6 +114,12 @@ export function processSocialAutopilotTick(opts?: { dryRun?: boolean; force?: bo
     }
     const caption = draftCaptionFromSop(sop);
     const review = reviewSocialCaptionCompliance(caption, sop);
+    const staffId = sop.assignedStaffId ?? resolveStaffOnDuty(sop.assignedRoleId)?.id;
+    const disclosure = evaluateDisclosureReview({
+      caption,
+      assignedStaffId: staffId,
+      complianceStatus: review.ok ? 'approved' : 'needs_review',
+    });
     if (!review.ok && sop.approvalRequired) {
       complianceBlocked += 1;
       continue;
@@ -123,8 +134,9 @@ export function processSocialAutopilotTick(opts?: { dryRun?: boolean; force?: bo
       scheduledAt,
       platforms: sop.platforms,
       sopTemplateId: sop.id,
-      assignedStaffId: resolveStaffOnDuty(sop.assignedRoleId)?.id,
-      complianceStatus: review.ok ? 'approved' : 'needs_review',
+      assignedStaffId: staffId,
+      complianceStatus: review.ok && !disclosure.needsReview ? 'approved' : 'needs_review',
+      posterType: disclosure.posterType,
     });
     queued.push(post);
   }
@@ -177,13 +189,20 @@ export function queueSopPostNow(sopId: string): SocialScheduledPost | null {
   if (!sop) return null;
   const caption = draftCaptionFromSop(sop);
   const review = reviewSocialCaptionCompliance(caption, sop);
+  const staffId = sop.assignedStaffId ?? resolveStaffOnDuty(sop.assignedRoleId)?.id;
+  const disclosure = evaluateDisclosureReview({
+    caption,
+    assignedStaffId: staffId,
+    complianceStatus: review.ok ? 'approved' : 'needs_review',
+  });
   return queueSocialPost({
     caption,
     scheduledAt: new Date().toISOString(),
     platforms: sop.platforms,
     sopTemplateId: sop.id,
-    assignedStaffId: resolveStaffOnDuty(sop.assignedRoleId)?.id,
-    complianceStatus: review.ok ? 'approved' : 'needs_review',
+    assignedStaffId: staffId,
+    complianceStatus: review.ok && !disclosure.needsReview ? 'approved' : 'needs_review',
+    posterType: disclosure.posterType,
   });
 }
 

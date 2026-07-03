@@ -5,13 +5,16 @@ import { generateImages } from '../../lib/imageGenClient';
 import { downloadBlob, exportScenesToWebm } from '../../lib/mediaExport';
 import { aspectToSize, MEDIA_RENDER_PRESETS, type Aspect, type MediaProject } from '../../domain/mediaStudio';
 import { addAudioTrack, addRenderHistory, createMediaProject, deleteAudioTrack, deleteMediaProject, getMediaProject, listMediaProjects, patchScene, upsertMediaProject } from '../../data/mediaStudioRepo';
-import { upsertResourceVideo } from '../../data/resourceVideosRepo';
 import { getBlobStore } from '../../storage/getBlobStore';
+import { renderContentStudioNarration, scriptFromVideoPlan } from './contentStudioVoice';
+import { upsertResourceVideo } from '../../data/resourceVideosRepo';
 import { buildAiStoryboardPrompt, buildFallbackVideoPlan, convertPlanToMediaProject, normalizeVideoRequest, summarizePlan } from './mediaCommandBrain';
+import { CONTENT_STUDIO_CAPABILITIES, SUPER_VIDEO_TIERS } from './contentStudioPresets';
 import { deleteVideoCommandPlan, listMediaPromptHistory, listVideoCommandPlans, saveVideoCommandPlan } from './studioCommandRepo';
 import type { VideoCommandPlan, VideoCommandRequest } from './types';
 import { StudioActionDeck, StudioKpiCards, StudioSection } from './StudioKpiCards';
-import { saveContentStudioAsset } from './contentStudioRepo';
+import { saveContentStudioAsset, listContentStudioAssets, deleteContentStudioAsset } from './contentStudioRepo';
+import { ContentStudioVideoPreview } from './ContentStudioVideoPreview';
 
 function parseJson<T>(text: string): T | null {
   try {
@@ -63,6 +66,13 @@ export function GeminiStyleVideoCommand({ initialRequest }: { initialRequest?: P
   const [err, setErr] = useState<string | null>(null);
   const [activePlanId, setActivePlanId] = useState<string | null>(null);
   const [activeProjectId, setActiveProjectId] = useState<string | null>(null);
+  const [lastExport, setLastExport] = useState<{
+    blobRef: string;
+    filename: string;
+    title: string;
+    assetId?: string;
+    projectId: string;
+  } | null>(null);
   const [request, setRequest] = useState<VideoCommandRequest>(() =>
     normalizeVideoRequest({
       prompt: 'Make a 28-second Finely Cred commercial for business credit readiness in Dallas. It should feel premium, direct, and make people want to download the guide or book a consultation.',
@@ -79,6 +89,10 @@ export function GeminiStyleVideoCommand({ initialRequest }: { initialRequest?: P
   const plans = useMemo(() => listVideoCommandPlans(), [version]);
   const promptHistory = useMemo(() => listMediaPromptHistory(), [version]);
   const projects = useMemo(() => listMediaProjects(), [version]);
+  const videoAssets = useMemo(
+    () => listContentStudioAssets().filter((a) => a.assetType === 'video' && a.blobRef),
+    [version, lastExport?.assetId],
+  );
   const activePlan = useMemo(() => plans.find((p) => p.id === activePlanId) ?? plans[0] ?? null, [plans, activePlanId]);
   const activeProject = useMemo(() => (activeProjectId ? getMediaProject(activeProjectId) : projects[0]), [activeProjectId, projects, version]);
 
@@ -160,6 +174,35 @@ export function GeminiStyleVideoCommand({ initialRequest }: { initialRequest?: P
     } finally { setBusy(false); }
   }
 
+  async function generateNarrationFromPlan(plan: VideoCommandPlan) {
+    setBusy(true);
+    setErr(null);
+    setNotice(null);
+    try {
+      const script = scriptFromVideoPlan(plan);
+      const rendered = await renderContentStudioNarration({
+        contentId: plan.id,
+        title: plan.title,
+        script,
+        voiceDirection: 'Premium Finely Cred video narration — warm authority, compliance-safe.',
+      });
+      if (activeProject) {
+        addAudioTrack(activeProject.id, {
+          kind: 'voiceover',
+          title: `${plan.title} narration`,
+          blobRef: rendered.blobRef,
+          volume: 0.9,
+        });
+        setVersion((v) => v + 1);
+      }
+      setNotice('Narration rendered and saved. Attach to a media project or export with voiceover mixed in.');
+    } catch (e: any) {
+      setErr(e?.message || 'Narration render failed.');
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function exportProject(project: MediaProject) {
     setBusy(true); setErr(null); setNotice(null);
     try {
@@ -192,7 +235,7 @@ export function GeminiStyleVideoCommand({ initialRequest }: { initialRequest?: P
         tags: ['content-studio', project.aspect, project.stylePreset],
         isPublic: false,
       });
-      saveContentStudioAsset({
+      const asset = saveContentStudioAsset({
         title: project.title,
         assetType: 'video',
         status: 'needs_review',
@@ -203,8 +246,9 @@ export function GeminiStyleVideoCommand({ initialRequest }: { initialRequest?: P
         complianceNotes: ['Resource video is private by default. Review copy, claims, captions, and target page before publishing.'],
       });
       addRenderHistory(project.id, { presetId: preset.id, filename, blobRef: ref, note: 'Content Studio export + private Resource video' });
+      setLastExport({ blobRef: ref, filename, title: project.title, assetId: asset.id, projectId: project.id });
       setVersion((v) => v + 1);
-      setNotice('Video exported, saved to Content Studio assets, and added to Resources as a private video.');
+      setNotice('Video rendered — preview below. Approve, publish, or delete from your library.');
     } catch (e: any) { setErr(e?.message || 'Export failed.'); }
     finally { setBusy(false); }
   }
@@ -229,6 +273,119 @@ export function GeminiStyleVideoCommand({ initialRequest }: { initialRequest?: P
 
   return (
     <div className="space-y-6">
+      {lastExport ? (
+        <div className="rounded-[2rem] border border-emerald-400/30 bg-gradient-to-br from-emerald-500/10 via-black/40 to-violet-500/10 p-5 md:p-6 space-y-4">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <div className="text-[10px] uppercase tracking-[0.2em] text-emerald-300 font-black">Just rendered</div>
+              <h3 className="mt-1 text-xl font-black text-white">{lastExport.title}</h3>
+              <p className="mt-1 text-sm text-white/55">{lastExport.filename} · saved to assets + private resources</p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                className="fc-button-soft"
+                onClick={() => {
+                  void (async () => {
+                    const b = await getBlobStore().get(lastExport.blobRef);
+                    if (b) downloadBlob(b, lastExport.filename);
+                  })();
+                }}
+              >
+                <Download size={14} /> Download again
+              </button>
+              <button
+                type="button"
+                className="fc-button-soft"
+                onClick={() => {
+                  if (lastExport.assetId) deleteContentStudioAsset(lastExport.assetId);
+                  setLastExport(null);
+                  setVersion((v) => v + 1);
+                  setNotice('Removed from Content Studio assets.');
+                }}
+              >
+                <Trash2 size={14} /> Delete asset
+              </button>
+            </div>
+          </div>
+          <ContentStudioVideoPreview blobRef={lastExport.blobRef} />
+          <div className="flex flex-wrap gap-2 text-[10px] uppercase tracking-widest text-white/45">
+            <span className="rounded-full border border-white/10 px-3 py-1">Next: approve in Assets workroom</span>
+            <span className="rounded-full border border-white/10 px-3 py-1">Publish to Resources</span>
+            <span className="rounded-full border border-white/10 px-3 py-1">Attach to course or lead magnet</span>
+          </div>
+        </div>
+      ) : null}
+
+      {videoAssets.length > 0 ? (
+        <StudioSection eyebrow="Your videos" title={`${videoAssets.length} rendered video(s)`}>
+          <div className="grid gap-4 md:grid-cols-2">
+            {videoAssets.slice(0, 6).map((a) => (
+              <div key={a.id} className="rounded-3xl border border-white/10 bg-black/30 p-4 space-y-3">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="text-white font-bold truncate">{a.title}</div>
+                  <button
+                    type="button"
+                    className="text-white/35 hover:text-rose-300"
+                    onClick={() => {
+                      deleteContentStudioAsset(a.id);
+                      if (lastExport?.assetId === a.id) setLastExport(null);
+                      setVersion((v) => v + 1);
+                    }}
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+                {a.blobRef ? <ContentStudioVideoPreview blobRef={a.blobRef} /> : null}
+                <div className="text-[10px] uppercase tracking-widest text-white/40">{a.status} · {a.provider || 'render'}</div>
+              </div>
+            ))}
+          </div>
+        </StudioSection>
+      ) : null}
+
+      <div className="rounded-[2rem] border border-amber-400/25 bg-gradient-to-br from-amber-500/14 via-violet-500/8 to-black/40 p-5 md:p-7 space-y-5">
+        <div>
+          <div className="text-[10px] uppercase tracking-[0.28em] text-amber-200 font-black">Super video generator</div>
+          <h2 className="mt-2 text-2xl md:text-3xl font-black text-white tracking-tight">Type once — storyboard, scenes, visuals, voice, captions, export</h2>
+          <p className="mt-2 text-sm text-white/60 max-w-3xl">Gemini-style planning, image scene generation, ElevenLabs voice upload path, and WebM export. Pick a tier or customize duration up to 3 minutes.</p>
+        </div>
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          {SUPER_VIDEO_TIERS.map((tier) => (
+            <button
+              key={tier.id}
+              type="button"
+              onClick={() =>
+                setRequest((r) =>
+                  normalizeVideoRequest({
+                    ...r,
+                    durationSec: tier.durationSec,
+                    aspect: tier.aspect,
+                    intent: tier.intent,
+                  }),
+                )
+              }
+              className={`rounded-2xl border p-4 text-left transition ${
+                request.durationSec === tier.durationSec && request.aspect === tier.aspect
+                  ? 'border-amber-400/50 bg-amber-500/12'
+                  : 'border-white/10 bg-white/[0.04] hover:bg-white/[0.07]'
+              }`}
+            >
+              <div className="text-white font-black">{tier.label}</div>
+              <div className="mt-1 text-xs text-white/45">{tier.hint}</div>
+            </button>
+          ))}
+        </div>
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          {CONTENT_STUDIO_CAPABILITIES.map((cap) => (
+            <div key={cap.label} className="rounded-2xl border border-white/10 bg-black/25 px-4 py-3">
+              <div className="text-xs font-black uppercase tracking-widest text-amber-200">{cap.label}</div>
+              <div className="mt-1 text-xs text-white/50">{cap.hint}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
       <StudioKpiCards items={kpis} />
       {err && <div className="rounded-3xl border border-rose-500/30 bg-rose-500/10 p-4 text-rose-100 text-sm">{err}</div>}
       {notice && <div className="rounded-3xl border border-emerald-500/30 bg-emerald-500/10 p-4 text-emerald-100 text-sm inline-flex gap-3"><CheckCircle2 size={18} />{notice}</div>}
@@ -246,7 +403,7 @@ export function GeminiStyleVideoCommand({ initialRequest }: { initialRequest?: P
             placeholder="Example: Create a 28-second business credit guide video for Houston business owners. Make it premium, urgent but compliant, with a strong CTA to download the e-guide."
           />
           <div className="grid md:grid-cols-3 xl:grid-cols-6 gap-3">
-            <label className="block"><div className="text-[10px] uppercase tracking-widest text-white/40">Duration</div><input type="number" value={request.durationSec} min={6} max={90} onChange={(e) => setRequest((r) => ({ ...r, durationSec: Number(e.target.value) || 28 }))} className="fc-input mt-2" /></label>
+            <label className="block"><div className="text-[10px] uppercase tracking-widest text-white/40">Duration</div><input type="number" value={request.durationSec} min={6} max={180} onChange={(e) => setRequest((r) => ({ ...r, durationSec: Number(e.target.value) || 28 }))} className="fc-input mt-2" /></label>
             <label className="block"><div className="text-[10px] uppercase tracking-widest text-white/40">Aspect</div><select value={request.aspect} onChange={(e) => setRequest((r) => ({ ...r, aspect: e.target.value as Aspect }))} className="mt-2 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-3 text-sm text-white/80"><option value="9:16">9:16 Reels/Shorts</option><option value="16:9">16:9 YouTube</option><option value="1:1">1:1 Square</option></select></label>
             <label className="block"><div className="text-[10px] uppercase tracking-widest text-white/40">Intent</div><select value={request.intent} onChange={(e) => setRequest((r) => ({ ...r, intent: e.target.value as any }))} className="mt-2 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-3 text-sm text-white/80"><option value="lead_magnet_ad">Lead magnet ad</option><option value="business_credit_education">Business credit education</option><option value="tradeline_explainer">Tradeline explainer</option><option value="funding_readiness">Funding readiness</option><option value="recruiting_ad">Recruiting ad</option><option value="authority_clip">Authority clip</option><option value="event_promo">Event promo</option></select></label>
             <label className="block"><div className="text-[10px] uppercase tracking-widest text-white/40">Visual style</div><select value={request.visualStyle} onChange={(e) => setRequest((r) => ({ ...r, visualStyle: e.target.value as any }))} className="mt-2 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-3 text-sm text-white/80"><option value="luxury">Luxury</option><option value="cinematic">Cinematic</option><option value="modern">Modern</option><option value="bold">Bold</option><option value="minimal">Minimal</option></select></label>
@@ -272,13 +429,18 @@ export function GeminiStyleVideoCommand({ initialRequest }: { initialRequest?: P
       </StudioSection>
 
       {activePlan ? (
-        <StudioSection eyebrow="active storyboard" title={activePlan.title} right={<button className="fc-button-brand" type="button" onClick={() => createProjectFromPlan(activePlan)}><Plus size={14} /> Build media project</button>}>
-          <div className="grid lg:grid-cols-3 gap-4">
+        <StudioSection eyebrow="active storyboard" title={activePlan.title} right={
+          <div className="flex flex-wrap gap-2">
+            <button type="button" className="fc-button-soft" onClick={() => void generateNarrationFromPlan(activePlan)} disabled={busy}><Mic2 size={14} /> Render narration</button>
+            <button className="fc-button-brand" type="button" onClick={() => createProjectFromPlan(activePlan)}><Plus size={14} /> Build media project</button>
+          </div>
+        }>
+          <div className="grid gap-4">
             <div className="rounded-3xl border border-white/10 bg-white/[0.035] p-5"><div className="text-[10px] uppercase tracking-widest text-white/40">Hook</div><div className="mt-3 text-white font-semibold leading-relaxed">{activePlan.hook}</div></div>
             <div className="rounded-3xl border border-white/10 bg-white/[0.035] p-5"><div className="text-[10px] uppercase tracking-widest text-white/40">CTA</div><div className="mt-3 text-white font-semibold leading-relaxed">{activePlan.cta}</div></div>
             <div className="rounded-3xl border border-white/10 bg-white/[0.035] p-5"><div className="text-[10px] uppercase tracking-widest text-white/40">Safety</div><div className="mt-3 text-white font-semibold leading-relaxed">{activePlan.complianceFlags.join(', ') || 'Review required'}</div></div>
           </div>
-          <div className="grid lg:grid-cols-2 gap-4">
+          <div className="space-y-4">
             {activePlan.scenes.map((s, idx) => (
               <div key={s.id} className="rounded-3xl border border-white/10 bg-black/35 p-5 space-y-3">
                 <div className="flex items-center justify-between gap-3"><div className="text-amber-200 font-black">Scene {idx + 1}</div><div className="text-white/40 text-xs font-mono">{s.durationSec}s</div></div>

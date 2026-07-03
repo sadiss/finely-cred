@@ -17,7 +17,7 @@ export type DisputeCaseItem = {
 };
 
 export type DisputeCaseRound = {
-  round: 'Round 1' | 'Round 2' | 'Round 3';
+  round: 'Round 1' | 'Round 2' | 'Round 3' | 'Round 4';
   tone: 'formal' | 'neutral' | 'conversational';
   createdAt: string;
   /**
@@ -31,6 +31,10 @@ export type DisputeCaseRound = {
   status?: import('./disputeWorkflow').DisputeRoundStatus;
   mailedAt?: string;
   responseReceivedAt?: string;
+  /** Evidence vault ID for uploaded bureau/collector response mail */
+  responseEvidenceId?: string;
+  /** Logged bureau response outcome for playbook routing */
+  responseOutcome?: import('./disputeRoundResponsePlaybook').ResponseOutcome;
 };
 
 export type DisputeCase = {

@@ -323,7 +323,7 @@ export function LoopingTypingHeader({ phrases, className = "" }: LoopingTypingHe
 // --- FLASHY ICON ---
 interface FlashyIconProps {
   icon: React.ComponentType<any>;
-  color?: 'amber' | 'gold' | 'platinum' | 'green' | 'emerald' | 'red' | 'blue' | 'violet' | 'fuchsia' | 'sky' | 'cyan';
+  color?: 'amber' | 'gold' | 'platinum' | 'green' | 'emerald' | 'red' | 'rose' | 'blue' | 'violet' | 'fuchsia' | 'sky' | 'cyan';
   size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
   className?: string;
 }
@@ -375,6 +375,12 @@ export function FlashyIcon({ icon: IconComponent, color = 'amber', size = 'md', 
       aura: 'bg-emerald-400/30',
     },
     red: {
+      shell: 'border-rose-300/55 bg-gradient-to-br from-rose-300/28 via-rose-500/12 to-black/20',
+      glow: 'shadow-[0_0_42px_-8px_rgba(244,63,94,0.66),inset_0_1px_0_rgba(255,255,255,0.20)]',
+      icon: 'text-rose-200',
+      aura: 'bg-rose-400/30',
+    },
+    rose: {
       shell: 'border-rose-300/55 bg-gradient-to-br from-rose-300/28 via-rose-500/12 to-black/20',
       glow: 'shadow-[0_0_42px_-8px_rgba(244,63,94,0.66),inset_0_1px_0_rgba(255,255,255,0.20)]',
       icon: 'text-rose-200',

@@ -11,9 +11,30 @@ function nowIso() {
   return new Date().toISOString();
 }
 
+function normalizeAutomationRule(rule: AutomationRule): AutomationRule {
+  const now = nowIso();
+  return {
+    ...rule,
+    name: rule.name || 'Untitled automation',
+    enabled: Boolean(rule.enabled),
+    createdAt: rule.createdAt || now,
+    updatedAt: rule.updatedAt || rule.createdAt || now,
+    trigger: rule.trigger ?? { type: 'manual' },
+    conditions: Array.isArray(rule.conditions) && rule.conditions.length ? rule.conditions : [{ type: 'always' }],
+    actions:
+      Array.isArray(rule.actions) && rule.actions.length
+        ? rule.actions
+        : [{ type: 'notify_admin', title: 'Automation fired', body: 'Review and configure actions.' }],
+  };
+}
+
 function loadStore(): Store {
   const raw = loadJson<Store>(KEY, { rules: [], runs: [], enrollments: [] }, 1);
-  return { rules: raw.rules ?? [], runs: raw.runs ?? [], enrollments: raw.enrollments ?? [] };
+  return {
+    rules: (raw.rules ?? []).map(normalizeAutomationRule),
+    runs: raw.runs ?? [],
+    enrollments: raw.enrollments ?? [],
+  };
 }
 
 function saveStore(store: Store, opts?: { skipSync?: boolean }) {
@@ -410,7 +431,9 @@ export function ensureAutomationRuleDefaultsOnce() {
 
 export function listAutomationRules(): AutomationRule[] {
   ensureAutomationRuleDefaultsOnce();
-  return loadStore().rules.slice().sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
+  return loadStore()
+    .rules.slice()
+    .sort((a, b) => String(b.updatedAt ?? '').localeCompare(String(a.updatedAt ?? '')));
 }
 
 export function getAutomationRule(id: string): AutomationRule | null {
@@ -440,13 +463,16 @@ export function setAutomationRuleEnabled(id: string, enabled: boolean): Automati
 }
 
 export function listAutomationRuns(limit = 80): AutomationRunLog[] {
-  return loadStore().runs.slice().sort((a, b) => b.startedAt.localeCompare(a.startedAt)).slice(0, Math.max(1, limit));
+  return loadStore()
+    .runs.slice()
+    .sort((a, b) => String(b.startedAt ?? '').localeCompare(String(a.startedAt ?? '')))
+    .slice(0, Math.max(1, limit));
 }
 
 export function addAutomationRun(run: AutomationRunLog): AutomationRunLog {
   const store = loadStore();
   store.runs.push(run);
-  store.runs = store.runs.slice().sort((a, b) => b.startedAt.localeCompare(a.startedAt)).slice(0, 800);
+  store.runs = store.runs.slice().sort((a, b) => String(b.startedAt ?? '').localeCompare(String(a.startedAt ?? ''))).slice(0, 800);
   saveStore(store);
   return run;
 }
@@ -463,7 +489,9 @@ export function deleteAutomationRule(id: string): boolean {
 
 export function listAutomationEnrollments(ruleId?: string): AutomationEnrollment[] {
   ensureAutomationRuleDefaultsOnce();
-  const all = loadStore().enrollments.slice().sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
+  const all = loadStore()
+    .enrollments.slice()
+    .sort((a, b) => String(b.updatedAt ?? '').localeCompare(String(a.updatedAt ?? '')));
   return ruleId ? all.filter((e) => e.ruleId === ruleId) : all;
 }
 

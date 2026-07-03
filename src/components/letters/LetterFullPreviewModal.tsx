@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { FileText, Image as ImageIcon, ScrollText, X } from 'lucide-react';
 import type { LetterRecord, DisputeLetterMeta } from '../../domain/letters';
 import type { EvidenceItem } from '../../domain/evidence';
@@ -13,6 +14,7 @@ import {
   FINELY_OS_ENTITY_VALUE,
   FINELY_OS_SECONDARY_BTN,
   finelyOsCatalogCard,
+  finelyOsDeckTile,
 } from '../../features/os/finelyOsLightUi';
 
 function EvidencePreviewThumb({ ev }: { ev: EvidenceItem }) {
@@ -41,7 +43,7 @@ function EvidencePreviewThumb({ ev }: { ev: EvidenceItem }) {
         if (!ev.blobRef) return;
         void openBlobRefInNewTab({ blobRef: ev.blobRef, mimeType: ev.mimeType, preferSigned: true });
       }}
-      className="group rounded-2xl border border-white/10 bg-black/30 overflow-hidden text-left hover:border-sky-400/35 transition-all"
+      className="group rounded-2xl border border-white/10 bg-black/30 overflow-hidden text-left hover:border-fuchsia-400/35 transition-all"
     >
       <div className="aspect-[4/3] bg-gradient-to-br from-slate-900 to-black flex items-center justify-center overflow-hidden">
         {url && isImage ? (
@@ -107,11 +109,11 @@ export function LetterFullPreviewModal({
     };
   }, [hasPdf, letter.pdfBlobRef, tab]);
 
-  return (
-    <div className="fixed inset-0 z-[2100] isolate flex items-center justify-center p-3 sm:p-4">
+  return createPortal(
+    <div className="fixed inset-0 z-[9000] isolate flex items-center justify-center p-3 sm:p-4">
       <div className="absolute inset-0 bg-black/90 backdrop-blur-md" onClick={onClose} />
-      <div className="relative z-[2101] flex w-full max-w-6xl max-h-[94vh] flex-col overflow-hidden rounded-[1.75rem] border border-white/12 bg-[#070b10] shadow-[0_40px_120px_-40px_rgba(0,0,0,0.95)]">
-        <div className="shrink-0 border-b border-white/10 px-4 py-4 sm:px-6 flex flex-wrap items-start justify-between gap-3">
+      <div className="relative z-[1] flex w-full max-w-6xl max-h-[94vh] flex-col overflow-hidden rounded-[1.75rem] border border-fuchsia-400/20 bg-[#070b10] shadow-[0_40px_120px_-40px_rgba(0,0,0,0.95)]">
+        <div className="shrink-0 border-b border-white/10 px-4 py-4 sm:px-6 flex flex-wrap items-start justify-between gap-3 bg-[radial-gradient(900px_360px_at_5%_0%,rgba(217,70,239,0.15),transparent_60%),linear-gradient(180deg,#120a18_0%,#070b10_100%)]">
           <div className="min-w-0">
             <div className={FINELY_OS_ENTITY_SUBLABEL}>Generated letter — full view</div>
             <div className={`text-lg sm:text-xl font-black truncate ${FINELY_OS_ENTITY_VALUE}`}>{letter.title}</div>
@@ -128,7 +130,7 @@ export function LetterFullPreviewModal({
               type="button"
               onClick={() => setTab('full')}
               className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border text-[10px] font-black uppercase tracking-widest ${
-                tab === 'full' ? 'border-violet-400/40 bg-violet-500/15 text-violet-100' : 'border-white/10 text-white/55'
+                tab === 'full' ? 'border-fuchsia-400/40 bg-fuchsia-500/15 text-fuchsia-100' : 'border-white/10 text-white/55'
               }`}
             >
               <ScrollText size={12} /> Full letter
@@ -160,7 +162,7 @@ export function LetterFullPreviewModal({
           ) : (
             <>
               {exhibitItems.length > 0 ? (
-                <div className={`${finelyOsCatalogCard('sky')} !p-4 space-y-3`}>
+                <div className={`${finelyOsCatalogCard('fuchsia')} !p-4 space-y-3`}>
                   <div className={FINELY_OS_ENTITY_SUBLABEL}>Attached screenshots & exhibits</div>
                   <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
                     {exhibitItems.map((ev) => (
@@ -171,7 +173,7 @@ export function LetterFullPreviewModal({
               ) : null}
 
               {reasonBlocks.length > 0 ? (
-                <div className={`${finelyOsCatalogCard('emerald')} !p-4 space-y-3`}>
+                <div className={`${finelyOsDeckTile('emerald')} !min-h-0 p-4 space-y-3`}>
                   <div className={FINELY_OS_ENTITY_SUBLABEL}>Dispute reasons by item</div>
                   <div className="grid sm:grid-cols-2 gap-3">
                     {reasonBlocks.map((block, i) => (
@@ -189,10 +191,10 @@ export function LetterFullPreviewModal({
               ) : null}
 
               {letter.body ? (
-                <div className="rounded-2xl border border-white/10 bg-[#0c1018] p-4 sm:p-6 shadow-inner">
-                  <div className="mx-auto max-w-3xl rounded-xl border border-slate-200/20 bg-[#111827] p-5 sm:p-8 shadow-xl">
+                <div className="rounded-2xl border border-fuchsia-400/15 bg-[#0c1018] p-4 sm:p-6 shadow-inner">
+                  <div className="mx-auto max-w-3xl rounded-xl border border-slate-200/20 bg-white p-5 sm:p-8 shadow-xl">
                     <div
-                      className="prose prose-invert prose-sm max-w-none leading-relaxed letter-preview-snapshot"
+                      className="prose prose-sm max-w-none leading-relaxed text-slate-900 letter-preview-snapshot"
                       dangerouslySetInnerHTML={{ __html: sanitizeHtmlForPreview(letter.body) }}
                     />
                   </div>
@@ -204,6 +206,7 @@ export function LetterFullPreviewModal({
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

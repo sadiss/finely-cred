@@ -1,0 +1,64 @@
+STATE OF {{AFFIDAVIT_STATE}}
+IN {{COURT_NAME}}
+
+{{PLAINTIFF_NAME}},
+ 
+	Plaintiff,					Case No. {{CASE_NUMBER}}
+							HON. {{JUDGE_NAME}}
+-vs-								
+MOTION TO COMPEL DISCOVERY
+{{DEBTOR_NAME}},
+
+Defendant.
+_____________________________________________________________________________/
+{{PLAINTIFF_LAW_FIRM}}				{{DEBTOR_NAME}}
+{{PLAINTIFF_ATTORNEY}} ({{PLAINTIFF_ATTORNEY_BAR}})		Defendant, Pro Se
+Attorneys for Plaintiff				{{DEBTOR_ADDRESS_BLOCK}}
+{{PLAINTIFF_LAW_FIRM_ADDRESS}}
+____________________________________________________________________________/
+
+PRELIMINARY STATEMENT AS TO NO STATED CLAIM
+In violation of the Fair Debt Collection Practices Act (“FDCPA”) and applicable state collection practices acts, Plaintiff is suing {{DEBTOR_NAME}} for an ACCOUNT STATED with no agreement between {{PLAINTIFF_NAME}} and with no payment made on the debt by Defendant to the debt collector, {{PLAINTIFF_LAW_FIRM}}, for there to be an Account Stated Claim. The debt may not be owned by {{PLAINTIFF_NAME}} and may be located in a secured trust. Please see Exhibit 1 which is Defendant’s letter to {{PLAINTIFF_NAME}} for supplementation of its Responses to {{DEBTOR_NAME}}’s Discovery Requests regarding the securitization of the debt and why {{PLAINTIFF_NAME}} calls itself a debt collector if it owns the debt. 
+
+Plaintiff responded with a letter and an acknowledgement of the securitization process and that the debt was in a secured trust. Please see Citibank’s responses at its letter at Exhibit 2.
+The issue is Citibank’s refusal to provide proof of the assignments from Citibank to the Securitized Trust and then producing an assignment from the Securitized Trust back to Citibank so show it has a right to sue on the debt. See Exhibit 3 letter from Defendant following up on a request for those assignments in a second request for supplementation. Citibank has now ignored this simple and relevant request. 
+Citibank is claiming to be a debt collector in the lawsuit by placing what is called the mini-Miranda on the lawsuit when if it was a creditor only, it would not have to place the fact that they are collecting a debt on any collection communication.  See the Citibank Summons and Complaint at Exhibit 4 that on all pages, identifies the only party in the case, Citibank as a debt collector:
+
+ 
+See Citibank Summons and Complaint at Exhibit 4. 
+ A debt collector is not allowed to put “This is a communication from a debt collector. We are attempting to collect a debt and any information obtained will be used for that purpose” on the Summons and Complaint according to Federal law under the FDCPA. 15USC 1692e (11) states:
+(11)The failure to disclose in the initial written communication with the consumer and, in addition, if the initial communication with the consumer is oral, in that initial oral communication, that the debt collector is attempting to collect a debt and that any information obtained will be used for that purpose, and the failure to disclose in subsequent communications that the communication is from a debt collector, except that this paragraph shall not apply to a formal pleading made in connection with a legal action.
+
+However, clearly Citibank knows it is collecting for a third party or a secured trust as that is what a debt collector does. Creditors collect only for themselves and don’t collect for a third-party.
+Given the admissions of Citibank on the lawsuit and that the debt was securitized (Exhibit 2), Citibank must provide the assignments of the debt from Citibank to the Secured Trust and from the Secured Trust to Citibank (if that actually happened as Citibank states in it letter at Exhibit 2) in order to be able to sue Ms. Debtor for the securitized debt. 
+If Citibank can’t supply the assignments as requested in discovery and proof of standing, this case should be dismissed by default under our discovery rules. Thank you.
+MOTION TO COMPEL
+NOW COMES the Defendant, {{DEBTOR_NAME}}, pro se, and submits this Motion to Compel discovery based on applicable court rules by stating as follows:
+Defendant sent Plaintiff a request to supplement Plaintiff’s Answers to Ms. Debtor’s discovery requests. Please see Exhibit 1. 
+Plaintiff responded without supplying full and non-evasive responses. See Exhibit 2 letter from Citibank. 
+		Citibank admitted the debt was placed in a securitized trust by Citibank in Exhibit 2 but offered no proof of responding to Defendant’s requested demands for assignments and proof of why it is a debt collector as the complaint and summons states on their pleadings by saying they are collecting the debt as a debt collector:
+
+ 
+See Citibank Summons and Complaint at Exhibit 4. 
+		Defendant wrote another request to Citibank to provide supplements to their discovery responses and proof of the assignments showing Citibank has standing to sue Ms. Debtor in this case. See Exhibit 3.  Citibank has ignored this supplementation request.
+		Defendant request this Court compel the supplementation of the Debtor discovery requests as requested in Exhibit 1 and Exhibit 3 and provide proof of assignment and standing to sue Ms. Debtor as an owner and debt collector.
+			WHEREFORE Defendant moves this Court to Compel Citibank to produce the necessary proof of assignment from to and from the secured trusts and proof of standing to sue in this case by responding to the supplemental discovery requests of Exhibit 1 and Exhibit 3. 
+BRIEF IN SUPPORT
+This Motion is based upon MCR 2.306, MCR 2.309, MCR 2.310, MCR 2.313, Exhibit 1, Exhibit 2, Exhibit 3 and Exhibit 4.
+                                     		RELIEF REQUESTED
+	 WHEREFORE, Defendant respectfully requests that this Honorable Court:
+Grant the Defendant’s Motion to Compel Discovery and produce Answers in Discovery requested by Defendant of Plaintiff in Exhibit 1 and Exhibit 3. 
+Attorney fees and costs for Defendant for having to file a motion after two letters.
+Other relief to the Defendant set by the Court. 
+					
+				Respectfully submitted,
+	
+{{DEBTOR_NAME}}
+  /s/ {{DEBTOR_NAME}}                                          
+Dated: {{DATE}}			Pro Se Defendant
+
+                                  PROOF OF SERVICE
+On this day, {{DATE}}, Defendant’s Motion to Compel was sent to the Court and to counsel for Plaintiff, {{PLAINTIFF_LAW_FIRM}}, for {{PLAINTIFF_NAME}}.
+
+/s/ {{DEBTOR_NAME}}                                          
+					Pro Se Defendant

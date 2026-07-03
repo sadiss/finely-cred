@@ -9,7 +9,14 @@ import {
   renderScannedJpeg,
   resolveCaptureCrop,
   scanPresetForProfile,
+  tightenCropExcludeSkin,
 } from '../../utils/imageScan';
+import { classifyLiveDocumentFrame, cropStability, isProfileMismatch, type LiveDocumentGuess } from '../../lib/liveDocumentClassifier';
+import {
+  captureConfigForProfile,
+  evaluateCaptureReadiness,
+  type CaptureReadiness,
+} from '../../lib/captureReadiness';
 import { DocumentScannerGuideFrame } from './DocumentScannerGuideFrame';
 
 type PageDraft = {
@@ -90,6 +97,22 @@ export function CameraCaptureModal({
   const [facingMode, setFacingMode] = useState<'environment' | 'user'>('environment');
   const [cameraReady, setCameraReady] = useState(false);
   const [torchOn, setTorchOn] = useState(false);
+  const [autoCapture, setAutoCapture] = useState(true);
+  const [liveGuess, setLiveGuess] = useState<LiveDocumentGuess | null>(null);
+  const [readiness, setReadiness] = useState<CaptureReadiness | null>(null);
+  const [autoCapturing, setAutoCapturing] = useState(false);
+
+  const capturingRef = useRef(false);
+  const profileManualRef = useRef(false);
+  const stableTicksRef = useRef(0);
+  const lastCropRef = useRef<CropMargins | null>(null);
+  const lastAutoCaptureAtRef = useRef(0);
+  const lastCaptureWasAutoRef = useRef(false);
+  const autoSaveQueuedRef = useRef(false);
+  const autoCapturePausedRef = useRef(false);
+  const lastCaptureQualityRef = useRef(0);
+  const [multiPageMode, setMultiPageMode] = useState(false);
+  const [profileMismatch, setProfileMismatch] = useState(false);
 
   const loadPdfLib = async () => {
     const { PDFDocument } = await import('pdf-lib');
@@ -148,6 +171,9 @@ export function CameraCaptureModal({
     if (!open) return;
     setDocProfile(defaultProfile);
     setDefaultPreset(scanPresetForProfile(defaultProfile));
+    setAutoCapture(captureConfigForProfile(defaultProfile).autoCaptureDefault);
+    profileManualRef.current = false;
+    stableTicksRef.current = 0;
     void ensureStream();
     return () => {
       stopStream();
@@ -156,14 +182,15 @@ export function CameraCaptureModal({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, defaultProfile, facingMode, torchOn]);
 
-  // Live document edge detection — focuses on ID/SSN even with hand/background clutter
+  // Live document edge detection + readiness gating — waits for recognition, lighting, sharpness
   useEffect(() => {
     if (!open || starting) return;
+    const cfg = captureConfigForProfile(docProfile);
     let raf = 0;
     let lastRun = 0;
     const tick = (t: number) => {
       raf = requestAnimationFrame(tick);
-      if (t - lastRun < 450) return;
+      if (t - lastRun < cfg.tickIntervalMs) return;
       lastRun = t;
       const video = videoRef.current;
       if (!video || video.readyState < 2) return;
@@ -187,10 +214,55 @@ export function CameraCaptureModal({
       setLiveCrop(bounds.crop);
       setDetectConfidence(bounds.confidence);
       setGuideCrop(guideCropForProfile(docProfile, w, h));
+
+      const guess = classifyLiveDocumentFrame(c, bounds.crop, docProfile);
+      setLiveGuess(guess);
+      setProfileMismatch(profileManualRef.current && isProfileMismatch(docProfile, guess));
+
+      if (!profileManualRef.current && guess.confidence >= 0.55 && guess.suggestedProfile !== docProfile) {
+        const idLike = docProfile === 'id_card' || docProfile === 'ssn_card';
+        if (!idLike) {
+          setDocProfile(guess.suggestedProfile);
+          setDefaultPreset(PROFILE_PRESETS[guess.suggestedProfile] ?? defaultPreset);
+        }
+      }
+
+      const stable =
+        bounds.confidence >= cfg.minBoundsConfidence * 0.9 &&
+        lastCropRef.current &&
+        cropStability(lastCropRef.current, bounds.crop, docProfile === 'id_card' || docProfile === 'ssn_card' ? 0.018 : 0.025);
+      if (stable) stableTicksRef.current += 1;
+      else stableTicksRef.current = 0;
+      lastCropRef.current = bounds.crop;
+
+      const readinessNow = evaluateCaptureReadiness({
+        canvas: c,
+        crop: bounds.crop,
+        profile: docProfile,
+        boundsConfidence: bounds.confidence,
+        guess,
+        stableTicks: stableTicksRef.current,
+        profileManual: profileManualRef.current,
+      });
+      setReadiness(readinessNow);
+
+      const cooldownOk = Date.now() - lastAutoCaptureAtRef.current > cfg.cooldownMs;
+      const mismatchOk = !isProfileMismatch(docProfile, guess);
+      if (
+        autoCapture &&
+        !autoCapturePausedRef.current &&
+        !capturingRef.current &&
+        mismatchOk &&
+        cooldownOk &&
+        readinessNow.ready
+      ) {
+        lastAutoCaptureAtRef.current = Date.now();
+        void captureFrame({ auto: true });
+      }
     };
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
-  }, [open, starting, docProfile]);
+  }, [open, starting, docProfile, autoCapture, defaultPreset]);
 
   // Kill object URLs on unmount/close.
   useEffect(() => {
@@ -202,13 +274,27 @@ export function CameraCaptureModal({
     setActiveId(null);
     setError(null);
     setSaveMode('pdf');
+    lastCaptureWasAutoRef.current = false;
+    autoSaveQueuedRef.current = false;
+    autoCapturePausedRef.current = false;
+    setMultiPageMode(false);
+    setProfileMismatch(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
-  const captureFrame = async () => {
+  const captureFrame = async (opts?: { auto?: boolean }) => {
     const video = videoRef.current;
-    if (!video) return;
+    if (!video || capturingRef.current) return;
+    capturingRef.current = true;
     setCapturing(true);
+      if (opts?.auto) {
+        setAutoCapturing(true);
+        lastCaptureWasAutoRef.current = true;
+        lastCaptureQualityRef.current = readiness?.score ?? 0;
+      } else {
+      lastCaptureWasAutoRef.current = false;
+      autoSaveQueuedRef.current = false;
+    }
     setError(null);
     try {
       const w = Math.max(1, video.videoWidth || 1280);
@@ -229,19 +315,20 @@ export function CameraCaptureModal({
         canvas.toBlob((b) => (b ? resolve(b) : reject(new Error('Failed to capture image.'))), 'image/jpeg', 0.92);
       });
 
-      let autoCrop = guideCropForProfile(docProfile, outW, outH);
+      let autoCrop = liveCrop ?? guideCropForProfile(docProfile, outW, outH);
       try {
         const aspect = documentAspectForProfile(docProfile);
         const bounds = detectDocumentBoundsAdvanced(canvas, {
           targetAspect: aspect,
           centerBias: docProfile === 'id_card' || docProfile === 'ssn_card' ? 0.62 : 0.45,
-          paddingPct: 0.012,
+          paddingPct: 0.008,
         });
         autoCrop = resolveCaptureCrop(docProfile, outW, outH, bounds);
+        autoCrop = tightenCropExcludeSkin(canvas, autoCrop);
         setDetectConfidence(bounds.confidence);
       } catch {
         try {
-          autoCrop = detectDocumentCropMargins(canvas, 0.015);
+          autoCrop = detectDocumentCropMargins(canvas, 0.008);
         } catch {
           autoCrop = guideCropForProfile(docProfile, outW, outH);
         }
@@ -258,10 +345,20 @@ export function CameraCaptureModal({
       };
       setPages((prev) => [page, ...prev]);
       setActiveId(id);
+      if (!multiPageMode && !opts?.auto) {
+        autoCapturePausedRef.current = true;
+      }
+      if (opts?.auto) {
+        autoCapturePausedRef.current = true;
+      }
     } catch (e: any) {
       setError(e?.message || 'Capture failed.');
     } finally {
+      capturingRef.current = false;
       setCapturing(false);
+      setAutoCapturing(false);
+      stableTicksRef.current = 0;
+      setReadiness(null);
     }
   };
 
@@ -329,6 +426,22 @@ export function CameraCaptureModal({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, active?.id, active?.preset, active?.rotateDeg, active?.crop.left, active?.crop.top, active?.crop.right, active?.crop.bottom]);
 
+  // ID / SSN: after auto-capture + render, save immediately (scan-app style).
+  useEffect(() => {
+    if (!open || !lastCaptureWasAutoRef.current || autoSaveQueuedRef.current || saving) return;
+    if (pages.length !== 1) return;
+    const p = pages[0];
+    if (!p?.rendered || p.rendering) return;
+    if (docProfile !== 'id_card' && docProfile !== 'ssn_card') return;
+    if (lastCaptureQualityRef.current < 72 && detectConfidence < 0.62) return;
+    autoSaveQueuedRef.current = true;
+    const t = window.setTimeout(() => {
+      void handleSave();
+    }, 450);
+    return () => window.clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, pages, docProfile, detectConfidence, saving]);
+
   const buildFilesForSave = async (): Promise<File[]> => {
     // Ensure all pages are rendered first.
     const ensured: Array<{ idx: number; blob: Blob }> = [];
@@ -378,6 +491,13 @@ export function CameraCaptureModal({
 
   if (!open) return null;
 
+  const captureCfg = captureConfigForProfile(docProfile);
+  const manualCaptureOk =
+    !profileMismatch &&
+    (readiness?.score ?? 0) >= captureCfg.manualCaptureMinScore &&
+    !capturing &&
+    !starting;
+
   return (
     <div className="fixed inset-0 z-[130] bg-black/85 backdrop-blur-md flex items-start sm:items-center justify-center p-0 sm:p-4 overflow-y-auto">
       <div className="w-full max-w-6xl min-h-0 max-h-[100dvh] sm:max-h-[94vh] rounded-none sm:rounded-2xl border-0 sm:border border-white/[0.08] bg-fc-shell shadow-2xl overflow-hidden flex flex-col">
@@ -410,6 +530,13 @@ export function CameraCaptureModal({
                   detectedCrop={liveCrop}
                   confidence={detectConfidence}
                   cameraReady={cameraReady && !starting}
+                  liveGuessLabel={liveGuess?.label}
+                  liveGuessConfidence={liveGuess?.confidence}
+                  readiness={readiness}
+                  autoCaptureEnabled={autoCapture}
+                  autoCapturing={autoCapturing || capturing}
+                  profileMismatch={profileMismatch}
+                  mismatchLabel={liveGuess ? `Looks like ${liveGuess.label} — switch type above` : undefined}
                 />
                 <div className="absolute top-3 right-3 z-20 flex gap-2 pointer-events-auto">
                   <button
@@ -437,11 +564,13 @@ export function CameraCaptureModal({
                 <div className="absolute bottom-3 left-3 right-3 z-20 text-center text-[10px] uppercase tracking-widest text-white/90 bg-black/55 rounded-lg py-2 px-3 border border-white/10">
                   {docProfile === 'id_card' || docProfile === 'ssn_card' ? (
                     <span className="inline-flex items-center gap-1.5 justify-center">
-                      <Zap size={11} className="text-amber-300" />
-                      Hold ID flat · fill the green frame · avoid glare
+                      <Zap size={11} className="text-emerald-300" />
+                      Bright, even light · hold flat · wait for green “Ready”
                     </span>
+                  ) : docProfile === 'bureau_mail' || docProfile === 'creditor_letter' ? (
+                    'Fill frame with letter — we crop and enhance text after capture'
                   ) : (
-                    'Fill the frame with your document — background is ignored'
+                    'Align document — auto-capture when quality bar is full (or tap Capture)'
                   )}
                 </div>
                 {starting && (
@@ -452,15 +581,42 @@ export function CameraCaptureModal({
               </div>
               <div className="p-3 flex flex-wrap items-center justify-between gap-3">
                 <div className="flex flex-wrap items-center gap-2">
+                  <label className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-white/60">
+                    <input
+                      type="checkbox"
+                      checked={autoCapture}
+                      onChange={(e) => setAutoCapture(e.target.checked)}
+                      className="accent-emerald-500"
+                    />
+                    Auto-capture when recognized
+                  </label>
                   <button
                     type="button"
                     onClick={() => void captureFrame()}
-                    disabled={starting || capturing || saving}
-                    className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-500 text-black font-black uppercase tracking-widest text-[10px] hover:brightness-110 transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+                    disabled={!manualCaptureOk || saving}
+                    title={
+                      !manualCaptureOk && readiness
+                        ? `Quality ${readiness.score}% — improve lighting and hold steady`
+                        : 'Capture now'
+                    }
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500 text-black font-black uppercase tracking-widest text-[10px] hover:brightness-110 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <Camera size={14} />
                     {capturing ? 'Capturing…' : 'Capture page'}
                   </button>
+                  {pages.length > 0 ? (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMultiPageMode(true);
+                        autoCapturePausedRef.current = false;
+                        stableTicksRef.current = 0;
+                      }}
+                      className="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-white/15 bg-white/5 text-[10px] font-black uppercase tracking-widest text-white/70 hover:bg-white/10"
+                    >
+                      <Layers size={14} /> Scan another page
+                    </button>
+                  ) : null}
                   <div className="text-[10px] uppercase tracking-widest text-white/40 font-mono">
                     pages: <span className="text-white/70">{pages.length}</span>
                   </div>
@@ -570,11 +726,15 @@ export function CameraCaptureModal({
                   key={p.id}
                   type="button"
                   onClick={() => {
+                    profileManualRef.current = true;
                     setDocProfile(p.id);
                     setDefaultPreset(PROFILE_PRESETS[p.id]);
+                    setAutoCapture(captureConfigForProfile(p.id).autoCaptureDefault);
+                    stableTicksRef.current = 0;
+                    setReadiness(null);
                   }}
                   className={`px-3 py-1.5 rounded-lg border text-[10px] font-black uppercase tracking-widest ${
-                    docProfile === p.id ? 'border-amber-500/40 bg-amber-500/10 text-amber-100' : 'border-white/[0.08] text-white/50'
+                    docProfile === p.id ? 'border-violet-500/40 bg-violet-500/10 text-violet-100' : 'border-white/[0.08] text-white/50'
                   }`}
                 >
                   {p.label}

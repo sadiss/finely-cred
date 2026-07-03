@@ -67,7 +67,12 @@ export function personaOnDutyAt(date = new Date()): AgentPersona {
 export function portalPersonaForLane(lane?: string): AgentPersona {
   const cfg = loadAgentStaffConfig();
   const l = (lane || '').toLowerCase();
-  if (l.includes('debt') || l.includes('summons')) return getAgentPersona('debt_strategist')!;
+  if (l.includes('debt') || l.includes('summons') || l.includes('validation') || l.includes('foreclosure') || l.includes('repossession') || l.includes('bankruptcy') || l.includes('discharge')) {
+    return getAgentPersona('debt_strategist')!;
+  }
+  if (l.includes('dispute') || l.includes('bureau') || l.includes('restore') || l.includes('tradeline') || l.includes('letter')) {
+    return getAgentPersona('dispute_coach')!;
+  }
   if (l.includes('business') || l.includes('funding')) return getAgentPersona('funding_strategist')!;
   if (l.includes('sales') || l.includes('upgrade')) return getAgentPersona('sales_closer')!;
   return getAgentPersona(cfg.portalDefaultPersonaId) ?? getAgentPersona('support_specialist')!;

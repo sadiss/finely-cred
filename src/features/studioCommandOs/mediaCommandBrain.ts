@@ -48,13 +48,15 @@ export function recommendSceneCount(durationSec: number): number {
   if (durationSec <= 20) return 5;
   if (durationSec <= 35) return 7;
   if (durationSec <= 50) return 9;
-  return 12;
+  if (durationSec <= 90) return 12;
+  if (durationSec <= 120) return 14;
+  return 18;
 }
 
 export function normalizeVideoRequest(input: Partial<VideoCommandRequest>): VideoCommandRequest {
   return {
     prompt: String(input.prompt || '').trim() || 'Create a 28-second Finely Cred video that drives qualified leads to book a consultation.',
-    durationSec: clamp(input.durationSec ?? 28, 6, 90),
+    durationSec: clamp(input.durationSec ?? 28, 6, 180),
     aspect: input.aspect ?? '9:16',
     intent: input.intent ?? 'lead_magnet_ad',
     voiceStyle: input.voiceStyle ?? 'luxury_confident',

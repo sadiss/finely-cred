@@ -244,7 +244,7 @@ export default function AdminLeadMagnetFunnelsPage() {
         <FinelyOsGlassPanel icon={Film} title="Hero media · video + imagery" accent="sky">
           <p className={`${FINELY_OS_ENTITY_BODY} text-sm mb-4 max-w-3xl`}>
             Upload a funnel hero video (like Resources), link an existing library video, or set a static MP4 path. Generate tours in{' '}
-            <a href="/admin/media-studio" className="text-sky-300 underline">Media Studio</a> or{' '}
+            <a href="/admin/content-studio" className="text-sky-300 underline">Content Studio</a> or{' '}
             <a href="/admin/tour-studio" className="text-sky-300 underline">Tour Studio</a>, then upload here.
           </p>
 

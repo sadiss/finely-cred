@@ -15,7 +15,7 @@ import { FinelyOsIconBadge } from '../../features/os/FinelyOsIconBadge';
 import { FinelyOsPageFooter } from '../../features/os/FinelyOsPageFooter';
 import { CoursePublishChecklist } from '../../features/educationStudio/CoursePublishChecklist';
 import { CourseIntelligencePanel } from '../../features/educationStudio/CourseIntelligencePanel';
-import { VideoProductionPanel } from '../../features/educationStudio/VideoProductionPanel';
+import { CourseVideoProductionCommand } from '../../features/educationStudio/CourseVideoProductionCommand';
 import { narrateAllCourseLessons, narrateCourseLesson } from '../../lib/courseVoiceNarrate';
 import { runCourseLessonAgent } from '../../lib/courseLessonAgent';
 import { getVoiceStudioStatus } from '../../lib/voiceStudioClient';
@@ -624,27 +624,40 @@ export default function AdminCourseEditorPage() {
             {studioTab === 'video' && (
               <>
                 <div className="flex flex-wrap gap-2">
-                  <button type="button" onClick={() => navigate('/admin/media-studio')} className={FINELY_OS_SECONDARY_BTN}>
-                    <Clapperboard size={14} /> Media Studio assets
+                  <button type="button" onClick={() => navigate(`/admin/content-studio?room=course_videos&courseId=${draft.id}${activeLesson ? `&lessonId=${activeLesson.id}` : ''}`)} className={FINELY_OS_PRIMARY_BTN}>
+                    <Clapperboard size={14} /> Content Studio — course videos
                   </button>
                   <button type="button" onClick={() => navigate('/admin/voice-studio')} className={FINELY_OS_SECONDARY_BTN}>
                     <Headphones size={14} /> Voice Studio narration
                   </button>
                 </div>
-                <VideoProductionPanel
-                courseTitle={draft.title}
-                lesson={activeLesson}
-                lessonMarkdown={activeLesson ? lessonMarkdown(activeLesson) : ''}
-                style={videoStyle}
-                provider={videoProvider}
-                onStyleChange={(s) => setDraft({ ...draft, studio: { ...(draft.studio ?? {}), productionStyle: s } })}
-                onProviderChange={(p) => setDraft({ ...draft, studio: { ...(draft.studio ?? {}), videoProvider: p } })}
-                scenes={lessonScenes}
-                onScenesChange={(scenes) => {
-                  const other = (draft.videoScenes ?? []).filter((s) => s.lessonId !== activeLesson?.id);
-                  setDraft({ ...draft, videoScenes: [...other, ...scenes] });
-                }}
-              />
+                <CourseVideoProductionCommand
+                  courseId={draft.id}
+                  course={draft}
+                  lesson={activeLesson}
+                  lessonMarkdown={activeLesson ? lessonMarkdown(activeLesson) : ''}
+                  style={videoStyle}
+                  provider={videoProvider}
+                  onStyleChange={(s) => setDraft({ ...draft, studio: { ...(draft.studio ?? {}), productionStyle: s } })}
+                  onProviderChange={(p) => setDraft({ ...draft, studio: { ...(draft.studio ?? {}), videoProvider: p } })}
+                  scenes={lessonScenes}
+                  onScenesChange={(scenes) => {
+                    const other = (draft.videoScenes ?? []).filter((s) => s.lessonId !== activeLesson?.id);
+                    setDraft({ ...draft, videoScenes: [...other, ...scenes] });
+                  }}
+                  onGenerateScript={aiGenerateLessonScript}
+                  onGenerateStoryboard={aiGenerateStoryboard}
+                  busy={busy}
+                  onLessonSelect={(lessonId) => {
+                    setActiveLessonId(lessonId);
+                    for (const m of draft.modules) {
+                      if (m.lessons.some((l) => l.id === lessonId)) {
+                        setActiveModuleId(m.id);
+                        break;
+                      }
+                    }
+                  }}
+                />
               </>
             )}
 

@@ -4,6 +4,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { PageShell } from '../components/layout/PageShell';
 import { useAuth } from '../auth/AuthProvider';
 import { findInviteByToken } from '../data/invitesRepo';
+import { signupInviteUrl } from '../lib/partnerInviteEmail';
 import { getPartner, upsertPartner } from '../data/partnersRepo';
 import type { Partner } from '../domain/partners';
 import { ReportUploader } from '../components/reports/ReportUploader';
@@ -93,7 +94,16 @@ export default function PartnerSelfIntakePage() {
     });
   }, [invite?.partnerId]);
 
-  const loginRedirect = `/onboarding?next=${encodeURIComponent(`/partner-setup${location.search}`)}`;
+  const loginRedirect = useMemo(() => {
+    if (!partner) return `/onboarding?next=${encodeURIComponent(`/partner-setup${location.search}`)}`;
+    const full = signupInviteUrl(partner, draft.email.trim() || partner.profile.email || '');
+    try {
+      const u = new URL(full, window.location.origin);
+      return `${u.pathname}${u.search}`;
+    } catch {
+      return full;
+    }
+  }, [partner, draft.email, location.search]);
   const claimRedirect = `/claim${location.search}`;
 
   const save = async () => {
@@ -179,8 +189,8 @@ export default function PartnerSelfIntakePage() {
               <span className={FINELY_OS_ENTITY_SUBLABEL}>Profile saved</span>
             </div>
             <p className={FINELY_OS_ENTITY_BODY}>
-              Thank you — your details are on file. Sign in (or create an account) with <strong>{draft.email}</strong> to claim your
-              profile and open your partner dashboard.
+              Thank you — your details are on file. Next, <strong>create your login and choose your password</strong> with{' '}
+              <strong>{draft.email}</strong>. This is a one-time secure setup — Finely does not email a temporary password.
             </p>
             <div className="flex flex-wrap gap-3">
               {auth.user ? (
@@ -189,7 +199,7 @@ export default function PartnerSelfIntakePage() {
                 </button>
               ) : (
                 <button type="button" onClick={() => navigate(loginRedirect)} className={FINELY_OS_PRIMARY_BTN}>
-                  Sign in / create account <ArrowRight size={14} />
+                  Create account & password <ArrowRight size={14} />
                 </button>
               )}
               <button type="button" onClick={() => navigate('/')} className={FINELY_OS_SECONDARY_BTN}>

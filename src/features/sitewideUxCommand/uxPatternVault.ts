@@ -38,6 +38,16 @@ export const SITEWIDE_UX_RULES: SitewideUxRule[] = [
     severity: 'high',
   },
   {
+    id: 'dark-glass-glow-borders',
+    title: 'Dark glass + always-on glow borders',
+    problem: 'Dark inputs and picker tiles disappear on glass shells until focused.',
+    replacement:
+      'Keep dark backgrounds; add permanent accent glow borders via finelyOsGlowField / finelyOsGlowTile / finelyOsGlowKpi. No ivory fills.',
+    appliesTo: ['ValidationCenterView', 'AffidavitCourtCenterView', 'DebtCreditorIntelPanel', 'DebtCoachChat', 'FinelyOsKpiGrid'],
+    cursorAction: 'Use finelyOsGlow* helpers from finelyOsLightUi.ts — emerald for validation, fuchsia for court.',
+    severity: 'high',
+  },
+  {
     id: 'negative-items-protected',
     title: 'Negative items extracted report layout is protected',
     problem: 'This layout is already approved and must not be accidentally refactored during sitewide cleanup.',

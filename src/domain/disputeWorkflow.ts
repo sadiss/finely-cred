@@ -1,6 +1,6 @@
 import type { DisputeCase, DisputeCaseRound } from './cases';
 
-export type DisputeRoundLabel = 'Round 1' | 'Round 2' | 'Round 3';
+export type DisputeRoundLabel = 'Round 1' | 'Round 2' | 'Round 3' | 'Round 4';
 
 export type DisputeRoundStatus =
   | 'draft'
@@ -9,7 +9,8 @@ export type DisputeRoundStatus =
   | 'awaiting_response'
   | 'response_received'
   | 'escalated'
-  | 'ready_for_next_round';
+  | 'ready_for_next_round'
+  | 'litigation_review';
 
 export type InterRoundActionType =
   | 'bureau_letter'
@@ -21,6 +22,8 @@ export type InterRoundActionType =
   | 'internal_escalation'
   | 'support_thread'
   | 'bureau_response'
+  | 'litigation_prep'
+  | 'complaint_filed'
   | 'note';
 
 export type DisputeCaseAction = {
@@ -37,7 +40,7 @@ export type DisputeCaseAction = {
   meta?: Record<string, unknown>;
 };
 
-export const DISPUTE_ROUND_ORDER: DisputeRoundLabel[] = ['Round 1', 'Round 2', 'Round 3'];
+export const DISPUTE_ROUND_ORDER: DisputeRoundLabel[] = ['Round 1', 'Round 2', 'Round 3', 'Round 4'];
 
 export const ROUND_STATUS_LABELS: Record<DisputeRoundStatus, string> = {
   draft: 'Draft',
@@ -47,6 +50,7 @@ export const ROUND_STATUS_LABELS: Record<DisputeRoundStatus, string> = {
   response_received: 'Response received',
   escalated: 'Escalated',
   ready_for_next_round: 'Ready for next round',
+  litigation_review: 'Litigation review',
 };
 
 export const INTER_ROUND_GUIDANCE: Record<
@@ -74,13 +78,23 @@ export const INTER_ROUND_GUIDANCE: Record<
     ],
   },
   'Round 3': {
-    title: 'Final bureau push + escalation path',
+    title: 'Strong evidence + regulatory path',
     typicalWindowDays: 30,
     betweenRounds: [
       'Strongest evidence + procedural violations if applicable',
       'Regulatory complaint (CFPB/AG) often filed between Round 2–3',
       'Document all contacts in this case timeline',
-      'Specialist/admin review before closing case',
+      'Specialist/admin review before Round 4',
+    ],
+  },
+  'Round 4': {
+    title: 'Final bureau push before legal escalation',
+    typicalWindowDays: 30,
+    betweenRounds: [
+      'Reference full case timeline and prior bureau responses',
+      'CFPB/AG complaints should be filed or updated if pattern persists',
+      'Compliance review before litigation prep',
+      'Assemble attorney-ready packet if verified unchanged again',
     ],
   },
 };

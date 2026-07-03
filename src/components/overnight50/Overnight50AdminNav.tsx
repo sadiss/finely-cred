@@ -14,7 +14,7 @@ export function Overnight50AdminNav({ compact = false, className = '' }: Props) 
   const links = [
     { path: '/admin/overnight', label: 'Overnight50', icon: Moon },
     { path: '/admin/geo-war-room', label: 'Geo War Room', icon: MapPin },
-    { path: '/admin/synthetic-staff', label: 'Synthetic Staff', icon: Users },
+    { path: '/admin/staff?view=roster&kind=ai_staff', label: 'Staff Command', icon: Users },
     { path: '/admin/lead-intel', label: 'Lead Intel Swarm', icon: Radar },
   ] as const;
 

@@ -1,5 +1,5 @@
-import React from 'react';
-import { ArrowRight, BarChart3, FileText, Gavel, PenLine, ShieldAlert } from 'lucide-react';
+import React, { useMemo } from 'react';
+import { ArrowRight, BarChart3, Clock, FileText, Gavel, PenLine, ShieldAlert } from 'lucide-react';
 import { FinelyOsOverviewStatTile } from '../os/FinelyOsOverviewStatTile';
 import {
   FINELY_OS_ENTITY_BODY,
@@ -9,7 +9,7 @@ import {
   FINELY_OS_PRIMARY_BTN,
 } from '../os/finelyOsLightUi';
 
-type PartnerTabKey = 'overview' | 'profile' | 'reports' | 'analysis' | 'evidence' | 'letters' | 'tasks' | 'notes' | 'debt';
+type PartnerTabKey = 'overview' | 'profile' | 'reports' | 'analysis' | 'evidence' | 'letters' | 'disputes' | 'tasks' | 'notes' | 'debt';
 
 type Props = {
   reportsCount: number;
@@ -18,6 +18,13 @@ type Props = {
   lettersCount: number;
   openCasesCount: number;
   readinessScore?: number | null;
+  roundSummary?: {
+    awaitingResponse: number;
+    responsesLogged: number;
+    highestActiveRound: string | null;
+    nextActionLabel: string;
+    roundPhasePct: number;
+  };
   onOpenTab: (tab: PartnerTabKey) => void;
   primaryAction?: { label: string; tab: PartnerTabKey };
 };
@@ -29,6 +36,7 @@ export function PartnerCreditRestoreHud({
   lettersCount,
   openCasesCount,
   readinessScore,
+  roundSummary,
   onOpenTab,
   primaryAction,
 }: Props) {
@@ -61,17 +69,36 @@ export function PartnerCreditRestoreHud({
       tab: 'letters' as PartnerTabKey,
       hint: lettersCount ? `${lettersCount} letters` : 'Draft & mail',
     },
+    {
+      key: 'rounds',
+      label: '5. Round tracking',
+      done: (roundSummary?.responsesLogged ?? 0) > 0 || (roundSummary?.awaitingResponse ?? 0) > 0,
+      tab: 'disputes' as PartnerTabKey,
+      hint: roundSummary?.highestActiveRound ?? (openCasesCount ? `${openCasesCount} cases` : 'Mail → response'),
+    },
+    {
+      key: 'responses',
+      label: '6. Bureau responses',
+      done: (roundSummary?.responsesLogged ?? 0) > 0,
+      tab: 'disputes' as PartnerTabKey,
+      hint: roundSummary?.awaitingResponse
+        ? `${roundSummary.awaitingResponse} awaiting`
+        : roundSummary?.responsesLogged
+          ? `${roundSummary.responsesLogged} logged`
+          : 'Log outcomes',
+    },
   ];
 
-  const pct =
-    readinessScore ??
-    Math.round(
-      ((reportsCount > 0 ? 25 : 0) +
-        (negativesCount > 0 ? 20 : reportsCount > 0 ? 10 : 0) +
-        (evidenceCount > 0 ? 25 : 0) +
-        (lettersCount > 0 ? 30 : openCasesCount > 0 ? 15 : 0)) /
-        1,
-    );
+  const pct = useMemo(() => {
+    if (readinessScore != null) return readinessScore;
+    const preLetter =
+      (reportsCount > 0 ? 15 : 0) +
+      (negativesCount > 0 ? 12 : reportsCount > 0 ? 6 : 0) +
+      (evidenceCount > 0 ? 15 : 0) +
+      (lettersCount > 0 ? 18 : openCasesCount > 0 ? 10 : 0);
+    const roundBoost = roundSummary ? Math.round(roundSummary.roundPhasePct * 0.4) : 0;
+    return Math.min(100, preLetter + roundBoost);
+  }, [readinessScore, reportsCount, negativesCount, evidenceCount, lettersCount, openCasesCount, roundSummary]);
 
   return (
     <div className={`${finelyOsCatalogCard('violet')} !p-5 space-y-5`}>
@@ -80,8 +107,13 @@ export function PartnerCreditRestoreHud({
           <p className={`${FINELY_OS_ENTITY_SUBLABEL} text-fuchsia-300/90`}>Restore command path</p>
           <p className={`mt-2 text-lg font-semibold ${FINELY_OS_ENTITY_VALUE}`}>Credit repair workflow status</p>
           <p className={`mt-1 max-w-2xl ${FINELY_OS_ENTITY_BODY}`}>
-            Follow the steps left to right — reports, analysis, evidence, then dispute letters. Tap any step to jump there.
+            Follow the steps — reports through dispute letters, then round mail tracking and bureau response handling through R4 and beyond.
           </p>
+          {roundSummary?.nextActionLabel ? (
+            <p className={`mt-2 flex items-center gap-2 text-sm text-amber-200/90`}>
+              <Clock size={14} /> {roundSummary.nextActionLabel}
+            </p>
+          ) : null}
         </div>
         {primaryAction ? (
           <button type="button" onClick={() => onOpenTab(primaryAction.tab)} className={FINELY_OS_PRIMARY_BTN}>
@@ -141,7 +173,7 @@ export function PartnerCreditRestoreHud({
         </button>
       </div>
 
-      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-2">
+      <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-2">
         {steps.map((s) => (
           <button
             key={s.key}

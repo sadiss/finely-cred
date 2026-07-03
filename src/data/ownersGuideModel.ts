@@ -279,10 +279,10 @@ export const OWNERS_GUIDE_SECTIONS: OwnersGuideSection[] = [
       'Shift schedule routes public chat to on-duty persona when no goal is selected.',
       'Intent classifier upgrades persona when confidence ≥ 55%.',
       'Portal Communication Hub uses lane-based persona tabs (support, funding, debt).',
-      'Admin Agent Staff page shows current on-duty persona + shift editor.',
+      'Admin Staff Command Center shows partner on-duty personas + shift editor.',
     ],
     paths: [
-      { label: 'Agent staff', path: '/admin/agent-staff' },
+      { label: 'Staff Command Center', path: '/admin/staff?view=partner' },
       { label: 'Public chat', path: '/' },
     ],
   },

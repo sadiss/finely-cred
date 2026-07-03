@@ -1,5 +1,6 @@
 import type { StaffMember, StaffMissionIntensity, StaffMissionPlan, StaffMissionRequest, StaffMissionType, StaffRiskLevel } from './types';
-import { departmentForMission, findStaff, staffForMission, STAFF_MEMBERS } from './staffDirectory';
+import { departmentForMission } from './staffDirectory';
+import { findStaff, getStaffRoster, resolveLeadStaff, staffForMission } from './staffRoster';
 
 function nowIso() {
   return new Date().toISOString();
@@ -177,7 +178,7 @@ function defaultObjective(type: StaffMissionType, cityIds: string[]) {
 
 export function buildStaffMissionPlan(request: StaffMissionRequest): StaffMissionPlan {
   const staff = recommendedStaffForMission(request.missionType, request.selectedStaffIds);
-  const leadOwner = staff[0] ?? STAFF_MEMBERS[0];
+  const leadOwner = resolveLeadStaff([staff[0], findStaff('professor_apex'), getStaffRoster()[0]]);
   const supportStaff = staff.filter((s) => s.id !== leadOwner.id).slice(0, 3);
   const department = departmentForMission(request.missionType);
   const steps = firstStepsForMission(request.missionType, request.cityIds, staff);

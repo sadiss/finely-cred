@@ -34,6 +34,7 @@ import {
   ListChecks,
   Target,
   Eye,
+  TrendingUp,
 } from 'lucide-react';
 
 export type AdminNavLinkDef = {
@@ -63,7 +64,10 @@ export const ADMIN_NAV_GROUPS: AdminNavGroupDef[] = [
     label: 'Core',
     items: [
       { path: '/admin', label: 'Overview', icon: Shield, hint: 'Admin dashboard' },
+      { path: '/admin/growth-command', label: 'Growth Command', icon: TrendingUp, hint: 'Promote · nurture · communicate' },
       { path: '/admin/workflow', label: 'Ops command center', icon: Inbox, hint: 'Alerts + SLA triage' },
+      { path: '/admin/staff', label: 'Staff Command Center', icon: Users, hint: 'AI + human + partner team' },
+      { path: '/admin/content-studio', label: 'Content Studio', icon: Film, hint: 'Super video + content production' },
       { path: '/admin/crm', label: 'Leads & CRM', icon: Target, hint: 'Pipeline + prospects + inbound' },
       { path: '/admin/leads', label: 'Leads intel', icon: Sparkles, hint: 'Advanced inbound agent · use Leads & CRM for pipeline' },
       { path: '/admin/projects', label: 'Projects & Tasks', icon: FolderKanban, hint: 'Master projects + child tasks' },
@@ -83,6 +87,7 @@ export const ADMIN_NAV_GROUPS: AdminNavGroupDef[] = [
       { path: '/admin/launch-os', label: 'Launch OS', icon: BookOpen, hint: 'SOP help center' },
       { path: '/admin/courses', label: 'Courses', icon: GraduationCap, hint: 'Course builder' },
       { path: '/admin/testimonials', label: 'Testimonials', icon: Trophy, hint: 'Social proof' },
+      { path: '/admin/partner-success', label: 'Partner success', icon: GraduationCap, hint: 'Success modules editor' },
     ],
   },
   {
@@ -93,8 +98,6 @@ export const ADMIN_NAV_GROUPS: AdminNavGroupDef[] = [
       { path: '/admin/ops-agent', label: 'Ruth · Co-Owner', icon: Crown, hint: 'AI co-owner command' },
       { path: '/admin/phone-hub', label: 'Phone Hub', icon: Phone, hint: 'Calls & SMS' },
       { path: '/admin/lead-intel', label: 'Lead Intel (full)', icon: Sparkles, hint: 'Full-page intel workspace' },
-      { path: '/admin/staff', label: 'Staff Command', icon: Users, hint: 'AI staff floor, departments, missions' },
-      { path: '/admin/content-studio', label: 'Content Studio', icon: Film, hint: 'Video, guides, voice, design, and assets' },
     ],
   },
   {

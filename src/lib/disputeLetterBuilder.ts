@@ -12,6 +12,7 @@ import {
 } from '../creditReports/disputeFactualReasons';
 import { evidenceMatchesAccount } from '../utils/evidenceMatch';
 import { MAX_DISPUTE_REASONS, MIN_DISPUTE_REASONS } from '../letters/disputeLetterFormat';
+import { seedPlaybookReasonsForCandidate } from '../letters/disputeFiveStepLetter';
 import { classifyCandidateNegativeType, NEGATIVE_PLAYBOOKS } from '../creditReports/negativePlaybooks';
 
 function norm(s: string) {
@@ -112,7 +113,12 @@ export function buildEnrichedReasonsForCandidate(args: {
   const max = args.maxReasons ?? MAX_DISPUTE_REASONS;
   const existing = filterFactualDisputeReasons((args.existing ?? []).map((x) => x.trim()).filter(Boolean));
   const seen = new Set(existing.map((x) => norm(x)));
-  const out = [...existing];
+  const out = seedPlaybookReasonsForCandidate({
+    candidate: args.candidate,
+    existing,
+    max,
+  });
+  for (const r of out) seen.add(norm(r));
 
   const push = (text: string) => {
     const t = text.trim();

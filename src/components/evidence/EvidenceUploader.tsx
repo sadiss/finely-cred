@@ -3,7 +3,7 @@ import { Camera, FileUp, Image as ImageIcon } from 'lucide-react';
 import type { EvidenceItem } from '../../domain/evidence';
 import { getBlobStore } from '../../storage/getBlobStore';
 import { newId } from '../../utils/ids';
-import { renderScannedJpeg, type DocScanProfile } from '../../utils/imageScan';
+import { scanUploadedImageFile, type DocScanProfile } from '../../utils/imageScan';
 import { CameraCaptureModal } from './CameraCaptureModal';
 import {
   FINELY_OS_ENTITY_BODY,
@@ -24,6 +24,7 @@ export function EvidenceUploader({
   onCreated,
   initialCaption = '',
   prominent = false,
+  compact = false,
   scannerProfile = 'general',
 }: {
   partnerId: string;
@@ -31,6 +32,7 @@ export function EvidenceUploader({
   onCreated: (item: EvidenceItem, file?: File) => void;
   initialCaption?: string;
   prominent?: boolean;
+  compact?: boolean;
   scannerProfile?: DocScanProfile;
 }) {
   const [busy, setBusy] = useState(false);
@@ -48,7 +50,7 @@ export function EvidenceUploader({
   const scanifyImage = async (file: File): Promise<File> => {
     const type = file.type || '';
     if (!type.startsWith('image/')) return file;
-    const blob = await renderScannedJpeg(file, { preset: 'document_scan', rotateDeg: 0, maxDimension: 2200, quality: 0.94 });
+    const blob = await scanUploadedImageFile(file, scannerProfile);
     const base = file.name.replace(/\.[a-z0-9]+$/i, '') || 'Document';
     return new File([blob], `${base}_scanned.jpg`, { type: 'image/jpeg' });
   };
@@ -93,13 +95,18 @@ export function EvidenceUploader({
   };
 
   return (
-    <div className={`${finelyOsGlassShell('catalog', prominent ? 'amber' : 'emerald')} space-y-6`}>
+    <div className={`${finelyOsGlassShell('catalog', prominent ? 'amber' : 'emerald')} ${compact ? 'space-y-4 !p-4' : 'space-y-6'}`}>
       <CameraCaptureModal
         open={cameraOpen}
         onClose={() => setCameraOpen(false)}
         caption={caption}
         defaultProfile={scannerProfile}
         title={scannerProfile === 'id_card' || scannerProfile === 'ssn_card' ? 'ID card scanner' : 'Document scanner'}
+        subtitle={
+          scannerProfile === 'id_card' || scannerProfile === 'ssn_card'
+            ? 'Wait for the quality bar and “Ready” before capture — bright, even lighting required.'
+            : 'Align your document — we crop, enhance, and classify after capture.'
+        }
         onSaveFiles={async ({ files }) => {
           const baseCap = caption.trim();
           for (let i = 0; i < files.length; i++) {
@@ -116,23 +123,25 @@ export function EvidenceUploader({
           setCaption('');
         }}
       />
-      <div className="flex items-start justify-between gap-6">
-        <div className="min-w-0">
-          <p className={`${FINELY_OS_ENTITY_SUBLABEL} text-emerald-300`}>Evidence vault</p>
-          <h3 className={`${FINELY_OS_ENTITY_TITLE} mt-2`}>{prominent ? 'Scan or upload proof' : 'Upload Evidence'}</h3>
-          <p className={`${FINELY_OS_ENTITY_BODY} mt-1`}>
-            {prominent
-              ? 'Camera flattens photos onto white paper (ID, SSN, bureau mail). PDFs and images route to the right workflow after upload.'
-              : 'Upload screenshots, PDFs, videos, or supporting documents. These will be attachable to dispute letters.'}
-          </p>
+      {!compact ? (
+        <div className="flex items-start justify-between gap-6">
+          <div className="min-w-0">
+            <p className={`${FINELY_OS_ENTITY_SUBLABEL} text-emerald-300`}>Capture</p>
+            <h3 className={`${FINELY_OS_ENTITY_TITLE} mt-2`}>{prominent ? 'Scan or upload proof' : 'Upload Evidence'}</h3>
+            <p className={`${FINELY_OS_ENTITY_BODY} mt-1`}>
+              {prominent
+                ? 'Camera flattens photos onto white paper (ID, SSN, bureau mail). PDFs and images route to the right workflow after upload.'
+                : 'Upload screenshots, PDFs, videos, or supporting documents. These will be attachable to dispute letters.'}
+            </p>
+          </div>
+          <div className={`inline-flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL}`}>
+            <ImageIcon size={14} /> files
+          </div>
         </div>
-        <div className={`inline-flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL}`}>
-          <ImageIcon size={14} /> files
-        </div>
-      </div>
+      ) : null}
 
-      <div className="grid md:grid-cols-3 gap-4">
-        <div className="md:col-span-2 min-w-0">
+      <div className={compact ? 'space-y-3' : 'grid md:grid-cols-3 gap-4'}>
+        <div className={compact ? 'min-w-0' : 'md:col-span-2 min-w-0'}>
           <label className={FINELY_OS_ENTITY_SUBLABEL}>Caption</label>
           <input
             value={caption}

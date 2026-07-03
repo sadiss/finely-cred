@@ -44,6 +44,7 @@ export type SocialScheduledPost = {
   platforms?: Array<'facebook' | 'instagram' | 'threads' | 'linkedin'>;
   sopTemplateId?: string;
   assignedStaffId?: string;
+  posterType?: 'ai_agent' | 'human_executive';
   complianceStatus?: 'approved' | 'needs_review' | 'blocked';
   createdAt: string;
   updatedAt?: string;
@@ -102,6 +103,7 @@ export function queueSocialPost(args: {
   sopTemplateId?: string;
   assignedStaffId?: string;
   complianceStatus?: SocialScheduledPost['complianceStatus'];
+  posterType?: SocialScheduledPost['posterType'];
 }): SocialScheduledPost {
   const store = loadPosts();
   const post: SocialScheduledPost = {
@@ -114,6 +116,7 @@ export function queueSocialPost(args: {
     sopTemplateId: args.sopTemplateId,
     assignedStaffId: args.assignedStaffId,
     complianceStatus: args.complianceStatus ?? 'approved',
+    posterType: args.posterType,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };

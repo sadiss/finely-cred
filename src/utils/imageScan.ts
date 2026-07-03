@@ -556,9 +556,90 @@ export function scanPresetForProfile(profile: DocScanProfile): ScanPreset {
   return 'document_scan';
 }
 
+function isSkinRgb(r: number, g: number, b: number): boolean {
+  return r > 95 && g > 40 && b > 20 && r > g && r > b && r - g < 50 && r - b < 60;
+}
+
+/** Shrink crop inward when fingers/skin dominate border strips (common handheld scans). */
+export function tightenCropExcludeSkin(canvas: HTMLCanvasElement, crop: CropMargins, maxShrink = 0.12): CropMargins {
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return crop;
+  const w = canvas.width;
+  const h = canvas.height;
+  const x0 = Math.floor(crop.left * w);
+  const y0 = Math.floor(crop.top * h);
+  const x1 = Math.floor((1 - crop.right) * w);
+  const y1 = Math.floor((1 - crop.bottom) * h);
+  const rw = Math.max(1, x1 - x0);
+  const rh = Math.max(1, y1 - y0);
+  const strip = Math.max(4, Math.floor(Math.min(rw, rh) * 0.06));
+  const img = ctx.getImageData(x0, y0, rw, rh);
+  const d = img.data;
+
+  const skinRatioInStrip = (side: 'top' | 'bottom' | 'left' | 'right') => {
+    let skin = 0;
+    let n = 0;
+    if (side === 'top' || side === 'bottom') {
+      const yStart = side === 'top' ? 0 : rh - strip;
+      for (let y = yStart; y < yStart + strip; y += 2) {
+        for (let x = 0; x < rw; x += 4) {
+          const i = (y * rw + x) * 4;
+          if (isSkinRgb(d[i]!, d[i + 1]!, d[i + 2]!)) skin++;
+          n++;
+        }
+      }
+    } else {
+      const xStart = side === 'left' ? 0 : rw - strip;
+      for (let x = xStart; x < xStart + strip; x += 2) {
+        for (let y = 0; y < rh; y += 4) {
+          const i = (y * rw + x) * 4;
+          if (isSkinRgb(d[i]!, d[i + 1]!, d[i + 2]!)) skin++;
+          n++;
+        }
+      }
+    }
+    return n ? skin / n : 0;
+  };
+
+  let { left, top, right, bottom } = crop;
+  const shrink = Math.min(maxShrink, 0.04);
+  if (skinRatioInStrip('top') > 0.22) top = Math.min(0.45, top + shrink);
+  if (skinRatioInStrip('bottom') > 0.22) bottom = Math.min(0.45, bottom + shrink);
+  if (skinRatioInStrip('left') > 0.22) left = Math.min(0.45, left + shrink);
+  if (skinRatioInStrip('right') > 0.22) right = Math.min(0.45, right + shrink);
+  return { left, top, right, bottom };
+}
+
 export async function autoDetectDocumentCrop(blob: Blob): Promise<CropMargins> {
   const canvas = await decodeImageToCanvas(blob);
   return detectDocumentCropMargins(canvas);
+}
+
+/** Professional upload scan — auto edge detect, crop, and enhance by document profile. */
+export async function scanUploadedImageFile(file: File | Blob, profile: DocScanProfile = 'general'): Promise<Blob> {
+  const canvas = await decodeImageToCanvas(file);
+  let crop: CropMargins | undefined;
+  try {
+    const bounds = detectDocumentBoundsAdvanced(canvas, {
+      targetAspect: documentAspectForProfile(profile),
+      centerBias: profile === 'id_card' || profile === 'ssn_card' ? 0.62 : 0.45,
+      paddingPct: 0.01,
+    });
+    crop = resolveCaptureCrop(profile, canvas.width, canvas.height, bounds);
+    crop = tightenCropExcludeSkin(canvas, crop);
+  } catch {
+    try {
+      crop = detectDocumentCropMargins(canvas, 0.01);
+    } catch {
+      crop = undefined;
+    }
+  }
+  return renderScannedJpeg(file, {
+    preset: scanPresetForProfile(profile),
+    crop,
+    maxDimension: 2400,
+    quality: 0.94,
+  });
 }
 
 export async function renderScannedJpeg(blob: Blob, opts: RenderScanOptions): Promise<Blob> {

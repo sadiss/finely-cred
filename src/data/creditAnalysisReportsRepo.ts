@@ -81,6 +81,12 @@ export function upsertCreditAnalysisReport(
     pages: record.pages,
     createdAt: now,
     sourceReportFilename: record.sourceReportFilename,
+    engine: record.engine,
+    payloadSnapshot: record.payloadSnapshot,
+    sentAt: record.sentAt,
+    sentByEmail: record.sentByEmail,
+    sentByRole: record.sentByRole,
+    deliveryChannel: record.deliveryChannel,
   };
   const idx = store.reports.findIndex((x) => x.id === next.id || x.blobRef === next.blobRef);
   if (idx >= 0) store.reports[idx] = { ...store.reports[idx], ...next };

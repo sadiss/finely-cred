@@ -2,6 +2,9 @@
  * Per-agent portrait tuning — each member gets a unique randomuser.me portrait index
  * (real people photos) plus build-time color grade so they don't read as raw stock.
  */
+import { STAFF_ROSTER_EXPANSION } from './staffRosterExpansion';
+import { portraitTuningFromStaffId } from './staffPortraitIndex';
+
 export type StaffPortraitSource = {
   /** randomuser.me portraits/{women|men}/{index}.jpg — 0–99 */
   portraitIndex: number;
@@ -9,7 +12,7 @@ export type StaffPortraitSource = {
   saturation?: number;
 };
 
-export const STAFF_PORTRAIT_CATALOG: Record<string, StaffPortraitSource> = {
+const STAFF_PORTRAIT_CATALOG_BASE: Record<string, StaffPortraitSource> = {
   'staff-morgan-hale': { portraitIndex: 44, warmShift: 3, saturation: 0.9 },
   'staff-taylor-brooks': { portraitIndex: 68, warmShift: 2, saturation: 0.88 },
   'staff-marcus-reed': { portraitIndex: 32, warmShift: 4, saturation: 0.92 },
@@ -55,11 +58,69 @@ export const STAFF_PORTRAIT_CATALOG: Record<string, StaffPortraitSource> = {
   'staff-aia-guide': { portraitIndex: 22, warmShift: 2, saturation: 0.92 },
   'staff-ines-ortega': { portraitIndex: 51, warmShift: 4, saturation: 0.88 },
   'staff-adrian-stone': { portraitIndex: 96, warmShift: 2, saturation: 0.91 },
-  'staff-brielle-monroe': { portraitIndex: 96, warmShift: 3, saturation: 0.88 },
-  'staff-cameron-blake': { portraitIndex: 97, warmShift: 1, saturation: 0.92 },
-  'staff-elise-hart': { portraitIndex: 97, warmShift: 4, saturation: 0.89 },
+  'staff-brielle-monroe': { portraitIndex: 14, warmShift: 3, saturation: 0.88 },
+  'staff-cameron-blake': { portraitIndex: 27, warmShift: 1, saturation: 0.92 },
+  'staff-elise-hart': { portraitIndex: 53, warmShift: 4, saturation: 0.89 },
   'staff-drew-sinclair': { portraitIndex: 98, warmShift: 0, saturation: 0.93 },
 };
+
+/** Human executives on partner roster + ownership chain. */
+const EXECUTIVE_PORTRAIT_IDS: Array<{ id: string; gender: 'feminine' | 'masculine' | 'neutral' }> = [
+  { id: 'staff-naomi-fairchild', gender: 'feminine' },
+  { id: 'staff-david-okonkwo', gender: 'masculine' },
+  { id: 'staff-marcus-sterling-exec', gender: 'masculine' },
+  { id: 'staff-tamara-brooks-exec', gender: 'feminine' },
+  { id: 'sanz_st_louis', gender: 'masculine' },
+  { id: 'ruth_steward', gender: 'feminine' },
+  { id: 'naomi_fairchild', gender: 'feminine' },
+  { id: 'david_okonkwo', gender: 'masculine' },
+  { id: 'marcus_sterling', gender: 'masculine' },
+  { id: 'aisha_coleman', gender: 'feminine' },
+  { id: 'tamara_brooks', gender: 'feminine' },
+  { id: 'james_holloway', gender: 'masculine' },
+  { id: 'keisha_ramirez', gender: 'feminine' },
+  { id: 'professor_apex', gender: 'masculine' },
+  { id: 'cmo_prime', gender: 'feminine' },
+  { id: 'velvet_hammer', gender: 'feminine' },
+  { id: 'liora_lifecycle', gender: 'feminine' },
+  { id: 'scout_supreme', gender: 'masculine' },
+  { id: 'partner_recruiter', gender: 'feminine' },
+  { id: 'affiliate_wrangler', gender: 'masculine' },
+  { id: 'pr_sentinel', gender: 'masculine' },
+  { id: 'goldframe', gender: 'feminine' },
+  { id: 'switchboard', gender: 'feminine' },
+  { id: 'pipeline_titan', gender: 'masculine' },
+  { id: 'geo_commander', gender: 'masculine' },
+  { id: 'appointment_architect', gender: 'feminine' },
+  { id: 'revenue_captain', gender: 'masculine' },
+  { id: 'analytics_beast', gender: 'masculine' },
+  { id: 'content_director', gender: 'feminine' },
+  { id: 'night_owl_intel', gender: 'masculine' },
+  { id: 'inbox_triage', gender: 'feminine' },
+  { id: 'fun_captain', gender: 'masculine' },
+];
+
+function catalogEntryForId(id: string): StaffPortraitSource {
+  return portraitTuningFromStaffId(id);
+}
+
+const EXPANSION_CATALOG = Object.fromEntries(
+  STAFF_ROSTER_EXPANSION.map((s) => [s.id, catalogEntryForId(s.id)]),
+) as Record<string, StaffPortraitSource>;
+
+const EXECUTIVE_CATALOG = Object.fromEntries(
+  EXECUTIVE_PORTRAIT_IDS.map(({ id }) => [id, catalogEntryForId(id)]),
+) as Record<string, StaffPortraitSource>;
+
+export const STAFF_PORTRAIT_CATALOG: Record<string, StaffPortraitSource> = {
+  ...STAFF_PORTRAIT_CATALOG_BASE,
+  ...EXPANSION_CATALOG,
+  ...EXECUTIVE_CATALOG,
+};
+
+export function getStaffPortraitSource(staffId: string): StaffPortraitSource {
+  return STAFF_PORTRAIT_CATALOG[staffId] ?? catalogEntryForId(staffId);
+}
 
 export type PortraitFolder = 'women' | 'men';
 

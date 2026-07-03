@@ -3,6 +3,7 @@ import { ArrowLeft, ArrowRight, Gavel, ShieldAlert } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { PageShell } from '../../components/layout/PageShell';
 import { DisputeCaseWorkflowPanel } from '../../components/disputes/DisputeCaseWorkflowPanel';
+import { SmartProofUploader } from '../../components/evidence/SmartProofUploader';
 import { getCase } from '../../data/casesRepo';
 import { usePartnerSession } from '../../auth/PartnerSessionContext';
 import { EntitlementGate } from '../../components/billing/EntitlementGate';
@@ -12,6 +13,7 @@ import { bureauShortCode } from '../../utils/bureaus';
 import { FinelyOsPageFooter } from '../../features/os/FinelyOsPageFooter';
 import { FinelyUnifiedHubLayout } from '../../features/unified/FinelyUnifiedHubLayout';
 import { FinelyOsEmptyState } from '../../features/os/FinelyOsEmptyState';
+import { PartnerLaneCoachDock } from '../../components/chat/PartnerLaneCoachDock';
 import {
   FINELY_OS_PAGE,
   FINELY_OS_BACK_LINK,
@@ -67,7 +69,7 @@ export default function PartnerDisputeDetailPage() {
 
   const c = disputeCase;
   const lastRound = c.rounds.slice().sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0] ?? null;
-  type DisputeTab = 'overview' | 'workflow' | 'items';
+  type DisputeTab = 'overview' | 'workflow' | 'proof' | 'items';
   const [tab, setTab] = useState<DisputeTab>('overview');
 
   return (
@@ -104,6 +106,7 @@ export default function PartnerDisputeDetailPage() {
             ]}
             tabs={[
               { id: 'overview', label: 'Overview' },
+              { id: 'proof', label: 'Upload proof' },
               { id: 'workflow', label: 'Workflow' },
               { id: 'items', label: 'Items', badge: c.items.length || undefined },
             ]}
@@ -112,6 +115,18 @@ export default function PartnerDisputeDetailPage() {
             primaryAction={{ label: 'Dispute center', onClick: () => navigate('/portal/disputes') }}
             secondaryAction={{ label: 'Letter studio', onClick: () => navigate('/portal/letters') }}
           >
+          {partner ? (
+            <div className="mb-4">
+              <PartnerLaneCoachDock
+                partnerId={partner.id}
+                partnerName={partner.profile.fullName}
+                lane="dispute"
+                focusId={c.bureau}
+                coachSubtitle={`${bureauShortCode(c.bureau)} bureau specialist for this case`}
+                defaultOpen={false}
+              />
+            </div>
+          ) : null}
           {tab === 'overview' && (
           <div className="grid lg:grid-cols-12 gap-6">
             <div className={`lg:col-span-7 min-w-0 ${finelyOsCatalogCard('violet')} !p-5 space-y-4`}>
@@ -190,6 +205,17 @@ export default function PartnerDisputeDetailPage() {
               </div>
             </div>
           </div>
+          )}
+
+          {tab === 'proof' && (
+            <SmartProofUploader
+              partner={partner}
+              email={partner.profile.email}
+              disputeCaseId={c.id}
+              uploadContext="bureau"
+              compact
+              onUploaded={() => setTab('workflow')}
+            />
           )}
 
           {tab === 'workflow' && (

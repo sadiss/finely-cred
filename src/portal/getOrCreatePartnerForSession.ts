@@ -11,6 +11,7 @@ import { syncClaimedPartnerRecord } from '../data/partnersSupabaseSync';
 import { isSupabaseConfigured, supabase } from '../lib/supabaseClient';
 import { bootstrapLaneProjectForPartner, laneFromFunnelPath } from '../lib/funnelLaneBootstrap';
 import { bootstrapPartnerOnboardingJourney } from '../lib/partnerOnboardingEngine';
+import { retryPendingInviteClaim } from '../lib/retryPendingInviteClaim';
 
 export const ADMIN_PARTNER_OVERRIDE_KEY = 'finely.admin.asPartnerId.v1';
 
@@ -86,6 +87,9 @@ async function maybeHydrateExistingPartner(args: { partner: any; user: User | nu
 
 export async function getOrCreatePartnerForSession(args: { user: User | null }): Promise<any> {
   const userId = args.user?.id || '';
+  if (userId && args.user?.email) {
+    await retryPendingInviteClaim({ userId, email: args.user.email }).catch(() => null);
+  }
   if (userId) {
     const claimed = await findPartnerByClaimedUserId(userId);
     if (claimed) {
@@ -275,6 +279,9 @@ export async function getOrCreatePartnerForSession(args: { user: User | null }):
       city: meta.city ?? userData.city,
       state: meta.state ?? userData.state,
       postalCode: meta.postalCode ?? userData.postalCode,
+      supportModel: meta.supportModel ?? userData.supportModel,
+      helperName: meta.helperName ?? userData.helperName,
+      priorCompany: meta.priorCompany ?? userData.priorCompany,
     },
     intake,
   });

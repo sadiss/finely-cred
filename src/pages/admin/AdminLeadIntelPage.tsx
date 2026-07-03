@@ -5,7 +5,7 @@ import { PageShell } from '../../components/layout/PageShell';
 import { FinelyOsIconBadge } from '../../features/os/FinelyOsIconBadge';
 import { LeadIntelHub } from '../../features/leadIntel/LeadIntelHub';
 import { LeadIntelSwarmDashboard } from '../../features/overnight50/LeadIntelSwarmDashboard';
-import { Overnight50AdminNav } from '../../components/overnight50/Overnight50AdminNav';
+import { LeadIntelStaffRosterPanel } from '../../features/staffCommandCenter/LeadIntelStaffRosterPanel';
 import {
   FINELY_OS_PAGE,
   FINELY_OS_BANNER,
@@ -22,15 +22,18 @@ export default function AdminLeadIntelPage() {
   return (
     <PageShell
       badge="Admin"
-      title="Lead Intelligence Agent"
-      subtitle="Discover → stage → import — CRM-grade prospecting with AI copilot, staging board, and intel library."
+      title="Lead Intelligence"
+      subtitle="Swarm discovery and staging — operated by your Lead Intel department staff from Staff Command Center."
     >
       <div className={FINELY_OS_PAGE}>
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <button type="button" onClick={() => navigate('/admin/leads?tab=intel')} className={FINELY_OS_BACK_LINK}>
-            <ArrowLeft size={16} /> Leads OS
+          <button type="button" onClick={() => navigate('/admin/staff')} className={FINELY_OS_BACK_LINK}>
+            <ArrowLeft size={16} /> Staff Command Center
           </button>
           <div className="flex flex-wrap gap-2">
+            <button type="button" onClick={() => navigate('/admin/staff?view=roster')} className={FINELY_OS_SECONDARY_BTN}>
+              Edit staff roster
+            </button>
             <button type="button" onClick={() => navigate('/admin/crm?smartList=lead_intel_imports')} className={FINELY_OS_SECONDARY_BTN}>
               CRM imports <ArrowRight size={14} />
             </button>
@@ -40,19 +43,20 @@ export default function AdminLeadIntelPage() {
           </div>
         </div>
 
-        <Overnight50AdminNav className="mb-4" />
-
         <div className={FINELY_OS_BANNER}>
           <FinelyOsIconBadge icon={Sparkles} accent="fuchsia" size={18} className="p-2.5 mt-0.5" />
           <p className={`${FINELY_OS_ENTITY_BODY} leading-relaxed`}>
-            Lead Intel discovers prospects from compliant search APIs, enriches public pages, stages them on a kanban board, and saves qualified records into{' '}
-            <strong className="text-fuchsia-200">CRM → Prospects</strong>. Pair with sequences and playbooks for outbound.
+            <strong className="text-fuchsia-200">Lead Intel is not a separate agent list.</strong> The swarm below is run by named staff from Staff Command Center
+            (Pipeline Titan, Scout Supreme, Night Owl, Switchboard, etc.). Discovery → enrich → stage → import into{' '}
+            <strong className="text-fuchsia-200">CRM → Prospects</strong>.
           </p>
         </div>
 
-        <LeadIntelSwarmDashboard />
-
-        <LeadIntelHub />
+        <div className="space-y-8">
+          <LeadIntelStaffRosterPanel compact />
+          <LeadIntelSwarmDashboard />
+          <LeadIntelHub />
+        </div>
 
         <FinelyOsPageFooter />
       </div>

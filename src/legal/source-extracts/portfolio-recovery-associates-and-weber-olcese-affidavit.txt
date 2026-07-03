@@ -1,0 +1,29 @@
+﻿AFFIDAVIT OF [NAME]
+
+STATE OF ____________)
+COUNTY OF __________) *
+Pursuant to 28 U.S.C § 1746, [NAME], having been duly sworn and upon oath, verifies, certifies under penalty of perjury, and declares as follows:
+Portfolio Recovery Associates, LLC (PRA) and Weber & Olcese have filed a lawsuit in the 33rd District Court against me at Case No. ____________. I dispute I owe this debt to PRA as stated in the lawsuit.
+The Plaintiff has attached a “Bill of Sale” to the lawsuit that appears to many entities claiming ownership of the debt yet I never heard of any of them and I don’t see any proof they could have passed on the debt to PRA or anyone else:
+ 
+Further, the Bill of Sale has a data form file with the following extension line code:
+
+Yet, the Data File offered as proof of the PRA being in some file specific to me (I guess) has a different file extension from the one connected to the Bill of Sale:
+
+Sale File: IC_SVTTPRNS DMPLA DEBTMANAGER-20220116092956264810000-16773-PLCMNT-
+EXPORT.XML     -    -
+
+
+The Files attached to the lawsuit show that there is a file with this identifier but it is missing an extension in this case. So clearly, there are no data identifiers on the "Bill of Sale" connecting it to the rest of the documents in the exhibit with the necessary identical data identifiers and this is not a file where a debt of mine exists with that different data extension
+Also, the Bill of Sale references that the whole thing is bought and sold pursuant to a Forward Flow Accounts Purchase Agreement (The Agreement) that does appear anywhere in the lawsuit or attached to it:
+
+This is an Account Stated lawsuit that I have not paid anything to PRA on or come to any agreement to pay PRA or their law firm.
+The Affidavit attached to the lawsuit is claiming two different amounts are owed with no mention of the different entities from the bill of sale that supposedly have ownership rights to assign to PRA. 
+There is no proof I owe this debt to PRA as they own nothing that I owe them and there are no assignments to all the different entities connected to this lawsuit. 
+I dispute I owe this debt to PRA as stated in the lawsuit._______________________
+[NAME]
+
+
+DATED: _______________________
+
+

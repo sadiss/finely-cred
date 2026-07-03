@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import {
   Archive,
   Calendar,
@@ -222,29 +223,30 @@ export function SavedLetterCard({
         id={id}
         type="button"
         onClick={() => setDetailOpen(true)}
-        className={`${finelyOsDeckTile(meta.accent, highlighted)} min-h-[92px] ${
-          highlighted ? 'scale-[1.02]' : 'hover:brightness-105'
+        className={`group relative min-h-[100px] overflow-hidden rounded-2xl border border-white/10 bg-[#090d12] text-left shadow-[0_8px_24px_-12px_rgba(0,0,0,0.65)] transition-all hover:scale-[1.02] hover:border-fuchsia-400/35 ${
+          highlighted ? 'ring-2 ring-fuchsia-400/50 scale-[1.02] border-fuchsia-300/50' : ''
         }`}
       >
-        <div className="relative flex h-full items-stretch gap-2.5 p-3">
-          <div className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl border ${meta.seal}`}>
-            <Icon size={15} />
+        <div className="absolute inset-y-0 left-0 w-1 bg-gradient-to-b from-fuchsia-300 via-fuchsia-500 to-violet-500" />
+        <div className="absolute -right-6 -top-6 h-20 w-20 rounded-full bg-fuchsia-500/10 blur-2xl" />
+        <div className="relative flex h-full items-stretch gap-2.5 p-3 pl-4">
+          <div className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl border ${meta.chip}`}>
+            <Icon size={16} className="text-current" />
           </div>
 
           <div className="min-w-0 flex-1 flex flex-col justify-between gap-1.5">
             <div className="flex items-start justify-between gap-2">
               <div className="min-w-0">
+                <div className={`truncate text-[10px] font-black uppercase tracking-[0.14em] ${FINELY_OS_ENTITY_SUBLABEL}`}>Generated letter</div>
                 <div className={`truncate text-[12px] font-black leading-tight ${FINELY_OS_ENTITY_VALUE}`}>{letter.title}</div>
-                <div className={`truncate text-[9px] ${FINELY_OS_ENTITY_SUBLABEL} normal-case`}>{fmtWhen(letter.createdAt)}</div>
+                <div className={`truncate text-[9px] normal-case ${FINELY_OS_ENTITY_BODY}`}>{fmtWhen(letter.createdAt)}</div>
               </div>
-              <div
-                className={`h-9 w-7 shrink-0 rounded-md border bg-gradient-to-b ${bureauUi.paper} shadow-md shadow-black/20 overflow-hidden rotate-3 group-hover:rotate-0 transition-transform`}
-                aria-hidden
-              >
-                <div className="h-1.5 bg-slate-900/10 border-b border-black/10" />
+              <div className="h-10 w-8 shrink-0 rounded-sm border border-fuchsia-400/20 bg-[#120a18] shadow-md overflow-hidden rotate-2 group-hover:rotate-0 transition-transform" aria-hidden>
+                <div className="h-1 bg-fuchsia-500/30" />
                 <div className="p-0.5 space-y-0.5">
-                  <div className="h-0.5 rounded bg-black/12 w-full" />
-                  <div className="h-0.5 rounded bg-black/8 w-4/5" />
+                  <div className="h-0.5 rounded bg-white/15 w-full" />
+                  <div className="h-0.5 rounded bg-white/10 w-4/5" />
+                  <div className="h-0.5 rounded bg-white/10 w-full" />
                 </div>
               </div>
             </div>
@@ -252,28 +254,30 @@ export function SavedLetterCard({
             <div className="flex flex-wrap items-center gap-1">
               <span className={finelyOsMicroStat(meta.accent)}>{meta.label}</span>
               {bureau ? <span className={finelyOsMicroStat(bureauUi.badge)}>{bureauShortCode(bureau as Bureau)}</span> : null}
-              <span className={finelyOsStatusChip(toneChip)}>{hasPdf ? 'PDF' : 'Draft'}</span>
+              {round ? <span className="rounded-md border border-fuchsia-400/25 bg-fuchsia-500/15 px-1.5 py-0.5 text-[9px] font-black uppercase text-fuchsia-100">{round}</span> : null}
+              <span className="rounded-md border border-emerald-400/20 bg-emerald-500/10 px-1.5 py-0.5 text-[9px] font-black uppercase text-emerald-100">{hasPdf ? 'PDF ready' : 'Draft'}</span>
             </div>
 
             <div className="flex items-center justify-between gap-2">
               <span className={`truncate text-[9px] ${FINELY_OS_ENTITY_BODY}`}>{statLine}</span>
-              <span className="inline-flex shrink-0 items-center gap-0.5 text-[9px] font-black uppercase tracking-widest text-amber-200/90 opacity-80 group-hover:opacity-100">
-                <Eye size={11} /> Open
+              <span className="inline-flex shrink-0 items-center gap-0.5 text-[9px] font-black uppercase tracking-widest text-fuchsia-200">
+                <Eye size={11} /> Open letter
               </span>
             </div>
           </div>
         </div>
       </button>
 
-      {detailOpen ? (
-        <div className="fixed inset-0 z-[1000] isolate flex items-center justify-center p-3 sm:p-4">
+      {detailOpen
+        ? createPortal(
+        <div className="fixed inset-0 z-[8000] isolate flex items-center justify-center p-3 sm:p-4">
           <div className="absolute inset-0 bg-black/85 backdrop-blur-md" onClick={() => setDetailOpen(false)} />
           <div
-            className={`relative z-[1001] w-full max-w-3xl max-h-[90vh] overflow-hidden rounded-[1.75rem] border border-white/12 bg-[#080c12] shadow-[0_40px_120px_-40px_rgba(0,0,0,0.95)] ${
-              highlighted ? 'ring-2 ring-amber-300/25' : ''
+            className={`relative z-[1] w-full max-w-3xl max-h-[90vh] overflow-hidden rounded-[2rem] border border-fuchsia-400/20 bg-[#080c12] shadow-[0_40px_120px_-40px_rgba(0,0,0,0.95)] ${
+              highlighted ? 'ring-2 ring-fuchsia-300/25' : ''
             }`}
           >
-            <div className="border-b border-white/10 px-4 py-4 sm:px-5">
+            <div className="border-b border-white/10 px-4 py-4 sm:px-5 bg-[radial-gradient(900px_360px_at_5%_0%,rgba(217,70,239,0.18),transparent_60%),linear-gradient(180deg,#120a18_0%,#080c12_100%)]">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-1.5">
@@ -329,11 +333,11 @@ export function SavedLetterCard({
                 <button
                   type="button"
                   onClick={openPreview}
-                  className={`${finelyOsDeckTile('sky')} w-full !min-h-0 p-4 text-left hover:brightness-105`}
+                  className={`${finelyOsDeckTile('fuchsia')} w-full !min-h-0 p-4 text-left hover:brightness-105`}
                 >
                   <div className="flex items-center justify-between gap-3">
                     <div className="flex items-center gap-3 min-w-0">
-                      <div className="grid h-11 w-11 place-items-center rounded-xl border border-sky-400/25 bg-sky-500/10 text-sky-100">
+                      <div className="grid h-11 w-11 place-items-center rounded-xl border border-fuchsia-400/25 bg-fuchsia-500/10 text-fuchsia-100">
                         <FileText size={18} />
                       </div>
                       <div className="min-w-0">
@@ -344,7 +348,7 @@ export function SavedLetterCard({
                         </div>
                       </div>
                     </div>
-                    <Eye size={18} className="shrink-0 text-sky-200" />
+                    <Eye size={18} className="shrink-0 text-fuchsia-200" />
                   </div>
                 </button>
               ) : null}
@@ -403,8 +407,10 @@ export function SavedLetterCard({
               ) : null}
             </div>
           </div>
-        </div>
-      ) : null}
+        </div>,
+        document.body,
+      )
+        : null}
 
       {textOpen && (letter.body || letter.pdfBlobRef) ? (
         <LetterFullPreviewModal letter={letter} evidence={evidence} onClose={() => setTextOpen(false)} />

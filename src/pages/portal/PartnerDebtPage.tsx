@@ -3,12 +3,19 @@ import { ArrowLeft, ArrowRight, Scale, FileWarning, Plus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { PageShell } from '../../components/layout/PageShell';
 import { listDebtByPartner, createDebtCase } from '../../data/debtRepo';
+import { getDebtLaneFocus, saveDebtLaneFocus } from '../../data/debtLaneStateRepo';
 import { onDebtCaseCreated } from '../../lib/debtWorkflowEngine';
 import { usePartnerSession } from '../../auth/PartnerSessionContext';
 import { EntitlementGate } from '../../components/billing/EntitlementGate';
 import { ENTITLEMENT_KEYS } from '../../billing/entitlements';
 import { FinelyOsPageFooter } from '../../features/os/FinelyOsPageFooter';
 import { FinelyUnifiedHubLayout } from '../../features/unified/FinelyUnifiedHubLayout';
+import { PartnerLaneCoachPanel } from '../../components/chat/PartnerLaneCoachPanel';
+import { DebtLaneHandoffStrip } from '../../components/debt/DebtLaneHandoffStrip';
+import { PartnerLaneCoachDock } from '../../components/chat/PartnerLaneCoachDock';
+import { PartnerSuccessExperiencePanel } from '../../components/partner/PartnerSuccessExperiencePanel';
+import { SmartProofUploader } from '../../components/evidence/SmartProofUploader';
+import { LettersCommandCenter, type LettersStudioTab } from '../../components/letters/LettersCommandCenter';
 import {
   FINELY_OS_PAGE,
   FINELY_OS_BACK_LINK,
@@ -21,11 +28,9 @@ import {
   FINELY_OS_ENTITY_TITLE,
   FINELY_OS_ENTITY_VALUE,
   FINELY_OS_LUXURY_EMPTY,
-  FINELY_OS_NOTICE_WARN,
   FINELY_OS_PRIMARY_BTN,
   FINELY_OS_SECONDARY_BTN,
   FINELY_OS_SUCCESS_BTN,
-  finelyOsInlineListItem,
 } from '../../features/os/finelyOsLightUi';
 
 function AddCaseForm({
@@ -123,22 +128,91 @@ export default function PartnerDebtPage() {
   const disputedCount = cases.filter((c) => c.status === 'disputed').length;
   const totalDollars = useMemo(() => cases.reduce((sum, c) => sum + Number(c.amountCents || 0), 0), [cases]);
 
-  type DebtTab = 'overview' | 'cases' | 'guides';
+  type DebtTab = 'overview' | 'validation' | 'court' | 'foreclosure' | 'repossession' | 'bankruptcy' | 'cases' | 'guides';
   const [tab, setTab] = useState<DebtTab>('overview');
 
+  const handleTabChange = (id: DebtTab) => {
+    setTab(id);
+    if (partner && id !== 'overview' && id !== 'cases' && id !== 'guides') {
+      saveDebtLaneFocus(partner.id, id);
+    }
+  };
+
+  const workstationTab =
+    tab === 'validation' || tab === 'court' || tab === 'foreclosure' || tab === 'repossession' || tab === 'bankruptcy' ? tab : null;
+
+  const coachLaneForTab = (t: DebtTab): string => {
+    if (t === 'validation') return 'validation';
+    if (t === 'court') return 'court';
+    if (t === 'foreclosure') return 'foreclosure';
+    if (t === 'repossession') return 'repossession';
+    if (t === 'bankruptcy') return 'bankruptcy';
+    return 'debt';
+  };
+
+  const debtCoachFocusId = useMemo(() => {
+    if (tab !== 'overview' && tab !== 'cases' && tab !== 'guides') return coachLaneForTab(tab);
+    if (!partner) return 'debt';
+    return getDebtLaneFocus(partner.id)?.workstation ?? 'debt';
+  }, [tab, partner]);
+
+  const hubMeta = useMemo(() => {
+    switch (workstationTab) {
+      case 'foreclosure':
+        return {
+          title: 'Foreclosure command center',
+          subtitle: 'RESPA, loss mitigation, dual-track stops, note/assignment demands — with live coach.',
+          accent: 'amber' as const,
+        };
+      case 'repossession':
+        return {
+          title: 'Repossession command center',
+          subtitle: 'UCC Article 9 reinstatement, wrongful repo, deficiency fights — with live coach.',
+          accent: 'rose' as const,
+        };
+      case 'court':
+        return {
+          title: 'Affidavits & court answers',
+          subtitle: 'Summons strategy, sworn affidavits, discovery, and standing challenges.',
+          accent: 'fuchsia' as const,
+        };
+      case 'bankruptcy':
+        return {
+          title: 'Bankruptcy workstation',
+          subtitle: 'Chapter 7/13 prep, stay notices, creditor matrix, post-discharge bureau disputes.',
+          accent: 'sky' as const,
+        };
+      case 'validation':
+        return {
+          title: 'Validation workstation',
+          subtitle: 'FDCPA § 1692g proof demands — licensing, chain of title, accounting.',
+          accent: 'emerald' as const,
+        };
+      default:
+        return {
+          title: 'Debt removal center',
+          subtitle: 'One hub for cases, letters, and proof — pick a track below.',
+          accent: 'fuchsia' as const,
+        };
+    }
+  }, [workstationTab]);
+
   const debtKpis = useMemo(
-    () => [
-      { label: 'Cases', value: String(cases.length), hint: 'Total', accent: 'amber' as const },
-      { label: 'Active', value: String(openCount + disputedCount), hint: 'Open + disputed', accent: 'emerald' as const },
-      { label: 'Resolved', value: String(resolvedCount), hint: 'Done', accent: 'sky' as const },
-      {
-        label: 'Claimed',
-        value: (totalDollars / 100).toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }),
-        hint: 'All cases',
-        accent: 'violet' as const,
-      },
-    ],
-    [cases.length, openCount, disputedCount, resolvedCount, totalDollars],
+    () =>
+      workstationTab
+        ? undefined
+        : [
+            { label: 'Cases', value: String(cases.length), hint: 'Total', accent: 'amber' as const },
+            { label: 'Active', value: String(openCount + disputedCount), hint: 'Open + disputed', accent: 'emerald' as const },
+            { label: 'Resolved', value: String(resolvedCount), hint: 'Done', accent: 'sky' as const },
+            {
+              label: 'Claimed',
+              value: (totalDollars / 100).toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }),
+              hint: 'All cases',
+              accent: 'violet' as const,
+            },
+          ],
+    [cases.length, openCount, disputedCount, resolvedCount, totalDollars, workstationTab],
   );
 
   const handleAddCase = (e: React.FormEvent) => {
@@ -180,32 +254,16 @@ export default function PartnerDebtPage() {
   );
 
   const letterTypesPanel = (
-    <div className={`${finelyOsCatalogCard('violet')} !p-5 border-fuchsia-500/25 space-y-4`}>
-      <h2 className={`${FINELY_OS_ENTITY_TITLE} text-lg`}>Letters & affidavits you can use</h2>
-      <p className={FINELY_OS_ENTITY_BODY}>
-        For each debt or summons case you add, you get personalized drafts and legal basis. Available letter types:
-      </p>
-      <ul className={`grid sm:grid-cols-2 gap-2 text-sm ${FINELY_OS_ENTITY_BODY}`}>
-        <li className="flex items-center gap-2">
-          <span className="text-fuchsia-300">•</span> <strong>Validation request</strong> — FDCPA § 809, demand proof before collection
-        </li>
-        <li className="flex items-center gap-2">
-          <span className="text-fuchsia-300">•</span> <strong>Time-barred response</strong> — Assert statute of limitations
-        </li>
-        <li className="flex items-center gap-2">
-          <span className="text-fuchsia-300">•</span> <strong>Affidavit of dispute</strong> — Sworn statement; put claimant to proof
-        </li>
-        <li className="flex items-center gap-2">
-          <span className="text-fuchsia-300">•</span> <strong>Summons response / 35-day answer</strong> — Answer & affirmative defenses
-        </li>
-        <li className="flex items-center gap-2">
-          <span className="text-fuchsia-300">•</span> <strong>Cease & desist</strong> — FDCPA § 805(c), stop contact
-        </li>
-        <li className="flex items-center gap-2">
-          <span className="text-fuchsia-300">•</span> <strong>Debt dispute letter</strong> — General dispute, FCRA/FDCPA
-        </li>
+    <div className="space-y-3 text-sm text-white/65">
+      <p>Each case unlocks personalized drafts with legal basis (FDCPA, UCC, RESPA, civil procedure).</p>
+      <ul className="grid sm:grid-cols-2 gap-x-6 gap-y-2">
+        <li>Validation request — FDCPA § 809</li>
+        <li>Affidavit of dispute — sworn denial</li>
+        <li>Summons answer — affirmative defenses</li>
+        <li>Foreclosure / repossession — collateral tracks</li>
+        <li>Cease & desist — § 805(c)</li>
+        <li>Credit reporting follow-up — FCRA</li>
       </ul>
-      <p className={`text-xs ${FINELY_OS_ENTITY_BODY}`}>Contract law, banking law (UCC), and civil procedure (SOL) are explained on each case page.</p>
     </div>
   );
 
@@ -230,37 +288,82 @@ export default function PartnerDebtPage() {
             {navLinks}
 
             <FinelyUnifiedHubLayout
-              eyebrow="Debt & summons"
-              title="Validation, affidavits & court answers"
-              subtitle="FDCPA workflows with personalized letter drafts per case."
-              accent="fuchsia"
+              eyebrow="Debt removal"
+              title={hubMeta.title}
+              subtitle={hubMeta.subtitle}
+              accent={hubMeta.accent}
               kpis={debtKpis}
+              contentVariant={workstationTab === 'foreclosure' || workstationTab === 'repossession' ? 'flush' : 'card'}
+              tabDensity="comfortable"
               tabs={[
                 { id: 'overview', label: 'Overview' },
+                { id: 'validation', label: 'Validation' },
+                { id: 'court', label: 'Court' },
+                { id: 'foreclosure', label: 'Foreclosure' },
+                { id: 'repossession', label: 'Repossession' },
+                { id: 'bankruptcy', label: 'Bankruptcy' },
                 { id: 'cases', label: 'Cases', badge: cases.length || undefined },
-                { id: 'guides', label: 'Letter types' },
               ]}
               activeTab={tab}
-              onTabChange={(id) => setTab(id as DebtTab)}
+              onTabChange={(id) => handleTabChange(id as DebtTab)}
               primaryAction={{ label: 'Add case', onClick: () => setShowAdd(true) }}
               secondaryAction={{ label: 'Documents vault', onClick: () => navigate('/portal/documents') }}
+              detailSlot={tab === 'overview' ? letterTypesPanel : undefined}
+              detailLabel="Letter types available"
             >
+              {tab !== 'overview' && partner ? (
+                <div className="mb-4">
+                  <PartnerLaneCoachDock
+                    partnerId={partner.id}
+                    partnerName={partner.profile.fullName}
+                    lane={coachLaneForTab(tab)}
+                    focusId={debtCoachFocusId}
+                    coachSubtitle={`Specialist for ${tab} — expand to chat`}
+                  />
+                </div>
+              ) : null}
+
               {tab === 'overview' && (
                 <div className="space-y-4">
+                  {partner ? <SmartProofUploader partner={partner} email={partner.profile.email} uploadContext="debt" compact /> : null}
                   {cases.length === 0 ? (
                     <div className={`${FINELY_OS_LUXURY_EMPTY} text-center space-y-4`}>
                       <Scale className="mx-auto text-violet-400/70" size={48} />
                       <p className={`${FINELY_OS_ENTITY_VALUE} text-base`}>No debt or summons cases yet</p>
                       <p className={`${FINELY_OS_ENTITY_BODY} max-w-md mx-auto`}>
-                        Add a case to open the full legal workflow: strategy dates, recommended letter type, and draft language.
+                        Add a case, then open Validation, Court, Foreclosure, or Repossession from the tabs above.
                       </p>
                       <button type="button" onClick={() => setShowAdd(true)} className={FINELY_OS_SUCCESS_BTN}>
                         <Plus size={16} /> Add debt or summons case
                       </button>
                     </div>
                   ) : (
-                    <div className={FINELY_OS_NOTICE_WARN}>
-                      <strong>{openCount + disputedCount} active case(s)</strong> — open the Cases tab to continue validation, affidavits, or summons answers.
+                    <div className="space-y-3">
+                      <p className={FINELY_OS_ENTITY_BODY}>
+                        <strong className="text-white/90">{openCount + disputedCount} active case(s).</strong> Use the tabs above — each workstation has its own letter library and coach.
+                      </p>
+                      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                        {(
+                          [
+                            { id: 'validation' as const, label: 'Validation', hint: 'FDCPA proof' },
+                            { id: 'court' as const, label: 'Court', hint: 'Affidavits & answers' },
+                            { id: 'foreclosure' as const, label: 'Foreclosure', hint: 'RESPA & mortgage' },
+                            { id: 'repossession' as const, label: 'Repossession', hint: 'UCC Art. 9' },
+                            { id: 'bankruptcy' as const, label: 'Bankruptcy', hint: 'Filing prep' },
+                            { id: 'cases' as const, label: 'All cases', hint: `${cases.length} total` },
+                          ] as const
+                        ).map((w) => (
+                          <button
+                            key={w.id}
+                            type="button"
+                            onClick={() => setTab(w.id)}
+                            className="rounded-xl border border-white/10 bg-black/25 px-5 py-4 text-left hover:border-white/25 transition min-h-[4.5rem]"
+                          >
+                            <div className="text-sm font-semibold text-white/90 leading-snug">{w.label}</div>
+                            <div className="text-[11px] text-white/45 mt-1 leading-relaxed">{w.hint}</div>
+                          </button>
+                        ))}
+                      </div>
                     </div>
                   )}
                   {showAdd ? (
@@ -277,8 +380,47 @@ export default function PartnerDebtPage() {
                       onCancel={() => setShowAdd(false)}
                     />
                   ) : null}
+
+                  <DebtLaneHandoffStrip partnerId={partner.id} />
+
+                  <div className="grid lg:grid-cols-5 gap-4">
+                    <div className="lg:col-span-3">
+                      <PartnerLaneCoachPanel
+                        partnerId={partner.id}
+                        partnerName={partner.profile.fullName}
+                        lane="debt"
+                        focusId={debtCoachFocusId}
+                        compact
+                        coachSubtitle="Debt & validation coach — dedicated specialist per workstation"
+                      />
+                    </div>
+                    <div className="lg:col-span-2">
+                      <PartnerSuccessExperiencePanel partnerId={partner.id} lane="debt" compact />
+                    </div>
+                  </div>
                 </div>
               )}
+
+              {workstationTab && partner ? (
+                <LettersCommandCenter
+                  partner={partner}
+                  layout="embedded"
+                  unifiedShell
+                  activeTab={workstationTab as LettersStudioTab}
+                  debtCenterMode
+                  onTabChange={(next) => {
+                    if (
+                      next === 'validation' ||
+                      next === 'court' ||
+                      next === 'foreclosure' ||
+                      next === 'repossession' ||
+                      next === 'bankruptcy'
+                    ) {
+                      setTab(next);
+                    }
+                  }}
+                />
+              ) : null}
 
               {tab === 'cases' && (
                 <div className="space-y-4">
@@ -298,64 +440,36 @@ export default function PartnerDebtPage() {
                     />
                   ) : null}
                   {cases.length === 0 ? (
-                    <div className={FINELY_OS_ENTITY_BODY}>No cases yet — use Add case from the hub header or Overview tab.</div>
+                    <div className={FINELY_OS_ENTITY_BODY}>No cases yet — use Add case from the hub header.</div>
                   ) : (
-                    <>
-                      <div className={FINELY_OS_NOTICE_WARN}>
-                        Open any case for personalized letter drafts and legal basis (FDCPA, contract law, banking law).
-                      </div>
-                      <div className="grid lg:grid-cols-2 gap-4">
-                        {[
-                          {
-                            key: 'active',
-                            title: 'Active (open / in review / disputed)',
-                            items: cases.filter((c) => c.status === 'open' || c.status === 'in_review' || c.status === 'disputed'),
-                          },
-                          { key: 'resolved', title: 'Resolved', items: cases.filter((c) => c.status === 'resolved') },
-                        ].map((group) => (
-                          <details key={group.key} className={`${finelyOsCatalogCard('violet')} !p-5 !p-5`} open={group.key === 'active'}>
-                            <summary className="cursor-pointer select-none flex items-center justify-between gap-3">
-                              <div className={FINELY_OS_ENTITY_VALUE}>{group.title}</div>
-                              <div className={FINELY_OS_ENTITY_SUBLABEL}>{group.items.length}</div>
-                            </summary>
-                            <div className="mt-4 grid gap-3">
-                              {group.items.length === 0 ? (
-                                <div className={FINELY_OS_ENTITY_BODY}>No cases in this group.</div>
-                              ) : (
-                                group.items.map((c) => (
-                                  <button
-                                    key={c.id}
-                                    type="button"
-                                    onClick={() => navigate(`/portal/debt/${c.id}`)}
-                                    className={`${finelyOsInlineListItem()} w-full text-left p-5 flex items-center justify-between gap-4`}
-                                  >
-                                    <div className="flex items-center gap-3 min-w-0">
-                                      {c.type === 'summons' ? (
-                                        <FileWarning size={20} className="text-violet-300 shrink-0" />
-                                      ) : (
-                                        <Scale size={20} className="text-violet-300 shrink-0" />
-                                      )}
-                                      <div className="min-w-0">
-                                        <div className={`${FINELY_OS_ENTITY_VALUE} truncate`}>{c.name}</div>
-                                        <div className={`${FINELY_OS_ENTITY_SUBLABEL} mt-0.5`}>
-                                          {(c.amountCents / 100).toLocaleString('en-US', { style: 'currency', currency: 'USD' })} · {c.type} · {c.status}
-                                        </div>
-                                      </div>
-                                    </div>
-                                    <ArrowRight size={16} className="text-white/40 shrink-0" />
-                                  </button>
-                                ))
-                              )}
+                    <div className="divide-y divide-white/10 rounded-xl border border-white/10 overflow-hidden">
+                      {cases.map((c) => (
+                        <button
+                          key={c.id}
+                          type="button"
+                          onClick={() => navigate(`/portal/debt/${c.id}`)}
+                          className="w-full text-left px-4 py-3 flex items-center justify-between gap-4 hover:bg-white/5 transition"
+                        >
+                          <div className="flex items-center gap-3 min-w-0">
+                            {c.type === 'summons' ? (
+                              <FileWarning size={18} className="text-violet-300 shrink-0" />
+                            ) : (
+                              <Scale size={18} className="text-violet-300 shrink-0" />
+                            )}
+                            <div className="min-w-0">
+                              <div className={`${FINELY_OS_ENTITY_VALUE} truncate`}>{c.name}</div>
+                              <div className={`${FINELY_OS_ENTITY_SUBLABEL} mt-0.5`}>
+                                {(c.amountCents / 100).toLocaleString('en-US', { style: 'currency', currency: 'USD' })} · {c.type} · {c.status}
+                              </div>
                             </div>
-                          </details>
-                        ))}
-                      </div>
-                    </>
+                          </div>
+                          <ArrowRight size={16} className="text-white/40 shrink-0" />
+                        </button>
+                      ))}
+                    </div>
                   )}
                 </div>
               )}
-
-              {tab === 'guides' && letterTypesPanel}
             </FinelyUnifiedHubLayout>
 
             <FinelyOsPageFooter />

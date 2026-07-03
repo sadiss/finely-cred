@@ -140,5 +140,11 @@ export function platformEventMatchesTrigger(
     return true;
   }
 
+  if (t === 'bankruptcy_scenario_selected') {
+    if (event.type !== 'automation.triggered' || event.payload?.kind !== 'bankruptcy_scenario_selected') return false;
+    if (trigger.scenarioId && event.payload?.scenarioId !== trigger.scenarioId) return false;
+    return true;
+  }
+
   return false;
 }

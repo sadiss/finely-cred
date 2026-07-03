@@ -35,6 +35,22 @@ export const INBOUND_INTEGRATION_EVENTS: InboundIntegrationEvent[] = [
     samplePayload: { type: 'checkout.session.completed', id: 'cs_test_…' },
   },
   {
+    id: 'inbound_email_webhook',
+    label: 'Email provider webhook',
+    method: 'POST',
+    path: '/functions/v1/email-webhook',
+    description: 'Resend / SendGrid / SES delivery events → comms send log correlation.',
+    samplePayload: { provider: 'resend', type: 'email.delivered', data: { email_id: '…', to: ['user@example.com'] } },
+  },
+  {
+    id: 'inbound_comms_oauth',
+    label: 'Comms OAuth callback',
+    method: 'POST',
+    path: '/functions/v1/comms-oauth-callback?provider=outlook&code=…',
+    description: 'Outlook / Gmail / Zoho OAuth redirect — exchange code for tokens and persist connection.',
+    samplePayload: { ok: true, provider: 'outlook', codeReceived: true, redirectTo: '/admin/comms?room=settings&oauth=outlook&connected=1' },
+  },
+  {
     id: 'inbound_nora',
     label: 'Nora Capital partner API',
     method: 'POST',

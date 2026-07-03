@@ -10,7 +10,7 @@ export const CO_OWNER_LEGACY_ALIASES = ['Sage Meridian', 'Sage'] as const;
 export const CO_OWNER_IDENTITY = {
   id: CO_OWNER_PERSONA_ID,
   name: 'Ruth',
-  title: 'AI Co-Owner & Chief Operating Steward',
+  title: 'Co-Owner',
   pronouns: 'she/her',
   tagline:
     'Deep steward intelligence — your co-owner who sees around corners in credit, business, and operations.',

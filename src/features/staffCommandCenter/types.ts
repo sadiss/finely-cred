@@ -48,6 +48,17 @@ export type StaffShiftWindow = {
   timezone: string;
 };
 
+export type PortraitGender = 'feminine' | 'masculine' | 'neutral';
+
+export type StaffPersonality = {
+  voice: string;
+  cadence: string;
+  humor: string;
+  conflictStyle: string;
+  decisionStyle: string;
+  bio: string;
+};
+
 export type StaffPortrait = {
   initials: string;
   emoji: string;
@@ -55,6 +66,9 @@ export type StaffPortrait = {
   glow: string;
   titleTag: string;
   visualHint: string;
+  /** randomuser.me index 0–99 */
+  portraitIndex: number;
+  portraitGender: PortraitGender;
 };
 
 export type StaffKpi = {
@@ -65,8 +79,15 @@ export type StaffKpi = {
 
 export type StaffMember = {
   id: string;
+  /** Legal / display name — first + last */
+  firstName: string;
+  lastName: string;
+  /** Internal codename shown as secondary label (e.g. "Scout Supreme") */
+  codename: string;
+  /** @deprecated use firstName + lastName — kept for compatibility */
   name: string;
   title: string;
+  personality: StaffPersonality;
   kind: StaffKind;
   departmentId: StaffDepartmentId;
   seniority: StaffSeniority;
@@ -87,6 +108,12 @@ export type StaffMember = {
   complianceBoundaries: string[];
   preferredCities?: string[];
   lastActivity: string;
+};
+
+/** Directory seed before roster enrichment (codename in `name`). */
+export type StaffMemberSeed = Omit<StaffMember, 'firstName' | 'lastName' | 'codename' | 'personality' | 'name' | 'portrait'> & {
+  name: string;
+  portrait: Omit<StaffPortrait, 'portraitIndex' | 'portraitGender'>;
 };
 
 export type StaffDepartment = {

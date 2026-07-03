@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import type { Partner } from '../../domain/partners';
 import { PartnerCreditRestoreHud } from '../../features/partner/PartnerCreditRestoreHud';
 import { FinelyOsAlertBanner } from '../../features/os/FinelyOsAlertBanner';
+import { listCasesByPartner } from '../../data/casesRepo';
+import { summarizePartnerDisputeRounds } from '../../lib/creditRestoreRoundRollup';
 
 type Props = {
   partner: Partner;
@@ -42,11 +44,24 @@ export function PartnerCreditRestoreCommandStrip({
     return null;
   }, [reportsCount, evidenceCount, lettersCount]);
 
+  const roundSummary = useMemo(() => {
+    const cases = listCasesByPartner(partner.id);
+    const s = summarizePartnerDisputeRounds(partner.id, cases);
+    return {
+      awaitingResponse: s.awaitingResponse,
+      responsesLogged: s.responsesLogged,
+      highestActiveRound: s.highestActiveRound,
+      nextActionLabel: s.nextActionLabel,
+      roundPhasePct: s.roundPhasePct,
+    };
+  }, [partner.id]);
+
   const primaryAction = useMemo(() => {
     if (reportsCount === 0) return { label: 'Upload report', tab: 'reports' as const };
     if (lettersCount === 0) return { label: 'Open letter studio', tab: 'letters' as const };
+    if (roundSummary.awaitingResponse > 0) return { label: 'Track dispute rounds', tab: 'disputes' as const };
     return { label: 'View saved letters', tab: 'letters' as const };
-  }, [reportsCount, lettersCount]);
+  }, [reportsCount, lettersCount, roundSummary.awaitingResponse]);
 
   return (
     <div className="space-y-3">
@@ -57,6 +72,7 @@ export function PartnerCreditRestoreCommandStrip({
         evidenceCount={evidenceCount}
         lettersCount={lettersCount}
         openCasesCount={openCasesCount}
+        roundSummary={roundSummary}
         onOpenTab={(tab) => navigate(TAB_ROUTES[tab] ?? '/portal/partner')}
         primaryAction={primaryAction}
       />

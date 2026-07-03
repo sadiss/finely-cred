@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   MessageSquareText,
+  Mail,
   Paperclip,
   Plus,
   Send,
@@ -12,6 +13,11 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { listEvidenceByPartner, upsertEvidence } from '../../data/evidenceRepo';
 import { addThreadMessage, createThread, listMessagesByThread, listThreadsByPartner } from '../../data/supportRepo';
+import {
+  buildComposeHandoffFromThread,
+  commsStudioUrlFromHandoff,
+  saveComposeHandoffDraft,
+} from '../../lib/commsConversationHandoff';
 import type { SupportTopic } from '../../domain/support';
 import { getBlobUrl } from '../../storage/getBlobUrl';
 import { getBlobStore } from '../../storage/getBlobStore';
@@ -230,6 +236,14 @@ export function HubTeamChatPanel({ partnerId, partnerDisplayName, compact, initi
     () => (selectedThread ? listMessagesByThread(selectedThread.id) : []),
     [selectedThread, version],
   );
+
+  const prepCommsFromChat = (channel: 'email' | 'sms' | 'portal') => {
+    if (!partnerId || !selectedThread) return;
+    const handoff = buildComposeHandoffFromThread({ thread: selectedThread, channel, partnerId });
+    saveComposeHandoffDraft(handoff);
+    navigate(commsStudioUrlFromHandoff(handoff));
+  };
+
   const evidence = useMemo(() => (partnerId ? listEvidenceByPartner(partnerId) : []), [partnerId, version]);
   const evidenceById = useMemo(() => new Map(evidence.map((e) => [e.id, e])), [evidence]);
 
@@ -748,6 +762,24 @@ export function HubTeamChatPanel({ partnerId, partnerDisplayName, compact, initi
                 >
                   <Sparkles size={11} /> {aiBusy ? '…' : 'AI drafts'}
                 </button>
+                {adminMode && partnerId ? (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => prepCommsFromChat('email')}
+                      className="inline-flex items-center gap-1 px-2 py-1.5 rounded-lg border border-amber-500/25 text-[9px] font-black uppercase text-amber-200 hover:bg-amber-500/10"
+                    >
+                      <Mail size={11} /> Comms email
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => prepCommsFromChat('sms')}
+                      className="inline-flex items-center gap-1 px-2 py-1.5 rounded-lg border border-sky-500/25 text-[9px] font-black uppercase text-sky-200 hover:bg-sky-500/10"
+                    >
+                      SMS
+                    </button>
+                  </>
+                ) : null}
               </div>
             </div>
             {showPeoplePicker && partnerId ? (

@@ -37,8 +37,12 @@ function matchCreditor(name: string, haystack: string) {
 
 function guessDocTypeFromText(caption?: string, filename?: string): DocumentType {
   const s = `${caption || ''} ${filename || ''}`.toLowerCase();
+  if (/affidavit|sworn|notary|perjury/.test(s)) return 'affidavit';
+  if (/summons|complaint/.test(s) && !/answer to/.test(s)) return 'summons';
+  if (/motion|discovery|court order|judgment|subpoena|filing/.test(s)) return 'court_filing';
+  if (/bankruptcy|chapter\s*7|chapter\s*13|discharge/.test(s)) return 'bankruptcy_order';
+  if (/creditor response|original creditor/.test(s)) return 'creditor_response';
   if (/bureau|experian|equifax|transunion|investigation|e-oscar|credit report results|dispute results/.test(s)) return 'bureau_response';
-  if (/summons|complaint|court|subpoena|judgment/.test(s)) return 'summons';
   if (/collection|collector|debt validation|validation notice|charge.?off letter/.test(s)) return 'collection_notice';
   if (/driver|passport|id card|identification|state id/.test(s)) return 'id_document';
   if (/ssn|social security|ss card/.test(s)) return 'ssn_card';
@@ -220,6 +224,7 @@ export function routeProcessedDocument(args: {
     }
 
     case 'collection_notice':
+    case 'creditor_response':
     case 'summons': {
       const debtCase = findOrCreateDebtCase(args.partnerId, entities, effectiveType, {
         processedDocumentId: args.processedDocumentId,
@@ -342,6 +347,70 @@ export function routeProcessedDocument(args: {
       actions.push(
         { id: 'business', label: 'Business profile', description: 'Sync EIN + entity data.', path: '/business/profile', priority: 'normal' },
         { id: 'funding', label: 'Capital readiness', description: 'Update lender targets on profile.', path: '/portal/dashboard#profile-goals-readiness', priority: 'normal' },
+      );
+      break;
+    }
+
+    case 'affidavit': {
+      pushTask({
+        partnerId: args.partnerId,
+        title: 'Affidavit filed — attach to debt/court response',
+        kind: 'upload_document',
+        status: 'pending',
+        stage: 'debt',
+        priority: 'high',
+        evidenceIds: args.evidenceId ? [args.evidenceId] : undefined,
+        assignedTo: 'partner',
+        notes: 'Sworn statement saved. Use in answer, motion, or validation packet.',
+        meta: { route: 'affidavit', href: '/portal/debt' },
+      });
+      actions.push(
+        { id: 'debt', label: 'Debt & Court Center', description: 'Attach to summons case or build court draft.', path: '/portal/debt', priority: 'high' },
+        { id: 'vault', label: 'Evidence vault', description: 'View filed under Affidavits folder.', path: '/portal/documents', priority: 'normal' },
+      );
+      break;
+    }
+
+    case 'court_filing': {
+      const debtCase = findOrCreateDebtCase(args.partnerId, entities, 'summons', {
+        processedDocumentId: args.processedDocumentId,
+        evidenceId: args.evidenceId,
+      });
+      linkedDebtCaseId = debtCase?.id;
+      pushTask({
+        partnerId: args.partnerId,
+        title: 'Court filing uploaded — review deadlines',
+        kind: 'general',
+        status: 'pending',
+        stage: 'debt',
+        priority: 'high',
+        evidenceIds: args.evidenceId ? [args.evidenceId] : undefined,
+        assignedTo: 'partner',
+        notes: 'Motion, answer, or court order detected. File in court responses folder.',
+        meta: { route: 'court_filing', href: debtCase ? `/portal/debt/${debtCase.id}` : '/portal/debt' },
+      });
+      actions.push(
+        { id: 'debt', label: 'Open Debt & Court Center', description: 'Link to active summons case.', path: debtCase ? `/portal/debt/${debtCase.id}` : '/portal/debt', priority: 'high' },
+      );
+      break;
+    }
+
+    case 'bankruptcy_order': {
+      pushTask({
+        partnerId: args.partnerId,
+        title: 'Bankruptcy court document filed',
+        kind: 'upload_document',
+        status: 'pending',
+        stage: 'debt',
+        priority: 'high',
+        evidenceIds: args.evidenceId ? [args.evidenceId] : undefined,
+        assignedTo: 'partner',
+        notes: 'Petition, discharge, or docket saved. Update bankruptcy case and bureau disputes.',
+        meta: { route: 'bankruptcy_order', href: '/portal/bankruptcy' },
+      });
+      actions.push(
+        { id: 'bankruptcy', label: 'Bankruptcy Center', description: 'Filing checklist + credit bureau disputes.', path: '/portal/bankruptcy', priority: 'high' },
+        { id: 'disputes', label: 'Dispute Center', description: 'Challenge post-discharge tradelines.', path: '/portal/disputes', priority: 'normal' },
       );
       break;
     }

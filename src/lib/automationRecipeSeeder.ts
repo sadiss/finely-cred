@@ -17,6 +17,7 @@ const CORE_EVENT_RECIPE_IDS = [
   'recipe_report_upload_auto_draft',
   'recipe_evidence_ready_draft',
   'recipe_complaint_compliance',
+  'recipe_bankruptcy_scenario_nurture',
 ] as const;
 
 function recipeInstalled(recipeId: string): boolean {

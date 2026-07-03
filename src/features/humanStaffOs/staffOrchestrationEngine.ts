@@ -47,7 +47,7 @@ export function buildHumanStaffMissionPlan(request: HumanStaffMissionRequest): H
     body: operatingSummary,
     priority: request.riskLevel === 'high' ? 'high' : 'normal',
     actionLabel: 'Open mission thread',
-    routeHint: '/admin/staff-human-os',
+    routeHint: '/admin/staff?view=talk',
   });
   const plan: HumanStaffMissionPlan = {
     id: makeHumanStaffId('mission'),

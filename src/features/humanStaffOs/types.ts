@@ -15,6 +15,8 @@ export type HumanStaffDepartmentId =
   | 'partner_growth';
 
 export type HumanStaffAgentId =
+  | 'sanz_st_louis'
+  | 'ruth_steward'
   | 'professor_apex'
   | 'cmo_prime'
   | 'pipeline_titan'
@@ -36,7 +38,14 @@ export type HumanStaffAgentId =
   | 'local_news_radar'
   | 'inbox_triage'
   | 'fun_captain'
-  | 'future_human_manager';
+  | 'future_human_manager'
+  | 'naomi_fairchild'
+  | 'marcus_sterling'
+  | 'aisha_coleman'
+  | 'david_okonkwo'
+  | 'tamara_brooks'
+  | 'james_holloway'
+  | 'keisha_ramirez';
 
 export type HumanStaffStatus = 'working' | 'idle' | 'blocked' | 'waiting_for_you' | 'offline';
 export type HumanStaffThreadStatus = 'open' | 'waiting_for_user' | 'handoff_ready' | 'done' | 'blocked';

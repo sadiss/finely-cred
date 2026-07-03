@@ -12,6 +12,7 @@ import {
 } from './leadIntelSwarmRepo';
 import { LEAD_INTEL_SOURCE_ADAPTERS } from './sourceAdapters';
 import { DEFAULT_OVERNIGHT50_CITIES } from './queryExpander';
+import { staffFeedAgentLabel } from '../staffCommandCenter/staffRoster';
 
 function fmt(n: number) { return new Intl.NumberFormat().format(n); }
 
@@ -90,8 +91,8 @@ export function LeadIntelSwarmDashboard() {
         ))}
       </div>
 
-      <div className="grid xl:grid-cols-12 gap-6">
-        <div className="xl:col-span-5 rounded-3xl border border-white/10 bg-black/30 p-5">
+      <div className="space-y-6">
+        <div className="rounded-3xl border border-white/10 bg-black/30 p-5">
           <div className="flex items-center justify-between gap-3"><h3 className="text-white font-black">Source adapters</h3><span className="text-white/40 text-xs">{LEAD_INTEL_SOURCE_ADAPTERS.length} configured</span></div>
           <div className="mt-4 space-y-2 max-h-[520px] overflow-y-auto pr-1">
             {LEAD_INTEL_SOURCE_ADAPTERS.slice(0, 12).map((s) => (
@@ -102,12 +103,12 @@ export function LeadIntelSwarmDashboard() {
             <p className="text-xs text-white/40">+{LEAD_INTEL_SOURCE_ADAPTERS.length - 12} more in rotation</p>
           </div>
         </div>
-        <div className="xl:col-span-7 rounded-3xl border border-white/10 bg-black/30 p-5">
+        <div className="rounded-3xl border border-white/10 bg-black/30 p-5">
           <div className="flex items-center justify-between gap-3"><h3 className="text-white font-black">Live operations feed</h3><span className="inline-flex items-center gap-2 text-emerald-200 text-xs"><Activity size={14} /> {enabled ? 'deep continuous' : 'paused'}</span></div>
           <div className="mt-4 space-y-3 max-h-[520px] overflow-y-auto pr-1">
             {feed.length === 0 ? <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-6 text-white/55">Start deep swarm to see multi-hour progress.</div> : feed.map((f) => (
               <div key={f.id} className="rounded-2xl border border-white/10 bg-white/[0.025] p-4">
-                <div className="flex items-start justify-between gap-3"><div className="text-white/80 text-sm"><span className="text-amber-200 font-bold">{f.agent}</span> • {f.city}</div><span className="text-[10px] uppercase tracking-widest text-white/35">{f.severity}</span></div>
+                <div className="flex items-start justify-between gap-3"><div className="text-white/80 text-sm"><span className="text-amber-200 font-bold">{staffFeedAgentLabel(f.agent)}</span> • {f.city}</div><span className="text-[10px] uppercase tracking-widest text-white/35">{f.severity}</span></div>
                 <div className="mt-2 text-white/65 text-sm">{f.message}</div>
               </div>
             ))}

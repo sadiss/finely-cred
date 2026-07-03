@@ -1,6 +1,7 @@
 import type { Bureau } from '../domain/creditReports';
 import type { DisputeCase, DisputeCaseItem, DisputeCaseRound } from '../domain/cases';
 import { addDaysIso, nowIso } from '../domain/cases';
+import { onPartnerFirstCaseOpened } from '../lib/partnerSuccessMilestones';
 import type { Project } from '../domain/projects';
 import { loadJson, saveJson } from './localJsonStore';
 import { newId } from '../utils/ids';
@@ -9,6 +10,7 @@ import { createNotification } from './notificationsRepo';
 import { isSupabaseConfigured, supabase } from '../lib/supabaseClient';
 import type { DisputeRoundLabel, DisputeRoundStatus } from '../domain/disputeWorkflow';
 import { recordDisputeCaseAction } from './disputeWorkflowRepo';
+import { runDisputeRoundCommsAutomation } from '../lib/disputeRoundCommsAutomation';
 
 const KEY = 'finely.cases.v1';
 const PROJECTS_KEY = 'finely.projects.v1';
@@ -179,6 +181,7 @@ export function createDisputeCase(args: {
     ],
   };
   const created = upsertCase(c);
+  onPartnerFirstCaseOpened(created.partnerId);
   const due0 = created.rounds[0]?.dueAt;
   const dueLabel0 = due0 ? new Date(due0).toLocaleDateString() : '—';
   createNotification({
@@ -265,10 +268,12 @@ export function markCaseRoundMailed(args: {
   createdBy?: 'partner' | 'admin';
 }): DisputeCase | null {
   const mailedAt = args.mailedAt ?? nowIso();
+  const dueAt = new Date(mailedAt);
+  dueAt.setDate(dueAt.getDate() + 35);
   const c = updateCaseRound({
     caseId: args.caseId,
     round: args.round,
-    patch: { status: 'mailed' as DisputeRoundStatus, mailedAt },
+    patch: { status: 'mailed' as DisputeRoundStatus, mailedAt, dueAt: dueAt.toISOString() },
   });
   if (!c) return null;
   recordDisputeCaseAction({
@@ -281,6 +286,7 @@ export function markCaseRoundMailed(args: {
     createdBy: args.createdBy ?? 'partner',
     href: `/portal/disputes/${encodeURIComponent(c.id)}`,
   });
+  void runDisputeRoundCommsAutomation({ event: 'round_mailed', disputeCase: c, round: args.round });
   return c;
 }
 
@@ -289,6 +295,7 @@ export function markCaseRoundResponseReceived(args: {
   round: DisputeRoundLabel;
   responseReceivedAt?: string;
   notes?: string;
+  responseOutcome?: import('../domain/disputeRoundResponsePlaybook').ResponseOutcome;
   createdBy?: 'partner' | 'admin';
 }): DisputeCase | null {
   const responseReceivedAt = args.responseReceivedAt ?? nowIso();
@@ -299,6 +306,7 @@ export function markCaseRoundResponseReceived(args: {
       status: 'response_received' as DisputeRoundStatus,
       responseReceivedAt,
       notes: args.notes ?? undefined,
+      responseOutcome: args.responseOutcome,
     },
   });
   if (!c) return null;
@@ -312,7 +320,45 @@ export function markCaseRoundResponseReceived(args: {
     createdBy: args.createdBy ?? 'partner',
     href: `/portal/disputes/${encodeURIComponent(c.id)}`,
   });
+  void runDisputeRoundCommsAutomation({
+    event: 'response_received',
+    disputeCase: c,
+    round: args.round,
+    notes: args.notes,
+  });
   return c;
+}
+export function attachBureauResponseToDisputeCase(args: {
+  caseId: string;
+  evidenceId: string;
+  notes?: string;
+  round?: import('../domain/cases').DisputeCaseRound['round'];
+}): DisputeCase | null {
+  const c = getCase(args.caseId);
+  if (!c) return null;
+  const rounds = c.rounds.slice().sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  const targetRound =
+    args.round ||
+    rounds.find((r) => r.status === 'mailed' || r.status === 'awaiting_response')?.round ||
+    rounds[0]?.round ||
+    'Round 1';
+  const patched = patchLatestRound(c, targetRound, {
+    status: 'response_received',
+    responseReceivedAt: nowIso(),
+    responseEvidenceId: args.evidenceId,
+    notes: args.notes,
+  });
+  recordDisputeCaseAction({
+    caseId: patched.id,
+    partnerId: patched.partnerId,
+    round: targetRound,
+    type: 'bureau_response',
+    title: 'Bureau response document attached',
+    body: args.notes || 'Mail scanned and filed to this dispute round.',
+    createdBy: 'partner',
+    href: `/portal/disputes/${encodeURIComponent(patched.id)}`,
+  });
+  return patched;
 }
 
 export function markCaseRoundReadyForNext(args: {

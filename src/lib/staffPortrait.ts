@@ -1,6 +1,7 @@
 import type { StaffMember } from '../domain/staffMember';
 import {
   STAFF_PORTRAIT_CATALOG,
+  getStaffPortraitSource,
   portraitFolderForGender,
   randomUserPortraitUrl,
 } from '../data/staffPortraitCatalog';
@@ -45,7 +46,7 @@ export function staffPortraitStaticPath(staffId: string): string {
 }
 
 export function hasStaffPhotoCatalogEntry(staffId: string): boolean {
-  return Boolean(STAFF_PORTRAIT_CATALOG[staffId]);
+  return Boolean(getStaffPortraitSource(staffId));
 }
 
 export function isLegacySharedStaffAvatar(avatarPath: string): boolean {
@@ -83,8 +84,7 @@ export const STAFF_PORTRAIT_PHOTO_CLASS =
 export function resolveStaffPortraitFallbackUrl(
   staff: Pick<StaffMember, 'id' | 'firstName' | 'lastName' | 'portraitGender'>,
 ): string | null {
-  const src = STAFF_PORTRAIT_CATALOG[staff.id];
-  if (!src) return null;
+  const src = getStaffPortraitSource(staff.id);
   const folder = portraitFolderForGender(effectivePortraitGender(staff));
   return randomUserPortraitUrl(folder, src.portraitIndex);
 }

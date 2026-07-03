@@ -171,6 +171,14 @@ export function AdminPartnerAccessPanel({ partner, userRole, onUpdated }: Props)
     setErr(null);
     setNotice(null);
     try {
+      if (!partner.claimedUserId) {
+        const res = await sendPartnerInviteEmail({ partner, email });
+        if (!res.ok) throw new Error(res.error || 'Invite email not sent.');
+        setNotice(
+          `Account-setup invite sent to ${email} (partner has no login yet). They will choose their password on the signup page — not a plain portal link.`,
+        );
+        return;
+      }
       const res = await sendPartnerWelcomeEmail({
         user: auth.user ? { ...auth.user, email } as any : null,
         partner,
@@ -314,7 +322,12 @@ export function AdminPartnerAccessPanel({ partner, userRole, onUpdated }: Props)
           <KeyRound size={14} /> {busy === 'reset' ? 'Sending…' : 'Send password reset email'}
         </button>
         <button type="button" onClick={() => void resendWelcome()} disabled={!email || !commsOn || busy !== null} className={FINELY_OS_SECONDARY_BTN}>
-          <Mail size={14} /> {busy === 'welcome' ? 'Sending…' : 'Resend welcome email'}
+          <Mail size={14} />{' '}
+          {busy === 'welcome'
+            ? 'Sending…'
+            : partner.claimedUserId
+              ? 'Resend welcome email'
+              : 'Send account setup email'}
         </button>
         <a href="/admin/signup-ops" className={FINELY_OS_SECONDARY_BTN}>
           <UserCheck size={14} /> Full signup ops guide

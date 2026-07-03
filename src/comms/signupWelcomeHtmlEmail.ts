@@ -67,6 +67,8 @@ export function buildSignupWelcomeEmail(args: {
   /** Override sequence funnel id (portal roles, purchases, agency). */
   overrideFunnelId?: string;
   portalPath?: string;
+  /** When partner has no login yet — CTA must go to signup invite, not raw portal. */
+  accountSetupUrl?: string;
 }): SignupWelcomeEmailContent {
   const persona = getAgentPersona(args.sequence.agentPersonaId);
   const first = args.lead.fullName.split(' ')[0] || 'there';
@@ -96,9 +98,11 @@ export function buildSignupWelcomeEmail(args: {
     successPage,
     portalUrl,
     personaName,
+    accountSetupUrl: args.accountSetupUrl,
   });
 
-  const primaryHref = download || funnelCopy.primaryHref || portalUrl;
+  const primaryHref = args.accountSetupUrl || download || funnelCopy.primaryHref || portalUrl;
+  const primaryCta = args.accountSetupUrl ? 'Create your account & choose password' : funnelCopy.primaryCta;
 
   const bodyHtml = `
     ${buildCreditHeroBanner({
@@ -111,7 +115,7 @@ export function buildSignupWelcomeEmail(args: {
     ${buildBrandAccentDivider()}
     ${funnelCopy.showAdvantageCards !== false ? buildCreditAdvantageCards() : ''}
     ${funnelCopy.showAnalysisPreview !== false ? buildAnalysisPreviewBlock() : ''}
-    ${buildPrimaryCtaButton({ label: funnelCopy.primaryCta, href: primaryHref, color: FINELY_EMAIL.emeraldDark })}
+    ${buildPrimaryCtaButton({ label: primaryCta, href: primaryHref, color: FINELY_EMAIL.emeraldDark })}
     ${buildSecondaryCtaLink({ label: funnelCopy.secondaryCta, href: funnelCopy.secondaryHref ?? session })}
     ${funnelCopy.extraHtml}
     ${buildTrustStrip()}
@@ -176,8 +180,9 @@ function resolveFunnelCopy(args: {
   successPage: string;
   portalUrl: string;
   personaName: string;
+  accountSetupUrl?: string;
 }): FunnelCopy {
-  const { first, guide, download, session, successPage, portalUrl, personaName } = args;
+  const { first, guide, download, session, successPage, portalUrl, personaName, accountSetupUrl } = args;
   const id = args.funnelId;
 
   const creditDefault: FunnelCopy = {
@@ -442,22 +447,33 @@ function resolveFunnelCopy(args: {
   }
 
   if (id === 'portal_client' || id === 'portal_funding') {
+    const setup = Boolean(accountSetupUrl?.trim());
     return {
-      subject: 'Welcome to Finely Cred — your portal is ready',
+      subject: setup ? 'Welcome to Finely Cred — finish your account setup' : 'Welcome to Finely Cred — your portal is ready',
       headline: `${first}, welcome aboard`,
-      heroHeadline: 'Upload · Dispute · Fund',
-      heroSubline: 'We are glad you are here — your credit journey starts now',
-      subheadline: 'Your personal portal is live — we built this workspace for you.',
-      preheader: 'Your Finely Cred portal is ready. Three simple steps to get momentum today.',
-      intro: `Welcome to Finely Cred — we're genuinely glad you're here. Your personal restoration portal is ready: upload a credit report, surface the highest-impact disputes, and track every letter and response without spreadsheet chaos.`,
-      primaryCta: 'Open your portal',
+      heroHeadline: setup ? 'Create login · Set password · Enter portal' : 'Upload · Dispute · Fund',
+      heroSubline: setup ? 'One secure step — you choose your own password' : 'We are glad you are here — your credit journey starts now',
+      subheadline: setup
+        ? 'Your Finely Cred workspace is ready — create your login to continue.'
+        : 'Your personal portal is live — we built this workspace for you.',
+      preheader: setup
+        ? 'Finish account setup: choose your password and open your portal.'
+        : 'Your Finely Cred portal is ready. Three simple steps to get momentum today.',
+      intro: setup
+        ? `Welcome to Finely Cred. Your specialist prepared your file — <strong>create your login and choose your password</strong> (minimum 8 characters). Finely never emails a temporary password. After setup you'll upload a credit report, run disputes, and message your credit specialist.`
+        : `Welcome to Finely Cred — we're genuinely glad you're here. Your personal restoration portal is ready: upload a credit report, surface the highest-impact disputes, and track every letter and response without spreadsheet chaos.`,
+      primaryCta: setup ? 'Create your account & choose password' : 'Open your portal',
       secondaryCta: 'Book a free strategy call',
-      primaryHref: portalUrl,
+      primaryHref: setup ? accountSetupUrl! : portalUrl,
       headerTheme: 'emerald',
       showWelcomeSteps: true,
-      showAnalysisPreview: true,
-      extraHtml: `<p style="margin:16px 0 0;font-size:14px;color:#475569;">Your advisor <strong>${personaName}</strong> is available in portal messages once you're set up. Questions? Reply to this email.</p>`,
-      plainText: `Hi ${first},\n\nWelcome to Finely Cred — your portal is ready.\n\nOpen portal: ${portalUrl}\n\nBook strategy call: ${session}`,
+      showAnalysisPreview: !setup,
+      extraHtml: setup
+        ? `<p style="margin:16px 0 0;font-size:14px;color:#475569;">You may also receive a separate <strong>email confirmation</strong> from our auth provider — confirm it, then return to the setup link above if needed.</p>`
+        : `<p style="margin:16px 0 0;font-size:14px;color:#475569;">Your advisor <strong>${personaName}</strong> is available in portal messages once you're set up. Questions? Reply to this email.</p>`,
+      plainText: setup
+        ? `Hi ${first},\n\nWelcome to Finely Cred. Finish setup and choose your password:\n${accountSetupUrl}\n\nBook strategy call: ${session}`
+        : `Hi ${first},\n\nWelcome to Finely Cred — your portal is ready.\n\nOpen portal: ${portalUrl}\n\nBook strategy call: ${session}`,
     };
   }
 

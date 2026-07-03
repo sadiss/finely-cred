@@ -90,6 +90,7 @@ const PartnerProjectWorkspacePage = lazy(() => import('./pages/portal/PartnerPro
 const PartnerMyTasksPage = lazy(() => import('./pages/portal/PartnerMyTasksPage'));
 const PartnerWorkPage = lazy(() => import('./pages/portal/PartnerWorkPage'));
 const PartnerDebtPage = lazy(() => import('./pages/portal/PartnerDebtPage'));
+const PartnerBankruptcyPage = lazy(() => import('./pages/portal/PartnerBankruptcyPage'));
 const PartnerDebtDetailPage = lazy(() => import('./pages/portal/PartnerDebtDetailPage'));
 const PartnerBuildPage = lazy(() => import('./pages/portal/PartnerBuildPage'));
 const PartnerIdentityTheftPage = lazy(() => import('./pages/portal/PartnerIdentityTheftPage'));
@@ -118,12 +119,14 @@ const AdminMessagesPage = lazy(() => import('./pages/admin/AdminMessagesPage'));
 const AdminWorkflowQueuePage = lazy(() => import('./pages/admin/AdminWorkflowQueuePage'));
 const AdminAutomationsPage = lazy(() => import('./pages/admin/AdminAutomationsPage'));
 const AdminCommsStudioPage = lazy(() => import('./pages/admin/AdminCommsStudioPage'));
+const AdminGrowthCommandPage = lazy(() => import('./pages/admin/AdminGrowthCommandPage'));
 const AdminTemplatesPage = lazy(() => import('./pages/admin/AdminTemplatesPage'));
 const AdminVendorsPage = lazy(() => import('./pages/admin/AdminVendorsPage'));
 const AdminResourcesPage = lazy(() => import('./pages/admin/AdminResourcesPage'));
 const AdminTourStudioPage = lazy(() => import('./pages/admin/AdminTourStudioPage'));
 const AdminBookstorePage = lazy(() => import('./pages/admin/AdminBookstorePage'));
 const AdminTestimonialsPage = lazy(() => import('./pages/admin/AdminTestimonialsPage'));
+const AdminPartnerSuccessEditorPage = lazy(() => import('./pages/admin/AdminPartnerSuccessEditorPage'));
 const AdminOpsAgentPage = lazy(() => import('./pages/admin/AdminOpsAgentPage'));
 const AdminPhoneHubPage = lazy(() => import('./pages/admin/AdminPhoneHubPage'));
 const AdminTeamRolesPage = lazy(() => import('./pages/admin/AdminTeamRolesPage'));
@@ -168,7 +171,6 @@ const AdminSitewideUxCommandPage = lazy(() => import('./pages/admin/AdminSitewid
 const AdminStudioUxCommandPage = lazy(() => import('./pages/admin/AdminStudioUxCommandPage'));
 const AdminOvernight50Page = lazy(() => import('./pages/admin/AdminOvernight50Page'));
 const AdminGeoWarRoomPage = lazy(() => import('./pages/admin/AdminGeoWarRoomPage'));
-const AdminSyntheticStaffPage = lazy(() => import('./pages/admin/AdminSyntheticStaffPage'));
 const AdminStaffCommandCenterPage = lazy(() => import('./pages/admin/AdminStaffCommandCenterPage'));
 
 const BusinessDashboardPage = lazy(() => import('./pages/business/BusinessDashboardPage'));
@@ -1950,6 +1952,14 @@ function AppInner() {
           }
         />
         <Route
+          path="/portal/bankruptcy"
+          element={
+            <ProtectedRoute>
+              <PartnerBankruptcyPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/portal/debt/:id"
           element={
             <ProtectedRoute>
@@ -2276,14 +2286,7 @@ function AppInner() {
             </ProtectedAdminRoute>
           }
         />
-        <Route
-          path="/admin/synthetic-staff"
-          element={
-            <ProtectedAdminRoute>
-              <AdminSyntheticStaffPage />
-            </ProtectedAdminRoute>
-          }
-        />
+        <Route path="/admin/synthetic-staff" element={<Navigate to="/admin/staff?view=roster" replace />} />
         <Route
           path="/admin/signup-ops"
           element={
@@ -2300,14 +2303,8 @@ function AppInner() {
             </ProtectedAdminRoute>
           }
         />
-        <Route
-          path="/admin/media-studio"
-          element={
-            <ProtectedAdminRoute>
-              <AdminMediaStudioPage />
-            </ProtectedAdminRoute>
-          }
-        />
+        <Route path="/admin/media-studio" element={<Navigate to="/admin/content-studio" replace />} />
+        <Route path="/admin/media-studio/*" element={<Navigate to="/admin/content-studio" replace />} />
         <Route
           path="/admin/voice-studio"
           element={
@@ -2405,6 +2402,10 @@ function AppInner() {
             </ProtectedAdminRoute>
           }
         />
+        <Route path="/admin/staff-command" element={<Navigate to="/admin/staff" replace />} />
+        <Route path="/admin/staff-command-center" element={<Navigate to="/admin/staff" replace />} />
+        <Route path="/admin/staff-human-os" element={<Navigate to="/admin/staff" replace />} />
+        <Route path="/admin/staff-human-os/*" element={<Navigate to="/admin/staff" replace />} />
         <Route
           path="/admin/parsing-lab"
           element={
@@ -2491,6 +2492,14 @@ function AppInner() {
           element={
             <ProtectedAdminRoute>
               <AdminAuSellersPage />
+            </ProtectedAdminRoute>
+          }
+        />
+        <Route
+          path="/admin/growth-command"
+          element={
+            <ProtectedAdminRoute>
+              <AdminGrowthCommandPage />
             </ProtectedAdminRoute>
           }
         />
@@ -2603,6 +2612,14 @@ function AppInner() {
           element={
             <ProtectedAdminRoute>
               <AdminTestimonialsPage />
+            </ProtectedAdminRoute>
+          }
+        />
+        <Route
+          path="/admin/partner-success"
+          element={
+            <ProtectedAdminRoute>
+              <AdminPartnerSuccessEditorPage />
             </ProtectedAdminRoute>
           }
         />

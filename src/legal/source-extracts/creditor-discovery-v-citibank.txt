@@ -1,0 +1,330 @@
+﻿
+STATE OF MICHIGAN
+IN            DISTRICT COURT
+
+CITIBANK, N.A.,
+ 
+Plaintiff/Counter-Defendant,Case No. 23-       
+HON. 
+-vs-
+DEBTOR DISCOVERY REQUESTS
+NATASHA A. DEBTOR,
+
+Defendant/Counter-Plaintiff.
+_____________________________________________________________________________/
+STENGER & STENGER PCLAW OFFICES OF BRIAN P PARKER PC
+PRESTON U. NATE (P77884)BRIAN P. PARKER (P48617)
+BRIAN L. GROEN (P56673)Attorney for Defendant
+Attorneys for Plaintiff4301 Orchard Lake Road, #180-208
+2618 E Paris Ave SEWest Bloomfield, MI 48323
+Grand Rapids, MI 49546(248) 342-9583
+(888) 954-2300brianparker@collectionstopper.com 
+____________________________________________________________________________/
+
+DEFINITIONS
+In the Citibank (“Citibank”) Requests from Defendant set forth below, the following words have the following meanings:
+
+As used herein, “Plaintiff” or Citibank (“CITIBANK”) shall mean Plaintiff Citibank Bank, NA.
+
+As used herein, “Defendant” is understood to mean Natasha A. Debtor.
+
+Stenger & Stenger is the law firm representing Citibank Bank, NA 
+As used herein, “credit agreement” or “debt” refers to a any agreement or loan between the original creditor and defendant.
+As used herein “Complaint” or “Case” refers to the Complaint filed in the captioned matter. 
+ “You” and “your” include not only the parties to whom these Interrogatories, Requests for Admissions, and Requests for Production of Documents are propounded, but also that party’s officers, agents, employees, assistance, investigators, consultants, accountants, and (in the case of a corporate defendant/plaintiff) attorneys, and the officers, agents, employees, assistants, investigators, consultants, accountants, and attorneys of any of its subdivisions, subsidiaries, parent of affiliated corporations. 
+The terms “relates to” or “relating to” shall mean consisting of, referring to, reflecting or being in any way legally, logically, or factually connected with the matter(s) discussed.
+“Loan file” means all the records maintained by the Plaintiff or Citibank or a Servicer to collect on the debt.
+“Document” means all written, printed, recorded or graphic matter, photographic matter, or sound reproductions, video tapes, however produced or reproduced, pertaining in any matter to the subject matter indicated, including computer files, tapes, disks, or other electronically stored data.
+“Loans” or “Debts” refer(s) to the subject debt referenced in in Paragraph 4-9 of Plaintiff’s Complaint.
+“Securitization” is defined as the pooling of assets in order to repackage them into interest-bearing securities. The investors that purchase the repackaged securities receive the principal and interest payments of the original assets. Securitization is the process by which a single performing asset or a pool of performing assets are sold to a bankruptcy remote Special Purpose Vehicle (SPV) and transferred from the balance-sheet of the originator to the SPV in return for an immediate cash payment.
+“Creditor” definition under the Fair Debt Collection Protection Act (“FDCPA”) is:
+the person or entity that extended the credit in the first place (in other words, your original lender).
+           “Debt Collector” definition under the Fair Debt Collection Protection Act (“FDCPA”) is:
+Any person who uses any instrumentality of interstate commerce or the mails in any business the principal purpose of which is the collection of any debts, or who regularly collects or attempts to collect, directly or indirectly, debts owed or due or asserted to be owed or due another. Notwithstanding the exclusion provided by clause (F) of the last sentence of this paragraph, the term includes any creditor who, in the process of collecting his own debts, uses any name other than his own which would indicate that a third person is collecting or attempting to collect such debts.
+INSTRUCTIONS
+In responding to these requests, it is requested that Plaintiff furnish all information in its possession or that of its attorneys and all other persons acting on behalf of Plaintiff and CITIBANK.  Information supplied in response to these requests shall reflect all information available to Plaintiff and or counsel to Plaintiff.  
+These requests are continuing pursuant to Michigan Court Rules and MCR 2.306 et seq. so as to require supplementation as soon as changes or additional information become known between the initial date for responses, set forth above, and the time of trial.
+If any documents requested herein have been lost or destroyed, the documents lost or destroyed shall be identified by author, date, and subject matter.  For each lost or destroyed document, state the last known location of the document, the last known person to have custody, care or control of the document, and the circumstances under which the document was lost or destroyed.
+If any of the requests for production of documents are deemed to call for the production of any privileged materials and a privilege is asserted, a list is to be furnished identifying each document so withheld together with (a) the reason for the withholding; (b) a statement of facts constituting the basis for any claim of privilege, work product or other ground of non-disclosure; and (c) a brief description of the document, including: (1) the date of the document; (2) the name of its author or preparer and an identification by employment or title of each such person; (3) the names of each person who was sent or has had CITIBANK to or custody of the documents, together with an identification of each such person; (4) the paragraph of the Request for Production of Documents to which the document relates; and (5) in the case of any document relating in any way to an oral communication, identification of such oral communication.
+Documents that are produced are not to include redactions unless a clear privilege exists.  If a document is redacted, you must follow the procedure defined in Instruction Number 4.  Further, to ensure that the context of relevant information may be clearly understood, purportedly non-relevant portions of a document are not to be redacted.
+PLEASE ONLY RESPONSE TO INQUIRIES REGARDING THE SPECIFIC DEBT IN THIS CASE. PLEASE DON’T RESPOND TO ANYTHING UNLESS IT IS SPECIFIC TO Ms. Debtor. Failure to honor this request under MCR 2.306 et al will be considered grounds for default. Thank you.
+PLEASE USE THE EXHIIBIT 1 ON THE CITIBANK/CITIGROUP FINANCIAL RECORDS TO ANSWER THE QUESTIONS ON SECURITIZATION OF THE DEBTOR DEBT.
+
+REQUESTS FOR ADMISSION
+
+Admit that Plaintiff is seeking to enforce an agreement not attached to the lawsuit.
+
+Admit or Deny:
+
+
+Admit that Plaintiff CITIBANK is not in possession of the original loan or credit agreement that Ms. Debtor was alleged to have signed.
+
+Admit or Deny:
+
+
+Admit that CITIBANK through Citi Group securitizes credit card receivables through trusts established to purchase the receivables.
+
+Admit or Deny:
+
+
+Admit that Citibank or “Citigroup” securitizes credit card receivables through SPV’s established to purchase receivables like the Debtor credit card debt.
+
+Admit or Deny:
+
+
+Request for Admission No. 5:Admit that the debt or account of Ms. 
+Debtor was securitized and placed into or with a secured trust.
+
+Admit or Deny:
+
+
+Request for Admission No. 6:Admit that the cardholder agreement in this case is not signed by Ms. Debtor in her handwriting.
+
+Admit or Deny:
+
+Request for Admission No. 7:Citibank kept the servicing rights while part of the debt or indebtedness in this case was sold or transferred to another entity including a secured trust by the originator of the debt? Please review https://www.sec.gov/ “EDGAR prior to answering this question.
+
+Admit or Deny:
+
+Request for Admission No. 8:Admit that the words “This is a communication from a debt collector. We are attempting to collect a debt and any information obtained will be used for that purpose” was placed upon the summons and pleadings in this case.
+
+Admit or Deny:
+
+Request for Admission No. 9:Admit that Citibank authorized the words “This is a communication from a debt collector. We are attempting to collect a debt and any information obtained will be used for that purpose” to be placed upon the summons and pleadings in this case.
+
+Admit or Deny:
+
+Request for Admission No. 10:Admit that the lawsuit and summons against Ms. Debtor is from the Plaintiff, Citibank, NA.
+
+Admit or Deny:
+
+Request for Admission No. 11:Admit that another entity, trust or company is entitled to receive part of the payment amount Ms. Debtor pays to Citibank when she makes a payment.
+
+Admit or Deny:
+
+Request for Admission No. 12:Admit that another Citibank receives a fee for servicing from the payment Ms. Debtor makes to Citibank and the rest goes to another entity, trust or company to pay bondholders.
+
+Admit or Deny:
+
+Request for Admission No. 10:Admit that Citibank DID NOT authorize the words “This is a communication from a debt collector. We are attempting to collect a debt and any information obtained will be used for that purpose” to be placed upon the Summons and Complaint.
+
+Admit or Deny:
+
+
+INTERROGATORIES
+
+Please identify each and every individual who assisted in answering these Citibank requests and state each individual’s full name, social security number, home address, business address, telephone number(s), occupation, employer, position with employer, duties for said employer, and birth date.
+
+Response:
+
+
+Identify the location of the original signed credit cardholder agreement in this case. 
+
+Response:
+
+Identify each entity that owned or serviced or was assigned the debts that are the subject of the lawsuit and include any secured trust.  For each entity, state the name and address of the servicer, owner or assignor and assignee and the time period during which it acted as servicer AND the account number on the loan when each servicer serviced the debt. 
+
+Response:
+
+
+List each entity (including a SPV securitized trust as defined above) who now has or has ever had any interest in the debt, including but not limited to, any broker, trustee, investor, trustee under a pooling and servicing agreement, master servicer, primary servicer, sub-servicer, default service, specialty servicer, or any other similar party.  Identify each party’s name, address and telephone number, describe each party’s interest in the transaction, state the date it obtained that interest, the date it relinquished that interest, and the identity of the entity to which it relinquished that interest, and state the nature and amount of all consideration it received or disbursed in connection with obtaining or relinquishing that interest.
+
+Response:
+
+Please identify every legal basis for which the Plaintiff believes it has the right to enforce the debt in this case meaning, show how the debt is owned by Plaintiff.
+
+Response:
+
+
+Please identify with particularity, including the date, time and contact person every payment made to CITIBANK by Defendant and every agreement made between CITIBANK and the Defendant.
+
+Response:
+
+Is the action in this case a claim for Breach of Contract or for an Account Stated Claim or something else or both?
+
+Response:
+
+
+Was any part of the debt in this case, the indebtedness, servicing rights, right to receive payments, ownership of part or the entire debt sold or transferred to any other entity including a secured trust? 
+
+Response:
+
+Interrogatory No. 9:Please state the specific date and in what form (check, cash or electronic payment) that the last payment was received on the subject debts and who (and address) received this payment. Please identify the written proof of this happening. 
+
+Response:
+
+
+Interrogatory No. 10:Please state all the company or corporate entity names that CITIBANK has gone by since 1994 including CITIGROUP.  
+
+Response: 
+
+
+Interrogatory 11:Does Plaintiff CITIBANK own the debt or evidence of indebtedness or receivables or all three rights today? 
+
+Response:
+
+Interrogatory No. 12:          Please name the person best to depose as custodian of records in this case regarding securitization of the Debtor debt. 
+
+
+Response:
+
+Interrogatory No. 13:        Please state what date the Debtor account or debt was securitized.
+                                          and the name of the Trust it was transferred to and state what date the
+                                          account or debt was transferred back to Citibank.
+
+
+Response:
+
+InterrogatoryNo.14:           Do you agree that 15 USC 1692e (11) states: 
+
+(11)The failure to disclose in the initial written communication with the consumer and, in addition, if the initial communication with the consumer is oral, in that initial oral communication, that the debt collector is attempting to collect a debt and that any information obtained will be used for that purpose, and the failure to disclose in subsequent communications that the communication is from a debt collector, except that this paragraph shall not apply to a formal pleading made in connection with a legal action.
+
+
+
+Response:
+
+InterrogatoryNo.15:           Please state in detail why the words “This is a communication from a debt collector. We are attempting to collect debt and any information obtained will be used for that purpose” “was or were placed in the lawsuit and on the Summons in this case.
+
+Response:
+
+InterrogatoryNo.16:           Regarding the words “This is a communication from a debt collector. We are attempting to collect a debt and any information obtained will be used for that purpose” “that are placed in the lawsuit and on the Summons in this case, who is collecting a debt as stated and why is it on a Citibank Pleading?
+
+Response:
+
+
+
+
+InterrogatoryNo.17:           Please state the name or identification of the Pooling and Servicing
+      Agreement authorizing the placement or location of the Debtor
+                                          account or debt.
+
+
+Response:
+
+InterrogatoryNo.18:           Does Citibank keep a “servicing fee” after paying an entity, trust or another company part of the payment Ms. Debtor pays to Citibank in a monthly payment. If so, please state the amount in percentage or fee Citibank receives on a payment made.
+
+
+Response:
+
+InterrogatoryNo.19:           Do you agree that 15 USC 1692e (11) states:
+ 
+(11)The failure to disclose in the initial written communication with the consumer and, in addition, if the initial communication with the consumer is oral, in that initial oral communication, that the debt collector is attempting to collect a debt and that any information obtained will be used for that purpose, and the failure to disclose in subsequent communications that the communication is from a debt collector, except that this paragraph shall not apply to a formal pleading made in connection with a legal action.
+
+If you don’t agree the FDCPA states this, please explain why.
+
+Response:
+
+InterrogatoryNo.20:           Please state if Plaintiff JPMorgan authorized the words “This is a communication from a debt collector. We are attempting to collect a debt and any information obtained will be used for that purpose” being placed in the lawsuit and on the Summons AND WHY in this case.
+
+Response:
+
+InterrogatoryNo.21:           Regarding the words “This is a communication from a debt collector. We are attempting to collect a debt and any information obtained will be used for that purpose” on the lawsuit and on the Summons:
+
+
+
+
+please state IN DETAIL which party in the lawsuit is the “debt collector” and why?
+
+Response:
+
+
+REQUESTS FOR PRODUCTION OF DOCUMENTS
+
+Regarding the Complaint: 
+
+ 
+Please produce a copy of the ORIGINAL, SIGNED, agreement proving this allegation regarding the debts in this case.
+
+Response:
+
+
+Produce all other documents in possession of the Plaintiff that establish the Plaintiff’s authority to assert a claim under the Cardholder Agreement. Include the SPECIFIC LANGUAGE INCLUDING CITIBANK. 
+
+Response:
+
+
+Please produce all assignment, transfer or sales documents showing ONLY the SPECIFIC sale, transfer or assignment of the debt and please do not just point to a pool of numerous debts not part of the lawsuit here. Defendant requests all the assignments, transfers and/or sale documents evidencing every sale, assignment or transfer of the SPECIFIC DEBT OF MS. DEBTOR ONLY.
+
+Response:
+
+
+Produce an itemized list of payment transaction history of the SPECIFIC Debtor payments from the date of origination to the present.
+
+Response:
+
+
+Please provide a full and complete copy of all collection notes, reports, memos, statements, entries, data records, computer records, daily records, calendar reports, default reports, collection contacts, collection reports or other documents generated in the servicing of this loan or debt.
+
+Response:
+
+
+Please provide any and all documents the Plaintiff attorney that signed the lawsuit relied upon prior to writing and signing the lawsuit in this case.
+
+Response:
+
+Request for Production No. 7: Please provide all documents showing the payments made on the debt by Ms. Debtor up to the last payment made.
+
+Response:
+
+Request for Production No. 8: Please provide the information necessary for Defendant to opt for Arbitration in this case.
+
+Response:
+
+Request for Production No. 9: Please provide ACTUAL PROOF of the last payment made by Ms. Debtor on this debt that also shows whether it was a check, electronic payment, credit card or any other form of payment. Please do not provide your statement that it was made. Please provide actual proof that the payment was made and the form of cash, check or electronic fund or other that was used to make the payment and who received the payment. 
+
+Response:
+
+Request for Production No. 10: Please provide any and all documents sent by Citibank to Defendant regarding the subject debt. 
+
+Response:
+
+Request for Production No. 11: Please provide ACTUAL WRITTEN PROOF of name of the owner of the Debtor account or debt as either CitiGroup or Citibank, N.A., and PROOF OF THE ACTUAL OWNER’S NAME.
+
+
+Response:
+
+Request for Production No. 12:Please provide all documents showing where the monthly payment amount that Ms. Debtor sends to Citibank goes to after it is paid- show how much or the amount paid to others not Citibank and also show the amount of any servicing fee Citibank receives. 
+
+Response:
+
+Request for Production No. 13: Please provide a list of the witnesses and names of people from Plaintiff CITIBANK that will be providing testimony or evidence in the case against Ms. Debtor. 
+
+Response:
+
+Request for Production No. 14: Please provide all documents showing the transfer or assignment of all or part of the debt or indebtedness being placed in a Citibank or CitiGroup securitized Trust.  
+
+Response:
+
+Request for Production No. 15: Please provide all documents proving the debt in this case has not been securitized.
+
+Response:
+
+Request for Production No. 16: 
+Please provide all documents that show Citibank has approved placing the words “This is a communication from a debt collector. We are attempting to collect a debt and any information obtained will be used for that purpose” on the lawsuit and on the Summons:
+
+Response:
+
+
+
+
+
+Request for Production No. 17: Please provide all documents showing who received any or all of the payment AFTER Ms. Debtor makes a payment to Citibank. Meaning, who or what entity is entity is entitled to receive any part of the monthly payment amount Ms. Debtor pays to Citibank when she makes a payment. 
+
+Response:
+
+Thank you.
+
+Respectfully submitted,
+
+/s/ Brian P. Parker 
+Attorney for Defendant Debtor
+
+Certificate of Service
+I hereby certify that on  DATE \@ "MMMM d, yyyy" April 25, 2024 a copy of the foregoing was signed and submitted electronically and via regular U.S. Mail to Plaintiff from the Defendant Attorney address:
+
+LAW OFFICES OF BRIAN P. PARKER, P.C.
+
+s/s Brian P. Parker________________________
+Brian P. Parker (P48617)
+Attorney for Defendant
+

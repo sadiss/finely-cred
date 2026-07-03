@@ -94,6 +94,24 @@ export const AUTOMATION_EVENT_RECIPES: AutomationRecipe[] = [
     }),
   },
   {
+    id: 'recipe_bankruptcy_scenario_nurture',
+    title: 'Bankruptcy path selected → specialist nurture',
+    description: 'When a partner picks a liberation scenario, notify admin and send bankruptcy welcome email.',
+    category: 'nurture',
+    makeRule: () => ({
+      name: 'Bankruptcy scenario → nurture',
+      enabled: true,
+      trigger: { type: 'bankruptcy_scenario_selected' },
+      conditions: [{ type: 'always' }],
+      actions: [
+        { type: 'notify_admin', title: 'Bankruptcy path selected', body: 'Partner chose a liberation scenario — specialist thread opened.' },
+        { type: 'send_comms_template', templateId: 'tpl_bk_fresh_start_ch7', channel: 'email', dedupeWithinHours: 24 },
+        { type: 'send_comms_template', templateId: 'sms_bk_nurture', channel: 'sms', dedupeWithinHours: 48 },
+      ],
+      meta: { recipeId: 'recipe_bankruptcy_scenario_nurture' },
+    }),
+  },
+  {
     id: 'recipe_task_completed_outcome',
     title: 'Task completed → notify admin + CRM note',
     description: 'When a partner completes a results-driven task, notify ops to verify outcome.',

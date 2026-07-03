@@ -2,6 +2,7 @@ import React from 'react';
 import type { Partner } from '../../domain/partners';
 import type { RoleWorkflowId } from '../../config/roleWorkflows';
 import { AdminPartnerAccessPanel } from './AdminPartnerAccessPanel';
+import { PartnerSpecialistAssignmentPanel } from './PartnerSpecialistAssignmentPanel';
 import { PartnerIntakeLinkPanel } from './PartnerIntakeLinkPanel';
 import { PartnerBureauResourcesPanel } from './PartnerBureauResourcesPanel';
 import { JourneyStageAdminControl } from '../journey/JourneyStageAdminControl';
@@ -54,7 +55,12 @@ export function PartnerDetailAdminFooter({
     <>
       {showBureauResources ? <PartnerBureauResourcesPanel /> : null}
 
-      {showAccess ? <AdminPartnerAccessPanel partner={partner} onUpdated={onUpdated} /> : null}
+      {showAccess ? (
+        <>
+          <AdminPartnerAccessPanel partner={partner} onUpdated={onUpdated} />
+          <PartnerSpecialistAssignmentPanel partner={partner} onUpdated={onUpdated} />
+        </>
+      ) : null}
 
       <section id="partner-client-journey" className={`${finelyOsCatalogCard('emerald')} !p-5 border-t-4 border-emerald-400/40 scroll-mt-8`}>
         <div>

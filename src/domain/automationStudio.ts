@@ -34,7 +34,8 @@ export type AutomationTrigger =
   | { type: 'lead_scored'; minScore?: number; band?: 'cold' | 'warm' | 'hot' | 'qualified' }
   | { type: 'report_uploaded' }
   | { type: 'dispute_evidence_ready' }
-  | { type: 'complaint_detected' };
+  | { type: 'complaint_detected' }
+  | { type: 'bankruptcy_scenario_selected'; scenarioId?: string };
 
 export type AutomationCondition =
   | { type: 'always' }

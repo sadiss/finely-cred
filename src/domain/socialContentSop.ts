@@ -5,10 +5,12 @@ export type SocialPlatform = 'facebook' | 'instagram' | 'threads' | 'linkedin';
 export type SocialSopTemplate = {
   id: string;
   title: string;
-  pillar: 'education' | 'proof' | 'offer' | 'community' | 'compliance';
+  pillar: 'education' | 'proof' | 'offer' | 'community' | 'compliance' | 'recruiting';
   platforms: SocialPlatform[];
   cadence: 'daily' | '3x_week' | 'weekly' | 'biweekly';
   assignedRoleId: 'social_creator' | 'affiliate_specialist' | 'nurture_concierge';
+  /** When set, overrides role-based staff resolution (recruiting agents). */
+  assignedStaffId?: string;
   hookFormula: string;
   bodyOutline: string[];
   requiredHashtags: string[];
@@ -232,6 +234,63 @@ export const SOCIAL_SOP_LIBRARY: SocialSopTemplate[] = [
     requiredHashtags: ['#EmailConsent', '#FinelyPartner'],
     forbiddenPhrases: ['unlimited blasts', 'cannot unsubscribe', 'guaranteed close'],
     cta: 'Resources hub → finelycred.com/resources',
+    approvalRequired: false,
+  },
+  {
+    id: 'sop-recruit-credit-specialist',
+    title: 'Credit specialist recruiting (Mon)',
+    pillar: 'recruiting',
+    platforms: ['facebook', 'instagram', 'linkedin'],
+    cadence: 'weekly',
+    assignedRoleId: 'nurture_concierge',
+    assignedStaffId: 'partner_recruiter',
+    hookFormula: 'Credit specialists: build a real practice with structure — not hype.',
+    bodyOutline: [
+      'Who we recruit: disciplined operators who want education-first client workflows.',
+      'What you get: portal tools, compliance guardrails, training paths, and lane specialists.',
+      'No income guarantees — fit and execution matter.',
+    ],
+    requiredHashtags: ['#CreditSpecialist', '#FinelyPartner'],
+    forbiddenPhrases: ['six figures guaranteed', 'passive income', 'delete all negatives'],
+    cta: 'Apply → finelycred.com/agents',
+    approvalRequired: true,
+  },
+  {
+    id: 'sop-recruit-affiliate-wrangler',
+    title: 'Affiliate partner recruiting (Wed)',
+    pillar: 'recruiting',
+    platforms: ['instagram', 'facebook'],
+    cadence: 'weekly',
+    assignedRoleId: 'affiliate_specialist',
+    assignedStaffId: 'affiliate_wrangler',
+    hookFormula: 'Affiliate partners: compliant promo kits + tracked links — no outcome promises.',
+    bodyOutline: [
+      'QR + referral toolkit refresh.',
+      'Disclosure: educational funnels only.',
+      'Separate lanes: restore, business, debt, tradelines.',
+    ],
+    requiredHashtags: ['#AffiliateMarketing', '#FinelyCred'],
+    forbiddenPhrases: ['guaranteed commissions', 'overnight wealth', 'credit repair scam'],
+    cta: 'Affiliate toolkit → finelycred.com/affiliate-toolkit',
+    approvalRequired: true,
+  },
+  {
+    id: 'sop-recruit-scout-nurture',
+    title: 'Lead nurture recruiting (Fri)',
+    pillar: 'recruiting',
+    platforms: ['linkedin', 'instagram'],
+    cadence: 'weekly',
+    assignedRoleId: 'nurture_concierge',
+    assignedStaffId: 'scout_supreme',
+    hookFormula: 'Why structured lead nurture beats random DMs:',
+    bodyOutline: [
+      'Scout Supreme explains qualification + city intent without hard selling.',
+      'Educational credit intel only — results vary.',
+      'Invite to free roadmap or strategy session.',
+    ],
+    requiredHashtags: ['#LeadGen', '#CreditEducation'],
+    forbiddenPhrases: ['guaranteed leads', 'spam DMs', '800 score'],
+    cta: 'Free roadmap → finelycred.com/free-score-roadmap',
     approvalRequired: false,
   },
 ];

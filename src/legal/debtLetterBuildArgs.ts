@@ -1,0 +1,37 @@
+export type DebtLetterBuildArgs = {
+  creditorName: string;
+  debtorName: string;
+  date: string;
+  caseNumber?: string;
+  stateNote?: string;
+  debtorAddress1?: string;
+  debtorAddress2?: string;
+  debtorCity?: string;
+  debtorState?: string;
+  debtorPostalCode?: string;
+  debtorPhone?: string;
+  debtorEmail?: string;
+  recipientName?: string;
+  recipientAddress?: string;
+  originalCreditorName?: string;
+  plaintiffLawFirm?: string;
+  plaintiffLawFirmAddress?: string;
+  plaintiffAttorneyName?: string;
+  plaintiffAttorneyBarNumber?: string;
+  debtCollectorName?: string;
+  accountNumber?: string;
+  loanId?: string;
+  borrowerId?: string;
+  affidavitState?: string;
+  affidavitCounty?: string;
+  summonsContext?: {
+    courtName?: string;
+    amountClaimed?: string;
+    dateServed?: string;
+    jurisdictionState?: string;
+    collectorName?: string;
+    documentFacts?: string[];
+    propertyAddress?: string;
+    collateralDescription?: string;
+  };
+};

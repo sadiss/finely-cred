@@ -1,7 +1,7 @@
 import { getBlobStore } from '../storage/getBlobStore';
 import type { Bureau, DisputeCandidate } from '../domain/creditReports';
 import { bureauDisputeAddress, SUBJECT_LINE } from './disputeLetterTemplate';
-import { consumerDisputeOpeningForTone } from './consumerDisputeVoice';
+import { buildFiveStepDisputeIntro, buildFiveStepItemPreamble, dominantNegativeTypeFromCandidates } from './disputeFiveStepLetter';
 import { formatNumberedDisputeReasons, DISPUTE_DELETE_NOW } from './disputeLetterFormat';
 import { downloadBlob } from '../utils/download';
 import { bureauShortCode } from '../utils/bureaus';
@@ -159,10 +159,16 @@ export async function downloadInlineDisputeLetterPdf(args: {
   }
   y -= 10;
 
-  const introDefault = `${consumerDisputeOpeningForTone(
-    args.tone === 'formal' ? 'formal' : args.tone === 'conversational' ? 'conversational' : 'neutral',
-  )}\n\nThis letter applies only to the specific item(s) listed below.\n`;
-  const intro = (args.introOverride || '').trim() ? args.introOverride!.trim() + '\n' : introDefault;
+  const introDefault = (() => {
+    const dominant = dominantNegativeTypeFromCandidates(args.items.map((i) => i.candidate));
+    return buildFiveStepDisputeIntro({
+      tone: args.tone === 'formal' ? 'formal' : args.tone === 'conversational' ? 'conversational' : 'neutral',
+      negativeType: dominant,
+      round: args.round,
+      accountLabel: args.items.length === 1 ? args.items[0]?.candidate.account : undefined,
+    });
+  })();
+  const intro = (args.introOverride || '').trim() ? args.introOverride!.trim() + '\n' : introDefault + '\n';
 
   drawWrapped(intro, { color: rgb(0.12, 0.12, 0.12) });
   y -= 12;
@@ -198,8 +204,16 @@ export async function downloadInlineDisputeLetterPdf(args: {
 
     // Evidence screenshot inline (optional in Full Mode — do not print warnings when missing/unreadable).
     const pad = 8;
-
     const exhibits = (item.evidenceList?.length ? item.evidenceList : item.evidence ? [item.evidence] : []).slice(0, 5);
+
+    const preamble = buildFiveStepItemPreamble({
+      candidate: item.candidate,
+      round: args.round,
+      exhibitLabel: exhibits.length ? 'Exhibit 1' : 'Exhibit A',
+    });
+    drawWrapped(preamble, { size: 10, color: rgb(0.35, 0.35, 0.35) });
+    y -= 6;
+
     for (let exhibitIndex = 0; exhibitIndex < exhibits.length; exhibitIndex += 1) {
       const exhibit = exhibits[exhibitIndex]!;
       if (!exhibit?.blobRef) continue;

@@ -35,6 +35,18 @@ import {
   suggestNextRound,
   type DisputeRoundLabel,
 } from '../../domain/disputeWorkflow';
+import {
+  getResponsePlaybook,
+  getRestoreAfterRound,
+  RESPONSE_OUTCOMES,
+  type DisputePipelineStage,
+  type ResponseOutcome,
+} from '../../domain/disputeRoundResponsePlaybook';
+import {
+  buildComposeHandoffFromThread,
+  commsStudioUrlFromHandoff,
+  saveComposeHandoffDraft,
+} from '../../lib/commsConversationHandoff';
 import { Button } from '../ui';
 
 type Props = {
@@ -65,6 +77,7 @@ export function DisputeCaseWorkflowPanel({ caseId, partnerId, mode = 'partner', 
   const [responseNotes, setResponseNotes] = useState('');
   const [messageBody, setMessageBody] = useState('');
   const [busy, setBusy] = useState<string | null>(null);
+  const [responseOutcome, setResponseOutcome] = useState<ResponseOutcome>('verified_unchanged');
 
   useEffect(() => {
     const onStore = () => setVersion((v) => v + 1);
@@ -80,10 +93,27 @@ export function DisputeCaseWorkflowPanel({ caseId, partnerId, mode = 'partner', 
   const complaints = useMemo(() => listRegulatoryComplaintsByCase(caseId), [caseId, version]);
   const threads = useMemo(() => listThreadsByCase(caseId), [caseId, version]);
 
-  if (!disputeCase || disputeCase.partnerId !== partnerId) return null;
-
   const activeRound = pipeline.find((p) => p.isCurrent)?.round ?? suggestedRound;
+
+  useEffect(() => {
+    const record = disputeCase?.rounds?.find((r) => r.round === activeRound);
+    if (record?.responseOutcome) setResponseOutcome(record.responseOutcome);
+  }, [disputeCase, activeRound]);
+
+  const pipelineStage: DisputePipelineStage = activeRound;
+  const responsePlaybook = useMemo(
+    () => getResponsePlaybook(pipelineStage, responseOutcome),
+    [pipelineStage, responseOutcome],
+  );
+
+  if (!disputeCase || disputeCase.partnerId !== partnerId) return null;
   const guidance = INTER_ROUND_GUIDANCE[activeRound];
+  const currentStatus = pipeline.find((p) => p.isCurrent)?.status ?? 'draft';
+  const showResponsePlaybook = currentStatus === 'response_received' || currentStatus === 'ready_for_next_round';
+  const restoreRound =
+    pipeline.find((p) => p.status === 'mailed' || p.status === 'awaiting_response')?.round ??
+    (currentStatus === 'mailed' ? activeRound : null);
+  const restoreSteps = restoreRound ? getRestoreAfterRound(restoreRound) : [];
 
   const refresh = () => {
     setVersion((v) => v + 1);
@@ -125,6 +155,17 @@ export function DisputeCaseWorkflowPanel({ caseId, partnerId, mode = 'partner', 
     navigate(mode === 'admin' ? `/admin/support?threadId=${encodeURIComponent(thread.id)}` : '/portal/messages?hub=team');
   };
 
+  const prepCommsFromThread = (channel: 'email' | 'sms' | 'portal') => {
+    const thread = threads[0];
+    if (!thread) {
+      navigate(`/admin/comms?room=compose&partnerId=${partnerId}&channel=${channel}`);
+      return;
+    }
+    const handoff = buildComposeHandoffFromThread({ thread, channel, partnerId });
+    saveComposeHandoffDraft(handoff);
+    navigate(commsStudioUrlFromHandoff(handoff));
+  };
+
   return (
     <div className="space-y-6">
       <div className="fc-elevated-card p-6 space-y-5">
@@ -134,9 +175,9 @@ export function DisputeCaseWorkflowPanel({ caseId, partnerId, mode = 'partner', 
               <Sparkles size={16} />
               <span className="text-xs font-semibold uppercase tracking-wider">Dispute workflow</span>
             </div>
-            <p className="mt-2 text-white font-semibold">Round pipeline — Rounds 1, 2, 3</p>
+            <p className="mt-2 text-white font-semibold">Round pipeline — R1 → R2 → R3 → R4 → Litigation</p>
             <p className="mt-1 text-white/60 text-sm">
-              Track mail dates, bureau responses, and inter-round complaints in one place. Suggested next step:{' '}
+              Track mail dates, bureau responses, complaints between rounds, and litigation prep. Suggested next:{' '}
               <span className="text-white/90 font-semibold">{suggestedRound}</span>.
             </p>
           </div>
@@ -145,7 +186,7 @@ export function DisputeCaseWorkflowPanel({ caseId, partnerId, mode = 'partner', 
           </Button>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-3">
+        <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-3">
           {pipeline.map((step) => {
             const status = step.record ? inferRoundStatus(step.record) : 'draft';
             const overdue = isRoundOverdue(step.record);
@@ -192,7 +233,43 @@ export function DisputeCaseWorkflowPanel({ caseId, partnerId, mode = 'partner', 
               </div>
             );
           })}
+          <div className="rounded-xl border border-violet-500/25 bg-violet-500/5 p-4 space-y-3">
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-white font-semibold">Litigation</span>
+              <span className="text-[9px] uppercase tracking-widest text-violet-300 font-bold">Final step</span>
+            </div>
+            <div className="inline-flex px-2.5 py-1 rounded-lg border text-[10px] font-bold uppercase tracking-widest text-violet-300 bg-violet-500/10 border-violet-500/20">
+              Pre-litigation review
+            </div>
+            <p className="text-xs text-white/50">After Round 4 if items remain verified — attorney packet, demand letter, court-ready docs.</p>
+            <button
+              type="button"
+              onClick={() => navigate(`/admin/comms?room=compose&templateId=tpl_litigation_prep_notice&partnerId=${partnerId}`)}
+              className="text-[10px] uppercase tracking-widest text-violet-300 hover:text-violet-200"
+            >
+              Litigation comms template
+            </button>
+          </div>
         </div>
+
+        {restoreSteps.length > 0 ? (
+          <div className="fc-light-glass-panel fc-light-chrome-panel rounded-xl p-4 space-y-3">
+            <p className="text-[10px] uppercase tracking-widest text-emerald-400">Restore after {restoreRound}</p>
+            <ul className="space-y-2">
+              {restoreSteps.map((step) => (
+                <li key={step.id} className="flex items-start gap-2 text-sm text-white/70">
+                  <CheckCircle2 size={14} className="text-emerald-400 mt-0.5 shrink-0" />
+                  <span>
+                    <strong className="text-white/90">{step.title}</strong> — {step.detail}
+                    {step.commsTemplateHint ? (
+                      <span className="block text-[10px] text-amber-300/80 mt-0.5">Comms: {step.commsTemplateHint}</span>
+                    ) : null}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
 
         <div className="fc-light-glass-panel fc-light-chrome-panel rounded-xl p-4 space-y-3">
           <p className="text-[10px] uppercase tracking-widest text-white/40">{guidance.title}</p>
@@ -227,6 +304,7 @@ export function DisputeCaseWorkflowPanel({ caseId, partnerId, mode = 'partner', 
                       caseId,
                       round,
                       notes: responseNotes.trim() || undefined,
+                      responseOutcome,
                       createdBy: mode,
                     }),
                   )
@@ -253,6 +331,53 @@ export function DisputeCaseWorkflowPanel({ caseId, partnerId, mode = 'partner', 
           placeholder="Optional notes when logging bureau response (results, deletions, verification, etc.)"
           className="w-full min-h-[72px] fc-light-glass-panel fc-light-chrome-panel rounded-xl px-4 py-3 text-sm text-white/80 placeholder:text-white/30 outline-none focus:border-amber-500/40"
         />
+
+        {showResponsePlaybook ? (
+          <div className="fc-light-glass-panel fc-light-chrome-panel rounded-xl p-5 space-y-4 border border-emerald-500/20">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <p className="text-[10px] uppercase tracking-widest text-emerald-400">Response received — real steps</p>
+                <p className="text-white font-semibold mt-1">{responsePlaybook.title}</p>
+                <p className="text-sm text-white/55 mt-1">{responsePlaybook.summary}</p>
+              </div>
+              <select
+                value={responseOutcome}
+                onChange={(e) => setResponseOutcome(e.target.value as ResponseOutcome)}
+                className="rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-sm text-white/80"
+              >
+                {RESPONSE_OUTCOMES.map((o) => (
+                  <option key={o} value={o}>{o.replace(/_/g, ' ')}</option>
+                ))}
+              </select>
+            </div>
+            <div className="space-y-2">
+              {responsePlaybook.steps.map((step) => (
+                <div key={step.id} className="flex items-start gap-3 rounded-lg border border-white/[0.08] bg-black/20 p-3">
+                  <CheckCircle2 size={14} className={step.required ? 'text-amber-400' : 'text-white/30'} />
+                  <div className="min-w-0 flex-1">
+                    <div className="text-white font-medium text-sm">{step.title}</div>
+                    <div className="text-xs text-white/55 mt-0.5">{step.detail}</div>
+                    <div className="text-[10px] uppercase tracking-widest text-white/35 mt-1">{step.actor.replace(/_/g, ' ')}</div>
+                    {step.href ? (
+                      <button type="button" onClick={() => navigate(step.href!)} className="text-[10px] text-emerald-300 mt-1">
+                        Open →
+                      </button>
+                    ) : null}
+                  </div>
+                </div>
+              ))}
+            </div>
+            {responsePlaybook.escalationOptions?.length ? (
+              <div className="flex flex-wrap gap-2">
+                {responsePlaybook.escalationOptions.map((opt) => (
+                  <span key={opt} className="rounded-full border border-amber-500/20 bg-amber-500/10 px-2.5 py-1 text-[10px] text-amber-200">
+                    {opt}
+                  </span>
+                ))}
+              </div>
+            ) : null}
+          </div>
+        ) : null}
       </div>
 
       <div className="grid lg:grid-cols-2 gap-6">
@@ -307,6 +432,17 @@ export function DisputeCaseWorkflowPanel({ caseId, partnerId, mode = 'partner', 
           <Button variant="primary" size="sm" onClick={handleMessageTeam} disabled={!messageBody.trim()}>
             Send case-linked message
           </Button>
+          <div className="flex flex-wrap gap-2 pt-2">
+            <Button variant="outline" size="sm" onClick={() => prepCommsFromThread('email')}>
+              <Mail size={14} /> Prep email in Comms
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => prepCommsFromThread('sms')}>
+              Prep SMS
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => navigate(`/admin/comms?room=conversations&partnerId=${partnerId}`)}>
+              Open conversation bridge
+            </Button>
+          </div>
           {threads.length > 0 ? (
             <div className="space-y-2 pt-2 border-t border-white/[0.08]">
               {threads.slice(0, 3).map((t) => (

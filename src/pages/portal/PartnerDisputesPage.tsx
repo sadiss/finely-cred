@@ -11,6 +11,7 @@ import { listEvidenceByPartner } from '../../data/evidenceRepo';
 import { listLettersByPartner } from '../../data/lettersRepo';
 import { usePartnerSession } from '../../auth/PartnerSessionContext';
 import { PartnerCreditRestoreCommandStrip } from '../../components/partner/PartnerCreditRestoreCommandStrip';
+import { SmartProofUploader } from '../../components/evidence/SmartProofUploader';
 import { FinelyNowDoThisStrip } from '../../components/tours/FinelyNowDoThisStrip';
 import { FinelyNoticedStrip } from '../../components/tours/FinelyNoticedStrip';
 import { buildDisputesNoticedItems } from '../../lib/finelyProactiveSignals';
@@ -19,10 +20,15 @@ import { ENTITLEMENT_KEYS } from '../../billing/entitlements';
 import { Button, CollapsibleSection } from '../../components/ui';
 import { deriveDisputeCandidates } from '../../creditReports/disputeCandidates';
 import type { DisputeCandidate } from '../../domain/creditReports';
-import { bureauShortCode } from '../../utils/bureaus';
+import { bureauShortCode, bureauFullName } from '../../utils/bureaus';
+import { getDisputeLaneFocus, saveDisputeLaneFocus } from '../../data/disputeLaneStateRepo';
 import { FinelyOsPageFooter } from '../../features/os/FinelyOsPageFooter';
 import { FinelyOsPaginatedStack } from '../../features/os/FinelyOsPaginatedStack';
 import { FinelyUnifiedHubLayout, FinelyUnifiedSection } from '../../features/unified/FinelyUnifiedHubLayout';
+import { PartnerLaneCoachPanel } from '../../components/chat/PartnerLaneCoachPanel';
+import { DisputeLaneHandoffStrip } from '../../components/disputes/DisputeLaneHandoffStrip';
+import { PartnerLaneCoachDock } from '../../components/chat/PartnerLaneCoachDock';
+import { PartnerSuccessExperiencePanel } from '../../components/partner/PartnerSuccessExperiencePanel';
 import {
   FINELY_OS_PAGE,
   FINELY_OS_BACK_LINK,
@@ -49,6 +55,7 @@ export default function PartnerDisputesPage() {
   const [status, setStatus] = useState<'open' | 'closed' | 'all'>('open');
   type DisputeHubTab = 'overview' | 'needs' | 'tracked' | 'cases';
   const [hubTab, setHubTab] = useState<DisputeHubTab>('overview');
+  const [coachVersion, setCoachVersion] = useState(0);
 
   const { partner } = usePartnerSession();
 
@@ -140,6 +147,20 @@ export default function PartnerDisputesPage() {
     [candidates.length, needsDisputing.length, alreadyDisputed.length, cases.length, status],
   );
 
+  const bureauFocus = useMemo(() => {
+    void coachVersion;
+    if (!partner) return 'EQF';
+    const saved = getDisputeLaneFocus(partner.id)?.bureau;
+    if (saved) return saved;
+    return needsByBureau[0]?.[0] ?? 'EQF';
+  }, [partner, coachVersion, needsByBureau]);
+
+  const disputeCoachFocusId = useMemo(() => {
+    if (hubTab === 'tracked') return 'tradeline';
+    if (hubTab === 'cases') return bureauFocus;
+    return bureauFocus;
+  }, [hubTab, bureauFocus]);
+
   return (
     <PageShell
       badge="Partner Portal"
@@ -227,6 +248,18 @@ export default function PartnerDisputesPage() {
               primaryAction={{ label: 'Letter Studio', onClick: () => navigate('/portal/letters?openPicker=1') }}
               secondaryAction={{ label: 'Upload report', onClick: () => navigate('/portal/reports') }}
             >
+              {hubTab !== 'overview' && partner ? (
+                <div className="mb-4">
+                  <PartnerLaneCoachDock
+                    partnerId={partner.id}
+                    partnerName={partner.profile.fullName}
+                    lane={hubTab === 'needs' ? 'dispute' : hubTab === 'tracked' ? 'tradeline' : 'bureau'}
+                    focusId={disputeCoachFocusId}
+                    coachSubtitle="Bureau dispute specialist for this view"
+                  />
+                </div>
+              ) : null}
+
               {hubTab === 'overview' && (
                 <div className="space-y-4">
                   {latestParsedReport ? (
@@ -258,6 +291,47 @@ export default function PartnerDisputesPage() {
                       </div>
                     </FinelyUnifiedSection>
                   ) : null}
+
+                  <SmartProofUploader partner={partner} email={partner.profile.email} uploadContext="bureau" />
+
+                  <DisputeLaneHandoffStrip partnerId={partner.id} />
+
+                  <div className="grid lg:grid-cols-5 gap-4">
+                    {needsByBureau.length > 0 ? (
+                      <div className="lg:col-span-5 flex flex-wrap gap-2">
+                        {needsByBureau.map(([bureau]) => (
+                          <button
+                            key={bureau}
+                            type="button"
+                            onClick={() => {
+                              saveDisputeLaneFocus(partner.id, bureau);
+                              setCoachVersion((v) => v + 1);
+                            }}
+                            className={`rounded-full border px-3 py-1 text-xs font-semibold transition ${
+                              bureauFocus === bureau
+                                ? 'border-fuchsia-400/50 bg-fuchsia-500/15 text-fuchsia-100'
+                                : 'border-white/10 bg-black/25 text-white/55 hover:border-white/25'
+                            }`}
+                          >
+                            {bureauFullName(bureau as import('../../domain/creditReports').Bureau)} specialist
+                          </button>
+                        ))}
+                      </div>
+                    ) : null}
+                    <div className="lg:col-span-3">
+                      <PartnerLaneCoachPanel
+                        partnerId={partner.id}
+                        partnerName={partner.profile.fullName}
+                        lane="dispute"
+                        focusId={bureauFocus}
+                        compact
+                        coachSubtitle="Your bureau dispute specialist — different coach per bureau file"
+                      />
+                    </div>
+                    <div className="lg:col-span-2">
+                      <PartnerSuccessExperiencePanel partnerId={partner.id} lane="dispute" compact />
+                    </div>
+                  </div>
                 </div>
               )}
 

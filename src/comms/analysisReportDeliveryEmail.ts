@@ -18,6 +18,7 @@ export function buildAnalysisReportDeliveryEmail(args: {
   candidates: DisputeCandidate[];
   reportsUrl: string;
   emailDomainId?: string;
+  analysisTitle?: string;
 }) {
   const first = args.partner.profile.fullName.split(' ')[0] || 'there';
   const domainId = args.emailDomainId ?? 'domain_finely_primary';
@@ -39,8 +40,8 @@ export function buildAnalysisReportDeliveryEmail(args: {
     <p style="margin:0 0 16px;">Hi ${first},</p>
     <p style="margin:0 0 16px;">Your personalized credit analysis is ready. We ranked your dispute targets by impact — charge-offs, collections, late payments, and cross-bureau mismatches — so you know exactly where to start.</p>
     ${buildNegativeTeaserRows(teaserItems)}
-    ${buildPrimaryCtaButton({ label: 'Open full analysis report', href: args.reportsUrl })}
-    <p style="margin:16px 0 0;font-size:14px;color:#475569;">Your PDF includes evidence checklists, bureau-specific negatives, and a round-by-round roadmap tailored to your file.</p>
+    ${buildPrimaryCtaButton({ label: 'Open your strategy report vault', href: args.reportsUrl })}
+    <p style="margin:16px 0 0;font-size:14px;color:#475569;">${args.analysisTitle ? `Report: <strong>${args.analysisTitle}</strong>. ` : ''}Your PDF includes evidence checklists, bureau-specific negatives, and a round-by-round roadmap tailored to your file.</p>
     ${buildTrustStrip()}
   `;
 
@@ -78,6 +79,7 @@ export async function sendAnalysisReportDeliveryEmail(args: {
   candidates: DisputeCandidate[];
   reportsUrl: string;
   emailDomainId?: string;
+  analysisTitle?: string;
 }): Promise<{ sent: boolean; reason?: string }> {
   const toEmail = (args.partner.profile.email || '').trim();
   if (!toEmail) return { sent: false, reason: 'no_email' };

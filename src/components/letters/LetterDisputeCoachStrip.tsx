@@ -3,12 +3,12 @@ import { Loader2, MessageSquare, Sparkles } from 'lucide-react';
 import { isFeatureEnabled } from '../../data/settingsRepo';
 import { converseWithFinelyAi } from '../../lib/conversationalAi';
 import { openCommunicationHub } from '../chat/communicationHubModel';
+import { OnDutyStaffCoachHeader } from '../chat/OnDutyStaffCoachHeader';
 import {
   FINELY_OS_ENTITY_BODY,
   FINELY_OS_ENTITY_INPUT,
   FINELY_OS_PRIMARY_BTN,
   FINELY_OS_SECONDARY_BTN,
-  finelyOsCatalogCard,
   FINELY_OS_ENTITY_SUBLABEL,
   finelyOsMessageBubble,
 } from '../../features/os/finelyOsLightUi';
@@ -80,7 +80,8 @@ export function LetterDisputeCoachStrip({
   };
 
   return (
-    <div className={`${finelyOsCatalogCard('violet')} !p-4 space-y-3`}>
+    <div className="w-full space-y-3">
+      <OnDutyStaffCoachHeader lane="dispute" subtitle="Dispute letter specialist — on shift for bureau questions." />
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <Sparkles size={16} className="text-violet-300" />

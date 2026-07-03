@@ -10,9 +10,10 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { computeRecommendation } from '../../billing/intakeRecommendation';
 import { formatPrice, getAgencyTierById, getPackageById } from '../../config/pricingCatalog';
 import { getActiveTenant, getActiveTenantId } from '../../tenancy/activeTenant';
-import { getOnboardingStepKeys, getOnboardingStepLabel, getPartnerInviteStepKeys } from '../../onboarding/pipeline';
+import { getOnboardingStepKeys, getOnboardingStepLabel, getPartnerInviteStepKeys, type OnboardingRole } from '../../onboarding/pipeline';
 import { AgentOperatingModelStep } from '../onboarding/AgentOperatingModelStep';
 import { ProfileAndAccountStep } from '../onboarding/OnboardingSteps';
+import { PartnerSupportRelationshipStep } from '../onboarding/PartnerSupportRelationshipStep';
 import { SignupLegalStep } from '../onboarding/SignupLegalStep';
 import { OnboardingExperienceShell } from '../onboarding/OnboardingExperienceShell';
 import { OnboardingFlowShell } from '../onboarding/OnboardingFlowShell';
@@ -49,6 +50,8 @@ import {
   parsePartnerInviteSearch,
   resetOnboardingStorageForInvite,
 } from '../../lib/partnerInviteBootstrap';
+import { savePendingInvitePartnerId } from '../../lib/pendingInviteClaim';
+import { retryPendingInviteClaim } from '../../lib/retryPendingInviteClaim';
 import { landingPathForRole } from '../../lib/signupOpsGuide';
 import { resolvePostAuthHomePath } from '../../lib/postAuthRouting';
 import { buildPartnerConsentsFromSignup, signupLegalItems, type SignupLegalItemId } from '../../lib/signupLegalPack';
@@ -1209,6 +1212,9 @@ function createDefaultOnboardingUserData() {
     legalAcceptedName: '',
     confirmPassword: '',
     invitePartnerId: '' as string,
+    supportModel: '' as string,
+    helperName: '',
+    priorCompany: '',
   };
 }
 
@@ -1393,7 +1399,7 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
   const stepKeys = useMemo(
     () =>
       partnerInviteFlow
-        ? getPartnerInviteStepKeys()
+        ? getPartnerInviteStepKeys((userData.role || 'client') as OnboardingRole)
         : getOnboardingStepKeys({ role: userData.role, focuses: userData.focuses, lane: userData.lane, agentTierId: userData.agentTierId }),
     [partnerInviteFlow, userData.role, userData.focuses, userData.lane, userData.agentTierId],
   );
@@ -1653,7 +1659,11 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
         setAuthError(res.error);
         return;
       }
-      const nextPath = userData.recommendedNextPath || resolvePostAuthHomePath(res.user ?? auth.user);
+      const user = res.user ?? auth.user;
+      if (user?.id && user.email) {
+        await retryPendingInviteClaim({ userId: user.id, email: user.email });
+      }
+      const nextPath = userData.recommendedNextPath || resolvePostAuthHomePath(user);
       clearOnboardingProgress();
       onComplete(nextPath);
     } finally {
@@ -1754,6 +1764,9 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
           promoAsset: userData.promoAsset,
           legalConsents,
           legalAcceptedName: userData.legalAcceptedName,
+          supportModel: userData.supportModel,
+          helperName: userData.helperName,
+          priorCompany: userData.priorCompany,
         },
       });
 
@@ -1766,8 +1779,11 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
       const signedInUser = res.user ?? auth.user;
       if (!signedInUser) {
         setAuthNotice(null);
+        if (userData.invitePartnerId) {
+          savePendingInvitePartnerId(userData.invitePartnerId);
+        }
         setAuthError(
-          'Account created. Check your email to confirm your address (if required by Supabase), then log in with the password you just set. A welcome email sends after your first successful login when Comms delivery is enabled.',
+          'Account created. Check your email to confirm your address (if required by Supabase), then log in with the password you just set. We will finish linking your invite automatically on first login.',
         );
         goToAuthMode('login');
         setLoginEmail(email);
@@ -1777,11 +1793,23 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
 
       try {
         if (userData.invitePartnerId) {
-          await completePartnerInviteClaim({
+          const claimed = await completePartnerInviteClaim({
             partnerId: userData.invitePartnerId,
             userId: signedInUser.id,
             email,
           });
+          if (userData.supportModel || userData.helperName || userData.priorCompany) {
+            const { upsertPartner } = await import('../../data/partnersRepo');
+            await upsertPartner({
+              ...claimed,
+              journeySignals: {
+                ...(claimed.journeySignals ?? {}),
+                ...(userData.supportModel ? { supportModel: userData.supportModel } : {}),
+                ...(userData.helperName ? { helperName: userData.helperName } : {}),
+                ...(userData.priorCompany ? { priorCompany: userData.priorCompany } : {}),
+              },
+            });
+          }
         } else {
           const { getOrCreatePartnerForSession } = await import('../../portal/getOrCreatePartnerForSession');
           await getOrCreatePartnerForSession({ user: signedInUser });
@@ -2200,6 +2228,9 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
         >
         {currentKey === 'role' && <RoleStep next={nextStep} data={userData} update={updateData} />}
         {currentKey === 'focus' && <FocusStep next={nextStep} prev={prevStep} data={userData} update={updateData} />}
+        {currentKey === 'support' && (
+          <PartnerSupportRelationshipStep data={userData} update={updateData} />
+        )}
         {currentKey === 'agentTier' && <AgentOperatingModelStep next={nextStep} prev={prevStep} data={userData} update={updateData} />}
         {currentKey === 'context' && <FoundationalFractures next={nextStep} prev={prevStep} data={userData} update={updateData} />}
         {currentKey === 'recommendation' && <BlueprintRecommendation next={nextStep} prev={prevStep} data={userData} update={updateData} />}

@@ -21,7 +21,7 @@ export function getOnboardingStepKeys(data: OnboardingUserData): string[] {
   if (!role) return ['role'];
 
   if (role === 'client') {
-    const keys = ['role', 'focus'];
+    const keys = ['role', 'focus', 'support'];
     if (needsClientContext(data)) keys.push('context');
     keys.push('recommendation', 'legal', 'profile');
     return keys;
@@ -34,7 +34,8 @@ export function getOnboardingStepKeys(data: OnboardingUserData): string[] {
 }
 
 /** Admin invite flow — skip public role/focus/recommendation picker. */
-export function getPartnerInviteStepKeys(): string[] {
+export function getPartnerInviteStepKeys(role?: OnboardingRole): string[] {
+  if (role === 'client') return ['legal', 'support', 'profile'];
   return ['legal', 'profile'];
 }
 
@@ -42,6 +43,7 @@ export function getOnboardingStepLabel(key: string): string {
   const labels: Record<string, string> = {
     role: 'Role',
     focus: 'Focus',
+    support: 'Support model',
     agentTier: 'Specialist operating model',
     context: 'Your situation',
     recommendation: 'Your path',
