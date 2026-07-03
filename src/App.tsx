@@ -169,6 +169,7 @@ const AdminStudioUxCommandPage = lazy(() => import('./pages/admin/AdminStudioUxC
 const AdminOvernight50Page = lazy(() => import('./pages/admin/AdminOvernight50Page'));
 const AdminGeoWarRoomPage = lazy(() => import('./pages/admin/AdminGeoWarRoomPage'));
 const AdminSyntheticStaffPage = lazy(() => import('./pages/admin/AdminSyntheticStaffPage'));
+const AdminStaffCommandCenterPage = lazy(() => import('./pages/admin/AdminStaffCommandCenterPage'));
 
 const BusinessDashboardPage = lazy(() => import('./pages/business/BusinessDashboardPage'));
 const BusinessProfilePage = lazy(() => import('./pages/business/BusinessProfilePage'));
@@ -1255,13 +1256,10 @@ function AppInner() {
       location.pathname === '/signup' ||
       location.pathname === '/forgot-password'
     ) {
-      let nextPath: string | null = null;
-      try {
-        const sp = new URLSearchParams(location.search);
-        nextPath = sp.get('next');
-      } catch {
-        nextPath = null;
-      }
+      const sp = new URLSearchParams(location.search);
+      if (sp.get('invite') === '1') return;
+
+      let nextPath: string | null = sp.get('next');
       if (!nextPath) {
         try {
           const raw = localStorage.getItem('finely.onboarding.v1');
@@ -2396,6 +2394,14 @@ function AppInner() {
           element={
             <ProtectedAdminRoute>
               <AdminLeadsOsPage />
+            </ProtectedAdminRoute>
+          }
+        />
+        <Route
+          path="/admin/staff"
+          element={
+            <ProtectedAdminRoute>
+              <AdminStaffCommandCenterPage />
             </ProtectedAdminRoute>
           }
         />

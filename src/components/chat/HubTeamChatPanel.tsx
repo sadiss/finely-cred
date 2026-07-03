@@ -41,6 +41,22 @@ import {
 const blobStore = getBlobStore();
 const VAULT_ATTACH_LIMIT = 10;
 
+const TEAM_COMPOSE_STARTERS = [
+  { emoji: '⚖️', label: 'Dispute update', body: 'I have a question about my current dispute round and what I should do next.' },
+  { emoji: '📄', label: 'Report review', body: 'I uploaded a credit report and need help understanding what to tackle first.' },
+  { emoji: '🏛️', label: 'Debt / summons', body: 'I received a collection notice or summons and need guidance on next steps in the portal.' },
+  { emoji: '📬', label: 'Letter status', body: 'I mailed dispute letters and want to track deadlines and bureau responses.' },
+  { emoji: '💳', label: 'Billing question', body: 'I have a billing or subscription question on my Finely Cred account.' },
+  { emoji: '📅', label: 'Schedule a call', body: 'I would like to schedule a video session to walk through my file.' },
+];
+
+const TEAM_REPLY_STARTERS = [
+  { title: 'Thanks + next step', body: 'Thanks for the update — I will take care of that today and follow up if anything is unclear.' },
+  { title: 'Need clarification', body: 'Can you clarify what you need from me and by when? I want to keep my round on track.' },
+  { title: 'Attached evidence', body: 'I attached the screenshots/documents you asked for in my vault — please confirm you can see them.' },
+  { title: 'Dispute mailed', body: 'I mailed my dispute letters today — can you help me set the follow-up timeline in tasks?' },
+];
+
 function fmtWhen(iso: string) {
   try {
     return new Date(iso).toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' });
@@ -554,6 +570,32 @@ export function HubTeamChatPanel({ partnerId, partnerDisplayName, compact, initi
               hint="Pick credit specialists, dispute analysts, affiliates, AU sellers, funding advisors, or any staff member."
             />
             <div className="rounded-xl border border-sky-500/25 bg-sky-500/5 p-3 space-y-2">
+              <p className="text-[9px] uppercase tracking-widest text-sky-200/80 font-black">Quick starters</p>
+              <div className="flex flex-wrap gap-2">
+                {TEAM_COMPOSE_STARTERS.map((chip) => (
+                  <button
+                    key={chip.label}
+                    type="button"
+                    onClick={() => {
+                      setNewBody(chip.body);
+                      setNewTopic(
+                        chip.label.includes('Billing')
+                          ? 'billing'
+                          : chip.label.includes('Debt')
+                            ? 'debt_summons'
+                            : chip.label.includes('Dispute') || chip.label.includes('Letter')
+                              ? 'disputes'
+                              : 'general',
+                      );
+                    }}
+                    className="px-2 py-1.5 rounded-lg border border-fuchsia-500/25 bg-fuchsia-500/10 text-[10px] text-fuchsia-100"
+                  >
+                    {chip.emoji} {chip.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="rounded-xl border border-sky-500/25 bg-sky-500/5 p-3 space-y-2">
               <p className="text-[9px] uppercase tracking-widest text-sky-200/80 font-black">Or let AI suggest routing</p>
               <p className="text-[11px] text-white/55">Describe your issue — tap a chip below to auto-select staff, or pick someone above.</p>
               {composeRouting.length ? (
@@ -749,6 +791,21 @@ export function HubTeamChatPanel({ partnerId, partnerDisplayName, compact, initi
                 ))}
               </div>
             )}
+            {!replyBody.trim() && aiSuggestions.length === 0 ? (
+              <div className="flex flex-wrap gap-2">
+                {TEAM_REPLY_STARTERS.map((s) => (
+                  <button
+                    key={s.title}
+                    type="button"
+                    onClick={() => setReplyBody(s.body)}
+                    className="text-left px-3 py-2 rounded-xl border border-white/10 bg-white/[0.04] text-xs text-white/75"
+                    title={s.body}
+                  >
+                    {s.title}
+                  </button>
+                ))}
+              </div>
+            ) : null}
             <textarea
               ref={replyRef}
               value={replyBody}

@@ -7,7 +7,8 @@ import { getBlobStore } from '../../storage/getBlobStore';
 import { isSupabaseBlobRef } from '../../storage/SupabaseBlobStore';
 import { newId } from '../../utils/ids';
 import { createTask, listTasksByPartner } from '../../data/tasksRepo';
-import { upsertReport, listReportsByPartner } from '../../data/reportsRepo';
+import { upsertReport, listReportsByPartner, findReportSlotForUpload } from '../../data/reportsRepo';
+import { isLegacyPendingReportBlob } from '../../lib/legacyPendingReport';
 import { handleReportUploadTimeline } from '../../lib/reportTimeline';
 import {
   FINELY_OS_ENTITY_BODY,
@@ -49,7 +50,8 @@ export function ReportUploader({
     setStorageNote(null);
     setProgress(null);
 
-    const reportId = newId('report');
+    const existingSlot = findReportSlotForUpload(partnerId, file.name);
+    const reportId = existingSlot?.id ?? newId('report');
     const fileType: CreditReportFileType = file.name.toLowerCase().endsWith('.pdf') ? 'pdf' : 'html';
 
     let ref: string;
@@ -123,7 +125,7 @@ export function ReportUploader({
       fileType,
       uploadedBy,
       receivedAt: new Date().toISOString(),
-      reportDate,
+      reportDate: reportDate ?? existingSlot?.reportDate,
       filename: file.name,
       mimeType: file.type || (fileType === 'pdf' ? 'application/pdf' : 'text/html'),
       sizeBytes: file.size,
@@ -134,6 +136,10 @@ export function ReportUploader({
       pdfMeta,
       identityCheck,
     };
+
+    if (existingSlot && isLegacyPendingReportBlob(existingSlot.rawBlobRef)) {
+      setProgress('Replaced legacy import placeholder with parsed report.');
+    }
 
     if (identityCheck.faults.length) {
       const tag = `identity_check:${reportId}`;

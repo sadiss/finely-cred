@@ -73,6 +73,7 @@ export default function PartnerLettersVaultPage() {
   const [mailOpen, setMailOpen] = useState(false);
   const [mailLetter, setMailLetter] = useState<LetterRecord | null>(null);
   const [highlightId, setHighlightId] = useState<string | null>(null);
+  const [autoPreviewId, setAutoPreviewId] = useState<string | null>(null);
   const [view, setView] = useState<'active' | 'archived'>('active');
   const [mailGateErr, setMailGateErr] = useState<string | null>(null);
   const [openErr, setOpenErr] = useState<string | null>(null);
@@ -84,14 +85,19 @@ export default function PartnerLettersVaultPage() {
     try {
       const sp = new URLSearchParams(location.search || '');
       const id = (sp.get('letterId') || '').trim();
+      const preview = sp.get('preview') === '1';
       if (!id) return;
       setStatus('all');
       setHighlightId(id);
+      if (preview) setAutoPreviewId(id);
       setTimeout(() => {
         const el = document.getElementById(`letter-${id}`);
         if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }, 50);
       const t = window.setTimeout(() => setHighlightId(null), 4500);
+      if (preview) {
+        window.setTimeout(() => setAutoPreviewId(null), 800);
+      }
       return () => window.clearTimeout(t);
     } catch {
       // ignore
@@ -198,6 +204,8 @@ export default function PartnerLettersVaultPage() {
       id={`letter-${l.id}`}
       letter={l}
       highlighted={highlightId === l.id}
+      autoOpenPreview={autoPreviewId === l.id}
+      evidence={evidence}
       canMail={canMail}
       onOpenPdf={() => void openPdf(l)}
       onMail={() => {
@@ -420,7 +428,7 @@ export default function PartnerLettersVaultPage() {
                                   <FinelyOsPaginatedStack
                                     items={arr}
                                     pageSize={8}
-                                    itemSpacingClassName="grid gap-3 sm:grid-cols-2 xl:grid-cols-3"
+                                    itemSpacingClassName="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5"
                                     emptyMessage="No letters for this bureau."
                                     renderItem={(l) => renderVaultLetter(l)}
                                   />
@@ -433,7 +441,7 @@ export default function PartnerLettersVaultPage() {
                           <FinelyOsPaginatedStack
                             items={g.letters}
                             pageSize={8}
-                            itemSpacingClassName="grid gap-3 sm:grid-cols-2 xl:grid-cols-3"
+                            itemSpacingClassName="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5"
                             emptyMessage="No letters in this group."
                             renderItem={(l) => renderVaultLetter(l)}
                           />

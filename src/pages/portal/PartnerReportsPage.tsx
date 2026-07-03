@@ -118,8 +118,13 @@ export default function PartnerReportsPage() {
           : { ok: false, message: detail.error || 'Cloud sync failed — report is saved locally only.' },
       );
     };
+    const onStore = () => setReportsVersion((v) => v + 1);
     window.addEventListener('finely:report-sync', onSync as EventListener);
-    return () => window.removeEventListener('finely:report-sync', onSync as EventListener);
+    window.addEventListener('finely:store', onStore as EventListener);
+    return () => {
+      window.removeEventListener('finely:report-sync', onSync as EventListener);
+      window.removeEventListener('finely:store', onStore as EventListener);
+    };
   }, []);
 
   const reports = useMemo(() => {

@@ -1,6 +1,7 @@
 import {
   buildDefaultEmailFooter,
   buildPrimaryCtaButton,
+  buildTrustStrip,
   wrapFinelyEmailHtml,
 } from './finelyEmailLayout.ts';
 
@@ -22,6 +23,7 @@ export function buildPasswordResetEmail(args: { resetLink: string; email: string
   ].join('\n');
 
   const bodyHtml = `
+    <div style="margin:0 0 18px;text-align:center;font-size:42px;line-height:1;">🔒</div>
     <p style="margin:0 0 16px;font-size:16px;">Hi <strong>${first}</strong>,</p>
     <p style="margin:0 0 16px;">We received a request to reset the password for <strong>${args.email}</strong>. Use the secure button below to choose a new password. Your old password stays protected and admins cannot see it.</p>
     <div style="margin:18px 0;padding:16px;border-radius:14px;background:#f8fafc;border:1px solid #e2e8f0;">
@@ -32,7 +34,8 @@ export function buildPasswordResetEmail(args: { resetLink: string; email: string
     <p style="margin:16px 0 0;font-size:13px;color:#64748b;">Button not working? Copy and paste this link into your browser:<br/>
       <a href="${args.resetLink}" style="color:#6366f1;word-break:break-all;">${args.resetLink}</a>
     </p>
-    <div style="margin:24px 0 0;padding:16px;border-radius:14px;background:#0f172a;border:1px solid #334155;">
+    ${buildTrustStrip()}
+    <div style="margin:16px 0 0;padding:16px;border-radius:14px;background:#0f172a;border:1px solid #334155;">
       <p style="margin:0;font-size:13px;line-height:1.5;color:#475569;">
         <strong style="color:#ffffff;">Didn't request this?</strong> <span style="color:#cbd5e1;">You can ignore this email — your account stays protected and no changes will be made.</span>
       </p>

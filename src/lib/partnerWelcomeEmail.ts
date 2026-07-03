@@ -6,6 +6,7 @@ import { isFeatureEnabled } from '../data/settingsRepo';
 import { isSupabaseConfigured } from './supabaseClient';
 import { buildMarketingEmailFooter } from './commsUnsubscribeFooter';
 import { buildSignupWelcomeEmail, funnelIdForPartnerLane } from '../comms/signupWelcomeHtmlEmail';
+import { landingPathForPartner } from './partnerInviteRouting';
 import { resolveSequenceForLead, getNurtureSequence } from '../domain/nurtureSequences';
 import type { LeadCapture } from '../domain/leads';
 import { ensureDefaultEmailDomainsOnce, refreshDefaultEmailSignatureBranding } from '../data/emailDomainsRepo';
@@ -77,14 +78,7 @@ export async function sendPartnerWelcomeEmail(args: {
             ? 'seq_specialist_apply_funnel'
             : 'seq_inbound_nurture',
     ) ?? resolveSequenceForLead({ funnelPath: '/onboarding', offer: 'portal_signup' });
-  const portalPath =
-    args.partner.lane === 'affiliate'
-      ? '/affiliate/hub'
-      : args.partner.lane === 'agent'
-        ? '/agent/hub'
-        : args.partner.lane === 'au_tradelines'
-          ? '/au-seller/hub'
-          : '/portal/dashboard';
+  const portalPath = landingPathForPartner(args.partner);
 
   const built = buildSignupWelcomeEmail({
     lead,

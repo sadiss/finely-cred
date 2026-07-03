@@ -235,6 +235,54 @@ export function finelyOsEntityKpi(index: number) {
   return finelyOsKpiTile(index);
 }
 
+export type FinelyOsDeckAccent = 'amber' | 'emerald' | 'sky' | 'violet' | 'fuchsia' | 'rose';
+
+const DECK_ACCENT: Record<FinelyOsDeckAccent, { idle: string; active: string }> = {
+  amber: {
+    idle: 'border-amber-500/18 bg-[radial-gradient(520px_180px_at_0%_0%,rgba(245,158,11,0.10)_0%,transparent_62%)] hover:border-amber-400/30',
+    active: 'border-amber-400/45 bg-[radial-gradient(520px_180px_at_0%_0%,rgba(245,158,11,0.16)_0%,transparent_62%)] ring-1 ring-amber-400/25 shadow-[0_18px_50px_-28px_rgba(245,158,11,0.35)]',
+  },
+  emerald: {
+    idle: 'border-emerald-500/18 bg-[radial-gradient(520px_180px_at_0%_0%,rgba(16,185,129,0.10)_0%,transparent_62%)] hover:border-emerald-400/30',
+    active: 'border-emerald-400/45 bg-[radial-gradient(520px_180px_at_0%_0%,rgba(16,185,129,0.16)_0%,transparent_62%)] ring-1 ring-emerald-400/25 shadow-[0_18px_50px_-28px_rgba(16,185,129,0.35)]',
+  },
+  sky: {
+    idle: 'border-sky-500/18 bg-[radial-gradient(520px_180px_at_0%_0%,rgba(14,165,233,0.10)_0%,transparent_62%)] hover:border-sky-400/30',
+    active: 'border-sky-400/45 bg-[radial-gradient(520px_180px_at_0%_0%,rgba(14,165,233,0.16)_0%,transparent_62%)] ring-1 ring-sky-400/25 shadow-[0_18px_50px_-28px_rgba(14,165,233,0.35)]',
+  },
+  violet: {
+    idle: 'border-violet-500/18 bg-[radial-gradient(520px_180px_at_0%_0%,rgba(139,92,246,0.10)_0%,transparent_62%)] hover:border-violet-400/30',
+    active: 'border-violet-400/45 bg-[radial-gradient(520px_180px_at_0%_0%,rgba(139,92,246,0.16)_0%,transparent_62%)] ring-1 ring-violet-400/25 shadow-[0_18px_50px_-28px_rgba(139,92,246,0.35)]',
+  },
+  fuchsia: {
+    idle: 'border-fuchsia-500/18 bg-[radial-gradient(520px_180px_at_0%_0%,rgba(217,70,239,0.10)_0%,transparent_62%)] hover:border-fuchsia-400/30',
+    active: 'border-fuchsia-400/45 bg-[radial-gradient(520px_180px_at_0%_0%,rgba(217,70,239,0.16)_0%,transparent_62%)] ring-1 ring-fuchsia-400/25 shadow-[0_18px_50px_-28px_rgba(217,70,239,0.35)]',
+  },
+  rose: {
+    idle: 'border-rose-500/18 bg-[radial-gradient(520px_180px_at_0%_0%,rgba(244,63,94,0.10)_0%,transparent_62%)] hover:border-rose-400/30',
+    active: 'border-rose-400/45 bg-[radial-gradient(520px_180px_at_0%_0%,rgba(244,63,94,0.16)_0%,transparent_62%)] ring-1 ring-rose-400/25 shadow-[0_18px_50px_-28px_rgba(244,63,94,0.35)]',
+  },
+};
+
+/** Compact deck tile — saved letters, leads, assets (not long horizontal rows). */
+export function finelyOsDeckTile(accent: FinelyOsDeckAccent = 'violet', active = false) {
+  const tone = DECK_ACCENT[accent][active ? 'active' : 'idle'];
+  return `fc-spotlight-panel group relative w-full overflow-hidden rounded-2xl border p-0 text-left transition-all duration-200 ${tone}`;
+}
+
+/** Tiny stat chip inside deck tiles */
+export function finelyOsMicroStat(accent: FinelyOsDeckAccent = 'violet') {
+  const map: Record<FinelyOsDeckAccent, string> = {
+    amber: 'border-amber-400/20 bg-amber-500/10 text-amber-100',
+    emerald: 'border-emerald-400/20 bg-emerald-500/10 text-emerald-100',
+    sky: 'border-sky-400/20 bg-sky-500/10 text-sky-100',
+    violet: 'border-violet-400/20 bg-violet-500/10 text-violet-100',
+    fuchsia: 'border-fuchsia-400/20 bg-fuchsia-500/10 text-fuchsia-100',
+    rose: 'border-rose-400/20 bg-rose-500/10 text-rose-100',
+  };
+  return `rounded-lg border px-2 py-1 text-[9px] font-black uppercase tracking-widest ${map[accent]}`;
+}
+
 export function finelyOsOverviewStatTile(accent: FinelyOsGlassAccent = 'violet') {
   void accent;
   return 'fc-spotlight-panel min-h-[7.5rem] lg:min-h-[8.5rem] p-5 lg:p-6';

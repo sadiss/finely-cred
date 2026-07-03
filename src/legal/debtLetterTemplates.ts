@@ -285,7 +285,8 @@ function formatPreamble(args: {
   const debtor = formatDebtorBlock(args);
   const recipient = formatRecipientBlock({ recipientName: args.recipientName, recipientAddress: args.recipientAddress, fallbackName: args.creditorName });
   return `${debtor}
-[Date: ${args.date}]
+
+Date: ${args.date}
 
 ${recipient}`;
 }
@@ -556,12 +557,30 @@ export function getSummonsResponseAffidavitBody(args: {
   date: string;
   caseNumber?: string;
   plaintiffName: string;
+  courtName?: string;
+  amountClaimed?: string;
+  dateServed?: string;
+  jurisdictionState?: string;
+  collectorName?: string;
+  documentFacts?: string[];
 }): string {
+  const factsBlock =
+    args.documentFacts && args.documentFacts.length
+      ? `\n\nDOCUMENT FACTS READ FROM UPLOADED SUMMONS/COMPLAINT:\n${args.documentFacts.map((f) => `- ${f}`).join('\n')}\n`
+      : '';
+  const courtLine = args.courtName ? ` in ${args.courtName}` : '';
+  const servedLine = args.dateServed ? ` I was served on or about ${args.dateServed}.` : '';
+  const amountLine = args.amountClaimed ? ` The complaint claims ${args.amountClaimed}.` : '';
+  const stateLine = args.jurisdictionState ? ` This matter is in ${args.jurisdictionState}.` : '';
+  const collectorLine = args.collectorName && args.collectorName !== args.plaintiffName
+    ? ` The collecting entity identified is ${args.collectorName}.`
+    : '';
+
   return `AFFIDAVIT IN SUPPORT OF ANSWER / DEFENSES
 
 I, ${args.debtorName}, being duly sworn, state under penalty of perjury:
 
-1. I have been served with a summons and complaint in the matter${args.caseNumber ? ` bearing case number ${args.caseNumber}` : ''}, in which ${args.plaintiffName} is the plaintiff.
+1. I have been served with a summons and complaint${courtLine}${args.caseNumber ? ` bearing case number ${args.caseNumber}` : ''}, in which ${args.plaintiffName} is the plaintiff.${servedLine}${amountLine}${stateLine}${collectorLine}
 
 2. I dispute the claim in its entirety. I do not admit the existence of a valid contract, the amount claimed, the plaintiff's ownership of the account, the plaintiff's right to collect, or the accuracy of any documents or summaries attached to the complaint.
 
@@ -583,7 +602,7 @@ I, ${args.debtorName}, being duly sworn, state under penalty of perjury:
 
 11. I request that the plaintiff be required to prove every element of its claim with admissible evidence, including contract, breach, ownership, amount, authority, standing, and damages.
 
-12. The foregoing is true and correct to the best of my knowledge and belief.
+12. The foregoing is true and correct to the best of my knowledge and belief.${factsBlock}
 
 _________________________ (Signature)
 ${args.debtorName}
@@ -713,6 +732,14 @@ export function getLetterBody(
     debtorEmail?: string;
     recipientName?: string;
     recipientAddress?: string;
+    summonsContext?: {
+      courtName?: string;
+      amountClaimed?: string;
+      dateServed?: string;
+      jurisdictionState?: string;
+      collectorName?: string;
+      documentFacts?: string[];
+    };
   }
 ): string {
   switch (letterType) {
@@ -727,7 +754,18 @@ export function getLetterBody(
     case 'affidavit_of_dispute':
       return getAffidavitOfDisputeBody({ debtorName: args.debtorName, date: args.date, creditorOrPlaintiff: args.creditorName });
     case 'summons_response_affidavit':
-      return getSummonsResponseAffidavitBody({ debtorName: args.debtorName, date: args.date, caseNumber: args.caseNumber, plaintiffName: args.creditorName });
+      return getSummonsResponseAffidavitBody({
+        debtorName: args.debtorName,
+        date: args.date,
+        caseNumber: args.caseNumber,
+        plaintiffName: args.recipientName || args.creditorName,
+        courtName: args.summonsContext?.courtName,
+        amountClaimed: args.summonsContext?.amountClaimed,
+        dateServed: args.summonsContext?.dateServed,
+        jurisdictionState: args.summonsContext?.jurisdictionState,
+        collectorName: args.summonsContext?.collectorName,
+        documentFacts: args.summonsContext?.documentFacts,
+      });
     case 'cease_and_desist':
       return getCeaseAndDesistBody(args);
     case 'debt_dispute_letter':

@@ -152,7 +152,7 @@ export default function PartnerMyTasksPage() {
                 <FinelyOsPaginatedStack
                   items={projects}
                   pageSize={4}
-                  itemSpacingClassName="grid md:grid-cols-2 gap-4"
+                  itemSpacingClassName="space-y-4"
                   renderItem={(p) => (
                     <button
                       key={p.id}

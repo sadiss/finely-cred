@@ -8,12 +8,14 @@ import {
   buildCreditAdvantageCards,
   buildCreditHeroBanner,
   buildDefaultEmailFooter,
+  buildBrandAccentDivider,
   buildGoldAccentDivider,
   buildPrimaryCtaButton,
   buildSecondaryCtaLink,
   buildTrustStrip,
   buildWelcomeJourneySteps,
   wrapFinelyEmailHtml,
+  FINELY_EMAIL,
 } from './prebuiltHtmlEmailLayout';
 import {
   buildEnlightenmentSessionUrl,
@@ -106,10 +108,10 @@ export function buildSignupWelcomeEmail(args: {
     <p style="margin:0 0 16px;font-size:16px;">Hi ${first},</p>
     <p style="margin:0 0 16px;font-size:15px;line-height:1.65;">${funnelCopy.intro}</p>
     ${funnelCopy.showWelcomeSteps !== false ? buildWelcomeJourneySteps(funnelCopy.welcomeSteps ?? defaultWelcomeSteps(portalUrl)) : ''}
-    ${buildGoldAccentDivider()}
+    ${buildBrandAccentDivider()}
     ${funnelCopy.showAdvantageCards !== false ? buildCreditAdvantageCards() : ''}
     ${funnelCopy.showAnalysisPreview !== false ? buildAnalysisPreviewBlock() : ''}
-    ${buildPrimaryCtaButton({ label: funnelCopy.primaryCta, href: primaryHref, color: '#059669' })}
+    ${buildPrimaryCtaButton({ label: funnelCopy.primaryCta, href: primaryHref, color: FINELY_EMAIL.emeraldDark })}
     ${buildSecondaryCtaLink({ label: funnelCopy.secondaryCta, href: funnelCopy.secondaryHref ?? session })}
     ${funnelCopy.extraHtml}
     ${buildTrustStrip()}
@@ -122,7 +124,7 @@ export function buildSignupWelcomeEmail(args: {
     bodyHtml,
     signatureHtml: signature?.htmlBlock,
     footerHtml: buildDefaultEmailFooter(args.lead.email),
-    headerTheme: funnelCopy.headerTheme ?? 'gold',
+    headerTheme: funnelCopy.headerTheme ?? 'emerald',
   });
 
   const text = `${funnelCopy.plainText}${baseTextFooter(personaName)}`;
@@ -161,7 +163,7 @@ function defaultWelcomeSteps(portalUrl: string) {
   return [
     { num: '1', title: 'Open your portal', body: 'Upload a tri-bureau report or monitoring export — we surface the highest-impact items first.' },
     { num: '2', title: 'Run your checklist', body: 'AI-assisted disputes, evidence vault, and letter studio — organized round by round.' },
-    { num: '3', title: 'Track every win', body: `Dashboard, tasks, and messages keep you and your advisor aligned. <a href="${portalUrl}" style="color:#6366f1;">Open portal →</a>` },
+    { num: '3', title: 'Track every win', body: 'Dashboard, tasks, and messages keep you and your advisor aligned on progress.' },
   ];
 }
 
@@ -451,7 +453,7 @@ function resolveFunnelCopy(args: {
       primaryCta: 'Open your portal',
       secondaryCta: 'Book a free strategy call',
       primaryHref: portalUrl,
-      headerTheme: 'gold',
+      headerTheme: 'emerald',
       showWelcomeSteps: true,
       showAnalysisPreview: true,
       extraHtml: `<p style="margin:16px 0 0;font-size:14px;color:#475569;">Your advisor <strong>${personaName}</strong> is available in portal messages once you're set up. Questions? Reply to this email.</p>`,

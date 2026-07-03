@@ -61,22 +61,43 @@ function findOpenDisputeCase(partnerId: string, entities: Record<string, string>
   return cases[0] ?? null;
 }
 
-function findOrCreateDebtCase(partnerId: string, entities: Record<string, string>, docType: DocumentType) {
+function findOrCreateDebtCase(
+  partnerId: string,
+  entities: Record<string, string>,
+  docType: DocumentType,
+  extras?: { processedDocumentId?: string; evidenceId?: string },
+) {
   const existing = listDebtByPartner(partnerId).filter((d) => d.status === 'open' || d.status === 'in_review');
   const name =
     entities.creditorName ||
     entities.collectorName ||
     entities.businessLegalName ||
     (docType === 'summons' ? 'Summons / court matter' : 'Collection account');
+  const amountRaw = entities.amountClaimed || entities.amount || '';
+  const amountDigits = amountRaw.replace(/[^\d.]/g, '');
+  const amountCents = amountDigits ? Math.round(Number(amountDigits) * 100) : 0;
 
   const hit = existing.find((d) => matchCreditor(name, d.name));
   if (hit) {
-    upsertDebt({
+    const docIds = Array.from(new Set([...(hit.processedDocumentIds || []), ...(extras?.processedDocumentId ? [extras.processedDocumentId] : [])]));
+    const evIds = Array.from(new Set([...(hit.linkedEvidenceIds || []), ...(extras?.evidenceId ? [extras.evidenceId] : [])]));
+    return upsertDebt({
       ...hit,
       status: 'in_review',
+      collectorName: entities.collectorName || hit.collectorName,
+      originalCreditor: entities.creditorName || hit.originalCreditor,
+      recipientName: entities.collectorName || entities.creditorName || hit.recipientName || hit.name,
+      recipientAddress: entities.address || hit.recipientAddress,
+      recipientPhone: entities.phone || hit.recipientPhone,
+      courtCaseNumber: entities.caseNumber || hit.courtCaseNumber,
+      stateJurisdiction: entities.state || hit.stateJurisdiction,
+      dateServed: docType === 'summons' ? entities.dateServed || hit.dateServed || nowIso().slice(0, 10) : hit.dateServed,
+      amountCents: amountCents > 0 ? amountCents : hit.amountCents,
+      processedDocumentIds: docIds.length ? docIds : hit.processedDocumentIds,
+      linkedEvidenceIds: evIds.length ? evIds : hit.linkedEvidenceIds,
+      source: hit.source || 'document',
       notes: [hit.notes, `New document uploaded (${docType}). Review in Debt Center.`].filter(Boolean).join('\n'),
     });
-    return hit;
   }
 
   if (docType === 'collection_notice' || docType === 'summons' || docType === 'bureau_response') {
@@ -84,11 +105,19 @@ function findOrCreateDebtCase(partnerId: string, entities: Record<string, string
       partnerId,
       type: docType === 'summons' ? 'summons' : 'debt',
       name: name.slice(0, 120) || 'Uploaded collection matter',
-      amountCents: 0,
+      amountCents,
       status: 'in_review',
-      notes: `Auto-opened from uploaded ${docType.replace(/_/g, ' ')}. Attach evidence and choose response lane.`,
-      stateJurisdiction: entities.state || undefined,
+      collectorName: entities.collectorName,
+      originalCreditor: entities.creditorName,
+      recipientName: entities.collectorName || entities.creditorName || name.slice(0, 120),
+      recipientAddress: entities.address,
       courtCaseNumber: entities.caseNumber || undefined,
+      dateServed: docType === 'summons' ? entities.dateServed || nowIso().slice(0, 10) : undefined,
+      stateJurisdiction: entities.state || undefined,
+      processedDocumentIds: extras?.processedDocumentId ? [extras.processedDocumentId] : undefined,
+      linkedEvidenceIds: extras?.evidenceId ? [extras.evidenceId] : undefined,
+      source: 'document',
+      notes: `Auto-opened from uploaded ${docType.replace(/_/g, ' ')}. Attach evidence and choose response lane.`,
     });
   }
   return null;
@@ -98,6 +127,7 @@ export function routeProcessedDocument(args: {
   partnerId: string;
   docType: DocumentType;
   evidenceId?: string;
+  processedDocumentId?: string;
   entities?: Record<string, string>;
   caption?: string;
   filename?: string;
@@ -124,7 +154,10 @@ export function routeProcessedDocument(args: {
   switch (effectiveType) {
     case 'bureau_response': {
       linkedDisputeCaseId = disputeCase?.id;
-      const debtCase = findOrCreateDebtCase(args.partnerId, entities, effectiveType);
+      const debtCase = findOrCreateDebtCase(args.partnerId, entities, effectiveType, {
+        processedDocumentId: args.processedDocumentId,
+        evidenceId: args.evidenceId,
+      });
       linkedDebtCaseId = debtCase?.id;
 
       pushTask({
@@ -188,7 +221,10 @@ export function routeProcessedDocument(args: {
 
     case 'collection_notice':
     case 'summons': {
-      const debtCase = findOrCreateDebtCase(args.partnerId, entities, effectiveType);
+      const debtCase = findOrCreateDebtCase(args.partnerId, entities, effectiveType, {
+        processedDocumentId: args.processedDocumentId,
+        evidenceId: args.evidenceId,
+      });
       linkedDebtCaseId = debtCase?.id;
       const urgent = effectiveType === 'summons';
 

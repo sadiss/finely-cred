@@ -1,11 +1,10 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Search, UserPlus, ArrowRight, ArrowLeft, Upload, Trash2, Badge, RefreshCcw } from 'lucide-react';
 import { PageShell } from '../../components/layout/PageShell';
-import { adminUpsertPartner, createPartner, fetchAllPartnersAsAdmin, listPartners, rowToPartner } from '../../data/partnersRepo';
+import { PartnerCreatePanel } from '../../components/admin/PartnerCreatePanel';
+import type { Partner } from '../../domain/partners';
+import { fetchAllPartnersAsAdmin } from '../../data/partnersRepo';
 import { deletePartnerCompletely } from '../../data/partnerDelete';
-import { createInvite } from '../../data/invitesRepo';
-import { partnerSetupBaseUrl } from '../../lib/partnerInviteLinks';
-import type { Partner, PartnerLane, PartnerRoute } from '../../domain/partners';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../auth/AuthProvider';
 import { isAdminEmail } from '../../auth/admin';
@@ -21,7 +20,6 @@ import { FinelyUnifiedHubLayout } from '../../features/unified/FinelyUnifiedHubL
 import { FinelyNowDoThisStrip } from '../../components/tours/FinelyNowDoThisStrip';
 import { FinelyNoticedStrip } from '../../components/tours/FinelyNoticedStrip';
 import { buildPartnersAdminNoticedItems } from '../../lib/finelyProactiveSignals';
-import { sendPartnerOutreachMessage, defaultPartnerWelcomeMessage } from '../../lib/partnerMessaging';
 import {
   FINELY_OS_PAGE,
   FINELY_OS_BACK_LINK,
@@ -58,18 +56,8 @@ export default function PartnersListPage() {
   const [partners, setPartners] = useState<Partner[]>([]);
   const [loading, setLoading] = useState(true);
   const [fetchErr, setFetchErr] = useState<string | null>(null);
-  const [fullName, setFullName] = useState('');
-  const [email, setEmail] = useState('');
-  const [primaryRoute, setPrimaryRoute] = useState<PartnerRoute>('personal_restore');
-  const [lane, setLane] = useState<PartnerLane | undefined>(() => (addAffiliate ? 'affiliate' : undefined));
-  const [creating, setCreating] = useState(false);
-  const [createErr, setCreateErr] = useState<string | null>(null);
   const [deleting, setDeleting] = useState<string | null>(null);
   const [deleteErr, setDeleteErr] = useState<string | null>(null);
-  // After creating a partner we generate a claim link so the partner can create
-  // their own profile (set a password) and link to this record.
-  const [createdInvite, setCreatedInvite] = useState<{ name: string; url: string; partnerId: string } | null>(null);
-  const [inviteCopied, setInviteCopied] = useState(false);
 
   useEffect(() => {
     if (location.hash === '#create-partner') {
@@ -241,188 +229,13 @@ export default function PartnersListPage() {
             <span className={FINELY_OS_ENTITY_SUBLABEL}>Create Partner</span>
           </div>
 
-          {!canCreatePartner ? (
-            <div className={FINELY_OS_ENTITY_EMPTY}>
-              Your role doesn’t allow creating new partners in this tenant. Ask an admin/owner to grant access or assign you customers.
-            </div>
-          ) : null}
-
-          {createErr && <div className={FINELY_OS_NOTICE_ERROR}>{createErr}</div>}
-
           {deleteErr && <div className={FINELY_OS_NOTICE_ERROR}>{deleteErr}</div>}
 
-          <div className="grid md:grid-cols-3 gap-4">
-            <div>
-              <label className={FINELY_OS_ENTITY_LABEL}>Full name</label>
-              <input
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                className={FINELY_OS_ENTITY_INPUT}
-                placeholder="Partner full name"
-              />
-              <div className={`mt-2 text-xs ${FINELY_OS_ENTITY_BODY}`}>Required to enable “Create Partner”.</div>
-            </div>
-            <div>
-              <label className={FINELY_OS_ENTITY_LABEL}>Email</label>
-              <input
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className={FINELY_OS_ENTITY_INPUT}
-                placeholder="partner@email.com"
-              />
-            </div>
-            <div>
-              <label className={FINELY_OS_ENTITY_LABEL}>Primary route</label>
-              <select
-                value={primaryRoute}
-                onChange={(e) => setPrimaryRoute(e.target.value as PartnerRoute)}
-                className={FINELY_OS_ENTITY_SELECT}
-              >
-                <option value="personal_restore">Personal Credit Restore</option>
-                <option value="personal_build">Personal Credit Building</option>
-                <option value="business_build">Business Credit Building</option>
-              </select>
-            </div>
-            <div>
-              <label className={FINELY_OS_ENTITY_LABEL}>Lane (optional)</label>
-              <select
-                value={lane ?? ''}
-                onChange={(e) => setLane((e.target.value || undefined) as PartnerLane | undefined)}
-                className={FINELY_OS_ENTITY_SELECT}
-              >
-                <option value="">—</option>
-                <option value="affiliate">Affiliate</option>
-                <option value="agent">Agent</option>
-                <option value="au_tradelines">AU Tradelines</option>
-                <option value="funding_readiness">Funding Readiness</option>
-                <option value="business_credit">Business Credit</option>
-                <option value="debt_kill">Debt Kill</option>
-                <option value="primary_tradeline">Primary Tradeline</option>
-                <option value="other">Other</option>
-              </select>
-              {addAffiliate && <div className={`mt-2 text-xs text-fuchsia-300/90 ${FINELY_OS_ENTITY_BODY}`}>Pre-selected for affiliate add flow.</div>}
-            </div>
-          </div>
-
-          <div>
-            <button
-              className={FINELY_OS_PRIMARY_BTN}
-              disabled={!canCreatePartner || !fullName.trim() || creating}
-              onClick={async () => {
-                setCreateErr(null);
-                setCreatedInvite(null);
-                setInviteCopied(false);
-                const name = fullName.trim();
-                if (!name) {
-                  setCreateErr('Full name is required.');
-                  return;
-                }
-                setCreating(true);
-                try {
-                  const emailVal = email.trim();
-                  const p = await createPartner({
-                    tenantId: getActiveTenantId(),
-                    fullName: name,
-                    email: emailVal || undefined,
-                    primaryRoute,
-                    lane,
-                    intake: {},
-                    asAdmin: true,
-                  });
-                  // Trigger the partner-side "create your profile" flow: generate a claim
-                  // link the partner uses to sign up (set a password) and link this record.
-                  let claimUrl = '';
-                  try {
-                    const inv = createInvite({
-                      partnerId: p.id,
-                      claimUrl: partnerSetupBaseUrl(),
-                      toEmail: emailVal || undefined,
-                    });
-                    claimUrl = inv.claimUrl;
-                  } catch {
-                    // best-effort: partner is still created even if invite generation fails
-                  }
-                  try {
-                    sendPartnerOutreachMessage({
-                      partnerId: p.id,
-                      partnerName: name,
-                      body: defaultPartnerWelcomeMessage(name),
-                    });
-                  } catch {
-                    // non-blocking welcome thread
-                  }
-                  setFullName('');
-                  setEmail('');
-                  setFetchKey((v) => v + 1);
-                  setCreatedInvite({ name, url: claimUrl, partnerId: p.id });
-                } catch (e: any) {
-                  setCreateErr(e?.message || 'Failed to create partner.');
-                } finally {
-                  setCreating(false);
-                }
-              }}
-            >
-              {creating ? 'Creating…' : 'Create Partner'} <ArrowRight size={14} />
-            </button>
-          </div>
-
-          {createdInvite ? (
-            <div className={`${FINELY_OS_NOTICE_SUCCESS} space-y-3`}>
-              <div className="font-semibold">Partner “{createdInvite.name}” created.</div>
-              <div className={FINELY_OS_ENTITY_BODY}>
-                A welcome message was queued in Team chat — they will see it when they log in. Send this link so they can claim their profile:
-              </div>
-              {createdInvite.url ? (
-                <div className="flex flex-col sm:flex-row gap-2">
-                  <input
-                    readOnly
-                    value={createdInvite.url}
-                    onFocus={(e) => e.currentTarget.select()}
-                    className={`flex-1 ${FINELY_OS_ENTITY_INPUT} font-mono text-sm`}
-                  />
-                  <button
-                    type="button"
-                    onClick={async () => {
-                      try {
-                        await navigator.clipboard.writeText(createdInvite.url);
-                        setInviteCopied(true);
-                        window.setTimeout(() => setInviteCopied(false), 2000);
-                      } catch {
-                        // ignore
-                      }
-                    }}
-                    className={FINELY_OS_SUCCESS_BTN}
-                  >
-                    {inviteCopied ? 'Copied!' : 'Copy link'}
-                  </button>
-                </div>
-              ) : (
-                <div className={FINELY_OS_ENTITY_BODY}>Claim link unavailable. You can still open the partner profile below.</div>
-              )}
-              <div className="flex flex-wrap items-center gap-3 pt-1">
-                <button
-                  type="button"
-                  onClick={() => navigate(`/admin/support?partnerId=${createdInvite.partnerId}`)}
-                  className={FINELY_OS_SECONDARY_BTN}
-                >
-                  Open support inbox
-                </button>
-                <button
-                  type="button"
-                  onClick={() => navigate(`/admin/partners/${createdInvite.partnerId}?tab=reports`)}
-                  className={FINELY_OS_PRIMARY_BTN}
-                >
-                  Open partner profile <ArrowRight size={14} />
-                </button>
-                <button type="button" onClick={() => setCreatedInvite(null)} className={FINELY_OS_SECONDARY_BTN}>
-                  Dismiss
-                </button>
-              </div>
-              <div className={`${FINELY_OS_ENTITY_SUBLABEL} normal-case tracking-normal`}>
-                Tip: if the partner signs up with the same email, their account links automatically too.
-              </div>
-            </div>
-          ) : null}
+          <PartnerCreatePanel
+            canCreate={canCreatePartner}
+            initialAffiliate={addAffiliate}
+            onCreated={() => setFetchKey((v) => v + 1)}
+          />
             </div>
           ) : null}
 

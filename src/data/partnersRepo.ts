@@ -270,6 +270,46 @@ export async function listPartnersByAgent(tenantId: string, agentId: string): Pr
   return (data ?? []).map(rowToPartner);
 }
 
+export function getPartnerSync(id: string): Partner | null {
+  if (!id?.trim()) return null;
+  if (!isSupabaseConfigured) return loadLocalPartners().find((p) => p.id === id.trim()) ?? null;
+  return null;
+}
+
+/**
+ * Link an invited partner record to the authenticated user (local fallback when edge unavailable).
+ */
+export async function claimPartnerForUser(args: {
+  partnerId: string;
+  userId: string;
+  email?: string;
+}): Promise<Partner | null> {
+  const partnerId = args.partnerId?.trim();
+  const userId = args.userId?.trim();
+  if (!partnerId || !userId) return null;
+
+  const existing = (await getPartner(partnerId)) ?? getPartnerSync(partnerId);
+  if (!existing) return null;
+  if (existing.claimedUserId && existing.claimedUserId !== userId) {
+    throw new Error('This invite was already claimed by another account. Sign in with that account or ask admin to resend.');
+  }
+
+  const edgeClaimed = await claimPartnerViaEdge({ partnerId });
+  if (edgeClaimed) return edgeClaimed;
+
+  if (!isSupabaseConfigured) {
+    const email = normalizeEmail(args.email) || existing.profile.email;
+    return upsertPartner({
+      ...existing,
+      claimedUserId: userId,
+      claimedAt: new Date().toISOString(),
+      profile: { ...existing.profile, email: email || existing.profile.email },
+    });
+  }
+
+  return null;
+}
+
 export async function getPartner(id: string): Promise<Partner | null> {
   if (!id?.trim()) return null;
   if (!isSupabaseConfigured) return loadLocalPartners().find((p) => p.id === id.trim()) ?? null;

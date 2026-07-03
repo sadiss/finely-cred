@@ -1,6 +1,18 @@
 /** Debt or summons case tracked per partner (separate from bureau dispute cases). */
 export type DebtOrSummonsType = 'debt' | 'summons';
 
+export type DebtSenderSnapshot = {
+  fullName?: string;
+  address1?: string;
+  address2?: string;
+  city?: string;
+  state?: string;
+  postalCode?: string;
+  phone?: string;
+  email?: string;
+  capturedAt?: string;
+};
+
 export type DebtCase = {
   id: string;
   partnerId: string;
@@ -21,6 +33,20 @@ export type DebtCase = {
   dateServed?: string;
   /** State or jurisdiction for SOL and procedure */
   stateJurisdiction?: string;
+  /** Collector / plaintiff mailing identity for letters */
+  collectorName?: string;
+  originalCreditor?: string;
+  recipientName?: string;
+  recipientAddress?: string;
+  recipientPhone?: string;
+  accountNumberMasked?: string;
+  /** Link back to parsed credit report tradeline when auto-detected */
+  reportId?: string;
+  tradelineIndex?: number;
+  linkedEvidenceIds?: string[];
+  processedDocumentIds?: string[];
+  source?: 'manual' | 'tradeline' | 'document' | 'import';
+  senderSnapshot?: DebtSenderSnapshot;
   createdAt: string;
   updatedAt: string;
 };

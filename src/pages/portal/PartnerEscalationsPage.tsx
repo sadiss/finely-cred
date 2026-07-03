@@ -17,7 +17,7 @@ import { openUrlInNewTab } from '../../utils/download';
 import { FinelyOsPageFooter } from '../../features/os/FinelyOsPageFooter';
 import { FinelyUnifiedHubLayout } from '../../features/unified/FinelyUnifiedHubLayout';
 import { FinelyOsEmptyState } from '../../features/os/FinelyOsEmptyState';
-import { FinelyOsPaginatedStack } from '../../features/os/FinelyOsPaginatedStack';
+import { FinelyOsKpiGrid, FinelyOsEntityCard } from '../../components/os/FinelyOsKpiGrid';
 import {
   FINELY_OS_PAGE,
   FINELY_OS_BACK_LINK,
@@ -286,52 +286,49 @@ export default function PartnerEscalationsPage() {
             )}
 
             {tab === 'track' && (
-            <div className={`${finelyOsCatalogCard('violet')} !p-5 space-y-4`}>
-              <h2 className={`${FINELY_OS_ENTITY_TITLE} flex items-center gap-2 text-lg flex-wrap`}>
-                <MessageSquare size={18} className="text-violet-300" />
-                My escalations
-                {openCount > 0 ? <span className={finelyOsStatusChip('warn')}>{openCount} open</span> : null}
-              </h2>
+            <div className="space-y-5">
+              <FinelyOsKpiGrid
+                items={[
+                  { label: 'Open', value: openCount, accent: 'text-fuchsia-300' },
+                  { label: 'Total', value: escalations.length, accent: 'text-violet-300' },
+                  { label: 'Resolved', value: escalations.filter((e) => e.status === 'resolved' || e.status === 'closed').length, accent: 'text-emerald-300' },
+                  { label: 'Urgent', value: escalations.filter((e) => e.priority === 'urgent' || e.priority === 'high').length, accent: 'text-rose-300' },
+                ]}
+              />
+
               {escalations.length === 0 ? (
                 <FinelyOsEmptyState
                   icon={MessageSquare}
                   title="No escalations yet"
-                  description="Submit the form above when you need formal tracking on billing, service, or dispute-process issues."
-                  primaryAction={{ label: 'Scroll to form', onClick: () => document.getElementById('escalation-form')?.scrollIntoView({ behavior: 'smooth' }) }}
+                  description="Submit the form when you need formal tracking on billing, service, or dispute-process issues."
+                  primaryAction={{ label: 'Submit escalation', onClick: () => setTab('submit') }}
                 />
               ) : (
-                <FinelyOsPaginatedStack
-                  items={escalations}
-                  pageSize={8}
-                  itemSpacingClassName="space-y-4"
-                  renderItem={(e) => (
-                    <div key={e.id} className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony space-y-3`}>
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="flex items-center gap-2 flex-wrap">
+                <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-3">
+                  {escalations.map((e) => (
+                    <FinelyOsEntityCard
+                      key={e.id}
+                      title={e.title}
+                      subtitle={e.description}
+                      accent="text-violet-300"
+                      badge={
+                        <span className="shrink-0 flex items-center gap-1">
                           {statusIcon(e.status)}
-                          <span className={FINELY_OS_ENTITY_VALUE}>{e.title}</span>
-                          <span className={FINELY_OS_ENTITY_SUBLABEL}>{TOPICS.find((t) => t.value === e.topic)?.label ?? e.topic}</span>
-                          <span
-                            className={`text-[10px] uppercase tracking-widest ${
-                              e.priority === 'urgent' ? 'text-rose-300' : e.priority === 'high' ? 'text-fuchsia-300' : 'text-white/45'
-                            }`}
-                          >
-                            {e.priority}
-                          </span>
-                        </div>
-                        <span className={`${FINELY_OS_ENTITY_SUBLABEL} capitalize`}>{e.status.replace('_', ' ')}</span>
+                          <span className={`text-[9px] uppercase tracking-widest capitalize ${FINELY_OS_ENTITY_BODY}`}>{e.status.replace('_', ' ')}</span>
+                        </span>
+                      }
+                    >
+                      <div className="mt-3 flex flex-wrap gap-1.5">
+                        <span className={FINELY_OS_ENTITY_CHIP}>{TOPICS.find((t) => t.value === e.topic)?.label ?? e.topic}</span>
+                        <span className={`text-[10px] uppercase tracking-widest ${e.priority === 'urgent' ? 'text-rose-300' : 'text-white/45'}`}>{e.priority}</span>
                       </div>
-                      <p className={FINELY_OS_ENTITY_BODY}>{e.description}</p>
                       {(e.status === 'resolved' || e.status === 'closed') && e.resolutionNote ? (
-                        <div className={FINELY_OS_NOTICE_SUCCESS}>
-                          <div className="text-[10px] uppercase tracking-widest text-emerald-200 mb-1 font-bold">Resolution</div>
-                          <p>{e.resolutionNote}</p>
-                        </div>
+                        <div className={`mt-3 ${FINELY_OS_NOTICE_SUCCESS} text-xs`}>{e.resolutionNote}</div>
                       ) : null}
-                      <p className={`${FINELY_OS_ENTITY_SUBLABEL} text-xs`}>{new Date(e.createdAt).toLocaleString()}</p>
-                    </div>
-                  )}
-                />
+                      <div className={`mt-2 text-[10px] ${FINELY_OS_ENTITY_SUBLABEL}`}>{new Date(e.createdAt).toLocaleString()}</div>
+                    </FinelyOsEntityCard>
+                  ))}
+                </div>
               )}
             </div>
             )}
@@ -353,6 +350,16 @@ export default function PartnerEscalationsPage() {
                   Open disputes <ExternalLink size={14} />
                 </button>
               </div>
+
+              <FinelyOsKpiGrid
+                columns={4}
+                items={[
+                  { label: 'Active', value: openComplaints, accent: 'text-fuchsia-300' },
+                  { label: 'Drafts', value: complaints.filter((c) => c.status === 'draft').length, accent: 'text-violet-300' },
+                  { label: 'Submitted', value: complaints.filter((c) => c.status === 'submitted' || c.status === 'in_review').length, accent: 'text-sky-300' },
+                  { label: 'Exhibits', value: evidence.length, accent: 'text-emerald-300' },
+                ]}
+              />
 
               <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony border-fuchsia-500/25 space-y-4`}>
                 <div className={FINELY_OS_ENTITY_LABEL}>Create a complaint draft</div>
@@ -438,14 +445,9 @@ export default function PartnerEscalationsPage() {
                     </div>
                     <div className="text-[10px] uppercase tracking-widest text-fuchsia-300">Expand</div>
                   </summary>
-                  <div className="mt-3">
-                    <FinelyOsPaginatedStack
-                      items={evidence}
-                      pageSize={8}
-                      itemSpacingClassName="grid md:grid-cols-2 gap-2"
-                      emptyMessage="No evidence uploaded yet."
-                      renderItem={(ev) => (
-                        <label key={ev.id} className={`flex items-start gap-2 ${finelyOsInlineListItem()} !p-3 cursor-pointer`}>
+                  <div className="mt-3 grid sm:grid-cols-2 xl:grid-cols-3 gap-2 max-h-[min(360px,50vh)] overflow-y-auto pr-1">
+                      {evidence.map((ev) => (
+                        <label key={ev.id} className={`flex items-start gap-2 rounded-xl border border-white/10 bg-black/25 p-3 cursor-pointer hover:border-violet-400/30 transition ${complaintEvidenceIds.includes(ev.id) ? 'ring-1 ring-violet-400/40 bg-violet-500/10' : ''}`}>
                           <input
                             type="checkbox"
                             checked={complaintEvidenceIds.includes(ev.id)}
@@ -461,8 +463,7 @@ export default function PartnerEscalationsPage() {
                             </div>
                           </div>
                         </label>
-                      )}
-                    />
+                      ))}
                   </div>
                 </details>
 
@@ -504,12 +505,9 @@ export default function PartnerEscalationsPage() {
                 {complaints.length === 0 ? (
                   <div className={FINELY_OS_ENTITY_BODY}>No regulatory complaints yet.</div>
                 ) : (
-                  <FinelyOsPaginatedStack
-                    items={complaints}
-                    pageSize={8}
-                    itemSpacingClassName="grid lg:grid-cols-2 gap-3"
-                    renderItem={(c) => (
-                      <div key={c.id} className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony space-y-3`}>
+                  <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-3">
+                    {complaints.map((c) => (
+                      <div key={c.id} className={`${finelyOsCatalogCard('violet')} !p-4 space-y-3 min-h-[160px] flex flex-col`}>
                         <div className="flex items-start justify-between gap-3">
                           <div className="min-w-0">
                             <div className={`${FINELY_OS_ENTITY_VALUE} truncate`}>
@@ -595,8 +593,8 @@ export default function PartnerEscalationsPage() {
                           </details>
                         ) : null}
                       </div>
-                    )}
-                  />
+                    ))}
+                  </div>
                 )}
                 <div className={`text-[11px] ${FINELY_OS_ENTITY_SUBLABEL}`}>
                   Tip: After submission, add your reference number here and attach any confirmation PDFs to Documents.

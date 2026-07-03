@@ -8,6 +8,10 @@ import { onDebtCaseUpdated } from '../../lib/debtWorkflowEngine';
 import { buildValidationLetterDraft } from '../../lib/validationLetterEngine';
 import { DebtWorkflowPanel } from '../../components/debt/DebtWorkflowPanel';
 import { listEvidenceByPartner, upsertEvidence, deleteEvidence } from '../../data/evidenceRepo';
+import { listReportsByPartner } from '../../data/reportsRepo';
+import { listProcessedDocumentsByPartner } from '../../data/documentsRepo';
+import { buildSummonsAffidavitContext, extractReportDebtSignals, resolveDebtPartyInfo } from '../../lib/debtCreditorIntel';
+import { letterDateDisplay } from '../../lib/letterSenderBlock';
 import { usePartnerSession } from '../../auth/PartnerSessionContext';
 import type { DebtLetterType, DebtScenario } from '../../domain/debtLegal';
 import { EntitlementGate } from '../../components/billing/EntitlementGate';
@@ -88,6 +92,7 @@ export default function PartnerDebtDetailPage() {
   const letterSpecsByType = useMemo(() => new Map(DEBT_LETTER_SPECS.map((s) => [s.id, s])), []);
 
   const today = new Date().toISOString().slice(0, 10);
+  const letterDate = letterDateDisplay();
   const debtorName = partner?.profile.fullName || (auth.user?.user_metadata as { name?: string } | undefined)?.name || 'Your Full Legal Name';
   const tenantId = (partner?.tenantId || '').trim() || FINELY_TENANT_ID;
   const partnerCf = useMemo(() => (partner ? getCustomFieldValues('partners', partner.id, tenantId) : null), [partner?.id, tenantId]);
@@ -96,6 +101,53 @@ export default function PartnerDebtDetailPage() {
     return getCanonicalPartnerIdentity({ partner, tenantId, partnerCf });
   }, [partner?.id, tenantId, partnerCf?.updatedAt]);
   const evidence = useMemo(() => (partner ? listEvidenceByPartner(partner.id) : []), [partner, evidenceVersion]);
+  const reports = useMemo(() => (partner ? listReportsByPartner(partner.id) : []), [partner]);
+  const processedDocuments = useMemo(() => (partner ? listProcessedDocumentsByPartner(partner.id) : []), [partner]);
+  const debtPartyInfo = useMemo(
+    () =>
+      resolveDebtPartyInfo({
+        debt,
+        signals: extractReportDebtSignals(reports),
+        contacts: [],
+        documents: processedDocuments,
+      }),
+    [debt, processedDocuments, reports],
+  );
+  const summonsContext = useMemo(
+    () => buildSummonsAffidavitContext({ debt, documents: processedDocuments, party: debtPartyInfo }),
+    [debt, processedDocuments, debtPartyInfo],
+  );
+
+  const buildDebtLetterArgs = (isCourt: boolean) => {
+    const d = debt!;
+    const recipientName = d.recipientName || debtPartyInfo?.recipientName || d.name;
+    return {
+      creditorName: recipientName,
+      debtorName,
+      date: letterDate,
+      debtorAddress1: canonicalIdentity?.address1 ?? canonicalIdentity?.addressLine1,
+      debtorAddress2: canonicalIdentity?.address2,
+      debtorCity: canonicalIdentity?.city,
+      debtorState: canonicalIdentity?.state,
+      debtorPostalCode: canonicalIdentity?.postalCode,
+      debtorPhone: canonicalIdentity?.phone,
+      debtorEmail: partner!.profile.email,
+      recipientName,
+      recipientAddress: d.recipientAddress || debtPartyInfo?.recipientAddress,
+      caseNumber: d.courtCaseNumber,
+      stateNote: d.stateJurisdiction ? ` In ${d.stateJurisdiction}, the applicable SOL may apply.` : undefined,
+      summonsContext: isCourt
+        ? {
+            courtName: summonsContext.courtName,
+            amountClaimed: summonsContext.amountClaimed,
+            dateServed: summonsContext.dateServed,
+            jurisdictionState: summonsContext.jurisdictionState,
+            collectorName: summonsContext.collectorName,
+            documentFacts: summonsContext.entityFacts,
+          }
+        : undefined,
+    };
+  };
   const hasTemplateAccess = useMemo(() => {
     if (!partner) return false;
     return hasEntitlement(partner.id, ENTITLEMENT_KEYS.templates);
@@ -630,21 +682,7 @@ export default function PartnerDebtDetailPage() {
                               onClick={() => {
                                 const isCourt = spec.id.includes('summons') || spec.id.includes('answer') || spec.id.includes('affidavit') || isSummons;
                                 const baseText = hasTemplateAccess
-                                  ? getLetterBody(spec.id, {
-                                      creditorName: debt.name,
-                                      debtorName,
-                                      date: today,
-                                      debtorAddress1: canonicalIdentity?.address1 ?? canonicalIdentity?.addressLine1,
-                                      debtorAddress2: canonicalIdentity?.address2,
-                                      debtorCity: canonicalIdentity?.city,
-                                      debtorState: canonicalIdentity?.state,
-                                      debtorPostalCode: canonicalIdentity?.postalCode,
-                                      debtorPhone: canonicalIdentity?.phone,
-                                      debtorEmail: partner.profile.email,
-                                      recipientName: debt.name,
-                                      caseNumber: debt.courtCaseNumber,
-                                      stateNote: debt.stateJurisdiction ? ` In ${debt.stateJurisdiction}, the applicable SOL may apply.` : undefined,
-                                    })
+                                  ? getLetterBody(spec.id, buildDebtLetterArgs(isCourt))
                                   : `DATE: ${today}\n\nTO WHOM IT MAY CONCERN,\n\nI am writing regarding ${debt.name}.\n\n[Write your request here.]\n\nSincerely,\n${debtorName}\n`;
                                 setDraft({ specId: spec.id, type: isCourt ? 'court' : 'validation', text: baseText });
                               }}
@@ -665,21 +703,7 @@ export default function PartnerDebtDetailPage() {
 
                         <EntitlementGate partnerId={partner.id} requiredKeys={[ENTITLEMENT_KEYS.templates]}>
                           <pre className={`${FINELY_OS_ENTITY_BODY} text-xs whitespace-pre-wrap font-sans overflow-x-auto`}>
-                            {getLetterBody(spec.id, {
-                              creditorName: debt.name,
-                              debtorName,
-                              date: today,
-                              debtorAddress1: canonicalIdentity?.address1 ?? canonicalIdentity?.addressLine1,
-                              debtorAddress2: canonicalIdentity?.address2,
-                              debtorCity: canonicalIdentity?.city,
-                              debtorState: canonicalIdentity?.state,
-                              debtorPostalCode: canonicalIdentity?.postalCode,
-                              debtorPhone: canonicalIdentity?.phone,
-                              debtorEmail: partner.profile.email,
-                              recipientName: debt.name,
-                              caseNumber: debt.courtCaseNumber,
-                              stateNote: debt.stateJurisdiction ? ` In ${debt.stateJurisdiction}, the applicable SOL may apply.` : undefined,
-                            })}
+                            {getLetterBody(spec.id, buildDebtLetterArgs(spec.id.includes('summons') || spec.id.includes('affidavit') || isSummons))}
                           </pre>
                         </EntitlementGate>
                       </div>

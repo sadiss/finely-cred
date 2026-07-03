@@ -47,7 +47,7 @@ export function buildValidationLetterDraft(args: {
   const date = new Date().toISOString().slice(0, 10);
   const type = args.letterType ?? (args.debt.type === 'summons' ? 'summons_response_affidavit' : 'validation_request');
   return getLetterBody(type, {
-    creditorName: args.creditorName ?? args.debt.name,
+    creditorName: args.creditorName ?? args.debt.recipientName ?? args.debt.name,
     debtorName: args.debtorName,
     date,
     caseNumber: args.debt.courtCaseNumber,
@@ -56,6 +56,8 @@ export function buildValidationLetterDraft(args: {
     debtorCity: args.debtorCity,
     debtorState: args.debtorState,
     debtorPostalCode: args.debtorPostalCode,
+    recipientName: args.debt.recipientName ?? args.debt.collectorName ?? args.debt.name,
+    recipientAddress: args.debt.recipientAddress,
   });
 }
 
