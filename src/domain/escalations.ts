@@ -23,7 +23,7 @@ export type PartnerEscalation = {
   updatedAt: string;
   /** Linked dispute case (when escalation is about dispute process) */
   caseId?: string;
-  disputeRound?: 'Round 1' | 'Round 2' | 'Round 3';
+  disputeRound?: 'Round 1' | 'Round 2' | 'Round 3' | 'Round 4';
   /** Admin response or resolution note (when status is resolved/closed) */
   resolutionNote?: string;
 };

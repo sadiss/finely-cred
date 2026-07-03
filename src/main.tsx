@@ -7,10 +7,13 @@ import './lib/errorReportingBridge'
 import { ensureBillingCommsTemplates } from './data/commsBillingTemplatesSeed'
 import { ensureDigestCommsTemplates } from './data/commsDigestTemplatesSeed'
 import { ensureNurtureCommsTemplatesOnce } from './data/commsNurtureSeed'
+import { ensureProfessionalCommsTemplatesOnce } from './data/commsProfessionalTemplateSeed'
 import { ensureFunnelSessionCommsTemplates } from './data/commsFunnelSessionSeed'
 import { ensureCoreAutomationRecipesOnce } from './lib/automationRecipeSeeder'
 import { ensureStaffRosterSyncedOnce } from './data/staffSupabaseSync'
 import { ensureSocialHubSyncedOnce } from './data/socialHubSupabaseSync'
+import { ensureCommsSyncedOnce } from './data/commsSupabaseSync'
+import { syncEmailWebhooksFromSupabase } from './data/commsWebhookRepo'
 import { ensureOpsPersistenceSyncedOnce } from './data/automationSupabaseSync'
 import './lib/platformNotificationBridge'
 import './lib/pushNotificationBridge'
@@ -20,6 +23,7 @@ import './lib/partnerLifecycleEngine'
 import { registerPwaServiceWorker } from './lib/pwaRegister'
 import { inPreviewFrame } from './lib/inPreviewFrame'
 import { ensureDefaultEmailDomainsOnce, refreshDefaultEmailSignatureBranding } from './data/emailDomainsRepo'
+import { ensurePremiumCreditAnalysisTemplateOnce } from './data/creditAnalysisPremiumTemplateSeed'
 
 function showBootError(message: string) {
   try {
@@ -36,12 +40,16 @@ if (!inPreviewFrame()) {
   ensureBillingCommsTemplates()
   ensureDigestCommsTemplates()
   ensureNurtureCommsTemplatesOnce()
+  ensureProfessionalCommsTemplatesOnce()
   ensureFunnelSessionCommsTemplates()
   ensureDefaultEmailDomainsOnce()
   refreshDefaultEmailSignatureBranding()
+  ensurePremiumCreditAnalysisTemplateOnce()
   ensureCoreAutomationRecipesOnce()
   void ensureStaffRosterSyncedOnce()
   void ensureSocialHubSyncedOnce()
+  void ensureCommsSyncedOnce()
+  void syncEmailWebhooksFromSupabase()
   void ensureOpsPersistenceSyncedOnce()
 }
 

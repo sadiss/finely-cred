@@ -67,7 +67,8 @@ import type { DisputeReasonsRecord } from '../../domain/disputeReasons';
 import { computeDisputeReasonsId } from '../../domain/disputeReasons';
 import { buildFactualDisputeSuggestions } from '../../lib/disputeLetterBuilder';
 import { rankEvidenceMatches, scoreEvidenceForAccount, evidenceMatchesAccount, describeEvidenceMismatch } from '../../utils/evidenceMatch';
-import { generateCreditAnalysisReportPdf } from '../../reports/generateCreditAnalysisReportPdf';
+import { generatePartnerCreditAnalysisReport } from '../../reports/generatePartnerCreditAnalysisReport';
+import { isPremiumCreditAnalysisEngine } from '../../lib/resolveCreditAnalysisEngine';
 import {
   listCreditAnalysisReportsByPartner,
   upsertCreditAnalysisReport,
@@ -646,7 +647,9 @@ function PartnerDetailPageInner() {
   );
   const partnerCases = useMemo(() => (partner ? listCasesByPartner(partner.id) : []), [partner, notesVersion]);
   const debtCases = useMemo(() => (partner ? listDebtByPartner(partner.id) : []), [partner]);
-  const [adminDebtLetterPath, setAdminDebtLetterPath] = useState<'validation' | 'court'>('validation');
+  const [adminDebtLetterPath, setAdminDebtLetterPath] = useState<
+    'validation' | 'court' | 'foreclosure' | 'repossession' | 'bankruptcy'
+  >('validation');
   const [adminDebtDraftType, setAdminDebtDraftType] = useState<'debt' | 'summons'>('debt');
   const [adminDebtDraftName, setAdminDebtDraftName] = useState('');
   const [adminDebtDraftAmount, setAdminDebtDraftAmount] = useState('');
@@ -879,11 +882,13 @@ function PartnerDetailPageInner() {
     setAnalysisBusy(true);
     try {
       const candidates = deriveDisputeCandidates(report.parsed, report.id);
-      const { blob, filename, displayTitle, pages } = await generateCreditAnalysisReportPdf({
+      const { blob, filename, displayTitle, pages, ...rest } = await generatePartnerCreditAnalysisReport({
         partner: partner as any,
         report: report as any,
         candidates,
       });
+      const payloadSnapshot = 'payloadSnapshot' in rest ? rest.payloadSnapshot : undefined;
+      const usePremium = isPremiumCreditAnalysisEngine(null);
       const store = getBlobStore();
       const put = await store.put(blob, { partnerId: partner.id, reportId: report.id, kind: 'analysis_report' });
       const item = upsertCreditAnalysisReport({
@@ -895,6 +900,8 @@ function PartnerDetailPageInner() {
         sizeBytes: blob.size,
         pages,
         sourceReportFilename: report.filename,
+        engine: usePremium ? 'premium_spreads' : 'paginated_text',
+        payloadSnapshot: payloadSnapshot as Record<string, unknown> | undefined,
       });
       setNotesVersion((v) => v + 1);
       addAuditEvent({
@@ -1898,87 +1905,112 @@ function PartnerDetailPageInner() {
 
         {tab === 'debt' && (
           <div className="space-y-6">
-            <div className="rounded-[2rem] border border-violet-400/20 bg-gradient-to-br from-violet-500/15 via-white/[0.04] to-amber-500/10 p-6">
+            <div className="rounded-[2rem] border border-white/10 bg-gradient-to-br from-emerald-600/15 via-slate-950/40 to-fuchsia-900/20 p-6">
               <div className="grid lg:grid-cols-12 gap-5 items-start">
                 <div className="lg:col-span-7">
-                  <p className={`${FINELY_OS_ENTITY_SUBLABEL} text-violet-200`}>Debt Center</p>
+                  <p className={`${FINELY_OS_ENTITY_SUBLABEL} text-emerald-200`}>Debt Removal Center</p>
                   <h2 className="mt-2 text-3xl md:text-4xl font-black text-white tracking-tight">
-                    Validation and affidavits live here now.
+                    Validation, affidavits, court answers — and bankruptcy.
                   </h2>
                   <p className={`mt-3 max-w-3xl ${FINELY_OS_ENTITY_BODY}`}>
-                    Letters tab is for bureau disputes only. Debt Center handles collector validation, debt-buyer proof demands, affidavits, summons response strategy, SOL, licensing, chain of title, and accounting pressure.
+                    Bureaus live in Letter Studio. Debt Center handles collector validation, affidavits, summons strategy, and bankruptcy filing prep.
                   </p>
                 </div>
-                <div className="lg:col-span-5 grid sm:grid-cols-2 gap-3">
+                <div className="lg:col-span-5 grid sm:grid-cols-2 xl:grid-cols-3 gap-4">
                   <button
                     type="button"
                     onClick={() => setAdminDebtLetterPath('validation')}
-                    className={`rounded-2xl border p-4 text-left transition ${
-                      adminDebtLetterPath === 'validation' ? 'border-amber-400/40 bg-amber-500/15' : 'border-white/10 bg-black/25 hover:bg-white/[0.04]'
+                    className={`rounded-2xl border p-5 text-left transition min-h-[7.5rem] ${
+                      adminDebtLetterPath === 'validation'
+                        ? 'border-emerald-400/40 bg-emerald-500/15 ring-1 ring-emerald-400/25'
+                        : 'border-white/10 bg-black/25 hover:border-emerald-400/20'
                     }`}
                   >
-                    <div className="text-white font-black">Validation path</div>
-                    <div className="mt-2 text-xs text-white/55 leading-relaxed">Collectors, debt buyers, licensing, accounting, authority, reporting.</div>
-                    <div className="mt-3 text-[10px] uppercase tracking-widest text-amber-200">{validationLetters.length} saved</div>
+                    <div className="text-emerald-100 font-black">Validation Center</div>
+                    <div className="mt-2 text-xs text-white/55 leading-relaxed">FDCPA § 1692g proof demands — licensing, accounting, chain of title.</div>
+                    <div className="mt-3 text-[10px] uppercase tracking-widest text-emerald-200">{validationLetters.length} saved</div>
                   </button>
                   <button
                     type="button"
                     onClick={() => setAdminDebtLetterPath('court')}
-                    className={`rounded-2xl border p-4 text-left transition ${
-                      adminDebtLetterPath === 'court' ? 'border-violet-400/40 bg-violet-500/15' : 'border-white/10 bg-black/25 hover:bg-white/[0.04]'
+                    className={`rounded-2xl border p-5 text-left transition min-h-[7.5rem] ${
+                      adminDebtLetterPath === 'court'
+                        ? 'border-fuchsia-400/40 bg-fuchsia-500/15 ring-1 ring-fuchsia-400/25'
+                        : 'border-white/10 bg-black/25 hover:border-fuchsia-400/20'
                     }`}
                   >
-                    <div className="text-white font-black">Affidavit path</div>
-                    <div className="mt-2 text-xs text-white/55 leading-relaxed">Summons, sworn record, burden of proof, SOL, no contract, standing.</div>
-                    <div className="mt-3 text-[10px] uppercase tracking-widest text-violet-200">{courtLetters.length} saved</div>
+                    <div className="text-fuchsia-100 font-black">Affidavit & Court Center</div>
+                    <div className="mt-2 text-xs text-white/55 leading-relaxed">Summons deadlines, sworn affidavits, burden of proof, SOL, standing.</div>
+                    <div className="mt-3 text-[10px] uppercase tracking-widest text-fuchsia-200">{courtLetters.length} saved</div>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setAdminDebtLetterPath('foreclosure')}
+                    className={`rounded-2xl border p-5 text-left transition min-h-[7.5rem] ${
+                      adminDebtLetterPath === 'foreclosure'
+                        ? 'border-amber-400/40 bg-amber-500/15 ring-1 ring-amber-400/25'
+                        : 'border-white/10 bg-black/25 hover:border-amber-400/20'
+                    }`}
+                  >
+                    <div className="text-amber-100 font-black">Foreclosure Center</div>
+                    <div className="mt-2 text-xs text-white/55 leading-relaxed">RESPA QWR, loss mitigation, dual-track, note/assignment demands, FCRA post-foreclosure.</div>
+                    <div className="mt-3 text-[10px] uppercase tracking-widest text-amber-200">UCC · RESPA</div>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setAdminDebtLetterPath('repossession')}
+                    className={`rounded-2xl border p-5 text-left transition min-h-[7.5rem] ${
+                      adminDebtLetterPath === 'repossession'
+                        ? 'border-rose-400/40 bg-rose-500/15 ring-1 ring-rose-400/25'
+                        : 'border-white/10 bg-black/25 hover:border-rose-400/20'
+                    }`}
+                  >
+                    <div className="text-rose-100 font-black">Repossession Center</div>
+                    <div className="mt-2 text-xs text-white/55 leading-relaxed">Claim & delivery, wrongful repo, redemption, deficiency, personal property return.</div>
+                    <div className="mt-3 text-[10px] uppercase tracking-widest text-rose-200">UCC Art. 9</div>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setAdminDebtLetterPath('bankruptcy')}
+                    className={`rounded-2xl border p-5 text-left transition min-h-[7.5rem] ${
+                      adminDebtLetterPath === 'bankruptcy'
+                        ? 'border-sky-400/40 bg-sky-500/15 ring-1 ring-sky-400/25'
+                        : 'border-white/10 bg-black/25 hover:border-sky-400/20'
+                    }`}
+                  >
+                    <div className="text-sky-100 font-black">Bankruptcy Center</div>
+                    <div className="mt-2 text-xs text-white/55 leading-relaxed">Chapter 7/13 prep, stay steps, creditor matrix, post-discharge bureau disputes.</div>
+                    <div className="mt-3 text-[10px] uppercase tracking-widest text-sky-200">Filing + credit</div>
                   </button>
                 </div>
               </div>
             </div>
 
-            <div className={`${finelyOsCatalogCard(adminDebtLetterPath === 'validation' ? 'amber' : 'violet')} !p-5`}>
-              <div className="flex flex-wrap items-start justify-between gap-4">
-                <div>
-                  <p className={FINELY_OS_ENTITY_SUBLABEL}>
-                    {adminDebtLetterPath === 'validation' ? 'Validation builder' : 'Affidavit builder'}
-                  </p>
-                  <p className={`mt-2 text-lg font-semibold ${FINELY_OS_ENTITY_VALUE}`}>
-                    {adminDebtLetterPath === 'validation' ? 'Build collector/debt-buyer validation letters' : 'Build affidavits and court-response support letters'}
-                  </p>
-                  <p className={`mt-1 max-w-3xl ${FINELY_OS_ENTITY_BODY}`}>
-                    {adminDebtLetterPath === 'validation'
-                      ? 'Use this for FDCPA validation, licensing, ownership, authority, accounting, chain-of-title, and reporting proof demands.'
-                      : 'Use this for summons, affidavit of dispute, burden of proof, contract formation, SOL, and standing/authority responses.'}
-                  </p>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  <button type="button" onClick={() => setAdminDebtLetterPath('validation')} className={adminDebtLetterPath === 'validation' ? FINELY_OS_PRIMARY_BTN : FINELY_OS_SECONDARY_BTN}>
-                    Validation
-                  </button>
-                  <button type="button" onClick={() => setAdminDebtLetterPath('court')} className={adminDebtLetterPath === 'court' ? FINELY_OS_PRIMARY_BTN : FINELY_OS_SECONDARY_BTN}>
-                    Affidavits
-                  </button>
-                </div>
-              </div>
-              <div className="mt-5">
-                <LettersCommandCenter
-                  partner={partner as any}
-                  layout="embedded"
-                  activeTab={adminDebtLetterPath}
-                  debtCenterMode
-                  onTabChange={(next) => {
-                    if (next === 'validation' || next === 'court') setAdminDebtLetterPath(next);
-                  }}
-                  onOpenVault={openSavedLetterVault}
-                  onOpenReports={() => setTabAndUrl('reports')}
-                  onOpenDebtCenter={() => setTabAndUrl('debt')}
-                  onRequestGrantEntitlements={(keys) => {
-                    ensurePartnerEntitlements({ partnerId: partner.id, keys: keys as any });
-                    setNotesVersion((v) => v + 1);
-                  }}
-                />
-              </div>
-            </div>
+            <LettersCommandCenter
+              partner={partner as any}
+              layout="embedded"
+              unifiedShell
+              activeTab={adminDebtLetterPath}
+              debtCenterMode
+              onTabChange={(next) => {
+                if (
+                  next === 'validation' ||
+                  next === 'court' ||
+                  next === 'foreclosure' ||
+                  next === 'repossession' ||
+                  next === 'bankruptcy'
+                ) {
+                  setAdminDebtLetterPath(next);
+                }
+              }}
+              onOpenVault={openSavedLetterVault}
+              onOpenReports={() => setTabAndUrl('reports')}
+              onOpenDebtCenter={() => setTabAndUrl('debt')}
+              onRequestGrantEntitlements={(keys) => {
+                ensurePartnerEntitlements({ partnerId: partner.id, keys: keys as any });
+                setNotesVersion((v) => v + 1);
+              }}
+            />
 
             <div className={`${finelyOsCatalogCard('violet')} !p-5 space-y-4`}>
               <div>
@@ -2333,7 +2365,12 @@ function PartnerDetailPageInner() {
               <div className="mt-4">
                 <CreditAnalysisDeliverableStrip
                   items={analysisReports}
-                  emptyHint="None yet — generate one above after a credit report is parsed."
+                  partner={partner ?? undefined}
+                  creditReport={selectedReport ?? undefined}
+                  actorEmail={actorEmail}
+                  actorRole="admin"
+                  onChanged={() => setNotesVersion((v) => v + 1)}
+                  emptyHint="No strategy reports yet — generate one above."
                 />
               </div>
             </div>
@@ -2583,6 +2620,11 @@ function PartnerDetailPageInner() {
               <div className="mt-4">
                 <CreditAnalysisDeliverableStrip
                   items={analysisReports}
+                  partner={partner ?? undefined}
+                  creditReport={selectedReport ?? undefined}
+                  actorEmail={actorEmail}
+                  actorRole="admin"
+                  onChanged={() => setNotesVersion((v) => v + 1)}
                   emptyHint='None yet. Generate from Reports → "Generate Free Analysis Report" after parsing a credit file.'
                 />
               </div>

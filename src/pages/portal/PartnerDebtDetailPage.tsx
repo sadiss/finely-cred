@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { ArrowLeft, Scale, FileWarning, ChevronDown, ChevronRight, FileText, BookOpen, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Scale, FileWarning, ChevronDown, ChevronRight, FileText, BookOpen, AlertTriangle, ShieldCheck, Gavel } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { PageShell } from '../../components/layout/PageShell';
 import { useAuth } from '../../auth/AuthProvider';
@@ -32,6 +32,12 @@ import { getCustomFieldValues } from '../../data/customFieldValuesRepo';
 import { FINELY_TENANT_ID } from '../../domain/tenants';
 import { FinelyOsPageFooter } from '../../features/os/FinelyOsPageFooter';
 import { FinelyUnifiedHubLayout } from '../../features/unified/FinelyUnifiedHubLayout';
+import { ValidationAdvisorChat } from '../../components/debt/ValidationAdvisorChat';
+import { CourtAdvisorChat } from '../../components/debt/CourtAdvisorChat';
+import { CollateralWorkstationSection } from '../../components/debt/CollateralWorkstationSection';
+import { SmartProofUploader } from '../../components/evidence/SmartProofUploader';
+import { DebtLetterDraftWorkspace } from '../../components/letters/DebtLetterPreview';
+import { senderPreviewLines } from '../../lib/letterSenderBlock';
 import {
   FINELY_OS_PAGE,
   FINELY_OS_BACK_LINK,
@@ -50,6 +56,8 @@ import {
   FINELY_OS_SUCCESS_BTN,
   finelyOsInlineListItem,
   finelyOsStatusChip,
+  FINELY_OS_COMPACT_PAGE,
+  finelyOsCatalogCardCompact,
 } from '../../features/os/finelyOsLightUi';
 
 const SCENARIO_OPTIONS: { value: DebtScenario; label: string }[] = [
@@ -60,7 +68,19 @@ const SCENARIO_OPTIONS: { value: DebtScenario; label: string }[] = [
   { value: 'summons_served', label: 'Summons / complaint served' },
   { value: 'post_35_days', label: 'Past answer deadline (e.g. 35 days)' },
   { value: 'unknown', label: 'Not sure — show all options' },
-];
+] as const;
+
+function isCourtLetterId(id: string) {
+  return (
+    id.includes('summons') ||
+    id.includes('answer') ||
+    id.includes('affidavit') ||
+    id === 'post_suit_validation_demand' ||
+    id === 'assignment_chain_demand' ||
+    id === 'defendant_discovery_requests' ||
+    id === 'motion_to_compel_discovery'
+  );
+}
 
 export default function PartnerDebtDetailPage() {
   const auth = useAuth();
@@ -90,6 +110,11 @@ export default function PartnerDebtDetailPage() {
     [recommendedScenario]
   );
   const letterSpecsByType = useMemo(() => new Map(DEBT_LETTER_SPECS.map((s) => [s.id, s])), []);
+  const isSummonsCase = debt?.type === 'summons';
+  const letterIdsForCase = useMemo(() => {
+    const pool = scenarioRec?.recommendedLetterTypes ?? DEBT_LETTER_SPECS.map((s) => s.id);
+    return pool.filter((id) => (isSummonsCase ? isCourtLetterId(id) : !isCourtLetterId(id)));
+  }, [scenarioRec, isSummonsCase]);
 
   const today = new Date().toISOString().slice(0, 10);
   const letterDate = letterDateDisplay();
@@ -135,6 +160,17 @@ export default function PartnerDebtDetailPage() {
       recipientName,
       recipientAddress: d.recipientAddress || debtPartyInfo?.recipientAddress,
       caseNumber: d.courtCaseNumber,
+      plaintiffLawFirm: d.plaintiffLawFirm || d.collectorName || debtPartyInfo?.collectorName,
+      plaintiffLawFirmAddress: d.plaintiffLawFirmAddress,
+      plaintiffAttorneyName: d.plaintiffAttorneyName,
+      plaintiffAttorneyBarNumber: d.plaintiffAttorneyBarNumber,
+      debtCollectorName: d.collectorName || debtPartyInfo?.collectorName,
+      originalCreditorName: d.originalCreditor || debtPartyInfo?.originalCreditor,
+      accountNumber: d.accountNumberMasked,
+      loanId: d.loanId,
+      borrowerId: d.borrowerId,
+      affidavitState: canonicalIdentity?.state || d.stateJurisdiction,
+      affidavitCounty: d.affidavitCounty,
       stateNote: d.stateJurisdiction ? ` In ${d.stateJurisdiction}, the applicable SOL may apply.` : undefined,
       summonsContext: isCourt
         ? {
@@ -208,7 +244,17 @@ export default function PartnerDebtDetailPage() {
     );
   }
 
-  const isSummons = debt.type === 'summons';
+  const isSummons = isSummonsCase;
+
+  const caseAccent = isSummons ? 'fuchsia' : 'emerald';
+  const accentIconClass = isSummons ? 'text-fuchsia-300' : 'text-emerald-300';
+  const recCardClass = isSummons
+    ? 'border-fuchsia-500/35 bg-[radial-gradient(900px_320px_at_15%_0%,rgba(217,70,239,0.14)_0%,transparent_60%)] ring-1 ring-fuchsia-400/20'
+    : 'border-emerald-500/35 bg-[radial-gradient(900px_320px_at_15%_0%,rgba(16,185,129,0.14)_0%,transparent_60%)] ring-1 ring-emerald-400/20';
+  const citeClass = isSummons ? 'text-fuchsia-300' : 'text-emerald-300';
+  const buildBtnClass = isSummons
+    ? 'inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-fuchsia-500 text-white font-black uppercase tracking-widest text-[10px] hover:brightness-110'
+    : 'inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500 text-black font-black uppercase tracking-widest text-[10px] hover:brightness-110';
 
   return (
     <PageShell
@@ -310,52 +356,26 @@ export default function PartnerDebtDetailPage() {
                     </div>
                   ) : null}
 
-                  <div className="grid lg:grid-cols-2 gap-6">
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between gap-3">
-                        <div className={FINELY_OS_ENTITY_VALUE}>Editor</div>
-                        <button
-                          type="button"
-                          onClick={() => setDraftEvidencePickerOpen(true)}
-                          className={`inline-flex items-center gap-2 ${FINELY_OS_SECONDARY_BTN}`}
-                          title="Attach an enclosure/evidence file to this letter"
-                        >
-                          Attach evidence
-                        </button>
-                      </div>
-
-                      {draft.evidenceId ? (
-                        <div className="text-[11px] text-white/50">
-                          Attached:{' '}
-                          <span className="text-white/80 font-mono">
-                            {evidence.find((x) => x.id === draft.evidenceId)?.filename ?? draft.evidenceId}
-                          </span>
-                        </div>
-                      ) : (
-                        <div className={`text-[11px] ${FINELY_OS_ENTITY_BODY}`}>No enclosure attached (optional).</div>
-                      )}
-
-                      <textarea
-                        value={draft.text}
-                        onChange={(e) => setDraft((prev) => (prev ? { ...prev, text: e.target.value } : prev))}
-                        rows={18}
-                        className={`w-full min-h-[280px] font-mono text-sm ${FINELY_OS_ENTITY_INPUT}`}
-                        placeholder="Write your letter here…"
-                      />
-                      <div className={`text-[11px] ${FINELY_OS_ENTITY_BODY}`}>
-                        Tip: keep your contact email off mailed letters; use only your name + mailing address.
-                      </div>
-                    </div>
-
-                    <div className="space-y-3">
-                      <div className={FINELY_OS_ENTITY_VALUE}>Paper preview</div>
-                      <div className="rounded-2xl border border-white/[0.08] bg-white p-6 shadow-inner">
-                        <pre className="text-black text-[12px] leading-5 whitespace-pre-wrap font-serif">{draft.text || ''}</pre>
-                      </div>
-                      <div className={`text-[11px] ${FINELY_OS_ENTITY_BODY}`}>
-                        Preview is forced to black-on-white for readability (matches print/PDF output).
-                      </div>
-                    </div>
+                  <div className="grid lg:grid-cols-1 gap-6">
+                    <DebtLetterDraftWorkspace
+                      text={draft.text}
+                      onTextChange={(text) => setDraft((prev) => (prev ? { ...prev, text } : prev))}
+                      letterDate={letterDate}
+                      senderLines={
+                        senderPreviewLines({
+                          name: debtorName,
+                          addressLine1: canonicalIdentity?.address1 ?? canonicalIdentity?.addressLine1,
+                          addressLine2: canonicalIdentity?.address2,
+                          city: canonicalIdentity?.city,
+                          state: canonicalIdentity?.state,
+                          postalCode: canonicalIdentity?.postalCode,
+                        }).lines
+                      }
+                      recipientName={debt?.recipientName || debt?.name}
+                      recipientAddress={debt?.recipientAddress}
+                      accent={draft.type === 'court' ? 'fuchsia' : 'emerald'}
+                      editorLabel="Letter editor"
+                    />
                   </div>
 
                   <div className="flex flex-wrap items-center justify-end gap-3 pt-2">
@@ -448,17 +468,17 @@ export default function PartnerDebtDetailPage() {
           eyebrow="Debt case"
           title={debt.name}
           subtitle={isSummons ? 'Summons / court matter' : 'Debt / collection account'}
-          accent="violet"
+          accent={caseAccent}
           kpis={[
-            { label: 'Type', value: debt.type, hint: 'Case', accent: 'violet' },
+            { label: 'Type', value: debt.type, hint: 'Case', accent: isSummons ? 'fuchsia' : 'emerald' },
             { label: 'Status', value: debt.status.replace('_', ' '), hint: 'Stage', accent: 'amber' },
             {
               label: 'Amount',
               value: (debt.amountCents / 100).toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }),
               hint: 'Balance',
-              accent: 'emerald',
+              accent: isSummons ? 'violet' : 'sky',
             },
-            { label: 'Scenario', value: recommendedScenario.replace(/_/g, ' ').slice(0, 12), hint: 'Strategy', accent: 'sky' },
+            { label: 'Scenario', value: recommendedScenario.replace(/_/g, ' ').slice(0, 12), hint: 'Strategy', accent: isSummons ? 'rose' : 'emerald' },
           ]}
           tabs={[
             { id: 'overview', label: 'Overview' },
@@ -471,6 +491,23 @@ export default function PartnerDebtDetailPage() {
           primaryAction={{ label: 'Debt center', onClick: () => navigate('/portal/debt') }}
           secondaryAction={{ label: 'Letters vault', onClick: () => navigate('/portal/letters/vault') }}
         >
+        {partner ? (
+          <div className="mb-4 space-y-3">
+            <SmartProofUploader partner={partner} email={partner.profile.email} debtCaseId={debt.id} uploadContext="debt" compact />
+            <div className="flex flex-wrap gap-2">
+              <button type="button" onClick={() => navigate('/portal/letters?tab=validation')} className={FINELY_OS_SECONDARY_BTN}>
+                Validation workstation
+              </button>
+              <button type="button" onClick={() => navigate('/portal/letters?tab=court')} className={FINELY_OS_SECONDARY_BTN}>
+                Affidavits & court
+              </button>
+              <button type="button" onClick={() => navigate('/portal/letters?tab=bankruptcy')} className={FINELY_OS_SECONDARY_BTN}>
+                Bankruptcy center
+              </button>
+            </div>
+          </div>
+        ) : null}
+
         {debtTab === 'overview' && (
         <>
         <div className={`${finelyOsCatalogCard('violet')} !p-5 space-y-6`}>
@@ -586,6 +623,7 @@ export default function PartnerDebtDetailPage() {
             )}
           </div>
         )}
+
         </>
         )}
 
@@ -594,16 +632,22 @@ export default function PartnerDebtDetailPage() {
         )}
 
         {debtTab === 'letters' && (
-        <div className="space-y-4">
-          <h2 className={`${FINELY_OS_ENTITY_TITLE} flex items-center gap-2`}>
-            <BookOpen size={20} className="text-violet-300" />
-            Letters & affidavits — legal basis
-          </h2>
-          <p className={`max-w-2xl ${FINELY_OS_ENTITY_BODY}`}>
-            Choose the letter or affidavit that fits your situation. Each is grounded in contract law, banking law, and consumer protection (FDCPA, FCRA, state SOL).
-          </p>
+        <div className={FINELY_OS_COMPACT_PAGE}>
+          <div className={`${finelyOsCatalogCardCompact(isSummons ? 'fuchsia' : 'emerald')} flex flex-wrap items-center justify-between gap-2`}>
+            <div className="flex items-center gap-2 min-w-0">
+              {isSummons ? <Gavel size={16} className="text-fuchsia-300" /> : <ShieldCheck size={16} className="text-emerald-300" />}
+              <div>
+                <div className={FINELY_OS_ENTITY_SUBLABEL}>{isSummons ? 'Court track' : 'Validation track'}</div>
+                <div className={FINELY_OS_ENTITY_TITLE}>{isSummons ? 'Affidavit & court letters' : 'FDCPA validation letters'}</div>
+              </div>
+            </div>
+            <button type="button" onClick={() => navigate('/portal/debt')} className={FINELY_OS_SECONDARY_BTN}>
+              Full center <ArrowRight size={12} />
+            </button>
+          </div>
+
           <div className="space-y-3">
-            {(scenarioRec?.recommendedLetterTypes ?? DEBT_LETTER_SPECS.map((s) => s.id)).map((letterId) => {
+            {letterIdsForCase.map((letterId) => {
               const spec = letterSpecsByType.get(letterId);
               if (!spec) return null;
               const isRec = scenarioRec?.recommendedLetterTypes?.includes(letterId);
@@ -611,11 +655,9 @@ export default function PartnerDebtDetailPage() {
               return (
                 <div
                   key={spec.id}
-                  className={`rounded-2xl border overflow-hidden ${
-                    isRec
-                      ? 'border-fuchsia-500/35 bg-[radial-gradient(900px_320px_at_15%_0%,rgba(217,70,239,0.14)_0%,transparent_60%)] ring-1 ring-fuchsia-400/20'
-                      : `${finelyOsInlineListItem()} !p-0`
-                  }`}
+                  className={`rounded-2xl border overflow-hidden border-l-4 ${
+                    isSummons ? 'border-l-fuchsia-400' : 'border-l-emerald-400'
+                  } ${isRec ? recCardClass : `${finelyOsInlineListItem()} !p-0`}`}
                 >
                   <button
                     type="button"
@@ -623,13 +665,11 @@ export default function PartnerDebtDetailPage() {
                     className="w-full text-left p-5 flex items-center justify-between gap-4"
                   >
                     <div className="flex items-center gap-3 min-w-0">
-                      <span className="text-fuchsia-300">{isExpanded ? <ChevronDown size={18} /> : <ChevronRight size={18} />}</span>
+                      <span className={accentIconClass}>{isExpanded ? <ChevronDown size={18} /> : <ChevronRight size={18} />}</span>
                       <div className="min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
                           <span className={FINELY_OS_ENTITY_VALUE}>{spec.title}</span>
-                          {isRec && (
-                            <span className={finelyOsStatusChip('warn')}>Recommended</span>
-                          )}
+                          {isRec ? <span className={finelyOsStatusChip(isSummons ? 'warn' : 'ok')}>Recommended</span> : null}
                         </div>
                         <p className={`${FINELY_OS_ENTITY_BODY} mt-0.5`}>{spec.shortDescription}</p>
                       </div>
@@ -649,8 +689,8 @@ export default function PartnerDebtDetailPage() {
                         <div className={`${FINELY_OS_ENTITY_SUBLABEL} mb-2`}>Legal basis</div>
                         <div className="space-y-2">
                           {spec.legalBasis.map((b) => (
-                            <div key={b.cite} className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony`}>
-                              <div className={`font-mono text-fuchsia-300 text-xs`}>{b.shortName}</div>
+                            <div key={b.cite} className={`${finelyOsCatalogCard(isSummons ? 'violet' : 'emerald')} !p-4 fc-surface-harmony`}>
+                              <div className={`font-mono text-xs ${citeClass}`}>{b.shortName}</div>
                               <div className={`${FINELY_OS_ENTITY_BODY} mt-1`}>{b.description}</div>
                             </div>
                           ))}
@@ -672,15 +712,15 @@ export default function PartnerDebtDetailPage() {
                         <div className={FINELY_OS_ENTITY_SUBLABEL}>Key principle</div>
                         <p className={`${FINELY_OS_ENTITY_BODY} mt-1`}>{spec.keyPrinciple}</p>
                       </div>
-                      <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony space-y-3`}>
+                      <div className={`${finelyOsCatalogCard(isSummons ? 'fuchsia' : 'sky')} !p-4 fc-surface-harmony space-y-3`}>
                         <div className="flex flex-wrap items-center justify-between gap-3">
                           <div className={FINELY_OS_ENTITY_SUBLABEL}>Draft (personalize and send)</div>
                           <div className="flex flex-wrap items-center gap-2">
                             <button
                               type="button"
-                              className={FINELY_OS_SECONDARY_BTN}
+                              className={buildBtnClass}
                               onClick={() => {
-                                const isCourt = spec.id.includes('summons') || spec.id.includes('answer') || spec.id.includes('affidavit') || isSummons;
+                                const isCourt = isCourtLetterId(spec.id) || isSummons;
                                 const baseText = hasTemplateAccess
                                   ? getLetterBody(spec.id, buildDebtLetterArgs(isCourt))
                                   : `DATE: ${today}\n\nTO WHOM IT MAY CONCERN,\n\nI am writing regarding ${debt.name}.\n\n[Write your request here.]\n\nSincerely,\n${debtorName}\n`;
@@ -688,11 +728,11 @@ export default function PartnerDebtDetailPage() {
                               }}
                               title="Build an editable draft and save it to your Letters Vault"
                             >
-                              Build draft
+                              {isSummons ? 'Build court draft' : 'Build validation draft'}
                             </button>
                             <button
                               type="button"
-                              className={FINELY_OS_SUCCESS_BTN}
+                              className={FINELY_OS_SECONDARY_BTN}
                               onClick={() => navigate('/portal/letters/vault')}
                               title="Open your Letters Vault"
                             >
@@ -703,7 +743,7 @@ export default function PartnerDebtDetailPage() {
 
                         <EntitlementGate partnerId={partner.id} requiredKeys={[ENTITLEMENT_KEYS.templates]}>
                           <pre className={`${FINELY_OS_ENTITY_BODY} text-xs whitespace-pre-wrap font-sans overflow-x-auto`}>
-                            {getLetterBody(spec.id, buildDebtLetterArgs(spec.id.includes('summons') || spec.id.includes('affidavit') || isSummons))}
+                            {getLetterBody(spec.id, buildDebtLetterArgs(isCourtLetterId(spec.id) || isSummons))}
                           </pre>
                         </EntitlementGate>
                       </div>
@@ -822,22 +862,26 @@ export default function PartnerDebtDetailPage() {
                       <div className={`text-[11px] ${FINELY_OS_ENTITY_BODY}`}>No enclosure attached (optional).</div>
                     )}
 
-                    <textarea
-                      value={draft.text}
-                      onChange={(e) => setDraft((prev) => (prev ? { ...prev, text: e.target.value } : prev))}
-                      rows={14}
-                      className={`w-full min-h-[240px] font-mono text-sm ${FINELY_OS_ENTITY_INPUT}`}
-                      placeholder="Write your letter here…"
+                    <DebtLetterDraftWorkspace
+                      text={draft.text}
+                      onTextChange={(text) => setDraft((prev) => (prev ? { ...prev, text } : prev))}
+                      letterDate={letterDate}
+                      senderLines={
+                        senderPreviewLines({
+                          name: debtorName,
+                          addressLine1: canonicalIdentity?.address1 ?? canonicalIdentity?.addressLine1,
+                          addressLine2: canonicalIdentity?.address2,
+                          city: canonicalIdentity?.city,
+                          state: canonicalIdentity?.state,
+                          postalCode: canonicalIdentity?.postalCode,
+                        }).lines
+                      }
+                      recipientName={debt?.recipientName || debt?.name}
+                      recipientAddress={debt?.recipientAddress}
+                      accent={draft.type === 'court' ? 'fuchsia' : 'emerald'}
+                      editorLabel="Letter editor"
+                      minRows={14}
                     />
-
-                    <details className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony`}>
-                      <summary className={`cursor-pointer select-none ${FINELY_OS_ENTITY_SUBLABEL}`}>
-                        Preview (print view)
-                      </summary>
-                      <div className="mt-3 rounded-2xl border border-white/[0.08] bg-white p-5 shadow-inner">
-                        <pre className="text-black text-[12px] leading-5 whitespace-pre-wrap font-serif">{draft.text || ''}</pre>
-                      </div>
-                    </details>
 
                     <div className="flex flex-wrap items-center justify-end gap-3 pt-1">
                       <button
@@ -924,6 +968,21 @@ export default function PartnerDebtDetailPage() {
             </div>
           </div>
         </div>
+
+        {debtTab === 'letters' ? (
+          <CollateralWorkstationSection
+            title={isSummons ? 'Court coach' : 'Validation coach'}
+            subtitle="Ask about your next move — full width section below your letter list."
+            accent={isSummons ? 'fuchsia' : 'emerald'}
+          >
+            {isSummons ? (
+              <CourtAdvisorChat scenario={recommendedScenario} debtName={debt.name} caseNumber={debt.courtCaseNumber} />
+            ) : (
+              <ValidationAdvisorChat scenario={recommendedScenario} debtName={debt.name} />
+            )}
+          </CollateralWorkstationSection>
+        ) : null}
+
         <FinelyOsPageFooter />
       </EntitlementGate>
     </PageShell>

@@ -16,6 +16,20 @@ function loadStore(): Store {
 
 function saveStore(store: Store) {
   saveJson(KEY, store, 1);
+  if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('finely:store'));
+}
+
+export function mergeCommsSends(remote: CommsSendLog[]) {
+  const store = loadStore();
+  const byId = new Map(store.sends.map((s) => [s.id, s]));
+  for (const r of remote) {
+    const local = byId.get(r.id);
+    const remoteTs = Date.parse(r.createdAt);
+    const localTs = local ? Date.parse(local.createdAt) : 0;
+    if (!local || remoteTs >= localTs) byId.set(r.id, r);
+  }
+  store.sends = Array.from(byId.values()).sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, 1200);
+  saveStore(store);
 }
 
 export function listCommsTemplates(): CommsTemplate[] {
@@ -65,6 +79,9 @@ export function addCommsSend(log: CommsSendLog): CommsSendLog {
   store.sends.push(log);
   store.sends = store.sends.slice().sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, 1200);
   saveStore(store);
+  if (typeof window !== 'undefined') {
+    void import('./commsSupabaseSync').then((m) => m.syncCommsSendToSupabase(log));
+  }
   return log;
 }
 

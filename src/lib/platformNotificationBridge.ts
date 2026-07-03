@@ -104,6 +104,24 @@ function handleEvent(event: PlatformEvent) {
     });
   }
 
+  if (event.type === 'automation.triggered' && payload.kind === 'bankruptcy_scenario_selected' && partnerId) {
+    createNotification({
+      partnerId,
+      audience: 'both',
+      kind: 'support_message',
+      title: 'Bankruptcy path confirmed',
+      body: String(payload.title ?? 'Your specialist is aligned to your liberation path.'),
+      href: '/portal/messages?hub=team',
+    });
+    createNotification({
+      audience: 'admin',
+      kind: 'system',
+      title: 'Bankruptcy path selected',
+      body: `${payload.title ?? payload.scenarioId ?? 'Scenario'} · partner ${partnerId.slice(0, 8)}`,
+      href: '/admin/comms?room=conversations',
+    });
+  }
+
   if (event.type === 'task.created' && partnerId) {
     if (!shouldNotify(partnerId, 'task')) return;
     createNotification({

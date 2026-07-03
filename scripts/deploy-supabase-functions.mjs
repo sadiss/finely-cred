@@ -36,6 +36,7 @@ const LAUNCH_FUNCTIONS = [
   'stripe-verify',
   'denefits-webhook',
   'send-invite-email',
+  'send-partner-welcome',
   'send-invite-sms',
   'send-email',
   'send-password-reset',

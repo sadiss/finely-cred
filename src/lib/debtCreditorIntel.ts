@@ -3,6 +3,10 @@ import type { DebtCase } from '../domain/debt';
 import type { ProcessedDocument } from '../domain/documents';
 import type { EvidenceItem } from '../domain/evidence';
 import { upsertDebt } from '../data/debtRepo';
+import {
+  classifyCandidateNegativeType,
+  type NegativeType,
+} from '../creditReports/negativePlaybooks';
 
 export type ReportedDebtSignal = {
   signalId: string;
@@ -16,7 +20,10 @@ export type ReportedDebtSignal = {
   phone?: string;
   bureau?: Bureau;
   negativeType: 'collection' | 'charge_off';
+  /** Full negative classification (foreclosure, repossession, etc.) */
+  classifiedNegative: NegativeType;
   accountStatus?: string;
+  accountType?: string;
   confidence: 'high' | 'medium';
 };
 
@@ -49,14 +56,31 @@ export function namesLikelyMatch(a: string, b: string) {
   return parts.some((p) => y.includes(p));
 }
 
-function tradelineNegativeType(t: ParsedTradeline): 'collection' | 'charge_off' | null {
-  const joined = [
-    t.accountStatus,
+function tradelineJoined(t: ParsedTradeline): string {
+  return [
+    t.creditorName,
     t.accountType,
+    t.accountStatus,
+    t.originalCreditor,
     ...(t.fields || []).map((f) => `${f.label || ''} ${Object.values(f.byBureau || {}).join(' ')}`),
   ]
     .join(' ')
     .toLowerCase();
+}
+
+export function classifyTradelineNegativeType(t: ParsedTradeline): NegativeType {
+  return classifyCandidateNegativeType({
+    id: '',
+    account: String(t.creditorName || ''),
+    type: String(t.accountType || ''),
+    code: '',
+    status: String(t.accountStatus || ''),
+    bureau: 'EXP',
+  });
+}
+
+function tradelineNegativeType(t: ParsedTradeline): 'collection' | 'charge_off' | null {
+  const joined = tradelineJoined(t);
   if (/(charge\s*off|charged\s*off|\bco\b|written\s*off)/.test(joined)) return 'charge_off';
   if (
     /(collection|collections|collector|debt\s*collector|placed\s*for\s*collection|3rd\s*party|third\s*party|assigned\s*to)/.test(
@@ -71,6 +95,55 @@ function tradelineNegativeType(t: ParsedTradeline): 'collection' | 'charge_off' 
   return null;
 }
 
+/** Strict filter — only tradelines classified as the requested collateral negative type. */
+export function extractCollateralSignals(
+  reports: Array<{ id: string; parsed?: ParsedCreditReport | null }>,
+  required: 'foreclosure' | 'repossession',
+): ReportedDebtSignal[] {
+  const out: ReportedDebtSignal[] = [];
+  for (const report of reports) {
+    const parsed = report.parsed;
+    if (!parsed) continue;
+    const contacts = parsed.creditorContacts || [];
+    (parsed.tradelines || []).forEach((t, tradelineIndex) => {
+      const classifiedNegative = classifyTradelineNegativeType(t);
+      if (classifiedNegative !== required) return;
+      const name = String(t.creditorName || '').trim();
+      if (!name) return;
+      const contact =
+        contacts.find((c) => namesLikelyMatch(c.creditorName, name) && c.tradelineIndex === tradelineIndex) ||
+        contacts.find((c) => namesLikelyMatch(c.creditorName, name));
+      const balance = typeof t.balance === 'number' && t.balance > 0 ? Math.round(t.balance * 100) : undefined;
+      const negativeType = tradelineNegativeType(t) ?? 'charge_off';
+      out.push({
+        signalId: `${report.id}:${tradelineIndex}`,
+        reportId: report.id,
+        tradelineIndex,
+        creditorName: name,
+        originalCreditor: t.originalCreditor || contact?.creditorName,
+        accountNumberMasked: t.accountNumberMasked || contact?.accountNumberMasked,
+        balanceCents: balance,
+        address: t.creditorAddress || contact?.address,
+        phone: t.creditorPhone || contact?.phone,
+        bureau: contact?.bureau,
+        negativeType,
+        classifiedNegative,
+        accountStatus: t.accountStatus,
+        accountType: t.accountType,
+        confidence: contact?.address || t.creditorAddress ? 'high' : 'medium',
+      });
+    });
+  }
+  const uniq = new Map<string, ReportedDebtSignal>();
+  for (const s of out) {
+    if (!uniq.has(s.signalId)) uniq.set(s.signalId, s);
+  }
+  return Array.from(uniq.values()).sort((a, b) => {
+    const score = (x: ReportedDebtSignal) => (x.confidence === 'high' ? 2 : 1) + (x.balanceCents ? 1 : 0);
+    return score(b) - score(a);
+  });
+}
+
 export function extractReportDebtSignals(reports: Array<{ id: string; parsed?: ParsedCreditReport | null }>): ReportedDebtSignal[] {
   const out: ReportedDebtSignal[] = [];
   for (const report of reports) {
@@ -80,6 +153,7 @@ export function extractReportDebtSignals(reports: Array<{ id: string; parsed?: P
     (parsed.tradelines || []).forEach((t, tradelineIndex) => {
       const negativeType = tradelineNegativeType(t);
       if (!negativeType) return;
+      const classifiedNegative = classifyTradelineNegativeType(t);
       const name = String(t.creditorName || '').trim();
       if (!name) return;
       const contact =
@@ -98,7 +172,9 @@ export function extractReportDebtSignals(reports: Array<{ id: string; parsed?: P
         phone: t.creditorPhone || contact?.phone,
         bureau: contact?.bureau,
         negativeType,
+        classifiedNegative,
         accountStatus: t.accountStatus,
+        accountType: t.accountType,
         confidence: contact?.address || t.creditorAddress ? 'high' : 'medium',
       });
     });

@@ -1,0 +1,364 @@
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import {
+  AlertCircle,
+  ArrowRight,
+  BookOpen,
+  CheckCircle2,
+  Clapperboard,
+  FileVideo,
+  Library,
+  Loader2,
+  Scissors,
+  Sparkles,
+  Star,
+  Trash2,
+  Upload,
+} from 'lucide-react';
+import {
+  analyzeUploadedVideo,
+  contentClassLabel,
+  suggestedUseLabel,
+  type VideoContentClass,
+  type VideoImportance,
+  type VideoUploadAnalysis,
+} from '../../lib/videoUploadIntelligence';
+import {
+  deleteVideoUploadAnalysis,
+  listVideoUploadAnalyses,
+  saveVideoUploadAnalysis,
+} from '../../data/videoUploadAnalysisRepo';
+import { getBlobStore } from '../../storage/getBlobStore';
+import { getBlobUrl } from '../../storage/getBlobUrl';
+import { saveContentStudioAsset } from './contentStudioRepo';
+import { upsertResourceVideo } from '../../data/resourceVideosRepo';
+import { ContentStudioVideoPreview } from './ContentStudioVideoPreview';
+import { StudioSection } from './StudioKpiCards';
+
+const CLASS_TONE: Record<VideoContentClass, string> = {
+  educational: 'text-sky-300 bg-sky-500/15 border-sky-500/30',
+  testimonial: 'text-emerald-300 bg-emerald-500/15 border-emerald-500/30',
+  commercial: 'text-amber-300 bg-amber-500/15 border-amber-500/30',
+  entertainment: 'text-fuchsia-300 bg-fuchsia-500/15 border-fuchsia-500/30',
+  course_raw: 'text-violet-300 bg-violet-500/15 border-violet-500/30',
+  internal: 'text-slate-300 bg-slate-500/15 border-slate-500/30',
+  archive: 'text-white/50 bg-white/5 border-white/10',
+  unknown: 'text-white/40 bg-white/5 border-white/10',
+};
+
+const IMPORTANCE_TONE: Record<VideoImportance, string> = {
+  high: 'text-amber-200',
+  medium: 'text-white/70',
+  low: 'text-white/45',
+};
+
+export function VideoUploadIntelligencePanel() {
+  const navigate = useNavigate();
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [version, setVersion] = useState(0);
+  const [busy, setBusy] = useState(false);
+  const [phase, setPhase] = useState<string | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+  const [latest, setLatest] = useState<VideoUploadAnalysis | null>(null);
+
+  const history = useMemo(() => listVideoUploadAnalyses(), [version]);
+
+  async function onFiles(files: FileList | null) {
+    if (!files?.length) return;
+    const file = files[0];
+    if (!file.type.startsWith('video/') && !/\.(mp4|webm|mov|m4v)$/i.test(file.name)) {
+      setErr('Upload a video file (MP4, WebM, MOV).');
+      return;
+    }
+    setBusy(true);
+    setErr(null);
+    setSuccess(null);
+    const analysisId = `vua_${Date.now().toString(16)}`;
+    try {
+      setPhase('Saving footage to secure storage…');
+      const store = getBlobStore();
+      const { ref: blobRef } = await store.put(file, {
+        kind: 'content_studio_upload',
+        source: 'video_upload_intelligence',
+        fileName: file.name,
+      });
+
+      setPhase('Reading metadata, classifying content, building scrape plan…');
+      const analysis = await analyzeUploadedVideo(file, { useAi: true, id: analysisId, blobRef });
+      saveVideoUploadAnalysis(analysis);
+      setLatest(analysis);
+      setVersion((v) => v + 1);
+      setSuccess(`Analyzed ${file.name} — ${analysis.durationSec}s · ${contentClassLabel(analysis.contentClass)}. Scroll down for preview and next steps.`);
+      if (inputRef.current) inputRef.current.value = '';
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : 'Upload analysis failed.');
+    } finally {
+      setBusy(false);
+      setPhase(null);
+    }
+  }
+
+  async function routeToProduction(analysis: VideoUploadAnalysis, mode: 'course' | 'resources' | 'testimonial') {
+    if (!analysis.blobRef) {
+      setErr('No stored video for this analysis — re-upload the file.');
+      return;
+    }
+    setBusy(true);
+    setErr(null);
+    try {
+      const asset = saveContentStudioAsset({
+        title: analysis.fileName.replace(/\.[^.]+$/, ''),
+        assetType: 'video',
+        status: 'needs_review',
+        provider: 'manual',
+        blobRef: analysis.blobRef,
+        summary: analysis.highLevelSummary,
+        transcript: analysis.scrapeHints.join('\n'),
+        publishTargets:
+          mode === 'course'
+            ? (['course_lesson', 'resources'] as const)
+            : mode === 'testimonial'
+              ? (['lead_magnet_hero', 'resources'] as const)
+              : (['resources', 'download_only'] as const),
+        complianceNotes: ['Uploaded footage — review claims, captions, and rights before publishing.'],
+      });
+      const resource = upsertResourceVideo({
+        title: `${analysis.fileName} (upload intelligence)`,
+        desc: analysis.highLevelSummary,
+        blobRef: analysis.blobRef,
+        mimeType: analysis.mimeType,
+        tags: ['upload-intelligence', analysis.contentClass, ...analysis.keyTopics.slice(0, 3)],
+        isPublic: false,
+      });
+      saveVideoUploadAnalysis({ ...analysis, contentStudioAssetId: asset.id });
+      setLatest({ ...analysis, contentStudioAssetId: asset.id });
+      setVersion((v) => v + 1);
+      if (mode === 'course') {
+        navigate(`/admin/content-studio?room=course_videos&assetId=${asset.id}`);
+      } else {
+        navigate(`/admin/content-studio?room=assets&assetId=${asset.id}`);
+      }
+      setSuccess(`Routed to production — saved as asset + private resource (${resource.title}).`);
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : 'Routing failed.');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="space-y-6">
+      <StudioSection eyebrow="Upload intelligence" title="Read any footage before you edit">
+        <div
+          className={`relative rounded-3xl border border-dashed p-8 text-center transition-all ${
+            busy
+              ? 'border-violet-400/60 bg-violet-500/10'
+              : 'border-violet-500/35 bg-gradient-to-br from-violet-500/[0.08] via-transparent to-fuchsia-500/[0.06]'
+          }`}
+          onDragOver={(e) => e.preventDefault()}
+          onDrop={(e) => {
+            e.preventDefault();
+            void onFiles(e.dataTransfer.files);
+          }}
+        >
+          <input
+            ref={inputRef}
+            type="file"
+            accept="video/*,.mp4,.webm,.mov,.m4v"
+            className="hidden"
+            onChange={(e) => void onFiles(e.target.files)}
+          />
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-violet-500/20 text-violet-200">
+            {busy ? <Loader2 size={28} className="animate-spin" /> : <Upload size={28} />}
+          </div>
+          <p className="mt-4 text-lg font-semibold text-white">{busy ? 'Processing your upload…' : 'Drop a video or browse'}</p>
+          <p className="mt-2 text-sm text-white/55 max-w-xl mx-auto">
+            Footage is stored, previewed, and analyzed for course scrape chapters, testimonial pulls, commercial cutdowns, and resource routing.
+          </p>
+          {phase ? <p className="mt-3 text-sm font-medium text-violet-200">{phase}</p> : null}
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => inputRef.current?.click()}
+            className="mt-5 inline-flex items-center gap-2 rounded-xl border border-violet-400/40 bg-violet-500/20 px-5 py-2.5 text-sm font-semibold text-violet-100 hover:bg-violet-500/30 disabled:opacity-50"
+          >
+            <FileVideo size={16} /> Select video
+          </button>
+        </div>
+        {err ? (
+          <p className="mt-3 flex items-center gap-2 text-sm text-rose-300">
+            <AlertCircle size={14} /> {err}
+          </p>
+        ) : null}
+        {success ? (
+          <p className="mt-3 flex items-center gap-2 text-sm text-emerald-300">
+            <CheckCircle2 size={14} /> {success}
+          </p>
+        ) : null}
+      </StudioSection>
+
+      {(latest || history[0]) && (
+        <AnalysisCard
+          analysis={latest ?? history[0]!}
+          onRoute={routeToProduction}
+          busy={busy}
+        />
+      )}
+
+      {history.length > 0 ? (
+        <StudioSection eyebrow="Recent analyses" title={`${history.length} saved upload reads`}>
+          <div className="grid gap-3 md:grid-cols-2">
+            {history.map((row) => (
+              <div
+                key={row.id}
+                className="rounded-2xl border border-white/[0.08] bg-white/[0.03] p-4 space-y-3 hover:border-violet-500/25 transition-colors"
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <p className="text-sm font-semibold text-white truncate">{row.fileName}</p>
+                    <p className="text-xs text-white/45 mt-0.5">
+                      {row.durationSec}s · {row.aspectRatio} · {(row.fileSizeBytes / 1_000_000).toFixed(1)} MB
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      deleteVideoUploadAnalysis(row.id);
+                      if (latest?.id === row.id) setLatest(null);
+                      setVersion((v) => v + 1);
+                    }}
+                    className="text-white/30 hover:text-rose-300"
+                    aria-label="Delete analysis"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+                {row.blobRef ? (
+                  <ContentStudioVideoPreview blobRef={row.blobRef} mimeType={row.mimeType} className="!aspect-[16/9] !max-h-32" />
+                ) : null}
+                <div className="flex flex-wrap gap-2">
+                  <span className={`rounded-full border px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-widest ${CLASS_TONE[row.contentClass]}`}>
+                    {contentClassLabel(row.contentClass)}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setLatest(row)}
+                  className="text-[10px] uppercase tracking-widest text-violet-300 hover:text-violet-200"
+                >
+                  View full read
+                </button>
+              </div>
+            ))}
+          </div>
+        </StudioSection>
+      ) : null}
+    </div>
+  );
+}
+
+function AnalysisCard({
+  analysis,
+  onRoute,
+  busy,
+}: {
+  analysis: VideoUploadAnalysis;
+  onRoute: (a: VideoUploadAnalysis, mode: 'course' | 'resources' | 'testimonial') => void;
+  busy: boolean;
+}) {
+  const [localUrl, setLocalUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!analysis.blobRef) return;
+    let revoke: (() => void) | undefined;
+    void getBlobUrl(analysis.blobRef, { mimeType: analysis.mimeType }).then((res) => {
+      if (res?.url) {
+        revoke = res.revoke;
+        setLocalUrl(res.url);
+      }
+    });
+    return () => revoke?.();
+  }, [analysis.blobRef, analysis.mimeType]);
+
+  return (
+    <div className="rounded-3xl border border-white/[0.08] bg-gradient-to-br from-slate-900/80 via-violet-950/20 to-slate-900/80 p-6 space-y-5 shadow-2xl shadow-violet-950/30">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <p className="text-[10px] uppercase tracking-[0.2em] text-violet-300 font-black">Latest analysis</p>
+          <h3 className="mt-1 text-xl font-semibold text-white">{analysis.fileName}</h3>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <span className={`rounded-full border px-3 py-1 text-[10px] font-black uppercase tracking-widest ${CLASS_TONE[analysis.contentClass]}`}>
+            <Clapperboard size={10} className="inline mr-1" />
+            {contentClassLabel(analysis.contentClass)}
+          </span>
+          <span className={`rounded-full border border-white/10 px-3 py-1 text-[10px] font-black uppercase tracking-widest ${IMPORTANCE_TONE[analysis.importance]}`}>
+            <Star size={10} className="inline mr-1" />
+            {analysis.importance} priority
+          </span>
+        </div>
+      </div>
+
+      {analysis.blobRef ? (
+        <ContentStudioVideoPreview blobRef={analysis.blobRef} mimeType={analysis.mimeType} />
+      ) : localUrl ? (
+        <video src={localUrl} controls playsInline className="w-full rounded-2xl border border-white/10 aspect-video bg-black" />
+      ) : null}
+
+      <p className="text-sm leading-relaxed text-white/75">{analysis.highLevelSummary}</p>
+
+      <div className="grid md:grid-cols-2 gap-4">
+        <div className="rounded-2xl border border-white/[0.06] bg-black/20 p-4">
+          <p className="text-[10px] uppercase tracking-widest text-emerald-300 font-bold flex items-center gap-1">
+            <BookOpen size={12} /> Suggested uses
+          </p>
+          <ul className="mt-3 space-y-1.5">
+            {analysis.suggestedUses.map((u) => (
+              <li key={u} className="text-sm text-white/70 flex items-center gap-2">
+                <Sparkles size={12} className="text-emerald-400 shrink-0" />
+                {suggestedUseLabel(u)}
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div className="rounded-2xl border border-white/[0.06] bg-black/20 p-4">
+          <p className="text-[10px] uppercase tracking-widest text-sky-300 font-bold">Scrape & production hints</p>
+          <ul className="mt-3 space-y-1.5">
+            {analysis.scrapeHints.map((h) => (
+              <li key={h} className="text-sm text-white/70">• {h}</li>
+            ))}
+          </ul>
+        </div>
+      </div>
+
+      <div className="flex flex-wrap gap-2 pt-2 border-t border-white/10">
+        <button
+          type="button"
+          disabled={busy || !analysis.blobRef}
+          onClick={() => void onRoute(analysis, 'course')}
+          className="inline-flex items-center gap-2 rounded-xl border border-violet-400/35 bg-violet-500/15 px-4 py-2 text-xs font-bold uppercase tracking-widest text-violet-100 disabled:opacity-50"
+        >
+          <Scissors size={14} /> Scrape for course
+        </button>
+        <button
+          type="button"
+          disabled={busy || !analysis.blobRef}
+          onClick={() => void onRoute(analysis, 'testimonial')}
+          className="inline-flex items-center gap-2 rounded-xl border border-emerald-400/35 bg-emerald-500/15 px-4 py-2 text-xs font-bold uppercase tracking-widest text-emerald-100 disabled:opacity-50"
+        >
+          <Sparkles size={14} /> Testimonial reel
+        </button>
+        <button
+          type="button"
+          disabled={busy || !analysis.blobRef}
+          onClick={() => void onRoute(analysis, 'resources')}
+          className="inline-flex items-center gap-2 rounded-xl border border-sky-400/35 bg-sky-500/15 px-4 py-2 text-xs font-bold uppercase tracking-widest text-sky-100 disabled:opacity-50"
+        >
+          <Library size={14} /> Resource library
+          <ArrowRight size={12} />
+        </button>
+      </div>
+    </div>
+  );
+}

@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { ArrowLeft } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { PageShell } from '../../components/layout/PageShell';
 import {
   LettersCommandCenter,
@@ -24,7 +24,12 @@ export default function PartnerLettersPage() {
   const navigate = useNavigate();
   const { partner } = usePartnerSession();
   const [storeVersion, setStoreVersion] = useState(0);
-  const [studioTab, setStudioTab] = useState<LettersStudioTab>('dispute');
+  const [searchParams] = useSearchParams();
+  const [studioTab, setStudioTab] = useState<LettersStudioTab>(() => {
+    const t = searchParams.get('tab');
+    if (t === 'validation' || t === 'court' || t === 'foreclosure' || t === 'repossession' || t === 'bankruptcy' || t === 'templates' || t === 'dispute') return t;
+    return 'dispute';
+  });
 
   useEffect(() => {
     const onStore = () => setStoreVersion((v) => v + 1);
@@ -50,7 +55,7 @@ export default function PartnerLettersPage() {
       <PageShell
         badge="Partner Portal"
         title="Letter Studio"
-        subtitle="Draft dispute letters, preview on paper, and save PDFs. Build templates and reasons in Template Library."
+        subtitle="Bureau letters, validation, court affidavits, and bankruptcy — paper preview and vault save."
       >
         <div className={FINELY_OS_PAGE}>
           <div className={`${FINELY_OS_LUXURY_EMPTY} text-left`}>No partner profile found for this account.</div>
@@ -67,7 +72,7 @@ export default function PartnerLettersPage() {
       <PageShell
         badge="Partner Portal"
         title="Letter Studio"
-        subtitle="Letter Studio is locked on your current plan. Upgrade to generate and save dispute letters."
+        subtitle="Letter workstations are locked on your current plan. Upgrade to generate and save letters."
       >
         <EntitlementGate partnerId={partner.id} requiredKeys={[ENTITLEMENT_KEYS.letters]}>
           <div />
@@ -76,7 +81,22 @@ export default function PartnerLettersPage() {
     );
   }
 
-  const hubTabs = [{ id: 'dispute', label: 'Dispute Letters' }];
+  const hasDebt = useMemo(
+    () => (partner ? hasEntitlement(partner.id, ENTITLEMENT_KEYS.debt) : false),
+    [partner, storeVersion],
+  );
+
+  const hubTabs = useMemo(() => {
+    const tabs: Array<{ id: string; label: string }> = [{ id: 'dispute', label: 'Bureaus' }];
+    if (hasDebt) {
+      tabs.push({ id: 'validation', label: 'Validation' });
+      tabs.push({ id: 'court', label: 'Affidavits & Court' });
+      tabs.push({ id: 'foreclosure', label: 'Foreclosure' });
+      tabs.push({ id: 'repossession', label: 'Repossession' });
+    }
+    tabs.push({ id: 'bankruptcy', label: 'Bankruptcy' });
+    return tabs;
+  }, [hasDebt]);
 
   return (
     <PageShell
@@ -94,8 +114,8 @@ export default function PartnerLettersPage() {
       <FinelyNowDoThisStrip currentIndex={1} />
       <FinelyUnifiedHubLayout
         eyebrow="Letter Studio"
-        title="Write dispute letters"
-        subtitle="Multi-bureau dispute drafting with Reasons OS, evidence linking, and vault save."
+        title="Letter workstations"
+        subtitle="Bureaus, FDCPA validation, court affidavits, and bankruptcy — each with proof upload, paper preview, and vault save."
         accent="fuchsia"
         kpis={[
           { label: 'Reports', value: String(stats.reports), hint: 'Uploaded', accent: 'violet' },
@@ -107,6 +127,8 @@ export default function PartnerLettersPage() {
         activeTab={studioTab}
         onTabChange={(id) => setStudioTab(id as LettersStudioTab)}
         primaryAction={{ label: 'Letters vault', onClick: () => navigate('/portal/letters/vault') }}
+        contentVariant={studioTab === 'foreclosure' || studioTab === 'repossession' ? 'flush' : 'card'}
+        tabDensity="comfortable"
       >
         <LettersCommandCenter
           partner={partner}

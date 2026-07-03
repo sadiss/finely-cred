@@ -1,5 +1,5 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { ArrowLeft, ArrowRight, BookOpen, ChevronRight, ExternalLink, FileText, Gavel, Lock, MessageCircle, PenLine, Scale, ScrollText, Send, ShieldAlert, Sparkles, X } from 'lucide-react';
+﻿import React, { useEffect, useMemo, useState } from 'react';
+import { ArrowLeft, ArrowRight, BookOpen, ChevronRight, ExternalLink, FileText, Gavel, Lock, PenLine, Scale, ScrollText, Send, ShieldAlert, Sparkles, X } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import type { Bureau, ParsedCreditReport } from '../../domain/creditReports';
 import type { Partner } from '../../domain/partners';
@@ -13,11 +13,13 @@ import { filterFactualDisputeReasons, pickBestDisputeReasons } from '../../credi
 import { buildDisputeReasonsWithAi } from '../../lib/disputeReasonAi';
 import { DisputeReasonsLibraryPanel } from './DisputeReasonsLibraryPanel';
 import { downloadInlineDisputeLetterPdf, type DisputeLetterItem } from '../../letters/generateDisputePdfInline';
+import { buildFiveStepDisputeIntro, buildFiveStepItemPreamble, dominantNegativeTypeFromCandidates } from '../../letters/disputeFiveStepLetter';
+import { DISPUTE_GUIDE_FIVE_STEPS } from '../../letters/consumerDisputeVoice';
 import { upsertLetter } from '../../data/lettersRepo';
 import { addAuditEvent } from '../../data/auditRepo';
 import { newId } from '../../utils/ids';
 import { addRoundToCase, createDisputeCase, getCase, listCasesByPartner } from '../../data/casesRepo';
-import { suggestNextRound } from '../../domain/disputeWorkflow';
+import { suggestNextRound, DISPUTE_ROUND_ORDER, INTER_ROUND_GUIDANCE, type DisputeRoundLabel } from '../../domain/disputeWorkflow';
 import { addDaysIso, candidateToCaseItem, nowIso } from '../../domain/cases';
 import { createTask, listTasksByPartner } from '../../data/tasksRepo';
 import { ENTITLEMENT_KEYS } from '../../billing/entitlements';
@@ -31,7 +33,14 @@ import {
   formatSummonsContextForPrompt,
   resolveDebtPartyInfo,
 } from '../../lib/debtCreditorIntel';
-import { DebtCreditorIntelPanel } from '../debt/DebtCreditorIntelPanel';
+import { ValidationCenterView } from '../debt/ValidationCenterView';
+import { AffidavitCourtCenterView } from '../debt/AffidavitCourtCenterView';
+import { BankruptcyLetterStudioPanel } from './BankruptcyLetterStudioPanel';
+import { ForeclosureCenterView } from '../debt/ForeclosureCenterView';
+import { RepossessionCenterView } from '../debt/RepossessionCenterView';
+import { generateCatalogLetterBody } from '../../legal/generateCatalogLetter';
+import { DebtLetterRichDraftWorkspace } from './DebtLetterPreview';
+import { SmartProofUploader } from '../evidence/SmartProofUploader';
 import { DEBT_LETTER_SPECS, SCENARIO_RECOMMENDATIONS, recommendScenarioFromDebt, getLetterBody } from '../../legal/debtLetterTemplates';
 import type { DebtLetterType, DebtScenario } from '../../domain/debtLegal';
 import { EntitlementGate } from '../billing/EntitlementGate';
@@ -90,6 +99,9 @@ import {
   FINELY_OS_ENTITY_VALUE,  FINELY_OS_PRIMARY_BTN,
   FINELY_OS_SECONDARY_BTN,
   FINELY_OS_VIEW_TABS,
+  FINELY_OS_FIXED_OVERLAY,
+  FINELY_OS_ENTITY_TITLE,
+  FINELY_OS_AI_DRAFT_BTN_SM,
   finelyOsViewTab,
 } from '../../features/os/finelyOsLightUi';
 
@@ -101,10 +113,10 @@ const LCC_AI_DRAFT_BTN_SM =
 
 const LCC_MODAL_SHELL = `${finelyOsCatalogCard('violet')} !p-0 overflow-hidden shadow-2xl flex flex-col`;
 
-export type LettersStudioTab = 'dispute' | 'validation' | 'court' | 'templates';
+export type LettersStudioTab = 'dispute' | 'validation' | 'court' | 'foreclosure' | 'repossession' | 'bankruptcy' | 'templates';
 type TabKey = LettersStudioTab;
 type LetterTone = 'formal' | 'neutral' | 'conversational';
-type LetterRound = 'Round 1' | 'Round 2' | 'Round 3';
+type LetterRound = DisputeRoundLabel;
 
 function requiredPackKeyForNegativeType(nt: NegativeType): string | null {
   if (nt === 'bankruptcy') return ENTITLEMENT_KEYS.packBankruptcy;
@@ -126,6 +138,34 @@ function tabBtn(active: boolean) {
 
 function safePartnerName(name: string) {
   return (name || 'Partner').replace(/[^\w\-]+/g, '_').replace(/^_+|_+$/g, '');
+}
+
+type DebtDraftTrack = 'validation' | 'court' | 'foreclosure' | 'repossession';
+
+function letterTypeForDebtDraft(track: DebtDraftTrack): import('../../domain/letters').LetterType {
+  return track === 'validation' ? 'validation' : 'court';
+}
+
+function metaForDebtDraft(
+  draft: { type: DebtDraftTrack; specId: string; catalogId?: string },
+  debt: { id?: string } | null | undefined,
+  scenario: string,
+): import('../../domain/letters').ValidationLetterMeta | import('../../domain/letters').CourtLetterMeta {
+  const common = {
+    context: 'debt' as const,
+    debtId: debt?.id,
+    letterSpecId: draft.specId,
+    scenario,
+    ...(draft.catalogId ? { catalogId: draft.catalogId, debtTrack: draft.type } : {}),
+  };
+  if (draft.type === 'court' || draft.type === 'foreclosure' || draft.type === 'repossession') {
+    return {
+      ...common,
+      courtCaseNumber: (debt as { courtCaseNumber?: string })?.courtCaseNumber,
+      jurisdictionState: (debt as { stateJurisdiction?: string })?.stateJurisdiction,
+    };
+  }
+  return common;
 }
 
 const GENERIC_REASON_MARKERS = [
@@ -166,7 +206,7 @@ function renderDisputeSnapshotHtml(args: {
       .replaceAll('"', '&quot;')
       .replaceAll("'", '&#039;');
 
-  const senderName = (args.sender?.name || '').trim() || '—';
+  const senderName = (args.sender?.name || '').trim() || 'â€”';
   const senderLines = [senderName, args.sender?.addressLine1, args.sender?.addressLine2, args.sender?.cityStateZip]
     .map((x) => String(x || '').trim())
     .filter(Boolean);
@@ -177,17 +217,23 @@ function renderDisputeSnapshotHtml(args: {
     ? `<div style="margin-top:10px;color:rgba(255,255,255,0.75);font-size:12px;line-height:1.6;white-space:pre-wrap">${esc(args.intro || '')}</div>`
     : '';
 
-  const itemsHtml = (args.items || [])
+      const itemsHtml = (args.items || [])
     .map((it, idx) => {
       const reasons = formatNumberedDisputeReasons(it.reasons ?? []);
       const narrative = (it.narrative || '').trim();
+      const preamble = buildFiveStepItemPreamble({
+        candidate: it.candidate,
+        round: args.round,
+        exhibitLabel: it.evidence?.filename ? 'Exhibit 1' : 'Exhibit A',
+      });
       const evName = (it.evidence?.filename || '').trim();
       return `
         <div style="margin-top:12px;padding:12px;border:1px solid rgba(255,255,255,0.08);border-radius:14px;background:rgba(255,255,255,0.02)">
-          <div style="font-weight:700;color:#fff">${idx + 1}. ${esc(it.candidate.account)} — ${esc(it.candidate.type)}</div>
+          <div style="font-weight:700;color:#fff">${idx + 1}. ${esc(it.candidate.account)} â€” ${esc(it.candidate.type)}</div>
           <div style="margin-top:4px;font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:rgba(255,255,255,0.45);font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono','Courier New', monospace;">
-            bureau: ${esc(bureauShortCode(it.candidate.bureau as any))} • code: ${esc(it.candidate.code)} • request: ${esc(it.candidate.status)}
+            bureau: ${esc(bureauShortCode(it.candidate.bureau as any))} â€¢ code: ${esc(it.candidate.code)} â€¢ request: ${esc(it.candidate.status)}
           </div>
+          <div style="margin-top:6px;color:rgba(255,255,255,0.55);font-size:11px;line-height:1.5">${esc(preamble)}</div>
           ${
             evName
               ? `<div style="margin-top:8px;color:rgba(255,255,255,0.7);font-size:12px">
@@ -219,7 +265,7 @@ function renderDisputeSnapshotHtml(args: {
     <div>
       <div style="font-size:10px;letter-spacing:0.22em;text-transform:uppercase;color:rgba(255,255,255,0.45)">Dispute letter snapshot</div>
       <div style="margin-top:6px;color:rgba(255,255,255,0.85);font-size:12px;font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono','Courier New', monospace;">
-        ${esc(bureauShortCode(args.bureau))} • ${esc(args.round)} • ${esc(args.tone)}
+        ${esc(bureauShortCode(args.bureau))} â€¢ ${esc(args.round)} â€¢ ${esc(args.tone)}
       </div>
       <div style="margin-top:10px;padding:12px;border:1px solid rgba(255,255,255,0.08);border-radius:14px;background:rgba(255,255,255,0.02)">
         <div style="display:flex;gap:18px;flex-wrap:wrap;align-items:flex-start;justify-content:space-between">
@@ -245,14 +291,46 @@ function renderDisputeSnapshotHtml(args: {
   `;
 }
 
-function defaultDisputeIntro(tone: LetterTone) {
-  if (tone === 'formal') {
-    return `TO WHOM IT MAY CONCERN,\n\nI am writing because inaccurate information on my credit report is blocking credit, housing, and financing I need. I pulled my report, compared it to my records and the attached screenshot exhibits, and found reporting that is factually wrong or internally inconsistent.\n\nThis letter applies only to the items listed below. Each numbered reason states one factual problem visible on my report. Please review the exhibit and delete inaccurate reporting.`;
-  }
-  if (tone === 'conversational') {
-    return `Hello,\n\nSomething on my credit report does not add up, and it is getting in the way of credit and housing goals I am working toward. I pulled my report, compared it to my records and the attached screenshots, and found reporting that is factually wrong.\n\nThis letter applies only to the items listed below. Please review each numbered reason and delete what is reporting incorrectly.`;
-  }
-  return `Hello,\n\nI am disputing inaccurate information on my credit file that is affecting my ability to obtain credit. I pulled my report, compared it to my records and the attached exhibits, and found specific factual problems listed below.\n\nThis letter applies only to the items listed below. Please review the exhibit and delete inaccurate reporting.`;
+function disputeToneForFiveStep(tone: LetterTone): 'formal' | 'neutral' | 'conversational' {
+  if (tone === 'conversational') return 'conversational';
+  if (tone === 'formal') return 'formal';
+  return 'neutral';
+}
+
+function isStockDisputeIntro(text: string): boolean {
+  const t = text.trim().toLowerCase();
+  return (
+    t.includes('step 1 — identify the target') ||
+    t.includes('5-step dispute framework') ||
+    t.includes('this letter applies only to the items listed below') ||
+    t.includes('this letter applies only to the specific item') ||
+    t.includes('each numbered reason below states one factual problem') ||
+    t.includes('inaccurate information on my credit report is blocking')
+  );
+}
+
+function defaultDisputeIntro(
+  tone: LetterTone,
+  negativeType: NegativeType = 'unknown',
+  round = 'Round 1',
+  accountLabel?: string,
+  transferNote?: string,
+) {
+  return buildFiveStepDisputeIntro({
+    tone: disputeToneForFiveStep(tone),
+    negativeType,
+    round,
+    accountLabel,
+    transferNote,
+  });
+}
+
+function mergeTransferNote(intro: string, transferNote: string): string {
+  const note = transferNote.trim();
+  if (!note) return intro;
+  const probe = note.slice(0, Math.min(24, note.length)).toLowerCase();
+  if (probe && intro.toLowerCase().includes(probe)) return intro;
+  return `${intro}\n\nPrior dispute history: ${note}`;
 }
 
 function defaultDisputeFooter(tone: LetterTone) {
@@ -418,7 +496,7 @@ function DisputeLetterPaperPreview({
         <div className="flex items-center gap-2 text-[10px] uppercase tracking-widest text-white/50 font-mono">
           <span>
             Pages {leftPageIndex + 1}
-            {isSpread && rightPageIndex < pageCount ? `–${rightPageIndex + 1}` : ''} / {pageCount}
+            {isSpread && rightPageIndex < pageCount ? `â€“${rightPageIndex + 1}` : ''} / {pageCount}
           </span>
           <button
             type="button"
@@ -487,13 +565,13 @@ function DisputeLetterPaperPreview({
                       return (
                         <div key={key} className="space-y-2">
                           <div className="font-semibold">
-                            {idx + 1}. {it.candidate.account} — {it.candidate.type}
+                            {idx + 1}. {it.candidate.account} â€” {it.candidate.type}
                           </div>
                           <div className="text-[11px] text-black/60">
-                            bureau: {bureauShortCode(it.candidate.bureau)} • legal basis: {it.candidate.code} • request: {it.candidate.status}
+                            bureau: {bureauShortCode(it.candidate.bureau)} â€¢ legal basis: {it.candidate.code} â€¢ request: {it.candidate.status}
                           </div>
                           <div className="text-[11px] text-black/60">
-                            evidence: <span className="font-semibold text-black/80">{it.evidence?.filename || '—'}</span>
+                            evidence: <span className="font-semibold text-black/80">{it.evidence?.filename || 'â€”'}</span>
                           </div>
 
                           {img ? (
@@ -549,7 +627,7 @@ function DisputeLetterPaperPreview({
                       </div>
                     </div>
                   ) : (
-                    <div className="pt-2 text-[10px] uppercase tracking-widest text-black/40">Continued on next page…</div>
+                    <div className="pt-2 text-[10px] uppercase tracking-widest text-black/40">Continued on next pageâ€¦</div>
                   )}
                 </div>
               </div>
@@ -582,6 +660,7 @@ function DisputeLetterIframePreview({
   introHtml,
   footerHtml,
   items,
+  round = 'Round 1',
   onOpenFull,
   iframeHeightClassName = 'h-[420px]',
 }: {
@@ -593,6 +672,7 @@ function DisputeLetterIframePreview({
   introHtml: string;
   footerHtml: string;
   items: DisputeLetterItem[];
+  round?: string;
   onOpenFull?: () => void;
   iframeHeightClassName?: string;
 }) {
@@ -677,11 +757,17 @@ function DisputeLetterIframePreview({
               const img = imgByKey[key]?.url || '';
               const reasons = (it.reasons ?? []).map((r) => String(r || '').trim()).filter(Boolean);
               const narrative = String(it.narrative || '').trim();
+              const preamble = buildFiveStepItemPreamble({
+                candidate: it.candidate,
+                round,
+                exhibitLabel: it.evidence?.filename ? 'Exhibit 1' : 'Exhibit A',
+              });
               return `
                 <div class="item">
-                  <div class="itemTitle">${idx + 1}. ${escText(it.candidate.account)} — ${escText(it.candidate.type)}</div>
-                  <div class="meta">bureau code: ${escText(it.candidate.bureau)} • legal basis: ${escText(it.candidate.code)} • request: ${escText(it.candidate.status)}</div>
-                  <div class="meta">evidence: <strong>${escText(it.evidence?.filename || '—')}</strong></div>
+                  <div class="itemTitle">${idx + 1}. ${escText(it.candidate.account)} â€” ${escText(it.candidate.type)}</div>
+                  <div class="meta">bureau code: ${escText(it.candidate.bureau)} â€¢ legal basis: ${escText(it.candidate.code)} â€¢ request: ${escText(it.candidate.status)}</div>
+                  <div class="meta" style="margin-top:6px;line-height:1.45">${escText(preamble)}</div>
+                  <div class="meta">evidence: <strong>${escText(it.evidence?.filename || 'â€”')}</strong></div>
                   ${
                     img
                       ? `<div class="imgWrap"><img src="${escText(img)}" alt="${escText(it.evidence?.filename || 'Evidence')}" /></div>`
@@ -740,7 +826,7 @@ function DisputeLetterIframePreview({
     `.trim();
 
     return injectPrintSafeCss({ html: body, extraCss });
-  }, [bureau, bureauAddress, footerHtml, imgByKey, introHtml, items, partnerName, sender, subjectLine]);
+  }, [bureau, bureauAddress, footerHtml, imgByKey, introHtml, items, partnerName, round, sender, subjectLine]);
 
   return (
     <div className="space-y-3">
@@ -770,121 +856,6 @@ function DisputeLetterIframePreview({
   );
 }
 
-function DebtRemovalAdvisorPanel({
-  mode,
-  scenario,
-  debtName,
-}: {
-  mode: 'validation' | 'court';
-  scenario: DebtScenario;
-  debtName?: string;
-}) {
-  const [question, setQuestion] = useState('');
-  const [answer, setAnswer] = useState('');
-  const [busy, setBusy] = useState(false);
-  const [err, setErr] = useState<string | null>(null);
-  const scenarioInfo = SCENARIO_RECOMMENDATIONS.find((s) => s.scenario === scenario);
-  const recommended = (scenarioInfo?.recommendedLetterTypes ?? []).map((id) => DEBT_LETTER_SPECS.find((s) => s.id === id)).filter(Boolean);
-  const focus =
-    mode === 'validation'
-      ? [
-          'Send a heavy FDCPA 1692g validation request first when inside the validation window.',
-          'Demand licensing, authority to collect, owner/servicer identity, itemized accounting, chain of title, and credit reporting basis.',
-          'Do not admit liability, promise payment, or frame the theory as “securitization erased the debt.” Ask for proof and accounting.',
-        ]
-      : [
-          'Affidavits and summons responses are for litigation/summons scenarios. Calendar the court deadline first.',
-          'Raise burden of proof, contract formation, chain of assignment, standing/authority, SOL, and validation failure where applicable.',
-          'Use court filings carefully and consult licensed counsel for jurisdiction-specific procedure.',
-        ];
-
-  const ask = async () => {
-    const q = question.trim();
-    if (!q) return;
-    setBusy(true);
-    setErr(null);
-    setAnswer('');
-    const fallback = [
-      `Recommended next move for ${debtName || 'this matter'}:`,
-      '',
-      ...focus.map((x, i) => `${i + 1}. ${x}`),
-      '',
-      'Power laws/angles to review: FDCPA § 1692g, FDCPA § 1692c(c), FCRA § 1681s-2, state collection licensing, state SOL, contract formation/burden of proof, UCC § 3-308 where instrument enforcement is claimed, and TILA/Reg Z accounting issues where applicable.',
-      '',
-      `Based on the scenario, draw next: ${recommended.map((s) => s!.title).join(' → ') || (mode === 'validation' ? 'Debt Validation Request' : 'Affidavit of Dispute')}.`,
-    ].join('\n');
-    try {
-      if (!isFeatureEnabled('aiGateway')) throw new Error('AI Gateway disabled');
-      const res = await callAiGateway({
-        taskType: 'debt.removal.advisor',
-        responseFormat: 'text',
-        messages: [
-          {
-            role: 'system',
-            content:
-              'You are Finely Cred Debt Removal Advisor. Give strong consumer-favorable procedural next steps. You are educational only, not legal counsel. Use FDCPA, FCRA, TILA/Reg Z accounting, UCC where relevant, state SOL, state collection licensing, contract formation, chain of title, authority to collect, affidavits, and summons deadlines. Avoid frivolous claims that securitization automatically extinguishes debt. Be concise, numbered, and action-oriented.',
-          },
-          {
-            role: 'user',
-            content:
-              `Mode: ${mode}\nScenario: ${scenario}\nDebt: ${debtName || 'unknown'}\nRecommended letters: ${recommended.map((s) => s!.title).join(', ') || 'none'}\nQuestion: ${q}`,
-          },
-        ],
-      });
-      setAnswer(res.text.trim() || fallback);
-    } catch {
-      setAnswer(fallback);
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  return (
-    <div className={`${finelyOsCatalogCard(mode === 'validation' ? 'amber' : 'violet')} !p-5 space-y-4`}>
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <div className={FINELY_OS_ENTITY_SUBLABEL}>Debt Removal Advisor</div>
-          <div className={`mt-2 text-xl font-black ${FINELY_OS_ENTITY_VALUE}`}>
-            {mode === 'validation' ? 'Validation kill path' : 'Affidavit / court defense path'}
-          </div>
-          <p className={`mt-2 max-w-3xl ${FINELY_OS_ENTITY_BODY}`}>
-            Ask what to send next, what law to lean on, and what proof to demand. Connected to the letter specs, debt scenario, and Finely knowledge strategy.
-          </p>
-        </div>
-        <div className="rounded-2xl border border-white/10 bg-black/25 p-3 text-xs text-white/55 max-w-sm">
-          <strong className="text-white/80">Scenario:</strong> {scenarioInfo?.label || scenario}
-          {scenarioInfo?.legalWarning ? <div className="mt-1 text-amber-100/80">{scenarioInfo.legalWarning}</div> : null}
-        </div>
-      </div>
-
-      <div className="grid lg:grid-cols-3 gap-3">
-        {focus.map((x, i) => (
-          <div key={x} className="rounded-2xl border border-white/10 bg-black/25 p-4">
-            <div className="text-[10px] uppercase tracking-widest text-white/40">Step {i + 1}</div>
-            <div className="mt-2 text-sm text-white/75 leading-relaxed">{x}</div>
-          </div>
-        ))}
-      </div>
-
-      <div className="rounded-2xl border border-white/10 bg-black/30 p-4 space-y-3">
-        <div className="inline-flex items-center gap-2 text-[10px] uppercase tracking-widest text-white/45 font-black">
-          <MessageCircle size={14} /> Ask debt strategy
-        </div>
-        <textarea
-          value={question}
-          onChange={(e) => setQuestion(e.target.value)}
-          className="w-full min-h-[90px] rounded-xl border border-white/10 bg-black/35 px-4 py-3 text-sm text-white/85 placeholder:text-white/30 focus:outline-none focus:border-amber-400/60"
-          placeholder="Example: They sent a bill of sale but no account-level schedule. What letter should I send next and what laws should I cite?"
-        />
-        <button type="button" onClick={() => void ask()} disabled={busy || !question.trim()} className={FINELY_OS_PRIMARY_BTN}>
-          <Send size={14} /> {busy ? 'Thinking…' : 'Get next-step advice'}
-        </button>
-        {err ? <div className="text-rose-300 text-sm">{err}</div> : null}
-        {answer ? <pre className="whitespace-pre-wrap rounded-2xl border border-white/10 bg-white/[0.035] p-4 text-sm text-white/75 leading-relaxed font-sans">{answer}</pre> : null}
-      </div>
-    </div>
-  );
-}
 
 function InlineEvidenceThumb({ blobRef, mimeType, alt }: { blobRef: string; mimeType?: string; alt: string }) {
   const [url, setUrl] = useState<string>('');
@@ -926,7 +897,7 @@ function InlineEvidenceThumb({ blobRef, mimeType, alt }: { blobRef: string; mime
   if (!url) {
     return (
       <div className="h-28 w-44 rounded-2xl border border-dashed border-white/15 bg-black/30 flex items-center justify-center text-[10px] text-white/40 uppercase tracking-widest">
-        Loading…
+        Loadingâ€¦
       </div>
     );
   }
@@ -1027,6 +998,14 @@ export function LettersCommandCenter({
   const reports = useMemo(() => (partner ? listReportsByPartner(partner.id) : []), [partner, storeVersion]);
   const disputeCases = useMemo(() => (partner ? listCasesByPartner(partner.id) : []), [partner, storeVersion]);
 
+  const suggestedRoundByBureau = useMemo(() => {
+    const out = { EXP: 'Round 1', EQF: 'Round 1', TUC: 'Round 1' } as Record<Bureau, LetterRound>;
+    for (const c of disputeCases) {
+      out[c.bureau] = suggestNextRound(c);
+    }
+    return out;
+  }, [disputeCases]);
+
   const [pickerOpen, setPickerOpen] = useState(false);
   const [selectedDisputes, setSelectedDisputes] = useState<SelectedDispute[]>([]);
   const [evidenceByCandidateId, setEvidenceByCandidateId] = useState<Record<string, string | undefined>>({});
@@ -1047,6 +1026,43 @@ export function LettersCommandCenter({
     EQF: 'Round 1',
     TUC: 'Round 1',
   });
+  const [roundTransferNote, setRoundTransferNote] = useState('');
+  useEffect(() => {
+    if (!disputeCases.length) return;
+    setRoundByBureau((prev) => {
+      const next = { ...prev };
+      let changed = false;
+      for (const c of disputeCases) {
+        const suggested = suggestNextRound(c);
+        if (prev[c.bureau] === 'Round 1' && suggested !== 'Round 1') {
+          next[c.bureau] = suggested;
+          changed = true;
+        }
+      }
+      return changed ? next : prev;
+    });
+  }, [disputeCases.length, partner?.id]);
+
+  useEffect(() => {
+    const model = partner?.journeySignals?.supportModel;
+    if (!model) return;
+    if (model === 'transferred_company') {
+      setRoundByBureau((prev) => {
+        const allR1 = (['EXP', 'EQF', 'TUC'] as Bureau[]).every((b) => prev[b] === 'Round 1');
+        if (!allR1) return prev;
+        return { EXP: 'Round 2', EQF: 'Round 2', TUC: 'Round 2' };
+      });
+      const prior = String(partner.journeySignals?.priorCompany || '').trim();
+      if (prior) {
+        setRoundTransferNote((prev) => prev || `Transferred from ${prior} — prior company already mailed Round 1.`);
+      } else {
+        setRoundTransferNote((prev) => prev || 'Transferred from another credit company — starting at Round 2 with Finely Cred.');
+      }
+    }
+    if (model === 'finely_specialist' && partner.journeySignals?.helperName) {
+      setRoundTransferNote((prev) => prev || `Working with Finely specialist ${partner.journeySignals?.helperName}.`);
+    }
+  }, [partner?.id, partner?.journeySignals?.supportModel, partner?.journeySignals?.priorCompany, partner?.journeySignals?.helperName]);
   const [introByBureau, setIntroByBureau] = useState<Record<Bureau, string>>({
     EXP: plainTextToHtml(defaultDisputeIntro('formal')),
     EQF: plainTextToHtml(defaultDisputeIntro('formal')),
@@ -1109,7 +1125,7 @@ export function LettersCommandCenter({
 
   const isPaidLettersPackage = useMemo(() => {
     // Practical heuristic: paid packages grant templates access; trials often do not.
-    // This matches user intent: only prompt “save vs save+download” for non-package users.
+    // This matches user intent: only prompt â€œsave vs save+downloadâ€ for non-package users.
     return hasEntitlement(partner.id, ENTITLEMENT_KEYS.templates);
   }, [partner.id, storeVersion]);
 
@@ -1262,7 +1278,7 @@ export function LettersCommandCenter({
     setReturnNotice(null);
 
     if (!aiGatewayEnabled) {
-      setAiErrByBureau((prev) => ({ ...prev, [b]: 'AI drafting is currently disabled in Settings (Feature Flags → AI Gateway).' }));
+      setAiErrByBureau((prev) => ({ ...prev, [b]: 'AI drafting is currently disabled in Settings (Feature Flags â†’ AI Gateway).' }));
       return;
     }
     if (!canAiDraft) {
@@ -1368,7 +1384,9 @@ export function LettersCommandCenter({
         });
       });
 
-      const system = `You are a credit dispute letter drafter. Dispute REASONS must be factual findings — what is reporting on the file — not commands to the bureau.
+      const fiveStepGuide = DISPUTE_GUIDE_FIVE_STEPS.map((s) => `${s.heading}: ${s.lead}`).join(' | ');
+
+      const system = `You are a credit dispute letter drafter. Dispute REASONS must be factual findings â€” what is reporting on the file â€” not commands to the bureau.
 
 Return ONLY valid JSON (no markdown). Schema:
 {
@@ -1377,23 +1395,26 @@ Return ONLY valid JSON (no markdown). Schema:
   "questions": string[]
 }
 
+5-STEP DISPUTE GUIDE (structure the intro using this flow — one tradeline per letter):
+${fiveStepGuide}
+
 WRITING STANDARD:
 - For EACH item narrative: use SELECTED_REASONS and DETECTED_ISSUES as first-person factual statements (creditor name, status line, balance, dates, payment-grid codes, cross-bureau differences). Quote field values when provided in ACCOUNT_FACTS.
 - NEVER rewrite reasons as bureau commands ("please verify", "please delete", "pursuant to", "method of verification", "demand reinvestigation", "reinvestigation"). Those belong in the letter closing, not in per-item reasons.
 - Each factual reason must be ONE clear point (one date problem, one balance contradiction, one cross-bureau difference). No semicolon field dumps or Metro 2 codes.
-- PLAYBOOK_HINT is internal strategy context only — do not paste command-style language from it.
+- PLAYBOOK_HINT is internal strategy context only â€” do not paste command-style language from it.
 - Use ONLY provided facts. NEVER invent balances, dates, account numbers, or legal citations. Use [BRACKET] placeholders when facts are missing and add to "questions".
 - If EVIDENCE_ATTACHED is yes, note the exhibit supports the factual discrepancy described.
-- Round ${round}: if Round 2+, note prior dispute and that the same inaccurate fields still report — still as factual statements, not demands.
+- Round ${round}: if Round 2+, note prior dispute and that the same inaccurate fields still report â€” still as factual statements, not demands.
 - Each item narrative: 4-8 sentences listing the specific negatives and contradictions on the file for this account.
-- intro: 2-4 paragraphs matching TONE; identify yourself, scope (items below), and that you dispute the accuracy of the reporting shown — save procedural closing language for standard letter footers.
+- intro: follow the 5-step guide headings in order (target item → dispute lane → your story + FCRA rights → exhibits → round follow-up). 2-4 paragraphs matching TONE.
 - questions: only genuine gaps that would strengthen factual findings.`;
 
       const user = `DRAFT A BUREAU DISPUTE LETTER.\n\nBUREAU: ${b}\nROUND: ${round}\nTONE: ${tone}\nCONSUMER_NAME: ${partnerName}\nSTATE: ${state || '[STATE]'}\n\nDISPUTE_ITEMS (keyed):\n${payloadItems
         .map((it) => {
           const reasons = it.reasons.length ? it.reasons.map((r) => `- ${r}`).join('\n') : '- (none selected)';
           const issues = it.contradictions.length ? it.contradictions.map((r) => `- ${r}`).join('\n') : '- (none auto-detected)';
-          return `KEY: ${it.key}\nACCOUNT: ${it.account}\nTYPE: ${it.type}\nNEGATIVE_TYPE: ${it.negativeType}\nPLAYBOOK_HINT: ${it.playbookHint}\nREQUEST: ${it.request}\nLEGAL_BASIS_LABEL: ${it.legalBasis}\nACCOUNT_FACTS: ${it.facts || '(not parsed)'}\nDETECTED_ISSUES:\n${issues}\nEVIDENCE_ATTACHED: ${it.evidenceAttached ? 'yes (a screenshot exhibit is attached for this item)' : 'no'}\nSELECTED_REASONS (factual — use verbatim in narrative):\n${reasons}\nCASE_CONTEXT:\n${it.caseContext}\n`;
+          return `KEY: ${it.key}\nACCOUNT: ${it.account}\nTYPE: ${it.type}\nNEGATIVE_TYPE: ${it.negativeType}\nPLAYBOOK_HINT: ${it.playbookHint}\nREQUEST: ${it.request}\nLEGAL_BASIS_LABEL: ${it.legalBasis}\nACCOUNT_FACTS: ${it.facts || '(not parsed)'}\nDETECTED_ISSUES:\n${issues}\nEVIDENCE_ATTACHED: ${it.evidenceAttached ? 'yes (a screenshot exhibit is attached for this item)' : 'no'}\nSELECTED_REASONS (factual â€” use verbatim in narrative):\n${reasons}\nCASE_CONTEXT:\n${it.caseContext}\n`;
         })
         .join('\n')}\n\nOUTPUT:\n- intro: opening paragraphs only (no header/address).\n- items: one narrative per KEY.\n- questions: list any follow-up questions you need to make the draft stronger.`;
 
@@ -1413,7 +1434,16 @@ WRITING STANDARD:
       const itemDrafts = Array.isArray(parsed?.items) ? parsed!.items : [];
 
       if (intro) {
-        setIntroByBureau((prev) => ({ ...prev, [b]: ensureHtmlDraft(intro) }));
+        const dominant = dominantNegativeTypeFromCandidates(items.map((s) => s.candidate as import('../../domain/creditReports').DisputeCandidate));
+        const fiveStep = buildFiveStepDisputeIntro({
+          tone: disputeToneForFiveStep(tone),
+          negativeType: dominant,
+          round,
+          accountLabel: items.length === 1 ? items[0]?.candidate.account : undefined,
+          transferNote: roundTransferNote.trim() || undefined,
+        });
+        const merged = intro.toLowerCase().includes('step 1') ? intro : `${fiveStep}\n\n${intro}`;
+        setIntroByBureau((prev) => ({ ...prev, [b]: ensureHtmlDraft(merged) }));
       }
       if (questions.length) {
         setAiQuestionsByBureau((prev) => ({ ...prev, [b]: questions }));
@@ -1454,7 +1484,7 @@ WRITING STANDARD:
     setDraftNotice(null);
 
     if (!aiGatewayEnabled) {
-      setDraftErr('AI drafting is currently disabled in Settings (Feature Flags → AI Gateway).');
+      setDraftErr('AI drafting is currently disabled in Settings (Feature Flags â†’ AI Gateway).');
       return;
     }
     if (!canAiDraft) {
@@ -1481,9 +1511,9 @@ WRITING STANDARD:
 
       const legalBasis = spec?.legalBasis?.map((c) => `${c.shortName} (${c.cite}): ${c.description}`).join('\n') ?? '';
 
-      const system = `You draft print-ready consumer debt/legal letters. Return ONLY the letter body text (no JSON, no markdown).\n\nRules:\n- Do not invent facts (amounts, dates, account numbers, court deadlines). If missing, use placeholders like [DATE], [ACCOUNT_REF], [CASE_NUMBER], [STATE], [AMOUNT], [LAST_PAYMENT_DATE].\n- Keep it firm and professional. Avoid giving legal advice.\n- If citations are provided below, you may reference them, but do not add new citations that are not provided.\n- When SUMMONS_AND_EVIDENCE is provided, tailor defenses and factual paragraphs to those extracted facts — do not contradict uploaded document details.\n`;
+      const system = `You draft print-ready consumer debt/legal letters. Return ONLY the letter body text (no JSON, no markdown).\n\nRules:\n- Do not invent facts (amounts, dates, account numbers, court deadlines). If missing, use placeholders like [DATE], [ACCOUNT_REF], [CASE_NUMBER], [STATE], [AMOUNT], [LAST_PAYMENT_DATE].\n- Keep it firm and professional. Avoid giving legal advice.\n- If citations are provided below, you may reference them, but do not add new citations that are not provided.\n- When SUMMONS_AND_EVIDENCE is provided, tailor defenses and factual paragraphs to those extracted facts â€” do not contradict uploaded document details.\n`;
 
-      const user = `DRAFT A LETTER.\n\nLETTER_TYPE: ${draft.type}\nSPEC: ${spec?.title || draft.specId}\nSCENARIO: ${String(recommendedScenario || 'unknown')}\nDEBT_CASE_NAME: ${debtName}\nSTATE: ${jurisdictionState || '[STATE]'}\nCASE_NUMBER: ${caseNumber || '[CASE_NUMBER]'}\nDEBT_TYPE: ${String((debt as any)?.type || '')}\n\nRECIPIENT_AND_ACCOUNT:\n${recipientBlock || '(not provided)'}\n\n${summonsBlock ? `SUMMONS_AND_EVIDENCE:\n${summonsBlock}\n\n` : ''}KEY_PRINCIPLE:\n${spec?.keyPrinciple || ''}\n\nWHEN_TO_USE:\n${(spec?.whenToUse || []).map((x) => `- ${x}`).join('\n')}\n\nLEGAL_BASIS:\n${legalBasis || '(none provided)'}\n\nOUTPUT:\n- Provide the body text only.\n- Include a short section that lists what documents you’re requesting (if applicable).\n- If this is a court/affidavit draft, keep it structured and include placeholders for jurisdiction-specific filings.`;
+      const user = `DRAFT A LETTER.\n\nLETTER_TYPE: ${draft.type}\nSPEC: ${spec?.title || draft.specId}\nSCENARIO: ${String(recommendedScenario || 'unknown')}\nDEBT_CASE_NAME: ${debtName}\nSTATE: ${jurisdictionState || '[STATE]'}\nCASE_NUMBER: ${caseNumber || '[CASE_NUMBER]'}\nDEBT_TYPE: ${String((debt as any)?.type || '')}\n\nRECIPIENT_AND_ACCOUNT:\n${recipientBlock || '(not provided)'}\n\n${summonsBlock ? `SUMMONS_AND_EVIDENCE:\n${summonsBlock}\n\n` : ''}KEY_PRINCIPLE:\n${spec?.keyPrinciple || ''}\n\nWHEN_TO_USE:\n${(spec?.whenToUse || []).map((x) => `- ${x}`).join('\n')}\n\nLEGAL_BASIS:\n${legalBasis || '(none provided)'}\n\nOUTPUT:\n- Provide the body text only.\n- Include a short section that lists what documents youâ€™re requesting (if applicable).\n- If this is a court/affidavit draft, keep it structured and include placeholders for jurisdiction-specific filings.`;
 
       const ai = await callAiGateway({
         taskType: 'legal_debt_letter_draft',
@@ -1509,7 +1539,7 @@ WRITING STANDARD:
   const generateDisputeLetterForBureau = async (b: Bureau, opts: { download: boolean }) => {
     const items = selectedByBureau[b] ?? [];
     if (!items.length) {
-      setPdfErr(`Select disputes for ${bureauShortCode(b)} first — click "Select disputes" or open the picker.`);
+      setPdfErr(`Select disputes for ${bureauShortCode(b)} first â€” click "Select disputes" or open the picker.`);
       setPickerOpen(true);
       return;
     }
@@ -1549,7 +1579,19 @@ WRITING STANDARD:
       } else if (tplRendered?.text?.trim() && String(tplBase?.category || '').includes('dispute')) {
         introHtml = plainTextToHtml(tplRendered.text.trim());
       }
-      const introText = htmlToPlainText(introHtml || '');
+      const introTextRaw = htmlToPlainText(introHtml || '');
+      const dominant = dominantNegativeTypeFromCandidates(items.map((s) => s.candidate as import('../../domain/creditReports').DisputeCandidate));
+      const fiveStepIntro = buildFiveStepDisputeIntro({
+        tone: disputeToneForFiveStep(tone),
+        negativeType: dominant,
+        round,
+        accountLabel: items.length === 1 ? items[0]?.candidate.account : undefined,
+        transferNote: roundTransferNote.trim() || undefined,
+      });
+      const introText =
+        !introTextRaw.trim() || isStockDisputeIntro(introTextRaw)
+          ? fiveStepIntro
+          : mergeTransferNote(introTextRaw, roundTransferNote);
 
     setPdfErr(null);
     setPdfBusyByBureau((prev) => ({ ...prev, [b]: true }));
@@ -1566,7 +1608,7 @@ WRITING STANDARD:
         })
         .filter(Boolean) as string[];
       if (evidenceMismatches.length) {
-        setPdfErr(`Evidence mismatch — fix before generating:\n${evidenceMismatches.join('\n')}`);
+        setPdfErr(`Evidence mismatch â€” fix before generating:\n${evidenceMismatches.join('\n')}`);
         return;
       }
 
@@ -1612,7 +1654,13 @@ WRITING STANDARD:
           evidence: ev ? { filename: ev.filename, blobRef: ev.blobRef, mimeType: ev.mimeType } : null,
           evidenceList: linkedEvidence.map((item) => ({ filename: item.filename, blobRef: item.blobRef, mimeType: item.mimeType })),
           reasons: autoFilledReasonsByCandidateId[s.key] ?? [],
-          narrative: (aiNarrativeByCandidateKey[s.key] || '').trim() || null,
+          narrative:
+            (aiNarrativeByCandidateKey[s.key] || '').trim() ||
+            buildFiveStepItemPreamble({
+              candidate: { ...s.candidate, id: s.key } as import('../../domain/creditReports').DisputeCandidate,
+              round,
+              exhibitLabel: linkedEvidence.length ? 'Exhibit 1' : 'Exhibit A',
+            }),
         };
       });
       const missingEvidence = disputeItems.filter((x) => !x.evidence?.blobRef);
@@ -1668,7 +1716,7 @@ WRITING STANDARD:
         id: letterId,
         partnerId: partner.id,
         type: 'dispute',
-        title: `Dispute letter • ${bureauShortCode(b)} • ${round}`,
+        title: `Dispute letter â€¢ ${bureauShortCode(b)} â€¢ ${round}`,
         createdAt,
         body: renderDisputeSnapshotHtml({
           bureau: b,
@@ -1807,8 +1855,8 @@ WRITING STANDARD:
           bureau: b,
           title:
             disputeItems.length === 1
-              ? `${disputeItems[0]!.candidate.account} — ${disputeItems[0]!.candidate.type}`
-              : `Dispute • ${bureauShortCode(b)} • ${disputeItems.length} items`,
+              ? `${disputeItems[0]!.candidate.account} â€” ${disputeItems[0]!.candidate.type}`
+              : `Dispute â€¢ ${bureauShortCode(b)} â€¢ ${disputeItems.length} items`,
           latestReportId: reportIds.length === 1 ? reportIds[0] : undefined,
           items: caseItems,
           initialRound: roundMeta as any,
@@ -1883,7 +1931,9 @@ WRITING STANDARD:
     const roundParam = new URLSearchParams(location.search).get('round') as LetterRound | null;
     const suggested = suggestNextRound(c);
     const nextRound =
-      roundParam === 'Round 1' || roundParam === 'Round 2' || roundParam === 'Round 3' ? roundParam : suggested;
+      roundParam && DISPUTE_ROUND_ORDER.includes(roundParam as DisputeRoundLabel)
+        ? (roundParam as DisputeRoundLabel)
+        : suggested;
     setRoundByBureau((prev) => ({ ...prev, [c.bureau]: nextRound }));
   }, [location.search, partner?.id]);
 
@@ -1913,6 +1963,7 @@ WRITING STANDARD:
     if (draft.aiQuestionsByBureau) setAiQuestionsByBureau(draft.aiQuestionsByBureau as any);
     if (draft.toneByBureau) setToneByBureau((prev) => ({ ...prev, ...(draft.toneByBureau as any) }));
     if (draft.roundByBureau) setRoundByBureau((prev) => ({ ...prev, ...(draft.roundByBureau as any) }));
+    if (typeof (draft as any).roundTransferNote === 'string') setRoundTransferNote((draft as any).roundTransferNote);
     if (draft.introByBureau) {
       const next: any = {};
       for (const [k, v] of Object.entries(draft.introByBureau as any)) next[k] = ensureHtmlDraft(String(v || ''));
@@ -2044,6 +2095,7 @@ useEffect(() => {
     aiQuestionsByBureau: cleanRecord(aiQuestionsByBureau as any),
     toneByBureau: toneByBureau as any,
     roundByBureau: roundByBureau as any,
+    roundTransferNote: roundTransferNote.trim() || undefined,
     introByBureau,
     footerByBureau,
     sender: hasSender ? sender : undefined,
@@ -2092,6 +2144,7 @@ useEffect(() => {
   aiQuestionsByBureau,
   toneByBureau,
   roundByBureau,
+  roundTransferNote,
   introByBureau,
   footerByBureau,
   senderName,
@@ -2142,6 +2195,33 @@ useEffect(() => {
     const next = (['EXP', 'EQF', 'TUC'] as Bureau[]).find((b) => (selectedByBureau[b] ?? []).length > 0);
     if (next) setWorkspaceBureau(next);
   }, [selectedDisputes.length, selectedByBureau, workspaceBureau]);
+
+  useEffect(() => {
+    if (tab !== 'dispute') return;
+    setIntroByBureau((prev) => {
+      let changed = false;
+      const next = { ...prev };
+      for (const b of ['EXP', 'EQF', 'TUC'] as Bureau[]) {
+        const items = selectedByBureau[b] ?? [];
+        if (!items.length) continue;
+        const raw = htmlToPlainText(prev[b] || '');
+        if (!isStockDisputeIntro(raw)) continue;
+        const dominant = dominantNegativeTypeFromCandidates(items.map((s) => s.candidate as import('../../domain/creditReports').DisputeCandidate));
+        const built = buildFiveStepDisputeIntro({
+          tone: disputeToneForFiveStep(toneByBureau[b]),
+          negativeType: dominant,
+          round: roundByBureau[b],
+          accountLabel: items.length === 1 ? items[0]?.candidate.account : undefined,
+          transferNote: roundTransferNote.trim() || undefined,
+        });
+        if (raw.trim() !== built.trim()) {
+          next[b] = plainTextToHtml(built);
+          changed = true;
+        }
+      }
+      return changed ? next : prev;
+    });
+  }, [selectedDisputes, roundByBureau, toneByBureau, tab, selectedByBureau]);
 
   const evidencePickerCandidate = useMemo(() => {
     const cid = evidencePicker?.candidateId;
@@ -2349,6 +2429,17 @@ useEffect(() => {
       recipientName,
       recipientAddress,
       caseNumber: (debt as any)?.courtCaseNumber,
+      plaintiffLawFirm: debt?.plaintiffLawFirm || debt?.collectorName || debtPartyInfo?.collectorName,
+      plaintiffLawFirmAddress: debt?.plaintiffLawFirmAddress,
+      plaintiffAttorneyName: debt?.plaintiffAttorneyName,
+      plaintiffAttorneyBarNumber: debt?.plaintiffAttorneyBarNumber,
+      debtCollectorName: debt?.collectorName || debtPartyInfo?.collectorName,
+      originalCreditorName: debt?.originalCreditor || debtPartyInfo?.originalCreditor,
+      accountNumber: debt?.accountNumberMasked,
+      loanId: debt?.loanId,
+      borrowerId: debt?.borrowerId,
+      affidavitState: canonicalIdentity.state || debt?.stateJurisdiction,
+      affidavitCounty: debt?.affidavitCounty,
       stateNote: (debt as any)?.stateJurisdiction ? ` In ${(debt as any).stateJurisdiction}, the applicable SOL may apply.` : undefined,
       summonsContext:
         tab === 'court'
@@ -2364,18 +2455,12 @@ useEffect(() => {
     };
   };
 
-  const [draft, setDraft] = useState<null | { type: 'validation' | 'court'; specId: DebtLetterType; html: string; evidenceId?: string }>(null);
+  const [draft, setDraft] = useState<null | { type: 'validation' | 'court' | 'foreclosure' | 'repossession'; specId: DebtLetterType | string; catalogId?: string; html: string; evidenceId?: string }>(null);
   const [draftBusy, setDraftBusy] = useState(false);
   const [draftErr, setDraftErr] = useState<string | null>(null);
   const [draftEvidencePickerOpen, setDraftEvidencePickerOpen] = useState(false);
   const [draftTemplatesOpen, setDraftTemplatesOpen] = useState(false);
   const [draftNotice, setDraftNotice] = useState<string | null>(null);
-  const [draftPreviewFull, setDraftPreviewFull] = useState(false);
-
-  useEffect(() => {
-    setDraftPreviewFull(false);
-  }, [draft?.type, (draft as any)?.specId]);
-
   // --- Templates browser (entitled only) ---
   const visibleTemplateBases = useMemo(() => {
     if (!partner) return TEMPLATE_BASES;
@@ -2441,7 +2526,7 @@ useEffect(() => {
   }, [tplRendered?.baseId, tplRendered?.variantId, tplRendered?.tone, tplRendered?.version]);
 
   const tabKeys: Array<{ key: TabKey; label: string; icon: React.ReactNode; hidden?: boolean }> = [
-    { key: 'dispute', label: 'Dispute Letters', icon: <Gavel size={14} className="inline mr-2" /> },
+    { key: 'dispute', label: 'Bureaus', icon: <Gavel size={14} className="inline mr-2" /> },
   ];
 
   const disputeEvidenceLinked = useMemo(() => {
@@ -2577,6 +2662,48 @@ useEffect(() => {
     }
   };
 
+  const buildDebtCenterDraft = (specId: DebtLetterType, isCourt: boolean) => {
+    persistDebtSenderSnapshot();
+    const baseText = canSeeTemplates
+      ? getLetterBody(specId, buildDebtLetterArgs())
+      : `DATE: ${today}\n\nTO WHOM IT MAY CONCERN,\n\nI am writing regarding ${debt?.recipientName || debt?.name || 'this matter'}.\n\n[Write your request here.]\n\nSincerely,\n${canonicalIdentity.fullName}\n`;
+    setDraft({ specId, type: isCourt ? 'court' : 'validation', html: plainTextToHtml(baseText) });
+  };
+
+  const buildCatalogDraft = (catalogId: string, track: 'validation' | 'court' | 'foreclosure' | 'repossession') => {
+    persistDebtSenderSnapshot();
+    const baseText = canSeeTemplates
+      ? generateCatalogLetterBody(catalogId, buildDebtLetterArgs())
+      : `DATE: ${today}\n\n[Letter templates locked — upgrade to generate full drafts.]\n`;
+    setDraft({ specId: catalogId, catalogId, type: track, html: plainTextToHtml(baseText) });
+  };
+
+  const debtCenterSenderFields = {
+    fullName: senderName || canonicalIdentity.fullName || '',
+    address1: senderAddressLine1 || canonicalIdentity.address1 || canonicalIdentity.addressLine1 || '',
+    address2: senderAddressLine2 || canonicalIdentity.address2 || '',
+    city: canonicalIdentity.city || '',
+    state: canonicalIdentity.state || '',
+    postalCode: canonicalIdentity.postalCode || '',
+    phone: canonicalIdentity.phone || '',
+    email: partner.profile.email || '',
+  };
+
+  const debtCenterSharedProps = {
+    debt,
+    debtId,
+    debtCases,
+    reports,
+    processedDocuments,
+    recommendedScenario: recommendedScenario as DebtScenario,
+    senderFields: debtCenterSenderFields,
+    onDebtChange: handleDebtIntelChange,
+    onSenderPersist: persistDebtSenderSnapshot,
+    onDebtIdChange: setDebtId,
+    onOpenDebtCenter: openDebtCenter,
+    canSeeTemplates,
+  };
+
   const main = (
     <>
       {/* Full paper preview modal (templates-style iframe) */}
@@ -2620,6 +2747,7 @@ useEffect(() => {
                 const b = previewModalBureau;
                 const bureauItems = (selectedByBureau[b] ?? []) as SelectedDispute[];
                 const tone = toneByBureau[b];
+                const round = roundByBureau[b];
                 const introHtml = introByBureau[b];
                 const footerHtml = footerByBureau[b] || plainTextToHtml(defaultDisputeFooter(tone));
                 const partnerName = partner?.profile.fullName || 'Partner';
@@ -2640,6 +2768,7 @@ useEffect(() => {
                     introHtml={ensureHtmlDraft(introHtml || '')}
                     footerHtml={ensureHtmlDraft(footerHtml || '')}
                     items={items as any}
+                    round={round}
                     iframeHeightClassName="h-[58vh] md:h-[66vh] lg:h-[70vh]"
                   />
                 );
@@ -2906,9 +3035,9 @@ useEffect(() => {
             </div>
           ) : null}
 
-          <div className="fixed inset-0 z-[130] flex items-center justify-center p-4">
+          <div className={`${FINELY_OS_FIXED_OVERLAY} z-[2000] flex items-center justify-center p-3`}>
             <div
-              className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+              className="absolute inset-0"
               onClick={() => {
                 if (draftBusy) return;
                 setDraftErr(null);
@@ -2916,20 +3045,19 @@ useEffect(() => {
               }}
             />
             <div
-              className="relative w-full max-w-6xl max-h-[92vh] rounded-3xl border border-white/[0.08] bg-[#0a0f0d] shadow-2xl overflow-hidden flex flex-col"
+              className={`relative w-full max-w-5xl max-h-[min(88vh,780px)] rounded-2xl ${finelyOsCatalogCard(draft.type === 'court' ? 'fuchsia' : 'emerald')} !p-0 overflow-hidden flex flex-col`}
               role="dialog"
               aria-modal="true"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="p-4 md:p-6 border-b border-white/[0.08] flex items-start justify-between gap-4 shrink-0">
+              <div className="px-4 py-3 border-b border-white/[0.08] flex items-start justify-between gap-3 shrink-0">
                 <div className="min-w-0">
-                  <div className="text-[10px] uppercase tracking-widest text-white/40">Letter draft</div>
-                  <div className="mt-2 text-2xl font-light text-white truncate">
-                    {draft.type === 'court' ? 'Court / affidavit letter' : 'Validation / DV letter'}
+                  <div className={FINELY_OS_ENTITY_SUBLABEL}>Letter draft</div>
+                  <div className={`mt-1 truncate ${FINELY_OS_ENTITY_TITLE}`}>
+                    {draft.type === 'court' ? 'Court / affidavit letter' : 'Validation letter'}
                   </div>
-                  <div className="mt-1 text-white/60 text-sm">Edit the draft, preview it on paper, then save to your Letters Vault.</div>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5 flex-wrap justify-end">
                   <button
                     type="button"
                     onClick={() => setDraftTemplatesOpen(true)}
@@ -2947,7 +3075,7 @@ useEffect(() => {
                       title="AI drafts this letter using the selected scenario + legal basis"
                       disabled={draftBusy || !aiGatewayEnabled}
                     >
-                      <Sparkles size={14} /> {!aiGatewayEnabled ? 'AI disabled' : draftBusy ? 'Drafting…' : 'AI draft'}
+                      <Sparkles size={14} /> {!aiGatewayEnabled ? 'AI disabled' : draftBusy ? 'Draftingâ€¦' : 'AI draft'}
                     </button>
                   ) : (
                     <button
@@ -2968,7 +3096,7 @@ useEffect(() => {
                         const category = draft.type === 'court' ? ('court_filing' as any) : ('debt_collection' as any);
                         createTemplateVaultItem({
                           tenantId: partner.tenantId,
-                          title: `${draft.type === 'court' ? 'Court' : 'Validation'} template • ${new Date().toISOString().slice(0, 10)}`,
+                          title: `${draft.type === 'court' ? 'Court' : 'Validation'} template â€¢ ${new Date().toISOString().slice(0, 10)}`,
                           category,
                           kind: 'text',
                           bodyText: htmlToPlainText(draft.html || ''),
@@ -3015,13 +3143,13 @@ useEffect(() => {
                 </div>
               </div>
 
-              <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-4">
+              <div className="flex-1 overflow-y-auto p-4 space-y-3">
                 {draftErr ? (
                   <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-red-200/90 text-sm">{draftErr}</div>
                 ) : null}
 
-                <div className="grid lg:grid-cols-2 gap-6">
-                  <div className="space-y-3">
+                <div className="space-y-3">
+                  <div className="space-y-2">
                     <div className="flex items-center justify-between gap-3">
                       <div className="text-white font-semibold">Editor</div>
                       <button
@@ -3082,16 +3210,30 @@ useEffect(() => {
                       </div>
                     ) : null}
 
-                    <RichTextEditor
-                      valueHtml={ensureHtmlDraft(draft.html || '')}
+                    <DebtLetterRichDraftWorkspace
+                      html={ensureHtmlDraft(draft.html || '')}
                       onChangeHtml={(html) => setDraft((prev) => (prev ? { ...prev, html } : prev))}
-                      placeholder="Write your letter here…"
-                      minHeightPx={520}
+                      letterDate={letterDate}
+                      senderLines={
+                        senderPreviewLines({
+                          name: senderName,
+                          addressLine1: senderAddressLine1,
+                          addressLine2: senderAddressLine2,
+                          cityStateZip: senderCityStateZip,
+                          city: canonicalIdentity.city,
+                          state: canonicalIdentity.state,
+                          postalCode: canonicalIdentity.postalCode,
+                        }).lines
+                      }
+                      recipientName={debt?.recipientName || debt?.name}
+                      recipientAddress={debt?.recipientAddress}
+                      accent={draft.type === 'court' ? 'fuchsia' : 'emerald'}
+                      minHeightPx={280}
                     />
                     <div className="text-[11px] text-white/40">
                       Tip: keep your contact email off mailed letters; use only your name + mailing address.
                       {!senderMailingComplete ? (
-                        <span className="block mt-1 text-red-300">Your mailing address is incomplete — fix sender fields in the dispute studio or profile before mailing.</span>
+                        <span className="block mt-1 text-red-300">Your mailing address is incomplete — fix sender fields below before mailing.</span>
                       ) : null}
                     </div>
                   </div>
@@ -3101,7 +3243,7 @@ useEffect(() => {
                       <div className="text-[10px] uppercase tracking-widest text-white/40">Sender block (printed on letter)</div>
                       {!senderMailingComplete ? (
                         <div className="rounded-xl border border-red-500/40 bg-red-500/10 px-3 py-2 text-xs text-red-200">
-                          Add your mailing address before saving — missing lines appear in red on the preview.
+                          Add your mailing address before saving â€” missing lines appear in red on the preview.
                         </div>
                       ) : null}
                       <div className="grid sm:grid-cols-2 gap-3">
@@ -3132,25 +3274,6 @@ useEffect(() => {
                       </div>
                       <div className="text-[11px] text-white/45">Letter date: <span className="text-white/75">{letterDate}</span></div>
                     </div>
-                    <div className="flex flex-wrap items-center justify-between gap-3">
-                      <div className="text-white font-semibold">Paper preview</div>
-                      <button
-                        type="button"
-                        onClick={() => setDraftPreviewFull((v) => !v)}
-                        className="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-white/[0.08] bg-black/30 hover:bg-white/[0.03] text-[10px] font-black uppercase tracking-widest text-white/70 transition-all"
-                        title={draftPreviewFull ? 'Collapse to page preview' : 'Expand full preview'}
-                      >
-                        {draftPreviewFull ? 'Collapse' : 'Full preview'}
-                      </button>
-                    </div>
-                    <div className="rounded-2xl border border-white/[0.08] bg-black/20 p-3">
-                      <div className="rounded-xl border border-black/10 bg-white shadow-xl overflow-hidden">
-                        <div className={`mx-auto w-full max-w-[860px] ${draftPreviewFull ? 'p-10' : 'h-[1060px] p-10'}`}>
-                          <div className="fc-paper-prose" dangerouslySetInnerHTML={{ __html: highlightMissingLetterPlaceholders(sanitizeHtmlForPreview(draft.html || '')) }} />
-                        </div>
-                      </div>
-                    </div>
-                    <div className="text-[11px] text-white/40">Preview is forced to black-on-white for readability (matches print/PDF output).</div>
                   </div>
                 </div>
 
@@ -3179,7 +3302,7 @@ useEffect(() => {
                         const createdAt = new Date().toISOString();
                         const title =
                           debt && DEBT_LETTER_SPECS.find((s) => s.id === draft.specId)
-                            ? `${DEBT_LETTER_SPECS.find((s) => s.id === draft.specId)!.title} • ${debt.name}`
+                            ? `${DEBT_LETTER_SPECS.find((s) => s.id === draft.specId)!.title} â€¢ ${debt.name}`
                             : `${draft.type} letter`;
 
                         const pdf = await generateTextPdfToVault({
@@ -3191,7 +3314,7 @@ useEffect(() => {
                         const saved = upsertLetter({
                           id: newId('letter'),
                           partnerId: partner.id,
-                          type: draft.type,
+                          type: letterTypeForDebtDraft(draft.type),
                           title,
                           createdAt,
                           body: plain,
@@ -3199,22 +3322,7 @@ useEffect(() => {
                           pdfBlobRef: pdf.pdfBlobRef ?? undefined,
                           pdfFilename: pdf.filename,
                           relatedEvidenceIds: draft.evidenceId ? [draft.evidenceId] : [],
-                          meta:
-                            draft.type === 'court'
-                              ? {
-                                  context: 'debt',
-                                  debtId: debt?.id,
-                                  letterSpecId: draft.specId,
-                                  scenario: String(recommendedScenario || ''),
-                                  courtCaseNumber: (debt as any)?.courtCaseNumber,
-                                  jurisdictionState: (debt as any)?.stateJurisdiction,
-                                }
-                              : {
-                                  context: 'debt',
-                                  debtId: debt?.id,
-                                  letterSpecId: draft.specId,
-                                  scenario: String(recommendedScenario || ''),
-                                },
+                          meta: metaForDebtDraft(draft, debt, String(recommendedScenario || '')),
                         });
                         addAuditEvent({
                           partnerId: partner.id,
@@ -3237,7 +3345,7 @@ useEffect(() => {
                     className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-amber-500 text-black font-black uppercase tracking-widest text-[10px] hover:brightness-110 transition-all disabled:opacity-60 disabled:cursor-not-allowed"
                     title="Save this letter (PDF) into Letters Vault"
                   >
-                    {draftBusy ? 'Saving…' : 'Save to Letters Vault'}
+                    {draftBusy ? 'Savingâ€¦' : 'Save to Letters Vault'}
                   </button>
                 </div>
               </div>
@@ -3246,7 +3354,7 @@ useEffect(() => {
         </>
       ) : null}
 
-      {/* Global “Save vs Save+Download” chooser (partner-only) */}
+      {/* Global â€œSave vs Save+Downloadâ€ chooser (partner-only) */}
       {pdfChoice ? (
         <div className="fixed inset-0 z-[170] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setPdfChoice(null)} />
@@ -3294,7 +3402,7 @@ useEffect(() => {
                       const createdAt = new Date().toISOString();
                       const title =
                         debt && DEBT_LETTER_SPECS.find((s) => s.id === draft.specId)
-                          ? `${DEBT_LETTER_SPECS.find((s) => s.id === draft.specId)!.title} • ${debt.name}`
+                          ? `${DEBT_LETTER_SPECS.find((s) => s.id === draft.specId)!.title} â€¢ ${debt.name}`
                           : `${draft.type} letter`;
 
                       const pdf = await generateTextPdfToVault({
@@ -3306,7 +3414,7 @@ useEffect(() => {
                       const saved = upsertLetter({
                         id: newId('letter'),
                         partnerId: partner.id,
-                        type: draft.type,
+                        type: letterTypeForDebtDraft(draft.type),
                         title,
                         createdAt,
                         body: plain,
@@ -3314,22 +3422,7 @@ useEffect(() => {
                         pdfBlobRef: pdf.pdfBlobRef ?? undefined,
                         pdfFilename: pdf.filename,
                         relatedEvidenceIds: draft.evidenceId ? [draft.evidenceId] : [],
-                        meta:
-                          draft.type === 'court'
-                            ? {
-                                context: 'debt',
-                                debtId: debt?.id,
-                                letterSpecId: draft.specId,
-                                scenario: String(recommendedScenario || ''),
-                                courtCaseNumber: (debt as any)?.courtCaseNumber,
-                                jurisdictionState: (debt as any)?.stateJurisdiction,
-                              }
-                            : {
-                                context: 'debt',
-                                debtId: debt?.id,
-                                letterSpecId: draft.specId,
-                                scenario: String(recommendedScenario || ''),
-                              },
+                        meta: metaForDebtDraft(draft, debt, String(recommendedScenario || '')),
                       });
                       addAuditEvent({
                         partnerId: partner.id,
@@ -3375,7 +3468,7 @@ useEffect(() => {
                       const createdAt = new Date().toISOString();
                       const title =
                         debt && DEBT_LETTER_SPECS.find((s) => s.id === draft.specId)
-                          ? `${DEBT_LETTER_SPECS.find((s) => s.id === draft.specId)!.title} • ${debt.name}`
+                          ? `${DEBT_LETTER_SPECS.find((s) => s.id === draft.specId)!.title} â€¢ ${debt.name}`
                           : `${draft.type} letter`;
 
                       const pdf = await generateTextPdfToVault({
@@ -3387,7 +3480,7 @@ useEffect(() => {
                       const saved = upsertLetter({
                         id: newId('letter'),
                         partnerId: partner.id,
-                        type: draft.type,
+                        type: letterTypeForDebtDraft(draft.type),
                         title,
                         createdAt,
                         body: plain,
@@ -3395,22 +3488,7 @@ useEffect(() => {
                         pdfBlobRef: pdf.pdfBlobRef ?? undefined,
                         pdfFilename: pdf.filename,
                         relatedEvidenceIds: draft.evidenceId ? [draft.evidenceId] : [],
-                        meta:
-                          draft.type === 'court'
-                            ? {
-                                context: 'debt',
-                                debtId: debt?.id,
-                                letterSpecId: draft.specId,
-                                scenario: String(recommendedScenario || ''),
-                                courtCaseNumber: (debt as any)?.courtCaseNumber,
-                                jurisdictionState: (debt as any)?.stateJurisdiction,
-                              }
-                            : {
-                                context: 'debt',
-                                debtId: debt?.id,
-                                letterSpecId: draft.specId,
-                                scenario: String(recommendedScenario || ''),
-                              },
+                        meta: metaForDebtDraft(draft, debt, String(recommendedScenario || '')),
                       });
                       addAuditEvent({
                         partnerId: partner.id,
@@ -3497,12 +3575,38 @@ useEffect(() => {
         </div>
         ) : null}
 
+        {debtCenterMode && !(activeTab != null && onTabChange) ? (
+          <div className="flex flex-wrap gap-2 p-1 rounded-2xl border border-white/10 bg-black/30">
+            {(
+              [
+                { key: 'validation' as const, label: 'Validation', accent: 'border-emerald-400/40 bg-emerald-500/15 text-emerald-100' },
+                { key: 'court' as const, label: 'Affidavits & Court', accent: 'border-fuchsia-400/40 bg-fuchsia-500/15 text-fuchsia-100' },
+                { key: 'foreclosure' as const, label: 'Foreclosure', accent: 'border-amber-400/40 bg-amber-500/15 text-amber-100' },
+                { key: 'repossession' as const, label: 'Repossession', accent: 'border-rose-400/40 bg-rose-500/15 text-rose-100' },
+                { key: 'bankruptcy' as const, label: 'Bankruptcy', accent: 'border-sky-400/40 bg-sky-500/15 text-sky-100' },
+              ] as const
+            ).map((t) => (
+              <button
+                key={t.key}
+                type="button"
+                className={
+                  (tab === t.key ? t.accent : 'bg-white/5 text-white/75 border-white/10 hover:bg-white/10') +
+                  ' inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border text-[10px] font-black uppercase tracking-widest transition-all'
+                }
+                onClick={() => setTab(t.key)}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
+        ) : null}
+
         {/* Always-visible dispute selection shortcut (so it can't be missed). */}
         {!debtCenterMode ? <div className="fc-light-glass-panel fc-light-chrome-panel p-4 flex flex-wrap items-center justify-between gap-3">
           <div className="text-white/60 text-sm">
             Disputes selected: <span className="text-white/90 font-semibold">{selectedDisputes.length}</span>
             {selectedDisputes.length ? (
-              <span className="text-white/40 text-sm"> — split automatically into EXP / EQF / Trans letters</span>
+              <span className="text-white/40 text-sm"> â€” split automatically into EXP / EQF / Trans letters</span>
             ) : null}
           </div>
           <div className="flex flex-wrap items-center gap-2">
@@ -3538,6 +3642,150 @@ useEffect(() => {
           </div>
         </div> : null}
 
+        {!debtCenterMode ? (
+          <div className="rounded-2xl border border-fuchsia-400/25 bg-gradient-to-br from-fuchsia-500/10 via-black/40 to-amber-500/5 p-4 md:p-5 space-y-4">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <div className="text-[10px] font-black uppercase tracking-[0.2em] text-fuchsia-200">Which dispute round are you starting at?</div>
+                <div className="mt-1 text-sm text-white/65 max-w-2xl">
+                  Round 1 = brand-new dispute. Round 2+ = transferred from another company or following up after a prior letter. Letter language and bureau expectations change per round.
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  const r = roundByBureau.EXP;
+                  setRoundByBureau({ EXP: r, EQF: r, TUC: r });
+                }}
+                className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-[10px] font-black uppercase tracking-widest text-white/60 hover:text-white"
+              >
+                Sync all bureaus
+              </button>
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              {(
+                [
+                  { id: 'fresh', label: 'New client · Round 1', round: 'Round 1' as LetterRound, hint: 'First letters with Finely Cred' },
+                  { id: 'transfer', label: 'Transferred · Round 2', round: 'Round 2' as LetterRound, hint: 'Prior company already mailed Round 1' },
+                  { id: 'followup', label: 'Deep follow-up · Round 3', round: 'Round 3' as LetterRound, hint: 'Bureau responded — escalate angle' },
+                  { id: 'escalate', label: 'Escalation · Round 4', round: 'Round 4' as LetterRound, hint: 'Pattern of non-compliance' },
+                ] as const
+              ).map((preset) => (
+                <button
+                  key={preset.id}
+                  type="button"
+                  onClick={() => {
+                    setRoundByBureau({ EXP: preset.round, EQF: preset.round, TUC: preset.round });
+                    for (const b of ['EXP', 'EQF', 'TUC'] as Bureau[]) {
+                      const items = selectedByBureau[b] ?? [];
+                      if (!items.length) continue;
+                      const dominant = dominantNegativeTypeFromCandidates(items.map((s) => s.candidate as import('../../domain/creditReports').DisputeCandidate));
+                      setIntroByBureau((prev) => ({
+                        ...prev,
+                        [b]:
+                          prev[b] && !isStockDisputeIntro(htmlToPlainText(prev[b]))
+                            ? prev[b]
+                            : plainTextToHtml(
+                                defaultDisputeIntro(
+                                  toneByBureau[b],
+                                  dominant,
+                                  preset.round,
+                                  items.length === 1 ? items[0]?.candidate.account : undefined,
+                                  roundTransferNote,
+                                ),
+                              ),
+                      }));
+                    }
+                  }}
+                  className="rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-left hover:border-amber-400/35 hover:bg-amber-500/10 transition-all"
+                >
+                  <div className="text-[10px] font-black uppercase tracking-widest text-amber-100">{preset.label}</div>
+                  <div className="text-[10px] text-white/45 mt-0.5">{preset.hint}</div>
+                </button>
+              ))}
+            </div>
+
+            <div className="grid lg:grid-cols-3 gap-3">
+              {(['EXP', 'EQF', 'TUC'] as Bureau[]).map((b) => {
+                const round = roundByBureau[b];
+                const guidance = INTER_ROUND_GUIDANCE[round];
+                const suggested = suggestedRoundByBureau[b];
+                return (
+                  <div key={b} className="rounded-2xl border border-white/10 bg-black/30 p-4 space-y-3">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-sm font-black text-white">{bureauShortCode(b)}</span>
+                      <span className="text-[10px] uppercase tracking-widest text-fuchsia-200/80">{guidance.title}</span>
+                    </div>
+                    {suggested !== round ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setRoundByBureau((prev) => ({ ...prev, [b]: suggested }));
+                          const items = selectedByBureau[b] ?? [];
+                          if (items.length) {
+                            const dominant = dominantNegativeTypeFromCandidates(items.map((s) => s.candidate as import('../../domain/creditReports').DisputeCandidate));
+                            setIntroByBureau((prev) => ({
+                              ...prev,
+                              [b]: plainTextToHtml(
+                                defaultDisputeIntro(toneByBureau[b], dominant, suggested, items.length === 1 ? items[0]?.candidate.account : undefined, roundTransferNote),
+                              ),
+                            }));
+                          }
+                        }}
+                        className="w-full rounded-lg border border-sky-400/30 bg-sky-500/10 px-2 py-1.5 text-[10px] font-bold text-sky-100 text-left"
+                      >
+                        Smart suggest: {suggested.replace('Round ', 'R')} (from case history)
+                      </button>
+                    ) : null}
+                    <div className="flex flex-wrap gap-1.5">
+                      {DISPUTE_ROUND_ORDER.map((r) => (
+                        <button
+                          key={r}
+                          type="button"
+                          onClick={() => {
+                            setRoundByBureau((prev) => ({ ...prev, [b]: r }));
+                            const dominant = dominantNegativeTypeFromCandidates(
+                              selectedDisputes.filter((s) => s.candidate.bureau === b).map((s) => s.candidate),
+                            );
+                            setIntroByBureau((prev) => ({
+                              ...prev,
+                              [b]:
+                                prev[b] && !isStockDisputeIntro(htmlToPlainText(prev[b]))
+                                  ? prev[b]
+                                  : plainTextToHtml(defaultDisputeIntro(toneByBureau[b], dominant, r, undefined, roundTransferNote)),
+                            }));
+                          }}
+                          className={`rounded-lg border px-2.5 py-1.5 text-[10px] font-black uppercase tracking-widest transition-all ${
+                            round === r
+                              ? 'border-amber-400/50 bg-amber-500/20 text-amber-100 shadow-[0_0_12px_-4px_rgba(251,191,36,0.5)]'
+                              : suggested === r
+                                ? 'border-sky-400/30 bg-sky-500/10 text-sky-100'
+                                : 'border-white/10 text-white/45 hover:border-white/20'
+                          }`}
+                        >
+                          {r.replace('Round ', 'R')}
+                        </button>
+                      ))}
+                    </div>
+                    <p className="text-[11px] text-white/45 leading-relaxed">{guidance.betweenRounds[0]}</p>
+                  </div>
+                );
+              })}
+            </div>
+            <label className="block">
+              <span className="text-[10px] font-black uppercase tracking-widest text-white/40">Transfer note (optional)</span>
+              <input
+                value={roundTransferNote}
+                onChange={(e) => setRoundTransferNote(e.target.value)}
+                placeholder="e.g. Round 1 mailed with prior company in March 2026 — starting Round 2 here"
+                className="mt-1 w-full rounded-xl border border-white/10 bg-black/40 px-3 py-2.5 text-sm text-white/85 placeholder:text-white/25"
+              />
+              <p className="mt-1 text-[10px] text-white/40">Injected into the letter intro so bureaus know this is a follow-up, not a first dispute.</p>
+            </label>
+          </div>
+        ) : null}
+
         {tab === 'dispute' && (
           <EntitlementGate
             partnerId={partner.id}
@@ -3556,12 +3804,12 @@ useEffect(() => {
             }
           >
             <div className="space-y-6">
-              <LetterDisputeCoachStrip bureau={workspaceBureau} partnerId={partner.id} />
+              <SmartProofUploader partner={partner} email={partner.profile.email} compact uploadContext="bureau" />
 
               <div className="rounded-2xl border border-white/[0.08] bg-black/30 p-6 space-y-4">
                 <div className="flex flex-wrap items-start justify-between gap-4">
                   <div className="min-w-0">
-                    <div className="text-[10px] uppercase tracking-widest text-white/40">Dispute letters</div>
+                    <div className="text-[10px] uppercase tracking-widest text-white/40">Bureau letters</div>
                     <div className="mt-2 text-white/70 text-sm max-w-3xl">
                       Choose disputes in a popup, then attach evidence inline. Selections automatically split into separate bureau letters (EXP/EQF/Trans).
                     </div>
@@ -3690,7 +3938,7 @@ useEffect(() => {
                                     ? 'border-amber-500/25 bg-amber-500/10 text-amber-100/90'
                                     : 'border-red-500/25 bg-red-500/10 text-red-100/90')
                               }
-                              title="Evidence is weighted higher than reasons (because it’s the proof)"
+                              title="Evidence is weighted higher than reasons (because itâ€™s the proof)"
                             >
                               Readiness {readiness}%
                             </div>
@@ -3745,7 +3993,7 @@ useEffect(() => {
                                   : 'AI drafting is disabled in Settings'
                               }
                             >
-                              <Sparkles size={14} /> {!aiGatewayEnabled ? 'AI disabled' : aiBusy ? 'Drafting…' : 'AI draft letter'}
+                              <Sparkles size={14} /> {!aiGatewayEnabled ? 'AI disabled' : aiBusy ? 'Draftingâ€¦' : 'AI draft letter'}
                             </button>
                           ) : (
                             <button
@@ -3852,17 +4100,40 @@ useEffect(() => {
                           >
                             <ScrollText size={14} /> {studioOpen ? 'Hide studio' : 'Open studio'}
                           </button>
-                          <div>
-                            <div className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Round</div>
-                            <select
-                              value={round}
-                              onChange={(e) => setRoundByBureau((prev) => ({ ...prev, [b]: e.target.value as LetterRound }))}
-                              className="mt-2 bg-black/40 border border-white/[0.08] rounded-xl px-4 py-3 text-white/80 focus:outline-none focus:border-amber-500 transition-colors"
-                            >
-                              <option value="Round 1">Round 1</option>
-                              <option value="Round 2">Round 2</option>
-                              <option value="Round 3">Round 3</option>
-                            </select>
+                          <div className="rounded-2xl border border-fuchsia-400/20 bg-fuchsia-500/5 p-3">
+                            <div className="text-[10px] font-bold text-fuchsia-200 uppercase tracking-widest">Dispute round</div>
+                            <div className="mt-2 flex flex-wrap gap-1.5">
+                              {DISPUTE_ROUND_ORDER.map((r) => (
+                                <button
+                                  key={r}
+                                  type="button"
+                                  onClick={() => {
+                                    setRoundByBureau((prev) => ({ ...prev, [b]: r }));
+                                    const dominant = dominantNegativeTypeFromCandidates(items.map((s) => s.candidate as import('../../domain/creditReports').DisputeCandidate));
+                                    setIntroByBureau((prev) => ({
+                                      ...prev,
+                                      [b]:
+                                        prev[b] && !isStockDisputeIntro(htmlToPlainText(prev[b]))
+                                          ? prev[b]
+                                          : plainTextToHtml(
+                                              defaultDisputeIntro(
+                                                tone,
+                                                dominant,
+                                                r,
+                                                items.length === 1 ? items[0]?.candidate.account : undefined,
+                                                roundTransferNote,
+                                              ),
+                                            ),
+                                    }));
+                                  }}
+                                  className={`rounded-lg border px-2.5 py-1 text-[10px] font-black uppercase tracking-widest ${
+                                    round === r ? 'border-amber-400/50 bg-amber-500/20 text-amber-100' : 'border-white/10 text-white/45'
+                                  }`}
+                                >
+                                  {r.replace('Round ', 'R')}
+                                </button>
+                              ))}
+                            </div>
                           </div>
                           <div>
                             <div className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Tone</div>
@@ -3871,7 +4142,22 @@ useEffect(() => {
                               onChange={(e) => {
                                 const nextTone = e.target.value as LetterTone;
                                 setToneByBureau((prev) => ({ ...prev, [b]: nextTone }));
-                                setIntroByBureau((prev) => ({ ...prev, [b]: prev[b] || plainTextToHtml(defaultDisputeIntro(nextTone)) }));
+                                const dominant = dominantNegativeTypeFromCandidates(items.map((s) => s.candidate as import('../../domain/creditReports').DisputeCandidate));
+                                setIntroByBureau((prev) => ({
+                                  ...prev,
+                                  [b]:
+                                    prev[b] && !isStockDisputeIntro(htmlToPlainText(prev[b]))
+                                      ? prev[b]
+                                      : plainTextToHtml(
+                                          defaultDisputeIntro(
+                                            nextTone,
+                                            dominant,
+                                            round,
+                                            items.length === 1 ? items[0]?.candidate.account : undefined,
+                                            roundTransferNote,
+                                          ),
+                                        ),
+                                }));
                                 setFooterByBureau((prev) => ({ ...prev, [b]: prev[b] || plainTextToHtml(defaultDisputeFooter(nextTone)) }));
                               }}
                               className="mt-2 bg-black/40 border border-white/[0.08] rounded-xl px-4 py-3 text-white/80 focus:outline-none focus:border-amber-500 transition-colors"
@@ -3958,7 +4244,7 @@ useEffect(() => {
                                       setSenderCityStateZip(canonicalIdentity.cityStateZip || '');
                                     }}
                                     className="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-white/[0.08] bg-black/40 hover:bg-black/35 text-[10px] font-black uppercase tracking-widest text-white/60 transition-all"
-                                    title="Reset sender fields to the partner’s canonical identity"
+                                    title="Reset sender fields to the partnerâ€™s canonical identity"
                                   >
                                     Reset sender
                                   </button>
@@ -3982,7 +4268,7 @@ useEffect(() => {
                                   <div className="text-[10px] uppercase tracking-widest text-white/40">Sender (you)</div>
                                   {!senderMailingComplete ? (
                                     <div className="rounded-xl border border-red-500/40 bg-red-500/10 px-3 py-2 text-xs text-red-200">
-                                      Mailing address required — add your street and city/state/ZIP below. Missing fields show in <strong>red</strong> on the letter preview.
+                                      Mailing address required â€” add your street and city/state/ZIP below. Missing fields show in <strong>red</strong> on the letter preview.
                                     </div>
                                   ) : null}
                                   <div>
@@ -4091,12 +4377,28 @@ useEffect(() => {
                                       className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-amber-500 text-black font-black uppercase tracking-widest text-[10px] hover:brightness-110 transition-all disabled:opacity-60"
                                       title="Have AI draft the opening + narratives for this bureau"
                                     >
-                                      <Sparkles size={14} /> {!aiGatewayEnabled ? 'AI disabled' : aiBusy ? 'Drafting…' : 'AI draft'}
+                                      <Sparkles size={14} /> {!aiGatewayEnabled ? 'AI disabled' : aiBusy ? 'Draftingâ€¦' : 'AI draft'}
                                     </button>
                                   ) : null}
                                   <button
                                     type="button"
-                                    onClick={() => setIntroByBureau((prev) => ({ ...prev, [b]: plainTextToHtml(defaultDisputeIntro(tone)) }))}
+                                    onClick={() => {
+                                      const dominant = dominantNegativeTypeFromCandidates(
+                                        items.map((s) => s.candidate as import('../../domain/creditReports').DisputeCandidate),
+                                      );
+                                      setIntroByBureau((prev) => ({
+                                        ...prev,
+                                        [b]: plainTextToHtml(
+                                          defaultDisputeIntro(
+                                            tone,
+                                            dominant,
+                                            round,
+                                            items.length === 1 ? items[0]?.candidate.account : undefined,
+                                            roundTransferNote,
+                                          ),
+                                        ),
+                                      }));
+                                    }}
                                     className="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-white/[0.08] bg-black/40 hover:bg-black/35 text-[10px] font-black uppercase tracking-widest text-white/60 transition-all"
                                     title="Reset opening paragraphs to the default for this tone"
                                   >
@@ -4107,7 +4409,7 @@ useEffect(() => {
                               <RichTextEditor
                                 valueHtml={ensureHtmlDraft(introHtml || '')}
                                 onChangeHtml={(html) => setIntroByBureau((prev) => ({ ...prev, [b]: html }))}
-                                placeholder="Write the opening paragraphs here…"
+                                placeholder="Write the opening paragraphs hereâ€¦"
                                 minHeightPx={640}
                               />
                               <div className="text-[11px] text-white/40">
@@ -4132,7 +4434,7 @@ useEffect(() => {
                               <RichTextEditor
                                 valueHtml={ensureHtmlDraft(footerHtml || '')}
                                 onChangeHtml={(html) => setFooterByBureau((prev) => ({ ...prev, [b]: html }))}
-                                placeholder="Write the closing block here…"
+                                placeholder="Write the closing block hereâ€¦"
                                 minHeightPx={320}
                               />
                               <div className="text-[11px] text-white/40">
@@ -4209,10 +4511,10 @@ useEffect(() => {
                                                     >
                                                       <div className="min-w-0">
                                                         <div className="text-white font-semibold truncate">
-                                                          {s.candidate.account} — {s.candidate.type}
+                                                          {s.candidate.account} â€” {s.candidate.type}
                                                         </div>
                                                         <div className="mt-1 text-[10px] uppercase tracking-widest text-white/40">
-                                                          code: {s.candidate.code} • request: {s.candidate.status}
+                                                          code: {s.candidate.code} â€¢ request: {s.candidate.status}
                                                         </div>
                                                       </div>
 
@@ -4280,6 +4582,7 @@ useEffect(() => {
                                 subjectLine={(subjectLineByBureau[b] || '').trim() || SUBJECT_LINE}
                                 introHtml={ensureHtmlDraft(introHtml || '')}
                                 footerHtml={ensureHtmlDraft(footerHtml || '')}
+                                round={round}
                                 items={items.map((s) => {
                                   const evId = evidenceByCandidateId[s.key];
                                   const ev = evId ? evidence.find((x) => x.id === evId) : null;
@@ -4314,10 +4617,10 @@ useEffect(() => {
                                 <div className="fc-light-glass-panel fc-light-chrome-panel p-5 space-y-4">
                                   <div className="text-[10px] uppercase tracking-widest text-white/40">Focused item</div>
                                   <div className="text-white font-semibold">
-                                    {focused.candidate.account} — {focused.candidate.type}
+                                    {focused.candidate.account} â€” {focused.candidate.type}
                                   </div>
                                   <div className="text-[10px] uppercase tracking-widest text-white/40">
-                                    code: {focused.candidate.code} • request: {focused.candidate.status}
+                                    code: {focused.candidate.code} â€¢ request: {focused.candidate.status}
                                   </div>
 
                                   <div className="flex flex-wrap items-center gap-2">
@@ -4622,8 +4925,8 @@ useEffect(() => {
                                       </div>
                                     </div>
                                     <div className="text-white/60 text-sm">
-                                      Write the dispute in your own words. This is what you use when you don’t want to attach a screenshot.
-                                      {narrative.trim() ? ' (AI draft is already filled in — edit as needed.)' : null}
+                                      Write the dispute in your own words. This is what you use when you donâ€™t want to attach a screenshot.
+                                      {narrative.trim() ? ' (AI draft is already filled in â€” edit as needed.)' : null}
                                     </div>
                                     <textarea
                                       value={narrative}
@@ -4634,7 +4937,7 @@ useEffect(() => {
                                         }))
                                       }
                                       rows={5}
-                                      placeholder="Example: This account is reporting inaccurately. Please reinvestigate and provide the method of verification. If it cannot be verified, delete or correct it…"
+                                      placeholder="Example: This account is reporting inaccurately. Please reinvestigate and provide the method of verification. If it cannot be verified, delete or correct itâ€¦"
                                       className="w-full rounded-xl border border-white/[0.08] bg-black/40 px-4 py-3 text-white/80 text-sm leading-relaxed placeholder:text-white/30 focus:outline-none focus:border-amber-500/60"
                                     />
                                   </div>
@@ -4679,7 +4982,7 @@ useEffect(() => {
                             'Generate PDF and save it to Letters Vault'
                           }
                         >
-                          <PenLine size={14} /> {busy ? 'Generating…' : 'Generate PDF + Save'}
+                          <PenLine size={14} /> {busy ? 'Generatingâ€¦' : 'Generate PDF + Save'}
                         </button>
                       </div>
                     </div>
@@ -4755,13 +5058,23 @@ useEffect(() => {
                   });
                 }}
               />
+
+              <section className="rounded-2xl border border-violet-500/20 bg-black/30 p-5 sm:p-6 space-y-3">
+                <div>
+                  <h3 className="text-sm font-semibold text-white">Dispute letter coach</h3>
+                  <p className="mt-1 text-xs text-white/55">
+                    Full-width help with reasons, evidence, and 5-step framing — not squeezed into a side panel.
+                  </p>
+                </div>
+                <LetterDisputeCoachStrip bureau={workspaceBureau} partnerId={partner.id} />
+              </section>
             </div>
 
             <LetterEscalationPanel track="bureau_dispute" accent="sky" />
           </EntitlementGate>
         )}
 
-        {(tab === 'validation' || tab === 'court') && (
+        {tab === 'validation' && (
           <EntitlementGate
             partnerId={partner.id}
             requiredKeys={[ENTITLEMENT_KEYS.debt]}
@@ -4778,146 +5091,134 @@ useEffect(() => {
               ) : null
             }
           >
-            <div className="space-y-6">
-              {!debtCenterMode ? <div className="rounded-[2rem] border border-amber-500/20 bg-gradient-to-br from-amber-500/15 via-white/[0.04] to-violet-500/10 p-6 overflow-hidden">
-                <div className="grid lg:grid-cols-12 gap-5 items-start">
-                  <div className="lg:col-span-7">
-                    <div className="text-[10px] uppercase tracking-[0.28em] text-amber-200 font-black">Debt Removal Center</div>
-                    <h2 className="mt-3 text-3xl md:text-4xl font-black text-white tracking-tight">
-                      {tab === 'validation' ? 'Force proof before they collect.' : 'Build the affidavit and court-defense record.'}
-                    </h2>
-                    <p className="mt-3 text-white/65 leading-relaxed max-w-3xl">
-                      {tab === 'validation'
-                        ? 'Validation specializes in FDCPA proof demands, licensing, ownership/servicing authority, itemized accounting, chain of title, and credit reporting challenges.'
-                        : 'Affidavit/Court specializes in sworn dispute posture, burden of proof, SOL, contract formation, standing/authority, UCC where applicable, and summons-response discipline.'}
-                    </p>
-                  </div>
-                  <div className="lg:col-span-5 grid sm:grid-cols-2 gap-3">
-                    <button
-                      type="button"
-                      onClick={() => setTab('validation')}
-                      className={`rounded-2xl border p-4 text-left transition ${tab === 'validation' ? 'border-amber-400/40 bg-amber-500/15' : 'border-white/10 bg-black/25 hover:bg-white/[0.04]'}`}
-                    >
-                      <div className="text-white font-black">Validation path</div>
-                      <div className="mt-2 text-xs text-white/55 leading-relaxed">Collectors, debt buyers, licensing, accounting, authority, reporting.</div>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setTab('court')}
-                      className={`rounded-2xl border p-4 text-left transition ${tab === 'court' ? 'border-violet-400/40 bg-violet-500/15' : 'border-white/10 bg-black/25 hover:bg-white/[0.04]'}`}
-                    >
-                      <div className="text-white font-black">Affidavit path</div>
-                      <div className="mt-2 text-xs text-white/55 leading-relaxed">Summons, sworn record, burden of proof, SOL, no contract, standing.</div>
-                    </button>
-                  </div>
-                </div>
-              </div> : null}
+            <ValidationCenterView
+              {...debtCenterSharedProps}
+              partner={partner}
+              showPathSwitcher
+              onSwitchToCourt={() => setTab('court')}
+              onSwitchToBankruptcy={() => setTab('bankruptcy')}
+              onBuildDraft={(specId) => buildDebtCenterDraft(specId, false)}
+              onBuildCatalogDraft={(id) => buildCatalogDraft(id, 'validation')}
+            />
+          </EntitlementGate>
+        )}
 
-              <div className="rounded-2xl border border-white/[0.08] bg-black/30 p-6 space-y-4">
-                <div className="text-[10px] uppercase tracking-widest text-white/40">Context</div>
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Debt / summons case</label>
-                    <select
-                      value={debtId}
-                      onChange={(e) => setDebtId(e.target.value)}
-                      className="mt-2 w-full bg-black/40 border border-white/[0.08] rounded-xl px-4 py-3 text-white/80 focus:outline-none focus:border-amber-500 transition-colors"
-                    >
-                      {debtCases.length === 0 ? <option value="">No cases yet</option> : null}
-                      {debtCases.map((d) => (
-                        <option key={d.id} value={d.id}>
-                          {d.name} • {d.type}
-                        </option>
-                      ))}
-                    </select>
-                    <div className="mt-2 text-[11px] text-white/40">
-                      Manage cases in{' '}
-                      <button type="button" className="text-amber-300 hover:text-amber-200 underline" onClick={() => openDebtCenter()}>
-                        Debt & Summons Center
-                      </button>
-                      .
-                    </div>
-                  </div>
-                  <div>
-                    <div className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Recommended scenario</div>
-                    <div className="mt-2 fc-light-glass-panel fc-light-chrome-panel rounded-xl p-4">
-                      <div className="text-white font-semibold">{String(recommendedScenario).replaceAll('_', ' ')}</div>
-                      <div className="mt-2 text-white/60 text-sm">
-                        {SCENARIO_RECOMMENDATIONS.find((r) => r.scenario === (recommendedScenario as DebtScenario))?.description ??
-                          'Pick the best-fit letter for your situation.'}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
+        {tab === 'court' && (
+          <EntitlementGate
+            partnerId={partner.id}
+            requiredKeys={[ENTITLEMENT_KEYS.debt]}
+            hideBillingCta={layout === 'embedded'}
+            lockedActions={
+              layout === 'embedded' && onRequestGrantEntitlements ? (
+                <button
+                  type="button"
+                  onClick={() => onRequestGrantEntitlements([ENTITLEMENT_KEYS.debt])}
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-white/[0.08] bg-white/5 hover:bg-white/10 text-[10px] font-black uppercase tracking-widest text-white/70 transition-all"
+                >
+                  Grant access
+                </button>
+              ) : null
+            }
+          >
+            <AffidavitCourtCenterView
+              {...debtCenterSharedProps}
+              partner={partner}
+              showPathSwitcher
+              onSwitchToValidation={() => setTab('validation')}
+              onSwitchToBankruptcy={() => setTab('bankruptcy')}
+              onBuildDraft={(specId) => buildDebtCenterDraft(specId, true)}
+              onBuildCatalogDraft={(id) => buildCatalogDraft(id, 'court')}
+              selectedSummonsDocId={selectedSummonsDocId}
+              onSummonsDocChange={setSelectedSummonsDocId}
+              summonsDocCount={processedDocuments.filter((d) => {
+                const t = String(d.docType || '').toLowerCase();
+                return t.includes('summons') || t.includes('complaint');
+              }).length}
+            />
+          </EntitlementGate>
+        )}
 
-              <DebtCreditorIntelPanel
-                partnerId={partner.id}
-                debt={debt}
-                reports={reports}
-                processedDocuments={processedDocuments}
-                mode={tab === 'court' ? 'court' : 'validation'}
-                senderFields={{
-                  fullName: senderName || canonicalIdentity.fullName || '',
-                  address1: senderAddressLine1 || canonicalIdentity.address1 || canonicalIdentity.addressLine1 || '',
-                  address2: senderAddressLine2 || canonicalIdentity.address2 || '',
-                  city: canonicalIdentity.city || '',
-                  state: canonicalIdentity.state || '',
-                  postalCode: canonicalIdentity.postalCode || '',
-                  phone: canonicalIdentity.phone || '',
-                  email: partner.profile.email || '',
-                }}
-                onDebtChange={handleDebtIntelChange}
-                onSenderPersist={persistDebtSenderSnapshot}
-                selectedSummonsDocId={selectedSummonsDocId ?? undefined}
-                onSummonsDocChange={setSelectedSummonsDocId}
-              />
+        {tab === 'foreclosure' && (
+          <EntitlementGate
+            partnerId={partner.id}
+            requiredKeys={[ENTITLEMENT_KEYS.debt]}
+            hideBillingCta={layout === 'embedded'}
+            lockedActions={
+              layout === 'embedded' && onRequestGrantEntitlements ? (
+                <button
+                  type="button"
+                  onClick={() => onRequestGrantEntitlements([ENTITLEMENT_KEYS.debt])}
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-white/[0.08] bg-white/5 hover:bg-white/10 text-[10px] font-black uppercase tracking-widest text-white/70 transition-all"
+                >
+                  Grant access
+                </button>
+              ) : null
+            }
+          >
+            <ForeclosureCenterView
+              {...debtCenterSharedProps}
+              partner={partner}
+              onSwitchToValidation={() => setTab('validation')}
+              onSwitchToRepossession={() => setTab('repossession')}
+              onBuildCatalogDraft={(id) => buildCatalogDraft(id, 'foreclosure')}
+            />
+          </EntitlementGate>
+        )}
 
-              <div className="rounded-2xl border border-white/[0.08] bg-black/30 p-6 space-y-4">
-                <div className="text-[10px] uppercase tracking-widest text-white/40">
-                  {tab === 'court' ? 'Build affidavit / court draft' : 'Build validation draft'}
-                </div>
-                <div className="grid md:grid-cols-2 gap-4">
-                  {DEBT_LETTER_SPECS.filter((s) => {
-                    const isCourt = s.id.includes('summons') || s.id.includes('answer') || s.id.includes('affidavit');
-                    return tab === 'court' ? isCourt : !isCourt;
-                  }).map((spec) => (
-                    <div key={spec.id} className="fc-light-glass-panel fc-light-chrome-panel p-5 space-y-3">
-                      <div className="text-white font-semibold">{spec.title}</div>
-                      <div className="text-white/60 text-sm">{spec.shortDescription}</div>
-                      <div className="flex flex-wrap items-center gap-2">
-                        <button
-                          type="button"
-                          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-500 text-black font-black uppercase tracking-widest text-[10px] hover:brightness-110 transition-all"
-                          onClick={() => {
-                            const isCourt = tab === 'court';
-                            persistDebtSenderSnapshot();
-                            const baseText = canSeeTemplates
-                              ? getLetterBody(spec.id, buildDebtLetterArgs())
-                              : `DATE: ${today}\n\nTO WHOM IT MAY CONCERN,\n\nI am writing regarding ${debt?.recipientName || debt?.name || 'this matter'}.\n\n[Write your request here.]\n\nSincerely,\n${canonicalIdentity.fullName}\n`;
-                            setDraft({ specId: spec.id, type: isCourt ? 'court' : 'validation', html: plainTextToHtml(baseText) });
-                          }}
-                          title="Build an editable draft and save it to your Letters Vault"
-                        >
-                          Build draft
-                        </button>
-                        {!canSeeTemplates ? (
-                          <div className="text-[11px] text-white/40">Template text hidden for privacy. (Paid DIY/course tiers unlock template browsing.)</div>
-                        ) : null}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
+        {tab === 'repossession' && (
+          <EntitlementGate
+            partnerId={partner.id}
+            requiredKeys={[ENTITLEMENT_KEYS.debt]}
+            hideBillingCta={layout === 'embedded'}
+            lockedActions={
+              layout === 'embedded' && onRequestGrantEntitlements ? (
+                <button
+                  type="button"
+                  onClick={() => onRequestGrantEntitlements([ENTITLEMENT_KEYS.debt])}
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-white/[0.08] bg-white/5 hover:bg-white/10 text-[10px] font-black uppercase tracking-widest text-white/70 transition-all"
+                >
+                  Grant access
+                </button>
+              ) : null
+            }
+          >
+            <RepossessionCenterView
+              {...debtCenterSharedProps}
+              partner={partner}
+              onSwitchToValidation={() => setTab('validation')}
+              onSwitchToForeclosure={() => setTab('foreclosure')}
+              onBuildCatalogDraft={(id) => buildCatalogDraft(id, 'repossession')}
+            />
+          </EntitlementGate>
+        )}
 
-              <DebtRemovalAdvisorPanel
-                mode={tab === 'court' ? 'court' : 'validation'}
-                scenario={recommendedScenario as DebtScenario}
-                debtName={debt?.name}
-              />
-
-              <LetterEscalationPanel track={tab === 'court' ? 'debt_court' : 'debt_validation'} accent={tab === 'court' ? 'violet' : 'amber'} />
-            </div>
+        {tab === 'bankruptcy' && (
+          <EntitlementGate
+            partnerId={partner.id}
+            requiredKeys={[ENTITLEMENT_KEYS.disputes]}
+            hideBillingCta={layout === 'embedded'}
+            lockedActions={
+              layout === 'embedded' && onRequestGrantEntitlements ? (
+                <button
+                  type="button"
+                  onClick={() => onRequestGrantEntitlements([ENTITLEMENT_KEYS.disputes])}
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-white/[0.08] bg-white/5 hover:bg-white/10 text-[10px] font-black uppercase tracking-widest text-white/70 transition-all"
+                >
+                  Grant access
+                </button>
+              ) : null
+            }
+          >
+            <BankruptcyLetterStudioPanel
+              partner={partner}
+              showPathSwitcher
+              onSwitchToValidation={() => setTab('validation')}
+              onSwitchToCourt={() => setTab('court')}
+              onSavedToVault={(letterId) => {
+                setDraftNotice(`Saved to Letters Vault (${letterId.slice(0, 8)}…).`);
+                openVault?.({ letterId });
+              }}
+            />
           </EntitlementGate>
         )}
 
@@ -4954,7 +5255,7 @@ useEffect(() => {
                     }}
                     onAttachFile={() => {
                       setTplSaveErr(null);
-                      setTplSaveErr('To attach a file template as an enclosure, open Validation/Court and click “Templates”.');
+                      setTplSaveErr('To attach a file template as an enclosure, open Validation/Court and click â€œTemplatesâ€.');
                     }}
                   />
 
@@ -5074,7 +5375,7 @@ useEffect(() => {
                     onChange={(e) => setTplText(e.target.value)}
                     rows={16}
                     className="w-full bg-black/40 border border-white/[0.08] rounded-2xl px-4 py-3 text-white/80 focus:outline-none focus:border-amber-500 transition-colors text-sm font-mono"
-                    placeholder="Pick a template to load text…"
+                    placeholder="Pick a template to load textâ€¦"
                   />
                   <div className="text-[11px] text-white/40">
                     {activeVaultTemplate ? (
@@ -5110,7 +5411,7 @@ useEffect(() => {
                           id: newId('letter'),
                           partnerId: partner.id,
                           type: tplSaveType,
-                          title: `${tplRendered.title} • template`,
+                          title: `${tplRendered.title} â€¢ template`,
                           createdAt,
                           body: `<pre style="white-space:pre-wrap;font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono','Courier New', monospace;">${tplText
                             .replaceAll('&', '&amp;')
@@ -5138,7 +5439,7 @@ useEffect(() => {
                     }}
                     className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-amber-500 text-black font-black uppercase tracking-widest text-[10px] hover:brightness-110 transition-all disabled:opacity-60 disabled:cursor-not-allowed"
                   >
-                    {tplSaveBusy ? 'Saving…' : 'Save to Letters Vault'} <ChevronRight size={16} />
+                    {tplSaveBusy ? 'Savingâ€¦' : 'Save to Letters Vault'} <ChevronRight size={16} />
                   </button>
                 </div>
 
@@ -5156,12 +5457,12 @@ useEffect(() => {
         {layout === 'embedded' ? (
           <details className="fc-light-glass-panel fc-light-chrome-panel p-4 mt-6">
             <summary className="cursor-pointer list-none flex flex-wrap items-center justify-between gap-3 [&::-webkit-details-marker]:hidden">
-              <div className="text-[10px] uppercase tracking-widest text-white/40">Customer journey · letter workflow</div>
+              <div className="text-[10px] uppercase tracking-widest text-white/40">Customer journey Â· letter workflow</div>
               <div className="text-[10px] font-black uppercase tracking-widest text-white/70">{restoreHud.pct}% complete</div>
             </summary>
             <div className="mt-4 space-y-3 border-t border-white/10 pt-4">
               <div className="text-white/60 text-sm max-w-5xl">
-                Workflow from report upload → saved PDF. Steps auto-complete from saved work.
+                Workflow from report upload â†’ saved PDF. Steps auto-complete from saved work.
               </div>
               <div className="flex flex-wrap gap-2">
                 {restoreHud.steps.map((s) => (
@@ -5203,7 +5504,7 @@ useEffect(() => {
           onApplyReason={(text) => {
             void navigator.clipboard?.writeText(text);
             setReasonsLibraryOpen(false);
-            setReturnNotice('Reason copied from Reasons OS — paste into the active dispute item.');
+            setReturnNotice('Reason copied from Reasons OS â€” paste into the active dispute item.');
           }}
         />
       ) : null}
@@ -5216,7 +5517,7 @@ useEffect(() => {
     <PageShell
       badge="Partner Portal"
       title="Letter Studio"
-      subtitle="Pick context → build a draft → edit → paper preview → save to Letters Vault."
+      subtitle="Pick context â†’ build a draft â†’ edit â†’ paper preview â†’ save to Letters Vault."
     >
       {main}
     </PageShell>

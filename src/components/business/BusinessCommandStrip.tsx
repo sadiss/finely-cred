@@ -68,7 +68,7 @@ export function BusinessCommandStrip({ partner }: Props) {
           label: 'Biz score',
           value: latestScore,
           accent: 'sky',
-          onClick: partner ? () => navigate('/business/documents') : undefined,
+          onClick: partner ? () => navigate('/business/bureaus') : undefined,
         },
         {
           id: 'vendors',

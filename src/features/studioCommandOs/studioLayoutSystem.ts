@@ -84,6 +84,15 @@ export function buildSurfaceKpis(surface: StudioUxSurface): StudioUxKpi[] {
   ];
 }
 
+export const STUDIO_CAPABILITY_DEPTH_RULES = [
+  'NEVER replace a department workspace with a template-card-only view — always keep Inbox, Compose, Sequences, Campaigns, and Settings (or surface equivalent).',
+  'NEVER cap template or capability lists at 60 items without pagination — show full counts in KPIs.',
+  'NEVER remove merge fields, compliance gates, dry-run, or channel options when simplifying layout.',
+  'Layout changes (decks, tabs, KPI rows) are allowed; capability removal is not.',
+  'If a studio tab would be empty, wire the underlying repo/seed — do not ship a placeholder.',
+  'Every admin studio must expose: search, filter, preview, and a primary action path to live send or install.',
+] as const;
+
 export const LONG_LIST_REPLACEMENT_RULES = [
   'Never show more than 8 dense records in one vertical stack without pagination, grouping, or a deck view.',
   'Every admin page should start with 3–5 KPI cards and one obvious primary action.',
@@ -91,7 +100,7 @@ export const LONG_LIST_REPLACEMENT_RULES = [
   'Automation canvases should have locked pan by default. Dragging requires a visible grab handle or edit mode toggle.',
   'Project galleries should use cards, carousels, and detail panels — not narrow side-by-side settings rails.',
   'Every destructive action needs trash/restore where practical; delete is a second-step confirmation.',
-];
+] as const;
 
 export const PRIMARY_ADMIN_ACTIONS = [
   { surface: 'media_studio', action: 'Generate video from prompt', owner: 'Content Director + Goldframe', output: '28-sec storyboard + scene visuals + render plan' },

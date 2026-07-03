@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Background, Controls, MiniMap, Panel, ReactFlow, addEdge, useEdgesState, useNodesState, type Connection, type Edge, type Node } from '@xyflow/react';
+import { Background, Controls, MiniMap, Panel, ReactFlow, ReactFlowProvider, addEdge, useEdgesState, useNodesState, type Connection, type Edge, type Node } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { GitBranch, Hourglass, Play, Plus, Save, SplitSquareHorizontal, Target, Trash2, Zap } from 'lucide-react';
 import type { AutomationFlowGraph, AutomationRule, AutomationTrigger } from '../../domain/automationStudio';
@@ -63,6 +63,14 @@ type Props = {
 };
 
 export function AutomationStudioShell({ rule, onRuleChange, onDelete, height = 680 }: Props) {
+  return (
+    <ReactFlowProvider>
+      <AutomationStudioShellInner rule={rule} onRuleChange={onRuleChange} onDelete={onDelete} height={height} />
+    </ReactFlowProvider>
+  );
+}
+
+function AutomationStudioShellInner({ rule, onRuleChange, onDelete, height = 680 }: Props) {
   const initial = useMemo(() => ruleToFlowGraph(rule), [rule.id, rule.updatedAt]);
   const [nodes, setNodes, onNodesChange] = useNodesState(initial.nodes.map(flowNodeToRf));
   const [edges, setEdges, onEdgesChange] = useEdgesState(initial.edges);

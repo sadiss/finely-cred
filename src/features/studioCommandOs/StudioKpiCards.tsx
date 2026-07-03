@@ -29,12 +29,38 @@ export function StudioActionDeck<T extends { id: string; title: string; summary?
   activeId,
   onSelect,
   renderMeta,
+  variant = 'horizontal',
 }: {
   items: T[];
   activeId?: string | null;
   onSelect?: (item: T) => void;
   renderMeta?: (item: T) => React.ReactNode;
+  variant?: 'horizontal' | 'vertical';
 }) {
+  if (variant === 'vertical') {
+    return (
+      <div className="space-y-3">
+        {items.map((item) => {
+          const active = item.id === activeId;
+          return (
+            <button
+              key={item.id}
+              type="button"
+              onClick={() => onSelect?.(item)}
+              className={`w-full text-left rounded-3xl border p-5 transition-all ${
+                active ? 'border-amber-400/40 bg-amber-500/10 shadow-lg shadow-amber-500/5' : 'border-white/10 bg-white/[0.035] hover:bg-white/[0.06]'
+              }`}
+            >
+              <div className="text-white font-black leading-tight">{item.title}</div>
+              {item.summary ? <div className="mt-3 text-sm text-white/60 leading-relaxed">{item.summary}</div> : null}
+              {renderMeta ? <div className="mt-4">{renderMeta(item)}</div> : null}
+            </button>
+          );
+        })}
+      </div>
+    );
+  }
+
   return (
     <div className="overflow-x-auto pb-2">
       <div className="flex gap-4 min-w-full">

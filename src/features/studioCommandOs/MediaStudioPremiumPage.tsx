@@ -6,8 +6,8 @@ export function MediaStudioPremiumPage() {
   return (
     <PageShell
       badge="Admin"
-      title="Content Studio Department"
-      subtitle="Professional production floor for research, scripts, design, voice, video, e-books, assets, reviews, and publishing across Finely Cred."
+      title="Content Studio"
+      subtitle="Super video generator, research, scripts, design, voice, e-books, review, and publish bridges."
       back={{ to: -1 }}
     >
       <ContentStudioDepartmentPage />

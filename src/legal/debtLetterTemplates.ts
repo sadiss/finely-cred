@@ -5,6 +5,17 @@
  */
 
 import type { DebtLetterSpec, LegalCitation, ScenarioRecommendation } from '../domain/debtLegal';
+import {
+  toLitigationLetterArgs,
+  getLitigationValidationCeaseDesistBody,
+  getLitigationAssignmentRegistryBody,
+  getLitigationDiscoveryRequestsBody,
+  getLitigationMotionToCompelBody,
+  getLitigationBankAffidavitBody,
+  getLitigationDebtBuyerAffidavitBody,
+} from './litigation';
+import type { DebtLetterBuildArgs } from './debtLetterBuildArgs';
+import { getAffidavitOfDisputeBody, getSummonsResponseAffidavitBody } from './debtAffidavitBodies';
 
 const FDCPA_809: LegalCitation = {
   category: 'consumer_protection',
@@ -60,6 +71,12 @@ const TILA_ACCOUNTING: LegalCitation = {
   shortName: 'TILA / Reg Z accounting',
   description: 'Account-level charges, interest, fees, credits, and payments must be accurately calculated and disclosed where applicable.',
 };
+const FDCPA_1692E: LegalCitation = {
+  category: 'consumer_protection',
+  cite: '15 U.S.C. § 1692e',
+  shortName: 'FDCPA § 1692e',
+  description: 'Prohibits false or misleading representations in debt collection; § 1692e(11) addresses debt-collector disclosure language (with pleading exceptions).',
+};
 
 export const DEBT_LETTER_SPECS: DebtLetterSpec[] = [
   {
@@ -89,6 +106,84 @@ export const DEBT_LETTER_SPECS: DebtLetterSpec[] = [
     contractLawAngle: 'A partial packet does not prove formation, assignment, amount, or present authority. This letter identifies deficiencies and preserves the record.',
     bankingLawAngle: 'Round 2 attacks missing accounting, sale/assignment credits, servicing authority, ledger gaps, and unsupported fees/interest.',
     keyPrinciple: 'A response is not validation just because documents were sent. They must answer the account-level proof demands.',
+  },
+  {
+    id: 'post_suit_validation_demand',
+    title: 'Validation & Cease (Post-Suit / Mini-Miranda)',
+    shortDescription: 'Full validation + cease letter when lawsuit uses debt-collector disclosure language.',
+    whenToUse: [
+      'After you are sued but before or alongside your answer',
+      'When summons/complaint pages include mini-Miranda or debt-collector disclosure text',
+      'When plaintiff has not produced original agreement, ledger, or account-level assignments',
+    ],
+    legalBasis: [FDCPA_809, FDCPA_1692E, FCRA_623, BEST_EVIDENCE, STATE_COLLECTION_LICENSE],
+    contractLawAngle: 'Litigation does not replace validation. Demand account-level proof of contract, amount, ownership, and authority before treating the claim as verified.',
+    bankingLawAngle: 'Include securitization/assignment questions as accounting and ownership proof — who receives payments, whether account was pooled, and whether plaintiff owns the receivable or only services it.',
+    keyPrinciple: 'Put the collector/plaintiff to proof on the same validation items while preserving defenses and discovery rights.',
+  },
+  {
+    id: 'assignment_chain_demand',
+    title: 'Assignment Registry Demand (Originator)',
+    shortDescription: 'Demand complete assignment registry from originator/servicer when debt buyer sues without chain of title.',
+    whenToUse: [
+      'When a debt buyer or law firm sues without showing how the account moved from the originator',
+      'When validation responses omit exhibit-level assignment schedules',
+      'Before or during discovery to fill gaps in the bill of sale',
+    ],
+    legalBasis: [FDCPA_809, BEST_EVIDENCE, CONTRACT_CONSIDERATION, UCC_3308],
+    contractLawAngle: 'Assignments of receivables must be proven with writings that identify this account. A pool bill of sale without account-level schedule is a common deficiency.',
+    bankingLawAngle: 'Loan program agreements often require a registry of assignments. Demand custodian records, redacted schedules sufficient to identify your account, and all transfers to/from trusts or SPVs.',
+    keyPrinciple: 'Force disclosure of the complete chain from originator to current claimant — not a generic portfolio sale summary.',
+  },
+  {
+    id: 'defendant_discovery_requests',
+    title: 'Defendant Discovery (RFAs / Interrogatories / RFPs)',
+    shortDescription: 'Full discovery set — securitization, mini-Miranda, assignments, payment proof, account-level documents.',
+    whenToUse: [
+      'After answer filed in collection lawsuit',
+      'When plaintiff attached no contract or generic bill of sale',
+      'To build record on standing, securitization, and FDCPA pleadings',
+    ],
+    legalBasis: [FDCPA_1692E, BEST_EVIDENCE, CONTRACT_CONSIDERATION, UCC_3308, STATE_SOL],
+    contractLawAngle: 'Discovery forces plaintiff to produce account-level agreement, assignment chain, and payment history — not pool summaries.',
+    bankingLawAngle: 'Interrogatories and RFPs target securitization trusts, servicing splits, and EDGAR-verifiable ownership claims.',
+    keyPrinciple: 'Continuing discovery under local rules; supplement when plaintiff admits securitization but withholds assignments.',
+  },
+  {
+    id: 'motion_to_compel_discovery',
+    title: 'Motion to Compel Discovery',
+    shortDescription: 'Motion when plaintiff gives evasive discovery responses or ignores supplementation on assignments.',
+    whenToUse: [
+      'After deficient discovery responses',
+      'When plaintiff admits securitization but withholds trust assignments',
+      'Before trial on standing / account stated theories',
+    ],
+    legalBasis: [BEST_EVIDENCE, CONTRACT_CONSIDERATION, FDCPA_1692E],
+    keyPrinciple: 'Court should compel account-level assignment proof and non-evasive answers before trial.',
+  },
+  {
+    id: 'affidavit_litigation_bank',
+    title: 'Affidavit of Dispute (Bank Plaintiff)',
+    shortDescription: 'Sworn affidavit with STATE/COUNTY caption, § 1746, plaintiff, law firm, mini-Miranda, validation demand.',
+    whenToUse: [
+      'Bank or creditor plaintiff with debt-collector language on summons',
+      'Account stated complaint with no contract attached',
+      'Support answer, motion, or counterclaim',
+    ],
+    legalBasis: [CONTRACT_CONSIDERATION, FDCPA_809, FDCPA_1692E, BEST_EVIDENCE],
+    keyPrinciple: 'Puts sworn record on standing, validation, and FDCPA pleading inconsistencies.',
+  },
+  {
+    id: 'affidavit_litigation_debt_buyer',
+    title: 'Affidavit of Dispute (Debt Buyer / Velocity)',
+    shortDescription: 'Sworn affidavit attacking bill of sale, missing Exhibit A, broken Cross River/Upstart chain.',
+    whenToUse: [
+      'Debt buyer lawsuit with pool bill of sale',
+      'Missing loan program agreement or exhibit schedule',
+      'Velocity, PRA, or similar fact patterns',
+    ],
+    legalBasis: [CONTRACT_CONSIDERATION, UCC_3308, BEST_EVIDENCE],
+    keyPrinciple: 'Sworn attack on chain of title gaps — account must be identified in assignments.',
   },
   {
     id: 'validation_round3_final_demand',
@@ -197,7 +292,15 @@ export const SCENARIO_RECOMMENDATIONS: ScenarioRecommendation[] = [
     scenario: 'summons_served',
     label: 'Summons / complaint served',
     description: 'You have been served with a lawsuit. You must answer before the deadline (e.g. 20–35 days).',
-    recommendedLetterTypes: ['summons_response_affidavit', 'affidavit_of_dispute'],
+    recommendedLetterTypes: [
+      'summons_response_affidavit',
+      'affidavit_litigation_bank',
+      'affidavit_litigation_debt_buyer',
+      'post_suit_validation_demand',
+      'assignment_chain_demand',
+      'defendant_discovery_requests',
+      'motion_to_compel_discovery',
+    ],
     legalWarning: 'Answer deadlines are often jurisdictional. Missing the deadline can result in default judgment. File an answer and assert your defenses (SOL, no contract, lack of standing).',
   },
   {
@@ -211,7 +314,7 @@ export const SCENARIO_RECOMMENDATIONS: ScenarioRecommendation[] = [
     scenario: 'post_validation',
     label: 'After validation request',
     description: 'You sent validation; they responded or did not. You still dispute or want contact to stop.',
-    recommendedLetterTypes: ['validation_round2_deficiency', 'validation_round3_final_demand', 'debt_dispute_letter', 'cease_and_desist', 'affidavit_of_dispute'],
+    recommendedLetterTypes: ['validation_round2_deficiency', 'validation_round3_final_demand', 'assignment_chain_demand', 'debt_dispute_letter', 'cease_and_desist', 'affidavit_of_dispute'],
   },
   {
     scenario: 'unknown',
@@ -468,6 +571,8 @@ Sincerely,
 ${args.debtorName}`;
 }
 
+export type { DebtLetterBuildArgs } from './debtLetterBuildArgs';
+
 export function getTimeBarredResponseBody(args: {
   creditorName: string;
   debtorName: string;
@@ -498,115 +603,6 @@ Cease and desist from further collection efforts on this time-barred debt.
 Sincerely,
 
 ${args.debtorName}`;
-}
-
-export function getAffidavitOfDisputeBody(args: { debtorName: string; date: string; creditorOrPlaintiff: string }): string {
-  return `AFFIDAVIT OF DISPUTE
-
-I, ${args.debtorName}, being duly sworn, state under penalty of perjury:
-
-1. I am the consumer/affiant named above. I make this affidavit from personal knowledge, review of my records, and lack of sufficient verified evidence supplied by the claimant or collector regarding the alleged matter concerning ${args.creditorOrPlaintiff}.
-
-2. I dispute the alleged debt, the amount claimed, the account history, the ownership or assignment chain, and the alleged right of the claimant or collector to collect the amount demanded.
-
-3. I have not been provided with a complete original contract, signed application, cardholder agreement, promissory note, or account-level agreement establishing the exact terms claimed against me.
-
-4. I have not been provided with a complete itemized accounting from account opening through the present claimed balance. I have not been shown how the claimed principal, interest, fees, costs, credits, refunds, charge-off entries, sale credits, insurance recoveries, setoffs, settlements, or other adjustments were calculated.
-
-5. I have not been provided with a complete chain of title showing how this specific account allegedly moved from the original creditor to the current claimant, debt buyer, servicer, collection agency, or law firm.
-
-6. I have not been provided with account-level assignment schedules or documents sufficient to identify this specific account as one that was transferred to the current claimant.
-
-7. I have not been provided with a written servicing agreement, agency authorization, placement letter, power of attorney, or other documentation establishing that the party contacting me has present authority to collect this specific account.
-
-8. I have not been provided with proof that the collector or claimant is licensed, bonded, registered, or otherwise authorized to collect consumer debt in my state if such licensing or registration is required.
-
-9. I have not been provided with a sworn statement from a person with first-hand or business-record knowledge who can certify the accuracy of the alleged account records, balance, assignment chain, and authority to collect.
-
-10. I have not been provided with proof that the alleged amount demanded accurately accounts for all payments, credits, adjustments, refunds, charge-offs, sale proceeds, insurance proceeds, settlements, recoveries, or setoffs.
-
-11. I deny that a mere statement, printout, bill of sale without account-level schedule, screenshot, spreadsheet, or summary balance is sufficient to prove the alleged obligation, amount, ownership, or right to collect.
-
-12. I deny that the claimant or collector has met the burden of proof necessary to treat the alleged debt as valid, enforceable, collectible, or reportable.
-
-13. I do not admit liability for the alleged debt. I do not admit the accuracy of the amount claimed. I do not admit that the claimant owns the account. I do not admit that the collector has authority to collect.
-
-14. I reserve all rights, claims, defenses, objections, and remedies available under applicable federal and state law, including but not limited to consumer protection, credit reporting, debt collection, contract, evidence, and civil procedure law.
-
-15. Under applicable contract law, the party asserting a claim must prove contract formation, terms, breach, amount, and damages. I dispute that those elements have been established.
-
-16. Under burden-of-proof and best-evidence principles, the party asserting a claim must produce competent account-level evidence, not unsupported summaries.
-
-17. Where a negotiable instrument or holder/enforcement theory is claimed, I dispute the claimant’s right to enforce unless it proves the signature, holder status, assignment, and authority required under applicable law, including UCC principles where applicable.
-
-18. If the alleged account has been sold, assigned, pooled, transferred, insured, credited, charged off, or otherwise handled by third parties, I demand that those facts be disclosed and accounted for in the claimed balance and authority to collect. I am not stating that transfer alone extinguishes an obligation; I am stating that ownership, servicing authority, and accurate accounting must be proven.
-
-19. If this matter is being reported to any consumer reporting agency, I dispute the reporting as inaccurate, incomplete, unsupported, and not properly validated.
-
-20. This affidavit is intended to preserve my dispute, document lack of validation, and put the claimant or collector to strict proof of every element of the alleged claim.
-
-21. The foregoing is true and correct to the best of my knowledge and belief.
-
-_________________________ (Signature)
-${args.debtorName}
-Date: ${args.date}`;
-}
-
-export function getSummonsResponseAffidavitBody(args: {
-  debtorName: string;
-  date: string;
-  caseNumber?: string;
-  plaintiffName: string;
-  courtName?: string;
-  amountClaimed?: string;
-  dateServed?: string;
-  jurisdictionState?: string;
-  collectorName?: string;
-  documentFacts?: string[];
-}): string {
-  const factsBlock =
-    args.documentFacts && args.documentFacts.length
-      ? `\n\nDOCUMENT FACTS READ FROM UPLOADED SUMMONS/COMPLAINT:\n${args.documentFacts.map((f) => `- ${f}`).join('\n')}\n`
-      : '';
-  const courtLine = args.courtName ? ` in ${args.courtName}` : '';
-  const servedLine = args.dateServed ? ` I was served on or about ${args.dateServed}.` : '';
-  const amountLine = args.amountClaimed ? ` The complaint claims ${args.amountClaimed}.` : '';
-  const stateLine = args.jurisdictionState ? ` This matter is in ${args.jurisdictionState}.` : '';
-  const collectorLine = args.collectorName && args.collectorName !== args.plaintiffName
-    ? ` The collecting entity identified is ${args.collectorName}.`
-    : '';
-
-  return `AFFIDAVIT IN SUPPORT OF ANSWER / DEFENSES
-
-I, ${args.debtorName}, being duly sworn, state under penalty of perjury:
-
-1. I have been served with a summons and complaint${courtLine}${args.caseNumber ? ` bearing case number ${args.caseNumber}` : ''}, in which ${args.plaintiffName} is the plaintiff.${servedLine}${amountLine}${stateLine}${collectorLine}
-
-2. I dispute the claim in its entirety. I do not admit the existence of a valid contract, the amount claimed, the plaintiff's ownership of the account, the plaintiff's right to collect, or the accuracy of any documents or summaries attached to the complaint.
-
-3. I assert the following defenses, among others as may apply: statute of limitations, lack of contract formation, lack of consideration, lack of standing or authority, failure to prove chain of assignment, failure to validate upon request, inaccurate amount, failure to prove damages, failure to state a claim, and lack of competent business records.
-
-4. I deny that the plaintiff has provided a complete original agreement, complete itemized ledger, complete payment history, complete assignment chain, or sworn testimony from a competent witness with personal or business-record knowledge.
-
-5. I deny that a generic bill of sale, affidavit template, spreadsheet, charge-off statement, or account summary alone proves the alleged account, amount, assignment, or right to sue.
-
-6. I dispute any claimed interest, fees, attorney fees, collection costs, or post-charge-off charges unless the plaintiff proves the contractual or statutory basis for each amount and shows those amounts in a complete ledger.
-
-7. I dispute the plaintiff's standing and demand proof of the current owner, prior owners, assignment dates, purchase/placement dates, servicing authority, and the account-level schedule showing this specific account.
-
-8. I dispute the plaintiff's authority to collect or sue if required debt collection licensing, registration, bonding, or attorney authority is missing, expired, or not proven.
-
-9. I dispute the accuracy of any credit reporting or collection record connected to this matter unless the plaintiff or collector proves the account-level facts and correct reporting basis.
-
-10. I reserve all rights to raise additional defenses, counterclaims, objections to evidence, discovery requests, motions, and challenges to any affidavit, business record, assignment, or witness statement submitted by the plaintiff.
-
-11. I request that the plaintiff be required to prove every element of its claim with admissible evidence, including contract, breach, ownership, amount, authority, standing, and damages.
-
-12. The foregoing is true and correct to the best of my knowledge and belief.${factsBlock}
-
-_________________________ (Signature)
-${args.debtorName}
-Date: ${args.date}`;
 }
 
 export function getCeaseAndDesistBody(args: {
@@ -717,31 +713,9 @@ export function recommendScenarioFromDebt(debt: {
 
 export function getLetterBody(
   letterType: import('../domain/debtLegal').DebtLetterType,
-  args: {
-    creditorName: string;
-    debtorName: string;
-    date: string;
-    caseNumber?: string;
-    stateNote?: string;
-    debtorAddress1?: string;
-    debtorAddress2?: string;
-    debtorCity?: string;
-    debtorState?: string;
-    debtorPostalCode?: string;
-    debtorPhone?: string;
-    debtorEmail?: string;
-    recipientName?: string;
-    recipientAddress?: string;
-    summonsContext?: {
-      courtName?: string;
-      amountClaimed?: string;
-      dateServed?: string;
-      jurisdictionState?: string;
-      collectorName?: string;
-      documentFacts?: string[];
-    };
-  }
+  args: DebtLetterBuildArgs,
 ): string {
+  const litigation = toLitigationLetterArgs(args);
   switch (letterType) {
     case 'validation_request':
       return getValidationRequestBody(args);
@@ -749,10 +723,24 @@ export function getLetterBody(
       return getValidationRound2DeficiencyBody(args);
     case 'validation_round3_final_demand':
       return getValidationRound3FinalDemandBody(args);
+    case 'post_suit_validation_demand':
+      return getLitigationValidationCeaseDesistBody(litigation);
+    case 'assignment_chain_demand':
+      return getLitigationAssignmentRegistryBody(litigation);
+    case 'defendant_discovery_requests':
+      return getLitigationDiscoveryRequestsBody(litigation);
+    case 'motion_to_compel_discovery':
+      return getLitigationMotionToCompelBody(litigation);
+    case 'affidavit_litigation_bank':
+    case 'affidavit_parker_litigation':
+      return getLitigationBankAffidavitBody(litigation);
+    case 'affidavit_litigation_debt_buyer':
+    case 'affidavit_parker_velocity':
+      return getLitigationDebtBuyerAffidavitBody(litigation);
     case 'time_barred_response':
       return getTimeBarredResponseBody(args);
     case 'affidavit_of_dispute':
-      return getAffidavitOfDisputeBody({ debtorName: args.debtorName, date: args.date, creditorOrPlaintiff: args.creditorName });
+      return getAffidavitOfDisputeBody(args);
     case 'summons_response_affidavit':
       return getSummonsResponseAffidavitBody({
         debtorName: args.debtorName,
@@ -765,6 +753,10 @@ export function getLetterBody(
         jurisdictionState: args.summonsContext?.jurisdictionState,
         collectorName: args.summonsContext?.collectorName,
         documentFacts: args.summonsContext?.documentFacts,
+        plaintiffLawFirm: args.plaintiffLawFirm,
+        plaintiffLawFirmAddress: args.plaintiffLawFirmAddress,
+        debtorState: args.debtorState,
+        affidavitCounty: args.affidavitCounty,
       });
     case 'cease_and_desist':
       return getCeaseAndDesistBody(args);

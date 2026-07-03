@@ -13,6 +13,7 @@ import {
   FINELY_OS_VIEW_TABS,
   finelyOsCatalogCard,
   finelyOsViewTab,
+  finelyOsHubTab,
   type FinelyOsPublicAccent,
 } from '../os/finelyOsLightUi';
 
@@ -44,6 +45,10 @@ type Props = {
   /** Collapsible “More detail” slot — keeps primary view calm */
   detailSlot?: React.ReactNode;
   detailLabel?: string;
+  /** Skip inner content card — use when child is already a full workstation shell */
+  contentVariant?: 'card' | 'flush';
+  /** Wider, readable tab buttons */
+  tabDensity?: 'default' | 'comfortable';
 };
 
 function hubCatalogAccent(accent: Props['accent'] = 'emerald'): FinelyOsPublicAccent {
@@ -65,6 +70,8 @@ export function FinelyUnifiedHubLayout({
   children,
   detailSlot,
   detailLabel = 'More detail',
+  contentVariant = 'card',
+  tabDensity = 'default',
 }: Props) {
   const [detailOpen, setDetailOpen] = useState(false);
   const tabId = activeTab ?? tabs?.[0]?.id;
@@ -111,8 +118,8 @@ export function FinelyUnifiedHubLayout({
       </div>
 
       {tabs?.length && onTabChange ? (
-        <div className="-mx-1 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          <div className={`${FINELY_OS_VIEW_TABS} min-w-max sm:min-w-0`} role="tablist">
+        <div className="-mx-1 overflow-x-auto pb-1 [scrollbar-width:thin]">
+          <div className={`${FINELY_OS_VIEW_TABS} ${tabDensity === 'comfortable' ? 'gap-2.5' : ''} min-w-max`} role="tablist">
             {tabs.map((t) => (
               <button
                 key={t.id}
@@ -121,7 +128,11 @@ export function FinelyUnifiedHubLayout({
                 aria-selected={tabId === t.id}
                 data-fc-hub-tab={t.id}
                 onClick={() => onTabChange(t.id)}
-                className={`${finelyOsViewTab(tabId === t.id, accent === 'rose' ? 'fuchsia' : accent)} shrink-0`}
+                className={
+                  tabDensity === 'comfortable'
+                    ? finelyOsHubTab(tabId === t.id, accent ?? 'emerald')
+                    : `${finelyOsViewTab(tabId === t.id, accent === 'rose' ? 'fuchsia' : accent)} shrink-0`
+                }
               >
                 {t.label}
                 {t.badge != null && t.badge !== '' ? ` (${t.badge})` : ''}
@@ -131,7 +142,13 @@ export function FinelyUnifiedHubLayout({
         </div>
       ) : null}
 
-      <div className={`fc-unified-hub-content fc-light-black-scope fc-light-pop-card fc-pop-surface fc-light-readable min-w-0 overflow-x-clip ${finelyOsCatalogCard(hubCatalogAccent(accent))} !p-4 sm:!p-5`} data-fc-accent={accent}>{children}</div>
+      {contentVariant === 'flush' ? (
+        <div className="fc-unified-hub-content fc-light-black-scope min-w-0 overflow-x-clip" data-fc-accent={accent}>
+          {children}
+        </div>
+      ) : (
+        <div className={`fc-unified-hub-content fc-light-black-scope fc-light-pop-card fc-pop-surface fc-light-readable min-w-0 overflow-x-clip ${finelyOsCatalogCard(hubCatalogAccent(accent))} !p-4 sm:!p-5`} data-fc-accent={accent}>{children}</div>
+      )}
 
       {detailSlot ? (
         <details

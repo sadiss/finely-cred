@@ -30,6 +30,8 @@ const ADMIN_NAV_COMMANDS: CommandItem[] = [
   { id: 'nav_projects', label: 'Projects & Tasks', href: '/admin/projects', group: 'Navigate' },
   { id: 'nav_workload', label: 'Workload view', href: '/admin/workload', group: 'Navigate' },
   { id: 'nav_crm', label: 'CRM workspace', href: '/admin/crm', group: 'Navigate' },
+  { id: 'nav_staff', label: 'Staff Command Center', hint: 'AI + human team', href: '/admin/staff', group: 'Navigate' },
+  { id: 'nav_content_studio', label: 'Content Studio', hint: 'Super video + content', href: '/admin/content-studio', group: 'Navigate' },
   { id: 'nav_crm_risk', label: 'CRM — Work at risk', hint: 'Idle + SLA', href: '/admin/crm?smartList=work_at_risk', group: 'Navigate' },
   { id: 'nav_crm_referrals', label: 'CRM — Referrals', hint: 'Attribution analytics', href: '/admin/crm/referrals', group: 'Navigate' },
   { id: 'nav_crm_routing', label: 'CRM — Routing rules', hint: 'Auto-assign leads', href: '/admin/crm/routing', group: 'Navigate' },

@@ -1,7 +1,16 @@
 import React from 'react';
 import { MapPinned } from 'lucide-react';
 import { getHumanStaffAgent } from './humanStaffDirectory';
+import { humanStaffDisplayName } from './humanStaffRosterBridge';
 import { HumanStaffAvatar } from './HumanStaffAvatar';
+import {
+  STAFF_CMD_BODY,
+  STAFF_CMD_EYEBROW,
+  STAFF_CMD_KPI,
+  STAFF_CMD_PANEL,
+  STAFF_CMD_TITLE,
+  staffCmdRecommendPanel,
+} from './humanStaffOsUi';
 
 const cityBoards = [
   { id: 'dallas', city: 'Dallas', state: 'TX', readiness: 82, owners: ['geo_commander', 'scout_supreme', 'appointment_architect'], focus: ['business credit', 'funding readiness', 'credit specialist recruiting'], blockers: ['needs 2 more local proof blocks', 'retarget pixel not verified'], next: 'Publish city guide and route business owner leads to appointment flow.' },
@@ -13,26 +22,66 @@ const cityBoards = [
 
 export function HumanStaffGeoOpsPanel() {
   return (
-    <div className="rounded-[30px] border border-white/10 bg-black/25 p-5 space-y-5">
+    <div className={STAFF_CMD_PANEL}>
       <div>
-        <div className="inline-flex items-center gap-2 text-amber-300"><MapPinned size={18} /><span className="text-[10px] font-black uppercase tracking-widest">Geo staff war room</span></div>
-        <h2 className="mt-2 text-2xl font-black text-white">Make every city board real, staffed, and actionable.</h2>
-        <p className="mt-2 text-sm text-white/55 max-w-3xl">Geo is now displayed as city readiness, assigned staff, focus funnels, blockers, and next moves. The point is to stop adding city names without an execution path.</p>
+        <div className={`inline-flex items-center gap-2 ${STAFF_CMD_EYEBROW} text-sky-300`}>
+          <MapPinned size={18} />
+          <span>Geo war room</span>
+        </div>
+        <h2 className={`mt-2 ${STAFF_CMD_TITLE}`}>Every city board — staffed and actionable.</h2>
+        <p className={`mt-2 text-sm ${STAFF_CMD_BODY} max-w-3xl`}>
+          City readiness, assigned staff, focus funnels, blockers, and next moves — no orphan city names.
+        </p>
       </div>
-      <div className="grid gap-4 xl:grid-cols-2">
+      <div className="space-y-4">
         {cityBoards.map((board) => (
-          <div key={board.id} className="rounded-[26px] border border-white/10 bg-white/[0.035] p-5">
+          <div key={board.id} className={`${STAFF_CMD_KPI} p-4`}>
             <div className="flex flex-wrap items-start justify-between gap-3">
-              <div><div className="text-2xl font-black text-white">{board.city}, {board.state}</div><div className="mt-1 text-xs text-white/40">Readiness {board.readiness}%</div></div>
-              <div className="h-14 w-14 rounded-2xl border border-white/10 bg-black/25 grid place-items-center text-lg font-black text-amber-200">{board.readiness}</div>
+              <div>
+                <div className="text-xl font-bold text-white">
+                  {board.city}, {board.state}
+                </div>
+                <div className="mt-1 text-xs text-white/40">Readiness {board.readiness}%</div>
+              </div>
+              <div className="h-12 w-12 rounded-xl border border-sky-500/25 bg-sky-500/10 grid place-items-center text-base font-black text-sky-100">
+                {board.readiness}
+              </div>
             </div>
-            <div className="mt-4 h-2 rounded-full bg-white/10 overflow-hidden"><div className="h-full rounded-full bg-amber-500" style={{ width: `${board.readiness}%` }} /></div>
-            <div className="mt-4 flex flex-wrap gap-2">{board.owners.map((id) => { const agent = getHumanStaffAgent(id as any); return <div key={id} className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-black/20 px-3 py-2"><HumanStaffAvatar agent={agent} size="sm" /><span className="text-xs font-bold text-white/70">{agent.name}</span></div>; })}</div>
-            <div className="mt-4 grid gap-3 md:grid-cols-2">
-              <div className="rounded-2xl border border-white/10 bg-black/20 p-4"><div className="text-[10px] uppercase tracking-widest text-white/35 font-black">Focus funnels</div><ul className="mt-2 space-y-1 text-sm text-white/60 list-disc pl-4">{board.focus.map((item) => <li key={item}>{item}</li>)}</ul></div>
-              <div className="rounded-2xl border border-white/10 bg-black/20 p-4"><div className="text-[10px] uppercase tracking-widest text-white/35 font-black">Blockers</div><ul className="mt-2 space-y-1 text-sm text-white/60 list-disc pl-4">{board.blockers.map((item) => <li key={item}>{item}</li>)}</ul></div>
+            <div className="mt-3 h-1.5 rounded-full bg-white/10 overflow-hidden">
+              <div className="h-full rounded-full bg-gradient-to-r from-sky-400 to-violet-400" style={{ width: `${board.readiness}%` }} />
             </div>
-            <div className="mt-4 rounded-2xl border border-emerald-500/20 bg-emerald-500/10 p-4 text-sm text-emerald-100"><span className="font-black">Next move:</span> {board.next}</div>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {board.owners.map((id) => {
+                const agent = getHumanStaffAgent(id as Parameters<typeof getHumanStaffAgent>[0]);
+                return (
+                  <div key={id} className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-black/20 px-2 py-1.5">
+                    <HumanStaffAvatar agent={agent} size="sm" />
+                    <span className="text-[11px] font-semibold text-white/70">{humanStaffDisplayName(agent)}</span>
+                  </div>
+                );
+              })}
+            </div>
+            <div className="mt-3 grid gap-2 sm:grid-cols-2">
+              <div className="rounded-xl border border-white/10 bg-black/20 p-3">
+                <div className="text-[10px] uppercase tracking-widest text-white/35 font-black">Focus</div>
+                <ul className={`mt-1 space-y-0.5 text-xs ${STAFF_CMD_BODY} list-disc pl-4`}>
+                  {board.focus.map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+              <div className="rounded-xl border border-white/10 bg-black/20 p-3">
+                <div className="text-[10px] uppercase tracking-widest text-white/35 font-black">Blockers</div>
+                <ul className={`mt-1 space-y-0.5 text-xs ${STAFF_CMD_BODY} list-disc pl-4`}>
+                  {board.blockers.map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+            <div className={`mt-3 ${staffCmdRecommendPanel()} p-3 text-sm`}>
+              <span className="font-bold">Next:</span> {board.next}
+            </div>
           </div>
         ))}
       </div>

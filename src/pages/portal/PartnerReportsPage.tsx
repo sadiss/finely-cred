@@ -6,6 +6,7 @@ import { deleteReport, listReportsByPartner, upsertReport } from '../../data/rep
 import { isSupabaseConfigured } from '../../lib/supabaseClient';
 import { listEvidenceByPartner, upsertEvidence, deleteEvidence } from '../../data/evidenceRepo';
 import { listCreditAnalysisReportsByPartner, upsertCreditAnalysisReport } from '../../data/creditAnalysisReportsRepo';
+import { CreditAnalysisDeliverableStrip } from '../../components/reports/CreditAnalysisDeliverableCard';
 import { ReportUploader } from '../../components/reports/ReportUploader';
 import { ReportActionsBar, ReportFileStrip } from '../../components/reports/ReportFileStrip';
 import { ParsedReportViewer } from '../../components/reports/ParsedReportViewer';
@@ -30,7 +31,9 @@ import { createDisputeCase } from '../../data/casesRepo';
 import { candidateToCaseItem, nowIso } from '../../domain/cases';
 import type { DisputeCandidate } from '../../domain/creditReports';
 import { deriveDisputeCandidates } from '../../creditReports/disputeCandidates';
-import { generateCreditAnalysisReportPdf, normalizeCreditAnalysisReportTemplateConfig } from '../../reports/generateCreditAnalysisReportPdf';
+import { normalizeCreditAnalysisReportTemplateConfig } from '../../reports/generateCreditAnalysisReportPdf';
+import { generatePartnerCreditAnalysisReport } from '../../reports/generatePartnerCreditAnalysisReport';
+import { PREMIUM_CREDIT_ANALYSIS_TEMPLATE_ID, isPremiumCreditAnalysisEngine } from '../../lib/resolveCreditAnalysisEngine';
 import { newId } from '../../utils/ids';
 import { addAuditEvent } from '../../data/auditRepo';
 import { notifyAnalysisReportReady } from '../../lib/analysisReportDelivery';
@@ -191,6 +194,7 @@ export default function PartnerReportsPage() {
   const [analysisTemplateStudioErr, setAnalysisTemplateStudioErr] = useState<string | null>(null);
   const [analysisTemplateStudioSaving, setAnalysisTemplateStudioSaving] = useState(false);
   const [analysisTemplateStudioEditId, setAnalysisTemplateStudioEditId] = useState<string | null>(null);
+  const [analysisReportsVersion, setAnalysisReportsVersion] = useState(0);
 
   const analysisTemplates = useMemo(() => {
     if (!partner) return [];
@@ -218,6 +222,19 @@ export default function PartnerReportsPage() {
       return null;
     }
   }, [selectedAnalysisTemplate?.bodyText]);
+
+  const isPremiumAnalysisTemplate = isPremiumCreditAnalysisEngine(selectedAnalysisTemplateConfig);
+
+  useEffect(() => {
+    if (!analysisTemplates.length) return;
+    const premium = analysisTemplates.find((t) => t.id === PREMIUM_CREDIT_ANALYSIS_TEMPLATE_ID || (t.tags ?? []).includes('premium_spreads'));
+    if (premium && !analysisTemplateId) setAnalysisTemplateId(premium.id);
+  }, [analysisTemplates, analysisTemplateId]);
+
+  const analysisReports = useMemo(() => {
+    if (!partner) return [];
+    return listCreditAnalysisReportsByPartner(partner.id);
+  }, [partner?.id, analysisReportsVersion, evidenceVersion]);
 
   useEffect(() => {
     // Apply template settings (currently variant only).
@@ -642,9 +659,13 @@ export default function PartnerReportsPage() {
                     <div className="flex items-start justify-between gap-4">
                       <div>
                         <div className="text-[10px] uppercase tracking-widest text-emerald-700">Free deliverable</div>
-                        <div className={`mt-2 ${FINELY_OS_ENTITY_VALUE}`}>Credit Analysis Report (20+ pages)</div>
+                        <div className={`mt-2 ${FINELY_OS_ENTITY_VALUE}`}>
+                          Premium Credit Analysis (10 spreads) — default
+                        </div>
                         <div className={`mt-1 ${FINELY_OS_ENTITY_BODY}`}>
-                          Generates a multi-page PDF with scores, negatives breakdown, and a roadmap. It will be saved into your Documents Vault as a PDF. Optionally include exhibits (screenshots) in the appendix.
+                          {isPremiumAnalysisTemplate
+                            ? 'Uses your approved Finely Cred premium artwork from the zip package — partner name, scores, utilization, negatives, and readiness are injected dynamically.'
+                            : 'Legacy text report selected in template. Switch template to Premium for the approved spread design.'}
                         </div>
                       </div>
                       <div className="shrink-0 flex flex-col items-end gap-2">
@@ -657,7 +678,7 @@ export default function PartnerReportsPage() {
                             setAnalysisBusy(true);
                             try {
                               const candidates = deriveDisputeCandidates(selected.parsed, selected.id);
-                              const exhibits = analysisIncludeExhibits
+                              const exhibits = analysisIncludeExhibits && !isPremiumAnalysisTemplate
                                 ? analysisExhibitIds
                                     .map((id) => evidence.find((e) => e.id === id) ?? null)
                                     .filter(Boolean)
@@ -665,14 +686,19 @@ export default function PartnerReportsPage() {
                                     .slice(0, 10)
                                     .map((e: any) => ({ blobRef: e.blobRef, filename: e.filename, mimeType: e.mimeType, caption: e.caption }))
                                 : [];
-                              const { blob, filename, displayTitle, pages, exhibitsIncluded } = await generateCreditAnalysisReportPdf({
+                              const generated = await generatePartnerCreditAnalysisReport({
                                 partner,
                                 report: selected,
                                 candidates,
                                 variant: analysisVariant,
                                 exhibits,
                                 template: selectedAnalysisTemplateConfig,
+                                snapshots: scoreSnapshots,
                               });
+                              const { blob, filename, displayTitle, pages, exhibitsIncluded } = generated;
+                              const payloadSnapshot =
+                                'payloadSnapshot' in generated ? generated.payloadSnapshot : undefined;
+                              const usePremium = isPremiumCreditAnalysisEngine(selectedAnalysisTemplateConfig);
                               const store = getBlobStore();
                               const put = await store.put(blob, { partnerId: partner.id, reportId: selected.id, kind: 'analysis_report' });
                               const item = upsertCreditAnalysisReport({
@@ -684,8 +710,11 @@ export default function PartnerReportsPage() {
                                 sizeBytes: blob.size,
                                 pages,
                                 sourceReportFilename: selected.filename,
+                                engine: usePremium ? 'premium_spreads' : 'paginated_text',
+                                payloadSnapshot: payloadSnapshot as Record<string, unknown> | undefined,
                               });
                               setEvidenceVersion((v) => v + 1);
+                              setAnalysisReportsVersion((v) => v + 1);
                               addAuditEvent({
                                 partnerId: partner.id,
                                 actorType: 'partner',
@@ -693,7 +722,7 @@ export default function PartnerReportsPage() {
                                 action: 'report.credit_analysis.generated',
                                 entityType: 'credit_analysis_report',
                                 entityId: item.id,
-                                meta: { pages, filename, reportId: selected.id, variant: analysisVariant, exhibitsIncluded },
+                                meta: { pages, filename, reportId: selected.id, variant: analysisVariant, exhibitsIncluded, engine: usePremium ? 'premium_spreads' : 'paginated_text' },
                               });
                               setAnalysisNotice(
                                 `Generated and saved (${pages} pages${exhibitsIncluded ? ` • ${exhibitsIncluded} exhibit(s)` : ''}). Open it from Strategy reports below.`,
@@ -702,6 +731,8 @@ export default function PartnerReportsPage() {
                                 partner,
                                 report: selected,
                                 candidates,
+                                analysis: item,
+                                actorEmail: email || undefined,
                               });
                               if (emailResult.sent) {
                                 setAnalysisNotice((prev) =>
@@ -722,7 +753,7 @@ export default function PartnerReportsPage() {
                     </div>
 
                     <div className="grid md:grid-cols-3 gap-4">
-                      <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony`}>
+                      <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony ${isPremiumAnalysisTemplate ? 'opacity-50 pointer-events-none' : ''}`}>
                         <div className={FINELY_OS_ENTITY_LABEL}>Variant</div>
                         <select
                           value={analysisVariant}
@@ -736,7 +767,7 @@ export default function PartnerReportsPage() {
                         <div className={`mt-2 text-[11px] ${FINELY_OS_ENTITY_BODY}`}>Controls section density + emphasis.</div>
                       </div>
 
-                      <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony`}>
+                      <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony ${isPremiumAnalysisTemplate ? 'opacity-50 pointer-events-none' : ''}`}>
                         <div className="flex items-center justify-between gap-3">
                           <div className={FINELY_OS_ENTITY_LABEL}>Exhibits</div>
                           <label className={`inline-flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL}`}>
@@ -874,6 +905,22 @@ export default function PartnerReportsPage() {
                     ) : null}
 
                     {analysisNotice ? <div className={FINELY_OS_NOTICE}>{analysisNotice}</div> : null}
+
+                    <div className="mt-4">
+                      <div className={`${FINELY_OS_ENTITY_LABEL} mb-2`}>Your strategy reports</div>
+                      <p className={`mb-3 text-[11px] ${FINELY_OS_ENTITY_BODY}`}>
+                        Downloads open the saved PDF from when it was generated. Older reports use the legacy text layout — delete them and tap <strong>Generate PDF</strong> again for the premium 10-spread zip design.
+                      </p>
+                      <CreditAnalysisDeliverableStrip
+                        items={analysisReports}
+                        partner={partner ?? undefined}
+                        creditReport={selected ?? undefined}
+                        actorEmail={email || undefined}
+                        actorRole="partner"
+                        onChanged={() => setAnalysisReportsVersion((v) => v + 1)}
+                        emptyHint="Generate your first premium or standard analysis above."
+                      />
+                    </div>
                   </div>
 
                   {analysisTemplateStudioOpen ? (

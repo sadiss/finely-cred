@@ -42,6 +42,8 @@ export type ValidationLetterMeta = {
   debtId?: string;
   letterSpecId?: string;
   scenario?: string;
+  catalogId?: string;
+  debtTrack?: 'validation' | 'court' | 'foreclosure' | 'repossession';
 } | {
   /** Template library export saved as a partner-owned letter. */
   context: 'template';
@@ -59,6 +61,8 @@ export type CourtLetterMeta = {
   scenario?: string;
   courtCaseNumber?: string;
   jurisdictionState?: string;
+  catalogId?: string;
+  debtTrack?: 'validation' | 'court' | 'foreclosure' | 'repossession';
 } | {
   /** Template library export saved as a partner-owned letter. */
   context: 'template';

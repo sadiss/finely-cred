@@ -1,4 +1,5 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   ArrowRight,
   BookOpen,
@@ -13,9 +14,11 @@ import {
   Search,
   ShieldCheck,
   Sparkles,
+  Trash2,
   Wand2,
 } from 'lucide-react';
 import { callAiGateway } from '../../lib/aiClient';
+import { queueTourClipJob } from '../../data/tourClipJobsRepo';
 import { listResourceVideos, upsertResourceVideo } from '../../data/resourceVideosRepo';
 import { upsertFunnelMedia } from '../../data/leadMagnetFunnelMediaRepo';
 import { listAllCourses, upsertCourse } from '../../data/coursesRepo';
@@ -23,8 +26,12 @@ import { LEAD_MAGNET_FUNNELS } from '../../domain/leadMagnetFunnels';
 import { newId } from '../../utils/ids';
 import { generateTextPdfToVault } from '../../letters/generateTextPdf';
 import { openBlobRefInNewTab } from '../../lib/openBlobRef';
-import { GeminiStyleVideoCommand } from './GeminiStyleVideoCommand';
+import { VideoStudioPremiumShell } from './VideoStudioPremiumShell';
+import { VoiceSoundLibraryPanel } from './VoiceSoundLibraryPanel';
+import { CourseVideoBatchWorkroom } from './CourseVideoBatchWorkroom';
+import { SiteNavigationVideoWorkroom } from './SiteNavigationVideoWorkroom';
 import { StudioActionDeck, StudioKpiCards, StudioSection } from './StudioKpiCards';
+import { FinelyUnifiedHubLayout } from '../unified/FinelyUnifiedHubLayout';
 import {
   advanceContentStudioJob,
   createContentStudioJob,
@@ -35,7 +42,14 @@ import {
   setSelectedContentStudioJobId,
   updateContentStudioAsset,
   updateContentStudioJob,
+  deleteContentStudioAsset,
 } from './contentStudioRepo';
+import { ContentStudioVideoPreview } from './ContentStudioVideoPreview';
+import { hydrateProviderPlan } from './contentStudioProviders';
+import { intakeFromStaff, isCreativeStaffId } from './contentStudioHandoff';
+import { renderContentStudioNarration } from './contentStudioVoice';
+import { findStaff, staffFullName } from '../staffCommandCenter/staffRoster';
+import { StaffAvatar } from '../staffCommandCenter/StaffAvatar';
 import type {
   ContentStudioAsset,
   ContentStudioAssetType,
@@ -59,8 +73,10 @@ const workrooms: WorkroomDef[] = [
   { id: 'research', label: 'Research', icon: Search, summary: 'Gemini-style research, brief, transcript, and audience insight.' },
   { id: 'script', label: 'Script', icon: FileText, summary: 'Hooks, narration, scenes, captions, CTAs, emails, and ad copy.' },
   { id: 'design', label: 'Design', icon: ImageIcon, summary: 'Canva-like covers, thumbnails, carousels, guides, and slides.' },
-  { id: 'voice', label: 'Voice', icon: Mic2, summary: 'Narration, voice clone governance, dubbing, and sound effects.' },
-  { id: 'video', label: 'Video', icon: Clapperboard, summary: 'Prompt-to-video, avatar, B-roll, render, subtitles, and cutdowns.' },
+  { id: 'voice', label: 'Voice', icon: Mic2, summary: '100+ voice personas, 300+ SFX beds, clone governance, dubbing.' },
+  { id: 'video', label: 'Video', icon: Clapperboard, summary: 'Upload intelligence, 100+ voices, 300+ sounds, prompt-to-render.' },
+  { id: 'course_videos', label: 'Course videos', icon: BookOpen, summary: 'Batch lesson video factory — script to render to course attach.' },
+  { id: 'navigation_tours', label: 'Site tours', icon: PlayCircle, summary: 'Navigation tutorial videos for every manifest tour and lane.' },
   { id: 'ebook', label: 'E-book', icon: BookOpen, summary: 'Full lead magnets, workbooks, SOPs, course PDFs, and downloads.' },
   { id: 'review', label: 'Review', icon: ShieldCheck, summary: 'Approval gates, compliance notes, publish readiness, and QA.' },
   { id: 'assets', label: 'Assets', icon: Library, summary: 'Reusable library for every generated video, PDF, audio, and image.' },
@@ -107,12 +123,26 @@ const jobActionCards: Array<{ label: string; detail: string; icon: React.Compone
   { label: 'Publish', detail: 'Route approved assets to the right site surface.', icon: Megaphone },
 ];
 
-const publishBridgeCards: Array<{ title: string; detail: string; icon: React.ComponentType<{ size?: number; className?: string }> }> = [
-  { title: 'Resources', detail: 'Publish generated videos, PDFs, guides, and posters into the Resources library.', icon: PlayCircle },
-  { title: 'Courses', detail: 'Attach lesson videos, narration, slides, and workbooks to Course Builder.', icon: BookOpen },
-  { title: 'Lead magnets', detail: 'Set hero videos, guide covers, posters, and e-book PDFs per funnel.', icon: Sparkles },
-  { title: 'Tours + demos', detail: 'Create walkthrough videos, transcripts, captions, and instruction clips.', icon: Clapperboard },
+const publishBridgeCards: Array<{
+  title: string;
+  detail: string;
+  icon: React.ComponentType<{ size?: number; className?: string }>;
+  href: string;
+  target: ContentStudioPublishTarget;
+}> = [
+  { title: 'Resources', detail: 'Publish generated videos, PDFs, guides, and posters into the Resources library.', icon: PlayCircle, href: '/admin/resources', target: 'resources' },
+  { title: 'Courses', detail: 'Attach lesson videos, narration, slides, and workbooks to Course Builder.', icon: BookOpen, href: '/admin/courses', target: 'course_lesson' },
+  { title: 'Lead magnets', detail: 'Set hero videos, guide covers, posters, and e-book PDFs per funnel.', icon: Sparkles, href: '/admin/lead-magnets', target: 'lead_magnet_hero' },
+  { title: 'Tours + demos', detail: 'Create walkthrough videos, transcripts, captions, and instruction clips.', icon: Clapperboard, href: '/admin/tour-studio', target: 'tour_demo' },
 ];
+
+function bridgeStatusLabel(assets: ContentStudioAsset[], target: ContentStudioPublishTarget): { label: string; tone: string } {
+  const related = assets.filter((a) => a.publishTargets.includes(target));
+  if (!related.length) return { label: 'Draft', tone: 'border-white/15 text-white/45' };
+  if (related.some((a) => a.status === 'published')) return { label: 'Live on site', tone: 'border-emerald-500/35 text-emerald-200' };
+  if (related.some((a) => a.status === 'approved')) return { label: 'Bridged', tone: 'border-sky-500/35 text-sky-200' };
+  return { label: 'In review', tone: 'border-amber-500/35 text-amber-200' };
+}
 
 function fallbackBrief(job: ContentStudioJob) {
   return [
@@ -190,8 +220,17 @@ function statusTone(status: ContentStudioJob['status']) {
 }
 
 export function ContentStudioDepartmentPage() {
+  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [version, setVersion] = useState(0);
-  const [activeWorkroom, setActiveWorkroom] = useState<ContentStudioWorkroom>('intake');
+  const roomParam = searchParams.get('room') as ContentStudioWorkroom | null;
+  const activeWorkroom: ContentStudioWorkroom =
+    roomParam && workrooms.some((w) => w.id === roomParam) ? roomParam : 'intake';
+  const setActiveWorkroom = (id: ContentStudioWorkroom) => {
+    const next = new URLSearchParams(searchParams);
+    next.set('room', id);
+    setSearchParams(next, { replace: true });
+  };
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
@@ -230,6 +269,15 @@ export function ContentStudioDepartmentPage() {
   );
   const selectedId = useMemo(() => getSelectedContentStudioJobId(), [version]);
   const activeJob = useMemo(() => jobs.find((j) => j.id === selectedId) ?? jobs[0] ?? null, [jobs, selectedId]);
+  const staffFromUrl = searchParams.get('staff');
+  const courseIdFromUrl = searchParams.get('courseId');
+  const lessonIdFromUrl = searchParams.get('lessonId');
+  const tourIdFromUrl = searchParams.get('tourId');
+  const ownerStaff = staffFromUrl ? findStaff(staffFromUrl) : activeJob?.intake.ownerStaffId ? findStaff(activeJob.intake.ownerStaffId) : null;
+  const hydratedProviderPlan = useMemo(
+    () => (activeJob ? hydrateProviderPlan(activeJob.providerPlan) : []),
+    [activeJob],
+  );
   const reviewJobs = jobs.filter((j) => j.status === 'needs_review');
   const readyAssets = assets.filter((a) => a.status === 'approved' || a.status === 'published');
 
@@ -239,6 +287,34 @@ export function ContentStudioDepartmentPage() {
     { label: 'Review queue', value: reviewJobs.length, hint: 'Compliance and brand approval before publish', tone: 'violet' },
     { label: 'Ready to reuse', value: readyAssets.length, hint: 'Approved/published assets for site surfaces', tone: 'sky' },
   ];
+
+  useEffect(() => {
+    if (!searchParams.get('room')) {
+      const next = new URLSearchParams(searchParams);
+      next.set('room', 'intake');
+      setSearchParams(next, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
+
+  useEffect(() => {
+    if (courseIdFromUrl && lessonIdFromUrl) {
+      setSelectedCourseLesson(`${courseIdFromUrl}::${lessonIdFromUrl}`);
+    }
+  }, [courseIdFromUrl, lessonIdFromUrl]);
+
+  useEffect(() => {
+    const staffId = searchParams.get('staff');
+    if (!staffId || jobs.some((j) => j.intake.ownerStaffId === staffId)) return;
+    const staff = findStaff(staffId);
+    if (!staff || !isCreativeStaffId(staff.id)) return;
+    const job = createContentStudioJob(intakeFromStaff(staff));
+    setSelectedContentStudioJobId(job.id);
+    setVersion((v) => v + 1);
+    setNotice(`${staffFullName(staff)} opened a Content Studio job from Staff Command Center.`);
+    const next = new URLSearchParams(searchParams);
+    next.set('room', staff.id === 'shorts_factory' ? 'video' : 'intake');
+    setSearchParams(next, { replace: true });
+  }, [searchParams.get('staff')]);
 
   const createJob = () => {
     const job = createContentStudioJob(intake);
@@ -414,6 +490,42 @@ export function ContentStudioDepartmentPage() {
       setNotice(`${mode === 'ebook' ? 'E-book/guide draft' : `${mode} plan`} created.`);
     } catch (e: any) {
       setErr(e?.message || `${mode} generation failed.`);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function renderVoiceNarration(job: ContentStudioJob) {
+    const script = (job.scriptDraft || job.voicePlan || job.researchBrief || job.intake.prompt).trim();
+    if (!script) {
+      setErr('Generate a script or voice plan first.');
+      return;
+    }
+    setBusy(true);
+    setErr(null);
+    setNotice(null);
+    try {
+      await renderContentStudioNarration({
+        jobId: job.id,
+        contentId: job.id,
+        title: job.title,
+        script,
+      });
+      updateContentStudioJob(
+        job.id,
+        {
+          status: 'voice_ready',
+          ownerRole: 'voice_producer',
+          providerPlan: job.providerPlan.map((p) =>
+            p.provider === 'voice_studio' || p.provider === 'elevenlabs' ? { ...p, status: 'complete' as const } : p,
+          ),
+        },
+        { label: 'Narration rendered', detail: 'Voice Studio audio saved to Content Studio assets.' },
+      );
+      setVersion((v) => v + 1);
+      setNotice('Narration rendered via Voice Studio (ElevenLabs when configured).');
+    } catch (e: any) {
+      setErr(e?.message || 'Voice render failed.');
     } finally {
       setBusy(false);
     }
@@ -597,56 +709,85 @@ export function ContentStudioDepartmentPage() {
     setNotice(`${asset.title} attached to ${selected.label}.`);
   };
 
+  const publishAssetToTourDemo = (asset: ContentStudioAsset) => {
+    if (!asset.blobRef) {
+      setErr('This asset does not have rendered media yet. Export/generate the video first.');
+      return;
+    }
+    const job = queueTourClipJob({
+      title: asset.title,
+      assetId: asset.id,
+      blobRef: asset.blobRef,
+      transcript: asset.transcript || asset.script,
+      tourId: 'tour-home-overview',
+    });
+    updateContentStudioAsset(asset.id, {
+      status: 'published',
+      publishTargets: Array.from(new Set([...asset.publishTargets, 'tour_demo'])),
+      summary: `${asset.summary || ''}\n\nTour clip job queued: ${job.id}`.trim(),
+    });
+    setVersion((v) => v + 1);
+    setNotice(`${asset.title} queued in Tour Studio — open factory to assemble.`);
+    navigate(`/admin/tour-studio?clipJob=${job.id}`);
+  };
+
+  const bestAssetForTarget = (target: ContentStudioPublishTarget) => {
+    const candidates = assets.filter(
+      (a) => a.blobRef && (a.publishTargets.includes(target) || a.status === 'approved' || a.assetType === 'video'),
+    );
+    return candidates.find((a) => a.publishTargets.includes(target)) ?? candidates[0] ?? null;
+  };
+
+  const oneClickBridgePush = (target: ContentStudioPublishTarget, href: string) => {
+    const asset = bestAssetForTarget(target);
+    if (!asset?.blobRef) {
+      setErr('No approved video asset with media found — generate and approve an asset first, or open the destination manually.');
+      navigate(href);
+      return;
+    }
+    if (target === 'resources') publishAssetToResources(asset);
+    else if (target === 'lead_magnet_hero') setAssetAsLeadMagnetHero(asset);
+    else if (target === 'course_lesson') publishAssetToCourseLesson(asset);
+    else if (target === 'tour_demo') publishAssetToTourDemo(asset);
+    else navigate(href);
+  };
+
   return (
     <div className="space-y-6">
-      <div className="rounded-[2rem] border border-white/10 bg-gradient-to-br from-amber-500/12 via-white/[0.04] to-violet-500/10 p-6 md:p-8 overflow-hidden relative">
-        <div className="pointer-events-none absolute -right-20 -top-20 h-72 w-72 rounded-full bg-amber-400/15 blur-3xl" />
-        <div className="relative grid gap-6 xl:grid-cols-12 items-start">
-          <div className="xl:col-span-7">
-            <div className="text-[10px] uppercase tracking-[0.3em] text-amber-200 font-black">Content Studio Department OS</div>
-            <h1 className="mt-3 text-3xl md:text-5xl font-black text-white tracking-tight">Research, script, design, voice, video, e-books, review, and publish from one production floor.</h1>
-            <p className="mt-4 text-white/65 max-w-3xl">
-              This is the professional layer that turns Finely Cred content into reusable assets for courses, resources, lead magnets, demos, testimonials, social clips, and CMO campaigns.
-            </p>
-          </div>
-          <div className="xl:col-span-5">
-            <StudioKpiCards items={kpis} />
-          </div>
-        </div>
-      </div>
-
       {err ? <div className="rounded-3xl border border-rose-500/30 bg-rose-500/10 p-4 text-rose-100 text-sm">{err}</div> : null}
       {notice ? <div className="rounded-3xl border border-emerald-500/30 bg-emerald-500/10 p-4 text-emerald-100 text-sm inline-flex gap-3"><CheckCircle2 size={18} />{notice}</div> : null}
 
-      <div className="overflow-x-auto pb-2">
-        <div className="flex gap-3 min-w-max">
-          {workrooms.map((w) => {
-            const Icon = w.icon;
-            const active = activeWorkroom === w.id;
-            return (
-              <button
-                key={w.id}
-                type="button"
-                onClick={() => setActiveWorkroom(w.id)}
-                className={`shrink-0 rounded-2xl border px-4 py-3 text-left transition ${
-                  active ? 'border-amber-400/40 bg-amber-500/12 text-white' : 'border-white/10 bg-white/[0.035] text-white/65 hover:bg-white/[0.06]'
-                }`}
-              >
-                <div className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-widest">
-                  <Icon size={15} /> {w.label}
-                </div>
-                <div className="mt-1 max-w-[220px] text-xs text-white/45">{w.summary}</div>
-              </button>
-            );
-          })}
+      <FinelyUnifiedHubLayout
+        eyebrow="Content Studio Department OS"
+        title="Super video & content production floor"
+        subtitle="Gemini-style research, Canva-like design plans, ElevenLabs voice path, prompt-to-video, e-books, review gates, and publish bridges — stacked full-width workrooms."
+        accent="amber"
+        kpis={kpis.map((k) => ({ ...k, value: String(k.value) }))}
+        tabs={workrooms.map((w) => ({ id: w.id, label: w.label, badge: w.id === 'review' && reviewJobs.length ? reviewJobs.length : undefined }))}
+        activeTab={activeWorkroom}
+        onTabChange={(id) => setActiveWorkroom(id as ContentStudioWorkroom)}
+        primaryAction={{ label: 'Open super video', onClick: () => setActiveWorkroom('video') }}
+        secondaryAction={{ label: 'New job', onClick: () => setActiveWorkroom('intake') }}
+        contentVariant="flush"
+        tabDensity="comfortable"
+      >
+      {ownerStaff ? (
+        <div className="rounded-2xl border border-amber-400/30 bg-amber-500/10 p-4 mb-5 flex flex-wrap items-center gap-4">
+          <StaffAvatar staff={ownerStaff} size="md" active />
+          <div className="min-w-0 flex-1">
+            <div className="text-[10px] uppercase tracking-widest text-amber-200 font-black">Staff owner</div>
+            <div className="text-white font-bold">{staffFullName(ownerStaff)} · {ownerStaff.title}</div>
+            <div className="text-sm text-white/55 mt-1">Production request routed from Staff Command Center.</div>
+          </div>
+          <button type="button" className="fc-button-soft" onClick={() => navigate('/admin/staff?view=roster')}>
+            Back to Staff Command Center
+          </button>
         </div>
-      </div>
-
+      ) : null}
       {activeWorkroom === 'intake' ? (
         <StudioSection eyebrow="department intake" title="Start with any content need. The system routes it to the right production workrooms.">
-          <div className="grid xl:grid-cols-12 gap-5">
-            <div className="xl:col-span-7 space-y-4">
-              <textarea
+          <div className="space-y-5">
+            <textarea
                 value={intake.prompt}
                 onChange={(e) => setIntake((v) => ({ ...v, prompt: e.target.value }))}
                 className="w-full min-h-[220px] rounded-[1.75rem] border border-white/10 bg-black/45 px-5 py-4 text-white/90 placeholder:text-white/25 text-base leading-relaxed focus:outline-none focus:border-amber-400/60"
@@ -656,8 +797,7 @@ export function ContentStudioDepartmentPage() {
                 <input value={intake.audience} onChange={(e) => setIntake((v) => ({ ...v, audience: e.target.value }))} className="fc-input" placeholder="Audience" />
                 <input value={intake.offer || ''} onChange={(e) => setIntake((v) => ({ ...v, offer: e.target.value }))} className="fc-input" placeholder="Offer / campaign / guide" />
               </div>
-            </div>
-            <div className="xl:col-span-5 grid sm:grid-cols-2 gap-3">
+              <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
               <label className="block">
                 <div className="text-[10px] uppercase tracking-widest text-white/40">Source</div>
                 <select value={intake.sourceSurface} onChange={(e) => setIntake((v) => ({ ...v, sourceSurface: e.target.value as ContentStudioSourceSurface }))} className="mt-2 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-3 text-sm text-white/80">
@@ -686,7 +826,7 @@ export function ContentStudioDepartmentPage() {
                   <option value="business_funding">Business funding</option>
                 </select>
               </label>
-              <button type="button" className="fc-button-brand sm:col-span-2" onClick={createJob}>
+              <button type="button" className="fc-button-brand sm:col-span-2 lg:col-span-4" onClick={createJob}>
                 <Sparkles size={15} /> Create production job <ArrowRight size={14} />
               </button>
             </div>
@@ -694,7 +834,7 @@ export function ContentStudioDepartmentPage() {
         </StudioSection>
       ) : null}
 
-      {activeWorkroom !== 'video' ? (
+      {activeWorkroom !== 'video' && activeWorkroom !== 'course_videos' && activeWorkroom !== 'navigation_tours' ? (
         <StudioSection
           eyebrow="production queue"
           title="Active jobs"
@@ -704,6 +844,7 @@ export function ContentStudioDepartmentPage() {
             <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-6 text-white/55">No Content Studio jobs yet. Start from intake.</div>
           ) : (
             <StudioActionDeck
+              variant="vertical"
               items={jobs.map((j) => ({ id: j.id, title: j.title, summary: `${j.status} • ${j.intake.requestedAssetType} → ${j.intake.publishTarget}` }))}
               activeId={activeJob?.id}
               onSelect={(x) => selectJob(x.id)}
@@ -717,8 +858,7 @@ export function ContentStudioDepartmentPage() {
       ) : null}
 
       {activeWorkroom === 'video' ? (
-        <GeminiStyleVideoCommand
-          key={activeJob?.id ?? 'default-video-command'}
+        <VideoStudioPremiumShell
           initialRequest={
             activeJob
               ? {
@@ -730,18 +870,32 @@ export function ContentStudioDepartmentPage() {
                   intent:
                     activeJob.intake.sourceSurface === 'lead_magnet'
                       ? 'lead_magnet_ad'
-                      : activeJob.intake.sourceSurface === 'testimonial'
-                        ? 'testimonial_style'
-                        : activeJob.intake.sourceSurface === 'cmo_campaign'
+                      : activeJob.intake.sourceSurface === 'course_builder'
+                        ? 'business_credit_education'
+                        : activeJob.intake.sourceSurface === 'tour_studio'
                           ? 'authority_clip'
-                          : 'business_credit_education',
+                          : activeJob.intake.sourceSurface === 'testimonial'
+                            ? 'testimonial_style'
+                            : activeJob.intake.sourceSurface === 'cmo_campaign'
+                              ? 'authority_clip'
+                              : 'business_credit_education',
                 }
               : undefined
           }
         />
       ) : null}
 
-      {activeJob && activeWorkroom !== 'intake' && activeWorkroom !== 'video' ? (
+      {activeWorkroom === 'course_videos' ? (
+        <CourseVideoBatchWorkroom courseId={courseIdFromUrl} lessonId={lessonIdFromUrl} />
+      ) : null}
+
+      {activeWorkroom === 'navigation_tours' ? (
+        <SiteNavigationVideoWorkroom selectedTourId={tourIdFromUrl} />
+      ) : null}
+
+      {activeWorkroom === 'voice' ? <VoiceSoundLibraryPanel /> : null}
+
+      {activeJob && activeWorkroom !== 'intake' && activeWorkroom !== 'video' && activeWorkroom !== 'voice' && activeWorkroom !== 'course_videos' && activeWorkroom !== 'navigation_tours' ? (
         <StudioSection
           eyebrow={`${activeWorkroom} workroom`}
           title={activeJob.title}
@@ -752,7 +906,7 @@ export function ContentStudioDepartmentPage() {
             </div>
           }
         >
-          <div className="grid lg:grid-cols-3 gap-4">
+          <div className="grid gap-4">
             <div className="rounded-3xl border border-white/10 bg-white/[0.035] p-5">
               <div className="text-[10px] uppercase tracking-widest text-white/40">Request</div>
               <div className="mt-3 text-white/75 leading-relaxed">{activeJob.intake.prompt}</div>
@@ -760,7 +914,7 @@ export function ContentStudioDepartmentPage() {
             <div className="rounded-3xl border border-white/10 bg-white/[0.035] p-5">
               <div className="text-[10px] uppercase tracking-widest text-white/40">Provider path</div>
               <div className="mt-3 space-y-2">
-                {activeJob.providerPlan.map((p) => (
+                {hydratedProviderPlan.map((p) => (
                   <div key={`${p.provider}-${p.purpose}`} className="rounded-2xl border border-white/10 bg-black/25 p-3">
                     <div className="text-white font-semibold">{p.provider}</div>
                     <div className="text-xs text-white/45 mt-1">{p.purpose}</div>
@@ -793,6 +947,9 @@ export function ContentStudioDepartmentPage() {
               <button type="button" className="fc-button-soft" onClick={() => void generateWorkroomAsset(activeJob, 'voice')} disabled={busy}>
                 <Mic2 size={14} /> Voice plan
               </button>
+              <button type="button" className="fc-button-brand" onClick={() => void renderVoiceNarration(activeJob)} disabled={busy}>
+                <Mic2 size={14} /> Render narration (ElevenLabs)
+              </button>
               <button type="button" className="fc-button-soft" onClick={() => void generateWorkroomAsset(activeJob, 'ebook')} disabled={busy}>
                 <BookOpen size={14} /> E-book draft
               </button>
@@ -802,7 +959,7 @@ export function ContentStudioDepartmentPage() {
             </div>
           </div>
 
-          <div className="grid lg:grid-cols-2 gap-4">
+          <div className="space-y-4">
             <div className="rounded-3xl border border-white/10 bg-black/30 p-5">
               <div className="inline-flex items-center gap-2 text-amber-200 font-black uppercase tracking-widest text-[10px]"><Search size={14} /> Research brief</div>
               <pre className="mt-4 whitespace-pre-wrap text-sm text-white/65 leading-relaxed font-sans">{activeJob.researchBrief || 'Generate a research brief to fill this workroom.'}</pre>
@@ -813,7 +970,7 @@ export function ContentStudioDepartmentPage() {
             </div>
           </div>
 
-          <div className="grid lg:grid-cols-3 gap-4">
+          <div className="space-y-4">
             <div className="rounded-3xl border border-white/10 bg-black/30 p-5">
               <div className="inline-flex items-center gap-2 text-violet-200 font-black uppercase tracking-widest text-[10px]"><ImageIcon size={14} /> Design plan</div>
               <pre className="mt-4 whitespace-pre-wrap text-sm text-white/65 leading-relaxed font-sans">{activeJob.designPlan || 'Generate a design plan for covers, thumbnails, decks, and guide layouts.'}</pre>
@@ -896,6 +1053,9 @@ export function ContentStudioDepartmentPage() {
                   <span className={`rounded-full border px-3 py-1 text-[10px] font-black uppercase tracking-widest ${a.status === 'published' ? 'border-emerald-400/25 bg-emerald-500/10 text-emerald-100' : 'border-white/10 bg-black/25 text-white/50'}`}>{a.status}</span>
                 </div>
                 <div className="text-[10px] uppercase tracking-widest text-white/40">{a.assetType} • {a.provider || 'manual'}</div>
+                {a.assetType === 'video' && a.blobRef ? (
+                  <ContentStudioVideoPreview blobRef={a.blobRef} />
+                ) : null}
                 <div className="text-sm text-white/55 line-clamp-4">{a.summary || a.script || a.transcript || 'No summary yet.'}</div>
                 <div className="flex flex-wrap gap-2">{a.publishTargets.map((t) => <span key={t} className="rounded-full border border-white/10 bg-black/25 px-2.5 py-1 text-[10px] text-white/45">{t}</span>)}</div>
                 <div className="flex flex-wrap gap-2 pt-2 border-t border-white/10">
@@ -912,6 +1072,17 @@ export function ContentStudioDepartmentPage() {
                       <ArrowRight size={14} /> Open file
                     </button>
                   ) : null}
+                  <button
+                    type="button"
+                    className="fc-button-soft !text-rose-200"
+                    onClick={() => {
+                      if (!window.confirm(`Delete asset "${a.title}"?`)) return;
+                      deleteContentStudioAsset(a.id);
+                      setVersion((v) => v + 1);
+                    }}
+                  >
+                    <Trash2 size={14} /> Delete
+                  </button>
                   {a.assetType === 'video' ? (
                     <>
                       <button type="button" className="fc-button-brand" disabled={!a.blobRef} onClick={() => publishAssetToResources(a)} title={!a.blobRef ? 'Render/export media first' : 'Publish to private Resources'}>
@@ -923,6 +1094,9 @@ export function ContentStudioDepartmentPage() {
                       <button type="button" className="fc-button-soft" disabled={!a.blobRef} onClick={() => publishAssetToCourseLesson(a)} title={!a.blobRef ? 'Render/export video first' : 'Attach as selected course lesson video'}>
                         <BookOpen size={14} /> Course lesson
                       </button>
+                      <button type="button" className="fc-button-soft" disabled={!a.blobRef} onClick={() => publishAssetToTourDemo(a)} title={!a.blobRef ? 'Render/export video first' : 'Queue tour clip job'}>
+                        <Clapperboard size={14} /> Tour demo
+                      </button>
                     </>
                   ) : null}
                 </div>
@@ -933,15 +1107,35 @@ export function ContentStudioDepartmentPage() {
         </StudioSection>
       ) : null}
 
-      <StudioSection eyebrow="publish bridges" title="Where this department will connect next">
-        <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-4">
-          {publishBridgeCards.map(({ title, detail, icon: Icon }) => {
+      </FinelyUnifiedHubLayout>
+
+      <StudioSection eyebrow="publish bridges" title="Where this department connects across Finely Cred">
+        <p className="text-sm text-white/55 mb-4 max-w-3xl">
+          One-click push uses your best approved video asset, then opens the destination workspace. Full per-asset controls remain in the Assets workroom.
+        </p>
+        <div className="grid sm:grid-cols-2 gap-4">
+          {publishBridgeCards.map(({ title, detail, icon: Icon, href, target }) => {
+            const chip = bridgeStatusLabel(assets, target);
             return (
-              <div key={title} className="rounded-3xl border border-white/10 bg-white/[0.035] p-5">
-                <Icon size={18} className="text-amber-200" />
-                <div className="mt-3 text-white font-black">{title}</div>
-                <div className="mt-2 text-sm text-white/55 leading-relaxed">{detail}</div>
+            <div
+              key={title}
+              className="group rounded-3xl border border-white/10 bg-white/[0.035] p-5 text-left hover:border-amber-400/35 hover:bg-amber-500/5 transition-colors"
+            >
+              <div className="flex items-center justify-between gap-2">
+                <Icon size={18} className="text-amber-200 group-hover:text-amber-100" />
+                <span className={`text-[9px] font-bold uppercase px-2 py-0.5 rounded-full border ${chip.tone}`}>{chip.label}</span>
               </div>
+              <div className="mt-3 text-white font-black">{title}</div>
+              <div className="mt-2 text-sm text-white/55 leading-relaxed">{detail}</div>
+              <div className="flex flex-wrap gap-2 mt-4">
+                <button type="button" className="fc-button-brand" onClick={() => oneClickBridgePush(target, href)}>
+                  One-click push <ArrowRight size={14} />
+                </button>
+                <button type="button" className="fc-button-soft" onClick={() => navigate(href)}>
+                  Open workspace
+                </button>
+              </div>
+            </div>
             );
           })}
         </div>

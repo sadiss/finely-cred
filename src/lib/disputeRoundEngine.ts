@@ -5,12 +5,13 @@ import { listCasesByPartner, markCaseRoundMailed } from '../data/casesRepo';
 import { createTask, listTasksByPartner } from '../data/tasksRepo';
 import { emitPlatformEvent } from '../domain/platformEvents';
 import { INTER_ROUND_GUIDANCE } from '../domain/disputeWorkflow';
+import { onPartnerLetterMailed } from './partnerSuccessMilestones';
 
 const BUREAU_RESPONSE_DAYS = 35;
 
 function roundFromLetter(meta?: DisputeLetterMeta): DisputeRoundLabel {
   const r = String(meta?.round ?? 'Round 1');
-  if (r === 'Round 2' || r === 'Round 3') return r;
+  if (r === 'Round 2' || r === 'Round 3' || r === 'Round 4') return r;
   return 'Round 1';
 }
 
@@ -75,8 +76,10 @@ export function onDisputeLetterMailed(args: {
       assignedTo: 'partner',
       tags: ['bureau_timer', round.toLowerCase().replace(/\s+/g, '_')],
     });
+    onPartnerLetterMailed(letter.partnerId);
     return { taskCreated: true, caseUpdated };
   }
 
+  onPartnerLetterMailed(letter.partnerId);
   return { taskCreated: false, caseUpdated };
 }

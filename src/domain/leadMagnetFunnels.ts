@@ -95,6 +95,8 @@ export const DEBT_FUNNEL: LeadMagnetFunnelConfig = {
     { label: 'Collections validation deep-dive PDF', value: '$59' },
     { label: 'Debt collector call script card', value: '$29' },
     { label: 'Summons response checklist', value: '$49' },
+    { label: 'Interactive validation command center', value: '$79' },
+    { label: '30-day FDCPA deadline tracker', value: '$39' },
     { label: `${LEAD_MAGNET_TRIAL_DAYS}-day debt lane portal preview`, value: '$79', trialFeature: 'report_upload_preview', locksAfterTrial: true },
   ],
   features: [
@@ -126,8 +128,10 @@ export const BUSINESS_FUNNEL: LeadMagnetFunnelConfig = {
   heroSub: 'that funders respect.',
   valueStack: [
     { label: 'Business credit jumpstart PDF', value: '$59' },
+    { label: 'Entity fundability checklist (interactive)', value: '$49' },
+    { label: 'Fundability score estimator', value: '$39' },
+    { label: 'Vendor sequencing map + tier planner', value: '$49' },
     { label: 'D-U-N-S + entity hygiene checklist', value: '$39' },
-    { label: 'Vendor credit sequencing map', value: '$49' },
     { label: `${LEAD_MAGNET_TRIAL_DAYS}-day business lane preview`, value: '$79', trialFeature: 'report_upload_preview', locksAfterTrial: true },
   ],
   features: [
@@ -159,8 +163,9 @@ export const TRADELINE_FUNNEL: LeadMagnetFunnelConfig = {
   heroSub: 'before you buy.',
   valueStack: [
     { label: 'Primary tradeline insider PDF', value: '$49' },
+    { label: 'Inquiry budget calculator', value: '$39' },
+    { label: 'Tradeline timing ladder', value: '$29' },
     { label: 'AU vs primary tradeline comparison', value: '$39' },
-    { label: 'Timing + inquiry discipline checklist', value: '$29' },
     { label: `${LEAD_MAGNET_TRIAL_DAYS}-day portal preview`, value: '$79', trialFeature: 'report_upload_preview', locksAfterTrial: true },
   ],
   features: [
@@ -192,8 +197,9 @@ export const SCORE_ROADMAP_FUNNEL: LeadMagnetFunnelConfig = {
   heroSub: '— a clear path into the 700s.',
   valueStack: [
     { label: '5-step score recovery roadmap PDF', value: '$49' },
+    { label: 'Interactive score gap planner', value: '$39' },
+    { label: '5-step recovery worksheet (checkable)', value: '$29' },
     { label: 'Utilization + mix timing checklist', value: '$39' },
-    { label: 'Dispute priority worksheet', value: '$29' },
     { label: `${LEAD_MAGNET_TRIAL_DAYS}-day portal preview`, value: '$79', trialFeature: 'report_upload_preview', locksAfterTrial: true },
   ],
   features: [
@@ -225,7 +231,8 @@ export const AGENCY_FUNNEL: LeadMagnetFunnelConfig = {
   heroSub: 'with a partner-grade operating system.',
   valueStack: [
     { label: 'Agency white-label overview PDF', value: '$79' },
-    { label: 'Partner onboarding checklist', value: '$49' },
+    { label: '30-day agency launch checklist', value: '$49' },
+    { label: 'Partner onboarding playbook', value: '$49' },
     { label: 'Compliance-safe promo copy pack', value: '$39' },
     { label: `${LEAD_MAGNET_TRIAL_DAYS}-day agency lane preview`, value: '$99', trialFeature: 'report_upload_preview', locksAfterTrial: true },
   ],
@@ -258,8 +265,9 @@ export const SPECIALIST_APPLY_FUNNEL: LeadMagnetFunnelConfig = {
   heroSub: '— tools, training, and partner OS access.',
   valueStack: [
     { label: 'Specialist program overview PDF', value: '$59' },
+    { label: 'Activation workbook (interactive)', value: '$49' },
     { label: 'AI dispute workflow primer', value: '$49' },
-    { label: 'Activation checklist', value: '$29' },
+    { label: 'Partner OS tour checklist', value: '$29' },
     { label: `${LEAD_MAGNET_TRIAL_DAYS}-day specialist preview`, value: '$79', trialFeature: 'report_upload_preview', locksAfterTrial: true },
   ],
   features: [
@@ -291,6 +299,7 @@ export const AFFILIATE_FUNNEL: LeadMagnetFunnelConfig = {
   heroSub: '— refer partners, earn responsibly.',
   valueStack: [
     { label: 'Affiliate promo playbook PDF', value: '$49' },
+    { label: 'Referral link + code generator', value: '$39' },
     { label: 'QR + link setup guide', value: '$29' },
     { label: 'Compliant social copy pack', value: '$39' },
     { label: `${LEAD_MAGNET_TRIAL_DAYS}-day referral dashboard preview`, value: '$59', trialFeature: 'report_upload_preview', locksAfterTrial: true },

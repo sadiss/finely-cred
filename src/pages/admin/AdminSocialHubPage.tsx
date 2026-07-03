@@ -46,6 +46,10 @@ import { StaffPortraitImg } from '../../components/staff/StaffPortraitImg';
 import { staffMemberFullName } from '../../domain/staffMember';
 import { isSupabaseConfigured, supabase } from '../../lib/supabaseClient';
 import { FinelyOsGlassPanel } from '../../features/os/FinelyOsGlassPanel';
+import { StaffSocialPageAssignWizard } from '../../features/staffCommandCenter/StaffSocialPageAssignWizard';
+import { buildMetaOAuthRedirectUris, primaryMetaOAuthRedirectUri } from '../../lib/metaOAuthUrls';
+import { SocialDisclosureReviewPanel } from '../../features/social/SocialDisclosureReviewPanel';
+import { processRecruitingAutopilotTick } from '../../lib/recruitingSopAutopilot';
 import { FinelyOsPaginatedStack } from '../../features/os/FinelyOsPaginatedStack';
 import { SocialWorkflowWeekStrip } from '../../features/social/SocialWorkflowWeekStrip';
 import {
@@ -301,7 +305,7 @@ export default function AdminSocialHubPage() {
                 <input type="datetime-local" value={scheduleDate} onChange={(e) => setScheduleDate(e.target.value)} className={FINELY_OS_ENTITY_INPUT} />
               </div>
               <div className="flex items-end gap-2">
-                <button type="button" onClick={() => navigate('/admin/media-studio')} className={FINELY_OS_SECONDARY_BTN}>
+                <button type="button" onClick={() => navigate('/admin/content-studio')} className={FINELY_OS_SECONDARY_BTN}>
                   Attach from Media Studio
                 </button>
                 <button type="button" className={FINELY_OS_PRIMARY_BTN} onClick={handleQueuePost}>
@@ -453,6 +457,19 @@ export default function AdminSocialHubPage() {
               >
                 <Megaphone size={14} /> Publish due now
               </button>
+              <button
+                type="button"
+                className={FINELY_OS_SECONDARY_BTN}
+                onClick={() => {
+                  const result = processRecruitingAutopilotTick({ force: true, dryRun: autopilotCfg.dryRun });
+                  refreshLocal();
+                  setNotice(
+                    `Recruiting SOP: ${result.queued.length} queued · ${result.skipped} skipped · ${result.complianceBlocked} sent to review`,
+                  );
+                }}
+              >
+                <Bot size={14} /> Run recruiting SOP
+              </button>
               <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => selectTab('sop')}>
                 View SOP library
               </button>
@@ -492,6 +509,9 @@ export default function AdminSocialHubPage() {
                 </div>
               </div>
             ) : null}
+            <div className="mt-6">
+              <SocialDisclosureReviewPanel />
+            </div>
             {stats.dueToPublish.length > 0 ? (
               <p className={`${FINELY_OS_ENTITY_BODY} mt-3 text-xs text-emerald-300/90`}>
                 {stats.dueToPublish.length} post(s) past schedule — use Publish due now or enable auto-publish.
@@ -601,6 +621,17 @@ export default function AdminSocialHubPage() {
         )}
 
         {tab === 'settings' && (
+          <>
+          <StaffSocialPageAssignWizard />
+          <FinelyOsGlassPanel icon={Share2} title="LinkedIn & TikTok (placeholder)" accent="sky">
+            <p className={`${FINELY_OS_ENTITY_BODY} mt-2 text-sm`}>
+              API posting for LinkedIn and TikTok is staged — profiles are drafted in Staff Command Center. When approved, wire credentials here without removing Meta depth.
+            </p>
+            <ul className="mt-3 text-xs text-white/55 space-y-1">
+              <li>LinkedIn — company page + executive disclosure queue</li>
+              <li>TikTok — short-form clips from Content Studio publish bridge</li>
+            </ul>
+          </FinelyOsGlassPanel>
           <FinelyOsGlassPanel icon={Settings} title="Meta connections" accent="violet">
             <p className={`${FINELY_OS_ENTITY_BODY} mt-1`}>Status: {config.status}</p>
             {config.connectedPages.length > 0 ? (
@@ -622,6 +653,25 @@ export default function AdminSocialHubPage() {
                   placeholder="https://…/og-default.jpg"
                 />
                 <p className={`${FINELY_OS_ENTITY_BODY} text-xs mt-1`}>Used for IG media-container posts when no creative is attached.</p>
+              </div>
+              <div>
+                <label className={FINELY_OS_ENTITY_SUBLABEL}>Production site URL</label>
+                <input
+                  value={config.productionSiteUrl ?? ''}
+                  onChange={(e) => setConfig((c) => ({ ...c, productionSiteUrl: e.target.value }))}
+                  className={FINELY_OS_ENTITY_INPUT}
+                  placeholder="https://finelycred.com"
+                />
+                <p className={`${FINELY_OS_ENTITY_BODY} text-xs mt-1`}>
+                  Used to build OAuth redirect URIs for production Meta App registration.
+                </p>
+              </div>
+              <div className="rounded-xl border border-violet-500/20 bg-violet-500/10 p-3 space-y-2">
+                <div className={`text-xs font-semibold ${FINELY_OS_ENTITY_SUBLABEL} text-violet-200`}>OAuth redirect URIs (register in Meta App)</div>
+                <code className={`block text-xs break-all ${FINELY_OS_ENTITY_BODY}`}>{primaryMetaOAuthRedirectUri(config)}</code>
+                {buildMetaOAuthRedirectUris(config).map((uri) => (
+                  <code key={uri} className={`block text-[10px] break-all text-white/50`}>{uri}</code>
+                ))}
               </div>
               <div>
                 <label className={FINELY_OS_ENTITY_SUBLABEL}>App ID</label>
@@ -649,6 +699,7 @@ export default function AdminSocialHubPage() {
               </p>
             </div>
           </FinelyOsGlassPanel>
+          </>
         )}
       </div>
     </PageShell>

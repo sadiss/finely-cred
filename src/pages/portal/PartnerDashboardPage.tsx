@@ -34,7 +34,11 @@ import { ProofDocumentsHub } from '../../components/evidence/ProofDocumentsHub';
 import { PartnerFundingCommandStrip } from '../../components/partner/PartnerFundingCommandStrip';
 import { FinelyBridgeConnectorPanel } from '../../components/bridge/FinelyBridgeConnectorPanel';
 import { PartnerOnboardingProgress } from '../../components/onboarding/PartnerOnboardingProgress';
+import { PartnerOnboardingRelationshipCard } from '../../components/onboarding/PartnerOnboardingRelationshipCard';
 import { PartnerCreditLanesPanel } from '../../components/partner/PartnerCreditLanesPanel';
+import { PartnerSuccessExperiencePanel } from '../../components/partner/PartnerSuccessExperiencePanel';
+import { PartnerLaneSpecialistStrip } from '../../components/partner/PartnerLaneSpecialistStrip';
+import { PartnerSocialProofStrip } from '../../components/partner/PartnerSocialProofStrip';
 import { ensurePartnerOnboardingTasks } from '../../lib/partnerOnboardingEngine';
 import { openCommunicationHub } from '../../components/chat/communicationHubModel';
 import { PartnerCreditRestoreCommandStrip } from '../../components/partner/PartnerCreditRestoreCommandStrip';
@@ -537,7 +541,11 @@ export default function PartnerDashboardPage() {
             <section id="portal-dash-overview" className="fc-scroll-section space-y-6">
                 <h2 className="fc-launch-lane-header">Overview</h2>
                 <ProfileGoalsReadinessPanel partner={partner} overallScore={overallScore} onSaved={() => refresh()} />
+                <PartnerOnboardingRelationshipCard partner={partner} />
                 <PartnerOnboardingProgress partner={partner} />
+                <PartnerSuccessExperiencePanel partnerId={partner.id} lane="all" compact />
+                <PartnerLaneSpecialistStrip partnerId={partner.id} />
+                <PartnerSocialProofStrip staffId="scout_supreme" compact />
                 <PartnerCreditLanesPanel partnerId={partner.id} lane={partner.lane} />
                 {overallScore ? (
             <div className="grid lg:grid-cols-12 gap-4">

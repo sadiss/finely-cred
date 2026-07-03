@@ -3,6 +3,9 @@ import { ArrowLeft, Key, Webhook, ArrowDownToLine, Copy, Plus, Trash2, ToggleLef
 import { useNavigate } from 'react-router-dom';
 import { PageShell } from '../../components/layout/PageShell';
 import { AdminWebhooksPanel } from '../../features/admin/AdminWebhooksPanel';
+import { IntegrationGoLivePanel } from '../../features/integrations/IntegrationGoLivePanel';
+import { ProductionGoLiveChecklist } from '../../features/integrations/ProductionGoLiveChecklist';
+import { ProductionDeployUrlsPanel } from '../../features/integrations/ProductionDeployUrlsPanel';
 import { FinelyOsPaginatedStack } from '../../features/os/FinelyOsPaginatedStack';
 import { INBOUND_INTEGRATION_EVENTS } from '../../lib/integrationInboundMap';
 import { getWebhookDeliveryLog } from '../../data/webhooksRepo';
@@ -71,6 +74,24 @@ export default function AdminIntegrationHubPage() {
         </button>
 
         <AdminWebhooksPanel />
+
+        <section className={`${finelyOsCatalogCard('violet')} !p-5 fc-surface-harmony space-y-4`} data-fc-accent="violet">
+          <h2 className={`text-xl ${FINELY_OS_ENTITY_VALUE}`}>Go-live integration health</h2>
+          <p className={FINELY_OS_ENTITY_BODY}>Supabase, comms delivery, email webhooks, Meta OAuth redirects, social + staff sync.</p>
+          <IntegrationGoLivePanel />
+        </section>
+
+        <section className={`${finelyOsCatalogCard('emerald')} !p-5 fc-surface-harmony space-y-4`} data-fc-accent="emerald">
+          <h2 className={`text-xl ${FINELY_OS_ENTITY_VALUE}`}>Production deploy URLs</h2>
+          <p className={FINELY_OS_ENTITY_BODY}>Live webhook + OAuth callback URLs from your Supabase project — copy into Resend, SendGrid, Azure, Google.</p>
+          <ProductionDeployUrlsPanel />
+        </section>
+
+        <section className={`${finelyOsCatalogCard('emerald')} !p-5 fc-surface-harmony space-y-4`} data-fc-accent="emerald">
+          <h2 className={`text-xl ${FINELY_OS_ENTITY_VALUE}`}>Production deploy checklist</h2>
+          <p className={FINELY_OS_ENTITY_BODY}>Copy-paste Supabase deploy commands, wire webhooks, and enable live comms when ready.</p>
+          <ProductionGoLiveChecklist />
+        </section>
 
         <section className={`${finelyOsCatalogCard('sky')} !p-5 fc-surface-harmony space-y-4`} data-fc-accent="sky">
           <div>

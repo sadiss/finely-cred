@@ -3,10 +3,11 @@ import type { User } from '@supabase/supabase-js';
 import { getWelcomeConfig } from '../onboarding/welcomeMessage';
 import { sendEmail } from './commsDeliveryClient';
 import { isFeatureEnabled } from '../data/settingsRepo';
-import { isSupabaseConfigured } from './supabaseClient';
+import { isSupabaseConfigured, supabase } from './supabaseClient';
 import { buildMarketingEmailFooter } from './commsUnsubscribeFooter';
 import { buildSignupWelcomeEmail, funnelIdForPartnerLane } from '../comms/signupWelcomeHtmlEmail';
 import { landingPathForPartner } from './partnerInviteRouting';
+import { signupInviteUrl } from './partnerInviteEmail';
 import { resolveSequenceForLead, getNurtureSequence } from '../domain/nurtureSequences';
 import type { LeadCapture } from '../domain/leads';
 import { ensureDefaultEmailDomainsOnce, refreshDefaultEmailSignatureBranding } from '../data/emailDomainsRepo';
@@ -79,6 +80,8 @@ export async function sendPartnerWelcomeEmail(args: {
             : 'seq_inbound_nurture',
     ) ?? resolveSequenceForLead({ funnelPath: '/onboarding', offer: 'portal_signup' });
   const portalPath = landingPathForPartner(args.partner);
+  const needsAccountSetup = !args.partner.claimedUserId;
+  const accountSetupUrl = needsAccountSetup ? signupInviteUrl(args.partner, email) : undefined;
 
   const built = buildSignupWelcomeEmail({
     lead,
@@ -86,6 +89,7 @@ export async function sendPartnerWelcomeEmail(args: {
     guideTitle: 'your portal welcome kit',
     overrideFunnelId: laneFunnelId,
     portalPath,
+    accountSetupUrl,
   });
 
   const ctx = buildMessageContext({ user: args.user, partner: args.partner });
@@ -99,14 +103,29 @@ export async function sendPartnerWelcomeEmail(args: {
   const footer = buildMarketingEmailFooter({ email });
 
   try {
-    await sendEmail({
-      toEmail: email,
-      toName: args.partner.profile.fullName,
-      subject,
-      text: `${text}${footer}`,
-      html,
-      emailDomainId,
-    });
+    const idempotencyKey = `partner-welcome:${args.partner.id}:${email}:v3`;
+    if (isSupabaseConfigured) {
+      const { data, error } = await supabase.functions.invoke('send-partner-welcome', {
+        body: {
+          to: { email, name: args.partner.profile.fullName },
+          subject,
+          text: `${text}${footer}`,
+          html,
+          idempotencyKey,
+        },
+      });
+      if (error) throw new Error(error.message);
+      if (!data?.ok && !data?.deduped) throw new Error(data?.error || 'Welcome email not sent.');
+    } else {
+      await sendEmail({
+        toEmail: email,
+        toName: args.partner.profile.fullName,
+        subject,
+        text: `${text}${footer}`,
+        html,
+        emailDomainId,
+      });
+    }
     markSent(args.partner.id);
     return { sent: true };
   } catch (e: unknown) {

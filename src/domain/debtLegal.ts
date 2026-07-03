@@ -9,10 +9,18 @@ export type DebtLetterType =
   | 'validation_request'       // FDCPA § 809 — demand validation before collection
   | 'validation_round2_deficiency' // second round — validation response was incomplete/deficient
   | 'validation_round3_final_demand' // third round — final demand after failure to validate
+  | 'post_suit_validation_demand' // Post-suit validation + cease (mini-Miranda / lawsuit)
+  | 'assignment_chain_demand'   // Assignment registry demand to originator
+  | 'defendant_discovery_requests' // Full RFAs / interrogatories / RFPs
+  | 'motion_to_compel_discovery' // Motion to compel supplemental discovery
+  | 'affidavit_litigation_bank' // STATE/COUNTY affidavit — bank plaintiff
+  | 'affidavit_litigation_debt_buyer' // Affidavit — debt buyer / velocity pattern
+  | 'affidavit_parker_litigation' // @deprecated legacy alias
+  | 'affidavit_parker_velocity'   // @deprecated legacy alias
   | 'cease_and_desist'        // FDCPA § 805(c) — stop contact
   | 'affidavit_of_dispute'    // Sworn statement disputing debt / no contract
   | 'time_barred_response'    // Statute of limitations defense
-  | 'summons_response_affidavit'  // Court/summons response (e.g. post-35-day answer)
+  | 'summons_response_affidavit'  // Court/summons response (litigation affidavit format)
   | 'debt_dispute_letter';    // General dispute to collector (accuracy/verification)
 
 export type LegalBasisCategory =

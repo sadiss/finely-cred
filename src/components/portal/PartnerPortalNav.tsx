@@ -204,7 +204,7 @@ export function PartnerPortalNav() {
       ) : null}
       <div className="flex flex-wrap items-center justify-between gap-2 px-2 mt-1">
         <p className={`${FINELY_OS_ENTITY_SUBLABEL} normal-case hidden md:block`}>
-          Dispute letters includes drafts, cases, and vault · Partner workspace navigation
+          Letter workstations — bureaus, debt, bankruptcy, and vault · Partner workspace navigation
         </p>
         <button
           type="button"

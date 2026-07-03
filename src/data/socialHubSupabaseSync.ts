@@ -18,6 +18,7 @@ function rowFromPost(post: SocialScheduledPost, tenantId: string, imageUrl?: str
     sop_template_id: post.sopTemplateId ?? null,
     assigned_staff_id: post.assignedStaffId ?? null,
     compliance_status: post.complianceStatus ?? null,
+    poster_type: post.posterType ?? null,
     image_url: imageUrl ?? null,
     created_at: post.createdAt,
     updated_at: post.updatedAt ?? post.createdAt,
@@ -37,6 +38,7 @@ function postFromRow(row: Record<string, unknown>): SocialScheduledPost {
     complianceStatus: row.compliance_status
       ? (String(row.compliance_status) as SocialScheduledPost['complianceStatus'])
       : undefined,
+    posterType: row.poster_type ? (String(row.poster_type) as SocialScheduledPost['posterType']) : undefined,
     createdAt: String(row.created_at ?? new Date().toISOString()),
     updatedAt: String(row.updated_at ?? row.created_at ?? new Date().toISOString()),
   };

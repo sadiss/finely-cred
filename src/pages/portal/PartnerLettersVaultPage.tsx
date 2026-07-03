@@ -127,10 +127,15 @@ export default function PartnerLettersVaultPage() {
   }, [letters]);
 
   const groups = useMemo(() => {
-    const byType = (t: LetterRecord['type']) => filtered.filter((l) => l.type === t);
+    const isBankruptcy = (l: LetterRecord) => {
+      const meta = (l.meta ?? {}) as Record<string, unknown>;
+      return meta.context === 'bankruptcy' || meta.templateCategory === 'bankruptcy';
+    };
+    const byType = (t: LetterRecord['type']) => filtered.filter((l) => l.type === t && !isBankruptcy(l));
     const dispute = byType('dispute');
     const validation = byType('validation');
     const court = byType('court');
+    const bankruptcy = filtered.filter(isBankruptcy);
     const disputeByBureau = dispute.reduce(
       (m, l) => {
         const bureau = l.meta && 'bureau' in (l.meta as any) ? String((l.meta as any).bureau || 'Unknown') : 'Unknown';
@@ -141,9 +146,10 @@ export default function PartnerLettersVaultPage() {
       {} as Record<string, LetterRecord[]>,
     );
     return [
-      { id: 'dispute', label: 'Dispute letters', letters: dispute, disputeByBureau },
+      { id: 'dispute', label: 'Bureaus', letters: dispute, disputeByBureau },
       { id: 'validation', label: 'Validation / DV', letters: validation },
       { id: 'court', label: 'Court / Affidavit', letters: court },
+      { id: 'bankruptcy', label: 'Bankruptcy', letters: bankruptcy },
     ] as const;
   }, [filtered]);
 
@@ -327,7 +333,7 @@ export default function PartnerLettersVaultPage() {
           <FinelyUnifiedHubLayout
             eyebrow="Letters vault"
             title="Stored PDFs & mail tracking"
-            subtitle="Dispute, validation, and court letters — plus saved analysis reports."
+            subtitle="Bureau, validation, court, and bankruptcy letters — plus saved analysis reports."
             accent="emerald"
             kpis={vaultKpis}
             tabs={[
@@ -386,10 +392,13 @@ export default function PartnerLettersVaultPage() {
 
             <div className="grid md:grid-cols-4 gap-4">
               {[
-                { label: 'Dispute', value: (view === 'archived' ? counts.archivedByType.dispute : counts.activeByType.dispute) ?? 0, accent: 'violet' as const },
+                { label: 'Bureaus', value: (view === 'archived' ? counts.archivedByType.dispute : counts.activeByType.dispute) ?? 0, accent: 'violet' as const },
                 { label: 'Validation / DV', value: (view === 'archived' ? counts.archivedByType.validation : counts.activeByType.validation) ?? 0, accent: 'amber' as const },
                 { label: 'Court', value: (view === 'archived' ? counts.archivedByType.court : counts.activeByType.court) ?? 0, accent: 'rose' as const },
-                { label: 'Total shown', value: filtered.length, accent: 'sky' as const },
+                { label: 'Bankruptcy', value: filtered.filter((l) => {
+                  const meta = (l.meta ?? {}) as Record<string, unknown>;
+                  return meta.context === 'bankruptcy' || meta.templateCategory === 'bankruptcy';
+                }).length, accent: 'sky' as const },
               ].map((stat) => (
                 <div key={stat.label} className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony`}>
                   <div className={FINELY_OS_ENTITY_LABEL}>{stat.label}</div>

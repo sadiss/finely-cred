@@ -1,5 +1,5 @@
 import React from 'react';
-import { FINELY_OS_ENTITY_BODY, FINELY_OS_ENTITY_VALUE } from '../../features/os/finelyOsLightUi';
+import { FINELY_OS_ENTITY_BODY, FINELY_OS_ENTITY_VALUE, finelyOsGlowKpi, type FinelyOsGlowAccent } from '../../features/os/finelyOsLightUi';
 
 export type FinelyOsKpiItem = {
   label: string;
@@ -9,12 +9,25 @@ export type FinelyOsKpiItem = {
   onClick?: () => void;
 };
 
-export function FinelyOsKpiGrid({ items, columns = 4 }: { items: FinelyOsKpiItem[]; columns?: 2 | 3 | 4 }) {
+export function FinelyOsKpiGrid({
+  items,
+  columns = 4,
+  dense = false,
+  glow,
+}: {
+  items: FinelyOsKpiItem[];
+  columns?: 2 | 3 | 4;
+  dense?: boolean;
+  glow?: FinelyOsGlowAccent;
+}) {
   const colClass =
-    columns === 2 ? 'grid-cols-2' : columns === 3 ? 'grid-cols-2 sm:grid-cols-3' : 'grid-cols-2 sm:grid-cols-4';
+    columns === 2 ? 'grid-cols-2' : columns === 3 ? 'grid-cols-3' : 'grid-cols-2 sm:grid-cols-4';
+  const gap = dense ? 'gap-2' : 'gap-3';
+  const pad = dense ? 'px-3 py-2' : 'px-4 py-3';
+  const valueCls = dense ? 'text-base font-black' : 'text-lg font-black';
 
   return (
-    <div className={`grid ${colClass} gap-3`}>
+    <div className={`grid ${colClass} ${gap}`}>
       {items.map((kpi) => {
         const Tag = kpi.onClick ? 'button' : 'div';
         return (
@@ -22,13 +35,13 @@ export function FinelyOsKpiGrid({ items, columns = 4 }: { items: FinelyOsKpiItem
             key={kpi.label}
             type={kpi.onClick ? 'button' : undefined}
             onClick={kpi.onClick}
-            className={`rounded-xl border border-white/10 bg-black/25 px-4 py-3 text-center transition ${
+            className={`${glow ? finelyOsGlowKpi(glow) : 'rounded-xl border border-white/10 bg-black/25'} ${pad} text-center transition ${
               kpi.onClick ? 'hover:bg-white/[0.04] hover:border-violet-400/30 cursor-pointer' : ''
             }`}
           >
-            <div className={`text-lg font-black ${kpi.accent ?? 'text-violet-300'}`}>{kpi.value}</div>
-            <div className={`text-[10px] uppercase tracking-widest ${FINELY_OS_ENTITY_BODY}`}>{kpi.label}</div>
-            {kpi.hint ? <div className={`mt-1 text-[9px] ${FINELY_OS_ENTITY_BODY} normal-case`}>{kpi.hint}</div> : null}
+            <div className={`${valueCls} truncate ${kpi.accent ?? 'text-violet-300'}`}>{kpi.value}</div>
+            <div className={`text-[9px] uppercase tracking-widest ${FINELY_OS_ENTITY_BODY}`}>{kpi.label}</div>
+            {kpi.hint && !dense ? <div className={`mt-1 text-[9px] ${FINELY_OS_ENTITY_BODY} normal-case`}>{kpi.hint}</div> : null}
           </Tag>
         );
       })}

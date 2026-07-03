@@ -1,11 +1,16 @@
 import React from 'react';
 import { PageShell } from '../../components/layout/PageShell';
-import { AutomationCommandGrid } from './AutomationCommandGrid';
+import { AutomationStudioDepartmentPage } from './AutomationStudioDepartmentPage';
 
 export function AutomationStudioPremiumPage() {
   return (
-    <PageShell badge="Admin" title="Automation Studio Command Grid" subtitle="GoHighLevel-style blueprint gallery, stable automation grid, approval gates, and scenario-based install flow." back={{ to: -1 }}>
-      <AutomationCommandGrid />
+    <PageShell
+      badge="Admin"
+      title="Automation Studio"
+      subtitle="Scenario blueprints, visual flow builder, and the full trigger & recipe catalog."
+      back={{ to: -1 }}
+    >
+      <AutomationStudioDepartmentPage />
     </PageShell>
   );
 }

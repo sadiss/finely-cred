@@ -77,6 +77,9 @@ export function mergePartnerIntoInviteUserData(
       promoterRole: '',
       promoType: '',
       promoAsset: '',
+      supportModel: String(partner.journeySignals?.supportModel || base.supportModel || ''),
+      helperName: String(partner.journeySignals?.helperName || base.helperName || ''),
+      priorCompany: String(partner.journeySignals?.priorCompany || base.priorCompany || ''),
     } as Parameters<typeof applyOnboardingRole>[0],
     effectiveRole,
   ) as Record<string, unknown>;

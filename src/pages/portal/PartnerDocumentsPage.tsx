@@ -4,8 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { PageShell } from '../../components/layout/PageShell';
 import { useAuth } from '../../auth/AuthProvider';
 import { listEvidenceByPartner, upsertEvidence, deleteEvidence } from '../../data/evidenceRepo';
-import { ProofDocumentsHub } from '../../components/evidence/ProofDocumentsHub';
-import { DocumentIdScanPanel } from '../../components/documents/DocumentIdScanPanel';
+import { SmartProofUploader } from '../../components/evidence/SmartProofUploader';
 import { checkIdentityDocumentGate } from '../../lib/documentVaultGates';
 import { EvidenceList } from '../../components/evidence/EvidenceList';
 import { addAuditEvent } from '../../data/auditRepo';
@@ -176,16 +175,10 @@ export default function PartnerDocumentsPage() {
             >
               {tab === 'upload' && (
                 <div className="space-y-6">
-                  <DocumentIdScanPanel
-                    partnerId={partner.id}
-                    onUploaded={() => {
-                      setVersion((v) => v + 1);
-                      setDocVersion((v) => v + 1);
-                    }}
-                  />
-                  <ProofDocumentsHub
+                  <SmartProofUploader
                     partner={partner}
                     email={email}
+                    uploadContext="general"
                     onUploaded={() => {
                       setVersion((v) => v + 1);
                       setDocVersion((v) => v + 1);

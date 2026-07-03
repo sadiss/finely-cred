@@ -1,5 +1,6 @@
 import type { GeoCluster, StaffMember } from './types';
-import { GEO_CLUSTERS, STAFF_MEMBERS } from './staffDirectory';
+import { GEO_CLUSTERS } from './staffDirectory';
+import { getStaffRoster } from './staffRoster';
 
 export type GeoClusterScore = {
   cluster: GeoCluster;
@@ -15,7 +16,8 @@ function clamp(n: number, min = 0, max = 100) {
 }
 
 export function staffByGeoCluster(cluster: GeoCluster): StaffMember[] {
-  return cluster.assignedStaffIds.map((id) => STAFF_MEMBERS.find((s) => s.id === id)).filter(Boolean) as StaffMember[];
+  const roster = getStaffRoster();
+  return cluster.assignedStaffIds.map((id) => roster.find((s) => s.id === id)).filter(Boolean) as StaffMember[];
 }
 
 export function scoreGeoCluster(cluster: GeoCluster): GeoClusterScore {

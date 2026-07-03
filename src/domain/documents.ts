@@ -9,6 +9,10 @@ export type DocumentType =
   | 'bureau_response'
   | 'collection_notice'
   | 'summons'
+  | 'affidavit'
+  | 'court_filing'
+  | 'creditor_response'
+  | 'bankruptcy_order'
   | 'contract'
   | 'other'
   | 'unknown';

@@ -200,8 +200,8 @@ export default function AdminHandsFreeOpsPage() {
                 Core roles covered · {loadStaffRoster().filter((s) => s.active).length} active roster members
               </p>
             )}
-            <button type="button" onClick={() => navigate('/admin/agent-staff')} className={`${FINELY_OS_SECONDARY_BTN} mt-3`}>
-              Manage roster
+            <button type="button" onClick={() => navigate('/admin/staff?view=partner')} className={`${FINELY_OS_SECONDARY_BTN} mt-3`}>
+              Partner team roster
             </button>
           </FinelyOsGlassPanel>
         </div>

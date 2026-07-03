@@ -366,7 +366,7 @@ export const SITEWIDE_PAGE_AUDIT: SitewidePageAuditRecord[] = [
   {
     "id": "pages_admin_AdminMediaStudioPage",
     "path": "src/pages/admin/AdminMediaStudioPage.tsx",
-    "route": "/admin/media-studio",
+    "route": "/admin/content-studio",
     "zone": "admin",
     "priority": "critical",
     "currentIssue": "long_list_or_side_by_side_risk",

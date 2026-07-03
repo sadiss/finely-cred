@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { ArrowRight, CheckCircle2, GitBranch, Grid3X3, Lock, Pause, PlayCircle, Plus, ShieldCheck, Sparkles, Trash2, Unlock } from 'lucide-react';
+import { ArrowRight, CheckCircle2, GitBranch, Grid3X3, Pause, PlayCircle, Plus, ShieldCheck, Sparkles, Trash2, Unlock } from 'lucide-react';
 import type { AutomationBlueprint, AutomationBlueprintCategory, AutomationGridNode } from './types';
 import { AUTOMATION_BLUEPRINTS, blueprintToPlainEnglish, listBlueprintsByCategory } from './automationBlueprints';
 import { StudioActionDeck, StudioKpiCards, StudioSection } from './StudioKpiCards';
@@ -44,12 +44,11 @@ function blueprintToRule(b: AutomationBlueprint): Omit<AutomationRule, 'id' | 'c
   };
 }
 
-function NodeCard({ node, index, editMode }: { node: AutomationGridNode; index: number; editMode: boolean }) {
+function NodeCard({ node, index }: { node: AutomationGridNode; index: number }) {
   return (
     <div className={`relative rounded-3xl border ${NODE_TONE[node.type]} p-5 min-h-[170px] shadow-2xl shadow-black/20`}>
       <div className="flex items-start justify-between gap-3">
         <div className="text-[10px] uppercase tracking-widest font-black opacity-70">{node.type} • {index + 1}</div>
-        <div className="inline-flex items-center gap-1 text-[10px] uppercase tracking-widest opacity-70">{editMode ? <Unlock size={12} /> : <Lock size={12} />} {editMode ? 'edit' : 'locked'}</div>
       </div>
       <div className="mt-4 text-white font-black leading-tight">{node.title}</div>
       <div className="mt-2 text-sm text-white/70 leading-relaxed">{node.subtitle}</div>
@@ -74,7 +73,7 @@ export function AutomationCommandGrid() {
   const kpis = [
     { label: 'Blueprints', value: AUTOMATION_BLUEPRINTS.length, hint: 'Choose scenario instead of scrolling templates', tone: 'amber' as const },
     { label: 'Installed rules', value: rules.filter((r) => r.meta?.blueprintId).length, hint: 'Draft blueprint installs', tone: 'emerald' as const },
-    { label: 'Grid movement', value: editMode ? 'Unlocked' : 'Locked', hint: 'No accidental drag/pan by default', tone: editMode ? 'rose' as const : 'sky' as const },
+    { label: 'Grid mode', value: editMode ? 'Canvas edit' : 'Storyboard view', hint: 'Open Flow builder tab to edit nodes & branches', tone: editMode ? 'rose' as const : 'sky' as const },
     { label: 'Actions', value: selected?.nodes.length ?? 0, hint: 'Beginning-to-end flow nodes', tone: 'violet' as const },
   ];
 
@@ -94,7 +93,18 @@ export function AutomationCommandGrid() {
     <div className="space-y-6">
       <StudioKpiCards items={kpis} />
       {notice ? <div className="rounded-3xl border border-emerald-500/30 bg-emerald-500/10 p-4 text-emerald-100 text-sm inline-flex gap-3"><CheckCircle2 size={18} /> {notice}</div> : null}
-      <StudioSection eyebrow="GoHighLevel-style automation gallery" title="Choose a scenario. Then open a stable automation grid." right={<button type="button" className={editMode ? 'fc-button-brand' : 'fc-button-soft'} onClick={() => setEditMode((v) => !v)}>{editMode ? <Unlock size={14} /> : <Lock size={14} />} {editMode ? 'Edit mode on' : 'Grid locked'}</button>}>
+      <StudioSection
+        eyebrow="Scenario gallery"
+        title="Choose a scenario — then install or customize in Flow builder"
+        right={
+          <button type="button" className={editMode ? 'fc-button-brand' : 'fc-button-soft'} onClick={() => setEditMode((v) => !v)}>
+            {editMode ? <Unlock size={14} /> : <Grid3X3 size={14} />} {editMode ? 'Rearrange cards' : 'Storyboard view'}
+          </button>
+        }
+      >
+        <p className="text-sm text-white/55 mb-4 max-w-3xl">
+          Cards below are a read-only storyboard of each blueprint. For hundreds of triggers, branches, and conditions, open the <strong className="text-amber-200">Flow builder</strong> or <strong className="text-amber-200">Trigger catalog</strong> tabs above.
+        </p>
         <div className="flex gap-2 overflow-x-auto pb-2">
           {(['all', ...Object.keys(CATEGORY_LABEL)] as Array<AutomationBlueprintCategory | 'all'>).map((c) => <button key={c} type="button" className={category === c ? 'fc-button-brand shrink-0' : 'fc-button-soft shrink-0'} onClick={() => setCategory(c)}>{c === 'all' ? 'All' : CATEGORY_LABEL[c]}</button>)}
         </div>
@@ -104,7 +114,7 @@ export function AutomationCommandGrid() {
         <div className="grid lg:grid-cols-3 gap-4">
           <div className="lg:col-span-2 rounded-[2rem] border border-white/10 bg-black/30 p-5 overflow-x-auto">
             <div className="grid xl:grid-cols-3 gap-5 min-w-[900px]">
-              {selected.nodes.map((n, idx) => <NodeCard key={n.id} node={n} index={idx} editMode={editMode} />)}
+              {selected.nodes.map((n, idx) => <NodeCard key={n.id} node={n} index={idx} />)}
             </div>
           </div>
           <div className="space-y-4">

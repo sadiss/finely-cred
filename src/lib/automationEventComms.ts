@@ -3,9 +3,10 @@ import type { AutomationRule } from '../domain/automationStudio';
 import type { PlatformEvent } from '../domain/platformEvents';
 import { getPartner } from '../data/partnersRepo';
 import { getCommsTemplate, hasRecentCommsSend } from '../data/commsRepo';
-import { sendEmailFromTemplate, sendPortalFromTemplate } from './commsEngine';
+import { sendEmailFromTemplate, sendPortalFromTemplate, sendSmsFromTemplate } from './commsEngine';
 import { isFeatureEnabled } from '../data/settingsRepo';
 import { buildMessageContext } from '../comms/buildMessageContext';
+import { resolveBankruptcyScenarioTemplates } from './bankruptcyCommsTemplateMap';
 
 export type EventCommsResult = { sent: number; skipped: number; messages: string[] };
 
@@ -29,16 +30,34 @@ export async function runEventScopedCommsActions(
     extra: {
       daysSince: event.payload?.daysSince,
       daysSinceExpiry: event.payload?.daysSinceExpiry,
+      scenarioId: event.payload?.scenarioId,
+      scenarioTitle: event.payload?.title,
       portalBillingUrl: `${typeof window !== 'undefined' ? window.location.origin : ''}/portal/billing`,
+      links: {
+        portal: '/portal/bankruptcy',
+        messages: '/portal/messages?hub=team',
+      },
     },
   });
 
+  const bankruptcyBundle =
+    event.payload?.kind === 'bankruptcy_scenario_selected' && event.payload?.scenarioId
+      ? resolveBankruptcyScenarioTemplates(String(event.payload.scenarioId))
+      : null;
+
   for (const action of rule.actions ?? []) {
     if (action.type !== 'send_comms_template') continue;
-    const tpl = getCommsTemplate(action.templateId);
+    let templateId = action.templateId;
+    if (bankruptcyBundle && action.channel === 'email' && bankruptcyBundle.email) {
+      templateId = bankruptcyBundle.email;
+    }
+    if (bankruptcyBundle && action.channel === 'sms' && bankruptcyBundle.sms) {
+      templateId = bankruptcyBundle.sms;
+    }
+    const tpl = getCommsTemplate(templateId);
     if (!tpl?.enabled) {
       skipped += 1;
-      messages.push(`Template missing/disabled: ${action.templateId}`);
+      messages.push(`Template missing/disabled: ${templateId}`);
       continue;
     }
     const dedupeH = action.dedupeWithinHours ?? 48;
@@ -51,6 +70,10 @@ export async function runEventScopedCommsActions(
     if (channel === 'email') {
       const res = await sendEmailFromTemplate({ template: tpl, partner, ctx, dryRun });
       messages.push(res.ok ? `Email ${dryRun ? 'dry' : 'sent'}: ${tpl.id}` : `Email failed: ${tpl.id}`);
+      if (res.ok) sent += 1;
+    } else if (channel === 'sms') {
+      const res = await sendSmsFromTemplate({ template: tpl, partner, ctx, dryRun });
+      messages.push(res.ok ? `SMS ${dryRun ? 'dry' : 'sent'}: ${tpl.id}` : `SMS failed: ${tpl.id}`);
       if (res.ok) sent += 1;
     } else if (channel === 'portal') {
       const res = sendPortalFromTemplate({ template: tpl, partner, ctx, dryRun });

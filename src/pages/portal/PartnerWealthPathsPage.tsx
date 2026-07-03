@@ -6,6 +6,8 @@ import { usePartnerSession } from '../../auth/PartnerSessionContext';
 import { hasEntitlement } from '../../data/billingRepo';
 import { getFeatureFlags, isNoraCapitalConfigured } from '../../data/settingsRepo';
 import { PartnerFundingCommandStrip } from '../../components/partner/PartnerFundingCommandStrip';
+import { PartnerLaneCoachPanel } from '../../components/chat/PartnerLaneCoachPanel';
+import { saveFundingLaneFocus, getFundingLaneFocus } from '../../data/fundingLaneStateRepo';
 import { FundingLadderPanel } from '../../components/funding/FundingLadderPanel';
 import { submitPartnerFundingHandoff } from '../../lib/noraFundingHandoff';
 import { FinelyBridgeConnectorPanel } from '../../components/bridge/FinelyBridgeConnectorPanel';
@@ -74,6 +76,7 @@ export default function PartnerWealthPathsPage() {
   const { partner, refresh } = usePartnerSession();
   type WealthTab = 'overview' | 'lanes' | 'ladder';
   const [tab, setTab] = useState<WealthTab>('lanes');
+  const [coachVersion, setCoachVersion] = useState(0);
   const features = getFeatureFlags();
   const [handoffBusy, setHandoffBusy] = useState(false);
   const noraOn = isNoraCapitalConfigured();
@@ -94,6 +97,18 @@ export default function PartnerWealthPathsPage() {
   }, [partner]);
 
   const unlockPath = partner ? '/portal/billing#plans-section' : '/pricing';
+
+  const fundingFocusId = useMemo(() => {
+    void coachVersion;
+    if (!partner) return 'lane_funding_readiness';
+    return getFundingLaneFocus(partner.id)?.laneId ?? 'lane_funding_readiness';
+  }, [partner, coachVersion]);
+
+  const selectLane = (lane: (typeof LANES)[number]) => {
+    if (!partner) return;
+    saveFundingLaneFocus(partner.id, { laneId: lane.id, laneTitle: lane.title });
+    setCoachVersion((v) => v + 1);
+  };
 
   return (
     <PageShell
@@ -193,6 +208,19 @@ export default function PartnerWealthPathsPage() {
           {tab === 'ladder' && partner ? <FundingLadderPanel partnerId={partner.id} /> : null}
 
           {tab === 'lanes' && (
+        <>
+        {partner ? (
+          <div className="mb-4">
+            <PartnerLaneCoachPanel
+              partnerId={partner.id}
+              partnerName={partner.profile.fullName}
+              lane="funding"
+              focusId={fundingFocusId}
+              compact
+              coachSubtitle="Wealth path specialist — funding readiness, vendor ladder, or Nora handoff"
+            />
+          </div>
+        ) : null}
         <div className="grid md:grid-cols-2 gap-6">
           {LANES.map((lane) => {
             const locked = (() => {
@@ -249,7 +277,14 @@ export default function PartnerWealthPathsPage() {
                       </button>
                     </>
                   ) : (
-                    <button type="button" onClick={() => navigate('/portal/dashboard')} className={FINELY_OS_SUCCESS_BTN}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        selectLane(lane);
+                        navigate('/portal/dashboard');
+                      }}
+                      className={FINELY_OS_SUCCESS_BTN}
+                    >
                       Open lane <ArrowRight size={14} />
                     </button>
                   )}
@@ -258,6 +293,7 @@ export default function PartnerWealthPathsPage() {
             );
           })}
         </div>
+        </>
           )}
         </FinelyUnifiedHubLayout>
 

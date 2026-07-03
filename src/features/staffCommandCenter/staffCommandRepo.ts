@@ -1,6 +1,7 @@
 import { loadJson, saveJson } from '../../data/localJsonStore';
 import type { StaffCommandEvent, StaffCommandSettings, StaffCommandStore, StaffMissionPlan } from './types';
 import { GEO_CLUSTERS, STAFF_DEPARTMENTS } from './staffDirectory';
+import { findStaff, isStaffMemberHydrated } from './staffRoster';
 
 const KEY = 'finely.staff.command.center.v1';
 
@@ -21,8 +22,30 @@ function newId(prefix: string) {
   return `${prefix}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
 }
 
+function hydrateStaffMission(plan: StaffMissionPlan): StaffMissionPlan | null {
+  const leadId = plan.leadOwner?.id;
+  if (!leadId) return null;
+  const leadOwner = findStaff(leadId);
+  if (!isStaffMemberHydrated(leadOwner)) return null;
+  const supportStaff = (Array.isArray(plan.supportStaff) ? plan.supportStaff : [])
+    .map((s) => findStaff(s?.id ?? ''))
+    .filter(isStaffMemberHydrated);
+  return { ...plan, leadOwner, supportStaff };
+}
+
+function normalizeStaffCommandStore(store: StaffCommandStore): StaffCommandStore {
+  const missions = store.missions.map(hydrateStaffMission).filter((m): m is StaffMissionPlan => Boolean(m));
+  const selectedStaffIds = store.selectedStaffIds.filter((id) => findStaff(id));
+  return {
+    ...store,
+    missions,
+    selectedStaffIds: selectedStaffIds.length ? selectedStaffIds : ['professor_apex', 'cmo_prime', 'scout_supreme'],
+  };
+}
+
 export function loadStaffCommandStore(): StaffCommandStore {
-  return loadJson<StaffCommandStore>(KEY, { settings: defaultSettings, selectedStaffIds: ['professor_apex', 'cmo_prime', 'scout_supreme'], missions: [], events: [] }, 1);
+  const raw = loadJson<StaffCommandStore>(KEY, { settings: defaultSettings, selectedStaffIds: ['professor_apex', 'cmo_prime', 'scout_supreme'], missions: [], events: [] }, 1);
+  return normalizeStaffCommandStore(raw);
 }
 
 export function saveStaffCommandStore(store: StaffCommandStore): StaffCommandStore {

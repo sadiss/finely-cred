@@ -7,7 +7,7 @@ export type VoiceProfile =
 
 export type VoiceTenantId = 'finely_cred' | 'nora_capital';
 
-export type VoiceContentType = 'guide' | 'ebook' | 'funding_module' | 'course_lesson';
+export type VoiceContentType = 'guide' | 'ebook' | 'funding_module' | 'course_lesson' | 'content_studio';
 
 export const VOICE_PROFILES: VoiceProfile[] = [
   'finely_brand_primary',

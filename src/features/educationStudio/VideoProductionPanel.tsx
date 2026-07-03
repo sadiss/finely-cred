@@ -133,7 +133,8 @@ export function VideoProductionPanel({
           />
 
           <p className={`${FINELY_OS_ENTITY_BODY} text-xs`}>
-            Provider API rendering is queued for a future integration. Today the studio exports production-ready scene plans and prompts for Kling, Runway, Veo, Pika, or Luma workflows.
+            Scene plans export to Content Studio for full render (images, narration, WebM). Use{' '}
+            <strong>Render in Content Studio</strong> above for the complete lesson video pipeline.
           </p>
           {scenes.length > 0 ? (
             <button

@@ -20,6 +20,11 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
   }
 
   if (!user) {
+    const from = (location.state as { from?: string } | null)?.from || '';
+    const next = from.startsWith('/') ? `&next=${encodeURIComponent(from)}` : '';
+    if (location.pathname.startsWith('/portal')) {
+      return <Navigate to={`/signup?auth=signup${next}`} replace state={{ from: location.pathname }} />;
+    }
     return <Navigate to="/onboarding" replace state={{ from: location.pathname }} />;
   }
 

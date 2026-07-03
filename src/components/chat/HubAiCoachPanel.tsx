@@ -10,7 +10,7 @@ import { getAgentPersona } from '../../domain/agentPersonas';
 import { getPortalStaffPersona, portalPersonaForLane } from '../../data/agentPersonasRepo';
 import { consumeAgentHandoff } from '../../lib/agentHandoffBridge';
 import { resolveToolPath, toolsForPersona } from '../../lib/agentPersonaTools';
-import { listPortalStaffForLane, resolveStaffOnDuty, loadStaffRoster, listAllMessageableStaff } from '../../data/staffRoster';
+import { listPortalStaffForLane, resolveStaffOnDuty, resolveStaffOnDutyForLane, loadStaffRoster, listAllMessageableStaff } from '../../data/staffRoster';
 import { staffMemberFullName, type StaffMember } from '../../domain/staffMember';
 import { StaffPortraitImg } from '../staff/StaffPortraitImg';
 import { resolveStaffPortraitUrl, STAFF_PORTRAIT_PHOTO_CLASS } from '../../lib/staffPortrait';
@@ -85,9 +85,9 @@ export function HubAiCoachPanel({ partnerId, lane, journeyStage, compact, userNa
   const [agentPickerOpen, setAgentPickerOpen] = useState(false);
   const persona = useMemo(() => getPortalStaffPersona(personaId), [personaId]);
   const activeStaff: StaffMember | null = useMemo(() => {
-    if (activeStaffId) return rosterTabs.find((s) => s.id === activeStaffId) ?? resolveStaffOnDuty(personaId);
-    return resolveStaffOnDuty(personaId);
-  }, [activeStaffId, rosterTabs, personaId]);
+    if (activeStaffId) return rosterTabs.find((s) => s.id === activeStaffId) ?? resolveStaffOnDutyForLane(lane);
+    return resolveStaffOnDutyForLane(lane) ?? resolveStaffOnDuty(personaId);
+  }, [activeStaffId, rosterTabs, personaId, lane]);
 
   const presentation = useMemo(() => {
     const base = getPublicChatPersonaPresentation(persona);

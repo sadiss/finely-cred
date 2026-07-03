@@ -45,6 +45,10 @@ export type VideoCommandRequest = {
   city?: string;
   includeCaptions: boolean;
   complianceStrict: boolean;
+  /** Expanded voice catalog id (100+ personas) */
+  voicePersonaId?: string;
+  /** Sound effects catalog ids layered on render */
+  soundEffectIds?: string[];
 };
 
 export type VideoScenePlan = {
@@ -133,6 +137,8 @@ export type ContentStudioWorkroom =
   | 'design'
   | 'voice'
   | 'video'
+  | 'course_videos'
+  | 'navigation_tours'
   | 'ebook'
   | 'review'
   | 'assets';
@@ -212,6 +218,8 @@ export type ContentStudioIntake = {
   aspect?: '16:9' | '9:16' | '1:1';
   brandPreset: 'finely_dark' | 'finely_light' | 'premium_gold' | 'credit_education' | 'business_funding';
   complianceStrict: boolean;
+  /** Staff Command Center operator who owns this production request */
+  ownerStaffId?: string;
 };
 
 export type ContentStudioJobEvent = {

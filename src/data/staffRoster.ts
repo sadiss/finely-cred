@@ -1,8 +1,10 @@
 import type { AgentPersonaId } from '../domain/agentPersonas';
 import type { PortraitGender, StaffMember, StaffShiftBlock } from '../domain/staffMember';
 import { loadJson, saveJson } from './localJsonStore';
+import { STAFF_ROSTER_EXPANSION } from './staffRosterExpansion';
 
 const KEY = 'finely.staffRoster.v2';
+const ROSTER_VERSION = 7;
 
 const WEEKDAY: StaffShiftBlock = { days: [1, 2, 3, 4, 5], startHour: 8, endHour: 17 };
 const WEEKEND: StaffShiftBlock = { days: [0, 6], startHour: 9, endHour: 18 };
@@ -82,12 +84,17 @@ export const STAFF_ROSTER_SEED: StaffMember[] = [
   m('staff-cameron-blake', 'Cameron', 'Blake', 'lead_converter', 'growth_sessions', 'masculine', 'Revenue Activation Director — trial-to-paid conversion & onboarding.', [WEEKDAY, EVENING]),
   m('staff-elise-hart', 'Elise', 'Hart', 'social_creator', 'marketing', 'feminine', 'Growth Marketing Director — compliant campaigns & funnel creative.', [WEEKDAY, WEEKEND]),
   m('staff-drew-sinclair', 'Drew', 'Sinclair', 'affiliate_specialist', 'marketing', 'masculine', 'Partner Marketing Director — affiliate kits & co-marketing.', [WEEKDAY, EVENING]),
+  { ...m('staff-naomi-fairchild', 'Naomi', 'Fairchild', 'ops_copilot', 'partner_success', 'feminine', 'Chief Operating Officer — human floor under Co-Owner Ruth.'), displayTitle: 'Chief Operating Officer' },
+  { ...m('staff-david-okonkwo', 'David', 'Okonkwo', 'compliance_agent', 'internal_ops', 'masculine', 'Chief Compliance & Trust Officer — human backstop for claims and consent.'), displayTitle: 'Chief Compliance Officer' },
+  { ...m('staff-marcus-sterling-exec', 'Marcus', 'Sterling', 'sales_closer', 'growth_sessions', 'masculine', 'Chief Revenue Officer — consult quality and ethical close.'), displayTitle: 'Chief Revenue Officer' },
+  { ...m('staff-tamara-brooks-exec', 'Tamara', 'Brooks', 'social_creator', 'marketing', 'feminine', 'VP Marketing & Brand — premium campaigns with honest education.'), displayTitle: 'VP Marketing & Brand' },
+  ...STAFF_ROSTER_EXPANSION,
 ];
 
 type Store = { members: StaffMember[]; version?: number };
 
 function defaultStore(): Store {
-  return { members: STAFF_ROSTER_SEED, version: 4 };
+  return { members: STAFF_ROSTER_SEED, version: ROSTER_VERSION };
 }
 
 function mergeRosterFromSeed(existing: StaffMember[]): StaffMember[] {
@@ -119,7 +126,7 @@ export function loadStaffRoster(): StaffMember[] {
     }
     return STAFF_ROSTER_SEED;
   }
-  if (store.version !== 4 || store.members.some((m) => !m.portraitGender)) {
+  if (store.version !== ROSTER_VERSION || store.members.some((m) => !m.portraitGender)) {
     const migrated = mergeRosterFromSeed(store.members);
     saveStaffRoster(migrated);
     return migrated;
@@ -128,7 +135,7 @@ export function loadStaffRoster(): StaffMember[] {
 }
 
 export function saveStaffRoster(members: StaffMember[]) {
-  saveJson(KEY, { members, version: 4 }, 1);
+  saveJson(KEY, { members, version: ROSTER_VERSION }, 1);
   if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('finely:store'));
 }
 
@@ -213,7 +220,7 @@ export function listAllMessageableStaff(lane?: string): StaffMember[] {
   }
 
   const priorityDepts = new Set<StaffMember['department']>();
-  if (l.includes('debt') || l.includes('summons')) priorityDepts.add('debt_resolution');
+  if (l.includes('debt') || l.includes('summons') || l.includes('bankruptcy') || l.includes('foreclosure')) priorityDepts.add('debt_resolution');
   if (l.includes('business') || l.includes('funding')) priorityDepts.add('funding');
   if (l.includes('tradeline') || l.includes('sales') || l.includes('upgrade')) priorityDepts.add('growth_sessions');
   if (l.includes('affiliate') || l.includes('referral') || l.includes('marketing')) priorityDepts.add('marketing');
@@ -253,6 +260,8 @@ export function resolveStaffOnDuty(roleId: AgentPersonaId, date = new Date()): S
   const onShift = pool.find((s) => s.shiftBlocks.some((b) => shiftMatches(b, date)));
   return onShift ?? pool[0]!;
 }
+
+export { resolveStaffOnDutyForLane, resolveStaffForBankruptcyScenario, resolveStaffForLaneFocus } from './staffLaneAssignment';
 
 export function getStaffMemberById(id: string): StaffMember | null {
   return loadStaffRoster().find((s) => s.id === id) ?? null;

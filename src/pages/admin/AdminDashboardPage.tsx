@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { ArrowLeft, Gavel, KeyRound, Settings, Users, BarChart3, FileText, Layout, Package, CreditCard, FlaskConical, MessageSquareText, MessageCircle, Bell, Calendar, FolderKanban, BookOpen, Bot, Mail, Library, Crown, UserCog, Globe, BadgeCheck, ListChecks, GraduationCap, Lock, PiggyBank, Trophy, Activity, Target, Sparkles, Film, BriefcaseBusiness, Shield } from 'lucide-react';
+import { ArrowLeft, Brain, Gavel, KeyRound, Settings, Users, BarChart3, FileText, Layout, Package, CreditCard, FlaskConical, MessageSquareText, MessageCircle, Bell, Calendar, FolderKanban, BookOpen, Bot, Mail, Library, Crown, UserCog, Globe, BadgeCheck, ListChecks, GraduationCap, Lock, PiggyBank, Trophy, Activity, Target, Sparkles, Film, BriefcaseBusiness, Shield } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { PageShell } from '../../components/layout/PageShell';
 import { fetchAllPartnersAsAdmin } from '../../data/partnersRepo';
@@ -37,6 +37,9 @@ import { buildAdminNoticedItems } from '../../lib/finelyProactiveSignals';
 import { getGoLivePillars } from '../../lib/goLiveCommandOps';
 import { HosAccessCodesAdminPanel } from '../../components/heta/HosAccessCodesAdminPanel';
 import { listHosAccessCodes } from '../../lib/hetaSocietyAccessCodes';
+import { StaffSocialPresenceStrip } from '../../features/staffCommandCenter/StaffSocialPresenceStrip';
+import { listCommsSends, listCommsTemplates } from '../../data/commsRepo';
+import { listCommsSequences } from '../../data/commsSequencesRepo';
 
 type AdminDashSection = 'overview' | 'ops' | 'modules';
 
@@ -54,6 +57,17 @@ export default function AdminDashboardPage() {
 
   const [statsError, setStatsError] = useState<string | null>(null);
   const [statsKey, setStatsKey] = useState(0);
+  const commsOps = useMemo(() => {
+    const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+    const sends = listCommsSends(400);
+    const recent = sends.filter((s) => Date.parse(s.createdAt) >= weekAgo);
+    return {
+      templates: listCommsTemplates().length,
+      sequences: listCommsSequences().length,
+      sendsWeek: recent.length,
+      failedWeek: recent.filter((s) => s.status === 'error').length,
+    };
+  }, [statsKey]);
   const [stats, setStats] = useState({
     partnersCount: 0, casesCount: 0, openCasesCount: 0, leadsCount: 0,
     openTasksCount: 0, adminUnread: 0,
@@ -224,11 +238,11 @@ export default function AdminDashboardPage() {
       stat: 'Autopilot',
     },
     {
-      title: 'Agent Staff Command Center',
-      description: 'Roster, shifts, on-duty specialists, and role routing for public chat handoff.',
-      path: '/admin/agent-staff',
+      title: 'Staff Command Center',
+      description: 'AI operators, human team, partner specialists, missions, talk, inbox, and Lead Intel — unified.',
+      path: '/admin/staff',
       icon: Users,
-      stat: 'Staff OS',
+      stat: 'Command',
     },
     {
       title: 'Lead Magnet Editor',
@@ -304,12 +318,11 @@ export default function AdminDashboardPage() {
       stat: 'Teach',
     },
     {
-      title: 'AI Media Studio',
-      description: 'Generate premium images + storyboard videos. Edit scenes and export downloadable assets.',
-      path: '/admin/media-studio',
+      title: 'Content Studio',
+      description: 'Super video generator, research, scripts, design, voice, e-books, and publish bridges.',
+      path: '/admin/content-studio',
       icon: Film,
-      stat: 'Create',
-      hidden: !opsCaps.canManageTenants,
+      stat: 'Studio',
     },
     {
       title: 'Finely Cred ? Bridge ops',
@@ -451,6 +464,8 @@ export default function AdminDashboardPage() {
         defaultOpen: true,
         cards: take([
           '/admin/workflow',
+          '/admin/staff',
+          '/admin/content-studio',
           '/admin/partners',
           '/admin/cases',
           '/admin/tasks/new',
@@ -473,7 +488,7 @@ export default function AdminDashboardPage() {
         title: 'Automation & AI',
         subtitle: 'Assistants, automations, and generation tools.',
         defaultOpen: false,
-        cards: take(['/admin/automations', '/admin/ops-autopilot', '/admin/agent-staff', '/admin/lead-magnets', '/admin/ops-agent', '/admin/lead-intel', '/admin/media-studio']),
+        cards: take(['/admin/automations', '/admin/ops-autopilot', '/admin/lead-magnets', '/admin/ops-agent', '/admin/lead-intel']),
       },
       {
         key: 'platform',
@@ -608,9 +623,43 @@ export default function AdminDashboardPage() {
                   tone="violet"
                   onClick={() => navigate('/admin/crm?pipeline=inbound')}
                 />
+                <KpiCard
+                  label="Staff"
+                  value="Open"
+                  hint="AI operators + human team"
+                  tone="amber"
+                  onClick={() => navigate('/admin/staff')}
+                />
+                <KpiCard
+                  label="Content Studio"
+                  value="Open"
+                  hint="Super video + e-book production"
+                  tone="violet"
+                  onClick={() => navigate('/admin/content-studio')}
+                />
               </div>
 
-              <HosAccessCodesAdminPanel compact />
+              <div className="grid lg:grid-cols-2 gap-4">
+                <HosAccessCodesAdminPanel variant="dashboard" />
+                <StaffSocialPresenceStrip compact />
+              </div>
+
+              <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <KpiCard
+                  label="Comms this week"
+                  value={commsOps.sendsWeek}
+                  hint={`${commsOps.templates} templates · ${commsOps.sequences} sequences`}
+                  tone="fuchsia"
+                  onClick={() => navigate('/admin/comms?room=inbox')}
+                />
+                <KpiCard
+                  label="Failed sends"
+                  value={commsOps.failedWeek}
+                  hint="Delivery errors — open Inbox"
+                  tone={commsOps.failedWeek > 0 ? 'amber' : 'emerald'}
+                  onClick={() => navigate('/admin/comms?room=inbox')}
+                />
+              </div>
 
               <div className="grid sm:grid-cols-3 gap-4">
                 <KpiCard

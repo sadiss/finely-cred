@@ -19,7 +19,7 @@ export type RegulatoryComplaint = {
   /** Optional linkage */
   caseId?: string;
   reportId?: string;
-  disputeRound?: 'Round 1' | 'Round 2' | 'Round 3';
+  disputeRound?: 'Round 1' | 'Round 2' | 'Round 3' | 'Round 4';
 
   /** Narrative draft (partner-authored). */
   narrative: string;

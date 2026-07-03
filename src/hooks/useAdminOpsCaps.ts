@@ -44,7 +44,7 @@ export function isAdminNavPathAllowed(path: string, caps: ReturnType<typeof useA
     '/admin/finely-bridge-ops',
     '/admin/vault',
     '/admin/monitoring',
-    '/admin/media-studio',
+    '/admin/content-studio',
     '/admin/lead-intel',
     '/admin/finance',
     '/admin/testimonials',

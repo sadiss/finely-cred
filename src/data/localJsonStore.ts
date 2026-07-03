@@ -17,11 +17,11 @@ export function loadJson<T>(key: string, fallback: T, version = 1): T {
 
 export function saveJson<T>(key: string, data: T, version = 1) {
   const payload: StoredShape<T> = { v: version, data };
-  localStorage.setItem(key, JSON.stringify(payload));
   try {
+    localStorage.setItem(key, JSON.stringify(payload));
     window.dispatchEvent(new CustomEvent('finely:store', { detail: { key } }));
   } catch {
-    // ignore (non-browser env)
+    // Quota or private mode — avoid crashing studio surfaces.
   }
 }
 

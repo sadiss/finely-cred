@@ -18,6 +18,8 @@ import { FinelyOsPageFooter } from '../../features/os/FinelyOsPageFooter';
 import { FinelyUnifiedHubLayout } from '../../features/unified/FinelyUnifiedHubLayout';
 import { FinelyOsEmptyState } from '../../features/os/FinelyOsEmptyState';
 import { FinelyOsKpiGrid, FinelyOsEntityCard } from '../../components/os/FinelyOsKpiGrid';
+import { LegalResourceStrip } from '../../components/debt/DebtCoachMessage';
+import { resourcesForEscalations } from '../../lib/legalResources';
 import {
   FINELY_OS_PAGE,
   FINELY_OS_BACK_LINK,
@@ -183,10 +185,14 @@ export default function PartnerEscalationsPage() {
               activeTab={tab}
               onTabChange={(id) => setTab(id as EscTab)}
               primaryAction={{ label: 'Communication hub', onClick: () => navigate('/portal/messages') }}
-              secondaryAction={{ label: 'Dispute center', onClick: () => navigate('/portal/disputes') }}
+              secondaryAction={{ label: 'Debt center', onClick: () => navigate('/portal/debt') }}
             >
+            <div className={`${finelyOsCatalogCard('violet')} !p-4 mb-3`}>
+              <div className={`${FINELY_OS_ENTITY_SUBLABEL} mb-2`}>Quick links & filing portals</div>
+              <LegalResourceStrip links={resourcesForEscalations()} accentClass="text-fuchsia-300" />
+            </div>
             {tab === 'submit' && (
-            <div className={`${finelyOsCatalogCard('violet')} !p-5 border-fuchsia-500/25 space-y-4`}>
+            <div className={`${finelyOsCatalogCard('violet')} !p-4 border-fuchsia-500/25 space-y-3`}>
               <h2 className={`${FINELY_OS_ENTITY_TITLE} flex items-center gap-2 text-lg`}>
                 <Send size={18} className="text-fuchsia-300" />
                 Submit an escalation
@@ -270,12 +276,17 @@ export default function PartnerEscalationsPage() {
                     value={formDescription}
                     onChange={(e) => setFormDescription(e.target.value)}
                     placeholder="Describe the issue and what resolution you need..."
-                    rows={4}
-                    className={`${FINELY_OS_ENTITY_INPUT.replace('mt-2 ', '')} resize-y min-h-[6rem]`}
+                    rows={3}
+                    className={`${FINELY_OS_ENTITY_INPUT.replace('mt-2 ', '')} resize-y min-h-[4.5rem]`}
                     required
                   />
                 </div>
-                <div className="flex items-center gap-3 flex-wrap">
+                <div className="flex flex-wrap gap-2">
+                  {formTopic === 'legal_letters' ? (
+                    <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => navigate('/portal/debt')}>
+                      Open debt center
+                    </button>
+                  ) : null}
                   <button type="submit" className={FINELY_OS_SUCCESS_BTN}>
                     <Send size={14} /> Submit escalation
                   </button>
@@ -334,22 +345,37 @@ export default function PartnerEscalationsPage() {
             )}
 
             {tab === 'regulatory' && (
-            <div className={`${finelyOsCatalogCard('violet')} !p-5 space-y-4`}>
-              <div className="flex flex-wrap items-start justify-between gap-4">
+            <div className={`${finelyOsCatalogCard('violet')} !p-4 space-y-3`}>
+              <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
-                  <h2 className={`${FINELY_OS_ENTITY_TITLE} flex items-center gap-2 text-lg flex-wrap`}>
-                    <Scale size={18} className="text-fuchsia-300" />
-                    Regulatory complaints (CFPB / AG / FTC / BBB)
+                  <h2 className={`${FINELY_OS_ENTITY_TITLE} flex items-center gap-2 flex-wrap`}>
+                    <Scale size={16} className="text-fuchsia-300" />
+                    Regulatory complaints
                     {openComplaints > 0 ? <span className={finelyOsStatusChip('warn')}>{openComplaints} active</span> : null}
                   </h2>
-                  <p className={`mt-2 ${FINELY_OS_ENTITY_BODY}`}>
-                    Draft → submit → track. Attach your evidence vault items so you have a clean, auditable record of what was sent.
+                  <p className={`mt-1 text-xs ${FINELY_OS_ENTITY_BODY}`}>
+                    Draft here → file at the official portal → track reference # in Finely.
                   </p>
                 </div>
-                <button type="button" onClick={() => navigate('/portal/disputes')} className={FINELY_OS_SECONDARY_BTN} title="Open dispute center">
-                  Open disputes <ExternalLink size={14} />
-                </button>
+                <div className="flex flex-wrap gap-2">
+                  <button type="button" onClick={() => navigate('/portal/letters/vault')} className={FINELY_OS_SECONDARY_BTN}>
+                    Letters vault
+                  </button>
+                  <button type="button" onClick={() => navigate('/portal/documents')} className={FINELY_OS_SECONDARY_BTN}>
+                    Documents
+                  </button>
+                </div>
               </div>
+
+              <LegalResourceStrip
+                links={[
+                  { id: 'cfpb', label: 'CFPB — file complaint', href: 'https://www.consumerfinance.gov/complaint/', external: true },
+                  { id: 'ftc', label: 'FTC — report fraud', href: 'https://reportfraud.ftc.gov/', external: true },
+                  { id: 'naag', label: 'Find your AG', href: 'https://www.naag.org/find-my-ag/', external: true },
+                  { id: 'bbb', label: 'BBB complaint', href: 'https://www.bbb.org/file-a-complaint', external: true },
+                ]}
+                accentClass="text-amber-200"
+              />
 
               <FinelyOsKpiGrid
                 columns={4}

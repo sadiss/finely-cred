@@ -7,6 +7,7 @@ import { SITE_SCAN_TARGETS } from '../../config/tourSiteScanner';
 import { getPlatformSop } from '../../domain/platformSops';
 import { FinelyTourPlayer } from '../../components/tours/FinelyTourPlayer';
 import { TourVideoStatusBadge } from '../../components/tours/TourVideoStatusBadge';
+import { TourVideoFactoryPanel } from '../../features/tours/TourVideoFactoryPanel';
 import { FreeDisputeGuideHeroVideo } from '../../components/leadmagnet/FreeDisputeGuideHeroVideo';
 import { FinelyOsPaginatedStack } from '../../features/os/FinelyOsPaginatedStack';
 import { FinelyOsPageFooter } from '../../features/os/FinelyOsPageFooter';
@@ -90,6 +91,8 @@ export default function AdminTourStudioPage() {
             Preview funnel <ArrowRight size={14} />
           </button>
         </div>
+
+        <TourVideoFactoryPanel />
 
         <div className={`${finelyOsCatalogCard('sky')} !p-5 space-y-4`} data-fc-accent="sky">
           <div className={`inline-flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL} text-sky-300`}>

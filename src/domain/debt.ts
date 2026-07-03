@@ -35,6 +35,17 @@ export type DebtCase = {
   stateJurisdiction?: string;
   /** Collector / plaintiff mailing identity for letters */
   collectorName?: string;
+  /** Plaintiff's collection law firm (if sued) */
+  plaintiffLawFirm?: string;
+  plaintiffLawFirmAddress?: string;
+  /** Plaintiff's attorney of record */
+  plaintiffAttorneyName?: string;
+  plaintiffAttorneyBarNumber?: string;
+  /** Affidavit caption county (defaults from profile state if blank) */
+  affidavitCounty?: string;
+  /** Loan / note identifiers from complaint or servicer records */
+  loanId?: string;
+  borrowerId?: string;
   originalCreditor?: string;
   recipientName?: string;
   recipientAddress?: string;

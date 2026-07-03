@@ -261,7 +261,7 @@ export const AGENT_PERSONAS: AgentPersona[] = [
     id: 'finely_coowner',
     name: CO_OWNER_IDENTITY.name,
     displayTitle: CO_OWNER_IDENTITY.title,
-    role: 'AI Co-Owner & Chief Operating Intelligence',
+    role: 'Co-Owner & Operating Intelligence',
     tenantId: 'finely_cred',
     voiceProfile: 'finely_female_executive',
     toneTags: ['decisive', 'warm', 'psychologically-attuned', 'validation-first', 'owner-level'],
