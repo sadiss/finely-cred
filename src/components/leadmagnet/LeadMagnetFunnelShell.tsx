@@ -24,7 +24,7 @@ import type { LeadMagnetFunnelConfig } from '../../domain/leadMagnetFunnels';
 import { FunnelUpgradeStack } from './FunnelUpgradeStack';
 import { FunnelExitIntentModal } from './FunnelExitIntentModal';
 import { FunnelInlineSessionBook } from './FunnelInlineSessionBook';
-import { PublicInquiryBudgetCalculator } from '../funding/PublicInquiryBudgetCalculator';
+import { FunnelFreeToolkitRouter } from './funnelFreeTools/FunnelFreeToolkitRouter';
 import { loadSettings } from '../../data/settingsRepo';
 import { resolveLeadMagnetConfig } from '../../data/leadMagnetFunnelsRepo';
 import { CreditGuidePremiumDownload, CreditGuidePremiumLanding } from './CreditGuidePremiumSections';
@@ -179,7 +179,8 @@ export function LeadMagnetFunnelShell({
       recordFunnelConversion(activeConfig.funnelId, abVariant);
       setStep('success');
       queueMicrotask(() => {
-        document.getElementById('fg-dispute-track')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        const targetId = activeConfig.id === 'credit' ? 'fg-dispute-track' : 'fg-free-toolkit';
+        document.getElementById(targetId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       });
     } catch (ex: unknown) {
       setErr((ex as Error)?.message || 'Could not submit. Try again.');
@@ -192,7 +193,11 @@ export function LeadMagnetFunnelShell({
     setDownloadBusy(true);
     setDownloadErr(null);
     try {
-      await downloadFreeGuidePdf({ guide, leadId: leadId ?? undefined, fullName, email: email.trim() });
+      if (activeConfig.id === 'score_roadmap') {
+        await downloadScoreRoadmapPdf({ fullName, leadId: leadId ?? undefined, email: email.trim() });
+      } else {
+        await downloadFreeGuidePdf({ guide, leadId: leadId ?? undefined, fullName, email: email.trim() });
+      }
     } catch (ex: unknown) {
       setDownloadErr((ex as Error)?.message || 'Download failed.');
     } finally {
@@ -559,7 +564,11 @@ export function LeadMagnetFunnelShell({
               </button>
             ) : null}
 
-            {activeConfig.id === 'tradeline' ? <PublicInquiryBudgetCalculator /> : null}
+            {leadId && activeConfig.id !== 'credit' ? (
+              <div id="fg-free-toolkit">
+                <FunnelFreeToolkitRouter funnelId={activeConfig.id} leadId={leadId} email={email.trim()} />
+              </div>
+            ) : null}
 
             {leadId ? (
               <FunnelInlineSessionBook
@@ -643,6 +652,11 @@ export function LeadMagnetFunnelShell({
                   >
                     {roadmapBusy ? 'Preparing roadmap…' : 'Download score roadmap PDF'}
                   </button>
+                ) : activeConfig.id === 'score_roadmap' ? null : null}
+                {leadId && activeConfig.id !== 'credit' ? (
+                  <div id="fg-free-toolkit" className="mt-6 text-left">
+                    <FunnelFreeToolkitRouter funnelId={activeConfig.id} leadId={leadId} email={email.trim()} />
+                  </div>
                 ) : null}
                 <button type="button" onClick={() => navigate(onboardingUrl)} className="block w-full py-3 rounded-xl border border-white/15 text-sm font-bold uppercase tracking-widest">
                   Open portal preview

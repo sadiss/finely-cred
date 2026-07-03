@@ -72,54 +72,69 @@ export default function BusinessBureausPage() {
           secondaryAction={{ label: 'Vendor center', onClick: () => navigate('/business/vendors') }}
         >
           {tab === 'guide' && (
-        <div className="grid lg:grid-cols-3 gap-6">
-          <div className={`${finelyOsCatalogCard('amber')} !p-6 space-y-3`} data-fc-accent="amber">
-            <div className="inline-flex items-center gap-2 text-amber-700">
+        <div className="space-y-6">
+          <div className="grid lg:grid-cols-3 gap-4">
+            {[
+              {
+                bureau: 'Dun & Bradstreet (D&B)',
+                accent: 'amber' as const,
+                focus: 'Commercial identity anchor',
+                bullets: ['D-U-N-S number is your business SSN', 'PAYDEX scores payment behavior 0–100', 'Vendor reporting feeds PAYDEX over time', 'Target 80+ PAYDEX before high-limit apps'],
+              },
+              {
+                bureau: 'Experian Business',
+                accent: 'emerald' as const,
+                focus: 'Trade lines & Intelliscore',
+                bullets: ['Intelliscore Plus predicts payment risk', 'Trade lines from vendors build file depth', 'Personal guarantor may still matter early', 'Monitor derogatory commercial entries'],
+              },
+              {
+                bureau: 'Equifax Business',
+                accent: 'sky' as const,
+                focus: 'Commercial risk signals',
+                bullets: ['Equifax Business Score for creditworthiness', 'Used by some lenders and vendors', 'Cross-check with D&B for consistency', 'Dispute inaccurate entries via business dispute center'],
+              },
+            ].map((card) => (
+              <div key={card.bureau} className={`${finelyOsCatalogCard(card.accent)} !p-5 space-y-3`} data-fc-accent={card.accent}>
+                <div className={`text-sm font-black ${FINELY_OS_ENTITY_VALUE}`}>{card.bureau}</div>
+                <div className={`text-xs uppercase tracking-wider ${FINELY_OS_ENTITY_SUBLABEL}`}>{card.focus}</div>
+                <ul className={`list-disc pl-4 text-sm ${FINELY_OS_ENTITY_BODY} space-y-1`}>
+                  {card.bullets.map((b) => (
+                    <li key={b}>{b}</li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+
+          <div className={`${finelyOsCatalogCard('violet')} !p-6 space-y-4`} data-fc-accent="violet">
+            <div className="inline-flex items-center gap-2 text-violet-700">
               <ShieldCheck size={18} />
-              <span className={FINELY_OS_ENTITY_SUBLABEL}>A→Z guidance</span>
+              <span className={FINELY_OS_ENTITY_SUBLABEL}>Profile consistency rules</span>
             </div>
-            <div className={FINELY_OS_ENTITY_BODY}>
-              This hub will be expanded into a full roadmap and score tracker. For now, use it as your "what matters" reference and link-out point from Profile, Vendors, and Lender Logic.
+            <div className={`grid md:grid-cols-2 gap-4 text-sm ${FINELY_OS_ENTITY_BODY}`}>
+              <div>
+                <div className={FINELY_OS_ENTITY_VALUE}>Must match everywhere</div>
+                <ul className="list-disc pl-5 mt-2 space-y-1">
+                  <li>Legal business name + suffix (LLC/Inc)</li>
+                  <li>Address format + suite/unit</li>
+                  <li>Phone + 411 listing + website/domain</li>
+                  <li>EIN and Secretary of State records</li>
+                </ul>
+              </div>
+              <div>
+                <div className={FINELY_OS_ENTITY_VALUE}>Common mistakes to avoid</div>
+                <ul className="list-disc pl-5 mt-2 space-y-1">
+                  <li>Mixing PO box and street addresses randomly</li>
+                  <li>Personal phone/email on vendor applications</li>
+                  <li>Applying for revolving before Tier 1 vendors report</li>
+                  <li>Ignoring derogatory commercial bureau entries</li>
+                </ul>
+              </div>
             </div>
             <button type="button" onClick={() => navigate('/business/profile')} className={FINELY_OS_PRIMARY_BTN}>
               Improve profile readiness <ArrowRight size={14} />
             </button>
           </div>
-
-          <details className={`${finelyOsCatalogCard('emerald')} !p-0 overflow-hidden`} data-fc-accent="emerald" open>
-            <summary className="cursor-pointer select-none px-5 py-4 hover:bg-black/[0.04] transition-colors">
-              <div className={FINELY_OS_ENTITY_VALUE}>What bureaus do (high level)</div>
-              <div className={`mt-1 ${FINELY_OS_ENTITY_SUBLABEL}`}>Expand</div>
-            </summary>
-            <div className={`px-5 pb-5 ${FINELY_OS_ENTITY_BODY} space-y-3`}>
-              <div>
-                <span className={FINELY_OS_ENTITY_VALUE}>Dun & Bradstreet (D&B)</span>: establishes a commercial identity (D‑U‑N‑S) and payment behavior signals.
-              </div>
-              <div>
-                <span className={FINELY_OS_ENTITY_VALUE}>Experian Business</span>: business credit file and payment/trade reporting signals.
-              </div>
-              <div>
-                <span className={FINELY_OS_ENTITY_VALUE}>Equifax Business</span>: commercial file + risk signals often referenced by certain lenders and reporting vendors.
-              </div>
-            </div>
-          </details>
-
-          <details className={`${finelyOsCatalogCard('sky')} !p-0 overflow-hidden`} data-fc-accent="sky">
-            <summary className="cursor-pointer select-none px-5 py-4 hover:bg-black/[0.04] transition-colors">
-              <div className={FINELY_OS_ENTITY_VALUE}>Profile consistency rules</div>
-              <div className={`mt-1 ${FINELY_OS_ENTITY_SUBLABEL}`}>Expand</div>
-            </summary>
-            <div className={`px-5 pb-5 ${FINELY_OS_ENTITY_BODY} space-y-2`}>
-              <div className={FINELY_OS_ENTITY_VALUE}>Everything should match across the board:</div>
-              <ul className="list-disc pl-5 space-y-1">
-                <li>Legal business name + suffix (LLC/Inc) exactly</li>
-                <li>Address format + suite/unit</li>
-                <li>Phone + 411 listing + website/domain</li>
-                <li>EIN and state records</li>
-              </ul>
-              <div className={`text-xs ${FINELY_OS_ENTITY_SUBLABEL}`}>We'll expand this into guided checklists and "what to put / not to put" steps in the next phases.</div>
-            </div>
-          </details>
         </div>
           )}
 

@@ -19,6 +19,7 @@ import {
   MessageCircle,
   Handshake,
   Settings,
+  Building2,
 } from 'lucide-react';
 
 export type PortalNavLinkDef = {
@@ -122,6 +123,7 @@ export const PORTAL_NAV_LANES: PortalNavLaneDef[] = [
       { path: '/portal/education', label: 'Education', icon: BookOpen },
       { path: '/portal/courses', label: 'Courses', icon: BookOpen },
       { path: '/portal/build', label: 'Credit Building', icon: TrendingUp },
+      { path: '/business/dashboard', label: 'Business Credit OS', icon: Building2 },
       { path: '/portal/barter', label: 'Barter Exchange', icon: Handshake },
       { path: '/portal/billing', label: 'Billing', icon: CreditCard },
       { path: '/portal/checkout', label: 'Checkout', icon: CreditCard },

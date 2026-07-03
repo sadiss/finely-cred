@@ -90,7 +90,7 @@ export const LEAD_MAGNET_PREMIUM_PROFILES: Record<string, LeadMagnetPremiumProfi
     portalHighlights: SHARED_PORTAL,
     captureHeadline: 'Get the debt validation playbook',
     captureSub: 'PDF + call scripts + portal preview. Educational only — not legal advice.',
-    successHeadline: 'Your debt playbook is ready',
+    successHeadline: 'Your debt playbook + validation toolkit are ready',
     formStepTitle: 'Unlock the validation kit',
     formStepSub: 'Instant PDF. Casey, your debt strategist, can review your next step after download.',
     faqs: [
@@ -138,7 +138,7 @@ export const LEAD_MAGNET_PREMIUM_PROFILES: Record<string, LeadMagnetPremiumProfi
     portalHighlights: SHARED_PORTAL,
     captureHeadline: 'Download the business credit jumpstart',
     captureSub: 'Entity checklist + vendor map + portal preview.',
-    successHeadline: 'Your business credit kit is ready',
+    successHeadline: 'Your business credit kit + fundability tools are ready',
     formStepTitle: 'Claim your jumpstart kit',
     formStepSub: 'Morgan, your funding strategist, can map your entity lane after download.',
     faqs: [
