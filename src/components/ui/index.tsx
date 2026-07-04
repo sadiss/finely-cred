@@ -726,10 +726,18 @@ interface ProgressBarProps {
   current: number;
   total: number;
   showSteps?: boolean;
+  /** When the live step list is still short (e.g. role not chosen), use this for a gradual % bar */
+  estimatedTotal?: number;
 }
 
-export function ProgressBar({ current, total, showSteps = true }: ProgressBarProps) {
-  const percentage = (current / total) * 100;
+export function computeWizardProgressPercent(current: number, total: number, estimatedTotal?: number): number {
+  const safeCurrent = Math.max(1, current);
+  const denom = Math.max(total, estimatedTotal ?? total, 1);
+  return Math.min(100, Math.round((safeCurrent / denom) * 100));
+}
+
+export function ProgressBar({ current, total, showSteps = true, estimatedTotal }: ProgressBarProps) {
+  const percentage = computeWizardProgressPercent(current, total, estimatedTotal);
 
   return (
     <div className="w-full space-y-3">

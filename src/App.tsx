@@ -2765,6 +2765,9 @@ function AppInner() {
             </ProtectedRoute>
           }
         />
+        <Route path="/preview/business-credit-power-guide" element={<Navigate to="/free-business-guide" replace />} />
+        <Route path="/preview/debt-eradication-guide" element={<Navigate to="/free-debt-guide" replace />} />
+        <Route path="/preview/tradeline-advantage-guide" element={<Navigate to="/free-tradeline-guide" replace />} />
         <Route path="/free-debt-guide" element={<DebtGuideFunnelPage />} />
         <Route path="/free-business-guide" element={<BusinessGuideFunnelPage />} />
         <Route path="/free-tradeline-guide" element={<TradelineGuideFunnelPage />} />

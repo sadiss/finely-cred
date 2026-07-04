@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { ArrowLeft, ArrowRight, BookOpen, ChevronRight, ExternalLink, FileText, Gavel, Lock, PenLine, Scale, ScrollText, Send, ShieldAlert, Sparkles, X } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import type { Bureau, ParsedCreditReport } from '../../domain/creditReports';

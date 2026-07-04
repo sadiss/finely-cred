@@ -13,6 +13,7 @@ export type LeadOffer =
   | 'debt_validation_playbook'
   | 'business_credit_jumpstart'
   | 'primary_tradeline_insider'
+  | 'score_roadmap'
   | 'portal_signup'
   | 'book_purchase'
   | 'tradeline_package'

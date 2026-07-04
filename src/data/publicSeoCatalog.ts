@@ -66,8 +66,9 @@ export const PUBLIC_SEO_CATALOG: PublicSeoRoute[] = [
   },
   {
     path: '/free-score-roadmap',
-    title: 'Free score roadmap',
-    description: '5-step score recovery sequence — utilization, mix, and timing — plus portal preview.',
+    title: 'Boost Your Credit Score in 72 Hours — Free Guide',
+    description:
+      'Quick-win credit actions, profile optimization, and a practical 72-hour roadmap for stronger funding readiness.',
     hasSchema: true,
   },
   {
