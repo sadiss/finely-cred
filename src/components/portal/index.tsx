@@ -848,6 +848,8 @@ export function StrategicUrgency({ next, prev, data, update }: StepProps) {
 // --- STEP 9: STATUTORY SCAN ---
 export function StatutoryScan({ next, prev }: { next: () => void; prev?: () => void }) {
   const [progress, setProgress] = useState(0);
+  const nextRef = useRef(next);
+  nextRef.current = next;
   const logs = [
     'Reading your answers…',
     'Checking dispute options…',
@@ -858,23 +860,28 @@ export function StatutoryScan({ next, prev }: { next: () => void; prev?: () => v
   const [logIdx, setLogIdx] = useState(0);
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      setProgress(p => {
+    setProgress(0);
+    setLogIdx(0);
+    const timer = window.setInterval(() => {
+      setProgress((p) => {
         if (p >= 100) {
-          clearInterval(timer);
-          setTimeout(next, 1000);
+          window.clearInterval(timer);
+          window.setTimeout(() => nextRef.current(), 800);
           return 100;
         }
         return p + 1;
       });
-    }, 40);
+    }, 45);
 
-    const logTimer = setInterval(() => {
-      setLogIdx(i => (i + 1) % logs.length);
+    const logTimer = window.setInterval(() => {
+      setLogIdx((i) => (i + 1) % logs.length);
     }, 800);
 
-    return () => { clearInterval(timer); clearInterval(logTimer); };
-  }, [next, logs.length]);
+    return () => {
+      window.clearInterval(timer);
+      window.clearInterval(logTimer);
+    };
+  }, [logs.length]);
 
   return (
     <div className="flex flex-col items-center justify-center text-center space-y-12 animate-in fade-in duration-1000 min-h-[60vh]">
@@ -1406,6 +1413,19 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
   const TOTAL_STEPS = stepKeys.length;
   const currentKey = stepKeys[Math.min(Math.max(1, step), TOTAL_STEPS) - 1] ?? 'role';
 
+  const estimatedWizardSteps = useMemo(() => {
+    if (partnerInviteFlow) return Math.max(TOTAL_STEPS, 3);
+    const role = userData.role;
+    if (role === 'client') return 7;
+    if (role === 'agent') return 5;
+    if (role === 'au_seller' || role === 'affiliate') return 4;
+    return 7;
+  }, [partnerInviteFlow, TOTAL_STEPS, userData.role]);
+
+  useEffect(() => {
+    if (step > TOTAL_STEPS) setStep(TOTAL_STEPS);
+  }, [TOTAL_STEPS, step]);
+
   const resetOnboardingState = useCallback((opts?: { authMode?: 'select' | 'login' | 'signup' | 'forgot' }) => {
     clearOnboardingProgress();
     setUserData(createDefaultOnboardingUserData());
@@ -1633,6 +1653,9 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
   const goToAuthMode = (mode: 'select' | 'login' | 'signup' | 'forgot') => {
     setAuthError(null);
     setAuthNotice(null);
+    if (mode === 'signup') {
+      setStep(1);
+    }
     setAuthMode(mode);
     if (mode === 'login') navigate('/login', { replace: location.pathname === '/login' });
     else if (mode === 'signup') navigate('/signup', { replace: location.pathname === '/signup' });
@@ -2142,7 +2165,7 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
             </button>
           </div>
           <div className="w-full max-w-lg mx-auto">
-            <ProgressBar current={step} total={TOTAL_STEPS} />
+            <ProgressBar current={step} total={TOTAL_STEPS} estimatedTotal={estimatedWizardSteps} />
             <div className="mt-2 text-center text-[9px] sm:text-[10px] font-black uppercase tracking-[0.2em] sm:tracking-[0.35em] text-white/45">
               {getOnboardingStepLabel(currentKey)}
             </div>

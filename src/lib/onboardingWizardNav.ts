@@ -36,6 +36,14 @@ export function resolveOnboardingWizardNav(args: {
         nextDisabled: !(Array.isArray(d.focuses) && d.focuses.length > 0),
       };
 
+    case 'support':
+      return {
+        prev: prevStep,
+        onNext: nextStep,
+        nextLabel: d.supportModel ? 'Continue' : 'Select your support model',
+        nextDisabled: !d.supportModel,
+      };
+
     case 'agentTier': {
       const model = defaultAgentOperatingModel(d.agentOperatingModel ?? {});
       const specialties = (d.agentSpecialties as string[])?.length
