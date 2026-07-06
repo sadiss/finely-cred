@@ -374,7 +374,46 @@ This links the admin-created partner row after confirmation.
 
 ---
 
-## 14. Known gaps / future work
+## 14. Lead magnet funnels (public pages)
+
+All premium funnel landings share one capture + success flow:
+
+| Route | Config | Landing component |
+|-------|--------|-------------------|
+| `/free-guide` | `CREDIT_FUNNEL` | `LeadMagnetFunnelShell` (reference implementation) |
+| `/free-debt-guide` | `DEBT_FUNNEL` | `DebtEradicationLandingPage` |
+| `/free-business-guide` | `BUSINESS_FUNNEL` | `BusinessCreditPowerGuideLandingPage` |
+| `/free-tradeline-guide` | `TRADELINE_FUNNEL` | `TradelineAdvantageLandingPage` |
+| `/free-score-roadmap` | `SCORE_ROADMAP_FUNNEL` | `CreditScoreRoadmapLandingPage` |
+| `/free-agency-guide` | `AGENCY_FUNNEL` | `AgencyGuideLandingPage` |
+
+**Capture:** `PremiumLeadMagnetCaptureForm` → `submitLeadMagnetCapture` (consent checkbox required; marketing/SMS optional).
+
+**Post-submit:** `LeadMagnetGuidedSuccessPanel` — PDF download, portal preview (`/onboarding?lane=…`), booking, chat, free toolkit.
+
+**Configs:** `src/domain/leadMagnetFunnels.ts` — keep `valueStack`, `onboardingLane`, and `guideId` aligned with portal lanes.
+
+**Mockup assets:** `public/images/lead-magnets/`
+
+---
+
+## 15. Sensitive action codes & partner deletion
+
+**Admin UI:** `/admin/access` → **Sensitive action codes** (resettable; stored in `finely.settings.v1` → `security.sensitiveActionCodes`).
+
+| Code key | Used for |
+|----------|----------|
+| `partnerDelete` | Permanent partner file deletion when reports/letters/journey exist |
+| `hosAccessGrant` | Master HOS access grants (see also Heta settings tab) |
+| `bulkReportPurge` | Destructive bulk report operations |
+
+**Policy:** `src/lib/partnerDeletionPolicy.ts` — lead-only files with no artifacts may delete after confirm only; files with reports/letters/claimed accounts require the deletion code via `SensitiveActionCodeGate`.
+
+**HOS invite keys:** `src/components/heta/HosAccessCodesAdminPanel.tsx` — separate per-invite codes; link from Access Center.
+
+---
+
+## 16. Known gaps / future work
 
 - `assignedAgentId` on partners — assign via **Partner detail → Credit specialist assignment** panel (Overview/Profile tab)
 - Feature flags not persisted to Supabase `tenant_settings` — multi-admin desync
@@ -383,7 +422,7 @@ This links the admin-created partner row after confirmation.
 
 ---
 
-## 14. Support contacts for escalations
+## 17. Support contacts for escalations
 
 When edge function returns 500, check Supabase Dashboard → Edge Functions → Logs for namespace (`send-partner-welcome`, `ai-gateway`, `claim-profile`).
 

@@ -18,7 +18,6 @@ import {
 } from 'lucide-react';
 import { LeadMagnetFunnelHeroVideo } from '../../components/leadmagnet/LeadMagnetFunnelHeroVideo';
 import { getLeadMagnetVisualTheme } from '../../components/leadmagnet/leadMagnetVisualThemes';
-import { submitLeadCapture } from '../../data/leadsRepo';
 import { DEBT_FUNNEL } from '../../domain/leadMagnetFunnels';
 import { usePublicSeoMeta } from '../../hooks/usePublicSeoMeta';
 import { PremiumLeadMagnetCaptureForm } from '../../components/leadmagnet/PremiumLeadMagnetCaptureForm';
@@ -313,12 +312,7 @@ export default function DebtEradicationLandingPage() {
                 Get Your <span className="text-[#f4d273]">Free</span> Guide Now
               </h2>
               <PremiumLeadMagnetCaptureForm
-                offer="debt_validation_playbook"
-                interest="Debt Eradication Guide — Annihilate Your Debt"
-                funnelPath={DEBT_FUNNEL.path}
-                funnelId="debt_freedom"
-                goal="debt"
-                guideId="collections-validation-deep-dive"
+                funnelConfig={DEBT_FUNNEL}
                 accentClass="focus:border-[#f4d273] focus:ring-[#d7a73f]/15"
               />
             </div>
@@ -458,12 +452,7 @@ export default function DebtEradicationLandingPage() {
               <p className="mt-2 max-w-2xl text-sm leading-relaxed text-white/58">Join people who are crushing debt pressure and building a better future.</p>
               <div className="mt-6">
                 <PremiumLeadMagnetCaptureForm
-                  offer="debt_validation_playbook"
-                  interest="Debt Eradication Guide — footer CTA"
-                  funnelPath={DEBT_FUNNEL.path}
-                  funnelId="debt_freedom"
-                  goal="debt"
-                  guideId="collections-validation-deep-dive"
+                  funnelConfig={DEBT_FUNNEL}
                   accentClass="focus:border-[#f4d273] focus:ring-[#d7a73f]/15"
                 />
               </div>

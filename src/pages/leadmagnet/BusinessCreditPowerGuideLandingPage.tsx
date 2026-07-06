@@ -23,9 +23,9 @@ import {
 import { FinelyCredLogo } from '../../components/brand/FinelyCredLogo';
 import { LeadMagnetFunnelHeroVideo } from '../../components/leadmagnet/LeadMagnetFunnelHeroVideo';
 import { getLeadMagnetVisualTheme } from '../../components/leadmagnet/leadMagnetVisualThemes';
-import { submitLeadCapture } from '../../data/leadsRepo';
 import { BUSINESS_FUNNEL } from '../../domain/leadMagnetFunnels';
 import { usePublicSeoMeta } from '../../hooks/usePublicSeoMeta';
+import { PremiumLeadMagnetCaptureForm } from '../../components/leadmagnet/PremiumLeadMagnetCaptureForm';
 import './businessCreditPowerGuideLanding.css';
 
 const BUSINESS_THEME = getLeadMagnetVisualTheme(BUSINESS_FUNNEL);
@@ -99,72 +99,14 @@ function WhyKpiCard({
   );
 }
 
-function LeadForm({ compact = false }: { compact?: boolean }) {
-  const [fullName, setFullName] = useState('');
-  const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState('');
-  const [businessName, setBusinessName] = useState('');
-  const [status, setStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
-  const [message, setMessage] = useState<string | null>(null);
+const BCPG_BUTTON =
+  'bcpg-cta h-[3.25rem] w-full rounded-lg text-[11px] font-black uppercase tracking-[0.2em] text-black transition disabled:opacity-60';
 
-  const emailOk = useMemo(() => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()), [email]);
-
-  async function onSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setMessage(null);
-    if (!fullName.trim()) {
-      setStatus('error');
-      setMessage('Please enter your full name.');
-      return;
-    }
-    if (!emailOk) {
-      setStatus('error');
-      setMessage('Please enter a valid email address.');
-      return;
-    }
-    setStatus('sending');
-    try {
-      const result = await submitLeadCapture({
-        source: 'lead_magnet',
-        offer: 'business_credit_jumpstart',
-        interest: businessName.trim()
-          ? `Business Credit Power Guide — ${businessName.trim()}`
-          : 'Business Credit Power Guide',
-        fullName: fullName.trim(),
-        email: email.trim(),
-        phone: phone.trim(),
-        consentToContact: true,
-        consentEmailMarketing: true,
-        consentSmsMarketing: Boolean(phone.trim()),
-        funnelPath: BUSINESS_FUNNEL.path,
-        funnelId: 'business_credit',
-        goal: 'business',
-        guideId: 'business-credit-jumpstart',
-      });
-
-      setStatus('sent');
-      setMessage(
-        result?.remote === 'ok'
-          ? 'You’re in. Your guide request was received.'
-          : 'You’re in. Your request was captured.',
-      );
-      setFullName('');
-      setEmail('');
-      setPhone('');
-      setBusinessName('');
-    } catch (err: unknown) {
-      setStatus('error');
-      setMessage((err as Error)?.message || 'Something went wrong. Please try again.');
-    }
-  }
-
-  const inputClass =
-    'h-[3.25rem] w-full rounded-lg border border-white/12 bg-black/50 px-4 pl-11 text-sm text-white outline-none transition placeholder:text-white/30 focus:border-[#d4a447]/55 focus:ring-2 focus:ring-[#95e000]/15';
-
+function BusinessCaptureForm({ compact = false }: { compact?: boolean }) {
   return (
-    <form onSubmit={onSubmit} className={cn('space-y-3.5', compact && 'md:space-y-3')}>
-      {!compact && (
-        <div className="mb-1 text-center">
+    <div>
+      {!compact ? (
+        <div className="mb-4 text-center">
           <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full border border-[#95e000]/40 bg-[#95e000]/10 text-[#95e000] shadow-[0_0_30px_rgba(149,224,0,0.18)]">
             <Download size={26} />
           </div>
@@ -173,41 +115,15 @@ function LeadForm({ compact = false }: { compact?: boolean }) {
           </h2>
           <p className="mt-2 text-sm text-white/50">Instant access · Actionable strategies · No card required</p>
         </div>
-      )}
-
-      <label className="relative block">
-        <User className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-white/30" size={16} />
-        <input value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="Full Name" className={inputClass} required />
-      </label>
-      <label className="relative block">
-        <Mail className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-white/30" size={16} />
-        <input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email Address" type="email" className={inputClass} required />
-      </label>
-      <label className="relative block">
-        <Phone className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-white/30" size={16} />
-        <input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="Phone Number" type="tel" autoComplete="tel" className={inputClass} />
-      </label>
-      {!compact && (
-        <label className="relative block">
-          <BriefcaseBusiness className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-white/30" size={16} />
-          <input value={businessName} onChange={(e) => setBusinessName(e.target.value)} placeholder="Business Name (Optional)" className={inputClass} />
-        </label>
-      )}
-
-      <button type="submit" disabled={status === 'sending'} className="bcpg-cta h-[3.25rem] w-full rounded-lg text-[11px] font-black uppercase tracking-[0.2em] text-black transition disabled:opacity-60">
-        {status === 'sending' ? 'Sending…' : compact ? 'Yes — Send Me The Free Guide' : 'Download My Free Guide'}
-      </button>
-
-      {message ? (
-        <div className={cn('rounded-lg border px-3 py-2.5 text-sm', status === 'sent' ? 'border-[#95e000]/30 bg-[#95e000]/10 text-[#d8ff9b]' : 'border-amber-500/30 bg-amber-500/10 text-amber-100')}>
-          {message}
-        </div>
       ) : null}
-
-      <p className="flex items-center justify-center gap-2 text-[11px] text-white/40">
-        <Lock size={12} className="text-[#95e000]/80" /> We respect your privacy. Unsubscribe anytime.
-      </p>
-    </form>
+      <PremiumLeadMagnetCaptureForm
+        funnelConfig={BUSINESS_FUNNEL}
+        showBusinessName={!compact}
+        submitLabel={compact ? 'Yes — Send Me The Free Guide' : 'Download My Free Guide'}
+        buttonClass={BCPG_BUTTON}
+        accentClass="focus:border-[#d4a447]/55 focus:ring-[#95e000]/15"
+      />
+    </div>
   );
 }
 
@@ -344,7 +260,7 @@ export default function BusinessCreditPowerGuideLandingPage() {
           {/* Bottom: signup + video */}
           <div className="mt-12 grid gap-8 lg:mt-14 lg:grid-cols-2 lg:items-stretch xl:gap-10">
             <div id="download" className="bcpg-form-panel relative z-10 rounded-2xl p-6 md:p-8">
-              <LeadForm />
+              <BusinessCaptureForm />
             </div>
             <div className="bcpg-hero-video flex min-h-[320px] flex-col">
               <LeadMagnetFunnelHeroVideo
@@ -525,7 +441,7 @@ export default function BusinessCreditPowerGuideLandingPage() {
             </h2>
           </div>
           <div className="bcpg-form-panel w-full max-w-xl rounded-2xl p-5 md:p-6">
-            <LeadForm compact />
+            <BusinessCaptureForm compact />
           </div>
         </div>
       </section>

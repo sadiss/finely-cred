@@ -17,6 +17,13 @@ import {
 } from '../../data/tenantsRepo';
 import { getAccessiblePartnerIdsForAdmin } from '../../tenancy/adminPartnerScope';
 import { loadSettings, updateSecuritySettings } from '../../data/settingsRepo';
+import {
+  getSensitiveActionCodes,
+  hasSensitiveActionCode,
+  sensitiveActionLabel,
+  setSensitiveActionCode,
+  type SensitiveActionKey,
+} from '../../lib/sensitiveActionGuard';
 import { listAuditEventsByTenant } from '../../data/auditRepo';
 import { FinelyOsPageFooter } from '../../features/os/FinelyOsPageFooter';
 import { FinelyOsPaginatedStack } from '../../features/os/FinelyOsPaginatedStack';
@@ -56,6 +63,11 @@ export default function AdminAccessCenterPage() {
   const [storeVersion, setStoreVersion] = useState(0);
   const [draftAdminEmail, setDraftAdminEmail] = useState('');
   const [notice, setNotice] = useState<string | null>(null);
+  const [codeDrafts, setCodeDrafts] = useState<Record<SensitiveActionKey, string>>({
+    partner_delete: '',
+    hos_access_grant: '',
+    bulk_report_purge: '',
+  });
 
   useEffect(() => {
     const onStore = () => setStoreVersion((v) => v + 1);
@@ -434,6 +446,59 @@ export default function AdminAccessCenterPage() {
                 )}
                 <div className={FINELY_OS_ENTITY_BODY}>
                   If you just added your email here, <strong>refresh the page</strong> (or sign out/in) so the admin guard recalculates.
+                </div>
+              </div>
+            </CollapsibleSection>
+
+            <CollapsibleSection
+              title="Sensitive action codes"
+              subtitle="Resettable authorization codes for partner deletion, HOS access grants, and bulk report purge. Store server-side in production."
+              defaultOpen={false}
+              storageKey="admin.access.sensitiveCodes"
+            >
+              <div className="space-y-4">
+                {(['partner_delete', 'hos_access_grant', 'bulk_report_purge'] as SensitiveActionKey[]).map((key) => {
+                  const configured = hasSensitiveActionCode(key);
+                  return (
+                    <div key={key} className={`${finelyOsCatalogCard('rose')} !p-4 space-y-2`}>
+                      <div className={FINELY_OS_ENTITY_SUBLABEL}>{sensitiveActionLabel(key)}</div>
+                      <div className={`text-xs ${configured ? 'text-emerald-700' : 'text-amber-700'}`}>
+                        {configured ? 'Code configured' : 'Not set — action blocked until configured'}
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        <input
+                          type="password"
+                          value={codeDrafts[key]}
+                          onChange={(e) => setCodeDrafts((d) => ({ ...d, [key]: e.target.value }))}
+                          placeholder="New authorization code"
+                          className={`flex-1 min-w-[200px] ${FINELY_OS_ENTITY_INPUT}`}
+                          autoComplete="new-password"
+                        />
+                        <Button
+                          variant="primary"
+                          size="sm"
+                          onClick={() => {
+                            if (!codeDrafts[key].trim()) return;
+                            setSensitiveActionCode(key, codeDrafts[key]);
+                            setCodeDrafts((d) => ({ ...d, [key]: '' }));
+                            setNotice(`${sensitiveActionLabel(key)} updated.`);
+                            window.setTimeout(() => setNotice(null), 2200);
+                          }}
+                        >
+                          Save code
+                        </Button>
+                      </div>
+                    </div>
+                  );
+                })}
+                <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony`}>
+                  <div className={FINELY_OS_ENTITY_BODY}>
+                    Head of Society invite keys are managed separately in{' '}
+                    <button type="button" className="font-semibold underline" onClick={() => navigate('/admin/settings?tab=heta')}>
+                      Settings → Heta / HOS
+                    </button>
+                    . Use the HOS grant code above when issuing master access from admin tools.
+                  </div>
                 </div>
               </div>
             </CollapsibleSection>

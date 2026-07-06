@@ -266,12 +266,7 @@ export default function AgencyGuideLandingPage() {
             </div>
             <div className="agc-hero-form mt-8 rounded-2xl p-6">
               <PremiumLeadMagnetCaptureForm
-                offer="agency_workspace"
-                interest="The Agency Guide — profitable agency, systems, freedom"
-                funnelPath={AGENCY_FUNNEL.path}
-                funnelId={AGENCY_FUNNEL.funnelId}
-                goal="business"
-                guideId={AGENCY_FUNNEL.guideId}
+                funnelConfig={AGENCY_FUNNEL}
                 accentClass="focus:border-[#f0cc75] focus:ring-[#d4a447]/15"
                 buttonClass="agc-gold-btn group relative inline-flex h-14 w-full items-center justify-center overflow-hidden rounded-xl border px-7 text-[11px] font-black uppercase tracking-[0.14em] text-[#06101f] shadow-[0_18px_55px_rgba(212,164,71,0.32)] transition hover:-translate-y-0.5 hover:brightness-110 disabled:opacity-70"
               />
@@ -452,12 +447,7 @@ export default function AgencyGuideLandingPage() {
             </p>
             <div className="mx-auto mt-8 max-w-xl">
               <PremiumLeadMagnetCaptureForm
-                offer="agency_workspace"
-                interest="The Agency Guide — footer CTA"
-                funnelPath={AGENCY_FUNNEL.path}
-                funnelId={AGENCY_FUNNEL.funnelId}
-                goal="business"
-                guideId={AGENCY_FUNNEL.guideId}
+                funnelConfig={AGENCY_FUNNEL}
                 accentClass="focus:border-[#f0cc75] focus:ring-[#d4a447]/15"
                 buttonClass="agc-gold-btn group relative inline-flex h-14 w-full items-center justify-center overflow-hidden rounded-xl border px-7 text-[11px] font-black uppercase tracking-[0.14em] text-[#06101f] shadow-[0_18px_55px_rgba(212,164,71,0.32)] transition hover:-translate-y-0.5 hover:brightness-110 disabled:opacity-70"
               />
