@@ -4,7 +4,7 @@ import {
   ShieldAlert, Briefcase, Flame, Activity, Server, CheckCircle2,
   Cpu, FastForward, Target, Lock, ArrowLeft, X, Key, ScanLine, UploadCloud
 } from 'lucide-react';
-import { Button, ProgressBar } from '../ui';
+import { Button, PasswordInput, ProgressBar } from '../ui';
 import { useAuth } from '../../auth/AuthProvider';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { computeRecommendation } from '../../billing/intakeRecommendation';
@@ -1134,8 +1134,7 @@ export function CredentialCreation({
         </div>
         <div className="space-y-2">
           <label className="text-[10px] font-bold text-white/45 uppercase tracking-widest">Vault Access Key</label>
-          <input
-            type="password"
+          <PasswordInput
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder="••••••••••••"
@@ -1230,9 +1229,9 @@ function OnboardingShellChrome({ onClose }: { onClose: () => void }) {
     <button
       type="button"
       onClick={onClose}
-      className="lg:hidden fixed z-[110] inline-flex h-11 w-11 items-center justify-center rounded-xl border border-white/25 bg-white/[0.1] text-white/90 hover:text-white hover:border-white/40 hover:bg-white/[0.16] transition-colors fc-focus-ring top-[max(1rem,env(safe-area-inset-top))] right-[max(1rem,env(safe-area-inset-right))] sm:top-5 sm:right-6"
-      aria-label="Exit setup"
-      title="Exit setup"
+      className="fixed z-[120] inline-flex h-11 w-11 items-center justify-center rounded-xl border border-white/25 bg-[#0a1018]/90 text-white/90 shadow-lg backdrop-blur-sm hover:text-white hover:border-white/40 hover:bg-white/[0.12] transition-colors fc-focus-ring top-[max(1rem,env(safe-area-inset-top))] right-[max(1rem,env(safe-area-inset-right))] sm:top-5 sm:right-6"
+      aria-label="Close and return to homepage"
+      title="Back to homepage"
     >
       <X size={20} />
     </button>
@@ -1273,7 +1272,7 @@ export function RoleStep({ next, data, update }: StepProps) {
   };
 
   return (
-    <div className="space-y-5 sm:space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700 min-w-0">
+    <div className="space-y-5 sm:space-y-6 min-w-0">
       <div className="space-y-2 sm:space-y-3">
         <p className="text-[10px] font-black tracking-[0.6em] text-fuchsia-400 uppercase">Step 01 // Role</p>
         <h2 className="fc-onboarding-step-title">
@@ -1401,6 +1400,9 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
     return boot ? ({ ...base, ...boot } as typeof base) : base;
   });
   const onboardingScrollRef = useRef<HTMLDivElement | null>(null);
+  const storageHydratedRef = useRef(false);
+  const inviteStorageClearedRef = useRef('');
+  const urlContextBootstrappedRef = useRef('');
   const partnerInviteFlow = useMemo(() => isPartnerInviteUrl(location.search), [location.search]);
 
   const stepKeys = useMemo(
@@ -1422,12 +1424,42 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
     return 7;
   }, [partnerInviteFlow, TOTAL_STEPS, userData.role]);
 
+  const progressTotal = userData.role || partnerInviteFlow ? TOTAL_STEPS : estimatedWizardSteps;
+
   useEffect(() => {
     if (step > TOTAL_STEPS) setStep(TOTAL_STEPS);
   }, [TOTAL_STEPS, step]);
 
+  useEffect(() => {
+    if (!isOpen) {
+      storageHydratedRef.current = false;
+      inviteStorageClearedRef.current = '';
+      return;
+    }
+    if (isPartnerInviteUrl(location.search)) {
+      if (inviteStorageClearedRef.current !== location.search) {
+        resetOnboardingStorageForInvite(location.search);
+        inviteStorageClearedRef.current = location.search;
+      }
+      return;
+    }
+    if (storageHydratedRef.current) return;
+    storageHydratedRef.current = true;
+    try {
+      const raw = localStorage.getItem(ONBOARDING_STORAGE_KEY);
+      if (!raw) return;
+      const parsed = JSON.parse(raw) as { userData?: any; step?: number; authMode?: 'select' | 'login' | 'signup' | 'forgot' };
+      if (parsed?.userData) setUserData((prev) => ({ ...prev, ...parsed.userData }));
+      if (typeof parsed?.step === 'number') setStep(Math.min(Math.max(1, parsed.step), TOTAL_STEPS));
+      if (parsed?.authMode) setAuthMode(parsed.authMode);
+    } catch {
+      // ignore
+    }
+  }, [isOpen, location.search, TOTAL_STEPS]);
+
   const resetOnboardingState = useCallback((opts?: { authMode?: 'select' | 'login' | 'signup' | 'forgot' }) => {
     clearOnboardingProgress();
+    storageHydratedRef.current = false;
     setUserData(createDefaultOnboardingUserData());
     setStep(1);
     setAuthError(null);
@@ -1456,27 +1488,16 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
     onboardingScrollRef.current?.scrollTo({ top: 0, behavior: 'auto' });
   }, [isOpen, step, currentKey]);
 
-  useEffect(() => {
-    if (!isOpen) return;
-    if (isPartnerInviteUrl(location.search)) {
-      resetOnboardingStorageForInvite(location.search);
-      return;
-    }
-    try {
-      const raw = localStorage.getItem(ONBOARDING_STORAGE_KEY);
-      if (!raw) return;
-      const parsed = JSON.parse(raw) as { userData?: any; step?: number; authMode?: 'select' | 'login' | 'signup' | 'forgot' };
-      if (parsed?.userData) setUserData((prev) => ({ ...prev, ...parsed.userData }));
-      if (typeof parsed?.step === 'number') setStep(Math.min(Math.max(1, parsed.step), TOTAL_STEPS));
-      if (parsed?.authMode) setAuthMode(parsed.authMode);
-    } catch {
-      // ignore
-    }
-  }, [isOpen, location.search, TOTAL_STEPS]);
-
   // URL-driven onboarding context (e.g., /onboarding?package=personal_restore&rail=in_house)
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen) {
+      urlContextBootstrappedRef.current = '';
+      return;
+    }
+    const bootKey = `${location.pathname}${location.search}`;
+    if (urlContextBootstrappedRef.current === bootKey) return;
+    urlContextBootstrappedRef.current = bootKey;
+
     const sp = new URLSearchParams(location.search);
     const authParam = (sp.get('auth') || sp.get('mode') || '').toLowerCase();
     const packageId = sp.get('package');
@@ -1532,6 +1553,19 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
       setStep(1);
       const invite = parsePartnerInviteSearch(location.search);
       if (invite) {
+        setUserData((prev) => ({
+          ...prev,
+          ...applyOnboardingRole(
+            {
+              ...prev,
+              invitePartnerId: invite.partnerId,
+              email: prev.email || invite.email,
+              recommendedNextPath: prev.recommendedNextPath || invite.nextPath,
+              focuses: prev.focuses?.length ? prev.focuses : invite.focus ? [invite.focus] : prev.focuses,
+            },
+            invite.role,
+          ),
+        }));
         void hydrateInviteUserDataFromPartner(createDefaultOnboardingUserData(), invite).then((hydrated) => {
           setUserData((prev) => ({
             ...(hydrated as ReturnType<typeof createDefaultOnboardingUserData>),
@@ -1647,7 +1681,8 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
   }, [auth, isOpen, location.search]);
 
   const updateData = (newData: Partial<typeof userData>) => {
-    setUserData(prev => ({ ...prev, ...newData }));
+    setAuthError(null);
+    setUserData((prev) => ({ ...prev, ...newData }));
   };
 
   const goToAuthMode = (mode: 'select' | 'login' | 'signup' | 'forgot') => {
@@ -1674,10 +1709,16 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
   };
 
   const handleLogin = async () => {
+    const email = loginEmail.trim();
+    if (!email || !loginPassword) {
+      setAuthError('Email and password are required.');
+      return;
+    }
     setAuthError(null);
+    setAuthNotice(null);
     setAuthBusy(true);
     try {
-      const res = await auth.signInWithEmail({ email: loginEmail.trim(), password: loginPassword });
+      const res = await auth.signInWithEmail({ email, password: loginPassword });
       if (res.error) {
         setAuthError(res.error);
         return;
@@ -2053,12 +2094,11 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
             </div>
             <div className="space-y-1 text-left">
               <label className="text-[10px] font-bold text-white/45 uppercase tracking-widest">Password</label>
-              <input 
-                type="password" 
+              <PasswordInput
                 value={loginPassword}
                 onChange={(e) => setLoginPassword(e.target.value)}
                 autoComplete="current-password"
-                className="w-full min-h-[48px] rounded-xl border border-white/[0.08] bg-fc-input px-4 py-3 text-white/90 placeholder:text-white/30 focus:outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 backdrop-blur-sm transition-all" 
+                className="w-full min-h-[48px] rounded-xl border border-white/[0.08] bg-fc-input px-4 py-3 text-white/90 placeholder:text-white/30 focus:outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 backdrop-blur-sm transition-all"
               />
             </div>
             {!auth.isConfigured && auth.isDevAuthEnabled && (
@@ -2165,7 +2205,7 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
             </button>
           </div>
           <div className="w-full max-w-lg mx-auto">
-            <ProgressBar current={step} total={TOTAL_STEPS} estimatedTotal={estimatedWizardSteps} />
+            <ProgressBar current={step} total={progressTotal} estimatedTotal={estimatedWizardSteps} />
             <div className="mt-2 text-center text-[9px] sm:text-[10px] font-black uppercase tracking-[0.2em] sm:tracking-[0.35em] text-white/45">
               {getOnboardingStepLabel(currentKey)}
             </div>
@@ -2187,14 +2227,12 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
                     key={r.id}
                     type="button"
                     onClick={() => {
-                      updateData(applyOnboardingRole({ ...userData, agentTierId: r.id === 'agent' ? userData.agentTierId || '' : '' }, r.id));
-                      const after = stepAfterRoleSelection({
-                        role: r.id,
-                        focuses: userData.focuses,
-                        lane: applyOnboardingRole(userData, r.id).lane,
-                        agentTierId: userData.agentTierId,
-                      });
-                      setStep(after);
+                      updateData(
+                        applyOnboardingRole(
+                          { ...userData, agentTierId: r.id === 'agent' ? userData.agentTierId || '' : '' },
+                          r.id,
+                        ),
+                      );
                     }}
                     className={`rounded-full px-3 py-1.5 min-h-[36px] text-[10px] font-bold uppercase tracking-wider border transition-colors ${
                       userData.role === r.id
@@ -2247,8 +2285,10 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
           stepKeys={stepKeys}
           currentKey={currentKey}
           stepIndex={step - 1}
+          showProgressRail={partnerInviteFlow || Boolean(userData.role)}
           laneLabel={userData.lane && userData.lane !== 'other' ? userData.lane.replace(/_/g, ' ') : userData.goal || undefined}
         >
+        <div key={currentKey} className="min-w-0">
         {currentKey === 'role' && <RoleStep next={nextStep} data={userData} update={updateData} />}
         {currentKey === 'focus' && <FocusStep next={nextStep} prev={prevStep} data={userData} update={updateData} />}
         {currentKey === 'support' && (
@@ -2271,6 +2311,7 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
             emailLocked={partnerInviteFlow && Boolean(userData.email)}
           />
         )}
+        </div>
         </OnboardingExperienceShell>
       </div>
     </OnboardingFlowShell>

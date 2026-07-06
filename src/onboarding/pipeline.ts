@@ -35,7 +35,8 @@ export function getOnboardingStepKeys(data: OnboardingUserData): string[] {
 
 /** Admin invite flow — skip public role/focus/recommendation picker. */
 export function getPartnerInviteStepKeys(role?: OnboardingRole): string[] {
-  if (role === 'client') return ['legal', 'support', 'profile'];
+  const effective = role || 'client';
+  if (effective === 'client') return ['legal', 'support', 'profile'];
   return ['legal', 'profile'];
 }
 

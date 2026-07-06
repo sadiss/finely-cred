@@ -6,6 +6,9 @@ import { getResourceVideo } from '../../data/resourceVideosRepo';
 import { getBlobUrl } from '../../storage/getBlobUrl';
 import { FREE_DISPUTE_GUIDE_HERO_VIDEO_SRC } from './FreeDisputeGuideHeroVideo';
 import type { LeadMagnetVisualTheme } from './leadMagnetVisualThemes';
+import './premiumLeadMagnetShared.css';
+
+export type LeadMagnetVideoColorGrade = 'gold' | 'emerald' | 'plum' | 'navy';
 
 type Props = {
   config: LeadMagnetFunnelConfig;
@@ -13,9 +16,10 @@ type Props = {
   posterUrl?: string | null;
   className?: string;
   onGoForm?: () => void;
+  colorGrade?: LeadMagnetVideoColorGrade;
 };
 
-export function LeadMagnetFunnelHeroVideo({ config, theme, posterUrl, className = '', onGoForm }: Props) {
+export function LeadMagnetFunnelHeroVideo({ config, theme, posterUrl, className = '', onGoForm, colorGrade = 'gold' }: Props) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [muted, setMuted] = useState(true);
   const [videoSrc, setVideoSrc] = useState<string | null>(null);
@@ -105,15 +109,18 @@ export function LeadMagnetFunnelHeroVideo({ config, theme, posterUrl, className 
 
   const label = getFunnelMediaForConfig(config)?.videoTitle ?? `Watch the ${theme.badge.toLowerCase()}`;
 
+  const gradeClass = `lm-video-grade--${colorGrade}`;
+
   if (!videoSrc && !loading) {
     return (
       <button
         type="button"
         onClick={onGoForm}
-        className={`lm-video-shell lm-video-placeholder group ${className}`}
+        className={`lm-video-shell lm-video-shell--framed lm-video-placeholder group ${gradeClass} ${className}`}
         style={{ backgroundImage: `url(${posterSrc ?? theme.videoPosterImage})` }}
       >
-        <div className="lm-video-placeholder-veil" />
+        <div className="lm-video-placeholder-veil lm-video-veil" />
+        <div className="lm-video-warm-overlay" aria-hidden />
         <div className="relative z-10 flex flex-col items-center gap-3 p-6">
           <span className="lm-video-play-ring">
             <Play className="w-7 h-7 text-white ml-1" fill="currentColor" />
@@ -126,7 +133,7 @@ export function LeadMagnetFunnelHeroVideo({ config, theme, posterUrl, className 
   }
 
   return (
-    <div className={`lm-video-shell relative overflow-hidden group ${className}`}>
+    <div className={`lm-video-shell lm-video-shell--framed relative overflow-hidden group ${gradeClass} ${className}`}>
       <div className="absolute inset-0 opacity-30 pointer-events-none z-[1] lm-video-glow" aria-hidden />
       {loading ? (
         <div className="absolute inset-0 flex items-center justify-center bg-black/50 z-[2]">
@@ -147,7 +154,8 @@ export function LeadMagnetFunnelHeroVideo({ config, theme, posterUrl, className 
           aria-label={label}
         />
       ) : null}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/10 to-black/30 pointer-events-none z-[1]" />
+      <div className="absolute inset-0 lm-video-veil bg-gradient-to-t from-black/50 via-black/10 to-amber-900/10 pointer-events-none z-[1]" />
+      <div className="lm-video-warm-overlay" aria-hidden />
       <div className="absolute top-3 left-3 z-[2] px-3 py-1.5 rounded-full border text-[9px] font-bold uppercase tracking-wider bg-black/50 backdrop-blur-md lm-video-badge">
         {label}
       </div>

@@ -21,6 +21,8 @@ import { getLeadMagnetVisualTheme } from '../../components/leadmagnet/leadMagnet
 import { submitLeadCapture } from '../../data/leadsRepo';
 import { DEBT_FUNNEL } from '../../domain/leadMagnetFunnels';
 import { usePublicSeoMeta } from '../../hooks/usePublicSeoMeta';
+import { PremiumLeadMagnetCaptureForm } from '../../components/leadmagnet/PremiumLeadMagnetCaptureForm';
+import '../../components/leadmagnet/premiumLeadMagnetShared.css';
 import './debtEradicationLanding.css';
 
 const DEBT_THEME = getLeadMagnetVisualTheme(DEBT_FUNNEL);
@@ -100,14 +102,12 @@ function TinyProof({ icon: Icon, title, desc }: {
   desc: string;
 }) {
   return (
-    <div className="flex items-start gap-3">
-      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-[#d7a73f]/35 bg-[#d7a73f]/10 text-[#f4d273]">
-        <Icon size={22} />
+    <div className="lm-proof-pillar rounded-2xl p-5 text-center">
+      <div className="lm-proof-pillar-icon mx-auto border border-[#d7a73f]/35 bg-[#d7a73f]/12 text-[#f4d273]">
+        <Icon size={24} />
       </div>
-      <div>
-        <div className="text-sm font-black uppercase tracking-[0.08em] text-white">{title}</div>
-        <p className="mt-1 max-w-[210px] text-xs leading-relaxed text-white/55">{desc}</p>
-      </div>
+      <div className="mt-4 text-sm font-black uppercase tracking-[0.08em] text-white">{title}</div>
+      <p className="mt-2 text-xs leading-relaxed text-white/55">{desc}</p>
     </div>
   );
 }
@@ -120,149 +120,6 @@ function MiniCheck({ children }: { children: React.ReactNode }) {
       </span>
       <span>{children}</span>
     </div>
-  );
-}
-
-function InputShell({
-  icon: Icon,
-  children,
-}: {
-  icon: React.ComponentType<{ size?: number; className?: string }>;
-  children: React.ReactNode;
-}) {
-  return (
-    <label className="relative block">
-      <Icon className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[#d7a73f]/75" size={16} />
-      {children}
-    </label>
-  );
-}
-
-function LeadCaptureForm({ compact = false, hero = false }: { compact?: boolean; hero?: boolean }) {
-  const [firstName, setFirstName] = useState('');
-  const [email, setEmail] = useState('');
-  const [status, setStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
-  const [message, setMessage] = useState<string | null>(null);
-
-  const emailOk = useMemo(() => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()), [email]);
-
-  async function onSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setMessage(null);
-
-    if (!emailOk) {
-      setStatus('error');
-      setMessage('Please enter a valid email address.');
-      return;
-    }
-
-    setStatus('sending');
-    try {
-      const fullName = firstName.trim() || 'Debt Freedom Lead';
-
-      const result = await submitLeadCapture({
-        source: 'lead_magnet',
-        offer: 'debt_validation_playbook',
-        interest: 'Debt Eradication Guide — Annihilate Your Debt',
-        fullName,
-        email: email.trim(),
-        phone: '',
-        consentToContact: true,
-        consentEmailMarketing: true,
-        consentSmsMarketing: false,
-        funnelPath: DEBT_FUNNEL.path,
-        funnelId: 'debt_freedom',
-        goal: 'debt',
-        guideId: 'collections-validation-deep-dive',
-      });
-
-      setStatus('sent');
-      setMessage(
-        result?.remote === 'ok'
-          ? 'You are in. Your free guide request was received.'
-          : 'You are in. The request was captured. Connect Supabase/CRM for live delivery.',
-      );
-      setFirstName('');
-      setEmail('');
-    } catch (err: any) {
-      setStatus('error');
-      setMessage(err?.message || 'Something went wrong. Please try again.');
-    }
-  }
-
-  if (compact || hero) {
-    return (
-      <form onSubmit={onSubmit} className={cn('grid gap-3', !hero && 'md:grid-cols-[1fr_220px]')}>
-        <InputShell icon={Mail}>
-          <input
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="Enter your email address"
-            className="h-14 w-full rounded-xl border border-white/12 bg-white/[0.93] pl-11 pr-4 text-sm text-[#06101f] outline-none ring-0 transition placeholder:text-slate-500 focus:border-[#f4d273] focus:ring-4 focus:ring-[#d7a73f]/15"
-            maxLength={180}
-            required
-          />
-        </InputShell>
-        <GoldButton type="submit" disabled={status === 'sending'} className="w-full">
-          {status === 'sending' ? 'Sending...' : 'Get My Free Guide'} <ArrowRight size={16} />
-        </GoldButton>
-        {hero && (
-          <div className="flex flex-wrap items-center gap-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-white/55">
-            <span className="inline-flex items-center gap-1.5"><Lock size={13} className="text-[#d7a73f]" /> 100% free</span>
-            <span className="h-1 w-1 rounded-full bg-[#d7a73f]" />
-            <span>No spam</span>
-            <span className="h-1 w-1 rounded-full bg-[#d7a73f]" />
-            <span>Instant access</span>
-          </div>
-        )}
-        {message && (
-          <div className={cn(!hero && 'md:col-span-2', 'rounded-xl border px-4 py-3 text-sm', status === 'sent' ? 'border-emerald-400/30 bg-emerald-400/10 text-emerald-100' : 'border-amber-400/30 bg-amber-400/10 text-amber-100')}>
-            {message}
-          </div>
-        )}
-      </form>
-    );
-  }
-
-  return (
-    <form onSubmit={onSubmit} className="space-y-4">
-      <div className="grid gap-3 sm:grid-cols-2">
-        <InputShell icon={User}>
-          <input
-            value={firstName}
-            onChange={(e) => setFirstName(e.target.value)}
-            placeholder="First Name"
-            className="h-14 w-full rounded-xl border border-white/12 bg-white/[0.93] pl-11 pr-4 text-sm text-[#06101f] outline-none ring-0 transition placeholder:text-slate-500 focus:border-[#f4d273] focus:ring-4 focus:ring-[#d7a73f]/15"
-            maxLength={120}
-          />
-        </InputShell>
-        <InputShell icon={Mail}>
-          <input
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="Email Address"
-            className="h-14 w-full rounded-xl border border-white/12 bg-white/[0.93] pl-11 pr-4 text-sm text-[#06101f] outline-none ring-0 transition placeholder:text-slate-500 focus:border-[#f4d273] focus:ring-4 focus:ring-[#d7a73f]/15"
-            maxLength={180}
-            required
-          />
-        </InputShell>
-      </div>
-      <GoldButton type="submit" disabled={status === 'sending'} className="w-full">
-        {status === 'sending' ? 'Sending...' : 'Get My Free Guide'} <ArrowRight size={16} />
-      </GoldButton>
-      <div className="flex flex-wrap items-center gap-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-white/55">
-        <span className="inline-flex items-center gap-1.5"><Lock size={13} className="text-[#d7a73f]" /> 100% free</span>
-        <span className="h-1 w-1 rounded-full bg-[#d7a73f]" />
-        <span>No spam</span>
-        <span className="h-1 w-1 rounded-full bg-[#d7a73f]" />
-        <span>Instant access</span>
-      </div>
-      {message && (
-        <div className={cn('rounded-xl border px-4 py-3 text-sm', status === 'sent' ? 'border-emerald-400/30 bg-emerald-400/10 text-emerald-100' : 'border-amber-400/30 bg-amber-400/10 text-amber-100')}>
-          {message}
-        </div>
-      )}
-    </form>
   );
 }
 
@@ -312,6 +169,7 @@ function VideoPreview({ onGoForm }: { onGoForm?: () => void }) {
         <LeadMagnetFunnelHeroVideo
           config={DEBT_FUNNEL}
           theme={DEBT_THEME}
+          colorGrade="navy"
           posterUrl="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=1600&q=90"
           className="w-full rounded-none border-0 shadow-none"
           onGoForm={onGoForm}
@@ -432,13 +290,7 @@ export default function DebtEradicationLandingPage() {
       <div className="pointer-events-none fixed inset-x-0 top-0 z-0 h-[420px] bg-gradient-to-b from-[#0b2543]/50 to-transparent" />
 
       <header className="relative z-20">
-        <div className="mx-auto flex max-w-7xl items-center justify-end gap-6 px-5 py-7 md:px-8">
-          <div className="hidden items-center gap-8 text-xs font-black uppercase tracking-[0.16em] text-white/72 md:flex">
-            <span className="inline-flex items-center gap-2"><ShieldCheck size={15} className="text-[#d7a73f]" /> 100% Free</span>
-            <span className="inline-flex items-center gap-2"><Zap size={15} className="text-[#d7a73f]" /> Instant Access</span>
-            <span className="inline-flex items-center gap-2"><Lock size={15} className="text-[#d7a73f]" /> No Spam</span>
-          </div>
-        </div>
+        <div className="mx-auto max-w-7xl px-5 py-5 md:px-8" />
       </header>
 
       <section className="del-hero-section relative z-10 border-b border-[#d7a73f]/25">
@@ -446,9 +298,7 @@ export default function DebtEradicationLandingPage() {
         <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#d7a73f]/75 to-transparent" />
         <div className="del-hero-grid mx-auto grid items-center gap-10 px-5 md:px-8 lg:items-center">
           <div className="del-hero-copy relative z-20 pt-6 lg:pt-14">
-            <SectionKicker>The ultimate roadmap to financial freedom</SectionKicker>
-
-            <h1 className="del-hero-title del-serif mt-8 text-white">
+            <h1 className="del-hero-title del-serif mt-2 text-white">
               <span className="del-hero-title-line">Annihilate Your Debt. Take Back</span>
               <span className="del-hero-title-line del-hero-title-line--gold">Control. Build Your Future.</span>
             </h1>
@@ -458,20 +308,25 @@ export default function DebtEradicationLandingPage() {
               Crush collections, wipe out foreclosures, destroy bankruptcy fear, and rebuild stronger with the ultimate step-by-step system.
             </p>
 
-            <div className="mt-9 grid gap-5 sm:grid-cols-3">
+            <div className="del-hero-form mt-9 max-w-xl rounded-[1.35rem] p-6">
+              <h2 className="mb-4 text-xl font-black uppercase tracking-[0.08em] text-white md:text-2xl">
+                Get Your <span className="text-[#f4d273]">Free</span> Guide Now
+              </h2>
+              <PremiumLeadMagnetCaptureForm
+                offer="debt_validation_playbook"
+                interest="Debt Eradication Guide — Annihilate Your Debt"
+                funnelPath={DEBT_FUNNEL.path}
+                funnelId="debt_freedom"
+                goal="debt"
+                guideId="collections-validation-deep-dive"
+                accentClass="focus:border-[#f4d273] focus:ring-[#d7a73f]/15"
+              />
+            </div>
+
+            <div className="mt-8 grid gap-4 sm:grid-cols-3">
               <TinyProof icon={Gavel} title="Crush Debt" desc="Eliminate pressure and create a cleaner path forward." />
               <TinyProof icon={ShieldCheck} title="Protect Assets" desc="Safeguard your home, income, and future options." />
               <TinyProof icon={TrendingUp} title="Rebuild Stronger" desc="Create lasting structure after the storm." />
-            </div>
-
-            <div className="del-hero-form mt-9 max-w-xl rounded-[1.35rem] p-6">
-              <div className="mb-4 flex items-center justify-between gap-4">
-                <h2 className="text-xl font-black uppercase tracking-[0.08em] text-white md:text-2xl">
-                  Get Your <span className="text-[#f4d273]">Free</span> Guide Now
-                </h2>
-                <ArrowRight className="hidden rotate-45 text-[#d7a73f] sm:block" size={34} />
-              </div>
-              <LeadCaptureForm hero />
             </div>
           </div>
 
@@ -602,7 +457,15 @@ export default function DebtEradicationLandingPage() {
               <h3 className="text-2xl font-black uppercase tracking-[0.07em] text-[#f4d273]">Get Instant Access to Your Free Guide</h3>
               <p className="mt-2 max-w-2xl text-sm leading-relaxed text-white/58">Join people who are crushing debt pressure and building a better future.</p>
               <div className="mt-6">
-                <LeadCaptureForm compact />
+                <PremiumLeadMagnetCaptureForm
+                  offer="debt_validation_playbook"
+                  interest="Debt Eradication Guide — footer CTA"
+                  funnelPath={DEBT_FUNNEL.path}
+                  funnelId="debt_freedom"
+                  goal="debt"
+                  guideId="collections-validation-deep-dive"
+                  accentClass="focus:border-[#f4d273] focus:ring-[#d7a73f]/15"
+                />
               </div>
             </div>
           </div>

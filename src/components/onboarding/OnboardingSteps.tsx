@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { Building2, CheckCircle2, Lock, Mail, Phone, User } from 'lucide-react';
+import { PasswordInput } from '../ui/PasswordInput';
 
 type StepProps = {
   next: () => void;
@@ -126,8 +127,7 @@ export function ProfileAndAccountStep({
           </label>
           <label className="block space-y-2">
             <span className="text-[10px] uppercase tracking-widest text-white/40">Password</span>
-            <input
-              type="password"
+            <PasswordInput
               value={data.password || ''}
               onChange={(e) => update({ password: e.target.value })}
               placeholder="At least 8 characters"
@@ -137,8 +137,7 @@ export function ProfileAndAccountStep({
           </label>
           <label className="block space-y-2">
             <span className="text-[10px] uppercase tracking-widest text-white/40">Confirm password</span>
-            <input
-              type="password"
+            <PasswordInput
               value={confirmPassword}
               onChange={(e) => update({ confirmPassword: e.target.value })}
               placeholder="Repeat password"

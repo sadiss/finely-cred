@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { PageShell } from '../../components/layout/PageShell';
+import { PasswordInput } from '../../components/ui/PasswordInput';
 import { UserAvatar } from '../../components/account/UserAvatar';
 import { useAuth } from '../../auth/AuthProvider';
 import { isAdminEmail } from '../../auth/admin';
@@ -419,11 +420,11 @@ export default function AccountSettingsPage() {
                 <div className="grid md:grid-cols-2 gap-4">
                   <label>
                     <span className={formLabel}>New password</span>
-                    <input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className={formInput} autoComplete="new-password" />
+                    <PasswordInput value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className={formInput} autoComplete="new-password" />
                   </label>
                   <label>
                     <span className={formLabel}>Confirm password</span>
-                    <input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className={formInput} autoComplete="new-password" />
+                    <PasswordInput value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className={formInput} autoComplete="new-password" />
                   </label>
                 </div>
                 <button type="button" disabled={busy || !newPassword} onClick={() => void savePassword()} className={FINELY_OS_SECONDARY_BTN}>
