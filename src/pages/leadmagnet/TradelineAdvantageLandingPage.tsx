@@ -21,10 +21,13 @@ import { submitLeadCapture } from '../../data/leadsRepo';
 import { TRADELINE_FUNNEL } from '../../domain/leadMagnetFunnels';
 import { usePublicSeoMeta } from '../../hooks/usePublicSeoMeta';
 import { LEAD_MAGNET_TRIAL_DAYS } from '../../lib/leadMagnetTrial';
+import { PremiumLeadMagnetCaptureForm } from '../../components/leadmagnet/PremiumLeadMagnetCaptureForm';
+import '../../components/leadmagnet/premiumLeadMagnetShared.css';
 import './tradelineAdvantageLanding.css';
 
 const TRADELINE_THEME = getLeadMagnetVisualTheme(TRADELINE_FUNNEL);
 const GUIDE_MOCKUP_SRC = '/images/lead-magnets/tradeline-advantage-mockup.png';
+const GUIDE_MOCKUP_2X = '/images/lead-magnets/tradeline-advantage-mockup-2x.png';
 
 function cn(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(' ');
@@ -105,15 +108,18 @@ function TinyProof({
   desc: string;
   accent?: number;
 }) {
+  const accents = [
+    'border-[#3db896]/40 bg-[#0d5c4a]/30 text-[#3db896]',
+    'border-[#6b8fd4]/40 bg-[#1a3a6e]/35 text-[#8bafe8]',
+    'border-[#d4a447]/40 bg-[#d4a447]/12 text-[#f0cc75]',
+  ];
   return (
-    <div className="flex items-start gap-3">
-      <div className={cn('flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border', PROOF_ACCENTS[accent % PROOF_ACCENTS.length])}>
-        <Icon size={22} />
+    <div className="lm-proof-pillar rounded-2xl p-5 text-center">
+      <div className={cn('lm-proof-pillar-icon mx-auto border', accents[accent % accents.length])}>
+        <Icon size={24} />
       </div>
-      <div>
-        <div className="text-sm font-black uppercase tracking-[0.08em] text-white">{title}</div>
-        <p className="mt-1 max-w-[210px] text-xs leading-relaxed text-white/55">{desc}</p>
-      </div>
+      <div className="mt-4 text-sm font-black uppercase tracking-[0.08em] text-white">{title}</div>
+      <p className="mt-2 text-xs leading-relaxed text-white/55">{desc}</p>
     </div>
   );
 }
@@ -126,149 +132,6 @@ function MiniCheck({ children }: { children: React.ReactNode }) {
       </span>
       <span>{children}</span>
     </div>
-  );
-}
-
-function InputShell({
-  icon: Icon,
-  children,
-}: {
-  icon: React.ComponentType<{ size?: number; className?: string }>;
-  children: React.ReactNode;
-}) {
-  return (
-    <label className="relative block">
-      <Icon className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[#d4a447]/75" size={16} />
-      {children}
-    </label>
-  );
-}
-
-function LeadCaptureForm({ compact = false, hero = false }: { compact?: boolean; hero?: boolean }) {
-  const [email, setEmail] = useState('');
-  const [status, setStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
-  const [message, setMessage] = useState<string | null>(null);
-  const emailOk = useMemo(() => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()), [email]);
-
-  async function onSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setMessage(null);
-    if (!emailOk) {
-      setStatus('error');
-      setMessage('Please enter a valid email address.');
-      return;
-    }
-    setStatus('sending');
-    try {
-      const result = await submitLeadCapture({
-        source: 'lead_magnet',
-        offer: 'primary_tradeline_insider',
-        interest: 'The Trade Lines Advantage — strategic tradelines, profile strength, funding readiness',
-        fullName: 'Tradeline Advantage Lead',
-        email: email.trim(),
-        phone: '',
-        consentToContact: true,
-        consentEmailMarketing: true,
-        consentSmsMarketing: false,
-        funnelPath: TRADELINE_FUNNEL.path,
-        funnelId: TRADELINE_FUNNEL.funnelId,
-        goal: 'tradelines',
-        guideId: TRADELINE_FUNNEL.guideId,
-      });
-      setStatus('sent');
-      setMessage(
-        result?.remote === 'ok'
-          ? 'You are in. Your free guide request was received.'
-          : 'You are in. The request was captured. Connect Supabase/CRM for live delivery.',
-      );
-      setEmail('');
-    } catch (err: unknown) {
-      setStatus('error');
-      setMessage((err as Error)?.message || 'Something went wrong. Please try again.');
-    }
-  }
-
-  if (compact || hero) {
-    return (
-      <form onSubmit={onSubmit} className={cn('grid gap-3', !hero && 'md:grid-cols-[1fr_220px]')}>
-        <InputShell icon={Mail}>
-          <input
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="Enter your email address"
-            className="h-14 w-full rounded-xl border border-white/12 bg-white/[0.93] pl-11 pr-4 text-sm text-[#06101f] outline-none ring-0 transition placeholder:text-slate-500 focus:border-[#f0cc75] focus:ring-4 focus:ring-[#d4a447]/15"
-            maxLength={180}
-            required
-          />
-        </InputShell>
-        <GoldButton type="submit" disabled={status === 'sending'} className="w-full">
-          {status === 'sending' ? 'Sending...' : 'Get My Free Guide'} <ArrowRight size={16} />
-        </GoldButton>
-        {hero && (
-          <div className="flex flex-wrap items-center gap-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-white/55">
-            <span className="inline-flex items-center gap-1.5">
-              <Lock size={13} className="text-[#d4a447]" /> 100% free
-            </span>
-            <span className="h-1 w-1 rounded-full bg-[#d4a447]" />
-            <span>No spam</span>
-            <span className="h-1 w-1 rounded-full bg-[#d4a447]" />
-            <span>Instant access</span>
-          </div>
-        )}
-        {message && (
-          <div
-            className={cn(
-              !hero && 'md:col-span-2',
-              'rounded-xl border px-4 py-3 text-sm',
-              status === 'sent'
-                ? 'border-emerald-400/30 bg-emerald-400/10 text-emerald-100'
-                : 'border-amber-400/30 bg-amber-400/10 text-amber-100',
-            )}
-          >
-            {message}
-          </div>
-        )}
-      </form>
-    );
-  }
-
-  return (
-    <form onSubmit={onSubmit} className="space-y-4">
-      <InputShell icon={Mail}>
-        <input
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder="Email Address"
-          className="h-14 w-full rounded-xl border border-white/12 bg-white/[0.93] pl-11 pr-4 text-sm text-[#06101f] outline-none ring-0 transition placeholder:text-slate-500 focus:border-[#f0cc75] focus:ring-4 focus:ring-[#d4a447]/15"
-          maxLength={180}
-          required
-        />
-      </InputShell>
-      <GoldButton type="submit" disabled={status === 'sending'} className="w-full">
-        {status === 'sending' ? 'Sending...' : 'Get My Free Guide'} <ArrowRight size={16} />
-      </GoldButton>
-      <div className="flex flex-wrap items-center gap-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-white/55">
-        <span className="inline-flex items-center gap-1.5">
-          <Lock size={13} className="text-[#d4a447]" /> 100% free
-        </span>
-        <span className="h-1 w-1 rounded-full bg-[#d4a447]" />
-        <span>No spam</span>
-        <span className="h-1 w-1 rounded-full bg-[#d4a447]" />
-        <span>Instant access</span>
-      </div>
-      {message && (
-        <div
-          className={cn(
-            'rounded-xl border px-4 py-3 text-sm',
-            status === 'sent'
-              ? 'border-emerald-400/30 bg-emerald-400/10 text-emerald-100'
-              : 'border-amber-400/30 bg-amber-400/10 text-amber-100',
-          )}
-        >
-          {message}
-        </div>
-      )}
-    </form>
   );
 }
 
@@ -295,6 +158,10 @@ function GuideMockup({
       <div className="tla-mockup-gold-frame" aria-hidden />
       <img
         src={GUIDE_MOCKUP_SRC}
+        srcSet={`${GUIDE_MOCKUP_SRC} 1x, ${GUIDE_MOCKUP_2X} 2x`}
+        width={520}
+        height={672}
+        decoding="async"
         alt="The Trade Lines Advantage — free e-guide with mobile preview"
         className={cn('tla-mockup', tall && 'tla-mockup--hero', footer && 'tla-mockup--footer')}
       />
@@ -320,6 +187,7 @@ function VideoPreview({ onGoForm }: { onGoForm?: () => void }) {
         <LeadMagnetFunnelHeroVideo
           config={TRADELINE_FUNNEL}
           theme={TRADELINE_THEME}
+          colorGrade="plum"
           posterUrl="https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=1600&q=90"
           className="w-full rounded-none border-0 shadow-none"
           onGoForm={onGoForm}
@@ -336,11 +204,13 @@ function DiscoveryCard({
   title,
   desc,
   accent = 'gold',
+  className,
 }: {
   icon: React.ComponentType<{ size?: number; className?: string }>;
   title: string;
   desc: string;
   accent?: (typeof DISCOVERY_ACCENTS)[number];
+  className?: string;
 }) {
   const titleColor =
     accent === 'emerald'
@@ -356,6 +226,7 @@ function DiscoveryCard({
       className={cn(
         'tla-discovery-card tla-discovery-card--' + accent,
         'group relative overflow-hidden rounded-[1.35rem] p-6 text-center transition duration-300 hover:-translate-y-1',
+        className,
       )}
     >
       <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#d4a447]/70 to-transparent opacity-0 transition group-hover:opacity-100" />
@@ -458,29 +329,19 @@ export default function TradelineAdvantageLandingPage() {
       <div className="pointer-events-none fixed inset-x-0 top-0 z-0 h-[420px] bg-gradient-to-b from-[#2a1430]/55 to-transparent" />
 
       <header className="relative z-20">
-        <div className="mx-auto flex max-w-7xl items-center justify-end gap-6 px-5 py-7 md:px-8">
-          <div className="hidden items-center gap-8 text-xs font-black uppercase tracking-[0.16em] text-white/72 md:flex">
-            <span className="inline-flex items-center gap-2">
-              <ShieldCheck size={15} className="text-[#d4a447]" /> 100% Free
-            </span>
-            <span className="inline-flex items-center gap-2">
-              <Zap size={15} className="text-[#8bafe8]" /> Strategic Education
-            </span>
-            <span className="inline-flex items-center gap-2">
-              <Lock size={15} className="text-[#d4a447]" /> No Spam
-            </span>
-          </div>
-        </div>
+        <div className="mx-auto max-w-7xl px-5 py-5 md:px-8" />
       </header>
 
       <section className="tla-hero-section relative z-10 border-b border-[#5c2d54]/40">
-        <div className="fc-hero-vignette absolute inset-0 bg-[radial-gradient(circle_at_78%_55%,rgba(212,164,71,0.16),transparent_28%),radial-gradient(circle_at_82%_62%,rgba(92,45,84,0.22),transparent_30%),radial-gradient(circle_at_70%_70%,rgba(26,58,110,0.14),transparent_26%)]" />
+        <div className="fc-hero-vignette absolute inset-0 bg-[radial-gradient(circle_at_22%_55%,rgba(212,164,71,0.16),transparent_28%),radial-gradient(circle_at_18%_62%,rgba(92,45,84,0.22),transparent_30%),radial-gradient(circle_at_30%_70%,rgba(26,58,110,0.14),transparent_26%)]" />
         <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#d4a447]/60 via-[#7b3f8f]/50 to-transparent" />
         <div className="tla-hero-grid mx-auto grid items-center gap-10 px-5 md:px-8 lg:items-center">
-          <div className="tla-hero-copy relative z-20 pt-6 lg:pt-14">
-            <SectionKicker>The strategic tradeline insider guide</SectionKicker>
+          <div className="tla-hero-mockup-col relative z-10 order-2 flex items-center justify-center lg:order-1 lg:justify-start">
+            <GuideMockup tall className="w-full" />
+          </div>
 
-            <h1 className="tla-hero-title tla-serif mt-8 text-white">
+          <div className="tla-hero-copy relative z-20 order-1 pt-6 lg:order-2 lg:pt-14">
+            <h1 className="tla-hero-title tla-serif mt-2 text-white">
               <span className="tla-hero-title-line tla-hero-title-line--emerald">The Trade Lines</span>
               <span className="tla-hero-title-line tla-hero-title-line--gold">Advantage</span>
             </h1>
@@ -491,35 +352,36 @@ export default function TradelineAdvantageLandingPage() {
               calculators and a {LEAD_MAGNET_TRIAL_DAYS}-day Finely Cred portal preview to plan your next move.
             </p>
 
-            <div className="mt-9 grid gap-5 sm:grid-cols-3">
-              <TinyProof icon={Target} title="Tradeline Positioning" desc="Know what reports and what underwriters see." accent={0} />
-              <TinyProof icon={BarChart3} title="Reporting Depth" desc="Sequence applications without bureau damage." accent={1} />
-              <TinyProof icon={TrendingUp} title="Funding Readiness" desc="Frame tradelines inside a broader restore plan." accent={2} />
-            </div>
-
             <div className="tla-hero-form mt-9 max-w-xl rounded-[1.35rem] p-6">
-              <div className="mb-4 flex items-center justify-between gap-4">
-                <h2 className="text-xl font-black uppercase tracking-[0.08em] text-white md:text-2xl">
-                  Get Your <span className="text-[#f0cc75]">Free</span> Guide Now
-                </h2>
-                <ArrowRight className="hidden rotate-45 text-[#d4a447] sm:block" size={34} />
-              </div>
-              <LeadCaptureForm hero />
+              <h2 className="mb-4 text-xl font-black uppercase tracking-[0.08em] text-white md:text-2xl">
+                Get Your <span className="text-[#f0cc75]">Free</span> Guide Now
+              </h2>
+              <PremiumLeadMagnetCaptureForm
+                offer="primary_tradeline_insider"
+                interest="The Trade Lines Advantage — strategic tradelines"
+                funnelPath={TRADELINE_FUNNEL.path}
+                funnelId={TRADELINE_FUNNEL.funnelId}
+                goal="tradelines"
+                guideId={TRADELINE_FUNNEL.guideId}
+                accentClass="focus:border-[#f0cc75] focus:ring-[#d4a447]/15"
+              />
             </div>
-          </div>
 
-          <div className="tla-hero-mockup-col relative z-10 flex items-center justify-center lg:justify-end">
-            <GuideMockup tall className="w-full" />
+            <div className="mt-8 grid gap-4 sm:grid-cols-3">
+              <TinyProof icon={Target} title="Position" desc="Know what reports and what underwriters see." accent={0} />
+              <TinyProof icon={BarChart3} title="Sequence" desc="Apply without unnecessary bureau damage." accent={1} />
+              <TinyProof icon={TrendingUp} title="Fund" desc="Frame tradelines inside a broader restore plan." accent={2} />
+            </div>
           </div>
         </div>
       </section>
 
       <section className="tla-video-section relative z-10 border-b border-[#5c2d54]/35">
         <div className="tla-video-grid mx-auto grid gap-16 px-5 md:px-8 lg:grid-cols-2 lg:items-center lg:gap-20 xl:gap-32">
-          <div className="tla-video-column tla-video-column--left w-full">
+          <div className="tla-video-column tla-video-column--right order-1 w-full lg:order-2">
             <VideoPreview onGoForm={scrollToDownload} />
           </div>
-          <div className="tla-video-column tla-video-column--right">
+          <div className="tla-video-column tla-video-column--left order-2 lg:order-1">
             <SectionKicker>Exclusive video</SectionKicker>
             <h2 className="tla-serif mt-5 text-4xl font-black leading-tight tracking-[-0.035em] md:text-6xl">
               See How Strategic Tradelines Fit a{' '}
@@ -580,9 +442,13 @@ export default function TradelineAdvantageLandingPage() {
               What You&apos;ll <span className="text-[#c48fd4]">Master</span>
             </h2>
           </div>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            {discoveries.map((item) => (
-              <DiscoveryCard key={item.title} {...item} />
+          <div className="tla-bento-grid grid gap-4 md:grid-cols-6">
+            {discoveries.map((item, i) => (
+              <DiscoveryCard
+                key={item.title}
+                {...item}
+                className={cn(i === 0 && 'md:col-span-3', i === 1 && 'md:col-span-3', i === 2 && 'md:col-span-2', i === 3 && 'md:col-span-4')}
+              />
             ))}
           </div>
         </div>
@@ -652,7 +518,15 @@ export default function TradelineAdvantageLandingPage() {
                 Understand tradelines with structure — then decide if they belong in your plan.
               </p>
               <div className="mt-6">
-                <LeadCaptureForm compact />
+                <PremiumLeadMagnetCaptureForm
+                offer="primary_tradeline_insider"
+                interest="The Trade Lines Advantage — footer CTA"
+                funnelPath={TRADELINE_FUNNEL.path}
+                funnelId={TRADELINE_FUNNEL.funnelId}
+                goal="tradelines"
+                guideId={TRADELINE_FUNNEL.guideId}
+                accentClass="focus:border-[#f0cc75] focus:ring-[#d4a447]/15"
+              />
               </div>
             </div>
           </div>

@@ -26,7 +26,7 @@ type Props = {
 
 
 
-export function OnboardingExperienceShell({ stepIndex, stepKeys, currentKey, laneLabel, children }: Props) {
+export function OnboardingExperienceShell({ stepIndex, stepKeys, currentKey, laneLabel, children, showProgressRail = true }: Props & { showProgressRail?: boolean }) {
 
   const labels = (stepKeys?.length ? stepKeys : ['role', 'profile']).map((key) => getOnboardingStepLabel(key));
 
@@ -38,6 +38,7 @@ export function OnboardingExperienceShell({ stepIndex, stepKeys, currentKey, lan
 
     <div className="space-y-4 sm:space-y-6 min-w-0">
 
+      {showProgressRail && labels.length > 1 ? (
       <div className={`grid gap-1.5 sm:gap-2 ${labels.length <= 3 ? 'grid-cols-3' : labels.length === 4 ? 'grid-cols-2 sm:grid-cols-4' : 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-5'}`}>
 
         {labels.map((label, i) => {
@@ -75,6 +76,7 @@ export function OnboardingExperienceShell({ stepIndex, stepKeys, currentKey, lan
         })}
 
       </div>
+      ) : null}
 
       {laneLabel ? (
 

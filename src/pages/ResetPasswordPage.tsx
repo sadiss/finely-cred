@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { KeyRound, Lock } from 'lucide-react';
+import { KeyRound } from 'lucide-react';
 import { useAuth } from '../auth/AuthProvider';
 import { isSupabaseConfigured } from '../lib/supabaseClient';
-
+import { PasswordInput } from '../components/ui/PasswordInput';
 export default function ResetPasswordPage() {
   const auth = useAuth();
   const navigate = useNavigate();
@@ -74,28 +74,22 @@ export default function ResetPasswordPage() {
             <p className="text-white/50 text-sm">Choose a new password for {auth.user?.email ?? 'your account'}.</p>
             <label className="block space-y-2">
               <span className="text-[10px] uppercase tracking-widest text-white/40">New password</span>
-              <div className="relative">
-                <Lock size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30" />
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full bg-fc-input border border-white/[0.08] rounded-xl pl-10 pr-4 py-3 text-white text-sm"
-                  autoComplete="new-password"
-                />
-              </div>
+              <PasswordInput
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full bg-fc-input border border-white/[0.08] rounded-xl px-4 py-3 text-white text-sm"
+                autoComplete="new-password"
+              />
             </label>
             <label className="block space-y-2">
               <span className="text-[10px] uppercase tracking-widest text-white/40">Confirm password</span>
-              <input
-                type="password"
+              <PasswordInput
                 value={confirm}
                 onChange={(e) => setConfirm(e.target.value)}
                 className="w-full bg-fc-input border border-white/[0.08] rounded-xl px-4 py-3 text-white text-sm"
                 autoComplete="new-password"
               />
-            </label>
-            {err ? <p className="text-rose-300 text-sm">{err}</p> : null}
+            </label>            {err ? <p className="text-rose-300 text-sm">{err}</p> : null}
             <button
               type="button"
               onClick={() => void submit()}

@@ -12,6 +12,7 @@ import {
   SITE_WAYFINDER_LANES,
 } from '../../config/siteWayfinderLanes';
 import { FinelyCredLogo } from '../brand/FinelyCredLogo';
+export { PasswordInput } from './PasswordInput';
 export { FullPageLoader } from './FullPageLoader';
 export { AppErrorBoundary } from './AppErrorBoundary';
 export { KpiCard, Sparkline } from './KpiCards';
@@ -796,6 +797,29 @@ export function MobileNav({ isOpen, onClose, onNavigate, showThemeToggle = false
           </div>
         ) : null}
 
+        <div className="fc-mobile-nav-auth mb-4 grid grid-cols-2 gap-2">
+          <button
+            type="button"
+            onClick={() => {
+              onNavigate('/login');
+              onClose();
+            }}
+            className="fc-nav-pill-ghost min-h-[44px] text-sm font-semibold"
+          >
+            Log in
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              onNavigate('/signup');
+              onClose();
+            }}
+            className="min-h-[44px] rounded-xl border border-amber-500/40 bg-gradient-to-r from-amber-600/90 to-amber-500/90 px-4 text-sm font-bold text-black shadow-lg shadow-amber-500/20"
+          >
+            Sign up
+          </button>
+        </div>
+
         <nav className="space-y-3">
           <div className="fc-mobile-nav-section">
             <div className="fc-public-nav-section-title px-1 mb-2">Main</div>
@@ -919,17 +943,6 @@ export function MobileNav({ isOpen, onClose, onNavigate, showThemeToggle = false
               ))}
             </div>
           </div>
-
-          <button
-            type="button"
-            onClick={() => {
-              onNavigate('onboarding');
-              onClose();
-            }}
-            className="w-full fc-nav-pill-ghost mt-2"
-          >
-            Login / Signup
-          </button>
         </nav>
       </div>
     </div>

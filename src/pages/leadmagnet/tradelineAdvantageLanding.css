@@ -59,7 +59,7 @@
 
 @media (min-width: 1024px) {
   .tla-hero-grid {
-    grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
+    grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr);
     column-gap: 2.5rem;
   }
 }
@@ -84,7 +84,7 @@
 }
 
 .tla-hero-title {
-  font-size: clamp(2.05rem, 3.35vw, 3.7rem);
+  font-size: clamp(2.75rem, 5vw, 4.5rem);
   font-weight: 700;
   line-height: 1.1;
   letter-spacing: -0.025em;
@@ -136,13 +136,13 @@
 }
 
 .tla-mockup-stage--hero {
-  min-height: 420px;
+  min-height: 460px;
 }
 
 @media (min-width: 1024px) {
   .tla-mockup-stage--hero {
-    min-height: 520px;
-    padding: 2rem 0 2.5rem;
+    min-height: 580px;
+    padding: 2rem 0 2.75rem;
   }
 }
 
@@ -217,18 +217,21 @@
   display: block;
   width: 100%;
   height: auto;
-  max-width: min(100%, 720px);
+  max-width: min(100%, 520px);
   object-fit: contain;
   object-position: center;
+  image-rendering: auto;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
   filter: drop-shadow(0 40px 80px rgba(0, 0, 0, 0.65)) drop-shadow(0 12px 32px rgba(92, 45, 84, 0.18));
 }
 
 .tla-mockup--hero {
-  max-width: min(100%, 680px);
+  max-width: min(100%, 560px);
 }
 
 .tla-mockup--footer {
-  max-width: min(100%, 340px);
+  max-width: min(100%, 400px);
 }
 
 .tla-mockup-floor {
@@ -243,6 +246,18 @@
   background: radial-gradient(ellipse, rgba(0, 0, 0, 0.55) 0%, transparent 72%);
   filter: blur(8px);
   pointer-events: none;
+}
+
+.tla-bento-grid .tla-discovery-card {
+  min-height: 180px;
+}
+
+.tla-bento-grid .md\:col-span-3 {
+  min-height: 200px;
+}
+
+.tla-bento-grid .md\:col-span-4 {
+  min-height: 160px;
 }
 
 .tla-video-section {
