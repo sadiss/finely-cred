@@ -606,7 +606,7 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
         <button
           type="button"
           onClick={() => setOpen(true)}
-          className="fixed bottom-4 right-4 sm:bottom-5 sm:right-5 z-[120] inline-flex items-center gap-3 rounded-2xl border border-emerald-400/35 bg-gradient-to-r from-slate-900/95 via-emerald-950/90 to-teal-950/90 backdrop-blur-xl pl-2 pr-4 py-2 shadow-2xl hover:shadow-[0_20px_50px_-12px_rgba(16,185,129,0.45)] transition-all max-w-[calc(100vw-2rem)]"
+          className="fixed bottom-[max(1rem,env(safe-area-inset-bottom))] right-[max(1rem,env(safe-area-inset-right))] z-[120] inline-flex items-center gap-3 rounded-2xl border border-emerald-400/35 bg-gradient-to-r from-slate-900/95 via-emerald-950/90 to-teal-950/90 backdrop-blur-xl pl-2 pr-4 py-2 shadow-2xl hover:shadow-[0_20px_50px_-12px_rgba(16,185,129,0.45)] transition-all max-w-[calc(100vw-2rem)]"
           title="AI guide · not legal advice"
         >
           <PublicChatStaffAvatar presentation={launcherPresentation} size="sm" />

@@ -2,6 +2,7 @@ import React from 'react';
 import type { Partner } from '../../domain/partners';
 import type { RoleWorkflowId } from '../../config/roleWorkflows';
 import { AdminPartnerAccessPanel } from './AdminPartnerAccessPanel';
+import { AdminPartnerMessagePanel } from './AdminPartnerMessagePanel';
 import { PartnerSpecialistAssignmentPanel } from './PartnerSpecialistAssignmentPanel';
 import { PartnerIntakeLinkPanel } from './PartnerIntakeLinkPanel';
 import { PartnerBureauResourcesPanel } from './PartnerBureauResourcesPanel';
@@ -47,7 +48,7 @@ export function PartnerDetailAdminFooter({
   onUpdated: () => void;
   onOpenTab: (tab: TabKey) => void;
 }) {
-  const showAccess = tab === 'overview' || tab === 'profile';
+  const showAccess = true;
   const showBureauResources = tab === 'reports' || tab === 'debt';
   const showFullJourney = tab === 'overview' || tab === 'profile';
 
@@ -57,6 +58,7 @@ export function PartnerDetailAdminFooter({
 
       {showAccess ? (
         <>
+          <AdminPartnerMessagePanel partner={partner} />
           <AdminPartnerAccessPanel partner={partner} onUpdated={onUpdated} />
           <PartnerSpecialistAssignmentPanel partner={partner} onUpdated={onUpdated} />
         </>

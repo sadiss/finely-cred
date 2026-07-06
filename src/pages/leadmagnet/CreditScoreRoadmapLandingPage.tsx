@@ -16,7 +16,6 @@ import {
 } from 'lucide-react';
 import { LeadMagnetFunnelHeroVideo } from '../../components/leadmagnet/LeadMagnetFunnelHeroVideo';
 import { getLeadMagnetVisualTheme } from '../../components/leadmagnet/leadMagnetVisualThemes';
-import { submitLeadCapture } from '../../data/leadsRepo';
 import { SCORE_ROADMAP_FUNNEL } from '../../domain/leadMagnetFunnels';
 import { usePublicSeoMeta } from '../../hooks/usePublicSeoMeta';
 import { LEAD_MAGNET_TRIAL_DAYS } from '../../lib/leadMagnetTrial';
@@ -335,12 +334,7 @@ export default function CreditScoreRoadmapLandingPage() {
                 Get Your <span className="text-[#f4d273]">Free</span> Guide Now
               </h2>
               <PremiumLeadMagnetCaptureForm
-                offer="score_roadmap"
-                interest="Boost Your Credit Score in 72 Hours"
-                funnelPath={SCORE_ROADMAP_FUNNEL.path}
-                funnelId={SCORE_ROADMAP_FUNNEL.funnelId}
-                goal="credit"
-                guideId={SCORE_ROADMAP_FUNNEL.guideId}
+                funnelConfig={SCORE_ROADMAP_FUNNEL}
                 accentClass="focus:border-[#f4d273] focus:ring-[#d7a73f]/15"
               />
             </div>
@@ -523,12 +517,7 @@ export default function CreditScoreRoadmapLandingPage() {
               </p>
               <div className="mt-6">
                 <PremiumLeadMagnetCaptureForm
-                  offer="score_roadmap"
-                  interest="Boost Your Credit Score in 72 Hours — footer CTA"
-                  funnelPath={SCORE_ROADMAP_FUNNEL.path}
-                  funnelId={SCORE_ROADMAP_FUNNEL.funnelId}
-                  goal="credit"
-                  guideId={SCORE_ROADMAP_FUNNEL.guideId}
+                  funnelConfig={SCORE_ROADMAP_FUNNEL}
                   accentClass="focus:border-[#f4d273] focus:ring-[#d7a73f]/15"
                 />
               </div>

@@ -252,7 +252,7 @@ export default function AccountSettingsPage() {
       subtitle="Profile, contact, notifications, password, and sign-out — synced with your partner file when linked."
       back={{ to: '/dashboard', label: 'Back to dashboard' }}
     >
-      <div className={`${FINELY_OS_PAGE} max-w-4xl`}>
+      <div className={`${FINELY_OS_PAGE} max-w-4xl min-w-0 overflow-x-hidden fc-account-settings-page`}>
         {notice ? (
           <div className={`${FINELY_OS_NOTICE_SUCCESS} flex items-center gap-3`}>
             <CheckCircle2 size={18} className="shrink-0" />
@@ -263,8 +263,8 @@ export default function AccountSettingsPage() {
 
         {partner ? <CommsWorkspaceActions variant="inline" hubLabel="Open Hub" calendarLabel="Open calendar" /> : null}
 
-        <div className="fc-sticky-tabs">
-          <div className={FINELY_OS_VIEW_TABS}>
+        <div className="fc-sticky-tabs overflow-x-auto -mx-2 px-2 scrollbar-thin">
+          <div className={`${FINELY_OS_VIEW_TABS} !flex-nowrap w-max min-w-full sm:w-auto sm:min-w-0`}>
           {TABS.map(({ id, label, icon: Icon }) => (
             <button
               key={id}

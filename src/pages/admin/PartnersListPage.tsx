@@ -5,13 +5,15 @@ import { PartnerCreatePanel } from '../../components/admin/PartnerCreatePanel';
 import type { Partner } from '../../domain/partners';
 import { fetchAllPartnersAsAdmin } from '../../data/partnersRepo';
 import { deletePartnerCompletely } from '../../data/partnerDelete';
+import { SensitiveActionCodeGate } from '../../components/admin/SensitiveActionCodeGate';
+import { partnerDeletionSummary, partnerDeletionTier } from '../../lib/partnerDeletionPolicy';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../auth/AuthProvider';
 import { isAdminEmail } from '../../auth/admin';
 import { canViewAllClients, getMembershipByUserAndTenant, isPlatformAdmin, getTenant } from '../../data/tenantsRepo';
 import { getActiveTenantId } from '../../tenancy/activeTenant';
 import { FINELY_TENANT_ID } from '../../domain/tenants';
-import { supabase } from '../../lib/supabaseClient';
+import { getStaffCommsCapabilities } from '../../lib/staffCommsPermissions';
 import { ClickableCard } from '../../components/ui';
 import { FinelyOsPageFooter } from '../../features/os/FinelyOsPageFooter';
 import { FinelyOsDataErrorBanner } from '../../features/os/FinelyOsDataErrorBanner';
@@ -58,6 +60,7 @@ export default function PartnersListPage() {
   const [fetchErr, setFetchErr] = useState<string | null>(null);
   const [deleting, setDeleting] = useState<string | null>(null);
   const [deleteErr, setDeleteErr] = useState<string | null>(null);
+  const [deleteGatePartner, setDeleteGatePartner] = useState<Partner | null>(null);
 
   useEffect(() => {
     if (location.hash === '#create-partner') {
@@ -95,13 +98,20 @@ export default function PartnersListPage() {
 
 
 
-  const handleDeletePartner = async (partner: Partner) => {
+  const handleDeletePartner = (partner: Partner) => {
+    const summary = partnerDeletionSummary(partner);
     const confirmed = window.confirm(
-      `Are you sure you want to delete "${partner.profile.fullName}" and all their data?\n\nThis includes:\n• All partner notes\n• All credit reports\n• All letters\n\nThis action cannot be undone.`
+      `Delete "${partner.profile.fullName}" permanently?\n\n${summary}\n\nThis cannot be undone.`,
     );
-
     if (!confirmed) return;
+    if (partnerDeletionTier(partner) === 'admin_approval_required') {
+      setDeleteGatePartner(partner);
+      return;
+    }
+    void executeDeletePartner(partner);
+  };
 
+  const executeDeletePartner = async (partner: Partner) => {
     setDeleting(partner.id);
     setDeleteErr(null);
 
@@ -110,6 +120,7 @@ export default function PartnersListPage() {
       if (result.ok) {
         setFetchKey((v) => v + 1);
         setDeleting(null);
+        setDeleteGatePartner(null);
       } else {
         setDeleteErr(result.error || 'Failed to delete partner');
         setDeleting(null);
@@ -137,6 +148,12 @@ export default function PartnersListPage() {
   };
 
   const canCreatePartner = useMemo(() => {
+    const caps = getStaffCommsCapabilities({
+      userId: auth.user?.id,
+      email: auth.user?.email,
+      tenantId: getActiveTenantId(),
+    });
+    if (caps.canCreatePartners) return true;
     const tenantId = getActiveTenantId();
     const u = auth.user;
     if (!u) return false;
@@ -154,6 +171,16 @@ export default function PartnersListPage() {
     }
     return false;
   }, [auth.user]);
+
+  const staffCaps = useMemo(
+    () =>
+      getStaffCommsCapabilities({
+        userId: auth.user?.id,
+        email: auth.user?.email,
+        tenantId: getActiveTenantId(),
+      }),
+    [auth.user?.id, auth.user?.email],
+  );
 
   const tenantName = useMemo(() => {
     const t = getTenant(getActiveTenantId());
@@ -340,6 +367,7 @@ export default function PartnersListPage() {
                   >
                     Notes <ArrowRight size={12} />
                   </span>
+                  {staffCaps.canDeletePartners ? (
                   <span
                     role="button"
                     tabIndex={0}
@@ -364,6 +392,7 @@ export default function PartnersListPage() {
                       </>
                     )}
                   </span>
+                  ) : null}
                 </div>
               </ClickableCard>
             )}
@@ -374,6 +403,16 @@ export default function PartnersListPage() {
         </FinelyUnifiedHubLayout>
         <FinelyOsPageFooter />
       </div>
+      <SensitiveActionCodeGate
+        open={Boolean(deleteGatePartner)}
+        action="partner_delete"
+        title={deleteGatePartner ? `Authorize deletion — ${deleteGatePartner.profile.fullName}` : 'Authorize deletion'}
+        description={deleteGatePartner ? partnerDeletionSummary(deleteGatePartner) : ''}
+        onClose={() => setDeleteGatePartner(null)}
+        onVerified={() => {
+          if (deleteGatePartner) void executeDeletePartner(deleteGatePartner);
+        }}
+      />
     </PageShell>
   );
 }

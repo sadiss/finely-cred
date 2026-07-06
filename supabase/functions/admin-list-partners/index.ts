@@ -1,23 +1,7 @@
-// Edge Function: admin-list-partners
-// GET  → returns ALL partners to authenticated admins (service_role, bypasses RLS)
-// POST → upserts a partner row on behalf of an admin (service_role, bypasses RLS)
-// GET ?id=<uuid> → returns a single partner by id
-
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.1';
 import { corsHeaders } from '../_shared/cors.ts';
 import { json, requireAuth, requireEnv } from '../_shared/edgeGuard.ts';
-
-const ADMIN_EMAILS = new Set([
-  'partnersupport@finelycred.com',
-  'sanzstlouis@finelycred.com',
-  'shellystlouis@finelycred.com',
-]);
-
-function isAdmin(email?: string | null): boolean {
-  if (!email) return false;
-  const normalized = email.trim().toLowerCase();
-  return ADMIN_EMAILS.has(normalized);
-}
+import { canStaffAccessPartner, requireStaffActor } from '../_shared/staffCommsAuth.ts';
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
@@ -25,39 +9,35 @@ Deno.serve(async (req) => {
     return json({ error: 'Method not allowed' }, { status: 405 });
   }
 
-  // 1. Authenticate the caller
   let ctx: Awaited<ReturnType<typeof requireAuth>>;
+  let actor: Awaited<ReturnType<typeof requireStaffActor>>;
   try {
     ctx = await requireAuth(req);
+    actor = await requireStaffActor(ctx);
   } catch (e) {
     return json({ error: (e as Error)?.message || 'Unauthorized' }, { status: 401 });
   }
 
-  // 2. Verify they are an admin
   const supabaseUrl = requireEnv('SUPABASE_URL');
   const serviceRoleKey = requireEnv('SUPABASE_SERVICE_ROLE_KEY');
   const adminClient = createClient(supabaseUrl, serviceRoleKey, {
     auth: { persistSession: false, autoRefreshToken: false },
   });
 
-  const userEmail = ctx.user.email?.trim().toLowerCase() || '';
-  let adminAllowed = isAdmin(userEmail);
+  const scopedPartnerIds =
+    actor.isFullAdmin || actor.canViewAllClients
+      ? null
+      : actor.membershipRole === 'agent'
+        ? actor.assignedPartnerIds
+        : actor.canSendPartnerInvites
+          ? null
+          : [];
 
-  if (!adminAllowed) {
-    const { data: adminRow } = await adminClient
-      .from('admin_emails')
-      .select('email')
-      .eq('email', userEmail)
-      .maybeSingle();
-    adminAllowed = Boolean(adminRow);
-  }
-
-  if (!adminAllowed) {
-    return json({ error: 'Forbidden: not an admin' }, { status: 403 });
-  }
-
-  // 3a. DELETE → remove a partner row
+  // DELETE → remove a partner row (full admins only)
   if (req.method === 'DELETE') {
+    if (!actor.isFullAdmin && !actor.canViewAllClients) {
+      return json({ error: 'Forbidden' }, { status: 403 });
+    }
     const delUrl = new URL(req.url);
     const delId = delUrl.searchParams.get('id');
     if (!delId) return json({ error: 'Missing id param' }, { status: 400 });
@@ -66,8 +46,11 @@ Deno.serve(async (req) => {
     return json({ ok: true });
   }
 
-  // 3b. POST → upsert a partner row
+  // POST → upsert a partner row (full admins only)
   if (req.method === 'POST') {
+    if (!actor.isFullAdmin && !actor.canViewAllClients) {
+      return json({ error: 'Forbidden' }, { status: 403 });
+    }
     let body: any;
     try {
       body = await req.json();
@@ -89,10 +72,12 @@ Deno.serve(async (req) => {
     return json({ partner: data });
   }
 
-  // 3b. GET ?id=<uuid> → single partner
   const url = new URL(req.url);
   const singleId = url.searchParams.get('id');
   if (singleId) {
+    if (!canStaffAccessPartner(actor, singleId)) {
+      return json({ error: 'Forbidden' }, { status: 403 });
+    }
     const { data, error } = await adminClient
       .from('partners')
       .select('*')
@@ -103,12 +88,13 @@ Deno.serve(async (req) => {
     return json({ partner: data });
   }
 
-  // 3c. GET → list all partners
-  const { data, error } = await adminClient
-    .from('partners')
-    .select('*')
-    .order('updated_at', { ascending: false });
+  let query = adminClient.from('partners').select('*').order('updated_at', { ascending: false });
+  if (scopedPartnerIds) {
+    if (!scopedPartnerIds.length) return json({ partners: [] });
+    query = query.in('id', scopedPartnerIds);
+  }
 
+  const { data, error } = await query;
   if (error) {
     return json({ error: error.message }, { status: 500 });
   }

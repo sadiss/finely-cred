@@ -6,6 +6,7 @@ export function PortalChatWidget(args: {
   partnerDisplayName?: string;
   lane?: string;
   journeyStage?: string;
+  adminMode?: boolean;
 }) {
   return (
     <FinelyCommunicationHub
@@ -14,6 +15,8 @@ export function PortalChatWidget(args: {
       partnerDisplayName={args.partnerDisplayName}
       lane={args.lane}
       journeyStage={args.journeyStage}
+      adminMode={args.adminMode}
+      showAllAgents={args.adminMode}
     />
   );
 }

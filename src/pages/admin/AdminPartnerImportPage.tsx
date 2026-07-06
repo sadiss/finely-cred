@@ -21,6 +21,7 @@ import bundledExport from '../../../data/legacy-migration/legacy-partners-export
 import { getBlobStore } from '../../storage/getBlobStore';
 import { listReportsByPartner, upsertReport } from '../../data/reportsRepo';
 import { isLegacyPendingReportBlob, legacyPendingReportFilename } from '../../lib/legacyPendingReport';
+import { bulkReparseStoredReports, listReportsNeedingReparse } from '../../lib/legacyReportReparse';
 import { parseHtmlReportWithCache, parsePdfReportWithCache } from '../../lib/reportParsePipeline';
 import { computeReportIdentityCheck } from '../../creditReports/identityCheck';
 import { detectProviderFromHtml, detectProviderFromText } from '../../creditReports/detectProvider';
@@ -107,6 +108,10 @@ export default function AdminPartnerImportPage() {
   const [zipBusy, setZipBusy] = useState(false);
   const [zipLog, setZipLog] = useState<string[]>([]);
   const [zipErr, setZipErr] = useState<string | null>(null);
+  const [reparseBusy, setReparseBusy] = useState(false);
+  const [reparseLog, setReparseLog] = useState<string[]>([]);
+  const [reparseErr, setReparseErr] = useState<string | null>(null);
+  const pendingReparseCount = useMemo(() => listReportsNeedingReparse().length, [zipLog, reparseLog]);
 
   const runZipRestore = async (file: File) => {
     setZipBusy(true);
@@ -212,6 +217,21 @@ export default function AdminPartnerImportPage() {
       setZipErr(e?.message || 'ZIP processing failed.');
     } finally {
       setZipBusy(false);
+    }
+  };
+
+  const runBulkReparse = async () => {
+    setReparseBusy(true);
+    setReparseLog([]);
+    setReparseErr(null);
+    const log: string[] = [];
+    const addLog = (msg: string) => { log.push(msg); setReparseLog([...log]); };
+    try {
+      await bulkReparseStoredReports({ onProgress: addLog });
+    } catch (e: any) {
+      setReparseErr(e?.message || 'Bulk re-parse failed.');
+    } finally {
+      setReparseBusy(false);
     }
   };
 
@@ -945,6 +965,42 @@ export default function AdminPartnerImportPage() {
               </pre>
             </div>
           )}
+        </div>
+
+        {/* ── Bulk re-parse stored reports ── */}
+        <div className={`${finelyOsCatalogCard('emerald')} !p-5 space-y-4`}>
+          <div className={`inline-flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL} text-emerald-300`}>
+            <Database size={18} />
+            <span>Re-parse legacy credit reports</span>
+          </div>
+          <p className={FINELY_OS_ENTITY_BODY}>
+            Scans all stored reports that already have file bytes but incomplete parses (missing tradelines or scores).
+            Use this after migration when overview/tradelines look empty. Reports still on{' '}
+            <span className="font-mono">legacy:pending-reupload:</span> placeholders need the ZIP restore above first.
+          </p>
+          <div className="flex flex-wrap items-center gap-3">
+            <button
+              type="button"
+              onClick={() => void runBulkReparse()}
+              disabled={reparseBusy || pendingReparseCount === 0}
+              className={`${FINELY_OS_PRIMARY_BTN} disabled:opacity-60 disabled:cursor-not-allowed`}
+            >
+              {reparseBusy ? 'Re-parsing…' : `Re-parse ${pendingReparseCount} report(s)`}
+            </button>
+            {reparseLog.length > 0 && !reparseBusy ? (
+              <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => setReparseLog([])}>
+                Clear log
+              </button>
+            ) : null}
+          </div>
+          {reparseErr ? <div className={FINELY_OS_NOTICE_ERROR}>{reparseErr}</div> : null}
+          {reparseLog.length > 0 ? (
+            <div className="max-h-72 overflow-y-auto rounded-xl bg-black/30 border border-white/[0.08] p-4">
+              <pre className={`text-[11px] font-mono whitespace-pre-wrap ${FINELY_OS_ENTITY_BODY}`}>
+                {reparseLog.join('\n')}
+              </pre>
+            </div>
+          ) : null}
         </div>
 
         <FinelyOsPageFooter />

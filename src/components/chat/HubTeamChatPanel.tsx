@@ -335,6 +335,29 @@ export function HubTeamChatPanel({ partnerId, partnerDisplayName, compact, initi
   const handleCreate = (e: React.FormEvent) => {
     e.preventDefault();
     if (!partnerId || !newBody.trim()) return;
+
+    if (adminMode) {
+      const subject = newSubject.trim() || `Message from Finely · ${partnerDisplayName || 'Partner'}`;
+      const { thread } = createThread({
+        partnerId,
+        topic: newTopic,
+        subject,
+        threadKind: 'general',
+        initialMessage: {
+          fromPartner: false,
+          body: newBody.trim(),
+          attachments: newAttachments.map((id) => ({ evidenceId: id })),
+        },
+      });
+      setSelectedThreadId(thread.id);
+      setNewSubject('');
+      setNewBody('');
+      setNewAttachments([]);
+      setShowNew(false);
+      setUploadErr(null);
+      return;
+    }
+
     const routed = routeCommsIntent({ message: newBody, lane });
     const topic = routed.primaryTopic ?? newTopic;
     let contactIds = selectedContactIds;
@@ -376,7 +399,7 @@ export function HubTeamChatPanel({ partnerId, partnerDisplayName, compact, initi
       threadId: selectedThread.id,
       partnerId,
       topic: selectedThread.topic,
-      fromPartner: true,
+      fromPartner: adminMode ? false : true,
       body: replyBody.trim(),
       attachments: replyAttachments.map((id) => ({ evidenceId: id })),
     });
@@ -713,7 +736,8 @@ export function HubTeamChatPanel({ partnerId, partnerDisplayName, compact, initi
                   }`}
                 >
                   <div className="text-[10px] uppercase tracking-widest text-white/40 mb-1">
-                    {m.fromPartner ? 'You' : 'Finely team'} • {fmtWhen(m.createdAt)}
+                    {m.fromPartner ? partnerDisplayName || 'Partner' : adminMode ? 'Finely team (you)' : 'Finely team'} •{' '}
+                    {fmtWhen(m.createdAt)}
                   </div>
                   <MessageBody text={m.body} />
                   {m.attachments?.length ? (

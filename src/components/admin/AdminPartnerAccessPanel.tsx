@@ -1,16 +1,23 @@
 import React, { useMemo, useState } from 'react';
-import { KeyRound, Mail, Shield, UserCheck, UserPlus } from 'lucide-react';
+import { Copy, KeyRound, Link2, Mail, Shield, UserCheck, UserPlus } from 'lucide-react';
 import type { Partner } from '../../domain/partners';
 import { useAuth } from '../../auth/AuthProvider';
 import { sendPartnerWelcomeEmail } from '../../lib/partnerWelcomeEmail';
-import { sendPartnerInviteEmail } from '../../lib/partnerInviteEmail';
+import { sendPartnerInviteEmail, signupInviteUrl } from '../../lib/partnerInviteEmail';
 import { canSimulateInviteDeliveryLocally, formatLocalInviteNotice } from '../../lib/inviteLocalDev';
 import { isSupabaseConfigured } from '../../lib/supabaseClient';
 import { isFeatureEnabled } from '../../data/settingsRepo';
 import { signupSummaryForRole } from '../../lib/signupOpsGuide';
 import { landingPathForPartner, careerRoleForPartner, serviceLabelForPartner } from '../../lib/partnerInviteRouting';
+import { getActiveTenantId } from '../../tenancy/activeTenant';
+import { getStaffCommsCapabilities } from '../../lib/staffCommsPermissions';
 import { adminUpsertPartner } from '../../data/partnersRepo';
 import { patchPartnerAccessFlags, readPartnerAccessFlagsStored } from '../../lib/partnerAccessControl';
+import {
+  adminDeliveryState,
+  formatAdminDeliveryWhen,
+  recordAdminDelivery,
+} from '../../lib/adminDeliveryCooldown';
 import { ensurePartnerEntitlements, ENTITLEMENT_KEYS, type EntitlementKey } from '../../billing/entitlements';
 import {
   FINELY_OS_ENTITY_BODY,
@@ -69,7 +76,37 @@ export function AdminPartnerAccessPanel({ partner, userRole, onUpdated }: Props)
   const [busy, setBusy] = useState<'reset' | 'welcome' | 'access' | 'invite' | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
+  const [inviteCopied, setInviteCopied] = useState(false);
   const [accessFlags, setAccessFlags] = useState(() => readPartnerAccessFlagsStored(partner));
+  const [deliveryTick, setDeliveryTick] = useState(0);
+
+  const inviteState = useMemo(
+    () => adminDeliveryState(partner.id, 'invite', Date.now()),
+    [partner.id, deliveryTick],
+  );
+  const inviteResendState = useMemo(
+    () => adminDeliveryState(partner.id, 'invite_resend', Date.now()),
+    [partner.id, deliveryTick],
+  );
+  const resetState = useMemo(
+    () => adminDeliveryState(partner.id, 'password_reset', Date.now()),
+    [partner.id, deliveryTick],
+  );
+  const welcomeState = useMemo(
+    () => adminDeliveryState(partner.id, 'welcome', Date.now()),
+    [partner.id, deliveryTick],
+  );
+
+  React.useEffect(() => {
+    const needsTimer =
+      (inviteState.isRepeat && !inviteState.canSend) ||
+      (inviteResendState.isRepeat && !inviteResendState.canSend) ||
+      (resetState.isRepeat && !resetState.canSend) ||
+      (welcomeState.isRepeat && !welcomeState.canSend);
+    if (!needsTimer) return;
+    const id = window.setInterval(() => setDeliveryTick((t) => t + 1), 1000);
+    return () => window.clearInterval(id);
+  }, [inviteState, inviteResendState, resetState, welcomeState]);
 
   React.useEffect(() => {
     setAccessFlags(readPartnerAccessFlagsStored(partner));
@@ -82,6 +119,22 @@ export function AdminPartnerAccessPanel({ partner, userRole, onUpdated }: Props)
   const serviceLabel = serviceLabelForPartner(partner);
   const roleFields = useMemo(() => inviteFieldGuide(careerRole, partner.lane), [careerRole, partner.lane]);
   const commsOn = isFeatureEnabled('commsDelivery');
+  const inviteOn = isFeatureEnabled('inviteDelivery');
+  const staffCaps = useMemo(
+    () =>
+      getStaffCommsCapabilities({
+        userId: auth.user?.id,
+        email: auth.user?.email,
+        tenantId: getActiveTenantId(),
+      }),
+    [auth.user?.id, auth.user?.email],
+  );
+  const canSendComms = staffCaps.canSendPartnerComms(partner);
+  const signupInviteLink = useMemo(() => (email ? signupInviteUrl(partner, email) : ''), [partner, email]);
+  const claimed = Boolean(partner.claimedUserId);
+  const canSendInviteEmail = inviteOn && Boolean(email) && canSendComms;
+  const canResendWelcome = commsOn && Boolean(email) && canSendComms;
+  const canSendAccountSetup = !claimed && inviteOn && Boolean(email) && canSendComms;
 
   const saveAccess = async (patch: Partial<ReturnType<typeof readPartnerAccessFlagsStored>>) => {
     setErr(null);
@@ -112,21 +165,49 @@ export function AdminPartnerAccessPanel({ partner, userRole, onUpdated }: Props)
     void saveAccess({ [key]: next });
   };
 
-  const sendInvite = async () => {
+  const confirmResend = (label: string, state: ReturnType<typeof adminDeliveryState>) => {
+    if (!state.isRepeat) return true;
+    if (!state.canSend) {
+      setErr(`Please wait ${state.waitSeconds}s before sending ${label} again.`);
+      return false;
+    }
+    return window.confirm(
+      `${label} was already sent ${formatAdminDeliveryWhen(state.sentAt)}. Send again now? The recipient may receive a duplicate.`,
+    );
+  };
+
+  const sendInvite = async (forceResend = false) => {
     if (!email) {
       setErr('Partner has no email on file.');
       return;
     }
+    if (!inviteOn) {
+      setErr('Invite delivery is OFF — enable in Admin → Settings → Feature flags.');
+      return;
+    }
+    const state = forceResend ? inviteResendState : inviteState;
+    if (!confirmResend(forceResend ? 'Invite email' : 'Invite email', state)) return;
+
     setBusy('invite');
     setErr(null);
     setNotice(null);
     try {
-      const res = await sendPartnerInviteEmail({ partner, email });
+      const res = await sendPartnerInviteEmail({ partner, email, forceResend: forceResend || state.isRepeat });
+      if (res.deduped) {
+        setNotice(`Invite was already sent recently. Copy the signup link below and share it directly, or wait and use Resend invite.`);
+        return;
+      }
       if (!res.ok) throw new Error(res.error || 'Invite email not sent.');
+      recordAdminDelivery(partner.id, forceResend ? 'invite_resend' : 'invite');
+      setDeliveryTick((t) => t + 1);
       if (res.simulated) {
         setNotice(formatLocalInviteNotice({ ok: true, simulated: true, inviteUrl: res.inviteUrl, previewOpened: Boolean(res.previewOpened) }, email));
       } else {
-        setNotice(`Invite email sent to ${email}. They will finish setup as ${serviceLabel} and land on ${landing}.`);
+        setNotice(
+          forceResend
+            ? `Invite email resent to ${email} at ${formatAdminDeliveryWhen(new Date().toISOString())}. They will finish setup as ${serviceLabel} and land on ${landing}.`
+            : `Invite email sent to ${email} at ${formatAdminDeliveryWhen(new Date().toISOString())}. They will finish setup as ${serviceLabel} and land on ${landing}.`,
+        );
       }
     } catch (e: unknown) {
       setErr((e as Error)?.message || 'Failed to send invite email.');
@@ -135,11 +216,23 @@ export function AdminPartnerAccessPanel({ partner, userRole, onUpdated }: Props)
     }
   };
 
+  const copyInviteLink = async () => {
+    if (!signupInviteLink) return;
+    try {
+      await navigator.clipboard.writeText(signupInviteLink);
+      setInviteCopied(true);
+      setTimeout(() => setInviteCopied(false), 2000);
+    } catch {
+      window.prompt('Copy signup invite link:', signupInviteLink);
+    }
+  };
+
   const sendReset = async () => {
     if (!email) {
       setErr('Partner has no email on file.');
       return;
     }
+    if (!confirmResend('Password reset email', resetState)) return;
     setBusy('reset');
     setErr(null);
     setNotice(null);
@@ -150,7 +243,11 @@ export function AdminPartnerAccessPanel({ partner, userRole, onUpdated }: Props)
         redirectTo: `${window.location.origin}/reset-password`,
       });
       if (res.error) throw new Error(res.error);
-      setNotice(`Password reset email sent to ${email}. They will set a new password via the secure link (valid ~1 hour). Works for admin, partner, affiliate, and all portal roles.`);
+      recordAdminDelivery(partner.id, 'password_reset');
+      setDeliveryTick((t) => t + 1);
+      setNotice(
+        `Password reset email sent to ${email} at ${formatAdminDeliveryWhen(new Date().toISOString())}. They will set a new password via the secure link (valid ~1 hour).`,
+      );
     } catch (e: unknown) {
       setErr((e as Error)?.message || 'Failed to send reset email.');
     } finally {
@@ -163,20 +260,34 @@ export function AdminPartnerAccessPanel({ partner, userRole, onUpdated }: Props)
       setErr('Partner has no email on file.');
       return;
     }
-    if (!commsOn) {
-      setErr('Comms delivery is OFF — enable in Admin → Settings → Feature flags.');
-      return;
-    }
+    const state = !partner.claimedUserId ? inviteResendState : welcomeState;
+    const label = !partner.claimedUserId ? 'Account setup email' : 'Welcome email';
+    if (!confirmResend(label, state)) return;
+
     setBusy('welcome');
     setErr(null);
     setNotice(null);
     try {
       if (!partner.claimedUserId) {
-        const res = await sendPartnerInviteEmail({ partner, email });
+        if (!inviteOn) {
+          setErr('Invite delivery is OFF — enable in Admin → Settings → Feature flags.');
+          return;
+        }
+        const res = await sendPartnerInviteEmail({ partner, email, forceResend: true });
+        if (res.deduped) {
+          setNotice('Account-setup invite was already sent recently. Copy the signup link below or use Resend invite.');
+          return;
+        }
         if (!res.ok) throw new Error(res.error || 'Invite email not sent.');
+        recordAdminDelivery(partner.id, 'invite_resend');
+        setDeliveryTick((t) => t + 1);
         setNotice(
-          `Account-setup invite sent to ${email} (partner has no login yet). They will choose their password on the signup page — not a plain portal link.`,
+          `Account-setup invite sent to ${email} at ${formatAdminDeliveryWhen(new Date().toISOString())} (partner has no login yet).`,
         );
+        return;
+      }
+      if (!commsOn) {
+        setErr('Comms delivery is OFF — enable in Admin → Settings → Feature flags.');
         return;
       }
       const res = await sendPartnerWelcomeEmail({
@@ -185,7 +296,9 @@ export function AdminPartnerAccessPanel({ partner, userRole, onUpdated }: Props)
         force: true,
       });
       if (!res.sent) throw new Error(res.reason || 'Welcome email not sent.');
-      setNotice(`Welcome email sent to ${email}.`);
+      recordAdminDelivery(partner.id, 'welcome');
+      setDeliveryTick((t) => t + 1);
+      setNotice(`Welcome email sent to ${email} at ${formatAdminDeliveryWhen(new Date().toISOString())}.`);
     } catch (e: unknown) {
       setErr((e as Error)?.message || 'Failed to send welcome email.');
     } finally {
@@ -221,6 +334,35 @@ export function AdminPartnerAccessPanel({ partner, userRole, onUpdated }: Props)
           <div className={FINELY_OS_ENTITY_SUBLABEL}>Welcome email (comms delivery)</div>
           <div className={`mt-1 ${FINELY_OS_ENTITY_VALUE}`}>{commsOn ? 'Enabled — can send/resend' : 'Disabled in feature flags'}</div>
         </div>
+        <div>
+          <div className={FINELY_OS_ENTITY_SUBLABEL}>Invite delivery</div>
+          <div className={`mt-1 ${FINELY_OS_ENTITY_VALUE}`}>{inviteOn ? 'Enabled — can send/resend signup invites' : 'Disabled in feature flags'}</div>
+        </div>
+      </div>
+
+      <div className="rounded-2xl border border-sky-400/25 bg-sky-500/10 p-4 text-sm space-y-2">
+        <div className={`font-semibold ${FINELY_OS_ENTITY_VALUE}`}>Stuck signup? Use this playbook</div>
+        <ul className={`list-disc pl-4 space-y-1 ${FINELY_OS_ENTITY_BODY}`}>
+          {!claimed ? (
+            <>
+              <li>
+                <strong className="text-white/90">No account yet</strong> — Resend invite or copy the signup link below. They create their own password during signup.
+              </li>
+              <li>
+                <strong className="text-white/90">Invite glitch / email never arrived</strong> — Copy link and text it to them, or click Resend invite (bypasses duplicate-send guard).
+              </li>
+            </>
+          ) : (
+            <>
+              <li>
+                <strong className="text-white/90">Account linked but can&apos;t log in</strong> — Send password reset email. They set a new password via the secure link (~1 hour).
+              </li>
+              <li>
+                <strong className="text-white/90">Finished signup, needs portal intro</strong> — Resend welcome email (requires comms delivery ON).
+              </li>
+            </>
+          )}
+        </ul>
       </div>
 
       {!partner.claimedUserId ? (
@@ -261,12 +403,52 @@ export function AdminPartnerAccessPanel({ partner, userRole, onUpdated }: Props)
         </div>
       </div>
 
+      {!partner.claimedUserId && signupInviteLink ? (
+        <div className="rounded-2xl border border-white/10 bg-black/25 p-4 space-y-3">
+          <div className={FINELY_OS_ENTITY_SUBLABEL}>Signup invite link (share anytime)</div>
+          <div className={`text-xs ${FINELY_OS_ENTITY_BODY}`}>
+            Pre-fills their email and role. Works even if email delivery failed — copy and send via text or any channel.
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <input
+              readOnly
+              value={signupInviteLink}
+              className={`flex-1 min-w-[200px] font-mono text-xs ${FINELY_OS_ENTITY_BODY} bg-black/40 border border-white/10 rounded-lg px-3 py-2`}
+              onFocus={(e) => e.currentTarget.select()}
+            />
+            <button type="button" onClick={() => void copyInviteLink()} className={FINELY_OS_SECONDARY_BTN}>
+              <Copy size={14} /> {inviteCopied ? 'Copied!' : 'Copy link'}
+            </button>
+            <a href={signupInviteLink} target="_blank" rel="noopener noreferrer" className={FINELY_OS_SECONDARY_BTN}>
+              <Link2 size={14} /> Open link
+            </a>
+          </div>
+        </div>
+      ) : null}
+
       {notice ? <div className={FINELY_OS_NOTICE_SUCCESS}>{notice}</div> : null}
       {err ? <div className="text-rose-300 text-sm">{err}</div> : null}
 
+      {(inviteState.sentAt || resetState.sentAt || welcomeState.sentAt) ? (
+        <div className="rounded-xl border border-white/10 bg-black/25 p-3 text-xs space-y-1">
+          <div className={FINELY_OS_ENTITY_SUBLABEL}>Recent outbound notifications</div>
+          {inviteState.sentAt ? (
+            <div className={FINELY_OS_ENTITY_BODY}>Invite email — {formatAdminDeliveryWhen(inviteState.sentAt)}</div>
+          ) : null}
+          {resetState.sentAt ? (
+            <div className={FINELY_OS_ENTITY_BODY}>Password reset — {formatAdminDeliveryWhen(resetState.sentAt)}</div>
+          ) : null}
+          {welcomeState.sentAt ? (
+            <div className={FINELY_OS_ENTITY_BODY}>Welcome email — {formatAdminDeliveryWhen(welcomeState.sentAt)}</div>
+          ) : null}
+        </div>
+      ) : null}
+
       <div className={`${FINELY_OS_ENTITY_BODY} text-sm space-y-3 border-t border-white/10 pt-4 relative z-10`}>
-        <div className={FINELY_OS_ENTITY_SUBLABEL}>Admin approval & unlock</div>
-        {[
+        {staffCaps.canManagePartnerAccess ? (
+          <>
+            <div className={FINELY_OS_ENTITY_SUBLABEL}>Admin approval & unlock</div>
+            {[
           {
             key: 'accessApproved' as const,
             label: 'Approve portal access',
@@ -310,18 +492,73 @@ export function AdminPartnerAccessPanel({ partner, userRole, onUpdated }: Props)
             </span>
           </button>
         ))}
+          </>
+        ) : (
+          <div className={`text-xs ${FINELY_OS_ENTITY_BODY}`}>
+            Payment waivers and portal unlock toggles are limited to full admins. You can still send invite, reset, and welcome emails for this partner.
+          </div>
+        )}
       </div>
 
+      {!canSendComms ? (
+        <div className={FINELY_OS_NOTICE_WARN}>
+          Your staff role does not include outbound email for this partner file. Ask a full admin to grant access or add you to their assigned client list.
+        </div>
+      ) : null}
+
       <div className="flex flex-wrap gap-2">
-        {!partner.claimedUserId && email ? (
-          <button type="button" onClick={() => void sendInvite()} disabled={busy !== null} className={FINELY_OS_PRIMARY_BTN}>
-            <UserPlus size={14} /> {busy === 'invite' ? 'Sending…' : 'Send invite link to create account'}
-          </button>
+        {!claimed && email ? (
+          <>
+            <button type="button" onClick={() => void sendInvite(false)} disabled={!canSendInviteEmail || busy !== null} className={FINELY_OS_PRIMARY_BTN}>
+              <UserPlus size={14} />{' '}
+              {busy === 'invite'
+                ? 'Sending…'
+                : inviteState.sentAt
+                  ? 'Send invite again'
+                  : 'Send invite link to create account'}
+            </button>
+            <button
+              type="button"
+              onClick={() => void sendInvite(true)}
+              disabled={!canSendInviteEmail || busy !== null || (inviteResendState.isRepeat && !inviteResendState.canSend)}
+              className={FINELY_OS_SECONDARY_BTN}
+              title={
+                inviteResendState.isRepeat && !inviteResendState.canSend
+                  ? `Wait ${inviteResendState.waitSeconds}s before resending`
+                  : 'Resend signup invite email'
+              }
+            >
+              <Mail size={14} />{' '}
+              {busy === 'invite'
+                ? 'Sending…'
+                : inviteResendState.isRepeat && !inviteResendState.canSend
+                  ? `Resend in ${inviteResendState.waitSeconds}s`
+                  : 'Resend invite email'}
+            </button>
+          </>
         ) : null}
-        <button type="button" onClick={() => void sendReset()} disabled={!email || busy !== null} className={FINELY_OS_PRIMARY_BTN}>
-          <KeyRound size={14} /> {busy === 'reset' ? 'Sending…' : 'Send password reset email'}
+        <button
+          type="button"
+          onClick={() => void sendReset()}
+          disabled={!email || busy !== null || (resetState.isRepeat && !resetState.canSend)}
+          className={FINELY_OS_PRIMARY_BTN}
+          title={resetState.isRepeat && !resetState.canSend ? `Wait ${resetState.waitSeconds}s` : undefined}
+        >
+          <KeyRound size={14} />{' '}
+          {busy === 'reset'
+            ? 'Sending…'
+            : resetState.isRepeat && !resetState.canSend
+              ? `Reset in ${resetState.waitSeconds}s`
+              : resetState.sentAt
+                ? 'Resend password reset'
+                : 'Send password reset email'}
         </button>
-        <button type="button" onClick={() => void resendWelcome()} disabled={!email || !commsOn || busy !== null} className={FINELY_OS_SECONDARY_BTN}>
+        <button
+          type="button"
+          onClick={() => void resendWelcome()}
+          disabled={!email || busy !== null || (claimed ? !canResendWelcome : !canSendAccountSetup)}
+          className={FINELY_OS_SECONDARY_BTN}
+        >
           <Mail size={14} />{' '}
           {busy === 'welcome'
             ? 'Sending…'

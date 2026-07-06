@@ -18,7 +18,9 @@ function signupInviteUrl(partner: Partner, email: string): string {
 export async function sendPartnerInviteEmail(args: {
   partner: Partner;
   email: string;
-}): Promise<{ ok: boolean; error?: string; inviteUrl?: string; simulated?: boolean; previewOpened?: boolean }> {
+  /** Admin resend — bypass idempotency so a new email is actually delivered. */
+  forceResend?: boolean;
+}): Promise<{ ok: boolean; error?: string; inviteUrl?: string; simulated?: boolean; previewOpened?: boolean; deduped?: boolean }> {
   if (!isFeatureEnabled('inviteDelivery')) return { ok: false, error: 'Invite delivery is disabled in feature flags.' };
 
   const email = args.email.trim();
@@ -41,13 +43,18 @@ export async function sendPartnerInviteEmail(args: {
     return { ok: true, inviteUrl, simulated: true, previewOpened: sim.previewOpened };
   }
 
+  const idempotencyKey = args.forceResend
+    ? `partner-signup-invite:${args.partner.id}:${email}:resend:${Date.now()}`
+    : `partner-signup-invite:${args.partner.id}:${email}:v2`;
+
   const { data, error } = await supabase.functions.invoke('send-invite-email', {
     body: {
+      partnerId: args.partner.id,
       to: { email, name },
       subject: content.subject,
       text: content.text,
       html: content.html,
-      idempotencyKey: `partner-signup-invite:${args.partner.id}:${email}:v2`,
+      idempotencyKey,
     },
   });
 
@@ -62,7 +69,16 @@ export async function sendPartnerInviteEmail(args: {
     return { ok: false, error: realError || error.message || 'Failed to send invite email.', inviteUrl };
   }
 
-  if (!data?.ok && !data?.deduped) {
+  if (data?.deduped) {
+    return {
+      ok: false,
+      deduped: true,
+      inviteUrl,
+      error: 'This invite was already sent recently. Copy the signup link below and share it directly, or use Resend invite.',
+    };
+  }
+
+  if (!data?.ok) {
     return { ok: false, error: data?.error || 'Invite email could not be sent.', inviteUrl };
   }
 

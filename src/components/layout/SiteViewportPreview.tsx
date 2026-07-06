@@ -1,5 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Monitor, Smartphone, Tablet, ExternalLink } from 'lucide-react';
+import { useAuth } from '../../auth/AuthProvider';
+import { isAdminEmail } from '../../auth/admin';
 import { useIsMobileOrTabletViewport } from '../../hooks/useMediaQuery';
 import { inPreviewFrame } from '../../lib/inPreviewFrame';
 
@@ -16,42 +18,45 @@ type Props = {
   children: React.ReactNode;
 };
 
+function SiteRoot({ children }: { children: React.ReactNode }) {
+  return <div className="fc-site-root min-h-screen w-full overflow-x-clip">{children}</div>;
+}
+
 /**
- * Site-wide phone / tablet / desktop preview for reviewers on a large screen.
- *
- * Framed modes render the live site inside an <iframe>, which gives the page a REAL
- * viewport at the chosen width — so CSS media queries / Tailwind breakpoints actually
- * fire (a plain max-width wrapper does not, because breakpoints track the window, not
- * the element). On real phones/tablets the site renders normally with no toolbar.
+ * Desktop/tablet/phone preview toolbar — **admins on a large screen only**.
+ * Public visitors and real phones/tablets always see the live responsive layout with no switcher.
  */
 export function SiteViewportPreview({ children }: Props) {
+  const auth = useAuth();
   const onRealCompactDevice = useIsMobileOrTabletViewport();
   const inIframe = useMemo(() => inPreviewFrame(), []);
+  const isAdminReviewer = isAdminEmail(auth.user?.email);
   const [mode, setMode] = useState<SiteViewportMode>('desktop');
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
 
+  const canUsePreviewToolbar = isAdminReviewer && !onRealCompactDevice && !inIframe;
+
   useEffect(() => {
-    if (onRealCompactDevice || inIframe) return;
+    if (!canUsePreviewToolbar) return;
     try {
       const saved = sessionStorage.getItem(STORAGE_KEY) as SiteViewportMode | null;
       if (saved === 'desktop' || saved === 'tablet' || saved === 'mobile') setMode(saved);
     } catch {
       /* ignore */
     }
-  }, [onRealCompactDevice, inIframe]);
+  }, [canUsePreviewToolbar]);
 
   useEffect(() => {
-    if (onRealCompactDevice || inIframe) return;
+    if (!canUsePreviewToolbar) return;
     try {
       sessionStorage.setItem(STORAGE_KEY, mode);
     } catch {
       /* ignore */
     }
-  }, [mode, onRealCompactDevice, inIframe]);
+  }, [mode, canUsePreviewToolbar]);
 
-  // Inside the preview iframe, or on a genuine small device, render the real site only.
-  if (inIframe || onRealCompactDevice) {
-    return <div className="fc-site-root min-h-screen w-full overflow-x-clip">{children}</div>;
+  if (!canUsePreviewToolbar) {
+    return <SiteRoot>{children}</SiteRoot>;
   }
 
   const framed = mode !== 'desktop';
@@ -61,8 +66,6 @@ export function SiteViewportPreview({ children }: Props) {
       ? `${window.location.pathname}${window.location.search}${window.location.hash}`
       : '/';
 
-  // Hide the iframe's scrollbar so its inner viewport equals the device width exactly
-  // (a desktop scrollbar would shave ~16px and drop the page below the breakpoint).
   const handleIframeLoad = (e: React.SyntheticEvent<HTMLIFrameElement>) => {
     try {
       const doc = e.currentTarget.contentDocument;
@@ -75,7 +78,7 @@ export function SiteViewportPreview({ children }: Props) {
         doc.head.appendChild(style);
       }
     } catch {
-      /* cross-origin or not ready — ignore */
+      /* ignore */
     }
   };
 
@@ -84,11 +87,11 @@ export function SiteViewportPreview({ children }: Props) {
       <div
         className="fixed top-0 inset-x-0 z-[9999] border-b border-[#39ff14]/25 bg-[#07110d]/95 backdrop-blur-md"
         role="toolbar"
-        aria-label="Site viewport preview"
+        aria-label="Admin site viewport preview"
       >
         <div className="max-w-7xl mx-auto px-3 sm:px-4 py-2.5 flex flex-wrap items-center gap-2">
           <span className="text-[10px] font-black uppercase tracking-widest text-[#39ff14] w-full sm:w-auto">
-            Site preview
+            Admin preview
           </span>
           {(
             [
@@ -136,8 +139,6 @@ export function SiteViewportPreview({ children }: Props) {
               <span className="w-14 h-1 rounded-full bg-white/15" />
               <span className="text-[9px] text-white/40 font-mono">{frameWidth}px</span>
             </div>
-            {/* One persistent iframe — switching Phone/Tablet just resizes it
-                (media queries re-evaluate live) instead of reloading the app. */}
             <iframe
               ref={iframeRef}
               src={framePath}

@@ -82,6 +82,15 @@ export function FinelyCommunicationHub({
   const [tab, setTab] = useState<HubTab>(normalizeHubTab(initialTab ?? urlTab));
   const [threadId, setThreadId] = useState<string | undefined>(initialThreadId ?? urlThread ?? undefined);
   const [topic, setTopic] = useState<SupportTopic | undefined>(initialTopic ?? urlTopic ?? undefined);
+  const [focusPartner, setFocusPartner] = useState<{
+    id: string;
+    displayName?: string;
+    lane?: string;
+  } | null>(null);
+
+  const effectivePartnerId = focusPartner?.id ?? partnerId;
+  const effectivePartnerName = focusPartner?.displayName ?? partnerDisplayName;
+  const effectiveLane = focusPartner?.lane ?? lane;
 
   const unreadHint = useMemo(() => {
     if (tab === 'team') return 'Team threads — AI suggests who to message';
@@ -115,12 +124,22 @@ export function FinelyCommunicationHub({
         threadId?: string;
         topic?: SupportTopic;
         expanded?: boolean;
+        partnerId?: string;
+        partnerDisplayName?: string;
+        lane?: string;
       };
       setOpen(true);
       if (detail.tab) setTab(normalizeHubTab(detail.tab));
       if (detail.threadId) setThreadId(detail.threadId);
       if (detail.topic) setTopic(detail.topic);
       if (detail.expanded) setExpanded(true);
+      if (detail.partnerId) {
+        setFocusPartner({
+          id: detail.partnerId,
+          displayName: detail.partnerDisplayName,
+          lane: detail.lane,
+        });
+      }
     };
     const onStaffDm = () => {
       setOpen(true);
@@ -206,7 +225,7 @@ export function FinelyCommunicationHub({
         </div>
       </div>
 
-      {partnerId ? <CommsProactiveNudges partnerId={partnerId} /> : null}
+      {effectivePartnerId ? <CommsProactiveNudges partnerId={effectivePartnerId} /> : null}
 
       <div
         className={`flex-1 min-h-0 overflow-hidden ${
@@ -215,10 +234,10 @@ export function FinelyCommunicationHub({
       >
         {(tab === 'ai' || tab === 'chat') && (
           <HubAiCoachPanel
-            partnerId={partnerId}
-            lane={lane}
+            partnerId={effectivePartnerId}
+            lane={effectiveLane}
             journeyStage={journeyStage}
-            userName={partnerDisplayName}
+            userName={effectivePartnerName}
             compact={!expanded && mode === 'floating'}
             showAllAgents={showAllAgents}
           />
@@ -226,12 +245,12 @@ export function FinelyCommunicationHub({
         {(tab === 'team') && (
           messagingEnabled ? (
             <HubTeamChatPanel
-              partnerId={partnerId}
-              partnerDisplayName={partnerDisplayName}
+              partnerId={effectivePartnerId}
+              partnerDisplayName={effectivePartnerName}
               compact={!expanded && mode === 'floating'}
               initialThreadId={threadId}
               initialTopic={topic}
-              lane={lane}
+              lane={effectiveLane}
               adminMode={adminMode}
             />
           ) : (
@@ -241,7 +260,7 @@ export function FinelyCommunicationHub({
           )
         )}
         {tab === 'meetings' && (
-          <HubMeetingsPanel partnerId={partnerId} partnerDisplayName={partnerDisplayName} compact={!expanded && mode === 'floating'} />
+          <HubMeetingsPanel partnerId={effectivePartnerId} partnerDisplayName={effectivePartnerName} compact={!expanded && mode === 'floating'} />
         )}
         {tab === 'guide' && <HubGuidePanel compact={!expanded && mode === 'floating'} onSwitchTab={switchTab} />}
       </div>
@@ -257,27 +276,37 @@ export function FinelyCommunicationHub({
   }
 
   return (
-    <div data-fc-communication-hub="floating" className="fixed bottom-5 right-5 z-[150]">
+    <div
+      data-fc-communication-hub="floating"
+      className="fixed z-[150] bottom-[max(1rem,env(safe-area-inset-bottom))] right-[max(1rem,env(safe-area-inset-right))] left-auto max-w-[calc(100vw-2rem)]"
+    >
       {open ? (
         <div
           data-fc-comms-shell="1"
-          className={`${FINELY_OS_COMMS_SHELL} transition-all ${
-            expanded ? 'w-[min(920px,calc(100vw-40px))] h-[min(780px,calc(100vh-80px))]' : 'w-[min(520px,calc(100vw-40px))]'
+          className={`${FINELY_OS_COMMS_SHELL} transition-all max-lg:fixed max-lg:inset-0 max-lg:w-full max-lg:h-[100dvh] max-lg:max-h-[100dvh] max-lg:rounded-none ${
+            expanded
+              ? 'lg:w-[min(920px,calc(100vw-40px))] lg:h-[min(780px,calc(100vh-80px))]'
+              : 'lg:w-[min(520px,calc(100vw-40px))]'
           }`}
         >
           {panelContent}
         </div>
       ) : (
-        <button type="button" onClick={() => setOpen(true)} className={FINELY_OS_COMMS_LAUNCHER} title="Open Communication Hub">
-          <div className="flex items-center gap-3">
-            <div className={`relative ${FINELY_OS_COMMS_ICON} w-12 h-12`}>
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          className={`${FINELY_OS_COMMS_LAUNCHER} max-w-[calc(100vw-2rem)]`}
+          title="Open Communication Hub"
+        >
+          <div className="flex items-center gap-3 min-w-0">
+            <div className={`relative ${FINELY_OS_COMMS_ICON} w-12 h-12 shrink-0`}>
               <MessageCircle size={20} className="text-fuchsia-300" />
               <Sparkles size={10} className="absolute -top-1 -right-1 text-sky-300" />
             </div>
-            <div className="text-left">
+            <div className="text-left min-w-0">
               <div className={FINELY_OS_COMMS_LABEL}>Communication Hub</div>
-              <div className="text-white/90 text-sm font-semibold">One chat — AI + team</div>
-              <div className={`text-[11px] ${FINELY_OS_ENTITY_BODY}`}>Talk naturally · smart routing · no dropdowns</div>
+              <div className="text-white/90 text-sm font-semibold truncate">One chat — AI + team</div>
+              <div className={`text-[11px] ${FINELY_OS_ENTITY_BODY} hidden sm:block`}>Talk naturally · smart routing · no dropdowns</div>
             </div>
           </div>
         </button>

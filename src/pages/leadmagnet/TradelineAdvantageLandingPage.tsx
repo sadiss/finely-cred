@@ -17,7 +17,6 @@ import {
 } from 'lucide-react';
 import { LeadMagnetFunnelHeroVideo } from '../../components/leadmagnet/LeadMagnetFunnelHeroVideo';
 import { getLeadMagnetVisualTheme } from '../../components/leadmagnet/leadMagnetVisualThemes';
-import { submitLeadCapture } from '../../data/leadsRepo';
 import { TRADELINE_FUNNEL } from '../../domain/leadMagnetFunnels';
 import { usePublicSeoMeta } from '../../hooks/usePublicSeoMeta';
 import { LEAD_MAGNET_TRIAL_DAYS } from '../../lib/leadMagnetTrial';
@@ -357,12 +356,7 @@ export default function TradelineAdvantageLandingPage() {
                 Get Your <span className="text-[#f0cc75]">Free</span> Guide Now
               </h2>
               <PremiumLeadMagnetCaptureForm
-                offer="primary_tradeline_insider"
-                interest="The Trade Lines Advantage — strategic tradelines"
-                funnelPath={TRADELINE_FUNNEL.path}
-                funnelId={TRADELINE_FUNNEL.funnelId}
-                goal="tradelines"
-                guideId={TRADELINE_FUNNEL.guideId}
+                funnelConfig={TRADELINE_FUNNEL}
                 accentClass="focus:border-[#f0cc75] focus:ring-[#d4a447]/15"
               />
             </div>
@@ -519,14 +513,9 @@ export default function TradelineAdvantageLandingPage() {
               </p>
               <div className="mt-6">
                 <PremiumLeadMagnetCaptureForm
-                offer="primary_tradeline_insider"
-                interest="The Trade Lines Advantage — footer CTA"
-                funnelPath={TRADELINE_FUNNEL.path}
-                funnelId={TRADELINE_FUNNEL.funnelId}
-                goal="tradelines"
-                guideId={TRADELINE_FUNNEL.guideId}
-                accentClass="focus:border-[#f0cc75] focus:ring-[#d4a447]/15"
-              />
+                  funnelConfig={TRADELINE_FUNNEL}
+                  accentClass="focus:border-[#f0cc75] focus:ring-[#d4a447]/15"
+                />
               </div>
             </div>
           </div>

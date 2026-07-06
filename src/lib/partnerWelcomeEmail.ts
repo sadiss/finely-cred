@@ -107,6 +107,7 @@ export async function sendPartnerWelcomeEmail(args: {
     if (isSupabaseConfigured) {
       const { data, error } = await supabase.functions.invoke('send-partner-welcome', {
         body: {
+          partnerId: args.partner.id,
           to: { email, name: args.partner.profile.fullName },
           subject,
           text: `${text}${footer}`,

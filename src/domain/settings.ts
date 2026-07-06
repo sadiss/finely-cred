@@ -135,9 +135,21 @@ export interface ChatSettings {
   tenorApiKey?: string;
 }
 
+export interface SensitiveActionCodes {
+  /** Required to permanently delete a partner file (reports, letters, evidence). */
+  partnerDelete?: string;
+  /** Required to grant Head of Society access keys in admin. */
+  hosAccessGrant?: string;
+  /** Required for bulk credit-report purge / destructive re-import. */
+  bulkReportPurge?: string;
+  updatedAt?: string;
+}
+
 export interface SecuritySettings {
   /** Additional admin emails (in addition to the code allowlist bootstrap). */
   adminEmails: string[];
+  /** Resettable codes for destructive or high-risk admin actions (store server-side in production). */
+  sensitiveActionCodes?: SensitiveActionCodes;
 }
 
 /**

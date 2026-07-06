@@ -101,6 +101,7 @@ export default function AdminSupportInboxPage() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [reply, setReply] = useState('');
   const sourceFilter = (searchParams.get('source') as 'all' | 'portal' | 'meta' | null) ?? 'all';
+  const partnerFilterId = (searchParams.get('partner') || '').trim();
 
   const setSourceFilter = (next: 'all' | 'portal' | 'meta') => {
     const p = new URLSearchParams(searchParams);
@@ -129,14 +130,21 @@ export default function AdminSupportInboxPage() {
   const threads = useMemo(() => {
     const all = listAllThreads();
     const query = q.trim().toLowerCase();
-    const scoped = all.filter((t) => partnerIds.has(t.partnerId));
+    let scoped = all.filter((t) => partnerIds.has(t.partnerId));
+    if (partnerFilterId) scoped = scoped.filter((t) => t.partnerId === partnerFilterId);
     if (!query) return scoped;
     return scoped.filter((t) => {
       const p = partnerIndex.get(t.partnerId);
       const hay = `${t.subject} ${t.topic} ${t.status} ${p?.profile.fullName ?? ''} ${p?.profile.email ?? ''}`.toLowerCase();
       return hay.includes(query);
     });
-  }, [partnerIds, partnerIndex, q, version]);
+  }, [partnerIds, partnerIndex, q, version, partnerFilterId]);
+
+  useEffect(() => {
+    if (!partnerFilterId || selectedId) return;
+    const first = threads[0];
+    if (first) setSelectedId(first.id);
+  }, [partnerFilterId, threads, selectedId]);
 
   const metaThreads = useMemo(() => {
     const all = listMetaInboxThreadSummaries();

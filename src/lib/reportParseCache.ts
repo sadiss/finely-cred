@@ -56,6 +56,12 @@ export function setCachedParsedReport(args: {
   saveStore(store);
 }
 
+export function clearCachedParsedReport(reportId: string) {
+  const store = loadStore();
+  store.entries = store.entries.filter((e) => e.reportId !== reportId);
+  saveStore(store);
+}
+
 export function hashReportContent(text: string): string {
   return simpleHash(text);
 }
