@@ -2,7 +2,8 @@
 // without requiring EDGE_ADMIN_EMAILS (unlike send-email).
 
 import { corsHeaders } from '../_shared/cors.ts';
-import { json, logEdgeEvent, rateLimit, requireAllowlistedEmail, requireAuth, requireIdempotency } from '../_shared/edgeGuard.ts';
+import { json, logEdgeEvent, rateLimit, requireAuth, requireIdempotency } from '../_shared/edgeGuard.ts';
+import { requireStaffCommsActor, resolveStaffActor } from '../_shared/staffCommsAuth.ts';
 import { sendServiceEmail } from '../_shared/commsSendEmail.ts';
 
 type ReqBody = {
@@ -10,6 +11,8 @@ type ReqBody = {
   subject: string;
   text: string;
   html?: string;
+  /** When set, staff may send welcome to this partner (scoped access). */
+  partnerId?: string;
   idempotencyKey?: string;
 };
 
@@ -39,14 +42,23 @@ Deno.serve(async (req) => {
   const html = String(body.html || '').trim();
   if (!subject || (!text && !html)) return json({ error: 'Missing subject and body' }, { status: 400 });
 
+  const partnerId = String(body.partnerId || '').trim();
   let isAdmin = false;
-  try {
-    requireAllowlistedEmail(ctx);
-    isAdmin = true;
-  } catch {
-    const sessionEmail = String(ctx.user.email || '').trim().toLowerCase();
-    if (!sessionEmail || sessionEmail !== toEmail) {
-      return json({ error: 'Forbidden — welcome email can only be sent to your own login email unless you are an admin.' }, { status: 403 });
+  if (partnerId) {
+    try {
+      await requireStaffCommsActor(ctx, { partnerId });
+      isAdmin = true;
+    } catch {
+      return json({ error: 'Forbidden — no access to send welcome for this partner.' }, { status: 403 });
+    }
+  } else {
+    const actor = await resolveStaffActor(ctx);
+    isAdmin = Boolean(actor?.isFullAdmin || actor?.canViewAllClients);
+    if (!isAdmin) {
+      const sessionEmail = String(ctx.user.email || '').trim().toLowerCase();
+      if (!sessionEmail || sessionEmail !== toEmail) {
+        return json({ error: 'Forbidden — welcome email can only be sent to your own login email unless you are staff with partner access.' }, { status: 403 });
+      }
     }
   }
 

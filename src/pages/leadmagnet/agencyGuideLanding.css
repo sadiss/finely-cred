@@ -82,8 +82,8 @@
 
 @media (min-width: 1024px) {
   .agc-hero-grid {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    gap: 3rem;
+    grid-template-columns: minmax(0, 0.88fr) minmax(0, 1.12fr);
+    gap: 2.5rem;
   }
 
   .agc-title-block {
@@ -149,6 +149,7 @@
 
 .agc-mockup-stage--bundle {
   padding: 1.5rem 0 2.5rem;
+  min-height: min(88vh, 1100px);
 }
 
 .agc-mockup-sunrise-core {
@@ -244,11 +245,15 @@
 }
 
 .agc-mockup--bundle {
-  max-width: min(100%, 620px);
+  width: 100%;
+  max-width: min(100%, 100%);
+  max-height: min(92vh, 1600px);
 }
 
 .agc-mockup--book {
-  max-width: min(100%, 300px);
+  width: 100%;
+  max-width: min(100%, 100%);
+  max-height: min(88vh, 1200px);
 }
 
 .agc-mockup-stage:not(.agc-mockup-stage--bundle) .agc-mockup-sunrise-core {

@@ -9,7 +9,8 @@
 // - SMTP_SECURE    (optional, set "true" for port 465 implicit TLS)
 
 import { corsHeaders } from '../_shared/cors.ts';
-import { json, logEdgeEvent, rateLimit, requireAllowlistedEmail, requireAuth, requireIdempotency } from '../_shared/edgeGuard.ts';
+import { json, logEdgeEvent, rateLimit, requireAuth, requireIdempotency } from '../_shared/edgeGuard.ts';
+import { requireStaffCommsActor } from '../_shared/staffCommsAuth.ts';
 import { sendServiceEmail } from '../_shared/commsSendEmail.ts';
 
 type ReqBody = {
@@ -18,6 +19,8 @@ type ReqBody = {
   subject: string;
   text: string;
   html?: string;
+  /** Partner file this invite belongs to — required for scoped staff sends. */
+  partnerId: string;
   /** Optional: prevents accidental duplicate sends. */
   idempotencyKey?: string;
 };
@@ -29,9 +32,24 @@ Deno.serve(async (req) => {
   let ctx: Awaited<ReturnType<typeof requireAuth>>;
   try {
     ctx = await requireAuth(req);
-    requireAllowlistedEmail(ctx);
   } catch (e) {
     return json({ error: (e as Error)?.message || 'Unauthorized' }, { status: 401 });
+  }
+
+  let body: ReqBody;
+  try {
+    body = (await req.json()) as ReqBody;
+  } catch {
+    return json({ error: 'Invalid JSON body' }, { status: 400 });
+  }
+
+  const partnerId = String(body?.partnerId || '').trim();
+  if (!partnerId) return json({ error: 'Missing partnerId' }, { status: 400 });
+
+  try {
+    await requireStaffCommsActor(ctx, { partnerId });
+  } catch (e) {
+    return json({ error: (e as Error)?.message || 'Forbidden' }, { status: 403 });
   }
 
   const rlUser = await rateLimit({ key: `send-invite-email:user:${ctx.user.id}`, limit: 10, windowSeconds: 60 });
@@ -42,13 +60,6 @@ Deno.serve(async (req) => {
       { ok: false, error: 'Rate limited. Try again shortly.' },
       { status: 429, headers: { 'Retry-After': String(Math.ceil((Math.min(rlUser.resetAt, rlIp.resetAt) - Date.now()) / 1000)) } },
     );
-  }
-
-  let body: ReqBody;
-  try {
-    body = (await req.json()) as ReqBody;
-  } catch {
-    return json({ error: 'Invalid JSON body' }, { status: 400 });
   }
 
   const toEmail = (body.to?.email || '').trim();

@@ -90,8 +90,6 @@ function GuideMockup({ variant = 'bundle' }: { variant?: 'bundle' | 'book' }) {
         src={isBundle ? GUIDE_BUNDLE_SRC : GUIDE_BOOK_SRC}
         alt={isBundle ? 'The Agency Guide — full mockup set' : 'The Agency Guide — e-guide cover'}
         className={cn('agc-mockup', isBundle ? 'agc-mockup--bundle' : 'agc-mockup--book')}
-        width={isBundle ? 455 : 290}
-        height={isBundle ? 409 : 474}
         loading="eager"
         decoding="async"
       />
@@ -238,24 +236,8 @@ export default function AgencyGuideLandingPage() {
     <main className="agc-page min-h-screen overflow-hidden bg-[#050a14] text-white selection:bg-[#d4a447]/30">
       <div className="pointer-events-none fixed inset-0 z-0 bg-[radial-gradient(circle_at_72%_6%,rgba(212,164,71,0.14),transparent_28%),radial-gradient(circle_at_14%_24%,rgba(40,70,120,0.22),transparent_34%),linear-gradient(180deg,#050a14_0%,#0a1224_48%,#050a14_100%)]" />
 
-      <nav className="agc-nav relative z-30 sticky top-0">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-5 py-4 md:px-8">
-          <FinelyCredLogo size="sm" forceLight />
-          <div className="hidden items-center gap-8 text-[11px] font-semibold uppercase tracking-[0.14em] text-white/55 lg:flex">
-            <a href="/about" className="transition hover:text-white">About</a>
-            <a href="/services" className="transition hover:text-white">Services</a>
-            <a href="#results" className="transition hover:text-white">Results</a>
-            <a href="/resources" className="transition hover:text-white">Resources</a>
-            <a href="/contact" className="transition hover:text-white">Contact</a>
-          </div>
-          <button type="button" onClick={scrollToDownload} className="shrink-0">
-            <GoldButton>Get The Guide</GoldButton>
-          </button>
-        </div>
-      </nav>
-
-      {/* Hero */}
-      <section className="relative z-10 border-b border-white/8 py-12 md:py-16">
+      {/* Hero — site-wide nav from App shell; no page-local menu */}
+      <section className="relative z-10 border-b border-white/8 pt-20 pb-12 md:pt-24 md:pb-16 lg:pt-28">
         <div className="agc-hero-grid mx-auto grid max-w-7xl gap-10 px-5 md:px-8 lg:gap-12">
           <div className="flex flex-col justify-center">
             <div className="agc-title-block">

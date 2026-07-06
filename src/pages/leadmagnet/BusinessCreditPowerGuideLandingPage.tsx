@@ -30,7 +30,7 @@ import './businessCreditPowerGuideLanding.css';
 
 const BUSINESS_THEME = getLeadMagnetVisualTheme(BUSINESS_FUNNEL);
 
-const EGUIDE_MOCKUP_SRC = '/images/lead-magnets/business-credit-power-guide-original-transparent.png';
+const EGUIDE_MOCKUP_SRC = '/images/lead-magnets/business-credit-power-guide-mockup.png';
 
 /** Premium upward skyline — distinct from homepage hero */
 const HERO_BG =
@@ -42,12 +42,14 @@ function cn(...classes: Array<string | false | null | undefined>) {
 
 function GuideMockup({ className, tall }: { className?: string; tall?: boolean }) {
   return (
-    <div className={cn('bcpg-mockup-stage relative flex items-center justify-center', className)}>
+    <div className={cn('bcpg-mockup-stack', tall && 'bcpg-mockup-stack--hero', className)}>
+      <div className="bcpg-mockup-glow" aria-hidden />
       <img
         src={EGUIDE_MOCKUP_SRC}
         alt="Business Credit Power Guide preview"
         className={cn('bcpg-mockup relative z-[1]', tall ? 'bcpg-mockup--tall' : 'bcpg-mockup--hero')}
       />
+      <div className="bcpg-mockup-pedestal" aria-hidden />
     </div>
   );
 }
@@ -309,7 +311,7 @@ export default function BusinessCreditPowerGuideLandingPage() {
         <div className="relative mx-auto max-w-[88rem] px-5 pb-16 pt-10 md:px-10">
           {/* Top: headline + mockup */}
           <div className="flex flex-col gap-10 lg:flex-row lg:items-center lg:gap-8 xl:gap-12">
-            <div className="lg:w-[44%] xl:w-[42%] xl:shrink-0">
+            <div className="lg:w-[38%] xl:w-[36%] xl:shrink-0">
               <p className="text-[11px] font-bold uppercase tracking-[0.28em] text-[#95e000]">Free E-Guide</p>
               <h1 className="bcpg-serif bcpg-hero-title mt-4 text-[2.65rem] leading-[1.02] tracking-[-0.02em] text-white sm:text-[3.5rem] md:text-[4.25rem] xl:text-[5.25rem]">
                 <span>Business Credit</span>
@@ -334,8 +336,8 @@ export default function BusinessCreditPowerGuideLandingPage() {
               </div>
             </div>
 
-            <div className="flex flex-1 items-center justify-center lg:justify-end lg:pl-4">
-              <GuideMockup tall className="w-full max-w-[min(100%,860px)] lg:mr-0 lg:translate-x-2 xl:translate-x-6" />
+            <div className="flex min-w-0 flex-1 items-end justify-center lg:justify-end lg:pl-0">
+              <GuideMockup tall className="w-full max-w-none lg:mr-0 lg:translate-x-2 xl:translate-x-4" />
             </div>
           </div>
 
@@ -415,7 +417,7 @@ export default function BusinessCreditPowerGuideLandingPage() {
               </div>
             </div>
             <div className="relative flex flex-1 items-center justify-center lg:sticky lg:top-28 lg:pt-4">
-              <GuideMockup className="w-full max-w-[680px]" />
+              <GuideMockup className="w-full max-w-[min(100%,920px)]" />
             </div>
           </div>
         </div>

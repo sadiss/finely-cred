@@ -330,8 +330,8 @@ export default function DebtEradicationLandingPage() {
             </div>
           </div>
 
-          <div className="del-hero-mockup-col relative z-10 flex items-end justify-center pb-2 lg:justify-end lg:pb-6">
-            <GuideMockup tall className="w-full" />
+          <div className="del-hero-mockup-col relative z-10 flex w-full min-w-0 items-end justify-center pb-2 lg:justify-end lg:pb-6">
+            <GuideMockup tall className="w-full max-w-none" />
           </div>
         </div>
       </section>

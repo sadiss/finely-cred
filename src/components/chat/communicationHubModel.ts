@@ -151,6 +151,14 @@ export function flattenSuggestionPath(tree: AiSuggestionNode[], targetId: string
 
 export const OPEN_HUB_EVENT = 'finely:open-communication-hub';
 
-export function openCommunicationHub(detail?: { tab?: HubTab; threadId?: string; topic?: SupportTopic; expanded?: boolean }) {
+export function openCommunicationHub(detail?: {
+  tab?: HubTab;
+  threadId?: string;
+  topic?: SupportTopic;
+  expanded?: boolean;
+  partnerId?: string;
+  partnerDisplayName?: string;
+  lane?: string;
+}) {
   window.dispatchEvent(new CustomEvent(OPEN_HUB_EVENT, { detail: detail ?? {} }));
 }

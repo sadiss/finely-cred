@@ -2,7 +2,7 @@ import React, { useMemo, useState, useEffect, useRef, useCallback } from 'react'
 import { 
   Fingerprint, Trophy, Gavel, Building2, ShieldCheck, Clock, 
   ShieldAlert, Briefcase, Flame, Activity, Server, CheckCircle2,
-  Cpu, FastForward, Target, Lock, ArrowLeft, X, Key, ScanLine, UploadCloud
+  Cpu, FastForward, Target, Lock, ArrowLeft, X, Key, ScanLine, UploadCloud, LogOut
 } from 'lucide-react';
 import { Button, PasswordInput, ProgressBar } from '../ui';
 import { useAuth } from '../../auth/AuthProvider';
@@ -1880,8 +1880,19 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
         }
       } catch (claimErr: unknown) {
         const message = claimErr instanceof Error ? claimErr.message : 'Could not link this invite to your account.';
-        setAuthError(message);
-        return;
+        if (userData.invitePartnerId) {
+          savePendingInvitePartnerId(userData.invitePartnerId);
+        }
+        await retryPendingInviteClaim({ userId: signedInUser.id, email }).catch(() => null);
+        try {
+          const { getOrCreatePartnerForSession } = await import('../../portal/getOrCreatePartnerForSession');
+          await getOrCreatePartnerForSession({ user: signedInUser });
+        } catch {
+          // Partner record may sync on next login — auth account is still valid.
+        }
+        setAuthNotice(
+          `Account created successfully. We are finishing your profile link${message ? ` (${message})` : ''} — you can continue into the portal.`,
+        );
       }
 
       if (userData.role === 'agent' && signedInUser.id && userData.agentOperatingModel) {
@@ -2056,6 +2067,26 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
 
   // Login Screen
   if (authMode === 'login') {
+    const sessionEmail = (auth.user?.email || '').trim();
+    const hasActiveSession = Boolean(sessionEmail);
+
+    const continueWithSession = () => {
+      const nextPath = userData.recommendedNextPath || resolvePostAuthHomePath(auth.user);
+      clearOnboardingProgress();
+      onComplete(nextPath);
+    };
+
+    const signOutForFreshLogin = async () => {
+      setAuthBusy(true);
+      setAuthError(null);
+      try {
+        await auth.signOut();
+        setLoginPassword('');
+      } finally {
+        setAuthBusy(false);
+      }
+    };
+
     return (
       <OnboardingFlowShell
         active={isOpen}
@@ -2073,6 +2104,31 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
             </div>
             <h3 className="text-2xl sm:text-3xl font-light text-white">Sign in</h3>
           </div>
+
+          {hasActiveSession ? (
+            <div className="mb-5 space-y-3 rounded-2xl border border-amber-400/30 bg-amber-500/10 p-4 text-left">
+              <p className="text-sm text-amber-100/95">
+                You are already signed in as <span className="font-mono font-semibold">{sessionEmail}</span>.
+              </p>
+              <p className="text-xs text-amber-100/75">
+                For security, sign out first if you need to enter a password for a different account.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-2 pt-1">
+                <Button onClick={continueWithSession} disabled={authBusy} size="lg" className="w-full min-h-[44px]">
+                  Continue to portal
+                </Button>
+                <button
+                  type="button"
+                  onClick={() => void signOutForFreshLogin()}
+                  disabled={authBusy}
+                  className="w-full min-h-[44px] inline-flex items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/5 px-4 text-xs font-semibold uppercase tracking-widest text-white/80 hover:bg-white/10"
+                >
+                  <LogOut size={14} /> Sign out & enter password
+                </button>
+              </div>
+            </div>
+          ) : null}
+
           <div className="space-y-4">
             <form
               className="space-y-4"
@@ -2118,7 +2174,7 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
             )}
             <Button
               onClick={() => void handleLogin()}
-              disabled={authBusy || !loginEmail || !loginPassword}
+              disabled={authBusy || !loginEmail || !loginPassword || hasActiveSession}
               size="lg"
               className="w-full min-h-[48px]"
             >

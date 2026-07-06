@@ -74,7 +74,8 @@ import {
   upsertCreditAnalysisReport,
 } from '../../data/creditAnalysisReportsRepo';
 import { CreditAnalysisDeliverableStrip } from '../../components/reports/CreditAnalysisDeliverableCard';
-import { sendPartnerOutreachMessage, defaultPartnerWelcomeMessage } from '../../lib/partnerMessaging';
+import { openCommunicationHub } from '../../components/chat/communicationHubModel';
+import { setAdminPartnerFocus } from '../../lib/adminPartnerFocus';
 import { downloadInlineDisputeLetterPdf } from '../../letters/generateDisputePdfInline';
 import { computePartnerOverallScore } from '../../utils/partnerOverallScore';
 import { addAuditEvent, listAuditEventsByPartner } from '../../data/auditRepo';
@@ -496,6 +497,20 @@ function PartnerDetailPageInner() {
   }, [id, partnerVersion]);
 
   useEffect(() => {
+    if (!partner) {
+      setAdminPartnerFocus(null);
+      return;
+    }
+    setAdminPartnerFocus({
+      id: partner.id,
+      name: partner.profile.fullName || 'Partner',
+      lane: partner.lane,
+      journeyStage: (partner as { journeyStage?: string }).journeyStage,
+    });
+    return () => setAdminPartnerFocus(null);
+  }, [partner?.id, partner?.profile?.fullName, partner?.lane]);
+
+  useEffect(() => {
     if (!partner?.id) return;
     let cancelled = false;
     void (async () => {
@@ -856,19 +871,20 @@ function PartnerDetailPageInner() {
     if (!result.ok) setDocOpenErr(result.message);
   };
 
-  const sendWelcomeToPartner = () => {
+  const messagePartner = () => {
     if (!partner) return;
-    try {
-      sendPartnerOutreachMessage({
-        partnerId: partner.id,
-        partnerName: partner.profile.fullName || 'Partner',
-        body: defaultPartnerWelcomeMessage(partner.profile.fullName || 'Partner'),
-      });
-      setMessageNotice('Message sent — they will see it in Team chat when they log in.');
-      window.setTimeout(() => setMessageNotice(null), 5000);
-    } catch (e: any) {
-      setMessageNotice(e?.message || 'Could not send message.');
-    }
+    const name = partner.profile.fullName || 'Partner';
+    const el = document.getElementById('admin-partner-message');
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    openCommunicationHub({
+      tab: 'team',
+      expanded: true,
+      partnerId: partner.id,
+      partnerDisplayName: name,
+      lane: partner.lane,
+    });
+    setMessageNotice('Compose a message below or use the Communication Hub chat box.');
+    window.setTimeout(() => setMessageNotice(null), 6000);
   };
 
   // Generate the (free) Credit Analysis Report for a given uploaded report.
@@ -1248,7 +1264,7 @@ function PartnerDetailPageInner() {
       }
       headerRight={
         <div className="flex flex-wrap items-center gap-2">
-          <button type="button" onClick={sendWelcomeToPartner} className={`${FINELY_OS_SECONDARY_BTN} !py-2 !text-xs`}>
+          <button type="button" onClick={messagePartner} className={`${FINELY_OS_SECONDARY_BTN} !py-2 !text-xs`}>
             <Send size={14} /> Message partner
           </button>
           <div className={`${FINELY_OS_ENTITY_SUBLABEL} font-mono normal-case tracking-normal`}>partner_id: {partner.id}</div>

@@ -27,6 +27,7 @@ import './lib/nurtureEngine';
 import './lib/automationEventBridge';
 import { getOrCreatePartnerForSession } from './portal/getOrCreatePartnerForSession';
 import { PartnerSessionProvider, usePartnerSession } from './auth/PartnerSessionContext';
+import { adminPartnerFocusMatchesPath } from './lib/adminPartnerFocus';
 import { tradelinePromoPackages } from './config/pricingCatalog';
 import { PackageCard, variantForTierIndex } from './components/pricing/PricingCards';
 import { BackToSiteButton, consumeSignedOutFlag } from './components/navigation/BackToSiteButton';
@@ -1243,6 +1244,12 @@ function AppInner() {
     location.pathname.startsWith('/seller');
 
   const { partner: chatPartner } = usePartnerSession();
+  const adminFocusPartner = adminPartnerFocusMatchesPath(location.pathname);
+  const hubPartnerId = adminFocusPartner?.id ?? chatPartner?.id;
+  const hubPartnerName = adminFocusPartner?.name ?? chatPartner?.profile?.fullName;
+  const hubPartnerLane = adminFocusPartner?.lane ?? (chatPartner as any)?.lane;
+  const hubPartnerJourney = adminFocusPartner?.journeyStage ?? (chatPartner as any)?.journeyStage;
+  const hubAdminMode = location.pathname.startsWith('/admin');
 
   useEffect(() => {
     if (!auth.user) return;
@@ -1254,7 +1261,6 @@ function AppInner() {
     if (!auth.user) return;
     if (
       location.pathname === '/onboarding' ||
-      location.pathname === '/login' ||
       location.pathname === '/signup' ||
       location.pathname === '/forgot-password'
     ) {
@@ -1330,7 +1336,11 @@ function AppInner() {
   };
 
   return (
-    <div className="min-h-screen text-white font-sans fc-public-shell fc-premium-icons" data-fc-public-shell="1">
+    <div
+      className="min-h-screen text-white font-sans fc-public-shell fc-premium-icons"
+      data-fc-public-shell="1"
+      data-fc-floating-hub={Boolean(auth.user && showDashboardChat && !hideFloatingHub) ? '1' : undefined}
+    >
       {toast && <Toast message={toast} onClose={() => setToast(null)} />}
       
       {showPublicChrome && (
@@ -1479,10 +1489,11 @@ function AppInner() {
       {/* Communication Hub — floating across dashboard workspaces (hidden on full-page hub) */}
       {Boolean(auth.user) && showDashboardChat && !hideFloatingHub ? (
         <PortalChatWidget
-          partnerId={chatPartner?.id}
-          partnerDisplayName={chatPartner?.profile?.fullName}
-          lane={(chatPartner as any)?.lane}
-          journeyStage={(chatPartner as any)?.journeyStage}
+          partnerId={hubPartnerId}
+          partnerDisplayName={hubPartnerName}
+          lane={hubPartnerLane}
+          journeyStage={hubPartnerJourney}
+          adminMode={hubAdminMode}
         />
       ) : null}
 

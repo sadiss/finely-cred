@@ -94,6 +94,10 @@ export function listReportsByPartner(partnerId: string): CreditReportRecord[] {
     .sort((a, b) => b.receivedAt.localeCompare(a.receivedAt));
 }
 
+export function listAllReports(): CreditReportRecord[] {
+  return [...loadStore().reports].sort((a, b) => b.receivedAt.localeCompare(a.receivedAt));
+}
+
 /** Re-use legacy placeholder or same-filename slot when re-uploading (avoids duplicate unparsed rows). */
 export function findReportSlotForUpload(partnerId: string, filename: string): CreditReportRecord | null {
   const norm = filename.trim().toLowerCase();

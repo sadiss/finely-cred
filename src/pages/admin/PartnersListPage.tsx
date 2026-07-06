@@ -11,7 +11,7 @@ import { isAdminEmail } from '../../auth/admin';
 import { canViewAllClients, getMembershipByUserAndTenant, isPlatformAdmin, getTenant } from '../../data/tenantsRepo';
 import { getActiveTenantId } from '../../tenancy/activeTenant';
 import { FINELY_TENANT_ID } from '../../domain/tenants';
-import { supabase } from '../../lib/supabaseClient';
+import { getStaffCommsCapabilities } from '../../lib/staffCommsPermissions';
 import { ClickableCard } from '../../components/ui';
 import { FinelyOsPageFooter } from '../../features/os/FinelyOsPageFooter';
 import { FinelyOsDataErrorBanner } from '../../features/os/FinelyOsDataErrorBanner';
@@ -137,6 +137,12 @@ export default function PartnersListPage() {
   };
 
   const canCreatePartner = useMemo(() => {
+    const caps = getStaffCommsCapabilities({
+      userId: auth.user?.id,
+      email: auth.user?.email,
+      tenantId: getActiveTenantId(),
+    });
+    if (caps.canCreatePartners) return true;
     const tenantId = getActiveTenantId();
     const u = auth.user;
     if (!u) return false;
@@ -154,6 +160,16 @@ export default function PartnersListPage() {
     }
     return false;
   }, [auth.user]);
+
+  const staffCaps = useMemo(
+    () =>
+      getStaffCommsCapabilities({
+        userId: auth.user?.id,
+        email: auth.user?.email,
+        tenantId: getActiveTenantId(),
+      }),
+    [auth.user?.id, auth.user?.email],
+  );
 
   const tenantName = useMemo(() => {
     const t = getTenant(getActiveTenantId());
@@ -340,6 +356,7 @@ export default function PartnersListPage() {
                   >
                     Notes <ArrowRight size={12} />
                   </span>
+                  {staffCaps.canDeletePartners ? (
                   <span
                     role="button"
                     tabIndex={0}
@@ -364,6 +381,7 @@ export default function PartnersListPage() {
                       </>
                     )}
                   </span>
+                  ) : null}
                 </div>
               </ClickableCard>
             )}

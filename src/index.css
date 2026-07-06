@@ -766,6 +766,30 @@ html[data-fc-theme="light"] ::selection {
     }
   }
 
+  /* Account settings + profile: extra scroll margin under sticky tab bar on phones */
+  @media (max-width: 639px) {
+    .fc-account-settings-page section.scroll-mt-32 {
+      scroll-margin-top: calc(env(safe-area-inset-top, 0px) + 9.5rem);
+    }
+  }
+
+  /* Reserve space so floating Communication Hub launcher does not cover primary CTAs */
+  @media (max-width: 1023px) {
+    [data-fc-public-shell="1"][data-fc-floating-hub="1"] .bg-fc-deep.min-h-screen {
+      padding-bottom: max(7.5rem, calc(env(safe-area-inset-bottom, 0px) + 6rem)) !important;
+    }
+  }
+
+  [data-fc-communication-hub="floating"] [data-fc-comms-shell="1"] {
+    max-height: min(780px, calc(100dvh - 2rem));
+  }
+
+  @media (max-width: 1023px) {
+    [data-fc-communication-hub="floating"] [data-fc-comms-shell="1"] {
+      max-height: 100dvh;
+    }
+  }
+
   /* Subtle platinum sheen surfaces for premium boxes (keeps white text readable). */
   .fc-surface-platinum {
     @apply rounded-2xl border border-white/[0.08];
