@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { Button, PasswordInput, ProgressBar } from '../ui';
 import { useAuth } from '../../auth/AuthProvider';
+import { isAdminEmail, listBootstrapAdminEmails } from '../../auth/admin';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { computeRecommendation } from '../../billing/intakeRecommendation';
 import { formatPrice, getAgencyTierById, getPackageById } from '../../config/pricingCatalog';
@@ -1708,6 +1709,31 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
     setStep(s => s - 1);
   };
 
+  const handleQuickDevAdminLogin = async () => {
+    const email = listBootstrapAdminEmails()[0] || 'sanzstlouis@finelycred.com';
+    setLoginEmail(email);
+    setLoginPassword('dev');
+    setAuthError(null);
+    setAuthNotice(null);
+    setAuthBusy(true);
+    try {
+      const res = await auth.signInWithEmail({ email, password: 'dev' });
+      if (res.error) {
+        setAuthError(res.error);
+        return;
+      }
+      const user = res.user ?? auth.user;
+      if (user?.id && user.email) {
+        await retryPendingInviteClaim({ userId: user.id, email: user.email });
+      }
+      const nextPath = isAdminEmail(email) ? '/admin' : resolvePostAuthHomePath(user);
+      clearOnboardingProgress();
+      onComplete(nextPath);
+    } finally {
+      setAuthBusy(false);
+    }
+  };
+
   const handleLogin = async () => {
     const email = loginEmail.trim();
     if (!email || !loginPassword) {
@@ -1726,8 +1752,10 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
       const user = res.user ?? auth.user;
       if (user?.id && user.email) {
         await retryPendingInviteClaim({ userId: user.id, email: user.email });
+        const { trackPartnerSignIn } = await import('../../lib/partnerAuthActivity');
+        await trackPartnerSignIn(user).catch(() => null);
       }
-      const nextPath = userData.recommendedNextPath || resolvePostAuthHomePath(user);
+      const nextPath = userData.recommendedNextPath || (isAdminEmail(user?.email) ? '/admin' : resolvePostAuthHomePath(user));
       clearOnboardingProgress();
       onComplete(nextPath);
     } finally {
@@ -1846,6 +1874,17 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
         if (userData.invitePartnerId) {
           savePendingInvitePartnerId(userData.invitePartnerId);
         }
+        void (async () => {
+          try {
+            const { getPartner, findPartnerByEmail } = await import('../../data/partnersRepo');
+            const { trackPartnerSignup } = await import('../../lib/partnerAuthActivity');
+            let partner = userData.invitePartnerId ? await getPartner(userData.invitePartnerId) : null;
+            if (!partner) partner = await findPartnerByEmail(email);
+            if (partner) await trackPartnerSignup({ partner, email, pendingEmailConfirmation: true });
+          } catch {
+            // non-blocking
+          }
+        })();
         setAuthError(
           'Account created. Check your email to confirm your address (if required by Supabase), then log in with the password you just set. We will finish linking your invite automatically on first login.',
         );
@@ -1898,6 +1937,22 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
       if (userData.role === 'agent' && signedInUser.id && userData.agentOperatingModel) {
         saveAgentOperatingModel(signedInUser.id, defaultAgentOperatingModel(userData.agentOperatingModel));
       }
+
+      void (async () => {
+        try {
+          const { getPartner, findPartnerByEmail } = await import('../../data/partnersRepo');
+          const { trackPartnerSignup } = await import('../../lib/partnerAuthActivity');
+          let partner = userData.invitePartnerId ? await getPartner(userData.invitePartnerId) : null;
+          if (!partner) partner = await findPartnerByEmail(email);
+          if (!partner) {
+            const { getOrCreatePartnerForSession } = await import('../../portal/getOrCreatePartnerForSession');
+            partner = await getOrCreatePartnerForSession({ user: signedInUser });
+          }
+          if (partner) await trackPartnerSignup({ partner, email, pendingEmailConfirmation: false });
+        } catch {
+          // non-blocking
+        }
+      })();
 
       const invite = parsePartnerInviteSearch(location.search);
       const inviteLanding =
@@ -2158,13 +2213,21 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
               />
             </div>
             {!auth.isConfigured && auth.isDevAuthEnabled && (
-              <div className="p-3 rounded-xl bg-fuchsia-500/10 border border-fuchsia-500/30 text-left">
+              <div className="p-3 rounded-xl bg-fuchsia-500/10 border border-fuchsia-500/30 text-left space-y-2">
                 <p className="text-[10px] text-fuchsia-200/90 uppercase tracking-widest font-bold">
-                  Dev Auth Enabled (Local Only)
+                  Local dev mode — any password works
                 </p>
-                <p className="text-xs text-fuchsia-200/70 mt-1">
-                  Supabase isn’t configured yet—login will still work for testing. This does not create real accounts.
+                <p className="text-xs text-fuchsia-200/70">
+                  Admin emails: {listBootstrapAdminEmails().join(', ')}
                 </p>
+                <button
+                  type="button"
+                  onClick={() => void handleQuickDevAdminLogin()}
+                  disabled={authBusy || hasActiveSession}
+                  className="w-full min-h-[40px] rounded-xl border border-fuchsia-400/40 bg-fuchsia-500/15 px-3 text-[10px] font-black uppercase tracking-widest text-fuchsia-100 hover:bg-fuchsia-500/25 disabled:opacity-50"
+                >
+                  Quick sign in as admin (local)
+                </button>
               </div>
             )}
             {authError && (

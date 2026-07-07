@@ -22,6 +22,7 @@ import { FinelyUnifiedHubLayout } from '../../features/unified/FinelyUnifiedHubL
 import { FinelyNowDoThisStrip } from '../../components/tours/FinelyNowDoThisStrip';
 import { FinelyNoticedStrip } from '../../components/tours/FinelyNoticedStrip';
 import { buildPartnersAdminNoticedItems } from '../../lib/finelyProactiveSignals';
+import { derivePartnerSignupStatus, signupStatusChipTone } from '../../lib/partnerAuthActivity';
 import {
   FINELY_OS_PAGE,
   FINELY_OS_BACK_LINK,
@@ -316,6 +317,9 @@ export default function PartnersListPage() {
                     <div className={`${getStatusBadge(p.status).chip} gap-1.5 whitespace-nowrap`}>
                       <Badge size={10} />
                       {getStatusBadge(p.status).label}
+                    </div>
+                    <div className={`${finelyOsStatusChip(signupStatusChipTone(derivePartnerSignupStatus(p).tone))} gap-1.5 whitespace-nowrap text-[11px]`}>
+                      {derivePartnerSignupStatus(p).label}
                     </div>
                     <ArrowRight size={16} className="text-violet-500 shrink-0" />
                   </div>

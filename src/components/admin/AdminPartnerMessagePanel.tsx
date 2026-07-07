@@ -4,12 +4,17 @@ import { useNavigate } from 'react-router-dom';
 import type { Partner } from '../../domain/partners';
 import type { SupportTopic } from '../../domain/support';
 import { SUPPORT_TOPICS, openCommunicationHub } from '../chat/communicationHubModel';
+import { FinelyChatComposeBox } from '../chat/FinelyChatComposeBox';
 import {
   appendPartnerOutreachMessage,
   defaultPartnerWelcomeMessage,
   sendPartnerOutreachMessage,
 } from '../../lib/partnerMessaging';
 import { listThreadsByPartner } from '../../data/supportRepo';
+import { listEvidenceByPartner, upsertEvidence } from '../../data/evidenceRepo';
+import { getBlobStore } from '../../storage/getBlobStore';
+import { newId } from '../../utils/ids';
+import type { EvidenceItem } from '../../domain/evidence';
 import {
   adminDeliveryState,
   formatAdminDeliveryWhen,
@@ -38,6 +43,9 @@ export function AdminPartnerMessagePanel({ partner }: Props) {
   const [body, setBody] = useState('');
   const [topic, setTopic] = useState<SupportTopic>('general');
   const [busy, setBusy] = useState(false);
+  const [uploadBusy, setUploadBusy] = useState(false);
+  const [uploadErr, setUploadErr] = useState<string | null>(null);
+  const [attachmentIds, setAttachmentIds] = useState<string[]>([]);
   const [notice, setNotice] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [tick, setTick] = useState(0);
@@ -64,6 +72,47 @@ export function AdminPartnerMessagePanel({ partner }: Props) {
         .slice(0, 3),
     [partner.id, notice],
   );
+
+  const vaultAttachments = useMemo(
+    () =>
+      listEvidenceByPartner(partner.id)
+        .slice(0, 8)
+        .map((item) => ({ id: item.id, label: item.filename })),
+    [partner.id, notice, attachmentIds.length],
+  );
+
+  const uploadAttachment = async (file: File) => {
+    setUploadBusy(true);
+    setUploadErr(null);
+    try {
+      const blobStore = getBlobStore();
+      const { ref } = await blobStore.put(file, {
+        partnerId: partner.id,
+        caption: 'Chat attachment',
+        scanMode: false,
+        kind: 'evidence',
+      });
+      const item: EvidenceItem = {
+        id: newId('evidence'),
+        partnerId: partner.id,
+        type: 'upload',
+        source: 'upload',
+        caption: 'Chat attachment',
+        filename: file.name || 'attachment',
+        mimeType: file.type || 'application/octet-stream',
+        sizeBytes: file.size,
+        blobRef: ref,
+        createdAt: new Date().toISOString(),
+      };
+      upsertEvidence(item);
+      setAttachmentIds((prev) => [...prev, item.id]);
+      window.dispatchEvent(new CustomEvent('finely:store'));
+    } catch (e: unknown) {
+      setUploadErr((e as Error)?.message || 'Upload failed.');
+    } finally {
+      setUploadBusy(false);
+    }
+  };
 
   const sendMessage = async () => {
     const text = body.trim();
@@ -94,6 +143,7 @@ export function AdminPartnerMessagePanel({ partner }: Props) {
           partnerId: partner.id,
           topic: existing.topic,
           body: text,
+          attachments: attachmentIds.map((evidenceId) => ({ evidenceId })),
         });
         threadId = existing.id;
       } else {
@@ -103,11 +153,13 @@ export function AdminPartnerMessagePanel({ partner }: Props) {
           body: text,
           topic,
           subject: `Message from Finely · ${partnerName}`,
+          attachments: attachmentIds.map((evidenceId) => ({ evidenceId })),
         });
         threadId = thread.id;
       }
       recordAdminDelivery(partner.id, 'partner_message');
       setBody('');
+      setAttachmentIds([]);
       setNotice(`Message sent — ${partnerName} will see it in portal Team chat when they log in.`);
       openCommunicationHub({
         tab: 'team',
@@ -165,13 +217,25 @@ export function AdminPartnerMessagePanel({ partner }: Props) {
       <div className="grid sm:grid-cols-2 gap-3">
         <label className="sm:col-span-2">
           <span className={FINELY_OS_ENTITY_LABEL}>Message to {partnerName}</span>
-          <textarea
-            value={body}
-            onChange={(e) => setBody(e.target.value)}
-            rows={4}
-            placeholder={defaultPartnerWelcomeMessage(partnerName)}
-            className={`${FINELY_OS_ENTITY_INPUT} resize-y min-h-[100px]`}
-          />
+          <div className="mt-2">
+            <FinelyChatComposeBox
+              value={body}
+              onChange={setBody}
+              onSubmit={() => void sendMessage()}
+              placeholder={defaultPartnerWelcomeMessage(partnerName)}
+              busy={busy}
+              disabled={busy}
+              submitLabel="Send message"
+              onUploadFile={(file) => uploadAttachment(file)}
+              uploadBusy={uploadBusy}
+              uploadError={uploadErr}
+              attachments={vaultAttachments}
+              selectedAttachmentIds={attachmentIds}
+              onToggleAttachment={(id) =>
+                setAttachmentIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]))
+              }
+            />
+          </div>
         </label>
         <label>
           <span className={FINELY_OS_ENTITY_LABEL}>Topic</span>
@@ -193,7 +257,7 @@ export function AdminPartnerMessagePanel({ partner }: Props) {
 
       <div className="flex flex-wrap gap-2">
         <button type="button" disabled={busy || !body.trim()} onClick={() => void sendMessage()} className={FINELY_OS_PRIMARY_BTN}>
-          <Send size={14} /> {busy ? 'Sending…' : 'Send message to partner'}
+          <Send size={14} /> {busy ? 'Sending…' : 'Send to partner inbox'}
         </button>
         <button type="button" onClick={() => navigate(`/admin/support?partner=${partner.id}`)} className={FINELY_OS_SECONDARY_BTN}>
           Support inbox

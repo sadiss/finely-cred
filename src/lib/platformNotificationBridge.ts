@@ -61,12 +61,18 @@ function handleEvent(event: PlatformEvent) {
   }
 
   if (event.type === 'chat.message_received') {
+    const threadId = typeof payload.threadId === 'string' ? payload.threadId : null;
+    const partnerHref = partnerId && threadId
+      ? `/admin/support?partner=${partnerId}&thread=${threadId}`
+      : '/admin/support?source=meta';
     createNotification({
       audience: 'admin',
       kind: 'support_message',
-      title: 'Inbound message',
+      title: payload.fromPartner ? `📥 Partner message` : `📤 Team message`,
       body: String(payload.preview ?? payload.text ?? 'New thread activity'),
-      href: '/admin/support?source=meta',
+      href: partnerHref,
+      partnerId,
+      meta: { threadId, direction: payload.fromPartner ? 'inbound' : 'outbound' },
     });
   }
 
@@ -165,6 +171,72 @@ function handleEvent(event: PlatformEvent) {
       title: 'Task result recorded',
       body: String(payload.actualResult).slice(0, 120),
       href: '/admin/workflow',
+    });
+  }
+
+  if (event.type === 'partner.invite_sent' && partnerId) {
+    createNotification({
+      audience: 'admin',
+      kind: 'system',
+      title: 'Invite sent',
+      body: `${payload.name ?? 'Partner'} · ${payload.email ?? 'invite delivered'}`,
+      href: `/admin/partners/${partnerId}`,
+      meta: { partnerId },
+    });
+  }
+
+  if (event.type === 'partner.signup_completed' && partnerId) {
+    createNotification({
+      audience: 'admin',
+      kind: 'system',
+      title: 'New signup completed',
+      body: `${payload.name ?? 'Partner'} created an account${payload.pendingEmailConfirmation ? ' — awaiting email confirmation' : ' and set a password'}.`,
+      href: `/admin/partners/${partnerId}`,
+      meta: { partnerId },
+    });
+  }
+
+  if (event.type === 'partner.account_claimed' && partnerId) {
+    createNotification({
+      audience: 'admin',
+      kind: 'system',
+      title: 'Account linked',
+      body: `${payload.name ?? 'Partner'} finished linking their login to their profile.`,
+      href: `/admin/partners/${partnerId}`,
+      meta: { partnerId },
+    });
+  }
+
+  if (event.type === 'auth.signed_in' && partnerId) {
+    createNotification({
+      audience: 'admin',
+      kind: 'system',
+      title: 'First sign-in',
+      body: `${payload.name ?? 'Partner'} signed in for the first time.`,
+      href: `/admin/partners/${partnerId}`,
+      meta: { partnerId },
+    });
+  }
+
+  if (event.type === 'auth.email_confirmed' && partnerId) {
+    createNotification({
+      audience: 'admin',
+      kind: 'system',
+      title: 'Email confirmed',
+      body: `${payload.name ?? 'Partner'} confirmed their email address.`,
+      href: `/admin/partners/${partnerId}`,
+      meta: { partnerId },
+    });
+  }
+
+  if (event.type === 'auth.password_reset_completed' && partnerId) {
+    createNotification({
+      audience: 'admin',
+      kind: 'system',
+      title: 'Password reset complete',
+      body: `${payload.name ?? 'Partner'} set a new password successfully.`,
+      href: `/admin/partners/${partnerId}`,
+      meta: { partnerId },
     });
   }
 }

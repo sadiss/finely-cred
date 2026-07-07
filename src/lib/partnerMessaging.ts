@@ -1,5 +1,5 @@
 import { createThread, addThreadMessage } from '../data/supportRepo';
-import type { SupportTopic } from '../domain/support';
+import type { SupportMessage, SupportTopic } from '../domain/support';
 import { resolveTeamContact } from './staffMessagingContacts';
 
 export function sendPartnerOutreachMessage(args: {
@@ -10,6 +10,7 @@ export function sendPartnerOutreachMessage(args: {
   staffIds?: string[];
   subject?: string;
   fromAdmin?: boolean;
+  attachments?: SupportMessage['attachments'];
 }) {
   const body = args.body.trim();
   if (!body) throw new Error('Message body is required.');
@@ -33,6 +34,7 @@ export function sendPartnerOutreachMessage(args: {
     initialMessage: {
       fromPartner: false,
       body,
+      attachments: args.attachments,
     },
   });
 
@@ -44,6 +46,7 @@ export function appendPartnerOutreachMessage(args: {
   partnerId: string;
   topic: SupportTopic;
   body: string;
+  attachments?: SupportMessage['attachments'];
 }) {
   return addThreadMessage({
     threadId: args.threadId,
@@ -51,6 +54,7 @@ export function appendPartnerOutreachMessage(args: {
     topic: args.topic,
     fromPartner: false,
     body: args.body,
+    attachments: args.attachments,
   });
 }
 

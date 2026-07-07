@@ -215,8 +215,12 @@ export const EMOJI_CATEGORIES: { label: string; emojis: string[] }[] = [
 /** Premium / luxury emoji strip surfaced first in team chat. */
 export const PREMIUM_EMOJI_CATEGORIES: { label: string; emojis: string[] }[] = [
   {
-    label: 'Premium ✨',
-    emojis: ['✨', '💎', '👑', '🏆', '🥇', '🌟', '💫', '🔥', '💯', '⭐', '🎯', '🚀', '💼', '🤝', '❤️‍🔥', '💝', '🎁', '🎊', '🎉', '🥂'],
+    label: '2026 Premium ✨',
+    emojis: [
+      '✨', '💎', '👑', '🏆', '🥇', '🌟', '💫', '🔥', '💯', '⭐',
+      '🎯', '🚀', '💼', '🤝', '❤️‍🔥', '💝', '🎁', '🎊', '🎉', '🥂',
+      '🫶', '🩷', '🩵', '🩶', '🫡', '🫨', '🐦‍🔥', '🪩', '🛡️', '🧿',
+    ],
   },
   {
     label: 'Credit & finance',

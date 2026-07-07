@@ -40,6 +40,11 @@ export default function ResetPasswordPage() {
     try {
       const res = await auth.updatePassword(password);
       if (res.error) throw new Error(res.error);
+      if (auth.user) {
+        const { findPartnerForAuthUser, trackPartnerPasswordUpdated } = await import('../lib/partnerAuthActivity');
+        const partner = await findPartnerForAuthUser(auth.user);
+        if (partner) await trackPartnerPasswordUpdated({ partner, via: 'reset' }).catch(() => null);
+      }
       setDone(true);
       window.setTimeout(() => navigate('/login?auth=login'), 2500);
     } catch (e: unknown) {

@@ -23,7 +23,7 @@ import { getBlobUrl } from '../../storage/getBlobUrl';
 import { getBlobStore } from '../../storage/getBlobStore';
 import { newId } from '../../utils/ids';
 import type { EvidenceItem } from '../../domain/evidence';
-import { EMOJI_CATEGORIES, EMOJI_LIST, PREMIUM_EMOJI_CATEGORIES } from './emojiData';
+import { FinelyPremiumEmojiPicker } from './FinelyPremiumEmojiPicker';
 import { callAiGateway } from '../../lib/aiClient';
 import { extractFirstJsonObject } from '../../utils/jsonExtract';
 import { getChatSettings } from '../../data/settingsRepo';
@@ -141,7 +141,6 @@ export function HubTeamChatPanel({ partnerId, partnerDisplayName, compact, initi
   const [replyBody, setReplyBody] = useState('');
   const [replyAttachments, setReplyAttachments] = useState<string[]>([]);
   const [emojiOpen, setEmojiOpen] = useState<null | 'new' | 'reply'>(null);
-  const [emojiQuery, setEmojiQuery] = useState('');
   const [gifOpen, setGifOpen] = useState<null | 'new' | 'reply'>(null);
   const [gifQuery, setGifQuery] = useState('');
   const [gifBusy, setGifBusy] = useState(false);
@@ -419,53 +418,10 @@ export function HubTeamChatPanel({ partnerId, partnerDisplayName, compact, initi
 
   const EmojiPicker = ({ mode }: { mode: 'new' | 'reply' }) =>
     emojiOpen === mode ? (
-      <div className="rounded-xl border border-fuchsia-500/20 bg-gradient-to-b from-fuchsia-500/[0.06] to-[#0a0f0d] p-3 mt-2 max-h-52 overflow-y-auto">
-        <input
-          value={emojiQuery}
-          onChange={(e) => setEmojiQuery(e.target.value)}
-          placeholder="Search emojis…"
-          className="w-full mb-2 bg-fc-input border border-white/[0.08] rounded-lg px-2 py-1.5 text-white text-xs"
-        />
-        {!emojiQuery &&
-          PREMIUM_EMOJI_CATEGORIES.map((cat) => (
-            <div key={cat.label} className="mb-3">
-              <span className="text-[9px] uppercase tracking-widest text-fuchsia-300/80 font-black">{cat.label}</span>
-              <div className="grid grid-cols-10 gap-0.5 mt-1">
-                {cat.emojis.map((em, idx) => (
-                  <button
-                    key={`${cat.label}_${em}_${idx}`}
-                    type="button"
-                    onClick={() => insertAtCursor(mode, `${em} `)}
-                    className="w-8 h-8 rounded-lg hover:bg-fuchsia-500/15 text-lg transition-all hover:scale-110"
-                  >
-                    {em}
-                  </button>
-                ))}
-              </div>
-            </div>
-          ))}
-        <div className="flex gap-1 flex-wrap mb-2">
-          {EMOJI_CATEGORIES.slice(0, 4).map((cat) => (
-            <span key={cat.label} className="text-[9px] uppercase text-white/40 w-full mt-1">
-              {cat.label}
-            </span>
-          ))}
-        </div>
-        <div className="grid grid-cols-8 gap-1">
-          {(emojiQuery ? EMOJI_LIST.filter((x) => x.includes(emojiQuery)) : EMOJI_LIST)
-            .slice(0, emojiQuery ? 120 : 72)
-            .map((em, idx) => (
-              <button
-                key={`${em}_${idx}`}
-                type="button"
-                onClick={() => insertAtCursor(mode, `${em} `)}
-                className="w-8 h-8 rounded-lg hover:bg-white/10 text-lg"
-              >
-                {em}
-              </button>
-            ))}
-        </div>
-      </div>
+      <FinelyPremiumEmojiPicker
+        className="mt-2"
+        onPick={(emoji) => insertAtCursor(mode, emoji)}
+      />
     ) : null;
 
   if (!partnerId) {
