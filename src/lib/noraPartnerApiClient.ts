@@ -41,11 +41,11 @@ async function invokePartnerApi<T>(body: Record<string, unknown>): Promise<NoraA
       ok: false,
       error: 'Supabase not configured — set VITE_SUPABASE_URL and anon key.',
       hint: 'Configure environment variables before calling the Nora funding API.',
-    };
+    } as unknown as NoraApiEnvelope<T>;
   }
   const { data, error } = await supabase.functions.invoke('finely-partner-api', { body });
   if (error) {
-    return { ok: false, error: error.message, hint: 'Edge function invoke failed — check auth and deployment.' };
+    return { ok: false, error: error.message, hint: 'Edge function invoke failed — check auth and deployment.' } as unknown as NoraApiEnvelope<T>;
   }
   return (data ?? { ok: false, error: 'Empty response' }) as NoraApiEnvelope<T>;
 }
