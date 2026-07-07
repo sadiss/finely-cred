@@ -485,8 +485,13 @@ export default function PartnerDashboardPage() {
             letterCount={letters.length}
             onApply={() => {
               void submitPartnerFundingHandoff(partner).then((r) => {
-                if (r.ok) refresh();
-                else window.alert(r.error ?? 'Funding handoff failed.');
+                if (r.ok) {
+                  refresh();
+                  const next = r.doThisNext?.length ? `\n\nNext:\n• ${r.doThisNext.join('\n• ')}` : '';
+                  window.alert(`${r.title}\n\n${r.message}${next}`);
+                } else {
+                  window.alert(`${r.title || 'Funding handoff'}\n\n${r.message || r.error}${r.hint ? `\n\n${r.hint}` : ''}`);
+                }
               });
             }}
           />

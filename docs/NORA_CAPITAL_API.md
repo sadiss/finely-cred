@@ -19,6 +19,7 @@ Finely Cred does **not** rebuild loan origination. Nora Capital Group owns origi
 | `NORA_CAPITAL_API_KEY` | Outbound auth to Nora |
 | `NORA_CAPITAL_ALLOWED_PATHS_JSON` | Allowlist for outbound paths |
 | `NORA_CAPITAL_WEBHOOK_SECRET` | Verify inbound webhook HMAC |
+| `FINELY_CRED_WEBHOOK_SECRET` | Outbound dossier push signature to Nora `/v1/partners/finelycred/webhook` |
 | `FINELY_PARTNER_API_KEYS_JSON` | Nora-authenticated readiness API keys |
 
 ## Outbound — `nora-capital`
@@ -40,6 +41,7 @@ Default allowlisted paths (extend via env):
 
 - `/ping`
 - `/v1/applications`
+- `/v1/partners/finelycred/webhook`
 - `/v1/applications/:id`
 
 ## Partner readiness payload (Tier 382)
@@ -135,7 +137,98 @@ Returns `executiveSummary`, `topPriorities`, detailed `suggestions[]` (title, ra
 { "action": "partner.enriched_profile", "partnerId": "partner_…" }
 ```
 
-Client helpers: `noraMlAdvisory`, `noraMlFundingPath`, `noraMlDisputeStrategy`, `noraMlPipelineInsights`, `noraPartnerEnrichedProfile`.
+Client helpers: `noraMlAdvisory`, `noraMlFundingPath`, `noraMlDisputeStrategy`, `noraMlPipelineInsights`, `noraPartnerEnrichedProfile`, `noraPartnerFundingDossierV5`, `noraPartnerFundingDossierPush`.
+
+## Partner API v6 — Funding dossier (full credit + debt + documents)
+
+The **funding API v6** is the primary Nora Capital handoff. It is designed to be **fast when you need a snapshot** and **complete when you need underwriting depth**.
+
+### Recommended flow
+
+1. `partner.funding_brief` — CRM card / mobile (~200ms)
+2. `partner.funding_dossier_v6` — full file (`sections: "full"` or subset)
+3. `partner.funding_dossier_push` — deliver to Nora webhook
+
+### Fast brief (dashboard)
+
+```json
+{ "action": "partner.funding_brief", "partnerId": "partner_…" }
+```
+
+Returns `brief` (scorecard, verdict, doThisNext), `lenderReadiness`, `nextSteps`, `compliance` — no ML, no full tradeline dump.
+
+### Full dossier v6
+
+```json
+{
+  "action": "partner.funding_dossier_v6",
+  "partnerId": "partner_…",
+  "sections": "full",
+  "includeMl": true
+}
+```
+
+**Section filter** (efficient pulls): `"brief"` | `"credit,debt"` | `["disputes","evidence"]` | `"full"`
+
+### Push to Nora
+
+```json
+{
+  "action": "partner.funding_dossier_push",
+  "partnerId": "partner_…",
+  "clientId": "nora_firebase_uid",
+  "force": false
+}
+```
+
+Retries 3× with idempotency. Returns `brief`, `lenderReadiness`, `compliance`, `message`.
+
+### Ops batch
+
+```json
+{ "action": "partner.funding_queue", "limit": 25, "minScore": 65 }
+{ "action": "partner.batch_dossier_push", "limit": 5, "minScore": 70 }
+```
+
+### API playbook (human guide)
+
+```json
+{ "action": "api.playbook" }
+{ "action": "api.playbook", "topic": "partner.funding_dossier_push" }
+```
+
+### v6 sections
+
+| Section | Contents |
+|---------|----------|
+| `executiveBrief` | Scorecard, verdict, doThisNext, lender snapshot |
+| `lenderReadiness` | Approve track / conditional / restore-first + weeks estimate |
+| `credit` | Scores, tradelines, utilization, inquiries, public records |
+| `disputes` | Cases, letters, dispute candidates, creditor contacts |
+| `debt` | Collections, bankruptcy from report, debt signals |
+| `evidence` | Classified vault documents |
+| `compliance` | Checklist score + export-ready flag |
+| `timeline` | Reports, letters, cases, evidence, auth, funding events |
+| `workTasks` | Open Bridge/restore tasks |
+| `mlAdvisory` | Executive summary, funding path, dispute strategy |
+
+Client helpers: `noraPartnerFundingBrief`, `noraPartnerFundingDossierV6`, `noraPartnerFundingDossierPush`, `noraPartnerFundingQueue`, `previewPartnerFundingBrief`, `submitPartnerFundingHandoff`.
+
+### Nora-side retrieval
+
+After push, dossiers are in Firestore `finelyCredDossiers`:
+
+- `GET /v1/partners/finelycred/dossiers?clientId=&limit=20`
+- `GET /v1/partners/finelycred/dossiers/:exportId`
+
+## Partner API v5 — Funding dossier (legacy)
+
+Still supported. Prefer v6 for new integrations.
+
+```json
+{ "action": "partner.funding_dossier_v5", "partnerId": "partner_…" }
+```
+
 
 ## Partner API v3 (Nora Capital Group — extended)
 

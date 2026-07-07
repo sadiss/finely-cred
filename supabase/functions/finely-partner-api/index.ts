@@ -9,6 +9,18 @@ import { buildPartnerMlAdvisory, buildPartnerMlContext } from '../_shared/ncgMlE
 import { buildCreditProgram, assertPacketExportAllowed } from '../_shared/finelyBridgeCreditProgram.ts';
 import { buildBridgeOpsSnapshot, handleFundReadyBridgeHandoff } from '../_shared/finelyBridgeHandoff.ts';
 import { buildUnderwritingPacketV2 } from '../_shared/underwritingPacketV2.ts';
+import { buildNoraFundingDossierV5 } from '../_shared/noraFundingDossierV5.ts';
+import { buildNoraFundingDossierV6 } from '../_shared/noraFundingDossierV6.ts';
+import {
+  filterDossierBySections,
+  NORA_API_PLAYBOOK,
+  NORA_FUNDING_API_VERSION,
+  noraApiError,
+  noraApiSuccess,
+  parseSectionsInput,
+  type NoraApiMeta,
+} from '../_shared/noraFundingApiEnvelope.ts';
+import { pushNoraFundingDossier } from '../_shared/noraDossierPush.ts';
 import { corsHeaders } from '../_shared/cors.ts';
 import { getClientIp, json, logEdgeEvent, rateLimit, requireAllowlistedEmail, requireAuth, requireEnv } from '../_shared/edgeGuard.ts';
 
@@ -59,7 +71,14 @@ type Body =
   | { action: 'partner.credit_program'; partnerId?: string; email?: string }
   | { action: 'partner.underwriting_packet_v2'; partnerId?: string; email?: string; adminOverride?: boolean }
   | { action: 'bridge.fund_ready'; partnerId?: string; email?: string; force?: boolean }
-  | { action: 'bridge.ops_snapshot'; limit?: number };
+  | { action: 'bridge.ops_snapshot'; limit?: number }
+  | { action: 'partner.funding_dossier_v5'; partnerId?: string; email?: string; includeMl?: boolean; adminOverride?: boolean }
+  | { action: 'partner.funding_dossier_v6'; partnerId?: string; email?: string; includeMl?: boolean; adminOverride?: boolean; sections?: string | string[] }
+  | { action: 'partner.funding_brief'; partnerId?: string; email?: string }
+  | { action: 'partner.funding_dossier_push'; partnerId?: string; email?: string; clientId?: string; force?: boolean; includeMl?: boolean; sections?: string | string[] }
+  | { action: 'partner.funding_queue'; limit?: number; minScore?: number }
+  | { action: 'partner.batch_dossier_push'; limit?: number; minScore?: number; force?: boolean; includeMl?: boolean }
+  | { action: 'api.playbook'; topic?: string };
 
 function buildReadiness(partner: any) {
   const signals = partner.journey_signals && typeof partner.journey_signals === 'object' ? partner.journey_signals : {};
@@ -125,21 +144,43 @@ Deno.serve(async (req) => {
 
   const action = (body as any)?.action;
   if (action === 'health') {
-    return json({ ok: true, service: 'finely-partner-api', version: 'v4', at: new Date().toISOString() });
+    return json({
+      ok: true,
+      service: 'finely-partner-api',
+      version: NORA_FUNDING_API_VERSION,
+      fundingApi: true,
+      at: new Date().toISOString(),
+      hint: 'POST { action: "api.playbook" } for human-friendly action guide.',
+    });
+  }
+
+  if (action === 'api.playbook') {
+    const topic = String((body as any).topic || '').trim();
+    if (topic && NORA_API_PLAYBOOK[topic]) {
+      return json({ ok: true, version: NORA_FUNDING_API_VERSION, playbook: { [topic]: NORA_API_PLAYBOOK[topic] } });
+    }
+    return json({ ok: true, version: NORA_FUNDING_API_VERSION, playbook: NORA_API_PLAYBOOK });
   }
 
   if (action === 'api.catalog') {
     return json({
       ok: true,
-      version: 'v4',
+      version: NORA_FUNDING_API_VERSION,
       actions: [
         'health',
         'api.catalog',
+        'api.playbook',
         'partner.readiness',
         'partner.full_profile',
         'partner.enriched_profile',
         'partner.evidence_manifest',
         'partner.funding_intent',
+        'partner.funding_brief',
+        'partner.funding_dossier_v5',
+        'partner.funding_dossier_v6',
+        'partner.funding_dossier_push',
+        'partner.funding_queue',
+        'partner.batch_dossier_push',
         'vault.intel_feed',
         'roles.recognize',
         'lead.capture',
@@ -157,12 +198,27 @@ Deno.serve(async (req) => {
         'voice.render',
       ],
       tenants: ['finely_cred', 'nora_capital'],
+      recommendedFlow: [
+        '1. partner.funding_brief — fast CRM card',
+        '2. partner.funding_dossier_v6 — full file (sections: brief | full)',
+        '3. partner.funding_dossier_push — send to Nora webhook',
+      ],
       mlCapabilities: [
         'Executive readiness summary with prioritized action plan',
         'Per-partner dispute strategy (round discipline, focus areas)',
         'Funding path sequencing with estimated timelines',
         'Pipeline-wide insights for NCG ops (aggregate blockers)',
         'OpenAI-powered suggestions with heuristic fallback',
+      ],
+      dossierCapabilities: [
+        'v6 executive brief + funding scorecard (credit, disputes, docs, identity, debt)',
+        'Lender readiness verdict with strengths, risks, estimated weeks',
+        'Full credit intel — scores, tradelines, utilization, inquiries, public records',
+        'Dispute cases, letters, dispute candidates, creditor contacts',
+        'Evidence classification, compliance checklist, timeline, work tasks',
+        'Section filtering for efficient pulls — sections: "brief" | "credit,debt" | "full"',
+        'Batch queue + push for NCG ops — partner.funding_queue, partner.batch_dossier_push',
+        'Retry + idempotency on Nora webhook push',
       ],
     });
   }
@@ -359,6 +415,248 @@ Deno.serve(async (req) => {
       evidenceCount: counts.evidenceCount,
     });
     return json({ ok: true, packet });
+  }
+
+  if (
+    action === 'partner.funding_brief' ||
+    action === 'partner.funding_dossier_v5' ||
+    action === 'partner.funding_dossier_v6' ||
+    action === 'partner.funding_dossier_push'
+  ) {
+    const started = Date.now();
+    const partnerId = String((body as any).partnerId || '').trim();
+    const email = String((body as any).email || '').trim().toLowerCase();
+    if (!partnerId && !email) {
+      return json(noraApiError(action, 'missing_partner', 'partnerId or email is required', 'Pass partnerId from Finely Cred or the partner email address.'), { status: 400 });
+    }
+    try {
+      const data = await fetchPartner(partnerId || undefined, email || undefined);
+      if (!data) {
+        return json(noraApiError(action, 'partner_not_found', 'Partner not found', 'Verify partnerId/email and that the record exists in Finely Cred.'), { status: 404 });
+      }
+
+      const readiness = buildReadiness(data);
+      const counts = await fetchPartnerCounts(data.id);
+      const creditProgram = buildCreditProgram({
+        partner: data,
+        readinessScore: readiness.readinessScore,
+        letterCount: counts.letterCount,
+        reportCount: counts.reportCount,
+      });
+
+      const sections = action === 'partner.funding_brief'
+        ? parseSectionsInput('brief')
+        : parseSectionsInput((body as any).sections ?? 'full');
+      const includeMl = action === 'partner.funding_brief'
+        ? false
+        : (body as any).includeMl !== false;
+
+      if (action === 'partner.funding_dossier_push') {
+        const gate = assertPacketExportAllowed(creditProgram, Boolean((body as any).adminOverride) || Boolean((body as any).force));
+        if (!gate.ok && !(body as any).force) {
+          return json(noraApiError(action, 'export_gate_closed', gate.blocker || 'Export gate closed', 'Complete fund-ready milestones or pass force:true for admin override.', { exportGate: creditProgram }), { status: 403 });
+        }
+      }
+
+      const dossier = action === 'partner.funding_dossier_v5'
+        ? await buildNoraFundingDossierV5({ admin, partner: data, includeMl })
+        : await buildNoraFundingDossierV6({ admin, partner: data, includeMl });
+
+      const meta: NoraApiMeta = {
+        version: NORA_FUNDING_API_VERSION,
+        action,
+        partnerId: data.id,
+        exportId: (dossier as { exportId?: string }).exportId,
+        durationMs: Date.now() - started,
+        sections,
+        includeMl,
+      };
+
+      if (action === 'partner.funding_brief') {
+        const v6 = dossier as Awaited<ReturnType<typeof buildNoraFundingDossierV6>>;
+        return json(noraApiSuccess({
+          action,
+          partnerId: data.id,
+          meta,
+          data: {
+            brief: v6.executiveBrief,
+            lenderReadiness: v6.lenderReadiness,
+            nextSteps: v6.nextSteps.slice(0, 6),
+            compliance: { score: v6.compliance.score, exportReady: v6.compliance.exportReady },
+          },
+        }));
+      }
+
+      const filtered = filterDossierBySections(dossier as Record<string, unknown>, sections);
+      meta.payloadBytes = JSON.stringify(filtered).length;
+
+      if (action === 'partner.funding_dossier_v5' || action === 'partner.funding_dossier_v6') {
+        return json(noraApiSuccess({ action, partnerId: data.id, meta, data: { dossier: filtered } }));
+      }
+
+      const push = await pushNoraFundingDossier({
+        dossier: dossier as Awaited<ReturnType<typeof buildNoraFundingDossierV6>>,
+        clientId: String((body as any).clientId || '').trim() || undefined,
+        idempotencyKey: (dossier as { exportId?: string }).exportId,
+      });
+
+      if (!push.ok) {
+        return json({
+          ...noraApiError(action, push.errorCode || 'push_failed', push.error || 'Dossier push failed', push.hint, { push, dossier: filtered }),
+          status: push.status,
+        }, { status: 502 });
+      }
+
+      const now = new Date().toISOString();
+      const signals = data.journey_signals && typeof data.journey_signals === 'object' ? { ...data.journey_signals } : {};
+      const v6 = dossier as Awaited<ReturnType<typeof buildNoraFundingDossierV6>>;
+      signals.fundingDossierV6 = {
+        exportId: v6.exportId,
+        pushedAt: now,
+        noraEventId: push.eventId ?? null,
+        readinessScore: v6.readiness.score,
+        verdict: v6.resultsSummary.fundingReadinessVerdict,
+        lenderVerdict: v6.lenderReadiness.verdict,
+        complianceScore: v6.compliance.score,
+      };
+
+      await admin.from('partners').update({
+        journey_signals: signals,
+        funding_stage: data.funding_stage === 'not_ready' ? 'submitted' : data.funding_stage,
+        funding_meta: {
+          ...(data.funding_meta ?? {}),
+          dossierExportId: v6.exportId,
+          dossierPushedAt: now,
+          noraEventId: push.eventId ?? null,
+          dossierVersion: 6,
+        },
+        updated_at: now,
+      }).eq('id', data.id);
+
+      await logEdgeEvent({
+        namespace: 'finely-partner-api',
+        level: 'info',
+        event: 'partner.funding_dossier_push',
+        meta: { partnerId: data.id, exportId: v6.exportId, noraEventId: push.eventId, attempts: push.attempts },
+      });
+
+      meta.durationMs = Date.now() - started;
+      return json(noraApiSuccess({
+        action,
+        partnerId: data.id,
+        meta,
+        data: {
+          exportId: v6.exportId,
+          push,
+          brief: v6.executiveBrief,
+          lenderReadiness: v6.lenderReadiness,
+          nextSteps: v6.nextSteps.slice(0, 8),
+          compliance: v6.compliance,
+          message: 'Dossier delivered to Nora Capital. Review Bridge queue for underwriting tasks.',
+        },
+      }));
+    } catch (e) {
+      return json(noraApiError(action, 'server_error', (e as Error).message, 'Check Supabase logs for finely-partner-api.'), { status: 500 });
+    }
+  }
+
+  if (action === 'partner.funding_queue') {
+    const started = Date.now();
+    const limit = Math.min(50, Math.max(1, Number((body as any).limit ?? 25)));
+    const minScore = Math.max(0, Number((body as any).minScore ?? 65));
+    const { data: partners, error } = await admin.from('partners').select('*').order('updated_at', { ascending: false }).limit(200);
+    if (error) return json(noraApiError(action, 'query_failed', error.message), { status: 500 });
+
+    const queue: Array<Record<string, unknown>> = [];
+    for (const p of partners ?? []) {
+      const r = buildReadiness(p);
+      const counts = await fetchPartnerCounts(p.id);
+      if (r.readinessScore < minScore || counts.reportCount === 0) continue;
+      const profile = p.profile ?? {};
+      queue.push({
+        partnerId: p.id,
+        fullName: profile.fullName ?? profile.full_name ?? null,
+        email: profile.email ?? null,
+        readinessScore: r.readinessScore,
+        fundingStage: p.funding_stage ?? r.fundingStage,
+        journeyStage: p.journey_stage,
+        reportCount: counts.reportCount,
+        letterCount: counts.letterCount,
+        blockers: r.blockers,
+        suggestedAction: r.readinessScore >= 70 ? 'partner.funding_dossier_push' : 'partner.funding_brief',
+      });
+      if (queue.length >= limit) break;
+    }
+
+    queue.sort((a, b) => Number(b.readinessScore) - Number(a.readinessScore));
+    return json(noraApiSuccess({
+      action,
+      partnerId: 'pipeline',
+      meta: { version: NORA_FUNDING_API_VERSION, action, partnerId: 'pipeline', durationMs: Date.now() - started, sections: [], includeMl: false },
+      data: { queue, count: queue.length, minScore },
+    }));
+  }
+
+  if (action === 'partner.batch_dossier_push') {
+    const started = Date.now();
+    const limit = Math.min(10, Math.max(1, Number((body as any).limit ?? 3)));
+    const minScore = Math.max(0, Number((body as any).minScore ?? 70));
+    const force = Boolean((body as any).force);
+    const includeMl = (body as any).includeMl !== false;
+
+    const { data: partners, error } = await admin.from('partners').select('*').order('updated_at', { ascending: false }).limit(150);
+    if (error) return json(noraApiError(action, 'query_failed', error.message), { status: 500 });
+
+    const results: Array<Record<string, unknown>> = [];
+    for (const p of partners ?? []) {
+      if (results.length >= limit) break;
+      const r = buildReadiness(p);
+      const counts = await fetchPartnerCounts(p.id);
+      if (r.readinessScore < minScore || counts.reportCount === 0) continue;
+
+      const creditProgram = buildCreditProgram({ partner: p, readinessScore: r.readinessScore, letterCount: counts.letterCount, reportCount: counts.reportCount });
+      const gate = assertPacketExportAllowed(creditProgram, force);
+      if (!gate.ok && !force) {
+        results.push({ partnerId: p.id, ok: false, skipped: true, reason: gate.blocker });
+        continue;
+      }
+
+      try {
+        const dossier = await buildNoraFundingDossierV6({ admin, partner: p, includeMl });
+        const push = await pushNoraFundingDossier({ dossier, idempotencyKey: dossier.exportId });
+        results.push({
+          partnerId: p.id,
+          ok: push.ok,
+          exportId: dossier.exportId,
+          brief: dossier.executiveBrief,
+          push,
+          error: push.ok ? undefined : push.error,
+        });
+        if (push.ok) {
+          const signals = p.journey_signals && typeof p.journey_signals === 'object' ? { ...p.journey_signals } : {};
+          signals.fundingDossierV6 = { exportId: dossier.exportId, pushedAt: new Date().toISOString(), noraEventId: push.eventId };
+          await admin.from('partners').update({
+            journey_signals: signals,
+            funding_stage: p.funding_stage === 'not_ready' ? 'submitted' : p.funding_stage,
+            updated_at: new Date().toISOString(),
+          }).eq('id', p.id);
+        }
+      } catch (e) {
+        results.push({ partnerId: p.id, ok: false, error: (e as Error).message });
+      }
+    }
+
+    const succeeded = results.filter((r) => r.ok).length;
+    return json(noraApiSuccess({
+      action,
+      partnerId: 'batch',
+      meta: { version: NORA_FUNDING_API_VERSION, action, partnerId: 'batch', durationMs: Date.now() - started, sections: [], includeMl },
+      data: {
+        results,
+        summary: { attempted: results.length, succeeded, failed: results.length - succeeded },
+        message: succeeded > 0 ? `${succeeded} dossier(s) pushed to Nora Capital.` : 'No dossiers pushed — check results for blockers.',
+      },
+    }));
   }
 
   if (action === 'bridge.fund_ready') {

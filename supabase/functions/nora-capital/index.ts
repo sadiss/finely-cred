@@ -50,7 +50,7 @@ function allowedPaths(): Set<string> {
     }
   }
   // Safe defaults (adjust via env to match Nora’s spec).
-  return new Set<string>(['/ping', '/health', '/v1/ping', '/v1/leads', '/v1/applications', '/v1/offers']);
+  return new Set<string>(['/ping', '/health', '/v1/ping', '/v1/leads', '/v1/applications', '/v1/offers', '/v1/partners/finelycred/webhook']);
 }
 
 function buildUrl(baseUrl: string, path: string, query?: ReqBody extends any ? any : any): string {
