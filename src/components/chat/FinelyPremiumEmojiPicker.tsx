@@ -18,12 +18,7 @@ export function FinelyPremiumEmojiPicker({ onPick, className = '' }: Props) {
   }, [query]);
 
   return (
-    <div
-      className={
-        'rounded-2xl border border-fuchsia-500/25 bg-gradient-to-b from-fuchsia-500/[0.08] via-[#0a1210] to-[#070b09] p-3 shadow-[0_18px_50px_-28px_rgba(217,70,239,0.55)] ' +
-        className
-      }
-    >
+    <div className={`rounded-2xl border-2 border-fuchsia-500/30 bg-gradient-to-b from-fuchsia-500/[0.1] via-[#0a1210] to-[#070b09] p-3 shadow-[0_18px_50px_-28px_rgba(217,70,239,0.55)] max-h-56 overflow-y-auto ${className}`}>
       <div className="flex items-center gap-2 mb-3">
         <Sparkles size={14} className="text-fuchsia-300" />
         <span className={FINELY_OS_ENTITY_SUBLABEL}>Premium emoji studio</span>

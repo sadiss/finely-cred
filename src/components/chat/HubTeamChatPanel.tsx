@@ -711,7 +711,7 @@ export function HubTeamChatPanel({ partnerId, partnerDisplayName, compact, initi
         </div>
 
         {selectedThread && (
-          <form onSubmit={handleReply} className="border-t border-white/[0.08] p-3 space-y-2 bg-[#070b09]/95 shrink-0">
+          <form onSubmit={handleReply} className="border-t-2 border-fuchsia-500/20 p-3 space-y-3 bg-[#070b09]/95 shrink-0">
             <div className="flex items-center justify-between gap-2 flex-wrap">
               <span className="text-[10px] text-white/40 truncate">{selectedThread.subject}</span>
               <div className="flex items-center gap-2 flex-wrap">
@@ -818,24 +818,26 @@ export function HubTeamChatPanel({ partnerId, partnerDisplayName, compact, initi
                 ))}
               </div>
             ) : null}
-            <textarea
-              ref={replyRef}
-              value={replyBody}
-              onChange={(e) => setReplyBody(e.target.value)}
-              placeholder="Reply with emojis, files, or GIFs…"
-              rows={compact ? 2 : 3}
-              className="w-full bg-fc-input border border-white/[0.08] rounded-xl px-3 py-2 text-white text-sm resize-none"
-            />
-            <div className="flex flex-wrap items-center gap-2">
-              <button type="button" onClick={() => setEmojiOpen((p) => (p === 'reply' ? null : 'reply'))} className="p-2 rounded-xl border border-white/[0.08] text-white/70">
+            <div className="rounded-2xl border-2 border-amber-400/25 bg-[#151d19] shadow-inner">
+              <textarea
+                ref={replyRef}
+                value={replyBody}
+                onChange={(e) => setReplyBody(e.target.value)}
+                placeholder="Reply with emojis, files, or GIFs…"
+                rows={compact ? 2 : 3}
+                className="w-full bg-transparent border-0 outline-none px-4 py-3 text-white text-sm resize-none min-h-[88px] placeholder:text-white/35"
+              />
+            </div>
+            <div className="rounded-xl border border-white/12 bg-black/35 px-3 py-2.5 flex flex-wrap items-center gap-2">
+              <button type="button" onClick={() => setEmojiOpen((p) => (p === 'reply' ? null : 'reply'))} className="p-2.5 rounded-xl border border-white/15 bg-white/[0.06] text-white/80 hover:border-fuchsia-400/35">
                 <Smile size={14} />
               </button>
               {gifsEnabled && (
-                <button type="button" onClick={() => setGifOpen((p) => (p === 'reply' ? null : 'reply'))} className="p-2 rounded-xl border border-white/[0.08] text-white/70">
+                <button type="button" onClick={() => setGifOpen((p) => (p === 'reply' ? null : 'reply'))} className="p-2.5 rounded-xl border border-white/15 bg-white/[0.06] text-white/80 hover:border-sky-400/35">
                   GIF
                 </button>
               )}
-              <label className="p-2 rounded-xl border border-white/[0.08] text-white/70 cursor-pointer">
+              <label className="p-2.5 rounded-xl border border-white/15 bg-white/[0.06] text-white/80 hover:border-emerald-400/35 cursor-pointer">
                 <UploadCloud size={14} />
                 <input
                   type="file"
