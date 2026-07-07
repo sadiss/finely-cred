@@ -1,10 +1,6 @@
 import type { AgentPersonaId } from '../domain/agentPersonas';
 import type { PortraitGender, StaffMember, StaffShiftBlock } from '../domain/staffMember';
-import { loadJson, saveJson } from './localJsonStore';
 import { STAFF_ROSTER_EXPANSION } from './staffRosterExpansion';
-
-const KEY = 'finely.staffRoster.v2';
-const ROSTER_VERSION = 7;
 
 const WEEKDAY: StaffShiftBlock = { days: [1, 2, 3, 4, 5], startHour: 8, endHour: 17 };
 const WEEKEND: StaffShiftBlock = { days: [0, 6], startHour: 9, endHour: 18 };
@@ -91,10 +87,16 @@ export const STAFF_ROSTER_SEED: StaffMember[] = [
   ...STAFF_ROSTER_EXPANSION,
 ];
 
-type Store = { members: StaffMember[]; version?: number };
+let memoryRoster: StaffMember[] | null = null;
 
-function defaultStore(): Store {
-  return { members: STAFF_ROSTER_SEED, version: ROSTER_VERSION };
+function queueStaffRosterPersist(members: StaffMember[]) {
+  if (typeof window === 'undefined') return;
+  void import('./staffSupabaseSync').then(({ syncStaffRosterToSupabase }) => syncStaffRosterToSupabase({ members }));
+}
+
+export function seedStaffRoster(members: StaffMember[]): StaffMember[] {
+  memoryRoster = mergeRosterFromSeed(members);
+  return memoryRoster;
 }
 
 function mergeRosterFromSeed(existing: StaffMember[]): StaffMember[] {
@@ -116,26 +118,14 @@ function mergeRosterFromSeed(existing: StaffMember[]): StaffMember[] {
 }
 
 export function loadStaffRoster(): StaffMember[] {
-  const legacy = loadJson<{ members?: StaffMember[] }>('finely.staffRoster.v1', { members: [] }, 1);
-  const store = loadJson(KEY, defaultStore(), 1);
-  if (!store.members?.length) {
-    if (legacy.members?.length) {
-      const migrated = mergeRosterFromSeed(legacy.members);
-      saveStaffRoster(migrated);
-      return migrated;
-    }
-    return STAFF_ROSTER_SEED;
-  }
-  if (store.version !== ROSTER_VERSION || store.members.some((m) => !m.portraitGender)) {
-    const migrated = mergeRosterFromSeed(store.members);
-    saveStaffRoster(migrated);
-    return migrated;
-  }
-  return store.members;
+  if (memoryRoster?.length) return memoryRoster;
+  memoryRoster = mergeRosterFromSeed(STAFF_ROSTER_SEED);
+  return memoryRoster;
 }
 
 export function saveStaffRoster(members: StaffMember[]) {
-  saveJson(KEY, { members, version: ROSTER_VERSION }, 1);
+  memoryRoster = mergeRosterFromSeed(members);
+  queueStaffRosterPersist(memoryRoster);
   if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('finely:store'));
 }
 

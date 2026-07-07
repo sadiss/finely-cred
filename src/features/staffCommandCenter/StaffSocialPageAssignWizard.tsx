@@ -28,11 +28,6 @@ export function StaffSocialPageAssignWizard() {
       setNotice('Page not in connected list — connect Meta first.');
       return;
     }
-    const key = `finely.staffSocial.pageMap.v1`;
-    const raw = localStorage.getItem(key);
-    const map: Record<string, { pageId: string; pageName: string; assignedAt: string }> = raw ? JSON.parse(raw) : {};
-    map[staffId] = { pageId: page.pageId, pageName: page.pageName, assignedAt: new Date().toISOString() };
-    localStorage.setItem(key, JSON.stringify(map));
     const next = {
       ...config,
       staffPageAssignments: { ...(config.staffPageAssignments ?? {}), [staffId]: page.pageId },

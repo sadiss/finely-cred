@@ -11,6 +11,8 @@ import { ensureProfessionalCommsTemplatesOnce } from './data/commsProfessionalTe
 import { ensureFunnelSessionCommsTemplates } from './data/commsFunnelSessionSeed'
 import { ensureCoreAutomationRecipesOnce } from './lib/automationRecipeSeeder'
 import { ensureStaffRosterSyncedOnce } from './data/staffSupabaseSync'
+import { ensureHumanStaffSyncedOnce } from './data/humanStaffSupabaseSync'
+import { ensureStaffPlatformStateSyncedOnce } from './data/staffPlatformStateSync'
 import { ensureSocialHubSyncedOnce } from './data/socialHubSupabaseSync'
 import { ensureCommsSyncedOnce } from './data/commsSupabaseSync'
 import { syncEmailWebhooksFromSupabase } from './data/commsWebhookRepo'
@@ -47,6 +49,8 @@ if (!inPreviewFrame()) {
   ensurePremiumCreditAnalysisTemplateOnce()
   ensureCoreAutomationRecipesOnce()
   void ensureStaffRosterSyncedOnce()
+  void ensureStaffPlatformStateSyncedOnce()
+  void ensureHumanStaffSyncedOnce()
   void ensureSocialHubSyncedOnce()
   void ensureCommsSyncedOnce()
   void syncEmailWebhooksFromSupabase()

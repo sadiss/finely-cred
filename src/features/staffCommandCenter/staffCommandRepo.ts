@@ -1,9 +1,9 @@
-import { loadJson, saveJson } from '../../data/localJsonStore';
+import { saveTenantState } from '../../data/tenantStateRepo';
 import type { StaffCommandEvent, StaffCommandSettings, StaffCommandStore, StaffMissionPlan } from './types';
 import { GEO_CLUSTERS, STAFF_DEPARTMENTS } from './staffDirectory';
 import { findStaff, isStaffMemberHydrated } from './staffRoster';
 
-const KEY = 'finely.staff.command.center.v1';
+const STATE_KEY = 'staff_command_center';
 
 const defaultSettings: StaffCommandSettings = {
   defaultView: 'floor',
@@ -43,14 +43,29 @@ function normalizeStaffCommandStore(store: StaffCommandStore): StaffCommandStore
   };
 }
 
+const defaultStore: StaffCommandStore = {
+  settings: defaultSettings,
+  selectedStaffIds: ['professor_apex', 'cmo_prime', 'scout_supreme'],
+  missions: [],
+  events: [],
+};
+
+let memoryStore: StaffCommandStore | null = null;
+
+export function seedStaffCommandStore(store: StaffCommandStore): StaffCommandStore {
+  memoryStore = normalizeStaffCommandStore(store);
+  return memoryStore;
+}
+
 export function loadStaffCommandStore(): StaffCommandStore {
-  const raw = loadJson<StaffCommandStore>(KEY, { settings: defaultSettings, selectedStaffIds: ['professor_apex', 'cmo_prime', 'scout_supreme'], missions: [], events: [] }, 1);
-  return normalizeStaffCommandStore(raw);
+  return memoryStore ?? defaultStore;
 }
 
 export function saveStaffCommandStore(store: StaffCommandStore): StaffCommandStore {
-  saveJson(KEY, store, 1);
-  return store;
+  const normalized = normalizeStaffCommandStore(store);
+  memoryStore = normalized;
+  saveTenantState(STATE_KEY, normalized);
+  return normalized;
 }
 
 export function updateStaffCommandSettings(patch: Partial<StaffCommandSettings>) {
