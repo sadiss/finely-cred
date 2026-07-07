@@ -295,16 +295,31 @@ export async function claimPartnerForUser(args: {
   }
 
   const edgeClaimed = await claimPartnerViaEdge({ partnerId });
-  if (edgeClaimed) return edgeClaimed;
+  if (edgeClaimed) {
+    try {
+      const { trackPartnerAccountClaimed } = await import('../lib/partnerAuthActivity');
+      await trackPartnerAccountClaimed({ partner: edgeClaimed, userId });
+    } catch {
+      // non-blocking
+    }
+    return edgeClaimed;
+  }
 
   if (!isSupabaseConfigured) {
     const email = normalizeEmail(args.email) || existing.profile.email;
-    return upsertPartner({
+    const claimed = await upsertPartner({
       ...existing,
       claimedUserId: userId,
       claimedAt: new Date().toISOString(),
       profile: { ...existing.profile, email: email || existing.profile.email },
     });
+    try {
+      const { trackPartnerAccountClaimed } = await import('../lib/partnerAuthActivity');
+      await trackPartnerAccountClaimed({ partner: claimed, userId });
+    } catch {
+      // non-blocking
+    }
+    return claimed;
   }
 
   return null;

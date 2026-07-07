@@ -23,7 +23,7 @@ import { getBlobUrl } from '../../storage/getBlobUrl';
 import { getBlobStore } from '../../storage/getBlobStore';
 import { newId } from '../../utils/ids';
 import type { EvidenceItem } from '../../domain/evidence';
-import { EMOJI_CATEGORIES, EMOJI_LIST, PREMIUM_EMOJI_CATEGORIES } from './emojiData';
+import { FinelyPremiumEmojiPicker } from './FinelyPremiumEmojiPicker';
 import { callAiGateway } from '../../lib/aiClient';
 import { extractFirstJsonObject } from '../../utils/jsonExtract';
 import { getChatSettings } from '../../data/settingsRepo';
@@ -141,7 +141,6 @@ export function HubTeamChatPanel({ partnerId, partnerDisplayName, compact, initi
   const [replyBody, setReplyBody] = useState('');
   const [replyAttachments, setReplyAttachments] = useState<string[]>([]);
   const [emojiOpen, setEmojiOpen] = useState<null | 'new' | 'reply'>(null);
-  const [emojiQuery, setEmojiQuery] = useState('');
   const [gifOpen, setGifOpen] = useState<null | 'new' | 'reply'>(null);
   const [gifQuery, setGifQuery] = useState('');
   const [gifBusy, setGifBusy] = useState(false);
@@ -419,53 +418,10 @@ export function HubTeamChatPanel({ partnerId, partnerDisplayName, compact, initi
 
   const EmojiPicker = ({ mode }: { mode: 'new' | 'reply' }) =>
     emojiOpen === mode ? (
-      <div className="rounded-xl border border-fuchsia-500/20 bg-gradient-to-b from-fuchsia-500/[0.06] to-[#0a0f0d] p-3 mt-2 max-h-52 overflow-y-auto">
-        <input
-          value={emojiQuery}
-          onChange={(e) => setEmojiQuery(e.target.value)}
-          placeholder="Search emojis…"
-          className="w-full mb-2 bg-fc-input border border-white/[0.08] rounded-lg px-2 py-1.5 text-white text-xs"
-        />
-        {!emojiQuery &&
-          PREMIUM_EMOJI_CATEGORIES.map((cat) => (
-            <div key={cat.label} className="mb-3">
-              <span className="text-[9px] uppercase tracking-widest text-fuchsia-300/80 font-black">{cat.label}</span>
-              <div className="grid grid-cols-10 gap-0.5 mt-1">
-                {cat.emojis.map((em, idx) => (
-                  <button
-                    key={`${cat.label}_${em}_${idx}`}
-                    type="button"
-                    onClick={() => insertAtCursor(mode, `${em} `)}
-                    className="w-8 h-8 rounded-lg hover:bg-fuchsia-500/15 text-lg transition-all hover:scale-110"
-                  >
-                    {em}
-                  </button>
-                ))}
-              </div>
-            </div>
-          ))}
-        <div className="flex gap-1 flex-wrap mb-2">
-          {EMOJI_CATEGORIES.slice(0, 4).map((cat) => (
-            <span key={cat.label} className="text-[9px] uppercase text-white/40 w-full mt-1">
-              {cat.label}
-            </span>
-          ))}
-        </div>
-        <div className="grid grid-cols-8 gap-1">
-          {(emojiQuery ? EMOJI_LIST.filter((x) => x.includes(emojiQuery)) : EMOJI_LIST)
-            .slice(0, emojiQuery ? 120 : 72)
-            .map((em, idx) => (
-              <button
-                key={`${em}_${idx}`}
-                type="button"
-                onClick={() => insertAtCursor(mode, `${em} `)}
-                className="w-8 h-8 rounded-lg hover:bg-white/10 text-lg"
-              >
-                {em}
-              </button>
-            ))}
-        </div>
-      </div>
+      <FinelyPremiumEmojiPicker
+        className="mt-2"
+        onPick={(emoji) => insertAtCursor(mode, emoji)}
+      />
     ) : null;
 
   if (!partnerId) {
@@ -755,7 +711,7 @@ export function HubTeamChatPanel({ partnerId, partnerDisplayName, compact, initi
         </div>
 
         {selectedThread && (
-          <form onSubmit={handleReply} className="border-t border-white/[0.08] p-3 space-y-2 bg-[#070b09]/95 shrink-0">
+          <form onSubmit={handleReply} className="border-t-2 border-fuchsia-500/20 p-3 space-y-3 bg-[#070b09]/95 shrink-0">
             <div className="flex items-center justify-between gap-2 flex-wrap">
               <span className="text-[10px] text-white/40 truncate">{selectedThread.subject}</span>
               <div className="flex items-center gap-2 flex-wrap">
@@ -862,24 +818,26 @@ export function HubTeamChatPanel({ partnerId, partnerDisplayName, compact, initi
                 ))}
               </div>
             ) : null}
-            <textarea
-              ref={replyRef}
-              value={replyBody}
-              onChange={(e) => setReplyBody(e.target.value)}
-              placeholder="Reply with emojis, files, or GIFs…"
-              rows={compact ? 2 : 3}
-              className="w-full bg-fc-input border border-white/[0.08] rounded-xl px-3 py-2 text-white text-sm resize-none"
-            />
-            <div className="flex flex-wrap items-center gap-2">
-              <button type="button" onClick={() => setEmojiOpen((p) => (p === 'reply' ? null : 'reply'))} className="p-2 rounded-xl border border-white/[0.08] text-white/70">
+            <div className="rounded-2xl border-2 border-amber-400/25 bg-[#151d19] shadow-inner">
+              <textarea
+                ref={replyRef}
+                value={replyBody}
+                onChange={(e) => setReplyBody(e.target.value)}
+                placeholder="Reply with emojis, files, or GIFs…"
+                rows={compact ? 2 : 3}
+                className="w-full bg-transparent border-0 outline-none px-4 py-3 text-white text-sm resize-none min-h-[88px] placeholder:text-white/35"
+              />
+            </div>
+            <div className="rounded-xl border border-white/12 bg-black/35 px-3 py-2.5 flex flex-wrap items-center gap-2">
+              <button type="button" onClick={() => setEmojiOpen((p) => (p === 'reply' ? null : 'reply'))} className="p-2.5 rounded-xl border border-white/15 bg-white/[0.06] text-white/80 hover:border-fuchsia-400/35">
                 <Smile size={14} />
               </button>
               {gifsEnabled && (
-                <button type="button" onClick={() => setGifOpen((p) => (p === 'reply' ? null : 'reply'))} className="p-2 rounded-xl border border-white/[0.08] text-white/70">
+                <button type="button" onClick={() => setGifOpen((p) => (p === 'reply' ? null : 'reply'))} className="p-2.5 rounded-xl border border-white/15 bg-white/[0.06] text-white/80 hover:border-sky-400/35">
                   GIF
                 </button>
               )}
-              <label className="p-2 rounded-xl border border-white/[0.08] text-white/70 cursor-pointer">
+              <label className="p-2.5 rounded-xl border border-white/15 bg-white/[0.06] text-white/80 hover:border-emerald-400/35 cursor-pointer">
                 <UploadCloud size={14} />
                 <input
                   type="file"

@@ -91,8 +91,8 @@ export function FinelyBridgeConnectorPanel({ partner, reportCount, letterCount, 
                   onClick: () =>
                     void run('register', async () => {
                       const res = await submitPartnerFundingHandoff(partner);
-                      if (!res.ok) throw new Error(res.error);
-                      setMsg('Wealth registration submitted to Bridge path.');
+                      if (!res.ok) throw new Error(res.message || res.error);
+                      setMsg(res.message || 'Wealth registration submitted to Bridge path.');
                       onPartnerRefresh?.();
                     }),
                 }

@@ -102,6 +102,7 @@ export default function AdminSupportInboxPage() {
   const [reply, setReply] = useState('');
   const sourceFilter = (searchParams.get('source') as 'all' | 'portal' | 'meta' | null) ?? 'all';
   const partnerFilterId = (searchParams.get('partner') || '').trim();
+  const threadFilterId = (searchParams.get('thread') || '').trim();
 
   const setSourceFilter = (next: 'all' | 'portal' | 'meta') => {
     const p = new URLSearchParams(searchParams);
@@ -141,10 +142,14 @@ export default function AdminSupportInboxPage() {
   }, [partnerIds, partnerIndex, q, version, partnerFilterId]);
 
   useEffect(() => {
+    if (threadFilterId) {
+      setSelectedId(threadFilterId);
+      return;
+    }
     if (!partnerFilterId || selectedId) return;
     const first = threads[0];
     if (first) setSelectedId(first.id);
-  }, [partnerFilterId, threads, selectedId]);
+  }, [partnerFilterId, threadFilterId, threads, selectedId]);
 
   const metaThreads = useMemo(() => {
     const all = listMetaInboxThreadSummaries();

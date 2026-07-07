@@ -90,6 +90,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [activeUser?.id, (activeUser as any)?.email, (activeUser as any)?.user_metadata?.email]);
 
   useEffect(() => {
+    const u = activeUser;
+    if (!u?.id) return;
+    const confirmedAt = (u as { email_confirmed_at?: string }).email_confirmed_at;
+    if (!confirmedAt) return;
+    void import('../lib/partnerAuthActivity')
+      .then(async ({ findPartnerForAuthUser, trackPartnerEmailConfirmed }) => {
+        const partner = await findPartnerForAuthUser(u);
+        if (partner) await trackPartnerEmailConfirmed({ partner, confirmedAt });
+      })
+      .catch(() => null);
+  }, [activeUser?.id, (activeUser as { email_confirmed_at?: string })?.email_confirmed_at]);
+
+  useEffect(() => {
     let mounted = true;
 
     (async () => {
@@ -115,8 +128,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       };
     }
 
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+    const { data: sub } = supabase.auth.onAuthStateChange((event, nextSession) => {
       setSession(nextSession);
+      const user = nextSession?.user;
+      if (user && (event === 'SIGNED_IN' || event === 'INITIAL_SESSION')) {
+        void import('../lib/partnerAuthActivity')
+          .then(({ trackPartnerSignIn }) => trackPartnerSignIn(user))
+          .catch(() => null);
+      }
     });
 
     return () => {

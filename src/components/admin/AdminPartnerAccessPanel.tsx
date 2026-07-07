@@ -29,6 +29,12 @@ import {
   FINELY_OS_SECONDARY_BTN,
   finelyOsCatalogCard,
 } from '../../features/os/finelyOsLightUi';
+import { PartnerSignupActivityPanel } from './PartnerSignupActivityPanel';
+import {
+  trackPartnerInviteSent,
+  trackPartnerPasswordResetSent,
+  trackPartnerWelcomeSent,
+} from '../../lib/partnerAuthActivity';
 
 type Props = {
   partner: Partner;
@@ -200,6 +206,12 @@ export function AdminPartnerAccessPanel({ partner, userRole, onUpdated }: Props)
       if (!res.ok) throw new Error(res.error || 'Invite email not sent.');
       recordAdminDelivery(partner.id, forceResend ? 'invite_resend' : 'invite');
       setDeliveryTick((t) => t + 1);
+      await trackPartnerInviteSent({
+        partner,
+        sentByEmail: auth.user?.email ?? undefined,
+        resent: forceResend || state.isRepeat,
+      }).catch(() => null);
+      onUpdated?.();
       if (res.simulated) {
         setNotice(formatLocalInviteNotice({ ok: true, simulated: true, inviteUrl: res.inviteUrl, previewOpened: Boolean(res.previewOpened) }, email));
       } else {
@@ -245,6 +257,11 @@ export function AdminPartnerAccessPanel({ partner, userRole, onUpdated }: Props)
       if (res.error) throw new Error(res.error);
       recordAdminDelivery(partner.id, 'password_reset');
       setDeliveryTick((t) => t + 1);
+      await trackPartnerPasswordResetSent({
+        partner,
+        sentByEmail: auth.user?.email ?? undefined,
+      }).catch(() => null);
+      onUpdated?.();
       setNotice(
         `Password reset email sent to ${email} at ${formatAdminDeliveryWhen(new Date().toISOString())}. They will set a new password via the secure link (valid ~1 hour).`,
       );
@@ -281,6 +298,12 @@ export function AdminPartnerAccessPanel({ partner, userRole, onUpdated }: Props)
         if (!res.ok) throw new Error(res.error || 'Invite email not sent.');
         recordAdminDelivery(partner.id, 'invite_resend');
         setDeliveryTick((t) => t + 1);
+        await trackPartnerInviteSent({
+          partner,
+          sentByEmail: auth.user?.email ?? undefined,
+          resent: true,
+        }).catch(() => null);
+        onUpdated?.();
         setNotice(
           `Account-setup invite sent to ${email} at ${formatAdminDeliveryWhen(new Date().toISOString())} (partner has no login yet).`,
         );
@@ -298,6 +321,11 @@ export function AdminPartnerAccessPanel({ partner, userRole, onUpdated }: Props)
       if (!res.sent) throw new Error(res.reason || 'Welcome email not sent.');
       recordAdminDelivery(partner.id, 'welcome');
       setDeliveryTick((t) => t + 1);
+      await trackPartnerWelcomeSent({
+        partner,
+        sentByEmail: auth.user?.email ?? undefined,
+      }).catch(() => null);
+      onUpdated?.();
       setNotice(`Welcome email sent to ${email} at ${formatAdminDeliveryWhen(new Date().toISOString())}.`);
     } catch (e: unknown) {
       setErr((e as Error)?.message || 'Failed to send welcome email.');
@@ -307,7 +335,10 @@ export function AdminPartnerAccessPanel({ partner, userRole, onUpdated }: Props)
   };
 
   return (
-    <div className={`${finelyOsCatalogCard('sky')} !p-5 space-y-4`}>
+    <div className="space-y-4">
+      <PartnerSignupActivityPanel partner={partner} />
+
+      <div className={`${finelyOsCatalogCard('sky')} !p-5 space-y-4`}>
       <div className="flex items-center gap-2">
         <Shield size={16} className="text-sky-300" />
         <div className={FINELY_OS_ENTITY_VALUE}>Access & auth</div>
@@ -570,6 +601,7 @@ export function AdminPartnerAccessPanel({ partner, userRole, onUpdated }: Props)
           <UserCheck size={14} /> Full signup ops guide
         </a>
       </div>
+    </div>
     </div>
   );
 }

@@ -1,15 +1,20 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { MessageSquareText, Send, ExternalLink } from 'lucide-react';
+import { Clock3, Inbox, Mail, MessageSquareText, Send, ExternalLink, Tag } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import type { Partner } from '../../domain/partners';
-import type { SupportTopic } from '../../domain/support';
+import type { SupportTopic, SupportThreadStatus } from '../../domain/support';
 import { SUPPORT_TOPICS, openCommunicationHub } from '../chat/communicationHubModel';
+import { FinelyChatComposeBox } from '../chat/FinelyChatComposeBox';
 import {
   appendPartnerOutreachMessage,
   defaultPartnerWelcomeMessage,
   sendPartnerOutreachMessage,
 } from '../../lib/partnerMessaging';
 import { listThreadsByPartner } from '../../data/supportRepo';
+import { listEvidenceByPartner, upsertEvidence } from '../../data/evidenceRepo';
+import { getBlobStore } from '../../storage/getBlobStore';
+import { newId } from '../../utils/ids';
+import type { EvidenceItem } from '../../domain/evidence';
 import {
   adminDeliveryState,
   formatAdminDeliveryWhen,
@@ -17,14 +22,12 @@ import {
 } from '../../lib/adminDeliveryCooldown';
 import {
   FINELY_OS_ENTITY_BODY,
-  FINELY_OS_ENTITY_INPUT,
   FINELY_OS_ENTITY_LABEL,
   FINELY_OS_ENTITY_SELECT,
   FINELY_OS_ENTITY_SUBLABEL,
   FINELY_OS_ENTITY_VALUE,
   FINELY_OS_NOTICE_SUCCESS,
   FINELY_OS_NOTICE_WARN,
-  FINELY_OS_PRIMARY_BTN,
   FINELY_OS_SECONDARY_BTN,
   finelyOsCatalogCard,
 } from '../../features/os/finelyOsLightUi';
@@ -33,11 +36,41 @@ type Props = {
   partner: Partner;
 };
 
+function threadStatusStyle(status: SupportThreadStatus): { label: string; className: string } {
+  switch (status) {
+    case 'new':
+      return { label: 'New', className: 'border-amber-400/40 bg-amber-500/15 text-amber-100' };
+    case 'triaged':
+      return { label: 'Triaged', className: 'border-sky-400/40 bg-sky-500/15 text-sky-100' };
+    case 'waiting_on_team':
+      return { label: 'Waiting on team', className: 'border-rose-400/40 bg-rose-500/15 text-rose-100' };
+    case 'waiting_on_partner':
+      return { label: 'Waiting on partner', className: 'border-fuchsia-400/40 bg-fuchsia-500/15 text-fuchsia-100' };
+    case 'resolved':
+      return { label: 'Resolved', className: 'border-emerald-400/40 bg-emerald-500/15 text-emerald-100' };
+    case 'closed':
+      return { label: 'Closed', className: 'border-white/15 bg-white/[0.06] text-white/55' };
+    default:
+      return { label: status, className: 'border-white/15 bg-white/[0.06] text-white/65' };
+  }
+}
+
+function fmtThreadWhen(iso: string) {
+  try {
+    return new Date(iso).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
+  } catch {
+    return iso;
+  }
+}
+
 export function AdminPartnerMessagePanel({ partner }: Props) {
   const navigate = useNavigate();
   const [body, setBody] = useState('');
   const [topic, setTopic] = useState<SupportTopic>('general');
   const [busy, setBusy] = useState(false);
+  const [uploadBusy, setUploadBusy] = useState(false);
+  const [uploadErr, setUploadErr] = useState<string | null>(null);
+  const [attachmentIds, setAttachmentIds] = useState<string[]>([]);
   const [notice, setNotice] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [tick, setTick] = useState(0);
@@ -64,6 +97,47 @@ export function AdminPartnerMessagePanel({ partner }: Props) {
         .slice(0, 3),
     [partner.id, notice],
   );
+
+  const vaultAttachments = useMemo(
+    () =>
+      listEvidenceByPartner(partner.id)
+        .slice(0, 8)
+        .map((item) => ({ id: item.id, label: item.filename })),
+    [partner.id, notice, attachmentIds.length],
+  );
+
+  const uploadAttachment = async (file: File) => {
+    setUploadBusy(true);
+    setUploadErr(null);
+    try {
+      const blobStore = getBlobStore();
+      const { ref } = await blobStore.put(file, {
+        partnerId: partner.id,
+        caption: 'Chat attachment',
+        scanMode: false,
+        kind: 'evidence',
+      });
+      const item: EvidenceItem = {
+        id: newId('evidence'),
+        partnerId: partner.id,
+        type: 'upload',
+        source: 'upload',
+        caption: 'Chat attachment',
+        filename: file.name || 'attachment',
+        mimeType: file.type || 'application/octet-stream',
+        sizeBytes: file.size,
+        blobRef: ref,
+        createdAt: new Date().toISOString(),
+      };
+      upsertEvidence(item);
+      setAttachmentIds((prev) => [...prev, item.id]);
+      window.dispatchEvent(new CustomEvent('finely:store'));
+    } catch (e: unknown) {
+      setUploadErr((e as Error)?.message || 'Upload failed.');
+    } finally {
+      setUploadBusy(false);
+    }
+  };
 
   const sendMessage = async () => {
     const text = body.trim();
@@ -94,6 +168,7 @@ export function AdminPartnerMessagePanel({ partner }: Props) {
           partnerId: partner.id,
           topic: existing.topic,
           body: text,
+          attachments: attachmentIds.map((evidenceId) => ({ evidenceId })),
         });
         threadId = existing.id;
       } else {
@@ -103,11 +178,13 @@ export function AdminPartnerMessagePanel({ partner }: Props) {
           body: text,
           topic,
           subject: `Message from Finely · ${partnerName}`,
+          attachments: attachmentIds.map((evidenceId) => ({ evidenceId })),
         });
         threadId = thread.id;
       }
       recordAdminDelivery(partner.id, 'partner_message');
       setBody('');
+      setAttachmentIds([]);
       setNotice(`Message sent — ${partnerName} will see it in portal Team chat when they log in.`);
       openCommunicationHub({
         tab: 'team',
@@ -138,19 +215,19 @@ export function AdminPartnerMessagePanel({ partner }: Props) {
   };
 
   return (
-    <div className={`${finelyOsCatalogCard('fuchsia')} !p-5 space-y-4`} id="admin-partner-message">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
+    <div className={`${finelyOsCatalogCard('fuchsia')} !p-5 space-y-5`} id="admin-partner-message">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+        <div className="max-w-2xl">
           <div className="flex items-center gap-2">
-            <MessageSquareText size={16} className="text-fuchsia-300" />
-            <div className={FINELY_OS_ENTITY_VALUE}>Message partner</div>
+            <MessageSquareText size={18} className="text-fuchsia-300" />
+            <div className={`text-lg ${FINELY_OS_ENTITY_VALUE}`}>Message partner</div>
           </div>
           <p className={`mt-2 text-sm ${FINELY_OS_ENTITY_BODY}`}>
-            Admins can do everything a credit specialist can on this file — plus invites, password resets, and direct portal
-            messages. Messages appear in the partner&apos;s Team chat inbox.
+            Send a direct portal message to {partnerName}. Each section below is separated so the compose box, topic, and
+            recent threads are easy to tell apart.
           </p>
         </div>
-        <button type="button" onClick={openHub} className={FINELY_OS_SECONDARY_BTN}>
+        <button type="button" onClick={openHub} className={`${FINELY_OS_SECONDARY_BTN} shrink-0`}>
           <ExternalLink size={14} /> Open chat hub
         </button>
       </div>
@@ -162,71 +239,130 @@ export function AdminPartnerMessagePanel({ partner }: Props) {
         </div>
       ) : null}
 
-      <div className="grid sm:grid-cols-2 gap-3">
-        <label className="sm:col-span-2">
-          <span className={FINELY_OS_ENTITY_LABEL}>Message to {partnerName}</span>
-          <textarea
-            value={body}
-            onChange={(e) => setBody(e.target.value)}
-            rows={4}
-            placeholder={defaultPartnerWelcomeMessage(partnerName)}
-            className={`${FINELY_OS_ENTITY_INPUT} resize-y min-h-[100px]`}
-          />
-        </label>
-        <label>
-          <span className={FINELY_OS_ENTITY_LABEL}>Topic</span>
-          <select value={topic} onChange={(e) => setTopic(e.target.value as SupportTopic)} className={FINELY_OS_ENTITY_SELECT}>
+      <FinelyChatComposeBox
+        value={body}
+        onChange={setBody}
+        onSubmit={() => void sendMessage()}
+        label={`Message to ${partnerName}`}
+        placeholder={defaultPartnerWelcomeMessage(partnerName)}
+        busy={busy}
+        disabled={busy}
+        submitLabel="Send to partner inbox"
+        onUploadFile={(file) => uploadAttachment(file)}
+        uploadBusy={uploadBusy}
+        uploadError={uploadErr}
+        attachments={vaultAttachments}
+        selectedAttachmentIds={attachmentIds}
+        onToggleAttachment={(id) =>
+          setAttachmentIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]))
+        }
+      />
+
+      <div className="grid gap-3 md:grid-cols-2">
+        <div className="rounded-2xl border-2 border-violet-400/25 bg-[#101815] p-4 space-y-2">
+          <div className="flex items-center gap-2">
+            <Tag size={14} className="text-violet-300" />
+            <span className={FINELY_OS_ENTITY_LABEL}>Message topic</span>
+          </div>
+          <select
+            value={topic}
+            onChange={(e) => setTopic(e.target.value as SupportTopic)}
+            className={`${FINELY_OS_ENTITY_SELECT} w-full !mt-1 border-2 border-violet-400/20 bg-[#151d19] text-white`}
+          >
             {SUPPORT_TOPICS.map((t) => (
               <option key={t.value} value={t.value}>
                 {t.emoji} {t.label}
               </option>
             ))}
           </select>
-        </label>
-        <div className={`text-xs ${FINELY_OS_ENTITY_BODY} self-end pb-2`}>
-          Portal inbox for: <span className="font-mono text-white/80">{email || 'no email on file'}</span>
+          <p className={`text-xs ${FINELY_OS_ENTITY_BODY}`}>Used when starting a new thread.</p>
+        </div>
+
+        <div className="rounded-2xl border-2 border-emerald-400/25 bg-[#101815] p-4 space-y-2">
+          <div className="flex items-center gap-2">
+            <Mail size={14} className="text-emerald-300" />
+            <span className={FINELY_OS_ENTITY_LABEL}>Portal inbox email</span>
+          </div>
+          <div className="rounded-xl border border-emerald-400/20 bg-[#151d19] px-3 py-3 font-mono text-sm text-emerald-100 break-all">
+            {email || 'No email on file'}
+          </div>
+          <p className={`text-xs ${FINELY_OS_ENTITY_BODY}`}>Partner sees your message in Team chat after login.</p>
         </div>
       </div>
 
       {notice ? <div className={FINELY_OS_NOTICE_SUCCESS}>{notice}</div> : null}
-      {err ? <div className="text-rose-300 text-sm">{err}</div> : null}
+      {err ? <div className="rounded-xl border border-rose-400/35 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">{err}</div> : null}
 
       <div className="flex flex-wrap gap-2">
-        <button type="button" disabled={busy || !body.trim()} onClick={() => void sendMessage()} className={FINELY_OS_PRIMARY_BTN}>
-          <Send size={14} /> {busy ? 'Sending…' : 'Send message to partner'}
-        </button>
         <button type="button" onClick={() => navigate(`/admin/support?partner=${partner.id}`)} className={FINELY_OS_SECONDARY_BTN}>
-          Support inbox
+          <Inbox size={14} /> Open support inbox
         </button>
       </div>
 
       {recentThreads.length ? (
-        <div className="rounded-xl border border-white/10 bg-black/25 p-3 space-y-2">
-          <div className={FINELY_OS_ENTITY_SUBLABEL}>Recent threads</div>
-          {recentThreads.map((t) => (
-            <button
-              key={t.id}
-              type="button"
-              onClick={() =>
-                openCommunicationHub({
-                  tab: 'team',
-                  threadId: t.id,
-                  topic: t.topic,
-                  expanded: true,
-                  partnerId: partner.id,
-                  partnerDisplayName: partnerName,
-                })
-              }
-              className={`w-full text-left rounded-lg border border-white/10 px-3 py-2 hover:bg-white/5 ${FINELY_OS_ENTITY_BODY} text-sm`}
-            >
-              <div className={FINELY_OS_ENTITY_VALUE}>{t.subject}</div>
-              <div className="text-xs text-white/50">
-                {formatAdminDeliveryWhen(t.lastMessageAt)} · {t.status}
+        <div className="rounded-2xl border-2 border-amber-400/20 bg-[#0d1411] p-4 space-y-4">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <div className="flex items-center gap-2">
+                <Clock3 size={14} className="text-amber-300" />
+                <span className={FINELY_OS_ENTITY_LABEL}>Recent threads</span>
               </div>
-            </button>
-          ))}
+              <p className={`mt-1 text-sm ${FINELY_OS_ENTITY_BODY}`}>Tap a card to reopen the conversation in chat.</p>
+            </div>
+            <span className="rounded-full border border-amber-400/30 bg-amber-500/10 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-amber-100">
+              {recentThreads.length} active
+            </span>
+          </div>
+
+          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+            {recentThreads.map((t, index) => {
+              const topicMeta = SUPPORT_TOPICS.find((x) => x.value === t.topic);
+              const status = threadStatusStyle(t.status);
+              const accents = [
+                'border-fuchsia-400/35 hover:bg-fuchsia-500/8',
+                'border-sky-400/35 hover:bg-sky-500/8',
+                'border-emerald-400/35 hover:bg-emerald-500/8',
+              ];
+              return (
+                <button
+                  key={t.id}
+                  type="button"
+                  onClick={() =>
+                    openCommunicationHub({
+                      tab: 'team',
+                      threadId: t.id,
+                      topic: t.topic,
+                      expanded: true,
+                      partnerId: partner.id,
+                      partnerDisplayName: partnerName,
+                    })
+                  }
+                  className={`text-left rounded-2xl border-2 bg-[#121a17] p-4 transition-all ${accents[index % accents.length]}`}
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="w-11 h-11 rounded-2xl border border-white/10 bg-black/30 flex items-center justify-center text-xl shrink-0">
+                      {topicMeta?.emoji ?? '💬'}
+                    </div>
+                    <span className={`inline-flex items-center px-2 py-1 rounded-lg border text-[9px] font-black uppercase tracking-widest ${status.className}`}>
+                      {status.label}
+                    </span>
+                  </div>
+                  <div className={`mt-3 text-sm font-semibold leading-snug ${FINELY_OS_ENTITY_VALUE}`}>{t.subject}</div>
+                  <div className={`mt-2 text-[11px] ${FINELY_OS_ENTITY_SUBLABEL}`}>
+                    {topicMeta?.label ?? t.topic}
+                  </div>
+                  <div className={`mt-3 text-xs ${FINELY_OS_ENTITY_BODY}`}>{fmtThreadWhen(t.lastMessageAt)}</div>
+                </button>
+              );
+            })}
+          </div>
         </div>
-      ) : null}
+      ) : (
+        <div className="rounded-2xl border border-dashed border-white/15 bg-black/20 px-4 py-8 text-center">
+          <Send size={18} className="mx-auto text-fuchsia-300/80 mb-2" />
+          <p className={`text-sm ${FINELY_OS_ENTITY_BODY}`}>No recent threads yet. Your first message will create one here.</p>
+        </div>
+      )}
     </div>
   );
 }

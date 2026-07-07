@@ -4,6 +4,7 @@ import { KpiCard } from '../../components/ui/KpiCards';
 import { bureauShortCode } from '../../utils/bureaus';
 import type { PartnerOverallScoreResult } from '../../utils/partnerOverallScore';
 import type { ActivityTimelineItem } from '../../components/partner/PartnerActivityTimeline';
+import { derivePartnerSignupStatus } from '../../lib/partnerAuthActivity';
 import {
   FINELY_OS_ENTITY_BODY,
   FINELY_OS_ENTITY_INPUT,
@@ -270,6 +271,10 @@ export function PartnerOverviewTab(args: {
           </p>
           <p className={`mt-1 ${FINELY_OS_ENTITY_BODY}`}>
             Claimed: <span className={FINELY_OS_ENTITY_VALUE}>{partner.claimedUserId ? 'Yes' : 'No'}</span>
+          </p>
+          <p className={`mt-1 ${FINELY_OS_ENTITY_BODY}`}>
+            Signup status:{' '}
+            <span className={FINELY_OS_ENTITY_VALUE}>{derivePartnerSignupStatus(partner).label}</span>
           </p>
           <p className={`mt-1 ${FINELY_OS_ENTITY_BODY}`}>
             Tenant: <span className={`${FINELY_OS_ENTITY_VALUE} font-mono`}>{partner.tenantId}</span>

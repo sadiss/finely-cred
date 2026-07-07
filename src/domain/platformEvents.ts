@@ -17,9 +17,16 @@ export type PlatformEventType =
   | 'automation.triggered'
   | 'social.post_published'
   | 'chat.message_received'
-  | 'lead.created'
   | 'purchase.completed'
-  | 'library.opened';
+  | 'library.opened'
+  | 'partner.invite_sent'
+  | 'partner.signup_completed'
+  | 'partner.account_claimed'
+  | 'auth.signed_in'
+  | 'auth.password_updated'
+  | 'auth.email_confirmed'
+  | 'auth.password_reset_sent'
+  | 'auth.password_reset_completed';
 
 export type PlatformEvent = {
   id: string;

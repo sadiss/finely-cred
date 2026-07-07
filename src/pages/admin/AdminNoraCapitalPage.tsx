@@ -6,7 +6,9 @@ import { getNoraCapitalSettings } from '../../data/settingsRepo';
 import { fetchAllPartnersAsAdmin } from '../../data/partnersRepo';
 import type { Partner } from '../../domain/partners';
 import { noraPing, noraRequest } from '../../lib/noraCapitalClient';
+import { noraPullCatalog, noraPullDossiers } from '../../lib/noraCapitalPullClient';
 import { finelyPartnerReadiness } from '../../lib/finelyPartnerApiClient';
+import { finelyPullCatalogForNora } from '../../lib/noraPartnerApiClient';
 import { FinelyOsPageFooter } from '../../features/os/FinelyOsPageFooter';
 import { FinelyOsPaginatedStack } from '../../features/os/FinelyOsPaginatedStack';
 import { FinelyOsDataErrorBanner } from '../../features/os/FinelyOsDataErrorBanner';
@@ -70,6 +72,20 @@ const DEFAULT_NORA_PAYLOADS: NoraTestPayload[] = [
       null,
       2,
     ),
+  },
+  {
+    id: 'pull_dossiers',
+    label: 'Pull dossiers list (Nora)',
+    path: '/v1/partners/finelycred/dossiers',
+    method: 'GET',
+    body: '{}',
+  },
+  {
+    id: 'pull_client_profile',
+    label: 'Pull CRM profile (Nora)',
+    path: '/v1/partners/finelycred/clients/profile?clientId=REPLACE',
+    method: 'GET',
+    body: '{}',
   },
 ];
 

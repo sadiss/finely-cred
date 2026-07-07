@@ -1,11 +1,19 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Bell } from 'lucide-react';
+import { Bell, MessageSquareText } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { listNotifications, markAllRead, markNotificationRead, unreadCount } from '../../data/notificationsRepo';
-import type { NotificationAudience } from '../../domain/notifications';
+import type { AppNotification, NotificationAudience } from '../../domain/notifications';
 import { usePartnerSession } from '../../auth/PartnerSessionContext';
 import { isAdminEmail } from '../../auth/admin';
 import { useAuth } from '../../auth/AuthProvider';
+import { messageNotificationPresentation } from '../../lib/messageNotificationCopy';
+import { FINELY_OS_ENTITY_BODY, FINELY_OS_ENTITY_SUBLABEL } from '../../features/os/finelyOsLightUi';
+
+function accentClasses(accent: 'inbound' | 'outbound' | 'system') {
+  if (accent === 'inbound') return 'border-emerald-400/30 bg-emerald-500/10';
+  if (accent === 'outbound') return 'border-fuchsia-400/30 bg-fuchsia-500/10';
+  return 'border-white/10 bg-white/[0.04]';
+}
 
 export function NotificationsBell() {
   const navigate = useNavigate();
@@ -58,13 +66,16 @@ export function NotificationsBell() {
         ) : null}
       </button>
       {open ? (
-        <div className="absolute right-0 mt-2 w-80 max-h-96 overflow-auto rounded-xl border border-white/[0.08] bg-[#0f0a18]/95 backdrop-blur-xl shadow-2xl z-[300]">
-          <div className="flex items-center justify-between px-4 py-3 border-b border-white/[0.08]">
-            <span className="text-xs font-semibold uppercase tracking-wider text-white/70">Notifications</span>
+        <div className="absolute right-0 mt-2 w-[22rem] max-h-[28rem] overflow-auto rounded-2xl border border-fuchsia-500/20 bg-[#0a1210]/96 backdrop-blur-xl shadow-[0_24px_70px_-30px_rgba(217,70,239,0.45)] z-[300]">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-white/[0.08] bg-gradient-to-r from-fuchsia-500/10 via-transparent to-emerald-500/10">
+            <div>
+              <span className="text-xs font-semibold uppercase tracking-wider text-white/80">Inbox</span>
+              <div className={`${FINELY_OS_ENTITY_SUBLABEL} mt-0.5`}>Messages & updates</div>
+            </div>
             {count > 0 ? (
               <button
                 type="button"
-                className="text-[10px] text-violet-300 hover:text-violet-200"
+                className="text-[10px] text-fuchsia-300 hover:text-fuchsia-200"
                 onClick={() => {
                   markAllRead({ partnerId: partner?.id, audience });
                   setVersion((v) => v + 1);
@@ -75,14 +86,16 @@ export function NotificationsBell() {
             ) : null}
           </div>
           {items.length === 0 ? (
-            <div className="px-4 py-6 text-sm text-white/45">No notifications yet.</div>
+            <div className={`px-4 py-8 text-sm ${FINELY_OS_ENTITY_BODY}`}>No inbox notifications yet.</div>
           ) : (
-            <ul>
-              {items.map((n) => (
+            <ul className="p-2 space-y-2">
+              {items.map((n) => {
+                const presentation = messageNotificationPresentation(n);
+                return (
                 <li key={n.id}>
                   <button
                     type="button"
-                    className={`w-full text-left px-4 py-3 border-b border-white/5 hover:bg-white/[0.04] ${n.readAt ? 'opacity-60' : ''}`}
+                    className={`w-full text-left rounded-xl border px-3 py-3 hover:bg-white/[0.04] transition-all ${accentClasses(presentation.accent)} ${n.readAt ? 'opacity-60' : ''}`}
                     onClick={() => {
                       markNotificationRead(n.id);
                       setVersion((v) => v + 1);
@@ -90,11 +103,23 @@ export function NotificationsBell() {
                       if (n.href) navigate(n.href);
                     }}
                   >
-                    <div className="text-sm font-medium text-white/90">{n.title}</div>
-                    {n.body ? <div className="text-xs text-white/50 mt-1 line-clamp-2">{n.body}</div> : null}
+                    <div className="flex items-start gap-3">
+                      <div className="w-9 h-9 rounded-xl border border-white/10 bg-black/30 flex items-center justify-center text-lg shrink-0">
+                        {presentation.icon}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2">
+                          {n.kind === 'support_message' ? <MessageSquareText size={12} className="text-fuchsia-300 shrink-0" /> : <Bell size={12} className="text-white/40 shrink-0" />}
+                          <span className="text-[10px] uppercase tracking-widest text-white/45">{presentation.eyebrow}</span>
+                        </div>
+                        <div className="text-sm font-medium text-white/92 mt-1">{n.title}</div>
+                        {n.body ? <div className={`text-xs mt-1 line-clamp-2 ${FINELY_OS_ENTITY_BODY}`}>{n.body}</div> : null}
+                      </div>
+                    </div>
                   </button>
                 </li>
-              ))}
+              );
+              })}
             </ul>
           )}
           <div className="px-4 py-2 border-t border-white/[0.08]">

@@ -8,6 +8,9 @@ import {
   defaultPersonaForSupportTopic,
   onSupportFirstTeamReply,
 } from '../lib/supportInboxOs';
+import { buildSupportMessageHref, buildSupportMessageTitle } from '../lib/messageNotificationCopy';
+import { emitPlatformEvent } from '../domain/platformEvents';
+import { FINELY_TENANT_ID } from '../domain/tenants';
 
 const KEY = 'finely.support.v1';
 
@@ -108,10 +111,17 @@ export function createThread(args: {
     partnerId: args.partnerId,
     audience: args.initialMessage.fromPartner ? 'admin' : 'partner',
     kind: 'support_message',
-    title: args.initialMessage.fromPartner ? `New support thread: ${thread.subject}` : `Support opened: ${thread.subject}`,
+    title: buildSupportMessageTitle({
+      fromPartner: args.initialMessage.fromPartner,
+      subject: thread.subject,
+    }),
     body: msg.body.slice(0, 220),
-    href: args.initialMessage.fromPartner ? '/admin/support' : '/portal/messages?hub=team',
-    meta: { threadId: thread.id, topic: thread.topic },
+    href: buildSupportMessageHref({
+      fromPartner: args.initialMessage.fromPartner,
+      partnerId: args.partnerId,
+      threadId: thread.id,
+    }),
+    meta: { threadId: thread.id, topic: thread.topic, direction: args.initialMessage.fromPartner ? 'inbound' : 'outbound' },
   });
   return { thread, message: msg };
 }
@@ -201,10 +211,31 @@ export function addThreadMessage(args: {
     partnerId: args.partnerId,
     audience: args.fromPartner ? 'admin' : 'partner',
     kind: 'support_message',
-    title: args.fromPartner ? `New partner message: ${cur.subject}` : `Support replied: ${cur.subject}`,
+    title: buildSupportMessageTitle({
+      fromPartner: args.fromPartner,
+      subject: cur.subject,
+    }),
     body: msg.body.slice(0, 220),
-    href: args.fromPartner ? '/admin/support' : '/portal/messages?hub=team',
-    meta: { threadId: args.threadId, topic: args.topic },
+    href: buildSupportMessageHref({
+      fromPartner: args.fromPartner,
+      partnerId: args.partnerId,
+      threadId: args.threadId,
+    }),
+    meta: { threadId: args.threadId, topic: args.topic, direction: args.fromPartner ? 'inbound' : 'outbound' },
+  });
+
+  emitPlatformEvent({
+    type: 'chat.message_received',
+    tenantId: FINELY_TENANT_ID,
+    partnerId: args.partnerId,
+    entityType: 'support_thread',
+    entityId: args.threadId,
+    payload: {
+      preview: msg.body.slice(0, 160),
+      fromPartner: args.fromPartner,
+      subject: cur.subject,
+      threadId: args.threadId,
+    },
   });
   return msg;
 }
