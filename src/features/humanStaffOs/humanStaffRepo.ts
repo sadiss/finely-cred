@@ -1,4 +1,3 @@
-import { loadJson, saveJson } from '../../data/localJsonStore';
 import type { HumanStaffAgentId, HumanStaffMemory, HumanStaffMissionPlan, HumanStaffNotification, HumanStaffStore, HumanStaffThread } from './types';
 
 const STORE_KEY = 'finelycred.humanStaffOs.v1';
@@ -20,8 +19,20 @@ const defaultStore: HumanStaffStore = {
   selectedAgentIds: ['professor_apex', 'pipeline_titan', 'cmo_prime'],
 };
 
+let memoryStore: HumanStaffStore | null = null;
+
+function queueHumanStaffPersist(store: HumanStaffStore) {
+  if (typeof window === 'undefined') return;
+  void import('../../data/humanStaffSupabaseSync').then(({ syncHumanStaffStoreToSupabase }) => syncHumanStaffStoreToSupabase(store));
+}
+
+export function seedHumanStaffStore(store: HumanStaffStore): HumanStaffStore {
+  memoryStore = store;
+  return store;
+}
+
 export function loadHumanStaffStore(): HumanStaffStore {
-  return loadJson<HumanStaffStore>(STORE_KEY, defaultStore, 1);
+  return memoryStore ?? defaultStore;
 }
 
 export function saveHumanStaffStore(store: HumanStaffStore): HumanStaffStore {
@@ -32,7 +43,11 @@ export function saveHumanStaffStore(store: HumanStaffStore): HumanStaffStore {
     missions: store.missions.slice(0, 80),
     memories: store.memories.slice(0, 400),
   };
-  saveJson(STORE_KEY, clean, 1);
+  memoryStore = clean;
+  queueHumanStaffPersist(clean);
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('finely:store', { detail: { key: STORE_KEY } }));
+  }
   return clean;
 }
 

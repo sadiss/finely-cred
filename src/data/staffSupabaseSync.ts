@@ -1,8 +1,9 @@
-/** Optional Supabase sync for staff roster (Phase 12B — multi-admin parity). */
+/** Supabase sync for staff roster (multi-admin parity) — source of truth is staff_members table. */
 import type { PortraitGender, StaffMember } from '../domain/staffMember';
 import { isSupabaseConfigured, supabase } from '../lib/supabaseClient';
 import { FINELY_TENANT_ID } from '../domain/tenants';
-import { loadStaffRoster, saveStaffRoster, STAFF_ROSTER_SEED } from './staffRoster';
+import { loadStaffRoster, saveStaffRoster, seedStaffRoster, STAFF_ROSTER_SEED } from './staffRoster';
+import { migrateLegacyLocalJson } from './tenantStateRepo';
 
 function rowFromMember(m: StaffMember, tenantId: string) {
   return {
@@ -38,7 +39,16 @@ function memberFromRow(row: Record<string, unknown>): StaffMember {
   };
 }
 
-/** Push local roster to Supabase (admin save). */
+function migrateLegacyLocalRoster(): StaffMember[] | null {
+  const v2 = migrateLegacyLocalJson<StoreShape>('finely.staffRoster.v2', { members: [] }, 1);
+  if (v2?.members?.length) return v2.members;
+  const v1 = migrateLegacyLocalJson<{ members?: StaffMember[] }>('finely.staffRoster.v1', { members: [] }, 1);
+  return v1?.members?.length ? v1.members : null;
+}
+
+type StoreShape = { members: StaffMember[]; version?: number };
+
+/** Push roster to Supabase (admin save). */
 export async function syncStaffRosterToSupabase(args?: { tenantId?: string; members?: StaffMember[] }) {
   if (!isSupabaseConfigured) return { ok: false, count: 0, error: 'Supabase not configured' };
   const tenantId = args?.tenantId ?? FINELY_TENANT_ID;
@@ -55,7 +65,7 @@ export async function syncStaffRosterToSupabase(args?: { tenantId?: string; memb
   }
 }
 
-/** Pull Supabase roster into local JSON when table has rows. */
+/** Pull Supabase roster into memory when table has rows. */
 export async function syncStaffRosterFromSupabase(args?: { tenantId?: string }): Promise<{ ok: boolean; count: number; error?: string }> {
   if (!isSupabaseConfigured) return { ok: false, count: 0, error: 'Supabase not configured' };
   const tenantId = args?.tenantId ?? FINELY_TENANT_ID;
@@ -71,24 +81,28 @@ export async function syncStaffRosterFromSupabase(args?: { tenantId?: string }):
     if (!data?.length) return { ok: true, count: 0 };
 
     const members = data.map((row) => memberFromRow(row as Record<string, unknown>));
-    saveStaffRoster(members);
+    seedStaffRoster(members);
     return { ok: true, count: members.length };
   } catch (err: unknown) {
     return { ok: false, count: 0, error: (err as Error)?.message ?? String(err) };
   }
 }
 
-/** Boot: seed local roster, then optionally hydrate from Supabase if configured. */
+/** Boot: seed memory roster, migrate legacy localStorage once, hydrate from Supabase. */
 export async function ensureStaffRosterSyncedOnce() {
-  const local = loadStaffRoster();
-  if (!local.length) saveStaffRoster(STAFF_ROSTER_SEED);
+  const legacy = migrateLegacyLocalRoster();
+  if (legacy?.length) {
+    seedStaffRoster(legacy);
+    if (isSupabaseConfigured) await syncStaffRosterToSupabase({ members: legacy });
+  } else if (!loadStaffRoster().length) {
+    seedStaffRoster(STAFF_ROSTER_SEED);
+  }
 
   if (!isSupabaseConfigured) return;
 
   const remote = await syncStaffRosterFromSupabase();
   if (remote.ok && remote.count > 0) return;
 
-  // First-time push of seed roster when remote empty
   if (remote.ok && remote.count === 0) {
     await syncStaffRosterToSupabase({ members: loadStaffRoster().length ? loadStaffRoster() : STAFF_ROSTER_SEED });
   }

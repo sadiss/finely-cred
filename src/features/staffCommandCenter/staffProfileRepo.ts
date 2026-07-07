@@ -1,7 +1,7 @@
-import { loadJson, saveJson } from '../../data/localJsonStore';
+import { saveTenantState } from '../../data/tenantStateRepo';
 import type { StaffPersonality } from './types';
 
-const KEY = 'finely.staff.roster.profiles.v1';
+const STATE_KEY = 'staff_profile_overrides';
 
 export type StaffProfileOverride = {
   firstName?: string;
@@ -14,12 +14,20 @@ export type StaffProfileStore = {
   overrides: Record<string, StaffProfileOverride>;
 };
 
+let memoryStore: StaffProfileStore | null = null;
+
+export function seedStaffProfileStore(store: StaffProfileStore): StaffProfileStore {
+  memoryStore = store;
+  return store;
+}
+
 export function loadStaffProfileStore(): StaffProfileStore {
-  return loadJson<StaffProfileStore>(KEY, { overrides: {} }, 1);
+  return memoryStore ?? { overrides: {} };
 }
 
 export function saveStaffProfileStore(store: StaffProfileStore): StaffProfileStore {
-  saveJson(KEY, store, 1);
+  memoryStore = store;
+  saveTenantState(STATE_KEY, store);
   return store;
 }
 

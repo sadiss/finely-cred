@@ -1,16 +1,16 @@
 /**
- * Staff intelligence — lightweight ML loop (intent × staff affinity weights in localStorage).
+ * Staff intelligence — lightweight ML loop (intent × staff affinity weights in Supabase).
  * Improves routing suggestions over time from partner click feedback.
  */
 
 import type { AgentPersonaId } from '../domain/agentPersonas';
 import type { StaffMember } from '../domain/staffMember';
 import type { MessageIntent } from './intentClassifier';
-import { loadJson, saveJson } from '../data/localJsonStore';
+import { saveTenantState } from '../data/tenantStateRepo';
 
-const KEY = 'finely.staffIntelligence.v1';
+const STATE_KEY = 'staff_intelligence_weights';
 
-type RoutingWeights = {
+export type RoutingWeights = {
   /** intent → staffId → score boost */
   intentStaff: Record<string, Record<string, number>>;
   /** personaId → staffId affinity */
@@ -18,17 +18,29 @@ type RoutingWeights = {
   totalEvents: number;
 };
 
-function defaultWeights(): RoutingWeights {
+export function defaultRoutingWeights(): RoutingWeights {
   return { intentStaff: {}, personaStaff: {}, totalEvents: 0 };
 }
 
+let memoryWeights: RoutingWeights | null = null;
+
+export function seedRoutingWeights(w: RoutingWeights): RoutingWeights {
+  memoryWeights = w;
+  return w;
+}
+
 function loadWeights(): RoutingWeights {
-  return loadJson(KEY, defaultWeights(), 1);
+  return memoryWeights ?? defaultRoutingWeights();
 }
 
 function saveWeights(w: RoutingWeights) {
-  saveJson(KEY, w, 1);
+  memoryWeights = w;
+  saveTenantState(STATE_KEY, w);
   if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('finely:store'));
+}
+
+export function loadRoutingWeights(): RoutingWeights {
+  return loadWeights();
 }
 
 export function getStaffRoutingWeights(): RoutingWeights {
