@@ -1,6 +1,16 @@
 import { isSupabaseConfigured, supabase } from './supabaseClient';
 import { isFeatureEnabled, getNoraCapitalSettings } from '../data/settingsRepo';
 
+export {
+  noraPullCatalog,
+  noraPullDossier,
+  noraPullDossiers,
+  noraPullClientStatus,
+  noraPullCrmProfile,
+  noraPullApplication,
+  syncPartnerFundingFromNora,
+} from './noraCapitalPullClient';
+
 export async function noraPing(args?: { idempotencyKey?: string }) {
   if (!isSupabaseConfigured) throw new Error('Supabase is not configured.');
   // Controlled by integration status. Server enforces admin allowlist + rate limits.

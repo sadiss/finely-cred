@@ -5,6 +5,7 @@ import { adminUpsertPartner } from '../data/partnersRepo';
 import type { Partner } from '../domain/partners';
 import { buildPartnerFundingReadiness } from './partnerFundingReadiness';
 import { noraPartnerFundingDossierPush, noraPartnerFundingBrief } from './noraPartnerApiClient';
+import { syncPartnerFundingFromNora } from './noraCapitalPullClient';
 import { formatFundingHandoffForUi, type NoraFundingHandoffUi, type NoraFundingPushResponse } from './noraFundingApiTypes';
 
 export type FundingHandoffResult = NoraFundingHandoffUi & {
@@ -144,6 +145,19 @@ export async function fetchPartnerFundingDossierV6(args: {
 }) {
   const { noraPartnerFundingDossierV6 } = await import('./noraPartnerApiClient');
   return noraPartnerFundingDossierV6(args);
+}
+
+/** Pull latest funding status/dossier summary back from Nora Capital into Finely. */
+export async function pullPartnerFundingFromNora(args: {
+  partner: Partner;
+  clientId?: string;
+  exportId?: string;
+}) {
+  return syncPartnerFundingFromNora({
+    partner: args.partner,
+    clientId: args.clientId,
+    exportId: args.exportId ?? (args.partner.journeySignals as any)?.fundingDossierV6?.exportId,
+  });
 }
 
 export async function updatePartnerFundingStageFromWebhook(args: {

@@ -273,4 +273,33 @@ export const NORA_API_PLAYBOOK: Record<string, { title: string; description: str
     example: { action: 'partner.batch_dossier_push', limit: 5, minScore: 70, force: false },
     hint: 'Start with limit:3 in production. Check results[] for per-partner errors.',
   },
+  'partner.nora_sync_bundle': {
+    title: 'Nora sync bundle (recommended pull)',
+    description: 'One-call snapshot for Nora Capital cron/sync — brief, lender readiness, compliance, last export meta, credit program. No ML.',
+    example: { action: 'partner.nora_sync_bundle', partnerId: 'partner_abc', email: 'partner@example.com' },
+    hint: 'Nora should call this on a schedule instead of full dossier when only status changed.',
+  },
+};
+
+/** Actions Nora Capital should use to PULL from Finely Cred. */
+export const FINELY_PULL_FOR_NORA_CATALOG = {
+  endpoint: 'POST https://{FINELY_SUPABASE}/functions/v1/finely-partner-api',
+  authHeader: 'x-finely-partner-api-key',
+  version: NORA_FUNDING_API_VERSION,
+  recommendedPullOrder: [
+    'api.pull_catalog',
+    'partner.nora_sync_bundle',
+    'partner.funding_brief',
+    'partner.funding_dossier_v6',
+    'partner.funding_queue',
+  ],
+  actions: [
+    { action: 'api.pull_catalog', purpose: 'Discover all Nora→Finely pull actions' },
+    { action: 'partner.nora_sync_bundle', purpose: 'Efficient sync snapshot (recommended)' },
+    { action: 'partner.funding_brief', purpose: 'Executive CRM card only' },
+    { action: 'partner.funding_dossier_v6', purpose: 'Full underwriting file', params: { sections: 'full | brief | credit,debt' } },
+    { action: 'partner.readiness', purpose: 'Legacy readiness score' },
+    { action: 'partner.funding_queue', purpose: 'Batch fund-ready list' },
+    { action: 'ml.advisory', purpose: 'ML action plan' },
+  ],
 };

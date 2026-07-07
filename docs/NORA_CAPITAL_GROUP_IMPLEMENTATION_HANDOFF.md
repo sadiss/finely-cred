@@ -1,11 +1,122 @@
-# Nora Capital Group — Inbound API Implementation Handoff
+# Nora Capital Group — Bidirectional API Implementation Handoff
 
 **Paste this entire document into your Nora Capital Group (`noracapitalgroupllc`) Cursor chat.**  
-Finely Cred (outbound) is already built on branch `preview/sitewide-ux-pack-merge`. Nora side is **your** work in the **Nora repo only** — do not mix Finely Cred files.
+Finely Cred outbound + inbound pull is on branch `preview/sitewide-ux-pack-merge` (commit after bidirectional update).  
+Implement **only in the Nora repo** — do not copy Finely edge functions into Nora.
 
 ---
 
-## What Finely Cred sends you
+## Bidirectional architecture
+
+```
+┌─────────────────────┐                    ┌─────────────────────┐
+│   FINELY CRED       │                    │  NORA CAPITAL GROUP │
+├─────────────────────┤                    ├─────────────────────┤
+│ finely-partner-api  │ ◄── Nora PULL ──── │ Nora server/cron    │
+│ (x-finely-partner-  │                    │ POST + API key      │
+│  api-key)           │                    │                     │
+│                     │ ─── Finely PUSH ─► │ POST /v1/partners/  │
+│ nora-capital edge   │   dossier webhook  │ finelycred/webhook  │
+│ (admin auth)        │                    │                     │
+│                     │ ◄── Finely PULL ─│ GET dossiers,       │
+│ pull.dossier etc.   │                    │ client status, CRM  │
+└─────────────────────┘                    └─────────────────────┘
+```
+
+| Direction | Who initiates | Finely endpoint | Nora endpoint |
+|-----------|---------------|-----------------|---------------|
+| **Nora → Finely (PULL)** | Nora Capital | `POST /functions/v1/finely-partner-api` | Nora calls with `x-finely-partner-api-key` |
+| **Finely → Nora (PUSH)** | Finely Cred | `partner.funding_dossier_push` | `POST /v1/partners/finelycred/webhook` |
+| **Finely → Nora (PULL)** | Finely admin/portal | `POST /functions/v1/nora-capital` action `pull.*` | Nora must expose GET routes below |
+| **Nora → Finely (PUSH)** | Nora Capital | `POST /functions/v1/nora-capital-webhook` | Nora sends funding stage updates |
+
+---
+
+## A) Nora PULLS from Finely Cred (implement caller on Nora side)
+
+**Endpoint:** `POST https://{FINELY_SUPABASE}/functions/v1/finely-partner-api`  
+**Header:** `x-finely-partner-api-key: {FINELY_PARTNER_API_KEY}`
+
+### Discover actions
+
+```json
+{ "action": "api.pull_catalog" }
+```
+
+### Recommended sync (cron every 15–60 min)
+
+```json
+{ "action": "partner.nora_sync_bundle", "partnerId": "partner_abc", "email": "jane@example.com" }
+```
+
+Returns: `brief`, `lenderReadiness`, `compliance`, `creditProgram`, `lastExport`, `nextSteps`, `pullNext` hints.
+
+### Full dossier pull
+
+```json
+{ "action": "partner.funding_dossier_v6", "partnerId": "partner_abc", "sections": "full", "includeMl": true }
+```
+
+### Fast CRM card only
+
+```json
+{ "action": "partner.funding_brief", "email": "jane@example.com" }
+```
+
+### Ops queue
+
+```json
+{ "action": "partner.funding_queue", "limit": 25, "minScore": 65 }
+```
+
+**Nora implementation:** Add a server module (e.g. `finelyCredPullClient.js`) that POSTs to finely-partner-api with your API key. Store `syncBundle` on `crmClients/{uid}`.
+
+---
+
+## B) Finely PULLS from Nora Capital (implement routes on Nora side)
+
+Finely Cred calls via Supabase edge function `nora-capital`:
+
+```json
+{ "action": "pull.dossier", "exportId": "dossier_partner_abc_1720000000000" }
+{ "action": "pull.dossiers", "clientId": "firebase_uid", "partnerId": "partner_abc", "limit": 20 }
+{ "action": "pull.client_status", "clientId": "firebase_uid" }
+{ "action": "pull.crm_profile", "clientId": "firebase_uid" }
+```
+
+### Nora routes you MUST implement
+
+| Method | Route | Purpose |
+|--------|-------|---------|
+| `GET` | `/v1/partners/finelycred/dossiers/:exportId` | Return stored dossier |
+| `GET` | `/v1/partners/finelycred/dossiers?clientId=&partnerId=&limit=` | List dossiers |
+| `GET` | `/v1/partners/finelycred/clients/status?clientId=` | Registration status (exists) |
+| `GET` | `/v1/partners/finelycred/clients/profile?clientId=` | **NEW** — CRM registry snapshot |
+
+### `GET /v1/partners/finelycred/clients/profile` response shape
+
+```json
+{
+  "ok": true,
+  "profile": {
+    "finelyCredDossierExportId": "dossier_…",
+    "fundingReadinessScore": 72,
+    "fundingReadinessVerdict": "ready",
+    "lenderReadinessVerdict": "approve_track",
+    "finelyCredDossierHeadline": "…",
+    "doThisNext": ["…"],
+    "complianceScore": 80,
+    "bridgeHandoffSuggestedAt": "ISO",
+    "finelyCredPhase": "fund_ready"
+  }
+}
+```
+
+Read from `crmClients/{clientId}` or `users/{clientId}/profile/registry`.
+
+---
+
+## C) Finely PUSHES to Nora (webhook — Nora receives)
 
 When a partner is fund-ready, Finely Cred **POSTs** to your gateway:
 
@@ -234,21 +345,17 @@ Update `docs/FINELY_CRED_API.md` with dossier event + GET routes.
 
 ---
 
-## Finely Cred pulls (Nora calls Finely — already live)
+## Finely Cred pulls (Nora must expose — section B above)
 
-Finely exposes **inbound pull** via Supabase edge function:
+Finely edge `nora-capital` actions: `catalog`, `pull.dossier`, `pull.dossiers`, `pull.client_status`, `pull.crm_profile`, `pull.application`
 
-```
-POST https://{FINELY_SUPABASE}/functions/v1/finely-partner-api
-Header: x-finely-partner-api-key: {key}
-```
+Client helpers in Finely: `noraPullDossier`, `noraPullDossiers`, `syncPartnerFundingFromNora`
 
-| Action | Purpose |
-|--------|---------|
-| `partner.funding_brief` | Fast CRM snapshot |
-| `partner.funding_dossier_v6` | Full file (`sections: "full"` or subset) |
-| `partner.funding_queue` | Ops batch list |
-| `api.playbook` | Human-readable action guide |
+---
+
+## Nora pulls Finely (section A above)
+
+Nora calls `finely-partner-api` with API key — actions: `api.pull_catalog`, `partner.nora_sync_bundle`, `partner.funding_dossier_v6`, `partner.funding_brief`
 
 Full Finely-side docs: `docs/NORA_CAPITAL_API.md` in **finely-cred** repo.
 

@@ -10,10 +10,12 @@ export type NoraPartnerApiAction =
   | 'health'
   | 'api.catalog'
   | 'api.playbook'
+  | 'api.pull_catalog'
   | 'partner.readiness'
   | 'partner.full_profile'
   | 'partner.enriched_profile'
   | 'partner.funding_brief'
+  | 'partner.nora_sync_bundle'
   | 'partner.funding_dossier_v5'
   | 'partner.funding_dossier_v6'
   | 'partner.funding_dossier_push'
@@ -59,6 +61,20 @@ export async function noraApiCatalog(tenantId = 'nora_capital') {
 /** Human-friendly guide for funding API actions. */
 export async function noraApiPlaybook(topic?: string) {
   return invokePartnerApi({ action: 'api.playbook', topic });
+}
+
+/** Nora Capital discovers how to PULL from Finely Cred. */
+export async function finelyPullCatalogForNora() {
+  return invokePartnerApi({ action: 'api.pull_catalog' });
+}
+
+/** Recommended one-call sync for Nora cron jobs. */
+export async function noraPartnerSyncBundle(args: { partnerId?: string; email?: string }) {
+  return invokePartnerApi({
+    action: 'partner.nora_sync_bundle',
+    partnerId: args.partnerId,
+    email: args.email,
+  });
 }
 
 /** Fast executive brief — best for CRM cards (~200ms, no ML). */

@@ -1,27 +1,29 @@
 // Supabase Edge Function: nora-capital
-// Secure API shim for Nora Capital Group.
+// Bidirectional bridge: Finely Cred PULLS from Nora Capital (and pushes via noraDossierPush).
 //
-// Why this exists:
-// - Keeps Nora secrets server-side
-// - Adds auth + allowlist + rate limiting + idempotency + KV event logging
-// - Provides a stable internal API even if Nora’s external API evolves
-//
-// Secrets (set in Supabase):
-// - SUPABASE_URL
-// - SUPABASE_ANON_KEY
-// - EDGE_ADMIN_EMAILS (comma-separated allowlist)
-// - NORA_CAPITAL_BASE_URL
-// - NORA_CAPITAL_API_KEY
-// Optional:
-// - NORA_CAPITAL_API_KEY_HEADER (default: Authorization)
-// - NORA_CAPITAL_API_KEY_PREFIX (default: Bearer)
-// - NORA_CAPITAL_ALLOWED_PATHS_JSON (default allowlist in code)
+// Actions:
+// - ping
+// - catalog — list pull operations
+// - pull.dossier | pull.dossiers | pull.client_status | pull.crm_profile | pull.application
+// - request — generic allowlisted proxy (legacy)
 //
 import { corsHeaders } from '../_shared/cors.ts';
+import {
+  isNoraPathAllowed,
+  NORA_PULL_OPERATIONS,
+  NORA_PULL_PATH_PREFIXES,
+  parseNoraJsonBody,
+} from '../_shared/noraCapitalPullCatalog.ts';
 import { json, logEdgeEvent, rateLimit, requireAllowlistedEmail, requireAuth, requireEnv, requireIdempotency } from '../_shared/edgeGuard.ts';
 
 type ReqBody =
   | { action: 'ping'; idempotencyKey?: string }
+  | { action: 'catalog' }
+  | { action: 'pull.dossier'; exportId: string; idempotencyKey?: string }
+  | { action: 'pull.dossiers'; clientId?: string; partnerId?: string; limit?: number; idempotencyKey?: string }
+  | { action: 'pull.client_status'; clientId: string; idempotencyKey?: string }
+  | { action: 'pull.crm_profile'; clientId: string; idempotencyKey?: string }
+  | { action: 'pull.application'; applicationId: string; idempotencyKey?: string }
   | {
       action: 'request';
       path: string;
@@ -41,19 +43,21 @@ function safePath(p: string): string {
 
 function allowedPaths(): Set<string> {
   const raw = (Deno.env.get('NORA_CAPITAL_ALLOWED_PATHS_JSON') || '').trim();
+  const extra = new Set<string>();
   if (raw) {
     try {
       const arr = JSON.parse(raw);
-      if (Array.isArray(arr)) return new Set(arr.map((x) => String(x || '').trim()).filter(Boolean));
+      if (Array.isArray(arr)) {
+        for (const x of arr) extra.add(String(x || '').trim());
+      }
     } catch {
       // ignore
     }
   }
-  // Safe defaults (adjust via env to match Nora’s spec).
-  return new Set<string>(['/ping', '/health', '/v1/ping', '/v1/leads', '/v1/applications', '/v1/offers', '/v1/partners/finelycred/webhook']);
+  return extra;
 }
 
-function buildUrl(baseUrl: string, path: string, query?: ReqBody extends any ? any : any): string {
+function buildUrl(baseUrl: string, path: string, query?: Record<string, string | number | boolean | null | undefined>): string {
   const u = new URL(path, baseUrl.endsWith('/') ? baseUrl : `${baseUrl}/`);
   const q = query ?? {};
   for (const [k, v] of Object.entries(q)) {
@@ -61,6 +65,43 @@ function buildUrl(baseUrl: string, path: string, query?: ReqBody extends any ? a
     u.searchParams.set(k, String(v));
   }
   return u.toString();
+}
+
+function noraHeaders(apiKey: string, headerName: string, prefix: string): Record<string, string> {
+  return {
+    [headerName]: prefix ? `${prefix} ${apiKey}` : apiKey,
+    'Content-Type': 'application/json',
+    Accept: 'application/json',
+  };
+}
+
+async function noraFetch(args: {
+  baseUrl: string;
+  apiKey: string;
+  headerName: string;
+  prefix: string;
+  path: string;
+  method?: string;
+  query?: Record<string, string | number | boolean | null | undefined>;
+  body?: unknown;
+}) {
+  const path = safePath(args.path);
+  if (!path) return { ok: false as const, status: 400, error: 'Invalid path' };
+  const extra = allowedPaths();
+  if (!isNoraPathAllowed(path, extra)) {
+    return { ok: false as const, status: 403, error: `Path not allowlisted: ${path}` };
+  }
+  const method = (args.method || 'GET').toUpperCase();
+  const url = buildUrl(args.baseUrl, path, args.query);
+  const res = await fetch(url, {
+    method,
+    headers: noraHeaders(args.apiKey, args.headerName, args.prefix),
+    body: method === 'GET' || method === 'DELETE' ? undefined : JSON.stringify(args.body ?? {}),
+  });
+  const ct = res.headers.get('content-type') || '';
+  const raw = await res.text();
+  const parsed = parseNoraJsonBody(raw, ct);
+  return { ok: res.ok, status: res.status, contentType: ct, raw, parsed };
 }
 
 Deno.serve(async (req) => {
@@ -75,7 +116,7 @@ Deno.serve(async (req) => {
     return json({ ok: false, error: (e as Error)?.message || 'Unauthorized' }, { status: 401 });
   }
 
-  const rl = await rateLimit({ key: `nora-capital:${ctx.user.id}:${ctx.ip}`, limit: 60, windowSeconds: 60 });
+  const rl = await rateLimit({ key: `nora-capital:${ctx.user.id}:${ctx.ip}`, limit: 90, windowSeconds: 60 });
   if (!rl.ok) return json({ ok: false, error: 'Rate limited. Slow down.' }, { status: 429 });
 
   let body: ReqBody;
@@ -89,7 +130,6 @@ Deno.serve(async (req) => {
   const apiKey = requireEnv('NORA_CAPITAL_API_KEY');
   const headerName = (Deno.env.get('NORA_CAPITAL_API_KEY_HEADER') || 'Authorization').trim();
   const prefix = (Deno.env.get('NORA_CAPITAL_API_KEY_PREFIX') || 'Bearer').trim();
-  const allow = allowedPaths();
 
   const idem = (body as any)?.idempotencyKey ? String((body as any).idempotencyKey).trim() : '';
   if (idem) {
@@ -98,57 +138,157 @@ Deno.serve(async (req) => {
   }
 
   try {
-    if (body.action === 'ping') {
-      const url = allow.has('/ping') ? buildUrl(baseUrl, '/ping') : buildUrl(baseUrl, '/health');
-      await logEdgeEvent({ namespace: 'nora-capital', level: 'info', event: 'ping.request', meta: { userId: ctx.user.id, url } });
-      const res = await fetch(url, {
-        method: 'GET',
-        headers: { [headerName]: prefix ? `${prefix} ${apiKey}` : apiKey, 'Content-Type': 'application/json' },
+    if (body.action === 'catalog') {
+      return json({
+        ok: true,
+        direction: 'finely_pulls_nora',
+        version: 'v6',
+        catalog: NORA_PULL_OPERATIONS,
+        pullPrefixes: NORA_PULL_PATH_PREFIXES,
+        hint: 'Nora must implement GET dossiers + client status routes for pull to succeed.',
       });
-      const text = await res.text();
-      await logEdgeEvent({ namespace: 'nora-capital', level: res.ok ? 'info' : 'warn', event: 'ping.response', meta: { status: res.status } });
-      return json({ ok: true, status: res.status, body: text.slice(0, 24_000) });
+    }
+
+    if (body.action === 'ping') {
+      const path = allowedPaths().has('/ping') ? '/ping' : '/health';
+      const res = await noraFetch({ baseUrl, apiKey, headerName, prefix, path, method: 'GET' });
+      await logEdgeEvent({ namespace: 'nora-capital', level: res.ok ? 'info' : 'warn', event: 'ping', meta: { status: res.status } });
+      if (!res.ok) return json({ ok: false, error: res.error, status: res.status }, { status: res.status || 502 });
+      return json({ ok: true, status: res.status, body: res.raw?.slice(0, 24_000), parsed: res.parsed });
+    }
+
+    if (body.action === 'pull.dossier') {
+      const exportId = String((body as any).exportId || '').trim();
+      if (!exportId) return json({ ok: false, error: 'exportId required', hint: 'Use partner journey_signals.fundingDossierV6.exportId or funding_meta.dossierExportId.' }, { status: 400 });
+      const res = await noraFetch({
+        baseUrl, apiKey, headerName, prefix,
+        path: `/v1/partners/finelycred/dossiers/${encodeURIComponent(exportId)}`,
+        method: 'GET',
+      });
+      await logEdgeEvent({ namespace: 'nora-capital', level: res.ok ? 'info' : 'warn', event: 'pull.dossier', meta: { exportId, status: res.status } });
+      if (!res.ok) {
+        return json({
+          ok: false,
+          action: 'pull.dossier',
+          error: (res.parsed as any)?.error || res.error || `HTTP ${res.status}`,
+          hint: 'Nora must implement GET /v1/partners/finelycred/dossiers/:exportId — see NORA_CAPITAL_GROUP_IMPLEMENTATION_HANDOFF.md',
+          status: res.status,
+        }, { status: res.status >= 400 ? res.status : 502 });
+      }
+      const dossier = (res.parsed as any)?.dossier ?? res.parsed;
+      return json({ ok: true, action: 'pull.dossier', status: res.status, data: { dossier } });
+    }
+
+    if (body.action === 'pull.dossiers') {
+      const clientId = String((body as any).clientId || '').trim();
+      const partnerId = String((body as any).partnerId || '').trim();
+      const limit = Math.min(50, Math.max(1, Number((body as any).limit ?? 20)));
+      const query: Record<string, string> = { limit: String(limit) };
+      if (clientId) query.clientId = clientId;
+      if (partnerId) query.partnerId = partnerId;
+      const res = await noraFetch({
+        baseUrl, apiKey, headerName, prefix,
+        path: '/v1/partners/finelycred/dossiers',
+        method: 'GET',
+        query,
+      });
+      if (!res.ok) {
+        return json({
+          ok: false,
+          action: 'pull.dossiers',
+          error: (res.parsed as any)?.error || `HTTP ${res.status}`,
+          hint: 'Nora must implement GET /v1/partners/finelycred/dossiers',
+          status: res.status,
+        }, { status: res.status >= 400 ? res.status : 502 });
+      }
+      const dossiers = (res.parsed as any)?.dossiers ?? [];
+      const count = (res.parsed as any)?.count ?? (Array.isArray(dossiers) ? dossiers.length : 0);
+      return json({ ok: true, action: 'pull.dossiers', status: res.status, data: { dossiers, count } });
+    }
+
+    if (body.action === 'pull.client_status') {
+      const clientId = String((body as any).clientId || '').trim();
+      if (!clientId) return json({ ok: false, error: 'clientId required' }, { status: 400 });
+      const res = await noraFetch({
+        baseUrl, apiKey, headerName, prefix,
+        path: '/v1/partners/finelycred/clients/status',
+        method: 'GET',
+        query: { clientId },
+      });
+      if (!res.ok) {
+        return json({ ok: false, action: 'pull.client_status', error: `HTTP ${res.status}`, status: res.status }, { status: res.status >= 400 ? res.status : 502 });
+      }
+      return json({ ok: true, action: 'pull.client_status', status: res.status, data: { status: res.parsed } });
+    }
+
+    if (body.action === 'pull.crm_profile') {
+      const clientId = String((body as any).clientId || '').trim();
+      if (!clientId) return json({ ok: false, error: 'clientId required' }, { status: 400 });
+      const res = await noraFetch({
+        baseUrl, apiKey, headerName, prefix,
+        path: '/v1/partners/finelycred/clients/profile',
+        method: 'GET',
+        query: { clientId },
+      });
+      if (!res.ok) {
+        return json({
+          ok: false,
+          action: 'pull.crm_profile',
+          error: (res.parsed as any)?.error || `HTTP ${res.status}`,
+          hint: 'Nora must implement GET /v1/partners/finelycred/clients/profile?clientId= — returns CRM registry snapshot.',
+          status: res.status,
+        }, { status: res.status === 404 ? 404 : res.status >= 400 ? res.status : 502 });
+      }
+      const profile = (res.parsed as any)?.profile ?? res.parsed;
+      return json({ ok: true, action: 'pull.crm_profile', status: res.status, data: { profile } });
+    }
+
+    if (body.action === 'pull.application') {
+      const applicationId = String((body as any).applicationId || '').trim();
+      if (!applicationId) return json({ ok: false, error: 'applicationId required' }, { status: 400 });
+      const res = await noraFetch({
+        baseUrl, apiKey, headerName, prefix,
+        path: `/v1/applications/${encodeURIComponent(applicationId)}`,
+        method: 'GET',
+      });
+      if (!res.ok) {
+        return json({ ok: false, action: 'pull.application', error: `HTTP ${res.status}`, status: res.status }, { status: res.status >= 400 ? res.status : 502 });
+      }
+      return json({ ok: true, action: 'pull.application', status: res.status, data: { application: res.parsed } });
     }
 
     if (body.action === 'request') {
       const path = safePath(body.path);
       if (!path) return json({ ok: false, error: 'Invalid path' }, { status: 400 });
-      if (!allow.has(path)) return json({ ok: false, error: `Path not allowlisted: ${path}` }, { status: 403 });
-
-      const method = (body.method || 'POST').toUpperCase() as any;
-      const url = buildUrl(baseUrl, path, body.query);
-      await logEdgeEvent({
-        namespace: 'nora-capital',
-        level: 'info',
-        event: 'request',
-        meta: { userId: ctx.user.id, method, path, url, hasBody: body.body != null },
+      const res = await noraFetch({
+        baseUrl, apiKey, headerName, prefix,
+        path,
+        method: body.method || 'POST',
+        query: body.query,
+        body: body.body,
       });
-
-      const res = await fetch(url, {
-        method,
-        headers: { [headerName]: prefix ? `${prefix} ${apiKey}` : apiKey, 'Content-Type': 'application/json' },
-        body: method === 'GET' || method === 'DELETE' ? undefined : JSON.stringify(body.body ?? {}),
-      });
-      const ct = res.headers.get('content-type') || '';
-      const raw = await res.text();
       await logEdgeEvent({
         namespace: 'nora-capital',
         level: res.ok ? 'info' : 'warn',
-        event: 'response',
-        meta: { status: res.status, contentType: ct, bytes: raw.length },
+        event: 'request',
+        meta: { method: body.method, path, status: res.status },
       });
-      return json({ ok: true, status: res.status, contentType: ct, body: raw.slice(0, 48_000) });
+      if (!res.ok) return json({ ok: false, error: res.error || `HTTP ${res.status}`, status: res.status }, { status: res.status || 502 });
+      return json({ ok: true, status: res.status, contentType: res.contentType, body: res.raw?.slice(0, 48_000), parsed: res.parsed });
     }
 
-    return json({ ok: false, error: 'Unknown action' }, { status: 400 });
+    return json({
+      ok: false,
+      error: 'Unknown action',
+      hint: 'Use action: catalog | pull.dossier | pull.dossiers | pull.client_status | pull.crm_profile | ping | request',
+    }, { status: 400 });
   } catch (e) {
     await logEdgeEvent({
       namespace: 'nora-capital',
       level: 'error',
       event: 'error',
-      meta: { userId: ctx.user.id, email: ctx.user.email, message: (e as Error)?.message || String(e) },
+      meta: { userId: ctx.user.id, message: (e as Error)?.message || String(e) },
     });
     return json({ ok: false, error: (e as Error)?.message || 'Nora API call failed.' }, { status: 500 });
   }
 });
-

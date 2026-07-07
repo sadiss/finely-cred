@@ -13,6 +13,7 @@ import { buildNoraFundingDossierV5 } from '../_shared/noraFundingDossierV5.ts';
 import { buildNoraFundingDossierV6 } from '../_shared/noraFundingDossierV6.ts';
 import {
   filterDossierBySections,
+  FINELY_PULL_FOR_NORA_CATALOG,
   NORA_API_PLAYBOOK,
   NORA_FUNDING_API_VERSION,
   noraApiError,
@@ -78,7 +79,9 @@ type Body =
   | { action: 'partner.funding_dossier_push'; partnerId?: string; email?: string; clientId?: string; force?: boolean; includeMl?: boolean; sections?: string | string[] }
   | { action: 'partner.funding_queue'; limit?: number; minScore?: number }
   | { action: 'partner.batch_dossier_push'; limit?: number; minScore?: number; force?: boolean; includeMl?: boolean }
-  | { action: 'api.playbook'; topic?: string };
+  | { action: 'api.playbook'; topic?: string }
+  | { action: 'api.pull_catalog' }
+  | { action: 'partner.nora_sync_bundle'; partnerId?: string; email?: string };
 
 function buildReadiness(partner: any) {
   const signals = partner.journey_signals && typeof partner.journey_signals === 'object' ? partner.journey_signals : {};
@@ -162,6 +165,16 @@ Deno.serve(async (req) => {
     return json({ ok: true, version: NORA_FUNDING_API_VERSION, playbook: NORA_API_PLAYBOOK });
   }
 
+  if (action === 'api.pull_catalog') {
+    return json({
+      ok: true,
+      version: NORA_FUNDING_API_VERSION,
+      direction: 'nora_pulls_finely',
+      catalog: FINELY_PULL_FOR_NORA_CATALOG,
+      hint: 'Nora Capital calls this endpoint with x-finely-partner-api-key to pull partner funding data.',
+    });
+  }
+
   if (action === 'api.catalog') {
     return json({
       ok: true,
@@ -170,6 +183,8 @@ Deno.serve(async (req) => {
         'health',
         'api.catalog',
         'api.playbook',
+        'api.pull_catalog',
+        'partner.nora_sync_bundle',
         'partner.readiness',
         'partner.full_profile',
         'partner.enriched_profile',
@@ -199,9 +214,9 @@ Deno.serve(async (req) => {
       ],
       tenants: ['finely_cred', 'nora_capital'],
       recommendedFlow: [
-        '1. partner.funding_brief — fast CRM card',
-        '2. partner.funding_dossier_v6 — full file (sections: brief | full)',
-        '3. partner.funding_dossier_push — send to Nora webhook',
+        'Nora PULL: api.pull_catalog → partner.nora_sync_bundle (cron) → partner.funding_dossier_v6 (full)',
+        'Finely PUSH: partner.funding_dossier_push → Nora webhook',
+        'Finely PULL: nora-capital pull.dossier / pull.dossiers (after Nora implements GET routes)',
       ],
       mlCapabilities: [
         'Executive readiness summary with prioritized action plan',
@@ -415,6 +430,58 @@ Deno.serve(async (req) => {
       evidenceCount: counts.evidenceCount,
     });
     return json({ ok: true, packet });
+  }
+
+  if (action === 'partner.nora_sync_bundle') {
+    const started = Date.now();
+    const partnerId = String((body as any).partnerId || '').trim();
+    const email = String((body as any).email || '').trim().toLowerCase();
+    if (!partnerId && !email) {
+      return json(noraApiError(action, 'missing_partner', 'partnerId or email is required'), { status: 400 });
+    }
+    try {
+      const data = await fetchPartner(partnerId || undefined, email || undefined);
+      if (!data) return json(noraApiError(action, 'partner_not_found', 'Partner not found'), { status: 404 });
+      const dossier = await buildNoraFundingDossierV6({ admin, partner: data, includeMl: false });
+      const signals = data.journey_signals && typeof data.journey_signals === 'object' ? data.journey_signals : {};
+      const fundingMeta = data.funding_meta && typeof data.funding_meta === 'object' ? data.funding_meta : {};
+      return json(noraApiSuccess({
+        action,
+        partnerId: data.id,
+        meta: {
+          version: NORA_FUNDING_API_VERSION,
+          action,
+          partnerId: data.id,
+          durationMs: Date.now() - started,
+          sections: ['brief', 'readiness', 'lenderReadiness', 'compliance'],
+          includeMl: false,
+        },
+        data: {
+          syncBundle: {
+            partnerId: data.id,
+            externalId: data.import_external_id ?? null,
+            exportedAt: new Date().toISOString(),
+            identity: dossier.identity,
+            readiness: dossier.readiness,
+            brief: dossier.executiveBrief,
+            lenderReadiness: dossier.lenderReadiness,
+            compliance: dossier.compliance,
+            creditProgram: dossier.creditProgram,
+            resultsSummary: dossier.resultsSummary,
+            nextSteps: dossier.nextSteps.slice(0, 8),
+            counts: dossier.executiveBrief.counts,
+            lastExport: signals.fundingDossierV6 ?? signals.fundingDossierV5 ?? null,
+            fundingMeta,
+            pullNext: {
+              fullDossier: { action: 'partner.funding_dossier_v6', partnerId: data.id },
+              pushToNora: { action: 'partner.funding_dossier_push', partnerId: data.id, clientId: data.import_external_id },
+            },
+          },
+        },
+      }));
+    } catch (e) {
+      return json(noraApiError(action, 'server_error', (e as Error).message), { status: 500 });
+    }
   }
 
   if (

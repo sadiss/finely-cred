@@ -2,14 +2,15 @@
 
 Finely Cred does **not** rebuild loan origination. Nora Capital Group owns origination end-to-end. Finely exposes partner readiness and consumes status webhooks.
 
-## Architecture
+## Architecture (bidirectional)
 
 | Direction | Mechanism | Function |
 |-----------|-----------|----------|
-| Finely → Nora | Outbound REST (allowlisted) | `nora-capital` edge function |
-| Nora → Finely | Webhook POST | `nora-capital-webhook` |
-| Nora → Finely (pull) | Partner readiness GET | `finely-partner-api` |
-| Partner handoff | Client `submitPartnerFundingHandoff()` | `noraFundingHandoff.ts` |
+| **Nora → Finely (PULL)** | Partner API POST + API key | `finely-partner-api` |
+| **Finely → Nora (PUSH)** | Dossier webhook | `noraDossierPush` → Nora `/v1/partners/finelycred/webhook` |
+| **Finely → Nora (PULL)** | Pull actions | `nora-capital` edge (`pull.dossier`, `pull.dossiers`, …) |
+| **Nora → Finely (PUSH)** | Status webhook | `nora-capital-webhook` |
+| Partner handoff UI | Client push + pull | `noraFundingHandoff.ts`, `noraCapitalPullClient.ts` |
 
 ## Secrets (Supabase)
 
@@ -22,7 +23,43 @@ Finely Cred does **not** rebuild loan origination. Nora Capital Group owns origi
 | `FINELY_CRED_WEBHOOK_SECRET` | Outbound dossier push signature to Nora `/v1/partners/finelycred/webhook` |
 | `FINELY_PARTNER_API_KEYS_JSON` | Nora-authenticated readiness API keys |
 
-## Outbound — `nora-capital`
+## Outbound PUSH — dossier to Nora
+
+See **Partner API v6** `partner.funding_dossier_push` below.
+
+## Inbound PULL — Finely Cred pulls from Nora
+
+**POST** `/functions/v1/nora-capital` (admin auth required)
+
+### Catalog
+
+```json
+{ "action": "catalog" }
+```
+
+### Pull dossier by exportId
+
+```json
+{ "action": "pull.dossier", "exportId": "dossier_partner_abc_1720000000000" }
+```
+
+### List dossiers
+
+```json
+{ "action": "pull.dossiers", "clientId": "nora_uid", "partnerId": "partner_abc", "limit": 20 }
+```
+
+### CRM profile snapshot
+
+```json
+{ "action": "pull.crm_profile", "clientId": "nora_uid" }
+```
+
+Client helpers: `noraPullDossier`, `noraPullDossiers`, `noraPullCrmProfile`, `syncPartnerFundingFromNora` in `src/lib/noraCapitalPullClient.ts`.
+
+**Nora must implement:** `GET /v1/partners/finelycred/dossiers`, `GET .../dossiers/:exportId`, `GET .../clients/profile?clientId=`
+
+## Outbound generic proxy — `nora-capital`
 
 **POST** `/functions/v1/nora-capital`
 
@@ -37,12 +74,29 @@ Body (via `noraCapitalClient.ts`):
 }
 ```
 
-Default allowlisted paths (extend via env):
+Default allowlisted path prefixes (extend via env):
 
-- `/ping`
-- `/v1/applications`
-- `/v1/partners/finelycred/webhook`
-- `/v1/applications/:id`
+- `/ping`, `/health`, `/v1/ping`
+- `/v1/applications`, `/v1/submissions`
+- `/v1/partners/finelycred/dossiers`
+- `/v1/partners/finelycred/clients/status`
+- `/v1/partners/finelycred/clients/profile`
+- `/v1/partners/finelycred/webhook` (push only)
+
+## Nora PULLS from Finely — `finely-partner-api`
+
+**POST** `/functions/v1/finely-partner-api`  
+**Header:** `x-finely-partner-api-key`
+
+```json
+{ "action": "api.pull_catalog" }
+```
+
+```json
+{ "action": "partner.nora_sync_bundle", "partnerId": "partner_…" }
+```
+
+Client (Nora or Finely admin): `finelyPullCatalogForNora`, `noraPartnerSyncBundle` in `noraPartnerApiClient.ts`.
 
 ## Partner readiness payload (Tier 382)
 
