@@ -267,6 +267,63 @@ export async function recordPartnerAuthActivity(args: {
   return saved;
 }
 
+/**
+ * Heal partners who finished signup/claim but are still stuck as lifecycle `lead`
+ * (admin list showed "Pending"). Runs via admin upsert (service role).
+ */
+export async function healClaimedPartnersStuckPending(partners: Partner[]): Promise<{
+  partners: Partner[];
+  healedCount: number;
+}> {
+  const now = new Date().toISOString();
+  let healedCount = 0;
+  const out: Partner[] = [];
+
+  for (const partner of partners) {
+    const activity = readPartnerAuthActivity(partner);
+    const claimed = Boolean(partner.claimedUserId);
+    const needsHeal =
+      claimed &&
+      (partner.status === 'lead' ||
+        !partner.claimedAt ||
+        !activity.accountClaimedAt ||
+        !activity.signupCompletedAt);
+
+    if (!needsHeal) {
+      out.push(partner);
+      continue;
+    }
+
+    try {
+      const patched = patchPartnerAuthActivity(
+        {
+          ...partner,
+          status: partner.status === 'paused' ? 'paused' : 'active',
+          claimedAt: partner.claimedAt || now,
+        },
+        {
+          accountClaimedAt: activity.accountClaimedAt ?? now,
+          signupCompletedAt: activity.signupCompletedAt ?? now,
+          signupPendingEmailConfirmationAt: undefined,
+        },
+      );
+      const saved = await adminUpsertPartner(patched);
+      out.push(saved);
+      healedCount += 1;
+    } catch (err) {
+      console.warn('[healClaimedPartnersStuckPending]', partner.id, err);
+      // Still show corrected status in UI even if persist fails this pass.
+      out.push({
+        ...partner,
+        status: partner.status === 'paused' ? 'paused' : 'active',
+        claimedAt: partner.claimedAt || now,
+      });
+    }
+  }
+
+  return { partners: out, healedCount };
+}
+
 export async function trackPartnerInviteSent(args: {
   partner: Partner;
   sentByEmail?: string;

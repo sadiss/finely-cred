@@ -22,7 +22,11 @@ import { FinelyUnifiedHubLayout } from '../../features/unified/FinelyUnifiedHubL
 import { FinelyNowDoThisStrip } from '../../components/tours/FinelyNowDoThisStrip';
 import { FinelyNoticedStrip } from '../../components/tours/FinelyNoticedStrip';
 import { buildPartnersAdminNoticedItems } from '../../lib/finelyProactiveSignals';
-import { derivePartnerSignupStatus, signupStatusChipTone } from '../../lib/partnerAuthActivity';
+import {
+  derivePartnerSignupStatus,
+  healClaimedPartnersStuckPending,
+  signupStatusChipTone,
+} from '../../lib/partnerAuthActivity';
 import {
   FINELY_OS_PAGE,
   FINELY_OS_BACK_LINK,
@@ -78,8 +82,13 @@ export default function PartnersListPage() {
     setLoading(true);
     setFetchErr(null);
     fetchAllPartnersAsAdmin()
-      .then((data) => {
-        setPartners(data);
+      .then(async (data) => {
+        try {
+          const healed = await healClaimedPartnersStuckPending(data);
+          setPartners(healed.partners);
+        } catch {
+          setPartners(data);
+        }
         setLoading(false);
       })
       .catch((e: unknown) => {
