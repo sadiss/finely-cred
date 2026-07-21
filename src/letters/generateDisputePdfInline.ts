@@ -11,6 +11,8 @@ export type DisputeLetterItem = {
   evidence?: { filename: string; blobRef: string; mimeType: string } | null;
   evidenceList?: Array<{ filename: string; blobRef: string; mimeType: string }>;
   reasons: string[];
+  /** Editable applicable-law cites for this item (bureau FCRA — not FDCPA validation). */
+  laws?: Array<{ cite: string; shortLabel?: string }>;
   /** Optional narrative paragraph(s) per item (often AI drafted). */
   narrative?: string | null;
   /** Phase 5/6: When missing, letter shows [DATA_NOT_READABLE]. */
@@ -261,6 +263,36 @@ export async function downloadInlineDisputeLetterPdf(args: {
       } else {
         // Silent: non-image or missing mime. (We still include evidence metadata in the vault if linked.)
       }
+    }
+
+    // Applicable law (editable per item in Letter Studio).
+    const laws = (item.laws ?? [])
+      .map((l) => {
+        const cite = String(l?.cite || '').trim();
+        if (!cite) return '';
+        const label = String(l?.shortLabel || '').trim();
+        return label ? `• ${cite} — ${label}` : `• ${cite}`;
+      })
+      .filter(Boolean);
+    if (laws.length) {
+      page.drawText('Applicable law:', {
+        x: margin,
+        y,
+        size: 10,
+        font: fontBold,
+        color: rgb(0.12, 0.12, 0.12),
+      });
+      y -= 14;
+      for (const line of laws) {
+        const wrapped = wrap(line, maxWidth, font, 10);
+        for (const w of wrapped) {
+          ensureSpace(12);
+          page.drawText(w, { x: margin, y, size: 10, font, color: rgb(0.12, 0.12, 0.12) });
+          y -= 12;
+        }
+        y -= 2;
+      }
+      y -= 8;
     }
 
     // Numbered factual reasons — one point each, then DELETE NOW.

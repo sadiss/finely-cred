@@ -132,20 +132,60 @@ export default function PartnersListPage() {
     }
   };
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'active':
-        return { chip: finelyOsStatusChip('ok'), label: 'Active' };
-      case 'lead':
-        return { chip: finelyOsStatusChip('warn'), label: 'Pending' };
-      case 'paused':
-        return {
-          chip: 'inline-flex items-center px-2.5 py-1 rounded-lg border border-orange-200/80 bg-gradient-to-b from-orange-50 to-white text-[10px] font-black uppercase tracking-widest text-orange-800',
-          label: 'Paused',
-        };
-      default:
-        return { chip: finelyOsStatusChip('blocked'), label: status };
+  const getPartnerDisplayBadges = (p: Partner) => {
+    const signup = derivePartnerSignupStatus(p);
+    const joined = Boolean(p.claimedUserId) || signup.stage === 'active' || signup.stage === 'signup_complete';
+
+    // Joined/claimed partners must not show lifecycle "Pending" as the primary badge.
+    if (joined) {
+      return {
+        primary: {
+          chip:
+            'inline-flex items-center px-3.5 py-1.5 rounded-xl border border-emerald-300/80 bg-gradient-to-b from-emerald-100 to-white text-[12px] font-black uppercase tracking-widest text-emerald-900 shadow-sm',
+          label: signup.stage === 'active' ? 'Joined · Active' : 'Joined',
+        },
+        secondary: null as null | { chip: string; label: string },
+      };
     }
+
+    if (p.status === 'paused') {
+      return {
+        primary: {
+          chip:
+            'inline-flex items-center px-3.5 py-1.5 rounded-xl border border-orange-200/80 bg-gradient-to-b from-orange-50 to-white text-[12px] font-black uppercase tracking-widest text-orange-800',
+          label: 'Paused',
+        },
+        secondary: {
+          chip: `${finelyOsStatusChip(signupStatusChipTone(signup.tone))} text-[11px]`,
+          label: signup.label,
+        },
+      };
+    }
+
+    if (p.status === 'active') {
+      return {
+        primary: {
+          chip: `${finelyOsStatusChip('ok')} px-3.5 py-1.5 text-[12px]`,
+          label: 'Active',
+        },
+        secondary: {
+          chip: `${finelyOsStatusChip(signupStatusChipTone(signup.tone))} text-[11px]`,
+          label: signup.label,
+        },
+      };
+    }
+
+    // Unclaimed lead / invite pipeline
+    return {
+      primary: {
+        chip: `${finelyOsStatusChip('warn')} px-3.5 py-1.5 text-[12px]`,
+        label: signup.stage === 'invite_sent' ? 'Invite pending' : 'Pending',
+      },
+      secondary: {
+        chip: `${finelyOsStatusChip(signupStatusChipTone(signup.tone))} text-[11px]`,
+        label: signup.label,
+      },
+    };
   };
 
   const canCreatePartner = useMemo(() => {
@@ -314,13 +354,22 @@ export default function PartnersListPage() {
                     </p>
                   </div>
                   <div className="flex flex-col items-end gap-2">
-                    <div className={`${getStatusBadge(p.status).chip} gap-1.5 whitespace-nowrap`}>
-                      <Badge size={10} />
-                      {getStatusBadge(p.status).label}
-                    </div>
-                    <div className={`${finelyOsStatusChip(signupStatusChipTone(derivePartnerSignupStatus(p).tone))} gap-1.5 whitespace-nowrap text-[11px]`}>
-                      {derivePartnerSignupStatus(p).label}
-                    </div>
+                    {(() => {
+                      const badges = getPartnerDisplayBadges(p);
+                      return (
+                        <>
+                          <div className={`${badges.primary.chip} gap-1.5 whitespace-nowrap`}>
+                            <Badge size={12} />
+                            {badges.primary.label}
+                          </div>
+                          {badges.secondary ? (
+                            <div className={`${badges.secondary.chip} gap-1.5 whitespace-nowrap`}>
+                              {badges.secondary.label}
+                            </div>
+                          ) : null}
+                        </>
+                      );
+                    })()}
                     <ArrowRight size={16} className="text-violet-500 shrink-0" />
                   </div>
                 </div>

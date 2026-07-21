@@ -61,20 +61,20 @@ export function derivePartnerSignupStatus(partner: Partner): {
   const activity = readPartnerAuthActivity(partner);
   const claimed = Boolean(partner.claimedUserId);
 
-  if (claimed && activity.lastLoginAt) {
+  if (claimed && (activity.lastLoginAt || activity.firstLoginAt || partner.status === 'active')) {
     return {
       stage: 'active',
-      label: 'Active',
+      label: 'Joined · Active',
       tone: 'emerald',
-      detail: 'Account linked and signed in.',
+      detail: 'Signup finished — account linked and active.',
     };
   }
   if (claimed) {
     return {
       stage: 'signup_complete',
-      label: 'Account linked',
+      label: 'Joined',
       tone: 'emerald',
-      detail: 'Password set and profile claimed — waiting for first sign-in.',
+      detail: 'Password set and profile claimed — they finished registration.',
     };
   }
   if (activity.signupPendingEmailConfirmationAt || (activity.signupCompletedAt && !activity.emailConfirmedAt)) {
@@ -317,6 +317,7 @@ export async function trackPartnerSignup(args: {
   const activity = readPartnerAuthActivity(args.partner);
   return recordPartnerAuthActivity({
     partner: args.partner,
+    asAdmin: true,
     notify: 'signup_completed',
     patch: {
       signupCompletedAt: activity.signupCompletedAt ?? now,
@@ -327,14 +328,26 @@ export async function trackPartnerSignup(args: {
   });
 }
 
-export async function trackPartnerAccountClaimed(args: { partner: Partner; userId: string }): Promise<Partner> {
+export async function trackPartnerAccountClaimed(args: {
+  partner: Partner;
+  userId: string;
+  asAdmin?: boolean;
+}): Promise<Partner> {
   const activity = readPartnerAuthActivity(args.partner);
   const now = new Date().toISOString();
+  const partner: Partner = {
+    ...args.partner,
+    claimedUserId: args.partner.claimedUserId || args.userId,
+    claimedAt: args.partner.claimedAt || now,
+    status: args.partner.status === 'paused' ? 'paused' : 'active',
+  };
   return recordPartnerAuthActivity({
-    partner: args.partner,
+    partner,
+    asAdmin: args.asAdmin ?? true,
     notify: activity.accountClaimedAt ? undefined : 'account_claimed',
     patch: {
       accountClaimedAt: activity.accountClaimedAt ?? now,
+      signupCompletedAt: activity.signupCompletedAt ?? now,
       signupPendingEmailConfirmationAt: undefined,
     },
     meta: { userId: args.userId },
@@ -382,8 +395,13 @@ export async function trackPartnerSignIn(user: User): Promise<void> {
       ? (user as { email_confirmed_at: string }).email_confirmed_at
       : undefined;
 
+  const promoted: Partner = {
+    ...partner,
+    status: partner.status === 'paused' ? 'paused' : partner.claimedUserId ? 'active' : partner.status,
+  };
   await recordPartnerAuthActivity({
-    partner,
+    partner: promoted,
+    asAdmin: true,
     patch: {
       firstLoginAt: activity.firstLoginAt ?? now,
       lastLoginAt: now,

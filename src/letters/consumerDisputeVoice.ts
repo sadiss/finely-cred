@@ -111,7 +111,7 @@ export const DISPUTE_GUIDE_FIVE_STEPS: DisputeGuideStep[] = [
       'Incomplete: required Metro2 fields missing, wrong account type, or masked identifiers that prevent you from confirming the tradeline.',
       'Identity mismatch: name/address variants splitting your file — fix identity layer before heavy dispute rounds.',
       'Never cite “illegal” or “fraud” without facts — factual findings tied to screenshots win reinvestigations.',
-      'Match the lane to your exhibit: inaccuracy needs contradictions; unverifiable needs validation request language.',
+      'Match the lane to your exhibit: inaccuracy needs field contradictions; unverifiable needs method-of-verification / incomplete reinvestigation language — not FDCPA debt-validation.',
     ],
     powerMove:
       'Power move: Metro2 “status vs grid” conflicts are high-win — e.g., “Current” status with derogatory history codes in the same account block.',

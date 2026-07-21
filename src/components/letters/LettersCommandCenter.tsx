@@ -74,6 +74,12 @@ import { extractFirstJsonObject } from '../../utils/jsonExtract';
 import { canUseAiDraft } from '../../billing/aiDraftAccess';
 import { isFeatureEnabled } from '../../data/settingsRepo';
 import { classifyCandidateNegativeType, NEGATIVE_PLAYBOOKS, type NegativeType } from '../../creditReports/negativePlaybooks';
+import {
+  letterCitationsToPromptLines,
+  makeCustomLetterCitation,
+  resolveBureauDisputeLaws,
+  type LetterCitation,
+} from '../../domain/bureauDisputeLawResolver';
 import { letterCategoryForCandidate } from '../../creditReports/letterCategory';
 import { getCustomFieldValues } from '../../data/customFieldValuesRepo';
 import { FINELY_TENANT_ID } from '../../domain/tenants';
@@ -239,6 +245,22 @@ function renderDisputeSnapshotHtml(args: {
               ? `<div style="margin-top:8px;color:rgba(255,255,255,0.7);font-size:12px">
                    Evidence: <span style="color:rgba(255,255,255,0.85);font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono','Courier New', monospace;">${esc(evName)}</span>
                  </div>`
+              : ''
+          }
+          ${
+            (it.laws ?? []).length
+              ? `<div style="margin-top:8px;color:rgba(255,255,255,0.7);font-size:12px">Applicable law:</div>
+                 <ul style="margin-top:6px;color:rgba(255,255,255,0.75);font-size:12px;line-height:1.6;padding-left:18px">
+                   ${(it.laws ?? [])
+                     .map((l) => {
+                       const cite = String(l?.cite || '').trim();
+                       const label = String(l?.shortLabel || '').trim();
+                       if (!cite) return '';
+                       return `<li>${esc(label ? `${cite} — ${label}` : cite)}</li>`;
+                     })
+                     .filter(Boolean)
+                     .join('')}
+                 </ul>`
               : ''
           }
           ${
@@ -773,6 +795,20 @@ function DisputeLetterIframePreview({
                       ? `<div class="imgWrap"><img src="${escText(img)}" alt="${escText(it.evidence?.filename || 'Evidence')}" /></div>`
                       : `<div class="imgMissing">${it.evidence?.blobRef ? 'Evidence is linked but could not be loaded.' : 'Evidence screenshot not selected for this item.'}</div>`
                   }
+                  ${
+                    (it.laws ?? []).length
+                      ? `<div class="label">Applicable law:</div>
+                         <ul>${(it.laws ?? [])
+                           .map((l) => {
+                             const cite = String(l?.cite || '').trim();
+                             const label = String(l?.shortLabel || '').trim();
+                             if (!cite) return '';
+                             return `<li>${escText(label ? `${cite} — ${label}` : cite)}</li>`;
+                           })
+                           .filter(Boolean)
+                           .join('')}</ul>`
+                      : ''
+                  }
                   <div class="label">Dispute reasons:</div>
                   ${
                     reasons.length
@@ -1011,6 +1047,8 @@ export function LettersCommandCenter({
   const [evidenceByCandidateId, setEvidenceByCandidateId] = useState<Record<string, string | undefined>>({});
   const [evidenceIdsByCandidateId, setEvidenceIdsByCandidateId] = useState<Record<string, string[]>>({});
   const [reasonsByCandidateId, setReasonsByCandidateId] = useState<Record<string, string[]>>({});
+  const [lawsByCandidateId, setLawsByCandidateId] = useState<Record<string, LetterCitation[]>>({});
+  const [customLawDraftByKey, setCustomLawDraftByKey] = useState<Record<string, string>>({});
   const [reasonsLibraryOpen, setReasonsLibraryOpen] = useState(false);
   const [reasonLibraryFocusKey, setReasonLibraryFocusKey] = useState<string | null>(null);
   const [evidencePicker, setEvidencePicker] = useState<null | { candidateId?: string }>(null);
@@ -1246,6 +1284,8 @@ export function LettersCommandCenter({
     setEvidenceByCandidateId({});
     setEvidenceIdsByCandidateId({});
     setReasonsByCandidateId({});
+    setLawsByCandidateId({});
+    setCustomLawDraftByKey({});
     setAiNarrativeByCandidateKey({});
     setAiQuestionsByBureau({});
     setAiErrByBureau({});
@@ -1404,6 +1444,8 @@ WRITING STANDARD:
 - Each factual reason must be ONE clear point (one date problem, one balance contradiction, one cross-bureau difference). No semicolon field dumps or Metro 2 codes.
 - PLAYBOOK_HINT is internal strategy context only â€” do not paste command-style language from it.
 - Use ONLY provided facts. NEVER invent balances, dates, account numbers, or legal citations. Use [BRACKET] placeholders when facts are missing and add to "questions".
+- SELECTED_LAWS are the only statutes allowed for this bureau letter. Do NOT draft FDCPA debt-validation requests (§1692g) unless those cites are listed.
+- Put law references only in the Applicable law sense — do not rewrite SELECTED_REASONS into legal demands.
 - If EVIDENCE_ATTACHED is yes, note the exhibit supports the factual discrepancy described.
 - Round ${round}: if Round 2+, note prior dispute and that the same inaccurate fields still report â€” still as factual statements, not demands.
 - Each item narrative: 4-8 sentences listing the specific negatives and contradictions on the file for this account.
@@ -1414,7 +1456,8 @@ WRITING STANDARD:
         .map((it) => {
           const reasons = it.reasons.length ? it.reasons.map((r) => `- ${r}`).join('\n') : '- (none selected)';
           const issues = it.contradictions.length ? it.contradictions.map((r) => `- ${r}`).join('\n') : '- (none auto-detected)';
-          return `KEY: ${it.key}\nACCOUNT: ${it.account}\nTYPE: ${it.type}\nNEGATIVE_TYPE: ${it.negativeType}\nPLAYBOOK_HINT: ${it.playbookHint}\nREQUEST: ${it.request}\nLEGAL_BASIS_LABEL: ${it.legalBasis}\nACCOUNT_FACTS: ${it.facts || '(not parsed)'}\nDETECTED_ISSUES:\n${issues}\nEVIDENCE_ATTACHED: ${it.evidenceAttached ? 'yes (a screenshot exhibit is attached for this item)' : 'no'}\nSELECTED_REASONS (factual â€” use verbatim in narrative):\n${reasons}\nCASE_CONTEXT:\n${it.caseContext}\n`;
+          const laws = letterCitationsToPromptLines(lawsByCandidateId[it.key] ?? resolveBureauDisputeLaws(it.negativeType));
+          return `KEY: ${it.key}\nACCOUNT: ${it.account}\nTYPE: ${it.type}\nNEGATIVE_TYPE: ${it.negativeType}\nPLAYBOOK_HINT: ${it.playbookHint}\nREQUEST: ${it.request}\nLEGAL_BASIS_LABEL: ${it.legalBasis}\nACCOUNT_FACTS: ${it.facts || '(not parsed)'}\nDETECTED_ISSUES:\n${issues}\nEVIDENCE_ATTACHED: ${it.evidenceAttached ? 'yes (a screenshot exhibit is attached for this item)' : 'no'}\nSELECTED_LAWS (use only these cites):\n${laws}\nSELECTED_REASONS (factual â€” use verbatim in narrative):\n${reasons}\nCASE_CONTEXT:\n${it.caseContext}\n`;
         })
         .join('\n')}\n\nOUTPUT:\n- intro: opening paragraphs only (no header/address).\n- items: one narrative per KEY.\n- questions: list any follow-up questions you need to make the draft stronger.`;
 
@@ -1645,6 +1688,19 @@ WRITING STANDARD:
         );
       }
 
+      // Seed purpose-correct bureau laws when an item has none yet.
+      const autoFilledLawsByCandidateId: Record<string, LetterCitation[]> = { ...lawsByCandidateId };
+      let autoLawCount = 0;
+      for (const s of items) {
+        const cur = autoFilledLawsByCandidateId[s.key] ?? [];
+        if (cur.length) continue;
+        autoFilledLawsByCandidateId[s.key] = resolveBureauDisputeLaws(classifyCandidateNegativeType(s.candidate as any));
+        autoLawCount += 1;
+      }
+      if (autoLawCount) {
+        setLawsByCandidateId((prev) => ({ ...prev, ...autoFilledLawsByCandidateId }));
+      }
+
       const disputeItems: DisputeLetterItem[] = items.map((s) => {
         const evIds = evidenceIdsByCandidateId[s.key]?.length ? evidenceIdsByCandidateId[s.key]! : evidenceByCandidateId[s.key] ? [evidenceByCandidateId[s.key]!] : [];
         const linkedEvidence = evIds.map((id) => evidence.find((x) => x.id === id)).filter(Boolean) as typeof evidence;
@@ -1654,6 +1710,7 @@ WRITING STANDARD:
           evidence: ev ? { filename: ev.filename, blobRef: ev.blobRef, mimeType: ev.mimeType } : null,
           evidenceList: linkedEvidence.map((item) => ({ filename: item.filename, blobRef: item.blobRef, mimeType: item.mimeType })),
           reasons: autoFilledReasonsByCandidateId[s.key] ?? [],
+          laws: (autoFilledLawsByCandidateId[s.key] ?? []).map((l) => ({ cite: l.cite, shortLabel: l.shortLabel })),
           narrative:
             (aiNarrativeByCandidateKey[s.key] || '').trim() ||
             buildFiveStepItemPreamble({
@@ -1880,6 +1937,11 @@ WRITING STANDARD:
         for (const k of Object.keys(out)) if (clearedKeys.has(k)) delete out[k];
         return out;
       });
+      setLawsByCandidateId((prev) => {
+        const out = { ...prev };
+        for (const k of Object.keys(out)) if (clearedKeys.has(k)) delete out[k];
+        return out;
+      });
       setAiNarrativeByCandidateKey((prev) => {
         const out = { ...prev };
         for (const k of Object.keys(out)) if (clearedKeys.has(k)) delete out[k];
@@ -1928,6 +1990,22 @@ WRITING STANDARD:
     }
     setEvidenceByCandidateId(ev);
     setReasonsByCandidateId(rs);
+    const lawSeed: Record<string, LetterCitation[]> = {};
+    for (const it of c.items || []) {
+      const key = it.candidateId || it.id;
+      lawSeed[key] = resolveBureauDisputeLaws(
+        classifyCandidateNegativeType({
+          id: key,
+          bureau: it.bureau,
+          account: it.account,
+          type: it.type,
+          status: it.status,
+          code: it.code,
+          reportId: it.reportId,
+        } as any),
+      );
+    }
+    setLawsByCandidateId(lawSeed);
     const roundParam = new URLSearchParams(location.search).get('round') as LetterRound | null;
     const suggested = suggestNextRound(c);
     const nextRound =
@@ -1959,6 +2037,15 @@ WRITING STANDARD:
     setSelectedDisputes(nextSelected);
     setEvidenceByCandidateId(pickMap(draft.evidenceByCandidateId) as any);
     setReasonsByCandidateId(pickMap(draft.reasonsByCandidateId) as any);
+    if (draft.lawsByCandidateId) {
+      setLawsByCandidateId(pickMap(draft.lawsByCandidateId as Record<string, LetterCitation[]>) as any);
+    } else {
+      const seeded: Record<string, LetterCitation[]> = {};
+      for (const s of nextSelected) {
+        seeded[s.key] = resolveBureauDisputeLaws(classifyCandidateNegativeType(s.candidate as any));
+      }
+      setLawsByCandidateId(seeded);
+    }
     if (draft.aiNarrativeByCandidateKey) setAiNarrativeByCandidateKey(pickMap(draft.aiNarrativeByCandidateKey) as any);
     if (draft.aiQuestionsByBureau) setAiQuestionsByBureau(draft.aiQuestionsByBureau as any);
     if (draft.toneByBureau) setToneByBureau((prev) => ({ ...prev, ...(draft.toneByBureau as any) }));
@@ -2091,6 +2178,7 @@ useEffect(() => {
     selectedDisputes,
     evidenceByCandidateId: cleanRecord(evidenceByCandidateId),
     reasonsByCandidateId: cleanRecord(reasonsByCandidateId),
+    lawsByCandidateId: cleanRecord(lawsByCandidateId as any),
     aiNarrativeByCandidateKey: cleanStringRecord(aiNarrativeByCandidateKey),
     aiQuestionsByBureau: cleanRecord(aiQuestionsByBureau as any),
     toneByBureau: toneByBureau as any,
@@ -2107,6 +2195,7 @@ useEffect(() => {
     selectedDisputes.length > 0 ||
     Object.keys(draftPayload.evidenceByCandidateId).length > 0 ||
     Object.keys(draftPayload.reasonsByCandidateId).length > 0 ||
+    Object.keys(draftPayload.lawsByCandidateId || {}).length > 0 ||
     Object.keys(draftPayload.aiNarrativeByCandidateKey).length > 0 ||
     Object.keys(draftPayload.aiQuestionsByBureau).length > 0 ||
     hasSender ||
@@ -2140,6 +2229,7 @@ useEffect(() => {
   selectedDisputes,
   evidenceByCandidateId,
   reasonsByCandidateId,
+  lawsByCandidateId,
   aiNarrativeByCandidateKey,
   aiQuestionsByBureau,
   toneByBureau,
@@ -2159,6 +2249,21 @@ useEffect(() => {
     const m: Record<Bureau, SelectedDispute[]> = { EXP: [], EQF: [], TUC: [] };
     for (const s of selectedDisputes) m[s.candidate.bureau].push(s);
     return m;
+  }, [selectedDisputes]);
+
+  // Seed bureau-purpose laws for newly selected disputes (editable in Focused item).
+  useEffect(() => {
+    if (!selectedDisputes.length) return;
+    setLawsByCandidateId((prev) => {
+      let changed = false;
+      const next = { ...prev };
+      for (const s of selectedDisputes) {
+        if (next[s.key]?.length) continue;
+        next[s.key] = resolveBureauDisputeLaws(classifyCandidateNegativeType(s.candidate as any));
+        changed = true;
+      }
+      return changed ? next : prev;
+    });
   }, [selectedDisputes]);
 
   const disputeRailItems = useMemo((): DisputeRailItem[] => {
@@ -2758,6 +2863,7 @@ useEffect(() => {
                     candidate: { ...s.candidate, id: s.key } as any,
                     evidence: ev ? { filename: ev.filename, blobRef: ev.blobRef, mimeType: ev.mimeType } : null,
                     reasons: reasonsByCandidateId[s.key] ?? [],
+                    laws: (lawsByCandidateId[s.key] ?? []).map((l) => ({ cite: l.cite, shortLabel: l.shortLabel })),
                     narrative: (aiNarrativeByCandidateKey[s.key] || '').trim() || null,
                   };
                 });
@@ -4590,6 +4696,7 @@ useEffect(() => {
                                     candidate: { ...s.candidate, id: s.key } as any,
                                     evidence: ev ? { filename: ev.filename, blobRef: ev.blobRef, mimeType: ev.mimeType } : null,
                                     reasons: reasonsByCandidateId[s.key] ?? [],
+                                    laws: (lawsByCandidateId[s.key] ?? []).map((l) => ({ cite: l.cite, shortLabel: l.shortLabel })),
                                     narrative: (aiNarrativeByCandidateKey[s.key] || '').trim() || null,
                                   };
                                 })}
@@ -4609,6 +4716,8 @@ useEffect(() => {
                               const ev = evId ? evidence.find((x) => x.id === evId) ?? null : null;
                               const suggestions = focused ? (suggestionsById[focused.key] ?? []) : [];
                               const selectedReasons = focused ? (reasonsByCandidateId[focused.key] ?? []) : [];
+                              const selectedLaws = focused ? lawsByCandidateId[focused.key] ?? [] : [];
+                              const customLawDraft = focused ? customLawDraftByKey[focused.key] ?? '' : '';
                               const narrative = focused ? (aiNarrativeByCandidateKey[focused.key] ?? '') : '';
 
                               if (!focused) return null;
@@ -4636,6 +4745,11 @@ useEffect(() => {
                                           return out;
                                         });
                                         setReasonsByCandidateId((prev) => {
+                                          const out = { ...prev };
+                                          delete out[key];
+                                          return out;
+                                        });
+                                        setLawsByCandidateId((prev) => {
                                           const out = { ...prev };
                                           delete out[key];
                                           return out;
@@ -4818,6 +4932,120 @@ useEffect(() => {
                                         </div>
                                       );
                                     })()}
+                                  </div>
+
+                                  <div className="rounded-xl border border-white/[0.08] bg-black/40 p-4 space-y-3">
+                                    <div className="flex flex-wrap items-center justify-between gap-3">
+                                      <div className="text-[10px] uppercase tracking-widest text-white/40">Applicable law</div>
+                                      <div className="flex flex-wrap items-center gap-2">
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            const seeded = resolveBureauDisputeLaws(
+                                              classifyCandidateNegativeType(focused.candidate as any),
+                                            );
+                                            setLawsByCandidateId((prev) => ({ ...prev, [focused.key]: seeded }));
+                                          }}
+                                          className="px-3 py-2 rounded-xl border border-white/[0.08] bg-white/5 hover:bg-white/10 text-[10px] font-black uppercase tracking-widest text-white/70 transition-all"
+                                          title="Reset to suggested bureau laws for this negative type"
+                                        >
+                                          Reset suggested
+                                        </button>
+                                        <button
+                                          type="button"
+                                          onClick={() => setLawsByCandidateId((prev) => ({ ...prev, [focused.key]: [] }))}
+                                          className="px-3 py-2 rounded-xl border border-white/[0.08] bg-black/40 hover:bg-black/35 text-[10px] font-black uppercase tracking-widest text-white/60 transition-all"
+                                          title="Clear all laws for this item"
+                                        >
+                                          Clear
+                                        </button>
+                                      </div>
+                                    </div>
+                                    <div className="text-white/55 text-sm">
+                                      Bureau dispute cites for this negative — edit or delete any line. Not a debt-validation letter.
+                                    </div>
+                                    {selectedLaws.length ? (
+                                      <div className="space-y-2">
+                                        {selectedLaws.map((law) => (
+                                          <div
+                                            key={law.id}
+                                            className="flex flex-wrap items-start gap-2 rounded-xl border border-white/[0.08] bg-black/30 p-3"
+                                          >
+                                            <div className="min-w-0 flex-1 space-y-2">
+                                              <input
+                                                value={law.cite}
+                                                onChange={(e) => {
+                                                  const cite = e.target.value;
+                                                  setLawsByCandidateId((prev) => ({
+                                                    ...prev,
+                                                    [focused.key]: (prev[focused.key] ?? []).map((l) =>
+                                                      l.id === law.id ? { ...l, cite, source: 'custom' as const } : l,
+                                                    ),
+                                                  }));
+                                                }}
+                                                className="w-full rounded-lg border border-white/[0.1] bg-black/40 px-3 py-2 text-sm text-white/90"
+                                                placeholder="Citation (statute or rule)"
+                                              />
+                                              <input
+                                                value={law.shortLabel}
+                                                onChange={(e) => {
+                                                  const shortLabel = e.target.value;
+                                                  setLawsByCandidateId((prev) => ({
+                                                    ...prev,
+                                                    [focused.key]: (prev[focused.key] ?? []).map((l) =>
+                                                      l.id === law.id ? { ...l, shortLabel, source: 'custom' as const } : l,
+                                                    ),
+                                                  }));
+                                                }}
+                                                className="w-full rounded-lg border border-white/[0.1] bg-black/40 px-3 py-2 text-xs text-white/70"
+                                                placeholder="Short label"
+                                              />
+                                            </div>
+                                            <button
+                                              type="button"
+                                              onClick={() =>
+                                                setLawsByCandidateId((prev) => ({
+                                                  ...prev,
+                                                  [focused.key]: (prev[focused.key] ?? []).filter((l) => l.id !== law.id),
+                                                }))
+                                              }
+                                              className="px-3 py-2 rounded-xl border border-red-500/25 bg-red-500/10 text-[10px] font-black uppercase tracking-widest text-red-100/80"
+                                              title="Delete this law from the letter"
+                                            >
+                                              Delete
+                                            </button>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    ) : (
+                                      <div className="text-white/50 text-sm">No laws selected — add a custom cite or reset suggested.</div>
+                                    )}
+                                    <div className="flex flex-wrap items-center gap-2 pt-1">
+                                      <input
+                                        value={customLawDraft}
+                                        onChange={(e) =>
+                                          setCustomLawDraftByKey((prev) => ({ ...prev, [focused.key]: e.target.value }))
+                                        }
+                                        className="min-w-[220px] flex-1 rounded-lg border border-white/[0.1] bg-black/40 px-3 py-2 text-sm text-white/90"
+                                        placeholder="Add custom law / statute"
+                                      />
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          const raw = customLawDraft.trim();
+                                          if (!raw) return;
+                                          const next = makeCustomLetterCitation(raw);
+                                          setLawsByCandidateId((prev) => ({
+                                            ...prev,
+                                            [focused.key]: [...(prev[focused.key] ?? []), next],
+                                          }));
+                                          setCustomLawDraftByKey((prev) => ({ ...prev, [focused.key]: '' }));
+                                        }}
+                                        className="px-3 py-2 rounded-xl border border-emerald-400/30 bg-emerald-500/15 text-[10px] font-black uppercase tracking-widest text-emerald-100"
+                                      >
+                                        Add law
+                                      </button>
+                                    </div>
                                   </div>
 
                                   <div className="rounded-xl border border-white/[0.08] bg-black/40 p-4 space-y-3">

@@ -14,7 +14,7 @@ const LANE_BY_NEGATIVE: Partial<Record<NegativeType, string>> = {
   foreclosure: 'inaccurate foreclosure timeline, status, or balance fields versus servicer records',
   repossession: 'inaccurate repossession disposition, sale accounting, or deficiency balance',
   bankruptcy: 'bankruptcy public-record details that do not match court docket records',
-  collection: 'unverifiable or inaccurate collection reporting',
+  collection: 'inaccurate, incomplete, or unverifiable collection reporting on this bureau file',
   charge_off: 'charge-off status, balance, or payment-history contradictions',
   student_loan: 'student-loan servicer, status, or balance inconsistencies',
   inquiry: 'inquiry records without permissible purpose or wrong dates',

@@ -91,6 +91,7 @@ function partnerToRow(p: Partner): any {
     funding_meta: fundingMeta,
     assigned_agent_id: p.assignedAgentId ?? null,
     claimed_user_id: p.claimedUserId ?? null,
+    claimed_at: p.claimedAt ?? null,
     created_at: p.createdAt,
     updated_at: p.updatedAt,
   };
@@ -298,28 +299,34 @@ export async function claimPartnerForUser(args: {
   if (edgeClaimed) {
     try {
       const { trackPartnerAccountClaimed } = await import('../lib/partnerAuthActivity');
-      await trackPartnerAccountClaimed({ partner: edgeClaimed, userId });
+      const withClaim = {
+        ...edgeClaimed,
+        claimedUserId: edgeClaimed.claimedUserId || userId,
+        claimedAt: edgeClaimed.claimedAt || new Date().toISOString(),
+        status: edgeClaimed.status === 'paused' ? edgeClaimed.status : ('active' as const),
+      };
+      return await trackPartnerAccountClaimed({ partner: withClaim, userId, asAdmin: true });
     } catch {
-      // non-blocking
+      return edgeClaimed;
     }
-    return edgeClaimed;
   }
 
   if (!isSupabaseConfigured) {
     const email = normalizeEmail(args.email) || existing.profile.email;
+    const now = new Date().toISOString();
     const claimed = await upsertPartner({
       ...existing,
       claimedUserId: userId,
-      claimedAt: new Date().toISOString(),
+      claimedAt: existing.claimedAt || now,
+      status: existing.status === 'paused' ? existing.status : 'active',
       profile: { ...existing.profile, email: email || existing.profile.email },
     });
     try {
       const { trackPartnerAccountClaimed } = await import('../lib/partnerAuthActivity');
-      await trackPartnerAccountClaimed({ partner: claimed, userId });
+      return await trackPartnerAccountClaimed({ partner: claimed, userId, asAdmin: true });
     } catch {
-      // non-blocking
+      return claimed;
     }
-    return claimed;
   }
 
   return null;

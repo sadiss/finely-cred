@@ -10,6 +10,8 @@ export type LettersCommandCenterDraft = {
   selectedDisputes: SelectedDispute[];
   evidenceByCandidateId: Record<string, string | undefined>;
   reasonsByCandidateId: Record<string, string[]>;
+  /** Per-item applicable law cites for bureau dispute letters. */
+  lawsByCandidateId?: Record<string, Array<{ id: string; cite: string; shortLabel: string; source?: string }>>;
   /** Optional freeform reasons override (one reason per line), keyed by SelectedDispute.key */
   customReasonsByCandidateKey?: Record<string, string>;
   toneByBureau: Record<Bureau, LetterTone>;
