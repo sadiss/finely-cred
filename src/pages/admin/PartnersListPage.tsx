@@ -3,7 +3,7 @@ import { Search, UserPlus, ArrowRight, ArrowLeft, Upload, Trash2, Badge, Refresh
 import { PageShell } from '../../components/layout/PageShell';
 import { PartnerCreatePanel } from '../../components/admin/PartnerCreatePanel';
 import type { Partner } from '../../domain/partners';
-import { fetchAllPartnersAsAdmin } from '../../data/partnersRepo';
+import { fetchAllPartnersAsAdmin, listPartnersLocal } from '../../data/partnersRepo';
 import { deletePartnerCompletely } from '../../data/partnerDelete';
 import { SensitiveActionCodeGate } from '../../components/admin/SensitiveActionCodeGate';
 import { partnerDeletionSummary, partnerDeletionTier } from '../../lib/partnerDeletionPolicy';
@@ -27,6 +27,12 @@ import {
   healClaimedPartnersStuckPending,
   signupStatusChipTone,
 } from '../../lib/partnerAuthActivity';
+import {
+  careTeamSummaryLabels,
+  isClientPartner,
+  listEligibleHelpers,
+  saveCareTeamRole,
+} from '../../lib/partnerCareTeam';
 import {
   FINELY_OS_PAGE,
   FINELY_OS_BACK_LINK,
@@ -59,6 +65,8 @@ export default function PartnersListPage() {
     addAffiliate || location.hash === '#create-partner' ? 'create' : 'directory',
   );
   const [q, setQ] = useState('');
+  const [specialistFilter, setSpecialistFilter] = useState('');
+  const [quickAssignBusy, setQuickAssignBusy] = useState<string | null>(null);
   const [fetchKey, setFetchKey] = useState(0);
   const [partners, setPartners] = useState<Partner[]>([]);
   const [loading, setLoading] = useState(true);
@@ -97,14 +105,29 @@ export default function PartnersListPage() {
       });
   }, [auth.user, fetchKey]);
 
+  // Prefer admin-fetched partners (complete list); merge local so newly created specialists appear.
+  const tenantHelpers = useMemo(() => {
+    const byId = new Map<string, Partner>();
+    for (const p of listPartnersLocal()) byId.set(p.id, p);
+    for (const p of partners) byId.set(p.id, p);
+    return Array.from(byId.values());
+  }, [partners, fetchKey]);
+
+  const specialistsForFilter = useMemo(
+    () => listEligibleHelpers({ tenantId: getActiveTenantId(), role: 'specialist', partners: tenantHelpers }),
+    [tenantHelpers],
+  );
+
   const filteredPartners = useMemo(() => {
     const query = q.trim().toLowerCase();
-    if (!query) return partners;
     return partners.filter((p) => {
-      const hay = `${p.profile.fullName} ${p.profile.email ?? ''} ${p.status}`.toLowerCase();
+      if (specialistFilter && p.assignedAgentId !== specialistFilter) return false;
+      if (!query) return true;
+      const labels = careTeamSummaryLabels(p, tenantHelpers);
+      const hay = `${p.profile.fullName} ${p.profile.email ?? ''} ${p.status} ${labels.specialist ?? ''} ${labels.coach ?? ''} ${labels.affiliate ?? ''}`.toLowerCase();
       return hay.includes(query);
     });
-  }, [partners, q]);
+  }, [partners, q, specialistFilter, tenantHelpers]);
 
 
 
@@ -318,15 +341,30 @@ export default function PartnersListPage() {
 
           {hubTab === 'directory' ? (
         <div className={`${finelyOsCatalogCard('violet')} !p-5 space-y-4`}>
-          <div className="flex items-center justify-between gap-4">
-            <div className={`flex items-center gap-3 px-4 py-2 rounded-xl ${FINELY_OS_ENTITY_INPUT.replace('mt-2 ', '')}`}>
-              <Search size={16} className="text-emerald-400 shrink-0" />
-              <input
-                value={q}
-                onChange={(e) => setQ(e.target.value)}
-                className={`bg-transparent outline-none w-72 max-w-full text-sm ${FINELY_OS_ENTITY_VALUE} placeholder:text-white/35`}
-                placeholder="Search partners…"
-              />
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div className="flex flex-wrap items-center gap-3">
+              <div className={`flex items-center gap-3 px-4 py-2 rounded-xl ${FINELY_OS_ENTITY_INPUT.replace('mt-2 ', '')}`}>
+                <Search size={16} className="text-emerald-400 shrink-0" />
+                <input
+                  value={q}
+                  onChange={(e) => setQ(e.target.value)}
+                  className={`bg-transparent outline-none w-72 max-w-full text-sm ${FINELY_OS_ENTITY_VALUE} placeholder:text-white/35`}
+                  placeholder="Search partners…"
+                />
+              </div>
+              <select
+                value={specialistFilter}
+                onChange={(e) => setSpecialistFilter(e.target.value)}
+                className={`${FINELY_OS_ENTITY_SELECT} !mt-0 min-w-[200px]`}
+                title="Filter by assigned credit specialist"
+              >
+                <option value="">All specialists</option>
+                {specialistsForFilter.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.profile.fullName || s.profile.email || s.id}
+                  </option>
+                ))}
+              </select>
             </div>
             <div className={FINELY_OS_ENTITY_SUBLABEL}>
               {filteredPartners.length} partners{loading ? ' (loading…)' : ''}
@@ -361,6 +399,21 @@ export default function PartnersListPage() {
                     <p className={`mt-1 ${FINELY_OS_ENTITY_SUBLABEL} font-mono truncate`}>
                       {p.profile.email || 'no-email'}
                     </p>
+                    {(() => {
+                      const labels = careTeamSummaryLabels(p, tenantHelpers);
+                      if (!labels.specialist && !labels.coach && !labels.affiliate) return null;
+                      return (
+                        <p className={`mt-2 text-[11px] ${FINELY_OS_ENTITY_BODY} line-clamp-2`}>
+                          {labels.specialist ? <span>Specialist: {labels.specialist}</span> : null}
+                          {labels.coach ? <span>{labels.specialist ? ' · ' : ''}Coach: {labels.coach}</span> : null}
+                          {labels.affiliate ? (
+                            <span>
+                              {labels.specialist || labels.coach ? ' · ' : ''}BP: {labels.affiliate}
+                            </span>
+                          ) : null}
+                        </p>
+                      );
+                    })()}
                   </div>
                   <div className="flex flex-col items-end gap-2">
                     {(() => {
@@ -382,6 +435,31 @@ export default function PartnersListPage() {
                     <ArrowRight size={16} className="text-violet-500 shrink-0" />
                   </div>
                 </div>
+
+                {isClientPartner(p) ? (
+                  <div className="mt-3" role="presentation" onClick={(e) => e.stopPropagation()}>
+                    <select
+                      value={p.assignedAgentId || ''}
+                      disabled={quickAssignBusy === p.id}
+                      onChange={(e) => {
+                        const nextId = e.target.value;
+                        setQuickAssignBusy(p.id);
+                        void saveCareTeamRole({ partner: p, role: 'specialist', helperPartnerId: nextId || null })
+                          .then(() => setFetchKey((v) => v + 1))
+                          .finally(() => setQuickAssignBusy(null));
+                      }}
+                      className={`${FINELY_OS_ENTITY_SELECT} !mt-0 w-full text-xs`}
+                      title="Quick-assign credit specialist"
+                    >
+                      <option value="">Quick assign specialist…</option>
+                      {specialistsForFilter.map((s) => (
+                        <option key={s.id} value={s.id}>
+                          {s.profile.fullName || s.profile.email || s.id}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                ) : null}
 
                 <div className="mt-4 flex flex-wrap gap-2" role="presentation" onClick={(e) => e.stopPropagation()}>
                   <span

@@ -1,8 +1,16 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { HandHeart, UserCheck } from 'lucide-react';
 import type { Partner } from '../../domain/partners';
-import { adminUpsertPartner, listPartnersLocal } from '../../data/partnersRepo';
-import { careerRoleForPartner } from '../../lib/partnerInviteRouting';
+import { listPartnersLocal } from '../../data/partnersRepo';
+import {
+  CARE_TEAM_ROLE_LABEL,
+  careMemberForRole,
+  isClientPartner,
+  listEligibleHelpers,
+  resolveHelperPartner,
+  saveCareTeamRole,
+  type CareTeamRole,
+} from '../../lib/partnerCareTeam';
 import {
   FINELY_OS_ENTITY_BODY,
   FINELY_OS_ENTITY_SUBLABEL,
@@ -13,14 +21,7 @@ import {
   finelyOsCatalogCard,
 } from '../../features/os/finelyOsLightUi';
 
-function isCreditSpecialistPartner(p: Partner): boolean {
-  return careerRoleForPartner(p) === 'agent' || p.lane === 'agent';
-}
-
-function isClientPartner(p: Partner): boolean {
-  const role = careerRoleForPartner(p);
-  return role === 'client' || (!role && p.lane !== 'agent' && p.lane !== 'affiliate' && p.lane !== 'au_tradelines');
-}
+const ROLES: CareTeamRole[] = ['specialist', 'coach', 'affiliate'];
 
 export function PartnerSpecialistAssignmentPanel({
   partner,
@@ -29,104 +30,121 @@ export function PartnerSpecialistAssignmentPanel({
   partner: Partner;
   onUpdated?: () => void;
 }) {
-  const [agentId, setAgentId] = useState(partner.assignedAgentId || '');
-  const [busy, setBusy] = useState(false);
+  const [draftByRole, setDraftByRole] = useState<Record<CareTeamRole, string>>({
+    specialist: '',
+    coach: '',
+    affiliate: '',
+  });
+  const [busyRole, setBusyRole] = useState<CareTeamRole | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
 
-  useEffect(() => {
-    setAgentId(partner.assignedAgentId || '');
-  }, [partner.id, partner.assignedAgentId, partner.updatedAt]);
-
-  const specialists = useMemo(() => {
-    return listPartnersLocal()
-      .filter((p) => p.tenantId === partner.tenantId && isCreditSpecialistPartner(p))
-      .sort((a, b) => (a.profile.fullName || '').localeCompare(b.profile.fullName || ''));
-  }, [partner.tenantId]);
-
-  const assigned = useMemo(
-    () => specialists.find((s) => s.id === partner.assignedAgentId) ?? null,
-    [specialists, partner.assignedAgentId],
+  const tenantPartners = useMemo(
+    () => listPartnersLocal().filter((p) => p.tenantId === partner.tenantId),
+    [partner.tenantId, partner.updatedAt],
   );
+
+  useEffect(() => {
+    setDraftByRole({
+      specialist: careMemberForRole(partner, 'specialist')?.partnerId || partner.assignedAgentId || '',
+      coach: careMemberForRole(partner, 'coach')?.partnerId || '',
+      affiliate: careMemberForRole(partner, 'affiliate')?.partnerId || '',
+    });
+  }, [partner.id, partner.assignedAgentId, partner.updatedAt, partner.journeySignals]);
 
   if (!isClientPartner(partner)) return null;
 
-  const save = async (overrideId?: string) => {
-    setBusy(true);
+  const saveRole = async (role: CareTeamRole, overrideId?: string) => {
+    setBusyRole(role);
     setErr(null);
     setNotice(null);
-    const nextId = (overrideId ?? agentId).trim();
+    const nextId = (overrideId ?? draftByRole[role]).trim();
     try {
-      await adminUpsertPartner({
-        ...partner,
-        assignedAgentId: nextId || undefined,
-        journeySignals: {
-          ...(partner.journeySignals ?? {}),
-          assignedSpecialistAt: nextId ? new Date().toISOString() : undefined,
-          supportModel: nextId
-            ? partner.journeySignals?.supportModel || 'finely_specialist'
-            : partner.journeySignals?.supportModel,
-        },
+      await saveCareTeamRole({
+        partner,
+        role,
+        helperPartnerId: nextId || null,
       });
-      setAgentId(nextId);
+      setDraftByRole((prev) => ({ ...prev, [role]: nextId }));
+      const helper = resolveHelperPartner(nextId, tenantPartners);
       setNotice(
         nextId
-          ? `Assigned to ${specialists.find((s) => s.id === nextId)?.profile.fullName || 'specialist'}.`
-          : 'Specialist assignment cleared.',
+          ? `${CARE_TEAM_ROLE_LABEL[role]} → ${helper?.profile.fullName || helper?.profile.email || 'assigned'}.`
+          : `${CARE_TEAM_ROLE_LABEL[role]} cleared.`,
       );
       onUpdated?.();
     } catch (e: unknown) {
       setErr((e as Error)?.message || 'Could not save assignment.');
     } finally {
-      setBusy(false);
+      setBusyRole(null);
     }
   };
 
   return (
-    <div className={`${finelyOsCatalogCard('fuchsia')} !p-5 space-y-4`}>
+    <div className={`${finelyOsCatalogCard('fuchsia')} !p-5 space-y-5`}>
       <div className="flex items-center gap-2">
         <HandHeart size={16} className="text-fuchsia-300" />
-        <div className={FINELY_OS_ENTITY_VALUE}>Credit specialist assignment</div>
+        <div className={FINELY_OS_ENTITY_VALUE}>Care team assignment</div>
       </div>
       <p className={`text-sm ${FINELY_OS_ENTITY_BODY}`}>
-        Link this customer to the Finely Cred specialist who owns their file. The partner sees this relationship on their dashboard and can message through the hub.
+        Assign the humans who help this customer. Only people with the matching role access appear in each list
+        (Credit Specialist, Coach capability, or Business partner / affiliate).
       </p>
 
-      {assigned ? (
-        <div className="rounded-xl border border-fuchsia-400/25 bg-fuchsia-500/10 px-4 py-3 text-sm text-fuchsia-100">
-          <div className={`${FINELY_OS_ENTITY_SUBLABEL}`}>Currently assigned</div>
-          <div className="mt-1 font-semibold">{assigned.profile.fullName || assigned.profile.email}</div>
-        </div>
-      ) : (
-        <div className={`text-xs ${FINELY_OS_ENTITY_BODY}`}>No specialist assigned — customer is self-serve until you pick one.</div>
-      )}
+      {ROLES.map((role) => {
+        const helpers = listEligibleHelpers({ tenantId: partner.tenantId, role, partners: tenantPartners });
+        const currentId = careMemberForRole(partner, role)?.partnerId || (role === 'specialist' ? partner.assignedAgentId : undefined);
+        const current = resolveHelperPartner(currentId, tenantPartners);
+        const draft = draftByRole[role] || '';
+        const busy = busyRole === role;
 
-      <label className="block space-y-2">
-        <span className={FINELY_OS_ENTITY_SUBLABEL}>Assign specialist</span>
-        <select
-          value={agentId}
-          onChange={(e) => setAgentId(e.target.value)}
-          className="w-full rounded-xl border border-white/10 bg-black/40 px-3 py-2.5 text-sm text-white/85"
-        >
-          <option value="">— Self-serve / unassigned —</option>
-          {specialists.map((s) => (
-            <option key={s.id} value={s.id}>
-              {s.profile.fullName || s.profile.email || s.id}
-            </option>
-          ))}
-        </select>
-      </label>
+        return (
+          <div key={role} className="rounded-xl border border-white/10 bg-black/25 p-4 space-y-3">
+            <div className="flex flex-wrap items-start justify-between gap-2">
+              <div>
+                <div className={FINELY_OS_ENTITY_SUBLABEL}>{CARE_TEAM_ROLE_LABEL[role]}</div>
+                {current ? (
+                  <div className="mt-1 text-sm font-semibold text-fuchsia-100">
+                    {current.profile.fullName || current.profile.email}
+                  </div>
+                ) : (
+                  <div className={`mt-1 text-xs ${FINELY_OS_ENTITY_BODY}`}>Unassigned</div>
+                )}
+              </div>
+              {helpers.length === 0 ? (
+                <div className="text-[11px] text-amber-200/80">No eligible people — grant role access first.</div>
+              ) : null}
+            </div>
 
-      <div className="flex flex-wrap gap-2">
-        <button type="button" disabled={busy} onClick={() => void save()} className={FINELY_OS_PRIMARY_BTN}>
-          <UserCheck size={14} /> {busy ? 'Saving…' : 'Save assignment'}
-        </button>
-        {agentId ? (
-          <button type="button" disabled={busy} onClick={() => void save('')} className={FINELY_OS_SECONDARY_BTN}>
-            Clear
-          </button>
-        ) : null}
-      </div>
+            <label className="block space-y-2">
+              <span className={FINELY_OS_ENTITY_SUBLABEL}>Assign {CARE_TEAM_ROLE_LABEL[role].toLowerCase()}</span>
+              <select
+                value={draft}
+                onChange={(e) => setDraftByRole((prev) => ({ ...prev, [role]: e.target.value }))}
+                className="w-full rounded-xl border border-white/10 bg-black/40 px-3 py-2.5 text-sm text-white/85"
+              >
+                <option value="">— Unassigned —</option>
+                {helpers.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.profile.fullName || s.profile.email || s.id}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <div className="flex flex-wrap gap-2">
+              <button type="button" disabled={busy} onClick={() => void saveRole(role)} className={FINELY_OS_PRIMARY_BTN}>
+                <UserCheck size={14} /> {busy ? 'Saving…' : 'Save'}
+              </button>
+              {draft ? (
+                <button type="button" disabled={busy} onClick={() => void saveRole(role, '')} className={FINELY_OS_SECONDARY_BTN}>
+                  Clear
+                </button>
+              ) : null}
+            </div>
+          </div>
+        );
+      })}
 
       {notice ? <div className={FINELY_OS_NOTICE_SUCCESS}>{notice}</div> : null}
       {err ? <div className="text-rose-300 text-sm">{err}</div> : null}

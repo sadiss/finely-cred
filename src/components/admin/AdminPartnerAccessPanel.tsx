@@ -523,6 +523,57 @@ export function AdminPartnerAccessPanel({ partner, userRole, onUpdated }: Props)
             </span>
           </button>
         ))}
+            <button
+              type="button"
+              disabled={busy === 'access'}
+              onClick={() => {
+                const next = !(partner.journeySignals as Record<string, unknown> | undefined)?.canCoach;
+                void (async () => {
+                  setBusy('access');
+                  setErr(null);
+                  setNotice(null);
+                  try {
+                    await adminUpsertPartner({
+                      ...partner,
+                      journeySignals: {
+                        ...(partner.journeySignals ?? {}),
+                        canCoach: next,
+                      },
+                    });
+                    setNotice(next ? 'Coach capability granted — they can be assigned as Coach on customer files.' : 'Coach capability removed.');
+                    onUpdated?.();
+                  } catch (e: unknown) {
+                    setErr((e as Error)?.message || 'Failed to update coach access.');
+                  } finally {
+                    setBusy(null);
+                  }
+                })();
+              }}
+              className={
+                'w-full text-left flex items-start gap-3 rounded-xl border px-4 py-3 transition-all ' +
+                ((partner.journeySignals as Record<string, unknown> | undefined)?.canCoach
+                  ? 'border-sky-400/40 bg-sky-500/15'
+                  : 'border-white/12 bg-black/25 hover:border-white/25 hover:bg-white/5')
+              }
+            >
+              <span
+                className={
+                  'mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md border text-xs font-bold ' +
+                  ((partner.journeySignals as Record<string, unknown> | undefined)?.canCoach
+                    ? 'border-sky-300 bg-sky-400 text-black'
+                    : 'border-white/30 bg-transparent text-transparent')
+                }
+                aria-hidden
+              >
+                ✓
+              </span>
+              <span className="min-w-0">
+                <span className={`block text-sm font-semibold ${FINELY_OS_ENTITY_VALUE}`}>Can coach (care team)</span>
+                <span className={`block text-xs mt-0.5 ${FINELY_OS_ENTITY_BODY}`}>
+                  Appear in the Coach assign picker for customer files (Credit Specialists already qualify)
+                </span>
+              </span>
+            </button>
           </>
         ) : (
           <div className={`text-xs ${FINELY_OS_ENTITY_BODY}`}>

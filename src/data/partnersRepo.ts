@@ -271,6 +271,35 @@ export async function listPartnersByAgent(tenantId: string, agentId: string): Pr
   return (data ?? []).map(rowToPartner);
 }
 
+/** Clients where this helper is specialist (assigned_agent_id) or on careTeam (coach/affiliate). */
+export async function listPartnersForCareMember(tenantId: string, helperPartnerId: string): Promise<Partner[]> {
+  const helperId = helperPartnerId?.trim();
+  if (!helperId) return [];
+
+  const { partnerHasCareMember, isClientPartner } = await import('../lib/partnerCareTeam');
+
+  if (!isSupabaseConfigured) {
+    return loadLocalPartners()
+      .filter((p) => p.tenantId === tenantId && isClientPartner(p) && partnerHasCareMember(p, helperId))
+      .sort(sortByUpdatedDesc);
+  }
+
+  // Fetch tenant clients, then filter care team in memory (careTeam lives in journey_signals JSON).
+  const { data, error } = await supabase
+    .from('partners')
+    .select('*')
+    .eq('tenant_id', tenantId)
+    .order('updated_at', { ascending: false })
+    .limit(500);
+  if (error) {
+    console.warn('listPartnersForCareMember error:', error.message);
+    return listPartnersByAgent(tenantId, helperId);
+  }
+  return (data ?? [])
+    .map(rowToPartner)
+    .filter((p) => isClientPartner(p) && partnerHasCareMember(p, helperId));
+}
+
 export function getPartnerSync(id: string): Partner | null {
   if (!id?.trim()) return null;
   if (!isSupabaseConfigured) return loadLocalPartners().find((p) => p.id === id.trim()) ?? null;

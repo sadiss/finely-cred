@@ -5,6 +5,7 @@ import type { Partner } from '../../domain/partners';
 import { listPartnersLocal, upsertPartner } from '../../data/partnersRepo';
 import { supportModelLabel, type PartnerSupportModel } from './PartnerSupportRelationshipStep';
 import { openCommunicationHub } from '../chat/communicationHubModel';
+import { careTeamSummaryLabels, resolveCareTeam } from '../../lib/partnerCareTeam';
 import {
   FINELY_OS_ENTITY_BODY,
   FINELY_OS_ENTITY_SUBLABEL,
@@ -26,11 +27,9 @@ export function PartnerOnboardingRelationshipCard({ partner }: { partner: Partne
   const navigate = useNavigate();
   const [editing, setEditing] = useState(false);
   const signals = partner.journeySignals ?? {};
-  const assignedSpecialist = useMemo(() => {
-    const id = partner.assignedAgentId;
-    if (!id) return null;
-    return listPartnersLocal().find((p) => p.id === id) ?? null;
-  }, [partner.assignedAgentId, partner.id]);
+  const helpers = useMemo(() => listPartnersLocal(), [partner.id, partner.updatedAt]);
+  const careLabels = useMemo(() => careTeamSummaryLabels(partner, helpers), [partner, helpers]);
+  const careTeam = useMemo(() => resolveCareTeam(partner), [partner]);
 
   const model = (signals.supportModel as PartnerSupportModel) || '';
   const helperName = String(signals.helperName || '');
@@ -60,9 +59,20 @@ export function PartnerOnboardingRelationshipCard({ partner }: { partner: Partne
             {model ? supportModelLabel(model) : 'Tell us who is helping you — solo, Finely specialist, transfer, or family helper.'}
           </p>
           {helperName ? <p className={`text-xs mt-1 ${FINELY_OS_ENTITY_BODY}`}>With: {helperName}</p> : null}
-          {assignedSpecialist ? (
+          {careLabels.specialist ? (
             <p className={`text-xs mt-1 ${FINELY_OS_ENTITY_BODY}`}>
-              Assigned specialist: <span className={FINELY_OS_ENTITY_VALUE}>{assignedSpecialist.profile.fullName || assignedSpecialist.profile.email}</span>
+              Credit specialist:{' '}
+              <span className={FINELY_OS_ENTITY_VALUE}>{careLabels.specialist}</span>
+            </p>
+          ) : null}
+          {careLabels.coach ? (
+            <p className={`text-xs mt-1 ${FINELY_OS_ENTITY_BODY}`}>
+              Coach: <span className={FINELY_OS_ENTITY_VALUE}>{careLabels.coach}</span>
+            </p>
+          ) : null}
+          {careLabels.affiliate ? (
+            <p className={`text-xs mt-1 ${FINELY_OS_ENTITY_BODY}`}>
+              Business partner: <span className={FINELY_OS_ENTITY_VALUE}>{careLabels.affiliate}</span>
             </p>
           ) : null}
           {priorCompany ? <p className={`text-xs mt-1 ${FINELY_OS_ENTITY_BODY}`}>Transferred from: {priorCompany}</p> : null}
@@ -90,7 +100,7 @@ export function PartnerOnboardingRelationshipCard({ partner }: { partner: Partne
       ) : null}
 
       <div className="flex flex-wrap gap-2">
-        {model === 'finely_specialist' || model === 'solo' ? (
+        {model === 'finely_specialist' || model === 'solo' || careTeam.some((m) => m.role === 'specialist') ? (
           <button type="button" onClick={() => openCommunicationHub({ tab: 'ai', expanded: true })} className={FINELY_OS_SUCCESS_BTN}>
             <MessageCircle size={12} /> Message your specialist
           </button>
@@ -98,11 +108,6 @@ export function PartnerOnboardingRelationshipCard({ partner }: { partner: Partne
         {model === 'transferred_company' ? (
           <button type="button" onClick={() => navigate('/portal/letters')} className={FINELY_OS_SECONDARY_BTN}>
             <HandHeart size={12} /> Set dispute round in Letter Studio
-          </button>
-        ) : null}
-        {!model ? (
-          <button type="button" onClick={() => setEditing(true)} className={FINELY_OS_SUCCESS_BTN}>
-            Choose support model
           </button>
         ) : null}
       </div>
