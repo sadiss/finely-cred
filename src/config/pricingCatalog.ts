@@ -85,6 +85,12 @@ export interface PricingPackage {
   scopeBullets?: string[];
   /** Optional: rail-specific scope bullets (Stripe vs In-house can differ). */
   scopeBulletsByRail?: Partial<Record<Exclude<PricingRail, 'both'>, string[]>>;
+  /** Debt Kill only: illustrative total-debt band for package guidance (sticker unchanged). */
+  debtBalanceGuidance?: {
+    minCents?: number;
+    maxCents?: number | null;
+    label: string;
+  };
 }
 
 /** One row in a tier's revenue-share breakdown (training vs certified, etc.). */
@@ -686,6 +692,7 @@ export const debtLegalPackages: PricingPackage[] = [
     isPublic: true,
     sortOrder: 1,
     entitlementKeys: ['debt_kill_diy'],
+    debtBalanceGuidance: { minCents: 0, maxCents: null, label: 'DIY / learning any balance' },
   },
   {
     id: 'debt_kill_starter_dfy',
@@ -714,6 +721,7 @@ export const debtLegalPackages: PricingPackage[] = [
     sortOrder: 2,
     badge: 'Starter',
     entitlementKeys: ['debt_kill_diy', 'debt_kill_starter_dfy'],
+    debtBalanceGuidance: { minCents: 0, maxCents: 1_000_000, label: 'Under ~$10k · 1–2 items' },
   },
   {
     id: 'debt_kill_pro',
@@ -743,6 +751,7 @@ export const debtLegalPackages: PricingPackage[] = [
     sortOrder: 3,
     badge: 'Most Popular',
     entitlementKeys: ['debt_kill_diy', 'debt_kill_starter_dfy', 'debt_kill_pro'],
+    debtBalanceGuidance: { minCents: 1_000_000, maxCents: 2_500_000, label: '~$10k–$25k mid complexity' },
   },
   {
     id: 'debt_kill_plus',
@@ -765,6 +774,7 @@ export const debtLegalPackages: PricingPackage[] = [
     isPublic: true,
     sortOrder: 4,
     entitlementKeys: ['debt_kill_diy', 'debt_kill_starter_dfy', 'debt_kill_pro', 'debt_kill_plus'],
+    debtBalanceGuidance: { minCents: 2_500_000, maxCents: 6_000_000, label: 'Multi-account / aggressive collectors' },
   },
   {
     id: 'debt_kill_premium',
@@ -793,6 +803,7 @@ export const debtLegalPackages: PricingPackage[] = [
       'debt_kill_plus',
       'debt_kill_premium',
     ],
+    debtBalanceGuidance: { minCents: 6_000_000, maxCents: 25_000_000, label: 'Complex file pre high-balance' },
   },
   {
     id: 'debt_kill_high_balance',
@@ -825,6 +836,7 @@ export const debtLegalPackages: PricingPackage[] = [
       'debt_kill_premium',
       'debt_kill_high_balance',
     ],
+    debtBalanceGuidance: { minCents: 25_000_000, maxCents: 100_000_000, label: '$25k–$100k' },
   },
   {
     id: 'debt_kill_institutional',
@@ -857,6 +869,7 @@ export const debtLegalPackages: PricingPackage[] = [
       'debt_kill_high_balance',
       'debt_kill_institutional',
     ],
+    debtBalanceGuidance: { minCents: 60_000_000, maxCents: 100_000_000, label: '$60k–$100k' },
   },
   {
     id: 'debt_kill_enterprise',
@@ -890,6 +903,7 @@ export const debtLegalPackages: PricingPackage[] = [
       'debt_kill_institutional',
       'debt_kill_enterprise',
     ],
+    debtBalanceGuidance: { minCents: 100_000_000, maxCents: null, label: '$100k+' },
   },
 ];
 
@@ -1759,6 +1773,20 @@ function inferPackageScopeBullets(pkg: PricingPackage): string[] {
   }
 
   return bullets;
+}
+
+/** Illustrative debt-balance → package match (sticker prices unchanged). */
+export function getDebtPackageGuidanceForBalance(amountCents: number): PricingPackage | undefined {
+  const ranked = debtLegalPackages
+    .filter((p) => p.debtBalanceGuidance)
+    .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
+  for (const p of ranked) {
+    const g = p.debtBalanceGuidance!;
+    const min = g.minCents ?? 0;
+    const max = g.maxCents ?? Number.POSITIVE_INFINITY;
+    if (amountCents >= min && amountCents <= max) return p;
+  }
+  return ranked[ranked.length - 1];
 }
 
 /**

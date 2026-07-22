@@ -21,7 +21,7 @@ function readOnboardingRole(): string {
 /** Where signed-in users land when no explicit ?next= or onboarding path is set. */
 export function resolvePostAuthHomePath(user: User | null | undefined): string {
   const email = user?.email ?? '';
-  if (email && isAdminEmail(email)) return '/dashboard';
+  if (email && isAdminEmail(email)) return '/admin';
 
   const role = (getUserProfileMeta(user).role || readOnboardingRole() || 'client').trim().toLowerCase();
 

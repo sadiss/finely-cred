@@ -75,13 +75,13 @@ export function LetterStudioDisputeRail({
                   type="button"
                   onClick={() => onSelectBureau(b)}
                   className={
-                    'flex-1 py-2 text-[9px] font-black uppercase tracking-widest transition-all ' +
-                    (on ? 'bg-amber-500/15 text-amber-100 border-b-2 border-amber-500' : 'text-white/45 hover:text-white/70 hover:bg-white/[0.02]')
+                    'flex-1 py-2.5 px-1 text-sm font-semibold transition-all ' +
+                    (on ? 'bg-amber-500/15 text-amber-100 border-b-2 border-amber-500' : 'text-white/55 hover:text-white/80 hover:bg-white/[0.02]')
                   }
                   title={bureauFullName(b)}
                 >
-                  {bureauShortCode(b)}
-                  <span className="ml-1 opacity-70">({count})</span>
+                  {bureauFullName(b)}
+                  <span className="ml-1 text-xs font-normal opacity-70">({count})</span>
                 </button>
               );
             })}

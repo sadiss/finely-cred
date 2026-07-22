@@ -109,7 +109,9 @@
     "launch:go-live": "node scripts/launch-go-live.mjs",
     "launch:preflight": "node scripts/launch-go-live-preflight.mjs",
     "launch:ops": "node scripts/launch-ops-status.mjs",
-    "post-deploy:verify": "node scripts/post-deploy-verify.mjs"
+    "post-deploy:verify": "node scripts/post-deploy-verify.mjs",
+    "extract:premium-spreads": "node scripts/extract-premium-spread-pngs.mjs",
+    "smoke:premium-spread-pdf": "npx tsx scripts/smoke-premium-spread-pdf.mjs"
   },
   "devDependencies": {
     "@playwright/test": "^1.52.0",

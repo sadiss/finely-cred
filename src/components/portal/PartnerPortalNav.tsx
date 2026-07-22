@@ -34,7 +34,8 @@ function entitlementForPath(path: string) {
   if (path.startsWith('/portal/debt')) return ENTITLEMENT_KEYS.debt;
   if (path.startsWith('/portal/escalations')) return ENTITLEMENT_KEYS.escalations;
   if (path.startsWith('/portal/identity-theft')) return ENTITLEMENT_KEYS.identityTheft;
-  if (path.startsWith('/portal/build')) return ENTITLEMENT_KEYS.businessBuild;
+  if (path.startsWith('/portal/build') || path.startsWith('/business')) return ENTITLEMENT_KEYS.businessBuild;
+  if (path.startsWith('/portal/au') || path.startsWith('/seller')) return ENTITLEMENT_KEYS.auSeller;
   if (path.startsWith('/portal/courses')) return ENTITLEMENT_KEYS.courses;
   if (path.startsWith('/portal/barter')) return ENTITLEMENT_KEYS.barter;
   return null;
@@ -101,6 +102,12 @@ export function PartnerPortalNav() {
             const active = isActivePath(path);
             const requiredKey = partner ? entitlementForPath(path) : null;
             const locked = isNavLocked(path, requiredKey);
+            const specialty =
+              path.startsWith('/portal/debt') ||
+              path.startsWith('/portal/bankruptcy') ||
+              path.startsWith('/portal/build') ||
+              path.startsWith('/business');
+            if (locked && specialty) return null;
             return (
               <button
                 key={path}
@@ -154,6 +161,13 @@ export function PartnerPortalNav() {
                 const active = isActivePath(path);
                 const requiredKey = partner ? entitlementForPath(path) : null;
                 const locked = isNavLocked(path, requiredKey);
+                const specialty =
+                  path.startsWith('/portal/build') ||
+                  path.startsWith('/portal/identity-theft') ||
+                  path.startsWith('/portal/escalations') ||
+                  path.startsWith('/portal/barter') ||
+                  path.startsWith('/business');
+                if (locked && specialty) return null;
                 return (
                   <button
                     key={path}

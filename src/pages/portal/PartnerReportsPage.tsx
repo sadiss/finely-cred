@@ -12,7 +12,7 @@ import { ReportActionsBar, ReportFileStrip } from '../../components/reports/Repo
 import { ParsedReportViewer } from '../../components/reports/ParsedReportViewer';
 import { CreditIntelTabs } from '../../components/creditIntel/CreditIntelTabs';
 import { CreditIntelDashboardPanel } from '../../components/creditIntel/CreditIntelDashboardPanel';
-import { EvidenceUploader } from '../../components/evidence/EvidenceUploader';
+import { SmartProofUploader } from '../../components/evidence/SmartProofUploader';
 import { EvidenceList } from '../../components/evidence/EvidenceList';
 import { ParsedReportOverviewPanel } from '../../components/reports/ParsedReportOverviewPanel';
 import { ParsedReportDiagnosticsPanel } from '../../components/reports/ParsedReportDiagnosticsPanel';
@@ -33,7 +33,7 @@ import type { DisputeCandidate } from '../../domain/creditReports';
 import { deriveDisputeCandidates } from '../../creditReports/disputeCandidates';
 import { normalizeCreditAnalysisReportTemplateConfig } from '../../reports/generateCreditAnalysisReportPdf';
 import { generatePartnerCreditAnalysisReport } from '../../reports/generatePartnerCreditAnalysisReport';
-import { PREMIUM_CREDIT_ANALYSIS_TEMPLATE_ID, isPremiumCreditAnalysisEngine } from '../../lib/resolveCreditAnalysisEngine';
+import { PREMIUM_CREDIT_ANALYSIS_TEMPLATE_ID, isPremiumCreditAnalysisEngine, resolveCreditAnalysisEngine } from '../../lib/resolveCreditAnalysisEngine';
 import { newId } from '../../utils/ids';
 import { addAuditEvent } from '../../data/auditRepo';
 import { notifyAnalysisReportReady } from '../../lib/analysisReportDelivery';
@@ -227,7 +227,7 @@ export default function PartnerReportsPage() {
 
   useEffect(() => {
     if (!analysisTemplates.length) return;
-    const premium = analysisTemplates.find((t) => t.id === PREMIUM_CREDIT_ANALYSIS_TEMPLATE_ID || (t.tags ?? []).includes('premium_spreads'));
+    const premium = analysisTemplates.find((t) => t.id === PREMIUM_CREDIT_ANALYSIS_TEMPLATE_ID || (t.tags ?? []).includes('structured_premium') || (t.tags ?? []).includes('premium_spreads'));
     if (premium && !analysisTemplateId) setAnalysisTemplateId(premium.id);
   }, [analysisTemplates, analysisTemplateId]);
 
@@ -660,12 +660,12 @@ export default function PartnerReportsPage() {
                       <div>
                         <div className="text-[10px] uppercase tracking-widest text-emerald-700">Free deliverable</div>
                         <div className={`mt-2 ${FINELY_OS_ENTITY_VALUE}`}>
-                          Premium Credit Analysis (10 spreads) — default
+                          Premium Credit Analysis — default
                         </div>
                         <div className={`mt-1 ${FINELY_OS_ENTITY_BODY}`}>
                           {isPremiumAnalysisTemplate
-                            ? 'Uses your approved Finely Cred premium artwork from the zip package — partner name, scores, utilization, negatives, and readiness are injected dynamically.'
-                            : 'Legacy text report selected in template. Switch template to Premium for the approved spread design.'}
+                            ? 'Premium dynamic spread report with ivory/forest pages, amber-gold highlights, multicolor accents, live bureau scores, ranked risk cards, and a clean action roadmap.'
+                            : 'Legacy paginated text report. Switch template to Premium for the full visual credit analysis deliverable.'}
                         </div>
                       </div>
                       <div className="shrink-0 flex flex-col items-end gap-2">
@@ -698,7 +698,8 @@ export default function PartnerReportsPage() {
                               const { blob, filename, displayTitle, pages, exhibitsIncluded } = generated;
                               const payloadSnapshot =
                                 'payloadSnapshot' in generated ? generated.payloadSnapshot : undefined;
-                              const usePremium = isPremiumCreditAnalysisEngine(selectedAnalysisTemplateConfig);
+                              const resolvedEngine = resolveCreditAnalysisEngine(selectedAnalysisTemplateConfig);
+                              const usePremium = resolvedEngine !== 'paginated_text';
                               const store = getBlobStore();
                               const put = await store.put(blob, { partnerId: partner.id, reportId: selected.id, kind: 'analysis_report' });
                               const item = upsertCreditAnalysisReport({
@@ -710,7 +711,7 @@ export default function PartnerReportsPage() {
                                 sizeBytes: blob.size,
                                 pages,
                                 sourceReportFilename: selected.filename,
-                                engine: usePremium ? 'premium_spreads' : 'paginated_text',
+                                engine: resolvedEngine,
                                 payloadSnapshot: payloadSnapshot as Record<string, unknown> | undefined,
                               });
                               setEvidenceVersion((v) => v + 1);
@@ -722,10 +723,10 @@ export default function PartnerReportsPage() {
                                 action: 'report.credit_analysis.generated',
                                 entityType: 'credit_analysis_report',
                                 entityId: item.id,
-                                meta: { pages, filename, reportId: selected.id, variant: analysisVariant, exhibitsIncluded, engine: usePremium ? 'premium_spreads' : 'paginated_text' },
+                                meta: { pages, filename, reportId: selected.id, variant: analysisVariant, exhibitsIncluded, engine: resolvedEngine },
                               });
                               setAnalysisNotice(
-                                `Generated and saved (${pages} pages${exhibitsIncluded ? ` • ${exhibitsIncluded} exhibit(s)` : ''}). Open it from Strategy reports below.`,
+                                `Premium analysis created and saved (${pages} pages${exhibitsIncluded ? ` • ${exhibitsIncluded} exhibit(s)` : ''}). Open, send, or share it from Strategy reports below.`,
                               );
                               const emailResult = await notifyAnalysisReportReady({
                                 partner,
@@ -747,7 +748,7 @@ export default function PartnerReportsPage() {
                           }}
                           className={FINELY_OS_SUCCESS_BTN}
                         >
-                          {analysisBusy ? 'Generating…' : 'Generate PDF'}
+                          {analysisBusy ? 'Creating premium report…' : 'Create premium analysis'}
                         </button>
                       </div>
                     </div>
@@ -1166,13 +1167,11 @@ export default function PartnerReportsPage() {
 
         {tab === 'evidence' && (
           <div className="space-y-6">
-            <EvidenceUploader
-              partnerId={partner.id}
-              reportId={selected?.id}
-              onCreated={(item) => {
-                upsertEvidence(item);
-                setEvidenceVersion((v) => v + 1);
-              }}
+            <SmartProofUploader
+              partner={partner}
+              email={partner.profile?.email}
+              uploadContext="bureau"
+              onUploaded={() => setEvidenceVersion((v) => v + 1)}
             />
             <EvidenceList
               items={evidence}

@@ -21,6 +21,9 @@ export type DebtLetterType =
   | 'affidavit_of_dispute'    // Sworn statement disputing debt / no contract
   | 'time_barred_response'    // Statute of limitations defense
   | 'summons_response_affidavit'  // Court/summons response (litigation affidavit format)
+  | 'courtroom_pretrial_proof_notice'
+  | 'courtroom_written_answer'
+  | 'courtroom_day_kit'
   | 'debt_dispute_letter';    // General dispute to collector (accuracy/verification)
 
 export type LegalBasisCategory =

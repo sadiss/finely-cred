@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { CheckCircle2, ExternalLink, ShieldCheck, X, Send, AlertTriangle } from 'lucide-react';
+import { CheckCircle2, ChevronRight, ExternalLink, ShieldCheck, X, Send, AlertTriangle } from 'lucide-react';
 import type { LetterRecord } from '../../domain/letters';
 import type { EvidenceItem } from '../../domain/evidence';
 import { businessBureauDisputeAddress, consumerBureauDisputeAddress } from '../../letters/bureauAddresses';
@@ -17,6 +17,7 @@ import { canAffordMailSend, chargeMailSend, formatMailCreditsUsd } from '../../d
 import { MailCreditsPanel } from '../mailing/MailCreditsPanel';
 import { LetterAgentChainStrip } from './LetterAgentChainStrip';
 import { appendAiActionAudit } from '../../data/aiActionAuditLog';
+import { FINELY_OS_PRIMARY_BTN, FINELY_OS_SECONDARY_BTN } from '../../features/os/finelyOsLightUi';
 
 function sanitizeState(s: string) {
   return (s || '').trim().toUpperCase().slice(0, 2);
@@ -379,6 +380,24 @@ export function MailLetterModal({
             </div>
           ) : null}
           {err ? <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-red-100 text-sm">{err}</div> : null}
+
+          <div className="flex flex-wrap items-center gap-1.5 rounded-xl border border-white/10 bg-black/25 p-3">
+            {(['From', 'To', 'Credits', 'Send'] as const).map((label, idx) => (
+              <React.Fragment key={label}>
+                {idx > 0 ? <ChevronRight size={18} className="text-white/30 shrink-0" aria-hidden /> : null}
+                <span
+                  className={`inline-flex items-center rounded-lg border px-3 py-2 min-h-[40px] text-sm font-semibold ${
+                    label === 'Send'
+                      ? 'border-amber-400/50 bg-amber-500/15 text-amber-50'
+                      : 'border-white/12 bg-black/30 text-white/75'
+                  }`}
+                >
+                  {label}
+                </span>
+              </React.Fragment>
+            ))}
+          </div>
+
           <MailCreditsPanel compact />
 
           {/* Preview */}
@@ -417,8 +436,8 @@ export function MailLetterModal({
 
           {/* Addresses — stacked for clarity */}
           <div className="space-y-4">
-            <div className="fc-light-glass-panel fc-light-chrome-panel p-5 space-y-4">
-              <div className="text-white font-semibold">Recipient address</div>
+            <div className="fc-light-glass-panel fc-light-chrome-panel p-5 space-y-4" id="mail-step-to">
+              <div className="text-white font-semibold text-sm">To — recipient address</div>
               {(['name', 'addressLine1', 'addressLine2', 'city', 'state', 'zip'] as const).map((k) => (
                 <label key={k} className="block">
                   <div className="text-[10px] uppercase tracking-widest text-white/40">{k}</div>
@@ -437,8 +456,8 @@ export function MailLetterModal({
               ))}
             </div>
 
-            <div className="fc-light-glass-panel fc-light-chrome-panel p-5 space-y-4">
-              <div className="text-white font-semibold">Return address</div>
+            <div className="fc-light-glass-panel fc-light-chrome-panel p-5 space-y-4" id="mail-step-from">
+              <div className="text-white font-semibold text-sm">From — your return address</div>
               {(['name', 'addressLine1', 'addressLine2', 'city', 'state', 'zip'] as const).map((k) => (
                 <label key={k} className="block">
                   <div className="text-[10px] uppercase tracking-widest text-white/40">{k}</div>
@@ -519,9 +538,10 @@ export function MailLetterModal({
               type="button"
               onClick={() => void submit()}
               disabled={busy || invalid || !verifiedOk}
-              className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-amber-500 text-black font-black uppercase tracking-widest text-[10px] hover:brightness-110 transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+              className={`${FINELY_OS_PRIMARY_BTN} !text-sm disabled:opacity-60 disabled:cursor-not-allowed`}
+              id="mail-step-send"
             >
-              <Send size={14} /> {busy ? 'Sending…' : 'Mail letter'}
+              <Send size={16} /> {busy ? 'Sending…' : 'Send letter'}
             </button>
           </div>
         </div>

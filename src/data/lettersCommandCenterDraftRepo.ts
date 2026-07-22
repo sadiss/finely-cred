@@ -3,12 +3,16 @@ import type { Bureau } from '../domain/creditReports';
 import type { SelectedDispute } from '../components/disputes/DisputePickerModal';
 
 type LetterTone = 'formal' | 'neutral' | 'conversational';
-type LetterRound = 'Round 1' | 'Round 2' | 'Round 3';
+type LetterRound = 'Round 1' | 'Round 2' | 'Round 3' | 'Round 4' | 'Round 5';
 
 export type LettersCommandCenterDraft = {
   savedAt: string;
   selectedDisputes: SelectedDispute[];
   evidenceByCandidateId: Record<string, string | undefined>;
+  /** Optional multi-evidence per dispute item. */
+  evidenceIdsByCandidateId?: Record<string, string[]>;
+  /** Letter-level identity packet (government ID + SSN card). */
+  identityEvidenceIds?: string[];
   reasonsByCandidateId: Record<string, string[]>;
   /** Per-item applicable law cites for bureau dispute letters. */
   lawsByCandidateId?: Record<string, Array<{ id: string; cite: string; shortLabel: string; source?: string }>>;

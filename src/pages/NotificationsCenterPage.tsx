@@ -76,6 +76,16 @@ export default function NotificationsCenterPage({ surface }: { surface: Surface 
     [partner?.id, auth.user?.id, version],
   );
 
+  function toggleEmailInstantMessages() {
+    upsertNotificationPrefs({ ...prefs, emailInstantMessages: !prefs.emailInstantMessages });
+    setVersion((v) => v + 1);
+  }
+
+  function toggleEmailDigest() {
+    upsertNotificationPrefs({ ...prefs, emailDigest: !prefs.emailDigest });
+    setVersion((v) => v + 1);
+  }
+
   const mutedKinds = prefs.mutedKinds ?? [];
 
   function toggleMute(kind: string) {
@@ -153,6 +163,22 @@ export default function NotificationsCenterPage({ surface }: { surface: Surface 
               <Settings size={12} /> Preferences
             </div>
             <p className={`text-xs ${FINELY_OS_ENTITY_BODY}`}>Mute categories you do not want in-app or email digests.</p>
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={toggleEmailInstantMessages}
+                className={`${FINELY_OS_ENTITY_CHIP} ${prefs.emailInstantMessages ? '' : 'opacity-50 line-through'}`}
+              >
+                Instant message emails
+              </button>
+              <button
+                type="button"
+                onClick={toggleEmailDigest}
+                className={`${FINELY_OS_ENTITY_CHIP} ${prefs.emailDigest ? '' : 'opacity-50 line-through'}`}
+              >
+                Daily email digest
+              </button>
+            </div>
             <div className="flex flex-wrap gap-2">
               {(['task', 'trial', 'purchase', 'support'] as const).map((kind) => (
                 <button

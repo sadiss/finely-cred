@@ -204,6 +204,7 @@ export default function PartnerBankruptcyPage() {
                   />
                 </div>
                 <BankruptcyCenterView
+                partnerId={partner.id}
                 partnerName={canonical?.fullName || partner.profile.fullName}
                 partnerEmail={partner.profile.email}
                 partnerState={canonical?.state}

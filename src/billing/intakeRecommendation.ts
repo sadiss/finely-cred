@@ -36,14 +36,26 @@ export function computeRecommendation(intake: PartnerRouteIntake): RecommendedTi
   }
 
   if (goal === 'debt') {
-    return {
-      productId: 'prod_debt_legal',
-      productName: 'Debt & Summons Resolution',
+    const pkgId =
+      liabilityTier === 'high'
+        ? 'debt_kill_premium'
+        : liabilityTier === 'mid'
+          ? 'debt_kill_pro'
+          : 'debt_kill_starter_dfy';
+    const pkgName =
+      pkgId === 'debt_kill_premium'
+        ? 'Debt Kill Premium'
+        : pkgId === 'debt_kill_pro'
+          ? 'Debt Kill Pro'
+          : 'Debt Kill Starter (DFY)';
+  return {
+      productId: pkgId,
+      productName: pkgName,
       reason:
-        'Your goal is liability liquidation. Debt & Summons Resolution covers collection defense, summons response, and escalation tracking.',
+        'Your goal is liability liquidation. Based on your liability tier, this is a typical starting package — final package follows intake review.',
       urgencyMultiplier,
       estimatedTotalLow: Math.round(1500 * urgencyMultiplier),
-      estimatedTotalHigh: Math.round(6000 * urgencyMultiplier),
+      estimatedTotalHigh: Math.round(7500 * urgencyMultiplier),
     };
   }
 

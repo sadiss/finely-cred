@@ -48,4 +48,15 @@ export class FallbackBlobStore implements BlobStore {
       // ignore
     }
   }
+
+  /** Forward to primary when it can sign (e.g. SupabaseBlobStore). */
+  async createSignedUrl(ref: BlobRef, expiresInSeconds = 60 * 30): Promise<string> {
+    const primary = this.primary as BlobStore & {
+      createSignedUrl?: (r: BlobRef, ttl?: number) => Promise<string>;
+    };
+    if (typeof primary.createSignedUrl !== 'function') {
+      throw new Error('Primary store cannot create signed URLs.');
+    }
+    return primary.createSignedUrl(ref, expiresInSeconds);
+  }
 }

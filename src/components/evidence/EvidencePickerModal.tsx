@@ -1,8 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { AlertTriangle, ExternalLink, Paperclip, Trash2, X } from 'lucide-react';
 import type { EvidenceItem } from '../../domain/evidence';
-import { getBlobUrl } from '../../storage/getBlobUrl';
-import { openUrlInNewTab } from '../../utils/download';
+import { openBlobRefInNewTab } from '../../lib/openBlobRef';
 import { EvidenceUploader } from './EvidenceUploader';
 import {
   EVIDENCE_MATCH_ATTACH_MIN,
@@ -10,6 +9,7 @@ import {
   evidenceMatchesAccount,
   scoreEvidenceForAccount,
 } from '../../utils/evidenceMatch';
+import { filterIdentityPacketEvidence } from '../../lib/identityEvidence';
 
 type CategoryKey =
   | ''
@@ -66,7 +66,7 @@ export function EvidencePickerModal({
   items: EvidenceItem[];
   selectedEvidenceId?: string;
   selectedEvidenceIds?: string[];
-  filter?: 'all' | 'screenshots';
+  filter?: 'all' | 'screenshots' | 'identity'
   emptyHint?: string;
   onGoCapture?: () => void;
   pickLabel?: string;
@@ -89,6 +89,7 @@ export function EvidencePickerModal({
 
   const baseItems = useMemo(() => {
     if (filter === 'screenshots') return items.filter((x) => x.type === 'screenshot');
+    if (filter === 'identity') return filterIdentityPacketEvidence(items);
     return items;
   }, [items, filter]);
 
@@ -138,12 +139,8 @@ export function EvidencePickerModal({
     setErr(null);
     setBusyId(item.id);
     try {
-      const res = await getBlobUrl(item.blobRef, { mimeType: item.mimeType });
-      if (!res?.url) {
-        setErr('Could not load this file from storage.');
-        return;
-      }
-      openUrlInNewTab({ url: res.url, revoke: res.revoke, revokeAfterMs: 60_000 });
+      const result = await openBlobRefInNewTab({ blobRef: item.blobRef, mimeType: item.mimeType });
+      if (!result.ok) setErr(result.message);
     } catch (e: any) {
       setErr(e?.message || 'Failed to open evidence.');
     } finally {

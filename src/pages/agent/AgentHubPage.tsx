@@ -432,4 +432,5 @@ export default function AgentHubPage() {
         <FinelyOsPageFooter />
       </div>
     </PageShell>
- 
+  );
+}

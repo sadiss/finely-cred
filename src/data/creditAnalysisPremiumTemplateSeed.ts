@@ -7,10 +7,9 @@ const TEMPLATE_ID = 'seed_tplv_premium_credit_analysis_v1';
 const PREMIUM_TEMPLATE_BODY = JSON.stringify(
   {
     version: 1,
-    engine: 'premium_spreads',
-    spreadPackId: 'finely_premium_v1',
+    engine: 'structured_premium',
     title: 'Premium Credit Analysis Report',
-    badgeLine: 'Finely Cred · Executive credit intelligence',
+    badgeLine: 'Finely Cred · Original ivory executive credit intelligence',
     variant: 'standard',
   },
   null,
@@ -26,11 +25,11 @@ export function ensurePremiumCreditAnalysisTemplateOnce() {
     tenantId,
     createdAt: existing?.createdAt ?? now,
     updatedAt: now,
-    title: 'Premium Credit Analysis (10 spreads)',
+    title: 'Premium Credit Analysis (original ivory report)',
     category: 'ops',
     kind: 'text',
     bodyText: PREMIUM_TEMPLATE_BODY,
-    tags: ['analysis_report_template', 'premium_spreads', 'analysis_variant:standard'],
+    tags: ['analysis_report_template', 'structured_premium', 'original_ivory_report', 'analysis_variant:standard'],
     requiredEntitlements: defaultRequiredEntitlementsForCategory('ops'),
   };
   upsertTemplateVaultItem(next);

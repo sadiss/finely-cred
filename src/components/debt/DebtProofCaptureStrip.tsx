@@ -1,7 +1,27 @@
-import React from 'react';
+import React, { useMemo, useState } from 'react';
 import type { Partner } from '../../domain/partners';
+import { listEvidenceByPartner } from '../../data/evidenceRepo';
 import { SmartProofUploader } from '../evidence/SmartProofUploader';
-import { finelyOsCatalogCardCompact } from '../../features/os/finelyOsLightUi';
+import { FINELY_OS_ENTITY_BODY } from '../../features/os/finelyOsLightUi';
+import type { FinelyOsGlowAccent } from '../../features/os/finelyOsLightUi';
+
+const ACCENT_BORDER: Record<FinelyOsGlowAccent, string> = {
+  emerald: 'border-emerald-400/30',
+  fuchsia: 'border-fuchsia-400/30',
+  sky: 'border-sky-400/30',
+  amber: 'border-amber-400/30',
+  rose: 'border-rose-400/30',
+  violet: 'border-violet-400/30',
+};
+
+function mapUploadContext(
+  uploadContext: 'debt' | 'foreclosure' | 'repossession' | 'bankruptcy' | 'validation' | 'court',
+): 'debt' | 'foreclosure' | 'repossession' | 'bankruptcy' {
+  if (uploadContext === 'foreclosure') return 'foreclosure';
+  if (uploadContext === 'repossession') return 'repossession';
+  if (uploadContext === 'bankruptcy') return 'bankruptcy';
+  return 'debt';
+}
 
 export function DebtProofCaptureStrip({
   partner,
@@ -9,44 +29,60 @@ export function DebtProofCaptureStrip({
   bankruptcyCaseId,
   accent = 'emerald',
   uploadContext = 'debt',
+  defaultOpen,
+  proofCount: proofCountProp,
+  onUploaded,
 }: {
   partner: Partner;
   debtCaseId?: string;
   bankruptcyCaseId?: string;
-  accent?: 'emerald' | 'fuchsia' | 'sky' | 'amber' | 'rose';
+  accent?: FinelyOsGlowAccent;
   uploadContext?: 'debt' | 'foreclosure' | 'repossession' | 'bankruptcy' | 'validation' | 'court';
+  /** Force details open on mount */
+  defaultOpen?: boolean;
+  /** Override auto-counted evidence files */
+  proofCount?: number;
+  onUploaded?: () => void;
 }) {
-  const ctx =
-    uploadContext === 'foreclosure'
-      ? 'foreclosure'
-      : uploadContext === 'repossession'
-        ? 'repossession'
-        : uploadContext === 'bankruptcy'
-          ? 'bankruptcy'
-          : 'debt';
+  const [version, setVersion] = useState(0);
+  const evidenceCount = useMemo(() => {
+    void version;
+    if (proofCountProp != null) return proofCountProp;
+    return listEvidenceByPartner(partner.id).length;
+  }, [partner.id, proofCountProp, version]);
+
+  const [open, setOpen] = useState(() => defaultOpen === true || (defaultOpen !== false && evidenceCount === 0));
+
+  const summaryLabel =
+    evidenceCount > 0
+      ? `Proof & uploads (${evidenceCount} in vault — Documents is the hub)`
+      : 'Proof & uploads (optional — Documents vault is the hub)';
 
   return (
-    <div
-      className={finelyOsCatalogCardCompact(
-        accent === 'fuchsia'
-          ? 'fuchsia'
-          : accent === 'sky'
-            ? 'sky'
-            : accent === 'amber'
-              ? 'amber'
-              : accent === 'rose'
-                ? 'rose'
-                : 'emerald',
-      )}
+    <details
+      open={open}
+      onToggle={(e) => setOpen((e.currentTarget as HTMLDetailsElement).open)}
+      className={`rounded-xl border bg-black/25 !p-3 ${ACCENT_BORDER[accent] ?? ACCENT_BORDER.emerald}`}
     >
-      <SmartProofUploader
-        partner={partner}
-        email={partner.profile.email}
-        debtCaseId={debtCaseId}
-        bankruptcyCaseId={bankruptcyCaseId}
-        uploadContext={ctx}
-        compact
-      />
-    </div>
+      <summary className="cursor-pointer select-none text-sm font-semibold text-white">{summaryLabel}</summary>
+      <div className="mt-3 space-y-2">
+        <p className={`text-xs ${FINELY_OS_ENTITY_BODY}`}>
+          ID, collector mail, court papers, and photos — classified to your evidence vault. Optional here;{' '}
+          <span className="text-white/75">Documents</span> is the full hub.
+        </p>
+        <SmartProofUploader
+          partner={partner}
+          email={partner.profile.email}
+          debtCaseId={debtCaseId}
+          bankruptcyCaseId={bankruptcyCaseId}
+          uploadContext={mapUploadContext(uploadContext)}
+          compact
+          onUploaded={() => {
+            setVersion((v) => v + 1);
+            onUploaded?.();
+          }}
+        />
+      </div>
+    </details>
   );
 }

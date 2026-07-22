@@ -164,6 +164,7 @@ export function DebtLetterDraftWorkspace({
   accent = 'emerald',
   editorLabel = 'Editor',
   minRows = 20,
+  heroLayout = false,
 }: {
   text: string;
   onTextChange: (text: string) => void;
@@ -174,8 +175,38 @@ export function DebtLetterDraftWorkspace({
   accent?: 'emerald' | 'fuchsia' | 'sky' | 'violet';
   editorLabel?: string;
   minRows?: number;
+  /** Paper preview first; editor in collapsible details */
+  heroLayout?: boolean;
 }) {
-  const [view, setView] = useState<'split' | 'edit' | 'preview'>('split');
+  const [view, setView] = useState<'split' | 'edit' | 'preview'>(heroLayout ? 'preview' : 'split');
+
+  if (heroLayout) {
+    return (
+      <div className="space-y-3">
+        <DebtLetterPreview
+          text={text}
+          letterDate={letterDate}
+          senderLines={senderLines}
+          recipientName={recipientName}
+          recipientAddress={recipientAddress}
+          accent={accent}
+          compact={false}
+        />
+        <details className="rounded-xl border border-white/10 bg-black/25 !p-3">
+          <summary className="cursor-pointer select-none text-sm font-semibold text-white">{editorLabel} — edit body</summary>
+          <div className="mt-3 space-y-2">
+            <textarea
+              value={text}
+              onChange={(e) => onTextChange(e.target.value)}
+              rows={Math.min(minRows, 16)}
+              className="w-full min-h-[200px] font-mono text-[13px] leading-relaxed rounded-xl border border-white/10 bg-black/40 px-3 py-2 text-white/90 focus:border-emerald-500/40 focus:outline-none"
+              placeholder="Write your letter here…"
+            />
+          </div>
+        </details>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-3">
@@ -246,6 +277,7 @@ export function DebtLetterRichDraftWorkspace({
   accent = 'emerald',
   editorLabel = 'Letter editor',
   minHeightPx = 280,
+  heroLayout = false,
 }: {
   html: string;
   onChangeHtml: (html: string) => void;
@@ -256,8 +288,31 @@ export function DebtLetterRichDraftWorkspace({
   accent?: 'emerald' | 'fuchsia' | 'sky' | 'violet';
   editorLabel?: string;
   minHeightPx?: number;
+  heroLayout?: boolean;
 }) {
-  const [view, setView] = useState<'split' | 'edit' | 'preview'>('split');
+  const [view, setView] = useState<'split' | 'edit' | 'preview'>(heroLayout ? 'preview' : 'split');
+
+  if (heroLayout) {
+    return (
+      <div className="space-y-3">
+        <DebtLetterPreview
+          html={html}
+          letterDate={letterDate}
+          senderLines={senderLines}
+          recipientName={recipientName}
+          recipientAddress={recipientAddress}
+          accent={accent}
+          compact={false}
+        />
+        <details className="rounded-xl border border-white/10 bg-black/25 !p-3">
+          <summary className="cursor-pointer select-none text-sm font-semibold text-white">{editorLabel} — edit body</summary>
+          <div className="mt-3">
+            <RichTextEditor valueHtml={html} onChangeHtml={onChangeHtml} minHeightPx={minHeightPx} placeholder="Write your letter here…" />
+          </div>
+        </details>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-3">

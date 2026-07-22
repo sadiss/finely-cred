@@ -45,7 +45,9 @@ export function partnerCanUsePortalModule(args: {
 }): boolean {
   const flags = readPartnerAccessFlags(args.partner);
   if (!flags.roleUnlocked && args.partner.status === 'lead') return false;
-  if (flags.paymentWaived) return true;
+  // Payment waived means checkout is skipped — it does NOT unlock every product.
+  // Access still comes from granted entitlements (lane-scoped grants on waive).
+  void flags.paymentWaived;
   return hasEntitlement(args.partner.id, args.entitlementKey);
 }
 

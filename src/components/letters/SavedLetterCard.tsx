@@ -20,7 +20,7 @@ import {
 import type { LetterRecord, LetterStatus, LetterType, DisputeLetterMeta } from '../../domain/letters';
 import type { EvidenceItem } from '../../domain/evidence';
 import type { Bureau } from '../../domain/creditReports';
-import { bureauFullName, bureauShortCode } from '../../utils/bureaus';
+import { bureauFullName } from '../../utils/bureaus';
 import { LetterFullPreviewModal } from './LetterFullPreviewModal';
 import {
   FINELY_OS_ENTITY_BODY,
@@ -139,6 +139,7 @@ export type SavedLetterCardProps = {
   onMail?: () => void;
   onArchive?: () => void;
   onDelete?: () => void;
+  onResumeStudio?: () => void;
   canMail?: boolean;
   mailDisabled?: boolean;
   pdfDisabled?: boolean;
@@ -155,6 +156,7 @@ export function SavedLetterCard({
   onMail,
   onArchive,
   onDelete,
+  onResumeStudio,
   canMail = false,
   mailDisabled = false,
   pdfDisabled = false,
@@ -253,7 +255,7 @@ export function SavedLetterCard({
 
             <div className="flex flex-wrap items-center gap-1">
               <span className={finelyOsMicroStat(meta.accent)}>{meta.label}</span>
-              {bureau ? <span className={finelyOsMicroStat(bureauUi.badge)}>{bureauShortCode(bureau as Bureau)}</span> : null}
+              {bureau ? <span className={finelyOsMicroStat(bureauUi.badge)}>{bureauFullName(bureau as Bureau)}</span> : null}
               {round ? <span className="rounded-md border border-fuchsia-400/25 bg-fuchsia-500/15 px-1.5 py-0.5 text-[9px] font-black uppercase text-fuchsia-100">{round}</span> : null}
               <span className="rounded-md border border-emerald-400/20 bg-emerald-500/10 px-1.5 py-0.5 text-[9px] font-black uppercase text-emerald-100">{hasPdf ? 'PDF ready' : 'Draft'}</span>
             </div>
@@ -284,7 +286,7 @@ export function SavedLetterCard({
                     <span className={finelyOsMicroStat(meta.accent)}>
                       <Icon size={10} className="inline mr-1" /> {meta.label}
                     </span>
-                    {bureau ? <span className={finelyOsMicroStat(bureauUi.badge)}>{bureauShortCode(bureau as Bureau)}</span> : null}
+                    {bureau ? <span className={finelyOsMicroStat(bureauUi.badge)}>{bureauFullName(bureau as Bureau)}</span> : null}
                     <span className={finelyOsStatusChip(toneChip)}>{statusLabel(letter.status)}</span>
                   </div>
                   <h3 className={`mt-2 text-lg sm:text-xl font-black leading-tight ${FINELY_OS_ENTITY_VALUE}`}>{letter.title}</h3>
@@ -365,19 +367,29 @@ export function SavedLetterCard({
                     type="button"
                     onClick={handleOpenContent}
                     disabled={pdfDisabled || !canOpenContent}
-                    className={`${FINELY_OS_PRIMARY_BTN} !py-2 !text-[10px] disabled:opacity-45`}
+                    className={`${FINELY_OS_PRIMARY_BTN} !py-2.5 !px-4 !text-sm disabled:opacity-45`}
                   >
-                    <Download size={14} /> {hasPdf ? 'Open PDF' : 'View letter'}
-                  </button>
-                ) : null}
-                {canOpenContent ? (
-                  <button type="button" onClick={openPreview} className={`${FINELY_OS_SECONDARY_BTN} !py-2 !text-[10px]`}>
-                    <ScrollText size={14} /> Preview
+                    <Download size={16} /> {hasPdf ? 'Open PDF' : 'View letter'}
                   </button>
                 ) : null}
                 {canMail && onMail ? (
-                  <button type="button" onClick={onMail} disabled={mailDisabled || !hasPdf} className={`${FINELY_OS_SECONDARY_BTN} !py-2 !text-[10px] disabled:opacity-45`}>
-                    <Send size={14} /> Mail
+                  <button
+                    type="button"
+                    onClick={onMail}
+                    disabled={mailDisabled || !hasPdf}
+                    className={`${FINELY_OS_PRIMARY_BTN} !py-2.5 !px-4 !text-sm !bg-amber-500/90 disabled:opacity-45`}
+                  >
+                    <Send size={16} /> Mail letter
+                  </button>
+                ) : null}
+                {canOpenContent ? (
+                  <button type="button" onClick={openPreview} className={`${FINELY_OS_SECONDARY_BTN} !py-2.5 !px-4 !text-sm`}>
+                    <ScrollText size={16} /> Preview
+                  </button>
+                ) : null}
+                {onResumeStudio && !hasPdf ? (
+                  <button type="button" onClick={onResumeStudio} className={`${FINELY_OS_SECONDARY_BTN} !py-2.5 !px-4 !text-sm`}>
+                    <FileText size={16} /> Resume Studio
                   </button>
                 ) : null}
                 {onArchive ? (

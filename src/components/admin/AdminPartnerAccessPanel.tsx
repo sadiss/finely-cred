@@ -18,7 +18,9 @@ import {
   formatAdminDeliveryWhen,
   recordAdminDelivery,
 } from '../../lib/adminDeliveryCooldown';
-import { ensurePartnerEntitlements, ENTITLEMENT_KEYS, type EntitlementKey } from '../../billing/entitlements';
+import { ensurePartnerEntitlements, ENTITLEMENT_KEYS, SERVICE_ACCESS_BUNDLES, type EntitlementKey } from '../../billing/entitlements';
+import { PartnerServicesAccessCard } from './PartnerServicesAccessCard';
+import { LetterStreamStatusCard } from '../letters/LetterStreamStatusCard';
 import {
   FINELY_OS_ENTITY_BODY,
   FINELY_OS_ENTITY_SUBLABEL,
@@ -152,9 +154,11 @@ export function AdminPartnerAccessPanel({ partner, userRole, onUpdated }: Props)
       let next = patchPartnerAccessFlags(partner, patch);
       await adminUpsertPartner(next);
       if (patch.paymentWaived) {
+        // Least privilege: waive payment for credit restore by default � not every product.
         ensurePartnerEntitlements({
           partnerId: partner.id,
-          keys: Object.values(ENTITLEMENT_KEYS) as EntitlementKey[],
+          keys: [...SERVICE_ACCESS_BUNDLES.credit_restore] as EntitlementKey[],
+          sourceAgreementId: 'admin_payment_waived',
         });
       }
       setNotice('Access settings updated.');
@@ -493,7 +497,7 @@ export function AdminPartnerAccessPanel({ partner, userRole, onUpdated }: Props)
           {
             key: 'paymentWaived' as const,
             label: 'Waive payment — grant entitlements without checkout',
-            hint: 'Grants full entitlements immediately',
+            hint: 'Skips checkout and grants Credit restore access only (add Business/AUs below)',
           },
         ].map((row) => (
           <button
@@ -574,6 +578,14 @@ export function AdminPartnerAccessPanel({ partner, userRole, onUpdated }: Props)
                 </span>
               </span>
             </button>
+            <PartnerServicesAccessCard
+              partner={partner}
+              canManage={staffCaps.canManagePartnerAccess}
+              onUpdated={onUpdated}
+            />
+            <div className="border-t border-white/10 pt-4">
+              <LetterStreamStatusCard compact />
+            </div>
           </>
         ) : (
           <div className={`text-xs ${FINELY_OS_ENTITY_BODY}`}>

@@ -1,9 +1,17 @@
 import type { BlobRef } from './BlobStore';
 import { getBlobStore } from './getBlobStore';
-import { SupabaseBlobStore, isSupabaseBlobRef } from './SupabaseBlobStore';
+import { isSupabaseBlobRef } from './SupabaseBlobStore';
 import { isLegacyPendingReportBlob } from '../lib/legacyPendingReport';
 
 export type BlobUrlResult = { url: string; revoke?: () => void };
+
+type SignedCapable = { createSignedUrl: (ref: BlobRef, expiresInSeconds?: number) => Promise<string> };
+
+function asSignedCapable(store: unknown): SignedCapable | null {
+  if (!store || typeof store !== 'object') return null;
+  if (typeof (store as SignedCapable).createSignedUrl === 'function') return store as SignedCapable;
+  return null;
+}
 
 export async function getBlobUrl(
   ref: BlobRef,
@@ -15,21 +23,25 @@ export async function getBlobUrl(
 
   const store = getBlobStore();
   const preferSigned = args?.preferSigned ?? true;
+  const ttl = args?.signedTtlSeconds ?? 60 * 30;
 
-  // If Supabase refs are used, prefer signed URLs (no blob download in browser memory).
-  if (preferSigned && isSupabaseBlobRef(normalized) && store instanceof SupabaseBlobStore) {
-    try {
-      const url = await store.createSignedUrl(normalized, args?.signedTtlSeconds ?? 60 * 30);
-      return { url };
-    } catch {
-      return null;
+  if (preferSigned && isSupabaseBlobRef(normalized)) {
+    const signer = asSignedCapable(store);
+    if (signer) {
+      try {
+        const url = await signer.createSignedUrl(normalized, ttl);
+        if (url) return { url };
+      } catch (e) {
+        console.warn('[getBlobUrl] signed URL failed; falling back to download', e);
+      }
     }
   }
 
   let blob: Blob | null = null;
   try {
     blob = await store.get(normalized);
-  } catch {
+  } catch (e) {
+    console.warn('[getBlobUrl] store.get failed', e);
     return null;
   }
   if (!blob) return null;
@@ -38,4 +50,3 @@ export async function getBlobUrl(
   const url = URL.createObjectURL(typed);
   return { url, revoke: () => URL.revokeObjectURL(url) };
 }
-

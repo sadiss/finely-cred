@@ -28,6 +28,64 @@ export const ENTITLEMENT_KEYS = {
 
 export type EntitlementKey = (typeof ENTITLEMENT_KEYS)[keyof typeof ENTITLEMENT_KEYS];
 
+/** Service bundles for profile grants — only what that lane needs. */
+export const SERVICE_ACCESS_BUNDLES = {
+  credit_restore: [
+    ENTITLEMENT_KEYS.reports,
+    ENTITLEMENT_KEYS.documents,
+    ENTITLEMENT_KEYS.messages,
+    ENTITLEMENT_KEYS.tasks,
+    ENTITLEMENT_KEYS.courses,
+    ENTITLEMENT_KEYS.disputes,
+    ENTITLEMENT_KEYS.letters,
+    ENTITLEMENT_KEYS.identityTheft,
+    ENTITLEMENT_KEYS.templates,
+  ],
+  debt: [
+    ENTITLEMENT_KEYS.reports,
+    ENTITLEMENT_KEYS.documents,
+    ENTITLEMENT_KEYS.messages,
+    ENTITLEMENT_KEYS.tasks,
+    ENTITLEMENT_KEYS.courses,
+    ENTITLEMENT_KEYS.debt,
+    ENTITLEMENT_KEYS.letters,
+    ENTITLEMENT_KEYS.escalations,
+    ENTITLEMENT_KEYS.templates,
+  ],
+  business: [
+    ENTITLEMENT_KEYS.documents,
+    ENTITLEMENT_KEYS.messages,
+    ENTITLEMENT_KEYS.tasks,
+    ENTITLEMENT_KEYS.courses,
+    ENTITLEMENT_KEYS.businessBuild,
+  ],
+  au_tradelines: [ENTITLEMENT_KEYS.messages, ENTITLEMENT_KEYS.documents, ENTITLEMENT_KEYS.auSeller],
+} as const;
+
+export type ServiceAccessBundleId = keyof typeof SERVICE_ACCESS_BUNDLES;
+
+export const SERVICE_ACCESS_BUNDLE_META: Record<
+  ServiceAccessBundleId,
+  { label: string; hint: string }
+> = {
+  credit_restore: {
+    label: 'Credit restore',
+    hint: 'Reports, disputes, letters, identity — not business or AUs',
+  },
+  debt: {
+    label: 'Debt & summons',
+    hint: 'Debt center, escalations, related letters',
+  },
+  business: {
+    label: 'Business credit',
+    hint: 'Credit building / business portal modules',
+  },
+  au_tradelines: {
+    label: 'Tradelines / AUs',
+    hint: 'Authorized-user / tradeline seller access',
+  },
+};
+
 export function entitlementsForProduct(productId: string): EntitlementKey[] {
   // Base modules that should remain usable for any engaged partner once they select a plan
   const base: EntitlementKey[] = [

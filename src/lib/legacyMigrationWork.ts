@@ -7,6 +7,7 @@ import { applyPlaybooksToProject } from '../features/work/playbooks/applyPlayboo
 import { ALL_TASK_PLAYBOOKS } from '../features/work/playbooks/playbookSeed';
 import { createTask } from '../data/tasksRepo';
 import { buildLegacyMigrationTasks } from './legacyMigrationExport';
+import { parseLegacyPartnerNotesFromExport } from './legacyPartnerNotesIntel';
 
 function scopeFromPartner(p: LegacyPartnerExportV1['partners'][0]): WorkScope {
   const route = (p.primaryRoute || '') as PartnerRoute;
@@ -70,17 +71,29 @@ export function resolveLegacyImportPlaybookIds(p: LegacyPartnerExportV1['partner
   const scope = scopeFromPartner(p);
   const slugs = new Set<string>([...coreSlugsForScope(scope), ...laneCategorySlugs(p.lane, p.primaryRoute)]);
   const appStatus = Number(p.journeySignals?.legacyApplicationStatus ?? 0);
+  const noteIntel = parseLegacyPartnerNotesFromExport(p);
   if (appStatus >= 10) {
     slugs.add('personal_dispute_round2');
     slugs.add('bureau_followup');
     slugs.add('debt_followup_30');
+  }
+  if (noteIntel.hasMailedRound1) {
+    slugs.add('mail_certified');
+    slugs.add('collect_responses');
+    slugs.add('bureau_followup');
+    if (noteIntel.suggestedRound === '2') slugs.add('personal_dispute_round2');
+  }
+  if (noteIntel.hasBureauResponse || noteIntel.needsFollowUpResponse) {
+    slugs.add('collect_responses');
+    slugs.add('bureau_followup');
+    slugs.add('personal_dispute_round2');
   }
   if ((p.legacyReports?.length ?? 0) > 0) {
     slugs.add('parse_reports');
     slugs.add('personal_bureau_sync');
     slugs.add('personal_tradeline_review');
   }
-  if ((p.legacyLetters?.length ?? 0) > 0 || (p.legacyDocuments?.length ?? 0) > 5) {
+  if ((p.legacyLetters?.length ?? 0) > 0 || (p.legacyDocuments?.length ?? 0) > 5 || noteIntel.events.length > 0) {
     slugs.add('draft_letters');
     slugs.add('mail_certified');
     slugs.add('collect_responses');

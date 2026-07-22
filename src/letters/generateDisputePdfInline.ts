@@ -5,6 +5,8 @@ import { buildFiveStepDisputeIntro, buildFiveStepItemPreamble, dominantNegativeT
 import { formatNumberedDisputeReasons, DISPUTE_DELETE_NOW } from './disputeLetterFormat';
 import { downloadBlob } from '../utils/download';
 import { bureauShortCode } from '../utils/bureaus';
+import { classifyCandidateNegativeType } from '../creditReports/negativePlaybooks';
+import { aggregateLetterLaws } from '../domain/bureauDisputeLawResolver';
 
 export type DisputeLetterItem = {
   candidate: DisputeCandidate;
@@ -175,6 +177,40 @@ export async function downloadInlineDisputeLetterPdf(args: {
   drawWrapped(intro, { color: rgb(0.12, 0.12, 0.12) });
   y -= 12;
 
+  // Applicable law once per letter (grouped by negative type) — not repeated under each item.
+  const lawGroups = aggregateLetterLaws(
+    args.items.map((it) => ({
+      negativeType: classifyCandidateNegativeType(it.candidate as any),
+      laws: it.laws,
+    })),
+  );
+  if (lawGroups.length) {
+    ensureSpace(28);
+    page.drawText('Applicable law for this letter:', {
+      x: margin,
+      y,
+      size: 11,
+      font: fontBold,
+      color: rgb(0.12, 0.12, 0.12),
+    });
+    y -= 16;
+    for (const g of lawGroups) {
+      ensureSpace(36);
+      drawWrapped(`${g.label} (${g.itemCount} item${g.itemCount === 1 ? '' : 's'})`, {
+        size: 10,
+        color: rgb(0.12, 0.12, 0.12),
+      });
+      drawWrapped(g.approachBlurb, { size: 9, color: rgb(0.35, 0.35, 0.35) });
+      y -= 4;
+      for (const c of g.citations) {
+        const line = c.shortLabel ? `• ${c.cite} — ${c.shortLabel}` : `• ${c.cite}`;
+        drawWrapped(line, { size: 10, color: rgb(0.12, 0.12, 0.12) });
+      }
+      y -= 8;
+    }
+    y -= 4;
+  }
+
   // Strong CTA footer block (requested): response window + method of verification + privacy opts.
   const footerDefault =
     args.tone === 'formal'
@@ -265,37 +301,8 @@ export async function downloadInlineDisputeLetterPdf(args: {
       }
     }
 
-    // Applicable law (editable per item in Letter Studio).
-    const laws = (item.laws ?? [])
-      .map((l) => {
-        const cite = String(l?.cite || '').trim();
-        if (!cite) return '';
-        const label = String(l?.shortLabel || '').trim();
-        return label ? `• ${cite} — ${label}` : `• ${cite}`;
-      })
-      .filter(Boolean);
-    if (laws.length) {
-      page.drawText('Applicable law:', {
-        x: margin,
-        y,
-        size: 10,
-        font: fontBold,
-        color: rgb(0.12, 0.12, 0.12),
-      });
-      y -= 14;
-      for (const line of laws) {
-        const wrapped = wrap(line, maxWidth, font, 10);
-        for (const w of wrapped) {
-          ensureSpace(12);
-          page.drawText(w, { x: margin, y, size: 10, font, color: rgb(0.12, 0.12, 0.12) });
-          y -= 12;
-        }
-        y -= 2;
-      }
-      y -= 8;
-    }
-
     // Numbered factual reasons — one point each, then DELETE NOW.
+    // (Applicable law is printed once above for the whole letter.)
     const reasons = formatNumberedDisputeReasons(item.reasons ?? []);
     if (reasons.length) {
       page.drawText('Factual dispute reasons:', {

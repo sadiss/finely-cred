@@ -19,16 +19,15 @@ import {
   saveComposeHandoffDraft,
 } from '../../lib/commsConversationHandoff';
 import type { SupportTopic } from '../../domain/support';
-import { getBlobUrl } from '../../storage/getBlobUrl';
+import { openBlobRefInNewTab } from '../../lib/openBlobRef';
 import { getBlobStore } from '../../storage/getBlobStore';
 import { newId } from '../../utils/ids';
 import type { EvidenceItem } from '../../domain/evidence';
 import { FinelyPremiumEmojiPicker } from './FinelyPremiumEmojiPicker';
-import { callAiGateway } from '../../lib/aiClient';
-import { extractFirstJsonObject } from '../../utils/jsonExtract';
 import { getChatSettings } from '../../data/settingsRepo';
+import { fetchSupportReplySuggestions } from '../../lib/supportReplySuggestions';
+import { STAFF_MESSAGE_SNIPPETS } from '../../lib/staffMessageSnippets';
 import { searchTenorGifs, type TenorGif } from '../../lib/tenorClient';
-import { openUrlInNewTab } from '../../utils/download';
 import { SUPPORT_TOPICS } from './communicationHubModel';
 import { routeCommsIntent, type CommsRoutingSuggestion } from '../../lib/commsIntentRouter';
 import { recordCommsRoutingFeedback } from '../../lib/staffIntelligenceEngine';
@@ -107,12 +106,11 @@ function AttachmentChip({ item }: { item: EvidenceItem }) {
   return (
     <button
       type="button"
-      onClick={async () => {
-        const res = await getBlobUrl(item.blobRef, { mimeType: item.mimeType });
-        if (!res?.url) return;
-        openUrlInNewTab({ url: res.url, revoke: res.revoke, revokeAfterMs: 60_000 });
+      onClick={() => {
+        void openBlobRefInNewTab({ blobRef: item.blobRef, mimeType: item.mimeType });
       }}
       className={`inline-flex items-center gap-1.5 ${FINELY_OS_ENTITY_CHIP} hover:bg-white/[0.08]`}
+      title="Open attachment"
     >
       <Paperclip size={10} /> {item.filename}
     </button>
@@ -301,28 +299,13 @@ export function HubTeamChatPanel({ partnerId, partnerDisplayName, compact, initi
     if (!partnerId || !selectedThread) return;
     setAiBusy(true);
     try {
-      const recent = messages.slice(-8);
-      const transcript = recent.map((m) => `${m.fromPartner ? 'You' : 'Finely'}: ${m.body}`).join('\n');
-      const res = await callAiGateway({
-        taskType: 'support.reply_suggestions',
-        providerHint: 'openai',
-        responseFormat: 'json',
-        context: { topic: selectedThread.topic, threadId: selectedThread.id, partnerId },
-        messages: [
-          {
-            role: 'system',
-            content:
-              'Return JSON only: { "suggestions": [ { "title": string, "body": string } ] }. Provide 4 concise reply drafts for a credit repair customer. Friendly, compliant, no legal advice.',
-          },
-          { role: 'user', content: `Subject: ${selectedThread.subject}\n\n${transcript}` },
-        ],
-      });
-      const obj = extractFirstJsonObject(res.text) as any;
       setAiSuggestions(
-        (Array.isArray(obj?.suggestions) ? obj.suggestions : [])
-          .map((s: any) => ({ title: `${s?.title ?? ''}`.trim(), body: `${s?.body ?? ''}`.trim() }))
-          .filter((s: any) => s.title && s.body)
-          .slice(0, 5),
+        await fetchSupportReplySuggestions({
+          thread: selectedThread,
+          messages,
+          partnerId,
+          staffOutbound: adminMode,
+        }),
       );
     } catch {
       setAiSuggestions([]);
@@ -563,31 +546,45 @@ export function HubTeamChatPanel({ partnerId, partnerDisplayName, compact, initi
               hint="Pick credit specialists, dispute analysts, affiliates, AU sellers, funding advisors, or any staff member."
             />
             <div className="rounded-xl border border-sky-500/25 bg-sky-500/5 p-3 space-y-2">
-              <p className="text-[9px] uppercase tracking-widest text-sky-200/80 font-black">Quick starters</p>
+              <p className="text-[9px] uppercase tracking-widest text-sky-200/80 font-black">
+                {adminMode ? 'Staff quick messages' : 'Quick starters'}
+              </p>
               <div className="flex flex-wrap gap-2">
-                {TEAM_COMPOSE_STARTERS.map((chip) => (
-                  <button
-                    key={chip.label}
-                    type="button"
-                    onClick={() => {
-                      setNewBody(chip.body);
-                      setNewTopic(
-                        chip.label.includes('Billing')
-                          ? 'billing'
-                          : chip.label.includes('Debt')
-                            ? 'debt_summons'
-                            : chip.label.includes('Dispute') || chip.label.includes('Letter')
-                              ? 'disputes'
-                              : 'general',
-                      );
-                    }}
-                    className="px-2 py-1.5 rounded-lg border border-fuchsia-500/25 bg-fuchsia-500/10 text-[10px] text-fuchsia-100"
-                  >
-                    {chip.emoji} {chip.label}
-                  </button>
-                ))}
+                {adminMode
+                  ? STAFF_MESSAGE_SNIPPETS.map((chip) => (
+                      <button
+                        key={chip.id}
+                        type="button"
+                        onClick={() => setNewBody(chip.body(partnerDisplayName || 'Partner'))}
+                        className="px-2 py-1.5 rounded-lg border border-fuchsia-500/25 bg-fuchsia-500/10 text-[10px] text-fuchsia-100"
+                      >
+                        {chip.emoji} {chip.label}
+                      </button>
+                    ))
+                  : TEAM_COMPOSE_STARTERS.map((chip) => (
+                      <button
+                        key={chip.label}
+                        type="button"
+                        onClick={() => {
+                          setNewBody(chip.body);
+                          setNewTopic(
+                            chip.label.includes('Billing')
+                              ? 'billing'
+                              : chip.label.includes('Debt')
+                                ? 'debt_summons'
+                                : chip.label.includes('Dispute') || chip.label.includes('Letter')
+                                  ? 'disputes'
+                                  : 'general',
+                          );
+                        }}
+                        className="px-2 py-1.5 rounded-lg border border-fuchsia-500/25 bg-fuchsia-500/10 text-[10px] text-fuchsia-100"
+                      >
+                        {chip.emoji} {chip.label}
+                      </button>
+                    ))}
               </div>
             </div>
+            {!adminMode ? (
             <div className="rounded-xl border border-sky-500/25 bg-sky-500/5 p-3 space-y-2">
               <p className="text-[9px] uppercase tracking-widest text-sky-200/80 font-black">Or let AI suggest routing</p>
               <p className="text-[11px] text-white/55">Describe your issue — tap a chip below to auto-select staff, or pick someone above.</p>
@@ -631,6 +628,7 @@ export function HubTeamChatPanel({ partnerId, partnerDisplayName, compact, initi
                 </div>
               ) : null}
             </div>
+            ) : null}
             <input
               value={newSubject}
               onChange={(e) => setNewSubject(e.target.value)}
@@ -805,17 +803,29 @@ export function HubTeamChatPanel({ partnerId, partnerDisplayName, compact, initi
             )}
             {!replyBody.trim() && aiSuggestions.length === 0 ? (
               <div className="flex flex-wrap gap-2">
-                {TEAM_REPLY_STARTERS.map((s) => (
-                  <button
-                    key={s.title}
-                    type="button"
-                    onClick={() => setReplyBody(s.body)}
-                    className="text-left px-3 py-2 rounded-xl border border-white/10 bg-white/[0.04] text-xs text-white/75"
-                    title={s.body}
-                  >
-                    {s.title}
-                  </button>
-                ))}
+                {adminMode
+                  ? STAFF_MESSAGE_SNIPPETS.map((s) => (
+                      <button
+                        key={s.id}
+                        type="button"
+                        onClick={() => setReplyBody(s.body(partnerDisplayName || 'Partner'))}
+                        className="text-left px-3 py-2 rounded-xl border border-fuchsia-500/20 bg-fuchsia-500/10 text-xs text-white/80"
+                        title={s.body(partnerDisplayName || 'Partner')}
+                      >
+                        {s.emoji} {s.label}
+                      </button>
+                    ))
+                  : TEAM_REPLY_STARTERS.map((s) => (
+                      <button
+                        key={s.title}
+                        type="button"
+                        onClick={() => setReplyBody(s.body)}
+                        className="text-left px-3 py-2 rounded-xl border border-white/10 bg-white/[0.04] text-xs text-white/75"
+                        title={s.body}
+                      >
+                        {s.title}
+                      </button>
+                    ))}
               </div>
             ) : null}
             <div className="rounded-2xl border-2 border-amber-400/25 bg-[#151d19] shadow-inner">

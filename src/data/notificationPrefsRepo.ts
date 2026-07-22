@@ -18,7 +18,13 @@ export function getNotificationPrefs(args: { partnerId?: string; userId?: string
   const hit = loadStore().prefs.find(
     (p) => (args.partnerId && p.partnerId === args.partnerId) || (args.userId && p.userId === args.userId),
   );
-  if (hit) return hit;
+  if (hit) {
+    return {
+      ...DEFAULT_NOTIFICATION_PREFS,
+      ...hit,
+      emailInstantMessages: hit.emailInstantMessages ?? DEFAULT_NOTIFICATION_PREFS.emailInstantMessages,
+    };
+  }
   return {
     ...DEFAULT_NOTIFICATION_PREFS,
     partnerId: args.partnerId,

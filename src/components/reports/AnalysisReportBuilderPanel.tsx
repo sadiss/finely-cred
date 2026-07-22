@@ -143,7 +143,7 @@ export function AnalysisReportBuilderPanel({ partners, defaultPartnerId, compact
         sizeBytes: blob.size,
         pages,
         sourceReportFilename: selectedReport.filename,
-        engine: templateConfig?.engine === 'paginated_text' ? 'paginated_text' : 'premium_spreads',
+        engine: templateConfig?.engine === 'paginated_text' ? 'paginated_text' : 'structured_premium',
         payloadSnapshot: payloadSnapshot as Record<string, unknown> | undefined,
       });
       downloadBlob({ blob, filename });

@@ -5,6 +5,8 @@ export type NotificationPrefs = {
   /** Admin user id when audience is admin-scoped */
   userId?: string;
   emailDigest: boolean;
+  /** Instant email when staff posts to team/support chat (separate from digest mute). */
+  emailInstantMessages: boolean;
   smsAlerts: boolean;
   pushEnabled: boolean;
   /** Categories to mute */
@@ -14,6 +16,7 @@ export type NotificationPrefs = {
 
 export const DEFAULT_NOTIFICATION_PREFS: Omit<NotificationPrefs, 'updatedAt'> = {
   emailDigest: true,
+  emailInstantMessages: true,
   smsAlerts: false,
   pushEnabled: true,
   mutedKinds: [],

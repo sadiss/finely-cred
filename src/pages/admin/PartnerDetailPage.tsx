@@ -68,7 +68,7 @@ import { computeDisputeReasonsId } from '../../domain/disputeReasons';
 import { buildFactualDisputeSuggestions } from '../../lib/disputeLetterBuilder';
 import { rankEvidenceMatches, scoreEvidenceForAccount, evidenceMatchesAccount, describeEvidenceMismatch } from '../../utils/evidenceMatch';
 import { generatePartnerCreditAnalysisReport } from '../../reports/generatePartnerCreditAnalysisReport';
-import { isPremiumCreditAnalysisEngine } from '../../lib/resolveCreditAnalysisEngine';
+import { isPremiumCreditAnalysisEngine, resolveCreditAnalysisEngine } from '../../lib/resolveCreditAnalysisEngine';
 import {
   listCreditAnalysisReportsByPartner,
   upsertCreditAnalysisReport,
@@ -113,6 +113,7 @@ import { countPartnerEmptyFieldSections } from '../../features/partner/PartnerCo
 import { PartnerOverviewTab } from '../../features/partner/PartnerOverviewTab';
 import { PartnerProfileTab } from '../../features/partner/PartnerProfileTab';
 import { PartnerNotesTab } from '../../features/partner/PartnerNotesTab';
+import { notifyPartnerNoteEmail } from '../../lib/partnerNoteEmail';
 import { partnerNoteToTimelineItem } from '../../components/partner/PartnerActivityTimeline';
 import { listEntitlementsByPartner } from '../../data/billingRepo';
 import { ENTITLEMENT_KEYS, type EntitlementKey, ensurePartnerEntitlements } from '../../billing/entitlements';
@@ -904,6 +905,7 @@ function PartnerDetailPageInner() {
         candidates,
       });
       const payloadSnapshot = 'payloadSnapshot' in rest ? rest.payloadSnapshot : undefined;
+      const resolvedEngine = resolveCreditAnalysisEngine(null);
       const usePremium = isPremiumCreditAnalysisEngine(null);
       const store = getBlobStore();
       const put = await store.put(blob, { partnerId: partner.id, reportId: report.id, kind: 'analysis_report' });
@@ -916,7 +918,7 @@ function PartnerDetailPageInner() {
         sizeBytes: blob.size,
         pages,
         sourceReportFilename: report.filename,
-        engine: usePremium ? 'premium_spreads' : 'paginated_text',
+        engine: resolvedEngine,
         payloadSnapshot: payloadSnapshot as Record<string, unknown> | undefined,
       });
       setNotesVersion((v) => v + 1);
@@ -1867,7 +1869,7 @@ function PartnerDetailPageInner() {
             setNotesVisibleToPartner={setNotesVisibleToPartner}
             notesPinned={notesPinned}
             setNotesPinned={setNotesPinned}
-            onSaveNote={() => {
+            onSaveNote={({ emailPartner }) => {
               const body = notesDraft.trim();
               if (!body || !partner) return;
               createPartnerNote({
@@ -1886,8 +1888,21 @@ function PartnerDetailPageInner() {
                 action: 'partner.note_created',
                 entityType: 'partner_note',
                 entityId: 'note',
-                meta: { kind: 'manual', visibility: notesVisibleToPartner ? 'partner' : 'internal', pinned: notesPinned },
+                meta: {
+                  kind: 'manual',
+                  visibility: notesVisibleToPartner ? 'partner' : 'internal',
+                  pinned: notesPinned,
+                  emailedPartner: Boolean(emailPartner && notesVisibleToPartner),
+                },
               });
+              if (emailPartner && notesVisibleToPartner) {
+                void notifyPartnerNoteEmail({
+                  partnerId: partner.id,
+                  body,
+                  authorLabel: actorEmail || 'Finely Cred team',
+                  partner,
+                });
+              }
               setNotesDraft('');
               setNotesVisibleToPartner(false);
               setNotesPinned(false);
@@ -2263,7 +2278,7 @@ function PartnerDetailPageInner() {
                       disabled={analysisBusy}
                       onClick={() => runGenerateAnalysis(selectedReport)}
                     >
-                      {analysisBusy ? 'Generating…' : 'Generate PDF'}
+                      {analysisBusy ? 'Creating premium report…' : 'Create premium analysis'}
                     </button>
                   </div>
                   {analysisNotice ? (
@@ -2352,7 +2367,7 @@ function PartnerDetailPageInner() {
                     disabled={analysisBusy || !selectedReport?.parsed}
                     onClick={() => runGenerateAnalysis(selectedReport)}
                   >
-                    <BarChart3 size={14} /> {analysisBusy ? 'Generating…' : 'Generate Free Analysis Report'}
+                    <BarChart3 size={14} /> {analysisBusy ? 'Creating premium report…' : 'Create premium analysis'}
                   </button>
                 </div>
               )}

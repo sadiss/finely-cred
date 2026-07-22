@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Clock3, Inbox, Mail, MessageSquareText, Send, ExternalLink, Tag } from 'lucide-react';
+import { Clock3, Inbox, Mail, MessageSquareText, Send, ExternalLink, Tag, Sparkles } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import type { Partner } from '../../domain/partners';
 import type { SupportTopic, SupportThreadStatus } from '../../domain/support';
@@ -10,6 +10,9 @@ import {
   defaultPartnerWelcomeMessage,
   sendPartnerOutreachMessage,
 } from '../../lib/partnerMessaging';
+import { STAFF_MESSAGE_SNIPPETS } from '../../lib/staffMessageSnippets';
+import { fetchSupportReplySuggestions } from '../../lib/supportReplySuggestions';
+import { isFeatureEnabled } from '../../data/settingsRepo';
 import { listThreadsByPartner } from '../../data/supportRepo';
 import { listEvidenceByPartner, upsertEvidence } from '../../data/evidenceRepo';
 import { getBlobStore } from '../../storage/getBlobStore';
@@ -74,9 +77,12 @@ export function AdminPartnerMessagePanel({ partner }: Props) {
   const [notice, setNotice] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [tick, setTick] = useState(0);
+  const [aiBusy, setAiBusy] = useState(false);
+  const [aiSuggestions, setAiSuggestions] = useState<Array<{ title: string; body: string }>>([]);
 
   const partnerName = (partner.profile.fullName || 'Partner').trim();
   const email = (partner.profile.email || '').trim();
+  const commsOn = isFeatureEnabled('commsDelivery');
 
   const msgState = useMemo(
     () => adminDeliveryState(partner.id, 'partner_message'),
@@ -185,7 +191,12 @@ export function AdminPartnerMessagePanel({ partner }: Props) {
       recordAdminDelivery(partner.id, 'partner_message');
       setBody('');
       setAttachmentIds([]);
-      setNotice(`Message sent — ${partnerName} will see it in portal Team chat when they log in.`);
+      setAiSuggestions([]);
+      setNotice(
+        commsOn && email
+          ? `Message sent — ${partnerName} will see it in portal Team chat and receive an email alert.`
+          : `Message sent — ${partnerName} will see it in portal Team chat when they log in.`,
+      );
       openCommunicationHub({
         tab: 'team',
         threadId,
@@ -239,6 +250,67 @@ export function AdminPartnerMessagePanel({ partner }: Props) {
         </div>
       ) : null}
 
+      <div className="rounded-2xl border border-fuchsia-400/20 bg-[#101815] p-4 space-y-3">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <span className={FINELY_OS_ENTITY_LABEL}>Suggested messages</span>
+          <button
+            type="button"
+            disabled={aiBusy}
+            onClick={() => {
+              setAiBusy(true);
+              void fetchSupportReplySuggestions({
+                thread: {
+                  id: recentThreads[0]?.id ?? 'draft',
+                  partnerId: partner.id,
+                  topic,
+                  subject: `Message from Finely · ${partnerName}`,
+                  status: 'new',
+                  createdAt: new Date().toISOString(),
+                  updatedAt: new Date().toISOString(),
+                  lastMessageAt: new Date().toISOString(),
+                },
+                messages: [],
+                partnerId: partner.id,
+                staffOutbound: true,
+              })
+                .then(setAiSuggestions)
+                .catch(() => setAiSuggestions([]))
+                .finally(() => setAiBusy(false));
+            }}
+            className={FINELY_OS_SECONDARY_BTN}
+          >
+            <Sparkles size={14} /> {aiBusy ? 'Drafting…' : 'AI drafts'}
+          </button>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {STAFF_MESSAGE_SNIPPETS.map((chip) => (
+            <button
+              key={chip.id}
+              type="button"
+              onClick={() => setBody(chip.body(partnerName))}
+              className="px-2.5 py-1.5 rounded-lg border border-fuchsia-400/25 bg-fuchsia-500/10 text-[11px] text-fuchsia-100"
+            >
+              {chip.emoji} {chip.label}
+            </button>
+          ))}
+        </div>
+        {aiSuggestions.length > 0 ? (
+          <div className="flex flex-wrap gap-2">
+            {aiSuggestions.map((s, i) => (
+              <button
+                key={`${s.title}-${i}`}
+                type="button"
+                onClick={() => setBody(s.body)}
+                className="text-left px-3 py-2 rounded-xl border border-violet-400/25 bg-violet-500/10 text-xs text-white/80 max-w-full"
+                title={s.body}
+              >
+                ✨ {s.title}
+              </button>
+            ))}
+          </div>
+        ) : null}
+      </div>
+
       <FinelyChatComposeBox
         value={body}
         onChange={setBody}
@@ -286,7 +358,11 @@ export function AdminPartnerMessagePanel({ partner }: Props) {
           <div className="rounded-xl border border-emerald-400/20 bg-[#151d19] px-3 py-3 font-mono text-sm text-emerald-100 break-all">
             {email || 'No email on file'}
           </div>
-          <p className={`text-xs ${FINELY_OS_ENTITY_BODY}`}>Partner sees your message in Team chat after login.</p>
+          <p className={`text-xs ${FINELY_OS_ENTITY_BODY}`}>
+            {commsOn && email
+              ? 'Partner sees your message in Team chat and gets an instant email when delivery is enabled.'
+              : 'Partner sees your message in Team chat after login.'}
+          </p>
         </div>
       </div>
 

@@ -190,18 +190,13 @@ export function EvidenceVaultTiles({
         setPreview({ item, url: res.url, revoke: res.revoke, kind: 'video' });
         return;
       }
-      const isPdf = item.mimeType === 'application/pdf' || String(item.filename || '').toLowerCase().endsWith('.pdf');
-      if (isPdf) {
-        const result = await openBlobRefInNewTab({ blobRef: item.blobRef, mimeType: 'application/pdf' });
-        if (!result.ok) setErr(result.message);
-        return;
-      }
-      const res = await getBlobUrl(item.blobRef, { mimeType: item.mimeType });
-      if (!res?.url) {
-        setErr('Could not load this file from storage.');
-        return;
-      }
-      triggerBrowserDownload({ url: res.url, filename: item.filename || 'evidence', revoke: res.revoke, revokeAfterMs: 30_000, targetBlank: true });
+      // PDFs and other docs: open in a new tab (gesture-safe) so they can be viewed, not only downloaded.
+      const mime =
+        item.mimeType === 'application/pdf' || String(item.filename || '').toLowerCase().endsWith('.pdf')
+          ? 'application/pdf'
+          : item.mimeType;
+      const result = await openBlobRefInNewTab({ blobRef: item.blobRef, mimeType: mime });
+      if (!result.ok) setErr(result.message);
     } catch (e: unknown) {
       setErr((e as Error)?.message || 'Failed to open evidence.');
     } finally {
@@ -304,16 +299,16 @@ export function EvidenceVaultTiles({
                         type="button"
                         onClick={() => void handlePreview(e)}
                         disabled={busy}
-                        className={`${FINELY_OS_SECONDARY_BTN} !px-1.5 !py-1 !text-[9px]`}
-                        title="Open"
+                        className={`${FINELY_OS_SECONDARY_BTN} !px-1.5 !py-1 !text-[9px] inline-flex items-center gap-0.5`}
+                        title="View document"
                       >
-                        <Eye size={10} />
+                        <Eye size={10} /> View
                       </button>
                       <button
                         type="button"
                         onClick={() => void handleDownload(e)}
                         disabled={busy}
-                        className={`${FINELY_OS_SECONDARY_BTN} !px-1.5 !py-1 !text-[9px]`}
+                        className={`${FINELY_OS_SECONDARY_BTN} !px-1.5 !py-1 !text-[9px] inline-flex items-center gap-0.5`}
                         title="Download"
                       >
                         <Download size={10} />

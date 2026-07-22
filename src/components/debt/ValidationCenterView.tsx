@@ -86,14 +86,14 @@ export function ValidationCenterView({
     <div className={FINELY_OS_COMPACT_PAGE}>
       <DebtVsDisputeExplainer variant="debt" />
 
-      {/* Single workstation header — neutral shell, track badge only */}
       <div className={finelyOsCatalogCardCompact('violet')}>
         <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
           <div className="flex items-center gap-2 min-w-0">
             <ShieldCheck size={15} className="text-emerald-400 shrink-0" />
             <div>
               <span className={finelyOsMicroStat('emerald')}>Validation</span>
-              <div className={`mt-1 ${FINELY_OS_ENTITY_TITLE}`}>FDCPA proof workstation</div>
+              <div className={`mt-1 ${FINELY_OS_ENTITY_TITLE}`}>Step 1 — Validation letter track</div>
+              <p className={`${FINELY_OS_ENTITY_BODY} text-sm mt-1`}>Pick a case, choose a letter, draft — proof is optional at the bottom.</p>
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-2">
@@ -125,7 +125,7 @@ export function ValidationCenterView({
           ]}
         />
 
-        <div className="mt-3 flex flex-wrap items-end gap-3">
+        <div id="fc-debt-step-case" className="mt-3 flex flex-wrap items-end gap-3 scroll-mt-3">
           <div className={FINELY_OS_FIELD_WIDTH_SM}>
             <label className={FINELY_OS_ENTITY_SUBLABEL}>Case</label>
             <select value={debtId} onChange={(e) => onDebtIdChange(e.target.value)} className={`${finelyOsGlowField('emerald')} mt-1 w-full`}>
@@ -148,9 +148,6 @@ export function ValidationCenterView({
         ) : null}
       </div>
 
-      {partner ? <DebtProofCaptureStrip partner={partner} debtCaseId={debt?.id} accent="emerald" /> : null}
-
-      {/* Intel: reported debts + collector mailing (sender block lives in draft modal) */}
       <DebtCreditorIntelPanel
         partnerId={debt?.partnerId || debtCases[0]?.partnerId || ''}
         debt={debt}
@@ -163,20 +160,28 @@ export function ValidationCenterView({
         compact
       />
 
-      <LetterCatalogBrowser
-        category="validation"
-        accent="emerald"
-        extraCategories={['negotiation', 'reporting']}
-        onBuild={(id, entry) => {
-          if (entry.letterType) onBuildDraft(entry.letterType);
-          else onBuildCatalogDraft?.(id);
-        }}
-      />
+      <div id="fc-debt-step-choose" className="scroll-mt-3">
+        <LetterCatalogBrowser
+          category="validation"
+          accent="emerald"
+          extraCategories={['negotiation', 'reporting']}
+          onBuild={(id, entry) => {
+            if (entry.letterType) onBuildDraft(entry.letterType);
+            else onBuildCatalogDraft?.(id);
+          }}
+        />
+      </div>
       {!canSeeTemplates ? <div className="text-[10px] text-white/40">Full template bodies unlock on paid tiers.</div> : null}
 
       <CollateralWorkstationSection title="Validation coach" subtitle="Ask about 1692g proof demands, licensing, chain of title, and your next move — full width section." accent="emerald">
         <ValidationAdvisorChat scenario={recommendedScenario} debtName={debt?.name} stateJurisdiction={debt?.stateJurisdiction} />
       </CollateralWorkstationSection>
+
+      {partner ? (
+        <div id="fc-debt-step-proof" className="scroll-mt-3">
+          <DebtProofCaptureStrip partner={partner} debtCaseId={debt?.id} accent="emerald" uploadContext="validation" />
+        </div>
+      ) : null}
     </div>
   );
 }

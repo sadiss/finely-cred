@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import JSZip from 'jszip';
 import { PageShell } from '../../components/layout/PageShell';
 import type { LegacyPartnerExportV1 } from '../../domain/imports';
-import { importLegacyPartners, importLegacyArtifactsForExistingPartners, listImportBatches } from '../../data/importsRepo';
+import { importLegacyPartners, importLegacyArtifactsForExistingPartners, listImportBatches, repairLegacyPartnerClassification } from '../../data/importsRepo';
 import { pushLegacyExportToServer } from '../../lib/legacyImportServerClient';
 import { getPartner, listPartners } from '../../data/partnersRepo';
 import type { Partner } from '../../domain/partners';
@@ -111,6 +111,9 @@ export default function AdminPartnerImportPage() {
   const [reparseBusy, setReparseBusy] = useState(false);
   const [reparseLog, setReparseLog] = useState<string[]>([]);
   const [reparseErr, setReparseErr] = useState<string | null>(null);
+  const [repairBusy, setRepairBusy] = useState(false);
+  const [repairLog, setRepairLog] = useState<string[]>([]);
+  const [repairOnlyExternalId, setRepairOnlyExternalId] = useState('laravel:uid:176');
   const pendingReparseCount = useMemo(() => listReportsNeedingReparse().length, [zipLog, reparseLog]);
 
   const runZipRestore = async (file: File) => {
@@ -998,6 +1001,115 @@ export default function AdminPartnerImportPage() {
             <div className="max-h-72 overflow-y-auto rounded-xl bg-black/30 border border-white/[0.08] p-4">
               <pre className={`text-[11px] font-mono whitespace-pre-wrap ${FINELY_OS_ENTITY_BODY}`}>
                 {reparseLog.join('\n')}
+              </pre>
+            </div>
+          ) : null}
+        </div>
+
+        {/* ── Legacy classification repair ── */}
+        <div className={`${finelyOsCatalogCard('amber')} !p-5 space-y-4`}>
+          <div className={`inline-flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL} text-amber-300`}>
+            <Database size={18} />
+            <span>Repair legacy classification &amp; stage</span>
+          </div>
+          <p className={FINELY_OS_ENTITY_BODY}>
+            Re-runs the improved filename classifier (bureau responses, analysis reports, letter kinds) and parses
+            staff notes into letter vault records + dispute stage advancement. Use after a prior import under-counted
+            letters or mis-filed evidence.
+          </p>
+          <label className="block max-w-xl">
+            <div className={FINELY_OS_ENTITY_LABEL}>Limit to partner externalId (optional)</div>
+            <input
+              value={repairOnlyExternalId}
+              onChange={(e) => setRepairOnlyExternalId(e.target.value)}
+              className={`${FINELY_OS_ENTITY_INPUT} font-mono text-sm`}
+              placeholder="laravel:uid:176 (Ashley Ann) — leave blank for all"
+            />
+          </label>
+          <div className="flex flex-wrap items-center gap-3">
+            <button
+              type="button"
+              disabled={!parsed || repairBusy}
+              className={`${FINELY_OS_SECONDARY_BTN} disabled:opacity-60 disabled:cursor-not-allowed`}
+              onClick={async () => {
+                if (!parsed) {
+                  setErr('Load an export first.');
+                  return;
+                }
+                setRepairBusy(true);
+                setRepairLog([]);
+                setErr(null);
+                try {
+                  const result = await repairLegacyPartnerClassification({
+                    exportData: parsed,
+                    dryRun: true,
+                    onlyExternalId: repairOnlyExternalId.trim() || undefined,
+                  });
+                  const log = [
+                    `Dry run — ${result.repairedPartnerIds.length}/${result.partnerCount} partner(s)`,
+                    `Artifacts: ${result.artifacts.migratedFromEvidence} re-routed · ${result.artifacts.lettersCreated} letters · ${result.artifacts.analysisReportsCreated} analysis · ${result.artifacts.bureauResponsesCreated} bureau responses`,
+                    ...(result.errors.length ? [`Errors: ${result.errors.length}`] : []),
+                    '',
+                    ...result.previews,
+                  ];
+                  setRepairLog(log);
+                  setNotice(`Repair dry run complete for ${result.repairedPartnerIds.length} partner(s).`);
+                } catch (e: any) {
+                  setErr(e?.message || 'Repair dry run failed.');
+                } finally {
+                  setRepairBusy(false);
+                }
+              }}
+            >
+              {repairBusy ? 'Running…' : 'Dry-run repair preview'}
+            </button>
+            <button
+              type="button"
+              disabled={!parsed || repairBusy}
+              className={`${FINELY_OS_PRIMARY_BTN} disabled:opacity-60 disabled:cursor-not-allowed`}
+              onClick={async () => {
+                if (!parsed) {
+                  setErr('Load an export first.');
+                  return;
+                }
+                setRepairBusy(true);
+                setRepairLog([]);
+                setErr(null);
+                try {
+                  const result = await repairLegacyPartnerClassification({
+                    exportData: parsed,
+                    dryRun: false,
+                    onlyExternalId: repairOnlyExternalId.trim() || undefined,
+                  });
+                  const log = [
+                    `Repaired ${result.repairedPartnerIds.length}/${result.partnerCount} partner(s)`,
+                    `Migrated ${result.artifacts.migratedFromEvidence} misclassified evidence row(s)`,
+                    `+${result.artifacts.lettersCreated} letters · +${result.artifacts.analysisReportsCreated} analysis reports · +${result.artifacts.bureauResponsesCreated} bureau responses`,
+                    ...(result.errors.length ? result.errors.map((e) => `✗ ${e.externalId}: ${e.message}`) : []),
+                    '',
+                    ...result.previews,
+                  ];
+                  setRepairLog(log);
+                  setNotice(`Legacy classification repair applied for ${result.repairedPartnerIds.length} partner(s).`);
+                } catch (e: any) {
+                  setErr(e?.message || 'Repair failed.');
+                } finally {
+                  setRepairBusy(false);
+                }
+              }}
+            >
+              Apply repair now
+            </button>
+            {repairLog.length > 0 && !repairBusy ? (
+              <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => setRepairLog([])}>
+                Clear log
+              </button>
+            ) : null}
+          </div>
+          {repairLog.length > 0 ? (
+            <div className="max-h-96 overflow-y-auto rounded-xl bg-black/30 border border-white/[0.08] p-4">
+              <pre className={`text-[11px] font-mono whitespace-pre-wrap ${FINELY_OS_ENTITY_BODY}`}>
+                {repairLog.join('\n')}
               </pre>
             </div>
           ) : null}

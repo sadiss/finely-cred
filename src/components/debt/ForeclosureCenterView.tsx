@@ -100,7 +100,7 @@ export function ForeclosureCenterView({
       <DebtVsDisputeExplainer variant="foreclosure" />
 
       <CollateralWorkstationSection title="Your mortgage case" subtitle="Select or create a debt case for this servicer — this is not a bureau dispute case." accent="amber">
-        <div className={FINELY_OS_FIELD_WIDTH_SM}>
+        <div id="fc-debt-step-case" className={`${FINELY_OS_FIELD_WIDTH_SM} scroll-mt-3`}>
           <label className={FINELY_OS_ENTITY_SUBLABEL}>Mortgage / servicer case</label>
           <select value={debtId} onChange={(e) => onDebtIdChange(e.target.value)} className={`${finelyOsGlowField('amber')} mt-1 w-full`}>
             {debtCases.length === 0 ? <option value="">Add a case from Debt Center → Cases</option> : null}
@@ -112,12 +112,6 @@ export function ForeclosureCenterView({
           </select>
         </div>
       </CollateralWorkstationSection>
-
-      {partner ? (
-        <CollateralWorkstationSection title="Scan & upload proof" subtitle="ID, SSN, servicer letters, court filings — camera auto-detects document type." accent="amber">
-          <DebtProofCaptureStrip partner={partner} debtCaseId={debt?.id} accent="amber" uploadContext="foreclosure" />
-        </CollateralWorkstationSection>
-      ) : null}
 
       <CollateralWorkstationSection title="Servicer mailing info" subtitle="Auto-fill from your credit report mortgage tradeline, or enter manually." accent="amber">
         <DebtCreditorIntelPanel
@@ -143,19 +137,27 @@ export function ForeclosureCenterView({
         }
         accent="amber"
       >
-        <LetterCatalogBrowser
-          category="foreclosure"
-          accent="amber"
-          onBuild={(id) => onBuildCatalogDraft(id)}
-          extraCategories={['reporting']}
-          searchHint={stepFilter.join(' ')}
-          compactHeader
-        />
+        <div id="fc-debt-step-choose" className="scroll-mt-3">
+          <LetterCatalogBrowser
+            category="foreclosure"
+            accent="amber"
+            onBuild={(id) => onBuildCatalogDraft(id)}
+            extraCategories={['reporting']}
+            searchHint={stepFilter.join(' ')}
+            compactHeader
+          />
+        </div>
       </CollateralWorkstationSection>
 
       <CollateralWorkstationSection title="Foreclosure coach" subtitle="Ask about RESPA, dual-track, note demands, SCRA, and your next move — full width, no side panel." accent="amber">
         <ForeclosureAdvisorChat debtName={debt?.name} stateJurisdiction={debt?.stateJurisdiction} />
       </CollateralWorkstationSection>
+
+      {partner ? (
+        <div id="fc-debt-step-proof" className="scroll-mt-3">
+          <DebtProofCaptureStrip partner={partner} debtCaseId={debt?.id} accent="amber" uploadContext="foreclosure" />
+        </div>
+      ) : null}
     </CollateralDefenseShell>
   );
 }
