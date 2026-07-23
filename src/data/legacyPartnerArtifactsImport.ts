@@ -7,12 +7,15 @@ import { newId } from '../utils/ids';
 import { listEvidenceByPartner, upsertEvidence, deleteEvidence } from './evidenceRepo';
 import { listReportsByPartner, upsertReport } from './reportsRepo';
 import { listLettersByPartner, upsertLetter } from './lettersRepo';
+import { upsertCreditAnalysisReport } from './creditAnalysisReportsRepo';
 import { getBusinessCreditProfile, upsertBusinessCreditProfile } from './businessCreditRepo';
 import { logAffiliateAttribution } from './affiliateRepo';
 import type { EvidenceItem } from '../domain/evidence';
 import type { CreditReportRecord } from '../domain/creditReports';
 import type { Bureau } from '../domain/creditReports';
 import type { DisputeLetterMeta, LetterRecord } from '../domain/letters';
+import { parseLegacyPartnerNotesFromExport } from '../lib/legacyPartnerNotesIntel';
+import { syncLegacyLetterStageFromNotes, type LegacyStageSyncResult } from '../lib/legacyLetterStageSync';
 
 import { LEGACY_PENDING_BLOB_PREFIX } from '../lib/legacyPendingReport';
 
@@ -20,6 +23,8 @@ export type LegacyArtifactImportResult = {
   evidenceCreated: number;
   reportsCreated: number;
   lettersCreated: number;
+  analysisReportsCreated: number;
+  bureauResponsesCreated: number;
   businessProfilesUpdated: number;
   affiliateEventsCreated: number;
   skipped: string[];
@@ -29,6 +34,7 @@ export type LegacyArtifactImportResult = {
   migratedFromEvidence: number;
   /** Sum of all artifact rows touched (evidence + reports + letters). */
   totalArtifacts: number;
+  stageSync?: LegacyStageSyncResult;
 };
 
 function nowIso() {
@@ -55,6 +61,18 @@ function hasLegacyLetterFile(existingLetters: LetterRecord[], fileName: string) 
     const meta = l.meta as (DisputeLetterMeta & { legacyFileName?: string }) | undefined;
     return meta?.legacyFileName === fileName || meta?.introOverride?.includes(`legacy-file:${fileName}`);
   });
+}
+
+function hasLegacyAnalysisReport(existingEvidence: EvidenceItem[], fileName: string) {
+  return existingEvidence.some(
+    (e) => e.filename === fileName && (e.tags ?? []).includes('analysis_report'),
+  );
+}
+
+function hasLegacyBureauResponse(existingEvidence: EvidenceItem[], fileName: string) {
+  return existingEvidence.some(
+    (e) => e.filename === fileName && (e.tags ?? []).includes('bureau-response'),
+  );
 }
 
 function findMisclassifiedLegacyEvidence(existingEvidence: EvidenceItem[], fileName: string) {
@@ -85,11 +103,17 @@ export async function importLegacyPartnerArtifacts(args: {
   partnerId: string;
   exportPartner: LegacyPartnerExportV1['partners'][0];
   dryRun?: boolean;
+  /** Re-run classifier on already-imported legacy rows and migrate misroutes. */
+  forceReclassify?: boolean;
+  /** Apply note-derived letter events + stage advancement (default true). */
+  applyStageSync?: boolean;
 }): Promise<LegacyArtifactImportResult> {
   const result: LegacyArtifactImportResult = {
     evidenceCreated: 0,
     reportsCreated: 0,
     lettersCreated: 0,
+    analysisReportsCreated: 0,
+    bureauResponsesCreated: 0,
     businessProfilesUpdated: 0,
     affiliateEventsCreated: 0,
     skipped: [],
@@ -117,7 +141,7 @@ export async function importLegacyPartnerArtifacts(args: {
 
     if (classification.kind === 'credit_report') {
       result.reclassified.push(`report:${fileName}`);
-      if (hasLegacyReportFile(existingReports, fileName)) {
+      if (hasLegacyReportFile(existingReports, fileName) && !args.forceReclassify) {
         result.skipped.push(`report:${fileName}`);
         continue;
       }
@@ -142,13 +166,83 @@ export async function importLegacyPartnerArtifacts(args: {
       continue;
     }
 
+    if (classification.kind === 'analysis_report') {
+      result.reclassified.push(`analysis:${fileName}`);
+      if (hasLegacyAnalysisReport(existingEvidence, fileName) && !args.forceReclassify) {
+        result.skipped.push(`analysis:${fileName}`);
+        continue;
+      }
+      removeMisclassifiedEvidence(existingEvidence, fileName, args.dryRun, result);
+      if (args.dryRun) {
+        result.analysisReportsCreated += 1;
+        continue;
+      }
+      const evidenceId = legacyStableId('analysis-evidence', args.exportPartner.externalId, fileName);
+      const evidence: EvidenceItem = {
+        id: evidenceId,
+        partnerId,
+        type: 'upload',
+        source: 'upload',
+        caption: classification.caption,
+        filename: fileName,
+        mimeType: 'application/pdf',
+        sizeBytes: 0,
+        blobRef: legacyBlobRef(fileName),
+        tags: ['legacy-import', 'analysis_report', classification.tag],
+        createdAt: uploadedAt,
+      };
+      newEvidence.push(evidence);
+      upsertCreditAnalysisReport({
+        id: legacyStableId('analysis', args.exportPartner.externalId, fileName),
+        partnerId,
+        title: fileName.replace(/\.[^.]+$/, '').replace(/[_-]+/g, ' ').trim(),
+        filename: fileName,
+        blobRef: legacyBlobRef(fileName),
+        sizeBytes: 0,
+        pages: 0,
+        createdAt: uploadedAt,
+      });
+      result.analysisReportsCreated += 1;
+      result.evidenceCreated += 1;
+      continue;
+    }
+
+    if (classification.kind === 'bureau_response') {
+      result.reclassified.push(`bureau-response:${fileName}`);
+      if (hasLegacyBureauResponse(existingEvidence, fileName) && !args.forceReclassify) {
+        result.skipped.push(`bureau-response:${fileName}`);
+        continue;
+      }
+      removeMisclassifiedEvidence(existingEvidence, fileName, args.dryRun, result);
+      if (args.dryRun) {
+        result.bureauResponsesCreated += 1;
+        continue;
+      }
+      newEvidence.push({
+        id: legacyStableId('bureau-response', args.exportPartner.externalId, fileName),
+        partnerId,
+        type: 'upload',
+        source: 'upload',
+        caption: classification.caption,
+        filename: fileName,
+        mimeType: 'application/pdf',
+        sizeBytes: 0,
+        blobRef: legacyBlobRef(fileName),
+        tags: ['legacy-import', 'bureau-response', classification.tag],
+        createdAt: uploadedAt,
+      });
+      result.bureauResponsesCreated += 1;
+      result.evidenceCreated += 1;
+      continue;
+    }
+
     if (
       classification.kind === 'dispute_letter' ||
       classification.kind === 'validation_letter' ||
       classification.kind === 'affidavit'
     ) {
       result.reclassified.push(`letter:${fileName}`);
-      if (hasLegacyLetterFile(existingLetters, fileName)) {
+      if (hasLegacyLetterFile(existingLetters, fileName) && !args.forceReclassify) {
         result.skipped.push(`letter:${fileName}`);
         continue;
       }
@@ -176,19 +270,29 @@ export async function importLegacyPartnerArtifacts(args: {
           introOverride: `[legacy-file:${fileName}]`,
           legacyFileName: fileName,
           legacyTag: classification.tag,
-        } as DisputeLetterMeta & { legacyFileName: string; legacyTag: string },
+          legacyLetterSubkind: classification.letterSubkind,
+        } as DisputeLetterMeta & { legacyFileName: string; legacyTag: string; legacyLetterSubkind?: string },
       });
       result.lettersCreated += 1;
       continue;
     }
 
-    if (existingEvidence.some((e) => hasLegacyImportTag(e, fileName))) {
+    if (existingEvidence.some((e) => hasLegacyImportTag(e, fileName)) && !args.forceReclassify) {
       result.skipped.push(`evidence:${fileName}`);
       continue;
     }
-    if (hasLegacyReportFile(existingReports, fileName) || hasLegacyLetterFile(existingLetters, fileName)) {
+    if (
+      !args.forceReclassify &&
+      (hasLegacyReportFile(existingReports, fileName) ||
+        hasLegacyLetterFile(existingLetters, fileName) ||
+        hasLegacyAnalysisReport(existingEvidence, fileName) ||
+        hasLegacyBureauResponse(existingEvidence, fileName))
+    ) {
       result.skipped.push(`evidence:${fileName}:already-routed`);
       continue;
+    }
+    if (args.forceReclassify) {
+      removeMisclassifiedEvidence(existingEvidence, fileName, args.dryRun, result);
     }
     if (args.dryRun) {
       result.evidenceCreated += 1;
@@ -213,7 +317,7 @@ export async function importLegacyPartnerArtifacts(args: {
   for (const rep of p.legacyReports ?? []) {
     const fileName = String(rep.fileName || '').trim();
     if (!fileName) continue;
-    if (hasLegacyReportFile(existingReports, fileName)) {
+    if (hasLegacyReportFile(existingReports, fileName) && !args.forceReclassify) {
       result.skipped.push(`report:${fileName}`);
       continue;
     }
@@ -239,7 +343,12 @@ export async function importLegacyPartnerArtifacts(args: {
   for (const letter of (p.legacyLetters ?? []) as LegacyLetterMeta[]) {
     const extId = String(letter.externalId || '').trim();
     if (!extId) continue;
-    if (existingLetters.some((l) => l.meta && (l.meta as DisputeLetterMeta & { legacyExternalId?: string }).legacyExternalId === extId)) {
+    if (
+      existingLetters.some(
+        (l) => l.meta && (l.meta as DisputeLetterMeta & { legacyExternalId?: string }).legacyExternalId === extId,
+      ) &&
+      !args.forceReclassify
+    ) {
       result.skipped.push(`letter:${extId}`);
       continue;
     }
@@ -292,7 +401,20 @@ export async function importLegacyPartnerArtifacts(args: {
     result.businessProfilesUpdated = 1;
   }
 
-  result.totalArtifacts = result.evidenceCreated + result.reportsCreated + result.lettersCreated;
+  result.totalArtifacts =
+    result.evidenceCreated + result.reportsCreated + result.lettersCreated + result.analysisReportsCreated;
+
+  if (args.applyStageSync !== false && (p.notes || (p.legacyNoteEntries?.length ?? 0))) {
+    const intel = parseLegacyPartnerNotesFromExport(p);
+    result.stageSync = syncLegacyLetterStageFromNotes({
+      partnerId,
+      exportPartner: p,
+      intel,
+      dryRun: args.dryRun,
+    });
+    result.lettersCreated += result.stageSync.lettersCreated;
+    result.totalArtifacts += result.stageSync.lettersCreated;
+  }
 
   return result;
 }
@@ -301,17 +423,36 @@ export function formatLegacyArtifactImportSummary(result: {
   evidenceCreated: number;
   reportsCreated: number;
   lettersCreated: number;
+  analysisReportsCreated?: number;
+  bureauResponsesCreated?: number;
   businessProfilesUpdated?: number;
   migratedFromEvidence?: number;
   totalArtifacts?: number;
+  stageSync?: LegacyStageSyncResult;
 }): string {
-  const total = result.totalArtifacts ?? result.evidenceCreated + result.reportsCreated + result.lettersCreated;
-  let msg = `${total} legacy files — ${result.reportsCreated} credit reports · ${result.lettersCreated} letters · ${result.evidenceCreated} supporting docs (Documents vault)`;
+  const total =
+    result.totalArtifacts ??
+    result.evidenceCreated + result.reportsCreated + result.lettersCreated + (result.analysisReportsCreated ?? 0);
+  let msg = `${total} legacy files — ${result.reportsCreated} credit reports`;
+  if ((result.analysisReportsCreated ?? 0) > 0) {
+    msg += ` · ${result.analysisReportsCreated} analysis reports`;
+  }
+  if ((result.bureauResponsesCreated ?? 0) > 0) {
+    msg += ` · ${result.bureauResponsesCreated} bureau responses`;
+  }
+  msg += ` · ${result.lettersCreated} letters · ${result.evidenceCreated} supporting docs (Documents vault)`;
   if ((result.migratedFromEvidence ?? 0) > 0) {
     msg += ` · ${result.migratedFromEvidence} re-routed from a prior misclassified import`;
   }
   if ((result.businessProfilesUpdated ?? 0) > 0) {
     msg += ` · ${result.businessProfilesUpdated} business profile(s)`;
+  }
+  if (result.stageSync) {
+    const s = result.stageSync;
+    if (s.lettersCreated || s.casesCreated || s.tasksCreated) {
+      msg += ` · notes sync: +${s.lettersCreated} letters, +${s.casesCreated} cases, +${s.tasksCreated} tasks`;
+    }
+    if (s.journeyStageAdvanced) msg += ` · stage→${s.journeyStageAdvanced}`;
   }
   return msg;
 }

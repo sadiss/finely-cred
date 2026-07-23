@@ -1,8 +1,9 @@
 import React from 'react';
-import { ExternalLink, Shield } from 'lucide-react';
+import { ExternalLink, MessageSquareText, Shield } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { ROLE_CHANNELS, SUPPORT_TOPICS, openCommunicationHub } from './communicationHubModel';
 import { COMMS_SURFACE_GUIDE } from '../comms/commsWorkspaceModel';
+import { shareGuideToChat } from '../../lib/creditAnalysisChatSharing';
 import {
   FINELY_OS_BANNER,
   FINELY_OS_ENTITY_BODY,
@@ -15,10 +16,24 @@ import {
 type Props = {
   compact?: boolean;
   onSwitchTab?: (tab: 'team' | 'ai' | 'meetings') => void;
+  partnerId?: string;
 };
 
-export function HubGuidePanel({ compact, onSwitchTab }: Props) {
+export function HubGuidePanel({ compact, onSwitchTab, partnerId }: Props) {
   const navigate = useNavigate();
+
+  const shareGuide = (guide: { title: string; summary: string; path?: string }) => {
+    if (!partnerId || !guide.path) return;
+    const res = shareGuideToChat({
+      partnerId,
+      title: guide.title,
+      summary: guide.summary,
+      url: guide.path,
+      actorRole: 'partner',
+    });
+    if (onSwitchTab) onSwitchTab('team');
+    openCommunicationHub({ tab: 'team', threadId: res.threadId, topic: 'documents', expanded: true, partnerId });
+  };
 
   return (
     <div className={`space-y-4 overflow-y-auto ${compact ? 'p-3' : 'p-4'}`}>
@@ -33,13 +48,9 @@ export function HubGuidePanel({ compact, onSwitchTab }: Props) {
         <div className={`${FINELY_OS_ENTITY_SUBLABEL} mb-2`}>Which tool when?</div>
         <div className="space-y-2">
           {COMMS_SURFACE_GUIDE.filter((s) => s.audience !== 'admin').map((surface) => (
-            <button
+            <div
               key={surface.id}
-              type="button"
-              onClick={() => {
-                if (surface.path) navigate(surface.path);
-              }}
-              className={`w-full text-left ${finelyOsInlineListItem()} hover:border-fuchsia-500/25`}
+              className={`w-full ${finelyOsInlineListItem()} hover:border-fuchsia-500/25`}
             >
               <div className="flex items-start gap-3">
                 <span className="text-xl">{surface.emoji}</span>
@@ -47,10 +58,30 @@ export function HubGuidePanel({ compact, onSwitchTab }: Props) {
                   <div className="text-white font-semibold text-sm">{surface.title}</div>
                   <div className="text-xs text-white/55 mt-1">{surface.summary}</div>
                   <div className="text-[11px] text-white/40 mt-1">{surface.when}</div>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {surface.path ? (
+                      <button
+                        type="button"
+                        onClick={() => navigate(surface.path!)}
+                        className="inline-flex items-center gap-1.5 rounded-lg border border-white/15 bg-white/[0.04] px-2 py-1 text-[10px] font-black uppercase tracking-widest text-white/75 hover:bg-white/[0.08]"
+                      >
+                        <ExternalLink size={11} /> Open
+                      </button>
+                    ) : null}
+                    {partnerId && surface.path ? (
+                      <button
+                        type="button"
+                        onClick={() => shareGuide(surface)}
+                        className="inline-flex items-center gap-1.5 rounded-lg border border-fuchsia-400/30 bg-fuchsia-500/10 px-2 py-1 text-[10px] font-black uppercase tracking-widest text-fuchsia-100 hover:bg-fuchsia-500/20"
+                      >
+                        <MessageSquareText size={11} /> Share in chat
+                      </button>
+                    ) : null}
+                  </div>
                 </div>
                 <ExternalLink size={14} className="text-white/30 shrink-0 mt-1" />
               </div>
-            </button>
+            </div>
           ))}
         </div>
         <p className={`mt-2 text-[11px] ${FINELY_OS_ENTITY_BODY}`}>

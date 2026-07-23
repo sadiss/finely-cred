@@ -6,6 +6,7 @@ import {
   LettersCommandCenter,
   type LettersStudioTab,
 } from '../../components/letters/LettersCommandCenter';
+import { buildLetterStudioTrackTabs } from '../../components/letters/LetterTrackTabs';
 import { usePartnerSession } from '../../auth/PartnerSessionContext';
 import { ENTITLEMENT_KEYS } from '../../billing/entitlements';
 import { EntitlementGate } from '../../components/billing/EntitlementGate';
@@ -30,6 +31,12 @@ export default function PartnerLettersPage() {
     if (t === 'validation' || t === 'court' || t === 'foreclosure' || t === 'repossession' || t === 'bankruptcy' || t === 'templates' || t === 'dispute') return t;
     return 'dispute';
   });
+  useEffect(() => {
+    const t = searchParams.get('tab');
+    if (t === 'validation' || t === 'court' || t === 'foreclosure' || t === 'repossession' || t === 'bankruptcy' || t === 'templates' || t === 'dispute') {
+      setStudioTab(t);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     const onStore = () => setStoreVersion((v) => v + 1);
@@ -85,18 +92,19 @@ export default function PartnerLettersPage() {
     () => (partner ? hasEntitlement(partner.id, ENTITLEMENT_KEYS.debt) : false),
     [partner, storeVersion],
   );
+  const hasTemplates = useMemo(
+    () => (partner ? hasEntitlement(partner.id, ENTITLEMENT_KEYS.templates) : false),
+    [partner, storeVersion],
+  );
 
-  const hubTabs = useMemo(() => {
-    const tabs: Array<{ id: string; label: string }> = [{ id: 'dispute', label: 'Bureaus' }];
-    if (hasDebt) {
-      tabs.push({ id: 'validation', label: 'Validation' });
-      tabs.push({ id: 'court', label: 'Affidavits & Court' });
-      tabs.push({ id: 'foreclosure', label: 'Foreclosure' });
-      tabs.push({ id: 'repossession', label: 'Repossession' });
-    }
-    tabs.push({ id: 'bankruptcy', label: 'Bankruptcy' });
-    return tabs;
-  }, [hasDebt]);
+  const hubTabs = useMemo(
+    () =>
+      buildLetterStudioTrackTabs({ hasDebt, hasTemplates }).map((t) => ({
+        id: t.id,
+        label: t.label,
+      })),
+    [hasDebt, hasTemplates],
+  );
 
   return (
     <PageShell

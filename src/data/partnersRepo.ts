@@ -91,6 +91,7 @@ function partnerToRow(p: Partner): any {
     funding_meta: fundingMeta,
     assigned_agent_id: p.assignedAgentId ?? null,
     claimed_user_id: p.claimedUserId ?? null,
+    claimed_at: p.claimedAt ?? null,
     created_at: p.createdAt,
     updated_at: p.updatedAt,
   };
@@ -270,6 +271,35 @@ export async function listPartnersByAgent(tenantId: string, agentId: string): Pr
   return (data ?? []).map(rowToPartner);
 }
 
+/** Clients where this helper is specialist (assigned_agent_id) or on careTeam (coach/affiliate). */
+export async function listPartnersForCareMember(tenantId: string, helperPartnerId: string): Promise<Partner[]> {
+  const helperId = helperPartnerId?.trim();
+  if (!helperId) return [];
+
+  const { partnerHasCareMember, isClientPartner } = await import('../lib/partnerCareTeam');
+
+  if (!isSupabaseConfigured) {
+    return loadLocalPartners()
+      .filter((p) => p.tenantId === tenantId && isClientPartner(p) && partnerHasCareMember(p, helperId))
+      .sort(sortByUpdatedDesc);
+  }
+
+  // Fetch tenant clients, then filter care team in memory (careTeam lives in journey_signals JSON).
+  const { data, error } = await supabase
+    .from('partners')
+    .select('*')
+    .eq('tenant_id', tenantId)
+    .order('updated_at', { ascending: false })
+    .limit(500);
+  if (error) {
+    console.warn('listPartnersForCareMember error:', error.message);
+    return listPartnersByAgent(tenantId, helperId);
+  }
+  return (data ?? [])
+    .map(rowToPartner)
+    .filter((p) => isClientPartner(p) && partnerHasCareMember(p, helperId));
+}
+
 export function getPartnerSync(id: string): Partner | null {
   if (!id?.trim()) return null;
   if (!isSupabaseConfigured) return loadLocalPartners().find((p) => p.id === id.trim()) ?? null;
@@ -298,28 +328,34 @@ export async function claimPartnerForUser(args: {
   if (edgeClaimed) {
     try {
       const { trackPartnerAccountClaimed } = await import('../lib/partnerAuthActivity');
-      await trackPartnerAccountClaimed({ partner: edgeClaimed, userId });
+      const withClaim = {
+        ...edgeClaimed,
+        claimedUserId: edgeClaimed.claimedUserId || userId,
+        claimedAt: edgeClaimed.claimedAt || new Date().toISOString(),
+        status: edgeClaimed.status === 'paused' ? edgeClaimed.status : ('active' as const),
+      };
+      return await trackPartnerAccountClaimed({ partner: withClaim, userId, asAdmin: true });
     } catch {
-      // non-blocking
+      return edgeClaimed;
     }
-    return edgeClaimed;
   }
 
   if (!isSupabaseConfigured) {
     const email = normalizeEmail(args.email) || existing.profile.email;
+    const now = new Date().toISOString();
     const claimed = await upsertPartner({
       ...existing,
       claimedUserId: userId,
-      claimedAt: new Date().toISOString(),
+      claimedAt: existing.claimedAt || now,
+      status: existing.status === 'paused' ? existing.status : 'active',
       profile: { ...existing.profile, email: email || existing.profile.email },
     });
     try {
       const { trackPartnerAccountClaimed } = await import('../lib/partnerAuthActivity');
-      await trackPartnerAccountClaimed({ partner: claimed, userId });
+      return await trackPartnerAccountClaimed({ partner: claimed, userId, asAdmin: true });
     } catch {
-      // non-blocking
+      return claimed;
     }
-    return claimed;
   }
 
   return null;

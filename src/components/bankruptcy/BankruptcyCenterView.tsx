@@ -16,6 +16,7 @@ import {
 import { BankruptcyAdvisorChat } from './BankruptcyAdvisorChat';
 import { DebtLetterChipGrid } from '../debt/DebtLetterChipGrid';
 import { CollateralWorkstationSection } from '../debt/CollateralWorkstationSection';
+import { PartnerDebtSnapshotStrip } from '../debt/PartnerDebtSnapshotStrip';
 import { FinelyOsKpiGrid } from '../os/FinelyOsKpiGrid';
 import {
   FINELY_OS_COMPACT_PAGE,
@@ -29,6 +30,7 @@ import {
 } from '../../features/os/finelyOsLightUi';
 
 export function BankruptcyCenterView({
+  partnerId,
   partnerName,
   partnerEmail,
   partnerState,
@@ -38,6 +40,7 @@ export function BankruptcyCenterView({
   onBuildDraft,
   canSeeTemplates,
 }: {
+  partnerId: string;
   partnerName: string;
   partnerEmail?: string;
   partnerState?: string;
@@ -86,6 +89,8 @@ export function BankruptcyCenterView({
           Chapters 7/11/13, foreclosure stay, business debt, and credit bureau disputes — court inquiry workflow plus FCRA statutory removal grounds.
         </p>
       </div>
+
+      <PartnerDebtSnapshotStrip partnerId={partnerId} compact accent="sky" />
 
       <FinelyOsKpiGrid
         glow="sky"

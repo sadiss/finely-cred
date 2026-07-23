@@ -15,8 +15,12 @@ import { hasEntitlement } from '../../data/billingRepo';
 import { ENTITLEMENT_KEYS } from '../../billing/entitlements';
 import { BankruptcyCenterView } from '../bankruptcy/BankruptcyCenterView';
 import { BankruptcyFilingCenterView } from '../bankruptcy/BankruptcyFilingCenterView';
-import { SmartProofUploader } from '../evidence/SmartProofUploader';
+import { DebtProofCaptureStrip } from '../debt/DebtProofCaptureStrip';
+import { PartnerDebtSnapshotStrip } from '../debt/PartnerDebtSnapshotStrip';
 import { DebtLetterDraftWorkspace } from './DebtLetterPreview';
+import { LetterStepPath } from './LetterStepPath';
+import { LetterDisclaimerFooter } from './LetterAddressSummary';
+import { buildDebtLetterPathSteps, runDebtLetterStep, type DebtLetterStepId } from '../../lib/letterDebtFlow';
 import { SELF_FILING_DISCLAIMER } from '../../legal/bankruptcyFilingKnowledgePack';
 import { generateTextPdfToVault } from '../../letters/generateTextPdf';
 import { upsertLetter } from '../../data/lettersRepo';
@@ -67,6 +71,31 @@ export function BankruptcyLetterStudioPanel({
 
   const canTemplates = hasEntitlement(partner.id, ENTITLEMENT_KEYS.templates);
 
+  const bkPathSteps = useMemo(
+    () =>
+      buildDebtLetterPathSteps({
+        hasCase: Boolean(bkCase),
+        proofCount: 0,
+        hasChosenLetter: Boolean(draft),
+        hasDraftBody: Boolean(draft?.text?.trim()),
+      }),
+    [bkCase, draft],
+  );
+
+  const runBkStep = (id: DebtLetterStepId) => {
+    runDebtLetterStep(id, {
+      openDraft: () => {
+        if (draft) document.getElementById('fc-bk-step-draft')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      },
+    });
+  };
+
+  const runBkContinue = () => {
+    const main = bkPathSteps.filter((s) => !s.optional);
+    const next = main.find((s) => !s.done && !s.disabled) ?? main.find((s) => !s.done) ?? null;
+    if (next) runBkStep(next.id as DebtLetterStepId);
+  };
+
   const saveDraft = async () => {
     if (!draft) return;
     setBusy(true);
@@ -107,6 +136,13 @@ export function BankruptcyLetterStudioPanel({
 
   return (
     <div className={FINELY_OS_COMPACT_PAGE}>
+      <LetterStepPath
+        title="Bankruptcy letter path"
+        steps={bkPathSteps}
+        onStep={(id) => runBkStep(id as DebtLetterStepId)}
+        onContinue={runBkContinue}
+      />
+      <PartnerDebtSnapshotStrip partnerId={partner.id} compact accent="sky" />
       <div className={finelyOsCatalogCardCompact('sky')}>
         <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
           <div className="flex items-center gap-2 min-w-0">
@@ -147,7 +183,7 @@ export function BankruptcyLetterStudioPanel({
         <p className="text-xs text-white/60">{SELF_FILING_DISCLAIMER}</p>
       </div>
 
-      <div className={`${finelyOsCatalogCardCompact('violet')} flex flex-wrap gap-3 items-end`}>
+      <div id="fc-debt-step-case" className={`${finelyOsCatalogCardCompact('violet')} flex flex-wrap gap-3 items-end scroll-mt-3`}>
         <div>
           <label className={FINELY_OS_ENTITY_LABEL}>Bankruptcy case</label>
           <select
@@ -188,16 +224,7 @@ export function BankruptcyLetterStudioPanel({
         </button>
       </div>
 
-      {partner ? (
-        <SmartProofUploader
-          partner={partner}
-          email={partner.profile.email}
-          bankruptcyCaseId={bkCase?.id}
-          uploadContext="bankruptcy"
-          compact
-        />
-      ) : null}
-
+      <div id="fc-debt-step-choose" className="scroll-mt-3">
       {track === 'filing' ? (
         <BankruptcyFilingCenterView
           partner={partner}
@@ -210,6 +237,7 @@ export function BankruptcyLetterStudioPanel({
         />
       ) : (
         <BankruptcyCenterView
+          partnerId={partner.id}
           partnerName={canonical?.fullName || partner.profile.fullName}
           partnerEmail={partner.profile.email}
           partnerState={canonical?.state}
@@ -222,7 +250,7 @@ export function BankruptcyLetterStudioPanel({
       )}
 
       {draft ? (
-        <div className={`${finelyOsCatalogCardCompact('sky')} space-y-4`}>
+        <div id="fc-bk-step-draft" className={`${finelyOsCatalogCardCompact('sky')} space-y-4 scroll-mt-3`}>
           <div className="flex flex-wrap items-center justify-between gap-2">
             <h3 className="font-semibold text-white text-sm">Draft — {draft.id}</h3>
             <div className="flex gap-2">
@@ -239,9 +267,23 @@ export function BankruptcyLetterStudioPanel({
             onTextChange={(text) => setDraft({ ...draft, text })}
             accent="sky"
             editorLabel="Bankruptcy letter"
+            heroLayout
           />
         </div>
       ) : null}
+      </div>
+
+      {partner ? (
+        <div id="fc-debt-step-proof" className="scroll-mt-3">
+          <DebtProofCaptureStrip
+            partner={partner}
+            bankruptcyCaseId={bkCase?.id}
+            accent="sky"
+            uploadContext="bankruptcy"
+          />
+        </div>
+      ) : null}
+      <LetterDisclaimerFooter />
     </div>
   );
 }

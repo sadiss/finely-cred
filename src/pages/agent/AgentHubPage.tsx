@@ -26,7 +26,8 @@ import { CreditSpecialistCommsPanel } from '../../components/creditSpecialist/Cr
 import { CreditSpecialistOfferingsPanel } from '../../components/creditSpecialist/CreditSpecialistOfferingsPanel';
 import { CreditSpecialistHubCommandStrip } from '../../components/creditSpecialist/CreditSpecialistHubCommandStrip';
 import { listTasksByPartner } from '../../data/tasksRepo';
-import { listPartnersByAgent } from '../../data/partnersRepo';
+import { listPartnersForCareMember } from '../../data/partnersRepo';
+import type { Partner } from '../../domain/partners';
 import { useAuth } from '../../auth/AuthProvider';
 import { getUserDisplayName, getUserProfileMeta } from '../../auth/userProfile';
 import { agentModelFromMetadata, getAgentOperatingModel, saveAgentOperatingModel } from '../../data/agentProgramRepo';
@@ -93,6 +94,7 @@ export default function AgentHubPage() {
   const [model, setModel] = useState<AgentOperatingModel>(() => defaultAgentOperatingModel());
   const [saved, setSaved] = useState(false);
   const [managedClientsCount, setManagedClientsCount] = useState(0);
+  const [caseload, setCaseload] = useState<Partner[]>([]);
 
   useEffect(() => {
     const t = searchParams.get('tab');
@@ -128,9 +130,13 @@ export default function AgentHubPage() {
   useEffect(() => {
     if (!partner?.id || !partner.tenantId) {
       setManagedClientsCount(0);
+      setCaseload([]);
       return;
     }
-    void listPartnersByAgent(partner.tenantId, partner.id).then((rows) => setManagedClientsCount(rows.length));
+    void listPartnersForCareMember(partner.tenantId, partner.id).then((rows) => {
+      setCaseload(rows);
+      setManagedClientsCount(rows.length);
+    });
   }, [partner?.id, partner?.tenantId]);
 
   const hasOperatingModel = useMemo(() => {
@@ -258,6 +264,42 @@ export default function AgentHubPage() {
                 <div className={`${FINELY_OS_ENTITY_BODY} text-xs mt-2`}>{tier?.seatLimit === -1 ? 'Unlimited' : tier?.seatLimit ?? 1} seats</div>
               </div>
             </div>
+            <div className={`${finelyOsCatalogCard('emerald')} !p-5 space-y-3`}>
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <div className={FINELY_OS_ENTITY_SUBLABEL}>Your caseload</div>
+                  <div className={`mt-1 text-lg font-semibold ${FINELY_OS_ENTITY_VALUE}`}>
+                    {managedClientsCount} assigned customer{managedClientsCount === 1 ? '' : 's'}
+                  </div>
+                </div>
+                <button type="button" onClick={() => setTab('operate')} className={FINELY_OS_SECONDARY_BTN}>
+                  <Users size={14} /> Open caseload
+                </button>
+              </div>
+              {caseload.length === 0 ? (
+                <p className={`text-sm ${FINELY_OS_ENTITY_EMPTY}`}>
+                  No customers assigned yet. Admins assign you as Credit Specialist, Coach, or Business partner on a partner file.
+                </p>
+              ) : (
+                <ul className="space-y-2">
+                  {caseload.slice(0, 6).map((c) => (
+                    <li key={c.id}>
+                      <button
+                        type="button"
+                        onClick={() => navigate(`/admin/partners/${c.id}`)}
+                        className={`${finelyOsListItem(false, 'emerald')} w-full text-left`}
+                      >
+                        <div className={`font-semibold ${FINELY_OS_ENTITY_VALUE}`}>{c.profile.fullName || c.profile.email}</div>
+                        <div className={`text-xs ${FINELY_OS_ENTITY_BODY}`}>{c.profile.email || c.id}</div>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              {caseload.length > 6 ? (
+                <p className={`text-xs ${FINELY_OS_ENTITY_BODY}`}>+{caseload.length - 6} more on Operate tab</p>
+              ) : null}
+            </div>
             <CreditSpecialistOfferingsPanel compact />
             <RoleWorkflowPanel roleId="agent" compact completedSteps={agentWorkflowProgress} />
             <AgentSplitCalculator
@@ -342,17 +384,45 @@ export default function AgentHubPage() {
         {tab === 'command' && <AgentCommandCenter model={model} />}
 
         {tab === 'operate' && (
-          <div className={`space-y-4 ${finelyOsCatalogCard('emerald')} !p-6`} data-fc-accent="emerald">
-            <p className={FINELY_OS_ENTITY_BODY}>
-              Day-to-day tools for running customer files — disputes, comms, documents, and tasks. Your revenue share improves as you
-              move levers from Finely → Shared → You.
-            </p>
-            <div className="flex flex-wrap gap-3">
-              {QUICK_TOOLS.map(({ label, path, icon: Icon }) => (
-                <button key={path} type="button" onClick={() => navigate(path)} className={FINELY_OS_SECONDARY_BTN}>
-                  <Icon size={14} /> {label}
-                </button>
-              ))}
+          <div className="space-y-4">
+            <div className={`${finelyOsCatalogCard('emerald')} !p-6 space-y-3`}>
+              <div className={FINELY_OS_ENTITY_SUBLABEL}>Assigned customers</div>
+              <p className={`text-sm ${FINELY_OS_ENTITY_BODY}`}>
+                Customers where you are Credit Specialist, Coach, or Business partner on the care team.
+              </p>
+              {caseload.length === 0 ? (
+                <p className={FINELY_OS_ENTITY_EMPTY}>No assigned customers yet.</p>
+              ) : (
+                <FinelyOsPaginatedStack
+                  items={caseload}
+                  pageSize={12}
+                  emptyMessage="No assigned customers."
+                  renderItem={(c) => (
+                    <button
+                      key={c.id}
+                      type="button"
+                      onClick={() => navigate(`/admin/partners/${c.id}`)}
+                      className={`${finelyOsListItem(false, 'emerald')} w-full text-left`}
+                    >
+                      <div className={`font-semibold ${FINELY_OS_ENTITY_VALUE}`}>{c.profile.fullName || c.profile.email}</div>
+                      <div className={`text-xs ${FINELY_OS_ENTITY_BODY}`}>{c.profile.email || c.id}</div>
+                    </button>
+                  )}
+                />
+              )}
+            </div>
+            <div className={`space-y-4 ${finelyOsCatalogCard('emerald')} !p-6`} data-fc-accent="emerald">
+              <p className={FINELY_OS_ENTITY_BODY}>
+                Day-to-day tools for running customer files — disputes, comms, documents, and tasks. Your revenue share improves as you
+                move levers from Finely → Shared → You.
+              </p>
+              <div className="flex flex-wrap gap-3">
+                {QUICK_TOOLS.map(({ label, path, icon: Icon }) => (
+                  <button key={path} type="button" onClick={() => navigate(path)} className={FINELY_OS_SECONDARY_BTN}>
+                    <Icon size={14} /> {label}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         )}

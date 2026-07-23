@@ -78,6 +78,9 @@ const VALIDATION: DebtLetterCatalogEntry[] = [
 
 const COURT: DebtLetterCatalogEntry[] = [
   v('court', 'answer_general', 'General answer outline', 'Deny allegations; demand proof; preserve defenses.', ['Sued on debt'], ['Civil procedure'], 'Do not admit debt in answer.', ['summons_served'], 'full', 'summons_response_affidavit'),
+  v('court', 'courtroom_pretrial_proof', 'Pretrial proof & preservation notice', 'Account-level proof, ledger, assignments, witness list, litigation hold.', ['Pre-trial', 'After answer'], ['Discovery rules', 'Evidence'], 'Force account-level production before trial.', ['summons_served'], 'full', 'courtroom_pretrial_proof_notice'),
+  v('court', 'courtroom_written_answer', 'Written answer + certificate of service', 'Contested-issues answer with certificate — edit admissions carefully.', ['Summons served'], ['Civil procedure'], 'Do not admit facts you cannot honestly state.', ['summons_served'], 'full', 'courtroom_written_answer'),
+  v('court', 'courtroom_day_kit', 'Court-day kit', 'Opening, witness questions, objections, closing, checklist.', ['Trial or hearing scheduled'], ['Evidence', 'Civil procedure'], 'Stick to truthful facts and missing proof.', ['summons_served'], 'full', 'courtroom_day_kit'),
   v('court', 'affidavit_dispute', 'Affidavit of dispute', 'Sworn denial and burden shift.', ['Pre-trial', 'MSJ response'], ['Evidence rules'], 'Put facts under oath.', ['summons_served'], 'full', 'affidavit_of_dispute'),
   v('court', 'discovery_full', 'Defendant discovery set', 'RFAs, interrogatories, RFPs on standing.', ['After answer'], ['Discovery rules'], 'Force account-level docs.', ['summons_served'], 'full', 'defendant_discovery_requests'),
   v('court', 'motion_compel', 'Motion to compel', 'Compel supplemental discovery.', ['Evasive responses'], ['Discovery rules'], 'Court orders production.', ['summons_served'], 'full', 'motion_to_compel_discovery'),

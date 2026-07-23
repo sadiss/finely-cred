@@ -12,8 +12,7 @@ import type { RegulatoryBody, RegulatoryTargetType } from '../../domain/regulato
 import { listCasesByPartner, getCase } from '../../data/casesRepo';
 import type { DisputeRoundLabel } from '../../domain/disputeWorkflow';
 import { listEvidenceByPartner } from '../../data/evidenceRepo';
-import { getBlobUrl } from '../../storage/getBlobUrl';
-import { openUrlInNewTab } from '../../utils/download';
+import { openBlobRefInNewTab } from '../../lib/openBlobRef';
 import { FinelyOsPageFooter } from '../../features/os/FinelyOsPageFooter';
 import { FinelyUnifiedHubLayout } from '../../features/unified/FinelyUnifiedHubLayout';
 import { FinelyOsEmptyState } from '../../features/os/FinelyOsEmptyState';
@@ -600,9 +599,11 @@ export default function PartnerEscalationsPage() {
                                     type="button"
                                     onClick={async () => {
                                       try {
-                                        const res = await getBlobUrl(ev.blobRef!, { mimeType: ev.mimeType, preferSigned: true });
-                                        if (!res?.url) return;
-                                        openUrlInNewTab({ url: res.url, revoke: res.revoke, revokeAfterMs: 60_000 });
+                                        await openBlobRefInNewTab({
+                                          blobRef: ev.blobRef!,
+                                          mimeType: ev.mimeType,
+                                          preferSigned: true,
+                                        });
                                       } catch {
                                         // ignore
                                       }

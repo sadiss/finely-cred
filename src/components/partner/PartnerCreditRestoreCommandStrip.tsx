@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { Partner } from '../../domain/partners';
 import { PartnerCreditRestoreHud } from '../../features/partner/PartnerCreditRestoreHud';
+import { PartnerCreditWorkloadStrip } from './PartnerCreditWorkloadStrip';
 import { FinelyOsAlertBanner } from '../../features/os/FinelyOsAlertBanner';
 import { listCasesByPartner } from '../../data/casesRepo';
 import { summarizePartnerDisputeRounds } from '../../lib/creditRestoreRoundRollup';
@@ -66,6 +67,7 @@ export function PartnerCreditRestoreCommandStrip({
   return (
     <div className="space-y-3">
       {blocker ? <FinelyOsAlertBanner tone={reportsCount === 0 ? 'warning' : 'info'} message={blocker} /> : null}
+      <PartnerCreditWorkloadStrip partnerId={partner.id} compact />
       <PartnerCreditRestoreHud
         reportsCount={reportsCount}
         negativesCount={negativesCount}

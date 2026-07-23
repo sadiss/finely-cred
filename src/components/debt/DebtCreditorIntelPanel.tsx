@@ -16,6 +16,7 @@ import type { ProcessedDocument } from '../../domain/documents';
 import { createDebtCase } from '../../data/debtRepo';
 import {
   debtCaseFromSignal,
+  computePartnerDebtSnapshot,
   extractCollateralSignals,
   extractReportDebtSignals,
   listSummonsDocumentsForDebt,
@@ -156,6 +157,7 @@ export function DebtCreditorIntelPanel({
   const hasAutoMatch = Boolean(party && party.matchedFrom !== 'manual' && (party.recipientAddress || party.signal));
   const matchQuality = party?.signal?.confidence ?? (hasAutoMatch ? 'medium' : null);
   const totalBalanceCents = signals.reduce((sum, s) => sum + (s.balanceCents ?? 0), 0);
+  const debtSnapshot = useMemo(() => computePartnerDebtSnapshot(partnerId), [partnerId]);
   const totalBalanceLabel =
     totalBalanceCents > 0
       ? (totalBalanceCents / 100).toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 })
@@ -217,6 +219,35 @@ export function DebtCreditorIntelPanel({
 
   return (
     <div className={compact ? 'space-y-3' : 'space-y-5'}>
+      {compact ? (
+        <div className="flex flex-wrap gap-2">
+          <div className={`${finelyOsGlowKpi(glowAccent)} !px-3 !py-2`}>
+            <div className="text-[10px] uppercase tracking-widest text-white/50">On report</div>
+            <div className="text-sm font-bold text-white">
+              {debtSnapshot.reportedCents > 0
+                ? (debtSnapshot.reportedCents / 100).toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 })
+                : '—'}
+            </div>
+            <div className="text-[10px] text-white/45">{debtSnapshot.reportedCount || 0} tradelines</div>
+          </div>
+          <div className={`${finelyOsGlowKpi('sky')} !px-3 !py-2`}>
+            <div className="text-[10px] uppercase tracking-widest text-white/50">In cases</div>
+            <div className="text-sm font-bold text-white">
+              {debtSnapshot.claimedCents > 0
+                ? (debtSnapshot.claimedCents / 100).toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 })
+                : '—'}
+            </div>
+          </div>
+          {(ws === 'foreclosure' || ws === 'repossession') && debtSnapshot.collateralCents > 0 ? (
+            <div className={`${finelyOsGlowKpi('amber')} !px-3 !py-2`}>
+              <div className="text-[10px] uppercase tracking-widest text-white/50">Collateral</div>
+              <div className="text-sm font-bold text-white">
+                {(debtSnapshot.collateralCents / 100).toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 })}
+              </div>
+            </div>
+          ) : null}
+        </div>
+      ) : null}
       {!compact ? (
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[

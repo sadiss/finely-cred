@@ -24,6 +24,7 @@ export async function generatePartnerCreditAnalysisReport(args: {
       candidates: args.candidates,
       snapshots: args.snapshots,
       templateTitle: args.template?.title,
+      template: args.template,
     });
   }
   return generateCreditAnalysisReportPdf({

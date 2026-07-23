@@ -13,6 +13,10 @@ import type { LetterRecord, LetterStatus } from '../../domain/letters';
 import { isFeatureEnabled } from '../../data/settingsRepo';
 import { MailLetterModal } from '../../components/letters/MailLetterModal';
 import { SavedLetterCard } from '../../components/letters/SavedLetterCard';
+import { loadLettersCommandCenterDraft } from '../../data/lettersCommandCenterDraftRepo';
+import { letterStudioResumeUrl } from '../../lib/letterStudioResume';
+import { bureauFullName } from '../../utils/bureaus';
+import type { Bureau } from '../../domain/creditReports';
 import { addAuditEvent } from '../../data/auditRepo';
 import { checkDisputeLetterEvidenceGate } from '../../lib/evidenceGates';
 import { checkIdentityVaultGate } from '../../lib/documentVaultGates';
@@ -23,6 +27,7 @@ import { FinelyOsPageFooter } from '../../features/os/FinelyOsPageFooter';
 import { FinelyOsPaginatedStack } from '../../features/os/FinelyOsPaginatedStack';
 import { FinelyUnifiedHubLayout, FinelyUnifiedSection } from '../../features/unified/FinelyUnifiedHubLayout';
 import {
+  FINELY_OS_COMPACT_PAGE,
   FINELY_OS_PAGE,
   FINELY_OS_BACK_LINK,
   FINELY_OS_ENTITY_ACCENT_LINK,
@@ -80,6 +85,13 @@ export default function PartnerLettersVaultPage() {
   type VaultTab = 'letters' | 'analysis';
   const [hubTab, setHubTab] = useState<VaultTab>('letters');
   const evidence = useMemo(() => (partner ? listEvidenceByPartner(partner.id) : []), [partner]);
+
+  const studioDraftResume = useMemo(() => {
+    if (!partner) return null;
+    const draft = loadLettersCommandCenterDraft(partner.id);
+    if (!draft?.selectedDisputes?.length) return null;
+    return letterStudioResumeUrl(draft);
+  }, [partner, letters.length]);
 
   useEffect(() => {
     try {
@@ -237,6 +249,11 @@ export default function PartnerLettersVaultPage() {
       onArchive={() => toggleArchive(l)}
       pdfDisabled={!l.pdfBlobRef}
       mailDisabled={!l.pdfBlobRef}
+      onResumeStudio={
+        l.type === 'dispute' && !l.pdfBlobRef && studioDraftResume
+          ? () => navigate(studioDraftResume)
+          : undefined
+      }
     />
   );
 
@@ -255,7 +272,7 @@ export default function PartnerLettersVaultPage() {
         </div>
       ) : (
         <EntitlementGate partnerId={partner.id} requiredKeys={[ENTITLEMENT_KEYS.letters]}>
-          <div className={FINELY_OS_PAGE}>
+          <div className={`${FINELY_OS_COMPACT_PAGE} max-w-6xl`}>
           {mailOpen && mailLetter ? (
             <MailLetterModal
               open={mailOpen}
@@ -326,6 +343,21 @@ export default function PartnerLettersVaultPage() {
           <button type="button" onClick={() => navigate('/portal/letters')} className={FINELY_OS_BACK_LINK} title="Back to Letter Studio">
             <ArrowLeft size={16} /> Letter Studio
           </button>
+          <p className={`${FINELY_OS_ENTITY_BODY} text-sm`}>
+            Saved PDFs live here. Open to view in a new tab. To keep building, resume Letter Studio — drafts autosave when you leave.
+          </p>
+
+          {studioDraftResume ? (
+            <div className={`${finelyOsCatalogCard('amber')} !p-4 flex flex-wrap items-center justify-between gap-3`}>
+              <div>
+                <div className="text-sm font-semibold text-amber-50">Letter draft in progress</div>
+                <p className={`${FINELY_OS_ENTITY_BODY} text-sm mt-1`}>Your bureau letter studio draft is saved — continue where you left off.</p>
+              </div>
+              <button type="button" className={FINELY_OS_PRIMARY_BTN} onClick={() => navigate(studioDraftResume)}>
+                Resume Letter Studio
+              </button>
+            </div>
+          ) : null}
 
           {mailGateErr ? <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony text-sm text-rose-200 border border-rose-500/30 bg-rose-500/10`}>{mailGateErr}</div> : null}
           {openErr ? <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony text-sm text-rose-200 border border-rose-500/30 bg-rose-500/10`}>{openErr}</div> : null}
@@ -430,7 +462,11 @@ export default function PartnerLettersVaultPage() {
                             .map(([bureau, arr]) => (
                               <details key={bureau} className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony overflow-hidden`} open>
                                 <summary className="cursor-pointer select-none px-5 py-4 flex items-center justify-between gap-3 hover:bg-white/[0.04] transition-colors">
-                                  <div className={FINELY_OS_ENTITY_VALUE}>{bureau}</div>
+                                  <div className={FINELY_OS_ENTITY_VALUE}>
+                                    {bureau === 'EXP' || bureau === 'EQF' || bureau === 'TUC'
+                                      ? bureauFullName(bureau as Bureau)
+                                      : bureau}
+                                  </div>
                                   <div className={FINELY_OS_ENTITY_SUBLABEL}>{arr.length}</div>
                                 </summary>
                                 <div className="p-5 pt-0">

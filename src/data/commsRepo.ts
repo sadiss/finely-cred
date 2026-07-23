@@ -85,6 +85,31 @@ export function addCommsSend(log: CommsSendLog): CommsSendLog {
   return log;
 }
 
+export function hasRecentThreadCommsSend(args: {
+  templateId: string;
+  partnerId: string;
+  threadId: string;
+  withinHours: number;
+}): boolean {
+  const t = (args.templateId || '').trim();
+  const p = (args.partnerId || '').trim();
+  const threadId = (args.threadId || '').trim();
+  const within = Math.max(0, Number(args.withinHours) || 0);
+  if (!t || !p || !threadId || !within) return false;
+  const cutoff = Date.now() - within * 60 * 60 * 1000;
+  const store = loadStore();
+  return (
+    store.sends.find((s) => {
+      if (s.templateId !== t) return false;
+      if (s.partnerId !== p) return false;
+      if (s.status !== 'sent') return false;
+      if (`${s.meta?.threadId ?? ''}`.trim() !== threadId) return false;
+      const ts = Date.parse(s.createdAt);
+      return Number.isFinite(ts) && ts >= cutoff;
+    }) != null
+  );
+}
+
 export function hasRecentCommsSend(args: { templateId: string; partnerId: string; withinHours: number }): boolean {
   const t = (args.templateId || '').trim();
   const p = (args.partnerId || '').trim();

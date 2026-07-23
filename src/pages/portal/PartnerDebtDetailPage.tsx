@@ -11,6 +11,7 @@ import { listEvidenceByPartner, upsertEvidence, deleteEvidence } from '../../dat
 import { listReportsByPartner } from '../../data/reportsRepo';
 import { listProcessedDocumentsByPartner } from '../../data/documentsRepo';
 import { buildSummonsAffidavitContext, extractReportDebtSignals, resolveDebtPartyInfo } from '../../lib/debtCreditorIntel';
+import { PartnerDebtSnapshotStrip } from '../../components/debt/PartnerDebtSnapshotStrip';
 import { letterDateDisplay } from '../../lib/letterSenderBlock';
 import { usePartnerSession } from '../../auth/PartnerSessionContext';
 import type { DebtLetterType, DebtScenario } from '../../domain/debtLegal';
@@ -494,6 +495,67 @@ export default function PartnerDebtDetailPage() {
         {partner ? (
           <div className="mb-4 space-y-3">
             <SmartProofUploader partner={partner} email={partner.profile.email} debtCaseId={debt.id} uploadContext="debt" compact />
+            <PartnerDebtSnapshotStrip partnerId={partner.id} compact accent={isSummons ? 'fuchsia' : 'emerald'} />
+            {(debtPartyInfo?.collectorName ||
+              debtPartyInfo?.originalCreditor ||
+              debtPartyInfo?.recipientName ||
+              summonsContext.courtName ||
+              summonsContext.plaintiffName ||
+              summonsContext.amountClaimed ||
+              summonsContext.dateServed) ? (
+              <div
+                className={`rounded-xl border ${isSummons ? 'border-fuchsia-500/20' : 'border-emerald-500/20'} bg-black/25 !p-3 space-y-2`}
+              >
+                <div
+                  className={`text-[10px] font-semibold uppercase tracking-widest ${isSummons ? 'text-fuchsia-200/80' : 'text-emerald-200/80'}`}
+                >
+                  {isSummons ? 'Summons & parties' : 'Creditor parties'}
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {debtPartyInfo?.recipientName ? (
+                    <div className={`${finelyOsCatalogCardCompact('sky')} !px-3 !py-2`}>
+                      <div className={FINELY_OS_ENTITY_SUBLABEL}>Recipient</div>
+                      <div className="text-sm font-semibold text-white">{debtPartyInfo.recipientName}</div>
+                    </div>
+                  ) : null}
+                  {debtPartyInfo?.collectorName ? (
+                    <div className={`${finelyOsCatalogCardCompact('violet')} !px-3 !py-2`}>
+                      <div className={FINELY_OS_ENTITY_SUBLABEL}>Collector</div>
+                      <div className="text-sm font-semibold text-white">{debtPartyInfo.collectorName}</div>
+                    </div>
+                  ) : null}
+                  {debtPartyInfo?.originalCreditor ? (
+                    <div className={`${finelyOsCatalogCardCompact('amber')} !px-3 !py-2`}>
+                      <div className={FINELY_OS_ENTITY_SUBLABEL}>Original creditor</div>
+                      <div className="text-sm font-semibold text-white">{debtPartyInfo.originalCreditor}</div>
+                    </div>
+                  ) : null}
+                  {summonsContext.courtName ? (
+                    <div className={`${finelyOsCatalogCardCompact('sky')} !px-3 !py-2`}>
+                      <div className={FINELY_OS_ENTITY_SUBLABEL}>Court</div>
+                      <div className="text-sm font-semibold text-white">{summonsContext.courtName}</div>
+                    </div>
+                  ) : null}
+                  {summonsContext.amountClaimed ? (
+                    <div className={`${finelyOsCatalogCardCompact('amber')} !px-3 !py-2`}>
+                      <div className={FINELY_OS_ENTITY_SUBLABEL}>Amount claimed</div>
+                      <div className="text-sm font-semibold text-white">{summonsContext.amountClaimed}</div>
+                    </div>
+                  ) : null}
+                  {summonsContext.dateServed ? (
+                    <div className={`${finelyOsCatalogCardCompact('rose')} !px-3 !py-2`}>
+                      <div className={FINELY_OS_ENTITY_SUBLABEL}>Date served</div>
+                      <div className="text-sm font-semibold text-white">{summonsContext.dateServed}</div>
+                    </div>
+                  ) : null}
+                </div>
+                {summonsContext.plaintiffName && summonsContext.plaintiffName !== debtPartyInfo?.recipientName ? (
+                  <div className="text-[11px] text-white/60">
+                    Plaintiff: <span className="text-white/85">{summonsContext.plaintiffName}</span>
+                  </div>
+                ) : null}
+              </div>
+            ) : null}
             <div className="flex flex-wrap gap-2">
               <button type="button" onClick={() => navigate('/portal/letters?tab=validation')} className={FINELY_OS_SECONDARY_BTN}>
                 Validation workstation

@@ -38,13 +38,14 @@ export function PartnerNotesTab({
   setNotesVisibleToPartner: (v: boolean) => void;
   notesPinned: boolean;
   setNotesPinned: (v: boolean) => void;
-  onSaveNote: () => void;
+  onSaveNote: (opts: { emailPartner: boolean }) => void;
   onToggleVisibility: (n: PartnerNote) => void;
   onTogglePin: (n: PartnerNote) => void;
   onDeleteNote: (n: PartnerNote) => void;
   legacyNotesText?: string;
   onImportLegacy?: () => void;
 }) {
+  const [emailPartnerAlso, setEmailPartnerAlso] = useState(false);
   const timelineItems = [
     ...systemNotes.map((n, i) => ({
       id: `sys-${i}-${n.createdAt}`,
@@ -113,10 +114,16 @@ export function PartnerNotesTab({
             <p className={`${FINELY_OS_ENTITY_BODY} max-w-2xl`}>Capture calls, evidence reminders, underwriting context, promises made, and partner-visible next steps. Pin anything that should stay at the top.</p>
           </div>
           <div className="flex flex-wrap gap-2">
-            <button type="button" onClick={() => setNotesVisibleToPartner(false)} className={!notesVisibleToPartner ? FINELY_OS_PRIMARY_BTN : FINELY_OS_SECONDARY_BTN}>
+            <button type="button" onClick={() => { setNotesVisibleToPartner(false); setEmailPartnerAlso(false); }} className={!notesVisibleToPartner ? FINELY_OS_PRIMARY_BTN : FINELY_OS_SECONDARY_BTN}>
               <EyeOff size={14} /> Internal
             </button>
-            <button type="button" onClick={() => setNotesVisibleToPartner(true)} className={notesVisibleToPartner ? FINELY_OS_PRIMARY_BTN : FINELY_OS_SECONDARY_BTN}>
+            <button
+              type="button"
+              onClick={() => {
+                setNotesVisibleToPartner(true);
+              }}
+              className={notesVisibleToPartner ? FINELY_OS_PRIMARY_BTN : FINELY_OS_SECONDARY_BTN}
+            >
               <Eye size={14} /> Partner-visible
             </button>
           </div>
@@ -129,10 +136,23 @@ export function PartnerNotesTab({
           placeholder="Example: Partner uploading updated ID Friday; wants funding path after round 1 disputes."
         />
         <div className="flex flex-wrap items-center justify-between gap-4">
-          <label className={`inline-flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL} normal-case tracking-normal`}>
-            <input type="checkbox" checked={notesPinned} onChange={(e) => setNotesPinned(e.target.checked)} className="accent-amber-500" />
-            Pinned
-          </label>
+          <div className="space-y-2">
+            <label className={`inline-flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL} normal-case tracking-normal`}>
+              <input type="checkbox" checked={notesPinned} onChange={(e) => setNotesPinned(e.target.checked)} className="accent-amber-500" />
+              Pinned
+            </label>
+            {notesVisibleToPartner ? (
+              <label className={`flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL} normal-case tracking-normal`}>
+                <input
+                  type="checkbox"
+                  checked={emailPartnerAlso}
+                  onChange={(e) => setEmailPartnerAlso(e.target.checked)}
+                  className="accent-emerald-500"
+                />
+                Also email partner
+              </label>
+            ) : null}
+          </div>
           <div className="flex flex-wrap gap-2">
             <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => setNotesDraft('Call summary:\n\nDecision:\n\nNext step:\n\nOwner:\n\nDue date:')}>
               Call template
@@ -140,7 +160,15 @@ export function PartnerNotesTab({
             <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => setNotesDraft('Partner-visible update:\n\nWhat changed:\n\nWhat to do next:\n\nWhere to click:')}>
               Partner update template
             </button>
-            <button type="button" className={FINELY_OS_PRIMARY_BTN} disabled={!notesDraft.trim()} onClick={onSaveNote}>
+            <button
+              type="button"
+              className={FINELY_OS_PRIMARY_BTN}
+              disabled={!notesDraft.trim()}
+              onClick={() => {
+                onSaveNote({ emailPartner: emailPartnerAlso });
+                setEmailPartnerAlso(false);
+              }}
+            >
               Save note
             </button>
           </div>

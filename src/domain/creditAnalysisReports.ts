@@ -14,7 +14,7 @@ export type CreditAnalysisReportRecord = {
   /** Source credit report filename, if known */
   sourceReportFilename?: string;
   /** Renderer used when this PDF was generated. */
-  engine?: 'paginated_text' | 'premium_spreads';
+  engine?: 'paginated_text' | 'premium_spreads' | 'structured_premium';
   /** Snapshot of dynamic overlay fields (premium spreads). */
   payloadSnapshot?: Record<string, unknown>;
   /** When a specialist/admin delivered this report to the partner. */

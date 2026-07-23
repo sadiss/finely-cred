@@ -16,6 +16,11 @@ import {
 } from './litigation';
 import type { DebtLetterBuildArgs } from './debtLetterBuildArgs';
 import { getAffidavitOfDisputeBody, getSummonsResponseAffidavitBody } from './debtAffidavitBodies';
+import {
+  getCourtroomDayKitBody,
+  getCourtroomPretrialProofNoticeBody,
+  getCourtroomWrittenAnswerBody,
+} from './courtroomPackBodies';
 
 const FDCPA_809: LegalCitation = {
   category: 'consumer_protection',
@@ -253,6 +258,30 @@ export const DEBT_LETTER_SPECS: DebtLetterSpec[] = [
     keyPrinciple: 'Answer before the deadline. Assert SOL, lack of valid contract, and failure to validate as affirmative defenses. An affidavit supports your factual positions.',
   },
   {
+    id: 'courtroom_pretrial_proof_notice',
+    title: 'Pretrial Proof & Preservation Notice',
+    shortDescription: 'Demand account-level agreement, ledger, assignments, witnesses, and litigation hold before trial.',
+    whenToUse: ['After answer filed', 'Before trial or status conference', 'When plaintiff produced only pool summaries'],
+    legalBasis: [BEST_EVIDENCE, CONTRACT_CONSIDERATION, UCC_3308, FDCPA_809],
+    keyPrinciple: 'Force account-level production and preservation — not generic portfolio documents.',
+  },
+  {
+    id: 'courtroom_written_answer',
+    title: 'Written Answer + Certificate of Service',
+    shortDescription: 'Contested-issues answer with certificate — carefully edit admissions to match honest facts.',
+    whenToUse: ['Summons served', 'Before answer deadline', 'When you need a filing-ready scaffold'],
+    legalBasis: [STATE_SOL, CONTRACT_CONSIDERATION, BEST_EVIDENCE],
+    keyPrinciple: 'Do not admit debt, balance, or signature unless you know it is true.',
+  },
+  {
+    id: 'courtroom_day_kit',
+    title: 'Court-Day Kit',
+    shortDescription: 'Opening statement, witness questions, objections, closing, and checklist for pro se hearings.',
+    whenToUse: ['Trial or hearing scheduled', 'After discovery closed', 'To prepare examination outline'],
+    legalBasis: [BEST_EVIDENCE],
+    keyPrinciple: 'Stick to truthful facts and missing proof — never deny what you know is genuine.',
+  },
+  {
     id: 'debt_dispute_letter',
     title: 'Debt Dispute Letter (General)',
     shortDescription: 'Formal dispute to the collector disputing the amount, the debt, or the right to collect.',
@@ -293,6 +322,9 @@ export const SCENARIO_RECOMMENDATIONS: ScenarioRecommendation[] = [
     label: 'Summons / complaint served',
     description: 'You have been served with a lawsuit. You must answer before the deadline (e.g. 20–35 days).',
     recommendedLetterTypes: [
+      'courtroom_pretrial_proof_notice',
+      'courtroom_written_answer',
+      'courtroom_day_kit',
       'summons_response_affidavit',
       'affidavit_litigation_bank',
       'affidavit_litigation_debt_buyer',
@@ -758,6 +790,12 @@ export function getLetterBody(
         debtorState: args.debtorState,
         affidavitCounty: args.affidavitCounty,
       });
+    case 'courtroom_pretrial_proof_notice':
+      return getCourtroomPretrialProofNoticeBody(args);
+    case 'courtroom_written_answer':
+      return getCourtroomWrittenAnswerBody(args);
+    case 'courtroom_day_kit':
+      return getCourtroomDayKitBody(args);
     case 'cease_and_desist':
       return getCeaseAndDesistBody(args);
     case 'debt_dispute_letter':

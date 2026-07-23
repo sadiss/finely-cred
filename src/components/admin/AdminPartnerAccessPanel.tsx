@@ -18,7 +18,9 @@ import {
   formatAdminDeliveryWhen,
   recordAdminDelivery,
 } from '../../lib/adminDeliveryCooldown';
-import { ensurePartnerEntitlements, ENTITLEMENT_KEYS, type EntitlementKey } from '../../billing/entitlements';
+import { ensurePartnerEntitlements, ENTITLEMENT_KEYS, SERVICE_ACCESS_BUNDLES, type EntitlementKey } from '../../billing/entitlements';
+import { PartnerServicesAccessCard } from './PartnerServicesAccessCard';
+import { LetterStreamStatusCard } from '../letters/LetterStreamStatusCard';
 import {
   FINELY_OS_ENTITY_BODY,
   FINELY_OS_ENTITY_SUBLABEL,
@@ -152,9 +154,11 @@ export function AdminPartnerAccessPanel({ partner, userRole, onUpdated }: Props)
       let next = patchPartnerAccessFlags(partner, patch);
       await adminUpsertPartner(next);
       if (patch.paymentWaived) {
+        // Least privilege: waive payment for credit restore by default � not every product.
         ensurePartnerEntitlements({
           partnerId: partner.id,
-          keys: Object.values(ENTITLEMENT_KEYS) as EntitlementKey[],
+          keys: [...SERVICE_ACCESS_BUNDLES.credit_restore] as EntitlementKey[],
+          sourceAgreementId: 'admin_payment_waived',
         });
       }
       setNotice('Access settings updated.');
@@ -493,7 +497,7 @@ export function AdminPartnerAccessPanel({ partner, userRole, onUpdated }: Props)
           {
             key: 'paymentWaived' as const,
             label: 'Waive payment — grant entitlements without checkout',
-            hint: 'Grants full entitlements immediately',
+            hint: 'Skips checkout and grants Credit restore access only (add Business/AUs below)',
           },
         ].map((row) => (
           <button
@@ -523,6 +527,65 @@ export function AdminPartnerAccessPanel({ partner, userRole, onUpdated }: Props)
             </span>
           </button>
         ))}
+            <button
+              type="button"
+              disabled={busy === 'access'}
+              onClick={() => {
+                const next = !(partner.journeySignals as Record<string, unknown> | undefined)?.canCoach;
+                void (async () => {
+                  setBusy('access');
+                  setErr(null);
+                  setNotice(null);
+                  try {
+                    await adminUpsertPartner({
+                      ...partner,
+                      journeySignals: {
+                        ...(partner.journeySignals ?? {}),
+                        canCoach: next,
+                      },
+                    });
+                    setNotice(next ? 'Coach capability granted — they can be assigned as Coach on customer files.' : 'Coach capability removed.');
+                    onUpdated?.();
+                  } catch (e: unknown) {
+                    setErr((e as Error)?.message || 'Failed to update coach access.');
+                  } finally {
+                    setBusy(null);
+                  }
+                })();
+              }}
+              className={
+                'w-full text-left flex items-start gap-3 rounded-xl border px-4 py-3 transition-all ' +
+                ((partner.journeySignals as Record<string, unknown> | undefined)?.canCoach
+                  ? 'border-sky-400/40 bg-sky-500/15'
+                  : 'border-white/12 bg-black/25 hover:border-white/25 hover:bg-white/5')
+              }
+            >
+              <span
+                className={
+                  'mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md border text-xs font-bold ' +
+                  ((partner.journeySignals as Record<string, unknown> | undefined)?.canCoach
+                    ? 'border-sky-300 bg-sky-400 text-black'
+                    : 'border-white/30 bg-transparent text-transparent')
+                }
+                aria-hidden
+              >
+                ✓
+              </span>
+              <span className="min-w-0">
+                <span className={`block text-sm font-semibold ${FINELY_OS_ENTITY_VALUE}`}>Can coach (care team)</span>
+                <span className={`block text-xs mt-0.5 ${FINELY_OS_ENTITY_BODY}`}>
+                  Appear in the Coach assign picker for customer files (Credit Specialists already qualify)
+                </span>
+              </span>
+            </button>
+            <PartnerServicesAccessCard
+              partner={partner}
+              canManage={staffCaps.canManagePartnerAccess}
+              onUpdated={onUpdated}
+            />
+            <div className="border-t border-white/10 pt-4">
+              <LetterStreamStatusCard compact />
+            </div>
           </>
         ) : (
           <div className={`text-xs ${FINELY_OS_ENTITY_BODY}`}>

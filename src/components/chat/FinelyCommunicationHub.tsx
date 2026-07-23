@@ -262,7 +262,7 @@ export function FinelyCommunicationHub({
         {tab === 'meetings' && (
           <HubMeetingsPanel partnerId={effectivePartnerId} partnerDisplayName={effectivePartnerName} compact={!expanded && mode === 'floating'} />
         )}
-        {tab === 'guide' && <HubGuidePanel compact={!expanded && mode === 'floating'} onSwitchTab={switchTab} />}
+        {tab === 'guide' && <HubGuidePanel compact={!expanded && mode === 'floating'} onSwitchTab={switchTab} partnerId={effectivePartnerId} />}
       </div>
     </>
   );

@@ -9,6 +9,7 @@ import {
   onSupportFirstTeamReply,
 } from '../lib/supportInboxOs';
 import { buildSupportMessageHref, buildSupportMessageTitle } from '../lib/messageNotificationCopy';
+import { notifyPartnerMessageEmail } from '../lib/partnerMessageEmail';
 import { emitPlatformEvent } from '../domain/platformEvents';
 import { FINELY_TENANT_ID } from '../domain/tenants';
 
@@ -25,6 +26,19 @@ function loadStore(): Store {
 
 function saveStore(store: Store) {
   saveJson(KEY, store, 1);
+}
+
+function queuePartnerOutboundEmail(args: {
+  partnerId: string;
+  threadId: string;
+  subject: string;
+  bodyPreview: string;
+}) {
+  try {
+    void notifyPartnerMessageEmail(args);
+  } catch {
+    // non-blocking
+  }
 }
 
 export function listThreadsByPartner(partnerId: string): SupportThread[] {
@@ -123,6 +137,16 @@ export function createThread(args: {
     }),
     meta: { threadId: thread.id, topic: thread.topic, direction: args.initialMessage.fromPartner ? 'inbound' : 'outbound' },
   });
+
+  if (!args.initialMessage.fromPartner) {
+    queuePartnerOutboundEmail({
+      partnerId: args.partnerId,
+      threadId: thread.id,
+      subject: thread.subject,
+      bodyPreview: msg.body,
+    });
+  }
+
   return { thread, message: msg };
 }
 
@@ -223,6 +247,15 @@ export function addThreadMessage(args: {
     }),
     meta: { threadId: args.threadId, topic: args.topic, direction: args.fromPartner ? 'inbound' : 'outbound' },
   });
+
+  if (!args.fromPartner) {
+    queuePartnerOutboundEmail({
+      partnerId: args.partnerId,
+      threadId: args.threadId,
+      subject: cur.subject,
+      bodyPreview: msg.body,
+    });
+  }
 
   emitPlatformEvent({
     type: 'chat.message_received',

@@ -18,10 +18,12 @@ export const DISPUTE_REASON_LAW_MAP: Record<string, DisputeLawBasis> = {
     neverDefaultTo: ['settlement', 'pay for delete as first step', 'acknowledging debt owed without validation'],
   },
   collection: {
-    statutes: ['15 U.S.C. § 1692g', '15 U.S.C. § 1681s-2', 'State debt collection licensing statutes'],
-    principle: 'Collector must validate debt and prove chain of assignment before continuing collection.',
-    challengeAngle: 'FDCPA §809 validation — cease collection activity until verification provided. Verify collector licensed in consumer state.',
-    neverDefaultTo: ['payment without written validation', 'verbal promises', 'settlement before validation response'],
+    // Debt-collector validation (§1692g) belongs on the Validation track — not bureau dispute letters.
+    // Bureau disputes use resolveBureauDisputeLaws() in bureauDisputeLawResolver.ts.
+    statutes: ['15 U.S.C. § 1681i(a)(1)(A)', '15 U.S.C. § 1681s-2(a)(1)(A)', 'Metro2 Field 17 Account Status'],
+    principle: 'Collection tradelines on a credit report must be accurate, complete, and properly attributed.',
+    challengeAngle: 'Bureau reinvestigation for inaccurate/incomplete collection reporting — field contradictions, not FDCPA validation.',
+    neverDefaultTo: ['FDCPA validation as the bureau letter ask', 'payment without reviewing reporting accuracy'],
   },
   late_payment: {
     statutes: ['15 U.S.C. § 1681s-2(a)(1)(A)', 'Metro2 Payment History Profile'],
@@ -66,10 +68,10 @@ export const DISPUTE_REASON_LAW_MAP: Record<string, DisputeLawBasis> = {
     neverDefaultTo: [],
   },
   medical_collection: {
-    statutes: ['No Surprises Act', '15 U.S.C. § 1692g', 'State balance billing laws'],
-    principle: 'Medical debt validation requires itemized bills and assignment chain.',
-    challengeAngle: 'Validation first — challenge unitemized medical collections.',
-    neverDefaultTo: ['settlement before validation'],
+    statutes: ['15 U.S.C. § 1681i(a)(1)(A)', '15 U.S.C. § 1681s-2(a)(1)(A)', 'No Surprises Act (reporting context)'],
+    principle: 'Medical collection reporting on a bureau file must be accurate and complete.',
+    challengeAngle: 'Bureau accuracy/reinvestigation — use debt Validation track if sending a collector DV letter.',
+    neverDefaultTo: ['FDCPA validation language inside a bureau dispute letter'],
   },
   reaging: {
     statutes: ['15 U.S.C. § 1681c(a)(4)', 'Metro2 Date of First Delinquency'],

@@ -72,6 +72,12 @@ export function ServicePackageDetailModal({ pkg, rail, onClose, onSelect, select
             <div>
               <h3 className={`text-sm font-semibold uppercase tracking-wider ${FINELY_OS_ENTITY_SUBLABEL}`}>Overview</h3>
               <p className={`mt-2 ${FINELY_OS_ENTITY_BODY} text-sm leading-relaxed`}>{details.description}</p>
+              {pkg.debtBalanceGuidance ? (
+                <p className={`mt-2 text-sm ${FINELY_OS_ENTITY_BODY}`}>
+                  Partners with <span className="text-white/85">{pkg.debtBalanceGuidance.label}</span> often start here
+                  (exact package confirmed after intake).
+                </p>
+              ) : null}
             </div>
 
             {details.scopeBullets.length ? (

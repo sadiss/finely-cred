@@ -12,6 +12,7 @@ import {
   FINELY_OS_ENTITY_SUBLABEL,
   FINELY_OS_ENTITY_TITLE,
   FINELY_OS_ENTITY_INPUT,
+  FINELY_OS_PRIMARY_BTN,
   finelyOsCatalogCardCompact,
   finelyOsGlowField,
   finelyOsMicroStat,
@@ -65,7 +66,7 @@ export function LetterCatalogBrowser({
 
   const filtered = useMemo(() => {
     const needle = q.trim().toLowerCase();
-    return pool.filter((e) => {
+    const list = pool.filter((e) => {
       if (sub !== 'all' && e.category !== sub) return false;
       if (!needle) return true;
       const hay = `${e.title} ${e.shortDescription} ${e.laws.join(' ')} ${e.keyPrinciple}`.toLowerCase();
@@ -73,7 +74,15 @@ export function LetterCatalogBrowser({
       if (tokens.length > 1) return tokens.some((tok) => hay.includes(tok));
       return hay.includes(needle);
     });
-  }, [pool, q, sub]);
+    if (category === 'court' && !needle && sub === 'all') {
+      return [...list].sort((a, b) => {
+        const aPack = a.id.startsWith('courtroom_') ? 0 : 1;
+        const bPack = b.id.startsWith('courtroom_') ? 0 : 1;
+        return aPack - bPack || a.title.localeCompare(b.title);
+      });
+    }
+    return list;
+  }, [pool, q, sub, category]);
 
   const subTabs = useMemo(() => {
     const cats = new Set(pool.map((e) => e.category));
@@ -145,16 +154,19 @@ export function LetterCatalogBrowser({
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 max-h-[min(70vh,640px)] overflow-y-auto pr-1">
         {filtered.map((e) => (
-          <div key={e.id} className={`${finelyOsCatalogCardCompact(accent)} !p-3 flex flex-col gap-2 min-h-[7rem]`}>
-            <div className={`${FINELY_OS_ENTITY_TITLE} text-[11px] leading-snug line-clamp-2`}>{e.title}</div>
-            <p className={`text-[10px] line-clamp-2 flex-1 ${FINELY_OS_ENTITY_BODY}`}>{e.shortDescription}</p>
+          <div key={e.id} className={`${finelyOsCatalogCardCompact(accent)} !p-3 flex flex-col gap-2 min-h-[8rem]`}>
+            {e.id.startsWith('courtroom_') ? (
+              <span className="text-[9px] font-black uppercase tracking-widest text-fuchsia-300/90">Courtroom pack</span>
+            ) : null}
+            <div className={`${FINELY_OS_ENTITY_TITLE} text-xs leading-snug line-clamp-2`}>{e.title}</div>
+            <p className={`text-sm line-clamp-2 flex-1 ${FINELY_OS_ENTITY_BODY} text-white/75`}>{e.shortDescription}</p>
             <div className="text-[9px] text-white/45 line-clamp-1">{e.laws.slice(0, 2).join(' · ')}</div>
             <button
               type="button"
               onClick={() => onBuild(e.id, e)}
-              className="self-start text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-lg border border-white/15 bg-white/5 hover:bg-white/10 text-white/80"
+              className={`${FINELY_OS_PRIMARY_BTN} self-stretch justify-center text-[10px] !py-2`}
             >
-              {e.tier === 'full' ? 'Full draft' : 'Build draft'}
+              {e.tier === 'full' ? 'Draft this letter' : 'Build letter'}
             </button>
           </div>
         ))}

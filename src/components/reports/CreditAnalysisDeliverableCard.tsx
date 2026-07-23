@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { BarChart3, Download, ExternalLink, Mail, Sparkles, Trash2 } from 'lucide-react';
+import { BarChart3, Download, ExternalLink, Mail, MessageSquareText, Sparkles, Trash2 } from 'lucide-react';
 import type { CreditAnalysisReportRecord } from '../../domain/creditAnalysisReports';
 import type { Partner } from '../../domain/partners';
 import type { CreditReportRecord } from '../../domain/creditReports';
@@ -8,8 +8,10 @@ import {
   openCreditAnalysisPdf,
 } from '../../lib/creditAnalysisDocumentActions';
 import { deliverCreditAnalysisReport } from '../../lib/creditAnalysisDelivery';
+import { shareCreditAnalysisReportToChat } from '../../lib/creditAnalysisChatSharing';
 import { formatCreditAnalysisCardSubtitle } from '../../lib/creditAnalysisReportNaming';
 import { deleteCreditAnalysisReport } from '../../data/creditAnalysisReportsRepo';
+import { openCommunicationHub } from '../chat/communicationHubModel';
 import {
   FINELY_OS_ENTITY_SUBLABEL,
   FINELY_OS_ENTITY_VALUE,
@@ -36,7 +38,7 @@ export function CreditAnalysisDeliverableCard({
 }) {
   const [err, setErr] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
-  const [busy, setBusy] = useState<'open' | 'download' | 'send' | 'delete' | null>(null);
+  const [busy, setBusy] = useState<'open' | 'download' | 'send' | 'chat' | 'delete' | null>(null);
 
   const subtitle = formatCreditAnalysisCardSubtitle({
     pages: item.pages,
@@ -44,7 +46,8 @@ export function CreditAnalysisDeliverableCard({
     sourceReportFilename: item.sourceReportFilename,
   });
 
-  const isLegacyReport = item.engine !== 'premium_spreads' || (typeof item.pages === 'number' && item.pages < 10);
+  const isPremiumEngine = item.engine === 'structured_premium' || item.engine === 'premium_spreads';
+  const isLegacyReport = item.engine === 'paginated_text' || (item.engine === 'premium_spreads' && typeof item.pages === 'number' && item.pages <= 10);
 
   const run = async (mode: 'open' | 'download') => {
     setErr(null);
@@ -98,20 +101,53 @@ export function CreditAnalysisDeliverableCard({
     }
   };
 
+  const shareToChat = () => {
+    if (!partner) {
+      setErr('Partner context required to share in chat.');
+      return;
+    }
+    setErr(null);
+    setNotice(null);
+    setBusy('chat');
+    try {
+      const res = shareCreditAnalysisReportToChat({
+        partner,
+        analysis: item,
+        actorEmail,
+        actorRole,
+      });
+      setNotice('Posted to Team chat with the report vault link.');
+      openCommunicationHub({
+        tab: 'team',
+        threadId: res.threadId,
+        topic: 'disputes',
+        expanded: true,
+        partnerId: partner.id,
+        partnerDisplayName: partner.profile.fullName,
+        lane: partner.lane,
+      });
+      onChanged?.();
+    } catch (e: unknown) {
+      setErr((e as Error)?.message || 'Could not share in chat.');
+    } finally {
+      setBusy(null);
+    }
+  };
+
   return (
     <div
-      className={`rounded-2xl border border-indigo-300/30 bg-gradient-to-br from-slate-900 via-indigo-950/80 to-slate-900 ${
+      className={`rounded-2xl border border-amber-300/30 bg-[radial-gradient(circle_at_12%_0%,rgba(16,185,129,0.22)_0%,transparent_34%),radial-gradient(circle_at_86%_10%,rgba(217,70,239,0.16)_0%,transparent_30%),linear-gradient(135deg,#06100c_0%,#0b1f17_46%,#121a17_100%)] ${
         compact ? 'px-3 py-3 max-w-[300px]' : 'px-4 py-4 max-w-[360px]'
-      } shrink-0 snap-start shadow-[0_12px_32px_-16px_rgba(67,56,202,0.65)] ring-1 ring-inset ring-indigo-400/15`}
+      } shrink-0 snap-start shadow-[0_12px_32px_-16px_rgba(16,185,129,0.45)] ring-1 ring-inset ring-amber-400/15`}
     >
       <div className="flex items-start gap-3">
-        <div className="shrink-0 w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-400 to-violet-600 flex items-center justify-center shadow-lg">
-          <BarChart3 size={18} className="text-white" />
+        <div className="shrink-0 w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-400 via-amber-400 to-fuchsia-500 flex items-center justify-center shadow-lg shadow-emerald-950/40">
+          <BarChart3 size={18} className="text-slate-950" />
         </div>
         <div className="min-w-0 flex-1">
-          <div className="inline-flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest text-indigo-200/90">
-            <Sparkles size={10} /> Strategy analytics
-            {item.engine === 'premium_spreads' ? ' · Premium spreads' : ''}
+          <div className="inline-flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest text-amber-200/90">
+            <Sparkles size={10} /> Premium credit analysis
+            {isPremiumEngine ? ' · Premium' : ''}
           </div>
           <div className={`mt-1 ${FINELY_OS_ENTITY_VALUE} text-sm leading-snug line-clamp-2`}>{item.title}</div>
           {subtitle ? (
@@ -127,7 +163,7 @@ export function CreditAnalysisDeliverableCard({
           )}
           {isLegacyReport ? (
             <div className="mt-2 rounded-lg border border-amber-400/35 bg-amber-500/15 px-2 py-1.5 text-[10px] leading-snug text-amber-100">
-              Legacy text layout — delete this report and tap <strong>Generate PDF</strong> on Reports to get the premium 10-spread design from your zip package.
+              Legacy layout — delete and regenerate for the structured premium report with full tradeline detail.
             </div>
           ) : null}
         </div>
@@ -158,6 +194,16 @@ export function CreditAnalysisDeliverableCard({
             className={`${FINELY_OS_SECONDARY_BTN} !py-1.5 !px-3 !text-[10px] !border-emerald-400/30 !text-emerald-100`}
           >
             <Mail size={12} /> {busy === 'send' ? 'Sending…' : item.sentAt ? 'Resend' : 'Send to partner'}
+          </button>
+        ) : null}
+        {partner ? (
+          <button
+            type="button"
+            disabled={Boolean(busy)}
+            onClick={shareToChat}
+            className={`${FINELY_OS_SECONDARY_BTN} !py-1.5 !px-3 !text-[10px] !border-fuchsia-400/30 !text-fuchsia-100`}
+          >
+            <MessageSquareText size={12} /> {busy === 'chat' ? 'Posting…' : 'Share in chat'}
           </button>
         ) : null}
         <button

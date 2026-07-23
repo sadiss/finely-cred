@@ -3,13 +3,8 @@
 // Links (claims) a partner record to the authenticated user by setting
 // claimed_user_id = auth user id, using the service role (bypasses RLS).
 //
-// Security:
-// - Caller must be authenticated.
-// - The partner's email MUST match the authenticated user's email.
-// - The partner must be unclaimed (or already claimed by this same user).
-//
-// This is what makes admin-created partners claimable on live: a direct client
-// update of an unclaimed row is blocked by RLS, so claiming must go through here.
+// Also promotes lead → active and stamps claim/signup activity so admin UI
+// shows Joined/Active instead of stuck Pending.
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.1';
 import { corsHeaders } from '../_shared/cors.ts';
@@ -19,7 +14,6 @@ Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
   if (req.method !== 'POST') return json({ error: 'Method not allowed' }, { status: 405 });
 
-  // 1) Authenticate the caller.
   let ctx: Awaited<ReturnType<typeof requireAuth>>;
   try {
     ctx = await requireAuth(req);
@@ -31,7 +25,6 @@ Deno.serve(async (req) => {
   const userEmail = (ctx.user.email || '').trim().toLowerCase();
   if (!userEmail) return json({ error: 'Your account has no email to match a profile.' }, { status: 400 });
 
-  // 2) Service-role client (bypasses RLS for the claim write).
   const supabaseUrl = requireEnv('SUPABASE_URL');
   const serviceRoleKey = requireEnv('SUPABASE_SERVICE_ROLE_KEY');
   const admin = createClient(supabaseUrl, serviceRoleKey, {
@@ -46,24 +39,25 @@ Deno.serve(async (req) => {
   }
   const partnerId = (body?.partnerId || '').trim();
 
-  // 3) Resolve the partner: explicit id first, otherwise by the user's email.
   let partner: any = null;
   if (partnerId) {
     const { data } = await admin.from('partners').select('*').eq('id', partnerId).maybeSingle();
     partner = data ?? null;
   }
   if (!partner) {
+    // Case-insensitive email match via ilike on JSON path is unreliable;
+    // fetch recent partners and compare lowercased emails in code.
     const { data } = await admin
       .from('partners')
       .select('*')
-      .filter('profile->>email', 'eq', userEmail)
       .order('updated_at', { ascending: false })
-      .limit(1);
-    partner = Array.isArray(data) && data.length ? data[0] : null;
+      .limit(200);
+    const rows = Array.isArray(data) ? data : [];
+    partner =
+      rows.find((r) => String(r?.profile?.email || '').trim().toLowerCase() === userEmail) ?? null;
   }
   if (!partner) return json({ error: 'No matching partner profile found for your email.' }, { status: 404 });
 
-  // 4) Security checks.
   const partnerEmail = String(partner?.profile?.email || '').trim().toLowerCase();
   if (partnerEmail && partnerEmail !== userEmail) {
     return json({ error: 'This profile does not match your account email.' }, { status: 403 });
@@ -71,14 +65,43 @@ Deno.serve(async (req) => {
   if (partner.claimed_user_id && partner.claimed_user_id !== userId) {
     return json({ error: 'This profile is already claimed by another account.' }, { status: 409 });
   }
+
+  const now = new Date().toISOString();
+  const signals = { ...(partner.journey_signals || {}) };
+  const authActivity = { ...((signals.authActivity as Record<string, unknown>) || {}) };
+  if (!authActivity.accountClaimedAt) authActivity.accountClaimedAt = now;
+  if (!authActivity.signupCompletedAt) authActivity.signupCompletedAt = now;
+  delete authActivity.signupPendingEmailConfirmationAt;
+  signals.authActivity = authActivity;
+
+  const nextStatus = partner.status === 'paused' ? 'paused' : 'active';
+
   if (partner.claimed_user_id === userId) {
-    return json({ ok: true, partner, alreadyClaimed: true });
+    // Already claimed — still heal Pending/lead + missing activity.
+    const { data: healed, error: healErr } = await admin
+      .from('partners')
+      .update({
+        status: nextStatus,
+        claimed_at: partner.claimed_at || now,
+        journey_signals: signals,
+        updated_at: now,
+      })
+      .eq('id', partner.id)
+      .select('*')
+      .single();
+    if (healErr) return json({ error: healErr.message }, { status: 500 });
+    return json({ ok: true, partner: healed, alreadyClaimed: true });
   }
 
-  // 5) Claim it (service role bypasses RLS).
   const { data: updated, error } = await admin
     .from('partners')
-    .update({ claimed_user_id: userId, updated_at: new Date().toISOString() })
+    .update({
+      claimed_user_id: userId,
+      claimed_at: now,
+      status: nextStatus,
+      journey_signals: signals,
+      updated_at: now,
+    })
     .eq('id', partner.id)
     .select('*')
     .single();

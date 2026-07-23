@@ -14,6 +14,19 @@ export type DebtDefenseSourceDoc = {
 /** Inventory of the imported “Kill Debt letters” folder (Jul 2026). */
 export const KILL_DEBT_SOURCE_INVENTORY: DebtDefenseSourceDoc[] = [
   {
+    file: 'courtroom-defense-package.md',
+    category: 'court_filing',
+    summary: 'Educational courtroom pack: pretrial proof/preservation notice, written answer + certificate, court-day kit (opening, witness Qs, objections, closing, checklist). Merge fields only — no default party PII.',
+    finelyMapping: [
+      'courtroom_pretrial_proof_notice',
+      'courtroom_written_answer',
+      'courtroom_day_kit',
+      'court_courtroom_pretrial_proof',
+      'court_courtroom_written_answer',
+      'court_courtroom_day_kit',
+    ],
+  },
+  {
     file: 'creditor-discovery-v-citibank.docx',
     category: 'discovery',
     summary: 'Full discovery set: RFAs on securitization, mini-Miranda on pleadings, interrogatories on chain of title/servicing, RFPs for original agreement, account-level assignments, payment proof, securitization docs.',

@@ -38,6 +38,48 @@ Open notifications: {{portalNotificationsUrl}}
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   },
+  {
+    id: 'partner_message_instant',
+    name: 'Partner instant message',
+    channel: 'email',
+    enabled: true,
+    subjectTemplate: 'New message from Finely Cred — {{threadSubject}}',
+    bodyTemplate: `Hi {{firstName}},
+
+You have a new message from the Finely Cred team:
+
+"{{messagePreview}}"
+
+Read and reply in your portal: {{messagesUrl}}
+
+Results vary · not legal advice · funding subject to underwriting
+
+— Finely Cred`,
+    tags: ['partner', 'instant', 'support', 'notifications'],
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+  {
+    id: 'partner_note_shared',
+    name: 'Partner note shared',
+    channel: 'email',
+    enabled: true,
+    subjectTemplate: 'Update from your Finely team',
+    bodyTemplate: `Hi {{firstName}},
+
+{{authorLabel}} shared an update on your file:
+
+{{noteBody}}
+
+Open your portal: {{portalNotesUrl}}
+
+Results vary · not legal advice · funding subject to underwriting
+
+— Finely Cred`,
+    tags: ['partner', 'notes', 'notifications'],
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
 ];
 
 /** Seed admin digest email template (Phase 33). */

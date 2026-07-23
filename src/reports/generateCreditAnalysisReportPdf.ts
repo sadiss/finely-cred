@@ -14,7 +14,7 @@ type Section = { title: string; bullets: string[] };
 export type AnalysisVariant = 'standard' | 'negatives_heavy' | 'funding_focus';
 type ExhibitImage = { blobRef: string; filename?: string; mimeType?: string; caption?: string };
 
-export type CreditAnalysisReportEngine = 'paginated_text' | 'premium_spreads';
+export type CreditAnalysisReportEngine = 'paginated_text' | 'premium_spreads' | 'structured_premium';
 
 export type CreditAnalysisReportTemplateConfigV1 = {
   version: 1;
@@ -81,7 +81,9 @@ export function normalizeCreditAnalysisReportTemplateConfig(input: any): CreditA
 
   const engineRaw = str((cfg as any).engine);
   const engine: CreditAnalysisReportEngine | undefined =
-    engineRaw === 'premium_spreads' || engineRaw === 'paginated_text' ? engineRaw : undefined;
+    engineRaw === 'premium_spreads' || engineRaw === 'paginated_text' || engineRaw === 'structured_premium'
+      ? engineRaw
+      : undefined;
 
   return {
     version: 1,

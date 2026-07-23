@@ -100,7 +100,7 @@ export function RepossessionCenterView({
       <DebtVsDisputeExplainer variant="repossession" />
 
       <CollateralWorkstationSection title="Your auto / lease case" subtitle="Select a debt case for this lender — separate from bureau dispute tracking." accent="rose">
-        <div className={FINELY_OS_FIELD_WIDTH_SM}>
+        <div id="fc-debt-step-case" className={`${FINELY_OS_FIELD_WIDTH_SM} scroll-mt-3`}>
           <label className={FINELY_OS_ENTITY_SUBLABEL}>Auto / lease case</label>
           <select value={debtId} onChange={(e) => onDebtIdChange(e.target.value)} className={`${finelyOsGlowField('rose')} mt-1 w-full`}>
             {debtCases.length === 0 ? <option value="">Add a case from Debt Center → Cases</option> : null}
@@ -112,12 +112,6 @@ export function RepossessionCenterView({
           </select>
         </div>
       </CollateralWorkstationSection>
-
-      {partner ? (
-        <CollateralWorkstationSection title="Scan & upload proof" subtitle="ID, SSN, repo notices, claim-and-delivery papers — optimized camera modes per type." accent="rose">
-          <DebtProofCaptureStrip partner={partner} debtCaseId={debt?.id} accent="rose" uploadContext="repossession" />
-        </CollateralWorkstationSection>
-      ) : null}
 
       <CollateralWorkstationSection title="Lender mailing info" subtitle="Pull from auto loan or lease tradeline on your report, or type manually." accent="rose">
         <DebtCreditorIntelPanel
@@ -143,6 +137,7 @@ export function RepossessionCenterView({
         }
         accent="rose"
       >
+        <div id="fc-debt-step-choose" className="scroll-mt-3">
         <LetterCatalogBrowser
           category="repossession"
           accent="rose"
@@ -151,11 +146,18 @@ export function RepossessionCenterView({
           searchHint={stepFilter.join(' ')}
           compactHeader
         />
+        </div>
       </CollateralWorkstationSection>
 
       <CollateralWorkstationSection title="Repossession coach" subtitle="Ask about UCC Article 9, wrongful repo, redemption, deficiency, and claim-and-delivery — full width section." accent="rose">
         <RepossessionAdvisorChat debtName={debt?.name} stateJurisdiction={debt?.stateJurisdiction} />
       </CollateralWorkstationSection>
+
+      {partner ? (
+        <div id="fc-debt-step-proof" className="scroll-mt-3">
+          <DebtProofCaptureStrip partner={partner} debtCaseId={debt?.id} accent="rose" uploadContext="repossession" />
+        </div>
+      ) : null}
     </CollateralDefenseShell>
   );
 }

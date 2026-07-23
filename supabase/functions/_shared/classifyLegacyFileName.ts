@@ -1,5 +1,7 @@
 export type LegacyFileKind =
   | 'credit_report'
+  | 'analysis_report'
+  | 'bureau_response'
   | 'dispute_letter'
   | 'validation_letter'
   | 'affidavit'
@@ -8,16 +10,30 @@ export type LegacyFileKind =
   | 'ssn_card'
   | 'other_evidence';
 
+export type LegacyLetterSubkind =
+  | 'personal_info'
+  | 'inquiry'
+  | 'collections'
+  | 'late_payment'
+  | 'bankruptcy'
+  | 'court'
+  | 'student_loan'
+  | 'repo'
+  | 'dispute'
+  | 'validation';
+
 export type LegacyFileClassification = {
   kind: LegacyFileKind;
   tag: string;
   caption: string;
   letterType?: 'dispute' | 'validation';
   letterTitle?: string;
+  letterSubkind?: LegacyLetterSubkind;
 };
 
 function norm(fileName: string): string {
-  return fileName.toLowerCase().replace(/[_-]+/g, ' ').replace(/\s+/g, ' ').trim();
+  const base = fileName.replace(/\.[^.]+$/, '');
+  return base.toLowerCase().replace(/[_-]+/g, ' ').replace(/\s+/g, ' ').trim();
 }
 
 function includesAny(hay: string, needles: string[]): boolean {
@@ -29,14 +45,68 @@ function titleFromFileName(fileName: string): string {
   return base ? base.replace(/\b\w/g, (c) => c.toUpperCase()) : 'Legacy letter';
 }
 
+function inferLetterSubkind(n: string): LegacyLetterSubkind | undefined {
+  if (/\bpi\b|personal\s*info/.test(n)) return 'personal_info';
+  if (/\binquiry/.test(n)) return 'inquiry';
+  if (/\bcollection/.test(n)) return 'collections';
+  if (/\blate\s*pay/.test(n)) return 'late_payment';
+  if (/\bbankruptcy/.test(n)) return 'bankruptcy';
+  if (/\bcourt\b|district\s+court/.test(n)) return 'court';
+  if (/\bstudent\s+loan/.test(n)) return 'student_loan';
+  if (/\brepo\b|repossession/.test(n)) return 'repo';
+  if (/\bvalidation\b/.test(n)) return 'validation';
+  if (/\bdispute/.test(n)) return 'dispute';
+  return undefined;
+}
+
 /**
  * Heuristic classifier for Laravel `doc_files` rows — most partner uploads are
- * dispute letters, credit reports, validation letters, or affidavits, not IDs.
+ * dispute letters, credit reports, validation letters, bureau responses, or IDs.
  */
 export function classifyLegacyFileName(fileName: string): LegacyFileClassification {
   const raw = String(fileName || '').trim();
   const n = norm(raw);
   const ext = raw.includes('.') ? raw.split('.').pop()?.toLowerCase() ?? '' : '';
+
+  if (
+    includesAny(n, [
+      'analysis report',
+      'credit analysis',
+      'analysis summary',
+      'restoration analysis',
+      'action plan report',
+    ]) ||
+    /analysis\s*report/i.test(raw)
+  ) {
+    return {
+      kind: 'analysis_report',
+      tag: 'analysis-report',
+      caption: 'Legacy credit analysis report — re-upload file from old server archive',
+    };
+  }
+
+  if (
+    includesAny(n, [
+      'bureau response',
+      '3rd party',
+      'third party',
+      'investigation results',
+      'dispute results',
+      'e oscar',
+      'e-oscar',
+    ]) ||
+    /\bresponse\b/.test(n) ||
+    (includesAny(n, ['trans union', 'transunion', 'experian', 'equifax']) &&
+      includesAny(n, ['response', 'letter', '3rd', 'third']) &&
+      !includesAny(n, ['credit report', 'report html', 'html report', 'smartcredit', 'identityiq'])) ||
+    (/trans\s*union|experian|equifax/.test(n) && /\(\s*\d+\s*\)/.test(n) && !n.includes('report'))
+  ) {
+    return {
+      kind: 'bureau_response',
+      tag: 'bureau-response',
+      caption: 'Legacy bureau / 3rd-party response — re-upload file from old server archive',
+    };
+  }
 
   if (
     includesAny(n, [
@@ -72,7 +142,10 @@ export function classifyLegacyFileName(fileName: string): LegacyFileClassificati
       'pull report',
     ]) ||
     (ext === 'html' && includesAny(n, ['report', 'exp', 'eqf', 'tuc', 'bureau', 'credit'])) ||
-    (ext === 'pdf' && includesAny(n, ['experian', 'equifax', 'transunion', 'trans union']) && !includesAny(n, ['letter', 'dispute', 'validation'])) ||
+    (ext === 'pdf' &&
+      includesAny(n, ['experian', 'equifax', 'transunion', 'trans union']) &&
+      includesAny(n, ['report', 'credit', 'score', 'fico', 'vantage', 'pull', 'html']) &&
+      !includesAny(n, ['letter', 'dispute', 'validation', 'response', '3rd', 'third'])) ||
     /\b(exp|eqf|tuc)\b.*\.(pdf|html|htm)$/i.test(raw) ||
     /^(exp|eqf|tuc)[\s._-]/i.test(raw)
   ) {
@@ -90,6 +163,7 @@ export function classifyLegacyFileName(fileName: string): LegacyFileClassificati
       caption: 'Legacy affidavit — re-upload file from old server archive',
       letterType: 'dispute',
       letterTitle: titleFromFileName(raw),
+      letterSubkind: 'dispute',
     };
   }
 
@@ -113,6 +187,7 @@ export function classifyLegacyFileName(fileName: string): LegacyFileClassificati
       caption: 'Legacy validation / debt letter — re-upload file from old server archive',
       letterType: 'validation',
       letterTitle: titleFromFileName(raw),
+      letterSubkind: inferLetterSubkind(n) ?? 'validation',
     };
   }
 
@@ -139,9 +214,21 @@ export function classifyLegacyFileName(fileName: string): LegacyFileClassificati
       'dispute eqf',
       'dispute tuc',
       'dispute to',
+      'pi letter',
+      'personal info',
+      'inquiry letter',
+      'late payment',
+      'late pay',
+      'collections letter',
+      'bankruptcy letter',
+      'court letter',
+      'student loan letter',
+      'repo letter',
     ]) ||
     /\bround\s*\d\b/.test(n) ||
-    /\bletter\b.*\b(exp|eqf|tuc|bureau)\b/.test(n)
+    /\bletter\b.*\b(exp|eqf|tuc|bureau)\b/.test(n) ||
+    /\bpi\b/.test(n) ||
+    /\binquiry\b/.test(n)
   ) {
     return {
       kind: 'dispute_letter',
@@ -149,6 +236,7 @@ export function classifyLegacyFileName(fileName: string): LegacyFileClassificati
       caption: 'Legacy dispute letter — re-upload file from old server archive',
       letterType: 'dispute',
       letterTitle: titleFromFileName(raw),
+      letterSubkind: inferLetterSubkind(n) ?? 'dispute',
     };
   }
 
@@ -174,7 +262,7 @@ export function classifyLegacyFileName(fileName: string): LegacyFileClassificati
     };
   }
 
-  if (includesAny(n, ['ssn', 'social security', 'social-security', 'ss card', 'sscard'])) {
+  if (includesAny(n, ['ssn', 'social security', 'social-security', 'ss card', 'sscard']) || n === 'scan' || n.startsWith('scan ')) {
     return {
       kind: 'ssn_card',
       tag: 'ssn-card',
@@ -191,12 +279,16 @@ export function classifyLegacyFileName(fileName: string): LegacyFileClassificati
       'lease agreement',
       'pay stub',
       'paystub',
-    ])
+      ' bills',
+      'bill.pdf',
+      ' bill ',
+    ]) ||
+    /\bbills?\b/.test(n)
   ) {
     return {
       kind: 'proof_of_address',
       tag: 'proof-of-address',
-      caption: 'Legacy proof of address — re-upload file from old server archive',
+      caption: 'Legacy proof of address / bill — re-upload file from old server archive',
     };
   }
 

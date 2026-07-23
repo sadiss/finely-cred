@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { ArrowLeft, ArrowRight, BookOpen, ChevronRight, ExternalLink, FileText, Gavel, Lock, PenLine, Scale, ScrollText, Send, ShieldAlert, Sparkles, X } from 'lucide-react';
+import { ArrowLeft, ArrowRight, BookOpen, ChevronRight, ExternalLink, FileText, Gavel, Image as ImageIcon, Lock, PenLine, Scale, ScrollText, Send, ShieldAlert, Sparkles, X } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import type { Bureau, ParsedCreditReport } from '../../domain/creditReports';
 import type { Partner } from '../../domain/partners';
@@ -7,6 +7,15 @@ import { PageShell } from '../layout/PageShell';
 import { listReportsByPartner } from '../../data/reportsRepo';
 import { listEvidenceByPartner, upsertEvidence, deleteEvidence } from '../../data/evidenceRepo';
 import { EvidencePickerModal } from '../evidence/EvidencePickerModal';
+import { LetterStepPath, type LetterStepPathItem } from './LetterStepPath';
+import { LetterBureauTabs } from './LetterBureauTabs';
+import { LetterAddressSummary, LetterDisclaimerFooter } from './LetterAddressSummary';
+import { DebtTrackEasyFlow } from './DebtTrackEasyFlow';
+import { LetterEasyFlowShell } from './LetterEasyFlowShell';
+import { buildLetterStudioTrackTabs, LetterTrackTabs } from './LetterTrackTabs';
+import { buildDebtLetterPathSteps, runDebtLetterStep, type DebtLetterStepId } from '../../lib/letterDebtFlow';
+import { isValidDisputeBuildStep } from '../../lib/letterStudioResume';
+import { identityPacketStatus } from '../../lib/identityEvidence';
 import { deriveTradelineContradictions, getDisputeReasonsLibraryAsText, suggestDisputeReasons, suggestDisputeReasonsForCandidate } from '../../creditReports/disputeReasons';
 import { buildEnrichedReasonsForCandidate, buildCaseContextBlock } from '../../lib/disputeLetterBuilder';
 import { filterFactualDisputeReasons, pickBestDisputeReasons } from '../../creditReports/disputeFactualReasons';
@@ -14,7 +23,6 @@ import { buildDisputeReasonsWithAi } from '../../lib/disputeReasonAi';
 import { DisputeReasonsLibraryPanel } from './DisputeReasonsLibraryPanel';
 import { downloadInlineDisputeLetterPdf, type DisputeLetterItem } from '../../letters/generateDisputePdfInline';
 import { buildFiveStepDisputeIntro, buildFiveStepItemPreamble, dominantNegativeTypeFromCandidates } from '../../letters/disputeFiveStepLetter';
-import { DISPUTE_GUIDE_FIVE_STEPS } from '../../letters/consumerDisputeVoice';
 import { upsertLetter } from '../../data/lettersRepo';
 import { addAuditEvent } from '../../data/auditRepo';
 import { newId } from '../../utils/ids';
@@ -61,11 +69,12 @@ import { TemplatesVaultPanel } from '../templates/TemplatesVaultPanel';
 import type { TemplateVaultItem } from '../../domain/templateVault';
 import { createTemplateVaultItem, defaultRequiredEntitlementsForCategory, getTemplateVaultItem } from '../../data/templateVaultRepo';
 import { readActiveTemplateIdFromSession } from '../templates/TemplateLibraryHub';
-import { LetterStudioDisputeRail, type DisputeRailItem } from './LetterStudioDisputeRail';
 import { LetterDisputeCoachStrip } from './LetterDisputeCoachStrip';
 import { bureauDisputeAddress, SUBJECT_LINE } from '../../letters/disputeLetterTemplate';
 import { getBlobUrl } from '../../storage/getBlobUrl';
 import { openBlobRefInNewTab } from '../../lib/openBlobRef';
+import { isLegacyPendingReportBlob } from '../../lib/legacyPendingReport';
+import { PartnerCreditWorkloadStrip } from '../partner/PartnerCreditWorkloadStrip';
 import { downloadBlob, downloadText, openUrlInNewTab, triggerBrowserDownload } from '../../utils/download';
 import { RichTextEditor } from '../ui/RichTextEditor';
 import { htmlToPlainText, isProbablyHtml, plainTextToHtml, sanitizeHtmlForPreview } from '../../utils/richText';
@@ -74,6 +83,13 @@ import { extractFirstJsonObject } from '../../utils/jsonExtract';
 import { canUseAiDraft } from '../../billing/aiDraftAccess';
 import { isFeatureEnabled } from '../../data/settingsRepo';
 import { classifyCandidateNegativeType, NEGATIVE_PLAYBOOKS, type NegativeType } from '../../creditReports/negativePlaybooks';
+import {
+  aggregateLetterLaws,
+  letterCitationsToPromptLines,
+  makeCustomLetterCitation,
+  resolveBureauDisputeLaws,
+  type LetterCitation,
+} from '../../domain/bureauDisputeLawResolver';
 import { letterCategoryForCandidate } from '../../creditReports/letterCategory';
 import { getCustomFieldValues } from '../../data/customFieldValuesRepo';
 import { FINELY_TENANT_ID } from '../../domain/tenants';
@@ -241,6 +257,7 @@ function renderDisputeSnapshotHtml(args: {
                  </div>`
               : ''
           }
+          
           ${
             reasons.length
               ? `<div style="margin-top:8px;color:rgba(255,255,255,0.7);font-size:12px">Factual dispute reasons:</div>
@@ -300,10 +317,13 @@ function disputeToneForFiveStep(tone: LetterTone): 'formal' | 'neutral' | 'conve
 function isStockDisputeIntro(text: string): boolean {
   const t = text.trim().toLowerCase();
   return (
-    t.includes('step 1 — identify the target') ||
+    // Legacy free-guide Step 1–5 teaching blocks that must not stay in letter drafts
+    /\bstep\s*[1-5]\s*[—\-:]/.test(t) ||
     t.includes('5-step dispute framework') ||
+    t.includes('one clean target beats ten') ||
     t.includes('this letter applies only to the items listed below') ||
     t.includes('this letter applies only to the specific item') ||
+    t.includes('this letter disputes only:') ||
     t.includes('each numbered reason below states one factual problem') ||
     t.includes('inaccurate information on my credit report is blocking')
   );
@@ -662,7 +682,7 @@ function DisputeLetterIframePreview({
   items,
   round = 'Round 1',
   onOpenFull,
-  iframeHeightClassName = 'h-[420px]',
+  iframeHeightClassName = 'h-[min(78vh,900px)]',
 }: {
   bureau: Bureau;
   partnerName: string;
@@ -750,6 +770,24 @@ function DisputeLetterIframePreview({
 
         <div class="prose">${sanitizeHtmlForPreview(introHtml || '')}</div>
 
+        ${(() => {
+          const groups = aggregateLetterLaws(
+            items.map((it) => ({
+              negativeType: classifyCandidateNegativeType(it.candidate as any),
+              laws: it.laws,
+            })),
+          );
+          if (!groups.length) return '';
+          return `<div class="lawBlock"><div class="label">Applicable law for this letter</div>${groups
+            .map(
+              (g) =>
+                `<div class="lawGroup"><strong>${escText(g.label)} (${g.itemCount})</strong><div class="meta">${escText(g.approachBlurb)}</div><ul>${g.citations
+                  .map((l) => `<li>${escText(l.shortLabel ? `${l.cite} — ${l.shortLabel}` : l.cite)}</li>`)
+                  .join('')}</ul></div>`,
+            )
+            .join('')}</div>`;
+        })()}
+
         <div class="items">
           ${items
             .map((it, idx) => {
@@ -773,6 +811,7 @@ function DisputeLetterIframePreview({
                       ? `<div class="imgWrap"><img src="${escText(img)}" alt="${escText(it.evidence?.filename || 'Evidence')}" /></div>`
                       : `<div class="imgMissing">${it.evidence?.blobRef ? 'Evidence is linked but could not be loaded.' : 'Evidence screenshot not selected for this item.'}</div>`
                   }
+                  
                   <div class="label">Dispute reasons:</div>
                   ${
                     reasons.length
@@ -806,7 +845,7 @@ function DisputeLetterIframePreview({
       .right{text-align:right;font-size:12px;line-height:1.4;color:#111}
       .addr{margin-top:18px;font-size:12px;line-height:1.4}
       .addr .bureau{font-weight:700}
-      .subject{margin-top:18px;font-weight:700;font-size:12px}
+      .lawBlock{margin:14px 0;padding:12px;border:1px solid #ddd;border-radius:8px}.lawGroup{margin-top:10px}.lawBlock .label{font-weight:700;margin-bottom:6px}.subject{margin-top:18px;font-weight:700;font-size:12px}
       .prose{margin-top:14px;font-size:12px;line-height:1.55;color:#111}
       .items{margin-top:18px}
       .item{margin-top:14px;padding-top:10px;border-top:1px solid rgba(0,0,0,0.08)}
@@ -857,12 +896,51 @@ function DisputeLetterIframePreview({
 }
 
 
-function InlineEvidenceThumb({ blobRef, mimeType, alt }: { blobRef: string; mimeType?: string; alt: string }) {
-  const [url, setUrl] = useState<string>('');
+function looksLikeImageEvidence(mimeType?: string, filename?: string): boolean {
+  const mimeLower = String(mimeType || '').toLowerCase();
+  const name = String(filename || '');
+  return mimeLower.startsWith('image/') || (!mimeLower && /\.(png|jpe?g|webp|gif|bmp)$/i.test(name));
+}
+
+function evidenceLinkStatus(ev: { blobRef?: string; mimeType?: string; filename?: string } | null): {
+  label: string;
+  tone: 'ok' | 'warn' | 'err' | 'neutral';
+} {
+  if (!ev?.blobRef) return { label: 'Missing screenshot', tone: 'err' };
+  if (isLegacyPendingReportBlob(ev.blobRef)) return { label: 'Re-upload required', tone: 'warn' };
+  if (!looksLikeImageEvidence(ev.mimeType, ev.filename)) return { label: 'PDF attached', tone: 'neutral' };
+  return { label: 'Screenshot linked', tone: 'ok' };
+}
+
+function InlineEvidenceThumb({
+  blobRef,
+  mimeType,
+  filename,
+  alt,
+  size = 'md',
+}: {
+  blobRef: string;
+  mimeType?: string;
+  filename?: string;
+  alt: string;
+  size?: 'sm' | 'md';
+}) {
+  const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading');
+  const [url, setUrl] = useState('');
   const [revoke, setRevoke] = useState<null | (() => void)>(null);
+
+  const boxClass =
+    size === 'sm'
+      ? 'h-16 w-24 rounded-xl border border-dashed border-white/15 bg-black/30'
+      : 'h-28 w-44 rounded-2xl border border-dashed border-white/15 bg-black/30';
+  const imgClass =
+    size === 'sm'
+      ? 'h-16 w-24 rounded-xl border border-sky-400/25 bg-gradient-to-br from-slate-900 to-black object-contain'
+      : 'h-28 w-44 rounded-2xl border border-sky-400/25 bg-gradient-to-br from-slate-900 to-black object-contain shadow-lg shadow-sky-500/10 cursor-pointer ring-1 ring-white/10 hover:ring-sky-400/40 transition-all';
 
   useEffect(() => {
     let alive = true;
+    setStatus('loading');
     setUrl('');
     try {
       revoke?.();
@@ -871,20 +949,42 @@ function InlineEvidenceThumb({ blobRef, mimeType, alt }: { blobRef: string; mime
     }
     setRevoke(null);
 
+    if (!blobRef || !looksLikeImageEvidence(mimeType, filename)) {
+      setStatus('error');
+      return;
+    }
+    if (isLegacyPendingReportBlob(blobRef)) {
+      setStatus('error');
+      return;
+    }
+
+    const timeout = window.setTimeout(() => {
+      if (alive) setStatus((s) => (s === 'loading' ? 'error' : s));
+    }, 12000);
+
     const run = async () => {
-      const res = await getBlobUrl(blobRef, { mimeType, preferSigned: true });
-      if (!alive) {
-        res?.revoke?.();
-        return;
+      try {
+        const res = await getBlobUrl(blobRef, { mimeType, preferSigned: true });
+        if (!alive) {
+          res?.revoke?.();
+          return;
+        }
+        if (!res?.url) {
+          setStatus('error');
+          return;
+        }
+        setUrl(res.url);
+        setRevoke(res.revoke ?? null);
+        setStatus('ready');
+      } catch {
+        if (alive) setStatus('error');
       }
-      if (!res?.url) return;
-      setUrl(res.url);
-      setRevoke(res.revoke ?? null);
     };
     void run();
 
     return () => {
       alive = false;
+      window.clearTimeout(timeout);
       try {
         revoke?.();
       } catch {
@@ -892,12 +992,36 @@ function InlineEvidenceThumb({ blobRef, mimeType, alt }: { blobRef: string; mime
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [blobRef, mimeType]);
+  }, [blobRef, mimeType, filename]);
 
-  if (!url) {
+  if (status === 'loading') {
     return (
-      <div className="h-28 w-44 rounded-2xl border border-dashed border-white/15 bg-black/30 flex items-center justify-center text-[10px] text-white/40 uppercase tracking-widest">
-        Loadingâ€¦
+      <div className={`${boxClass} flex items-center justify-center text-[10px] text-white/40 uppercase tracking-widest`}>
+        Loading…
+      </div>
+    );
+  }
+  if (status === 'error' || !url) {
+    const legacy = isLegacyPendingReportBlob(blobRef);
+    const isPdf = !looksLikeImageEvidence(mimeType, filename);
+    return (
+      <div className={`${boxClass} flex flex-col items-center justify-center gap-1 px-2 text-center`}>
+        {isPdf ? <FileText size={18} className="text-white/50" /> : <ImageIcon size={18} className="text-white/50" />}
+        <span className="text-[9px] text-white/50 uppercase tracking-widest">
+          {legacy ? 'Re-upload required' : isPdf ? 'PDF attached' : "Couldn't load"}
+        </span>
+        {!isPdf ? (
+          <button
+            type="button"
+            className="text-[9px] text-sky-300 underline"
+            onClick={(e) => {
+              e.stopPropagation();
+              void openBlobRefInNewTab({ blobRef, mimeType, preferSigned: true });
+            }}
+          >
+            Open
+          </button>
+        ) : null}
       </div>
     );
   }
@@ -905,18 +1029,15 @@ function InlineEvidenceThumb({ blobRef, mimeType, alt }: { blobRef: string; mime
     <img
       src={url}
       alt={alt}
-      className="h-28 w-44 rounded-2xl border border-sky-400/25 bg-gradient-to-br from-slate-900 to-black object-contain shadow-lg shadow-sky-500/10 cursor-pointer ring-1 ring-white/10 hover:ring-sky-400/40 transition-all"
+      className={imgClass}
       title="Click to open full-size"
+      onError={() => setStatus('error')}
       onClick={(e) => {
         e.stopPropagation();
-        // Important: open a *fresh* URL so it stays valid even if this thumbnail unmounts.
-        // (Object URLs can go blank if revoked on component cleanup.)
         void (async () => {
           try {
             const result = await openBlobRefInNewTab({ blobRef, mimeType, preferSigned: true });
-            if (!result.ok) {
-              window.alert(result.message);
-            }
+            if (!result.ok) window.alert(result.message);
           } catch {
             // ignore
           }
@@ -960,6 +1081,10 @@ export function LettersCommandCenter({
     if (onTabChange) onTabChange(next);
     else setInternalTab(next);
   };
+  const [templatesReturnTab, setTemplatesReturnTab] = useState<LettersStudioTab>('dispute');
+  useEffect(() => {
+    if (tab !== 'templates') setTemplatesReturnTab(tab as LettersStudioTab);
+  }, [tab]);
   const [returnNotice, setReturnNotice] = useState<string | null>(null);
 
   const [storeVersion, setStoreVersion] = useState(0);
@@ -988,6 +1113,11 @@ export function LettersCommandCenter({
     return hasEntitlement(partner.id, ENTITLEMENT_KEYS.templates);
   }, [partner, storeVersion]);
 
+  const canSeeDebtTracks = useMemo(() => {
+    if (!partner) return false;
+    return hasEntitlement(partner.id, ENTITLEMENT_KEYS.debt);
+  }, [partner, storeVersion]);
+
   const canUseLetters = useMemo(() => {
     // Admin embedded context should not be blocked by partner plan.
     if (layout === 'embedded') return true;
@@ -1011,9 +1141,14 @@ export function LettersCommandCenter({
   const [evidenceByCandidateId, setEvidenceByCandidateId] = useState<Record<string, string | undefined>>({});
   const [evidenceIdsByCandidateId, setEvidenceIdsByCandidateId] = useState<Record<string, string[]>>({});
   const [reasonsByCandidateId, setReasonsByCandidateId] = useState<Record<string, string[]>>({});
+  const [lawsByCandidateId, setLawsByCandidateId] = useState<Record<string, LetterCitation[]>>({});
+  const [customLawDraftByKey, setCustomLawDraftByKey] = useState<Record<string, string>>({});
   const [reasonsLibraryOpen, setReasonsLibraryOpen] = useState(false);
   const [reasonLibraryFocusKey, setReasonLibraryFocusKey] = useState<string | null>(null);
   const [evidencePicker, setEvidencePicker] = useState<null | { candidateId?: string }>(null);
+  const [identityEvidenceIds, setIdentityEvidenceIds] = useState<string[]>([]);
+  const [identityPickerOpen, setIdentityPickerOpen] = useState(false);
+  const [draftSavedAt, setDraftSavedAt] = useState<string | null>(null);
   const [autoMatchNoteByCandidateId, setAutoMatchNoteByCandidateId] = useState<Record<string, string>>({});
 
   const [toneByBureau, setToneByBureau] = useState<Record<Bureau, LetterTone>>({
@@ -1104,11 +1239,6 @@ export function LettersCommandCenter({
   const [pdfBusyByBureau, setPdfBusyByBureau] = useState<Record<Bureau, boolean>>({ EXP: false, EQF: false, TUC: false });
   const [pdfErr, setPdfErr] = useState<string | null>(null);
   const [studioOpenByBureau, setStudioOpenByBureau] = useState<Record<Bureau, boolean>>({ EXP: true, EQF: true, TUC: true });
-  // Collapsible live letter preview (default hidden so the focused-item editor is
-  // front-and-center and the preview doesn't bury it). The "Full preview" modal
-  // remains available for the large view.
-  const [previewOpen, setPreviewOpen] = useState(true);
-  const [letterRailCollapsed, setLetterRailCollapsed] = useState(true);
   const [workspaceBureau, setWorkspaceBureau] = useState<Bureau>('EXP');
   const [lastGeneratedAtByBureau, setLastGeneratedAtByBureau] = useState<Record<Bureau, string | null>>({
     EXP: null,
@@ -1245,7 +1375,12 @@ export function LettersCommandCenter({
     setSelectedDisputes([]);
     setEvidenceByCandidateId({});
     setEvidenceIdsByCandidateId({});
+    setIdentityEvidenceIds([]);
+    setIdentityPickerOpen(false);
+    setDraftSavedAt(null);
     setReasonsByCandidateId({});
+    setLawsByCandidateId({});
+    setCustomLawDraftByKey({});
     setAiNarrativeByCandidateKey({});
     setAiQuestionsByBureau({});
     setAiErrByBureau({});
@@ -1384,8 +1519,6 @@ export function LettersCommandCenter({
         });
       });
 
-      const fiveStepGuide = DISPUTE_GUIDE_FIVE_STEPS.map((s) => `${s.heading}: ${s.lead}`).join(' | ');
-
       const system = `You are a credit dispute letter drafter. Dispute REASONS must be factual findings â€” what is reporting on the file â€” not commands to the bureau.
 
 Return ONLY valid JSON (no markdown). Schema:
@@ -1395,8 +1528,10 @@ Return ONLY valid JSON (no markdown). Schema:
   "questions": string[]
 }
 
-5-STEP DISPUTE GUIDE (structure the intro using this flow — one tradeline per letter):
-${fiveStepGuide}
+LETTER SHAPE (mailed letter body only — one tradeline focus when possible):
+- intro = consumer opening paragraphs only (what looks wrong, real-life impact, FCRA dispute rights).
+- Then the generated PDF will enclose the negative (account screenshot / inquiry exhibit) and list numbered factual reasons + applicable law.
+- Do NOT include Free Dispute Letter Guide teaching content. Never write "Step 1", "Step 2", "Step 3", "Step 4", "Step 5", "5-step framework", power moves, or educational how-to bullets in intro or narratives.
 
 WRITING STANDARD:
 - For EACH item narrative: use SELECTED_REASONS and DETECTED_ISSUES as first-person factual statements (creditor name, status line, balance, dates, payment-grid codes, cross-bureau differences). Quote field values when provided in ACCOUNT_FACTS.
@@ -1404,17 +1539,20 @@ WRITING STANDARD:
 - Each factual reason must be ONE clear point (one date problem, one balance contradiction, one cross-bureau difference). No semicolon field dumps or Metro 2 codes.
 - PLAYBOOK_HINT is internal strategy context only â€” do not paste command-style language from it.
 - Use ONLY provided facts. NEVER invent balances, dates, account numbers, or legal citations. Use [BRACKET] placeholders when facts are missing and add to "questions".
+- SELECTED_LAWS are the only statutes allowed for this bureau letter. Do NOT draft FDCPA debt-validation requests (§1692g) unless those cites are listed.
+- Put law references only in the Applicable law sense — do not rewrite SELECTED_REASONS into legal demands.
 - If EVIDENCE_ATTACHED is yes, note the exhibit supports the factual discrepancy described.
 - Round ${round}: if Round 2+, note prior dispute and that the same inaccurate fields still report â€” still as factual statements, not demands.
 - Each item narrative: 4-8 sentences listing the specific negatives and contradictions on the file for this account.
-- intro: follow the 5-step guide headings in order (target item → dispute lane → your story + FCRA rights → exhibits → round follow-up). 2-4 paragraphs matching TONE.
+- intro: 2-4 first-person paragraphs matching TONE. No step headings or guide framework language.
 - questions: only genuine gaps that would strengthen factual findings.`;
 
       const user = `DRAFT A BUREAU DISPUTE LETTER.\n\nBUREAU: ${b}\nROUND: ${round}\nTONE: ${tone}\nCONSUMER_NAME: ${partnerName}\nSTATE: ${state || '[STATE]'}\n\nDISPUTE_ITEMS (keyed):\n${payloadItems
         .map((it) => {
           const reasons = it.reasons.length ? it.reasons.map((r) => `- ${r}`).join('\n') : '- (none selected)';
           const issues = it.contradictions.length ? it.contradictions.map((r) => `- ${r}`).join('\n') : '- (none auto-detected)';
-          return `KEY: ${it.key}\nACCOUNT: ${it.account}\nTYPE: ${it.type}\nNEGATIVE_TYPE: ${it.negativeType}\nPLAYBOOK_HINT: ${it.playbookHint}\nREQUEST: ${it.request}\nLEGAL_BASIS_LABEL: ${it.legalBasis}\nACCOUNT_FACTS: ${it.facts || '(not parsed)'}\nDETECTED_ISSUES:\n${issues}\nEVIDENCE_ATTACHED: ${it.evidenceAttached ? 'yes (a screenshot exhibit is attached for this item)' : 'no'}\nSELECTED_REASONS (factual â€” use verbatim in narrative):\n${reasons}\nCASE_CONTEXT:\n${it.caseContext}\n`;
+          const laws = letterCitationsToPromptLines(lawsByCandidateId[it.key] ?? resolveBureauDisputeLaws(it.negativeType));
+          return `KEY: ${it.key}\nACCOUNT: ${it.account}\nTYPE: ${it.type}\nNEGATIVE_TYPE: ${it.negativeType}\nPLAYBOOK_HINT: ${it.playbookHint}\nREQUEST: ${it.request}\nLEGAL_BASIS_LABEL: ${it.legalBasis}\nACCOUNT_FACTS: ${it.facts || '(not parsed)'}\nDETECTED_ISSUES:\n${issues}\nEVIDENCE_ATTACHED: ${it.evidenceAttached ? 'yes (a screenshot exhibit is attached for this item)' : 'no'}\nSELECTED_LAWS (use only these cites):\n${laws}\nSELECTED_REASONS (factual â€” use verbatim in narrative):\n${reasons}\nCASE_CONTEXT:\n${it.caseContext}\n`;
         })
         .join('\n')}\n\nOUTPUT:\n- intro: opening paragraphs only (no header/address).\n- items: one narrative per KEY.\n- questions: list any follow-up questions you need to make the draft stronger.`;
 
@@ -1434,16 +1572,13 @@ WRITING STANDARD:
       const itemDrafts = Array.isArray(parsed?.items) ? parsed!.items : [];
 
       if (intro) {
-        const dominant = dominantNegativeTypeFromCandidates(items.map((s) => s.candidate as import('../../domain/creditReports').DisputeCandidate));
-        const fiveStep = buildFiveStepDisputeIntro({
-          tone: disputeToneForFiveStep(tone),
-          negativeType: dominant,
-          round,
-          accountLabel: items.length === 1 ? items[0]?.candidate.account : undefined,
-          transferNote: roundTransferNote.trim() || undefined,
-        });
-        const merged = intro.toLowerCase().includes('step 1') ? intro : `${fiveStep}\n\n${intro}`;
-        setIntroByBureau((prev) => ({ ...prev, [b]: ensureHtmlDraft(merged) }));
+        // Keep AI opening as letter prose only — never prepend free-guide Step 1–5 teaching blocks.
+        const cleaned = intro
+          .replace(/\n?\s*Step\s*[1-5]\s*[—\-:].*?(?=\n\s*Step\s*[1-5]\s*[—\-:]|\n\n|$)/gis, '')
+          .replace(/\n{3,}/g, '\n\n')
+          .trim();
+        const withTransfer = mergeTransferNote(cleaned || intro, roundTransferNote);
+        setIntroByBureau((prev) => ({ ...prev, [b]: ensureHtmlDraft(withTransfer) }));
       }
       if (questions.length) {
         setAiQuestionsByBureau((prev) => ({ ...prev, [b]: questions }));
@@ -1645,15 +1780,33 @@ WRITING STANDARD:
         );
       }
 
+      // Seed purpose-correct bureau laws when an item has none yet.
+      const autoFilledLawsByCandidateId: Record<string, LetterCitation[]> = { ...lawsByCandidateId };
+      let autoLawCount = 0;
+      for (const s of items) {
+        const cur = autoFilledLawsByCandidateId[s.key] ?? [];
+        if (cur.length) continue;
+        autoFilledLawsByCandidateId[s.key] = resolveBureauDisputeLaws(classifyCandidateNegativeType(s.candidate as any));
+        autoLawCount += 1;
+      }
+      if (autoLawCount) {
+        setLawsByCandidateId((prev) => ({ ...prev, ...autoFilledLawsByCandidateId }));
+      }
+
       const disputeItems: DisputeLetterItem[] = items.map((s) => {
         const evIds = evidenceIdsByCandidateId[s.key]?.length ? evidenceIdsByCandidateId[s.key]! : evidenceByCandidateId[s.key] ? [evidenceByCandidateId[s.key]!] : [];
-        const linkedEvidence = evIds.map((id) => evidence.find((x) => x.id === id)).filter(Boolean) as typeof evidence;
+        const itemEvidence = evIds.map((id) => evidence.find((x) => x.id === id)).filter(Boolean) as typeof evidence;
+        const identityExhibits = identityEvidenceIds
+          .map((id) => evidence.find((x) => x.id === id))
+          .filter(Boolean) as typeof evidence;
+        const linkedEvidence = [...itemEvidence, ...identityExhibits.filter((x) => !itemEvidence.some((y) => y.id === x.id))];
         const ev = linkedEvidence[0] ?? null;
         return {
           candidate: { ...s.candidate, id: s.key },
           evidence: ev ? { filename: ev.filename, blobRef: ev.blobRef, mimeType: ev.mimeType } : null,
           evidenceList: linkedEvidence.map((item) => ({ filename: item.filename, blobRef: item.blobRef, mimeType: item.mimeType })),
           reasons: autoFilledReasonsByCandidateId[s.key] ?? [],
+          laws: (autoFilledLawsByCandidateId[s.key] ?? []).map((l) => ({ cite: l.cite, shortLabel: l.shortLabel })),
           narrative:
             (aiNarrativeByCandidateKey[s.key] || '').trim() ||
             buildFiveStepItemPreamble({
@@ -1880,6 +2033,11 @@ WRITING STANDARD:
         for (const k of Object.keys(out)) if (clearedKeys.has(k)) delete out[k];
         return out;
       });
+      setLawsByCandidateId((prev) => {
+        const out = { ...prev };
+        for (const k of Object.keys(out)) if (clearedKeys.has(k)) delete out[k];
+        return out;
+      });
       setAiNarrativeByCandidateKey((prev) => {
         const out = { ...prev };
         for (const k of Object.keys(out)) if (clearedKeys.has(k)) delete out[k];
@@ -1928,6 +2086,22 @@ WRITING STANDARD:
     }
     setEvidenceByCandidateId(ev);
     setReasonsByCandidateId(rs);
+    const lawSeed: Record<string, LetterCitation[]> = {};
+    for (const it of c.items || []) {
+      const key = it.candidateId || it.id;
+      lawSeed[key] = resolveBureauDisputeLaws(
+        classifyCandidateNegativeType({
+          id: key,
+          bureau: it.bureau,
+          account: it.account,
+          type: it.type,
+          status: it.status,
+          code: it.code,
+          reportId: it.reportId,
+        } as any),
+      );
+    }
+    setLawsByCandidateId(lawSeed);
     const roundParam = new URLSearchParams(location.search).get('round') as LetterRound | null;
     const suggested = suggestNextRound(c);
     const nextRound =
@@ -1958,7 +2132,18 @@ WRITING STANDARD:
 
     setSelectedDisputes(nextSelected);
     setEvidenceByCandidateId(pickMap(draft.evidenceByCandidateId) as any);
+    if (Array.isArray(draft.identityEvidenceIds)) setIdentityEvidenceIds(draft.identityEvidenceIds.filter(Boolean));
+    if (draft.savedAt) setDraftSavedAt(draft.savedAt);
     setReasonsByCandidateId(pickMap(draft.reasonsByCandidateId) as any);
+    if (draft.lawsByCandidateId) {
+      setLawsByCandidateId(pickMap(draft.lawsByCandidateId as Record<string, LetterCitation[]>) as any);
+    } else {
+      const seeded: Record<string, LetterCitation[]> = {};
+      for (const s of nextSelected) {
+        seeded[s.key] = resolveBureauDisputeLaws(classifyCandidateNegativeType(s.candidate as any));
+      }
+      setLawsByCandidateId(seeded);
+    }
     if (draft.aiNarrativeByCandidateKey) setAiNarrativeByCandidateKey(pickMap(draft.aiNarrativeByCandidateKey) as any);
     if (draft.aiQuestionsByBureau) setAiQuestionsByBureau(draft.aiQuestionsByBureau as any);
     if (draft.toneByBureau) setToneByBureau((prev) => ({ ...prev, ...(draft.toneByBureau as any) }));
@@ -2012,10 +2197,7 @@ const lastSavedDraftJsonRef = React.useRef<string>('');
 useEffect(() => {
   if (!partner?.id) return;
 
-  // In PartnerDetailPage, LettersCommandCenter is mounted as layout="embedded".
-  // Auto-save is only needed in the standalone portal flow.
-  if (layout === 'embedded') return;
-
+  // Autosave in portal and embedded admin so leaving Letters does not wipe progress.
   const cleanRecord = <T,>(obj: Record<string, T | undefined | null>): Record<string, NonNullable<T>> =>
     Object.fromEntries(
       Object.entries(obj || {}).filter(([, value]) => {
@@ -2090,7 +2272,9 @@ useEffect(() => {
   const draftPayload = {
     selectedDisputes,
     evidenceByCandidateId: cleanRecord(evidenceByCandidateId),
+    identityEvidenceIds: identityEvidenceIds.filter(Boolean),
     reasonsByCandidateId: cleanRecord(reasonsByCandidateId),
+    lawsByCandidateId: cleanRecord(lawsByCandidateId as any),
     aiNarrativeByCandidateKey: cleanStringRecord(aiNarrativeByCandidateKey),
     aiQuestionsByBureau: cleanRecord(aiQuestionsByBureau as any),
     toneByBureau: toneByBureau as any,
@@ -2105,8 +2289,10 @@ useEffect(() => {
 
   const hasAnything =
     selectedDisputes.length > 0 ||
+    identityEvidenceIds.length > 0 ||
     Object.keys(draftPayload.evidenceByCandidateId).length > 0 ||
     Object.keys(draftPayload.reasonsByCandidateId).length > 0 ||
+    Object.keys(draftPayload.lawsByCandidateId || {}).length > 0 ||
     Object.keys(draftPayload.aiNarrativeByCandidateKey).length > 0 ||
     Object.keys(draftPayload.aiQuestionsByBureau).length > 0 ||
     hasSender ||
@@ -2129,8 +2315,9 @@ useEffect(() => {
     // Prevent repeated storage writes that trigger finely:store and re-render loops.
     if (lastSavedDraftJsonRef.current === draftJson) return;
 
-    saveLettersCommandCenterDraft(partner.id, draftPayload);
+    saveLettersCommandCenterDraft(partner.id, draftPayload as any);
     lastSavedDraftJsonRef.current = draftJson;
+    setDraftSavedAt(new Date().toISOString());
   }, 500);
 
   return () => window.clearTimeout(t);
@@ -2139,7 +2326,9 @@ useEffect(() => {
   layout,
   selectedDisputes,
   evidenceByCandidateId,
+  identityEvidenceIds,
   reasonsByCandidateId,
+  lawsByCandidateId,
   aiNarrativeByCandidateKey,
   aiQuestionsByBureau,
   toneByBureau,
@@ -2161,23 +2350,20 @@ useEffect(() => {
     return m;
   }, [selectedDisputes]);
 
-  const disputeRailItems = useMemo((): DisputeRailItem[] => {
-    const out: DisputeRailItem[] = [];
-    for (const b of ['EXP', 'EQF', 'TUC'] as Bureau[]) {
-      for (const s of selectedByBureau[b] ?? []) {
-        out.push({
-          key: s.key,
-          bureau: b,
-          account: s.candidate.account,
-          type: s.candidate.type,
-          code: s.candidate.code,
-          hasEvidence: Boolean(evidenceByCandidateId[s.key]),
-          reasonCount: (reasonsByCandidateId[s.key] ?? []).filter(Boolean).length,
-        });
+  // Seed bureau-purpose laws for newly selected disputes (editable in Focused item).
+  useEffect(() => {
+    if (!selectedDisputes.length) return;
+    setLawsByCandidateId((prev) => {
+      let changed = false;
+      const next = { ...prev };
+      for (const s of selectedDisputes) {
+        if (next[s.key]?.length) continue;
+        next[s.key] = resolveBureauDisputeLaws(classifyCandidateNegativeType(s.candidate as any));
+        changed = true;
       }
-    }
-    return out;
-  }, [selectedByBureau, evidenceByCandidateId, reasonsByCandidateId]);
+      return changed ? next : prev;
+    });
+  }, [selectedDisputes]);
 
   const disputeCountsByBureau = useMemo(
     () =>
@@ -2188,6 +2374,15 @@ useEffect(() => {
       }) as Record<Bureau, number>,
     [selectedByBureau],
   );
+
+  const missingEvidenceByBureau = useMemo(() => {
+    const out: Record<Bureau, number> = { EXP: 0, EQF: 0, TUC: 0 };
+    for (const s of selectedDisputes) {
+      const b = s.candidate.bureau;
+      if (!evidenceByCandidateId[s.key]) out[b] = (out[b] ?? 0) + 1;
+    }
+    return out;
+  }, [selectedDisputes, evidenceByCandidateId]);
 
   useEffect(() => {
     if (!selectedDisputes.length) return;
@@ -2525,9 +2720,10 @@ useEffect(() => {
     setTplText(tplRendered.text);
   }, [tplRendered?.baseId, tplRendered?.variantId, tplRendered?.tone, tplRendered?.version]);
 
-  const tabKeys: Array<{ key: TabKey; label: string; icon: React.ReactNode; hidden?: boolean }> = [
-    { key: 'dispute', label: 'Bureaus', icon: <Gavel size={14} className="inline mr-2" /> },
-  ];
+  const letterStudioTrackTabs = useMemo(
+    () => buildLetterStudioTrackTabs({ hasDebt: canSeeDebtTracks, hasTemplates: canSeeTemplates }),
+    [canSeeDebtTracks, canSeeTemplates],
+  );
 
   const disputeEvidenceLinked = useMemo(() => {
     const keys = new Set(selectedDisputes.map((x) => x.key));
@@ -2662,6 +2858,163 @@ useEffect(() => {
     }
   };
 
+  type LetterBuildStepId =
+    | 'disputes'
+    | 'screenshots'
+    | 'reasons'
+    | 'laws'
+    | 'identity'
+    | 'ai'
+    | 'templates'
+    | 'generate';
+
+  const letterBuildPathSteps = useMemo((): LetterStepPathItem[] => {
+    const lawsDone =
+      selectedDisputes.length > 0 &&
+      selectedDisputes.every((s) => (lawsByCandidateId[s.key] ?? []).length > 0);
+    return [
+      {
+        id: 'disputes',
+        label: 'Disputes',
+        meta: `${selectedDisputes.length} selected`,
+        done: selectedDisputes.length > 0,
+      },
+      {
+        id: 'screenshots',
+        label: 'Screenshots',
+        meta: `${disputeEvidenceLinked.linked}/${disputeEvidenceLinked.total || 0} linked`,
+        done: disputeEvidenceLinked.total > 0 && disputeEvidenceLinked.linked >= disputeEvidenceLinked.total,
+      },
+      {
+        id: 'reasons',
+        label: 'Reasons',
+        meta: `${disputeReasonsSelected.withAny}/${disputeReasonsSelected.total || 0}`,
+        done:
+          disputeReasonsSelected.total > 0 &&
+          disputeReasonsSelected.withAny >= disputeReasonsSelected.total,
+      },
+      {
+        id: 'laws',
+        label: 'Laws',
+        meta: 'once on letter',
+        done: lawsDone,
+        disabled: selectedDisputes.length === 0,
+        disabledReason: 'Select disputes first',
+      },
+      {
+        id: 'identity',
+        label: 'ID & SSN',
+        meta: identityPacketStatus(evidence, identityEvidenceIds).label,
+        done: identityPacketStatus(evidence, identityEvidenceIds).complete,
+      },
+      { id: 'ai', label: 'AI draft', meta: 'optional', done: false, optional: true },
+      { id: 'templates', label: 'Templates', meta: 'optional', done: false, optional: true },
+      {
+        id: 'generate',
+        label: 'Generate',
+        meta: `${Object.values(lastGeneratedAtByBureau).filter(Boolean).length}/3`,
+        done: Object.values(lastGeneratedAtByBureau).filter(Boolean).length > 0,
+      },
+    ];
+  }, [
+    disputeEvidenceLinked.linked,
+    disputeEvidenceLinked.total,
+    disputeReasonsSelected.total,
+    disputeReasonsSelected.withAny,
+    evidence,
+    identityEvidenceIds,
+    lastGeneratedAtByBureau,
+    lawsByCandidateId,
+    selectedDisputes,
+  ]);
+
+  const scrollToGenerateForBureau = (b: Bureau) => {
+    const el = document.getElementById(`fc-bureau-${b}`);
+    el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    el?.classList.add('ring-2', 'ring-amber-400/60', 'ring-offset-2', 'ring-offset-black');
+    window.setTimeout(() => {
+      el?.classList.remove('ring-2', 'ring-amber-400/60', 'ring-offset-2', 'ring-offset-black');
+    }, 1500);
+  };
+
+  const runLetterBuildStep = (id: LetterBuildStepId) => {
+    setTab('dispute');
+    if (id === 'disputes') {
+      setPickerOpen(true);
+      return;
+    }
+    if (id === 'screenshots') {
+      const target = selectedDisputes.find((x) => !evidenceByCandidateId[x.key]) ?? selectedDisputes[0] ?? null;
+      if (!target) {
+        setPickerOpen(true);
+        return;
+      }
+      setWorkspaceBureau(target.candidate.bureau);
+      setFocusedKeyByBureau((prev) => ({ ...prev, [target.candidate.bureau]: target.key }));
+      if (screenshotEvidence.length === 0) {
+        goCapture({ candidate: target });
+        return;
+      }
+      setEvidencePicker({ candidateId: target.key });
+      return;
+    }
+    if (id === 'reasons') {
+      const target =
+        selectedDisputes.find((x) => (reasonsByCandidateId[x.key] ?? []).filter(Boolean).length === 0) ??
+        selectedDisputes[0] ??
+        null;
+      if (!target) return;
+      setWorkspaceBureau(target.candidate.bureau);
+      setFocusedKeyByBureau((prev) => ({ ...prev, [target.candidate.bureau]: target.key }));
+      window.requestAnimationFrame(() =>
+        document.getElementById('fc-focused-item')?.scrollIntoView({ behavior: 'smooth', block: 'start' }),
+      );
+      return;
+    }
+    if (id === 'laws') {
+      const target =
+        selectedDisputes.find((x) => (lawsByCandidateId[x.key] ?? []).length === 0) ?? selectedDisputes[0] ?? null;
+      if (!target) return;
+      setWorkspaceBureau(target.candidate.bureau);
+      setFocusedKeyByBureau((prev) => ({ ...prev, [target.candidate.bureau]: target.key }));
+      window.requestAnimationFrame(() =>
+        document.getElementById('fc-laws-panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' }),
+      );
+      return;
+    }
+    if (id === 'identity') {
+      setIdentityPickerOpen(true);
+      return;
+    }
+    if (id === 'ai' || id === 'templates' || id === 'generate') {
+      const b =
+        (selectedByBureau[workspaceBureau] ?? []).length > 0
+          ? workspaceBureau
+          : ((['EXP', 'EQF', 'TUC'] as Bureau[]).find((bb) => (selectedByBureau[bb] ?? []).length > 0) ?? 'EXP');
+      setWorkspaceBureau(b);
+      scrollToGenerateForBureau(b);
+      if (id === 'templates') setDisputeTemplatesOpen(b);
+    }
+  };
+
+  const runLetterBuildContinue = () => {
+    const mainSteps = letterBuildPathSteps.filter((s) => !s.optional);
+    const next =
+      mainSteps.find((s) => !s.done && !s.disabled) ?? mainSteps.find((s) => !s.done) ?? null;
+    const ready = mainSteps.filter((s) => s.id !== 'generate').every((s) => s.done || s.disabled);
+    if (ready) {
+      const b =
+        (selectedByBureau[workspaceBureau] ?? []).length > 0
+          ? workspaceBureau
+          : ((['EXP', 'EQF', 'TUC'] as Bureau[]).find((bb) => (selectedByBureau[bb] ?? []).length > 0) ?? 'EXP');
+      setTab('dispute');
+      setWorkspaceBureau(b);
+      scrollToGenerateForBureau(b);
+      return;
+    }
+    if (next) runLetterBuildStep(next.id as LetterBuildStepId);
+  };
+
   const buildDebtCenterDraft = (specId: DebtLetterType, isCourt: boolean) => {
     persistDebtSenderSnapshot();
     const baseText = canSeeTemplates
@@ -2703,6 +3056,69 @@ useEffect(() => {
     onOpenDebtCenter: openDebtCenter,
     canSeeTemplates,
   };
+
+  const debtProofCount = useMemo(() => {
+    const docs = processedDocuments.length;
+    const ev = evidence.length;
+    return docs + ev;
+  }, [processedDocuments.length, evidence.length]);
+
+  const debtLetterPathSteps = useMemo(
+    () =>
+      buildDebtLetterPathSteps({
+        hasCase: Boolean(debtId),
+        proofCount: debtProofCount,
+        hasChosenLetter: Boolean(draft),
+        hasDraftBody: Boolean(draft?.html?.trim()),
+      }),
+    [debtId, debtProofCount, draft],
+  );
+
+  const runDebtLetterBuildStep = (id: DebtLetterStepId) => {
+    runDebtLetterStep(id, {
+      openDraft: () => {
+        if (draft) {
+          document.getElementById('fc-debt-step-draft')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      },
+    });
+    if (id === 'generate' && draft) {
+      document.getElementById('fc-debt-step-generate')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
+  const runDebtLetterBuildContinue = () => {
+    const mainSteps = debtLetterPathSteps.filter((s) => !s.optional);
+    const next =
+      mainSteps.find((s) => !s.done && !s.disabled) ?? mainSteps.find((s) => !s.done) ?? null;
+    if (next) runDebtLetterBuildStep(next.id as DebtLetterStepId);
+  };
+
+  const [didApplyStepDeepLink, setDidApplyStepDeepLink] = useState(false);
+  useEffect(() => {
+    if (!partner || !didRestore || didApplyStepDeepLink) return;
+    const step = new URLSearchParams(location.search).get('step');
+    if (!isValidDisputeBuildStep(step)) return;
+    setDidApplyStepDeepLink(true);
+    setTab('dispute');
+    const t = window.setTimeout(() => runLetterBuildStep(step), 200);
+    return () => window.clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [partner?.id, didRestore, didApplyStepDeepLink, location.search]);
+
+  const debtTrackLabel =
+    tab === 'validation'
+      ? 'Validation'
+      : tab === 'court'
+        ? 'Court'
+        : tab === 'foreclosure'
+          ? 'Foreclosure'
+          : tab === 'repossession'
+            ? 'Repossession'
+            : 'Debt letter';
+
+  const disputeBureau = workspaceBureau;
+  const disputeBureauItems = selectedByBureau[disputeBureau] ?? [];
 
   const main = (
     <>
@@ -2758,6 +3174,7 @@ useEffect(() => {
                     candidate: { ...s.candidate, id: s.key } as any,
                     evidence: ev ? { filename: ev.filename, blobRef: ev.blobRef, mimeType: ev.mimeType } : null,
                     reasons: reasonsByCandidateId[s.key] ?? [],
+                    laws: (lawsByCandidateId[s.key] ?? []).map((l) => ({ cite: l.cite, shortLabel: l.shortLabel })),
                     narrative: (aiNarrativeByCandidateKey[s.key] || '').trim() || null,
                   };
                 });
@@ -2776,6 +3193,37 @@ useEffect(() => {
             </div>
           </div>
         </div>
+      ) : null}
+
+      {partner && identityPickerOpen ? (
+        <EvidencePickerModal
+          open={identityPickerOpen}
+          title="Attach ID & SSN"
+          subtitle="Select government ID and Social Security card for this letter packet. Upload them in Documents if missing."
+          partnerId={partner.id}
+          items={evidence}
+          selectedEvidenceIds={identityEvidenceIds}
+          filter="identity"
+          pickLabel="Add to packet"
+          emptyHint="No ID/SSN docs yet — open Documents vault and upload ID + Social Security card."
+          onPickMany={(ids) => setIdentityEvidenceIds(ids)}
+          onUpsert={(item) => {
+            upsertEvidence(item);
+            setEvidenceVersion((v) => v + 1);
+          }}
+          onDelete={(id) => {
+            deleteEvidence(id);
+            setEvidenceVersion((v) => v + 1);
+            setIdentityEvidenceIds((cur) => cur.filter((x) => x !== id));
+          }}
+          onOpenFullVault={() => {
+            setIdentityPickerOpen(false);
+            navigate('/portal/documents');
+          }}
+          onClose={() => setIdentityPickerOpen(false)}
+          autoPickOnUpload={false}
+          strictAccountMatch={false}
+        />
       ) : null}
 
       {/* Evidence picker for dispute items */}
@@ -3148,10 +3596,36 @@ useEffect(() => {
                   <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-red-200/90 text-sm">{draftErr}</div>
                 ) : null}
 
-                <div className="space-y-3">
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between gap-3">
-                      <div className="text-white font-semibold">Editor</div>
+                <div id="fc-debt-step-draft" className="space-y-3 scroll-mt-3">
+                  {draftNotice ? <div className="rounded-xl border border-amber-500/25 bg-amber-500/10 p-3 text-[12px] text-white/75">{draftNotice}</div> : null}
+
+                  <DebtLetterRichDraftWorkspace
+                    html={ensureHtmlDraft(draft.html || '')}
+                    onChangeHtml={(html) => setDraft((prev) => (prev ? { ...prev, html } : prev))}
+                    letterDate={letterDate}
+                    senderLines={
+                      senderPreviewLines({
+                        name: senderName,
+                        addressLine1: senderAddressLine1,
+                        addressLine2: senderAddressLine2,
+                        cityStateZip: senderCityStateZip,
+                        city: canonicalIdentity.city,
+                        state: canonicalIdentity.state,
+                        postalCode: canonicalIdentity.postalCode,
+                      }).lines
+                    }
+                    recipientName={debt?.recipientName || debt?.name}
+                    recipientAddress={debt?.recipientAddress}
+                    accent={draft.type === 'court' ? 'fuchsia' : 'emerald'}
+                    minHeightPx={240}
+                    heroLayout
+                  />
+
+                  <details className="rounded-xl border border-white/10 bg-black/25 !p-3">
+                    <summary className="cursor-pointer select-none text-sm font-semibold text-white">
+                      Enclosure evidence {draft.evidenceId ? '(attached)' : '(optional)'}
+                    </summary>
+                    <div className="mt-3 space-y-2">
                       <button
                         type="button"
                         onClick={() => setDraftEvidencePickerOpen(true)}
@@ -3160,124 +3634,94 @@ useEffect(() => {
                       >
                         Attach evidence
                       </button>
-                    </div>
-
-                    {draftNotice ? <div className="rounded-xl border border-amber-500/25 bg-amber-500/10 p-3 text-[12px] text-white/75">{draftNotice}</div> : null}
-                    {draft.evidenceId ? (
-                      <div className="text-[11px] text-white/50">
-                        Attached:{' '}
-                        <span className="text-white/80 font-mono">{evidence.find((x) => x.id === draft.evidenceId)?.filename ?? draft.evidenceId}</span>
-                      </div>
-                    ) : (
-                      <div className="text-[11px] text-white/40">No enclosure attached (optional).</div>
-                    )}
-                    {draft.evidenceId ? (
-                      <div className="pt-1">
-                        {(() => {
-                          const ev = evidence.find((x) => x.id === draft.evidenceId) ?? null;
-                          if (!ev?.blobRef) return null;
-                          const isImg = String(ev.mimeType || '').toLowerCase().startsWith('image/');
-                          if (!isImg) return null;
-                          return <InlineEvidenceThumb blobRef={ev.blobRef} mimeType={ev.mimeType} alt={ev.filename || 'Evidence'} />;
-                        })()}
-                      </div>
-                    ) : null}
-                    {draft.evidenceId ? (
-                      <div className="flex flex-wrap items-center gap-2">
-                        <button
-                          type="button"
-                          className="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-white/[0.08] bg-white/5 hover:bg-white/10 text-[10px] font-black uppercase tracking-widest text-white/70 transition-all"
-                          onClick={() => {
+                      {draft.evidenceId ? (
+                        <>
+                          <div className="text-[11px] text-white/50">
+                            Attached:{' '}
+                            <span className="text-white/80 font-mono">{evidence.find((x) => x.id === draft.evidenceId)?.filename ?? draft.evidenceId}</span>
+                          </div>
+                          {(() => {
                             const ev = evidence.find((x) => x.id === draft.evidenceId) ?? null;
-                            if (!ev?.blobRef) return;
-                            void (async () => {
-                              try {
-                                const result = await openBlobRefInNewTab({
-                                  blobRef: ev.blobRef,
-                                  mimeType: ev.mimeType,
-                                  preferSigned: true,
-                                });
-                                if (!result.ok) window.alert(result.message);
-                              } catch {
-                                // ignore
-                              }
-                            })();
-                          }}
-                          title="Open the attached enclosure"
-                        >
-                          Open enclosure <ExternalLink size={14} />
-                        </button>
+                            if (!ev?.blobRef) return null;
+                            const isImg = String(ev.mimeType || '').toLowerCase().startsWith('image/');
+                            if (!isImg) return null;
+                            return <InlineEvidenceThumb blobRef={ev.blobRef} mimeType={ev.mimeType} alt={ev.filename || 'Evidence'} />;
+                          })()}
+                          <button
+                            type="button"
+                            className="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-white/[0.08] bg-white/5 hover:bg-white/10 text-[10px] font-black uppercase tracking-widest text-white/70 transition-all"
+                            onClick={() => {
+                              const ev = evidence.find((x) => x.id === draft.evidenceId) ?? null;
+                              if (!ev?.blobRef) return;
+                              void (async () => {
+                                try {
+                                  const result = await openBlobRefInNewTab({
+                                    blobRef: ev.blobRef,
+                                    mimeType: ev.mimeType,
+                                    preferSigned: true,
+                                  });
+                                  if (!result.ok) window.alert(result.message);
+                                } catch {
+                                  // ignore
+                                }
+                              })();
+                            }}
+                            title="Open the attached enclosure"
+                          >
+                            Open enclosure <ExternalLink size={14} />
+                          </button>
+                        </>
+                      ) : (
+                        <div className="text-[11px] text-white/40">No enclosure attached.</div>
+                      )}
+                    </div>
+                  </details>
+
+                  <div id="fc-debt-step-preview" className="scroll-mt-3">
+                    <LetterAddressSummary
+                      defaultOpen={false}
+                      value={{
+                        fromName: senderName,
+                        fromLine1: senderAddressLine1,
+                        fromLine2: senderAddressLine2,
+                        fromCityStateZip:
+                          senderCityStateZip ||
+                          resolveCityStateZip({
+                            cityStateZip: senderCityStateZip,
+                            city: canonicalIdentity.city,
+                            state: canonicalIdentity.state,
+                            postalCode: canonicalIdentity.postalCode,
+                          }),
+                        toName: debt?.recipientName || debt?.name || 'Creditor',
+                        toLinesText: debt?.recipientAddress || '',
+                        subject: `Re: ${debt?.name || 'debt matter'}`,
+                      }}
+                      onChange={(patch) => {
+                        if (patch.fromName !== undefined) setSenderName(patch.fromName);
+                        if (patch.fromLine1 !== undefined) setSenderAddressLine1(patch.fromLine1);
+                        if (patch.fromLine2 !== undefined) setSenderAddressLine2(patch.fromLine2);
+                        if (patch.fromCityStateZip !== undefined) setSenderCityStateZip(patch.fromCityStateZip);
+                        if (patch.toName !== undefined && debt) {
+                          handleDebtIntelChange({ ...debt, recipientName: patch.toName });
+                        }
+                        if (patch.toLinesText !== undefined && debt) {
+                          handleDebtIntelChange({ ...debt, recipientAddress: patch.toLinesText });
+                        }
+                      }}
+                    />
+                    {!senderMailingComplete ? (
+                      <div className="mt-2 rounded-xl border border-red-500/40 bg-red-500/10 px-3 py-2 text-xs text-red-200">
+                        Add your mailing address before saving — missing lines appear in red on the preview.
                       </div>
                     ) : null}
-
-                    <DebtLetterRichDraftWorkspace
-                      html={ensureHtmlDraft(draft.html || '')}
-                      onChangeHtml={(html) => setDraft((prev) => (prev ? { ...prev, html } : prev))}
-                      letterDate={letterDate}
-                      senderLines={
-                        senderPreviewLines({
-                          name: senderName,
-                          addressLine1: senderAddressLine1,
-                          addressLine2: senderAddressLine2,
-                          cityStateZip: senderCityStateZip,
-                          city: canonicalIdentity.city,
-                          state: canonicalIdentity.state,
-                          postalCode: canonicalIdentity.postalCode,
-                        }).lines
-                      }
-                      recipientName={debt?.recipientName || debt?.name}
-                      recipientAddress={debt?.recipientAddress}
-                      accent={draft.type === 'court' ? 'fuchsia' : 'emerald'}
-                      minHeightPx={280}
-                    />
-                    <div className="text-[11px] text-white/40">
-                      Tip: keep your contact email off mailed letters; use only your name + mailing address.
-                      {!senderMailingComplete ? (
-                        <span className="block mt-1 text-red-300">Your mailing address is incomplete — fix sender fields below before mailing.</span>
-                      ) : null}
-                    </div>
-                  </div>
-
-                  <div className="space-y-3">
-                    <div className="rounded-xl border border-white/[0.08] bg-black/40 p-4 space-y-3">
-                      <div className="text-[10px] uppercase tracking-widest text-white/40">Sender block (printed on letter)</div>
-                      {!senderMailingComplete ? (
-                        <div className="rounded-xl border border-red-500/40 bg-red-500/10 px-3 py-2 text-xs text-red-200">
-                          Add your mailing address before saving â€” missing lines appear in red on the preview.
-                        </div>
-                      ) : null}
-                      <div className="grid sm:grid-cols-2 gap-3">
-                        <input
-                          value={senderName}
-                          onChange={(e) => setSenderName(e.target.value)}
-                          className={`bg-black/40 border rounded-xl px-3 py-2 text-sm text-white/80 ${!senderName.trim() ? 'border-red-500/50' : 'border-white/[0.08]'}`}
-                          placeholder="Your name"
-                        />
-                        <input
-                          value={senderAddressLine1}
-                          onChange={(e) => setSenderAddressLine1(e.target.value)}
-                          className={`bg-black/40 border rounded-xl px-3 py-2 text-sm text-white/80 ${!senderAddressLine1.trim() ? 'border-red-500/50' : 'border-white/[0.08]'}`}
-                          placeholder="Street address"
-                        />
-                        <input
-                          value={senderAddressLine2}
-                          onChange={(e) => setSenderAddressLine2(e.target.value)}
-                          className="bg-black/40 border border-white/[0.08] rounded-xl px-3 py-2 text-sm text-white/80 sm:col-span-2"
-                          placeholder="Apt / unit (optional)"
-                        />
-                        <input
-                          value={senderCityStateZip}
-                          onChange={(e) => setSenderCityStateZip(e.target.value)}
-                          className={`bg-black/40 border rounded-xl px-3 py-2 text-sm text-white/80 sm:col-span-2 ${!resolveCityStateZip({ cityStateZip: senderCityStateZip, city: canonicalIdentity.city, state: canonicalIdentity.state, postalCode: canonicalIdentity.postalCode }).trim() ? 'border-red-500/50' : 'border-white/[0.08]'}`}
-                          placeholder="City, State ZIP"
-                        />
-                      </div>
-                      <div className="text-[11px] text-white/45">Letter date: <span className="text-white/75">{letterDate}</span></div>
+                    <div className="mt-2 text-[11px] text-white/45">
+                      Letter date: <span className="text-white/75">{letterDate}</span>
+                      <span className="block mt-1 text-white/40">Keep contact email off mailed letters — name and mailing address only.</span>
                     </div>
                   </div>
                 </div>
 
-                <div className="flex flex-wrap items-center justify-end gap-3 pt-2">
+                <div id="fc-debt-step-generate" className="flex flex-wrap items-center justify-end gap-3 pt-2 scroll-mt-3 border-t border-white/10">
                   <button
                     type="button"
                     disabled={draftBusy}
@@ -3342,10 +3786,10 @@ useEffect(() => {
                         setDraftBusy(false);
                       }
                     }}
-                    className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-amber-500 text-black font-black uppercase tracking-widest text-[10px] hover:brightness-110 transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+                    className={`${FINELY_OS_PRIMARY_BTN} disabled:opacity-60 disabled:cursor-not-allowed`}
                     title="Save this letter (PDF) into Letters Vault"
                   >
-                    {draftBusy ? 'Savingâ€¦' : 'Save to Letters Vault'}
+                    {draftBusy ? 'Saving…' : 'Save to Letters Vault'}
                   </button>
                 </div>
               </div>
@@ -3535,7 +3979,7 @@ useEffect(() => {
         </div>
       ) : null}
 
-      <div data-fc-letter-studio="1" className="space-y-8">
+      <div data-fc-letter-studio="1" className="space-y-3 w-full">
         {layout === 'standalone' && !unifiedShell ? (
           <div className="flex flex-wrap items-center justify-between gap-4">
             <button
@@ -3557,22 +4001,7 @@ useEffect(() => {
         ) : null}
 
         {!unifiedShell && !debtCenterMode ? (
-        <div className="flex flex-wrap gap-2 p-1 rounded-2xl border border-white/10 bg-black/30">
-          {tabKeys.filter((t) => !t.hidden).map((t) => (
-            <button
-              key={t.key}
-              className={
-                (tab === t.key
-                  ? 'bg-amber-500 text-black border-amber-400'
-                  : 'bg-white/5 text-white/75 border-white/10 hover:bg-white/10') +
-                ' inline-flex items-center gap-2 px-5 py-3 rounded-xl border text-xs font-black uppercase tracking-widest transition-all'
-              }
-              onClick={() => setTab(t.key)}
-            >
-              {t.icon} {t.label}
-            </button>
-          ))}
-        </div>
+          <LetterTrackTabs tabs={letterStudioTrackTabs} activeTab={tab} onTabChange={setTab} />
         ) : null}
 
         {debtCenterMode && !(activeTab != null && onTabChange) ? (
@@ -3601,191 +4030,6 @@ useEffect(() => {
           </div>
         ) : null}
 
-        {/* Always-visible dispute selection shortcut (so it can't be missed). */}
-        {!debtCenterMode ? <div className="fc-light-glass-panel fc-light-chrome-panel p-4 flex flex-wrap items-center justify-between gap-3">
-          <div className="text-white/60 text-sm">
-            Disputes selected: <span className="text-white/90 font-semibold">{selectedDisputes.length}</span>
-            {selectedDisputes.length ? (
-              <span className="text-white/40 text-sm"> â€” split automatically into EXP / EQF / Trans letters</span>
-            ) : null}
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <button
-              type="button"
-              onClick={() => {
-                setTab('dispute');
-                setPickerOpen(true);
-              }}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-500 text-black font-black uppercase tracking-widest text-[10px] hover:brightness-110 transition-all"
-              title="Select which items to dispute (from a report or case)"
-            >
-              <Gavel size={14} /> Select disputes
-            </button>
-            {selectedDisputes.length ? (
-              <button
-                type="button"
-                onClick={clearDisputeStudioDraft}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-red-500/25 bg-red-500/10 hover:bg-red-500/15 text-[10px] font-black uppercase tracking-widest text-red-100/80 transition-all"
-                title="Clear the entire dispute letter studio draft (full reset)"
-              >
-                Clear studio
-              </button>
-            ) : null}
-            <button
-              type="button"
-              onClick={() => openDisputeCenter()}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-white/[0.08] bg-white/5 hover:bg-white/10 text-[10px] font-black uppercase tracking-widest text-white/70 transition-all"
-              title="Open dispute case tracking"
-            >
-              Dispute Center <ChevronRight size={14} />
-            </button>
-          </div>
-        </div> : null}
-
-        {!debtCenterMode ? (
-          <div className="rounded-2xl border border-fuchsia-400/25 bg-gradient-to-br from-fuchsia-500/10 via-black/40 to-amber-500/5 p-4 md:p-5 space-y-4">
-            <div className="flex flex-wrap items-start justify-between gap-3">
-              <div>
-                <div className="text-[10px] font-black uppercase tracking-[0.2em] text-fuchsia-200">Which dispute round are you starting at?</div>
-                <div className="mt-1 text-sm text-white/65 max-w-2xl">
-                  Round 1 = brand-new dispute. Round 2+ = transferred from another company or following up after a prior letter. Letter language and bureau expectations change per round.
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => {
-                  const r = roundByBureau.EXP;
-                  setRoundByBureau({ EXP: r, EQF: r, TUC: r });
-                }}
-                className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-[10px] font-black uppercase tracking-widest text-white/60 hover:text-white"
-              >
-                Sync all bureaus
-              </button>
-            </div>
-
-            <div className="flex flex-wrap gap-2">
-              {(
-                [
-                  { id: 'fresh', label: 'New client · Round 1', round: 'Round 1' as LetterRound, hint: 'First letters with Finely Cred' },
-                  { id: 'transfer', label: 'Transferred · Round 2', round: 'Round 2' as LetterRound, hint: 'Prior company already mailed Round 1' },
-                  { id: 'followup', label: 'Deep follow-up · Round 3', round: 'Round 3' as LetterRound, hint: 'Bureau responded — escalate angle' },
-                  { id: 'escalate', label: 'Escalation · Round 4', round: 'Round 4' as LetterRound, hint: 'Pattern of non-compliance' },
-                ] as const
-              ).map((preset) => (
-                <button
-                  key={preset.id}
-                  type="button"
-                  onClick={() => {
-                    setRoundByBureau({ EXP: preset.round, EQF: preset.round, TUC: preset.round });
-                    for (const b of ['EXP', 'EQF', 'TUC'] as Bureau[]) {
-                      const items = selectedByBureau[b] ?? [];
-                      if (!items.length) continue;
-                      const dominant = dominantNegativeTypeFromCandidates(items.map((s) => s.candidate as import('../../domain/creditReports').DisputeCandidate));
-                      setIntroByBureau((prev) => ({
-                        ...prev,
-                        [b]:
-                          prev[b] && !isStockDisputeIntro(htmlToPlainText(prev[b]))
-                            ? prev[b]
-                            : plainTextToHtml(
-                                defaultDisputeIntro(
-                                  toneByBureau[b],
-                                  dominant,
-                                  preset.round,
-                                  items.length === 1 ? items[0]?.candidate.account : undefined,
-                                  roundTransferNote,
-                                ),
-                              ),
-                      }));
-                    }
-                  }}
-                  className="rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-left hover:border-amber-400/35 hover:bg-amber-500/10 transition-all"
-                >
-                  <div className="text-[10px] font-black uppercase tracking-widest text-amber-100">{preset.label}</div>
-                  <div className="text-[10px] text-white/45 mt-0.5">{preset.hint}</div>
-                </button>
-              ))}
-            </div>
-
-            <div className="grid lg:grid-cols-3 gap-3">
-              {(['EXP', 'EQF', 'TUC'] as Bureau[]).map((b) => {
-                const round = roundByBureau[b];
-                const guidance = INTER_ROUND_GUIDANCE[round];
-                const suggested = suggestedRoundByBureau[b];
-                return (
-                  <div key={b} className="rounded-2xl border border-white/10 bg-black/30 p-4 space-y-3">
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="text-sm font-black text-white">{bureauShortCode(b)}</span>
-                      <span className="text-[10px] uppercase tracking-widest text-fuchsia-200/80">{guidance.title}</span>
-                    </div>
-                    {suggested !== round ? (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setRoundByBureau((prev) => ({ ...prev, [b]: suggested }));
-                          const items = selectedByBureau[b] ?? [];
-                          if (items.length) {
-                            const dominant = dominantNegativeTypeFromCandidates(items.map((s) => s.candidate as import('../../domain/creditReports').DisputeCandidate));
-                            setIntroByBureau((prev) => ({
-                              ...prev,
-                              [b]: plainTextToHtml(
-                                defaultDisputeIntro(toneByBureau[b], dominant, suggested, items.length === 1 ? items[0]?.candidate.account : undefined, roundTransferNote),
-                              ),
-                            }));
-                          }
-                        }}
-                        className="w-full rounded-lg border border-sky-400/30 bg-sky-500/10 px-2 py-1.5 text-[10px] font-bold text-sky-100 text-left"
-                      >
-                        Smart suggest: {suggested.replace('Round ', 'R')} (from case history)
-                      </button>
-                    ) : null}
-                    <div className="flex flex-wrap gap-1.5">
-                      {DISPUTE_ROUND_ORDER.map((r) => (
-                        <button
-                          key={r}
-                          type="button"
-                          onClick={() => {
-                            setRoundByBureau((prev) => ({ ...prev, [b]: r }));
-                            const dominant = dominantNegativeTypeFromCandidates(
-                              selectedDisputes.filter((s) => s.candidate.bureau === b).map((s) => s.candidate),
-                            );
-                            setIntroByBureau((prev) => ({
-                              ...prev,
-                              [b]:
-                                prev[b] && !isStockDisputeIntro(htmlToPlainText(prev[b]))
-                                  ? prev[b]
-                                  : plainTextToHtml(defaultDisputeIntro(toneByBureau[b], dominant, r, undefined, roundTransferNote)),
-                            }));
-                          }}
-                          className={`rounded-lg border px-2.5 py-1.5 text-[10px] font-black uppercase tracking-widest transition-all ${
-                            round === r
-                              ? 'border-amber-400/50 bg-amber-500/20 text-amber-100 shadow-[0_0_12px_-4px_rgba(251,191,36,0.5)]'
-                              : suggested === r
-                                ? 'border-sky-400/30 bg-sky-500/10 text-sky-100'
-                                : 'border-white/10 text-white/45 hover:border-white/20'
-                          }`}
-                        >
-                          {r.replace('Round ', 'R')}
-                        </button>
-                      ))}
-                    </div>
-                    <p className="text-[11px] text-white/45 leading-relaxed">{guidance.betweenRounds[0]}</p>
-                  </div>
-                );
-              })}
-            </div>
-            <label className="block">
-              <span className="text-[10px] font-black uppercase tracking-widest text-white/40">Transfer note (optional)</span>
-              <input
-                value={roundTransferNote}
-                onChange={(e) => setRoundTransferNote(e.target.value)}
-                placeholder="e.g. Round 1 mailed with prior company in March 2026 — starting Round 2 here"
-                className="mt-1 w-full rounded-xl border border-white/10 bg-black/40 px-3 py-2.5 text-sm text-white/85 placeholder:text-white/25"
-              />
-              <p className="mt-1 text-[10px] text-white/40">Injected into the letter intro so bureaus know this is a follow-up, not a first dispute.</p>
-            </label>
-          </div>
-        ) : null}
-
         {tab === 'dispute' && (
           <EntitlementGate
             partnerId={partner.id}
@@ -3803,46 +4047,201 @@ useEffect(() => {
               ) : null
             }
           >
-            <div className="space-y-6">
-              <SmartProofUploader partner={partner} email={partner.profile.email} compact uploadContext="bureau" />
-
-              <div className="rounded-2xl border border-white/[0.08] bg-black/30 p-6 space-y-4">
+            <LetterEasyFlowShell
+              contextTitle="Step 1 — Choose your dispute round"
+              contextSubtitle="Round 1 = brand-new dispute. Round 2+ = transferred from another company or following up after a prior letter."
+              context={
+                <>
+                  <div className="flex flex-wrap items-start justify-end gap-3">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const r = roundByBureau.EXP;
+                        setRoundByBureau({ EXP: r, EQF: r, TUC: r });
+                      }}
+                      className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm font-semibold text-white/70 hover:text-white"
+                    >
+                      Sync all bureaus
+                    </button>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {(
+                      [
+                        { id: 'fresh', label: 'New client · Round 1', round: 'Round 1' as LetterRound, hint: 'First letters with Finely Cred' },
+                        { id: 'transfer', label: 'Transferred · Round 2', round: 'Round 2' as LetterRound, hint: 'Prior company already mailed Round 1' },
+                        { id: 'followup', label: 'Deep follow-up · Round 3', round: 'Round 3' as LetterRound, hint: 'Bureau responded — escalate angle' },
+                        { id: 'escalate', label: 'Escalation · Round 4', round: 'Round 4' as LetterRound, hint: 'Pattern of non-compliance' },
+                      ] as const
+                    ).map((preset) => (
+                      <button
+                        key={preset.id}
+                        type="button"
+                        onClick={() => {
+                          setRoundByBureau({ EXP: preset.round, EQF: preset.round, TUC: preset.round });
+                          for (const b of ['EXP', 'EQF', 'TUC'] as Bureau[]) {
+                            const items = selectedByBureau[b] ?? [];
+                            if (!items.length) continue;
+                            const dominant = dominantNegativeTypeFromCandidates(items.map((s) => s.candidate as import('../../domain/creditReports').DisputeCandidate));
+                            setIntroByBureau((prev) => ({
+                              ...prev,
+                              [b]:
+                                prev[b] && !isStockDisputeIntro(htmlToPlainText(prev[b]))
+                                  ? prev[b]
+                                  : plainTextToHtml(
+                                      defaultDisputeIntro(
+                                        toneByBureau[b],
+                                        dominant,
+                                        preset.round,
+                                        items.length === 1 ? items[0]?.candidate.account : undefined,
+                                        roundTransferNote,
+                                      ),
+                                    ),
+                            }));
+                          }
+                        }}
+                        className="rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-left hover:border-amber-400/35 hover:bg-amber-500/10 transition-all"
+                      >
+                        <div className="text-sm font-semibold text-amber-100">{preset.label}</div>
+                        <div className="text-xs text-white/45 mt-0.5">{preset.hint}</div>
+                      </button>
+                    ))}
+                  </div>
+                  <div className="grid lg:grid-cols-3 gap-3">
+                    {(['EXP', 'EQF', 'TUC'] as Bureau[]).map((b) => {
+                      const round = roundByBureau[b];
+                      const guidance = INTER_ROUND_GUIDANCE[round];
+                      const suggested = suggestedRoundByBureau[b];
+                      return (
+                        <div key={b} className="rounded-2xl border border-white/10 bg-black/30 p-4 space-y-3">
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="text-sm font-semibold text-white">{bureauFullName(b)}</span>
+                            <span className="text-xs text-fuchsia-200/80">{guidance.title}</span>
+                          </div>
+                          {suggested !== round ? (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setRoundByBureau((prev) => ({ ...prev, [b]: suggested }));
+                                const items = selectedByBureau[b] ?? [];
+                                if (items.length) {
+                                  const dominant = dominantNegativeTypeFromCandidates(items.map((s) => s.candidate as import('../../domain/creditReports').DisputeCandidate));
+                                  setIntroByBureau((prev) => ({
+                                    ...prev,
+                                    [b]: plainTextToHtml(
+                                      defaultDisputeIntro(toneByBureau[b], dominant, suggested, items.length === 1 ? items[0]?.candidate.account : undefined, roundTransferNote),
+                                    ),
+                                  }));
+                                }
+                              }}
+                              className="w-full rounded-lg border border-sky-400/30 bg-sky-500/10 px-2 py-1.5 text-xs font-semibold text-sky-100 text-left"
+                            >
+                              Smart suggest: {suggested.replace('Round ', 'R')} (from case history)
+                            </button>
+                          ) : null}
+                          <div className="flex flex-wrap gap-1.5">
+                            {DISPUTE_ROUND_ORDER.map((r) => (
+                              <button
+                                key={r}
+                                type="button"
+                                onClick={() => {
+                                  setRoundByBureau((prev) => ({ ...prev, [b]: r }));
+                                  const dominant = dominantNegativeTypeFromCandidates(
+                                    selectedDisputes.filter((s) => s.candidate.bureau === b).map((s) => s.candidate),
+                                  );
+                                  setIntroByBureau((prev) => ({
+                                    ...prev,
+                                    [b]:
+                                      prev[b] && !isStockDisputeIntro(htmlToPlainText(prev[b]))
+                                        ? prev[b]
+                                        : plainTextToHtml(defaultDisputeIntro(toneByBureau[b], dominant, r, undefined, roundTransferNote)),
+                                  }));
+                                }}
+                                className={`rounded-lg border px-2.5 py-1.5 text-xs font-semibold transition-all ${
+                                  round === r
+                                    ? 'border-amber-400/50 bg-amber-500/20 text-amber-100'
+                                    : suggested === r
+                                      ? 'border-sky-400/30 bg-sky-500/10 text-sky-100'
+                                      : 'border-white/10 text-white/45 hover:border-white/20'
+                                }`}
+                              >
+                                {r.replace('Round ', 'R')}
+                              </button>
+                            ))}
+                          </div>
+                          <p className="text-xs text-white/45 leading-relaxed">{guidance.betweenRounds[0]}</p>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <label className="block">
+                    <span className="text-xs font-semibold text-white/50">Transfer note (optional)</span>
+                    <input
+                      value={roundTransferNote}
+                      onChange={(e) => setRoundTransferNote(e.target.value)}
+                      placeholder="e.g. Round 1 mailed with prior company in March 2026 — starting Round 2 here"
+                      className="mt-1 w-full rounded-xl border border-white/10 bg-black/40 px-3 py-2.5 text-sm text-white/85 placeholder:text-white/25"
+                    />
+                  </label>
+                </>
+              }
+              actions={
+                <LetterStepPath
+                  showDraftBanner={Boolean(draftSavedAt) && selectedDisputes.length > 0}
+                  draftSavedAt={draftSavedAt}
+                  onContinue={runLetterBuildContinue}
+                  onDiscardDraft={() => {
+                    if (!partner?.id) return;
+                    if (!window.confirm('Discard the in-progress letter draft?')) return;
+                    clearDisputeStudioDraft();
+                    setIdentityEvidenceIds([]);
+                    setDraftSavedAt(null);
+                  }}
+                  steps={letterBuildPathSteps}
+                  onStep={(id) => runLetterBuildStep(id as LetterBuildStepId)}
+                />
+              }
+              work={
+            <div className="space-y-3 w-full">
+              <div className="rounded-2xl border border-white/[0.08] bg-black/30 !p-4 space-y-3 w-full">
+                <PartnerCreditWorkloadStrip
+                  partnerId={partner.id}
+                  selectedDisputes={selectedDisputes}
+                  evidenceByCandidateId={evidenceByCandidateId as Record<string, string>}
+                  reasonsByCandidateId={reasonsByCandidateId}
+                  compact
+                />
                 <div className="flex flex-wrap items-start justify-between gap-4">
-                  <div className="min-w-0">
-                    <div className="text-[10px] uppercase tracking-widest text-white/40">Bureau letters</div>
-                    <div className="mt-2 text-white/70 text-sm max-w-3xl">
-                      Choose disputes in a popup, then attach evidence inline. Selections automatically split into separate bureau letters (EXP/EQF/Trans).
+                  <div className="min-w-0 flex-1">
+                    <div className="text-sm font-semibold text-white">Bureau letters</div>
+                    <div className="mt-2 text-white/70 text-sm">
+                      Use the path above to <span className="text-white font-medium">Select disputes</span>, then attach evidence inline. Selections split into separate bureau letters (Experian, Equifax, TransUnion).
                     </div>
                   </div>
                   <div className="flex flex-wrap items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setPickerOpen(true)}
-                      className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-amber-500 text-black font-black uppercase tracking-widest text-[10px] hover:brightness-110 transition-all"
-                    >
-                      <Gavel size={14} /> Select disputes
-                    </button>
                     <button
                       type="button"
                       onClick={() => openDisputeCenter()}
                       className="inline-flex items-center gap-2 px-4 py-3 rounded-xl border border-white/[0.08] bg-white/5 hover:bg-white/10 text-[10px] font-black uppercase tracking-widest text-white/70 transition-all"
                       title="Open dispute case tracking"
                     >
-                      Dispute Center <ChevronRight size={14} />
+                      Dispute cases <ChevronRight size={14} />
                     </button>
                     <button
                       type="button"
                       onClick={() => setReasonsLibraryOpen(true)}
                       className="inline-flex items-center gap-2 px-4 py-3 rounded-xl border border-white/[0.08] bg-white/5 hover:bg-white/10 text-[10px] font-black uppercase tracking-widest text-white/70 transition-all"
-                      title="Download dispute reasons library (reference text)"
+                      title="Reference-only dispute reasons library"
                     >
-                      <FileText size={14} /> Reasons OS
+                      <FileText size={14} /> Reason library
                     </button>
                   </div>
                 </div>
 
-                <div className="text-[11px] text-white/40">
-                  Selected: <span className="text-white/70">{selectedDisputes.length}</span>
+                <div className="text-sm text-white/50">
+                  Selected: <span className="text-white/80 font-medium">{selectedDisputes.length}</span>
+                  {selectedDisputes.length === 0 ? (
+                    <span className="text-white/40"> — use the path step <span className="text-amber-200/90">Select disputes</span> to open the picker</span>
+                  ) : null}
                 </div>
               </div>
 
@@ -3865,40 +4264,20 @@ useEffect(() => {
 
               {selectedDisputes.length === 0 ? (
                 <div className="fc-light-glass-panel fc-light-chrome-panel p-6 text-white/60">
-                  No disputes selected yet. Click <span className="text-white/80 font-semibold">Choose disputes</span> to pick items from a report or a saved case.
+                  No disputes selected yet. Use the path step <span className="text-white/80 font-semibold">Select disputes</span> to pick items from a report or a saved case.
                 </div>
               ) : (
                 <>
-                  {layout === 'embedded' ? (
-                    <div className="flex flex-wrap gap-2 border-b border-white/[0.08] pb-3 mb-1">
-                      {(['EXP', 'EQF', 'TUC'] as Bureau[]).map((b) => {
-                        const count = (selectedByBureau[b] ?? []).length;
-                        if (!count) return null;
-                        const on = workspaceBureau === b;
-                        return (
-                          <button
-                            key={b}
-                            type="button"
-                            onClick={() => setWorkspaceBureau(b)}
-                            className={
-                              'px-4 py-2 rounded-xl border text-[10px] font-black uppercase tracking-widest transition-all ' +
-                              (on
-                                ? 'bg-amber-500 text-black border-amber-400'
-                                : 'bg-white/5 text-white/70 border-white/[0.08] hover:bg-white/10 hover:text-white')
-                            }
-                            title={bureauFullName(b)}
-                          >
-                            {bureauShortCode(b)} ({count})
-                          </button>
-                        );
-                      })}
-                    </div>
-                  ) : null}
-                  {(['EXP', 'EQF', 'TUC'] as Bureau[])
-                    .filter((b) => layout !== 'embedded' || b === workspaceBureau)
-                    .map((b) => {
-                  const items = selectedByBureau[b] ?? [];
-                  if (!items.length) return null;
+                  <LetterBureauTabs
+                    active={workspaceBureau}
+                    counts={disputeCountsByBureau}
+                    missingEvidence={missingEvidenceByBureau}
+                    onChange={setWorkspaceBureau}
+                  />
+                  {disputeBureauItems.length > 0 ? (
+                  (() => {
+                  const b = disputeBureau;
+                  const items = disputeBureauItems;
                   const busy = pdfBusyByBureau[b];
                   const aiBusy = aiBusyByBureau[b];
                   const aiErr = aiErrByBureau[b] ?? null;
@@ -3918,15 +4297,11 @@ useEffect(() => {
                   );
                   const groupOn = groupByCreditorByBureau[b] ?? true;
                   return (
-                    <div key={b} id={`fc-bureau-${b}`} className="rounded-2xl border border-white/[0.08] bg-black/30 p-6 space-y-4">
+                    <div key={b} id={`fc-bureau-${b}`} className="rounded-2xl border border-white/[0.08] bg-black/30 !p-4 space-y-3">
                       <div className="flex flex-wrap items-end justify-between gap-4">
                         <div>
-                          <div className="text-[10px] uppercase tracking-widest text-white/40">Letter</div>
-                          <div className="mt-2 text-xl font-semibold text-white">
-                            {bureauFullName(b)} ({bureauShortCode(b)})
-                          </div>
-                          <div className="mt-1 text-[11px] text-white/40">
-                            {items.length} dispute{items.length === 1 ? '' : 's'} selected
+                          <div className="text-sm font-semibold text-white">
+                            {round} · {items.length} dispute{items.length === 1 ? '' : 's'}
                           </div>
                           <div className="mt-3 flex flex-wrap items-center gap-2">
                             <div
@@ -3986,7 +4361,7 @@ useEffect(() => {
                               type="button"
                               onClick={() => void runAiDraftForBureau(b)}
                               disabled={aiBusy || !aiGatewayEnabled}
-                              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-500 text-black font-black uppercase tracking-widest text-[10px] hover:brightness-110 transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+                              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-white/[0.08] bg-white/5 hover:bg-white/10 text-[10px] font-black uppercase tracking-widest text-white/70 transition-all disabled:opacity-60 disabled:cursor-not-allowed"
                               title={
                                 aiGatewayEnabled
                                   ? 'AI drafts opening paragraphs + per-item narratives using your selected reasons'
@@ -4100,43 +4475,8 @@ useEffect(() => {
                           >
                             <ScrollText size={14} /> {studioOpen ? 'Hide studio' : 'Open studio'}
                           </button>
-                          <div className="rounded-2xl border border-fuchsia-400/20 bg-fuchsia-500/5 p-3">
-                            <div className="text-[10px] font-bold text-fuchsia-200 uppercase tracking-widest">Dispute round</div>
-                            <div className="mt-2 flex flex-wrap gap-1.5">
-                              {DISPUTE_ROUND_ORDER.map((r) => (
-                                <button
-                                  key={r}
-                                  type="button"
-                                  onClick={() => {
-                                    setRoundByBureau((prev) => ({ ...prev, [b]: r }));
-                                    const dominant = dominantNegativeTypeFromCandidates(items.map((s) => s.candidate as import('../../domain/creditReports').DisputeCandidate));
-                                    setIntroByBureau((prev) => ({
-                                      ...prev,
-                                      [b]:
-                                        prev[b] && !isStockDisputeIntro(htmlToPlainText(prev[b]))
-                                          ? prev[b]
-                                          : plainTextToHtml(
-                                              defaultDisputeIntro(
-                                                tone,
-                                                dominant,
-                                                r,
-                                                items.length === 1 ? items[0]?.candidate.account : undefined,
-                                                roundTransferNote,
-                                              ),
-                                            ),
-                                    }));
-                                  }}
-                                  className={`rounded-lg border px-2.5 py-1 text-[10px] font-black uppercase tracking-widest ${
-                                    round === r ? 'border-amber-400/50 bg-amber-500/20 text-amber-100' : 'border-white/10 text-white/45'
-                                  }`}
-                                >
-                                  {r.replace('Round ', 'R')}
-                                </button>
-                              ))}
-                            </div>
-                          </div>
                           <div>
-                            <div className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Tone</div>
+                            <div className="text-xs font-semibold text-white/50">Tone</div>
                             <select
                               value={tone}
                               onChange={(e) => {
@@ -4229,132 +4569,79 @@ useEffect(() => {
                       ) : null}
 
                       {studioOpen ? (
-                        <div className="space-y-6">
-                          <div className="space-y-4">
-                            <div className="fc-light-glass-panel fc-light-chrome-panel p-5 space-y-4">
-                              <div className="flex flex-wrap items-center justify-between gap-3">
-                                <div className="text-[10px] uppercase tracking-widest text-white/40">Header & addressing (editable)</div>
-                                <div className="flex flex-wrap items-center gap-2">
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      setSenderName(canonicalIdentity.fullName || partner.profile.fullName || '');
-                                      setSenderAddressLine1(canonicalIdentity.address1 || canonicalIdentity.addressLine1 || '');
-                                      setSenderAddressLine2(canonicalIdentity.address2 || '');
-                                      setSenderCityStateZip(canonicalIdentity.cityStateZip || '');
-                                    }}
-                                    className="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-white/[0.08] bg-black/40 hover:bg-black/35 text-[10px] font-black uppercase tracking-widest text-white/60 transition-all"
-                                    title="Reset sender fields to the partnerâ€™s canonical identity"
-                                  >
-                                    Reset sender
-                                  </button>
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      const def = bureauDisputeAddress(b);
-                                      setSubjectLineByBureau((prev) => ({ ...prev, [b]: SUBJECT_LINE }));
-                                      setBureauAddressDraftByBureau((prev) => ({ ...prev, [b]: { name: def.name, linesText: def.lines.join('\n') } }));
-                                    }}
-                                    className="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-white/[0.08] bg-black/40 hover:bg-black/35 text-[10px] font-black uppercase tracking-widest text-white/60 transition-all"
-                                    title="Reset bureau recipient address + subject line to defaults"
-                                  >
-                                    Reset bureau
-                                  </button>
+                        <div className="space-y-3">
+                          <div className="space-y-3">
+                            <div className="space-y-2">
+                              {!senderMailingComplete ? (
+                                <div className="rounded-xl border border-red-500/40 bg-red-500/10 px-3 py-2 text-xs text-red-200">
+                                  Mailing address required — add your street and city/state/ZIP in Edit below.
                                 </div>
+                              ) : null}
+                              <LetterAddressSummary
+                                value={{
+                                  fromName: senderName,
+                                  fromLine1: senderAddressLine1,
+                                  fromLine2: senderAddressLine2,
+                                  fromCityStateZip: senderCityStateZip,
+                                  toName: bureauAddressDraftByBureau[b]?.name ?? '',
+                                  toLinesText: bureauAddressDraftByBureau[b]?.linesText ?? '',
+                                  subject: subjectLineByBureau[b] ?? SUBJECT_LINE,
+                                }}
+                                onChange={(patch) => {
+                                  if (patch.fromName !== undefined) setSenderName(patch.fromName);
+                                  if (patch.fromLine1 !== undefined) setSenderAddressLine1(patch.fromLine1);
+                                  if (patch.fromLine2 !== undefined) setSenderAddressLine2(patch.fromLine2);
+                                  if (patch.fromCityStateZip !== undefined) setSenderCityStateZip(patch.fromCityStateZip);
+                                  if (patch.toName !== undefined) {
+                                    setBureauAddressDraftByBureau((prev) => ({
+                                      ...prev,
+                                      [b]: { ...(prev[b] || { name: '', linesText: '' }), name: patch.toName! },
+                                    }));
+                                  }
+                                  if (patch.toLinesText !== undefined) {
+                                    setBureauAddressDraftByBureau((prev) => ({
+                                      ...prev,
+                                      [b]: { ...(prev[b] || { name: '', linesText: '' }), linesText: patch.toLinesText! },
+                                    }));
+                                  }
+                                  if (patch.subject !== undefined) {
+                                    setSubjectLineByBureau((prev) => ({ ...prev, [b]: patch.subject! }));
+                                  }
+                                }}
+                              />
+                              <div className="flex flex-wrap gap-2">
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setSenderName(canonicalIdentity.fullName || partner.profile.fullName || '');
+                                    setSenderAddressLine1(canonicalIdentity.address1 || canonicalIdentity.addressLine1 || '');
+                                    setSenderAddressLine2(canonicalIdentity.address2 || '');
+                                    setSenderCityStateZip(canonicalIdentity.cityStateZip || '');
+                                  }}
+                                  className={`${FINELY_OS_SECONDARY_BTN} text-xs`}
+                                  title="Reset sender fields to the partner's canonical identity"
+                                >
+                                  Reset sender
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const def = bureauDisputeAddress(b);
+                                    setSubjectLineByBureau((prev) => ({ ...prev, [b]: SUBJECT_LINE }));
+                                    setBureauAddressDraftByBureau((prev) => ({
+                                      ...prev,
+                                      [b]: { name: def.name, linesText: def.lines.join('\n') },
+                                    }));
+                                  }}
+                                  className={`${FINELY_OS_SECONDARY_BTN} text-xs`}
+                                  title="Reset bureau recipient address + subject line to defaults"
+                                >
+                                  Reset bureau
+                                </button>
                               </div>
-
-                              <div className="space-y-4">
-                                <div className="rounded-xl border border-white/[0.08] bg-black/40 p-4 space-y-3">
-                                  <div className="text-[10px] uppercase tracking-widest text-white/40">Sender (you)</div>
-                                  {!senderMailingComplete ? (
-                                    <div className="rounded-xl border border-red-500/40 bg-red-500/10 px-3 py-2 text-xs text-red-200">
-                                      Mailing address required â€” add your street and city/state/ZIP below. Missing fields show in <strong>red</strong> on the letter preview.
-                                    </div>
-                                  ) : null}
-                                  <div>
-                                    <div className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Name</div>
-                                    <input
-                                      value={senderName}
-                                      onChange={(e) => setSenderName(e.target.value)}
-                                      className={`mt-2 w-full bg-black/40 border rounded-xl px-4 py-3 text-white/80 focus:outline-none transition-colors ${!senderName.trim() ? 'border-red-500/50 focus:border-red-400' : 'border-white/[0.08] focus:border-amber-500'}`}
-                                      placeholder={canonicalIdentity.fullName || 'Full legal name'}
-                                    />
-                                  </div>
-                                  <div>
-                                    <div className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Address line 1</div>
-                                    <input
-                                      value={senderAddressLine1}
-                                      onChange={(e) => setSenderAddressLine1(e.target.value)}
-                                      className={`mt-2 w-full bg-black/40 border rounded-xl px-4 py-3 text-white/80 focus:outline-none transition-colors ${!(senderAddressLine1.trim() || canonicalIdentity.address1) ? 'border-red-500/50 focus:border-red-400' : 'border-white/[0.08] focus:border-amber-500'}`}
-                                      placeholder={canonicalIdentity.address1 || canonicalIdentity.addressLine1 || 'Street address'}
-                                    />
-                                  </div>
-                                  <div>
-                                    <div className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Address line 2 (optional)</div>
-                                    <input
-                                      value={senderAddressLine2}
-                                      onChange={(e) => setSenderAddressLine2(e.target.value)}
-                                      className="mt-2 w-full bg-black/40 border border-white/[0.08] rounded-xl px-4 py-3 text-white/80 focus:outline-none focus:border-amber-500 transition-colors"
-                                      placeholder={canonicalIdentity.address2 || 'Apt / Unit'}
-                                    />
-                                  </div>
-                                  <div>
-                                    <div className="text-[10px] font-bold text-white/40 uppercase tracking-widest">City, State ZIP</div>
-                                    <input
-                                      value={senderCityStateZip}
-                                      onChange={(e) => setSenderCityStateZip(e.target.value)}
-                                      className={`mt-2 w-full bg-black/40 border rounded-xl px-4 py-3 text-white/80 focus:outline-none transition-colors ${!resolveCityStateZip({ cityStateZip: senderCityStateZip, city: canonicalIdentity.city, state: canonicalIdentity.state, postalCode: canonicalIdentity.postalCode }).trim() ? 'border-red-500/50 focus:border-red-400' : 'border-white/[0.08] focus:border-amber-500'}`}
-                                      placeholder={canonicalIdentity.cityStateZip || 'City, ST 00000'}
-                                    />
-                                  </div>
-                                  <div className="text-[11px] text-white/45">Date on letters: <span className="text-white/75">{letterDate}</span> (auto-filled)</div>
-                                </div>
-
-                                <div className="rounded-xl border border-white/[0.08] bg-black/40 p-4 space-y-3">
-                                  <div className="text-[10px] uppercase tracking-widest text-white/40">Recipient (bureau)</div>
-                                  <div>
-                                    <div className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Bureau name</div>
-                                    <input
-                                      value={bureauAddressDraftByBureau[b]?.name ?? ''}
-                                      onChange={(e) =>
-                                        setBureauAddressDraftByBureau((prev) => ({
-                                          ...prev,
-                                          [b]: { ...(prev[b] || { name: '', linesText: '' }), name: e.target.value },
-                                        }))
-                                      }
-                                      className="mt-2 w-full bg-black/40 border border-white/[0.08] rounded-xl px-4 py-3 text-white/80 focus:outline-none focus:border-amber-500 transition-colors"
-                                      placeholder={bureauDisputeAddress(b).name}
-                                    />
-                                  </div>
-                                  <div>
-                                    <div className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Bureau address (one line per row)</div>
-                                    <textarea
-                                      value={bureauAddressDraftByBureau[b]?.linesText ?? ''}
-                                      onChange={(e) =>
-                                        setBureauAddressDraftByBureau((prev) => ({
-                                          ...prev,
-                                          [b]: { ...(prev[b] || { name: '', linesText: '' }), linesText: e.target.value },
-                                        }))
-                                      }
-                                      className="mt-2 w-full min-h-[132px] bg-black/40 border border-white/[0.08] rounded-xl px-4 py-3 text-white/80 focus:outline-none focus:border-amber-500 transition-colors"
-                                      placeholder={bureauDisputeAddress(b).lines.join('\n')}
-                                    />
-                                  </div>
-                                  <div>
-                                    <div className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Subject line</div>
-                                    <input
-                                      value={subjectLineByBureau[b] ?? SUBJECT_LINE}
-                                      onChange={(e) => setSubjectLineByBureau((prev) => ({ ...prev, [b]: e.target.value }))}
-                                      className="mt-2 w-full bg-black/40 border border-white/[0.08] rounded-xl px-4 py-3 text-white/80 focus:outline-none focus:border-amber-500 transition-colors"
-                                      placeholder={SUBJECT_LINE}
-                                    />
-                                  </div>
-                                </div>
-                              </div>
-
-                              <div className="text-[11px] text-white/40">
-                                These fields print on the generated PDF (top-right sender block, bureau address block, and subject line).
-                              </div>
+                              <p className="text-xs text-white/45">
+                                Date on letters: <span className="text-white/75">{letterDate}</span> (auto-filled)
+                              </p>
                             </div>
 
                             <div className="fc-light-glass-panel fc-light-chrome-panel p-5 space-y-3">
@@ -4374,7 +4661,7 @@ useEffect(() => {
                                       type="button"
                                       onClick={() => void runAiDraftForBureau(b)}
                                       disabled={aiBusy || !aiGatewayEnabled}
-                                      className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-amber-500 text-black font-black uppercase tracking-widest text-[10px] hover:brightness-110 transition-all disabled:opacity-60"
+                                      className="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-white/[0.08] bg-white/5 hover:bg-white/10 text-[10px] font-black uppercase tracking-widest text-white/70 transition-all disabled:opacity-60"
                                       title="Have AI draft the opening + narratives for this bureau"
                                     >
                                       <Sparkles size={14} /> {!aiGatewayEnabled ? 'AI disabled' : aiBusy ? 'Draftingâ€¦' : 'AI draft'}
@@ -4410,7 +4697,7 @@ useEffect(() => {
                                 valueHtml={ensureHtmlDraft(introHtml || '')}
                                 onChangeHtml={(html) => setIntroByBureau((prev) => ({ ...prev, [b]: html }))}
                                 placeholder="Write the opening paragraphs hereâ€¦"
-                                minHeightPx={640}
+                                minHeightPx={260}
                               />
                               <div className="text-[11px] text-white/40">
                                 The rest of the letter is structured automatically (items, screenshots, reasons).
@@ -4441,509 +4728,6 @@ useEffect(() => {
                                 This is the editable bottom section. Signature is appended automatically.
                               </div>
                             </div>
-
-                            <div className="space-y-3">
-                              <div className="text-[10px] uppercase tracking-widest text-white/40">Selected disputes</div>
-                              {(() => {
-                                const groups = (() => {
-                                  if (!groupOn) return [{ key: 'all', label: 'All items', items }];
-                                  const m = new Map<string, typeof items>();
-                                  for (const s of items) {
-                                    const k = (s.candidate.account || 'Unknown').trim() || 'Unknown';
-                                    const arr = m.get(k) ?? [];
-                                    arr.push(s);
-                                    m.set(k, arr);
-                                  }
-                                  return Array.from(m.entries())
-                                    .sort((a, b) => a[0].localeCompare(b[0]))
-                                    .map(([label, items]) => ({ key: label, label, items }));
-                                })();
-
-                                const focusedKey = (() => {
-                                  const cur = focusedKeyByBureau[b];
-                                  if (cur && items.some((x) => x.key === cur)) return cur;
-                                  return items[0]?.key ?? null;
-                                })();
-                                const focused = focusedKey ? items.find((x) => x.key === focusedKey) ?? null : null;
-
-                                return (
-                                  <div className="space-y-4">
-                                    {groups.map((g) => {
-                                      const gid = `${b}:${g.key}`;
-                                      const collapsed = collapsedGroups[gid] ?? false;
-                                      return (
-                                        <div key={gid} className="fc-light-glass-panel fc-light-chrome-panel overflow-hidden">
-                                          <button
-                                            type="button"
-                                            onClick={() => setCollapsedGroups((prev) => ({ ...prev, [gid]: !(prev[gid] ?? false) }))}
-                                            className="w-full px-5 py-4 flex items-center justify-between gap-3 text-left hover:bg-white/[0.03] transition-colors"
-                                            title={collapsed ? 'Expand group' : 'Collapse group'}
-                                          >
-                                            <div className="min-w-0">
-                                              <div className="text-white font-semibold truncate">{g.label}</div>
-                                              <div className="mt-1 text-[10px] uppercase tracking-widest text-white/40">
-                                                {g.items.length} item{g.items.length === 1 ? '' : 's'}
-                                              </div>
-                                            </div>
-                                            <div className="text-white/50 text-sm">{collapsed ? 'Show' : 'Hide'}</div>
-                                          </button>
-
-                                          {!collapsed ? (
-                                            <div className="p-5 pt-0">
-                                              <div className="space-y-3">
-                                                {g.items.map((s) => {
-                                                  const evId = evidenceByCandidateId[s.key];
-                                                  const reasonCount = (reasonsByCandidateId[s.key] ?? []).filter(Boolean).length;
-                                                  const ev = evId ? evidence.find((x) => x.id === evId) ?? null : null;
-                                                  const isFocused = focusedKey === s.key;
-                                                  return (
-                                                    <button
-                                                      key={s.key}
-                                                      type="button"
-                                                      onClick={() => setFocusedKeyByBureau((prev) => ({ ...prev, [b]: s.key }))}
-                                                      className={
-                                                        'w-full rounded-2xl border p-5 text-left space-y-3 transition-all ' +
-                                                        (isFocused
-                                                          ? 'border-amber-500/35 bg-amber-500/10'
-                                                          : 'border-white/[0.08] bg-black/40 hover:bg-white/[0.03]')
-                                                      }
-                                                      title="Select this item to edit evidence, reasons, and narrative"
-                                                    >
-                                                      <div className="min-w-0">
-                                                        <div className="text-white font-semibold truncate">
-                                                          {s.candidate.account} â€” {s.candidate.type}
-                                                        </div>
-                                                        <div className="mt-1 text-[10px] uppercase tracking-widest text-white/40">
-                                                          code: {s.candidate.code} â€¢ request: {s.candidate.status}
-                                                        </div>
-                                                      </div>
-
-                                                      <div className="flex flex-wrap items-center gap-2">
-                                                        <span
-                                                          className={
-                                                            'px-2.5 py-1 rounded-full border text-[10px] font-black uppercase tracking-widest ' +
-                                                            (ev ? 'border-emerald-500/25 bg-emerald-500/10 text-emerald-100/90' : 'border-red-500/25 bg-red-500/10 text-red-100/90')
-                                                          }
-                                                        >
-                                                          {ev ? 'Evidence linked' : 'Evidence missing'}
-                                                        </span>
-                                                        <span
-                                                          className={
-                                                            'px-2.5 py-1 rounded-full border text-[10px] font-black uppercase tracking-widest ' +
-                                                            (reasonCount > 0
-                                                              ? 'border-emerald-500/25 bg-emerald-500/10 text-emerald-100/90'
-                                                              : 'border-white/[0.08] bg-white/[0.02] text-white/60')
-                                                          }
-                                                        >
-                                                          Reasons {reasonCount}
-                                                        </span>
-                                                      </div>
-
-                                                      {ev?.blobRef && String(ev.mimeType || '').toLowerCase().startsWith('image/') ? (
-                                                        <div className="pt-1">
-                                                          <InlineEvidenceThumb blobRef={ev.blobRef} mimeType={ev.mimeType} alt={ev.filename || 'Evidence'} />
-                                                        </div>
-                                                      ) : null}
-                                                    </button>
-                                                  );
-                                                })}
-                                              </div>
-                                            </div>
-                                          ) : null}
-                                        </div>
-                                      );
-                                    })}
-                                  </div>
-                                );
-                              })()}
-                            </div>
-                          </div>
-
-                          <div className="space-y-4">
-                            <div className="rounded-2xl border border-white/[0.08] bg-[#070b09] shadow-xl p-4 space-y-3">
-                              <DisputeLetterIframePreview
-                                bureau={b}
-                                partnerName={senderName || canonicalIdentity.fullName || partner.profile.fullName || 'Partner'}
-                                sender={{
-                                  name: senderName || undefined,
-                                  addressLine1: senderAddressLine1 || canonicalIdentity.addressLine1,
-                                  addressLine2: senderAddressLine2 || canonicalIdentity.address2,
-                                  cityStateZip: senderCityStateZip || canonicalIdentity.cityStateZip,
-                                }}
-                                bureauAddress={(() => {
-                                  const cur = bureauAddressDraftByBureau[b];
-                                  const name = String(cur?.name || '').trim() || bureauDisputeAddress(b).name;
-                                  const lines = String(cur?.linesText || '')
-                                    .split('\n')
-                                    .map((x) => x.trim())
-                                    .filter(Boolean);
-                                  return { name, lines: lines.length ? lines : bureauDisputeAddress(b).lines };
-                                })()}
-                                subjectLine={(subjectLineByBureau[b] || '').trim() || SUBJECT_LINE}
-                                introHtml={ensureHtmlDraft(introHtml || '')}
-                                footerHtml={ensureHtmlDraft(footerHtml || '')}
-                                round={round}
-                                items={items.map((s) => {
-                                  const evId = evidenceByCandidateId[s.key];
-                                  const ev = evId ? evidence.find((x) => x.id === evId) : null;
-                                  return {
-                                    candidate: { ...s.candidate, id: s.key } as any,
-                                    evidence: ev ? { filename: ev.filename, blobRef: ev.blobRef, mimeType: ev.mimeType } : null,
-                                    reasons: reasonsByCandidateId[s.key] ?? [],
-                                    narrative: (aiNarrativeByCandidateKey[s.key] || '').trim() || null,
-                                  };
-                                })}
-                                onOpenFull={() => setPreviewModalBureau(b)}
-                                iframeHeightClassName="h-[360px]"
-                              />
-                            </div>
-
-                            {(() => {
-                              const focusedKey = (() => {
-                                const cur = focusedKeyByBureau[b];
-                                if (cur && items.some((x) => x.key === cur)) return cur;
-                                return items[0]?.key ?? null;
-                              })();
-                              const focused = focusedKey ? items.find((x) => x.key === focusedKey) ?? null : null;
-                              const evId = focused ? evidenceByCandidateId[focused.key] : undefined;
-                              const ev = evId ? evidence.find((x) => x.id === evId) ?? null : null;
-                              const suggestions = focused ? (suggestionsById[focused.key] ?? []) : [];
-                              const selectedReasons = focused ? (reasonsByCandidateId[focused.key] ?? []) : [];
-                              const narrative = focused ? (aiNarrativeByCandidateKey[focused.key] ?? '') : '';
-
-                              if (!focused) return null;
-
-                              return (
-                                <div className="fc-light-glass-panel fc-light-chrome-panel p-5 space-y-4">
-                                  <div className="text-[10px] uppercase tracking-widest text-white/40">Focused item</div>
-                                  <div className="text-white font-semibold">
-                                    {focused.candidate.account} â€” {focused.candidate.type}
-                                  </div>
-                                  <div className="text-[10px] uppercase tracking-widest text-white/40">
-                                    code: {focused.candidate.code} â€¢ request: {focused.candidate.status}
-                                  </div>
-
-                                  <div className="flex flex-wrap items-center gap-2">
-                                    <button
-                                      type="button"
-                                      onClick={() => {
-                                        const key = focused.key;
-                                        // Remove the dispute from this letter (and cleanup linked state).
-                                        setSelectedDisputes((prev) => prev.filter((x) => x.key !== key));
-                                        setEvidenceByCandidateId((prev) => {
-                                          const out = { ...prev };
-                                          delete out[key];
-                                          return out;
-                                        });
-                                        setReasonsByCandidateId((prev) => {
-                                          const out = { ...prev };
-                                          delete out[key];
-                                          return out;
-                                        });
-                                        setAiNarrativeByCandidateKey((prev) => {
-                                          const out = { ...prev };
-                                          delete out[key];
-                                          return out;
-                                        });
-                                        setFocusedKeyByBureau((prev) => ({ ...prev, [b]: null }));
-                                        setLastGeneratedAtByBureau((prev) => ({ ...prev, [b]: null }));
-                                      }}
-                                      className="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-red-500/25 bg-red-500/10 hover:bg-red-500/15 text-[10px] font-black uppercase tracking-widest text-red-100/80 transition-all"
-                                      title="Remove this dispute from the letter (useful to reset)"
-                                    >
-                                      Remove dispute
-                                    </button>
-                                  </div>
-
-                                  {(() => {
-                                    const nt = classifyCandidateNegativeType(focused.candidate as any);
-                                    const pb = NEGATIVE_PLAYBOOKS[nt] ?? NEGATIVE_PLAYBOOKS.unknown;
-                                    return (
-                                      <div className="fc-light-glass-panel fc-light-chrome-panel rounded-xl p-4 space-y-2">
-                                        <div className="flex flex-wrap items-center justify-between gap-3">
-                                          <div className="text-[10px] uppercase tracking-widest text-white/40">Playbook</div>
-                                          <div className="px-3 py-1 rounded-full border border-white/[0.08] bg-black/30 text-white/80 text-xs font-semibold">
-                                            {pb.label}
-                                          </div>
-                                        </div>
-                                        <div className="text-white/70 text-sm leading-relaxed">{pb.aiHint}</div>
-                                        {(pb.clauses?.length ?? 0) > 0 ? (
-                                          <div className="pt-2">
-                                            <div className="text-[10px] uppercase tracking-widest text-white/40">Clause snippets</div>
-                                            <div className="mt-2 space-y-2">
-                                              {pb.clauses!.slice(0, 4).map((c) => (
-                                                <div key={c} className="rounded-xl border border-white/[0.08] bg-black/30 p-3">
-                                                  <div className="text-white/70 text-sm leading-relaxed">{c}</div>
-                                                </div>
-                                              ))}
-                                            </div>
-                                          </div>
-                                        ) : null}
-                                        {pb.tasks.length ? (
-                                          <div className="pt-2">
-                                            <div className="text-[10px] uppercase tracking-widest text-white/40">Recommended next actions</div>
-                                            <ul className="mt-2 space-y-2">
-                                              {pb.tasks.slice(0, 4).map((t) => (
-                                                <li key={t.title} className="rounded-xl border border-white/[0.08] bg-black/30 p-3 text-white/75 text-sm">
-                                                  {t.title}
-                                                </li>
-                                              ))}
-                                            </ul>
-                                          </div>
-                                        ) : null}
-                                      </div>
-                                    );
-                                  })()}
-
-                                  <div className="rounded-xl border border-white/[0.08] bg-black/40 p-4 space-y-3">
-                                    {ev &&
-                                      !evidenceMatchesAccount({
-                                        accountName: focused.candidate.account,
-                                        candidateType: focused.candidate.type,
-                                        evidence: ev,
-                                      }) && (
-                                        <div className="rounded-xl border-2 border-red-500/50 bg-red-500/15 p-4 text-red-100 text-sm space-y-2">
-                                          <div className="flex items-start gap-3">
-                                            <ShieldAlert size={18} className="shrink-0 text-red-300 mt-0.5" />
-                                            <div>
-                                              <p className="font-bold uppercase tracking-wide text-red-200">Evidence mismatch</p>
-                                              <p className="mt-2 leading-relaxed">{describeEvidenceMismatch({ accountName: focused.candidate.account, evidence: ev })}</p>
-                                              <p className="mt-2 text-red-200/90">Replace this screenshot before generating the letter. Mismatched exhibits can cause bureau rejection.</p>
-                                            </div>
-                                          </div>
-                                        </div>
-                                      )}
-                                    <div className="flex items-center justify-between gap-3">
-                                      <div className="text-[10px] uppercase tracking-widest text-white/40">Evidence</div>
-                                      <div className="flex items-center gap-2">
-                                        {ev ? (
-                                          <button
-                                            type="button"
-                                            onClick={() => {
-                                              setEvidenceByCandidateId((prev) => {
-                                                const out = { ...prev };
-                                                delete out[focused.key];
-                                                return out;
-                                              });
-                                            }}
-                                            className="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-white/[0.08] bg-black/40 hover:bg-black/35 text-[10px] font-black uppercase tracking-widest text-white/60 transition-all"
-                                            title="Unlink evidence from this item"
-                                          >
-                                            Remove
-                                          </button>
-                                        ) : null}
-                                        <button
-                                          type="button"
-                                          onClick={() => {
-                                            if (screenshotEvidence.length === 0) return goCapture({ candidate: focused });
-                                            setEvidencePicker({ candidateId: focused.key });
-                                          }}
-                                          className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-amber-500 text-black font-black uppercase tracking-widest text-[10px] hover:brightness-110 transition-all"
-                                        >
-                                          {ev ? 'Replace' : 'Attach'} <ChevronRight size={14} />
-                                        </button>
-                                      </div>
-                                    </div>
-                                    {ev ? (
-                                      <div className="flex items-center justify-between gap-3">
-                                        <div className="flex items-center gap-3 min-w-0">
-                                          {ev.blobRef && String(ev.mimeType || '').toLowerCase().startsWith('image/') ? (
-                                            <InlineEvidenceThumb blobRef={ev.blobRef} mimeType={ev.mimeType} alt={ev.filename || 'Evidence'} />
-                                          ) : (
-                                            <div className="h-14 w-24 fc-light-glass-panel fc-light-chrome-panel rounded-xl flex items-center justify-center text-[10px] font-black uppercase tracking-widest text-white/40">
-                                              File
-                                            </div>
-                                          )}
-                                          <div className="min-w-0">
-                                            <div className="text-white/85 text-sm font-semibold truncate">{ev.filename}</div>
-                                            <div className="mt-0.5 text-[10px] uppercase tracking-widest text-white/35 font-mono truncate">{ev.mimeType}</div>
-                                          </div>
-                                        </div>
-                                        {ev.blobRef ? (
-                                          <button
-                                            type="button"
-                                            className="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-white/[0.08] bg-white/5 hover:bg-white/10 text-[10px] font-black uppercase tracking-widest text-white/70 transition-all"
-                                            onClick={() => {
-                                              void (async () => {
-                                                try {
-                                                  const result = await openBlobRefInNewTab({
-                                                    blobRef: ev.blobRef,
-                                                    mimeType: ev.mimeType,
-                                                    preferSigned: true,
-                                                  });
-                                                  if (!result.ok) window.alert(result.message);
-                                                } catch {
-                                                  // ignore
-                                                }
-                                              })();
-                                            }}
-                                          >
-                                            Open <ExternalLink size={14} />
-                                          </button>
-                                        ) : null}
-                                      </div>
-                                    ) : (
-                                      <div className="text-white/60 text-sm">No evidence attached yet.</div>
-                                    )}
-
-                                    {(() => {
-                                      // Suggested screenshots (ranked) for this focused item.
-                                      if (screenshotEvidence.length === 0) return null;
-                                      const ranked = rankEvidenceMatches({
-                                        accountName: focused.candidate.account,
-                                        candidateType: focused.candidate.type,
-                                        evidence: screenshotEvidence,
-                                      })
-                                        .slice(0, 6)
-                                        .map((r) => screenshotEvidence.find((x) => x.id === r.evidenceId) ?? null)
-                                        .filter(Boolean) as typeof screenshotEvidence;
-                                      const suggested = ranked.filter((x) => x.id !== evId).slice(0, 5);
-                                      if (!suggested.length) return null;
-                                      return (
-                                        <div className="pt-2">
-                                          <div className="text-[10px] uppercase tracking-widest text-white/40">Suggested screenshots</div>
-                                          <div className="mt-2 flex flex-wrap gap-2">
-                                            {suggested.map((s) => (
-                                              <button
-                                                key={s.id}
-                                                type="button"
-                                                onClick={() => setEvidenceByCandidateId((prev) => ({ ...prev, [focused.key]: s.id }))}
-                                                className="fc-light-glass-panel fc-light-chrome-panel rounded-xl hover:bg-white/[0.04] transition-all p-2"
-                                                title={`Attach ${s.filename}`}
-                                              >
-                                                <InlineEvidenceThumb blobRef={s.blobRef} mimeType={s.mimeType} alt={s.filename || 'Evidence'} />
-                                              </button>
-                                            ))}
-                                          </div>
-                                        </div>
-                                      );
-                                    })()}
-                                  </div>
-
-                                  <div className="rounded-xl border border-white/[0.08] bg-black/40 p-4 space-y-3">
-                                    <div className="flex flex-wrap items-center justify-between gap-3">
-                                      <div className="text-[10px] uppercase tracking-widest text-white/40">Reasons</div>
-                                      <div className="flex flex-wrap items-center gap-2">
-                                        <button
-                                          type="button"
-                                          onClick={() => {
-                                            const top = suggestions.slice(0, 3).map((x) => x.text);
-                                            if (!top.length) return;
-                                            setReasonsByCandidateId((prev) => ({ ...prev, [focused.key]: top }));
-                                          }}
-                                          className="px-3 py-2 rounded-xl border border-white/[0.08] bg-white/5 hover:bg-white/10 text-[10px] font-black uppercase tracking-widest text-white/70 transition-all"
-                                          title="Fill this item with the top suggested reasons"
-                                        >
-                                          Fill top 3
-                                        </button>
-                                        <button
-                                          type="button"
-                                          onClick={() => {
-                                            setReasonsByCandidateId((prev) => ({ ...prev, [focused.key]: [] }));
-                                          }}
-                                          className="px-3 py-2 rounded-xl border border-white/[0.08] bg-black/40 hover:bg-black/35 text-[10px] font-black uppercase tracking-widest text-white/60 transition-all"
-                                          title="Clear selected reasons for this item"
-                                        >
-                                          Clear
-                                        </button>
-                                      </div>
-                                    </div>
-                                    {suggestions.length === 0 ? (
-                                      <div className="text-white/50 text-sm">No reason suggestions available for this item.</div>
-                                    ) : (
-                                      <div className="space-y-2">
-                                        <div className="flex flex-wrap items-center gap-2 pb-2">
-                                          <div className="text-[10px] uppercase tracking-widest text-white/40">
-                                            Selected ({selectedReasons.filter(Boolean).length})
-                                          </div>
-                                          {selectedReasons.filter(Boolean).length ? (
-                                            <div className="flex flex-wrap gap-2">
-                                              {selectedReasons
-                                                .filter(Boolean)
-                                                .slice(0, 8)
-                                                .map((r) => (
-                                                  <div
-                                                    key={r}
-                                                    className="px-3 py-1 rounded-full fc-light-glass-panel fc-light-chrome-panel border text-[11px] text-white/70"
-                                                    title={r}
-                                                  >
-                                                    {r}
-                                                  </div>
-                                                ))}
-                                              {selectedReasons.filter(Boolean).length > 8 ? (
-                                                <div className="px-3 py-1 rounded-full border border-white/[0.08] bg-black/30 text-[11px] text-white/55">
-                                                  +{selectedReasons.filter(Boolean).length - 8} more
-                                                </div>
-                                              ) : null}
-                                            </div>
-                                          ) : (
-                                            <div className="text-[11px] text-white/50">Pick at least one reason below.</div>
-                                          )}
-                                        </div>
-                                        {suggestions.slice(0, 12).map((r) => {
-                                          const selected = selectedReasons.includes(r.text);
-                                          return (
-                                            <label key={r.id} className="flex items-start gap-2 text-white/75 text-sm cursor-pointer">
-                                              <input
-                                                type="checkbox"
-                                                className="mt-1"
-                                                checked={selected}
-                                                onChange={() => {
-                                                  setReasonsByCandidateId((prev) => {
-                                                    const cur = prev[focused.key] ?? [];
-                                                    const next = selected ? cur.filter((x) => x !== r.text) : [...cur, r.text];
-                                                    return { ...prev, [focused.key]: next };
-                                                  });
-                                                }}
-                                              />
-                                              <span>{r.text}</span>
-                                            </label>
-                                          );
-                                        })}
-                                      </div>
-                                    )}
-                                  </div>
-
-                                  <div className="rounded-xl border border-white/[0.08] bg-black/40 p-4 space-y-3">
-                                    <div className="flex flex-wrap items-center justify-between gap-3">
-                                      <div className="text-[10px] uppercase tracking-widest text-white/40">Narrative (optional)</div>
-                                      <div className="flex items-center gap-2">
-                                        <button
-                                          type="button"
-                                          onClick={() =>
-                                            setAiNarrativeByCandidateKey((prev) => {
-                                              const out = { ...prev };
-                                              delete out[focused.key];
-                                              return out;
-                                            })
-                                          }
-                                          className="px-3 py-2 rounded-xl border border-white/[0.08] bg-black/40 hover:bg-black/35 text-[10px] font-black uppercase tracking-widest text-white/60 transition-all"
-                                          title="Clear narrative for this item"
-                                        >
-                                          Clear
-                                        </button>
-                                      </div>
-                                    </div>
-                                    <div className="text-white/60 text-sm">
-                                      Write the dispute in your own words. This is what you use when you donâ€™t want to attach a screenshot.
-                                      {narrative.trim() ? ' (AI draft is already filled in â€” edit as needed.)' : null}
-                                    </div>
-                                    <textarea
-                                      value={narrative}
-                                      onChange={(e) =>
-                                        setAiNarrativeByCandidateKey((prev) => ({
-                                          ...prev,
-                                          [focused.key]: e.target.value,
-                                        }))
-                                      }
-                                      rows={5}
-                                      placeholder="Example: This account is reporting inaccurately. Please reinvestigate and provide the method of verification. If it cannot be verified, delete or correct itâ€¦"
-                                      className="w-full rounded-xl border border-white/[0.08] bg-black/40 px-4 py-3 text-white/80 text-sm leading-relaxed placeholder:text-white/30 focus:outline-none focus:border-amber-500/60"
-                                    />
-                                  </div>
-                                </div>
-                              );
-                            })()}
 
                           </div>
                         </div>
@@ -4987,11 +4771,414 @@ useEffect(() => {
                       </div>
                     </div>
                   );
-                })}
+                  })()
+                  ) : null}
                 </>
               )}
 
-              <DisputePickerModal
+            </div>
+              }
+              paper={
+                disputeBureauItems.length > 0 && (studioOpenByBureau[disputeBureau] ?? true) ? (
+                  (() => {
+                    const b = disputeBureau;
+                    const items = disputeBureauItems;
+                    const introHtml = introByBureau[b];
+                    const footerHtml = footerByBureau[b] || plainTextToHtml(defaultDisputeFooter(toneByBureau[b]));
+                    const round = roundByBureau[b];
+                    return (
+                      <DisputeLetterIframePreview
+                        bureau={b}
+                        partnerName={senderName || canonicalIdentity.fullName || partner.profile.fullName || 'Partner'}
+                        sender={{
+                          name: senderName || undefined,
+                          addressLine1: senderAddressLine1 || canonicalIdentity.addressLine1,
+                          addressLine2: senderAddressLine2 || canonicalIdentity.address2,
+                          cityStateZip: senderCityStateZip || canonicalIdentity.cityStateZip,
+                        }}
+                        bureauAddress={(() => {
+                          const cur = bureauAddressDraftByBureau[b];
+                          const name = String(cur?.name || '').trim() || bureauDisputeAddress(b).name;
+                          const lines = String(cur?.linesText || '')
+                            .split('\n')
+                            .map((x) => x.trim())
+                            .filter(Boolean);
+                          return { name, lines: lines.length ? lines : bureauDisputeAddress(b).lines };
+                        })()}
+                        subjectLine={(subjectLineByBureau[b] || '').trim() || SUBJECT_LINE}
+                        introHtml={ensureHtmlDraft(introHtml || '')}
+                        footerHtml={ensureHtmlDraft(footerHtml || '')}
+                        round={round}
+                        items={items.map((s) => {
+                          const evId = evidenceByCandidateId[s.key];
+                          const ev = evId ? evidence.find((x) => x.id === evId) : null;
+                          return {
+                            candidate: { ...s.candidate, id: s.key } as any,
+                            evidence: ev ? { filename: ev.filename, blobRef: ev.blobRef, mimeType: ev.mimeType } : null,
+                            reasons: reasonsByCandidateId[s.key] ?? [],
+                            laws: (lawsByCandidateId[s.key] ?? []).map((l) => ({ cite: l.cite, shortLabel: l.shortLabel })),
+                            narrative: (aiNarrativeByCandidateKey[s.key] || '').trim() || null,
+                          };
+                        })}
+                        onOpenFull={() => setPreviewModalBureau(b)}
+                        iframeHeightClassName="h-[min(72vh,820px)]"
+                      />
+                    );
+                  })()
+                ) : (
+                  <div className="rounded-xl border border-white/10 bg-black/30 !p-4 text-sm text-white/50 text-center">
+                    Select disputes and open studio to preview your bureau letter.
+                  </div>
+                )
+              }
+              rail={
+                disputeBureauItems.length > 0 ? (
+                  (() => {
+                    const b = disputeBureau;
+                    const items = disputeBureauItems;
+                    const groupOn = groupByCreditorByBureau[b] ?? true;
+                    const groups = (() => {
+                      if (!groupOn) return [{ key: 'all', label: 'All items', items }];
+                      const m = new Map();
+                      for (const s of items) {
+                        const k = (s.candidate.account || 'Unknown').trim() || 'Unknown';
+                        const arr = m.get(k) ?? [];
+                        arr.push(s);
+                        m.set(k, arr);
+                      }
+                      return Array.from(m.entries())
+                        .sort((a, bb) => a[0].localeCompare(bb[0]))
+                        .map(([label, items]) => ({ key: label, label, items }));
+                    })();
+                    const focusedKey = (() => {
+                      const cur = focusedKeyByBureau[b];
+                      if (cur && items.some((x) => x.key === cur)) return cur;
+                      return items[0]?.key ?? null;
+                    })();
+                    const focused = focusedKey ? items.find((x) => x.key === focusedKey) ?? null : null;
+                    const evId = focused ? evidenceByCandidateId[focused.key] : undefined;
+                    const ev = evId ? evidence.find((x) => x.id === evId) ?? null : null;
+                    const suggestions = focused ? (suggestionsById[focused.key] ?? []) : [];
+                    const selectedReasons = focused ? (reasonsByCandidateId[focused.key] ?? []) : [];
+                    const selectedLaws = focused ? (lawsByCandidateId[focused.key] ?? []) : [];
+                    const customLawDraft = focused ? (customLawDraftByKey[focused.key] ?? '') : '';
+                    const focusedNegativeType = focused
+                      ? classifyCandidateNegativeType(focused.candidate as any)
+                      : ('unknown' as NegativeType);
+                    const focusedPlaybook = NEGATIVE_PLAYBOOKS[focusedNegativeType] ?? NEGATIVE_PLAYBOOKS.unknown;
+                    const narrative = focused ? (aiNarrativeByCandidateKey[focused.key] ?? '') : '';
+                    return (
+                      <div className="space-y-3">
+                        <div className="rounded-xl border border-white/10 bg-black/30 !p-3 space-y-2">
+                          <div className="text-[10px] uppercase tracking-widest text-white/50">Selected disputes</div>
+                          <div className="space-y-2 max-h-[38vh] overflow-y-auto pr-1">
+                            {groups.map((g) => {
+                              const gid = b + ':' + g.key;
+                              const collapsed = collapsedGroups[gid] ?? false;
+                              return (
+                                <div key={gid} className="rounded-xl border border-white/[0.08] bg-black/40 overflow-hidden">
+                                  <button
+                                    type="button"
+                                    onClick={() => setCollapsedGroups((prev) => ({ ...prev, [gid]: !(prev[gid] ?? false) }))}
+                                    className="w-full px-3 py-2 flex items-center justify-between gap-2 text-left hover:bg-white/[0.03]"
+                                  >
+                                    <span className="text-sm font-semibold text-white truncate">{g.label}</span>
+                                    <span className="text-xs text-white/60">{collapsed ? 'Expand' : 'Collapse'}</span>
+                                  </button>
+                                  {!collapsed ? (
+                                    <div className="p-2 pt-0 space-y-2">
+                                      {g.items.map((s: (typeof items)[number]) => {
+                                        const rowEvId = evidenceByCandidateId[s.key];
+                                        const rowEv = rowEvId ? evidence.find((x) => x.id === rowEvId) ?? null : null;
+                                        const reasonCount = (reasonsByCandidateId[s.key] ?? []).filter(Boolean).length;
+                                        const isFocused = focusedKey === s.key;
+                                        const evStatus = evidenceLinkStatus(rowEv);
+                                        return (
+                                          <button
+                                            key={s.key}
+                                            type="button"
+                                            onClick={() => setFocusedKeyByBureau((prev) => ({ ...prev, [b]: s.key }))}
+                                            className={
+                                              'w-full rounded-xl border p-3 text-left space-y-2 transition-all ' +
+                                              (isFocused
+                                                ? 'border-amber-500/45 bg-amber-500/12 ring-1 ring-amber-400/25'
+                                                : 'border-white/[0.12] bg-black/45 hover:bg-white/[0.04]')
+                                            }
+                                          >
+                                            <div className="text-sm font-semibold text-white truncate">{s.candidate.account}</div>
+                                            <div className="text-xs text-white/60">{s.candidate.type}</div>
+                                            <div className="flex flex-wrap gap-1.5">
+                                              <span className="px-2 py-0.5 rounded-full border text-[9px] font-bold uppercase text-white/70">{evStatus.label}</span>
+                                              <span className="px-2 py-0.5 rounded-full border text-[9px] font-bold uppercase text-white/70">Reasons {reasonCount}</span>
+                                            </div>
+                                          </button>
+                                        );
+                                      })}
+                                    </div>
+                                  ) : null}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                        {focused ? (
+                          <div id="fc-focused-item" className="rounded-xl border border-white/10 bg-black/30 !p-3 space-y-3 max-h-[48vh] overflow-y-auto">
+                            <div className="text-[10px] uppercase tracking-widest text-white/50">Focused item</div>
+                            <div className="text-sm font-semibold text-white">{focused.candidate.account} — {focused.candidate.type}</div>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const key = focused.key;
+                                setSelectedDisputes((prev) => prev.filter((x) => x.key !== key));
+                                setEvidenceByCandidateId((prev) => { const out = { ...prev }; delete out[key]; return out; });
+                                setReasonsByCandidateId((prev) => { const out = { ...prev }; delete out[key]; return out; });
+                                setLawsByCandidateId((prev) => { const out = { ...prev }; delete out[key]; return out; });
+                                setAiNarrativeByCandidateKey((prev) => { const out = { ...prev }; delete out[key]; return out; });
+                                setFocusedKeyByBureau((prev) => ({ ...prev, [b]: null }));
+                                setLastGeneratedAtByBureau((prev) => ({ ...prev, [b]: null }));
+                              }}
+                              className="px-3 py-1.5 rounded-lg border border-red-500/25 bg-red-500/10 text-[10px] font-black uppercase text-red-100"
+                            >
+                              Remove dispute
+                            </button>
+                            <div className="rounded-lg border border-white/10 bg-black/40 !p-3 space-y-2">
+                              <div className="flex items-center justify-between gap-2">
+                                <span className="text-[10px] uppercase tracking-widest text-white/45">Evidence</span>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    if (screenshotEvidence.length === 0) return goCapture({ candidate: focused });
+                                    setEvidencePicker({ candidateId: focused.key });
+                                  }}
+                                  className="px-2 py-1 rounded-lg bg-amber-500 text-black text-[10px] font-black uppercase"
+                                >
+                                  {ev ? 'Replace' : 'Attach'}
+                                </button>
+                              </div>
+                              {ev ? <div className="text-xs text-white/70 truncate">{ev.filename}</div> : <div className="text-xs text-white/50">No evidence attached</div>}
+                            </div>
+                            <div className="rounded-lg border border-white/10 bg-black/40 !p-3 space-y-2">
+                              <div className="text-[10px] uppercase tracking-widest text-white/45">Reasons ({selectedReasons.filter(Boolean).length})</div>
+                              {suggestions.slice(0, 8).map((r) => {
+                                const selected = selectedReasons.includes(r.text);
+                                return (
+                                  <label key={r.id} className="flex items-start gap-2 text-xs text-white/75 cursor-pointer">
+                                    <input
+                                      type="checkbox"
+                                      className="mt-0.5"
+                                      checked={selected}
+                                      onChange={() => {
+                                        setReasonsByCandidateId((prev) => {
+                                          const cur = prev[focused.key] ?? [];
+                                          const next = selected ? cur.filter((x) => x !== r.text) : [...cur, r.text];
+                                          return { ...prev, [focused.key]: next };
+                                        });
+                                      }}
+                                    />
+                                    <span>{r.text}</span>
+                                  </label>
+                                );
+                              })}
+                            </div>
+                            <div id="fc-laws-panel" className="rounded-lg border border-white/10 bg-black/40 !p-3 space-y-2">
+                              <div className="flex flex-wrap items-center justify-between gap-2">
+                                <span className="text-[10px] uppercase tracking-widest text-white/45">
+                                  Laws ({selectedLaws.length})
+                                </span>
+                                <div className="flex flex-wrap gap-1">
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      const seeded = resolveBureauDisputeLaws(
+                                        classifyCandidateNegativeType(focused.candidate as any),
+                                      );
+                                      setLawsByCandidateId((prev) => ({ ...prev, [focused.key]: seeded }));
+                                    }}
+                                    className="px-2 py-1 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 text-[9px] font-bold uppercase text-white/65"
+                                    title="Reset to suggested bureau laws for this negative type"
+                                  >
+                                    Reset
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => setLawsByCandidateId((prev) => ({ ...prev, [focused.key]: [] }))}
+                                    className="px-2 py-1 rounded-lg border border-white/10 bg-black/30 text-[9px] font-bold uppercase text-white/55"
+                                    title="Clear all laws for this item"
+                                  >
+                                    Clear
+                                  </button>
+                                </div>
+                              </div>
+                              <p className="text-xs text-white/50 leading-snug" title={focusedPlaybook.aiHint}>
+                                <span className="text-white/70 font-medium">{focusedPlaybook.label}:</span>{' '}
+                                {focusedPlaybook.aiHint}
+                              </p>
+                              {selectedLaws.length ? (
+                                <div className="space-y-1.5">
+                                  {selectedLaws.map((law) => (
+                                    <div
+                                      key={law.id}
+                                      className="flex items-start gap-1.5 rounded-lg border border-white/10 bg-black/30 !p-2"
+                                    >
+                                      <div className="min-w-0 flex-1 space-y-1">
+                                        <input
+                                          value={law.cite}
+                                          onChange={(e) => {
+                                            const cite = e.target.value;
+                                            setLawsByCandidateId((prev) => ({
+                                              ...prev,
+                                              [focused.key]: (prev[focused.key] ?? []).map((l) =>
+                                                l.id === law.id ? { ...l, cite, source: 'custom' as const } : l,
+                                              ),
+                                            }));
+                                          }}
+                                          className="w-full rounded-md border border-white/10 bg-black/40 px-2 py-1 text-xs text-white/90"
+                                          placeholder="Citation"
+                                        />
+                                        <input
+                                          value={law.shortLabel}
+                                          onChange={(e) => {
+                                            const shortLabel = e.target.value;
+                                            setLawsByCandidateId((prev) => ({
+                                              ...prev,
+                                              [focused.key]: (prev[focused.key] ?? []).map((l) =>
+                                                l.id === law.id ? { ...l, shortLabel, source: 'custom' as const } : l,
+                                              ),
+                                            }));
+                                          }}
+                                          className="w-full rounded-md border border-white/10 bg-black/40 px-2 py-1 text-[11px] text-white/70"
+                                          placeholder="Short label"
+                                        />
+                                      </div>
+                                      <button
+                                        type="button"
+                                        onClick={() =>
+                                          setLawsByCandidateId((prev) => ({
+                                            ...prev,
+                                            [focused.key]: (prev[focused.key] ?? []).filter((l) => l.id !== law.id),
+                                          }))
+                                        }
+                                        className="shrink-0 px-2 py-1 rounded-md border border-red-500/25 bg-red-500/10 text-[9px] font-bold uppercase text-red-100"
+                                        title="Remove this law"
+                                      >
+                                        Del
+                                      </button>
+                                    </div>
+                                  ))}
+                                </div>
+                              ) : (
+                                <div className="text-xs text-white/50">No laws — reset suggested or add a custom cite.</div>
+                              )}
+                              <div className="flex flex-wrap items-center gap-1.5">
+                                <input
+                                  value={customLawDraft}
+                                  onChange={(e) =>
+                                    setCustomLawDraftByKey((prev) => ({ ...prev, [focused.key]: e.target.value }))
+                                  }
+                                  className="min-w-[120px] flex-1 rounded-md border border-white/10 bg-black/40 px-2 py-1 text-xs text-white/90"
+                                  placeholder="Add custom law / statute"
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const raw = customLawDraft.trim();
+                                    if (!raw) return;
+                                    const next = makeCustomLetterCitation(raw);
+                                    setLawsByCandidateId((prev) => ({
+                                      ...prev,
+                                      [focused.key]: [...(prev[focused.key] ?? []), next],
+                                    }));
+                                    setCustomLawDraftByKey((prev) => ({ ...prev, [focused.key]: '' }));
+                                  }}
+                                  className="px-2 py-1 rounded-md border border-emerald-400/30 bg-emerald-500/15 text-[9px] font-bold uppercase text-emerald-100"
+                                >
+                                  Add
+                                </button>
+                              </div>
+                            </div>
+                            <textarea
+                              value={narrative}
+                              onChange={(e) => setAiNarrativeByCandidateKey((prev) => ({ ...prev, [focused.key]: e.target.value }))}
+                              rows={3}
+                              placeholder="Optional narrative for this item…"
+                              className="w-full rounded-lg border border-white/10 bg-black/40 px-3 py-2 text-xs text-white/80"
+                            />
+                          </div>
+                        ) : null}
+                      </div>
+                    );
+                  })()
+                ) : null
+              }
+              footer={
+                <>
+              <details className="rounded-xl border border-white/10 bg-black/25 !p-3" open={screenshotEvidence.length === 0}>
+                <summary className="cursor-pointer text-sm font-semibold text-white">
+                  Screenshots & proof {screenshotEvidence.length === 0 ? '(upload or capture)' : `(${screenshotEvidence.length} recent)`}
+                </summary>
+                <div className="mt-3 space-y-3">
+                  <p className="text-xs text-white/50">
+                    Bureau dispute screenshots: capture from <span className="text-white/75">Reports</span> or upload here. General documents live in the Evidence vault.
+                  </p>
+                  {screenshotEvidence.length > 0 ? (
+                    <div className="flex flex-wrap gap-2">
+                      {screenshotEvidence.slice(0, 8).map((s) => (
+                        <button
+                          key={s.id}
+                          type="button"
+                          className="rounded-xl border border-white/10 bg-black/30 p-2 hover:border-sky-400/30 transition-all"
+                          title={s.filename || 'Attach to focused dispute'}
+                          onClick={() => {
+                            const focusedKey = focusedKeyByBureau[workspaceBureau];
+                            if (focusedKey) {
+                              setEvidenceByCandidateId((prev) => ({ ...prev, [focusedKey]: s.id }));
+                              setReturnNotice('Screenshot attached to the focused dispute item.');
+                            } else {
+                              setReturnNotice('Select a dispute item first, then click a screenshot to attach.');
+                            }
+                          }}
+                        >
+                          <InlineEvidenceThumb
+                            blobRef={s.blobRef}
+                            mimeType={s.mimeType}
+                            filename={s.filename}
+                            alt={s.filename || 'Screenshot'}
+                            size="sm"
+                          />
+                          <div className="mt-1 max-w-[6rem] truncate text-[9px] text-white/45">{s.filename || 'Screenshot'}</div>
+                        </button>
+                      ))}
+                    </div>
+                  ) : null}
+                  <SmartProofUploader
+                    partner={partner}
+                    email={partner.profile.email}
+                    compact
+                    uploadContext="bureau"
+                    onUploaded={() => {
+                      setEvidenceVersion((v) => v + 1);
+                      setReturnNotice('Upload complete — attach screenshots to each dispute item above.');
+                    }}
+                  />
+                </div>
+              </details>
+
+              <section className="rounded-2xl border border-violet-500/20 bg-black/30 p-5 sm:p-6 space-y-3">
+                <div>
+                  <h3 className="text-sm font-semibold text-white">Dispute letter coach</h3>
+                  <p className="mt-1 text-xs text-white/55">
+                    Full-width help with reasons, evidence, and 5-step framing — not squeezed into a side panel.
+                  </p>
+                </div>
+                <LetterDisputeCoachStrip bureau={workspaceBureau} partnerId={partner.id} />
+              </section>
+
+              <LetterDisclaimerFooter />
+                </>
+              }
+            />
+
+            <DisputePickerModal
                 open={pickerOpen}
                 onClose={() => setPickerOpen(false)}
                 reports={reports.map((r) => ({ id: r.id, filename: r.filename, parsed: (r.parsed ?? null) as any }))}
@@ -5059,17 +5246,6 @@ useEffect(() => {
                 }}
               />
 
-              <section className="rounded-2xl border border-violet-500/20 bg-black/30 p-5 sm:p-6 space-y-3">
-                <div>
-                  <h3 className="text-sm font-semibold text-white">Dispute letter coach</h3>
-                  <p className="mt-1 text-xs text-white/55">
-                    Full-width help with reasons, evidence, and 5-step framing — not squeezed into a side panel.
-                  </p>
-                </div>
-                <LetterDisputeCoachStrip bureau={workspaceBureau} partnerId={partner.id} />
-              </section>
-            </div>
-
             <LetterEscalationPanel track="bureau_dispute" accent="sky" />
           </EntitlementGate>
         )}
@@ -5091,6 +5267,12 @@ useEffect(() => {
               ) : null
             }
           >
+            <DebtTrackEasyFlow
+              trackLabel={debtTrackLabel}
+              steps={debtLetterPathSteps}
+              onStep={runDebtLetterBuildStep}
+              onContinue={runDebtLetterBuildContinue}
+            >
             <ValidationCenterView
               {...debtCenterSharedProps}
               partner={partner}
@@ -5100,6 +5282,7 @@ useEffect(() => {
               onBuildDraft={(specId) => buildDebtCenterDraft(specId, false)}
               onBuildCatalogDraft={(id) => buildCatalogDraft(id, 'validation')}
             />
+            </DebtTrackEasyFlow>
           </EntitlementGate>
         )}
 
@@ -5120,6 +5303,12 @@ useEffect(() => {
               ) : null
             }
           >
+            <DebtTrackEasyFlow
+              trackLabel={debtTrackLabel}
+              steps={debtLetterPathSteps}
+              onStep={runDebtLetterBuildStep}
+              onContinue={runDebtLetterBuildContinue}
+            >
             <AffidavitCourtCenterView
               {...debtCenterSharedProps}
               partner={partner}
@@ -5135,6 +5324,7 @@ useEffect(() => {
                 return t.includes('summons') || t.includes('complaint');
               }).length}
             />
+            </DebtTrackEasyFlow>
           </EntitlementGate>
         )}
 
@@ -5155,6 +5345,12 @@ useEffect(() => {
               ) : null
             }
           >
+            <DebtTrackEasyFlow
+              trackLabel={debtTrackLabel}
+              steps={debtLetterPathSteps}
+              onStep={runDebtLetterBuildStep}
+              onContinue={runDebtLetterBuildContinue}
+            >
             <ForeclosureCenterView
               {...debtCenterSharedProps}
               partner={partner}
@@ -5162,6 +5358,7 @@ useEffect(() => {
               onSwitchToRepossession={() => setTab('repossession')}
               onBuildCatalogDraft={(id) => buildCatalogDraft(id, 'foreclosure')}
             />
+            </DebtTrackEasyFlow>
           </EntitlementGate>
         )}
 
@@ -5182,6 +5379,12 @@ useEffect(() => {
               ) : null
             }
           >
+            <DebtTrackEasyFlow
+              trackLabel={debtTrackLabel}
+              steps={debtLetterPathSteps}
+              onStep={runDebtLetterBuildStep}
+              onContinue={runDebtLetterBuildContinue}
+            >
             <RepossessionCenterView
               {...debtCenterSharedProps}
               partner={partner}
@@ -5189,6 +5392,7 @@ useEffect(() => {
               onSwitchToForeclosure={() => setTab('foreclosure')}
               onBuildCatalogDraft={(id) => buildCatalogDraft(id, 'repossession')}
             />
+            </DebtTrackEasyFlow>
           </EntitlementGate>
         )}
 
@@ -5240,6 +5444,15 @@ useEffect(() => {
             }
           >
             <div className="space-y-6">
+              <div className="rounded-2xl border border-amber-400/25 bg-amber-500/10 p-4 flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <div className="text-sm font-semibold text-amber-50">Continue in Letter Studio</div>
+                  <p className="text-sm text-white/65 mt-1">Pick a template here, then drop it into your active track — bureau, validation, or court.</p>
+                </div>
+                <button type="button" className={FINELY_OS_PRIMARY_BTN} onClick={() => setTab(templatesReturnTab)}>
+                  Continue — {templatesReturnTab === 'dispute' ? 'Bureaus' : templatesReturnTab} <ChevronRight size={16} />
+                </button>
+              </div>
               <div className="rounded-2xl border border-white/[0.08] bg-black/30 p-6 space-y-4">
                 <div className="text-[10px] uppercase tracking-widest text-white/40">Template browser</div>
 

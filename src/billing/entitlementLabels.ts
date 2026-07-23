@@ -13,6 +13,7 @@ const ENTITLEMENT_LABELS: Record<string, string> = {
   [ENTITLEMENT_KEYS.escalations]: 'Complaints & escalations',
   [ENTITLEMENT_KEYS.identityTheft]: 'Identity theft center',
   [ENTITLEMENT_KEYS.businessBuild]: 'Credit building center',
+  [ENTITLEMENT_KEYS.auSeller]: 'Tradelines / AU seller',
   [ENTITLEMENT_KEYS.packBankruptcy]: 'Letter pack: Bankruptcy',
   [ENTITLEMENT_KEYS.packRepossession]: 'Letter pack: Repossession',
   [ENTITLEMENT_KEYS.packForeclosure]: 'Letter pack: Foreclosure',

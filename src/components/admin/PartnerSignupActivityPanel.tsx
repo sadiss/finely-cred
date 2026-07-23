@@ -49,9 +49,15 @@ export function PartnerSignupActivityPanel({ partner }: Props) {
         <div className="space-y-2">
           <p className={FINELY_OS_ENTITY_SUBLABEL}>Signup & access activity</p>
           <div className="flex flex-wrap items-center gap-3">
-            <div className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 ${finelyOsStatusChip(signupStatusChipTone(status.tone))}`}>
-              <StageIcon size={14} />
-              <span className="text-sm font-semibold">{status.label}</span>
+            <div
+              className={
+                status.stage === 'active' || status.stage === 'signup_complete'
+                  ? 'inline-flex items-center gap-2.5 rounded-2xl border border-emerald-300/70 bg-gradient-to-b from-emerald-100 to-white px-5 py-2.5 text-emerald-950 shadow-sm'
+                  : `inline-flex items-center gap-2 rounded-2xl border px-4 py-2 ${finelyOsStatusChip(signupStatusChipTone(status.tone))}`
+              }
+            >
+              <StageIcon size={status.stage === 'active' || status.stage === 'signup_complete' ? 18 : 14} />
+              <span className="text-base font-black uppercase tracking-wide">{status.label}</span>
             </div>
             <p className={`text-sm ${FINELY_OS_ENTITY_BODY}`}>{status.detail}</p>
           </div>

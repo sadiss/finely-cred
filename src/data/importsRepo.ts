@@ -7,6 +7,7 @@ import { importLegacyPartnerArtifacts } from './legacyPartnerArtifactsImport';
 import { seedLegacyPartnerNotes } from './legacyPartnerNotesImport';
 import { seedLegacyPartnerWorkPipeline } from '../lib/legacyMigrationWork';
 import { addAuditEvent } from './auditRepo';
+import { previewLegacyPartnerRepair, formatLegacyRepairPreview } from '../lib/legacyPartnerRepair';
 
 const KEY = 'finely.imports.v1';
 
@@ -252,6 +253,8 @@ export async function importLegacyArtifactsForExistingPartners(args: {
         partnerId: existing.id,
         exportPartner: p,
         dryRun: args.dryRun,
+        forceReclassify: true,
+        applyStageSync: true,
       });
       if (!args.dryRun) {
         seedLegacyPartnerWorkPipeline({ partnerId: existing.id, exportPartner: p });
@@ -284,6 +287,126 @@ export async function importLegacyArtifactsForExistingPartners(args: {
     saveStore(store);
   }
   return batch;
+}
+
+export type LegacyClassificationRepairResult = {
+  partnerCount: number;
+  repairedPartnerIds: string[];
+  errors: Array<{ externalId?: string; message: string }>;
+  previews: string[];
+  artifacts: {
+    evidenceCreated: number;
+    reportsCreated: number;
+    lettersCreated: number;
+    analysisReportsCreated: number;
+    bureauResponsesCreated: number;
+    migratedFromEvidence: number;
+  };
+};
+
+/** Re-run improved classifier + note-derived stage sync for all partners in a legacy export. */
+export async function repairLegacyPartnerClassification(args: {
+  exportData: LegacyPartnerExportV1;
+  dryRun?: boolean;
+  /** Limit to one partner externalId (e.g. laravel:uid:176 for Ashley Ann). */
+  onlyExternalId?: string;
+}): Promise<LegacyClassificationRepairResult> {
+  const result: LegacyClassificationRepairResult = {
+    partnerCount: 0,
+    repairedPartnerIds: [],
+    errors: [],
+    previews: [],
+    artifacts: {
+      evidenceCreated: 0,
+      reportsCreated: 0,
+      lettersCreated: 0,
+      analysisReportsCreated: 0,
+      bureauResponsesCreated: 0,
+      migratedFromEvidence: 0,
+    },
+  };
+
+  const partners = (Array.isArray(args.exportData.partners) ? args.exportData.partners : []).filter((p) => {
+    if (!args.onlyExternalId) return true;
+    return String(p.externalId || '').trim() === args.onlyExternalId;
+  });
+
+  result.partnerCount = partners.length;
+
+  for (const p of partners) {
+    try {
+      const externalId = String(p.externalId || '').trim();
+      if (!externalId) throw new Error('Missing externalId');
+      const existing = await findPartnerByImportExternalId({ source: 'laravel', externalId });
+      if (!existing) {
+        result.errors.push({ externalId, message: 'Partner not imported yet — run full import first.' });
+        continue;
+      }
+
+      const preview = previewLegacyPartnerRepair({ exportPartner: p });
+      result.previews.push(formatLegacyRepairPreview(preview));
+
+      if (args.dryRun) {
+        const artifactResult = await importLegacyPartnerArtifacts({
+          partnerId: existing.id,
+          exportPartner: p,
+          dryRun: true,
+          forceReclassify: true,
+          applyStageSync: true,
+        });
+        result.artifacts.evidenceCreated += artifactResult.evidenceCreated;
+        result.artifacts.reportsCreated += artifactResult.reportsCreated;
+        result.artifacts.lettersCreated += artifactResult.lettersCreated;
+        result.artifacts.analysisReportsCreated += artifactResult.analysisReportsCreated;
+        result.artifacts.bureauResponsesCreated += artifactResult.bureauResponsesCreated;
+        result.artifacts.migratedFromEvidence += artifactResult.migratedFromEvidence;
+        result.repairedPartnerIds.push(existing.id);
+        continue;
+      }
+
+      const artifactResult = await importLegacyPartnerArtifacts({
+        partnerId: existing.id,
+        exportPartner: p,
+        dryRun: false,
+        forceReclassify: true,
+        applyStageSync: true,
+      });
+      seedLegacyPartnerWorkPipeline({ partnerId: existing.id, exportPartner: p });
+      if (p.notes || (p.legacyNoteEntries?.length ?? 0)) {
+        seedLegacyPartnerNotes({
+          partnerId: existing.id,
+          notesText: String(p.notes || '').trim(),
+          noteEntries: p.legacyNoteEntries,
+          externalId,
+          forceRefresh: true,
+        });
+      }
+      addAuditEvent({
+        partnerId: existing.id,
+        actorType: 'admin',
+        action: 'legacy.repair.classification',
+        entityType: 'partner',
+        entityId: existing.id,
+        meta: {
+          externalId,
+          migratedFromEvidence: artifactResult.migratedFromEvidence,
+          lettersFromNotes: artifactResult.stageSync?.lettersCreated ?? 0,
+        },
+      });
+
+      result.artifacts.evidenceCreated += artifactResult.evidenceCreated;
+      result.artifacts.reportsCreated += artifactResult.reportsCreated;
+      result.artifacts.lettersCreated += artifactResult.lettersCreated;
+      result.artifacts.analysisReportsCreated += artifactResult.analysisReportsCreated;
+      result.artifacts.bureauResponsesCreated += artifactResult.bureauResponsesCreated;
+      result.artifacts.migratedFromEvidence += artifactResult.migratedFromEvidence;
+      result.repairedPartnerIds.push(existing.id);
+    } catch (e: any) {
+      result.errors.push({ externalId: (p as any)?.externalId, message: e?.message || 'Repair failed.' });
+    }
+  }
+
+  return result;
 }
 
 function buildIntakeFromLegacy(p: LegacyPartnerExportV1['partners'][0]) {

@@ -2,7 +2,8 @@ import type { Bureau, ParsedCreditorContact, ParsedCreditReport, ParsedTradeline
 import type { DebtCase } from '../domain/debt';
 import type { ProcessedDocument } from '../domain/documents';
 import type { EvidenceItem } from '../domain/evidence';
-import { upsertDebt } from '../data/debtRepo';
+import { listDebtByPartner, upsertDebt } from '../data/debtRepo';
+import { listReportsByPartner } from '../data/reportsRepo';
 import {
   classifyCandidateNegativeType,
   type NegativeType,
@@ -381,6 +382,74 @@ export function buildSummonsAffidavitContext(args: {
     documentSummaries: summonsDocs.map((d) => d.summary || `${d.filename} (${d.docType})`).filter(Boolean),
     entityFacts: Array.from(new Set(entityFacts)).slice(0, 24),
   };
+}
+
+export type PartnerDebtSnapshot = {
+  claimedCents: number;
+  reportedCents: number;
+  reportedCount: number;
+  summonsClaimedCents: number;
+  summonsCount: number;
+  collateralCents: number;
+  collateralCount: number;
+};
+
+function dedupeSignalBalanceCents(signals: ReportedDebtSignal[]): { cents: number; count: number } {
+  const groups = new Map<string, ReportedDebtSignal>();
+  for (const s of signals) {
+    const key = `${normCreditorName(s.creditorName)}::${String(s.accountNumberMasked || '').trim()}`;
+    const prev = groups.get(key);
+    if (!prev) {
+      groups.set(key, s);
+      continue;
+    }
+    const prevBal = prev.balanceCents ?? 0;
+    const nextBal = s.balanceCents ?? 0;
+    if (nextBal > prevBal) groups.set(key, s);
+  }
+  const uniq = Array.from(groups.values());
+  return {
+    cents: uniq.reduce((sum, s) => sum + (s.balanceCents ?? 0), 0),
+    count: uniq.length,
+  };
+}
+
+/** Unified debt totals for portal surfaces — claimed cases vs deduped report signals. */
+export function computePartnerDebtSnapshot(partnerId: string): PartnerDebtSnapshot {
+  const cases = listDebtByPartner(partnerId);
+  const reports = listReportsByPartner(partnerId).map((r) => ({ id: r.id, parsed: r.parsed }));
+  const signals = extractReportDebtSignals(reports);
+  const reported = dedupeSignalBalanceCents(signals);
+  const foreclosure = dedupeSignalBalanceCents(extractCollateralSignals(reports, 'foreclosure'));
+  const repossession = dedupeSignalBalanceCents(extractCollateralSignals(reports, 'repossession'));
+  const summonsCases = cases.filter((c) => c.type === 'summons');
+  return {
+    claimedCents: cases.reduce((sum, c) => sum + Number(c.amountCents || 0), 0),
+    reportedCents: reported.cents,
+    reportedCount: reported.count,
+    summonsClaimedCents: summonsCases.reduce((sum, c) => sum + Number(c.amountCents || 0), 0),
+    summonsCount: summonsCases.length,
+    collateralCents: foreclosure.cents + repossession.cents,
+    collateralCount: foreclosure.count + repossession.count,
+  };
+}
+
+export function formatPartnerDebtSnapshotSummary(s: PartnerDebtSnapshot): string {
+  const parts: string[] = [];
+  if (s.reportedCount > 0) {
+    parts.push(
+      `${(s.reportedCents / 100).toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 })} on report (${s.reportedCount})`,
+    );
+  }
+  if (s.claimedCents > 0) {
+    parts.push(
+      `${(s.claimedCents / 100).toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 })} in cases`,
+    );
+  }
+  if (s.summonsCount > 0) {
+    parts.push(`${s.summonsCount} summons`);
+  }
+  return parts.length ? parts.join(' · ') : 'Add cases or upload reports';
 }
 
 export function formatSummonsContextForPrompt(ctx: SummonsAffidavitContext): string {

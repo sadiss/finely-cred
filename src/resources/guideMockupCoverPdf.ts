@@ -90,15 +90,32 @@ export function drawDisputeGuideTextCoverPage(page: PdfDrawPage, fonts: PdfFonts
   });
 }
 
-/** Cover page — embed guide artwork PNG (no score bar page). */
+type EmbeddableImage = {
+  width: number;
+  height: number;
+  scale: (factor: number) => { width: number; height: number };
+};
+
+function isJpegBytes(bytes: Uint8Array) {
+  return bytes.length >= 3 && bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff;
+}
+
+function isPngBytes(bytes: Uint8Array) {
+  return (
+    bytes.length >= 8 &&
+    bytes[0] === 0x89 &&
+    bytes[1] === 0x50 &&
+    bytes[2] === 0x4e &&
+    bytes[3] === 0x47
+  );
+}
+
+/** Cover page — embed guide artwork (white score-gauge cover). */
 export async function drawDisputeGuideCoverImagePage(
   page: PdfDrawPage,
   pdfDoc: {
-    embedPng: (bytes: Uint8Array) => Promise<{
-      width: number;
-      height: number;
-      scale: (factor: number) => { width: number; height: number };
-    }>;
+    embedPng: (bytes: Uint8Array) => Promise<EmbeddableImage>;
+    embedJpg?: (bytes: Uint8Array) => Promise<EmbeddableImage>;
   },
   fonts: PdfFonts,
   rgb: RgbFn,
@@ -106,19 +123,44 @@ export async function drawDisputeGuideCoverImagePage(
 ) {
   try {
     const res = await fetch(coverUrl);
-    if (!res.ok) throw new Error('cover fetch failed');
+    if (!res.ok) throw new Error(`cover fetch failed (${res.status})`);
     const bytes = new Uint8Array(await res.arrayBuffer());
-    const img = await pdfDoc.embedPng(bytes);
+
+    let img: EmbeddableImage | null = null;
+    if (isPngBytes(bytes)) {
+      img = await pdfDoc.embedPng(bytes);
+    } else if (isJpegBytes(bytes) && typeof pdfDoc.embedJpg === 'function') {
+      // Some assets were saved as JPEG with a .png extension — pdf-lib needs embedJpg.
+      img = await pdfDoc.embedJpg(bytes);
+    } else {
+      // Last attempt: try PNG then JPEG regardless of sniff.
+      try {
+        img = await pdfDoc.embedPng(bytes);
+      } catch {
+        if (typeof pdfDoc.embedJpg === 'function') img = await pdfDoc.embedJpg(bytes);
+      }
+    }
+    if (!img) throw new Error('cover image could not be embedded');
+
     const dims = img.scale(1);
     const scale = Math.min(PDF_PAGE_W / dims.width, PDF_PAGE_H / dims.height);
     const w = dims.width * scale;
     const h = dims.height * scale;
     if (page.drawImage) {
+      // Full-bleed white cover page (credit score gauge artwork).
+      page.drawRectangle({
+        x: 0,
+        y: 0,
+        width: PDF_PAGE_W,
+        height: PDF_PAGE_H,
+        color: rgb(1, 1, 1),
+      });
       page.drawImage(img, { x: (PDF_PAGE_W - w) / 2, y: (PDF_PAGE_H - h) / 2, width: w, height: h });
       return;
     }
     throw new Error('drawImage unavailable');
-  } catch {
+  } catch (e) {
+    console.warn('[disputeGuideCover] artwork unavailable; using text cover fallback', e);
     drawDisputeGuideTextCoverPage(page, fonts, rgb);
   }
 }

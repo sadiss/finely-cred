@@ -5,6 +5,7 @@ import { PageShell } from '../../components/layout/PageShell';
 import { listDebtByPartner, createDebtCase } from '../../data/debtRepo';
 import { getDebtLaneFocus, saveDebtLaneFocus } from '../../data/debtLaneStateRepo';
 import { onDebtCaseCreated } from '../../lib/debtWorkflowEngine';
+import { computePartnerDebtSnapshot } from '../../lib/debtCreditorIntel';
 import { usePartnerSession } from '../../auth/PartnerSessionContext';
 import { EntitlementGate } from '../../components/billing/EntitlementGate';
 import { ENTITLEMENT_KEYS } from '../../billing/entitlements';
@@ -127,6 +128,7 @@ export default function PartnerDebtPage() {
   const resolvedCount = cases.filter((c) => c.status === 'resolved').length;
   const disputedCount = cases.filter((c) => c.status === 'disputed').length;
   const totalDollars = useMemo(() => cases.reduce((sum, c) => sum + Number(c.amountCents || 0), 0), [cases]);
+  const debtSnapshot = useMemo(() => (partner ? computePartnerDebtSnapshot(partner.id) : null), [partner]);
 
   type DebtTab = 'overview' | 'validation' | 'court' | 'foreclosure' | 'repossession' | 'bankruptcy' | 'cases' | 'guides';
   const [tab, setTab] = useState<DebtTab>('overview');
@@ -204,15 +206,30 @@ export default function PartnerDebtPage() {
         : [
             { label: 'Cases', value: String(cases.length), hint: 'Total', accent: 'amber' as const },
             { label: 'Active', value: String(openCount + disputedCount), hint: 'Open + disputed', accent: 'emerald' as const },
-            { label: 'Resolved', value: String(resolvedCount), hint: 'Done', accent: 'sky' as const },
             {
-              label: 'Claimed',
+              label: 'On report',
+              value: debtSnapshot?.reportedCents
+                ? (debtSnapshot.reportedCents / 100).toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 })
+                : '—',
+              hint: debtSnapshot?.reportedCount ? `${debtSnapshot.reportedCount} tradelines` : 'Upload report',
+              accent: 'sky' as const,
+            },
+            {
+              label: 'In cases',
               value: (totalDollars / 100).toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }),
-              hint: 'All cases',
+              hint: 'Claimed total',
               accent: 'violet' as const,
             },
+            {
+              label: 'Summons',
+              value: debtSnapshot?.summonsCount ? String(debtSnapshot.summonsCount) : '0',
+              hint: debtSnapshot?.summonsClaimedCents
+                ? (debtSnapshot.summonsClaimedCents / 100).toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 })
+                : 'None yet',
+              accent: 'fuchsia' as const,
+            },
           ],
-    [cases.length, openCount, disputedCount, resolvedCount, totalDollars, workstationTab],
+    [cases.length, openCount, disputedCount, totalDollars, workstationTab, debtSnapshot],
   );
 
   const handleAddCase = (e: React.FormEvent) => {

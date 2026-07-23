@@ -1,8 +1,11 @@
 import type { LegacyPartnerExportV1 } from '../domain/imports';
-import { classifyLegacyFileName, type LegacyFileKind } from './classifyLegacyFileName';
+import type { LegacyFileKind } from './classifyLegacyFileName';
+import { classifyLegacyFileName } from './classifyLegacyFileName';
 
 export type LegacyArtifactBreakdown = {
   creditReports: number;
+  analysisReports: number;
+  bureauResponses: number;
   disputeLetters: number;
   validationLetters: number;
   affidavits: number;
@@ -17,6 +20,8 @@ export type LegacyArtifactBreakdown = {
 
 function bump(counts: LegacyArtifactBreakdown, kind: LegacyFileKind) {
   if (kind === 'credit_report') counts.creditReports += 1;
+  else if (kind === 'analysis_report') counts.analysisReports += 1;
+  else if (kind === 'bureau_response') counts.bureauResponses += 1;
   else if (kind === 'dispute_letter') counts.disputeLetters += 1;
   else if (kind === 'validation_letter') counts.validationLetters += 1;
   else if (kind === 'affidavit') counts.affidavits += 1;
@@ -29,6 +34,8 @@ function bump(counts: LegacyArtifactBreakdown, kind: LegacyFileKind) {
 export function emptyLegacyArtifactBreakdown(): LegacyArtifactBreakdown {
   return {
     creditReports: 0,
+    analysisReports: 0,
+    bureauResponses: 0,
     disputeLetters: 0,
     validationLetters: 0,
     affidavits: 0,
@@ -74,6 +81,8 @@ export function summarizeLegacyExportArtifacts(
   for (const p of partners) {
     const row = summarizeLegacyPartnerArtifacts(p);
     totals.creditReports += row.creditReports;
+    totals.analysisReports += row.analysisReports;
+    totals.bureauResponses += row.bureauResponses;
     totals.disputeLetters += row.disputeLetters;
     totals.validationLetters += row.validationLetters;
     totals.affidavits += row.affidavits;
@@ -90,7 +99,7 @@ export function summarizeLegacyExportArtifacts(
 
 export function formatLegacyArtifactBreakdown(b: LegacyArtifactBreakdown): string {
   const letterTotal = b.disputeLetters + b.validationLetters + b.affidavits + b.structuredLetters;
-  const reportTotal = b.creditReports + b.htmlReports;
-  const evidenceTotal = b.governmentIds + b.proofOfAddress + b.ssnCards + b.otherEvidence;
-  return `${b.totalLegacyFiles} legacy files → ${reportTotal} credit reports · ${letterTotal} letters · ${evidenceTotal} supporting docs/IDs`;
+  const reportTotal = b.creditReports + b.htmlReports + b.analysisReports;
+  const evidenceTotal = b.governmentIds + b.proofOfAddress + b.ssnCards + b.bureauResponses + b.otherEvidence;
+  return `${b.totalLegacyFiles} legacy files → ${reportTotal} credit/analysis reports · ${letterTotal} letters · ${evidenceTotal} supporting docs/IDs/responses`;
 }

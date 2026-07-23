@@ -84,6 +84,7 @@ export async function sendEmailFromTemplate(args: {
   partner: Partner;
   ctx?: Record<string, any>;
   dryRun?: boolean;
+  meta?: Record<string, any>;
 }): Promise<{ ok: boolean; log: CommsSendLog }> {
   const tpl = args.template;
   const ctx = args.ctx ?? buildDefaultCommsContext({ partner: args.partner });
@@ -115,6 +116,7 @@ export async function sendEmailFromTemplate(args: {
     status: args.dryRun ? 'dry_run' : 'sent',
     subject,
     body,
+    meta: args.meta,
   };
 
   if (!toEmail) {

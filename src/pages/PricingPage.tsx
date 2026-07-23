@@ -13,6 +13,7 @@ import {
   tradelinePromoPackages,
   agencyTiers,
   categoryDescriptions,
+  formatPrice,
   type PricingPackage,
   type PricingCategory,
   isLetterPackPackage,
@@ -372,7 +373,7 @@ export default function PricingPage() {
         )}
 
         {activeTab === 'debt_legal' && (
-          <div className={`${FINELY_OS_NOTICE_WARN} flex items-start gap-3`}>
+            <div className={`${FINELY_OS_NOTICE_WARN} flex items-start gap-3`}>
             <AlertCircle size={18} className="mt-0.5 text-fuchsia-400 shrink-0" />
             <div>
               <div className={`font-semibold ${FINELY_OS_ENTITY_VALUE}`}>Important legal note</div>
@@ -384,8 +385,36 @@ export default function PricingPage() {
               <p className={`mt-2 ${FINELY_OS_ENTITY_BODY}`}>
                 <strong>Financing note:</strong> We do not present in-house financing as a one-click option for debt defense,
                 because swapping one debt for another is usually not ideal. If you want a credit-building path, book a free strategy call
-                and we’ll map the safest strategy.
+                and we'll map the safest strategy.
               </p>
+              <div className={`mt-4 rounded-xl border border-fuchsia-500/20 bg-black/25 !p-3`}>
+                <div className={`text-xs font-semibold uppercase tracking-wider ${FINELY_OS_ENTITY_SUBLABEL}`}>
+                  Typical debt balance → starting package
+                </div>
+                <p className={`mt-1 text-xs ${FINELY_OS_ENTITY_BODY}`}>
+                  Illustrative guidance only — exact package and pricing confirmed after intake.
+                </p>
+                <div className="mt-2 overflow-x-auto">
+                  <table className="w-full text-xs text-left">
+                    <thead>
+                      <tr className="text-white/50 border-b border-white/10">
+                        <th className="py-2 pr-3 font-semibold">Typical debt / complexity</th>
+                        <th className="py-2 font-semibold">Package (sticker)</th>
+                      </tr>
+                    </thead>
+                    <tbody className="text-white/75">
+                      {debtLegalPackages.filter((p) => p.debtBalanceGuidance).map((p) => (
+                        <tr key={p.id} className="border-b border-white/5">
+                          <td className="py-2 pr-3">{p.debtBalanceGuidance?.label}</td>
+                          <td className="py-2">
+                            {p.name} · {formatPrice(p.priceAmount)}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
             </div>
           </div>
         )}
