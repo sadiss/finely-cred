@@ -96,7 +96,10 @@ export default function CaseHelpCareersPage() {
   };
 
   return (
-    <PageShell>
+    <PageShell
+      title="Case help careers"
+      subtitle="Paralegal, attorney/counsel, and consultant roles to support partner debt and litigation cases."
+    >
       <div className={`${FINELY_OS_PAGE} max-w-4xl mx-auto px-4 py-8`}>
         <CareersQuickNav active="case_help" className="mb-6" />
         <div className="flex items-start gap-3 mb-6">
