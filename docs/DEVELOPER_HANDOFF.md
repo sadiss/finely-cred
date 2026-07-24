@@ -5,6 +5,8 @@
 >    Migration: `supabase/migrations/202607240001_entitlements_admin_write.sql`  
 > 2. Mail letters today + Litigation → [`DEV_URGENT_MAIL_AND_LITIGATION.md`](../DEV_URGENT_MAIL_AND_LITIGATION.md)  
 >    Admin path: `/admin/mail` · Partner vault batch mail · Watch **TEST MODE** banner  
+> 3. **Litigation + roles + meetings + meeting emails** → [`DEV_URGENT_LITIGATION_ROLES_MEETINGS.md`](../DEV_URGENT_LITIGATION_ROLES_MEETINGS.md)  
+>    Scrape fill · Certified vs First Class · `/careers/case-help` · Hub **Schedule & email invite** (`commsDelivery`) · optional `VITE_DAILY_DOMAIN`  
 > **Branch:** `preview/sitewide-ux-pack-merge` only — do not cut a new branch.
 
 **Audience:** Engineer deploying and operating Finely Cred in production.  

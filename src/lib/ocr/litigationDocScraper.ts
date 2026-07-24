@@ -131,6 +131,64 @@ function extractEntitiesFromText(text: string): {
     );
   }
 
+  const division = firstMatch(t, [
+    /(?:Civil|Criminal|Small Claims|Landlord[- ]Tenant|Family|Probate)\s+Division[^\n]{0,40}/i,
+    /Division\s*[:#]?\s*([A-Z0-9][A-Za-z0-9 \-]{1,40})/i,
+    /\b([A-Z])\s+Division\b/,
+  ]);
+  if (division) {
+    entities.courtDivision = division.trim();
+    fields.push(
+      field(
+        'courtDivision',
+        'Court division',
+        entities.courtDivision,
+        'medium',
+        'Division / section on the caption — useful for local filing and hearing location.',
+        'Caption',
+      )!,
+    );
+  }
+
+  const judge = firstMatch(t, [
+    /(?:Hon\.?|Honorable|Judge)\s+([A-Z][a-z]+(?:\s+[A-Z]\.?)?(?:\s+[A-Z][a-z]+)+)/,
+    /(?:Presiding Judge|Assigned Judge)\s*[:\s]+([A-Z][A-Za-z .,'\-]{3,60})/i,
+  ]);
+  if (judge) {
+    entities.judgeName = judge.trim();
+    fields.push(
+      field('judgeName', 'Judge', entities.judgeName, 'medium', 'Assigned judge when printed on docket or notice.', 'Docket / notice')!,
+    );
+  }
+
+  const caption = firstMatch(t, [
+    /([A-Z][A-Z0-9 &.,'\-]{2,70}\s+v(?:s)?\.?\s+[A-Z][A-Za-z0-9 &.,'\-]{2,70})/,
+  ]);
+  if (caption) {
+    entities.caseCaption = caption.trim();
+    fields.push(
+      field('caseCaption', 'Caption (parties)', entities.caseCaption, 'medium', 'Full plaintiff v. defendant line from the papers.', 'Caption')!,
+    );
+  }
+
+  const causes = firstMatch(t, [
+    /(?:Cause(?:s)? of Action|Count(?:s)?)\s*[:\s]+([^\n]{5,160})/i,
+    /(?:Breach of Contract|Account Stated|Open Account|Unjust Enrichment|Quantum Meruit|Negotiable Instrument)[^\n]{0,80}/i,
+  ]);
+  if (causes) {
+    entities.causesOfAction = causes.trim();
+    fields.push(
+      field(
+        'causesOfAction',
+        'Cause(s) of action',
+        entities.causesOfAction,
+        'medium',
+        'Pleaded theories — answer and defenses should track these claims without admitting them.',
+        'Complaint',
+      )!,
+    );
+  }
+
   const plaintiff = firstMatch(t, [
     /(?:^|\n)\s*([A-Z][A-Z0-9 &.,'\-]{2,80})\s*,?\s*\n\s*Plaintiff/im,
     /Plaintiff[:\s]+([A-Z][A-Za-z0-9 &.,'\-]{2,80})/,

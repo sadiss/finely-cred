@@ -1,6 +1,33 @@
-/** Build a stable Finely video room URL (Jitsi Meet — no API key required). */
+/**
+ * Finely video room URLs.
+ *
+ * Default: Jitsi (meet.jit.si) — no API key.
+ * Upgrade: set VITE_DAILY_DOMAIN (and optionally create rooms via Daily REST with DAILY_API_KEY on edge).
+ * Daily.co gives higher A/V quality when configured; falls back to Jitsi automatically.
+ */
+
+function dailyDomain(): string {
+  try {
+    const raw = String((import.meta as any)?.env?.VITE_DAILY_DOMAIN || '').trim();
+    if (!raw) return '';
+    return raw.replace(/^https?:\/\//i, '').replace(/\/$/, '');
+  } catch {
+    return '';
+  }
+}
+
+export function meetingProviderLabel(): 'daily' | 'jitsi' {
+  return dailyDomain() ? 'daily' : 'jitsi';
+}
+
+/** Build a stable Finely video room URL (Daily when configured, else Jitsi). */
 export function buildFinelyMeetingUrl(eventId: string, title?: string): string {
   const slug = meetingRoomName(eventId);
+  const domain = dailyDomain();
+  if (domain) {
+    const q = title ? `?t=${encodeURIComponent(title.slice(0, 80))}` : '';
+    return `https://${domain}/${encodeURIComponent(slug)}${q}`;
+  }
   const room = encodeURIComponent(slug);
   const subject = title ? `#config.subject=${encodeURIComponent(title)}` : '';
   return `https://meet.jit.si/${room}${subject}`;
@@ -20,8 +47,13 @@ export type MeetingEmbedOptions = {
   startWithVideoMuted?: boolean;
 };
 
-/** Rich Jitsi embed URL with prejoin, display name, optional room password. */
+/** Rich embed URL — Daily room path or Jitsi with prejoin + display name. */
 export function buildFinelyMeetingEmbedUrl(opts: MeetingEmbedOptions): string {
+  const domain = dailyDomain();
+  if (domain) {
+    // Daily prebuilt — user name via query is limited; room URL is enough for join.
+    return `https://${domain}/${encodeURIComponent(opts.roomName)}`;
+  }
   const base = `https://meet.jit.si/${encodeURIComponent(opts.roomName)}`;
   const params = new URLSearchParams();
   params.set('config.prejoinPageEnabled', 'true');
@@ -42,6 +74,7 @@ export function buildFinelyMeetingEmbedUrl(opts: MeetingEmbedOptions): string {
 
 /** Legacy helper — append display name to existing URL */
 export function appendDisplayNameToMeetingUrl(url: string, displayName: string): string {
+  if (/daily\.co\//i.test(url) || dailyDomain()) return url;
   const sep = url.includes('#') ? '&' : '#';
   return `${url}${sep}userInfo.displayName=${encodeURIComponent(displayName)}`;
 }

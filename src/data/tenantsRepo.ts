@@ -330,7 +330,8 @@ export function canAccessAdminArea(membership: Membership | null): boolean {
   if (!membership || membership.status !== 'active') return false;
   const staffRoles: Membership['role'][] = [
     'platform_admin', 'tenant_owner', 'billing_admin', 'support_lead', 'finance_manager',
-    'compliance_officer', 'agent', 'sales_rep', 'marketing_manager', 'course_instructor', 'read_only_admin',
+    'compliance_officer', 'agent', 'paralegal', 'attorney', 'consultant',
+    'sales_rep', 'marketing_manager', 'course_instructor', 'read_only_admin',
   ];
   if (staffRoles.includes(membership.role)) return true;
   if (membership.permissions?.canAccessAdminArea === true) return true;
@@ -373,8 +374,13 @@ export function canAccessPartner(
 ): boolean {
   if (!membership || membership.status !== 'active') return false;
   if (canViewAllClients(membership)) return true;
-  // Agents with limited access
-  if (membership.role === 'agent') {
+  // Agents / case-help roles with limited partner assignment
+  if (
+    membership.role === 'agent' ||
+    membership.role === 'paralegal' ||
+    membership.role === 'attorney' ||
+    membership.role === 'consultant'
+  ) {
     const ids = membership.permissions?.assignedPartnerIds;
     return Array.isArray(ids) ? ids.includes(partnerId) : false;
   }

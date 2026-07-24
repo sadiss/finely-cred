@@ -170,7 +170,7 @@ export function LitigationDocScraperChat({
       ...prev,
       {
         role: 'assistant',
-        text: `${opts?.auto ? 'Auto-applied' : 'Applied'} scrape to “${next.name}”.\nCase #: ${next.courtCaseNumber || '—'}\nHearing: ${next.hearingDate || '—'}\nFirm: ${next.plaintiffLawFirm || '—'}\nFirm address: ${next.plaintiffLawFirmAddress || next.recipientAddress || '—'}\nAttorney: ${next.plaintiffAttorneyName || '—'}\nRecipient: ${next.recipientName || '—'}\nAccount: ${next.accountNumberMasked || '—'}\nOriginal creditor: ${next.originalCreditor || '—'}\nAmount: ${next.amountCents ? `$${(next.amountCents / 100).toFixed(2)}` : '—'}\n\nNext: confirm parties (Step 2), then one-tap Build written answer.`,
+        text: `${opts?.auto ? 'Auto-applied' : 'Applied'} scrape to “${next.name}”.\nCourt: ${(next as any).courtName || '—'}\nCase #: ${next.courtCaseNumber || '—'}\nHearing: ${next.hearingDate || '—'}\nFirm: ${next.plaintiffLawFirm || '—'}\nFirm address: ${next.plaintiffLawFirmAddress || next.recipientAddress || '—'}\nAttorney: ${next.plaintiffAttorneyName || '—'}\nRecipient: ${next.recipientName || '—'}\nAccount: ${next.accountNumberMasked || '—'}\nOriginal creditor: ${next.originalCreditor || '—'}\nAmount: ${next.amountCents ? `$${(next.amountCents / 100).toFixed(2)}` : '—'}\n\nNext: confirm parties (Step 2), then one-tap Build written answer. Regenerating letters will use these filled fields.`,
       },
     ]);
     onScrapeApplied?.(scraped);

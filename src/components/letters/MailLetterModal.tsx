@@ -15,6 +15,12 @@ import {
 import { FINELY_MAIL_COPY } from '../../lib/mailWhiteLabel';
 import { buildLetterAgentChain } from '../../lib/letterAgentChain';
 import { canAffordMailSend, chargeMailSend, formatMailCreditsUsd, DEFAULT_MAIL_COST_CENTS } from '../../data/mailCreditsRepo';
+import {
+  MAIL_CLASS_CHOICES,
+  defaultMailTypeForLetter,
+  mailClassChoice,
+  type FinelyMailType,
+} from '../../lib/mailClassOptions';
 import { MailCreditsPanel } from '../mailing/MailCreditsPanel';
 import { MailProviderStatusBanner } from '../mailing/MailProviderStatusBanner';
 import { LetterAgentChainStrip } from './LetterAgentChainStrip';
@@ -199,6 +205,7 @@ export function MailLetterModal({
     null,
   );
   const [verifiedHash, setVerifiedHash] = useState<string | null>(null);
+  const [mailType, setMailType] = useState<FinelyMailType>(() => defaultMailTypeForLetter(letter));
 
   const currentHash = useMemo(() => {
     const pick = (a: MailAddress) => ({
@@ -219,6 +226,7 @@ export function MailLetterModal({
     setMailedMeta(null);
     setVerifyRes(null);
     setVerifiedHash(null);
+    setMailType(defaultMailTypeForLetter(letter));
     const disputeTo = mailDefaultsForDisputeRecipient(letter);
     setTo({
       name: disputeTo?.name ?? '',
@@ -378,7 +386,7 @@ export function MailLetterModal({
         pdfBlobRef: letter.pdfBlobRef,
         to: toClean,
         from: fromClean,
-        options: { color: true, doubleSided: true },
+        options: { color: true, doubleSided: true, mailType },
       });
       const costCents =
         typeof res.cost === 'number' && Number.isFinite(res.cost)
@@ -490,7 +498,39 @@ export function MailLetterModal({
                 <div className="text-[10px] uppercase tracking-widest text-white/40 pt-2">Return address</div>
                 <div className="text-sm text-white/75">{from.name.trim() ? formatMailAddressOneLine(from) : 'Fill the From address below'}</div>
                 <div className={`text-xs ${FINELY_OS_ENTITY_BODY}`}>
-                  Est. ~{formatMailCreditsUsd(DEFAULT_MAIL_COST_CENTS)} per color first-class letter (actual may vary).
+                  Est. ~{formatMailCreditsUsd(DEFAULT_MAIL_COST_CENTS)} per color letter (actual may vary by mail class).
+                </div>
+              </div>
+
+              <div className="fc-light-glass-panel fc-light-chrome-panel p-4 space-y-2">
+                <div className="text-white font-semibold text-sm">Mail class</div>
+                <p className={`text-xs ${FINELY_OS_ENTITY_BODY}`}>
+                  Default selected for this letter: <span className="text-amber-100">{mailClassChoice(mailType).shortLabel}</span>.{' '}
+                  {mailClassChoice(mailType).speedNote} LetterStream has no true overnight Express — First Class is the fastest letter path; Certified (RR) is the legal-proof path.
+                </p>
+                <div className="grid gap-2">
+                  {MAIL_CLASS_CHOICES.map((c) => (
+                    <label
+                      key={c.id}
+                      className={`flex items-start gap-3 rounded-xl border px-3 py-2.5 cursor-pointer ${
+                        mailType === c.id
+                          ? 'border-amber-400/45 bg-amber-500/10'
+                          : 'border-white/10 bg-black/25 hover:border-white/20'
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="mailType"
+                        className="mt-1"
+                        checked={mailType === c.id}
+                        onChange={() => setMailType(c.id)}
+                      />
+                      <span>
+                        <span className="block text-sm font-semibold text-white">{c.label}</span>
+                        <span className={`block text-xs ${FINELY_OS_ENTITY_BODY}`}>{c.useWhen}</span>
+                      </span>
+                    </label>
+                  ))}
                 </div>
               </div>
 

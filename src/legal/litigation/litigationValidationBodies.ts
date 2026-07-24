@@ -19,16 +19,16 @@ Re:	{{DEBTOR_RE_LINE}}
 
 Dear {{PLAINTIFF_LAW_FIRM}}:
 
-I received a collection communication and/or lawsuit papers from you that include debt-collector disclosure language (including Mini-Miranda style language). I dispute that I owe the claimed amount to the named plaintiff / collector until you provide complete validation for THIS specific account.
+I write regarding the above-referenced matter pending in {{COURT_NAME}}, Case No. {{CASE_NUMBER}}, and/or your collection communications concerning Account {{ACCOUNT_NUMBER}} in the claimed amount of {{AMOUNT_CLAIMED}}. Your papers include debt-collector disclosure language (including Mini-Miranda style language). I dispute that I owe the claimed amount to the named plaintiff / collector until you provide complete validation for THIS specific account.
 
-Pursuant to the Fair Debt Collection Practices Act, 15 U.S.C. § 1692g (and any applicable state collection statutes), please provide in writing:
+Pursuant to the Fair Debt Collection Practices Act, 15 U.S.C. § 1692g (and any applicable state collection statutes), and without waiving any defenses in litigation, please provide in writing:
 
-1. The name and mailing address of the original creditor and the current creditor / owner of THIS account.
-2. Verification of the amount you claim is owed, including a complete itemized ledger showing principal, interest, fees, payments, credits, sale proceeds, and adjustments from inception (or charge-off) to the present.
+1. The name and mailing address of the original creditor and the current creditor / owner of THIS account, including {{ORIGINAL_CREDITOR}} if that is the alleged origin.
+2. Verification of the amount you claim is owed ({{AMOUNT_CLAIMED}}), including a complete itemized ledger showing principal, interest, fees, payments, credits, sale proceeds, and adjustments from inception (or charge-off) to the present.
 3. A copy of the agreement or contract you contend creates the obligation, including any amendments and proof of my assent.
 4. The complete chain of title / all assignments or bills of sale transferring THIS account from the original creditor to the current claimant — including any account-level sale schedule identifying THIS account (last four / account id, sale balance, transfer date, field codes). A pool bill of sale alone is not sufficient.
 5. If the account was placed in a trust, SPV, or securitization structure: identify the trust/SPV and produce assignments to and from that entity for THIS account (or state in writing that no such transfer occurred).
-6. Licensing / authorization to collect in my state, if required for your entity type.
+6. Licensing / authorization to collect in my state, if required for your entity type, and the name and bar number of counsel of record ({{PLAINTIFF_ATTORNEY}} / {{PLAINTIFF_ATTORNEY_BAR}}) if different from the firm above.
 7. The name of any prior collectors and dates of placement.
 
 PLEASE CEASE COLLECTION COMMUNICATIONS AND COLLECTION ACTIVITY ON THIS ACCOUNT UNTIL YOU HAVE PROVIDED THE VALIDATION ABOVE (except as permitted by law for pending litigation filings / court process).

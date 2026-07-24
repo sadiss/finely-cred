@@ -31,11 +31,13 @@ export function toLitigationLetterArgs(args: {
   borrowerId?: string;
   affidavitState?: string;
   affidavitCounty?: string;
-  summonsContext?: {
     courtName?: string;
     amountClaimed?: string;
-    collectorName?: string;
-  };
+    summonsContext?: {
+      courtName?: string;
+      amountClaimed?: string;
+      collectorName?: string;
+    };
 }): LitigationLetterArgs {
   return {
     debtorName: args.debtorName,
@@ -58,13 +60,13 @@ export function toLitigationLetterArgs(args: {
     originalCreditorName: args.originalCreditorName || args.creditorName,
     debtCollectorName: args.debtCollectorName || args.summonsContext?.collectorName,
     caseNumber: args.caseNumber,
-    courtName: args.summonsContext?.courtName,
+    courtName: args.courtName || args.summonsContext?.courtName,
     accountNumber: args.accountNumber,
     loanId: args.loanId,
     borrowerId: args.borrowerId,
     affidavitState: args.affidavitState || args.debtorState,
     affidavitCounty: args.affidavitCounty,
-    amountClaimed: args.summonsContext?.amountClaimed,
+    amountClaimed: args.amountClaimed || args.summonsContext?.amountClaimed,
   };
 }
 

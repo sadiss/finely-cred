@@ -440,6 +440,23 @@ export type SummonsAffidavitContext = {
   entityFacts: string[];
 };
 
+/** Format cents → "$1,094.00" for letter merge (never invent when unknown). */
+export function formatAmountClaimedForLetter(cents?: number | null, raw?: string | null): string | undefined {
+  const fromRaw = String(raw || '').trim();
+  if (fromRaw && /\$?\d/.test(fromRaw)) {
+    // Normalize bare numbers to currency when scrape left "1094" / "1094.00"
+    if (/^\$/.test(fromRaw)) return fromRaw;
+    const n = Number(fromRaw.replace(/[^\d.]/g, ''));
+    if (Number.isFinite(n) && n > 0) {
+      return `$${n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    }
+    return fromRaw;
+  }
+  const c = Number(cents || 0);
+  if (!Number.isFinite(c) || c <= 0) return undefined;
+  return `$${(c / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+}
+
 export function buildSummonsAffidavitContext(args: {
   debt: DebtCase | null;
   documents: ProcessedDocument[];
@@ -455,13 +472,18 @@ export function buildSummonsAffidavitContext(args: {
       if (val) entityFacts.push(`${k}: ${val}`);
     }
   }
+  // Prefer case fields filled by scrape Apply — docs alone miss courtName/amount after Apply.
+  const amountClaimed = formatAmountClaimedForLetter(
+    debt?.amountCents,
+    summonsDocs[0]?.entities.amountClaimed || summonsDocs[0]?.entities.amount,
+  );
   return {
     caseNumber: debt?.courtCaseNumber || summonsDocs[0]?.entities.caseNumber,
     plaintiffName: party?.recipientName || debt?.name || summonsDocs[0]?.entities.creditorName,
-    collectorName: party?.collectorName || summonsDocs[0]?.entities.collectorName,
-    courtName: summonsDocs[0]?.entities.courtName,
-    amountClaimed: summonsDocs[0]?.entities.amountClaimed || summonsDocs[0]?.entities.amount,
-    dateServed: debt?.dateServed,
+    collectorName: party?.collectorName || debt?.collectorName || summonsDocs[0]?.entities.collectorName,
+    courtName: debt?.courtName || summonsDocs[0]?.entities.courtName,
+    amountClaimed,
+    dateServed: debt?.dateServed || summonsDocs[0]?.entities.dateServed,
     jurisdictionState: debt?.stateJurisdiction || summonsDocs[0]?.entities.state,
     documentSummaries: summonsDocs.map((d) => d.summary || `${d.filename} (${d.docType})`).filter(Boolean),
     entityFacts: Array.from(new Set(entityFacts)).slice(0, 24),

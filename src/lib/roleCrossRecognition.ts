@@ -35,6 +35,9 @@ export function resolveCrossRoleIdentity(args: {
   if (isAdmin || role === 'platform_admin') recognitionLabel = 'Platform Admin';
   else if (role === 'tenant_owner') recognitionLabel = 'Owner';
   else if (role === 'agent') recognitionLabel = 'Credit Specialist';
+  else if (role === 'paralegal') recognitionLabel = 'Paralegal';
+  else if (role === 'attorney') recognitionLabel = 'Attorney / Counsel';
+  else if (role === 'consultant') recognitionLabel = 'Consultant';
   else if (role === 'partner') recognitionLabel = 'Partner';
   else if (args.marketingLane === 'affiliate') recognitionLabel = 'Affiliate';
   else if (ncg) recognitionLabel = 'Nora Capital Group';

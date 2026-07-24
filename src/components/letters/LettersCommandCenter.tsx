@@ -2709,17 +2709,19 @@ useEffect(() => {
       affidavitState: canonicalIdentity.state || debt?.stateJurisdiction,
       affidavitCounty: debt?.affidavitCounty,
       stateNote: (debt as any)?.stateJurisdiction ? ` In ${(debt as any).stateJurisdiction}, the applicable SOL may apply.` : undefined,
-      summonsContext:
-        tab === 'court'
-          ? {
-              courtName: summonsAffidavitContext.courtName,
-              amountClaimed: summonsAffidavitContext.amountClaimed,
-              dateServed: summonsAffidavitContext.dateServed,
-              jurisdictionState: summonsAffidavitContext.jurisdictionState,
-              collectorName: summonsAffidavitContext.collectorName,
-              documentFacts: summonsAffidavitContext.entityFacts,
-            }
-          : undefined,
+      // Always merge scrape/case court fields so validation + affidavits get amount/court too.
+      summonsContext: {
+        courtName: summonsAffidavitContext.courtName || (debt as any)?.courtName,
+        amountClaimed:
+          summonsAffidavitContext.amountClaimed ||
+          (debt?.amountCents && debt.amountCents > 0
+            ? `$${(debt.amountCents / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+            : undefined),
+        dateServed: summonsAffidavitContext.dateServed || debt?.dateServed,
+        jurisdictionState: summonsAffidavitContext.jurisdictionState || (debt as any)?.stateJurisdiction,
+        collectorName: summonsAffidavitContext.collectorName || debt?.collectorName,
+        documentFacts: summonsAffidavitContext.entityFacts,
+      },
     };
   };
 

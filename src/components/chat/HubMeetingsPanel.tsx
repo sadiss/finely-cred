@@ -4,7 +4,9 @@ import { useNavigate } from 'react-router-dom';
 import { listEventsByPartner, listRequestsByPartner, sendUpcomingReminders } from '../../data/calendarRepo';
 import type { CalendarEvent } from '../../domain/calendar';
 import { MeetingsCalendarView } from '../calendar/MeetingsCalendarView';
+import { SendMeetingInvitePanel } from '../calendar/SendMeetingInvitePanel';
 import { StartVideoCallButton } from '../video/StartVideoCallButton';
+import { getPartnerSync } from '../../data/partnersRepo';
 import {FINELY_OS_ENTITY_BODY,
   FINELY_OS_GLASS_INNER,
   FINELY_OS_LUXURY_EMPTY,
@@ -107,6 +109,7 @@ export function HubMeetingsPanel({ partnerId, partnerDisplayName, compact }: Pro
 
   const events = useMemo(() => (partnerId ? listEventsByPartner(partnerId) : []), [partnerId, version]);
   const requests = useMemo(() => (partnerId ? listRequestsByPartner(partnerId) : []), [partnerId, version]);
+  const partner = useMemo(() => (partnerId ? getPartnerSync(partnerId) : null), [partnerId, version]);
 
   const upcoming = useMemo(() => {
     const now = Date.now();
@@ -152,6 +155,18 @@ export function HubMeetingsPanel({ partnerId, partnerDisplayName, compact }: Pro
           </button>
         </div>
       </div>
+
+      {partnerId ? (
+        <SendMeetingInvitePanel
+          partner={partner}
+          partnerId={partnerId}
+          hostName="Finely Cred care team"
+          hostRoleLabel="Counsel / specialist"
+          defaultTitle="Partner case video meeting"
+          compact={compact}
+          onSent={() => setVersion((v) => v + 1)}
+        />
+      ) : null}
 
       {!compact && (
         <MeetingsCalendarView

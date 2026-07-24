@@ -70,6 +70,10 @@ Stronger response letter bodies: courtroom written answer, post-suit validation,
 
 **Intelligent letter suggestions (Litigation Command Step 3 + Validation):** compact-luxury **Generate** CTAs with product badges — **Court answer letter** / **Validation letter** / **Affidavit** (plus WHY in the card). Click → real catalog path (`generateCatalogLetterBody` / `buildCatalogDraft`) → vault draft + **DebtLetterPreview**. **Letters are pure documents; guidance is UI-only.** Court-day kit opens Hearing-step card only (never vault/mail PDF). Failures / missing recipient show rose error. Address IQ fills empty TO from scrape + firm directory; partner address never used as TO.
 
+**Scrape → letter fill:** Apply writes `courtName`, case #, firm mailing, attorney, **amountClaimed** (`amountCents`) onto the debt case. Regenerating letters merges those fields into captions / Re lines (never invent amounts). Unknown → clear `[BRACKETS]` only.
+
+**Mail class:** Legal letters default to **Certified + electronic return receipt**; toggle **First Class** for speed (LetterStream has no overnight Express). Passed as `options.mailType` to `mailer`. See also Hub **Schedule & email invite** + [`DEV_URGENT_LITIGATION_ROLES_MEETINGS.md`](./DEV_URGENT_LITIGATION_ROLES_MEETINGS.md).
+
 **Letter purity (critical):** Letters = pure documents (Sender → Date → Recipient → Re → formal prose). Steps, coaching, kit scripts, admin notes, and “what to do next” stay in UI chrome only — never inside the printable/mailable body.
 
 ---

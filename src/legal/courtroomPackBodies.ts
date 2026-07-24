@@ -35,11 +35,15 @@ function counselBlock(args: DebtLetterBuildArgs): string {
 }
 
 function courtHeader(args: DebtLetterBuildArgs): string {
-  return `${args.summonsContext?.courtName || '{{courtName}}'}
-${args.caseNumber ? `Case No. ${args.caseNumber}` : 'Case No. {{caseNumber}}'}
-${args.recipientName || args.creditorName || '{{plaintiffName}}'}, Plaintiff,
+  const court = String(args.summonsContext?.courtName || '').trim() || '[COURT NAME]';
+  const caseNo = String(args.caseNumber || '').trim() || '[CASE / DOCKET NUMBER]';
+  const plaintiff = String(args.recipientName || args.creditorName || '').trim() || '[PLAINTIFF NAME]';
+  const defendant = String(args.debtorName || '').trim() || '[DEFENDANT NAME]';
+  return `${court}
+Case No. ${caseNo}
+${plaintiff}, Plaintiff,
 v.
-${args.debtorName || '{{defendantName}}'}, Defendant.`;
+${defendant}, Defendant.`;
 }
 
 export function getCourtroomIntegrityPreamble(): string {
@@ -97,36 +101,43 @@ ${args.debtorName || '{{defendantName}}'}`;
 
 /** Court answer letter + certificate of service — formal pleading body only (no coach copy). */
 export function getCourtroomWrittenAnswerBody(args: DebtLetterBuildArgs): string {
-  const plaintiff = args.recipientName || args.creditorName || '{{plaintiffName}}';
-  const amount = args.summonsContext?.amountClaimed || '{{amountClaimed}}';
-  const account = args.accountNumber || '{{accountNumberMasked}}';
-  const original = args.originalCreditorName || '{{originalCreditorName}}';
+  const plaintiff = String(args.recipientName || args.creditorName || '').trim() || '[PLAINTIFF NAME]';
+  const amount = String(args.summonsContext?.amountClaimed || '').trim() || '[AMOUNT CLAIMED]';
+  const account = String(args.accountNumber || '').trim() || '[ACCOUNT LAST FOUR / REF]';
+  const original = String(args.originalCreditorName || '').trim() || '[ORIGINAL CREDITOR IF ALLEGED]';
+  const firm = String(args.plaintiffLawFirm || args.debtCollectorName || '').trim();
+  const attorney = String(args.plaintiffAttorneyName || '').trim();
+  const court = String(args.summonsContext?.courtName || '').trim() || '[COURT NAME]';
+  const caseNo = String(args.caseNumber || '').trim() || '[CASE / DOCKET NUMBER]';
+  const defendant = String(args.debtorName || '').trim() || '[DEFENDANT NAME]';
+  const date = String(args.date || '').trim() || '[DATE]';
+  const counselLine = [firm, attorney ? `Attorney: ${attorney}` : ''].filter(Boolean).join(' · ');
 
   return `${courtHeader(args)}
 
 DEFENDANT'S ANSWER, AFFIRMATIVE DEFENSES, AND DEMAND FOR STRICT PROOF
 
-Comes now Defendant, ${args.debtorName || '{{defendantName}}'}, appearing pro se, and for Answer to Plaintiff's Complaint states as follows. Defendant does not waive any rights, defenses, or counterclaims.
+Comes now Defendant, ${defendant}, appearing pro se, and for Answer to Plaintiff's Complaint in ${court}, Case No. ${caseNo}, states as follows. Defendant does not waive any rights, defenses, objections, or counterclaims, and does not consent to judgment on papers that lack account-level proof.
 
 I. INTRODUCTION AND PRESERVATION
 
-1. Defendant has been named in a collection action by ${plaintiff} concerning an alleged account ending in ${account} and an alleged amount of ${amount}. Defendant disputes that Plaintiff has proven (a) standing / real-party-in-interest status for this specific receivable, (b) a complete and accurate balance, and (c) competent, admissible foundation for any affidavit or business-records summary offered as proof.
+1. Defendant has been named in a collection action by ${plaintiff}${counselLine ? ` (through ${counselLine})` : ''} concerning an alleged account referenced as ${account} and an alleged amount of ${amount}. Defendant disputes that Plaintiff has proven (a) standing / real-party-in-interest status for THIS specific receivable, (b) a complete and accurate balance, and (c) competent, admissible foundation for any affidavit, business-records summary, or data extract offered as proof.
 
-2. If an original creditor relationship with ${original} existed, that fact—if true—does not automatically establish that the named Plaintiff owns the receivable today, correctly calculated the balance, or is entitled to judgment. Defendant separates those questions and demands account-level proof.
+2. If an original creditor relationship with ${original} existed, that fact—if true—does not automatically establish that the named Plaintiff owns the receivable today, correctly calculated the balance, or is entitled to judgment. Defendant separates ownership, amount, and foundation as independent issues and demands account-level writings for each.
 
-3. Defendant reserves all rights under applicable state rules of civil procedure, the Rules of Evidence, the Fair Debt Collection Practices Act (15 U.S.C. § 1692 et seq.) where applicable, state consumer-protection and collection-licensing statutes, and any contractual arbitration, notice, or limitation provisions.
+3. Defendant reserves all rights under applicable state rules of civil procedure, the Rules of Evidence, the Fair Debt Collection Practices Act (15 U.S.C. § 1692 et seq.) where applicable, state consumer-protection and collection-licensing statutes, and any contractual arbitration, notice, venue, or limitation provisions.
 
 II. GENERAL DENIAL
 
-4. Except for those allegations expressly and specifically admitted below, Defendant denies each and every allegation in the Complaint, including any prayer for interest, fees, costs, or attorney fees, and denies that Plaintiff is entitled to any relief.
+4. Except for those allegations expressly and specifically admitted below, Defendant denies each and every allegation in the Complaint, including any prayer for interest, fees, costs, attorney fees, or collection charges, and denies that Plaintiff is entitled to any relief.
 
 III. SPECIFIC RESPONSES
 
-5. As to Plaintiff's identity and capacity: Defendant lacks sufficient information to admit that Plaintiff is the current owner of the specific receivable sued upon and therefore denies standing to the extent not proven with account-level writings.
+5. As to Plaintiff's identity and capacity: Defendant lacks sufficient information to admit that Plaintiff is the current owner of the specific receivable sued upon and therefore denies standing to the extent not proven with account-level writings identifying THIS account.
 
-6. As to any alleged agreement: Defendant denies that Plaintiff has attached or produced a complete, account-specific agreement bearing Defendant's signature or competent electronic-acceptance evidence tied to this account, sufficient to support the claims as pleaded.
+6. As to any alleged agreement: Defendant denies that Plaintiff has attached or produced a complete, account-specific agreement bearing Defendant's signature or competent electronic-acceptance evidence tied to THIS account, sufficient to support the claims as pleaded.
 
-7. As to ownership / assignment: Defendant denies that a pool bill of sale, generic purchase agreement, or summary affidavit—without an account-level schedule identifying this account (including identifiers, sale balance, and transfer date)—establishes Plaintiff's ownership or right to sue.
+7. As to ownership / assignment: Defendant denies that a pool bill of sale, generic purchase agreement, charge-off summary, or template affidavit—without an account-level schedule identifying THIS account (identifiers / last four, sale balance, transfer date, and field codes)—establishes Plaintiff's ownership or right to sue.
 
 8. As to the alleged balance of ${amount}: Defendant denies the amount claimed unless and until Plaintiff produces a complete itemized ledger from account opening (or charge-off, as applicable) through the present, showing principal, interest, fees, payments, credits, sale proceeds, insurance, setoffs, and adjustments.
 
@@ -134,15 +145,15 @@ III. SPECIFIC RESPONSES
 
 10. As to damages, interest, collection fees, and costs: Defendant denies that Plaintiff has proven contractual or statutory entitlement to each category claimed.
 
-11. As to any allegation Defendant cannot honestly admit or deny after reasonable inquiry: Defendant denies on information and belief and demands strict proof.
+11. As to any allegation Defendant cannot honestly admit or deny after reasonable inquiry: Defendant denies on information and belief and demands strict proof at trial.
 
 IV. AFFIRMATIVE DEFENSES
 
 FIRST DEFENSE — Failure to state a claim upon which relief can be granted.
 
-SECOND DEFENSE — Lack of standing / failure to prove real party in interest for this specific account.
+SECOND DEFENSE — Lack of standing / failure to prove real party in interest for THIS specific account.
 
-THIRD DEFENSE — Failure to prove account stated, breach of contract, or other pleaded theory with competent evidence.
+THIRD DEFENSE — Failure to prove account stated, breach of contract, open account, or other pleaded theory with competent evidence.
 
 FOURTH DEFENSE — Statute of limitations.
 
@@ -150,11 +161,11 @@ FIFTH DEFENSE — Failure of consideration / failure to prove the terms allegedl
 
 SIXTH DEFENSE — Payment, credit, setoff, settlement, or other reduction not properly applied.
 
-SEVENTH DEFENSE — Unclean hands / estoppel / waiver.
+SEVENTH DEFENSE — Unclean hands / estoppel / waiver / laches.
 
 EIGHTH DEFENSE — Hearsay and lack of foundation bar Plaintiff's affidavit-based proof.
 
-NINTH DEFENSE — FDCPA and/or state collection-law violations, including misleading representations or failure to validate where applicable.
+NINTH DEFENSE — FDCPA and/or state collection-law violations, including misleading representations, Mini-Miranda disclosures used inconsistently with claimed creditor status, or failure to validate where applicable.
 
 TENTH DEFENSE — Failure to mitigate; improper fees or interest; and any other defense available under law or equity.
 
@@ -186,20 +197,20 @@ D. Grant such other and further relief as the Court deems just and proper.
 Respectfully submitted,
 
 _______________________________
-${args.debtorName || '{{defendantName}}'}, Defendant pro se
+${defendant}, Defendant pro se
 ${addrBlock(args)}
-Date: ${args.date || '{{date}}'}
+Date: ${date}
 
 CERTIFICATE OF SERVICE
 
-I certify that on ${args.date || '{{date}}'}, a true and correct copy of this Answer was served upon:
+I certify that on ${date}, a true and correct copy of this Answer was served upon:
 
 ${counselBlock(args)}
 
 By: ☐ Certified Mail, Return Receipt Requested  ☐ Court's e-file / e-service  ☐ Hand delivery  ☐ First-class mail
 
 _______________________________
-${args.debtorName || '{{defendantName}}'}`;
+${defendant}`;
 }
 
 export type CourtroomDayKitSection = {

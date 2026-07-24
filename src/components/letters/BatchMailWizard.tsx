@@ -8,6 +8,12 @@ import {
 } from '../../lib/mailerClient';
 import { FINELY_MAIL_COPY } from '../../lib/mailWhiteLabel';
 import { canAffordMailSend, chargeMailSend, formatMailCreditsUsd, DEFAULT_MAIL_COST_CENTS } from '../../data/mailCreditsRepo';
+import {
+  MAIL_CLASS_CHOICES,
+  defaultMailTypeForBatch,
+  mailClassChoice,
+  type FinelyMailType,
+} from '../../lib/mailClassOptions';
 import { MailProviderStatusBanner } from '../mailing/MailProviderStatusBanner';
 import { MailCreditsPanel } from '../mailing/MailCreditsPanel';
 import {
@@ -82,6 +88,7 @@ export function BatchMailWizard({
     state: '',
     zip: '',
   });
+  const [mailType, setMailType] = useState<FinelyMailType>('certified');
 
   useEffect(() => {
     if (!open) return;
@@ -90,7 +97,9 @@ export function BatchMailWizard({
     setResults([]);
     setBusy(false);
     const preset = (defaultSelectedIds || []).filter((id) => mailReady.some((l) => l.id === id));
-    setSelected(new Set(preset.length ? preset : mailReady.map((l) => l.id)));
+    const ids = preset.length ? preset : mailReady.map((l) => l.id);
+    setSelected(new Set(ids));
+    setMailType(defaultMailTypeForBatch(mailReady.filter((l) => ids.includes(l.id))));
     setFrom({
       name: defaultFromName || '',
       addressLine1: defaultFromAddress?.addressLine1 ?? '',
@@ -154,7 +163,7 @@ export function BatchMailWizard({
           pdfBlobRef: l.pdfBlobRef!,
           to: toClean,
         })),
-        options: { color: true, doubleSided: true },
+        options: { color: true, doubleSided: true, mailType },
       });
       const mapped: BatchMailItemResult[] = batch.map((r) => {
         if (r.ok && r.result) {
@@ -315,6 +324,28 @@ export function BatchMailWizard({
               </div>
               <div className="rounded-xl border border-white/10 bg-black/25 p-3 text-sm text-white/80">
                 Mailing {selectedLetters.length} letter(s) to {toOk ? formatMailAddressOneLine(to) : '…'}
+              </div>
+              <div className="rounded-xl border border-white/10 bg-black/25 p-3 space-y-2">
+                <div className="text-sm font-semibold text-white">Mail class</div>
+                <p className={`text-xs ${FINELY_OS_ENTITY_BODY}`}>
+                  Selected: {mailClassChoice(mailType).shortLabel}. {mailClassChoice(mailType).speedNote}
+                </p>
+                <div className="grid gap-1.5">
+                  {MAIL_CLASS_CHOICES.map((c) => (
+                    <label key={c.id} className="flex items-start gap-2 text-xs text-white/80 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="batchMailType"
+                        className="mt-0.5"
+                        checked={mailType === c.id}
+                        onChange={() => setMailType(c.id)}
+                      />
+                      <span>
+                        <span className="font-semibold text-white">{c.label}</span> — {c.useWhen}
+                      </span>
+                    </label>
+                  ))}
+                </div>
               </div>
               <div className="flex justify-between gap-2">
                 <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => setStep('select')}>

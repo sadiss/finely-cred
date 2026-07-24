@@ -242,6 +242,7 @@ const AuSellerPage = lazy(() => import('./pages/AuSellerPage'));
 const HetaSocietyPage = lazy(() => import('./pages/HetaSocietyPage'));
 const HetaSocietyPortalPage = lazy(() => import('./pages/portal/HetaSocietyPortalPage'));
 const AgentsPage = lazy(() => import('./pages/AgentsPage'));
+const CaseHelpCareersPage = lazy(() => import('./pages/CaseHelpCareersPage'));
 const AgencySignupPage = lazy(() => import('./pages/agency/AgencySignupPage'));
 const AgencyPartnersPage = lazy(() => import('./pages/agency/AgencyPartnersPage'));
 const AgentHubPage = lazy(() => import('./pages/agent/AgentHubPage'));
@@ -1626,6 +1627,7 @@ function AppInner() {
           }
         />
         <Route path="/credit-specialists" element={<AgentsPage />} />
+        <Route path="/careers/case-help" element={<CaseHelpCareersPage />} />
         <Route path="/agency-partners" element={<AgencyPartnersPage />} />
         <Route path="/agents" element={<Navigate to="/credit-specialists" replace />} />
         <Route

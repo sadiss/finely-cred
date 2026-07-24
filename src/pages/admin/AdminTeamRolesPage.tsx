@@ -70,6 +70,18 @@ function defaultPermissionsForRole(role: MembershipRole): Record<string, boolean
     );
   }
   if (role === 'agent') return { canViewAllCustomers: false };
+  // Case-help roles: letters / debt / litigation on assigned partners (not god-mode)
+  if (role === 'paralegal' || role === 'attorney' || role === 'consultant') {
+    return {
+      canViewAllClients: false,
+      canViewLetters: true,
+      canManageLetters: true,
+      canViewCases: true,
+      canManageCases: true,
+      canViewTasks: true,
+      canAccessAdminArea: true,
+    };
+  }
   return undefined;
 }
 
@@ -118,7 +130,12 @@ export default function AdminTeamRolesPage() {
     const email = normalizeEmail(draftEmail);
     if (!email) return;
     const perms = defaultPermissionsForRole(draftRole);
-    const finalPerms = draftRole === 'agent' ? { ...perms, assignedPartnerIds: [] as string[] } : perms;
+    const needsAssign =
+      draftRole === 'agent' ||
+      draftRole === 'paralegal' ||
+      draftRole === 'attorney' ||
+      draftRole === 'consultant';
+    const finalPerms = needsAssign ? { ...perms, assignedPartnerIds: [] as string[] } : perms;
     createMembership({
       tenantId,
       userId: `invited:${email}`,
