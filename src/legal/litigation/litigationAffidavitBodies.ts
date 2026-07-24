@@ -39,7 +39,11 @@ Pursuant to 28 U.S.C. § 1746, {{DEBTOR_NAME}}, having been duly sworn and upon 
 
 13. I reserve all rights, claims, defenses, counterclaims, objections, discovery requests, motions, and remedies available under applicable federal and state law, including the FDCPA, FCRA, state collection practices acts, contract law, evidence rules, and civil procedure.
 
-14. The foregoing is true and correct to the best of my knowledge and belief.
+14. I specifically dispute any attempt to prove the claim with a generic bill of sale, data spreadsheet, charge-off summary, or affidavit from a person who lacks personal or business-record knowledge of THIS account's transfer history and balance math.
+
+15. I demand that any hearing or judgment wait until Plaintiff produces competent, account-level proof of standing, contract, and amount — and I will ask the Court for time to review any papers first produced at the courthouse.
+
+16. The foregoing is true and correct to the best of my knowledge and belief.
 
 
 _________________________
@@ -50,7 +54,7 @@ DATED: {{DATE}}`;
   return fillLitigation(template, args);
 }
 
-/** Debt-buyer / velocity chain-of-title affidavit. */
+/** Debt-buyer / velocity chain-of-title affidavit — standing, amount, foundation. */
 export function getLitigationDebtBuyerAffidavitBody(args: LitigationLetterArgs): string {
   const template = `AFFIDAVIT OF {{DEBTOR_NAME}}
 
@@ -59,21 +63,25 @@ COUNTY OF {{AFFIDAVIT_COUNTY}}                  ) ss.
 
 Pursuant to 28 U.S.C. § 1746, {{DEBTOR_NAME}}, having been duly sworn and upon oath, verifies, certifies under penalty of perjury, and declares as follows:
 
-1. {{PLAINTIFF_NAME}} ("Plaintiff") and their law firm, {{PLAINTIFF_LAW_FIRM}}, have filed a lawsuit in {{COURT_NAME}} against me with Case No. {{CASE_NUMBER}} that I dispute I owe to Plaintiff based on the false or unsupported statements in the exhibits to the complaint.
+1. {{PLAINTIFF_NAME}} ("Plaintiff") and their law firm / collector, {{PLAINTIFF_LAW_FIRM}}, filed a lawsuit against me in {{COURT_NAME}}, Case No. {{CASE_NUMBER}}. I dispute that Plaintiff has proven it owns the specific receivable sued upon, that the amount claimed is accurate, or that the attached papers are competent proof for judgment.
 
-2. I looked over the lawsuit paperwork and I don't know why Plaintiff owns the debt or why I owe them money as there is nothing attached to the lawsuit saying they bought or own the debt they claim I owe.
+2. I reviewed the complaint and exhibits. There is no complete, account-level chain of title showing: (a) the original creditor for THIS account (including {{ORIGINAL_CREDITOR}} if that is the alleged origin); (b) each assignment or sale of THIS account; (c) the sale balance and transfer date for THIS account; and (d) that the named Plaintiff is the current owner or real party in interest.
 
-3. The Bill of Sale attached to the lawsuit shows some company transferring or assigning "all rights, title, and interest in charged off loans." I have no idea who this company or entity or trust is or why or how they have rights to transfer to Plaintiff when there is no proof of any rights being assigned to that initial seller.
+3. Any Bill of Sale, purchase agreement, or "all rights, title, and interest in charged-off loans" language appears to describe a pool or portfolio. A pool summary without an account-level schedule (account identifiers / last four, sale balance, field codes, and transfer date for THIS account) does not prove Plaintiff owns my specific obligation.
 
-4. There is nothing attached to the lawsuit showing any transfer or assignment of this loan or debt to Plaintiff as stated in the complaint.
+4. Loan / reference identifiers on papers (Loan ID {{LOAN_ID}}, Borrower ID {{BORROWER_ID}}, Account {{ACCOUNT_NUMBER}}) have not been tied by Plaintiff to a complete loan file, payment history, charge-off accounting, and sale-file row that matches those identifiers.
 
-5. I don't know how or why Plaintiff obtained the debt in this case from the originator or servicer or how they are receiving ownership of the debt to pass it along. There are no assignments of any debt being transferred anywhere that identify this specific account.
+5. I dispute the amount claimed of {{AMOUNT_CLAIMED}}. Plaintiff has not produced a complete itemized ledger from account opening (or charge-off, as applicable) through the present showing principal, interest, fees, payments, credits, sale proceeds, insurance, setoffs, and adjustments.
 
-6. Loan ID {{LOAN_ID}} and Borrower ID {{BORROWER_ID}} appear on documents but Plaintiff has not produced a complete loan file, complete assignment chain, or account-level schedule tying this account to Plaintiff.
+6. I dispute any affidavit of indebtedness or business-records declaration offered by Plaintiff to the extent the affiant lacks personal knowledge of THIS account's creation, sale, and balance math, and to the extent the records are hearsay without a proper foundation.
 
-7. I dispute the amount claimed of {{AMOUNT_CLAIMED}} and deny liability until Plaintiff proves standing, ownership, and the alleged balance with competent evidence.
+7. I do not admit that Plaintiff is the real party in interest. I do not admit the accuracy of the balance. I do not admit that a generic bill of sale, spreadsheet excerpt, charge-off statement, or account summary alone proves ownership or amount.
 
-8. I reserve all rights, defenses, counterclaims, and discovery requests under applicable law.
+8. I dispute that a pool transfer, data tape, or affidavit template alone proves this specific account was included, correctly valued, or lawfully assigned to Plaintiff.
+
+9. I demand production of: (a) the account-level sale schedule / Exhibit listing THIS account; (b) the complete chain of title; (c) the complete itemized ledger; (d) the agreement and amendments allegedly owed; and (e) identification of trial witnesses and records custodians.
+
+10. I reserve all rights, defenses, counterclaims, discovery requests, motions, and remedies under applicable law. I will ask the Court for time to review papers first produced at hearing. The foregoing is true and correct to the best of my knowledge and belief.
 
 
 _________________________

@@ -1,11 +1,12 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { CheckCircle2, ChevronRight, ExternalLink, ShieldCheck, X, Send, AlertTriangle } from 'lucide-react';
+import { CheckCircle2, ChevronRight, ExternalLink, X, Send, AlertTriangle, MapPin, Package } from 'lucide-react';
 import type { LetterRecord } from '../../domain/letters';
 import type { EvidenceItem } from '../../domain/evidence';
 import { businessBureauDisputeAddress, consumerBureauDisputeAddress } from '../../letters/bureauAddresses';
 import { getBlobUrl } from '../../storage/getBlobUrl';
 import { openUrlInNewTab } from '../../utils/download';
 import {
+  formatMailAddressOneLine,
   mailLetterViaProvider,
   verifyMailAddressesViaProvider,
   type MailAddress,
@@ -13,11 +14,20 @@ import {
 } from '../../lib/mailerClient';
 import { FINELY_MAIL_COPY } from '../../lib/mailWhiteLabel';
 import { buildLetterAgentChain } from '../../lib/letterAgentChain';
-import { canAffordMailSend, chargeMailSend, formatMailCreditsUsd } from '../../data/mailCreditsRepo';
+import { canAffordMailSend, chargeMailSend, formatMailCreditsUsd, DEFAULT_MAIL_COST_CENTS } from '../../data/mailCreditsRepo';
+import {
+  MAIL_CLASS_CHOICES,
+  defaultMailTypeForLetter,
+  mailClassChoice,
+  type FinelyMailType,
+} from '../../lib/mailClassOptions';
 import { MailCreditsPanel } from '../mailing/MailCreditsPanel';
+import { MailProviderStatusBanner } from '../mailing/MailProviderStatusBanner';
 import { LetterAgentChainStrip } from './LetterAgentChainStrip';
 import { appendAiActionAudit } from '../../data/aiActionAuditLog';
-import { FINELY_OS_PRIMARY_BTN, FINELY_OS_SECONDARY_BTN } from '../../features/os/finelyOsLightUi';
+import { FINELY_OS_PRIMARY_BTN, FINELY_OS_SECONDARY_BTN, FINELY_OS_ENTITY_BODY } from '../../features/os/finelyOsLightUi';
+
+type WizardStep = 'confirm' | 'mail' | 'track';
 
 function sanitizeState(s: string) {
   return (s || '').trim().toUpperCase().slice(0, 2);
@@ -39,7 +49,6 @@ function mailDefaultsForDisputeRecipient(letter: LetterRecord): Partial<MailAddr
   const meta: any = (letter as any)?.meta ?? null;
   const isObj = meta && typeof meta === 'object';
 
-  // Business-bureau disputes (manual-first workflow).
   if (isObj && (meta.context === 'business_dispute' || meta.bureauKind === 'business') && meta.businessBureau) {
     const addr = businessBureauDisputeAddress(meta.businessBureau);
     const lines = (addr.lines ?? []).map((x) => String(x || '').trim()).filter(Boolean);
@@ -48,22 +57,17 @@ function mailDefaultsForDisputeRecipient(letter: LetterRecord): Partial<MailAddr
     const cityStateZip = lines[lines.length - 1] || '';
     const parsed = parseCityStateZip(cityStateZip);
     if (!parsed) return null;
-
     const midLines = lines.slice(0, -1);
-    // Prefer last "street/po box" line as addressLine1; everything before becomes addressLine2 (attn, dept).
     const addressLine1 = midLines[midLines.length - 1] ?? '';
     const addressLine2 = midLines.length > 1 ? midLines.slice(0, -1).join(', ') : undefined;
     return { name, addressLine1, addressLine2, city: parsed.city, state: parsed.state, zip: parsed.zip };
   }
 
-  // Consumer bureau disputes (existing).
   const bureau = isObj && 'bureau' in meta ? (meta.bureau as any) : null;
   if (!bureau) return null;
   const addr = consumerBureauDisputeAddress(bureau);
   const lines = (addr.lines ?? []).map((x) => String(x || '').trim()).filter(Boolean);
   if (!lines.length) return null;
-
-  // Typical: [BureauName, POBoxOrStreet, CityStateZip]
   const first = lines[0] || '';
   const addressLine1 = (first.toLowerCase() === String(addr.name || '').toLowerCase() ? lines[1] : first) || '';
   const cityStateZip = lines[lines.length - 1] || '';
@@ -83,6 +87,52 @@ function deliverabilityLabel(v: any): string {
   return s ? s.replaceAll('_', ' ') : 'unknown';
 }
 
+function AddressFields({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: MailAddress;
+  onChange: (next: MailAddress) => void;
+}) {
+  return (
+    <div className="fc-light-glass-panel fc-light-chrome-panel p-4 space-y-3">
+      <div className="text-white font-semibold text-sm inline-flex items-center gap-2">
+        <MapPin size={14} className="text-amber-300" /> {label}
+      </div>
+      {(['name', 'addressLine1', 'addressLine2', 'city', 'state', 'zip'] as const).map((k) => (
+        <label key={k} className="block">
+          <div className="text-[10px] uppercase tracking-widest text-white/40">
+            {k === 'name'
+              ? 'Name'
+              : k === 'addressLine1'
+                ? 'Street address'
+                : k === 'addressLine2'
+                  ? 'Apt / suite (optional)'
+                  : k === 'city'
+                    ? 'City'
+                    : k === 'state'
+                      ? 'State'
+                      : 'ZIP'}
+          </div>
+          <input
+            value={(value as any)[k] ?? ''}
+            onChange={(e) =>
+              onChange({
+                ...value,
+                [k]: k === 'state' ? sanitizeState(e.target.value) : k === 'zip' ? zipOnly(e.target.value) : e.target.value,
+              })
+            }
+            className="mt-1.5 w-full bg-fc-input border border-white/[0.08] rounded-xl px-3 py-2.5 text-white/80 focus:outline-none focus:border-amber-500 transition-colors"
+            placeholder={k === 'state' ? 'CA' : k === 'zip' ? '90210' : ''}
+          />
+        </label>
+      ))}
+    </div>
+  );
+}
+
 export function MailLetterModal({
   open,
   partnerId,
@@ -92,7 +142,9 @@ export function MailLetterModal({
   onClose,
   onMailed,
   onStatus,
+  onNotifyMailed,
   evidence = [],
+  trackHref,
 }: {
   open: boolean;
   partnerId: string;
@@ -100,6 +152,7 @@ export function MailLetterModal({
   defaultFromName?: string;
   defaultFromAddress?: Partial<MailAddress>;
   evidence?: EvidenceItem[];
+  trackHref?: string;
   onClose: () => void;
   onMailed: (args: {
     providerId: string;
@@ -107,12 +160,26 @@ export function MailLetterModal({
     status?: string;
     to: MailAddress;
     from: MailAddress;
+    cost?: number;
   }) => void;
   onStatus?: (args: { status: 'mail_pending' | 'mail_failed'; error?: string; to: MailAddress; from: MailAddress }) => void;
+  /** Optional notify hook — callers should send Finely Mail confirmation email. */
+  onNotifyMailed?: (args: {
+    providerId: string;
+    expectedDeliveryDate?: string;
+    to: MailAddress;
+    from: MailAddress;
+  }) => void | Promise<void>;
 }) {
   const canMail = Boolean(letter.pdfBlobRef);
+  const [step, setStep] = useState<WizardStep>('confirm');
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const [mailedMeta, setMailedMeta] = useState<{
+    providerId: string;
+    expectedDeliveryDate?: string;
+    cost?: number;
+  } | null>(null);
 
   const [to, setTo] = useState<MailAddress>({
     name: '',
@@ -132,13 +199,13 @@ export function MailLetterModal({
   });
 
   const [pdfPreview, setPdfPreview] = useState<{ url: string; revoke?: () => void } | null>(null);
-
   const [verifyBusy, setVerifyBusy] = useState(false);
   const [verifyErr, setVerifyErr] = useState<string | null>(null);
   const [verifyRes, setVerifyRes] = useState<{ to: MailAddressVerificationResult; from: MailAddressVerificationResult } | null>(
     null,
   );
   const [verifiedHash, setVerifiedHash] = useState<string | null>(null);
+  const [mailType, setMailType] = useState<FinelyMailType>(() => defaultMailTypeForLetter(letter));
 
   const currentHash = useMemo(() => {
     const pick = (a: MailAddress) => ({
@@ -154,36 +221,34 @@ export function MailLetterModal({
 
   useEffect(() => {
     if (!open) return;
-    // Autofill defaults without overwriting user edits.
+    setStep('confirm');
+    setErr(null);
+    setMailedMeta(null);
+    setVerifyRes(null);
+    setVerifiedHash(null);
+    setMailType(defaultMailTypeForLetter(letter));
     const disputeTo = mailDefaultsForDisputeRecipient(letter);
-    if (disputeTo) {
-      setTo((prev) => ({
-        ...prev,
-        name: prev.name.trim() ? prev.name : (disputeTo.name ?? ''),
-        addressLine1: prev.addressLine1.trim() ? prev.addressLine1 : (disputeTo.addressLine1 ?? ''),
-        addressLine2: prev.addressLine2?.trim() ? prev.addressLine2 : (disputeTo.addressLine2 ?? ''),
-        city: prev.city.trim() ? prev.city : (disputeTo.city ?? ''),
-        state: prev.state.trim() ? prev.state : (disputeTo.state ?? ''),
-        zip: prev.zip.trim() ? prev.zip : (disputeTo.zip ?? ''),
-      }));
-    }
-    if (defaultFromName || defaultFromAddress) {
-      setFrom((prev) => ({
-        ...prev,
-        name: prev.name.trim() ? prev.name : (defaultFromName ?? ''),
-        addressLine1: prev.addressLine1.trim() ? prev.addressLine1 : (defaultFromAddress?.addressLine1 ?? ''),
-        addressLine2: prev.addressLine2?.trim() ? prev.addressLine2 : (defaultFromAddress?.addressLine2 ?? ''),
-        city: prev.city.trim() ? prev.city : (defaultFromAddress?.city ?? ''),
-        state: prev.state.trim() ? prev.state : (defaultFromAddress?.state ?? ''),
-        zip: prev.zip.trim() ? prev.zip : (defaultFromAddress?.zip ?? ''),
-      }));
-    }
+    setTo({
+      name: disputeTo?.name ?? '',
+      addressLine1: disputeTo?.addressLine1 ?? '',
+      addressLine2: disputeTo?.addressLine2 ?? '',
+      city: disputeTo?.city ?? '',
+      state: disputeTo?.state ?? '',
+      zip: disputeTo?.zip ?? '',
+    });
+    setFrom({
+      name: defaultFromName || '',
+      addressLine1: defaultFromAddress?.addressLine1 ?? '',
+      addressLine2: defaultFromAddress?.addressLine2 ?? '',
+      city: defaultFromAddress?.city ?? '',
+      state: defaultFromAddress?.state ?? '',
+      zip: defaultFromAddress?.zip ?? '',
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open]);
+  }, [open, letter.id]);
 
   useEffect(() => {
     if (!open) return;
-    // Reset verification if addresses change after verification.
     if (verifiedHash && verifiedHash !== currentHash) {
       setVerifyRes(null);
       setVerifiedHash(null);
@@ -206,7 +271,6 @@ export function MailLetterModal({
         revoke = res.revoke;
         setPdfPreview({ url: res.url, revoke: res.revoke });
       } catch {
-        // ignore (preview is best-effort)
         if (!mounted) return;
         setPdfPreview(null);
       }
@@ -216,7 +280,7 @@ export function MailLetterModal({
       try {
         revoke?.();
       } catch {
-        // ignore
+        /* ignore */
       }
     };
   }, [open, letter.pdfBlobRef]);
@@ -248,10 +312,7 @@ export function MailLetterModal({
     return !bad.has(toDel) && !bad.has(fromDel);
   }, [verifyRes, deliverability]);
 
-  const agentChain = useMemo(
-    () => buildLetterAgentChain({ letter, evidence }),
-    [letter, evidence],
-  );
+  const agentChain = useMemo(() => buildLetterAgentChain({ letter, evidence }), [letter, evidence]);
 
   if (!open) return null;
 
@@ -274,11 +335,23 @@ export function MailLetterModal({
     }
   };
 
+  const goMailStep = async () => {
+    setErr(null);
+    if (invalid) {
+      setErr('Fill complete To and From addresses (name, street, city, state, ZIP).');
+      return;
+    }
+    if (!verifiedOk) {
+      await verify();
+    }
+    setStep('mail');
+  };
+
   const submit = async () => {
     if (!letter.pdfBlobRef) return;
     if (invalid || busy) return;
     if (!agentChain.readyToMail) {
-      setErr(agentChain.blockingMessage ?? 'Complete the agent review steps before mailing.');
+      setErr(agentChain.blockingMessage ?? 'Complete the review steps before mailing.');
       appendAiActionAudit({
         kind: 'letter_chain',
         action: 'Mail blocked — compliance gate',
@@ -290,12 +363,15 @@ export function MailLetterModal({
       return;
     }
     if (!verifiedOk) {
-      setErr('Please verify both addresses before mailing.');
+      setErr('Confirm addresses first (tap Back → Confirm address).');
+      setStep('confirm');
       return;
     }
     const afford = canAffordMailSend();
     if (!afford.ok) {
-      setErr(`Insufficient mailing balance. Need ${formatMailCreditsUsd(afford.costCents)}; available ${formatMailCreditsUsd(afford.balanceCents)}. Replenish in Admin Settings or the mail panel.`);
+      setErr(
+        `Insufficient internal mailing budget. Need ${formatMailCreditsUsd(afford.costCents)}; available ${formatMailCreditsUsd(afford.balanceCents)}. Add funds below or in Admin Settings.`,
+      );
       return;
     }
     setErr(null);
@@ -310,17 +386,37 @@ export function MailLetterModal({
         pdfBlobRef: letter.pdfBlobRef,
         to: toClean,
         from: fromClean,
-        options: { color: true, doubleSided: true },
+        options: { color: true, doubleSided: true, mailType },
       });
-      chargeMailSend({ letterId: letter.id, partnerId });
+      const costCents =
+        typeof res.cost === 'number' && Number.isFinite(res.cost)
+          ? Math.round(res.cost * (res.cost < 20 ? 100 : 1))
+          : undefined;
+      chargeMailSend({ letterId: letter.id, partnerId, costCents });
+      setMailedMeta({
+        providerId: res.providerId,
+        expectedDeliveryDate: res.expectedDeliveryDate,
+        cost: res.cost,
+      });
       onMailed({
         providerId: res.providerId,
         expectedDeliveryDate: res.expectedDeliveryDate,
         status: res.status,
         to: toClean,
         from: fromClean,
+        cost: res.cost,
       });
-      onClose();
+      try {
+        await onNotifyMailed?.({
+          providerId: res.providerId,
+          expectedDeliveryDate: res.expectedDeliveryDate,
+          to: toClean,
+          from: fromClean,
+        });
+      } catch {
+        /* email is best-effort — mail already succeeded */
+      }
+      setStep('track');
     } catch (e: any) {
       const msg = e?.message || 'Mailing failed.';
       setErr(msg);
@@ -332,20 +428,28 @@ export function MailLetterModal({
     }
   };
 
+  const steps: { id: WizardStep; label: string }[] = [
+    { id: 'confirm', label: '1 · Confirm address' },
+    { id: 'mail', label: '2 · Mail' },
+    { id: 'track', label: '3 · Track' },
+  ];
+
   return (
     <div className="fixed inset-0 z-[300] flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => (busy ? null : onClose())} />
+      <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => (busy || step === 'track' ? null : onClose())} />
       <div
         className="relative w-full max-w-4xl rounded-3xl border border-white/[0.08] bg-fc-shell shadow-2xl overflow-hidden"
         role="dialog"
         aria-modal="true"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="p-6 border-b border-white/[0.08] flex items-start justify-between gap-4">
+        <div className="p-4 border-b border-white/[0.08] flex items-start justify-between gap-4">
           <div className="min-w-0">
-            <div className="text-[10px] uppercase tracking-widest text-white/40">Mail letter</div>
-            <div className="mt-2 text-2xl font-light text-white truncate">{letter.title}</div>
-            <div className="mt-1 text-white/60 text-sm">{FINELY_MAIL_COPY.sendSubtitle}</div>
+            <div className="text-[10px] uppercase tracking-widest text-white/40">{FINELY_MAIL_COPY.serviceName}</div>
+            <div className="mt-1 text-xl font-light text-white truncate">{letter.title}</div>
+            <p className={`mt-1 text-sm ${FINELY_OS_ENTITY_BODY}`}>
+              First-timer path: Confirm address → Mail → Track. One clear action per step.
+            </p>
           </div>
           <button
             type="button"
@@ -358,195 +462,214 @@ export function MailLetterModal({
           </button>
         </div>
 
-        <div className="p-6 space-y-6 max-h-[78vh] overflow-y-auto">
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            {[
-              { label: 'PDF ready', value: canMail ? 'Yes' : 'No', accent: canMail ? 'text-emerald-300' : 'text-rose-300' },
-              { label: 'Type', value: letter.type, accent: 'text-violet-300' },
-              { label: 'Status', value: letter.status || 'generated', accent: 'text-sky-300' },
-              { label: 'Exhibits', value: String(evidence.length), accent: 'text-fuchsia-300' },
-            ].map((kpi) => (
-              <div key={kpi.label} className="rounded-xl border border-white/10 bg-black/25 px-3 py-3 text-center">
-                <div className={`text-sm font-black capitalize ${kpi.accent}`}>{kpi.value}</div>
-                <div className="text-[9px] uppercase tracking-widest text-white/45 mt-1">{kpi.label}</div>
-              </div>
-            ))}
-          </div>
+        <div className="px-4 pt-3 flex flex-wrap items-center gap-1.5">
+          {steps.map((s, idx) => (
+            <React.Fragment key={s.id}>
+              {idx > 0 ? <ChevronRight size={16} className="text-white/30 shrink-0" aria-hidden /> : null}
+              <span
+                className={`inline-flex items-center rounded-lg border px-3 py-1.5 text-xs font-semibold ${
+                  step === s.id
+                    ? 'border-amber-400/50 bg-amber-500/15 text-amber-50'
+                    : 'border-white/12 bg-black/30 text-white/55'
+                }`}
+              >
+                {s.label}
+              </span>
+            </React.Fragment>
+          ))}
+        </div>
 
-          {letter.type === 'dispute' ? <LetterAgentChainStrip steps={agentChain.steps} /> : null}
+        <div className="p-4 space-y-4 max-h-[72vh] overflow-y-auto">
+          <MailProviderStatusBanner compact letterCount={1} />
+
           {!canMail ? (
-            <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-red-100 text-sm">
+            <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-3 text-red-100 text-sm">
               This letter has no stored PDF. Generate and save it to the vault before mailing.
             </div>
           ) : null}
-          {err ? <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-red-100 text-sm">{err}</div> : null}
+          {err ? <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-3 text-red-100 text-sm">{err}</div> : null}
+          {letter.type === 'dispute' ? <LetterAgentChainStrip steps={agentChain.steps} /> : null}
 
-          <div className="flex flex-wrap items-center gap-1.5 rounded-xl border border-white/10 bg-black/25 p-3">
-            {(['From', 'To', 'Credits', 'Send'] as const).map((label, idx) => (
-              <React.Fragment key={label}>
-                {idx > 0 ? <ChevronRight size={18} className="text-white/30 shrink-0" aria-hidden /> : null}
-                <span
-                  className={`inline-flex items-center rounded-lg border px-3 py-2 min-h-[40px] text-sm font-semibold ${
-                    label === 'Send'
-                      ? 'border-amber-400/50 bg-amber-500/15 text-amber-50'
-                      : 'border-white/12 bg-black/30 text-white/75'
-                  }`}
-                >
-                  {label}
-                </span>
-              </React.Fragment>
-            ))}
-          </div>
-
-          <MailCreditsPanel compact />
-
-          {/* Preview */}
-          <div className="fc-light-glass-panel fc-light-chrome-panel p-5 space-y-4">
-            <div className="flex flex-wrap items-start justify-between gap-3">
-              <div>
-                <div className="text-white font-semibold">Letter preview</div>
-                <div className="mt-1 text-white/60 text-sm">Confirm the exact PDF artifact that will be mailed.</div>
+          {step === 'confirm' ? (
+            <>
+              <div className="rounded-xl border border-white/10 bg-black/25 p-3 space-y-1">
+                <div className="text-[10px] uppercase tracking-widest text-white/40">Recipient preview</div>
+                <div className="text-sm text-white/90">{to.name.trim() ? formatMailAddressOneLine(to) : 'Fill the To address below'}</div>
+                <div className="text-[10px] uppercase tracking-widest text-white/40 pt-2">Return address</div>
+                <div className="text-sm text-white/75">{from.name.trim() ? formatMailAddressOneLine(from) : 'Fill the From address below'}</div>
+                <div className={`text-xs ${FINELY_OS_ENTITY_BODY}`}>
+                  Est. ~{formatMailCreditsUsd(DEFAULT_MAIL_COST_CENTS)} per color letter (actual may vary by mail class).
+                </div>
               </div>
-              <div className="flex flex-wrap items-center gap-2">
+
+              <div className="fc-light-glass-panel fc-light-chrome-panel p-4 space-y-2">
+                <div className="text-white font-semibold text-sm">Mail class</div>
+                <p className={`text-xs ${FINELY_OS_ENTITY_BODY}`}>
+                  Default selected for this letter: <span className="text-amber-100">{mailClassChoice(mailType).shortLabel}</span>.{' '}
+                  {mailClassChoice(mailType).speedNote} LetterStream has no true overnight Express — First Class is the fastest letter path; Certified (RR) is the legal-proof path.
+                </p>
+                <div className="grid gap-2">
+                  {MAIL_CLASS_CHOICES.map((c) => (
+                    <label
+                      key={c.id}
+                      className={`flex items-start gap-3 rounded-xl border px-3 py-2.5 cursor-pointer ${
+                        mailType === c.id
+                          ? 'border-amber-400/45 bg-amber-500/10'
+                          : 'border-white/10 bg-black/25 hover:border-white/20'
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="mailType"
+                        className="mt-1"
+                        checked={mailType === c.id}
+                        onChange={() => setMailType(c.id)}
+                      />
+                      <span>
+                        <span className="block text-sm font-semibold text-white">{c.label}</span>
+                        <span className={`block text-xs ${FINELY_OS_ENTITY_BODY}`}>{c.useWhen}</span>
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-3">
+                <AddressFields label="To — who receives this letter" value={to} onChange={setTo} />
+                <AddressFields label="From — return address on the envelope" value={from} onChange={setFrom} />
+              </div>
+
+              <div className="fc-light-glass-panel fc-light-chrome-panel p-4 space-y-3">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <div className="text-white font-semibold text-sm">PDF preview</div>
+                    <div className={`text-xs ${FINELY_OS_ENTITY_BODY}`}>This exact file is what gets printed and mailed.</div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => pdfPreview?.url && openUrlInNewTab({ url: pdfPreview.url })}
+                    disabled={!pdfPreview?.url}
+                    className={`${FINELY_OS_SECONDARY_BTN} disabled:opacity-60`}
+                  >
+                    <ExternalLink size={14} /> Open PDF
+                  </button>
+                </div>
+                {pdfPreview?.url ? (
+                  <iframe title="Letter PDF preview" src={pdfPreview.url} className="w-full h-[220px] rounded-xl border border-white/10" />
+                ) : (
+                  <div className={`text-sm ${FINELY_OS_ENTITY_BODY}`}>Preview unavailable.</div>
+                )}
+              </div>
+
+              <div className="fc-light-glass-panel fc-light-chrome-panel p-4 space-y-3">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div className="text-white font-semibold text-sm">Address check</div>
+                  <button
+                    type="button"
+                    onClick={() => void verify()}
+                    disabled={verifyBusy || invalid}
+                    className={`${FINELY_OS_SECONDARY_BTN} disabled:opacity-60`}
+                  >
+                    {verifyBusy ? 'Checking…' : verifiedOk ? 'Re-check addresses' : 'Check addresses'}
+                  </button>
+                </div>
+                {verifyErr ? (
+                  <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-amber-100 text-sm">{verifyErr}</div>
+                ) : null}
+                {verifyRes ? (
+                  <div className="grid sm:grid-cols-2 gap-2 text-sm text-white/80">
+                    <div className="inline-flex items-center gap-2">
+                      <CheckCircle2 size={14} className="text-emerald-400" /> To: {deliverabilityLabel(deliverability.toDel)}
+                    </div>
+                    <div className="inline-flex items-center gap-2">
+                      <CheckCircle2 size={14} className="text-emerald-400" /> From: {deliverabilityLabel(deliverability.fromDel)}
+                    </div>
+                  </div>
+                ) : (
+                  <div className={`text-sm inline-flex items-start gap-2 ${FINELY_OS_ENTITY_BODY}`}>
+                    <AlertTriangle size={14} className="text-amber-300 mt-0.5" />
+                    Check addresses, then continue. Format-valid is enough for Finely Mail.
+                  </div>
+                )}
+              </div>
+
+              <div className="flex justify-end gap-2 sticky bottom-0 bg-fc-shell/95 py-2">
+                <button type="button" onClick={onClose} className={FINELY_OS_SECONDARY_BTN} disabled={busy}>
+                  Cancel
+                </button>
                 <button
                   type="button"
-                  onClick={() => {
-                    if (!pdfPreview?.url) return;
-                    openUrlInNewTab({ url: pdfPreview.url });
-                  }}
-                  disabled={!pdfPreview?.url}
-                  className="inline-flex items-center gap-2 px-4 py-2 fc-light-glass-panel fc-light-chrome-panel rounded-xl hover:bg-white/[0.03] text-[10px] font-black uppercase tracking-widest text-white/80 disabled:opacity-60"
+                  onClick={() => void goMailStep()}
+                  disabled={invalid || verifyBusy}
+                  className={`${FINELY_OS_PRIMARY_BTN} disabled:opacity-60`}
                 >
-                  <ExternalLink size={14} /> Open PDF
+                  Continue to Mail <ChevronRight size={16} />
+                </button>
+              </div>
+            </>
+          ) : null}
+
+          {step === 'mail' ? (
+            <>
+              <div className="rounded-xl border border-amber-400/30 bg-amber-500/10 p-4 space-y-2">
+                <div className="text-white font-semibold">Ready to mail</div>
+                <p className={`text-sm ${FINELY_OS_ENTITY_BODY}`}>
+                  To: {formatMailAddressOneLine(to)}
+                  <br />
+                  From: {formatMailAddressOneLine(from)}
+                </p>
+                <p className={`text-sm ${FINELY_OS_ENTITY_BODY}`}>
+                  Cost estimate ~{formatMailCreditsUsd(DEFAULT_MAIL_COST_CENTS)}. One tap sends this PDF via {FINELY_MAIL_COPY.serviceName}.
+                </p>
+              </div>
+              <MailCreditsPanel compact />
+              <div className="flex justify-between gap-2 sticky bottom-0 bg-fc-shell/95 py-2">
+                <button type="button" className={FINELY_OS_SECONDARY_BTN} disabled={busy} onClick={() => setStep('confirm')}>
+                  Back
+                </button>
+                <button
+                  type="button"
+                  onClick={() => void submit()}
+                  disabled={busy || invalid || !verifiedOk}
+                  className={`${FINELY_OS_PRIMARY_BTN} !text-sm disabled:opacity-60`}
+                >
+                  <Send size={16} /> {busy ? 'Mailing…' : 'Mail this letter'}
+                </button>
+              </div>
+            </>
+          ) : null}
+
+          {step === 'track' && mailedMeta ? (
+            <div className="rounded-xl border border-emerald-400/35 bg-emerald-500/10 p-5 space-y-3">
+              <div className="inline-flex items-center gap-2 text-emerald-200 font-semibold">
+                <Package size={18} /> Mailed successfully
+              </div>
+              <p className={`text-sm ${FINELY_OS_ENTITY_BODY}`}>
+                Tracking / job id: <span className="font-mono text-white/90">{mailedMeta.providerId}</span>
+                {mailedMeta.expectedDeliveryDate ? (
+                  <>
+                    <br />
+                    Expected delivery: {mailedMeta.expectedDeliveryDate}
+                  </>
+                ) : null}
+              </p>
+              <p className={`text-sm ${FINELY_OS_ENTITY_BODY}`}>
+                Status is saved on the letter. Watch the Letters Vault for mail_pending → mailed updates.
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {trackHref ? (
+                  <a href={trackHref} className={FINELY_OS_PRIMARY_BTN}>
+                    Open Letters Vault
+                  </a>
+                ) : null}
+                <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={onClose}>
+                  Done
                 </button>
               </div>
             </div>
-            {pdfPreview?.url ? (
-              <div className="fc-light-glass-panel fc-light-chrome-panel overflow-hidden">
-                <iframe
-                  title="Letter PDF preview"
-                  src={pdfPreview.url}
-                  className="w-full h-[320px] md:h-[420px]"
-                />
-              </div>
-            ) : (
-              <div className="text-white/55 text-sm">Preview unavailable (PDF may not be stored yet).</div>
-            )}
-          </div>
-
-          {/* Addresses — stacked for clarity */}
-          <div className="space-y-4">
-            <div className="fc-light-glass-panel fc-light-chrome-panel p-5 space-y-4" id="mail-step-to">
-              <div className="text-white font-semibold text-sm">To — recipient address</div>
-              {(['name', 'addressLine1', 'addressLine2', 'city', 'state', 'zip'] as const).map((k) => (
-                <label key={k} className="block">
-                  <div className="text-[10px] uppercase tracking-widest text-white/40">{k}</div>
-                  <input
-                    value={(to as any)[k] ?? ''}
-                    onChange={(e) =>
-                      setTo((prev) => ({
-                        ...prev,
-                        [k]: k === 'state' ? sanitizeState(e.target.value) : k === 'zip' ? zipOnly(e.target.value) : e.target.value,
-                      }))
-                    }
-                    className="mt-2 w-full bg-fc-input border border-white/[0.08] rounded-xl px-4 py-3 text-white/80 focus:outline-none focus:border-amber-500 transition-colors"
-                    placeholder={k === 'state' ? 'CA' : k === 'zip' ? '90210' : ''}
-                  />
-                </label>
-              ))}
-            </div>
-
-            <div className="fc-light-glass-panel fc-light-chrome-panel p-5 space-y-4" id="mail-step-from">
-              <div className="text-white font-semibold text-sm">From — your return address</div>
-              {(['name', 'addressLine1', 'addressLine2', 'city', 'state', 'zip'] as const).map((k) => (
-                <label key={k} className="block">
-                  <div className="text-[10px] uppercase tracking-widest text-white/40">{k}</div>
-                  <input
-                    value={(from as any)[k] ?? ''}
-                    onChange={(e) =>
-                      setFrom((prev) => ({
-                        ...prev,
-                        [k]: k === 'state' ? sanitizeState(e.target.value) : k === 'zip' ? zipOnly(e.target.value) : e.target.value,
-                      }))
-                    }
-                    className="mt-2 w-full bg-fc-input border border-white/[0.08] rounded-xl px-4 py-3 text-white/80 focus:outline-none focus:border-amber-500 transition-colors"
-                    placeholder={k === 'state' ? 'CA' : k === 'zip' ? '90210' : ''}
-                  />
-                </label>
-              ))}
-            </div>
-          </div>
-
-          {/* Verification */}
-          <div className="fc-light-glass-panel fc-light-chrome-panel p-5 space-y-4">
-            <div className="flex flex-wrap items-start justify-between gap-3">
-              <div>
-                <div className="text-white font-semibold">Address verification (recommended)</div>
-                <div className="mt-1 text-white/60 text-sm">We’ll verify deliverability before sending.</div>
-              </div>
-              <button
-                type="button"
-                onClick={() => void verify()}
-                disabled={verifyBusy || invalid}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500 text-black font-black uppercase tracking-widest text-[10px] hover:brightness-110 transition-all disabled:opacity-60"
-              >
-                <ShieldCheck size={14} /> {verifyBusy ? 'Verifying…' : 'Verify addresses'}
-              </button>
-            </div>
-
-            {verifyErr ? (
-              <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-amber-100 text-sm">
-                {verifyErr}
-              </div>
-            ) : null}
-
-            {verifyRes ? (
-              <div className="grid md:grid-cols-2 gap-4">
-                <div className="fc-light-glass-panel fc-light-chrome-panel p-4">
-                  <div className="text-[10px] uppercase tracking-widest text-white/40">To deliverability</div>
-                  <div className="mt-2 flex items-center gap-2">
-                    <CheckCircle2 size={16} className="text-emerald-400" />
-                    <div className="text-white/85 font-semibold">{deliverabilityLabel(deliverability.toDel)}</div>
-                  </div>
-                </div>
-                <div className="fc-light-glass-panel fc-light-chrome-panel p-4">
-                  <div className="text-[10px] uppercase tracking-widest text-white/40">From deliverability</div>
-                  <div className="mt-2 flex items-center gap-2">
-                    <CheckCircle2 size={16} className="text-emerald-400" />
-                    <div className="text-white/85 font-semibold">{deliverabilityLabel(deliverability.fromDel)}</div>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div className="flex items-start gap-3 fc-light-glass-panel fc-light-chrome-panel rounded-xl p-4 text-white/70 text-sm">
-                <AlertTriangle size={16} className="mt-0.5 text-amber-300" />
-                <div>Not verified yet. Verify addresses to unlock mailing.</div>
-              </div>
-            )}
-          </div>
-
-          <div className="flex items-center justify-end gap-3">
-            <button
-              type="button"
-              onClick={onClose}
-              disabled={busy}
-              className="px-4 py-2 rounded-xl border border-white/[0.08] bg-white/5 hover:bg-white/10 text-[10px] font-black uppercase tracking-widest text-white/70 disabled:opacity-60"
-            >
-              Cancel
-            </button>
-            <button
-              type="button"
-              onClick={() => void submit()}
-              disabled={busy || invalid || !verifiedOk}
-              className={`${FINELY_OS_PRIMARY_BTN} !text-sm disabled:opacity-60 disabled:cursor-not-allowed`}
-              id="mail-step-send"
-            >
-              <Send size={16} /> {busy ? 'Sending…' : 'Send letter'}
-            </button>
-          </div>
+          ) : null}
         </div>
       </div>
     </div>
   );
 }
-

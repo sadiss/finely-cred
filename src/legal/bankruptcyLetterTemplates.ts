@@ -29,7 +29,8 @@ export type BankruptcyLetterArgs = {
 };
 
 function addr(a: BankruptcyLetterArgs) {
-  return [a.debtorName, a.address1, a.address2, [a.city, a.state, a.postalCode].filter(Boolean).join(', '), a.phone, a.email]
+  // Name + mailing address (+ optional phone). Never auto-print email on letter paper.
+  return [a.debtorName, a.address1, a.address2, [a.city, a.state, a.postalCode].filter(Boolean).join(', '), a.phone]
     .filter(Boolean)
     .join('\n');
 }

@@ -6,8 +6,10 @@ import { buildPremiumCreditAnalysisPayload } from '../lib/buildPremiumCreditAnal
 import { buildCreditAnalysisFilename, buildCreditAnalysisTitle } from '../lib/creditAnalysisReportNaming';
 import type { CreditAnalysisReportTemplateConfig } from './generateCreditAnalysisReportPdf';
 import {
+  ANALYSIS_SYSTEM_HOW_IT_WORKS,
   BLACK_CARD_ESSAY,
   CLOSING_ESSAY,
+  COMPLIANCE_LINE,
   FINELY_PARTNERSHIP,
   MINDSET_INTRO,
   MINDSET_TIERS_EXTENDED,
@@ -125,6 +127,7 @@ export async function composeStructuredPremiumCreditAnalysisPdf(args: {
   // —— Executive snapshot (2 pages) ——
   writer.addPage('Executive snapshot');
   writer.drawSectionTitle('Executive snapshot', payload.readinessTagline);
+  writer.drawComplianceStrip(COMPLIANCE_LINE);
   writer.drawKpiRow([
     { label: 'Readiness', value: payload.overallReadiness, tone: 'gold' },
     { label: 'Posture', value: payload.approvalReadiness, tone: payload.approvalReadiness === 'Strong' ? 'success' : 'warn' },
@@ -133,19 +136,23 @@ export async function composeStructuredPremiumCreditAnalysisPdf(args: {
   ]);
   const bureauLine = payload.bureauScores.map((b) => `${b.label} ${reported(b.score)}`).join('   ·   ');
   writer.drawParagraph(
-    `This report is prepared for ${partnerName} from the bureau export dated on or around ${reportLine.replace('Source report · ', '') || 'your latest upload'}. Scores and tradelines can differ by bureau — we analyze all parsed data together so your plan reflects the full picture, not a single snapshot in isolation.`,
+    `Prepared for ${partnerName} from the bureau export dated on or around ${reportLine.replace('Source report · ', '') || 'your latest upload'}. Scores and tradelines can differ by bureau — we analyze all parsed data together so your plan reflects the full picture, not a single snapshot in isolation.`,
   );
   writer.drawParagraph(`Bureau scores on file — ${bureauLine}.`);
+  writer.drawParagraph(
+    'Use this snapshot as your command strip: readiness tells you where you stand; posture tells you how underwriters will likely read the file; inquiries and negatives tell you what to sequence first.',
+  );
   writer.drawPremiumImagePanel('score', 40, 96, 532, 112);
 
   writer.addPage('Executive snapshot');
-  writer.drawSectionTitle('At a glance', 'What is helping, what needs attention, and where to start.');
+  writer.drawSectionTitle('At a glance', 'What is helping, what needs attention, and your first move.');
   writer.drawQuickReadCards([
     { label: "What's helping", body: payload.quickRead.helping, tone: 'success' },
     { label: 'Needs attention', body: payload.quickRead.hurting, tone: 'warn' },
     { label: 'First move', body: payload.quickRead.improveFirst, tone: 'gold' },
   ]);
   writer.drawParagraph(payload.quickRead.nearTerm);
+  writer.drawSubsectionLabel('Factor posture');
   for (const row of payload.factorRows.slice(0, 6)) {
     writer.drawParagraph(`${row.label} — ${row.detail} (${row.status})`);
   }
@@ -153,7 +160,7 @@ export async function composeStructuredPremiumCreditAnalysisPdf(args: {
   // —— Credit mindset (premium editorial section) ——
   writer.drawSectionOpener(
     'Credit mindset',
-    'A premium report should orient the client before it lists problems. This section frames credit as a system.',
+    'Orient the partner before listing problems. This section frames credit as a system you can engineer.',
     'mindset',
   );
   writer.drawEditorialBlock(MINDSET_INTRO.title, MINDSET_INTRO.paragraphs, MINDSET_INTRO.subtitle);
@@ -199,15 +206,15 @@ export async function composeStructuredPremiumCreditAnalysisPdf(args: {
   const positives = (parsed.tradelines ?? []).filter(isPositiveTradeline);
   writer.drawSectionOpener(
     'Positive accounts',
-    'Positive tradelines are assets. They deserve the same premium treatment as risks because they are what lenders trust.',
+    'Positive tradelines are assets. Treat them with the same rigor as risks — they are what lenders and underwriters trust.',
     'positive',
   );
   writer.drawSectionTitle(
     'Positive & open accounts',
-    `${positives.length} account${positives.length === 1 ? '' : 's'} supporting your file. These tradelines are assets — protect on-time payment history and keep utilization disciplined while disputes run on separate items.`,
+    `${positives.length} account${positives.length === 1 ? '' : 's'} supporting your file. Protect on-time history and keep utilization disciplined while disputes run on separate items.`,
   );
   writer.drawParagraph(
-    'Open positive accounts tell lenders you are a reliable borrower today. Closing them to “clean up” your file often backfires. The goal is to keep these reporting accurately while negatives are addressed in sequence.',
+    'Open positive accounts tell lenders you are a reliable borrower today. Closing them to “clean up” your file often backfires. Keep these reporting accurately while negatives are addressed in sequence — never sacrifice a working asset to chase a cosmetic cleanup.',
   );
   if (!positives.length) {
     writer.drawParagraph(
@@ -325,6 +332,17 @@ export async function composeStructuredPremiumCreditAnalysisPdf(args: {
     ],
   );
 
+  // —— How the analysis system works ——
+  writer.drawSectionOpener(
+    ANALYSIS_SYSTEM_HOW_IT_WORKS.title,
+    ANALYSIS_SYSTEM_HOW_IT_WORKS.subtitle,
+    'closing',
+  );
+  writer.drawEditorialBlock(ANALYSIS_SYSTEM_HOW_IT_WORKS.title, [
+    ...ANALYSIS_SYSTEM_HOW_IT_WORKS.paragraphs,
+    ...ANALYSIS_SYSTEM_HOW_IT_WORKS.steps.map((s, i) => `${i + 1}. ${s}`),
+  ]);
+
   // —— Finely Cred partnership ——
   writer.drawSectionOpener(
     'Your Finely Cred team',
@@ -346,10 +364,10 @@ export async function composeStructuredPremiumCreditAnalysisPdf(args: {
   let padIndex = 0;
   const filler = [
     'Credit reporting is dynamic. An item that appears today may update, re-age incorrectly, or duplicate after a bureau response. That is why we emphasize re-uploading reports after each round rather than treating this PDF as a static scorecard.',
-    'Utilization is reported on the statement date for most issuers. Paying down balances before that date — not just the due date — is how many clients win quick point gains without new credit.',
-    'Business and personal credit serve different purposes but share timing risk. Sequencing matters: restore personal friction before stacking business inquiries if fundability is the goal.',
+    'Utilization is reported on the statement date for most issuers. Paying down balances before that date — not just the due date — is how many partners win quick point gains without new credit. Results vary.',
+    'Business and personal credit serve different purposes but share timing risk. Sequencing matters: restore personal friction before stacking business inquiries if fundability is the goal. Funding subject to underwriting.',
     'Documentation wins disputes. Screenshots, certified mail receipts, and identity proofs belong in your portal vault so every letter you send is repeatable and auditable.',
-    'Your strategist can reinterpret this report after each re-parse. Treat the portal as the live version; this PDF is the oriented snapshot for the current cycle.',
+    'Your strategist can reinterpret this report after each re-parse. Treat the portal as the live version; this PDF is the oriented snapshot for the current cycle. Results vary · not legal advice.',
   ];
   while (pdf.getPageCount() < TARGET_MIN_PAGES && padIndex < 12) {
     if (padIndex === 0) {

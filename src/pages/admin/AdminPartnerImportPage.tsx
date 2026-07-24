@@ -42,6 +42,12 @@ import {
   finelyOsInlineListItem,
 } from '../../features/os/finelyOsLightUi';
 import { sendInviteEmail, sendInviteSms } from '../../lib/inviteDeliveryClient';
+import {
+  ROOSEVELT_COURT_PARTNER_ID,
+  ROOSEVELT_DISPLAY_NAME,
+  ensureRooseveltCourtPartnerAsync,
+} from '../../data/rooseveltCourtPartnerSeed';
+import { ADMIN_PARTNER_OVERRIDE_KEY } from '../../portal/getOrCreatePartnerForSession';
 
 function safeParseJson(raw: string): any {
   try {
@@ -74,6 +80,7 @@ export default function AdminPartnerImportPage() {
   const [autoSendInvites, setAutoSendInvites] = useState(() => isFeatureEnabled('inviteDelivery'));
   const [affiliateId, setAffiliateId] = useState('');
   const [affiliates, setAffiliates] = useState<Array<{ id: string; label: string }>>([]);
+  const [rooseveltBusy, setRooseveltBusy] = useState(false);
 
   useEffect(() => {
     listAffiliatesByTenant(FINELY_TENANT_ID).then((rows) => {
@@ -343,7 +350,42 @@ export default function AdminPartnerImportPage() {
           <button type="button" onClick={() => navigate('/admin/partners')} className={FINELY_OS_BACK_LINK} title="Back to Partner Management">
             <ArrowLeft size={16} /> Partner Management
           </button>
-          <div className={`${FINELY_OS_ENTITY_SUBLABEL} font-mono normal-case tracking-normal`}>import_v1</div>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              disabled={rooseveltBusy}
+              className={`${FINELY_OS_PRIMARY_BTN} disabled:opacity-60`}
+              title="Upsert Roosevelt Corelus into Supabase partner list (Jul 27) — not Yolie"
+              onClick={() => {
+                setRooseveltBusy(true);
+                setErr(null);
+                void ensureRooseveltCourtPartnerAsync()
+                  .then((r) => {
+                    try {
+                      localStorage.setItem(ADMIN_PARTNER_OVERRIDE_KEY, r.partner.id);
+                    } catch {
+                      /* ignore */
+                    }
+                    setNotice(
+                      `${r.created ? 'Created' : 'Updated'} ${ROOSEVELT_DISPLAY_NAME} in Supabase directory (${r.partner.id}). Hearing ${r.debt.hearingDate}. Opening Partner Management so he appears in the list.`,
+                    );
+                    navigate('/admin/partners#ensure-roosevelt-court');
+                  })
+                  .catch((e: unknown) => {
+                    const msg = (e as Error)?.message || 'Roosevelt seed failed';
+                    setErr(
+                      /session|Forbidden|Unauthorized|RLS/i.test(msg)
+                        ? `Admin save blocked: ${msg}`
+                        : msg,
+                    );
+                  })
+                  .finally(() => setRooseveltBusy(false));
+              }}
+            >
+              {rooseveltBusy ? 'Seeding Roosevelt…' : 'Ensure Roosevelt court'}
+            </button>
+            <div className={`${FINELY_OS_ENTITY_SUBLABEL} font-mono normal-case tracking-normal`}>import_v1</div>
+          </div>
         </div>
 
         {!importEnabled ? (
@@ -360,6 +402,43 @@ export default function AdminPartnerImportPage() {
 
         {err ? <div className={FINELY_OS_NOTICE_ERROR}>{err}</div> : null}
         {notice ? <div className={FINELY_OS_NOTICE_SUCCESS}>{notice}</div> : null}
+
+        <div id="ensure-roosevelt-court" className={`${finelyOsCatalogCard('amber')} !p-4 space-y-2`}>
+          <div className={`${FINELY_OS_ENTITY_SUBLABEL} text-amber-300`}>One-click court partner (same path as Sanz/Yolie admin create)</div>
+          <div className={FINELY_OS_ENTITY_VALUE}>{ROOSEVELT_DISPLAY_NAME}</div>
+          <p className={`${FINELY_OS_ENTITY_BODY} text-sm`}>
+            Upserts into the Supabase directory Admin Partners reads. Jul 27 Midland/Citi attaches to Roosevelt only — not Yolie.
+            Stable id <span className="font-mono text-[11px]">{ROOSEVELT_COURT_PARTNER_ID}</span>.
+          </p>
+          <button
+            type="button"
+            disabled={rooseveltBusy}
+            className={`${FINELY_OS_PRIMARY_BTN} disabled:opacity-60`}
+            onClick={() => {
+              setRooseveltBusy(true);
+              setErr(null);
+              void ensureRooseveltCourtPartnerAsync()
+                .then((r) => {
+                  try {
+                    localStorage.setItem(ADMIN_PARTNER_OVERRIDE_KEY, r.partner.id);
+                  } catch {
+                    /* ignore */
+                  }
+                  setNotice(
+                    `${r.created ? 'Created' : 'Updated'} ${ROOSEVELT_DISPLAY_NAME} (${r.partner.id}). Returning to Partner Management.`,
+                  );
+                  navigate('/admin/partners#ensure-roosevelt-court');
+                })
+                .catch((e: unknown) => {
+                  const msg = (e as Error)?.message || 'Roosevelt seed failed';
+                  setErr(/session|Forbidden|Unauthorized|RLS/i.test(msg) ? `Admin save blocked: ${msg}` : msg);
+                })
+                .finally(() => setRooseveltBusy(false));
+            }}
+          >
+            {rooseveltBusy ? 'Seeding Roosevelt…' : 'Ensure Roosevelt court → show in directory'}
+          </button>
+        </div>
 
         {importEnabled ? (
         <div className="grid lg:grid-cols-12 gap-6">

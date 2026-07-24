@@ -3,6 +3,10 @@
 **Audience:** Developer with GitHub + Supabase + deploy access.  
 **Owner:** Non-developer; local testing only. **You** own live SQL, secrets, CI, and production deploy.
 
+> **🚨 Can’t-miss (July 2026):**  
+> [`DEV_URGENT_GRANT_ACCESS_AND_LETTERS.md`](./DEV_URGENT_GRANT_ACCESS_AND_LETTERS.md) · [`DEV_URGENT_MAIL_AND_LITIGATION.md`](./DEV_URGENT_MAIL_AND_LITIGATION.md) · ops detail in [`docs/DEVELOPER_HANDOFF.md`](./docs/DEVELOPER_HANDOFF.md)  
+> Branch: `preview/sitewide-ux-pack-merge` only. Admin mail today: `/admin/mail`.
+
 ---
 
 ## Table of contents

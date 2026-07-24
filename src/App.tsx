@@ -107,6 +107,7 @@ const PortalPartnerSelectPage = lazy(() => import('./pages/portal/PortalPartnerS
 const PartnersListPage = lazy(() => import('./pages/admin/PartnersListPage'));
 const PartnerDetailPage = lazy(() => import('./pages/admin/PartnerDetailPage'));
 const AdminPartnerImportPage = lazy(() => import('./pages/admin/AdminPartnerImportPage'));
+const AdminMailLettersPage = lazy(() => import('./pages/admin/AdminMailLettersPage'));
 const CasesPage = lazy(() => import('./pages/admin/CasesPage'));
 const AdminCaseDetailPage = lazy(() => import('./pages/admin/AdminCaseDetailPage'));
 const AdminDisputeCollaborationPage = lazy(() => import('./pages/admin/AdminDisputeCollaborationPage'));
@@ -241,6 +242,7 @@ const AuSellerPage = lazy(() => import('./pages/AuSellerPage'));
 const HetaSocietyPage = lazy(() => import('./pages/HetaSocietyPage'));
 const HetaSocietyPortalPage = lazy(() => import('./pages/portal/HetaSocietyPortalPage'));
 const AgentsPage = lazy(() => import('./pages/AgentsPage'));
+const CaseHelpCareersPage = lazy(() => import('./pages/CaseHelpCareersPage'));
 const AgencySignupPage = lazy(() => import('./pages/agency/AgencySignupPage'));
 const AgencyPartnersPage = lazy(() => import('./pages/agency/AgencyPartnersPage'));
 const AgentHubPage = lazy(() => import('./pages/agent/AgentHubPage'));
@@ -1625,6 +1627,7 @@ function AppInner() {
           }
         />
         <Route path="/credit-specialists" element={<AgentsPage />} />
+        <Route path="/careers/case-help" element={<CaseHelpCareersPage />} />
         <Route path="/agency-partners" element={<AgencyPartnersPage />} />
         <Route path="/agents" element={<Navigate to="/credit-specialists" replace />} />
         <Route
@@ -2149,6 +2152,14 @@ function AppInner() {
           element={
             <ProtectedAdminRoute>
               <AdminPartnerImportPage />
+            </ProtectedAdminRoute>
+          }
+        />
+        <Route
+          path="/admin/mail"
+          element={
+            <ProtectedAdminRoute>
+              <AdminMailLettersPage />
             </ProtectedAdminRoute>
           }
         />

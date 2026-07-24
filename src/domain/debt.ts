@@ -24,6 +24,8 @@ export type DebtCase = {
   status: 'open' | 'in_review' | 'resolved' | 'disputed';
   dueDate?: string; // ISO date
   courtCaseNumber?: string;
+  /** Court name from scrape / caption (e.g. 36th District Court) */
+  courtName?: string;
   notes?: string;
   /** First written contact from collector (for 30-day validation window) */
   firstContactDate?: string;
@@ -31,6 +33,8 @@ export type DebtCase = {
   lastPaymentDate?: string;
   /** Date summons/complaint was served (for answer deadline, e.g. 35 days) */
   dateServed?: string;
+  /** Next hearing / trial / return date (ISO yyyy-mm-dd preferred) */
+  hearingDate?: string;
   /** State or jurisdiction for SOL and procedure */
   stateJurisdiction?: string;
   /** Collector / plaintiff mailing identity for letters */

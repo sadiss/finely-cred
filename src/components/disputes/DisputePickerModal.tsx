@@ -317,10 +317,27 @@ export function DisputePickerModal({
                 })}
               </div>
 
-              {!parsed ? (
-                <div className="text-white/50 text-sm py-8 text-center">Upload and parse a credit report first.</div>
+              {reports.length === 0 ? (
+                <div className="rounded-2xl border border-amber-400/30 bg-amber-500/10 px-5 py-8 text-center space-y-2">
+                  <div className="text-amber-50 font-semibold">No credit report on this partner yet</div>
+                  <p className="text-sm text-white/60 max-w-lg mx-auto">
+                    Round 1 / Round 2 selection and dispute checkboxes appear after a report is uploaded and parsed on the Reports tab.
+                  </p>
+                </div>
+              ) : !parsed ? (
+                <div className="rounded-2xl border border-amber-400/30 bg-amber-500/10 px-5 py-8 text-center space-y-2">
+                  <div className="text-amber-50 font-semibold">This report is not parsed yet</div>
+                  <p className="text-sm text-white/60 max-w-lg mx-auto">
+                    Open Reports, finish parsing, then return here — negatives will show as selectable Round items.
+                  </p>
+                </div>
               ) : groupedReportCandidates.length === 0 ? (
-                <div className="text-white/50 text-sm py-8 text-center">No negatives match your filters.</div>
+                <div className="rounded-2xl border border-white/10 bg-black/30 px-5 py-8 text-center space-y-2">
+                  <div className="text-white font-semibold">No selectable negatives</div>
+                  <p className="text-sm text-white/55 max-w-lg mx-auto">
+                    Nothing matches your bureau/category filters, or the report has no dispute candidates. Clear filters or pick another report.
+                  </p>
+                </div>
               ) : (
                 <div className="space-y-5">
                   {groupedReportCandidates.map(([label, list]) => {

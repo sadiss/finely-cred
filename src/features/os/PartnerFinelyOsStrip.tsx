@@ -28,7 +28,7 @@ type PartnerTabKey = 'overview' | 'profile' | 'reports' | 'analysis' | 'evidence
 const FEATURE_TABS: { tab: PartnerTabKey; label: string; hint: string; icon: React.ComponentType<{ size?: number; className?: string }> }[] = [
   { tab: 'reports', label: 'Reports', hint: 'Credit pulls', icon: FileText },
   { tab: 'analysis', label: 'Analysis', hint: 'Report builder', icon: BarChart3 },
-  { tab: 'letters', label: 'Letters', hint: 'Letter studio & vault', icon: PenLine },
+  { tab: 'letters', label: 'Credit Letters', hint: 'Bureau & credit letter tracks', icon: PenLine },
   { tab: 'tasks', label: 'Tasks', hint: 'Work queue', icon: ListChecks },
 ];
 

@@ -17,7 +17,7 @@ export function CareersQuickNav({ active, className = '' }: Props) {
       aria-label="Career tracks"
     >
       <p className="text-sm font-bold uppercase tracking-widest text-slate-500 mb-3">Careers — pick your track</p>
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-2 sm:gap-3">
         {PUBLIC_CAREER_TRACKS.map((track) => {
           const isActive = track.id === active;
           return (

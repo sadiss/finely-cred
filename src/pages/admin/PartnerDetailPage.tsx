@@ -85,6 +85,7 @@ import { createTask, listTasksByPartner, setTaskStatus, upsertTask } from '../..
 import { checkDisputeLetterEvidenceGate } from '../../lib/evidenceGates';
 import { checkIdentityVaultGate } from '../../lib/documentVaultGates';
 import { onDisputeLetterMailed } from '../../lib/disputeRoundEngine';
+import { notifyLetterMailed } from '../../lib/letterMailedNotify';
 import { createProject, listProjectsByPartner } from '../../data/projectsRepo';
 import { addThreadMessage, getOrCreateThreadBySubject } from '../../data/supportRepo';
 import { listPartnerNotesByPartner, createPartnerNote, deletePartnerNote, upsertPartnerNote } from '../../data/partnerNotesRepo';
@@ -116,7 +117,7 @@ import { PartnerNotesTab } from '../../features/partner/PartnerNotesTab';
 import { notifyPartnerNoteEmail } from '../../lib/partnerNoteEmail';
 import { partnerNoteToTimelineItem } from '../../components/partner/PartnerActivityTimeline';
 import { listEntitlementsByPartner } from '../../data/billingRepo';
-import { ENTITLEMENT_KEYS, type EntitlementKey, ensurePartnerEntitlements } from '../../billing/entitlements';
+import { ENTITLEMENT_KEYS, type EntitlementKey, ensurePartnerEntitlements, ensurePartnerEntitlementsAsync } from '../../billing/entitlements';
 import { TASK_PROGRESS_STAGES, WorkBoardShell, WorkCalendarView, WorkKanbanBoard, WorkListView, type WorkBoardItem } from '../../components/workboard';
 import type { WorkStageDefinition } from '../../domain/settings';
 import type { TaskStatus } from '../../domain/tasks';
@@ -165,7 +166,7 @@ const PARTNER_STICKY_TABS: { key: TabKey; label: string; accent: 'emerald' | 'vi
   { key: 'reports', label: 'Reports', accent: 'sky' },
   { key: 'analysis', label: 'Analysis Report', accent: 'sky' },
   { key: 'evidence', label: 'Evidence', accent: 'sky' },
-  { key: 'letters', label: 'Letters', accent: 'amber' },
+  { key: 'letters', label: 'Credit Letters', accent: 'amber' },
   { key: 'tasks', label: 'Tasks', accent: 'emerald' },
   { key: 'notes', label: 'Notes', accent: 'emerald' },
   { key: 'debt', label: 'Debt', accent: 'violet' },
@@ -1266,9 +1267,6 @@ function PartnerDetailPageInner() {
       }
       headerRight={
         <div className="flex flex-wrap items-center gap-2">
-          <button type="button" onClick={messagePartner} className={`${FINELY_OS_SECONDARY_BTN} !py-2 !text-xs`}>
-            <Send size={14} /> Message partner
-          </button>
           <div className={`${FINELY_OS_ENTITY_SUBLABEL} font-mono normal-case tracking-normal`}>partner_id: {partner.id}</div>
         </div>
       }
@@ -2038,8 +2036,9 @@ function PartnerDetailPageInner() {
               onOpenReports={() => setTabAndUrl('reports')}
               onOpenDebtCenter={() => setTabAndUrl('debt')}
               onRequestGrantEntitlements={(keys) => {
-                ensurePartnerEntitlements({ partnerId: partner.id, keys: keys as any });
-                setNotesVersion((v) => v + 1);
+                void ensurePartnerEntitlementsAsync({ partnerId: partner.id, keys: keys as any }).then(() => {
+                  setNotesVersion((v) => v + 1);
+                });
               }}
             />
 
@@ -2442,9 +2441,10 @@ function PartnerDetailPageInner() {
                 onOpenReports={() => setTabAndUrl('reports')}
                 onOpenDebtCenter={() => setTabAndUrl('debt')}
                 onRequestGrantEntitlements={(keys) => {
-                  ensurePartnerEntitlements({ partnerId: partner.id, keys: keys as any });
+                void ensurePartnerEntitlementsAsync({ partnerId: partner.id, keys: keys as any }).then(() => {
                   setNotesVersion((v) => v + 1);
-                }}
+                });
+              }}
               />
             ) : null}
 
@@ -2531,6 +2531,18 @@ function PartnerDetailPageInner() {
                         meta: { provider: 'finely', providerId, expectedDeliveryDate: expectedDeliveryDate ?? null },
                       });
                       onDisputeLetterMailed({ letter: updated, actor: 'admin' });
+                      void notifyLetterMailed({
+                        partnerId: partner.id,
+                        partner,
+                        letterIds: [updated.id],
+                        letterTitles: [updated.title || mailLetter?.title || 'Letter'],
+                        providerIds: [providerId],
+                        to,
+                        from,
+                        expectedDeliveryDate,
+                        actorEmail: auth.user?.email || undefined,
+                        actorRole: 'admin',
+                      });
                       setNotesVersion((v) => v + 1);
                     }}
                   />

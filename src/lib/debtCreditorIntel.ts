@@ -8,6 +8,7 @@ import {
   classifyCandidateNegativeType,
   type NegativeType,
 } from '../creditReports/negativePlaybooks';
+import { lookupKnownCreditorFromCandidates } from './knownCreditorDirectory';
 
 export type ReportedDebtSignal = {
   signalId: string;
@@ -36,9 +37,32 @@ export type DebtPartyInfo = {
   originalCreditor?: string;
   accountNumberMasked?: string;
   balanceCents?: number;
-  matchedFrom: 'debt_case' | 'report_contact' | 'tradeline' | 'document' | 'manual';
+  matchedFrom: 'debt_case' | 'report_contact' | 'tradeline' | 'document' | 'directory' | 'manual';
   signal?: ReportedDebtSignal;
+  /** True when address came from auto sources (not typed by partner). */
+  autoFilled?: boolean;
 };
+
+/** Build creditorContacts for PDF/text-parsed reports (HTML path already does this). */
+export function buildCreditorContactsFromTradelines(tradelines: ParsedTradeline[]): ParsedCreditorContact[] {
+  const out: ParsedCreditorContact[] = [];
+  tradelines.forEach((t, idx) => {
+    const addr = t.creditorAddress;
+    const phone = t.creditorPhone;
+    const acct = t.accountNumberMasked;
+    if (addr || phone || acct) {
+      out.push({
+        creditorName: t.creditorName,
+        accountNumberMasked: acct,
+        address: addr,
+        phone,
+        source: 'tradeline',
+        tradelineIndex: idx,
+      });
+    }
+  });
+  return out;
+}
 
 export function normCreditorName(s: string) {
   return String(s || '')
@@ -252,20 +276,58 @@ export function resolveDebtPartyInfo(args: {
   const matchedDoc =
     documents.find((d) => namesLikelyMatch(d.entities.collectorName || d.entities.creditorName || '', debt.name)) ?? null;
 
+  // Prefer counsel / attorney office, then collector / creditor / tradeline names
+  const directoryHit = lookupKnownCreditorFromCandidates([
+    debt.plaintiffLawFirm,
+    debt.plaintiffAttorneyName,
+    debt.recipientName,
+    debt.collectorName,
+    debt.name,
+    matchedDoc?.entities.plaintiffLawFirm,
+    matchedDoc?.entities.counselName,
+    matchedDoc?.entities.collectorName,
+    matchedDoc?.entities.creditorName,
+    matchedSignal?.creditorName,
+    matchedSignal?.originalCreditor,
+  ]);
+
+  const firmAddressFromDoc =
+    matchedDoc?.entities.plaintiffLawFirmAddress || matchedDoc?.entities.address || '';
+
   const recipientName =
+    debt.plaintiffLawFirm ||
     debt.recipientName ||
     debt.collectorName ||
+    matchedDoc?.entities.plaintiffLawFirm ||
     matchedDoc?.entities.collectorName ||
     matchedDoc?.entities.creditorName ||
     matchedSignal?.creditorName ||
+    directoryHit?.displayName ||
     debt.name;
   const recipientAddress =
+    debt.plaintiffLawFirmAddress ||
     debt.recipientAddress ||
-    matchedDoc?.entities.address ||
+    firmAddressFromDoc ||
     matchedContact?.address ||
     matchedSignal?.address ||
+    directoryHit?.address ||
     '';
-  const recipientPhone = debt.recipientPhone || matchedContact?.phone || matchedSignal?.phone;
+  const recipientPhone =
+    debt.recipientPhone || matchedContact?.phone || matchedSignal?.phone || directoryHit?.phone;
+
+  const matchedFrom: DebtPartyInfo['matchedFrom'] = debt.plaintiffLawFirmAddress || debt.recipientAddress
+    ? 'debt_case'
+    : firmAddressFromDoc
+      ? 'document'
+      : matchedContact?.address
+        ? 'report_contact'
+        : matchedSignal?.address
+          ? 'tradeline'
+          : directoryHit?.address
+            ? 'directory'
+            : matchedSignal
+              ? 'tradeline'
+              : 'manual';
 
   return {
     recipientName,
@@ -275,17 +337,34 @@ export function resolveDebtPartyInfo(args: {
     originalCreditor: debt.originalCreditor || matchedSignal?.originalCreditor,
     accountNumberMasked: debt.accountNumberMasked || matchedSignal?.accountNumberMasked || matchedContact?.accountNumberMasked,
     balanceCents: debt.amountCents || matchedSignal?.balanceCents,
-    matchedFrom: debt.recipientAddress
-      ? 'debt_case'
-      : matchedDoc
-        ? 'document'
-        : matchedContact
-          ? 'report_contact'
-          : matchedSignal
-            ? 'tradeline'
-            : 'manual',
+    matchedFrom,
     signal: matchedSignal ?? undefined,
+    autoFilled: matchedFrom !== 'manual' && matchedFrom !== 'debt_case',
   };
+}
+
+/** Persist resolved party onto debt when case is missing mailing fields. */
+export function autoPersistDebtPartyIfEmpty(debt: DebtCase, party: DebtPartyInfo | null): DebtCase | null {
+  if (!debt || !party) return null;
+  const hasTo =
+    Boolean(debt.recipientAddress || debt.plaintiffLawFirmAddress) &&
+    Boolean(debt.recipientName || debt.plaintiffLawFirm);
+  if (hasTo) return null;
+  if (!party.recipientAddress && !party.recipientName) return null;
+  if (party.matchedFrom === 'manual') return null;
+  const firmLike = party.matchedFrom === 'directory' || party.matchedFrom === 'document';
+  return mergeDebtCreditorFields(debt, {
+    recipientName: debt.recipientName || party.recipientName,
+    recipientAddress: debt.recipientAddress || party.recipientAddress || undefined,
+    recipientPhone: debt.recipientPhone || party.recipientPhone,
+    collectorName: debt.collectorName || party.collectorName,
+    originalCreditor: debt.originalCreditor || party.originalCreditor,
+    accountNumberMasked: debt.accountNumberMasked || party.accountNumberMasked,
+    // Also post onto counsel/firm TO fields used by letter builders
+    plaintiffLawFirm: debt.plaintiffLawFirm || (firmLike ? party.recipientName : debt.plaintiffLawFirm),
+    plaintiffLawFirmAddress:
+      debt.plaintiffLawFirmAddress || party.recipientAddress || undefined,
+  });
 }
 
 export function mergeDebtCreditorFields(debt: DebtCase, patch: Partial<DebtCase>): DebtCase {
@@ -299,6 +378,11 @@ export function mergeDebtCreditorFields(debt: DebtCase, patch: Partial<DebtCase>
     collectorName: patch.collectorName ?? debt.collectorName,
     originalCreditor: patch.originalCreditor ?? debt.originalCreditor,
     accountNumberMasked: patch.accountNumberMasked ?? debt.accountNumberMasked,
+    hearingDate: patch.hearingDate ?? debt.hearingDate,
+    courtCaseNumber: patch.courtCaseNumber ?? debt.courtCaseNumber,
+    dateServed: patch.dateServed ?? debt.dateServed,
+    plaintiffLawFirm: patch.plaintiffLawFirm ?? debt.plaintiffLawFirm,
+    plaintiffLawFirmAddress: patch.plaintiffLawFirmAddress ?? debt.plaintiffLawFirmAddress,
   });
 }
 
@@ -356,6 +440,23 @@ export type SummonsAffidavitContext = {
   entityFacts: string[];
 };
 
+/** Format cents → "$1,094.00" for letter merge (never invent when unknown). */
+export function formatAmountClaimedForLetter(cents?: number | null, raw?: string | null): string | undefined {
+  const fromRaw = String(raw || '').trim();
+  if (fromRaw && /\$?\d/.test(fromRaw)) {
+    // Normalize bare numbers to currency when scrape left "1094" / "1094.00"
+    if (/^\$/.test(fromRaw)) return fromRaw;
+    const n = Number(fromRaw.replace(/[^\d.]/g, ''));
+    if (Number.isFinite(n) && n > 0) {
+      return `$${n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    }
+    return fromRaw;
+  }
+  const c = Number(cents || 0);
+  if (!Number.isFinite(c) || c <= 0) return undefined;
+  return `$${(c / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+}
+
 export function buildSummonsAffidavitContext(args: {
   debt: DebtCase | null;
   documents: ProcessedDocument[];
@@ -371,13 +472,18 @@ export function buildSummonsAffidavitContext(args: {
       if (val) entityFacts.push(`${k}: ${val}`);
     }
   }
+  // Prefer case fields filled by scrape Apply — docs alone miss courtName/amount after Apply.
+  const amountClaimed = formatAmountClaimedForLetter(
+    debt?.amountCents,
+    summonsDocs[0]?.entities.amountClaimed || summonsDocs[0]?.entities.amount,
+  );
   return {
     caseNumber: debt?.courtCaseNumber || summonsDocs[0]?.entities.caseNumber,
     plaintiffName: party?.recipientName || debt?.name || summonsDocs[0]?.entities.creditorName,
-    collectorName: party?.collectorName || summonsDocs[0]?.entities.collectorName,
-    courtName: summonsDocs[0]?.entities.courtName,
-    amountClaimed: summonsDocs[0]?.entities.amountClaimed || summonsDocs[0]?.entities.amount,
-    dateServed: debt?.dateServed,
+    collectorName: party?.collectorName || debt?.collectorName || summonsDocs[0]?.entities.collectorName,
+    courtName: debt?.courtName || summonsDocs[0]?.entities.courtName,
+    amountClaimed,
+    dateServed: debt?.dateServed || summonsDocs[0]?.entities.dateServed,
     jurisdictionState: debt?.stateJurisdiction || summonsDocs[0]?.entities.state,
     documentSummaries: summonsDocs.map((d) => d.summary || `${d.filename} (${d.docType})`).filter(Boolean),
     entityFacts: Array.from(new Set(entityFacts)).slice(0, 24),

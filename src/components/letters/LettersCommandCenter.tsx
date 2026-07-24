@@ -47,6 +47,7 @@ import { BankruptcyLetterStudioPanel } from './BankruptcyLetterStudioPanel';
 import { ForeclosureCenterView } from '../debt/ForeclosureCenterView';
 import { RepossessionCenterView } from '../debt/RepossessionCenterView';
 import { generateCatalogLetterBody } from '../../legal/generateCatalogLetter';
+import { catalogEntryById } from '../../legal/debtLetterCatalog';
 import { DebtLetterRichDraftWorkspace } from './DebtLetterPreview';
 import { SmartProofUploader } from '../evidence/SmartProofUploader';
 import { DEBT_LETTER_SPECS, SCENARIO_RECOMMENDATIONS, recommendScenarioFromDebt, getLetterBody } from '../../legal/debtLetterTemplates';
@@ -101,6 +102,7 @@ import {
   resolveCityStateZip,
   senderPreviewLines,
 } from '../../lib/letterSenderBlock';
+import { resolveLetterMailRecipient } from '../../lib/letterMailingAddress';
 import { LetterEscalationPanel } from './LetterEscalationPanel';
 import { getCanonicalPartnerIdentity } from '../../utils/canonicalPartnerIdentity';
 import { bureauFullName, bureauShortCode } from '../../utils/bureaus';
@@ -1118,10 +1120,25 @@ export function LettersCommandCenter({
     return hasEntitlement(partner.id, ENTITLEMENT_KEYS.debt);
   }, [partner, storeVersion]);
 
+  /** Debt / Litigation Command must generate real catalog bodies without Template library entitlement. */
+  const canGenerateDebtLetterBodies = useMemo(() => {
+    if (!partner) return false;
+    if (layout === 'embedded' || debtCenterMode) return true;
+    return (
+      hasEntitlement(partner.id, ENTITLEMENT_KEYS.debt) ||
+      hasEntitlement(partner.id, ENTITLEMENT_KEYS.letters) ||
+      hasEntitlement(partner.id, ENTITLEMENT_KEYS.templates)
+    );
+  }, [partner, layout, debtCenterMode, storeVersion]);
+
   const canUseLetters = useMemo(() => {
     // Admin embedded context should not be blocked by partner plan.
     if (layout === 'embedded') return true;
-    return hasEntitlement(partner.id, ENTITLEMENT_KEYS.letters);
+    // Debt-lane partners generate + vault debt/court letters without a separate Letters pack.
+    return (
+      hasEntitlement(partner.id, ENTITLEMENT_KEYS.letters) ||
+      hasEntitlement(partner.id, ENTITLEMENT_KEYS.debt)
+    );
   }, [layout, partner.id, storeVersion]);
 
   // --- Dispute letter flow (multi-bureau, split per bureau) ---
@@ -2473,6 +2490,11 @@ useEffect(() => {
   // --- Validation/Court letter flow (Debt module) ---
   const debtCases = useMemo(() => (partner ? listDebtByPartner(partner.id) : []), [partner, storeVersion]);
   const [debtId, setDebtId] = useState<string>(debtCases[0]?.id ?? '');
+  useEffect(() => {
+    if (!debtCases.some((d) => d.id === debtId)) {
+      setDebtId(debtCases[0]?.id ?? '');
+    }
+  }, [partner?.id, debtCases, debtId]);
   const debt = useMemo(() => debtCases.find((d) => d.id === debtId) ?? null, [debtCases, debtId]);
   const processedDocuments = useMemo(
     () => (partner ? listProcessedDocumentsByPartner(partner.id) : []),
@@ -2602,16 +2624,66 @@ useEffect(() => {
       state: canonicalIdentity.state,
       postalCode: canonicalIdentity.postalCode,
       phone: canonicalIdentity.phone,
-      email: partner.profile.email,
+      // Do not snapshot partner login email onto letter sender blocks.
+      email: undefined,
     });
     handleDebtIntelChange({ ...debt, senderSnapshot: snap });
   };
 
   const buildDebtLetterArgs = () => {
-    const recipientName = debt?.recipientName || debtPartyInfo?.recipientName || debt?.name || 'Creditor';
-    const recipientAddress = debt?.recipientAddress || debtPartyInfo?.recipientAddress;
+    const firm =
+      debt?.plaintiffLawFirm ||
+      debt?.collectorName ||
+      debtPartyInfo?.collectorName ||
+      debtPartyInfo?.recipientName;
+    const firmAddress =
+      debt?.plaintiffLawFirmAddress ||
+      debt?.recipientAddress ||
+      debtPartyInfo?.recipientAddress ||
+      '';
+    const mailTo = resolveLetterMailRecipient({
+      plaintiffLawFirm: firm,
+      plaintiffLawFirmAddress: firmAddress,
+      recipientName: debt?.recipientName || debtPartyInfo?.recipientName || debt?.name,
+      recipientAddress: debt?.recipientAddress || debtPartyInfo?.recipientAddress,
+      debtCollectorName: debt?.collectorName || debtPartyInfo?.collectorName,
+      collectorName: debt?.collectorName,
+      creditorName: debt?.name,
+      debtName: debt?.name,
+      originalCreditorName: debt?.originalCreditor || debtPartyInfo?.originalCreditor,
+      plaintiffAttorneyName: debt?.plaintiffAttorneyName,
+      senderName: canonicalIdentity.fullName,
+      senderAddress1: canonicalIdentity.address1 ?? canonicalIdentity.addressLine1,
+      senderCity: canonicalIdentity.city,
+      senderPostalCode: canonicalIdentity.postalCode,
+    });
+    // Persist directory / scrape TO onto the case when empty (never partner address)
+    if (
+      debt &&
+      !mailTo.missing &&
+      mailTo.source === 'directory' &&
+      !debt.plaintiffLawFirmAddress &&
+      !debt.recipientAddress
+    ) {
+      handleDebtIntelChange({
+        ...debt,
+        recipientName: debt.recipientName || mailTo.name,
+        recipientAddress: mailTo.address,
+        plaintiffLawFirm: debt.plaintiffLawFirm || firm || mailTo.name,
+        plaintiffLawFirmAddress: mailTo.address,
+      });
+    }
+    if (mailTo.missing) {
+      setDraftNotice(mailTo.missingReason || 'Fill the creditor / law firm mailing address before mailing.');
+    } else {
+      setDraftNotice(
+        mailTo.source === 'directory'
+          ? 'TO block filled from known firm / collector directory — verify before mailing.'
+          : null,
+      );
+    }
     return {
-      creditorName: recipientName,
+      creditorName: mailTo.name,
       debtorName: canonicalIdentity.fullName,
       date: letterDate,
       debtorAddress1: canonicalIdentity.address1 ?? canonicalIdentity.addressLine1,
@@ -2620,12 +2692,13 @@ useEffect(() => {
       debtorState: canonicalIdentity.state,
       debtorPostalCode: canonicalIdentity.postalCode,
       debtorPhone: canonicalIdentity.phone,
-      debtorEmail: partner.profile.email,
-      recipientName,
-      recipientAddress,
+      // Default: no email on letter paper (mailing address + name only).
+      debtorEmail: undefined,
+      recipientName: mailTo.name,
+      recipientAddress: mailTo.address,
       caseNumber: (debt as any)?.courtCaseNumber,
-      plaintiffLawFirm: debt?.plaintiffLawFirm || debt?.collectorName || debtPartyInfo?.collectorName,
-      plaintiffLawFirmAddress: debt?.plaintiffLawFirmAddress,
+      plaintiffLawFirm: firm || mailTo.name,
+      plaintiffLawFirmAddress: mailTo.missing ? undefined : mailTo.address,
       plaintiffAttorneyName: debt?.plaintiffAttorneyName,
       plaintiffAttorneyBarNumber: debt?.plaintiffAttorneyBarNumber,
       debtCollectorName: debt?.collectorName || debtPartyInfo?.collectorName,
@@ -2636,21 +2709,35 @@ useEffect(() => {
       affidavitState: canonicalIdentity.state || debt?.stateJurisdiction,
       affidavitCounty: debt?.affidavitCounty,
       stateNote: (debt as any)?.stateJurisdiction ? ` In ${(debt as any).stateJurisdiction}, the applicable SOL may apply.` : undefined,
-      summonsContext:
-        tab === 'court'
-          ? {
-              courtName: summonsAffidavitContext.courtName,
-              amountClaimed: summonsAffidavitContext.amountClaimed,
-              dateServed: summonsAffidavitContext.dateServed,
-              jurisdictionState: summonsAffidavitContext.jurisdictionState,
-              collectorName: summonsAffidavitContext.collectorName,
-              documentFacts: summonsAffidavitContext.entityFacts,
-            }
-          : undefined,
+      // Always merge scrape/case court fields so validation + affidavits get amount/court too.
+      summonsContext: {
+        courtName: summonsAffidavitContext.courtName || (debt as any)?.courtName,
+        amountClaimed:
+          summonsAffidavitContext.amountClaimed ||
+          (debt?.amountCents && debt.amountCents > 0
+            ? `$${(debt.amountCents / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+            : undefined),
+        dateServed: summonsAffidavitContext.dateServed || debt?.dateServed,
+        jurisdictionState: summonsAffidavitContext.jurisdictionState || (debt as any)?.stateJurisdiction,
+        collectorName: summonsAffidavitContext.collectorName || debt?.collectorName,
+        documentFacts: summonsAffidavitContext.entityFacts,
+      },
     };
   };
 
-  const [draft, setDraft] = useState<null | { type: 'validation' | 'court' | 'foreclosure' | 'repossession'; specId: DebtLetterType | string; catalogId?: string; html: string; evidenceId?: string }>(null);
+  const [draft, setDraft] = useState<null | {
+    type: 'validation' | 'court' | 'foreclosure' | 'repossession';
+    specId: DebtLetterType | string;
+    catalogId?: string;
+    html: string;
+    evidenceId?: string;
+    /** Forces paper preview when opened from suggestion / build CTAs */
+    preferPreview?: boolean;
+    previewKey?: string;
+    /** Vault letter id created on Generate — Save updates the same record */
+    letterId?: string;
+  }>(null);
+  const [generateBusy, setGenerateBusy] = useState(false);
   const [draftBusy, setDraftBusy] = useState(false);
   const [draftErr, setDraftErr] = useState<string | null>(null);
   const [draftEvidencePickerOpen, setDraftEvidencePickerOpen] = useState(false);
@@ -2721,9 +2808,19 @@ useEffect(() => {
   }, [tplRendered?.baseId, tplRendered?.variantId, tplRendered?.tone, tplRendered?.version]);
 
   const letterStudioTrackTabs = useMemo(
-    () => buildLetterStudioTrackTabs({ hasDebt: canSeeDebtTracks, hasTemplates: canSeeTemplates }),
-    [canSeeDebtTracks, canSeeTemplates],
+    () =>
+      buildLetterStudioTrackTabs({
+        mode: debtCenterMode ? 'debt' : 'credit',
+        hasTemplates: canSeeTemplates,
+      }),
+    [debtCenterMode, canSeeTemplates],
   );
+
+  // Credit Letters must not land on debt-only tracks (validation / affidavits).
+  useEffect(() => {
+    if (debtCenterMode) return;
+    if (tab === 'validation' || tab === 'court') setTab('dispute');
+  }, [debtCenterMode, tab]);
 
   const disputeEvidenceLinked = useMemo(() => {
     const keys = new Set(selectedDisputes.map((x) => x.key));
@@ -3015,20 +3112,164 @@ useEffect(() => {
     if (next) runLetterBuildStep(next.id as LetterBuildStepId);
   };
 
-  const buildDebtCenterDraft = (specId: DebtLetterType, isCourt: boolean) => {
-    persistDebtSenderSnapshot();
-    const baseText = canSeeTemplates
-      ? getLetterBody(specId, buildDebtLetterArgs())
-      : `DATE: ${today}\n\nTO WHOM IT MAY CONCERN,\n\nI am writing regarding ${debt?.recipientName || debt?.name || 'this matter'}.\n\n[Write your request here.]\n\nSincerely,\n${canonicalIdentity.fullName}\n`;
-    setDraft({ specId, type: isCourt ? 'court' : 'validation', html: plainTextToHtml(baseText) });
+  const openGeneratedDebtDraft = (args: {
+    track: DebtDraftTrack;
+    specId: string;
+    catalogId?: string;
+    bodyText: string;
+  }) => {
+    const plain = String(args.bodyText || '').trim();
+    if (!plain) {
+      setDraftErr('Letter generation returned an empty body. Confirm case fields and try Generate letter again.');
+      return;
+    }
+    if (/letter templates locked/i.test(plain)) {
+      setDraftErr('Letter generation is locked on this plan. Grant Debt or Letters access, then click Generate letter.');
+      return;
+    }
+    const previewKey = `${args.track}:${args.catalogId || args.specId}:${Date.now()}`;
+    const letterId = newId('letter');
+    const specTitle = DEBT_LETTER_SPECS.find((s) => s.id === args.specId)?.title;
+    const title = debt
+      ? `${specTitle || args.specId.replace(/_/g, ' ')} • ${debt.name}`
+      : `${args.track} letter`;
+    try {
+      upsertLetter({
+        id: letterId,
+        partnerId: partner.id,
+        type: letterTypeForDebtDraft(args.track),
+        title,
+        createdAt: new Date().toISOString(),
+        body: plain,
+        status: 'generated',
+        relatedEvidenceIds: [],
+        meta: metaForDebtDraft(
+          { type: args.track, specId: args.specId, catalogId: args.catalogId },
+          debt,
+          String(recommendedScenario || ''),
+        ),
+      });
+      addAuditEvent({
+        partnerId: partner.id,
+        actorType: layout === 'embedded' ? 'admin' : 'partner',
+        actorEmail: undefined,
+        action: 'letter.saved',
+        entityType: 'letter',
+        entityId: letterId,
+        meta: { kind: args.track, debtId: debt?.id ?? null, source: 'generate_letter', catalogId: args.catalogId ?? null },
+      });
+    } catch (e: any) {
+      setDraftNotice(e?.message || 'Draft opened, but vault save failed — use Save to Letters Vault.');
+    }
+    setDraft({
+      specId: args.specId,
+      catalogId: args.catalogId,
+      type: args.track,
+      html: plainTextToHtml(plain),
+      preferPreview: true,
+      previewKey,
+      letterId,
+    });
+    // Ensure the modal paper preview is in view after Generate (never silent success).
+    window.setTimeout(() => {
+      document.getElementById('fc-letter-paper-preview')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 80);
   };
 
-  const buildCatalogDraft = (catalogId: string, track: 'validation' | 'court' | 'foreclosure' | 'repossession') => {
-    persistDebtSenderSnapshot();
-    const baseText = canSeeTemplates
-      ? generateCatalogLetterBody(catalogId, buildDebtLetterArgs())
-      : `DATE: ${today}\n\n[Letter templates locked — upgrade to generate full drafts.]\n`;
-    setDraft({ specId: catalogId, catalogId, type: track, html: plainTextToHtml(baseText) });
+  const buildDebtCenterDraft = (specId: DebtLetterType, isCourt: boolean) => {
+    setGenerateBusy(true);
+    setDraftErr(null);
+    try {
+      persistDebtSenderSnapshot();
+      if (specId === 'courtroom_day_kit') {
+        // Never fail silently — generate the court answer letter instead of a kit PDF.
+        const mergeArgs = buildDebtLetterArgs();
+        const baseText = getLetterBody('courtroom_written_answer', mergeArgs);
+        openGeneratedDebtDraft({
+          track: 'court',
+          specId: 'courtroom_written_answer',
+          catalogId: 'court_courtroom_written_answer',
+          bodyText: baseText,
+        });
+        setDraftNotice(
+          'Court-day kit stays on the Hearing step (UI only). Generated your court answer letter instead.',
+        );
+        return;
+      }
+      if (!canGenerateDebtLetterBodies) {
+        setDraftErr('Debt letter generation is locked. Grant Debt or Letters access, then click Generate letter.');
+        return;
+      }
+      const mergeArgs = buildDebtLetterArgs();
+      if (!mergeArgs.recipientAddress?.trim() && !mergeArgs.plaintiffLawFirmAddress?.trim()) {
+        setDraftErr(
+          'Recipient mailing address is missing. Confirm the firm / collector TO address on the case, then Generate letter again.',
+        );
+      }
+      const baseText = getLetterBody(specId, mergeArgs);
+      openGeneratedDebtDraft({
+        track: isCourt ? 'court' : 'validation',
+        specId,
+        bodyText: baseText,
+      });
+    } catch (e: any) {
+      const msg = e?.message || 'Failed to generate letter. Check case fields and try again.';
+      setDraftErr(msg);
+      console.error('[Generate letter]', msg, e);
+    } finally {
+      setGenerateBusy(false);
+    }
+  };
+
+  const buildCatalogDraft = (catalogId: string, track: DebtDraftTrack) => {
+    setGenerateBusy(true);
+    setDraftErr(null);
+    try {
+      persistDebtSenderSnapshot();
+      // Kit IDs must not block Generate — fall through to court answer letter.
+      const resolvedCatalogId =
+        catalogId === 'court_courtroom_day_kit' || catalogId === 'courtroom_day_kit'
+          ? 'court_courtroom_written_answer'
+          : catalogId;
+      if (resolvedCatalogId !== catalogId) {
+        setDraftNotice(
+          'Court-day kit stays on the Hearing step (UI only). Generating your court answer letter instead.',
+        );
+      }
+      if (!canGenerateDebtLetterBodies) {
+        setDraftErr('Debt letter generation is locked. Grant Debt or Letters access, then click Generate letter.');
+        return;
+      }
+      const mergeArgs = buildDebtLetterArgs();
+      if (!mergeArgs.recipientAddress?.trim() && !mergeArgs.plaintiffLawFirmAddress?.trim()) {
+        setDraftErr(
+          'Recipient mailing address is missing. Confirm the firm / collector TO address on the case, then Generate letter again.',
+        );
+      }
+      let baseText = '';
+      try {
+        baseText = generateCatalogLetterBody(resolvedCatalogId, mergeArgs);
+      } catch (inner: any) {
+        // Fall back to typed body when catalog path throws (e.g. mis-tagged kit).
+        const entry = catalogEntryById(resolvedCatalogId);
+        const fallbackType = (entry?.letterType ||
+          (track === 'court' ? 'courtroom_written_answer' : 'validation_request')) as DebtLetterType;
+        baseText = getLetterBody(fallbackType, mergeArgs);
+        if (!baseText?.trim()) throw inner;
+      }
+      openGeneratedDebtDraft({
+        track,
+        specId: resolvedCatalogId,
+        catalogId: resolvedCatalogId,
+        bodyText: baseText,
+      });
+    } catch (e: any) {
+      const msg = e?.message || 'Failed to generate letter. Check case fields and try again.';
+      setDraftErr(msg);
+      console.error('[Generate letter]', msg, e);
+    } finally {
+      setGenerateBusy(false);
+    }
   };
 
   const debtCenterSenderFields = {
@@ -3039,7 +3280,8 @@ useEffect(() => {
     state: canonicalIdentity.state || '',
     postalCode: canonicalIdentity.postalCode || '',
     phone: canonicalIdentity.phone || '',
-    email: partner.profile.email || '',
+    // Letter sender UI: mailing identity only — never auto-fill login email onto paper.
+    email: '',
   };
 
   const debtCenterSharedProps = {
@@ -3483,7 +3725,7 @@ useEffect(() => {
             </div>
           ) : null}
 
-          <div className={`${FINELY_OS_FIXED_OVERLAY} z-[2000] flex items-center justify-center p-3`}>
+          <div className="fixed inset-0 z-[2000] flex items-center justify-center p-3 bg-black/80 backdrop-blur-sm">
             <div
               className="absolute inset-0"
               onClick={() => {
@@ -3493,17 +3735,21 @@ useEffect(() => {
               }}
             />
             <div
-              className={`relative w-full max-w-5xl max-h-[min(88vh,780px)] rounded-2xl ${finelyOsCatalogCard(draft.type === 'court' ? 'fuchsia' : 'emerald')} !p-0 overflow-hidden flex flex-col`}
+              className={`relative w-full max-w-5xl max-h-[min(88vh,780px)] rounded-2xl ${finelyOsCatalogCard(draft.type === 'court' ? 'fuchsia' : 'emerald')} !p-0 overflow-hidden flex flex-col shadow-[0_0_60px_-12px_rgba(251,191,36,0.35)]`}
               role="dialog"
               aria-modal="true"
+              aria-label="Generated letter preview"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="px-4 py-3 border-b border-white/[0.08] flex items-start justify-between gap-3 shrink-0">
                 <div className="min-w-0">
-                  <div className={FINELY_OS_ENTITY_SUBLABEL}>Letter draft</div>
+                  <div className={FINELY_OS_ENTITY_SUBLABEL}>Generated letter · paper preview</div>
                   <div className={`mt-1 truncate ${FINELY_OS_ENTITY_TITLE}`}>
                     {draft.type === 'court' ? 'Court / affidavit letter' : 'Validation letter'}
                   </div>
+                  {draft.letterId ? (
+                    <p className="mt-0.5 text-[11px] text-emerald-200/85">Saved to Letters Vault as a draft — edit below, then update PDF when ready.</p>
+                  ) : null}
                 </div>
                 <div className="flex items-center gap-1.5 flex-wrap justify-end">
                   <button
@@ -3597,28 +3843,28 @@ useEffect(() => {
                 ) : null}
 
                 <div id="fc-debt-step-draft" className="space-y-3 scroll-mt-3">
-                  {draftNotice ? <div className="rounded-xl border border-amber-500/25 bg-amber-500/10 p-3 text-[12px] text-white/75">{draftNotice}</div> : null}
-
+                  <div className="rounded-xl border border-amber-400/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-50/95 font-semibold">
+                    Edit letter — every field and the full body are editable before you save or mail.
+                  </div>
+                  {draftNotice ? (
+                    <div className="rounded-xl border border-rose-400/40 bg-rose-500/15 px-3 py-2 text-xs text-rose-50 space-y-1">
+                      <div className="font-bold">Recipient address required</div>
+                      <p>{draftNotice}</p>
+                      <p className="text-rose-100/80">
+                        Confirm parties on the case (firm / collector mailing address). We will never put your home address in the TO block.
+                      </p>
+                    </div>
+                  ) : null}
                   <DebtLetterRichDraftWorkspace
                     html={ensureHtmlDraft(draft.html || '')}
                     onChangeHtml={(html) => setDraft((prev) => (prev ? { ...prev, html } : prev))}
-                    letterDate={letterDate}
-                    senderLines={
-                      senderPreviewLines({
-                        name: senderName,
-                        addressLine1: senderAddressLine1,
-                        addressLine2: senderAddressLine2,
-                        cityStateZip: senderCityStateZip,
-                        city: canonicalIdentity.city,
-                        state: canonicalIdentity.state,
-                        postalCode: canonicalIdentity.postalCode,
-                      }).lines
-                    }
-                    recipientName={debt?.recipientName || debt?.name}
-                    recipientAddress={debt?.recipientAddress}
                     accent={draft.type === 'court' ? 'fuchsia' : 'emerald'}
-                    minHeightPx={240}
-                    heroLayout
+                    minHeightPx={280}
+                    editorLabel="Edit letter"
+                    heroLayout={Boolean(draft.preferPreview)}
+                    initialView="preview"
+                    previewResetKey={draft.previewKey || `${draft.specId}:${draft.catalogId || ''}`}
+                    showAddressChrome={false}
                   />
 
                   <details className="rounded-xl border border-white/10 bg-black/25 !p-3">
@@ -3692,8 +3938,28 @@ useEffect(() => {
                             state: canonicalIdentity.state,
                             postalCode: canonicalIdentity.postalCode,
                           }),
-                        toName: debt?.recipientName || debt?.name || 'Creditor',
-                        toLinesText: debt?.recipientAddress || '',
+                        ...(() => {
+                          const mailTo = resolveLetterMailRecipient({
+                            plaintiffLawFirm: debt?.plaintiffLawFirm || debtPartyInfo?.collectorName,
+                            plaintiffLawFirmAddress:
+                              debt?.plaintiffLawFirmAddress || debt?.recipientAddress || debtPartyInfo?.recipientAddress,
+                            recipientName: debt?.recipientName || debtPartyInfo?.recipientName || debt?.name,
+                            recipientAddress: debt?.recipientAddress || debtPartyInfo?.recipientAddress,
+                            debtCollectorName: debt?.collectorName || debtPartyInfo?.collectorName,
+                            collectorName: debt?.collectorName,
+                            creditorName: debt?.name,
+                            originalCreditorName: debt?.originalCreditor || debtPartyInfo?.originalCreditor,
+                            plaintiffAttorneyName: debt?.plaintiffAttorneyName,
+                            senderName: canonicalIdentity.fullName,
+                            senderAddress1: canonicalIdentity.address1 ?? canonicalIdentity.addressLine1,
+                            senderCity: canonicalIdentity.city,
+                            senderPostalCode: canonicalIdentity.postalCode,
+                          });
+                          return {
+                            toName: mailTo.name,
+                            toLinesText: mailTo.missing ? '' : mailTo.address,
+                          };
+                        })(),
                         subject: `Re: ${debt?.name || 'debt matter'}`,
                       }}
                       onChange={(patch) => {
@@ -3756,7 +4022,7 @@ useEffect(() => {
                         });
 
                         const saved = upsertLetter({
-                          id: newId('letter'),
+                          id: draft.letterId || newId('letter'),
                           partnerId: partner.id,
                           type: letterTypeForDebtDraft(draft.type),
                           title,
@@ -3789,7 +4055,7 @@ useEffect(() => {
                     className={`${FINELY_OS_PRIMARY_BTN} disabled:opacity-60 disabled:cursor-not-allowed`}
                     title="Save this letter (PDF) into Letters Vault"
                   >
-                    {draftBusy ? 'Saving…' : 'Save to Letters Vault'}
+                    {draftBusy ? 'Saving…' : draft.letterId ? 'Update Letters Vault PDF' : 'Save to Letters Vault'}
                   </button>
                 </div>
               </div>
@@ -4030,26 +4296,72 @@ useEffect(() => {
           </div>
         ) : null}
 
+        {tab === 'dispute' ? (
+          <details open className="fc-light-glass-panel fc-light-chrome-panel !p-4">
+            <summary className="cursor-pointer list-none flex flex-wrap items-center justify-between gap-3 [&::-webkit-details-marker]:hidden">
+              <div className="text-[10px] uppercase tracking-widest text-amber-200/80">Letter journey · your next steps</div>
+              <div className="text-[10px] font-black uppercase tracking-widest text-white/70">{restoreHud.pct}% complete</div>
+            </summary>
+            <div className="mt-3 space-y-3 border-t border-white/10 pt-3">
+              <div className="text-white/60 text-sm max-w-5xl">
+                Open by default: upload report → choose Round 1/2 → select disputes → evidence → saved PDF.
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {restoreHud.steps.map((s) => (
+                  <div
+                    key={s.id}
+                    className={
+                      'px-3 py-2 rounded-xl border text-[10px] font-black uppercase tracking-widest transition-all ' +
+                      (s.done ? 'border-emerald-500/25 bg-emerald-500/10 text-emerald-100/90' : 'border-white/[0.08] bg-black/40 text-white/50')
+                    }
+                    title={`${s.hint} ${s.meta ? `(${s.meta})` : ''}`.trim()}
+                  >
+                    {s.label}
+                  </div>
+                ))}
+              </div>
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div className="text-white/55 text-sm">
+                  Next: <span className="text-white/85 font-semibold">{nextBestAction.label}</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={runNextBestAction}
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-amber-500/25 bg-amber-500/15 hover:bg-amber-500/20 text-[10px] font-black uppercase tracking-widest text-amber-100 transition-all"
+                >
+                  Do next <ChevronRight size={14} />
+                </button>
+              </div>
+            </div>
+          </details>
+        ) : null}
+
         {tab === 'dispute' && (
           <EntitlementGate
             partnerId={partner.id}
             requiredKeys={[ENTITLEMENT_KEYS.disputes]}
             hideBillingCta={layout === 'embedded'}
             lockedActions={
-              layout === 'embedded' && onRequestGrantEntitlements ? (
+              onRequestGrantEntitlements ? (
                 <button
                   type="button"
-                  onClick={() => onRequestGrantEntitlements([ENTITLEMENT_KEYS.disputes])}
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-white/[0.08] bg-white/5 hover:bg-white/10 text-[10px] font-black uppercase tracking-widest text-white/70 transition-all"
+                  onClick={() =>
+                    onRequestGrantEntitlements([ENTITLEMENT_KEYS.disputes, ENTITLEMENT_KEYS.letters])
+                  }
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-amber-400/40 bg-amber-500/15 hover:bg-amber-500/25 text-[10px] font-black uppercase tracking-widest text-amber-50 transition-all"
                 >
-                  Grant access
+                  Grant Credit Letters access
                 </button>
+              ) : layout === 'embedded' ? (
+                <p className="text-sm text-white/60">
+                  Scroll to Access at the bottom of this partner profile and tap Grant Credit Letters / Bureaus access.
+                </p>
               ) : null
             }
           >
             <LetterEasyFlowShell
-              contextTitle="Step 1 — Choose your dispute round"
-              contextSubtitle="Round 1 = brand-new dispute. Round 2+ = transferred from another company or following up after a prior letter."
+              contextTitle="Step 1 — Choose Round 1 or Round 2+"
+              contextSubtitle="Round 1 = first bureau letters. Round 2+ = transferred from another company or following up after a prior letter."
               context={
                 <>
                   <div className="flex flex-wrap items-start justify-end gap-3">
@@ -4067,7 +4379,7 @@ useEffect(() => {
                   <div className="flex flex-wrap gap-2">
                     {(
                       [
-                        { id: 'fresh', label: 'New client · Round 1', round: 'Round 1' as LetterRound, hint: 'First letters with Finely Cred' },
+                        { id: 'fresh', label: 'New partner · Round 1', round: 'Round 1' as LetterRound, hint: 'First letters with Finely Cred' },
                         { id: 'transfer', label: 'Transferred · Round 2', round: 'Round 2' as LetterRound, hint: 'Prior company already mailed Round 1' },
                         { id: 'followup', label: 'Deep follow-up · Round 3', round: 'Round 3' as LetterRound, hint: 'Bureau responded — escalate angle' },
                         { id: 'escalate', label: 'Escalation · Round 4', round: 'Round 4' as LetterRound, hint: 'Pattern of non-compliance' },
@@ -4263,8 +4575,31 @@ useEffect(() => {
               ) : null}
 
               {selectedDisputes.length === 0 ? (
-                <div className="fc-light-glass-panel fc-light-chrome-panel p-6 text-white/60">
-                  No disputes selected yet. Use the path step <span className="text-white/80 font-semibold">Select disputes</span> to pick items from a report or a saved case.
+                <div className="fc-light-glass-panel fc-light-chrome-panel !p-4 space-y-3 text-white/70">
+                  <div className="text-white font-semibold text-sm">No disputes selected yet</div>
+                  <p className="text-sm text-white/55">
+                    {reports.length === 0
+                      ? 'Upload a credit report first — then Round 1 / Round 2 choices and selectable negatives appear.'
+                      : 'Use Continue — Disputes (or Select disputes) to open the picker and choose accounts for this round.'}
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setPickerOpen(true)}
+                      className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-amber-400/40 bg-amber-500/15 hover:bg-amber-500/25 text-[10px] font-black uppercase tracking-widest text-amber-50"
+                    >
+                      Select disputes
+                    </button>
+                    {reports.length === 0 ? (
+                      <button
+                        type="button"
+                        onClick={() => openReports()}
+                        className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-white/12 bg-white/5 hover:bg-white/10 text-[10px] font-black uppercase tracking-widest text-white/70"
+                      >
+                        Upload report
+                      </button>
+                    ) : null}
+                  </div>
                 </div>
               ) : (
                 <>
@@ -5281,6 +5616,8 @@ useEffect(() => {
               onSwitchToBankruptcy={() => setTab('bankruptcy')}
               onBuildDraft={(specId) => buildDebtCenterDraft(specId, false)}
               onBuildCatalogDraft={(id) => buildCatalogDraft(id, 'validation')}
+              generateBusy={generateBusy}
+              generateError={draftErr}
             />
             </DebtTrackEasyFlow>
           </EntitlementGate>
@@ -5317,6 +5654,8 @@ useEffect(() => {
               onSwitchToBankruptcy={() => setTab('bankruptcy')}
               onBuildDraft={(specId) => buildDebtCenterDraft(specId, true)}
               onBuildCatalogDraft={(id) => buildCatalogDraft(id, 'court')}
+              generateBusy={generateBusy}
+              generateError={draftErr}
               selectedSummonsDocId={selectedSummonsDocId}
               onSummonsDocChange={setSelectedSummonsDocId}
               summonsDocCount={processedDocuments.filter((d) => {
@@ -5331,14 +5670,20 @@ useEffect(() => {
         {tab === 'foreclosure' && (
           <EntitlementGate
             partnerId={partner.id}
-            requiredKeys={[ENTITLEMENT_KEYS.debt]}
+            requiredKeys={debtCenterMode ? [ENTITLEMENT_KEYS.debt] : [ENTITLEMENT_KEYS.letters]}
             hideBillingCta={layout === 'embedded'}
             lockedActions={
-              layout === 'embedded' && onRequestGrantEntitlements ? (
+              onRequestGrantEntitlements ? (
                 <button
                   type="button"
-                  onClick={() => onRequestGrantEntitlements([ENTITLEMENT_KEYS.debt])}
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-white/[0.08] bg-white/5 hover:bg-white/10 text-[10px] font-black uppercase tracking-widest text-white/70 transition-all"
+                  onClick={() =>
+                    onRequestGrantEntitlements(
+                      debtCenterMode
+                        ? [ENTITLEMENT_KEYS.debt]
+                        : [ENTITLEMENT_KEYS.letters, ENTITLEMENT_KEYS.packForeclosure],
+                    )
+                  }
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-amber-400/40 bg-amber-500/15 hover:bg-amber-500/25 text-[10px] font-black uppercase tracking-widest text-amber-50 transition-all"
                 >
                   Grant access
                 </button>
@@ -5354,6 +5699,7 @@ useEffect(() => {
             <ForeclosureCenterView
               {...debtCenterSharedProps}
               partner={partner}
+              letterHub={debtCenterMode ? 'debt' : 'credit'}
               onSwitchToValidation={() => setTab('validation')}
               onSwitchToRepossession={() => setTab('repossession')}
               onBuildCatalogDraft={(id) => buildCatalogDraft(id, 'foreclosure')}
@@ -5365,14 +5711,20 @@ useEffect(() => {
         {tab === 'repossession' && (
           <EntitlementGate
             partnerId={partner.id}
-            requiredKeys={[ENTITLEMENT_KEYS.debt]}
+            requiredKeys={debtCenterMode ? [ENTITLEMENT_KEYS.debt] : [ENTITLEMENT_KEYS.letters]}
             hideBillingCta={layout === 'embedded'}
             lockedActions={
-              layout === 'embedded' && onRequestGrantEntitlements ? (
+              onRequestGrantEntitlements ? (
                 <button
                   type="button"
-                  onClick={() => onRequestGrantEntitlements([ENTITLEMENT_KEYS.debt])}
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-white/[0.08] bg-white/5 hover:bg-white/10 text-[10px] font-black uppercase tracking-widest text-white/70 transition-all"
+                  onClick={() =>
+                    onRequestGrantEntitlements(
+                      debtCenterMode
+                        ? [ENTITLEMENT_KEYS.debt]
+                        : [ENTITLEMENT_KEYS.letters, ENTITLEMENT_KEYS.packRepossession],
+                    )
+                  }
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-amber-400/40 bg-amber-500/15 hover:bg-amber-500/25 text-[10px] font-black uppercase tracking-widest text-amber-50 transition-all"
                 >
                   Grant access
                 </button>
@@ -5388,6 +5740,7 @@ useEffect(() => {
             <RepossessionCenterView
               {...debtCenterSharedProps}
               partner={partner}
+              letterHub={debtCenterMode ? 'debt' : 'credit'}
               onSwitchToValidation={() => setTab('validation')}
               onSwitchToForeclosure={() => setTab('foreclosure')}
               onBuildCatalogDraft={(id) => buildCatalogDraft(id, 'repossession')}
@@ -5399,14 +5752,24 @@ useEffect(() => {
         {tab === 'bankruptcy' && (
           <EntitlementGate
             partnerId={partner.id}
-            requiredKeys={[ENTITLEMENT_KEYS.disputes]}
+            requiredKeys={
+              debtCenterMode
+                ? [ENTITLEMENT_KEYS.debt]
+                : [ENTITLEMENT_KEYS.disputes, ENTITLEMENT_KEYS.letters]
+            }
             hideBillingCta={layout === 'embedded'}
             lockedActions={
-              layout === 'embedded' && onRequestGrantEntitlements ? (
+              onRequestGrantEntitlements ? (
                 <button
                   type="button"
-                  onClick={() => onRequestGrantEntitlements([ENTITLEMENT_KEYS.disputes])}
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-white/[0.08] bg-white/5 hover:bg-white/10 text-[10px] font-black uppercase tracking-widest text-white/70 transition-all"
+                  onClick={() =>
+                    onRequestGrantEntitlements(
+                      debtCenterMode
+                        ? [ENTITLEMENT_KEYS.debt]
+                        : [ENTITLEMENT_KEYS.disputes, ENTITLEMENT_KEYS.letters, ENTITLEMENT_KEYS.packBankruptcy],
+                    )
+                  }
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-amber-400/40 bg-amber-500/15 hover:bg-amber-500/25 text-[10px] font-black uppercase tracking-widest text-amber-50 transition-all"
                 >
                   Grant access
                 </button>
@@ -5667,45 +6030,6 @@ useEffect(() => {
             </div>
           </EntitlementGate>
         )}
-        {layout === 'embedded' ? (
-          <details className="fc-light-glass-panel fc-light-chrome-panel p-4 mt-6">
-            <summary className="cursor-pointer list-none flex flex-wrap items-center justify-between gap-3 [&::-webkit-details-marker]:hidden">
-              <div className="text-[10px] uppercase tracking-widest text-white/40">Customer journey Â· letter workflow</div>
-              <div className="text-[10px] font-black uppercase tracking-widest text-white/70">{restoreHud.pct}% complete</div>
-            </summary>
-            <div className="mt-4 space-y-3 border-t border-white/10 pt-4">
-              <div className="text-white/60 text-sm max-w-5xl">
-                Workflow from report upload â†’ saved PDF. Steps auto-complete from saved work.
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {restoreHud.steps.map((s) => (
-                  <div
-                    key={s.id}
-                    className={
-                      'px-3 py-2 rounded-xl border text-[10px] font-black uppercase tracking-widest transition-all ' +
-                      (s.done ? 'border-emerald-500/25 bg-emerald-500/10 text-emerald-100/90' : 'border-white/[0.08] bg-black/40 text-white/50')
-                    }
-                    title={`${s.hint} ${s.meta ? `(${s.meta})` : ''}`.trim()}
-                  >
-                    {s.label}
-                  </div>
-                ))}
-              </div>
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <div className="text-white/55 text-sm">
-                  Next: <span className="text-white/85 font-semibold">{nextBestAction.label}</span>
-                </div>
-                <button
-                  type="button"
-                  onClick={runNextBestAction}
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-amber-500/25 bg-amber-500/15 hover:bg-amber-500/20 text-[10px] font-black uppercase tracking-widest text-amber-100 transition-all"
-                >
-                  Do next <ChevronRight size={14} />
-                </button>
-              </div>
-            </div>
-          </details>
-        ) : null}
       </div>
 
       {reasonsLibraryOpen && partner ? (

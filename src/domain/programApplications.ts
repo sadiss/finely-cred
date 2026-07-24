@@ -1,4 +1,4 @@
-export type ProgramApplicationKind = 'affiliate' | 'agent';
+export type ProgramApplicationKind = 'affiliate' | 'agent' | 'paralegal' | 'attorney' | 'consultant';
 export type ProgramApplicationStatus = 'new' | 'reviewing' | 'approved' | 'rejected';
 
 export type ProgramApplication = {

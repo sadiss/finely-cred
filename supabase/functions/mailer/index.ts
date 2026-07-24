@@ -36,7 +36,7 @@ type MailAddress = {
 
 type ReqBody = {
   /** Defaults to 'send' when omitted. */
-  op?: 'send' | 'verify' | 'ping';
+  op?: 'send' | 'verify' | 'ping' | 'status';
   partnerId?: string;
   letterId?: string;
   pdfBlobRef?: string;
@@ -53,6 +53,38 @@ type ReqBody = {
   /** Optional: prevents accidental duplicate sends. */
   idempotencyKey?: string;
 };
+
+/** LetterStream TEST / debug mode — never silent in product UI. */
+function resolveMailDebugLevel(): 1 | 2 | 3 | undefined {
+  const raw = (Deno.env.get('MAIL_DEBUG') || Deno.env.get('LETTERSTREAM_DEBUG') || '').trim();
+  if (raw === '1' || raw === '2' || raw === '3') return Number(raw) as 1 | 2 | 3;
+  if (/^(1|true|yes|on)$/i.test(Deno.env.get('MAIL_TEST_MODE') || '')) return 3;
+  if (/^(1|true|yes|on)$/i.test(Deno.env.get('LETTERSTREAM_TEST_MODE') || '')) return 3;
+  return undefined;
+}
+
+function resolveMailTestMode(pingText?: string): boolean {
+  if (/^(1|true|yes|on)$/i.test(Deno.env.get('MAIL_TEST_MODE') || '')) return true;
+  if (/^(1|true|yes|on)$/i.test(Deno.env.get('LETTERSTREAM_TEST_MODE') || '')) return true;
+  if (resolveMailDebugLevel()) return true;
+  const hay = String(pingText || '');
+  return /\btest\s*mode\b|\btestmode\b|\bsandbox\b|\bdebug\b/i.test(hay);
+}
+
+function extractBalanceHint(raw: unknown): number | null {
+  try {
+    const text = typeof raw === 'string' ? raw : JSON.stringify(raw ?? '');
+    const m =
+      text.match(/balance["\s:=]+\$?\s*([\d,.]+)/i) ||
+      text.match(/prepaid["\s:=]+\$?\s*([\d,.]+)/i) ||
+      text.match(/funds["\s:=]+\$?\s*([\d,.]+)/i);
+    if (!m?.[1]) return null;
+    const n = Number(String(m[1]).replace(/,/g, ''));
+    return Number.isFinite(n) ? n : null;
+  } catch {
+    return null;
+  }
+}
 
 const REF_PREFIX = 'supabase://';
 
@@ -191,25 +223,43 @@ Deno.serve(async (req) => {
 
   const op = (body?.op || 'send') as ReqBody['op'];
 
-  if (op === 'ping') {
+  if (op === 'ping' || op === 'status') {
     if (provider !== 'letterstream') {
-      return json({ ok: true, provider: publicProvider, message: 'Mail service reachable' });
+      return json({
+        ok: true,
+        provider: publicProvider,
+        message: 'Mail service reachable',
+        testMode: resolveMailTestMode(),
+        debugLevel: resolveMailDebugLevel() ?? null,
+        balanceUsd: null,
+      });
     }
     try {
-      const parsed = await letterStreamAuthPing({ debug: 3 });
+      const debugLevel = resolveMailDebugLevel();
+      const parsed = await letterStreamAuthPing(debugLevel ? { debug: debugLevel } : undefined);
       const summary = summarizeLetterStreamResponse(parsed);
+      const rawBlob = JSON.stringify(parsed.raw ?? parsed.messages ?? '');
+      const testMode = resolveMailTestMode(rawBlob + ' ' + summary.message);
+      const balanceUsd = extractBalanceHint(parsed.raw) ?? extractBalanceHint(rawBlob);
       return json({
         ok: summary.ok,
         provider: publicProvider,
         code: summary.code,
         message: sanitizeMailUserMessage(summary.message),
         messages: parsed.messages.map((m) => ({ ...m, details: sanitizeMailUserMessage(m.details) })),
+        testMode,
+        debugLevel: debugLevel ?? null,
+        balanceUsd,
+        estimatedCostUsd: 1.85,
       });
     } catch (e) {
       return json({
         ok: false,
         provider: publicProvider,
         error: sanitizeMailUserMessage((e as Error)?.message || 'Mail connectivity check failed'),
+        testMode: resolveMailTestMode(),
+        debugLevel: resolveMailDebugLevel() ?? null,
+        balanceUsd: null,
       }, { status: 500 });
     }
   }
@@ -302,7 +352,7 @@ Deno.serve(async (req) => {
           coverSheet: body.options?.coverSheet ?? true,
           pages: body.options?.pages,
           preauth: body.options?.preauth ?? false,
-          debug: 3,
+          debug: resolveMailDebugLevel(),
         },
       });
       const summary = summarizeLetterStreamResponse(parsed);

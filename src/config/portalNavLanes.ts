@@ -44,7 +44,7 @@ export const PORTAL_PRIMARY_LINKS: PortalNavLinkDef[] = [
   { path: '/portal/documents', label: 'Documents', icon: FolderOpen },
   { path: '/portal/disputes', label: 'Dispute Center', icon: Gavel },
   { path: '/portal/templates', label: 'Letter templates', icon: BookOpen },
-  { path: '/portal/debt', label: 'Debt & Summons', icon: Scale },
+  { path: '/portal/debt?tab=litigation', label: 'Litigation / Court defense', icon: Scale },
   { path: '/portal/bankruptcy', label: 'Bankruptcy', icon: Landmark },
   { path: '/portal/projects', label: 'Projects & Tasks', icon: KanbanSquare },
   { path: '/portal/messages', label: 'Messages', icon: MessageSquare },
@@ -54,7 +54,9 @@ export const PORTAL_PRIMARY_LINKS: PortalNavLinkDef[] = [
 ];
 
 export const PORTAL_LETTER_FLOW_LINKS: { path: string; label: string }[] = [
-  { path: '/portal/letters', label: 'Letter Studio' },
+  { path: '/portal/letters', label: 'Credit Letters' },
+  { path: '/portal/debt', label: 'Debt Letters' },
+  { path: '/portal/debt?tab=litigation', label: 'Litigation Command' },
   { path: '/portal/letters/vault', label: 'Letters Vault' },
   { path: '/portal/disputes', label: 'Dispute Center' },
 ];
@@ -91,13 +93,14 @@ export const PORTAL_NAV_LANES: PortalNavLaneDef[] = [
   {
     id: 'letters',
     label: 'Letter workstations',
-    hint: 'Bureaus, debt, bankruptcy',
+    hint: 'Credit letters vs debt letters',
     accent: 'amber',
     links: [
-      { path: '/portal/letters', label: 'Letter Studio', icon: Gavel },
+      { path: '/portal/letters', label: 'Credit Letters', icon: Gavel },
+      { path: '/portal/debt', label: 'Debt Letters', icon: Scale },
+      { path: '/portal/debt?tab=litigation', label: 'Litigation Command', icon: Gavel },
       { path: '/portal/letters/vault', label: 'Letters Vault', icon: FolderOpen },
       { path: '/portal/templates', label: 'Letter templates', icon: BookOpen },
-      { path: '/portal/debt', label: 'Debt & Summons', icon: Scale },
       { path: '/portal/bankruptcy', label: 'Bankruptcy', icon: Landmark },
       { path: '/portal/escalations', label: 'Escalations', icon: MessageCircle },
       { path: '/portal/identity-theft', label: 'Identity Theft', icon: ShieldAlert },

@@ -16,6 +16,8 @@ import { upsertCreditAnalysisReport } from '../../data/creditAnalysisReportsRepo
 import { newId } from '../../utils/ids';
 import { downloadBlob } from '../../utils/download';
 import { notifyAnalysisReportReady } from '../../lib/analysisReportDelivery';
+import { CREDIT_ANALYSIS_ENGINE_OPTIONS } from '../../lib/creditAnalysisEngineOptions';
+import type { CreditAnalysisReportEngine } from '../../reports/generateCreditAnalysisReportPdf';
 import { FinelyOsPaginatedStack } from '../../features/os/FinelyOsPaginatedStack';
 import {
   FINELY_OS_ENTITY_BODY,
@@ -42,6 +44,7 @@ const DEFAULT_TEMPLATE: CreditAnalysisReportTemplateConfig = {
   version: 1,
   title: 'Credit Analysis Report',
   badgeLine: 'Premium deliverable • Strategy • Negatives • Next steps',
+  engine: 'structured_premium',
   minPages: 22,
   variant: 'negatives_heavy',
   negatives: { maxPerBucket: 24 },
@@ -59,6 +62,7 @@ export function AnalysisReportBuilderPanel({ partners, defaultPartnerId, compact
   );
 
   const [variant, setVariant] = useState<AnalysisVariant>('negatives_heavy');
+  const [engine, setEngine] = useState<CreditAnalysisReportEngine>('structured_premium');
   const [minPages, setMinPages] = useState(22);
   const [templateTitle, setTemplateTitle] = useState('Credit Analysis Report • Premium');
   const [roadmapNow, setRoadmapNow] = useState('');
@@ -76,6 +80,7 @@ export function AnalysisReportBuilderPanel({ partners, defaultPartnerId, compact
     return {
       ...DEFAULT_TEMPLATE,
       title: templateTitle.trim() || DEFAULT_TEMPLATE.title,
+      engine,
       minPages,
       variant,
       roadmap: {
@@ -84,7 +89,7 @@ export function AnalysisReportBuilderPanel({ partners, defaultPartnerId, compact
         later: split(roadmapLater).length ? split(roadmapLater) : undefined,
       },
     };
-  }, [templateTitle, minPages, variant, roadmapNow, roadmapNext, roadmapLater]);
+  }, [templateTitle, engine, minPages, variant, roadmapNow, roadmapNext, roadmapLater]);
 
   const preview = useMemo(() => {
     if (!partner || !selectedReport?.parsed) return null;
@@ -104,7 +109,12 @@ export function AnalysisReportBuilderPanel({ partners, defaultPartnerId, compact
       tenantId,
       title: templateTitle.trim() || 'Credit Analysis Template',
       category: 'ops',
-      tags: ['analysis_report_template', `analysis_variant:${variant}`, `min_pages:${minPages}`],
+      tags: [
+        'analysis_report_template',
+        `analysis_variant:${variant}`,
+        `analysis_engine:${engine}`,
+        `min_pages:${minPages}`,
+      ],
       kind: 'text',
       bodyText: JSON.stringify(templateConfig, null, 2),
       requiredEntitlements: defaultRequiredEntitlementsForCategory('ops'),
@@ -143,7 +153,7 @@ export function AnalysisReportBuilderPanel({ partners, defaultPartnerId, compact
         sizeBytes: blob.size,
         pages,
         sourceReportFilename: selectedReport.filename,
-        engine: templateConfig?.engine === 'paginated_text' ? 'paginated_text' : 'structured_premium',
+        engine,
         payloadSnapshot: payloadSnapshot as Record<string, unknown> | undefined,
       });
       downloadBlob({ blob, filename });
@@ -153,7 +163,7 @@ export function AnalysisReportBuilderPanel({ partners, defaultPartnerId, compact
         candidates,
       });
       setNotice(
-        `Generated ${pages}-page PDF and saved to partner strategy reports.${emailResult.sent ? ' Analysis email sent.' : ''}`,
+        `Generated ${pages}-page ${engine.replace(/_/g, ' ')} PDF and saved to partner strategy reports.${emailResult.sent ? ' Analysis email sent.' : ''}`,
       );
     } catch (e: unknown) {
       setNotice((e as Error)?.message || 'Generation failed.');
@@ -220,6 +230,24 @@ export function AnalysisReportBuilderPanel({ partners, defaultPartnerId, compact
                 ))
               )}
             </select>
+          </label>
+          <label className="block min-w-0">
+            <span className={FINELY_OS_ENTITY_SUBLABEL}>Engine</span>
+            <select
+              value={engine}
+              onChange={(e) => setEngine(e.target.value as CreditAnalysisReportEngine)}
+              className={FINELY_OS_ENTITY_SELECT}
+              title="How the PDF is built"
+            >
+              {CREDIT_ANALYSIS_ENGINE_OPTIONS.map((opt) => (
+                <option key={opt.id} value={opt.id}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+            <p className={`mt-1 text-[10px] ${FINELY_OS_ENTITY_BODY}`}>
+              {CREDIT_ANALYSIS_ENGINE_OPTIONS.find((o) => o.id === engine)?.bestFor}
+            </p>
           </label>
           <label className="block min-w-0">
             <span className={FINELY_OS_ENTITY_SUBLABEL}>Variant</span>

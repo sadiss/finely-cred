@@ -11,8 +11,11 @@ import { DebtProofCaptureStrip } from './DebtProofCaptureStrip';
 import { ValidationAdvisorChat } from './ValidationAdvisorChat';
 import { CollateralWorkstationSection, DebtVsDisputeExplainer } from './CollateralWorkstationSection';
 import { LetterCatalogBrowser } from './LetterCatalogBrowser';
+import { PartnerDefenseKnowledgePanel } from './PartnerDefenseKnowledgePanel';
 import { DEBT_LETTER_SPECS, SCENARIO_RECOMMENDATIONS } from '../../legal/debtLetterTemplates';
 import { extractReportDebtSignals } from '../../lib/debtCreditorIntel';
+import { buildIntelligentLetterSuggestions } from '../../lib/intelligentLetterSuggestions';
+import { IntelligentLetterSuggestionsPanel } from '../letters/IntelligentLetterSuggestionsPanel';
 import { FinelyOsKpiGrid } from '../os/FinelyOsKpiGrid';
 import {
   FINELY_OS_COMPACT_PAGE,
@@ -47,6 +50,8 @@ export function ValidationCenterView({
   onBuildCatalogDraft,
   canSeeTemplates,
   partner,
+  generateBusy = false,
+  generateError = null,
 }: {
   debt: DebtCase | null;
   debtId: string;
@@ -66,6 +71,8 @@ export function ValidationCenterView({
   onBuildCatalogDraft?: (catalogId: string) => void;
   canSeeTemplates: boolean;
   partner?: Partner;
+  generateBusy?: boolean;
+  generateError?: string | null;
 }) {
   const specs = DEBT_LETTER_SPECS.filter(
     (s) =>
@@ -76,6 +83,16 @@ export function ValidationCenterView({
   );
   const scenarioRec = SCENARIO_RECOMMENDATIONS.find((r) => r.scenario === recommendedScenario);
   const signals = React.useMemo(() => extractReportDebtSignals(reports), [reports]);
+  const letterSuggestions = React.useMemo(
+    () =>
+      buildIntelligentLetterSuggestions({
+        track: 'validation',
+        debt,
+        partner,
+        recommendedScenario,
+      }),
+    [debt, partner, recommendedScenario],
+  );
   const totalBalanceCents = signals.reduce((sum, s) => sum + (s.balanceCents ?? 0), 0);
   const totalBalanceLabel =
     totalBalanceCents > 0
@@ -160,18 +177,30 @@ export function ValidationCenterView({
         compact
       />
 
-      <div id="fc-debt-step-choose" className="scroll-mt-3">
+      <div id="fc-debt-step-choose" className="scroll-mt-3 space-y-3">
+        <IntelligentLetterSuggestionsPanel
+          suggestions={letterSuggestions}
+          accent="emerald"
+          busy={generateBusy}
+          error={generateError}
+          onBuild={({ letterType, catalogId }) => {
+            if (catalogId && onBuildCatalogDraft) onBuildCatalogDraft(catalogId);
+            else if (letterType) onBuildDraft(letterType);
+          }}
+        />
         <LetterCatalogBrowser
           category="validation"
           accent="emerald"
           extraCategories={['negotiation', 'reporting']}
           onBuild={(id, entry) => {
-            if (entry.letterType) onBuildDraft(entry.letterType);
-            else onBuildCatalogDraft?.(id);
+            if (onBuildCatalogDraft) onBuildCatalogDraft(id);
+            else if (entry.letterType) onBuildDraft(entry.letterType);
           }}
         />
       </div>
       {!canSeeTemplates ? <div className="text-[10px] text-white/40">Full template bodies unlock on paid tiers.</div> : null}
+
+      <PartnerDefenseKnowledgePanel mode="both" trackFilter="validation" compact />
 
       <CollateralWorkstationSection title="Validation coach" subtitle="Ask about 1692g proof demands, licensing, chain of title, and your next move — full width section." accent="emerald">
         <ValidationAdvisorChat scenario={recommendedScenario} debtName={debt?.name} stateJurisdiction={debt?.stateJurisdiction} />

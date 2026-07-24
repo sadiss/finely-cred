@@ -31,11 +31,13 @@ export function toLitigationLetterArgs(args: {
   borrowerId?: string;
   affidavitState?: string;
   affidavitCounty?: string;
-  summonsContext?: {
     courtName?: string;
     amountClaimed?: string;
-    collectorName?: string;
-  };
+    summonsContext?: {
+      courtName?: string;
+      amountClaimed?: string;
+      collectorName?: string;
+    };
 }): LitigationLetterArgs {
   return {
     debtorName: args.debtorName,
@@ -46,23 +48,25 @@ export function toLitigationLetterArgs(args: {
     debtorState: args.debtorState,
     debtorPostalCode: args.debtorPostalCode,
     debtorPhone: args.debtorPhone,
-    debtorEmail: args.debtorEmail,
+    // Never map partner email onto litigation letter merge fields by default.
+    debtorEmail: undefined,
     plaintiffName: args.recipientName || args.creditorName,
-    plaintiffAddress: args.recipientAddress,
+    // Prefer firm/counsel mailing address for TO: — never leave firm address unused.
+    plaintiffAddress: args.plaintiffLawFirmAddress || args.recipientAddress,
     plaintiffLawFirm: args.plaintiffLawFirm || args.summonsContext?.collectorName || args.debtCollectorName,
-    plaintiffLawFirmAddress: args.plaintiffLawFirmAddress,
+    plaintiffLawFirmAddress: args.plaintiffLawFirmAddress || args.recipientAddress,
     plaintiffAttorneyName: args.plaintiffAttorneyName,
     plaintiffAttorneyBarNumber: args.plaintiffAttorneyBarNumber,
     originalCreditorName: args.originalCreditorName || args.creditorName,
     debtCollectorName: args.debtCollectorName || args.summonsContext?.collectorName,
     caseNumber: args.caseNumber,
-    courtName: args.summonsContext?.courtName,
+    courtName: args.courtName || args.summonsContext?.courtName,
     accountNumber: args.accountNumber,
     loanId: args.loanId,
     borrowerId: args.borrowerId,
     affidavitState: args.affidavitState || args.debtorState,
     affidavitCounty: args.affidavitCounty,
-    amountClaimed: args.summonsContext?.amountClaimed,
+    amountClaimed: args.amountClaimed || args.summonsContext?.amountClaimed,
   };
 }
 
@@ -74,6 +78,20 @@ export {
   getLitigationDiscoveryRequestsBody,
   getLitigationMotionToCompelBody,
 };
+
+export {
+  applyRooseveltCourtDemoIfNeeded,
+  rooseveltCourtDemoLitigationArgs,
+  shouldUseRooseveltCourtDemoMerge,
+} from './rooseveltCourtDemoArgs';
+
+export {
+  detectDebtBuyerPattern,
+  getDebtBuyerCaseIntel,
+  isDebtBuyerStyleCase,
+  type DebtBuyerCaseIntel,
+  type DebtBuyerPatternId,
+} from './debtBuyerCaseIntelligence';
 
 /** @deprecated Use toLitigationLetterArgs */
 export const toParkerArgs = toLitigationLetterArgs;

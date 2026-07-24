@@ -9,7 +9,7 @@ const PREMIUM_TEMPLATE_BODY = JSON.stringify(
     version: 1,
     engine: 'structured_premium',
     title: 'Premium Credit Analysis Report',
-    badgeLine: 'Finely Cred · Original ivory executive credit intelligence',
+    badgeLine: 'Finely Cred · Partner strategy dossier · Restore · Build · Fundability',
     variant: 'standard',
   },
   null,
@@ -25,11 +25,11 @@ export function ensurePremiumCreditAnalysisTemplateOnce() {
     tenantId,
     createdAt: existing?.createdAt ?? now,
     updatedAt: now,
-    title: 'Premium Credit Analysis (original ivory report)',
+    title: 'Premium Credit Analysis (partner strategy dossier)',
     category: 'ops',
     kind: 'text',
     bodyText: PREMIUM_TEMPLATE_BODY,
-    tags: ['analysis_report_template', 'structured_premium', 'original_ivory_report', 'analysis_variant:standard'],
+    tags: ['analysis_report_template', 'structured_premium', 'partner_strategy_dossier', 'analysis_variant:standard'],
     requiredEntitlements: defaultRequiredEntitlementsForCategory('ops'),
   };
   upsertTemplateVaultItem(next);

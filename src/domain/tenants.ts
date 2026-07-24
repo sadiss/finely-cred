@@ -63,6 +63,9 @@ export type MembershipRole =
   | 'finance_manager'
   | 'compliance_officer'
   | 'agent' // Agency staff (scoped access within tenant)
+  | 'paralegal' // Case work: debt / litigation / letters (assigned partners)
+  | 'attorney' // Counsel: case work + meetings (assigned partners)
+  | 'consultant' // Case advisor: debt / litigation support (assigned partners)
   | 'sales_rep'
   | 'marketing_manager'
   | 'course_instructor'

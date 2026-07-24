@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Car } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import type { DebtCase } from '../../domain/debt';
@@ -9,7 +9,7 @@ import { LetterCatalogBrowser } from './LetterCatalogBrowser';
 import { RepossessionAdvisorChat } from './RepossessionAdvisorChat';
 import { CollateralDefenseShell, type CollateralPlaybookStep } from './CollateralDefenseShell';
 import { CollateralWorkstationSection, DebtVsDisputeExplainer } from './CollateralWorkstationSection';
-import { catalogForCategory } from '../../legal/debtLetterCatalog';
+import { catalogForCategory, type LetterCatalogHub } from '../../legal/debtLetterCatalog';
 import { extractCollateralSignals } from '../../lib/debtCreditorIntel';
 import {
   FINELY_OS_ENTITY_SUBLABEL,
@@ -23,13 +23,22 @@ import type { ParsedCreditReport } from '../../domain/creditReports';
 
 type ReportRow = { id: string; parsed?: ParsedCreditReport | null };
 
-const PLAYBOOK: CollateralPlaybookStep[] = [
+const DEBT_PLAYBOOK: CollateralPlaybookStep[] = [
   { id: 'wrongful', label: 'Wrongful repo', detail: 'Breach of peace / no default', law: 'UCC § 9-609' },
   { id: 'reinstate', label: 'Reinstate / redeem', detail: 'Recover vehicle pre-sale', law: 'UCC § 9-623' },
   { id: 'suit', label: 'Claim & delivery', detail: 'Answer replevin lawsuit', law: 'Civil procedure' },
   { id: 'sale', label: 'Sale notice', detail: 'Commercially reasonable sale', law: 'UCC § 9-610' },
   { id: 'deficiency', label: 'Deficiency fight', detail: 'Challenge balance after sale', law: 'UCC § 9-615' },
-  { id: 'report', label: 'Credit cleanup', detail: 'FCRA on repo tradeline', law: 'FCRA § 611' },
+  { id: 'report', label: 'Credit cleanup', detail: 'Use Credit Letters for bureau track', law: 'FCRA § 611' },
+];
+
+const CREDIT_PLAYBOOK: CollateralPlaybookStep[] = [
+  { id: 'tradeline', label: 'Bureau tradeline', detail: 'Repo status / DOFD / charge-off', law: 'FCRA § 611' },
+  { id: 'deficiency', label: 'Deficiency reporting', detail: 'Dispute inflated bureau balance', law: 'FCRA § 611' },
+  { id: 'wrongful', label: 'Wrongful repo reporting', detail: 'Inaccurate repo remark on file', law: 'FCRA § 611' },
+  { id: 'specialty', label: 'Specialty CRA', detail: 'ChexSystems / LexisNexis / auto CRA', law: 'FCRA § 611' },
+  { id: 'furnisher', label: '§ 623 furnisher', detail: 'Direct reporting-accuracy dispute', law: 'FCRA § 623' },
+  { id: 'mov', label: 'Method of verification', detail: 'After thin “verified” results', law: '§ 611(a)(6)' },
 ];
 
 export function RepossessionCenterView({
@@ -44,6 +53,7 @@ export function RepossessionCenterView({
   onSenderPersist,
   onDebtIdChange,
   onBuildCatalogDraft,
+  letterHub = 'debt',
 }: {
   debt: DebtCase | null;
   debtCases: DebtCase[];
@@ -58,50 +68,89 @@ export function RepossessionCenterView({
   onSwitchToValidation?: () => void;
   onSwitchToForeclosure?: () => void;
   onBuildCatalogDraft: (catalogId: string) => void;
+  letterHub?: LetterCatalogHub;
 }) {
-  const [activeStep, setActiveStep] = useState('wrongful');
-  const letterCount = catalogForCategory('repossession').length;
+  const isCredit = letterHub === 'credit';
+  const playbook = isCredit ? CREDIT_PLAYBOOK : DEBT_PLAYBOOK;
+  const [activeStep, setActiveStep] = useState(isCredit ? 'tradeline' : 'wrongful');
+  useEffect(() => {
+    setActiveStep(isCredit ? 'tradeline' : 'wrongful');
+  }, [isCredit]);
+  const letterCount =
+    catalogForCategory('repossession', letterHub).length +
+    (isCredit ? catalogForCategory('reporting', letterHub).length : 0);
   const repoSignals = useMemo(() => extractCollateralSignals(reports, 'repossession'), [reports]);
 
   const stepFilter = useMemo(() => {
+    if (isCredit) {
+      const map: Record<string, string[]> = {
+        tradeline: ['tradeline', 'status', 'dofd', 'charge-off', 'metro', 'bureau'],
+        deficiency: ['deficiency', 'balance', 'sale'],
+        wrongful: ['wrongful', 'repo', 'reporting', 'fcr'],
+        specialty: ['specialty', 'chex', 'lexis', 'cra'],
+        furnisher: ['furnisher', '623', '§ 623'],
+        mov: ['method', 'verification', 'mofv', 'verified'],
+      };
+      return map[activeStep] ?? [];
+    }
     const map: Record<string, string[]> = {
       wrongful: ['wrongful', 'breach', 'privacy', 'gps'],
       reinstate: ['reinstate', 'redemption', 'turn'],
       suit: ['claim', 'delivery', 'replevin', 'answer'],
       sale: ['sale', 'notice', 'surplus', 'title'],
       deficiency: ['deficiency', 'collector', 'lease', 'trust'],
-      report: ['reporting', 'credit', 'furnisher'],
+      report: ['reporting', 'credit', 'furnisher', 'bureau'],
     };
     return map[activeStep] ?? [];
-  }, [activeStep]);
-  const activeStepMeta = PLAYBOOK.find((s) => s.id === activeStep);
+  }, [activeStep, isCredit]);
+  const activeStepMeta = playbook.find((s) => s.id === activeStep);
 
   return (
     <CollateralDefenseShell
       theme="repossession"
       icon={Car}
-      eyebrow="Collateral defense"
-      title="Repossession command center"
-      subtitle="UCC Article 9 reinstatement, wrongful repo demands, claim-and-delivery answers, deficiency accounting, and credit cleanup when reporting is wrong."
-      steps={PLAYBOOK}
+      eyebrow={isCredit ? 'Bureau cleanup' : 'Collateral defense'}
+      title={isCredit ? 'Repossession credit letters' : 'Repossession command center'}
+      subtitle={
+        isCredit
+          ? 'Powerful FCRA § 611 / Metro 2 disputes to Experian, Equifax, TransUnion, and specialty CRAs — repo status, deficiency reporting, and furnisher accuracy.'
+          : 'UCC Article 9 reinstatement, wrongful repo demands, claim-and-delivery answers, and deficiency accounting. Bureau disputes live under Credit Letters.'
+      }
+      steps={playbook}
       activeStepId={activeStep}
       onStepClick={setActiveStep}
       stats={[
         { label: 'Letters', value: String(letterCount) },
         { label: 'Repo tradelines', value: repoSignals.length ? String(repoSignals.length) : '—' },
-        { label: 'Stage', value: PLAYBOOK.find((s) => s.id === activeStep)?.label || '—' },
+        { label: 'Stage', value: playbook.find((s) => s.id === activeStep)?.label || '—' },
       ]}
       headerActions={
-        <Link to="/portal/letters?tab=dispute" className={FINELY_OS_SECONDARY_BTN} title="Only if the repo tradeline on your credit report is inaccurate">
-          Fix credit report →
-        </Link>
+        isCredit ? (
+          <Link to="/portal/debt?tab=repossession" className={FINELY_OS_SECONDARY_BTN} title="UCC repo, sale notice, and deficiency letters to the lender">
+            Debt repo letters →
+          </Link>
+        ) : (
+          <Link to="/portal/letters?tab=repossession" className={FINELY_OS_SECONDARY_BTN} title="Bureau / specialty CRA repossession reporting disputes">
+            Credit repo letters →
+          </Link>
+        )
       }
     >
-      <DebtVsDisputeExplainer variant="repossession" />
+      <DebtVsDisputeExplainer variant="repossession" hub={letterHub === 'both' ? 'debt' : letterHub} />
 
-      <CollateralWorkstationSection title="Your auto / lease case" subtitle="Select a debt case for this lender — separate from bureau dispute tracking." accent="rose">
+      <CollateralWorkstationSection
+        title={isCredit ? 'Account context for merge fields' : 'Your auto / lease case'}
+        subtitle={
+          isCredit
+            ? 'Select the related auto/lease case so drafts pull account names — this track still sends to the bureau/CRA, not the lender as primary recipient.'
+            : 'Select a debt case for this lender — separate from bureau dispute tracking.'
+        }
+        accent="rose"
+      >
         <div id="fc-debt-step-case" className={`${FINELY_OS_FIELD_WIDTH_SM} scroll-mt-3`}>
-          <label className={FINELY_OS_ENTITY_SUBLABEL}>Auto / lease case</label>
+          <label className={FINELY_OS_ENTITY_SUBLABEL}>
+            {isCredit ? 'Related auto / lease case (merge fields)' : 'Auto / lease case'}
+          </label>
           <select value={debtId} onChange={(e) => onDebtIdChange(e.target.value)} className={`${finelyOsGlowField('rose')} mt-1 w-full`}>
             {debtCases.length === 0 ? <option value="">Add a case from Debt Center → Cases</option> : null}
             {debtCases.map((d) => (
@@ -113,7 +162,15 @@ export function RepossessionCenterView({
         </div>
       </CollateralWorkstationSection>
 
-      <CollateralWorkstationSection title="Lender mailing info" subtitle="Pull from auto loan or lease tradeline on your report, or type manually." accent="rose">
+      <CollateralWorkstationSection
+        title={isCredit ? 'Bureau / CRA recipient' : 'Lender mailing info'}
+        subtitle={
+          isCredit
+            ? 'Set the bureau or specialty CRA dispute address (or § 623 furnisher for furnisher letters). Pull from tradeline when available.'
+            : 'Pull from auto loan or lease tradeline on your report, or type manually.'
+        }
+        accent="rose"
+      >
         <DebtCreditorIntelPanel
           partnerId={debt?.partnerId || debtCases[0]?.partnerId || ''}
           debt={debt}
@@ -138,18 +195,27 @@ export function RepossessionCenterView({
         accent="rose"
       >
         <div id="fc-debt-step-choose" className="scroll-mt-3">
-        <LetterCatalogBrowser
-          category="repossession"
-          accent="rose"
-          onBuild={(id) => onBuildCatalogDraft(id)}
-          extraCategories={['reporting']}
-          searchHint={stepFilter.join(' ')}
-          compactHeader
-        />
+          <LetterCatalogBrowser
+            category="repossession"
+            accent="rose"
+            letterHub={letterHub === 'both' ? undefined : letterHub}
+            onBuild={(id) => onBuildCatalogDraft(id)}
+            extraCategories={isCredit ? ['reporting'] : undefined}
+            searchHint={stepFilter.join(' ')}
+            compactHeader
+          />
         </div>
       </CollateralWorkstationSection>
 
-      <CollateralWorkstationSection title="Repossession coach" subtitle="Ask about UCC Article 9, wrongful repo, redemption, deficiency, and claim-and-delivery — full width section." accent="rose">
+      <CollateralWorkstationSection
+        title="Repossession coach"
+        subtitle={
+          isCredit
+            ? 'Ask about FCRA § 611, Metro 2 repo fields, deficiency reporting, and specialty CRAs.'
+            : 'Ask about UCC Article 9, wrongful repo, redemption, deficiency, and claim-and-delivery — full width section.'
+        }
+        accent="rose"
+      >
         <RepossessionAdvisorChat debtName={debt?.name} stateJurisdiction={debt?.stateJurisdiction} />
       </CollateralWorkstationSection>
 

@@ -1,5 +1,14 @@
 # Finely Cred — Developer Handoff (Production Ops)
 
+> **🚨 URGENT / DO THIS FIRST:**  
+> 1. Letters entitlements → [`DEV_URGENT_GRANT_ACCESS_AND_LETTERS.md`](../DEV_URGENT_GRANT_ACCESS_AND_LETTERS.md)  
+>    Migration: `supabase/migrations/202607240001_entitlements_admin_write.sql`  
+> 2. Mail letters today + Litigation → [`DEV_URGENT_MAIL_AND_LITIGATION.md`](../DEV_URGENT_MAIL_AND_LITIGATION.md)  
+>    Admin path: `/admin/mail` · Partner vault batch mail · Watch **TEST MODE** banner  
+> 3. **Litigation + roles + meetings + meeting emails** → [`DEV_URGENT_LITIGATION_ROLES_MEETINGS.md`](../DEV_URGENT_LITIGATION_ROLES_MEETINGS.md)  
+>    Scrape fill · Certified vs First Class · `/careers/case-help` · Hub **Schedule & email invite** (`commsDelivery`) · optional `VITE_DAILY_DOMAIN`  
+> **Branch:** `preview/sitewide-ux-pack-merge` only — do not cut a new branch.
+
 **Audience:** Engineer deploying and operating Finely Cred in production.  
 **Repo:** `Tishobe/finely-cred-main`  
 **Last updated:** July 2026
@@ -275,14 +284,28 @@ Browser-triggered email **does** need admin JWT + flag.
 
 ---
 
-## 8. Physical mail (LetterStream)
+## 8. Physical mail (LetterStream / Finely Mail)
 
 **Secrets:** `MAIL_API_ID`, `MAIL_API_KEY`, `MAIL_PROVIDER=letterstream`  
-**Function:** `mailer`  
+Optional: `MAIL_TEST_MODE`, `MAIL_DEBUG` / `LETTERSTREAM_DEBUG` (UI surfaces TEST MODE when set or detectable)  
+**Function:** `mailer` (`op`: `ping` | `status` | `verify` | send)  
 **Flag:** `letterMailing`  
-**Client:** `src/lib/mailerClient.ts`
+**Client:** `src/lib/mailerClient.ts` · UI: `MailLetterModal`, `BatchMailWizard`, `MailProviderStatusBanner`
 
-Letter PDF must exist in blob store before mail.
+| Path | Route |
+|------|--------|
+| **Admin mail-for-partner** | `/admin/mail` |
+| Partner vault (batch + single) | `/portal/letters/vault` |
+| Partner Letter Studio | `/portal/letters` (build PDFs; mail from vault) |
+| Admin partner letters tab | `/admin/partners/:id?tab=letters` |
+
+**First-timer flow:** Select letters → Confirm address → Mail → Track.
+
+Letter PDF must exist in blob store (`pdfBlobRef`) before mail. Redeploy `mailer` after secret/testmode changes.
+
+**Litigation Command:** `/portal/debt?tab=litigation` — unified drag-drop scrape + chat + Apply fills empty debt/court fields; debt-buyer intel is pattern-based (Midland/Citi-style for all similar suits). Court partner seed is under `/admin/partners/import` only.
+
+**Mail success email:** `src/lib/letterMailedNotify.ts` + `src/comms/letterMailedNotifyEmail.ts` — fires after Finely Mail success (partner + admin copy). Requires `commsDelivery`.
 
 ---
 

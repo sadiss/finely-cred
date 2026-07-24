@@ -1,5 +1,10 @@
 /** Public careers navigation — each track has its own page. */
-export type PublicCareerTrackId = 'credit_specialists' | 'agency_partners' | 'affiliates' | 'au_sellers';
+export type PublicCareerTrackId =
+  | 'credit_specialists'
+  | 'agency_partners'
+  | 'affiliates'
+  | 'au_sellers'
+  | 'case_help';
 
 export type PublicCareerTrack = {
   id: PublicCareerTrackId;
@@ -16,7 +21,7 @@ export const PUBLIC_CAREER_TRACKS: PublicCareerTrack[] = [
     label: 'Credit specialists',
     shortLabel: 'Specialists',
     path: '/credit-specialists',
-    hint: 'Run client files · per-file revenue share',
+    hint: 'Run partner files · per-file revenue share',
     description: 'Solo operators and certified partners who run dispute files — apprenticeship through certified partner.',
   },
   {
@@ -32,8 +37,8 @@ export const PUBLIC_CAREER_TRACKS: PublicCareerTrack[] = [
     label: 'Affiliates',
     shortLabel: 'Affiliates',
     path: '/affiliate',
-    hint: 'Refer customers · commissions',
-    description: 'Promote guides and packages — earn referral commissions without running client files.',
+    hint: 'Refer partners · commissions',
+    description: 'Promote guides and packages — earn referral commissions without running partner files.',
   },
   {
     id: 'au_sellers',
@@ -42,6 +47,15 @@ export const PUBLIC_CAREER_TRACKS: PublicCareerTrack[] = [
     path: '/au-sellers',
     hint: 'Supply tradelines',
     description: 'List AU tradeline inventory — Finely markets to buyers.',
+  },
+  {
+    id: 'case_help',
+    label: 'Paralegal · Attorney · Consultant',
+    shortLabel: 'Case help',
+    path: '/careers/case-help',
+    hint: 'Help litigation & debt cases',
+    description:
+      'Paralegals, attorneys/counsel, and consultants who support partner debt and litigation case work (letters, meetings, dockets).',
   },
 ];
 
@@ -53,6 +67,7 @@ export function matchCareersPath(p: string): boolean {
   if (PUBLIC_CAREER_TRACKS.some((t) => p === t.path || p.startsWith(`${t.path}/`))) return true;
   if (p.startsWith('/agency/signup')) return true;
   if (p === '/agents' || p.startsWith('/agents/')) return true;
+  if (p.startsWith('/careers/')) return true;
   if (
     p.startsWith('/onboarding') &&
     (p.includes('lane=au_seller') || p.includes('lane=au_tradelines') || p.includes('lane=au'))

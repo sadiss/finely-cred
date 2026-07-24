@@ -18,7 +18,7 @@ import {
   formatAdminDeliveryWhen,
   recordAdminDelivery,
 } from '../../lib/adminDeliveryCooldown';
-import { ensurePartnerEntitlements, ENTITLEMENT_KEYS, SERVICE_ACCESS_BUNDLES, type EntitlementKey } from '../../billing/entitlements';
+import { ensurePartnerEntitlementsAsync, SERVICE_ACCESS_BUNDLES, type EntitlementKey } from '../../billing/entitlements';
 import { PartnerServicesAccessCard } from './PartnerServicesAccessCard';
 import { LetterStreamStatusCard } from '../letters/LetterStreamStatusCard';
 import {
@@ -154,14 +154,21 @@ export function AdminPartnerAccessPanel({ partner, userRole, onUpdated }: Props)
       let next = patchPartnerAccessFlags(partner, patch);
       await adminUpsertPartner(next);
       if (patch.paymentWaived) {
-        // Least privilege: waive payment for credit restore by default � not every product.
-        ensurePartnerEntitlements({
+        // Least privilege: waive payment for credit restore by default — not every product.
+        const grant = await ensurePartnerEntitlementsAsync({
           partnerId: partner.id,
           keys: [...SERVICE_ACCESS_BUNDLES.credit_restore] as EntitlementKey[],
           sourceAgreementId: 'admin_payment_waived',
         });
+        if (!grant.ok) {
+          setNotice('Payment waived. Credit Letters grant needs a retry (sync or keys).');
+          if (grant.pushError) setErr(grant.pushError);
+        } else {
+          setNotice('Access updated — Credit Letters / Bureaus entitlements granted (green in Services access).');
+        }
+      } else {
+        setNotice('Access settings updated.');
       }
-      setNotice('Access settings updated.');
       onUpdated?.();
     } catch (e: unknown) {
       setAccessFlags(readPartnerAccessFlagsStored(partner));
@@ -342,11 +349,27 @@ export function AdminPartnerAccessPanel({ partner, userRole, onUpdated }: Props)
     <div className="space-y-4">
       <PartnerSignupActivityPanel partner={partner} />
 
-      <div className={`${finelyOsCatalogCard('sky')} !p-5 space-y-4`}>
+      <div className={`${finelyOsCatalogCard('emerald')} !p-5 space-y-4`}>
       <div className="flex items-center gap-2">
-        <Shield size={16} className="text-sky-300" />
+        <Shield size={16} className="text-emerald-300" />
         <div className={FINELY_OS_ENTITY_VALUE}>Access & auth</div>
       </div>
+      <p className={`${FINELY_OS_ENTITY_BODY} text-xs`}>
+        Grant modules first (green box below). Invites and approval toggles are secondary.
+      </p>
+
+      {staffCaps.canManagePartnerAccess ? (
+        <PartnerServicesAccessCard
+          partner={partner}
+          canManage={staffCaps.canManagePartnerAccess}
+          onUpdated={onUpdated}
+        />
+      ) : (
+        <div className={`text-xs ${FINELY_OS_ENTITY_BODY}`}>
+          Payment waivers and portal unlock toggles are limited to full admins. You can still send invite, reset, and welcome
+          emails for this partner.
+        </div>
+      )}
 
       <div className="grid md:grid-cols-2 gap-4 text-sm">
         <div>
@@ -482,121 +505,128 @@ export function AdminPartnerAccessPanel({ partner, userRole, onUpdated }: Props)
       <div className={`${FINELY_OS_ENTITY_BODY} text-sm space-y-3 border-t border-white/10 pt-4 relative z-10`}>
         {staffCaps.canManagePartnerAccess ? (
           <>
-            <div className={FINELY_OS_ENTITY_SUBLABEL}>Admin approval & unlock</div>
-            {[
-          {
-            key: 'accessApproved' as const,
-            label: 'Approve portal access',
-            hint: 'Sets partner active when they were a lead',
-          },
-          {
-            key: 'roleUnlocked' as const,
-            label: 'Unlock role / lane features',
-            hint: 'Allows portal modules for their lane',
-          },
-          {
-            key: 'paymentWaived' as const,
-            label: 'Waive payment — grant entitlements without checkout',
-            hint: 'Skips checkout and grants Credit restore access only (add Business/AUs below)',
-          },
-        ].map((row) => (
-          <button
-            key={row.key}
-            type="button"
-            disabled={busy === 'access'}
-            onClick={() => toggleFlag(row.key, !accessFlags[row.key])}
-            className={
-              'w-full text-left flex items-start gap-3 rounded-xl border px-4 py-3 transition-all ' +
-              (accessFlags[row.key]
-                ? 'border-emerald-400/40 bg-emerald-500/15'
-                : 'border-white/12 bg-black/25 hover:border-white/25 hover:bg-white/5')
-            }
-          >
-            <span
-              className={
-                'mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md border text-xs font-bold ' +
-                (accessFlags[row.key] ? 'border-emerald-300 bg-emerald-400 text-black' : 'border-white/30 bg-transparent text-transparent')
-              }
-              aria-hidden
-            >
-              ✓
-            </span>
-            <span className="min-w-0">
-              <span className={`block text-sm font-semibold ${FINELY_OS_ENTITY_VALUE}`}>{row.label}</span>
-              <span className={`block text-xs mt-0.5 ${FINELY_OS_ENTITY_BODY}`}>{row.hint}</span>
-            </span>
-          </button>
-        ))}
-            <button
-              type="button"
-              disabled={busy === 'access'}
-              onClick={() => {
-                const next = !(partner.journeySignals as Record<string, unknown> | undefined)?.canCoach;
-                void (async () => {
-                  setBusy('access');
-                  setErr(null);
-                  setNotice(null);
-                  try {
-                    await adminUpsertPartner({
-                      ...partner,
-                      journeySignals: {
-                        ...(partner.journeySignals ?? {}),
-                        canCoach: next,
-                      },
-                    });
-                    setNotice(next ? 'Coach capability granted — they can be assigned as Coach on customer files.' : 'Coach capability removed.');
-                    onUpdated?.();
-                  } catch (e: unknown) {
-                    setErr((e as Error)?.message || 'Failed to update coach access.');
-                  } finally {
-                    setBusy(null);
+            <details className="rounded-xl border border-white/10 bg-black/20 px-3 py-2">
+              <summary className={`cursor-pointer select-none text-xs font-semibold ${FINELY_OS_ENTITY_VALUE}`}>
+                Admin approval & unlock (secondary)
+              </summary>
+              <div className="mt-2 space-y-2">
+                <p className={`text-[11px] ${FINELY_OS_ENTITY_BODY}`}>
+                  These flags control portal approval — they do not replace the green Grant buttons above for Credit /
+                  Debt Letters.
+                </p>
+                {[
+                  {
+                    key: 'accessApproved' as const,
+                    label: 'Approve portal access',
+                    hint: 'Sets partner active when they were a lead',
+                  },
+                  {
+                    key: 'roleUnlocked' as const,
+                    label: 'Unlock role / lane features',
+                    hint: 'Allows portal modules for their lane',
+                  },
+                  {
+                    key: 'paymentWaived' as const,
+                    label: 'Waive payment — grant entitlements without checkout',
+                    hint: 'Skips checkout and grants Credit Letters access (add Debt/Business/AUs above)',
+                  },
+                ].map((row) => (
+                  <button
+                    key={row.key}
+                    type="button"
+                    disabled={busy === 'access'}
+                    onClick={() => toggleFlag(row.key, !accessFlags[row.key])}
+                    className={
+                      'w-full text-left flex items-start gap-3 rounded-xl border px-4 py-3 transition-all ' +
+                      (accessFlags[row.key]
+                        ? 'border-emerald-400/40 bg-emerald-500/15'
+                        : 'border-white/12 bg-black/25 hover:border-white/25 hover:bg-white/5')
+                    }
+                  >
+                    <span
+                      className={
+                        'mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md border text-xs font-bold ' +
+                        (accessFlags[row.key]
+                          ? 'border-emerald-300 bg-emerald-400 text-black'
+                          : 'border-white/30 bg-transparent text-transparent')
+                      }
+                      aria-hidden
+                    >
+                      ✓
+                    </span>
+                    <span className="min-w-0">
+                      <span className={`block text-sm font-semibold ${FINELY_OS_ENTITY_VALUE}`}>{row.label}</span>
+                      <span className={`block text-xs mt-0.5 ${FINELY_OS_ENTITY_BODY}`}>{row.hint}</span>
+                    </span>
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  disabled={busy === 'access'}
+                  onClick={() => {
+                    const next = !(partner.journeySignals as Record<string, unknown> | undefined)?.canCoach;
+                    void (async () => {
+                      setBusy('access');
+                      setErr(null);
+                      setNotice(null);
+                      try {
+                        await adminUpsertPartner({
+                          ...partner,
+                          journeySignals: {
+                            ...(partner.journeySignals ?? {}),
+                            canCoach: next,
+                          },
+                        });
+                        setNotice(
+                          next
+                            ? 'Coach capability granted — they can be assigned as Coach on partner files.'
+                            : 'Coach capability removed.',
+                        );
+                        onUpdated?.();
+                      } catch (e: unknown) {
+                        setErr((e as Error)?.message || 'Failed to update coach access.');
+                      } finally {
+                        setBusy(null);
+                      }
+                    })();
+                  }}
+                  className={
+                    'w-full text-left flex items-start gap-3 rounded-xl border px-4 py-3 transition-all ' +
+                    ((partner.journeySignals as Record<string, unknown> | undefined)?.canCoach
+                      ? 'border-sky-400/40 bg-sky-500/15'
+                      : 'border-white/12 bg-black/25 hover:border-white/25 hover:bg-white/5')
                   }
-                })();
-              }}
-              className={
-                'w-full text-left flex items-start gap-3 rounded-xl border px-4 py-3 transition-all ' +
-                ((partner.journeySignals as Record<string, unknown> | undefined)?.canCoach
-                  ? 'border-sky-400/40 bg-sky-500/15'
-                  : 'border-white/12 bg-black/25 hover:border-white/25 hover:bg-white/5')
-              }
-            >
-              <span
-                className={
-                  'mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md border text-xs font-bold ' +
-                  ((partner.journeySignals as Record<string, unknown> | undefined)?.canCoach
-                    ? 'border-sky-300 bg-sky-400 text-black'
-                    : 'border-white/30 bg-transparent text-transparent')
-                }
-                aria-hidden
-              >
-                ✓
-              </span>
-              <span className="min-w-0">
-                <span className={`block text-sm font-semibold ${FINELY_OS_ENTITY_VALUE}`}>Can coach (care team)</span>
-                <span className={`block text-xs mt-0.5 ${FINELY_OS_ENTITY_BODY}`}>
-                  Appear in the Coach assign picker for customer files (Credit Specialists already qualify)
-                </span>
-              </span>
-            </button>
-            <PartnerServicesAccessCard
-              partner={partner}
-              canManage={staffCaps.canManagePartnerAccess}
-              onUpdated={onUpdated}
-            />
+                >
+                  <span
+                    className={
+                      'mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md border text-xs font-bold ' +
+                      ((partner.journeySignals as Record<string, unknown> | undefined)?.canCoach
+                        ? 'border-sky-300 bg-sky-400 text-black'
+                        : 'border-white/30 bg-transparent text-transparent')
+                    }
+                    aria-hidden
+                  >
+                    ✓
+                  </span>
+                  <span className="min-w-0">
+                    <span className={`block text-sm font-semibold ${FINELY_OS_ENTITY_VALUE}`}>Can coach (care team)</span>
+                    <span className={`block text-xs mt-0.5 ${FINELY_OS_ENTITY_BODY}`}>
+                      Appear in the Coach assign picker for partner files (Credit Specialists already qualify)
+                    </span>
+                  </span>
+                </button>
+              </div>
+            </details>
             <div className="border-t border-white/10 pt-4">
               <LetterStreamStatusCard compact />
             </div>
           </>
-        ) : (
-          <div className={`text-xs ${FINELY_OS_ENTITY_BODY}`}>
-            Payment waivers and portal unlock toggles are limited to full admins. You can still send invite, reset, and welcome emails for this partner.
-          </div>
-        )}
+        ) : null}
       </div>
 
       {!canSendComms ? (
         <div className={FINELY_OS_NOTICE_WARN}>
-          Your staff role does not include outbound email for this partner file. Ask a full admin to grant access or add you to their assigned client list.
+          Your staff role does not include outbound email for this partner file. Ask a full admin to grant access or add you to their assigned partner list.
         </div>
       ) : null}
 

@@ -28,12 +28,18 @@ export default function PartnerLettersPage() {
   const [searchParams] = useSearchParams();
   const [studioTab, setStudioTab] = useState<LettersStudioTab>(() => {
     const t = searchParams.get('tab');
-    if (t === 'validation' || t === 'court' || t === 'foreclosure' || t === 'repossession' || t === 'bankruptcy' || t === 'templates' || t === 'dispute') return t;
+    // Credit Letters: no validation / affidavits (those live under Debt Letters).
+    if (t === 'validation' || t === 'court') return 'dispute';
+    if (t === 'foreclosure' || t === 'repossession' || t === 'bankruptcy' || t === 'templates' || t === 'dispute') return t;
     return 'dispute';
   });
   useEffect(() => {
     const t = searchParams.get('tab');
-    if (t === 'validation' || t === 'court' || t === 'foreclosure' || t === 'repossession' || t === 'bankruptcy' || t === 'templates' || t === 'dispute') {
+    if (t === 'validation' || t === 'court') {
+      setStudioTab('dispute');
+      return;
+    }
+    if (t === 'foreclosure' || t === 'repossession' || t === 'bankruptcy' || t === 'templates' || t === 'dispute') {
       setStudioTab(t);
     }
   }, [searchParams]);
@@ -54,15 +60,19 @@ export default function PartnerLettersPage() {
   }, [partner, storeVersion]);
 
   const unlocked = useMemo(
-    () => (partner ? hasEntitlement(partner.id, ENTITLEMENT_KEYS.letters) : false),
+    () =>
+      partner
+        ? hasEntitlement(partner.id, ENTITLEMENT_KEYS.letters) ||
+          hasEntitlement(partner.id, ENTITLEMENT_KEYS.disputes)
+        : false,
     [partner, storeVersion],
   );
   if (!partner) {
     return (
       <PageShell
         badge="Partner Portal"
-        title="Letter Studio"
-        subtitle="Bureau letters, validation, court affidavits, and bankruptcy — paper preview and vault save."
+        title="Credit Letters"
+        subtitle="Bureau disputes, credit-focused foreclosure/repo/bankruptcy letters, and templates."
       >
         <div className={FINELY_OS_PAGE}>
           <div className={`${FINELY_OS_LUXURY_EMPTY} text-left`}>No partner profile found for this account.</div>
@@ -78,8 +88,8 @@ export default function PartnerLettersPage() {
     return (
       <PageShell
         badge="Partner Portal"
-        title="Letter Studio"
-        subtitle="Letter workstations are locked on your current plan. Upgrade to generate and save letters."
+        title="Credit Letters"
+        subtitle="Credit letter workstations are locked on your current plan. Upgrade or ask your specialist to grant access."
       >
         <EntitlementGate partnerId={partner.id} requiredKeys={[ENTITLEMENT_KEYS.letters]}>
           <div />
@@ -88,10 +98,6 @@ export default function PartnerLettersPage() {
     );
   }
 
-  const hasDebt = useMemo(
-    () => (partner ? hasEntitlement(partner.id, ENTITLEMENT_KEYS.debt) : false),
-    [partner, storeVersion],
-  );
   const hasTemplates = useMemo(
     () => (partner ? hasEntitlement(partner.id, ENTITLEMENT_KEYS.templates) : false),
     [partner, storeVersion],
@@ -99,18 +105,18 @@ export default function PartnerLettersPage() {
 
   const hubTabs = useMemo(
     () =>
-      buildLetterStudioTrackTabs({ hasDebt, hasTemplates }).map((t) => ({
+      buildLetterStudioTrackTabs({ mode: 'credit', hasTemplates }).map((t) => ({
         id: t.id,
         label: t.label,
       })),
-    [hasDebt, hasTemplates],
+    [hasTemplates],
   );
 
   return (
     <PageShell
       badge="Partner Portal"
-      title="Letter Studio"
-      subtitle="Pick context → build a draft → paper preview → save to Letters Vault."
+      title="Credit Letters"
+      subtitle="Bureau disputes and credit-report letter tracks → paper preview → Letters Vault. Debt validation & affidavits live under Debt Letters."
     >
       <FinelyNoticedStrip
         items={buildLettersNoticedItems({
@@ -121,20 +127,21 @@ export default function PartnerLettersPage() {
       />
       <FinelyNowDoThisStrip currentIndex={1} />
       <FinelyUnifiedHubLayout
-        eyebrow="Letter Studio"
-        title="Letter workstations"
-        subtitle="Bureaus, FDCPA validation, court affidavits, and bankruptcy — each with proof upload, paper preview, and vault save."
+        eyebrow="Credit Letters"
+        title="Credit letter workstations"
+        subtitle="Bureaus, credit-focused foreclosure / repossession / bankruptcy, and templates. For validation and court affidavits, open Debt Letters."
         accent="fuchsia"
         kpis={[
           { label: 'Reports', value: String(stats.reports), hint: 'Uploaded', accent: 'violet' },
           { label: 'Cases', value: String(stats.cases), hint: 'Tracked', accent: 'amber' },
           { label: 'Vault', value: String(stats.letters), hint: 'Saved', accent: 'emerald' },
-          { label: 'Studio', value: studioTab, hint: 'Tab', accent: 'sky' },
+          { label: 'Track', value: studioTab, hint: 'Active', accent: 'sky' },
         ]}
         tabs={hubTabs}
         activeTab={studioTab}
         onTabChange={(id) => setStudioTab(id as LettersStudioTab)}
         primaryAction={{ label: 'Letters vault', onClick: () => navigate('/portal/letters/vault') }}
+        secondaryAction={{ label: 'Debt Letters', onClick: () => navigate('/portal/debt') }}
         contentVariant={studioTab === 'foreclosure' || studioTab === 'repossession' ? 'flush' : 'card'}
         tabDensity="comfortable"
       >

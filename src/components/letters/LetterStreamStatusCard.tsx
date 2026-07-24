@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import { supabase, isSupabaseConfigured } from '../../lib/supabaseClient';
+import React, { useEffect, useState } from 'react';
+import { getMailProviderStatus, type MailProviderStatus } from '../../lib/mailerClient';
+import { isFeatureEnabled } from '../../data/settingsRepo';
 import {
   FINELY_OS_ENTITY_BODY,
   FINELY_OS_ENTITY_SUBLABEL,
@@ -8,71 +9,56 @@ import {
   finelyOsCatalogCardCompact,
   FINELY_OS_NOTICE_SUCCESS,
   FINELY_OS_NOTICE_WARN,
+  FINELY_OS_NOTICE_ERROR,
 } from '../../features/os/finelyOsLightUi';
-
-type PingResult = {
-  ok: boolean;
-  configured?: boolean;
-  details?: string;
-  code?: number;
-  rawHint?: string;
-};
+import { FinelyOsAlertBanner } from '../../features/os/FinelyOsAlertBanner';
+import { FINELY_MAIL_COPY } from '../../lib/mailWhiteLabel';
 
 /**
- * Admin/ops LetterStream readiness. Uses mailer edge `ping` when available.
+ * Admin/ops Finely Mail readiness. Surfaces LetterStream TEST mode when detectable.
  */
 export function LetterStreamStatusCard({ compact }: { compact?: boolean }) {
   const [busy, setBusy] = useState(false);
-  const [result, setResult] = useState<PingResult | null>(null);
+  const [status, setStatus] = useState<MailProviderStatus | null>(null);
 
   const runPing = async () => {
     setBusy(true);
-    setResult(null);
+    setStatus(null);
     try {
-      if (!isSupabaseConfigured || !supabase) {
-        setResult({
+      if (!isFeatureEnabled('letterMailing')) {
+        setStatus({
           ok: false,
-          configured: false,
-          details: 'Supabase is not configured in this environment. Set VITE_SUPABASE_URL / anon key, then MAIL_API_ID + MAIL_API_KEY on the mailer edge function.',
+          testMode: false,
+          balanceUsd: null,
+          estimatedCostUsd: 1.85,
+          error: 'letterMailing feature flag is off (Admin Settings).',
         });
         return;
       }
-      const { data, error } = await supabase.functions.invoke('mailer', {
-        body: { op: 'ping' },
-      });
-      const errMsg = error?.message || '';
-      if (error || (data as any)?.error) {
-        const details = String((data as any)?.error || errMsg || 'Mailer ping failed');
-        const notConfigured = /credentials not configured|not configured/i.test(details);
-        setResult({ ok: false, details, configured: !notConfigured ? undefined : false });
-        return;
-      }
-      const payload = (data || {}) as Record<string, unknown>;
-      const messages = Array.isArray(payload.messages) ? payload.messages : [];
-      const first = (messages[0] || {}) as Record<string, unknown>;
-      setResult({
-        ok: Boolean(payload.ok),
-        configured: true,
-        code: typeof first.code === 'number' ? (first.code as number) : typeof payload.code === 'number' ? (payload.code as number) : undefined,
-        details: String(first.details || payload.message || (payload.ok ? 'LetterStream reachable' : 'Ping returned not-ok')),
-      });
+      const s = await getMailProviderStatus();
+      setStatus(s);
     } catch (e: unknown) {
-      // Fallback probe via gateway is not required — surface clear error.
-      setResult({
+      setStatus({
         ok: false,
-        configured: false,
-        details: (e as Error)?.message || 'Could not reach mailer function.',
+        testMode: false,
+        balanceUsd: null,
+        estimatedCostUsd: 1.85,
+        error: (e as Error)?.message || 'Could not reach mailer function.',
       });
     } finally {
       setBusy(false);
     }
   };
 
+  useEffect(() => {
+    void runPing();
+  }, []);
+
   return (
     <div className={compact ? 'space-y-2' : finelyOsCatalogCardCompact('sky')}>
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
-          <div className={FINELY_OS_ENTITY_SUBLABEL}>LetterStream mail API</div>
+          <div className={FINELY_OS_ENTITY_SUBLABEL}>{FINELY_MAIL_COPY.serviceName} API</div>
           <p className={`${FINELY_OS_ENTITY_VALUE} text-sm`}>Physical mail readiness</p>
         </div>
         <button type="button" className={FINELY_OS_SECONDARY_BTN} disabled={busy} onClick={() => void runPing()}>
@@ -81,14 +67,31 @@ export function LetterStreamStatusCard({ compact }: { compact?: boolean }) {
       </div>
       <p className={`${FINELY_OS_ENTITY_BODY} text-xs`}>
         Secrets: <code className="text-white/70">MAIL_API_ID</code> + <code className="text-white/70">MAIL_API_KEY</code> on the{' '}
-        <code className="text-white/70">mailer</code> edge function.
+        <code className="text-white/70">mailer</code> edge function. Optional:{' '}
+        <code className="text-white/70">MAIL_TEST_MODE</code>, <code className="text-white/70">MAIL_DEBUG</code>.
       </p>
-      {result ? (
-        <div className={result.ok ? FINELY_OS_NOTICE_SUCCESS : FINELY_OS_NOTICE_WARN}>
-          {result.configured === false ? 'Not configured. ' : ''}
-          {result.details}
-          {result.code != null ? ` (code ${result.code})` : ''}
-          {result.rawHint ? ` · ${result.rawHint}` : ''}
+
+      {status?.testMode ? (
+        <FinelyOsAlertBanner
+          tone="warning"
+          message="TEST MODE detected — do not treat mailed letters as live USPS production until LetterStream test mode / MAIL_TEST_MODE is off."
+        />
+      ) : null}
+
+      {status ? (
+        <div
+          className={
+            !status.ok ? FINELY_OS_NOTICE_ERROR : status.testMode ? FINELY_OS_NOTICE_WARN : FINELY_OS_NOTICE_SUCCESS
+          }
+        >
+          {status.ok ? 'Connected' : 'Not ready'}
+          {status.message ? ` — ${status.message}` : ''}
+          {status.error ? ` — ${status.error}` : ''}
+          {status.code != null ? ` (code ${status.code})` : ''}
+          {status.balanceUsd != null
+            ? ` · prepaid ≈ ${status.balanceUsd.toLocaleString(undefined, { style: 'currency', currency: 'USD' })}`
+            : ''}
+          {status.debugLevel ? ` · debug=${status.debugLevel}` : ''}
         </div>
       ) : (
         <p className={`${FINELY_OS_ENTITY_BODY} text-xs`}>Run a status check to see if the account credentials respond.</p>
