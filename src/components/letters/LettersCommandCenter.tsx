@@ -1119,10 +1119,25 @@ export function LettersCommandCenter({
     return hasEntitlement(partner.id, ENTITLEMENT_KEYS.debt);
   }, [partner, storeVersion]);
 
+  /** Debt / Litigation Command must generate real catalog bodies without Template library entitlement. */
+  const canGenerateDebtLetterBodies = useMemo(() => {
+    if (!partner) return false;
+    if (layout === 'embedded' || debtCenterMode) return true;
+    return (
+      hasEntitlement(partner.id, ENTITLEMENT_KEYS.debt) ||
+      hasEntitlement(partner.id, ENTITLEMENT_KEYS.letters) ||
+      hasEntitlement(partner.id, ENTITLEMENT_KEYS.templates)
+    );
+  }, [partner, layout, debtCenterMode, storeVersion]);
+
   const canUseLetters = useMemo(() => {
     // Admin embedded context should not be blocked by partner plan.
     if (layout === 'embedded') return true;
-    return hasEntitlement(partner.id, ENTITLEMENT_KEYS.letters);
+    // Debt-lane partners generate + vault debt/court letters without a separate Letters pack.
+    return (
+      hasEntitlement(partner.id, ENTITLEMENT_KEYS.letters) ||
+      hasEntitlement(partner.id, ENTITLEMENT_KEYS.debt)
+    );
   }, [layout, partner.id, storeVersion]);
 
   // --- Dispute letter flow (multi-bureau, split per bureau) ---
@@ -2716,7 +2731,10 @@ useEffect(() => {
     /** Forces paper preview when opened from suggestion / build CTAs */
     preferPreview?: boolean;
     previewKey?: string;
+    /** Vault letter id created on Generate — Save updates the same record */
+    letterId?: string;
   }>(null);
+  const [generateBusy, setGenerateBusy] = useState(false);
   const [draftBusy, setDraftBusy] = useState(false);
   const [draftErr, setDraftErr] = useState<string | null>(null);
   const [draftEvidencePickerOpen, setDraftEvidencePickerOpen] = useState(false);
@@ -3091,41 +3109,124 @@ useEffect(() => {
     if (next) runLetterBuildStep(next.id as LetterBuildStepId);
   };
 
-  const buildDebtCenterDraft = (specId: DebtLetterType, isCourt: boolean) => {
-    persistDebtSenderSnapshot();
-    const baseText = canSeeTemplates
-      ? getLetterBody(specId, buildDebtLetterArgs())
-      : `DATE: ${today}\n\nTO WHOM IT MAY CONCERN,\n\nI am writing regarding ${debt?.recipientName || debt?.name || 'this matter'}.\n\n[Write your request here.]\n\nSincerely,\n${canonicalIdentity.fullName}\n`;
-    const previewKey = `${isCourt ? 'court' : 'validation'}:${specId}:${Date.now()}`;
+  const openGeneratedDebtDraft = (args: {
+    track: DebtDraftTrack;
+    specId: string;
+    catalogId?: string;
+    bodyText: string;
+  }) => {
+    const plain = String(args.bodyText || '').trim();
+    if (!plain) {
+      setDraftErr('Letter generation returned an empty body. Confirm case fields and try Generate letter again.');
+      return;
+    }
+    if (/letter templates locked/i.test(plain)) {
+      setDraftErr('Letter generation is locked on this plan. Grant Debt or Letters access, then click Generate letter.');
+      return;
+    }
+    const previewKey = `${args.track}:${args.catalogId || args.specId}:${Date.now()}`;
+    const letterId = newId('letter');
+    const specTitle = DEBT_LETTER_SPECS.find((s) => s.id === args.specId)?.title;
+    const title = debt
+      ? `${specTitle || args.specId.replace(/_/g, ' ')} • ${debt.name}`
+      : `${args.track} letter`;
+    try {
+      upsertLetter({
+        id: letterId,
+        partnerId: partner.id,
+        type: letterTypeForDebtDraft(args.track),
+        title,
+        createdAt: new Date().toISOString(),
+        body: plain,
+        status: 'generated',
+        relatedEvidenceIds: [],
+        meta: metaForDebtDraft(
+          { type: args.track, specId: args.specId, catalogId: args.catalogId },
+          debt,
+          String(recommendedScenario || ''),
+        ),
+      });
+      addAuditEvent({
+        partnerId: partner.id,
+        actorType: layout === 'embedded' ? 'admin' : 'partner',
+        actorEmail: undefined,
+        action: 'letter.saved',
+        entityType: 'letter',
+        entityId: letterId,
+        meta: { kind: args.track, debtId: debt?.id ?? null, source: 'generate_letter', catalogId: args.catalogId ?? null },
+      });
+    } catch (e: any) {
+      setDraftNotice(e?.message || 'Draft opened, but vault save failed — use Save to Letters Vault.');
+    }
     setDraft({
-      specId,
-      type: isCourt ? 'court' : 'validation',
-      html: plainTextToHtml(baseText),
+      specId: args.specId,
+      catalogId: args.catalogId,
+      type: args.track,
+      html: plainTextToHtml(plain),
       preferPreview: true,
       previewKey,
+      letterId,
     });
     window.setTimeout(() => {
       document.getElementById('fc-letter-paper-preview')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }, 80);
   };
 
-  const buildCatalogDraft = (catalogId: string, track: 'validation' | 'court' | 'foreclosure' | 'repossession') => {
-    persistDebtSenderSnapshot();
-    const baseText = canSeeTemplates
-      ? generateCatalogLetterBody(catalogId, buildDebtLetterArgs())
-      : `DATE: ${today}\n\n[Letter templates locked — upgrade to generate full drafts.]\n`;
-    const previewKey = `${track}:${catalogId}:${Date.now()}`;
-    setDraft({
-      specId: catalogId,
-      catalogId,
-      type: track,
-      html: plainTextToHtml(baseText),
-      preferPreview: true,
-      previewKey,
-    });
-    window.setTimeout(() => {
-      document.getElementById('fc-letter-paper-preview')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, 80);
+  const buildDebtCenterDraft = (specId: DebtLetterType, isCourt: boolean) => {
+    setGenerateBusy(true);
+    setDraftErr(null);
+    try {
+      persistDebtSenderSnapshot();
+      if (!canGenerateDebtLetterBodies) {
+        setDraftErr('Debt letter generation is locked. Grant Debt or Letters access, then click Generate letter.');
+        return;
+      }
+      const mergeArgs = buildDebtLetterArgs();
+      if (!mergeArgs.recipientAddress?.trim() && !mergeArgs.plaintiffLawFirmAddress?.trim()) {
+        setDraftErr(
+          'Recipient mailing address is missing. Confirm the firm / collector TO address on the case, then Generate letter again.',
+        );
+      }
+      const baseText = getLetterBody(specId, mergeArgs);
+      openGeneratedDebtDraft({
+        track: isCourt ? 'court' : 'validation',
+        specId,
+        bodyText: baseText,
+      });
+    } catch (e: any) {
+      setDraftErr(e?.message || 'Failed to generate letter. Check case fields and try again.');
+    } finally {
+      setGenerateBusy(false);
+    }
+  };
+
+  const buildCatalogDraft = (catalogId: string, track: DebtDraftTrack) => {
+    setGenerateBusy(true);
+    setDraftErr(null);
+    try {
+      persistDebtSenderSnapshot();
+      if (!canGenerateDebtLetterBodies) {
+        setDraftErr('Debt letter generation is locked. Grant Debt or Letters access, then click Generate letter.');
+        return;
+      }
+      const mergeArgs = buildDebtLetterArgs();
+      if (!mergeArgs.recipientAddress?.trim() && !mergeArgs.plaintiffLawFirmAddress?.trim()) {
+        setDraftErr(
+          'Recipient mailing address is missing. Confirm the firm / collector TO address on the case, then Generate letter again.',
+        );
+      }
+      const baseText = generateCatalogLetterBody(catalogId, mergeArgs);
+      openGeneratedDebtDraft({
+        track,
+        specId: catalogId,
+        catalogId,
+        bodyText: baseText,
+      });
+    } catch (e: any) {
+      setDraftErr(e?.message || 'Failed to generate letter. Check case fields and try again.');
+    } finally {
+      setGenerateBusy(false);
+    }
   };
 
   const debtCenterSenderFields = {
@@ -3581,7 +3682,7 @@ useEffect(() => {
             </div>
           ) : null}
 
-          <div className={`${FINELY_OS_FIXED_OVERLAY} z-[2000] flex items-center justify-center p-3`}>
+          <div className="fixed inset-0 z-[2000] flex items-center justify-center p-3 bg-black/80 backdrop-blur-sm">
             <div
               className="absolute inset-0"
               onClick={() => {
@@ -3591,17 +3692,21 @@ useEffect(() => {
               }}
             />
             <div
-              className={`relative w-full max-w-5xl max-h-[min(88vh,780px)] rounded-2xl ${finelyOsCatalogCard(draft.type === 'court' ? 'fuchsia' : 'emerald')} !p-0 overflow-hidden flex flex-col`}
+              className={`relative w-full max-w-5xl max-h-[min(88vh,780px)] rounded-2xl ${finelyOsCatalogCard(draft.type === 'court' ? 'fuchsia' : 'emerald')} !p-0 overflow-hidden flex flex-col shadow-[0_0_60px_-12px_rgba(251,191,36,0.35)]`}
               role="dialog"
               aria-modal="true"
+              aria-label="Generated letter preview"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="px-4 py-3 border-b border-white/[0.08] flex items-start justify-between gap-3 shrink-0">
                 <div className="min-w-0">
-                  <div className={FINELY_OS_ENTITY_SUBLABEL}>Letter draft</div>
+                  <div className={FINELY_OS_ENTITY_SUBLABEL}>Generated letter · paper preview</div>
                   <div className={`mt-1 truncate ${FINELY_OS_ENTITY_TITLE}`}>
                     {draft.type === 'court' ? 'Court / affidavit letter' : 'Validation letter'}
                   </div>
+                  {draft.letterId ? (
+                    <p className="mt-0.5 text-[11px] text-emerald-200/85">Saved to Letters Vault as a draft — edit below, then update PDF when ready.</p>
+                  ) : null}
                 </div>
                 <div className="flex items-center gap-1.5 flex-wrap justify-end">
                   <button
@@ -3874,7 +3979,7 @@ useEffect(() => {
                         });
 
                         const saved = upsertLetter({
-                          id: newId('letter'),
+                          id: draft.letterId || newId('letter'),
                           partnerId: partner.id,
                           type: letterTypeForDebtDraft(draft.type),
                           title,
@@ -3907,7 +4012,7 @@ useEffect(() => {
                     className={`${FINELY_OS_PRIMARY_BTN} disabled:opacity-60 disabled:cursor-not-allowed`}
                     title="Save this letter (PDF) into Letters Vault"
                   >
-                    {draftBusy ? 'Saving…' : 'Save to Letters Vault'}
+                    {draftBusy ? 'Saving…' : draft.letterId ? 'Update Letters Vault PDF' : 'Save to Letters Vault'}
                   </button>
                 </div>
               </div>
@@ -5468,6 +5573,8 @@ useEffect(() => {
               onSwitchToBankruptcy={() => setTab('bankruptcy')}
               onBuildDraft={(specId) => buildDebtCenterDraft(specId, false)}
               onBuildCatalogDraft={(id) => buildCatalogDraft(id, 'validation')}
+              generateBusy={generateBusy}
+              generateError={draftErr}
             />
             </DebtTrackEasyFlow>
           </EntitlementGate>
@@ -5504,6 +5611,8 @@ useEffect(() => {
               onSwitchToBankruptcy={() => setTab('bankruptcy')}
               onBuildDraft={(specId) => buildDebtCenterDraft(specId, true)}
               onBuildCatalogDraft={(id) => buildCatalogDraft(id, 'court')}
+              generateBusy={generateBusy}
+              generateError={draftErr}
               selectedSummonsDocId={selectedSummonsDocId}
               onSummonsDocChange={setSelectedSummonsDocId}
               summonsDocCount={processedDocuments.filter((d) => {

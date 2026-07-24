@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { ArrowRight, Eye, FileText, Sparkles } from 'lucide-react';
+import { ArrowRight, Eye, FileText, Loader2, Sparkles } from 'lucide-react';
 import type { DebtLetterType } from '../../domain/debtLegal';
 import type { IntelligentLetterSuggestions, RankedLetterSuggestion } from '../../lib/intelligentLetterSuggestions';
 import {
@@ -13,6 +13,7 @@ import {
 
 export const LETTER_SUGGEST_PANEL_ID = 'fc-letter-suggest-panel';
 export const LETTER_SUGGEST_PRIMARY_ID = 'fc-letter-suggest-primary';
+export const LETTER_SUGGEST_GENERATE_ID = 'fc-letter-suggest-generate';
 
 function urgencyChip(u: RankedLetterSuggestion['urgency']) {
   if (u === 'critical') return finelyOsStatusChip('blocked');
@@ -24,10 +25,14 @@ export function IntelligentLetterSuggestionsPanel({
   suggestions,
   onBuild,
   accent = 'fuchsia',
+  busy = false,
+  error = null,
 }: {
   suggestions: IntelligentLetterSuggestions;
   onBuild: (args: { letterType?: DebtLetterType; catalogId?: string }) => void;
   accent?: 'fuchsia' | 'emerald' | 'violet' | 'sky';
+  busy?: boolean;
+  error?: string | null;
 }) {
   const [flash, setFlash] = useState(false);
   const primary = suggestions.primary;
@@ -40,6 +45,7 @@ export function IntelligentLetterSuggestionsPanel({
   }, [flash]);
 
   const focusAndBuild = (args: { letterType?: DebtLetterType; catalogId?: string }) => {
+    if (busy) return;
     setFlash(true);
     const el = document.getElementById(LETTER_SUGGEST_PRIMARY_ID);
     el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -64,14 +70,25 @@ export function IntelligentLetterSuggestionsPanel({
           50% { opacity: 0.95; transform: scale(1.08); }
         }
         @keyframes fcSuggestBorder {
-          0%, 100% { box-shadow: 0 0 0 1px rgba(251,191,36,0.35), 0 0 28px rgba(251,191,36,0.22); }
-          50% { box-shadow: 0 0 0 2px rgba(251,191,36,0.7), 0 0 42px rgba(251,191,36,0.45); }
+          0%, 100% { box-shadow: 0 0 0 1px rgba(251,191,36,0.45), 0 0 32px rgba(251,191,36,0.35); }
+          50% { box-shadow: 0 0 0 3px rgba(251,191,36,0.85), 0 0 52px rgba(251,191,36,0.55); }
+        }
+        @keyframes fcGenerateGlow {
+          0%, 100% { box-shadow: 0 0 0 2px rgba(251,191,36,0.55), 0 0 28px rgba(251,191,36,0.45), inset 0 0 20px rgba(251,191,36,0.15); }
+          50% { box-shadow: 0 0 0 3px rgba(253,230,138,0.95), 0 0 48px rgba(251,191,36,0.7), inset 0 0 28px rgba(251,191,36,0.25); }
         }
         .fc-suggest-orb {
           animation: fcSuggestPulse 2.8s ease-in-out infinite;
         }
         .fc-suggest-primary {
           animation: fcSuggestBorder 2.4s ease-in-out infinite;
+        }
+        .fc-generate-giant {
+          animation: fcGenerateGlow 2.2s ease-in-out infinite;
+          min-height: 3.75rem;
+          font-size: 1.125rem;
+          font-weight: 900;
+          letter-spacing: 0.04em;
         }
         .fc-suggest-hit {
           outline: 2px solid rgba(251,191,36,0.95);
@@ -104,34 +121,49 @@ export function IntelligentLetterSuggestionsPanel({
         <span className={urgencyChip(primary.urgency)}>{primary.urgency}</span>
       </div>
 
-      <button
-        type="button"
+      <div
         id={LETTER_SUGGEST_PRIMARY_ID}
-        className={`fc-suggest-primary relative w-full text-left rounded-xl border border-amber-300/55 bg-gradient-to-br from-amber-500/25 via-black/50 to-fuchsia-500/15 px-3 py-3 space-y-2 transition-all hover:border-amber-200/80 hover:from-amber-500/35 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-300/80 ${finelyOsGlowTile(
+        className={`fc-suggest-primary relative w-full rounded-xl border border-amber-300/55 bg-gradient-to-br from-amber-500/25 via-black/50 to-fuchsia-500/15 px-3 py-3 space-y-3 ${finelyOsGlowTile(
           'amber',
           true,
         )}`}
-        onClick={() => focusAndBuild({ letterType: primary.letterType, catalogId: primary.catalogId })}
-        aria-label={`Build and preview ${primary.title}`}
       >
         <div className="flex flex-wrap items-center gap-2">
           <FileText size={18} className="text-amber-200 shrink-0 drop-shadow-[0_0_10px_rgba(251,191,36,0.8)]" />
           <div className="text-lg font-black text-white tracking-tight">{primary.title}</div>
           <span className={finelyOsStatusChip('ok')}>Primary</span>
         </div>
-        <p className={`text-sm leading-snug text-amber-50/95`}>
+        <p className="text-sm leading-snug text-amber-50/95">
           <span className="font-black text-amber-200 uppercase tracking-wider text-[10px] mr-1.5">Why now</span>
           {primary.why}
         </p>
-        <div className="flex flex-wrap gap-2 pt-1">
-          <span className={`${FINELY_OS_PRIMARY_BTN} min-h-11 justify-center pointer-events-none`}>
-            Build this letter next <ArrowRight size={16} />
-          </span>
-          <span className={`${FINELY_OS_SECONDARY_BTN} min-h-11 justify-center pointer-events-none text-amber-100 border-amber-300/40`}>
-            <Eye size={14} /> Opens letter preview
-          </span>
+
+        <button
+          type="button"
+          id={LETTER_SUGGEST_GENERATE_ID}
+          disabled={busy}
+          className={`fc-generate-giant ${FINELY_OS_PRIMARY_BTN} w-full justify-center gap-2 !bg-amber-400 !text-black hover:!brightness-110 disabled:opacity-60 disabled:cursor-not-allowed`}
+          onClick={() => focusAndBuild({ letterType: primary.letterType, catalogId: primary.catalogId })}
+          aria-label={`Generate letter: ${primary.title}`}
+        >
+          {busy ? <Loader2 size={22} className="animate-spin" /> : <FileText size={22} />}
+          {busy ? 'Generating letter…' : 'Generate letter'}
+          {!busy ? <ArrowRight size={20} /> : null}
+        </button>
+        <p className="text-[11px] text-amber-100/80 flex flex-wrap items-center gap-1.5 justify-center">
+          <Eye size={12} /> Creates a real draft with full body · paper preview opens next · editable before mail
+        </p>
+      </div>
+
+      {error ? (
+        <div
+          role="alert"
+          className="relative rounded-xl border border-rose-400/50 bg-rose-500/15 px-3 py-2.5 text-sm text-rose-50"
+        >
+          <div className="font-bold text-rose-100">Could not generate letter</div>
+          <p className="mt-0.5 text-rose-50/90">{error}</p>
         </div>
-      </button>
+      ) : null}
 
       {alts.length > 0 ? (
         <div className="relative space-y-2">
@@ -150,10 +182,11 @@ export function IntelligentLetterSuggestionsPanel({
                 <p className={`text-[11px] leading-snug ${FINELY_OS_ENTITY_BODY}`}>{s.why}</p>
                 <button
                   type="button"
-                  className={`${FINELY_OS_SECONDARY_BTN} text-[10px]`}
+                  disabled={busy}
+                  className={`${FINELY_OS_SECONDARY_BTN} text-[10px] border-amber-300/40 text-amber-100 disabled:opacity-60`}
                   onClick={() => focusAndBuild({ letterType: s.letterType, catalogId: s.catalogId })}
                 >
-                  Build + preview
+                  Generate letter
                 </button>
               </div>
             ))}

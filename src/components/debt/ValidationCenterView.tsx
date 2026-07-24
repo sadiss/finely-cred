@@ -50,6 +50,8 @@ export function ValidationCenterView({
   onBuildCatalogDraft,
   canSeeTemplates,
   partner,
+  generateBusy = false,
+  generateError = null,
 }: {
   debt: DebtCase | null;
   debtId: string;
@@ -69,6 +71,8 @@ export function ValidationCenterView({
   onBuildCatalogDraft?: (catalogId: string) => void;
   canSeeTemplates: boolean;
   partner?: Partner;
+  generateBusy?: boolean;
+  generateError?: string | null;
 }) {
   const specs = DEBT_LETTER_SPECS.filter(
     (s) =>
@@ -177,9 +181,11 @@ export function ValidationCenterView({
         <IntelligentLetterSuggestionsPanel
           suggestions={letterSuggestions}
           accent="emerald"
+          busy={generateBusy}
+          error={generateError}
           onBuild={({ letterType, catalogId }) => {
-            if (letterType) onBuildDraft(letterType);
-            if (catalogId) onBuildCatalogDraft?.(catalogId);
+            if (catalogId && onBuildCatalogDraft) onBuildCatalogDraft(catalogId);
+            else if (letterType) onBuildDraft(letterType);
           }}
         />
         <LetterCatalogBrowser
@@ -187,8 +193,8 @@ export function ValidationCenterView({
           accent="emerald"
           extraCategories={['negotiation', 'reporting']}
           onBuild={(id, entry) => {
-            if (entry.letterType) onBuildDraft(entry.letterType);
-            else onBuildCatalogDraft?.(id);
+            if (onBuildCatalogDraft) onBuildCatalogDraft(id);
+            else if (entry.letterType) onBuildDraft(entry.letterType);
           }}
         />
       </div>

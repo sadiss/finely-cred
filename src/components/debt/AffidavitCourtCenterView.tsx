@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { ArrowRight, CheckCircle2, FileText, Gavel, Mail, Shield, Upload } from 'lucide-react';
+import { ArrowRight, CheckCircle2, FileText, Gavel, Loader2, Mail, Shield, Upload } from 'lucide-react';
 import { Link, useSearchParams } from 'react-router-dom';
 import type { DebtCase } from '../../domain/debt';
 import type { DebtLetterType, DebtScenario } from '../../domain/debtLegal';
@@ -119,6 +119,8 @@ export function AffidavitCourtCenterView({
   onSummonsDocChange,
   summonsDocCount,
   partner,
+  generateBusy = false,
+  generateError = null,
 }: {
   debt: DebtCase | null;
   debtId: string;
@@ -141,6 +143,8 @@ export function AffidavitCourtCenterView({
   onSummonsDocChange?: (id: string | null) => void;
   summonsDocCount?: number;
   partner?: Partner;
+  generateBusy?: boolean;
+  generateError?: string | null;
 }) {
   const [params] = useSearchParams();
   const defaultHearing = defaultUrgentHearingIso();
@@ -221,8 +225,8 @@ export function AffidavitCourtCenterView({
   };
 
   const buildAnswer = () => {
-    onBuildDraft('courtroom_written_answer');
-    onBuildCatalogDraft?.('court_courtroom_written_answer');
+    if (onBuildCatalogDraft) onBuildCatalogDraft('court_courtroom_written_answer');
+    else onBuildDraft('courtroom_written_answer');
     setBuiltAnswer(true);
   };
 
@@ -230,14 +234,14 @@ export function AffidavitCourtCenterView({
     const priority =
       (buyerIntel.letterPriorities.find((p) => String(p).includes('affidavit')) as DebtLetterType | undefined) ||
       'affidavit_of_dispute';
-    onBuildDraft(priority);
-    onBuildCatalogDraft?.('court_affidavit_dispute');
+    if (onBuildCatalogDraft) onBuildCatalogDraft('court_affidavit_dispute');
+    else onBuildDraft(priority);
     setBuiltAffidavit(true);
   };
 
   const buildHearingKit = () => {
-    onBuildDraft('courtroom_day_kit');
-    onBuildCatalogDraft?.('court_courtroom_day_kit');
+    if (onBuildCatalogDraft) onBuildCatalogDraft('court_courtroom_day_kit');
+    else onBuildDraft('courtroom_day_kit');
   };
 
   const letterSuggestions = useMemo(
@@ -255,8 +259,9 @@ export function AffidavitCourtCenterView({
   );
 
   const buildSuggestedLetter = (args: { letterType?: DebtLetterType; catalogId?: string }) => {
-    if (args.letterType) onBuildDraft(args.letterType);
-    if (args.catalogId) onBuildCatalogDraft?.(args.catalogId);
+    // Single generation path — catalog first (full merge fields + correct TO), else legacy type.
+    if (args.catalogId && onBuildCatalogDraft) onBuildCatalogDraft(args.catalogId);
+    else if (args.letterType) onBuildDraft(args.letterType);
     if (args.letterType === 'courtroom_written_answer' || args.catalogId === 'court_courtroom_written_answer') {
       setBuiltAnswer(true);
     }
@@ -308,7 +313,7 @@ export function AffidavitCourtCenterView({
       : step === 2
         ? builtAnswer && builtAffidavit
           ? 'Continue → Add proof'
-          : 'Build answer + affidavit, then Continue'
+          : 'Generate answer + affidavit, then Continue'
         : active.continueLabel;
 
   const nextActionPlain =
@@ -318,13 +323,13 @@ export function AffidavitCourtCenterView({
         : 'Drop summons / docket → Apply fills empty fields'
       : step === 1
         ? hasAddress
-          ? 'Address ready — continue to build drafts'
+          ? 'Address ready — continue to generate letter'
           : 'Confirm firm mailing address, then Continue'
         : step === 2
-          ? `Build this letter next: ${letterSuggestions.primary.title}`
+          ? `Generate letter: ${letterSuggestions.primary.title}`
           : step === 3
             ? 'Add optional proof, or skip with Continue'
-            : 'Build court-day kit → open vault → Mail'
+            : 'Generate court-day kit → open vault → Mail'
 
   return (
     <div className={`${FINELY_OS_COMPACT_PAGE} relative`}>
@@ -372,6 +377,27 @@ export function AffidavitCourtCenterView({
             </div>
             <p className={`mt-1 text-sm font-semibold text-amber-100/95`}>Next: {nextActionPlain}</p>
             <p className={`mt-1 text-xs max-w-2xl ${FINELY_OS_ENTITY_BODY}`}>{buyerIntel.doNowOneLiner}</p>
+            {step === 2 ? (
+              <button
+                type="button"
+                disabled={generateBusy}
+                className={`${FINELY_OS_PRIMARY_BTN} fc-lit-giant mt-2 !bg-amber-400 !text-black shadow-[0_0_28px_rgba(251,191,36,0.45)] hover:!brightness-110 disabled:opacity-60`}
+                onClick={() =>
+                  buildSuggestedLetter({
+                    letterType: letterSuggestions.primary.letterType,
+                    catalogId: letterSuggestions.primary.catalogId,
+                  })
+                }
+              >
+                {generateBusy ? <Loader2 size={18} className="animate-spin" /> : <FileText size={18} />}
+                {generateBusy ? 'Generating…' : `Generate letter: ${letterSuggestions.primary.title}`}
+              </button>
+            ) : null}
+            {generateError ? (
+              <p role="alert" className="mt-1.5 text-xs font-semibold text-rose-200 max-w-xl">
+                {generateError}
+              </p>
+            ) : null}
           </div>
           <div className="flex flex-wrap items-end gap-2">
             <div className={FINELY_OS_FIELD_WIDTH_SM}>
@@ -554,6 +580,8 @@ export function AffidavitCourtCenterView({
               suggestions={letterSuggestions}
               accent="fuchsia"
               onBuild={buildSuggestedLetter}
+              busy={generateBusy}
+              error={generateError}
             />
             <p className={`text-sm ${FINELY_OS_ENTITY_BODY}`}>
               {stageMeta.nextAction} Quick taps below still work. Edit admissions carefully before mailing or filing.
@@ -561,17 +589,19 @@ export function AffidavitCourtCenterView({
             <div className="grid sm:grid-cols-2 gap-3">
               <button
                 type="button"
-                className={`${FINELY_OS_PRIMARY_BTN} fc-lit-giant w-full justify-center`}
+                disabled={generateBusy}
+                className={`${FINELY_OS_PRIMARY_BTN} fc-lit-giant w-full justify-center disabled:opacity-60`}
                 onClick={buildAnswer}
               >
-                <FileText size={18} /> {builtAnswer ? 'Rebuild written answer' : 'Build written answer'}
+                <FileText size={18} /> {builtAnswer ? 'Rebuild written answer' : 'Generate written answer'}
               </button>
               <button
                 type="button"
-                className={`${FINELY_OS_PRIMARY_BTN} fc-lit-giant w-full justify-center !bg-fuchsia-500/20`}
+                disabled={generateBusy}
+                className={`${FINELY_OS_PRIMARY_BTN} fc-lit-giant w-full justify-center !bg-fuchsia-500/20 disabled:opacity-60`}
                 onClick={buildAffidavit}
               >
-                <Shield size={18} /> {builtAffidavit ? 'Rebuild affidavit' : 'Build affidavit'}
+                <Shield size={18} /> {builtAffidavit ? 'Rebuild affidavit' : 'Generate affidavit'}
               </button>
             </div>
             <div className="flex flex-wrap gap-2">
@@ -580,13 +610,14 @@ export function AffidavitCourtCenterView({
               </Link>
               <button
                 type="button"
-                className={FINELY_OS_SECONDARY_BTN}
+                disabled={generateBusy}
+                className={`${FINELY_OS_SECONDARY_BTN} disabled:opacity-60`}
                 onClick={() => {
-                  onBuildDraft('defendant_discovery_requests');
-                  onBuildCatalogDraft?.('court_discovery_full');
+                  if (onBuildCatalogDraft) onBuildCatalogDraft('court_discovery_full');
+                  else onBuildDraft('defendant_discovery_requests');
                 }}
               >
-                Also build discovery
+                Also generate discovery
               </button>
             </div>
             <details className="rounded-xl border border-white/10 bg-black/30 px-3 py-2">
@@ -599,8 +630,8 @@ export function AffidavitCourtCenterView({
                   accent="fuchsia"
                   extraCategories={['securitization']}
                   onBuild={(id, entry) => {
-                    if (entry.letterType) onBuildDraft(entry.letterType);
-                    else onBuildCatalogDraft?.(id);
+                    if (onBuildCatalogDraft) onBuildCatalogDraft(id);
+                    else if (entry.letterType) onBuildDraft(entry.letterType);
                   }}
                 />
                 {!canSeeTemplates ? (
