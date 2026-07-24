@@ -10,6 +10,13 @@ import { DEBT_LETTER_CATALOG, catalogEntryById, type DebtLetterCatalogEntry } fr
 import { DEBT_LETTER_SPECS, SCENARIO_RECOMMENDATIONS, recommendScenarioFromDebt } from '../legal/debtLetterTemplates';
 import { getDebtBuyerCaseIntel } from '../legal/litigation/debtBuyerCaseIntelligence';
 import {
+  classifyLetterProduct,
+  letterGenerateCtaLabel,
+  letterGenerateHint,
+  letterProductBadge,
+  type LetterProductKind,
+} from './letterProductLabels';
+import {
   LITIGATION_STAGES,
   daysUntilHearing,
   recommendLitigationStage,
@@ -26,6 +33,13 @@ export type RankedLetterSuggestion = {
   why: string;
   urgency: 'critical' | 'high' | 'normal';
   primary: boolean;
+  /** UI-only product kind so validation vs court filing is unmistakable before Generate. */
+  productKind: LetterProductKind;
+  productBadge: string;
+  generateLabel: string;
+  generateHint: string;
+  /** Hearing kit opens UI card — does not create a mailed letter draft. */
+  uiOnly?: boolean;
 };
 
 export type IntelligentLetterSuggestions = {
@@ -66,13 +80,43 @@ function missingFieldHints(debt: DebtCase | null): string[] {
   return missing;
 }
 
+function withProductMeta(
+  item: Omit<RankedLetterSuggestion, 'rank' | 'primary' | 'productKind' | 'productBadge' | 'generateLabel' | 'generateHint' | 'uiOnly'> & {
+    uiOnly?: boolean;
+  },
+  track: LetterSuggestionTrack,
+): Omit<RankedLetterSuggestion, 'rank' | 'primary'> {
+  const productKind = classifyLetterProduct({
+    letterType: item.letterType,
+    catalogId: item.catalogId,
+    track,
+  });
+  const uiOnly = Boolean(item.uiOnly || productKind === 'hearing_kit_ui');
+  return {
+    ...item,
+    productKind,
+    productBadge: letterProductBadge(productKind),
+    generateLabel: letterGenerateCtaLabel(productKind, item.title),
+    generateHint: letterGenerateHint(productKind),
+    uiOnly,
+  };
+}
+
 function pushUnique(
   bag: Map<string, RankedLetterSuggestion>,
-  item: Omit<RankedLetterSuggestion, 'rank' | 'primary'>,
+  item: Omit<RankedLetterSuggestion, 'rank' | 'primary' | 'productKind' | 'productBadge' | 'generateLabel' | 'generateHint'> & {
+    productKind?: LetterProductKind;
+    productBadge?: string;
+    generateLabel?: string;
+    generateHint?: string;
+    uiOnly?: boolean;
+  },
+  track: LetterSuggestionTrack,
 ) {
   const key = item.catalogId || item.letterType || item.title;
   if (bag.has(key)) return;
-  bag.set(key, { ...item, rank: bag.size + 1, primary: bag.size === 0 });
+  const enriched = withProductMeta(item, track);
+  bag.set(key, { ...enriched, rank: bag.size + 1, primary: bag.size === 0 });
 }
 
 export function buildIntelligentLetterSuggestions(args: {
@@ -118,21 +162,28 @@ export function buildIntelligentLetterSuggestions(args: {
   const stage = LITIGATION_STAGES.find((s) => s.id === stageId) || LITIGATION_STAGES[1]!;
   const missing = missingFieldHints(debt);
   const bag = new Map<string, RankedLetterSuggestion>();
+  const track = args.track;
+  const push = (
+    item: Omit<RankedLetterSuggestion, 'rank' | 'primary' | 'productKind' | 'productBadge' | 'generateLabel' | 'generateHint'> & {
+      uiOnly?: boolean;
+    },
+  ) => pushUnique(bag, item, track);
 
   const whyBase = (parts: string[]) => parts.filter(Boolean).join(' ');
 
-  if (args.track === 'litigation' || debt?.type === 'summons' || scenario === 'summons_served' || scenario === 'post_35_days') {
-    // Hearing proximity overrides
+  if (track === 'litigation' || debt?.type === 'summons' || scenario === 'summons_served' || scenario === 'post_35_days') {
+    // Hearing proximity — kit is UI hearing card, not a mailed letter
     if (daysLeft <= 3 && daysLeft >= 0) {
-      pushUnique(bag, {
+      push({
         letterType: 'courtroom_day_kit',
         catalogId: 'court_courtroom_day_kit',
         title: titleFor('courtroom_day_kit', 'court_courtroom_day_kit'),
         why: whyBase([
           `Hearing is ${daysLeft === 0 ? 'today' : `in ${daysLeft} day${daysLeft === 1 ? '' : 's'}`}.`,
-          'Build the court-day kit now so opening, five-gate questions, and checklist are in your hand.',
+          'Open the court-day kit hearing card (UI only) — opening, five-gate questions, checklist. Not a mailed letter.',
         ]),
         urgency: 'critical',
+        uiOnly: true,
       });
     }
 
@@ -141,7 +192,7 @@ export function buildIntelligentLetterSuggestions(args: {
       const entry = catalogForLetterType(lt as DebtLetterType);
       const urgency: RankedLetterSuggestion['urgency'] =
         lt === 'courtroom_written_answer' && !args.hasAnswerDraft ? 'critical' : daysLeft <= 14 ? 'high' : 'normal';
-      pushUnique(bag, {
+      push({
         letterType: lt as DebtLetterType,
         catalogId: entry?.id,
         title: titleFor(lt as DebtLetterType, entry?.id),
@@ -167,7 +218,7 @@ export function buildIntelligentLetterSuggestions(args: {
     // Stage catalog IDs
     for (const catalogId of stage.catalogIds) {
       const entry = catalogEntryById(catalogId);
-      pushUnique(bag, {
+      push({
         letterType: entry?.letterType,
         catalogId,
         title: titleFor(entry?.letterType, catalogId),
@@ -183,7 +234,7 @@ export function buildIntelligentLetterSuggestions(args: {
     // Scenario pack
     for (const lt of scenarioRec?.recommendedLetterTypes || []) {
       const entry = catalogForLetterType(lt);
-      pushUnique(bag, {
+      push({
         letterType: lt,
         catalogId: entry?.id,
         title: titleFor(lt, entry?.id),
@@ -195,13 +246,13 @@ export function buildIntelligentLetterSuggestions(args: {
         urgency: scenario === 'summons_served' ? 'high' : 'normal',
       });
     }
-  } else if (args.track === 'validation') {
+  } else if (track === 'validation') {
     const types = (scenarioRec?.recommendedLetterTypes || ['validation_request']).filter(
       (t) => !String(t).includes('courtroom') && !String(t).includes('summons_response'),
     );
     // Midland/debt-buyer off-suit still wants assignment chain
     if (buyerIntel.patternId.includes('midland') || buyerIntel.patternId.includes('pra') || buyerIntel.patternId.includes('velocity') || buyerIntel.patternId === 'debt_buyer_generic') {
-      pushUnique(bag, {
+      push({
         letterType: 'assignment_chain_demand',
         catalogId: 'validation_chain_of_title',
         title: titleFor('assignment_chain_demand', 'validation_chain_of_title'),
@@ -214,7 +265,7 @@ export function buildIntelligentLetterSuggestions(args: {
     }
     for (const lt of types) {
       const entry = catalogForLetterType(lt);
-      pushUnique(bag, {
+      push({
         letterType: lt,
         catalogId: entry?.id,
         title: titleFor(lt, entry?.id),
@@ -227,10 +278,10 @@ export function buildIntelligentLetterSuggestions(args: {
         urgency: scenario === 'validation_period' || scenario === 'first_contact' ? 'high' : 'normal',
       });
     }
-  } else if (args.track === 'foreclosure' || args.track === 'repossession') {
-    const cats = DEBT_LETTER_CATALOG.filter((e) => e.category === args.track).slice(0, 5);
+  } else if (track === 'foreclosure' || track === 'repossession') {
+    const cats = DEBT_LETTER_CATALOG.filter((e) => e.category === track).slice(0, 5);
     for (const entry of cats) {
-      pushUnique(bag, {
+      push({
         letterType: entry.letterType,
         catalogId: entry.id,
         title: entry.title,
@@ -243,7 +294,7 @@ export function buildIntelligentLetterSuggestions(args: {
     const round = args.disputeRound ?? 1;
     const creditEntries = DEBT_LETTER_CATALOG.filter((e) => e.hub === 'credit' || e.category === 'reporting' || e.category === 'bureau').slice(0, 4);
     for (const entry of creditEntries) {
-      pushUnique(bag, {
+      push({
         letterType: entry.letterType,
         catalogId: entry.id,
         title: entry.title,
@@ -255,7 +306,7 @@ export function buildIntelligentLetterSuggestions(args: {
       });
     }
     if (bag.size === 0) {
-      pushUnique(bag, {
+      push({
         catalogId: 'reporting_bureau_direct_dispute',
         title: titleFor(undefined, 'reporting_bureau_direct_dispute'),
         why: 'Credit Letters path: dispute inaccurate tradelines with the bureau first, then furnisher if needed.',
@@ -266,7 +317,7 @@ export function buildIntelligentLetterSuggestions(args: {
 
   // Guarantee at least one suggestion
   if (bag.size === 0) {
-    pushUnique(bag, {
+    push({
       letterType: 'validation_request',
       catalogId: 'validation_initial_fdcpa',
       title: titleFor('validation_request', 'validation_initial_fdcpa'),
@@ -280,15 +331,17 @@ export function buildIntelligentLetterSuggestions(args: {
   const alternatives = all.slice(1, 5);
 
   const headline =
-    args.track === 'litigation'
+    track === 'litigation'
       ? daysLeft <= 3 && daysLeft >= 0
-        ? 'Build this letter next — hearing is imminent'
+        ? primary.uiOnly
+          ? 'Open court-day kit next — UI only, not a letter'
+          : 'Generate court answer letter next — hearing is imminent'
         : args.hasAnswerDraft
-          ? 'Build this letter next — strengthen proof & affidavit'
-          : 'Build this letter next — written answer first'
-      : args.track === 'validation'
-        ? 'Build this letter next — validation track'
-        : 'Build this letter next';
+          ? 'Generate affidavit or next court letter'
+          : 'Generate court answer letter next'
+      : track === 'validation'
+        ? 'Generate validation letter next'
+        : 'Generate letter next';
 
   return {
     track: args.track,

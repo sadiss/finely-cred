@@ -18,7 +18,6 @@ import { applyRooseveltCourtDemoIfNeeded } from './litigation/rooseveltCourtDemo
 import type { DebtLetterBuildArgs } from './debtLetterBuildArgs';
 import { getAffidavitOfDisputeBody, getSummonsResponseAffidavitBody } from './debtAffidavitBodies';
 import {
-  getCourtroomDayKitBody,
   getCourtroomPretrialProofNoticeBody,
   getCourtroomWrittenAnswerBody,
 } from './courtroomPackBodies';
@@ -270,16 +269,16 @@ export const DEBT_LETTER_SPECS: DebtLetterSpec[] = [
   },
   {
     id: 'courtroom_written_answer',
-    title: 'Written Answer + Certificate of Service',
-    shortDescription: 'Contested-issues answer with certificate — carefully edit admissions to match honest facts.',
+    title: 'Court Answer Letter',
+    shortDescription: 'Complete written answer + certificate of service — formal pleading language only.',
     whenToUse: ['Summons served', 'Before answer deadline', 'When you need a filing-ready scaffold'],
     legalBasis: [STATE_SOL, CONTRACT_CONSIDERATION, BEST_EVIDENCE],
     keyPrinciple: 'Do not admit debt, balance, or signature unless you know it is true.',
   },
   {
     id: 'courtroom_day_kit',
-    title: 'Court-Day Kit',
-    shortDescription: 'Opening statement, witness questions, objections, closing, and checklist for pro se hearings.',
+    title: 'Court-Day Prep Kit (UI only)',
+    shortDescription: 'Hearing scripts and checklist shown on-screen in Litigation Command — not a mailed letter.',
     whenToUse: ['Trial or hearing scheduled', 'After discovery closed', 'To prepare examination outline'],
     legalBasis: [BEST_EVIDENCE],
     keyPrinciple: 'Stick to truthful facts and missing proof — never deny what you know is genuine.',
@@ -841,8 +840,10 @@ export function getLetterBody(
       body = getCourtroomWrittenAnswerBody(safeArgs);
       break;
     case 'courtroom_day_kit':
-      body = getCourtroomDayKitBody(safeArgs);
-      break;
+      // Hearing kit is UI-only — never a mailed letter body / vault PDF.
+      throw new Error(
+        'Court-day kit is hearing guidance in Litigation Command — not a mailed letter. Open the Hearing step kit card instead.',
+      );
     case 'cease_and_desist':
       body = getCeaseAndDesistBody(safeArgs);
       break;

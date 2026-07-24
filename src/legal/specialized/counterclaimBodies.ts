@@ -7,11 +7,9 @@ export function getCounterclaimOutlineBody(args?: DebtLetterBuildArgs): string {
   const caseNo = args?.caseNumber || '[CASE NUMBER]';
   const date = args?.date || '[DATE]';
 
-  return `COUNTER-PLAINTIFF'S COUNTERCLAIM OUTLINE
+  return `COUNTER-PLAINTIFF'S COUNTERCLAIM
 (Counter-Defendant: ${plaintiff})
 Case No. ${caseNo}
-
-NOTE: This is an educational outline — not filed pleadings. Have a licensed attorney review before filing. Many courts require a separate counterclaim document and filing fee.
 
 I. PRELIMINARY STATEMENT
 Counter-Plaintiff ${debtor} alleges Counter-Defendant violated the Fair Debt Collection Practices Act (15 U.S.C. § 1692 et seq.) and applicable state collection practices acts by:

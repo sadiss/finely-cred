@@ -14,6 +14,7 @@ import { LetterCatalogBrowser } from './LetterCatalogBrowser';
 import { PartnerDefenseKnowledgePanel } from './PartnerDefenseKnowledgePanel';
 import { LitigationDocScraperChat } from './LitigationDocScraperChat';
 import { SCENARIO_RECOMMENDATIONS } from '../../legal/debtLetterTemplates';
+import { getCourtroomDayKitGuidance } from '../../legal/courtroomPackBodies';
 import { buildSummonsAffidavitContext } from '../../lib/debtCreditorIntel';
 import {
   LITIGATION_STAGES,
@@ -27,7 +28,9 @@ import {
 import { isRooseveltCourtPartner } from '../../data/rooseveltCourtPartnerSeed';
 import { getDebtBuyerCaseIntel } from '../../legal/litigation/debtBuyerCaseIntelligence';
 import { buildIntelligentLetterSuggestions } from '../../lib/intelligentLetterSuggestions';
+import { letterGenerateCtaLabel } from '../../lib/letterProductLabels';
 import { IntelligentLetterSuggestionsPanel } from '../letters/IntelligentLetterSuggestionsPanel';
+import { isCourtDayKitId } from '../../lib/letterBodySafety';
 import {
   FINELY_OS_COMPACT_PAGE,
   FINELY_OS_ENTITY_BODY,
@@ -70,9 +73,9 @@ const PIPELINE: Array<{
   {
     id: 'affidavit',
     n: 3,
-    title: 'Build answer & affidavit',
-    plain: 'One tap each — then open vault to mail',
-    outcome: 'Defense drafts ready',
+    title: 'Generate court documents',
+    plain: 'Court answer letter · Affidavit · Validation if needed (full letter bodies)',
+    outcome: 'Mail-ready drafts in vault',
     continueLabel: 'Drafts ready — Continue',
   },
   {
@@ -86,16 +89,16 @@ const PIPELINE: Array<{
   {
     id: 'hearing',
     n: 5,
-    title: 'Hearing + mail-ready',
-    plain: 'Countdown, court-day kit, send via Finely Mail',
-    outcome: 'Mail-ready defense',
-    continueLabel: 'Build hearing kit',
+    title: 'Hearing kit + mail',
+    plain: 'UI court-day kit (not a letter) · Vault for mailed documents',
+    outcome: 'Hearing-ready',
+    continueLabel: 'Open court-day kit',
   },
 ];
 
 /**
  * Litigation Defense Command — foolproof 1→N pipeline for non-technical partners.
- * One screen, one step, giant Continue, hearing countdown always visible.
+ * UI guides the journey; Generate creates pure letter documents (kit stays on-screen).
  */
 export function AffidavitCourtCenterView({
   debt,
@@ -181,6 +184,7 @@ export function AffidavitCourtCenterView({
   const [appliedOnce, setAppliedOnce] = useState(false);
   const [builtAnswer, setBuiltAnswer] = useState(false);
   const [builtAffidavit, setBuiltAffidavit] = useState(false);
+  const [hearingKitOpen, setHearingKitOpen] = useState(false);
 
   useEffect(() => {
     if (!stageFromQuery) return;
@@ -239,10 +243,24 @@ export function AffidavitCourtCenterView({
     setBuiltAffidavit(true);
   };
 
-  const buildHearingKit = () => {
-    if (onBuildCatalogDraft) onBuildCatalogDraft('court_courtroom_day_kit');
-    else onBuildDraft('courtroom_day_kit');
+  /** Hearing kit stays on-screen — never creates a vault/mail letter PDF. */
+  const openHearingKit = () => {
+    setStep(4);
+    setHearingKitOpen(true);
+    window.setTimeout(() => {
+      document.getElementById('fc-lit-hearing-kit')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 60);
   };
+
+  const hearingKit = useMemo(
+    () =>
+      getCourtroomDayKitGuidance({
+        debtorName: senderFields.fullName || debt?.name,
+        caseNumber: caseNumber || summonsCtx.caseNumber,
+        summonsContext: { courtName: summonsCtx.courtName },
+      }),
+    [senderFields.fullName, debt?.name, caseNumber, summonsCtx.caseNumber, summonsCtx.courtName],
+  );
 
   const letterSuggestions = useMemo(
     () =>
@@ -259,6 +277,10 @@ export function AffidavitCourtCenterView({
   );
 
   const buildSuggestedLetter = (args: { letterType?: DebtLetterType; catalogId?: string }) => {
+    if (isCourtDayKitId(args.catalogId) || args.letterType === 'courtroom_day_kit') {
+      openHearingKit();
+      return;
+    }
     // Single generation path — catalog first (full merge fields + correct TO), else legacy type.
     if (args.catalogId && onBuildCatalogDraft) onBuildCatalogDraft(args.catalogId);
     else if (args.letterType) onBuildDraft(args.letterType);
@@ -275,7 +297,7 @@ export function AffidavitCourtCenterView({
 
   const goNext = () => {
     if (step < PIPELINE.length - 1) setStep((s) => s + 1);
-    else buildHearingKit();
+    else openHearingKit();
   };
 
   const runPrimaryContinue = () => {
@@ -302,7 +324,7 @@ export function AffidavitCourtCenterView({
       setStep(4);
       return;
     }
-    buildHearingKit();
+    openHearingKit();
   };
 
   const primaryLabel =
@@ -326,10 +348,10 @@ export function AffidavitCourtCenterView({
           ? 'Address ready — continue to generate letter'
           : 'Confirm firm mailing address, then Continue'
         : step === 2
-          ? `Generate letter: ${letterSuggestions.primary.title}`
+          ? letterSuggestions.primary.generateLabel
           : step === 3
             ? 'Add optional proof, or skip with Continue'
-            : 'Generate court-day kit → open vault → Mail'
+            : 'Open court-day kit (UI) → vault is for mailed letters only'
 
   return (
     <div className={`${FINELY_OS_COMPACT_PAGE} relative`}>
@@ -344,13 +366,6 @@ export function AffidavitCourtCenterView({
         }
         .fc-lit-glow { animation: fcLitGlow 4.5s ease-in-out infinite; }
         .fc-lit-in { animation: fcLitIn 0.4s ease-out both; }
-        .fc-lit-giant {
-          min-height: 3.25rem;
-          font-size: 1rem;
-          font-weight: 800;
-          padding-left: 1.25rem;
-          padding-right: 1.25rem;
-        }
       `}</style>
 
       {/* Always-visible HUD — hearing + next action */}
@@ -381,7 +396,7 @@ export function AffidavitCourtCenterView({
               <button
                 type="button"
                 disabled={generateBusy}
-                className={`${FINELY_OS_PRIMARY_BTN} fc-lit-giant mt-2 !bg-amber-400 !text-black shadow-[0_0_28px_rgba(251,191,36,0.45)] hover:!brightness-110 disabled:opacity-60`}
+                className={`${FINELY_OS_PRIMARY_BTN} mt-2 !bg-amber-400 !text-black shadow-[0_0_28px_rgba(251,191,36,0.45)] hover:!brightness-110 disabled:opacity-60`}
                 onClick={() =>
                   buildSuggestedLetter({
                     letterType: letterSuggestions.primary.letterType,
@@ -390,7 +405,7 @@ export function AffidavitCourtCenterView({
                 }
               >
                 {generateBusy ? <Loader2 size={18} className="animate-spin" /> : <FileText size={18} />}
-                {generateBusy ? 'Generating…' : `Generate letter: ${letterSuggestions.primary.title}`}
+                {generateBusy ? 'Generating…' : letterSuggestions.primary.generateLabel}
               </button>
             ) : null}
             {generateError ? (
@@ -580,28 +595,33 @@ export function AffidavitCourtCenterView({
               suggestions={letterSuggestions}
               accent="fuchsia"
               onBuild={buildSuggestedLetter}
+              onOpenHearingKit={openHearingKit}
               busy={generateBusy}
               error={generateError}
             />
             <p className={`text-sm ${FINELY_OS_ENTITY_BODY}`}>
-              {stageMeta.nextAction} Quick taps below still work. Edit admissions carefully before mailing or filing.
+              {stageMeta.nextAction} Quick taps below create pure letter drafts (paper preview). Guidance stays here — not inside the letter.
             </p>
             <div className="grid sm:grid-cols-2 gap-3">
               <button
                 type="button"
                 disabled={generateBusy}
-                className={`${FINELY_OS_PRIMARY_BTN} fc-lit-giant w-full justify-center disabled:opacity-60`}
+                className={`${FINELY_OS_PRIMARY_BTN} w-full justify-center disabled:opacity-60`}
                 onClick={buildAnswer}
               >
-                <FileText size={18} /> {builtAnswer ? 'Rebuild written answer' : 'Generate written answer'}
+                <FileText size={18} />{' '}
+                {builtAnswer
+                  ? 'Rebuild written answer (court filing)'
+                  : letterGenerateCtaLabel('court_filing', 'Written answer')}
               </button>
               <button
                 type="button"
                 disabled={generateBusy}
-                className={`${FINELY_OS_PRIMARY_BTN} fc-lit-giant w-full justify-center !bg-fuchsia-500/20 disabled:opacity-60`}
+                className={`${FINELY_OS_PRIMARY_BTN} w-full justify-center !bg-fuchsia-500/20 disabled:opacity-60`}
                 onClick={buildAffidavit}
               >
-                <Shield size={18} /> {builtAffidavit ? 'Rebuild affidavit' : 'Generate affidavit'}
+                <Shield size={18} />{' '}
+                {builtAffidavit ? 'Rebuild affidavit' : letterGenerateCtaLabel('affidavit')}
               </button>
             </div>
             <div className="flex flex-wrap gap-2">
@@ -660,7 +680,9 @@ export function AffidavitCourtCenterView({
         {step === 4 ? (
           <div className="space-y-3">
             <div className="rounded-xl border border-amber-400/35 bg-amber-500/10 px-4 py-3 space-y-2">
-              <div className="text-[10px] uppercase tracking-widest text-amber-200/85">Day-of hearing card</div>
+              <div className="text-[10px] uppercase tracking-widest text-amber-200/85">
+                Day-of hearing card · UI guidance only (not a mailed letter)
+              </div>
               <ol className={`list-decimal pl-4 space-y-1 text-sm ${FINELY_OS_ENTITY_BODY}`}>
                 <li>Recognize the original account only if true — do not admit plaintiff ownership or the lawsuit balance.</li>
                 <li>Ask five gates: named plaintiff · transfer chain · account-level match · amount math · witness knowledge.</li>
@@ -669,16 +691,58 @@ export function AffidavitCourtCenterView({
               </ol>
             </div>
             <div className="grid sm:grid-cols-2 gap-3">
-              <button type="button" className={`${FINELY_OS_PRIMARY_BTN} fc-lit-giant w-full justify-center`} onClick={buildHearingKit}>
-                Build court-day kit <ArrowRight size={16} />
+              <button
+                type="button"
+                className={`${FINELY_OS_PRIMARY_BTN} w-full justify-center`}
+                onClick={openHearingKit}
+              >
+                Open court-day kit (hearing card) <ArrowRight size={16} />
               </button>
               <Link
                 to="/portal/letters/vault"
-                className={`${FINELY_OS_PRIMARY_BTN} fc-lit-giant w-full justify-center inline-flex items-center gap-2`}
+                className={`${FINELY_OS_PRIMARY_BTN} w-full justify-center inline-flex items-center gap-2`}
               >
-                <Mail size={16} /> Mail-ready → Vault
+                <Mail size={16} /> Mail letters → Vault
               </Link>
             </div>
+            {hearingKitOpen ? (
+              <div
+                id="fc-lit-hearing-kit"
+                className="scroll-mt-28 rounded-2xl border border-fuchsia-400/35 bg-fuchsia-500/10 px-4 py-3 space-y-3"
+              >
+                <div className="flex flex-wrap items-start justify-between gap-2">
+                  <div>
+                    <div className="text-[10px] uppercase tracking-widest text-fuchsia-200/90">
+                      Court-day kit · stays on screen
+                    </div>
+                    <h3 className="text-base font-black text-white mt-0.5">{hearingKit.heading}</h3>
+                    <p className={`text-xs ${FINELY_OS_ENTITY_BODY}`}>{hearingKit.meta}</p>
+                  </div>
+                  <span className={finelyOsStatusChip('warn')}>Not a mailed letter</span>
+                </div>
+                <div className="grid gap-2 sm:grid-cols-2">
+                  {hearingKit.sections.map((sec) => (
+                    <details
+                      key={sec.id}
+                      className="rounded-xl border border-white/10 bg-black/35 px-3 py-2"
+                      open={sec.id === 'opening' || sec.id === 'checklist'}
+                    >
+                      <summary className="cursor-pointer select-none text-xs font-semibold text-white/90">
+                        {sec.title}
+                      </summary>
+                      <ul className={`mt-2 list-disc pl-4 space-y-1 text-[11px] ${FINELY_OS_ENTITY_BODY}`}>
+                        {sec.lines.map((line) => (
+                          <li key={line.slice(0, 48)}>{line}</li>
+                        ))}
+                      </ul>
+                    </details>
+                  ))}
+                </div>
+                <p className="text-[10px] text-white/45">
+                  Checklist and scripts stay here. Vault holds only complete letters (answer, validation, affidavit) for mail.
+                </p>
+              </div>
+            ) : null}
             <details className="rounded-xl border border-white/10 bg-black/30 px-3 py-2">
               <summary className="cursor-pointer select-none text-xs font-semibold text-white/80">
                 Ask court coach (optional)
@@ -699,7 +763,7 @@ export function AffidavitCourtCenterView({
         <div className="pt-1 space-y-2">
           <button
             type="button"
-            className={`${FINELY_OS_PRIMARY_BTN} fc-lit-giant w-full sm:w-auto justify-center shadow-[0_0_36px_-8px_rgba(251,191,36,0.65)]`}
+            className={`${FINELY_OS_PRIMARY_BTN} w-full sm:w-auto justify-center shadow-[0_0_36px_-8px_rgba(251,191,36,0.65)]`}
             onClick={runPrimaryContinue}
           >
             {primaryLabel} <ArrowRight size={18} />
@@ -781,7 +845,7 @@ export function AffidavitCourtCenterView({
             </div>
             <div className={`text-[11px] truncate ${FINELY_OS_ENTITY_BODY}`}>{nextActionPlain}</div>
           </div>
-          <button type="button" className={`${FINELY_OS_PRIMARY_BTN} fc-lit-giant`} onClick={runPrimaryContinue}>
+          <button type="button" className={`${FINELY_OS_PRIMARY_BTN}`} onClick={runPrimaryContinue}>
             {primaryLabel.includes('Drop') ? 'Drop file' : 'Continue'} <ArrowRight size={18} />
           </button>
         </div>

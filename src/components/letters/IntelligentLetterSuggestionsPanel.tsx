@@ -24,12 +24,15 @@ function urgencyChip(u: RankedLetterSuggestion['urgency']) {
 export function IntelligentLetterSuggestionsPanel({
   suggestions,
   onBuild,
+  onOpenHearingKit,
   accent = 'fuchsia',
   busy = false,
   error = null,
 }: {
   suggestions: IntelligentLetterSuggestions;
   onBuild: (args: { letterType?: DebtLetterType; catalogId?: string }) => void;
+  /** Court-day kit stays UI-only — parent opens hearing card instead of vault draft. */
+  onOpenHearingKit?: () => void;
   accent?: 'fuchsia' | 'emerald' | 'violet' | 'sky';
   busy?: boolean;
   error?: string | null;
@@ -44,14 +47,18 @@ export function IntelligentLetterSuggestionsPanel({
     return () => window.clearTimeout(t);
   }, [flash]);
 
-  const focusAndBuild = (args: { letterType?: DebtLetterType; catalogId?: string }) => {
+  const focusAndAct = (s: RankedLetterSuggestion) => {
     if (busy) return;
     setFlash(true);
     const el = document.getElementById(LETTER_SUGGEST_PRIMARY_ID);
     el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     el?.classList.add('fc-suggest-hit');
     window.setTimeout(() => el?.classList.remove('fc-suggest-hit'), 1600);
-    onBuild(args);
+    if (s.uiOnly || s.productKind === 'hearing_kit_ui') {
+      onOpenHearingKit?.();
+      return;
+    }
+    onBuild({ letterType: s.letterType, catalogId: s.catalogId });
   };
 
   const glowAccent = accent === 'emerald' ? 'emerald' : accent === 'sky' ? 'sky' : accent === 'violet' ? 'violet' : 'fuchsia';
@@ -74,8 +81,8 @@ export function IntelligentLetterSuggestionsPanel({
           50% { box-shadow: 0 0 0 3px rgba(251,191,36,0.85), 0 0 52px rgba(251,191,36,0.55); }
         }
         @keyframes fcGenerateGlow {
-          0%, 100% { box-shadow: 0 0 0 2px rgba(251,191,36,0.55), 0 0 28px rgba(251,191,36,0.45), inset 0 0 20px rgba(251,191,36,0.15); }
-          50% { box-shadow: 0 0 0 3px rgba(253,230,138,0.95), 0 0 48px rgba(251,191,36,0.7), inset 0 0 28px rgba(251,191,36,0.25); }
+          0%, 100% { box-shadow: 0 0 0 1px rgba(251,191,36,0.4), 0 0 16px rgba(251,191,36,0.28); }
+          50% { box-shadow: 0 0 0 2px rgba(253,230,138,0.7), 0 0 22px rgba(251,191,36,0.4); }
         }
         .fc-suggest-orb {
           animation: fcSuggestPulse 2.8s ease-in-out infinite;
@@ -83,12 +90,8 @@ export function IntelligentLetterSuggestionsPanel({
         .fc-suggest-primary {
           animation: fcSuggestBorder 2.4s ease-in-out infinite;
         }
-        .fc-generate-giant {
-          animation: fcGenerateGlow 2.2s ease-in-out infinite;
-          min-height: 3.75rem;
-          font-size: 1.125rem;
-          font-weight: 900;
-          letter-spacing: 0.04em;
+        .fc-generate-cta {
+          animation: fcGenerateGlow 2.4s ease-in-out infinite;
         }
         .fc-suggest-hit {
           outline: 2px solid rgba(251,191,36,0.95);
@@ -132,6 +135,7 @@ export function IntelligentLetterSuggestionsPanel({
           <FileText size={18} className="text-amber-200 shrink-0 drop-shadow-[0_0_10px_rgba(251,191,36,0.8)]" />
           <div className="text-lg font-black text-white tracking-tight">{primary.title}</div>
           <span className={finelyOsStatusChip('ok')}>Primary</span>
+          <span className={finelyOsStatusChip(primary.uiOnly ? 'warn' : 'ok')}>{primary.productBadge}</span>
         </div>
         <p className="text-sm leading-snug text-amber-50/95">
           <span className="font-black text-amber-200 uppercase tracking-wider text-[10px] mr-1.5">Why now</span>
@@ -142,16 +146,16 @@ export function IntelligentLetterSuggestionsPanel({
           type="button"
           id={LETTER_SUGGEST_GENERATE_ID}
           disabled={busy}
-          className={`fc-generate-giant ${FINELY_OS_PRIMARY_BTN} w-full justify-center gap-2 !bg-amber-400 !text-black hover:!brightness-110 disabled:opacity-60 disabled:cursor-not-allowed`}
-          onClick={() => focusAndBuild({ letterType: primary.letterType, catalogId: primary.catalogId })}
-          aria-label={`Generate letter: ${primary.title}`}
+          className={`fc-generate-cta ${FINELY_OS_PRIMARY_BTN} w-full sm:w-auto justify-center gap-1.5 !bg-amber-400 !text-black hover:!brightness-110 disabled:opacity-60 disabled:cursor-not-allowed`}
+          onClick={() => focusAndAct(primary)}
+          aria-label={primary.generateLabel}
         >
-          {busy ? <Loader2 size={22} className="animate-spin" /> : <FileText size={22} />}
-          {busy ? 'Generating letter…' : 'Generate letter'}
-          {!busy ? <ArrowRight size={20} /> : null}
+          {busy ? <Loader2 size={14} className="animate-spin" /> : <FileText size={14} />}
+          {busy ? 'Generating…' : primary.generateLabel}
+          {!busy ? <ArrowRight size={14} /> : null}
         </button>
-        <p className="text-[11px] text-amber-100/80 flex flex-wrap items-center gap-1.5 justify-center">
-          <Eye size={12} /> Creates a real draft with full body · paper preview opens next · editable before mail
+        <p className="text-[11px] text-amber-100/80 flex flex-wrap items-center gap-1.5 justify-center text-center">
+          <Eye size={12} /> {primary.generateHint}
         </p>
       </div>
 
@@ -179,14 +183,15 @@ export function IntelligentLetterSuggestionsPanel({
                   <div className="text-xs font-semibold text-white/95">{s.title}</div>
                   <span className={urgencyChip(s.urgency)}>{s.urgency}</span>
                 </div>
+                <p className="text-[10px] font-semibold text-amber-100/80">{s.productBadge}</p>
                 <p className={`text-[11px] leading-snug ${FINELY_OS_ENTITY_BODY}`}>{s.why}</p>
                 <button
                   type="button"
                   disabled={busy}
                   className={`${FINELY_OS_SECONDARY_BTN} text-[10px] border-amber-300/40 text-amber-100 disabled:opacity-60`}
-                  onClick={() => focusAndBuild({ letterType: s.letterType, catalogId: s.catalogId })}
+                  onClick={() => focusAndAct(s)}
                 >
-                  Generate letter
+                  {s.uiOnly ? 'Open hearing kit' : s.generateLabel.replace(/^Generate /i, 'Generate ')}
                 </button>
               </div>
             ))}

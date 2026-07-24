@@ -3177,6 +3177,12 @@ useEffect(() => {
     setDraftErr(null);
     try {
       persistDebtSenderSnapshot();
+      if (specId === 'courtroom_day_kit') {
+        setDraftErr(
+          'Court-day kit is hearing guidance in Litigation Command — not a mailed letter. Open Debt → Litigation → Hearing step.',
+        );
+        return;
+      }
       if (!canGenerateDebtLetterBodies) {
         setDraftErr('Debt letter generation is locked. Grant Debt or Letters access, then click Generate letter.');
         return;
@@ -3205,6 +3211,12 @@ useEffect(() => {
     setDraftErr(null);
     try {
       persistDebtSenderSnapshot();
+      if (catalogId === 'court_courtroom_day_kit' || catalogId === 'courtroom_day_kit') {
+        setDraftErr(
+          'Court-day kit is hearing guidance in Litigation Command — not a mailed letter. Open Debt → Litigation → Hearing step.',
+        );
+        return;
+      }
       if (!canGenerateDebtLetterBodies) {
         setDraftErr('Debt letter generation is locked. Grant Debt or Letters access, then click Generate letter.');
         return;

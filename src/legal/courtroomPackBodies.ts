@@ -1,7 +1,10 @@
 import type { DebtLetterBuildArgs } from './debtLetterBuildArgs';
 import { resolveLetterMailRecipient } from '../lib/letterMailingAddress';
 
-/** Truthfulness reminder for editors — never a spoken "not legal advice" footer on mailed paper. */
+/**
+ * Integrity coach copy for UI chrome only (CourtroomIntegrityCoachBanner).
+ * Never prepend this to printable / mailable letter bodies.
+ */
 const INTEGRITY_PREAMBLE = `Delete any statement that is not truthful. Do not deny an account, transaction, signature, payment, or communication you know is genuine. Do not sign anything containing facts you cannot honestly state.`;
 
 function addrBlock(args: DebtLetterBuildArgs): string {
@@ -43,11 +46,9 @@ export function getCourtroomIntegrityPreamble(): string {
   return INTEGRITY_PREAMBLE;
 }
 
-/** Pretrial proof / production / preservation notice (educational template). */
+/** Pretrial proof / production / preservation notice — formal letter body only. */
 export function getCourtroomPretrialProofNoticeBody(args: DebtLetterBuildArgs): string {
-  return `${INTEGRITY_PREAMBLE}
-
-${addrBlock(args)}
+  return `${addrBlock(args)}
 
 Date: ${args.date || '{{date}}'}
 
@@ -94,20 +95,18 @@ Respectfully,
 ${args.debtorName || '{{defendantName}}'}`;
 }
 
-/** Written answer + certificate of service (contested-issues style — educational). Longer, stronger body for debt-buyer and bank suits. */
+/** Court answer letter + certificate of service — formal pleading body only (no coach copy). */
 export function getCourtroomWrittenAnswerBody(args: DebtLetterBuildArgs): string {
   const plaintiff = args.recipientName || args.creditorName || '{{plaintiffName}}';
   const amount = args.summonsContext?.amountClaimed || '{{amountClaimed}}';
   const account = args.accountNumber || '{{accountNumberMasked}}';
   const original = args.originalCreditorName || '{{originalCreditorName}}';
 
-  return `${INTEGRITY_PREAMBLE}
-
-${courtHeader(args)}
+  return `${courtHeader(args)}
 
 DEFENDANT'S ANSWER, AFFIRMATIVE DEFENSES, AND DEMAND FOR STRICT PROOF
 
-Comes now Defendant, ${args.debtorName || '{{defendantName}}'}, appearing pro se, and for Answer to Plaintiff's Complaint states as follows. Edit every admission to match Defendant's honest knowledge and local rules. Delete any sentence that is not truthful. Defendant does not waive any rights, defenses, or counterclaims.
+Comes now Defendant, ${args.debtorName || '{{defendantName}}'}, appearing pro se, and for Answer to Plaintiff's Complaint states as follows. Defendant does not waive any rights, defenses, or counterclaims.
 
 I. INTRODUCTION AND PRESERVATION
 
@@ -121,7 +120,7 @@ II. GENERAL DENIAL
 
 4. Except for those allegations expressly and specifically admitted below, Defendant denies each and every allegation in the Complaint, including any prayer for interest, fees, costs, or attorney fees, and denies that Plaintiff is entitled to any relief.
 
-III. SPECIFIC RESPONSES (EDIT TO MATCH HONEST KNOWLEDGE)
+III. SPECIFIC RESPONSES
 
 5. As to Plaintiff's identity and capacity: Defendant lacks sufficient information to admit that Plaintiff is the current owner of the specific receivable sued upon and therefore denies standing to the extent not proven with account-level writings.
 
@@ -138,7 +137,6 @@ III. SPECIFIC RESPONSES (EDIT TO MATCH HONEST KNOWLEDGE)
 11. As to any allegation Defendant cannot honestly admit or deny after reasonable inquiry: Defendant denies on information and belief and demands strict proof.
 
 IV. AFFIRMATIVE DEFENSES
-(Assert only those that apply in your jurisdiction and facts. Strike those that do not.)
 
 FIRST DEFENSE — Failure to state a claim upon which relief can be granted.
 
@@ -146,17 +144,17 @@ SECOND DEFENSE — Lack of standing / failure to prove real party in interest fo
 
 THIRD DEFENSE — Failure to prove account stated, breach of contract, or other pleaded theory with competent evidence.
 
-FOURTH DEFENSE — Statute of limitations (state the correct SOL and last-activity date you contend applies).
+FOURTH DEFENSE — Statute of limitations.
 
 FIFTH DEFENSE — Failure of consideration / failure to prove the terms allegedly owed.
 
-SIXTH DEFENSE — Payment, credit, setoff, settlement, or other reduction not properly applied (if applicable).
+SIXTH DEFENSE — Payment, credit, setoff, settlement, or other reduction not properly applied.
 
-SEVENTH DEFENSE — Unclean hands / estoppel / waiver (if supported by facts).
+SEVENTH DEFENSE — Unclean hands / estoppel / waiver.
 
 EIGHTH DEFENSE — Hearsay and lack of foundation bar Plaintiff's affidavit-based proof.
 
-NINTH DEFENSE — FDCPA and/or state collection-law violations, including misleading representations or failure to validate where applicable (plead with facts if asserting affirmative claims).
+NINTH DEFENSE — FDCPA and/or state collection-law violations, including misleading representations or failure to validate where applicable.
 
 TENTH DEFENSE — Failure to mitigate; improper fees or interest; and any other defense available under law or equity.
 
@@ -204,65 +202,98 @@ _______________________________
 ${args.debtorName || '{{defendantName}}'}`;
 }
 
-/** Court-day kit: opening, witness questions, objections, closing, checklist. */
-export function getCourtroomDayKitBody(args: DebtLetterBuildArgs): string {
-  return `${INTEGRITY_PREAMBLE}
+export type CourtroomDayKitSection = {
+  id: string;
+  title: string;
+  lines: string[];
+};
 
-COURT-DAY KIT — ${args.debtorName || '{{defendantName}}'}
-Case: ${args.caseNumber || '{{caseNumber}}'} · Court: ${args.summonsContext?.courtName || '{{courtName}}'}
-Trial date: {{trialDate}}
+/**
+ * Court-day kit — UI / hearing-step guidance ONLY.
+ * Never write this into a vault letter body or mailed PDF.
+ */
+export function getCourtroomDayKitGuidance(args?: Partial<DebtLetterBuildArgs>): {
+  heading: string;
+  meta: string;
+  sections: CourtroomDayKitSection[];
+} {
+  const name = args?.debtorName || 'Defendant';
+  const caseNo = args?.caseNumber || '—';
+  const court = args?.summonsContext?.courtName || '—';
+  return {
+    heading: `Court-day kit — ${name}`,
+    meta: `Case: ${caseNo} · Court: ${court}`,
+    sections: [
+      {
+        id: 'opening',
+        title: 'Opening (30–60 seconds)',
+        lines: [
+          `"Your Honor, I am ${name}, appearing pro se. I dispute this claim because Plaintiff has not produced account-level proof of ownership, contract, and balance. I ask the Court to require competent evidence before any judgment."`,
+        ],
+      },
+      {
+        id: 'witness',
+        title: 'Witness questions (ask only what you need; be truthful)',
+        lines: [
+          'Standing / ownership: "Are you employed by the plaintiff or a servicer?" · "Did you review the complete assignment chain for THIS account number?" · "Can you identify the exhibit that lists my specific account in the pool sale?"',
+          'Contract / signature: "Do you have the original agreement with the defendant\'s signature?" · "If electronic, what records prove acceptance tied to this account?"',
+          'Balance / ledger: "What is the itemized ledger from inception?" · "Show every payment credited and every fee assessed."',
+          'Affidavit foundation: "Did you personally review the business records, or are you a surrogate signer?" · "What is your title and daily duties regarding this account?"',
+          'Securitization (if applicable): "Was this account sold to a trust? Who receives payments today?"',
+          'FDCPA / collector status (if applicable): "Is Plaintiff a debt collector under 15 U.S.C. § 1692a(6) for this account?"',
+        ],
+      },
+      {
+        id: 'objections',
+        title: 'Objection phrases',
+        lines: [
+          '"Objection, hearsay — no personal knowledge."',
+          '"Objection, lack of foundation for business records."',
+          '"Objection, calls for speculation."',
+          '"Objection, beyond scope."',
+        ],
+      },
+      {
+        id: 'closing',
+        title: 'Closing (30 seconds)',
+        lines: [
+          '"Plaintiff has not met its burden on standing, contract, and amount. I respectfully ask the Court to deny judgment or dismiss."',
+        ],
+      },
+      {
+        id: 'checklist',
+        title: 'Bring to hearing',
+        lines: [
+          'Photo ID + copy of Answer filed',
+          'Copies of discovery requests & responses',
+          'Your ledger/records (honest facts only)',
+          'Bureau tradeline screenshots (if reporting dispute related)',
+          'Calendar with answer & trial dates',
+          'Pen + notepad; speak slowly; wait for ruling on objections',
+        ],
+      },
+      {
+        id: 'phrases',
+        title: 'Court-safe phrases',
+        lines: [
+          '"I dispute the amount and ownership until account-level proof is shown."',
+          '"I am not admitting liability; I am challenging foundation and standing."',
+          '"May I approach with Exhibit ___?"',
+          'Do not admit you "owe" the amount if you genuinely dispute it.',
+          'Do not guess dates, balances, or signatures.',
+          'Do not argue securitization myths — stick to missing account-level proof.',
+        ],
+      },
+    ],
+  };
+}
 
-── OPENING (30–60 seconds) ──
-"Your Honor, I am ${args.debtorName || 'the defendant'}, appearing pro se. I dispute this claim because Plaintiff has not produced account-level proof of ownership, contract, and balance. I ask the Court to require competent evidence before any judgment."
-
-── WITNESS QUESTIONS (ask only what you need; be truthful) ──
-A. Standing / ownership
-   - "Are you employed by the plaintiff or a servicer?"
-   - "Did you review the complete assignment chain for THIS account number?"
-   - "Can you identify the exhibit that lists my specific account in the pool sale?"
-
-B. Contract / signature
-   - "Do you have the original agreement with the defendant's signature?"
-   - "If electronic, what records prove acceptance tied to this account?"
-
-C. Balance / ledger
-   - "What is the itemized ledger from inception?"
-   - "Show every payment credited and every fee assessed."
-
-D. Affidavit foundation
-   - "Did you personally review the business records, or are you a surrogate signer?"
-   - "What is your title and daily duties regarding this account?"
-
-E. Securitization (if applicable)
-   - "Was this account sold to a trust? Who receives payments today?"
-
-F. FDCPA / collector status (if applicable)
-   - "Is Plaintiff a debt collector under 15 U.S.C. § 1692a(6) for this account?"
-
-── OBJECTION PHRASES ──
-- "Objection, hearsay — no personal knowledge."
-- "Objection, lack of foundation for business records."
-- "Objection, calls for speculation."
-- "Objection, beyond scope."
-
-── CLOSING (30 seconds) ──
-"Plaintiff has not met its burden on standing, contract, and amount. I respectfully ask the Court to deny judgment or dismiss."
-
-── CHECKLIST ──
-☐ Photo ID + copy of Answer filed
-☐ Copies of discovery requests & responses
-☐ Your ledger/records (honest facts only)
-☐ Bureau tradeline screenshots (if reporting dispute related)
-☐ Calendar with answer & trial dates
-☐ Pen + notepad; speak slowly; wait for ruling on objections
-
-── WHAT NOT TO SAY ──
-✗ Do not admit you "owe" the amount if you genuinely dispute it
-✗ Do not guess dates, balances, or signatures
-✗ Do not argue securitization myths — stick to missing account-level proof
-
-── WHAT TO SAY ──
-✓ "I dispute the amount and ownership until account-level proof is shown."
-✓ "I am not admitting liability; I am challenging foundation and standing."
-✓ "May I approach with Exhibit ___?"`;
+/**
+ * @deprecated Kit is UI-only. Use getCourtroomDayKitGuidance() in Litigation Command.
+ * Throws so it cannot become a mailed letter / vault PDF body.
+ */
+export function getCourtroomDayKitBody(_args: DebtLetterBuildArgs): string {
+  throw new Error(
+    'Court-day kit is hearing guidance in Litigation Command — not a mailed letter. Open the Hearing step kit card instead.',
+  );
 }

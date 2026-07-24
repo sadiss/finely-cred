@@ -68,9 +68,9 @@ If LetterStream account is still in vendor **TEST mode**, turn it off in the Let
 
 Stronger response letter bodies: courtroom written answer, post-suit validation, debt-buyer affidavits (Letter Studio / Debt catalog).
 
-**Intelligent letter suggestions (Litigation Command Step 3 + Validation):** amber/fuchsia **glowy** primary CTA **Generate letter** (title + WHY) — click calls the real catalog path (`generateCatalogLetterBody` / LettersCommandCenter `buildCatalogDraft`), creates a vault draft with merge fields + correct TO, and opens **DebtLetterPreview** (paper) for edit. **Generate letter actually creates the draft** — not instructional text. Failures / missing recipient show a clear rose error (no silent fail). Debt-lane partners can generate without Template library entitlement. Driven by case type, debt-buyer pattern, hearing proximity, missing fields, scenario pack, and existing catalog IDs (no catalog duplication). Address IQ fills empty TO from scrape + known firm/collector/attorney directory + tradelines; partner address never used as TO; Sender→Date→Recipient once each.
+**Intelligent letter suggestions (Litigation Command Step 3 + Validation):** compact-luxury **Generate** CTAs with product badges — **Court answer letter** / **Validation letter** / **Affidavit** (plus WHY in the card). Click → real catalog path (`generateCatalogLetterBody` / `buildCatalogDraft`) → vault draft + **DebtLetterPreview**. **Letters are pure documents; guidance is UI-only.** Court-day kit opens Hearing-step card only (never vault/mail PDF). Failures / missing recipient show rose error. Address IQ fills empty TO from scrape + firm directory; partner address never used as TO.
 
-**Letter address layout (critical):** Sender (partner) once → Date → Recipient (firm / collector / creditor mailing) once → Re → body. Never repeat partner address as TO. Never invent `@finelycred*` / `@finely.local` partner emails. No email/SSN/DOB and no “not legal advice / results vary” footers inside mailed letter bodies (UI chrome only).
+**Letter purity (critical):** Letters = pure documents (Sender → Date → Recipient → Re → formal prose). Steps, coaching, kit scripts, admin notes, and “what to do next” stay in UI chrome only — never inside the printable/mailable body.
 
 ---
 
