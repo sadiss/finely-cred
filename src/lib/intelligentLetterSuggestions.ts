@@ -172,22 +172,8 @@ export function buildIntelligentLetterSuggestions(args: {
   const whyBase = (parts: string[]) => parts.filter(Boolean).join(' ');
 
   if (track === 'litigation' || debt?.type === 'summons' || scenario === 'summons_served' || scenario === 'post_35_days') {
-    // Hearing proximity — kit is UI hearing card, not a mailed letter
-    if (daysLeft <= 3 && daysLeft >= 0) {
-      push({
-        letterType: 'courtroom_day_kit',
-        catalogId: 'court_courtroom_day_kit',
-        title: titleFor('courtroom_day_kit', 'court_courtroom_day_kit'),
-        why: whyBase([
-          `Hearing is ${daysLeft === 0 ? 'today' : `in ${daysLeft} day${daysLeft === 1 ? '' : 's'}`}.`,
-          'Open the court-day kit hearing card (UI only) — opening, five-gate questions, checklist. Not a mailed letter.',
-        ]),
-        urgency: 'critical',
-        uiOnly: true,
-      });
-    }
-
-    // Buyer-pattern priorities first
+    // Buyer-pattern letter priorities FIRST — Generate must always create a real letter.
+    // Court-day kit is UI-only and must never steal the primary Generate CTA.
     for (const lt of buyerIntel.letterPriorities) {
       const entry = catalogForLetterType(lt as DebtLetterType);
       const urgency: RankedLetterSuggestion['urgency'] =
@@ -215,8 +201,9 @@ export function buildIntelligentLetterSuggestions(args: {
       });
     }
 
-    // Stage catalog IDs
+    // Stage catalog IDs (skip kit — kit is never a Generate letter target)
     for (const catalogId of stage.catalogIds) {
+      if (catalogId.includes('day_kit')) continue;
       const entry = catalogEntryById(catalogId);
       push({
         letterType: entry?.letterType,
@@ -231,8 +218,9 @@ export function buildIntelligentLetterSuggestions(args: {
       });
     }
 
-    // Scenario pack
+    // Scenario pack (letters only)
     for (const lt of scenarioRec?.recommendedLetterTypes || []) {
+      if (String(lt).includes('day_kit')) continue;
       const entry = catalogForLetterType(lt);
       push({
         letterType: lt,
@@ -244,6 +232,23 @@ export function buildIntelligentLetterSuggestions(args: {
           entry?.keyPrinciple || DEBT_LETTER_SPECS.find((s) => s.id === lt)?.keyPrinciple || '',
         ]),
         urgency: scenario === 'summons_served' ? 'high' : 'normal',
+      });
+    }
+
+    // Hearing kit as a secondary alternative only — never primary Generate
+    if (daysLeft <= 14 && daysLeft >= 0) {
+      push({
+        letterType: 'courtroom_day_kit',
+        catalogId: 'court_courtroom_day_kit',
+        title: titleFor('courtroom_day_kit', 'court_courtroom_day_kit'),
+        why: whyBase([
+          daysLeft <= 3
+            ? `Hearing is ${daysLeft === 0 ? 'today' : `in ${daysLeft} day${daysLeft === 1 ? '' : 's'}`}.`
+            : `Hearing in ${daysLeft} days.`,
+          'Open the court-day kit on the Hearing step (UI scripts only — not a mailed letter).',
+        ]),
+        urgency: daysLeft <= 3 ? 'critical' : 'normal',
+        uiOnly: true,
       });
     }
   } else if (track === 'validation') {
@@ -326,16 +331,20 @@ export function buildIntelligentLetterSuggestions(args: {
     });
   }
 
-  const all = Array.from(bag.values()).map((s, i) => ({ ...s, rank: i + 1, primary: i === 0 }));
+  // Prefer a real letter as primary — never a UI-only kit on the Generate button
+  const ordered = Array.from(bag.values());
+  const letterFirst = [
+    ...ordered.filter((s) => !s.uiOnly && s.productKind !== 'hearing_kit_ui'),
+    ...ordered.filter((s) => s.uiOnly || s.productKind === 'hearing_kit_ui'),
+  ];
+  const all = letterFirst.map((s, i) => ({ ...s, rank: i + 1, primary: i === 0 }));
   const primary = all[0]!;
   const alternatives = all.slice(1, 5);
 
   const headline =
     track === 'litigation'
       ? daysLeft <= 3 && daysLeft >= 0
-        ? primary.uiOnly
-          ? 'Open court-day kit next — UI only, not a letter'
-          : 'Generate court answer letter next — hearing is imminent'
+        ? 'Generate court answer letter next — hearing is imminent'
         : args.hasAnswerDraft
           ? 'Generate affidavit or next court letter'
           : 'Generate court answer letter next'
@@ -344,7 +353,7 @@ export function buildIntelligentLetterSuggestions(args: {
         : 'Generate letter next';
 
   return {
-    track: args.track,
+    track,
     headline,
     patternLabel: buyerIntel.patternId !== 'unknown' ? buyerIntel.label : scenarioRec?.label,
     primary,

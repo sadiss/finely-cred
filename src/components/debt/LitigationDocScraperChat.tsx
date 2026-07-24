@@ -312,7 +312,7 @@ export function LitigationDocScraperChat({
               type="button"
               disabled={!partnerId || busy}
               onClick={applyToCase}
-              className={`${FINELY_OS_PRIMARY_BTN} !min-h-[3rem] !text-sm !font-extrabold !px-5`}
+              className={`${FINELY_OS_PRIMARY_BTN} disabled:opacity-60`}
             >
               <Sparkles size={16} /> Apply to case — fill ALL empty fields
             </button>
@@ -321,7 +321,7 @@ export function LitigationDocScraperChat({
               type="button"
               disabled={busy}
               onClick={() => inputRef.current?.click()}
-              className={`${FINELY_OS_PRIMARY_BTN} !min-h-[3rem] !text-sm !font-extrabold !px-5`}
+              className={`${FINELY_OS_PRIMARY_BTN} disabled:opacity-60`}
             >
               <Upload size={16} /> Choose file to scrape
             </button>

@@ -27,18 +27,19 @@ export function classifyLetterProduct(args: {
     return 'hearing_kit_ui';
   }
   if (id.includes('affidavit') || id.includes('counter_affidavit')) return 'affidavit';
+  if (id.includes('discovery') || id.includes('compel') || id.includes('interrogator') || id.includes('rfa')) {
+    return 'discovery';
+  }
   if (
     id.includes('written_answer') ||
     id.includes('summons_response') ||
     id.includes('motion_') ||
     id.includes('counterclaim') ||
     id.includes('pretrial_proof') ||
-    (track === 'litigation' && (id.includes('court') || id.includes('answer')))
+    id.includes('courtroom_') ||
+    (track === 'litigation' && id.includes('answer'))
   ) {
     return 'court_filing';
-  }
-  if (id.includes('discovery') || id.includes('compel') || id.includes('interrogator') || id.includes('rfa')) {
-    return 'discovery';
   }
   if (
     id.includes('validation') ||

@@ -277,14 +277,26 @@ export function AffidavitCourtCenterView({
   );
 
   const buildSuggestedLetter = (args: { letterType?: DebtLetterType; catalogId?: string }) => {
+    // Kit is never generated as a vault letter — open Hearing-step card instead.
     if (isCourtDayKitId(args.catalogId) || args.letterType === 'courtroom_day_kit') {
       openHearingKit();
       return;
     }
-    // Single generation path — catalog first (full merge fields + correct TO), else legacy type.
-    if (args.catalogId && onBuildCatalogDraft) onBuildCatalogDraft(args.catalogId);
-    else if (args.letterType) onBuildDraft(args.letterType);
-    if (args.letterType === 'courtroom_written_answer' || args.catalogId === 'court_courtroom_written_answer') {
+    // Prefer catalog path (full merge + TO IQ). Fall back to letter type, then court answer.
+    if (args.catalogId && onBuildCatalogDraft) {
+      onBuildCatalogDraft(args.catalogId);
+    } else if (args.letterType && onBuildDraft) {
+      onBuildDraft(args.letterType);
+    } else if (onBuildCatalogDraft) {
+      onBuildCatalogDraft('court_courtroom_written_answer');
+    } else if (onBuildDraft) {
+      onBuildDraft('courtroom_written_answer');
+    }
+    if (
+      args.letterType === 'courtroom_written_answer' ||
+      args.catalogId === 'court_courtroom_written_answer' ||
+      (!args.catalogId && !args.letterType)
+    ) {
       setBuiltAnswer(true);
     }
     if (
@@ -396,22 +408,36 @@ export function AffidavitCourtCenterView({
               <button
                 type="button"
                 disabled={generateBusy}
-                className={`${FINELY_OS_PRIMARY_BTN} mt-2 !bg-amber-400 !text-black shadow-[0_0_28px_rgba(251,191,36,0.45)] hover:!brightness-110 disabled:opacity-60`}
-                onClick={() =>
+                className={`${FINELY_OS_PRIMARY_BTN} mt-2 !bg-amber-400 !text-black hover:!brightness-110 disabled:opacity-60`}
+                onClick={() => {
+                  const target =
+                    letterSuggestions.primary.uiOnly || letterSuggestions.primary.productKind === 'hearing_kit_ui'
+                      ? letterSuggestions.all.find((s) => !s.uiOnly && s.productKind !== 'hearing_kit_ui') || {
+                          letterType: 'courtroom_written_answer' as DebtLetterType,
+                          catalogId: 'court_courtroom_written_answer',
+                        }
+                      : letterSuggestions.primary;
                   buildSuggestedLetter({
-                    letterType: letterSuggestions.primary.letterType,
-                    catalogId: letterSuggestions.primary.catalogId,
-                  })
-                }
+                    letterType: target.letterType,
+                    catalogId: target.catalogId,
+                  });
+                }}
               >
-                {generateBusy ? <Loader2 size={18} className="animate-spin" /> : <FileText size={18} />}
-                {generateBusy ? 'Generating…' : letterSuggestions.primary.generateLabel}
+                {generateBusy ? <Loader2 size={14} className="animate-spin" /> : <FileText size={14} />}
+                {generateBusy
+                  ? 'Generating…'
+                  : letterSuggestions.primary.uiOnly
+                    ? 'Generate court answer letter'
+                    : letterSuggestions.primary.generateLabel}
               </button>
             ) : null}
             {generateError ? (
-              <p role="alert" className="mt-1.5 text-xs font-semibold text-rose-200 max-w-xl">
+              <div
+                role="alert"
+                className="mt-2 rounded-xl border border-rose-400/50 bg-rose-500/20 px-3 py-2 text-xs font-semibold text-rose-50 max-w-xl"
+              >
                 {generateError}
-              </p>
+              </div>
             ) : null}
           </div>
           <div className="flex flex-wrap items-end gap-2">

@@ -54,11 +54,25 @@ export function IntelligentLetterSuggestionsPanel({
     el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     el?.classList.add('fc-suggest-hit');
     window.setTimeout(() => el?.classList.remove('fc-suggest-hit'), 1600);
+    // Hearing kit is UI-only — never call the letter generator for it.
     if (s.uiOnly || s.productKind === 'hearing_kit_ui') {
-      onOpenHearingKit?.();
+      if (onOpenHearingKit) {
+        onOpenHearingKit();
+        return;
+      }
+      // No kit handler (e.g. Validation track) — generate the next real letter instead.
+      const letterAlt =
+        suggestions.all.find((x) => !x.uiOnly && x.productKind !== 'hearing_kit_ui') || null;
+      if (letterAlt) {
+        onBuild({ letterType: letterAlt.letterType, catalogId: letterAlt.catalogId });
+        return;
+      }
       return;
     }
-    onBuild({ letterType: s.letterType, catalogId: s.catalogId });
+    onBuild({
+      letterType: s.letterType,
+      catalogId: s.catalogId || (s.letterType ? undefined : 'court_courtroom_written_answer'),
+    });
   };
 
   const glowAccent = accent === 'emerald' ? 'emerald' : accent === 'sky' ? 'sky' : accent === 'violet' ? 'violet' : 'fuchsia';

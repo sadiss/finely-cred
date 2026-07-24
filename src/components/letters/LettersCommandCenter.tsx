@@ -47,6 +47,7 @@ import { BankruptcyLetterStudioPanel } from './BankruptcyLetterStudioPanel';
 import { ForeclosureCenterView } from '../debt/ForeclosureCenterView';
 import { RepossessionCenterView } from '../debt/RepossessionCenterView';
 import { generateCatalogLetterBody } from '../../legal/generateCatalogLetter';
+import { catalogEntryById } from '../../legal/debtLetterCatalog';
 import { DebtLetterRichDraftWorkspace } from './DebtLetterPreview';
 import { SmartProofUploader } from '../evidence/SmartProofUploader';
 import { DEBT_LETTER_SPECS, SCENARIO_RECOMMENDATIONS, recommendScenarioFromDebt, getLetterBody } from '../../legal/debtLetterTemplates';
@@ -3167,6 +3168,7 @@ useEffect(() => {
       previewKey,
       letterId,
     });
+    // Ensure the modal paper preview is in view after Generate (never silent success).
     window.setTimeout(() => {
       document.getElementById('fc-letter-paper-preview')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }, 80);
@@ -3178,8 +3180,17 @@ useEffect(() => {
     try {
       persistDebtSenderSnapshot();
       if (specId === 'courtroom_day_kit') {
-        setDraftErr(
-          'Court-day kit is hearing guidance in Litigation Command — not a mailed letter. Open Debt → Litigation → Hearing step.',
+        // Never fail silently — generate the court answer letter instead of a kit PDF.
+        const mergeArgs = buildDebtLetterArgs();
+        const baseText = getLetterBody('courtroom_written_answer', mergeArgs);
+        openGeneratedDebtDraft({
+          track: 'court',
+          specId: 'courtroom_written_answer',
+          catalogId: 'court_courtroom_written_answer',
+          bodyText: baseText,
+        });
+        setDraftNotice(
+          'Court-day kit stays on the Hearing step (UI only). Generated your court answer letter instead.',
         );
         return;
       }
@@ -3200,7 +3211,9 @@ useEffect(() => {
         bodyText: baseText,
       });
     } catch (e: any) {
-      setDraftErr(e?.message || 'Failed to generate letter. Check case fields and try again.');
+      const msg = e?.message || 'Failed to generate letter. Check case fields and try again.';
+      setDraftErr(msg);
+      console.error('[Generate letter]', msg, e);
     } finally {
       setGenerateBusy(false);
     }
@@ -3211,11 +3224,15 @@ useEffect(() => {
     setDraftErr(null);
     try {
       persistDebtSenderSnapshot();
-      if (catalogId === 'court_courtroom_day_kit' || catalogId === 'courtroom_day_kit') {
-        setDraftErr(
-          'Court-day kit is hearing guidance in Litigation Command — not a mailed letter. Open Debt → Litigation → Hearing step.',
+      // Kit IDs must not block Generate — fall through to court answer letter.
+      const resolvedCatalogId =
+        catalogId === 'court_courtroom_day_kit' || catalogId === 'courtroom_day_kit'
+          ? 'court_courtroom_written_answer'
+          : catalogId;
+      if (resolvedCatalogId !== catalogId) {
+        setDraftNotice(
+          'Court-day kit stays on the Hearing step (UI only). Generating your court answer letter instead.',
         );
-        return;
       }
       if (!canGenerateDebtLetterBodies) {
         setDraftErr('Debt letter generation is locked. Grant Debt or Letters access, then click Generate letter.');
@@ -3227,15 +3244,27 @@ useEffect(() => {
           'Recipient mailing address is missing. Confirm the firm / collector TO address on the case, then Generate letter again.',
         );
       }
-      const baseText = generateCatalogLetterBody(catalogId, mergeArgs);
+      let baseText = '';
+      try {
+        baseText = generateCatalogLetterBody(resolvedCatalogId, mergeArgs);
+      } catch (inner: any) {
+        // Fall back to typed body when catalog path throws (e.g. mis-tagged kit).
+        const entry = catalogEntryById(resolvedCatalogId);
+        const fallbackType = (entry?.letterType ||
+          (track === 'court' ? 'courtroom_written_answer' : 'validation_request')) as DebtLetterType;
+        baseText = getLetterBody(fallbackType, mergeArgs);
+        if (!baseText?.trim()) throw inner;
+      }
       openGeneratedDebtDraft({
         track,
-        specId: catalogId,
-        catalogId,
+        specId: resolvedCatalogId,
+        catalogId: resolvedCatalogId,
         bodyText: baseText,
       });
     } catch (e: any) {
-      setDraftErr(e?.message || 'Failed to generate letter. Check case fields and try again.');
+      const msg = e?.message || 'Failed to generate letter. Check case fields and try again.';
+      setDraftErr(msg);
+      console.error('[Generate letter]', msg, e);
     } finally {
       setGenerateBusy(false);
     }
