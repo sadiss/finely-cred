@@ -2615,9 +2615,16 @@ useEffect(() => {
   };
 
   const buildDebtLetterArgs = () => {
-    const firm = debt?.plaintiffLawFirm || debt?.collectorName || debtPartyInfo?.collectorName;
+    const firm =
+      debt?.plaintiffLawFirm ||
+      debt?.collectorName ||
+      debtPartyInfo?.collectorName ||
+      debtPartyInfo?.recipientName;
     const firmAddress =
-      debt?.plaintiffLawFirmAddress || debt?.recipientAddress || debtPartyInfo?.recipientAddress || '';
+      debt?.plaintiffLawFirmAddress ||
+      debt?.recipientAddress ||
+      debtPartyInfo?.recipientAddress ||
+      '';
     const mailTo = resolveLetterMailRecipient({
       plaintiffLawFirm: firm,
       plaintiffLawFirmAddress: firmAddress,
@@ -2634,10 +2641,30 @@ useEffect(() => {
       senderCity: canonicalIdentity.city,
       senderPostalCode: canonicalIdentity.postalCode,
     });
+    // Persist directory / scrape TO onto the case when empty (never partner address)
+    if (
+      debt &&
+      !mailTo.missing &&
+      mailTo.source === 'directory' &&
+      !debt.plaintiffLawFirmAddress &&
+      !debt.recipientAddress
+    ) {
+      handleDebtIntelChange({
+        ...debt,
+        recipientName: debt.recipientName || mailTo.name,
+        recipientAddress: mailTo.address,
+        plaintiffLawFirm: debt.plaintiffLawFirm || firm || mailTo.name,
+        plaintiffLawFirmAddress: mailTo.address,
+      });
+    }
     if (mailTo.missing) {
       setDraftNotice(mailTo.missingReason || 'Fill the creditor / law firm mailing address before mailing.');
     } else {
-      setDraftNotice(null);
+      setDraftNotice(
+        mailTo.source === 'directory'
+          ? 'TO block filled from known firm / collector directory — verify before mailing.'
+          : null,
+      );
     }
     return {
       creditorName: mailTo.name,
@@ -2655,7 +2682,7 @@ useEffect(() => {
       recipientAddress: mailTo.address,
       caseNumber: (debt as any)?.courtCaseNumber,
       plaintiffLawFirm: firm || mailTo.name,
-      plaintiffLawFirmAddress: firmAddress || (mailTo.missing ? undefined : mailTo.address),
+      plaintiffLawFirmAddress: mailTo.missing ? undefined : mailTo.address,
       plaintiffAttorneyName: debt?.plaintiffAttorneyName,
       plaintiffAttorneyBarNumber: debt?.plaintiffAttorneyBarNumber,
       debtCollectorName: debt?.collectorName || debtPartyInfo?.collectorName,
@@ -2680,7 +2707,16 @@ useEffect(() => {
     };
   };
 
-  const [draft, setDraft] = useState<null | { type: 'validation' | 'court' | 'foreclosure' | 'repossession'; specId: DebtLetterType | string; catalogId?: string; html: string; evidenceId?: string }>(null);
+  const [draft, setDraft] = useState<null | {
+    type: 'validation' | 'court' | 'foreclosure' | 'repossession';
+    specId: DebtLetterType | string;
+    catalogId?: string;
+    html: string;
+    evidenceId?: string;
+    /** Forces paper preview when opened from suggestion / build CTAs */
+    preferPreview?: boolean;
+    previewKey?: string;
+  }>(null);
   const [draftBusy, setDraftBusy] = useState(false);
   const [draftErr, setDraftErr] = useState<string | null>(null);
   const [draftEvidencePickerOpen, setDraftEvidencePickerOpen] = useState(false);
@@ -3060,7 +3096,17 @@ useEffect(() => {
     const baseText = canSeeTemplates
       ? getLetterBody(specId, buildDebtLetterArgs())
       : `DATE: ${today}\n\nTO WHOM IT MAY CONCERN,\n\nI am writing regarding ${debt?.recipientName || debt?.name || 'this matter'}.\n\n[Write your request here.]\n\nSincerely,\n${canonicalIdentity.fullName}\n`;
-    setDraft({ specId, type: isCourt ? 'court' : 'validation', html: plainTextToHtml(baseText) });
+    const previewKey = `${isCourt ? 'court' : 'validation'}:${specId}:${Date.now()}`;
+    setDraft({
+      specId,
+      type: isCourt ? 'court' : 'validation',
+      html: plainTextToHtml(baseText),
+      preferPreview: true,
+      previewKey,
+    });
+    window.setTimeout(() => {
+      document.getElementById('fc-letter-paper-preview')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 80);
   };
 
   const buildCatalogDraft = (catalogId: string, track: 'validation' | 'court' | 'foreclosure' | 'repossession') => {
@@ -3068,7 +3114,18 @@ useEffect(() => {
     const baseText = canSeeTemplates
       ? generateCatalogLetterBody(catalogId, buildDebtLetterArgs())
       : `DATE: ${today}\n\n[Letter templates locked — upgrade to generate full drafts.]\n`;
-    setDraft({ specId: catalogId, catalogId, type: track, html: plainTextToHtml(baseText) });
+    const previewKey = `${track}:${catalogId}:${Date.now()}`;
+    setDraft({
+      specId: catalogId,
+      catalogId,
+      type: track,
+      html: plainTextToHtml(baseText),
+      preferPreview: true,
+      previewKey,
+    });
+    window.setTimeout(() => {
+      document.getElementById('fc-letter-paper-preview')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 80);
   };
 
   const debtCenterSenderFields = {
@@ -3656,7 +3713,9 @@ useEffect(() => {
                     accent={draft.type === 'court' ? 'fuchsia' : 'emerald'}
                     minHeightPx={280}
                     editorLabel="Edit letter"
-                    heroLayout={false}
+                    heroLayout={Boolean(draft.preferPreview)}
+                    initialView="preview"
+                    previewResetKey={draft.previewKey || `${draft.specId}:${draft.catalogId || ''}`}
                     showAddressChrome={false}
                   />
 
@@ -3731,17 +3790,28 @@ useEffect(() => {
                             state: canonicalIdentity.state,
                             postalCode: canonicalIdentity.postalCode,
                           }),
-                        toName:
-                          debt?.plaintiffLawFirm ||
-                          debt?.recipientName ||
-                          debtPartyInfo?.recipientName ||
-                          debt?.name ||
-                          'Creditor / Law firm',
-                        toLinesText:
-                          debt?.plaintiffLawFirmAddress ||
-                          debt?.recipientAddress ||
-                          debtPartyInfo?.recipientAddress ||
-                          '',
+                        ...(() => {
+                          const mailTo = resolveLetterMailRecipient({
+                            plaintiffLawFirm: debt?.plaintiffLawFirm || debtPartyInfo?.collectorName,
+                            plaintiffLawFirmAddress:
+                              debt?.plaintiffLawFirmAddress || debt?.recipientAddress || debtPartyInfo?.recipientAddress,
+                            recipientName: debt?.recipientName || debtPartyInfo?.recipientName || debt?.name,
+                            recipientAddress: debt?.recipientAddress || debtPartyInfo?.recipientAddress,
+                            debtCollectorName: debt?.collectorName || debtPartyInfo?.collectorName,
+                            collectorName: debt?.collectorName,
+                            creditorName: debt?.name,
+                            originalCreditorName: debt?.originalCreditor || debtPartyInfo?.originalCreditor,
+                            plaintiffAttorneyName: debt?.plaintiffAttorneyName,
+                            senderName: canonicalIdentity.fullName,
+                            senderAddress1: canonicalIdentity.address1 ?? canonicalIdentity.addressLine1,
+                            senderCity: canonicalIdentity.city,
+                            senderPostalCode: canonicalIdentity.postalCode,
+                          });
+                          return {
+                            toName: mailTo.name,
+                            toLinesText: mailTo.missing ? '' : mailTo.address,
+                          };
+                        })(),
                         subject: `Re: ${debt?.name || 'debt matter'}`,
                       }}
                       onChange={(patch) => {

@@ -9,12 +9,16 @@
  *   5) Body
  */
 
+import { lookupKnownCreditorFromCandidates } from './knownCreditorDirectory';
+
 export type LetterMailRecipient = {
   name: string;
   address: string;
   /** True when name or address still needs partner/admin fill before mail */
   missing: boolean;
   missingReason?: string;
+  /** Where the mailing address was resolved from */
+  source?: 'case' | 'directory' | 'missing';
 };
 
 export type LetterRecipientSource = {
@@ -59,9 +63,23 @@ export function looksLikeSenderAddress(candidate: string, source: LetterRecipien
   return false;
 }
 
+/** Strip a leading name line from an address block so TO never double-prints the firm. */
+export function dedupeRecipientAddressLines(name: string, address: string): string {
+  const n = clean(name);
+  const a = clean(address);
+  if (!n || !a) return a;
+  const lines = a.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+  if (lines.length === 0) return a;
+  if (norm(lines[0]!) === norm(n) || norm(lines[0]!).includes(norm(n)) || norm(n).includes(norm(lines[0]!))) {
+    return lines.slice(1).join('\n').trim() || a;
+  }
+  return a;
+}
+
 /**
  * Resolve the TO: block for debt / court / validation letters.
  * Prefers counsel/firm mailing address, then collector/creditor — never partner address.
+ * Falls back to known firm / collector / attorney directory when case fields are empty.
  */
 export function resolveLetterMailRecipient(source: LetterRecipientSource): LetterMailRecipient {
   const senderName = clean(source.senderName);
@@ -91,36 +109,75 @@ export function resolveLetterMailRecipient(source: LetterRecipientSource): Lette
     .filter(Boolean)
     .filter((a) => !looksLikeSenderAddress(a, source));
 
-  const address = addressCandidates[0] || '';
+  let address = addressCandidates[0] || '';
+  let addrSource: LetterMailRecipient['source'] = address ? 'case' : 'missing';
+  let directoryName = '';
 
-  if (!name && !address) {
+  // Directory IQ: firm / collector / attorney offices when scrape + case left TO blank
+  if (!address) {
+    const hit = lookupKnownCreditorFromCandidates([
+      source.plaintiffLawFirm,
+      source.plaintiffAttorneyName,
+      source.debtCollectorName,
+      source.collectorName,
+      source.recipientName,
+      source.creditorName,
+      source.debtName,
+      source.originalCreditorName,
+      name,
+    ]);
+    if (hit?.address && !looksLikeSenderAddress(hit.address, source)) {
+      address = hit.address;
+      addrSource = 'directory';
+      directoryName = hit.displayName;
+    }
+  }
+
+  const safeName = name || directoryName || MISSING_RECIPIENT;
+
+  // Never allow partner name as TO even if it was the only candidate
+  const finalName =
+    senderName && norm(safeName) === norm(senderName) ? MISSING_RECIPIENT : safeName;
+
+  if ((!finalName || finalName === MISSING_RECIPIENT) && !address) {
     return {
       name: MISSING_RECIPIENT,
       address: MISSING_ADDRESS,
       missing: true,
       missingReason: 'Add the creditor / law firm mailing address on the case before building or mailing.',
+      source: 'missing',
     };
   }
 
   if (!address) {
     return {
-      name: name || MISSING_RECIPIENT,
+      name: finalName || MISSING_RECIPIENT,
       address: MISSING_ADDRESS,
       missing: true,
       missingReason: 'Recipient name is set, but the creditor / firm mailing address is still blank.',
+      source: 'missing',
     };
   }
 
+  const deduped = dedupeRecipientAddressLines(finalName, address);
+
   return {
-    name: name || MISSING_RECIPIENT,
-    address,
-    missing: !name,
-    missingReason: !name ? 'Recipient name is missing — confirm plaintiff / firm on the case.' : undefined,
+    name: finalName || MISSING_RECIPIENT,
+    address: deduped,
+    missing: !finalName || finalName === MISSING_RECIPIENT,
+    missingReason:
+      !finalName || finalName === MISSING_RECIPIENT
+        ? 'Recipient name is missing — confirm plaintiff / firm on the case.'
+        : undefined,
+    source: addrSource,
   };
 }
 
 export function formatLetterRecipientBlock(rec: LetterMailRecipient): string {
-  return [rec.name, rec.address].filter(Boolean).join('\n');
+  const name = clean(rec.name);
+  const address = dedupeRecipientAddressLines(name, rec.address);
+  // One recipient block only — name once, then street lines (never partner)
+  return [name, address].filter(Boolean).join('\n');
 }
 
 /** One-line sender/debtor for Re: lines — never dump the full multi-line home address there. */

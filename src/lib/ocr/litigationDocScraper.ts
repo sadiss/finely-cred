@@ -5,7 +5,7 @@
  */
 
 import { extractPdfTextWithMeta } from '../../creditReports/parsePdfText';
-import { lookupKnownCreditor } from '../knownCreditorDirectory';
+import { lookupKnownCreditor, lookupKnownCreditorFromCandidates } from '../knownCreditorDirectory';
 
 export type LitigationDocKind =
   | 'docket'
@@ -374,17 +374,15 @@ function extractEntitiesFromText(text: string): {
 
   // Directory fallback for plaintiff / counsel / firm mailing address — never leave accessible data blank
   if (!entities.address) {
-    const candidates = [
+    const hit = lookupKnownCreditorFromCandidates([
       entities.plaintiffLawFirm,
       entities.counselName,
       entities.collectorName,
       entities.plaintiffAttorneyName,
       entities.creditorName,
       entities.plaintiffName,
-    ].filter(Boolean) as string[];
-    for (const name of candidates) {
-      const hit = lookupKnownCreditor(name);
-      if (!hit) continue;
+    ]);
+    if (hit) {
       entities.address = hit.address;
       entities.plaintiffLawFirmAddress = hit.address;
       if (hit.phone && !entities.phone) entities.phone = hit.phone;
@@ -402,7 +400,6 @@ function extractEntitiesFromText(text: string): {
           'Directory',
         )!,
       );
-      break;
     }
   }
 
@@ -706,12 +703,15 @@ export function debtPatchFromLitigationScrape(entities: Record<string, string>):
     entities.plaintiffLawFirm || entities.counselName || entities.collectorName || undefined;
   // Last-chance directory fill so Apply never leaves firm mailing blank when we know the firm
   let resolvedAddress = firmAddress;
-  if (!resolvedAddress && firm) {
-    const hit = lookupKnownCreditor(firm);
-    if (hit) resolvedAddress = hit.address;
-  }
-  if (!resolvedAddress && (entities.plaintiffName || entities.creditorName)) {
-    const hit = lookupKnownCreditor(entities.plaintiffName || entities.creditorName || '');
+  if (!resolvedAddress) {
+    const hit = lookupKnownCreditorFromCandidates([
+      firm,
+      entities.plaintiffAttorneyName,
+      entities.plaintiffName,
+      entities.creditorName,
+      entities.collectorName,
+      entities.originalCreditor,
+    ]);
     if (hit) resolvedAddress = hit.address;
   }
   return {

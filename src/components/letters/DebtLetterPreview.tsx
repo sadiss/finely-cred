@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Maximize2, Minimize2, ZoomIn, ZoomOut } from 'lucide-react';
 import { highlightMissingLetterPlaceholders } from '../../lib/letterSenderBlock';
 import { plainTextToHtml, sanitizeHtmlForPreview } from '../../utils/richText';
@@ -286,6 +286,9 @@ export function DebtLetterRichDraftWorkspace({
   minHeightPx = 280,
   heroLayout = false,
   showAddressChrome = false,
+  /** When this changes (e.g. new suggestion build), force paper preview into view. */
+  previewResetKey,
+  initialView,
 }: {
   html: string;
   onChangeHtml: (html: string) => void;
@@ -299,12 +302,21 @@ export function DebtLetterRichDraftWorkspace({
   heroLayout?: boolean;
   /** Keep false for debt/court letters — body already has Sender → Date → Recipient. */
   showAddressChrome?: boolean;
+  previewResetKey?: string;
+  initialView?: 'split' | 'edit' | 'preview';
 }) {
-  const [view, setView] = useState<'split' | 'edit' | 'preview'>(heroLayout ? 'preview' : 'edit');
+  const [view, setView] = useState<'split' | 'edit' | 'preview'>(
+    initialView || (heroLayout ? 'preview' : 'edit'),
+  );
+
+  useEffect(() => {
+    if (!previewResetKey && !heroLayout) return;
+    setView(initialView || 'preview');
+  }, [previewResetKey, heroLayout, initialView]);
 
   if (heroLayout) {
     return (
-      <div className="space-y-3">
+      <div id="fc-letter-paper-preview" className="space-y-3 scroll-mt-3">
         <DebtLetterPreview
           html={html}
           letterDate={letterDate}
@@ -326,9 +338,9 @@ export function DebtLetterRichDraftWorkspace({
   }
 
   return (
-    <div className="space-y-3">
+    <div id="fc-letter-paper-preview" className="space-y-3 scroll-mt-3">
       <div className="flex flex-wrap gap-1.5 p-1 rounded-xl border border-white/10 bg-black/25 w-fit">
-        {(['split', 'edit', 'preview'] as const).map((v) => (
+        {(['preview', 'split', 'edit'] as const).map((v) => (
           <button
             key={v}
             type="button"

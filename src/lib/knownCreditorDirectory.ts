@@ -129,6 +129,36 @@ export const KNOWN_CREDITOR_DIRECTORY: KnownCreditorEntry[] = [
     address: 'P.O. Box 965033\nOrlando, FL 32896',
     kind: 'bank',
   },
+  {
+    aliases: ['bank of america', 'bofa', 'boa '],
+    displayName: 'Bank of America, N.A.',
+    address: 'P.O. Box 982238\nEl Paso, TX 79998',
+    kind: 'bank',
+  },
+  {
+    aliases: ['uhg', 'uhg i', 'united holding group'],
+    displayName: 'UHG I LLC',
+    address: '200 Crossings Boulevard\nWarwick, RI 02886',
+    kind: 'debt_buyer',
+  },
+  {
+    aliases: ['rock creek capital'],
+    displayName: 'Rock Creek Capital, LLC',
+    address: '7950 Jones Branch Drive\nMcLean, VA 22102',
+    kind: 'debt_buyer',
+  },
+  {
+    aliases: ['sallie mae', 'navient', 'slm private education'],
+    displayName: 'Sallie Mae Bank',
+    address: 'P.O. Box 3319\nWilmington, DE 19804',
+    kind: 'bank',
+  },
+  {
+    aliases: ['timothy baxter', 'baxter law'],
+    displayName: 'Timothy Baxter & Associates',
+    address: '30057 Orchard Lake Road, Suite 200\nFarmington Hills, MI 48334',
+    kind: 'law_firm',
+  },
 ];
 
 function norm(s: string) {
@@ -143,6 +173,17 @@ export function lookupKnownCreditor(name: string): KnownCreditorEntry | null {
   if (!n || n.length < 3) return null;
   for (const entry of KNOWN_CREDITOR_DIRECTORY) {
     if (entry.aliases.some((a) => n.includes(norm(a)) || norm(a).includes(n))) return entry;
+  }
+  return null;
+}
+
+/** Try firm / collector / attorney / creditor names in priority order. */
+export function lookupKnownCreditorFromCandidates(
+  names: Array<string | null | undefined>,
+): KnownCreditorEntry | null {
+  for (const raw of names) {
+    const hit = lookupKnownCreditor(String(raw || ''));
+    if (hit) return hit;
   }
   return null;
 }
