@@ -35,6 +35,12 @@ export type DebtLetterPreviewProps = {
   accent?: 'emerald' | 'fuchsia' | 'sky' | 'violet';
   compact?: boolean;
   showToolbar?: boolean;
+  /**
+   * When false (default for full debt/court drafts), do NOT re-print sender/recipient
+   * above the body — the letter HTML already contains Sender → Date → Recipient once.
+   * Set true only for body-only dispute fragments that need chrome headers.
+   */
+  showAddressChrome?: boolean;
 };
 
 export function DebtLetterPreview({
@@ -47,6 +53,7 @@ export function DebtLetterPreview({
   accent = 'emerald',
   compact = false,
   showToolbar = true,
+  showAddressChrome = false,
 }: DebtLetterPreviewProps) {
   const [full, setFull] = useState(false);
   const [zoom, setZoom] = useState(1);
@@ -115,23 +122,23 @@ export function DebtLetterPreview({
             }`}
           >
             <div className={`${full ? 'p-10 sm:p-12' : 'p-6 sm:p-8'} h-full overflow-y-auto`}>
-              {(senderLines.length > 0 || letterDate) && (
+              {showAddressChrome && (senderLines.length > 0 || letterDate) ? (
                 <div className="mb-8 text-[11px] leading-relaxed text-black/85 font-serif border-b border-black/10 pb-6">
                   {senderLines.map((line, i) => (
                     <div key={i}>{line}</div>
                   ))}
                   {letterDate ? <div className="mt-4">{letterDate}</div> : null}
                 </div>
-              )}
+              ) : null}
 
-              {(recipientName || recipientAddress) && (
+              {showAddressChrome && (recipientName || recipientAddress) ? (
                 <div className="mb-8 text-[11px] leading-relaxed text-black/85 font-serif">
                   {recipientName ? <div className="font-semibold">{recipientName}</div> : null}
                   {recipientAddress ? (
                     <div className="whitespace-pre-wrap mt-1">{recipientAddress}</div>
                   ) : null}
                 </div>
-              )}
+              ) : null}
 
               {html?.trim() ? (
                 <div className="fc-paper-prose" dangerouslySetInnerHTML={{ __html: previewHtml }} />
@@ -278,6 +285,7 @@ export function DebtLetterRichDraftWorkspace({
   editorLabel = 'Letter editor',
   minHeightPx = 280,
   heroLayout = false,
+  showAddressChrome = false,
 }: {
   html: string;
   onChangeHtml: (html: string) => void;
@@ -289,8 +297,10 @@ export function DebtLetterRichDraftWorkspace({
   editorLabel?: string;
   minHeightPx?: number;
   heroLayout?: boolean;
+  /** Keep false for debt/court letters — body already has Sender → Date → Recipient. */
+  showAddressChrome?: boolean;
 }) {
-  const [view, setView] = useState<'split' | 'edit' | 'preview'>(heroLayout ? 'preview' : 'split');
+  const [view, setView] = useState<'split' | 'edit' | 'preview'>(heroLayout ? 'preview' : 'edit');
 
   if (heroLayout) {
     return (
@@ -303,9 +313,10 @@ export function DebtLetterRichDraftWorkspace({
           recipientAddress={recipientAddress}
           accent={accent}
           compact={false}
+          showAddressChrome={showAddressChrome}
         />
-        <details className="rounded-xl border border-white/10 bg-black/25 !p-3">
-          <summary className="cursor-pointer select-none text-sm font-semibold text-white">{editorLabel} — edit body</summary>
+        <details open className="rounded-xl border border-white/10 bg-black/25 !p-3">
+          <summary className="cursor-pointer select-none text-sm font-semibold text-white">Edit letter — full body editable</summary>
           <div className="mt-3">
             <RichTextEditor valueHtml={html} onChangeHtml={onChangeHtml} minHeightPx={minHeightPx} placeholder="Write your letter here…" />
           </div>
@@ -347,6 +358,7 @@ export function DebtLetterRichDraftWorkspace({
             recipientName={recipientName}
             recipientAddress={recipientAddress}
             accent={accent}
+            showAddressChrome={showAddressChrome}
           />
         ) : null}
       </div>

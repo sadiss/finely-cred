@@ -1,7 +1,8 @@
 import type { DebtLetterBuildArgs } from './debtLetterBuildArgs';
+import { resolveLetterMailRecipient } from '../lib/letterMailingAddress';
 
-const INTEGRITY_PREAMBLE = `EDUCATIONAL USE ONLY — NOT LEGAL ADVICE
-Delete any statement that is not truthful. Do not deny an account, transaction, signature, payment, or communication you know is genuine. Do not sign anything containing facts you cannot honestly state. Results vary.`;
+/** Truthfulness reminder for editors — never a spoken "not legal advice" footer on mailed paper. */
+const INTEGRITY_PREAMBLE = `Delete any statement that is not truthful. Do not deny an account, transaction, signature, payment, or communication you know is genuine. Do not sign anything containing facts you cannot honestly state.`;
 
 function addrBlock(args: DebtLetterBuildArgs): string {
   const lines = [
@@ -11,6 +12,23 @@ function addrBlock(args: DebtLetterBuildArgs): string {
     [args.debtorCity, args.debtorState, args.debtorPostalCode].filter(Boolean).join(', ') || '{{defendantCityStateZip}}',
   ].filter(Boolean);
   return lines.join('\n');
+}
+
+function counselBlock(args: DebtLetterBuildArgs): string {
+  const rec = resolveLetterMailRecipient({
+    plaintiffLawFirm: args.plaintiffLawFirm,
+    plaintiffLawFirmAddress: args.plaintiffLawFirmAddress,
+    recipientName: args.recipientName || args.creditorName,
+    recipientAddress: args.recipientAddress,
+    debtCollectorName: args.debtCollectorName,
+    creditorName: args.creditorName,
+    plaintiffAttorneyName: args.plaintiffAttorneyName,
+    senderName: args.debtorName,
+    senderAddress1: args.debtorAddress1,
+    senderCity: args.debtorCity,
+    senderPostalCode: args.debtorPostalCode,
+  });
+  return [rec.name, rec.address].filter(Boolean).join('\n');
 }
 
 function courtHeader(args: DebtLetterBuildArgs): string {
@@ -35,8 +53,7 @@ Date: ${args.date || '{{date}}'}
 
 Via Certified Mail — Return Receipt Requested
 
-${args.plaintiffLawFirm || args.recipientName || '{{opposingCounselName}}'}
-${args.plaintiffLawFirmAddress || args.recipientAddress || '{{opposingCounselAddress}}'}
+${counselBlock(args)}
 
 Re: ${courtHeader(args)}
      Pretrial Proof, Production & Preservation Notice
@@ -90,7 +107,7 @@ ${courtHeader(args)}
 
 DEFENDANT'S ANSWER, AFFIRMATIVE DEFENSES, AND DEMAND FOR STRICT PROOF
 
-Comes now Defendant, ${args.debtorName || '{{defendantName}}'}, appearing pro se, and for Answer to Plaintiff's Complaint states as follows. This Answer is educational in form and must be edited to match Defendant's honest knowledge and local rules. Delete any sentence that is not truthful. Defendant does not waive any rights, defenses, or counterclaims.
+Comes now Defendant, ${args.debtorName || '{{defendantName}}'}, appearing pro se, and for Answer to Plaintiff's Complaint states as follows. Edit every admission to match Defendant's honest knowledge and local rules. Delete any sentence that is not truthful. Defendant does not waive any rights, defenses, or counterclaims.
 
 I. INTRODUCTION AND PRESERVATION
 
@@ -179,8 +196,7 @@ CERTIFICATE OF SERVICE
 
 I certify that on ${args.date || '{{date}}'}, a true and correct copy of this Answer was served upon:
 
-${args.plaintiffLawFirm || '{{opposingCounselName}}'}
-${args.plaintiffLawFirmAddress || '{{opposingCounselAddress}}'}
+${counselBlock(args)}
 
 By: ☐ Certified Mail, Return Receipt Requested  ☐ Court's e-file / e-service  ☐ Hand delivery  ☐ First-class mail
 

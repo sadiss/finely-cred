@@ -3,19 +3,15 @@ import { fillLitigation } from './litigationLetterArgs';
 
 /** Post-suit validation + cease & desist (mini-Miranda / collection lawsuit) — stronger account-level demands. */
 export function getLitigationValidationCeaseDesistBody(args: LitigationLetterArgs): string {
-  const template = `{{DATE}}
+  const template = `{{DEBTOR_ADDRESS_BLOCK}}
 
-{{PLAINTIFF_NAME}}
-{{PLAINTIFF_ADDRESS}}
+Date: {{DATE}}
 
-{{PLAINTIFF_LAW_FIRM}}
-{{PLAINTIFF_LAW_FIRM_ADDRESS}}
+{{RECIPIENT_BLOCK}}
 
 VALIDATION, VERIFICATION, AND CEASE & DESIST DEMAND
-(Educational self-help · not legal advice · results vary)
 
-Re:	Name: {{DEBTOR_NAME}}
-	Address: {{DEBTOR_ADDRESS_BLOCK}}
+Re:	{{DEBTOR_RE_LINE}}
 	Account / reference: {{ACCOUNT_NUMBER}}
 	Case / claim: {{CASE_NUMBER}}
 	Amount claimed: {{AMOUNT_CLAIMED}}
@@ -53,21 +49,15 @@ ______________________________
 
 /** Assignment registry demand to originator/servicer. */
 export function getLitigationAssignmentRegistryBody(args: LitigationLetterArgs): string {
-  const template = `{{DATE}}
+  const template = `{{DEBTOR_ADDRESS_BLOCK}}
 
-{{ORIGINAL_CREDITOR}}
-{{PLAINTIFF_ADDRESS}}
+Date: {{DATE}}
 
-{{ORIGINAL_CREDITOR}}
-Loan Operations,
-P.O. Box [SERVICER PO BOX],
-[SERVICER CITY STATE ZIP]
+{{RECIPIENT_BLOCK}}
 
 VALIDATION AND CEASE AND DESIST
 
-		Re:	Name: {{DEBTOR_NAME}}
-			Address: {{DEBTOR_ADDRESS_BLOCK}}
-			Email Address: {{DEBTOR_EMAIL}}
+		Re:	{{DEBTOR_RE_LINE}}
 			LOAN ID: {{LOAN_ID}}
 			Borrower ID: {{BORROWER_ID}}
 
@@ -85,7 +75,7 @@ VALIDATION AND CEASE AND DESIST
 
 		See Attached for all sections of terms and conditions.
 
-		Please provide me with a file or proper format of a complete history and proof of the assignments of the debt or note with reference to {{PLAINTIFF_NAME}} listed in the Registry that you are required to keep. You may send electronically to my email address above or mail the information to me at my home address also listed above.
+		Please provide me with a file or proper format of a complete history and proof of the assignments of the debt or note with reference to {{PLAINTIFF_NAME}} listed in the Registry that you are required to keep. Please mail the information to me at my home address listed above.
 
 		Thank you for your immediate cooperation.
 

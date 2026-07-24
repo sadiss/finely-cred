@@ -12,7 +12,6 @@ function debtorBlock(args: DebtLetterBuildArgs): string {
     args.debtorAddress2,
     [args.debtorCity, args.debtorState, args.debtorPostalCode].filter(Boolean).join(', '),
     args.debtorPhone ? `Phone: ${args.debtorPhone}` : '',
-    args.debtorEmail ? `Email: ${args.debtorEmail}` : '',
   ].filter(Boolean);
   return lines.join('\n') || '[YOUR FULL NAME AND MAILING ADDRESS]';
 }
@@ -40,7 +39,7 @@ function collateralLine(args: DebtLetterBuildArgs): string {
 }
 
 function closing(args: DebtLetterBuildArgs): string {
-  return `This letter is educational consumer advocacy under the Fair Credit Reporting Act. It is not legal advice and does not create an attorney-client relationship. I reserve all rights, remedies, and defenses under federal and state law, including the right to escalate to the CFPB, state attorney general, and civil remedies under 15 U.S.C. § 1681n and § 1681o if inaccurate information continues to be reported after a reasonable opportunity to reinvestigate.
+  return `I reserve all rights, remedies, and defenses under federal and state law, including the right to escalate to the CFPB, state attorney general, and civil remedies under 15 U.S.C. § 1681n and § 1681o if inaccurate information continues to be reported after a reasonable opportunity to reinvestigate.
 
 Please confirm receipt and provide written results of your reinvestigation, including method of verification, within the time required by law.
 

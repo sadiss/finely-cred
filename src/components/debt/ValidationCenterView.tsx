@@ -14,6 +14,8 @@ import { LetterCatalogBrowser } from './LetterCatalogBrowser';
 import { PartnerDefenseKnowledgePanel } from './PartnerDefenseKnowledgePanel';
 import { DEBT_LETTER_SPECS, SCENARIO_RECOMMENDATIONS } from '../../legal/debtLetterTemplates';
 import { extractReportDebtSignals } from '../../lib/debtCreditorIntel';
+import { buildIntelligentLetterSuggestions } from '../../lib/intelligentLetterSuggestions';
+import { IntelligentLetterSuggestionsPanel } from '../letters/IntelligentLetterSuggestionsPanel';
 import { FinelyOsKpiGrid } from '../os/FinelyOsKpiGrid';
 import {
   FINELY_OS_COMPACT_PAGE,
@@ -77,6 +79,16 @@ export function ValidationCenterView({
   );
   const scenarioRec = SCENARIO_RECOMMENDATIONS.find((r) => r.scenario === recommendedScenario);
   const signals = React.useMemo(() => extractReportDebtSignals(reports), [reports]);
+  const letterSuggestions = React.useMemo(
+    () =>
+      buildIntelligentLetterSuggestions({
+        track: 'validation',
+        debt,
+        partner,
+        recommendedScenario,
+      }),
+    [debt, partner, recommendedScenario],
+  );
   const totalBalanceCents = signals.reduce((sum, s) => sum + (s.balanceCents ?? 0), 0);
   const totalBalanceLabel =
     totalBalanceCents > 0
@@ -161,7 +173,15 @@ export function ValidationCenterView({
         compact
       />
 
-      <div id="fc-debt-step-choose" className="scroll-mt-3">
+      <div id="fc-debt-step-choose" className="scroll-mt-3 space-y-3">
+        <IntelligentLetterSuggestionsPanel
+          suggestions={letterSuggestions}
+          accent="emerald"
+          onBuild={({ letterType, catalogId }) => {
+            if (letterType) onBuildDraft(letterType);
+            if (catalogId) onBuildCatalogDraft?.(catalogId);
+          }}
+        />
         <LetterCatalogBrowser
           category="validation"
           accent="emerald"

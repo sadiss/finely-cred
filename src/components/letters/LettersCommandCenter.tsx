@@ -101,6 +101,7 @@ import {
   resolveCityStateZip,
   senderPreviewLines,
 } from '../../lib/letterSenderBlock';
+import { resolveLetterMailRecipient } from '../../lib/letterMailingAddress';
 import { LetterEscalationPanel } from './LetterEscalationPanel';
 import { getCanonicalPartnerIdentity } from '../../utils/canonicalPartnerIdentity';
 import { bureauFullName, bureauShortCode } from '../../utils/bureaus';
@@ -2607,16 +2608,39 @@ useEffect(() => {
       state: canonicalIdentity.state,
       postalCode: canonicalIdentity.postalCode,
       phone: canonicalIdentity.phone,
-      email: partner.profile.email,
+      // Do not snapshot partner login email onto letter sender blocks.
+      email: undefined,
     });
     handleDebtIntelChange({ ...debt, senderSnapshot: snap });
   };
 
   const buildDebtLetterArgs = () => {
-    const recipientName = debt?.recipientName || debtPartyInfo?.recipientName || debt?.name || 'Creditor';
-    const recipientAddress = debt?.recipientAddress || debtPartyInfo?.recipientAddress;
+    const firm = debt?.plaintiffLawFirm || debt?.collectorName || debtPartyInfo?.collectorName;
+    const firmAddress =
+      debt?.plaintiffLawFirmAddress || debt?.recipientAddress || debtPartyInfo?.recipientAddress || '';
+    const mailTo = resolveLetterMailRecipient({
+      plaintiffLawFirm: firm,
+      plaintiffLawFirmAddress: firmAddress,
+      recipientName: debt?.recipientName || debtPartyInfo?.recipientName || debt?.name,
+      recipientAddress: debt?.recipientAddress || debtPartyInfo?.recipientAddress,
+      debtCollectorName: debt?.collectorName || debtPartyInfo?.collectorName,
+      collectorName: debt?.collectorName,
+      creditorName: debt?.name,
+      debtName: debt?.name,
+      originalCreditorName: debt?.originalCreditor || debtPartyInfo?.originalCreditor,
+      plaintiffAttorneyName: debt?.plaintiffAttorneyName,
+      senderName: canonicalIdentity.fullName,
+      senderAddress1: canonicalIdentity.address1 ?? canonicalIdentity.addressLine1,
+      senderCity: canonicalIdentity.city,
+      senderPostalCode: canonicalIdentity.postalCode,
+    });
+    if (mailTo.missing) {
+      setDraftNotice(mailTo.missingReason || 'Fill the creditor / law firm mailing address before mailing.');
+    } else {
+      setDraftNotice(null);
+    }
     return {
-      creditorName: recipientName,
+      creditorName: mailTo.name,
       debtorName: canonicalIdentity.fullName,
       date: letterDate,
       debtorAddress1: canonicalIdentity.address1 ?? canonicalIdentity.addressLine1,
@@ -2625,12 +2649,13 @@ useEffect(() => {
       debtorState: canonicalIdentity.state,
       debtorPostalCode: canonicalIdentity.postalCode,
       debtorPhone: canonicalIdentity.phone,
-      debtorEmail: partner.profile.email,
-      recipientName,
-      recipientAddress,
+      // Default: no email on letter paper (mailing address + name only).
+      debtorEmail: undefined,
+      recipientName: mailTo.name,
+      recipientAddress: mailTo.address,
       caseNumber: (debt as any)?.courtCaseNumber,
-      plaintiffLawFirm: debt?.plaintiffLawFirm || debt?.collectorName || debtPartyInfo?.collectorName,
-      plaintiffLawFirmAddress: debt?.plaintiffLawFirmAddress,
+      plaintiffLawFirm: firm || mailTo.name,
+      plaintiffLawFirmAddress: firmAddress || (mailTo.missing ? undefined : mailTo.address),
       plaintiffAttorneyName: debt?.plaintiffAttorneyName,
       plaintiffAttorneyBarNumber: debt?.plaintiffAttorneyBarNumber,
       debtCollectorName: debt?.collectorName || debtPartyInfo?.collectorName,
@@ -3054,7 +3079,8 @@ useEffect(() => {
     state: canonicalIdentity.state || '',
     postalCode: canonicalIdentity.postalCode || '',
     phone: canonicalIdentity.phone || '',
-    email: partner.profile.email || '',
+    // Letter sender UI: mailing identity only — never auto-fill login email onto paper.
+    email: '',
   };
 
   const debtCenterSharedProps = {
@@ -3612,28 +3638,26 @@ useEffect(() => {
                 ) : null}
 
                 <div id="fc-debt-step-draft" className="space-y-3 scroll-mt-3">
-                  {draftNotice ? <div className="rounded-xl border border-amber-500/25 bg-amber-500/10 p-3 text-[12px] text-white/75">{draftNotice}</div> : null}
-
+                  <div className="rounded-xl border border-amber-400/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-50/95 font-semibold">
+                    Edit letter — every field and the full body are editable before you save or mail.
+                  </div>
+                  {draftNotice ? (
+                    <div className="rounded-xl border border-rose-400/40 bg-rose-500/15 px-3 py-2 text-xs text-rose-50 space-y-1">
+                      <div className="font-bold">Recipient address required</div>
+                      <p>{draftNotice}</p>
+                      <p className="text-rose-100/80">
+                        Confirm parties on the case (firm / collector mailing address). We will never put your home address in the TO block.
+                      </p>
+                    </div>
+                  ) : null}
                   <DebtLetterRichDraftWorkspace
                     html={ensureHtmlDraft(draft.html || '')}
                     onChangeHtml={(html) => setDraft((prev) => (prev ? { ...prev, html } : prev))}
-                    letterDate={letterDate}
-                    senderLines={
-                      senderPreviewLines({
-                        name: senderName,
-                        addressLine1: senderAddressLine1,
-                        addressLine2: senderAddressLine2,
-                        cityStateZip: senderCityStateZip,
-                        city: canonicalIdentity.city,
-                        state: canonicalIdentity.state,
-                        postalCode: canonicalIdentity.postalCode,
-                      }).lines
-                    }
-                    recipientName={debt?.recipientName || debtPartyInfo?.recipientName || debt?.name}
-                    recipientAddress={debt?.recipientAddress || debtPartyInfo?.recipientAddress}
                     accent={draft.type === 'court' ? 'fuchsia' : 'emerald'}
-                    minHeightPx={240}
-                    heroLayout
+                    minHeightPx={280}
+                    editorLabel="Edit letter"
+                    heroLayout={false}
+                    showAddressChrome={false}
                   />
 
                   <details className="rounded-xl border border-white/10 bg-black/25 !p-3">
@@ -3707,8 +3731,17 @@ useEffect(() => {
                             state: canonicalIdentity.state,
                             postalCode: canonicalIdentity.postalCode,
                           }),
-                        toName: debt?.recipientName || debtPartyInfo?.recipientName || debt?.name || 'Creditor',
-                        toLinesText: debt?.recipientAddress || debtPartyInfo?.recipientAddress || '',
+                        toName:
+                          debt?.plaintiffLawFirm ||
+                          debt?.recipientName ||
+                          debtPartyInfo?.recipientName ||
+                          debt?.name ||
+                          'Creditor / Law firm',
+                        toLinesText:
+                          debt?.plaintiffLawFirmAddress ||
+                          debt?.recipientAddress ||
+                          debtPartyInfo?.recipientAddress ||
+                          '',
                         subject: `Re: ${debt?.name || 'debt matter'}`,
                       }}
                       onChange={(patch) => {

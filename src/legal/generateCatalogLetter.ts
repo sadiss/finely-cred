@@ -6,6 +6,8 @@ import { getForeclosureQualifiedWrittenRequestBody } from './specialized/foreclo
 import { getSecuritizationAnswerBody } from './specialized/securitizationBodies';
 import { getCounterclaimOutlineBody } from './specialized/counterclaimBodies';
 import { getCreditCollateralBureauBody } from './specialized/creditCollateralBureauBodies';
+import { scrubLetterBodyForMail } from '../lib/letterBodySafety';
+import { formatLetterRecipientBlock, resolveLetterMailRecipient } from '../lib/letterMailingAddress';
 
 const OUTLINE_SECTIONS: Record<string, (e: DebtLetterCatalogEntry, a: DebtLetterBuildArgs) => string> = {
   court_counterclaim_fdcpa: (_e, a) => getCounterclaimOutlineBody(a),
@@ -29,23 +31,37 @@ const OUTLINE_SECTIONS: Record<string, (e: DebtLetterCatalogEntry, a: DebtLetter
 };
 
 function genericOutline(e: DebtLetterCatalogEntry, args: DebtLetterBuildArgs): string {
-  const addr = [args.debtorAddress1, args.debtorAddress2, args.debtorCity, args.debtorState, args.debtorPostalCode]
-    .filter(Boolean)
-    .join(', ');
+  const senderLines = [
+    args.debtorName,
+    args.debtorAddress1,
+    args.debtorAddress2,
+    [args.debtorCity, args.debtorState, args.debtorPostalCode].filter(Boolean).join(', '),
+    args.debtorPhone ? `Phone: ${args.debtorPhone}` : '',
+  ].filter(Boolean);
+  const recipient = formatLetterRecipientBlock(
+    resolveLetterMailRecipient({
+      recipientName: args.recipientName,
+      recipientAddress: args.recipientAddress,
+      plaintiffLawFirm: args.plaintiffLawFirm,
+      plaintiffLawFirmAddress: args.plaintiffLawFirmAddress,
+      debtCollectorName: args.debtCollectorName,
+      creditorName: args.creditorName,
+      senderName: args.debtorName,
+      senderAddress1: args.debtorAddress1,
+      senderCity: args.debtorCity,
+      senderPostalCode: args.debtorPostalCode,
+    }),
+  );
   const laws = e.laws.join('; ');
   const when = e.whenToUse.map((w) => `• ${w}`).join('\n');
 
-  return `${args.debtorName}
-${addr || '[YOUR MAILING ADDRESS]'}
-${args.debtorPhone ? `Phone: ${args.debtorPhone}` : ''}
-${args.debtorEmail ? `Email: ${args.debtorEmail}` : ''}
+  return `${senderLines.join('\n') || '[YOUR MAILING ADDRESS]'}
 
 Date: ${args.date}
 
 Via Certified Mail — Return Receipt Requested
 
-${args.recipientName || args.creditorName || '[CREDITOR / SERVICER / COLLECTOR]'}
-${args.recipientAddress || '[CREDITOR MAILING ADDRESS]'}
+${recipient}
 
 Re: ${e.title}
     Account / Case: ${args.accountNumber || args.caseNumber || '[ACCOUNT OR CASE NUMBER]'}
@@ -61,7 +77,7 @@ ${e.keyPrinciple}
 WHEN THIS LETTER APPLIES
 ${when}
 
-APPLICABLE LAW (verify in your jurisdiction — educational reference only)
+APPLICABLE LAW (verify in your jurisdiction)
 ${laws}
 
 DEMANDS AND REQUESTS
@@ -81,9 +97,11 @@ ${args.debtorName}`;
 
 /** Build letter text from catalog id or legacy DebtLetterType. */
 export function generateCatalogLetterBody(catalogId: string, args: DebtLetterBuildArgs): string {
+  const safeArgs: DebtLetterBuildArgs = { ...args, debtorEmail: undefined };
   const entry = catalogEntryById(catalogId);
+  let body = '';
   if (!entry) {
-    return genericOutline(
+    body = genericOutline(
       {
         id: catalogId,
         category: 'validation',
@@ -95,21 +113,22 @@ export function generateCatalogLetterBody(catalogId: string, args: DebtLetterBui
         scenarios: [],
         tier: 'outline',
       },
-      args,
+      safeArgs,
     );
+    return scrubLetterBodyForMail(body);
   }
 
   if (entry.tier === 'full' && entry.letterType) {
-    return getLetterBody(entry.letterType, args);
+    return getLetterBody(entry.letterType, safeArgs);
   }
 
   const custom = OUTLINE_SECTIONS[entry.id];
-  if (custom) return custom(entry, args);
-
-  const creditBody = getCreditCollateralBureauBody(entry.id, args);
-  if (creditBody) return creditBody;
-
-  return genericOutline(entry, args);
+  if (custom) body = custom(entry, safeArgs);
+  else {
+    const creditBody = getCreditCollateralBureauBody(entry.id, safeArgs);
+    body = creditBody || genericOutline(entry, safeArgs);
+  }
+  return scrubLetterBodyForMail(body);
 }
 
 export function resolveCatalogDraftId(id: string): string {

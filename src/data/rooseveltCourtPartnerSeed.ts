@@ -286,7 +286,11 @@ function buildRooseveltPartnerPayload(existing?: Partner | null): Partner {
     profile: {
       ...(existing?.profile || {}),
       fullName: ROOSEVELT_DISPLAY_NAME,
-      email: existing?.profile?.email || 'roosevelt.corelus.court@finely.local',
+      // Never invent a Finely-branded / @finely.local email for a person.
+      // Keep a real email only if already provided; otherwise leave empty.
+      email: existing?.profile?.email && !/@finely(\.local|cred\.local|cred\.com)$/i.test(existing.profile.email)
+        ? existing.profile.email
+        : undefined,
       phone: existing?.profile?.phone,
     },
     primaryRoute: existing?.primaryRoute || 'personal_restore',

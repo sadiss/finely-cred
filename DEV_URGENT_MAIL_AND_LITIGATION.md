@@ -68,6 +68,10 @@ If LetterStream account is still in vendor **TEST mode**, turn it off in the Let
 
 Stronger response letter bodies: courtroom written answer, post-suit validation, debt-buyer affidavits (Letter Studio / Debt catalog).
 
+**Intelligent letter suggestions (Litigation Command Step 3 + Validation):** ranked primary CTA **Build this letter next** with plain-English WHY + secondary alternatives. Driven by case type, debt-buyer pattern, hearing proximity, missing fields, scenario pack, and existing catalog IDs (no catalog duplication).
+
+**Letter address layout (critical):** Sender (partner) once → Date → Recipient (firm / collector / creditor mailing) once → Re → body. Never repeat partner address as TO. Never invent `@finelycred*` / `@finely.local` partner emails. No email/SSN/DOB and no “not legal advice / results vary” footers inside mailed letter bodies (UI chrome only).
+
 ---
 
 ## B2) Mail success email notification

@@ -26,6 +26,8 @@ import {
 } from '../../lib/litigationHearingPlan';
 import { isRooseveltCourtPartner } from '../../data/rooseveltCourtPartnerSeed';
 import { getDebtBuyerCaseIntel } from '../../legal/litigation/debtBuyerCaseIntelligence';
+import { buildIntelligentLetterSuggestions } from '../../lib/intelligentLetterSuggestions';
+import { IntelligentLetterSuggestionsPanel } from '../letters/IntelligentLetterSuggestionsPanel';
 import {
   FINELY_OS_COMPACT_PAGE,
   FINELY_OS_ENTITY_BODY,
@@ -238,6 +240,34 @@ export function AffidavitCourtCenterView({
     onBuildCatalogDraft?.('court_courtroom_day_kit');
   };
 
+  const letterSuggestions = useMemo(
+    () =>
+      buildIntelligentLetterSuggestions({
+        track: 'litigation',
+        debt,
+        partner,
+        recommendedScenario,
+        hasSummonsDoc,
+        hasAnswerDraft: builtAnswer,
+        hasAffidavitDraft: builtAffidavit,
+      }),
+    [debt, partner, recommendedScenario, hasSummonsDoc, builtAnswer, builtAffidavit],
+  );
+
+  const buildSuggestedLetter = (args: { letterType?: DebtLetterType; catalogId?: string }) => {
+    if (args.letterType) onBuildDraft(args.letterType);
+    if (args.catalogId) onBuildCatalogDraft?.(args.catalogId);
+    if (args.letterType === 'courtroom_written_answer' || args.catalogId === 'court_courtroom_written_answer') {
+      setBuiltAnswer(true);
+    }
+    if (
+      (args.letterType && String(args.letterType).includes('affidavit')) ||
+      args.catalogId === 'court_affidavit_dispute'
+    ) {
+      setBuiltAffidavit(true);
+    }
+  };
+
   const goNext = () => {
     if (step < PIPELINE.length - 1) setStep((s) => s + 1);
     else buildHearingKit();
@@ -291,10 +321,10 @@ export function AffidavitCourtCenterView({
           ? 'Address ready — continue to build drafts'
           : 'Confirm firm mailing address, then Continue'
         : step === 2
-          ? 'Tap Build written answer + Build affidavit'
+          ? `Build this letter next: ${letterSuggestions.primary.title}`
           : step === 3
             ? 'Add optional proof, or skip with Continue'
-            : 'Build court-day kit → open vault → Mail';
+            : 'Build court-day kit → open vault → Mail'
 
   return (
     <div className={`${FINELY_OS_COMPACT_PAGE} relative`}>
@@ -510,7 +540,7 @@ export function AffidavitCourtCenterView({
           </div>
         ) : null}
 
-        {/* STEP 3 — One-tap answer + affidavit */}
+        {/* STEP 3 — Ranked letter suggestions + one-tap answer / affidavit */}
         {step === 2 ? (
           <div className="space-y-3">
             <div className="rounded-xl border border-fuchsia-400/25 bg-fuchsia-500/10 px-3 py-2 space-y-1">
@@ -520,8 +550,13 @@ export function AffidavitCourtCenterView({
                 <p className="text-[11px] text-emerald-100/85">Court-safe: “{buyerIntel.courtSafePhrases[0]}”</p>
               ) : null}
             </div>
+            <IntelligentLetterSuggestionsPanel
+              suggestions={letterSuggestions}
+              accent="fuchsia"
+              onBuild={buildSuggestedLetter}
+            />
             <p className={`text-sm ${FINELY_OS_ENTITY_BODY}`}>
-              {stageMeta.nextAction} Tap both big buttons. Edit admissions carefully before mailing or filing.
+              {stageMeta.nextAction} Quick taps below still work. Edit admissions carefully before mailing or filing.
             </p>
             <div className="grid sm:grid-cols-2 gap-3">
               <button

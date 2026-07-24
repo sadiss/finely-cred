@@ -22,6 +22,8 @@ import {
   getCourtroomPretrialProofNoticeBody,
   getCourtroomWrittenAnswerBody,
 } from './courtroomPackBodies';
+import { scrubLetterBodyForMail } from '../lib/letterBodySafety';
+import { formatLetterRecipientBlock, resolveLetterMailRecipient } from '../lib/letterMailingAddress';
 
 const FDCPA_809: LegalCitation = {
   category: 'consumer_protection',
@@ -385,23 +387,40 @@ function formatDebtorBlock(args: {
   const zip = safeText(args.debtorPostalCode);
   const cityStateZip = [city, state].filter(Boolean).join(', ') + (zip ? ` ${zip}` : '');
   if (cityStateZip.trim()) lines.push(cityStateZip.trim());
+  // Name + mailing address only by default. Never auto-print email on letters
+  // (partner login / Finely emails must not appear on mailed PDF content).
   const phone = safeText(args.debtorPhone);
-  const email = safeText(args.debtorEmail);
   if (phone) lines.push(phone);
-  if (email) lines.push(email);
   if (lines.length <= 1) return `[Your Name and Address]`;
   return lines.join('\n');
 }
 
-function formatRecipientBlock(args: { recipientName?: string; recipientAddress?: string; fallbackName?: string }) {
-  const name = safeText(args.recipientName) || safeText(args.fallbackName);
-  const addr = safeText(args.recipientAddress);
-  if (!name && !addr) return `[Collector/Attorney Name and Address]`;
-  const lines: string[] = [];
-  if (name) lines.push(name);
-  if (addr) lines.push(addr);
-  else lines.push('[Collector/Attorney Name and Address]');
-  return lines.join('\n');
+function formatRecipientBlock(args: {
+  recipientName?: string;
+  recipientAddress?: string;
+  fallbackName?: string;
+  plaintiffLawFirm?: string;
+  plaintiffLawFirmAddress?: string;
+  debtCollectorName?: string;
+  debtorName?: string;
+  debtorAddress1?: string;
+  debtorCity?: string;
+  debtorPostalCode?: string;
+  creditorName?: string;
+}) {
+  const rec = resolveLetterMailRecipient({
+    recipientName: args.recipientName || args.fallbackName,
+    recipientAddress: args.recipientAddress,
+    plaintiffLawFirm: args.plaintiffLawFirm,
+    plaintiffLawFirmAddress: args.plaintiffLawFirmAddress,
+    debtCollectorName: args.debtCollectorName,
+    creditorName: args.creditorName || args.fallbackName,
+    senderName: args.debtorName,
+    senderAddress1: args.debtorAddress1,
+    senderCity: args.debtorCity,
+    senderPostalCode: args.debtorPostalCode,
+  });
+  return formatLetterRecipientBlock(rec);
 }
 
 function formatPreamble(args: {
@@ -417,9 +436,13 @@ function formatPreamble(args: {
   debtorEmail?: string;
   recipientName?: string;
   recipientAddress?: string;
+  plaintiffLawFirm?: string;
+  plaintiffLawFirmAddress?: string;
+  debtCollectorName?: string;
 }) {
+  // Sender once → Date → Recipient (creditor/firm) once. Never repeat partner as TO:.
   const debtor = formatDebtorBlock(args);
-  const recipient = formatRecipientBlock({ recipientName: args.recipientName, recipientAddress: args.recipientAddress, fallbackName: args.creditorName });
+  const recipient = formatRecipientBlock(args);
   return `${debtor}
 
 Date: ${args.date}
@@ -748,65 +771,86 @@ export function getLetterBody(
   letterType: import('../domain/debtLegal').DebtLetterType,
   args: DebtLetterBuildArgs,
 ): string {
-  const baseLitigation = toLitigationLetterArgs(args);
+  // Never inject partner/login email onto mailed letter paper by default.
+  const safeArgs: DebtLetterBuildArgs = { ...args, debtorEmail: undefined };
+  const baseLitigation = toLitigationLetterArgs(safeArgs);
   // Roosevelt Midland–Citi demo merge only when partner/debt match (never stamps other partners).
   const litigation = applyRooseveltCourtDemoIfNeeded({
-    litigation: baseLitigation,
-    partner: { profile: { fullName: args.debtorName } } as import('../domain/partners').Partner,
+    litigation: { ...baseLitigation, debtorEmail: undefined },
+    partner: { profile: { fullName: safeArgs.debtorName } } as import('../domain/partners').Partner,
   });
+  let body = '';
   switch (letterType) {
     case 'validation_request':
-      return getValidationRequestBody(args);
+      body = getValidationRequestBody(safeArgs);
+      break;
     case 'validation_round2_deficiency':
-      return getValidationRound2DeficiencyBody(args);
+      body = getValidationRound2DeficiencyBody(safeArgs);
+      break;
     case 'validation_round3_final_demand':
-      return getValidationRound3FinalDemandBody(args);
+      body = getValidationRound3FinalDemandBody(safeArgs);
+      break;
     case 'post_suit_validation_demand':
-      return getLitigationValidationCeaseDesistBody(litigation);
+      body = getLitigationValidationCeaseDesistBody(litigation);
+      break;
     case 'assignment_chain_demand':
-      return getLitigationAssignmentRegistryBody(litigation);
+      body = getLitigationAssignmentRegistryBody(litigation);
+      break;
     case 'defendant_discovery_requests':
-      return getLitigationDiscoveryRequestsBody(litigation);
+      body = getLitigationDiscoveryRequestsBody(litigation);
+      break;
     case 'motion_to_compel_discovery':
-      return getLitigationMotionToCompelBody(litigation);
+      body = getLitigationMotionToCompelBody(litigation);
+      break;
     case 'affidavit_litigation_bank':
     case 'affidavit_parker_litigation':
-      return getLitigationBankAffidavitBody(litigation);
+      body = getLitigationBankAffidavitBody(litigation);
+      break;
     case 'affidavit_litigation_debt_buyer':
     case 'affidavit_parker_velocity':
-      return getLitigationDebtBuyerAffidavitBody(litigation);
+      body = getLitigationDebtBuyerAffidavitBody(litigation);
+      break;
     case 'time_barred_response':
-      return getTimeBarredResponseBody(args);
+      body = getTimeBarredResponseBody(safeArgs);
+      break;
     case 'affidavit_of_dispute':
-      return getAffidavitOfDisputeBody(args);
+      body = getAffidavitOfDisputeBody(safeArgs);
+      break;
     case 'summons_response_affidavit':
-      return getSummonsResponseAffidavitBody({
-        debtorName: args.debtorName,
-        date: args.date,
-        caseNumber: args.caseNumber,
-        plaintiffName: args.recipientName || args.creditorName,
-        courtName: args.summonsContext?.courtName,
-        amountClaimed: args.summonsContext?.amountClaimed,
-        dateServed: args.summonsContext?.dateServed,
-        jurisdictionState: args.summonsContext?.jurisdictionState,
-        collectorName: args.summonsContext?.collectorName,
-        documentFacts: args.summonsContext?.documentFacts,
-        plaintiffLawFirm: args.plaintiffLawFirm,
-        plaintiffLawFirmAddress: args.plaintiffLawFirmAddress,
-        debtorState: args.debtorState,
-        affidavitCounty: args.affidavitCounty,
+      body = getSummonsResponseAffidavitBody({
+        debtorName: safeArgs.debtorName,
+        date: safeArgs.date,
+        caseNumber: safeArgs.caseNumber,
+        plaintiffName: safeArgs.recipientName || safeArgs.creditorName,
+        courtName: safeArgs.summonsContext?.courtName,
+        amountClaimed: safeArgs.summonsContext?.amountClaimed,
+        dateServed: safeArgs.summonsContext?.dateServed,
+        jurisdictionState: safeArgs.summonsContext?.jurisdictionState,
+        collectorName: safeArgs.summonsContext?.collectorName,
+        documentFacts: safeArgs.summonsContext?.documentFacts,
+        plaintiffLawFirm: safeArgs.plaintiffLawFirm,
+        plaintiffLawFirmAddress: safeArgs.plaintiffLawFirmAddress,
+        debtorState: safeArgs.debtorState,
+        affidavitCounty: safeArgs.affidavitCounty,
       });
+      break;
     case 'courtroom_pretrial_proof_notice':
-      return getCourtroomPretrialProofNoticeBody(args);
+      body = getCourtroomPretrialProofNoticeBody(safeArgs);
+      break;
     case 'courtroom_written_answer':
-      return getCourtroomWrittenAnswerBody(args);
+      body = getCourtroomWrittenAnswerBody(safeArgs);
+      break;
     case 'courtroom_day_kit':
-      return getCourtroomDayKitBody(args);
+      body = getCourtroomDayKitBody(safeArgs);
+      break;
     case 'cease_and_desist':
-      return getCeaseAndDesistBody(args);
+      body = getCeaseAndDesistBody(safeArgs);
+      break;
     case 'debt_dispute_letter':
-      return getDebtDisputeLetterBody(args);
+      body = getDebtDisputeLetterBody(safeArgs);
+      break;
     default:
-      return getDebtDisputeLetterBody(args);
+      body = getDebtDisputeLetterBody(safeArgs);
   }
+  return scrubLetterBodyForMail(body);
 }
