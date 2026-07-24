@@ -1,6 +1,6 @@
 /**
  * Send premium Finely Mail confirmation email after a successful LetterStream send.
- * Persists a lightweight audit on the letter mailing meta via caller; this module only notifies.
+ * Persists a lightweight audit + local receipt so partners/admins can re-open confirmation details.
  */
 import type { Partner } from '../domain/partners';
 import type { MailAddress } from './mailerClient';
@@ -12,6 +12,44 @@ import { buildLetterMailedNotifyEmail } from '../comms/letterMailedNotifyEmail';
 import { getNotificationPrefs } from '../data/notificationPrefsRepo';
 import { addAuditEvent } from '../data/auditRepo';
 import { isAdminEmail } from '../auth/admin';
+
+const MAIL_RECEIPT_KEY = 'finely.mail.receipts.v1';
+
+export type LetterMailedReceipt = {
+  id: string;
+  partnerId: string;
+  letterIds: string[];
+  letterTitles: string[];
+  providerIds: string[];
+  mailedAtIso: string;
+  toCityState?: string;
+  actorRole?: 'partner' | 'admin';
+  emailSent: boolean;
+};
+
+function persistMailReceipt(receipt: LetterMailedReceipt) {
+  try {
+    if (typeof localStorage === 'undefined') return;
+    const raw = localStorage.getItem(MAIL_RECEIPT_KEY);
+    const prev = raw ? (JSON.parse(raw) as LetterMailedReceipt[]) : [];
+    const next = [receipt, ...(Array.isArray(prev) ? prev : [])].slice(0, 40);
+    localStorage.setItem(MAIL_RECEIPT_KEY, JSON.stringify(next));
+  } catch {
+    /* non-blocking */
+  }
+}
+
+export function listLetterMailedReceipts(partnerId?: string): LetterMailedReceipt[] {
+  try {
+    if (typeof localStorage === 'undefined') return [];
+    const raw = localStorage.getItem(MAIL_RECEIPT_KEY);
+    const prev = raw ? (JSON.parse(raw) as LetterMailedReceipt[]) : [];
+    const list = Array.isArray(prev) ? prev : [];
+    return partnerId ? list.filter((r) => r.partnerId === partnerId) : list;
+  } catch {
+    return [];
+  }
+}
 
 export async function notifyLetterMailed(args: {
   partnerId: string;
@@ -119,6 +157,18 @@ export async function notifyLetterMailed(args: {
       /* non-blocking */
     }
   }
+
+  persistMailReceipt({
+    id: `mail_rcpt_${Date.now()}`,
+    partnerId: partner.id,
+    letterIds: args.letterIds,
+    letterTitles: args.letterTitles,
+    providerIds: args.providerIds,
+    mailedAtIso: new Date().toISOString(),
+    toCityState: [args.to?.city, args.to?.state].filter(Boolean).join(', ') || undefined,
+    actorRole: args.actorRole,
+    emailSent: sent,
+  });
 
   return { sent, reason: sent ? undefined : reason, adminSent };
 }

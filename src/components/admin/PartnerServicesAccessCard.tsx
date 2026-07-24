@@ -239,10 +239,10 @@ export function PartnerServicesAccessCard({
       className="space-y-3 rounded-2xl border-2 border-emerald-400/45 bg-emerald-500/10 p-4 shadow-[0_0_36px_-12px_rgba(52,211,153,0.55)]"
     >
       <div>
-        <div className={`${FINELY_OS_ENTITY_SUBLABEL} text-emerald-200/90`}>Services access — grant here</div>
+        <div className={`${FINELY_OS_ENTITY_SUBLABEL} text-emerald-200/90`}>Grant access — impossible to miss</div>
         <p className={`${FINELY_OS_ENTITY_BODY} text-xs mt-1`}>
-          One tap unlocks modules. Green = server+local active for required keys. Partner refreshes portal. If sync fails,
-          status shows “this device only” + migration hint.
+          Giant green buttons below. Prefer <strong className="text-white/90">Grant Full partner toolkit</strong> (Letters +
+          Debt / Litigation). Green = synced. Partner refreshes portal. If sync fails → apply entitlements migration.
         </p>
         {syncState !== 'unknown' ? (
           <p className={`text-[11px] mt-1 ${syncState === 'synced' ? 'text-emerald-200/90' : 'text-amber-200/90'}`}>

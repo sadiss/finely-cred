@@ -20,6 +20,8 @@ export type DebtBuyerCaseIntel = {
   label: string;
   /** Short “what matters now” line for Litigation Command */
   whatMatters: string;
+  /** One sticky sentence: what a first-timer does right now */
+  doNowOneLiner: string;
   nextSteps: string[];
   courtSafePhrases: string[];
   doNotSay: string[];
@@ -82,7 +84,10 @@ export function getDebtBuyerCaseIntel(args: {
       label: 'Debt-buyer pattern · Midland + Citi-style origin',
       whatMatters:
         'Separate (1) whether a Citi account existed from (2) whether this Midland plaintiff proved ownership, sale-file identity, and amount today.',
+      doNowOneLiner:
+        'Drop the summons → Apply fills empty fields → confirm counsel mailing → Build written answer (admit only honest Citi facts; never “I owe Midland” without proof).',
       nextSteps: [
+        'Upload / scrape the summons or docket so case #, firm, and mailing address fill automatically.',
         'File / serve a written answer that admits only honest facts — never “I owe Midland” if ownership is unproven.',
         'Demand account-level sale schedule (last four, sale balance, field codes) — not a pool bill of sale alone.',
         'Walk dollars: original statement → charge-off → sale → Midland balance → lawsuit amount + costs.',
@@ -122,7 +127,9 @@ export function getDebtBuyerCaseIntel(args: {
       patternId,
       label: `Debt-buyer pattern · ${buyer}`,
       whatMatters: `Force ${buyer} to prove standing with account-level assignment, ledger, and witness foundation — not portfolio summaries.`,
+      doNowOneLiner: `Drop court papers → confirm ${buyer} / counsel address → Build written answer → then affidavit + discovery on THIS account.`,
       nextSteps: [
+        'Upload / scrape so plaintiff, firm mailing address, case #, and amount fill empty fields.',
         'Answer the complaint with honest admissions/denials; put standing and amount at issue.',
         'Send validation / assignment-chain demands for this specific account.',
         'Build debt-buyer affidavit attacking missing Exhibit A / sale schedules.',
@@ -153,7 +160,9 @@ export function getDebtBuyerCaseIntel(args: {
       patternId,
       label: 'Bank / original-creditor plaintiff pattern',
       whatMatters: 'Challenge contract, ledger, fees, and foundation even when the named plaintiff looks like the bank of origin.',
+      doNowOneLiner: 'Drop the summons → confirm bank / counsel mailing → Build written answer denying unproven balance and fees → demand ledger + agreement.',
       nextSteps: [
+        'Upload / scrape so court, case #, counsel address, and amount fill empty fields.',
         'Answer with specific denials on balance and unauthorized fees.',
         'Demand the signed agreement and complete ledger.',
         'Use bank-plaintiff affidavit pack if debt-collector language appears on pleadings.',
@@ -172,12 +181,15 @@ export function getDebtBuyerCaseIntel(args: {
   return {
     patternId: 'unknown',
     label: 'Court defense pattern · general collection suit',
-    whatMatters: 'Protect deadlines first: answer → proof demands → affidavit → discovery → hearing kit.',
+    whatMatters: 'Protect deadlines first: scrape papers → answer → proof demands → affidavit → discovery → hearing kit.',
+    doNowOneLiner:
+      'Start at step 1: drop summons / docket / affidavit → Apply fills empty fields → confirm parties → Build written answer.',
     nextSteps: [
-      'Set the hearing / answer deadline on the case card.',
+      'Upload the summons, complaint, or docket into the scrape unit (step 1).',
+      'Confirm plaintiff, counsel, and mailing address (step 2) — never leave an accessible address blank.',
       'Build a written answer that preserves standing, amount, and foundation defenses.',
       'Demand validation and account-level proof from plaintiff or counsel.',
-      'Upload summons/complaint so scrape + merge fields stay accurate.',
+      'Set the hearing date so the countdown stays honest.',
     ],
     courtSafePhrases: [
       'I dispute liability until plaintiff proves standing, contract, and amount with competent evidence.',

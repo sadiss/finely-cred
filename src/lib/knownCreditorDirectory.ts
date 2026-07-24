@@ -70,6 +70,42 @@ export const KNOWN_CREDITOR_DIRECTORY: KnownCreditorEntry[] = [
     kind: 'law_firm',
   },
   {
+    aliases: ['stillman law', 'stillman & associates', 'stillman and associates'],
+    displayName: 'Stillman Law Office',
+    address: '30057 Orchard Lake Road, Suite 200\nFarmington Hills, MI 48334',
+    kind: 'law_firm',
+  },
+  {
+    aliases: ['shermeta', 'shermeta law', 'shermeta adams'],
+    displayName: 'Shermeta Law Group, PLLC',
+    address: 'P.O. Box 1056\nRochester, MI 48308',
+    kind: 'law_firm',
+  },
+  {
+    aliases: ['mancinelli', 'mancinelli & associates', 'goeman law', 'mancinelli goeman'],
+    displayName: 'Mancinelli & Associates, P.C.',
+    address: '2950 W. Square Lake Road, Suite 105\nTroy, MI 48098',
+    kind: 'law_firm',
+  },
+  {
+    aliases: ['weltman weinberg', 'weltman, weinberg', 'weltman weinberg & reis'],
+    displayName: 'Weltman, Weinberg & Reis Co., L.P.A.',
+    address: '323 W. Lakeside Avenue, Suite 200\nCleveland, OH 44113',
+    kind: 'law_firm',
+  },
+  {
+    aliases: ['dobberstein', 'dobberstein law'],
+    displayName: 'Dobberstein Law Firm, LLC',
+    address: '225 S. Executive Drive, Suite 201\nBrookfield, WI 53005',
+    kind: 'law_firm',
+  },
+  {
+    aliases: ['lloyd mcdaniel', 'lloyd & mcdaniel'],
+    displayName: 'Lloyd & McDaniel, PLC',
+    address: 'P.O. Box 23200\nLouisville, KY 40223',
+    kind: 'law_firm',
+  },
+  {
     aliases: ['citibank', 'citi bank', 'citibank n.a', 'citibank, n.a'],
     displayName: 'Citibank, N.A.',
     address: 'P.O. Box 790017\nSt. Louis, MO 63179',

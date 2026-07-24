@@ -29,7 +29,7 @@ import { notifyLetterMailed } from '../../lib/letterMailedNotify';
 import { useAuth } from '../../auth/AuthProvider';
 
 /**
- * Admin-as-mailer: pick partner → pick letters → Confirm address → Mail → Track.
+ * Admin-as-mailer: Pick partner → Confirm letters → Mail → Email notify.
  * Owner path for mailing partner letters via LetterStream / Finely Mail today.
  */
 export default function AdminMailLettersPage() {
@@ -43,8 +43,10 @@ export default function AdminMailLettersPage() {
   const [loading, setLoading] = useState(true);
   const [q, setQ] = useState('');
   const [partnerId, setPartnerId] = useState(presetPartnerId);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [wizardOpen, setWizardOpen] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
+  const [mailedDone, setMailedDone] = useState(false);
 
   useEffect(() => {
     setLoading(true);
@@ -73,7 +75,18 @@ export default function AdminMailLettersPage() {
     () => (partner ? listLettersByPartner(partner.id).filter((l) => !l.archivedAt) : []),
     [partner],
   );
-  const pdfReady = letters.filter((l) => Boolean(l.pdfBlobRef));
+  const pdfReady = useMemo(() => letters.filter((l) => Boolean(l.pdfBlobRef)), [letters]);
+
+  useEffect(() => {
+    if (!partner) {
+      setSelectedIds(new Set());
+      setMailedDone(false);
+      return;
+    }
+    setSelectedIds(new Set(pdfReady.map((l) => l.id)));
+    setMailedDone(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [partner?.id]);
 
   const fromDefaults = useMemo(() => {
     if (!partner) return undefined;
@@ -88,6 +101,10 @@ export default function AdminMailLettersPage() {
       zip: p.postalCode ?? '',
     };
   }, [partner]);
+
+  const selectedReady = pdfReady.filter((l) => selectedIds.has(l.id));
+
+  const pathStep = !partner ? 0 : mailedDone ? 3 : wizardOpen ? 2 : 1;
 
   const onBatchComplete = (results: BatchMailItemResult[]) => {
     if (!partner) return;
@@ -143,21 +160,71 @@ export default function AdminMailLettersPage() {
         actorRole: 'admin',
       });
     }
-    setNotice(`Mailed ${okN} · failed ${failN}. Confirmation email sent when commsDelivery is on. Track in partner Letters tab.`);
+    setMailedDone(true);
+    setNotice(
+      `Mailed ${okN} · failed ${failN}. Partner email notification ${
+        okN > 0 ? 'queued when commsDelivery is on' : 'skipped'
+      }. Admin copy sent when you mail on their behalf. Track in partner Letters tab.`,
+    );
+  };
+
+  const toggleLetter = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
   };
 
   return (
     <PageShell
       badge="Admin"
       title="Mail letters for partners"
-      subtitle={`${FINELY_MAIL_COPY.serviceName}: pick a partner, select PDF-ready letters, confirm address, mail, track.`}
+      subtitle={`${FINELY_MAIL_COPY.serviceName}: Pick → Confirm → Mail → Email notify.`}
     >
       <div className={`${FINELY_OS_COMPACT_PAGE} max-w-5xl space-y-3`}>
         <button type="button" className={FINELY_OS_BACK_LINK} onClick={() => navigate('/admin/partners')}>
           <ArrowLeft size={14} /> Partner directory
         </button>
 
-        <FinelyNowDoThisStrip currentIndex={0} />
+        <FinelyNowDoThisStrip
+          title="Admin mail easy path"
+          currentIndex={pathStep}
+          items={[
+            { label: 'Pick partner', detail: 'Search directory and select who you are mailing for', to: '/admin/mail' },
+            { label: 'Confirm letters', detail: 'Check PDF-ready letters, then open Confirm address', to: '/admin/mail' },
+            { label: 'Mail', detail: 'Confirm To/From → one tap Mail via Finely Mail', to: '/admin/mail' },
+            { label: 'Email notify', detail: 'Partner gets Finely Mail confirmation (commsDelivery on)', to: '/admin/mail' },
+          ]}
+        />
+
+        <div className="grid grid-cols-4 gap-1.5">
+          {[
+            ['1', 'Pick partner'],
+            ['2', 'Confirm letters'],
+            ['3', 'Mail'],
+            ['4', 'Email notify'],
+          ].map(([n, label], idx) => {
+            const on = pathStep === idx;
+            const done = pathStep > idx || (idx === 3 && mailedDone);
+            return (
+              <div
+                key={n}
+                className={`rounded-xl border px-2 py-2 text-center ${
+                  on
+                    ? 'border-amber-400/55 bg-amber-500/15'
+                    : done
+                      ? 'border-emerald-400/35 bg-emerald-500/10'
+                      : 'border-white/10 bg-black/25'
+                }`}
+              >
+                <div className="text-[10px] font-black text-amber-200/90">{n}</div>
+                <div className="text-[10px] font-semibold text-white/85 leading-tight">{label}</div>
+              </div>
+            );
+          })}
+        </div>
 
         {!mailingOn ? (
           <FinelyOsAlertBanner
@@ -166,7 +233,7 @@ export default function AdminMailLettersPage() {
           />
         ) : null}
 
-        <MailProviderStatusBanner letterCount={pdfReady.length || 1} />
+        <MailProviderStatusBanner letterCount={selectedReady.length || pdfReady.length || 1} />
         <LetterStreamStatusCard compact />
 
         {notice ? <FinelyOsAlertBanner tone="success" message={notice} /> : null}
@@ -203,6 +270,7 @@ export default function AdminMailLettersPage() {
                   onClick={() => {
                     setPartnerId(p.id);
                     setNotice(null);
+                    setMailedDone(false);
                   }}
                   className={`text-left rounded-xl border px-3 py-3 transition-colors ${
                     partnerId === p.id
@@ -222,9 +290,9 @@ export default function AdminMailLettersPage() {
           <div className={`${finelyOsCatalogCardCompact('violet')} !p-4 space-y-3`}>
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
-                <div className={FINELY_OS_ENTITY_SUBLABEL}>Step 2 · Letters for {partner.profile.fullName}</div>
+                <div className={FINELY_OS_ENTITY_SUBLABEL}>Step 2 · Confirm letters for {partner.profile.fullName}</div>
                 <p className={`${FINELY_OS_ENTITY_BODY} text-sm`}>
-                  {pdfReady.length} PDF-ready · {letters.length} total in vault (this browser / synced store).
+                  {selectedReady.length} selected · {pdfReady.length} PDF-ready · {letters.length} total in vault.
                 </p>
               </div>
               <div className="flex flex-wrap gap-2">
@@ -237,11 +305,11 @@ export default function AdminMailLettersPage() {
                 </button>
                 <button
                   type="button"
-                  className={`${FINELY_OS_PRIMARY_BTN} disabled:opacity-60`}
-                  disabled={!mailingOn || pdfReady.length === 0}
+                  className={`${FINELY_OS_PRIMARY_BTN} disabled:opacity-60 !min-h-[3rem] !text-sm !font-extrabold !px-5`}
+                  disabled={!mailingOn || selectedReady.length === 0}
                   onClick={() => setWizardOpen(true)}
                 >
-                  <Send size={14} /> Mail selected letters
+                  <Send size={16} /> Confirm address &amp; Mail ({selectedReady.length})
                 </button>
               </div>
             </div>
@@ -253,12 +321,27 @@ export default function AdminMailLettersPage() {
             ) : (
               <ul className="space-y-1.5 max-h-56 overflow-y-auto">
                 {pdfReady.slice(0, 40).map((l) => (
-                  <li key={l.id} className="rounded-lg border border-white/10 bg-black/25 px-3 py-2 text-sm text-white/85">
-                    {l.title} · <span className="text-white/45">{l.status || 'generated'}</span>
+                  <li key={l.id}>
+                    <label className="flex items-start gap-3 rounded-lg border border-white/10 bg-black/25 px-3 py-2 text-sm text-white/85 cursor-pointer hover:border-white/25">
+                      <input
+                        type="checkbox"
+                        className="mt-1"
+                        checked={selectedIds.has(l.id)}
+                        onChange={() => toggleLetter(l.id)}
+                      />
+                      <span className="min-w-0">
+                        <span className="font-semibold text-white/90">{l.title}</span>
+                        {' · '}
+                        <span className="text-white/45">{l.status || 'generated'}</span>
+                      </span>
+                    </label>
                   </li>
                 ))}
               </ul>
             )}
+            <p className={`text-[11px] ${FINELY_OS_ENTITY_BODY}`}>
+              Steps 3–4 in the wizard: Confirm To/From → Mail → partner gets Finely Mail email notify (admin copy when you mail on their behalf).
+            </p>
           </div>
         ) : (
           <FinelyOsAlertBanner tone="info" message="Select a partner above to load their vault letters and mail." />
@@ -271,6 +354,7 @@ export default function AdminMailLettersPage() {
             letters={letters}
             defaultFromName={partner.profile.fullName || 'Partner'}
             defaultFromAddress={fromDefaults}
+            defaultSelectedIds={[...selectedIds]}
             onClose={() => setWizardOpen(false)}
             onComplete={onBatchComplete}
           />

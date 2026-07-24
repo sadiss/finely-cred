@@ -147,9 +147,17 @@ Defendant reserves the right to amend this Answer to add defenses as discovery a
 
 V. DEMAND FOR PROOF AND PRESERVATION
 
-12. Defendant demands production of: (a) the complete account-level chain of title from originator to Plaintiff; (b) the itemized ledger; (c) the agreement and all amendments; (d) licensing/authorization to collect in Defendant's state if required; and (e) identification of trial witnesses and records custodians.
+12. Defendant demands production of: (a) the complete account-level chain of title from originator to Plaintiff, including any sale schedule / Exhibit listing THIS account (identifiers, sale balance, transfer date, field codes) — not a pool bill of sale alone; (b) the itemized ledger from inception or charge-off through the present; (c) the agreement and all amendments; (d) licensing/authorization to collect in Defendant's state if required; and (e) identification of trial witnesses and records custodians with personal or business-record knowledge of THIS account.
 
 13. Defendant demands that Plaintiff and its agents place a litigation hold on all account records, sale files, collection notes, recordings, and credit-reporting data related to this matter.
+
+14. Defendant specifically contests any attempt to prove the claim through generic "business records" summaries, robo-signed affidavits, pool bills of sale lacking this account number, or testimony from a witness who did not review the complete transfer file for THIS account.
+
+15. If Plaintiff relies on an alleged securitization, assignment, or placement, Defendant demands the operative transfer instrument, the account-level schedule, and competent evidence of authority of each signing party in the chain.
+
+16. If Plaintiff first produces new exhibits at hearing, Defendant respectfully requests a continuance or adequate time to review before being required to respond on the merits.
+
+17. Defendant does not waive the right to seek dismissal, summary judgment, sanctions for unsupported filings, or leave to amend this Answer after receipt of discovery and court-ordered disclosures.
 
 VI. PRAYER FOR RELIEF
 

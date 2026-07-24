@@ -345,9 +345,11 @@ function extractEntitiesFromText(text: string): {
 
   // Mailing address block near counsel / plaintiff (prefer firm address over random street hits)
   const addrBlock = firstMatch(t, [
-    /(?:Attorney(?:s)? for Plaintiff|Law\s+(?:Offices?|Firm|Group)|P\.?C\.?|LLP|LLC)[^\n]{0,120}\n+([^\n]{0,80}\d{1,5}\s+[A-Za-z0-9 .,'#\-]+(?:Street|St\.?|Avenue|Ave\.?|Road|Rd\.?|Boulevard|Blvd\.?|Drive|Dr\.?|Lane|Ln\.?|Suite|Ste\.?|Floor|Fl\.?)[^\n]{0,40}\n[^\n]{0,80}\b[A-Z]{2}\s+\d{5}(?:-\d{4})?)/i,
-    /(\d{1,5}\s+[A-Za-z0-9 .,'#\-]+(?:Street|St\.?|Avenue|Ave\.?|Road|Rd\.?|Boulevard|Blvd\.?|Drive|Dr\.?|Lane|Ln\.?|Suite|Ste\.?|P\.?O\.?\s*Box)[^\n]{0,40}\n[^\n]{0,60}\b[A-Z]{2}\s+\d{5}(?:-\d{4})?)/i,
+    /(?:Attorney(?:s)? for Plaintiff|Counsel for Plaintiff|Law\s+(?:Offices?|Firm|Group)|P\.?C\.?|LLP|LLC|PLLC)[^\n]{0,160}\n+([^\n]{0,90}\d{1,5}\s+[A-Za-z0-9 .,'#\-]+(?:Street|St\.?|Avenue|Ave\.?|Road|Rd\.?|Boulevard|Blvd\.?|Drive|Dr\.?|Lane|Ln\.?|Suite|Ste\.?|Floor|Fl\.?|Parkway|Pkwy\.?)[^\n]{0,50}\n[^\n]{0,90}\b[A-Z]{2}\s+\d{5}(?:-\d{4})?)/i,
+    /(?:Mailing Address|Business Address|Firm Address|Address for Service)[:\s]*\n?([^\n]{0,90}\d{1,5}\s+[A-Za-z0-9 .,'#\-]+[^\n]{0,50}\n[^\n]{0,80}\b[A-Z]{2}\s+\d{5}(?:-\d{4})?)/i,
+    /(\d{1,5}\s+[A-Za-z0-9 .,'#\-]+(?:Street|St\.?|Avenue|Ave\.?|Road|Rd\.?|Boulevard|Blvd\.?|Drive|Dr\.?|Lane|Ln\.?|Suite|Ste\.?|P\.?O\.?\s*Box|Parkway|Pkwy\.?)[^\n]{0,50}\n[^\n]{0,70}\b[A-Z]{2}\s+\d{5}(?:-\d{4})?)/i,
     /(P\.?O\.?\s*Box\s+\d+[^\n]*\n[^\n]*\b[A-Z]{2}\s+\d{5}(?:-\d{4})?)/i,
+    /((?:P\.?O\.?\s*Box|PO Box)\s+\d+[^\n,]*,?\s*[A-Za-z .]+,?\s*[A-Z]{2}\s+\d{5}(?:-\d{4})?)/i,
   ]);
   if (addrBlock) {
     entities.address = addrBlock.replace(/\n+/g, '\n').trim();
@@ -370,23 +372,43 @@ function extractEntitiesFromText(text: string): {
     fields.push(field('phone', 'Phone', phone, 'low', 'Optional contact — letters still use the mailing address.', 'Header')!);
   }
 
-  // Directory fallback for plaintiff/counsel address
-  if (!entities.address && (entities.creditorName || entities.collectorName)) {
-    const hit = lookupKnownCreditor(entities.collectorName || entities.creditorName || '');
-    if (hit) {
+  // Directory fallback for plaintiff / counsel / firm mailing address — never leave accessible data blank
+  if (!entities.address) {
+    const candidates = [
+      entities.plaintiffLawFirm,
+      entities.counselName,
+      entities.collectorName,
+      entities.plaintiffAttorneyName,
+      entities.creditorName,
+      entities.plaintiffName,
+    ].filter(Boolean) as string[];
+    for (const name of candidates) {
+      const hit = lookupKnownCreditor(name);
+      if (!hit) continue;
       entities.address = hit.address;
+      entities.plaintiffLawFirmAddress = hit.address;
       if (hit.phone && !entities.phone) entities.phone = hit.phone;
+      if (hit.kind === 'law_firm' && !entities.plaintiffLawFirm) {
+        entities.plaintiffLawFirm = hit.displayName;
+        entities.collectorName = entities.collectorName || hit.displayName;
+      }
       fields.push(
         field(
           'address',
           'Mailing address (directory match)',
           hit.address,
-          'low',
+          'medium',
           `Filled from known-${hit.kind} directory for ${hit.displayName}. Verify on the summons before mailing.`,
           'Directory',
         )!,
       );
+      break;
     }
+  }
+
+  // Ensure firm address alias always mirrors best address when firm is known
+  if (entities.address && !entities.plaintiffLawFirmAddress) {
+    entities.plaintiffLawFirmAddress = entities.address;
   }
 
   return { entities, fields };
@@ -679,16 +701,29 @@ export function enrichLitigationScrapeFromCreditReports(
 
 /** Apply scraped entities onto a debt case patch (merge-fields only). */
 export function debtPatchFromLitigationScrape(entities: Record<string, string>): Record<string, string | undefined> {
+  const firmAddress = entities.plaintiffLawFirmAddress || entities.address;
+  const firm =
+    entities.plaintiffLawFirm || entities.counselName || entities.collectorName || undefined;
+  // Last-chance directory fill so Apply never leaves firm mailing blank when we know the firm
+  let resolvedAddress = firmAddress;
+  if (!resolvedAddress && firm) {
+    const hit = lookupKnownCreditor(firm);
+    if (hit) resolvedAddress = hit.address;
+  }
+  if (!resolvedAddress && (entities.plaintiffName || entities.creditorName)) {
+    const hit = lookupKnownCreditor(entities.plaintiffName || entities.creditorName || '');
+    if (hit) resolvedAddress = hit.address;
+  }
   return {
     courtCaseNumber: entities.caseNumber,
+    courtName: entities.courtName,
     name: entities.plaintiffName || entities.creditorName,
-    recipientName:
-      entities.plaintiffLawFirm || entities.counselName || entities.collectorName || entities.plaintiffName || entities.creditorName,
-    recipientAddress: entities.plaintiffLawFirmAddress || entities.address,
+    recipientName: firm || entities.plaintiffName || entities.creditorName,
+    recipientAddress: resolvedAddress,
     recipientPhone: entities.phone,
-    collectorName: entities.plaintiffLawFirm || entities.counselName || entities.collectorName || entities.plaintiffName,
-    plaintiffLawFirm: entities.plaintiffLawFirm || entities.counselName || entities.collectorName,
-    plaintiffLawFirmAddress: entities.plaintiffLawFirmAddress || entities.address,
+    collectorName: firm || entities.plaintiffName,
+    plaintiffLawFirm: firm,
+    plaintiffLawFirmAddress: resolvedAddress,
     plaintiffAttorneyName: entities.plaintiffAttorneyName,
     plaintiffAttorneyBarNumber: entities.plaintiffAttorneyBar,
     originalCreditor: entities.originalCreditor || undefined,
@@ -717,12 +752,15 @@ export function mergeEmptyDebtFieldsFromScrape<T extends Record<string, unknown>
   };
   fillStr('name', patch.name);
   fillStr('courtCaseNumber', patch.courtCaseNumber);
+  fillStr('courtName', patch.courtName);
   fillStr('recipientName', patch.recipientName);
   fillStr('recipientAddress', patch.recipientAddress);
   fillStr('recipientPhone', patch.recipientPhone);
   fillStr('collectorName', patch.collectorName);
   fillStr('plaintiffLawFirm', patch.plaintiffLawFirm);
   fillStr('plaintiffLawFirmAddress', patch.plaintiffLawFirmAddress);
+  // Mirror firm address onto recipient when recipient address still empty
+  fillStr('recipientAddress', patch.plaintiffLawFirmAddress || patch.recipientAddress);
   fillStr('plaintiffAttorneyName', patch.plaintiffAttorneyName);
   fillStr('plaintiffAttorneyBarNumber', patch.plaintiffAttorneyBarNumber);
   fillStr('originalCreditor', patch.originalCreditor);

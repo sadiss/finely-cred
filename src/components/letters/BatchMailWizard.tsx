@@ -184,10 +184,10 @@ export function BatchMailWizard({
   };
 
   const stepChips: { id: Step; label: string }[] = [
-    { id: 'select', label: '1 · Select' },
+    { id: 'select', label: '1 · Pick letters' },
     { id: 'confirm', label: '2 · Confirm address' },
     { id: 'mail', label: '3 · Mail' },
-    { id: 'track', label: '4 · Track' },
+    { id: 'track', label: '4 · Email notify' },
   ];
 
   return (
@@ -203,7 +203,7 @@ export function BatchMailWizard({
           <div>
             <div className="text-[10px] uppercase tracking-widest text-white/40">{FINELY_MAIL_COPY.serviceName} · batch</div>
             <div className="mt-1 text-xl font-light text-white">Mail selected letters</div>
-            <p className={`text-sm ${FINELY_OS_ENTITY_BODY}`}>Select → Confirm address → Mail → Track</p>
+            <p className={`text-sm ${FINELY_OS_ENTITY_BODY}`}>Pick → Confirm address → Mail → Email notify</p>
           </div>
           <button type="button" className={FINELY_OS_SECONDARY_BTN} disabled={busy} onClick={onClose}>
             <X size={14} />
@@ -357,8 +357,11 @@ export function BatchMailWizard({
           {step === 'track' ? (
             <div className="space-y-3">
               <div className="inline-flex items-center gap-2 text-emerald-200 font-semibold">
-                <Package size={16} /> Batch complete
+                <Package size={16} /> Mailed · email notify queued
               </div>
+              <p className={`text-sm ${FINELY_OS_ENTITY_BODY}`}>
+                Successful sends trigger a Finely Mail confirmation email to the partner (when <strong className="text-white/80">commsDelivery</strong> is on). Admin copy goes to you when you mailed on their behalf.
+              </p>
               <ul className="space-y-2">
                 {results.map((r) => {
                   const title = letters.find((l) => l.id === r.letterId)?.title || r.letterId;

@@ -24,6 +24,8 @@ export type DebtCase = {
   status: 'open' | 'in_review' | 'resolved' | 'disputed';
   dueDate?: string; // ISO date
   courtCaseNumber?: string;
+  /** Court name from scrape / caption (e.g. 36th District Court) */
+  courtName?: string;
   notes?: string;
   /** First written contact from collector (for 30-day validation window) */
   firstContactDate?: string;

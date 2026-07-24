@@ -78,14 +78,26 @@ export function buildLetterMailedNotifyEmail(args: {
       <div style="font-size:11px;font-weight:900;letter-spacing:0.14em;text-transform:uppercase;color:#fbbf24;">Finely Mail</div>
       <div style="font-size:26px;line-height:1.15;font-weight:900;color:#fffaf0;margin-top:10px;">${escapeHtml(first)}, your mail is moving.</div>
       <div style="font-size:14px;line-height:1.55;color:rgba(255,250,240,0.82);margin-top:10px;">
-        ${count === 1 ? 'One letter' : `${count} letters`} submitted for USPS printing &amp; delivery${args.actorLabel ? ` · mailed by ${escapeHtml(args.actorLabel)}` : ''}.
+        ${count === 1 ? 'One letter' : `${count} letters`} submitted for USPS printing &amp; delivery${
+          args.actorLabel ? ` · mailed by ${escapeHtml(args.actorLabel)}` : ''
+        }.
       </div>
     </div>
     <p style="margin:0 0 14px;">Hi ${escapeHtml(first)},</p>
-    <p style="margin:0 0 14px;">Good news — Finely Cred submitted your physical letter${count === 1 ? '' : 's'} through <strong>Finely Mail</strong> on <strong>${escapeHtml(when)}</strong>.</p>
+    <p style="margin:0 0 14px;">Good news — Finely Cred submitted your physical letter${
+      count === 1 ? '' : 's'
+    } through <strong>Finely Mail</strong> on <strong>${escapeHtml(when)}</strong>.</p>
     <div style="margin:18px 0;border-radius:14px;border:1px solid #e2e8f0;background:#f8fafc;padding:16px 18px;">
       <div style="font-size:11px;font-weight:900;letter-spacing:0.1em;text-transform:uppercase;color:#0f766e;">What mailed</div>
       <ul style="margin:10px 0 0;padding-left:18px;color:#334155;font-size:14px;line-height:1.45;">${listHtml}</ul>
+    </div>
+    <div style="margin:0 0 16px;border-radius:14px;border:1px solid #d1fae5;background:#ecfdf5;padding:14px 16px;">
+      <div style="font-size:11px;font-weight:900;letter-spacing:0.1em;text-transform:uppercase;color:#047857;">What happens next</div>
+      <ol style="margin:8px 0 0;padding-left:18px;color:#334155;font-size:13px;line-height:1.5;">
+        <li>Print partner prepares your letter for USPS.</li>
+        <li>Track status anytime in your Letters Vault.</li>
+        <li>Keep a copy of what mailed for your records.</li>
+      </ol>
     </div>
     <p style="margin:0 0 10px;font-size:14px;color:#334155;"><strong>Going to:</strong> ${escapeHtml(toLine)}</p>
     ${
@@ -93,7 +105,7 @@ export function buildLetterMailedNotifyEmail(args: {
         ? `<p style="margin:0 0 10px;font-size:14px;color:#334155;"><strong>Expected delivery window:</strong> ${escapeHtml(args.expectedDeliveryDate)}</p>`
         : ''
     }
-    <p style="margin:0 0 16px;font-size:14px;color:#475569;">Track status anytime in your Letters Vault. Street addresses are kept private in this email — open the vault for full mail details.</p>
+    <p style="margin:0 0 16px;font-size:14px;color:#475569;">Street addresses are kept private in this email — open the vault for full mail details.</p>
     ${buildPrimaryCtaButton({ label: 'Open Letters Vault', href: args.vaultUrl, color: '#0f766e' })}
     ${buildTrustStrip()}
     <p style="margin:16px 0 0;font-size:12px;color:#94a3b8;">Results vary · not legal advice · physical mail depends on USPS and print partners.</p>
@@ -119,6 +131,8 @@ export function buildLetterMailedNotifyEmail(args: {
     '',
     `To: ${toLine}`,
     args.expectedDeliveryDate ? `Expected delivery: ${args.expectedDeliveryDate}` : '',
+    '',
+    'Next: print partner prepares for USPS · track in Letters Vault · keep a copy for your records.',
     '',
     `Track: ${args.vaultUrl}`,
     '',

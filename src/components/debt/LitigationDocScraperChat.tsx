@@ -65,15 +65,22 @@ export function LitigationDocScraperChat({
   partnerId,
   onDebtChange,
   onScrapeApplied,
+  onScrapeComplete,
   defaultHearingIso,
   reports: reportsProp,
+  autoApplyOnHighConfidence = false,
 }: {
   debt: DebtCase | null;
   partnerId: string;
   onDebtChange: (d: DebtCase) => void;
+  /** Fires after Apply fills empty case fields (pipeline advances here). */
   onScrapeApplied?: (result: LitigationScrapeResult) => void;
+  /** Fires when scrape finishes (before Apply). */
+  onScrapeComplete?: (result: LitigationScrapeResult) => void;
   defaultHearingIso?: string;
   reports?: Array<{ id?: string; parsed?: { tradelines?: Array<Record<string, unknown>>; creditorContacts?: Array<Record<string, unknown>> } | null }>;
+  /** When most fields are high/medium confidence, auto-Apply so first-timers do not stall. */
+  autoApplyOnHighConfidence?: boolean;
 }) {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [busy, setBusy] = useState(false);
@@ -82,6 +89,7 @@ export function LitigationDocScraperChat({
   const [result, setResult] = useState<LitigationScrapeResult | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const [chatOpen, setChatOpen] = useState(true);
   const [chat, setChat] = useState<ChatLine[]>([
     {
       role: 'assistant',
@@ -106,46 +114,9 @@ export function LitigationDocScraperChat({
     ]);
   };
 
-  const runFile = async (file: File) => {
-    setBusy(true);
-    setErr(null);
-    setNotice(null);
-    setProgress('Starting scrape…');
-    setChat((prev) => [...prev, { role: 'user', text: `Uploaded ${file.name}` }]);
-    try {
-      let scraped = await scrapeLitigationDocument(file, {
-        maxOcrPages: 12,
-        onProgress: (msg) => setProgress(msg),
-      });
-      if (reports.length) {
-        setProgress('Enriching from credit reports…');
-        scraped = enrichLitigationScrapeFromCreditReports(scraped, reports);
-      }
-      setResult(scraped);
-      onScrapeApplied?.(scraped);
-      const lines = scraped.fields.length
-        ? scraped.fields.map((f) => `• ${f.label}: ${f.value} (${f.confidence})`).join('\n')
-        : 'Few structured fields found — review the document caption manually, then type missing facts into the parties panel.';
-      setChat((prev) => [
-        ...prev,
-        {
-          role: 'assistant',
-          text: `${scraped.summary}\n\n${lines}\n\n${scraped.nextActions.slice(0, 4).map((a, i) => `${i + 1}. ${a}`).join('\n')}\n\nTap any field chip to learn more, then Apply to case — empty Court / Validation fields fill dynamically.\n\n${scraped.compliance}`,
-        },
-      ]);
-    } catch (e: unknown) {
-      const msg = (e as Error)?.message || 'Scrape failed.';
-      setErr(msg);
-      setChat((prev) => [...prev, { role: 'assistant', text: `Could not scrape that file: ${msg}` }]);
-    } finally {
-      setBusy(false);
-      setProgress(null);
-    }
-  };
-
-  const applyToCase = () => {
-    if (!result || !partnerId) return;
-    const patch = debtPatchFromLitigationScrape(result.entities);
+  const applyScrape = (scraped: LitigationScrapeResult, opts?: { auto?: boolean }) => {
+    if (!partnerId) return;
+    const patch = debtPatchFromLitigationScrape(scraped.entities);
     const hearingIso = parseLooseDate(patch.hearingDate || '') || defaultHearingIso;
     const amountCents = amountToCents(patch.amountClaimed);
     const base: DebtCase =
@@ -165,11 +136,11 @@ export function LitigationDocScraperChat({
       {
         ...base,
         partnerId,
-        type: base.type === 'debt' && result.docKind !== 'collector_letter' ? 'summons' : base.type,
+        type: base.type === 'debt' && scraped.docKind !== 'collector_letter' ? 'summons' : base.type,
         hearingDate: parseLooseDate(String(base.hearingDate || '')) || hearingIso || base.hearingDate,
         dateServed: parseLooseDate(String(base.dateServed || '')) || parseLooseDate(patch.dateServed || '') || base.dateServed,
         source: 'document' as const,
-        notes: [base.notes, `Litigation scrape: ${result.filename} (${result.docKind}).`].filter(Boolean).join('\n'),
+        notes: [base.notes, `Litigation scrape: ${scraped.filename} (${scraped.docKind}).`].filter(Boolean).join('\n'),
       },
       { ...patch, hearingDate: hearingIso || patch.hearingDate, dateServed: parseLooseDate(patch.dateServed || '') || patch.dateServed },
       amountCents,
@@ -188,16 +159,81 @@ export function LitigationDocScraperChat({
       next.amountCents > 0 && 'amount',
       next.accountNumberMasked && 'account',
       next.originalCreditor && 'original creditor',
+      next.name && 'plaintiff name',
     ].filter(Boolean);
 
-    setNotice(`Applied ${filled.length} field groups to case — Court + Validation panels updated.`);
+    setNotice(
+      `${opts?.auto ? 'Auto-applied' : 'Applied'} ${filled.length} field groups — every empty Court / Validation field filled. Confirm parties next.`,
+    );
+    setChatOpen(false);
     setChat((prev) => [
       ...prev,
       {
         role: 'assistant',
-        text: `Applied scrape to “${next.name}”.\nCase #: ${next.courtCaseNumber || '—'}\nHearing: ${next.hearingDate || '—'}\nFirm: ${next.plaintiffLawFirm || '—'}\nFirm address: ${next.plaintiffLawFirmAddress || next.recipientAddress || '—'}\nAttorney: ${next.plaintiffAttorneyName || '—'}\nRecipient: ${next.recipientName || '—'}\nAccount: ${next.accountNumberMasked || '—'}\nOriginal creditor: ${next.originalCreditor || '—'}\nAmount: ${next.amountCents ? `$${(next.amountCents / 100).toFixed(2)}` : '—'}\n\nNext: confirm parties below, then build your Written Answer.`,
+        text: `${opts?.auto ? 'Auto-applied' : 'Applied'} scrape to “${next.name}”.\nCase #: ${next.courtCaseNumber || '—'}\nHearing: ${next.hearingDate || '—'}\nFirm: ${next.plaintiffLawFirm || '—'}\nFirm address: ${next.plaintiffLawFirmAddress || next.recipientAddress || '—'}\nAttorney: ${next.plaintiffAttorneyName || '—'}\nRecipient: ${next.recipientName || '—'}\nAccount: ${next.accountNumberMasked || '—'}\nOriginal creditor: ${next.originalCreditor || '—'}\nAmount: ${next.amountCents ? `$${(next.amountCents / 100).toFixed(2)}` : '—'}\n\nNext: confirm parties (Step 2), then one-tap Build written answer.`,
       },
     ]);
+    onScrapeApplied?.(scraped);
+  };
+
+  const runFile = async (file: File) => {
+    setBusy(true);
+    setErr(null);
+    setNotice(null);
+    setProgress('Starting scrape…');
+    setChatOpen(true);
+    setChat((prev) => [...prev, { role: 'user', text: `Uploaded ${file.name}` }]);
+    try {
+      let scraped = await scrapeLitigationDocument(file, {
+        maxOcrPages: 12,
+        onProgress: (msg) => setProgress(msg),
+      });
+      if (reports.length) {
+        setProgress('Enriching from credit reports…');
+        scraped = enrichLitigationScrapeFromCreditReports(scraped, reports);
+      }
+      setResult(scraped);
+      onScrapeComplete?.(scraped);
+      const lines = scraped.fields.length
+        ? scraped.fields.map((f) => `• ${f.label}: ${f.value} (${f.confidence})`).join('\n')
+        : 'Few structured fields found — review the document caption manually, then type missing facts into the parties panel.';
+      const usable = scraped.fields.filter((f) => f.confidence === 'high' || f.confidence === 'medium');
+      const hasCore =
+        Boolean(scraped.entities.caseNumber || scraped.entities.plaintiffName || scraped.entities.address) &&
+        usable.length >= 2;
+      const shouldAuto =
+        autoApplyOnHighConfidence && partnerId && (usable.length >= 2 || hasCore) && scraped.fields.length > 0;
+      setChat((prev) => [
+        ...prev,
+        {
+          role: 'assistant',
+          text: `${scraped.summary}\n\n${lines}\n\n${scraped.nextActions
+            .slice(0, 4)
+            .map((a, i) => `${i + 1}. ${a}`)
+            .join('\n')}\n\n${
+            shouldAuto
+              ? 'High-confidence scrape — auto-applying empty fields now. You can still edit anything on Step 2.'
+              : 'Tap Apply to case — empty Court / Validation fields fill dynamically (never overwrites what you already confirmed).'
+          }\n\n${scraped.compliance}`,
+        },
+      ]);
+      if (shouldAuto) {
+        setProgress('Auto-applying empty fields…');
+        applyScrape(scraped, { auto: true });
+      }
+    } catch (e: unknown) {
+      const msg = (e as Error)?.message || 'Scrape failed.';
+      setErr(msg);
+      setChat((prev) => [...prev, { role: 'assistant', text: `Could not scrape that file: ${msg}` }]);
+    } finally {
+      setBusy(false);
+      setProgress(null);
+    }
+  };
+
+  const applyToCase = () => {
+    if (!result || !partnerId) return;
+    applyScrape(result);
   };
 
   const onDrop = (e: React.DragEvent) => {
@@ -270,27 +306,46 @@ export function LitigationDocScraperChat({
           />
         </div>
 
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2 items-center">
           {result ? (
-            <button type="button" disabled={!partnerId || busy} onClick={applyToCase} className={FINELY_OS_PRIMARY_BTN}>
-              <Sparkles size={14} /> Apply to case (fill empty fields)
+            <button
+              type="button"
+              disabled={!partnerId || busy}
+              onClick={applyToCase}
+              className={`${FINELY_OS_PRIMARY_BTN} !min-h-[3rem] !text-sm !font-extrabold !px-5`}
+            >
+              <Sparkles size={16} /> Apply to case — fill ALL empty fields
             </button>
           ) : (
-            <button type="button" disabled={busy} onClick={() => inputRef.current?.click()} className={FINELY_OS_SECONDARY_BTN}>
-              <Upload size={14} /> Choose file
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => inputRef.current?.click()}
+              className={`${FINELY_OS_PRIMARY_BTN} !min-h-[3rem] !text-sm !font-extrabold !px-5`}
+            >
+              <Upload size={16} /> Choose file to scrape
             </button>
           )}
+          {result ? (
+            <button type="button" disabled={busy} onClick={() => inputRef.current?.click()} className={FINELY_OS_SECONDARY_BTN}>
+              Drop another file
+            </button>
+          ) : null}
           {reports.length ? (
-            <span className={`text-[10px] ${FINELY_OS_ENTITY_BODY}`}>{reports.length} credit report(s) available for enrichment</span>
+            <span className={`text-[10px] ${FINELY_OS_ENTITY_BODY}`}>{reports.length} credit report(s) for enrichment</span>
           ) : null}
         </div>
 
         {progress ? <div className="text-[11px] text-fuchsia-100/80">{progress}</div> : null}
-        {notice ? <div className="text-[11px] text-emerald-200/90">{notice}</div> : null}
+        {notice ? (
+          <div className="rounded-lg border border-emerald-400/35 bg-emerald-500/15 px-3 py-2 text-sm font-semibold text-emerald-100">
+            {notice}
+          </div>
+        ) : null}
         {err ? <div className="text-[11px] text-rose-200/90">{err}</div> : null}
 
         {fieldRows.length > 0 ? (
-          <div className="grid sm:grid-cols-2 gap-2 max-h-[240px] overflow-y-auto pr-1">
+          <div className="grid sm:grid-cols-2 gap-2 max-h-[200px] overflow-y-auto pr-1">
             {fieldRows.map((f) => (
               <button
                 key={f.key + f.value}
@@ -323,19 +378,28 @@ export function LitigationDocScraperChat({
           </div>
         ) : null}
 
-        <div className="rounded-xl border border-white/10 bg-black/35 max-h-[220px] overflow-y-auto space-y-2 p-3">
-          {chat.map((line, i) => (
-            <div
-              key={i}
-              className={`text-xs whitespace-pre-wrap ${line.role === 'user' ? 'text-sky-100/90' : FINELY_OS_ENTITY_BODY}`}
-            >
-              <span className="text-[10px] uppercase tracking-widest text-white/40 mr-2">
-                {line.role === 'user' ? 'You' : 'Scraper'}
-              </span>
-              {line.text}
-            </div>
-          ))}
-        </div>
+        <details
+          open={chatOpen}
+          onToggle={(e) => setChatOpen((e.target as HTMLDetailsElement).open)}
+          className="rounded-xl border border-white/10 bg-black/35"
+        >
+          <summary className="cursor-pointer select-none px-3 py-2 text-xs font-semibold text-white/80">
+            Scrape chat ({chat.length} lines) — tap a field chip above to explain
+          </summary>
+          <div className="max-h-[200px] overflow-y-auto space-y-2 p-3 pt-0">
+            {chat.map((line, i) => (
+              <div
+                key={i}
+                className={`text-xs whitespace-pre-wrap ${line.role === 'user' ? 'text-sky-100/90' : FINELY_OS_ENTITY_BODY}`}
+              >
+                <span className="text-[10px] uppercase tracking-widest text-white/40 mr-2">
+                  {line.role === 'user' ? 'You' : 'Scraper'}
+                </span>
+                {line.text}
+              </div>
+            ))}
+          </div>
+        </details>
         <p className="text-[9px] text-white/35">Educational · not legal advice · verify against your paper file · results vary</p>
       </div>
     </div>

@@ -1,43 +1,49 @@
 import type { LitigationLetterArgs } from './litigationLetterArgs';
 import { fillLitigation } from './litigationLetterArgs';
 
-/** Post-suit validation + cease & desist (mini-Miranda / collection lawsuit). */
+/** Post-suit validation + cease & desist (mini-Miranda / collection lawsuit) — stronger account-level demands. */
 export function getLitigationValidationCeaseDesistBody(args: LitigationLetterArgs): string {
-  const template = `{{PLAINTIFF_NAME}}
+  const template = `{{DATE}}
+
+{{PLAINTIFF_NAME}}
 {{PLAINTIFF_ADDRESS}}
 
 {{PLAINTIFF_LAW_FIRM}}
 {{PLAINTIFF_LAW_FIRM_ADDRESS}}
 
-VALIDATION AND CEASE AND DESIST
+VALIDATION, VERIFICATION, AND CEASE & DESIST DEMAND
+(Educational self-help · not legal advice · results vary)
 
-		Re:	Name: {{DEBTOR_NAME}}
-			Address: {{DEBTOR_ADDRESS_BLOCK}}
-			Account #: {{ACCOUNT_NUMBER}}
+Re:	Name: {{DEBTOR_NAME}}
+	Address: {{DEBTOR_ADDRESS_BLOCK}}
+	Account / reference: {{ACCOUNT_NUMBER}}
+	Case / claim: {{CASE_NUMBER}}
+	Amount claimed: {{AMOUNT_CLAIMED}}
+	Original creditor (if alleged): {{ORIGINAL_CREDITOR}}
 
-		Dear {{PLAINTIFF_LAW_FIRM}}:
+Dear {{PLAINTIFF_LAW_FIRM}}:
 
-		I received a debt collection letter lawsuit from you where you used the Mini Miranda Warning telling me you are a debt collector and collecting upon a debt. Can you supply me with a contract or agreement signed with your company.
+I received a collection communication and/or lawsuit papers from you that include debt-collector disclosure language (including Mini-Miranda style language). I dispute that I owe the claimed amount to the named plaintiff / collector until you provide complete validation for THIS specific account.
 
-		PURSUANT TO THE FDCPA, I WOULD LIKE THE FOLLOWING PROVIDED:
+Pursuant to the Fair Debt Collection Practices Act, 15 U.S.C. § 1692g (and any applicable state collection statutes), please provide in writing:
 
-		THE NAME AND ADDRESS OF THE ORIGINAL AND CURRENT CREDITOR
-		VERIFICATION OF THE DEBT AMOUNT THAT YOU ARE SEEKING TO COLLECT SHOWING THAT A CONTRACT EXISTS CREATE THE AMOUNT THAT YOU CLAIM IS OWED.
-		ALL THE ASSIGNMENTS SHOWING THE DEBT TRANSFER FROM THE ORIGINAL CREDITOR TO THE CURRENT CREDITOR
-		PLEASE PROVIDE ME WITH PROOF THE DEBT WAS SECURITIZED BY THE ORIGINAL CREDITOR
-		PLEASE SHOW THE ASSIGNMENTS OF THE DEBT FROM THE ORIGINAL CREDITOR TO THE SECURED TRUST AND THEN BACK TO THE ORIGINAL CREDITOR
+1. The name and mailing address of the original creditor and the current creditor / owner of THIS account.
+2. Verification of the amount you claim is owed, including a complete itemized ledger showing principal, interest, fees, payments, credits, sale proceeds, and adjustments from inception (or charge-off) to the present.
+3. A copy of the agreement or contract you contend creates the obligation, including any amendments and proof of my assent.
+4. The complete chain of title / all assignments or bills of sale transferring THIS account from the original creditor to the current claimant — including any account-level sale schedule identifying THIS account (last four / account id, sale balance, transfer date, field codes). A pool bill of sale alone is not sufficient.
+5. If the account was placed in a trust, SPV, or securitization structure: identify the trust/SPV and produce assignments to and from that entity for THIS account (or state in writing that no such transfer occurred).
+6. Licensing / authorization to collect in my state, if required for your entity type.
+7. The name of any prior collectors and dates of placement.
 
-		PLEASE CEASE AND DESIST FROM COLLECTING ON THIS DEBT UNTIL YOU HAVE VALIDATED THE DEBT.
+PLEASE CEASE COLLECTION COMMUNICATIONS AND COLLECTION ACTIVITY ON THIS ACCOUNT UNTIL YOU HAVE PROVIDED THE VALIDATION ABOVE (except as permitted by law for pending litigation filings / court process).
 
-		Please do not look at my credit report or report anything to my credit I dispute I owe this debt amount to you and that dispute should be stated on my credit report if you have reported this debt.
+CREDIT REPORTING / PERMISSIBLE PURPOSE
+I dispute the debt amount and ownership as claimed. If you have reported or will report this account, report it as disputed. Please state in writing the permissible purpose for any credit pull related to this matter.
 
-		PERMISSABLE PURPOSE
+IF YOU TRANSFER OR PLACE THIS ACCOUNT
+I dispute that I owe this debt as claimed to you. If you pass this matter to another collector, buyer, or attorney, provide them written notice of my dispute and a copy of this letter.
 
-		Please State why you have a permissible purpose to contact my credit.  I dispute this.
-
-		IF YOU PASS THIS ON TO ANOTHER COLLECTOR
-
-		I dispute I owe this debt to you. If you pass this on to another debt collector, please provide them notice of my dispute to owing this debt.  Thank you for your immediate cooperation.
+Provide your written response to the address above. Thank you for your prompt cooperation.
 
 ______________________________
 {{DEBTOR_NAME}}`;
