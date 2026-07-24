@@ -31,6 +31,93 @@ function cleanFilename(s: string) {
   return (s || 'finely-video').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 70) || 'finely-video';
 }
 
+/** Anti-list storyboard: deck tiles + one focused beat (not a vertical prompt wall). */
+function StoryboardBoard({
+  scenes,
+}: {
+  scenes: Array<{
+    id: string;
+    beat: string;
+    durationSec: number;
+    visualPrompt: string;
+    caption?: string;
+    voiceover?: string;
+  }>;
+}) {
+  const [selectedId, setSelectedId] = useState<string | null>(scenes[0]?.id ?? null);
+  const selected = scenes.find((s) => s.id === selectedId) ?? scenes[0] ?? null;
+  const pageSize = 8;
+  const [page, setPage] = useState(0);
+  const totalPages = Math.max(1, Math.ceil(scenes.length / pageSize));
+  const safePage = Math.min(page, totalPages - 1);
+  const slice = scenes.slice(safePage * pageSize, safePage * pageSize + pageSize);
+
+  if (!scenes.length) {
+    return <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4 text-white/55 text-sm">No scenes yet.</div>;
+  }
+
+  return (
+    <div className="grid lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)] gap-3">
+      <div className="space-y-2">
+        <div className="grid sm:grid-cols-2 gap-2">
+          {slice.map((s, idx) => {
+            const n = safePage * pageSize + idx + 1;
+            const active = selected?.id === s.id;
+            return (
+              <button
+                key={s.id}
+                type="button"
+                onClick={() => setSelectedId(s.id)}
+                className={`rounded-2xl border p-3 text-left transition ${
+                  active ? 'border-amber-400/45 bg-amber-500/12' : 'border-white/10 bg-black/30 hover:bg-white/[0.04]'
+                }`}
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-amber-200 text-xs font-black uppercase tracking-widest">Shot {n}</span>
+                  <span className="text-white/40 text-xs font-mono">{s.durationSec}s</span>
+                </div>
+                <div className="mt-1 text-white font-semibold truncate">{s.beat}</div>
+              </button>
+            );
+          })}
+        </div>
+        {scenes.length > pageSize ? (
+          <div className="flex items-center justify-between text-xs text-white/45">
+            <span>
+              Page {safePage + 1}/{totalPages}
+            </span>
+            <div className="flex gap-2">
+              <button type="button" className="fc-button-soft" disabled={safePage <= 0} onClick={() => setPage((p) => p - 1)}>
+                Prev
+              </button>
+              <button type="button" className="fc-button-soft" disabled={safePage >= totalPages - 1} onClick={() => setPage((p) => p + 1)}>
+                Next
+              </button>
+            </div>
+          </div>
+        ) : null}
+      </div>
+      <div className="rounded-2xl border border-white/10 bg-black/35 p-4 space-y-3">
+        <div className="text-[10px] uppercase tracking-widest text-white/40">Focus beat</div>
+        {selected ? (
+          <>
+            <div className="text-white font-semibold">{selected.beat}</div>
+            <div className="text-sm text-white/60 leading-relaxed line-clamp-6">{selected.visualPrompt}</div>
+            {selected.caption ? (
+              <div className="rounded-xl border border-amber-400/15 bg-amber-500/10 p-2.5 text-amber-100 text-xs">Caption: {selected.caption}</div>
+            ) : null}
+            {selected.voiceover ? (
+              <div className="rounded-xl border border-sky-400/15 bg-sky-500/10 p-2.5 text-sky-100 text-xs inline-flex gap-2">
+                <Mic2 size={14} /> {selected.voiceover}
+              </div>
+            ) : null}
+          </>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
 function planFromAiJson(raw: any, request: VideoCommandRequest): VideoCommandPlan | null {
   if (!raw || !Array.isArray(raw.scenes)) return null;
   const fallback = buildFallbackVideoPlan(request);
@@ -440,17 +527,7 @@ export function GeminiStyleVideoCommand({ initialRequest }: { initialRequest?: P
             <div className="rounded-3xl border border-white/10 bg-white/[0.035] p-5"><div className="text-[10px] uppercase tracking-widest text-white/40">CTA</div><div className="mt-3 text-white font-semibold leading-relaxed">{activePlan.cta}</div></div>
             <div className="rounded-3xl border border-white/10 bg-white/[0.035] p-5"><div className="text-[10px] uppercase tracking-widest text-white/40">Safety</div><div className="mt-3 text-white font-semibold leading-relaxed">{activePlan.complianceFlags.join(', ') || 'Review required'}</div></div>
           </div>
-          <div className="space-y-4">
-            {activePlan.scenes.map((s, idx) => (
-              <div key={s.id} className="rounded-3xl border border-white/10 bg-black/35 p-5 space-y-3">
-                <div className="flex items-center justify-between gap-3"><div className="text-amber-200 font-black">Scene {idx + 1}</div><div className="text-white/40 text-xs font-mono">{s.durationSec}s</div></div>
-                <div className="text-white font-semibold">{s.beat}</div>
-                <div className="text-sm text-white/60 leading-relaxed">{s.visualPrompt}</div>
-                {s.caption ? <div className="rounded-2xl border border-amber-400/15 bg-amber-500/10 p-3 text-amber-100 text-sm">Caption: {s.caption}</div> : null}
-                {s.voiceover ? <div className="rounded-2xl border border-sky-400/15 bg-sky-500/10 p-3 text-sky-100 text-sm inline-flex gap-2"><Mic2 size={15} /> {s.voiceover}</div> : null}
-              </div>
-            ))}
-          </div>
+          <StoryboardBoard scenes={activePlan.scenes} />
           <div className="flex flex-wrap gap-2">{activePlan.renderChecklist.map((c) => <span key={c} className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-2 text-xs text-white/60">{c}</span>)}</div>
           <button type="button" className="fc-button-soft" onClick={() => { deleteVideoCommandPlan(activePlan.id); setActivePlanId(null); setVersion((v) => v + 1); }}><Trash2 size={14} /> Delete plan</button>
         </StudioSection>
