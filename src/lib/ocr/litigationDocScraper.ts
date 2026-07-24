@@ -169,13 +169,48 @@ function extractEntitiesFromText(text: string): {
     );
   }
 
-  const counsel = firstMatch(t, [
-    /Attorney(?:s)? for Plaintiff[:\s]+([^\n]{3,80})/i,
-    /([A-Z][A-Za-z &.,'\-]{2,60}(?:P\.?C\.?|LLC|LLP|Law(?:\s+Group|\s+Firm| Offices)?))/ ,
-    /Bar\s*(?:No\.?|Number|#)?\s*[:#]?\s*(P?\d{4,7})/i,
+  const lawFirm = firstMatch(t, [
+    /(?:Law\s+(?:Offices?|Firm|Group)\s+of\s+)([A-Z][A-Za-z &.,'\-]{2,70})/i,
+    /([A-Z][A-Za-z &.,'\-]{2,60}(?:P\.?C\.?|LLC|LLP|L\.?L\.?P\.?|Law(?:\s+Group|\s+Firm| Offices)?))/,
+    /Attorney(?:s)? for Plaintiff[:\s]+\n?\s*([A-Z][A-Za-z &.,'\-]{2,80})/i,
   ]);
+  const attorneyName = firstMatch(t, [
+    /(?:^|\n)\s*((?:[A-Z][a-z]+(?:\s+[A-Z]\.?)?\s+[A-Z][a-z]+))\s*,?\s*(?:Esq\.?|Attorney)/m,
+    /Attorney(?:s)? for Plaintiff[:\s]+([A-Z][a-z]+(?:\s+[A-Z]\.?)?\s+[A-Z][a-z]+)/i,
+    /By:\s*([A-Z][a-z]+(?:\s+[A-Z]\.?)?\s+[A-Z][a-z]+)/,
+  ]);
+  const counsel = lawFirm || attorneyName || firstMatch(t, [/Attorney(?:s)? for Plaintiff[:\s]+([^\n]{3,80})/i]);
   const bar = firstMatch(t, [/\b(P[- ]?\d{4,7})\b/i, /Bar\s*(?:No\.?|Number|#)?\s*[:#]?\s*([A-Z]?\d{4,8})/i]);
-  if (counsel && !/plaintiff|defendant|court/i.test(counsel)) {
+  if (lawFirm && !/plaintiff|defendant|court/i.test(lawFirm)) {
+    entities.plaintiffLawFirm = lawFirm;
+    entities.collectorName = lawFirm;
+    entities.counselName = lawFirm;
+    fields.push(
+      field(
+        'plaintiffLawFirm',
+        'Plaintiff law firm',
+        lawFirm,
+        'high',
+        'Firm on the caption — primary mailing recipient for answers, validation, and discovery.',
+        'Counsel block',
+      )!,
+    );
+  }
+  if (attorneyName && !/plaintiff|defendant/i.test(attorneyName)) {
+    entities.plaintiffAttorneyName = attorneyName;
+    if (!entities.counselName) entities.counselName = attorneyName;
+    fields.push(
+      field(
+        'plaintiffAttorneyName',
+        'Attorney of record',
+        attorneyName,
+        'medium',
+        'Named attorney — use on affidavits, discovery captions, and certificate of service.',
+        'Counsel block',
+      )!,
+    );
+  }
+  if (counsel && !entities.counselName && !/plaintiff|defendant|court/i.test(counsel)) {
     entities.collectorName = counsel;
     entities.counselName = counsel;
     fields.push(
@@ -196,8 +231,61 @@ function extractEntitiesFromText(text: string): {
     );
   }
 
+  const originalCreditor = firstMatch(t, [
+    /original\s+creditor[:\s]+([A-Z][A-Za-z0-9 &.,'\-]{2,60})/i,
+    /(?:formerly|originated\s+by|account\s+of)\s+([A-Z][A-Za-z0-9 &.,'\-]{2,60})/i,
+    /\b(Citibank(?:\s*,?\s*N\.?A\.?)?|Citi(?:corp|group)?|Bank of America|Chase|Capital One|Wells Fargo|Synchrony|Discover|American Express)\b/i,
+  ]);
+  if (originalCreditor) {
+    entities.originalCreditor = originalCreditor;
+    fields.push(
+      field(
+        'originalCreditor',
+        'Original creditor',
+        originalCreditor,
+        /citi/i.test(originalCreditor) ? 'high' : 'medium',
+        'Separate from the named plaintiff (often a debt buyer). Keep honest if you recognize this relationship.',
+        'Complaint / affidavit',
+      )!,
+    );
+  }
+
+  const accountMasked = firstMatch(t, [
+    /(?:account|acct\.?|loan)\s*(?:no\.?|number|#)?\s*[:#]?\s*([xX*•·\- ]{0,8}\d{3,5})/,
+    /(?:ending\s+in|last\s+four)\s*[:#]?\s*(\d{4})/i,
+    /\b(\d{4}[\-*xX]{2,}\d{4})\b/,
+  ]);
+  if (accountMasked) {
+    const masked = accountMasked.length === 4 ? `****${accountMasked}` : accountMasked;
+    entities.accountNumberMasked = masked;
+    fields.push(
+      field(
+        'accountNumberMasked',
+        'Account reference',
+        masked,
+        'high',
+        'Masked account id for letters and affidavits — never invent digits not on the papers.',
+        'Account block',
+      )!,
+    );
+  }
+
+  const loanId = firstMatch(t, [/(?:loan|note|reference)\s*(?:id|no\.?|number|#)?\s*[:#]?\s*([A-Z0-9\-]{5,24})/i]);
+  if (loanId && loanId !== caseNumber) {
+    entities.loanId = loanId;
+    fields.push(field('loanId', 'Loan / reference ID', loanId, 'medium', 'Secondary identifier from complaint or servicer records.', 'Account block')!);
+  }
+
+  const county = firstMatch(t, [/(?:County of|IN THE\s+[A-Z ]+COURT\s+OF)\s+([A-Z][A-Za-z ]{2,40}?)\s+County/i, /([A-Z][a-z]+)\s+County,?\s+[A-Z]{2}/]);
+  if (county) {
+    entities.affidavitCounty = county.replace(/\s+County$/i, '').trim();
+    fields.push(
+      field('affidavitCounty', 'County', entities.affidavitCounty, 'medium', 'Use on affidavit captions and venue lines.', 'Caption')!,
+    );
+  }
+
   const amount = firstMatch(t, [
-    /(?:amount\s*(?:claimed|due|owing)|principal|balance\s*due|judgment\s*amount)\s*[:$]?\s*\$?\s*([\d,]+\.\d{2})/i,
+    /(?:amount\s*(?:claimed|due|owing)|principal|balance\s*due|judgment\s*amount|sum\s+of)\s*[:$]?\s*\$?\s*([\d,]+\.\d{2})/i,
     /\$\s*([\d,]+\.\d{2})/,
   ]);
   if (amount) {
@@ -255,20 +343,22 @@ function extractEntitiesFromText(text: string): {
     fields.push(field('state', 'Jurisdiction state', entities.state, 'medium', 'Controls procedure, SOL framing, and licensing questions.', 'Caption')!);
   }
 
-  // Mailing address block near counsel / plaintiff
+  // Mailing address block near counsel / plaintiff (prefer firm address over random street hits)
   const addrBlock = firstMatch(t, [
-    /(\d{1,5}\s+[A-Za-z0-9 .,'#\-]+(?:Street|St|Avenue|Ave|Road|Rd|Boulevard|Blvd|Drive|Dr|Lane|Ln|Suite|Ste|P\.?O\.?\s*Box)[^\n]{0,40}\n[^\n]{0,60}\b[A-Z]{2}\s+\d{5}(?:-\d{4})?)/i,
+    /(?:Attorney(?:s)? for Plaintiff|Law\s+(?:Offices?|Firm|Group)|P\.?C\.?|LLP|LLC)[^\n]{0,120}\n+([^\n]{0,80}\d{1,5}\s+[A-Za-z0-9 .,'#\-]+(?:Street|St\.?|Avenue|Ave\.?|Road|Rd\.?|Boulevard|Blvd\.?|Drive|Dr\.?|Lane|Ln\.?|Suite|Ste\.?|Floor|Fl\.?)[^\n]{0,40}\n[^\n]{0,80}\b[A-Z]{2}\s+\d{5}(?:-\d{4})?)/i,
+    /(\d{1,5}\s+[A-Za-z0-9 .,'#\-]+(?:Street|St\.?|Avenue|Ave\.?|Road|Rd\.?|Boulevard|Blvd\.?|Drive|Dr\.?|Lane|Ln\.?|Suite|Ste\.?|P\.?O\.?\s*Box)[^\n]{0,40}\n[^\n]{0,60}\b[A-Z]{2}\s+\d{5}(?:-\d{4})?)/i,
     /(P\.?O\.?\s*Box\s+\d+[^\n]*\n[^\n]*\b[A-Z]{2}\s+\d{5}(?:-\d{4})?)/i,
   ]);
   if (addrBlock) {
     entities.address = addrBlock.replace(/\n+/g, '\n').trim();
+    entities.plaintiffLawFirmAddress = entities.address;
     fields.push(
       field(
         'address',
-        'Counsel / collector mailing address',
+        'Counsel / firm mailing address',
         entities.address,
-        'medium',
-        'Auto-fills the debt letter recipient block for validation and court service copies.',
+        'high',
+        'Auto-fills plaintiff firm address + validation recipient — confirm against the summons letterhead.',
         'Address block',
       )!,
     );
@@ -380,16 +470,44 @@ function summarize(docKind: LitigationDocKind, fields: ScrapedLitigationField[],
   return `Scraped ${docKind.replace('_', ' ')} from ${filename}. ${bits.length ? bits.join(' · ') : 'Few structured fields — review the chat explanations and enter missing caption data manually.'}`;
 }
 
-export async function scrapeLitigationDocument(
+async function extractTextFromAnyFile(
   file: File,
   opts?: { maxOcrPages?: number; onProgress?: (msg: string) => void },
-): Promise<LitigationScrapeResult> {
+): Promise<{ text: string; numPages: number; usedOcr: boolean }> {
+  const name = (file.name || '').toLowerCase();
+  const type = (file.type || '').toLowerCase();
+
+  if (type.includes('html') || name.endsWith('.html') || name.endsWith('.htm') || name.endsWith('.txt')) {
+    opts?.onProgress?.('Reading HTML / text file…');
+    const raw = await file.text();
+    const text = raw
+      .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+      .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+      .replace(/<[^>]+>/g, '\n')
+      .replace(/&nbsp;/g, ' ')
+      .replace(/&amp;/g, '&')
+      .replace(/\n{3,}/g, '\n\n');
+    return { text, numPages: 1, usedOcr: false };
+  }
+
+  if (type.startsWith('image/') || /\.(png|jpe?g|webp|gif|tif?f)$/i.test(name)) {
+    opts?.onProgress?.('Running OCR on image…');
+    try {
+      const { createWorker } = await import('tesseract.js');
+      const worker = await createWorker('eng');
+      const { data } = await worker.recognize(file);
+      await worker.terminate();
+      return { text: data.text || '', numPages: 1, usedOcr: true };
+    } catch {
+      return { text: '', numPages: 1, usedOcr: false };
+    }
+  }
+
   opts?.onProgress?.('Extracting native PDF text…');
   let usedOcr = false;
-  let extraction = await extractPdfTextWithMeta(file);
+  const extraction = await extractPdfTextWithMeta(file);
   let text = extraction.text || '';
 
-  // Sparse text → OCR fallback (same pattern as credit-report pipeline)
   if (text.replace(/\s+/g, '').length < 200 && extraction.numPages > 0) {
     opts?.onProgress?.('Sparse text — running OCR…');
     try {
@@ -403,10 +521,18 @@ export async function scrapeLitigationDocument(
         usedOcr = true;
       }
     } catch {
-      // OCR optional — keep native text
+      /* OCR optional */
     }
   }
+  return { text, numPages: extraction.numPages, usedOcr };
+}
 
+export async function scrapeLitigationDocument(
+  file: File,
+  opts?: { maxOcrPages?: number; onProgress?: (msg: string) => void },
+): Promise<LitigationScrapeResult> {
+  const extraction = await extractTextFromAnyFile(file, opts);
+  const text = extraction.text || '';
   const docKind = classifyDocKind(text, file.name);
   const { entities, fields } = extractEntitiesFromText(text);
   const routes = buildRoutes(docKind, entities);
@@ -417,7 +543,7 @@ export async function scrapeLitigationDocument(
     filename: file.name,
     numPages: extraction.numPages,
     textChars: text.length,
-    usedOcr,
+    usedOcr: extraction.usedOcr,
     fields,
     entities,
     routes,
@@ -427,22 +553,188 @@ export async function scrapeLitigationDocument(
   };
 }
 
+/** Merge Midland/Citi-style (or matching plaintiff) tradelines from parsed credit reports into scrape entities. */
+export function enrichLitigationScrapeFromCreditReports(
+  result: LitigationScrapeResult,
+  reports: Array<{ id?: string; parsed?: { tradelines?: Array<Record<string, unknown>>; creditorContacts?: Array<Record<string, unknown>> } | null }>,
+): LitigationScrapeResult {
+  const entities = { ...result.entities };
+  const fields = [...result.fields];
+  const plaintiff = String(entities.plaintiffName || entities.creditorName || '').toLowerCase();
+  const keys = new Set(fields.map((f) => f.key));
+
+  for (const r of reports) {
+    const parsed = r.parsed;
+    if (!parsed) continue;
+    for (const tl of parsed.tradelines || []) {
+      const creditor = String(tl.creditorName || tl.furnisherName || tl.name || '').trim();
+      if (!creditor) continue;
+      const hay = `${creditor} ${tl.accountType || ''} ${tl.comments || ''}`.toLowerCase();
+      const matchesPlaintiff =
+        (plaintiff && hay.includes(plaintiff.slice(0, 8))) ||
+        (/midland|portfolio recovery|\bpra\b|cavalry|lvnv|velocity|resurgent/i.test(plaintiff) &&
+          /midland|portfolio|pra|cavalry|lvnv|velocity|resurgent/i.test(hay)) ||
+        (/midland|portfolio recovery|cavalry|lvnv|velocity/i.test(hay) && /midland|portfolio|cavalry|lvnv|velocity/i.test(plaintiff || hay));
+      if (!matchesPlaintiff && !(/midland|portfolio recovery/i.test(hay) && /midland|portfolio/i.test(plaintiff))) {
+        // Still use Citi-origin when plaintiff is Midland-like and tradeline looks like Citi
+        if (!(/midland|portfolio|pra|cavalry|lvnv|velocity/i.test(plaintiff) && /citi|citibank/i.test(hay))) continue;
+      }
+
+      if (!entities.accountNumberMasked && (tl.accountNumberMasked || tl.accountNumber)) {
+        entities.accountNumberMasked = String(tl.accountNumberMasked || tl.accountNumber);
+        if (!keys.has('accountNumberMasked')) {
+          fields.push(
+            field(
+              'accountNumberMasked',
+              'Account reference (credit report)',
+              entities.accountNumberMasked,
+              'medium',
+              'Pulled from a matching tradeline on the partner credit report — confirm against the summons.',
+              'Credit report',
+            )!,
+          );
+          keys.add('accountNumberMasked');
+        }
+      }
+      if (!entities.originalCreditor && (/citi|citibank|bank of america|chase|capital one/i.test(hay) || tl.originalCreditorName)) {
+        entities.originalCreditor = String(tl.originalCreditorName || creditor);
+        if (!keys.has('originalCreditor')) {
+          fields.push(
+            field(
+              'originalCreditor',
+              'Original creditor (credit report)',
+              entities.originalCreditor,
+              'medium',
+              'Tradeline / original creditor hint from the credit file — keep honest if the partner recognizes it.',
+              'Credit report',
+            )!,
+          );
+          keys.add('originalCreditor');
+        }
+      }
+      if (!entities.amountClaimed && (tl.balance != null || tl.balanceCents != null)) {
+        const dollars =
+          typeof tl.balanceCents === 'number'
+            ? (tl.balanceCents / 100).toFixed(2)
+            : Number(tl.balance).toFixed(2);
+        if (Number(dollars) > 0) {
+          entities.amountClaimed = `$${dollars}`;
+          if (!keys.has('amountClaimed')) {
+            fields.push(
+              field(
+                'amountClaimed',
+                'Balance (credit report)',
+                entities.amountClaimed,
+                'low',
+                'Bureau balance may differ from lawsuit amount — use as a cross-check only.',
+                'Credit report',
+              )!,
+            );
+            keys.add('amountClaimed');
+          }
+        }
+      }
+      if (!entities.reportId && r.id) entities.reportId = String(r.id);
+    }
+
+    for (const c of parsed.creditorContacts || []) {
+      const name = String(c.creditorName || '').trim();
+      if (!name) continue;
+      const match =
+        (plaintiff && name.toLowerCase().includes(plaintiff.slice(0, 8))) ||
+        /midland|portfolio recovery|cavalry|lvnv/i.test(name);
+      if (!match) continue;
+      if (!entities.address && c.address) {
+        entities.address = String(c.address);
+        entities.plaintiffLawFirmAddress = entities.address;
+        if (!keys.has('address')) {
+          fields.push(
+            field(
+              'address',
+              'Mailing address (credit report contact)',
+              entities.address,
+              'low',
+              'From creditor contacts on the credit report — verify on court papers before mailing.',
+              'Credit report',
+            )!,
+          );
+          keys.add('address');
+        }
+      }
+      if (!entities.phone && c.phone) entities.phone = String(c.phone);
+      if (!entities.accountNumberMasked && c.accountNumberMasked) {
+        entities.accountNumberMasked = String(c.accountNumberMasked);
+      }
+    }
+  }
+
+  return {
+    ...result,
+    entities,
+    fields,
+    summary: summarize(result.docKind, fields, result.filename),
+    nextActions: buildNextActions(result.docKind, fields),
+  };
+}
+
 /** Apply scraped entities onto a debt case patch (merge-fields only). */
 export function debtPatchFromLitigationScrape(entities: Record<string, string>): Record<string, string | undefined> {
   return {
     courtCaseNumber: entities.caseNumber,
     name: entities.plaintiffName || entities.creditorName,
-    recipientName: entities.counselName || entities.collectorName || entities.plaintiffName || entities.creditorName,
-    recipientAddress: entities.address,
+    recipientName:
+      entities.plaintiffLawFirm || entities.counselName || entities.collectorName || entities.plaintiffName || entities.creditorName,
+    recipientAddress: entities.plaintiffLawFirmAddress || entities.address,
     recipientPhone: entities.phone,
-    collectorName: entities.counselName || entities.collectorName || entities.plaintiffName,
-    plaintiffLawFirm: entities.counselName || entities.collectorName,
-    plaintiffLawFirmAddress: entities.address,
+    collectorName: entities.plaintiffLawFirm || entities.counselName || entities.collectorName || entities.plaintiffName,
+    plaintiffLawFirm: entities.plaintiffLawFirm || entities.counselName || entities.collectorName,
+    plaintiffLawFirmAddress: entities.plaintiffLawFirmAddress || entities.address,
+    plaintiffAttorneyName: entities.plaintiffAttorneyName,
     plaintiffAttorneyBarNumber: entities.plaintiffAttorneyBar,
-    originalCreditor: entities.creditorName || entities.plaintiffName,
+    originalCreditor: entities.originalCreditor || undefined,
+    accountNumberMasked: entities.accountNumberMasked,
+    loanId: entities.loanId,
+    affidavitCounty: entities.affidavitCounty,
     stateJurisdiction: entities.state,
     dateServed: entities.dateServed,
     hearingDate: entities.hearingDate,
     amountClaimed: entities.amountClaimed,
+    reportId: entities.reportId,
   };
+}
+
+/** Fill only blank debt fields from a scrape patch (never overwrite partner-confirmed values). */
+export function mergeEmptyDebtFieldsFromScrape<T extends Record<string, unknown>>(
+  base: T,
+  patch: Record<string, string | undefined>,
+  amountCents?: number,
+): T {
+  const next: Record<string, unknown> = { ...base };
+  const fillStr = (key: string, value?: string) => {
+    const cur = String(next[key] ?? '').trim();
+    const v = String(value ?? '').trim();
+    if (!cur && v) next[key] = v;
+  };
+  fillStr('name', patch.name);
+  fillStr('courtCaseNumber', patch.courtCaseNumber);
+  fillStr('recipientName', patch.recipientName);
+  fillStr('recipientAddress', patch.recipientAddress);
+  fillStr('recipientPhone', patch.recipientPhone);
+  fillStr('collectorName', patch.collectorName);
+  fillStr('plaintiffLawFirm', patch.plaintiffLawFirm);
+  fillStr('plaintiffLawFirmAddress', patch.plaintiffLawFirmAddress);
+  fillStr('plaintiffAttorneyName', patch.plaintiffAttorneyName);
+  fillStr('plaintiffAttorneyBarNumber', patch.plaintiffAttorneyBarNumber);
+  fillStr('originalCreditor', patch.originalCreditor);
+  fillStr('accountNumberMasked', patch.accountNumberMasked);
+  fillStr('loanId', patch.loanId);
+  fillStr('affidavitCounty', patch.affidavitCounty);
+  fillStr('stateJurisdiction', patch.stateJurisdiction);
+  fillStr('dateServed', patch.dateServed);
+  fillStr('hearingDate', patch.hearingDate);
+  fillStr('reportId', patch.reportId);
+  if ((!next.amountCents || Number(next.amountCents) <= 0) && amountCents && amountCents > 0) {
+    next.amountCents = amountCents;
+  }
+  return next as T;
 }

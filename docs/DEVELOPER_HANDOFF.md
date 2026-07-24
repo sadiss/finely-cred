@@ -301,7 +301,9 @@ Optional: `MAIL_TEST_MODE`, `MAIL_DEBUG` / `LETTERSTREAM_DEBUG` (UI surfaces TES
 
 Letter PDF must exist in blob store (`pdfBlobRef`) before mail. Redeploy `mailer` after secret/testmode changes.
 
-**Litigation Command:** `/portal/debt?tab=litigation` — debt-buyer case intelligence is pattern-based (Midland/Citi-style for all similar suits). Court partner seed is under `/admin/partners/import` only.
+**Litigation Command:** `/portal/debt?tab=litigation` — unified drag-drop scrape + chat + Apply fills empty debt/court fields; debt-buyer intel is pattern-based (Midland/Citi-style for all similar suits). Court partner seed is under `/admin/partners/import` only.
+
+**Mail success email:** `src/lib/letterMailedNotify.ts` + `src/comms/letterMailedNotifyEmail.ts` — fires after Finely Mail success (partner + admin copy). Requires `commsDelivery`.
 
 ---
 

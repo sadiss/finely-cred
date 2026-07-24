@@ -3,8 +3,11 @@ import { Link } from 'react-router-dom';
 import { FileSearch, Loader2, Sparkles, Upload } from 'lucide-react';
 import type { DebtCase } from '../../domain/debt';
 import { upsertDebt } from '../../data/debtRepo';
+import { listReportsByPartner } from '../../data/reportsRepo';
 import {
   debtPatchFromLitigationScrape,
+  enrichLitigationScrapeFromCreditReports,
+  mergeEmptyDebtFieldsFromScrape,
   scrapeLitigationDocument,
   type LitigationScrapeResult,
   type ScrapedLitigationField,
@@ -52,21 +55,29 @@ function amountToCents(raw?: string): number | undefined {
   return Math.round(n * 100);
 }
 
+/**
+ * Unified Litigation Command intake: one cinematic drag-drop + chat unit.
+ * Drop PDF / image / HTML → scrape → explain fields → Apply fills empty case fields
+ * (court, validation recipient, firm address, amounts, account, etc.).
+ */
 export function LitigationDocScraperChat({
   debt,
   partnerId,
   onDebtChange,
   onScrapeApplied,
   defaultHearingIso,
+  reports: reportsProp,
 }: {
   debt: DebtCase | null;
   partnerId: string;
   onDebtChange: (d: DebtCase) => void;
   onScrapeApplied?: (result: LitigationScrapeResult) => void;
   defaultHearingIso?: string;
+  reports?: Array<{ id?: string; parsed?: { tradelines?: Array<Record<string, unknown>>; creditorContacts?: Array<Record<string, unknown>> } | null }>;
 }) {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [busy, setBusy] = useState(false);
+  const [dragOver, setDragOver] = useState(false);
   const [progress, setProgress] = useState<string | null>(null);
   const [result, setResult] = useState<LitigationScrapeResult | null>(null);
   const [err, setErr] = useState<string | null>(null);
@@ -74,10 +85,14 @@ export function LitigationDocScraperChat({
   const [chat, setChat] = useState<ChatLine[]>([
     {
       role: 'assistant',
-      text: 'Upload a summons, complaint, affidavit, or docket PDF. I will scrape case #, court, plaintiff, counsel, amounts, service and hearing dates — then explain each field and route you to the right defense step.',
+      text: 'Drop any summons, docket, complaint, affidavit, collector letter, HTML report, or image here. I scrape every accessible field (case #, court, plaintiff, firm, mailing address, counsel, bar #, amounts, hearing, account, original creditor), explain each one, then Apply fills only empty fields on your debt / litigation case — Court + Validation panels update together.',
     },
   ]);
 
+  const reports = useMemo(
+    () => reportsProp ?? (partnerId ? listReportsByPartner(partnerId) : []),
+    [reportsProp, partnerId],
+  );
   const fieldRows = useMemo(() => result?.fields ?? [], [result]);
 
   const explainField = (f: ScrapedLitigationField) => {
@@ -86,7 +101,7 @@ export function LitigationDocScraperChat({
       { role: 'user', text: `Explain ${f.label}` },
       {
         role: 'assistant',
-        text: `${f.label}: “${f.value}” (${f.confidence} confidence${f.sourceHint ? ` · ${f.sourceHint}` : ''}).\n\nWhat this means: ${f.meaning}\n\nSuggested next: apply fields to your debt case, then open the Litigation stage that matches this document.`,
+        text: `${f.label}: “${f.value}”\nConfidence: ${f.confidence}${f.sourceHint ? ` · Source: ${f.sourceHint}` : ''}\n\nWhat this means:\n${f.meaning}\n\nWhere it goes: Apply maps this into the matching debt/litigation field (recipient, firm address, court case #, hearing, account, original creditor, etc.) without overwriting values you already confirmed.`,
       },
     ]);
   };
@@ -98,20 +113,24 @@ export function LitigationDocScraperChat({
     setProgress('Starting scrape…');
     setChat((prev) => [...prev, { role: 'user', text: `Uploaded ${file.name}` }]);
     try {
-      const scraped = await scrapeLitigationDocument(file, {
-        maxOcrPages: 10,
+      let scraped = await scrapeLitigationDocument(file, {
+        maxOcrPages: 12,
         onProgress: (msg) => setProgress(msg),
       });
+      if (reports.length) {
+        setProgress('Enriching from credit reports…');
+        scraped = enrichLitigationScrapeFromCreditReports(scraped, reports);
+      }
       setResult(scraped);
       onScrapeApplied?.(scraped);
       const lines = scraped.fields.length
         ? scraped.fields.map((f) => `• ${f.label}: ${f.value} (${f.confidence})`).join('\n')
-        : 'Few structured fields found — review the PDF caption manually.';
+        : 'Few structured fields found — review the document caption manually, then type missing facts into the parties panel.';
       setChat((prev) => [
         ...prev,
         {
           role: 'assistant',
-          text: `${scraped.summary}\n\n${lines}\n\n${scraped.nextActions.slice(0, 3).map((a, i) => `${i + 1}. ${a}`).join('\n')}\n\n${scraped.compliance}`,
+          text: `${scraped.summary}\n\n${lines}\n\n${scraped.nextActions.slice(0, 4).map((a, i) => `${i + 1}. ${a}`).join('\n')}\n\nTap any field chip to learn more, then Apply to case — empty Court / Validation fields fill dynamically.\n\n${scraped.compliance}`,
         },
       ]);
     } catch (e: unknown) {
@@ -142,36 +161,50 @@ export function LitigationDocScraperChat({
         updatedAt: new Date().toISOString(),
       } as DebtCase);
 
-    const next = upsertDebt({
-      ...base,
-      partnerId,
-      type: base.type === 'debt' && result.docKind !== 'collector_letter' ? 'summons' : base.type,
-      name: patch.name || base.name,
-      amountCents: amountCents && amountCents > 0 ? amountCents : base.amountCents,
-      courtCaseNumber: patch.courtCaseNumber || base.courtCaseNumber,
-      recipientName: patch.recipientName || base.recipientName,
-      recipientAddress: patch.recipientAddress || base.recipientAddress,
-      recipientPhone: patch.recipientPhone || base.recipientPhone,
-      collectorName: patch.collectorName || base.collectorName,
-      plaintiffLawFirm: patch.plaintiffLawFirm || base.plaintiffLawFirm,
-      plaintiffLawFirmAddress: patch.plaintiffLawFirmAddress || base.plaintiffLawFirmAddress,
-      plaintiffAttorneyBarNumber: patch.plaintiffAttorneyBarNumber || base.plaintiffAttorneyBarNumber,
-      originalCreditor: patch.originalCreditor || base.originalCreditor,
-      stateJurisdiction: patch.stateJurisdiction || base.stateJurisdiction,
-      dateServed: parseLooseDate(patch.dateServed || '') || base.dateServed,
-      hearingDate: hearingIso || base.hearingDate,
-      source: 'document',
-      notes: [base.notes, `Litigation scrape: ${result.filename} (${result.docKind}).`].filter(Boolean).join('\n'),
-    });
+    const merged = mergeEmptyDebtFieldsFromScrape(
+      {
+        ...base,
+        partnerId,
+        type: base.type === 'debt' && result.docKind !== 'collector_letter' ? 'summons' : base.type,
+        hearingDate: parseLooseDate(String(base.hearingDate || '')) || hearingIso || base.hearingDate,
+        dateServed: parseLooseDate(String(base.dateServed || '')) || parseLooseDate(patch.dateServed || '') || base.dateServed,
+        source: 'document' as const,
+        notes: [base.notes, `Litigation scrape: ${result.filename} (${result.docKind}).`].filter(Boolean).join('\n'),
+      },
+      { ...patch, hearingDate: hearingIso || patch.hearingDate, dateServed: parseLooseDate(patch.dateServed || '') || patch.dateServed },
+      amountCents,
+    );
+
+    const next = upsertDebt(merged as DebtCase);
     onDebtChange(next);
-    setNotice('Case updated from scrape — recipient, court facts, and hearing date saved.');
+
+    const filled = [
+      next.courtCaseNumber && 'case #',
+      next.plaintiffLawFirm && 'firm',
+      next.plaintiffLawFirmAddress && 'firm address',
+      next.plaintiffAttorneyName && 'attorney',
+      next.recipientName && 'recipient',
+      next.hearingDate && 'hearing',
+      next.amountCents > 0 && 'amount',
+      next.accountNumberMasked && 'account',
+      next.originalCreditor && 'original creditor',
+    ].filter(Boolean);
+
+    setNotice(`Applied ${filled.length} field groups to case — Court + Validation panels updated.`);
     setChat((prev) => [
       ...prev,
       {
         role: 'assistant',
-        text: `Applied scrape to case “${next.name}”. Case #: ${next.courtCaseNumber || '—'} · Hearing: ${next.hearingDate || '—'} · Recipient: ${next.recipientName || '—'}. Next: confirm parties, then build Answer / Affidavit.`,
+        text: `Applied scrape to “${next.name}”.\nCase #: ${next.courtCaseNumber || '—'}\nHearing: ${next.hearingDate || '—'}\nFirm: ${next.plaintiffLawFirm || '—'}\nFirm address: ${next.plaintiffLawFirmAddress || next.recipientAddress || '—'}\nAttorney: ${next.plaintiffAttorneyName || '—'}\nRecipient: ${next.recipientName || '—'}\nAccount: ${next.accountNumberMasked || '—'}\nOriginal creditor: ${next.originalCreditor || '—'}\nAmount: ${next.amountCents ? `$${(next.amountCents / 100).toFixed(2)}` : '—'}\n\nNext: confirm parties below, then build your Written Answer.`,
       },
     ]);
+  };
+
+  const onDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setDragOver(false);
+    const f = e.dataTransfer.files?.[0];
+    if (f) void runFile(f);
   };
 
   return (
@@ -180,43 +213,54 @@ export function LitigationDocScraperChat({
         className="pointer-events-none absolute inset-0 opacity-70"
         style={{
           background:
-            'radial-gradient(ellipse 80% 60% at 10% 0%, rgba(232,121,249,0.18), transparent 55%), radial-gradient(ellipse 50% 40% at 90% 100%, rgba(56,189,248,0.12), transparent 50%)',
+            'radial-gradient(ellipse 80% 60% at 10% 0%, rgba(232,121,249,0.22), transparent 55%), radial-gradient(ellipse 50% 40% at 90% 100%, rgba(251,191,36,0.14), transparent 50%)',
         }}
       />
       <div className="relative space-y-3">
         <div className="flex flex-wrap items-start justify-between gap-2">
           <div>
             <div className={`inline-flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL} text-fuchsia-200/90`}>
-              <FileSearch size={14} /> Litigation doc scraper
+              <FileSearch size={14} /> Upload · Scrape · Chat · Apply
             </div>
             <p className={`mt-1 text-xs ${FINELY_OS_ENTITY_BODY}`}>
-              Docket · summons · complaint · affidavit · collector letter — field-by-field with confidence.
+              One unit for Litigation Command — dockets, summons, affidavits, HTML reports, and images. Credit-report tradelines enrich empty account / original-creditor fields when they match.
             </p>
           </div>
           <span className={finelyOsStatusChip(result ? 'ok' : 'warn')}>
-            {result ? `${result.docKind.replace('_', ' ')} · ${result.fields.length} fields` : 'Ready'}
+            {result ? `${result.docKind.replace('_', ' ')} · ${result.fields.length} fields` : 'Drop a file'}
           </span>
         </div>
 
-        <div className="flex flex-wrap gap-2">
-          <button
-            type="button"
-            disabled={busy}
-            onClick={() => inputRef.current?.click()}
-            className={FINELY_OS_PRIMARY_BTN}
-          >
-            {busy ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
-            {busy ? 'Scraping…' : 'Upload court PDF'}
-          </button>
-          {result ? (
-            <button type="button" disabled={!partnerId} onClick={applyToCase} className={FINELY_OS_SECONDARY_BTN}>
-              <Sparkles size={14} /> Apply to case
-            </button>
-          ) : null}
+        <div
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') inputRef.current?.click();
+          }}
+          onDragOver={(e) => {
+            e.preventDefault();
+            setDragOver(true);
+          }}
+          onDragLeave={() => setDragOver(false)}
+          onDrop={onDrop}
+          onClick={() => !busy && inputRef.current?.click()}
+          className={`rounded-2xl border-2 border-dashed px-4 py-8 text-center cursor-pointer transition-colors ${
+            dragOver
+              ? 'border-amber-400/70 bg-amber-500/15'
+              : 'border-fuchsia-400/35 bg-black/35 hover:border-fuchsia-300/55 hover:bg-fuchsia-500/10'
+          }`}
+        >
+          <div className="inline-flex items-center justify-center gap-2 text-amber-100 font-semibold text-sm">
+            {busy ? <Loader2 size={18} className="animate-spin" /> : <Upload size={18} />}
+            {busy ? progress || 'Scraping…' : 'Drag & drop PDF, image, or HTML — or click to browse'}
+          </div>
+          <p className={`mt-2 text-xs ${FINELY_OS_ENTITY_BODY}`}>
+            Accepts court PDFs, screenshots, and credit-report HTML. OCR runs when native text is sparse.
+          </p>
           <input
             ref={inputRef}
             type="file"
-            accept="application/pdf,image/*"
+            accept="application/pdf,image/*,.html,.htm,.txt,text/html"
             className="hidden"
             onChange={(e) => {
               const f = e.target.files?.[0];
@@ -225,12 +269,28 @@ export function LitigationDocScraperChat({
             }}
           />
         </div>
-        {progress ? <div className={`text-[11px] text-fuchsia-100/80`}>{progress}</div> : null}
+
+        <div className="flex flex-wrap gap-2">
+          {result ? (
+            <button type="button" disabled={!partnerId || busy} onClick={applyToCase} className={FINELY_OS_PRIMARY_BTN}>
+              <Sparkles size={14} /> Apply to case (fill empty fields)
+            </button>
+          ) : (
+            <button type="button" disabled={busy} onClick={() => inputRef.current?.click()} className={FINELY_OS_SECONDARY_BTN}>
+              <Upload size={14} /> Choose file
+            </button>
+          )}
+          {reports.length ? (
+            <span className={`text-[10px] ${FINELY_OS_ENTITY_BODY}`}>{reports.length} credit report(s) available for enrichment</span>
+          ) : null}
+        </div>
+
+        {progress ? <div className="text-[11px] text-fuchsia-100/80">{progress}</div> : null}
         {notice ? <div className="text-[11px] text-emerald-200/90">{notice}</div> : null}
         {err ? <div className="text-[11px] text-rose-200/90">{err}</div> : null}
 
         {fieldRows.length > 0 ? (
-          <div className="grid sm:grid-cols-2 gap-2 max-h-[220px] overflow-y-auto pr-1">
+          <div className="grid sm:grid-cols-2 gap-2 max-h-[240px] overflow-y-auto pr-1">
             {fieldRows.map((f) => (
               <button
                 key={f.key + f.value}
@@ -263,13 +323,11 @@ export function LitigationDocScraperChat({
           </div>
         ) : null}
 
-        <div className="rounded-xl border border-white/10 bg-black/35 max-h-[200px] overflow-y-auto space-y-2 p-3">
+        <div className="rounded-xl border border-white/10 bg-black/35 max-h-[220px] overflow-y-auto space-y-2 p-3">
           {chat.map((line, i) => (
             <div
               key={i}
-              className={`text-xs whitespace-pre-wrap ${
-                line.role === 'user' ? 'text-sky-100/90' : FINELY_OS_ENTITY_BODY
-              }`}
+              className={`text-xs whitespace-pre-wrap ${line.role === 'user' ? 'text-sky-100/90' : FINELY_OS_ENTITY_BODY}`}
             >
               <span className="text-[10px] uppercase tracking-widest text-white/40 mr-2">
                 {line.role === 'user' ? 'You' : 'Scraper'}

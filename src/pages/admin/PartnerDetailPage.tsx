@@ -85,6 +85,7 @@ import { createTask, listTasksByPartner, setTaskStatus, upsertTask } from '../..
 import { checkDisputeLetterEvidenceGate } from '../../lib/evidenceGates';
 import { checkIdentityVaultGate } from '../../lib/documentVaultGates';
 import { onDisputeLetterMailed } from '../../lib/disputeRoundEngine';
+import { notifyLetterMailed } from '../../lib/letterMailedNotify';
 import { createProject, listProjectsByPartner } from '../../data/projectsRepo';
 import { addThreadMessage, getOrCreateThreadBySubject } from '../../data/supportRepo';
 import { listPartnerNotesByPartner, createPartnerNote, deletePartnerNote, upsertPartnerNote } from '../../data/partnerNotesRepo';
@@ -1266,9 +1267,6 @@ function PartnerDetailPageInner() {
       }
       headerRight={
         <div className="flex flex-wrap items-center gap-2">
-          <button type="button" onClick={messagePartner} className={`${FINELY_OS_SECONDARY_BTN} !py-2 !text-xs`}>
-            <Send size={14} /> Message partner
-          </button>
           <div className={`${FINELY_OS_ENTITY_SUBLABEL} font-mono normal-case tracking-normal`}>partner_id: {partner.id}</div>
         </div>
       }
@@ -2533,6 +2531,18 @@ function PartnerDetailPageInner() {
                         meta: { provider: 'finely', providerId, expectedDeliveryDate: expectedDeliveryDate ?? null },
                       });
                       onDisputeLetterMailed({ letter: updated, actor: 'admin' });
+                      void notifyLetterMailed({
+                        partnerId: partner.id,
+                        partner,
+                        letterIds: [updated.id],
+                        letterTitles: [updated.title || mailLetter?.title || 'Letter'],
+                        providerIds: [providerId],
+                        to,
+                        from,
+                        expectedDeliveryDate,
+                        actorEmail: auth.user?.email || undefined,
+                        actorRole: 'admin',
+                      });
                       setNotesVersion((v) => v + 1);
                     }}
                   />

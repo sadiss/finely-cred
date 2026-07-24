@@ -136,6 +136,7 @@ export function MailLetterModal({
   onClose,
   onMailed,
   onStatus,
+  onNotifyMailed,
   evidence = [],
   trackHref,
 }: {
@@ -156,6 +157,13 @@ export function MailLetterModal({
     cost?: number;
   }) => void;
   onStatus?: (args: { status: 'mail_pending' | 'mail_failed'; error?: string; to: MailAddress; from: MailAddress }) => void;
+  /** Optional notify hook — callers should send Finely Mail confirmation email. */
+  onNotifyMailed?: (args: {
+    providerId: string;
+    expectedDeliveryDate?: string;
+    to: MailAddress;
+    from: MailAddress;
+  }) => void | Promise<void>;
 }) {
   const canMail = Boolean(letter.pdfBlobRef);
   const [step, setStep] = useState<WizardStep>('confirm');
@@ -390,6 +398,16 @@ export function MailLetterModal({
         from: fromClean,
         cost: res.cost,
       });
+      try {
+        await onNotifyMailed?.({
+          providerId: res.providerId,
+          expectedDeliveryDate: res.expectedDeliveryDate,
+          to: toClean,
+          from: fromClean,
+        });
+      } catch {
+        /* email is best-effort — mail already succeeded */
+      }
       setStep('track');
     } catch (e: any) {
       const msg = e?.message || 'Mailing failed.';

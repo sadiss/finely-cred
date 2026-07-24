@@ -455,6 +455,7 @@ export function AffidavitCourtCenterView({
           <LitigationDocScraperChat
             debt={debt}
             partnerId={debt?.partnerId || debtCases[0]?.partnerId || partner?.id || ''}
+            reports={reports}
             onDebtChange={(d) => {
               onDebtChange(d);
               if (d.id && d.id !== debtId) onDebtIdChange(d.id);

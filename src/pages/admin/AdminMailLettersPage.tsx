@@ -25,6 +25,8 @@ import {
   finelyOsCatalogCardCompact,
 } from '../../features/os/finelyOsLightUi';
 import { FINELY_MAIL_COPY } from '../../lib/mailWhiteLabel';
+import { notifyLetterMailed } from '../../lib/letterMailedNotify';
+import { useAuth } from '../../auth/AuthProvider';
 
 /**
  * Admin-as-mailer: pick partner → pick letters → Confirm address → Mail → Track.
@@ -32,6 +34,7 @@ import { FINELY_MAIL_COPY } from '../../lib/mailWhiteLabel';
  */
 export default function AdminMailLettersPage() {
   const navigate = useNavigate();
+  const auth = useAuth();
   const [params] = useSearchParams();
   const presetPartnerId = (params.get('partnerId') || '').trim();
   const mailingOn = isFeatureEnabled('letterMailing');
@@ -126,7 +129,21 @@ export default function AdminMailLettersPage() {
         });
       }
     }
-    setNotice(`Mailed ${okN} · failed ${failN}. Open partner Letters tab or vault to track.`);
+    const ok = results.filter((r) => r.ok);
+    if (ok.length && partner) {
+      void notifyLetterMailed({
+        partnerId: partner.id,
+        partner,
+        letterIds: ok.map((r) => r.letterId),
+        letterTitles: ok.map((r) => letters.find((l) => l.id === r.letterId)?.title || r.letterId),
+        providerIds: ok.map((r) => r.providerId || ''),
+        to: ok[0]?.to,
+        from: ok[0]?.from,
+        actorEmail: auth.user?.email || undefined,
+        actorRole: 'admin',
+      });
+    }
+    setNotice(`Mailed ${okN} · failed ${failN}. Confirmation email sent when commsDelivery is on. Track in partner Letters tab.`);
   };
 
   return (

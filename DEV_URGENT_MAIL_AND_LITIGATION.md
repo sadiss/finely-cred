@@ -42,11 +42,23 @@ If LetterStream account is still in vendor **TEST mode**, turn it off in the Let
 | Partner | `/portal/debt?tab=litigation` |
 | Admin (acting as partner) | Partner → Debt tab, or set admin partner override then `/portal/debt?tab=litigation` |
 
-First-timer steps inside Litigation Command: Upload papers → Parties → **Written answer** → Affidavit / discovery → Hearing kit.
+First-timer steps inside Litigation Command: **Upload/Scrape/Chat/Apply** (one drag-drop unit) → Confirm parties → **Written answer** → Affidavit / discovery → Hearing kit.
+
+**Unified scrape intake:** drop PDF / image / HTML → OCR when needed → chat explains every field → **Apply to case** fills only empty fields (case #, court, plaintiff, firm, firm mailing address, attorney, bar #, amount, hearing, account, original creditor). Matching credit-report tradelines enrich account / original creditor when plaintiff looks Midland/Citi-style.
 
 **Debt-buyer intelligence** (Midland/Citi, PRA, Velocity, etc.) is **pattern-based for all similar cases** — not a permanent Roosevelt dashboard button. Court seed / Ensure Roosevelt lives under **`/admin/partners/import`** only.
 
 Stronger response letter bodies: courtroom written answer, validation, debt-buyer affidavits (Letter Studio / Debt catalog).
+
+---
+
+## B2) Mail success email notification
+
+On LetterStream / Finely Mail **success**:
+- Premium HTML email to the partner (`notifyLetterMailed` → `send-email` edge; needs `commsDelivery` flag).
+- Admin copy when admin mails on behalf of a partner.
+- Persists letter `status: mailed` + `mailing.providerId` / timestamps / to+from on the letter record; audit `letter.mailed` + `letter.mailed_email_sent`.
+- Subject/body plain English; recipient street redacted in email (city/state shown).
 
 ---
 
@@ -97,12 +109,13 @@ Branch: preview/sitewide-ux-pack-merge  (DO NOT create a new branch)
 4) Mail today:
    /admin/mail → pick partner → select PDF letters → Confirm address → Mail → Track
    Watch UI for TEST MODE banner (MAIL_TEST_MODE / LetterStream test account).
+   After success: partner gets Finely Mail confirmation email (commsDelivery on).
 
-5) Litigation:
-   /portal/debt?tab=litigation — debt-buyer pattern intel for Midland/Citi-style suits (all similar cases).
-   Court seed = /admin/partners/import only (no sticky Roosevelt button on Partners list).
+5) Litigation scrape:
+   /portal/debt?tab=litigation → drag-drop unit (Upload·Scrape·Chat·Apply) fills empty case fields.
+   Credit reports enrich matching Midland/Citi-style tradelines.
 
-6) Rules: no StrReplace on PartnerDetailPage; PowerShell uses ; not &&.
+6) Rules: no StrReplace on PartnerDetailPage (use scripts/_patch-partner-detail-*.mjs); PowerShell uses ; not &&.
 
 Reply when migration applied, mailer redeployed, and /admin/mail status check passes.
 ```

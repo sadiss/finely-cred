@@ -15,6 +15,7 @@ import { MailLetterModal } from '../../components/letters/MailLetterModal';
 import { BatchMailWizard, type BatchMailItemResult } from '../../components/letters/BatchMailWizard';
 import { SavedLetterCard } from '../../components/letters/SavedLetterCard';
 import { MailProviderStatusBanner } from '../../components/mailing/MailProviderStatusBanner';
+import { notifyLetterMailed } from '../../lib/letterMailedNotify';
 import { loadLettersCommandCenterDraft } from '../../data/lettersCommandCenterDraftRepo';
 import { letterStudioResumeUrl } from '../../lib/letterStudioResume';
 import { bureauFullName } from '../../utils/bureaus';
@@ -252,6 +253,20 @@ export default function PartnerLettersVaultPage() {
         });
       }
     }
+    const ok = results.filter((r) => r.ok);
+    if (ok.length) {
+      void notifyLetterMailed({
+        partnerId: partner.id,
+        partner,
+        letterIds: ok.map((r) => r.letterId),
+        letterTitles: ok.map((r) => letters.find((l) => l.id === r.letterId)?.title || r.letterId),
+        providerIds: ok.map((r) => r.providerId || ''),
+        to: ok[0]?.to,
+        from: ok[0]?.from,
+        actorEmail: email || undefined,
+        actorRole: 'partner',
+      });
+    }
     setSelectedIds(new Set());
     navigate(0);
   };
@@ -403,6 +418,20 @@ export default function PartnerLettersVaultPage() {
 
                 onDisputeLetterMailed({ letter: updated, actor: 'partner' });
               }}
+              onNotifyMailed={({ providerId, expectedDeliveryDate, to, from }) =>
+                void notifyLetterMailed({
+                  partnerId: partner.id,
+                  partner,
+                  letterIds: [mailLetter.id],
+                  letterTitles: [mailLetter.title],
+                  providerIds: [providerId],
+                  to,
+                  from,
+                  expectedDeliveryDate,
+                  actorEmail: email || undefined,
+                  actorRole: 'partner',
+                })
+              }
               trackHref="/portal/letters/vault"
             />
           ) : null}
