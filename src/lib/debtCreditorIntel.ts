@@ -8,6 +8,7 @@ import {
   classifyCandidateNegativeType,
   type NegativeType,
 } from '../creditReports/negativePlaybooks';
+import { lookupKnownCreditor } from './knownCreditorDirectory';
 
 export type ReportedDebtSignal = {
   signalId: string;
@@ -36,9 +37,32 @@ export type DebtPartyInfo = {
   originalCreditor?: string;
   accountNumberMasked?: string;
   balanceCents?: number;
-  matchedFrom: 'debt_case' | 'report_contact' | 'tradeline' | 'document' | 'manual';
+  matchedFrom: 'debt_case' | 'report_contact' | 'tradeline' | 'document' | 'directory' | 'manual';
   signal?: ReportedDebtSignal;
+  /** True when address came from auto sources (not typed by partner). */
+  autoFilled?: boolean;
 };
+
+/** Build creditorContacts for PDF/text-parsed reports (HTML path already does this). */
+export function buildCreditorContactsFromTradelines(tradelines: ParsedTradeline[]): ParsedCreditorContact[] {
+  const out: ParsedCreditorContact[] = [];
+  tradelines.forEach((t, idx) => {
+    const addr = t.creditorAddress;
+    const phone = t.creditorPhone;
+    const acct = t.accountNumberMasked;
+    if (addr || phone || acct) {
+      out.push({
+        creditorName: t.creditorName,
+        accountNumberMasked: acct,
+        address: addr,
+        phone,
+        source: 'tradeline',
+        tradelineIndex: idx,
+      });
+    }
+  });
+  return out;
+}
 
 export function normCreditorName(s: string) {
   return String(s || '')
@@ -252,20 +276,41 @@ export function resolveDebtPartyInfo(args: {
   const matchedDoc =
     documents.find((d) => namesLikelyMatch(d.entities.collectorName || d.entities.creditorName || '', debt.name)) ?? null;
 
+  const directoryHit = lookupKnownCreditor(
+    debt.recipientName || debt.collectorName || debt.name || matchedSignal?.creditorName || '',
+  );
+
   const recipientName =
     debt.recipientName ||
     debt.collectorName ||
     matchedDoc?.entities.collectorName ||
     matchedDoc?.entities.creditorName ||
     matchedSignal?.creditorName ||
+    directoryHit?.displayName ||
     debt.name;
   const recipientAddress =
     debt.recipientAddress ||
     matchedDoc?.entities.address ||
     matchedContact?.address ||
     matchedSignal?.address ||
+    directoryHit?.address ||
     '';
-  const recipientPhone = debt.recipientPhone || matchedContact?.phone || matchedSignal?.phone;
+  const recipientPhone =
+    debt.recipientPhone || matchedContact?.phone || matchedSignal?.phone || directoryHit?.phone;
+
+  const matchedFrom: DebtPartyInfo['matchedFrom'] = debt.recipientAddress
+    ? 'debt_case'
+    : matchedDoc?.entities.address
+      ? 'document'
+      : matchedContact?.address
+        ? 'report_contact'
+        : matchedSignal?.address
+          ? 'tradeline'
+          : directoryHit?.address
+            ? 'directory'
+            : matchedSignal
+              ? 'tradeline'
+              : 'manual';
 
   return {
     recipientName,
@@ -275,17 +320,26 @@ export function resolveDebtPartyInfo(args: {
     originalCreditor: debt.originalCreditor || matchedSignal?.originalCreditor,
     accountNumberMasked: debt.accountNumberMasked || matchedSignal?.accountNumberMasked || matchedContact?.accountNumberMasked,
     balanceCents: debt.amountCents || matchedSignal?.balanceCents,
-    matchedFrom: debt.recipientAddress
-      ? 'debt_case'
-      : matchedDoc
-        ? 'document'
-        : matchedContact
-          ? 'report_contact'
-          : matchedSignal
-            ? 'tradeline'
-            : 'manual',
+    matchedFrom,
     signal: matchedSignal ?? undefined,
+    autoFilled: matchedFrom !== 'manual' && matchedFrom !== 'debt_case',
   };
+}
+
+/** Persist resolved party onto debt when case is missing mailing fields. */
+export function autoPersistDebtPartyIfEmpty(debt: DebtCase, party: DebtPartyInfo | null): DebtCase | null {
+  if (!debt || !party) return null;
+  if (debt.recipientAddress && debt.recipientName) return null;
+  if (!party.recipientAddress && !party.recipientName) return null;
+  if (party.matchedFrom === 'manual') return null;
+  return mergeDebtCreditorFields(debt, {
+    recipientName: debt.recipientName || party.recipientName,
+    recipientAddress: debt.recipientAddress || party.recipientAddress || undefined,
+    recipientPhone: debt.recipientPhone || party.recipientPhone,
+    collectorName: debt.collectorName || party.collectorName,
+    originalCreditor: debt.originalCreditor || party.originalCreditor,
+    accountNumberMasked: debt.accountNumberMasked || party.accountNumberMasked,
+  });
 }
 
 export function mergeDebtCreditorFields(debt: DebtCase, patch: Partial<DebtCase>): DebtCase {
@@ -299,6 +353,11 @@ export function mergeDebtCreditorFields(debt: DebtCase, patch: Partial<DebtCase>
     collectorName: patch.collectorName ?? debt.collectorName,
     originalCreditor: patch.originalCreditor ?? debt.originalCreditor,
     accountNumberMasked: patch.accountNumberMasked ?? debt.accountNumberMasked,
+    hearingDate: patch.hearingDate ?? debt.hearingDate,
+    courtCaseNumber: patch.courtCaseNumber ?? debt.courtCaseNumber,
+    dateServed: patch.dateServed ?? debt.dateServed,
+    plaintiffLawFirm: patch.plaintiffLawFirm ?? debt.plaintiffLawFirm,
+    plaintiffLawFirmAddress: patch.plaintiffLawFirmAddress ?? debt.plaintiffLawFirmAddress,
   });
 }
 

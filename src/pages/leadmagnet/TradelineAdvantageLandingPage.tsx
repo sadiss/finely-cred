@@ -15,6 +15,7 @@ import {
   User,
   Zap,
 } from 'lucide-react';
+import { LeadMagnetCobrand, LeadMagnetCobrandFooterMarks } from '../../components/brand/LeadMagnetCobrand';
 import { LeadMagnetFunnelHeroVideo } from '../../components/leadmagnet/LeadMagnetFunnelHeroVideo';
 import { getLeadMagnetVisualTheme } from '../../components/leadmagnet/leadMagnetVisualThemes';
 import { TRADELINE_FUNNEL } from '../../domain/leadMagnetFunnels';
@@ -328,7 +329,9 @@ export default function TradelineAdvantageLandingPage() {
       <div className="pointer-events-none fixed inset-x-0 top-0 z-0 h-[420px] bg-gradient-to-b from-[#2a1430]/55 to-transparent" />
 
       <header className="relative z-20">
-        <div className="mx-auto max-w-7xl px-5 py-5 md:px-8" />
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-5 py-5 md:px-8">
+          <LeadMagnetCobrand size="sm" />
+        </div>
       </header>
 
       <section className="tla-hero-section relative z-10 border-b border-[#5c2d54]/40">
@@ -523,8 +526,8 @@ export default function TradelineAdvantageLandingPage() {
       </section>
 
       <footer className="relative z-10 border-t border-white/10 px-5 py-8 md:px-8">
-        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 text-xs text-white/42 md:flex-row">
-          <div />
+        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-6 text-xs text-white/42 md:flex-row">
+          <LeadMagnetCobrandFooterMarks />
           <div className="flex flex-wrap items-center justify-center gap-6">
             <a href="/privacy" className="hover:text-white">
               Privacy Policy
@@ -536,7 +539,7 @@ export default function TradelineAdvantageLandingPage() {
               Disclaimer
             </a>
           </div>
-          <p>© {new Date().getFullYear()} Finely Cred. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} Finely Cred · NCG. All rights reserved.</p>
         </div>
       </footer>
     </main>

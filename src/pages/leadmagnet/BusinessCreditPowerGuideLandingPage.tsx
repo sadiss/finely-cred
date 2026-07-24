@@ -20,7 +20,7 @@ import {
   User,
   Users,
 } from 'lucide-react';
-import { FinelyCredLogo } from '../../components/brand/FinelyCredLogo';
+import { LeadMagnetCobrand, LeadMagnetCobrandFooterMarks } from '../../components/brand/LeadMagnetCobrand';
 import { LeadMagnetFunnelHeroVideo } from '../../components/leadmagnet/LeadMagnetFunnelHeroVideo';
 import { getLeadMagnetVisualTheme } from '../../components/leadmagnet/leadMagnetVisualThemes';
 import { BUSINESS_FUNNEL } from '../../domain/leadMagnetFunnels';
@@ -196,7 +196,7 @@ export default function BusinessCreditPowerGuideLandingPage() {
 
       <header className="fixed inset-x-0 top-0 z-50 border-b border-white/[0.06] bg-[#030504]/72 backdrop-blur-xl">
         <div className="mx-auto flex h-[4.5rem] max-w-[88rem] items-center justify-between gap-6 px-5 md:px-10">
-          <FinelyCredLogo size="sm" forceLight />
+          <LeadMagnetCobrand size="sm" />
           <nav className="hidden items-center gap-9 text-[13px] font-medium tracking-wide text-white/72 lg:flex">
             <a href="#guide" className="transition hover:text-[#d4a447]">Business Credit</a>
             <a href="#tools" className="transition hover:text-[#d4a447]">Credit Tools</a>
@@ -453,11 +453,11 @@ export default function BusinessCreditPowerGuideLandingPage() {
             <a href="/terms" className="hover:text-white/80">Terms of Use</a>
             <a href="/contact" className="hover:text-white/80">Contact Us</a>
           </div>
-          <p className="text-xs text-white/35">© {new Date().getFullYear()} Finely Cred. All rights reserved.</p>
-          <div className="relative flex h-20 w-20 shrink-0 items-center justify-center">
+          <p className="text-xs text-white/35">© {new Date().getFullYear()} Finely Cred · NCG. All rights reserved.</p>
+          <div className="relative flex shrink-0 items-center justify-center">
             <div className="bcpg-fc-glow absolute inset-0 scale-150" />
-            <div className="relative flex h-full w-full items-center justify-center rounded-full border border-[#d4a447]/45 bg-black/55 shadow-[0_0_40px_rgba(212,164,71,0.2)]">
-              <FinelyCredLogo variant="mark" size="md" forceLight />
+            <div className="relative rounded-2xl border border-[#d4a447]/45 bg-black/55 px-4 py-2 shadow-[0_0_40px_rgba(212,164,71,0.2)]">
+              <LeadMagnetCobrandFooterMarks />
             </div>
           </div>
         </div>

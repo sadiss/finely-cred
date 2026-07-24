@@ -121,24 +121,62 @@ export class FinelyAnalysisPdfWriter {
   private drawRunningHeader(page: PDFPage) {
     const { width, height } = page.getSize();
     page.drawRectangle({ x: 0, y: height - this.headerH, width, height: this.headerH, color: this.p.forest });
-    page.drawRectangle({ x: 0, y: height - this.headerH, width, height: 2, color: this.p.gold });
-    page.drawRectangle({ x: width * 0.42, y: height - this.headerH, width: width * 0.18, height: 2, color: this.p.emerald });
-    page.drawRectangle({ x: width * 0.6, y: height - this.headerH, width: width * 0.12, height: 2, color: this.p.fuchsia });
-    page.drawRectangle({ x: width * 0.72, y: height - this.headerH, width: width * 0.1, height: 2, color: this.p.violet });
+    page.drawRectangle({ x: 0, y: height - this.headerH, width, height: 2.5, color: this.p.gold });
+    page.drawRectangle({ x: width * 0.38, y: height - this.headerH, width: width * 0.2, height: 2.5, color: this.p.emerald });
+    page.drawRectangle({ x: width * 0.58, y: height - this.headerH, width: width * 0.14, height: 2.5, color: this.p.fuchsia });
+    page.drawRectangle({ x: width * 0.72, y: height - this.headerH, width: width * 0.12, height: 2.5, color: this.p.violet });
     page.drawText('FINELY CRED', {
       x: this.margin,
-      y: height - 24,
-      size: 8,
+      y: height - 22,
+      size: 8.5,
       font: this.fontBold,
       color: this.p.gold,
     });
+    page.drawText('PREMIUM CREDIT ANALYSIS', {
+      x: this.margin + 78,
+      y: height - 22,
+      size: 7,
+      font: this.font,
+      color: this.p.textDimOnDark,
+    });
     page.drawText(this.sectionHeader, {
       x: this.margin,
-      y: height - 38,
+      y: height - 36,
       size: 8,
       font: this.font,
       color: this.p.textDimOnDark,
     });
+    page.drawText('CONFIDENTIAL', {
+      x: width - this.margin - 62,
+      y: height - 28,
+      size: 7,
+      font: this.fontBold,
+      color: this.p.goldDark,
+    });
+  }
+
+  drawComplianceStrip(text = 'Results vary · not legal advice · funding subject to underwriting') {
+    const h = 22;
+    this.ensureSpace(h + 8, this.sectionHeader);
+    const y = this.y - h;
+    this.page!.drawRectangle({
+      x: this.margin,
+      y,
+      width: this.contentW,
+      height: h,
+      color: this.p.creamDark,
+      borderColor: this.p.border,
+      borderWidth: 0.6,
+    });
+    this.page!.drawRectangle({ x: this.margin, y, width: 3, height: h, color: this.p.gold });
+    this.page!.drawText(pdfSafe(text), {
+      x: this.margin + 12,
+      y: y + 7,
+      size: 7.5,
+      font: this.font,
+      color: this.p.muted,
+    });
+    this.y = y - 10;
   }
 
   addPage(sectionHeader?: string) {
@@ -196,18 +234,57 @@ export class FinelyAnalysisPdfWriter {
   drawPremiumImagePanel(kind: 'cover' | 'score' | 'mindset' | 'negative' | 'positive' | 'roadmap' | 'closing', x: number, y: number, w: number, h: number) {
     const page = this.page!;
     const dark = kind === 'cover' || kind === 'closing';
-    page.drawRectangle({ x, y, width: w, height: h, color: dark ? this.p.forest : this.p.creamDark, borderColor: this.p.gold, borderWidth: 1 });
-    page.drawRectangle({ x, y: y + h - 4, width: w, height: 4, color: this.p.gold });
-    page.drawRectangle({ x, y: y + h - 8, width: w * 0.62, height: 4, color: this.p.emerald });
-    page.drawRectangle({ x: x + w * 0.62, y: y + h - 8, width: w * 0.22, height: 4, color: this.p.fuchsia });
-    page.drawRectangle({ x: x + w * 0.84, y: y + h - 8, width: w * 0.16, height: 4, color: this.p.violet });
+    page.drawRectangle({ x, y, width: w, height: h, color: dark ? this.p.bgDeep : this.p.creamDark, borderColor: this.p.gold, borderWidth: 1.25 });
+    page.drawRectangle({ x, y: y + h - 5, width: w, height: 5, color: this.p.gold });
+    page.drawRectangle({ x, y: y + h - 10, width: w * 0.55, height: 5, color: this.p.emerald });
+    page.drawRectangle({ x: x + w * 0.55, y: y + h - 10, width: w * 0.25, height: 5, color: this.p.fuchsia });
+    page.drawRectangle({ x: x + w * 0.8, y: y + h - 10, width: w * 0.2, height: 5, color: this.p.violet });
 
-    const cx = x + w * 0.52;
-    const cy = y + h * 0.52;
-    page.drawEllipse({ x: cx, y: cy, xScale: w * 0.32, yScale: h * 0.24, color: dark ? this.p.bgElevated : this.p.white, opacity: 0.65 });
-    page.drawEllipse({ x: x + w * 0.25, y: y + h * 0.72, xScale: w * 0.14, yScale: h * 0.1, color: this.p.emerald, opacity: 0.25 });
-    page.drawEllipse({ x: x + w * 0.78, y: y + h * 0.28, xScale: w * 0.16, yScale: h * 0.11, color: this.p.fuchsia, opacity: 0.2 });
-    page.drawEllipse({ x: x + w * 0.58, y: y + h * 0.22, xScale: w * 0.13, yScale: h * 0.09, color: this.p.gold, opacity: 0.24 });
+    // Layered “spread” atmosphere — luxury glass geometry, not flat fill
+    page.drawEllipse({
+      x: x + w * 0.62,
+      y: y + h * 0.48,
+      xScale: w * 0.28,
+      yScale: h * 0.28,
+      color: dark ? this.p.forestSoft : this.p.white,
+      opacity: 0.55,
+    });
+    page.drawEllipse({
+      x: x + w * 0.28,
+      y: y + h * 0.68,
+      xScale: w * 0.16,
+      yScale: h * 0.12,
+      color: this.p.emerald,
+      opacity: 0.22,
+    });
+    page.drawEllipse({
+      x: x + w * 0.78,
+      y: y + h * 0.3,
+      xScale: w * 0.14,
+      yScale: h * 0.1,
+      color: this.p.gold,
+      opacity: 0.28,
+    });
+    page.drawRectangle({
+      x: x + 16,
+      y: y + 36,
+      width: w * 0.42,
+      height: h * 0.42,
+      color: dark ? this.p.bgElevated : this.p.white,
+      borderColor: this.p.goldDark,
+      borderWidth: 0.8,
+      opacity: 0.85,
+    });
+    page.drawRectangle({
+      x: x + w * 0.48,
+      y: y + 48,
+      width: w * 0.42,
+      height: h * 0.28,
+      color: dark ? this.p.forest : this.p.ivoryDeep,
+      borderColor: this.p.emerald,
+      borderWidth: 0.6,
+      opacity: 0.75,
+    });
 
     const label =
       kind === 'score'
@@ -223,16 +300,31 @@ export class FinelyAnalysisPdfWriter {
                 : kind === 'closing'
                   ? 'NEXT STEPS'
                   : 'PREMIUM ANALYSIS';
-    page.drawText(label, { x: x + 18, y: y + 22, size: 8, font: this.fontBold, color: dark ? this.p.gold : this.p.forest });
-    page.drawText('Finely Cred strategic analysis', { x: x + 18, y: y + 10, size: 7, font: this.font, color: dark ? this.p.textDimOnDark : this.p.muted });
+    const sub =
+      kind === 'score'
+        ? 'Bureau readout · readiness · factor posture'
+        : kind === 'mindset'
+          ? 'Orient before you act'
+          : kind === 'negative'
+            ? 'Impact-ranked risk map'
+            : kind === 'positive'
+              ? 'Assets lenders trust'
+              : kind === 'roadmap'
+                ? 'Now · next · later'
+                : kind === 'closing'
+                  ? 'Execute in the portal'
+                  : 'Partner strategy dossier';
+    page.drawText(label, { x: x + 22, y: y + 22, size: 9, font: this.fontBold, color: dark ? this.p.gold : this.p.forest });
+    page.drawText(sub, { x: x + 22, y: y + 10, size: 7.5, font: this.font, color: dark ? this.p.textDimOnDark : this.p.muted });
   }
 
   drawSectionOpener(title: string, subtitle: string, kind: 'score' | 'mindset' | 'negative' | 'positive' | 'roadmap' | 'closing') {
     this.addPage(title);
-    const panelH = 210;
+    const panelH = 188;
     this.drawPremiumImagePanel(kind, this.margin, this.y - panelH, this.contentW, panelH);
-    this.y -= panelH + 28;
+    this.y -= panelH + 16;
     this.drawSectionTitle(title, subtitle);
+    this.drawComplianceStrip();
   }
 
   drawMindsetChapter(level: string, title: string, paragraphs: string[]) {
@@ -575,42 +667,76 @@ export class FinelyAnalysisPdfWriter {
     this.page = page;
     const { width, height } = page.getSize();
     const p = this.p;
+    // Ivory body first, then dark hero band on top
     page.drawRectangle({ x: 0, y: 0, width, height, color: p.ivory });
-    page.drawRectangle({ x: 0, y: height - 132, width, height: 132, color: p.forest });
-    page.drawRectangle({ x: 0, y: height - 135, width, height: 3, color: p.gold });
-    page.drawRectangle({ x: width * 0.42, y: height - 135, width: width * 0.2, height: 3, color: p.emerald });
-    page.drawRectangle({ x: width * 0.62, y: height - 135, width: width * 0.14, height: 3, color: p.fuchsia });
-    page.drawText('FINELY CRED', { x: this.margin, y: height - 42, size: 10, font: this.fontBold, color: p.gold });
-    page.drawText('PREMIUM CREDIT ANALYSIS', { x: this.margin, y: height - 58, size: 8, font: this.font, color: p.textDimOnDark });
-    page.drawText(pdfSafe(args.title), { x: this.margin, y: height - 92, size: 27, font: this.fontBold, color: p.textOnDark });
-
-    this.drawPremiumImagePanel('cover', this.margin, height - 380, width - this.margin * 2, 190);
-
-    page.drawText(pdfSafe(args.partnerName), { x: this.margin, y: height - 425, size: 20, font: this.fontBold, color: p.forest });
-    page.drawText(pdfSafe(args.preparedDate), { x: this.margin, y: height - 448, size: 10.5, font: this.font, color: p.soft });
-    page.drawText(pdfSafe(args.reportLine), { x: this.margin, y: height - 466, size: 10.5, font: this.font, color: p.soft });
-
-    page.drawText('Confidential strategy document - educational use only', {
+    page.drawRectangle({ x: 0, y: height - 168, width, height: 168, color: p.bgDeep });
+    // Soft radial wash on hero band
+    page.drawRectangle({ x: 0, y: height - 168, width: width * 0.55, height: 168, color: p.forest, opacity: 0.35 });
+    page.drawRectangle({ x: 0, y: height - 172, width, height: 4, color: p.gold });
+    page.drawRectangle({ x: width * 0.4, y: height - 172, width: width * 0.22, height: 4, color: p.emerald });
+    page.drawRectangle({ x: width * 0.62, y: height - 172, width: width * 0.16, height: 4, color: p.fuchsia });
+    page.drawRectangle({ x: this.margin, y: height - 74, width: 56, height: 2, color: p.gold });
+    page.drawText('FINELY CRED', { x: this.margin, y: height - 38, size: 12, font: this.fontBold, color: p.gold });
+    page.drawText('PARTNER STRATEGY DOSSIER', { x: this.margin, y: height - 56, size: 8, font: this.font, color: p.textDimOnDark });
+    page.drawText(pdfSafe(args.title), { x: this.margin, y: height - 100, size: 26, font: this.fontBold, color: p.textOnDark });
+    page.drawText('Restore · Build · Fundability', {
       x: this.margin,
-      y: height - 500,
+      y: height - 124,
+      size: 10,
+      font: this.fontBold,
+      color: p.emerald,
+    });
+    page.drawText('Prepared exclusively for your file — sequence over guesswork', {
+      x: this.margin,
+      y: height - 142,
       size: 9,
+      font: this.font,
+      color: p.textDimOnDark,
+    });
+
+    this.drawPremiumImagePanel('cover', this.margin, height - 400, width - this.margin * 2, 200);
+
+    page.drawText(pdfSafe(args.partnerName), { x: this.margin, y: height - 440, size: 22, font: this.fontBold, color: p.forest });
+    page.drawText(pdfSafe(args.preparedDate), { x: this.margin, y: height - 464, size: 10.5, font: this.font, color: p.soft });
+    page.drawText(pdfSafe(args.reportLine), { x: this.margin, y: height - 482, size: 10.5, font: this.font, color: p.soft });
+
+    page.drawRectangle({
+      x: this.margin,
+      y: height - 520,
+      width: width - this.margin * 2,
+      height: 28,
+      color: p.creamDark,
+      borderColor: p.border,
+      borderWidth: 0.7,
+    });
+    page.drawText('Results vary · not legal advice · funding subject to underwriting · confidential educational use', {
+      x: this.margin + 12,
+      y: height - 510,
+      size: 8,
       font: this.font,
       color: p.muted,
     });
 
-    const gap = 12;
+    const gap = 10;
     const n = 4;
     const w = (width - this.margin * 2 - gap * (n - 1)) / n;
-    const cardH = 76;
-    const cardY = 120;
+    const cardH = 82;
+    const cardY = 108;
     args.kpis.slice(0, 4).forEach((kpi, i) => {
       const x = this.margin + i * (w + gap);
       const tone = this.toneColor(kpi.tone);
       page.drawRectangle({ x, y: cardY, width: w, height: cardH, color: p.white, borderColor: p.border, borderWidth: 1 });
-      page.drawRectangle({ x, y: cardY, width: 4, height: cardH, color: tone });
-      page.drawRectangle({ x, y: cardY + cardH - 3, width: w, height: 3, color: tone });
-      page.drawText(pdfSafe(kpi.label.toUpperCase()), { x: x + 12, y: cardY + 52, size: 7, font: this.fontBold, color: p.muted });
-      this.drawFittedText(kpi.value, x + 12, cardY + 20, w - 24, 18, tone, true, 8);
+      page.drawRectangle({ x, y: cardY, width: 5, height: cardH, color: tone });
+      page.drawRectangle({ x, y: cardY + cardH - 4, width: w, height: 4, color: tone });
+      page.drawText(pdfSafe(kpi.label.toUpperCase()), { x: x + 12, y: cardY + 56, size: 6.5, font: this.fontBold, color: p.muted });
+      this.drawFittedText(kpi.value, x + 12, cardY + 22, w - 24, 18, tone, true, 8);
+    });
+    page.drawText('Open your Finely Cred portal to execute Round 1 — this PDF is the oriented snapshot.', {
+      x: this.margin,
+      y: 78,
+      size: 8.5,
+      font: this.font,
+      color: p.soft,
     });
   }
 
@@ -637,13 +763,55 @@ export class FinelyAnalysisPdfWriter {
     const page = this.opts.pdf.addPage([this.pageW, this.pageH]);
     const { width, height } = page.getSize();
     const p = this.p;
-    page.drawRectangle({ x: 0, y: 0, width, height, color: p.bg });
-    page.drawRectangle({ x: 0, y: height - 3, width, height: 3, color: p.gold });
+    page.drawRectangle({ x: 0, y: 0, width, height, color: p.bgDeep });
+    page.drawRectangle({ x: 0, y: height - 4, width, height: 4, color: p.gold });
+    page.drawRectangle({ x: width * 0.4, y: height - 4, width: width * 0.25, height: 4, color: p.emerald });
+    page.drawRectangle({
+      x: this.margin,
+      y: height * 0.38,
+      width: width - this.margin * 2,
+      height: height * 0.28,
+      color: p.bgElevated,
+      borderColor: p.gold,
+      borderWidth: 1,
+    });
 
-    page.drawText('FINELY CRED', { x: this.margin, y: height - 48, size: 10, font: this.fontBold, color: p.gold });
-    page.drawText('Thank you for trusting us with your file.', { x: this.margin, y: height - 68, size: 14, font: this.fontBold, color: p.textOnDark });
-    page.drawText(pdfSafe(`${args.partnerName} · ${args.preparedDate}`), { x: this.margin, y: 80, size: 10, font: this.font, color: p.textDimOnDark });
-    page.drawText('Not legal advice. No outcome guarantees.', { x: this.margin, y: 62, size: 8.5, font: this.font, color: p.textDimOnDark });
+    page.drawText('FINELY CRED', { x: this.margin, y: height - 48, size: 11, font: this.fontBold, color: p.gold });
+    page.drawText('Your file. Your sequence. Your next move.', {
+      x: this.margin,
+      y: height - 72,
+      size: 16,
+      font: this.fontBold,
+      color: p.textOnDark,
+    });
+    page.drawText('Thank you for trusting us with your credit strategy.', {
+      x: this.margin + 18,
+      y: height * 0.55,
+      size: 12,
+      font: this.fontBold,
+      color: p.gold,
+    });
+    page.drawText('Execute Round 1 in the portal. Re-upload after bureau responses. Re-analyze. Repeat.', {
+      x: this.margin + 18,
+      y: height * 0.5,
+      size: 9.5,
+      font: this.font,
+      color: p.textDimOnDark,
+    });
+    page.drawText(pdfSafe(`${args.partnerName} · ${args.preparedDate}`), {
+      x: this.margin,
+      y: 88,
+      size: 10,
+      font: this.font,
+      color: p.textDimOnDark,
+    });
+    page.drawText('Results vary · not legal advice · funding subject to underwriting · no outcome guarantees.', {
+      x: this.margin,
+      y: 68,
+      size: 8,
+      font: this.font,
+      color: p.textDimOnDark,
+    });
   }
 
   drawFooters() {

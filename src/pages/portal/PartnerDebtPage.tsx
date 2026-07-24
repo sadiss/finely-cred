@@ -1,6 +1,6 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { ArrowLeft, ArrowRight, Scale, FileWarning, Plus } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { PageShell } from '../../components/layout/PageShell';
 import { listDebtByPartner, createDebtCase } from '../../data/debtRepo';
 import { getDebtLaneFocus, saveDebtLaneFocus } from '../../data/debtLaneStateRepo';
@@ -117,6 +117,7 @@ function AddCaseForm({
 
 export default function PartnerDebtPage() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { partner } = usePartnerSession();
   const [showAdd, setShowAdd] = useState(false);
   const [addName, setAddName] = useState('');
@@ -130,22 +131,52 @@ export default function PartnerDebtPage() {
   const totalDollars = useMemo(() => cases.reduce((sum, c) => sum + Number(c.amountCents || 0), 0), [cases]);
   const debtSnapshot = useMemo(() => (partner ? computePartnerDebtSnapshot(partner.id) : null), [partner]);
 
-  type DebtTab = 'overview' | 'validation' | 'court' | 'foreclosure' | 'repossession' | 'bankruptcy' | 'cases' | 'guides';
-  const [tab, setTab] = useState<DebtTab>('overview');
+  /** `litigation` is a public alias for the elevated Court / Litigation Command workstation. */
+  type DebtTab = 'overview' | 'validation' | 'court' | 'litigation' | 'foreclosure' | 'repossession' | 'bankruptcy' | 'cases' | 'guides';
+  const normalizeTab = (raw: string | null | undefined): DebtTab => {
+    if (raw === 'litigation' || raw === 'court') return 'litigation';
+    if (
+      raw === 'overview' ||
+      raw === 'validation' ||
+      raw === 'foreclosure' ||
+      raw === 'repossession' ||
+      raw === 'bankruptcy' ||
+      raw === 'cases' ||
+      raw === 'guides'
+    ) {
+      return raw;
+    }
+    return 'overview';
+  };
+  const [tab, setTab] = useState<DebtTab>(() => normalizeTab(searchParams.get('tab')));
+
+  useEffect(() => {
+    const fromUrl = normalizeTab(searchParams.get('tab'));
+    setTab((prev) => (prev === fromUrl ? prev : fromUrl));
+  }, [searchParams]);
 
   const handleTabChange = (id: DebtTab) => {
-    setTab(id);
-    if (partner && id !== 'overview' && id !== 'cases' && id !== 'guides') {
-      saveDebtLaneFocus(partner.id, id);
+    const next = normalizeTab(id);
+    setTab(next);
+    const params = new URLSearchParams(searchParams);
+    if (next === 'overview') params.delete('tab');
+    else params.set('tab', next === 'litigation' ? 'litigation' : next);
+    setSearchParams(params, { replace: true });
+    if (partner && next !== 'overview' && next !== 'cases' && next !== 'guides') {
+      saveDebtLaneFocus(partner.id, next === 'litigation' ? 'court' : next);
     }
   };
 
   const workstationTab =
-    tab === 'validation' || tab === 'court' || tab === 'foreclosure' || tab === 'repossession' || tab === 'bankruptcy' ? tab : null;
+    tab === 'validation' || tab === 'litigation' || tab === 'court' || tab === 'foreclosure' || tab === 'repossession' || tab === 'bankruptcy'
+      ? tab === 'litigation' || tab === 'court'
+        ? 'court'
+        : tab
+      : null;
 
   const coachLaneForTab = (t: DebtTab): string => {
     if (t === 'validation') return 'validation';
-    if (t === 'court') return 'court';
+    if (t === 'court' || t === 'litigation') return 'court';
     if (t === 'foreclosure') return 'foreclosure';
     if (t === 'repossession') return 'repossession';
     if (t === 'bankruptcy') return 'bankruptcy';
@@ -174,8 +205,8 @@ export default function PartnerDebtPage() {
         };
       case 'court':
         return {
-          title: 'Affidavits & court answers',
-          subtitle: 'Summons strategy, sworn affidavits, discovery, and standing challenges.',
+          title: 'Litigation Command',
+          subtitle: 'Hearing countdown, docket/summons scrape, affidavits, answers, and day-of defense — one home for court work.',
           accent: 'fuchsia' as const,
         };
       case 'bankruptcy':
@@ -192,8 +223,8 @@ export default function PartnerDebtPage() {
         };
       default:
         return {
-          title: 'Debt removal center',
-          subtitle: 'One hub for cases, letters, and proof — pick a track below.',
+          title: 'Debt Letters',
+          subtitle: 'Validation, affidavits & court, and debt tracks — pick a workstation below. Bureau credit disputes are under Credit Letters.',
           accent: 'fuchsia' as const,
         };
     }
@@ -287,8 +318,8 @@ export default function PartnerDebtPage() {
   return (
     <PageShell
       badge="Partner Portal"
-      title="Debt & Summons Center"
-      subtitle="Validation requests, affidavits, summons answers (e.g. 35-day), and time-barred responses — with legal basis (FDCPA, contract law, banking law). Add a case to get personalized letter drafts."
+      title="Debt Letters"
+      subtitle="Validation, Litigation Command (court defense), foreclosure, repossession, and bankruptcy — FDCPA/contract focus. Credit bureau disputes live under Credit Letters."
     >
       {!partner ? (
         <div className={FINELY_OS_PAGE}>
@@ -305,7 +336,7 @@ export default function PartnerDebtPage() {
             {navLinks}
 
             <FinelyUnifiedHubLayout
-              eyebrow="Debt removal"
+              eyebrow="Debt Letters"
               title={hubMeta.title}
               subtitle={hubMeta.subtitle}
               accent={hubMeta.accent}
@@ -315,16 +346,16 @@ export default function PartnerDebtPage() {
               tabs={[
                 { id: 'overview', label: 'Overview' },
                 { id: 'validation', label: 'Validation' },
-                { id: 'court', label: 'Court' },
+                { id: 'litigation', label: 'Litigation' },
                 { id: 'foreclosure', label: 'Foreclosure' },
                 { id: 'repossession', label: 'Repossession' },
                 { id: 'bankruptcy', label: 'Bankruptcy' },
                 { id: 'cases', label: 'Cases', badge: cases.length || undefined },
               ]}
-              activeTab={tab}
+              activeTab={tab === 'court' ? 'litigation' : tab}
               onTabChange={(id) => handleTabChange(id as DebtTab)}
               primaryAction={{ label: 'Add case', onClick: () => setShowAdd(true) }}
-              secondaryAction={{ label: 'Documents vault', onClick: () => navigate('/portal/documents') }}
+              secondaryAction={{ label: 'Credit Letters', onClick: () => navigate('/portal/letters') }}
               detailSlot={tab === 'overview' ? letterTypesPanel : undefined}
               detailLabel="Letter types available"
             >
@@ -348,7 +379,7 @@ export default function PartnerDebtPage() {
                       <Scale className="mx-auto text-violet-400/70" size={48} />
                       <p className={`${FINELY_OS_ENTITY_VALUE} text-base`}>No debt or summons cases yet</p>
                       <p className={`${FINELY_OS_ENTITY_BODY} max-w-md mx-auto`}>
-                        Add a case, then open Validation, Court, Foreclosure, or Repossession from the tabs above.
+                        Add a case, then open Validation, Litigation, Foreclosure, or Repossession from the tabs above.
                       </p>
                       <button type="button" onClick={() => setShowAdd(true)} className={FINELY_OS_SUCCESS_BTN}>
                         <Plus size={16} /> Add debt or summons case
@@ -363,7 +394,7 @@ export default function PartnerDebtPage() {
                         {(
                           [
                             { id: 'validation' as const, label: 'Validation', hint: 'FDCPA proof' },
-                            { id: 'court' as const, label: 'Court', hint: 'Affidavits & answers' },
+                            { id: 'litigation' as const, label: 'Litigation', hint: 'Hearing defense command' },
                             { id: 'foreclosure' as const, label: 'Foreclosure', hint: 'RESPA & mortgage' },
                             { id: 'repossession' as const, label: 'Repossession', hint: 'UCC Art. 9' },
                             { id: 'bankruptcy' as const, label: 'Bankruptcy', hint: 'Filing prep' },
@@ -373,7 +404,7 @@ export default function PartnerDebtPage() {
                           <button
                             key={w.id}
                             type="button"
-                            onClick={() => setTab(w.id)}
+                            onClick={() => handleTabChange(w.id)}
                             className="rounded-xl border border-white/10 bg-black/25 px-5 py-4 text-left hover:border-white/25 transition min-h-[4.5rem]"
                           >
                             <div className="text-sm font-semibold text-white/90 leading-snug">{w.label}</div>
@@ -399,6 +430,19 @@ export default function PartnerDebtPage() {
                   ) : null}
 
                   <DebtLaneHandoffStrip partnerId={partner.id} />
+
+                  {/* Defense Book lives on Litigation Command — thin cross-link only (no duplicate panel). */}
+                  <div className={`${finelyOsCatalogCard('violet')} !p-4 flex flex-wrap items-center justify-between gap-3`}>
+                    <div>
+                      <div className={FINELY_OS_ENTITY_SUBLABEL}>Court defense</div>
+                      <p className={`mt-1 text-xs ${FINELY_OS_ENTITY_BODY}`}>
+                        Hearing countdown, docket scrape, affidavit & answer builds, and Defense Book — all in Litigation Command.
+                      </p>
+                    </div>
+                    <Link to="/portal/debt?tab=litigation" className={FINELY_OS_PRIMARY_BTN} onClick={() => handleTabChange('litigation')}>
+                      Open Litigation <ArrowRight size={14} />
+                    </Link>
+                  </div>
 
                   <div className="grid lg:grid-cols-5 gap-4">
                     <div className="lg:col-span-3">
@@ -433,7 +477,7 @@ export default function PartnerDebtPage() {
                       next === 'repossession' ||
                       next === 'bankruptcy'
                     ) {
-                      setTab(next);
+                      handleTabChange(next === 'court' ? 'litigation' : next);
                     }
                   }}
                 />

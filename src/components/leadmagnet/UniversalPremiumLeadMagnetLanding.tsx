@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { ArrowRight, ChevronDown, Lock, Rocket, ShieldCheck } from 'lucide-react';
-import { FinelyCredLogo } from '../brand/FinelyCredLogo';
+import { LeadMagnetCobrand, LeadMagnetCobrandFooterMarks } from '../brand/LeadMagnetCobrand';
 import type { FreeGuide } from '../../resources/freeGuides';
 import type { LeadMagnetFunnelConfig } from '../../domain/leadMagnetFunnels';
 import { LEAD_MAGNET_TRIAL_DAYS } from '../../lib/leadMagnetTrial';
@@ -65,7 +65,7 @@ export function UniversalPremiumLeadMagnetLanding({
       <nav className="lm-nav sticky top-0 z-40">
         <div className="container mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
           <div className="flex items-center gap-3 min-w-0">
-            <FinelyCredLogo size="sm" forceLight />
+            <LeadMagnetCobrand size="sm" />
             <LeadMagnetNavUrgency config={config} accentRgb={accentRgb} />
           </div>
           <button type="button" onClick={onGoForm} className="lm-cta-theme shrink-0">
@@ -262,11 +262,14 @@ export function UniversalPremiumLeadMagnetLanding({
       ) : null}
 
       <footer className="container mx-auto max-w-6xl px-4 sm:px-6 mt-10 py-8 border-t border-white/10">
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 text-center">
-          <ShieldCheck className="w-10 h-10 lm-footer-shield" />
-          <div>
-            <p className="text-sm font-semibold text-white/80">100% legit · Secure process · Dedicated support</p>
-            <p className="text-xs text-white/40 mt-1">{config.trustCerts.join(' · ')}</p>
+        <div className="flex flex-col items-center justify-center gap-5 text-center">
+          <LeadMagnetCobrandFooterMarks />
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <ShieldCheck className="w-10 h-10 lm-footer-shield" />
+            <div>
+              <p className="text-sm font-semibold text-white/80">100% legit · Secure process · Dedicated support</p>
+              <p className="text-xs text-white/40 mt-1">{config.trustCerts.join(' · ')} · Results vary · not legal advice</p>
+            </div>
           </div>
         </div>
       </footer>

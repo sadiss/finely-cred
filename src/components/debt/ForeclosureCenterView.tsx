@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Home } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import type { DebtCase } from '../../domain/debt';
@@ -9,7 +9,7 @@ import { LetterCatalogBrowser } from './LetterCatalogBrowser';
 import { ForeclosureAdvisorChat } from './ForeclosureAdvisorChat';
 import { CollateralDefenseShell, type CollateralPlaybookStep } from './CollateralDefenseShell';
 import { CollateralWorkstationSection, DebtVsDisputeExplainer } from './CollateralWorkstationSection';
-import { catalogForCategory } from '../../legal/debtLetterCatalog';
+import { catalogForCategory, type LetterCatalogHub } from '../../legal/debtLetterCatalog';
 import { extractCollateralSignals } from '../../lib/debtCreditorIntel';
 import {
   FINELY_OS_ENTITY_SUBLABEL,
@@ -23,13 +23,22 @@ import type { ParsedCreditReport } from '../../domain/creditReports';
 
 type ReportRow = { id: string; parsed?: ParsedCreditReport | null };
 
-const PLAYBOOK: CollateralPlaybookStep[] = [
+const DEBT_PLAYBOOK: CollateralPlaybookStep[] = [
   { id: 'mitigate', label: 'Loss mitigation', detail: 'Request workout before sale', law: 'RESPA / investor guides' },
   { id: 'qwr', label: 'RESPA QWR', detail: 'Demand loan & escrow history', law: '12 U.S.C. § 2605' },
   { id: 'dual', label: 'Stop dual-track', detail: 'Halt sale during mod review', law: 'CFPB servicing' },
   { id: 'chain', label: 'Note & assignments', detail: 'Challenge standing', law: 'UCC § 3-308' },
   { id: 'answer', label: 'Foreclosure answer', detail: 'Deny & preserve defenses', law: 'Civil procedure' },
-  { id: 'report', label: 'FCRA cleanup', detail: 'Dispute post-FC reporting', law: 'FCRA § 611' },
+  { id: 'report', label: 'FCRA cleanup', detail: 'Use Credit Letters for bureau track', law: 'FCRA § 611' },
+];
+
+const CREDIT_PLAYBOOK: CollateralPlaybookStep[] = [
+  { id: 'tradeline', label: 'Bureau tradeline', detail: 'Status / balance / DOFD / Metro 2', law: 'FCRA § 611' },
+  { id: 'postfc', label: 'Post-FC reporting', detail: 'Dispute after sale or judgment', law: 'FCRA § 611' },
+  { id: 'public', label: 'Public record', detail: 'FC remark / land-record mismatch', law: 'FCRA § 605' },
+  { id: 'specialty', label: 'Specialty CRA', detail: 'Housing / public-record vendors', law: 'FCRA § 611' },
+  { id: 'furnisher', label: '§ 623 furnisher', detail: 'Direct reporting-accuracy dispute', law: 'FCRA § 623' },
+  { id: 'mov', label: 'Method of verification', detail: 'After thin “verified” results', law: '§ 611(a)(6)' },
 ];
 
 export function ForeclosureCenterView({
@@ -44,6 +53,7 @@ export function ForeclosureCenterView({
   onSenderPersist,
   onDebtIdChange,
   onBuildCatalogDraft,
+  letterHub = 'debt',
 }: {
   debt: DebtCase | null;
   debtCases: DebtCase[];
@@ -58,50 +68,89 @@ export function ForeclosureCenterView({
   onSwitchToValidation?: () => void;
   onSwitchToRepossession?: () => void;
   onBuildCatalogDraft: (catalogId: string) => void;
+  letterHub?: LetterCatalogHub;
 }) {
-  const [activeStep, setActiveStep] = useState('mitigate');
-  const letterCount = catalogForCategory('foreclosure').length + catalogForCategory('reporting').length;
+  const isCredit = letterHub === 'credit';
+  const playbook = isCredit ? CREDIT_PLAYBOOK : DEBT_PLAYBOOK;
+  const [activeStep, setActiveStep] = useState(isCredit ? 'tradeline' : 'mitigate');
+  useEffect(() => {
+    setActiveStep(isCredit ? 'tradeline' : 'mitigate');
+  }, [isCredit]);
+  const letterCount =
+    catalogForCategory('foreclosure', letterHub).length +
+    (isCredit ? catalogForCategory('reporting', letterHub).length : 0);
   const foreclosureSignals = useMemo(() => extractCollateralSignals(reports, 'foreclosure'), [reports]);
 
   const stepFilter = useMemo(() => {
+    if (isCredit) {
+      const map: Record<string, string[]> = {
+        tradeline: ['tradeline', 'status', 'dofd', 'metro', 'bureau'],
+        postfc: ['post-foreclosure', 'post', 'fcr', 'reporting'],
+        public: ['public', 'remark', 'record'],
+        specialty: ['specialty', 'lexis', 'housing', 'cra'],
+        furnisher: ['furnisher', '623', '§ 623'],
+        mov: ['method', 'verification', 'mofv', 'verified'],
+      };
+      return map[activeStep] ?? [];
+    }
     const map: Record<string, string[]> = {
       mitigate: ['loss', 'mitigation', 'forbearance', 'mediation', 'disaster'],
       qwr: ['qualified', 'qwr', 'escrow', 'history'],
       dual: ['dual', 'cease'],
       chain: ['assignment', 'note', 'standing', 'mers'],
       answer: ['answer', 'acceleration', 'bankruptcy', 'scra'],
-      report: ['reporting', 'fcr', 'bureau', 'furnisher'],
+      report: ['reporting', 'fcr', 'bureau', 'furnisher', 'credit'],
     };
     return map[activeStep] ?? [];
-  }, [activeStep]);
-  const activeStepMeta = PLAYBOOK.find((s) => s.id === activeStep);
+  }, [activeStep, isCredit]);
+  const activeStepMeta = playbook.find((s) => s.id === activeStep);
 
   return (
     <CollateralDefenseShell
       theme="foreclosure"
       icon={Home}
-      eyebrow="Mortgage defense"
-      title="Foreclosure command center"
-      subtitle="Servicer accountability, loss mitigation, dual-track stops, and standing challenges — plus credit-report cleanup when the foreclosure tradeline is wrong."
-      steps={PLAYBOOK}
+      eyebrow={isCredit ? 'Bureau cleanup' : 'Mortgage defense'}
+      title={isCredit ? 'Foreclosure credit letters' : 'Foreclosure command center'}
+      subtitle={
+        isCredit
+          ? 'Powerful FCRA § 611 / Metro 2 disputes to Experian, Equifax, TransUnion, and specialty CRAs — foreclosure tradeline, public-record, and furnisher reporting accuracy.'
+          : 'Servicer accountability, loss mitigation, dual-track stops, and standing challenges. Bureau disputes live under Credit Letters.'
+      }
+      steps={playbook}
       activeStepId={activeStep}
       onStepClick={setActiveStep}
       stats={[
         { label: 'Letters', value: String(letterCount) },
         { label: 'FC tradelines', value: foreclosureSignals.length ? String(foreclosureSignals.length) : '—' },
-        { label: 'Stage', value: PLAYBOOK.find((s) => s.id === activeStep)?.label || '—' },
+        { label: 'Stage', value: playbook.find((s) => s.id === activeStep)?.label || '—' },
       ]}
       headerActions={
-        <Link to="/portal/letters?tab=dispute" className={FINELY_OS_SECONDARY_BTN} title="Only if the foreclosure tradeline on your credit report is inaccurate">
-          Fix credit report →
-        </Link>
+        isCredit ? (
+          <Link to="/portal/debt?tab=foreclosure" className={FINELY_OS_SECONDARY_BTN} title="Servicer QWR, dual-track, and foreclosure answer letters">
+            Debt FC letters →
+          </Link>
+        ) : (
+          <Link to="/portal/letters?tab=foreclosure" className={FINELY_OS_SECONDARY_BTN} title="Bureau / specialty CRA foreclosure reporting disputes">
+            Credit FC letters →
+          </Link>
+        )
       }
     >
-      <DebtVsDisputeExplainer variant="foreclosure" />
+      <DebtVsDisputeExplainer variant="foreclosure" hub={letterHub === 'both' ? 'debt' : letterHub} />
 
-      <CollateralWorkstationSection title="Your mortgage case" subtitle="Select or create a debt case for this servicer — this is not a bureau dispute case." accent="amber">
+      <CollateralWorkstationSection
+        title={isCredit ? 'Account context for merge fields' : 'Your mortgage case'}
+        subtitle={
+          isCredit
+            ? 'Select the related mortgage case so drafts pull account/servicer names — this track still sends to the bureau/CRA, not the servicer as primary recipient.'
+            : 'Select or create a debt case for this servicer — this is not a bureau dispute case.'
+        }
+        accent="amber"
+      >
         <div id="fc-debt-step-case" className={`${FINELY_OS_FIELD_WIDTH_SM} scroll-mt-3`}>
-          <label className={FINELY_OS_ENTITY_SUBLABEL}>Mortgage / servicer case</label>
+          <label className={FINELY_OS_ENTITY_SUBLABEL}>
+            {isCredit ? 'Related mortgage case (merge fields)' : 'Mortgage / servicer case'}
+          </label>
           <select value={debtId} onChange={(e) => onDebtIdChange(e.target.value)} className={`${finelyOsGlowField('amber')} mt-1 w-full`}>
             {debtCases.length === 0 ? <option value="">Add a case from Debt Center → Cases</option> : null}
             {debtCases.map((d) => (
@@ -113,7 +162,15 @@ export function ForeclosureCenterView({
         </div>
       </CollateralWorkstationSection>
 
-      <CollateralWorkstationSection title="Servicer mailing info" subtitle="Auto-fill from your credit report mortgage tradeline, or enter manually." accent="amber">
+      <CollateralWorkstationSection
+        title={isCredit ? 'Bureau / CRA recipient' : 'Servicer mailing info'}
+        subtitle={
+          isCredit
+            ? 'Set the bureau or specialty CRA dispute address (or § 623 furnisher for furnisher letters). Auto-fill from report when available.'
+            : 'Auto-fill from your credit report mortgage tradeline, or enter manually.'
+        }
+        accent="amber"
+      >
         <DebtCreditorIntelPanel
           partnerId={debt?.partnerId || debtCases[0]?.partnerId || ''}
           debt={debt}
@@ -141,15 +198,24 @@ export function ForeclosureCenterView({
           <LetterCatalogBrowser
             category="foreclosure"
             accent="amber"
+            letterHub={letterHub === 'both' ? undefined : letterHub}
             onBuild={(id) => onBuildCatalogDraft(id)}
-            extraCategories={['reporting']}
+            extraCategories={isCredit ? ['reporting'] : undefined}
             searchHint={stepFilter.join(' ')}
             compactHeader
           />
         </div>
       </CollateralWorkstationSection>
 
-      <CollateralWorkstationSection title="Foreclosure coach" subtitle="Ask about RESPA, dual-track, note demands, SCRA, and your next move — full width, no side panel." accent="amber">
+      <CollateralWorkstationSection
+        title="Foreclosure coach"
+        subtitle={
+          isCredit
+            ? 'Ask about FCRA § 611, Metro 2 foreclosure fields, specialty CRAs, and method of verification.'
+            : 'Ask about RESPA, dual-track, note demands, SCRA, and your next move — full width, no side panel.'
+        }
+        accent="amber"
+      >
         <ForeclosureAdvisorChat debtName={debt?.name} stateJurisdiction={debt?.stateJurisdiction} />
       </CollateralWorkstationSection>
 

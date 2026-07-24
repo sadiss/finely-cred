@@ -5,15 +5,27 @@ import { getRepossessionAnswerBody } from './specialized/repossessionBodies';
 import { getForeclosureQualifiedWrittenRequestBody } from './specialized/foreclosureBodies';
 import { getSecuritizationAnswerBody } from './specialized/securitizationBodies';
 import { getCounterclaimOutlineBody } from './specialized/counterclaimBodies';
+import { getCreditCollateralBureauBody } from './specialized/creditCollateralBureauBodies';
 
 const OUTLINE_SECTIONS: Record<string, (e: DebtLetterCatalogEntry, a: DebtLetterBuildArgs) => string> = {
   court_counterclaim_fdcpa: (_e, a) => getCounterclaimOutlineBody(a),
-  repossession_answer_claim_delivery: (e, a) => getRepossessionAnswerBody(a),
-  foreclosure_qualified_written_request: (e, a) => getForeclosureQualifiedWrittenRequestBody(a),
-  securitization_answer_discover: (e, a) => getSecuritizationAnswerBody(a, 'discover'),
-  securitization_answer_amex: (e, a) => getSecuritizationAnswerBody(a, 'amex'),
-  securitization_answer_boa: (e, a) => getSecuritizationAnswerBody(a, 'boa'),
-  securitization_counter_affidavit: (e, a) => getSecuritizationAnswerBody(a, 'counter_affidavit'),
+  repossession_answer_claim_delivery: (_e, a) => getRepossessionAnswerBody(a),
+  foreclosure_qualified_written_request: (_e, a) => getForeclosureQualifiedWrittenRequestBody(a),
+  securitization_answer_discover: (_e, a) => getSecuritizationAnswerBody(a, 'discover'),
+  securitization_answer_amex: (_e, a) => getSecuritizationAnswerBody(a, 'amex'),
+  securitization_answer_boa: (_e, a) => getSecuritizationAnswerBody(a, 'boa'),
+  securitization_counter_affidavit: (_e, a) => getSecuritizationAnswerBody(a, 'counter_affidavit'),
+  // Credit-hub FC / Repo bureau bodies (full strength — not short outlines)
+  repossession_credit_report_repo: (_e, a) => getCreditCollateralBureauBody('repossession_credit_report_repo', a)!,
+  repossession_bureau_tradeline_dispute: (_e, a) => getCreditCollateralBureauBody('repossession_bureau_tradeline_dispute', a)!,
+  repossession_deficiency_bureau_dispute: (_e, a) => getCreditCollateralBureauBody('repossession_deficiency_bureau_dispute', a)!,
+  repossession_specialty_cra_dispute: (_e, a) => getCreditCollateralBureauBody('repossession_specialty_cra_dispute', a)!,
+  repossession_furnisher_reporting_dispute: (_e, a) => getCreditCollateralBureauBody('repossession_furnisher_reporting_dispute', a)!,
+  foreclosure_post_foreclosure_fcr: (_e, a) => getCreditCollateralBureauBody('foreclosure_post_foreclosure_fcr', a)!,
+  foreclosure_bureau_tradeline_dispute: (_e, a) => getCreditCollateralBureauBody('foreclosure_bureau_tradeline_dispute', a)!,
+  foreclosure_public_record_remark_dispute: (_e, a) => getCreditCollateralBureauBody('foreclosure_public_record_remark_dispute', a)!,
+  foreclosure_specialty_cra_dispute: (_e, a) => getCreditCollateralBureauBody('foreclosure_specialty_cra_dispute', a)!,
+  foreclosure_furnisher_reporting_dispute: (_e, a) => getCreditCollateralBureauBody('foreclosure_furnisher_reporting_dispute', a)!,
 };
 
 function genericOutline(e: DebtLetterCatalogEntry, args: DebtLetterBuildArgs): string {
@@ -93,6 +105,9 @@ export function generateCatalogLetterBody(catalogId: string, args: DebtLetterBui
 
   const custom = OUTLINE_SECTIONS[entry.id];
   if (custom) return custom(entry, args);
+
+  const creditBody = getCreditCollateralBureauBody(entry.id, args);
+  if (creditBody) return creditBody;
 
   return genericOutline(entry, args);
 }

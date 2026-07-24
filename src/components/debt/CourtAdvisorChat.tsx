@@ -5,16 +5,18 @@ import { DebtCoachChat } from './DebtCoachChat';
 
 const QUICK = [
   { label: 'Calendar deadline', prompt: 'How do I calculate and calendar my summons answer deadline?' },
-  { label: 'Affidavit outline', prompt: 'What belongs in a sworn affidavit of dispute for this type of case?' },
-  { label: 'Discovery RFAs', prompt: 'What requests for admission should I send about assignments and securitization?' },
+  { label: 'Five-gate strategy', prompt: 'Walk me through the five-gate debt-buyer strategy: named plaintiff, transfer chain, account-level match, amount legality, and witness reliability.' },
+  { label: 'Hearing script', prompt: 'Give me short court-safe answers: recognize original account if true, but force proof of ownership, authority, and amount.' },
 ];
 
 const CHIPS = [
   { label: 'Burden of proof', prompt: 'What must the plaintiff prove in a debt collection lawsuit?' },
   { label: 'Standing', prompt: 'How do I challenge standing and chain of assignment?' },
-  { label: 'Mini-Miranda', prompt: 'My summons has debt-collector language — what does that mean for FDCPA and my answer?' },
+  { label: 'Account-level sale file', prompt: 'They have a bill of sale but no account-level sale file — what questions do I ask and what letters do I send?' },
+  { label: 'Amount audit', prompt: 'How do I attack the dollars — charge-off vs sale vs lawsuit balance, interest, and unauthorized fees?' },
+  { label: 'Settlement terms', prompt: 'Settlement offered — what terms protect me from a consent judgment and accidental admission?' },
   { label: 'Motion to compel', prompt: 'When should I file a motion to compel discovery for assignment documents?' },
-  { label: 'Talk to their lawyer', prompt: 'Should I negotiate with the collection attorney before filing my answer?' },
+  { label: 'Open Defense Book', prompt: 'Summarize the Partner Defense Book court card and five questions I should ask at hearing.' },
 ];
 
 export function CourtAdvisorChat({

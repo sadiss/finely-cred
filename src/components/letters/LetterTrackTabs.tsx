@@ -13,22 +13,34 @@ export type LetterTrackTabItem = {
   icon?: React.ReactNode;
 };
 
+export type LetterStudioTrackMode = 'credit' | 'debt';
+
+/**
+ * Credit Letters: bureau disputes + credit-report FC/repo/BK + templates.
+ * Debt Letters: validation + affidavits/court + debt FC/repo/BK (no templates).
+ */
 export function buildLetterStudioTrackTabs(options: {
-  hasDebt: boolean;
-  hasTemplates: boolean;
+  mode: LetterStudioTrackMode;
+  hasTemplates?: boolean;
+  /** @deprecated — credit mode no longer includes debt tracks via hasDebt */
+  hasDebt?: boolean;
 }): LetterTrackTabItem[] {
-  const tabs: LetterTrackTabItem[] = [
-    { id: 'dispute', label: 'Bureaus', icon: <Gavel size={16} aria-hidden /> },
-  ];
-  if (options.hasDebt) {
-    tabs.push(
+  if (options.mode === 'debt') {
+    return [
       { id: 'validation', label: 'Validation', icon: <Scale size={16} aria-hidden /> },
-      { id: 'court', label: 'Affidavits & Court', icon: <Scale size={16} aria-hidden /> },
+      { id: 'court', label: 'Litigation', icon: <Scale size={16} aria-hidden /> },
       { id: 'foreclosure', label: 'Foreclosure', icon: <Landmark size={16} aria-hidden /> },
       { id: 'repossession', label: 'Repossession', icon: <Landmark size={16} aria-hidden /> },
-    );
+      { id: 'bankruptcy', label: 'Bankruptcy', icon: <Landmark size={16} aria-hidden /> },
+    ];
   }
-  tabs.push({ id: 'bankruptcy', label: 'Bankruptcy', icon: <Landmark size={16} aria-hidden /> });
+
+  const tabs: LetterTrackTabItem[] = [
+    { id: 'dispute', label: 'Bureaus', icon: <Gavel size={16} aria-hidden /> },
+    { id: 'foreclosure', label: 'Foreclosure', icon: <Landmark size={16} aria-hidden /> },
+    { id: 'repossession', label: 'Repossession', icon: <Landmark size={16} aria-hidden /> },
+    { id: 'bankruptcy', label: 'Bankruptcy', icon: <Landmark size={16} aria-hidden /> },
+  ];
   if (options.hasTemplates) {
     tabs.push({ id: 'templates', label: 'Templates', icon: <FileText size={16} aria-hidden /> });
   }

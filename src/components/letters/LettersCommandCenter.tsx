@@ -2473,6 +2473,11 @@ useEffect(() => {
   // --- Validation/Court letter flow (Debt module) ---
   const debtCases = useMemo(() => (partner ? listDebtByPartner(partner.id) : []), [partner, storeVersion]);
   const [debtId, setDebtId] = useState<string>(debtCases[0]?.id ?? '');
+  useEffect(() => {
+    if (!debtCases.some((d) => d.id === debtId)) {
+      setDebtId(debtCases[0]?.id ?? '');
+    }
+  }, [partner?.id, debtCases, debtId]);
   const debt = useMemo(() => debtCases.find((d) => d.id === debtId) ?? null, [debtCases, debtId]);
   const processedDocuments = useMemo(
     () => (partner ? listProcessedDocumentsByPartner(partner.id) : []),
@@ -2721,9 +2726,19 @@ useEffect(() => {
   }, [tplRendered?.baseId, tplRendered?.variantId, tplRendered?.tone, tplRendered?.version]);
 
   const letterStudioTrackTabs = useMemo(
-    () => buildLetterStudioTrackTabs({ hasDebt: canSeeDebtTracks, hasTemplates: canSeeTemplates }),
-    [canSeeDebtTracks, canSeeTemplates],
+    () =>
+      buildLetterStudioTrackTabs({
+        mode: debtCenterMode ? 'debt' : 'credit',
+        hasTemplates: canSeeTemplates,
+      }),
+    [debtCenterMode, canSeeTemplates],
   );
+
+  // Credit Letters must not land on debt-only tracks (validation / affidavits).
+  useEffect(() => {
+    if (debtCenterMode) return;
+    if (tab === 'validation' || tab === 'court') setTab('dispute');
+  }, [debtCenterMode, tab]);
 
   const disputeEvidenceLinked = useMemo(() => {
     const keys = new Set(selectedDisputes.map((x) => x.key));
@@ -3614,8 +3629,8 @@ useEffect(() => {
                         postalCode: canonicalIdentity.postalCode,
                       }).lines
                     }
-                    recipientName={debt?.recipientName || debt?.name}
-                    recipientAddress={debt?.recipientAddress}
+                    recipientName={debt?.recipientName || debtPartyInfo?.recipientName || debt?.name}
+                    recipientAddress={debt?.recipientAddress || debtPartyInfo?.recipientAddress}
                     accent={draft.type === 'court' ? 'fuchsia' : 'emerald'}
                     minHeightPx={240}
                     heroLayout
@@ -3692,8 +3707,8 @@ useEffect(() => {
                             state: canonicalIdentity.state,
                             postalCode: canonicalIdentity.postalCode,
                           }),
-                        toName: debt?.recipientName || debt?.name || 'Creditor',
-                        toLinesText: debt?.recipientAddress || '',
+                        toName: debt?.recipientName || debtPartyInfo?.recipientName || debt?.name || 'Creditor',
+                        toLinesText: debt?.recipientAddress || debtPartyInfo?.recipientAddress || '',
                         subject: `Re: ${debt?.name || 'debt matter'}`,
                       }}
                       onChange={(patch) => {
@@ -4030,26 +4045,72 @@ useEffect(() => {
           </div>
         ) : null}
 
+        {tab === 'dispute' ? (
+          <details open className="fc-light-glass-panel fc-light-chrome-panel !p-4">
+            <summary className="cursor-pointer list-none flex flex-wrap items-center justify-between gap-3 [&::-webkit-details-marker]:hidden">
+              <div className="text-[10px] uppercase tracking-widest text-amber-200/80">Letter journey · your next steps</div>
+              <div className="text-[10px] font-black uppercase tracking-widest text-white/70">{restoreHud.pct}% complete</div>
+            </summary>
+            <div className="mt-3 space-y-3 border-t border-white/10 pt-3">
+              <div className="text-white/60 text-sm max-w-5xl">
+                Open by default: upload report → choose Round 1/2 → select disputes → evidence → saved PDF.
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {restoreHud.steps.map((s) => (
+                  <div
+                    key={s.id}
+                    className={
+                      'px-3 py-2 rounded-xl border text-[10px] font-black uppercase tracking-widest transition-all ' +
+                      (s.done ? 'border-emerald-500/25 bg-emerald-500/10 text-emerald-100/90' : 'border-white/[0.08] bg-black/40 text-white/50')
+                    }
+                    title={`${s.hint} ${s.meta ? `(${s.meta})` : ''}`.trim()}
+                  >
+                    {s.label}
+                  </div>
+                ))}
+              </div>
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div className="text-white/55 text-sm">
+                  Next: <span className="text-white/85 font-semibold">{nextBestAction.label}</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={runNextBestAction}
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-amber-500/25 bg-amber-500/15 hover:bg-amber-500/20 text-[10px] font-black uppercase tracking-widest text-amber-100 transition-all"
+                >
+                  Do next <ChevronRight size={14} />
+                </button>
+              </div>
+            </div>
+          </details>
+        ) : null}
+
         {tab === 'dispute' && (
           <EntitlementGate
             partnerId={partner.id}
             requiredKeys={[ENTITLEMENT_KEYS.disputes]}
             hideBillingCta={layout === 'embedded'}
             lockedActions={
-              layout === 'embedded' && onRequestGrantEntitlements ? (
+              onRequestGrantEntitlements ? (
                 <button
                   type="button"
-                  onClick={() => onRequestGrantEntitlements([ENTITLEMENT_KEYS.disputes])}
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-white/[0.08] bg-white/5 hover:bg-white/10 text-[10px] font-black uppercase tracking-widest text-white/70 transition-all"
+                  onClick={() =>
+                    onRequestGrantEntitlements([ENTITLEMENT_KEYS.disputes, ENTITLEMENT_KEYS.letters])
+                  }
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-amber-400/40 bg-amber-500/15 hover:bg-amber-500/25 text-[10px] font-black uppercase tracking-widest text-amber-50 transition-all"
                 >
-                  Grant access
+                  Grant Credit Letters access
                 </button>
+              ) : layout === 'embedded' ? (
+                <p className="text-sm text-white/60">
+                  Scroll to Access at the bottom of this partner profile and tap Grant Credit Letters / Bureaus access.
+                </p>
               ) : null
             }
           >
             <LetterEasyFlowShell
-              contextTitle="Step 1 — Choose your dispute round"
-              contextSubtitle="Round 1 = brand-new dispute. Round 2+ = transferred from another company or following up after a prior letter."
+              contextTitle="Step 1 — Choose Round 1 or Round 2+"
+              contextSubtitle="Round 1 = first bureau letters. Round 2+ = transferred from another company or following up after a prior letter."
               context={
                 <>
                   <div className="flex flex-wrap items-start justify-end gap-3">
@@ -4067,7 +4128,7 @@ useEffect(() => {
                   <div className="flex flex-wrap gap-2">
                     {(
                       [
-                        { id: 'fresh', label: 'New client · Round 1', round: 'Round 1' as LetterRound, hint: 'First letters with Finely Cred' },
+                        { id: 'fresh', label: 'New partner · Round 1', round: 'Round 1' as LetterRound, hint: 'First letters with Finely Cred' },
                         { id: 'transfer', label: 'Transferred · Round 2', round: 'Round 2' as LetterRound, hint: 'Prior company already mailed Round 1' },
                         { id: 'followup', label: 'Deep follow-up · Round 3', round: 'Round 3' as LetterRound, hint: 'Bureau responded — escalate angle' },
                         { id: 'escalate', label: 'Escalation · Round 4', round: 'Round 4' as LetterRound, hint: 'Pattern of non-compliance' },
@@ -4263,8 +4324,31 @@ useEffect(() => {
               ) : null}
 
               {selectedDisputes.length === 0 ? (
-                <div className="fc-light-glass-panel fc-light-chrome-panel p-6 text-white/60">
-                  No disputes selected yet. Use the path step <span className="text-white/80 font-semibold">Select disputes</span> to pick items from a report or a saved case.
+                <div className="fc-light-glass-panel fc-light-chrome-panel !p-4 space-y-3 text-white/70">
+                  <div className="text-white font-semibold text-sm">No disputes selected yet</div>
+                  <p className="text-sm text-white/55">
+                    {reports.length === 0
+                      ? 'Upload a credit report first — then Round 1 / Round 2 choices and selectable negatives appear.'
+                      : 'Use Continue — Disputes (or Select disputes) to open the picker and choose accounts for this round.'}
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setPickerOpen(true)}
+                      className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-amber-400/40 bg-amber-500/15 hover:bg-amber-500/25 text-[10px] font-black uppercase tracking-widest text-amber-50"
+                    >
+                      Select disputes
+                    </button>
+                    {reports.length === 0 ? (
+                      <button
+                        type="button"
+                        onClick={() => openReports()}
+                        className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-white/12 bg-white/5 hover:bg-white/10 text-[10px] font-black uppercase tracking-widest text-white/70"
+                      >
+                        Upload report
+                      </button>
+                    ) : null}
+                  </div>
                 </div>
               ) : (
                 <>
@@ -5331,14 +5415,20 @@ useEffect(() => {
         {tab === 'foreclosure' && (
           <EntitlementGate
             partnerId={partner.id}
-            requiredKeys={[ENTITLEMENT_KEYS.debt]}
+            requiredKeys={debtCenterMode ? [ENTITLEMENT_KEYS.debt] : [ENTITLEMENT_KEYS.letters]}
             hideBillingCta={layout === 'embedded'}
             lockedActions={
-              layout === 'embedded' && onRequestGrantEntitlements ? (
+              onRequestGrantEntitlements ? (
                 <button
                   type="button"
-                  onClick={() => onRequestGrantEntitlements([ENTITLEMENT_KEYS.debt])}
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-white/[0.08] bg-white/5 hover:bg-white/10 text-[10px] font-black uppercase tracking-widest text-white/70 transition-all"
+                  onClick={() =>
+                    onRequestGrantEntitlements(
+                      debtCenterMode
+                        ? [ENTITLEMENT_KEYS.debt]
+                        : [ENTITLEMENT_KEYS.letters, ENTITLEMENT_KEYS.packForeclosure],
+                    )
+                  }
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-amber-400/40 bg-amber-500/15 hover:bg-amber-500/25 text-[10px] font-black uppercase tracking-widest text-amber-50 transition-all"
                 >
                   Grant access
                 </button>
@@ -5354,6 +5444,7 @@ useEffect(() => {
             <ForeclosureCenterView
               {...debtCenterSharedProps}
               partner={partner}
+              letterHub={debtCenterMode ? 'debt' : 'credit'}
               onSwitchToValidation={() => setTab('validation')}
               onSwitchToRepossession={() => setTab('repossession')}
               onBuildCatalogDraft={(id) => buildCatalogDraft(id, 'foreclosure')}
@@ -5365,14 +5456,20 @@ useEffect(() => {
         {tab === 'repossession' && (
           <EntitlementGate
             partnerId={partner.id}
-            requiredKeys={[ENTITLEMENT_KEYS.debt]}
+            requiredKeys={debtCenterMode ? [ENTITLEMENT_KEYS.debt] : [ENTITLEMENT_KEYS.letters]}
             hideBillingCta={layout === 'embedded'}
             lockedActions={
-              layout === 'embedded' && onRequestGrantEntitlements ? (
+              onRequestGrantEntitlements ? (
                 <button
                   type="button"
-                  onClick={() => onRequestGrantEntitlements([ENTITLEMENT_KEYS.debt])}
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-white/[0.08] bg-white/5 hover:bg-white/10 text-[10px] font-black uppercase tracking-widest text-white/70 transition-all"
+                  onClick={() =>
+                    onRequestGrantEntitlements(
+                      debtCenterMode
+                        ? [ENTITLEMENT_KEYS.debt]
+                        : [ENTITLEMENT_KEYS.letters, ENTITLEMENT_KEYS.packRepossession],
+                    )
+                  }
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-amber-400/40 bg-amber-500/15 hover:bg-amber-500/25 text-[10px] font-black uppercase tracking-widest text-amber-50 transition-all"
                 >
                   Grant access
                 </button>
@@ -5388,6 +5485,7 @@ useEffect(() => {
             <RepossessionCenterView
               {...debtCenterSharedProps}
               partner={partner}
+              letterHub={debtCenterMode ? 'debt' : 'credit'}
               onSwitchToValidation={() => setTab('validation')}
               onSwitchToForeclosure={() => setTab('foreclosure')}
               onBuildCatalogDraft={(id) => buildCatalogDraft(id, 'repossession')}
@@ -5399,14 +5497,24 @@ useEffect(() => {
         {tab === 'bankruptcy' && (
           <EntitlementGate
             partnerId={partner.id}
-            requiredKeys={[ENTITLEMENT_KEYS.disputes]}
+            requiredKeys={
+              debtCenterMode
+                ? [ENTITLEMENT_KEYS.debt]
+                : [ENTITLEMENT_KEYS.disputes, ENTITLEMENT_KEYS.letters]
+            }
             hideBillingCta={layout === 'embedded'}
             lockedActions={
-              layout === 'embedded' && onRequestGrantEntitlements ? (
+              onRequestGrantEntitlements ? (
                 <button
                   type="button"
-                  onClick={() => onRequestGrantEntitlements([ENTITLEMENT_KEYS.disputes])}
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-white/[0.08] bg-white/5 hover:bg-white/10 text-[10px] font-black uppercase tracking-widest text-white/70 transition-all"
+                  onClick={() =>
+                    onRequestGrantEntitlements(
+                      debtCenterMode
+                        ? [ENTITLEMENT_KEYS.debt]
+                        : [ENTITLEMENT_KEYS.disputes, ENTITLEMENT_KEYS.letters, ENTITLEMENT_KEYS.packBankruptcy],
+                    )
+                  }
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-amber-400/40 bg-amber-500/15 hover:bg-amber-500/25 text-[10px] font-black uppercase tracking-widest text-amber-50 transition-all"
                 >
                   Grant access
                 </button>
@@ -5667,45 +5775,6 @@ useEffect(() => {
             </div>
           </EntitlementGate>
         )}
-        {layout === 'embedded' ? (
-          <details className="fc-light-glass-panel fc-light-chrome-panel p-4 mt-6">
-            <summary className="cursor-pointer list-none flex flex-wrap items-center justify-between gap-3 [&::-webkit-details-marker]:hidden">
-              <div className="text-[10px] uppercase tracking-widest text-white/40">Customer journey Â· letter workflow</div>
-              <div className="text-[10px] font-black uppercase tracking-widest text-white/70">{restoreHud.pct}% complete</div>
-            </summary>
-            <div className="mt-4 space-y-3 border-t border-white/10 pt-4">
-              <div className="text-white/60 text-sm max-w-5xl">
-                Workflow from report upload â†’ saved PDF. Steps auto-complete from saved work.
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {restoreHud.steps.map((s) => (
-                  <div
-                    key={s.id}
-                    className={
-                      'px-3 py-2 rounded-xl border text-[10px] font-black uppercase tracking-widest transition-all ' +
-                      (s.done ? 'border-emerald-500/25 bg-emerald-500/10 text-emerald-100/90' : 'border-white/[0.08] bg-black/40 text-white/50')
-                    }
-                    title={`${s.hint} ${s.meta ? `(${s.meta})` : ''}`.trim()}
-                  >
-                    {s.label}
-                  </div>
-                ))}
-              </div>
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <div className="text-white/55 text-sm">
-                  Next: <span className="text-white/85 font-semibold">{nextBestAction.label}</span>
-                </div>
-                <button
-                  type="button"
-                  onClick={runNextBestAction}
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-amber-500/25 bg-amber-500/15 hover:bg-amber-500/20 text-[10px] font-black uppercase tracking-widest text-amber-100 transition-all"
-                >
-                  Do next <ChevronRight size={14} />
-                </button>
-              </div>
-            </div>
-          </details>
-        ) : null}
       </div>
 
       {reasonsLibraryOpen && partner ? (

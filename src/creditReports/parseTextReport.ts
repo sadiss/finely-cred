@@ -1,4 +1,4 @@
-import type { Bureau, CreditReportProvider, ParsedCreditReport, ParsedScore, ParsedSection, ParsedTable, ParsedTradeline, PaymentHistory2Y, TradelineRow } from '../domain/creditReports';
+import type { Bureau, CreditReportProvider, ParsedCreditReport, ParsedCreditorContact, ParsedScore, ParsedSection, ParsedTable, ParsedTradeline, PaymentHistory2Y, TradelineRow } from '../domain/creditReports';
 import { detectProviderFromText } from './detectProvider';
 import { detectReportDateFromText } from './parsePdfText';
 import type { ParsedPersonalInfo } from '../domain/creditReports';
@@ -857,11 +857,26 @@ export function parseCreditReportText(rawText: string, providerHint?: CreditRepo
   const scores = extractScoresFromText(text, provider);
   const sections = extractSectionsFromText(lines);
   const personalInfo = buildPersonalInfo(sections);
+  const enrichedTradelines = tradelines.map(enrichParsedTradeline);
+  // Mirror HTML path: expose creditorContacts so debt auto-populate can resolve address/phone.
+  const creditorContacts: ParsedCreditorContact[] = [];
+  enrichedTradelines.forEach((t, idx) => {
+    if (!t.creditorAddress && !t.creditorPhone && !t.accountNumberMasked) return;
+    creditorContacts.push({
+      creditorName: t.creditorName,
+      address: t.creditorAddress,
+      phone: t.creditorPhone,
+      accountNumberMasked: t.accountNumberMasked,
+      source: 'tradeline',
+      tradelineIndex: idx,
+    });
+  });
 
   return {
     provider,
     reportDate,
-    tradelines: tradelines.map(enrichParsedTradeline),
+    tradelines: enrichedTradelines,
+    creditorContacts: creditorContacts.length > 0 ? creditorContacts : undefined,
     sections: sections.length ? sections : undefined,
     scores: scores.length ? scores : undefined,
     personalInfo: personalInfo ?? undefined,

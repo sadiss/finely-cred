@@ -10,7 +10,7 @@
 const KEY = 'finely.deleteTombstones.v1';
 const EXPIRY_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 
-type EntityKind = 'report' | 'evidence' | 'letter';
+type EntityKind = 'report' | 'evidence' | 'letter' | 'analysis';
 
 type TombstoneEntry = {
   id: string;

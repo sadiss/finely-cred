@@ -31,6 +31,8 @@ export type DebtCase = {
   lastPaymentDate?: string;
   /** Date summons/complaint was served (for answer deadline, e.g. 35 days) */
   dateServed?: string;
+  /** Next hearing / trial / return date (ISO yyyy-mm-dd preferred) */
+  hearingDate?: string;
   /** State or jurisdiction for SOL and procedure */
   stateJurisdiction?: string;
   /** Collector / plaintiff mailing identity for letters */

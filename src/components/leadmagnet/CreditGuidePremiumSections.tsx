@@ -30,6 +30,7 @@ import {
 } from '../../lib/leadMagnetTrial';
 import { getLeadAttribution } from '../../lib/leadAttribution';
 import { finelyOsCatalogCard, type FinelyOsPublicAccent } from '../../features/os/finelyOsLightUi';
+import { LeadMagnetCobrand } from '../brand/LeadMagnetCobrand';
 
 const FEATURE_ACCENTS: FinelyOsPublicAccent[] = ['emerald', 'sky', 'violet', 'amber', 'fuchsia', 'emerald'];
 
@@ -167,7 +168,7 @@ export function CreditGuidePremiumLanding({
     <div className="bg-mesh min-h-screen pb-14">
       <nav className="sticky top-0 z-30 border-b border-white/[0.08] bg-[#0a0f14]/90 backdrop-blur-xl">
         <div className="container mx-auto flex max-w-7xl items-center justify-between gap-2 px-4 py-3 sm:px-6">
-          <span className="text-[11px] font-black uppercase tracking-[0.24em] text-sky-200">Finely Cred guide</span>
+          <LeadMagnetCobrand size="sm" />
           <div className="flex items-center gap-2">
             {trialActive ? (
               <button

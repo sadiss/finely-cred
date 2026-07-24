@@ -11,6 +11,7 @@ import { DebtProofCaptureStrip } from './DebtProofCaptureStrip';
 import { ValidationAdvisorChat } from './ValidationAdvisorChat';
 import { CollateralWorkstationSection, DebtVsDisputeExplainer } from './CollateralWorkstationSection';
 import { LetterCatalogBrowser } from './LetterCatalogBrowser';
+import { PartnerDefenseKnowledgePanel } from './PartnerDefenseKnowledgePanel';
 import { DEBT_LETTER_SPECS, SCENARIO_RECOMMENDATIONS } from '../../legal/debtLetterTemplates';
 import { extractReportDebtSignals } from '../../lib/debtCreditorIntel';
 import { FinelyOsKpiGrid } from '../os/FinelyOsKpiGrid';
@@ -172,6 +173,8 @@ export function ValidationCenterView({
         />
       </div>
       {!canSeeTemplates ? <div className="text-[10px] text-white/40">Full template bodies unlock on paid tiers.</div> : null}
+
+      <PartnerDefenseKnowledgePanel mode="both" trackFilter="validation" compact />
 
       <CollateralWorkstationSection title="Validation coach" subtitle="Ask about 1692g proof demands, licensing, chain of title, and your next move — full width section." accent="emerald">
         <ValidationAdvisorChat scenario={recommendedScenario} debtName={debt?.name} stateJurisdiction={debt?.stateJurisdiction} />

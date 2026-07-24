@@ -34,22 +34,43 @@ export function CollateralWorkstationSection({
   );
 }
 
-export function DebtVsDisputeExplainer({ variant }: { variant: 'foreclosure' | 'repossession' | 'debt' }) {
+export function DebtVsDisputeExplainer({
+  variant,
+  hub = 'debt',
+}: {
+  variant: 'foreclosure' | 'repossession' | 'debt';
+  hub?: 'credit' | 'debt';
+}) {
   const copy =
-    variant === 'foreclosure'
-      ? {
-          title: 'Debt case vs bureau dispute',
-          body: 'This page tracks your mortgage servicer / foreclosure matter (debt case). Bureau dispute cases are separate — use them only when you need to fix how the foreclosure appears on Experian, Equifax, or TransUnion.',
-        }
-      : variant === 'repossession'
+    hub === 'credit'
+      ? variant === 'foreclosure'
         ? {
-            title: 'Debt case vs bureau dispute',
-            body: 'This page tracks your auto loan, lease, or repossession matter (debt case). Bureau dispute cases are separate — use them when the repo balance or status on your credit report is wrong.',
+            title: 'Credit Letters — bureau track',
+            body: 'These drafts go to Experian, Equifax, TransUnion, specialty CRAs, or a § 623 furnisher for reporting accuracy. Servicer QWRs, dual-track stops, and foreclosure answers stay under Debt Letters.',
           }
-        : {
-            title: 'Debt case vs bureau dispute',
-            body: 'A debt case is for collectors, lawsuits, and validation letters. A bureau dispute case tracks credit-report corrections with the bureaus — different workflows, both available in Finely Cred.',
-          };
+        : variant === 'repossession'
+          ? {
+              title: 'Credit Letters — bureau track',
+              body: 'These drafts go to the bureaus, specialty CRAs, or a § 623 furnisher for repo/deficiency reporting accuracy. UCC sale notices, reinstatement, and deficiency demands to the lender stay under Debt Letters.',
+            }
+          : {
+              title: 'Credit Letters — bureau track',
+              body: 'Bureau and specialty-CRA disputes fix how accounts appear on consumer reports. Collector validation and court work live under Debt Letters.',
+            }
+      : variant === 'foreclosure'
+        ? {
+            title: 'Debt Letters — institution track',
+            body: 'This page tracks your mortgage servicer / foreclosure matter. Bureau cleanup for how the foreclosure appears on Experian, Equifax, or TransUnion lives under Credit Letters → Foreclosure.',
+          }
+        : variant === 'repossession'
+          ? {
+              title: 'Debt Letters — institution track',
+              body: 'This page tracks your auto loan, lease, or repossession matter with the lender/collector. Bureau cleanup for repo status or deficiency on your credit report lives under Credit Letters → Repossession.',
+            }
+          : {
+              title: 'Debt case vs bureau dispute',
+              body: 'A debt case is for collectors, lawsuits, and validation letters. A bureau dispute case tracks credit-report corrections with the bureaus — different workflows, both available in Finely Cred.',
+            };
 
   return (
     <div className="rounded-xl border border-sky-500/25 bg-sky-500/8 px-4 py-3">

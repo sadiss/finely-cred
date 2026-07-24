@@ -1,6 +1,7 @@
 /**
  * Expanded letter catalog — 80+ scenario-specific workflows.
  * Entries marked `full` map to DebtLetterType bodies; `outline` uses generateCatalogLetterBody.
+ * `hub` routes letters to Credit Letters (/portal/letters) vs Debt Letters (/portal/debt).
  */
 import type { DebtLetterType } from '../domain/debtLegal';
 
@@ -14,6 +15,9 @@ export type LetterCatalogCategory =
   | 'reporting'
   | 'bureau';
 
+/** Where the letter appears: bureau/CRA track vs institution/servicer track. */
+export type LetterCatalogHub = 'credit' | 'debt' | 'both';
+
 export type DebtLetterCatalogEntry = {
   id: string;
   category: LetterCatalogCategory;
@@ -25,6 +29,8 @@ export type DebtLetterCatalogEntry = {
   scenarios: string[];
   tier: 'full' | 'outline';
   letterType?: DebtLetterType;
+  /** Defaults to `debt` when omitted (backward compatible). */
+  hub?: LetterCatalogHub;
 };
 
 function v(
@@ -38,6 +44,7 @@ function v(
   scenarios: string[],
   tier: 'full' | 'outline' = 'outline',
   letterType?: DebtLetterType,
+  hub: LetterCatalogHub = 'debt',
 ): DebtLetterCatalogEntry {
   return {
     id: `${category}_${slug}`,
@@ -50,6 +57,7 @@ function v(
     scenarios,
     tier,
     letterType,
+    hub,
   };
 }
 
@@ -105,7 +113,7 @@ const COURT: DebtLetterCatalogEntry[] = [
 const SECURITIZATION: DebtLetterCatalogEntry[] = [
   v('securitization', 'answer_discover', 'Securitization answer (Discover pattern)', 'Answer denying ownership after ABS pooling.', ['Discover Bank suit'], ['UCC', 'FDCPA'], 'Trust must re-assign to sue.', ['securitization'], 'outline'),
   v('securitization', 'answer_amex', 'Securitization answer (Amex pattern)', 'Answer + counter-affidavit for card securitization.', ['Amex suit'], ['UCC', 'FDCPA'], 'Pooling agreement controls.', ['securitization'], 'outline'),
-  v('securitization', 'answer_boa', 'Securitization answer (BOA pattern)', 'Bank of America securitization defenses.', ['BOA suit'], ['UCC'], 'Prove re-purchase from trust.', ['securitization'], 'outline'),
+  v('securitization', 'answer_boa', 'Securitization answer (BOA pattern)', 'Bank of America securitization defenses.', ['BOA suit'], ['UCC'], 'Prove re-purchase from trust.', ['securitization']),
   v('securitization', 'counter_affidavit', 'Counter-affidavit of dispute (securitization)', 'Sworn denial of trust ownership.', ['Securitized card debt'], ['Evidence'], 'Affidavit supports answer.', ['securitization'], 'outline'),
   v('securitization', 'rfa_pooled', 'RFA — debt was pooled', 'Admission request on securitization.', ['Discovery phase'], ['Discovery'], 'Lock in admissions.', ['securitization']),
   v('securitization', 'rfa_servicing', 'RFA — servicer vs owner', 'Who receives monthly payments.', ['Discovery'], ['Discovery'], 'Split servicing rights.', ['securitization']),
@@ -121,6 +129,7 @@ const SECURITIZATION: DebtLetterCatalogEntry[] = [
 ];
 
 const REPOSSESSION: DebtLetterCatalogEntry[] = [
+  // Institution / UCC track → Debt Letters
   v('repossession', 'answer_claim_delivery', 'Answer — claim & delivery / replevin', 'Defend vehicle lease/repo lawsuit.', ['Sued for vehicle'], ['UCC Art. 9', 'FDCPA'], 'Prove ownership and peaceful repo rights.', ['repossession_suit'], 'outline'),
   v('repossession', 'wrongful_repo_demand', 'Wrongful repossession demand', 'Demand return after breach of peace / no default.', ['Repo at night', 'No default'], ['UCC § 9-609'], 'Breach of peace may void repo.', ['wrongful_repo']),
   v('repossession', 'reinstatement_demand', 'Reinstatement demand', 'Pay arrears + fees to get vehicle back.', ['Right to reinstate'], ['UCC', 'State repo law'], 'State statutes vary.', ['reinstatement']),
@@ -131,14 +140,81 @@ const REPOSSESSION: DebtLetterCatalogEntry[] = [
   v('repossession', 'turn_in_refusal', 'Turn-in refusal / lessor breach', 'Document dealer refusal to accept lease return.', ['Lease end refused'], ['UCC', 'Lease law'], 'Mitigation and storage damages.', ['lease_turn_in']),
   v('repossession', 'lease_trust_standing', 'Lease trust standing challenge', 'Challenge lease trust ownership (Ally pattern).', ['Lease trust plaintiff'], ['Assignment cases'], 'Trust must prove vehicle title.', ['lease_trust']),
   v('repossession', 'fdcpa_repo_collector', 'FDCPA — repo deficiency collector', 'Validation on deficiency collector.', ['Deficiency collector'], ['FDCPA'], 'Separate obligation proof.', ['deficiency']),
-  v('repossession', 'credit_report_repo', 'FCRA dispute — wrongful repo reporting', 'Dispute repo balance reporting.', ['Repo on credit report'], ['FCRA § 611'], 'Inaccurate balance dispute.', ['reporting'], 'outline'),
   v('repossession', 'gps_breach_privacy', 'GPS / privacy violation outline', 'If repo used improper tracking.', ['Hidden GPS'], ['State privacy'], 'Document improper methods.', ['privacy']),
   v('repossession', 'military_repo_stay', 'SCRA repo/lease stay', 'Stay repo during active duty.', ['Active duty'], ['SCRA'], 'Military stay rights.', ['scra']),
   v('repossession', 'title_brand_demand', 'Title / salvage brand demand', 'Demand title history after sale.', ['Salvage sale'], ['State DMV law'], 'Title affects deficiency.', ['title']),
   v('repossession', 'surplus_funds_demand', 'Surplus funds demand', 'If sale exceeds debt, demand surplus.', ['Sale over debt'], ['UCC § 9-615'], 'Surplus owed to debtor.', ['surplus']),
+
+  // Bureau / CRA track → Credit Letters (powerful full bodies)
+  v(
+    'repossession',
+    'credit_report_repo',
+    'FCRA § 611 — wrongful repossession tradeline dispute (bureau)',
+    'Powerful bureau reinvestigation demand on inaccurate repo status, balance, DOFD, and Metro 2 fields.',
+    ['Repo status or balance wrong on Experian/Equifax/TransUnion', 'Charge-off after repo misreported'],
+    ['FCRA § 611', 'FCRA § 605', 'FCRA § 623', 'Metro 2 accuracy'],
+    'Bureau must reinvestigate and delete or correct unverifiable repo reporting.',
+    ['reporting', 'bureau'],
+    'full',
+    undefined,
+    'credit',
+  ),
+  v(
+    'repossession',
+    'bureau_tradeline_dispute',
+    'Bureau tradeline dispute — repossession status / DOFD / charge-off',
+    'Field-level FCRA dispute of repo Account Status, Payment History, Balance, and Date of First Delinquency.',
+    ['Repo remark or status code inaccurate', 'DOFD wrong after repossession'],
+    ['FCRA § 611', '15 U.S.C. § 1681e(b)', 'Metro 2'],
+    'Maximum possible accuracy requires correct Metro 2 status and DOFD.',
+    ['reporting', 'bureau'],
+    'full',
+    undefined,
+    'credit',
+  ),
+  v(
+    'repossession',
+    'deficiency_bureau_dispute',
+    'Bureau dispute — repossession deficiency balance reporting',
+    'Dispute inflated or unverifiable deficiency balance furnished after collateral sale.',
+    ['Deficiency balance on credit report', 'Sale proceeds not credited in reporting'],
+    ['FCRA § 611', 'FCRA § 623', 'UCC sale accounting as evidence of inaccuracy'],
+    'Reporting must match verifiable post-sale accounting — delete if unverifiable.',
+    ['reporting', 'deficiency', 'bureau'],
+    'full',
+    undefined,
+    'credit',
+  ),
+  v(
+    'repossession',
+    'specialty_cra_dispute',
+    'Specialty CRA dispute — repossession / auto reporting (ChexSystems, LexisNexis, etc.)',
+    'FCRA reinvestigation with specialty consumer reporting agencies holding auto/repo-related files.',
+    ['Specialty CRA shows repo or auto negative', 'Auto check / consumer file error'],
+    ['FCRA § 611', 'FCRA § 603', 'Specialty CRA duties'],
+    'Specialty CRAs owe the same accuracy and reinvestigation duties.',
+    ['reporting', 'specialty_cra'],
+    'full',
+    undefined,
+    'credit',
+  ),
+  v(
+    'repossession',
+    'furnisher_reporting_dispute',
+    'FCRA § 623 furnisher dispute — repossession reporting accuracy',
+    'Direct dispute to the finance company / furnisher for inaccurate repo or deficiency reporting (not a UCC demand letter).',
+    ['Furnisher continues inaccurate repo reporting after bureau dispute', 'Need direct § 623 notice'],
+    ['FCRA § 623', '15 U.S.C. § 1681s-2(a)-(b)'],
+    'Furnisher must investigate and correct inaccurate consumer reporting.',
+    ['reporting', 'furnisher'],
+    'full',
+    undefined,
+    'credit',
+  ),
 ];
 
 const FORECLOSURE: DebtLetterCatalogEntry[] = [
+  // Institution / servicer track → Debt Letters
   v('foreclosure', 'loss_mitigation_request', 'Loss mitigation / workout request', 'Request modification, forbearance, repayment plan.', ['Behind on mortgage'], ['RESPA', 'Investor guidelines'], 'Servicer must consider options.', ['foreclosure_notice']),
   v('foreclosure', 'qualified_written_request', 'RESPA QWR — loan history', 'Qualified written request for payment history.', ['Escrow errors'], ['12 U.S.C. § 2605'], 'Servicer must respond timely.', ['foreclosure'], 'outline'),
   v('foreclosure', 'cease_dual_track', 'Cease dual-tracking demand', 'Stop foreclosure while modification reviewed.', ['Mod pending', 'Foreclosure filed'], ['CFPB servicing rules'], 'Dual tracking prohibited.', ['dual_track']),
@@ -153,7 +229,73 @@ const FORECLOSURE: DebtLetterCatalogEntry[] = [
   v('foreclosure', 'hurricane_disaster_forbearance', 'Disaster forbearance request', 'Request disaster forbearance.', ['Natural disaster'], ['Fannie/Freddie guides'], 'Document hardship.', ['disaster']),
   v('foreclosure', 'mediation_request', 'Foreclosure mediation request', 'Request court/state mediation program.', ['Mediation available'], ['State foreclosure mediation'], 'Neutral workout forum.', ['mediation']),
   v('foreclosure', 'cfpb_servicer_complaint', 'CFPB servicer complaint cover', 'Cover letter for CFPB complaint.', ['Servicer errors'], ['CFPB'], 'Federal complaint record.', ['escalation']),
-  v('foreclosure', 'post_foreclosure_fcr', 'Post-foreclosure FCRA dispute', 'Dispute credit reporting after foreclosure.', ['Foreclosure on report'], ['FCRA'], 'Accuracy and date disputes.', ['reporting'], 'outline'),
+
+  // Bureau / CRA track → Credit Letters (powerful full bodies)
+  v(
+    'foreclosure',
+    'post_foreclosure_fcr',
+    'FCRA § 611 — post-foreclosure credit reporting dispute (bureau)',
+    'Powerful bureau reinvestigation on inaccurate foreclosure status, balance, dates, and remarks after sale or judgment.',
+    ['Foreclosure on Experian/Equifax/TransUnion is wrong', 'Balance or status after FC sale inaccurate'],
+    ['FCRA § 611', 'FCRA § 605', 'FCRA § 623', 'Metro 2 accuracy'],
+    'Bureau must reinvestigate and delete or correct unverifiable foreclosure reporting.',
+    ['reporting', 'bureau'],
+    'full',
+    undefined,
+    'credit',
+  ),
+  v(
+    'foreclosure',
+    'bureau_tradeline_dispute',
+    'Bureau tradeline dispute — foreclosure status / balance / DOFD',
+    'Field-level FCRA dispute of mortgage Account Status, Payment History, Balance, and Date of First Delinquency tied to foreclosure.',
+    ['FC status code wrong', 'DOFD or past-due after foreclosure misreported'],
+    ['FCRA § 611', '15 U.S.C. § 1681e(b)', 'Metro 2'],
+    'Maximum possible accuracy requires correct Metro 2 foreclosure fields.',
+    ['reporting', 'bureau'],
+    'full',
+    undefined,
+    'credit',
+  ),
+  v(
+    'foreclosure',
+    'public_record_remark_dispute',
+    'Bureau dispute — foreclosure public record / remark',
+    'Dispute inaccurate foreclosure public-record entry, civil judgment remark, or misleading foreclosure notation.',
+    ['Public record shows wrong foreclosure', 'Remark does not match court/land records'],
+    ['FCRA § 611', 'FCRA § 605', 'Public record accuracy'],
+    'Public-record foreclosure data must match official records or be deleted.',
+    ['reporting', 'public_record', 'bureau'],
+    'full',
+    undefined,
+    'credit',
+  ),
+  v(
+    'foreclosure',
+    'specialty_cra_dispute',
+    'Specialty CRA dispute — foreclosure / housing / public-record vendors',
+    'FCRA reinvestigation with specialty CRAs and housing/public-record vendors (e.g. LexisNexis, CoreLogic-style files where applicable).',
+    ['Specialty CRA shows foreclosure or housing negative', 'Tenant / housing screening file error'],
+    ['FCRA § 611', 'FCRA § 603', 'Specialty CRA duties'],
+    'Specialty CRAs must reinvestigate housing-related consumer reports.',
+    ['reporting', 'specialty_cra'],
+    'full',
+    undefined,
+    'credit',
+  ),
+  v(
+    'foreclosure',
+    'furnisher_reporting_dispute',
+    'FCRA § 623 furnisher dispute — foreclosure reporting accuracy',
+    'Direct dispute to the mortgage servicer/furnisher for inaccurate foreclosure or mortgage reporting (not a RESPA QWR).',
+    ['Furnisher continues inaccurate FC reporting', 'Need direct § 623 notice after bureau dispute'],
+    ['FCRA § 623', '15 U.S.C. § 1681s-2(a)-(b)'],
+    'Furnisher must investigate and correct inaccurate consumer reporting.',
+    ['reporting', 'furnisher'],
+    'full',
+    undefined,
+    'credit',
+  ),
 ];
 
 const NEGOTIATION: DebtLetterCatalogEntry[] = [
@@ -170,11 +312,11 @@ const NEGOTIATION: DebtLetterCatalogEntry[] = [
 ];
 
 const REPORTING: DebtLetterCatalogEntry[] = [
-  v('reporting', 'bureau_direct_dispute', 'Direct bureau dispute', 'Dispute tradeline with bureau.', ['Credit report error'], ['FCRA § 611'], '30-day investigation.', ['bureau'], 'outline'),
-  v('reporting', 'furnisher_direct', 'Direct furnisher dispute', 'Dispute to company reporting data.', ['Furnisher continues reporting'], ['FCRA § 623'], 'Furnisher must investigate.', ['furnisher']),
-  v('reporting', 'method_of_verification', 'Method of verification demand', 'After bureau verification.', ['Verified without proof'], ['FCRA'], 'Demand MOFV.', ['bureau']),
-  v('reporting', 'obsolete_tradeline', 'Obsolete reporting dispute', 'Item exceeds reporting period.', ['>7 years'], ['FCRA § 605'], 'Must delete obsolete.', ['obsolete']),
-  v('reporting', 'identity_theft_block', 'Identity theft block request', 'Block fraudulent tradelines.', ['Fraud accounts'], ['FCRA § 605B'], 'Block upon police report.', ['identity_theft']),
+  v('reporting', 'bureau_direct_dispute', 'Direct bureau dispute', 'Dispute tradeline with bureau.', ['Credit report error'], ['FCRA § 611'], '30-day investigation.', ['bureau'], 'outline', undefined, 'credit'),
+  v('reporting', 'furnisher_direct', 'Direct furnisher dispute', 'Dispute to company reporting data.', ['Furnisher continues reporting'], ['FCRA § 623'], 'Furnisher must investigate.', ['furnisher'], 'outline', undefined, 'credit'),
+  v('reporting', 'method_of_verification', 'Method of verification demand', 'After bureau verification.', ['Verified without proof'], ['FCRA'], 'Demand MOFV.', ['bureau'], 'outline', undefined, 'credit'),
+  v('reporting', 'obsolete_tradeline', 'Obsolete reporting dispute', 'Item exceeds reporting period.', ['>7 years'], ['FCRA § 605'], 'Must delete obsolete.', ['obsolete'], 'outline', undefined, 'credit'),
+  v('reporting', 'identity_theft_block', 'Identity theft block request', 'Block fraudulent tradelines.', ['Fraud accounts'], ['FCRA § 605B'], 'Block upon police report.', ['identity_theft'], 'outline', undefined, 'credit'),
 ];
 
 /** Full catalog — 80+ entries */
@@ -188,8 +330,20 @@ export const DEBT_LETTER_CATALOG: DebtLetterCatalogEntry[] = [
   ...REPORTING,
 ];
 
-export function catalogForCategory(category: LetterCatalogCategory): DebtLetterCatalogEntry[] {
-  return DEBT_LETTER_CATALOG.filter((e) => e.category === category);
+export function entryMatchesHub(entry: DebtLetterCatalogEntry, hub: LetterCatalogHub): boolean {
+  const entryHub = entry.hub ?? 'debt';
+  return entryHub === hub || entryHub === 'both';
+}
+
+export function catalogForCategory(
+  category: LetterCatalogCategory,
+  hub?: LetterCatalogHub,
+): DebtLetterCatalogEntry[] {
+  return DEBT_LETTER_CATALOG.filter((e) => {
+    if (e.category !== category) return false;
+    if (!hub) return true;
+    return entryMatchesHub(e, hub);
+  });
 }
 
 export function catalogEntryById(id: string): DebtLetterCatalogEntry | undefined {

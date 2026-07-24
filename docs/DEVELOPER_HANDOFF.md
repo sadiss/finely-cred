@@ -1,5 +1,9 @@
 # Finely Cred — Developer Handoff (Production Ops)
 
+> **🚨 URGENT / DO THIS FIRST:** Partner Letters grants were local-only until cloud RLS lands.  
+> Read and execute → [`DEV_URGENT_GRANT_ACCESS_AND_LETTERS.md`](../DEV_URGENT_GRANT_ACCESS_AND_LETTERS.md)  
+> Required migration: `supabase/migrations/202607240001_entitlements_admin_write.sql`
+
 **Audience:** Engineer deploying and operating Finely Cred in production.  
 **Repo:** `Tishobe/finely-cred-main`  
 **Last updated:** July 2026

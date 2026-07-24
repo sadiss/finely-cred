@@ -17,6 +17,7 @@ import { createDebtCase } from '../../data/debtRepo';
 import {
   debtCaseFromSignal,
   computePartnerDebtSnapshot,
+  autoPersistDebtPartyIfEmpty,
   extractCollateralSignals,
   extractReportDebtSignals,
   listSummonsDocumentsForDebt,
@@ -152,6 +153,40 @@ export function DebtCreditorIntelPanel({
     setBorrowerId(debt?.borrowerId || '');
     if (party?.signal?.signalId) setActiveSignalId(party.signal.signalId);
   }, [debt?.id, debt?.plaintiffLawFirm, debt?.plaintiffLawFirmAddress, debt?.plaintiffAttorneyName, debt?.plaintiffAttorneyBarNumber, debt?.affidavitCounty, debt?.loanId, debt?.borrowerId, debt?.collectorName, party?.recipientName, party?.recipientAddress, party?.recipientPhone, party?.originalCreditor, party?.accountNumberMasked, party?.signal?.signalId]);
+
+  // Auto-persist high-confidence match when case is missing mailing fields.
+  useEffect(() => {
+    if (!debt || !party) return;
+    const next = autoPersistDebtPartyIfEmpty(debt, party);
+    if (next) {
+      onDebtChange(next);
+      setSavedNotice(`Auto-filled from ${party.matchedFrom.replace('_', ' ')} — review before mailing.`);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- only when debt/party identity changes
+  }, [debt?.id, party?.recipientAddress, party?.matchedFrom]);
+
+  const useFromReport = () => {
+    if (!party) return;
+    setRecipientName(party.recipientName || '');
+    setRecipientAddress(party.recipientAddress || '');
+    setRecipientPhone(party.recipientPhone || '');
+    setOriginalCreditor(party.originalCreditor || '');
+    setAccountRef(party.accountNumberMasked || '');
+    if (debt) {
+      const next = mergeDebtCreditorFields(debt, {
+        recipientName: party.recipientName,
+        recipientAddress: party.recipientAddress || undefined,
+        recipientPhone: party.recipientPhone,
+        originalCreditor: party.originalCreditor,
+        accountNumberMasked: party.accountNumberMasked,
+        collectorName: party.collectorName || party.recipientName,
+      });
+      onDebtChange(next);
+      setSavedNotice('Applied report / document match to this debt case.');
+    } else if (party.signal) {
+      applySignal(party.signal);
+    }
+  };
 
   const topSignals = displaySignals;
   const hasAutoMatch = Boolean(party && party.matchedFrom !== 'manual' && (party.recipientAddress || party.signal));
@@ -495,10 +530,23 @@ export function DebtCreditorIntelPanel({
         ) : null}
 
         <div className="flex flex-wrap items-center gap-3">
+          {party && (party.autoFilled || party.matchedFrom !== 'manual') ? (
+            <button type="button" onClick={useFromReport} className={FINELY_OS_SECONDARY_BTN}>
+              <Wand2 size={14} />
+              Use from report
+            </button>
+          ) : null}
           <button type="button" onClick={persistRecipient} disabled={!debt} className={FINELY_OS_PRIMARY_BTN}>
             <Wand2 size={14} />
             Save to debt case
           </button>
+          {party?.autoFilled ? (
+            <span className={finelyOsStatusChip('ok')}>Auto-filled · {party.matchedFrom.replace('_', ' ')}</span>
+          ) : party?.matchedFrom === 'debt_case' ? (
+            <span className={finelyOsStatusChip('warn')}>Saved on case</span>
+          ) : (
+            <span className={finelyOsStatusChip('info')}>Manual entry</span>
+          )}
           {!debt ? (
             <span className={`text-xs ${FINELY_OS_ENTITY_BODY}`}>Select or create a debt case above to persist these fields.</span>
           ) : null}

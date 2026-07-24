@@ -58,15 +58,16 @@ export function PartnerDetailAdminFooter({
 
       {showAccess ? (
         <>
-          <AdminPartnerMessagePanel partner={partner} />
+          {/* Access first — Grant Credit Letters / Debt cannot be missed on every tab */}
           <AdminPartnerAccessPanel partner={partner} onUpdated={onUpdated} />
+          <AdminPartnerMessagePanel partner={partner} />
           <PartnerSpecialistAssignmentPanel partner={partner} onUpdated={onUpdated} />
         </>
       ) : null}
 
       <section id="partner-client-journey" className={`${finelyOsCatalogCard('emerald')} !p-5 border-t-4 border-emerald-400/40 scroll-mt-8`}>
         <div>
-          <p className={FINELY_OS_ENTITY_SUBLABEL}>Customer journey</p>
+          <p className={FINELY_OS_ENTITY_SUBLABEL}>Partner journey</p>
           <p className={`mt-1 ${FINELY_OS_ENTITY_BODY} text-sm`}>
             {showFullJourney
               ? 'Stage control and restore progress for this partner.'

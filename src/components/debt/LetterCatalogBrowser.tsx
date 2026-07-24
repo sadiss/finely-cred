@@ -1,10 +1,11 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Search } from 'lucide-react';
 import {
-  DEBT_LETTER_CATALOG,
   catalogForCategory,
+  entryMatchesHub,
   type DebtLetterCatalogEntry,
   type LetterCatalogCategory,
+  type LetterCatalogHub,
 } from '../../legal/debtLetterCatalog';
 import { LIBERATION_LAW_ANCHORS } from '../../legal/consumerLiberationLaws';
 import {
@@ -37,6 +38,7 @@ export function LetterCatalogBrowser({
   extraCategories,
   searchHint,
   compactHeader,
+  letterHub,
 }: {
   category: LetterCatalogCategory;
   accent: FinelyOsGlowAccent;
@@ -47,6 +49,8 @@ export function LetterCatalogBrowser({
   searchHint?: string;
   /** Flatter header for collateral workstations */
   compactHeader?: boolean;
+  /** Credit Letters vs Debt Letters hub filter */
+  letterHub?: LetterCatalogHub;
 }) {
   const [q, setQ] = useState('');
   const [sub, setSub] = useState<LetterCatalogCategory | 'all'>('all');
@@ -59,10 +63,13 @@ export function LetterCatalogBrowser({
     const cats = [category, ...(extraCategories ?? [])];
     const unique = new Map<string, DebtLetterCatalogEntry>();
     for (const c of cats) {
-      for (const e of catalogForCategory(c)) unique.set(e.id, e);
+      for (const e of catalogForCategory(c, letterHub)) {
+        if (letterHub && !entryMatchesHub(e, letterHub)) continue;
+        unique.set(e.id, e);
+      }
     }
     return [...unique.values()];
-  }, [category, extraCategories]);
+  }, [category, extraCategories, letterHub]);
 
   const filtered = useMemo(() => {
     const needle = q.trim().toLowerCase();

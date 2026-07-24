@@ -34,6 +34,8 @@ import { deriveDisputeCandidates } from '../../creditReports/disputeCandidates';
 import { normalizeCreditAnalysisReportTemplateConfig } from '../../reports/generateCreditAnalysisReportPdf';
 import { generatePartnerCreditAnalysisReport } from '../../reports/generatePartnerCreditAnalysisReport';
 import { PREMIUM_CREDIT_ANALYSIS_TEMPLATE_ID, isPremiumCreditAnalysisEngine, resolveCreditAnalysisEngine } from '../../lib/resolveCreditAnalysisEngine';
+import { CREDIT_ANALYSIS_ENGINE_OPTIONS } from '../../lib/creditAnalysisEngineOptions';
+import type { CreditAnalysisReportEngine } from '../../reports/generateCreditAnalysisReportPdf';
 import { newId } from '../../utils/ids';
 import { addAuditEvent } from '../../data/auditRepo';
 import { notifyAnalysisReportReady } from '../../lib/analysisReportDelivery';
@@ -185,6 +187,7 @@ export default function PartnerReportsPage() {
   const [analysisBusy, setAnalysisBusy] = useState(false);
   const [analysisNotice, setAnalysisNotice] = useState<string | null>(null);
   const [analysisVariant, setAnalysisVariant] = useState<'standard' | 'negatives_heavy' | 'funding_focus'>('standard');
+  const [analysisEngine, setAnalysisEngine] = useState<CreditAnalysisReportEngine>('structured_premium');
   const [analysisIncludeExhibits, setAnalysisIncludeExhibits] = useState(true);
   const [analysisExhibitIds, setAnalysisExhibitIds] = useState<string[]>([]);
   const [analysisTemplateId, setAnalysisTemplateId] = useState<string>('');
@@ -223,7 +226,20 @@ export default function PartnerReportsPage() {
     }
   }, [selectedAnalysisTemplate?.bodyText]);
 
-  const isPremiumAnalysisTemplate = isPremiumCreditAnalysisEngine(selectedAnalysisTemplateConfig);
+  const effectiveAnalysisTemplateConfig = useMemo(() => {
+    const base = selectedAnalysisTemplateConfig ?? {
+      version: 1 as const,
+      title: 'Credit Analysis Report',
+      badgeLine: 'Premium deliverable • Strategy • Negatives • Next steps',
+      variant: analysisVariant,
+      exhibits: { max: analysisIncludeExhibits ? 10 : 0 },
+      negatives: { maxPerBucket: analysisVariant === 'negatives_heavy' ? 40 : 18 },
+      minPages: 22,
+    };
+    return { ...base, engine: analysisEngine, variant: analysisVariant };
+  }, [selectedAnalysisTemplateConfig, analysisEngine, analysisVariant, analysisIncludeExhibits]);
+
+  const isPremiumAnalysisTemplate = isPremiumCreditAnalysisEngine(effectiveAnalysisTemplateConfig);
 
   useEffect(() => {
     if (!analysisTemplates.length) return;
@@ -237,14 +253,18 @@ export default function PartnerReportsPage() {
   }, [partner?.id, analysisReportsVersion, evidenceVersion]);
 
   useEffect(() => {
-    // Apply template settings (currently variant only).
-    if (!selectedAnalysisTemplateConfig) return;
+    // Apply template settings (variant + engine) when the saved template changes.
+    if (!selectedAnalysisTemplateConfig) {
+      setAnalysisEngine('structured_premium');
+      return;
+    }
     try {
       const v = String(selectedAnalysisTemplateConfig?.variant || '').trim();
       if (v === 'standard' || v === 'negatives_heavy' || v === 'funding_focus') setAnalysisVariant(v as any);
       if (typeof selectedAnalysisTemplateConfig?.exhibits?.max === 'number') {
         setAnalysisIncludeExhibits(selectedAnalysisTemplateConfig.exhibits.max > 0);
       }
+      setAnalysisEngine(resolveCreditAnalysisEngine(selectedAnalysisTemplateConfig));
     } catch {
       // ignore
     }
@@ -658,14 +678,13 @@ export default function PartnerReportsPage() {
                   <div className={`${finelyOsCatalogCard('violet')} !p-5 space-y-4`}>
                     <div className="flex items-start justify-between gap-4">
                       <div>
-                        <div className="text-[10px] uppercase tracking-widest text-emerald-700">Free deliverable</div>
+                        <div className="text-[10px] uppercase tracking-widest text-emerald-700">Analysis system</div>
                         <div className={`mt-2 ${FINELY_OS_ENTITY_VALUE}`}>
-                          Premium Credit Analysis — default
+                          Premium Credit Analysis
                         </div>
                         <div className={`mt-1 ${FINELY_OS_ENTITY_BODY}`}>
-                          {isPremiumAnalysisTemplate
-                            ? 'Premium dynamic spread report with ivory/forest pages, amber-gold highlights, multicolor accents, live bureau scores, ranked risk cards, and a clean action roadmap.'
-                            : 'Legacy paginated text report. Switch template to Premium for the full visual credit analysis deliverable.'}
+                          Pick how the PDF is built, then create. Structured premium is the recommended partner dossier.
+                          Results vary · not legal advice · funding subject to underwriting.
                         </div>
                       </div>
                       <div className="shrink-0 flex flex-col items-end gap-2">
@@ -692,14 +711,13 @@ export default function PartnerReportsPage() {
                                 candidates,
                                 variant: analysisVariant,
                                 exhibits,
-                                template: selectedAnalysisTemplateConfig,
+                                template: effectiveAnalysisTemplateConfig,
                                 snapshots: scoreSnapshots,
                               });
                               const { blob, filename, displayTitle, pages, exhibitsIncluded } = generated;
                               const payloadSnapshot =
                                 'payloadSnapshot' in generated ? generated.payloadSnapshot : undefined;
-                              const resolvedEngine = resolveCreditAnalysisEngine(selectedAnalysisTemplateConfig);
-                              const usePremium = resolvedEngine !== 'paginated_text';
+                              const resolvedEngine = resolveCreditAnalysisEngine(effectiveAnalysisTemplateConfig);
                               const store = getBlobStore();
                               const put = await store.put(blob, { partnerId: partner.id, reportId: selected.id, kind: 'analysis_report' });
                               const item = upsertCreditAnalysisReport({
@@ -726,7 +744,7 @@ export default function PartnerReportsPage() {
                                 meta: { pages, filename, reportId: selected.id, variant: analysisVariant, exhibitsIncluded, engine: resolvedEngine },
                               });
                               setAnalysisNotice(
-                                `Premium analysis created and saved (${pages} pages${exhibitsIncluded ? ` • ${exhibitsIncluded} exhibit(s)` : ''}). Open, send, or share it from Strategy reports below.`,
+                                `Analysis created (${resolvedEngine.replace(/_/g, ' ')} · ${pages} pages${exhibitsIncluded ? ` • ${exhibitsIncluded} exhibit(s)` : ''}). Open or regenerate anytime from Strategy reports below.`,
                               );
                               const emailResult = await notifyAnalysisReportReady({
                                 partner,
@@ -748,9 +766,46 @@ export default function PartnerReportsPage() {
                           }}
                           className={FINELY_OS_SUCCESS_BTN}
                         >
-                          {analysisBusy ? 'Creating premium report…' : 'Create premium analysis'}
+                          {analysisBusy ? 'Creating report…' : 'Create analysis PDF'}
                         </button>
                       </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <div className={FINELY_OS_ENTITY_LABEL}>How should we build this report?</div>
+                      <div className="grid md:grid-cols-3 gap-3">
+                        {CREDIT_ANALYSIS_ENGINE_OPTIONS.map((opt) => {
+                          const on = analysisEngine === opt.id;
+                          return (
+                            <button
+                              key={opt.id}
+                              type="button"
+                              onClick={() => setAnalysisEngine(opt.id)}
+                              className={
+                                'text-left rounded-xl border px-3 py-3 transition-all ' +
+                                (on
+                                  ? 'border-emerald-400/50 bg-emerald-500/15 shadow-[0_0_20px_-10px_rgba(52,211,153,0.5)]'
+                                  : 'border-white/12 bg-black/25 hover:border-white/25')
+                              }
+                            >
+                              <div className="flex items-center justify-between gap-2">
+                                <span className={`text-sm font-semibold ${FINELY_OS_ENTITY_VALUE}`}>{opt.shortLabel}</span>
+                                {opt.recommended ? (
+                                  <span className="rounded-md border border-emerald-400/40 bg-emerald-500/20 px-1.5 py-0.5 text-[9px] uppercase tracking-widest text-emerald-100">
+                                    Default
+                                  </span>
+                                ) : null}
+                              </div>
+                              <p className={`mt-1.5 text-[11px] ${FINELY_OS_ENTITY_BODY}`}>{opt.summary}</p>
+                              <p className={`mt-1.5 text-[10px] text-amber-100/80`}>Best for: {opt.bestFor}</p>
+                            </button>
+                          );
+                        })}
+                      </div>
+                      <p className={`text-[11px] ${FINELY_OS_ENTITY_BODY}`}>
+                        After bureau updates: select this report again → Create analysis PDF to regenerate. Older copies stay in
+                        your Analysis vault at <span className="font-mono text-white/70">/portal/analysis</span>.
+                      </p>
                     </div>
 
                     <div className="grid md:grid-cols-3 gap-4">
@@ -813,9 +868,11 @@ export default function PartnerReportsPage() {
                             const tenantId = (partner.tenantId || '').trim() || FINELY_TENANT_ID;
                             const title = `Credit Analysis Template • ${analysisVariant}`;
                             const cfg = {
+                              ...effectiveAnalysisTemplateConfig,
                               version: 1,
                               title: 'Credit Analysis Report',
                               badgeLine: 'Premium deliverable • Strategy • Negatives • Next steps',
+                              engine: analysisEngine,
                               variant: analysisVariant,
                               exhibits: { max: analysisIncludeExhibits ? 10 : 0 },
                               negatives: { maxPerBucket: analysisVariant === 'negatives_heavy' ? 40 : 18 },
@@ -825,7 +882,11 @@ export default function PartnerReportsPage() {
                               tenantId,
                               title,
                               category: 'ops',
-                              tags: ['analysis_report_template', `analysis_variant:${analysisVariant}`],
+                              tags: [
+                                'analysis_report_template',
+                                `analysis_variant:${analysisVariant}`,
+                                `analysis_engine:${analysisEngine}`,
+                              ],
                               kind: 'text',
                               bodyText: JSON.stringify(cfg, null, 2),
                               requiredEntitlements: defaultRequiredEntitlementsForCategory('ops'),
@@ -844,15 +905,7 @@ export default function PartnerReportsPage() {
                           disabled={!partner}
                           onClick={() => {
                             if (!partner) return;
-                            const base = selectedAnalysisTemplateConfig ?? {
-                              version: 1,
-                              title: 'Credit Analysis Report',
-                              badgeLine: 'Premium deliverable • Strategy • Negatives • Next steps',
-                              variant: analysisVariant,
-                              exhibits: { max: analysisIncludeExhibits ? 10 : 0 },
-                              negatives: { maxPerBucket: analysisVariant === 'negatives_heavy' ? 40 : 18 },
-                              minPages: 22,
-                            };
+                            const base = effectiveAnalysisTemplateConfig;
                             setAnalysisTemplateStudioEditId(selectedAnalysisTemplate?.id ?? null);
                             setAnalysisTemplateStudioTitle(selectedAnalysisTemplate?.title || `Credit Analysis Template • ${analysisVariant}`);
                             setAnalysisTemplateStudioJson(JSON.stringify(base, null, 2));
@@ -910,7 +963,8 @@ export default function PartnerReportsPage() {
                     <div className="mt-4">
                       <div className={`${FINELY_OS_ENTITY_LABEL} mb-2`}>Your strategy reports</div>
                       <p className={`mb-3 text-[11px] ${FINELY_OS_ENTITY_BODY}`}>
-                        Downloads open the saved PDF from when it was generated. Older reports use the legacy text layout — delete them and tap <strong>Generate PDF</strong> again for the premium 10-spread zip design.
+                        Downloads open the saved PDF from when it was generated. To refresh after bureau updates, create a new
+                        analysis above (pick Structured premium). Legacy copies can stay archived or be deleted.
                       </p>
                       <CreditAnalysisDeliverableStrip
                         items={analysisReports}

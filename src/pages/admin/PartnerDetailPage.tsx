@@ -116,7 +116,7 @@ import { PartnerNotesTab } from '../../features/partner/PartnerNotesTab';
 import { notifyPartnerNoteEmail } from '../../lib/partnerNoteEmail';
 import { partnerNoteToTimelineItem } from '../../components/partner/PartnerActivityTimeline';
 import { listEntitlementsByPartner } from '../../data/billingRepo';
-import { ENTITLEMENT_KEYS, type EntitlementKey, ensurePartnerEntitlements } from '../../billing/entitlements';
+import { ENTITLEMENT_KEYS, type EntitlementKey, ensurePartnerEntitlements, ensurePartnerEntitlementsAsync } from '../../billing/entitlements';
 import { TASK_PROGRESS_STAGES, WorkBoardShell, WorkCalendarView, WorkKanbanBoard, WorkListView, type WorkBoardItem } from '../../components/workboard';
 import type { WorkStageDefinition } from '../../domain/settings';
 import type { TaskStatus } from '../../domain/tasks';
@@ -165,7 +165,7 @@ const PARTNER_STICKY_TABS: { key: TabKey; label: string; accent: 'emerald' | 'vi
   { key: 'reports', label: 'Reports', accent: 'sky' },
   { key: 'analysis', label: 'Analysis Report', accent: 'sky' },
   { key: 'evidence', label: 'Evidence', accent: 'sky' },
-  { key: 'letters', label: 'Letters', accent: 'amber' },
+  { key: 'letters', label: 'Credit Letters', accent: 'amber' },
   { key: 'tasks', label: 'Tasks', accent: 'emerald' },
   { key: 'notes', label: 'Notes', accent: 'emerald' },
   { key: 'debt', label: 'Debt', accent: 'violet' },
@@ -2038,8 +2038,9 @@ function PartnerDetailPageInner() {
               onOpenReports={() => setTabAndUrl('reports')}
               onOpenDebtCenter={() => setTabAndUrl('debt')}
               onRequestGrantEntitlements={(keys) => {
-                ensurePartnerEntitlements({ partnerId: partner.id, keys: keys as any });
-                setNotesVersion((v) => v + 1);
+                void ensurePartnerEntitlementsAsync({ partnerId: partner.id, keys: keys as any }).then(() => {
+                  setNotesVersion((v) => v + 1);
+                });
               }}
             />
 
@@ -2442,9 +2443,10 @@ function PartnerDetailPageInner() {
                 onOpenReports={() => setTabAndUrl('reports')}
                 onOpenDebtCenter={() => setTabAndUrl('debt')}
                 onRequestGrantEntitlements={(keys) => {
-                  ensurePartnerEntitlements({ partnerId: partner.id, keys: keys as any });
+                void ensurePartnerEntitlementsAsync({ partnerId: partner.id, keys: keys as any }).then(() => {
                   setNotesVersion((v) => v + 1);
-                }}
+                });
+              }}
               />
             ) : null}
 

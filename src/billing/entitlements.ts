@@ -1,4 +1,4 @@
-import { listEntitlementsByPartner, grantEntitlement } from '../data/billingRepo';
+import { listEntitlementsByPartner, grantEntitlement, hasEntitlement } from '../data/billingRepo';
 import type { PartnerLane } from '../domain/partners';
 import { addDaysIso, nowIso } from '../domain/cases';
 
@@ -70,11 +70,11 @@ export const SERVICE_ACCESS_BUNDLE_META: Record<
 > = {
   credit_restore: {
     label: 'Credit restore',
-    hint: 'Reports, disputes, letters, identity — not business or AUs',
+    hint: 'Reports, disputes, Credit Letters, identity — not business or AUs',
   },
   debt: {
-    label: 'Debt & summons',
-    hint: 'Debt center, escalations, related letters',
+    label: 'Debt Letters',
+    hint: 'Debt Letters hub (validation/court), escalations',
   },
   business: {
     label: 'Business credit',
@@ -113,11 +113,41 @@ export function ensurePartnerEntitlements(args: {
   keys: EntitlementKey[];
   sourceAgreementId?: string;
 }) {
-  const existing = listEntitlementsByPartner(args.partnerId);
-  const activeOrExisting = new Set(existing.map((e) => e.key));
+  // Only skip keys that are *currently usable*. Revoked/expired rows used to
+  // block Grant access forever because we checked "any row exists".
   for (const key of args.keys) {
-    if (activeOrExisting.has(key)) continue;
-    grantEntitlement({ partnerId: args.partnerId, key, sourceAgreementId: args.sourceAgreementId, status: 'active' });
+    if (hasEntitlement(args.partnerId, key)) continue;
+    grantEntitlement({
+      partnerId: args.partnerId,
+      key,
+      sourceAgreementId: args.sourceAgreementId ?? 'admin_grant_access',
+      status: 'active',
+    });
+  }
+  // Persist so partner portal sessions (other browsers) see the grant.
+  void import('../data/billingSupabaseSync')
+    .then((m) => m.pushPartnerEntitlementsToSupabase({ partnerId: args.partnerId }))
+    .catch(() => {});
+}
+
+/** Awaitable grant used by admin Access UI — verifies keys + pushes to Supabase. */
+export async function ensurePartnerEntitlementsAsync(args: {
+  partnerId: string;
+  keys: EntitlementKey[];
+  sourceAgreementId?: string;
+}): Promise<{ ok: boolean; missing: EntitlementKey[]; pushError?: string }> {
+  ensurePartnerEntitlements(args);
+  const missing = args.keys.filter((k) => !hasEntitlement(args.partnerId, k));
+  try {
+    const { pushPartnerEntitlementsToSupabase } = await import('../data/billingSupabaseSync');
+    const push = await pushPartnerEntitlementsToSupabase({ partnerId: args.partnerId });
+    return { ok: missing.length === 0 && push.ok, missing, pushError: push.error };
+  } catch (e: unknown) {
+    return {
+      ok: missing.length === 0,
+      missing,
+      pushError: (e as Error)?.message || 'Failed to sync entitlements',
+    };
   }
 }
 

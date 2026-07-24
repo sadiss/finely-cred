@@ -5,7 +5,7 @@ import { DebtCoachChat } from './DebtCoachChat';
 
 const QUICK = [
   { label: 'Send 1692g letter', prompt: 'What exactly should my first FDCPA validation letter demand, step by step?' },
-  { label: 'Demand licensing', prompt: 'How do I demand state collection licensing and authority to collect?' },
+  { label: 'Document audit grid', prompt: 'Walk me through the Defense Book document audit: agreement, bill of sale, sale file, statements, entity authority, witness proof.' },
   { label: 'Round 2 deficiency', prompt: 'They sent a weak validation packet — what goes in my deficiency letter?' },
 ];
 
@@ -13,8 +13,10 @@ const CHIPS = [
   { label: '1692g proof list', prompt: 'What must they prove under FDCPA § 1692g?' },
   { label: 'Bill of sale only', prompt: 'They sent only a bill of sale — what goes in my deficiency letter?' },
   { label: 'Assignment chain', prompt: 'How do I demand assignment registry and chain of title from the original creditor?' },
+  { label: 'UCC proof of assignment', prompt: 'How do I use UCC § 9-406 reasonable proof of assignment without overclaiming the debt is void?' },
   { label: 'Credit reporting', prompt: 'Can I challenge credit reporting without admitting the debt?' },
   { label: 'If they ignore me', prompt: 'What if they ignore my validation letter — what do I file next?' },
+  { label: 'Open Rights Reference', prompt: 'Summarize the Laws & Rights Reference stack for my validation track and which 2–3 laws fit a typical debt-buyer packet.' },
 ];
 
 export function ValidationAdvisorChat({

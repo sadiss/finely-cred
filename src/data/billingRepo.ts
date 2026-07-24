@@ -419,24 +419,21 @@ export function grantEntitlement(args: {
     return existing;
   }
 
-  const revokedIdx = store.entitlements.findIndex(
-    (e) =>
-      e.partnerId === partnerId &&
-      e.key === key &&
-      e.tenantId === tenantId &&
-      e.status !== status,
+  // Reactivate revoked OR expired-but-still-marked-active rows (Grant access / admin unlock).
+  const staleIdx = store.entitlements.findIndex(
+    (e) => e.partnerId === partnerId && e.key === key && e.tenantId === tenantId,
   );
 
-  if (revokedIdx >= 0) {
+  if (staleIdx >= 0) {
     const next: Entitlement = {
-      ...store.entitlements[revokedIdx]!,
-      sourceAgreementId: args.sourceAgreementId ?? store.entitlements[revokedIdx]!.sourceAgreementId,
+      ...store.entitlements[staleIdx]!,
+      sourceAgreementId: args.sourceAgreementId ?? store.entitlements[staleIdx]!.sourceAgreementId,
       status,
       startsAt: now,
       endsAt: args.endsAt,
     };
 
-    store.entitlements[revokedIdx] = next;
+    store.entitlements[staleIdx] = next;
     saveStore(store);
     return next;
   }
@@ -481,7 +478,12 @@ export function revokeEntitlementsByPartnerKey(args: { partnerId: string; key: s
     count += 1;
     return { ...e, status: 'revoked' as const };
   });
-  if (count) saveStore(store);
+  if (count) {
+    saveStore(store);
+    void import('./billingSupabaseSync')
+      .then((m) => m.pushPartnerEntitlementsToSupabase({ partnerId }))
+      .catch(() => {});
+  }
   return count;
 }
 
