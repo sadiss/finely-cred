@@ -107,6 +107,7 @@ const PortalPartnerSelectPage = lazy(() => import('./pages/portal/PortalPartnerS
 const PartnersListPage = lazy(() => import('./pages/admin/PartnersListPage'));
 const PartnerDetailPage = lazy(() => import('./pages/admin/PartnerDetailPage'));
 const AdminPartnerImportPage = lazy(() => import('./pages/admin/AdminPartnerImportPage'));
+const AdminMailLettersPage = lazy(() => import('./pages/admin/AdminMailLettersPage'));
 const CasesPage = lazy(() => import('./pages/admin/CasesPage'));
 const AdminCaseDetailPage = lazy(() => import('./pages/admin/AdminCaseDetailPage'));
 const AdminDisputeCollaborationPage = lazy(() => import('./pages/admin/AdminDisputeCollaborationPage'));
@@ -2149,6 +2150,14 @@ function AppInner() {
           element={
             <ProtectedAdminRoute>
               <AdminPartnerImportPage />
+            </ProtectedAdminRoute>
+          }
+        />
+        <Route
+          path="/admin/mail"
+          element={
+            <ProtectedAdminRoute>
+              <AdminMailLettersPage />
             </ProtectedAdminRoute>
           }
         />

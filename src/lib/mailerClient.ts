@@ -31,7 +31,61 @@ export type MailLetterResult = {
   message?: string;
 };
 
+export type MailProviderStatus = {
+  ok: boolean;
+  provider?: MailProvider;
+  message?: string;
+  error?: string;
+  code?: number;
+  /** True when LetterStream TEST mode / MAIL_TEST_MODE / debug debug is active. */
+  testMode: boolean;
+  debugLevel?: number | null;
+  /** Prepaid balance in USD when the API (or ping payload) exposes it. */
+  balanceUsd: number | null;
+  estimatedCostUsd: number;
+};
+
+const DEFAULT_EST_COST_USD = 1.85;
+
+function coerceStatus(data: Record<string, unknown> | null | undefined, fallbackErr?: string): MailProviderStatus {
+  const raw = data || {};
+  const testMode = Boolean(raw.testMode) || /\btest\s*mode\b|\btestmode\b|\bsandbox\b/i.test(String(raw.message || raw.error || ''));
+  const balanceRaw = raw.balanceUsd;
+  const balanceUsd =
+    typeof balanceRaw === 'number' && Number.isFinite(balanceRaw)
+      ? balanceRaw
+      : typeof balanceRaw === 'string' && Number.isFinite(Number(balanceRaw))
+        ? Number(balanceRaw)
+        : null;
+  const est =
+    typeof raw.estimatedCostUsd === 'number' && Number.isFinite(raw.estimatedCostUsd)
+      ? raw.estimatedCostUsd
+      : DEFAULT_EST_COST_USD;
+  return {
+    ok: Boolean(raw.ok),
+    provider: normalizeMailProvider(raw.provider as string | undefined),
+    message: typeof raw.message === 'string' ? raw.message : undefined,
+    error: typeof raw.error === 'string' ? raw.error : fallbackErr,
+    code: typeof raw.code === 'number' ? raw.code : undefined,
+    testMode,
+    debugLevel: typeof raw.debugLevel === 'number' ? raw.debugLevel : raw.debugLevel === null ? null : undefined,
+    balanceUsd,
+    estimatedCostUsd: est,
+  };
+}
+
 export async function pingMailProvider(): Promise<{ ok: boolean; provider?: MailProvider; message?: string; error?: string }> {
+  const status = await getMailProviderStatus();
+  return {
+    ok: status.ok,
+    provider: status.provider,
+    message: status.message,
+    error: status.error,
+  };
+}
+
+/** Connectivity + testmode + optional prepaid balance (LetterStream via mailer edge). */
+export async function getMailProviderStatus(): Promise<MailProviderStatus> {
   if (!isFeatureEnabled('letterMailing')) {
     throw new Error('Letter mailing is disabled (Feature Flags).');
   }
@@ -40,16 +94,13 @@ export async function pingMailProvider(): Promise<{ ok: boolean; provider?: Mail
   }
 
   const { data, error } = await supabase.functions.invoke('mailer', {
-    body: { op: 'ping' },
+    body: { op: 'status' },
   });
 
-  if (error) throw new Error(error.message);
-  return {
-    ok: Boolean(data?.ok),
-    provider: normalizeMailProvider(data?.provider),
-    message: data?.message,
-    error: data?.error,
-  };
+  if (error) {
+    return coerceStatus(data as Record<string, unknown> | null, error.message);
+  }
+  return coerceStatus(data as Record<string, unknown> | null);
 }
 
 export async function verifyMailAddressesViaProvider(args: {
@@ -130,6 +181,42 @@ export async function mailLetterViaProvider(args: {
     authcode: data.authcode ?? undefined,
     message: data.message ?? undefined,
   };
+}
+
+/** Sequential batch send — one LetterStream job per letter PDF. */
+export async function mailLettersBatchViaProvider(args: {
+  partnerId: string;
+  from: MailAddress;
+  items: Array<{ letterId: string; pdfBlobRef: string; to: MailAddress }>;
+  options?: {
+    color?: boolean;
+    doubleSided?: boolean;
+    mailType?: 'firstclass' | 'certified' | 'certnoerr' | 'flat';
+    coverSheet?: boolean;
+  };
+}): Promise<Array<{ letterId: string; ok: boolean; result?: MailLetterResult; error?: string }>> {
+  const out: Array<{ letterId: string; ok: boolean; result?: MailLetterResult; error?: string }> = [];
+  for (const item of args.items) {
+    try {
+      const result = await mailLetterViaProvider({
+        partnerId: args.partnerId,
+        letterId: item.letterId,
+        pdfBlobRef: item.pdfBlobRef,
+        to: item.to,
+        from: args.from,
+        options: args.options ?? { color: true, doubleSided: true },
+      });
+      out.push({ letterId: item.letterId, ok: true, result });
+    } catch (e: unknown) {
+      out.push({ letterId: item.letterId, ok: false, error: (e as Error)?.message || 'Mailing failed.' });
+    }
+  }
+  return out;
+}
+
+export function formatMailAddressOneLine(a: MailAddress): string {
+  const line2 = a.addressLine2?.trim() ? `, ${a.addressLine2.trim()}` : '';
+  return `${a.name} · ${a.addressLine1}${line2}, ${a.city}, ${a.state} ${a.zip}`.replace(/\s+/g, ' ').trim();
 }
 
 export { FINELY_MAIL_PROVIDER };

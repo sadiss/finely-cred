@@ -22,7 +22,7 @@ export const LITIGATION_STAGES: LitigationStage[] = [
     short: 'Upload summons, affidavit, and docket. Confirm parties, case #, counsel, and hearing date.',
     nextAction: 'Upload court docs → review scraper chat → save fields to this case.',
     catalogIds: [],
-    defenseIds: ['document_audit', 'docket_strategy'],
+    defenseIds: ['document_audit', 'docket_strategy', 'debt_buyer_midland_citi_pack'],
     laws: ['Civil procedure', 'Service rules'],
   },
   {
@@ -31,7 +31,7 @@ export const LITIGATION_STAGES: LitigationStage[] = [
     short: 'File a contested written answer. Admit only what is true. Preserve standing, amount, and hearsay defenses.',
     nextAction: 'Build Written answer + certificate of service from the Court letter catalog.',
     catalogIds: ['court_courtroom_written_answer', 'court_answer_general', 'court_affirmative_defenses_standing'],
-    defenseIds: ['hearing_scripts', 'written_answer_playbook'],
+    defenseIds: ['hearing_scripts', 'written_answer_playbook', 'debt_buyer_midland_citi_pack'],
     laws: ['Civil procedure', 'Real party in interest'],
   },
   {
@@ -40,7 +40,7 @@ export const LITIGATION_STAGES: LitigationStage[] = [
     short: 'Put your dispute under oath. Challenge foundation of plaintiff affidavits and amount math.',
     nextAction: 'Build Affidavit of dispute and attach proof from your defense file.',
     catalogIds: ['court_affidavit_dispute', 'court_courtroom_pretrial_proof'],
-    defenseIds: ['document_audit', 'amount_audit'],
+    defenseIds: ['document_audit', 'amount_audit', 'continuance_if_new_exhibits'],
     laws: ['Evidence / personal knowledge', '28 U.S.C. § 1746'],
   },
   {
@@ -49,7 +49,7 @@ export const LITIGATION_STAGES: LitigationStage[] = [
     short: 'Force account-level assignment, sale file, ledger, and witness foundation.',
     nextAction: 'Serve defendant discovery; compel if responses are evasive.',
     catalogIds: ['court_discovery_full', 'court_motion_compel', 'validation_chain_of_title'],
-    defenseIds: ['cross_exam_sequence', 'discovery_pressure'],
+    defenseIds: ['cross_exam_sequence', 'discovery_pressure', 'debt_buyer_midland_citi_pack'],
     laws: ['Discovery rules', 'UCC § 9-406', 'FDCPA § 1692g'],
   },
   {
@@ -58,19 +58,27 @@ export const LITIGATION_STAGES: LitigationStage[] = [
     short: 'One-page court card, five-gate questions, and calm scripts. Bring your defense file.',
     nextAction: 'Print Court-day kit + hearing card; practice five-gate questions.',
     catalogIds: ['court_courtroom_day_kit', 'court_counterclaim_fdcpa'],
-    defenseIds: ['court_card', 'hearing_scripts', 'fdcpa_counterclaim_track'],
+    defenseIds: ['court_card', 'hearing_scripts', 'prehearing_72h_checklist', 'fdcpa_counterclaim_track'],
     laws: ['Evidence weight', 'FDCPA', 'Standing'],
   },
 ];
 
-/** Default partner hearing target when case has no hearingDate — July 27 of current/next relevant year. */
+/**
+ * Quick-fill hearing date for the Roosevelt Corelus Midland/Citi matter (2026-07-27).
+ * Used by the “Use Jul 27” button only — do NOT auto-write onto other partners’ cases.
+ * Yolie and other credit-restore partners are not the court hearing owner.
+ */
+export const ROOSEVELT_COURT_HEARING_ISO = '2026-07-27';
+
+/** @deprecated Prefer ROOSEVELT_COURT_HEARING_ISO — kept for button label compatibility. */
 export function defaultUrgentHearingIso(now = new Date()): string {
-  const y = now.getFullYear();
-  const candidate = new Date(y, 6, 27); // month 6 = July
-  if (candidate.getTime() < now.getTime() - 12 * 60 * 60 * 1000) {
-    return new Date(y + 1, 6, 27).toISOString().slice(0, 10);
+  const target = new Date(`${ROOSEVELT_COURT_HEARING_ISO}T12:00:00`);
+  if (target.getTime() < now.getTime() - 12 * 60 * 60 * 1000) {
+    // Past hearing: still return the fixed Roosevelt date for demo merge fields;
+    // owners can edit the date field. Do not invent a new year for unrelated partners.
+    return ROOSEVELT_COURT_HEARING_ISO;
   }
-  return candidate.toISOString().slice(0, 10);
+  return ROOSEVELT_COURT_HEARING_ISO;
 }
 
 export function daysUntilHearing(hearingIso: string, now = new Date()): number {

@@ -545,7 +545,7 @@ export function DebtCreditorIntelPanel({
           ) : party?.matchedFrom === 'debt_case' ? (
             <span className={finelyOsStatusChip('warn')}>Saved on case</span>
           ) : (
-            <span className={finelyOsStatusChip('info')}>Manual entry</span>
+            <span className={finelyOsStatusChip('warn')}>Manual entry</span>
           )}
           {!debt ? (
             <span className={`text-xs ${FINELY_OS_ENTITY_BODY}`}>Select or create a debt case above to persist these fields.</span>

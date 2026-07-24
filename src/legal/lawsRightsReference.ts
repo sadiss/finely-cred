@@ -300,6 +300,51 @@ export const LAWS_RIGHTS_SECTIONS: LawRightsSection[] = [
     doNotOverclaim: ['Do not invent fee defects without the ledger.'],
     pairsWithDefenseIds: ['amount_audit', 'fdcpa_counterclaim_track'],
   },
+  {
+    id: 'evidence_weight_hearsay',
+    title: 'Evidence weight & affidavit foundation',
+    eyebrow: 'Evidence',
+    useWhen: 'Plaintiff relies on conclusory affidavits, imported screens, or records the witness cannot explain.',
+    nextAction: 'Ask foundation questions; request limited weight without account-specific knowledge.',
+    citeChips: [
+      { label: '28 U.S.C. § 1746 (unsworn declarations)', href: 'https://www.law.cornell.edu/uscode/text/28/1746', external: true },
+      { label: 'Local small-claims evidence flexibility' },
+    ],
+    plainEnglish:
+      'Small-claims evidence rules may be flexible, but flexibility is not a free pass. A partner can ask the Court to weigh reliability: personal knowledge, business-record foundation, field-code meaning, and whether the affiant can explain the original creditor’s system — not only Midland’s screen.',
+    howToUse: [
+      'Ask: Did the witness create the record, work for the original creditor, or only read a purchased file?',
+      'Ask for field definitions and how the lawsuit balance was calculated.',
+      'Court phrasing: limited weight unless account-specific records and a competent witness are before the Court.',
+      'Pair with discovery if hearing is not immediate.',
+    ],
+    doNotOverclaim: [
+      'Do not claim every affidavit is automatically hearsay that must be excluded in every court.',
+      'Do not accuse fraud without proof.',
+    ],
+    pairsWithDefenseIds: ['cross_exam_sequence', 'document_audit', 'continuance_if_new_exhibits'],
+  },
+  {
+    id: 'hearing_day_procedure',
+    title: 'Hearing-day procedure (partner self-help)',
+    eyebrow: 'Procedure',
+    useWhen: 'Hearing is set (including Jul 27 demo path for Roosevelt) and you need courtroom logistics.',
+    nextAction: 'Print court card; confirm counsel service; arrive with organized exhibits.',
+    citeChips: [
+      { label: 'Litigation Command', href: '/portal/debt?tab=litigation&stage=hearing' },
+      { label: 'Local court appearance rules' },
+    ],
+    plainEnglish:
+      'Hearing day is about calm proof questions, not statute speeches. Confirm you are in the right courtroom or remote session, have copies for the court and plaintiff counsel, and know your three asks: judgment for defendant if unproven, continuance if new central exhibits, limited weight for unexplained records.',
+    howToUse: [
+      'Check docket for judge, time, and remote login.',
+      'Bring written answer / affidavit copies if previously filed.',
+      'Speak plain English; cite laws only when they map to a document gap.',
+      'After hearing: note orders, deadlines, and next portal tasks.',
+    ],
+    doNotOverclaim: ['Do not treat educational scripts as guaranteed outcomes.'],
+    pairsWithDefenseIds: ['court_card', 'prehearing_72h_checklist', 'hearing_scripts'],
+  },
 ];
 
 export function searchLawsRights(query: string): LawRightsSection[] {

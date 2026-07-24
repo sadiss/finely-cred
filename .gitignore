@@ -34,3 +34,8 @@ supabase/.temp
 test-results/
 playwright-report/
 blob-report/
+# Roosevelt PII local import (do not commit full credit report)
+_import_roosevelt/Roosevelts-Report.html
+_import_roosevelt/text-lines.txt
+_import_roosevelt/parse-report*.mjs
+

@@ -17,12 +17,15 @@ import { SCENARIO_RECOMMENDATIONS } from '../../legal/debtLetterTemplates';
 import { buildSummonsAffidavitContext } from '../../lib/debtCreditorIntel';
 import {
   LITIGATION_STAGES,
+  ROOSEVELT_COURT_HEARING_ISO,
   daysUntilHearing,
   defaultUrgentHearingIso,
   formatHearingCountdown,
   recommendLitigationStage,
   type LitigationStageId,
 } from '../../lib/litigationHearingPlan';
+import { isRooseveltCourtPartner } from '../../data/rooseveltCourtPartnerSeed';
+import { getDebtBuyerCaseIntel } from '../../legal/litigation/debtBuyerCaseIntelligence';
 import {
   FINELY_OS_COMPACT_PAGE,
   FINELY_OS_ENTITY_BODY,
@@ -103,13 +106,26 @@ export function AffidavitCourtCenterView({
 }) {
   const [params] = useSearchParams();
   const defaultHearing = defaultUrgentHearingIso();
+  const rooseveltMatter = isRooseveltCourtPartner(partner);
   const scenarioRec = SCENARIO_RECOMMENDATIONS.find((r) => r.scenario === recommendedScenario);
   const caseNumber = debt?.courtCaseNumber;
   const summonsCtx = buildSummonsAffidavitContext({ debt, documents: processedDocuments });
-  const hearingIso = (debt?.hearingDate || params.get('hearing') || defaultHearing).slice(0, 10);
-  const daysLeft = daysUntilHearing(hearingIso);
-  const countdown = formatHearingCountdown(daysLeft);
-  const urgent = daysLeft >= 0 && daysLeft <= 14;
+  const buyerIntel = getDebtBuyerCaseIntel({
+    partner,
+    debt,
+    plaintiff: debt?.name || summonsCtx.plaintiffName,
+  });
+  // Only Roosevelt (or explicit query / saved case date) drives the countdown.
+  // Other partners no longer inherit Jul 27 by default (Yolie is credit restore, not court).
+  const hearingIso = (
+    debt?.hearingDate ||
+    params.get('hearing') ||
+    (rooseveltMatter ? ROOSEVELT_COURT_HEARING_ISO : '') ||
+    ''
+  ).slice(0, 10);
+  const daysLeft = hearingIso ? daysUntilHearing(hearingIso) : 999;
+  const countdown = hearingIso ? formatHearingCountdown(daysLeft) : 'Set hearing date';
+  const urgent = Boolean(hearingIso) && daysLeft >= 0 && daysLeft <= 14;
 
   const hasSummonsDoc = (summonsDocCount ?? 0) > 0 || processedDocuments.some((d) => d.docType === 'summons');
   const hasAddress = Boolean(debt?.recipientAddress || summonsCtx.collectorName);
@@ -128,11 +144,9 @@ export function AffidavitCourtCenterView({
     if (hit >= 0) setStep(hit);
   }, [stageFromQuery]);
 
-  useEffect(() => {
-    if (!debt?.id || debt.hearingDate) return;
-    onDebtChange(upsertDebt({ ...debt, hearingDate: hearingIso }));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [debt?.id]);
+  // Do not auto-persist Jul 27 onto every open case — that incorrectly stamped
+  // credit-restore partners (e.g. Yolie). Roosevelt’s summons is seeded with
+  // hearingDate; others use the date picker or “Use Jul 27” explicitly.
 
   const amountLabel = debt?.amountCents
     ? (debt.amountCents / 100).toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 })
@@ -260,7 +274,9 @@ export function AffidavitCourtCenterView({
                 <div className="text-[10px] uppercase tracking-widest text-amber-100/85">What matters now</div>
                 <div className="text-3xl font-black tracking-tight text-white">{countdown}</div>
                 <div className={`text-xs ${FINELY_OS_ENTITY_BODY}`}>
-                  Hearing date <span className="text-white/90 font-semibold">{hearingIso}</span>
+                  Hearing date{' '}
+                  <span className="text-white/90 font-semibold">{hearingIso || 'not set'}</span>
+                  {buyerIntel.patternId !== 'unknown' ? ` · ${buyerIntel.label}` : ''}
                   {urgent ? ' · focus on answer + affidavit first' : ''}
                 </div>
               </div>
@@ -275,11 +291,42 @@ export function AffidavitCourtCenterView({
                     className={`${finelyOsGlowField('amber')} mt-1 w-full`}
                   />
                 </div>
-                <button type="button" disabled={!debt} className={FINELY_OS_SECONDARY_BTN} onClick={() => setHearingDate(defaultHearing)}>
-                  Use Jul 27
-                </button>
+                {rooseveltMatter ? (
+                  <button
+                    type="button"
+                    disabled={!debt}
+                    className={FINELY_OS_SECONDARY_BTN}
+                    title={`Quick-fill ${ROOSEVELT_COURT_HEARING_ISO}`}
+                    onClick={() => setHearingDate(defaultHearing)}
+                  >
+                    Use Jul 27
+                  </button>
+                ) : null}
               </div>
             </div>
+            {buyerIntel.patternId !== 'unknown' ? (
+              <div className="mt-3 rounded-lg border border-fuchsia-400/25 bg-fuchsia-500/10 px-3 py-2 space-y-1.5">
+                <div className="text-[10px] uppercase tracking-widest text-fuchsia-200/90">{buyerIntel.label}</div>
+                <p className={`text-xs ${FINELY_OS_ENTITY_BODY}`}>{buyerIntel.whatMatters}</p>
+                <ol className={`list-decimal pl-4 text-xs space-y-0.5 ${FINELY_OS_ENTITY_BODY}`}>
+                  {buyerIntel.nextSteps.slice(0, 4).map((s) => (
+                    <li key={s.slice(0, 48)}>{s}</li>
+                  ))}
+                </ol>
+                <div className="flex flex-wrap gap-2 pt-1">
+                  <button type="button" className={FINELY_OS_PRIMARY_BTN} onClick={() => onBuildDraft(buyerIntel.letterPriorities[0]!)}>
+                    Build {buyerIntel.letterPriorities[0] === 'courtroom_written_answer' ? 'written answer' : 'priority letter'}
+                  </button>
+                  <button
+                    type="button"
+                    className={FINELY_OS_SECONDARY_BTN}
+                    onClick={() => onBuildDraft(buyerIntel.letterPriorities[1] || 'validation_request')}
+                  >
+                    Next letter
+                  </button>
+                </div>
+              </div>
+            ) : null}
             <div className="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-2 text-center">
               {[
                 ['Case #', (caseNumber || summonsCtx.caseNumber || 'Add via upload').slice(0, 16)],
@@ -487,7 +534,7 @@ export function AffidavitCourtCenterView({
         <section id="fc-lit-proof" className="fc-lit-in scroll-mt-3 space-y-2">
           <div className="flex items-center gap-2 px-1">
             <span className="text-xs font-semibold text-white">4 · Add proof to this defense file</span>
-            <span className={finelyOsStatusChip('info')}>Links to case</span>
+            <span className={finelyOsStatusChip('ok')}>Links to case</span>
           </div>
           <DebtProofCaptureStrip partner={partner} debtCaseId={debt?.id} accent="fuchsia" uploadContext="court" />
           <div className="flex justify-end">
@@ -514,7 +561,14 @@ export function AffidavitCourtCenterView({
             </button>
             <p className="text-[9px] text-white/40">Educational · not legal advice · results vary by facts and court</p>
           </div>
-          <PartnerDefenseKnowledgePanel mode="both" trackFilter="court" compact defaultOpen />
+          <PartnerDefenseKnowledgePanel
+            mode="both"
+            trackFilter="court"
+            compact
+            defaultOpen
+            partner={partner}
+            hearingIso={hearingIso || undefined}
+          />
           <div className={`${finelyOsCatalogCardCompact('fuchsia')} space-y-2`}>
             <div className={`text-xs font-semibold text-white`}>Ask the court coach</div>
             <CourtAdvisorChat

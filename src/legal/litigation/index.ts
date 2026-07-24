@@ -75,6 +75,20 @@ export {
   getLitigationMotionToCompelBody,
 };
 
+export {
+  applyRooseveltCourtDemoIfNeeded,
+  rooseveltCourtDemoLitigationArgs,
+  shouldUseRooseveltCourtDemoMerge,
+} from './rooseveltCourtDemoArgs';
+
+export {
+  detectDebtBuyerPattern,
+  getDebtBuyerCaseIntel,
+  isDebtBuyerStyleCase,
+  type DebtBuyerCaseIntel,
+  type DebtBuyerPatternId,
+} from './debtBuyerCaseIntelligence';
+
 /** @deprecated Use toLitigationLetterArgs */
 export const toParkerArgs = toLitigationLetterArgs;
 

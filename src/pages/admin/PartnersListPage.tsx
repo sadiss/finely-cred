@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Search, UserPlus, ArrowRight, ArrowLeft, Upload, Trash2, Badge, RefreshCcw } from 'lucide-react';
+import { Search, UserPlus, ArrowRight, ArrowLeft, Upload, Trash2, Badge, RefreshCcw, Mail, X } from 'lucide-react';
 import { PageShell } from '../../components/layout/PageShell';
 import { PartnerCreatePanel } from '../../components/admin/PartnerCreatePanel';
 import type { Partner } from '../../domain/partners';
@@ -17,6 +17,7 @@ import { getStaffCommsCapabilities } from '../../lib/staffCommsPermissions';
 import { ClickableCard } from '../../components/ui';
 import { FinelyOsPageFooter } from '../../features/os/FinelyOsPageFooter';
 import { FinelyOsDataErrorBanner } from '../../features/os/FinelyOsDataErrorBanner';
+import { FinelyOsAlertBanner } from '../../features/os/FinelyOsAlertBanner';
 import { FinelyOsPaginatedStack } from '../../features/os/FinelyOsPaginatedStack';
 import { FinelyUnifiedHubLayout } from '../../features/unified/FinelyUnifiedHubLayout';
 import { FinelyNowDoThisStrip } from '../../components/tours/FinelyNowDoThisStrip';
@@ -55,6 +56,8 @@ import {
 
 type PartnersHubTab = 'directory' | 'create';
 
+const COURT_IMPORT_TIP_DISMISS_KEY = 'finely.admin.partners.courtImportTip.dismissed.v1';
+
 export default function PartnersListPage() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -74,6 +77,13 @@ export default function PartnersListPage() {
   const [deleting, setDeleting] = useState<string | null>(null);
   const [deleteErr, setDeleteErr] = useState<string | null>(null);
   const [deleteGatePartner, setDeleteGatePartner] = useState<Partner | null>(null);
+  const [showCourtImportTip, setShowCourtImportTip] = useState(() => {
+    try {
+      return localStorage.getItem(COURT_IMPORT_TIP_DISMISS_KEY) !== '1';
+    } catch {
+      return true;
+    }
+  });
 
   useEffect(() => {
     if (location.hash === '#create-partner') {
@@ -290,11 +300,54 @@ export default function PartnersListPage() {
             >
               <Upload size={14} /> Import partners
             </button>
+            <button
+              type="button"
+              onClick={() => navigate('/admin/mail')}
+              className={FINELY_OS_PRIMARY_BTN}
+              title="Mail letters for any partner via Finely Mail"
+            >
+              <Mail size={14} /> Mail letters
+            </button>
             <div className={`${FINELY_OS_ENTITY_SUBLABEL} font-mono`}>
               tenant: {tenantName}
             </div>
           </div>
         </div>
+
+        {showCourtImportTip ? (
+          <div className={`${finelyOsCatalogCard('sky')} !p-3 flex flex-wrap items-start justify-between gap-3`}>
+            <div className="min-w-0 space-y-1">
+              <div className={FINELY_OS_ENTITY_SUBLABEL}>One-time tip · court / Midland-style partners</div>
+              <p className={`${FINELY_OS_ENTITY_BODY} text-sm`}>
+                Search the directory like any partner. Court seed / Midland–Citi toolkit lives under{' '}
+                <button type="button" className="underline text-sky-200" onClick={() => navigate('/admin/partners/import')}>
+                  Import partners
+                </button>
+                {' '}
+                (not a permanent top button). Mail partner letters from{' '}
+                <button type="button" className="underline text-amber-200" onClick={() => navigate('/admin/mail')}>
+                  Mail letters
+                </button>
+                .
+              </p>
+            </div>
+            <button
+              type="button"
+              className={FINELY_OS_SECONDARY_BTN}
+              title="Dismiss this tip"
+              onClick={() => {
+                try {
+                  localStorage.setItem(COURT_IMPORT_TIP_DISMISS_KEY, '1');
+                } catch {
+                  /* ignore */
+                }
+                setShowCourtImportTip(false);
+              }}
+            >
+              <X size={12} /> Dismiss
+            </button>
+          </div>
+        ) : null}
 
         {fetchErr ? (
           <FinelyOsDataErrorBanner message={fetchErr} hint="Check Supabase connection and admin-list-partners edge function." onRetry={() => setFetchKey((v) => v + 1)} />
@@ -374,8 +427,9 @@ export default function PartnersListPage() {
           <div className={`text-xs leading-relaxed ${FINELY_OS_ENTITY_BODY}`}>
             <div className={`font-semibold ${FINELY_OS_ENTITY_VALUE} mb-2`}>Partner Sources:</div>
             <ul className="space-y-1 ml-3">
-              <li><span className="text-emerald-400">●</span> Created manually via "Create Partner" form</li>
-              <li><span className="text-fuchsia-400">●</span> Signed up users (auto-created on first login)</li>
+              <li><span className="text-emerald-400">●</span> Created manually via Create Partner form</li>
+              <li><span className="text-amber-400">●</span> Import Partners (admin Supabase upsert / one-time court seed)</li>
+              <li><span className="text-fuchsia-400">●</span> Signed up partners (auto-created on first login)</li>
             </ul>
           </div>
 

@@ -89,10 +89,10 @@ export const DEFENSE_PLAYBOOK_SECTIONS: DefensePlaybookSection[] = [
     title: 'Hearing scripts — short answers',
     eyebrow: 'Script',
     useWhen: 'You have a hearing date, or you are practicing calm answers for summons defense.',
-    nextAction: 'Open Court workstation → Written answer / Affidavit → print the one-page court card.',
+    nextAction: 'Open Litigation Command → Written answer / Affidavit → print the one-page court card.',
     track: 'court',
     links: [
-      { label: 'Court workstation', href: '/portal/debt?tab=court' },
+      { label: 'Litigation Command', href: '/portal/debt?tab=litigation' },
       { label: 'Validation workstation', href: '/portal/debt?tab=validation' },
     ],
     steps: [
@@ -125,11 +125,11 @@ export const DEFENSE_PLAYBOOK_SECTIONS: DefensePlaybookSection[] = [
     nextAction: 'Use Court coach chips → Discovery / Motion to compel if answers are vague.',
     track: 'court',
     links: [
-      { label: 'Court workstation', href: '/portal/debt?tab=court' },
+      { label: 'Litigation Command', href: '/portal/debt?tab=litigation' },
       { label: 'CFPB debt collection', href: 'https://www.consumerfinance.gov/ask-cfpb/what-is-a-debt-collector-en-329/', external: true },
     ],
     steps: [
-      'Entity & authority: Who owns the receivable today? Is that the named plaintiff? Owner, servicer, secured party, collector, or attorney client?',
+      'Entity & authority: Who owns the receivable today? Is that the named plaintiff? Owner, servicer, secured party, collector, or only the party counsel represents?',
       'Assignment & conditions: What document transferred this account? Does the bill of sale name you or your account? Closing, eligibility, exclusion, recall, repurchase conditions?',
       'Account-level proof: Where is the row identifying this exact account? Field codes? Who created the file? Balance at transfer?',
       'Amount & add-ons: Final statement → charge-off → sale → lawsuit balance. What agreement authorizes every interest, fee, cost?',
@@ -172,7 +172,7 @@ export const DEFENSE_PLAYBOOK_SECTIONS: DefensePlaybookSection[] = [
     track: 'court',
     links: [
       { label: 'FTC debt collection', href: 'https://www.ftc.gov/debt-collection', external: true },
-      { label: 'Court workstation', href: '/portal/debt?tab=court' },
+      { label: 'Litigation Command', href: '/portal/debt?tab=litigation' },
     ],
     steps: [
       'Map the chain: last reliable statement → last payment → charge-off → sale balance → plaintiff system → lawsuit amount → court costs.',
@@ -197,7 +197,7 @@ export const DEFENSE_PLAYBOOK_SECTIONS: DefensePlaybookSection[] = [
     track: 'court',
     links: [
       { label: 'Cornell LII — UCC Art. 9', href: 'https://www.law.cornell.edu/ucc/9', external: true },
-      { label: 'Court workstation', href: '/portal/debt?tab=court' },
+      { label: 'Litigation Command', href: '/portal/debt?tab=litigation' },
     ],
     steps: [
       'Ask what property transferred: account, receivable, principal, finance charges, servicing rights, or collection rights.',
@@ -245,7 +245,7 @@ export const DEFENSE_PLAYBOOK_SECTIONS: DefensePlaybookSection[] = [
     nextAction: 'Use lessons to frame questions; do not treat foreign-jurisdiction cases as local guarantees.',
     track: 'court',
     links: [
-      { label: 'Court workstation', href: '/portal/debt?tab=court' },
+      { label: 'Litigation Command', href: '/portal/debt?tab=litigation' },
     ],
     steps: [
       'Lesson A: admitting use of an unspecified original account does not concede account-specific debt-buyer ownership.',
@@ -284,10 +284,10 @@ export const DEFENSE_PLAYBOOK_SECTIONS: DefensePlaybookSection[] = [
     title: 'One-page hearing card',
     eyebrow: 'Court card',
     useWhen: 'Hearing day — print and keep on the table.',
-    nextAction: 'Print this section + open Court workstation for filings.',
+    nextAction: 'Print this section + open Litigation Command for filings.',
     track: 'court',
     links: [
-      { label: 'Court workstation', href: '/portal/debt?tab=court' },
+      { label: 'Litigation Command', href: '/portal/debt?tab=litigation&stage=hearing' },
       { label: 'Validation workstation', href: '/portal/debt?tab=validation' },
     ],
     steps: [
@@ -416,6 +416,87 @@ export const DEFENSE_PLAYBOOK_SECTIONS: DefensePlaybookSection[] = [
       'These documents appear central. I request time to review the identifiers, exhibits, and balances before being required to respond.',
     ],
     lawAnchors: ['small_claims_foundation'],
+  },
+  {
+    id: 'prehearing_72h_checklist',
+    title: '72-hour pre-hearing checklist',
+    eyebrow: 'Countdown',
+    useWhen: 'Hearing is inside about three days (e.g. Jul 27 matter) and you need a ruthless priority order.',
+    nextAction: 'Litigation Command → set hearing date → finish answer/affidavit → print court card.',
+    track: 'court',
+    links: [
+      { label: 'Litigation Command', href: '/portal/debt?tab=litigation&stage=hearing' },
+      { label: 'Upload docket / summons', href: '/portal/debt?tab=litigation&stage=intake' },
+    ],
+    steps: [
+      'Confirm hearing date, courtroom/remote instructions, and plaintiff counsel address on the summons/docket.',
+      'If no written answer is on file and local rules still allow one: file a short contested answer + certificate of service.',
+      'Print: one-page court card, five-gate questions, amount chain worksheet, and your scrape summary.',
+      'Mark exhibits you will ask about (bill of sale, sale file row, statements, affidavit) — do not bring a binder of theories.',
+      'Practice three calm lines: original-account recognition; ownership/amount denial; request for judgment or continuance if links fail.',
+      'Night before: sleep, clothes, water, phone on silent, arrive early with copies for the court and counsel.',
+    ],
+    courtSafePhrases: [
+      'I am prepared on ownership, account-level transfer, and amount. I ask plaintiff to prove each link with account-specific evidence.',
+    ],
+    doNotSay: [
+      'Do not invent new factual denials the night before.',
+      'Do not argue securitization paid the debt at the hearing.',
+    ],
+    lawAnchors: ['answer_deadlines', 'small_claims_foundation'],
+  },
+  {
+    id: 'debt_buyer_midland_citi_pack',
+    title: 'Debt-buyer pack — original creditor vs Midland',
+    eyebrow: 'Debt buyer',
+    useWhen: 'Named plaintiff is a Midland entity (or similar buyer) and the original creditor looks like Citi / Citibank.',
+    nextAction: 'Keep original-account honesty; force Midland ownership, sale-file row, and amount math.',
+    track: 'court',
+    links: [
+      { label: 'Litigation Command', href: '/portal/debt?tab=litigation' },
+      { label: 'Assignment / validation', href: '/portal/debt?tab=validation' },
+      { label: 'CFPB card agreements', href: 'https://www.consumerfinance.gov/credit-cards/agreements/', external: true },
+    ],
+    steps: [
+      'Separate two questions: (1) Did a Citi account exist that the partner recognizes? (2) Did this Midland plaintiff prove it owns this receivable today?',
+      'Demand the account-level sale record (last four, sale balance, sale date, field definitions) — not only a portfolio bill of sale.',
+      'Walk the dollars: Citi statement → charge-off → sale → Midland system → lawsuit amount → costs.',
+      'Ask whether the witness worked for Citi, created records, participated in the sale, or only reads Midland screens.',
+      'If papers appear first at hearing: request time to review identifiers and balances before responding.',
+      'Bureau crossover later: dispute inaccurate Midland/Citi furnishing in Credit Letters without mixing FCRA into the courtroom script.',
+    ],
+    courtSafePhrases: [
+      'I recognize the original Citibank account if that is true. I do not admit that this named Midland plaintiff owns the receivable, calculated the balance correctly, or has proven the right to judgment today.',
+      'Where is the sale-file row that identifies this exact account, balance at transfer, and field definitions?',
+    ],
+    doNotSay: [
+      'Do not deny the Citi account if it was the partner’s.',
+      'Do not say securitization paid Citi.',
+      'Do not call Midland “fraud” without proof.',
+    ],
+    lawAnchors: ['real_party', 'ucc_9406', 'arbitration_agreement', 'standing_challenge'],
+  },
+  {
+    id: 'continuance_if_new_exhibits',
+    title: 'Continuance when new exhibits appear',
+    eyebrow: 'Hearing tactics',
+    useWhen: 'Plaintiff hands up central sale docs, ledgers, or affidavits for the first time at trial.',
+    nextAction: 'Ask for time on the record; do not guess under pressure.',
+    track: 'court',
+    links: [
+      { label: 'Litigation Command — hearing', href: '/portal/debt?tab=litigation&stage=hearing' },
+    ],
+    steps: [
+      'Identify what is new: bill of sale schedule, sale file, agreement version, balance worksheet, or witness affidavit.',
+      'State why it matters: ownership, account-level match, or amount calculation.',
+      'Request a short continuance or recess to review identifiers, exhibits, sale conditions, and balances.',
+      'If denied: ask the Court to give limited weight until account-specific foundation is shown.',
+      'Log what was produced for later discovery, appeal posture, or settlement leverage.',
+    ],
+    courtSafePhrases: [
+      'These documents appear central. I request time to review the identifiers, referenced exhibits, sale conditions, and balances before being required to respond.',
+    ],
+    lawAnchors: ['small_claims_foundation', 'standing_challenge'],
   },
 ];
 

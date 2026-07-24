@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
-import { BookOpen, ExternalLink, Scale, Search } from 'lucide-react';
+import { BookOpen, ExternalLink, Gavel, Scale, Search } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import type { Partner } from '../../domain/partners';
 import {
   DEFENSE_BOOK_META,
   DEFENSE_CORE_STATEMENT,
@@ -18,6 +19,11 @@ import {
   searchLawsRights,
   type LawRightsSection,
 } from '../../legal/lawsRightsReference';
+import {
+  ROOSEVELT_DISPLAY_NAME,
+  ROOSEVELT_HEARING_ISO,
+  isRooseveltCourtPartner,
+} from '../../data/rooseveltCourtPartnerSeed';
 import { FinelyOsPaginatedStack } from '../../features/os/FinelyOsPaginatedStack';
 import {
   FINELY_OS_COMPACT_PAGE,
@@ -186,14 +192,19 @@ export function PartnerDefenseKnowledgePanel({
   trackFilter = 'all',
   compact = false,
   defaultOpen = false,
+  partner,
+  hearingIso,
 }: {
   mode?: PanelMode;
   trackFilter?: DefenseTrack;
   compact?: boolean;
   defaultOpen?: boolean;
+  partner?: Partner | null;
+  hearingIso?: string;
 }) {
   const [query, setQuery] = useState('');
   const [tab, setTab] = useState<'defense' | 'laws'>(mode === 'laws' ? 'laws' : 'defense');
+  const courtPartner = isRooseveltCourtPartner(partner);
 
   const defenseItems = useMemo(() => {
     const base = trackFilter === 'all' ? DEFENSE_PLAYBOOK_SECTIONS : defenseSectionsForTrack(trackFilter);
@@ -242,6 +253,33 @@ export function PartnerDefenseKnowledgePanel({
           <p className={`text-[11px] ${FINELY_OS_ENTITY_BODY}`}>
             {DEFENSE_BOOK_META.compliance} · {LAWS_RIGHTS_META.sourceLabel}
           </p>
+
+          {courtPartner ? (
+            <div className={`${finelyOsCatalogCardCompact('amber')} !p-3`}>
+              <div className="flex items-start gap-2">
+                <Gavel size={14} className="mt-0.5 shrink-0 text-amber-300" />
+                <div className="min-w-0">
+                  <div className={`${FINELY_OS_ENTITY_SUBLABEL} text-amber-200/90`}>Court matter spotlight</div>
+                  <p className={`mt-1 text-xs ${FINELY_OS_ENTITY_BODY}`}>
+                    <span className="font-semibold text-white">{ROOSEVELT_DISPLAY_NAME}</span> owns this Midland /
+                    Citi hearing track
+                    {hearingIso || ROOSEVELT_HEARING_ISO
+                      ? ` · hearing ${hearingIso || ROOSEVELT_HEARING_ISO}`
+                      : ''}
+                    . Merge fields and Jul 27 quick-fill apply to this partner — not Yolie (credit restore).
+                  </p>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    <Link to="/portal/debt?tab=litigation&stage=answer" className={`${FINELY_OS_SECONDARY_BTN} !text-[11px]`}>
+                      Written answer
+                    </Link>
+                    <Link to="/portal/debt?tab=litigation&stage=hearing" className={`${FINELY_OS_SECONDARY_BTN} !text-[11px]`}>
+                      Hearing card
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : null}
 
           {showDefense && showLaws ? (
             <div className="flex flex-wrap gap-2">

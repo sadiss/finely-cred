@@ -125,7 +125,26 @@ Reply when migration is applied and the verify path passes on preview.
 
 ---
 
+## Related P0 — Mail letters + Litigation (same branch)
+
+Owner is mailing partner letters **today** via LetterStream / Finely Mail.
+
+| | |
+|---|---|
+| **Admin mail path** | `/admin/mail` — pick partner → select letters → Confirm address → Mail → Track |
+| **Partner mail path** | `/portal/letters/vault` — select → Mail selected (batch wizard) |
+| **Litigation Command** | `/portal/debt?tab=litigation` |
+| **Court seed (quiet)** | `/admin/partners/import` only — **no** sticky Roosevelt button on Admin Partners |
+| **Full mail/litigation handoff** | [`DEV_URGENT_MAIL_AND_LITIGATION.md`](./DEV_URGENT_MAIL_AND_LITIGATION.md) |
+| **Test mode** | UI warns when `MAIL_TEST_MODE` / debug / vendor testmode detectable — turn off before treating USPS as live |
+
+Redeploy `mailer` edge after pull so `op: 'status'` + testmode flags ship.
+
+---
+
 ## Pointers
 
 - Also flagged at top of `docs/DEVELOPER_HANDOFF.md`
-- Primary can’t-miss file: **this file at repo root**
+- Primary can’t-miss files at repo root:
+  - **This file** — entitlements / Letters grant migration
+  - **`DEV_URGENT_MAIL_AND_LITIGATION.md`** — mailing + litigation + same-branch push

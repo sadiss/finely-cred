@@ -74,6 +74,7 @@ export const ADMIN_NAV_GROUPS: AdminNavGroupDef[] = [
       { path: '/admin/workload', label: 'Workload', icon: ListChecks, hint: 'Open tasks by assignee' },
       { path: '/admin/playbooks', label: 'Playbooks', icon: BookOpen, hint: 'Service delivery task templates' },
       { path: '/admin/partners', label: 'Partners', icon: Users, hint: 'Customer management' },
+      { path: '/admin/mail', label: 'Mail letters', icon: Mail, hint: 'Finely Mail · pick partner → mail' },
       { path: '/admin/cases', label: 'Cases', icon: Gavel, hint: 'Case management' },
       { path: '/admin/dispute-collaboration', label: 'Dispute Hub', icon: Scale, hint: 'Escalations + regulatory inbox' },
     ],

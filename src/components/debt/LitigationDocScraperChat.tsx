@@ -22,10 +22,10 @@ import {
 
 type ChatLine = { role: 'system' | 'user' | 'assistant'; text: string };
 
-function confidenceTone(c: ScrapedLitigationField['confidence']): 'ok' | 'warn' | 'info' {
+function confidenceTone(c: ScrapedLitigationField['confidence']): 'ok' | 'warn' | 'blocked' {
   if (c === 'high') return 'ok';
-  if (c === 'medium') return 'info';
-  return 'warn';
+  if (c === 'medium') return 'warn';
+  return 'blocked';
 }
 
 function parseLooseDate(raw: string): string | undefined {
@@ -193,7 +193,7 @@ export function LitigationDocScraperChat({
               Docket · summons · complaint · affidavit · collector letter — field-by-field with confidence.
             </p>
           </div>
-          <span className={finelyOsStatusChip(result ? 'ok' : 'info')}>
+          <span className={finelyOsStatusChip(result ? 'ok' : 'warn')}>
             {result ? `${result.docKind.replace('_', ' ')} · ${result.fields.length} fields` : 'Ready'}
           </span>
         </div>

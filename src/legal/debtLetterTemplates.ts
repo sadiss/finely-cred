@@ -14,6 +14,7 @@ import {
   getLitigationBankAffidavitBody,
   getLitigationDebtBuyerAffidavitBody,
 } from './litigation';
+import { applyRooseveltCourtDemoIfNeeded } from './litigation/rooseveltCourtDemoArgs';
 import type { DebtLetterBuildArgs } from './debtLetterBuildArgs';
 import { getAffidavitOfDisputeBody, getSummonsResponseAffidavitBody } from './debtAffidavitBodies';
 import {
@@ -747,7 +748,12 @@ export function getLetterBody(
   letterType: import('../domain/debtLegal').DebtLetterType,
   args: DebtLetterBuildArgs,
 ): string {
-  const litigation = toLitigationLetterArgs(args);
+  const baseLitigation = toLitigationLetterArgs(args);
+  // Roosevelt Midland–Citi demo merge only when partner/debt match (never stamps other partners).
+  const litigation = applyRooseveltCourtDemoIfNeeded({
+    litigation: baseLitigation,
+    partner: { profile: { fullName: args.debtorName } } as import('../domain/partners').Partner,
+  });
   switch (letterType) {
     case 'validation_request':
       return getValidationRequestBody(args);

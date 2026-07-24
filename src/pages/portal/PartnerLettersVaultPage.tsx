@@ -12,7 +12,9 @@ import { openBlobRefInNewTab } from '../../lib/openBlobRef';
 import type { LetterRecord, LetterStatus } from '../../domain/letters';
 import { isFeatureEnabled } from '../../data/settingsRepo';
 import { MailLetterModal } from '../../components/letters/MailLetterModal';
+import { BatchMailWizard, type BatchMailItemResult } from '../../components/letters/BatchMailWizard';
 import { SavedLetterCard } from '../../components/letters/SavedLetterCard';
+import { MailProviderStatusBanner } from '../../components/mailing/MailProviderStatusBanner';
 import { loadLettersCommandCenterDraft } from '../../data/lettersCommandCenterDraftRepo';
 import { letterStudioResumeUrl } from '../../lib/letterStudioResume';
 import { bureauFullName } from '../../utils/bureaus';
@@ -77,6 +79,8 @@ export default function PartnerLettersVaultPage() {
   const [status, setStatus] = useState<LetterStatus | 'all'>('all');
   const [mailOpen, setMailOpen] = useState(false);
   const [mailLetter, setMailLetter] = useState<LetterRecord | null>(null);
+  const [batchOpen, setBatchOpen] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [highlightId, setHighlightId] = useState<string | null>(null);
   const [autoPreviewId, setAutoPreviewId] = useState<string | null>(null);
   const [view, setView] = useState<'active' | 'archived'>('active');
@@ -197,6 +201,60 @@ export default function PartnerLettersVaultPage() {
   };
 
   const canMail = isFeatureEnabled('letterMailing');
+  const pdfReadyActive = useMemo(
+    () => letters.filter((l) => !l.archivedAt && Boolean(l.pdfBlobRef)),
+    [letters],
+  );
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const applyBatchResults = (results: BatchMailItemResult[]) => {
+    if (!partner) return;
+    for (const r of results) {
+      const letter = letters.find((l) => l.id === r.letterId);
+      if (!letter) continue;
+      const addr = {
+        to: r.to || letter.mailing?.to || { name: '', addressLine1: '', city: '', state: '', zip: '' },
+        from: r.from || letter.mailing?.from || { name: '', addressLine1: '', city: '', state: '', zip: '' },
+      };
+      if (r.ok) {
+        const updated = upsertLetter({
+          ...letter,
+          status: 'mailed',
+          mailing: {
+            provider: 'finely',
+            providerId: r.providerId || letter.mailing?.providerId || 'batch',
+            createdAt: new Date().toISOString(),
+            status: 'mailed',
+            ...addr,
+          },
+        });
+        onDisputeLetterMailed({ letter: updated, actor: 'partner' });
+      } else {
+        upsertLetter({
+          ...letter,
+          status: 'mail_failed',
+          mailing: {
+            provider: 'finely',
+            providerId: letter.mailing?.providerId,
+            createdAt: letter.mailing?.createdAt ?? new Date().toISOString(),
+            status: 'failed',
+            lastError: r.error || 'Mailing failed',
+            ...addr,
+          },
+        });
+      }
+    }
+    setSelectedIds(new Set());
+    navigate(0);
+  };
 
   const toggleArchive = (l: LetterRecord) => {
     const phrase = view === 'archived' ? 'UNARCHIVE' : 'ARCHIVE';
@@ -217,44 +275,51 @@ export default function PartnerLettersVaultPage() {
   };
 
   const renderVaultLetter = (l: LetterRecord) => (
-    <SavedLetterCard
-      key={l.id}
-      id={`letter-${l.id}`}
-      letter={l}
-      highlighted={highlightId === l.id}
-      autoOpenPreview={autoPreviewId === l.id}
-      evidence={evidence}
-      canMail={canMail}
-      onOpenPdf={() => void openPdf(l)}
-      onMail={() => {
-        if (!l.pdfBlobRef) return;
-        setMailGateErr(null);
-        if (l.type === 'dispute') {
-          const idGate = checkIdentityVaultGate(evidence);
-          if (!idGate.ok) {
-            setMailGateErr(
-              `Upload government ID and proof of address in Documents Vault before mailing dispute letters. Missing: ${idGate.missing.map((m) => m.label).join(', ')}.`,
-            );
-            return;
+    <div key={l.id} className="relative">
+      {canMail && l.pdfBlobRef && view === 'active' ? (
+        <label className="absolute top-3 left-3 z-10 inline-flex items-center gap-1.5 rounded-lg border border-white/15 bg-black/70 px-2 py-1 text-[10px] uppercase tracking-widest text-white/70">
+          <input type="checkbox" checked={selectedIds.has(l.id)} onChange={() => toggleSelect(l.id)} />
+          Select
+        </label>
+      ) : null}
+      <SavedLetterCard
+        id={`letter-${l.id}`}
+        letter={l}
+        highlighted={highlightId === l.id}
+        autoOpenPreview={autoPreviewId === l.id}
+        evidence={evidence}
+        canMail={canMail}
+        onOpenPdf={() => void openPdf(l)}
+        onMail={() => {
+          if (!l.pdfBlobRef) return;
+          setMailGateErr(null);
+          if (l.type === 'dispute') {
+            const idGate = checkIdentityVaultGate(evidence);
+            if (!idGate.ok) {
+              setMailGateErr(
+                `Upload government ID and proof of address in Documents Vault before mailing dispute letters. Missing: ${idGate.missing.map((m) => m.label).join(', ')}.`,
+              );
+              return;
+            }
+            const evGate = checkDisputeLetterEvidenceGate({ letter: l, evidence });
+            if (!evGate.ok) {
+              setMailGateErr(evGate.message);
+              return;
+            }
           }
-          const evGate = checkDisputeLetterEvidenceGate({ letter: l, evidence });
-          if (!evGate.ok) {
-            setMailGateErr(evGate.message);
-            return;
-          }
+          setMailLetter(l);
+          setMailOpen(true);
+        }}
+        onArchive={() => toggleArchive(l)}
+        pdfDisabled={!l.pdfBlobRef}
+        mailDisabled={!l.pdfBlobRef}
+        onResumeStudio={
+          l.type === 'dispute' && !l.pdfBlobRef && studioDraftResume
+            ? () => navigate(studioDraftResume)
+            : undefined
         }
-        setMailLetter(l);
-        setMailOpen(true);
-      }}
-      onArchive={() => toggleArchive(l)}
-      pdfDisabled={!l.pdfBlobRef}
-      mailDisabled={!l.pdfBlobRef}
-      onResumeStudio={
-        l.type === 'dispute' && !l.pdfBlobRef && studioDraftResume
-          ? () => navigate(studioDraftResume)
-          : undefined
-      }
-    />
+      />
+    </div>
   );
 
   return (
@@ -338,14 +403,63 @@ export default function PartnerLettersVaultPage() {
 
                 onDisputeLetterMailed({ letter: updated, actor: 'partner' });
               }}
+              trackHref="/portal/letters/vault"
+            />
+          ) : null}
+          {batchOpen ? (
+            <BatchMailWizard
+              open={batchOpen}
+              partnerId={partner.id}
+              letters={letters.filter((l) => !l.archivedAt)}
+              defaultSelectedIds={[...selectedIds]}
+              defaultFromName={partner.profile.fullName || 'Partner'}
+              defaultFromAddress={(() => {
+                const route: any = partner.primaryRoute ? (partner.routes as any)?.[partner.primaryRoute] : null;
+                const p = route?.personal ?? null;
+                if (!p) return undefined;
+                return {
+                  addressLine1: p.address1 ?? '',
+                  addressLine2: p.address2 ?? '',
+                  city: p.city ?? '',
+                  state: p.state ?? '',
+                  zip: p.postalCode ?? '',
+                };
+              })()}
+              onClose={() => setBatchOpen(false)}
+              onComplete={applyBatchResults}
             />
           ) : null}
           <button type="button" onClick={() => navigate('/portal/letters')} className={FINELY_OS_BACK_LINK} title="Back to Letter Studio">
             <ArrowLeft size={16} /> Letter Studio
           </button>
           <p className={`${FINELY_OS_ENTITY_BODY} text-sm`}>
-            Saved PDFs live here. Open to view in a new tab. To keep building, resume Letter Studio — drafts autosave when you leave.
+            First-timer mail path: Select letters → Confirm address → Mail → Track. Open Letter Studio to build more PDFs.
           </p>
+          {canMail ? <MailProviderStatusBanner compact letterCount={selectedIds.size || 1} /> : null}
+          {canMail && pdfReadyActive.length > 0 ? (
+            <div className="sticky top-2 z-20 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-amber-400/30 bg-black/70 px-3 py-2 backdrop-blur">
+              <span className={`${FINELY_OS_ENTITY_BODY} text-sm`}>
+                {selectedIds.size} selected · {pdfReadyActive.length} PDF-ready
+              </span>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  className={FINELY_OS_SECONDARY_BTN}
+                  onClick={() => setSelectedIds(new Set(pdfReadyActive.map((l) => l.id)))}
+                >
+                  Select all ready
+                </button>
+                <button
+                  type="button"
+                  className={`${FINELY_OS_PRIMARY_BTN} disabled:opacity-60`}
+                  disabled={selectedIds.size === 0}
+                  onClick={() => setBatchOpen(true)}
+                >
+                  <Send size={14} /> Mail selected
+                </button>
+              </div>
+            </div>
+          ) : null}
 
           {studioDraftResume ? (
             <div className={`${finelyOsCatalogCard('amber')} !p-4 flex flex-wrap items-center justify-between gap-3`}>
