@@ -5,7 +5,7 @@
 ## Partner — 60-second Litigation click path
 
 1. Open **`/portal/debt?tab=litigation`**
-2. **Step 1 — Drop papers** into the unified drag-drop + chat scraper (summons / docket / affidavit / HTML / image)
+2. **Step 1 — Drop papers** into **UnifiedEvidenceCapture** (same composition as Documents vault): type chips · drag-drop / camera / gallery · scrape-intel panel (not Finely chat bubbles)
 3. High-confidence scrapes **auto-Apply** empty fields (case #, court, plaintiff, firm, **firm mailing address**, attorney, amount, hearing, account, original creditor). Credit reports enrich Midland/Citi-style tradelines.
 4. **Continue → Step 2** — confirm plaintiff + counsel mailing (never leave an accessible address blank)
 5. **Continue → Step 3** — one-tap **Build written answer** + **Build affidavit**
@@ -146,7 +146,11 @@ Branch: preview/sitewide-ux-pack-merge  (DO NOT create a new branch)
    Plain English “what to do now” for Midland/Citi and all case types.
    Firm mailing address fills from scrape + known directory — never leave blank if known.
 
-6) Rules: no StrReplace on PartnerDetailPage (use scripts/_patch-partner-detail-*.mjs); PowerShell uses ; not &&.
+6) Evidence hub (Documents vault): `/portal/documents` → Upload tab → `UnifiedEvidenceCapture`
+   (type chips · multi-file drag-drop · camera · gallery · scrape intel). Same shell on litigation
+   Step 1, debt proof strips, disputes/debt/bankruptcy SmartProof wrappers.
+
+7) Rules: no StrReplace on PartnerDetailPage (use scripts/_patch-partner-detail-*.mjs); PowerShell uses ; not &&.
    No forever Roosevelt button on partner UI — Ensure Roosevelt only under /admin/partners/import.
 
 Reply when migration applied, mailer redeployed, and /admin/mail status check passes.

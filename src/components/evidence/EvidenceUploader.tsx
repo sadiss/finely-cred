@@ -1,5 +1,5 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { Camera, FileUp, Image as ImageIcon } from 'lucide-react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { Camera, FileUp, Image as ImageIcon, Images, Loader2, X } from 'lucide-react';
 import type { EvidenceItem } from '../../domain/evidence';
 import { getBlobStore } from '../../storage/getBlobStore';
 import { newId } from '../../utils/ids';
@@ -18,6 +18,17 @@ import {
 
 const blobStore = getBlobStore();
 
+type PendingThumb = {
+  id: string;
+  file: File;
+  url: string;
+  status: 'queued' | 'uploading' | 'done' | 'error';
+};
+
+/**
+ * Low-level evidence capture (admin / AU / picker). Portal hubs should use
+ * {@link UnifiedEvidenceCapture} for the full type-chips + scrape composition.
+ */
 export function EvidenceUploader({
   partnerId,
   reportId,
@@ -26,6 +37,7 @@ export function EvidenceUploader({
   prominent = false,
   compact = false,
   scannerProfile = 'general',
+  multiple = true,
 }: {
   partnerId: string;
   reportId?: string;
@@ -34,12 +46,17 @@ export function EvidenceUploader({
   prominent?: boolean;
   compact?: boolean;
   scannerProfile?: DocScanProfile;
+  multiple?: boolean;
 }) {
+  const fileRef = useRef<HTMLInputElement | null>(null);
+  const galleryRef = useRef<HTMLInputElement | null>(null);
   const [busy, setBusy] = useState(false);
   const [caption, setCaption] = useState(initialCaption);
   const [error, setError] = useState<string | null>(null);
   const [scanMode, setScanMode] = useState(true);
   const [cameraOpen, setCameraOpen] = useState(false);
+  const [dragOver, setDragOver] = useState(false);
+  const [pending, setPending] = useState<PendingThumb[]>([]);
 
   useEffect(() => {
     if (initialCaption) setCaption(initialCaption);
@@ -89,13 +106,46 @@ export function EvidenceUploader({
       if (opts?.clearCaptionAfter ?? true) setCaption('');
     } catch (e: any) {
       setError(e?.message || 'Evidence upload failed.');
+      throw e;
     } finally {
       setBusy(false);
     }
   };
 
+  const processFiles = async (files: File[], opts?: { skipScan?: boolean }) => {
+    if (!files.length) return;
+    const thumbs: PendingThumb[] = files.map((file) => ({
+      id: newId('pend'),
+      file,
+      url: file.type.startsWith('image/') ? URL.createObjectURL(file) : '',
+      status: 'queued' as const,
+    }));
+    setPending(thumbs);
+    const baseCap = caption.trim();
+    for (let i = 0; i < thumbs.length; i++) {
+      const t = thumbs[i]!;
+      setPending((prev) => prev.map((p) => (p.id === t.id ? { ...p, status: 'uploading' } : p)));
+      const cap =
+        !baseCap
+          ? undefined
+          : thumbs.length > 1
+            ? `${baseCap} — ${i + 1}/${thumbs.length}`
+            : baseCap;
+      try {
+        await handleFile(t.file, {
+          skipScan: opts?.skipScan,
+          captionOverride: cap,
+          clearCaptionAfter: i === thumbs.length - 1,
+        });
+        setPending((prev) => prev.map((p) => (p.id === t.id ? { ...p, status: 'done' } : p)));
+      } catch {
+        setPending((prev) => prev.map((p) => (p.id === t.id ? { ...p, status: 'error' } : p)));
+      }
+    }
+  };
+
   return (
-    <div className={`${finelyOsGlassShell('catalog', prominent ? 'amber' : 'emerald')} ${compact ? 'space-y-4 !p-4' : 'space-y-6'}`}>
+    <div className={`${finelyOsGlassShell('catalog', prominent ? 'amber' : 'emerald')} ${compact ? 'space-y-3 !p-4' : 'space-y-4'}`}>
       <CameraCaptureModal
         open={cameraOpen}
         onClose={() => setCameraOpen(false)}
@@ -108,18 +158,7 @@ export function EvidenceUploader({
             : 'Align your document — we crop, enhance, and classify after capture.'
         }
         onSaveFiles={async ({ files }) => {
-          const baseCap = caption.trim();
-          for (let i = 0; i < files.length; i++) {
-            const f = files[i]!;
-            const cap =
-              !baseCap
-                ? undefined
-                : files.length > 1
-                  ? `${baseCap} — page ${i + 1}/${files.length}`
-                  : baseCap;
-            // Camera capture already produced final output; do not re-scan.
-            await handleFile(f, { skipScan: true, captionOverride: cap, clearCaptionAfter: false });
-          }
+          await processFiles(files, { skipScan: true });
           setCaption('');
         }}
       />
@@ -130,8 +169,8 @@ export function EvidenceUploader({
             <h3 className={`${FINELY_OS_ENTITY_TITLE} mt-2`}>{prominent ? 'Scan or upload proof' : 'Upload Evidence'}</h3>
             <p className={`${FINELY_OS_ENTITY_BODY} mt-1`}>
               {prominent
-                ? 'Camera flattens photos onto white paper (ID, SSN, bureau mail). PDFs and images route to the right workflow after upload.'
-                : 'Upload screenshots, PDFs, videos, or supporting documents. These will be attachable to dispute letters.'}
+                ? 'Camera, gallery, or drag-drop. Multi-file with preview thumbs.'
+                : 'Upload screenshots, PDFs, videos, or supporting documents. Attachable to dispute letters.'}
             </p>
           </div>
           <div className={`inline-flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL}`}>
@@ -140,67 +179,116 @@ export function EvidenceUploader({
         </div>
       ) : null}
 
-      <div className={compact ? 'space-y-3' : 'grid md:grid-cols-3 gap-4'}>
-        <div className={compact ? 'min-w-0' : 'md:col-span-2 min-w-0'}>
-          <label className={FINELY_OS_ENTITY_SUBLABEL}>Caption</label>
-          <input
-            value={caption}
-            onChange={(e) => setCaption(e.target.value)}
-            className={FINELY_OS_ENTITY_INPUT}
-            placeholder="Example: Screenshot of payment history showing CO on EXP"
-          />
-        </div>
-        <div className="min-w-0">
-          <label className={FINELY_OS_ENTITY_SUBLABEL}>File</label>
-          <div className="mt-2 grid grid-cols-2 gap-3">
-            <label className={`w-full cursor-pointer ${FINELY_OS_SECONDARY_BTN} !w-full justify-center`}>
-              <FileUp size={14} />
-              {busy ? 'Uploading…' : 'Choose file'}
-              <input
-                type="file"
-                accept={accept}
-                className="hidden"
-                disabled={busy}
-                onChange={(e) => {
-                  const f = e.target.files?.[0];
-                  if (f) void handleFile(f);
-                  e.currentTarget.value = '';
-                }}
-              />
-            </label>
-
-            <button
-              type="button"
-              onClick={() => setCameraOpen(true)}
-              disabled={busy}
-              className={`w-full ${FINELY_OS_PRIMARY_BTN} justify-center disabled:opacity-60 disabled:cursor-not-allowed`}
-              title="Open camera scanner (multi-page)"
-            >
-              <Camera size={14} />
-              {busy ? 'Uploading…' : 'Camera scan'}
-            </button>
-          </div>
-
-          <div className={`mt-3 text-[11px] ${FINELY_OS_ENTITY_BODY}`}>
-            Tip: on mobile, you can also use “Choose file” and select “Camera” if your browser doesn’t allow in-app capture.
-          </div>
-          <div className="mt-3 flex items-center justify-between gap-3 flex-wrap">
-            <label className={`inline-flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL} normal-case`}>
-              <input
-                type="checkbox"
-                checked={scanMode}
-                onChange={(e) => setScanMode(e.target.checked)}
-                className="accent-amber-500"
-              />
-              Scan-style (white paper document)
-            </label>
-            <div className={`text-[11px] ${FINELY_OS_ENTITY_BODY}`}>Best for correspondence/photos of letters.</div>
-          </div>
-        </div>
+      <div className="space-y-2">
+        <label className={FINELY_OS_ENTITY_SUBLABEL}>Caption</label>
+        <input
+          value={caption}
+          onChange={(e) => setCaption(e.target.value)}
+          className={FINELY_OS_ENTITY_INPUT}
+          placeholder="Example: Screenshot of payment history showing CO on EXP"
+        />
       </div>
+
+      <div
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') fileRef.current?.click();
+        }}
+        onDragOver={(e) => {
+          e.preventDefault();
+          setDragOver(true);
+        }}
+        onDragLeave={() => setDragOver(false)}
+        onDrop={(e) => {
+          e.preventDefault();
+          setDragOver(false);
+          const list = Array.from(e.dataTransfer.files || []);
+          if (list.length) void processFiles(list);
+        }}
+        className={`rounded-2xl border-2 border-dashed px-4 py-6 text-center transition-colors ${
+          dragOver
+            ? 'border-amber-400/70 bg-amber-500/15'
+            : 'border-emerald-400/35 bg-black/30 hover:border-emerald-300/50'
+        }`}
+      >
+        <div className="inline-flex items-center gap-2 text-sm font-semibold text-emerald-100">
+          {busy ? <Loader2 size={16} className="animate-spin" /> : <FileUp size={16} />}
+          {busy ? 'Uploading…' : 'Drag & drop — or choose below'}
+        </div>
+        <p className={`mt-1 text-xs ${FINELY_OS_ENTITY_BODY}`}>Images, PDF, video · multi-select supported</p>
+        <input
+          ref={fileRef}
+          type="file"
+          accept={accept}
+          multiple={multiple}
+          className="hidden"
+          disabled={busy}
+          onChange={(e) => {
+            const list = Array.from(e.target.files || []);
+            e.target.value = '';
+            if (list.length) void processFiles(list);
+          }}
+        />
+        <input
+          ref={galleryRef}
+          type="file"
+          accept="image/*,application/pdf"
+          multiple={multiple}
+          className="hidden"
+          disabled={busy}
+          onChange={(e) => {
+            const list = Array.from(e.target.files || []);
+            e.target.value = '';
+            if (list.length) void processFiles(list);
+          }}
+        />
+      </div>
+
+      <div className="grid grid-cols-3 gap-2">
+        <button type="button" disabled={busy} onClick={() => fileRef.current?.click()} className={`${FINELY_OS_SECONDARY_BTN} !w-full justify-center`}>
+          <FileUp size={14} /> Files
+        </button>
+        <button type="button" disabled={busy} onClick={() => galleryRef.current?.click()} className={`${FINELY_OS_SECONDARY_BTN} !w-full justify-center`}>
+          <Images size={14} /> Gallery
+        </button>
+        <button type="button" disabled={busy} onClick={() => setCameraOpen(true)} className={`${FINELY_OS_PRIMARY_BTN} !w-full justify-center`}>
+          <Camera size={14} /> Camera
+        </button>
+      </div>
+
+      {pending.length > 0 ? (
+        <div className="flex flex-wrap gap-2">
+          {pending.map((p) => (
+            <div key={p.id} className="relative w-14 h-14 rounded-lg border border-white/15 overflow-hidden bg-black/40">
+              {p.url ? <img src={p.url} alt="" className="w-full h-full object-cover" /> : <div className="text-[8px] text-white/50 p-1">PDF</div>}
+              <div className="absolute inset-x-0 bottom-0 text-[8px] text-center bg-black/70">{p.status}</div>
+              {(p.status === 'done' || p.status === 'error') && (
+                <button
+                  type="button"
+                  className="absolute top-0.5 right-0.5 bg-black/70 rounded-full p-0.5"
+                  onClick={() => {
+                    setPending((prev) => {
+                      const next = prev.filter((x) => x.id !== p.id);
+                      if (p.url) URL.revokeObjectURL(p.url);
+                      return next;
+                    });
+                  }}
+                >
+                  <X size={10} />
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
+      ) : null}
+
+      <label className={`inline-flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL} normal-case`}>
+        <input type="checkbox" checked={scanMode} onChange={(e) => setScanMode(e.target.checked)} className="accent-amber-500" />
+        Scan-style (white paper document)
+      </label>
 
       {error && <div className={FINELY_OS_NOTICE_ERROR}>{error}</div>}
     </div>
   );
 }
-

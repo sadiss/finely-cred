@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import type { Partner } from '../../domain/partners';
 import { listEvidenceByPartner } from '../../data/evidenceRepo';
-import { SmartProofUploader } from '../evidence/SmartProofUploader';
+import { UnifiedEvidenceCapture } from '../evidence/UnifiedEvidenceCapture';
 import { FINELY_OS_ENTITY_BODY } from '../../features/os/finelyOsLightUi';
 import type { FinelyOsGlowAccent } from '../../features/os/finelyOsLightUi';
 
@@ -67,16 +67,17 @@ export function DebtProofCaptureStrip({
       <summary className="cursor-pointer select-none text-sm font-semibold text-white">{summaryLabel}</summary>
       <div className="mt-3 space-y-2">
         <p className={`text-xs ${FINELY_OS_ENTITY_BODY}`}>
-          ID, collector mail, court papers, and photos — classified to your evidence vault. Optional here;{' '}
+          Same capture deck as Documents — type chips, drag-drop, camera, gallery, and scrape intel. Optional here;{' '}
           <span className="text-white/75">Documents</span> is the full hub.
         </p>
-        <SmartProofUploader
+        <UnifiedEvidenceCapture
           partner={partner}
           email={partner.profile.email}
           debtCaseId={debtCaseId}
           bankruptcyCaseId={bankruptcyCaseId}
           uploadContext={mapUploadContext(uploadContext)}
           compact
+          enableScrape
           onUploaded={() => {
             setVersion((v) => v + 1);
             onUploaded?.();

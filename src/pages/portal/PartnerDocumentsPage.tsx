@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { PageShell } from '../../components/layout/PageShell';
 import { useAuth } from '../../auth/AuthProvider';
 import { listEvidenceByPartner, upsertEvidence, deleteEvidence } from '../../data/evidenceRepo';
-import { SmartProofUploader } from '../../components/evidence/SmartProofUploader';
+import { UnifiedEvidenceCapture } from '../../components/evidence/UnifiedEvidenceCapture';
 import { checkIdentityDocumentGate } from '../../lib/documentVaultGates';
 import { EvidenceList } from '../../components/evidence/EvidenceList';
 import { addAuditEvent } from '../../data/auditRepo';
@@ -174,11 +174,12 @@ export default function PartnerDocumentsPage() {
               secondaryAction={{ label: 'Letter Studio', onClick: () => navigate('/portal/letters') }}
             >
               {tab === 'upload' && (
-                <div className="space-y-6">
-                  <SmartProofUploader
+                <div className="space-y-4">
+                  <UnifiedEvidenceCapture
                     partner={partner}
                     email={email}
                     uploadContext="general"
+                    enableScrape
                     onUploaded={() => {
                       setVersion((v) => v + 1);
                       setDocVersion((v) => v + 1);
@@ -186,8 +187,8 @@ export default function PartnerDocumentsPage() {
                   />
                   <FinelyUnifiedSection title="How to use this vault" subtitle="Everything here can attach to dispute letters.">
                     <p className={FINELY_OS_ENTITY_BODY}>
-                      Upload bureau responses, IDs, proof of address, creditor letters, and screenshots. Tradeline captures from Credit Intel
-                      land here automatically.
+                      Capture deck: document-type chips, drag-drop, camera, gallery (multi-file), and scrape intel in one unit.
+                      Tradeline captures from Credit Intel land here automatically.
                     </p>
                     <div className={`mt-4 ${FINELY_OS_NOTICE_WARN}`}>
                       Tip: When bureau mail arrives, upload it the same day and mark your follow-up task in progress.

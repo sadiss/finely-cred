@@ -544,6 +544,7 @@ export function AffidavitCourtCenterView({
             ) : null}
             <LitigationDocScraperChat
               debt={debt}
+              partner={partner}
               partnerId={debt?.partnerId || debtCases[0]?.partnerId || partner?.id || ''}
               reports={reports}
               onDebtChange={(d) => {

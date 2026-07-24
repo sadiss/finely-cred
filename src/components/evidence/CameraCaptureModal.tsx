@@ -821,19 +821,35 @@ export function CameraCaptureModal({
 
                   <div className="fc-light-glass-panel fc-light-chrome-panel rounded-xl p-3 space-y-2">
                     <div className="text-[10px] uppercase tracking-widest text-white/40">Default preset for new pages</div>
-                    <select
-                      value={defaultPreset}
-                      onChange={(e) => setDefaultPreset(e.target.value as ScanPreset)}
-                      className="w-full bg-fc-input border border-white/[0.08] rounded-xl px-3 py-2 text-white text-sm"
-                      disabled={saving}
-                    >
-                      <option value="document_scan">White paper scan (recommended)</option>
-                      <option value="id_card_enhance">ID / color enhance</option>
-                      <option value="clean">Clean scan</option>
-                      <option value="bw_crisp">B/W crisp</option>
-                      <option value="color_enhance">Color enhance</option>
-                      <option value="original">Original</option>
-                    </select>
+                    <div className="flex flex-wrap gap-1.5">
+                      {(
+                        [
+                          { id: 'document_scan', label: 'White paper' },
+                          { id: 'id_card_enhance', label: 'ID / color' },
+                          { id: 'clean', label: 'Clean' },
+                          { id: 'bw_crisp', label: 'B/W crisp' },
+                          { id: 'color_enhance', label: 'Color enhance' },
+                          { id: 'original', label: 'Original' },
+                        ] as Array<{ id: ScanPreset; label: string }>
+                      ).map((opt) => {
+                        const on = defaultPreset === opt.id;
+                        return (
+                          <button
+                            key={opt.id}
+                            type="button"
+                            disabled={saving}
+                            onClick={() => setDefaultPreset(opt.id)}
+                            className={`rounded-lg border px-2.5 py-1.5 text-[10px] font-black uppercase tracking-widest transition-all ${
+                              on
+                                ? 'border-amber-500/40 bg-amber-500/10 text-amber-200'
+                                : 'border-white/[0.08] bg-white/[0.07] text-white/60 hover:bg-white/[0.03] hover:text-white'
+                            }`}
+                          >
+                            {opt.label}
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
                 </div>
 
