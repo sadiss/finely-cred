@@ -597,17 +597,18 @@ export const businessCreditPackages: PricingPackage[] = [
     id: 'business_foundation',
     category: 'business_credit',
     name: 'Business Foundation',
-    tagline: 'Build your business credit from scratch',
+    tagline: 'Entity-ready to first reporting vendors',
     description:
-      'Entity setup checklist, vendor credit sequencing, and fundability planning.',
+      'Work-calibrated hybrid build for new entities: compliance hygiene, bureau alignment, and Tier-1 vendor sequencing — priced for specialist setup hours, not a DIY PDF.',
     highlights: [
-      'Entity compliance checklist',
-      'Starter vendor list',
-      'EIN & DUNS guidance',
-      'Fundability score basics',
-      'Email support',
+      'Entity / EIN / address / domain hygiene checklist',
+      'D-U-N-S & commercial bureau alignment',
+      'Starter net-30 vendor path that reports',
+      'Fundability scorecard in Business Credit OS',
+      'Email specialist support',
+      'Best for startups & clean new files',
     ],
-    priceAmount: 99700, // $997
+    priceAmount: 299700, // $2,997
     interval: 'one_time',
     rail: 'both',
     delivery: 'HYBRID',
@@ -619,18 +620,18 @@ export const businessCreditPackages: PricingPackage[] = [
     id: 'business_builder',
     category: 'business_credit',
     name: 'Business Builder',
-    tagline: 'Accelerate to funding-ready',
+    tagline: 'Full sequencing to funding-ready depth',
     description:
-      'Full vendor sequencing, trade account strategy, and funding prep with progress tracking.',
+      'DFY vendor sequencing, trade depth, and funding prep with progress tracking — calibrated for operators who need real specialist cycles, not a checklist alone.',
     highlights: [
-      'All Foundation features',
-      'Full vendor sequencing',
-      'Trade account applications',
-      'Credit monitoring guidance',
-      'Funding readiness assessment',
-      'Priority support',
+      'Everything in Foundation',
+      'Full Tier 1–4 vendor sequencing (DFY guided)',
+      'Trade account strategy & monitoring cadence',
+      'Funding readiness assessment + doc checklist',
+      'Priority specialist touchpoints',
+      'Established-file cleanup guidance when needed',
     ],
-    priceAmount: 199700, // $1,997
+    priceAmount: 599700, // $5,997
     interval: 'one_time',
     rail: 'both',
     delivery: 'DFY',
@@ -643,18 +644,18 @@ export const businessCreditPackages: PricingPackage[] = [
     id: 'business_elite',
     category: 'business_credit',
     name: 'Business Elite',
-    tagline: 'Maximum funding potential',
+    tagline: 'White-glove build + named product strategy',
     description:
-      'White-glove business credit build with lender introductions and funding strategy.',
+      'Dedicated strategist path for partners targeting named cards/lenders — underwriting packaging, priority ops, and custom ladders. Results vary; funding subject to underwriting.',
     highlights: [
-      'All Builder features',
-      'Dedicated funding strategist',
-      'Lender relationship intros',
-      'Advanced funding vehicles',
-      'Quarterly strategy calls',
-      '12-month access',
+      'Everything in Builder',
+      'Named card / lender product ladder (process tracking)',
+      'Dedicated funding strategist cadence',
+      'Lender-ready packaging support',
+      'Priority ops queue',
+      '12-month Business Credit OS access',
     ],
-    priceAmount: 399700, // $3,997
+    priceAmount: 1299700, // $12,997
     interval: 'one_time',
     rail: 'both',
     delivery: 'DFY',
@@ -662,6 +663,30 @@ export const businessCreditPackages: PricingPackage[] = [
     sortOrder: 3,
     badge: 'Elite',
     entitlementKeys: ['business_foundation', 'business_builder', 'business_elite'],
+  },
+  {
+    id: 'business_empire',
+    category: 'business_credit',
+    name: 'Business Empire',
+    tagline: 'Executive capital path — multi-entity & aggressive goals',
+    description:
+      'Highest-intensity DFY for established or multi-entity operators: war-room cadence, custom capital packaging, and priority named-product strategy. Priced for scarce specialist hours.',
+    highlights: [
+      'Everything in Elite',
+      'Multi-entity / complex file ops',
+      'Executive weekly war-room cadence',
+      'Aggressive capital packaging support',
+      'Priority named-product & lender path',
+      'Custom scope when file complexity demands it',
+    ],
+    priceAmount: 2499700, // $24,997
+    interval: 'one_time',
+    rail: 'both',
+    delivery: 'DFY',
+    isPublic: true,
+    sortOrder: 4,
+    badge: 'Empire',
+    entitlementKeys: ['business_foundation', 'business_builder', 'business_elite', 'business_empire'],
   },
 ];
 
@@ -1808,7 +1833,8 @@ export const categoryLabels: Record<PricingCategory, string> = {
  */
 export const categoryDescriptions: Record<PricingCategory, string> = {
   personal_credit: 'Repair, restore, and rebuild your personal credit score.',
-  business_credit: 'Build business credit from scratch and strengthen long-term fundability.',
+  business_credit:
+    'Work-calibrated business credit builds — Foundation through Empire — sequenced for startups and established operators. Results vary · funding subject to underwriting.',
   debt_legal: 'Validation, challenge packets, and credit cleanup workflows for debt + collections.',
   wealth_builder: 'Transition from credit repair into wealth fundamentals and capital-readiness planning.',
   privacy_id: 'Protect your identity and manage your data footprint.',

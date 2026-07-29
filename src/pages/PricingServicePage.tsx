@@ -20,6 +20,8 @@ import {
 } from '../config/pricingCatalog';
 import { AgencyTierCard } from '../components/pricing/PricingCards';
 import { PricingPackageCatalog } from '../components/pricing/PricingPackageCatalog';
+import { BusinessCreditQuotePanel } from '../components/pricing/BusinessCreditQuotePanel';
+import { BusinessCreditOneSheetsPanel } from '../components/pricing/BusinessCreditOneSheetsPanel';
 import { FinelyOsPageFooter } from '../features/os/FinelyOsPageFooter';
 import { MarketingStaffChatStrip } from '../components/marketing/MarketingStaffChatStrip';
 import { FinelyUnifiedHubLayout, FinelyUnifiedSection } from '../features/unified/FinelyUnifiedHubLayout';
@@ -289,6 +291,12 @@ export default function PricingServicePage() {
         >
           {svcTab === 'packages' && (
             <div className="space-y-6">
+        {category === 'business_credit' ? (
+          <>
+            <BusinessCreditQuotePanel />
+            <BusinessCreditOneSheetsPanel />
+          </>
+        ) : null}
         {category === 'debt_legal' ? (
           <div className={`${finelyOsCatalogCard('fuchsia')} !p-4 flex items-start gap-3`}>
             <AlertCircle size={18} className="mt-0.5 text-fuchsia-400 shrink-0" />

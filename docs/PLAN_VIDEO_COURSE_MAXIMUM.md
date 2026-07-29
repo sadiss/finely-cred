@@ -22,6 +22,8 @@
 
 **Layout pass started (2026-07-24):** Admin course-video surfaces refactored from long lists → deck tiles + stage rails + focused detail panels (`CourseVideoBatchWorkroom`, `CourseVideoProductionCommand`, `VideoProductionPanel`, `GeminiStyleVideoCommand` storyboard, `VideoStudioPremiumShell`). Provider readiness UI no longer greens Kling/Runway on key-detect alone. Generative motion adapters remain stubs.
 
+**Execution note (2026-07-28):** Phase 0 honesty + anti-list UI remain in place. **Phase 1 (one live motion provider + job queue) still open** — next build after BC pricing / Lead Engine wave. See also pricing + marketing execution in `DEV_URGENT_BC_PRICING_ONESHEETS.md`.
+
 ---
 
 ## 1. Audit truth (inventory snapshot)

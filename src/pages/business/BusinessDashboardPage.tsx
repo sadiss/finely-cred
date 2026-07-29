@@ -12,6 +12,7 @@ import { computeRoleWorkflowProgress } from '../../lib/roleWorkflowProgress';
 import { usePartnerSession } from '../../auth/PartnerSessionContext';
 import { BusinessCreditLadderPanel } from '../../components/business/BusinessCreditLadderPanel';
 import { BusinessCreditRoadmapPanel } from '../../components/business/BusinessCreditRoadmapPanel';
+import { BusinessCreditDestinationCockpit } from '../../components/business/BusinessCreditDestinationCockpit';
 import { FinelyOsPageFooter } from '../../features/os/FinelyOsPageFooter';
 import { FinelyUnifiedHubLayout, FinelyUnifiedSection } from '../../features/unified/FinelyUnifiedHubLayout';
 import { FinelyNowDoThisStrip } from '../../components/tours/FinelyNowDoThisStrip';
@@ -103,6 +104,7 @@ export default function BusinessDashboardPage() {
         />
         <FinelyNowDoThisStrip currentIndex={tab === 'readiness' ? 0 : tab === 'actions' ? 1 : 0} />
 
+        {partner ? <BusinessCreditDestinationCockpit partner={partner} /> : null}
         {partner ? <BusinessFundabilityScorecard partner={partner} /> : null}
 
         <FinelyUnifiedHubLayout

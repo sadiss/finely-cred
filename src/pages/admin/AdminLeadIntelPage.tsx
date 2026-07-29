@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { PageShell } from '../../components/layout/PageShell';
 import { FinelyOsIconBadge } from '../../features/os/FinelyOsIconBadge';
 import { LeadIntelHub } from '../../features/leadIntel/LeadIntelHub';
+import { LeadEngineOneButton } from '../../features/leadIntel/LeadEngineOneButton';
 import { LeadIntelSwarmDashboard } from '../../features/overnight50/LeadIntelSwarmDashboard';
 import { LeadIntelStaffRosterPanel } from '../../features/staffCommandCenter/LeadIntelStaffRosterPanel';
 import {
@@ -53,6 +54,7 @@ export default function AdminLeadIntelPage() {
         </div>
 
         <div className="space-y-8">
+          <LeadEngineOneButton />
           <LeadIntelStaffRosterPanel compact />
           <LeadIntelSwarmDashboard />
           <LeadIntelHub />
