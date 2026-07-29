@@ -17,7 +17,9 @@ Quote engine: `src/config/businessCreditQuoteEngine.ts`
 UI: `/pricing/business-credit` → work-calibrated quote + one-sheets
 
 ### One-sheets (PDF download)
-`src/resources/buildBusinessCreditOneSheetPdf.ts` · panel on pricing BC page  
+`src/resources/buildBusinessCreditOneSheetPdf.ts`  
+**Dedicated library page:** `/resources/business-credit-one-sheets` (Resources tab **Partner one-sheets**)  
+Panel also on `/pricing/business-credit` with link into the full library  
 Overview · Foundation · Builder · Elite · Empire · Compare · Named cards
 
 ### Business Credit OS
@@ -31,7 +33,8 @@ Requires: Feature flag `leadIntel`, `SERPER_API_KEY` on edge, `npm run deploy:fu
 Deep swarm below is **simulation cadence** — not live imports
 
 ### Stripe
-Map new Stripe Price IDs to package ids when ready (`stripePriceId` on each package). Until then, checkout may use catalog amounts / in-house rail.
+Map new Stripe Price IDs to package ids when ready (`stripePriceId` on each package). Until then, checkout may use catalog amounts / in-house rail.  
+See `TODO(stripe)` comments above `businessCreditPackages` in `src/config/pricingCatalog.ts`.
 
 ## Also finished (follow-up)
 
@@ -46,10 +49,11 @@ URGENT — BC 4-tier pricing + one-sheets + Lead Engine + video motion
 
 1) Pull preview/sitewide-ux-pack-merge
 2) Read DEV_URGENT_BC_PRICING_ONESHEETS.md + docs/PLAN_MARKETING_AGENT_OS_50.md
-3) Pricing: /pricing/business-credit (quote + PDF one-sheets)
-4) Portal BC: /business/dashboard (destination + named cards)
-5) Leads: /admin/lead-intel → Start Lead Engine (SERPER_API_KEY + leadIntel flag)
-6) Ruth brief: /admin/ops-agent
-7) Video: deploy video-motion-render + set FAL_KEY; Course Builder → Queue motion render (luma)
-8) Wire Stripe price IDs for business_foundation|builder|elite|empire
+3) Pricing: /pricing/business-credit (quote + PDF one-sheets panel)
+4) One-sheets library: /resources/business-credit-one-sheets (Resources → Partner one-sheets)
+5) Portal BC: /business/dashboard (destination + named cards)
+6) Leads: /admin/lead-intel → Start Lead Engine (SERPER_API_KEY + leadIntel flag)
+7) Ruth brief: /admin/ops-agent
+8) Video: deploy video-motion-render + set FAL_KEY; Course Builder → Queue motion render (luma)
+9) Wire Stripe price IDs for business_foundation|builder|elite|empire (see TODO in pricingCatalog.ts)
 ```

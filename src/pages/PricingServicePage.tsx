@@ -13,6 +13,7 @@ import {
   agencyTiers,
   categoryDescriptions,
   categoryLabels,
+  formatBusinessCapitalOutlook,
   formatPrice,
   type PricingCategory,
   type PricingPackage,
@@ -294,6 +295,43 @@ export default function PricingServicePage() {
         {category === 'business_credit' ? (
           <>
             <BusinessCreditQuotePanel />
+            <div className={`${finelyOsCatalogCard('amber')} !p-4`}>
+              <div className={`font-semibold ${FINELY_OS_ENTITY_VALUE}`}>
+                Program + vendor outlay → potential BC capital (approx)
+              </div>
+              <p className={`mt-1 text-xs ${FINELY_OS_ENTITY_BODY}`}>
+                Three figures: Finely Cred program fee · estimated vendor/trade/deposit outlay (partner cash while
+                building) · potential capital (business credit only). Results vary · not guaranteed · business credit
+                only · funding subject to underwriting · outlay varies by vendors.
+              </p>
+              <div className="mt-3 overflow-x-auto">
+                <table className="w-full text-xs text-left">
+                  <thead>
+                    <tr className="text-white/50 border-b border-white/10">
+                      <th className="py-2 pr-3 font-semibold">Package</th>
+                      <th className="py-2 pr-3 font-semibold">Program fee</th>
+                      <th className="py-2 pr-3 font-semibold">Est. vendor/trade outlay</th>
+                      <th className="py-2 font-semibold">Potential capital (BC only)</th>
+                    </tr>
+                  </thead>
+                  <tbody className="text-white/75">
+                    {businessCreditPackages
+                      .filter((p) => p.businessCapitalOutlook)
+                      .map((p) => {
+                        const o = formatBusinessCapitalOutlook(p)!;
+                        return (
+                          <tr key={p.id} className="border-b border-white/5">
+                            <td className="py-2 pr-3">{p.name}</td>
+                            <td className="py-2 pr-3">{o.programLabel}</td>
+                            <td className="py-2 pr-3">{o.outlayLabel}</td>
+                            <td className="py-2 text-amber-200/90">{o.potentialLabel}</td>
+                          </tr>
+                        );
+                      })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
             <BusinessCreditOneSheetsPanel />
           </>
         ) : null}

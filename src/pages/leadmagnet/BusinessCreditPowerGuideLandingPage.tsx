@@ -161,26 +161,71 @@ function InsideItem({
 export default function BusinessCreditPowerGuideLandingPage() {
   usePublicSeoMeta({
     title: 'Business Credit Power Guide — Free E-Guide',
-    description: 'Structure your business for better funding options. Premium business credit education from Finely Cred.',
+    description:
+      'Fundability sequencing for partners: entity pillars, stage gates, vendor depth, and OS scorecard habits — premium business credit education from Finely Cred. Results vary · funding subject to underwriting.',
     path: BUSINESS_FUNNEL.path,
   });
 
   const scrollToDownload = () => document.getElementById('download')?.scrollIntoView({ behavior: 'smooth' });
 
   const inside = [
-    { icon: Building2, title: 'Business Credit Fundamentals', desc: 'What business credit is, why funders care, and how your EIN file is evaluated.' },
-    { icon: ClipboardCheck, title: 'Step-by-Step Blueprint', desc: 'A disciplined sequence to build, strengthen, and leverage commercial credit.' },
-    { icon: CreditCard, title: 'Vendor & Net-30 Strategy', desc: 'Starter vendors, reporting depth, and limit growth — without premature applications.' },
-    { icon: ShieldCheck, title: 'Funding Readiness', desc: 'Position your entity for cleaner approvals before you apply for capital.' },
-    { icon: TriangleAlert, title: 'Costly Mistakes to Avoid', desc: 'Mismatched records, thin files, and inquiry sprawl — eliminated early.' },
-    { icon: TrendingUp, title: 'Growth & Leverage', desc: 'Use business credit to scale with structure, not guesswork.' },
+    {
+      icon: Building2,
+      title: 'Business Credit Fundamentals',
+      desc: 'What business credit is, why funders care, and how your EIN file is evaluated across fundability pillars.',
+    },
+    {
+      icon: ClipboardCheck,
+      title: 'Fundability Sequencing Blueprint',
+      desc: 'Stage gates from entity truth → bureau match → vendors → revolving → capital asks — in order.',
+    },
+    {
+      icon: CreditCard,
+      title: 'Vendor & Net-30 Strategy',
+      desc: 'Tier-1 reporters, pay-early habits, and spacing — without premature applications.',
+    },
+    {
+      icon: ShieldCheck,
+      title: 'Funding Readiness & OS Scorecard',
+      desc: 'Blockers, capital-pack optics, and how partners track fundability before they apply.',
+    },
+    {
+      icon: TriangleAlert,
+      title: 'Costly Mistakes to Avoid',
+      desc: 'Mismatched records, thin files, and inquiry sprawl — the blockers that stop sequencing cold.',
+    },
+    {
+      icon: TrendingUp,
+      title: 'Growth & Leverage',
+      desc: 'Scale with a sequenced file funders can match — not guesswork or spray-and-pray apps.',
+    },
   ];
 
   const tools = [
-    { icon: Gauge, title: 'Business Credit Score Estimator', desc: 'Instant fundability read — educational only, no bureau pull.', cta: 'Use free tool' },
-    { icon: ClipboardCheck, title: 'Vendor Approval Checklist', desc: 'Confirm entity signals before your first net-30 applications.', cta: 'Open checklist' },
-    { icon: ShieldCheck, title: 'Business Credit Readiness Quiz', desc: 'See how close your file is to funding-ready optics.', cta: 'Take the quiz' },
-    { icon: FileText, title: 'Dispute Letter Builder Preview', desc: 'Preview how inaccurate commercial entries get challenged.', cta: 'Try the builder' },
+    {
+      icon: Gauge,
+      title: 'Business Credit Score Estimator',
+      desc: 'Instant fundability band read — pillars and sequencing cues, educational only.',
+      cta: 'Use free tool',
+    },
+    {
+      icon: ClipboardCheck,
+      title: 'Vendor Approval Checklist',
+      desc: 'Confirm entity stage gates before your first Tier-1 net-30 applications.',
+      cta: 'Open checklist',
+    },
+    {
+      icon: ShieldCheck,
+      title: 'Business Credit Readiness Quiz',
+      desc: 'See how close your file is to funding-ready optics and capital-pack readiness.',
+      cta: 'Take the quiz',
+    },
+    {
+      icon: FileText,
+      title: 'Dispute Letter Builder Preview',
+      desc: 'Preview how inaccurate commercial entries get challenged.',
+      cta: 'Try the builder',
+    },
   ];
 
   return (
@@ -236,12 +281,12 @@ export default function BusinessCreditPowerGuideLandingPage() {
                 </span>
               </h1>
               <p className="mt-6 max-w-lg text-lg leading-snug text-white/82 md:text-xl">
-                Structure your business for better funding options in just a few steps.
+                Fundability sequencing — entity pillars, stage gates, and vendor depth — so partners ask for capital in the right order.
               </p>
               <ul className="mt-8 space-y-3.5">
-                <GoldCheck>Build stronger business credit with the right foundation.</GoldCheck>
-                <GoldCheck>Access more funding opportunities with lender-ready optics.</GoldCheck>
-                <GoldCheck>Position your business for long-term growth and cleaner approvals.</GoldCheck>
+                <GoldCheck>Build fundability with entity truth before vendor volume.</GoldCheck>
+                <GoldCheck>Sequence Tier-1 reporters toward lender-ready optics.</GoldCheck>
+                <GoldCheck>Use stage gates and a scorecard habit — not spray-and-pray apps.</GoldCheck>
               </ul>
               <div className="mt-9 inline-flex items-center gap-3 rounded-xl border border-[#d4a447]/30 bg-black/35 px-4 py-3 backdrop-blur-sm">
                 <Lock size={20} className="text-[#d4a447]" />
@@ -279,7 +324,7 @@ export default function BusinessCreditPowerGuideLandingPage() {
         <div className="mx-auto flex max-w-[88rem] flex-col divide-y divide-white/[0.06] md:flex-row md:divide-x md:divide-y-0">
           {[
             { icon: Users, value: '10,000+', label: 'Guides downloaded' },
-            { icon: ShieldCheck, value: 'Trusted by', label: 'Entrepreneurs nationwide' },
+            { icon: ShieldCheck, value: 'Trusted by', label: 'Partners nationwide' },
             { icon: Target, value: 'Proven strategies', label: 'Real funding education' },
           ].map((x) => (
             <div key={x.label} className="flex flex-1 items-center justify-center gap-4 px-6 py-8">
@@ -301,7 +346,7 @@ export default function BusinessCreditPowerGuideLandingPage() {
               Inside the Business Credit <span className="text-[#95e000]">Power Guide</span>
             </h2>
             <p className="mt-5 text-lg text-white/52">
-              A premium roadmap for entity hygiene, vendor depth, and funding readiness — without hype.
+              A premium fundability roadmap — pillars, stage gates, blockers, and scorecard habits — without hype or fake guarantees.
             </p>
           </div>
           <div className="mx-auto mt-14 max-w-5xl columns-1 md:columns-2 md:gap-x-16">
@@ -398,7 +443,7 @@ export default function BusinessCreditPowerGuideLandingPage() {
       <section id="results" className="relative z-10 py-20 md:py-28">
         <div className="mx-auto max-w-[88rem] px-5 md:px-10">
           <h2 className="bcpg-serif text-center text-4xl text-white md:text-6xl">
-            What <span className="text-[#95e000]">entrepreneurs</span> are saying
+            What <span className="text-[#95e000]">partners</span> are saying
           </h2>
           <div className="mt-12 flex flex-col gap-6 lg:flex-row lg:gap-8">
             {[

@@ -2,6 +2,7 @@ import React from 'react';
 import { ArrowRight, Check } from 'lucide-react';
 import { formatPrice, type AgencyTier, type PricingPackage } from '../../config/pricingCatalog';
 import { AgencySplitBreakdown } from './AgencySplitBreakdown';
+import { BusinessCapitalOutlookBlock } from './BusinessCapitalOutlookBlock';
 
 export type MetalVariant = 'gold' | 'platinum' | 'black';
 
@@ -120,6 +121,9 @@ export function PackageCard({
           {pkg.interval === 'month' && pkg.termMonths && (
             <div className={`${isPlatinum ? 'text-[#0d1512]/50' : 'text-white/50'} text-sm`}>/month</div>
           )}
+          {pkg.businessCapitalOutlook ? (
+            <BusinessCapitalOutlookBlock pkg={pkg} compact className="mt-3" />
+          ) : null}
         </div>
 
         <p className={`${isPlatinum ? 'text-[#0d1512]/65' : 'text-white/60'} text-sm mb-4 flex-grow`}>{pkg.description}</p>

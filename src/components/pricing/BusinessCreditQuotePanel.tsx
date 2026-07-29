@@ -17,6 +17,7 @@ import {
   finelyOsCatalogCardCompact,
   finelyOsGlowTile,
 } from '../../features/os/finelyOsLightUi';
+import { BusinessCapitalOutlookBlock } from './BusinessCapitalOutlookBlock';
 
 export function BusinessCreditQuotePanel() {
   const navigate = useNavigate();
@@ -130,6 +131,7 @@ export function BusinessCreditQuotePanel() {
             {quote.namedCardAddOnCents > 0 ? ` · Named-card add-on ${formatPrice(quote.namedCardAddOnCents)}` : ''}
           </p>
         )}
+        <BusinessCapitalOutlookBlock pkg={quote.pkg} compact className="mt-3" />
         <ul className={`mt-3 space-y-1 text-xs ${FINELY_OS_ENTITY_BODY}`}>
           {quote.why.map((w) => (
             <li key={w}>• {w}</li>
