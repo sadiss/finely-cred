@@ -79,12 +79,12 @@ export const EDUCATION_AGENTS: { id: EducationAgentId; label: string; role: stri
 ];
 
 export const VIDEO_PROVIDERS: { id: import('../../domain/educationStudio').VideoProviderId; label: string; hint: string }[] = [
-  { id: 'kling', label: 'Kling AI', hint: 'Cinematic motion, short-film quality' },
-  { id: 'runway', label: 'Runway', hint: 'Gen-3 video, creative control' },
-  { id: 'veo', label: 'Google Veo', hint: 'High-fidelity generative video' },
-  { id: 'pika', label: 'Pika Labs', hint: 'Fast explainer clips' },
-  { id: 'luma', label: 'Luma Dream Machine', hint: 'Scene continuity' },
-  { id: 'manual', label: 'Manual export', hint: 'Storyboard + assets only' },
+  { id: 'luma', label: 'Live motion (Fal path)', hint: 'Phase 1 — needs FAL_KEY on video-motion-render' },
+  { id: 'manual', label: 'Presenter / manual', hint: 'Live — stills + VO export path' },
+  { id: 'kling', label: 'Kling AI', hint: 'Planned' },
+  { id: 'runway', label: 'Runway', hint: 'Planned' },
+  { id: 'veo', label: 'Google Veo', hint: 'Planned' },
+  { id: 'pika', label: 'Pika Labs', hint: 'Planned' },
 ];
 
 export const VIDEO_STYLES: { id: import('../../domain/educationStudio').VideoProductionStyle; label: string }[] = [

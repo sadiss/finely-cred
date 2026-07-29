@@ -16,6 +16,8 @@ import {
 import { FinelyOsPaginatedStack } from '../os/FinelyOsPaginatedStack';
 import { VIDEO_PROVIDERS, VIDEO_STYLES, type VideoProductionStyle, type VideoProviderId, type VideoScenePlan } from './educationStudioModel';
 import { generateVideoScenePlan } from './educationStudioPipeline';
+import { getVideoProviderAdapter } from './videoProviders';
+import { listVideoJobs } from './videoJobQueue';
 import { newId } from '../../utils/ids';
 
 type Props = {
@@ -42,8 +44,12 @@ export function VideoProductionPanel({
   onScenesChange,
 }: Props) {
   const [busy, setBusy] = useState(false);
+  const [renderBusy, setRenderBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [jobsTick, setJobsTick] = useState(0);
+  const jobs = listVideoJobs(8);
+  void jobsTick;
 
   useEffect(() => {
     if (!scenes.length) {
@@ -86,6 +92,29 @@ export function VideoProductionPanel({
   const patchSelected = (patch: Partial<VideoScenePlan>) => {
     if (!selected) return;
     onScenesChange(scenes.map((s) => (s.id === selected.id ? { ...s, ...patch } : s)));
+  };
+
+  const queueRender = async () => {
+    if (!selected) return;
+    setRenderBusy(true);
+    setErr(null);
+    try {
+      const adapter = getVideoProviderAdapter(provider);
+      const job = await adapter.queueScene({ ...selected, provider });
+      setJobsTick((t) => t + 1);
+      if (job.status === 'failed') setErr(job.error || 'Render failed');
+      onScenesChange(
+        scenes.map((s) =>
+          s.id === selected.id
+            ? { ...s, status: job.status === 'completed' ? 'complete' : job.status === 'failed' ? 'prompt_ready' : 'render_queued' }
+            : s,
+        ),
+      );
+    } catch (e: unknown) {
+      setErr((e as Error)?.message || 'Queue render failed');
+    } finally {
+      setRenderBusy(false);
+    }
   };
 
   return (
@@ -186,6 +215,17 @@ export function VideoProductionPanel({
                   {selected.onScreenText ? (
                     <p className={`${FINELY_OS_ENTITY_BODY} text-xs`}>On-screen: {selected.onScreenText}</p>
                   ) : null}
+                  <button
+                    type="button"
+                    disabled={renderBusy}
+                    onClick={() => void queueRender()}
+                    className={`${FINELY_OS_PRIMARY_BTN} mt-2`}
+                  >
+                    {renderBusy ? 'Queuing…' : 'Queue motion render'}
+                  </button>
+                  <p className={`${FINELY_OS_ENTITY_BODY} text-[11px] mt-1`}>
+                    Live path: provider <strong className="text-white/80">luma</strong> → edge <code>video-motion-render</code> (needs FAL_KEY). Others stay Planned. Presenter/manual completes locally for stills+VO export.
+                  </p>
                 </>
               ) : (
                 <p className={FINELY_OS_ENTITY_BODY}>Select a shot tile.</p>
@@ -193,8 +233,21 @@ export function VideoProductionPanel({
             </div>
           </div>
 
+          {jobs.length ? (
+            <div className="rounded-xl border border-white/10 bg-black/20 p-3 space-y-1">
+              <div className={FINELY_OS_ENTITY_SUBLABEL}>Recent render jobs</div>
+              {jobs.map((j) => (
+                <div key={j.id} className={`text-xs ${finelyOsMicroStat(j.status === 'failed' ? 'amber' : 'emerald')} rounded-lg border px-2 py-1`}>
+                  {j.provider} · {j.status}
+                  {j.error ? ` — ${j.error}` : ''}
+                  {j.requestId ? ` · ${j.requestId}` : ''}
+                </div>
+              ))}
+            </div>
+          ) : null}
+
           <p className={`${FINELY_OS_ENTITY_BODY} text-xs`}>
-            Export plans to Content Studio for Presenter Mode (images + narration + WebM). Cinematic motion adapters are not live yet.
+            Presenter Mode (stills + VO → WebM) remains the reliable course path. Phase 1 live motion uses Fal when FAL_KEY is set on video-motion-render.
           </p>
           {scenes.length > 0 ? (
             <button
