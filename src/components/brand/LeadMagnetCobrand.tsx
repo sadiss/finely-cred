@@ -1,6 +1,7 @@
 import React from 'react';
 import { FinelyCredLogo } from './FinelyCredLogo';
 import { NcgLogo } from './NcgLogo';
+import '../leadmagnet/leadMagnetLuxuryStage.css';
 
 function cn(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(' ');
@@ -25,16 +26,13 @@ export function LeadMagnetCobrand({
   return (
     <div
       className={cn(
-        'flex items-center',
+        'lm-lux-cobrand flex items-center',
         layout === 'stack' ? 'flex-col gap-2' : 'flex-row gap-3 sm:gap-4',
         className,
       )}
     >
       <FinelyCredLogo size={size} forceLight alignLeft />
-      <span
-        className="hidden h-7 w-px shrink-0 bg-gradient-to-b from-transparent via-white/35 to-transparent sm:block"
-        aria-hidden
-      />
+      <span className="lm-lux-cobrand-divider hidden shrink-0 sm:block" aria-hidden />
       <div className="flex items-center gap-2">
         {showPartnerLabel ? (
           <span className="hidden text-[9px] font-bold uppercase tracking-[0.18em] text-white/40 sm:inline">
@@ -50,9 +48,9 @@ export function LeadMagnetCobrand({
 /** Compact footer mark pair for lead magnet footers. */
 export function LeadMagnetCobrandFooterMarks({ className }: { className?: string }) {
   return (
-    <div className={cn('flex items-center gap-3', className)}>
+    <div className={cn('lm-lux-cobrand flex items-center gap-3', className)}>
       <FinelyCredLogo variant="mark" size="md" forceLight />
-      <span className="h-8 w-px bg-white/20" aria-hidden />
+      <span className="lm-lux-cobrand-divider" aria-hidden />
       <NcgLogo variant="mark" size="md" />
     </div>
   );

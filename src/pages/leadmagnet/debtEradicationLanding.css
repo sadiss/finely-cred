@@ -1,10 +1,15 @@
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,600&display=swap');
 
 .del-page {
-  --del-gold: #d7a73f;
-  --del-gold-soft: #f4d273;
-  --del-navy: #020812;
-  --del-ink: #06101f;
+  /* Matched to Ultimate Debt Freedom Guide mockup */
+  --del-gold: #e0b24a;
+  --del-gold-soft: #ffd993;
+  --del-gold-bright: #ffe7b0;
+  --del-gold-deep: #c4803d;
+  --del-navy: #000c3c;
+  --del-navy-mid: #060c2f;
+  --del-ink: #040a36;
+  --del-cream: rgba(255, 242, 182, 0.92);
 }
 
 .del-serif {
@@ -23,7 +28,7 @@
   top: 50%;
   width: 72px;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(215, 167, 63, 0.75), transparent);
+  background: linear-gradient(90deg, transparent, rgba(224, 178, 74, 0.75), transparent);
 }
 
 .del-section-title::before {
@@ -34,153 +39,200 @@
   left: calc(100% + 18px);
 }
 
-.del-hero-form {
-  border: 1px solid rgba(215, 167, 63, 0.42);
-  background: linear-gradient(165deg, rgba(8, 20, 38, 0.92) 0%, rgba(4, 12, 24, 0.88) 100%);
-  box-shadow: 0 28px 90px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+/* ── Nav / cobrand ── */
+.del-nav {
+  border-bottom: 1px solid rgba(224, 178, 74, 0.18);
+  background: linear-gradient(180deg, rgba(4, 10, 54, 0.72) 0%, rgba(0, 12, 60, 0.28) 100%);
+  backdrop-filter: blur(14px);
 }
 
-/* ── Hero layout ── */
+.del-nav-inner {
+  position: relative;
+}
+
+.del-nav-inner::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(224, 178, 74, 0.55), transparent);
+  pointer-events: none;
+}
+
+.del-hero-form {
+  border: 1px solid rgba(224, 178, 74, 0.48);
+  background:
+    linear-gradient(165deg, rgba(10, 24, 44, 0.96) 0%, rgba(4, 12, 24, 0.92) 100%),
+    radial-gradient(circle at 50% 0%, rgba(224, 178, 74, 0.12), transparent 55%);
+  box-shadow:
+    0 32px 100px rgba(0, 0, 0, 0.5),
+    0 0 40px rgba(224, 178, 74, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+/* ── Hero: title stacked above e-guide (same column) | form right ── */
 .del-hero-section {
-  padding-bottom: 3.5rem;
+  /* Clear fixed site nav + give title room to breathe */
+  padding-top: clamp(5.75rem, 10vw, 7.5rem);
+  padding-bottom: clamp(3rem, 5vw, 4.5rem);
   overflow: visible;
 }
 
+/* White / soft ivory hero — navy title + gold accent */
+.del-hero-section--ivory {
+  background:
+    radial-gradient(ellipse 70% 55% at 70% 30%, rgba(224, 178, 74, 0.1) 0%, transparent 55%),
+    linear-gradient(180deg, #ffffff 0%, #faf7f1 48%, #f3ebe0 100%);
+  color: #040a36;
+}
+
+.del-hero-section--ivory .del-hero-title {
+  text-shadow: none;
+}
+
+.del-hero-section--ivory .del-hero-title-line--navy {
+  color: #000c3c;
+}
+
+.del-hero-section--ivory .del-hero-title-line--gold {
+  background: linear-gradient(105deg, #c4803d 0%, #e0b24a 45%, #a67c2a 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.del-hero-section--ivory .del-hero-kicker {
+  text-shadow: none;
+}
+
+.del-hero-section--ivory .del-hero-lede {
+  color: rgba(4, 10, 54, 0.62);
+}
+
+.del-hero-section--ivory .del-proof-pillar {
+  border-color: rgba(196, 128, 61, 0.28);
+  background: linear-gradient(165deg, rgba(255, 255, 255, 0.9) 0%, rgba(243, 235, 224, 0.85) 100%);
+  box-shadow: 0 12px 36px rgba(4, 10, 54, 0.08);
+}
+
+.del-hero-section--ivory .del-proof-pillar .text-white,
+.del-hero-section--ivory .del-proof-pillar [class*='text-white'] {
+  color: #000c3c !important;
+}
+
+.del-hero-section--ivory .del-proof-pillar p {
+  color: rgba(4, 10, 54, 0.55) !important;
+}
+
+.del-hero-section--ivory .del-proof-pillar-icon {
+  color: #c4803d;
+  border-color: rgba(196, 128, 61, 0.4);
+  background: rgba(224, 178, 74, 0.12);
+}
+
+.del-hero-section--ivory .del-hero-form {
+  /* Keep navy form for contrast on white hero */
+  box-shadow:
+    0 28px 80px rgba(4, 10, 54, 0.18),
+    0 0 40px rgba(224, 178, 74, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.del-hero-product-col {
+  min-width: 0;
+  isolation: isolate;
+  gap: 0;
+}
+
+.del-hero-titleblock {
+  width: 100%;
+  max-width: 38rem;
+  margin-bottom: 0;
+  padding-bottom: 0.25rem;
+}
+
+.del-hero-titleblock .del-hero-title-line--gold {
+  margin-left: auto;
+  margin-right: auto;
+}
+
 .del-hero-grid {
-  max-width: 92rem;
+  width: 100%;
 }
 
 @media (min-width: 1024px) {
   .del-hero-grid {
-    grid-template-columns: minmax(0, 0.55fr) minmax(0, 1.45fr);
+    grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
+    column-gap: 1.75rem;
+    align-items: start;
+  }
+}
+
+@media (min-width: 1280px) {
+  .del-hero-grid {
+    grid-template-columns: minmax(0, 1.6fr) minmax(0, 0.95fr);
     column-gap: 2rem;
   }
 }
 
-@media (min-width: 1024px) and (max-width: 1599px) {
-  .del-hero-grid {
-    grid-template-columns: minmax(0, 1.06fr) minmax(0, 0.94fr);
-    column-gap: 2.75rem;
-  }
-
-  .del-hero-mockup-col {
-    transform: translateX(3.25rem);
-  }
-
-  .del-mockup--hero {
-    max-width: min(100%, 100%);
-  }
-
-  .del-mockup-stack--hero {
-    width: 78%;
-    margin-left: auto;
-    margin-right: auto;
-  }
-}
-
-@media (min-width: 1280px) and (max-width: 1599px) {
-  .del-hero-mockup-col {
-    transform: translateX(4rem);
-  }
-}
-
-@media (min-width: 1440px) and (max-width: 1599px) {
-  .del-hero-mockup-col {
-    transform: translateX(4.75rem);
-  }
-
-  .del-mockup--hero {
-    max-width: min(100%, 100%);
-  }
-}
-
 @media (min-width: 1600px) {
   .del-hero-grid {
-    grid-template-columns: minmax(0, 0.94fr) minmax(0, 1.06fr);
-    column-gap: 3.25rem;
-  }
-}
-
-@media (min-width: 1600px) {
-  .del-hero-mockup-col {
-    transform: translateX(5rem);
-  }
-
-  .del-mockup-stack--hero {
-    width: 80%;
-    margin-left: auto;
-    margin-right: auto;
-  }
-}
-
-@media (min-width: 1680px) {
-  .del-hero-grid {
-    column-gap: 3.75rem;
-  }
-
-  .del-hero-mockup-col {
-    transform: translateX(5.5rem);
-  }
-
-  .del-mockup-stack--hero {
-    width: 82%;
-    margin-left: auto;
-    margin-right: auto;
-  }
-
-  .del-mockup--hero {
-    max-width: min(100%, 100%);
+    grid-template-columns: minmax(0, 1.65fr) minmax(0, 0.9fr);
+    column-gap: 2.25rem;
   }
 }
 
 .del-hero-copy {
   min-width: 0;
-  max-width: none;
+  max-width: 28rem;
   overflow: visible;
   isolation: isolate;
+  padding-top: 0.5rem;
 }
 
 @media (min-width: 1024px) {
   .del-hero-copy {
-    max-width: 50rem;
-  }
-}
-
-@media (min-width: 1024px) {
-  .del-hero-copy {
-    padding-right: 3rem;
+    max-width: 26rem;
+    justify-self: end;
+    width: 100%;
+    position: sticky;
+    top: 7.25rem;
+    padding-top: 0.75rem;
   }
 }
 
 @media (min-width: 1280px) {
   .del-hero-copy {
-    padding-right: 3.5rem;
+    max-width: 28rem;
   }
 }
 
-.del-hero-mockup-col {
+.del-hero-stage {
   min-width: 0;
   isolation: isolate;
   overflow: visible;
-}
-
-@media (min-width: 1024px) {
-  .del-hero-mockup-col {
-    justify-content: center;
-    padding-left: 0;
-  }
+  position: relative;
+  /* Air between title block and e-guide */
+  margin-top: clamp(2.75rem, 5vw, 4.25rem);
 }
 
 .del-hero-title {
-  font-size: clamp(2.5rem, 4.8vw, 4.25rem);
+  font-size: clamp(2.15rem, 3.5vw, 3.35rem);
   font-weight: 700;
   line-height: 1.1;
-  letter-spacing: -0.025em;
+  letter-spacing: -0.03em;
   overflow: visible;
+  text-shadow: 0 2px 40px rgba(0, 0, 0, 0.35);
 }
 
 .del-hero-title-line {
   display: block;
+}
+
+.del-hero-title-line--navy {
+  color: #000c3c;
 }
 
 @media (min-width: 1024px) {
@@ -196,20 +248,44 @@
   white-space: nowrap;
   margin-top: 0.12em;
   padding-bottom: 0.06em;
-  padding-right: 0.35em;
-  color: #f4d273;
+  padding-right: 0.2em;
+  color: #ffd993;
   overflow: visible;
+  background: linear-gradient(105deg, #ffd993 0%, #ffe7b0 42%, #e0b24a 88%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .del-hero-title-rule {
   width: 96px;
   height: 2px;
   margin-top: 1.35rem;
-  background: linear-gradient(90deg, #d7a73f, rgba(215, 167, 63, 0.12));
+  background: linear-gradient(90deg, #e0b24a, rgba(224, 178, 74, 0.12));
+  box-shadow: 0 0 18px rgba(224, 178, 74, 0.35);
 }
 
-/* ── E-guide mockup + pedestal (stacked so book sits on circle) ── */
+.del-hero-kicker {
+  letter-spacing: 0.3em;
+  text-shadow: 0 0 24px rgba(224, 178, 74, 0.25);
+}
+
+.del-hero-lede {
+  color: rgba(255, 248, 230, 0.72);
+  line-height: 1.55;
+}
+
+.del-compliance {
+  font-size: 0.68rem;
+  line-height: 1.45;
+  letter-spacing: 0.02em;
+  color: rgba(255, 255, 255, 0.38);
+}
+
+/* ── E-guide mockup + elevated gold stage ── */
+.del-mockup-stage,
 .del-mockup-stack {
+  isolation: isolate;
   position: relative;
   display: flex;
   flex-direction: column;
@@ -219,26 +295,88 @@
   padding-bottom: 0.5rem;
 }
 
+/* Landscape center-standup assets (~1367×768) — size to fill stage, no tall-booklet stretch */
 .del-mockup-stack--hero {
-  min-height: 560px;
-}
-
-@media (min-width: 768px) {
-  .del-mockup-stack--hero {
-    min-height: 880px;
-  }
+  min-height: 0;
+  padding-bottom: 1.75rem; /* room for absolute pedestal under book */
 }
 
 @media (min-width: 1024px) {
   .del-mockup-stack--hero {
-    min-height: min(92vh, 1280px);
-    width: 78%;
-    margin-left: auto;
-    margin-right: auto;
-    max-width: 100%;
-    padding-bottom: 2.75rem;
+    width: 100%;
+    max-width: none;
+    margin-left: 0;
+    margin-right: 0;
+    padding-bottom: 2rem;
     overflow: visible;
+    transform: none;
+    transform-origin: center bottom;
   }
+}
+
+.del-hero-stage-halo {
+  position: absolute;
+  left: 50%;
+  bottom: 4%;
+  z-index: 0;
+  width: min(70%, 520px);
+  height: min(52%, 360px);
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background:
+    radial-gradient(ellipse at 50% 78%, rgba(224, 178, 74, 0.4) 0%, rgba(224, 178, 74, 0.14) 40%, transparent 70%),
+    radial-gradient(circle at 50% 55%, rgba(255, 217, 147, 0.12) 0%, transparent 55%);
+  filter: blur(24px);
+  pointer-events: none;
+}
+
+/* Gold burst from the e-guide — sits BEHIND the book so navy cover lifts off navy page */
+.del-hero-gold-backlight {
+  position: absolute;
+  left: 50%;
+  top: 42%;
+  z-index: 1;
+  width: min(88%, 720px);
+  height: min(90%, 760px);
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 50% 48%, rgba(255, 242, 182, 0.78) 0%, rgba(255, 217, 147, 0.5) 18%, rgba(224, 178, 74, 0.32) 40%, rgba(196, 128, 61, 0.14) 60%, transparent 74%),
+    radial-gradient(ellipse 85% 75% at 50% 52%, rgba(255, 199, 99, 0.28) 0%, transparent 68%);
+  filter: blur(30px);
+  pointer-events: none;
+  mix-blend-mode: screen;
+}
+
+@media (min-width: 1024px) {
+  .del-hero-gold-backlight {
+    width: min(84%, 820px);
+    height: min(94%, 860px);
+    filter: blur(36px);
+  }
+}
+
+@media (min-width: 1280px) {
+  .del-hero-gold-backlight {
+    width: min(82%, 900px);
+    height: min(96%, 920px);
+  }
+}
+
+.del-hero-stage-ring {
+  position: absolute;
+  left: 50%;
+  bottom: 0.65rem;
+  z-index: 2;
+  width: min(48%, 320px);
+  height: 14px;
+  transform: translateX(-50%);
+  border-radius: 100%;
+  border: 1px solid rgba(255, 217, 147, 0.32);
+  box-shadow:
+    0 0 28px rgba(224, 178, 74, 0.28),
+    inset 0 0 12px rgba(224, 178, 74, 0.14);
+  pointer-events: none;
 }
 
 .del-mockup-glow {
@@ -246,18 +384,19 @@
   left: 50%;
   bottom: 0;
   z-index: 0;
-  width: min(88%, 520px);
-  height: 120px;
+  width: min(52%, 340px);
+  height: 96px;
   transform: translateX(-50%);
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(215, 167, 63, 0.2) 0%, transparent 72%);
+  background: radial-gradient(circle, rgba(224, 178, 74, 0.3) 0%, rgba(255, 217, 147, 0.12) 42%, transparent 74%);
   filter: blur(18px);
   pointer-events: none;
 }
 
 .del-mockup-stack--hero .del-mockup-glow {
-  bottom: -0.5rem;
-  height: 110px;
+  bottom: 0.1rem;
+  height: 88px;
+  width: min(50%, 360px);
 }
 
 .del-mockup {
@@ -266,59 +405,105 @@
   display: block;
   width: auto;
   height: auto;
-  max-width: min(100%, 100%);
-  max-height: min(88vh, 1400px);
+  max-width: 100%;
+  max-height: min(52vh, 520px);
   object-fit: contain;
   object-position: center center;
   margin-bottom: 0;
-  filter: drop-shadow(0 32px 64px rgba(0, 0, 0, 0.72));
+  filter: drop-shadow(0 22px 42px rgba(0, 0, 0, 0.42));
 }
 
 .del-mockup--hero {
   width: 100%;
-  max-width: 100%;
-  max-height: min(88vh, 1400px);
+  max-width: min(100%, 1180px);
+  max-height: min(78vh, 860px);
   margin-bottom: 0;
   transform: none;
+  filter:
+    drop-shadow(0 0 28px rgba(255, 217, 147, 0.35))
+    drop-shadow(0 0 56px rgba(224, 178, 74, 0.28))
+    drop-shadow(0 28px 48px rgba(0, 0, 0, 0.55));
+}
+
+@media (min-width: 1024px) {
+  .del-mockup--hero {
+    max-width: min(100%, 1320px);
+    max-height: min(84vh, 940px);
+  }
+
+  .del-mockup-stack--hero {
+    transform: scale(1.14);
+    transform-origin: center bottom;
+  }
+}
+
+@media (min-width: 1280px) {
+  .del-mockup--hero {
+    max-width: min(100%, 1440px);
+    max-height: min(86vh, 1020px);
+  }
+
+  .del-mockup-stack--hero {
+    transform: scale(1.18);
+  }
+}
+
+@media (min-width: 1600px) {
+  .del-mockup--hero {
+    max-width: min(100%, 1560px);
+    max-height: min(88vh, 1100px);
+  }
+
+  .del-mockup-stack--hero {
+    transform: scale(1.2);
+  }
 }
 
 .del-mockup-pedestal {
   position: relative;
   z-index: 1;
   flex-shrink: 0;
-  width: min(72%, 460px);
-  height: 72px;
-  margin-top: 0.75rem;
+  width: min(42%, 220px);
+  height: 36px;
+  margin-top: 0.2rem;
   border-radius: 100%;
-  border: 1px solid rgba(215, 167, 63, 0.28);
-  background: radial-gradient(ellipse, rgba(215, 167, 63, 0.16) 0%, rgba(0, 0, 0, 0.45) 58%, transparent 82%);
-  box-shadow: 0 24px 56px rgba(0, 0, 0, 0.65);
+  border: 1px solid rgba(224, 178, 74, 0.35);
+  background: radial-gradient(ellipse, rgba(224, 178, 74, 0.22) 0%, rgba(255, 217, 147, 0.08) 36%, rgba(0, 0, 0, 0.45) 62%, transparent 84%);
+  box-shadow:
+    0 14px 32px rgba(0, 0, 0, 0.55),
+    0 0 24px rgba(224, 178, 74, 0.14);
   pointer-events: none;
 }
 
+/* Hero pedestal: absolute under the book so it never widens the column / shoves copy */
 .del-mockup-stack--hero .del-mockup-pedestal {
-  width: min(82%, 520px);
-  height: 84px;
-  margin-top: 0.85rem;
+  position: absolute;
+  left: 50%;
+  bottom: 0.2rem;
+  z-index: 1;
+  width: min(52%, 340px);
+  height: 52px;
+  margin-top: 0;
+  transform: translateX(-50%);
+  border-color: rgba(224, 178, 74, 0.42);
+  background: radial-gradient(ellipse, rgba(224, 178, 74, 0.28) 0%, rgba(255, 217, 147, 0.1) 36%, rgba(0, 0, 0, 0.5) 62%, transparent 84%);
+  box-shadow:
+    0 20px 44px rgba(0, 0, 0, 0.6),
+    0 0 36px rgba(224, 178, 74, 0.2);
 }
 
 @media (min-width: 1024px) {
-  .del-mockup-pedestal {
-    width: min(58%, 440px);
-    height: 80px;
-  }
-
   .del-mockup-stack--hero .del-mockup-pedestal {
-    width: min(84%, 540px);
-    height: 92px;
-    margin-top: 1rem;
+    width: min(48%, 380px);
+    height: 58px;
+    bottom: 0.25rem;
   }
 }
 
-@media (min-width: 1600px) {
-  .del-mockup--hero {
-    max-width: 100%;
-    margin-bottom: 0;
+@media (min-width: 1280px) {
+  .del-mockup-stack--hero .del-mockup-pedestal {
+    width: min(46%, 400px);
+    height: 62px;
   }
 }
 
@@ -331,10 +516,10 @@
 .del-mockup--footer {
   position: relative;
   z-index: 3;
-  max-width: min(100%, 280px);
-  max-height: none;
-  margin-bottom: -0.4rem;
-  transform: translateX(-1.25%);
+  max-width: min(100%, 420px);
+  max-height: min(40vh, 300px);
+  margin-bottom: -0.25rem;
+  transform: none;
 }
 
 .del-mockup-stack--footer .del-mockup-pedestal {
@@ -351,10 +536,36 @@
   height: 90px;
 }
 
+/* ── Proof pillars (compact luxury) ── */
+.del-proof-pillar {
+  border: 1px solid rgba(224, 178, 74, 0.22);
+  background: linear-gradient(165deg, rgba(255, 255, 255, 0.045) 0%, rgba(255, 255, 255, 0.012) 100%);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.28);
+  transition: border-color 0.25s ease, transform 0.25s ease;
+}
+
+.del-proof-pillar:hover {
+  border-color: rgba(224, 178, 74, 0.4);
+  transform: translateY(-2px);
+}
+
+.del-proof-pillar-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 0.85rem;
+  box-shadow: 0 0 28px rgba(224, 178, 74, 0.16);
+}
+
 /* ── Video section ── */
 .del-video-section {
-  padding-top: 5.5rem;
-  padding-bottom: 5.5rem;
+  padding-top: 5.75rem;
+  padding-bottom: 5.75rem;
+  background:
+    radial-gradient(circle at 18% 40%, rgba(224, 178, 74, 0.06), transparent 42%),
+    radial-gradient(circle at 88% 60%, rgba(12, 24, 80, 0.18), transparent 40%);
 }
 
 .del-video-grid {
@@ -387,35 +598,35 @@
 .del-video-frame {
   position: relative;
   padding: 2px;
-  border-radius: 1.35rem;
+  border-radius: 1.45rem;
   background: linear-gradient(
     155deg,
-    rgba(215, 167, 63, 0.42) 0%,
-    rgba(120, 88, 32, 0.28) 45%,
-    rgba(215, 167, 63, 0.22) 100%
+    rgba(255, 217, 147, 0.55) 0%,
+    rgba(120, 88, 32, 0.32) 42%,
+    rgba(224, 178, 74, 0.28) 100%
   );
   box-shadow:
-    0 48px 120px rgba(0, 0, 0, 0.62),
-    0 0 50px rgba(215, 167, 63, 0.08),
-    inset 0 1px 0 rgba(255, 255, 255, 0.14);
+    0 52px 130px rgba(0, 0, 0, 0.64),
+    0 0 60px rgba(224, 178, 74, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.16);
 }
 
 .del-video-frame::before {
   content: '';
   position: absolute;
-  inset: -20px;
+  inset: -22px;
   z-index: -1;
-  border-radius: 1.75rem;
-  background: radial-gradient(circle, rgba(215, 167, 63, 0.1) 0%, transparent 72%);
-  filter: blur(14px);
+  border-radius: 1.85rem;
+  background: radial-gradient(circle, rgba(224, 178, 74, 0.14) 0%, transparent 72%);
+  filter: blur(16px);
   pointer-events: none;
 }
 
 .del-video-inner {
   overflow: hidden;
-  border-radius: calc(1.35rem - 2px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: #020812;
+  border-radius: calc(1.45rem - 2px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: #000c3c;
 }
 
 .del-video-inner .lm-video-shell {
@@ -426,7 +637,7 @@
   aspect-ratio: 16 / 9;
   min-height: 320px;
   border: none !important;
-  background: #06101f;
+  background: #040a36;
   box-shadow: none !important;
 }
 
@@ -465,9 +676,9 @@
   inset: 0;
   background: linear-gradient(
     180deg,
-    rgba(2, 8, 18, 0.18) 0%,
-    rgba(2, 8, 18, 0.42) 45%,
-    rgba(2, 8, 18, 0.78) 100%
+    rgba(0, 12, 60, 0.18) 0%,
+    rgba(0, 12, 60, 0.42) 45%,
+    rgba(0, 12, 60, 0.78) 100%
   );
 }
 
@@ -488,11 +699,11 @@
   width: 5.75rem;
   height: 5.75rem;
   border-radius: 50%;
-  border: 2px solid rgba(215, 167, 63, 0.82);
-  background: rgba(6, 16, 31, 0.78);
+  border: 2px solid rgba(224, 178, 74, 0.82);
+  background: rgba(4, 10, 54, 0.78);
   backdrop-filter: blur(10px);
   box-shadow:
-    0 0 52px rgba(215, 167, 63, 0.28),
+    0 0 52px rgba(224, 178, 74, 0.28),
     0 22px 64px rgba(0, 0, 0, 0.55);
   transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
@@ -500,7 +711,7 @@
 .del-video-inner .lm-video-placeholder:hover .lm-video-play-ring {
   transform: scale(1.05);
   box-shadow:
-    0 0 64px rgba(215, 167, 63, 0.38),
+    0 0 64px rgba(224, 178, 74, 0.38),
     0 24px 70px rgba(0, 0, 0, 0.58);
 }
 
@@ -512,37 +723,224 @@
 }
 
 .del-video-inner .lm-video-placeholder .text-\[10px\] {
-  color: rgba(244, 210, 115, 0.72);
+  color: rgba(255, 217, 147, 0.72);
   letter-spacing: 0.22em;
 }
 
 .del-video-inner .lm-video-badge {
-  border-color: rgba(215, 167, 63, 0.38) !important;
-  color: #f4d273 !important;
-  background: rgba(6, 16, 31, 0.72) !important;
+  border-color: rgba(224, 178, 74, 0.38) !important;
+  color: #ffd993 !important;
+  background: rgba(4, 10, 54, 0.72) !important;
+}
+
+/* ── Toolkit / discovery / testimonials ── */
+.del-band {
+  position: relative;
+}
+
+.del-band--toolkit {
+  background:
+    radial-gradient(circle at 50% 0%, rgba(224, 178, 74, 0.07), transparent 45%),
+    linear-gradient(180deg, rgba(4, 14, 28, 0.4) 0%, transparent 100%);
+}
+
+.del-band--results {
+  background: radial-gradient(circle at 50% 100%, rgba(224, 178, 74, 0.05), transparent 50%);
 }
 
 .del-discovery-card {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0.015) 100%);
-  border: 1px solid rgba(215, 167, 63, 0.22);
-  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.35);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.055) 0%, rgba(255, 255, 255, 0.015) 100%),
+    radial-gradient(circle at 50% 0%, rgba(224, 178, 74, 0.08), transparent 55%);
+  border: 1px solid rgba(224, 178, 74, 0.28);
+  box-shadow:
+    0 28px 80px rgba(0, 0, 0, 0.38),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 
 .del-discovery-icon {
-  width: 88px;
-  height: 88px;
-  border: 2px solid rgba(215, 167, 63, 0.55);
-  background: radial-gradient(circle at 30% 20%, rgba(244, 210, 115, 0.16), rgba(215, 167, 63, 0.06) 55%, transparent 100%);
-  box-shadow: 0 0 40px rgba(215, 167, 63, 0.14);
+  width: 80px;
+  height: 80px;
+  border: 2px solid rgba(224, 178, 74, 0.58);
+  background: radial-gradient(circle at 30% 20%, rgba(255, 217, 147, 0.2), rgba(224, 178, 74, 0.07) 55%, transparent 100%);
+  box-shadow: 0 0 44px rgba(224, 178, 74, 0.18);
 }
 
 .del-testimonial-card {
-  border: 1px solid rgba(215, 167, 63, 0.28);
-  background: linear-gradient(160deg, rgba(255, 255, 255, 0.045) 0%, rgba(255, 255, 255, 0.02) 100%);
-  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.38);
+  border: 1px solid rgba(224, 178, 74, 0.32);
+  background:
+    linear-gradient(160deg, rgba(255, 255, 255, 0.055) 0%, rgba(255, 255, 255, 0.018) 100%),
+    radial-gradient(circle at 100% 100%, rgba(224, 178, 74, 0.08), transparent 45%);
+  box-shadow:
+    0 28px 90px rgba(0, 0, 0, 0.42),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 
 .del-value-card {
-  border: 1px solid rgba(215, 167, 63, 0.24);
-  background: linear-gradient(155deg, rgba(215, 167, 63, 0.07) 0%, rgba(255, 255, 255, 0.02) 100%);
+  border: 1px solid rgba(224, 178, 74, 0.3);
+  background:
+    linear-gradient(155deg, rgba(224, 178, 74, 0.1) 0%, rgba(255, 255, 255, 0.02) 55%, rgba(4, 10, 54, 0.4) 100%);
+  box-shadow:
+    0 22px 64px rgba(0, 0, 0, 0.36),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.del-value-card:hover {
+  border-color: rgba(224, 178, 74, 0.5);
+  box-shadow:
+    0 28px 80px rgba(0, 0, 0, 0.42),
+    0 0 36px rgba(224, 178, 74, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+/* ── Stats strip ── */
+.del-stats-strip {
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.28) 0%, rgba(4, 10, 54, 0.55) 100%);
+  border-color: rgba(224, 178, 74, 0.22);
+}
+
+.del-stat-tile {
+  border-radius: 1.15rem;
+  border: 1px solid rgba(224, 178, 74, 0.2);
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0.01) 100%);
+  padding: 1rem 1.15rem;
+  transition: border-color 0.25s ease, transform 0.25s ease;
+}
+
+.del-stat-tile:hover {
+  border-color: rgba(224, 178, 74, 0.4);
+  transform: translateY(-2px);
+}
+
+.del-stat-icon {
+  box-shadow: 0 0 30px rgba(224, 178, 74, 0.16);
+}
+
+/* ── Final CTA panel — wealthy ivory ── */
+.del-cta-panel {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(196, 128, 61, 0.45);
+  background:
+    radial-gradient(ellipse 80% 70% at 18% 20%, rgba(255, 248, 230, 0.95) 0%, transparent 55%),
+    radial-gradient(ellipse 60% 50% at 88% 80%, rgba(232, 196, 122, 0.22) 0%, transparent 50%),
+    linear-gradient(145deg, #faf6ee 0%, #f3ebdc 42%, #ebe2d0 100%);
+  box-shadow:
+    0 40px 120px rgba(0, 0, 0, 0.45),
+    0 0 48px rgba(224, 178, 74, 0.14),
+    inset 0 1px 0 rgba(255, 255, 255, 0.75),
+    inset 0 0 0 1px rgba(196, 128, 61, 0.12);
+}
+
+.del-cta-panel::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.35) 0%, transparent 28%),
+    radial-gradient(circle at 78% 30%, rgba(224, 178, 74, 0.14), transparent 42%);
+  pointer-events: none;
+}
+
+.del-cta-caption {
+  border: 1px solid rgba(196, 128, 61, 0.35);
+  background: rgba(255, 252, 245, 0.88);
+  box-shadow: 0 10px 28px rgba(40, 28, 10, 0.12);
+}
+
+.del-cta-panel .del-cta-title {
+  color: #1a1408;
+}
+
+.del-cta-panel .del-cta-lede {
+  color: rgba(26, 20, 8, 0.62);
+}
+
+.del-cta-panel .del-compliance {
+  color: rgba(26, 20, 8, 0.42);
+}
+
+/* Form copy on ivory — override dark-theme white labels */
+.del-cta-panel .lm-lux-form label {
+  color: rgba(26, 20, 8, 0.7) !important;
+}
+
+.del-cta-panel .lm-lux-form p {
+  color: rgba(26, 20, 8, 0.45) !important;
+}
+
+.del-cta-panel .lm-lux-form input[type='checkbox'] {
+  accent-color: #c4803d;
+}
+
+/* ── Footer ── */
+.del-footer {
+  border-top: 1px solid rgba(224, 178, 74, 0.16);
+  background: linear-gradient(180deg, rgba(4, 12, 24, 0.55) 0%, rgba(0, 12, 60, 0.9) 100%);
+}
+
+.del-footer a {
+  transition: color 0.2s ease;
+}
+
+.del-footer a:hover {
+  color: #ffd993;
+}
+
+/* Shared luxury stage harmony + mobile polish */
+.del-hero-title.lm-lux-display {
+  font-size: clamp(2.25rem, 1.35rem + 3.2vw, 3.55rem);
+}
+
+.del-proof-pillar,
+.del-value-card,
+.del-testimonial-card,
+.del-discovery-card {
+  transition: border-color 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.del-section-title::before,
+.del-section-title::after {
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, #e0b24a 75%, transparent),
+    transparent
+  );
+}
+
+@media (max-width: 639px) {
+  .del-mockup-stack--hero {
+    min-height: 0;
+    padding-inline: 0.15rem;
+  }
+
+  .del-mockup--hero {
+    max-width: 100%;
+    max-height: min(62vh, 480px);
+    margin-bottom: -0.15rem;
+  }
+
+  .del-hero-gold-backlight {
+    width: min(96%, 520px);
+    height: min(82%, 460px);
+    filter: blur(26px);
+  }
+
+  .del-hero-form {
+    padding: 1.15rem !important;
+  }
+
+  .del-hero-title-line {
+    white-space: normal;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .del-proof-pillar:hover,
+  .del-stat-tile:hover,
+  .del-value-card:hover {
+    transform: none;
+  }
 }
