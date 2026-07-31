@@ -98,6 +98,9 @@ export function stepAfterRoleSelection(data: {
 
 const CAREER_PATH_ROLE: Record<string, OnboardingRole | 'agency'> = {
   '/credit-specialists': 'agent',
+  '/credit-specialist': 'agent',
+  '/credit-specialist/join': 'agent',
+  '/credit-specialist/onboarding': 'agent',
   '/agency-partners': 'agency',
   '/affiliate': 'affiliate',
   '/au-sellers': 'au_seller',

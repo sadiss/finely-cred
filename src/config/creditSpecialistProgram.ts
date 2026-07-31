@@ -12,6 +12,11 @@ export const CS = {
   hubPathLegacy: '/agent/hub',
   publicPath: '/credit-specialists',
   publicPathLegacy: '/agents',
+  /** Deep pricing / offer hub (tiers, 3-lead gate, 30-day free leads). */
+  pricingPath: '/credit-specialist',
+  /** Guided signup + onboarding. */
+  joinPath: '/credit-specialist/join',
+  guidePath: '/credit-specialist-guide',
   pricingTabLabel: 'Credit Specialists',
   supportThreadSubject: 'Credit Specialist Program — partnership line',
   messagesDeepLink: '/portal/messages?hub=team&topic=credit_specialist_program',

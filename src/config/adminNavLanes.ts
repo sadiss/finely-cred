@@ -67,9 +67,10 @@ export const ADMIN_NAV_GROUPS: AdminNavGroupDef[] = [
       { path: '/admin/growth-command', label: 'Growth Command', icon: TrendingUp, hint: 'Promote · nurture · communicate' },
       { path: '/admin/workflow', label: 'Ops command center', icon: Inbox, hint: 'Alerts + SLA triage' },
       { path: '/admin/staff', label: 'Staff Command Center', icon: Users, hint: 'AI + human + partner team' },
-      { path: '/admin/content-studio', label: 'Content Studio', icon: Film, hint: 'Super video + content production' },
+      { path: '/admin/content-studio', label: 'Content Studio', icon: Film, hint: 'Video dept · 30s spot wizard + content' },
       { path: '/admin/crm', label: 'Leads & CRM', icon: Target, hint: 'Pipeline + prospects + inbound' },
-      { path: '/admin/leads', label: 'Leads intel', icon: Sparkles, hint: 'Advanced inbound agent · use Leads & CRM for pipeline' },
+      { path: '/admin/marketing-desk', label: 'Marketing Desk', icon: Sparkles, hint: 'Find · Board · Clean · Ruth · Mail' },
+      { path: '/admin/leads', label: 'Owner Leads Ops', icon: Target, hint: 'Power tools · practice mode · advanced labs' },
       { path: '/admin/projects', label: 'Projects & Tasks', icon: FolderKanban, hint: 'Master projects + child tasks' },
       { path: '/admin/workload', label: 'Workload', icon: ListChecks, hint: 'Open tasks by assignee' },
       { path: '/admin/playbooks', label: 'Playbooks', icon: BookOpen, hint: 'Service delivery task templates' },
@@ -98,7 +99,7 @@ export const ADMIN_NAV_GROUPS: AdminNavGroupDef[] = [
       { path: '/admin/lead-acquisition', label: 'Lead acquisition', icon: Globe, hint: 'Syndication feeds + webhook posting' },
       { path: '/admin/ops-agent', label: 'Ruth · Co-Owner', icon: Crown, hint: 'AI co-owner command' },
       { path: '/admin/phone-hub', label: 'Phone Hub', icon: Phone, hint: 'Calls & SMS' },
-      { path: '/admin/lead-intel', label: 'Lead Intel (full)', icon: Sparkles, hint: 'Full-page intel workspace' },
+      { path: '/admin/marketing-desk?helper=find', label: 'Find (Desk)', icon: Sparkles, hint: 'Redirects to Marketing Desk Find · classic labs on Owner Ops' },
     ],
   },
   {
@@ -122,6 +123,7 @@ export const ADMIN_NAV_GROUPS: AdminNavGroupDef[] = [
       { path: '/admin/vault', label: 'Vault', icon: Lock, hint: 'Restricted' },
       { path: '/admin/parsing-lab', label: 'Parsing Lab', icon: FlaskConical, hint: 'Regression harness' },
       { path: '/admin/settings?tab=appearance', label: 'Appearance', icon: Settings, hint: 'Light theme admin preview' },
+      { path: '/admin/preview', label: 'Layout previews', icon: Eye, hint: 'Structure preview — live theme unchanged' },
       { path: '/admin/settings', label: 'Settings', icon: Settings, hint: 'System settings' },
     ],
   },
@@ -164,9 +166,10 @@ export const ADMIN_NAV_LANES: AdminNavLaneDef[] = [
 ];
 
 export function isAdminNavPathActive(pathname: string, path: string): boolean {
-  if (pathname === path) return true;
-  if (path === '/admin') return pathname === '/admin' || pathname === '/admin/';
-  return pathname.startsWith(`${path}/`);
+  const base = path.split('?')[0] || path;
+  if (pathname === base) return true;
+  if (base === '/admin') return pathname === '/admin' || pathname === '/admin/';
+  return pathname.startsWith(`${base}/`);
 }
 
 export function resolveAdminNavLaneId(pathname: string): string {

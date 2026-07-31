@@ -10,6 +10,7 @@
  */
 
 import { lookupKnownCreditorFromCandidates } from './knownCreditorDirectory';
+import { enrichRecipientAddressSync } from './recipientAddressEnrichment';
 
 export type LetterMailRecipient = {
   name: string;
@@ -18,7 +19,7 @@ export type LetterMailRecipient = {
   missing: boolean;
   missingReason?: string;
   /** Where the mailing address was resolved from */
-  source?: 'case' | 'directory' | 'missing';
+  source?: 'case' | 'directory' | 'enrichment' | 'missing';
 };
 
 export type LetterRecipientSource = {
@@ -113,9 +114,9 @@ export function resolveLetterMailRecipient(source: LetterRecipientSource): Lette
   let addrSource: LetterMailRecipient['source'] = address ? 'case' : 'missing';
   let directoryName = '';
 
-  // Directory IQ: firm / collector / attorney offices when scrape + case left TO blank
+  // Directory / enrichment IQ: firm / collector / attorney offices when scrape + case left TO blank
   if (!address) {
-    const hit = lookupKnownCreditorFromCandidates([
+    const namePool = [
       source.plaintiffLawFirm,
       source.plaintiffAttorneyName,
       source.debtCollectorName,
@@ -125,11 +126,23 @@ export function resolveLetterMailRecipient(source: LetterRecipientSource): Lette
       source.debtName,
       source.originalCreditorName,
       name,
-    ]);
+    ];
+    const hit = lookupKnownCreditorFromCandidates(namePool);
     if (hit?.address && !looksLikeSenderAddress(hit.address, source)) {
       address = hit.address;
       addrSource = 'directory';
       directoryName = hit.displayName;
+    } else {
+      const enriched = enrichRecipientAddressSync({
+        preferCounsel: Boolean(source.plaintiffLawFirm || source.plaintiffAttorneyName),
+        nameCandidates: namePool,
+        addressCandidates: [source.plaintiffLawFirmAddress, source.recipientAddress],
+      });
+      if (enriched?.address && !looksLikeSenderAddress(enriched.address, source)) {
+        address = enriched.address;
+        addrSource = enriched.source === 'directory' ? 'directory' : 'enrichment';
+        directoryName = enriched.name;
+      }
     }
   }
 

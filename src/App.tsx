@@ -224,6 +224,8 @@ const TradelineGuideFunnelPage = lazy(() => import('./pages/leadmagnet/Tradeline
 const ScoreRoadmapFunnelPage = lazy(() => import('./pages/leadmagnet/ScoreRoadmapFunnelPage'));
 const AgencyGuideFunnelPage = lazy(() => import('./pages/leadmagnet/AgencyGuideFunnelPage'));
 const SpecialistApplyFunnelPage = lazy(() => import('./pages/leadmagnet/SpecialistApplyFunnelPage'));
+const CreditSpecialistGuideLandingPage = lazy(() => import('./pages/leadmagnet/CreditSpecialistGuideLandingPage'));
+const CreditSpecialistGuideReaderPage = lazy(() => import('./pages/leadmagnet/CreditSpecialistGuideReaderPage'));
 const AffiliateToolkitFunnelPage = lazy(() => import('./pages/leadmagnet/AffiliateToolkitFunnelPage'));
 const AdminSocialHubPage = lazy(() => import('./pages/admin/AdminSocialHubPage'));
 const PartnerLibraryPage = lazy(() => import('./pages/portal/PartnerLibraryPage'));
@@ -250,6 +252,8 @@ const AuSellerPage = lazy(() => import('./pages/AuSellerPage'));
 const HetaSocietyPage = lazy(() => import('./pages/HetaSocietyPage'));
 const HetaSocietyPortalPage = lazy(() => import('./pages/portal/HetaSocietyPortalPage'));
 const AgentsPage = lazy(() => import('./pages/AgentsPage'));
+const CreditSpecialistPricingPage = lazy(() => import('./pages/CreditSpecialistPricingPage'));
+const CreditSpecialistJoinPage = lazy(() => import('./pages/CreditSpecialistJoinPage'));
 const CaseHelpCareersPage = lazy(() => import('./pages/CaseHelpCareersPage'));
 const AgencySignupPage = lazy(() => import('./pages/agency/AgencySignupPage'));
 const AgencyPartnersPage = lazy(() => import('./pages/agency/AgencyPartnersPage'));
@@ -328,7 +332,15 @@ function viewFromPath(pathname: string): NavView {
   if (pathname.startsWith('/bookstore')) return 'bookstore';
   if (pathname.startsWith('/affiliate')) return 'affiliate';
   if (pathname.startsWith('/credit-specialists') || pathname.startsWith('/agents')) return 'agents';
-  if (pathname.startsWith('/credit-specialist/hub') || pathname.startsWith('/agent/hub')) return 'agents';
+  if (
+    pathname === '/credit-specialist' ||
+    pathname.startsWith('/credit-specialist/join') ||
+    pathname.startsWith('/credit-specialist/onboarding') ||
+    pathname.startsWith('/credit-specialist/hub') ||
+    pathname.startsWith('/agent/hub')
+  ) {
+    return 'agents';
+  }
   if (pathname.startsWith('/contact')) return 'contact';
   if (pathname.startsWith('/enlightenment-session') || pathname.startsWith('/consultation')) return 'consultation';
   if (pathname.startsWith('/faq')) return 'faq';
@@ -1636,6 +1648,10 @@ function AppInner() {
           }
         />
         <Route path="/credit-specialists" element={<AgentsPage />} />
+        {/* Credit Specialist pricing hub + join/onboarding (coordinate with /credit-specialist-guide) */}
+        <Route path="/credit-specialist" element={<CreditSpecialistPricingPage />} />
+        <Route path="/credit-specialist/join" element={<CreditSpecialistJoinPage />} />
+        <Route path="/credit-specialist/onboarding" element={<Navigate to="/credit-specialist/join" replace />} />
         <Route path="/careers/case-help" element={<CaseHelpCareersPage />} />
         <Route path="/agency-partners" element={<AgencyPartnersPage />} />
         <Route path="/agents" element={<Navigate to="/credit-specialists" replace />} />
@@ -2862,6 +2878,9 @@ function AppInner() {
         <Route path="/free-score-roadmap" element={<ScoreRoadmapFunnelPage />} />
         <Route path="/free-agency-guide" element={<AgencyGuideFunnelPage />} />
         <Route path="/credit-specialist-apply" element={<SpecialistApplyFunnelPage />} />
+        {/* Credit Specialist lead-magnet guide (in-app reader) — see CREDIT_SPECIALIST_GUIDE_ROUTE_SNIPPET.md */}
+        <Route path="/credit-specialist-guide" element={<CreditSpecialistGuideLandingPage />} />
+        <Route path="/credit-specialist-guide/read" element={<CreditSpecialistGuideReaderPage />} />
         <Route path="/affiliate-toolkit" element={<AffiliateToolkitFunnelPage />} />
         <Route path="/owners-guide" element={<ProtectedRoute><OwnersGuidePage /></ProtectedRoute>} />
         <Route path="/g/:code" element={<ShortReferralRedirectPage />} />
