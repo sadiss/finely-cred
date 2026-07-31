@@ -52,6 +52,7 @@ import {
 } from '../../lib/coOwnerDevActions';
 import { CoOwnerDevStudioPanel } from '../../components/coOwner/CoOwnerDevStudioPanel';
 import { CoOwnerStaffOperationsPanel } from '../../components/coOwner/CoOwnerStaffOperationsPanel';
+import { RuthLeadEngineBrief } from '../../components/coOwner/RuthLeadEngineBrief';
 
 type AgentMessage = { role: 'user' | 'assistant'; content: string; createdAt: string };
 
@@ -251,6 +252,9 @@ export default function AdminOpsAgentPage() {
     >
       <div className={FINELY_OS_PAGE}>
         <CoOwnerIdentityBanner />
+        <div className="mt-4">
+          <RuthLeadEngineBrief />
+        </div>
 
         {isCoOwnerTestingMode() ? (
           <div className={`${FINELY_OS_BANNER} mt-4 border-emerald-500/30 bg-emerald-500/10`}>

@@ -5,6 +5,7 @@ import { submitLeadMagnetCapture } from '../../lib/submitLeadMagnetCapture';
 import { addLeadNote } from '../../data/leadOpsRepo';
 import { LeadMagnetGuidedSuccessPanel } from './LeadMagnetGuidedSuccessPanel';
 import { getLeadMagnetPremiumProfile } from './leadMagnetPremiumProfiles';
+import './leadMagnetLuxuryStage.css';
 
 function cn(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(' ');
@@ -17,12 +18,14 @@ type Props = {
   layout?: 'stack' | 'inline';
   submitLabel?: string;
   showBusinessName?: boolean;
+  /** Boutique dark-glass fields (default). Pass false to keep legacy light inputs. */
+  boutique?: boolean;
 };
 
 const DEFAULT_BUTTON =
-  'group relative inline-flex h-14 w-full items-center justify-center overflow-hidden rounded-xl border border-[#ffe7a3]/60 bg-[linear-gradient(135deg,#8c5b16_0%,#d7a73f_42%,#ffe7a3_68%,#b8791d_100%)] px-7 text-[12px] font-black uppercase tracking-[0.12em] text-[#06101f] shadow-[0_18px_55px_rgba(215,167,63,0.30),inset_0_1px_0_rgba(255,255,255,0.45)] transition duration-300 hover:-translate-y-0.5 hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-70';
+  'lm-lux-btn lm-lux-cta-sheen group relative inline-flex h-14 w-full items-center justify-center overflow-hidden rounded-xl px-7 text-[12px] font-black uppercase tracking-[0.12em] transition duration-300 disabled:cursor-not-allowed disabled:opacity-70';
 
-const INPUT =
+const INPUT_LEGACY =
   'h-14 w-full rounded-xl border border-white/12 bg-white/[0.93] pl-11 pr-4 text-sm text-[#06101f] outline-none transition placeholder:text-slate-500 focus:ring-4';
 
 export function PremiumLeadMagnetCaptureForm({
@@ -32,6 +35,7 @@ export function PremiumLeadMagnetCaptureForm({
   layout = 'stack',
   submitLabel,
   showBusinessName = false,
+  boutique = true,
 }: Props) {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -120,7 +124,15 @@ export function PremiumLeadMagnetCaptureForm({
     }
   }
 
-  const fieldClass = cn(INPUT, accentClass);
+  const fieldClass = boutique ? 'lm-lux-field' : cn(INPUT_LEGACY, accentClass);
+  const iconClass = boutique
+    ? 'lm-lux-field-icon pointer-events-none absolute left-4 top-1/2 -translate-y-1/2'
+    : 'pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[#d7a73f]/75';
+  const resolvedButton = boutique && buttonClass === DEFAULT_BUTTON
+    ? DEFAULT_BUTTON
+    : boutique && !buttonClass.includes('lm-lux-cta-sheen') && !buttonClass.includes('lm-lux-btn')
+      ? cn(buttonClass, 'lm-lux-cta-sheen relative overflow-hidden')
+      : buttonClass;
 
   if (status === 'sent' && leadId && captured) {
     return (
@@ -137,9 +149,9 @@ export function PremiumLeadMagnetCaptureForm({
   }
 
   return (
-    <form onSubmit={onSubmit} className={cn('grid gap-3', layout === 'inline' && 'md:grid-cols-2')}>
+    <form onSubmit={onSubmit} className={cn('lm-lux-form grid gap-2.5', layout === 'inline' && 'md:grid-cols-2')}>
       <label className="relative block">
-        <User className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[#d7a73f]/75" size={16} />
+        <User className={iconClass} size={16} />
         <input
           value={firstName}
           onChange={(e) => setFirstName(e.target.value)}
@@ -151,7 +163,7 @@ export function PremiumLeadMagnetCaptureForm({
         />
       </label>
       <label className="relative block">
-        <User className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[#d7a73f]/75" size={16} />
+        <User className={iconClass} size={16} />
         <input
           value={lastName}
           onChange={(e) => setLastName(e.target.value)}
@@ -163,7 +175,7 @@ export function PremiumLeadMagnetCaptureForm({
         />
       </label>
       <label className={cn('relative block', layout === 'inline' && 'md:col-span-2')}>
-        <Mail className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[#d7a73f]/75" size={16} />
+        <Mail className={iconClass} size={16} />
         <input
           value={email}
           onChange={(e) => setEmail(e.target.value)}
@@ -176,7 +188,7 @@ export function PremiumLeadMagnetCaptureForm({
         />
       </label>
       <label className={cn('relative block', layout === 'inline' && 'md:col-span-2')}>
-        <Phone className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[#d7a73f]/75" size={16} />
+        <Phone className={iconClass} size={16} />
         <input
           value={phone}
           onChange={(e) => setPhone(e.target.value)}
@@ -190,7 +202,7 @@ export function PremiumLeadMagnetCaptureForm({
       </label>
       {showBusinessName ? (
         <label className={cn('relative block', layout === 'inline' && 'md:col-span-2')}>
-          <BriefcaseBusiness className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[#d7a73f]/75" size={16} />
+          <BriefcaseBusiness className={iconClass} size={16} />
           <input
             value={businessName}
             onChange={(e) => setBusinessName(e.target.value)}
@@ -202,23 +214,23 @@ export function PremiumLeadMagnetCaptureForm({
       ) : null}
 
       <label className={cn('flex items-start gap-2 text-[11px] leading-snug text-white/70', layout === 'inline' && 'md:col-span-2')}>
-        <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} className="mt-0.5" required />
+        <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} className="mt-0.5 accent-[#d7a73f]" required />
         <span>
           I agree to be contacted about my free download and portal preview (required). Educational content only — not legal advice.
         </span>
       </label>
       <label className={cn('flex items-start gap-2 text-[11px] leading-snug text-white/55', layout === 'inline' && 'md:col-span-2')}>
-        <input type="checkbox" checked={marketing} onChange={(e) => setMarketing(e.target.checked)} className="mt-0.5" />
+        <input type="checkbox" checked={marketing} onChange={(e) => setMarketing(e.target.checked)} className="mt-0.5 accent-[#d7a73f]" />
         <span>Send me credit tips and follow-ups by email or text (optional). Message/data rates may apply.</span>
       </label>
 
-      <button type="submit" disabled={status === 'sending'} className={cn(buttonClass, layout === 'inline' && 'md:col-span-2')}>
+      <button type="submit" disabled={status === 'sending'} className={cn(resolvedButton, layout === 'inline' && 'md:col-span-2')}>
         <span className="relative z-10 flex items-center justify-center gap-2">
           {status === 'sending' ? 'Sending...' : ctaLabel} <ArrowRight size={16} />
         </span>
       </button>
 
-      <p className={cn('text-center text-[10px] text-white/40', layout === 'inline' && 'md:col-span-2')}>
+      <p className={cn('text-center text-[10px] tracking-wide text-white/40', layout === 'inline' && 'md:col-span-2')}>
         ${totalValue}+ value · No credit card · Secure PDF delivery
       </p>
 

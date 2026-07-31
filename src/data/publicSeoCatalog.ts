@@ -35,6 +35,13 @@ export const PUBLIC_SEO_CATALOG: PublicSeoRoute[] = [
     hasSchema: true,
   },
   {
+    path: '/resources/business-credit-one-sheets',
+    title: 'Business Credit Partner One-Sheets',
+    description:
+      'Premium Business Credit partner one-sheets — fundability roadmap, tier ladder & capital outlook, four tiers, comparison, and named-cards path PDF downloads.',
+    hasSchema: true,
+  },
+  {
     path: '/bookstore',
     title: 'Finely Cred bookstore',
     description: 'Bundles, courses, and credit mastery books.',

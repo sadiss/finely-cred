@@ -5,13 +5,17 @@ import { listAllCourses } from '../../data/coursesRepo';
 import type { CourseLesson } from '../../domain/courses';
 import { FinelyOsPaginatedStack } from '../os/FinelyOsPaginatedStack';
 import {
+  FINELY_OS_COMPACT_PAGE,
   FINELY_OS_ENTITY_BODY,
   FINELY_OS_ENTITY_SUBLABEL,
+  FINELY_OS_ENTITY_TITLE,
   FINELY_OS_ENTITY_VALUE,
   FINELY_OS_PRIMARY_BTN,
   FINELY_OS_SECONDARY_BTN,
-  finelyOsCatalogCard,
-  finelyOsListItem,
+  finelyOsCatalogCardCompact,
+  finelyOsDeckTile,
+  finelyOsGlowKpi,
+  finelyOsMicroStat,
 } from '../os/finelyOsLightUi';
 import {
   contentStudioUrlForCourseLesson,
@@ -34,7 +38,7 @@ const STAGE_LABELS: Record<CourseLessonVideoStage, string> = {
   draft: 'Draft',
   script: 'Script',
   storyboard: 'Storyboard',
-  render_queued: 'Render queued',
+  render_queued: 'Queued',
   rendered: 'Rendered',
   attached: 'Attached',
   published: 'Published',
@@ -76,6 +80,7 @@ export function CourseVideoBatchWorkroom({ courseId, lessonId }: Props) {
       title: string;
       stage: CourseLessonVideoStage;
       hasVideo: boolean;
+      sceneCount: number;
     }> = [];
     for (const m of activeCourse.modules ?? []) {
       for (const l of m.lessons ?? []) {
@@ -87,11 +92,18 @@ export function CourseVideoBatchWorkroom({ courseId, lessonId }: Props) {
           title: l.title,
           stage: inferLessonVideoStage({ lesson: l, sceneCount: job?.sceneCount ?? sceneCount, pipelineStage: job?.stage }),
           hasVideo: lessonHasAttachedVideo(l),
+          sceneCount: job?.sceneCount ?? sceneCount,
         });
       }
     }
     return out;
   }, [activeCourse, version]);
+
+  const stageCounts = useMemo(() => {
+    const counts = Object.fromEntries(COURSE_VIDEO_STAGE_ORDER.map((s) => [s, 0])) as Record<CourseLessonVideoStage, number>;
+    for (const row of lessonRows) counts[row.stage] += 1;
+    return counts;
+  }, [lessonRows]);
 
   const activeLesson = useMemo(() => {
     if (!activeCourse || !activeLessonId) return null;
@@ -101,6 +113,11 @@ export function CourseVideoBatchWorkroom({ courseId, lessonId }: Props) {
     }
     return activeCourse.modules?.[0]?.lessons?.[0] ?? null;
   }, [activeCourse, activeLessonId]);
+
+  const activeRow = useMemo(
+    () => lessonRows.find((r) => r.lessonId === (activeLesson?.id ?? activeLessonId)) ?? lessonRows[0] ?? null,
+    [lessonRows, activeLesson, activeLessonId],
+  );
 
   const videoInitialRequest = useMemo(() => {
     if (!activeCourse || !activeLesson) return undefined;
@@ -157,68 +174,139 @@ export function CourseVideoBatchWorkroom({ courseId, lessonId }: Props) {
   };
 
   return (
-    <div className="space-y-6">
-      <div className={`${finelyOsCatalogCard('fuchsia')} !p-6 space-y-4`} data-fc-accent="fuchsia">
-        <div className={`inline-flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL} text-fuchsia-300`}>
-          <BookOpen size={16} />
-          <span>Course video batch factory</span>
-        </div>
-        <p className={FINELY_OS_ENTITY_BODY}>
-          Full prompt-to-video pipeline for every course lesson — script, storyboard, render, and attach as{' '}
-          <code className="opacity-80">video_asset</code> blocks in the course builder.
-        </p>
-        {notice ? <p className="text-sm text-emerald-200/90">{notice}</p> : null}
-        <div className="flex flex-wrap gap-2 items-center">
-          <select
-            value={activeCourse?.id ?? ''}
-            onChange={(e) => {
-              setActiveCourseId(e.target.value || null);
-              setActiveLessonId(null);
-            }}
-            className="rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm text-white/80"
-          >
-            {courses.map((c) => (
-              <option key={c.id} value={c.id}>{c.title}</option>
-            ))}
-          </select>
-          <button type="button" className={FINELY_OS_PRIMARY_BTN} disabled={busy || !activeCourse} onClick={queueCourse}>
-            {busy ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />} Queue all lessons
-          </button>
-          {activeCourse ? (
-            <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => navigate(`/admin/courses/${activeCourse.id}`)}>
-              Open course builder <ArrowRight size={14} />
+    <div className={FINELY_OS_COMPACT_PAGE}>
+      <div className={`${finelyOsCatalogCardCompact('fuchsia')} space-y-3`} data-fc-accent="fuchsia">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="min-w-0">
+            <div className={`inline-flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL} text-fuchsia-300`}>
+              <BookOpen size={14} />
+              <span>Finely Course Flow</span>
+            </div>
+            <h2 className={`${FINELY_OS_ENTITY_TITLE} mt-1`}>Course video factory</h2>
+            <p className={`${FINELY_OS_ENTITY_BODY} mt-1 max-w-2xl`}>
+              Deck of lessons → one focused render. Presenter Mode (stills + VO) is live; cinematic Kling/Runway/Veo stays Planned.
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2 items-center">
+            <select
+              value={activeCourse?.id ?? ''}
+              onChange={(e) => {
+                setActiveCourseId(e.target.value || null);
+                setActiveLessonId(null);
+              }}
+              className="rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm text-white/80 max-w-xs"
+            >
+              {courses.map((c) => (
+                <option key={c.id} value={c.id}>{c.title}</option>
+              ))}
+            </select>
+            <button type="button" className={FINELY_OS_PRIMARY_BTN} disabled={busy || !activeCourse} onClick={queueCourse}>
+              {busy ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />} Queue missing
             </button>
-          ) : null}
+            {activeCourse ? (
+              <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => navigate(`/admin/courses/${activeCourse.id}`)}>
+                Course builder <ArrowRight size={14} />
+              </button>
+            ) : null}
+          </div>
+        </div>
+        {notice ? <p className="text-sm text-emerald-200/90">{notice}</p> : null}
+
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+          <div className={`${finelyOsGlowKpi('fuchsia')} !p-3`}>
+            <div className={FINELY_OS_ENTITY_SUBLABEL}>Lessons</div>
+            <div className={FINELY_OS_ENTITY_VALUE}>{lessonRows.length}</div>
+          </div>
+          <div className={`${finelyOsGlowKpi('violet')} !p-3`}>
+            <div className={FINELY_OS_ENTITY_SUBLABEL}>Storyboard</div>
+            <div className={FINELY_OS_ENTITY_VALUE}>{stageCounts.storyboard + stageCounts.render_queued}</div>
+          </div>
+          <div className={`${finelyOsGlowKpi('sky')} !p-3`}>
+            <div className={FINELY_OS_ENTITY_SUBLABEL}>Rendered</div>
+            <div className={FINELY_OS_ENTITY_VALUE}>{stageCounts.rendered}</div>
+          </div>
+          <div className={`${finelyOsGlowKpi('emerald')} !p-3`}>
+            <div className={FINELY_OS_ENTITY_SUBLABEL}>Attached</div>
+            <div className={FINELY_OS_ENTITY_VALUE}>{stageCounts.attached + stageCounts.published}</div>
+          </div>
+        </div>
+
+        <div className="flex flex-wrap gap-1.5">
+          {COURSE_VIDEO_STAGE_ORDER.map((s) => (
+            <span key={s} className={finelyOsMicroStat(s === 'attached' || s === 'published' ? 'emerald' : s === 'storyboard' ? 'fuchsia' : 'violet')}>
+              {STAGE_LABELS[s]} · {stageCounts[s]}
+            </span>
+          ))}
         </div>
       </div>
 
       {activeCourse ? (
-        <FinelyOsPaginatedStack
-          items={lessonRows}
-          pageSize={10}
-          emptyMessage="No lessons in this course yet."
-          renderItem={(row) => {
-            const active = activeLessonId === row.lessonId;
-            return (
-              <div key={row.lessonId} className={`${finelyOsListItem(active, 'fuchsia')} flex flex-wrap items-center justify-between gap-3`}>
-                <button type="button" className="text-left min-w-0 flex-1" onClick={() => setActiveLessonId(row.lessonId)}>
-                  <div className={FINELY_OS_ENTITY_VALUE}>{row.title}</div>
-                  <div className={FINELY_OS_ENTITY_SUBLABEL}>{row.moduleTitle} · {STAGE_LABELS[row.stage]}{row.hasVideo ? ' · video attached' : ''}</div>
+        <div className="grid lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] gap-3">
+          <div className="space-y-2">
+            <div className={FINELY_OS_ENTITY_SUBLABEL}>Lesson deck</div>
+            <FinelyOsPaginatedStack
+              items={lessonRows}
+              pageSize={8}
+              emptyMessage="No lessons in this course yet."
+              itemSpacingClassName="grid sm:grid-cols-2 gap-2"
+              renderItem={(row) => {
+                const active = (activeLessonId ?? activeRow?.lessonId) === row.lessonId;
+                return (
+                  <button
+                    key={row.lessonId}
+                    type="button"
+                    onClick={() => setActiveLessonId(row.lessonId)}
+                    className={`${finelyOsDeckTile('fuchsia', active)} p-3`}
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0 text-left">
+                        <div className={`${FINELY_OS_ENTITY_VALUE} truncate`}>{row.title}</div>
+                        <div className={`${FINELY_OS_ENTITY_SUBLABEL} truncate`}>{row.moduleTitle}</div>
+                      </div>
+                      <span className={finelyOsMicroStat(row.hasVideo ? 'emerald' : 'violet')}>{STAGE_LABELS[row.stage]}</span>
+                    </div>
+                    <div className={`mt-2 ${FINELY_OS_ENTITY_BODY} text-xs`}>
+                      {row.sceneCount > 0 ? `${row.sceneCount} scenes` : 'No scenes yet'}
+                      {row.hasVideo ? ' · video on' : ''}
+                    </div>
+                  </button>
+                );
+              }}
+            />
+          </div>
+
+          <div className={`${finelyOsCatalogCardCompact('amber')} space-y-3`}>
+            <div className={`inline-flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL} text-amber-200`}>
+              <Film size={14} />
+              <span>Focus</span>
+            </div>
+            {activeLesson && activeCourse && activeRow ? (
+              <>
+                <h3 className={FINELY_OS_ENTITY_TITLE}>{activeLesson.title}</h3>
+                <p className={FINELY_OS_ENTITY_BODY}>
+                  {activeRow.moduleTitle} · {STAGE_LABELS[activeRow.stage]}
+                  {activeRow.hasVideo ? ' · attached' : ''}
+                </p>
+                <button
+                  type="button"
+                  className={FINELY_OS_PRIMARY_BTN}
+                  onClick={() => startLessonRender(activeCourse.id, activeLesson.id)}
+                >
+                  <Clapperboard size={14} /> Render this lesson
                 </button>
-                <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => startLessonRender(activeCourse.id, row.lessonId)}>
-                  <Clapperboard size={14} /> Render
-                </button>
-              </div>
-            );
-          }}
-        />
+              </>
+            ) : (
+              <p className={FINELY_OS_ENTITY_BODY}>Select a lesson tile to focus render.</p>
+            )}
+          </div>
+        </div>
       ) : null}
 
       {activeCourse && activeLesson ? (
-        <div className="space-y-3">
+        <div className="space-y-2">
           <div className={`inline-flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL} text-fuchsia-300`}>
-            <Film size={16} />
-            <span>Video command — {activeLesson.title}</span>
+            <Film size={14} />
+            <span>Presenter / plan command — {activeLesson.title}</span>
           </div>
           <GeminiStyleVideoCommand key={`${activeCourse.id}-${activeLesson.id}`} initialRequest={videoInitialRequest} />
         </div>

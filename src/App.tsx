@@ -112,6 +112,7 @@ const CasesPage = lazy(() => import('./pages/admin/CasesPage'));
 const AdminCaseDetailPage = lazy(() => import('./pages/admin/AdminCaseDetailPage'));
 const AdminDisputeCollaborationPage = lazy(() => import('./pages/admin/AdminDisputeCollaborationPage'));
 const AdminDashboardPage = lazy(() => import('./pages/admin/AdminDashboardPage'));
+const AdminDashboardIvoryPreviewPage = lazy(() => import('./pages/admin/AdminDashboardIvoryPreviewPage'));
 const AdminAccessCenterPage = lazy(() => import('./pages/admin/AdminAccessCenterPage'));
 const AdminSettingsPage = lazy(() => import('./pages/admin/AdminSettingsPage'));
 const AdminBillingPage = lazy(() => import('./pages/admin/AdminBillingPage'));
@@ -133,6 +134,11 @@ const AdminOpsAgentPage = lazy(() => import('./pages/admin/AdminOpsAgentPage'));
 const AdminPhoneHubPage = lazy(() => import('./pages/admin/AdminPhoneHubPage'));
 const AdminTeamRolesPage = lazy(() => import('./pages/admin/AdminTeamRolesPage'));
 const AdminRolePreviewPage = lazy(() => import('./pages/admin/AdminRolePreviewPage'));
+const AdminIvoryPreviewHubPage = lazy(() => import('./pages/admin/AdminIvoryPreviewHubPage'));
+const AdminIvoryMarketingDeskPreviewPage = lazy(() => import('./pages/admin/AdminIvoryMarketingDeskPreviewPage'));
+const AdminIvoryLeadsPreviewPage = lazy(() => import('./pages/admin/AdminIvoryLeadsPreviewPage'));
+const AdminIvoryCrmPreviewPage = lazy(() => import('./pages/admin/AdminIvoryCrmPreviewPage'));
+const AdminIvoryPricingPreviewPage = lazy(() => import('./pages/admin/AdminIvoryPricingPreviewPage'));
 const AdminTenantsPage = lazy(() => import('./pages/admin/AdminTenantsPage'));
 const AdminAuSellersPage = lazy(() => import('./pages/admin/AdminAuSellersPage'));
 const AdminCalendarPage = lazy(() => import('./pages/admin/AdminCalendarPage'));
@@ -159,6 +165,7 @@ const AdminMonitoringPage = lazy(() => import('./pages/admin/AdminMonitoringPage
 const AdminLeadIntelPage = lazy(() => import('./pages/admin/AdminLeadIntelPage'));
 const AdminSignupOpsPage = lazy(() => import('./pages/admin/AdminSignupOpsPage'));
 const AdminLeadsOsPage = lazy(() => import('./pages/admin/AdminLeadsOsPage'));
+const AdminMarketingDeskPage = lazy(() => import('./pages/admin/AdminMarketingDeskPage'));
 const AdminCmoCommandPage = lazy(() => import('./pages/admin/AdminCmoCommandPage'));
 const AdminMediaStudioPage = lazy(() => import('./pages/admin/AdminMediaStudioPage'));
 const AdminVoiceStudioPage = lazy(() => import('./pages/admin/AdminVoiceStudioPage'));
@@ -190,6 +197,7 @@ const AuRequestPage = lazy(() => import('./pages/au/AuRequestPage'));
 const AuOrdersPage = lazy(() => import('./pages/au/AuOrdersPage'));
 
 const ResourcesPage = lazy(() => import('./pages/ResourcesPage'));
+const BusinessCreditOneSheetsPage = lazy(() => import('./pages/BusinessCreditOneSheetsPage'));
 const StartHerePage = lazy(() => import('./pages/StartHerePage'));
 const LaunchHelpCenterPage = lazy(() => import('./pages/LaunchHelpCenterPage'));
 const BookstorePage = lazy(() => import('./pages/BookstorePage'));
@@ -1611,6 +1619,7 @@ function AppInner() {
         <Route path="/start-here" element={<StartHerePage />} />
         <Route path="/help-center" element={<LaunchHelpCenterPage />} />
         <Route path="/resources" element={<ResourcesPage />} />
+        <Route path="/resources/business-credit-one-sheets" element={<BusinessCreditOneSheetsPage />} />
         <Route path="/events" element={<EventsPage />} />
         <Route path="/testimonials" element={<TestimonialsPage />} />
         <Route path="/bookstore" element={<BookstorePage />} />
@@ -2204,6 +2213,14 @@ function AppInner() {
           }
         />
         <Route
+          path="/admin/preview/dashboard-ivory"
+          element={
+            <ProtectedAdminRoute>
+              <AdminDashboardIvoryPreviewPage />
+            </ProtectedAdminRoute>
+          }
+        />
+        <Route
           path="/admin/access"
           element={
             <ProtectedAdminRoute>
@@ -2416,6 +2433,15 @@ function AppInner() {
             </ProtectedAdminRoute>
           }
         />
+        <Route path="/admin/leads-os" element={<Navigate to="/admin/leads" replace />} />
+        <Route
+          path="/admin/marketing-desk"
+          element={
+            <ProtectedAdminRoute>
+              <AdminMarketingDeskPage />
+            </ProtectedAdminRoute>
+          }
+        />
         <Route
           path="/admin/staff"
           element={
@@ -2498,6 +2524,46 @@ function AppInner() {
           element={
             <ProtectedAdminRoute>
               <AdminRolePreviewPage />
+            </ProtectedAdminRoute>
+          }
+        />
+        <Route
+          path="/admin/preview"
+          element={
+            <ProtectedAdminRoute>
+              <AdminIvoryPreviewHubPage />
+            </ProtectedAdminRoute>
+          }
+        />
+        <Route
+          path="/admin/preview/marketing-desk-ivory"
+          element={
+            <ProtectedAdminRoute>
+              <AdminIvoryMarketingDeskPreviewPage />
+            </ProtectedAdminRoute>
+          }
+        />
+        <Route
+          path="/admin/preview/leads-ivory"
+          element={
+            <ProtectedAdminRoute>
+              <AdminIvoryLeadsPreviewPage />
+            </ProtectedAdminRoute>
+          }
+        />
+        <Route
+          path="/admin/preview/crm-ivory"
+          element={
+            <ProtectedAdminRoute>
+              <AdminIvoryCrmPreviewPage />
+            </ProtectedAdminRoute>
+          }
+        />
+        <Route
+          path="/admin/preview/pricing-ivory"
+          element={
+            <ProtectedAdminRoute>
+              <AdminIvoryPricingPreviewPage />
             </ProtectedAdminRoute>
           }
         />

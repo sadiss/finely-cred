@@ -61,9 +61,10 @@ export function LeadIntelSwarmDashboard() {
         <div className="flex flex-wrap items-start justify-between gap-5">
           <div className="max-w-3xl">
             <div className="inline-flex items-center gap-2 text-emerald-300 text-xs font-black uppercase tracking-[0.24em]"><Radar size={16} /> Lead Intel Deep Swarm</div>
-            <h2 className="mt-3 text-3xl md:text-4xl font-black text-white">Multi-hour discovery — not a 10-second batch.</h2>
+            <h2 className="mt-3 text-3xl md:text-4xl font-black text-white">Deep swarm queue (simulation / ops cadence)</h2>
             <p className="mt-3 text-white/65 text-sm md:text-base">
-              Each job runs through discover → enrich → score → import phases over dozens of ticks. Cadence ~90s. A full queue can run many hours.
+              Local tick counters are <strong className="text-amber-200">not</strong> live Serper imports. For real leads, use{' '}
+              <strong className="text-emerald-200">Start Lead Engine</strong> at the top of this page (or Lead Intel Hub Discover).
             </p>
             {session ? (
               <p className="mt-3 inline-flex items-center gap-2 text-amber-200 text-sm font-semibold">

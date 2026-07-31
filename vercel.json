@@ -1,7 +1,12 @@
 {
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
-  "rewrites": [{ "source": "/((?!assets/).*)", "destination": "/index.html" }],
+  "rewrites": [
+    {
+      "source": "/((?!assets/|resources/|credit-analysis/|brand/|tours/|images/|guides/|feeds/|media/|staff/|staff-portraits/|\\.well-known/).*)",
+      "destination": "/index.html"
+    }
+  ],
   "headers": [
     {
       "source": "/index.html",

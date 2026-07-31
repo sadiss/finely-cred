@@ -5,6 +5,7 @@ import {
   type FinelyOsCatalogItem,
 } from '../../features/os/FinelyOsCatalogBrowser';
 import {
+  formatBusinessCapitalOutlook,
   formatPrice,
   getPackageById,
   type PricingPackage,
@@ -92,14 +93,23 @@ export function pricingPackageToCatalogItem(
       ? 'Free'
       : `${formatPrice(pkg.priceAmount)}${pkg.interval === 'month' ? '/mo' : ''}`;
 
+  const capital = formatBusinessCapitalOutlook(pkg);
   const meta = opts?.includePersonalCompare
     ? [...personalCreditCompareMeta(pkg), priceLabel]
-    : [priceLabel, pkg.delivery ? `${pkg.delivery}` : ''].filter(Boolean);
+    : [
+        priceLabel,
+        pkg.delivery ? `${pkg.delivery}` : '',
+        capital ? `Program ${capital.programLabel}` : '',
+        capital ? `Est. vendor/trade outlay ${capital.outlayLabel}` : '',
+        capital ? `Potential capital (BC only) ${capital.potentialLabel}` : '',
+      ].filter(Boolean);
 
   return {
     id: pkg.id,
     title: pkg.name,
-    subtitle: priceLabel,
+    subtitle: capital
+      ? `${priceLabel} · outlay ${capital.outlayLabel} · ${capital.potentialLabel} BC`
+      : priceLabel,
     description: pkg.tagline || pkg.description,
     groupKey: pricingPackageGroupKey(pkg),
     badges: pkg.badge ? [{ label: pkg.badge, className: badgeClass(pkg.badge) }] : undefined,

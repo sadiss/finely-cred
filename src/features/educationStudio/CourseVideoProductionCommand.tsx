@@ -11,8 +11,9 @@ import {
   FINELY_OS_ENTITY_VALUE,
   FINELY_OS_PRIMARY_BTN,
   FINELY_OS_SECONDARY_BTN,
+  finelyOsDeckTile,
   finelyOsInlineListItem,
-  finelyOsListItem,
+  finelyOsMicroStat,
 } from '../os/finelyOsLightUi';
 import { VideoProductionPanel } from './VideoProductionPanel';
 import {
@@ -204,8 +205,9 @@ export function CourseVideoProductionCommand({
 
         <FinelyOsPaginatedStack
           items={lessonRows}
-          pageSize={6}
+          pageSize={8}
           emptyMessage="Add lessons in Curriculum to start video production."
+          itemSpacingClassName="grid sm:grid-cols-2 lg:grid-cols-3 gap-2"
           renderItem={(row) => {
             const active = lesson?.id === row.lessonId;
             return (
@@ -213,22 +215,20 @@ export function CourseVideoProductionCommand({
                 key={row.lessonId}
                 type="button"
                 onClick={() => onLessonSelect?.(row.lessonId)}
-                className={`w-full text-left ${finelyOsListItem(active, 'fuchsia')}`}
+                className={`${finelyOsDeckTile('fuchsia', active)} p-3 text-left`}
               >
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
-                    <div className={FINELY_OS_ENTITY_VALUE}>{row.lesson.title}</div>
-                    <div className={FINELY_OS_ENTITY_SUBLABEL}>{row.moduleTitle}</div>
+                    <div className={`${FINELY_OS_ENTITY_VALUE} truncate`}>{row.lesson.title}</div>
+                    <div className={`${FINELY_OS_ENTITY_SUBLABEL} truncate`}>{row.moduleTitle}</div>
                   </div>
-                  <span className={`shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase ${stageTone(row.stage)}`}>
-                    {STAGE_LABELS[row.stage]}
-                  </span>
+                  <span className={finelyOsMicroStat(row.hasVideo ? 'emerald' : 'fuchsia')}>{STAGE_LABELS[row.stage]}</span>
                 </div>
                 <div className={`mt-2 flex flex-wrap gap-2 text-xs ${FINELY_OS_ENTITY_BODY}`}>
-                  {row.sceneCount > 0 ? <span>{row.sceneCount} scenes</span> : null}
+                  {row.sceneCount > 0 ? <span>{row.sceneCount} scenes</span> : <span>No scenes</span>}
                   {row.hasVideo ? (
                     <span className="inline-flex items-center gap-1 text-emerald-300">
-                      <CheckCircle2 size={12} /> Video attached
+                      <CheckCircle2 size={12} /> Attached
                     </span>
                   ) : null}
                 </div>

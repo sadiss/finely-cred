@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Finely Cred | Post-Defense Operations</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            gold: '#d4af37',
+                            blue: '#0f172a',
+                            lightbg: '#f8fafc',
+                            cardbg: '#ffffff'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #f8fafc !important; 
+            color: #334155 !important;
+            overflow-y: auto;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Differentiated Slide Transition: Glides in from the right instead of floating up */
+        .slide {
+            display: none;
+            opacity: 0;
+            transition: opacity 0.4s ease-in-out, transform 0.4s ease-out;
+            transform: translateX(30px);
+        }
+        .slide.active {
+            display: block;
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .action-btn {
+            background-color: #d4af37 !important; 
+            color: #0f172a !important;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            padding: 16px 36px;
+            border-radius: 8px;
+            box-shadow: 0 10px 15px -3px rgba(212, 175, 55, 0.3);
+            transition: all 0.2s ease;
+            border: 2px solid #d4af37 !important;
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+        }
+        .action-btn:hover {
+            background-color: #0f172a !important; 
+            border-color: #0f172a !important;
+            color: #ffffff !important;
+            transform: translateY(-3px);
+            box-shadow: 0 20px 25px -5px rgba(15, 23, 42, 0.3);
+        }
+
+        .highlight-text {
+            color: #0f172a;
+            font-weight: 800;
+            background: linear-gradient(120deg, rgba(212, 175, 55, 0.3) 0%, rgba(212, 175, 55, 0.3) 100%);
+            background-repeat: no-repeat;
+            background-size: 100% 35%;
+            background-position: 0 85%;
+        }
+        
+        .card-container {
+            background-color: #ffffff !important;
+            border: 1px solid #e2e8f0;
+            border-top: 4px solid #0f172a; /* Solid top border for visual distinction */
+            box-shadow: 0 6px 12px -2px rgba(0, 0, 0, 0.05);
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Differentiated Navigation: Dark Blue Background -->
+    <nav class="fixed top-0 w-full bg-brand-blue border-b border-gray-800 z-50 px-6 md:px-12 py-5 flex justify-between items-center shadow-lg">
+        <div class="text-2xl font-black tracking-tight text-white">FINELY <span class="text-brand-gold">CRED</span></div>
+        <div class="flex items-center gap-4">
+            <div class="text-sm font-bold px-4 py-2 bg-gray-800 text-brand-gold rounded-md border border-gray-700">
+                PHASE 2: POST-DEFENSE
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-4xl mx-auto pt-36 pb-24 px-6 min-h-screen">
+        
+        <!-- SLIDE 1: THE SHIFT IN POWER -->
+        <div id="slide-1" class="slide active">
+            <h1 class="text-4xl md:text-5xl font-extrabold text-brand-blue mb-6">The Shift in Power</h1>
+            <p class="text-xl text-gray-600 mb-10 leading-relaxed">The moment you finish reading your opening script, the courtroom dynamics permanently change. You have admitted the truth of your past, but demanded legal proof of their present authority. The burden is now entirely on Midland.</p>
+
+            <div class="card-container rounded-xl p-8 mb-12">
+                <h2 class="text-sm font-bold text-gray-400 uppercase tracking-widest mb-6">What Happens Next</h2>
+                
+                <p class="text-lg text-gray-700 font-medium leading-relaxed mb-6">The Magistrate will turn to the opposing attorney. The spotlight is no longer on you; it is on their paperwork.</p>
+                
+                <div class="bg-gray-50 p-6 rounded-lg border border-gray-200">
+                    <p class="text-sm font-bold text-brand-blue uppercase mb-2">The Magistrate's Likely Response:</p>
+                    <p class="text-xl italic text-gray-800 font-serif">"Counsel, what do you have to show me? Have you two spoken yet? Please step out into the hallway and see if you can work this out."</p>
+                </div>
+                
+                <p class="text-gray-600 mt-6 font-semibold">Magistrates heavily prefer not to rule if they do not have to. They will usually order you into the hallway to attempt mediation. This is completely normal. Do not panic.</p>
+            </div>
+
+            <div class="flex justify-end mt-8">
+                <button onclick="nextSlide('slide-1', 'slide-2')" class="action-btn">
+                    Enter Hallway Protocol
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- SLIDE 2: THE HALLWAY PROTOCOL -->
+        <div id="slide-2" class="slide">
+            <h2 class="text-4xl font-extrabold text-brand-blue mb-6">The Hallway Protocol</h2>
+            <p class="text-xl text-gray-600 mb-8 leading-relaxed">When you step outside the courtroom, the opposing attorney will try to pressure you one-on-one. They want you to fold so they don't have to face the judge again. <span class="highlight-text">Hold the line.</span></p>
+
+            <div class="card-container p-8 rounded-xl mb-10 space-y-8 border-t-brand-gold">
+                <div>
+                    <h3 class="text-sm font-bold text-gray-400 uppercase tracking-widest mb-3">Your Posture</h3>
+                    <p class="text-gray-700 font-semibold text-lg">Be incredibly polite, calm, and firm. You are a professional conducting business. Let them do most of the talking.</p>
+                </div>
+                
+                <hr class="border-gray-200">
+
+                <div>
+                    <h3 class="text-sm font-bold text-gray-400 uppercase tracking-widest mb-3">The Hallway Script</h3>
+                    <p class="text-2xl font-bold text-brand-blue leading-snug">"I am perfectly willing to resolve this today, but you still haven't shown me the legal proof that you own my specific account. Without that, I'm not comfortable signing an agreement. What exactly are you offering?"</p>
+                </div>
+            </div>
+
+            <div class="flex justify-between items-center mt-8">
+                <button onclick="nextSlide('slide-2', 'slide-1')" class="text-gray-500 hover:text-brand-blue font-bold tracking-wide">← BACK</button>
+                <button onclick="nextSlide('slide-2', 'slide-3')" class="action-btn">
+                    Handle Document Ambushes
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- SLIDE 3: THE DOCUMENT AMBUSH -->
+        <div id="slide-3" class="slide">
+            <h2 class="text-4xl font-extrabold text-brand-blue mb-6">The Document Ambush</h2>
+            <p class="text-xl text-gray-600 mb-8 leading-relaxed">Whether in the hallway or back in front of the judge, the attorney may suddenly produce a stack of papers—usually a generic "Bill of Sale" and some old Citibank statements. This is designed to intimidate you.</p>
+
+            <div class="card-container p-8 rounded-xl mb-12 border-t-brand-gold">
+                <h3 class="font-bold text-2xl text-brand-blue mb-4">How to Disarm Their Paperwork</h3>
+                <p class="text-gray-600 mb-6 font-medium">Take the documents. Look at them carefully. Do not act surprised. You are looking for one specific flaw: <span class="text-brand-gold font-bold">The generic bulk sale.</span></p>
+
+                <div class="space-y-6">
+                    <div class="bg-blue-50 p-6 rounded-lg border border-blue-100">
+                        <p class="text-sm font-bold text-brand-blue uppercase mb-2">Ask The Attorney / The Judge:</p>
+                        <p class="text-xl font-bold text-gray-800">"Your Honor, this Bill of Sale mentions a 'Portfolio of Accounts,' but it does not actually name me or my exact account. Where is the specific row or data field that connects me to this bulk sale?"</p>
+                    </div>
+
+                    <div class="bg-blue-50 p-6 rounded-lg border border-blue-100">
+                        <p class="text-sm font-bold text-brand-blue uppercase mb-2">Follow Up Firmly:</p>
+                        <p class="text-xl font-bold text-gray-800">"I am not asking the Court to ignore these documents. I am just pointing out that they do not legally connect this exact plaintiff to my exact account."</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex justify-between items-center mt-8">
+                <button onclick="nextSlide('slide-3', 'slide-2')" class="text-gray-500 hover:text-brand-blue font-bold tracking-wide">← BACK</button>
+                <button onclick="nextSlide('slide-3', 'slide-4')" class="action-btn">
+                    Mastering The 30-Day Extension
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- SLIDE 4: MASTERING THE CONTINUANCE (HEAVILY UPDATED) -->
+        <div id="slide-4" class="slide">
+            <h2 class="text-4xl font-extrabold text-brand-blue mb-6">Mastering the 30-Day Extension</h2>
+            <p class="text-xl text-gray-600 mb-8 leading-relaxed">Our ultimate goal is a Dismissal. However, if the plaintiff lacks proof on Day 1, the judge will likely grant a <strong class="text-brand-blue">Continuance</strong> (extending the case for about 30 days). Do not view this as a loss. This is a massive tactical victory.</p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+                    <h3 class="font-bold text-xl text-brand-blue mb-3">Why 30 Days? The Legal Reality</h3>
+                    <p class="text-gray-600 text-sm leading-relaxed">Under Small Claims Trial Rules, plaintiffs are strictly required to be fully prepared with their evidence on Day 1. When you invoke your rights under <strong>UCC 9-406</strong> to demand proof of the exact account assignment, and they don't have it, they are legally unprepared.<br><br>The judge isn't giving them 30 days because it's a special law; the judge is giving them a standard <strong>scheduling grace period</strong> because their case is defective today.</p>
+                </div>
+                
+                <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+                    <h3 class="font-bold text-xl text-brand-blue mb-3">Why This Hurts Them</h3>
+                    <p class="text-gray-600 text-sm leading-relaxed">Midland buys debts in bulk and relies on cheap, automated software. Forcing them to manually locate, extract, and legally verify your specific account-level data from a massive corporate portfolio costs them severe time and money. Often, they simply cannot find it.</p>
+                </div>
+            </div>
+
+            <div class="card-container p-8 rounded-xl border-t-brand-gold mb-12 bg-blue-50">
+                <h3 class="text-sm font-bold text-gray-500 uppercase tracking-widest mb-3">If The Judge Grants Them More Time, Say This:</h3>
+                <p class="text-2xl font-bold text-brand-blue leading-snug">"Your Honor, I object to a continuance since they are unprepared for trial today. However, if the Court grants them more time, I ask that they be strictly required to produce the account-level assignment and a mathematical accounting of this specific balance, not just a generic bill of sale."</p>
+            </div>
+
+            <div class="flex justify-between items-center mt-8">
+                <button onclick="nextSlide('slide-4', 'slide-3')" class="text-gray-500 hover:text-brand-blue font-bold tracking-wide">← BACK</button>
+                <button onclick="nextSlide('slide-4', 'slide-5')" class="action-btn">
+                    Critical Do's and Don'ts
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- SLIDE 5: GUIDED DO'S AND DON'TS -->
+        <div id="slide-5" class="slide">
+            <h2 class="text-4xl font-extrabold text-brand-blue mb-6">Guided Operations</h2>
+            <p class="text-xl text-gray-600 mb-8 leading-relaxed">Your behavior in the courtroom and the hallway will be heavily scrutinized. Maintain absolute discipline.</p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
+                <!-- DO THIS -->
+                <div class="card-container p-8 rounded-xl border-t-green-600">
+                    <h3 class="font-bold text-2xl text-green-700 mb-4">DO THIS</h3>
+                    <ul class="space-y-4 text-gray-800 font-semibold">
+                        <li class="flex items-start gap-3">
+                            <span class="text-green-600 text-xl mt-[-2px]">✔</span> 
+                            Speak clearly and maintain eye contact with the Magistrate.
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <span class="text-green-600 text-xl mt-[-2px]">✔</span> 
+                            Ask to physically hold and read any document they try to use against you.
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <span class="text-green-600 text-xl mt-[-2px]">✔</span> 
+                            Take a breath before answering questions.
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <span class="text-green-600 text-xl mt-[-2px]">✔</span> 
+                            Remember you can always end hallway mediation by saying, "Let's go back before the judge."
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- DO NOT DO THIS -->
+                <div class="card-container p-8 rounded-xl border-t-red-600">
+                    <h3 class="font-bold text-2xl text-red-700 mb-4">DO NOT DO THIS</h3>
+                    <ul class="space-y-4 text-gray-800 font-bold">
+                        <li class="flex items-start gap-3">
+                            <span class="text-red-600 text-xl mt-[-2px]">✘</span> 
+                            Do not get angry, raise your voice, or argue with the opposing attorney.
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <span class="text-red-600 text-xl mt-[-2px]">✘</span> 
+                            Do not say "I don't owe you anything." (It sounds defensive, not factual).
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <span class="text-red-600 text-xl mt-[-2px]">✘</span> 
+                            Do not sign a consent judgment just to go home early.
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <span class="text-red-600 text-xl mt-[-2px]">✘</span> 
+                            Do not agree to "convenience" payment plans if they cannot prove ownership.
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="flex justify-between items-center mt-8">
+                <button onclick="nextSlide('slide-5', 'slide-4')" class="text-gray-500 hover:text-brand-blue font-bold tracking-wide">← BACK</button>
+                <button onclick="nextSlide('slide-5', 'slide-6')" class="action-btn">
+                    Final Exit Operations
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- SLIDE 6: FINAL EXIT OPERATIONS -->
+        <div id="slide-6" class="slide">
+            <h2 class="text-4xl font-extrabold text-brand-blue mb-6">Final Exit Operations</h2>
+            <p class="text-xl text-gray-600 mb-8 leading-relaxed">No matter the outcome, you leave the courtroom as a professional. Here is how to handle the end of the proceeding.</p>
+
+            <div class="space-y-6 mb-12">
+                <div class="bg-white p-6 rounded-xl border border-gray-200 border-l-4 border-l-green-500 shadow-sm">
+                    <h3 class="text-xl font-bold text-brand-blue mb-1">If Dismissed:</h3>
+                    <p class="text-gray-600 font-medium">Say, "Thank you, Your Honor." Collect your papers, walk out calmly, and immediately report the victory to the Finely Cred team.</p>
+                </div>
+
+                <div class="bg-white p-6 rounded-xl border border-gray-200 border-l-4 border-l-brand-gold shadow-sm">
+                    <h3 class="text-xl font-bold text-brand-blue mb-1">If Granted a 30-Day Continuance:</h3>
+                    <p class="text-gray-600 font-medium">Write down the new court date immediately. Ensure you have stated your objection on the record, thank the judge, and leave. The pressure is now entirely on them to find the data.</p>
+                </div>
+
+                <div class="bg-white p-6 rounded-xl border border-gray-200 border-l-4 border-l-red-500 shadow-sm">
+                    <h3 class="text-xl font-bold text-brand-blue mb-1">If Judgment is Entered Against You:</h3>
+                    <p class="text-gray-600 font-medium">Sometimes judges rule incorrectly despite the law. If they enter a judgment, do not argue. Say "Thank you, Your Honor," and leave. Finely Cred will pivot immediately to post-judgment strategy.</p>
+                </div>
+            </div>
+
+            <div class="card-container p-8 rounded-xl text-center border-t-brand-blue bg-gradient-to-b from-white to-blue-50">
+                <p class="text-brand-blue text-2xl font-black max-w-2xl mx-auto uppercase tracking-wide">
+                    You are prepared. You control the narrative.<br><span class="text-brand-gold">Execute the strategy.</span>
+                </p>
+            </div>
+
+            <div class="flex justify-between items-center mt-8">
+                <button onclick="nextSlide('slide-6', 'slide-5')" class="text-gray-500 hover:text-brand-blue font-bold tracking-wide">← BACK</button>
+                <div class="px-6 py-3 bg-gray-800 text-brand-gold font-bold rounded-lg uppercase tracking-wider text-sm">
+                    Operations Complete
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <footer class="bg-white border-t border-gray-200 py-8 text-center text-gray-500 text-sm font-semibold">
+        <p>Copyright &copy; 2026 Finely Cred. All rights reserved.</p>
+    </footer>
+
+    <script>
+        function nextSlide(currentId, nextId) {
+            const currentSlide = document.getElementById(currentId);
+            const nextSlide = document.getElementById(nextId);
+
+            currentSlide.style.opacity = '0';
+            currentSlide.style.transform = 'translateX(-30px)';
+
+            setTimeout(() => {
+                currentSlide.classList.remove('active');
+                nextSlide.classList.add('active');
+
+                void nextSlide.offsetWidth;
+
+                nextSlide.style.opacity = '1';
+                nextSlide.style.transform = 'translateX(0)';
+                
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }, 400); 
+        }
+    </script>
+</body>
+</html>

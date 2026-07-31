@@ -1,0 +1,404 @@
+/**
+ * Shared luxury stage primitives for lead-magnet landings.
+ * Themes: default / --navy (Debt gold) · --lime (Business Credit black/gold/lime)
+ * All motion respects prefers-reduced-motion.
+ */
+
+/* ── Theme tokens ── */
+.lm-lux-theme,
+.lm-lux-theme--navy {
+  /* Matched to Ultimate Debt Freedom Guide mockup */
+  --lm-lux-gold: #e0b24a;
+  --lm-lux-gold-soft: #ffd993;
+  --lm-lux-accent: #e0b24a;
+  --lm-lux-accent-soft: #ffd993;
+  --lm-lux-glow: rgba(224, 178, 74, 0.32);
+  --lm-lux-glow-soft: rgba(224, 178, 74, 0.14);
+  --lm-lux-ink: #000c3c;
+  --lm-lux-field-bg: color-mix(in srgb, #040a36 88%, #e0b24a 4%);
+  --lm-lux-field-border: color-mix(in srgb, #e0b24a 38%, transparent);
+  --lm-lux-cta-a: #c4803d;
+  --lm-lux-cta-b: #e0b24a;
+  --lm-lux-cta-c: #ffe7b0;
+  --lm-lux-cta-ink: #040a36;
+}
+
+.lm-lux-theme--lime {
+  --lm-lux-gold: #d4a447;
+  --lm-lux-gold-soft: #e8c96a;
+  --lm-lux-accent: #95e000;
+  --lm-lux-accent-soft: #b8ff2f;
+  --lm-lux-glow: rgba(149, 224, 0, 0.3);
+  --lm-lux-glow-soft: rgba(149, 224, 0, 0.12);
+  --lm-lux-ink: #030504;
+  --lm-lux-field-bg: color-mix(in srgb, #0a0e0c 90%, #95e000 3%);
+  --lm-lux-field-border: color-mix(in srgb, #d4a447 42%, transparent);
+  --lm-lux-cta-a: #6fbd00;
+  --lm-lux-cta-b: #95e000;
+  --lm-lux-cta-c: #b8ff2f;
+  --lm-lux-cta-ink: #030504;
+}
+
+/* ── Atmosphere: grain / vignette / light beams ── */
+.lm-lux-grain {
+  position: relative;
+}
+
+.lm-lux-grain::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.038;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 180px 180px;
+}
+
+.lm-lux-grain--fixed::after {
+  position: fixed;
+  z-index: 0;
+}
+
+.lm-lux-vignette {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background:
+    radial-gradient(ellipse 72% 68% at 50% 42%, transparent 35%, color-mix(in srgb, var(--lm-lux-ink) 72%, transparent) 100%),
+    linear-gradient(180deg, color-mix(in srgb, var(--lm-lux-ink) 45%, transparent) 0%, transparent 22%, transparent 68%, color-mix(in srgb, var(--lm-lux-ink) 78%, transparent) 100%);
+}
+
+.lm-lux-beam {
+  pointer-events: none;
+  position: absolute;
+  z-index: 0;
+  width: min(42vw, 420px);
+  height: min(70vh, 720px);
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--lm-lux-gold-soft) 18%, transparent) 0%,
+    color-mix(in srgb, var(--lm-lux-accent) 8%, transparent) 42%,
+    transparent 100%
+  );
+  filter: blur(48px);
+  opacity: 0.55;
+  transform: rotate(-18deg);
+  mix-blend-mode: screen;
+}
+
+.lm-lux-beam--right {
+  transform: rotate(16deg);
+  opacity: 0.4;
+}
+
+.lm-lux-beam--accent {
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--lm-lux-accent) 22%, transparent) 0%,
+    color-mix(in srgb, var(--lm-lux-gold) 8%, transparent) 48%,
+    transparent 100%
+  );
+}
+
+/* ── Hairline section rules ── */
+.lm-lux-rule {
+  height: 1px;
+  width: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    color-mix(in srgb, var(--lm-lux-gold) 28%, transparent) 18%,
+    color-mix(in srgb, var(--lm-lux-accent) 55%, transparent) 50%,
+    color-mix(in srgb, var(--lm-lux-gold) 28%, transparent) 82%,
+    transparent 100%
+  );
+}
+
+.lm-lux-rule--short {
+  width: 96px;
+  height: 2px;
+  background: linear-gradient(90deg, var(--lm-lux-gold), transparent);
+  box-shadow: 0 0 18px var(--lm-lux-glow-soft);
+}
+
+.lm-lux-rule--draw {
+  transform-origin: left center;
+  animation: lm-lux-rule-draw 1.1s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes lm-lux-rule-draw {
+  from {
+    transform: scaleX(0);
+    opacity: 0.2;
+  }
+  to {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+}
+
+/* ── Product stage micro-motion ── */
+.lm-lux-float {
+  animation: lm-lux-float 7.5s ease-in-out infinite;
+  will-change: transform;
+}
+
+@keyframes lm-lux-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+/* Preserve page-specific transforms on hero stacks */
+.lm-lux-float--soft {
+  animation: lm-lux-float-soft 8s ease-in-out infinite;
+}
+
+@keyframes lm-lux-float-soft {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+/* ── Boutique capture fields ── */
+.lm-lux-form {
+  --lm-field-h: 3.15rem;
+}
+
+.lm-lux-field {
+  height: var(--lm-field-h, 3.15rem);
+  width: 100%;
+  border-radius: 0.75rem;
+  border: 1px solid var(--lm-lux-field-border, rgba(224, 178, 74, 0.38));
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.045) 0%, transparent 42%),
+    var(--lm-lux-field-bg, #0a1420);
+  color: rgba(255, 255, 255, 0.92);
+  padding-left: 2.75rem;
+  padding-right: 1rem;
+  font-size: 0.875rem;
+  letter-spacing: 0.01em;
+  outline: none;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 0 0 0 transparent;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.25s ease,
+    background 0.2s ease;
+}
+
+.lm-lux-field::placeholder {
+  color: rgba(255, 255, 255, 0.38);
+}
+
+.lm-lux-field:hover {
+  border-color: color-mix(in srgb, var(--lm-lux-gold-soft, #ffd993) 55%, transparent);
+}
+
+.lm-lux-field:focus {
+  border-color: color-mix(in srgb, var(--lm-lux-accent-soft, #ffd993) 72%, transparent);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 0 0 3px var(--lm-lux-glow-soft, rgba(224, 178, 74, 0.14)),
+    0 0 28px var(--lm-lux-glow, rgba(224, 178, 74, 0.32));
+}
+
+.lm-lux-field-icon {
+  color: color-mix(in srgb, var(--lm-lux-gold, #e0b24a) 80%, transparent);
+  transition: color 0.2s ease;
+}
+
+label:focus-within .lm-lux-field-icon {
+  color: var(--lm-lux-accent-soft, #ffd993);
+}
+
+/* ── CTA material + sheen ── */
+.lm-lux-btn {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  border: 1px solid color-mix(in srgb, var(--lm-lux-cta-c, #ffe7b0) 55%, transparent);
+  background: linear-gradient(
+    135deg,
+    var(--lm-lux-cta-a, #c4803d) 0%,
+    var(--lm-lux-cta-b, #e0b24a) 42%,
+    var(--lm-lux-cta-c, #ffe7b0) 68%,
+    var(--lm-lux-cta-b, #e0b24a) 100%
+  );
+  color: var(--lm-lux-cta-ink, #040a36);
+  box-shadow:
+    0 16px 48px color-mix(in srgb, var(--lm-lux-cta-b, #e0b24a) 28%, transparent),
+    inset 0 1px 0 rgba(255, 255, 255, 0.42);
+  transition: transform 0.25s ease, filter 0.25s ease, box-shadow 0.25s ease;
+}
+
+.lm-lux-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  filter: brightness(1.06);
+  box-shadow:
+    0 20px 56px color-mix(in srgb, var(--lm-lux-cta-b, #e0b24a) 36%, transparent),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+.lm-lux-cta-sheen::before {
+  content: '';
+  position: absolute;
+  inset: -40% -60%;
+  z-index: 0;
+  background: linear-gradient(
+    105deg,
+    transparent 35%,
+    rgba(255, 255, 255, 0.38) 48%,
+    transparent 62%
+  );
+  transform: translateX(-30%) rotate(8deg);
+  animation: lm-lux-sheen 4.8s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes lm-lux-sheen {
+  0%,
+  55%,
+  100% {
+    transform: translateX(-45%) rotate(8deg);
+    opacity: 0;
+  }
+  65% {
+    opacity: 0.85;
+  }
+  78% {
+    transform: translateX(55%) rotate(8deg);
+    opacity: 0;
+  }
+}
+
+/* ── Form panel material ── */
+.lm-lux-panel {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--lm-lux-gold) 48%, transparent);
+  background:
+    linear-gradient(165deg, color-mix(in srgb, var(--lm-lux-ink) 70%, #fff 6%) 0%, color-mix(in srgb, var(--lm-lux-ink) 92%, transparent) 100%),
+    radial-gradient(circle at 50% 0%, var(--lm-lux-glow-soft), transparent 55%);
+  box-shadow:
+    0 32px 90px rgba(0, 0, 0, 0.48),
+    0 0 40px var(--lm-lux-glow-soft),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.lm-lux-panel::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.04) 0%, transparent 28%);
+}
+
+/* ── Compact luxury cards ── */
+.lm-lux-card {
+  border: 1px solid color-mix(in srgb, var(--lm-lux-gold) 26%, transparent);
+  background:
+    linear-gradient(155deg, rgba(255, 255, 255, 0.055) 0%, rgba(255, 255, 255, 0.012) 100%),
+    radial-gradient(circle at 100% 0%, var(--lm-lux-glow-soft), transparent 45%);
+  box-shadow:
+    0 18px 50px rgba(0, 0, 0, 0.36),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  transition: border-color 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.lm-lux-card:hover {
+  border-color: color-mix(in srgb, var(--lm-lux-accent) 48%, transparent);
+  transform: translateY(-2px);
+  box-shadow:
+    0 22px 56px rgba(0, 0, 0, 0.42),
+    0 0 32px var(--lm-lux-glow-soft);
+}
+
+/* ── Fluid display type helper ── */
+.lm-lux-display {
+  font-size: clamp(2.25rem, 1.4rem + 3.2vw, 4.75rem);
+  line-height: 1.05;
+  letter-spacing: -0.025em;
+}
+
+.lm-lux-lede {
+  font-size: clamp(1rem, 0.92rem + 0.35vw, 1.2rem);
+  line-height: 1.55;
+  color: color-mix(in srgb, #fff8e6 72%, transparent);
+}
+
+/* ── Cobrand polish ── */
+.lm-lux-cobrand-divider {
+  width: 1px;
+  height: 1.75rem;
+  background: linear-gradient(
+    180deg,
+    transparent,
+    color-mix(in srgb, var(--lm-lux-gold, #e0b24a) 55%, transparent),
+    transparent
+  );
+  box-shadow: 0 0 12px var(--lm-lux-glow-soft, rgba(224, 178, 74, 0.14));
+}
+
+.lm-lux-cobrand {
+  position: relative;
+}
+
+.lm-lux-cobrand::after {
+  content: '';
+  position: absolute;
+  left: -8%;
+  right: -8%;
+  bottom: -10px;
+  height: 18px;
+  background: radial-gradient(ellipse at 50% 50%, var(--lm-lux-glow-soft, rgba(224, 178, 74, 0.14)), transparent 70%);
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+/* ── Mobile polish ── */
+@media (max-width: 639px) {
+  .lm-lux-beam {
+    opacity: 0.28;
+    width: min(70vw, 280px);
+    height: min(50vh, 360px);
+    filter: blur(40px);
+  }
+
+  .lm-lux-field {
+    font-size: 16px; /* prevent iOS zoom */
+  }
+
+  .lm-lux-float,
+  .lm-lux-float--soft {
+    animation-duration: 9s;
+  }
+}
+
+/* ── Reduced motion ── */
+@media (prefers-reduced-motion: reduce) {
+  .lm-lux-float,
+  .lm-lux-float--soft,
+  .lm-lux-rule--draw,
+  .lm-lux-cta-sheen::before {
+    animation: none !important;
+  }
+
+  .lm-lux-btn:hover:not(:disabled),
+  .lm-lux-card:hover {
+    transform: none;
+  }
+}

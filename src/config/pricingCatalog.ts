@@ -91,7 +91,45 @@ export interface PricingPackage {
     maxCents?: number | null;
     label: string;
   };
+  /**
+   * Business Credit only: approximate potential funding from BUSINESS CREDIT channels
+   * (not personal credit, SBA, or other non-BC capital). Not a guarantee.
+   * Build spend = Finely Cred program fee + partner cash outlay (vendors/trades/deposits).
+   */
+  businessCapitalOutlook?: {
+    /** Finely Cred package price (cents) — usually = priceAmount */
+    programFeeCents: number;
+    /** Approx partner cash outlay toward vendors, net-30s, deposits, utilization buffers, reporting trades */
+    estimatedBuildOutlayMinCents: number;
+    estimatedBuildOutlayMaxCents: number;
+    /** programFee + outlay min/max (stored for clarity; helper recomputes if needed) */
+    totalBuildSpendMinCents: number;
+    totalBuildSpendMaxCents: number;
+    /** Approximate potential funding from BUSINESS CREDIT channels only (cents) */
+    potentialMinCents: number;
+    /** null = open-ended / 750k+ */
+    potentialMaxCents: number | null;
+    /** Short label e.g. "$15K–$50K" */
+    potentialLabel: string;
+    /** Short outlay band e.g. "$500–$2,500" */
+    outlayLabel: string;
+    /** Short combined spend band e.g. "$3,497–$5,497" */
+    combinedSpendLabel: string;
+    /** Must say business credit only */
+    basisNote: string;
+    /** Outlay is approximate — varies by vendors, deposits, pay-in-full habits */
+    outlayNote: string;
+    /** not guaranteed · business credit only · funding subject to underwriting · results vary */
+    complianceNote: string;
+  };
 }
+
+const BC_CAPITAL_BASIS_NOTE =
+  'Approximate potential capital from business credit channels only (vendor trades, store cards, commercial products) — not personal credit, SBA, or other non-BC funding.';
+const BC_CAPITAL_OUTLAY_NOTE =
+  'Est. vendor/trade outlay is approximate — varies by vendors chosen, deposits, and pay-in-full habits.';
+const BC_CAPITAL_COMPLIANCE_NOTE =
+  'Results vary · not guaranteed · business credit only · funding subject to underwriting · outlay varies by vendors';
 
 /** One row in a tier's revenue-share breakdown (training vs certified, etc.). */
 export type AgencyTierSplitRow = {
@@ -592,76 +630,172 @@ export const personalCreditPackages: PricingPackage[] = [
 // BUSINESS CREDIT PACKAGES
 // ─────────────────────────────────────────────────────────────────────────────
 
+// Stripe Price ID mapping (owner/ops — do not invent live IDs in code):
+// TODO(stripe): set stripePriceId on each BC package when Stripe Products exist:
+//   business_foundation → price_… ($2,997 one-time)
+//   business_builder    → price_… ($5,997 one-time)
+//   business_elite      → price_… ($12,997 one-time)
+//   business_empire     → price_… ($24,997 one-time)
+// Until then, checkout may use catalog amounts / in-house rail (priceAmount).
 export const businessCreditPackages: PricingPackage[] = [
   {
     id: 'business_foundation',
     category: 'business_credit',
     name: 'Business Foundation',
-    tagline: 'Build your business credit from scratch',
+    tagline: 'Entity-ready to first reporting vendors',
     description:
-      'Entity setup checklist, vendor credit sequencing, and fundability planning.',
+      'Work-calibrated hybrid build for new entities: compliance hygiene, bureau alignment, and Tier-1 vendor sequencing — priced for specialist setup hours, not a DIY PDF.',
     highlights: [
-      'Entity compliance checklist',
-      'Starter vendor list',
-      'EIN & DUNS guidance',
-      'Fundability score basics',
-      'Email support',
+      'Entity / EIN / address / domain hygiene checklist',
+      'D-U-N-S & commercial bureau alignment',
+      'Starter net-30 vendor path that reports',
+      'Fundability scorecard in Business Credit OS',
+      'Email specialist support',
+      'Best for startups & clean new files',
     ],
-    priceAmount: 99700, // $997
+    priceAmount: 299700, // $2,997
     interval: 'one_time',
     rail: 'both',
     delivery: 'HYBRID',
     isPublic: true,
     sortOrder: 1,
+    // stripePriceId: undefined — TODO(stripe): map Foundation Price ID
     entitlementKeys: ['business_foundation'],
+    businessCapitalOutlook: {
+      programFeeCents: 299700,
+      estimatedBuildOutlayMinCents: 50_000, // $500
+      estimatedBuildOutlayMaxCents: 250_000, // $2,500
+      totalBuildSpendMinCents: 349_700, // $2,997 + $500
+      totalBuildSpendMaxCents: 549_700, // $2,997 + $2,500
+      potentialMinCents: 1_500_000, // $15,000
+      potentialMaxCents: 5_000_000, // $50,000
+      outlayLabel: '$500–$2,500',
+      combinedSpendLabel: '$3,497–$5,497',
+      potentialLabel: '$15K–$50K',
+      basisNote: BC_CAPITAL_BASIS_NOTE,
+      outlayNote: BC_CAPITAL_OUTLAY_NOTE,
+      complianceNote: BC_CAPITAL_COMPLIANCE_NOTE,
+    },
   },
   {
     id: 'business_builder',
     category: 'business_credit',
     name: 'Business Builder',
-    tagline: 'Accelerate to funding-ready',
+    tagline: 'Full sequencing to funding-ready depth',
     description:
-      'Full vendor sequencing, trade account strategy, and funding prep with progress tracking.',
+      'DFY vendor sequencing, trade depth, and funding prep with progress tracking — calibrated for operators who need real specialist cycles, not a checklist alone.',
     highlights: [
-      'All Foundation features',
-      'Full vendor sequencing',
-      'Trade account applications',
-      'Credit monitoring guidance',
-      'Funding readiness assessment',
-      'Priority support',
+      'Everything in Foundation',
+      'Full Tier 1–4 vendor sequencing (DFY guided)',
+      'Trade account strategy & monitoring cadence',
+      'Funding readiness assessment + doc checklist',
+      'Priority specialist touchpoints',
+      'Established-file cleanup guidance when needed',
     ],
-    priceAmount: 199700, // $1,997
+    priceAmount: 599700, // $5,997
     interval: 'one_time',
     rail: 'both',
     delivery: 'DFY',
     isPublic: true,
     sortOrder: 2,
     badge: 'Most Popular',
+    // stripePriceId: undefined — TODO(stripe): map Builder Price ID
     entitlementKeys: ['business_foundation', 'business_builder'],
+    businessCapitalOutlook: {
+      programFeeCents: 599700,
+      estimatedBuildOutlayMinCents: 200_000, // $2,000
+      estimatedBuildOutlayMaxCents: 800_000, // $8,000
+      totalBuildSpendMinCents: 799_700, // $5,997 + $2,000
+      totalBuildSpendMaxCents: 1_399_700, // $5,997 + $8,000
+      potentialMinCents: 5_000_000, // $50,000
+      potentialMaxCents: 15_000_000, // $150,000
+      outlayLabel: '$2,000–$8,000',
+      combinedSpendLabel: '$7,997–$13,997',
+      potentialLabel: '$50K–$150K',
+      basisNote: BC_CAPITAL_BASIS_NOTE,
+      outlayNote: BC_CAPITAL_OUTLAY_NOTE,
+      complianceNote: BC_CAPITAL_COMPLIANCE_NOTE,
+    },
   },
   {
     id: 'business_elite',
     category: 'business_credit',
     name: 'Business Elite',
-    tagline: 'Maximum funding potential',
+    tagline: 'White-glove build + named product strategy',
     description:
-      'White-glove business credit build with lender introductions and funding strategy.',
+      'Dedicated strategist path for partners targeting named cards/lenders — underwriting packaging, priority ops, and custom ladders. Results vary; funding subject to underwriting.',
     highlights: [
-      'All Builder features',
-      'Dedicated funding strategist',
-      'Lender relationship intros',
-      'Advanced funding vehicles',
-      'Quarterly strategy calls',
-      '12-month access',
+      'Everything in Builder',
+      'Named card / lender product ladder (process tracking)',
+      'Dedicated funding strategist cadence',
+      'Lender-ready packaging support',
+      'Priority ops queue',
+      '12-month Business Credit OS access',
     ],
-    priceAmount: 399700, // $3,997
+    priceAmount: 1299700, // $12,997
     interval: 'one_time',
     rail: 'both',
     delivery: 'DFY',
     isPublic: true,
     sortOrder: 3,
     badge: 'Elite',
+    // stripePriceId: undefined — TODO(stripe): map Elite Price ID
     entitlementKeys: ['business_foundation', 'business_builder', 'business_elite'],
+    businessCapitalOutlook: {
+      programFeeCents: 1299700,
+      estimatedBuildOutlayMinCents: 500_000, // $5,000
+      estimatedBuildOutlayMaxCents: 2_000_000, // $20,000
+      totalBuildSpendMinCents: 1_799_700, // $12,997 + $5,000
+      totalBuildSpendMaxCents: 3_299_700, // $12,997 + $20,000
+      potentialMinCents: 15_000_000, // $150,000
+      potentialMaxCents: 35_000_000, // $350,000
+      outlayLabel: '$5,000–$20,000',
+      combinedSpendLabel: '$17,997–$32,997',
+      potentialLabel: '$150K–$350K',
+      basisNote: BC_CAPITAL_BASIS_NOTE,
+      outlayNote: BC_CAPITAL_OUTLAY_NOTE,
+      complianceNote: BC_CAPITAL_COMPLIANCE_NOTE,
+    },
+  },
+  {
+    id: 'business_empire',
+    category: 'business_credit',
+    name: 'Business Empire',
+    tagline: 'Executive capital path — multi-entity & aggressive goals',
+    description:
+      'Highest-intensity DFY for established or multi-entity operators: war-room cadence, custom capital packaging, and priority named-product strategy. Priced for scarce specialist hours.',
+    highlights: [
+      'Everything in Elite',
+      'Multi-entity / complex file ops',
+      'Executive weekly war-room cadence',
+      'Aggressive capital packaging support',
+      'Priority named-product & lender path',
+      'Custom scope when file complexity demands it',
+    ],
+    priceAmount: 2499700, // $24,997
+    interval: 'one_time',
+    rail: 'both',
+    delivery: 'DFY',
+    isPublic: true,
+    sortOrder: 4,
+    badge: 'Empire',
+    // stripePriceId: undefined — TODO(stripe): map Empire Price ID
+    entitlementKeys: ['business_foundation', 'business_builder', 'business_elite', 'business_empire'],
+    businessCapitalOutlook: {
+      programFeeCents: 2499700,
+      estimatedBuildOutlayMinCents: 1_500_000, // $15,000
+      estimatedBuildOutlayMaxCents: 5_000_000, // $50,000
+      totalBuildSpendMinCents: 3_999_700, // $24,997 + $15,000
+      totalBuildSpendMaxCents: 7_499_700, // $24,997 + $50,000
+      potentialMinCents: 35_000_000, // $350,000
+      potentialMaxCents: null, // open-ended / $750K+
+      outlayLabel: '$15,000–$50,000',
+      combinedSpendLabel: '$39,997–$74,997',
+      potentialLabel: '$350K–$750K+',
+      basisNote: BC_CAPITAL_BASIS_NOTE,
+      outlayNote: BC_CAPITAL_OUTLAY_NOTE,
+      complianceNote: BC_CAPITAL_COMPLIANCE_NOTE,
+    },
   },
 ];
 
@@ -1664,6 +1798,39 @@ export function formatPrice(cents: number): string {
   }).format(cents / 100);
 }
 
+/** Display labels for Business Credit capital outlook (null when package has none). */
+export function formatBusinessCapitalOutlook(pkg: PricingPackage): {
+  programLabel: string;
+  outlayLabel: string;
+  combinedSpendLabel: string;
+  potentialLabel: string;
+  /** @deprecated Use combinedSpendLabel — kept as alias for older call sites */
+  spendLabel: string;
+  disclaimer: string;
+  outlayNote: string;
+  basisNote: string;
+} | null {
+  const o = pkg.businessCapitalOutlook;
+  if (!o) return null;
+  const totalMin = o.totalBuildSpendMinCents ?? o.programFeeCents + o.estimatedBuildOutlayMinCents;
+  const totalMax = o.totalBuildSpendMaxCents ?? o.programFeeCents + o.estimatedBuildOutlayMaxCents;
+  const combinedSpendLabel =
+    o.combinedSpendLabel || `${formatPrice(totalMin)}–${formatPrice(totalMax).replace(/^\$/, '')}`;
+  const outlayLabel =
+    o.outlayLabel ||
+    `${formatPrice(o.estimatedBuildOutlayMinCents)}–${formatPrice(o.estimatedBuildOutlayMaxCents).replace(/^\$/, '')}`;
+  return {
+    programLabel: formatPrice(o.programFeeCents),
+    outlayLabel,
+    combinedSpendLabel,
+    potentialLabel: o.potentialLabel,
+    spendLabel: combinedSpendLabel,
+    disclaimer: o.complianceNote,
+    outlayNote: o.outlayNote,
+    basisNote: o.basisNote,
+  };
+}
+
 export function formatPriceWithCents(cents: number): string {
   if (cents === 0) return 'Custom';
   return new Intl.NumberFormat('en-US', {
@@ -1808,7 +1975,8 @@ export const categoryLabels: Record<PricingCategory, string> = {
  */
 export const categoryDescriptions: Record<PricingCategory, string> = {
   personal_credit: 'Repair, restore, and rebuild your personal credit score.',
-  business_credit: 'Build business credit from scratch and strengthen long-term fundability.',
+  business_credit:
+    'Work-calibrated business credit builds — Foundation through Empire — sequenced for startups and established operators. Results vary · funding subject to underwriting.',
   debt_legal: 'Validation, challenge packets, and credit cleanup workflows for debt + collections.',
   wealth_builder: 'Transition from credit repair into wealth fundamentals and capital-readiness planning.',
   privacy_id: 'Protect your identity and manage your data footprint.',

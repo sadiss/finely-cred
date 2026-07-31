@@ -14,6 +14,7 @@ import {
   FINELY_OS_SECONDARY_BTN,
   finelyOsCatalogCard,
 } from '../../features/os/finelyOsLightUi';
+import { BusinessCapitalOutlookBlock } from './BusinessCapitalOutlookBlock';
 
 type Props = {
   pkg: PricingPackage | null;
@@ -77,6 +78,9 @@ export function ServicePackageDetailModal({ pkg, rail, onClose, onSelect, select
                   Partners with <span className="text-white/85">{pkg.debtBalanceGuidance.label}</span> often start here
                   (exact package confirmed after intake).
                 </p>
+              ) : null}
+              {pkg.businessCapitalOutlook ? (
+                <BusinessCapitalOutlookBlock pkg={pkg} className="mt-3" />
               ) : null}
             </div>
 

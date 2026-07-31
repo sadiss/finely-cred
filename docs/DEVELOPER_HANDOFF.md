@@ -7,6 +7,8 @@
 >    Admin path: `/admin/mail` · Partner vault batch mail · Watch **TEST MODE** banner  
 > 3. **Litigation + roles + meetings + meeting emails** → [`DEV_URGENT_LITIGATION_ROLES_MEETINGS.md`](../DEV_URGENT_LITIGATION_ROLES_MEETINGS.md)  
 >    Scrape fill · Certified vs First Class · `/careers/case-help` · Hub **Schedule & email invite** (`commsDelivery`) · optional `VITE_DAILY_DOMAIN`  
+> 4. **Business Credit 4-tier pricing + one-sheets + Lead Engine** → [`DEV_URGENT_BC_PRICING_ONESHEETS.md`](../DEV_URGENT_BC_PRICING_ONESHEETS.md)  
+>    `/pricing/business-credit` · `/admin/lead-intel` **Start Lead Engine** · `docs/PLAN_MARKETING_AGENT_OS_50.md`  
 > **Branch:** `preview/sitewide-ux-pack-merge` only — do not cut a new branch.
 
 **Audience:** Engineer deploying and operating Finely Cred in production.  
