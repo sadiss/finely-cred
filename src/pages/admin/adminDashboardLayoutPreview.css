@@ -1,0 +1,442 @@
+/**
+ * Preview-only dashboard structure tokens.
+ * Scoped to [data-fc-dashboard-layout-preview] — never applied on live /admin.
+ */
+
+[data-fc-dashboard-layout-preview='1'] {
+  --fc-dash-preview-gap: 0.85rem;
+}
+
+/* ── Expressive section titles (not tiny 10px rails) ── */
+[data-fc-dashboard-layout-preview='1'] .fc-dash-preview-section-title {
+  margin: 0;
+  font-family: Georgia, 'Times New Roman', ui-serif, serif;
+  font-size: clamp(1.35rem, 2.4vw, 1.85rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  color: rgba(255, 255, 255, 0.96);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+[data-fc-dashboard-layout-preview='1'] .fc-dash-preview-section-title--command {
+  font-size: clamp(1.55rem, 3vw, 2.15rem);
+  letter-spacing: -0.03em;
+  background: linear-gradient(
+    115deg,
+    rgba(255, 255, 255, 0.98) 0%,
+    rgba(226, 232, 240, 0.95) 42%,
+    rgba(251, 191, 36, 0.92) 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-shadow: none;
+}
+
+[data-fc-dashboard-layout-preview='1'] .fc-dash-preview-section-title--pulse {
+  background: linear-gradient(100deg, #e2e8f0 0%, #7dd3fc 55%, #cbd5e1 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+[data-fc-dashboard-layout-preview='1'] .fc-dash-preview-section-title--start {
+  background: linear-gradient(100deg, #fef3c7 0%, #fbbf24 45%, #e2e8f0 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+[data-fc-dashboard-layout-preview='1'] .fc-dash-preview-section-kicker {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.42);
+}
+
+[data-fc-dashboard-layout-preview='1'] .fc-dash-preview-section-hint {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+/* ── 1) Command strip — sticky platinum command plane ── */
+[data-fc-dashboard-layout-preview='1'] .fc-dash-preview-command {
+  position: sticky;
+  top: 0.5rem;
+  z-index: 30;
+  backdrop-filter: blur(12px);
+  border-radius: 1.15rem;
+  border: 1px solid rgba(251, 191, 36, 0.28);
+  box-shadow:
+    0 18px 48px -28px rgba(245, 158, 11, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+[data-fc-dashboard-layout-preview='1'] .fc-dash-preview-command .fc-button-platinum {
+  min-height: 2.5rem;
+  padding-inline: 0.95rem;
+  font-size: 0.65rem;
+}
+
+/* ── 2) Alerts — rose/amber banner band (not card twin) ── */
+[data-fc-dashboard-layout-preview='1'] .fc-dash-preview-alerts {
+  margin-inline: -0.35rem;
+  padding: 0.65rem 0.55rem;
+  border-radius: 1rem;
+  border: 1px solid rgba(251, 113, 133, 0.2);
+  background:
+    linear-gradient(90deg, rgba(244, 63, 94, 0.1) 0%, rgba(245, 158, 11, 0.06) 48%, transparent 100%),
+    rgba(0, 0, 0, 0.22);
+}
+
+@media (min-width: 640px) {
+  [data-fc-dashboard-layout-preview='1'] .fc-dash-preview-alerts {
+    margin-inline: 0;
+    padding: 0.75rem 0.85rem;
+  }
+}
+
+/* ── 3) KPI rail — sky wash chip strip ── */
+[data-fc-dashboard-layout-preview='1'] .fc-dash-preview-kpi-rail {
+  border-radius: 1.15rem;
+  border: 1px solid rgba(56, 189, 248, 0.24);
+  background:
+    radial-gradient(720px 180px at 0% 0%, rgba(14, 165, 233, 0.14) 0%, transparent 62%),
+    rgba(0, 0, 0, 0.28);
+  padding: 0.85rem 0.95rem 0.75rem;
+}
+
+[data-fc-dashboard-layout-preview='1'] .fc-dash-preview-kpi-chip {
+  max-width: 9.5rem;
+}
+
+/* ── 4) Featured / Start here — platinum wealthy band ── */
+[data-fc-dashboard-layout-preview='1'] .fc-dash-preview-platinum-band {
+  position: relative;
+  border-radius: 1.25rem;
+  padding: 0.95rem 1rem 1.1rem;
+  border: 1px solid rgba(226, 232, 240, 0.2);
+}
+
+[data-fc-dashboard-layout-preview='1'] .fc-dash-preview-platinum-band > * {
+  position: relative;
+  z-index: 1;
+}
+
+[data-fc-dashboard-layout-preview='1'] .fc-dash-preview-featured {
+  min-height: 7.25rem;
+}
+
+/* ── Module group shells — distinct treatments ── */
+[data-fc-dashboard-layout-preview='1'] .fc-dash-preview-group {
+  border-radius: 1.25rem;
+  overflow: hidden;
+  transition:
+    border-color 220ms ease,
+    box-shadow 220ms ease,
+    background 220ms ease;
+}
+
+[data-fc-dashboard-layout-preview='1'] .fc-dash-preview-group summary {
+  outline: none;
+  list-style: none;
+}
+
+[data-fc-dashboard-layout-preview='1'] .fc-dash-preview-group summary::-webkit-details-marker {
+  display: none;
+}
+
+/* Core ops — platinum frame + silver sheen */
+[data-fc-dashboard-layout-preview='1'] .fc-dash-preview-group--core {
+  border: 1px solid rgba(226, 232, 240, 0.3);
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.07) 0%, rgba(148, 163, 184, 0.06) 40%, rgba(0, 0, 0, 0.28) 100%),
+    rgba(8, 10, 14, 0.72);
+  box-shadow:
+    0 26px 70px -40px rgba(0, 0, 0, 0.7),
+    inset 0 1px 0 rgba(255, 255, 255, 0.14);
+}
+
+/* Comms — fuchsia / sky content strip */
+[data-fc-dashboard-layout-preview='1'] .fc-dash-preview-group--comms {
+  border: 1px solid rgba(217, 70, 239, 0.3);
+  background:
+    radial-gradient(700px 200px at 0% 0%, rgba(217, 70, 239, 0.13) 0%, transparent 58%),
+    radial-gradient(500px 180px at 100% 0%, rgba(56, 189, 248, 0.1) 0%, transparent 55%),
+    rgba(0, 0, 0, 0.32);
+}
+
+/* Automation — emerald AI band */
+[data-fc-dashboard-layout-preview='1'] .fc-dash-preview-group--automation {
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  background:
+    radial-gradient(720px 200px at 12% 0%, rgba(16, 185, 129, 0.13) 0%, transparent 58%),
+    radial-gradient(480px 160px at 90% 20%, rgba(139, 92, 246, 0.1) 0%, transparent 55%),
+    rgba(0, 0, 0, 0.32);
+}
+
+/* Platform / More — cool slate */
+[data-fc-dashboard-layout-preview='1'] .fc-dash-preview-group--platform,
+[data-fc-dashboard-layout-preview='1'] .fc-dash-preview-group--more {
+  border: 1px solid rgba(148, 163, 184, 0.24);
+  background:
+    linear-gradient(160deg, rgba(148, 163, 184, 0.09) 0%, transparent 45%),
+    rgba(0, 0, 0, 0.35);
+}
+
+/* Collapsed: large centered OPEN cue */
+[data-fc-dashboard-layout-preview='1'] .fc-dash-preview-group:not([open]) > summary {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  min-height: 4.75rem;
+  padding: 1rem 1.25rem;
+  text-align: center;
+  cursor: pointer;
+  background:
+    radial-gradient(420px 120px at 50% 0%, rgba(255, 255, 255, 0.1), transparent 70%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent);
+}
+
+[data-fc-dashboard-layout-preview='1'] .fc-dash-preview-group:not([open]) > summary:hover {
+  background:
+    radial-gradient(480px 140px at 50% 0%, rgba(255, 255, 255, 0.14), transparent 72%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.07), transparent);
+}
+
+[data-fc-dashboard-layout-preview='1'] .fc-dash-preview-group--comms:not([open]) > summary:hover {
+  background: rgba(217, 70, 239, 0.1);
+}
+
+[data-fc-dashboard-layout-preview='1'] .fc-dash-preview-group--automation:not([open]) > summary:hover {
+  background: rgba(16, 185, 129, 0.1);
+}
+
+[data-fc-dashboard-layout-preview='1'] .fc-dash-preview-group--platform:not([open]) > summary:hover,
+[data-fc-dashboard-layout-preview='1'] .fc-dash-preview-group--more:not([open]) > summary:hover {
+  background: rgba(148, 163, 184, 0.1);
+}
+
+[data-fc-dashboard-layout-preview='1'] .fc-dash-preview-group:not([open]) .fc-dash-preview-open-cue {
+  display: block;
+  width: 100%;
+  font-family: Georgia, 'Times New Roman', ui-serif, serif;
+  font-size: clamp(1.15rem, 2.2vw, 1.55rem);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  line-height: 1.2;
+  color: rgba(248, 250, 252, 0.95);
+  text-shadow:
+    0 0 24px rgba(226, 232, 240, 0.22),
+    0 1px 0 rgba(0, 0, 0, 0.35);
+}
+
+[data-fc-dashboard-layout-preview='1'] .fc-dash-preview-group:not([open]) .fc-dash-preview-open-cue-prefix {
+  display: inline-block;
+  margin-right: 0.4rem;
+  padding: 0.12rem 0.45rem;
+  border-radius: 0.4rem;
+  border: 1px solid rgba(226, 232, 240, 0.35);
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.22),
+    rgba(203, 213, 225, 0.12)
+  );
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  vertical-align: middle;
+  color: rgba(15, 23, 42, 0.92);
+  text-shadow: none;
+}
+
+[data-fc-dashboard-layout-preview='1'] .fc-dash-preview-group:not([open]) .fc-dash-preview-open-hint {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(203, 213, 225, 0.55);
+}
+
+[data-fc-dashboard-layout-preview='1'] .fc-dash-preview-group:not([open]) .fc-dash-preview-group-meta {
+  display: none;
+}
+
+/* Open: keep large section title; hide OPEN cue */
+[data-fc-dashboard-layout-preview='1'] .fc-dash-preview-group[open] > summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+  padding: 0.85rem 1rem 0.75rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  cursor: pointer;
+}
+
+[data-fc-dashboard-layout-preview='1'] .fc-dash-preview-group[open] .fc-dash-preview-open-cue,
+[data-fc-dashboard-layout-preview='1'] .fc-dash-preview-group[open] .fc-dash-preview-open-hint {
+  display: none;
+}
+
+[data-fc-dashboard-layout-preview='1'] .fc-dash-preview-group[open] .fc-dash-preview-group-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+  width: 100%;
+}
+
+[data-fc-dashboard-layout-preview='1'] .fc-dash-preview-group[open] .fc-dash-preview-group-title {
+  font-family: Georgia, 'Times New Roman', ui-serif, serif;
+  font-size: clamp(1.35rem, 2.4vw, 1.85rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  color: rgba(255, 255, 255, 0.96);
+}
+
+[data-fc-dashboard-layout-preview='1'] .fc-dash-preview-group[open] .fc-dash-preview-group-subtitle {
+  margin-top: 0.2rem;
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.48);
+}
+
+[data-fc-dashboard-layout-preview='1'] .fc-dash-preview-group[open] .fc-dash-preview-collapse-hint {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(203, 213, 225, 0.45);
+}
+
+/* Core ops — compact luxury colored icon boxes (slightly smaller than live) */
+[data-fc-dashboard-layout-preview='1'] .fc-dash-preview-core-grid {
+  display: grid;
+  gap: 0.65rem;
+  padding: 0.85rem;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 640px) {
+  [data-fc-dashboard-layout-preview='1'] .fc-dash-preview-core-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1280px) {
+  [data-fc-dashboard-layout-preview='1'] .fc-dash-preview-core-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+[data-fc-dashboard-layout-preview='1'] .fc-dash-preview-core-tile {
+  min-height: 6.25rem;
+  text-align: left;
+  transition: transform 160ms ease, box-shadow 160ms ease;
+}
+
+[data-fc-dashboard-layout-preview='1'] .fc-dash-preview-core-tile:hover {
+  transform: translateY(-1px);
+}
+
+/* Comms rows */
+[data-fc-dashboard-layout-preview='1'] .fc-dash-preview-comms-list {
+  display: grid;
+  gap: 0.4rem;
+  padding: 0.75rem;
+}
+
+@media (min-width: 640px) {
+  [data-fc-dashboard-layout-preview='1'] .fc-dash-preview-comms-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+[data-fc-dashboard-layout-preview='1'] .fc-dash-preview-comms-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: 3.25rem;
+  padding: 0.65rem 0.8rem;
+  border-radius: 0.85rem;
+  border: 1px solid rgba(217, 70, 239, 0.18);
+  background: rgba(0, 0, 0, 0.28);
+  text-align: left;
+  transition: border-color 160ms ease, background 160ms ease;
+}
+
+[data-fc-dashboard-layout-preview='1'] .fc-dash-preview-comms-row:hover {
+  border-color: rgba(56, 189, 248, 0.35);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+/* Automation tiles */
+[data-fc-dashboard-layout-preview='1'] .fc-dash-preview-auto-grid {
+  display: grid;
+  gap: 0.5rem;
+  padding: 0.75rem;
+}
+
+@media (min-width: 640px) {
+  [data-fc-dashboard-layout-preview='1'] .fc-dash-preview-auto-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+[data-fc-dashboard-layout-preview='1'] .fc-dash-preview-auto-tile {
+  min-height: 4.5rem;
+  text-align: left;
+  padding: 0.75rem 0.85rem;
+}
+
+/* Platform dense rows */
+[data-fc-dashboard-layout-preview='1'] .fc-dash-preview-platform-list {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.65rem 0.75rem 0.85rem;
+}
+
+@media (min-width: 640px) {
+  [data-fc-dashboard-layout-preview='1'] .fc-dash-preview-platform-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+[data-fc-dashboard-layout-preview='1'] .fc-dash-preview-platform-row {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  min-height: 2.85rem;
+  padding: 0.5rem 0.7rem;
+  border-radius: 0.75rem;
+  border: 1px solid transparent;
+  text-align: left;
+  transition: border-color 160ms ease, background 160ms ease;
+}
+
+[data-fc-dashboard-layout-preview='1'] .fc-dash-preview-platform-row:hover {
+  border-color: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+/* ── Ops intel band — emerald growth plane ── */
+[data-fc-dashboard-layout-preview='1'] .fc-dash-preview-ops {
+  border-radius: 1.25rem;
+  border: 1px solid rgba(16, 185, 129, 0.24);
+  background:
+    radial-gradient(900px 240px at 0% 0%, rgba(16, 185, 129, 0.11) 0%, transparent 60%),
+    rgba(0, 0, 0, 0.28);
+  padding: 1rem 1rem 1.15rem;
+}
+
+[data-fc-dashboard-layout-preview='1'] .fc-dash-preview-chart {
+  border-color: rgba(255, 255, 255, 0.1);
+}

@@ -23,6 +23,7 @@ export const ADMIN_FEATURE_MATRIX: AdminFeatureMatrixRow[] = [
   { flag: 'commsDelivery', label: 'Comms Delivery', effect: 'Outbound email/SMS from Comms Studio', secrets: 'SMTP_* + SMS_* (edge)' },
   { flag: 'automationAutopilot', label: 'Automation Autopilot', effect: 'Hands-free dispute drafts + staff tasks on platform events', secrets: 'automation-runner edge + ai-gateway' },
   { flag: 'leadIntel', label: 'Lead Intelligence', effect: 'Prospecting + enrichment agent', secrets: 'ai-gateway, optional search APIs' },
+  { flag: 'marketingDesk', label: 'Marketing Desk', effect: 'Plain-English marketing daily desk (Find · Board · Clean · Ruth · Mail)', secrets: 'commsDelivery + leadIntel for live hunt/mail' },
   { flag: 'crm', label: 'CRM Pipelines', effect: 'Admin CRM workspace + copilot', secrets: 'Supabase tables + ai-gateway' },
   { flag: 'auMarketplace', label: 'AU Marketplace', effect: 'Tradeline browse + inventory', secrets: 'Catalog data (local or Supabase)' },
   { flag: 'businessPortal', label: 'Business Portal', effect: 'Business credit portal modules', secrets: 'Entitlements via billing' },

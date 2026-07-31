@@ -24,8 +24,13 @@ import {
 import { MailCreditsPanel } from '../mailing/MailCreditsPanel';
 import { MailProviderStatusBanner } from '../mailing/MailProviderStatusBanner';
 import { LetterAgentChainStrip } from './LetterAgentChainStrip';
+import { LetterEmailPartnerToggle } from './LetterEmailPartnerToggle';
 import { appendAiActionAudit } from '../../data/aiActionAuditLog';
 import { FINELY_OS_PRIMARY_BTN, FINELY_OS_SECONDARY_BTN, FINELY_OS_ENTITY_BODY } from '../../features/os/finelyOsLightUi';
+import {
+  enrichRecipientAddressSync,
+  parseMailingAddress,
+} from '../../lib/recipientAddressEnrichment';
 
 type WizardStep = 'confirm' | 'mail' | 'track';
 
@@ -143,6 +148,8 @@ export function MailLetterModal({
   onMailed,
   onStatus,
   onNotifyMailed,
+  onNotifyReadyToMail,
+  emailPartnerDefault = true,
   evidence = [],
   trackHref,
 }: {
@@ -170,6 +177,9 @@ export function MailLetterModal({
     to: MailAddress;
     from: MailAddress;
   }) => void | Promise<void>;
+  /** When partner opts in, notify that letter is ready / mail_pending. */
+  onNotifyReadyToMail?: (args: { emailPartner: boolean; to: MailAddress; from: MailAddress }) => void | Promise<void>;
+  emailPartnerDefault?: boolean;
 }) {
   const canMail = Boolean(letter.pdfBlobRef);
   const [step, setStep] = useState<WizardStep>('confirm');
@@ -206,6 +216,8 @@ export function MailLetterModal({
   );
   const [verifiedHash, setVerifiedHash] = useState<string | null>(null);
   const [mailType, setMailType] = useState<FinelyMailType>(() => defaultMailTypeForLetter(letter));
+  const [emailPartner, setEmailPartner] = useState(emailPartnerDefault);
+  const [addressHint, setAddressHint] = useState<string | null>(null);
 
   const currentHash = useMemo(() => {
     const pick = (a: MailAddress) => ({
@@ -226,16 +238,41 @@ export function MailLetterModal({
     setMailedMeta(null);
     setVerifyRes(null);
     setVerifiedHash(null);
+    setAddressHint(null);
+    setEmailPartner(emailPartnerDefault);
     setMailType(defaultMailTypeForLetter(letter));
     const disputeTo = mailDefaultsForDisputeRecipient(letter);
-    setTo({
-      name: disputeTo?.name ?? '',
-      addressLine1: disputeTo?.addressLine1 ?? '',
-      addressLine2: disputeTo?.addressLine2 ?? '',
-      city: disputeTo?.city ?? '',
-      state: disputeTo?.state ?? '',
-      zip: disputeTo?.zip ?? '',
+    const meta: any = (letter as any)?.meta ?? null;
+    const enrich = enrichRecipientAddressSync({
+      preferCounsel: Boolean(meta?.debtTrack === 'court' || meta?.context === 'debt'),
+      nameCandidates: [
+        disputeTo?.name,
+        letter.title,
+        meta?.creditorName,
+        meta?.plaintiffLawFirm,
+        meta?.collectorName,
+      ],
+      addressCandidates: [
+        [disputeTo?.addressLine1, disputeTo?.addressLine2, [disputeTo?.city, disputeTo?.state, disputeTo?.zip].filter(Boolean).join(', ')]
+          .filter(Boolean)
+          .join('\n'),
+        meta?.recipientAddress,
+        meta?.plaintiffLawFirmAddress,
+      ],
     });
+    const structured = enrich?.structured || (enrich?.address ? parseMailingAddress(enrich.address) : null);
+    const useEnrich = Boolean(enrich?.address && (!disputeTo?.addressLine1 || !disputeTo?.city));
+    setTo({
+      name: disputeTo?.name || enrich?.name || '',
+      addressLine1: disputeTo?.addressLine1 || (useEnrich ? structured?.line1 || '' : ''),
+      addressLine2: disputeTo?.addressLine2 || (useEnrich ? structured?.line2 || '' : ''),
+      city: disputeTo?.city || (useEnrich ? structured?.city || '' : ''),
+      state: disputeTo?.state || (useEnrich ? structured?.state || '' : ''),
+      zip: disputeTo?.zip || (useEnrich ? structured?.zip || '' : ''),
+    });
+    if (useEnrich && enrich?.verifyRequired) {
+      setAddressHint(enrich.hint || 'Verify recipient address before mailing.');
+    }
     setFrom({
       name: defaultFromName || '',
       addressLine1: defaultFromAddress?.addressLine1 ?? '',
@@ -344,6 +381,9 @@ export function MailLetterModal({
     if (!verifiedOk) {
       await verify();
     }
+    const toClean: MailAddress = { ...to, state: sanitizeState(to.state), zip: zipOnly(to.zip) };
+    const fromClean: MailAddress = { ...from, state: sanitizeState(from.state), zip: zipOnly(from.zip) };
+    void onNotifyReadyToMail?.({ emailPartner, to: toClean, from: fromClean });
     setStep('mail');
   };
 
@@ -538,6 +578,18 @@ export function MailLetterModal({
                 <AddressFields label="To — who receives this letter" value={to} onChange={setTo} />
                 <AddressFields label="From — return address on the envelope" value={from} onChange={setFrom} />
               </div>
+              {addressHint ? (
+                <p className="text-xs text-amber-100/90 flex items-start gap-1.5">
+                  <AlertTriangle size={12} className="mt-0.5 shrink-0" />
+                  {addressHint}
+                </p>
+              ) : null}
+              <LetterEmailPartnerToggle
+                checked={emailPartner}
+                onChange={setEmailPartner}
+                label="Email partner"
+                hint="When ready / mailed"
+              />
 
               <div className="fc-light-glass-panel fc-light-chrome-panel p-4 space-y-3">
                 <div className="flex flex-wrap items-start justify-between gap-3">
@@ -621,7 +673,19 @@ export function MailLetterModal({
                 <p className={`text-sm ${FINELY_OS_ENTITY_BODY}`}>
                   Cost estimate ~{formatMailCreditsUsd(DEFAULT_MAIL_COST_CENTS)}. One tap sends this PDF via {FINELY_MAIL_COPY.serviceName}.
                 </p>
+                {addressHint ? (
+                  <p className="text-xs text-amber-100/90 flex items-start gap-1.5">
+                    <AlertTriangle size={12} className="mt-0.5 shrink-0" />
+                    {addressHint}
+                  </p>
+                ) : null}
               </div>
+              <LetterEmailPartnerToggle
+                checked={emailPartner}
+                onChange={setEmailPartner}
+                label="Email partner"
+                hint="Confirm when mailed"
+              />
               <MailCreditsPanel compact />
               <div className="flex justify-between gap-2 sticky bottom-0 bg-fc-shell/95 py-2">
                 <button type="button" className={FINELY_OS_SECONDARY_BTN} disabled={busy} onClick={() => setStep('confirm')}>

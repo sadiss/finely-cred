@@ -1,0 +1,57 @@
+/**
+ * Admin layout preview — scoped to [data-fc-ivory-preview] only.
+ * Forces live-matching dark/black admin canvas (same tokens as :root /admin).
+ * Does not change html[data-fc-theme] or live /admin routes.
+ */
+
+[data-fc-ivory-preview='1'],
+[data-fc-admin-ivory-preview='1'] {
+  color-scheme: dark;
+  /* Match site-wide dark admin shell (:root in index.css) */
+  --fc-bg: #0b1110;
+  --fc-bg-deep: #060908;
+  --fc-bg-section: #0d1512;
+  --fc-bg-section-alt: #0f1815;
+  --fc-bg-chrome: #0a100e;
+  --fc-bg-elevated: #141d1a;
+  --fc-bg-input: #121a17;
+  --fc-panel: rgba(255, 255, 255, 0.06);
+  --fc-card: rgba(255, 255, 255, 0.075);
+  --fc-border: rgba(255, 255, 255, 0.1);
+  --fc-text-dim: rgba(255, 255, 255, 0.65);
+  --fc-soft: rgba(255, 255, 255, 0.045);
+  --fc-text: #f8faf9;
+  --fc-text-muted: rgba(255, 255, 255, 0.62);
+  --fc-shell-gradient: linear-gradient(
+    180deg,
+    var(--fc-bg-deep) 0%,
+    var(--fc-bg) 50%,
+    var(--fc-bg-deep) 100%
+  );
+
+  min-height: 100vh;
+  background-color: var(--fc-bg-deep);
+  background-image: var(--fc-shell-gradient);
+  background-attachment: fixed;
+  color: var(--fc-text);
+}
+
+/* PageShell roots inside preview share the same dark canvas */
+[data-fc-ivory-preview='1'] [data-fc-pageshell-root='1'],
+[data-fc-admin-ivory-preview='1'] [data-fc-pageshell-root='1'] {
+  background-color: transparent !important;
+  background-image: none !important;
+  color: var(--fc-text);
+}
+
+/* Preview chrome stays on dark glass — no stationery frame */
+[data-fc-ivory-preview='1'] [data-fc-pageshell-root='1']::before,
+[data-fc-admin-ivory-preview='1'] [data-fc-pageshell-root='1']::before {
+  content: none;
+}
+
+[data-fc-ivory-preview='1'] .fc-app-top-chrome,
+[data-fc-admin-ivory-preview='1'] .fc-app-top-chrome {
+  background-color: rgba(10, 16, 14, 0.92) !important;
+  border-bottom-color: rgba(255, 255, 255, 0.1) !important;
+}

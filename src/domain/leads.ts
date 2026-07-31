@@ -7,6 +7,7 @@ export type LeadOffer =
   | 'general_inquiry'
   | 'affiliate_application'
   | 'agent_application'
+  | 'credit_specialist_join'
   | 'enlightenment_session'
   | 'consultation_booking'
   | 'dispute_letter_guide'

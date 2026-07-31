@@ -105,6 +105,21 @@ export const TOUR_MANIFEST: SiteTourDefinition[] = [
     ],
   },
   {
+    id: 'tour-marketing-desk',
+    title: 'Marketing Desk in 5 steps',
+    lane: 'admin',
+    auth: 'admin',
+    startPath: '/admin/marketing-desk',
+    relatedSopId: 'sop-marketing-desk',
+    steps: [
+      step('s1', 'Desk home', 'This is your daily marketing home — Mail chip, mission, and helper tiles.', '/admin/marketing-desk'),
+      step('s2', 'Mail status', 'Check Ready vs Needs setup before expecting autopilot sends.', '/admin/marketing-desk?helper=mail'),
+      step('s3', 'Find people', 'Run a live search, then Review before save — approve only good fits.', '/admin/marketing-desk?helper=find'),
+      step('s4', 'Board', 'Move people who wrote in. Booked creates handoff work and pauses cold mail.', '/admin/marketing-desk?helper=board'),
+      step('s5', 'My work', 'Clear Marketing Pipeline to-dos from Projects & Tasks.', '/admin/my-tasks'),
+    ],
+  },
+  {
     id: 'tour-affiliate-toolkit',
     title: 'How to share your referral link',
     lane: 'affiliate',

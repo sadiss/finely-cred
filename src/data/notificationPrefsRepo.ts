@@ -23,6 +23,7 @@ export function getNotificationPrefs(args: { partnerId?: string; userId?: string
       ...DEFAULT_NOTIFICATION_PREFS,
       ...hit,
       emailInstantMessages: hit.emailInstantMessages ?? DEFAULT_NOTIFICATION_PREFS.emailInstantMessages,
+      emailLetterLifecycle: hit.emailLetterLifecycle ?? DEFAULT_NOTIFICATION_PREFS.emailLetterLifecycle,
     };
   }
   return {

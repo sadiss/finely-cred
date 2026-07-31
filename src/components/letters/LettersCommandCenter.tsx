@@ -103,6 +103,14 @@ import {
   senderPreviewLines,
 } from '../../lib/letterSenderBlock';
 import { resolveLetterMailRecipient } from '../../lib/letterMailingAddress';
+import {
+  enrichRecipientAddress,
+  enrichmentToDebtPatch,
+  type AddressEnrichmentResult,
+} from '../../lib/recipientAddressEnrichment';
+import { notifyLetterLifecycle } from '../../lib/letterLifecycleNotify';
+import { LetterEmailPartnerToggle } from './LetterEmailPartnerToggle';
+import { getNotificationPrefs } from '../../data/notificationPrefsRepo';
 import { LetterEscalationPanel } from './LetterEscalationPanel';
 import { getCanonicalPartnerIdentity } from '../../utils/canonicalPartnerIdentity';
 import { bureauFullName, bureauShortCode } from '../../utils/bureaus';
@@ -1255,6 +1263,32 @@ export function LettersCommandCenter({
 
   const [pdfBusyByBureau, setPdfBusyByBureau] = useState<Record<Bureau, boolean>>({ EXP: false, EQF: false, TUC: false });
   const [pdfErr, setPdfErr] = useState<string | null>(null);
+  const [emailPartnerOnEvents, setEmailPartnerOnEvents] = useState(() => {
+    try {
+      return getNotificationPrefs({ partnerId: partner?.id }).emailLetterLifecycle !== false;
+    } catch {
+      return true;
+    }
+  });
+  const [addressLookupBusy, setAddressLookupBusy] = useState(false);
+  const [addressEnrichMeta, setAddressEnrichMeta] = useState<AddressEnrichmentResult | null>(null);
+
+  const notifyPartnerLetterEvent = (args: {
+    event: 'generated' | 'saved' | 'ready_to_mail';
+    letterIds: string[];
+    letterTitles: string[];
+  }) => {
+    if (!partner?.id) return;
+    void notifyLetterLifecycle({
+      partnerId: partner.id,
+      partner,
+      event: args.event,
+      letterIds: args.letterIds,
+      letterTitles: args.letterTitles,
+      emailPartner: emailPartnerOnEvents,
+      actorRole: layout === 'embedded' ? 'admin' : 'partner',
+    });
+  };
   const [studioOpenByBureau, setStudioOpenByBureau] = useState<Record<Bureau, boolean>>({ EXP: true, EQF: true, TUC: true });
   const [workspaceBureau, setWorkspaceBureau] = useState<Bureau>('EXP');
   const [lastGeneratedAtByBureau, setLastGeneratedAtByBureau] = useState<Record<Bureau, string | null>>({
@@ -1948,6 +1982,11 @@ WRITING STANDARD:
         entityType: 'letter',
         entityId: letter.id,
         meta: { kind: 'dispute', pdfBlobRef: res.pdfBlobRef ?? null, filename: res.filename },
+      });
+      notifyPartnerLetterEvent({
+        event: 'saved',
+        letterIds: [letter.id],
+        letterTitles: [letter.title || `${b} dispute letter`],
       });
 
       // Save/track the round inside Dispute Center (cases).
@@ -2743,6 +2782,75 @@ useEffect(() => {
   const [draftEvidencePickerOpen, setDraftEvidencePickerOpen] = useState(false);
   const [draftTemplatesOpen, setDraftTemplatesOpen] = useState(false);
   const [draftNotice, setDraftNotice] = useState<string | null>(null);
+
+  const fillDebtRecipientAddress = async () => {
+    if (!debt) {
+      setDraftNotice('Select a debt case first, then fill the mailing address.');
+      return;
+    }
+    setAddressLookupBusy(true);
+    try {
+      const result = await enrichRecipientAddress({
+        preferCounsel: draft?.type === 'court' || Boolean(debt.courtCaseNumber || debt.plaintiffLawFirm),
+        nameCandidates: [
+          debt.plaintiffLawFirm,
+          debt.plaintiffAttorneyName,
+          debt.collectorName,
+          debt.recipientName,
+          debt.name,
+          debtPartyInfo?.recipientName,
+          debt.originalCreditor,
+        ],
+        addressCandidates: [
+          debt.plaintiffLawFirmAddress,
+          debt.recipientAddress,
+          debtPartyInfo?.recipientAddress,
+        ],
+        phone: debt.recipientPhone || debtPartyInfo?.recipientPhone,
+      });
+      setAddressEnrichMeta(result);
+      if (!result?.address) {
+        setDraftNotice(result?.hint || 'No mailing address found — enter it from the notice or summons.');
+        return;
+      }
+      handleDebtIntelChange({
+        ...debt,
+        ...enrichmentToDebtPatch(result),
+        recipientName: result.name || debt.recipientName,
+        recipientAddress: result.address,
+      });
+      setDraftNotice(result.hint);
+    } finally {
+      setAddressLookupBusy(false);
+    }
+  };
+
+  // Auto-fill TO address when a debt draft opens and the case is missing mailing fields.
+  useEffect(() => {
+    if (!draft || !debt) return;
+    if (debt.recipientAddress || debt.plaintiffLawFirmAddress) return;
+    if (debtPartyInfo?.recipientAddress) {
+      handleDebtIntelChange({
+        ...debt,
+        recipientName: debt.recipientName || debtPartyInfo.recipientName,
+        recipientAddress: debtPartyInfo.recipientAddress,
+        plaintiffLawFirmAddress: debt.plaintiffLawFirmAddress || debtPartyInfo.recipientAddress,
+      });
+      setAddressEnrichMeta({
+        name: debtPartyInfo.recipientName,
+        address: debtPartyInfo.recipientAddress,
+        structured: null,
+        source: debtPartyInfo.matchedFrom === 'directory' ? 'directory' : 'tradeline',
+        confidence: 'medium',
+        verifyRequired: true,
+        hint: 'Auto-filled recipient address — verify before mailing.',
+      });
+      return;
+    }
+    void fillDebtRecipientAddress();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- only when draft/debt identity changes
+  }, [draft?.letterId, draft?.specId, debt?.id]);
+
   // --- Templates browser (entitled only) ---
   const visibleTemplateBases = useMemo(() => {
     if (!partner) return TEMPLATE_BASES;
@@ -3157,6 +3265,11 @@ useEffect(() => {
         entityType: 'letter',
         entityId: letterId,
         meta: { kind: args.track, debtId: debt?.id ?? null, source: 'generate_letter', catalogId: args.catalogId ?? null },
+      });
+      notifyPartnerLetterEvent({
+        event: 'generated',
+        letterIds: [letterId],
+        letterTitles: [title],
       });
     } catch (e: any) {
       setDraftNotice(e?.message || 'Draft opened, but vault save failed — use Save to Letters Vault.');
@@ -3926,6 +4039,24 @@ useEffect(() => {
                   <div id="fc-debt-step-preview" className="scroll-mt-3">
                     <LetterAddressSummary
                       defaultOpen={false}
+                      recipientKind="creditor"
+                      enrichmentSource={
+                        addressEnrichMeta?.source ||
+                        (debt?.recipientAddress || debt?.plaintiffLawFirmAddress
+                          ? 'case'
+                          : debtPartyInfo?.matchedFrom === 'directory'
+                            ? 'directory'
+                            : debtPartyInfo?.autoFilled
+                              ? 'tradeline'
+                              : undefined)
+                      }
+                      verifyRequired={
+                        addressEnrichMeta?.verifyRequired ||
+                        !(debt?.recipientAddress || debt?.plaintiffLawFirmAddress || debtPartyInfo?.recipientAddress)
+                      }
+                      enrichmentHint={addressEnrichMeta?.hint}
+                      lookupBusy={addressLookupBusy}
+                      onLookupAddress={() => void fillDebtRecipientAddress()}
                       value={{
                         fromName: senderName,
                         fromLine1: senderAddressLine1,
@@ -3971,7 +4102,11 @@ useEffect(() => {
                           handleDebtIntelChange({ ...debt, recipientName: patch.toName });
                         }
                         if (patch.toLinesText !== undefined && debt) {
-                          handleDebtIntelChange({ ...debt, recipientAddress: patch.toLinesText });
+                          handleDebtIntelChange({
+                            ...debt,
+                            recipientAddress: patch.toLinesText,
+                            plaintiffLawFirmAddress: debt.plaintiffLawFirmAddress || patch.toLinesText,
+                          });
                         }
                       }}
                     />
@@ -3987,7 +4122,13 @@ useEffect(() => {
                   </div>
                 </div>
 
-                <div id="fc-debt-step-generate" className="flex flex-wrap items-center justify-end gap-3 pt-2 scroll-mt-3 border-t border-white/10">
+                <div id="fc-debt-step-generate" className="flex flex-wrap items-center justify-between gap-3 pt-2 scroll-mt-3 border-t border-white/10 sticky bottom-0 z-10 bg-[#0a0f0d]/95 backdrop-blur-sm py-3 -mx-1 px-1">
+                  <LetterEmailPartnerToggle
+                    checked={emailPartnerOnEvents}
+                    onChange={setEmailPartnerOnEvents}
+                    hint={layout === 'embedded' ? 'Notify partner by email' : 'Email me on save'}
+                    label={layout === 'embedded' ? 'Email partner' : 'Email me'}
+                  />
                   <button
                     type="button"
                     disabled={draftBusy}
@@ -4012,7 +4153,7 @@ useEffect(() => {
                         const createdAt = new Date().toISOString();
                         const title =
                           debt && DEBT_LETTER_SPECS.find((s) => s.id === draft.specId)
-                            ? `${DEBT_LETTER_SPECS.find((s) => s.id === draft.specId)!.title} â€¢ ${debt.name}`
+                            ? `${DEBT_LETTER_SPECS.find((s) => s.id === draft.specId)!.title} • ${debt.name}`
                             : `${draft.type} letter`;
 
                         const pdf = await generateTextPdfToVault({
@@ -4043,6 +4184,11 @@ useEffect(() => {
                           entityId: saved.id,
                           meta: { kind: draft.type, pdfBlobRef: pdf.pdfBlobRef ?? null, filename: pdf.filename, debtId: debt?.id ?? null },
                         });
+                        notifyPartnerLetterEvent({
+                          event: 'saved',
+                          letterIds: [saved.id],
+                          letterTitles: [title],
+                        });
 
                         setDraft(null);
                         openVault();
@@ -4055,7 +4201,7 @@ useEffect(() => {
                     className={`${FINELY_OS_PRIMARY_BTN} disabled:opacity-60 disabled:cursor-not-allowed`}
                     title="Save this letter (PDF) into Letters Vault"
                   >
-                    {draftBusy ? 'Saving…' : draft.letterId ? 'Update Letters Vault PDF' : 'Save to Letters Vault'}
+                    {draftBusy ? 'Saving…' : draft.letterId ? 'Save PDF → Vault' : 'Save PDF → Vault'}
                   </button>
                 </div>
               </div>
@@ -4143,6 +4289,11 @@ useEffect(() => {
                         entityId: saved.id,
                         meta: { kind: draft.type, pdfBlobRef: pdf.pdfBlobRef ?? null, filename: pdf.filename, debtId: debt?.id ?? null },
                       });
+                      notifyPartnerLetterEvent({
+                        event: 'saved',
+                        letterIds: [saved.id],
+                        letterTitles: [title],
+                      });
 
                       setDraft(null);
                       openVault();
@@ -4208,6 +4359,11 @@ useEffect(() => {
                         entityType: 'letter',
                         entityId: saved.id,
                         meta: { kind: draft.type, pdfBlobRef: pdf.pdfBlobRef ?? null, filename: pdf.filename, debtId: debt?.id ?? null },
+                      });
+                      notifyPartnerLetterEvent({
+                        event: 'saved',
+                        letterIds: [saved.id],
+                        letterTitles: [title],
                       });
 
                       if (pdf.pdfBlobRef) {
@@ -5068,10 +5224,17 @@ useEffect(() => {
                         </div>
                       ) : null}
 
-                      <div className="flex flex-wrap items-center justify-end gap-3 pt-2">
+                      <div className="flex flex-wrap items-center justify-between gap-3 pt-2 sticky bottom-0 z-10 bg-[#0a0f0d]/90 backdrop-blur-sm py-2">
+                        <LetterEmailPartnerToggle
+                          checked={emailPartnerOnEvents}
+                          onChange={setEmailPartnerOnEvents}
+                          hint={layout === 'embedded' ? 'Notify partner' : 'Email me'}
+                          label={layout === 'embedded' ? 'Email partner' : 'Email me'}
+                        />
+                        <div className="flex flex-wrap items-center gap-2">
                         <button
                           type="button"
-                          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-white/[0.08] bg-white/5 hover:bg-white/10 text-[10px] font-black uppercase tracking-widest text-white/70 transition-all"
+                          className={FINELY_OS_SECONDARY_BTN}
                           onClick={() => {
                             const target = items.find((x) => !evidenceByCandidateId[x.key]) ?? items[0] ?? null;
                             if (!target) return;
@@ -5096,13 +5259,12 @@ useEffect(() => {
                             }
                             await generateDisputeLetterForBureau(b, { download: false });
                           }}
-                          className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-amber-500 text-black font-black uppercase tracking-widest text-[10px] hover:brightness-110 transition-all disabled:opacity-60 disabled:cursor-not-allowed"
-                          title={
-                            'Generate PDF and save it to Letters Vault'
-                          }
+                          className={`${FINELY_OS_PRIMARY_BTN} disabled:opacity-60 disabled:cursor-not-allowed`}
+                          title="Generate PDF and save it to Letters Vault"
                         >
-                          <PenLine size={14} /> {busy ? 'Generatingâ€¦' : 'Generate PDF + Save'}
+                          <PenLine size={14} /> {busy ? 'Generating…' : 'Generate PDF → Vault'}
                         </button>
+                        </div>
                       </div>
                     </div>
                   );

@@ -27,6 +27,11 @@ import {
   type ReportedDebtSignal,
 } from '../../lib/debtCreditorIntel';
 import {
+  enrichRecipientAddress,
+  enrichmentToDebtPatch,
+  type AddressEnrichmentResult,
+} from '../../lib/recipientAddressEnrichment';
+import {
   FINELY_OS_ENTITY_BODY,
   FINELY_OS_ENTITY_INPUT,
   FINELY_OS_ENTITY_LABEL,
@@ -137,6 +142,8 @@ export function DebtCreditorIntelPanel({
   const [borrowerId, setBorrowerId] = useState('');
   const [activeSignalId, setActiveSignalId] = useState<string | null>(null);
   const [savedNotice, setSavedNotice] = useState<string | null>(null);
+  const [lookupBusy, setLookupBusy] = useState(false);
+  const [enrichMeta, setEnrichMeta] = useState<AddressEnrichmentResult | null>(null);
 
   useEffect(() => {
     setRecipientName(party?.recipientName || debt?.recipientName || debt?.name || '');
@@ -243,6 +250,54 @@ export function DebtCreditorIntelPanel({
     onDebtChange(next);
     onSenderPersist?.();
     setSavedNotice('Creditor and sender details saved to this debt case.');
+  };
+
+  const lookupMailingAddress = async () => {
+    setLookupBusy(true);
+    try {
+      const result = await enrichRecipientAddress({
+        preferCounsel: mode === 'court',
+        nameCandidates: [
+          plaintiffLawFirm,
+          plaintiffAttorneyName,
+          recipientName,
+          debt?.plaintiffLawFirm,
+          debt?.plaintiffAttorneyName,
+          debt?.collectorName,
+          debt?.recipientName,
+          debt?.name,
+          party?.recipientName,
+          originalCreditor,
+        ],
+        addressCandidates: [
+          plaintiffLawFirmAddress,
+          recipientAddress,
+          debt?.plaintiffLawFirmAddress,
+          debt?.recipientAddress,
+          party?.recipientAddress,
+        ],
+        phone: recipientPhone || debt?.recipientPhone || party?.recipientPhone,
+      });
+      setEnrichMeta(result);
+      if (!result?.address) {
+        setSavedNotice(result?.hint || 'No mailing address found — enter it from the notice or summons.');
+        return;
+      }
+      setRecipientName(result.name || recipientName);
+      setRecipientAddress(result.address);
+      if (result.phone) setRecipientPhone(result.phone);
+      if (result.kind === 'law_firm' || mode === 'court') {
+        setPlaintiffLawFirm(result.name || plaintiffLawFirm);
+        setPlaintiffLawFirmAddress(result.address);
+      }
+      if (debt) {
+        const patch = enrichmentToDebtPatch(result);
+        onDebtChange(mergeDebtCreditorFields(debt, patch));
+      }
+      setSavedNotice(result.hint);
+    } finally {
+      setLookupBusy(false);
+    }
   };
 
   const selectedSummons = summonsDocs.find((d) => d.id === selectedSummonsDocId) ?? summonsDocs[0] ?? null;
@@ -458,7 +513,19 @@ export function DebtCreditorIntelPanel({
             />
           </div>
           <div className={compact ? 'sm:col-span-2 max-w-xl' : 'md:col-span-2'}>
-            <label className={FINELY_OS_ENTITY_LABEL}>Mailing address</label>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <label className={FINELY_OS_ENTITY_LABEL}>Mailing address</label>
+              <button
+                type="button"
+                className={FINELY_OS_SECONDARY_BTN}
+                disabled={lookupBusy}
+                onClick={() => void lookupMailingAddress()}
+                title="Fill from directory, report, or web lookup when configured"
+              >
+                <Wand2 size={14} />
+                {lookupBusy ? 'Looking up…' : 'Fill address'}
+              </button>
+            </div>
             <textarea
               value={recipientAddress}
               onChange={(e) => setRecipientAddress(e.target.value)}
@@ -466,6 +533,14 @@ export function DebtCreditorIntelPanel({
               placeholder="Street, suite, city, state, ZIP"
               className={`${fieldInput} ${compact ? 'min-h-[64px]' : 'min-h-[88px]'}`}
             />
+            {enrichMeta?.verifyRequired || (!recipientAddress.trim() && enrichMeta?.source === 'missing') ? (
+              <p className="mt-1 text-[11px] text-amber-200/85">
+                Verify address against the collection notice or summons before mailing.
+                {enrichMeta?.hint ? ` ${enrichMeta.hint}` : ''}
+              </p>
+            ) : enrichMeta?.hint ? (
+              <p className="mt-1 text-[11px] text-emerald-200/80">{enrichMeta.hint}</p>
+            ) : null}
           </div>
           <div className={compact ? FINELY_OS_FIELD_WIDTH : ''}>
             <label className={FINELY_OS_ENTITY_LABEL}>Phone (optional)</label>
@@ -515,7 +590,18 @@ export function DebtCreditorIntelPanel({
               <input value={affidavitCounty} onChange={(e) => setAffidavitCounty(e.target.value)} placeholder="County for STATE/COUNTY caption" className={fieldInput} />
             </div>
             <div className={compact ? '' : 'md:col-span-2'}>
-              <label className={FINELY_OS_ENTITY_LABEL}>Plaintiff firm mailing address</label>
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <label className={FINELY_OS_ENTITY_LABEL}>Plaintiff firm mailing address</label>
+                <button
+                  type="button"
+                  className={FINELY_OS_SECONDARY_BTN}
+                  disabled={lookupBusy}
+                  onClick={() => void lookupMailingAddress()}
+                >
+                  <Wand2 size={14} />
+                  {lookupBusy ? 'Looking up…' : 'Fill counsel address'}
+                </button>
+              </div>
               <textarea value={plaintiffLawFirmAddress} onChange={(e) => setPlaintiffLawFirmAddress(e.target.value)} rows={2} placeholder="Law firm address on summons" className={`${fieldInput} min-h-[64px]`} />
             </div>
             <div>

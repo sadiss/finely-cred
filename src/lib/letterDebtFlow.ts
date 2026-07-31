@@ -52,8 +52,8 @@ export function buildDebtLetterPathSteps(opts: {
     },
     {
       id: 'generate',
-      label: 'Save',
-      meta: savedToVault ? 'In vault' : 'Generate',
+      label: 'Save → Mail',
+      meta: savedToVault ? 'In vault — mail next' : 'Save PDF',
       done: Boolean(savedToVault),
       disabled: !hasDraftBody,
       disabledReason: 'Complete your draft first',

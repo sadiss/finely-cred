@@ -71,6 +71,7 @@ export const PUBLIC_RESOURCES_SECTIONS: PublicNavSection[] = [
     title: 'Library & learn',
     links: [
       { id: 'resources-hub', label: 'Resource hub', path: '/resources' },
+      { id: 'bc-one-sheets', label: 'Partner one-sheets', path: '/resources/business-credit-one-sheets', hint: 'Business Credit tier PDFs' },
       { id: 'bookstore', label: 'Bookstore & eGuides', path: '/bookstore' },
       { id: 'start-here', label: 'Start here', path: '/start-here' },
       { id: 'events', label: 'Events', path: '/events' },

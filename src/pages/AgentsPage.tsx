@@ -136,7 +136,10 @@ export default function AgentsPage() {
           <a href="/" className={FINELY_OS_BACK_LINK}>
             <ArrowLeft size={16} /> Home
           </a>
-          <button type="button" onClick={() => navigate('/onboarding')} className={FINELY_OS_SUCCESS_BTN}>
+          <button type="button" onClick={() => navigate('/credit-specialist')} className={FINELY_OS_SECONDARY_BTN}>
+            Pricing & offer
+          </button>
+          <button type="button" onClick={() => navigate('/credit-specialist/join')} className={FINELY_OS_SUCCESS_BTN}>
             Start specialist signup
           </button>
         </div>
@@ -155,8 +158,8 @@ export default function AgentsPage() {
           ]}
           activeTab={laneTab}
           onTabChange={(id) => setLaneTab(id as typeof laneTab)}
-          primaryAction={{ label: 'Apply to program', onClick: () => navigate('/onboarding?goal=agent') }}
-          secondaryAction={{ label: CS.hubName, onClick: () => navigate(CS.hubPath) }}
+          primaryAction={{ label: 'Join / onboarding', onClick: () => navigate('/credit-specialist/join') }}
+          secondaryAction={{ label: 'Pricing hub', onClick: () => navigate('/credit-specialist') }}
         >
 
         {laneTab === 'program' && (
@@ -192,8 +195,8 @@ export default function AgentsPage() {
             <button type="button" onClick={() => setLaneTab('economics')} className={FINELY_OS_PRIMARY_BTN}>
               See tiers &amp; pay <ArrowRight size={16} />
             </button>
-            <button type="button" onClick={() => navigate('/onboarding?goal=agent')} className={FINELY_OS_SECONDARY_BTN}>
-              Apply now
+            <button type="button" onClick={() => navigate('/credit-specialist/join')} className={FINELY_OS_SECONDARY_BTN}>
+              Join now
             </button>
           </div>
         </div>

@@ -159,6 +159,30 @@ export const KNOWN_CREDITOR_DIRECTORY: KnownCreditorEntry[] = [
     address: '30057 Orchard Lake Road, Suite 200\nFarmington Hills, MI 48334',
     kind: 'law_firm',
   },
+  {
+    aliases: ['sun federal', 'sun federal credit union'],
+    displayName: 'Sun Federal Credit Union',
+    address: '1627 Holland Road\nMaumee, OH 43537',
+    kind: 'bank',
+  },
+  {
+    aliases: ['citigroup', 'citi financial'],
+    displayName: 'Citibank, N.A.',
+    address: 'P.O. Box 790017\nSt. Louis, MO 63179',
+    kind: 'bank',
+  },
+  {
+    aliases: ['afni', 'afni inc'],
+    displayName: 'Afni, Inc.',
+    address: 'P.O. Box 3427\nBloomington, IL 61702',
+    kind: 'collector',
+  },
+  {
+    aliases: ['ic system', 'i.c. system', 'icsystem'],
+    displayName: 'I.C. System, Inc.',
+    address: 'P.O. Box 64378\nSt. Paul, MN 55164',
+    kind: 'collector',
+  },
 ];
 
 function norm(s: string) {

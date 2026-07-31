@@ -178,9 +178,22 @@ export default function NotificationsCenterPage({ surface }: { surface: Surface 
               >
                 Daily email digest
               </button>
+              <button
+                type="button"
+                onClick={() => {
+                  upsertNotificationPrefs({
+                    ...prefs,
+                    emailLetterLifecycle: !prefs.emailLetterLifecycle,
+                  });
+                  setVersion((v) => v + 1);
+                }}
+                className={`${FINELY_OS_ENTITY_CHIP} ${prefs.emailLetterLifecycle !== false ? '' : 'opacity-50 line-through'}`}
+              >
+                Letter lifecycle emails
+              </button>
             </div>
             <div className="flex flex-wrap gap-2">
-              {(['task', 'trial', 'purchase', 'support'] as const).map((kind) => (
+              {(['task', 'trial', 'purchase', 'support', 'letters'] as const).map((kind) => (
                 <button
                   key={kind}
                   type="button"

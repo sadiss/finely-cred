@@ -16,6 +16,7 @@ import { BatchMailWizard, type BatchMailItemResult } from '../../components/lett
 import { SavedLetterCard } from '../../components/letters/SavedLetterCard';
 import { MailProviderStatusBanner } from '../../components/mailing/MailProviderStatusBanner';
 import { notifyLetterMailed } from '../../lib/letterMailedNotify';
+import { notifyLetterLifecycle } from '../../lib/letterLifecycleNotify';
 import { loadLettersCommandCenterDraft } from '../../data/lettersCommandCenterDraftRepo';
 import { letterStudioResumeUrl } from '../../lib/letterStudioResume';
 import { bureauFullName } from '../../utils/bureaus';
@@ -432,6 +433,19 @@ export default function PartnerLettersVaultPage() {
                   actorRole: 'partner',
                 })
               }
+              onNotifyReadyToMail={({ emailPartner: wantEmail }) => {
+                if (!wantEmail) return;
+                void notifyLetterLifecycle({
+                  partnerId: partner.id,
+                  partner,
+                  event: 'ready_to_mail',
+                  letterIds: [mailLetter.id],
+                  letterTitles: [mailLetter.title],
+                  emailPartner: true,
+                  actorEmail: email || undefined,
+                  actorRole: 'partner',
+                });
+              }}
               trackHref="/portal/letters/vault"
             />
           ) : null}
