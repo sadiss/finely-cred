@@ -20,6 +20,9 @@ type Props = {
   showBusinessName?: boolean;
   /** Boutique dark-glass fields (default). Pass false to keep legacy light inputs. */
   boutique?: boolean;
+  /** When set with successMode "callback", parent owns post-capture UX (e.g. open in-app guide). */
+  onCaptured?: (result: { leadId: string; fullName: string; email: string; phone: string }) => void;
+  successMode?: 'panel' | 'callback';
 };
 
 const DEFAULT_BUTTON =
@@ -36,6 +39,8 @@ export function PremiumLeadMagnetCaptureForm({
   submitLabel,
   showBusinessName = false,
   boutique = true,
+  onCaptured,
+  successMode = 'panel',
 }: Props) {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -115,9 +120,17 @@ export function PremiumLeadMagnetCaptureForm({
       setBusinessName('');
       setConsent(false);
       setMarketing(false);
-      queueMicrotask(() => {
-        document.getElementById(`lm-success-${funnelConfig.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      onCaptured?.({
+        leadId: result.leadId,
+        fullName: result.fullName,
+        email: result.email,
+        phone: result.phone,
       });
+      if (successMode === 'panel') {
+        queueMicrotask(() => {
+          document.getElementById(`lm-success-${funnelConfig.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+      }
     } catch (err: unknown) {
       setStatus('error');
       setMessage((err as Error)?.message || 'Something went wrong. Please try again.');
@@ -134,7 +147,7 @@ export function PremiumLeadMagnetCaptureForm({
       ? cn(buttonClass, 'lm-lux-cta-sheen relative overflow-hidden')
       : buttonClass;
 
-  if (status === 'sent' && leadId && captured) {
+  if (status === 'sent' && leadId && captured && successMode === 'panel') {
     return (
       <div id={`lm-success-${funnelConfig.id}`} className="scroll-mt-24">
         <LeadMagnetGuidedSuccessPanel
@@ -144,6 +157,14 @@ export function PremiumLeadMagnetCaptureForm({
           email={captured.email}
           phone={captured.phone}
         />
+      </div>
+    );
+  }
+
+  if (status === 'sent' && successMode === 'callback') {
+    return (
+      <div className="rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-100">
+        You&apos;re in — opening your guide…
       </div>
     );
   }

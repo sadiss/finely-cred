@@ -8,6 +8,8 @@ export type LeadOffer =
   | 'affiliate_application'
   | 'agent_application'
   | 'credit_specialist_join'
+  /** Guide landing capture (in-app Credit Specialist playbook). */
+  | 'credit_specialist_guide'
   | 'enlightenment_session'
   | 'consultation_booking'
   | 'dispute_letter_guide'

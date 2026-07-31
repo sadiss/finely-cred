@@ -59,3 +59,9 @@ export function addLeadNote(leadId: string, text: string): LeadOp {
   return upsertLeadOp({ ...op, notes: nextNotes });
 }
 
+export function addLeadTags(leadId: string, tags: string[]): LeadOp {
+  const op = getLeadOp(leadId);
+  const next = Array.from(new Set([...(op.tags ?? []), ...tags.map((t) => t.trim()).filter(Boolean)]));
+  return upsertLeadOp({ ...op, tags: next });
+}
+

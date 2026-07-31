@@ -1,5 +1,6 @@
 import type { LucideIcon } from 'lucide-react';
 import {
+  BookOpen,
   FileSignature,
   LayoutDashboard,
   Mail,
@@ -247,38 +248,51 @@ export const AGENCY_FUNNEL: LeadMagnetFunnelConfig = {
   bookingPath: '/enlightenment-session',
 };
 
-export const SPECIALIST_APPLY_FUNNEL: LeadMagnetFunnelConfig = {
-  id: 'specialist_apply',
-  path: '/credit-specialist-apply',
-  funnelId: 'specialist_apply',
+/** In-app Credit Specialist playbook capture (wired into guide landing). */
+export const CREDIT_SPECIALIST_GUIDE_FUNNEL: LeadMagnetFunnelConfig = {
+  id: 'credit_specialist_guide',
+  path: '/credit-specialist-guide',
+  funnelId: 'credit_specialist_guide',
   sequenceId: 'seq_specialist_apply_funnel',
   agentPersonaId: 'lead_converter',
   agentDisplayName: 'Alex',
   agentRole: 'Partner Activation Specialist',
   guideId: 'ai-dispute-workflows',
-  offer: 'specialist_program_apply',
+  offer: 'credit_specialist_guide',
   onboardingLane: 'personal_restore',
-  metaTitle: 'Credit specialist program',
-  metaDesc: 'Apply to the Finely Cred specialist network — tools, training, and partner activation support.',
-  urgencyText: 'FREE — Specialist toolkit preview + activation call',
-  heroHeadline: 'Join the',
-  heroHighlight: 'Specialist Network',
-  heroSub: '— tools, training, and partner OS access.',
+  metaTitle: 'Free Credit Specialist playbook',
+  metaDesc:
+    'Personal + business credit, debt challenge insight, court education, and specialist opportunity — open in-app after capture.',
+  urgencyText: 'FREE — Credit Specialist playbook + join path (3 leads · 30-day free-leads window)',
+  heroHeadline: 'Master the',
+  heroHighlight: 'Specialist Craft',
+  heroSub: '— then bring partners with Finely.',
   valueStack: [
-    { label: 'Specialist program overview PDF', value: '$59' },
-    { label: 'Activation workbook (interactive)', value: '$49' },
-    { label: 'AI dispute workflow primer', value: '$49' },
-    { label: 'Partner OS tour checklist', value: '$29' },
-    { label: `${LEAD_MAGNET_TRIAL_DAYS}-day specialist preview`, value: '$79', trialFeature: 'report_upload_preview', locksAfterTrial: true },
+    { label: 'In-app Credit Specialist playbook (7 chapters)', value: '$79' },
+    { label: 'Personal + business credit teaching lanes', value: '$49' },
+    { label: 'Debt challenge & summons education (not legal advice)', value: '$49' },
+    { label: 'Opportunity framing + specialist income path', value: '$39' },
+    { label: 'Join hub: 3-lead gate + 30-day free leads', value: '$59' },
   ],
   features: [
-    { icon: FileSignature, title: 'Dispute workflow training', desc: 'Factual findings, evidence vault, letter ops.' },
-    { icon: LayoutDashboard, title: 'Partner OS access', desc: 'Preview the platform specialists use daily.' },
-    { icon: Target, title: 'Activation path', desc: 'Clear steps from application to first partner.' },
-    { icon: ShieldCheck, title: 'Compliance-aware', desc: 'Educational positioning built into the toolkit.' },
+    { icon: BookOpen, title: 'Built-in reader', desc: 'Open chapters from the preview — no PDF required.' },
+    { icon: Target, title: 'Recruiting-ready', desc: 'Capture lands in Credit Specialists CRM with specialist nurture.' },
+    { icon: ShieldCheck, title: 'Compliance-aware', desc: 'Results vary · not legal advice · not an employment offer.' },
+    { icon: LayoutDashboard, title: 'Clear next step', desc: 'After the guide: pricing hub + guided join.' },
   ],
-  trustCerts: ['Application not a job offer', 'Educational only', 'Secure PDF', 'Partner-first'],
-  bookingPath: '/enlightenment-session',
+  trustCerts: ['Partner terminology', 'Educational only', 'Not an employment offer', 'No income guarantees'],
+  bookingPath: '/credit-specialist/join',
+};
+
+/** @deprecated Prefer CREDIT_SPECIALIST_GUIDE_FUNNEL + /credit-specialist/join — kept for route compatibility. */
+export const SPECIALIST_APPLY_FUNNEL: LeadMagnetFunnelConfig = {
+  ...CREDIT_SPECIALIST_GUIDE_FUNNEL,
+  id: 'specialist_apply',
+  path: '/credit-specialist-apply',
+  funnelId: 'specialist_apply',
+  offer: 'credit_specialist_join',
+  metaTitle: 'Join as a Credit Specialist',
+  bookingPath: '/credit-specialist/join',
 };
 
 export const AFFILIATE_FUNNEL: LeadMagnetFunnelConfig = {
@@ -322,6 +336,7 @@ export const LEAD_MAGNET_FUNNELS = [
   TRADELINE_FUNNEL,
   SCORE_ROADMAP_FUNNEL,
   AGENCY_FUNNEL,
+  CREDIT_SPECIALIST_GUIDE_FUNNEL,
   SPECIALIST_APPLY_FUNNEL,
   AFFILIATE_FUNNEL,
 ] as const;

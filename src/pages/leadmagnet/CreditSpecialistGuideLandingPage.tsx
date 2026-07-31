@@ -15,6 +15,8 @@ import {
   Users,
 } from 'lucide-react';
 import { LeadMagnetCobrand, LeadMagnetCobrandFooterMarks } from '../../components/brand/LeadMagnetCobrand';
+import { PremiumLeadMagnetCaptureForm } from '../../components/leadmagnet/PremiumLeadMagnetCaptureForm';
+import { CREDIT_SPECIALIST_GUIDE_FUNNEL } from '../../domain/leadMagnetFunnels';
 import { usePublicSeoMeta } from '../../hooks/usePublicSeoMeta';
 import '../../components/leadmagnet/leadMagnetLuxuryStage.css';
 import {
@@ -130,6 +132,10 @@ export default function CreditSpecialistGuideLandingPage() {
     navigate(path);
   };
 
+  const scrollToCapture = () => {
+    document.getElementById('csg-capture')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
   return (
     <main className="csg-page lm-lux-theme--navy relative min-h-screen overflow-x-hidden selection:bg-[#d4a447]/30">
       <div className="csg-atmosphere pointer-events-none fixed inset-0 z-0" aria-hidden />
@@ -192,11 +198,11 @@ export default function CreditSpecialistGuideLandingPage() {
             <div className="mt-9 flex flex-wrap items-center gap-3">
               <button
                 type="button"
-                onClick={() => openGuide()}
+                onClick={scrollToCapture}
                 className="csg-gold-btn inline-flex h-12 items-center justify-center gap-2 rounded-lg px-7 text-[11px] font-black uppercase tracking-[0.16em]"
               >
                 <span className="relative z-10 flex items-center gap-2">
-                  Open the free guide <ArrowRight size={16} />
+                  Unlock & open guide <ArrowRight size={16} />
                 </span>
               </button>
               <Link
@@ -210,10 +216,40 @@ export default function CreditSpecialistGuideLandingPage() {
           </div>
 
           <div className="relative flex flex-col items-center">
-            <GuideBookMockup tall onOpen={() => openGuide()} />
+            <GuideBookMockup tall onOpen={scrollToCapture} />
             <p className="mt-2 max-w-xs text-center text-sm text-white/50">
-              Preview opens the full in-app reader — chapter navigation, no PDF required.
+              Preview opens capture → then the in-app reader (chapter navigation, no PDF required).
             </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Lead capture → opens reader (wires into leads system) */}
+      <section id="csg-capture" className="relative z-10 scroll-mt-28 border-y border-white/8 py-14 md:py-16">
+        <div className="mx-auto grid max-w-[88rem] items-start gap-10 px-5 md:px-10 lg:grid-cols-[0.95fr_1.05fr]">
+          <div>
+            <div className="csg-kicker">
+              <Users size={14} /> Enter the leads system
+            </div>
+            <h2 className="csg-serif mt-4 text-3xl font-semibold md:text-4xl">Unlock the playbook</h2>
+            <p className="mt-3 max-w-lg text-base text-white/55">
+              Your capture creates a Credit Specialist guide lead in Finely CRM — then we open the in-app reader.
+              When you&apos;re ready, join with the 3-lead / 30-day free-leads commitment.
+            </p>
+            <ul className="mt-6 space-y-3">
+              <MiniCheck>Tagged as Credit Specialist guide in admin leads</MiniCheck>
+              <MiniCheck>Specialist nurture sequence auto-enrolls</MiniCheck>
+              <MiniCheck>Clear CTA into pricing + guided join</MiniCheck>
+            </ul>
+          </div>
+          <div className="csg-pillar-card rounded-2xl p-5 md:p-6">
+            <PremiumLeadMagnetCaptureForm
+              funnelConfig={CREDIT_SPECIALIST_GUIDE_FUNNEL}
+              submitLabel="Unlock guide & open"
+              successMode="callback"
+              onCaptured={() => openGuide()}
+            />
+            <p className="mt-3 text-center text-[11px] text-white/40">{CS_GUIDE_META.compliance}</p>
           </div>
         </div>
       </section>

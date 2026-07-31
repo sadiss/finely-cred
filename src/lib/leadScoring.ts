@@ -73,6 +73,19 @@ export function scoreLead(lead: LeadCapture): LeadScoreResult {
     reasons.push('Bulk import — verify enrichment');
   }
 
+  const isSpecialistRecruit =
+    interest.includes('credit_specialist') ||
+    interest.includes('specialist') ||
+    lead.offer === 'credit_specialist_join' ||
+    lead.offer === 'credit_specialist_guide' ||
+    lead.offer === 'agent_application' ||
+    (lead.funnelPath ?? '').includes('credit-specialist');
+
+  if (isSpecialistRecruit) {
+    score += 14;
+    reasons.push('Credit Specialist recruiting signal');
+  }
+
   score = clamp(score, 0, 100);
 
   let band: LeadScoreBand = 'cold';
@@ -80,22 +93,34 @@ export function scoreLead(lead: LeadCapture): LeadScoreResult {
   else if (score >= 58) band = 'hot';
   else if (score >= 45) band = 'warm';
 
-  const suggestedPersonaId =
-    fit === 'debt' ? 'debt_strategist' : fit === 'business' ? 'funding_strategist' : fit === 'tradelines' ? 'sales_closer' : 'lead_converter';
+  const suggestedPersonaId = isSpecialistRecruit
+    ? 'lead_converter'
+    : fit === 'debt'
+      ? 'debt_strategist'
+      : fit === 'business'
+        ? 'funding_strategist'
+        : fit === 'tradelines'
+          ? 'sales_closer'
+          : 'lead_converter';
 
   const suggestedSequenceId =
     interest.includes('meta_lead') || lead.utmSource === 'facebook' || lead.utmMedium === 'lead_ad'
       ? 'seq_meta_lead'
-      : fit === 'debt'
-        ? 'seq_debt_funnel'
-        : fit === 'business'
-          ? 'seq_business_funnel'
-          : fit === 'tradelines'
-            ? 'seq_tradeline_funnel'
-            : 'seq_credit_funnel';
+      : isSpecialistRecruit
+        ? 'seq_specialist_apply_funnel'
+        : fit === 'debt'
+          ? 'seq_debt_funnel'
+          : fit === 'business'
+            ? 'seq_business_funnel'
+            : fit === 'tradelines'
+              ? 'seq_tradeline_funnel'
+              : 'seq_credit_funnel';
 
-  const suggestedAction =
-    band === 'qualified'
+  const suggestedAction = isSpecialistRecruit
+    ? band === 'qualified' || band === 'hot'
+      ? 'Route to Credit Specialists CRM · confirm 3-lead + 30-day commitment · book activation'
+      : 'Enroll specialist nurture · send join / pricing hub'
+    : band === 'qualified'
       ? 'Book strategy call + assign sales persona'
       : band === 'hot'
         ? 'Send personalized follow-up + portal trial nudge'

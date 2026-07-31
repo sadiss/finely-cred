@@ -297,6 +297,59 @@ export const LEAD_MAGNET_PREMIUM_PROFILES: Record<string, LeadMagnetPremiumProfi
     ],
   }),
 
+  credit_specialist_guide: profile({
+    accent: 'amber',
+    heroProof: ['7-chapter in-app playbook', 'Personal + business credit lanes', '3-lead join path after the guide'],
+    problemTitle: 'Specialists need craft, opportunity, and a clear entry gate.',
+    problemBody:
+      'This playbook teaches personal credit, business credit, debt challenge insight, and court/summons education — then routes serious operators into the Credit Specialist join flow (3 leads · 30-day free-leads window).',
+    painPoints: [
+      'Scattered YouTube “tips” with no partner-safe sequence',
+      'Business credit sold as magic — no fundability hygiene',
+      'Debt panic without documentation discipline',
+      'No clear path from learning → bringing partners → platform access',
+    ],
+    chapters: [
+      { title: 'Personal credit craft', bullets: ['Factual findings', 'Utilization & mix', 'Partner coaching cadence'] },
+      { title: 'Business credit', bullets: ['Entity hygiene', 'Vendor sequencing', 'Capital-pack readiness'] },
+      { title: 'Debt & court insight', bullets: ['Validation-first', 'Summons education', 'Not legal advice'] },
+      { title: 'Specialist opportunity', bullets: ['3-lead gate', '30-day free leads', 'Revenue-share tiers'] },
+    ],
+    tracks: [
+      { id: 'learn', label: 'Learn first', promise: 'Open the in-app guide before you pitch.', bestFor: 'New specialists.', plan: ['Capture', 'Read chapters', 'Join when ready'] },
+      { id: 'recruit', label: 'Recruit now', promise: 'Commit to 3 leads in 30 days.', bestFor: 'Operators with a network.', plan: ['Join', 'Promo links', 'Bring partners'] },
+      { id: 'debt', label: 'Debt lane', promise: 'Teach validation-first pressure response.', bestFor: 'Collections-heavy markets.', plan: ['Guide chapters', 'Letter studio', 'Compliance'] },
+      { id: 'business', label: 'Business lane', promise: 'Fundability before capital asks.', bestFor: 'Entrepreneur niches.', plan: ['Entity hygiene', 'Vendor ladder', 'Underwriting optics'] },
+    ],
+    timeline: [
+      { step: 'Capture', detail: 'Unlock the in-app playbook' },
+      { step: 'Read', detail: 'Open chapters from the preview' },
+      { step: 'Join', detail: '3-lead commitment + tier selection' },
+      { step: 'Activate', detail: 'Specialist Hub + bring partners' },
+    ],
+    bonusTools: [
+      { title: 'In-app chapter reader', desc: 'Click the book preview — no PDF required.' },
+      { title: 'Join commitment checklist', desc: '3 leads · 30-day free-leads window — clear on day one.' },
+      { title: 'Pricing hub', desc: 'Foundation → Certified Partner revenue-share tiers.' },
+    ],
+    portalHighlights: [
+      'Specialist Hub after signup',
+      'Promo links for partner funnels',
+      'Letters + CRM for the partners you bring',
+      'Partnership line for activation',
+    ],
+    captureHeadline: 'Unlock the free Credit Specialist playbook',
+    captureSub: 'In-app guide + specialist nurture. Not an employment offer · educational only.',
+    successHeadline: 'Playbook unlocked — open the guide',
+    formStepTitle: 'Get the specialist playbook',
+    formStepSub: 'Instant in-app reader. Then join with your 3-lead commitment when ready.',
+    faqs: [
+      { q: 'Is this a job offer?', a: 'No — it is a partnership program with a 3-lead minimum to unlock full system access.' },
+      { q: 'Is court content legal advice?', a: 'No — educational only. Licensed counsel for court matters.' },
+      { q: 'What are free leads?', a: 'You keep partners you bring during the 30-day window using Finely capture tools.' },
+    ],
+  }),
+
   specialist_apply: profile({
     accent: 'sky',
     heroProof: ['AI dispute workflow primer', 'Partner activation checklist', 'Specialist portal preview'],
@@ -305,19 +358,19 @@ export const LEAD_MAGNET_PREMIUM_PROFILES: Record<string, LeadMagnetPremiumProfi
       'The Finely specialist network is for operators who want tools, training, and partner OS access — not hype gigs. This application kit shows the activation path before you commit time.',
     painPoints: [
       'Learning dispute ops from random YouTube clips',
-      'No evidence vault discipline — clients blame you',
+      'No evidence vault discipline — partners blame you',
       'Unclear path from “interested” to first paid partner',
       'Compliance mistakes that burn reputation early',
     ],
     chapters: [
       { title: 'Workflow training', bullets: ['Factual findings', 'Evidence vault', 'Letter ops'] },
-      { title: 'AI assist primer', bullets: ['Draft review gates', 'Client comms', 'Task templates'] },
+      { title: 'AI assist primer', bullets: ['Draft review gates', 'Partner comms', 'Task templates'] },
       { title: 'Activation path', bullets: ['Application → review → onboarding', 'First partner milestones', 'Support channels'] },
-      { title: 'Compliance', bullets: ['Educational positioning', 'Prohibited claims', 'Client expectation scripts'] },
+      { title: 'Compliance', bullets: ['Educational positioning', 'Prohibited claims', 'Partner expectation scripts'] },
     ],
     tracks: [
       { id: 'new', label: 'New specialist', promise: 'Zero to first workflow in 14 days.', bestFor: 'Career switchers.', plan: ['Training ladder', 'Shadow tasks', 'QA review'] },
-      { id: 'experienced', label: 'Experienced', promise: 'Port your clients into OS lanes.', bestFor: 'Existing repair operators.', plan: ['Import playbook', 'Portal setup', 'Activation call'] },
+      { id: 'experienced', label: 'Experienced', promise: 'Port your partners into OS lanes.', bestFor: 'Existing repair operators.', plan: ['Import playbook', 'Portal setup', 'Activation call'] },
       { id: 'ai', label: 'AI workflows', promise: 'Use AI without sloppy letters.', bestFor: 'Tech-comfortable operators.', plan: ['Prompt guardrails', 'Review gates', 'Audit trail'] },
       { id: 'growth', label: 'Growth', promise: 'Partner acquisition after activation.', bestFor: 'Ready for volume.', plan: ['Referral lanes', 'Capacity tiers', 'CMO handoff'] },
     ],
@@ -328,8 +381,8 @@ export const LEAD_MAGNET_PREMIUM_PROFILES: Record<string, LeadMagnetPremiumProfi
       { step: 'Activate', detail: 'First partner under supervision' },
     ],
     bonusTools: [
-      { title: 'Dispute evidence vault template', desc: 'Folder structure clients cannot argue with.' },
-      { title: 'Client expectation script', desc: 'Set timelines without over-promising.' },
+      { title: 'Dispute evidence vault template', desc: 'Folder structure partners cannot argue with.' },
+      { title: 'Partner expectation script', desc: 'Set timelines without over-promising.' },
       { title: 'Activation checklist', desc: 'Every box before you take live files.' },
     ],
     portalHighlights: [

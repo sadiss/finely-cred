@@ -20,7 +20,7 @@ import {
 import { CS } from '../config/creditSpecialistProgram';
 import { createProgramApplication } from '../data/programApplicationsRepo';
 import { submitLeadCapture } from '../data/leadsRepo';
-import { addLeadNote } from '../data/leadOpsRepo';
+import { addLeadNote, addLeadTags } from '../data/leadOpsRepo';
 import { FinelyOsAlertBanner } from '../features/os/FinelyOsAlertBanner';
 import { FinelyOsPageFooter } from '../features/os/FinelyOsPageFooter';
 import { MarketingStaffChatStrip } from '../components/marketing/MarketingStaffChatStrip';
@@ -206,6 +206,15 @@ export default function CreditSpecialistJoinPage() {
         lead.lead.id,
         `Program application: ${app.id}\nOffer: credit_specialist_join\nMin leads: ${CS_OFFER.minLeadsRequired}\nFree-leads days: ${CS_OFFER.freeLeadsWindowDays}`,
       );
+      addLeadTags(lead.lead.id, [
+        'credit-specialist',
+        'credit_specialist_join',
+        `tier:${nextIntent.tierId}`,
+        `min-leads:${CS_OFFER.minLeadsRequired}`,
+        `free-leads-days:${CS_OFFER.freeLeadsWindowDays}`,
+        nextIntent.committedMinLeads ? 'committed-min-leads' : 'pending-min-leads',
+        nextIntent.understoodFreeLeadsWindow ? 'understood-free-leads-window' : 'pending-free-leads-window',
+      ]);
 
       const saved = { ...nextIntent, leadId: lead.lead.id };
       persistIntent(saved);

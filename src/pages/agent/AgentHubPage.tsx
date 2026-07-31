@@ -25,6 +25,8 @@ import { UnifiedTrainingPanel } from '../../components/training/UnifiedTrainingP
 import { CreditSpecialistCommsPanel } from '../../components/creditSpecialist/CreditSpecialistCommsPanel';
 import { CreditSpecialistOfferingsPanel } from '../../components/creditSpecialist/CreditSpecialistOfferingsPanel';
 import { CreditSpecialistHubCommandStrip } from '../../components/creditSpecialist/CreditSpecialistHubCommandStrip';
+import { CreditSpecialistLeadCommitmentPanel } from '../../components/creditSpecialist/CreditSpecialistLeadCommitmentPanel';
+import { loadCreditSpecialistJoinIntent } from '../../lib/creditSpecialistJoinIntent';
 import { listTasksByPartner } from '../../data/tasksRepo';
 import { listPartnersForCareMember } from '../../data/partnersRepo';
 import type { Partner } from '../../domain/partners';
@@ -162,6 +164,19 @@ export default function AgentHubPage() {
     return listTasksByPartner(partner.id).filter((t) => t.status === 'pending' || t.status === 'in_progress').length;
   }, [partner?.id]);
 
+  const specialistReferralCode = useMemo(() => {
+    const metaCode = (meta as Record<string, unknown>).affiliateReferralCode as string | undefined;
+    const base = metaCode || partner?.profile?.email?.split('@')[0] || auth.user?.email?.split('@')[0] || 'agent';
+    return `agent-${String(base)
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .slice(0, 28)}`;
+  }, [auth.user?.email, meta, partner?.profile?.email]);
+
+  const commitmentWindowStart =
+    loadCreditSpecialistJoinIntent()?.createdAt || (partner as { createdAt?: string } | null)?.createdAt || null;
+
   useEffect(() => {
     if (!partner?.id) return;
     onboardCreditSpecialistCommunication({
@@ -216,6 +231,11 @@ export default function AgentHubPage() {
         {saved ? <div className={FINELY_OS_NOTICE_SUCCESS}>Operating model saved.</div> : null}
 
         <CreditSpecialistHubCommandStrip clientCount={managedClientsCount} openTasks={openTasks} />
+
+        <CreditSpecialistLeadCommitmentPanel
+          referralCode={specialistReferralCode}
+          windowStartedAt={commitmentWindowStart}
+        />
 
         <FinelyNoticedStrip
           items={buildAgentNoticedItems({

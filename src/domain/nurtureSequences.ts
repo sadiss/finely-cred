@@ -243,6 +243,41 @@ export const NURTURE_SEQUENCES: NurtureSequenceDef[] = [
       { id: 'day7_payouts', delayHours: 168, channel: 'email', templateId: 'lead_magnet_book_session', subject: 'Set up payouts & contracts' },
     ],
   },
+  {
+    id: 'seq_cold_prospect',
+    name: 'Cold prospect (Marketing Desk)',
+    funnelId: 'cold_prospect',
+    agentPersonaId: 'sales_closer',
+    enabled: true,
+    steps: [
+      { id: 'd0', delayHours: 0, channel: 'email', templateId: 'cold_prospect_d0', subject: 'Quick idea for your business credit path' },
+      { id: 'd2', delayHours: 48, channel: 'email', templateId: 'cold_prospect_d2', subject: 'A short next step (2 minutes)' },
+      { id: 'd5', delayHours: 120, channel: 'email', templateId: 'cold_prospect_d5', subject: 'Partner one-sheets + session option' },
+      { id: 'd7', delayHours: 168, channel: 'email', templateId: 'cold_prospect_d7', subject: 'Book a free strategy session' },
+    ],
+  },
+  {
+    id: 'seq_offer_pack',
+    name: 'Offer pack (Marketing Desk)',
+    funnelId: 'offer_pack',
+    agentPersonaId: 'sales_closer',
+    enabled: true,
+    steps: [
+      { id: 'offer', delayHours: 0, channel: 'email', templateId: 'offer_pack_send', subject: 'Your Finely Cred offer pack' },
+      { id: 'offer_follow', delayHours: 72, channel: 'email', templateId: 'offer_pack_followup', subject: 'Questions on the offer pack?' },
+    ],
+  },
+  {
+    id: 'seq_booked_confirm',
+    name: 'Booked session confirm',
+    funnelId: 'booked_session',
+    agentPersonaId: 'finely_advisor',
+    enabled: true,
+    steps: [
+      { id: 'confirm', delayHours: 0, channel: 'email', templateId: 'booked_session_confirm', subject: 'You are booked — prep for your Finely session' },
+      { id: 'prep', delayHours: 24, channel: 'email', templateId: 'booked_session_prep', subject: 'Prep checklist for your session' },
+    ],
+  },
 ];
 
 export function resolveSequenceForLead(args: {
@@ -259,7 +294,13 @@ export function resolveSequenceForLead(args: {
   if (args.offer?.includes('affiliate_application') || args.offer?.includes('affiliate_program')) {
     return NURTURE_SEQUENCES.find((s) => s.id === 'seq_affiliate_funnel')!;
   }
-  if (args.offer?.includes('agent_application') || args.offer?.includes('specialist')) {
+  if (
+    args.offer?.includes('agent_application') ||
+    args.offer?.includes('credit_specialist_join') ||
+    args.offer?.includes('credit_specialist_guide') ||
+    args.offer?.includes('specialist_program_apply') ||
+    args.offer?.includes('specialist')
+  ) {
     return NURTURE_SEQUENCES.find((s) => s.id === 'seq_specialist_apply_funnel')!;
   }
   if (args.offer?.includes('enlightenment_session') || args.offer?.includes('strategy_call')) {
@@ -287,7 +328,11 @@ export function resolveSequenceForLead(args: {
   if (path.includes('agency') || path.includes('white-label')) {
     return NURTURE_SEQUENCES.find((s) => s.id === 'seq_agency_funnel')!;
   }
-  if (path.includes('specialist-apply') || path.includes('specialist_apply')) {
+  if (
+    path.includes('specialist-apply') ||
+    path.includes('specialist_apply') ||
+    path.includes('credit-specialist')
+  ) {
     return NURTURE_SEQUENCES.find((s) => s.id === 'seq_specialist_apply_funnel')!;
   }
   if (path.includes('affiliate')) {
