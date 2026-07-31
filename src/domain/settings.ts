@@ -176,6 +176,8 @@ export interface FeatureFlags {
   commsDelivery: boolean;
   /** Enable Lead Intelligence Agent (prospecting/search/enrichment). */
   leadIntel: boolean;
+  /** Enable Marketing Desk (plain-English daily desk: Find · Board · Clean · Ruth · Mail). */
+  marketingDesk: boolean;
   /** Enable CRM pipelines (prospects + lead ops). */
   crm: boolean;
   /** Live hands-free ops on platform events (report upload auto-draft, staff tasks). */
@@ -351,6 +353,7 @@ export const DEFAULT_SETTINGS: PlatformSettings = {
     inviteDelivery: false,
     commsDelivery: false,
     leadIntel: false,
+    marketingDesk: false,
     crm: true,
     automationAutopilot: false,
     auMarketplace: true,

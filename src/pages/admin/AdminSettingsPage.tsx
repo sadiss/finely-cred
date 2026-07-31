@@ -1402,6 +1402,12 @@ export default function AdminSettingsPage() {
                     description="Enable web discovery + enrichment for qualified prospecting (admin-only; requires search API key server-side)."
                   />
                   <Toggle
+                    label="Marketing Desk"
+                    checked={settings.features.marketingDesk}
+                    onChange={(v) => handleFeatureChange({ marketingDesk: v })}
+                    description="Plain-English marketing daily desk (Find · Board · Clean · Ruth · Mail). Needs commsDelivery + leadIntel for live hunt/mail."
+                  />
+                  <Toggle
                     label="AU Marketplace"
                     checked={settings.features.auMarketplace}
                     onChange={(v) => handleFeatureChange({ auMarketplace: v })}

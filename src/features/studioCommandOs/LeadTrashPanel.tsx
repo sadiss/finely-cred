@@ -8,7 +8,7 @@ import { StudioKpiCards, StudioSection } from './StudioKpiCards';
 
 const stages: LeadStage[] = ['new', 'contacted', 'booked', 'converted', 'disqualified'];
 
-export function LeadTrashPanel() {
+export function LeadTrashPanel({ compact = false }: { compact?: boolean } = {}) {
   const [version, setVersion] = useState(0);
   const [q, setQ] = useState('');
   const leads = useMemo(() => listLeadCaptures(), [version]);
@@ -26,7 +26,7 @@ export function LeadTrashPanel() {
   ];
   return (
     <div className="space-y-6">
-      <StudioKpiCards items={kpis} />
+      {!compact ? <StudioKpiCards items={kpis} /> : null}
       <StudioSection eyebrow="lead controls" title="Stage, trash, restore, and clean up leads without keyboard shortcuts.">
         <div className="flex items-center gap-2 rounded-2xl border border-white/10 bg-black/35 px-4"><Search size={16} className="text-white/35" /><input value={q} onChange={(e) => setQ(e.target.value)} className="w-full bg-transparent py-3 text-sm text-white/80 outline-none placeholder:text-white/25" placeholder="Search visible leads…" /></div>
         <div className="grid lg:grid-cols-2 gap-4 max-h-[760px] overflow-auto pr-1">

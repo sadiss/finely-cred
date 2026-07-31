@@ -199,7 +199,7 @@ export function setMarketingDailyPackLanes(lanes: LeadEngineLane[]) {
 }
 
 export function listMarketingFindLaneOptions(): Array<{ id: LeadEngineLane; label: string }> {
-  return HUNT_LANE_PRESETS.slice(0, 6).map((p) => ({ id: p.id as LeadEngineLane, label: p.shortLabel || p.label }));
+  return HUNT_LANE_PRESETS.slice(0, 6).map((p) => ({ id: p.id, label: p.shortLabel || p.label }));
 }
 
 export function getMarketingFindLastRun(): MarketingFindLastRun | null {
