@@ -1,7 +1,8 @@
 import React from 'react';
-import { AlertTriangle, ArrowRight, FileSignature } from 'lucide-react';
+import { AlertTriangle, ArrowRight, ExternalLink, FileSignature } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { DENEFITS } from '../../config/denefitsProgram';
+import { DENEFITS, FINANCING_PREAPPROVAL_PUBLIC } from '../../config/denefitsProgram';
+import { startFinancingPreapprovalInterest } from '../../lib/financingPreapprovalInterest';
 import { Button } from '../ui';
 import { isDenefitsConfigured, isFeatureEnabled } from '../../data/settingsRepo';
 
@@ -43,7 +44,21 @@ export function DenefitsEnrollmentPanel({ audience = 'specialist', compact = fal
         </div>
       ) : null}
       <div className="flex flex-wrap gap-3">
-        <Button variant="primary" size="sm" onClick={() => navigate(checkoutPath)}>
+        <Button
+          variant="primary"
+          size="sm"
+          onClick={() =>
+            void startFinancingPreapprovalInterest({
+              source: audience === 'affiliate' ? 'affiliate' : audience === 'client' ? 'lead_magnet' : 'agent',
+              funnelPath: typeof window !== 'undefined' ? window.location.pathname : '/portal',
+              captureLead: false,
+              openApplication: true,
+            })
+          }
+        >
+          {FINANCING_PREAPPROVAL_PUBLIC.primaryCta} <ExternalLink size={14} />
+        </Button>
+        <Button variant="outline" size="sm" onClick={() => navigate(checkoutPath)}>
           Enroll with {DENEFITS.brandName} <ArrowRight size={14} />
         </Button>
         <Button variant="outline" size="sm" onClick={() => navigate(pricingPath)}>

@@ -9,6 +9,7 @@ import {
   type NegativeType,
 } from '../creditReports/negativePlaybooks';
 import { lookupKnownCreditorFromCandidates } from './knownCreditorDirectory';
+import { buildCreditorContacts } from '../creditReports/creditorContactExtract';
 
 export type ReportedDebtSignal = {
   signalId: string;
@@ -43,25 +44,18 @@ export type DebtPartyInfo = {
   autoFilled?: boolean;
 };
 
-/** Build creditorContacts for PDF/text-parsed reports (HTML path already does this). */
+/** Build creditorContacts for PDF/text-parsed reports (and backfill older cached parses). */
 export function buildCreditorContactsFromTradelines(tradelines: ParsedTradeline[]): ParsedCreditorContact[] {
-  const out: ParsedCreditorContact[] = [];
-  tradelines.forEach((t, idx) => {
-    const addr = t.creditorAddress;
-    const phone = t.creditorPhone;
-    const acct = t.accountNumberMasked;
-    if (addr || phone || acct) {
-      out.push({
-        creditorName: t.creditorName,
-        accountNumberMasked: acct,
-        address: addr,
-        phone,
-        source: 'tradeline',
-        tradelineIndex: idx,
-      });
-    }
-  });
-  return out;
+  return buildCreditorContacts(tradelines, []);
+}
+
+/** Prefer stored contacts; rebuild from tradelines + sections when older parses omitted them. */
+export function contactsFromParsedReport(parsed?: ParsedCreditReport | null): ParsedCreditorContact[] {
+  if (!parsed) return [];
+  if (Array.isArray(parsed.creditorContacts) && parsed.creditorContacts.length) {
+    return parsed.creditorContacts;
+  }
+  return buildCreditorContacts(parsed.tradelines || [], parsed.sections || []);
 }
 
 export function normCreditorName(s: string) {
@@ -129,7 +123,7 @@ export function extractCollateralSignals(
   for (const report of reports) {
     const parsed = report.parsed;
     if (!parsed) continue;
-    const contacts = parsed.creditorContacts || [];
+    const contacts = contactsFromParsedReport(parsed);
     (parsed.tradelines || []).forEach((t, tradelineIndex) => {
       const classifiedNegative = classifyTradelineNegativeType(t);
       if (classifiedNegative !== required) return;
@@ -174,7 +168,7 @@ export function extractReportDebtSignals(reports: Array<{ id: string; parsed?: P
   for (const report of reports) {
     const parsed = report.parsed;
     if (!parsed) continue;
-    const contacts = parsed.creditorContacts || [];
+    const contacts = contactsFromParsedReport(parsed);
     (parsed.tradelines || []).forEach((t, tradelineIndex) => {
       const negativeType = tradelineNegativeType(t);
       if (!negativeType) return;

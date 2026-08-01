@@ -1,6 +1,9 @@
 /**
  * Denefit — in-house financing contracts that report payment history to Equifax
  * as customers pay and build credit. User-facing brand is **Denefit** (not Benefits).
+ *
+ * Public homepage / marketing CTAs should prefer FINANCING_PREAPPROVAL_PUBLIC
+ * (Finely Cred voice) and must not name the third-party vendor in visible copy.
  */
 export const DENEFITS = {
   brandName: 'Denefit',
@@ -12,6 +15,34 @@ export const DENEFITS = {
   exampleContractValue: 3000,
   exampleMonthlyPayment: 109,
   exampleTermYears: 5,
+} as const;
+
+/** External pre-approval application (SSOT). Do not hardcode this URL elsewhere. */
+export const FINANCING_PREAPPROVAL_URL =
+  'https://request.denefits.com/pre-approval-application/75f45781d2c4aaed7384c5687ccf8190';
+
+/** Lead offer id for pre-approval interest (matches LeadOffer). */
+export const FINANCING_PREAPPROVAL_OFFER_ID = 'financing_preapproval' as const;
+
+/**
+ * Public / homepage marketing copy — Finely Cred voice only.
+ * Never put the third-party vendor name in these strings.
+ */
+export const FINANCING_PREAPPROVAL_PUBLIC = {
+  eyebrow: 'In-house financing',
+  title: 'Payment plans that report while you build',
+  description:
+    'Eligible partners can explore Equifax-reporting contracts and financing readiness through a short pre-approval application — so you know your options before you commit.',
+  bullets: [
+    'Equifax-reporting contracts as you pay',
+    'Financing readiness check before enrollment',
+    'Pairs with restore, tradelines, and funding paths',
+  ],
+  primaryCta: 'Check financing pre-approval',
+  secondaryCta: 'Book a session',
+  tertiaryCta: 'See pricing',
+  compliance: 'Results vary · financing subject to underwriting · not a credit guarantee',
+  interestTag: 'financing_preapproval',
 } as const;
 
 export const DENEFITS_SPECIALIST_COPY = {

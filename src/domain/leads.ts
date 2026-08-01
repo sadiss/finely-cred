@@ -21,7 +21,9 @@ export type LeadOffer =
   | 'book_purchase'
   | 'tradeline_package'
   | 'agency_workspace'
-  | 'heta_society_signup';
+  | 'heta_society_signup'
+  /** In-house financing / Equifax-reporting contract pre-approval interest. */
+  | 'financing_preapproval';
 
 export type LeadCapture = {
   id: string;

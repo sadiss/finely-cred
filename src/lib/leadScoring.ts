@@ -26,6 +26,15 @@ export function scoreLead(lead: LeadCapture): LeadScoreResult {
     fit = 'debt';
     score += 15;
     reasons.push('Debt lane signal');
+  } else if (
+    interest.includes('financing_preapproval') ||
+    interest.includes('preapproval') ||
+    interest.includes('pre-approval') ||
+    lead.offer === 'financing_preapproval'
+  ) {
+    fit = 'credit';
+    score += 16;
+    reasons.push('Financing pre-approval interest');
   } else if (interest.includes('business') || interest.includes('corporate') || interest.includes('funding')) {
     fit = 'business';
     score += 15;
@@ -103,30 +112,42 @@ export function scoreLead(lead: LeadCapture): LeadScoreResult {
           ? 'sales_closer'
           : 'lead_converter';
 
+  const isFinancingPreapproval =
+    lead.offer === 'financing_preapproval' ||
+    interest.includes('financing_preapproval') ||
+    interest.includes('preapproval') ||
+    interest.includes('pre-approval');
+
   const suggestedSequenceId =
     interest.includes('meta_lead') || lead.utmSource === 'facebook' || lead.utmMedium === 'lead_ad'
       ? 'seq_meta_lead'
       : isSpecialistRecruit
         ? 'seq_specialist_apply_funnel'
-        : fit === 'debt'
-          ? 'seq_debt_funnel'
-          : fit === 'business'
-            ? 'seq_business_funnel'
-            : fit === 'tradelines'
-              ? 'seq_tradeline_funnel'
-              : 'seq_credit_funnel';
+        : isFinancingPreapproval
+          ? 'seq_financing_preapproval'
+          : fit === 'debt'
+            ? 'seq_debt_funnel'
+            : fit === 'business'
+              ? 'seq_business_funnel'
+              : fit === 'tradelines'
+                ? 'seq_tradeline_funnel'
+                : 'seq_credit_funnel';
 
   const suggestedAction = isSpecialistRecruit
     ? band === 'qualified' || band === 'hot'
       ? 'Route to Credit Specialists CRM · confirm 3-lead + 30-day commitment · book activation'
       : 'Enroll specialist nurture · send join / pricing hub'
-    : band === 'qualified'
-      ? 'Book strategy call + assign sales persona'
-      : band === 'hot'
-        ? 'Send personalized follow-up + portal trial nudge'
-        : band === 'warm'
-          ? 'Enroll nurture sequence + share free guide'
-          : 'Add to research queue — enrich before outreach';
+    : isFinancingPreapproval
+      ? band === 'qualified' || band === 'hot'
+        ? 'Confirm pre-approval status · book financing readiness consult · route to in-house contract lane'
+        : 'Enroll financing pre-approval nurture · send pricing + strategy session'
+      : band === 'qualified'
+        ? 'Book strategy call + assign sales persona'
+        : band === 'hot'
+          ? 'Send personalized follow-up + portal trial nudge'
+          : band === 'warm'
+            ? 'Enroll nurture sequence + share free guide'
+            : 'Add to research queue — enrich before outreach';
 
   return { score, band, fit, reasons, suggestedAction, suggestedPersonaId, suggestedSequenceId };
 }

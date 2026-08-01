@@ -12,7 +12,8 @@ import {
   PhysicalEbook, MasteryOSSection, TestimonialDossier,
   QualifyFundingSection, ServicesSection, TradelineDualSection,
   WhatMakesDifferentSection, BusinessCreditSection, AffiliateSection,
-  Footer, LandingUnifiedJourneySection, LandingFundabilityTrustSection, LandingHeroOsRefreshSection
+  Footer, LandingUnifiedJourneySection, LandingFundabilityTrustSection, LandingHeroOsRefreshSection,
+  LandingFinancingPreapprovalSection,
 } from './components/landing';
 import { SovereignPortal } from './components/portal';
 import { MasteryOSDashboard } from './components/dashboard';
@@ -409,6 +410,7 @@ function LandingRoute({ onGetStarted, onViewTradelines, onNavigate, addToCart, o
       <LandingFundabilityTrustSection />
       <FinelyOsPublicCommandStrip />
       <WealthInstitutionalRibbon />
+      <LandingFinancingPreapprovalSection />
 
       {/* 1.5 PRICING RANGES */}
       <section className={`py-20 ${finelyOsLightMeshSection('fc-band-violet')}`}>

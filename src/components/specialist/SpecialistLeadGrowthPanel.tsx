@@ -5,8 +5,9 @@ import type { AgentOperatingModel } from '../../domain/agentProgram';
 import { computeAgentRevenueSplit } from '../../domain/agentProgram';
 import { getAgencyTierById } from '../../config/pricingCatalog';
 import { CS } from '../../config/creditSpecialistProgram';
-import { DENEFITS, DENEFITS_SPECIALIST_COPY } from '../../config/denefitsProgram';
+import { DENEFITS, DENEFITS_SPECIALIST_COPY, FINANCING_PREAPPROVAL_PUBLIC } from '../../config/denefitsProgram';
 import { formatUsdFromCents, computeDenefitsContractProjection } from '../../domain/partnerEconomics';
+import { startFinancingPreapprovalInterest } from '../../lib/financingPreapprovalInterest';
 import { RolePromoLinksPanel } from '../promotions/RolePromoLinksPanel';
 
 type Props = {
@@ -92,6 +93,20 @@ export function SpecialistLeadGrowthPanel({ model }: Props) {
             <li key={b}>• {b}</li>
           ))}
         </ul>
+        <button
+          type="button"
+          onClick={() =>
+            void startFinancingPreapprovalInterest({
+              source: 'agent',
+              funnelPath: `${CS.hubPath}?tab=growth`,
+              captureLead: false,
+              openApplication: true,
+            })
+          }
+          className="mt-2 inline-flex items-center gap-2 text-sm font-semibold text-emerald-300 hover:text-white transition-colors"
+        >
+          {FINANCING_PREAPPROVAL_PUBLIC.primaryCta} <ArrowRight size={14} />
+        </button>
       </div>
 
       <RolePromoLinksPanel role="agent" title="Credit Specialist promo links: guides, ebooks, services" />

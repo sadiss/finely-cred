@@ -157,6 +157,36 @@ export const NURTURE_SEQUENCES: NurtureSequenceDef[] = [
     ],
   },
   {
+    id: 'seq_financing_preapproval',
+    name: 'Financing pre-approval nurture',
+    funnelId: 'financing_preapproval',
+    agentPersonaId: 'funding_strategist',
+    enabled: true,
+    steps: [
+      {
+        id: 'welcome',
+        delayHours: 0,
+        channel: 'email',
+        templateId: 'lead_magnet_welcome_generic',
+        subject: 'Your financing pre-approval next steps',
+      },
+      {
+        id: 'day1_pricing',
+        delayHours: 24,
+        channel: 'email',
+        templateId: 'lead_magnet_day1_credit',
+        subject: 'In-house financing + Equifax-reporting contracts explained',
+      },
+      {
+        id: 'day3_session',
+        delayHours: 72,
+        channel: 'email',
+        templateId: 'lead_magnet_book_session',
+        subject: 'Book a financing readiness session',
+      },
+    ],
+  },
+  {
     id: 'seq_strategy_session',
     name: 'Strategy call booking',
     funnelId: 'strategy_session',
@@ -305,6 +335,14 @@ export function resolveSequenceForLead(args: {
   }
   if (args.offer?.includes('enlightenment_session') || args.offer?.includes('strategy_call')) {
     return NURTURE_SEQUENCES.find((s) => s.id === 'seq_strategy_session')!;
+  }
+  if (
+    args.offer?.includes('financing_preapproval') ||
+    blob.includes('financing_preapproval') ||
+    blob.includes('pre-approval') ||
+    blob.includes('preapproval')
+  ) {
+    return NURTURE_SEQUENCES.find((s) => s.id === 'seq_financing_preapproval')!;
   }
   if (args.offer?.includes('agency_signup') || args.offer?.includes('agency_workspace')) {
     return NURTURE_SEQUENCES.find((s) => s.id === 'seq_agency_signup')!;

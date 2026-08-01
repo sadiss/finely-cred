@@ -37,6 +37,7 @@ import { listProcessedDocumentsByPartner } from '../../data/documentsRepo';
 import {
   buildSummonsAffidavitContext,
   captureSenderSnapshot,
+  contactsFromParsedReport,
   extractReportDebtSignals,
   formatSummonsContextForPrompt,
   resolveDebtPartyInfo,
@@ -2545,8 +2546,7 @@ useEffect(() => {
   const creditorContacts = useMemo(() => {
     const out: Array<{ creditorName: string; address?: string; phone?: string }> = [];
     for (const r of reports) {
-      const parsed = (r as any)?.parsed as any;
-      const contacts = Array.isArray(parsed?.creditorContacts) ? parsed.creditorContacts : [];
+      const contacts = contactsFromParsedReport((r as any)?.parsed);
       for (const c of contacts) {
         const name = String(c?.creditorName || '').trim();
         if (!name) continue;
@@ -2680,11 +2680,18 @@ useEffect(() => {
       debt?.recipientAddress ||
       debtPartyInfo?.recipientAddress ||
       '';
+    const reportAddr =
+      matchedCreditorContact?.address ||
+      (debtPartyInfo?.matchedFrom === 'report_contact' || debtPartyInfo?.matchedFrom === 'tradeline'
+        ? debtPartyInfo.recipientAddress
+        : '') ||
+      '';
     const mailTo = resolveLetterMailRecipient({
       plaintiffLawFirm: firm,
       plaintiffLawFirmAddress: firmAddress,
       recipientName: debt?.recipientName || debtPartyInfo?.recipientName || debt?.name,
       recipientAddress: debt?.recipientAddress || debtPartyInfo?.recipientAddress,
+      reportContactAddress: reportAddr,
       debtCollectorName: debt?.collectorName || debtPartyInfo?.collectorName,
       collectorName: debt?.collectorName,
       creditorName: debt?.name,
@@ -2696,11 +2703,11 @@ useEffect(() => {
       senderCity: canonicalIdentity.city,
       senderPostalCode: canonicalIdentity.postalCode,
     });
-    // Persist directory / scrape TO onto the case when empty (never partner address)
+    // Persist directory / report-contact TO onto the case when empty (never partner address)
     if (
       debt &&
       !mailTo.missing &&
-      mailTo.source === 'directory' &&
+      (mailTo.source === 'directory' || mailTo.source === 'enrichment') &&
       !debt.plaintiffLawFirmAddress &&
       !debt.recipientAddress
     ) {
@@ -2800,13 +2807,15 @@ useEffect(() => {
           debt.name,
           debtPartyInfo?.recipientName,
           debt.originalCreditor,
+          matchedCreditorContact?.creditorName,
         ],
         addressCandidates: [
           debt.plaintiffLawFirmAddress,
           debt.recipientAddress,
           debtPartyInfo?.recipientAddress,
+          matchedCreditorContact?.address,
         ],
-        phone: debt.recipientPhone || debtPartyInfo?.recipientPhone,
+        phone: debt.recipientPhone || debtPartyInfo?.recipientPhone || matchedCreditorContact?.phone,
       });
       setAddressEnrichMeta(result);
       if (!result?.address) {

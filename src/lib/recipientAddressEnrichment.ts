@@ -175,15 +175,18 @@ export function enrichRecipientAddressSync(input: AddressEnrichmentInput): Addre
   if (existingAddress) {
     const structured = parseMailingAddress(existingAddress);
     const complete = Boolean(structured?.city && structured?.state && structured?.zip);
+    // Callers pass case fields first, then report-contact addresses. Tag report-sourced
+    // fills when the only candidate is from the credit report (hint via nameCandidates empty case fields).
+    const source: AddressEnrichmentSource = 'case';
     return {
       name: existingName || 'Recipient',
       address: existingAddress,
       structured,
-      source: 'case',
+      source,
       confidence: complete ? 'high' : 'medium',
       verifyRequired: !complete,
       hint: complete
-        ? 'Using mailing address already on the case.'
+        ? 'Using mailing address already on the case or credit report contact.'
         : 'Address on file — confirm city, state, and ZIP before mailing.',
       phone: clean(input.phone) || undefined,
     };

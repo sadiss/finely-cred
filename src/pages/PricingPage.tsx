@@ -21,6 +21,7 @@ import {
 import { AgencyTierCard } from '../components/pricing/PricingCards';
 import { PricingPackageCatalog } from '../components/pricing/PricingPackageCatalog';
 import { CS } from '../config/creditSpecialistProgram';
+import { startFinancingPreapprovalInterest } from '../lib/financingPreapprovalInterest';
 import { FinelyOsPageFooter } from '../features/os/FinelyOsPageFooter';
 import { FinelyUnifiedHubLayout } from '../features/unified/FinelyUnifiedHubLayout';
 import { MarketingStaffChatStrip } from '../components/marketing/MarketingStaffChatStrip';
@@ -290,6 +291,20 @@ export default function PricingPage() {
             <p className={`mt-2 ${FINELY_OS_ENTITY_BODY}`}>
               We can also connect you to lenders and funding pathways when your profile is ready (bureau-pull dependent).
             </p>
+            <button
+              type="button"
+              onClick={() =>
+                void startFinancingPreapprovalInterest({
+                  source: 'lead_magnet',
+                  funnelPath: '/pricing',
+                  captureLead: false,
+                  openApplication: true,
+                })
+              }
+              className="mt-3 inline-flex items-center gap-2 text-sm font-semibold text-emerald-300 hover:text-white transition-colors"
+            >
+              Check financing pre-approval →
+            </button>
           </div>
         </div>
 

@@ -33,6 +33,8 @@ export type LetterRecipientSource = {
   creditorName?: string | null;
   debtName?: string | null;
   originalCreditorName?: string | null;
+  /** Address extracted from credit-report creditor contacts / tradelines */
+  reportContactAddress?: string | null;
   /** Partner / sender identity — used only to refuse as recipient fallback */
   senderName?: string | null;
   senderAddress1?: string | null;
@@ -105,13 +107,20 @@ export function resolveLetterMailRecipient(source: LetterRecipientSource): Lette
   const addressCandidates = [
     source.plaintiffLawFirmAddress,
     source.recipientAddress,
+    source.reportContactAddress,
   ]
     .map(clean)
     .filter(Boolean)
     .filter((a) => !looksLikeSenderAddress(a, source));
 
   let address = addressCandidates[0] || '';
-  let addrSource: LetterMailRecipient['source'] = address ? 'case' : 'missing';
+  let addrSource: LetterMailRecipient['source'] = address
+    ? source.plaintiffLawFirmAddress || source.recipientAddress
+      ? 'case'
+      : source.reportContactAddress
+        ? 'enrichment'
+        : 'case'
+    : 'missing';
   let directoryName = '';
 
   // Directory / enrichment IQ: firm / collector / attorney offices when scrape + case left TO blank
@@ -136,7 +145,11 @@ export function resolveLetterMailRecipient(source: LetterRecipientSource): Lette
       const enriched = enrichRecipientAddressSync({
         preferCounsel: Boolean(source.plaintiffLawFirm || source.plaintiffAttorneyName),
         nameCandidates: namePool,
-        addressCandidates: [source.plaintiffLawFirmAddress, source.recipientAddress],
+        addressCandidates: [
+          source.plaintiffLawFirmAddress,
+          source.recipientAddress,
+          source.reportContactAddress,
+        ],
       });
       if (enriched?.address && !looksLikeSenderAddress(enriched.address, source)) {
         address = enriched.address;

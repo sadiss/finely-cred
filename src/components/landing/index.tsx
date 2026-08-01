@@ -2158,3 +2158,4 @@ export function Footer({ onNavigate }: { onNavigate: (page: string) => void }) {
 export { LandingUnifiedJourneySection } from './LandingUnifiedJourneySection';
 export { LandingFundabilityTrustSection } from './LandingFundabilityTrustSection';
 export { LandingHeroOsRefreshSection } from './LandingHeroOsRefreshSection';
+export { LandingFinancingPreapprovalSection } from './LandingFinancingPreapprovalSection';

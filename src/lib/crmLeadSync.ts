@@ -30,7 +30,9 @@ export function syncLeadToCrmProspect(lead: LeadCapture, funnelId?: string) {
     ...(funnelId ? [`funnel:${funnelId}`] : []),
     ...(lead.funnelPath ? [`path:${lead.funnelPath}`] : []),
     ...(lead.source ? [`source:${lead.source}`] : []),
-    ...(isCreditSpecialistLeadOffer(lead.offer) ? ['credit-specialist', `offer:${lead.offer}`] : []),
+    ...(lead.offer ? [`offer:${lead.offer}`] : []),
+    ...(isCreditSpecialistLeadOffer(lead.offer) ? ['credit-specialist'] : []),
+    ...(lead.offer === 'financing_preapproval' ? ['financing-preapproval', 'in-house-financing'] : []),
   ];
 
   return createProspect({
