@@ -43,6 +43,7 @@ import { ensurePartnerOnboardingTasks } from '../../lib/partnerOnboardingEngine'
 import { openCommunicationHub } from '../../components/chat/communicationHubModel';
 import { PartnerCreditRestoreCommandStrip } from '../../components/partner/PartnerCreditRestoreCommandStrip';
 import { computeCreditRestorePrimaryAlert } from '../../lib/creditRestorePrimaryAlert';
+import { computeCourtPlanDashboardAlert } from '../../lib/courtPlanDashboardAlert';
 import { FinelyOsAlertBanner } from '../../features/os/FinelyOsAlertBanner';
 import { submitPartnerFundingHandoff } from '../../lib/noraFundingHandoff';
 import { FinelyOsPageFooter } from '../../features/os/FinelyOsPageFooter';
@@ -223,6 +224,11 @@ export default function PartnerDashboardPage() {
         letters,
       }),
     [reports, letters],
+  );
+
+  const courtPlanAlert = useMemo(
+    () => (partner ? computeCourtPlanDashboardAlert(partner.id) : { show: false, tone: 'info' as const, message: '' }),
+    [partner, debtCases],
   );
 
   const clientWorkflowProgress = useMemo(
@@ -467,6 +473,16 @@ export default function PartnerDashboardPage() {
               {restoreAlert.ctaPath ? (
                 <button type="button" onClick={() => navigate(restoreAlert.ctaPath!)} className={FINELY_OS_PRIMARY_BTN}>
                   {restoreAlert.ctaLabel ?? 'Continue'} <ArrowRight size={14} />
+                </button>
+              ) : null}
+            </div>
+          ) : null}
+          {courtPlanAlert.show ? (
+            <div className="space-y-3">
+              <FinelyOsAlertBanner tone={courtPlanAlert.tone} message={courtPlanAlert.message} />
+              {courtPlanAlert.ctaPath ? (
+                <button type="button" onClick={() => navigate(courtPlanAlert.ctaPath!)} className={FINELY_OS_SECONDARY_BTN}>
+                  {courtPlanAlert.ctaLabel ?? 'Open court outcome'} <ArrowRight size={14} />
                 </button>
               ) : null}
             </div>

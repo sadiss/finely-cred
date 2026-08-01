@@ -5,6 +5,8 @@ import { PageShell } from '../../components/layout/PageShell';
 import { useAuth } from '../../auth/AuthProvider';
 import { getDebt, upsertDebt } from '../../data/debtRepo';
 import { onDebtCaseUpdated } from '../../lib/debtWorkflowEngine';
+import { getCourtOutcomeByDebtCase, confirmCourtPlanPayment, setCourtOutcomeOrderOnFile } from '../../data/courtOutcomeRepo';
+import { PartnerCourtOutcomePanel } from '../../components/debt/PartnerCourtOutcomePanel';
 import { buildValidationLetterDraft } from '../../lib/validationLetterEngine';
 import { DebtWorkflowPanel } from '../../components/debt/DebtWorkflowPanel';
 import { listEvidenceByPartner, upsertEvidence, deleteEvidence } from '../../data/evidenceRepo';
@@ -90,6 +92,7 @@ export default function PartnerDebtDetailPage() {
   const { partner } = usePartnerSession();
   const [debt, setDebtState] = useState(() => (id ? getDebt(id) : null));
   const [evidenceVersion, setEvidenceVersion] = useState(0);
+  const [courtOutcome, setCourtOutcome] = useState(() => (id ? getCourtOutcomeByDebtCase(id) : null));
 
   const [scenarioOverride, setScenarioOverride] = useState<DebtScenario | null>(null);
   const [expandedLetter, setExpandedLetter] = useState<string | null>(null);
@@ -196,6 +199,18 @@ export default function PartnerDebtDetailPage() {
     const next = upsertDebt({ ...debt, ...updates });
     onDebtCaseUpdated(prev, next);
     setDebtState(next);
+  };
+
+  const handleConfirmCourtPayment = (dueIso: string) => {
+    if (!courtOutcome) return;
+    const next = confirmCourtPlanPayment(courtOutcome.id, dueIso);
+    if (next) setCourtOutcome(next);
+  };
+
+  const handleMarkCourtOrderOnFile = () => {
+    if (!courtOutcome) return;
+    const next = setCourtOutcomeOrderOnFile(courtOutcome.id, true);
+    if (next) setCourtOutcome(next);
   };
 
   const openValidationDraftFromClock = () => {
@@ -572,6 +587,13 @@ export default function PartnerDebtDetailPage() {
 
         {debtTab === 'overview' && (
         <>
+        {courtOutcome ? (
+          <PartnerCourtOutcomePanel
+            outcome={courtOutcome}
+            onConfirmPayment={handleConfirmCourtPayment}
+            onMarkOrderOnFile={handleMarkCourtOrderOnFile}
+          />
+        ) : null}
         <div className={`${finelyOsCatalogCard('violet')} !p-5 space-y-6`}>
           <div className="flex items-center gap-3">
             {isSummons ? (
