@@ -516,8 +516,32 @@ export function AffidavitCourtCenterView({
         </div>
       ) : null}
 
+      {/*
+       * Pre-hearing pipeline. Collapsed by default once a court outcome is on file —
+       * the outcome panel above becomes the primary next-step surface, and this pipeline
+       * stays reachable only for building extra letters (e.g. a payment-history request).
+       */}
+      <details open={!courtOutcome} className="fc-lit-in group space-y-2">
+        {courtOutcome ? (
+          <summary className={`cursor-pointer select-none list-none ${finelyOsCatalogCardCompact('sky')} !p-3`}>
+            <div className="flex items-center justify-between gap-3">
+              <div className="min-w-0">
+                <div className={`${FINELY_OS_ENTITY_SUBLABEL} text-sky-200/90`}>Pre-hearing tools (optional)</div>
+                <div className={`mt-0.5 text-sm font-semibold ${FINELY_OS_ENTITY_VALUE}`}>
+                  Litigation pipeline — build extra letters or review what was filed
+                </div>
+              </div>
+              <span className="shrink-0 text-[10px] uppercase tracking-widest text-white/40 group-open:text-sky-300/80">
+                Expand
+              </span>
+            </div>
+          </summary>
+        ) : (
+          <summary className="hidden" />
+        )}
+
       {/* Numbered path — tap to jump; only current step body below */}
-      <div className="fc-lit-in space-y-2">
+      <div className="fc-lit-in space-y-2 mt-2">
         <div className="text-[10px] uppercase tracking-widest text-white/45 px-1">Your easy path (do in order)</div>
         <div className="grid grid-cols-5 gap-1.5">
           {PIPELINE.map((j, idx) => {
@@ -849,6 +873,7 @@ export function AffidavitCourtCenterView({
           </div>
         </div>
       </section>
+      </details>
 
       {/* Case picker — compact, not competing */}
       <div className="flex flex-wrap items-end gap-3 px-1">
@@ -902,21 +927,24 @@ export function AffidavitCourtCenterView({
         </div>
       </details>
 
-      {/* Sticky bottom Continue — impossible to miss */}
-      <div className="sticky bottom-2 z-20 fc-lit-in">
-        <div className="rounded-2xl border border-amber-400/50 bg-black/90 backdrop-blur-md px-4 py-3 flex flex-wrap items-center justify-between gap-3 shadow-[0_10px_48px_-12px_rgba(0,0,0,0.9)]">
-          <div className="min-w-0">
-            <div className="text-[10px] uppercase tracking-widest text-amber-200/80">Do this next</div>
-            <div className="text-sm font-bold text-white truncate">
-              Step {active.n}: {active.title}
+      {/* Sticky bottom Continue — impossible to miss. Hidden once a court outcome is on
+          file, since the pipeline CTA above no longer names the real next step. */}
+      {!courtOutcome ? (
+        <div className="sticky bottom-2 z-20 fc-lit-in">
+          <div className="rounded-2xl border border-amber-400/50 bg-black/90 backdrop-blur-md px-4 py-3 flex flex-wrap items-center justify-between gap-3 shadow-[0_10px_48px_-12px_rgba(0,0,0,0.9)]">
+            <div className="min-w-0">
+              <div className="text-[10px] uppercase tracking-widest text-amber-200/80">Do this next</div>
+              <div className="text-sm font-bold text-white truncate">
+                Step {active.n}: {active.title}
+              </div>
+              <div className={`text-[11px] truncate ${FINELY_OS_ENTITY_BODY}`}>{nextActionPlain}</div>
             </div>
-            <div className={`text-[11px] truncate ${FINELY_OS_ENTITY_BODY}`}>{nextActionPlain}</div>
+            <button type="button" className={`${FINELY_OS_PRIMARY_BTN}`} onClick={runPrimaryContinue}>
+              {primaryLabel.includes('Drop') ? 'Drop file' : 'Continue'} <ArrowRight size={18} />
+            </button>
           </div>
-          <button type="button" className={`${FINELY_OS_PRIMARY_BTN}`} onClick={runPrimaryContinue}>
-            {primaryLabel.includes('Drop') ? 'Drop file' : 'Continue'} <ArrowRight size={18} />
-          </button>
         </div>
-      </div>
+      ) : null}
 
       <p className="text-center text-[9px] text-white/30">
         <Link to="/portal/escalations?tab=regulatory" className="underline hover:text-white/50">
