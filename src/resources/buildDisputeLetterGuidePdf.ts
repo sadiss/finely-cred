@@ -1,6 +1,7 @@
 import {
   DISPUTE_LETTER_GUIDE_COVER,
   DISPUTE_LETTER_GUIDE_PROGRAMMATIC_PAGES,
+  flattenGuidePagesForPdf,
 } from './disputeLetterGuideContent';
 import { drawGuideContentPages, PDF_PAGE_W } from './buildFreeGuidePdf';
 import { drawDisputeGuideCoverImagePage, drawDisputeGuideIntroPage } from './guideMockupCoverPdf';
@@ -35,7 +36,7 @@ export async function buildDisputeLetterGuidePdf(args: {
     fullName: args.fullName,
   });
 
-  drawGuideContentPages(pdfDoc, fonts, rgb, DISPUTE_LETTER_GUIDE_PROGRAMMATIC_PAGES, {
+  drawGuideContentPages(pdfDoc, fonts, rgb, flattenGuidePagesForPdf(DISPUTE_LETTER_GUIDE_PROGRAMMATIC_PAGES), {
     fullName: args.fullName,
   });
 

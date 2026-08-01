@@ -26,6 +26,7 @@ import {
   finelyOsCatalogCard,
   finelyOsLandingContrastSection,
 } from '../features/os/finelyOsLightUi';
+import { LandingSellAtmosphere } from '../components/landing/LandingSellAtmosphere';
 
 const CARD_ICONS: Record<string, React.ComponentType<{ size?: number; className?: string }>> = {
   guides: BookOpen,
@@ -101,9 +102,10 @@ export default function ResourcesPage() {
         </div>
 
         <section
-          className={`-mx-4 px-4 py-12 sm:-mx-6 sm:px-6 sm:py-14 lg:-mx-8 lg:px-8 2xl:-mx-10 2xl:px-10 ${finelyOsLandingContrastSection('fc-band-violet')}`}
+          className={`fc-sell relative overflow-hidden -mx-4 px-4 py-12 sm:-mx-6 sm:px-6 sm:py-14 lg:-mx-8 lg:px-8 2xl:-mx-10 2xl:px-10 ${finelyOsLandingContrastSection('fc-band-violet')}`}
           data-fc-contrast-band="1"
         >
+          <LandingSellAtmosphere tone="platinum" />
           <PublicLaneTitle
             lane="resources"
             eyebrow="Resource hub"

@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import {
   BarChart3,
+  BookOpenText,
   Building2,
   Calendar,
   Check,
@@ -25,6 +26,7 @@ import { BUSINESS_FUNNEL } from '../../domain/leadMagnetFunnels';
 import { usePublicSeoMeta } from '../../hooks/usePublicSeoMeta';
 import { PremiumLeadMagnetCaptureForm } from '../../components/leadmagnet/PremiumLeadMagnetCaptureForm';
 import { LandingTypewriterTitle } from '../../components/landing/LandingTypewriterTitle';
+import { BC_GUIDE_CHAPTERS, BC_GUIDE_META, BC_GUIDE_READ_PATH } from './businessCreditPowerGuideContent';
 import '../../components/leadmagnet/premiumLeadMagnetShared.css';
 import '../../components/leadmagnet/leadMagnetLuxuryStage.css';
 import './businessCreditPowerGuideLanding.css';
@@ -307,6 +309,12 @@ export default function BusinessCreditPowerGuideLandingPage() {
                 >
                   <span className="relative z-10">Download Free Guide</span>
                 </button>
+                <Link
+                  to={BC_GUIDE_READ_PATH}
+                  className="inline-flex h-12 items-center justify-center gap-2 rounded-lg border border-[#d4a447]/45 bg-[#d4a447]/10 px-5 text-[11px] font-black uppercase tracking-[0.14em] text-[#e8c96a] transition hover:border-[#d4a447]/75 hover:bg-[#d4a447]/16"
+                >
+                  <BookOpenText size={15} /> Read free — no signup
+                </Link>
                 <a href="#bcpg-preview" className="text-[11px] font-bold uppercase tracking-[0.14em] text-white/50 hover:text-[#95e000]">
                   Preview ↓
                 </a>
@@ -373,6 +381,50 @@ export default function BusinessCreditPowerGuideLandingPage() {
         <p className="bcpg-compliance mx-auto max-w-[88rem] px-5 pb-4 text-center md:px-10 md:text-right">
           Results vary · not legal advice · funding subject to underwriting
         </p>
+      </section>
+
+      {/* Chapter index — the full guide is readable in-app before any signup */}
+      <section id="read-online" className="relative z-10 border-t border-[#d4a447]/18 py-9 md:py-12">
+        <div className="mx-auto max-w-[88rem] px-5 md:px-10">
+          <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+            <div className="max-w-2xl">
+              <p className="text-[11px] font-bold uppercase tracking-[0.28em] text-[#95e000]">
+                Read it now · no signup
+              </p>
+              <h2 className="bcpg-serif mt-3 text-3xl text-white md:text-4xl">{BC_GUIDE_META.title}</h2>
+              <p className="mt-3 text-sm leading-relaxed text-white/60">
+                {BC_GUIDE_CHAPTERS.length} chapters in the browser — fundability doctrine, entity truth, the three
+                business files, the vendor tier ladder, bank rating, the capital stack, and a 12-month build calendar.
+              </p>
+            </div>
+            <Link
+              to={BC_GUIDE_READ_PATH}
+              className="bcpg-cta inline-flex h-12 shrink-0 items-center justify-center gap-2 rounded-lg px-7 text-[11px] font-black uppercase tracking-[0.16em] text-black"
+            >
+              <BookOpenText size={15} /> Open Chapter 01
+            </Link>
+          </div>
+
+          <div className="mt-7 grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+            {BC_GUIDE_CHAPTERS.map((ch) => (
+              <Link
+                key={ch.id}
+                to={`${BC_GUIDE_READ_PATH}?chapter=${ch.id}`}
+                className="bcpg-kpi-card group flex items-start gap-3.5 rounded-2xl !p-4 text-left transition hover:-translate-y-1"
+              >
+                <span className="mt-0.5 shrink-0 font-mono text-sm font-bold text-[#95e000]">{ch.number}</span>
+                <span className="min-w-0">
+                  <span className="bcpg-serif block text-lg leading-snug text-white">{ch.title}</span>
+                  <span className="mt-1 block text-[12.5px] leading-relaxed text-white/55">{ch.teaser}</span>
+                  <span className="mt-1.5 block text-[10px] font-black uppercase tracking-[0.16em] text-[#d4a447]">
+                    {ch.readMinutes} min · {ch.kicker}
+                  </span>
+                </span>
+              </Link>
+            ))}
+          </div>
+          <p className="bcpg-compliance mt-4">{BC_GUIDE_META.compliance}</p>
+        </div>
       </section>
 
       {/* SEO depth — collapsed so ATF stays short hero → preview → capture */}

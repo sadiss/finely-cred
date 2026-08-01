@@ -42,7 +42,7 @@ export async function buildScoreRoadmapPdf(meta?: PdfMeta): Promise<Uint8Array> 
   });
   y -= 28;
 
-  page.drawText(pdfSafeText('Finely Cred — client-first credit education'), {
+  page.drawText(pdfSafeText('Finely Cred — partner-first credit education'), {
     x: PDF_MARGIN,
     y,
     size: 11,

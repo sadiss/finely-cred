@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import {
   BadgeCheck,
+  BookOpen,
   Calendar,
   CheckCircle2,
   Download,
@@ -22,6 +23,7 @@ import { DEBT_FUNNEL } from '../../domain/leadMagnetFunnels';
 import { usePublicSeoMeta } from '../../hooks/usePublicSeoMeta';
 import { PremiumLeadMagnetCaptureForm } from '../../components/leadmagnet/PremiumLeadMagnetCaptureForm';
 import { LandingTypewriterTitle } from '../../components/landing/LandingTypewriterTitle';
+import { DEBT_GUIDE_CHAPTERS, DEBT_GUIDE_META, DEBT_GUIDE_READ_PATH } from './debtEradicationGuideContent';
 import '../../components/leadmagnet/premiumLeadMagnetShared.css';
 import '../../components/leadmagnet/leadMagnetLuxuryStage.css';
 import './debtEradicationLanding.css';
@@ -308,6 +310,12 @@ export default function DebtEradicationLandingPage() {
               <p className="del-compliance mt-3">
                 Results vary · not legal advice · educational guide only
               </p>
+              <Link
+                to={DEBT_GUIDE_READ_PATH}
+                className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-[#e0b24a]/45 bg-[#e0b24a]/10 px-4 py-2.5 text-[11px] font-black uppercase tracking-[0.14em] text-[#ffd993] transition hover:border-[#ffd993]/70 hover:bg-[#e0b24a]/16"
+              >
+                <BookOpen size={14} /> Read all {DEBT_GUIDE_CHAPTERS.length} chapters free — no signup
+              </Link>
               <Link to={DEBT_FUNNEL.bookingPath ?? '/enlightenment-session'} className="lm-secondary-book-link">
                 <Calendar size={14} /> Book a session
               </Link>
@@ -351,6 +359,50 @@ export default function DebtEradicationLandingPage() {
               <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/40 to-transparent transition duration-700 group-hover:translate-x-full" />
             </button>
           </div>
+        </div>
+      </section>
+
+      {/* Chapter index — the manual is readable in-app before any signup */}
+      <section id="read-online" className="relative z-10 border-b border-[#e0b24a]/20 py-9 md:py-12">
+        <div className="mx-auto max-w-7xl px-5 md:px-8">
+          <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+            <div className="max-w-2xl">
+              <SectionKicker>Read it now · no signup</SectionKicker>
+              <h2 className="del-serif del-section-title mt-4 text-3xl font-black tracking-[-0.035em] md:text-4xl">
+                {DEBT_GUIDE_META.title}
+              </h2>
+              <p className="mt-3 text-sm leading-relaxed text-white/62">
+                {DEBT_GUIDE_CHAPTERS.length} chapters, start to finish, in the browser. Triage, chain of title,
+                validation leverage, evidence discipline, summons education, settlement math, and the rebuild.
+              </p>
+            </div>
+            <Link
+              to={DEBT_GUIDE_READ_PATH}
+              className="group inline-flex h-12 shrink-0 items-center justify-center gap-2 overflow-hidden rounded-xl border border-[#ffe7b0]/55 bg-[linear-gradient(135deg,#c4803d_0%,#e0b24a_42%,#ffe7b0_68%,#d19d45_100%)] px-6 text-[11px] font-black uppercase tracking-[0.12em] text-[#040a36] shadow-[0_16px_48px_rgba(224,178,74,0.28)] transition hover:-translate-y-0.5 hover:brightness-110"
+            >
+              <BookOpen size={15} /> Open Chapter I
+            </Link>
+          </div>
+
+          <div className="mt-7 grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+            {DEBT_GUIDE_CHAPTERS.map((ch) => (
+              <Link
+                key={ch.id}
+                to={`${DEBT_GUIDE_READ_PATH}?chapter=${ch.id}`}
+                className="del-discovery-card group flex items-start gap-3.5 rounded-[1.1rem] p-4 text-left transition duration-300 hover:-translate-y-1"
+              >
+                <span className="del-serif mt-0.5 shrink-0 text-2xl leading-none text-[#ffd993]">{ch.number}</span>
+                <span className="min-w-0">
+                  <span className="block text-sm font-bold leading-snug text-white">{ch.title}</span>
+                  <span className="mt-1 block text-[12.5px] leading-relaxed text-white/55">{ch.teaser}</span>
+                  <span className="mt-1.5 block text-[10px] font-black uppercase tracking-[0.16em] text-[#c4803d]">
+                    {ch.readMinutes} min · {ch.kicker}
+                  </span>
+                </span>
+              </Link>
+            ))}
+          </div>
+          <p className="del-compliance mt-4">{DEBT_GUIDE_META.compliance}</p>
         </div>
       </section>
 

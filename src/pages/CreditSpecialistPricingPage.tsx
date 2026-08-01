@@ -18,11 +18,10 @@ import {
 import { CS } from '../config/creditSpecialistProgram';
 import { FinelyOsPageFooter } from '../features/os/FinelyOsPageFooter';
 import { FinelyUnifiedHubLayout } from '../features/unified/FinelyUnifiedHubLayout';
-import { MarketingStaffChatStrip } from '../components/marketing/MarketingStaffChatStrip';
-import { openPublicChat } from '../lib/publicChatEvents';
 import { usePublicSeoMeta } from '../hooks/usePublicSeoMeta';
 import { LandingTypewriterTitle } from '../components/landing/LandingTypewriterTitle';
 import { PublicLaneTitle } from '../components/public/PublicLaneTitle';
+import { CS_GUIDE_READ_PATH } from './leadmagnet/creditSpecialistGuideContent';
 import {
   FINELY_OS_BACK_LINK,
   FINELY_OS_COMPLIANCE_FOOTNOTE,
@@ -109,12 +108,8 @@ export default function CreditSpecialistPricingPage() {
                 <button type="button" onClick={() => setLaneTab('tiers')} className={FINELY_OS_SECONDARY_BTN}>
                   Compare tiers
                 </button>
-                <button
-                  type="button"
-                  onClick={() => openPublicChat({ goal: 'business', personaId: 'lead_converter' })}
-                  className={FINELY_OS_SECONDARY_BTN}
-                >
-                  <Sparkles size={14} /> Ask Finely
+                <button type="button" onClick={() => navigate(CS_GUIDE_READ_PATH)} className={FINELY_OS_SECONDARY_BTN}>
+                  <BookOpen size={14} /> Read Guide
                 </button>
               </>
             }
@@ -250,7 +245,7 @@ export default function CreditSpecialistPricingPage() {
               <ul className="space-y-2">
                 {[
                   'Progress steps with one clear next action',
-                  'Watch how / Ask Finely help on every step',
+                  'Read Guide help available on every step',
                   'Intent saved into lead notes for Finely ops',
                 ].map((line) => (
                   <li key={line} className={`flex gap-2 ${CS_PUBLIC.body}`}>
@@ -270,8 +265,8 @@ export default function CreditSpecialistPricingPage() {
                 >
                   Skip to account signup
                 </button>
-                <button type="button" onClick={() => navigate(CS_OFFER.guidePath)} className={FINELY_OS_SECONDARY_BTN}>
-                  <BookOpen size={14} /> Watch how — free guide
+                <button type="button" onClick={() => navigate(CS_GUIDE_READ_PATH)} className={FINELY_OS_SECONDARY_BTN}>
+                  <BookOpen size={14} /> Read Guide
                 </button>
               </div>
             </div>
@@ -279,13 +274,6 @@ export default function CreditSpecialistPricingPage() {
         </FinelyUnifiedHubLayout>
 
         <p className={FINELY_OS_COMPLIANCE_FOOTNOTE}>{CS_OFFER.complianceFootnote}</p>
-
-        <MarketingStaffChatStrip
-          roleId="lead_converter"
-          goal="business"
-          roleLabel="Credit Specialist activation"
-          subline="Questions about the 3-lead minimum, 30-day free-leads window, or which tier fits before you join?"
-        />
 
         <FinelyOsPageFooter />
       </div>

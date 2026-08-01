@@ -436,11 +436,6 @@
     max-width: min(100%, 1520px);
     max-height: min(92vh, 1080px);
   }
-
-  .del-mockup-stack--hero {
-    transform: scale(1.28);
-    transform-origin: center bottom;
-  }
 }
 
 @media (min-width: 1280px) {
@@ -448,20 +443,12 @@
     max-width: min(100%, 1680px);
     max-height: min(94vh, 1180px);
   }
-
-  .del-mockup-stack--hero {
-    transform: scale(1.36);
-  }
 }
 
 @media (min-width: 1600px) {
   .del-mockup--hero {
     max-width: min(100%, 1840px);
     max-height: min(96vh, 1280px);
-  }
-
-  .del-mockup-stack--hero {
-    transform: scale(1.42);
   }
 }
 

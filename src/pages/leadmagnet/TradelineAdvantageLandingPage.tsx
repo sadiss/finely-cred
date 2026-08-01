@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import {
   BarChart3,
+  BookOpen,
   Calendar,
   CheckCircle2,
   ShieldCheck,
@@ -18,6 +19,7 @@ import { TRADELINE_FUNNEL } from '../../domain/leadMagnetFunnels';
 import { usePublicSeoMeta } from '../../hooks/usePublicSeoMeta';
 import { LEAD_MAGNET_TRIAL_DAYS } from '../../lib/leadMagnetTrial';
 import { PremiumLeadMagnetCaptureForm } from '../../components/leadmagnet/PremiumLeadMagnetCaptureForm';
+import { TL_GUIDE_CHAPTERS, TL_GUIDE_META, TL_GUIDE_READ_PATH } from './tradelineAdvantageGuideContent';
 import '../../components/leadmagnet/premiumLeadMagnetShared.css';
 import './tradelineAdvantageLanding.css';
 
@@ -312,6 +314,12 @@ export default function TradelineAdvantageLandingPage() {
                 funnelConfig={TRADELINE_FUNNEL}
                 accentClass="focus:border-[#f0cc75] focus:ring-[#d4a447]/15"
               />
+              <Link
+                to={TL_GUIDE_READ_PATH}
+                className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-[#d4a447]/45 bg-[#d4a447]/10 px-4 py-2.5 text-[11px] font-black uppercase tracking-[0.14em] text-[#f0cc75] transition hover:border-[#f0cc75]/70 hover:bg-[#d4a447]/16"
+              >
+                <BookOpen size={14} /> Read all {TL_GUIDE_CHAPTERS.length} chapters free — no signup
+              </Link>
               <div className="mt-3 flex flex-wrap gap-4">
                 <a href="#tla-preview" className="lm-secondary-book-link !mt-0">
                   Watch preview ↓
@@ -340,6 +348,48 @@ export default function TradelineAdvantageLandingPage() {
               When tradelines help, when they hurt, and how partners sequence them inside the restoration workspace.
             </p>
           </div>
+        </div>
+      </section>
+
+      {/* Chapter index — the whole guide is readable in-app before any signup */}
+      <section id="read-online" className="relative z-10 border-b border-[#5c2d54]/35 py-9 md:py-12">
+        <div className="mx-auto max-w-7xl px-5 md:px-8">
+          <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+            <div className="max-w-2xl">
+              <SectionKicker>Read it now · no signup</SectionKicker>
+              <h2 className="tla-serif mt-4 text-3xl font-black leading-tight tracking-[-0.035em] md:text-4xl">
+                {TL_GUIDE_META.title}
+              </h2>
+              <p className="mt-3 text-sm leading-relaxed text-white/62">
+                {TL_GUIDE_CHAPTERS.length} chapters in the browser — what a tradeline actually is, AU versus primary,
+                what AU can and cannot do, underwriter-grade evaluation, utilization timing, compliance red flags, and
+                a 90-day calendar.
+              </p>
+            </div>
+            <Link to={`${TL_GUIDE_READ_PATH}?chapter=what-is-a-tradeline`} className="shrink-0">
+              <GoldButton className="!h-12">
+                <BookOpen size={15} /> Open Chapter 01
+              </GoldButton>
+            </Link>
+          </div>
+
+          <div className="mt-7 grid gap-3 md:grid-cols-2 lg:grid-cols-4">
+            {TL_GUIDE_CHAPTERS.map((ch) => (
+              <Link
+                key={ch.id}
+                to={`${TL_GUIDE_READ_PATH}?chapter=${ch.id}`}
+                className="group rounded-[1.1rem] border border-white/10 bg-white/[0.035] p-4 text-left backdrop-blur-xl transition hover:-translate-y-1 hover:border-[#d4a447]/45"
+              >
+                <div className="font-mono text-xs font-bold tracking-[0.18em] text-[#f0cc75]">{ch.number}</div>
+                <div className="mt-2 text-sm font-bold leading-snug text-white">{ch.title}</div>
+                <p className="mt-1.5 text-[12.5px] leading-relaxed text-white/55">{ch.teaser}</p>
+                <div className="mt-2 text-[10px] font-black uppercase tracking-[0.16em] text-[#8bafe8]">
+                  {ch.readMinutes} min · {ch.kicker}
+                </div>
+              </Link>
+            ))}
+          </div>
+          <p className="mt-4 text-[11px] text-white/40">{TL_GUIDE_META.compliance}</p>
         </div>
       </section>
 

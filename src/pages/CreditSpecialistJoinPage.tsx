@@ -5,7 +5,6 @@ import {
   BookOpen,
   Check,
   CheckCircle2,
-  Sparkles,
   Users,
 } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
@@ -23,7 +22,6 @@ import { submitLeadCapture } from '../data/leadsRepo';
 import { addLeadNote, addLeadTags } from '../data/leadOpsRepo';
 import { FinelyOsAlertBanner } from '../features/os/FinelyOsAlertBanner';
 import { FinelyOsPageFooter } from '../features/os/FinelyOsPageFooter';
-import { MarketingStaffChatStrip } from '../components/marketing/MarketingStaffChatStrip';
 import {
   defaultCreditSpecialistJoinIntent,
   formatCreditSpecialistJoinIntentNote,
@@ -31,9 +29,9 @@ import {
   saveCreditSpecialistJoinIntent,
   type CreditSpecialistJoinIntent,
 } from '../lib/creditSpecialistJoinIntent';
-import { openPublicChat } from '../lib/publicChatEvents';
 import { usePublicSeoMeta } from '../hooks/usePublicSeoMeta';
 import { PublicLaneTitle } from '../components/public/PublicLaneTitle';
+import { CS_GUIDE_READ_PATH } from './leadmagnet/creditSpecialistGuideContent';
 import {
   FINELY_OS_BACK_LINK,
   FINELY_OS_COMPACT_PAGE,
@@ -65,15 +63,12 @@ const STEPS: Array<{ id: StepId; label: string; hint: string }> = [
 const formLabel = `block ${FINELY_OS_ENTITY_LABEL} mb-1`;
 const formInput = `${FINELY_OS_ENTITY_INPUT.replace('mt-2 ', '')} ${finelyOsGlowField('violet')}`;
 
-function HelpStrip({ onWatch, onAsk }: { onWatch: () => void; onAsk: () => void }) {
+function HelpStrip({ onReadGuide }: { onReadGuide: () => void }) {
   return (
     <div className={`${finelyOsCatalogCard('sky')} !p-3 flex flex-wrap items-center gap-2`}>
       <span className={`${FINELY_OS_ENTITY_BODY} text-xs mr-1`}>Need a hand?</span>
-      <button type="button" onClick={onWatch} className={FINELY_OS_SECONDARY_BTN}>
-        <BookOpen size={14} /> Watch how
-      </button>
-      <button type="button" onClick={onAsk} className={FINELY_OS_SECONDARY_BTN}>
-        <Sparkles size={14} /> Ask Finely
+      <button type="button" onClick={onReadGuide} className={FINELY_OS_SECONDARY_BTN}>
+        <BookOpen size={14} /> Read Guide
       </button>
     </div>
   );
@@ -137,8 +132,7 @@ export default function CreditSpecialistJoinPage() {
     saveCreditSpecialistJoinIntent(next);
   };
 
-  const goWatch = () => navigate(CS_OFFER.guidePath);
-  const goAsk = () => openPublicChat({ goal: 'business', personaId: 'lead_converter' });
+  const goReadGuide = () => navigate(CS_GUIDE_READ_PATH);
 
   const goNext = () => {
     const order = STEPS.map((s) => s.id);
@@ -309,7 +303,7 @@ export default function CreditSpecialistJoinPage() {
           message={`To use the system, get educated, and access methods: bring at least ${CS_OFFER.minLeadsRequired} leads. You have ${CS_OFFER.freeLeadsWindowDays} days from signup to get those free leads.`}
         />
 
-        <HelpStrip onWatch={goWatch} onAsk={goAsk} />
+        <HelpStrip onReadGuide={goReadGuide} />
 
         {statusMsg && status !== 'idle' ? (
           <div className={status === 'error' ? FINELY_OS_NOTICE_ERROR : FINELY_OS_NOTICE_SUCCESS}>{statusMsg}</div>
@@ -562,13 +556,6 @@ export default function CreditSpecialistJoinPage() {
         )}
 
         <p className={FINELY_OS_COMPLIANCE_FOOTNOTE}>{CS_OFFER.complianceFootnote}</p>
-
-        <MarketingStaffChatStrip
-          roleId="lead_converter"
-          goal="business"
-          roleLabel="Credit Specialist onboarding"
-          subline="Stuck on the 3-lead commitment or which tier to pick? Ask Aia — she’ll connect you."
-        />
 
         <FinelyOsPageFooter />
       </div>

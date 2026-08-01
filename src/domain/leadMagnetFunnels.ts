@@ -222,7 +222,7 @@ export const AGENCY_FUNNEL: LeadMagnetFunnelConfig = {
   agentPersonaId: 'sales_closer',
   agentDisplayName: 'Riley',
   agentRole: 'Solutions Advisor',
-  guideId: 'loan-funding-sequence',
+  guideId: 'the-agency-guide',
   offer: 'agency_white_label_kit',
   onboardingLane: 'business_credit',
   metaTitle: 'Free agency & white-label guide',

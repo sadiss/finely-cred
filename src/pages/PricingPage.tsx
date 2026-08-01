@@ -28,6 +28,7 @@ import { MarketingStaffChatStrip } from '../components/marketing/MarketingStaffC
 import { PricingSolutionsHero, type PricingSolutionKey } from '../features/os/PricingSolutionsHero';
 import { usePublicSeoMeta } from '../hooks/usePublicSeoMeta';
 import { LandingTypewriterTitle } from '../components/landing/LandingTypewriterTitle';
+import { LandingSellAtmosphere } from '../components/landing/LandingSellAtmosphere';
 import {
   FINELY_OS_ENTITY_BODY,
 
@@ -566,11 +567,12 @@ export default function PricingPage() {
 
         </div>
 
-        {/* Dark final CTA */}
+        {/* Platinum final CTA */}
         <section
-          className={`-mx-4 sm:-mx-6 lg:-mx-8 2xl:-mx-10 px-4 sm:px-6 lg:px-8 2xl:px-10 py-14 sm:py-20 ${finelyOsLandingContrastSection('fc-band-emerald')}`}
+          className={`fc-sell relative overflow-hidden -mx-4 sm:-mx-6 lg:-mx-8 2xl:-mx-10 px-4 sm:px-6 lg:px-8 2xl:px-10 py-14 sm:py-20 ${finelyOsLandingContrastSection('fc-band-emerald')}`}
           data-fc-contrast-band="1"
         >
+          <LandingSellAtmosphere tone="platinum" />
           <div className="max-w-4xl mx-auto">
             <div className={`${finelyOsLeadMagnetPanel('emerald')} flex flex-col md:flex-row items-start md:items-center justify-between gap-4 !p-6 sm:!p-8`} data-fc-accent="emerald">
               <div>

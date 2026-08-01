@@ -1,0 +1,866 @@
+/**
+ * Debt Eradication Field Manual — in-app reader.
+ * Design system: courtroom / document prestige.
+ * Deep ink shell, parchment page, pleading-paper rules, serif display, wax-seal chapter marks.
+ */
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Spectral:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@400;500;600;700;800&display=swap');
+
+.dge-shell {
+  --dge-ink: #0a0f1c;
+  --dge-ink-deep: #05080f;
+  --dge-parchment: #f6f1e4;
+  --dge-parchment-warm: #ece4d1;
+  --dge-rule: #c9b78d;
+  --dge-oxblood: #7c2027;
+  --dge-oxblood-soft: #a8353b;
+  --dge-brass: #b08b3f;
+  --dge-brass-soft: #d8b463;
+  --dge-body: #23201a;
+  --dge-body-soft: #4a453b;
+
+  min-height: 100svh;
+  font-family: 'Inter', system-ui, sans-serif;
+  color: #f4efe3;
+  background:
+    radial-gradient(ellipse 60% 40% at 12% 4%, rgba(176, 139, 63, 0.16), transparent 58%),
+    radial-gradient(ellipse 55% 45% at 88% 12%, rgba(124, 32, 39, 0.14), transparent 60%),
+    linear-gradient(180deg, #05080f 0%, #0a0f1c 45%, #05080f 100%);
+}
+
+.dge-display {
+  font-family: 'Playfair Display', 'Georgia', serif;
+}
+
+.dge-serif-body {
+  font-family: 'Spectral', 'Georgia', serif;
+}
+
+/* ── Chrome: docket bar ───────────────────────────────────────── */
+.dge-dock {
+  border-bottom: 1px solid rgba(176, 139, 63, 0.28);
+  background: linear-gradient(180deg, rgba(5, 8, 15, 0.96), rgba(10, 15, 28, 0.88));
+  backdrop-filter: blur(16px);
+}
+
+.dge-dock-rule {
+  height: 2px;
+  background: rgba(255, 255, 255, 0.06);
+  overflow: hidden;
+}
+
+.dge-dock-rule > span {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, var(--dge-oxblood) 0%, var(--dge-brass) 60%, var(--dge-brass-soft) 100%);
+  transition: width 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.dge-dock-btn {
+  border: 1px solid rgba(176, 139, 63, 0.32);
+  background: rgba(176, 139, 63, 0.08);
+  color: #e6d6ad;
+  transition: border-color 0.2s ease, background 0.2s ease, transform 0.2s ease;
+}
+
+.dge-dock-btn:hover {
+  border-color: rgba(216, 180, 99, 0.6);
+  background: rgba(176, 139, 63, 0.16);
+  transform: translateY(-1px);
+}
+
+.dge-seal-btn {
+  border: 1px solid rgba(168, 53, 59, 0.55);
+  background: linear-gradient(180deg, rgba(124, 32, 39, 0.9), rgba(90, 20, 26, 0.9));
+  color: #ffe9d2;
+  box-shadow: 0 10px 30px rgba(124, 32, 39, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  transition: transform 0.2s ease, filter 0.2s ease;
+}
+
+.dge-seal-btn:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.08);
+}
+
+/* ── Index (TOC) — docket sheet ───────────────────────────────── */
+.dge-index {
+  border: 1px solid rgba(176, 139, 63, 0.22);
+  background: linear-gradient(180deg, rgba(246, 241, 228, 0.05), rgba(0, 0, 0, 0.24));
+}
+
+.dge-index-title {
+  font-family: 'Playfair Display', Georgia, serif;
+  letter-spacing: -0.01em;
+}
+
+.dge-index-item {
+  position: relative;
+  display: grid;
+  grid-template-columns: 2.1rem minmax(0, 1fr);
+  gap: 0.6rem;
+  width: 100%;
+  padding: 0.55rem 0.6rem;
+  text-align: left;
+  border-left: 2px solid transparent;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.dge-index-item:hover {
+  background: rgba(176, 139, 63, 0.08);
+  border-left-color: rgba(176, 139, 63, 0.5);
+}
+
+.dge-index-item.is-active {
+  background: rgba(124, 32, 39, 0.16);
+  border-left-color: var(--dge-oxblood-soft);
+}
+
+.dge-index-numeral {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 0.95rem;
+  color: var(--dge-brass-soft);
+  letter-spacing: 0.02em;
+}
+
+.dge-index-item.is-active .dge-index-numeral {
+  color: #ffcfae;
+}
+
+.dge-index-name {
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: rgba(246, 241, 228, 0.92);
+  line-height: 1.3;
+}
+
+.dge-index-meta {
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(246, 241, 228, 0.4);
+}
+
+/* ── The page: parchment leaf ─────────────────────────────────── */
+.dge-leaf {
+  position: relative;
+  overflow: hidden;
+  border-radius: 4px;
+  border: 1px solid rgba(201, 183, 141, 0.55);
+  color: var(--dge-body);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.5), transparent 22%),
+    radial-gradient(ellipse 70% 40% at 88% 0%, rgba(201, 183, 141, 0.28), transparent 55%),
+    linear-gradient(155deg, var(--dge-parchment) 0%, var(--dge-parchment-warm) 100%);
+  box-shadow:
+    0 40px 90px rgba(0, 0, 0, 0.55),
+    0 2px 0 rgba(255, 255, 255, 0.4) inset;
+}
+
+/* pleading-paper double rule down the binding edge */
+.dge-leaf::before {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 3px;
+  background: linear-gradient(180deg, var(--dge-oxblood), rgba(124, 32, 39, 0.35));
+}
+
+.dge-leaf::after {
+  content: '';
+  position: absolute;
+  inset: 1.35rem auto 1.35rem 1.15rem;
+  width: 1px;
+  background: repeating-linear-gradient(
+    180deg,
+    rgba(124, 32, 39, 0.32) 0 6px,
+    transparent 6px 12px
+  );
+  pointer-events: none;
+}
+
+@media (max-width: 767px) {
+  .dge-leaf::after {
+    display: none;
+  }
+}
+
+.dge-leaf-inner {
+  position: relative;
+  z-index: 1;
+  padding: 1.5rem 1.25rem 2rem;
+}
+
+@media (min-width: 768px) {
+  .dge-leaf-inner {
+    padding: 2.75rem 3rem 3rem 3.25rem;
+  }
+}
+
+/* page-turn motion (motion 1 of 3) */
+.dge-turn {
+  animation: dge-turn-in 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+  transform-origin: left center;
+}
+
+@keyframes dge-turn-in {
+  from {
+    opacity: 0;
+    transform: translateX(-10px) rotateY(-2.2deg);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ── Chapter opener: caption block ────────────────────────────── */
+.dge-caption {
+  border-bottom: 3px double rgba(124, 32, 39, 0.5);
+  padding-bottom: 1.35rem;
+}
+
+.dge-caption-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1rem;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: rgba(124, 32, 39, 0.78);
+}
+
+.dge-caption-row span + span::before {
+  content: '·';
+  margin-right: 1rem;
+  color: rgba(35, 32, 26, 0.35);
+}
+
+.dge-chapter-numeral {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: clamp(2.6rem, 6vw, 3.9rem);
+  line-height: 1;
+  color: rgba(124, 32, 39, 0.9);
+}
+
+.dge-chapter-title {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: clamp(1.9rem, 4.4vw, 3rem);
+  line-height: 1.06;
+  letter-spacing: -0.015em;
+  font-weight: 600;
+  color: #1b1710;
+}
+
+.dge-chapter-sub {
+  font-family: 'Spectral', Georgia, serif;
+  font-size: clamp(1rem, 1.5vw, 1.18rem);
+  line-height: 1.6;
+  color: var(--dge-body-soft);
+}
+
+/* seal (motion 2 of 3) */
+.dge-seal {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 4.5rem;
+  height: 4.5rem;
+  border-radius: 999px;
+  border: 2px solid rgba(124, 32, 39, 0.55);
+  background: radial-gradient(circle at 34% 28%, rgba(168, 53, 59, 0.95), rgba(102, 24, 30, 0.95));
+  color: #ffe6d4;
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 1.4rem;
+  box-shadow: 0 10px 26px rgba(124, 32, 39, 0.35), inset 0 2px 6px rgba(255, 255, 255, 0.2);
+  animation: dge-seal-press 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.dge-seal::after {
+  content: '';
+  position: absolute;
+  inset: 6px;
+  border-radius: inherit;
+  border: 1px dashed rgba(255, 230, 212, 0.45);
+}
+
+@keyframes dge-seal-press {
+  from {
+    opacity: 0;
+    transform: scale(1.35) rotate(-14deg);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.dge-promise {
+  border-left: 3px solid var(--dge-brass);
+  background: rgba(176, 139, 63, 0.12);
+  font-family: 'Spectral', Georgia, serif;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: #3a3327;
+  padding: 0.75rem 1rem;
+}
+
+/* ── Sections ─────────────────────────────────────────────────── */
+.dge-section {
+  padding-top: 1.85rem;
+  margin-top: 1.85rem;
+  border-top: 1px solid rgba(124, 32, 39, 0.18);
+}
+
+.dge-section:first-child {
+  border-top: 0;
+  margin-top: 0;
+  padding-top: 0;
+}
+
+.dge-section-head {
+  margin-bottom: 0.9rem;
+}
+
+.dge-section-kicker {
+  display: inline-block;
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: rgba(124, 32, 39, 0.72);
+}
+
+.dge-section-title {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: clamp(1.35rem, 2.4vw, 1.75rem);
+  line-height: 1.2;
+  font-weight: 600;
+  color: #1b1710;
+  margin-top: 0.25rem;
+}
+
+.dge-section-body > * + * {
+  margin-top: 1.05rem;
+}
+
+.dge-p {
+  font-family: 'Spectral', Georgia, serif;
+  font-size: 1.02rem;
+  line-height: 1.75;
+  color: var(--dge-body);
+}
+
+.dge-list {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.dge-list > li {
+  display: flex;
+  gap: 0.7rem;
+  font-family: 'Spectral', Georgia, serif;
+  font-size: 0.99rem;
+  line-height: 1.65;
+  color: var(--dge-body);
+}
+
+.dge-marker {
+  margin-top: 0.62rem;
+  height: 6px;
+  width: 6px;
+  flex: none;
+  transform: rotate(45deg);
+  background: var(--dge-oxblood);
+}
+
+/* numbered steps as an exhibit ladder */
+.dge-steps {
+  display: grid;
+  gap: 0.55rem;
+  counter-reset: dge-step;
+}
+
+.dge-step {
+  display: grid;
+  grid-template-columns: 2.4rem minmax(0, 1fr);
+  gap: 0.85rem;
+  border: 1px solid rgba(124, 32, 39, 0.2);
+  border-left: 3px solid rgba(124, 32, 39, 0.55);
+  background: rgba(255, 255, 255, 0.5);
+  padding: 0.75rem 0.9rem;
+}
+
+.dge-step-num {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 1.15rem;
+  color: rgba(124, 32, 39, 0.85);
+  line-height: 1.4;
+}
+
+.dge-step-body {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.dge-step-label {
+  font-size: 0.86rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: #1b1710;
+}
+
+.dge-step-text {
+  font-family: 'Spectral', Georgia, serif;
+  font-size: 0.95rem;
+  line-height: 1.62;
+  color: var(--dge-body-soft);
+}
+
+/* checklist = clerk's docket sheet */
+.dge-check {
+  border: 1px solid rgba(176, 139, 63, 0.45);
+  background:
+    repeating-linear-gradient(180deg, rgba(201, 183, 141, 0.14) 0 28px, transparent 28px 56px),
+    rgba(255, 255, 255, 0.45);
+  padding: 0.9rem 1rem;
+}
+
+.dge-check-title {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(124, 32, 39, 0.8);
+  margin-bottom: 0.55rem;
+}
+
+.dge-check-list {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.dge-check-list > li {
+  display: flex;
+  gap: 0.65rem;
+  font-size: 0.94rem;
+  line-height: 1.5;
+  color: var(--dge-body);
+}
+
+.dge-check-box {
+  display: grid;
+  place-items: center;
+  height: 1.1rem;
+  width: 1.1rem;
+  flex: none;
+  margin-top: 0.1rem;
+  border: 1px solid rgba(124, 32, 39, 0.5);
+  color: rgba(124, 32, 39, 0.85);
+  background: #fff;
+}
+
+/* callouts */
+.dge-callout {
+  display: flex;
+  gap: 0.8rem;
+  padding: 0.9rem 1rem;
+  border-left: 4px solid var(--dge-brass);
+  background: rgba(176, 139, 63, 0.13);
+}
+
+.dge-callout--warn {
+  border-left-color: var(--dge-oxblood);
+  background: rgba(124, 32, 39, 0.1);
+}
+
+.dge-callout--law {
+  border-left-color: #33502f;
+  background: rgba(51, 80, 47, 0.1);
+}
+
+.dge-callout-icon {
+  flex: none;
+  margin-top: 0.15rem;
+  color: rgba(124, 32, 39, 0.8);
+}
+
+.dge-callout--note .dge-callout-icon {
+  color: rgba(140, 108, 40, 0.9);
+}
+
+.dge-callout--law .dge-callout-icon {
+  color: #33502f;
+}
+
+.dge-callout-title {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #1b1710;
+  margin-bottom: 0.25rem;
+}
+
+.dge-callout-body {
+  font-family: 'Spectral', Georgia, serif;
+  font-size: 0.96rem;
+  line-height: 1.62;
+  color: var(--dge-body);
+}
+
+/* quote = affidavit excerpt */
+.dge-quote {
+  position: relative;
+  padding: 1.1rem 1.25rem 1.1rem 2.1rem;
+  border-top: 1px solid rgba(124, 32, 39, 0.28);
+  border-bottom: 1px solid rgba(124, 32, 39, 0.28);
+}
+
+.dge-quote::before {
+  content: '“';
+  position: absolute;
+  left: 0.55rem;
+  top: 0.5rem;
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 2.8rem;
+  line-height: 1;
+  color: rgba(124, 32, 39, 0.35);
+}
+
+.dge-quote p {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 1.1rem;
+  font-style: italic;
+  line-height: 1.55;
+  color: #241f17;
+}
+
+.dge-quote cite {
+  display: block;
+  margin-top: 0.55rem;
+  font-family: 'Inter', sans-serif;
+  font-style: normal;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(124, 32, 39, 0.75);
+}
+
+/* statute chips */
+.dge-chip-label {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(124, 32, 39, 0.75);
+  margin-bottom: 0.5rem;
+}
+
+.dge-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.dge-chip {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.45rem;
+  border: 1px solid rgba(124, 32, 39, 0.4);
+  background: rgba(255, 255, 255, 0.6);
+  padding: 0.35rem 0.7rem;
+  border-radius: 2px;
+}
+
+.dge-chip strong {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #7c2027;
+  letter-spacing: 0.01em;
+}
+
+.dge-chip em {
+  font-style: normal;
+  font-size: 0.74rem;
+  color: var(--dge-body-soft);
+}
+
+/* tables = exhibit schedule */
+.dge-table-caption {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(124, 32, 39, 0.75);
+  margin-bottom: 0.4rem;
+}
+
+.dge-table-scroll {
+  overflow-x: auto;
+  border: 1px solid rgba(124, 32, 39, 0.28);
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.dge-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+}
+
+.dge-table th {
+  text-align: left;
+  padding: 0.6rem 0.8rem;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #f6f1e4;
+  background: rgba(124, 32, 39, 0.9);
+  white-space: nowrap;
+}
+
+.dge-table td {
+  padding: 0.6rem 0.8rem;
+  border-top: 1px solid rgba(124, 32, 39, 0.16);
+  color: var(--dge-body);
+  line-height: 1.5;
+  vertical-align: top;
+}
+
+.dge-table tbody tr:nth-child(even) td {
+  background: rgba(201, 183, 141, 0.14);
+}
+
+/* stats */
+.dge-stat-grid {
+  display: grid;
+  gap: 0.6rem;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+}
+
+.dge-stat {
+  border: 1px solid rgba(124, 32, 39, 0.25);
+  background: rgba(255, 255, 255, 0.55);
+  padding: 0.75rem 0.85rem;
+}
+
+.dge-stat-value {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 1.35rem;
+  color: #7c2027;
+  line-height: 1.15;
+}
+
+.dge-stat-label {
+  margin-top: 0.2rem;
+  font-size: 0.78rem;
+  color: var(--dge-body-soft);
+  line-height: 1.4;
+}
+
+/* timeline = docket entries */
+.dge-timeline {
+  display: grid;
+  gap: 0;
+  border-left: 2px solid rgba(124, 32, 39, 0.35);
+  padding-left: 1rem;
+}
+
+.dge-timeline > li {
+  position: relative;
+  display: grid;
+  gap: 0.15rem;
+  padding: 0.6rem 0;
+  border-bottom: 1px dotted rgba(124, 32, 39, 0.25);
+}
+
+.dge-timeline > li:last-child {
+  border-bottom: 0;
+}
+
+.dge-timeline > li::before {
+  content: '';
+  position: absolute;
+  left: -1.32rem;
+  top: 1.05rem;
+  height: 7px;
+  width: 7px;
+  border-radius: 999px;
+  background: var(--dge-oxblood);
+}
+
+.dge-timeline-when {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(124, 32, 39, 0.85);
+}
+
+.dge-timeline-what {
+  font-family: 'Spectral', Georgia, serif;
+  font-size: 0.96rem;
+  line-height: 1.6;
+  color: var(--dge-body);
+}
+
+/* comparison = two-column brief */
+.dge-compare {
+  display: grid;
+  gap: 0.75rem;
+}
+
+@media (min-width: 700px) {
+  .dge-compare {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.dge-compare-col {
+  border: 1px solid rgba(124, 32, 39, 0.25);
+  background: rgba(255, 255, 255, 0.5);
+  padding: 0.85rem 1rem;
+}
+
+.dge-compare-col--alt {
+  background: rgba(201, 183, 141, 0.2);
+}
+
+.dge-compare-title {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 1.02rem;
+  color: #7c2027;
+  margin-bottom: 0.5rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 1px solid rgba(124, 32, 39, 0.3);
+}
+
+.dge-compare-col ul {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.dge-compare-col li {
+  position: relative;
+  padding-left: 0.85rem;
+  font-size: 0.92rem;
+  line-height: 1.55;
+  color: var(--dge-body);
+}
+
+.dge-compare-col li::before {
+  content: '—';
+  position: absolute;
+  left: 0;
+  color: rgba(124, 32, 39, 0.6);
+}
+
+/* ── Footer of the leaf ───────────────────────────────────────── */
+.dge-takeaway {
+  margin-top: 2rem;
+  border: 1px solid rgba(124, 32, 39, 0.35);
+  border-top-width: 3px;
+  background: rgba(124, 32, 39, 0.07);
+  padding: 1rem 1.1rem;
+}
+
+.dge-takeaway-label {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: rgba(124, 32, 39, 0.85);
+}
+
+.dge-takeaway-body {
+  margin-top: 0.35rem;
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 1.08rem;
+  line-height: 1.5;
+  color: #1b1710;
+}
+
+.dge-foot-nav {
+  margin-top: 1.75rem;
+  padding-top: 1.15rem;
+  border-top: 3px double rgba(124, 32, 39, 0.4);
+}
+
+.dge-page-btn {
+  border: 1px solid rgba(124, 32, 39, 0.35);
+  background: rgba(255, 255, 255, 0.6);
+  color: #4a453b;
+  transition: background 0.2s ease, transform 0.2s ease, color 0.2s ease;
+}
+
+.dge-page-btn:hover:not(:disabled) {
+  background: rgba(124, 32, 39, 0.1);
+  color: #7c2027;
+  transform: translateY(-1px);
+}
+
+.dge-page-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.dge-page-btn--primary {
+  border-color: rgba(124, 32, 39, 0.8);
+  background: linear-gradient(180deg, #8c262e, #6a1a20);
+  color: #fdeee0;
+  box-shadow: 0 10px 26px rgba(124, 32, 39, 0.3);
+}
+
+.dge-page-btn--primary:hover:not(:disabled) {
+  background: linear-gradient(180deg, #9c2c35, #7a1f26);
+  color: #fff;
+}
+
+.dge-compliance {
+  font-size: 10.5px;
+  letter-spacing: 0.05em;
+  color: rgba(246, 241, 228, 0.42);
+}
+
+.dge-compliance--onleaf {
+  color: rgba(35, 32, 26, 0.55);
+}
+
+/* ── Rail cards outside the leaf ──────────────────────────────── */
+.dge-rail-card {
+  border: 1px solid rgba(176, 139, 63, 0.3);
+  background: linear-gradient(160deg, rgba(176, 139, 63, 0.1), rgba(0, 0, 0, 0.3));
+}
+
+.dge-rail-kpi {
+  border: 1px solid rgba(176, 139, 63, 0.24);
+  background: rgba(0, 0, 0, 0.28);
+}
+
+/* underline draw (motion 3 of 3) */
+.dge-rule-draw {
+  height: 2px;
+  background: linear-gradient(90deg, var(--dge-oxblood), rgba(176, 139, 63, 0.65) 70%, transparent);
+  transform-origin: left center;
+  animation: dge-rule 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes dge-rule {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dge-turn,
+  .dge-seal,
+  .dge-rule-draw {
+    animation: none;
+    transform: none;
+  }
+}

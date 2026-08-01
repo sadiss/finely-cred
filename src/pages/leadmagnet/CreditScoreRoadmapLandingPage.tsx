@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import {
   BadgeCheck,
+  BookOpen,
   Calendar,
   CheckCircle2,
   ShieldCheck,
@@ -15,6 +16,7 @@ import { LeadMagnetCobrandFooterMarks } from '../../components/brand/LeadMagnetC
 import { LeadMagnetFunnelHeroVideo } from '../../components/leadmagnet/LeadMagnetFunnelHeroVideo';
 import { getLeadMagnetVisualTheme } from '../../components/leadmagnet/leadMagnetVisualThemes';
 import { SCORE_ROADMAP_FUNNEL } from '../../domain/leadMagnetFunnels';
+import { SCORE_BOOST_CHAPTERS, SCORE_BOOST_READ_PATH } from '../../resources/scoreRoadmapContent';
 import { usePublicSeoMeta } from '../../hooks/usePublicSeoMeta';
 import { LEAD_MAGNET_TRIAL_DAYS } from '../../lib/leadMagnetTrial';
 import { PremiumLeadMagnetCaptureForm } from '../../components/leadmagnet/PremiumLeadMagnetCaptureForm';
@@ -293,6 +295,9 @@ export default function CreditScoreRoadmapLandingPage() {
                 accentClass="focus:border-[#f4d273] focus:ring-[#d7a73f]/15"
               />
               <div className="mt-3 flex flex-wrap items-center justify-center gap-4">
+                <Link to={SCORE_BOOST_READ_PATH} className="lm-secondary-book-link !mt-0">
+                  <BookOpen size={14} /> Read all {SCORE_BOOST_CHAPTERS.length} steps free
+                </Link>
                 <a href="#csr-preview" className="lm-secondary-book-link !mt-0">
                   Watch preview ↓
                 </a>
@@ -300,6 +305,20 @@ export default function CreditScoreRoadmapLandingPage() {
                   <Calendar size={14} /> Book a session
                 </Link>
               </div>
+
+              <div className="csr-sequence-rail mt-5">
+                {SCORE_BOOST_CHAPTERS.filter((c) => c.arc && c.arc <= 70)
+                  .slice(0, 6)
+                  .map((chapter) => (
+                    <Link key={chapter.id} to={`${SCORE_BOOST_READ_PATH}?chapter=${chapter.id}`} className="csr-sequence-chip">
+                      <span className="csr-sequence-window">{chapter.window}</span>
+                      <span className="csr-sequence-title">{chapter.title}</span>
+                    </Link>
+                  ))}
+              </div>
+              <p className="mt-3 text-center text-[11px] text-white/40">
+                Educational only · results vary · not legal advice · funding subject to underwriting
+              </p>
             </div>
           </div>
         </div>

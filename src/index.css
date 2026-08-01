@@ -5151,9 +5151,19 @@ html.fc-onboarding-portal-open body {
     radial-gradient(ellipse 40% 35% at 60% 40%, rgba(139, 92, 246, 0.07) 0%, transparent 50%);
 }
 
-.fc-landing-dark-depth > * {
+/* Lift in-flow content above ::after, but never re-position the absolutely placed
+   background layers (atmosphere washes, glow blobs) — forcing those to `relative`
+   collapses them to zero height and the band renders as flat black. */
+.fc-landing-dark-depth > *:not(.absolute):not(.fixed):not(.fc-sell-atmosphere) {
   position: relative;
   z-index: 1;
+}
+
+/* Bands that paint their own atmosphere already carry depth. The generic emerald/amber/violet
+   wash above would tint a platinum plate green, so it is dropped for those sections. */
+.fc-sell.fc-landing-dark-depth::after,
+.fc-affiliate-band.fc-landing-dark-depth::after {
+  content: none;
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -228,11 +228,17 @@ const SellerPayoutsPage = lazy(() => import('./pages/seller/SellerPayoutsPage'))
 const AuSellerHubPage = lazy(() => import('./pages/seller/AuSellerHubPage'));
 const EnlightenmentSessionPage = lazy(() => import('./pages/EnlightenmentSessionPage'));
 const FreeGuideFunnelPage = lazy(() => import('./pages/leadmagnet/FreeGuideFunnelPage'));
+const DisputeGuideReaderPage = lazy(() => import('./pages/leadmagnet/DisputeGuideReaderPage'));
+const ScoreBoostGuideReaderPage = lazy(() => import('./pages/leadmagnet/ScoreBoostGuideReaderPage'));
 const DebtGuideFunnelPage = lazy(() => import('./pages/leadmagnet/DebtGuideFunnelPage'));
+const DebtEradicationGuideReaderPage = lazy(() => import('./pages/leadmagnet/DebtEradicationGuideReaderPage'));
 const BusinessGuideFunnelPage = lazy(() => import('./pages/leadmagnet/BusinessGuideFunnelPage'));
+const BusinessCreditPowerGuideReaderPage = lazy(() => import('./pages/leadmagnet/BusinessCreditPowerGuideReaderPage'));
 const TradelineGuideFunnelPage = lazy(() => import('./pages/leadmagnet/TradelineGuideFunnelPage'));
+const TradelineAdvantageGuideReaderPage = lazy(() => import('./pages/leadmagnet/TradelineAdvantageGuideReaderPage'));
 const ScoreRoadmapFunnelPage = lazy(() => import('./pages/leadmagnet/ScoreRoadmapFunnelPage'));
 const AgencyGuideFunnelPage = lazy(() => import('./pages/leadmagnet/AgencyGuideFunnelPage'));
+const AgencyGuideReaderPage = lazy(() => import('./pages/leadmagnet/AgencyGuideReaderPage'));
 const SpecialistApplyFunnelPage = lazy(() => import('./pages/leadmagnet/SpecialistApplyFunnelPage'));
 const CreditSpecialistGuideLandingPage = lazy(() => import('./pages/leadmagnet/CreditSpecialistGuideLandingPage'));
 const CreditSpecialistGuideReaderPage = lazy(() => import('./pages/leadmagnet/CreditSpecialistGuideReaderPage'));
@@ -2706,6 +2712,7 @@ function AppInner() {
         <Route path="/unsubscribe" element={<UnsubscribePage />} />
         <Route path="/enlightenment-session" element={<EnlightenmentSessionPage />} />
         <Route path="/free-guide" element={<FreeGuideFunnelPage />} />
+        <Route path="/free-guide/read" element={<DisputeGuideReaderPage />} />
         <Route path="/head-of-society" element={<HetaSocietyPage />} />
         <Route path="/head-of-society/flyer" element={<Navigate to="/admin" replace />} />
         <Route path="/heta-society" element={<Navigate to="/head-of-society" replace />} />
@@ -2723,10 +2730,16 @@ function AppInner() {
         <Route path="/preview/debt-eradication-guide" element={<Navigate to="/free-debt-guide" replace />} />
         <Route path="/preview/tradeline-advantage-guide" element={<Navigate to="/free-tradeline-guide" replace />} />
         <Route path="/free-debt-guide" element={<DebtGuideFunnelPage />} />
+        {/* Debt / business / tradeline in-app e-guide readers — free to read, no signup */}
+        <Route path="/free-debt-guide/read" element={<DebtEradicationGuideReaderPage />} />
         <Route path="/free-business-guide" element={<BusinessGuideFunnelPage />} />
+        <Route path="/free-business-guide/read" element={<BusinessCreditPowerGuideReaderPage />} />
         <Route path="/free-tradeline-guide" element={<TradelineGuideFunnelPage />} />
+        <Route path="/free-tradeline-guide/read" element={<TradelineAdvantageGuideReaderPage />} />
         <Route path="/free-score-roadmap" element={<ScoreRoadmapFunnelPage />} />
+        <Route path="/free-score-roadmap/read" element={<ScoreBoostGuideReaderPage />} />
         <Route path="/free-agency-guide" element={<AgencyGuideFunnelPage />} />
+        <Route path="/free-agency-guide/read" element={<AgencyGuideReaderPage />} />
         <Route path="/credit-specialist-apply" element={<Navigate to="/credit-specialist/join" replace />} />
         {/* Credit Specialist lead-magnet guide (in-app reader) — see CREDIT_SPECIALIST_GUIDE_ROUTE_SNIPPET.md */}
         <Route path="/credit-specialist-guide" element={<CreditSpecialistGuideLandingPage />} />
