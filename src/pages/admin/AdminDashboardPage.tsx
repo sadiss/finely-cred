@@ -19,7 +19,7 @@ import { canManageTeam, canUseFinanceTools, canViewAllClients, getMembershipByUs
 import { FINELY_TENANT_ID } from '../../domain/tenants';
 import { isAdminEmail } from '../../auth/admin';
 import { FinelyOsCatalogBrowser } from '../../features/os/FinelyOsCatalogBrowser';
-import { FINELY_OS_ENTITY_SUBLABEL } from '../../features/os/finelyOsLightUi';
+import { FINELY_OS_ENTITY_SUBLABEL, FINELY_OS_PAGE } from '../../features/os/finelyOsLightUi';
 import { FinelyOsDataErrorBanner } from '../../features/os/FinelyOsDataErrorBanner';
 import { FinelyOsAlertBanner } from '../../features/os/FinelyOsAlertBanner';
 import { AdminPlatformEventsFeed } from '../../features/admin/AdminPlatformEventsFeed';
@@ -533,7 +533,7 @@ export default function AdminDashboardPage() {
       title="Admin Dashboard"
       subtitle="Overview and quick access to partner management, cases, and system settings."
     >
-      <div className="space-y-6 fc-senior-simple">
+      <div className={`${FINELY_OS_PAGE} fc-senior-simple`}>
         <div className="flex flex-wrap items-center justify-between gap-4">
           <ActionLink to="/dashboard" title="Back to Finely Cred Dashboard" icon={<ArrowLeft size={16} />}>
             Dashboard
@@ -575,6 +575,17 @@ export default function AdminDashboardPage() {
           title="Admin dashboard"
           subtitle="KPIs, ops intel, and modules � scroll or jump; nothing hidden behind tabs."
           accent="violet"
+          kpis={[
+            { label: 'Partners', value: String(stats.partnersCount), hint: 'Active records', accent: 'sky' },
+            { label: 'Open cases', value: String(stats.openCasesCount), hint: 'Need attention', accent: 'emerald' },
+            {
+              label: 'SLA breaches',
+              value: String(stats.slaBreaches),
+              hint: stats.slaBreaches > 0 ? 'Past deadline — act now' : 'None open',
+              accent: stats.slaBreaches > 0 ? 'fuchsia' : 'emerald',
+            },
+            { label: 'Missing report', value: String(stats.partnersMissingReport), hint: 'No credit report yet', accent: 'amber' },
+          ]}
           tabs={[
             { id: 'overview', label: 'Overview' },
             { id: 'ops', label: 'Ops & growth' },
@@ -644,7 +655,7 @@ export default function AdminDashboardPage() {
                 <StaffSocialPresenceStrip compact />
               </div>
 
-              <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 <KpiCard
                   label="Comms this week"
                   value={commsOps.sendsWeek}
@@ -659,28 +670,11 @@ export default function AdminDashboardPage() {
                   tone={commsOps.failedWeek > 0 ? 'amber' : 'emerald'}
                   onClick={() => navigate('/admin/comms?room=inbox')}
                 />
-              </div>
-
-              <div className="grid sm:grid-cols-3 gap-4">
-                <KpiCard
-                  label="Missing report"
-                  value={stats.partnersMissingReport}
-                  hint="Partners with no uploaded credit report"
-                  tone="amber"
-                  onClick={() => navigate('/admin/partners')}
-                />
                 <KpiCard
                   label="Letters this week"
                   value={stats.lettersThisWeek}
                   hint="Dispute letters generated in the last 7 days"
                   tone="violet"
-                  onClick={() => navigate('/admin/workflow')}
-                />
-                <KpiCard
-                  label="SLA breaches"
-                  value={stats.slaBreaches}
-                  hint="Open tasks past SLA deadline"
-                  tone="fuchsia"
                   onClick={() => navigate('/admin/workflow')}
                 />
               </div>

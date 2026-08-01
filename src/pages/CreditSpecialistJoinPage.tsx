@@ -33,6 +33,7 @@ import {
 } from '../lib/creditSpecialistJoinIntent';
 import { openPublicChat } from '../lib/publicChatEvents';
 import { usePublicSeoMeta } from '../hooks/usePublicSeoMeta';
+import { PublicLaneTitle } from '../components/public/PublicLaneTitle';
 import {
   FINELY_OS_BACK_LINK,
   FINELY_OS_COMPACT_PAGE,
@@ -247,6 +248,16 @@ export default function CreditSpecialistJoinPage() {
             <BookOpen size={14} /> Free guide
           </button>
         </div>
+
+        <PublicLaneTitle
+          lane="specialist"
+          kitOverride={{ titleSize: 'lg' }}
+          eyebrow={`Step ${stepIndex + 1} of ${STEPS.length}`}
+          text={`Join as a ${CS.singular}.`}
+          highlight={`${CS.singular}.`}
+          speedMs={34}
+          immediate
+        />
 
         {/* Progress */}
         <div className={`${finelyOsCatalogCard('violet')} !p-4 space-y-3`}>

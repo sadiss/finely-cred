@@ -17,6 +17,7 @@ import { FinelyOsPageFooter } from '../features/os/FinelyOsPageFooter';
 import { FinelyOsPaginatedStack } from '../features/os/FinelyOsPaginatedStack';
 import { FinelyUnifiedHubLayout } from '../features/unified/FinelyUnifiedHubLayout';
 import { MarketingStaffChatStrip } from '../components/marketing/MarketingStaffChatStrip';
+import { PublicLaneTitle } from '../components/public/PublicLaneTitle';
 import {
   FINELY_OS_COMPLIANCE_FOOTNOTE,
   FINELY_OS_ENTITY_BODY,
@@ -78,6 +79,12 @@ export default function ResourcesVideosPage() {
   return (
     <PageShell badge="Public" title="Video library" subtitle="Watch-how tours and short lessons — plain English, one screen at a time.">
       <div className={`${FINELY_OS_PAGE} fc-senior-simple`}>
+        <PublicLaneTitle
+          lane="resources"
+          eyebrow="Watch how"
+          text="Slow walkthroughs. One screen at a time."
+          highlight="One screen at a time."
+        />
         <FinelyUnifiedHubLayout
           eyebrow="Watch how"
           title="Video library"

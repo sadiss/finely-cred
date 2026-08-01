@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { PageShell } from '../components/layout/PageShell';
 import { CareersQuickNav } from '../components/careers/CareersQuickNav';
 import { LandingTypewriterTitle } from '../components/landing/LandingTypewriterTitle';
+import { PublicLaneTitle } from '../components/public/PublicLaneTitle';
 import { createProgramApplication } from '../data/programApplicationsRepo';
 import { FinelyOsPageFooter } from '../features/os/FinelyOsPageFooter';
 import { usePublicSeoMeta } from '../hooks/usePublicSeoMeta';
@@ -114,24 +115,21 @@ export default function CaseHelpCareersPage() {
           className={`px-4 sm:px-6 py-12 sm:py-14 ${finelyOsLandingContrastSection('fc-band-violet')}`}
           data-fc-contrast-band="1"
         >
-          <div className="max-w-3xl mx-auto text-center space-y-4">
-            <div className="inline-flex items-center justify-center gap-2 text-amber-300">
-              <Scale size={22} />
-              <p className="text-[11px] font-black uppercase tracking-[0.28em]">Case help careers</p>
-            </div>
-            <LandingTypewriterTitle
-              as="h1"
-              text="Help partners with case work."
-              className={`${FINELY_OS_LANDING_PLATINUM_TITLE} font-light`}
-              highlight="case work."
-              highlightClassName="text-amber-400 font-semibold"
-              speedMs={38}
-            />
-            <p className="fc-light-contrast-body text-base sm:text-lg max-w-2xl mx-auto">
-              Apply as a paralegal, attorney/counsel, or consultant. Approved applicants get assigned partner access —
-              not raw god-mode.
-            </p>
-          </div>
+          <PublicLaneTitle
+            lane="careers"
+            eyebrow="Case help careers"
+            icon={<Scale size={16} />}
+            text="Help partners with case work."
+            highlight="case work."
+            speedMs={38}
+            className="mx-auto"
+            subtitle={
+              <p className="fc-light-contrast-body text-base sm:text-lg max-w-2xl">
+                Apply as a paralegal, attorney/counsel, or consultant. Approved applicants get assigned partner access —
+                not raw god-mode.
+              </p>
+            }
+          />
         </section>
 
         <section className={`px-4 sm:px-6 py-12 sm:py-14 ${finelyOsLandingWealthyIvorySection()}`}>

@@ -7,6 +7,7 @@ import { FinelyOsPageFooter } from '../features/os/FinelyOsPageFooter';
 import { FinelyOsPaginatedStack } from '../features/os/FinelyOsPaginatedStack';
 import { FinelyUnifiedHubLayout } from '../features/unified/FinelyUnifiedHubLayout';
 import { MarketingStaffChatStrip } from '../components/marketing/MarketingStaffChatStrip';
+import { PublicLaneTitle } from '../components/public/PublicLaneTitle';
 import {
   FINELY_OS_COMPLIANCE_FOOTNOTE,
   FINELY_OS_ENTITY_BODY,
@@ -63,6 +64,12 @@ export default function ResourcesReferencesPage() {
       subtitle="Short cheat sheets for restore execution, vault hygiene, scores, and funding prep."
     >
       <div className={`${FINELY_OS_PAGE} fc-senior-simple`}>
+        <PublicLaneTitle
+          lane="resources"
+          eyebrow="Reference cards"
+          text="Cheat sheets for every stage."
+          highlight="every stage."
+        />
         <FinelyUnifiedHubLayout
           eyebrow="Reference cards"
           title="Quick references"

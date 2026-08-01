@@ -18,6 +18,7 @@ import { FinelyOsPaginatedStack } from '../features/os/FinelyOsPaginatedStack';
 import { MarketingStaffChatStrip } from '../components/marketing/MarketingStaffChatStrip';
 import { FinelyOsPageFooter } from '../features/os/FinelyOsPageFooter';
 import { FinelyUnifiedHubLayout } from '../features/unified/FinelyUnifiedHubLayout';
+import { PublicLaneTitle } from '../components/public/PublicLaneTitle';
 import { PUBLIC_FEATURED_FREE_GUIDES } from '../config/publicResourcesHub';
 import {
   FINELY_OS_COMPLIANCE_FOOTNOTE,
@@ -162,6 +163,12 @@ export default function ResourcesGuidesPage() {
       subtitle="Featured lead magnets plus PDF field guides — pick one path, then take the next step."
     >
       <div className={`${FINELY_OS_PAGE} fc-senior-simple`}>
+        <PublicLaneTitle
+          lane="resources"
+          eyebrow="Guides index"
+          text="Every free guide, one lane each."
+          highlight="one lane each."
+        />
         <FinelyUnifiedHubLayout
           eyebrow="Guides index"
           title="All free guides"

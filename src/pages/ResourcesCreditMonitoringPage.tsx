@@ -7,6 +7,7 @@ import { usePublicSeoMeta } from '../hooks/usePublicSeoMeta';
 import { FinelyOsPageFooter } from '../features/os/FinelyOsPageFooter';
 import { FinelyUnifiedHubLayout } from '../features/unified/FinelyUnifiedHubLayout';
 import { MarketingStaffChatStrip } from '../components/marketing/MarketingStaffChatStrip';
+import { PublicLaneTitle } from '../components/public/PublicLaneTitle';
 import {
   FINELY_OS_COMPLIANCE_FOOTNOTE,
   FINELY_OS_ENTITY_BODY,
@@ -33,6 +34,12 @@ export default function ResourcesCreditMonitoringPage() {
       subtitle="Bureau pull partners with clean export tips — HTML-friendly sources parse best in the portal."
     >
       <div className={`${FINELY_OS_PAGE} fc-senior-simple`}>
+        <PublicLaneTitle
+          lane="resources"
+          eyebrow="Monitoring tools"
+          text="Pull clean reports. Parse them fast."
+          highlight="Parse them fast."
+        />
         <FinelyUnifiedHubLayout
           eyebrow="Monitoring tools"
           title="Credit monitoring partners"

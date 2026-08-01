@@ -22,6 +22,7 @@ import { MarketingStaffChatStrip } from '../components/marketing/MarketingStaffC
 import { openPublicChat } from '../lib/publicChatEvents';
 import { usePublicSeoMeta } from '../hooks/usePublicSeoMeta';
 import { LandingTypewriterTitle } from '../components/landing/LandingTypewriterTitle';
+import { PublicLaneTitle } from '../components/public/PublicLaneTitle';
 import {
   FINELY_OS_BACK_LINK,
   FINELY_OS_COMPLIANCE_FOOTNOTE,
@@ -87,37 +88,37 @@ export default function CreditSpecialistPricingPage() {
           data-fc-contrast-band="1"
           data-fc-accent="violet"
         >
-          <div className="relative space-y-5 max-w-3xl">
-            <p className="text-xs sm:text-sm font-bold uppercase tracking-[0.22em] text-amber-300">Finely Cred · {CS.programName}</p>
-            <LandingTypewriterTitle
-              as="h1"
-              text="Clear tiers. Real access. Zero platform fee."
-              className="text-4xl sm:text-5xl lg:text-[3.35rem] font-bold tracking-tight leading-[1.08] text-white"
-              highlight="Zero platform fee."
-              highlightClassName="text-amber-400"
-              speedMs={36}
-            />
-            <p className="text-base sm:text-lg text-white/75 leading-relaxed">
-              Bring at least <strong className="text-white">{CS_OFFER.minLeadsRequired} partner leads</strong>. You get{' '}
-              <strong className="text-white">{CS_OFFER.freeLeadsWindowDays} days</strong> to source them free with Finely
-              capture tools — then full education, methods, and OS access on transparent revenue share.
-            </p>
-            <div className="flex flex-wrap gap-3">
-              <button type="button" onClick={() => goJoin()} className={FINELY_OS_PRIMARY_BTN}>
-                Join the program <ArrowRight size={16} />
-              </button>
-              <button type="button" onClick={() => setLaneTab('tiers')} className={FINELY_OS_SECONDARY_BTN}>
-                Compare tiers
-              </button>
-              <button
-                type="button"
-                onClick={() => openPublicChat({ goal: 'business', personaId: 'lead_converter' })}
-                className={FINELY_OS_SECONDARY_BTN}
-              >
-                <Sparkles size={14} /> Ask Finely
-              </button>
-            </div>
-          </div>
+          <PublicLaneTitle
+            lane="specialist"
+            eyebrow={`Finely Cred · ${CS.programName}`}
+            text="Clear tiers. Real access. Zero platform fee."
+            highlight="Zero platform fee."
+            speedMs={36}
+            subtitle={
+              <p className="text-base sm:text-lg text-white/75 leading-relaxed">
+                Bring at least <strong className="text-white">{CS_OFFER.minLeadsRequired} partner leads</strong>. You get{' '}
+                <strong className="text-white">{CS_OFFER.freeLeadsWindowDays} days</strong> to source them free with Finely
+                capture tools — then full education, methods, and OS access on transparent revenue share.
+              </p>
+            }
+            actions={
+              <>
+                <button type="button" onClick={() => goJoin()} className={FINELY_OS_PRIMARY_BTN}>
+                  Join the program <ArrowRight size={16} />
+                </button>
+                <button type="button" onClick={() => setLaneTab('tiers')} className={FINELY_OS_SECONDARY_BTN}>
+                  Compare tiers
+                </button>
+                <button
+                  type="button"
+                  onClick={() => openPublicChat({ goal: 'business', personaId: 'lead_converter' })}
+                  className={FINELY_OS_SECONDARY_BTN}
+                >
+                  <Sparkles size={14} /> Ask Finely
+                </button>
+              </>
+            }
+          />
           <div className="relative mt-8 grid grid-cols-3 gap-3 max-w-2xl">
             {[
               { n: String(CS_OFFER.minLeadsRequired), label: 'Leads min' },

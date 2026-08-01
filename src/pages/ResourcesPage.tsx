@@ -13,14 +13,13 @@ import { FinelyUnifiedHubLayout } from '../features/unified/FinelyUnifiedHubLayo
 import { FinelyNowDoThisStrip } from '../components/tours/FinelyNowDoThisStrip';
 import { FinelyNoticedStrip } from '../components/tours/FinelyNoticedStrip';
 import { buildResourcesNoticedItems } from '../lib/finelyProactiveSignals';
-import { LandingTypewriterTitle } from '../components/landing/LandingTypewriterTitle';
+import { PublicLaneTitle } from '../components/public/PublicLaneTitle';
 import { PUBLIC_RESOURCES_HUB_CARDS } from '../config/publicResourcesHub';
 import {
   FINELY_OS_COMPLIANCE_FOOTNOTE,
   FINELY_OS_ENTITY_BODY,
   FINELY_OS_ENTITY_SUBLABEL,
   FINELY_OS_ENTITY_VALUE,
-  FINELY_OS_LANDING_PLATINUM_TITLE,
   FINELY_OS_PAGE,
   FINELY_OS_PRIMARY_BTN,
   FINELY_OS_SECONDARY_BTN,
@@ -104,20 +103,18 @@ export default function ResourcesPage() {
           className={`-mx-4 px-4 py-12 sm:-mx-6 sm:px-6 sm:py-14 lg:-mx-8 lg:px-8 2xl:-mx-10 2xl:px-10 ${finelyOsLandingContrastSection('fc-band-violet')}`}
           data-fc-contrast-band="1"
         >
-          <div className="mx-auto max-w-3xl space-y-4 text-center">
-            <p className="text-[11px] font-black uppercase tracking-[0.28em] text-amber-400">Resource hub</p>
-            <LandingTypewriterTitle
-              as="h2"
-              text="Guides, packs, and partner tools."
-              className={`${FINELY_OS_LANDING_PLATINUM_TITLE} font-light`}
-              highlight="partner tools."
-              highlightClassName="text-amber-400 font-semibold"
-              speedMs={36}
-            />
-            <p className="fc-light-contrast-body mx-auto max-w-2xl text-base sm:text-lg">
-              Start with free guides if you&apos;re new — jump to one-sheets, bookstore, or monitoring when you know your lane.
-            </p>
-          </div>
+          <PublicLaneTitle
+            lane="resources"
+            eyebrow="Resource hub"
+            text="Guides, packs, and partner tools."
+            highlight="partner tools."
+            speedMs={36}
+            subtitle={
+              <p className="fc-light-contrast-body max-w-2xl text-base sm:text-lg">
+                Start with free guides if you&apos;re new — jump to one-sheets, bookstore, or monitoring when you know your lane.
+              </p>
+            }
+          />
         </section>
 
         <div className="space-y-4 py-6">

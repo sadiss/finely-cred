@@ -6,6 +6,7 @@ import { usePublicSeoMeta } from '../hooks/usePublicSeoMeta';
 import { FinelyOsPageFooter } from '../features/os/FinelyOsPageFooter';
 import { FinelyUnifiedHubLayout } from '../features/unified/FinelyUnifiedHubLayout';
 import { MarketingStaffChatStrip } from '../components/marketing/MarketingStaffChatStrip';
+import { PublicLaneTitle } from '../components/public/PublicLaneTitle';
 import { PUBLIC_ONE_SHEET_PACKS } from '../config/publicResourcesHub';
 import {
   FINELY_OS_COMPLIANCE_FOOTNOTE,
@@ -35,6 +36,12 @@ export default function ResourcesOneSheetsHubPage() {
       subtitle="Short PDFs for offers, tiers, and talking points — pick a pack, download, then book a session."
     >
       <div className={`${FINELY_OS_PAGE} fc-senior-simple`}>
+        <PublicLaneTitle
+          lane="resources"
+          eyebrow="One-sheets hub"
+          text="Short PDFs. Fast talking points."
+          highlight="talking points."
+        />
         <FinelyUnifiedHubLayout
           eyebrow="One-sheets hub"
           title="Partner one-sheets"
