@@ -106,37 +106,6 @@ export function enrollLeadInNurtureSequence(args: {
   return enrollment;
 }
 
-/** Cancel active enrollments for a lead (booked/trashed/opted out). Returns count cancelled. */
-export function cancelNurtureEnrollmentsForLead(leadId: string, reason = 'cancelled'): number {
-  const store = loadStore();
-  const now = new Date().toISOString();
-  let cancelled = 0;
-  store.enrollments = store.enrollments.map((e) => {
-    if (e.leadId !== leadId || e.status !== 'active') return e;
-    cancelled += 1;
-    return { ...e, status: 'cancelled' as const, updatedAt: now, context: { ...e.context, cancelReason: reason } };
-  });
-  if (cancelled > 0) saveStore(store);
-  return cancelled;
-}
-
-/** Cancel active enrollments matching an email address (stop-on-reply/bounce). */
-export function cancelNurtureEnrollmentsForEmail(email: string, reason = 'cancelled'): number {
-  const store = loadStore();
-  const normalized = email.trim().toLowerCase();
-  const now = new Date().toISOString();
-  let cancelled = 0;
-  store.enrollments = store.enrollments.map((e) => {
-    if (e.status !== 'active') return e;
-    const enrollmentEmail = String(e.context.email ?? '').trim().toLowerCase();
-    if (enrollmentEmail !== normalized) return e;
-    cancelled += 1;
-    return { ...e, status: 'cancelled' as const, updatedAt: now, context: { ...e.context, cancelReason: reason } };
-  });
-  if (cancelled > 0) saveStore(store);
-  return cancelled;
-}
-
 /** Re-enroll or refresh Meta/social leads into seq_meta_lead without duplicate welcome spam. */
 export function syncLeadNurtureSequence(args: {
   leadId: string;

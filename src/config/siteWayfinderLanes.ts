@@ -38,13 +38,40 @@ export const SITE_WAYFINDER_LANES: SiteWayfinderLane[] = [
   },
 ];
 
-export type PublicNavLink = { id: string; label: string; path: string; hint?: string; badge?: string };
+export type PublicNavAccent = 'emerald' | 'violet' | 'fuchsia' | 'amber' | 'sky';
+
+export type PublicNavLink = {
+  id: string;
+  label: string;
+  path: string;
+  hint?: string;
+  badge?: string;
+  accent?: PublicNavAccent;
+};
 
 export type PublicNavSection = {
   id: string;
   title: string;
   links: PublicNavLink[];
 };
+
+/** Solutions dropdown — the three pricing lanes + full pricing index. */
+export const PUBLIC_SOLUTIONS_SECTIONS: PublicNavSection[] = [
+  {
+    id: 'solutions',
+    title: 'Solutions',
+    links: [
+      { id: 'personal', label: 'Personal credit', path: '/pricing/personal-credit-restore', hint: 'Restore & build', accent: 'emerald' },
+      { id: 'business', label: 'Business credit', path: '/pricing/business-credit', hint: 'Entity & funding', accent: 'violet' },
+      { id: 'debt', label: 'Debt & legal', path: '/pricing/debt-legal', hint: 'Validation OS', accent: 'fuchsia' },
+      { id: 'pricing', label: 'All pricing', path: '/pricing', hint: 'Compare every tier', accent: 'amber' },
+    ],
+  },
+];
+
+export function matchSolutionsPath(p: string): boolean {
+  return p.startsWith('/pricing') || p.startsWith('/services');
+}
 
 /**
  * Core header links — ≤7 public destinations with Solutions (not Services+Pricing).

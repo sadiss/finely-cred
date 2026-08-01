@@ -21,6 +21,7 @@ export const LEAD_OFFER_LABELS: Record<LeadOffer, string> = {
   agency_workspace: 'Agency workspace',
   heta_society_signup: 'HETA Society signup',
   financing_preapproval: 'Financing pre-approval',
+  real_estate_affiliate: 'Real estate affiliate',
 };
 
 export function leadOfferLabel(offer: string | null | undefined): string {
