@@ -1,8 +1,10 @@
 import { EXTENDED_FREE_GUIDES } from './extendedFreeGuides';
 import { CORE_PARTNER_GUIDES } from './corePartnerGuides';
+import { AGENCY_GUIDE } from './agencyGuideContent';
 
 export type FreeGuideId =
   | 'credit-dispute-letter-guide'
+  | 'the-agency-guide'
   | 'metro2-consistency-trap'
   | 'bureau-response-decoder'
   | 'collections-proof-pack'
@@ -79,6 +81,7 @@ export const FREE_GUIDES: FreeGuide[] = [
       },
     ],
   },
+  AGENCY_GUIDE,
   ...CORE_PARTNER_GUIDES,
 ];
 

@@ -193,14 +193,25 @@ export default function NotificationsCenterPage({ surface }: { surface: Surface 
               </button>
             </div>
             <div className="flex flex-wrap gap-2">
-              {(['task', 'trial', 'purchase', 'support', 'letters'] as const).map((kind) => (
+              {(
+                [
+                  'task',
+                  'trial',
+                  'purchase',
+                  'support',
+                  'letters',
+                  'nurture_education',
+                  'nurture_opportunity',
+                  'nurture_birthday',
+                ] as const
+              ).map((kind) => (
                 <button
                   key={kind}
                   type="button"
                   onClick={() => toggleMute(kind)}
                   className={`${FINELY_OS_ENTITY_CHIP} ${mutedKinds.includes(kind) ? 'opacity-50 line-through' : ''}`}
                 >
-                  {kind}
+                  {kind.replace(/_/g, ' ')}
                 </button>
               ))}
             </div>

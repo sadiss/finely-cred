@@ -1,27 +1,25 @@
-import React, { useMemo, useState } from 'react';
+import React from 'react';
+import { Link } from 'react-router-dom';
 import {
-  ArrowRight,
-  BadgeCheck,
   BarChart3,
+  BookOpen,
+  Calendar,
   CheckCircle2,
-  Download,
-  Lock,
-  Mail,
   ShieldCheck,
   Sparkles,
   Star,
   Target,
   TrendingUp,
   User,
-  Zap,
 } from 'lucide-react';
-import { LeadMagnetCobrand, LeadMagnetCobrandFooterMarks } from '../../components/brand/LeadMagnetCobrand';
+import { LeadMagnetCobrandFooterMarks } from '../../components/brand/LeadMagnetCobrand';
 import { LeadMagnetFunnelHeroVideo } from '../../components/leadmagnet/LeadMagnetFunnelHeroVideo';
 import { getLeadMagnetVisualTheme } from '../../components/leadmagnet/leadMagnetVisualThemes';
 import { TRADELINE_FUNNEL } from '../../domain/leadMagnetFunnels';
 import { usePublicSeoMeta } from '../../hooks/usePublicSeoMeta';
 import { LEAD_MAGNET_TRIAL_DAYS } from '../../lib/leadMagnetTrial';
 import { PremiumLeadMagnetCaptureForm } from '../../components/leadmagnet/PremiumLeadMagnetCaptureForm';
+import { TL_GUIDE_CHAPTERS, TL_GUIDE_META, TL_GUIDE_READ_PATH } from './tradelineAdvantageGuideContent';
 import '../../components/leadmagnet/premiumLeadMagnetShared.css';
 import './tradelineAdvantageLanding.css';
 
@@ -87,39 +85,6 @@ function GlassPanel({
     >
       <div className="pointer-events-none absolute inset-0 rounded-[inherit] bg-gradient-to-br from-white/[0.08] via-transparent to-transparent" />
       <div className="relative z-10">{children}</div>
-    </div>
-  );
-}
-
-const PROOF_ACCENTS = [
-  'border-[#3db896]/40 bg-[#0d5c4a]/25 text-[#3db896]',
-  'border-[#6b8fd4]/40 bg-[#1a3a6e]/30 text-[#8bafe8]',
-  'border-[#d4a447]/40 bg-[#d4a447]/10 text-[#f0cc75]',
-] as const;
-
-function TinyProof({
-  icon: Icon,
-  title,
-  desc,
-  accent = 0,
-}: {
-  icon: React.ComponentType<{ size?: number; className?: string }>;
-  title: string;
-  desc: string;
-  accent?: number;
-}) {
-  const accents = [
-    'border-[#3db896]/40 bg-[#0d5c4a]/30 text-[#3db896]',
-    'border-[#6b8fd4]/40 bg-[#1a3a6e]/35 text-[#8bafe8]',
-    'border-[#d4a447]/40 bg-[#d4a447]/12 text-[#f0cc75]',
-  ];
-  return (
-    <div className="lm-proof-pillar rounded-2xl p-5 text-center">
-      <div className={cn('lm-proof-pillar-icon mx-auto border', accents[accent % accents.length])}>
-        <Icon size={24} />
-      </div>
-      <div className="mt-4 text-sm font-black uppercase tracking-[0.08em] text-white">{title}</div>
-      <p className="mt-2 text-xs leading-relaxed text-white/55">{desc}</p>
     </div>
   );
 }
@@ -305,13 +270,6 @@ export default function TradelineAdvantageLandingPage() {
     },
   ];
 
-  const stats = [
-    { icon: Download, value: '9,500+', label: 'Guides Downloaded' },
-    { icon: BadgeCheck, value: '98%', label: 'Found It Actionable' },
-    { icon: Star, value: '4.9/5', label: 'Average Rating' },
-    { icon: Lock, value: '100%', label: 'Free. No Obligation.' },
-  ];
-
   return (
     <main className="tla-page min-h-screen overflow-hidden bg-[#0e0614] text-white selection:bg-[#7b3f8f]/35 selection:text-white">
       <style>{`
@@ -328,13 +286,7 @@ export default function TradelineAdvantageLandingPage() {
       <div className="fc-premium-noise pointer-events-none fixed inset-0 z-0 opacity-[0.04]" />
       <div className="pointer-events-none fixed inset-x-0 top-0 z-0 h-[420px] bg-gradient-to-b from-[#2a1430]/55 to-transparent" />
 
-      <header className="relative z-20">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-5 py-5 md:px-8">
-          <LeadMagnetCobrand size="sm" />
-        </div>
-      </header>
-
-      <section className="tla-hero-section relative z-10 border-b border-[#5c2d54]/40">
+      <section className="tla-hero-section relative z-10 border-b border-[#5c2d54]/40 pt-20 md:pt-24">
         <div className="fc-hero-vignette absolute inset-0 bg-[radial-gradient(circle_at_22%_55%,rgba(212,164,71,0.16),transparent_28%),radial-gradient(circle_at_18%_62%,rgba(92,45,84,0.22),transparent_30%),radial-gradient(circle_at_30%_70%,rgba(26,58,110,0.14),transparent_26%)]" />
         <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#d4a447]/60 via-[#7b3f8f]/50 to-transparent" />
         <div className="tla-hero-grid mx-auto grid items-center gap-10 px-5 md:px-8 lg:items-center">
@@ -354,149 +306,164 @@ export default function TradelineAdvantageLandingPage() {
               calculators and a {LEAD_MAGNET_TRIAL_DAYS}-day Finely Cred portal preview to plan your next move.
             </p>
 
-            <div className="tla-hero-form mt-9 max-w-xl rounded-[1.35rem] p-6">
-              <h2 className="mb-4 text-xl font-black uppercase tracking-[0.08em] text-white md:text-2xl">
+            <div className="tla-hero-form mt-7 max-w-xl rounded-[1.35rem] p-5 md:p-6">
+              <h2 className="mb-3 text-lg font-black uppercase tracking-[0.08em] text-white md:text-xl">
                 Get Your <span className="text-[#f0cc75]">Free</span> Guide Now
               </h2>
               <PremiumLeadMagnetCaptureForm
                 funnelConfig={TRADELINE_FUNNEL}
                 accentClass="focus:border-[#f0cc75] focus:ring-[#d4a447]/15"
               />
-            </div>
-
-            <div className="mt-8 grid gap-4 sm:grid-cols-3">
-              <TinyProof icon={Target} title="Position" desc="Know what reports and what underwriters see." accent={0} />
-              <TinyProof icon={BarChart3} title="Sequence" desc="Apply without unnecessary bureau damage." accent={1} />
-              <TinyProof icon={TrendingUp} title="Fund" desc="Frame tradelines inside a broader restore plan." accent={2} />
+              <Link
+                to={TL_GUIDE_READ_PATH}
+                className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-[#d4a447]/45 bg-[#d4a447]/10 px-4 py-2.5 text-[11px] font-black uppercase tracking-[0.14em] text-[#f0cc75] transition hover:border-[#f0cc75]/70 hover:bg-[#d4a447]/16"
+              >
+                <BookOpen size={14} /> Read all {TL_GUIDE_CHAPTERS.length} chapters free — no signup
+              </Link>
+              <div className="mt-3 flex flex-wrap gap-4">
+                <a href="#tla-preview" className="lm-secondary-book-link !mt-0">
+                  Watch preview ↓
+                </a>
+                <Link to={TRADELINE_FUNNEL.bookingPath ?? '/enlightenment-session'} className="lm-secondary-book-link !mt-0">
+                  <Calendar size={14} /> Book a session
+                </Link>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      <section className="tla-video-section relative z-10 border-b border-[#5c2d54]/35">
-        <div className="tla-video-grid mx-auto grid gap-16 px-5 md:px-8 lg:grid-cols-2 lg:items-center lg:gap-20 xl:gap-32">
+      <section id="tla-preview" className="tla-video-section relative z-10 scroll-mt-24 border-b border-[#5c2d54]/35">
+        <div className="tla-video-grid mx-auto grid gap-10 px-5 md:px-8 lg:grid-cols-2 lg:items-center lg:gap-16">
           <div className="tla-video-column tla-video-column--right order-1 w-full lg:order-2">
             <VideoPreview onGoForm={scrollToDownload} />
           </div>
           <div className="tla-video-column tla-video-column--left order-2 lg:order-1">
             <SectionKicker>Exclusive video</SectionKicker>
-            <h2 className="tla-serif mt-5 text-4xl font-black leading-tight tracking-[-0.035em] md:text-6xl">
+            <h2 className="tla-serif mt-4 text-3xl font-black leading-tight tracking-[-0.035em] md:text-4xl">
               See How Strategic Tradelines Fit a{' '}
               <span className="text-[#8bafe8]">Broader Restore Plan</span>
             </h2>
-            <p className="mt-5 max-w-xl text-base leading-relaxed text-white/65">
-              Riley walks through when tradelines help, when they hurt, and how Finely Cred partners sequence them inside
-              the restoration workspace.
+            <p className="mt-4 max-w-xl text-sm leading-relaxed text-white/65">
+              When tradelines help, when they hurt, and how partners sequence them inside the restoration workspace.
             </p>
-            <div className="mt-7 grid gap-3">
-              {TRADELINE_FUNNEL.features.map((feature) => (
-                <MiniCheck key={feature.title}>
-                  {feature.title}: {feature.desc}
-                </MiniCheck>
+          </div>
+        </div>
+      </section>
+
+      {/* Chapter index — the whole guide is readable in-app before any signup */}
+      <section id="read-online" className="relative z-10 border-b border-[#5c2d54]/35 py-9 md:py-12">
+        <div className="mx-auto max-w-7xl px-5 md:px-8">
+          <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+            <div className="max-w-2xl">
+              <SectionKicker>Read it now · no signup</SectionKicker>
+              <h2 className="tla-serif mt-4 text-3xl font-black leading-tight tracking-[-0.035em] md:text-4xl">
+                {TL_GUIDE_META.title}
+              </h2>
+              <p className="mt-3 text-sm leading-relaxed text-white/62">
+                {TL_GUIDE_CHAPTERS.length} chapters in the browser — what a tradeline actually is, AU versus primary,
+                what AU can and cannot do, underwriter-grade evaluation, utilization timing, compliance red flags, and
+                a 90-day calendar.
+              </p>
+            </div>
+            <Link to={`${TL_GUIDE_READ_PATH}?chapter=what-is-a-tradeline`} className="shrink-0">
+              <GoldButton className="!h-12">
+                <BookOpen size={15} /> Open Chapter 01
+              </GoldButton>
+            </Link>
+          </div>
+
+          <div className="mt-7 grid gap-3 md:grid-cols-2 lg:grid-cols-4">
+            {TL_GUIDE_CHAPTERS.map((ch) => (
+              <Link
+                key={ch.id}
+                to={`${TL_GUIDE_READ_PATH}?chapter=${ch.id}`}
+                className="group rounded-[1.1rem] border border-white/10 bg-white/[0.035] p-4 text-left backdrop-blur-xl transition hover:-translate-y-1 hover:border-[#d4a447]/45"
+              >
+                <div className="font-mono text-xs font-bold tracking-[0.18em] text-[#f0cc75]">{ch.number}</div>
+                <div className="mt-2 text-sm font-bold leading-snug text-white">{ch.title}</div>
+                <p className="mt-1.5 text-[12.5px] leading-relaxed text-white/55">{ch.teaser}</p>
+                <div className="mt-2 text-[10px] font-black uppercase tracking-[0.16em] text-[#8bafe8]">
+                  {ch.readMinutes} min · {ch.kicker}
+                </div>
+              </Link>
+            ))}
+          </div>
+          <p className="mt-4 text-[11px] text-white/40">{TL_GUIDE_META.compliance}</p>
+        </div>
+      </section>
+
+      <section className="relative z-10 border-y border-[#5c2d54]/35 bg-[#120818]/40 py-8 md:py-10">
+        <div className="mx-auto max-w-7xl space-y-3 px-5 md:px-8">
+          <details id="free-toolkit" className="lm-seo-depth">
+            <summary>
+              <span>Complete tradeline kit (free)</span>
+              <span className="lm-seo-depth-hint">Expand</span>
+            </summary>
+            <div className="lm-seo-depth-body">
+              <p className="mb-4 text-sm text-white/60">
+                Unlock the full insider PDF plus inquiry calculators, timing tools, and a {LEAD_MAGNET_TRIAL_DAYS}-day
+                portal preview when you request the guide.
+              </p>
+              <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                {freeToolkit.map((item) => (
+                  <ValueStackCard key={item.label} {...item} />
+                ))}
+              </div>
+              <div className="mt-6 grid gap-3">
+                {TRADELINE_FUNNEL.features.map((feature) => (
+                  <MiniCheck key={feature.title}>
+                    {feature.title}: {feature.desc}
+                  </MiniCheck>
+                ))}
+              </div>
+            </div>
+          </details>
+
+          <details id="inside-guide" className="lm-seo-depth">
+            <summary>
+              <span>What you&apos;ll master</span>
+              <span className="lm-seo-depth-hint">Expand</span>
+            </summary>
+            <div className="lm-seo-depth-body tla-bento-grid grid gap-4 md:grid-cols-6">
+              {discoveries.map((item, i) => (
+                <DiscoveryCard
+                  key={item.title}
+                  {...item}
+                  className={cn(i === 0 && 'md:col-span-3', i === 1 && 'md:col-span-3', i === 2 && 'md:col-span-2', i === 3 && 'md:col-span-4')}
+                />
               ))}
             </div>
-          </div>
-        </div>
-      </section>
+          </details>
 
-      <section id="free-toolkit" className="relative z-10 border-y border-[#5c2d54]/35 bg-[#120818]/40 py-18 md:py-20">
-        <div className="mx-auto max-w-7xl px-5 md:px-8">
-          <div className="mx-auto mb-11 max-w-3xl text-center">
-            <div className="text-[11px] font-black uppercase tracking-[0.28em] text-[#d4a447]">
-              Your complete tradeline education system
-            </div>
-            <h2 className="tla-serif mt-3 text-4xl font-black tracking-[-0.035em] md:text-5xl">
-              Everything Included <span className="text-[#f0cc75]">At No Cost</span>
-            </h2>
-            <p className="mt-4 text-base leading-relaxed text-white/60">
-              Unlock the full insider PDF plus inquiry calculators, timing tools, and a {LEAD_MAGNET_TRIAL_DAYS}-day
-              portal preview when you request the guide.
-            </p>
-          </div>
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {freeToolkit.map((item) => (
-              <ValueStackCard key={item.label} {...item} />
-            ))}
-          </div>
-          <div className="mt-10 flex flex-wrap items-center justify-center gap-6 text-[11px] font-bold uppercase tracking-[0.14em] text-white/50">
-            {TRADELINE_FUNNEL.trustCerts.map((cert) => (
-              <span key={cert} className="inline-flex items-center gap-2">
-                <ShieldCheck size={14} className="text-[#d4a447]" />
-                {cert}
-              </span>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section id="inside-guide" className="relative z-10 py-18 md:py-20">
-        <div className="mx-auto max-w-7xl px-5 md:px-8">
-          <div className="mx-auto mb-11 max-w-3xl text-center">
-            <div className="text-[11px] font-black uppercase tracking-[0.28em] text-[#d4a447]">
-              What you&apos;ll discover inside
-            </div>
-            <h2 className="tla-serif tla-section-title mt-3 text-4xl font-black tracking-[-0.035em] md:text-5xl">
-              What You&apos;ll <span className="text-[#c48fd4]">Master</span>
-            </h2>
-          </div>
-          <div className="tla-bento-grid grid gap-4 md:grid-cols-6">
-            {discoveries.map((item, i) => (
-              <DiscoveryCard
-                key={item.title}
-                {...item}
-                className={cn(i === 0 && 'md:col-span-3', i === 1 && 'md:col-span-3', i === 2 && 'md:col-span-2', i === 3 && 'md:col-span-4')}
-              />
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="relative z-10 border-y border-[#5c2d54]/35 bg-[#1a0f24]/50 py-9">
-        <div className="mx-auto grid max-w-7xl gap-4 px-5 md:grid-cols-4 md:px-8">
-          {stats.map((stat) => (
-            <div
-              key={stat.label}
-              className="flex items-center justify-center gap-4 border-white/10 py-4 md:border-r last:md:border-r-0"
-            >
-              <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-[#d4a447]/35 bg-[#d4a447]/10 text-[#f0cc75]">
-                <stat.icon size={27} />
+          <details id="results" className="lm-seo-depth">
+            <summary>
+              <span>Partner tradeline stories</span>
+              <span className="lm-seo-depth-hint">Expand</span>
+            </summary>
+            <div className="lm-seo-depth-body">
+              <div className="grid gap-4 md:grid-cols-3">
+                <Testimonial
+                  name="Andre W."
+                  role="Real Estate Investor"
+                  quote="I finally understood AU vs primary before spending a dollar. The timing ladder alone saved me from a bad move."
+                />
+                <Testimonial
+                  name="Priya S."
+                  role="Small Business Owner"
+                  quote="No hype, no guarantees — just a wealthy, structured education on where tradelines actually fit."
+                />
+                <Testimonial
+                  name="Kevin L."
+                  role="Credit Restoration Partner"
+                  quote="The portal preview let me model inquiry budget and track restore tasks in one place. This felt premium."
+                />
               </div>
-              <div>
-                <div className="text-3xl font-semibold tracking-[-0.04em] text-white">{stat.value}</div>
-                <div className="text-xs text-white/50">{stat.label}</div>
-              </div>
+              <p className="mt-4 text-center text-[11px] text-white/40">
+                Results vary · not legal advice · funding subject to underwriting
+              </p>
             </div>
-          ))}
-        </div>
-      </section>
-
-      <section id="results" className="relative z-10 py-18 md:py-20">
-        <div className="mx-auto max-w-7xl px-5 md:px-8">
-          <div className="mb-10 text-center">
-            <div className="text-[11px] font-black uppercase tracking-[0.28em] text-[#d4a447]">
-              Real people. Real clarity.
-            </div>
-            <h2 className="tla-serif tla-section-title mt-3 text-4xl font-black tracking-[-0.035em] md:text-5xl">
-              Stories of Smarter Tradeline Decisions
-            </h2>
-          </div>
-          <div className="grid gap-6 md:grid-cols-3">
-            <Testimonial
-              name="Andre W."
-              role="Real Estate Investor"
-              quote="I finally understood AU vs primary before spending a dollar. The timing ladder alone saved me from a bad move."
-            />
-            <Testimonial
-              name="Priya S."
-              role="Small Business Owner"
-              quote="No hype, no guarantees — just a wealthy, structured education on where tradelines actually fit."
-            />
-            <Testimonial
-              name="Kevin L."
-              role="Credit Restoration Client"
-              quote="The portal preview let me model inquiry budget and track restore tasks in one place. This felt premium."
-            />
-          </div>
+          </details>
         </div>
       </section>
 

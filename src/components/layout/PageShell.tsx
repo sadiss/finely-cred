@@ -22,12 +22,17 @@ export function PageShell({
   badge,
   back,
   children,
+  hideHero,
 }: {
   title: string;
   subtitle?: string;
   badge?: string;
   back?: { to?: string | number; label?: string; title?: string };
   children?: React.ReactNode;
+  /** Skip the default badge/title/subtitle hero block — use when the page already renders its own
+   * dedicated lane hero (e.g. `PublicLaneTitle`) immediately below, so partners never see two stacked
+   * headline blocks. `title` is still used for the document title/SEO context. */
+  hideHero?: boolean;
 }) {
   const location = useLocation();
   const navigate = useNavigate();
@@ -178,7 +183,15 @@ export function PageShell({
     !pathname.startsWith('/account') &&
     !pathname.startsWith('/claim') &&
     !pathname.startsWith('/partner-setup');
-  const showWayfinder = useLargeTopPad && pathname !== '/';
+  // Lane picker only on solution-intent pages (redundant with main nav elsewhere).
+  const showWayfinder =
+    useLargeTopPad &&
+    (pathname === '/pricing' ||
+      pathname.startsWith('/pricing/') ||
+      pathname === '/services' ||
+      pathname.startsWith('/services/') ||
+      pathname === '/start-here' ||
+      pathname.startsWith('/start-here/'));
   const topPad = useLargeTopPad ? (showWayfinder ? 'pt-52' : 'pt-28') : 'pt-[max(0.75rem,env(safe-area-inset-top))]';
   const isAdmin = pathname.startsWith('/admin');
   const isPortal = pathname.startsWith('/portal');
@@ -489,7 +502,7 @@ export function PageShell({
           <NotificationsBell />
           <UserAccountMenu />
         </div>
-      ) : showWayfinder && showThemeToggle ? (
+      ) : useLargeTopPad && showThemeToggle ? (
         <div className="fixed top-4 right-4 sm:top-5 sm:right-6 z-[180]">
           <FinelyThemeToggle compact />
         </div>
@@ -571,32 +584,47 @@ export function PageShell({
         ) : (
           <>
             {!isPortal ? appTopChrome : null}
-            <div className="space-y-6 mb-8 md:mb-12 fc-pageshell-hero">
-              {effectiveBack ? (
-                <button
-                  type="button"
-                  onClick={() => navigate((effectiveBack.to as any) ?? -1)}
-                  className="inline-flex items-center gap-2 text-white/60 hover:text-white transition-colors text-sm"
-                  title={effectiveBack.title || 'Back'}
-                >
-                  <ArrowLeft size={16} /> {effectiveBack.label || 'Back'}
-                </button>
-              ) : null}
-              {badge && (
-                <div className="fc-badge-brand">
-                  <span className="text-xs font-semibold uppercase tracking-wider">{badge}</span>
+            {hideHero ? (
+              effectiveBack ? (
+                <div className="mb-4">
+                  <button
+                    type="button"
+                    onClick={() => navigate((effectiveBack.to as any) ?? -1)}
+                    className="inline-flex items-center gap-2 text-white/60 hover:text-white transition-colors text-sm"
+                    title={effectiveBack.title || 'Back'}
+                  >
+                    <ArrowLeft size={16} /> {effectiveBack.label || 'Back'}
+                  </button>
                 </div>
-              )}
-              <h1 className={`font-light leading-tight tracking-tight ${isPortal ? 'text-2xl sm:text-3xl md:text-4xl lg:text-5xl' : 'text-3xl sm:text-4xl md:text-5xl lg:text-6xl'}`}>
-                {title}
-              </h1>
-              {subtitle && (
-                <p className="text-white/55 text-sm sm:text-base md:text-lg leading-relaxed max-w-3xl">
-                  {subtitle}
-                </p>
-              )}
-              <div className="fc-divider" />
-            </div>
+              ) : null
+            ) : (
+              <div className="space-y-6 mb-8 md:mb-12 fc-pageshell-hero">
+                {effectiveBack ? (
+                  <button
+                    type="button"
+                    onClick={() => navigate((effectiveBack.to as any) ?? -1)}
+                    className="inline-flex items-center gap-2 text-white/60 hover:text-white transition-colors text-sm"
+                    title={effectiveBack.title || 'Back'}
+                  >
+                    <ArrowLeft size={16} /> {effectiveBack.label || 'Back'}
+                  </button>
+                ) : null}
+                {badge && (
+                  <div className="fc-badge-brand">
+                    <span className="text-xs font-semibold uppercase tracking-wider">{badge}</span>
+                  </div>
+                )}
+                <h1 className={`font-light leading-tight tracking-tight ${isPortal ? 'text-2xl sm:text-3xl md:text-4xl lg:text-5xl' : 'text-3xl sm:text-4xl md:text-5xl lg:text-6xl'}`}>
+                  {title}
+                </h1>
+                {subtitle && (
+                  <p className="text-white/55 text-sm sm:text-base md:text-lg leading-relaxed max-w-3xl">
+                    {subtitle}
+                  </p>
+                )}
+                <div className="fc-divider" />
+              </div>
+            )}
             <div className={isAppRoute ? 'pb-16' : ''}>
               <div data-fc-route-content="1" data-fc-route-pathname={pathname} className="fc-light-black-scope fc-senior-simple min-w-0 overflow-x-clip">
                 {children}

@@ -1,6 +1,7 @@
-import { LeadMagnetFunnelShell } from '../../components/leadmagnet/LeadMagnetFunnelShell';
-import { SPECIALIST_APPLY_FUNNEL } from '../../domain/leadMagnetFunnels';
+import { Navigate } from 'react-router-dom';
+import { CS_OFFER } from '../../config/creditSpecialistOffer';
 
+/** Legacy `/credit-specialist-apply` → guided join (leads system + 3-lead commitment). */
 export default function SpecialistApplyFunnelPage() {
-  return <LeadMagnetFunnelShell config={SPECIALIST_APPLY_FUNNEL} variant="premium" />;
+  return <Navigate to={CS_OFFER.joinPath} replace />;
 }

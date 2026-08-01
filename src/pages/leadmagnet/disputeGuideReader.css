@@ -1,0 +1,665 @@
+/*
+ * Free Credit Dispute Letter Guide — in-app reader.
+ * Design language: "advocacy docket" — an ink desk with a white bureau-report
+ * sheet on it. Sky annotation marks, amber evidence stickies, mono letter drafts.
+ * Deliberately distinct from every other Finely guide skin.
+ */
+@import url('https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap');
+
+.fdg-reader {
+  --fdg-ink: #0b1420;
+  --fdg-ink-deep: #060c14;
+  --fdg-sheet: #fbfaf7;
+  --fdg-sheet-edge: #e6e2d8;
+  --fdg-graphite: #1d2733;
+  --fdg-body: #333d4a;
+  --fdg-muted: #6b7684;
+  --fdg-sky: #0f6fb8;
+  --fdg-sky-wash: #e6f2fb;
+  --fdg-amber: #b26a04;
+  --fdg-amber-wash: #fdf3dc;
+  --fdg-violet: #6c4bb6;
+  --fdg-emerald: #14724f;
+  --fdg-rose: #b23046;
+  --fdg-flag: #d33d52;
+  font-family: 'IBM Plex Sans', system-ui, -apple-system, sans-serif;
+  min-height: 100svh;
+  color: #e8edf3;
+  background: var(--fdg-ink-deep);
+}
+
+.fdg-serif {
+  font-family: 'Newsreader', 'Iowan Old Style', Georgia, serif;
+  font-weight: 500;
+}
+
+.fdg-mono {
+  font-family: 'IBM Plex Mono', ui-monospace, 'SF Mono', monospace;
+}
+
+/* ── Desk surface ─────────────────────────────────────────── */
+.fdg-desk {
+  background:
+    radial-gradient(ellipse 60% 40% at 15% 0%, rgba(15, 111, 184, 0.16), transparent 58%),
+    radial-gradient(ellipse 50% 35% at 92% 12%, rgba(178, 106, 4, 0.1), transparent 55%),
+    linear-gradient(180deg, #0b1420 0%, #070e18 45%, #050a11 100%);
+}
+
+.fdg-desk-grid {
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.028) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.028) 1px, transparent 1px);
+  background-size: 38px 38px;
+  mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 0%, transparent 78%);
+  -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 0%, transparent 78%);
+}
+
+/* ── Docket bar (top nav) ─────────────────────────────────── */
+.fdg-docket-bar {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(6, 12, 20, 0.9);
+  backdrop-filter: blur(16px);
+}
+
+.fdg-stamp {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  border: 1.5px solid rgba(15, 111, 184, 0.55);
+  border-radius: 4px;
+  padding: 0.28rem 0.6rem;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #7cc4f0;
+  background: rgba(15, 111, 184, 0.1);
+  transform: rotate(-1.2deg);
+}
+
+.fdg-progress-track {
+  height: 3px;
+  background: rgba(255, 255, 255, 0.07);
+  overflow: hidden;
+}
+
+.fdg-progress-fill {
+  display: block;
+  height: 100%;
+  background: repeating-linear-gradient(
+    90deg,
+    #0f6fb8 0px,
+    #0f6fb8 9px,
+    #2a93df 9px,
+    #2a93df 18px
+  );
+  transition: width 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.fdg-ghost-btn {
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(232, 237, 243, 0.78);
+  transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease;
+}
+
+.fdg-ghost-btn:hover:not(:disabled) {
+  border-color: rgba(124, 196, 240, 0.6);
+  color: #9fd4f5;
+  background: rgba(15, 111, 184, 0.12);
+}
+
+.fdg-ghost-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.fdg-primary-btn {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(124, 196, 240, 0.5);
+  background: linear-gradient(135deg, #0d5d9c 0%, #1a86cf 52%, #0d5d9c 100%);
+  color: #f2f9ff;
+  box-shadow: 0 14px 40px rgba(15, 111, 184, 0.32);
+  transition: transform 0.22s ease, filter 0.22s ease;
+}
+
+.fdg-primary-btn:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.08);
+}
+
+.fdg-primary-btn::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.32), transparent);
+  transition: transform 0.75s ease;
+}
+
+.fdg-primary-btn:hover::after {
+  transform: translateX(100%);
+}
+
+/* ── Docket index (TOC) ───────────────────────────────────── */
+.fdg-index {
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 10px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.015));
+}
+
+.fdg-index-item {
+  position: relative;
+  display: flex;
+  gap: 0.7rem;
+  width: 100%;
+  border-left: 2px solid transparent;
+  padding: 0.5rem 0.7rem;
+  text-align: left;
+  transition: background 0.18s ease, border-color 0.18s ease;
+}
+
+.fdg-index-item:hover {
+  background: rgba(15, 111, 184, 0.1);
+  border-left-color: rgba(124, 196, 240, 0.5);
+}
+
+.fdg-index-item.is-active {
+  background: rgba(15, 111, 184, 0.16);
+  border-left-color: #4fa9e4;
+}
+
+.fdg-index-num {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  font-weight: 600;
+  color: rgba(232, 237, 243, 0.42);
+  padding-top: 2px;
+}
+
+.fdg-index-item.is-active .fdg-index-num {
+  color: #7cc4f0;
+}
+
+.fdg-index-title {
+  font-size: 12.5px;
+  line-height: 1.35;
+  color: rgba(232, 237, 243, 0.72);
+}
+
+.fdg-index-item.is-active .fdg-index-title {
+  color: #fff;
+  font-weight: 600;
+}
+
+/* ── The sheet (report paper) ─────────────────────────────── */
+.fdg-sheet {
+  position: relative;
+  background: var(--fdg-sheet);
+  color: var(--fdg-body);
+  border-radius: 4px;
+  box-shadow:
+    0 1px 0 rgba(0, 0, 0, 0.4),
+    0 30px 80px rgba(0, 0, 0, 0.55),
+    0 0 0 1px rgba(255, 255, 255, 0.06);
+}
+
+/* Punched binder holes down the left margin */
+.fdg-sheet::before {
+  content: '';
+  position: absolute;
+  left: 14px;
+  top: 8%;
+  bottom: 8%;
+  width: 9px;
+  background-image: radial-gradient(circle at 50% 50%, rgba(0, 0, 0, 0.16) 0 4.2px, transparent 4.4px);
+  background-size: 9px 92px;
+  background-repeat: repeat-y;
+  pointer-events: none;
+  opacity: 0.75;
+}
+
+/* Ruled left margin line, like a legal pad */
+.fdg-sheet::after {
+  content: '';
+  position: absolute;
+  left: 44px;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: rgba(211, 61, 82, 0.18);
+  pointer-events: none;
+}
+
+@media (max-width: 767px) {
+  .fdg-sheet::before,
+  .fdg-sheet::after {
+    display: none;
+  }
+}
+
+.fdg-sheet-head {
+  border-bottom: 2px solid var(--fdg-graphite);
+  padding-bottom: 1rem;
+}
+
+.fdg-kicker {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--fdg-sky);
+}
+
+.fdg-chapter-title {
+  font-family: 'Newsreader', Georgia, serif;
+  font-weight: 600;
+  color: var(--fdg-graphite);
+  letter-spacing: -0.015em;
+  line-height: 1.05;
+  font-size: clamp(1.85rem, 4.6vw, 3rem);
+}
+
+.fdg-chapter-sub {
+  font-family: 'Newsreader', Georgia, serif;
+  font-style: italic;
+  color: var(--fdg-muted);
+  font-size: clamp(1rem, 1.6vw, 1.15rem);
+  line-height: 1.55;
+}
+
+.fdg-meta-row {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
+  color: var(--fdg-muted);
+}
+
+.fdg-section {
+  border-top: 1px solid var(--fdg-sheet-edge);
+  padding-top: 1.4rem;
+  margin-top: 1.4rem;
+}
+
+.fdg-section:first-child {
+  border-top: 0;
+  padding-top: 0;
+  margin-top: 0;
+}
+
+.fdg-section-heading {
+  font-family: 'Newsreader', Georgia, serif;
+  font-weight: 600;
+  font-size: clamp(1.2rem, 2.2vw, 1.5rem);
+  color: var(--fdg-graphite);
+  line-height: 1.25;
+}
+
+/* Sky highlighter sweep under section headings */
+.fdg-mark {
+  position: relative;
+  display: inline;
+  background-image: linear-gradient(transparent 62%, rgba(15, 111, 184, 0.17) 62%);
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+}
+
+.fdg-body-text {
+  font-size: 15.5px;
+  line-height: 1.72;
+  color: var(--fdg-body);
+}
+
+.fdg-body-text + .fdg-body-text {
+  margin-top: 0.85rem;
+}
+
+/* Drop cap on the first paragraph of each chapter */
+.fdg-lede::first-letter {
+  float: left;
+  font-family: 'Newsreader', Georgia, serif;
+  font-size: 3.3rem;
+  line-height: 0.82;
+  font-weight: 600;
+  padding: 0.14rem 0.5rem 0 0;
+  color: var(--fdg-sky);
+}
+
+/* ── Findings list (numbered like report reasons) ─────────── */
+.fdg-findings {
+  counter-reset: fdg-finding;
+}
+
+.fdg-finding {
+  counter-increment: fdg-finding;
+  position: relative;
+  display: flex;
+  gap: 0.75rem;
+  padding: 0.5rem 0;
+  font-size: 14.5px;
+  line-height: 1.6;
+  color: var(--fdg-body);
+  border-bottom: 1px dotted var(--fdg-sheet-edge);
+}
+
+.fdg-finding:last-child {
+  border-bottom: 0;
+}
+
+.fdg-finding::before {
+  content: counter(fdg-finding, decimal-leading-zero);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--fdg-sky);
+  padding-top: 4px;
+  flex-shrink: 0;
+}
+
+/* ── Margin annotation (handwritten note in the gutter) ───── */
+.fdg-annotation {
+  position: relative;
+  margin-top: 1.15rem;
+  padding: 0.7rem 0.9rem 0.7rem 2.4rem;
+  border-left: 2px solid var(--fdg-sky);
+  background: var(--fdg-sky-wash);
+  border-radius: 0 6px 6px 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #17405e;
+}
+
+.fdg-annotation-icon {
+  position: absolute;
+  left: 0.72rem;
+  top: 0.72rem;
+  color: var(--fdg-sky);
+}
+
+/* ── Evidence sticky note ─────────────────────────────────── */
+.fdg-evidence {
+  position: relative;
+  margin-top: 1.2rem;
+  padding: 1rem 1.1rem;
+  background: linear-gradient(170deg, #fdf1cf 0%, #fbe7b4 100%);
+  border-radius: 2px;
+  box-shadow: 0 10px 24px rgba(60, 42, 8, 0.18);
+  transform: rotate(-0.55deg);
+  color: #4a3608;
+}
+
+.fdg-evidence::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: -9px;
+  width: 46px;
+  height: 17px;
+  transform: translateX(-50%) rotate(1.5deg);
+  background: rgba(255, 255, 255, 0.45);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.fdg-evidence-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--fdg-amber);
+}
+
+.fdg-evidence-text {
+  margin-top: 0.4rem;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* ── Discarded vs worked comparison ───────────────────────── */
+.fdg-compare {
+  margin-top: 1.25rem;
+  display: grid;
+  gap: 0.85rem;
+}
+
+@media (min-width: 900px) {
+  .fdg-compare {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.fdg-compare-col {
+  border-radius: 6px;
+  padding: 0.9rem 1rem;
+}
+
+.fdg-compare-col--bad {
+  border: 1px solid rgba(178, 48, 70, 0.28);
+  background: #fdf1f2;
+}
+
+.fdg-compare-col--good {
+  border: 1px solid rgba(20, 114, 79, 0.28);
+  background: #eef7f2;
+}
+
+.fdg-compare-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.fdg-compare-col--bad .fdg-compare-label {
+  color: var(--fdg-rose);
+}
+
+.fdg-compare-col--good .fdg-compare-label {
+  color: var(--fdg-emerald);
+}
+
+.fdg-compare-line {
+  display: flex;
+  gap: 0.5rem;
+  font-size: 13.5px;
+  line-height: 1.55;
+  padding: 0.4rem 0;
+  color: var(--fdg-body);
+}
+
+.fdg-compare-col--bad .fdg-compare-line span:first-child {
+  color: var(--fdg-rose);
+}
+
+.fdg-compare-col--good .fdg-compare-line span:first-child {
+  color: var(--fdg-emerald);
+}
+
+.fdg-strike {
+  text-decoration: line-through;
+  text-decoration-color: rgba(178, 48, 70, 0.5);
+  text-decoration-thickness: 1.5px;
+}
+
+/* ── Letter draft preview (mono, folded paper) ────────────── */
+.fdg-draft {
+  position: relative;
+  margin-top: 1.2rem;
+  border: 1px solid var(--fdg-sheet-edge);
+  border-radius: 3px;
+  background: #fff;
+  box-shadow: inset 0 0 0 6px #fff, 0 10px 30px rgba(0, 0, 0, 0.09);
+  overflow: hidden;
+}
+
+.fdg-draft-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  border-bottom: 1px dashed var(--fdg-sheet-edge);
+  padding: 0.6rem 1rem;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--fdg-muted);
+  background: #fafafa;
+}
+
+.fdg-draft-body {
+  padding: 1rem 1.1rem 1.2rem;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12.5px;
+  line-height: 1.75;
+  color: #2b3540;
+  white-space: pre-wrap;
+}
+
+.fdg-draft-field {
+  background: rgba(15, 111, 184, 0.1);
+  border-bottom: 1px solid rgba(15, 111, 184, 0.35);
+  color: var(--fdg-sky);
+  padding: 0 2px;
+}
+
+/* ── Chapter footer nav ───────────────────────────────────── */
+.fdg-sheet-foot {
+  border-top: 2px solid var(--fdg-graphite);
+  margin-top: 2rem;
+  padding-top: 1.1rem;
+}
+
+.fdg-page-btn {
+  border: 1px solid var(--fdg-sheet-edge);
+  background: #fff;
+  color: var(--fdg-graphite);
+  transition: border-color 0.2s ease, background 0.2s ease, transform 0.2s ease;
+}
+
+.fdg-page-btn:hover:not(:disabled) {
+  border-color: var(--fdg-sky);
+  background: var(--fdg-sky-wash);
+  transform: translateY(-1px);
+}
+
+.fdg-page-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.fdg-next-btn {
+  background: var(--fdg-graphite);
+  color: #fff;
+  border: 1px solid var(--fdg-graphite);
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.fdg-next-btn:hover {
+  background: var(--fdg-sky);
+  border-color: var(--fdg-sky);
+  transform: translateY(-1px);
+}
+
+.fdg-compliance {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  color: var(--fdg-muted);
+}
+
+/* ── Accent rails per chapter ─────────────────────────────── */
+.fdg-rail {
+  height: 5px;
+  border-radius: 4px 4px 0 0;
+}
+
+.fdg-rail--sky {
+  background: linear-gradient(90deg, #0f6fb8, #6bb9e8);
+}
+.fdg-rail--ink {
+  background: linear-gradient(90deg, #1d2733, #55677d);
+}
+.fdg-rail--amber {
+  background: linear-gradient(90deg, #b26a04, #e5ab3c);
+}
+.fdg-rail--violet {
+  background: linear-gradient(90deg, #6c4bb6, #a68ce0);
+}
+.fdg-rail--emerald {
+  background: linear-gradient(90deg, #14724f, #4bab84);
+}
+.fdg-rail--rose {
+  background: linear-gradient(90deg, #b23046, #dd7286);
+}
+
+/* ── Motion (three intentional moves) ─────────────────────── */
+
+/* 1. Sheet settles when a chapter opens */
+@keyframes fdg-sheet-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fdg-animate-sheet {
+  animation: fdg-sheet-in 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* 2. Highlighter sweeps across section headings */
+@keyframes fdg-mark-draw {
+  from {
+    background-size: 0% 100%;
+  }
+  to {
+    background-size: 100% 100%;
+  }
+}
+
+.fdg-animate-mark {
+  animation: fdg-mark-draw 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: 0.18s;
+}
+
+/* 3. Evidence sticky drops onto the page */
+@keyframes fdg-sticky-drop {
+  from {
+    opacity: 0;
+    transform: rotate(-3.5deg) translateY(-10px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: rotate(-0.55deg) translateY(0) scale(1);
+  }
+}
+
+.fdg-animate-sticky {
+  animation: fdg-sticky-drop 0.55s cubic-bezier(0.34, 1.4, 0.64, 1) both;
+  animation-delay: 0.24s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fdg-animate-sheet,
+  .fdg-animate-mark,
+  .fdg-animate-sticky {
+    animation: none;
+  }
+  .fdg-progress-fill {
+    transition: none;
+  }
+  .fdg-mark {
+    background-size: 100% 100%;
+  }
+  .fdg-evidence {
+    transform: none;
+  }
+}

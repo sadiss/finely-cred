@@ -52,6 +52,32 @@ export function RolePromoLinksPanel({
       utmCampaign: 'role-growth',
     };
     return [
+      ...(role === 'agent'
+        ? [
+            {
+              label: 'Credit Specialist playbook',
+              type: 'guide',
+              asset: 'credit-specialist-guide',
+              url: buildPromotedUrl({
+                ...common,
+                path: '/credit-specialist-guide',
+                promoType: 'guide',
+                promoAsset: 'credit-specialist-guide',
+              }),
+            },
+            {
+              label: 'Credit Specialist join',
+              type: 'service',
+              asset: 'credit-specialist-join',
+              url: buildPromotedUrl({
+                ...common,
+                path: '/credit-specialist/join',
+                promoType: 'service',
+                promoAsset: 'credit-specialist-join',
+              }),
+            },
+          ]
+        : []),
       {
         label: 'Free dispute guide',
         type: 'guide',

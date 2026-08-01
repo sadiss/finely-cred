@@ -7,9 +7,7 @@ import {
   PUBLIC_CAREER_PATHS,
   PUBLIC_CONTACT_LINKS,
   PUBLIC_CORE_NAV,
-  PUBLIC_HOS_NAV,
   PUBLIC_RESOURCES_SECTIONS,
-  SITE_WAYFINDER_LANES,
 } from '../../config/siteWayfinderLanes';
 import { FinelyCredLogo } from '../brand/FinelyCredLogo';
 export { PasswordInput } from './PasswordInput';
@@ -806,17 +804,17 @@ export function MobileNav({ isOpen, onClose, onNavigate, showThemeToggle = false
             }}
             className="fc-nav-pill-ghost min-h-[44px] text-sm font-semibold"
           >
-            Log in
+            Login
           </button>
           <button
             type="button"
             onClick={() => {
-              onNavigate('/signup');
+              onNavigate('/free-guide');
               onClose();
             }}
             className="min-h-[44px] rounded-xl border border-amber-500/40 bg-gradient-to-r from-amber-600/90 to-amber-500/90 px-4 text-sm font-bold text-black shadow-lg shadow-amber-500/20"
           >
-            Sign up
+            Start free guide
           </button>
         </div>
 
@@ -862,33 +860,6 @@ export function MobileNav({ isOpen, onClose, onNavigate, showThemeToggle = false
           </div>
 
           <div className="fc-mobile-nav-section">
-            <div className="fc-public-nav-section-title px-1 mb-2">{PUBLIC_HOS_NAV.label}</div>
-            <p className="px-1 text-xs text-white/50">Separate member entrance — disputes, business credit, and the free guide.</p>
-            <button
-              type="button"
-              onClick={() => {
-                onNavigate(PUBLIC_HOS_NAV.path);
-                onClose();
-              }}
-              className={`w-full text-left px-3 py-2.5 rounded-xl border transition-colors text-sm font-semibold ${
-                PUBLIC_HOS_NAV.match(location.pathname) ? 'fc-nav-pill-hos-active' : 'fc-nav-pill-hos'
-              }`}
-            >
-              Join {PUBLIC_HOS_NAV.shortLabel}
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                onNavigate(PUBLIC_HOS_NAV.loginPath);
-                onClose();
-              }}
-              className="w-full text-left fc-nav-pill text-sm"
-            >
-              HOS member login
-            </button>
-          </div>
-
-          <div className="fc-mobile-nav-section">
             <div className="fc-public-nav-section-title px-1 mb-2">Careers</div>
             {PUBLIC_CAREER_PATHS.map((link) => (
               <button
@@ -904,6 +875,16 @@ export function MobileNav({ isOpen, onClose, onNavigate, showThemeToggle = false
                 {link.hint ? <div className="text-xs opacity-70 font-normal">{link.hint}</div> : null}
               </button>
             ))}
+            <button
+              type="button"
+              onClick={() => {
+                onNavigate('/credit-specialist/join');
+                onClose();
+              }}
+              className="mt-2 w-full text-left fc-nav-pill !rounded-xl !py-2.5 text-sm font-semibold"
+            >
+              Join as Credit Specialist
+            </button>
           </div>
 
           <div className="fc-mobile-nav-section">
@@ -922,26 +903,6 @@ export function MobileNav({ isOpen, onClose, onNavigate, showThemeToggle = false
                 {link.hint ? <span className="mt-0.5 block text-xs text-white/48">{link.hint}</span> : null}
               </button>
             ))}
-          </div>
-
-          <div className="fc-mobile-nav-section">
-            <div className="fc-public-nav-section-title px-1 mb-2">Pick a lane</div>
-            <div className="space-y-2">
-              {SITE_WAYFINDER_LANES.map((lane) => (
-                <button
-                  key={lane.id}
-                  type="button"
-                  onClick={() => {
-                    onNavigate(lane.path);
-                    onClose();
-                  }}
-                  className="w-full text-left fc-nav-pill !rounded-xl !p-3"
-                >
-                  <div className="font-semibold">{lane.label}</div>
-                  <div className="text-xs opacity-70">{lane.hint}</div>
-                </button>
-              ))}
-            </div>
           </div>
         </nav>
       </div>

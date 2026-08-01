@@ -1,4 +1,9 @@
-import type { Bureau, CreditReportProvider, ParsedCreditReport, ParsedCreditorContact, ParsedPersonalInfo, ParsedScore, ParsedSection, ParsedSectionItem, ParsedTradeline, PaymentHistory2Y, TradelineRow } from '../domain/creditReports';
+import type { Bureau, CreditReportProvider, ParsedCreditReport, ParsedPersonalInfo, ParsedScore, ParsedSection, ParsedSectionItem, ParsedTradeline, PaymentHistory2Y, TradelineRow } from '../domain/creditReports';
+import {
+  applyCreditorContactsToTradelines,
+  buildCreditorContacts,
+  creditorContactSectionHeading,
+} from './creditorContactExtract';
 import { detectProviderFromHtml } from './detectProvider';
 import { parseCreditReportText } from './parseTextReport';
 import { enrichParsedTradeline } from './enrichParsedTradeline';
@@ -452,37 +457,6 @@ function buildPersonalInfo(sections: ParsedSection[]): ParsedPersonalInfo | unde
   return { fullName, aka: aka.length ? aka : undefined, ssnMasked, dob, addresses: addresses.length ? addresses : undefined, phones: phones.length ? phones : undefined, employer, raw: raw.length ? raw : undefined };
 }
 
-function buildCreditorContacts(tradelines: ParsedTradeline[], sections: ParsedSection[]): ParsedCreditorContact[] {
-  const out: ParsedCreditorContact[] = [];
-  tradelines.forEach((t, idx) => {
-    const addr = t.creditorAddress ?? firstValue(findField(t, 'creditor address', 'address', 'creditor')!);
-    const phone = t.creditorPhone ?? firstValue(findField(t, 'creditor phone', 'phone', 'customer service')!);
-    const acct = t.accountNumberMasked ?? maskAccount(firstValue(findField(t, 'account #', 'account number')!));
-    if (addr || phone || acct) {
-      out.push({ creditorName: t.creditorName, accountNumberMasked: acct, address: addr, phone, source: 'tradeline', tradelineIndex: idx });
-    }
-  });
-  const coll = sections.find((s) => s.key === 'collections');
-  if (coll?.table?.rows?.length && coll.table.columns?.length) {
-    const cols = coll.table.columns.map((c) => c.toLowerCase());
-    const nameIdx = cols.findIndex((c) => c.includes('creditor') || c.includes('agency') || c.includes('name'));
-    const addrIdx = cols.findIndex((c) => c.includes('address'));
-    const phoneIdx = cols.findIndex((c) => c.includes('phone'));
-    coll.table.rows.slice(0, 50).forEach((row, ri) => {
-      const name = nameIdx >= 0 ? (row[nameIdx] ?? '').trim() : (row[0] ?? '').trim();
-      if (!name) return;
-      out.push({
-        creditorName: name,
-        address: addrIdx >= 0 ? (row[addrIdx] ?? '').trim() : undefined,
-        phone: phoneIdx >= 0 ? (row[phoneIdx] ?? '').trim() : undefined,
-        source: 'section',
-        sectionKey: 'collections',
-      });
-    });
-  }
-  return out;
-}
-
 function normalizeColForItem(col: string): string {
   return col
     .toLowerCase()
@@ -657,6 +631,34 @@ function extractSections(doc: Document): ParsedSection[] {
     keywords: ['collections', 'collection accounts', 'collection account', 'collection'],
   });
 
+  // Dedicated creditor/collector contact tables — primary source for letter mailing addresses.
+  addGenericSectionByKeywords({
+    key: 'creditor_contacts',
+    title: 'Creditor Contacts',
+    keywords: [
+      'creditor contacts',
+      'creditor contact',
+      'collector contacts',
+      'contact information',
+      'contact info',
+      'creditor information',
+      'furnisher contact',
+      'subscriber contact',
+      'contactors',
+    ],
+  });
+  // Catch alternate headings the keyword list may miss (e.g. short "Contacts").
+  if (!out.some((s) => s.key === 'creditor_contacts')) {
+    const alt = candidates.find(({ t }) => Boolean(creditorContactSectionHeading(t)));
+    if (alt) {
+      addGenericSectionByKeywords({
+        key: 'creditor_contacts',
+        title: 'Creditor Contacts',
+        keywords: [alt.t.slice(0, 48)],
+      });
+    }
+  }
+
   addGenericSectionByKeywords({
     key: 'inquiries',
     title: 'Inquiries',
@@ -682,6 +684,13 @@ function extractSections(doc: Document): ParsedSection[] {
       hasAny(['collection', 'collections', 'collection agency', 'agency', 'original creditor', 'date assigned', 'placed for collection'])
     ) {
       return { key: 'collections', title: 'Collections' };
+    }
+    if (
+      !have.has('creditor_contacts') &&
+      (hasAny(['creditor contact', 'creditor contacts', 'contact information', 'collector contact', 'furnisher']) &&
+        hasAny(['address', 'phone', 'telephone', 'mailing']))
+    ) {
+      return { key: 'creditor_contacts', title: 'Creditor Contacts' };
     }
     if (!have.has('personal_information') && hasAny(['personal information', 'identification', 'address', 'addresses', 'name', 'aka', 'ssn', 'dob'])) {
       return { key: 'personal_information', title: 'Personal Information' };
@@ -1250,6 +1259,7 @@ function parseCreditReportHtmlDocument(doc: Document, provider: CreditReportProv
 
   const personalInfo = buildPersonalInfo(sectionsWithItems);
   const creditorContacts = buildCreditorContacts(enrichedTradelines, sectionsWithItems);
+  const tradelinesWithContacts = applyCreditorContactsToTradelines(enrichedTradelines, creditorContacts);
 
   const scores = [
     ...extractScoreTables(doc, provider),
@@ -1261,7 +1271,7 @@ function parseCreditReportHtmlDocument(doc: Document, provider: CreditReportProv
   return {
     provider,
     reportDate,
-    tradelines: enrichedTradelines,
+    tradelines: tradelinesWithContacts,
     sections: sectionsWithItems.length ? sectionsWithItems : undefined,
     scores: dedupScores.length ? dedupScores : undefined,
     personalInfo: personalInfo ?? undefined,
@@ -1269,7 +1279,7 @@ function parseCreditReportHtmlDocument(doc: Document, provider: CreditReportProv
     debug: {
       tablesFound: doc.querySelectorAll('table').length,
       subHeadersFound: subHeaders.length,
-      tradelinesParsed: enrichedTradelines.length,
+      tradelinesParsed: tradelinesWithContacts.length,
       fallbackTradelinesUsed: fallbackUsed ? true : undefined,
       reportDateDetected: reportDate,
       sectionsFound: sectionsWithItems.map((s) => ({

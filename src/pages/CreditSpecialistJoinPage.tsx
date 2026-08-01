@@ -5,7 +5,6 @@ import {
   BookOpen,
   Check,
   CheckCircle2,
-  Sparkles,
   Users,
 } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
@@ -20,19 +19,29 @@ import {
 import { CS } from '../config/creditSpecialistProgram';
 import { createProgramApplication } from '../data/programApplicationsRepo';
 import { submitLeadCapture } from '../data/leadsRepo';
-import { addLeadNote } from '../data/leadOpsRepo';
+import { addLeadNote, addLeadTags } from '../data/leadOpsRepo';
 import { FinelyOsAlertBanner } from '../features/os/FinelyOsAlertBanner';
 import { FinelyOsPageFooter } from '../features/os/FinelyOsPageFooter';
-import { MarketingStaffChatStrip } from '../components/marketing/MarketingStaffChatStrip';
 import {
   defaultCreditSpecialistJoinIntent,
   formatCreditSpecialistJoinIntentNote,
   loadCreditSpecialistJoinIntent,
+  minLeadsRequiredWithBonus,
   saveCreditSpecialistJoinIntent,
   type CreditSpecialistJoinIntent,
 } from '../lib/creditSpecialistJoinIntent';
-import { openPublicChat } from '../lib/publicChatEvents';
+import {
+  captureDigitalInviteCardFromUrl,
+  digitalInviteCardLeadAttributionFields,
+  digitalInviteCardLeadTags,
+  formatDigitalInviteCardNote,
+  getDigitalInviteCardEligibilityForRole,
+  markDigitalInviteCardRedeemed,
+} from '../lib/digitalInviteCardAttribution';
+import { getDigitalInviteCardDef } from '../config/digitalInviteCards';
 import { usePublicSeoMeta } from '../hooks/usePublicSeoMeta';
+import { PublicLaneTitle } from '../components/public/PublicLaneTitle';
+import { CS_GUIDE_READ_PATH } from './leadmagnet/creditSpecialistGuideContent';
 import {
   FINELY_OS_BACK_LINK,
   FINELY_OS_COMPACT_PAGE,
@@ -64,15 +73,12 @@ const STEPS: Array<{ id: StepId; label: string; hint: string }> = [
 const formLabel = `block ${FINELY_OS_ENTITY_LABEL} mb-1`;
 const formInput = `${FINELY_OS_ENTITY_INPUT.replace('mt-2 ', '')} ${finelyOsGlowField('violet')}`;
 
-function HelpStrip({ onWatch, onAsk }: { onWatch: () => void; onAsk: () => void }) {
+function HelpStrip({ onReadGuide }: { onReadGuide: () => void }) {
   return (
     <div className={`${finelyOsCatalogCard('sky')} !p-3 flex flex-wrap items-center gap-2`}>
       <span className={`${FINELY_OS_ENTITY_BODY} text-xs mr-1`}>Need a hand?</span>
-      <button type="button" onClick={onWatch} className={FINELY_OS_SECONDARY_BTN}>
-        <BookOpen size={14} /> Watch how
-      </button>
-      <button type="button" onClick={onAsk} className={FINELY_OS_SECONDARY_BTN}>
-        <Sparkles size={14} /> Ask Finely
+      <button type="button" onClick={onReadGuide} className={FINELY_OS_SECONDARY_BTN}>
+        <BookOpen size={14} /> Read Guide
       </button>
     </div>
   );
@@ -90,9 +96,11 @@ export default function CreditSpecialistJoinPage() {
   });
 
   const [step, setStep] = useState<StepId>('welcome');
+  const [cardEligibility, setCardEligibility] = useState(() => getDigitalInviteCardEligibilityForRole('cs'));
   const [intent, setIntent] = useState<CreditSpecialistJoinIntent>(() =>
     defaultCreditSpecialistJoinIntent({
       tierId: getCreditSpecialistOfferTier(tierFromUrl)?.id ?? '',
+      digitalCardBonusLeadCredit: Boolean(getDigitalInviteCardEligibilityForRole('cs')),
     }),
   );
   const [fullName, setFullName] = useState('');
@@ -105,13 +113,21 @@ export default function CreditSpecialistJoinPage() {
   const [statusMsg, setStatusMsg] = useState<string | null>(null);
 
   useEffect(() => {
+    captureDigitalInviteCardFromUrl(window.location.search, window.location.pathname);
+    const eligibility = getDigitalInviteCardEligibilityForRole('cs');
+    setCardEligibility(eligibility);
+
     const existing = loadCreditSpecialistJoinIntent();
     if (existing) {
-      setIntent((prev) => ({
-        ...prev,
+      const digitalCardBonusLeadCredit = existing.digitalCardBonusLeadCredit || Boolean(eligibility);
+      const nextIntent: CreditSpecialistJoinIntent = {
         ...existing,
-        tierId: (tierFromUrl && getCreditSpecialistOfferTier(tierFromUrl)?.id) || existing.tierId || prev.tierId,
-      }));
+        digitalCardBonusLeadCredit,
+        minLeadsRequired: minLeadsRequiredWithBonus(digitalCardBonusLeadCredit),
+        tierId: (tierFromUrl && getCreditSpecialistOfferTier(tierFromUrl)?.id) || existing.tierId,
+      };
+      setIntent((prev) => ({ ...prev, ...nextIntent }));
+      if (digitalCardBonusLeadCredit !== existing.digitalCardBonusLeadCredit) saveCreditSpecialistJoinIntent(nextIntent);
       if (existing.fullName) setFullName(existing.fullName);
       if (existing.email) setEmail(existing.email);
       if (existing.phone) setPhone(existing.phone);
@@ -136,8 +152,7 @@ export default function CreditSpecialistJoinPage() {
     saveCreditSpecialistJoinIntent(next);
   };
 
-  const goWatch = () => navigate(CS_OFFER.guidePath);
-  const goAsk = () => openPublicChat({ goal: 'business', personaId: 'lead_converter' });
+  const goReadGuide = () => navigate(CS_GUIDE_READ_PATH);
 
   const goNext = () => {
     const order = STEPS.map((s) => s.id);
@@ -180,6 +195,7 @@ export default function CreditSpecialistJoinPage() {
         companyName: nextIntent.companyName,
         niche: nextIntent.niche,
         monthlyLeadsEstimate: monthly,
+        referralCode: cardEligibility ? `digital-card-${cardEligibility.role}` : undefined,
         notes: formatCreditSpecialistJoinIntentNote(nextIntent),
       });
 
@@ -194,23 +210,43 @@ export default function CreditSpecialistJoinPage() {
         funnelPath: CS_OFFER.joinPath,
         funnelId: 'credit_specialist_join',
         goal: 'credit',
+        ...(cardEligibility ? digitalInviteCardLeadAttributionFields(cardEligibility) : {}),
         giveawayStack: [
-          `${CS_OFFER.minLeadsRequired}-lead commitment`,
+          `${nextIntent.minLeadsRequired}-lead commitment`,
           `${CS_OFFER.freeLeadsWindowDays}-day free-leads window`,
           selectedTier?.name ?? 'Specialist tier',
+          ...(cardEligibility ? [getDigitalInviteCardDef('cs')?.bonus.label ?? 'Invite card bonus'] : []),
         ],
       });
 
       addLeadNote(lead.lead.id, formatCreditSpecialistJoinIntentNote({ ...nextIntent, leadId: lead.lead.id }));
       addLeadNote(
         lead.lead.id,
-        `Program application: ${app.id}\nOffer: credit_specialist_join\nMin leads: ${CS_OFFER.minLeadsRequired}\nFree-leads days: ${CS_OFFER.freeLeadsWindowDays}`,
+        `Program application: ${app.id}\nOffer: credit_specialist_join\nMin leads: ${nextIntent.minLeadsRequired}\nFree-leads days: ${CS_OFFER.freeLeadsWindowDays}`,
       );
+      addLeadTags(lead.lead.id, [
+        'credit-specialist',
+        'credit_specialist_join',
+        `tier:${nextIntent.tierId}`,
+        `min-leads:${nextIntent.minLeadsRequired}`,
+        `free-leads-days:${CS_OFFER.freeLeadsWindowDays}`,
+        nextIntent.committedMinLeads ? 'committed-min-leads' : 'pending-min-leads',
+        nextIntent.understoodFreeLeadsWindow ? 'understood-free-leads-window' : 'pending-free-leads-window',
+        ...(cardEligibility ? digitalInviteCardLeadTags(cardEligibility) : []),
+      ]);
+      if (cardEligibility) {
+        addLeadNote(lead.lead.id, formatDigitalInviteCardNote(cardEligibility));
+        markDigitalInviteCardRedeemed(lead.lead.id);
+      }
 
       const saved = { ...nextIntent, leadId: lead.lead.id };
       persistIntent(saved);
       setStatus('sent');
-      setStatusMsg('You’re in the queue — next, create your Finely account to open Specialist Hub.');
+      setStatusMsg(
+        cardEligibility
+          ? `You’re in the queue with your invite card bonus applied — next, create your Finely account to open Specialist Hub.`
+          : 'You’re in the queue — next, create your Finely account to open Specialist Hub.',
+      );
       setStep('done');
     } catch (err: unknown) {
       setStatus('error');
@@ -227,7 +263,7 @@ export default function CreditSpecialistJoinPage() {
     <PageShell
       badge="Join"
       title={`Join as a ${CS.singular}`}
-      subtitle={`${CS_OFFER.minLeadsRequired}-lead minimum · ${CS_OFFER.freeLeadsWindowDays}-day free-leads window · guided onboarding`}
+      subtitle={`${intent.minLeadsRequired}-lead minimum · ${CS_OFFER.freeLeadsWindowDays}-day free-leads window · guided onboarding`}
     >
       <div className={FINELY_OS_COMPACT_PAGE}>
         <div className="flex flex-wrap items-center gap-3">
@@ -238,6 +274,16 @@ export default function CreditSpecialistJoinPage() {
             <BookOpen size={14} /> Free guide
           </button>
         </div>
+
+        <PublicLaneTitle
+          lane="specialist"
+          kitOverride={{ titleSize: 'lg' }}
+          eyebrow={`Step ${stepIndex + 1} of ${STEPS.length}`}
+          text={`Join as a ${CS.singular}.`}
+          highlight={`${CS.singular}.`}
+          speedMs={34}
+          immediate
+        />
 
         {/* Progress */}
         <div className={`${finelyOsCatalogCard('violet')} !p-4 space-y-3`}>
@@ -284,12 +330,19 @@ export default function CreditSpecialistJoinPage() {
           </div>
         </div>
 
+        {cardEligibility ? (
+          <FinelyOsAlertBanner
+            tone="success"
+            message={`You unlocked ${getDigitalInviteCardDef('cs')?.bonus.label ?? '1 bonus lead credit'} by joining through your invite card — bring ${intent.minLeadsRequired} leads instead of ${CS_OFFER.minLeadsRequired} to open full access.`}
+          />
+        ) : null}
+
         <FinelyOsAlertBanner
           tone="info"
-          message={`To use the system, get educated, and access methods: bring at least ${CS_OFFER.minLeadsRequired} leads. You have ${CS_OFFER.freeLeadsWindowDays} days from signup to get those free leads.`}
+          message={`To use the system, get educated, and access methods: bring at least ${intent.minLeadsRequired} leads. You have ${CS_OFFER.freeLeadsWindowDays} days from signup to get those free leads.`}
         />
 
-        <HelpStrip onWatch={goWatch} onAsk={goAsk} />
+        <HelpStrip onReadGuide={goReadGuide} />
 
         {statusMsg && status !== 'idle' ? (
           <div className={status === 'error' ? FINELY_OS_NOTICE_ERROR : FINELY_OS_NOTICE_SUCCESS}>{statusMsg}</div>
@@ -301,7 +354,7 @@ export default function CreditSpecialistJoinPage() {
             <p className={FINELY_OS_ENTITY_BODY}>
               Finely Cred Credit Specialists run partner files on our OS. There is no flat platform fee. You unlock full
               education, methods, and tools when you commit to bringing partners — starting with{' '}
-              <strong className={FINELY_OS_ENTITY_VALUE}>{CS_OFFER.minLeadsRequired} leads</strong> inside a clear{' '}
+              <strong className={FINELY_OS_ENTITY_VALUE}>{intent.minLeadsRequired} leads</strong> inside a clear{' '}
               <strong className={FINELY_OS_ENTITY_VALUE}>{CS_OFFER.freeLeadsWindowDays}-day</strong> window.
             </p>
             <div className="grid sm:grid-cols-3 gap-3">
@@ -344,10 +397,12 @@ export default function CreditSpecialistJoinPage() {
               />
               <span>
                 <span className="font-bold text-white flex items-center gap-2">
-                  <Users size={16} /> I will bring at least {CS_OFFER.minLeadsRequired} partner leads
+                  <Users size={16} /> I will bring at least {intent.minLeadsRequired} partner leads
                 </span>
                 <span className={`block mt-1 ${FINELY_OS_ENTITY_BODY} text-xs`}>
-                  Minimum to use the system, get educated, and access methods/everything.
+                  {cardEligibility
+                    ? `Invite card bonus applied — ${CS_OFFER.minLeadsRequired - intent.minLeadsRequired} lead credit already counted toward your minimum.`
+                    : 'Minimum to use the system, get educated, and access methods/everything.'}
                 </span>
               </span>
             </label>
@@ -438,7 +493,7 @@ export default function CreditSpecialistJoinPage() {
                   value={monthlyLeadsEstimate}
                   onChange={(e) => setMonthlyLeadsEstimate(e.target.value.replace(/[^\d]/g, ''))}
                   className={formInput}
-                  placeholder={`At least ${CS_OFFER.minLeadsRequired}`}
+                  placeholder={`At least ${intent.minLeadsRequired}`}
                 />
               </div>
             </div>
@@ -476,7 +531,7 @@ export default function CreditSpecialistJoinPage() {
               <div className={`${FINELY_OS_ENTITY_BODY} text-sm`}>
                 <Check size={14} className="inline text-emerald-400 mr-1" />
                 {intent.committedMinLeads
-                  ? `Committed to ≥${CS_OFFER.minLeadsRequired} leads`
+                  ? `Committed to ≥${intent.minLeadsRequired} leads`
                   : 'Lead commitment missing'}
               </div>
               <div className={`${FINELY_OS_ENTITY_BODY} text-sm`}>
@@ -493,8 +548,8 @@ export default function CreditSpecialistJoinPage() {
               </div>
             </div>
             <p className={`${FINELY_OS_ENTITY_BODY} text-xs`}>
-              Submitting saves your application + lead note with the 3-lead / 30-day intent, then you create your Finely
-              account (role: Credit Specialist).
+              Submitting saves your application + lead note with the {intent.minLeadsRequired}-lead / {CS_OFFER.freeLeadsWindowDays}-day
+              intent, then you create your Finely account (role: Credit Specialist).
             </p>
             <div className="flex flex-wrap gap-2">
               <button type="button" onClick={goBack} className={FINELY_OS_SECONDARY_BTN}>
@@ -519,13 +574,14 @@ export default function CreditSpecialistJoinPage() {
               <h2 className={FINELY_OS_ENTITY_TITLE}>You’re set — finish account signup</h2>
             </div>
             <p className={FINELY_OS_ENTITY_BODY}>
-              Your {CS_OFFER.minLeadsRequired}-lead commitment and {CS_OFFER.freeLeadsWindowDays}-day free-leads window are
-              saved. Create your account to open {CS.hubName} and start the free-leads clock.
+              Your {intent.minLeadsRequired}-lead commitment and {CS_OFFER.freeLeadsWindowDays}-day free-leads window are
+              saved{cardEligibility ? ' — invite card bonus applied' : ''}. Create your account to open {CS.hubName} and
+              start the free-leads clock.
             </p>
             <ol className={`${FINELY_OS_ENTITY_BODY} space-y-2 list-decimal pl-5`}>
               <li>Create your Finely account (Credit Specialist role pre-selected).</li>
               <li>Complete legal + profile steps in onboarding.</li>
-              <li>Use capture pages + the free guide to source your {CS_OFFER.minLeadsRequired} leads within {CS_OFFER.freeLeadsWindowDays} days.</li>
+              <li>Use capture pages + the free guide to source your {intent.minLeadsRequired} leads within {CS_OFFER.freeLeadsWindowDays} days.</li>
             </ol>
             <div className="flex flex-wrap gap-2">
               <button type="button" onClick={() => navigate(signupUrl)} className={FINELY_OS_PRIMARY_BTN}>
@@ -542,13 +598,6 @@ export default function CreditSpecialistJoinPage() {
         )}
 
         <p className={FINELY_OS_COMPLIANCE_FOOTNOTE}>{CS_OFFER.complianceFootnote}</p>
-
-        <MarketingStaffChatStrip
-          roleId="lead_converter"
-          goal="business"
-          roleLabel="Credit Specialist onboarding"
-          subline="Stuck on the 3-lead commitment or which tier to pick? Ask Aia — she’ll connect you."
-        />
 
         <FinelyOsPageFooter />
       </div>

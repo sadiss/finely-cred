@@ -37,6 +37,12 @@ export function toLitigationLetterArgs(args: {
       courtName?: string;
       amountClaimed?: string;
       collectorName?: string;
+      counselName?: string;
+      plaintiffLawFirm?: string;
+      plaintiffAttorneyName?: string;
+      plaintiffAttorneyBar?: string;
+      counselAddress?: string;
+      judgeName?: string;
     };
 }): LitigationLetterArgs {
   return {
@@ -52,15 +58,27 @@ export function toLitigationLetterArgs(args: {
     debtorEmail: undefined,
     plaintiffName: args.recipientName || args.creditorName,
     // Prefer firm/counsel mailing address for TO: — never leave firm address unused.
-    plaintiffAddress: args.plaintiffLawFirmAddress || args.recipientAddress,
-    plaintiffLawFirm: args.plaintiffLawFirm || args.summonsContext?.collectorName || args.debtCollectorName,
-    plaintiffLawFirmAddress: args.plaintiffLawFirmAddress || args.recipientAddress,
-    plaintiffAttorneyName: args.plaintiffAttorneyName,
-    plaintiffAttorneyBarNumber: args.plaintiffAttorneyBarNumber,
+    plaintiffAddress:
+      args.plaintiffLawFirmAddress ||
+      args.summonsContext?.counselAddress ||
+      args.recipientAddress,
+    plaintiffLawFirm:
+      args.plaintiffLawFirm ||
+      args.summonsContext?.plaintiffLawFirm ||
+      args.summonsContext?.counselName ||
+      args.summonsContext?.collectorName ||
+      args.debtCollectorName,
+    plaintiffLawFirmAddress:
+      args.plaintiffLawFirmAddress ||
+      args.summonsContext?.counselAddress ||
+      args.recipientAddress,
+    plaintiffAttorneyName: args.plaintiffAttorneyName || args.summonsContext?.plaintiffAttorneyName,
+    plaintiffAttorneyBarNumber: args.plaintiffAttorneyBarNumber || args.summonsContext?.plaintiffAttorneyBar,
     originalCreditorName: args.originalCreditorName || args.creditorName,
     debtCollectorName: args.debtCollectorName || args.summonsContext?.collectorName,
     caseNumber: args.caseNumber,
     courtName: args.courtName || args.summonsContext?.courtName,
+    judgeName: args.summonsContext?.judgeName,
     accountNumber: args.accountNumber,
     loanId: args.loanId,
     borrowerId: args.borrowerId,

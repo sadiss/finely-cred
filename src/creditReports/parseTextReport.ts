@@ -1,8 +1,13 @@
-import type { Bureau, CreditReportProvider, ParsedCreditReport, ParsedCreditorContact, ParsedScore, ParsedSection, ParsedTable, ParsedTradeline, PaymentHistory2Y, TradelineRow } from '../domain/creditReports';
+import type { Bureau, CreditReportProvider, ParsedCreditReport, ParsedScore, ParsedSection, ParsedTable, ParsedTradeline, PaymentHistory2Y, TradelineRow } from '../domain/creditReports';
 import { detectProviderFromText } from './detectProvider';
 import { detectReportDateFromText } from './parsePdfText';
 import type { ParsedPersonalInfo } from '../domain/creditReports';
 import { enrichParsedTradeline } from './enrichParsedTradeline';
+import {
+  applyCreditorContactsToTradelines,
+  buildCreditorContacts,
+  creditorContactSectionHeading,
+} from './creditorContactExtract';
 
 function norm(s: string) {
   return (s || '').replace(/\u00a0/g, ' ').replace(/\s+/g, ' ').trim();
@@ -81,6 +86,30 @@ function canonicalTradelineLabel(label: string): string {
   if (s.includes('high balance')) return 'High Balance';
   if (s.includes('past due')) return 'Past Due';
   if (s === 'balance' || s.includes('current balance')) return 'Balance';
+
+  // Creditor / collector contact fields (drive letter TO auto-fill)
+  if (
+    s.includes('mailing address') ||
+    s.includes('creditor address') ||
+    s.includes('collector address') ||
+    s.includes('contact address') ||
+    s.includes('subscriber address') ||
+    s.includes('furnisher address') ||
+    s === 'address' ||
+    (s.endsWith(' address') && !/previous|former|prior|consumer|personal|employer/.test(s))
+  ) {
+    return 'Creditor Address';
+  }
+  if (
+    s.includes('creditor phone') ||
+    s.includes('collector phone') ||
+    s.includes('customer service') ||
+    s === 'telephone' ||
+    s === 'phone' ||
+    s === 'phone number'
+  ) {
+    return 'Creditor Phone';
+  }
 
   return raw;
 }
@@ -443,6 +472,8 @@ function extractSectionsFromText(lines: string[]): ParsedSection[] {
   const headingKey = (raw: string): { key: string; title: string } | null => {
     const s = norm(raw).toLowerCase();
     if (!s) return null;
+    const contactHeading = creditorContactSectionHeading(raw);
+    if (contactHeading) return contactHeading;
     if (s === 'collections' || s.includes('collection accounts')) return { key: 'collections', title: 'Collections' };
     if (s === 'inquiries' || s.includes('credit inquiries')) return { key: 'inquiries', title: 'Inquiries' };
     if (s.includes('public records')) return { key: 'public_records', title: 'Public records' };
@@ -488,7 +519,19 @@ function extractSectionsFromText(lines: string[]): ParsedSection[] {
       .map((l) => splitSectionRow(l))
       .filter((r) => r.length >= 2)
       .slice(0, 240);
-    if (!rowsAll.length) continue;
+
+    // Creditor Contacts often OCR as stacked freeform lines (name / street / city / phone)
+    // rather than multi-column rows — keep the raw block so contact extract can parse it.
+    if (!rowsAll.length) {
+      if (hk.key === 'creditor_contacts' && block.length >= 2) {
+        sections.push({
+          key: hk.key,
+          title: hk.title,
+          table: { columns: ['Details'], rows: block.slice(0, 120).map((l) => [l]) },
+        });
+      }
+      continue;
+    }
 
     const headerTokens = [
       'creditor',
@@ -510,6 +553,10 @@ function extractSectionsFromText(lines: string[]): ParsedSection[] {
       'bureau',
       'collector',
       'original',
+      'address',
+      'phone',
+      'telephone',
+      'contact',
     ];
     const scoreHeader = (row: string[]) => {
       let score = 0;
@@ -518,7 +565,7 @@ function extractSectionsFromText(lines: string[]): ParsedSection[] {
         if (!s) continue;
         // Header cells are often short and keyword-ish.
         if (s.length <= 22 && headerTokens.some((t) => s.includes(t))) score += 1;
-        if (/^(date|balance|amount|status|type|account|creditor|company)$/i.test(s)) score += 1;
+        if (/^(date|balance|amount|status|type|account|creditor|company|address|phone)$/i.test(s)) score += 1;
       }
       // Penalize clearly data-ish rows (lots of digits / dollar amounts).
       const joined = row.join(' ');
@@ -858,24 +905,14 @@ export function parseCreditReportText(rawText: string, providerHint?: CreditRepo
   const sections = extractSectionsFromText(lines);
   const personalInfo = buildPersonalInfo(sections);
   const enrichedTradelines = tradelines.map(enrichParsedTradeline);
-  // Mirror HTML path: expose creditorContacts so debt auto-populate can resolve address/phone.
-  const creditorContacts: ParsedCreditorContact[] = [];
-  enrichedTradelines.forEach((t, idx) => {
-    if (!t.creditorAddress && !t.creditorPhone && !t.accountNumberMasked) return;
-    creditorContacts.push({
-      creditorName: t.creditorName,
-      address: t.creditorAddress,
-      phone: t.creditorPhone,
-      accountNumberMasked: t.accountNumberMasked,
-      source: 'tradeline',
-      tradelineIndex: idx,
-    });
-  });
+  // Section contacts (Creditor Contacts / Collections) + tradeline fields → letter TO autofill.
+  const creditorContacts = buildCreditorContacts(enrichedTradelines, sections);
+  const tradelinesWithContacts = applyCreditorContactsToTradelines(enrichedTradelines, creditorContacts);
 
   return {
     provider,
     reportDate,
-    tradelines: enrichedTradelines,
+    tradelines: tradelinesWithContacts,
     creditorContacts: creditorContacts.length > 0 ? creditorContacts : undefined,
     sections: sections.length ? sections : undefined,
     scores: scores.length ? scores : undefined,
@@ -884,7 +921,7 @@ export function parseCreditReportText(rawText: string, providerHint?: CreditRepo
       // PDF path doesn’t use HTML tables; keep these present for diagnostics.
       tablesFound: 0,
       subHeadersFound: 0,
-      tradelinesParsed: tradelines.length,
+      tradelinesParsed: tradelinesWithContacts.length,
       sectionsFound: sections.map((s) => ({ key: s.key, hasRows: Boolean(s.rows?.length), hasTable: Boolean((s as any).table?.rows?.length), rows: (s as any).table?.rows?.length ?? 0, cols: (s as any).table?.columns?.length ?? 0 })),
       scoresFound: scores.length,
       reportDateDetected: reportDate,

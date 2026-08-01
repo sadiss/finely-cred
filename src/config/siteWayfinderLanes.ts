@@ -6,27 +6,27 @@ export type SiteWayfinderLane = {
   accent: 'emerald' | 'violet' | 'fuchsia' | 'amber' | 'sky';
 };
 
-/** Four high-intent lanes — sticky wayfinder below the header. */
+/** Four high-intent lanes — sticky wayfinder / path chooser. */
 export const SITE_WAYFINDER_LANES: SiteWayfinderLane[] = [
   {
     id: 'personal',
     label: 'Personal credit',
     hint: 'Restore & build',
-    path: '/services/personal-credit-restore',
+    path: '/pricing/personal-credit-restore',
     accent: 'emerald',
   },
   {
     id: 'business',
     label: 'Business credit',
     hint: 'Entity & funding',
-    path: '/services/business-credit',
+    path: '/pricing/business-credit',
     accent: 'violet',
   },
   {
     id: 'debt',
     label: 'Debt & legal',
     hint: 'Validation OS',
-    path: '/services/debt-legal',
+    path: '/pricing/debt-legal',
     accent: 'fuchsia',
   },
   {
@@ -46,13 +46,27 @@ export type PublicNavSection = {
   links: PublicNavLink[];
 };
 
-/** Core header links — kept minimal; depth lives in dropdowns. */
+/**
+ * Core header links — ≤7 public destinations with Solutions (not Services+Pricing).
+ * Free guide is primary; Resources dropdown holds the rest of the library.
+ */
 export const PUBLIC_CORE_NAV: { id: string; label: string; path: string; match: (path: string) => boolean }[] = [
   { id: 'home', label: 'Home', path: '/', match: (p) => p === '/' },
-  { id: 'services', label: 'Services', path: '/services', match: (p) => p.startsWith('/services') },
-  { id: 'pricing', label: 'Pricing', path: '/pricing', match: (p) => p.startsWith('/pricing') },
+  {
+    id: 'solutions',
+    label: 'Solutions',
+    path: '/pricing',
+    match: (p) => p.startsWith('/pricing') || p.startsWith('/services'),
+  },
+  {
+    id: 'free-guide',
+    label: 'Free guide',
+    path: '/free-guide',
+    match: (p) => p === '/free-guide' || p.startsWith('/free-guide/'),
+  },
 ];
 
+/** Resources dropdown — ≤6 free guides + hub (bookstore/events live on the hub). */
 export const PUBLIC_RESOURCES_SECTIONS: PublicNavSection[] = [
   {
     id: 'free',
@@ -68,16 +82,8 @@ export const PUBLIC_RESOURCES_SECTIONS: PublicNavSection[] = [
   },
   {
     id: 'library',
-    title: 'Library & learn',
-    links: [
-      { id: 'resources-hub', label: 'Resource hub', path: '/resources' },
-      { id: 'bc-one-sheets', label: 'Partner one-sheets', path: '/resources/business-credit-one-sheets', hint: 'Business Credit tier PDFs' },
-      { id: 'bookstore', label: 'Bookstore & eGuides', path: '/bookstore' },
-      { id: 'start-here', label: 'Start here', path: '/start-here' },
-      { id: 'events', label: 'Events', path: '/events' },
-      { id: 'testimonials', label: 'Testimonials', path: '/testimonials' },
-      { id: 'tradelines', label: 'Tradelines', path: '/tradelines' },
-    ],
+    title: 'Hub',
+    links: [{ id: 'resources-hub', label: 'Resource hub', path: '/resources', hint: 'Guides, one-sheets, bookstore' }],
   },
 ];
 
@@ -89,7 +95,7 @@ export const PUBLIC_CONTACT_LINKS: PublicNavLink[] = [
   { id: 'faq', label: 'FAQ', path: '/faq' },
 ];
 
-/** Head of Society — dedicated public entrance. */
+/** Head of Society — footer / dedicated entrance (not top nav). */
 export const PUBLIC_HOS_NAV = {
   id: 'hos',
   label: 'Head of Society',
@@ -102,8 +108,7 @@ export const PUBLIC_HOS_NAV = {
 /** Career paths — earn · serve · grow. */
 export { PUBLIC_CAREER_PATHS, matchCareersPath } from './publicCareers';
 
-const FREE_GUIDE_PREFIXES = [
-  '/free-guide',
+const OTHER_FREE_GUIDE_PREFIXES = [
   '/free-debt-guide',
   '/free-business-guide',
   '/free-tradeline-guide',
@@ -112,7 +117,8 @@ const FREE_GUIDE_PREFIXES = [
 ];
 
 export function matchResourcesPath(p: string): boolean {
-  if (FREE_GUIDE_PREFIXES.some((prefix) => p === prefix || p.startsWith(`${prefix}/`))) return true;
+  // Primary Free guide is a core nav item — avoid double-highlighting Resources.
+  if (OTHER_FREE_GUIDE_PREFIXES.some((prefix) => p === prefix || p.startsWith(`${prefix}/`))) return true;
   return (
     p.startsWith('/resources') ||
     p.startsWith('/bookstore') ||

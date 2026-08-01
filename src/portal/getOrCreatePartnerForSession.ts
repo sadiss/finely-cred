@@ -343,6 +343,13 @@ export async function getOrCreatePartnerForSession(args: { user: User | null }):
         }),
       );
     }
+    void import('../lib/partnerNurtureLifecycle').then(({ enrollPartnerLifecycleOnActivate }) => {
+      try {
+        enrollPartnerLifecycleOnActivate(partner);
+      } catch {
+        /* non-blocking */
+      }
+    });
     if (isSupabaseConfigured && args.user?.id) {
       void syncClaimedPartnerRecord({ partner, user: args.user }).catch(() => {});
     }

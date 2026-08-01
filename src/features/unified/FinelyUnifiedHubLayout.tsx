@@ -56,6 +56,23 @@ function hubCatalogAccent(accent: Props['accent'] = 'emerald'): FinelyOsPublicAc
   return accent;
 }
 
+/** Dark-safe accent border/bg for hub KPI tiles — the `.fc-hub-kpi` ivory overrides only
+ * apply under the light theme, so these Tailwind classes carry the seeability on the
+ * default dark shell (no more invisible/borderless tiles). */
+const HUB_KPI_TILE_ACCENT: Record<NonNullable<UnifiedHubKpi['accent']>, string> = {
+  emerald: 'border-emerald-400/35 bg-emerald-500/10',
+  violet: 'border-violet-400/35 bg-violet-500/10',
+  amber: 'border-amber-400/35 bg-amber-500/10',
+  sky: 'border-sky-400/35 bg-sky-500/10',
+  fuchsia: 'border-fuchsia-400/35 bg-fuchsia-500/10',
+  rose: 'border-rose-400/35 bg-rose-500/10',
+};
+
+function hubKpiTileClass(accent: UnifiedHubKpi['accent'], fallback: Props['accent'] = 'emerald') {
+  const key = (accent ?? fallback ?? 'emerald') as NonNullable<UnifiedHubKpi['accent']>;
+  return HUB_KPI_TILE_ACCENT[key] ?? HUB_KPI_TILE_ACCENT.emerald;
+}
+
 export function FinelyUnifiedHubLayout({
   eyebrow,
   title,
@@ -81,7 +98,12 @@ export function FinelyUnifiedHubLayout({
       <div className={`fc-unified-hub-shell fc-light-black-scope fc-light-hero-panel fc-pop-surface fc-light-readable min-w-0 ${finelyOsCatalogCard(hubCatalogAccent(accent))} !p-4 sm:!p-6 overflow-hidden`} data-fc-accent={accent}>
         <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-6">
           <div className="min-w-0 space-y-2">
-            {eyebrow ? <p className={FINELY_OS_ENTITY_SUBLABEL}>{eyebrow}</p> : null}
+            {eyebrow ? (
+              <p className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.22em] text-amber-300/85">
+                <span className="h-1 w-1 rounded-full bg-amber-300/85" />
+                {eyebrow}
+              </p>
+            ) : null}
             <h1 className={`text-2xl md:text-3xl font-bold ${FINELY_OS_ENTITY_VALUE}`}>{title}</h1>
             {subtitle ? <p className={`${FINELY_OS_ENTITY_BODY} max-w-3xl text-base`}>{subtitle}</p> : null}
           </div>
@@ -105,7 +127,7 @@ export function FinelyUnifiedHubLayout({
             {kpis.map((k) => (
               <div
                 key={k.label}
-                className="fc-hub-kpi fc-light-pop-card fc-pop-surface rounded-xl px-4 py-3"
+                className={`fc-hub-kpi fc-light-pop-card fc-pop-surface rounded-xl border px-4 py-3 ${hubKpiTileClass(k.accent, accent)}`}
                 data-fc-accent={k.accent ?? accent}
               >
                 <div className={FINELY_OS_ENTITY_SUBLABEL}>{k.label}</div>

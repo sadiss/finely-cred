@@ -21,10 +21,14 @@ import {
 import { AgencyTierCard } from '../components/pricing/PricingCards';
 import { PricingPackageCatalog } from '../components/pricing/PricingPackageCatalog';
 import { CS } from '../config/creditSpecialistProgram';
+import { startFinancingPreapprovalInterest } from '../lib/financingPreapprovalInterest';
 import { FinelyOsPageFooter } from '../features/os/FinelyOsPageFooter';
 import { FinelyUnifiedHubLayout } from '../features/unified/FinelyUnifiedHubLayout';
 import { MarketingStaffChatStrip } from '../components/marketing/MarketingStaffChatStrip';
+import { PricingSolutionsHero, type PricingSolutionKey } from '../features/os/PricingSolutionsHero';
 import { usePublicSeoMeta } from '../hooks/usePublicSeoMeta';
+import { LandingTypewriterTitle } from '../components/landing/LandingTypewriterTitle';
+import { LandingSellAtmosphere } from '../components/landing/LandingSellAtmosphere';
 import {
   FINELY_OS_ENTITY_BODY,
 
@@ -39,27 +43,45 @@ import {
   FINELY_OS_VIEW_TABS,
   FINELY_OS_COMPLIANCE_FOOTNOTE,
   FINELY_OS_PRIMARY_BTN,
+  FINELY_OS_LANDING_IVORY_BODY,
+  FINELY_OS_LANDING_IVORY_KICKER,
+  FINELY_OS_LANDING_IVORY_TITLE,
   finelyOsCatalogCard,
+  finelyOsLandingContrastSection,
+  finelyOsLandingIvoryCard,
+  finelyOsLandingWealthyIvorySection,
   finelyOsLeadMagnetPanel,
   finelyOsListItem,
-  finelyOsStatusChip,
   finelyOsViewTab,
+  type FinelyOsPublicAccent,
 } from '../features/os/finelyOsLightUi';
 
 type TabKey = PricingCategory | 'agency' | 'banking_reports';
 type DeliveryMode = 'DIY' | 'DFY';
 type PersonalLane = 'restore' | 'building';
 
-const TABS: { key: TabKey; label: string; icon: React.ReactNode }[] = [
-  { key: 'personal_credit', label: 'Personal', icon: <Sparkles size={16} /> },
-  { key: 'banking_reports', label: 'Banking Reports', icon: <Shield size={16} /> },
-  { key: 'business_credit', label: 'Business', icon: <Building2 size={16} /> },
-  { key: 'debt_legal', label: 'Debt & Legal', icon: <Scale size={16} /> },
-  { key: 'wealth_builder', label: 'Wealth', icon: <Crown size={16} /> },
-  { key: 'privacy_id', label: 'Privacy', icon: <Lock size={16} /> },
-  { key: 'bundle', label: 'Bundles', icon: <Gift size={16} /> },
-  { key: 'tradeline_promo', label: 'Tradelines', icon: <Sparkles size={16} /> },
-  { key: 'agency', label: CS.pricingTabLabel, icon: <Users size={16} /> },
+const TAB_ACCENT: Record<TabKey, FinelyOsPublicAccent> = {
+  personal_credit: 'emerald',
+  banking_reports: 'sky',
+  business_credit: 'violet',
+  debt_legal: 'fuchsia',
+  wealth_builder: 'amber',
+  privacy_id: 'sky',
+  bundle: 'violet',
+  tradeline_promo: 'amber',
+  agency: 'amber',
+};
+
+const TABS: { key: TabKey; label: string; icon: React.ReactNode; accent: FinelyOsPublicAccent }[] = [
+  { key: 'personal_credit', label: 'Personal', icon: <Sparkles size={16} />, accent: 'emerald' },
+  { key: 'banking_reports', label: 'Banking Reports', icon: <Shield size={16} />, accent: 'sky' },
+  { key: 'business_credit', label: 'Business', icon: <Building2 size={16} />, accent: 'violet' },
+  { key: 'debt_legal', label: 'Debt & Legal', icon: <Scale size={16} />, accent: 'fuchsia' },
+  { key: 'wealth_builder', label: 'Wealth', icon: <Crown size={16} />, accent: 'amber' },
+  { key: 'privacy_id', label: 'Privacy', icon: <Lock size={16} />, accent: 'sky' },
+  { key: 'bundle', label: 'Bundles', icon: <Gift size={16} />, accent: 'violet' },
+  { key: 'tradeline_promo', label: 'Tradelines', icon: <Sparkles size={16} />, accent: 'amber' },
+  { key: 'agency', label: CS.pricingTabLabel, icon: <Users size={16} />, accent: 'amber' },
 ];
 
 export default function PricingPage() {
@@ -193,95 +215,123 @@ export default function PricingPage() {
     });
   }, [activeTab, deliveryMode, getPackagesForTab]);
 
+  const heroKey = (activeTab === 'banking_reports' ? 'personal_credit' : activeTab) as PricingSolutionKey;
+
   return (
     <PageShell
-      badge="Services"
-      title="Services"
-      subtitle="Pick DIY or Done‑For‑You, then choose the service that matches your goals."
+      badge="Solutions"
+      title="Solutions"
+      subtitle="Pick DIY or Done‑For‑You, then choose the solution that matches your goals."
     >
-      <div className={FINELY_OS_PAGE}>
-        <FinelyUnifiedHubLayout
-          eyebrow="Services & pricing"
-          title="DIY or DFY — choose your execution lane"
-          subtitle="Personal restore, business credit, debt & legal, tradelines, and wealth builder paths."
-          accent="emerald"
-          kpis={[
-            { label: 'Categories', value: String(TABS.length), accent: 'emerald' },
-            { label: 'Mode', value: deliveryMode, accent: 'amber' },
-            { label: 'Active lane', value: TABS.find((t) => t.key === activeTab)?.label ?? 'Personal', accent: 'violet' },
-            { label: 'Fundability', value: 'Hub →', hint: 'Readiness scan', accent: 'sky' },
-          ]}
-          primaryAction={{ label: 'Fundability hub', onClick: () => navigate('/fundability-readiness') }}
-          secondaryAction={{ label: 'Start free', onClick: () => handleSelect('personal_free') }}
-          detailSlot={<p className={FINELY_OS_COMPLIANCE_FOOTNOTE}>Educational only · not legal advice · payments cover software access and guided workflows.</p>}
-        >
-          <p className={`${FINELY_OS_ENTITY_BODY} text-sm mb-4`}>{tabDescription || 'Select a category below, then pick DIY or DFY delivery.'}</p>
-        </FinelyUnifiedHubLayout>
-
-        <div className={`${FINELY_OS_NOTICE_WARN} md:p-7 space-y-4`}>
-          <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-5">
-            <div className="min-w-0">
-              <div className="flex flex-wrap items-center gap-2">
-                <span className={`inline-flex items-center gap-2 ${finelyOsStatusChip('warn')}`}>
-                  <Gift size={14} /> Start free
-                </span>
-                <span className={finelyOsStatusChip('ok')}>DIY plan</span>
-                <span className={finelyOsStatusChip('ok')}>No credit card</span>
-              </div>
-              <div className={`mt-3 text-2xl md:text-3xl font-semibold tracking-tight ${FINELY_OS_ENTITY_VALUE} leading-tight`}>
-                Get started with the free plan and unlock your workspace.
-              </div>
-              <div className={`mt-2 max-w-3xl ${FINELY_OS_ENTITY_BODY}`}>
-                Upload and analyze reports, organize documents, and get guided tasks—then upgrade anytime to unlock Letters, templates,
-                and higher-touch execution.
-              </div>
-              <details className={`mt-4 ${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony group`}>
-                <summary className="cursor-pointer list-none text-sm font-semibold text-white/85 [&::-webkit-details-marker]:hidden flex items-center justify-between gap-2">
-                  <span>Free DIY includes</span>
-                  <span className="text-[10px] font-black uppercase tracking-widest text-emerald-300 group-open:hidden">Expand</span>
-                </summary>
-                <div className="mt-3 grid sm:grid-cols-2 lg:grid-cols-4 gap-2">
-                  {[
-                    'Credit report analyzer',
-                    'Documents vault',
-                    'Tasks & notifications',
-                    'Education + courses',
-                  ].map((x) => (
-                    <div key={x} className={`flex items-center gap-2 ${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony px-3 py-2 text-xs`}>
-                      <CheckCircle2 size={14} className="text-emerald-400 shrink-0" />
-                      <span className={`truncate ${FINELY_OS_ENTITY_BODY}`}>{x}</span>
-                    </div>
-                  ))}
-                </div>
-              </details>
-            </div>
-
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full lg:w-auto">
-              <button type="button" onClick={() => handleSelect('personal_free')} className={FINELY_OS_SUCCESS_BTN}>
-                Start free <ArrowRight size={16} />
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setActiveTab('personal_credit');
-                  setDeliveryMode('DIY');
-                }}
-                className={FINELY_OS_SECONDARY_BTN}
-              >
-                Explore DIY <ArrowRight size={16} />
-              </button>
-            </div>
-          </div>
-
-          <div className={`text-[11px] ${FINELY_OS_ENTITY_BODY}`}>
-            Free access is <span className={`font-semibold ${FINELY_OS_ENTITY_VALUE}`}>DIY</span> and does not include Letters. Upgrade to unlock Letter Studio + templates.
-          </div>
+      <div className={`${FINELY_OS_PAGE} space-y-0`}>
+        <div className="space-y-4 py-4">
+          <PricingSolutionsHero
+            activeKey={heroKey}
+            mode="tabs"
+            onSelectKey={(key) => setActiveTab(key)}
+          />
+          <FinelyUnifiedHubLayout
+            eyebrow="Solutions & pricing"
+            title="Choose your execution lane"
+            subtitle="Personal restore, business credit, debt & legal, tradelines, and wealth builder paths."
+            accent={TAB_ACCENT[activeTab]}
+            kpis={[
+              { label: 'Categories', value: String(TABS.length), accent: 'emerald' },
+              { label: 'Mode', value: deliveryMode, accent: 'amber' },
+              {
+                label: 'Active lane',
+                value: TABS.find((t) => t.key === activeTab)?.label ?? 'Personal',
+                accent: TAB_ACCENT[activeTab],
+              },
+              { label: 'Fundability', value: 'Hub →', hint: 'Readiness scan', accent: 'sky' },
+            ]}
+            primaryAction={{ label: 'Fundability hub', onClick: () => navigate('/fundability-readiness') }}
+            secondaryAction={{ label: 'Start free', onClick: () => handleSelect('personal_free') }}
+            detailSlot={
+              <p className={FINELY_OS_COMPLIANCE_FOOTNOTE}>
+                Educational only · not legal advice · payments cover software access and guided workflows.
+              </p>
+            }
+          >
+            <p className={`${FINELY_OS_ENTITY_BODY} text-sm mb-4`}>
+              {tabDescription || 'Select a category below, then pick DIY or DFY delivery.'}
+            </p>
+          </FinelyUnifiedHubLayout>
         </div>
 
+        {/* Champagne free-plan sell */}
+        <section className={`-mx-4 sm:-mx-6 lg:-mx-8 2xl:-mx-10 px-4 sm:px-6 lg:px-8 2xl:px-10 py-12 sm:py-14 ${finelyOsLandingWealthyIvorySection()}`}>
+          <div className="max-w-6xl mx-auto">
+            <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
+              <div className="min-w-0 space-y-3">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className={`inline-flex items-center gap-2 rounded-full border border-amber-800/20 bg-amber-500/15 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-[#0a1628]`}>
+                    <Gift size={14} /> Start free
+                  </span>
+                  <span className="rounded-full border border-emerald-800/20 bg-emerald-500/12 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-[#0a1628]/80">DIY plan</span>
+                  <span className="rounded-full border border-emerald-800/20 bg-emerald-500/12 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-[#0a1628]/80">No credit card</span>
+                </div>
+                <p className={FINELY_OS_LANDING_IVORY_KICKER}>Free workspace</p>
+                <LandingTypewriterTitle
+                  as="h2"
+                  text="Start free. Unlock your workspace."
+                  className={FINELY_OS_LANDING_IVORY_TITLE}
+                  highlight="Start free."
+                  highlightClassName="fc-landing-ivory-accent"
+                  delayMs={280}
+                  speedMs={40}
+                />
+                <p className={`${FINELY_OS_LANDING_IVORY_BODY} max-w-3xl`}>
+                  Upload and analyze reports, organize documents, and get guided tasks — then upgrade anytime for Letters, templates,
+                  and higher-touch execution.
+                </p>
+                <details className={`${finelyOsLandingIvoryCard()} !p-4 group`}>
+                  <summary className="cursor-pointer list-none text-sm font-semibold text-[#0a1628] [&::-webkit-details-marker]:hidden flex items-center justify-between gap-2">
+                    <span>Free DIY includes</span>
+                    <span className="text-[10px] font-black uppercase tracking-widest text-[#b8860b] group-open:hidden">Expand</span>
+                  </summary>
+                  <div className="mt-3 grid sm:grid-cols-2 lg:grid-cols-4 gap-2">
+                    {[
+                      'Credit report analyzer',
+                      'Documents vault',
+                      'Tasks & notifications',
+                      'Education + courses',
+                    ].map((x) => (
+                      <div key={x} className={`flex items-center gap-2 ${finelyOsLandingIvoryCard()} !p-3 text-xs`}>
+                        <CheckCircle2 size={14} className="text-emerald-700 shrink-0" />
+                        <span className="truncate text-[#0a1628]/75">{x}</span>
+                      </div>
+                    ))}
+                  </div>
+                </details>
+              </div>
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full lg:w-auto">
+                <button type="button" onClick={() => handleSelect('personal_free')} className={FINELY_OS_SUCCESS_BTN}>
+                  Start free <ArrowRight size={16} />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActiveTab('personal_credit');
+                    setDeliveryMode('DIY');
+                  }}
+                  className={FINELY_OS_SECONDARY_BTN}
+                >
+                  Explore DIY <ArrowRight size={16} />
+                </button>
+              </div>
+            </div>
+            <p className={`mt-4 text-[11px] text-[#0a1628]/55`}>
+              Free access is <span className="font-semibold text-[#0a1628]">DIY</span> and does not include Letters. Upgrade to unlock Letter Studio + templates.
+            </p>
+          </div>
+        </section>
+
+        <div className="space-y-4 py-6">
         <div className={`${FINELY_OS_NOTICE_SUCCESS} flex items-start gap-3`}>
           <Sparkles size={18} className="mt-0.5 text-emerald-400 shrink-0" />
           <div>
-            <div className="font-semibold text-emerald-200">In-House Financing Available</div>
+            <div className="font-semibold text-emerald-200">Payment plans / pre-approval</div>
             <p className={`mt-1 ${FINELY_OS_ENTITY_BODY}`}>
               Build credit while you pay. Our financing option reports your payments to Equifax, adding a positive
               installment tradeline to your credit file. Look for the{' '}
@@ -289,7 +339,22 @@ export default function PricingPage() {
             </p>
             <p className={`mt-2 ${FINELY_OS_ENTITY_BODY}`}>
               We can also connect you to lenders and funding pathways when your profile is ready (bureau-pull dependent).
+              Results vary · not legal advice · funding subject to underwriting.
             </p>
+            <button
+              type="button"
+              onClick={() =>
+                void startFinancingPreapprovalInterest({
+                  source: 'lead_magnet',
+                  funnelPath: '/pricing',
+                  captureLead: false,
+                  openApplication: true,
+                })
+              }
+              className="mt-3 inline-flex items-center gap-2 text-sm font-semibold text-emerald-300 hover:text-white transition-colors"
+            >
+              Payment plans / pre-approval →
+            </button>
           </div>
         </div>
 
@@ -344,7 +409,13 @@ export default function PricingPage() {
         <div className="-mx-1 px-1 overflow-x-auto pb-1">
           <div className={`${FINELY_OS_VIEW_TABS} flex-nowrap sm:flex-wrap min-w-min sm:min-w-0`}>
           {TABS.map((tab) => (
-            <button key={tab.key} type="button" onClick={() => setActiveTab(tab.key)} className={`shrink-0 ${finelyOsViewTab(activeTab === tab.key, 'emerald')}`}>
+            <button
+              key={tab.key}
+              type="button"
+              onClick={() => setActiveTab(tab.key)}
+              className={`shrink-0 ${finelyOsViewTab(activeTab === tab.key, tab.accent)}`}
+              data-fc-accent={tab.accent}
+            >
               {tab.icon}
               {tab.label}
             </button>
@@ -494,20 +565,31 @@ export default function PricingPage() {
           </div>
         )}
 
-        <div className={`${finelyOsLeadMagnetPanel('emerald')} flex flex-col md:flex-row items-start md:items-center justify-between gap-4 !p-6`} data-fc-accent="emerald">
-          <div>
-            <div className={FINELY_OS_ENTITY_VALUE}>Not sure which package is right for you?</div>
-            <div className={FINELY_OS_ENTITY_BODY}>
-              Complete our quick intake and we'll recommend the best path based on your goals.
-            </div>
-          </div>
-          <button type="button" onClick={() => navigate('/onboarding')} className={FINELY_OS_SUCCESS_BTN}>
-            Start intake <ArrowRight size={14} />
-          </button>
         </div>
 
-        <p className={FINELY_OS_COMPLIANCE_FOOTNOTE}>Results vary · not legal advice · educational dispute workflow only.</p>
+        {/* Platinum final CTA */}
+        <section
+          className={`fc-sell relative overflow-hidden -mx-4 sm:-mx-6 lg:-mx-8 2xl:-mx-10 px-4 sm:px-6 lg:px-8 2xl:px-10 py-14 sm:py-20 ${finelyOsLandingContrastSection('fc-band-emerald')}`}
+          data-fc-contrast-band="1"
+        >
+          <LandingSellAtmosphere tone="platinum" />
+          <div className="max-w-4xl mx-auto">
+            <div className={`${finelyOsLeadMagnetPanel('emerald')} flex flex-col md:flex-row items-start md:items-center justify-between gap-4 !p-6 sm:!p-8`} data-fc-accent="emerald">
+              <div>
+                <div className={`text-2xl sm:text-3xl font-bold ${FINELY_OS_ENTITY_VALUE}`}>Not sure which package is right for you?</div>
+                <div className={`mt-2 ${FINELY_OS_ENTITY_BODY}`}>
+                  Complete our quick intake and we&apos;ll recommend the best path based on your goals.
+                </div>
+              </div>
+              <button type="button" onClick={() => navigate('/onboarding')} className={FINELY_OS_SUCCESS_BTN}>
+                Start intake <ArrowRight size={14} />
+              </button>
+            </div>
+            <p className={`${FINELY_OS_COMPLIANCE_FOOTNOTE} mt-6 text-center`}>Results vary · not legal advice · educational dispute workflow only.</p>
+          </div>
+        </section>
 
+        <div className="space-y-4 py-6">
         <MarketingStaffChatStrip
           roleId="sales_closer"
           goal="personal"
@@ -516,6 +598,7 @@ export default function PricingPage() {
         />
 
         <FinelyOsPageFooter />
+        </div>
       </div>
     </PageShell>
   );

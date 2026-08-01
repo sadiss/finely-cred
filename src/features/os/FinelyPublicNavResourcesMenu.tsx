@@ -13,6 +13,7 @@ export function FinelyPublicNavResourcesMenu({
     <FinelyPublicNavDropdown
       label="Resources"
       wide
+      luxury
       isActive={matchResourcesPath(pathname)}
       sections={PUBLIC_RESOURCES_SECTIONS}
       onNavigate={onNavigate}

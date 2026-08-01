@@ -13,14 +13,19 @@ import {
   TrendingUp,
   Unlock,
 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { LeadMagnetEbook, LeadMagnetDeviceShowcase } from './LeadMagnetHeroMockup';
 import { FreeDisputeGuideHeroVideo } from './FreeDisputeGuideHeroVideo';
 import { DisputeLetterGuideContentsList, DisputeLetterGuidePreview } from './DisputeLetterGuidePreview';
 import { FlashyIcon } from '../ui';
 import type { FreeGuide } from '../../resources/freeGuides';
 import type { LeadMagnetFunnelConfig } from '../../domain/leadMagnetFunnels';
-import { DISPUTE_LETTER_GUIDE_ID, DISPUTE_LETTER_GUIDE_PAGE_COUNT } from '../../resources/disputeLetterGuideContent';
+import {
+  DISPUTE_LETTER_GUIDE_ID,
+  DISPUTE_LETTER_GUIDE_PAGE_COUNT,
+  DISPUTE_LETTER_GUIDE_PROGRAMMATIC_PAGES,
+  DISPUTE_LETTER_GUIDE_READ_PATH,
+} from '../../resources/disputeLetterGuideContent';
 import {
   formatTrialExpiryLabel,
   getLeadMagnetTrial,
@@ -30,9 +35,19 @@ import {
 } from '../../lib/leadMagnetTrial';
 import { getLeadAttribution } from '../../lib/leadAttribution';
 import { finelyOsCatalogCard, type FinelyOsPublicAccent } from '../../features/os/finelyOsLightUi';
-import { LeadMagnetCobrand } from '../brand/LeadMagnetCobrand';
-
 const FEATURE_ACCENTS: FinelyOsPublicAccent[] = ['emerald', 'sky', 'violet', 'amber', 'fuchsia', 'emerald'];
+
+/** Opening chapters surfaced in the hero so the top half shows real substance, not promises. */
+const HERO_CHAPTER_RAIL = [
+  'read-this-first',
+  'report-anatomy',
+  'finding-not-feeling',
+  'who-you-write-to',
+  'round-map',
+  'five-step-overview',
+]
+  .map((id) => DISPUTE_LETTER_GUIDE_PROGRAMMATIC_PAGES.find((p) => p.id === id))
+  .filter((p): p is NonNullable<typeof p> => Boolean(p));
 
 const HERO_PROOF = [
   'Exact dispute letter workflow',
@@ -161,32 +176,10 @@ export function CreditGuidePremiumLanding({
   const goCapture = onGoForm;
   const [selectedIssueId, setSelectedIssueId] = useState<(typeof ISSUE_TRACKS)[number]['id']>('collections');
   const selectedIssue = ISSUE_TRACKS.find((item) => item.id === selectedIssueId) ?? ISSUE_TRACKS[0];
-  const navigate = useNavigate();
-  const trialActive = isLeadMagnetTrialActive(getLeadMagnetTrial());
 
   return (
     <div className="bg-mesh min-h-screen pb-14">
-      <nav className="sticky top-0 z-30 border-b border-white/[0.08] bg-[#0a0f14]/90 backdrop-blur-xl">
-        <div className="container mx-auto flex max-w-7xl items-center justify-between gap-2 px-4 py-3 sm:px-6">
-          <LeadMagnetCobrand size="sm" />
-          <div className="flex items-center gap-2">
-            {trialActive ? (
-              <button
-                type="button"
-                onClick={() => navigate('/free-guide?step=track')}
-                className="rounded-full border border-emerald-400/35 bg-emerald-500/10 px-3 py-2 text-[10px] font-black uppercase tracking-wider text-emerald-100 sm:px-4"
-              >
-                Track dispute
-              </button>
-            ) : null}
-            <button type="button" onClick={goCapture} className="rounded-full border border-sky-300/30 bg-sky-300/10 px-3 py-2 text-[10px] font-black uppercase tracking-wider text-sky-100 sm:px-4">
-              Get free access
-            </button>
-          </div>
-        </div>
-      </nav>
-
-      <header id="fg-hero" className="container relative z-10 mx-auto max-w-7xl px-4 pb-10 pt-8 sm:px-6 sm:pt-10">
+      <header id="fg-hero" className="container relative z-10 mx-auto max-w-7xl px-4 pb-10 pt-20 sm:px-6 sm:pt-24">
         <div className="fg-hero-shell relative overflow-x-clip rounded-[2rem] border border-white/[0.12] bg-[#101823]/90 p-4 shadow-[0_30px_100px_rgba(0,0,0,0.35)] sm:rounded-[2.5rem] sm:p-6 md:p-5 lg:p-8">
           <div className="pointer-events-none absolute -right-24 -top-24 h-80 w-80 rounded-full bg-sky-400/16 blur-[90px]" />
           <div className="pointer-events-none absolute -bottom-28 left-10 h-72 w-72 rounded-full bg-amber-300/10 blur-[90px]" />
@@ -272,6 +265,45 @@ export function CreditGuidePremiumLanding({
                       ))}
                     </div>
                   </div>
+                </div>
+
+                <div className="mt-6 rounded-[1.5rem] border border-white/[0.1] bg-slate-950/40 p-4 sm:p-5">
+                  <div className="flex flex-wrap items-end justify-between gap-2">
+                    <div>
+                      <p className="text-[10px] font-black uppercase tracking-[0.22em] text-sky-200">
+                        Read it free — no email required
+                      </p>
+                      <h3 className="mt-1 text-lg font-black text-white">
+                        {DISPUTE_LETTER_GUIDE_PROGRAMMATIC_PAGES.length} chapters, open in your browser
+                      </h3>
+                    </div>
+                    <Link
+                      to={DISPUTE_LETTER_GUIDE_READ_PATH}
+                      className="inline-flex items-center gap-2 rounded-xl border border-sky-300/40 bg-sky-300/10 px-4 py-2.5 text-[11px] font-black uppercase tracking-wider text-sky-100 transition hover:border-sky-300/70 hover:bg-sky-300/[0.16]"
+                    >
+                      <BookOpen className="h-3.5 w-3.5" /> Open the reader
+                    </Link>
+                  </div>
+                  <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                    {HERO_CHAPTER_RAIL.map((chapter) => (
+                      <Link
+                        key={chapter.id}
+                        to={`${DISPUTE_LETTER_GUIDE_READ_PATH}?chapter=${chapter.id}`}
+                        className="group rounded-2xl border border-white/[0.08] bg-white/[0.035] px-3.5 py-3 transition hover:border-sky-300/40 hover:bg-sky-300/[0.07]"
+                      >
+                        <p className="text-[9px] font-black uppercase tracking-[0.2em] text-sky-200/80">
+                          {chapter.kicker ?? 'Chapter'}
+                        </p>
+                        <p className="mt-1 text-sm font-bold leading-snug text-white/85 group-hover:text-white">
+                          {chapter.title}
+                        </p>
+                        {chapter.subtitle ? (
+                          <p className="mt-1 line-clamp-2 text-[11px] leading-relaxed text-white/45">{chapter.subtitle}</p>
+                        ) : null}
+                      </Link>
+                    ))}
+                  </div>
+                  <p className="mt-3 text-[11px] text-white/40">Educational only · not legal advice · results vary</p>
                 </div>
 
                 <div className="mt-6 flex flex-col gap-3 lg:flex-row">

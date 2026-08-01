@@ -19,6 +19,13 @@ import { FinelyOsEmptyState } from '../../features/os/FinelyOsEmptyState';
 import { FinelyOsKpiGrid, FinelyOsEntityCard } from '../../components/os/FinelyOsKpiGrid';
 import { LegalResourceStrip } from '../../components/debt/DebtCoachMessage';
 import { resourcesForEscalations } from '../../lib/legalResources';
+import { listCourtOutcomesByPartner } from '../../data/courtOutcomeRepo';
+import { courtOutcomeHeadline } from '../../domain/courtOutcomes';
+import {
+  POST_COURT_ESCALATION_TRIGGER_LABELS,
+  POST_COURT_PLAN_ESCALATION,
+  postCourtPlanRiskFlags,
+} from '../../lib/postCourtPaymentPlanPath';
 import {
   FINELY_OS_PAGE,
   FINELY_OS_BACK_LINK,
@@ -80,6 +87,11 @@ export default function PartnerEscalationsPage() {
   const complaints = useMemo(() => (partner ? listRegulatoryComplaintsByPartner(partner.id) : []), [partner]);
   const cases = useMemo(() => (partner ? listCasesByPartner(partner.id) : []), [partner]);
   const evidence = useMemo(() => (partner ? listEvidenceByPartner(partner.id) : []), [partner]);
+  const planOutcome = useMemo(
+    () => (partner ? listCourtOutcomesByPartner(partner.id).find((o) => o.kind === 'payment_plan' && o.plan) : null),
+    [partner],
+  );
+  const planRiskFlags = useMemo(() => (planOutcome ? postCourtPlanRiskFlags(planOutcome) : []), [planOutcome]);
 
   const [formTopic, setFormTopic] = useState<EscalationTopic>('billing');
   const [formTitle, setFormTitle] = useState('');
@@ -190,6 +202,95 @@ export default function PartnerEscalationsPage() {
               <div className={`${FINELY_OS_ENTITY_SUBLABEL} mb-2`}>Quick links & filing portals</div>
               <LegalResourceStrip links={resourcesForEscalations()} accentClass="text-fuchsia-300" />
             </div>
+            {tab === 'submit' && planOutcome ? (
+              <details className={`${finelyOsCatalogCard('fuchsia')} !p-4 mb-3 group`}>
+                <summary className="cursor-pointer select-none list-none">
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <div className={`${FINELY_OS_ENTITY_SUBLABEL} text-fuchsia-200/90`}>
+                        Court plan escalation path
+                      </div>
+                      <div className={`mt-0.5 text-sm font-semibold ${FINELY_OS_ENTITY_VALUE}`}>
+                        {courtOutcomeHeadline(planOutcome)} · {POST_COURT_PLAN_ESCALATION.length} levels ready
+                      </div>
+                      <p className={`mt-0.5 text-xs ${FINELY_OS_ENTITY_BODY}`}>
+                        {planRiskFlags.length
+                          ? planRiskFlags.join(' · ')
+                          : 'Plan on track — open this only if a payment slips, contact turns improper, or the numbers stop matching.'}
+                      </p>
+                    </div>
+                    <span className="shrink-0 text-[10px] uppercase tracking-widest text-white/40 group-open:text-fuchsia-300/80">
+                      Expand
+                    </span>
+                  </div>
+                </summary>
+                <div className="mt-3 space-y-2 border-t border-white/10 pt-3">
+                  {POST_COURT_PLAN_ESCALATION.map((s) => (
+                    <div key={s.level} className={`${finelyOsInlineListItem} !items-start`}>
+                      <div className="min-w-0">
+                        <div className="text-[10px] uppercase tracking-widest text-fuchsia-200/80">
+                          Level {s.level} · {POST_COURT_ESCALATION_TRIGGER_LABELS[s.trigger]}
+                        </div>
+                        <div className={`mt-0.5 text-sm font-semibold ${FINELY_OS_ENTITY_VALUE}`}>{s.title}</div>
+                        <p className={`mt-0.5 text-xs ${FINELY_OS_ENTITY_BODY}`}>{s.when}</p>
+                        <p className="mt-0.5 text-xs text-white/55">
+                          Goes to: {s.escalateTo}
+                          {s.timing ? ` · ${s.timing}` : ''}
+                        </p>
+                      </div>
+                      <div className="flex shrink-0 flex-wrap items-center gap-2">
+                        <button
+                          type="button"
+                          className={`${FINELY_OS_SECONDARY_BTN} !text-[11px]`}
+                          onClick={() => {
+                            setFormTopic('legal_letters');
+                            setFormPriority(s.level >= 5 ? 'urgent' : 'high');
+                            setFormTitle(`Court plan · Level ${s.level} — ${s.title}`);
+                            setFormDescription(
+                              [
+                                `Outcome on file: ${courtOutcomeHeadline(planOutcome)} (${planOutcome.decidedIso}).`,
+                                `Trigger: ${POST_COURT_ESCALATION_TRIGGER_LABELS[s.trigger]}.`,
+                                `Use when: ${s.when}`,
+                                '',
+                                'Steps to run:',
+                                ...s.actions.map((a, i) => `${i + 1}. ${a}`),
+                                '',
+                                `Bring: ${s.evidenceChecklist.join(', ')}.`,
+                              ].join('\n'),
+                            );
+                            document
+                              .getElementById('escalation-form')
+                              ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                          }}
+                        >
+                          Use this level
+                        </button>
+                        {s.externalUrl ? (
+                          <a
+                            href={s.externalUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className={`${FINELY_OS_SECONDARY_BTN} !text-[11px]`}
+                          >
+                            File it <ExternalLink size={11} />
+                          </a>
+                        ) : null}
+                        {s.href ? (
+                          <button
+                            type="button"
+                            className={`${FINELY_OS_SECONDARY_BTN} !text-[11px]`}
+                            onClick={() => navigate(s.href!)}
+                          >
+                            {s.hrefLabel || 'Open'}
+                          </button>
+                        ) : null}
+                      </div>
+                    </div>
+                  ))}
+                  <p className="text-[10px] text-white/40">Educational self-help · not legal advice · results vary</p>
+                </div>
+              </details>
+            ) : null}
             {tab === 'submit' && (
             <div className={`${finelyOsCatalogCard('violet')} !p-4 border-fuchsia-500/25 space-y-3`}>
               <h2 className={`${FINELY_OS_ENTITY_TITLE} flex items-center gap-2 text-lg`}>

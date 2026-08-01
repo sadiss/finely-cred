@@ -157,6 +157,36 @@ export const NURTURE_SEQUENCES: NurtureSequenceDef[] = [
     ],
   },
   {
+    id: 'seq_financing_preapproval',
+    name: 'Financing pre-approval nurture',
+    funnelId: 'financing_preapproval',
+    agentPersonaId: 'funding_strategist',
+    enabled: true,
+    steps: [
+      {
+        id: 'welcome',
+        delayHours: 0,
+        channel: 'email',
+        templateId: 'lead_magnet_welcome_generic',
+        subject: 'Your financing pre-approval next steps',
+      },
+      {
+        id: 'day1_pricing',
+        delayHours: 24,
+        channel: 'email',
+        templateId: 'lead_magnet_day1_credit',
+        subject: 'In-house financing + Equifax-reporting contracts explained',
+      },
+      {
+        id: 'day3_session',
+        delayHours: 72,
+        channel: 'email',
+        templateId: 'lead_magnet_book_session',
+        subject: 'Book a financing readiness session',
+      },
+    ],
+  },
+  {
     id: 'seq_strategy_session',
     name: 'Strategy call booking',
     funnelId: 'strategy_session',
@@ -243,6 +273,116 @@ export const NURTURE_SEQUENCES: NurtureSequenceDef[] = [
       { id: 'day7_payouts', delayHours: 168, channel: 'email', templateId: 'lead_magnet_book_session', subject: 'Set up payouts & contracts' },
     ],
   },
+  {
+    id: 'seq_cold_prospect',
+    name: 'Cold prospect (Marketing Desk)',
+    funnelId: 'cold_prospect',
+    agentPersonaId: 'sales_closer',
+    enabled: true,
+    steps: [
+      { id: 'd0', delayHours: 0, channel: 'email', templateId: 'cold_prospect_d0', subject: 'Quick idea for your business credit path' },
+      { id: 'd2', delayHours: 48, channel: 'email', templateId: 'cold_prospect_d2', subject: 'A short next step (2 minutes)' },
+      { id: 'd5', delayHours: 120, channel: 'email', templateId: 'cold_prospect_d5', subject: 'Partner one-sheets + session option' },
+      { id: 'd7', delayHours: 168, channel: 'email', templateId: 'cold_prospect_d7', subject: 'Book a free strategy session' },
+    ],
+  },
+  {
+    id: 'seq_offer_pack',
+    name: 'Offer pack (Marketing Desk)',
+    funnelId: 'offer_pack',
+    agentPersonaId: 'sales_closer',
+    enabled: true,
+    steps: [
+      { id: 'offer', delayHours: 0, channel: 'email', templateId: 'offer_pack_send', subject: 'Your Finely Cred offer pack' },
+      { id: 'offer_follow', delayHours: 72, channel: 'email', templateId: 'offer_pack_followup', subject: 'Questions on the offer pack?' },
+    ],
+  },
+  {
+    id: 'seq_booked_confirm',
+    name: 'Booked session confirm',
+    funnelId: 'booked_session',
+    agentPersonaId: 'finely_advisor',
+    enabled: true,
+    steps: [
+      { id: 'confirm', delayHours: 0, channel: 'email', templateId: 'booked_session_confirm', subject: 'You are booked — prep for your Finely session' },
+      { id: 'prep', delayHours: 24, channel: 'email', templateId: 'booked_session_prep', subject: 'Prep checklist for your session' },
+    ],
+  },
+  {
+    id: 'seq_partner_onboard_keepwarm',
+    name: 'Partner onboard keep-warm (30 days)',
+    funnelId: 'partner_lifecycle',
+    agentPersonaId: 'nurture_concierge',
+    enabled: true,
+    steps: [
+      { id: 'welcome', delayHours: 0, channel: 'email', templateId: 'partner_onboard_welcome', subject: 'Welcome to your Finely Cred portal' },
+      { id: 'day3', delayHours: 72, channel: 'email', templateId: 'partner_onboard_day3', subject: 'Your first 3 portal moves' },
+      { id: 'day7', delayHours: 168, channel: 'email', templateId: 'partner_onboard_day7', subject: 'Week-1 checklist for partners' },
+      { id: 'day14', delayHours: 336, channel: 'email', templateId: 'partner_onboard_day14', subject: 'Mid-month progress check' },
+      { id: 'day21', delayHours: 504, channel: 'email', templateId: 'partner_onboard_day21', subject: 'Education tip: what to focus on next' },
+      { id: 'day30', delayHours: 720, channel: 'email', templateId: 'partner_onboard_day30', subject: '30-day wrap — book a free session if helpful' },
+    ],
+  },
+  {
+    id: 'seq_partner_monthly_education',
+    name: 'Partner monthly education',
+    funnelId: 'partner_lifecycle',
+    agentPersonaId: 'finely_advisor',
+    enabled: true,
+    steps: [
+      { id: 'm1', delayHours: 0, channel: 'email', templateId: 'partner_edu_m1', subject: 'Partner education: utilization & reporting cycles' },
+      { id: 'm2', delayHours: 720, channel: 'email', templateId: 'partner_edu_m2', subject: 'Partner education: disputes vs documentation' },
+      { id: 'm3', delayHours: 1440, channel: 'email', templateId: 'partner_edu_m3', subject: 'Partner education: funding readiness basics' },
+      { id: 'm4', delayHours: 2160, channel: 'email', templateId: 'partner_edu_m4', subject: 'Partner education: business credit sequencing' },
+    ],
+  },
+  {
+    id: 'seq_partner_birthday',
+    name: 'Partner birthday (opt-in)',
+    funnelId: 'partner_lifecycle',
+    agentPersonaId: 'nurture_concierge',
+    enabled: true,
+    steps: [
+      { id: 'birthday', delayHours: 0, channel: 'email', templateId: 'partner_birthday', subject: 'Happy birthday from Finely Cred' },
+    ],
+  },
+  {
+    id: 'seq_partner_opportunity_au',
+    name: 'Partner opportunity — AU tradelines',
+    funnelId: 'partner_opportunity',
+    agentPersonaId: 'sales_closer',
+    enabled: true,
+    steps: [
+      { id: 'intro', delayHours: 0, channel: 'email', templateId: 'partner_opp_au_intro', subject: 'Optional path: authorized-user tradelines' },
+      { id: 'day3', delayHours: 72, channel: 'email', templateId: 'partner_opp_au_day3', subject: 'How AU tradelines fit a restore plan' },
+      { id: 'day7', delayHours: 168, channel: 'email', templateId: 'partner_opp_au_day7', subject: 'Questions on AU? Book a free session' },
+    ],
+  },
+  {
+    id: 'seq_partner_opportunity_affiliate',
+    name: 'Partner opportunity — affiliate',
+    funnelId: 'partner_opportunity',
+    agentPersonaId: 'affiliate_specialist',
+    enabled: true,
+    steps: [
+      { id: 'intro', delayHours: 0, channel: 'email', templateId: 'partner_opp_aff_intro', subject: 'Optional path: partner affiliate toolkit' },
+      { id: 'day3', delayHours: 72, channel: 'email', templateId: 'partner_opp_aff_day3', subject: 'Compliant sharing tips for partners' },
+      { id: 'day7', delayHours: 168, channel: 'email', templateId: 'partner_opp_aff_day7', subject: 'Affiliate Q&A — book a short call' },
+    ],
+  },
+  {
+    id: 'seq_specialist_keepwarm',
+    name: 'Specialist keep-warm',
+    funnelId: 'specialist_lifecycle',
+    agentPersonaId: 'lead_converter',
+    enabled: true,
+    steps: [
+      { id: 'welcome', delayHours: 0, channel: 'email', templateId: 'specialist_keepwarm_welcome', subject: 'Specialist lane — your weekly focus' },
+      { id: 'day14', delayHours: 336, channel: 'email', templateId: 'specialist_keepwarm_day14', subject: 'Pipeline hygiene for Credit Specialists' },
+      { id: 'day30', delayHours: 720, channel: 'email', templateId: 'specialist_keepwarm_day30', subject: 'Playbook refresh: factual findings first' },
+      { id: 'day60', delayHours: 1440, channel: 'email', templateId: 'specialist_keepwarm_day60', subject: 'Keep-warm check-in for active specialists' },
+    ],
+  },
 ];
 
 export function resolveSequenceForLead(args: {
@@ -259,11 +399,25 @@ export function resolveSequenceForLead(args: {
   if (args.offer?.includes('affiliate_application') || args.offer?.includes('affiliate_program')) {
     return NURTURE_SEQUENCES.find((s) => s.id === 'seq_affiliate_funnel')!;
   }
-  if (args.offer?.includes('agent_application') || args.offer?.includes('specialist')) {
+  if (
+    args.offer?.includes('agent_application') ||
+    args.offer?.includes('credit_specialist_join') ||
+    args.offer?.includes('credit_specialist_guide') ||
+    args.offer?.includes('specialist_program_apply') ||
+    args.offer?.includes('specialist')
+  ) {
     return NURTURE_SEQUENCES.find((s) => s.id === 'seq_specialist_apply_funnel')!;
   }
   if (args.offer?.includes('enlightenment_session') || args.offer?.includes('strategy_call')) {
     return NURTURE_SEQUENCES.find((s) => s.id === 'seq_strategy_session')!;
+  }
+  if (
+    args.offer?.includes('financing_preapproval') ||
+    blob.includes('financing_preapproval') ||
+    blob.includes('pre-approval') ||
+    blob.includes('preapproval')
+  ) {
+    return NURTURE_SEQUENCES.find((s) => s.id === 'seq_financing_preapproval')!;
   }
   if (args.offer?.includes('agency_signup') || args.offer?.includes('agency_workspace')) {
     return NURTURE_SEQUENCES.find((s) => s.id === 'seq_agency_signup')!;
@@ -287,7 +441,11 @@ export function resolveSequenceForLead(args: {
   if (path.includes('agency') || path.includes('white-label')) {
     return NURTURE_SEQUENCES.find((s) => s.id === 'seq_agency_funnel')!;
   }
-  if (path.includes('specialist-apply') || path.includes('specialist_apply')) {
+  if (
+    path.includes('specialist-apply') ||
+    path.includes('specialist_apply') ||
+    path.includes('credit-specialist')
+  ) {
     return NURTURE_SEQUENCES.find((s) => s.id === 'seq_specialist_apply_funnel')!;
   }
   if (path.includes('affiliate')) {

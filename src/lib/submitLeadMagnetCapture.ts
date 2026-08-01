@@ -8,6 +8,8 @@ import { getLeadAttribution } from './leadAttribution';
 import { saveAgentHandoff } from './agentHandoffBridge';
 import { startLeadMagnetTrial } from './leadMagnetTrial';
 import { findFreeGuideById } from '../resources/freeGuides';
+import { addLeadTags } from '../data/leadOpsRepo';
+import { isCreditSpecialistLeadOffer } from './leadOfferLabels';
 
 export type LeadMagnetCaptureInput = {
   funnelConfig: LeadMagnetFunnelConfig;
@@ -32,6 +34,7 @@ export function goalForFunnelConfig(config: LeadMagnetFunnelConfig): LeadGoal {
   if (config.id === 'business' || config.id === 'agency') return 'business';
   if (config.id === 'tradeline') return 'tradelines';
   if (config.id === 'score_roadmap') return 'credit';
+  if (config.id === 'credit_specialist_guide' || config.id === 'specialist_apply') return 'credit';
   return 'credit';
 }
 
@@ -82,6 +85,17 @@ export async function submitLeadMagnetCapture(args: LeadMagnetCaptureInput): Pro
   });
   if (attr?.referralCode) {
     addLeadNote(result.lead.id, `Referral: ${attr.referralCode}`);
+  }
+  if (isCreditSpecialistLeadOffer(args.funnelConfig.offer)) {
+    addLeadTags(result.lead.id, [
+      'credit-specialist',
+      `offer:${args.funnelConfig.offer}`,
+      `funnel:${args.funnelConfig.funnelId}`,
+    ]);
+    addLeadNote(
+      result.lead.id,
+      `Credit Specialist funnel capture · offer ${args.funnelConfig.offer} · next: /credit-specialist/join (3 leads · 30-day free-leads window)`,
+    );
   }
   recordFunnelConversion(args.funnelConfig.funnelId, abVariant);
 

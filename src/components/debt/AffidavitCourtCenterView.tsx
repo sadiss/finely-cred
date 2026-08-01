@@ -13,6 +13,7 @@ import { CourtAdvisorChat } from './CourtAdvisorChat';
 import { LetterCatalogBrowser } from './LetterCatalogBrowser';
 import { PartnerDefenseKnowledgePanel } from './PartnerDefenseKnowledgePanel';
 import { LitigationDocScraperChat } from './LitigationDocScraperChat';
+import { ExtractedCourtFactsPanel } from './ExtractedCourtFactsPanel';
 import { SCENARIO_RECOMMENDATIONS } from '../../legal/debtLetterTemplates';
 import { getCourtroomDayKitGuidance } from '../../legal/courtroomPackBodies';
 import { buildSummonsAffidavitContext } from '../../lib/debtCreditorIntel';
@@ -26,6 +27,13 @@ import {
   type LitigationStageId,
 } from '../../lib/litigationHearingPlan';
 import { isRooseveltCourtPartner } from '../../data/rooseveltCourtPartnerSeed';
+import type { PartnerCourtOutcome } from '../../domain/courtOutcomes';
+import {
+  confirmCourtPlanPayment,
+  getCourtOutcomeByDebtCase,
+  setCourtOutcomeOrderOnFile,
+} from '../../data/courtOutcomeRepo';
+import { PartnerCourtOutcomePanel } from './PartnerCourtOutcomePanel';
 import { getDebtBuyerCaseIntel } from '../../legal/litigation/debtBuyerCaseIntelligence';
 import { buildIntelligentLetterSuggestions } from '../../lib/intelligentLetterSuggestions';
 import { letterGenerateCtaLabel } from '../../lib/letterProductLabels';
@@ -36,6 +44,7 @@ import {
   FINELY_OS_ENTITY_BODY,
   FINELY_OS_ENTITY_SUBLABEL,
   FINELY_OS_ENTITY_TITLE,
+  FINELY_OS_ENTITY_VALUE,
   FINELY_OS_FIELD_WIDTH_SM,
   FINELY_OS_PRIMARY_BTN,
   FINELY_OS_SECONDARY_BTN,
@@ -185,6 +194,15 @@ export function AffidavitCourtCenterView({
   const [builtAnswer, setBuiltAnswer] = useState(false);
   const [builtAffidavit, setBuiltAffidavit] = useState(false);
   const [hearingKitOpen, setHearingKitOpen] = useState(false);
+
+  // Once a matter ends in a payment plan, the plan — not the pipeline — is the main event.
+  const [courtOutcome, setCourtOutcome] = useState<PartnerCourtOutcome | null>(() =>
+    debt?.id ? getCourtOutcomeByDebtCase(debt.id) : null,
+  );
+
+  useEffect(() => {
+    setCourtOutcome(debt?.id ? getCourtOutcomeByDebtCase(debt.id) : null);
+  }, [debt?.id]);
 
   useEffect(() => {
     if (!stageFromQuery) return;
@@ -396,13 +414,17 @@ export function AffidavitCourtCenterView({
               <Gavel size={13} /> Litigation Command · Step {active.n} of {PIPELINE.length}
             </div>
             <div className="mt-1 flex flex-wrap items-baseline gap-x-3 gap-y-1">
-              <span className="text-3xl font-black tracking-tight text-white">{countdown}</span>
+              <span className="text-3xl font-black tracking-tight text-white">
+                {courtOutcome ? 'Matter decided' : countdown}
+              </span>
               <span className={`text-xs ${FINELY_OS_ENTITY_BODY}`}>
                 Hearing <span className="text-white/90 font-semibold">{hearingIso || 'not set'}</span>
                 {buyerIntel.patternId !== 'unknown' ? ` · ${buyerIntel.label}` : ''}
               </span>
             </div>
-            <p className={`mt-1 text-sm font-semibold text-amber-100/95`}>Next: {nextActionPlain}</p>
+            <p className={`mt-1 text-sm font-semibold text-amber-100/95`}>
+              Next: {courtOutcome ? 'Work the payment plan below — every payment needs a receipt' : nextActionPlain}
+            </p>
             <p className={`mt-1 text-xs max-w-2xl ${FINELY_OS_ENTITY_BODY}`}>{buyerIntel.doNowOneLiner}</p>
             {step === 2 ? (
               <button
@@ -478,8 +500,48 @@ export function AffidavitCourtCenterView({
         </div>
       </section>
 
+      {courtOutcome ? (
+        <div className="fc-lit-in">
+          <PartnerCourtOutcomePanel
+            outcome={courtOutcome}
+            onConfirmPayment={(dueIso) => {
+              const next = confirmCourtPlanPayment(courtOutcome.id, dueIso);
+              if (next) setCourtOutcome(next);
+            }}
+            onMarkOrderOnFile={() => {
+              const next = setCourtOutcomeOrderOnFile(courtOutcome.id, true);
+              if (next) setCourtOutcome(next);
+            }}
+          />
+        </div>
+      ) : null}
+
+      {/*
+       * Pre-hearing pipeline. Collapsed by default once a court outcome is on file —
+       * the outcome panel above becomes the primary next-step surface, and this pipeline
+       * stays reachable only for building extra letters (e.g. a payment-history request).
+       */}
+      <details open={!courtOutcome} className="fc-lit-in group space-y-2">
+        {courtOutcome ? (
+          <summary className={`cursor-pointer select-none list-none ${finelyOsCatalogCardCompact('sky')} !p-3`}>
+            <div className="flex items-center justify-between gap-3">
+              <div className="min-w-0">
+                <div className={`${FINELY_OS_ENTITY_SUBLABEL} text-sky-200/90`}>Pre-hearing tools (optional)</div>
+                <div className={`mt-0.5 text-sm font-semibold ${FINELY_OS_ENTITY_VALUE}`}>
+                  Litigation pipeline — build extra letters or review what was filed
+                </div>
+              </div>
+              <span className="shrink-0 text-[10px] uppercase tracking-widest text-white/40 group-open:text-sky-300/80">
+                Expand
+              </span>
+            </div>
+          </summary>
+        ) : (
+          <summary className="hidden" />
+        )}
+
       {/* Numbered path — tap to jump; only current step body below */}
-      <div className="fc-lit-in space-y-2">
+      <div className="fc-lit-in space-y-2 mt-2">
         <div className="text-[10px] uppercase tracking-widest text-white/45 px-1">Your easy path (do in order)</div>
         <div className="grid grid-cols-5 gap-1.5">
           {PIPELINE.map((j, idx) => {
@@ -592,6 +654,7 @@ export function AffidavitCourtCenterView({
                 </ul>
               </div>
             </div>
+            <ExtractedCourtFactsPanel debt={debt} summonsContext={summonsCtx} />
             <DebtCreditorIntelPanel
               partnerId={debt?.partnerId || debtCases[0]?.partnerId || partner?.id || ''}
               debt={debt}
@@ -611,6 +674,7 @@ export function AffidavitCourtCenterView({
         {/* STEP 3 — Ranked letter suggestions + one-tap answer / affidavit */}
         {step === 2 ? (
           <div className="space-y-3">
+            <ExtractedCourtFactsPanel debt={debt} summonsContext={summonsCtx} compact />
             <div className="rounded-xl border border-fuchsia-400/25 bg-fuchsia-500/10 px-3 py-2 space-y-1">
               <p className="text-sm font-semibold text-white">{buyerIntel.label}</p>
               <p className={`text-xs ${FINELY_OS_ENTITY_BODY}`}>{buyerIntel.doNowOneLiner}</p>
@@ -809,6 +873,7 @@ export function AffidavitCourtCenterView({
           </div>
         </div>
       </section>
+      </details>
 
       {/* Case picker — compact, not competing */}
       <div className="flex flex-wrap items-end gap-3 px-1">
@@ -862,21 +927,24 @@ export function AffidavitCourtCenterView({
         </div>
       </details>
 
-      {/* Sticky bottom Continue — impossible to miss */}
-      <div className="sticky bottom-2 z-20 fc-lit-in">
-        <div className="rounded-2xl border border-amber-400/50 bg-black/90 backdrop-blur-md px-4 py-3 flex flex-wrap items-center justify-between gap-3 shadow-[0_10px_48px_-12px_rgba(0,0,0,0.9)]">
-          <div className="min-w-0">
-            <div className="text-[10px] uppercase tracking-widest text-amber-200/80">Do this next</div>
-            <div className="text-sm font-bold text-white truncate">
-              Step {active.n}: {active.title}
+      {/* Sticky bottom Continue — impossible to miss. Hidden once a court outcome is on
+          file, since the pipeline CTA above no longer names the real next step. */}
+      {!courtOutcome ? (
+        <div className="sticky bottom-2 z-20 fc-lit-in">
+          <div className="rounded-2xl border border-amber-400/50 bg-black/90 backdrop-blur-md px-4 py-3 flex flex-wrap items-center justify-between gap-3 shadow-[0_10px_48px_-12px_rgba(0,0,0,0.9)]">
+            <div className="min-w-0">
+              <div className="text-[10px] uppercase tracking-widest text-amber-200/80">Do this next</div>
+              <div className="text-sm font-bold text-white truncate">
+                Step {active.n}: {active.title}
+              </div>
+              <div className={`text-[11px] truncate ${FINELY_OS_ENTITY_BODY}`}>{nextActionPlain}</div>
             </div>
-            <div className={`text-[11px] truncate ${FINELY_OS_ENTITY_BODY}`}>{nextActionPlain}</div>
+            <button type="button" className={`${FINELY_OS_PRIMARY_BTN}`} onClick={runPrimaryContinue}>
+              {primaryLabel.includes('Drop') ? 'Drop file' : 'Continue'} <ArrowRight size={18} />
+            </button>
           </div>
-          <button type="button" className={`${FINELY_OS_PRIMARY_BTN}`} onClick={runPrimaryContinue}>
-            {primaryLabel.includes('Drop') ? 'Drop file' : 'Continue'} <ArrowRight size={18} />
-          </button>
         </div>
-      </div>
+      ) : null}
 
       <p className="text-center text-[9px] text-white/30">
         <Link to="/portal/escalations?tab=regulatory" className="underline hover:text-white/50">

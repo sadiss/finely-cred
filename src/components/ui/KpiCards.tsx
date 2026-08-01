@@ -119,9 +119,11 @@ export function KpiCard({
         ? 'border-sky-500/20 bg-sky-500/5'
         : tone === 'violet'
           ? 'border-violet-500/20 bg-violet-500/5'
-          : tone === 'fuchsia' || tone === 'amber'
-            ? 'border-fuchsia-500/20 bg-fuchsia-500/5'
-            : 'border-violet-500/20 bg-violet-500/5';
+          : tone === 'amber'
+            ? 'border-amber-500/25 bg-amber-500/5'
+            : tone === 'fuchsia'
+              ? 'border-fuchsia-500/20 bg-fuchsia-500/5'
+              : 'border-violet-500/20 bg-violet-500/5';
   const stroke =
     tone === 'emerald'
       ? 'rgba(16,185,129,0.9)'
@@ -129,9 +131,11 @@ export function KpiCard({
         ? 'rgba(56,189,248,0.9)'
         : tone === 'violet'
           ? 'rgba(167,139,250,0.9)'
-          : tone === 'fuchsia' || tone === 'amber'
-            ? 'rgba(217,70,239,0.9)'
-            : 'rgba(167,139,250,0.9)';
+          : tone === 'amber'
+            ? 'rgba(245,158,11,0.9)'
+            : tone === 'fuchsia'
+              ? 'rgba(217,70,239,0.9)'
+              : 'rgba(167,139,250,0.9)';
 
   return (
     <button

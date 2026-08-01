@@ -1,4 +1,5 @@
 import type { Bureau, ParsedTradeline, PaymentHistory2Y, TradelineRow } from '../domain/creditReports';
+import { looksLikeMailingAddress, looksLikePhone } from './creditorContactExtract';
 
 function parseMoney(s: string | undefined): number | null {
   if (!s) return null;
@@ -25,6 +26,49 @@ function findField(t: ParsedTradeline, ...labels: string[]): TradelineRow | unde
   for (const label of labels) {
     const row = t.fields.find((f) => lower(f.label).includes(lower(label)));
     if (row) return row;
+  }
+  return undefined;
+}
+
+/** Prefer real mailing/contact address rows; never treat "Original Creditor" name as an address. */
+function findCreditorAddressField(t: ParsedTradeline): TradelineRow | undefined {
+  const preferred = [
+    'creditor address',
+    'collector address',
+    'mailing address',
+    'contact address',
+    'subscriber address',
+    'furnisher address',
+    'business address',
+  ];
+  for (const label of preferred) {
+    const row = findField(t, label);
+    const v = firstValue(row);
+    if (v && (looksLikeMailingAddress(v) || /\d/.test(v))) return row;
+  }
+  for (const f of t.fields || []) {
+    const s = (f.label || '').toLowerCase();
+    if (!s.includes('address')) continue;
+    if (/previous|former|prior|consumer|borrower|personal|employer/.test(s)) continue;
+    const v = firstValue(f);
+    if (v && (looksLikeMailingAddress(v) || (/\d/.test(v) && v.length >= 8))) return f;
+  }
+  return undefined;
+}
+
+function findCreditorPhoneField(t: ParsedTradeline): TradelineRow | undefined {
+  const preferred = ['creditor phone', 'collector phone', 'customer service', 'telephone', 'phone number'];
+  for (const label of preferred) {
+    const row = findField(t, label);
+    const v = firstValue(row);
+    if (v && looksLikePhone(v)) return row;
+  }
+  for (const f of t.fields || []) {
+    const s = (f.label || '').toLowerCase();
+    if (!/\bphone\b|telephone/.test(s)) continue;
+    if (/consumer|borrower|personal|home|mobile|cell/.test(s)) continue;
+    const v = firstValue(f);
+    if (v && looksLikePhone(v)) return f;
   }
   return undefined;
 }
@@ -105,9 +149,9 @@ export function enrichParsedTradeline(t: ParsedTradeline): ParsedTradeline {
 
   const acctNum = getVal('account #', 'account number', 'account no');
   if (acctNum) out.accountNumberMasked = maskAccount(acctNum);
-  const addr = getVal('creditor address', 'address', 'creditor');
+  const addr = firstValue(findCreditorAddressField(t));
   if (addr) out.creditorAddress = addr;
-  const phone = getVal('creditor phone', 'phone', 'telephone', 'customer service');
+  const phone = firstValue(findCreditorPhoneField(t));
   if (phone) out.creditorPhone = phone;
 
   const bureaus: Bureau[] = ['TUC', 'EXP', 'EQF'];

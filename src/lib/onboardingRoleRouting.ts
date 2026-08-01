@@ -103,6 +103,8 @@ const CAREER_PATH_ROLE: Record<string, OnboardingRole | 'agency'> = {
   '/credit-specialist/onboarding': 'agent',
   '/agency-partners': 'agency',
   '/affiliate': 'affiliate',
+  '/careers/real-estate': 'affiliate',
+  '/real-estate-partners': 'affiliate',
   '/au-sellers': 'au_seller',
   '/seller/dashboard': 'au_seller',
   '/seller/hub': 'au_seller',
@@ -112,7 +114,7 @@ const CAREER_PATH_ROLE: Record<string, OnboardingRole | 'agency'> = {
 function roleFromCareerId(id: string | undefined): OnboardingRole | 'agency' | '' {
   if (!id) return '';
   if (id === 'au_sellers' || id === 'au-seller') return 'au_seller';
-  if (id === 'affiliates' || id === 'affiliate') return 'affiliate';
+  if (id === 'affiliates' || id === 'affiliate' || id === 'real_estate') return 'affiliate';
   if (id === 'agency_partners') return 'agency';
   if (id === 'credit_specialists' || id === 'specialists' || id === 'agents') return 'agent';
   return '';

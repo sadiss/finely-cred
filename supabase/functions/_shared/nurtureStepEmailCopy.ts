@@ -112,6 +112,74 @@ export function buildNurtureStepEmail(args: {
         return { subject: subjectDefault, text: `Hi ${firstName},\n\nYour tradeline package is active — complete intake in your portal.` };
       case 'tradeline_posting_reminder':
         return { subject: subjectDefault, text: `Hi ${firstName},\n\nTime to re-pull your credit report — tradelines often post 30–45 days after enrollment.` };
+      case 'strategy_session_welcome':
+        return { subject: subjectDefault, text: `Hi ${firstName},\n\nThank you for booking a Finely strategy call. Have your latest report, top 3 goals, and funding timeline ready.` };
+      case 'agency_signup_welcome':
+        return { subject: subjectDefault, text: `Hi ${firstName},\n\nYour agency workspace is live. Configure branding and partner intake today.` };
+      case 'lead_magnet_welcome_au_seller':
+        return { subject: subjectDefault, text: `Hi ${firstName},\n\nYour AU seller workspace is ready. Review compliance before your first listing.` };
+      case 'invoice_sent':
+        return { subject: subjectDefault, text: `Hi ${firstName},\n\nYour Finely Cred invoice is ready in the portal billing section.` };
+      case 'invoice_reminder':
+        return { subject: subjectDefault, text: `Hi ${firstName},\n\nFriendly reminder — an open invoice is waiting in your portal billing section.` };
+      case 'cold_prospect_d0':
+        return { subject: subjectDefault, text: `Hi ${firstName},\n\nI came across your company and thought Finely Cred's partner path might fit.\n\nBook: ${session}\n\nReply STOP or use unsubscribe below anytime.` };
+      case 'cold_prospect_d2':
+        return { subject: subjectDefault, text: `Hi ${firstName},\n\nTwo-minute next step: skim partner one-sheets, then book if it clicks.\n\n${session}` };
+      case 'cold_prospect_d5':
+        return { subject: subjectDefault, text: `Hi ${firstName},\n\nSharing the partner offer overview again — no pressure.\n\nBook when ready: ${session}` };
+      case 'cold_prospect_d7':
+        return { subject: subjectDefault, text: `Hi ${firstName},\n\nLast note from this sequence — grab a free strategy session if useful.\n\n${session}` };
+      case 'offer_pack_send':
+        return { subject: subjectDefault, text: `Hi ${firstName},\n\nHere is your partner offer pack.\n\nBook: ${session}` };
+      case 'offer_pack_followup':
+        return { subject: subjectDefault, text: `Hi ${firstName},\n\nAny questions on the offer pack? Reply or book: ${session}` };
+      case 'booked_session_confirm':
+        return { subject: subjectDefault, text: `Hi ${firstName},\n\nYou are booked for a Finely strategy session. Have your latest report and top 3 goals ready.` };
+      case 'booked_session_prep':
+        return { subject: subjectDefault, text: `Hi ${firstName},\n\nPrep checklist: (1) latest credit report, (2) top 3 goals, (3) collector or court letters.` };
+      case 'partner_onboard_welcome':
+        return { subject: subjectDefault, text: `Hi ${firstName},\n\nWelcome, partner. Your portal is ready — start with intake, then upload a report when you have one.\n\nResults vary · not legal advice · not income guarantees.` };
+      case 'partner_onboard_day3':
+        return { subject: subjectDefault, text: `Hi ${firstName},\n\nDay 3 tip: finish intake, upload evidence/report, open Ask Finely if stuck.\n\nResults vary · not legal advice.` };
+      case 'partner_onboard_day7':
+        return { subject: subjectDefault, text: `Hi ${firstName},\n\nWeek-1 checklist: confirm goals, review the restore command strip, queue your first letter draft if ready.\n\nResults vary · not legal advice.` };
+      case 'partner_onboard_day14':
+        return { subject: subjectDefault, text: `Hi ${firstName},\n\nMid-month check-in: open your dashboard for the next obvious step.\n\nBook: ${session}\n\nResults vary · not legal advice.` };
+      case 'partner_onboard_day21':
+        return { subject: subjectDefault, text: `Hi ${firstName},\n\nEducation tip: prioritize utilization and accurate reporting dates before stacking new products.\n\nResults vary · not legal advice · not income guarantees.` };
+      case 'partner_onboard_day30':
+        return { subject: subjectDefault, text: `Hi ${firstName},\n\n30-day wrap — book a free session if helpful:\n\n${session}\n\nResults vary · not legal advice · not income guarantees.` };
+      case 'partner_edu_m1':
+        return { subject: subjectDefault, text: `Hi ${firstName},\n\nPartner education: utilization and reporting cycles.\n\nResults vary · not legal advice · not income guarantees.` };
+      case 'partner_edu_m2':
+        return { subject: subjectDefault, text: `Hi ${firstName},\n\nPartner education: disputes vs documentation — use factual findings from bureau screenshots.\n\nResults vary · not legal advice.` };
+      case 'partner_edu_m3':
+        return { subject: subjectDefault, text: `Hi ${firstName},\n\nPartner education: funding readiness basics.\n\nFunding subject to underwriting · results vary · not legal advice · not income guarantees.` };
+      case 'partner_edu_m4':
+        return { subject: subjectDefault, text: `Hi ${firstName},\n\nPartner education: business credit sequencing.\n\nResults vary · not legal advice · not income guarantees.` };
+      case 'partner_birthday':
+        return { subject: subjectDefault, text: `Hi ${firstName},\n\nHappy birthday from the Finely Cred team.\n\nResults vary · not legal advice · not income guarantees.` };
+      case 'partner_opp_au_intro':
+        return { subject: subjectDefault, text: `Hi ${firstName},\n\nOptional opportunity: authorized-user tradelines — no outcome guaranteed.\n\nBook: ${session}\n\nResults vary · not legal advice · not income guarantees.` };
+      case 'partner_opp_au_day3':
+        return { subject: subjectDefault, text: `Hi ${firstName},\n\nAU tip: posting windows, account age, and utilization matter. Educational only.\n\nResults vary · not legal advice · not income guarantees.` };
+      case 'partner_opp_au_day7':
+        return { subject: subjectDefault, text: `Hi ${firstName},\n\nQuestions on AU? Book a free session:\n\n${session}\n\nResults vary · not legal advice · not income guarantees.` };
+      case 'partner_opp_aff_intro':
+        return { subject: subjectDefault, text: `Hi ${firstName},\n\nOptional opportunity: partner affiliate toolkit. Income is not guaranteed.\n\nResults vary · not legal advice · not income guarantees.` };
+      case 'partner_opp_aff_day3':
+        return { subject: subjectDefault, text: `Hi ${firstName},\n\nAffiliate tip: partner-first wording, never promise scores or earnings.\n\nResults vary · not legal advice · not income guarantees.` };
+      case 'partner_opp_aff_day7':
+        return { subject: subjectDefault, text: `Hi ${firstName},\n\nAffiliate Q&A — book a short call:\n\n${session}\n\nResults vary · not legal advice · not income guarantees.` };
+      case 'specialist_keepwarm_welcome':
+        return { subject: subjectDefault, text: `Hi ${firstName},\n\nCredit Specialist keep-warm: focus on pipeline hygiene and factual findings first.\n\nResults vary · not legal advice · not income guarantees.` };
+      case 'specialist_keepwarm_day14':
+        return { subject: subjectDefault, text: `Hi ${firstName},\n\nSpecialist tip: clear stalled tasks before adding new partners.\n\nResults vary · not legal advice · not income guarantees.` };
+      case 'specialist_keepwarm_day30':
+        return { subject: subjectDefault, text: `Hi ${firstName},\n\nPlaybook refresh: cite what is visible on bureau screenshots.\n\nResults vary · not legal advice.` };
+      case 'specialist_keepwarm_day60':
+        return { subject: subjectDefault, text: `Hi ${firstName},\n\nKeep-warm check-in for active specialists.\n\n${session}\n\nResults vary · not legal advice · not income guarantees.` };
       default:
         return { subject: subjectDefault, text: `Hi ${firstName},\n\nFollow-up from ${args.sequence.name}.` };
     }

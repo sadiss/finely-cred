@@ -6,12 +6,15 @@ import {
   BookOpen,
   ChevronLeft,
   ChevronRight,
+  Download,
+  ExternalLink,
   List,
+  MessagesSquare,
   Sparkles,
   X,
 } from 'lucide-react';
-import { LeadMagnetCobrand } from '../../components/brand/LeadMagnetCobrand';
 import { usePublicSeoMeta } from '../../hooks/usePublicSeoMeta';
+import { downloadCreditSpecialistOneSheet } from '../../resources/buildCreditSpecialistOneSheetPdf';
 import '../../components/leadmagnet/leadMagnetLuxuryStage.css';
 import {
   CS_GUIDE_CHAPTERS,
@@ -23,6 +26,7 @@ import {
   type CreditSpecialistGuideChapter,
 } from './creditSpecialistGuideContent';
 import './creditSpecialistGuideLanding.css';
+import './creditSpecialistBinder.css';
 
 function cn(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(' ');
@@ -51,6 +55,56 @@ function ChapterBody({ chapter }: { chapter: CreditSpecialistGuideChapter }) {
               ))}
             </ul>
           ) : null}
+          {sec.script ? (
+            <div className="csg-script">
+              <div className="csg-script-label">
+                <MessagesSquare size={12} /> {sec.script.label}
+              </div>
+              {sec.script.lines.map((line) => (
+                <div
+                  key={line.text.slice(0, 48)}
+                  className={cn('csg-script-line', `csg-script-line--${line.speaker}`)}
+                >
+                  <span className="csg-script-who">{line.speaker === 'you' ? 'You' : 'Partner'}</span>
+                  <span className="csg-script-text">{line.text}</span>
+                </div>
+              ))}
+            </div>
+          ) : null}
+
+          {sec.checklist ? (
+            <div className="csg-checklist">
+              <div className="csg-checklist-label">{sec.checklist.label}</div>
+              <div className="mt-2">
+                {sec.checklist.items.map((item) => (
+                  <div key={item.slice(0, 48)} className="csg-checklist-item">
+                    <span className="csg-checkbox" aria-hidden />
+                    <span className="csg-script-text">{item}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : null}
+
+          {sec.resources?.length ? (
+            <div className="csg-resources">
+              {sec.resources.map((res) => (
+                <a
+                  key={res.href}
+                  href={res.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="csg-resource"
+                >
+                  <span className="csg-resource-label">
+                    {res.label} <ExternalLink size={12} />
+                  </span>
+                  {res.note ? <span className="csg-resource-note">{res.note}</span> : null}
+                </a>
+              ))}
+            </div>
+          ) : null}
+
           {sec.callout ? (
             <aside className="csg-callout mt-5 rounded-r-xl px-4 py-3 text-sm leading-relaxed">{sec.callout}</aside>
           ) : null}
@@ -64,6 +118,7 @@ export default function CreditSpecialistGuideReaderPage() {
   const navigate = useNavigate();
   const [params, setParams] = useSearchParams();
   const [tocOpen, setTocOpen] = useState(false);
+  const [downloading, setDownloading] = useState(false);
 
   const initialIdx = useMemo(() => {
     const q = params.get('chapter') ?? '';
@@ -100,12 +155,21 @@ export default function CreditSpecialistGuideReaderPage() {
     setTocOpen(false);
   };
 
+  const onDownloadOneSheet = async () => {
+    setDownloading(true);
+    try {
+      await downloadCreditSpecialistOneSheet();
+    } finally {
+      setDownloading(false);
+    }
+  };
+
   return (
-    <main className="csg-page csg-reader-shell lm-lux-theme--navy relative overflow-x-hidden selection:bg-[#d4a447]/30">
+    <main className="csg-page csg-reader-shell csg-binder relative overflow-x-hidden selection:bg-[#c99b48]/30">
       <div className="csg-atmosphere pointer-events-none fixed inset-0 z-0" aria-hidden />
       <div className="lm-lux-grain lm-lux-grain--fixed pointer-events-none" aria-hidden />
 
-      <header className="csg-reader-nav sticky top-0 z-50">
+      <header className="csg-reader-nav sticky z-40" style={{ top: 'calc(env(safe-area-inset-top, 0px) + 4.25rem)' }}>
         <div className="csg-progress">
           <span style={{ width: `${progress}%` }} />
         </div>
@@ -118,9 +182,9 @@ export default function CreditSpecialistGuideReaderPage() {
             >
               <ArrowLeft size={14} /> Landing
             </button>
-            <div className="hidden min-w-0 sm:block">
-              <LeadMagnetCobrand size="sm" showPartnerLabel={false} />
-            </div>
+            <span className="hidden truncate text-[11px] font-bold uppercase tracking-[0.14em] text-white/45 sm:inline">
+              Specialist e-guide
+            </span>
           </div>
           <div className="flex items-center gap-2">
             <button
@@ -131,11 +195,19 @@ export default function CreditSpecialistGuideReaderPage() {
             >
               {tocOpen ? <X size={14} /> : <List size={14} />} Chapters
             </button>
+            <button
+              type="button"
+              onClick={() => void onDownloadOneSheet()}
+              disabled={downloading}
+              className="csg-nav-cta hidden items-center gap-1.5 rounded-lg px-3 py-2 text-[10px] font-bold uppercase tracking-[0.12em] text-[#e8c96a] sm:inline-flex"
+            >
+              <Download size={14} /> {downloading ? '…' : 'One-sheet'}
+            </button>
             <Link
               to={CS_JOIN_PATH}
-              className="csg-gold-btn inline-flex h-10 items-center justify-center rounded-lg px-4 text-[10px] font-black uppercase tracking-[0.14em]"
+              className="csg-ghost-btn inline-flex h-10 items-center justify-center rounded-lg px-3.5 text-[10px] font-black uppercase tracking-[0.14em]"
             >
-              Join program
+              Join
             </Link>
           </div>
         </div>
@@ -173,30 +245,40 @@ export default function CreditSpecialistGuideReaderPage() {
         </aside>
 
         <div className="min-w-0">
-          <article className="csg-article rounded-[1.35rem] p-5 md:p-8 lg:p-10">
-            <div className="flex flex-wrap items-center gap-2 text-[11px] font-black uppercase tracking-[0.18em]">
-              <span className={cn(`csg-accent-${chapter.accent}`)}>Chapter {chapter.number}</span>
-              <span className="text-white/25">·</span>
-              <span className="text-white/45">
-                {chapterIdx + 1} of {CS_GUIDE_CHAPTERS.length}
-              </span>
+          <article
+            key={chapter.id}
+            className="csg-article csg-binder-animate-page rounded-[1.35rem] p-5 md:p-8 md:pl-14 lg:p-10 lg:pl-16"
+          >
+            <div className="flex items-start gap-4">
+              <div className="csg-binder-stamp csg-binder-animate-stamp" aria-hidden>
+                <span className="csg-binder-stamp-num">{chapter.number}</span>
+                <span className="csg-binder-stamp-label">Chapter</span>
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="csg-binder-lane">{chapter.kicker}</span>
+                  <span className="csg-binder-meta">
+                    {chapterIdx + 1} of {CS_GUIDE_CHAPTERS.length}
+                  </span>
+                </div>
+                <h1 className="csg-serif mt-2.5 text-3xl font-semibold leading-tight tracking-[-0.02em] md:text-4xl lg:text-[2.6rem]">
+                  {chapter.title}
+                </h1>
+              </div>
             </div>
-            <h1 className="csg-serif mt-3 text-3xl font-semibold leading-tight tracking-[-0.02em] text-white md:text-4xl lg:text-[2.75rem]">
-              {chapter.title}
-            </h1>
-            <p className="mt-3 max-w-2xl text-base leading-relaxed text-white/58 md:text-lg">{chapter.subtitle}</p>
+            <p className="mt-3 max-w-2xl text-base leading-relaxed md:text-lg">{chapter.subtitle}</p>
             <div className="lm-lux-rule--short lm-lux-rule--draw mt-5" aria-hidden />
 
             <div className="mt-8">
               <ChapterBody chapter={chapter} />
             </div>
 
-            <div className="mt-8 flex flex-wrap items-center justify-between gap-3 border-t border-white/10 pt-6">
+            <div className="mt-8 flex flex-wrap items-center justify-between gap-3 border-t border-[#e3dac6] pt-6">
               <button
                 type="button"
                 disabled={chapterIdx <= 0}
                 onClick={() => goChapter(chapterIdx - 1)}
-                className="inline-flex h-11 items-center gap-2 rounded-lg border border-white/12 bg-white/[0.04] px-4 text-[11px] font-black uppercase tracking-[0.12em] text-white/75 transition hover:border-[#d4a447]/40 disabled:cursor-not-allowed disabled:opacity-35"
+                className="inline-flex h-11 items-center gap-2 rounded-lg border border-[#e3dac6] bg-white/60 px-4 text-[11px] font-black uppercase tracking-[0.12em] text-[#4a4234] transition hover:border-[#a8792a]/60 disabled:cursor-not-allowed disabled:opacity-35"
               >
                 <ChevronLeft size={16} /> Previous
               </button>
@@ -212,41 +294,50 @@ export default function CreditSpecialistGuideReaderPage() {
                 </button>
               ) : (
                 <Link
-                  to={CS_JOIN_PATH}
+                  to={CS_GUIDE_PATH}
                   className="csg-gold-btn inline-flex h-11 items-center gap-2 rounded-lg px-5 text-[11px] font-black uppercase tracking-[0.12em]"
                 >
                   <span className="relative z-10 flex items-center gap-2">
-                    View pricing & join <ArrowRight size={16} />
+                    Back to landing <ArrowRight size={16} />
                   </span>
                 </Link>
               )}
             </div>
           </article>
 
-          {/* End-of-chapter opportunity strip */}
+          {/* End-of-chapter strip — join stays secondary */}
           <div className="csg-cta-panel mt-5 rounded-2xl p-5 md:p-6">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <div className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-[#95e000]">
-                  <Sparkles size={14} /> Ready for the program?
+                  <Sparkles size={14} /> Keep reading freely
                 </div>
                 <p className="mt-2 text-sm text-white/60">
-                  Keep reading — or open pricing & signup at <span className="text-[#f0cc75]">{CS_JOIN_PATH}</span>
+                  This e-guide is separate from signup. Download the one-sheet anytime — join only when you want the
+                  program at <span className="text-[#f0cc75]">{CS_JOIN_PATH}</span>
                 </p>
                 <p className="csg-compliance mt-2">{CS_GUIDE_META.compliance}</p>
               </div>
               <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => void onDownloadOneSheet()}
+                  disabled={downloading}
+                  className="csg-ghost-btn inline-flex h-10 items-center justify-center gap-1.5 rounded-lg px-4 text-[10px] font-black uppercase tracking-[0.12em]"
+                >
+                  <Download size={14} /> {downloading ? 'Building…' : 'One-sheet'}
+                </button>
                 <Link
                   to={CS_GUIDE_PATH}
                   className="csg-ghost-btn inline-flex h-10 items-center justify-center rounded-lg px-4 text-[10px] font-black uppercase tracking-[0.12em]"
                 >
-                  Back to landing
+                  Landing
                 </Link>
                 <Link
                   to={CS_JOIN_PATH}
-                  className="csg-gold-btn inline-flex h-10 items-center justify-center rounded-lg px-4 text-[10px] font-black uppercase tracking-[0.12em]"
+                  className="inline-flex h-10 items-center justify-center rounded-lg px-3 text-[10px] font-bold uppercase tracking-[0.12em] text-white/45 transition hover:text-[#f0cc75]"
                 >
-                  <span className="relative z-10">Join as Credit Specialist</span>
+                  Join →
                 </Link>
               </div>
             </div>

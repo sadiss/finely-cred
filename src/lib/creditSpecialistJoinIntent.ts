@@ -23,17 +23,26 @@ export type CreditSpecialistJoinIntent = {
   monthlyLeadsEstimate?: number;
   leadId?: string;
   createdAt: string;
+  /** Digital invite card join bonus — 1 fewer lead required to unlock full access. */
+  digitalCardBonusLeadCredit?: boolean;
 };
+
+/** Effective lead minimum after applying the digital-card join bonus (never below 1). */
+export function minLeadsRequiredWithBonus(digitalCardBonusLeadCredit?: boolean): number {
+  return digitalCardBonusLeadCredit ? Math.max(1, CS_OFFER.minLeadsRequired - 1) : CS_OFFER.minLeadsRequired;
+}
 
 export function defaultCreditSpecialistJoinIntent(
   partial?: Partial<CreditSpecialistJoinIntent>,
 ): CreditSpecialistJoinIntent {
+  const digitalCardBonusLeadCredit = partial?.digitalCardBonusLeadCredit ?? false;
   return {
-    minLeadsRequired: CS_OFFER.minLeadsRequired,
+    minLeadsRequired: minLeadsRequiredWithBonus(digitalCardBonusLeadCredit),
     freeLeadsWindowDays: CS_OFFER.freeLeadsWindowDays,
     committedMinLeads: false,
     understoodFreeLeadsWindow: false,
     tierId: '',
+    digitalCardBonusLeadCredit,
     createdAt: new Date().toISOString(),
     ...partial,
   };
@@ -53,10 +62,12 @@ export function loadCreditSpecialistJoinIntent(): CreditSpecialistJoinIntent | n
     if (!raw) return null;
     const parsed = JSON.parse(raw) as CreditSpecialistJoinIntent;
     if (!parsed || typeof parsed !== 'object') return null;
+    const digitalCardBonusLeadCredit = Boolean(parsed.digitalCardBonusLeadCredit);
     return {
       ...defaultCreditSpecialistJoinIntent(),
       ...parsed,
-      minLeadsRequired: CS_OFFER.minLeadsRequired,
+      digitalCardBonusLeadCredit,
+      minLeadsRequired: minLeadsRequiredWithBonus(digitalCardBonusLeadCredit),
       freeLeadsWindowDays: CS_OFFER.freeLeadsWindowDays,
     };
   } catch {
@@ -79,6 +90,7 @@ export function formatCreditSpecialistJoinIntentNote(intent: CreditSpecialistJoi
     `Min leads commitment: ${intent.committedMinLeads ? 'YES' : 'NO'} (≥${intent.minLeadsRequired})`,
     `Free-leads window understood: ${intent.understoodFreeLeadsWindow ? 'YES' : 'NO'} (${intent.freeLeadsWindowDays} days)`,
     `Selected tier: ${intent.tierId || '—'}`,
+    intent.digitalCardBonusLeadCredit ? 'Digital invite bonus: 1 lead credit applied' : null,
     intent.companyName ? `Company: ${intent.companyName}` : null,
     intent.niche ? `Niche: ${intent.niche}` : null,
     intent.monthlyLeadsEstimate != null ? `Monthly leads estimate: ${intent.monthlyLeadsEstimate}` : null,

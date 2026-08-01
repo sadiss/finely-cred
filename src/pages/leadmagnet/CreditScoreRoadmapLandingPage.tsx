@@ -1,23 +1,22 @@
-import React, { useMemo, useState } from 'react';
+import React from 'react';
+import { Link } from 'react-router-dom';
 import {
-  ArrowRight,
   BadgeCheck,
+  BookOpen,
+  Calendar,
   CheckCircle2,
-  Download,
-  Lock,
-  Mail,
   ShieldCheck,
   Sparkles,
   Star,
   Target,
   TrendingUp,
   User,
-  Zap,
 } from 'lucide-react';
-import { LeadMagnetCobrand, LeadMagnetCobrandFooterMarks } from '../../components/brand/LeadMagnetCobrand';
+import { LeadMagnetCobrandFooterMarks } from '../../components/brand/LeadMagnetCobrand';
 import { LeadMagnetFunnelHeroVideo } from '../../components/leadmagnet/LeadMagnetFunnelHeroVideo';
 import { getLeadMagnetVisualTheme } from '../../components/leadmagnet/leadMagnetVisualThemes';
 import { SCORE_ROADMAP_FUNNEL } from '../../domain/leadMagnetFunnels';
+import { SCORE_BOOST_CHAPTERS, SCORE_BOOST_READ_PATH } from '../../resources/scoreRoadmapContent';
 import { usePublicSeoMeta } from '../../hooks/usePublicSeoMeta';
 import { LEAD_MAGNET_TRIAL_DAYS } from '../../lib/leadMagnetTrial';
 import { PremiumLeadMagnetCaptureForm } from '../../components/leadmagnet/PremiumLeadMagnetCaptureForm';
@@ -85,26 +84,6 @@ function GlassPanel({
     >
       <div className="pointer-events-none absolute inset-0 rounded-[inherit] bg-gradient-to-br from-white/[0.08] via-transparent to-transparent" />
       <div className="relative z-10">{children}</div>
-    </div>
-  );
-}
-
-function TinyProof({
-  icon: Icon,
-  title,
-  desc,
-}: {
-  icon: React.ComponentType<{ size?: number; className?: string }>;
-  title: string;
-  desc: string;
-}) {
-  return (
-    <div className="lm-proof-pillar rounded-2xl p-5 text-center">
-      <div className="lm-proof-pillar-icon mx-auto border border-[#d7a73f]/35 bg-[#d7a73f]/12 text-[#f4d273]">
-        <Icon size={24} />
-      </div>
-      <div className="mt-4 text-sm font-black uppercase tracking-[0.08em] text-white">{title}</div>
-      <p className="mt-2 text-xs leading-relaxed text-white/55">{desc}</p>
     </div>
   );
 }
@@ -268,13 +247,6 @@ export default function CreditScoreRoadmapLandingPage() {
     },
   ];
 
-  const stats = [
-    { icon: Download, value: '12,000+', label: 'Guides Downloaded' },
-    { icon: BadgeCheck, value: '72 hrs', label: 'Quick-Win Sequence' },
-    { icon: Star, value: '4.9/5', label: 'Average Rating' },
-    { icon: Lock, value: '100%', label: 'Free. No Obligation.' },
-  ];
-
   return (
     <main className="csr-page min-h-screen overflow-hidden bg-[#020812] text-white selection:bg-[#d7a73f]/30 selection:text-white">
       <style>{`
@@ -291,17 +263,11 @@ export default function CreditScoreRoadmapLandingPage() {
       <div className="fc-premium-noise pointer-events-none fixed inset-0 z-0 opacity-[0.045]" />
       <div className="pointer-events-none fixed inset-x-0 top-0 z-0 h-[420px] bg-gradient-to-b from-[#0b2543]/50 to-transparent" />
 
-      <header className="relative z-20">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-5 py-5 md:px-8">
-          <LeadMagnetCobrand size="sm" />
-        </div>
-      </header>
-
-      <section className="csr-hero-section csr-hero-section--editorial relative z-10 border-b border-[#d7a73f]/25">
+      <section className="csr-hero-section csr-hero-section--editorial relative z-10 border-b border-[#d7a73f]/25 pt-20 md:pt-24">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_12%,rgba(215,167,63,0.22),transparent_42%),radial-gradient(circle_at_50%_88%,rgba(45,138,103,0.12),transparent_38%)]" />
         <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#d7a73f]/75 to-transparent" />
 
-        <div className="relative z-10 mx-auto max-w-6xl px-5 pt-8 md:px-8 md:pt-12">
+        <div className="relative z-10 mx-auto max-w-6xl px-5 pt-6 md:px-8 md:pt-10">
           <h1 className="csr-hero-title csr-serif text-white">
             <span className="csr-hero-title-line">Boost Your</span>
             <span className="csr-hero-title-line csr-hero-title-line--gold">Credit Score</span>
@@ -313,190 +279,143 @@ export default function CreditScoreRoadmapLandingPage() {
             inquiry discipline.
           </p>
 
-          <div className="csr-hero-showcase">
+          <div className="csr-hero-showcase csr-hero-showcase--slim">
             <div className="csr-hero-mockup-center relative z-10">
               <GuideMockup tall className="w-full" />
-            </div>
-            <div className="csr-video-frame flex flex-col justify-center">
-              <div className="csr-video-inner w-full">
-                <LeadMagnetFunnelHeroVideo
-                  config={SCORE_ROADMAP_FUNNEL}
-                  theme={SCORE_THEME}
-                  colorGrade="emerald"
-                  posterUrl="https://images.unsplash.com/photo-1554224155-6726b3ff858f?auto=format&fit=crop&w=1600&q=90"
-                  className="w-full rounded-none border-0 shadow-none"
-                  onGoForm={scrollToDownload}
-                />
-              </div>
             </div>
           </div>
 
           <div className="csr-hero-bottom mx-auto max-w-3xl">
-            <div className="csr-hero-form rounded-[1.35rem] p-6">
-              <h2 className="mb-4 text-center text-xl font-black uppercase tracking-[0.08em] text-white md:text-2xl">
+            <div className="csr-hero-form rounded-[1.35rem] p-5 md:p-6">
+              <h2 className="mb-3 text-center text-lg font-black uppercase tracking-[0.08em] text-white md:text-xl">
                 Get Your <span className="text-[#f4d273]">Free</span> Guide Now
               </h2>
               <PremiumLeadMagnetCaptureForm
                 funnelConfig={SCORE_ROADMAP_FUNNEL}
                 accentClass="focus:border-[#f4d273] focus:ring-[#d7a73f]/15"
               />
-            </div>
-            <div className="csr-proof-row">
-              <TinyProof icon={Target} title="Assess" desc="Map utilization, negatives, and inquiry pressure first." />
-              <TinyProof icon={TrendingUp} title="Optimize" desc="Execute quick-win moves in the first 72 hours." />
-              <TinyProof icon={ShieldCheck} title="Strengthen" desc="Sequence mix and age so gains actually stick." />
+              <div className="mt-3 flex flex-wrap items-center justify-center gap-4">
+                <Link to={SCORE_BOOST_READ_PATH} className="lm-secondary-book-link !mt-0">
+                  <BookOpen size={14} /> Read all {SCORE_BOOST_CHAPTERS.length} steps free
+                </Link>
+                <a href="#csr-preview" className="lm-secondary-book-link !mt-0">
+                  Watch preview ↓
+                </a>
+                <Link to={SCORE_ROADMAP_FUNNEL.bookingPath ?? '/enlightenment-session'} className="lm-secondary-book-link !mt-0">
+                  <Calendar size={14} /> Book a session
+                </Link>
+              </div>
+
+              <div className="csr-sequence-rail mt-5">
+                {SCORE_BOOST_CHAPTERS.filter((c) => c.arc && c.arc <= 70)
+                  .slice(0, 6)
+                  .map((chapter) => (
+                    <Link key={chapter.id} to={`${SCORE_BOOST_READ_PATH}?chapter=${chapter.id}`} className="csr-sequence-chip">
+                      <span className="csr-sequence-window">{chapter.window}</span>
+                      <span className="csr-sequence-title">{chapter.title}</span>
+                    </Link>
+                  ))}
+              </div>
+              <p className="mt-3 text-center text-[11px] text-white/40">
+                Educational only · results vary · not legal advice · funding subject to underwriting
+              </p>
             </div>
           </div>
         </div>
       </section>
 
-      <section className="csr-video-section csr-video-section--stacked relative z-10 border-b border-[#d7a73f]/20">
-        <div className="mx-auto max-w-4xl px-5 pb-10 text-center md:px-8">
+      <section id="csr-preview" className="csr-video-section csr-video-section--stacked relative z-10 scroll-mt-24 border-b border-[#d7a73f]/20">
+        <div className="mx-auto max-w-4xl px-5 pb-6 text-center md:px-8">
           <SectionKicker>Exclusive video</SectionKicker>
-          <h2 className="csr-serif mt-5 text-4xl font-black leading-tight tracking-[-0.035em] md:text-5xl">
+          <h2 className="csr-serif mt-4 text-3xl font-black leading-tight tracking-[-0.035em] md:text-4xl">
             See How the <span className="text-[#3db896]">72-Hour Sequence</span> Works
           </h2>
-          <p className="mx-auto mt-5 max-w-2xl text-base leading-relaxed text-white/65">
-            Morgan walks through utilization first, dispute priorities second, and funding-ready optics — the same
-            order inside the guide and your portal preview.
-          </p>
         </div>
-        <div className="csr-video-stack mx-auto max-w-5xl px-5 pb-14 md:px-8">
+        <div className="csr-video-stack mx-auto max-w-5xl px-5 pb-10 md:px-8">
           <VideoPreview onGoForm={scrollToDownload} />
         </div>
-        <div className="mx-auto max-w-3xl px-5 pb-16 md:px-8">
-          <div className="grid gap-3">
-            {SCORE_ROADMAP_FUNNEL.features.map((feature) => (
-              <MiniCheck key={feature.title}>
-                {feature.title}: {feature.desc}
-              </MiniCheck>
-            ))}
-          </div>
-        </div>
       </section>
 
-      <section className="csr-timeline-section relative z-10 border-b border-[#d7a73f]/20 bg-black/20 py-14 md:py-16">
-        <div className="mx-auto max-w-4xl px-5 md:px-8">
-          <div className="text-center">
-            <div className="text-[11px] font-black uppercase tracking-[0.28em] text-[#d7a73f]">Your 72-hour sequence</div>
-            <h2 className="csr-serif csr-section-title mt-3 text-3xl font-black md:text-4xl">
-              Hour-by-Hour <span className="text-[#3db896]">Score Moves</span>
-            </h2>
-          </div>
-          <div className="csr-timeline mt-10 space-y-0">
-            {[
-              { hour: '0–24 hrs', title: 'Assess & Utilize', desc: 'Pull reports, map utilization hotspots, and execute the fastest balance moves.' },
-              { hour: '24–48 hrs', title: 'Prioritize Negatives', desc: 'Sequence disputes and goodwill paths by impact — not emotion.' },
-              { hour: '48–72 hrs', title: 'Strengthen Profile', desc: 'Tune mix, age, and inquiry posture for funding-ready optics.' },
-            ].map((step, i) => (
-              <div key={step.hour} className="csr-timeline-step relative flex gap-6 pb-10 last:pb-0">
-                {i < 2 && <span className="csr-timeline-line" aria-hidden />}
-                <div className="csr-timeline-node shrink-0">{i + 1}</div>
-                <div className="pt-1">
-                  <div className="text-[10px] font-black uppercase tracking-[0.2em] text-[#d7a73f]">{step.hour}</div>
-                  <div className="mt-1 text-lg font-bold text-white">{step.title}</div>
-                  <p className="mt-2 text-sm leading-relaxed text-white/58">{step.desc}</p>
-                </div>
+      <section className="relative z-10 border-y border-[#d7a73f]/20 py-8 md:py-10">
+        <div className="mx-auto max-w-7xl space-y-3 px-5 md:px-8">
+          <details className="lm-seo-depth">
+            <summary>
+              <span>72-hour sequence + what&apos;s included</span>
+              <span className="lm-seo-depth-hint">Expand</span>
+            </summary>
+            <div className="lm-seo-depth-body space-y-8">
+              <div className="csr-timeline space-y-0">
+                {[
+                  { hour: '0–24 hrs', title: 'Assess & Utilize', desc: 'Pull reports, map utilization hotspots, and execute the fastest balance moves.' },
+                  { hour: '24–48 hrs', title: 'Prioritize Negatives', desc: 'Sequence disputes and goodwill paths by impact — not emotion.' },
+                  { hour: '48–72 hrs', title: 'Strengthen Profile', desc: 'Tune mix, age, and inquiry posture for funding-ready optics.' },
+                ].map((step, i) => (
+                  <div key={step.hour} className="csr-timeline-step relative flex gap-6 pb-8 last:pb-0">
+                    {i < 2 && <span className="csr-timeline-line" aria-hidden />}
+                    <div className="csr-timeline-node shrink-0">{i + 1}</div>
+                    <div className="pt-1">
+                      <div className="text-[10px] font-black uppercase tracking-[0.2em] text-[#d7a73f]">{step.hour}</div>
+                      <div className="mt-1 text-lg font-bold text-white">{step.title}</div>
+                      <p className="mt-2 text-sm leading-relaxed text-white/58">{step.desc}</p>
+                    </div>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section id="free-toolkit" className="relative z-10 border-y border-[#d7a73f]/20 py-18 md:py-20">
-        <div className="mx-auto max-w-7xl px-5 md:px-8">
-          <div className="mx-auto mb-11 max-w-3xl text-center">
-            <div className="text-[11px] font-black uppercase tracking-[0.28em] text-[#d7a73f]">
-              Your complete score boost system
-            </div>
-            <h2 className="csr-serif mt-3 text-4xl font-black tracking-[-0.035em] md:text-5xl">
-              Everything Included <span className="text-[#f4d273]">At No Cost</span>
-            </h2>
-            <p className="mt-4 text-base leading-relaxed text-white/60">
-              Unlock the full 72-hour roadmap plus interactive worksheets, checklists, and a {LEAD_MAGNET_TRIAL_DAYS}
-              -day portal preview when you request the guide.
-            </p>
-          </div>
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {freeToolkit.map((item) => (
-              <ValueStackCard key={item.label} {...item} />
-            ))}
-          </div>
-          <div className="mt-10 flex flex-wrap items-center justify-center gap-6 text-[11px] font-bold uppercase tracking-[0.14em] text-white/50">
-            {SCORE_ROADMAP_FUNNEL.trustCerts.map((cert) => (
-              <span key={cert} className="inline-flex items-center gap-2">
-                <ShieldCheck size={14} className="text-[#d7a73f]" />
-                {cert}
-              </span>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section id="inside-guide" className="relative z-10 py-18 md:py-20">
-        <div className="mx-auto max-w-7xl px-5 md:px-8">
-          <div className="mx-auto mb-11 max-w-3xl text-center">
-            <div className="text-[11px] font-black uppercase tracking-[0.28em] text-[#d7a73f]">
-              What you&apos;ll discover inside
-            </div>
-            <h2 className="csr-serif csr-section-title mt-3 text-4xl font-black tracking-[-0.035em] md:text-5xl">
-              Your Roadmap to <span className="text-[#3db896]">Better Credit</span>
-            </h2>
-          </div>
-          <div className="grid gap-4 md:grid-cols-2">
-            {discoveries.map((item, i) => (
-              <DiscoveryCard key={item.title} {...item} featured={i === 0} />
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="relative z-10 border-y border-[#d7a73f]/20 bg-black/18 py-9">
-        <div className="mx-auto grid max-w-7xl gap-4 px-5 md:grid-cols-4 md:px-8">
-          {stats.map((stat) => (
-            <div
-              key={stat.label}
-              className="flex items-center justify-center gap-4 border-white/10 py-4 md:border-r last:md:border-r-0"
-            >
-              <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-[#d7a73f]/35 bg-[#d7a73f]/10 text-[#f4d273]">
-                <stat.icon size={27} />
+              <div id="free-toolkit" className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                {freeToolkit.map((item) => (
+                  <ValueStackCard key={item.label} {...item} />
+                ))}
               </div>
-              <div>
-                <div className="text-3xl font-semibold tracking-[-0.04em] text-white">{stat.value}</div>
-                <div className="text-xs text-white/50">{stat.label}</div>
+              <div className="grid gap-3">
+                {SCORE_ROADMAP_FUNNEL.features.map((feature) => (
+                  <MiniCheck key={feature.title}>
+                    {feature.title}: {feature.desc}
+                  </MiniCheck>
+                ))}
               </div>
             </div>
-          ))}
-        </div>
-      </section>
+          </details>
 
-      <section id="results" className="relative z-10 py-18 md:py-20">
-        <div className="mx-auto max-w-7xl px-5 md:px-8">
-          <div className="mb-10 text-center">
-            <div className="text-[11px] font-black uppercase tracking-[0.28em] text-[#d7a73f]">
-              Real people. Real results.
+          <details id="inside-guide" className="lm-seo-depth">
+            <summary>
+              <span>What you&apos;ll discover inside</span>
+              <span className="lm-seo-depth-hint">Expand</span>
+            </summary>
+            <div className="lm-seo-depth-body grid gap-4 md:grid-cols-2">
+              {discoveries.map((item, i) => (
+                <DiscoveryCard key={item.title} {...item} featured={i === 0} />
+              ))}
             </div>
-            <h2 className="csr-serif csr-section-title mt-3 text-4xl font-black tracking-[-0.035em] md:text-5xl">
-              Stories of Score Breakthroughs
-            </h2>
-          </div>
-          <div className="grid gap-6 md:grid-cols-3">
-            <Testimonial
-              name="Marcus T."
-              role="Business Owner"
-              quote="The 72-hour plan gave me a clear order of operations. Utilization first — then disputes. My file looked completely different in two weeks."
-            />
-            <Testimonial
-              name="Danielle R."
-              role="First-Time Homebuyer"
-              quote="I stopped guessing which negatives to hit first. The worksheet inside the portal made every step trackable."
-            />
-            <Testimonial
-              name="James K."
-              role="Entrepreneur"
-              quote="Finally a credit guide that respects sequencing. No hype — just a wealthy, structured path to funding readiness."
-            />
-          </div>
+          </details>
+
+          <details id="results" className="lm-seo-depth">
+            <summary>
+              <span>Partner score stories</span>
+              <span className="lm-seo-depth-hint">Expand</span>
+            </summary>
+            <div className="lm-seo-depth-body">
+              <div className="grid gap-4 md:grid-cols-3">
+                <Testimonial
+                  name="Marcus T."
+                  role="Business Owner"
+                  quote="The 72-hour plan gave me a clear order of operations. Utilization first — then disputes. My file looked completely different in two weeks."
+                />
+                <Testimonial
+                  name="Danielle R."
+                  role="First-Time Homebuyer"
+                  quote="I stopped guessing which negatives to hit first. The worksheet inside the portal made every step trackable."
+                />
+                <Testimonial
+                  name="James K."
+                  role="Entrepreneur"
+                  quote="Finally a credit guide that respects sequencing. No hype — just a wealthy, structured path to funding readiness."
+                />
+              </div>
+              <p className="mt-4 text-center text-[11px] text-white/40">
+                Results vary · not legal advice · funding subject to underwriting
+              </p>
+            </div>
+          </details>
         </div>
       </section>
 

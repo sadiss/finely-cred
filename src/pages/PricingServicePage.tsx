@@ -25,6 +25,7 @@ import { BusinessCreditQuotePanel } from '../components/pricing/BusinessCreditQu
 import { BusinessCreditOneSheetsPanel } from '../components/pricing/BusinessCreditOneSheetsPanel';
 import { FinelyOsPageFooter } from '../features/os/FinelyOsPageFooter';
 import { MarketingStaffChatStrip } from '../components/marketing/MarketingStaffChatStrip';
+import { PricingSolutionsHero, type PricingSolutionKey } from '../features/os/PricingSolutionsHero';
 import { FinelyUnifiedHubLayout, FinelyUnifiedSection } from '../features/unified/FinelyUnifiedHubLayout';
 import { usePublicSeoMeta } from '../hooks/usePublicSeoMeta';
 import {
@@ -40,6 +41,7 @@ import {
   FINELY_OS_VIEW_TABS,
   finelyOsListItem,
   finelyOsViewTab,
+  type FinelyOsPublicAccent,
 } from '../features/os/finelyOsLightUi';
 
 type ServiceSlug =
@@ -236,18 +238,37 @@ export default function PricingServicePage() {
     [category, mode, visible.length],
   );
 
+  const solutionKey = ((): PricingSolutionKey | null => {
+    if (!category) return null;
+    if (category === 'agency') return 'agency';
+    return category as PricingSolutionKey;
+  })();
+
+  const hubAccent: FinelyOsPublicAccent =
+    category === 'business_credit'
+      ? 'violet'
+      : category === 'debt_legal'
+        ? 'fuchsia'
+        : category === 'tradeline_promo' || category === 'wealth_builder' || category === 'agency'
+          ? 'amber'
+          : category === 'privacy_id'
+            ? 'sky'
+            : 'emerald';
+
   return (
-    <PageShell badge="Services" title={title} subtitle={subtitle}>
+    <PageShell badge="Solutions" title={title} subtitle={subtitle}>
       <div className={FINELY_OS_PAGE}>
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <button type="button" onClick={() => navigate(basePath)} className={FINELY_OS_BACK_LINK} title="Back to all services">
-            <ArrowLeft size={16} /> All services
+          <button type="button" onClick={() => navigate(basePath)} className={FINELY_OS_BACK_LINK} title="Back to all solutions">
+            <ArrowLeft size={16} /> All solutions
           </button>
           <div className={`${FINELY_OS_TOOLBAR} !p-2 inline-flex items-center gap-2`}>
             <Icon size={14} className="text-fuchsia-400" />
             <span className={`${FINELY_OS_ENTITY_SUBLABEL} font-mono`}>{category || 'pricing'}</span>
           </div>
         </div>
+
+        <PricingSolutionsHero activeKey={solutionKey} mode="navigate" />
 
         {category === 'personal_credit' ? (
           <div className={`${FINELY_OS_TOOLBAR} flex-wrap justify-between`}>
@@ -266,7 +287,7 @@ export default function PricingServicePage() {
               <button
                 type="button"
                 onClick={() => navigate(`${basePath}/personal-credit-building`)}
-                className={finelyOsViewTab(meta?.slug === 'personal-credit-building', 'emerald')}
+                className={finelyOsViewTab(meta?.slug === 'personal-credit-building', 'sky')}
               >
                 Building
               </button>
@@ -275,10 +296,10 @@ export default function PricingServicePage() {
         ) : null}
 
         <FinelyUnifiedHubLayout
-          eyebrow="Service pricing"
+          eyebrow="Solution pricing"
           title={title}
           subtitle={subtitle}
-          accent="emerald"
+          accent={hubAccent}
           kpis={svcKpis}
           tabs={[
             { id: 'packages', label: 'Packages' },

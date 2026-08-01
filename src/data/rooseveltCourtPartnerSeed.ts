@@ -1,12 +1,16 @@
 /**
  * Roosevelt Corelus — court / Midland–Citi hearing partner seed.
  * Stable import id so Admin can find him separately from Yolie (credit restore).
- * Hearing target: 2026-07-27. Educational self-help · not legal advice.
+ * Hearing 2026-07-27 is decided: monthly payment plan on file.
+ * Educational self-help · not legal advice.
  */
 
 import type { Partner } from '../domain/partners';
 import type { DebtCase } from '../domain/debt';
 import type { CreditReportRecord } from '../domain/creditReports';
+import type { PartnerCourtOutcome } from '../domain/courtOutcomes';
+import { formatUsdCents } from '../domain/courtOutcomes';
+import { getCourtOutcomeByDebtCase, upsertCourtOutcome } from './courtOutcomeRepo';
 import {
   adminGetPartner,
   adminUpsertPartner,
@@ -39,6 +43,115 @@ export const ROOSEVELT_HEARING_ISO = '2026-07-27';
 export const ROOSEVELT_DISPLAY_NAME = 'Roosevelt Corelus';
 export const ROOSEVELT_REPORT_FILENAME = 'Roosevelts-Report.html';
 export const ROOSEVELT_DEBT_CASE_MARKER = 'roosevelt-midland-citi-hearing-2026-07-27';
+
+/* ---------------------------------------------------------------------------
+ * Court outcome (owner-confirmed). The hearing is over: Roosevelt had already
+ * agreed to pay the collector before the court date, and the court outcome
+ * reflects that prior agreement as a monthly payment plan.
+ * ------------------------------------------------------------------------- */
+
+export const ROOSEVELT_COURT_OUTCOME_MARKER = 'roosevelt-court-outcome-payment-plan-v1';
+/** Date the outcome was entered — same day as the hearing. */
+export const ROOSEVELT_OUTCOME_DECIDED_ISO = ROOSEVELT_HEARING_ISO;
+/** $50.00 per month. */
+export const ROOSEVELT_PLAN_MONTHLY_CENTS = 5000;
+/** Two years of payments. */
+export const ROOSEVELT_PLAN_TERM_MONTHS = 24;
+/** First payment falls one month after the hearing, on the same day of month. */
+export const ROOSEVELT_PLAN_FIRST_PAYMENT_ISO = '2026-08-27';
+/** Last scheduled payment (24 months from the first). */
+export const ROOSEVELT_PLAN_FINAL_PAYMENT_ISO = '2028-07-27';
+
+export const ROOSEVELT_OUTCOME_SUMMARY = `Pay ${formatUsdCents(
+  ROOSEVELT_PLAN_MONTHLY_CENTS,
+)} per month for ${ROOSEVELT_PLAN_TERM_MONTHS} months`;
+
+export const ROOSEVELT_OUTCOME_CONTEXT =
+  'Roosevelt had already agreed to pay the collector before the court date, so the outcome carries that prior agreement forward as a monthly payment plan rather than a contested ruling.';
+
+/** Durable case note written onto the partner record so it survives deploy. */
+export const ROOSEVELT_CASE_NOTE = [
+  `COURT OUTCOME (${ROOSEVELT_OUTCOME_DECIDED_ISO}) — Midland Funding LLC / Citibank, N.A.`,
+  `${ROOSEVELT_OUTCOME_SUMMARY} (${formatUsdCents(
+    ROOSEVELT_PLAN_MONTHLY_CENTS * ROOSEVELT_PLAN_TERM_MONTHS,
+  )} total), ${ROOSEVELT_PLAN_FIRST_PAYMENT_ISO} through ${ROOSEVELT_PLAN_FINAL_PAYMENT_ISO}.`,
+  ROOSEVELT_OUTCOME_CONTEXT,
+  'Open items: written agreement on file, monthly payment receipts, satisfaction paperwork at plan end, credit reporting cleanup after that.',
+  'Educational self-help · not legal advice.',
+].join('\n');
+
+export const ROOSEVELT_PLAN_PAYEE_NAME = 'Midland Credit Management / Midland Funding LLC';
+export const ROOSEVELT_PLAINTIFF_NAME = 'Midland Funding LLC';
+export const ROOSEVELT_ORIGINAL_CREDITOR = 'Citibank, N.A.';
+
+/**
+ * Durable journey signals for the partner row (Supabase-backed), so the outcome
+ * survives a deploy even when the local outcome store is empty on a new device.
+ */
+export function rooseveltCourtJourneySignals(): Record<string, unknown> {
+  return {
+    courtMatter: 'midland_citi',
+    hearingDate: ROOSEVELT_HEARING_ISO,
+    defenseBookSubject: true,
+    notYolie: true,
+    hearingResolved: true,
+    courtOutcome: 'payment_plan',
+    courtOutcomeBasis: 'agreed_before_hearing',
+    courtOutcomeDecidedIso: ROOSEVELT_OUTCOME_DECIDED_ISO,
+    courtOutcomeSummary: ROOSEVELT_OUTCOME_SUMMARY,
+    planMonthlyCents: ROOSEVELT_PLAN_MONTHLY_CENTS,
+    planTermMonths: ROOSEVELT_PLAN_TERM_MONTHS,
+    planTotalCents: ROOSEVELT_PLAN_MONTHLY_CENTS * ROOSEVELT_PLAN_TERM_MONTHS,
+    planFirstPaymentIso: ROOSEVELT_PLAN_FIRST_PAYMENT_ISO,
+    planFinalPaymentIso: ROOSEVELT_PLAN_FINAL_PAYMENT_ISO,
+    planPayeeName: ROOSEVELT_PLAN_PAYEE_NAME,
+    planAgreedBeforeHearing: true,
+    postCourtTrack: 'post_court_payment_plan',
+    nextStepId: 'order_on_file',
+    writtenOrderOnFile: false,
+  };
+}
+
+/** Outcome payload for the durable court-outcome store. */
+export function buildRooseveltCourtOutcome(args: {
+  partnerId: string;
+  debtCaseId: string;
+  existing?: PartnerCourtOutcome | null;
+}): Omit<PartnerCourtOutcome, 'id' | 'createdAt' | 'updatedAt'> & { id?: string; createdAt?: string } {
+  const { partnerId, debtCaseId, existing } = args;
+  return {
+    id: existing?.id,
+    createdAt: existing?.createdAt,
+    partnerId,
+    debtCaseId,
+    kind: 'payment_plan',
+    basis: 'agreed_before_hearing',
+    verdictSummary: ROOSEVELT_OUTCOME_SUMMARY,
+    contextNote: ROOSEVELT_OUTCOME_CONTEXT,
+    decidedIso: ROOSEVELT_OUTCOME_DECIDED_ISO,
+    plaintiffName: ROOSEVELT_PLAINTIFF_NAME,
+    originalCreditor: ROOSEVELT_ORIGINAL_CREDITOR,
+    plan: {
+      monthlyCents: ROOSEVELT_PLAN_MONTHLY_CENTS,
+      termMonths: ROOSEVELT_PLAN_TERM_MONTHS,
+      firstPaymentIso: ROOSEVELT_PLAN_FIRST_PAYMENT_ISO,
+      dueDayOfMonth: Number(ROOSEVELT_PLAN_FIRST_PAYMENT_ISO.slice(8, 10)),
+      payeeName: ROOSEVELT_PLAN_PAYEE_NAME,
+      agreedBeforeHearing: true,
+    },
+    // Owner-entered facts stay authoritative once the partner starts logging progress.
+    writtenOrderOnFile: existing?.writtenOrderOnFile ?? false,
+    confirmedPaymentIsos: existing?.confirmedPaymentIsos ?? [],
+    courtName: existing?.courtName,
+    courtCaseNumber: existing?.courtCaseNumber,
+  };
+}
+
+/** Idempotent: writes Roosevelt's payment-plan outcome without erasing logged payments. */
+export function ensureRooseveltCourtOutcome(partnerId: string, debtCaseId: string): PartnerCourtOutcome {
+  const existing = getCourtOutcomeByDebtCase(debtCaseId);
+  return upsertCourtOutcome(buildRooseveltCourtOutcome({ partnerId, debtCaseId, existing }));
+}
 
 /** Redacted high-level facts from the 07/21/2026 SmartCredit HTML (no SSN / full DOB). */
 export const ROOSEVELT_REPORT_SUMMARY = {
@@ -109,30 +222,30 @@ async function ensureRooseveltDebtCase(partnerId: string): Promise<DebtCase> {
       stateJurisdiction: existing.stateJurisdiction || 'MA',
       recipientName: existing.recipientName || ROOSEVELT_DISPLAY_NAME,
       recipientAddress: existing.recipientAddress || ROOSEVELT_REPORT_SUMMARY.currentAddress,
-      status: existing.status === 'resolved' ? existing.status : 'open',
-      notes:
-        existing.notes?.includes(ROOSEVELT_DEBT_CASE_MARKER)
-          ? existing.notes
-          : `${ROOSEVELT_DEBT_CASE_MARKER}\nMidland / Citi hearing matter. Educational self-help · not legal advice.`,
+      // Hearing is decided — the matter is resolved into a monthly payment plan.
+      status: 'resolved',
+      notes: existing.notes?.includes(ROOSEVELT_COURT_OUTCOME_MARKER)
+        ? existing.notes
+        : `${ROOSEVELT_DEBT_CASE_MARKER}\n${ROOSEVELT_COURT_OUTCOME_MARKER}\n${ROOSEVELT_CASE_NOTE}`,
     });
   }
 
   const created = createDebtCase({
     partnerId,
     type: 'summons',
-    name: 'Midland Funding LLC',
+    name: ROOSEVELT_PLAINTIFF_NAME,
     amountCents: 109400,
     status: 'open',
-    originalCreditor: 'Citibank, N.A.',
-    collectorName: 'Midland Credit Management / Midland Funding',
+    originalCreditor: ROOSEVELT_ORIGINAL_CREDITOR,
+    collectorName: ROOSEVELT_PLAN_PAYEE_NAME,
     accountNumberMasked: '33435****',
     stateJurisdiction: 'MA',
     recipientName: ROOSEVELT_DISPLAY_NAME,
     recipientAddress: ROOSEVELT_REPORT_SUMMARY.currentAddress,
-    notes: `${ROOSEVELT_DEBT_CASE_MARKER}\nMidland / Citi hearing matter · target hearing ${ROOSEVELT_HEARING_ISO}. Educational self-help · not legal advice.`,
+    notes: `${ROOSEVELT_DEBT_CASE_MARKER}\n${ROOSEVELT_COURT_OUTCOME_MARKER}\n${ROOSEVELT_CASE_NOTE}`,
     source: 'import',
   });
-  return upsertDebt({ ...created, hearingDate: ROOSEVELT_HEARING_ISO });
+  return upsertDebt({ ...created, hearingDate: ROOSEVELT_HEARING_ISO, status: 'resolved' });
 }
 
 function ensureRooseveltReportPlaceholder(partnerId: string): CreditReportRecord {
@@ -247,6 +360,8 @@ export type RooseveltSeedResult = {
   partner: Partner;
   debt: DebtCase;
   report: CreditReportRecord;
+  /** Post-hearing payment plan on file (pay $50/month for 24 months). */
+  outcome: PartnerCourtOutcome;
   created: boolean;
   /** True when the partner row was written via admin-list-partners (Supabase list source). */
   persistedToAdminList: boolean;
@@ -298,10 +413,10 @@ function buildRooseveltPartnerPayload(existing?: Partner | null): Partner {
     journeyStage: existing?.journeyStage || 'letters',
     journeySignals: {
       ...(existing?.journeySignals || {}),
-      courtMatter: 'midland_citi',
-      hearingDate: ROOSEVELT_HEARING_ISO,
-      defenseBookSubject: true,
-      notYolie: true,
+      ...rooseveltCourtJourneySignals(),
+      // Keep progress the partner already logged.
+      writtenOrderOnFile:
+        existing?.journeySignals?.writtenOrderOnFile ?? false,
     },
     importSource: existing?.importSource || ROOSEVELT_IMPORT_SOURCE,
     importExternalId: existing?.importExternalId || ROOSEVELT_IMPORT_EXTERNAL_ID,
@@ -310,7 +425,11 @@ function buildRooseveltPartnerPayload(existing?: Partner | null): Partner {
     routes: existing?.routes || {},
     consents: existing?.consents || {},
     assignedAgentId: existing?.assignedAgentId,
-    notes: existing?.notes,
+    notes: existing?.notes?.includes(ROOSEVELT_COURT_OUTCOME_MARKER)
+      ? existing.notes
+      : [existing?.notes?.trim(), `${ROOSEVELT_COURT_OUTCOME_MARKER}\n${ROOSEVELT_CASE_NOTE}`]
+          .filter(Boolean)
+          .join('\n\n'),
     createdAt,
     updatedAt,
   };
@@ -375,11 +494,11 @@ export async function ensureRooseveltCourtPartnerAsync(): Promise<RooseveltSeedR
       importExternalId: ROOSEVELT_IMPORT_EXTERNAL_ID,
       journeySignals: {
         ...(partner.journeySignals || {}),
-        courtMatter: 'midland_citi',
-        hearingDate: ROOSEVELT_HEARING_ISO,
-        defenseBookSubject: true,
-        notYolie: true,
+        ...rooseveltCourtJourneySignals(),
       },
+      notes: partner.notes?.includes(ROOSEVELT_COURT_OUTCOME_MARKER)
+        ? partner.notes
+        : `${ROOSEVELT_COURT_OUTCOME_MARKER}\n${ROOSEVELT_CASE_NOTE}`,
     });
     persistedToAdminList = true;
   }
@@ -393,11 +512,13 @@ export async function ensureRooseveltCourtPartnerAsync(): Promise<RooseveltSeedR
   // Debt + report are local stores keyed by partner id — only Roosevelt’s id gets Midland/Jul 27.
   const debt = await ensureRooseveltDebtCase(partner.id);
   const report = ensureRooseveltReportPlaceholder(partner.id);
+  const outcome = ensureRooseveltCourtOutcome(partner.id, debt.id);
 
   return {
     partner,
     debt,
     report,
+    outcome,
     created,
     persistedToAdminList,
     entitlementsOk: ent.ok,

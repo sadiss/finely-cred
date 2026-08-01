@@ -2,6 +2,7 @@ import type { LeadCapture } from '../domain/leads';
 import { createProspect, listProspects } from '../data/crmProspectsRepo';
 import { setLeadStage } from '../data/leadOpsRepo';
 import { scoreLead, leadOpsStageForLead } from './leadScoring';
+import { isCreditSpecialistLeadOffer } from './leadOfferLabels';
 
 function normEmail(email: string) {
   return email.trim().toLowerCase();
@@ -17,8 +18,11 @@ export function syncLeadToCrmProspect(lead: LeadCapture, funnelId?: string) {
 
   const scored = scoreLead(lead);
   setLeadStage(lead.id, leadOpsStageForLead(lead));
-  const target =
-    scored.fit === 'business' ? 'b2b_partners' : scored.fit === 'tradelines' ? 'clients' : 'clients';
+  const target = isCreditSpecialistLeadOffer(lead.offer)
+    ? 'agents'
+    : scored.fit === 'business'
+      ? 'b2b_partners'
+      : 'clients';
 
   const tags = [
     'inbound',
@@ -26,6 +30,9 @@ export function syncLeadToCrmProspect(lead: LeadCapture, funnelId?: string) {
     ...(funnelId ? [`funnel:${funnelId}`] : []),
     ...(lead.funnelPath ? [`path:${lead.funnelPath}`] : []),
     ...(lead.source ? [`source:${lead.source}`] : []),
+    ...(lead.offer ? [`offer:${lead.offer}`] : []),
+    ...(isCreditSpecialistLeadOffer(lead.offer) ? ['credit-specialist'] : []),
+    ...(lead.offer === 'financing_preapproval' ? ['financing-preapproval', 'in-house-financing'] : []),
   ];
 
   return createProspect({

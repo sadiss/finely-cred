@@ -5,8 +5,40 @@ import { fillLitigation } from './litigationLetterArgs';
  * Litigation affidavit format:
  * STATE/COUNTY caption, 28 U.S.C. § 1746, plaintiff, law firm, collector, case #, narrative, signature.
  */
+function affidavitCaptionHeader(args: LitigationLetterArgs): string {
+  const court = String(args.courtName || '').trim() || '[COURT NAME]';
+  const caseNo = String(args.caseNumber || '').trim() || '[CASE / DOCKET NUMBER]';
+  const plaintiff = String(args.plaintiffName || '').trim() || '[PLAINTIFF NAME]';
+  const defendant = String(args.debtorName || '').trim() || '[DEFENDANT NAME]';
+  const firm = String(args.plaintiffLawFirm || '').trim();
+  const attorney = String(args.plaintiffAttorneyName || '').trim();
+  const counselLines = [
+    firm ? `Plaintiff's counsel: ${firm}` : '',
+    attorney ? `Attorney: ${attorney}${args.plaintiffAttorneyBarNumber ? ` (Bar ${args.plaintiffAttorneyBarNumber})` : ''}` : '',
+    args.plaintiffLawFirmAddress ? `Counsel address:\n${args.plaintiffLawFirmAddress}` : '',
+  ].filter(Boolean);
+  return `${court}
+Case No. ${caseNo}
+${plaintiff}, Plaintiff,
+v.
+${defendant}, Defendant.
+${counselLines.length ? `\n${counselLines.join('\n')}\n` : ''}`;
+}
+
+function affidavitSignatureBlock(args: LitigationLetterArgs): string {
+  const name = String(args.debtorName || '').trim() || '[DEFENDANT NAME]';
+  return `Respectfully submitted,
+
+_______________________________
+${name}
+By: ☑ Certified Mail, Return Receipt Requested  ☐ Court's e-file / e-service  ☐ Hand delivery  ☐ First-class mail
+
+DATED: ${args.date || '[DATE]'}`;
+}
+
 export function getLitigationBankAffidavitBody(args: LitigationLetterArgs): string {
-  const template = `AFFIDAVIT OF {{DEBTOR_NAME}}
+  const header = affidavitCaptionHeader(args);
+  const template = `${header}RESPONSE AFFIDAVIT OF {{DEBTOR_NAME}}
 
 STATE OF {{AFFIDAVIT_STATE}}                    )
 COUNTY OF {{AFFIDAVIT_COUNTY}}                  ) ss.
@@ -45,18 +77,15 @@ Pursuant to 28 U.S.C. § 1746, {{DEBTOR_NAME}}, having been duly sworn and upon 
 
 16. The foregoing is true and correct to the best of my knowledge and belief.
 
-
-_________________________
-{{DEBTOR_NAME}}
-
-DATED: {{DATE}}`;
+${affidavitSignatureBlock(args)}`;
 
   return fillLitigation(template, args);
 }
 
 /** Debt-buyer / velocity chain-of-title affidavit — standing, amount, foundation. */
 export function getLitigationDebtBuyerAffidavitBody(args: LitigationLetterArgs): string {
-  const template = `AFFIDAVIT OF {{DEBTOR_NAME}}
+  const header = affidavitCaptionHeader(args);
+  const template = `${header}RESPONSE AFFIDAVIT OF {{DEBTOR_NAME}}
 
 STATE OF {{AFFIDAVIT_STATE}}                    )
 COUNTY OF {{AFFIDAVIT_COUNTY}}                  ) ss.
@@ -83,11 +112,7 @@ Pursuant to 28 U.S.C. § 1746, {{DEBTOR_NAME}}, having been duly sworn and upon 
 
 10. I reserve all rights, defenses, counterclaims, discovery requests, motions, and remedies under applicable law. I will ask the Court for time to review papers first produced at hearing. The foregoing is true and correct to the best of my knowledge and belief.
 
-
-_________________________
-{{DEBTOR_NAME}}
-
-DATED: {{DATE}}`;
+${affidavitSignatureBlock(args)}`;
 
   return fillLitigation(template, args);
 }

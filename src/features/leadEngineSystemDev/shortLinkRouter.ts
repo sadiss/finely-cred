@@ -7,7 +7,7 @@ export const FUNNEL_DESTINATIONS: Record<LeadEngineFunnel, string> = {
   tradeline_guide: '/tradelines?source=lead-engine',
   personal_credit_repair_guide: '/pricing/personal-credit-restore',
   funding_readiness_guide: '/business/funding',
-  credit_specialist_recruiting: '/agents',
+  credit_specialist_recruiting: '/credit-specialist',
   agency_partner_recruiting: '/agency/signup',
   affiliate_partner_recruiting: '/affiliate',
   au_seller_recruiting: '/au/seller/apply',

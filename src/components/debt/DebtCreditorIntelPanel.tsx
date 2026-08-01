@@ -18,6 +18,7 @@ import {
   debtCaseFromSignal,
   computePartnerDebtSnapshot,
   autoPersistDebtPartyIfEmpty,
+  contactsFromParsedReport,
   extractCollateralSignals,
   extractReportDebtSignals,
   listSummonsDocumentsForDebt,
@@ -97,8 +98,7 @@ export function DebtCreditorIntelPanel({
   const contacts = useMemo(() => {
     const out: Array<{ creditorName: string; address?: string; phone?: string; accountNumberMasked?: string }> = [];
     for (const r of reports) {
-      const parsed = r.parsed as { creditorContacts?: Array<Record<string, unknown>> } | null | undefined;
-      for (const c of parsed?.creditorContacts || []) {
+      for (const c of contactsFromParsedReport(r.parsed as ParsedCreditReport | null | undefined)) {
         const name = String(c?.creditorName || '').trim();
         if (!name) continue;
         out.push({

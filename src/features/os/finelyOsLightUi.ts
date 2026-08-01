@@ -275,13 +275,17 @@ export const FINELY_OS_CATALOG_SHELL = FINELY_OS_GLASS_CATALOG;
 export const FINELY_OS_VIEW_TABS =
   `fc-view-tabs ${FC_LIGHT_CHROME_STRIP} inline-flex flex-wrap gap-2 p-1.5`;
 
-export function finelyOsViewTab(active: boolean, accent: 'emerald' | 'violet' | 'sky' | 'fuchsia' | 'amber' = 'emerald') {
+export function finelyOsViewTab(
+  active: boolean,
+  accent: 'emerald' | 'violet' | 'sky' | 'fuchsia' | 'amber' | 'rose' = 'emerald',
+) {
   const activeStyles = {
     emerald: 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-md ring-1 ring-emerald-400/30',
     violet: 'bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white shadow-md ring-1 ring-violet-400/30',
     sky: 'bg-gradient-to-r from-sky-600 to-cyan-600 text-white shadow-md ring-1 ring-sky-400/30',
     fuchsia: 'bg-gradient-to-r from-fuchsia-600 to-violet-600 text-white shadow-md ring-1 ring-fuchsia-400/30',
     amber: 'bg-gradient-to-r from-amber-500 to-yellow-600 text-black shadow-md ring-1 ring-amber-400/40',
+    rose: 'bg-gradient-to-r from-rose-600 to-red-600 text-white shadow-md ring-1 ring-rose-400/30',
   };
   return `inline-flex items-center justify-center gap-1.5 min-w-[6.5rem] px-4 sm:px-5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold normal-case tracking-normal whitespace-nowrap text-center leading-snug transition-all ${
     active ? activeStyles[accent] : 'text-white/55 hover:bg-white/[0.06] hover:text-white/90'
@@ -618,20 +622,62 @@ export function finelyOsGlassShell(variant: 'panel' | 'inner' | 'catalog', accen
   return `${finelyOsCatalogCard(accent as FinelyOsPublicAccent)} ${pad} ${harmony}`.trim();
 }
 
-/** Landing sections — black contrast band on light, original fc-band on dark */
+/**
+ * Sitewide public rhythm (platinum / dark):
+ *   dark hero (depth + brand glow) → content/glass → champagne/ivory wealthy sell → dark/glass → …
+ * Do NOT make every section ivory — alternate. Animate ≤2–4 primary sell titles per page
+ * via `LandingTypewriterTitle` / `FinelyRevealTitle` (reduced-motion → full text instantly).
+ *
+ * Contrast band — dark depth with brand glows; use light ink (`fc-light-contrast-title`).
+ */
 export function finelyOsLandingContrastSection(bandClass = 'fc-band-violet') {
-  return `${bandClass} fc-light-contrast-band fc-section-pop border-y border-white/5`;
+  return `${bandClass} fc-light-contrast-band fc-section-pop fc-landing-dark-depth border-y border-white/5`;
 }
 
-/** Ivory-mesh sections — black primary / silver nested cards in light theme (Part CU). */
+/**
+ * Ivory-mesh content band — black primary / silver nested cards in light theme (Part CU).
+ * Prefer for mid-page content between dark and platinum sell bands.
+ */
 export function finelyOsLightMeshSection(bandClass = 'fc-band-dark') {
   return `${bandClass} fc-light-mesh-section fc-light-black-scope fc-section-pop fc-light-readable`;
 }
 
-/** Dark platinum / affiliate bands — contrast on light, original band on dark */
+/**
+ * Dark platinum / affiliate metallic band — light ink + gold accents.
+ * For champagne/ivory *wealthy* sell bands with dark readable ink, use
+ * `finelyOsLandingWealthyIvorySection` instead.
+ */
 export function finelyOsLandingPlatinumSection(bandClass = 'fc-band-ribbon') {
-  return `${bandClass} fc-light-contrast-band fc-section-pop fc-affiliate-band border-y border-white/5`;
+  return `${bandClass} fc-light-contrast-band fc-section-pop fc-affiliate-band fc-landing-dark-depth border-y border-white/5`;
 }
+
+/**
+ * Champagne / ivory “platinum wealthy” sell band — dark navy ink, gold accents,
+ * non-glare champagne cards (`finelyOsLandingIvoryCard`). Use after a dark section.
+ */
+export function finelyOsLandingWealthyIvorySection() {
+  return 'fc-landing-wealthy-ivory fc-section-pop relative overflow-hidden border-y border-amber-900/10';
+}
+
+/** Champagne nested card — never pure white glare on ivory bands. */
+export function finelyOsLandingIvoryCard() {
+  return 'fc-landing-ivory-card rounded-2xl border p-5 sm:p-6';
+}
+
+/** Primary sell-band title scale — use on 2–4 hero/sell headings only. */
+export const FINELY_OS_LANDING_SELL_TITLE =
+  'text-4xl sm:text-5xl lg:text-[3.35rem] font-black tracking-tight leading-[1.08]';
+
+/** Titles on dark/platinum contrast bands (light ink + optional gold highlight). */
+export const FINELY_OS_LANDING_PLATINUM_TITLE = `${FINELY_OS_LANDING_SELL_TITLE} fc-light-contrast-title text-white`;
+
+/** Titles on wealthy ivory bands (navy ink). Pair gold highlight with amber/gold span. */
+export const FINELY_OS_LANDING_IVORY_TITLE = `${FINELY_OS_LANDING_SELL_TITLE} text-[#0a1628]`;
+
+export const FINELY_OS_LANDING_IVORY_BODY = 'text-[15px] sm:text-base leading-relaxed text-[#0a1628]/70';
+export const FINELY_OS_LANDING_IVORY_KICKER =
+  'text-[11px] font-black uppercase tracking-[0.28em] text-[#b8860b]';
+
 
 /** Light-theme black contrast band — punchy section breaks on aurora shell */
 export function finelyOsLightContrastBand(padding = 'py-12 px-6 sm:px-8 lg:px-10') {

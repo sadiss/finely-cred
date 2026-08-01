@@ -45,6 +45,9 @@ import { sendInviteEmail, sendInviteSms } from '../../lib/inviteDeliveryClient';
 import {
   ROOSEVELT_COURT_PARTNER_ID,
   ROOSEVELT_DISPLAY_NAME,
+  ROOSEVELT_OUTCOME_SUMMARY,
+  ROOSEVELT_PLAN_FINAL_PAYMENT_ISO,
+  ROOSEVELT_PLAN_FIRST_PAYMENT_ISO,
   ensureRooseveltCourtPartnerAsync,
 } from '../../data/rooseveltCourtPartnerSeed';
 import { ADMIN_PARTNER_OVERRIDE_KEY } from '../../portal/getOrCreatePartnerForSession';
@@ -367,7 +370,7 @@ export default function AdminPartnerImportPage() {
                       /* ignore */
                     }
                     setNotice(
-                      `${r.created ? 'Created' : 'Updated'} ${ROOSEVELT_DISPLAY_NAME} in Supabase directory (${r.partner.id}). Hearing ${r.debt.hearingDate}. Opening Partner Management so he appears in the list.`,
+                      `${r.created ? 'Created' : 'Updated'} ${ROOSEVELT_DISPLAY_NAME} in Supabase directory (${r.partner.id}). Court outcome saved: ${r.outcome.verdictSummary}. Opening Partner Management so he appears in the list.`,
                     );
                     navigate('/admin/partners#ensure-roosevelt-court');
                   })
@@ -410,6 +413,11 @@ export default function AdminPartnerImportPage() {
             Upserts into the Supabase directory Admin Partners reads. Jul 27 Midland/Citi attaches to Roosevelt only — not Yolie.
             Stable id <span className="font-mono text-[11px]">{ROOSEVELT_COURT_PARTNER_ID}</span>.
           </p>
+          <p className={`${FINELY_OS_ENTITY_BODY} text-sm`}>
+            Hearing is decided — {ROOSEVELT_OUTCOME_SUMMARY.toLowerCase()} ({ROOSEVELT_PLAN_FIRST_PAYMENT_ISO} through{' '}
+            {ROOSEVELT_PLAN_FINAL_PAYMENT_ISO}). He agreed to pay before the court date, so the plan carries that prior
+            agreement forward. Seeding also writes the payment plan, next steps, and escalation flags.
+          </p>
           <button
             type="button"
             disabled={rooseveltBusy}
@@ -425,7 +433,7 @@ export default function AdminPartnerImportPage() {
                     /* ignore */
                   }
                   setNotice(
-                    `${r.created ? 'Created' : 'Updated'} ${ROOSEVELT_DISPLAY_NAME} (${r.partner.id}). Returning to Partner Management.`,
+                    `${r.created ? 'Created' : 'Updated'} ${ROOSEVELT_DISPLAY_NAME} (${r.partner.id}). Court outcome saved: ${r.outcome.verdictSummary}. Returning to Partner Management.`,
                   );
                   navigate('/admin/partners#ensure-roosevelt-court');
                 })

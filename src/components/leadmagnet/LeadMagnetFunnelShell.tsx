@@ -44,8 +44,6 @@ import {
   finelyOsCatalogCard,
   finelyOsLeadMagnetPanel,
 } from '../../features/os/finelyOsLightUi';
-import { LeadMagnetCobrand } from '../brand/LeadMagnetCobrand';
-
 type Step = 'landing' | 'form' | 'success' | 'download';
 
 export function LeadMagnetFunnelShell({
@@ -363,9 +361,6 @@ export function LeadMagnetFunnelShell({
             primaryAction={{ label: ctaOverride ?? 'Get free access now', onClick: () => setStep('form') }}
           >
           <header className="container mx-auto px-4 sm:px-6 pt-4 pb-8 max-w-5xl">
-            <div className="mb-4">
-              <LeadMagnetCobrand size="sm" />
-            </div>
             <div className={`${finelyOsLeadMagnetPanel('emerald')} p-6 sm:p-10`} data-fc-accent="emerald">
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full fg-kicker-pill mb-6">
                 <span className="h-2 w-2 rounded-full bg-[#39ff14] animate-pulse" />

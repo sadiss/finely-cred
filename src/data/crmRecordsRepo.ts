@@ -17,6 +17,8 @@ import { emitCrmStageChanged } from '../lib/crmLifecycleBridge';
 import { applyCrmRoutingRules } from '../features/crm/routing/applyCrmRoutingRules';
 import { autoEnrollCrmRecordInDefaultSequence } from '../features/crm/sequences/autoEnrollCrmRecord';
 import { runLeadCapturePipeline } from '../lib/leadCapturePipeline';
+import { isLeadTrashed } from '../features/studioCommandOs/leadTrashRepo';
+import { leadOfferLabel } from '../lib/leadOfferLabels';
 
 const DEAL_VALUE_TAG_PREFIX = 'deal_value_cents:';
 
@@ -87,16 +89,24 @@ function leadToRecord(lead: LeadCapture, op: LeadOp): CrmRecord {
   timeline.unshift({
     id: `lead_capture_${lead.id}`,
     kind: 'capture',
-    label: `Captured via ${lead.source} — ${lead.offer}`,
+    label: `Captured via ${lead.source} — ${leadOfferLabel(lead.offer)}`,
     createdAt: lead.createdAt,
   });
 
   const target: ProspectTarget =
     lead.offer === 'affiliate_application'
       ? 'affiliates'
-      : lead.offer === 'agent_application'
+      : lead.offer === 'agent_application' ||
+          lead.offer === 'credit_specialist_join' ||
+          lead.offer === 'credit_specialist_guide' ||
+          (lead.offer as string) === 'specialist_program_apply'
         ? 'agents'
         : 'clients';
+
+  const csTags =
+    lead.offer === 'credit_specialist_join' || lead.offer === 'credit_specialist_guide'
+      ? ['credit-specialist', `offer:${lead.offer}`]
+      : [];
 
   return {
     id: `crm_lead_${lead.id}`,
@@ -104,7 +114,7 @@ function leadToRecord(lead: LeadCapture, op: LeadOp): CrmRecord {
     target,
     stage: op.stage,
     source: lead.source,
-    tags: op.tags ?? [],
+    tags: Array.from(new Set([...(op.tags ?? []), ...csTags])),
     contact: {
       fullName: lead.fullName,
       email: lead.email,
@@ -152,6 +162,14 @@ export function listCrmRecords(filters?: {
   let rows = [...prospects, ...leads];
   if (filters?.kind === 'prospect') rows = prospects;
   if (filters?.kind === 'inbound_lead') rows = leads;
+
+  // Cleanup (trash) removes cards from Board immediately — Put back restores visibility.
+  rows = rows.filter((r) => {
+    const sourceId = r.sourceRef?.id;
+    if (sourceId && isLeadTrashed(sourceId)) return false;
+    if (isLeadTrashed(r.id)) return false;
+    return true;
+  });
 
   return rows.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)).map(enrichRecordDealValue).map(enrichCrmRecordWithWorkSignals);
 }

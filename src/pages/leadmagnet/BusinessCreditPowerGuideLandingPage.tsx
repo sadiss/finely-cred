@@ -1,7 +1,10 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import {
   BarChart3,
+  BookOpenText,
   Building2,
+  Calendar,
   Check,
   ClipboardCheck,
   CreditCard,
@@ -16,12 +19,15 @@ import {
   TriangleAlert,
   Users,
 } from 'lucide-react';
-import { LeadMagnetCobrand, LeadMagnetCobrandFooterMarks } from '../../components/brand/LeadMagnetCobrand';
+import { LeadMagnetCobrandFooterMarks } from '../../components/brand/LeadMagnetCobrand';
 import { LeadMagnetFunnelHeroVideo } from '../../components/leadmagnet/LeadMagnetFunnelHeroVideo';
 import { getLeadMagnetVisualTheme } from '../../components/leadmagnet/leadMagnetVisualThemes';
 import { BUSINESS_FUNNEL } from '../../domain/leadMagnetFunnels';
 import { usePublicSeoMeta } from '../../hooks/usePublicSeoMeta';
 import { PremiumLeadMagnetCaptureForm } from '../../components/leadmagnet/PremiumLeadMagnetCaptureForm';
+import { LandingTypewriterTitle } from '../../components/landing/LandingTypewriterTitle';
+import { BC_GUIDE_CHAPTERS, BC_GUIDE_META, BC_GUIDE_READ_PATH } from './businessCreditPowerGuideContent';
+import '../../components/leadmagnet/premiumLeadMagnetShared.css';
 import '../../components/leadmagnet/leadMagnetLuxuryStage.css';
 import './businessCreditPowerGuideLanding.css';
 
@@ -126,6 +132,11 @@ function BusinessCaptureForm({ compact = false }: { compact?: boolean }) {
       <p className="bcpg-compliance mt-3 text-center">
         Results vary · not legal advice · funding subject to underwriting
       </p>
+      <div className="mt-2 text-center">
+        <Link to={BUSINESS_FUNNEL.bookingPath ?? '/enlightenment-session'} className="lm-secondary-book-link">
+          <Calendar size={14} /> Book a session
+        </Link>
+      </div>
     </div>
   );
 }
@@ -243,26 +254,8 @@ export default function BusinessCreditPowerGuideLandingPage() {
       </div>
       <div className="lm-lux-grain lm-lux-grain--fixed pointer-events-none" aria-hidden />
 
-      <header className="bcpg-nav fixed inset-x-0 top-0 z-50">
-        <div className="mx-auto flex h-[4.5rem] max-w-[88rem] items-center justify-between gap-6 px-5 md:px-10">
-          <LeadMagnetCobrand size="sm" />
-          <nav className="hidden items-center gap-9 text-[13px] font-medium tracking-wide text-white/72 lg:flex">
-            <a href="#guide" className="transition hover:text-[#95e000]">Business Credit</a>
-            <a href="#tools" className="transition hover:text-[#95e000]">Credit Tools</a>
-            <a href="#why" className="transition hover:text-[#95e000]">Resources</a>
-            <a href="#results" className="transition hover:text-[#95e000]">Reviews</a>
-          </nav>
-          <a
-            href="#download"
-            className="bcpg-nav-cta inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-[10px] font-bold uppercase tracking-[0.16em] text-[#e8c96a]"
-          >
-            <Download size={14} /> Get Your Free E-Guide
-          </a>
-        </div>
-      </header>
-
-      {/* Hero — copy left / mockup right, hard title clearance */}
-      <section className="relative z-10 min-h-[100svh] overflow-x-hidden pt-[4.5rem]">
+      {/* Site nav owns branding — no duplicate cobrand strip */}
+      <section className="relative z-10 overflow-x-hidden pt-20 md:pt-24">
         <div className="absolute inset-0 bg-[#030504]" />
         <div
           className="absolute inset-0 bg-cover bg-[center_55%] opacity-[0.22] saturate-[1.02] brightness-[0.7]"
@@ -284,19 +277,31 @@ export default function BusinessCreditPowerGuideLandingPage() {
             <div className="bcpg-hero-copy">
               <p className="text-[11px] font-bold uppercase tracking-[0.28em] text-[#95e000]">Free E-Guide</p>
               <h1 className="bcpg-serif bcpg-hero-title lm-lux-display mt-4 text-white">
-                <span>Business Credit</span>
-                <span className="bcpg-hero-title-gold mt-1">Power Guide</span>
+                <LandingTypewriterTitle
+                  as="span"
+                  text="Business Credit"
+                  className="block"
+                  speedMs={40}
+                  delayMs={100}
+                  caret
+                />
+                <LandingTypewriterTitle
+                  as="span"
+                  text="Power Guide"
+                  className="bcpg-hero-title-gold mt-1 block"
+                  speedMs={44}
+                  delayMs={780}
+                  caret
+                />
               </h1>
               <div className="lm-lux-rule--short lm-lux-rule--draw mt-5" aria-hidden />
               <p className="lm-lux-lede mt-6 max-w-md text-white/82">
                 Fundability sequencing — entity pillars, stage gates, and vendor depth — so partners ask for capital in the right order.
               </p>
-              <ul className="mt-8 space-y-3.5">
-                <GoldCheck>Build fundability with entity truth before vendor volume.</GoldCheck>
-                <GoldCheck>Sequence Tier-1 reporters toward lender-ready optics.</GoldCheck>
-                <GoldCheck>Use stage gates and a scorecard habit — not spray-and-pray apps.</GoldCheck>
-              </ul>
-              <div className="mt-9 flex flex-wrap items-center gap-4">
+              <p className="mt-5 max-w-md text-sm leading-relaxed text-white/65">
+                Entity truth before vendor volume · stage gates · scorecard habit — not spray-and-pray apps.
+              </p>
+              <div className="mt-7 flex flex-wrap items-center gap-3">
                 <button
                   type="button"
                   onClick={scrollToDownload}
@@ -304,12 +309,24 @@ export default function BusinessCreditPowerGuideLandingPage() {
                 >
                   <span className="relative z-10">Download Free Guide</span>
                 </button>
-                <div className="inline-flex items-center gap-2.5 rounded-xl border border-[#d4a447]/28 bg-black/35 px-3.5 py-2.5 backdrop-blur-sm">
-                  <Lock size={16} className="text-[#d4a447]" />
-                  <div>
-                    <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#d4a447]">100% Free</p>
-                    <p className="text-[11px] text-white/55">No card required</p>
-                  </div>
+                <Link
+                  to={BC_GUIDE_READ_PATH}
+                  className="inline-flex h-12 items-center justify-center gap-2 rounded-lg border border-[#d4a447]/45 bg-[#d4a447]/10 px-5 text-[11px] font-black uppercase tracking-[0.14em] text-[#e8c96a] transition hover:border-[#d4a447]/75 hover:bg-[#d4a447]/16"
+                >
+                  <BookOpenText size={15} /> Read free — no signup
+                </Link>
+                <a href="#bcpg-preview" className="text-[11px] font-bold uppercase tracking-[0.14em] text-white/50 hover:text-[#95e000]">
+                  Preview ↓
+                </a>
+                <Link
+                  to={BUSINESS_FUNNEL.bookingPath ?? '/enlightenment-session'}
+                  className="text-[11px] font-bold uppercase tracking-[0.14em] text-white/50 hover:text-[#d4a447]"
+                >
+                  Book a session →
+                </Link>
+                <div className="inline-flex items-center gap-2 rounded-xl border border-[#d4a447]/28 bg-black/35 px-3 py-2 backdrop-blur-sm">
+                  <Lock size={14} className="text-[#d4a447]" />
+                  <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#d4a447]">Free · no card</p>
                 </div>
               </div>
             </div>
@@ -319,16 +336,16 @@ export default function BusinessCreditPowerGuideLandingPage() {
             </div>
           </div>
 
-          {/* Bottom: signup + video — extra top air clears downward mockup shift */}
-          <div className="mt-16 grid gap-8 lg:mt-24 xl:mt-28 lg:grid-cols-2 lg:items-stretch xl:gap-10">
-            <div id="download" className="bcpg-form-panel lm-lux-panel relative z-10 rounded-2xl p-5 md:p-7">
+          {/* Soft capture + preview — still first scroll, not a second full-screen wall */}
+          <div className="mt-10 grid gap-6 lg:mt-12 lg:grid-cols-2 lg:items-stretch xl:gap-8">
+            <div id="download" className="bcpg-form-panel lm-lux-panel relative z-10 rounded-2xl p-5 md:p-6">
               <BusinessCaptureForm />
             </div>
-            <div className="bcpg-hero-video flex min-h-[320px] flex-col">
+            <div id="bcpg-preview" className="bcpg-hero-video flex min-h-[260px] flex-col scroll-mt-28">
               <LeadMagnetFunnelHeroVideo
                 config={BUSINESS_FUNNEL}
                 theme={BUSINESS_THEME}
-                className="h-full min-h-[320px] flex-1 rounded-2xl !aspect-auto"
+                className="h-full min-h-[260px] flex-1 rounded-2xl !aspect-auto"
                 onGoForm={scrollToDownload}
               />
             </div>
@@ -366,92 +383,113 @@ export default function BusinessCreditPowerGuideLandingPage() {
         </p>
       </section>
 
-      {/* Inside the guide — editorial columns */}
-      <section id="guide" className="relative z-10 py-16 md:py-24">
+      {/* Chapter index — the full guide is readable in-app before any signup */}
+      <section id="read-online" className="relative z-10 border-t border-[#d4a447]/18 py-9 md:py-12">
         <div className="mx-auto max-w-[88rem] px-5 md:px-10">
-          <div className="mx-auto max-w-3xl text-center">
-            <p className="text-[11px] font-bold uppercase tracking-[0.24em] text-[#d4a447]">What&apos;s inside</p>
-            <h2 className="bcpg-serif mt-3 text-4xl text-white md:text-5xl lg:text-6xl">
-              Inside the Business Credit <span className="text-[#95e000]">Power Guide</span>
-            </h2>
-            <p className="mt-4 text-lg text-white/52">
-              A premium fundability roadmap — pillars, stage gates, blockers, and scorecard habits — without hype or fake guarantees.
-            </p>
+          <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+            <div className="max-w-2xl">
+              <p className="text-[11px] font-bold uppercase tracking-[0.28em] text-[#95e000]">
+                Read it now · no signup
+              </p>
+              <h2 className="bcpg-serif mt-3 text-3xl text-white md:text-4xl">{BC_GUIDE_META.title}</h2>
+              <p className="mt-3 text-sm leading-relaxed text-white/60">
+                {BC_GUIDE_CHAPTERS.length} chapters in the browser — fundability doctrine, entity truth, the three
+                business files, the vendor tier ladder, bank rating, the capital stack, and a 12-month build calendar.
+              </p>
+            </div>
+            <Link
+              to={BC_GUIDE_READ_PATH}
+              className="bcpg-cta inline-flex h-12 shrink-0 items-center justify-center gap-2 rounded-lg px-7 text-[11px] font-black uppercase tracking-[0.16em] text-black"
+            >
+              <BookOpenText size={15} /> Open Chapter 01
+            </Link>
           </div>
-          <div className="mx-auto mt-12 max-w-5xl columns-1 md:columns-2 md:gap-x-16">
-            {inside.map((item, i) => (
-              <div key={item.title} className={cn(i > 0 && 'break-inside-avoid')}>
-                {i > 0 ? <div className="bcpg-gold-line my-0 hidden md:block" /> : null}
-                <InsideItem {...item} />
-              </div>
+
+          <div className="mt-7 grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+            {BC_GUIDE_CHAPTERS.map((ch) => (
+              <Link
+                key={ch.id}
+                to={`${BC_GUIDE_READ_PATH}?chapter=${ch.id}`}
+                className="bcpg-kpi-card group flex items-start gap-3.5 rounded-2xl !p-4 text-left transition hover:-translate-y-1"
+              >
+                <span className="mt-0.5 shrink-0 font-mono text-sm font-bold text-[#95e000]">{ch.number}</span>
+                <span className="min-w-0">
+                  <span className="bcpg-serif block text-lg leading-snug text-white">{ch.title}</span>
+                  <span className="mt-1 block text-[12.5px] leading-relaxed text-white/55">{ch.teaser}</span>
+                  <span className="mt-1.5 block text-[10px] font-black uppercase tracking-[0.16em] text-[#d4a447]">
+                    {ch.readMinutes} min · {ch.kicker}
+                  </span>
+                </span>
+              </Link>
             ))}
           </div>
-          <div className="mt-10 text-center">
-            <button
-              type="button"
-              onClick={scrollToDownload}
-              className="bcpg-cta inline-flex h-12 items-center justify-center rounded-lg px-8 text-[11px] font-black uppercase tracking-[0.18em] text-black"
-            >
-              Get the Free Guide
-            </button>
-          </div>
+          <p className="bcpg-compliance mt-4">{BC_GUIDE_META.compliance}</p>
         </div>
       </section>
 
-      {/* Tools — compact luxury KPI cards + floating mockup */}
-      <section id="tools" className="relative z-10 overflow-hidden border-t border-[#d4a447]/18 py-16 md:py-24">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_75%_60%_at_85%_50%,rgba(212,164,71,0.12),transparent)]" />
-        <div className="absolute inset-x-0 bottom-0 h-48 bg-[radial-gradient(ellipse_80%_90%_at_50%_100%,rgba(149,224,0,0.14),transparent)]" />
-        <div className="relative mx-auto max-w-[88rem] px-5 md:px-10">
-          <div className="flex flex-col gap-10 lg:flex-row lg:items-start lg:gap-12">
-            <div className="lg:w-[52%]">
-              <p className="text-[11px] font-bold uppercase tracking-[0.24em] text-[#d4a447]">Partner tools</p>
-              <h2 className="bcpg-serif mt-3 text-4xl leading-tight text-white md:text-5xl lg:text-6xl">
-                <span className="text-[#95e000]">Free</span> business credit tools
-              </h2>
-              <p className="mt-4 max-w-lg text-lg text-white/52">
-                Exclusive assessments to plan your next move — unlocked with your guide.
+      {/* SEO depth — collapsed so ATF stays short hero → preview → capture */}
+      <section className="relative z-10 border-t border-[#d4a447]/18 py-8 md:py-10">
+        <div className="mx-auto max-w-[88rem] space-y-3 px-5 md:px-10">
+          <details id="guide" className="lm-seo-depth">
+            <summary>
+              <span>What&apos;s inside the Power Guide</span>
+              <span className="lm-seo-depth-hint">Expand</span>
+            </summary>
+            <div className="lm-seo-depth-body">
+              <p className="mb-4 max-w-3xl text-sm text-white/55">
+                A premium fundability roadmap — pillars, stage gates, blockers, and scorecard habits — without hype or fake guarantees.
               </p>
-              <div className="mt-8 grid gap-3.5 sm:grid-cols-2">
+              <div className="mx-auto max-w-5xl columns-1 md:columns-2 md:gap-x-16">
+                {inside.map((item, i) => (
+                  <div key={item.title} className={cn(i > 0 && 'break-inside-avoid')}>
+                    {i > 0 ? <div className="bcpg-gold-line my-0 hidden md:block" /> : null}
+                    <InsideItem {...item} />
+                  </div>
+                ))}
+              </div>
+              <div className="mt-8 text-center">
+                <button
+                  type="button"
+                  onClick={scrollToDownload}
+                  className="bcpg-cta inline-flex h-12 items-center justify-center rounded-lg px-8 text-[11px] font-black uppercase tracking-[0.18em] text-black"
+                >
+                  Get the Free Guide
+                </button>
+              </div>
+            </div>
+          </details>
+
+          <details id="tools" className="lm-seo-depth">
+            <summary>
+              <span>Free partner tools</span>
+              <span className="lm-seo-depth-hint">Expand</span>
+            </summary>
+            <div className="lm-seo-depth-body">
+              <div className="grid gap-3.5 sm:grid-cols-2 lg:grid-cols-4">
                 {tools.map((tool) => (
                   <ToolKpiCard key={tool.title} {...tool} onAction={scrollToDownload} />
                 ))}
               </div>
             </div>
-            <div className="relative flex flex-1 items-center justify-center lg:sticky lg:top-28 lg:pt-4">
-              <GuideMockup className="w-full max-w-[min(100%,920px)]" />
-            </div>
-          </div>
-        </div>
-      </section>
+          </details>
 
-      {/* Why — premium split with KPI cards */}
-      <section id="why" className="relative z-10 py-16 md:py-24">
-        <div className="absolute inset-x-0 bottom-0 h-64 bg-[radial-gradient(ellipse_90%_80%_at_50%_100%,rgba(149,224,0,0.16),transparent)]" />
-        <div className="relative mx-auto max-w-[88rem] px-5 md:px-10">
-          <div className="bcpg-why-panel overflow-hidden rounded-3xl p-6 md:p-10 lg:p-12">
-            <div className="flex flex-col gap-10 lg:flex-row lg:gap-14">
-              <div className="lg:w-[42%]">
-                <p className="text-[11px] font-bold uppercase tracking-[0.24em] text-[#95e000]">Why it matters</p>
-                <h2 className="bcpg-serif mt-3 text-4xl text-white md:text-5xl lg:text-[3.25rem]">
-                  Why build business credit?
-                </h2>
-                <ul className="mt-8 space-y-3.5">
+          <details id="why" className="lm-seo-depth">
+            <summary>
+              <span>Why build business credit?</span>
+              <span className="lm-seo-depth-hint">Expand</span>
+            </summary>
+            <div className="lm-seo-depth-body">
+              <div className="bcpg-why-panel overflow-hidden rounded-3xl p-5 md:p-8">
+                <ul className="space-y-3">
                   <GoldCheck>Separate personal and commercial structure with intention.</GoldCheck>
                   <GoldCheck>Qualify for higher limits and stronger terms over time.</GoldCheck>
                   <GoldCheck>Reduce reliance on personal guarantees as your file matures.</GoldCheck>
                   <GoldCheck>Increase cash-flow flexibility and strategic optionality.</GoldCheck>
                 </ul>
-              </div>
-              <div className="flex-1">
-                <p className="bcpg-serif text-2xl leading-snug text-white md:text-3xl lg:text-[2.35rem]">
-                  Stronger credit. More funding.{' '}
-                  <span className="bg-gradient-to-r from-[#e8c96a] to-[#95e000] bg-clip-text text-transparent">More freedom.</span>
-                </p>
-                <p className="bcpg-compliance mt-3">
+                <p className="bcpg-compliance mt-4">
                   Results vary · not legal advice · funding subject to underwriting
                 </p>
-                <div className="mt-8 grid gap-3.5 sm:grid-cols-2">
+                <div className="mt-6 grid gap-3 sm:grid-cols-2">
                   {[
                     { icon: CreditCard, t: 'Higher limits', d: 'Build depth before you ask for capital.' },
                     { icon: BarChart3, t: 'Lower interest', d: 'Better optics compound over time.' },
@@ -463,63 +501,44 @@ export default function BusinessCreditPowerGuideLandingPage() {
                 </div>
               </div>
             </div>
-          </div>
-        </div>
-      </section>
+          </details>
 
-      {/* Audience — glass chips */}
-      <section className="relative z-10 border-y border-[#d4a447]/14 py-12 md:py-14">
-        <div className="mx-auto max-w-[88rem] px-5 text-center md:px-10">
-          <h2 className="bcpg-serif text-3xl text-white md:text-4xl lg:text-5xl">
-            Built for ambitious <span className="text-[#95e000]">operators</span>
-          </h2>
-          <div className="mt-7 flex flex-wrap items-center justify-center gap-2.5">
-            {['Startups', 'Small business owners', 'Entrepreneurs', 'E-commerce brands', 'Service providers', 'Investors'].map(
-              (label) => (
-                <span
-                  key={label}
-                  className="bcpg-audience-chip rounded-full px-5 py-2.5 text-sm text-white/70"
-                >
-                  {label}
-                </span>
-              ),
-            )}
-          </div>
-        </div>
-      </section>
-
-      {/* Testimonials */}
-      <section id="results" className="relative z-10 py-16 md:py-24">
-        <div className="mx-auto max-w-[88rem] px-5 md:px-10">
-          <p className="text-center text-[11px] font-bold uppercase tracking-[0.24em] text-[#d4a447]">Social proof</p>
-          <h2 className="bcpg-serif mt-3 text-center text-4xl text-white md:text-5xl lg:text-6xl">
-            What <span className="text-[#95e000]">partners</span> are saying
-          </h2>
-          <div className="mt-10 flex flex-col gap-4 lg:flex-row lg:gap-5">
-            {[
-              ['Marcus T.', 'E-Commerce Owner', 'This guide gave me the exact roadmap I needed to build my business credit the right way.'],
-              ['Jasmine R.', 'Consultant', 'Easy to follow, packed with value, and full of actionable steps.'],
-              ['David L.', 'Real Estate Investor', 'Finally, a guide that breaks everything down in simple terms.'],
-            ].map(([name, role, quote]) => (
-              <article key={name} className="bcpg-quote-card flex-1 rounded-2xl p-5 md:p-6">
-                <div className="flex gap-0.5 text-[#d4a447]">
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <Star key={i} size={13} fill="currentColor" />
-                  ))}
-                </div>
-                <p className="bcpg-serif mt-4 text-base leading-relaxed text-white/78 md:text-lg">“{quote}”</p>
-                <div className="mt-5 flex items-center gap-3">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-[#d4a447]/45 to-[#95e000]/25 text-[10px] font-bold text-white">
-                    {name.split(' ').map((n) => n[0]).join('')}
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-white">{name}</p>
-                    <p className="text-xs text-white/45">{role}</p>
-                  </div>
-                </div>
-              </article>
-            ))}
-          </div>
+          <details id="results" className="lm-seo-depth">
+            <summary>
+              <span>What partners are saying</span>
+              <span className="lm-seo-depth-hint">Expand</span>
+            </summary>
+            <div className="lm-seo-depth-body">
+              <div className="flex flex-col gap-4 lg:flex-row lg:gap-5">
+                {[
+                  ['Marcus T.', 'E-Commerce Owner', 'This guide gave me the exact roadmap I needed to build my business credit the right way.'],
+                  ['Jasmine R.', 'Consultant', 'Easy to follow, packed with value, and full of actionable steps.'],
+                  ['David L.', 'Real Estate Investor', 'Finally, a guide that breaks everything down in simple terms.'],
+                ].map(([name, role, quote]) => (
+                  <article key={name} className="bcpg-quote-card flex-1 rounded-2xl p-5 md:p-6">
+                    <div className="flex gap-0.5 text-[#d4a447]">
+                      {Array.from({ length: 5 }).map((_, i) => (
+                        <Star key={i} size={13} fill="currentColor" />
+                      ))}
+                    </div>
+                    <p className="bcpg-serif mt-4 text-base leading-relaxed text-white/78 md:text-lg">“{quote}”</p>
+                    <div className="mt-5 flex items-center gap-3">
+                      <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-[#d4a447]/45 to-[#95e000]/25 text-[10px] font-bold text-white">
+                        {name.split(' ').map((n) => n[0]).join('')}
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold text-white">{name}</p>
+                        <p className="text-xs text-white/45">{role}</p>
+                      </div>
+                    </div>
+                  </article>
+                ))}
+              </div>
+              <p className="bcpg-compliance mt-4 text-center">
+                Individual results vary · stories for illustration · not legal advice
+              </p>
+            </div>
+          </details>
         </div>
       </section>
 
@@ -530,10 +549,16 @@ export default function BusinessCreditPowerGuideLandingPage() {
         <div className="relative mx-auto flex max-w-[88rem] flex-col items-center gap-8 px-5 md:px-10 lg:flex-row lg:justify-between">
           <div className="max-w-xl text-center lg:text-left">
             <ShieldCheck size={36} className="mx-auto text-[#d4a447] lg:mx-0" strokeWidth={1.25} />
-            <h2 className="bcpg-serif mt-3 text-3xl leading-tight text-white md:text-4xl lg:text-5xl">
-              Your business deserves better funding options.
-              <span className="mt-2 block text-[#95e000]">Start with this free guide.</span>
-            </h2>
+            <LandingTypewriterTitle
+              as="h2"
+              text="Your business deserves better funding options."
+              className="bcpg-serif mt-3 text-3xl leading-tight text-white md:text-4xl lg:text-5xl"
+              highlight="better funding options."
+              highlightClassName="text-[#95e000]"
+              speedMs={34}
+              delayMs={160}
+            />
+            <p className="mt-2 text-2xl font-semibold text-[#95e000] md:text-3xl">Start with this free guide.</p>
             <p className="bcpg-compliance mt-3">
               Results vary · not legal advice · funding subject to underwriting
             </p>

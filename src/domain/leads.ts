@@ -8,6 +8,8 @@ export type LeadOffer =
   | 'affiliate_application'
   | 'agent_application'
   | 'credit_specialist_join'
+  /** Guide landing capture (in-app Credit Specialist playbook). */
+  | 'credit_specialist_guide'
   | 'enlightenment_session'
   | 'consultation_booking'
   | 'dispute_letter_guide'
@@ -19,7 +21,9 @@ export type LeadOffer =
   | 'book_purchase'
   | 'tradeline_package'
   | 'agency_workspace'
-  | 'heta_society_signup';
+  | 'heta_society_signup'
+  /** In-house financing / Equifax-reporting contract pre-approval interest. */
+  | 'financing_preapproval';
 
 export type LeadCapture = {
   id: string;

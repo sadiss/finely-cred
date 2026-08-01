@@ -1,21 +1,34 @@
 import React, { useState } from 'react';
-import { BadgeCheck, ChevronLeft, ChevronRight, FileText, ShieldCheck } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { BadgeCheck, BookOpen, ChevronLeft, ChevronRight, PenLine, ShieldCheck } from 'lucide-react';
 import {
   DISPUTE_LETTER_GUIDE_COVER,
   DISPUTE_LETTER_GUIDE_PROGRAMMATIC_PAGES,
   DISPUTE_LETTER_GUIDE_PAGE_COUNT,
+  DISPUTE_LETTER_GUIDE_READ_PATH,
+  type GeneratedGuidePage,
 } from '../../resources/disputeLetterGuideContent';
+import '../../pages/leadmagnet/disputeGuideReader.css';
+
+/** Chapters worth showing in the spread — front matter first, then framework and craft. */
+const SPOTLIGHT_IDS = [
+  'read-this-first',
+  'report-anatomy',
+  'finding-not-feeling',
+  'round-map',
+  'five-step-overview',
+  'step-1',
+  'example-letter',
+  'validation-first-doctrine',
+];
 
 const PREVIEW_SLIDES = [
   { type: 'cover' as const, label: 'Cover' },
   { type: 'intro' as const, label: 'Introduction' },
-  ...DISPUTE_LETTER_GUIDE_PROGRAMMATIC_PAGES.filter((p) =>
-    ['five-step-overview', 'step-1', 'step-3', 'example-letter', 'ocr-metro2-survival', 'validation-first-doctrine', 'affidavit-court-system'].includes(p.id),
-  ).map((p) => ({
-    type: 'page' as const,
-    page: p,
-    label: p.title,
-  })),
+  ...SPOTLIGHT_IDS.flatMap((id) => {
+    const page = DISPUTE_LETTER_GUIDE_PROGRAMMATIC_PAGES.find((p) => p.id === id);
+    return page ? [{ type: 'page' as const, page, label: page.title }] : [];
+  }),
   { type: 'toc' as const, label: 'Full guide contents' },
 ];
 
@@ -24,43 +37,67 @@ type Props = {
   className?: string;
 };
 
-function GuidePagePreview({ page }: { page: (typeof DISPUTE_LETTER_GUIDE_PROGRAMMATIC_PAGES)[number] }) {
+const INTRO_POINTS = [
+  'How a reinvestigation actually works — before you write a word',
+  'The eleven account-block fields that decide every dispute',
+  'Factual findings vs discarded language, side by side',
+  'The 5-step framework, one chapter per step',
+  'Certified mail workflow, escalation paths, and the model letter',
+];
+
+function SheetPage({ page }: { page: GeneratedGuidePage }) {
+  const first = page.sections[0];
+  const bulletSection = page.sections.find((s) => s.bullets?.length);
+  const evidence = page.sections.find((s) => s.evidence)?.evidence;
+  const annotation = page.sections.find((s) => s.annotation)?.annotation;
+
   return (
-    <div className="absolute inset-0 p-4 sm:p-6 flex flex-col text-left overflow-y-auto bg-gradient-to-br from-[#0b1210] via-[#111820] to-[#0a0f0e]">
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-[-10%] left-[-10%] w-[55%] h-[45%] rounded-full bg-[#39ff14]/15 blur-3xl" />
-        <div className="absolute bottom-[-5%] right-[-5%] w-[40%] h-[35%] rounded-full bg-amber-500/10 blur-3xl" />
-      </div>
-      <div className="relative z-10">
-        <p className="text-[10px] font-black uppercase tracking-widest text-[#39ff14] mb-2">Finely Cred edition</p>
-        <h4 className="text-base sm:text-lg font-bold text-white mb-1">{page.title}</h4>
-        {page.subtitle ? <p className="text-xs text-white/60 mb-3">{page.subtitle}</p> : null}
-        <div className="space-y-3">
-          {page.sections.map((sec, i) => (
-            <div key={i} className="rounded-lg border border-[#39ff14]/20 bg-black/30 p-2.5">
-              {sec.heading ? (
-                <p className={`text-[11px] font-bold mb-1 ${sec.heading === 'Power move' ? 'text-amber-300' : 'text-[#39ff14]'}`}>
-                  {sec.heading}
-                </p>
-              ) : null}
-              {sec.paragraphs?.map((p, j) => (
-                <p key={j} className="text-[10px] sm:text-xs text-white/75 leading-relaxed mb-1">
-                  {p}
-                </p>
-              ))}
-              {sec.bullets ? (
-                <ul className="space-y-1 mt-1">
-                  {sec.bullets.slice(0, 4).map((b) => (
-                    <li key={b} className="text-[10px] sm:text-xs text-white/70 flex gap-1.5">
-                      <span className="text-[#39ff14] shrink-0">+</span>
-                      <span className="line-clamp-2">{b}</span>
-                    </li>
-                  ))}
-                </ul>
-              ) : null}
-            </div>
+    <div className="fdg-sheet absolute inset-0 overflow-y-auto !rounded-none !shadow-none">
+      <div className={`fdg-rail fdg-rail--${page.accent ?? 'sky'} !rounded-none`} aria-hidden />
+      <div className="px-4 py-4 sm:px-6 sm:py-5">
+        <div className="flex items-center justify-between gap-2">
+          <span className="fdg-kicker">{page.kicker ?? 'Chapter'}</span>
+          {page.readMinutes ? <span className="fdg-meta-row">{page.readMinutes} min</span> : null}
+        </div>
+        <h4 className="fdg-chapter-title mt-1.5 !text-[1.35rem] sm:!text-2xl">{page.title}</h4>
+        {page.subtitle ? <p className="fdg-chapter-sub mt-1.5 !text-[13px]">{page.subtitle}</p> : null}
+
+        <div className="mt-3 border-t border-[#e6e2d8] pt-3">
+          {first?.heading ? (
+            <p className="fdg-section-heading !text-[15px]">
+              <span className="fdg-mark">{first.heading}</span>
+            </p>
+          ) : null}
+          {first?.paragraphs?.slice(0, 2).map((p) => (
+            <p key={p.slice(0, 30)} className="fdg-body-text mt-2 !text-[12.5px] !leading-relaxed">
+              {p}
+            </p>
           ))}
         </div>
+
+        {bulletSection?.bullets?.length ? (
+          <ol className="fdg-findings mt-3">
+            {bulletSection.bullets.slice(0, 4).map((b) => (
+              <li key={b} className="fdg-finding !text-[12px] !py-1.5">
+                <span>{b}</span>
+              </li>
+            ))}
+          </ol>
+        ) : null}
+
+        {annotation ? (
+          <aside className="fdg-annotation !mt-3 !text-[12px]">
+            <PenLine size={13} className="fdg-annotation-icon" aria-hidden />
+            {annotation}
+          </aside>
+        ) : null}
+
+        {evidence ? (
+          <aside className="fdg-evidence !mt-3">
+            <div className="fdg-evidence-label">{evidence.label}</div>
+            <p className="fdg-evidence-text !text-[12px]">{evidence.text}</p>
+          </aside>
+        ) : null}
       </div>
     </div>
   );
@@ -71,107 +108,124 @@ export function DisputeLetterGuidePreview({ compact, className = '' }: Props) {
   const slide = PREVIEW_SLIDES[idx] ?? PREVIEW_SLIDES[0]!;
 
   return (
-    <div className={`rounded-2xl border border-[#39ff14]/20 bg-fc-chrome/80 overflow-hidden shadow-2xl shadow-black/30 ${className}`}>
-      <div className="flex items-center justify-between gap-2 px-3 sm:px-4 py-2.5 border-b border-white/[0.08] bg-[#07110d]">
-        <div className="flex items-center gap-2 min-w-0">
-          <FileText className="w-4 h-4 text-[#39ff14] shrink-0" />
-          <span className="text-[10px] sm:text-xs font-bold text-white/80 uppercase tracking-widest truncate">
-            Guide preview · {DISPUTE_LETTER_GUIDE_PAGE_COUNT} pages
-          </span>
+    <div
+      className={`fdg-reader !min-h-0 overflow-hidden rounded-2xl border border-[#0f6fb8]/25 bg-[#0b1420] shadow-2xl shadow-black/40 ${className}`}
+    >
+      <div className="flex items-center justify-between gap-2 border-b border-white/[0.08] bg-[#060c14] px-3 py-2.5 sm:px-4">
+        <div className="flex min-w-0 items-center gap-2">
+          <span className="fdg-stamp">Docket preview</span>
+          <span className="fdg-meta-row hidden truncate sm:inline">{DISPUTE_LETTER_GUIDE_PAGE_COUNT} pages</span>
         </div>
-        <div className="flex items-center gap-1 shrink-0">
+        <div className="flex shrink-0 items-center gap-1">
           <button
             type="button"
             aria-label="Previous page"
             onClick={() => setIdx((i) => (i - 1 + PREVIEW_SLIDES.length) % PREVIEW_SLIDES.length)}
-            className="p-1.5 rounded-lg border border-white/[0.08] hover:bg-white/5 text-white/70"
+            className="fdg-ghost-btn rounded-md p-1.5"
           >
-            <ChevronLeft className="w-4 h-4" />
+            <ChevronLeft className="h-4 w-4" />
           </button>
-          <span className="text-[10px] text-white/50 tabular-nums w-8 text-center">
+          <span className="fdg-meta-row w-9 text-center tabular-nums">
             {idx + 1}/{PREVIEW_SLIDES.length}
           </span>
           <button
             type="button"
             aria-label="Next page"
             onClick={() => setIdx((i) => (i + 1) % PREVIEW_SLIDES.length)}
-            className="p-1.5 rounded-lg border border-white/[0.08] hover:bg-white/5 text-white/70"
+            className="fdg-ghost-btn rounded-md p-1.5"
           >
-            <ChevronRight className="w-4 h-4" />
+            <ChevronRight className="h-4 w-4" />
           </button>
         </div>
       </div>
 
-      <div className={`relative bg-[#0b1210] ${compact ? 'aspect-[3/4]' : 'aspect-[3/4] sm:aspect-[4/5]'}`}>
+      <div className={`relative bg-[#0b1420] ${compact ? 'aspect-[3/4]' : 'aspect-[3/4] sm:aspect-[4/5]'}`}>
         {slide.type === 'cover' ? (
-          <img
-            src={DISPUTE_LETTER_GUIDE_COVER}
-            alt={slide.label}
-            className="absolute inset-0 w-full h-full object-contain object-center bg-white p-2 sm:p-3"
-            loading="lazy"
-            onError={(e) => {
-              const el = e.currentTarget;
-              el.style.display = 'none';
-              el.parentElement?.querySelector('[data-fallback-cover]')?.classList.remove('hidden');
-            }}
-          />
+          <>
+            <img
+              src={DISPUTE_LETTER_GUIDE_COVER}
+              alt={slide.label}
+              className="absolute inset-0 h-full w-full bg-white object-contain object-center p-2 sm:p-3"
+              loading="lazy"
+              onError={(e) => {
+                const el = e.currentTarget;
+                el.style.display = 'none';
+                el.parentElement?.querySelector('[data-fallback-cover]')?.classList.remove('hidden');
+              }}
+            />
+            <div data-fallback-cover className="fdg-sheet absolute inset-0 hidden !rounded-none flex-col justify-end p-6">
+              <div className="fdg-rail fdg-rail--sky absolute inset-x-0 top-0 !rounded-none" aria-hidden />
+              <span className="fdg-kicker">Finely Cred · free edition</span>
+              <h3 className="fdg-chapter-title mt-2 !text-2xl">Free Credit Dispute Letter Guide</h3>
+              <p className="fdg-chapter-sub mt-2 !text-sm">
+                Read your report like an analyst · write findings, not feelings · certified mail workflow
+              </p>
+            </div>
+          </>
         ) : null}
-        {slide.type === 'cover' ? (
-          <div data-fallback-cover className="hidden absolute inset-0 p-6 flex flex-col justify-end bg-gradient-to-br from-[#0b1210] via-[#111820] to-[#0a0f0e]">
-            <div className="absolute top-[-10%] left-[-10%] w-[55%] h-[45%] rounded-full bg-[#39ff14]/20 blur-3xl" />
-            <p className="relative text-[#39ff14] text-xs font-black uppercase tracking-widest mb-2">Finely Cred</p>
-            <h3 className="relative text-xl font-bold text-white mb-2">Free Credit Dispute Letter Guide</h3>
-            <p className="relative text-sm text-white/65">5-step framework · FCRA rights · certified mail workflow</p>
-          </div>
-        ) : null}
+
         {slide.type === 'intro' ? (
-          <div className="absolute inset-0 p-4 sm:p-6 flex flex-col justify-center text-left bg-gradient-to-br from-[#0b1210] via-[#111820] to-[#0a0f0e]">
-            <p className="text-[10px] font-black uppercase tracking-widest text-[#39ff14] mb-2">Finely Cred</p>
-            <h4 className="text-base sm:text-lg font-bold text-white mb-2">Your guide is ready</h4>
-            <p className="text-xs text-white/60 mb-4">Personalized introduction — educational only, not legal advice.</p>
-            <p className="text-xs font-bold text-white/85 mb-2">What you will learn:</p>
-            <ul className="space-y-1.5 text-xs text-white/75">
-              {[
-                'Your own words — denials, apartments, auto loans, deposits',
-                'Expanded 5-step framework (one page per step)',
-                'FCRA, OCR/Metro2, validation-first, law-per-negative',
-                'Example letter + affidavits & escalation paths',
-              ].map((item) => (
-                <li key={item} className="flex gap-2">
-                  <span className="text-[#39ff14] shrink-0">+</span>
-                  <span>{item}</span>
-                </li>
-              ))}
-            </ul>
+          <div className="fdg-sheet absolute inset-0 overflow-y-auto !rounded-none">
+            <div className="fdg-rail fdg-rail--ink !rounded-none" aria-hidden />
+            <div className="px-5 py-6">
+              <span className="fdg-kicker">Introduction</span>
+              <h4 className="fdg-chapter-title mt-1.5 !text-2xl">Your guide is ready</h4>
+              <p className="fdg-chapter-sub mt-2 !text-[13px]">
+                Twenty-one chapters, built to be worked in order. Educational only — not legal advice.
+              </p>
+              <ol className="fdg-findings mt-4">
+                {INTRO_POINTS.map((item) => (
+                  <li key={item} className="fdg-finding !text-[12.5px]">
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ol>
+            </div>
           </div>
         ) : null}
-        {slide.type === 'page' ? <GuidePagePreview page={slide.page} /> : null}
+
+        {slide.type === 'page' ? <SheetPage page={slide.page} /> : null}
+
         {slide.type === 'toc' ? (
-          <div className="absolute inset-0 p-4 sm:p-6 flex flex-col justify-center text-left overflow-y-auto bg-gradient-to-br from-[#0b1210] via-[#111820] to-[#0a0f0e]">
-            <p className="text-[10px] font-black uppercase tracking-widest text-[#39ff14] mb-2">Finely Cred edition</p>
-            <h4 className="text-base sm:text-lg font-bold text-white mb-3">What&apos;s inside</h4>
-            <ul className="space-y-2 text-xs sm:text-sm text-white/75">
-              {DISPUTE_LETTER_GUIDE_PROGRAMMATIC_PAGES.map((p) => (
-                <li key={p.id} className="flex gap-2">
-                  <span className="text-[#39ff14] shrink-0">✓</span>
-                  <span>{p.title}</span>
-                </li>
-              ))}
-            </ul>
+          <div className="fdg-sheet absolute inset-0 overflow-y-auto !rounded-none">
+            <div className="fdg-rail fdg-rail--amber !rounded-none" aria-hidden />
+            <div className="px-5 py-6">
+              <span className="fdg-kicker">Docket index</span>
+              <h4 className="fdg-chapter-title mt-1.5 !text-2xl">What&apos;s inside</h4>
+              <ol className="fdg-findings mt-3">
+                {DISPUTE_LETTER_GUIDE_PROGRAMMATIC_PAGES.map((p) => (
+                  <li key={p.id} className="fdg-finding !text-[12.5px] !py-1.5">
+                    <span>{p.title}</span>
+                  </li>
+                ))}
+              </ol>
+            </div>
           </div>
         ) : null}
       </div>
 
-      <div className="px-3 sm:px-4 py-2 text-[10px] sm:text-xs text-white/50 border-t border-white/[0.08] truncate">
+      <div className="truncate border-t border-white/[0.08] px-3 py-2 text-[10px] text-white/50 sm:px-4 sm:text-xs">
         {slide.label}
       </div>
-      <div className="grid grid-cols-2 gap-2 px-3 sm:px-4 pb-3">
-        <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-2 py-2 text-[10px] text-emerald-100 inline-flex items-center gap-1.5">
-          <ShieldCheck className="w-3.5 h-3.5 text-[#39ff14]" /> Secure PDF
+
+      <div className="grid grid-cols-2 gap-2 px-3 pb-2 sm:px-4">
+        <div className="inline-flex items-center gap-1.5 rounded-lg border border-[#0f6fb8]/25 bg-[#0f6fb8]/10 px-2 py-2 text-[10px] text-sky-100">
+          <ShieldCheck className="h-3.5 w-3.5 text-sky-300" /> Secure PDF
         </div>
-        <div className="rounded-xl border border-amber-500/20 bg-amber-500/10 px-2 py-2 text-[10px] text-amber-100 inline-flex items-center gap-1.5">
-          <BadgeCheck className="w-3.5 h-3.5 text-amber-300" /> FCRA checklist
+        <div className="inline-flex items-center gap-1.5 rounded-lg border border-amber-500/25 bg-amber-500/10 px-2 py-2 text-[10px] text-amber-100">
+          <BadgeCheck className="h-3.5 w-3.5 text-amber-300" /> FCRA checklist
         </div>
+      </div>
+
+      <div className="px-3 pb-3 sm:px-4">
+        <Link
+          to={DISPUTE_LETTER_GUIDE_READ_PATH}
+          className="fdg-primary-btn inline-flex w-full items-center justify-center gap-2 rounded-md px-4 py-2.5 text-[10px] font-bold uppercase tracking-[0.14em]"
+        >
+          <span className="relative z-10 inline-flex items-center gap-2">
+            <BookOpen className="h-3.5 w-3.5" /> Read all {DISPUTE_LETTER_GUIDE_PROGRAMMATIC_PAGES.length} chapters free
+          </span>
+        </Link>
       </div>
     </div>
   );
@@ -183,7 +237,7 @@ export function DisputeLetterGuideContentsList({ className = '' }: { className?:
     <ul className={`space-y-2 ${className}`}>
       {items.map((item) => (
         <li key={item} className="flex items-start gap-2 text-sm text-gray-300">
-          <span className="text-[#39ff14] mt-0.5 shrink-0">•</span>
+          <span className="mt-0.5 shrink-0 text-sky-400">•</span>
           <span>{item}</span>
         </li>
       ))}

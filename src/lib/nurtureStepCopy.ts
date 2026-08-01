@@ -221,6 +221,161 @@ export function buildNurtureStepEmail(args: {
           subject: args.stepSubject ?? 'Welcome — AU seller workspace',
           text: `Hi ${ctx.firstName},\n\nYour AU seller workspace is ready. Review the compliance checklist before submitting your first listing.`,
         };
+      case 'cold_prospect_d0':
+        return {
+          subject: args.stepSubject ?? 'Quick idea for your business credit path',
+          text: `Hi ${ctx.firstName},\n\nI came across your company and thought Finely Cred's partner path (business credit + funding readiness) might fit.\n\nIf useful: ${sessionUrl}\n\nReply STOP or use unsubscribe below anytime.`,
+        };
+      case 'cold_prospect_d2':
+        return {
+          subject: args.stepSubject ?? 'A short next step (2 minutes)',
+          text: `Hi ${ctx.firstName},\n\nTwo-minute next step: skim our partner one-sheets, then book a free strategy session if it clicks.\n\nOne-sheets: https://finelycred.com/resources/business-credit-one-sheets\nBook: ${sessionUrl}`,
+        };
+      case 'cold_prospect_d5':
+        return {
+          subject: args.stepSubject ?? 'Partner one-sheets + session option',
+          text: `Hi ${ctx.firstName},\n\nSharing the partner offer overview again — tiers are plain English, no pressure.\n\nBook when ready: ${sessionUrl}`,
+        };
+      case 'cold_prospect_d7':
+        return {
+          subject: args.stepSubject ?? 'Book a free strategy session',
+          text: `Hi ${ctx.firstName},\n\nLast note from this sequence — grab a free strategy session if you want a human walkthrough.\n\n${sessionUrl}`,
+        };
+      case 'offer_pack_send':
+        return {
+          subject: args.stepSubject ?? 'Your Finely Cred offer pack',
+          text: `Hi ${ctx.firstName},\n\nHere is your partner offer pack — pricing tiers and one-sheets for business credit / restore paths.\n\nPricing: https://finelycred.com/pricing/business-credit\nOne-sheets: https://finelycred.com/resources/business-credit-one-sheets\nBook: ${sessionUrl}`,
+        };
+      case 'offer_pack_followup':
+        return {
+          subject: args.stepSubject ?? 'Questions on the offer pack?',
+          text: `Hi ${ctx.firstName},\n\nAny questions on the offer pack? Reply to this email or book a short session: ${sessionUrl}`,
+        };
+      case 'booked_session_confirm':
+        return {
+          subject: args.stepSubject ?? 'You are booked — prep for your Finely session',
+          text: `Hi ${ctx.firstName},\n\nYou are booked for a Finely strategy session. Have your latest report, top 3 goals, and funding timeline ready.\n\nPortal: ${successUrl}\nReschedule / book link: ${sessionUrl}`,
+        };
+      case 'booked_session_prep':
+        return {
+          subject: args.stepSubject ?? 'Prep checklist for your session',
+          text: `Hi ${ctx.firstName},\n\nPrep checklist: (1) latest credit report, (2) top 3 goals, (3) any collector or court letters. See you on the call.`,
+        };
+      case 'invoice_sent':
+        return {
+          subject: args.stepSubject ?? 'Your Finely Cred invoice',
+          text: `Hi ${ctx.firstName},\n\nYour Finely Cred invoice is ready in the portal billing section.`,
+        };
+      case 'invoice_reminder':
+        return {
+          subject: args.stepSubject ?? 'Invoice reminder',
+          text: `Hi ${ctx.firstName},\n\nFriendly reminder — an open invoice is waiting in your portal billing section.`,
+        };
+      case 'partner_onboard_welcome':
+        return {
+          subject: args.stepSubject ?? 'Welcome to your Finely Cred portal',
+          text: `Hi ${ctx.firstName},\n\nWelcome, partner. Your portal is ready — start with intake, then upload a report when you have one.\n\nResults vary · not legal advice · not income guarantees.`,
+        };
+      case 'partner_onboard_day3':
+        return {
+          subject: args.stepSubject ?? 'Your first 3 portal moves',
+          text: `Hi ${ctx.firstName},\n\nDay 3 tip: (1) finish intake, (2) upload evidence or a report, (3) open Ask Finely if you are stuck.\n\nResults vary · not legal advice.`,
+        };
+      case 'partner_onboard_day7':
+        return {
+          subject: args.stepSubject ?? 'Week-1 checklist for partners',
+          text: `Hi ${ctx.firstName},\n\nWeek-1 checklist: confirm goals, review the restore command strip, and queue your first letter draft if ready.\n\nResults vary · not legal advice.`,
+        };
+      case 'partner_onboard_day14':
+        return {
+          subject: args.stepSubject ?? 'Mid-month progress check',
+          text: `Hi ${ctx.firstName},\n\nMid-month check-in: open your dashboard for the next obvious step. Reply if you want a human walkthrough.\n\nBook: ${sessionUrl}\n\nResults vary · not legal advice.`,
+        };
+      case 'partner_onboard_day21':
+        return {
+          subject: args.stepSubject ?? 'Education tip: what to focus on next',
+          text: `Hi ${ctx.firstName},\n\nEducation tip: prioritize utilization and accurate reporting dates before stacking new products.\n\nResults vary · not legal advice · not income guarantees.`,
+        };
+      case 'partner_onboard_day30':
+        return {
+          subject: args.stepSubject ?? '30-day wrap — book a free session if helpful',
+          text: `Hi ${ctx.firstName},\n\n30-day wrap: if you want a specialist to review your file, book a free session.\n\n${sessionUrl}\n\nResults vary · not legal advice · not income guarantees.`,
+        };
+      case 'partner_edu_m1':
+        return {
+          subject: args.stepSubject ?? 'Partner education: utilization & reporting cycles',
+          text: `Hi ${ctx.firstName},\n\nThis month's partner education: utilization and reporting cycles — keep revolving balances intentional before statement close.\n\nResults vary · not legal advice · not income guarantees.`,
+        };
+      case 'partner_edu_m2':
+        return {
+          subject: args.stepSubject ?? 'Partner education: disputes vs documentation',
+          text: `Hi ${ctx.firstName},\n\nPartner education: disputes work best with factual findings tied to what you can see on the bureau screenshots — not generic delete commands.\n\nResults vary · not legal advice.`,
+        };
+      case 'partner_edu_m3':
+        return {
+          subject: args.stepSubject ?? 'Partner education: funding readiness basics',
+          text: `Hi ${ctx.firstName},\n\nPartner education: funding readiness — entity hygiene, banking separation, and clean personal credit often move together.\n\nFunding subject to underwriting · results vary · not legal advice · not income guarantees.`,
+        };
+      case 'partner_edu_m4':
+        return {
+          subject: args.stepSubject ?? 'Partner education: business credit sequencing',
+          text: `Hi ${ctx.firstName},\n\nPartner education: business credit sequencing — vendors before high-limit cards, and never skip EIN / address consistency.\n\nResults vary · not legal advice · not income guarantees.`,
+        };
+      case 'partner_birthday':
+        return {
+          subject: args.stepSubject ?? 'Happy birthday from Finely Cred',
+          text: `Hi ${ctx.firstName},\n\nHappy birthday from the Finely Cred team. Wishing you a strong year ahead — open your portal anytime for the next step on your plan.\n\nResults vary · not legal advice · not income guarantees.`,
+        };
+      case 'partner_opp_au_intro':
+        return {
+          subject: args.stepSubject ?? 'Optional path: authorized-user tradelines',
+          text: `Hi ${ctx.firstName},\n\nOptional opportunity (marketing): authorized-user tradelines can support some restore plans when structured carefully. No outcome is guaranteed.\n\nLearn more in your portal or book: ${sessionUrl}\n\nResults vary · not legal advice · not income guarantees.`,
+        };
+      case 'partner_opp_au_day3':
+        return {
+          subject: args.stepSubject ?? 'How AU tradelines fit a restore plan',
+          text: `Hi ${ctx.firstName},\n\nAU tip: posting windows, primary account age, and utilization all matter. This is educational — not a promise of score change.\n\nResults vary · not legal advice · not income guarantees.`,
+        };
+      case 'partner_opp_au_day7':
+        return {
+          subject: args.stepSubject ?? 'Questions on AU? Book a free session',
+          text: `Hi ${ctx.firstName},\n\nQuestions on AU tradelines? Book a free session and we will map fit vs skip.\n\n${sessionUrl}\n\nResults vary · not legal advice · not income guarantees.`,
+        };
+      case 'partner_opp_aff_intro':
+        return {
+          subject: args.stepSubject ?? 'Optional path: partner affiliate toolkit',
+          text: `Hi ${ctx.firstName},\n\nOptional opportunity: share Finely Cred with your network using compliant partner language. Income is not guaranteed.\n\nResults vary · not legal advice · not income guarantees.`,
+        };
+      case 'partner_opp_aff_day3':
+        return {
+          subject: args.stepSubject ?? 'Compliant sharing tips for partners',
+          text: `Hi ${ctx.firstName},\n\nAffiliate tip: use partner-first wording, never promise specific scores or earnings, and always include results-vary language.\n\nResults vary · not legal advice · not income guarantees.`,
+        };
+      case 'partner_opp_aff_day7':
+        return {
+          subject: args.stepSubject ?? 'Affiliate Q&A — book a short call',
+          text: `Hi ${ctx.firstName},\n\nWant the affiliate toolkit walkthrough? Book a short call:\n\n${sessionUrl}\n\nResults vary · not legal advice · not income guarantees.`,
+        };
+      case 'specialist_keepwarm_welcome':
+        return {
+          subject: args.stepSubject ?? 'Specialist lane — your weekly focus',
+          text: `Hi ${ctx.firstName},\n\nCredit Specialist keep-warm: this week focus on pipeline hygiene — hot replies, booked sessions, and factual dispute findings first.\n\nResults vary · not legal advice · not income guarantees.`,
+        };
+      case 'specialist_keepwarm_day14':
+        return {
+          subject: args.stepSubject ?? 'Pipeline hygiene for Credit Specialists',
+          text: `Hi ${ctx.firstName},\n\nSpecialist tip: clear stalled tasks before adding new partners. Quality over volume.\n\nResults vary · not legal advice · not income guarantees.`,
+        };
+      case 'specialist_keepwarm_day30':
+        return {
+          subject: args.stepSubject ?? 'Playbook refresh: factual findings first',
+          text: `Hi ${ctx.firstName},\n\nPlaybook refresh: auto-reasons should cite what is visible on bureau screenshots — never procedural “please verify/delete” language.\n\nResults vary · not legal advice.`,
+        };
+      case 'specialist_keepwarm_day60':
+        return {
+          subject: args.stepSubject ?? 'Keep-warm check-in for active specialists',
+          text: `Hi ${ctx.firstName},\n\nKeep-warm check-in: open Specialist Command for today’s queue, or book an activation refresh if you are stuck.\n\n${sessionUrl}\n\nResults vary · not legal advice · not income guarantees.`,
+        };
       default:
         return {
           subject: args.stepSubject ?? `Finely Cred — ${args.sequence.name}`,

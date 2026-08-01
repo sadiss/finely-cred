@@ -1,0 +1,1085 @@
+/**
+ * Digital invite cards — premium foil/gloss engraving system.
+ *
+ * All geometry is authored in card *design pixels*; `.fcdc-frame` scales the
+ * whole card down to fit its container so the same markup serves an inline
+ * preview and a full-resolution PNG export.
+ *
+ * Capture notes (html-to-image): no `backdrop-filter`, no `mix-blend-mode`, and
+ * no external image URLs — every surface here is a gradient, an inline SVG, or
+ * a data URI so exports match the screen exactly.
+ */
+
+/* -------------------------------------------------------------------------
+   Frame + scaling
+   ------------------------------------------------------------------------- */
+
+.fcdc-frame {
+  --fcdc-scale: 1;
+  position: relative;
+  display: block;
+  overflow: visible;
+}
+
+/* Reserves the scaled card's footprint in layout without clipping its shadow. */
+.fcdc-frame__slot {
+  position: relative;
+  overflow: visible;
+}
+
+.fcdc-motif {
+  z-index: 1;
+}
+
+.fcdc-card {
+  position: relative;
+  transform: scale(var(--fcdc-scale));
+  transform-origin: top left;
+  overflow: hidden;
+  isolation: isolate;
+  color: #f7f4ec;
+  font-family: Inter, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  background-color: var(--fcdc-ink-deep);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Interactive lift — the card should feel like a physical pass you can pick up. */
+.fcdc-frame--interactive .fcdc-card {
+  transition: filter 340ms ease;
+}
+
+.fcdc-frame--interactive:hover .fcdc-card {
+  filter: brightness(1.05) saturate(1.04);
+}
+
+/* -------------------------------------------------------------------------
+   Base ink + light
+   ------------------------------------------------------------------------- */
+
+.fcdc-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.fcdc-ink {
+  background-image:
+    radial-gradient(120% 90% at 8% -6%, rgba(var(--fcdc-accent), 0.34) 0%, transparent 58%),
+    radial-gradient(90% 70% at 104% 10%, rgba(var(--fcdc-halo), 0.2) 0%, transparent 55%),
+    radial-gradient(140% 120% at 50% 128%, rgba(var(--fcdc-accent), 0.22) 0%, transparent 62%),
+    linear-gradient(158deg, var(--fcdc-ink) 0%, var(--fcdc-ink-deep) 52%, #01060a 100%);
+}
+
+/* Corner vignette so the foil reads brighter against the field. */
+.fcdc-vignette {
+  background-image: radial-gradient(
+    118% 108% at 50% 44%,
+    transparent 42%,
+    rgba(0, 0, 0, 0.36) 78%,
+    rgba(0, 0, 0, 0.62) 100%
+  );
+}
+
+/* Fine metal grain — keeps large ink fields from looking flat/plasticky. */
+.fcdc-grain {
+  opacity: 0.14;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+  background-size: 180px 180px;
+}
+
+/* Primary specular sweep — the "gloss" read. */
+.fcdc-gloss {
+  background-image: linear-gradient(
+    104deg,
+    transparent 24%,
+    rgba(255, 255, 255, 0.03) 36%,
+    rgba(255, 255, 255, 0.14) 44%,
+    rgba(255, 255, 255, 0.3) 48.5%,
+    rgba(255, 255, 255, 0.09) 53%,
+    transparent 64%
+  );
+  opacity: 0.85;
+}
+
+/* Secondary cool bounce along the lower edge. */
+.fcdc-gloss-lower {
+  background-image: linear-gradient(
+    286deg,
+    transparent 58%,
+    rgba(var(--fcdc-halo), 0.16) 74%,
+    rgba(255, 255, 255, 0.06) 82%,
+    transparent 92%
+  );
+}
+
+/* Travelling shine on hover. Disabled while capturing so exports are static. */
+.fcdc-sweep {
+  width: 46%;
+  inset: -14% auto -14% -60%;
+  transform: skewX(-14deg);
+  background-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.1) 38%,
+    rgba(255, 255, 255, 0.34) 52%,
+    rgba(255, 255, 255, 0.08) 66%,
+    transparent 100%
+  );
+  opacity: 0;
+}
+
+.fcdc-frame--interactive:hover .fcdc-sweep {
+  animation: fcdc-sweep-run 1150ms cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+}
+
+@keyframes fcdc-sweep-run {
+  0% {
+    opacity: 0;
+    transform: translateX(0) skewX(-14deg);
+  }
+  16% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(280%) skewX(-14deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fcdc-frame--interactive:hover .fcdc-sweep {
+    animation: none;
+  }
+}
+
+[data-fcdc-capture='true'] .fcdc-sweep {
+  animation: none !important;
+  opacity: 0 !important;
+}
+
+/* -------------------------------------------------------------------------
+   Foil rim / engraved border
+   ------------------------------------------------------------------------- */
+
+.fcdc-edge {
+  box-shadow:
+    inset 0 0 0 1px rgba(var(--fcdc-halo), 0.5),
+    inset 0 0 0 2px rgba(0, 0, 0, 0.55),
+    inset 0 0 0 3px rgba(var(--fcdc-halo), 0.16),
+    inset 0 26px 60px rgba(255, 255, 255, 0.05),
+    inset 0 -40px 90px rgba(0, 0, 0, 0.4);
+}
+
+.fcdc-rule {
+  position: absolute;
+  border: 1px solid transparent;
+  border-image: linear-gradient(
+      100deg,
+      transparent 0%,
+      var(--fcdc-foil-deep) 12%,
+      var(--fcdc-foil-light) 34%,
+      var(--fcdc-foil-mid) 52%,
+      var(--fcdc-foil-light) 70%,
+      var(--fcdc-foil-deep) 88%,
+      transparent 100%
+    )
+    1;
+  pointer-events: none;
+}
+
+/* -------------------------------------------------------------------------
+   Foil typography
+   ------------------------------------------------------------------------- */
+
+/*
+ * Rolled-foil sheen. The stops never reach `--fcdc-foil-deep` so multi-line
+ * titles stay legible no matter where a line falls in the gradient.
+ */
+.fcdc-foil {
+  background-image: linear-gradient(
+    100deg,
+    var(--fcdc-foil-mid) 0%,
+    var(--fcdc-foil-light) 14%,
+    #ffffff 26%,
+    var(--fcdc-foil-mid) 42%,
+    var(--fcdc-foil-light) 58%,
+    #ffffff 70%,
+    var(--fcdc-foil-mid) 86%,
+    var(--fcdc-foil-light) 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 1px 0 rgba(0, 0, 0, 0.6)) drop-shadow(0 0 14px rgba(var(--fcdc-halo), 0.28));
+}
+
+.fcdc-title {
+  font-family: ui-serif, Georgia, 'Times New Roman', Times, serif;
+  font-weight: 700;
+  line-height: 0.94;
+  letter-spacing: -0.018em;
+  margin: 0;
+}
+
+.fcdc-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  color: rgba(var(--fcdc-halo), 0.9);
+}
+
+.fcdc-eyebrow::before {
+  content: '';
+  width: 34px;
+  height: 1px;
+  background-image: linear-gradient(90deg, transparent, var(--fcdc-foil-mid));
+}
+
+.fcdc-value {
+  margin: 0;
+  font-size: 21px;
+  line-height: 1.42;
+  color: rgba(247, 244, 236, 0.9);
+  max-width: 30ch;
+}
+
+.fcdc-brand {
+  font-family: ui-serif, Georgia, 'Times New Roman', Times, serif;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+
+.fcdc-domain {
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(var(--fcdc-halo), 0.78);
+}
+
+.fcdc-compliance {
+  font-size: 11.5px;
+  line-height: 1.35;
+  letter-spacing: 0.045em;
+  color: rgba(247, 244, 236, 0.44);
+}
+
+/* -------------------------------------------------------------------------
+   Chips, incentive ribbon, seal
+   ------------------------------------------------------------------------- */
+
+.fcdc-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.fcdc-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 13px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.012em;
+  color: rgba(247, 244, 236, 0.86);
+  border: 1px solid rgba(var(--fcdc-halo), 0.34);
+  background-image: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.09) 0%,
+    rgba(255, 255, 255, 0.02) 46%,
+    rgba(0, 0, 0, 0.28) 100%
+  );
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+.fcdc-chip__dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 999px;
+  background-color: var(--fcdc-foil-mid);
+  box-shadow: 0 0 8px rgba(var(--fcdc-halo), 0.9);
+}
+
+.fcdc-ribbon {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 13px 18px;
+  border-radius: 14px;
+  border: 1px solid rgba(var(--fcdc-halo), 0.38);
+  background-image:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.1), rgba(0, 0, 0, 0.24)),
+    radial-gradient(120% 200% at 0% 50%, rgba(var(--fcdc-accent), 0.34), transparent 70%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18);
+}
+
+.fcdc-ribbon__label {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: rgba(var(--fcdc-halo), 0.95);
+  white-space: nowrap;
+}
+
+/* Bonus copy is intentionally short (the label, not the full sentence) — the
+   clamp is a guard so a long campaign string can never blow out the card. */
+.fcdc-ribbon__text {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  font-size: 17px;
+  line-height: 1.3;
+  font-weight: 700;
+  letter-spacing: -0.004em;
+  color: rgba(247, 244, 236, 0.96);
+}
+
+/* Struck metal medallion. */
+.fcdc-seal {
+  position: relative;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background-image:
+    conic-gradient(
+      from 210deg,
+      var(--fcdc-foil-deep) 0deg,
+      var(--fcdc-foil-light) 62deg,
+      var(--fcdc-foil-mid) 128deg,
+      var(--fcdc-foil-deep) 196deg,
+      var(--fcdc-foil-light) 262deg,
+      var(--fcdc-foil-mid) 322deg,
+      var(--fcdc-foil-deep) 360deg
+    );
+  box-shadow:
+    0 10px 26px rgba(0, 0, 0, 0.5),
+    inset 0 1px 2px rgba(255, 255, 255, 0.7),
+    inset 0 -3px 8px rgba(0, 0, 0, 0.45);
+}
+
+.fcdc-seal__core {
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background-image: linear-gradient(165deg, rgba(0, 0, 0, 0.86), rgba(0, 0, 0, 0.62));
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.8);
+}
+
+.fcdc-seal__mono {
+  font-family: ui-serif, Georgia, 'Times New Roman', Times, serif;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+/* -------------------------------------------------------------------------
+   QR plate
+   ------------------------------------------------------------------------- */
+
+.fcdc-qr-plate {
+  position: relative;
+  display: grid;
+  place-items: center;
+  padding: 12px;
+  border-radius: 18px;
+  background-image: linear-gradient(
+    150deg,
+    var(--fcdc-foil-light) 0%,
+    var(--fcdc-foil-mid) 38%,
+    var(--fcdc-foil-deep) 62%,
+    var(--fcdc-foil-mid) 100%
+  );
+  box-shadow:
+    0 14px 32px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.65);
+}
+
+.fcdc-qr {
+  display: block;
+  border-radius: 8px;
+}
+
+.fcdc-qr-fallback {
+  display: grid;
+  place-items: center;
+  padding: 14px;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 700;
+  border: 2px dashed currentColor;
+  border-radius: 12px;
+  background-color: #fbfaf6;
+}
+
+.fcdc-qr-cue {
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.fcdc-qr-sub {
+  font-size: 13px;
+  line-height: 1.35;
+  color: rgba(247, 244, 236, 0.62);
+}
+
+/* -------------------------------------------------------------------------
+   Silhouette: ESTATE — landscape property placard, notched corner
+   ------------------------------------------------------------------------- */
+
+.fcdc--estate {
+  border-radius: 4px 4px 26px 4px;
+  clip-path: polygon(0 0, calc(100% - 92px) 0, 100% 92px, 100% 100%, 0 100%);
+}
+
+.fcdc--estate .fcdc-body {
+  position: relative;
+  z-index: 3;
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  gap: 40px;
+  height: 100%;
+  padding: 54px 58px 44px;
+}
+
+/* Corner bevel highlight where the placard is cut. */
+.fcdc--estate .fcdc-bevel {
+  position: absolute;
+  top: -46px;
+  right: -46px;
+  width: 190px;
+  height: 190px;
+  transform: rotate(45deg);
+  background-image: linear-gradient(180deg, rgba(var(--fcdc-halo), 0.44), transparent 62%);
+  z-index: 4;
+}
+
+/* -------------------------------------------------------------------------
+   Silhouette: CREDENTIAL — portrait pass with punched lanyard slot
+   ------------------------------------------------------------------------- */
+
+.fcdc--credential {
+  border-radius: 30px;
+}
+
+.fcdc--credential .fcdc-body {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  height: 100%;
+  padding: 96px 52px 44px;
+}
+
+.fcdc-slot {
+  position: absolute;
+  top: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 190px;
+  height: 20px;
+  border-radius: 999px;
+  background-image: linear-gradient(180deg, #000 0%, rgba(0, 0, 0, 0.72) 100%);
+  box-shadow:
+    inset 0 2px 4px rgba(0, 0, 0, 0.9),
+    0 1px 0 rgba(var(--fcdc-halo), 0.4);
+  z-index: 5;
+}
+
+/* Holographic band across the pass. */
+.fcdc-holo {
+  position: relative;
+  height: 46px;
+  border-radius: 10px;
+  overflow: hidden;
+  background-image: linear-gradient(
+    100deg,
+    rgba(255, 90, 200, 0.34) 0%,
+    rgba(120, 190, 255, 0.34) 22%,
+    rgba(150, 255, 210, 0.32) 42%,
+    rgba(255, 235, 140, 0.34) 62%,
+    rgba(190, 130, 255, 0.34) 82%,
+    rgba(255, 120, 190, 0.32) 100%
+  );
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.22);
+}
+
+.fcdc-holo::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: repeating-linear-gradient(
+    100deg,
+    rgba(255, 255, 255, 0.22) 0px,
+    rgba(255, 255, 255, 0.22) 1px,
+    transparent 1px,
+    transparent 7px
+  );
+}
+
+.fcdc-holo__text {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.42em;
+  text-transform: uppercase;
+  color: rgba(10, 6, 20, 0.72);
+}
+
+/* -------------------------------------------------------------------------
+   Silhouette: DOCKET — square case ticket with perforated stub
+   ------------------------------------------------------------------------- */
+
+.fcdc--docket {
+  border-radius: 8px;
+}
+
+.fcdc--docket .fcdc-body {
+  position: relative;
+  z-index: 3;
+  display: grid;
+  grid-template-columns: 1fr 236px;
+  height: 100%;
+  padding: 46px 40px 40px 74px;
+  gap: 30px;
+}
+
+/* Pleading-paper numbered rail. */
+.fcdc-rail {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 74px;
+  z-index: 2;
+  background-image: linear-gradient(180deg, rgba(0, 0, 0, 0.42), rgba(0, 0, 0, 0.2));
+  box-shadow: inset -1px 0 0 rgba(var(--fcdc-halo), 0.3);
+}
+
+.fcdc-rail__nums {
+  position: absolute;
+  inset: 46px 0 40px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  font-family: ui-serif, Georgia, 'Times New Roman', Times, serif;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  color: rgba(var(--fcdc-halo), 0.5);
+}
+
+/* Tear line separating the stub. */
+.fcdc-perf {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 291px;
+  width: 2px;
+  z-index: 4;
+  background-image: repeating-linear-gradient(
+    180deg,
+    rgba(var(--fcdc-halo), 0.55) 0px,
+    rgba(var(--fcdc-halo), 0.55) 9px,
+    transparent 9px,
+    transparent 20px
+  );
+}
+
+.fcdc-perf__notch {
+  position: absolute;
+  left: 50%;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  transform: translateX(-50%);
+  background-color: var(--fcdc-ink-deep);
+  box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.85);
+}
+
+.fcdc-perf__notch--top {
+  top: -11px;
+}
+
+.fcdc-perf__notch--bottom {
+  bottom: -11px;
+}
+
+/* -------------------------------------------------------------------------
+   Silhouette: LEDGER — wide agency charter banner
+   ------------------------------------------------------------------------- */
+
+.fcdc--ledger {
+  border-radius: 6px;
+  clip-path: polygon(0 0, 100% 0, calc(100% - 62px) 50%, 100% 100%, 0 100%);
+}
+
+.fcdc--ledger .fcdc-body {
+  position: relative;
+  z-index: 3;
+  display: grid;
+  grid-template-columns: 1fr 268px;
+  gap: 40px;
+  height: 100%;
+  padding: 48px 118px 42px 56px;
+}
+
+/* -------------------------------------------------------------------------
+   Silhouette: VAULT — arched portrait tradeline key
+   ------------------------------------------------------------------------- */
+
+.fcdc--vault {
+  border-radius: 220px 220px 24px 24px;
+}
+
+.fcdc--vault .fcdc-body {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 20px;
+  height: 100%;
+  padding: 96px 54px 44px;
+}
+
+.fcdc--vault .fcdc-value,
+.fcdc--vault .fcdc-eyebrow {
+  max-width: none;
+}
+
+/* -------------------------------------------------------------------------
+   Studio chrome (screen-only controls around the card)
+   ------------------------------------------------------------------------- */
+
+.fcdc-studio-link {
+  display: block;
+  border-radius: 26px;
+  outline-offset: 4px;
+}
+
+/* The foil custom properties live on `.fcdc-card`, so the wrapping link cannot
+   read them — the ring is authored in fixed champagne instead. */
+.fcdc-studio-link:focus-visible {
+  outline: 2px solid rgba(255, 238, 200, 0.92);
+  box-shadow:
+    0 0 0 6px rgba(255, 214, 130, 0.2),
+    0 0 34px rgba(255, 214, 130, 0.24);
+}
+
+/* =========================================================================
+   MATERIAL PASS — depth, foil, micro-motion, capture hardening
+   -------------------------------------------------------------------------
+   Layered on top of the base system above. Everything here is decoration:
+   no geometry, no copy, no tracking. Ordered last so it wins on ties.
+   ========================================================================= */
+
+/* -------------------------------------------------------------------------
+   Physical presence — the card should cast a shadow and lift off the page
+   ------------------------------------------------------------------------- */
+
+/* drop-shadow (not box-shadow) so the shadow follows each silhouette's
+   clip-path instead of a rectangle around it. */
+.fcdc-card {
+  text-rendering: geometricPrecision;
+  filter:
+    drop-shadow(0 2px 3px rgba(0, 0, 0, 0.42))
+    drop-shadow(0 22px 42px rgba(0, 0, 0, 0.44));
+}
+
+.fcdc-frame--interactive .fcdc-card {
+  will-change: transform, filter;
+  transition:
+    filter 340ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 420ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Lift is divided by the preview scale so a card shrunk to 40% still rises
+   the same number of on-screen pixels. */
+.fcdc-frame--interactive:hover .fcdc-card {
+  transform: scale(var(--fcdc-scale)) translateY(calc(-10px / var(--fcdc-scale)));
+  filter:
+    brightness(1.05) saturate(1.04)
+    drop-shadow(0 3px 5px rgba(0, 0, 0, 0.4))
+    drop-shadow(0 40px 72px rgba(0, 0, 0, 0.5))
+    drop-shadow(0 0 46px rgba(var(--fcdc-halo), 0.22));
+}
+
+/* Press — the pass settles back onto the surface. */
+.fcdc-frame--interactive:active .fcdc-card {
+  transform: scale(calc(var(--fcdc-scale) * 0.994)) translateY(calc(-2px / var(--fcdc-scale)));
+  filter:
+    brightness(0.99) saturate(1.02)
+    drop-shadow(0 1px 2px rgba(0, 0, 0, 0.45))
+    drop-shadow(0 12px 24px rgba(0, 0, 0, 0.42));
+  transition-duration: 90ms;
+}
+
+/* -------------------------------------------------------------------------
+   Milled edge + engraved inner frame
+   ------------------------------------------------------------------------- */
+
+/* Directional bevel: light rolls off the top-left, shadow gathers bottom-right. */
+.fcdc-edge {
+  box-shadow:
+    inset 0 0 0 1px rgba(var(--fcdc-halo), 0.5),
+    inset 0 0 0 2px rgba(0, 0, 0, 0.55),
+    inset 0 0 0 3px rgba(var(--fcdc-halo), 0.16),
+    inset 2px 2px 0 3px rgba(255, 255, 255, 0.07),
+    inset -2px -2px 0 3px rgba(0, 0, 0, 0.34),
+    inset 0 26px 60px rgba(255, 255, 255, 0.05),
+    inset 0 -40px 90px rgba(0, 0, 0, 0.4);
+}
+
+/* Hairline engraved rule set in from the edge — the detail that separates a
+   pressed card from a coloured rectangle. */
+.fcdc-edge::after {
+  content: '';
+  position: absolute;
+  inset: 17px;
+  border-radius: 10px;
+  border: 1px solid rgba(var(--fcdc-halo), 0.17);
+  box-shadow:
+    inset 0 0 24px rgba(var(--fcdc-halo), 0.05),
+    0 1px 0 rgba(0, 0, 0, 0.35);
+}
+
+.fcdc--credential .fcdc-edge::after {
+  inset: 20px;
+  border-radius: 20px;
+}
+
+.fcdc--vault .fcdc-edge::after {
+  inset: 20px;
+  border-radius: 200px 200px 14px 14px;
+}
+
+.fcdc--docket .fcdc-edge::after {
+  inset: 17px 17px 17px 84px;
+}
+
+/* Chevron cut on the agency charter catches a bright rim of light. */
+.fcdc--ledger .fcdc-edge::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 0 auto;
+  width: 150px;
+  background-image: linear-gradient(270deg, rgba(var(--fcdc-halo), 0.2) 0%, transparent 72%);
+}
+
+/* -------------------------------------------------------------------------
+   Idle micro-motion — a slow breath of light, never a distraction
+   ------------------------------------------------------------------------- */
+
+.fcdc-gloss {
+  animation: fcdc-gloss-breathe 9.5s ease-in-out infinite;
+}
+
+@keyframes fcdc-gloss-breathe {
+  0%,
+  100% {
+    opacity: 0.78;
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    opacity: 0.96;
+    transform: translate3d(1.2%, -0.8%, 0);
+  }
+}
+
+/* A specular pass every ~11s so a resting card still reads as glossy metal.
+   The hover rule above has higher specificity and always takes over. */
+.fcdc-frame--interactive .fcdc-sweep {
+  animation: fcdc-sweep-idle 11s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+@keyframes fcdc-sweep-idle {
+  0%,
+  74% {
+    opacity: 0;
+    transform: translateX(0) skewX(-14deg);
+  }
+  80% {
+    opacity: 0.72;
+  }
+  96%,
+  100% {
+    opacity: 0;
+    transform: translateX(280%) skewX(-14deg);
+  }
+}
+
+/* Struck seals catch the light as they turn. */
+@property --fcdc-seal-turn {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 0deg;
+}
+
+.fcdc-seal {
+  --fcdc-seal-turn: 0deg;
+  background-image: conic-gradient(
+    from calc(210deg + var(--fcdc-seal-turn)),
+    var(--fcdc-foil-deep) 0deg,
+    var(--fcdc-foil-light) 62deg,
+    var(--fcdc-foil-mid) 128deg,
+    var(--fcdc-foil-deep) 196deg,
+    var(--fcdc-foil-light) 262deg,
+    var(--fcdc-foil-mid) 322deg,
+    var(--fcdc-foil-deep) 360deg
+  );
+  animation: fcdc-seal-turn 26s linear infinite;
+}
+
+@keyframes fcdc-seal-turn {
+  to {
+    --fcdc-seal-turn: 360deg;
+  }
+}
+
+/* Holographic band drifts like real diffraction film. */
+.fcdc-holo::after {
+  background-size: 220% 100%;
+  animation: fcdc-holo-drift 8s linear infinite;
+}
+
+/* Keep the band legend readable against the moving pastel field. */
+.fcdc-holo__text {
+  color: rgba(8, 5, 16, 0.9);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.38);
+}
+
+@keyframes fcdc-holo-drift {
+  to {
+    background-position: 220% 0;
+  }
+}
+
+/* -------------------------------------------------------------------------
+   Light shaping — foil-tinted gloss, live corners
+   ------------------------------------------------------------------------- */
+
+/* A narrow, foil-tinted specular reads as polished metal. The wide white band
+   turns into visible haze across the copy once the card is scaled into a page
+   column, so the peak is dimmed and pushed up toward the top-right corner. */
+.fcdc-gloss {
+  background-image: linear-gradient(
+    104deg,
+    transparent 40%,
+    rgba(var(--fcdc-halo), 0.07) 51%,
+    rgba(255, 255, 255, 0.15) 55%,
+    rgba(var(--fcdc-halo), 0.06) 59%,
+    transparent 70%
+  );
+}
+
+/* Floor bounce so the far corners never die to flat black. Kept low — this is
+   reflected light, not a second light source. */
+.fcdc-ink::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(62% 54% at 98% 106%, rgba(var(--fcdc-halo), 0.1) 0%, transparent 66%),
+    radial-gradient(52% 46% at 2% 98%, rgba(var(--fcdc-accent), 0.1) 0%, transparent 68%);
+}
+
+/* -------------------------------------------------------------------------
+   Per-silhouette signature lighting
+   ------------------------------------------------------------------------- */
+
+/* Estate placard — warm horizon under the property line. */
+.fcdc--estate .fcdc-ink::after {
+  content: '';
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 40%;
+  background-image: linear-gradient(0deg, rgba(var(--fcdc-accent), 0.2) 0%, transparent 100%);
+}
+
+/* Credential pass — daylight bleeding through the lanyard slot. */
+.fcdc--credential .fcdc-ink::after {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 30%;
+  background-image: radial-gradient(60% 100% at 50% 0%, rgba(255, 255, 255, 0.12) 0%, transparent 72%);
+}
+
+/* Docket ticket — embossed pleading rail. */
+.fcdc-rail {
+  box-shadow:
+    inset -1px 0 0 rgba(var(--fcdc-halo), 0.3),
+    inset -2px 0 6px rgba(0, 0, 0, 0.45),
+    inset 1px 0 0 rgba(255, 255, 255, 0.05);
+}
+
+/* Vault key — crown light along the arch, with the field behind the title
+   pulled down so the bullion foil reads bright instead of sinking into brass. */
+.fcdc--vault .fcdc-ink::after {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 46%;
+  background-image:
+    radial-gradient(75% 60% at 50% 0%, rgba(var(--fcdc-halo), 0.2) 0%, transparent 72%),
+    radial-gradient(80% 90% at 50% 62%, rgba(0, 0, 0, 0.42) 0%, transparent 76%);
+}
+
+/* -------------------------------------------------------------------------
+   Content polish
+   ------------------------------------------------------------------------- */
+
+.fcdc-title {
+  text-wrap: balance;
+  font-feature-settings: 'kern' 1, 'liga' 1;
+}
+
+.fcdc-value {
+  text-wrap: pretty;
+}
+
+/* A wrapped URL collides with the compliance line on the wider silhouettes. */
+.fcdc-domain {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 30ch;
+}
+
+/* Compliance must stay legible after a 2x PNG downscale. */
+.fcdc-compliance {
+  color: rgba(247, 244, 236, 0.54);
+}
+
+/* Foil bar down the incentive ribbon. No `overflow: hidden` here — it clips the
+   incentive sentence in the full-resolution export. */
+.fcdc-ribbon {
+  position: relative;
+}
+
+.fcdc-ribbon::after {
+  content: '';
+  position: absolute;
+  inset: 1px auto 1px 1px;
+  width: 3px;
+  border-radius: 13px 0 0 13px;
+  background-image: linear-gradient(
+    180deg,
+    var(--fcdc-foil-light) 0%,
+    var(--fcdc-foil-mid) 48%,
+    var(--fcdc-foil-deep) 100%
+  );
+}
+
+/* Ivory bed + hairline keeps the QR plate reading as inlaid enamel. */
+.fcdc-qr-plate::after {
+  content: '';
+  position: absolute;
+  inset: 5px;
+  border-radius: 13px;
+  border: 1px solid rgba(0, 0, 0, 0.22);
+  pointer-events: none;
+}
+
+/* -------------------------------------------------------------------------
+   Capture hardening — the downloadable still must be as sharp as the screen
+   ------------------------------------------------------------------------- */
+
+.fcdc-card[data-fcdc-capture='true'],
+.fcdc-card[data-fcdc-capture='true'] *,
+.fcdc-card[data-fcdc-capture='true'] *::before,
+.fcdc-card[data-fcdc-capture='true'] *::after {
+  animation: none !important;
+  transition: none !important;
+}
+
+/* An outer drop-shadow inside a tight capture box turns into a dark fringe. */
+.fcdc-card[data-fcdc-capture='true'] {
+  filter: none !important;
+}
+
+/* Park the breathing gloss at its brightest, most flattering frame. */
+.fcdc-card[data-fcdc-capture='true'] .fcdc-gloss {
+  opacity: 0.9;
+  transform: none;
+}
+
+/* Animated noise resamples badly; a touch lighter keeps the still clean. */
+.fcdc-card[data-fcdc-capture='true'] .fcdc-grain {
+  opacity: 0.1;
+}
+
+.fcdc-card[data-fcdc-capture='true'] .fcdc-seal {
+  --fcdc-seal-turn: 0deg;
+}
+
+/* The rasteriser clips anything overflowing an element box, so the incentive
+   ribbon is given breathing room before the clone is measured. */
+.fcdc-card[data-fcdc-capture='true'] .fcdc-ribbon {
+  align-items: flex-start;
+  padding-bottom: 16px;
+}
+
+.fcdc-card[data-fcdc-capture='true'] .fcdc-ribbon__label {
+  padding-top: 3px;
+}
+
+/* -------------------------------------------------------------------------
+   Reduced motion — keep every finish, drop every loop
+   ------------------------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .fcdc-gloss,
+  .fcdc-seal,
+  .fcdc-holo::after,
+  .fcdc-frame--interactive .fcdc-sweep,
+  .fcdc-frame--interactive:hover .fcdc-sweep {
+    animation: none !important;
+  }
+
+  .fcdc-gloss {
+    opacity: 0.88;
+    transform: none;
+  }
+
+  .fcdc-frame--interactive .fcdc-card,
+  .fcdc-frame--interactive:hover .fcdc-card,
+  .fcdc-frame--interactive:active .fcdc-card {
+    transform: scale(var(--fcdc-scale));
+    transition: filter 200ms ease;
+  }
+}
+
+/* Forced colours: strip decoration, keep the card readable. */
+@media (forced-colors: active) {
+  .fcdc-gloss,
+  .fcdc-gloss-lower,
+  .fcdc-sweep,
+  .fcdc-grain,
+  .fcdc-vignette {
+    display: none;
+  }
+
+  .fcdc-card {
+    filter: none;
+    border: 1px solid CanvasText;
+  }
+}

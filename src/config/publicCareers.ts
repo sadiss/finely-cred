@@ -4,7 +4,8 @@ export type PublicCareerTrackId =
   | 'agency_partners'
   | 'affiliates'
   | 'au_sellers'
-  | 'case_help';
+  | 'case_help'
+  | 'real_estate';
 
 export type PublicCareerTrack = {
   id: PublicCareerTrackId;
@@ -20,8 +21,8 @@ export const PUBLIC_CAREER_TRACKS: PublicCareerTrack[] = [
     id: 'credit_specialists',
     label: 'Credit specialists',
     shortLabel: 'Specialists',
-    path: '/credit-specialists',
-    hint: 'Run partner files · per-file revenue share',
+    path: '/credit-specialist',
+    hint: 'Run partner files · join at /credit-specialist/join',
     description: 'Solo operators and certified partners who run dispute files — apprenticeship through certified partner.',
   },
   {
@@ -57,6 +58,15 @@ export const PUBLIC_CAREER_TRACKS: PublicCareerTrack[] = [
     description:
       'Paralegals, attorneys/counsel, and consultants who support partner debt and litigation case work (letters, meetings, dockets).',
   },
+  {
+    id: 'real_estate',
+    label: 'Real estate partners',
+    shortLabel: 'Real estate',
+    path: '/careers/real-estate',
+    hint: 'Buyer / seller underwriting readiness',
+    description:
+      'Agents and brokers who guide partners through credit restore, AU optics education, dispute speed, and lender-side rescore prep — no approval guarantees.',
+  },
 ];
 
 export function getCareerTrack(id: PublicCareerTrackId): PublicCareerTrack {
@@ -65,6 +75,7 @@ export function getCareerTrack(id: PublicCareerTrackId): PublicCareerTrack {
 
 export function matchCareersPath(p: string): boolean {
   if (PUBLIC_CAREER_TRACKS.some((t) => p === t.path || p.startsWith(`${t.path}/`))) return true;
+  if (p === '/credit-specialists' || p.startsWith('/credit-specialists/')) return true;
   if (p.startsWith('/agency/signup')) return true;
   if (p === '/agents' || p.startsWith('/agents/')) return true;
   if (p.startsWith('/careers/')) return true;

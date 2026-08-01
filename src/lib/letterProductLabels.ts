@@ -64,7 +64,7 @@ export function letterProductBadge(kind: LetterProductKind): string {
     case 'court_filing':
       return 'Court answer letter';
     case 'affidavit':
-      return 'Affidavit';
+      return 'Response Affidavit';
     case 'discovery':
       return 'Discovery set';
     case 'hearing_kit_ui':

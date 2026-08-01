@@ -1,0 +1,552 @@
+/* Homepage sell bands — Finely Cred cinematic luxury (gold / navy / lime). */
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;0,800;1,500;1,600&display=swap');
+
+.fc-sell {
+  --fc-sell-gold: #e0b24a;
+  --fc-sell-gold-soft: #ffd993;
+  --fc-sell-gold-deep: #c4803d;
+  --fc-sell-navy: #060c2f;
+  --fc-sell-navy-deep: #020618;
+  --fc-sell-ink: #0c1228;
+  --fc-sell-champagne: #f4ebda;
+  --fc-sell-ivory: #faf6ee;
+  --fc-sell-lime: #a3e635;
+  --fc-sell-lime-deep: #65a30d;
+}
+
+.fc-sell-serif {
+  font-family: 'Playfair Display', Georgia, 'Times New Roman', serif;
+  letter-spacing: -0.02em;
+}
+
+.fc-sell-kicker {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--fc-sell-gold-soft);
+}
+
+.fc-sell-compliance {
+  font-size: 11px;
+  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.38);
+}
+
+/* `!important` guards against layout utilities that set `position: relative` on every
+   direct child of a band — that collapses this layer to zero height and kills the wash. */
+.fc-sell-atmosphere {
+  position: absolute !important;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+/* Platinum reads as a real brushed-silver plate. The bright metal runs edge to edge and a
+   centred ink vignette (last layer painted first is bottom-most, so the vignette sits on top
+   of the metal) keeps the white copy legible without flattening the band back to black. */
+.fc-sell-atmosphere__base--platinum {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 66% 60% at 50% 52%, rgba(8, 10, 14, 0.68) 0%, rgba(8, 10, 14, 0.32) 52%, transparent 84%),
+    radial-gradient(ellipse 64% 50% at 14% 2%, rgba(224, 178, 74, 0.32), transparent 62%),
+    radial-gradient(ellipse 56% 46% at 90% 96%, rgba(233, 238, 245, 0.34), transparent 60%),
+    linear-gradient(100deg, transparent 14%, rgba(255, 255, 255, 0.22) 29%, rgba(255, 255, 255, 0.04) 40%, transparent 54%),
+    linear-gradient(
+      168deg,
+      #363c46 0%,
+      #7f8896 11%,
+      #ced5e0 25%,
+      #949dac 37%,
+      #e2e8f1 50%,
+      #8d96a5 62%,
+      #c5ccd8 73%,
+      #69707e 87%,
+      #2b3038 100%
+    );
+}
+
+/* Light ink on a bright plate needs a soft shadow. Champagne cards use dark hex ink, not
+   `text-white`, so they are untouched by this rule. */
+.fc-sell:has(.fc-sell-atmosphere__base--platinum)
+  :is(
+    [class*='text-white'],
+    .fc-sell-kicker,
+    .fc-sell-compliance,
+    .fc-light-contrast-title,
+    .fc-light-contrast-body,
+    .fc-light-contrast-muted
+  ) {
+  text-shadow: 0 1px 3px rgba(6, 8, 12, 0.68);
+}
+
+/* Fine brushed grain so the platinum reads as metal rather than a grey fill. */
+.fc-sell-atmosphere__base--platinum::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: 0.42;
+  background: repeating-linear-gradient(
+    100deg,
+    rgba(255, 255, 255, 0.05) 0px,
+    rgba(255, 255, 255, 0.05) 1px,
+    transparent 1px,
+    transparent 4px
+  );
+}
+
+/* Darker, charcoal-navy wash matching the site's chrome — gold glow only, no bright royal/sky blue. */
+.fc-sell-atmosphere__base--navy {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 65% 55% at 80% 12%, rgba(224, 178, 74, 0.16), transparent 58%),
+    radial-gradient(ellipse 60% 50% at 12% 92%, rgba(224, 178, 74, 0.07), transparent 58%),
+    linear-gradient(160deg, #050a22 0%, #080e2a 32%, #060c2f 56%, #04081c 80%, #020512 100%);
+}
+
+.fc-sell-atmosphere__base--emerald {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 60% 50% at 12% 18%, rgba(163, 230, 53, 0.24), transparent 58%),
+    radial-gradient(ellipse 55% 45% at 90% 72%, rgba(224, 178, 74, 0.2), transparent 55%),
+    radial-gradient(ellipse 90% 72% at 50% 42%, rgba(52, 189, 138, 0.2), transparent 72%),
+    linear-gradient(165deg, #0e2a1e 0%, #1c4a34 32%, #216548 52%, #133527 74%, #081410 100%);
+}
+
+.fc-sell-atmosphere__beam {
+  position: absolute;
+  width: 45%;
+  height: 140%;
+  top: -20%;
+  left: -10%;
+  background: linear-gradient(105deg, transparent 30%, rgba(224, 178, 74, 0.07) 48%, transparent 62%);
+  transform: rotate(18deg);
+  animation: fc-sell-beam 14s ease-in-out infinite;
+}
+
+.fc-sell-atmosphere__beam--late {
+  left: auto;
+  right: -15%;
+  animation-delay: -6s;
+  opacity: 0.7;
+}
+
+.fc-sell-atmosphere__grain {
+  position: absolute;
+  inset: 0;
+  opacity: 0.055;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 180px 180px;
+  mix-blend-mode: overlay;
+}
+
+.fc-sell-atmosphere__line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(224, 178, 74, 0.35), transparent);
+}
+
+.fc-sell-atmosphere__line--top { top: 2.5rem; }
+.fc-sell-atmosphere__line--bottom { bottom: 2.5rem; }
+
+@keyframes fc-sell-beam {
+  0%, 100% { opacity: 0.35; transform: rotate(18deg) translateX(0); }
+  50% { opacity: 0.7; transform: rotate(18deg) translateX(6%); }
+}
+
+/* Champagne / ivory glass cards on platinum — dark ink, never harsh white */
+.fc-sell-champagne-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: 1.25rem;
+  border: 1px solid rgba(224, 178, 74, 0.38);
+  color: var(--fc-sell-ink);
+  background:
+    linear-gradient(155deg, rgba(250, 246, 238, 0.96) 0%, rgba(240, 230, 210, 0.94) 48%, rgba(228, 214, 186, 0.92) 100%);
+  box-shadow:
+    0 28px 70px -28px rgba(0, 0, 0, 0.55),
+    inset 0 1px 0 rgba(255, 255, 255, 0.65),
+    inset 0 -1px 0 rgba(196, 128, 61, 0.12);
+  backdrop-filter: blur(10px);
+}
+
+.fc-sell-champagne-card--featured {
+  border-color: rgba(224, 178, 74, 0.65);
+  box-shadow:
+    0 32px 80px -24px rgba(224, 178, 74, 0.45),
+    0 0 0 1px rgba(224, 178, 74, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+
+.fc-sell-champagne-card__sheen {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(115deg, transparent 35%, rgba(255, 255, 255, 0.28) 48%, transparent 62%);
+  transform: translateX(-120%);
+  animation: fc-sell-sheen 7s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.fc-sell-champagne-card--featured .fc-sell-champagne-card__sheen {
+  animation-delay: 1.2s;
+}
+
+@keyframes fc-sell-sheen {
+  0%, 55%, 100% { transform: translateX(-120%); }
+  70% { transform: translateX(120%); }
+}
+
+.fc-sell-price-jewel {
+  position: relative;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 9.5rem;
+  min-height: 9.5rem;
+  border-radius: 9999px;
+  background:
+    radial-gradient(circle at 35% 30%, rgba(255, 231, 176, 0.95), rgba(224, 178, 74, 0.55) 45%, rgba(196, 128, 61, 0.35) 100%);
+  box-shadow:
+    0 0 0 1px rgba(255, 217, 147, 0.55),
+    0 0 48px rgba(224, 178, 74, 0.35),
+    inset 0 2px 8px rgba(255, 255, 255, 0.45),
+    inset 0 -4px 12px rgba(100, 60, 10, 0.25);
+  animation: fc-sell-jewel 4.5s ease-in-out infinite;
+}
+
+.fc-sell-price-jewel__amount {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: clamp(2.75rem, 5vw, 3.5rem);
+  font-weight: 700;
+  line-height: 1;
+  color: #1a1204;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.35);
+}
+
+.fc-sell-price-jewel__label {
+  margin-top: 0.2rem;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(26, 18, 4, 0.65);
+}
+
+@keyframes fc-sell-jewel {
+  0%, 100% { box-shadow: 0 0 0 1px rgba(255, 217, 147, 0.55), 0 0 40px rgba(224, 178, 74, 0.28), inset 0 2px 8px rgba(255, 255, 255, 0.45); }
+  50% { box-shadow: 0 0 0 1px rgba(255, 231, 176, 0.75), 0 0 64px rgba(224, 178, 74, 0.48), inset 0 2px 8px rgba(255, 255, 255, 0.55); }
+}
+
+.fc-sell-benefit-chip {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  padding: 0.7rem 0.85rem;
+  border-radius: 0.9rem;
+  border: 1px solid rgba(224, 178, 74, 0.22);
+  background: linear-gradient(135deg, rgba(10, 20, 16, 0.55), rgba(6, 12, 10, 0.4));
+  backdrop-filter: blur(8px);
+}
+
+/* ── Authorized User tradeline cards — literal plastic-card mockups ───────────── */
+
+.fc-au-card {
+  --au-ink: rgba(255, 255, 255, 0.95);
+  --au-ink-dim: rgba(255, 255, 255, 0.62);
+  --au-edge: rgba(255, 255, 255, 0.18);
+  --au-chip-a: #f6dfa4;
+  --au-chip-b: #c99b3f;
+
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  aspect-ratio: 1.586 / 1;
+  padding: 1.05rem 1.15rem;
+  border-radius: 1rem;
+  border: 1px solid var(--au-edge);
+  color: var(--au-ink);
+  box-shadow:
+    0 26px 58px -26px rgba(0, 0, 0, 0.8),
+    inset 0 1px 0 rgba(255, 255, 255, 0.24);
+  transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.3s ease;
+}
+
+/* Moving specular highlight sells the "plastic in the light" read */
+.fc-au-card::before {
+  content: '';
+  position: absolute;
+  inset: -20%;
+  z-index: 0;
+  pointer-events: none;
+  background: linear-gradient(112deg, transparent 36%, rgba(255, 255, 255, 0.3) 47%, transparent 58%);
+  transform: translateX(-115%);
+  animation: fc-au-card-shine 9s ease-in-out infinite;
+}
+
+.fc-au-card > * {
+  position: relative;
+  z-index: 1;
+}
+
+.fc-au-card:hover {
+  transform: translateY(-6px) rotate(-0.5deg);
+  box-shadow:
+    0 34px 74px -24px rgba(0, 0, 0, 0.82),
+    0 0 0 1px rgba(224, 178, 74, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+@keyframes fc-au-card-shine {
+  0%, 62%, 100% { transform: translateX(-115%); }
+  78% { transform: translateX(115%); }
+}
+
+.fc-au-card--platinum {
+  --au-ink: #111620;
+  --au-ink-dim: rgba(17, 22, 32, 0.62);
+  --au-edge: rgba(255, 255, 255, 0.6);
+  background: linear-gradient(148deg, #f4f6fa 0%, #ccd4df 30%, #eef1f6 48%, #b2bbc8 72%, #dfe4eb 100%);
+}
+
+.fc-au-card--gold {
+  --au-ink: #23180a;
+  --au-ink-dim: rgba(35, 24, 10, 0.62);
+  --au-edge: rgba(255, 236, 190, 0.6);
+  --au-chip-a: #fff4d6;
+  --au-chip-b: #a9762a;
+  background: linear-gradient(148deg, #f7e3b0 0%, #e0b24a 32%, #f6dfa4 50%, #c4803d 76%, #eccf8d 100%);
+}
+
+.fc-au-card--obsidian {
+  --au-edge: rgba(224, 178, 74, 0.34);
+  background: linear-gradient(148deg, #23262d 0%, #0d0f13 38%, #2b2f38 58%, #090b0e 100%);
+}
+
+.fc-au-card--emerald {
+  --au-edge: rgba(163, 230, 53, 0.32);
+  background: linear-gradient(148deg, #12402e 0%, #06180f 40%, #1b5a3e 62%, #051009 100%);
+}
+
+.fc-au-card--sapphire {
+  --au-edge: rgba(125, 211, 252, 0.3);
+  background: linear-gradient(148deg, #12224f 0%, #050a1c 40%, #1b3170 62%, #04081a 100%);
+}
+
+.fc-au-card--titanium {
+  --au-edge: rgba(226, 232, 240, 0.34);
+  background: linear-gradient(148deg, #4a5058 0%, #23272d 38%, #5b626b 60%, #191c21 100%);
+}
+
+.fc-au-card__top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.fc-au-card__issuer {
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--au-ink-dim);
+}
+
+.fc-au-card__tier {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--au-ink);
+}
+
+.fc-au-card__badge {
+  flex-shrink: 0;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.4rem;
+  border: 1px solid currentColor;
+  font-size: 7.5px;
+  font-weight: 900;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--au-ink-dim);
+}
+
+.fc-au-card__chip {
+  width: 2.5rem;
+  height: 1.9rem;
+  border-radius: 0.35rem;
+  border: 1px solid rgba(0, 0, 0, 0.22);
+  background:
+    linear-gradient(90deg, transparent 30%, rgba(0, 0, 0, 0.28) 30%, rgba(0, 0, 0, 0.28) 32%, transparent 32%),
+    linear-gradient(0deg, transparent 44%, rgba(0, 0, 0, 0.28) 44%, rgba(0, 0, 0, 0.28) 47%, transparent 47%),
+    linear-gradient(140deg, var(--au-chip-a) 0%, var(--au-chip-b) 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+.fc-au-card__pan {
+  font-family: ui-monospace, 'SFMono-Regular', 'Cascadia Mono', Menlo, monospace;
+  font-size: clamp(0.72rem, 1.15vw, 0.86rem);
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  color: var(--au-ink);
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.16);
+}
+
+.fc-au-card__bottom {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.fc-au-card__stat-label {
+  font-size: 7.5px;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--au-ink-dim);
+}
+
+.fc-au-card__stat-value {
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: var(--au-ink);
+}
+
+/* Stylised network mark — deliberately generic, never a real issuer logo */
+.fc-au-card__network {
+  display: flex;
+  align-items: center;
+  color: var(--au-ink);
+}
+
+.fc-au-card__network span {
+  display: block;
+  width: 1.3rem;
+  height: 1.3rem;
+  border-radius: 9999px;
+  background: currentColor;
+  opacity: 0.38;
+}
+
+.fc-au-card__network span + span {
+  margin-left: -0.55rem;
+  opacity: 0.66;
+}
+
+.fc-au-card-caption {
+  margin-top: 0.65rem;
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fc-au-card::before {
+    animation: none !important;
+  }
+}
+
+/* Premium showcase card — used for 6-up AU / offer grids on dark sell bands */
+.fc-sell-benefit-card {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  padding: 1.5rem 1.35rem;
+  border-radius: 1.15rem;
+  border: 1px solid rgba(224, 178, 74, 0.28);
+  background:
+    linear-gradient(160deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.015) 100%),
+    linear-gradient(155deg, rgba(12, 26, 20, 0.85) 0%, rgba(6, 14, 11, 0.92) 100%);
+  box-shadow:
+    0 22px 60px -30px rgba(0, 0, 0, 0.65),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  transition: border-color 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.fc-sell-benefit-card:hover {
+  border-color: rgba(224, 178, 74, 0.55);
+  transform: translateY(-3px);
+  box-shadow:
+    0 28px 70px -28px rgba(224, 178, 74, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.fc-sell-benefit-card__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  flex-shrink: 0;
+  border-radius: 0.9rem;
+  border: 1px solid rgba(224, 178, 74, 0.4);
+  background: linear-gradient(150deg, rgba(224, 178, 74, 0.24), rgba(224, 178, 74, 0.06));
+  color: #ffd993;
+  box-shadow: 0 0 28px rgba(224, 178, 74, 0.16);
+}
+
+.fc-sell-cta-gold {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  padding: 1rem 1.75rem;
+  border-radius: 0.85rem;
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #1a1204;
+  background: linear-gradient(135deg, #ffe7b0 0%, #e0b24a 48%, #c4803d 100%);
+  box-shadow: 0 14px 36px -12px rgba(224, 178, 74, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.45);
+  transition: transform 0.25s ease, filter 0.25s ease;
+}
+
+.fc-sell-cta-gold:hover {
+  transform: translateY(-2px) scale(1.02);
+  filter: brightness(1.06);
+}
+
+.fc-sell-cta-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  padding: 0.85rem 1.35rem;
+  border-radius: 0.85rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(224, 178, 74, 0.35);
+  background: rgba(255, 255, 255, 0.03);
+  transition: border-color 0.2s ease, color 0.2s ease;
+}
+
+.fc-sell-cta-ghost:hover {
+  border-color: rgba(224, 178, 74, 0.65);
+  color: #ffd993;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fc-sell-atmosphere__beam,
+  .fc-sell-champagne-card__sheen,
+  .fc-sell-price-jewel {
+    animation: none !important;
+  }
+}

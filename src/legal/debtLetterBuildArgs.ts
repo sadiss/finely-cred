@@ -26,10 +26,20 @@ export type DebtLetterBuildArgs = {
   affidavitCounty?: string;
   summonsContext?: {
     courtName?: string;
+    courtDivision?: string;
     amountClaimed?: string;
     dateServed?: string;
+    hearingDate?: string;
     jurisdictionState?: string;
     collectorName?: string;
+    counselName?: string;
+    plaintiffLawFirm?: string;
+    plaintiffAttorneyName?: string;
+    plaintiffAttorneyBar?: string;
+    counselAddress?: string;
+    judgeName?: string;
+    caseCaption?: string;
+    defendantName?: string;
     documentFacts?: string[];
     propertyAddress?: string;
     collateralDescription?: string;
