@@ -264,7 +264,7 @@ export function getDigitalInviteIncentive(role: DigitalInviteCardRole): {
 export function getDigitalInviteDestPath(role: DigitalInviteCardRole): string {
   const def = DIGITAL_INVITE_CARDS[role] as { destPath?: string } | undefined;
   if (def?.destPath) return def.destPath;
-  return role === 'agency' ? '/agency-partners' : '/au-tradelines';
+  return role === 'agency' ? '/agency-partners' : '/au-sellers';
 }
 
 /** Filename stem used for PNG downloads. */

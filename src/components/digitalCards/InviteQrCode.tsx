@@ -69,14 +69,29 @@ export function InviteQrCode({
     col >= knockoutStart &&
     col < knockoutStart + knockout;
 
-  const dots: string[] = [];
+  // Modules are drawn as near-full rounded squares rather than spaced dots.
+  // Dots look prettier in isolation but starve decoders of dark area; this
+  // keeps the softened silhouette while staying reliably scannable.
+  const inset = 0.02;
+  const side = 1 - inset * 2;
+  const radius = 0.3;
+  const straight = side - radius * 2;
+
+  const modules: string[] = [];
   for (let r = 0; r < matrix.size; r += 1) {
     for (let c = 0; c < matrix.size; c += 1) {
       if (!matrix.modules[r][c]) continue;
       const row = r + quiet;
       const col = c + quiet;
       if (inEye(row, col) || inKnockout(row, col)) continue;
-      dots.push(`M${col + 0.11} ${row + 0.5}a0.39 0.39 0 1 0 0.78 0a0.39 0.39 0 1 0 -0.78 0`);
+      const x = col + inset;
+      const y = row + inset;
+      modules.push(
+        `M${x + radius} ${y}h${straight}a${radius} ${radius} 0 0 1 ${radius} ${radius}` +
+          `v${straight}a${radius} ${radius} 0 0 1 ${-radius} ${radius}` +
+          `h${-straight}a${radius} ${radius} 0 0 1 ${-radius} ${-radius}` +
+          `v${-straight}a${radius} ${radius} 0 0 1 ${radius} ${-radius}z`,
+      );
     }
   }
 
@@ -91,21 +106,15 @@ export function InviteQrCode({
       shapeRendering="geometricPrecision"
     >
       <rect x="0" y="0" width={span} height={span} rx={2.4} fill={plateColor} />
-      <path d={dots.join(' ')} fill={moduleColor} />
+      <path d={modules.join(' ')} fill={moduleColor} />
 
+      {/* Finder eyes keep the exact 1:1:3:1:1 module ratio a decoder looks for;
+          only the corners are softened, and they are struck in foil. */}
       {eyeOrigins.map(([r0, c0]) => (
         <g key={`${r0}-${c0}`}>
-          <rect
-            x={c0 + 0.35}
-            y={r0 + 0.35}
-            width={6.3}
-            height={6.3}
-            rx={1.7}
-            fill="none"
-            stroke={eyeColor}
-            strokeWidth={0.95}
-          />
-          <rect x={c0 + 2} y={r0 + 2} width={3} height={3} rx={0.9} fill={eyeColor} />
+          <rect x={c0} y={r0} width={7} height={7} rx={1.7} fill={eyeColor} />
+          <rect x={c0 + 1} y={r0 + 1} width={5} height={5} rx={1.15} fill={plateColor} />
+          <rect x={c0 + 2} y={r0 + 2} width={3} height={3} rx={0.72} fill={eyeColor} />
         </g>
       ))}
 

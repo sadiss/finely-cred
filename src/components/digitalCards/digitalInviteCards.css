@@ -860,6 +860,12 @@
   animation: fcdc-holo-drift 8s linear infinite;
 }
 
+/* Keep the band legend readable against the moving pastel field. */
+.fcdc-holo__text {
+  color: rgba(8, 5, 16, 0.9);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.38);
+}
+
 @keyframes fcdc-holo-drift {
   to {
     background-position: 220% 0;
