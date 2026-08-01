@@ -1,4 +1,10 @@
-export type ProgramApplicationKind = 'affiliate' | 'agent' | 'paralegal' | 'attorney' | 'consultant';
+export type ProgramApplicationKind =
+  | 'affiliate'
+  | 'agent'
+  | 'paralegal'
+  | 'attorney'
+  | 'consultant'
+  | 'real_estate';
 export type ProgramApplicationStatus = 'new' | 'reviewing' | 'approved' | 'rejected';
 
 export type ProgramApplication = {

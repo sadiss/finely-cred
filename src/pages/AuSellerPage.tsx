@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ArrowLeft, ArrowRight, Check, CreditCard, Megaphone, ShoppingBag, Wallet } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { PageShell } from '../components/layout/PageShell';
 import { CareersQuickNav } from '../components/careers/CareersQuickNav';
 import { CS_PUBLIC } from '../components/creditSpecialist/creditSpecialistPublicUi';
+import { DigitalInviteCardShare } from '../components/digitalCards';
 import {
   AU_SELLER,
   AU_SELLER_ACTIVATION_BULLETS,
@@ -12,10 +13,16 @@ import {
 } from '../config/auSellerProgram';
 import { signupUrlForRole } from '../lib/onboardingRoleRouting';
 import { BackToSiteButton } from '../components/navigation/BackToSiteButton';
+import { FinelyOsAlertBanner } from '../features/os/FinelyOsAlertBanner';
 import { FinelyOsPageFooter } from '../features/os/FinelyOsPageFooter';
 import { FinelyUnifiedHubLayout } from '../features/unified/FinelyUnifiedHubLayout';
 import { MarketingStaffChatStrip } from '../components/marketing/MarketingStaffChatStrip';
 import { usePublicSeoMeta } from '../hooks/usePublicSeoMeta';
+import {
+  captureDigitalInviteCardFromUrl,
+  getDigitalInviteCardEligibilityForRole,
+} from '../lib/digitalInviteCardAttribution';
+import { getDigitalInviteCardDef } from '../config/digitalInviteCards';
 import {
   FINELY_OS_COMPLIANCE_FOOTNOTE,
   FINELY_OS_ENTITY_BODY,
@@ -37,6 +44,14 @@ export default function AuSellerPage() {
 
   const [laneTab, setLaneTab] = useState<'program' | 'economics' | 'start'>('program');
   const sellerSignupUrl = signupUrlForRole('au_seller', { next: AU_SELLER.hubPath }) ?? '/onboarding?lane=au_seller';
+  const [cardEligibility, setCardEligibility] = useState(() => getDigitalInviteCardEligibilityForRole('au_seller'));
+
+  useEffect(() => {
+    captureDigitalInviteCardFromUrl(window.location.search, window.location.pathname);
+    setCardEligibility(getDigitalInviteCardEligibilityForRole('au_seller'));
+  }, []);
+
+  const cardBonus = getDigitalInviteCardDef('au_seller')?.bonus;
 
   return (
     <PageShell
@@ -57,6 +72,9 @@ export default function AuSellerPage() {
         </div>
 
         <CareersQuickNav active="au_sellers" className="mt-6" />
+        {cardEligibility && cardBonus ? (
+          <FinelyOsAlertBanner tone="success" message={cardBonus.description} />
+        ) : null}
 
         <FinelyUnifiedHubLayout
           eyebrow={AU_SELLER.programName}
@@ -196,6 +214,15 @@ export default function AuSellerPage() {
                 <button type="button" onClick={() => navigate(AU_SELLER.hubPath)} className={FINELY_OS_SECONDARY_BTN}>
                   Already a seller? Open hub
                 </button>
+              </div>
+
+              <div className="pt-2 space-y-3">
+                <p className={CS_PUBLIC.sectionKicker}>Share this program</p>
+                <p className={CS_PUBLIC.bodySm}>
+                  Download a shareable invite card — anyone who joins through it gets fast-tracked, and you can track who
+                  came from your card.
+                </p>
+                <DigitalInviteCardShare role="au_seller" maxWidth={520} />
               </div>
             </div>
           )}

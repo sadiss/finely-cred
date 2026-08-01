@@ -1,15 +1,22 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ArrowLeft, ArrowRight, Building2, Check } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { PageShell } from '../../components/layout/PageShell';
 import { CareersQuickNav } from '../../components/careers/CareersQuickNav';
 import { AgencyPartnersCareerGuide } from '../../components/agency/AgencyPartnersCareerGuide';
 import { CS_PUBLIC } from '../../components/creditSpecialist/creditSpecialistPublicUi';
+import { DigitalInviteCardShare } from '../../components/digitalCards';
 import { AGENCY, AGENCY_OFFERINGS } from '../../config/agencyPartnersProgram';
+import { FinelyOsAlertBanner } from '../../features/os/FinelyOsAlertBanner';
 import { FinelyOsPageFooter } from '../../features/os/FinelyOsPageFooter';
 import { FinelyUnifiedHubLayout } from '../../features/unified/FinelyUnifiedHubLayout';
 import { MarketingStaffChatStrip } from '../../components/marketing/MarketingStaffChatStrip';
 import { usePublicSeoMeta } from '../../hooks/usePublicSeoMeta';
+import {
+  captureDigitalInviteCardFromUrl,
+  getDigitalInviteCardEligibilityForRole,
+} from '../../lib/digitalInviteCardAttribution';
+import { getDigitalInviteCardDef } from '../../config/digitalInviteCards';
 import {
   FINELY_OS_BACK_LINK,
   FINELY_OS_COMPLIANCE_FOOTNOTE,
@@ -30,6 +37,14 @@ export default function AgencyPartnersPage() {
   });
 
   const [laneTab, setLaneTab] = useState<'program' | 'economics' | 'signup'>('program');
+  const [cardEligibility, setCardEligibility] = useState(() => getDigitalInviteCardEligibilityForRole('agency'));
+
+  useEffect(() => {
+    captureDigitalInviteCardFromUrl(window.location.search, window.location.pathname);
+    setCardEligibility(getDigitalInviteCardEligibilityForRole('agency'));
+  }, []);
+
+  const cardBonus = getDigitalInviteCardDef('agency')?.bonus;
 
   return (
     <PageShell
@@ -51,6 +66,9 @@ export default function AgencyPartnersPage() {
         </div>
 
         <CareersQuickNav active="agency_partners" className="mt-6" />
+        {cardEligibility && cardBonus ? (
+          <FinelyOsAlertBanner tone="success" message={cardBonus.description} />
+        ) : null}
 
         <FinelyUnifiedHubLayout
           eyebrow={AGENCY.programName}
@@ -73,7 +91,7 @@ export default function AgencyPartnersPage() {
                 <p className={CS_PUBLIC.pageKicker}>Agency partner program</p>
                 <h2 className={CS_PUBLIC.pageTitle}>Own a branded credit services company</h2>
                 <p className={CS_PUBLIC.pageLead}>
-                  <strong className="text-slate-900">Agency partner</strong> = you run a tenant with team seats, client
+                  <strong className="text-slate-900">Agency partner</strong> = you run a tenant with team seats, partner
                   routing, and white-label portal. This is not the solo credit specialist apprenticeship — that&apos;s a
                   separate track.
                 </p>
@@ -139,7 +157,7 @@ export default function AgencyPartnersPage() {
               <ul className={`${CS_PUBLIC.body} space-y-2 list-disc pl-5`}>
                 <li>Pick a capacity tier (you can upgrade later).</li>
                 <li>Set your agency name and white-label preferences.</li>
-                <li>Invite team seats and route customers into your portal.</li>
+                <li>Invite team seats and route partners into your portal.</li>
               </ul>
               <div className="flex flex-wrap gap-3">
                 <button type="button" onClick={() => navigate(AGENCY.signupPath)} className={FINELY_OS_PRIMARY_BTN}>
@@ -152,9 +170,18 @@ export default function AgencyPartnersPage() {
               <div className="rounded-xl border-2 border-slate-200 bg-slate-50 p-5 flex gap-4">
                 <Building2 className="text-amber-600 shrink-0" size={28} />
                 <p className={CS_PUBLIC.bodySm}>
-                  Agency signup requires a Finely login. If you only want to run your own client files without a company
+                  Agency signup requires a Finely login. If you only want to run your own partner files without a company
                   tenant, use the Credit specialists track instead.
                 </p>
+              </div>
+
+              <div className="pt-2 space-y-3">
+                <p className={CS_PUBLIC.sectionKicker}>Share this program</p>
+                <p className={CS_PUBLIC.bodySm}>
+                  Download a shareable invite card — anyone who joins through it gets fast-tracked, and you can track who
+                  came from your card.
+                </p>
+                <DigitalInviteCardShare role="agency" maxWidth={520} />
               </div>
             </div>
           )}

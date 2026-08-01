@@ -1,14 +1,26 @@
-import React, { useState } from 'react';
-import { Scale, ArrowRight } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { Scale, ArrowRight, FileText } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { PageShell } from '../components/layout/PageShell';
 import { CareersQuickNav } from '../components/careers/CareersQuickNav';
 import { LandingTypewriterTitle } from '../components/landing/LandingTypewriterTitle';
 import { PublicLaneTitle } from '../components/public/PublicLaneTitle';
 import { createProgramApplication } from '../data/programApplicationsRepo';
+import { submitLeadCapture } from '../data/leadsRepo';
+import { addLeadNote, addLeadTags } from '../data/leadOpsRepo';
+import { FinelyOsAlertBanner } from '../features/os/FinelyOsAlertBanner';
 import { FinelyOsPageFooter } from '../features/os/FinelyOsPageFooter';
 import { usePublicSeoMeta } from '../hooks/usePublicSeoMeta';
 import type { ProgramApplicationKind } from '../domain/programApplications';
+import {
+  captureDigitalInviteCardFromUrl,
+  digitalInviteCardLeadAttributionFields,
+  digitalInviteCardLeadTags,
+  formatDigitalInviteCardNote,
+  getDigitalInviteCardEligibilityForRole,
+  markDigitalInviteCardRedeemed,
+} from '../lib/digitalInviteCardAttribution';
+import { getDigitalInviteCardDef } from '../config/digitalInviteCards';
 import {
   FINELY_OS_ENTITY_INPUT,
   FINELY_OS_ENTITY_LABEL,
@@ -67,28 +79,67 @@ export default function CaseHelpCareersPage() {
   const [notes, setNotes] = useState('');
   const [status, setStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
   const [statusMsg, setStatusMsg] = useState<string | null>(null);
+  const [cardEligibility, setCardEligibility] = useState(() => getDigitalInviteCardEligibilityForRole('case_help'));
+
+  useEffect(() => {
+    captureDigitalInviteCardFromUrl(window.location.search, window.location.pathname);
+    setCardEligibility(getDigitalInviteCardEligibilityForRole('case_help'));
+  }, []);
+
+  const cardBonus = getDigitalInviteCardDef('case_help')?.bonus;
 
   const canSubmit = fullName.trim().length > 1 && email.trim().includes('@') && status !== 'sending';
 
-  const submit = (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!canSubmit) return;
     setStatus('sending');
     setStatusMsg(null);
     try {
-      createProgramApplication({
+      const app = createProgramApplication({
         kind: role,
         fullName: fullName.trim(),
         email: email.trim(),
         phone: phone.trim() || undefined,
         companyName: companyName.trim() || undefined,
         roleTitle: ROLES.find((r) => r.id === role)?.title,
-        notes: [barOrCreds.trim() && `Credentials / bar: ${barOrCreds.trim()}`, notes.trim()]
+        referralCode: cardEligibility ? `digital-card-${cardEligibility.role}` : undefined,
+        notes: [
+          barOrCreds.trim() && `Credentials / bar: ${barOrCreds.trim()}`,
+          notes.trim(),
+          cardEligibility ? `PRIORITY (digital invite bonus): ${cardBonus?.label ?? 'Priority review'}` : null,
+        ]
           .filter(Boolean)
           .join('\n'),
       });
+
+      if (cardEligibility) {
+        const lead = await submitLeadCapture({
+          source: 'affiliate',
+          offer: 'general_inquiry',
+          interest: `case_help:${role}`,
+          fullName: fullName.trim(),
+          email: email.trim(),
+          phone: phone.trim(),
+          consentToContact: true,
+          funnelPath: '/careers/case-help',
+          funnelId: 'case_help',
+          goal: 'general',
+          ...digitalInviteCardLeadAttributionFields(cardEligibility),
+          giveawayStack: cardBonus ? [cardBonus.label] : undefined,
+        });
+        addLeadNote(lead.lead.id, `Case help application: ${app.id}\nRole applied: ${ROLES.find((r) => r.id === role)?.title}`);
+        addLeadTags(lead.lead.id, ['priority-review', ...digitalInviteCardLeadTags(cardEligibility)]);
+        addLeadNote(lead.lead.id, formatDigitalInviteCardNote(cardEligibility));
+        markDigitalInviteCardRedeemed(lead.lead.id);
+      }
+
       setStatus('sent');
-      setStatusMsg('Application received. Our team reviews case-help roles and grants portal access when approved.');
+      setStatusMsg(
+        cardEligibility
+          ? `Application received — priority review is on. ${cardBonus?.description ?? ''}`
+          : 'Application received. Our team reviews case-help roles and grants portal access when approved.',
+      );
       setFullName('');
       setEmail('');
       setPhone('');
@@ -108,8 +159,11 @@ export default function CaseHelpCareersPage() {
       hideHero
     >
       <div className={`${FINELY_OS_PAGE} max-w-5xl mx-auto space-y-0`}>
-        <div className="px-4 py-4">
+        <div className="px-4 py-4 space-y-3">
           <CareersQuickNav active="case_help" />
+          {cardEligibility && cardBonus ? (
+            <FinelyOsAlertBanner tone="success" message={cardBonus.description} />
+          ) : null}
         </div>
 
         <section
@@ -231,7 +285,20 @@ export default function CaseHelpCareersPage() {
               <button type="submit" disabled={!canSubmit} className={`${FINELY_OS_PRIMARY_BTN} disabled:opacity-60`}>
                 Submit application <ArrowRight size={14} />
               </button>
-              {status === 'sent' ? <div className={FINELY_OS_NOTICE_SUCCESS}>{statusMsg}</div> : null}
+              {status === 'sent' ? (
+                <div className="space-y-2">
+                  <div className={FINELY_OS_NOTICE_SUCCESS}>{statusMsg}</div>
+                  {cardEligibility ? (
+                    <button
+                      type="button"
+                      className={`${FINELY_OS_PRIMARY_BTN}`}
+                      onClick={() => navigate('/resources/one-sheets')}
+                    >
+                      <FileText size={14} /> Open your one-sheet pack <ArrowRight size={14} />
+                    </button>
+                  ) : null}
+                </div>
+              ) : null}
               {status === 'error' ? <div className={FINELY_OS_NOTICE_ERROR}>{statusMsg}</div> : null}
               <p className={`${FINELY_OS_COMPLIANCE_FOOTNOTE} !text-[#0a1628]/55`}>
                 Educational platform roles · not an offer of employment · attorney applicants must be licensed where they

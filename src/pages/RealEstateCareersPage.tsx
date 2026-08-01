@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   ArrowRight,
   Building2,
@@ -28,11 +28,21 @@ import {
 } from '../config/realEstatePartnerPlaybook';
 import { createProgramApplication } from '../data/programApplicationsRepo';
 import { submitLeadCapture } from '../data/leadsRepo';
-import { addLeadNote } from '../data/leadOpsRepo';
+import { addLeadNote, addLeadTags } from '../data/leadOpsRepo';
+import { FinelyOsAlertBanner } from '../features/os/FinelyOsAlertBanner';
 import { FinelyOsPageFooter } from '../features/os/FinelyOsPageFooter';
 import { openPublicChat } from '../lib/publicChatEvents';
 import { signupUrlForRole } from '../lib/onboardingRoleRouting';
 import { usePublicSeoMeta } from '../hooks/usePublicSeoMeta';
+import {
+  captureDigitalInviteCardFromUrl,
+  digitalInviteCardLeadAttributionFields,
+  digitalInviteCardLeadTags,
+  formatDigitalInviteCardNote,
+  getDigitalInviteCardEligibilityForRole,
+  markDigitalInviteCardRedeemed,
+} from '../lib/digitalInviteCardAttribution';
+import { getDigitalInviteCardDef } from '../config/digitalInviteCards';
 import {
   FINELY_OS_COMPLIANCE_FOOTNOTE,
   FINELY_OS_ENTITY_INPUT,
@@ -88,6 +98,14 @@ export default function RealEstateCareersPage() {
   const [notes, setNotes] = useState('');
   const [status, setStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
   const [statusMsg, setStatusMsg] = useState<string | null>(null);
+  const [cardEligibility, setCardEligibility] = useState(() => getDigitalInviteCardEligibilityForRole('re'));
+
+  useEffect(() => {
+    captureDigitalInviteCardFromUrl(window.location.search, window.location.pathname);
+    setCardEligibility(getDigitalInviteCardEligibilityForRole('re'));
+  }, []);
+
+  const cardBonus = getDigitalInviteCardDef('re')?.bonus;
 
   const canSubmit = fullName.trim().length > 1 && email.trim().includes('@') && status !== 'sending';
 
@@ -111,7 +129,12 @@ export default function RealEstateCareersPage() {
         niche: 'real_estate',
         regionsServed: regionsServed.trim() || undefined,
         monthlyLeadsEstimate: monthlyClosings.trim() ? Number(monthlyClosings) : undefined,
-        notes: [licenseOrBrokerage.trim() && `License / brokerage: ${licenseOrBrokerage.trim()}`, notes.trim()]
+        referralCode: cardEligibility ? `digital-card-${cardEligibility.role}` : undefined,
+        notes: [
+          licenseOrBrokerage.trim() && `License / brokerage: ${licenseOrBrokerage.trim()}`,
+          notes.trim(),
+          cardEligibility ? `PRIORITY (digital invite bonus): ${cardBonus?.label ?? 'Priority onboarding call'}` : null,
+        ]
           .filter(Boolean)
           .join('\n'),
       });
@@ -129,14 +152,25 @@ export default function RealEstateCareersPage() {
         funnelId: 'real_estate_affiliate',
         goal: 'credit',
         promoterRole: 'real_estate',
+        ...(cardEligibility ? digitalInviteCardLeadAttributionFields(cardEligibility) : {}),
+        giveawayStack: cardEligibility && cardBonus ? [cardBonus.label] : undefined,
       });
       addLeadNote(
         lead.lead.id,
         `Real estate affiliate application: ${app.id}\nBrokerage: ${companyName || '—'}\nLicense: ${licenseOrBrokerage || '—'}\nRegions: ${regionsServed || '—'}`,
       );
+      if (cardEligibility) {
+        addLeadTags(lead.lead.id, ['priority-review', ...digitalInviteCardLeadTags(cardEligibility)]);
+        addLeadNote(lead.lead.id, formatDigitalInviteCardNote(cardEligibility));
+        markDigitalInviteCardRedeemed(lead.lead.id);
+      }
 
       setStatus('sent');
-      setStatusMsg('Application received. Continue signup to open your affiliate lane, or wait for our team.');
+      setStatusMsg(
+        cardEligibility
+          ? `Application received — priority review is on. ${cardBonus?.description ?? ''}`
+          : 'Application received. Continue signup to open your affiliate lane, or wait for our team.',
+      );
       setNotes('');
     } catch (err: unknown) {
       setStatus('error');
@@ -152,8 +186,11 @@ export default function RealEstateCareersPage() {
       hideHero
     >
       <div className={`${FINELY_OS_PAGE} max-w-6xl mx-auto space-y-0`}>
-        <div className="px-0 py-2">
+        <div className="px-0 py-2 space-y-3">
           <CareersQuickNav active="real_estate" />
+          {cardEligibility && cardBonus ? (
+            <FinelyOsAlertBanner tone="success" message={cardBonus.description} />
+          ) : null}
         </div>
 
         {/* Hero */}

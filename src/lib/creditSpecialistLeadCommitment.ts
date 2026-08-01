@@ -52,7 +52,7 @@ export function computeCreditSpecialistLeadCommitment(args: {
     args.windowStartedAt ||
     intent?.createdAt ||
     null;
-  const minRequired = CS_OFFER.minLeadsRequired;
+  const minRequired = intent?.minLeadsRequired ?? CS_OFFER.minLeadsRequired;
   const freeLeadsWindowDays = CS_OFFER.freeLeadsWindowDays;
   const attributed = listLeadsAttributedToReferralCode(args.referralCode || '');
   const attributedLeadIds = attributed.map((l) => l.id);
