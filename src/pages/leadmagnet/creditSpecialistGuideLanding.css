@@ -124,6 +124,9 @@
 .csg-mockup-stage {
   position: relative;
   display: flex;
+  /* Needs an explicit width: the hero column is a centered flex parent, so a
+     shrink-to-fit stage collapses the book's `width: min(100%, 260px)` to 0. */
+  width: 100%;
   align-items: flex-end;
   justify-content: center;
   padding: 1.5rem 0 2rem;

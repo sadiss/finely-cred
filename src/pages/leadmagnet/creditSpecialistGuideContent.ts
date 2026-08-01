@@ -9,11 +9,33 @@ export const CS_GUIDE_READ_PATH = '/credit-specialist-guide/read';
 export const CS_JOIN_PATH = '/credit-specialist/join';
 export const CS_PRICING_PATH = '/credit-specialist';
 
+/** Coaching dialogue rendered as a binder role-play card. */
+export type CreditSpecialistScript = {
+  label: string;
+  lines: Array<{ speaker: 'you' | 'partner'; text: string }>;
+};
+
+/** Tear-out checklist rendered with binder checkbox glyphs. */
+export type CreditSpecialistChecklist = {
+  label: string;
+  items: string[];
+};
+
+/** Real, clickable references — escalation portals, statutes, internal routes. */
+export type CreditSpecialistResource = {
+  label: string;
+  href: string;
+  note?: string;
+};
+
 export type CreditSpecialistGuideSection = {
   heading?: string;
   paragraphs?: string[];
   bullets?: string[];
   callout?: string;
+  script?: CreditSpecialistScript;
+  checklist?: CreditSpecialistChecklist;
+  resources?: CreditSpecialistResource[];
 };
 
 export type CreditSpecialistGuideChapter = {
@@ -39,10 +61,12 @@ export const CS_GUIDE_META = {
   onesheetLabel: 'Credit Specialist one-sheet',
 } as const;
 
-export const CS_GUIDE_CHAPTERS: CreditSpecialistGuideChapter[] = [
+/** Chapter numbers are derived from order so chapters can be inserted safely. */
+type CreditSpecialistChapterInput = Omit<CreditSpecialistGuideChapter, 'number'>;
+
+const CS_GUIDE_CHAPTER_INPUTS: CreditSpecialistChapterInput[] = [
   {
     id: 'welcome',
-    number: '01',
     title: 'The Specialist Advantage',
     subtitle: 'Why operators who teach systems outperform operators who chase leads',
     kicker: 'Start here',
@@ -90,8 +114,120 @@ export const CS_GUIDE_CHAPTERS: CreditSpecialistGuideChapter[] = [
     ],
   },
   {
+    id: 'first-conversation',
+    title: 'The First Partner Conversation',
+    subtitle: 'A discovery call that diagnoses instead of pitches',
+    kicker: 'Field skill',
+    teaser: 'The eight questions that reveal the real bottleneck — and the four sentences you never say.',
+    accent: 'rose',
+    sections: [
+      {
+        heading: 'Diagnose before you prescribe',
+        paragraphs: [
+          'Most specialists lose the first call by answering a question nobody asked. A partner says “I need my score fixed,” and the untrained response is a program pitch. The trained response is a diagnosis: what is on the file, what is the deadline behind the request, and which of the four lanes the work actually lives in.',
+          'A partner who feels examined rather than sold to will hand you the documents you need on the same call. That is the entire economic difference between a specialist who closes on discovery and one who chases paperwork for three weeks.',
+        ],
+        script: {
+          label: 'Discovery — first four minutes',
+          lines: [
+            { speaker: 'partner', text: 'I need my credit fixed. How much do you charge?' },
+            {
+              speaker: 'you',
+              text: 'Before price, I need to know what we would actually be fixing. What made today the day you looked this up?',
+            },
+            { speaker: 'partner', text: 'I got denied on a car loan last week.' },
+            {
+              speaker: 'you',
+              text: 'Did the denial letter list reasons? Those reason codes tell us in about two minutes whether this is a utilization problem, a derogatory problem, or a thin-file problem — and each one has a completely different plan.',
+            },
+          ],
+        },
+      },
+      {
+        heading: 'The eight discovery questions',
+        paragraphs: [
+          'Run these in order. Each answer narrows the lane. Write the answers into the partner record while you are on the call — memory is not documentation.',
+        ],
+        bullets: [
+          'What happened recently that made you look for help? (Reveals the deadline.)',
+          'Have you pulled all three bureau reports in the last 30 days? (Reveals whether you can work today.)',
+          'What is the single account you would remove if you could only pick one? (Reveals priority.)',
+          'Is anyone currently calling, emailing, or mailing you about a debt? (Reveals collection pressure.)',
+          'Have you received any court papers — a summons, complaint, or garnishment notice? (Reveals urgency; deadlines override everything.)',
+          'Do you have a business entity, or plans for one in the next year? (Reveals the business lane.)',
+          'What do your card balances look like against their limits? (Reveals the fastest lever.)',
+          'What has already been tried, and what happened? (Reveals what not to repeat.)',
+        ],
+        callout:
+          'If the answer to the court-papers question is yes, stop the credit conversation and address the deadline first. Everything else can wait a week; a default judgment cannot be un-entered by a dispute letter.',
+      },
+      {
+        heading: 'Four sentences that end careers',
+        paragraphs: [
+          'Language on a discovery call is a compliance surface. These four constructions are the ones that create refund demands, complaints, and regulatory exposure — and every one of them can be replaced with something both honest and stronger.',
+        ],
+        bullets: [
+          '“I can get that deleted.” → “That item is reporting a status that contradicts the payment grid — that contradiction is disputable, and here is what the bureau has to do with it.”',
+          '“You will be at 700 in 90 days.” → “Here is the specific lever we would pull first, and here is what typically changes when it works. Timelines and results vary.”',
+          '“That debt is not yours anymore.” → “Whether the obligation is valid is a legal question. What I can do is document what the collector has and has not proven in writing.”',
+          '“Just do not pay them.” → “Never take payment direction from me. What I can do is make sure every contact and every claim is captured in writing before you decide anything.”',
+        ],
+        callout:
+          'Educational only · not legal advice. Specialists document and educate; licensed attorneys advise on legal strategy.',
+      },
+    ],
+  },
+  {
+    id: 'intake-evidence',
+    title: 'Intake & Evidence Discipline',
+    subtitle: 'The file you build in week one decides every round after it',
+    kicker: 'Operating craft',
+    teaser: 'One intake standard, one naming convention, one evidence vault — the boring habit that wins rounds.',
+    accent: 'sky',
+    sections: [
+      {
+        heading: 'Why intake quality predicts outcomes',
+        paragraphs: [
+          'A dispute is only as strong as the exhibit attached to it. Specialists who work from screenshots taken months ago, unlabelled PDFs, and half-remembered phone calls end up writing letters that assert things they cannot show. Reinvestigations resolve against unsupported assertions almost every time.',
+          'The fix is unglamorous: one intake standard applied to every partner, regardless of how urgent they sound. Ten disciplined minutes at intake removes hours of reconstruction later, and it is what lets a second specialist pick up the file without calling you.',
+        ],
+      },
+      {
+        heading: 'The intake standard',
+        checklist: {
+          label: 'Collect before round one',
+          items: [
+            'All three bureau reports, pulled within the last 30 days, saved as PDFs — not screenshots of a phone app.',
+            'Government-issued photo ID and a proof of current address dated within 60 days.',
+            'Every collection letter, notice, and envelope the partner still has, photographed front and back.',
+            'Any prior dispute correspondence and the bureau responses to it — repeats of a failed argument are wasted rounds.',
+            'A one-page account inventory: creditor, account number fragment, balance, status, and which bureaus report it.',
+            'Written confirmation of what the partner wants and what they were told to expect.',
+          ],
+        },
+        paragraphs: [
+          'Name every file the same way: date, bureau or furnisher, and item. A vault where “Equifax-2026-03-11-collection-midland.pdf” sits next to “IMG_4471.png” is a vault that will fail you in round two.',
+        ],
+      },
+      {
+        heading: 'What makes an exhibit usable',
+        paragraphs: [
+          'An exhibit has to prove one specific thing that a data analyst can act on. A full 40-page report attached to a letter proves nothing because it points at nothing. A cropped account block with the contradiction visible, labelled “Exhibit A,” proves exactly one thing and demands exactly one correction.',
+        ],
+        bullets: [
+          'Crop to the account block, not the whole page — the reader should not have to hunt.',
+          'Keep the bureau name, the pull date, and the account identifier visible in the crop.',
+          'Label each exhibit and reference it by label in the letter body.',
+          'One claim per exhibit. Two contradictions in one image become one vague complaint.',
+          'Never annotate on top of data in a way that could be read as altering the record — annotate in the letter, not the image.',
+        ],
+        callout:
+          'As you can see here on Equifax, the status field reads “Current” while the same account block shows three 90-day late marks — cite the screen, name the contradiction, and let the finding do the work.',
+      },
+    ],
+  },
+  {
     id: 'personal-credit',
-    number: '02',
     title: 'Personal Credit Mastery',
     subtitle: 'Restore accuracy, build depth, and coach habits that compound',
     kicker: 'Personal lane',
@@ -147,7 +283,6 @@ export const CS_GUIDE_CHAPTERS: CreditSpecialistGuideChapter[] = [
   },
   {
     id: 'business-credit',
-    number: '03',
     title: 'Business Credit Power',
     subtitle: 'EIN files, fundability pillars, and sequencing that lenders respect',
     kicker: 'Business lane',
@@ -193,7 +328,6 @@ export const CS_GUIDE_CHAPTERS: CreditSpecialistGuideChapter[] = [
   },
   {
     id: 'debt-strategy',
-    number: '04',
     title: 'Debt: Challenge & Eradicate Pressure',
     subtitle: 'Validation, documentation, and calm response under collection heat',
     kicker: 'Debt lane',
@@ -242,7 +376,6 @@ export const CS_GUIDE_CHAPTERS: CreditSpecialistGuideChapter[] = [
   },
   {
     id: 'court-summons',
-    number: '05',
     title: 'Court & Summons Insight',
     subtitle: 'Deadlines, documentation, and a winning educational posture',
     kicker: 'Court education',
@@ -281,8 +414,123 @@ export const CS_GUIDE_CHAPTERS: CreditSpecialistGuideChapter[] = [
     ],
   },
   {
+    id: 'escalation-ladder',
+    title: 'The Escalation Ladder',
+    subtitle: 'Where a stalled file goes next — and what each rung actually does',
+    kicker: 'Pressure with paper',
+    teaser: 'Bureau, furnisher, regulator, state — real portals, real records, realistic expectations.',
+    accent: 'rose',
+    sections: [
+      {
+        heading: 'Escalation is a record, not a threat',
+        paragraphs: [
+          'Partners often imagine escalation as shouting louder. In practice, each rung of the ladder creates a durable, timestamped record held by a third party. That record is the value — it survives staff turnover at the furnisher, it forces a written response, and it becomes the paper trail an attorney would want if the matter ever needs one.',
+          'Escalation also has an order. Filing a regulator complaint before you have a bureau response to attach wastes the strongest move you have. Work the rungs in sequence and each one arrives with evidence the previous one produced.',
+        ],
+      },
+      {
+        heading: 'The rungs, in order',
+        bullets: [
+          'Rung 1 — Bureau reinvestigation. The standard round with a specific field and a labelled exhibit. Most correctable errors resolve here.',
+          'Rung 2 — Direct furnisher dispute. The bank, lender, or collector that supplies the data has its own investigation duty. Send this when the bureau reply says “verified” with no detail.',
+          'Rung 3 — Method of verification request. Ask the bureau to describe how it verified. A thin or generic answer is itself documentation.',
+          'Rung 4 — Regulator complaint. CFPB for consumer reporting and collection conduct; FTC for broader unfair-practice patterns. Attach the prior responses.',
+          'Rung 5 — State attorney general and BBB. Slower and less technical, but they reach compliance teams that ignore consumer mail.',
+          'Rung 6 — Licensed counsel. When the dispute has become a legal claim rather than a documentation problem, refer out. This is the specialist boundary.',
+        ],
+        callout:
+          'Escalation improves the odds that a claim is actually reviewed. It does not guarantee deletion, correction, or any specific outcome. Results vary · not legal advice.',
+      },
+      {
+        heading: 'The portals worth bookmarking',
+        paragraphs: [
+          'Send partners to the official source every time. Third-party “complaint filing services” add cost and lose control of the record.',
+        ],
+        resources: [
+          {
+            label: 'CFPB — submit a complaint',
+            href: 'https://www.consumerfinance.gov/complaint/',
+            note: 'Consumer reporting, debt collection, and credit product conduct. Companies must respond.',
+          },
+          {
+            label: 'FTC — ReportFraud',
+            href: 'https://reportfraud.ftc.gov/',
+            note: 'Pattern and practice reporting. Feeds enforcement data rather than producing a direct reply.',
+          },
+          {
+            label: 'National Association of Attorneys General — find your state AG',
+            href: 'https://www.naag.org/find-my-ag/',
+            note: 'State consumer protection divisions; rules and remedies vary by state.',
+          },
+          {
+            label: 'BBB — file a complaint',
+            href: 'https://www.bbb.org/file-a-complaint',
+            note: 'Non-regulatory, but reaches company reputation teams that route to compliance.',
+          },
+          {
+            label: 'Cornell LII — Fair Credit Reporting Act (15 U.S.C. §1681)',
+            href: 'https://www.law.cornell.edu/uscode/text/15/chapter-41/subchapter-III',
+            note: 'Read the statute text before you paraphrase it to a partner.',
+          },
+          {
+            label: 'AnnualCreditReport.com',
+            href: 'https://www.annualcreditreport.com/',
+            note: 'The federally authorized source for partner report pulls.',
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'compliance-language',
+    title: 'Compliance Language That Protects You',
+    subtitle: 'How to say true things persuasively without promising outcomes',
+    kicker: 'Guardrails',
+    teaser: 'Swap every guarantee for a mechanism — the honest version converts better anyway.',
+    accent: 'gold',
+    sections: [
+      {
+        heading: 'The promise trap',
+        paragraphs: [
+          'Guarantee language is tempting because it sounds decisive. It is also the fastest route to a refund demand, a regulator complaint, and a reputation that cannot be rebuilt. A specialist who promises a deletion owns that outcome personally — and the outcome is controlled by a bureau and a furnisher, neither of whom answers to you.',
+          'The replacement is not weaker language. It is mechanism language: describe precisely what will be done, what the counterparty is obligated to do in response, and what typically happens. Specificity reads as competence. Guarantees read as desperation to anyone who has been burned before.',
+        ],
+      },
+      {
+        heading: 'Say this, not that',
+        bullets: [
+          'Not “guaranteed removal” → “a documented contradiction the bureau has to reinvestigate.”',
+          'Not “we fix credit” → “we correct inaccurate reporting and build the parts of the file that are healthy.”',
+          'Not “pre-approved funding” → “funding subject to underwriting; here are the stage gates that make an approval more likely.”',
+          'Not “clients” → “partners,” in every public and portal surface.',
+          'Not “erase your debt” → “reduce chaos, capture everything in writing, and correct inaccurate reporting.”',
+          'Not “this always works” → “this is the lever we pull first; results and timelines vary by file.”',
+        ],
+        callout:
+          'Every stat, testimonial, or funding reference in your marketing needs a compliance line near it: results vary · not legal advice · funding subject to underwriting.',
+      },
+      {
+        heading: 'Where the specialist boundary sits',
+        paragraphs: [
+          'Specialists educate, organize, document, and coach. Attorneys advise on legal rights and strategy, and appear in court. The line is not a formality — crossing it exposes the partner to bad guidance and exposes you to an unauthorized-practice claim.',
+        ],
+        checklist: {
+          label: 'Refer to licensed counsel when',
+          items: [
+            'A summons, complaint, garnishment, or levy notice has been served.',
+            'The partner asks whether a debt is legally enforceable, or about statutes of limitation.',
+            'A bankruptcy, divorce decree, or estate matter is affecting the reporting.',
+            'Identity theft involves an active criminal report or a police investigation.',
+            'The partner wants to sue, or a furnisher has threatened to sue them.',
+          ],
+        },
+        callout:
+          'Referring out is not losing the file. The credit work continues in parallel — and partners remember the specialist who told them the truth about the boundary.',
+      },
+    ],
+  },
+  {
     id: 'opportunities',
-    number: '06',
     title: 'Opportunity Everywhere',
     subtitle: 'Funding, tradelines strategy framing, and partner growth lanes',
     kicker: 'Growth lanes',
@@ -317,8 +565,60 @@ export const CS_GUIDE_CHAPTERS: CreditSpecialistGuideChapter[] = [
     ],
   },
   {
+    id: 'weekly-rhythm',
+    title: 'Your Weekly Operating Rhythm',
+    subtitle: 'The cadence that keeps thirty files moving without heroics',
+    kicker: 'Cadence',
+    teaser: 'Four blocks a week, one scoreboard, and a follow-up rule that removes guesswork.',
+    accent: 'sky',
+    sections: [
+      {
+        heading: 'Files do not stall from difficulty — they stall from silence',
+        paragraphs: [
+          'A dispute round has a clock. A vendor account has a reporting date. A funding pack has a document that expires. Almost every stalled file traces back to nobody being scheduled to look at it on the day it needed attention. Specialists who run on inbox impulse serve the loudest partner, not the most urgent file.',
+          'The fix is a fixed weekly shape. Four blocks, same days, every week. Inside the blocks the work varies; the blocks themselves do not move.',
+        ],
+      },
+      {
+        heading: 'The four blocks',
+        bullets: [
+          'Monday — Clock review. Every file with a deadline inside 14 days: round-35 checks, response due dates, document expirations. Nothing else touched.',
+          'Wednesday — Production. Letters drafted, exhibits cropped and labelled, packets assembled and queued for certified mail.',
+          'Friday — Partner contact. One update to every active partner, even the ones with no news. “No response yet, day 22 of 30” is an update and it prevents the anxious call on Saturday.',
+          'Monthly — Intake and system. New partner onboarding, template repairs, and the one process you kept working around all month.',
+        ],
+        callout:
+          'A partner who hears from you on a schedule stops checking in randomly. Predictability is a delivery feature, not a courtesy.',
+      },
+      {
+        heading: 'The scoreboard',
+        paragraphs: [
+          'Revenue is a lagging number and a bad steering wheel. Track the leading indicators instead — the ones you can change this week. Five numbers, reviewed Monday, written down where you can see the trend across months.',
+        ],
+        checklist: {
+          label: 'Five numbers, every Monday',
+          items: [
+            'Active files with a round in flight.',
+            'Files with no action in the last 14 days — this number should be zero.',
+            'Rounds mailed last week.',
+            'Responses received and logged last week.',
+            'Referrals or documented wins produced last month.',
+          ],
+        },
+      },
+      {
+        heading: 'The follow-up rule',
+        paragraphs: [
+          'Do not resend a letter. A resend restarts nothing and signals that you did not read the response. Round two is built from what round one produced: the bureau said “verified” with no method, so round two requests the method; the furnisher corrected one field but not the other, so round two names the field that remains wrong.',
+          'If a response produces no new information at all, that absence is itself the next argument — and the next rung on the escalation ladder.',
+        ],
+        callout:
+          'Day 30, check for a reply. Day 35, act on it. Never before day 30, never later than day 40. Timelines vary by bureau and by matter.',
+      },
+    ],
+  },
+  {
     id: 'income-path',
-    number: '07',
     title: 'Your Income Path as a Specialist',
     subtitle: 'Financial freedom through craft — tools, partners, and honest economics',
     kicker: 'Specialist path',
@@ -359,6 +659,10 @@ export const CS_GUIDE_CHAPTERS: CreditSpecialistGuideChapter[] = [
     ],
   },
 ];
+
+export const CS_GUIDE_CHAPTERS: CreditSpecialistGuideChapter[] = CS_GUIDE_CHAPTER_INPUTS.map(
+  (chapter, i) => ({ ...chapter, number: String(i + 1).padStart(2, '0') }),
+);
 
 export function getCreditSpecialistChapter(idOrIndex: string | number): CreditSpecialistGuideChapter {
   if (typeof idOrIndex === 'number') {

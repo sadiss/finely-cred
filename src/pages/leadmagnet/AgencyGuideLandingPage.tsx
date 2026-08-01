@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import {
   BarChart3,
+  BookOpen,
   Calendar,
   ChevronRight,
   Cog,
@@ -17,6 +18,10 @@ import { FinelyCredLogo } from '../../components/brand/FinelyCredLogo';
 import { LeadMagnetFunnelHeroVideo } from '../../components/leadmagnet/LeadMagnetFunnelHeroVideo';
 import { getLeadMagnetVisualTheme } from '../../components/leadmagnet/leadMagnetVisualThemes';
 import { AGENCY_FUNNEL } from '../../domain/leadMagnetFunnels';
+import {
+  AGENCY_GUIDE_CHAPTERS,
+  AGENCY_GUIDE_READ_PATH,
+} from '../../resources/agencyGuideReaderContent';
 import { usePublicSeoMeta } from '../../hooks/usePublicSeoMeta';
 import { PremiumLeadMagnetCaptureForm } from '../../components/leadmagnet/PremiumLeadMagnetCaptureForm';
 import { LEAD_MAGNET_TRIAL_DAYS } from '../../lib/leadMagnetTrial';
@@ -127,7 +132,7 @@ export default function AgencyGuideLandingPage() {
   usePublicSeoMeta({
     title: 'The Agency Guide — Build a Profitable Agency',
     description:
-      'Build a profitable agency, attract better clients, and create more time, income, and freedom with Finely Cred’s premium agency guide.',
+      'Build a profitable agency, attract better partners, and create more time, income, and freedom with Finely Cred’s premium agency guide.',
     path: AGENCY_FUNNEL.path,
   });
 
@@ -135,7 +140,7 @@ export default function AgencyGuideLandingPage() {
 
   const benefits = [
     { icon: Target, title: 'Offer Clarity', desc: 'Define irresistible offers that convert.', accent: 'border-[#d4a447]/40 bg-[#d4a447]/10 text-[#f0cc75]' },
-    { icon: Users, title: 'Client Attraction', desc: 'Position your agency to attract ideal clients.', accent: 'border-fuchsia-400/35 bg-fuchsia-500/10 text-fuchsia-300' },
+    { icon: Users, title: 'Partner Attraction', desc: 'Position your agency to attract ideal partners.', accent: 'border-fuchsia-400/35 bg-fuchsia-500/10 text-fuchsia-300' },
     { icon: Cog, title: 'Smart Systems', desc: 'Deliver consistently with scalable systems.', accent: 'border-orange-400/35 bg-orange-500/10 text-orange-300' },
     { icon: BarChart3, title: 'Sustainable Growth', desc: 'Scale with confidence and more freedom.', accent: 'border-cyan-400/35 bg-cyan-500/10 text-cyan-300' },
     { icon: Star, title: 'Strong Positioning', desc: 'Stand out in crowded markets with clarity.', accent: 'border-[#d4a447]/40 bg-[#d4a447]/10 text-[#f0cc75]' },
@@ -143,11 +148,11 @@ export default function AgencyGuideLandingPage() {
   ];
 
   const inside = [
-    { icon: Target, title: 'Define Your Irresistible Offer', desc: 'Craft offers that attract premium clients and command higher prices.' },
-    { icon: Users, title: 'Attract Ideal Clients', desc: 'Position your agency to consistently attract the right clients.' },
+    { icon: Target, title: 'Define Your Irresistible Offer', desc: 'Craft offers that attract premium partners and command higher prices.' },
+    { icon: Users, title: 'Attract Ideal Partners', desc: 'Position your agency to consistently attract the right partners.' },
     { icon: Settings, title: 'Build Smart Systems', desc: 'Create delivery systems that save time and increase profit.' },
     { icon: TrendingUp, title: 'Scale With Confidence', desc: 'Grow your agency without burning out or sacrificing quality.' },
-    { icon: Star, title: 'Position for Premium Clients', desc: 'Attract higher-value clients who respect your expertise.' },
+    { icon: Star, title: 'Position for Premium Partners', desc: 'Attract higher-value partners who respect your expertise.' },
     { icon: TreePalm, title: 'Create Freedom Through Structure', desc: 'Build a business that gives you time, income, and freedom.' },
   ];
 
@@ -173,15 +178,15 @@ export default function AgencyGuideLandingPage() {
     {
       image: 'https://images.unsplash.com/photo-1521791136064-7986c2920216?auto=format&fit=crop&w=800&q=80',
       stat: '90%',
-      title: 'Client Retention',
-      desc: 'Improved client satisfaction and long-term retention rates.',
+      title: 'Partner Retention',
+      desc: 'Improved partner satisfaction and long-term retention rates.',
     },
   ];
 
   const steps = [
     { n: 1, title: 'Get Your Guide', desc: 'Download instantly and start reading.' },
     { n: 2, title: 'Implement', desc: 'Apply the frameworks to your agency.' },
-    { n: 3, title: 'Attract & Serve', desc: 'Attract better clients and deliver with confidence.' },
+    { n: 3, title: 'Attract & Serve', desc: 'Attract better partners and deliver with confidence.' },
     { n: 4, title: 'Scale With Freedom', desc: 'Grow your agency without burning out.' },
   ];
 
@@ -208,11 +213,11 @@ export default function AgencyGuideLandingPage() {
               </div>
             </div>
             <p className="agc-title-block mt-6 max-w-xl text-lg leading-relaxed text-white/68 lg:text-left">
-              Build a Profitable Agency, Attract Better Clients, and Create More Time, Income, and{' '}
+              Build a Profitable Agency, Attract Better Partners, and Create More Time, Income, and{' '}
               <span className="font-semibold text-[#f0cc75]">Freedom</span>.
             </p>
             <p className="mt-5 max-w-xl text-sm leading-relaxed text-white/55">
-              Clarity on offers · better clients · scalable systems · more time and freedom without burnout.
+              Clarity on offers · better partners · scalable systems · more time and freedom without burnout.
             </p>
             <div className="agc-hero-form mt-6 rounded-2xl p-5 md:p-6">
               <PremiumLeadMagnetCaptureForm
@@ -221,6 +226,9 @@ export default function AgencyGuideLandingPage() {
                 buttonClass="agc-gold-btn group relative inline-flex h-14 w-full items-center justify-center overflow-hidden rounded-xl border px-7 text-[11px] font-black uppercase tracking-[0.14em] text-[#06101f] shadow-[0_18px_55px_rgba(212,164,71,0.32)] transition hover:-translate-y-0.5 hover:brightness-110 disabled:opacity-70"
               />
               <div className="mt-3 flex flex-wrap gap-4">
+                <Link to={AGENCY_GUIDE_READ_PATH} className="lm-secondary-book-link !mt-0">
+                  <BookOpen size={14} /> Read it free — no email
+                </Link>
                 <Link to="/agency-partners" className="lm-secondary-book-link !mt-0">
                   Agency partners →
                 </Link>
@@ -244,6 +252,43 @@ export default function AgencyGuideLandingPage() {
                 onGoForm={scrollToDownload}
               />
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Plan set — read free, no email required */}
+      <section className="relative z-10 border-b border-white/8 py-10 md:py-12">
+        <div className="mx-auto max-w-7xl px-5 md:px-8">
+          <div className="agc-sheet-rail">
+            <div className="flex flex-wrap items-end justify-between gap-3">
+              <div>
+                <div className="agc-sheet-rail-kicker">Read it free — no email required</div>
+                <h2 className="agc-serif mt-1 text-2xl font-bold text-white md:text-3xl">
+                  {AGENCY_GUIDE_CHAPTERS.length} sheets, open in your browser
+                </h2>
+              </div>
+              <Link to={AGENCY_GUIDE_READ_PATH} className="agc-sheet-rail-cta">
+                <BookOpen size={14} /> Open the plan set
+              </Link>
+            </div>
+            <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {AGENCY_GUIDE_CHAPTERS.slice(0, 6).map((ch) => (
+                <Link
+                  key={ch.id}
+                  to={`${AGENCY_GUIDE_READ_PATH}?chapter=${ch.id}`}
+                  className="agc-sheet-card"
+                >
+                  <span className="agc-sheet-card-no">
+                    {ch.sheet} · {ch.kicker}
+                  </span>
+                  <span className="agc-sheet-card-title">{ch.title}</span>
+                  <span className="agc-sheet-card-teaser">{ch.teaser}</span>
+                </Link>
+              ))}
+            </div>
+            <p className="mt-4 text-[11px] text-white/40">
+              Educational only · not legal advice · income and growth examples are not guarantees
+            </p>
           </div>
         </div>
       </section>
@@ -364,7 +409,7 @@ export default function AgencyGuideLandingPage() {
               Ready to Build Your Dream Agency?
             </h2>
             <p className="mx-auto mt-4 max-w-2xl text-sm leading-relaxed text-white/68">
-              Get the complete guide to building a profitable agency, attracting better clients, and creating the time,
+              Get the complete guide to building a profitable agency, attracting better partners, and creating the time,
               income, and freedom you deserve. Plus a {LEAD_MAGNET_TRIAL_DAYS}-day Finely Cred portal preview.
             </p>
             <div className="mx-auto mt-8 max-w-xl">
