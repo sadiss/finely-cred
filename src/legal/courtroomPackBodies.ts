@@ -19,13 +19,14 @@ function addrBlock(args: DebtLetterBuildArgs): string {
 
 function counselBlock(args: DebtLetterBuildArgs): string {
   const rec = resolveLetterMailRecipient({
-    plaintiffLawFirm: args.plaintiffLawFirm,
-    plaintiffLawFirmAddress: args.plaintiffLawFirmAddress,
+    plaintiffLawFirm:
+      args.plaintiffLawFirm || args.summonsContext?.plaintiffLawFirm || args.summonsContext?.counselName,
+    plaintiffLawFirmAddress: args.plaintiffLawFirmAddress || args.summonsContext?.counselAddress,
     recipientName: args.recipientName || args.creditorName,
-    recipientAddress: args.recipientAddress,
-    debtCollectorName: args.debtCollectorName,
+    recipientAddress: args.recipientAddress || args.summonsContext?.counselAddress,
+    debtCollectorName: args.debtCollectorName || args.summonsContext?.collectorName,
     creditorName: args.creditorName,
-    plaintiffAttorneyName: args.plaintiffAttorneyName,
+    plaintiffAttorneyName: args.plaintiffAttorneyName || args.summonsContext?.plaintiffAttorneyName,
     senderName: args.debtorName,
     senderAddress1: args.debtorAddress1,
     senderCity: args.debtorCity,
@@ -38,12 +39,21 @@ function courtHeader(args: DebtLetterBuildArgs): string {
   const court = String(args.summonsContext?.courtName || '').trim() || '[COURT NAME]';
   const caseNo = String(args.caseNumber || '').trim() || '[CASE / DOCKET NUMBER]';
   const plaintiff = String(args.recipientName || args.creditorName || '').trim() || '[PLAINTIFF NAME]';
-  const defendant = String(args.debtorName || '').trim() || '[DEFENDANT NAME]';
+  const defendant =
+    String(args.summonsContext?.defendantName || args.debtorName || '').trim() || '[DEFENDANT NAME]';
+  const firm = String(args.plaintiffLawFirm || args.summonsContext?.plaintiffLawFirm || args.summonsContext?.counselName || '').trim();
+  const attorney = String(args.plaintiffAttorneyName || args.summonsContext?.plaintiffAttorneyName || '').trim();
+  const counselAddr = String(args.plaintiffLawFirmAddress || args.summonsContext?.counselAddress || '').trim();
+  const counselBits = [
+    firm ? `Plaintiff's counsel: ${firm}` : '',
+    attorney ? `Attorney: ${attorney}` : '',
+    counselAddr ? `Counsel address:\n${counselAddr}` : '',
+  ].filter(Boolean);
   return `${court}
 Case No. ${caseNo}
 ${plaintiff}, Plaintiff,
 v.
-${defendant}, Defendant.`;
+${defendant}, Defendant.${counselBits.length ? `\n\n${counselBits.join('\n')}` : ''}`;
 }
 
 export function getCourtroomIntegrityPreamble(): string {
@@ -207,7 +217,7 @@ I certify that on ${date}, a true and correct copy of this Answer was served upo
 
 ${counselBlock(args)}
 
-By: ☐ Certified Mail, Return Receipt Requested  ☐ Court's e-file / e-service  ☐ Hand delivery  ☐ First-class mail
+By: ☑ Certified Mail, Return Receipt Requested  ☐ Court's e-file / e-service  ☐ Hand delivery  ☐ First-class mail
 
 _______________________________
 ${defendant}`;

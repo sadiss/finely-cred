@@ -374,9 +374,16 @@ export function mergeDebtCreditorFields(debt: DebtCase, patch: Partial<DebtCase>
     accountNumberMasked: patch.accountNumberMasked ?? debt.accountNumberMasked,
     hearingDate: patch.hearingDate ?? debt.hearingDate,
     courtCaseNumber: patch.courtCaseNumber ?? debt.courtCaseNumber,
+    courtName: patch.courtName ?? debt.courtName,
     dateServed: patch.dateServed ?? debt.dateServed,
+    stateJurisdiction: patch.stateJurisdiction ?? debt.stateJurisdiction,
+    affidavitCounty: patch.affidavitCounty ?? debt.affidavitCounty,
     plaintiffLawFirm: patch.plaintiffLawFirm ?? debt.plaintiffLawFirm,
     plaintiffLawFirmAddress: patch.plaintiffLawFirmAddress ?? debt.plaintiffLawFirmAddress,
+    plaintiffAttorneyName: patch.plaintiffAttorneyName ?? debt.plaintiffAttorneyName,
+    plaintiffAttorneyBarNumber: patch.plaintiffAttorneyBarNumber ?? debt.plaintiffAttorneyBarNumber,
+    loanId: patch.loanId ?? debt.loanId,
+    borrowerId: patch.borrowerId ?? debt.borrowerId,
   });
 }
 
@@ -403,6 +410,22 @@ export function captureSenderSnapshot(args: {
   };
 }
 
+function isLitigationExtractDoc(d: ProcessedDocument): boolean {
+  const t = String(d.docType || '').toLowerCase();
+  if (
+    t.includes('summons') ||
+    t.includes('complaint') ||
+    t.includes('docket') ||
+    t.includes('court') ||
+    t.includes('affidavit') ||
+    t.includes('collection')
+  ) {
+    return true;
+  }
+  const e = d.entities || {};
+  return Boolean(e.caseNumber || e.courtName || e.plaintiffName || e.counselName || e.plaintiffLawFirm);
+}
+
 export function listSummonsDocumentsForDebt(args: {
   documents: ProcessedDocument[];
   debt: DebtCase | null;
@@ -413,11 +436,13 @@ export function listSummonsDocumentsForDebt(args: {
   const linkedDocs = new Set(debt?.processedDocumentIds || []);
   return documents
     .filter((d) => {
-      if (d.docType !== 'summons' && d.docType !== 'collection_notice') return false;
+      if (!isLitigationExtractDoc(d)) return false;
       if (linkedDocs.has(d.id)) return true;
       if (d.evidenceId && linkedEvidence.has(d.evidenceId)) return true;
-      if (debt && namesLikelyMatch(d.entities.creditorName || d.entities.collectorName || '', debt.name)) return true;
-      return d.docType === 'summons';
+      if (debt && namesLikelyMatch(d.entities.creditorName || d.entities.collectorName || d.entities.plaintiffName || '', debt.name)) {
+        return true;
+      }
+      return true;
     })
     .slice(0, 12);
 }
@@ -425,11 +450,24 @@ export function listSummonsDocumentsForDebt(args: {
 export type SummonsAffidavitContext = {
   caseNumber?: string;
   plaintiffName?: string;
+  defendantName?: string;
   collectorName?: string;
   courtName?: string;
+  courtDivision?: string;
   amountClaimed?: string;
   dateServed?: string;
+  hearingDate?: string;
   jurisdictionState?: string;
+  affidavitCounty?: string;
+  counselName?: string;
+  plaintiffLawFirm?: string;
+  plaintiffAttorneyName?: string;
+  plaintiffAttorneyBar?: string;
+  counselAddress?: string;
+  judgeName?: string;
+  caseCaption?: string;
+  originalCreditor?: string;
+  accountNumberMasked?: string;
   documentSummaries: string[];
   entityFacts: string[];
 };
@@ -451,15 +489,31 @@ export function formatAmountClaimedForLetter(cents?: number | null, raw?: string
   return `$${(c / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
+function firstEntity(docs: ProcessedDocument[], keys: string[]): string | undefined {
+  for (const d of docs) {
+    const e = d.entities || {};
+    for (const k of keys) {
+      const v = String((e as Record<string, unknown>)[k] || '').trim();
+      if (v) return v;
+    }
+  }
+  return undefined;
+}
+
 export function buildSummonsAffidavitContext(args: {
   debt: DebtCase | null;
   documents: ProcessedDocument[];
   party?: DebtPartyInfo | null;
 }): SummonsAffidavitContext {
   const { debt, documents, party } = args;
-  const summonsDocs = documents.filter((d) => d.docType === 'summons');
+  // Prefer linked litigation docs, then any summons/docket/complaint with extractable entities.
+  const linked = listSummonsDocumentsForDebt({ documents, debt });
+  const litigationDocs =
+    linked.length > 0
+      ? linked
+      : documents.filter(isLitigationExtractDoc).slice(0, 12);
   const entityFacts: string[] = [];
-  for (const d of summonsDocs) {
+  for (const d of litigationDocs) {
     const e = d.entities || {};
     for (const [k, v] of Object.entries(e)) {
       const val = String(v || '').trim();
@@ -469,18 +523,45 @@ export function buildSummonsAffidavitContext(args: {
   // Prefer case fields filled by scrape Apply — docs alone miss courtName/amount after Apply.
   const amountClaimed = formatAmountClaimedForLetter(
     debt?.amountCents,
-    summonsDocs[0]?.entities.amountClaimed || summonsDocs[0]?.entities.amount,
+    firstEntity(litigationDocs, ['amountClaimed', 'amount']),
   );
+  const counselAddress =
+    debt?.plaintiffLawFirmAddress ||
+    debt?.recipientAddress ||
+    firstEntity(litigationDocs, ['plaintiffLawFirmAddress', 'address']);
   return {
-    caseNumber: debt?.courtCaseNumber || summonsDocs[0]?.entities.caseNumber,
-    plaintiffName: party?.recipientName || debt?.name || summonsDocs[0]?.entities.creditorName,
-    collectorName: party?.collectorName || debt?.collectorName || summonsDocs[0]?.entities.collectorName,
-    courtName: debt?.courtName || summonsDocs[0]?.entities.courtName,
+    caseNumber: debt?.courtCaseNumber || firstEntity(litigationDocs, ['caseNumber']),
+    plaintiffName:
+      debt?.name ||
+      firstEntity(litigationDocs, ['plaintiffName', 'creditorName']) ||
+      party?.recipientName,
+    defendantName: firstEntity(litigationDocs, ['defendantName', 'personName']),
+    collectorName:
+      debt?.collectorName ||
+      party?.collectorName ||
+      firstEntity(litigationDocs, ['collectorName', 'counselName', 'plaintiffLawFirm']),
+    courtName: debt?.courtName || firstEntity(litigationDocs, ['courtName']),
+    courtDivision: firstEntity(litigationDocs, ['courtDivision']),
     amountClaimed,
-    dateServed: debt?.dateServed || summonsDocs[0]?.entities.dateServed,
-    jurisdictionState: debt?.stateJurisdiction || summonsDocs[0]?.entities.state,
-    documentSummaries: summonsDocs.map((d) => d.summary || `${d.filename} (${d.docType})`).filter(Boolean),
-    entityFacts: Array.from(new Set(entityFacts)).slice(0, 24),
+    dateServed: debt?.dateServed || firstEntity(litigationDocs, ['dateServed']),
+    hearingDate: debt?.hearingDate || firstEntity(litigationDocs, ['hearingDate']),
+    jurisdictionState: debt?.stateJurisdiction || firstEntity(litigationDocs, ['state']),
+    affidavitCounty: debt?.affidavitCounty || firstEntity(litigationDocs, ['affidavitCounty']),
+    counselName: firstEntity(litigationDocs, ['counselName', 'plaintiffLawFirm']),
+    plaintiffLawFirm:
+      debt?.plaintiffLawFirm || firstEntity(litigationDocs, ['plaintiffLawFirm', 'counselName', 'collectorName']),
+    plaintiffAttorneyName:
+      debt?.plaintiffAttorneyName || firstEntity(litigationDocs, ['plaintiffAttorneyName']),
+    plaintiffAttorneyBar:
+      debt?.plaintiffAttorneyBarNumber || firstEntity(litigationDocs, ['plaintiffAttorneyBar', 'plaintiffAttorneyBarNumber']),
+    counselAddress,
+    judgeName: firstEntity(litigationDocs, ['judgeName']),
+    caseCaption: firstEntity(litigationDocs, ['caseCaption']),
+    originalCreditor: debt?.originalCreditor || firstEntity(litigationDocs, ['originalCreditor']),
+    accountNumberMasked:
+      debt?.accountNumberMasked || firstEntity(litigationDocs, ['accountNumberMasked', 'accountLast4']),
+    documentSummaries: litigationDocs.map((d) => d.summary || `${d.filename} (${d.docType})`).filter(Boolean),
+    entityFacts: Array.from(new Set(entityFacts)).slice(0, 32),
   };
 }
 
@@ -556,11 +637,21 @@ export function formatSummonsContextForPrompt(ctx: SummonsAffidavitContext): str
   const lines = [
     ctx.caseNumber ? `CASE_NUMBER: ${ctx.caseNumber}` : '',
     ctx.plaintiffName ? `PLAINTIFF: ${ctx.plaintiffName}` : '',
+    ctx.defendantName ? `DEFENDANT: ${ctx.defendantName}` : '',
     ctx.collectorName ? `COLLECTOR: ${ctx.collectorName}` : '',
     ctx.courtName ? `COURT: ${ctx.courtName}` : '',
+    ctx.courtDivision ? `COURT_DIVISION: ${ctx.courtDivision}` : '',
+    ctx.judgeName ? `JUDGE: ${ctx.judgeName}` : '',
+    ctx.plaintiffLawFirm ? `PLAINTIFF_LAW_FIRM: ${ctx.plaintiffLawFirm}` : '',
+    ctx.plaintiffAttorneyName ? `PLAINTIFF_ATTORNEY: ${ctx.plaintiffAttorneyName}` : '',
+    ctx.plaintiffAttorneyBar ? `ATTORNEY_BAR: ${ctx.plaintiffAttorneyBar}` : '',
+    ctx.counselAddress ? `COUNSEL_ADDRESS: ${ctx.counselAddress}` : '',
     ctx.amountClaimed ? `AMOUNT_CLAIMED: ${ctx.amountClaimed}` : '',
     ctx.dateServed ? `DATE_SERVED: ${ctx.dateServed}` : '',
+    ctx.hearingDate ? `HEARING_DATE: ${ctx.hearingDate}` : '',
     ctx.jurisdictionState ? `STATE: ${ctx.jurisdictionState}` : '',
+    ctx.affidavitCounty ? `COUNTY: ${ctx.affidavitCounty}` : '',
+    ctx.caseCaption ? `CAPTION: ${ctx.caseCaption}` : '',
     ctx.documentSummaries.length ? `DOCUMENT_SUMMARIES:\n- ${ctx.documentSummaries.join('\n- ')}` : '',
     ctx.entityFacts.length ? `EXTRACTED_FACTS:\n- ${ctx.entityFacts.join('\n- ')}` : '',
   ].filter(Boolean);

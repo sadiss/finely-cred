@@ -39,6 +39,8 @@ export function getSummonsResponseAffidavitBody(args: {
       debtCollectorName: args.collectorName,
       debtorState: args.jurisdictionState || args.debtorState,
       affidavitCounty: args.affidavitCounty,
+      courtName: args.courtName,
+      amountClaimed: args.amountClaimed,
       summonsContext: {
         courtName: args.courtName,
         amountClaimed: args.amountClaimed,

@@ -6,12 +6,14 @@ import {
   BookOpen,
   ChevronLeft,
   ChevronRight,
+  Download,
   List,
   Sparkles,
   X,
 } from 'lucide-react';
 import { LeadMagnetCobrand } from '../../components/brand/LeadMagnetCobrand';
 import { usePublicSeoMeta } from '../../hooks/usePublicSeoMeta';
+import { downloadCreditSpecialistOneSheet } from '../../resources/buildCreditSpecialistOneSheetPdf';
 import '../../components/leadmagnet/leadMagnetLuxuryStage.css';
 import {
   CS_GUIDE_CHAPTERS,
@@ -64,6 +66,7 @@ export default function CreditSpecialistGuideReaderPage() {
   const navigate = useNavigate();
   const [params, setParams] = useSearchParams();
   const [tocOpen, setTocOpen] = useState(false);
+  const [downloading, setDownloading] = useState(false);
 
   const initialIdx = useMemo(() => {
     const q = params.get('chapter') ?? '';
@@ -100,6 +103,15 @@ export default function CreditSpecialistGuideReaderPage() {
     setTocOpen(false);
   };
 
+  const onDownloadOneSheet = async () => {
+    setDownloading(true);
+    try {
+      await downloadCreditSpecialistOneSheet();
+    } finally {
+      setDownloading(false);
+    }
+  };
+
   return (
     <main className="csg-page csg-reader-shell lm-lux-theme--navy relative overflow-x-hidden selection:bg-[#d4a447]/30">
       <div className="csg-atmosphere pointer-events-none fixed inset-0 z-0" aria-hidden />
@@ -131,11 +143,19 @@ export default function CreditSpecialistGuideReaderPage() {
             >
               {tocOpen ? <X size={14} /> : <List size={14} />} Chapters
             </button>
+            <button
+              type="button"
+              onClick={() => void onDownloadOneSheet()}
+              disabled={downloading}
+              className="csg-nav-cta hidden items-center gap-1.5 rounded-lg px-3 py-2 text-[10px] font-bold uppercase tracking-[0.12em] text-[#e8c96a] sm:inline-flex"
+            >
+              <Download size={14} /> {downloading ? '…' : 'One-sheet'}
+            </button>
             <Link
               to={CS_JOIN_PATH}
-              className="csg-gold-btn inline-flex h-10 items-center justify-center rounded-lg px-4 text-[10px] font-black uppercase tracking-[0.14em]"
+              className="csg-ghost-btn inline-flex h-10 items-center justify-center rounded-lg px-3.5 text-[10px] font-black uppercase tracking-[0.14em]"
             >
-              Join program
+              Join
             </Link>
           </div>
         </div>
@@ -212,41 +232,50 @@ export default function CreditSpecialistGuideReaderPage() {
                 </button>
               ) : (
                 <Link
-                  to={CS_JOIN_PATH}
+                  to={CS_GUIDE_PATH}
                   className="csg-gold-btn inline-flex h-11 items-center gap-2 rounded-lg px-5 text-[11px] font-black uppercase tracking-[0.12em]"
                 >
                   <span className="relative z-10 flex items-center gap-2">
-                    View pricing & join <ArrowRight size={16} />
+                    Back to landing <ArrowRight size={16} />
                   </span>
                 </Link>
               )}
             </div>
           </article>
 
-          {/* End-of-chapter opportunity strip */}
+          {/* End-of-chapter strip — join stays secondary */}
           <div className="csg-cta-panel mt-5 rounded-2xl p-5 md:p-6">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <div className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-[#95e000]">
-                  <Sparkles size={14} /> Ready for the program?
+                  <Sparkles size={14} /> Keep reading freely
                 </div>
                 <p className="mt-2 text-sm text-white/60">
-                  Keep reading — or open pricing & signup at <span className="text-[#f0cc75]">{CS_JOIN_PATH}</span>
+                  This e-guide is separate from signup. Download the one-sheet anytime — join only when you want the
+                  program at <span className="text-[#f0cc75]">{CS_JOIN_PATH}</span>
                 </p>
                 <p className="csg-compliance mt-2">{CS_GUIDE_META.compliance}</p>
               </div>
               <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => void onDownloadOneSheet()}
+                  disabled={downloading}
+                  className="csg-ghost-btn inline-flex h-10 items-center justify-center gap-1.5 rounded-lg px-4 text-[10px] font-black uppercase tracking-[0.12em]"
+                >
+                  <Download size={14} /> {downloading ? 'Building…' : 'One-sheet'}
+                </button>
                 <Link
                   to={CS_GUIDE_PATH}
                   className="csg-ghost-btn inline-flex h-10 items-center justify-center rounded-lg px-4 text-[10px] font-black uppercase tracking-[0.12em]"
                 >
-                  Back to landing
+                  Landing
                 </Link>
                 <Link
                   to={CS_JOIN_PATH}
-                  className="csg-gold-btn inline-flex h-10 items-center justify-center rounded-lg px-4 text-[10px] font-black uppercase tracking-[0.12em]"
+                  className="inline-flex h-10 items-center justify-center rounded-lg px-3 text-[10px] font-bold uppercase tracking-[0.12em] text-white/45 transition hover:text-[#f0cc75]"
                 >
-                  <span className="relative z-10">Join as Credit Specialist</span>
+                  Join →
                 </Link>
               </div>
             </div>

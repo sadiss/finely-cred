@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   ArrowRight,
@@ -6,6 +6,7 @@ import {
   Building2,
   Check,
   CreditCard,
+  Download,
   Gavel,
   Scale,
   ShieldCheck,
@@ -18,6 +19,7 @@ import { LeadMagnetCobrand, LeadMagnetCobrandFooterMarks } from '../../component
 import { PremiumLeadMagnetCaptureForm } from '../../components/leadmagnet/PremiumLeadMagnetCaptureForm';
 import { CREDIT_SPECIALIST_GUIDE_FUNNEL } from '../../domain/leadMagnetFunnels';
 import { usePublicSeoMeta } from '../../hooks/usePublicSeoMeta';
+import { downloadCreditSpecialistOneSheet } from '../../resources/buildCreditSpecialistOneSheetPdf';
 import '../../components/leadmagnet/leadMagnetLuxuryStage.css';
 import {
   CS_GUIDE_CHAPTERS,
@@ -25,6 +27,7 @@ import {
   CS_GUIDE_PATH,
   CS_GUIDE_READ_PATH,
   CS_JOIN_PATH,
+  CS_PRICING_PATH,
 } from './creditSpecialistGuideContent';
 import './creditSpecialistGuideLanding.css';
 
@@ -42,7 +45,7 @@ function GuideBookMockup({
   tall?: boolean;
 }) {
   return (
-    <div className={cn('csg-mockup-stage', tall && 'py-6 md:py-8', className)}>
+    <div className={cn('csg-mockup-stage', tall && 'py-4 md:py-6', className)}>
       <div className="csg-mockup-glow" aria-hidden />
       <button
         type="button"
@@ -78,7 +81,7 @@ function GuideBookMockup({
           </div>
         </div>
       </button>
-      <div className="csg-book-open-hint">Click preview to open</div>
+      <div className="csg-book-open-hint">Click cover to open the reader</div>
       <div className="csg-mockup-pedestal" aria-hidden />
     </div>
   );
@@ -99,7 +102,7 @@ const PILLARS = [
   {
     icon: CreditCard,
     title: 'Personal credit',
-    desc: 'Scores, utilization, factual dispute craft, and partner coaching cadence.',
+    desc: 'Restore accuracy, build depth, utilization coaching, and factual dispute craft.',
   },
   {
     icon: Building2,
@@ -108,18 +111,20 @@ const PILLARS = [
   },
   {
     icon: Scale,
-    title: 'Debt & court insight',
+    title: 'Debt & laws insight',
     desc: 'Validation-first pressure response and summons education — not legal advice.',
   },
   {
     icon: TrendingUp,
-    title: 'Opportunity lanes',
-    desc: 'Funding, tradelines framing, partner growth, and specialist income path.',
+    title: 'Specialist opportunity',
+    desc: 'Help partners grow — funding, referrals, and craft-based financial freedom framing.',
   },
 ];
 
 export default function CreditSpecialistGuideLandingPage() {
   const navigate = useNavigate();
+  const [downloading, setDownloading] = useState(false);
+  const [downloadErr, setDownloadErr] = useState<string | null>(null);
 
   usePublicSeoMeta({
     title: `${CS_GUIDE_META.title} — Free Credit Specialist E-Guide`,
@@ -132,8 +137,16 @@ export default function CreditSpecialistGuideLandingPage() {
     navigate(path);
   };
 
-  const scrollToCapture = () => {
-    document.getElementById('csg-capture')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  const onDownloadOneSheet = async () => {
+    setDownloading(true);
+    setDownloadErr(null);
+    try {
+      await downloadCreditSpecialistOneSheet();
+    } catch (e) {
+      setDownloadErr((e as Error)?.message || 'Download failed');
+    } finally {
+      setDownloading(false);
+    }
   };
 
   return (
@@ -145,11 +158,11 @@ export default function CreditSpecialistGuideLandingPage() {
         <div className="mx-auto flex h-[4.25rem] max-w-[88rem] items-center justify-between gap-4 px-5 md:px-10">
           <LeadMagnetCobrand size="sm" />
           <nav className="hidden items-center gap-7 text-[13px] font-medium text-white/70 lg:flex">
-            <a href="#inside" className="transition hover:text-[#95e000]">
-              Inside
-            </a>
             <a href="#chapters" className="transition hover:text-[#95e000]">
               Chapters
+            </a>
+            <a href="#inside" className="transition hover:text-[#95e000]">
+              Inside
             </a>
             <a href="#path" className="transition hover:text-[#95e000]">
               Specialist path
@@ -158,14 +171,22 @@ export default function CreditSpecialistGuideLandingPage() {
           <div className="flex items-center gap-2 sm:gap-3">
             <button
               type="button"
-              onClick={() => openGuide()}
-              className="csg-nav-cta hidden items-center gap-2 rounded-lg px-3.5 py-2 text-[10px] font-bold uppercase tracking-[0.14em] text-[#e8c96a] sm:inline-flex"
+              onClick={() => void onDownloadOneSheet()}
+              disabled={downloading}
+              className="csg-nav-cta hidden items-center gap-2 rounded-lg px-3.5 py-2 text-[10px] font-bold uppercase tracking-[0.14em] text-[#e8c96a] md:inline-flex"
             >
-              <BookOpen size={14} /> Open guide
+              <Download size={14} /> {downloading ? 'Building…' : 'One-sheet'}
+            </button>
+            <button
+              type="button"
+              onClick={() => openGuide()}
+              className="csg-gold-btn inline-flex h-10 items-center justify-center gap-2 rounded-lg px-4 text-[10px] font-black uppercase tracking-[0.14em]"
+            >
+              <BookOpen size={14} /> Open e-guide
             </button>
             <Link
               to={CS_JOIN_PATH}
-              className="csg-gold-btn inline-flex h-10 items-center justify-center rounded-lg px-4 text-[10px] font-black uppercase tracking-[0.14em]"
+              className="csg-ghost-btn hidden h-10 items-center justify-center rounded-lg px-3.5 text-[10px] font-black uppercase tracking-[0.14em] sm:inline-flex"
             >
               Join
             </Link>
@@ -173,137 +194,86 @@ export default function CreditSpecialistGuideLandingPage() {
         </div>
       </header>
 
-      {/* Hero */}
-      <section className="relative z-10 min-h-[100svh] pt-[4.25rem]">
+      {/* Short hero — guide + one-sheet first; join secondary */}
+      <section className="relative z-10 pt-[4.25rem]">
         <div className="lm-lux-beam lm-lux-beam--accent left-[6%] top-[-6%]" aria-hidden />
         <div className="lm-lux-beam lm-lux-beam--right right-[2%] top-[10%]" aria-hidden />
-        <div className="relative z-[2] mx-auto grid max-w-[88rem] items-center gap-10 px-5 pb-16 pt-10 md:px-10 lg:grid-cols-[1.05fr_0.95fr] lg:gap-14 lg:pt-14">
+        <div className="relative z-[2] mx-auto grid max-w-[88rem] items-center gap-8 px-5 pb-10 pt-8 md:px-10 lg:grid-cols-[1.05fr_0.95fr] lg:gap-12 lg:pb-12 lg:pt-10">
           <div>
-            <p className="csg-hero-kicker text-[11px] font-bold uppercase">Free e-guide · Credit Specialists</p>
-            <h1 className="csg-serif csg-hero-title mt-4 text-white">
+            <p className="csg-hero-kicker text-[11px] font-bold uppercase">Free e-guide · no signup to read</p>
+            <h1 className="csg-serif csg-hero-title mt-3 text-white">
               <span className="block">Master the craft.</span>
               <span className="csg-hero-title-gold mt-1 block">Grow as a specialist.</span>
             </h1>
-            <div className="lm-lux-rule--short lm-lux-rule--draw mt-5" aria-hidden />
-            <p className="csg-hero-lede mt-6 max-w-xl">
-              Personal credit and business credit. Debt challenge insight. Court and summons education. Funding and
-              tradeline opportunity framing — built into Finely Cred as an in-app guide you can open from the preview.
+            <div className="lm-lux-rule--short lm-lux-rule--draw mt-4" aria-hidden />
+            <p className="csg-hero-lede mt-5 max-w-xl">
+              Personal credit restore and build. Business fundability. Debt and laws insight. Opportunities to help
+              partners — and a compliant path toward financial freedom through craft. Open the readable in-app guide
+              now; download the one-sheet anytime. Join stays separate.
             </p>
-            <ul className="mt-7 space-y-3">
-              <MiniCheck>Teach partners with factual findings — not hype scripts.</MiniCheck>
-              <MiniCheck>Sequence business fundability before capital asks.</MiniCheck>
-              <MiniCheck>Respond to debt pressure with documentation discipline.</MiniCheck>
-              <MiniCheck>See the specialist income path when you are ready to join.</MiniCheck>
-            </ul>
-            <div className="mt-9 flex flex-wrap items-center gap-3">
+            <div className="mt-7 flex flex-wrap items-center gap-3">
               <button
                 type="button"
-                onClick={scrollToCapture}
+                onClick={() => openGuide()}
                 className="csg-gold-btn inline-flex h-12 items-center justify-center gap-2 rounded-lg px-7 text-[11px] font-black uppercase tracking-[0.16em]"
               >
                 <span className="relative z-10 flex items-center gap-2">
-                  Unlock & open guide <ArrowRight size={16} />
+                  <BookOpen size={16} /> Open e-guide <ArrowRight size={16} />
                 </span>
+              </button>
+              <button
+                type="button"
+                onClick={() => void onDownloadOneSheet()}
+                disabled={downloading}
+                className="csg-ghost-btn inline-flex h-12 items-center justify-center gap-2 rounded-lg px-6 text-[11px] font-black uppercase tracking-[0.14em]"
+              >
+                <Download size={16} /> {downloading ? 'Building…' : 'Download one-sheet'}
               </button>
               <Link
                 to={CS_JOIN_PATH}
-                className="csg-ghost-btn inline-flex h-12 items-center justify-center gap-2 rounded-lg px-6 text-[11px] font-black uppercase tracking-[0.14em]"
+                className="text-[11px] font-bold uppercase tracking-[0.14em] text-white/45 transition hover:text-[#f0cc75]"
               >
-                View pricing & join
+                Pricing & join →
               </Link>
             </div>
-            <p className="csg-compliance mt-4">{CS_GUIDE_META.compliance}</p>
+            {downloadErr ? <p className="mt-2 text-sm text-rose-300">{downloadErr}</p> : null}
+            <p className="csg-compliance mt-3">{CS_GUIDE_META.compliance}</p>
           </div>
 
           <div className="relative flex flex-col items-center">
-            <GuideBookMockup tall onOpen={scrollToCapture} />
-            <p className="mt-2 max-w-xs text-center text-sm text-white/50">
-              Preview opens capture → then the in-app reader (chapter navigation, no PDF required).
+            <GuideBookMockup tall onOpen={() => openGuide()} />
+            <p className="mt-1 max-w-xs text-center text-sm text-white/50">
+              In-app reader with real chapters — not a PDF-only ebook. Click the cover or any chapter below.
             </p>
           </div>
         </div>
       </section>
 
-      {/* Lead capture → opens reader (wires into leads system) */}
-      <section id="csg-capture" className="relative z-10 scroll-mt-28 border-y border-white/8 py-14 md:py-16">
-        <div className="mx-auto grid max-w-[88rem] items-start gap-10 px-5 md:px-10 lg:grid-cols-[0.95fr_1.05fr]">
-          <div>
-            <div className="csg-kicker">
-              <Users size={14} /> Enter the leads system
-            </div>
-            <h2 className="csg-serif mt-4 text-3xl font-semibold md:text-4xl">Unlock the playbook</h2>
-            <p className="mt-3 max-w-lg text-base text-white/55">
-              Your capture creates a Credit Specialist guide lead in Finely CRM — then we open the in-app reader.
-              When you&apos;re ready, join with the 3-lead / 30-day free-leads commitment.
-            </p>
-            <ul className="mt-6 space-y-3">
-              <MiniCheck>Tagged as Credit Specialist guide in admin leads</MiniCheck>
-              <MiniCheck>Specialist nurture sequence auto-enrolls</MiniCheck>
-              <MiniCheck>Clear CTA into pricing + guided join</MiniCheck>
-            </ul>
-          </div>
-          <div className="csg-pillar-card rounded-2xl p-5 md:p-6">
-            <PremiumLeadMagnetCaptureForm
-              funnelConfig={CREDIT_SPECIALIST_GUIDE_FUNNEL}
-              submitLabel="Unlock guide & open"
-              successMode="callback"
-              onCaptured={() => openGuide()}
-            />
-            <p className="mt-3 text-center text-[11px] text-white/40">{CS_GUIDE_META.compliance}</p>
-          </div>
-        </div>
-      </section>
-
-      {/* Pillars */}
-      <section id="inside" className="relative z-10 border-y border-white/8 py-16 md:py-20">
+      {/* Chapter preview — near top, opens reader */}
+      <section id="chapters" className="relative z-10 scroll-mt-28 border-y border-white/8 py-12 md:py-14">
         <div className="mx-auto max-w-[88rem] px-5 md:px-10">
-          <div className="mx-auto max-w-3xl text-center">
-            <div className="csg-kicker mx-auto">
-              <Sparkles size={14} /> What you&apos;ll master
-            </div>
-            <h2 className="csg-serif mt-5 text-4xl font-semibold tracking-[-0.02em] md:text-5xl">
-              Four lanes. One specialist playbook.
-            </h2>
-            <p className="mt-4 text-base text-white/55">
-              Depth that matches Finely Cred&apos;s luxury education — practical, compliant, and ready for partner
-              conversations.
-            </p>
-          </div>
-          <div className="mt-12 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            {PILLARS.map((p) => (
-              <div key={p.title} className="csg-pillar-card rounded-2xl p-5">
-                <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-[#d4a447]/35 bg-[#d4a447]/10 text-[#f0cc75]">
-                  <p.icon size={22} strokeWidth={1.5} />
-                </div>
-                <h3 className="csg-serif mt-4 text-xl text-white">{p.title}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-white/55">{p.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Chapters — click opens reader */}
-      <section id="chapters" className="relative z-10 py-16 md:py-20">
-        <div className="mx-auto max-w-[88rem] px-5 md:px-10">
-          <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+          <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
             <div>
               <div className="csg-kicker">
-                <BookOpen size={14} /> Inside the guide
+                <BookOpen size={14} /> Chapter preview
               </div>
-              <h2 className="csg-serif mt-4 text-4xl font-semibold md:text-5xl">
-                {CS_GUIDE_CHAPTERS.length} chapters · open any from preview
+              <h2 className="csg-serif mt-3 text-3xl font-semibold md:text-4xl">
+                {CS_GUIDE_CHAPTERS.length} chapters · tap any to read
               </h2>
+              <p className="mt-2 max-w-2xl text-sm text-white/55 md:text-base">
+                Preview the playbook at the top of the page. Each card opens the in-app reader on that chapter — free,
+                readable, no unlock gate.
+              </p>
             </div>
             <button
               type="button"
-              onClick={() => openGuide()}
+              onClick={() => openGuide('welcome')}
               className="csg-ghost-btn inline-flex h-11 items-center justify-center gap-2 self-start rounded-lg px-5 text-[11px] font-black uppercase tracking-[0.14em] md:self-auto"
             >
-              Start from chapter 1 <ArrowRight size={14} />
+              Start chapter 1 <ArrowRight size={14} />
             </button>
           </div>
-          <div className="mt-10 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+          <div className="mt-8 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
             {CS_GUIDE_CHAPTERS.map((ch) => (
               <button
                 key={ch.id}
@@ -328,6 +298,41 @@ export default function CreditSpecialistGuideLandingPage() {
         </div>
       </section>
 
+      {/* Pillars */}
+      <section id="inside" className="relative z-10 py-14 md:py-16">
+        <div className="mx-auto max-w-[88rem] px-5 md:px-10">
+          <div className="mx-auto max-w-3xl text-center">
+            <div className="csg-kicker mx-auto">
+              <Sparkles size={14} /> What you&apos;ll master
+            </div>
+            <h2 className="csg-serif mt-4 text-3xl font-semibold tracking-[-0.02em] md:text-4xl">
+              Four lanes. One specialist playbook.
+            </h2>
+            <p className="mt-3 text-base text-white/55">
+              Depth that matches Finely Cred&apos;s luxury education — practical, compliant, and ready for partner
+              conversations.
+            </p>
+          </div>
+          <div className="mt-10 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            {PILLARS.map((p) => (
+              <div key={p.title} className="csg-pillar-card rounded-2xl p-5">
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-[#d4a447]/35 bg-[#d4a447]/10 text-[#f0cc75]">
+                  <p.icon size={22} strokeWidth={1.5} />
+                </div>
+                <h3 className="csg-serif mt-4 text-xl text-white">{p.title}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-white/55">{p.desc}</p>
+              </div>
+            ))}
+          </div>
+          <ul className="mx-auto mt-8 grid max-w-4xl gap-3 sm:grid-cols-2">
+            <MiniCheck>Teach partners with factual findings — not hype scripts.</MiniCheck>
+            <MiniCheck>Sequence business fundability before capital asks.</MiniCheck>
+            <MiniCheck>Respond to debt pressure with documentation discipline.</MiniCheck>
+            <MiniCheck>Frame opportunity and freedom without income guarantees.</MiniCheck>
+          </ul>
+        </div>
+      </section>
+
       {/* Stats / trust */}
       <section className="relative z-10 border-y border-[#d4a447]/20 py-10">
         <div className="mx-auto grid max-w-[88rem] gap-3 px-5 sm:grid-cols-2 md:px-10 lg:grid-cols-4">
@@ -335,7 +340,7 @@ export default function CreditSpecialistGuideLandingPage() {
             { icon: Users, value: 'Specialist-first', label: 'Built for operators' },
             { icon: ShieldCheck, value: 'Compliance-aware', label: 'Educational positioning' },
             { icon: Gavel, value: 'Court insight', label: 'Not legal advice' },
-            { icon: Target, value: 'OS-ready', label: 'Join when ready' },
+            { icon: Target, value: 'Read freely', label: 'Join when ready' },
           ].map((s) => (
             <div key={s.label} className="csg-stat-tile flex items-center gap-3.5 rounded-2xl p-4">
               <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-[#d4a447]/35 bg-[#d4a447]/10 text-[#f0cc75]">
@@ -353,23 +358,70 @@ export default function CreditSpecialistGuideLandingPage() {
         </p>
       </section>
 
+      {/* Soft optional capture — not a gate */}
+      <section id="csg-capture" className="relative z-10 scroll-mt-28 py-14 md:py-16">
+        <div className="mx-auto grid max-w-[88rem] items-start gap-10 px-5 md:px-10 lg:grid-cols-[0.95fr_1.05fr]">
+          <div>
+            <div className="csg-kicker">
+              <Users size={14} /> Optional updates
+            </div>
+            <h2 className="csg-serif mt-4 text-3xl font-semibold md:text-4xl">Stay on the specialist list</h2>
+            <p className="mt-3 max-w-lg text-base text-white/55">
+              The e-guide and one-sheet are free without signup. Leave your details only if you want nurture tips and a
+              cleaner path into pricing later — reading is never blocked.
+            </p>
+            <ul className="mt-6 space-y-3">
+              <MiniCheck>Optional — open the reader anytime above</MiniCheck>
+              <MiniCheck>Tagged as Credit Specialist guide in admin leads</MiniCheck>
+              <MiniCheck>Join stays at {CS_JOIN_PATH} when you are ready</MiniCheck>
+            </ul>
+            <div className="mt-6 flex flex-wrap gap-3">
+              <button
+                type="button"
+                onClick={() => openGuide()}
+                className="csg-ghost-btn inline-flex h-11 items-center justify-center gap-2 rounded-lg px-5 text-[11px] font-black uppercase tracking-[0.14em]"
+              >
+                <BookOpen size={14} /> Skip — open guide
+              </button>
+              <button
+                type="button"
+                onClick={() => void onDownloadOneSheet()}
+                disabled={downloading}
+                className="csg-ghost-btn inline-flex h-11 items-center justify-center gap-2 rounded-lg px-5 text-[11px] font-black uppercase tracking-[0.14em]"
+              >
+                <Download size={14} /> {downloading ? 'Building…' : 'Get one-sheet'}
+              </button>
+            </div>
+          </div>
+          <div className="csg-pillar-card rounded-2xl p-5 md:p-6">
+            <PremiumLeadMagnetCaptureForm
+              funnelConfig={CREDIT_SPECIALIST_GUIDE_FUNNEL}
+              submitLabel="Send tips & open guide"
+              successMode="callback"
+              onCaptured={() => openGuide()}
+            />
+            <p className="mt-3 text-center text-[11px] text-white/40">{CS_GUIDE_META.compliance}</p>
+          </div>
+        </div>
+      </section>
+
       {/* Path + CTA */}
-      <section id="path" className="relative z-10 py-16 md:py-20">
+      <section id="path" className="relative z-10 border-t border-white/8 py-14 md:py-16">
         <div className="mx-auto max-w-[88rem] px-5 md:px-10">
           <div className="csg-cta-panel overflow-hidden rounded-[1.65rem] p-7 md:p-10 lg:p-12">
             <div className="grid gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
               <div>
                 <div className="csg-kicker">Your path forward</div>
                 <h2 className="csg-serif mt-4 text-3xl font-semibold md:text-4xl lg:text-5xl">
-                  Read the playbook. Then join the program.
+                  Read the playbook. Download the one-sheet. Join when ready.
                 </h2>
                 <p className="mt-4 max-w-xl text-base leading-relaxed text-white/60">
-                  The guide is free and built into the product. When you are ready for tiers, economics, and signup,
-                  continue to the Credit Specialist join path.
+                  The e-guide and one-sheet are convenient entry points — separate from signup and onboarding. When you
+                  want tiers, economics, and the application, continue to the Credit Specialist join path.
                 </p>
                 <ol className="mt-7 space-y-3 text-sm text-white/70">
                   <li>
-                    <span className="font-bold text-[#f0cc75]">1.</span> Open the in-app guide from the preview
+                    <span className="font-bold text-[#f0cc75]">1.</span> Open the in-app guide or download the one-sheet
                   </li>
                   <li>
                     <span className="font-bold text-[#f0cc75]">2.</span> Study personal, business, debt, and opportunity
@@ -389,11 +441,19 @@ export default function CreditSpecialistGuideLandingPage() {
                       Open guide reader <BookOpen size={16} />
                     </span>
                   </button>
-                  <Link
-                    to={CS_JOIN_PATH}
+                  <button
+                    type="button"
+                    onClick={() => void onDownloadOneSheet()}
+                    disabled={downloading}
                     className="csg-ghost-btn inline-flex h-12 items-center justify-center gap-2 rounded-lg px-6 text-[11px] font-black uppercase tracking-[0.14em]"
                   >
-                    Go to pricing / join <ArrowRight size={16} />
+                    <Download size={16} /> {downloading ? 'Building…' : 'Download one-sheet'}
+                  </button>
+                  <Link
+                    to={CS_PRICING_PATH}
+                    className="inline-flex h-12 items-center justify-center px-2 text-[11px] font-bold uppercase tracking-[0.14em] text-white/45 transition hover:text-[#f0cc75]"
+                  >
+                    View pricing →
                   </Link>
                 </div>
                 <p className="csg-compliance mt-4">{CS_GUIDE_META.compliance}</p>

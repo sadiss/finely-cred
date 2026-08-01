@@ -220,7 +220,7 @@ export const DEBT_LETTER_SPECS: DebtLetterSpec[] = [
   },
   {
     id: 'affidavit_of_dispute',
-    title: 'Affidavit of Dispute',
+    title: 'Response Affidavit',
     shortDescription: 'Sworn statement that you dispute the debt, lack sufficient knowledge, or deny the alleged contract.',
     whenToUse: [
       'In response to a lawsuit or summons when you dispute the debt',
@@ -825,10 +825,14 @@ export function getLetterBody(
         amountClaimed: safeArgs.summonsContext?.amountClaimed,
         dateServed: safeArgs.summonsContext?.dateServed,
         jurisdictionState: safeArgs.summonsContext?.jurisdictionState,
-        collectorName: safeArgs.summonsContext?.collectorName,
+        collectorName: safeArgs.summonsContext?.collectorName || safeArgs.summonsContext?.counselName,
         documentFacts: safeArgs.summonsContext?.documentFacts,
-        plaintiffLawFirm: safeArgs.plaintiffLawFirm,
-        plaintiffLawFirmAddress: safeArgs.plaintiffLawFirmAddress,
+        plaintiffLawFirm:
+          safeArgs.plaintiffLawFirm ||
+          safeArgs.summonsContext?.plaintiffLawFirm ||
+          safeArgs.summonsContext?.counselName,
+        plaintiffLawFirmAddress:
+          safeArgs.plaintiffLawFirmAddress || safeArgs.summonsContext?.counselAddress,
         debtorState: safeArgs.debtorState,
         affidavitCounty: safeArgs.affidavitCounty,
       });

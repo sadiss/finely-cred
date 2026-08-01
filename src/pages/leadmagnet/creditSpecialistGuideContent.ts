@@ -7,6 +7,7 @@ export const CS_GUIDE_PATH = '/credit-specialist-guide';
 export const CS_GUIDE_READ_PATH = '/credit-specialist-guide/read';
 /** Pricing / signup owned by another lane — landings CTA here. */
 export const CS_JOIN_PATH = '/credit-specialist/join';
+export const CS_PRICING_PATH = '/credit-specialist';
 
 export type CreditSpecialistGuideSection = {
   heading?: string;
@@ -35,6 +36,7 @@ export const CS_GUIDE_META = {
   compliance: 'Results vary · not legal advice · funding subject to underwriting',
   edition: 'Finely Cred edition',
   valueLabel: '$297+',
+  onesheetLabel: 'Credit Specialist one-sheet',
 } as const;
 
 export const CS_GUIDE_CHAPTERS: CreditSpecialistGuideChapter[] = [
@@ -52,6 +54,7 @@ export const CS_GUIDE_CHAPTERS: CreditSpecialistGuideChapter[] = [
         paragraphs: [
           'This is a field manual for Credit Specialists — people who help partners restore personal files, sequence business credit, respond to debt pressure, and unlock funding opportunity without hype.',
           'You will not find miracle guarantees. You will find frameworks Finely Cred trains specialists to use: factual findings, evidence discipline, fundability stage gates, and compliant opportunity framing.',
+          'Open any chapter from the landing preview. Read freely in the in-app reader. Join the program later when you want the full operating stack — reading never requires signup.',
         ],
       },
       {
@@ -63,6 +66,18 @@ export const CS_GUIDE_CHAPTERS: CreditSpecialistGuideChapter[] = [
           'Partners upload reports, approve letters, and own outcomes.',
           'Specialists coach, document, sequence, and escalate with clarity.',
           'The OS holds the work — your expertise directs it.',
+        ],
+      },
+      {
+        heading: 'The four craft lanes',
+        paragraphs: [
+          'Every partner conversation maps to at least one lane. Master the language of each before you sell anything.',
+        ],
+        bullets: [
+          'Personal restore & build — scores, utilization, factual disputes, habits.',
+          'Business credit — entity truth, vendors, revolving, capital packaging.',
+          'Debt & laws insight — validation, documentation, summons education (not legal advice).',
+          'Opportunity & freedom framing — funding, depth, referrals, specialist craft.',
         ],
       },
       {
@@ -78,7 +93,7 @@ export const CS_GUIDE_CHAPTERS: CreditSpecialistGuideChapter[] = [
     id: 'personal-credit',
     number: '02',
     title: 'Personal Credit Mastery',
-    subtitle: 'Scores, utilization, disputes, and the habits that compound',
+    subtitle: 'Restore accuracy, build depth, and coach habits that compound',
     kicker: 'Personal lane',
     teaser: 'Teach partners how files actually move — utilization, age, mix, and factual dispute craft.',
     accent: 'lime',
@@ -87,12 +102,25 @@ export const CS_GUIDE_CHAPTERS: CreditSpecialistGuideChapter[] = [
         heading: 'What personal credit really signals',
         paragraphs: [
           'A score is a compressed story about payment history, utilization, age of accounts, mix, and recent inquiries. Specialists who explain the story earn trust faster than specialists who only chase point jumps.',
+          'Restore work removes or corrects inaccurate reporting. Build work strengthens the healthy parts of the file. Partners need both — sequenced honestly.',
         ],
         bullets: [
           'Payment history still dominates — late marks need a plan, not a pep talk.',
           'Utilization is often the fastest lever when balances are controllable.',
           'Thin files need depth before they need aggression.',
           'Inquiries cluster; spray-and-pray apps punish the file.',
+        ],
+      },
+      {
+        heading: 'Restore: accuracy before aggression',
+        paragraphs: [
+          'Start with a clean inventory: every tradeline, collection, public record, and inquiry across bureaus. Highlight mismatches the partner can see on screenshots — dates, balances, status codes, ownership.',
+          'Prioritize items that are inaccurate, incomplete, or unverifiable over “everything negative.” Volume without evidence looks like spam; evidence without prioritization wastes rounds.',
+        ],
+        bullets: [
+          'Pull organized reports and label accounts by impact and evidence readiness.',
+          'Protect good accounts — never sacrifice a clean revolving line for a vanity dispute.',
+          'Set round expectations: replies take time; nothing is guaranteed.',
         ],
       },
       {
@@ -104,12 +132,15 @@ export const CS_GUIDE_CHAPTERS: CreditSpecialistGuideChapter[] = [
         callout: 'As you can see here on Equifax… — cite the screen. Never invent a seal, status, or outcome.',
       },
       {
-        heading: 'Specialist coaching cadence',
+        heading: 'Build: habits that compound',
+        paragraphs: [
+          'After pressure items are in motion, coach the file that remains: on-time payments, utilization bands, account age protection, and responsible new credit only when the story supports it.',
+        ],
         bullets: [
           'Week 1: pull + organize + prioritize tradelines that matter.',
           'Week 2–3: first round letters with evidence attached.',
           'Ongoing: utilization coaching, good-account protection, next-round strategy.',
-          'Always: set expectations — timelines vary; nothing is guaranteed.',
+          'Always: set expectations — timelines vary; results vary; nothing is guaranteed.',
         ],
       },
     ],
@@ -127,6 +158,7 @@ export const CS_GUIDE_CHAPTERS: CreditSpecialistGuideChapter[] = [
         heading: 'Why business credit is a different game',
         paragraphs: [
           'Personal FICO and commercial fundability are related but not the same. Funders evaluate entity truth, address/phone match, time in business optics, vendor reporting depth, and capital-pack readiness.',
+          'Specialists who conflate “I have a personal score” with “my LLC is fundable” create rejection cycles. Teach the commercial story as its own file.',
         ],
       },
       {
@@ -139,6 +171,17 @@ export const CS_GUIDE_CHAPTERS: CreditSpecialistGuideChapter[] = [
           'Capital pack: bank statements, projections, and use-of-funds narrative.',
         ],
         callout: 'Funding is subject to underwriting. Sequence first — ask second.',
+      },
+      {
+        heading: 'What “fundable” looks like in practice',
+        paragraphs: [
+          'Fundability is a file state, not a program fee. Partners become commercially identifiable, reportable, and document-ready before they chase named products.',
+        ],
+        bullets: [
+          'Green lights: matched identity, reporting vendors, clean payment optics, packaged docs.',
+          'Blockers: mismatched SOS data, thin vendor history, inquiry sprawl, premature apps.',
+          'Your job: show the next stage gate — not the next ad promise.',
+        ],
       },
       {
         heading: 'Mistakes that freeze files',
@@ -161,6 +204,7 @@ export const CS_GUIDE_CHAPTERS: CreditSpecialistGuideChapter[] = [
         heading: 'Pressure is a process problem',
         paragraphs: [
           'Collections thrive on confusion. Specialists restore control by organizing accounts, capturing every notice, and teaching partners to respond with documentation — not panic payments or silence.',
+          '“Eradicate pressure” in Finely language means reducing chaos and correcting inaccurate reporting — never a guaranteed wipe of lawful obligations.',
         ],
       },
       {
@@ -173,6 +217,20 @@ export const CS_GUIDE_CHAPTERS: CreditSpecialistGuideChapter[] = [
           'Separate “stop the chaos” moves from “rebuild the file” moves.',
         ],
         callout: 'Educational only — not legal advice. Results vary by account, state, and facts.',
+      },
+      {
+        heading: 'Laws & rights insight (high level)',
+        paragraphs: [
+          'Partners often hear acronyms — FDCPA, FCRA, FDCPA mini-Miranda language, state consumer protections — without knowing what they mean for day-to-day response. Specialists teach orientation, not courtroom strategy.',
+        ],
+        bullets: [
+          'Communication rules: know who may contact whom, and keep everything in writing when possible.',
+          'Reporting accuracy: inaccurate or incomplete credit reporting is a documentation problem first.',
+          'Deadlines matter: ignore mail long enough and options shrink — calendar every date.',
+          'Escalate ethically: CFPB, FTC, state AG, and BBB paths exist for complaints; they are not magic wands.',
+          'When legal strategy is needed, refer to a licensed attorney in the partner’s jurisdiction.',
+        ],
+        callout: 'Not legal advice. Statutes and remedies vary. Educate and organize — do not practice law.',
       },
       {
         heading: 'Eradication framing that stays compliant',
@@ -207,6 +265,12 @@ export const CS_GUIDE_CHAPTERS: CreditSpecialistGuideChapter[] = [
           'Continue bureau hygiene in parallel so the credit file is not abandoned.',
         ],
         callout: 'Not legal advice. Court outcomes vary. When in doubt, consult a licensed attorney in the partner’s jurisdiction.',
+      },
+      {
+        heading: 'Documentation that helps counsel',
+        paragraphs: [
+          'Your value before and beside counsel is organization: timelines, payment records, prior validation letters, bureau screenshots, and a clear list of contradictions. Prepared partners get better options from attorneys; unprepared partners burn hours.',
+        ],
       },
       {
         heading: '“Winning” without overclaiming',
@@ -244,9 +308,10 @@ export const CS_GUIDE_CHAPTERS: CreditSpecialistGuideChapter[] = [
         ],
       },
       {
-        heading: 'Partner growth compounds',
+        heading: 'Helping others compounds your craft',
         paragraphs: [
           'Restored partners refer. Funded partners expand. Specialists who document wins ethically (with permission) build a pipeline that ads alone cannot buy.',
+          'Opportunity is not only capital — it is the chance to teach neighbors, founders, and families a calmer financial operating system. That is how specialists create lasting impact without overselling outcomes.',
         ],
       },
     ],
@@ -255,11 +320,18 @@ export const CS_GUIDE_CHAPTERS: CreditSpecialistGuideChapter[] = [
     id: 'income-path',
     number: '07',
     title: 'Your Income Path as a Specialist',
-    subtitle: 'How Finely Cred specialists earn while delivering real partner work',
+    subtitle: 'Financial freedom through craft — tools, partners, and honest economics',
     kicker: 'Specialist path',
     teaser: 'Tools, training, white-label OS, and percentage economics — built for operators, not spectators.',
     accent: 'sky',
     sections: [
+      {
+        heading: 'Freedom means optionality',
+        paragraphs: [
+          'Financial freedom, in this playbook, means you can earn by delivering real partner work: restore, build, business credit, and debt education — with an OS that holds the files. It is not a salary promise, passive-income fantasy, or guaranteed commission schedule.',
+          'Specialists who stay educational, document carefully, and graduate training tend to own more of the delivery — and that is where economics improve. Results and income vary.',
+        ],
+      },
       {
         heading: 'The operator model',
         paragraphs: [
@@ -273,14 +345,16 @@ export const CS_GUIDE_CHAPTERS: CreditSpecialistGuideChapter[] = [
           'Training that emphasizes factual findings and compliance-safe language.',
           'White-label-ready partner experience so your brand can lead.',
           'Activation path from application → first supervised partners.',
+          'Opportunity to help others while building a craft-based practice.',
         ],
       },
       {
         heading: 'Next step',
         paragraphs: [
           'Finish this guide, then open the Credit Specialist join path to see program tiers, economics, and application options. The guide teaches the craft; the program gives you the OS to deliver it at scale.',
+          'Keep reading as long as you want — signup is optional and separate from this e-guide and one-sheet.',
         ],
-        callout: 'Application is not a job offer. Income varies. Educational positioning required.',
+        callout: 'Application is not a job offer. Income varies. Educational positioning required. Results vary · not legal advice · funding subject to underwriting.',
       },
     ],
   },

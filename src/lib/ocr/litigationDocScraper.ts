@@ -796,7 +796,17 @@ export function debtPatchFromLitigationScrape(entities: Record<string, string>):
   };
 }
 
-/** Fill only blank debt fields from a scrape patch (never overwrite partner-confirmed values). */
+/** True when a stored field is blank or a placeholder the scrape should replace. */
+function isWeakDebtFieldValue(value: unknown): boolean {
+  const cur = String(value ?? '').trim();
+  if (!cur) return true;
+  if (/^court matter$/i.test(cur)) return true;
+  if (/^\[.+\]$/.test(cur)) return true;
+  if (/^(n\/?a|unknown|tbd|null|undefined)$/i.test(cur)) return true;
+  return false;
+}
+
+/** Fill blank / placeholder debt fields from a scrape patch (never overwrite real partner-confirmed values). */
 export function mergeEmptyDebtFieldsFromScrape<T extends Record<string, unknown>>(
   base: T,
   patch: Record<string, string | undefined>,
@@ -804,9 +814,9 @@ export function mergeEmptyDebtFieldsFromScrape<T extends Record<string, unknown>
 ): T {
   const next: Record<string, unknown> = { ...base };
   const fillStr = (key: string, value?: string) => {
-    const cur = String(next[key] ?? '').trim();
     const v = String(value ?? '').trim();
-    if (!cur && v) next[key] = v;
+    if (!v) return;
+    if (isWeakDebtFieldValue(next[key])) next[key] = v;
   };
   fillStr('name', patch.name);
   fillStr('courtCaseNumber', patch.courtCaseNumber);
@@ -817,7 +827,7 @@ export function mergeEmptyDebtFieldsFromScrape<T extends Record<string, unknown>
   fillStr('collectorName', patch.collectorName);
   fillStr('plaintiffLawFirm', patch.plaintiffLawFirm);
   fillStr('plaintiffLawFirmAddress', patch.plaintiffLawFirmAddress);
-  // Mirror firm address onto recipient when recipient address still empty
+  // Mirror firm address onto recipient when recipient address still empty/weak
   fillStr('recipientAddress', patch.plaintiffLawFirmAddress || patch.recipientAddress);
   fillStr('plaintiffAttorneyName', patch.plaintiffAttorneyName);
   fillStr('plaintiffAttorneyBarNumber', patch.plaintiffAttorneyBarNumber);

@@ -13,6 +13,7 @@ import { CourtAdvisorChat } from './CourtAdvisorChat';
 import { LetterCatalogBrowser } from './LetterCatalogBrowser';
 import { PartnerDefenseKnowledgePanel } from './PartnerDefenseKnowledgePanel';
 import { LitigationDocScraperChat } from './LitigationDocScraperChat';
+import { ExtractedCourtFactsPanel } from './ExtractedCourtFactsPanel';
 import { SCENARIO_RECOMMENDATIONS } from '../../legal/debtLetterTemplates';
 import { getCourtroomDayKitGuidance } from '../../legal/courtroomPackBodies';
 import { buildSummonsAffidavitContext } from '../../lib/debtCreditorIntel';
@@ -592,6 +593,7 @@ export function AffidavitCourtCenterView({
                 </ul>
               </div>
             </div>
+            <ExtractedCourtFactsPanel debt={debt} summonsContext={summonsCtx} />
             <DebtCreditorIntelPanel
               partnerId={debt?.partnerId || debtCases[0]?.partnerId || partner?.id || ''}
               debt={debt}
@@ -611,6 +613,7 @@ export function AffidavitCourtCenterView({
         {/* STEP 3 — Ranked letter suggestions + one-tap answer / affidavit */}
         {step === 2 ? (
           <div className="space-y-3">
+            <ExtractedCourtFactsPanel debt={debt} summonsContext={summonsCtx} compact />
             <div className="rounded-xl border border-fuchsia-400/25 bg-fuchsia-500/10 px-3 py-2 space-y-1">
               <p className="text-sm font-semibold text-white">{buyerIntel.label}</p>
               <p className={`text-xs ${FINELY_OS_ENTITY_BODY}`}>{buyerIntel.doNowOneLiner}</p>

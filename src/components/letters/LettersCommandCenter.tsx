@@ -14,6 +14,7 @@ import { DebtTrackEasyFlow } from './DebtTrackEasyFlow';
 import { LetterEasyFlowShell } from './LetterEasyFlowShell';
 import { buildLetterStudioTrackTabs, LetterTrackTabs } from './LetterTrackTabs';
 import { buildDebtLetterPathSteps, runDebtLetterStep, type DebtLetterStepId } from '../../lib/letterDebtFlow';
+import { resolveDebtDraftBaseTitle, resolveDebtDraftTitle } from '../../lib/resolveDebtDraftTitle';
 import { isValidDisputeBuildStep } from '../../lib/letterStudioResume';
 import { identityPacketStatus } from '../../lib/identityEvidence';
 import { deriveTradelineContradictions, getDisputeReasonsLibraryAsText, suggestDisputeReasons, suggestDisputeReasonsForCandidate } from '../../creditReports/disputeReasons';
@@ -44,6 +45,7 @@ import {
 } from '../../lib/debtCreditorIntel';
 import { ValidationCenterView } from '../debt/ValidationCenterView';
 import { AffidavitCourtCenterView } from '../debt/AffidavitCourtCenterView';
+import { ExtractedCourtFactsPanel } from '../debt/ExtractedCourtFactsPanel';
 import { BankruptcyLetterStudioPanel } from './BankruptcyLetterStudioPanel';
 import { ForeclosureCenterView } from '../debt/ForeclosureCenterView';
 import { RepossessionCenterView } from '../debt/RepossessionCenterView';
@@ -2742,30 +2744,46 @@ useEffect(() => {
       debtorEmail: undefined,
       recipientName: mailTo.name,
       recipientAddress: mailTo.address,
-      caseNumber: (debt as any)?.courtCaseNumber,
-      plaintiffLawFirm: firm || mailTo.name,
-      plaintiffLawFirmAddress: mailTo.missing ? undefined : mailTo.address,
-      plaintiffAttorneyName: debt?.plaintiffAttorneyName,
-      plaintiffAttorneyBarNumber: debt?.plaintiffAttorneyBarNumber,
-      debtCollectorName: debt?.collectorName || debtPartyInfo?.collectorName,
-      originalCreditorName: debt?.originalCreditor || debtPartyInfo?.originalCreditor,
-      accountNumber: debt?.accountNumberMasked,
+      caseNumber: debt?.courtCaseNumber || summonsAffidavitContext.caseNumber,
+      plaintiffLawFirm: firm || mailTo.name || summonsAffidavitContext.plaintiffLawFirm,
+      plaintiffLawFirmAddress: mailTo.missing
+        ? summonsAffidavitContext.counselAddress
+        : mailTo.address || summonsAffidavitContext.counselAddress,
+      plaintiffAttorneyName: debt?.plaintiffAttorneyName || summonsAffidavitContext.plaintiffAttorneyName,
+      plaintiffAttorneyBarNumber: debt?.plaintiffAttorneyBarNumber || summonsAffidavitContext.plaintiffAttorneyBar,
+      debtCollectorName: debt?.collectorName || debtPartyInfo?.collectorName || summonsAffidavitContext.collectorName,
+      originalCreditorName:
+        debt?.originalCreditor || debtPartyInfo?.originalCreditor || summonsAffidavitContext.originalCreditor,
+      accountNumber: debt?.accountNumberMasked || summonsAffidavitContext.accountNumberMasked,
       loanId: debt?.loanId,
       borrowerId: debt?.borrowerId,
-      affidavitState: canonicalIdentity.state || debt?.stateJurisdiction,
-      affidavitCounty: debt?.affidavitCounty,
-      stateNote: (debt as any)?.stateJurisdiction ? ` In ${(debt as any).stateJurisdiction}, the applicable SOL may apply.` : undefined,
-      // Always merge scrape/case court fields so validation + affidavits get amount/court too.
+      affidavitState: canonicalIdentity.state || debt?.stateJurisdiction || summonsAffidavitContext.jurisdictionState,
+      affidavitCounty: debt?.affidavitCounty || summonsAffidavitContext.affidavitCounty,
+      stateNote: (debt?.stateJurisdiction || summonsAffidavitContext.jurisdictionState)
+        ? ` In ${debt?.stateJurisdiction || summonsAffidavitContext.jurisdictionState}, the applicable SOL may apply.`
+        : undefined,
+      // Always merge scrape/case court fields so validation + affidavits get amount/court/counsel too.
       summonsContext: {
-        courtName: summonsAffidavitContext.courtName || (debt as any)?.courtName,
+        courtName: summonsAffidavitContext.courtName || debt?.courtName,
+        courtDivision: summonsAffidavitContext.courtDivision,
         amountClaimed:
           summonsAffidavitContext.amountClaimed ||
           (debt?.amountCents && debt.amountCents > 0
             ? `$${(debt.amountCents / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
             : undefined),
         dateServed: summonsAffidavitContext.dateServed || debt?.dateServed,
-        jurisdictionState: summonsAffidavitContext.jurisdictionState || (debt as any)?.stateJurisdiction,
+        hearingDate: summonsAffidavitContext.hearingDate || debt?.hearingDate,
+        jurisdictionState: summonsAffidavitContext.jurisdictionState || debt?.stateJurisdiction,
         collectorName: summonsAffidavitContext.collectorName || debt?.collectorName,
+        counselName: summonsAffidavitContext.counselName || debt?.plaintiffLawFirm,
+        plaintiffLawFirm: summonsAffidavitContext.plaintiffLawFirm || debt?.plaintiffLawFirm,
+        plaintiffAttorneyName: summonsAffidavitContext.plaintiffAttorneyName || debt?.plaintiffAttorneyName,
+        plaintiffAttorneyBar: summonsAffidavitContext.plaintiffAttorneyBar || debt?.plaintiffAttorneyBarNumber,
+        counselAddress:
+          summonsAffidavitContext.counselAddress || debt?.plaintiffLawFirmAddress || debt?.recipientAddress,
+        judgeName: summonsAffidavitContext.judgeName,
+        caseCaption: summonsAffidavitContext.caseCaption,
+        defendantName: summonsAffidavitContext.defendantName,
         documentFacts: summonsAffidavitContext.entityFacts,
       },
     };
@@ -2775,6 +2793,8 @@ useEffect(() => {
     type: 'validation' | 'court' | 'foreclosure' | 'repossession';
     specId: DebtLetterType | string;
     catalogId?: string;
+    /** Partner-facing document title matching the selected letter type */
+    title?: string;
     html: string;
     evidenceId?: string;
     /** Forces paper preview when opened from suggestion / build CTAs */
@@ -3246,10 +3266,12 @@ useEffect(() => {
     }
     const previewKey = `${args.track}:${args.catalogId || args.specId}:${Date.now()}`;
     const letterId = newId('letter');
-    const specTitle = DEBT_LETTER_SPECS.find((s) => s.id === args.specId)?.title;
-    const title = debt
-      ? `${specTitle || args.specId.replace(/_/g, ' ')} • ${debt.name}`
-      : `${args.track} letter`;
+    const title = resolveDebtDraftTitle({
+      specId: args.specId,
+      catalogId: args.catalogId,
+      track: args.track,
+      debtName: debt?.name,
+    });
     try {
       upsertLetter({
         id: letterId,
@@ -3287,6 +3309,7 @@ useEffect(() => {
       specId: args.specId,
       catalogId: args.catalogId,
       type: args.track,
+      title,
       html: plainTextToHtml(plain),
       preferPreview: true,
       previewKey,
@@ -3369,11 +3392,12 @@ useEffect(() => {
         );
       }
       let baseText = '';
+      const entry = catalogEntryById(resolvedCatalogId);
+      const resolvedSpecId = (entry?.letterType || resolvedCatalogId) as string;
       try {
         baseText = generateCatalogLetterBody(resolvedCatalogId, mergeArgs);
       } catch (inner: any) {
         // Fall back to typed body when catalog path throws (e.g. mis-tagged kit).
-        const entry = catalogEntryById(resolvedCatalogId);
         const fallbackType = (entry?.letterType ||
           (track === 'court' ? 'courtroom_written_answer' : 'validation_request')) as DebtLetterType;
         baseText = getLetterBody(fallbackType, mergeArgs);
@@ -3381,7 +3405,7 @@ useEffect(() => {
       }
       openGeneratedDebtDraft({
         track,
-        specId: resolvedCatalogId,
+        specId: resolvedSpecId,
         catalogId: resolvedCatalogId,
         bodyText: baseText,
       });
@@ -3867,7 +3891,12 @@ useEffect(() => {
                 <div className="min-w-0">
                   <div className={FINELY_OS_ENTITY_SUBLABEL}>Generated letter · paper preview</div>
                   <div className={`mt-1 truncate ${FINELY_OS_ENTITY_TITLE}`}>
-                    {draft.type === 'court' ? 'Court / affidavit letter' : 'Validation letter'}
+                    {draft.title ||
+                      resolveDebtDraftBaseTitle({
+                        specId: draft.specId,
+                        catalogId: draft.catalogId,
+                        track: draft.type,
+                      })}
                   </div>
                   {draft.letterId ? (
                     <p className="mt-0.5 text-[11px] text-emerald-200/85">Saved to Letters Vault as a draft — edit below, then update PDF when ready.</p>
@@ -3912,7 +3941,11 @@ useEffect(() => {
                         const category = draft.type === 'court' ? ('court_filing' as any) : ('debt_collection' as any);
                         createTemplateVaultItem({
                           tenantId: partner.tenantId,
-                          title: `${draft.type === 'court' ? 'Court' : 'Validation'} template â€¢ ${new Date().toISOString().slice(0, 10)}`,
+                          title: `${resolveDebtDraftBaseTitle({
+                            specId: draft.specId,
+                            catalogId: draft.catalogId,
+                            track: draft.type,
+                          })} template • ${new Date().toISOString().slice(0, 10)}`,
                           category,
                           kind: 'text',
                           bodyText: htmlToPlainText(draft.html || ''),
@@ -3968,6 +4001,9 @@ useEffect(() => {
                   <div className="rounded-xl border border-amber-400/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-50/95 font-semibold">
                     Edit letter — every field and the full body are editable before you save or mail.
                   </div>
+                  {draft.type === 'court' || draft.type === 'foreclosure' || draft.type === 'repossession' ? (
+                    <ExtractedCourtFactsPanel debt={debt} summonsContext={summonsAffidavitContext} compact />
+                  ) : null}
                   {draftNotice ? (
                     <div className="rounded-xl border border-rose-400/40 bg-rose-500/15 px-3 py-2 text-xs text-rose-50 space-y-1">
                       <div className="font-bold">Recipient address required</div>
@@ -4161,9 +4197,13 @@ useEffect(() => {
                         persistDebtSenderSnapshot();
                         const createdAt = new Date().toISOString();
                         const title =
-                          debt && DEBT_LETTER_SPECS.find((s) => s.id === draft.specId)
-                            ? `${DEBT_LETTER_SPECS.find((s) => s.id === draft.specId)!.title} • ${debt.name}`
-                            : `${draft.type} letter`;
+                          draft.title ||
+                          resolveDebtDraftTitle({
+                            specId: draft.specId,
+                            catalogId: draft.catalogId,
+                            track: draft.type,
+                            debtName: debt?.name,
+                          });
 
                         const pdf = await generateTextPdfToVault({
                           text: plain,
@@ -4266,9 +4306,13 @@ useEffect(() => {
                       persistDebtSenderSnapshot();
                       const createdAt = new Date().toISOString();
                       const title =
-                        debt && DEBT_LETTER_SPECS.find((s) => s.id === draft.specId)
-                          ? `${DEBT_LETTER_SPECS.find((s) => s.id === draft.specId)!.title} â€¢ ${debt.name}`
-                          : `${draft.type} letter`;
+                        draft.title ||
+                        resolveDebtDraftTitle({
+                          specId: draft.specId,
+                          catalogId: draft.catalogId,
+                          track: draft.type,
+                          debtName: debt?.name,
+                        });
 
                       const pdf = await generateTextPdfToVault({
                         text: plain,
@@ -4277,7 +4321,7 @@ useEffect(() => {
                       });
 
                       const saved = upsertLetter({
-                        id: newId('letter'),
+                        id: draft.letterId || newId('letter'),
                         partnerId: partner.id,
                         type: letterTypeForDebtDraft(draft.type),
                         title,
@@ -4337,9 +4381,13 @@ useEffect(() => {
                       persistDebtSenderSnapshot();
                       const createdAt = new Date().toISOString();
                       const title =
-                        debt && DEBT_LETTER_SPECS.find((s) => s.id === draft.specId)
-                          ? `${DEBT_LETTER_SPECS.find((s) => s.id === draft.specId)!.title} â€¢ ${debt.name}`
-                          : `${draft.type} letter`;
+                        draft.title ||
+                        resolveDebtDraftTitle({
+                          specId: draft.specId,
+                          catalogId: draft.catalogId,
+                          track: draft.type,
+                          debtName: debt?.name,
+                        });
 
                       const pdf = await generateTextPdfToVault({
                         text: plain,
@@ -4348,7 +4396,7 @@ useEffect(() => {
                       });
 
                       const saved = upsertLetter({
-                        id: newId('letter'),
+                        id: draft.letterId || newId('letter'),
                         partnerId: partner.id,
                         type: letterTypeForDebtDraft(draft.type),
                         title,

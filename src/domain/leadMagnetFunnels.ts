@@ -262,8 +262,8 @@ export const CREDIT_SPECIALIST_GUIDE_FUNNEL: LeadMagnetFunnelConfig = {
   onboardingLane: 'personal_restore',
   metaTitle: 'Free Credit Specialist playbook',
   metaDesc:
-    'Personal + business credit, debt challenge insight, court education, and specialist opportunity — open in-app after capture.',
-  urgencyText: 'FREE — Credit Specialist playbook + join path (3 leads · 30-day free-leads window)',
+    'Personal + business credit, debt challenge insight, court education, and specialist opportunity — read the free in-app guide anytime; optional tips below.',
+  urgencyText: 'Optional tips — e-guide & one-sheet are free to open without signup',
   heroHeadline: 'Master the',
   heroHighlight: 'Specialist Craft',
   heroSub: '— then bring partners with Finely.',
