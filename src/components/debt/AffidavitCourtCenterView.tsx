@@ -27,6 +27,13 @@ import {
   type LitigationStageId,
 } from '../../lib/litigationHearingPlan';
 import { isRooseveltCourtPartner } from '../../data/rooseveltCourtPartnerSeed';
+import type { PartnerCourtOutcome } from '../../domain/courtOutcomes';
+import {
+  confirmCourtPlanPayment,
+  getCourtOutcomeByDebtCase,
+  setCourtOutcomeOrderOnFile,
+} from '../../data/courtOutcomeRepo';
+import { PartnerCourtOutcomePanel } from './PartnerCourtOutcomePanel';
 import { getDebtBuyerCaseIntel } from '../../legal/litigation/debtBuyerCaseIntelligence';
 import { buildIntelligentLetterSuggestions } from '../../lib/intelligentLetterSuggestions';
 import { letterGenerateCtaLabel } from '../../lib/letterProductLabels';
@@ -37,6 +44,7 @@ import {
   FINELY_OS_ENTITY_BODY,
   FINELY_OS_ENTITY_SUBLABEL,
   FINELY_OS_ENTITY_TITLE,
+  FINELY_OS_ENTITY_VALUE,
   FINELY_OS_FIELD_WIDTH_SM,
   FINELY_OS_PRIMARY_BTN,
   FINELY_OS_SECONDARY_BTN,
@@ -186,6 +194,15 @@ export function AffidavitCourtCenterView({
   const [builtAnswer, setBuiltAnswer] = useState(false);
   const [builtAffidavit, setBuiltAffidavit] = useState(false);
   const [hearingKitOpen, setHearingKitOpen] = useState(false);
+
+  // Once a matter ends in a payment plan, the plan — not the pipeline — is the main event.
+  const [courtOutcome, setCourtOutcome] = useState<PartnerCourtOutcome | null>(() =>
+    debt?.id ? getCourtOutcomeByDebtCase(debt.id) : null,
+  );
+
+  useEffect(() => {
+    setCourtOutcome(debt?.id ? getCourtOutcomeByDebtCase(debt.id) : null);
+  }, [debt?.id]);
 
   useEffect(() => {
     if (!stageFromQuery) return;
@@ -397,13 +414,17 @@ export function AffidavitCourtCenterView({
               <Gavel size={13} /> Litigation Command · Step {active.n} of {PIPELINE.length}
             </div>
             <div className="mt-1 flex flex-wrap items-baseline gap-x-3 gap-y-1">
-              <span className="text-3xl font-black tracking-tight text-white">{countdown}</span>
+              <span className="text-3xl font-black tracking-tight text-white">
+                {courtOutcome ? 'Matter decided' : countdown}
+              </span>
               <span className={`text-xs ${FINELY_OS_ENTITY_BODY}`}>
                 Hearing <span className="text-white/90 font-semibold">{hearingIso || 'not set'}</span>
                 {buyerIntel.patternId !== 'unknown' ? ` · ${buyerIntel.label}` : ''}
               </span>
             </div>
-            <p className={`mt-1 text-sm font-semibold text-amber-100/95`}>Next: {nextActionPlain}</p>
+            <p className={`mt-1 text-sm font-semibold text-amber-100/95`}>
+              Next: {courtOutcome ? 'Work the payment plan below — every payment needs a receipt' : nextActionPlain}
+            </p>
             <p className={`mt-1 text-xs max-w-2xl ${FINELY_OS_ENTITY_BODY}`}>{buyerIntel.doNowOneLiner}</p>
             {step === 2 ? (
               <button
@@ -478,6 +499,22 @@ export function AffidavitCourtCenterView({
           ))}
         </div>
       </section>
+
+      {courtOutcome ? (
+        <div className="fc-lit-in">
+          <PartnerCourtOutcomePanel
+            outcome={courtOutcome}
+            onConfirmPayment={(dueIso) => {
+              const next = confirmCourtPlanPayment(courtOutcome.id, dueIso);
+              if (next) setCourtOutcome(next);
+            }}
+            onMarkOrderOnFile={() => {
+              const next = setCourtOutcomeOrderOnFile(courtOutcome.id, true);
+              if (next) setCourtOutcome(next);
+            }}
+          />
+        </div>
+      ) : null}
 
       {/* Numbered path — tap to jump; only current step body below */}
       <div className="fc-lit-in space-y-2">
