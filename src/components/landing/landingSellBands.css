@@ -40,31 +40,36 @@
   overflow: hidden;
 }
 
+/* Platinum tone reads as a genuine brushed-metal sheen (mid silver-grey), not a flat black void.
+   Corners stay darker for text contrast; the diagonal middle carries the visible platinum highlight. */
 .fc-sell-atmosphere__base--platinum {
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(ellipse 70% 55% at 18% 10%, rgba(224, 178, 74, 0.22), transparent 58%),
-    radial-gradient(ellipse 55% 45% at 88% 80%, rgba(163, 230, 53, 0.08), transparent 55%),
-    linear-gradient(165deg, #141820 0%, #1c1a16 38%, #12161c 72%, #0a0e14 100%);
+    radial-gradient(ellipse 75% 60% at 20% 8%, rgba(224, 178, 74, 0.32), transparent 62%),
+    radial-gradient(ellipse 70% 60% at 85% 88%, rgba(203, 208, 218, 0.26), transparent 62%),
+    radial-gradient(ellipse 95% 75% at 50% 42%, rgba(184, 189, 199, 0.16), transparent 72%),
+    linear-gradient(165deg, #262a33 0%, #40454f 30%, #4c515c 50%, #383c46 72%, #191c23 100%);
 }
 
 .fc-sell-atmosphere__base--navy {
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(ellipse 60% 50% at 80% 15%, rgba(224, 178, 74, 0.18), transparent 55%),
-    radial-gradient(ellipse 50% 40% at 10% 90%, rgba(163, 230, 53, 0.1), transparent 50%),
-    linear-gradient(160deg, #020618 0%, #060c2f 45%, #0a1628 100%);
+    radial-gradient(ellipse 65% 55% at 80% 12%, rgba(224, 178, 74, 0.22), transparent 58%),
+    radial-gradient(ellipse 55% 45% at 10% 90%, rgba(96, 165, 250, 0.16), transparent 55%),
+    radial-gradient(ellipse 85% 70% at 50% 42%, rgba(59, 92, 170, 0.22), transparent 72%),
+    linear-gradient(160deg, #060c2c 0%, #10205a 34%, #172a68 54%, #0c1740 76%, #030616 100%);
 }
 
 .fc-sell-atmosphere__base--emerald {
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(ellipse 55% 45% at 12% 20%, rgba(163, 230, 53, 0.14), transparent 55%),
-    radial-gradient(ellipse 50% 40% at 90% 70%, rgba(224, 178, 74, 0.14), transparent 50%),
-    linear-gradient(165deg, #06120c 0%, #0a1a14 42%, #0c1210 100%);
+    radial-gradient(ellipse 60% 50% at 12% 18%, rgba(163, 230, 53, 0.24), transparent 58%),
+    radial-gradient(ellipse 55% 45% at 90% 72%, rgba(224, 178, 74, 0.2), transparent 55%),
+    radial-gradient(ellipse 90% 72% at 50% 42%, rgba(52, 189, 138, 0.2), transparent 72%),
+    linear-gradient(165deg, #0e2a1e 0%, #1c4a34 32%, #216548 52%, #133527 74%, #081410 100%);
 }
 
 .fc-sell-atmosphere__beam {
@@ -203,6 +208,47 @@
   border: 1px solid rgba(224, 178, 74, 0.22);
   background: linear-gradient(135deg, rgba(10, 20, 16, 0.55), rgba(6, 12, 10, 0.4));
   backdrop-filter: blur(8px);
+}
+
+/* Premium showcase card — used for 6-up AU / offer grids on dark sell bands */
+.fc-sell-benefit-card {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  padding: 1.5rem 1.35rem;
+  border-radius: 1.15rem;
+  border: 1px solid rgba(224, 178, 74, 0.28);
+  background:
+    linear-gradient(160deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.015) 100%),
+    linear-gradient(155deg, rgba(12, 26, 20, 0.85) 0%, rgba(6, 14, 11, 0.92) 100%);
+  box-shadow:
+    0 22px 60px -30px rgba(0, 0, 0, 0.65),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  transition: border-color 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.fc-sell-benefit-card:hover {
+  border-color: rgba(224, 178, 74, 0.55);
+  transform: translateY(-3px);
+  box-shadow:
+    0 28px 70px -28px rgba(224, 178, 74, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.fc-sell-benefit-card__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  flex-shrink: 0;
+  border-radius: 0.9rem;
+  border: 1px solid rgba(224, 178, 74, 0.4);
+  background: linear-gradient(150deg, rgba(224, 178, 74, 0.24), rgba(224, 178, 74, 0.06));
+  color: #ffd993;
+  box-shadow: 0 0 28px rgba(224, 178, 74, 0.16);
 }
 
 .fc-sell-cta-gold {

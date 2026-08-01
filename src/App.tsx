@@ -528,7 +528,7 @@ function LandingRoute({ onGetStarted, onViewTradelines, onNavigate, addToCart, o
 
       {/* 9. Final CTA */}
       <section className={`py-20 lg:py-28 relative overflow-hidden ${finelyOsLandingPlatinumSection()}`} data-fc-contrast-band="1">
-        <div className="absolute inset-0 bg-gradient-to-b from-[#1f1f1f] via-[#282828] to-[#1a1a1a]" />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#2e323a] via-[#4a4f59] to-[#23262d]" />
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_40%_at_50%_60%,rgba(16,185,129,0.15),transparent_70%)]" />
         <div className="container mx-auto px-6 relative z-10 text-center">
           <div className="max-w-3xl mx-auto space-y-8">

@@ -149,6 +149,7 @@ export default function RealEstateCareersPage() {
       badge="Public"
       title="Real estate partners"
       subtitle="Affiliation for agents & brokers — underwriting readiness education for buyers, sellers, and partners."
+      hideHero
     >
       <div className={`${FINELY_OS_PAGE} max-w-6xl mx-auto space-y-0`}>
         <div className="px-0 py-2">

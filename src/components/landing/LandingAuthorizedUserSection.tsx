@@ -112,20 +112,21 @@ export function LandingAuthorizedUserSection() {
           </Reveal>
         </div>
 
-        <div className="mt-8 grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {BENEFITS.map((b, i) => (
-            <Reveal key={b.title} delay={80 + i * 55}>
-              <div className="fc-sell-benefit-chip h-full">
-                <span className="mt-0.5 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-[#e0b24a]/25 bg-[#e0b24a]/10 text-[#ffd993]">
-                  <b.Icon size={15} />
-                </span>
-                <span>
-                  <span className="block text-sm font-semibold text-white/90">{b.title}</span>
-                  <span className="block mt-0.5 text-xs leading-relaxed text-white/45">{b.text}</span>
-                </span>
-              </div>
-            </Reveal>
-          ))}
+        <div className="mt-12">
+          <p className="fc-sell-kicker text-center mb-6">Six reasons partners list with us</p>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {BENEFITS.map((b, i) => (
+              <Reveal key={b.title} delay={80 + i * 55}>
+                <div className="fc-sell-benefit-card h-full">
+                  <span className="fc-sell-benefit-card__icon">
+                    <b.Icon size={18} />
+                  </span>
+                  <span className="block fc-sell-serif text-base font-semibold text-white/90">{b.title}</span>
+                  <span className="block text-xs leading-relaxed text-white/50">{b.text}</span>
+                </div>
+              </Reveal>
+            ))}
+          </div>
         </div>
 
         <p className="fc-sell-compliance text-center mt-8">

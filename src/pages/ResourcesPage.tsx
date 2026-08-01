@@ -92,6 +92,7 @@ export default function ResourcesPage() {
       badge="Public"
       title="Resource hub"
       subtitle="Pick a lane — each card opens a dedicated page. No long scroll puzzle."
+      hideHero
     >
       <div className={`${FINELY_OS_PAGE} fc-senior-simple space-y-0`}>
         <div className="space-y-4 pb-4">

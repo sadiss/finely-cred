@@ -105,6 +105,7 @@ export default function CaseHelpCareersPage() {
     <PageShell
       title="Case help careers"
       subtitle="Paralegal, attorney/counsel, and consultant roles to support partner debt and litigation cases."
+      hideHero
     >
       <div className={`${FINELY_OS_PAGE} max-w-5xl mx-auto space-y-0`}>
         <div className="px-4 py-4">

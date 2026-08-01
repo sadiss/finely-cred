@@ -1865,8 +1865,8 @@ export function TestimonialDossier({
 export function AffiliateSection({ onVisitAffiliate }: { onVisitAffiliate?: () => void }) {
   return (
     <section className={`py-24 lg:py-32 relative overflow-hidden ${finelyOsLandingPlatinumSection()}`} data-fc-contrast-band="1">
-      {/* Platinum gradient background */}
-      <div className="absolute inset-0 bg-gradient-to-b from-[#1a1a1a] via-[#252525] to-[#1a1a1a]" />
+      {/* Platinum gradient background — genuine brushed-metal sheen, not flat black */}
+      <div className="absolute inset-0 bg-gradient-to-b from-[#2e323a] via-[#4a4f59] to-[#282b32]" />
       
       {/* Subtle green ambient glow */}
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_50%,rgba(16,185,129,0.12),transparent_70%)]" />

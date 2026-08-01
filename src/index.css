@@ -286,44 +286,47 @@ html[data-fc-theme="light"] ::selection {
   .fc-band-dark {
     @apply relative overflow-hidden border-y border-white/[0.07];
     background:
-      radial-gradient(900px 420px at 15% -8%, rgba(var(--brand-primary-rgb), 0.12) 0%, transparent 58%),
-      radial-gradient(700px 380px at 88% 100%, rgba(255, 255, 255, 0.045) 0%, transparent 55%),
-      linear-gradient(180deg, var(--fc-bg-deep) 0%, var(--fc-bg) 50%, var(--fc-bg-deep) 100%);
+      radial-gradient(900px 420px at 15% -8%, rgba(var(--brand-primary-rgb), 0.22) 0%, transparent 60%),
+      radial-gradient(700px 380px at 88% 100%, rgba(255, 255, 255, 0.09) 0%, transparent 58%),
+      linear-gradient(180deg, #12151b 0%, #1d2129 50%, #12151b 100%);
   }
 
+  /* Contrast bands lifted from near-black to a visible metallic-tinted charcoal (platinum sheen)
+     so pages that mount finelyOsLandingContrastSection / finelyOsLandingPlatinumSection never read
+     as a flat black void, while staying dark enough for the white text layered on top. */
   .fc-band-violet {
     @apply relative overflow-hidden border-y border-violet-400/[0.14];
     background:
-      radial-gradient(1100px 520px at 72% -12%, rgba(139, 92, 246, 0.21) 0%, transparent 60%),
-      radial-gradient(720px 360px at 8% 92%, rgba(var(--brand-primary-rgb), 0.12) 0%, transparent 55%),
-      linear-gradient(180deg, rgba(139,92,246,0.052) 0%, transparent 40%, rgba(217,70,239,0.035) 100%),
-      var(--fc-bg-deep);
+      radial-gradient(1100px 520px at 72% -12%, rgba(139, 92, 246, 0.34) 0%, transparent 62%),
+      radial-gradient(720px 360px at 8% 92%, rgba(var(--brand-primary-rgb), 0.2) 0%, transparent 58%),
+      linear-gradient(180deg, rgba(139,92,246,0.14) 0%, rgba(80,70,110,0.05) 42%, rgba(217,70,239,0.09) 100%),
+      #15131e;
   }
 
   .fc-band-emerald {
     @apply relative overflow-hidden border-y border-emerald-400/[0.14];
     background:
-      radial-gradient(1050px 500px at 20% -10%, rgba(16, 185, 129, 0.18) 0%, transparent 58%),
-      radial-gradient(760px 380px at 92% 88%, rgba(var(--brand-primary-rgb), 0.10) 0%, transparent 55%),
-      linear-gradient(180deg, rgba(16,185,129,0.045) 0%, transparent 42%, rgba(56,189,248,0.03) 100%),
-      var(--fc-bg-deep);
+      radial-gradient(1050px 500px at 20% -10%, rgba(16, 185, 129, 0.3) 0%, transparent 60%),
+      radial-gradient(760px 380px at 92% 88%, rgba(var(--brand-primary-rgb), 0.16) 0%, transparent 58%),
+      linear-gradient(180deg, rgba(16,185,129,0.11) 0%, rgba(20,50,42,0.05) 44%, rgba(56,189,248,0.07) 100%),
+      #0f1d18;
   }
 
   .fc-band-azure {
     @apply relative overflow-hidden border-y border-sky-400/[0.14];
     background:
-      radial-gradient(980px 460px at 50% -8%, rgba(56, 189, 248, 0.17) 0%, transparent 60%),
-      radial-gradient(700px 340px at 10% 100%, rgba(217, 70, 239, 0.12) 0%, transparent 55%),
-      linear-gradient(180deg, rgba(56,189,248,0.04) 0%, transparent 45%, rgba(217,70,239,0.025) 100%),
-      var(--fc-bg-deep);
+      radial-gradient(980px 460px at 50% -8%, rgba(56, 189, 248, 0.28) 0%, transparent 62%),
+      radial-gradient(700px 340px at 10% 100%, rgba(217, 70, 239, 0.2) 0%, transparent 58%),
+      linear-gradient(180deg, rgba(56,189,248,0.09) 0%, rgba(30,50,70,0.05) 45%, rgba(217,70,239,0.05) 100%),
+      #0e1a22;
   }
 
   .fc-band-ribbon {
     @apply relative overflow-hidden border-y border-violet-400/[0.14];
     background:
-      radial-gradient(1200px 450px at 50% -8%, rgba(139, 92, 246, 0.16) 0%, transparent 56%),
-      radial-gradient(760px 300px at 100% 80%, rgba(var(--brand-primary-rgb), 0.10) 0%, transparent 55%),
-      linear-gradient(90deg, var(--fc-bg-deep) 0%, var(--fc-bg-chrome) 50%, var(--fc-bg-deep) 100%);
+      radial-gradient(1200px 450px at 50% -8%, rgba(139, 92, 246, 0.26) 0%, transparent 58%),
+      radial-gradient(760px 300px at 100% 80%, rgba(var(--brand-primary-rgb), 0.16) 0%, transparent 58%),
+      linear-gradient(90deg, #14161d 0%, #1e212a 50%, #14161d 100%);
   }
   .fc-band-diagonal {
     @apply relative overflow-hidden;

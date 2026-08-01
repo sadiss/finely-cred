@@ -43,6 +43,7 @@ export default function AuSellerPage() {
       badge="Public"
       title={AU_SELLER.programName}
       subtitle="Supply tradelines — Finely markets to buyers and routes fulfillment."
+      hideHero
     >
       <div className={FINELY_OS_PAGE}>
         <div className="flex flex-wrap items-center gap-4">
@@ -164,7 +165,7 @@ export default function AuSellerPage() {
               </div>
 
               <p className={FINELY_OS_ENTITY_BODY}>
-                Running client restore or build files instead? That&apos;s the{' '}
+                Running partner restore or build files instead? That&apos;s the{' '}
                 <button type="button" className="underline font-semibold text-violet-700" onClick={() => navigate('/credit-specialists')}>
                   Credit specialists
                 </button>{' '}
