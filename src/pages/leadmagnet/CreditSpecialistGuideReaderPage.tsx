@@ -11,7 +11,6 @@ import {
   Sparkles,
   X,
 } from 'lucide-react';
-import { LeadMagnetCobrand } from '../../components/brand/LeadMagnetCobrand';
 import { usePublicSeoMeta } from '../../hooks/usePublicSeoMeta';
 import { downloadCreditSpecialistOneSheet } from '../../resources/buildCreditSpecialistOneSheetPdf';
 import '../../components/leadmagnet/leadMagnetLuxuryStage.css';
@@ -117,7 +116,7 @@ export default function CreditSpecialistGuideReaderPage() {
       <div className="csg-atmosphere pointer-events-none fixed inset-0 z-0" aria-hidden />
       <div className="lm-lux-grain lm-lux-grain--fixed pointer-events-none" aria-hidden />
 
-      <header className="csg-reader-nav sticky top-0 z-50">
+      <header className="csg-reader-nav sticky z-40" style={{ top: 'calc(env(safe-area-inset-top, 0px) + 4.25rem)' }}>
         <div className="csg-progress">
           <span style={{ width: `${progress}%` }} />
         </div>
@@ -130,9 +129,9 @@ export default function CreditSpecialistGuideReaderPage() {
             >
               <ArrowLeft size={14} /> Landing
             </button>
-            <div className="hidden min-w-0 sm:block">
-              <LeadMagnetCobrand size="sm" showPartnerLabel={false} />
-            </div>
+            <span className="hidden truncate text-[11px] font-bold uppercase tracking-[0.14em] text-white/45 sm:inline">
+              Specialist e-guide
+            </span>
           </div>
           <div className="flex items-center gap-2">
             <button

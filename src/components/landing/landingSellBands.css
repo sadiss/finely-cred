@@ -1,0 +1,258 @@
+/* Homepage sell bands — Finely Cred cinematic luxury (gold / navy / lime). */
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;0,800;1,500;1,600&display=swap');
+
+.fc-sell {
+  --fc-sell-gold: #e0b24a;
+  --fc-sell-gold-soft: #ffd993;
+  --fc-sell-gold-deep: #c4803d;
+  --fc-sell-navy: #060c2f;
+  --fc-sell-navy-deep: #020618;
+  --fc-sell-ink: #0c1228;
+  --fc-sell-champagne: #f4ebda;
+  --fc-sell-ivory: #faf6ee;
+  --fc-sell-lime: #a3e635;
+  --fc-sell-lime-deep: #65a30d;
+}
+
+.fc-sell-serif {
+  font-family: 'Playfair Display', Georgia, 'Times New Roman', serif;
+  letter-spacing: -0.02em;
+}
+
+.fc-sell-kicker {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--fc-sell-gold-soft);
+}
+
+.fc-sell-compliance {
+  font-size: 11px;
+  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.38);
+}
+
+.fc-sell-atmosphere {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.fc-sell-atmosphere__base--platinum {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 70% 55% at 18% 10%, rgba(224, 178, 74, 0.22), transparent 58%),
+    radial-gradient(ellipse 55% 45% at 88% 80%, rgba(163, 230, 53, 0.08), transparent 55%),
+    linear-gradient(165deg, #141820 0%, #1c1a16 38%, #12161c 72%, #0a0e14 100%);
+}
+
+.fc-sell-atmosphere__base--navy {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 60% 50% at 80% 15%, rgba(224, 178, 74, 0.18), transparent 55%),
+    radial-gradient(ellipse 50% 40% at 10% 90%, rgba(163, 230, 53, 0.1), transparent 50%),
+    linear-gradient(160deg, #020618 0%, #060c2f 45%, #0a1628 100%);
+}
+
+.fc-sell-atmosphere__base--emerald {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 55% 45% at 12% 20%, rgba(163, 230, 53, 0.14), transparent 55%),
+    radial-gradient(ellipse 50% 40% at 90% 70%, rgba(224, 178, 74, 0.14), transparent 50%),
+    linear-gradient(165deg, #06120c 0%, #0a1a14 42%, #0c1210 100%);
+}
+
+.fc-sell-atmosphere__beam {
+  position: absolute;
+  width: 45%;
+  height: 140%;
+  top: -20%;
+  left: -10%;
+  background: linear-gradient(105deg, transparent 30%, rgba(224, 178, 74, 0.07) 48%, transparent 62%);
+  transform: rotate(18deg);
+  animation: fc-sell-beam 14s ease-in-out infinite;
+}
+
+.fc-sell-atmosphere__beam--late {
+  left: auto;
+  right: -15%;
+  animation-delay: -6s;
+  opacity: 0.7;
+}
+
+.fc-sell-atmosphere__grain {
+  position: absolute;
+  inset: 0;
+  opacity: 0.055;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 180px 180px;
+  mix-blend-mode: overlay;
+}
+
+.fc-sell-atmosphere__line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(224, 178, 74, 0.35), transparent);
+}
+
+.fc-sell-atmosphere__line--top { top: 2.5rem; }
+.fc-sell-atmosphere__line--bottom { bottom: 2.5rem; }
+
+@keyframes fc-sell-beam {
+  0%, 100% { opacity: 0.35; transform: rotate(18deg) translateX(0); }
+  50% { opacity: 0.7; transform: rotate(18deg) translateX(6%); }
+}
+
+/* Champagne / ivory glass cards on platinum — dark ink, never harsh white */
+.fc-sell-champagne-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: 1.25rem;
+  border: 1px solid rgba(224, 178, 74, 0.38);
+  color: var(--fc-sell-ink);
+  background:
+    linear-gradient(155deg, rgba(250, 246, 238, 0.96) 0%, rgba(240, 230, 210, 0.94) 48%, rgba(228, 214, 186, 0.92) 100%);
+  box-shadow:
+    0 28px 70px -28px rgba(0, 0, 0, 0.55),
+    inset 0 1px 0 rgba(255, 255, 255, 0.65),
+    inset 0 -1px 0 rgba(196, 128, 61, 0.12);
+  backdrop-filter: blur(10px);
+}
+
+.fc-sell-champagne-card--featured {
+  border-color: rgba(224, 178, 74, 0.65);
+  box-shadow:
+    0 32px 80px -24px rgba(224, 178, 74, 0.45),
+    0 0 0 1px rgba(224, 178, 74, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+
+.fc-sell-champagne-card__sheen {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(115deg, transparent 35%, rgba(255, 255, 255, 0.28) 48%, transparent 62%);
+  transform: translateX(-120%);
+  animation: fc-sell-sheen 7s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.fc-sell-champagne-card--featured .fc-sell-champagne-card__sheen {
+  animation-delay: 1.2s;
+}
+
+@keyframes fc-sell-sheen {
+  0%, 55%, 100% { transform: translateX(-120%); }
+  70% { transform: translateX(120%); }
+}
+
+.fc-sell-price-jewel {
+  position: relative;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 9.5rem;
+  min-height: 9.5rem;
+  border-radius: 9999px;
+  background:
+    radial-gradient(circle at 35% 30%, rgba(255, 231, 176, 0.95), rgba(224, 178, 74, 0.55) 45%, rgba(196, 128, 61, 0.35) 100%);
+  box-shadow:
+    0 0 0 1px rgba(255, 217, 147, 0.55),
+    0 0 48px rgba(224, 178, 74, 0.35),
+    inset 0 2px 8px rgba(255, 255, 255, 0.45),
+    inset 0 -4px 12px rgba(100, 60, 10, 0.25);
+  animation: fc-sell-jewel 4.5s ease-in-out infinite;
+}
+
+.fc-sell-price-jewel__amount {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: clamp(2.75rem, 5vw, 3.5rem);
+  font-weight: 700;
+  line-height: 1;
+  color: #1a1204;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.35);
+}
+
+.fc-sell-price-jewel__label {
+  margin-top: 0.2rem;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(26, 18, 4, 0.65);
+}
+
+@keyframes fc-sell-jewel {
+  0%, 100% { box-shadow: 0 0 0 1px rgba(255, 217, 147, 0.55), 0 0 40px rgba(224, 178, 74, 0.28), inset 0 2px 8px rgba(255, 255, 255, 0.45); }
+  50% { box-shadow: 0 0 0 1px rgba(255, 231, 176, 0.75), 0 0 64px rgba(224, 178, 74, 0.48), inset 0 2px 8px rgba(255, 255, 255, 0.55); }
+}
+
+.fc-sell-benefit-chip {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  padding: 0.7rem 0.85rem;
+  border-radius: 0.9rem;
+  border: 1px solid rgba(224, 178, 74, 0.22);
+  background: linear-gradient(135deg, rgba(10, 20, 16, 0.55), rgba(6, 12, 10, 0.4));
+  backdrop-filter: blur(8px);
+}
+
+.fc-sell-cta-gold {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  padding: 1rem 1.75rem;
+  border-radius: 0.85rem;
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #1a1204;
+  background: linear-gradient(135deg, #ffe7b0 0%, #e0b24a 48%, #c4803d 100%);
+  box-shadow: 0 14px 36px -12px rgba(224, 178, 74, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.45);
+  transition: transform 0.25s ease, filter 0.25s ease;
+}
+
+.fc-sell-cta-gold:hover {
+  transform: translateY(-2px) scale(1.02);
+  filter: brightness(1.06);
+}
+
+.fc-sell-cta-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  padding: 0.85rem 1.35rem;
+  border-radius: 0.85rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(224, 178, 74, 0.35);
+  background: rgba(255, 255, 255, 0.03);
+  transition: border-color 0.2s ease, color 0.2s ease;
+}
+
+.fc-sell-cta-ghost:hover {
+  border-color: rgba(224, 178, 74, 0.65);
+  color: #ffd993;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fc-sell-atmosphere__beam,
+  .fc-sell-champagne-card__sheen,
+  .fc-sell-price-jewel {
+    animation: none !important;
+  }
+}

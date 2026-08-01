@@ -11,7 +11,7 @@ import {
   TrendingUp,
   User,
 } from 'lucide-react';
-import { LeadMagnetCobrand, LeadMagnetCobrandFooterMarks } from '../../components/brand/LeadMagnetCobrand';
+import { LeadMagnetCobrandFooterMarks } from '../../components/brand/LeadMagnetCobrand';
 import { LeadMagnetFunnelHeroVideo } from '../../components/leadmagnet/LeadMagnetFunnelHeroVideo';
 import { getLeadMagnetVisualTheme } from '../../components/leadmagnet/leadMagnetVisualThemes';
 import { SCORE_ROADMAP_FUNNEL } from '../../domain/leadMagnetFunnels';
@@ -261,17 +261,11 @@ export default function CreditScoreRoadmapLandingPage() {
       <div className="fc-premium-noise pointer-events-none fixed inset-0 z-0 opacity-[0.045]" />
       <div className="pointer-events-none fixed inset-x-0 top-0 z-0 h-[420px] bg-gradient-to-b from-[#0b2543]/50 to-transparent" />
 
-      <header className="relative z-20">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-5 py-5 md:px-8">
-          <LeadMagnetCobrand size="sm" />
-        </div>
-      </header>
-
-      <section className="csr-hero-section csr-hero-section--editorial relative z-10 border-b border-[#d7a73f]/25">
+      <section className="csr-hero-section csr-hero-section--editorial relative z-10 border-b border-[#d7a73f]/25 pt-20 md:pt-24">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_12%,rgba(215,167,63,0.22),transparent_42%),radial-gradient(circle_at_50%_88%,rgba(45,138,103,0.12),transparent_38%)]" />
         <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#d7a73f]/75 to-transparent" />
 
-        <div className="relative z-10 mx-auto max-w-6xl px-5 pt-8 md:px-8 md:pt-12">
+        <div className="relative z-10 mx-auto max-w-6xl px-5 pt-6 md:px-8 md:pt-10">
           <h1 className="csr-hero-title csr-serif text-white">
             <span className="csr-hero-title-line">Boost Your</span>
             <span className="csr-hero-title-line csr-hero-title-line--gold">Credit Score</span>

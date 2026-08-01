@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Calendar, ChevronDown, Lock, Rocket, ShieldCheck } from 'lucide-react';
-import { LeadMagnetCobrand, LeadMagnetCobrandFooterMarks } from '../brand/LeadMagnetCobrand';
+import { LeadMagnetCobrandFooterMarks } from '../brand/LeadMagnetCobrand';
 import type { FreeGuide } from '../../resources/freeGuides';
 import type { LeadMagnetFunnelConfig } from '../../domain/leadMagnetFunnels';
 import { LEAD_MAGNET_TRIAL_DAYS } from '../../lib/leadMagnetTrial';
@@ -14,7 +14,6 @@ import {
   themeCssVars,
 } from './leadMagnetVisualThemes';
 import { LeadMagnetMediaStage } from './LeadMagnetMediaStage';
-import { LeadMagnetNavUrgency } from './LeadMagnetUrgencyRail';
 
 type Props = {
   config: LeadMagnetFunnelConfig;
@@ -80,28 +79,15 @@ export function UniversalPremiumLeadMagnetLanding({
   if (!profile) return null;
 
   const cta = ctaOverride ?? profile.captureHeadline;
-  const { accentRgb } = theme.colors;
-
   return (
     <div
       className={`lm-page lm-flyer-page lm-flyer-slim min-h-screen pb-10 ${theme.meshClass}`}
       data-lm-theme={theme.id}
       style={cssVars}
     >
-      <nav className="lm-nav sticky top-0 z-40">
-        <div className="container mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
-          <div className="flex items-center gap-3 min-w-0">
-            <LeadMagnetCobrand size="sm" />
-            <LeadMagnetNavUrgency config={config} accentRgb={accentRgb} />
-          </div>
-          <button type="button" onClick={onGoForm} className="lm-cta-theme shrink-0">
-            Get access <ArrowRight className="w-4 h-4" />
-          </button>
-        </div>
-      </nav>
-
+      {/* Site nav owns branding — urgency + CTA live in the hero */}
       {/* 1. Short hero */}
-      <header className="lm-flyer-hero-band lm-flyer-hero-band--slim">
+      <header className="lm-flyer-hero-band lm-flyer-hero-band--slim pt-16 sm:pt-20">
         <div className="lm-flyer-hero-band-img">
           <img src={heroImage} alt={theme.heroImageAlt} loading="eager" />
           <div className="lm-flyer-hero-band-overlay" />

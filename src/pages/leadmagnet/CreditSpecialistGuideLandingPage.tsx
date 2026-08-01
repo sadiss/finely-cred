@@ -15,7 +15,7 @@ import {
   TrendingUp,
   Users,
 } from 'lucide-react';
-import { LeadMagnetCobrand, LeadMagnetCobrandFooterMarks } from '../../components/brand/LeadMagnetCobrand';
+import { LeadMagnetCobrandFooterMarks } from '../../components/brand/LeadMagnetCobrand';
 import { PremiumLeadMagnetCaptureForm } from '../../components/leadmagnet/PremiumLeadMagnetCaptureForm';
 import { CREDIT_SPECIALIST_GUIDE_FUNNEL } from '../../domain/leadMagnetFunnels';
 import { usePublicSeoMeta } from '../../hooks/usePublicSeoMeta';
@@ -29,6 +29,7 @@ import {
   CS_JOIN_PATH,
   CS_PRICING_PATH,
 } from './creditSpecialistGuideContent';
+import { LandingTypewriterTitle } from '../../components/landing/LandingTypewriterTitle';
 import './creditSpecialistGuideLanding.css';
 
 function cn(...classes: Array<string | false | null | undefined>) {
@@ -154,56 +155,41 @@ export default function CreditSpecialistGuideLandingPage() {
       <div className="csg-atmosphere pointer-events-none fixed inset-0 z-0" aria-hidden />
       <div className="lm-lux-grain lm-lux-grain--fixed pointer-events-none" aria-hidden />
 
-      <header className="csg-nav fixed inset-x-0 top-0 z-50">
-        <div className="mx-auto flex h-[4.25rem] max-w-[88rem] items-center justify-between gap-4 px-5 md:px-10">
-          <LeadMagnetCobrand size="sm" />
-          <nav className="hidden items-center gap-7 text-[13px] font-medium text-white/70 lg:flex">
-            <a href="#chapters" className="transition hover:text-[#95e000]">
-              Chapters
-            </a>
-            <a href="#inside" className="transition hover:text-[#95e000]">
-              Inside
-            </a>
-            <a href="#path" className="transition hover:text-[#95e000]">
-              Specialist path
-            </a>
-          </nav>
-          <div className="flex items-center gap-2 sm:gap-3">
-            <button
-              type="button"
-              onClick={() => void onDownloadOneSheet()}
-              disabled={downloading}
-              className="csg-nav-cta hidden items-center gap-2 rounded-lg px-3.5 py-2 text-[10px] font-bold uppercase tracking-[0.14em] text-[#e8c96a] md:inline-flex"
-            >
-              <Download size={14} /> {downloading ? 'Building…' : 'One-sheet'}
-            </button>
-            <button
-              type="button"
-              onClick={() => openGuide()}
-              className="csg-gold-btn inline-flex h-10 items-center justify-center gap-2 rounded-lg px-4 text-[10px] font-black uppercase tracking-[0.14em]"
-            >
-              <BookOpen size={14} /> Open e-guide
-            </button>
-            <Link
-              to={CS_JOIN_PATH}
-              className="csg-ghost-btn hidden h-10 items-center justify-center rounded-lg px-3.5 text-[10px] font-black uppercase tracking-[0.14em] sm:inline-flex"
-            >
-              Join
-            </Link>
-          </div>
-        </div>
-      </header>
-
-      {/* Short hero — guide + one-sheet first; join secondary */}
-      <section className="relative z-10 pt-[4.25rem]">
+      {/* Site nav owns branding — hero opens under fixed public chrome */}
+      <section className="relative z-10 pt-20 md:pt-24">
         <div className="lm-lux-beam lm-lux-beam--accent left-[6%] top-[-6%]" aria-hidden />
         <div className="lm-lux-beam lm-lux-beam--right right-[2%] top-[10%]" aria-hidden />
-        <div className="relative z-[2] mx-auto grid max-w-[88rem] items-center gap-8 px-5 pb-10 pt-8 md:px-10 lg:grid-cols-[1.05fr_0.95fr] lg:gap-12 lg:pb-12 lg:pt-10">
+        <div className="relative z-[2] mx-auto grid max-w-[88rem] items-center gap-8 px-5 pb-10 pt-6 md:px-10 lg:grid-cols-[1.05fr_0.95fr] lg:gap-12 lg:pb-12 lg:pt-8">
           <div>
+            <div className="mb-4 flex flex-wrap items-center gap-2 text-[12px] font-medium text-white/55">
+              <a href="#chapters" className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 transition hover:border-[#95e000]/40 hover:text-[#95e000]">
+                Chapters
+              </a>
+              <a href="#inside" className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 transition hover:border-[#95e000]/40 hover:text-[#95e000]">
+                Inside
+              </a>
+              <a href="#path" className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 transition hover:border-[#95e000]/40 hover:text-[#95e000]">
+                Specialist path
+              </a>
+            </div>
             <p className="csg-hero-kicker text-[11px] font-bold uppercase">Free e-guide · no signup to read</p>
             <h1 className="csg-serif csg-hero-title mt-3 text-white">
-              <span className="block">Master the craft.</span>
-              <span className="csg-hero-title-gold mt-1 block">Grow as a specialist.</span>
+              <LandingTypewriterTitle
+                as="span"
+                text="Master the craft."
+                className="block"
+                speedMs={40}
+                delayMs={100}
+                caret
+              />
+              <LandingTypewriterTitle
+                as="span"
+                text="Grow as a specialist."
+                className="csg-hero-title-gold mt-1 block"
+                speedMs={42}
+                delayMs={820}
+                caret
+              />
             </h1>
             <div className="lm-lux-rule--short lm-lux-rule--draw mt-4" aria-hidden />
             <p className="csg-hero-lede mt-5 max-w-xl">
@@ -305,9 +291,15 @@ export default function CreditSpecialistGuideLandingPage() {
             <div className="csg-kicker mx-auto">
               <Sparkles size={14} /> What you&apos;ll master
             </div>
-            <h2 className="csg-serif mt-4 text-3xl font-semibold tracking-[-0.02em] md:text-4xl">
-              Four lanes. One specialist playbook.
-            </h2>
+            <LandingTypewriterTitle
+              as="h2"
+              text="Four lanes. One specialist playbook."
+              className="csg-serif mt-4 text-4xl font-semibold tracking-[-0.02em] md:text-5xl"
+              highlight="specialist playbook."
+              highlightClassName="text-[#f0cc75]"
+              speedMs={36}
+              delayMs={180}
+            />
             <p className="mt-3 text-base text-white/55">
               Depth that matches Finely Cred&apos;s luxury education — practical, compliant, and ready for partner
               conversations.

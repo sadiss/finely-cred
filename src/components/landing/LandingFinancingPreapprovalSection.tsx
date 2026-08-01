@@ -12,10 +12,18 @@ import {
   FINELY_OS_ENTITY_BODY,
   FINELY_OS_ENTITY_VALUE,
 } from '../../features/os/finelyOsLightUi';
+import { LandingTypewriterTitle } from './LandingTypewriterTitle';
+import { LandingSellAtmosphere } from './LandingSellAtmosphere';
+import './landingSellBands.css';
 
 const copy = FINANCING_PREAPPROVAL_PUBLIC;
 
-export function LandingFinancingPreapprovalSection() {
+type Props = {
+  /** Compact homepage card — interest capture + open app, no form wall. */
+  variant?: 'full' | 'compact';
+};
+
+export function LandingFinancingPreapprovalSection({ variant = 'full' }: Props) {
   const navigate = useNavigate();
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
@@ -23,6 +31,29 @@ export function LandingFinancingPreapprovalSection() {
   const [consent, setConsent] = useState(false);
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
+
+  const openCompact = async () => {
+    setBusy(true);
+    setNotice(null);
+    try {
+      await startFinancingPreapprovalInterest({
+        source: 'lead_magnet',
+        funnelPath: '/',
+        captureLead: false,
+        openApplication: true,
+      });
+      setNotice('Opening pre-approval…');
+    } catch {
+      setNotice('Opening pre-approval…');
+      await startFinancingPreapprovalInterest({
+        funnelPath: '/',
+        captureLead: false,
+        openApplication: true,
+      });
+    } finally {
+      setBusy(false);
+    }
+  };
 
   const onPrimary = async () => {
     setNotice(null);
@@ -61,6 +92,76 @@ export function LandingFinancingPreapprovalSection() {
     }
   };
 
+  if (variant === 'compact') {
+    return (
+      <section
+        id="financing-preapproval"
+        className={`fc-sell py-16 sm:py-20 relative overflow-hidden ${finelyOsLandingContrastSection('fc-band-dark')}`}
+        data-fc-contrast-band="1"
+      >
+        <LandingSellAtmosphere tone="platinum" />
+        <div className="container mx-auto px-4 sm:px-6 max-w-5xl relative z-10">
+          <Reveal>
+            <div className="relative overflow-hidden rounded-[1.75rem] border border-[#e0b24a]/32 bg-gradient-to-br from-[#141820]/92 via-[#1a1814]/90 to-[#0c1210]/95 px-6 py-10 sm:px-12 sm:py-12 shadow-[0_40px_90px_-36px_rgba(0,0,0,0.7)]">
+              <div className="absolute inset-0 bg-[radial-gradient(ellipse_50%_50%_at_0%_0%,rgba(163,230,53,0.12),transparent_55%)] pointer-events-none" />
+              <div className="fc-sell-champagne-card__sheen opacity-35" />
+              <div className="relative grid lg:grid-cols-[1.2fr_0.8fr] gap-8 items-center">
+                <div>
+                  <p className="fc-sell-kicker mb-4">{copy.eyebrow}</p>
+                  <LandingTypewriterTitle
+                    text="Payment plans that report "
+                    accentText="while you build"
+                    className="fc-sell-serif text-3xl sm:text-4xl lg:text-[2.75rem] font-semibold leading-[1.1] text-white"
+                    accentClassName="text-[#a3e635] italic"
+                  />
+                  <p className="mt-4 text-sm sm:text-base text-white/55 leading-relaxed max-w-xl">{copy.description}</p>
+                  <ul className="mt-5 flex flex-wrap gap-2">
+                    {copy.bullets.map((b) => (
+                      <li
+                        key={b}
+                        className="inline-flex items-center gap-1.5 rounded-full border border-[#e0b24a]/25 bg-black/25 px-3 py-1.5 text-[11px] text-white/65"
+                      >
+                        <CheckCircle2 size={12} className="text-[#a3e635] shrink-0" />
+                        {b}
+                      </li>
+                    ))}
+                  </ul>
+                  <p className="fc-sell-compliance mt-5">{copy.compliance}</p>
+                </div>
+                <div className="fc-sell-champagne-card p-6 sm:p-7 text-center">
+                  <div className="fc-sell-champagne-card__sheen" />
+                  <div className="relative">
+                    <p className="text-[10px] font-black uppercase tracking-[0.28em] text-[#9a6b1a]">Financing readiness</p>
+                    <p className="fc-sell-serif mt-3 text-2xl font-semibold text-[#0c1228]">Check pre-approval</p>
+                    <p className="mt-2 text-sm text-[#3d4558] leading-relaxed">
+                      A short application — know your options before you commit. No vendor named in our copy.
+                    </p>
+                    <button
+                      type="button"
+                      disabled={busy}
+                      onClick={() => void openCompact()}
+                      className="fc-sell-cta-gold mt-6 w-full"
+                    >
+                      {busy ? 'Opening…' : copy.primaryCta} <ArrowRight size={16} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => navigate('/enlightenment-session')}
+                      className="mt-3 text-xs text-[#3d4558] hover:text-[#9a6b1a] transition-colors underline-offset-4 hover:underline"
+                    >
+                      {copy.secondaryCta}
+                    </button>
+                    {notice ? <p className="mt-3 text-xs text-[#9a6b1a]">{notice}</p> : null}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </Reveal>
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section
       id="financing-preapproval"
@@ -77,8 +178,7 @@ export function LandingFinancingPreapprovalSection() {
                   {copy.eyebrow}
                 </div>
                 <h2 className={`mt-3 text-3xl lg:text-4xl font-light ${FINELY_OS_ENTITY_VALUE}`}>
-                  Payment plans that report{' '}
-                  <span className="text-emerald-300 font-medium">while you build</span>
+                  Payment plans that report <span className="text-emerald-300 font-medium">while you build</span>
                 </h2>
                 <p className={`mt-3 text-sm sm:text-base leading-relaxed max-w-xl ${FINELY_OS_ENTITY_BODY}`}>
                   {copy.description}

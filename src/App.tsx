@@ -7,10 +7,17 @@ import { BrowserRouter, Routes, Route, useLocation, useNavigate, Navigate, usePa
 
 // Import all components
 import { Button, Reveal, Toast, LiveApprovalTicker, MobileNav, FullPageLoader, AppErrorBoundary, FlashyIcon } from './components/ui';
-import { 
-  HeroSection, TradelineMarketplace, 
-  TestimonialDossier, WhatMakesDifferentSection,
-  Footer, LandingPathChooserSection,
+import {
+  HeroSection,
+  TradelineMarketplace,
+  TestimonialDossier,
+  WhatMakesDifferentSection,
+  Footer,
+  LandingPathChooserSection,
+  LandingSolutionsSnapshotSection,
+  LandingDebtEradicationBand,
+  LandingAuthorizedUserSection,
+  LandingFinancingPreapprovalSection,
 } from './components/landing';
 import { SovereignPortal } from './components/portal';
 import { MasteryOSDashboard } from './components/dashboard';
@@ -38,6 +45,7 @@ import { FinelySiteThemeProvider } from './features/os/FinelySiteThemeProvider';
 import { FinelyThemeToggle } from './features/os/FinelyThemeToggle';
 import { shouldShowPublicThemeToggle } from './lib/finelyThemeAccess';
 import { PUBLIC_CORE_NAV } from './config/siteWayfinderLanes';
+import { FinelyPublicNavSolutionsMenu } from './features/os/FinelyPublicNavSolutionsMenu';
 import { FinelyPublicNavResourcesMenu } from './features/os/FinelyPublicNavResourcesMenu';
 import { FinelyPublicNavContactMenu } from './features/os/FinelyPublicNavContactMenu';
 import { FinelyPublicNavCareerMenu } from './features/os/FinelyPublicNavCareerMenu';
@@ -194,6 +202,11 @@ const AuRequestPage = lazy(() => import('./pages/au/AuRequestPage'));
 const AuOrdersPage = lazy(() => import('./pages/au/AuOrdersPage'));
 
 const ResourcesPage = lazy(() => import('./pages/ResourcesPage'));
+const ResourcesGuidesPage = lazy(() => import('./pages/ResourcesGuidesPage'));
+const ResourcesOneSheetsHubPage = lazy(() => import('./pages/ResourcesOneSheetsHubPage'));
+const ResourcesCreditMonitoringPage = lazy(() => import('./pages/ResourcesCreditMonitoringPage'));
+const ResourcesVideosPage = lazy(() => import('./pages/ResourcesVideosPage'));
+const ResourcesReferencesPage = lazy(() => import('./pages/ResourcesReferencesPage'));
 const BusinessCreditOneSheetsPage = lazy(() => import('./pages/BusinessCreditOneSheetsPage'));
 const StartHerePage = lazy(() => import('./pages/StartHerePage'));
 const LaunchHelpCenterPage = lazy(() => import('./pages/LaunchHelpCenterPage'));
@@ -252,6 +265,7 @@ const AgentsPage = lazy(() => import('./pages/AgentsPage'));
 const CreditSpecialistPricingPage = lazy(() => import('./pages/CreditSpecialistPricingPage'));
 const CreditSpecialistJoinPage = lazy(() => import('./pages/CreditSpecialistJoinPage'));
 const CaseHelpCareersPage = lazy(() => import('./pages/CaseHelpCareersPage'));
+const RealEstateCareersPage = lazy(() => import('./pages/RealEstateCareersPage'));
 const AgencySignupPage = lazy(() => import('./pages/agency/AgencySignupPage'));
 const AgencyPartnersPage = lazy(() => import('./pages/agency/AgencyPartnersPage'));
 const AgentHubPage = lazy(() => import('./pages/agent/AgentHubPage'));
@@ -356,7 +370,7 @@ function ConsultationCanonicalRedirect() {
   return <Navigate to={`/enlightenment-session${search}`} replace />;
 }
 
-/** Legacy `/blog/:slug` bookmarks → Resources while preserving the slug for support/analytics. */
+/** Legacy `/blog/:slug` bookmarks → Guides index while preserving the slug for support/analytics. */
 function BlogCanonicalRedirect() {
   const { slug } = useParams();
   const { search } = useLocation();
@@ -364,7 +378,7 @@ function BlogCanonicalRedirect() {
   if (slug) params.set('slug', slug);
   params.set('from', 'blog');
   const qs = params.toString();
-  return <Navigate to={`/resources${qs ? `?${qs}` : ''}`} replace />;
+  return <Navigate to={`/resources/guides${qs ? `?${qs}` : ''}`} replace />;
 }
 
 /** Legacy business funding URL → canonical Lender Logic workspace. */
@@ -405,7 +419,19 @@ function LandingRoute({ onGetStarted, onViewTradelines, onNavigate, addToCart, o
       {/* 2. Path chooser */}
       <LandingPathChooserSection />
 
-      {/* 3. Free guide band */}
+      {/* 3. DFY / Solutions — platinum champagne */}
+      <LandingSolutionsSnapshotSection onViewPricing={onViewPricing} />
+
+      {/* 4. Debt eradication */}
+      <LandingDebtEradicationBand />
+
+      {/* 5. Authorized User program ($50) */}
+      <LandingAuthorizedUserSection />
+
+      {/* 6. In-house financing (compact) */}
+      <LandingFinancingPreapprovalSection variant="compact" />
+
+      {/* 7. Free guide teaser */}
       <section className={`py-12 sm:py-16 ${finelyOsLandingContrastSection('fc-band-violet')}`} data-fc-contrast-band="1">
         <div className="container mx-auto px-4 sm:px-6 max-w-6xl">
           <Reveal>
@@ -445,88 +471,7 @@ function LandingRoute({ onGetStarted, onViewTradelines, onNavigate, addToCart, o
         </div>
       </section>
 
-      {/* 4. Solutions snapshot → pricing (+ demoted payment-plans link) */}
-      <section className={`py-16 sm:py-20 ${finelyOsLightMeshSection('fc-band-violet')}`}>
-        <div className="container mx-auto px-4 sm:px-6 max-w-6xl">
-          <div className="text-center mb-10">
-            <Reveal>
-              <p className="text-xs font-bold tracking-[0.3em] text-amber-500 uppercase mb-4">Solutions</p>
-              <h2 className="text-3xl lg:text-4xl font-light text-white mb-4">
-                DIY or Done‑For‑You — <span className="text-amber-500">your choice</span>
-              </h2>
-              <p className="text-white/50 max-w-2xl mx-auto">
-                Personal restore, business credit, debt strategy, tradelines, and wealth builder — one clear pricing page.
-              </p>
-            </Reveal>
-          </div>
-          <div className="grid md:grid-cols-3 gap-5">
-            {[
-              { title: 'DIY', range: 'Tools + templates', note: 'Move fast with resources and workflows', Icon: Zap, featured: false, iconColor: 'emerald' as const },
-              { title: 'DFY', range: 'Execution + support', note: 'We build the packets, strategy, and tracking', Icon: Shield, featured: true, iconColor: 'amber' as const },
-              { title: 'Wealth Builder', range: 'Funding pathways', note: 'From credit stability → capital readiness', Icon: Trophy, featured: false, iconColor: 'sky' as const },
-            ].map((card) =>
-              card.featured ? (
-                <div
-                  key={card.title}
-                  className="relative rounded-2xl overflow-hidden text-left shadow-[0_28px_70px_-24px_rgba(245,158,11,0.65)] ring-1 ring-amber-400/50"
-                >
-                  <div className="absolute inset-0 bg-gradient-to-br from-white via-amber-50/80 to-white" />
-                  <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600" />
-                  <div className="relative p-6">
-                    <div className="absolute top-0 right-0 px-3 py-1 rounded-bl-xl bg-amber-500 text-black text-[9px] font-black uppercase tracking-widest">
-                      Most popular
-                    </div>
-                    <FlashyIcon icon={card.Icon} color="amber" size="md" className="mb-4" />
-                    <div className="text-gray-900 font-bold text-lg">{card.title}</div>
-                    <div className="mt-1 text-amber-600 text-lg font-semibold">{card.range}</div>
-                    <div className="mt-2 text-gray-600 text-sm leading-relaxed">{card.note}</div>
-                  </div>
-                </div>
-              ) : (
-                <div
-                  key={card.title}
-                  className={`${finelyOsCatalogCard(card.iconColor)} p-6 text-left transition-colors`}
-                  data-fc-accent={card.iconColor}
-                >
-                  <FlashyIcon icon={card.Icon} color={card.iconColor} size="sm" className="mb-4" />
-                  <div className={`${FINELY_OS_ENTITY_VALUE} font-semibold text-lg`}>{card.title}</div>
-                  <div className={`mt-1 text-lg font-semibold ${FINELY_OS_ENTITY_BODY}`}>{card.range}</div>
-                  <div className={`mt-2 ${FINELY_OS_ENTITY_BODY} text-sm`}>{card.note}</div>
-                </div>
-              ),
-            )}
-          </div>
-          <button
-            type="button"
-            onClick={onViewPricing}
-            className={`mt-6 w-full text-left ${finelyOsCatalogCard('sky')} !p-4 flex flex-wrap items-center justify-between gap-3`}
-            data-fc-accent="sky"
-          >
-            <span className="flex items-center gap-3">
-              <FlashyIcon icon={CreditCard} color="sky" size="sm" />
-              <span>
-                <span className={`block text-sm font-semibold ${FINELY_OS_ENTITY_VALUE}`}>Payment plans</span>
-                <span className={`block text-xs ${FINELY_OS_ENTITY_BODY}`}>
-                  Financing readiness lives under Solutions — subject to underwriting.
-                </span>
-              </span>
-            </span>
-            <span className="inline-flex items-center gap-1 text-sm font-semibold text-sky-300">
-              View on pricing <ArrowRight size={14} />
-            </span>
-          </button>
-          <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
-            <Button onClick={onViewPricing} size="md">
-              See solutions <ArrowRight size={16} />
-            </Button>
-            <Button variant="outline" onClick={() => navigate('/free-guide')} size="md">
-              Start free guide
-            </Button>
-          </div>
-        </div>
-      </section>
-
-      {/* 5. Social proof + compliance */}
+      {/* 8. Social proof + compliance */}
       <section className={`py-16 sm:py-20 ${finelyOsLightMeshSection('fc-band-dark')}`}>
         <div className="container mx-auto px-4 sm:px-6 max-w-6xl">
           <FinelyOsComplianceStrip className="mb-10" />
@@ -581,7 +526,7 @@ function LandingRoute({ onGetStarted, onViewTradelines, onNavigate, addToCart, o
         </div>
       </section>
 
-      {/* 6. Final CTA */}
+      {/* 9. Final CTA */}
       <section className={`py-20 lg:py-28 relative overflow-hidden ${finelyOsLandingPlatinumSection()}`} data-fc-contrast-band="1">
         <div className="absolute inset-0 bg-gradient-to-b from-[#1f1f1f] via-[#282828] to-[#1a1a1a]" />
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_40%_at_50%_60%,rgba(16,185,129,0.15),transparent_70%)]" />
@@ -627,7 +572,7 @@ function LandingRoute({ onGetStarted, onViewTradelines, onNavigate, addToCart, o
         </div>
       </section>
 
-      {/* 7. Footer */}
+      {/* 10. Footer */}
       <Footer onNavigate={(page) => onNavigate(page as NavView)} />
     </div>
   );
@@ -1330,7 +1275,21 @@ function AppInner() {
               {/* Desktop header — nav + actions (logo is viewport-anchored above) */}
               <div className="hidden lg:flex items-center justify-between w-full overflow-visible gap-4">
                 <div className="fc-nav-rail min-w-0">
-                    {PUBLIC_CORE_NAV.map((item) => {
+                    {PUBLIC_CORE_NAV.filter((item) => item.id === 'home').map((item) => {
+                      const active = item.match(location.pathname);
+                      return (
+                        <button
+                          key={item.id}
+                          type="button"
+                          onClick={() => handleNavigate(item.path)}
+                          className={active ? 'fc-nav-pill-compact fc-nav-pill-active' : 'fc-nav-pill-compact'}
+                        >
+                          {item.label}
+                        </button>
+                      );
+                    })}
+                    <FinelyPublicNavSolutionsMenu pathname={location.pathname} onNavigate={(path) => handleNavigate(path)} />
+                    {PUBLIC_CORE_NAV.filter((item) => item.id === 'free-guide').map((item) => {
                       const active = item.match(location.pathname);
                       return (
                         <button
@@ -1511,7 +1470,16 @@ function AppInner() {
         <Route path="/start-here" element={<StartHerePage />} />
         <Route path="/help-center" element={<LaunchHelpCenterPage />} />
         <Route path="/resources" element={<ResourcesPage />} />
+        <Route path="/resources/guides" element={<ResourcesGuidesPage />} />
+        <Route path="/resources/one-sheets" element={<ResourcesOneSheetsHubPage />} />
+        <Route path="/resources/credit-monitoring" element={<ResourcesCreditMonitoringPage />} />
+        <Route path="/resources/videos" element={<ResourcesVideosPage />} />
+        <Route path="/resources/references" element={<ResourcesReferencesPage />} />
         <Route path="/resources/business-credit-one-sheets" element={<BusinessCreditOneSheetsPage />} />
+        {/* Aliases — keep bookmarks; do not delete canonical routes */}
+        <Route path="/guides" element={<Navigate to="/resources/guides" replace />} />
+        <Route path="/one-sheets" element={<Navigate to="/resources/one-sheets" replace />} />
+        <Route path="/partner-stories" element={<Navigate to="/testimonials" replace />} />
         <Route path="/events" element={<EventsPage />} />
         <Route path="/testimonials" element={<TestimonialsPage />} />
         <Route path="/bookstore" element={<BookstorePage />} />
@@ -1533,6 +1501,8 @@ function AppInner() {
         <Route path="/credit-specialist/join" element={<CreditSpecialistJoinPage />} />
         <Route path="/credit-specialist/onboarding" element={<Navigate to="/credit-specialist/join" replace />} />
         <Route path="/careers/case-help" element={<CaseHelpCareersPage />} />
+        <Route path="/careers/real-estate" element={<RealEstateCareersPage />} />
+        <Route path="/real-estate-partners" element={<Navigate to="/careers/real-estate" replace />} />
         <Route path="/agency-partners" element={<AgencyPartnersPage />} />
         <Route path="/agents" element={<Navigate to="/credit-specialists" replace />} />
         <Route

@@ -178,7 +178,15 @@ export function PageShell({
     !pathname.startsWith('/account') &&
     !pathname.startsWith('/claim') &&
     !pathname.startsWith('/partner-setup');
-  const showWayfinder = useLargeTopPad && pathname !== '/';
+  // Lane picker only on solution-intent pages (redundant with main nav elsewhere).
+  const showWayfinder =
+    useLargeTopPad &&
+    (pathname === '/pricing' ||
+      pathname.startsWith('/pricing/') ||
+      pathname === '/services' ||
+      pathname.startsWith('/services/') ||
+      pathname === '/start-here' ||
+      pathname.startsWith('/start-here/'));
   const topPad = useLargeTopPad ? (showWayfinder ? 'pt-52' : 'pt-28') : 'pt-[max(0.75rem,env(safe-area-inset-top))]';
   const isAdmin = pathname.startsWith('/admin');
   const isPortal = pathname.startsWith('/portal');
@@ -489,7 +497,7 @@ export function PageShell({
           <NotificationsBell />
           <UserAccountMenu />
         </div>
-      ) : showWayfinder && showThemeToggle ? (
+      ) : useLargeTopPad && showThemeToggle ? (
         <div className="fixed top-4 right-4 sm:top-5 sm:right-6 z-[180]">
           <FinelyThemeToggle compact />
         </div>

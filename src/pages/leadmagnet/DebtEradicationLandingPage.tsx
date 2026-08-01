@@ -21,6 +21,7 @@ import { getLeadMagnetVisualTheme } from '../../components/leadmagnet/leadMagnet
 import { DEBT_FUNNEL } from '../../domain/leadMagnetFunnels';
 import { usePublicSeoMeta } from '../../hooks/usePublicSeoMeta';
 import { PremiumLeadMagnetCaptureForm } from '../../components/leadmagnet/PremiumLeadMagnetCaptureForm';
+import { LandingTypewriterTitle } from '../../components/landing/LandingTypewriterTitle';
 import '../../components/leadmagnet/premiumLeadMagnetShared.css';
 import '../../components/leadmagnet/leadMagnetLuxuryStage.css';
 import './debtEradicationLanding.css';
@@ -257,7 +258,7 @@ export default function DebtEradicationLandingPage() {
       <div className="pointer-events-none fixed inset-x-0 top-0 z-0 h-[420px] bg-gradient-to-b from-[#060c2f]/55 to-transparent" />
 
       {/* Hero — white field · title dark blue + gold · e-guide left | form right */}
-      <section className="del-hero-section del-hero-section--ivory relative z-10 border-b border-[#e0b24a]/30">
+      <section className="del-hero-section del-hero-section--ivory relative z-10 border-b border-[#e0b24a]/30 pt-20 md:pt-24">
         <div className="pointer-events-none absolute left-[8%] top-[18%] h-[380px] w-[380px] rounded-full bg-[#e0b24a]/12 blur-[110px]" />
         <div className="pointer-events-none absolute right-[10%] top-[22%] h-[320px] w-[320px] rounded-full bg-[#000c3c]/06 blur-[100px]" />
         <div className="absolute bottom-0 left-0 right-0 lm-lux-rule" />
@@ -267,8 +268,22 @@ export default function DebtEradicationLandingPage() {
             <div className="del-hero-titleblock text-center">
               <p className="del-hero-kicker text-[11px] font-black uppercase tracking-[0.22em] text-[#c4803d]">Free debt response guide</p>
               <h1 className="del-hero-title del-serif lm-lux-display mt-3 md:mt-4">
-                <span className="del-hero-title-line del-hero-title-line--navy">Annihilate Your Debt.</span>
-                <span className="del-hero-title-line del-hero-title-line--gold">Take Back Control.</span>
+                <LandingTypewriterTitle
+                  as="span"
+                  text="Annihilate Your Debt."
+                  className="del-hero-title-line del-hero-title-line--navy block"
+                  speedMs={40}
+                  delayMs={120}
+                  caret
+                />
+                <LandingTypewriterTitle
+                  as="span"
+                  text="Take Back Control."
+                  className="del-hero-title-line del-hero-title-line--gold block"
+                  speedMs={42}
+                  delayMs={980}
+                  caret
+                />
               </h1>
               <div className="del-hero-title-rule lm-lux-rule--draw mx-auto" aria-hidden />
               <p className="del-hero-lede mx-auto mt-5 max-w-xl md:mt-6">
@@ -308,9 +323,15 @@ export default function DebtEradicationLandingPage() {
           </div>
           <div className="del-video-column del-video-column--right">
             <SectionKicker>Exclusive video</SectionKicker>
-            <h2 className="del-serif mt-5 text-4xl font-black leading-[1.08] tracking-[-0.035em] md:text-5xl xl:text-6xl">
-              See How This System Can <span className="text-[#ffd993]">Change Your Life</span>
-            </h2>
+            <LandingTypewriterTitle
+              as="h2"
+              text="See How This System Can Change Your Life"
+              className="del-serif mt-5 text-4xl font-black leading-[1.08] tracking-[-0.035em] md:text-5xl xl:text-6xl"
+              highlight="Change Your Life"
+              highlightClassName="text-[#ffd993]"
+              speedMs={34}
+              delayMs={200}
+            />
             <p className="mt-5 max-w-xl text-base leading-relaxed text-white/65">
               A short, trust-building overview of the guide — so you know debt pressure is not the end of the story.
             </p>

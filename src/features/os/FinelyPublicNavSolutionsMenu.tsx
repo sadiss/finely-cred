@@ -1,8 +1,8 @@
 import React from 'react';
-import { PUBLIC_RESOURCES_SECTIONS, matchResourcesPath } from '../../config/siteWayfinderLanes';
+import { PUBLIC_SOLUTIONS_SECTIONS, matchSolutionsPath } from '../../config/siteWayfinderLanes';
 import { FinelyPublicNavDropdown } from './FinelyPublicNavDropdown';
 
-export function FinelyPublicNavResourcesMenu({
+export function FinelyPublicNavSolutionsMenu({
   pathname,
   onNavigate,
 }: {
@@ -11,11 +11,11 @@ export function FinelyPublicNavResourcesMenu({
 }) {
   return (
     <FinelyPublicNavDropdown
-      label="Resources"
+      label="Solutions"
       wide
       luxury
-      isActive={matchResourcesPath(pathname)}
-      sections={PUBLIC_RESOURCES_SECTIONS}
+      isActive={matchSolutionsPath(pathname)}
+      sections={PUBLIC_SOLUTIONS_SECTIONS}
       onNavigate={onNavigate}
     />
   );

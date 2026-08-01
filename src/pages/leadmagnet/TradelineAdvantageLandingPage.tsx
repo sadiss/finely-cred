@@ -11,7 +11,7 @@ import {
   TrendingUp,
   User,
 } from 'lucide-react';
-import { LeadMagnetCobrand, LeadMagnetCobrandFooterMarks } from '../../components/brand/LeadMagnetCobrand';
+import { LeadMagnetCobrandFooterMarks } from '../../components/brand/LeadMagnetCobrand';
 import { LeadMagnetFunnelHeroVideo } from '../../components/leadmagnet/LeadMagnetFunnelHeroVideo';
 import { getLeadMagnetVisualTheme } from '../../components/leadmagnet/leadMagnetVisualThemes';
 import { TRADELINE_FUNNEL } from '../../domain/leadMagnetFunnels';
@@ -284,13 +284,7 @@ export default function TradelineAdvantageLandingPage() {
       <div className="fc-premium-noise pointer-events-none fixed inset-0 z-0 opacity-[0.04]" />
       <div className="pointer-events-none fixed inset-x-0 top-0 z-0 h-[420px] bg-gradient-to-b from-[#2a1430]/55 to-transparent" />
 
-      <header className="relative z-20">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-5 py-5 md:px-8">
-          <LeadMagnetCobrand size="sm" />
-        </div>
-      </header>
-
-      <section className="tla-hero-section relative z-10 border-b border-[#5c2d54]/40">
+      <section className="tla-hero-section relative z-10 border-b border-[#5c2d54]/40 pt-20 md:pt-24">
         <div className="fc-hero-vignette absolute inset-0 bg-[radial-gradient(circle_at_22%_55%,rgba(212,164,71,0.16),transparent_28%),radial-gradient(circle_at_18%_62%,rgba(92,45,84,0.22),transparent_30%),radial-gradient(circle_at_30%_70%,rgba(26,58,110,0.14),transparent_26%)]" />
         <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#d4a447]/60 via-[#7b3f8f]/50 to-transparent" />
         <div className="tla-hero-grid mx-auto grid items-center gap-10 px-5 md:px-8 lg:items-center">

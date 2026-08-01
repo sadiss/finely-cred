@@ -21,14 +21,21 @@ import { FinelyUnifiedHubLayout } from '../features/unified/FinelyUnifiedHubLayo
 import { MarketingStaffChatStrip } from '../components/marketing/MarketingStaffChatStrip';
 import { openPublicChat } from '../lib/publicChatEvents';
 import { usePublicSeoMeta } from '../hooks/usePublicSeoMeta';
+import { LandingTypewriterTitle } from '../components/landing/LandingTypewriterTitle';
 import {
   FINELY_OS_BACK_LINK,
   FINELY_OS_COMPLIANCE_FOOTNOTE,
+  FINELY_OS_LANDING_IVORY_BODY,
+  FINELY_OS_LANDING_IVORY_KICKER,
+  FINELY_OS_LANDING_IVORY_TITLE,
   FINELY_OS_PAGE,
   FINELY_OS_PRIMARY_BTN,
   FINELY_OS_SECONDARY_BTN,
   FINELY_OS_SUCCESS_BTN,
   finelyOsCatalogCard,
+  finelyOsLandingContrastSection,
+  finelyOsLandingIvoryCard,
+  finelyOsLandingWealthyIvorySection,
 } from '../features/os/finelyOsLightUi';
 
 type LaneTab = 'offer' | 'tiers' | 'economics' | 'included' | 'join';
@@ -74,24 +81,22 @@ export default function CreditSpecialistPricingPage() {
 
         <CareersQuickNav active="credit_specialists" className="mt-6" />
 
-        {/* Marketing-luxury hero composition */}
+        {/* Dark depth hero */}
         <section
-          className="relative overflow-hidden rounded-3xl border-2 border-violet-200 bg-gradient-to-br from-slate-950 via-violet-950 to-slate-900 text-white p-6 sm:p-10 lg:p-12"
+          className={`relative overflow-hidden rounded-3xl border border-white/10 p-6 sm:p-10 lg:p-12 ${finelyOsLandingContrastSection('fc-band-violet')}`}
+          data-fc-contrast-band="1"
           data-fc-accent="violet"
         >
-          <div
-            className="pointer-events-none absolute inset-0 opacity-40"
-            style={{
-              background:
-                'radial-gradient(ellipse 80% 60% at 20% 20%, rgba(245,200,90,0.25), transparent), radial-gradient(ellipse 60% 50% at 90% 80%, rgba(139,92,246,0.35), transparent)',
-            }}
-            aria-hidden
-          />
           <div className="relative space-y-5 max-w-3xl">
             <p className="text-xs sm:text-sm font-bold uppercase tracking-[0.22em] text-amber-300">Finely Cred · {CS.programName}</p>
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight leading-tight">
-              Credit Specialist pricing — clear tiers, real access
-            </h1>
+            <LandingTypewriterTitle
+              as="h1"
+              text="Clear tiers. Real access. Zero platform fee."
+              className="text-4xl sm:text-5xl lg:text-[3.35rem] font-bold tracking-tight leading-[1.08] text-white"
+              highlight="Zero platform fee."
+              highlightClassName="text-amber-400"
+              speedMs={36}
+            />
             <p className="text-base sm:text-lg text-white/75 leading-relaxed">
               Bring at least <strong className="text-white">{CS_OFFER.minLeadsRequired} partner leads</strong>. You get{' '}
               <strong className="text-white">{CS_OFFER.freeLeadsWindowDays} days</strong> to source them free with Finely
@@ -155,25 +160,31 @@ export default function CreditSpecialistPricingPage() {
             <div className="space-y-8">
               <CreditSpecialistLeadRulesPanel />
 
-              <section className={`${finelyOsCatalogCard('violet')} !p-6 sm:!p-10 border-2 space-y-6`}>
+              <section className={`${finelyOsLandingWealthyIvorySection()} rounded-3xl !p-6 sm:!p-10 space-y-6`}>
                 <div>
-                  <p className={CS_PUBLIC.sectionKicker}>Opportunity</p>
-                  <h2 className={`mt-2 ${CS_PUBLIC.sectionTitle}`}>{CS_OPPORTUNITY_FRAMING.headline}</h2>
-                  <p className={`mt-3 ${CS_PUBLIC.sectionLead}`}>{CS_OPPORTUNITY_FRAMING.subline}</p>
+                  <p className={FINELY_OS_LANDING_IVORY_KICKER}>Opportunity</p>
+                  <LandingTypewriterTitle
+                    as="h2"
+                    text={CS_OPPORTUNITY_FRAMING.headline}
+                    className={`mt-2 ${FINELY_OS_LANDING_IVORY_TITLE}`}
+                    delayMs={200}
+                    speedMs={34}
+                  />
+                  <p className={`mt-3 ${FINELY_OS_LANDING_IVORY_BODY}`}>{CS_OPPORTUNITY_FRAMING.subline}</p>
                 </div>
                 <div className="grid md:grid-cols-3 gap-4">
                   {CS_OPPORTUNITY_FRAMING.pillars.map((p, i) => {
                     const Icon = i === 0 ? TrendingUp : i === 1 ? Target : Sparkles;
                     return (
-                      <div key={p.title} className="rounded-2xl border-2 border-violet-200 bg-white p-5 space-y-3">
-                        <Icon className="text-violet-600" size={22} />
-                        <h3 className={CS_PUBLIC.cardTitle}>{p.title}</h3>
-                        <p className={CS_PUBLIC.bodySm}>{p.body}</p>
+                      <div key={p.title} className={`${finelyOsLandingIvoryCard()} space-y-3`}>
+                        <Icon className="text-[#0a1628]" size={22} />
+                        <h3 className="text-lg font-bold text-[#0a1628]">{p.title}</h3>
+                        <p className="text-sm leading-relaxed text-[#0a1628]/68">{p.body}</p>
                       </div>
                     );
                   })}
                 </div>
-                <p className={`${CS_PUBLIC.bodySm} rounded-xl border-2 border-amber-200 bg-amber-50 px-4 py-3`}>
+                <p className={`${FINELY_OS_LANDING_IVORY_BODY} rounded-xl border border-amber-800/20 bg-amber-500/10 px-4 py-3`}>
                   {CS_OPPORTUNITY_FRAMING.earningsNote}
                 </p>
                 <div className="flex flex-wrap gap-3">

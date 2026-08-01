@@ -40,7 +40,7 @@ const PATHS: Array<{
   {
     icon: Briefcase,
     title: 'Earn · Careers',
-    desc: 'Credit Specialist, agency, affiliate, and AU seller tracks.',
+    desc: 'Credit Specialist, agency, affiliate, real estate, and AU seller tracks.',
     path: '/credit-specialist',
     cta: 'Explore careers',
     accent: 'amber',

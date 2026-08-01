@@ -18,12 +18,13 @@ import {
   TriangleAlert,
   Users,
 } from 'lucide-react';
-import { LeadMagnetCobrand, LeadMagnetCobrandFooterMarks } from '../../components/brand/LeadMagnetCobrand';
+import { LeadMagnetCobrandFooterMarks } from '../../components/brand/LeadMagnetCobrand';
 import { LeadMagnetFunnelHeroVideo } from '../../components/leadmagnet/LeadMagnetFunnelHeroVideo';
 import { getLeadMagnetVisualTheme } from '../../components/leadmagnet/leadMagnetVisualThemes';
 import { BUSINESS_FUNNEL } from '../../domain/leadMagnetFunnels';
 import { usePublicSeoMeta } from '../../hooks/usePublicSeoMeta';
 import { PremiumLeadMagnetCaptureForm } from '../../components/leadmagnet/PremiumLeadMagnetCaptureForm';
+import { LandingTypewriterTitle } from '../../components/landing/LandingTypewriterTitle';
 import '../../components/leadmagnet/premiumLeadMagnetShared.css';
 import '../../components/leadmagnet/leadMagnetLuxuryStage.css';
 import './businessCreditPowerGuideLanding.css';
@@ -251,26 +252,8 @@ export default function BusinessCreditPowerGuideLandingPage() {
       </div>
       <div className="lm-lux-grain lm-lux-grain--fixed pointer-events-none" aria-hidden />
 
-      <header className="bcpg-nav fixed inset-x-0 top-0 z-50">
-        <div className="mx-auto flex h-[4.5rem] max-w-[88rem] items-center justify-between gap-6 px-5 md:px-10">
-          <LeadMagnetCobrand size="sm" />
-          <nav className="hidden items-center gap-9 text-[13px] font-medium tracking-wide text-white/72 lg:flex">
-            <a href="#guide" className="transition hover:text-[#95e000]">Business Credit</a>
-            <a href="#tools" className="transition hover:text-[#95e000]">Credit Tools</a>
-            <a href="#why" className="transition hover:text-[#95e000]">Resources</a>
-            <a href="#results" className="transition hover:text-[#95e000]">Reviews</a>
-          </nav>
-          <a
-            href="#download"
-            className="bcpg-nav-cta inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-[10px] font-bold uppercase tracking-[0.16em] text-[#e8c96a]"
-          >
-            <Download size={14} /> Get Your Free E-Guide
-          </a>
-        </div>
-      </header>
-
-      {/* Hero — short composition: copy + mockup, then soft capture */}
-      <section className="relative z-10 overflow-x-hidden pt-[4.5rem]">
+      {/* Site nav owns branding — no duplicate cobrand strip */}
+      <section className="relative z-10 overflow-x-hidden pt-20 md:pt-24">
         <div className="absolute inset-0 bg-[#030504]" />
         <div
           className="absolute inset-0 bg-cover bg-[center_55%] opacity-[0.22] saturate-[1.02] brightness-[0.7]"
@@ -292,8 +275,22 @@ export default function BusinessCreditPowerGuideLandingPage() {
             <div className="bcpg-hero-copy">
               <p className="text-[11px] font-bold uppercase tracking-[0.28em] text-[#95e000]">Free E-Guide</p>
               <h1 className="bcpg-serif bcpg-hero-title lm-lux-display mt-4 text-white">
-                <span>Business Credit</span>
-                <span className="bcpg-hero-title-gold mt-1">Power Guide</span>
+                <LandingTypewriterTitle
+                  as="span"
+                  text="Business Credit"
+                  className="block"
+                  speedMs={40}
+                  delayMs={100}
+                  caret
+                />
+                <LandingTypewriterTitle
+                  as="span"
+                  text="Power Guide"
+                  className="bcpg-hero-title-gold mt-1 block"
+                  speedMs={44}
+                  delayMs={780}
+                  caret
+                />
               </h1>
               <div className="lm-lux-rule--short lm-lux-rule--draw mt-5" aria-hidden />
               <p className="lm-lux-lede mt-6 max-w-md text-white/82">
@@ -500,10 +497,16 @@ export default function BusinessCreditPowerGuideLandingPage() {
         <div className="relative mx-auto flex max-w-[88rem] flex-col items-center gap-8 px-5 md:px-10 lg:flex-row lg:justify-between">
           <div className="max-w-xl text-center lg:text-left">
             <ShieldCheck size={36} className="mx-auto text-[#d4a447] lg:mx-0" strokeWidth={1.25} />
-            <h2 className="bcpg-serif mt-3 text-3xl leading-tight text-white md:text-4xl lg:text-5xl">
-              Your business deserves better funding options.
-              <span className="mt-2 block text-[#95e000]">Start with this free guide.</span>
-            </h2>
+            <LandingTypewriterTitle
+              as="h2"
+              text="Your business deserves better funding options."
+              className="bcpg-serif mt-3 text-3xl leading-tight text-white md:text-4xl lg:text-5xl"
+              highlight="better funding options."
+              highlightClassName="text-[#95e000]"
+              speedMs={34}
+              delayMs={160}
+            />
+            <p className="mt-2 text-2xl font-semibold text-[#95e000] md:text-3xl">Start with this free guide.</p>
             <p className="bcpg-compliance mt-3">
               Results vary · not legal advice · funding subject to underwriting
             </p>

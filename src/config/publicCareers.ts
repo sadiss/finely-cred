@@ -4,7 +4,8 @@ export type PublicCareerTrackId =
   | 'agency_partners'
   | 'affiliates'
   | 'au_sellers'
-  | 'case_help';
+  | 'case_help'
+  | 'real_estate';
 
 export type PublicCareerTrack = {
   id: PublicCareerTrackId;
@@ -56,6 +57,15 @@ export const PUBLIC_CAREER_TRACKS: PublicCareerTrack[] = [
     hint: 'Help litigation & debt cases',
     description:
       'Paralegals, attorneys/counsel, and consultants who support partner debt and litigation case work (letters, meetings, dockets).',
+  },
+  {
+    id: 'real_estate',
+    label: 'Real estate partners',
+    shortLabel: 'Real estate',
+    path: '/careers/real-estate',
+    hint: 'Buyer / seller underwriting readiness',
+    description:
+      'Agents and brokers who guide partners through credit restore, AU optics education, dispute speed, and lender-side rescore prep — no approval guarantees.',
   },
 ];
 
