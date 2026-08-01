@@ -303,14 +303,15 @@
 
 @media (min-width: 1024px) {
   .del-mockup-stack--hero {
-    width: 100%;
+    /* Bleed wider than the column so the book reads bigger — grow sideways/down only,
+       never upward, so it can never climb into the title block above it. */
+    width: 118%;
     max-width: none;
-    margin-left: 0;
-    margin-right: 0;
+    margin-left: -9%;
+    margin-right: -9%;
     padding-bottom: 2rem;
     overflow: visible;
     transform: none;
-    transform-origin: center bottom;
   }
 }
 
@@ -443,12 +444,24 @@
     max-width: min(100%, 1680px);
     max-height: min(94vh, 1180px);
   }
+
+  .del-mockup-stack--hero {
+    width: 124%;
+    margin-left: -12%;
+    margin-right: -12%;
+  }
 }
 
 @media (min-width: 1600px) {
   .del-mockup--hero {
     max-width: min(100%, 1840px);
     max-height: min(96vh, 1280px);
+  }
+
+  .del-mockup-stack--hero {
+    width: 128%;
+    margin-left: -14%;
+    margin-right: -14%;
   }
 }
 
