@@ -1,8 +1,8 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import {
-  ArrowRight,
   BarChart3,
-  CheckCircle2,
+  Calendar,
   ChevronRight,
   Cog,
   Quote,
@@ -31,51 +31,6 @@ const FOOTER_CTA_BG =
 
 function cn(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(' ');
-}
-
-function GoldButton({
-  children,
-  className,
-  type = 'button',
-  disabled = false,
-}: {
-  children: React.ReactNode;
-  className?: string;
-  type?: 'button' | 'submit';
-  disabled?: boolean;
-}) {
-  return (
-    <button
-      type={type}
-      disabled={disabled}
-      className={cn(
-        'group relative inline-flex h-14 items-center justify-center overflow-hidden rounded-xl border border-[#f5dfa0]/55 bg-[linear-gradient(135deg,#7a5a14_0%,#d4a447_42%,#f0cc75_68%,#a67c1a_100%)] px-7 text-[11px] font-black uppercase tracking-[0.14em] text-[#06101f] shadow-[0_18px_55px_rgba(212,164,71,0.32),inset_0_1px_0_rgba(255,255,255,0.45)] transition duration-300 hover:-translate-y-0.5 hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-70',
-        className,
-      )}
-    >
-      <span className="relative z-10 flex items-center justify-center gap-2">{children}</span>
-      <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/45 to-transparent transition duration-700 group-hover:translate-x-full" />
-    </button>
-  );
-}
-
-function SectionKicker({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="inline-flex items-center gap-2 rounded-full border border-[#d4a447]/35 bg-[#d4a447]/10 px-4 py-2 text-[10px] font-black uppercase tracking-[0.24em] text-[#f0cc75]">
-      {children}
-    </div>
-  );
-}
-
-function MiniCheck({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="flex items-start gap-3 text-sm leading-relaxed text-white/72">
-      <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#d4a447] text-[#05101e]">
-        <CheckCircle2 size={13} strokeWidth={3} />
-      </span>
-      <span>{children}</span>
-    </div>
-  );
 }
 
 function GuideMockup({ variant = 'bundle' }: { variant?: 'bundle' | 'book' }) {
@@ -223,8 +178,6 @@ export default function AgencyGuideLandingPage() {
     },
   ];
 
-  const logos = ['Elevate', 'Northbridge', 'Vespera', 'Altitude', 'Lumen', 'Apex'];
-
   const steps = [
     { n: 1, title: 'Get Your Guide', desc: 'Download instantly and start reading.' },
     { n: 2, title: 'Implement', desc: 'Apply the frameworks to your agency.' },
@@ -258,18 +211,26 @@ export default function AgencyGuideLandingPage() {
               Build a Profitable Agency, Attract Better Clients, and Create More Time, Income, and{' '}
               <span className="font-semibold text-[#f0cc75]">Freedom</span>.
             </p>
-            <div className="mt-7 grid gap-3">
-              <MiniCheck>Get clarity on your offers and positioning</MiniCheck>
-              <MiniCheck>Attract better clients with confidence</MiniCheck>
-              <MiniCheck>Build scalable systems that save time</MiniCheck>
-              <MiniCheck>Create more income and freedom without burnout</MiniCheck>
-            </div>
-            <div className="agc-hero-form mt-8 rounded-2xl p-6">
+            <p className="mt-5 max-w-xl text-sm leading-relaxed text-white/55">
+              Clarity on offers · better clients · scalable systems · more time and freedom without burnout.
+            </p>
+            <div className="agc-hero-form mt-6 rounded-2xl p-5 md:p-6">
               <PremiumLeadMagnetCaptureForm
                 funnelConfig={AGENCY_FUNNEL}
                 accentClass="focus:border-[#f0cc75] focus:ring-[#d4a447]/15"
                 buttonClass="agc-gold-btn group relative inline-flex h-14 w-full items-center justify-center overflow-hidden rounded-xl border px-7 text-[11px] font-black uppercase tracking-[0.14em] text-[#06101f] shadow-[0_18px_55px_rgba(212,164,71,0.32)] transition hover:-translate-y-0.5 hover:brightness-110 disabled:opacity-70"
               />
+              <div className="mt-3 flex flex-wrap gap-4">
+                <Link to="/agency-partners" className="lm-secondary-book-link !mt-0">
+                  Agency partners →
+                </Link>
+                <Link to={AGENCY_FUNNEL.bookingPath ?? '/enlightenment-session'} className="lm-secondary-book-link !mt-0">
+                  <Calendar size={14} /> Book a session
+                </Link>
+              </div>
+              <p className="mt-3 text-center text-[11px] text-white/40">
+                Results vary · not legal advice · income claims are not guarantees
+              </p>
             </div>
           </div>
           <div className="agc-video-frame w-full">
@@ -326,109 +287,70 @@ export default function AgencyGuideLandingPage() {
         </div>
       </section>
 
-      {/* Benefits */}
-      <section className="relative z-10 py-16 md:py-20">
-        <div className="mx-auto max-w-7xl px-5 md:px-8">
-          <div className="text-center">
-            <SectionKicker>The Benefits of This Guide</SectionKicker>
-            <h2 className="agc-serif agc-section-title mt-5 text-3xl font-bold md:text-5xl">
-              The Benefits of This Guide
-            </h2>
-            <p className="mx-auto mt-4 max-w-2xl text-sm text-white/55">
-              Everything you need to build a profitable agency that gives you time, income, and freedom.
-            </p>
-          </div>
-          <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {benefits.map((b) => (
-              <BenefitCard key={b.title} {...b} />
-            ))}
-          </div>
-        </div>
-      </section>
+      <section className="relative z-10 border-y border-white/8 py-8 md:py-10">
+        <div className="mx-auto max-w-7xl space-y-3 px-5 md:px-8">
+          <details className="lm-seo-depth">
+            <summary>
+              <span>Benefits of this guide</span>
+              <span className="lm-seo-depth-hint">Expand</span>
+            </summary>
+            <div className="lm-seo-depth-body grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {benefits.map((b) => (
+                <BenefitCard key={b.title} {...b} />
+              ))}
+            </div>
+          </details>
 
-      {/* What's Inside */}
-      <section className="relative z-10 border-y border-white/8 bg-[#070d1a]/60 py-16 md:py-20">
-        <div className="mx-auto max-w-7xl px-5 md:px-8">
-          <div className="grid items-center gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(280px,360px)]">
-            <div>
-              <div className="text-center lg:text-left">
-                <SectionKicker>What&apos;s Inside</SectionKicker>
-                <h2 className="agc-serif agc-section-title mt-5 text-3xl font-bold md:text-5xl">What&apos;s Inside</h2>
-                <p className="mx-auto mt-4 max-w-2xl text-sm text-white/55 lg:mx-0">
-                  Practical frameworks and actionable strategies — not theory.
-                </p>
-              </div>
-              <div className="mt-12 grid gap-4 md:grid-cols-2">
+          <details className="lm-seo-depth">
+            <summary>
+              <span>What&apos;s inside</span>
+              <span className="lm-seo-depth-hint">Expand</span>
+            </summary>
+            <div className="lm-seo-depth-body grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(240px,300px)]">
+              <div className="grid gap-4 md:grid-cols-2">
                 {inside.map((item) => (
                   <InsideCard key={item.title} {...item} />
                 ))}
               </div>
-            </div>
-            <div className="agc-inside-mockup-panel mx-auto w-full max-w-sm lg:max-w-none">
-              <p className="mb-4 text-center text-[10px] font-black uppercase tracking-[0.24em] text-[#d4a447] lg:text-left">
-                Your Agency Roadmap
-              </p>
-              <GuideMockup variant="book" />
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Results */}
-      <section id="results" className="relative z-10 py-16 md:py-20">
-        <div className="mx-auto max-w-7xl px-5 md:px-8">
-          <div className="text-center">
-            <SectionKicker>Proven Approach. Real Results.</SectionKicker>
-            <h2 className="agc-serif agc-section-title mt-5 text-3xl font-bold md:text-5xl">
-              Proven Approach. Real Results.
-            </h2>
-          </div>
-          <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            {results.map((r) => (
-              <ResultCard key={r.stat} {...r} />
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Logo cloud */}
-      <section className="relative z-10 border-y border-white/8 py-12">
-        <div className="mx-auto max-w-7xl px-5 text-center md:px-8">
-          <p className="text-[10px] font-black uppercase tracking-[0.28em] text-[#d4a447]">Trusted By Ambitious Agencies</p>
-          <div className="mt-8 flex flex-wrap items-center justify-center gap-x-12 gap-y-6">
-            {logos.map((name) => (
-              <span key={name} className="text-lg font-bold tracking-[0.12em] text-white/22">
-                {name}
-              </span>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Path forward */}
-      <section className="relative z-10 py-16 md:py-20">
-        <div className="mx-auto max-w-7xl px-5 md:px-8">
-          <div className="text-center">
-            <SectionKicker>Your Path Forward</SectionKicker>
-            <h2 className="agc-serif agc-section-title mt-5 text-3xl font-bold md:text-5xl">Your Path Forward</h2>
-          </div>
-          <div className="mt-12 grid gap-6 md:grid-cols-4">
-            {steps.map((step, i) => (
-              <div key={step.n} className="relative text-center">
-                {i < steps.length - 1 && (
-                  <ChevronRight
-                    className="absolute -right-3 top-5 hidden text-[#d4a447]/40 md:block"
-                    size={22}
-                  />
-                )}
-                <div className="agc-step-circle agc-serif mx-auto flex items-center justify-center text-lg font-bold text-[#f0cc75]">
-                  {step.n}
-                </div>
-                <h3 className="mt-4 text-sm font-bold text-white">{step.title}</h3>
-                <p className="mt-2 text-xs text-white/50">{step.desc}</p>
+              <div className="agc-inside-mockup-panel mx-auto w-full max-w-sm lg:max-w-none">
+                <GuideMockup variant="book" />
               </div>
-            ))}
-          </div>
+            </div>
+          </details>
+
+          <details id="results" className="lm-seo-depth">
+            <summary>
+              <span>Results &amp; path forward</span>
+              <span className="lm-seo-depth-hint">Expand</span>
+            </summary>
+            <div className="lm-seo-depth-body space-y-8">
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                {results.map((r) => (
+                  <ResultCard key={r.stat} {...r} />
+                ))}
+              </div>
+              <p className="text-center text-[11px] text-white/40">
+                Results vary · not legal advice · income claims are not guarantees
+              </p>
+              <div className="grid gap-6 md:grid-cols-4">
+                {steps.map((step, i) => (
+                  <div key={step.n} className="relative text-center">
+                    {i < steps.length - 1 && (
+                      <ChevronRight
+                        className="absolute -right-3 top-5 hidden text-[#d4a447]/40 md:block"
+                        size={22}
+                      />
+                    )}
+                    <div className="agc-step-circle agc-serif mx-auto flex items-center justify-center text-lg font-bold text-[#f0cc75]">
+                      {step.n}
+                    </div>
+                    <h3 className="mt-4 text-sm font-bold text-white">{step.title}</h3>
+                    <p className="mt-2 text-xs text-white/50">{step.desc}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </details>
         </div>
       </section>
 

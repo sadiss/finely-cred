@@ -20,8 +20,8 @@ export const PUBLIC_CAREER_TRACKS: PublicCareerTrack[] = [
     id: 'credit_specialists',
     label: 'Credit specialists',
     shortLabel: 'Specialists',
-    path: '/credit-specialists',
-    hint: 'Run partner files · per-file revenue share',
+    path: '/credit-specialist',
+    hint: 'Run partner files · join at /credit-specialist/join',
     description: 'Solo operators and certified partners who run dispute files — apprenticeship through certified partner.',
   },
   {
@@ -65,6 +65,7 @@ export function getCareerTrack(id: PublicCareerTrackId): PublicCareerTrack {
 
 export function matchCareersPath(p: string): boolean {
   if (PUBLIC_CAREER_TRACKS.some((t) => p === t.path || p.startsWith(`${t.path}/`))) return true;
+  if (p === '/credit-specialists' || p.startsWith('/credit-specialists/')) return true;
   if (p.startsWith('/agency/signup')) return true;
   if (p === '/agents' || p.startsWith('/agents/')) return true;
   if (p.startsWith('/careers/')) return true;

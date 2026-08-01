@@ -1,15 +1,22 @@
-import { emitPlatformEvent, onPlatformEvent, type PlatformEvent } from '../domain/platformEvents';
+import { emitPlatformEvent, onPlatformEvent } from '../domain/platformEvents';
 import { getAgentPersona } from '../domain/agentPersonas';
 import {
   getNurtureSequence,
   type NurtureSequenceDef,
   type NurtureStepDef,
 } from '../domain/nurtureSequences';
+import { nurtureMuteKindForSequence } from '../domain/notificationPrefs';
 import { loadJson, saveJson } from '../data/localJsonStore';
-import { sendEmail } from './commsDeliveryClient';
+import { listLeadCaptures } from '../data/leadsRepo';
+import { getNotificationPrefs } from '../data/notificationPrefsRepo';
+import { getPartnerSync } from '../data/partnersRepo';
 import { isFeatureEnabled } from '../data/settingsRepo';
+import { isLeadTrashed } from '../features/studioCommandOs/leadTrashRepo';
+import { sendEmail } from './commsDeliveryClient';
 import { isSupabaseConfigured } from './supabaseClient';
 import { buildNurtureStepEmail } from './nurtureStepCopy';
+
+const DESK_MAIL_PAUSE_KEY = 'finely.marketing_desk_mail_pause.v1';
 
 export type NurtureEnrollment = {
   id: string;
@@ -109,6 +116,89 @@ export function syncLeadNurtureSequence(args: {
   return enrollLeadInNurtureSequence(args);
 }
 
+/** Cancel active enrollments for a lead/prospect id (trash, booked pause, manual stop). */
+export function cancelNurtureEnrollmentsForLead(leadId: string, reason = 'cancelled'): number {
+  if (!leadId.trim()) return 0;
+  const store = loadStore();
+  const nowIso = new Date().toISOString();
+  let n = 0;
+  for (const e of store.enrollments) {
+    if (e.leadId !== leadId || e.status !== 'active') continue;
+    e.status = 'cancelled';
+    e.updatedAt = nowIso;
+    e.context = { ...e.context, cancelReason: reason };
+    n += 1;
+  }
+  if (n > 0) saveStore(store);
+  return n;
+}
+
+/** Cancel active enrollments that match an email in context (unsubscribe). */
+export function cancelNurtureEnrollmentsForEmail(email: string, reason = 'unsubscribed'): number {
+  const normalized = (email || '').trim().toLowerCase();
+  if (!normalized || !normalized.includes('@')) return 0;
+  const store = loadStore();
+  const nowIso = new Date().toISOString();
+  let n = 0;
+  for (const e of store.enrollments) {
+    if (e.status !== 'active') continue;
+    const ctxEmail = String(e.context?.email ?? '').trim().toLowerCase();
+    if (ctxEmail !== normalized) continue;
+    e.status = 'cancelled';
+    e.updatedAt = nowIso;
+    e.context = { ...e.context, cancelReason: reason };
+    n += 1;
+  }
+  if (n > 0) saveStore(store);
+  return n;
+}
+
+function isDeskMailPaused(): boolean {
+  return Boolean(loadJson<{ paused?: boolean }>(DESK_MAIL_PAUSE_KEY, {}, 1).paused);
+}
+
+function partnerMarketingOptInForSend(partnerId: string, email: string): boolean {
+  const partner = getPartnerSync(partnerId);
+  if (partner) {
+    if (partner.journeySignals?.marketingOptIn === false) return false;
+    if (partner.journeySignals?.marketingOptIn === true) return true;
+    if (partner.consents?.communicationConsentAt) return true;
+    const pEmail = (partner.profile.email || '').trim().toLowerCase() || email;
+    if (pEmail) {
+      const lead = listLeadCaptures().find((l) => (l.email || '').trim().toLowerCase() === pEmail);
+      if (lead) return lead.consentEmailMarketing === true;
+    }
+    return false;
+  }
+  if (!email) return false;
+  const lead = listLeadCaptures().find((l) => (l.email || '').trim().toLowerCase() === email);
+  return Boolean(lead?.consentEmailMarketing);
+}
+
+function shouldSkipEnrollmentSend(enrollment: NurtureEnrollment): string | null {
+  if (isDeskMailPaused()) return 'desk_paused';
+  if (isLeadTrashed(enrollment.leadId)) return 'trashed';
+  const email = String(enrollment.context?.email ?? '')
+    .trim()
+    .toLowerCase();
+  if (email) {
+    const lead = listLeadCaptures().find((l) => (l.email || '').trim().toLowerCase() === email);
+    if (lead && lead.consentEmailMarketing === false) return 'unsubscribed';
+  }
+
+  const muteKind = nurtureMuteKindForSequence(enrollment.sequenceId);
+  if (muteKind) {
+    const partnerId = String(enrollment.context?.partnerId ?? enrollment.leadId);
+    const prefs = getNotificationPrefs({ partnerId });
+    if ((prefs.mutedKinds ?? []).includes(muteKind)) return `muted_${muteKind}`;
+  }
+  if (muteKind === 'nurture_opportunity' || muteKind === 'nurture_birthday') {
+    const partnerId = String(enrollment.context?.partnerId ?? enrollment.leadId);
+    if (!partnerMarketingOptInForSend(partnerId, email)) return 'marketing_opt_out';
+  }
+  return null;
+}
+
 export type NurtureDispatchResult = {
   enrollmentId: string;
   stepId: string;
@@ -182,6 +272,23 @@ export async function processDueNurtureSteps(opts?: {
   for (const enrollment of store.enrollments) {
     if (enrollment.status !== 'active') continue;
     if (new Date(enrollment.nextRunAt) > now) continue;
+
+    const skipReason = shouldSkipEnrollmentSend(enrollment);
+    if (skipReason) {
+      enrollment.status = 'cancelled';
+      enrollment.updatedAt = now.toISOString();
+      enrollment.context = { ...enrollment.context, cancelReason: skipReason };
+      results.push({
+        enrollmentId: enrollment.id,
+        stepId: 'skip',
+        channel: 'email',
+        templateId: skipReason,
+        personaName: 'Finely Advisor',
+        status: 'skipped',
+        dryRun,
+      });
+      continue;
+    }
 
     const sequence = getNurtureSequence(enrollment.sequenceId);
     if (!sequence) {

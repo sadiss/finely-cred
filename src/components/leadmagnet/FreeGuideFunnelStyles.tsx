@@ -133,6 +133,47 @@ export function FreeGuideFunnelStyles() {
       box-shadow: 0 8px 32px rgba(0,0,0,0.35) !important;
     }
 
+    /* Slim ATF — short hero, capture early; SEO walls stay collapsed */
+    .fg-funnel .lm-flyer-hero-band--slim {
+      padding: 1.25rem 0 1.5rem;
+    }
+    .fg-funnel .lm-flyer-hero-band--slim .lm-flyer-desc {
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      max-width: 36rem;
+    }
+    .fg-funnel .lm-flyer-secondary-link {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.55);
+      transition: color 0.15s ease;
+    }
+    .fg-funnel .lm-flyer-secondary-link:hover { color: rgba(255,255,255,0.9); }
+    .fg-funnel .lm-seo-depth {
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 1rem;
+      background: rgba(0,0,0,0.22);
+      padding: 0.85rem 1.1rem;
+    }
+    .fg-funnel .lm-seo-depth-summary {
+      list-style: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: rgba(255,255,255,0.88);
+    }
+    .fg-funnel .lm-seo-depth-summary::-webkit-details-marker { display: none; }
+    .fg-funnel .lm-seo-depth-chevron { color: rgba(255,255,255,0.45); }
+    .fg-funnel .lm-seo-depth-body { padding-bottom: 0.35rem; }
+
     /* Flyer hero band — atmospheric image, copy-forward */
     .fg-funnel .lm-flyer-hero-band {
       position: relative;

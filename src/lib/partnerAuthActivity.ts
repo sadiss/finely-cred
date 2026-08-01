@@ -398,7 +398,7 @@ export async function trackPartnerAccountClaimed(args: {
     claimedAt: args.partner.claimedAt || now,
     status: args.partner.status === 'paused' ? 'paused' : 'active',
   };
-  return recordPartnerAuthActivity({
+  const saved = await recordPartnerAuthActivity({
     partner,
     asAdmin: args.asAdmin ?? true,
     notify: activity.accountClaimedAt ? undefined : 'account_claimed',
@@ -409,6 +409,13 @@ export async function trackPartnerAccountClaimed(args: {
     },
     meta: { userId: args.userId },
   });
+  try {
+    const { enrollPartnerLifecycleOnActivate } = await import('./partnerNurtureLifecycle');
+    enrollPartnerLifecycleOnActivate(saved);
+  } catch {
+    /* non-blocking */
+  }
+  return saved;
 }
 
 export async function trackPartnerPasswordUpdated(args: { partner: Partner; via?: 'reset' | 'signup' }): Promise<Partner> {

@@ -356,7 +356,7 @@ interface HeroSectionProps {
   onViewTradelines: () => void;
 }
 
-export function HeroSection({ onGetStarted, onViewTradelines }: HeroSectionProps) {
+export function HeroSection(_props: HeroSectionProps) {
   const navigate = useNavigate();
   const tenant = useMemo(() => getActiveTenant(), []);
   const brand = (tenant.settings.brandName || tenant.name || 'Finely Cred').trim();
@@ -441,17 +441,11 @@ export function HeroSection({ onGetStarted, onViewTradelines }: HeroSectionProps
 
             <Reveal delay={450}>
               <div className="flex flex-wrap justify-center lg:justify-start gap-4">
-                <Button variant="gold" onClick={() => navigate('/fundability-readiness')} size="lg">
-                  Fundability hub <ArrowRight size={18} />
+                <Button variant="gold" onClick={() => navigate('/free-guide')} size="lg">
+                  Start free guide <ArrowRight size={18} />
                 </Button>
-                <Button variant="royal" onClick={() => navigate('/start-here')} size="lg">
-                  Start here <ArrowRight size={18} />
-                </Button>
-                <Button variant="emerald" onClick={() => navigate('/free-guide')} size="lg">
-                  Free guide <ArrowRight size={18} />
-                </Button>
-                <Button variant="platinum" onClick={onViewTradelines} size="lg">
-                  Explore tradelines
+                <Button variant="platinum" onClick={() => navigate('/pricing')} size="lg">
+                  See solutions
                 </Button>
               </div>
             </Reveal>
@@ -463,7 +457,7 @@ export function HeroSection({ onGetStarted, onViewTradelines }: HeroSectionProps
             <Reveal delay={600}>
               <div className="grid grid-cols-3 gap-2 sm:gap-4 pt-6 sm:pt-8 border-t border-amber-500/15">
                 {[
-                  { value: <><AnimatedCounter value={98} suffix="%" /></>, label: 'Customer /success' },
+                  { value: <><AnimatedCounter value={98} suffix="%" /></>, label: 'Partner success' },
                   { value: <>24<span className="finely-gold-foil-text text-lg sm:text-xl">hr</span></>, label: 'Priority response' },
                   { value: <>$<AnimatedCounter value={500} />M+</>, label: 'Funding pathways' },
                 ].map((stat) => (
@@ -2056,14 +2050,20 @@ export function Footer({ onNavigate }: { onNavigate: (page: string) => void }) {
             </div>
           </div>
           
-          {/* Services */}
+          {/* Solutions */}
           <div className="space-y-4">
-            <p className="text-sm font-semibold text-white uppercase tracking-wider">Services</p>
+            <p className="text-sm font-semibold text-white uppercase tracking-wider">Solutions</p>
             <ul className="space-y-3 text-sm text-white/40">
-              {['Personal Restore', 'Personal Building', 'Business Credit', 'Debt & Legal', 'Tradelines'].map(item => (
-                <li key={item}>
-                  <button onClick={() => onNavigate('services')} className="hover:text-amber-500 transition-colors">
-                    {item}
+              {[
+                { label: 'Personal restore', path: 'pricing' },
+                { label: 'Business credit', path: 'pricing' },
+                { label: 'Debt & legal', path: 'pricing' },
+                { label: 'Tradelines', path: 'tradelines' },
+                { label: 'Payment plans', path: 'pricing' },
+              ].map((item) => (
+                <li key={item.label}>
+                  <button type="button" onClick={() => onNavigate(item.path)} className="hover:text-amber-500 transition-colors">
+                    {item.label}
                   </button>
                 </li>
               ))}
@@ -2075,28 +2075,32 @@ export function Footer({ onNavigate }: { onNavigate: (page: string) => void }) {
             <p className="text-sm font-semibold text-white uppercase tracking-wider">Resources</p>
             <ul className="space-y-3 text-sm text-white/40">
               <li>
-                <button onClick={() => onNavigate('bookstore')} className="hover:text-amber-500 transition-colors">
+                <button type="button" onClick={() => onNavigate('bookstore')} className="hover:text-amber-500 transition-colors">
                   e-Books
                 </button>
               </li>
               <li>
-                <button onClick={() => onNavigate('resources')} className="hover:text-amber-500 transition-colors">
-                  Videos
+                <button type="button" onClick={() => onNavigate('resources')} className="hover:text-amber-500 transition-colors">
+                  Resource hub
                 </button>
               </li>
               <li>
-                <button onClick={() => onNavigate('resources')} className="hover:text-amber-500 transition-colors">
-                  DIY
+                <button type="button" onClick={() => onNavigate('agents')} className="hover:text-amber-500 transition-colors">
+                  Credit specialists
                 </button>
               </li>
               <li>
-                <button onClick={() => onNavigate('agents')} className="hover:text-amber-500 transition-colors">
-                  Credit Specialists
-                </button>
-              </li>
-              <li>
-                <button onClick={() => onNavigate('faq')} className="hover:text-amber-500 transition-colors">
+                <button type="button" onClick={() => onNavigate('faq')} className="hover:text-amber-500 transition-colors">
                   FAQs
+                </button>
+              </li>
+              <li>
+                <button
+                  type="button"
+                  onClick={() => onNavigate('head_of_society')}
+                  className="hover:text-amber-500 transition-colors"
+                >
+                  Head of Society
                 </button>
               </li>
             </ul>
@@ -2159,3 +2163,4 @@ export { LandingUnifiedJourneySection } from './LandingUnifiedJourneySection';
 export { LandingFundabilityTrustSection } from './LandingFundabilityTrustSection';
 export { LandingHeroOsRefreshSection } from './LandingHeroOsRefreshSection';
 export { LandingFinancingPreapprovalSection } from './LandingFinancingPreapprovalSection';
+export { LandingPathChooserSection } from './LandingPathChooserSection';

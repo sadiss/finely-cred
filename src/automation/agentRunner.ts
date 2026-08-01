@@ -785,11 +785,51 @@ export async function runAutomationRule(rule: AutomationRule, mode: AgentMode): 
         actions.push({ type: 'warn', message: 'enroll_nurture_sequence missing sequenceId.' });
         continue;
       }
-      actions.push({
-        type: 'info',
-        message: `${mode === 'live' ? 'Enrolled' : 'Would enroll'} nurture sequence ${sequenceId} (lead-scoped rules run via funnel pipeline).`,
-        meta: { sequenceId },
-      });
+      const { enrollLeadInNurtureSequence } = await import('../lib/nurtureEngine');
+      let enrolled = 0;
+      for (const p of candidates) {
+        if (mode === 'live') {
+          const hit = enrollLeadInNurtureSequence({
+            leadId: p.id,
+            sequenceId,
+            tenantId: p.tenantId || 'finely_cred',
+            context: {
+              email: p.profile?.email,
+              fullName: p.profile?.fullName,
+              partnerId: p.id,
+              lane: p.lane,
+            },
+          });
+          if (hit) {
+            enrolled += 1;
+            actions.push({
+              type: 'info',
+              message: `Enrolled nurture sequence ${sequenceId} for ${p.id}`,
+              meta: { sequenceId, partnerId: p.id, enrollmentId: hit.id },
+            });
+          } else {
+            actions.push({
+              type: 'warn',
+              message: `Could not enroll ${p.id} into ${sequenceId} (unknown/disabled sequence or already active).`,
+              meta: { sequenceId, partnerId: p.id },
+            });
+          }
+        } else {
+          enrolled += 1;
+          actions.push({
+            type: 'info',
+            message: `Would enroll nurture sequence ${sequenceId} for ${p.id}`,
+            meta: { sequenceId, partnerId: p.id },
+          });
+        }
+      }
+      if (!candidates.length) {
+        actions.push({
+          type: 'info',
+          message: `${mode === 'live' ? 'No' : 'Would skip — no'} matching partners for nurture ${sequenceId}.`,
+          meta: { sequenceId, enrolled },
+        });
+      }
       continue;
     }
 

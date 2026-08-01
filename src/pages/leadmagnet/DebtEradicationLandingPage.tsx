@@ -1,6 +1,8 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import {
   BadgeCheck,
+  Calendar,
   CheckCircle2,
   Download,
   Gavel,
@@ -68,22 +70,6 @@ function GlassPanel({
     >
       <div className="pointer-events-none absolute inset-0 rounded-[inherit] bg-gradient-to-br from-white/[0.08] via-transparent to-transparent" />
       <div className="relative z-10">{children}</div>
-    </div>
-  );
-}
-
-function TinyProof({ icon: Icon, title, desc }: {
-  icon: React.ComponentType<{ size?: number; className?: string }>;
-  title: string;
-  desc: string;
-}) {
-  return (
-    <div className="del-proof-pillar rounded-2xl p-4 text-center">
-      <div className="del-proof-pillar-icon mx-auto border border-[#e0b24a]/40 bg-[#e0b24a]/12 text-[#ffd993]">
-        <Icon size={20} />
-      </div>
-      <div className="mt-3 text-[11px] font-black uppercase tracking-[0.1em] text-[#000c3c]">{title}</div>
-      <p className="mt-1.5 text-[11px] leading-relaxed text-[#040a36]/55">{desc}</p>
     </div>
   );
 }
@@ -307,12 +293,9 @@ export default function DebtEradicationLandingPage() {
               <p className="del-compliance mt-3">
                 Results vary · not legal advice · educational guide only
               </p>
-            </div>
-
-            <div className="mt-5 grid max-w-md gap-2.5 sm:grid-cols-3 lg:ml-auto">
-              <TinyProof icon={Gavel} title="Crush Debt" desc="Eliminate pressure and create a cleaner path forward." />
-              <TinyProof icon={ShieldCheck} title="Protect Assets" desc="Safeguard your home, income, and future options." />
-              <TinyProof icon={TrendingUp} title="Rebuild Stronger" desc="Create lasting structure after the storm." />
+              <Link to={DEBT_FUNNEL.bookingPath ?? '/enlightenment-session'} className="lm-secondary-book-link">
+                <Calendar size={14} /> Book a session
+              </Link>
             </div>
           </div>
         </div>
@@ -350,43 +333,53 @@ export default function DebtEradicationLandingPage() {
         </div>
       </section>
 
-      <section id="free-toolkit" className="del-band del-band--toolkit relative z-10 border-y border-[#e0b24a]/20 py-16 md:py-18">
-        <div className="mx-auto max-w-7xl px-5 md:px-8">
-          <div className="mx-auto mb-9 max-w-3xl text-center">
-            <div className="text-[11px] font-black uppercase tracking-[0.28em] text-[#e0b24a]">Your free debt freedom kit</div>
-            <h2 className="del-serif mt-3 text-4xl font-black tracking-[-0.035em] md:text-5xl">
-              Everything Included <span className="text-[#ffd993]">At No Cost</span>
-            </h2>
-            <p className="mt-4 text-base leading-relaxed text-white/60">
-              Unlock the full validation playbook plus interactive tools, checklists, scripts, and portal preview when you request the guide.
-            </p>
-          </div>
-          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-            {freeToolkit.map((item) => (
-              <ValueStackCard key={item.label} {...item} />
-            ))}
-          </div>
-          <div className="mt-8 grid gap-2.5 md:grid-cols-2">
-            {DEBT_FUNNEL.features.map((feature) => (
-              <MiniCheck key={feature.title}>{feature.title}: {feature.desc}</MiniCheck>
-            ))}
-          </div>
-        </div>
-      </section>
+      <section id="free-toolkit" className="del-band del-band--toolkit relative z-10 border-y border-[#e0b24a]/20 py-8 md:py-10">
+        <div className="mx-auto max-w-7xl px-5 md:px-8 space-y-3">
+          <details className="lm-seo-depth">
+            <summary>
+              <span>Your free debt freedom kit</span>
+              <span className="lm-seo-depth-hint">Expand</span>
+            </summary>
+            <div className="lm-seo-depth-body">
+              <div className="mx-auto mb-6 max-w-3xl text-center">
+                <h2 className="del-serif text-3xl font-black tracking-[-0.035em] md:text-4xl">
+                  Everything Included <span className="text-[#ffd993]">At No Cost</span>
+                </h2>
+                <p className="mt-3 text-sm leading-relaxed text-white/60">
+                  Unlock the full validation playbook plus interactive tools, checklists, scripts, and portal preview when you request the guide.
+                </p>
+              </div>
+              <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+                {freeToolkit.map((item) => (
+                  <ValueStackCard key={item.label} {...item} />
+                ))}
+              </div>
+              <div className="mt-6 grid gap-2.5 md:grid-cols-2">
+                {DEBT_FUNNEL.features.map((feature) => (
+                  <MiniCheck key={feature.title}>{feature.title}: {feature.desc}</MiniCheck>
+                ))}
+              </div>
+            </div>
+          </details>
 
-      <section id="inside-guide" className="del-band relative z-10 py-16 md:py-18">
-        <div className="mx-auto max-w-7xl px-5 md:px-8">
-          <div className="mx-auto mb-9 max-w-3xl text-center">
-            <div className="text-[11px] font-black uppercase tracking-[0.28em] text-[#e0b24a]">What you&apos;ll discover inside</div>
-            <h2 className="del-serif del-section-title mt-3 text-4xl font-black tracking-[-0.035em] md:text-5xl">
-              Your Roadmap to <span className="text-[#ffd993]">Total Debt Eradication</span>
-            </h2>
-          </div>
-          <div className="grid gap-3.5 md:grid-cols-2 lg:grid-cols-5">
-            {discoveries.map((item) => (
-              <DiscoveryCard key={item.title} {...item} />
-            ))}
-          </div>
+          <details id="inside-guide" className="lm-seo-depth">
+            <summary>
+              <span>What you&apos;ll discover inside</span>
+              <span className="lm-seo-depth-hint">Expand</span>
+            </summary>
+            <div className="lm-seo-depth-body">
+              <div className="mx-auto mb-6 max-w-3xl text-center">
+                <h2 className="del-serif del-section-title text-3xl font-black tracking-[-0.035em] md:text-4xl">
+                  Your Roadmap to <span className="text-[#ffd993]">Total Debt Eradication</span>
+                </h2>
+              </div>
+              <div className="grid gap-3.5 md:grid-cols-2 lg:grid-cols-5">
+                {discoveries.map((item) => (
+                  <DiscoveryCard key={item.title} {...item} />
+                ))}
+              </div>
+            </div>
+          </details>
         </div>
       </section>
 
@@ -409,34 +402,42 @@ export default function DebtEradicationLandingPage() {
         </p>
       </section>
 
-      <section id="results" className="del-band del-band--results relative z-10 py-16 md:py-18">
+      <section id="results" className="del-band del-band--results relative z-10 py-8 md:py-10">
         <div className="mx-auto max-w-7xl px-5 md:px-8">
-          <div className="mb-9 text-center">
-            <div className="text-[11px] font-black uppercase tracking-[0.28em] text-[#e0b24a]">Real partners. Real results.</div>
-            <h2 className="del-serif del-section-title mt-3 text-4xl font-black tracking-[-0.035em] md:text-5xl">
-              Stories of Freedom and Relief
-            </h2>
-          </div>
-          <div className="grid gap-4 md:grid-cols-3">
-            <Testimonial
-              name="Jessica M."
-              role="Debt Free and Thriving"
-              quote="This guide changed my life. I stopped the calls, saved my home, and finally had a plan I could follow."
-            />
-            <Testimonial
-              name="Mark T."
-              role="Small Business Owner"
-              quote="The strategies are powerful and simple to follow. I wish I found this much sooner."
-            />
-            <Testimonial
-              name="Sarah L."
-              role="Homeowner"
-              quote="I was drowning in debt and stress. Now I have peace of mind and a clear plan for my future."
-            />
-          </div>
-          <p className="del-compliance mx-auto mt-5 max-w-2xl text-center">
-            Individual results vary · stories for illustration · not legal advice
-          </p>
+          <details className="lm-seo-depth">
+            <summary>
+              <span>Partner stories</span>
+              <span className="lm-seo-depth-hint">Expand</span>
+            </summary>
+            <div className="lm-seo-depth-body">
+              <div className="mb-6 text-center">
+                <div className="text-[11px] font-black uppercase tracking-[0.28em] text-[#e0b24a]">Real partners. Real results.</div>
+                <h2 className="del-serif del-section-title mt-3 text-3xl font-black tracking-[-0.035em] md:text-4xl">
+                  Stories of Freedom and Relief
+                </h2>
+              </div>
+              <div className="grid gap-4 md:grid-cols-3">
+                <Testimonial
+                  name="Jessica M."
+                  role="Debt Free and Thriving"
+                  quote="This guide changed my life. I stopped the calls, saved my home, and finally had a plan I could follow."
+                />
+                <Testimonial
+                  name="Mark T."
+                  role="Small Business Owner"
+                  quote="The strategies are powerful and simple to follow. I wish I found this much sooner."
+                />
+                <Testimonial
+                  name="Sarah L."
+                  role="Homeowner"
+                  quote="I was drowning in debt and stress. Now I have peace of mind and a clear plan for my future."
+                />
+              </div>
+              <p className="del-compliance mx-auto mt-5 max-w-2xl text-center">
+                Individual results vary · stories for illustration · not legal advice
+              </p>
+            </div>
+          </details>
         </div>
       </section>
 

@@ -282,7 +282,7 @@ export default function PricingPage() {
         <div className={`${FINELY_OS_NOTICE_SUCCESS} flex items-start gap-3`}>
           <Sparkles size={18} className="mt-0.5 text-emerald-400 shrink-0" />
           <div>
-            <div className="font-semibold text-emerald-200">In-House Financing Available</div>
+            <div className="font-semibold text-emerald-200">Payment plans / pre-approval</div>
             <p className={`mt-1 ${FINELY_OS_ENTITY_BODY}`}>
               Build credit while you pay. Our financing option reports your payments to Equifax, adding a positive
               installment tradeline to your credit file. Look for the{' '}
@@ -290,6 +290,7 @@ export default function PricingPage() {
             </p>
             <p className={`mt-2 ${FINELY_OS_ENTITY_BODY}`}>
               We can also connect you to lenders and funding pathways when your profile is ready (bureau-pull dependent).
+              Results vary · not legal advice · funding subject to underwriting.
             </p>
             <button
               type="button"
@@ -303,7 +304,7 @@ export default function PricingPage() {
               }
               className="mt-3 inline-flex items-center gap-2 text-sm font-semibold text-emerald-300 hover:text-white transition-colors"
             >
-              Check financing pre-approval →
+              Payment plans / pre-approval →
             </button>
           </div>
         </div>

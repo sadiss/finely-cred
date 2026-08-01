@@ -12,6 +12,10 @@ import { processNotificationDigestTick } from './notificationDigestCron';
 import type { NotificationDigestCronResult } from './notificationDigestCron';
 import { processPartnerDigestTick } from './partnerDigestCron';
 import type { PartnerDigestCronResult } from './partnerDigestCron';
+import {
+  processPartnerBirthdayNurtureTick,
+  type BirthdayNurtureTickResult,
+} from './partnerNurtureLifecycle';
 import { processSocialAutopilotTick, publishDueSocialPosts } from './socialAutopilotEngine';
 import { autonomousHireAll } from './coOwnerAutonomousHiring';
 import { buildCoOwnerSuperhumanCronSnapshot, type CoOwnerSuperhumanCronSnapshot } from './coOwnerSuperhumanOps';
@@ -19,10 +23,23 @@ import { saveLastPlatformCronResult } from './platformCronStore';
 import { listAllThreads } from '../data/supportRepo';
 import type { AgentMode } from '../domain/automationStudio';
 import { isFeatureEnabled } from '../data/settingsRepo';
+import { runScheduledMarketingFind } from '../features/marketingDesk/marketingDeskHunt';
+import { processPendingEmailWebhookStopOnReply } from '../features/marketingDesk/marketingDeskStopOnReply';
+
+export type MarketingFindCronSummary = {
+  ran: boolean;
+  skipped: boolean;
+  reason?: string;
+  found?: number;
+  autoSaved?: number;
+  review?: number;
+  error?: string;
+};
 
 export type PlatformCronResult = {
   at: string;
   nurture: Awaited<ReturnType<typeof processDueNurtureSteps>>;
+  partnerBirthday: BirthdayNurtureTickResult;
   automations: Awaited<ReturnType<typeof runDueAutomations>>;
   trialExpiry: Awaited<ReturnType<typeof processTrialExpiryTick>>;
   billingDunning: ReturnType<typeof processBillingDunningTick>;
@@ -33,6 +50,7 @@ export type PlatformCronResult = {
   notificationDigest: NotificationDigestCronResult;
   partnerDigest: PartnerDigestCronResult;
   socialAutopilot: ReturnType<typeof processSocialAutopilotTick>;
+  marketingFind: MarketingFindCronSummary;
   coOwnerHiring: {
     dryRun: boolean;
     summary: string;
@@ -51,6 +69,7 @@ export async function runPlatformCronTick(opts?: {
   const nurtureDryRun =
     automationsDryRun || !isFeatureEnabled('commsDelivery');
   const nurture = await processDueNurtureSteps({ dryRun: nurtureDryRun });
+  const partnerBirthday = await processPartnerBirthdayNurtureTick({ dryRun: automationsDryRun });
   const automations = await runDueAutomations(mode);
   const trialExpiry = await processTrialExpiryTick({ dryRun: automationsDryRun });
   const billingDunning = processBillingDunningTick({ dryRun: automationsDryRun });
@@ -61,6 +80,41 @@ export async function runPlatformCronTick(opts?: {
   const notificationDigest = await processNotificationDigestTick({ dryRun: automationsDryRun });
   const partnerDigest = await processPartnerDigestTick({ dryRun: automationsDryRun });
   const socialAutopilot = processSocialAutopilotTick({ dryRun: automationsDryRun });
+
+  let marketingFind: MarketingFindCronSummary = { ran: false, skipped: true, reason: 'dry_run' };
+  if (!automationsDryRun && isFeatureEnabled('marketingDesk')) {
+    try {
+      // Drain any webhook events that landed via sync without an ingest hook.
+      try {
+        processPendingEmailWebhookStopOnReply(40);
+      } catch {
+        /* non-blocking */
+      }
+      const findRun = await runScheduledMarketingFind();
+      if (!findRun) {
+        marketingFind = { ran: false, skipped: true, reason: 'schedule_off_or_already_ran' };
+      } else {
+        marketingFind = {
+          ran: true,
+          skipped: false,
+          found: findRun.found,
+          autoSaved: findRun.autoSaved,
+          review: findRun.review,
+          error: findRun.error,
+        };
+      }
+    } catch (e) {
+      marketingFind = {
+        ran: false,
+        skipped: false,
+        reason: 'error',
+        error: e instanceof Error ? e.message : 'Find schedule failed',
+      };
+    }
+  } else if (!isFeatureEnabled('marketingDesk')) {
+    marketingFind = { ran: false, skipped: true, reason: 'marketingDesk_off' };
+  }
+
   const coOwnerHiring = automationsDryRun
     ? { dryRun: true, summary: 'Skipped — cron dry-run', executiveHires: 0, gapHires: 0 }
     : (() => {
@@ -79,6 +133,7 @@ export async function runPlatformCronTick(opts?: {
   const result = {
     at: new Date().toISOString(),
     nurture,
+    partnerBirthday,
     automations,
     trialExpiry,
     billingDunning,
@@ -89,6 +144,7 @@ export async function runPlatformCronTick(opts?: {
     notificationDigest,
     partnerDigest,
     socialAutopilot,
+    marketingFind,
     coOwnerHiring,
     coOwnerSuperhuman,
   };

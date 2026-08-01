@@ -308,6 +308,81 @@ export const NURTURE_SEQUENCES: NurtureSequenceDef[] = [
       { id: 'prep', delayHours: 24, channel: 'email', templateId: 'booked_session_prep', subject: 'Prep checklist for your session' },
     ],
   },
+  {
+    id: 'seq_partner_onboard_keepwarm',
+    name: 'Partner onboard keep-warm (30 days)',
+    funnelId: 'partner_lifecycle',
+    agentPersonaId: 'nurture_concierge',
+    enabled: true,
+    steps: [
+      { id: 'welcome', delayHours: 0, channel: 'email', templateId: 'partner_onboard_welcome', subject: 'Welcome to your Finely Cred portal' },
+      { id: 'day3', delayHours: 72, channel: 'email', templateId: 'partner_onboard_day3', subject: 'Your first 3 portal moves' },
+      { id: 'day7', delayHours: 168, channel: 'email', templateId: 'partner_onboard_day7', subject: 'Week-1 checklist for partners' },
+      { id: 'day14', delayHours: 336, channel: 'email', templateId: 'partner_onboard_day14', subject: 'Mid-month progress check' },
+      { id: 'day21', delayHours: 504, channel: 'email', templateId: 'partner_onboard_day21', subject: 'Education tip: what to focus on next' },
+      { id: 'day30', delayHours: 720, channel: 'email', templateId: 'partner_onboard_day30', subject: '30-day wrap — book a free session if helpful' },
+    ],
+  },
+  {
+    id: 'seq_partner_monthly_education',
+    name: 'Partner monthly education',
+    funnelId: 'partner_lifecycle',
+    agentPersonaId: 'finely_advisor',
+    enabled: true,
+    steps: [
+      { id: 'm1', delayHours: 0, channel: 'email', templateId: 'partner_edu_m1', subject: 'Partner education: utilization & reporting cycles' },
+      { id: 'm2', delayHours: 720, channel: 'email', templateId: 'partner_edu_m2', subject: 'Partner education: disputes vs documentation' },
+      { id: 'm3', delayHours: 1440, channel: 'email', templateId: 'partner_edu_m3', subject: 'Partner education: funding readiness basics' },
+      { id: 'm4', delayHours: 2160, channel: 'email', templateId: 'partner_edu_m4', subject: 'Partner education: business credit sequencing' },
+    ],
+  },
+  {
+    id: 'seq_partner_birthday',
+    name: 'Partner birthday (opt-in)',
+    funnelId: 'partner_lifecycle',
+    agentPersonaId: 'nurture_concierge',
+    enabled: true,
+    steps: [
+      { id: 'birthday', delayHours: 0, channel: 'email', templateId: 'partner_birthday', subject: 'Happy birthday from Finely Cred' },
+    ],
+  },
+  {
+    id: 'seq_partner_opportunity_au',
+    name: 'Partner opportunity — AU tradelines',
+    funnelId: 'partner_opportunity',
+    agentPersonaId: 'sales_closer',
+    enabled: true,
+    steps: [
+      { id: 'intro', delayHours: 0, channel: 'email', templateId: 'partner_opp_au_intro', subject: 'Optional path: authorized-user tradelines' },
+      { id: 'day3', delayHours: 72, channel: 'email', templateId: 'partner_opp_au_day3', subject: 'How AU tradelines fit a restore plan' },
+      { id: 'day7', delayHours: 168, channel: 'email', templateId: 'partner_opp_au_day7', subject: 'Questions on AU? Book a free session' },
+    ],
+  },
+  {
+    id: 'seq_partner_opportunity_affiliate',
+    name: 'Partner opportunity — affiliate',
+    funnelId: 'partner_opportunity',
+    agentPersonaId: 'affiliate_specialist',
+    enabled: true,
+    steps: [
+      { id: 'intro', delayHours: 0, channel: 'email', templateId: 'partner_opp_aff_intro', subject: 'Optional path: partner affiliate toolkit' },
+      { id: 'day3', delayHours: 72, channel: 'email', templateId: 'partner_opp_aff_day3', subject: 'Compliant sharing tips for partners' },
+      { id: 'day7', delayHours: 168, channel: 'email', templateId: 'partner_opp_aff_day7', subject: 'Affiliate Q&A — book a short call' },
+    ],
+  },
+  {
+    id: 'seq_specialist_keepwarm',
+    name: 'Specialist keep-warm',
+    funnelId: 'specialist_lifecycle',
+    agentPersonaId: 'lead_converter',
+    enabled: true,
+    steps: [
+      { id: 'welcome', delayHours: 0, channel: 'email', templateId: 'specialist_keepwarm_welcome', subject: 'Specialist lane — your weekly focus' },
+      { id: 'day14', delayHours: 336, channel: 'email', templateId: 'specialist_keepwarm_day14', subject: 'Pipeline hygiene for Credit Specialists' },
+      { id: 'day30', delayHours: 720, channel: 'email', templateId: 'specialist_keepwarm_day30', subject: 'Playbook refresh: factual findings first' },
+      { id: 'day60', delayHours: 1440, channel: 'email', templateId: 'specialist_keepwarm_day60', subject: 'Keep-warm check-in for active specialists' },
+    ],
+  },
 ];
 
 export function resolveSequenceForLead(args: {
