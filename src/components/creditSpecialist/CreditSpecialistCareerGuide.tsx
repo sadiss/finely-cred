@@ -42,10 +42,10 @@ export function CreditSpecialistCareerGuide() {
   return (
     <div className="space-y-12 sm:space-y-16">
       <header className="space-y-4">
-        <p className={CS_PUBLIC.pageKicker}>Tiers &amp; pay</p>
+        <p className={CS_PUBLIC.pageKicker}>Tiers &amp; payouts</p>
         <h1 className={CS_PUBLIC.pageTitle}>How you get paid</h1>
         <p className={CS_PUBLIC.pageLead}>
-          Percentages are on <strong className="text-slate-900">that file&apos;s service fee</strong> only. Tools are included
+          Percentages are on <strong className="text-white">that file&apos;s service fee</strong> only. Tools are included
           at every level; your % grows as you run more of the work yourself.
         </p>
       </header>
@@ -132,7 +132,7 @@ export function CreditSpecialistCareerGuide() {
             </div>
             <div className="rounded-2xl border-2 border-violet-200 bg-violet-50 p-5 space-y-3">
               <h3 className={CS_PUBLIC.cardTitle}>Example dollars</h3>
-              <p className={CS_PUBLIC.bodySm}>{SPECIALTY_ECONOMICS.personal_restore.feeLabel} · client pays {earnings.clientFeeLabel}</p>
+              <p className={CS_PUBLIC.bodySm}>{SPECIALTY_ECONOMICS.personal_restore.feeLabel} · partner pays {earnings.clientFeeLabel}</p>
               <div className="grid grid-cols-2 gap-3">
                 <div className="rounded-xl bg-white border-2 border-emerald-200 p-4">
                   <div className="text-2xl font-black text-emerald-700">{earnings.agentLabel}</div>

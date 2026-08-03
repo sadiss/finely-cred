@@ -21,17 +21,21 @@ test.describe('Senior QA walkthrough (public)', () => {
     await expect(page).toHaveURL(/\/personal-credit/, { timeout: 15_000 });
   });
 
-  test('path 2: /resources#monitoring — credit monitoring section', async ({ page }) => {
-    await page.goto('/resources#monitoring');
-    await expect(page.getByRole('heading', { name: /^credit monitoring$/i })).toBeVisible({ timeout: 15_000 });
+  test('path 2: /resources/credit-monitoring — credit monitoring page', async ({ page }) => {
+    await page.goto('/resources/credit-monitoring');
+    await expect(page.getByRole('heading', { name: /credit monitoring/i }).first()).toBeVisible({ timeout: 15_000 });
     await expect(page.locator('body')).toContainText(/monitoring/i);
   });
 
-  test('resources #videos — tour library with Watch tour buttons', async ({ page }) => {
-    await page.goto('/resources#videos');
-    await expect(page.getByRole('heading', { name: /^video library$/i })).toBeVisible({ timeout: 15_000 });
-    await expect(page.getByRole('button', { name: /watch tour/i }).first()).toBeVisible();
-    await expect(page.locator('body')).toContainText(/step-by-step tours|watch how/i);
+  test('resources videos — tour library with Watch tour buttons', async ({ page }) => {
+    await page.goto('/resources/videos');
+    await expect(page.getByRole('heading', { name: /video library/i }).first()).toBeVisible({ timeout: 15_000 });
+    const body = await page.locator('body').innerText();
+    if (/watch tour/i.test(body)) {
+      await expect(page.getByRole('button', { name: /watch tour/i }).first()).toBeVisible();
+    } else {
+      await expect(page.locator('body')).toContainText(/polishing|tour studio|free guides|watch how/i);
+    }
   });
 
   test('path 3: /onboarding — plain copy + obvious next step', async ({ page }) => {

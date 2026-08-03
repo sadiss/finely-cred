@@ -53,7 +53,7 @@ export function AffiliateCommandStrip({ affiliate, loading }: Props) {
       ]}
       alert={
         campaigns === 0 && affiliate
-          ? { tone: 'info', message: 'Create a campaign in Operate to attribute traffic and commissions.' }
+          ? { tone: 'info', message: 'Create a campaign in Operate to attribute traffic and payouts.' }
           : affiliate && nextCampaign !== 'None'
             ? { tone: 'success', message: `Next promo: ${nextCampaign}` }
             : undefined

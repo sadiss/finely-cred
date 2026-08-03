@@ -52,6 +52,13 @@ export function LandingDebtEradicationBand() {
                   </button>
                   <button
                     type="button"
+                    onClick={() => navigate('/free-debt-guide/read')}
+                    className="fc-sell-cta-ghost w-full sm:w-auto"
+                  >
+                    Read all 9 pages free
+                  </button>
+                  <button
+                    type="button"
                     onClick={() => navigate('/enlightenment-session')}
                     className="fc-sell-cta-ghost w-full sm:w-auto"
                   >

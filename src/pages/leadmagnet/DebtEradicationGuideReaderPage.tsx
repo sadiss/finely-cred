@@ -130,13 +130,13 @@ export default function DebtEradicationGuideReaderPage() {
         <aside className={cx('space-y-3 lg:sticky lg:top-28 lg:self-start', indexOpen ? 'block' : 'hidden lg:block')}>
           <div className="dge-index rounded-sm p-4">
             <div className="flex items-center gap-2 text-[9.5px] font-black uppercase tracking-[0.26em] text-[#d8b463]">
-              <ScrollText size={13} /> Index of chapters
+              <ScrollText size={13} /> Index of pages
             </div>
             <p className="dge-index-title mt-2 text-[1.35rem] leading-tight text-[#f6f1e4]">
               {DEBT_GUIDE_META.title}
             </p>
             <p className="mt-1 text-[11px] uppercase tracking-[0.16em] text-white/35">{DEBT_GUIDE_META.tagline}</p>
-            <nav className="mt-4 space-y-0.5" aria-label="Field manual chapters">
+            <nav className="mt-4 space-y-0.5" aria-label="Field manual pages">
               {DEBT_GUIDE_CHAPTERS.map((ch, i) => (
                 <button
                   key={ch.id}
@@ -157,7 +157,7 @@ export default function DebtEradicationGuideReaderPage() {
 
           <div className="dge-rail-kpi grid grid-cols-3 gap-px overflow-hidden rounded-sm">
             {[
-              { v: String(TOTAL), l: 'Chapters' },
+              { v: String(TOTAL), l: 'Pages' },
               { v: `${totalMinutes}m`, l: 'Full read' },
               { v: 'Free', l: 'No signup' },
             ].map((k) => (
@@ -171,7 +171,7 @@ export default function DebtEradicationGuideReaderPage() {
           <div className="dge-rail-card rounded-sm p-4">
             <div className="text-[9.5px] font-black uppercase tracking-[0.24em] text-[#d8b463]">Under a deadline?</div>
             <p className="mt-2 text-[13px] leading-relaxed text-white/60">
-              If you were served with court papers, read Chapter V today and speak with a licensed attorney in your
+              If you were served with court papers, read Page V today and speak with a licensed attorney in your
               county. Deadlines do not pause while you research.
             </p>
             <Link
@@ -191,7 +191,7 @@ export default function DebtEradicationGuideReaderPage() {
               <div className="dge-caption">
                 <div className="dge-caption-row">
                   <span>{DEBT_GUIDE_META.shortTitle}</span>
-                  <span>Chapter {chapter.number}</span>
+                  <span>Page {chapter.number}</span>
                   <span>
                     {idx + 1} of {TOTAL}
                   </span>
@@ -218,7 +218,7 @@ export default function DebtEradicationGuideReaderPage() {
               </div>
 
               <div className="dge-takeaway">
-                <div className="dge-takeaway-label">Chapter {chapter.number} — hold this</div>
+                <div className="dge-takeaway-label">Page {chapter.number} — hold this</div>
                 <p className="dge-takeaway-body">{chapter.takeaway}</p>
               </div>
 
@@ -240,7 +240,7 @@ export default function DebtEradicationGuideReaderPage() {
                     onClick={() => goChapter(idx + 1)}
                     className="dge-page-btn dge-page-btn--primary inline-flex h-11 items-center gap-2 rounded-sm px-5 text-[10px] font-black uppercase tracking-[0.14em]"
                   >
-                    {DEBT_GUIDE_CHAPTERS[idx + 1]!.number}. Next chapter <ChevronRight size={16} />
+                    {DEBT_GUIDE_CHAPTERS[idx + 1]!.number}. Next page <ChevronRight size={16} />
                   </button>
                 ) : (
                   <Link
@@ -265,7 +265,7 @@ export default function DebtEradicationGuideReaderPage() {
                 </p>
                 <p className="mt-2 text-[13px] leading-relaxed text-white/58">
                   Validation tracking, certified-mail records, and a document vault your specialist can read in one
-                  sitting — no signup required to finish the chapters.
+                  sitting — no signup required to finish the pages.
                 </p>
                 <p className="dge-compliance mt-2">{DEBT_GUIDE_META.compliance}</p>
               </div>

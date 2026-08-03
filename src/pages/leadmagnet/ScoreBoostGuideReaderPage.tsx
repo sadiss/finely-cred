@@ -287,7 +287,7 @@ export default function ScoreBoostGuideReaderPage() {
                 {String(idx + 1).padStart(2, '0')}/{String(CHAPTERS.length).padStart(2, '0')}
               </span>
             </div>
-            <nav className="max-h-[52vh] space-y-0.5 overflow-y-auto pr-1" aria-label="Roadmap chapters">
+            <nav className="max-h-[52vh] space-y-0.5 overflow-y-auto pr-1" aria-label="Roadmap pages">
               {CHAPTERS.map((c, i) => (
                 <button
                   key={c.id}

@@ -42,7 +42,7 @@ export const CREDIT_SPECIALIST_OFFERINGS: CreditSpecialistOffering[] = [
   },
   {
     title: 'Finely platform (every level)',
-    description: 'CRM, portal, disputes, vault — the tools you work in. This is not a pay tier; apprentices and certified partners all use the same engine.',
+    description: 'CRM, portal, disputes, vault — the tools you work in. This is not a payout tier; apprentices and certified partners all use the same engine.',
     included: ['Customer dashboard & case routing', 'Letters studio + dispute center', 'Documents vault & task sequencing'],
   },
   {

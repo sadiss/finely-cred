@@ -274,7 +274,7 @@ export function CreditGuidePremiumLanding({
                         Read it free — no email required
                       </p>
                       <h3 className="mt-1 text-lg font-black text-white">
-                        {DISPUTE_LETTER_GUIDE_PROGRAMMATIC_PAGES.length} chapters, open in your browser
+                        {DISPUTE_LETTER_GUIDE_PROGRAMMATIC_PAGES.length} pages, open in your browser
                       </h3>
                     </div>
                     <Link
@@ -292,7 +292,7 @@ export function CreditGuidePremiumLanding({
                         className="group rounded-2xl border border-white/[0.08] bg-white/[0.035] px-3.5 py-3 transition hover:border-sky-300/40 hover:bg-sky-300/[0.07]"
                       >
                         <p className="text-[9px] font-black uppercase tracking-[0.2em] text-sky-200/80">
-                          {chapter.kicker ?? 'Chapter'}
+                          {chapter.kicker ?? 'Page'}
                         </p>
                         <p className="mt-1 text-sm font-bold leading-snug text-white/85 group-hover:text-white">
                           {chapter.title}

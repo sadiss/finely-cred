@@ -97,14 +97,14 @@ const OVERVIEW_PAGE: GeneratedGuidePage = {
   id: 'five-step-overview',
   title: 'The 5-Step Dispute Framework',
   subtitle: 'One tradeline per letter · your own words · evidence-first · disciplined follow-up',
-  kicker: 'Chapter 06 · The framework',
+  kicker: 'Page 06 · The framework',
   accent: 'sky',
   readMinutes: 4,
   sections: [
     {
       heading: 'The whole method on one page',
       paragraphs: [
-        'This is the Finely Cred method: identify one target, choose your lane, write in your own words, attach the minimum proof that carries the claim, then follow up with round discipline. Five steps, each one expanded into its own chapter after this page.',
+        'This is the Finely Cred method: identify one target, choose your lane, write in your own words, attach the minimum proof that carries the claim, then follow up with round discipline. Five steps, each one expanded into its own page later in this guide.',
         'The order is not decorative. Choosing a lane before you have screenshots produces a theory you cannot support. Writing before you have chosen a lane produces a letter that argues four things at once. Following up before you have read their response produces Round 1 sent twice.',
       ],
     },
@@ -146,14 +146,14 @@ const READER_META: Record<string, { kicker?: string; accent?: DisputeGuideAccent
   'step-3': { kicker: 'Step 03 · Structure', accent: 'amber', readMinutes: 5 },
   'step-4': { kicker: 'Step 04 · Proof', accent: 'emerald', readMinutes: 4 },
   'step-5': { kicker: 'Step 05 · Cadence', accent: 'ink', readMinutes: 5 },
-  'fcra-rights': { kicker: 'Chapter 12 · Your rights', accent: 'sky', readMinutes: 5 },
-  'ocr-metro2-survival': { kicker: 'Chapter 13 · Format', accent: 'ink', readMinutes: 5 },
-  'online-traps': { kicker: 'Chapter 14 · Channel', accent: 'rose', readMinutes: 4 },
-  'letter-stream': { kicker: 'Chapter 15 · Workflow', accent: 'emerald', readMinutes: 5 },
-  complaints: { kicker: 'Chapter 16 · Escalation', accent: 'amber', readMinutes: 4 },
-  'validation-first-doctrine': { kicker: 'Chapter 17 · Doctrine', accent: 'violet', readMinutes: 5 },
-  'law-per-negative': { kicker: 'Chapter 18 · Statutes', accent: 'sky', readMinutes: 5 },
-  'affidavit-court-system': { kicker: 'Chapter 19 · Court', accent: 'rose', readMinutes: 5 },
+  'fcra-rights': { kicker: 'Page 12 · Your rights', accent: 'sky', readMinutes: 5 },
+  'ocr-metro2-survival': { kicker: 'Page 13 · Format', accent: 'ink', readMinutes: 5 },
+  'online-traps': { kicker: 'Page 14 · Channel', accent: 'rose', readMinutes: 4 },
+  'letter-stream': { kicker: 'Page 15 · Workflow', accent: 'emerald', readMinutes: 5 },
+  complaints: { kicker: 'Page 16 · Escalation', accent: 'amber', readMinutes: 4 },
+  'validation-first-doctrine': { kicker: 'Page 17 · Doctrine', accent: 'violet', readMinutes: 5 },
+  'law-per-negative': { kicker: 'Page 18 · Statutes', accent: 'sky', readMinutes: 5 },
+  'affidavit-court-system': { kicker: 'Page 19 · Court', accent: 'rose', readMinutes: 5 },
 };
 
 function withReaderMeta(page: GeneratedGuidePage): GeneratedGuidePage {

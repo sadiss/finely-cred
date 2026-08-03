@@ -221,7 +221,7 @@ export default function AgencyGuideReaderPage() {
             <span className="agr-tag">Sheet index</span>
             <span className="agr-meta">{CHAPTERS.length} sheets</span>
           </div>
-          <nav className="max-h-[62vh] overflow-y-auto pr-1" aria-label="Guide chapters">
+          <nav className="max-h-[62vh] overflow-y-auto pr-1" aria-label="Guide sheets">
             {CHAPTERS.map((c, i) => (
               <button
                 key={c.id}

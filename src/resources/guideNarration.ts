@@ -27,7 +27,7 @@ function seg(text: string, pauseMs = 900, rate?: number, direction?: string): Na
 export function buildDefaultNarration(guideId: string, title: string, sections: { heading: string; bullets: string[] }[]): GuideNarration {
   const segments: NarrationSegment[] = [
     seg(`Welcome. You're about to hear ${title}.`, 1300, 0.93, 'warm opening, slight smile, confident but not hyped'),
-    seg(`This is Finely Cred — client-first education you can act on.`, 1200, 0.91, 'slow down on “client-first”; reassuring advisor tone'),
+    seg(`This is Finely Cred — partner-first education you can act on.`, 1200, 0.91, 'slow down on “partner-first”; reassuring advisor tone'),
   ];
   for (const s of sections) {
     if (s.heading.toLowerCase().includes('disclaimer')) continue;
@@ -43,7 +43,7 @@ export function buildDefaultNarration(guideId: string, title: string, sections: 
     title,
     intro: segments[0]!.text,
     voiceDirection:
-      'Premium Finely Cred narration: warm private-advisor voice, human pacing, no robotic list-reading, no hype. Use small breaths between ideas, soften legal/finance jargon, and emphasize client-first clarity.',
+      'Premium Finely Cred narration: warm private-advisor voice, human pacing, no robotic list-reading, no hype. Use small breaths between ideas, soften legal/finance jargon, and emphasize partner-first clarity.',
     segments,
   };
 }

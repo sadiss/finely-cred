@@ -120,7 +120,7 @@ export const DISPUTE_GUIDE_EXTENDED_PAGES: GeneratedGuidePage[] = [
       {
         heading: 'Before you mail',
         bullets: [
-          'Print on plain white paper with black ink — OCR-friendly (see prior chapter).',
+          'Print on plain white paper with black ink — OCR-friendly (see prior page).',
           'Hand-sign each letter; wet ink matters for bureau disputes.',
           'Attach only exhibits that prove this specific claim — label Exhibit A, B, C.',
           'Keep a complete copy: letter + exhibits + envelope front + certified receipt.',

@@ -193,7 +193,7 @@ export default function CreditSpecialistGuideReaderPage() {
               className="inline-flex items-center gap-1.5 rounded-lg border border-[#d4a447]/35 bg-[#d4a447]/10 px-3 py-2 text-[11px] font-bold uppercase tracking-[0.12em] text-[#f0cc75] lg:hidden"
               aria-expanded={tocOpen}
             >
-              {tocOpen ? <X size={14} /> : <List size={14} />} Chapters
+              {tocOpen ? <X size={14} /> : <List size={14} />} Pages
             </button>
             <button
               type="button"
@@ -225,7 +225,7 @@ export default function CreditSpecialistGuideReaderPage() {
             <BookOpen size={14} /> Table of contents
           </div>
           <p className="csg-serif text-lg text-white">{CS_GUIDE_META.shortTitle}</p>
-          <nav className="mt-4 space-y-1.5" aria-label="Guide chapters">
+          <nav className="mt-4 space-y-1.5" aria-label="Guide pages">
             {CS_GUIDE_CHAPTERS.map((ch, i) => (
               <button
                 key={ch.id}
@@ -252,7 +252,7 @@ export default function CreditSpecialistGuideReaderPage() {
             <div className="flex items-start gap-4">
               <div className="csg-binder-stamp csg-binder-animate-stamp" aria-hidden>
                 <span className="csg-binder-stamp-num">{chapter.number}</span>
-                <span className="csg-binder-stamp-label">Chapter</span>
+                <span className="csg-binder-stamp-label">Page</span>
               </div>
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
@@ -289,7 +289,7 @@ export default function CreditSpecialistGuideReaderPage() {
                   className="csg-gold-btn inline-flex h-11 items-center gap-2 rounded-lg px-5 text-[11px] font-black uppercase tracking-[0.12em]"
                 >
                   <span className="relative z-10 flex items-center gap-2">
-                    Next chapter <ChevronRight size={16} />
+                    Next page <ChevronRight size={16} />
                   </span>
                 </button>
               ) : (

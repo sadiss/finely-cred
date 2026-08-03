@@ -56,7 +56,7 @@ export function AffiliateRoleAutomationPanel({ partnerId, role, referralUrl }: P
     <div className="space-y-6">
       <div className={`grid md:grid-cols-3 gap-4 ${finelyOsCatalogCard('sky')} !p-5`}>
         <div className={finelyOsKpiTile(0)}>
-          <div className={FINELY_OS_ENTITY_SUBLABEL}>Upfront commission</div>
+          <div className={FINELY_OS_ENTITY_SUBLABEL}>Upfront payout</div>
           <div className="text-2xl font-bold text-sky-200">{AF.defaultCommissionPct}%</div>
         </div>
         <div className={finelyOsKpiTile(1)}>

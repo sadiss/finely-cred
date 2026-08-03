@@ -21,6 +21,7 @@ import { CS } from '../config/creditSpecialistProgram';
 import { createProgramApplication } from '../data/programApplicationsRepo';
 import { submitLeadCapture } from '../data/leadsRepo';
 import { addLeadNote, addLeadTags } from '../data/leadOpsRepo';
+import { DigitalInviteShareBand } from '../components/digitalCards';
 import { FinelyOsAlertBanner } from '../features/os/FinelyOsAlertBanner';
 import { FinelyOsPageFooter } from '../features/os/FinelyOsPageFooter';
 import {
@@ -595,6 +596,8 @@ export default function CreditSpecialistJoinPage() {
             </div>
           </section>
         )}
+
+        <DigitalInviteShareBand role="cs" />
 
         <p className={FINELY_OS_COMPLIANCE_FOOTNOTE}>{CS_OFFER.complianceFootnote}</p>
 

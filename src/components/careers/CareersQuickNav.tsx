@@ -1,7 +1,7 @@
 import React from 'react';
-import { QrCode } from 'lucide-react';
+import { BookOpen, QrCode } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { PUBLIC_CAREER_TRACKS, type PublicCareerTrackId } from '../../config/publicCareers';
+import { PUBLIC_CAREER_TRACKS, getCareerTrack, type PublicCareerTrackId } from '../../config/publicCareers';
 import { DigitalInviteCardShare } from '../digitalCards/DigitalInviteCardShare';
 import { getDigitalInviteIncentive } from '../../config/digitalInviteCardDesign';
 import type { DigitalInviteCardRole } from '../../config/digitalInviteCards';
@@ -18,6 +18,7 @@ const TRACK_INVITE_CARD: Partial<Record<PublicCareerTrackId, { role: DigitalInvi
   au_sellers: { role: 'au_seller' },
   case_help: { role: 'case_help' },
   real_estate: { role: 're' },
+  affiliates: { role: 'affiliate' },
 };
 
 /** Jump between career tracks without mixing specialist vs agency messaging. */
@@ -25,13 +26,26 @@ export function CareersQuickNav({ active, className = '' }: Props) {
   const navigate = useNavigate();
   const inviteCard = TRACK_INVITE_CARD[active];
   const incentive = inviteCard ? getDigitalInviteIncentive(inviteCard.role) : null;
+  const activeTrack = getCareerTrack(active);
 
   return (
     <nav
       className={`rounded-2xl border-2 border-slate-200 bg-slate-50 p-3 sm:p-4 ${className}`}
       aria-label="Career tracks"
     >
-      <p className="text-sm font-bold uppercase tracking-widest text-slate-500 mb-3">Careers — pick your track</p>
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+        <p className="text-sm font-bold uppercase tracking-widest text-slate-500">Careers — pick your track</p>
+        {activeTrack.guidePath && activeTrack.guideLabel ? (
+          <button
+            type="button"
+            onClick={() => navigate(activeTrack.guidePath!)}
+            className="inline-flex items-center gap-2 rounded-lg border border-amber-500/60 bg-amber-50 px-3 py-1.5 text-[11px] font-black uppercase tracking-[0.16em] text-amber-800 transition-colors hover:bg-amber-100"
+          >
+            <BookOpen size={13} /> {activeTrack.guideLabel}
+          </button>
+        ) : null}
+      </div>
+      <p className="mb-3 text-xs text-slate-500">{activeTrack.hint}</p>
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-3">
         {PUBLIC_CAREER_TRACKS.map((track) => {
           const isActive = track.id === active;

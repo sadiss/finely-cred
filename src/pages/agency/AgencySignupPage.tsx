@@ -6,7 +6,7 @@ import { useAuth } from '../../auth/AuthProvider';
 import { createTenant, createMembership } from '../../data/tenantsRepo';
 import { setActiveTenantId } from '../../tenancy/activeTenant';
 import { CareersQuickNav } from '../../components/careers/CareersQuickNav';
-import { AGENCY } from '../../config/agencyPartnersProgram';
+import { AGENCY, getPublicAgencyBuyInTiers, recommendedAgencyBuyInIdForTier } from '../../config/agencyPartnersProgram';
 import { agencyTiers, getAgencyTierById } from '../../config/pricingCatalog';
 import { AgencySplitBreakdown, AgencySplitSummaryLine } from '../../components/pricing/AgencySplitBreakdown';
 import { FinelyOsPageFooter } from '../../features/os/FinelyOsPageFooter';
@@ -69,6 +69,12 @@ export default function AgencySignupPage() {
     () => agencyTiers.filter((t) => t.isPublic).slice().sort((a, b) => a.sortOrder - b.sortOrder),
     [],
   );
+
+  const buyInTiers = useMemo(() => getPublicAgencyBuyInTiers(), []);
+  const recommendedBuyIn = useMemo(() => {
+    const id = recommendedAgencyBuyInIdForTier(tier?.id ?? null);
+    return buyInTiers.find((b) => b.id === id) ?? buyInTiers[0] ?? null;
+  }, [tier?.id, buyInTiers]);
 
   const tierDefaults = useMemo(() => {
     const id = tier?.id || '';
@@ -235,6 +241,19 @@ export default function AgencySignupPage() {
                   No tier selected. Go back to <span className="font-mono">/services?tab=agency</span> to pick a plan.
                 </div>
               )}
+
+              {recommendedBuyIn ? (
+                <div className={`${finelyOsCatalogCard('emerald')} !p-4 fc-surface-harmony space-y-1`}>
+                  <div className={FINELY_OS_ENTITY_SUBLABEL}>One-time buy-in (recommended)</div>
+                  <div className={`${FINELY_OS_ENTITY_VALUE} text-lg`}>
+                    {recommendedBuyIn.name} — {recommendedBuyIn.priceLabel}
+                  </div>
+                  <div className={`${FINELY_OS_ENTITY_BODY} text-xs`}>
+                    {recommendedBuyIn.tagline}. Buy-in activates your workspace and training seat; billing is handled after
+                    your workspace is created.
+                  </div>
+                </div>
+              ) : null}
 
               <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony`}>
                 <div className="inline-flex items-center gap-2 text-fuchsia-400">

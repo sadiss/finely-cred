@@ -111,7 +111,7 @@ export default function BusinessCreditPowerGuideReaderPage() {
               className="bcg-bar-btn inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-[10px] font-bold uppercase tracking-[0.14em] lg:hidden"
               aria-expanded={railOpen}
             >
-              {railOpen ? <X size={14} /> : <Layers size={14} />} Chapters
+              {railOpen ? <X size={14} /> : <Layers size={14} />} Pages
             </button>
             <Link
               to={`${BC_GUIDE_LANDING_PATH}#download`}
@@ -125,7 +125,7 @@ export default function BusinessCreditPowerGuideReaderPage() {
 
       {/* Horizontal build stepper — the guide is a sequence, so the chrome says so */}
       <nav
-        aria-label="Chapter stepper"
+        aria-label="Page stepper"
         className="relative z-10 mx-auto mt-5 max-w-[92rem] overflow-x-auto px-4 pb-1 md:px-8"
       >
         <ol className="flex min-w-max items-center gap-1.5">
@@ -159,7 +159,7 @@ export default function BusinessCreditPowerGuideReaderPage() {
               <div className="bcg-opener">
                 <div className="bcg-opener-meta">
                   <span>{BC_GUIDE_META.shortTitle}</span>
-                  <span>Chapter {chapter.number}</span>
+                  <span>Page {chapter.number}</span>
                   <span>{chapter.kicker}</span>
                   <span>{chapter.readMinutes} min</span>
                 </div>
@@ -186,7 +186,7 @@ export default function BusinessCreditPowerGuideReaderPage() {
               </div>
 
               <div className="bcg-takeaway">
-                <div className="bcg-takeaway-label">Chapter {chapter.number} — the operating rule</div>
+                <div className="bcg-takeaway-label">Page {chapter.number} — the operating rule</div>
                 <p className="bcg-takeaway-body">{chapter.takeaway}</p>
               </div>
 
@@ -257,7 +257,7 @@ export default function BusinessCreditPowerGuideReaderPage() {
         <aside className={cx('space-y-3 lg:sticky lg:top-28 lg:self-start', railOpen ? 'block' : 'hidden lg:block')}>
           <div className="bcg-kpi grid grid-cols-3 gap-px overflow-hidden rounded-xl">
             {[
-              { v: String(TOTAL), l: 'Chapters' },
+              { v: String(TOTAL), l: 'Pages' },
               { v: `${totalMinutes}m`, l: 'Full read' },
               { v: '12mo', l: 'Build plan' },
             ].map((k) => (
@@ -270,7 +270,7 @@ export default function BusinessCreditPowerGuideReaderPage() {
 
           <div className="bcg-rail-panel rounded-xl p-4">
             <div className="bcg-mono text-[9.5px] font-semibold uppercase tracking-[0.26em] text-[#c9a24a]">
-              Chapter index
+              Page index
             </div>
             <p className="bcg-display mt-2 text-[1.15rem] font-semibold leading-tight text-white">
               {BC_GUIDE_META.title}
@@ -278,7 +278,7 @@ export default function BusinessCreditPowerGuideReaderPage() {
             <p className="bcg-mono mt-1 text-[9.5px] uppercase tracking-[0.14em] text-white/35">
               {BC_GUIDE_META.tagline}
             </p>
-            <nav className="mt-3.5 space-y-1" aria-label="Power guide chapters">
+            <nav className="mt-3.5 space-y-1" aria-label="Power guide pages">
               {BC_GUIDE_CHAPTERS.map((ch, i) => (
                 <button
                   key={ch.id}
@@ -299,7 +299,7 @@ export default function BusinessCreditPowerGuideReaderPage() {
 
           <div className="bcg-rail-panel rounded-xl p-4">
             <div className="bcg-mono text-[9.5px] font-semibold uppercase tracking-[0.26em] text-[#2fd4c4]">
-              This chapter in one line
+              This page in one line
             </div>
             <p className="mt-2 text-[13px] leading-relaxed text-white/65">{chapter.teaser}</p>
           </div>

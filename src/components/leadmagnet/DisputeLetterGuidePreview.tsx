@@ -41,7 +41,7 @@ const INTRO_POINTS = [
   'How a reinvestigation actually works — before you write a word',
   'The eleven account-block fields that decide every dispute',
   'Factual findings vs discarded language, side by side',
-  'The 5-step framework, one chapter per step',
+  'The 5-step framework, one page per step',
   'Certified mail workflow, escalation paths, and the model letter',
 ];
 
@@ -56,7 +56,7 @@ function SheetPage({ page }: { page: GeneratedGuidePage }) {
       <div className={`fdg-rail fdg-rail--${page.accent ?? 'sky'} !rounded-none`} aria-hidden />
       <div className="px-4 py-4 sm:px-6 sm:py-5">
         <div className="flex items-center justify-between gap-2">
-          <span className="fdg-kicker">{page.kicker ?? 'Chapter'}</span>
+          <span className="fdg-kicker">{page.kicker ?? 'Page'}</span>
           {page.readMinutes ? <span className="fdg-meta-row">{page.readMinutes} min</span> : null}
         </div>
         <h4 className="fdg-chapter-title mt-1.5 !text-[1.35rem] sm:!text-2xl">{page.title}</h4>
@@ -171,7 +171,7 @@ export function DisputeLetterGuidePreview({ compact, className = '' }: Props) {
               <span className="fdg-kicker">Introduction</span>
               <h4 className="fdg-chapter-title mt-1.5 !text-2xl">Your guide is ready</h4>
               <p className="fdg-chapter-sub mt-2 !text-[13px]">
-                Twenty-one chapters, built to be worked in order. Educational only — not legal advice.
+                Twenty-one pages, built to be worked in order. Educational only — not legal advice.
               </p>
               <ol className="fdg-findings mt-4">
                 {INTRO_POINTS.map((item) => (
@@ -223,7 +223,7 @@ export function DisputeLetterGuidePreview({ compact, className = '' }: Props) {
           className="fdg-primary-btn inline-flex w-full items-center justify-center gap-2 rounded-md px-4 py-2.5 text-[10px] font-bold uppercase tracking-[0.14em]"
         >
           <span className="relative z-10 inline-flex items-center gap-2">
-            <BookOpen className="h-3.5 w-3.5" /> Read all {DISPUTE_LETTER_GUIDE_PROGRAMMATIC_PAGES.length} chapters free
+            <BookOpen className="h-3.5 w-3.5" /> Read all {DISPUTE_LETTER_GUIDE_PROGRAMMATIC_PAGES.length} pages free
           </span>
         </Link>
       </div>

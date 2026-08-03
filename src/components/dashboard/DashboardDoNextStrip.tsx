@@ -65,7 +65,7 @@ export function DashboardDoNextStrip({
         : 'Complete onboarding to link your partner profile.',
       tiles: [
         { id: 'reports', label: 'Reports', value: String(reportsCount), accent: 'violet' as const, onClick: () => navigate('/portal/reports') },
-        { id: 'monitoring', label: 'Monitoring', value: 'Links', accent: 'sky' as const, onClick: () => navigate('/resources#monitoring') },
+        { id: 'monitoring', label: 'Monitoring', value: 'Links', accent: 'sky' as const, onClick: () => navigate('/resources/credit-monitoring') },
         { id: 'tasks', label: 'Tasks', value: String(openTasksCount), accent: 'amber' as const, onClick: () => navigate('/portal/projects') },
         { id: 'disputes', label: 'Cases', value: String(openCasesCount), accent: 'fuchsia' as const, onClick: () => navigate('/portal/disputes') },
       ],
@@ -74,7 +74,7 @@ export function DashboardDoNextStrip({
         : { label: 'Upload report', onClick: () => navigate('/portal/reports') },
       secondary: reportsCount
         ? { label: 'Free guide', onClick: () => navigate('/free-guide') }
-        : { label: 'Monitoring partners', onClick: () => navigate('/resources#monitoring') },
+        : { label: 'Monitoring partners', onClick: () => navigate('/resources/credit-monitoring') },
     };
   }, [isAdmin, role, reportsCount, openTasksCount, openCasesCount, partnerId, navigate]);
 

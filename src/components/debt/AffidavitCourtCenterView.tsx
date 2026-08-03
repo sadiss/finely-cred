@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { ArrowRight, CheckCircle2, FileText, Gavel, Loader2, Mail, Shield, Upload } from 'lucide-react';
 import { Link, useSearchParams } from 'react-router-dom';
 import type { DebtCase } from '../../domain/debt';
@@ -36,7 +36,8 @@ import {
 import { PartnerCourtOutcomePanel } from './PartnerCourtOutcomePanel';
 import { getDebtBuyerCaseIntel } from '../../legal/litigation/debtBuyerCaseIntelligence';
 import { buildIntelligentLetterSuggestions } from '../../lib/intelligentLetterSuggestions';
-import { letterGenerateCtaLabel } from '../../lib/letterProductLabels';
+import { isCourtTrackLetter, letterGenerateCtaLabel } from '../../lib/letterProductLabels';
+import type { DebtLetterCatalogEntry, LetterCatalogCategory } from '../../legal/debtLetterCatalog';
 import { IntelligentLetterSuggestionsPanel } from '../letters/IntelligentLetterSuggestionsPanel';
 import { isCourtDayKitId } from '../../lib/letterBodySafety';
 import {
@@ -54,6 +55,9 @@ import {
 } from '../../features/os/finelyOsLightUi';
 
 type ReportRow = { id: string; parsed?: ParsedCreditReport | null };
+
+/** Stable reference so the catalog pool memo does not churn each render. */
+const COURT_EXTRA_CATEGORIES: LetterCatalogCategory[] = ['securitization'];
 
 const PIPELINE: Array<{
   id: LitigationStageId | 'letters' | 'evidence';
@@ -204,6 +208,12 @@ export function AffidavitCourtCenterView({
     setCourtOutcome(debt?.id ? getCourtOutcomeByDebtCase(debt.id) : null);
   }, [debt?.id]);
 
+  /** Outcome on file or case resolved → compliance path, not pre-hearing filings. */
+  const matterDecided = Boolean(courtOutcome) || debt?.status === 'resolved';
+  const decidedNextLine = courtOutcome
+    ? 'Work the payment plan below — every payment needs a receipt'
+    : 'Case is closed — next letters confirm the balance and fix reporting';
+
   useEffect(() => {
     if (!stageFromQuery) return;
     const hit = PIPELINE.findIndex((j) => j.id === stageFromQuery);
@@ -290,8 +300,17 @@ export function AffidavitCourtCenterView({
         hasSummonsDoc,
         hasAnswerDraft: builtAnswer,
         hasAffidavitDraft: builtAffidavit,
+        // Decided matter → plan-compliance next steps, never "answer the lawsuit".
+        courtOutcome,
       }),
-    [debt, partner, recommendedScenario, hasSummonsDoc, builtAnswer, builtAffidavit],
+    [debt, partner, recommendedScenario, hasSummonsDoc, builtAnswer, builtAffidavit, courtOutcome],
+  );
+
+  /** Court lane renders court products only — validation demands stay on the Validation lane. */
+  const courtEntryFilter = useCallback(
+    (entry: DebtLetterCatalogEntry) =>
+      isCourtTrackLetter({ letterType: entry.letterType, catalogId: entry.id, category: entry.category }),
+    [],
   );
 
   const buildSuggestedLetter = (args: { letterType?: DebtLetterType; catalogId?: string }) => {
@@ -345,8 +364,11 @@ export function AffidavitCourtCenterView({
       return;
     }
     if (step === 2) {
-      if (!builtAnswer) buildAnswer();
-      if (!builtAffidavit) buildAffidavit();
+      // Decided matter: never auto-generate an answer / affidavit for a case that is already over.
+      if (!matterDecided) {
+        if (!builtAnswer) buildAnswer();
+        if (!builtAffidavit) buildAffidavit();
+      }
       setStep(3);
       return;
     }
@@ -363,9 +385,11 @@ export function AffidavitCourtCenterView({
         ? 'Continue → Confirm parties'
         : 'Drop a file below first'
       : step === 2
-        ? builtAnswer && builtAffidavit
+        ? matterDecided
           ? 'Continue → Add proof'
-          : 'Generate answer + affidavit, then Continue'
+          : builtAnswer && builtAffidavit
+            ? 'Continue → Add proof'
+            : 'Generate answer + affidavit, then Continue'
         : active.continueLabel;
 
   const nextActionPlain =
@@ -415,7 +439,7 @@ export function AffidavitCourtCenterView({
             </div>
             <div className="mt-1 flex flex-wrap items-baseline gap-x-3 gap-y-1">
               <span className="text-3xl font-black tracking-tight text-white">
-                {courtOutcome ? 'Matter decided' : countdown}
+                {matterDecided ? 'Matter decided' : countdown}
               </span>
               <span className={`text-xs ${FINELY_OS_ENTITY_BODY}`}>
                 Hearing <span className="text-white/90 font-semibold">{hearingIso || 'not set'}</span>
@@ -423,7 +447,7 @@ export function AffidavitCourtCenterView({
               </span>
             </div>
             <p className={`mt-1 text-sm font-semibold text-amber-100/95`}>
-              Next: {courtOutcome ? 'Work the payment plan below — every payment needs a receipt' : nextActionPlain}
+              Next: {matterDecided ? decidedNextLine : nextActionPlain}
             </p>
             <p className={`mt-1 text-xs max-w-2xl ${FINELY_OS_ENTITY_BODY}`}>{buyerIntel.doNowOneLiner}</p>
             {step === 2 ? (
@@ -521,8 +545,8 @@ export function AffidavitCourtCenterView({
        * the outcome panel above becomes the primary next-step surface, and this pipeline
        * stays reachable only for building extra letters (e.g. a payment-history request).
        */}
-      <details open={!courtOutcome} className="fc-lit-in group space-y-2">
-        {courtOutcome ? (
+      <details open={!matterDecided} className="fc-lit-in group space-y-2">
+        {matterDecided ? (
           <summary className={`cursor-pointer select-none list-none ${finelyOsCatalogCardCompact('sky')} !p-3`}>
             <div className="flex items-center justify-between gap-3">
               <div className="min-w-0">
@@ -682,6 +706,32 @@ export function AffidavitCourtCenterView({
                 <p className="text-[11px] text-emerald-100/85">Court-safe: “{buyerIntel.courtSafePhrases[0]}”</p>
               ) : null}
             </div>
+            {letterSuggestions.crossLink?.track === 'validation' ? (
+              <div className="rounded-xl border border-emerald-400/35 bg-emerald-500/10 px-3 py-2.5 flex flex-wrap items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <div className="text-[10px] font-black uppercase tracking-widest text-emerald-200/90">
+                    No lawsuit on file for this case
+                  </div>
+                  <p className={`mt-1 text-xs max-w-2xl ${FINELY_OS_ENTITY_BODY}`}>{letterSuggestions.crossLink.reason}</p>
+                </div>
+                {onSwitchToValidation ? (
+                  <button
+                    type="button"
+                    onClick={onSwitchToValidation}
+                    className={`${FINELY_OS_SECONDARY_BTN} border-emerald-400/45 text-emerald-100`}
+                  >
+                    {letterSuggestions.crossLink.label} <ArrowRight size={12} />
+                  </button>
+                ) : (
+                  <Link
+                    to="/portal/debt?tab=validation"
+                    className={`${FINELY_OS_SECONDARY_BTN} border-emerald-400/45 text-emerald-100`}
+                  >
+                    Open Validation lane <ArrowRight size={12} />
+                  </Link>
+                )}
+              </div>
+            ) : null}
             <IntelligentLetterSuggestionsPanel
               suggestions={letterSuggestions}
               accent="fuchsia"
@@ -739,7 +789,8 @@ export function AffidavitCourtCenterView({
                 <LetterCatalogBrowser
                   category="court"
                   accent="fuchsia"
-                  extraCategories={['securitization']}
+                  extraCategories={COURT_EXTRA_CATEGORIES}
+                  filterEntry={courtEntryFilter}
                   onBuild={(id, entry) => {
                     if (onBuildCatalogDraft) onBuildCatalogDraft(id);
                     else if (entry.letterType) onBuildDraft(entry.letterType);
@@ -927,9 +978,9 @@ export function AffidavitCourtCenterView({
         </div>
       </details>
 
-      {/* Sticky bottom Continue — impossible to miss. Hidden once a court outcome is on
-          file, since the pipeline CTA above no longer names the real next step. */}
-      {!courtOutcome ? (
+      {/* Sticky bottom Continue — impossible to miss. Hidden once the matter is decided,
+          since the pipeline CTA above no longer names the real next step. */}
+      {!matterDecided ? (
         <div className="sticky bottom-2 z-20 fc-lit-in">
           <div className="rounded-2xl border border-amber-400/50 bg-black/90 backdrop-blur-md px-4 py-3 flex flex-wrap items-center justify-between gap-3 shadow-[0_10px_48px_-12px_rgba(0,0,0,0.9)]">
             <div className="min-w-0">

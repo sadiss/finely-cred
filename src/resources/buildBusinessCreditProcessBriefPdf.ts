@@ -1,5 +1,5 @@
 /**
- * Business Credit Process Brief — 3-page partner PDF:
+ * Business Credit 3-Sheet Process Brief — three-page partner PDF (never labelled a one-sheet):
  * 1) The process (cream)  2) Finely Cred approach + work (slate)  3) Business Credit OS (dark)
  */
 import { PDFDocument, rgb, StandardFonts, type PDFFont, type PDFPage, type RGB } from 'pdf-lib';
@@ -106,7 +106,7 @@ function drawProcessPage(ctx: Ctx) {
   page.drawRectangle({ x: 0, y: H - 108, width: W, height: 108, color: NAVY });
   page.drawRectangle({ x: 0, y: H - 112, width: W, height: 4, color: GOLD });
 
-  page.drawText(pdfSafe('PARTNER BRIEF  ·  3 PAGES  ·  START HERE'), {
+  page.drawText(pdfSafe('3-SHEET PARTNER BRIEF  ·  START HERE'), {
     x: M,
     y: H - 26,
     size: 8,
@@ -749,17 +749,22 @@ export async function downloadBusinessCreditProcessBrief() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = 'finely-cred-business-credit-process-brief.pdf';
+  a.download = BUSINESS_CREDIT_PROCESS_BRIEF.filename;
   a.click();
   URL.revokeObjectURL(url);
 }
 
 export const BUSINESS_CREDIT_PROCESS_BRIEF = {
   id: 'process_brief' as const,
-  title: 'Business Credit Process Brief',
-  eyebrow: '3-PAGE PARTNER BRIEF · START HERE',
+  /** Three pages — never label this a one-sheet. */
+  pageCount: 3,
+  sheetLabel: '3-sheet',
+  title: 'Business Credit 3-Sheet Process Brief',
+  downloadLabel: 'Download the 3-sheet Process Brief',
+  filename: 'finely-cred-business-credit-3-sheet-process-brief.pdf',
+  eyebrow: '3-SHEET PARTNER BRIEF · START HERE',
   summary:
-    'How business credit is built (six-layer sequence), Finely Cred work-calibrated approach and what specialists actually do, plus Business Credit OS — the cockpit that makes the build efficient. Pair with the Fundability Roadmap one-sheet for stage gates and scorecard mapping.',
+    'How business credit is built (six-layer sequence), Finely Cred work-calibrated approach and what specialists actually do, plus Business Credit OS — the cockpit that makes the build efficient. Pair with the single-page Fundability Roadmap one-sheet for stage gates and scorecard mapping.',
   pages: [
     'Process map — entity truth -> commercial identity -> vendors -> payment optics -> packaging -> capital',
     'Unique approach — sequence first, hours not hope, compliance voice + Diagnose / Sequence / Package work',

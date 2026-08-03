@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { ArrowRight, Plus } from 'lucide-react';
 import type { Partner } from '../../domain/partners';
 import type { BankruptcyLetterType } from '../../domain/bankruptcyLegal';
@@ -50,6 +51,7 @@ export function BankruptcyLetterStudioPanel({
   onSwitchToValidation?: () => void;
   onSwitchToCourt?: () => void;
 }) {
+  const navigate = useNavigate();
   const [track, setTrack] = useState<Track>('filing');
   const [bkId, setBkId] = useState<string | null>(null);
   const [version, setVersion] = useState(0);
@@ -71,15 +73,19 @@ export function BankruptcyLetterStudioPanel({
 
   const canTemplates = hasEntitlement(partner.id, ENTITLEMENT_KEYS.templates);
 
+  const [savedLetterId, setSavedLetterId] = useState<string | null>(null);
+
   const bkPathSteps = useMemo(
     () =>
       buildDebtLetterPathSteps({
+        track: 'bankruptcy',
         hasCase: Boolean(bkCase),
         proofCount: 0,
         hasChosenLetter: Boolean(draft),
         hasDraftBody: Boolean(draft?.text?.trim()),
+        savedToVault: Boolean(savedLetterId),
       }),
-    [bkCase, draft],
+    [bkCase, draft, savedLetterId],
   );
 
   const runBkStep = (id: DebtLetterStepId) => {
@@ -87,7 +93,9 @@ export function BankruptcyLetterStudioPanel({
       openDraft: () => {
         if (draft) document.getElementById('fc-bk-step-draft')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       },
+      openVault: () => navigate('/portal/letters/vault'),
     });
+    if (id === 'escalate') navigate('/portal/escalations?tab=regulatory');
   };
 
   const runBkContinue = () => {
@@ -128,6 +136,7 @@ export function BankruptcyLetterStudioPanel({
         },
       } as any);
       setDraft(null);
+      setSavedLetterId(letterId);
       onSavedToVault?.(letterId);
     } finally {
       setBusy(false);

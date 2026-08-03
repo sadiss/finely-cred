@@ -314,7 +314,7 @@ export default function DebtEradicationLandingPage() {
                 to={DEBT_GUIDE_READ_PATH}
                 className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-[#e0b24a]/45 bg-[#e0b24a]/10 px-4 py-2.5 text-[11px] font-black uppercase tracking-[0.14em] text-[#ffd993] transition hover:border-[#ffd993]/70 hover:bg-[#e0b24a]/16"
               >
-                <BookOpen size={14} /> Read all {DEBT_GUIDE_CHAPTERS.length} chapters free — no signup
+                <BookOpen size={14} /> Read all {DEBT_GUIDE_CHAPTERS.length} pages free — no signup
               </Link>
               <Link to={DEBT_FUNNEL.bookingPath ?? '/enlightenment-session'} className="lm-secondary-book-link">
                 <Calendar size={14} /> Book a session
@@ -362,7 +362,7 @@ export default function DebtEradicationLandingPage() {
         </div>
       </section>
 
-      {/* Chapter index — the manual is readable in-app before any signup */}
+      {/* Page index — the manual is readable in-app before any signup */}
       <section id="read-online" className="relative z-10 border-b border-[#e0b24a]/20 py-9 md:py-12">
         <div className="mx-auto max-w-7xl px-5 md:px-8">
           <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
@@ -372,7 +372,7 @@ export default function DebtEradicationLandingPage() {
                 {DEBT_GUIDE_META.title}
               </h2>
               <p className="mt-3 text-sm leading-relaxed text-white/62">
-                {DEBT_GUIDE_CHAPTERS.length} chapters, start to finish, in the browser. Triage, chain of title,
+                {DEBT_GUIDE_CHAPTERS.length} pages, start to finish, in the browser. Triage, chain of title,
                 validation leverage, evidence discipline, summons education, settlement math, and the rebuild.
               </p>
             </div>
@@ -380,7 +380,7 @@ export default function DebtEradicationLandingPage() {
               to={DEBT_GUIDE_READ_PATH}
               className="group inline-flex h-12 shrink-0 items-center justify-center gap-2 overflow-hidden rounded-xl border border-[#ffe7b0]/55 bg-[linear-gradient(135deg,#c4803d_0%,#e0b24a_42%,#ffe7b0_68%,#d19d45_100%)] px-6 text-[11px] font-black uppercase tracking-[0.12em] text-[#040a36] shadow-[0_16px_48px_rgba(224,178,74,0.28)] transition hover:-translate-y-0.5 hover:brightness-110"
             >
-              <BookOpen size={15} /> Open Chapter I
+              <BookOpen size={15} /> Open Page I
             </Link>
           </div>
 

@@ -55,7 +55,7 @@ type HubTab = 'overview' | 'calculator' | 'denefits' | 'payouts' | 'training' | 
 
 const TABS: { id: HubTab; label: string; icon: React.ComponentType<{ size?: number }> }[] = [
   { id: 'overview', label: 'Overview', icon: Sparkles },
-  { id: 'calculator', label: 'Commission', icon: Percent },
+  { id: 'calculator', label: 'Payout calc', icon: Percent },
   { id: 'denefits', label: 'Denefit', icon: Percent },
   { id: 'payouts', label: 'Payouts', icon: Wallet },
   { id: 'training', label: 'Training', icon: GraduationCap },
@@ -103,9 +103,9 @@ export default function AffiliateHubPage() {
 
   if (!auth.user) {
     return (
-      <PageShell badge={AF.programName} title={AF.hubName} subtitle="Sign in to access commission tools, training, and referral resources.">
+      <PageShell badge={AF.programName} title={AF.hubName} subtitle="Sign in to access payout tools, training, and referral resources.">
         <div className={`${FINELY_OS_PAGE} flex flex-wrap gap-4`}>
-          <button type="button" onClick={() => navigate('/onboarding')} className={FINELY_OS_PRIMARY_BTN}>
+          <button type="button" onClick={() => navigate('/onboarding?lane=affiliate')} className={FINELY_OS_PRIMARY_BTN}>
             Sign in
           </button>
           <BackToSiteButton />
@@ -136,7 +136,7 @@ export default function AffiliateHubPage() {
           subtitle={`Share your link, track referrals, and get paid.`}
           accent="sky"
           kpis={[
-            { label: 'Commission', value: `${AF.defaultCommissionPct}%`, accent: 'sky' },
+            { label: 'Payout', value: `${AF.defaultCommissionPct}%`, accent: 'sky' },
             { label: 'Recurring', value: `${AF.defaultRecurringCommissionPct}%`, accent: 'violet' },
             { label: 'Denefit', value: `${AF.defaultDenefitsSharePct}%`, accent: 'emerald' },
             { label: 'Status', value: affiliate?.status ?? '—', accent: 'amber' },
@@ -152,7 +152,7 @@ export default function AffiliateHubPage() {
             <AffiliateCommandStrip affiliate={affiliate} loading={affiliateLoading} />
             <div className={`grid md:grid-cols-3 gap-4 ${finelyOsCatalogCard('sky')} !p-5`} data-fc-accent="sky">
               <div className={finelyOsKpiTile(1)}>
-                <div className={`${FINELY_OS_ENTITY_SUBLABEL} text-sky-700`}>Default commission</div>
+                <div className={`${FINELY_OS_ENTITY_SUBLABEL} text-sky-700`}>Default payout</div>
                 <div className="text-3xl font-bold text-sky-700 mt-1">{AF.defaultCommissionPct}%</div>
                 <div className={`${FINELY_OS_ENTITY_BODY} text-xs mt-1`}>Upfront on referred packages</div>
               </div>
@@ -236,7 +236,7 @@ export default function AffiliateHubPage() {
                   { label: 'Share application', path: AF.publicPath, icon: Link2 },
                   { label: 'Education library', path: '/portal/education', icon: Megaphone },
                   { label: 'Messages', path: AF.messagesDeepLink, icon: MessageSquare },
-                  { label: 'Commission calc', path: `${AF.hubPath}?tab=calculator`, icon: Percent },
+                  { label: 'Payout calc', path: `${AF.hubPath}?tab=calculator`, icon: Percent },
                   { label: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
                 ].map(({ label, path, icon: Icon }) => (
                   <button key={path} type="button" onClick={() => navigate(path)} className={FINELY_OS_SECONDARY_BTN}>

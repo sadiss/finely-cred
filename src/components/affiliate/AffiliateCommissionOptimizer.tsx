@@ -26,7 +26,7 @@ export function AffiliateCommissionOptimizer() {
       <div className="flex items-center gap-2">
         <TrendingUp size={18} className="text-emerald-400" />
         <div>
-          <div className={FINELY_OS_ENTITY_VALUE}>Commission optimizer</div>
+          <div className={FINELY_OS_ENTITY_VALUE}>Payout optimizer</div>
           <div className={FINELY_OS_ENTITY_SUBLABEL}>Rough monthly model — not a guarantee</div>
         </div>
       </div>

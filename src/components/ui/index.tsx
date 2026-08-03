@@ -8,6 +8,8 @@ import {
   PUBLIC_CONTACT_LINKS,
   PUBLIC_CORE_NAV,
   PUBLIC_RESOURCES_SECTIONS,
+  PUBLIC_SOLUTIONS_SECTIONS,
+  matchSolutionsPath,
 } from '../../config/siteWayfinderLanes';
 import { FinelyCredLogo } from '../brand/FinelyCredLogo';
 export { PasswordInput } from './PasswordInput';
@@ -821,7 +823,30 @@ export function MobileNav({ isOpen, onClose, onNavigate, showThemeToggle = false
         <nav className="space-y-3">
           <div className="fc-mobile-nav-section">
             <div className="fc-public-nav-section-title px-1 mb-2">Main</div>
-            {PUBLIC_CORE_NAV.map((link) => (
+            {PUBLIC_CORE_NAV.filter((link) => link.id === 'home').map((link) => (
+              <button
+                key={link.id}
+                type="button"
+                onClick={() => {
+                  onNavigate(link.path);
+                  onClose();
+                }}
+                className={`w-full text-left fc-nav-pill-compact mb-1 ${link.match(location.pathname) ? 'fc-nav-pill-active' : ''}`}
+              >
+                {link.label}
+              </button>
+            ))}
+            <button
+              type="button"
+              onClick={() => {
+                onNavigate('/pricing');
+                onClose();
+              }}
+              className={`w-full text-left fc-nav-pill-compact mb-1 ${matchSolutionsPath(location.pathname) ? 'fc-nav-pill-active' : ''}`}
+            >
+              Solutions
+            </button>
+            {PUBLIC_CORE_NAV.filter((link) => link.id === 'free-guide').map((link) => (
               <button
                 key={link.id}
                 type="button"
@@ -836,10 +861,10 @@ export function MobileNav({ isOpen, onClose, onNavigate, showThemeToggle = false
             ))}
           </div>
 
-          <div className="fc-mobile-nav-section">
-            <div className="fc-public-nav-section-title px-1 mb-2">Resources</div>
-            {PUBLIC_RESOURCES_SECTIONS.map((section) => (
-              <div key={section.id} className="mb-3">
+          <div className="fc-mobile-nav-section fc-public-nav-panel--luxury !p-3">
+            <div className="fc-public-nav-section-title px-1 mb-2">Solutions</div>
+            {PUBLIC_SOLUTIONS_SECTIONS.map((section) => (
+              <div key={section.id} className="mb-3 fc-public-nav-section-card">
                 <p className="px-1 mb-1 text-[10px] font-semibold uppercase tracking-wide text-white/40">{section.title}</p>
                 {section.links.map((link) => (
                   <button
@@ -849,7 +874,30 @@ export function MobileNav({ isOpen, onClose, onNavigate, showThemeToggle = false
                       onNavigate(link.path);
                       onClose();
                     }}
-                    className="fc-public-nav-row w-full text-left mb-0.5"
+                    className="fc-public-nav-row fc-public-nav-row--luxury w-full text-left mb-0.5"
+                  >
+                    <span className="text-sm font-semibold text-white/90">{link.label}</span>
+                    {link.hint ? <span className="mt-0.5 block text-xs text-white/48">{link.hint}</span> : null}
+                  </button>
+                ))}
+              </div>
+            ))}
+          </div>
+
+          <div className="fc-mobile-nav-section fc-public-nav-panel--luxury !p-3">
+            <div className="fc-public-nav-section-title px-1 mb-2">Resources</div>
+            {PUBLIC_RESOURCES_SECTIONS.map((section) => (
+              <div key={section.id} className="mb-3 fc-public-nav-section-card">
+                <p className="px-1 mb-1 text-[10px] font-semibold uppercase tracking-wide text-white/40">{section.title}</p>
+                {section.links.map((link) => (
+                  <button
+                    key={link.id}
+                    type="button"
+                    onClick={() => {
+                      onNavigate(link.path);
+                      onClose();
+                    }}
+                    className="fc-public-nav-row fc-public-nav-row--luxury w-full text-left mb-0.5"
                   >
                     <span className="text-sm font-semibold text-white/90">{link.label}</span>
                     {link.hint ? <span className="mt-0.5 block text-xs text-white/48">{link.hint}</span> : null}

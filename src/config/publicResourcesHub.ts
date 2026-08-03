@@ -125,8 +125,46 @@ export const PUBLIC_FEATURED_FREE_GUIDES: {
   {
     id: 'cs',
     title: 'Credit Specialist guide',
-    desc: 'Earn · serve · grow — free e-guide and one-sheet.',
+    desc: 'Earn · serve · grow — free e-guide and 2-sheet playbook.',
     path: '/credit-specialist-guide',
+    accent: 'amber',
+  },
+];
+
+/**
+ * Dedicated sheet pages — each PDF has its own thorough public page rather than living inside a
+ * shared hub. Titles carry the true page count; never label a multi-page PDF a "one-sheet".
+ */
+export const PUBLIC_DEDICATED_SHEET_PAGES: {
+  id: string;
+  title: string;
+  sheetLabel: string;
+  desc: string;
+  path: string;
+  accent: PublicNavAccent;
+}[] = [
+  {
+    id: 'restore',
+    title: 'Personal Credit Restore',
+    sheetLabel: '3-sheet field kit',
+    desc: 'Rights you invoke, round-one sequence with reason language, escalation ladder, and a 90-day hold plan.',
+    path: '/resources/personal-credit-restore-sheet',
+    accent: 'fuchsia',
+  },
+  {
+    id: 'build',
+    title: 'Personal Credit Build',
+    sheetLabel: '2-sheet blueprint',
+    desc: 'Five-rung instrument ladder, scoring weights, worked utilization math, and a 12-month calendar.',
+    path: '/resources/personal-credit-build-sheet',
+    accent: 'sky',
+  },
+  {
+    id: 'au_teen',
+    title: 'Authorized User & Teen Credit',
+    sheetLabel: '2-sheet parent kit',
+    desc: 'Issuer minimum ages, minor-AU reporting reality, parent checklist, and the 18th-birthday handoff.',
+    path: '/resources/au-teen-credit-sheet',
     accent: 'amber',
   },
 ];
@@ -142,16 +180,37 @@ export const PUBLIC_ONE_SHEET_PACKS: {
   {
     id: 'bc',
     title: 'Business credit one-sheets',
-    desc: 'Process brief, fundability roadmap, tier ladder, and destination sheets.',
+    desc: '3-sheet Process Brief, fundability roadmap, tier ladder, and single-page destination sheets.',
     path: '/resources/business-credit-one-sheets',
     accent: 'violet',
     badge: 'Partner pack',
   },
   {
     id: 'cs',
-    title: 'Credit Specialist one-sheet',
-    desc: 'Path overview PDF from the free Credit Specialist guide landing.',
+    title: 'Credit Specialist 2-sheet playbook',
+    desc: 'Two-page path PDF from the free Credit Specialist guide landing — the offer, then the operating sheet.',
     path: '/credit-specialist-guide',
     accent: 'amber',
+  },
+  {
+    id: 'restore',
+    title: 'Personal Credit Restore 3-sheet',
+    desc: 'Pointer to its own dedicated page — rights, round-one sequence, escalation ladder.',
+    path: '/resources/personal-credit-restore-sheet',
+    accent: 'fuchsia',
+  },
+  {
+    id: 'build',
+    title: 'Personal Credit Build 2-sheet',
+    desc: 'Pointer to its own dedicated page — instrument ladder and the optics engine.',
+    path: '/resources/personal-credit-build-sheet',
+    accent: 'sky',
+  },
+  {
+    id: 'au_teen',
+    title: 'AU & Teen Credit 2-sheet',
+    desc: 'Pointer to its own dedicated page — issuer ages, reporting reality, parent checklist.',
+    path: '/resources/au-teen-credit-sheet',
+    accent: 'emerald',
   },
 ];

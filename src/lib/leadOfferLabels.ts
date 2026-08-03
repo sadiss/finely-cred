@@ -5,6 +5,7 @@ export const LEAD_OFFER_LABELS: Record<LeadOffer, string> = {
   free_1h_consult: 'Free consult',
   general_inquiry: 'General inquiry',
   affiliate_application: 'Affiliate application',
+  real_estate_affiliate: 'Real estate affiliate',
   agent_application: 'Credit Specialist application',
   credit_specialist_join: 'Credit Specialist join',
   credit_specialist_guide: 'Credit Specialist guide',

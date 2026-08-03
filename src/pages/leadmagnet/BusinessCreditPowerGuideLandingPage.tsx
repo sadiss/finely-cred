@@ -383,7 +383,7 @@ export default function BusinessCreditPowerGuideLandingPage() {
         </p>
       </section>
 
-      {/* Chapter index — the full guide is readable in-app before any signup */}
+      {/* Page index — the full guide is readable in-app before any signup */}
       <section id="read-online" className="relative z-10 border-t border-[#d4a447]/18 py-9 md:py-12">
         <div className="mx-auto max-w-[88rem] px-5 md:px-10">
           <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
@@ -393,7 +393,7 @@ export default function BusinessCreditPowerGuideLandingPage() {
               </p>
               <h2 className="bcpg-serif mt-3 text-3xl text-white md:text-4xl">{BC_GUIDE_META.title}</h2>
               <p className="mt-3 text-sm leading-relaxed text-white/60">
-                {BC_GUIDE_CHAPTERS.length} chapters in the browser — fundability doctrine, entity truth, the three
+                {BC_GUIDE_CHAPTERS.length} pages in the browser — fundability doctrine, entity truth, the three
                 business files, the vendor tier ladder, bank rating, the capital stack, and a 12-month build calendar.
               </p>
             </div>
@@ -401,7 +401,7 @@ export default function BusinessCreditPowerGuideLandingPage() {
               to={BC_GUIDE_READ_PATH}
               className="bcpg-cta inline-flex h-12 shrink-0 items-center justify-center gap-2 rounded-lg px-7 text-[11px] font-black uppercase tracking-[0.16em] text-black"
             >
-              <BookOpenText size={15} /> Open Chapter 01
+              <BookOpenText size={15} /> Open Page 01
             </Link>
           </div>
 

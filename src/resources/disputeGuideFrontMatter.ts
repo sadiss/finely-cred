@@ -41,10 +41,10 @@ export const DISPUTE_GUIDE_FRONT_MATTER_PAGES: GeneratedGuidePage[] = [
       {
         heading: 'How to use this guide',
         bullets: [
-          'Read the first five chapters before you write anything — they are the difference between a letter and a filing.',
-          'Work the 5-step framework in order. Each step gets its own chapter with a power move at the end.',
+          'Read the first five pages before you write anything — they are the difference between a letter and a filing.',
+          'Work the 5-step framework in order. Each step gets its own page with a power move at the end.',
           'Use the example letter as a shape, not a script. Copy the structure; write the facts in your own words.',
-          'Come back to the escalation chapters only after Round 1 has a documented response or a documented silence.',
+          'Come back to the escalation pages only after Round 1 has a documented response or a documented silence.',
         ],
       },
     ],
@@ -53,7 +53,7 @@ export const DISPUTE_GUIDE_FRONT_MATTER_PAGES: GeneratedGuidePage[] = [
     id: 'report-anatomy',
     title: 'Read Your Report Like an Analyst',
     subtitle: 'The eleven fields that decide whether a tradeline is defensible',
-    kicker: 'Chapter 02 · Fundamentals',
+    kicker: 'Page 02 · Fundamentals',
     accent: 'ink',
     readMinutes: 6,
     sections: [
@@ -98,7 +98,7 @@ export const DISPUTE_GUIDE_FRONT_MATTER_PAGES: GeneratedGuidePage[] = [
     id: 'finding-not-feeling',
     title: 'A Finding, Not a Feeling',
     subtitle: 'The evidence standard that separates a worked dispute from a discarded one',
-    kicker: 'Chapter 03 · Standard',
+    kicker: 'Page 03 · Standard',
     accent: 'amber',
     readMinutes: 5,
     sections: [
@@ -147,7 +147,7 @@ export const DISPUTE_GUIDE_FRONT_MATTER_PAGES: GeneratedGuidePage[] = [
     id: 'who-you-write-to',
     title: 'Bureau or Furnisher',
     subtitle: 'Two envelopes, two duties, two very different letters',
-    kicker: 'Chapter 04 · Targeting',
+    kicker: 'Page 04 · Targeting',
     accent: 'violet',
     readMinutes: 5,
     sections: [
@@ -183,7 +183,7 @@ export const DISPUTE_GUIDE_FRONT_MATTER_PAGES: GeneratedGuidePage[] = [
     id: 'round-map',
     title: 'The 90-Day Round Map',
     subtitle: 'What actually happens after you drop the envelope — week by week',
-    kicker: 'Chapter 05 · Timeline',
+    kicker: 'Page 05 · Timeline',
     accent: 'emerald',
     readMinutes: 5,
     sections: [

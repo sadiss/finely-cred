@@ -7,7 +7,11 @@
 
 import type { Partner } from '../domain/partners';
 import type { DebtCase } from '../domain/debt';
-import type { CreditReportRecord } from '../domain/creditReports';
+import type {
+  CreditReportRecord,
+  ParsedCreditorContact,
+  ParsedTradeline,
+} from '../domain/creditReports';
 import type { PartnerCourtOutcome } from '../domain/courtOutcomes';
 import { formatUsdCents } from '../domain/courtOutcomes';
 import { getCourtOutcomeByDebtCase, upsertCourtOutcome } from './courtOutcomeRepo';
@@ -85,6 +89,14 @@ export const ROOSEVELT_PLAINTIFF_NAME = 'Midland Funding LLC';
 export const ROOSEVELT_ORIGINAL_CREDITOR = 'Citibank, N.A.';
 
 /**
+ * Who mail actually goes TO on this matter. Letters are addressed to the debt
+ * buyer / collector — never back to Roosevelt's own home address.
+ */
+export const ROOSEVELT_RECIPIENT_NAME = 'Midland Credit Management, Inc.';
+export const ROOSEVELT_RECIPIENT_ADDRESS = 'P.O. Box 939069\nSan Diego, CA 92193';
+export const ROOSEVELT_RECIPIENT_PHONE = '877-600-6800';
+
+/**
  * Durable journey signals for the partner row (Supabase-backed), so the outcome
  * survives a deploy even when the local outcome store is empty on a new device.
  */
@@ -106,6 +118,9 @@ export function rooseveltCourtJourneySignals(): Record<string, unknown> {
     planFinalPaymentIso: ROOSEVELT_PLAN_FINAL_PAYMENT_ISO,
     planPayeeName: ROOSEVELT_PLAN_PAYEE_NAME,
     planAgreedBeforeHearing: true,
+    // Mail on this matter goes to the collector, never back to Roosevelt.
+    letterRecipientName: ROOSEVELT_RECIPIENT_NAME,
+    letterRecipientAddress: ROOSEVELT_RECIPIENT_ADDRESS,
     postCourtTrack: 'post_court_payment_plan',
     nextStepId: 'order_on_file',
     writtenOrderOnFile: false,
@@ -173,14 +188,166 @@ export const ROOSEVELT_REPORT_SUMMARY = {
       originalCreditorHint: 'Citibank / Citi family (defense pack)',
     },
   ],
-  otherTradelineLabels: [
-    'CAPITAL ONE',
-    'AFFIRM INC',
-    'WELLS FARGO CARD SERV',
-    'BARCLAYS BANK DELAWARE',
-    'EASTERNBK',
+  /**
+   * Non-collection lenders on the same report. These are real tradelines, not
+   * decoration — each one is a possible letter recipient, so they carry the
+   * furnisher mailing block the letter builders read.
+   */
+  otherTradelines: [
+    {
+      label: 'CAPITAL ONE',
+      creditorName: 'Capital One, N.A.',
+      accountType: 'Revolving',
+      accountStatus: 'Open',
+      address: 'P.O. Box 30285\nSalt Lake City, UT 84130',
+      phone: '800-227-4825',
+    },
+    {
+      label: 'AFFIRM INC',
+      creditorName: 'Affirm, Inc.',
+      accountType: 'Installment',
+      accountStatus: 'Open',
+      address: '650 California St, Floor 12\nSan Francisco, CA 94108',
+      phone: '855-423-3729',
+    },
+    {
+      label: 'WELLS FARGO CARD SERV',
+      creditorName: 'Wells Fargo Card Services',
+      accountType: 'Revolving',
+      accountStatus: 'Open',
+      address: 'P.O. Box 10347\nDes Moines, IA 50306',
+      phone: '800-642-4720',
+    },
+    {
+      label: 'BARCLAYS BANK DELAWARE',
+      creditorName: 'Barclays Bank Delaware',
+      accountType: 'Revolving',
+      accountStatus: 'Open',
+      address: 'P.O. Box 8803\nWilmington, DE 19899',
+      phone: '888-232-0780',
+    },
+    {
+      label: 'EASTERNBK',
+      creditorName: 'Eastern Bank',
+      accountType: 'Revolving',
+      accountStatus: 'Open',
+      address: 'P.O. Box 4990\nBoston, MA 02212',
+      phone: '800-327-8376',
+    },
   ],
 } as const;
+
+/** Back-compat label list (UI copy / summaries still read the raw bureau labels). */
+export const ROOSEVELT_OTHER_TRADELINE_LABELS: string[] =
+  ROOSEVELT_REPORT_SUMMARY.otherTradelines.map((t) => t.label);
+
+/**
+ * Every tradeline that belongs on Roosevelt's parsed report: the Midland
+ * collection plus the five lenders that used to exist only as label strings.
+ * Each carries `creditorAddress` / `creditorPhone` so creditor extract can
+ * offer them as a letter TO party.
+ */
+export function buildRooseveltTradelines(): ParsedTradeline[] {
+  const collection: ParsedTradeline = {
+    creditorName: 'MIDLANDCRE',
+    originalCreditor: ROOSEVELT_ORIGINAL_CREDITOR,
+    accountNumberMasked: '33435****',
+    balance: 1094,
+    highBalance: 1610,
+    accountType: 'Collection',
+    accountStatus: 'Derogatory / Collection',
+    dateOpened: '2025-07-01',
+    creditorAddress: ROOSEVELT_RECIPIENT_ADDRESS,
+    creditorPhone: ROOSEVELT_RECIPIENT_PHONE,
+    fields: [
+      { label: 'Account Status', byBureau: { TUC: 'Derogatory', EXP: 'Derogatory', EQF: 'Derogatory' } },
+      { label: 'Balance', byBureau: { TUC: '$1,094', EXP: '$1,094', EQF: '$1,094' } },
+      { label: 'Original Creditor', byBureau: { TUC: ROOSEVELT_ORIGINAL_CREDITOR, EXP: ROOSEVELT_ORIGINAL_CREDITOR, EQF: ROOSEVELT_ORIGINAL_CREDITOR } },
+      {
+        label: 'Creditor Address',
+        byBureau: {
+          TUC: ROOSEVELT_RECIPIENT_ADDRESS,
+          EXP: ROOSEVELT_RECIPIENT_ADDRESS,
+          EQF: ROOSEVELT_RECIPIENT_ADDRESS,
+        },
+      },
+    ],
+  };
+
+  const lenders: ParsedTradeline[] = ROOSEVELT_REPORT_SUMMARY.otherTradelines.map((t) => ({
+    creditorName: t.label,
+    accountType: t.accountType,
+    accountStatus: t.accountStatus,
+    creditorAddress: t.address,
+    creditorPhone: t.phone,
+    fields: [
+      { label: 'Creditor Name', byBureau: { TUC: t.creditorName, EXP: t.creditorName, EQF: t.creditorName } },
+      { label: 'Account Type', byBureau: { TUC: t.accountType, EXP: t.accountType, EQF: t.accountType } },
+      { label: 'Creditor Address', byBureau: { TUC: t.address, EXP: t.address, EQF: t.address } },
+      { label: 'Creditor Phone', byBureau: { TUC: t.phone, EXP: t.phone, EQF: t.phone } },
+    ],
+  }));
+
+  return [collection, ...lenders];
+}
+
+/** Contact block the letter TO picker reads (collector first, then lenders). */
+export function buildRooseveltCreditorContacts(): ParsedCreditorContact[] {
+  return buildRooseveltTradelines().map((t, tradelineIndex) => ({
+    creditorName: t.creditorName,
+    accountNumberMasked: t.accountNumberMasked,
+    address: t.creditorAddress,
+    phone: t.creditorPhone,
+    source: 'tradeline' as const,
+    tradelineIndex,
+  }));
+}
+
+function normalizeCreditorKey(name: string): string {
+  return String(name || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '')
+    .trim();
+}
+
+/**
+ * Idempotent merge: keeps anything a partner or parser already wrote, adds the
+ * seed tradelines that are missing, and backfills mailing contact on matches.
+ */
+export function mergeRooseveltTradelines(existing?: ParsedTradeline[] | null): ParsedTradeline[] {
+  const seeded = buildRooseveltTradelines();
+  const out = [...(existing || [])];
+  for (const seed of seeded) {
+    const idx = out.findIndex((t) => normalizeCreditorKey(t.creditorName) === normalizeCreditorKey(seed.creditorName));
+    if (idx < 0) {
+      out.push(seed);
+      continue;
+    }
+    const current = out[idx]!;
+    out[idx] = {
+      ...seed,
+      ...current,
+      creditorAddress: current.creditorAddress || seed.creditorAddress,
+      creditorPhone: current.creditorPhone || seed.creditorPhone,
+      fields: current.fields?.length ? current.fields : seed.fields,
+    };
+  }
+  return out;
+}
+
+/** True when a mailing recipient is really Roosevelt himself (never mail to self). */
+export function isRooseveltSelfRecipient(name?: string | null, address?: string | null): boolean {
+  const n = normalizeCreditorKey(name || '');
+  const a = normalizeCreditorKey(address || '');
+  const selfName = normalizeCreditorKey(ROOSEVELT_DISPLAY_NAME);
+  const selfAddrs = [
+    ROOSEVELT_REPORT_SUMMARY.currentAddress,
+    ROOSEVELT_REPORT_SUMMARY.previousAddress,
+  ].map(normalizeCreditorKey);
+  if (n && (n === selfName || n.includes('rooseveltcorelus'))) return true;
+  if (a.length >= 14 && selfAddrs.some((s) => s && (a === s || a.includes(s) || s.includes(a)))) return true;
+  return false;
+}
 
 export function isRooseveltCourtPartner(partner: Partner | null | undefined): boolean {
   if (!partner) return false;
@@ -211,17 +378,25 @@ async function ensureRooseveltDebtCase(partnerId: string): Promise<DebtCase> {
         (c.hearingDate || '').slice(0, 10) === ROOSEVELT_HEARING_ISO),
   );
   if (existing) {
+    // Repair earlier seeds that addressed the letter back to Roosevelt himself.
+    const recipientIsSelf = isRooseveltSelfRecipient(existing.recipientName, existing.recipientAddress);
     return upsertDebt({
       ...existing,
       type: 'summons',
-      name: existing.name || 'Midland Funding LLC',
-      originalCreditor: existing.originalCreditor || 'Citibank, N.A.',
+      name: existing.name || ROOSEVELT_PLAINTIFF_NAME,
+      originalCreditor: existing.originalCreditor || ROOSEVELT_ORIGINAL_CREDITOR,
+      collectorName: existing.collectorName || ROOSEVELT_PLAN_PAYEE_NAME,
       amountCents: existing.amountCents || 109400,
       accountNumberMasked: existing.accountNumberMasked || '33435****',
       hearingDate: ROOSEVELT_HEARING_ISO,
       stateJurisdiction: existing.stateJurisdiction || 'MA',
-      recipientName: existing.recipientName || ROOSEVELT_DISPLAY_NAME,
-      recipientAddress: existing.recipientAddress || ROOSEVELT_REPORT_SUMMARY.currentAddress,
+      recipientName: recipientIsSelf ? ROOSEVELT_RECIPIENT_NAME : existing.recipientName || ROOSEVELT_RECIPIENT_NAME,
+      recipientAddress: recipientIsSelf
+        ? ROOSEVELT_RECIPIENT_ADDRESS
+        : existing.recipientAddress || ROOSEVELT_RECIPIENT_ADDRESS,
+      recipientPhone: recipientIsSelf
+        ? ROOSEVELT_RECIPIENT_PHONE
+        : existing.recipientPhone || ROOSEVELT_RECIPIENT_PHONE,
       // Hearing is decided — the matter is resolved into a monthly payment plan.
       status: 'resolved',
       notes: existing.notes?.includes(ROOSEVELT_COURT_OUTCOME_MARKER)
@@ -240,8 +415,9 @@ async function ensureRooseveltDebtCase(partnerId: string): Promise<DebtCase> {
     collectorName: ROOSEVELT_PLAN_PAYEE_NAME,
     accountNumberMasked: '33435****',
     stateJurisdiction: 'MA',
-    recipientName: ROOSEVELT_DISPLAY_NAME,
-    recipientAddress: ROOSEVELT_REPORT_SUMMARY.currentAddress,
+    recipientName: ROOSEVELT_RECIPIENT_NAME,
+    recipientAddress: ROOSEVELT_RECIPIENT_ADDRESS,
+    recipientPhone: ROOSEVELT_RECIPIENT_PHONE,
     notes: `${ROOSEVELT_DEBT_CASE_MARKER}\n${ROOSEVELT_COURT_OUTCOME_MARKER}\n${ROOSEVELT_CASE_NOTE}`,
     source: 'import',
   });
@@ -255,40 +431,48 @@ function ensureRooseveltReportPlaceholder(partnerId: string): CreditReportRecord
       (r.rawBlobRef || '').includes(ROOSEVELT_REPORT_FILENAME),
   );
   if (existing) {
-    if (!existing.parsed?.personalInfo?.fullName) {
-      return upsertReport({
-        ...existing,
-        parsed: {
-          provider: existing.parsed?.provider || 'unknown',
-          tradelines: existing.parsed?.tradelines || [],
-          sections: existing.parsed?.sections || [],
-          ...existing.parsed,
-          personalInfo: {
-            ...(existing.parsed?.personalInfo || {}),
-            fullName: ROOSEVELT_DISPLAY_NAME,
-            addresses: [
-              {
-                raw: ROOSEVELT_REPORT_SUMMARY.currentAddress,
-                line1: '30 Portland St',
-                city: 'Haverhill',
-                state: 'MA',
-                zip: '01830',
-                type: 'current',
-              },
-            ],
-            employer: ROOSEVELT_REPORT_SUMMARY.employers[0],
-          },
-          scores: existing.parsed?.scores?.length
-            ? existing.parsed.scores
+    const mergedTradelines = mergeRooseveltTradelines(existing.parsed?.tradelines);
+    const tradelinesChanged = mergedTradelines.length !== (existing.parsed?.tradelines?.length ?? 0);
+    const needsPersonalInfo = !existing.parsed?.personalInfo?.fullName;
+    const needsContacts = !existing.parsed?.creditorContacts?.length;
+    if (!tradelinesChanged && !needsPersonalInfo && !needsContacts) return existing;
+
+    return upsertReport({
+      ...existing,
+      parsed: {
+        provider: existing.parsed?.provider || 'unknown',
+        sections: existing.parsed?.sections || [],
+        ...existing.parsed,
+        tradelines: mergedTradelines,
+        creditorContacts: existing.parsed?.creditorContacts?.length
+          ? existing.parsed.creditorContacts
+          : buildRooseveltCreditorContacts(),
+        personalInfo: {
+          ...(existing.parsed?.personalInfo || {}),
+          fullName: existing.parsed?.personalInfo?.fullName || ROOSEVELT_DISPLAY_NAME,
+          addresses: existing.parsed?.personalInfo?.addresses?.length
+            ? existing.parsed.personalInfo.addresses
             : [
-                { bureau: 'TUC', value: 443, model: 'VantageScore' },
-                { bureau: 'EXP', value: 447, model: 'VantageScore' },
-                { bureau: 'EQF', value: 441, model: 'VantageScore' },
+                {
+                  raw: ROOSEVELT_REPORT_SUMMARY.currentAddress,
+                  line1: '30 Portland St',
+                  city: 'Haverhill',
+                  state: 'MA',
+                  zip: '01830',
+                  type: 'current',
+                },
               ],
+          employer: existing.parsed?.personalInfo?.employer || ROOSEVELT_REPORT_SUMMARY.employers[0],
         },
-      });
-    }
-    return existing;
+        scores: existing.parsed?.scores?.length
+          ? existing.parsed.scores
+          : [
+              { bureau: 'TUC', value: 443, model: 'VantageScore' },
+              { bureau: 'EXP', value: 447, model: 'VantageScore' },
+              { bureau: 'EQF', value: 441, model: 'VantageScore' },
+            ],
+      },
+    });
   }
 
   const now = new Date().toISOString();
@@ -307,22 +491,8 @@ function ensureRooseveltReportPlaceholder(partnerId: string): CreditReportRecord
     parsed: {
       provider: 'unknown',
       reportDate: ROOSEVELT_REPORT_SUMMARY.reportDate,
-      tradelines: [
-        {
-          creditorName: 'MIDLANDCRE',
-          originalCreditor: 'Citibank, N.A.',
-          accountNumberMasked: '33435****',
-          balance: 1094,
-          highBalance: 1610,
-          accountType: 'Collection',
-          accountStatus: 'Derogatory',
-          dateOpened: '2025-07-01',
-          fields: [
-            { label: 'Account Status', byBureau: { TUC: 'Derogatory', EXP: 'Derogatory', EQF: 'Derogatory' } },
-            { label: 'Balance', byBureau: { TUC: '$1,094', EXP: '$1,094', EQF: '$1,094' } },
-          ],
-        },
-      ],
+      tradelines: buildRooseveltTradelines(),
+      creditorContacts: buildRooseveltCreditorContacts(),
       scores: [
         { bureau: 'TUC', value: 443, model: 'VantageScore' },
         { bureau: 'EXP', value: 447, model: 'VantageScore' },

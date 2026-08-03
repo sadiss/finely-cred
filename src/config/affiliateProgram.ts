@@ -17,14 +17,14 @@ export const AFFILIATE_OFFERINGS = [
     included: ['Referral codes & UTM-ready links', 'Lead capture on applications', 'CRM pipeline visibility for admins'],
   },
   {
-    title: 'Commission calculator',
+    title: 'Payout calculator',
     description: 'Model upfront payouts plus recurring share when your referrals stay on membership plans.',
-    included: ['Upfront sale commission', 'Optional recurring months', 'Transparent percentage inputs'],
+    included: ['Upfront sale payout', 'Optional recurring months', 'Transparent percentage inputs'],
   },
   {
     title: 'Denefit referral stream',
     description: 'Refer in-house Denefit contracts — customers build credit on Equifax as they pay; you earn over the contract term.',
-    included: ['Equifax reporting story for prospects', 'Denefit calculator in hub', 'Stacks with upfront package commission'],
+    included: ['Equifax reporting story for prospects', 'Denefit calculator in hub', 'Stacks with upfront package payout'],
   },
   {
     title: 'Marketing kit',

@@ -111,7 +111,8 @@
     "launch:ops": "node scripts/launch-ops-status.mjs",
     "post-deploy:verify": "node scripts/post-deploy-verify.mjs",
     "extract:premium-spreads": "node scripts/extract-premium-spread-pngs.mjs",
-    "smoke:premium-spread-pdf": "npx tsx scripts/smoke-premium-spread-pdf.mjs"
+    "smoke:premium-spread-pdf": "npx tsx scripts/smoke-premium-spread-pdf.mjs",
+    "dispute:track:audit": "node scripts/audit-dispute-track-purity.mjs"
   },
   "devDependencies": {
     "@playwright/test": "^1.52.0",

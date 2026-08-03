@@ -21,12 +21,14 @@ import {
   contactsFromParsedReport,
   extractCollateralSignals,
   extractReportDebtSignals,
+  listReportCreditorTargets,
   listSummonsDocumentsForDebt,
   mergeDebtCreditorFields,
   resolveDebtPartyInfo,
   type DebtPartyInfo,
   type ReportedDebtSignal,
 } from '../../lib/debtCreditorIntel';
+import type { SelfPartyIdentity } from '../../creditReports/creditorContactExtract';
 import {
   enrichRecipientAddress,
   enrichmentToDebtPatch,
@@ -112,6 +114,28 @@ export function DebtCreditorIntelPanel({
     return out;
   }, [reports]);
 
+  // The partner is never a valid letter recipient — collect every way we know
+  // them so their own block can be rejected wherever it leaks in.
+  const selfIdentity = useMemo<SelfPartyIdentity>(() => {
+    const addresses: string[] = [
+      [senderFields.address1, senderFields.address2, [senderFields.city, senderFields.state, senderFields.postalCode].filter(Boolean).join(' ')]
+        .filter(Boolean)
+        .join(' '),
+    ];
+    for (const r of reports) {
+      for (const a of r.parsed?.personalInfo?.addresses || []) {
+        const raw = a?.raw || [a?.line1, a?.city, a?.state, a?.zip].filter(Boolean).join(' ');
+        if (raw) addresses.push(raw);
+      }
+    }
+    return {
+      fullName: senderFields.fullName || reports.find((r) => r.parsed?.personalInfo?.fullName)?.parsed?.personalInfo?.fullName,
+      addresses: addresses.filter((a) => a.trim().length > 6),
+    };
+  }, [senderFields.fullName, senderFields.address1, senderFields.address2, senderFields.city, senderFields.state, senderFields.postalCode, reports]);
+
+  const reportCreditorTargets = useMemo(() => listReportCreditorTargets(reports), [reports]);
+
   const party = useMemo(
     () =>
       resolveDebtPartyInfo({
@@ -119,8 +143,9 @@ export function DebtCreditorIntelPanel({
         signals,
         contacts: contacts as never,
         documents: processedDocuments,
+        self: selfIdentity,
       }),
-    [debt, signals, contacts, processedDocuments],
+    [debt, signals, contacts, processedDocuments, selfIdentity],
   );
 
   const summonsDocs = useMemo(
@@ -164,7 +189,7 @@ export function DebtCreditorIntelPanel({
   // Auto-persist high-confidence match when case is missing mailing fields.
   useEffect(() => {
     if (!debt || !party) return;
-    const next = autoPersistDebtPartyIfEmpty(debt, party);
+    const next = autoPersistDebtPartyIfEmpty(debt, party, selfIdentity);
     if (next) {
       onDebtChange(next);
       setSavedNotice(`Auto-filled from ${party.matchedFrom.replace('_', ' ')} — review before mailing.`);
@@ -490,6 +515,44 @@ export function DebtCreditorIntelPanel({
           <div className="flex items-start gap-2 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-xs text-amber-100/90 max-w-xl">
             <AlertTriangle size={14} className="shrink-0 mt-0.5" />
             Mailing address is required before you send.
+          </div>
+        ) : null}
+
+        {reportCreditorTargets.length > 0 ? (
+          <div className="space-y-1.5">
+            <div className={`text-[10px] uppercase tracking-widest ${FINELY_OS_ENTITY_BODY}`}>
+              Creditors and collectors on your report — tap to address the letter
+            </div>
+            <div className="flex flex-wrap gap-1.5">
+              {reportCreditorTargets.slice(0, 12).map((t) => (
+                <button
+                  key={t.targetId}
+                  type="button"
+                  onClick={() => {
+                    setRecipientName(t.creditorName);
+                    if (t.address) setRecipientAddress(t.address);
+                    if (t.phone) setRecipientPhone(t.phone);
+                    if (t.originalCreditor) setOriginalCreditor(t.originalCreditor);
+                    if (t.accountNumberMasked) setAccountRef(t.accountNumberMasked);
+                    setSavedNotice(
+                      t.address
+                        ? `Addressed to ${t.creditorName} from your report — review, then Save to debt case.`
+                        : `${t.creditorName} has no address on the report — use Fill address or type it from the notice.`,
+                    );
+                  }}
+                  className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-[11px] font-semibold transition-colors ${
+                    t.role === 'collector'
+                      ? 'border-fuchsia-400/35 bg-fuchsia-500/10 text-fuchsia-100 hover:bg-fuchsia-500/20'
+                      : 'border-white/12 bg-black/30 text-white/75 hover:bg-white/[0.06]'
+                  }`}
+                  title={t.address ? t.address : 'No mailing address on the report yet'}
+                >
+                  <Building2 size={11} />
+                  <span className="truncate max-w-[13rem]">{t.creditorName}</span>
+                  {t.hasAddress ? null : <span className="text-[9px] opacity-70">no address</span>}
+                </button>
+              ))}
+            </div>
           </div>
         ) : null}
 

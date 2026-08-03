@@ -299,7 +299,7 @@ export const LEAD_MAGNET_PREMIUM_PROFILES: Record<string, LeadMagnetPremiumProfi
 
   credit_specialist_guide: profile({
     accent: 'amber',
-    heroProof: ['7-chapter in-app playbook', 'Personal + business credit lanes', '3-lead join path after the guide'],
+    heroProof: ['7-page in-app playbook', 'Personal + business credit lanes', '3-lead join path after the guide'],
     problemTitle: 'Specialists need craft, opportunity, and a clear entry gate.',
     problemBody:
       'This playbook teaches personal credit, business credit, debt challenge insight, and court/summons education — then routes serious operators into the Credit Specialist join flow (3 leads · 30-day free-leads window).',
@@ -316,19 +316,19 @@ export const LEAD_MAGNET_PREMIUM_PROFILES: Record<string, LeadMagnetPremiumProfi
       { title: 'Specialist opportunity', bullets: ['3-lead gate', '30-day free leads', 'Revenue-share tiers'] },
     ],
     tracks: [
-      { id: 'learn', label: 'Learn first', promise: 'Open the in-app guide before you pitch.', bestFor: 'New specialists.', plan: ['Capture', 'Read chapters', 'Join when ready'] },
+      { id: 'learn', label: 'Learn first', promise: 'Open the in-app guide before you pitch.', bestFor: 'New specialists.', plan: ['Capture', 'Read pages', 'Join when ready'] },
       { id: 'recruit', label: 'Recruit now', promise: 'Commit to 3 leads in 30 days.', bestFor: 'Operators with a network.', plan: ['Join', 'Promo links', 'Bring partners'] },
-      { id: 'debt', label: 'Debt lane', promise: 'Teach validation-first pressure response.', bestFor: 'Collections-heavy markets.', plan: ['Guide chapters', 'Letter studio', 'Compliance'] },
+      { id: 'debt', label: 'Debt lane', promise: 'Teach validation-first pressure response.', bestFor: 'Collections-heavy markets.', plan: ['Guide pages', 'Letter studio', 'Compliance'] },
       { id: 'business', label: 'Business lane', promise: 'Fundability before capital asks.', bestFor: 'Entrepreneur niches.', plan: ['Entity hygiene', 'Vendor ladder', 'Underwriting optics'] },
     ],
     timeline: [
       { step: 'Capture', detail: 'Unlock the in-app playbook' },
-      { step: 'Read', detail: 'Open chapters from the preview' },
+      { step: 'Read', detail: 'Open pages from the preview' },
       { step: 'Join', detail: '3-lead commitment + tier selection' },
       { step: 'Activate', detail: 'Specialist Hub + bring partners' },
     ],
     bonusTools: [
-      { title: 'In-app chapter reader', desc: 'Click the book preview — no PDF required.' },
+      { title: 'In-app page reader', desc: 'Click the book preview — no PDF required.' },
       { title: 'Join commitment checklist', desc: '3 leads · 30-day free-leads window — clear on day one.' },
       { title: 'Pricing hub', desc: 'Foundation → Certified Partner revenue-share tiers.' },
     ],

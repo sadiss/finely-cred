@@ -6,6 +6,7 @@ import { FlashyIcon } from '../components/ui';
 import { FinelyOsPageFooter } from '../features/os/FinelyOsPageFooter';
 import { StaffPortraitImg } from '../components/staff/StaffPortraitImg';
 import { MarketingStaffChatStrip } from '../components/marketing/MarketingStaffChatStrip';
+import { DedicatedSheetLinkStrip } from '../components/resources/DedicatedSheetLinkStrip';
 import { resolveStaffOnDuty } from '../data/staffRoster';
 import { usePublicSeoMeta } from '../hooks/usePublicSeoMeta';
 import { isNoraCapitalConfigured } from '../data/settingsRepo';
@@ -459,6 +460,12 @@ export default function PersonalCreditPage() {
             </div>
           </div>
         </div>
+
+        <DedicatedSheetLinkStrip
+          only={['restore', 'build']}
+          heading="Prefer to start on your own? Take the sheets."
+          subline="Free PDFs · honest page counts · no signup"
+        />
 
         <div className={finelyOsLightContrastBand('py-14')} data-fc-contrast-band="1">
           <div className="max-w-3xl mx-auto text-center space-y-5">

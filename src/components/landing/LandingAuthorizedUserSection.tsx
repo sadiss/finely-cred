@@ -175,6 +175,24 @@ export function LandingAuthorizedUserSection() {
           <p className="fc-sell-compliance text-center mt-6">
             Illustrative listings for demonstration · not live inventory · limits, age, and availability vary by seller
           </p>
+
+          <div className="mt-8 mx-auto max-w-3xl rounded-2xl border border-[#e0b24a]/28 bg-black/30 p-5 text-center">
+            <p className="text-[10px] font-black uppercase tracking-[0.28em] text-[#ffd993]/90">
+              Adding a teen as an authorized user?
+            </p>
+            <p className="mt-2 text-sm leading-relaxed text-white/58">
+              Amex and U.S. Bank allow authorized users from around 13, Capital One commonly reports regardless of age,
+              and Chase and Amex often do not report a minor at all. Our free 2-sheet parent kit lays out every issuer
+              policy, the four gates an AU line must clear, and the 18th-birthday handoff.
+            </p>
+            <button
+              type="button"
+              onClick={() => navigate('/resources/au-teen-credit-sheet')}
+              className="mt-4 inline-flex items-center gap-2 rounded-xl border border-[#e0b24a]/45 bg-[#e0b24a]/10 px-5 py-2.5 text-xs font-black uppercase tracking-wider text-[#ffd993] transition-colors hover:bg-[#e0b24a]/20"
+            >
+              Open the 2-sheet AU &amp; teen kit <ArrowRight size={14} />
+            </button>
+          </div>
         </div>
 
         <div className="mt-12">

@@ -147,8 +147,8 @@ export default function CreditSpecialistGuideLandingPage() {
         <div className="relative z-[2] mx-auto grid max-w-[88rem] items-center gap-8 px-5 pb-10 pt-6 md:px-10 lg:grid-cols-[1.05fr_0.95fr] lg:gap-12 lg:pb-12 lg:pt-8">
           <div>
             <div className="mb-4 flex flex-wrap items-center gap-2 text-[12px] font-medium text-white/55">
-              <a href="#chapters" className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 transition hover:border-[#95e000]/40 hover:text-[#95e000]">
-                Chapters
+              <a href="#pages" className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 transition hover:border-[#95e000]/40 hover:text-[#95e000]">
+                Pages
               </a>
               <a href="#inside" className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 transition hover:border-[#95e000]/40 hover:text-[#95e000]">
                 Inside
@@ -194,25 +194,25 @@ export default function CreditSpecialistGuideLandingPage() {
           <div className="relative flex flex-col items-center">
             <GuideBookMockup tall onOpen={() => openGuide()} />
             <p className="mt-1 max-w-xs text-center text-sm text-white/50">
-              In-app reader with real chapters — not a PDF-only ebook. Click the cover or any chapter below.
+              In-app reader with real pages — not a PDF-only ebook. Click the cover or any page below.
             </p>
           </div>
         </div>
       </section>
 
-      {/* Chapter preview — near top, opens reader */}
-      <section id="chapters" className="relative z-10 scroll-mt-28 border-y border-white/8 py-12 md:py-14">
+      {/* Page preview — near top, opens reader */}
+      <section id="pages" className="relative z-10 scroll-mt-28 border-y border-white/8 py-12 md:py-14">
         <div className="mx-auto max-w-[88rem] px-5 md:px-10">
           <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
             <div>
               <div className="csg-kicker">
-                <BookOpen size={14} /> Chapter preview
+                <BookOpen size={14} /> Page preview
               </div>
               <h2 className="csg-serif mt-3 text-3xl font-semibold md:text-4xl">
-                {CS_GUIDE_CHAPTERS.length} chapters · tap any to read
+                {CS_GUIDE_CHAPTERS.length} pages · tap any to read
               </h2>
               <p className="mt-2 max-w-2xl text-sm text-white/55 md:text-base">
-                Preview the playbook at the top of the page. Each card opens the in-app reader on that chapter — free,
+                Preview the playbook at the top of the page. Each card opens the in-app reader on that page — free,
                 readable, no unlock gate.
               </p>
             </div>
@@ -221,7 +221,7 @@ export default function CreditSpecialistGuideLandingPage() {
               onClick={() => openGuide('welcome')}
               className="csg-ghost-btn inline-flex h-11 items-center justify-center gap-2 self-start rounded-lg px-5 text-[11px] font-black uppercase tracking-[0.14em] md:self-auto"
             >
-              Start chapter 1 <ArrowRight size={14} />
+              Start page 1 <ArrowRight size={14} />
             </button>
           </div>
           <div className="mt-8 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
@@ -234,7 +234,7 @@ export default function CreditSpecialistGuideLandingPage() {
               >
                 <div className="flex items-start justify-between gap-3">
                   <span className={cn('text-[11px] font-black uppercase tracking-[0.2em]', `csg-accent-${ch.accent}`)}>
-                    Ch {ch.number}
+                    Pg {ch.number}
                   </span>
                   <ArrowRight
                     size={16}
@@ -374,7 +374,7 @@ export default function CreditSpecialistGuideLandingPage() {
                   </li>
                   <li>
                     <span className="font-bold text-[#f0cc75]">2.</span> Study personal, business, debt, and opportunity
-                    chapters
+                    pages
                   </li>
                   <li>
                     <span className="font-bold text-[#f0cc75]">3.</span> Join via {CS_JOIN_PATH} for pricing & signup

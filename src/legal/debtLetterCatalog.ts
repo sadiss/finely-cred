@@ -346,6 +346,26 @@ export function catalogForCategory(
   });
 }
 
+/**
+ * Single source of truth for a lane's visible letter pool.
+ * Browsers and KPI counters must both call this so "Letters: N" always equals the rendered list.
+ */
+export function letterCatalogPool(args: {
+  categories: LetterCatalogCategory[];
+  hub?: LetterCatalogHub;
+  filter?: (entry: DebtLetterCatalogEntry) => boolean;
+}): DebtLetterCatalogEntry[] {
+  const unique = new Map<string, DebtLetterCatalogEntry>();
+  for (const category of args.categories) {
+    for (const entry of catalogForCategory(category, args.hub)) {
+      if (args.hub && !entryMatchesHub(entry, args.hub)) continue;
+      if (args.filter && !args.filter(entry)) continue;
+      unique.set(entry.id, entry);
+    }
+  }
+  return [...unique.values()];
+}
+
 export function catalogEntryById(id: string): DebtLetterCatalogEntry | undefined {
   return DEBT_LETTER_CATALOG.find((e) => e.id === id);
 }
