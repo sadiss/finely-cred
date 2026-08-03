@@ -11,7 +11,7 @@ import {
   X,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { listEvidenceByPartner, upsertEvidence } from '../../data/evidenceRepo';
+import { listEvidenceByPartner } from '../../data/evidenceRepo';
 import { addThreadMessage, createThread, listMessagesByThread, listThreadsByPartner } from '../../data/supportRepo';
 import {
   buildComposeHandoffFromThread,
@@ -20,9 +20,14 @@ import {
 } from '../../lib/commsConversationHandoff';
 import type { SupportTopic } from '../../domain/support';
 import { openBlobRefInNewTab } from '../../lib/openBlobRef';
-import { getBlobStore } from '../../storage/getBlobStore';
-import { newId } from '../../utils/ids';
 import type { EvidenceItem } from '../../domain/evidence';
+import {
+  CHAT_ATTACHMENT_ACCEPT,
+  describeChatAttachmentError,
+  formatAttachmentSize,
+  uploadChatAttachment,
+} from '../../lib/chatAttachments';
+import { ChatAttachmentTray, type ChatAttachmentTrayItem } from './ChatAttachmentTray';
 import { FinelyPremiumEmojiPicker } from './FinelyPremiumEmojiPicker';
 import { getChatSettings } from '../../data/settingsRepo';
 import { fetchSupportReplySuggestions } from '../../lib/supportReplySuggestions';
@@ -43,8 +48,9 @@ import {
   finelyOsMessageBubble,
 } from '../../features/os/finelyOsLightUi';
 
-const blobStore = getBlobStore();
 const VAULT_ATTACH_LIMIT = 10;
+
+type ComposeMode = 'new' | 'reply';
 
 const TEAM_COMPOSE_STARTERS = [
   { emoji: '⚖️', label: 'Dispute update', body: 'I have a question about my current dispute round and what I should do next.' },
@@ -103,17 +109,25 @@ function MessageBody({ text }: { text: string }) {
 }
 
 function AttachmentChip({ item }: { item: EvidenceItem }) {
+  const [openErr, setOpenErr] = useState<string | null>(null);
   return (
-    <button
-      type="button"
-      onClick={() => {
-        void openBlobRefInNewTab({ blobRef: item.blobRef, mimeType: item.mimeType });
-      }}
-      className={`inline-flex items-center gap-1.5 ${FINELY_OS_ENTITY_CHIP} hover:bg-white/[0.08]`}
-      title="Open attachment"
-    >
-      <Paperclip size={10} /> {item.filename}
-    </button>
+    <span className="inline-flex flex-col gap-1 max-w-full">
+      <button
+        type="button"
+        onClick={() => {
+          setOpenErr(null);
+          void openBlobRefInNewTab({ blobRef: item.blobRef, mimeType: item.mimeType }).then((res) => {
+            if (!res.ok) setOpenErr(res.message);
+          });
+        }}
+        className={`inline-flex items-center gap-1.5 ${FINELY_OS_ENTITY_CHIP} hover:bg-white/[0.08]`}
+        title={`Open ${item.filename}`}
+      >
+        <Paperclip size={10} /> {item.filename}
+        {item.sizeBytes ? <span className="text-white/40 normal-case">{formatAttachmentSize(item.sizeBytes)}</span> : null}
+      </button>
+      {openErr ? <span className="text-[10px] text-rose-200 leading-snug normal-case">{openErr}</span> : null}
+    </span>
   );
 }
 
@@ -144,8 +158,10 @@ export function HubTeamChatPanel({ partnerId, partnerDisplayName, compact, initi
   const [gifBusy, setGifBusy] = useState(false);
   const [gifErr, setGifErr] = useState<string | null>(null);
   const [gifResults, setGifResults] = useState<TenorGif[]>([]);
-  const [uploadBusy, setUploadBusy] = useState(false);
-  const [uploadErr, setUploadErr] = useState<string | null>(null);
+  const [uploadBusyMode, setUploadBusyMode] = useState<ComposeMode | null>(null);
+  const [uploadErrors, setUploadErrors] = useState<Record<ComposeMode, string | null>>({ new: null, reply: null });
+  const [attachmentWarnings, setAttachmentWarnings] = useState<Record<string, string>>({});
+  const [composeErr, setComposeErr] = useState<string | null>(null);
   const [aiBusy, setAiBusy] = useState(false);
   const [aiSuggestions, setAiSuggestions] = useState<Array<{ title: string; body: string }>>([]);
   const [selectedContactIds, setSelectedContactIds] = useState<string[]>([]);
@@ -176,7 +192,7 @@ export function HubTeamChatPanel({ partnerId, partnerDisplayName, compact, initi
       setSelectedContactIds([detail.staffId]);
       setNewSubject(detail.staffName ? `Direct: ${detail.staffName}` : 'Direct message');
       setShowNew(true);
-      setUploadErr(null);
+      setComposeErr(null);
     };
     window.addEventListener('finely:staff-direct-message', onStaffDm as EventListener);
     return () => window.removeEventListener('finely:staff-direct-message', onStaffDm as EventListener);
@@ -262,37 +278,41 @@ export function HubTeamChatPanel({ partnerId, partnerDisplayName, compact, initi
     setter((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
   };
 
-  const uploadFile = async (file: File, mode: 'new' | 'reply') => {
-    if (!partnerId) return;
-    setUploadBusy(true);
-    setUploadErr(null);
+  const setUploadError = (mode: ComposeMode, text: string | null) =>
+    setUploadErrors((prev) => ({ ...prev, [mode]: text }));
+
+  const uploadFile = async (file: File, mode: ComposeMode) => {
+    setUploadBusyMode(mode);
+    setUploadError(mode, null);
     try {
-      const { ref } = await blobStore.put(file, {
-        partnerId,
-        caption: 'Chat attachment',
-        scanMode: false,
-        kind: 'evidence',
-      });
-      const item: EvidenceItem = {
-        id: newId('evidence'),
-        partnerId,
-        type: 'upload',
-        source: 'upload',
-        caption: 'Chat attachment',
-        filename: file.name || 'attachment',
-        mimeType: file.type || 'application/octet-stream',
-        sizeBytes: file.size,
-        blobRef: ref,
-        createdAt: new Date().toISOString(),
-      };
-      upsertEvidence(item);
-      toggleAttach(item.id, mode);
+      const { item, warning } = await uploadChatAttachment({ file, partnerId });
+      if (warning) setAttachmentWarnings((prev) => ({ ...prev, [item.id]: warning }));
+      const setter = mode === 'new' ? setNewAttachments : setReplyAttachments;
+      setter((prev) => (prev.includes(item.id) ? prev : [...prev, item.id]));
       window.dispatchEvent(new CustomEvent('finely:store'));
-    } catch (e: any) {
-      setUploadErr(e?.message || 'Upload failed.');
+    } catch (e: unknown) {
+      setUploadError(mode, describeChatAttachmentError(e));
     } finally {
-      setUploadBusy(false);
+      setUploadBusyMode(null);
     }
+  };
+
+  /** Selected attachments resolved for the pending-attachment tray. */
+  const trayItems = (ids: string[]): ChatAttachmentTrayItem[] =>
+    ids.map((id) => {
+      const ev = evidenceById.get(id);
+      return {
+        id,
+        filename: ev?.filename || 'Attachment',
+        sizeBytes: ev?.sizeBytes,
+        warning: attachmentWarnings[id] ?? null,
+        missing: !ev,
+      };
+    });
+
+  const removeAttachment = (id: string, mode: ComposeMode) => {
+    const setter = mode === 'new' ? setNewAttachments : setReplyAttachments;
+    setter((prev) => prev.filter((x) => x !== id));
   };
 
   const runAiSuggestions = async () => {
@@ -314,9 +334,36 @@ export function HubTeamChatPanel({ partnerId, partnerDisplayName, compact, initi
     }
   };
 
+  /**
+   * Keeps only attachment ids we can still resolve in the vault, so a stale
+   * selection never turns into an invisible attachment on a sent message.
+   */
+  const sendableAttachments = (ids: string[]) => ids.filter((id) => evidenceById.has(id));
+
+  /** Clears per-message attachment state and reports anything that got dropped. */
+  const finishAttachments = (mode: ComposeMode, ids: string[], sent: string[]) => {
+    setUploadError(
+      mode,
+      sent.length === ids.length
+        ? null
+        : 'One attachment could not be found in your vault and was not sent. Re-attach the file and send again.',
+    );
+    setAttachmentWarnings((prev) => {
+      const next = { ...prev };
+      ids.forEach((id) => delete next[id]);
+      return next;
+    });
+  };
+
   const handleCreate = (e: React.FormEvent) => {
     e.preventDefault();
     if (!partnerId || !newBody.trim()) return;
+    if (uploadBusyMode === 'new') {
+      setUploadError('new', 'Your attachment is still uploading — wait a moment, then send.');
+      return;
+    }
+    const sentAttachmentIds = sendableAttachments(newAttachments);
+    const newMessageAttachments = sentAttachmentIds.map((id) => ({ evidenceId: id }));
 
     if (adminMode) {
       const subject = newSubject.trim() || `Message from Finely · ${partnerDisplayName || 'Partner'}`;
@@ -328,15 +375,16 @@ export function HubTeamChatPanel({ partnerId, partnerDisplayName, compact, initi
         initialMessage: {
           fromPartner: false,
           body: newBody.trim(),
-          attachments: newAttachments.map((id) => ({ evidenceId: id })),
+          attachments: newMessageAttachments,
         },
       });
       setSelectedThreadId(thread.id);
       setNewSubject('');
       setNewBody('');
+      finishAttachments('new', newAttachments, sentAttachmentIds);
       setNewAttachments([]);
       setShowNew(false);
-      setUploadErr(null);
+      setComposeErr(null);
       return;
     }
 
@@ -347,7 +395,7 @@ export function HubTeamChatPanel({ partnerId, partnerDisplayName, compact, initi
       contactIds = [routed.preferredStaff[0].id];
     }
     if (!contactIds.length) {
-      setUploadErr('Type your message — AI will suggest who to route to, or tap a suggestion chip.');
+      setComposeErr('Type your message — AI will suggest who to route to, or tap a suggestion chip.');
       return;
     }
     const contacts = contactIds.map((id) => resolveTeamContact(id)).filter(Boolean);
@@ -363,29 +411,36 @@ export function HubTeamChatPanel({ partnerId, partnerDisplayName, compact, initi
       initialMessage: {
         fromPartner: true,
         body: newBody.trim(),
-        attachments: newAttachments.map((id) => ({ evidenceId: id })),
+        attachments: newMessageAttachments,
       },
     });
     setSelectedThreadId(thread.id);
     setNewSubject('');
     setNewBody('');
+    finishAttachments('new', newAttachments, sentAttachmentIds);
     setNewAttachments([]);
     setShowNew(false);
-    setUploadErr(null);
+    setComposeErr(null);
   };
 
   const handleReply = (e: React.FormEvent) => {
     e.preventDefault();
     if (!partnerId || !selectedThread || !replyBody.trim()) return;
+    if (uploadBusyMode === 'reply') {
+      setUploadError('reply', 'Your attachment is still uploading — wait a moment, then send.');
+      return;
+    }
+    const sentAttachmentIds = sendableAttachments(replyAttachments);
     addThreadMessage({
       threadId: selectedThread.id,
       partnerId,
       topic: selectedThread.topic,
       fromPartner: adminMode ? false : true,
       body: replyBody.trim(),
-      attachments: replyAttachments.map((id) => ({ evidenceId: id })),
+      attachments: sentAttachmentIds.map((id) => ({ evidenceId: id })),
     });
     setReplyBody('');
+    finishAttachments('reply', replyAttachments, sentAttachmentIds);
     setReplyAttachments([]);
   };
 
@@ -443,7 +498,7 @@ export function HubTeamChatPanel({ partnerId, partnerDisplayName, compact, initi
               type="button"
               onClick={() => {
                 setShowNew(true);
-                setUploadErr(null);
+                setComposeErr(null);
               }}
               className="inline-flex items-center gap-1 px-3 py-2 rounded-xl border border-white/[0.08] text-[10px] font-black uppercase text-white/70 hover:text-white"
             >
@@ -471,7 +526,7 @@ export function HubTeamChatPanel({ partnerId, partnerDisplayName, compact, initi
             type="button"
             onClick={() => {
               setShowNew(true);
-              setUploadErr(null);
+              setComposeErr(null);
             }}
             className={`w-full ${FINELY_OS_PRIMARY_BTN} justify-center`}
             title="Start a new message"
@@ -643,6 +698,13 @@ export function HubTeamChatPanel({ partnerId, partnerDisplayName, compact, initi
               rows={2}
               className="w-full bg-fc-input border border-white/[0.08] rounded-xl px-3 py-2 text-white text-sm resize-none"
             />
+            <ChatAttachmentTray
+              items={trayItems(newAttachments)}
+              onRemove={(id) => removeAttachment(id, 'new')}
+              busy={uploadBusyMode === 'new'}
+              error={uploadErrors.new}
+              onDismissError={() => setUploadError('new', null)}
+            />
             <div className="flex flex-wrap gap-2">
               <button type="button" onClick={() => setEmojiOpen((p) => (p === 'new' ? null : 'new'))} className="px-2 py-1 rounded-lg border border-white/[0.08] text-xs text-white/70">
                 <Smile size={12} className="inline mr-1" /> Emoji
@@ -652,25 +714,38 @@ export function HubTeamChatPanel({ partnerId, partnerDisplayName, compact, initi
                   GIF
                 </button>
               )}
-              <label className="px-2 py-1 rounded-lg border border-white/[0.08] text-xs text-white/70 cursor-pointer">
-                <UploadCloud size={12} className="inline mr-1" /> {uploadBusy ? '…' : 'File'}
+              <label
+                className={`px-2 py-1 rounded-lg border border-white/[0.08] text-xs text-white/70 ${
+                  uploadBusyMode === 'new' ? 'opacity-60 cursor-wait' : 'cursor-pointer hover:border-emerald-400/35'
+                }`}
+                title="Attach a photo, PDF, or document"
+              >
+                <UploadCloud size={12} className="inline mr-1" /> {uploadBusyMode === 'new' ? 'Uploading…' : 'Attach file'}
                 <input
                   type="file"
                   className="hidden"
-                  accept="image/*,video/*,application/pdf"
+                  accept={CHAT_ATTACHMENT_ACCEPT}
+                  disabled={uploadBusyMode === 'new'}
                   onChange={(e) => {
-                    const f = e.target.files?.[0];
-                    if (f) void uploadFile(f, 'new');
+                    const files = Array.from(e.target.files ?? []);
                     e.currentTarget.value = '';
+                    void (async () => {
+                      for (const f of files) await uploadFile(f, 'new');
+                    })();
                   }}
+                  multiple
                 />
               </label>
-              <button type="submit" disabled={!newBody.trim() || selectedContactIds.length === 0} className={`ml-auto ${FINELY_OS_PRIMARY_BTN} !py-2 !px-4`}>
+              <button
+                type="submit"
+                disabled={!newBody.trim() || selectedContactIds.length === 0 || uploadBusyMode === 'new'}
+                className={`ml-auto ${FINELY_OS_PRIMARY_BTN} !py-2 !px-4`}
+              >
                 Send
               </button>
             </div>
             <EmojiPicker mode="new" />
-            {uploadErr ? <div className="text-xs text-red-200">{uploadErr}</div> : null}
+            {composeErr ? <div className="text-xs text-red-200">{composeErr}</div> : null}
           </form>
         )}
 
@@ -698,7 +773,17 @@ export function HubTeamChatPanel({ partnerId, partnerDisplayName, compact, initi
                     <div className="mt-2 flex flex-wrap gap-1">
                       {m.attachments.map((a) => {
                         const ev = evidenceById.get(a.evidenceId);
-                        return ev ? <AttachmentChip key={a.evidenceId} item={ev} /> : null;
+                        return ev ? (
+                          <AttachmentChip key={a.evidenceId} item={ev} />
+                        ) : (
+                          <span
+                            key={a.evidenceId}
+                            className="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg border border-amber-400/35 bg-amber-500/10 text-[10px] text-amber-100"
+                            title="This attachment is not in the vault on this device."
+                          >
+                            <Paperclip size={10} /> Attachment unavailable here
+                          </span>
+                        );
                       })}
                     </div>
                   ) : null}
@@ -838,6 +923,13 @@ export function HubTeamChatPanel({ partnerId, partnerDisplayName, compact, initi
                 className="w-full bg-transparent border-0 outline-none px-4 py-3 text-white text-sm resize-none min-h-[88px] placeholder:text-white/35"
               />
             </div>
+            <ChatAttachmentTray
+              items={trayItems(replyAttachments)}
+              onRemove={(id) => removeAttachment(id, 'reply')}
+              busy={uploadBusyMode === 'reply'}
+              error={uploadErrors.reply}
+              onDismissError={() => setUploadError('reply', null)}
+            />
             <div className="rounded-xl border border-white/12 bg-black/35 px-3 py-2.5 flex flex-wrap items-center gap-2">
               <button type="button" onClick={() => setEmojiOpen((p) => (p === 'reply' ? null : 'reply'))} className="p-2.5 rounded-xl border border-white/15 bg-white/[0.06] text-white/80 hover:border-fuchsia-400/35">
                 <Smile size={14} />
@@ -847,37 +939,63 @@ export function HubTeamChatPanel({ partnerId, partnerDisplayName, compact, initi
                   GIF
                 </button>
               )}
-              <label className="p-2.5 rounded-xl border border-white/15 bg-white/[0.06] text-white/80 hover:border-emerald-400/35 cursor-pointer">
+              <label
+                className={`inline-flex items-center gap-1.5 px-2.5 py-2 rounded-xl border border-white/15 bg-white/[0.06] text-white/80 text-[11px] font-semibold ${
+                  uploadBusyMode === 'reply' ? 'opacity-60 cursor-wait' : 'hover:border-emerald-400/35 cursor-pointer'
+                }`}
+                title="Attach a photo, PDF, or document"
+              >
                 <UploadCloud size={14} />
+                {uploadBusyMode === 'reply' ? 'Uploading…' : 'Attach'}
                 <input
                   type="file"
                   className="hidden"
-                  accept="image/*,video/*,application/pdf"
+                  accept={CHAT_ATTACHMENT_ACCEPT}
+                  disabled={uploadBusyMode === 'reply'}
                   onChange={(e) => {
-                    const f = e.target.files?.[0];
-                    if (f) void uploadFile(f, 'reply');
+                    const files = Array.from(e.target.files ?? []);
                     e.currentTarget.value = '';
+                    void (async () => {
+                      for (const f of files) await uploadFile(f, 'reply');
+                    })();
                   }}
+                  multiple
                 />
               </label>
-              {evidence.slice(0, VAULT_ATTACH_LIMIT).map((ev) => (
-                <button
-                  key={ev.id}
-                  type="button"
-                  onClick={() => toggleAttach(ev.id, 'reply')}
-                  className={`px-2 py-1 rounded-lg text-[10px] border ${replyAttachments.includes(ev.id) ? 'border-fuchsia-500/50 bg-fuchsia-500/15' : 'border-white/[0.08] text-white/50'}`}
-                >
-                  📎 {ev.filename.slice(0, 12)}
-                </button>
-              ))}
               <button
                 type="submit"
-                disabled={!replyBody.trim()}
+                disabled={!replyBody.trim() || uploadBusyMode === 'reply'}
                 className={`ml-auto ${FINELY_OS_PRIMARY_BTN} !py-2 !px-4`}
               >
                 <Send size={14} /> Send
               </button>
             </div>
+            {evidence.length ? (
+              <details className="rounded-xl border border-white/10 bg-black/25 px-3 py-2">
+                <summary className="cursor-pointer select-none text-[10px] font-black uppercase tracking-widest text-white/55">
+                  Attach from vault · {evidence.length}
+                </summary>
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  {evidence.slice(0, VAULT_ATTACH_LIMIT).map((ev) => (
+                    <button
+                      key={ev.id}
+                      type="button"
+                      onClick={() => toggleAttach(ev.id, 'reply')}
+                      className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] border ${
+                        replyAttachments.includes(ev.id)
+                          ? 'border-emerald-400/50 bg-emerald-500/15 text-emerald-50'
+                          : 'border-white/[0.08] text-white/55 hover:text-white/85'
+                      }`}
+                      title={ev.filename}
+                    >
+                      <Paperclip size={10} />
+                      <span className="truncate max-w-[130px]">{ev.filename}</span>
+                      {ev.sizeBytes ? <span className="text-white/35">{formatAttachmentSize(ev.sizeBytes)}</span> : null}
+                    </button>
+                  ))}
+                </div>
+              </details>
+            ) : null}
             <EmojiPicker mode="reply" />
             {gifOpen === 'reply' && gifsEnabled && (
               <div className="rounded-xl border border-white/[0.08] p-2 space-y-2">

@@ -18,7 +18,12 @@ export class FallbackBlobStore implements BlobStore {
     } catch (primaryErr) {
       console.warn('[FallbackBlobStore] primary put failed; using IndexedDB', primaryErr);
       const local = await this.local.put(blob, meta);
-      return { ...local, sha256: local.sha256 };
+      return {
+        ...local,
+        sha256: local.sha256,
+        localOnly: true,
+        primaryError: (primaryErr as Error)?.message || 'Cloud upload failed.',
+      };
     }
   }
 

@@ -1,6 +1,7 @@
 import React, { useRef, useState } from 'react';
 import { Paperclip, Send, Smile, UploadCloud, X } from 'lucide-react';
 import { FinelyPremiumEmojiPicker } from './FinelyPremiumEmojiPicker';
+import { CHAT_ATTACHMENT_ACCEPT } from '../../lib/chatAttachments';
 import { FINELY_OS_ENTITY_BODY, FINELY_OS_ENTITY_LABEL, FINELY_OS_PRIMARY_BTN } from '../../features/os/finelyOsLightUi';
 
 export type FinelyChatComposeAttachment = {
@@ -103,12 +104,17 @@ export function FinelyChatComposeBox({
               <Smile size={14} /> Emoji
             </button>
             {onUploadFile ? (
-              <label className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-white/15 bg-white/[0.06] text-xs font-semibold text-white/80 hover:border-sky-400/35 hover:bg-sky-500/10 cursor-pointer">
+              <label
+                className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-white/15 bg-white/[0.06] text-xs font-semibold text-white/80 hover:border-sky-400/35 hover:bg-sky-500/10 ${
+                  uploadBusy ? 'opacity-60 cursor-wait' : 'cursor-pointer'
+                }`}
+              >
                 <UploadCloud size={14} /> {uploadBusy ? 'Uploading…' : 'Upload file'}
                 <input
                   type="file"
                   className="hidden"
-                  accept="image/*,video/*,application/pdf,.doc,.docx"
+                  accept={CHAT_ATTACHMENT_ACCEPT}
+                  disabled={uploadBusy}
                   onChange={(e) => {
                     const file = e.target.files?.[0];
                     if (file) void onUploadFile(file);
@@ -117,9 +123,14 @@ export function FinelyChatComposeBox({
                 />
               </label>
             ) : null}
+            {selectedAttachmentIds.length ? (
+              <span className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-emerald-400/40 bg-emerald-500/12 text-xs font-semibold text-emerald-50">
+                <Paperclip size={13} /> {selectedAttachmentIds.length} attached
+              </span>
+            ) : null}
             <button
               type="submit"
-              disabled={!value.trim() || disabled || busy}
+              disabled={!value.trim() || disabled || busy || uploadBusy}
               className={`ml-auto ${FINELY_OS_PRIMARY_BTN} !py-2.5 !px-5 disabled:opacity-45 shadow-lg shadow-fuchsia-500/10`}
             >
               <Send size={14} /> {busy ? 'Sending…' : submitLabel}
@@ -137,7 +148,7 @@ export function FinelyChatComposeBox({
         />
       ) : null}
 
-      {attachments.length && onToggleAttachment ? (
+      {attachments.length > 0 && onToggleAttachment ? (
         <div className="rounded-xl border border-sky-500/25 bg-sky-500/8 p-3 space-y-2">
           <div className={FINELY_OS_ENTITY_LABEL}>Attach from vault</div>
           <div className="flex flex-wrap gap-2">
