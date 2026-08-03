@@ -469,7 +469,7 @@ RE: Demand for Validation, Proof of Authority, Itemized Accounting, and State Co
 
 To Whom It May Concern:
 
-I am writing in response to your communication regarding an alleged debt. I dispute this alleged debt, the amount claimed, and your authority to collect unless and until you provide complete validation. Under 15 U.S.C. § 1692g(a)-(b), I am exercising my right to request validation and I request that you cease collection activity until you mail proper validation.
+I am writing in response to your communication regarding an alleged debt. Please refrain from contacting me by any form of communication unless and until you provide complete proof and a proper written response to every question stated below, as required by the laws cited for the alleged debt you say I owe. Under 15 U.S.C. § 1692g(a)-(b), I am exercising my right to request validation, and I request that you cease collection activity until you mail proper validation.
 
 This request is not a refusal to pay a proven, legally enforceable obligation. It is a demand that you prove the account, the amount, the ownership/servicing authority, and your legal capacity to collect before continuing collection, reporting, selling, assigning, or litigation activity.
 
@@ -534,7 +534,7 @@ RE: Second Notice — Deficient Validation Response and Continued Dispute
 
 To Whom It May Concern:
 
-I previously disputed the alleged debt associated with ${args.creditorName} and requested validation. Your response, if any, did not provide complete account-level validation. A generic statement, summary balance, screenshot, form letter, or bill of sale without account-level proof does not establish the amount, ownership, authority, licensing, or enforceability of this alleged debt.
+I am writing in response to your continued communications regarding an alleged debt associated with ${args.creditorName}, which I previously disputed and for which I requested validation. Please refrain from contacting me by any form of communication unless and until you provide complete proof and a proper written response to every question stated below, as required by the laws cited for the alleged debt you say I owe. Your response, if any, did not provide complete account-level validation. A generic statement, summary balance, screenshot, form letter, or bill of sale without account-level proof does not establish the amount, ownership, authority, licensing, or enforceability of this alleged debt.
 
 This is my second written notice. I continue to dispute the alleged debt, the balance, your authority to collect, and any credit reporting associated with this account.
 
@@ -589,7 +589,7 @@ RE: Final Validation Demand — Continued Failure to Validate, Continued Dispute
 
 To Whom It May Concern:
 
-This is my final written validation demand regarding the alleged debt associated with ${args.creditorName}. I have disputed this alleged debt and requested validation. To date, you have not provided complete account-level proof of the debt, the amount, the ownership/assignment chain, your authority to collect, your licensing/registration status, or the factual basis for any credit reporting.
+This is my final written validation demand regarding the alleged debt associated with ${args.creditorName}, which I have disputed and for which I requested validation. Please refrain from contacting me by any form of communication unless and until you provide complete proof and a proper written response to every question stated below, as required by the laws cited for the alleged debt you say I owe. To date, you have not provided complete account-level proof of the debt, the amount, the ownership/assignment chain, your authority to collect, your licensing/registration status, or the factual basis for any credit reporting.
 
 I do not consent to unsupported collection activity, continued reporting, sale, assignment, litigation threats, or account placement based on incomplete validation.
 

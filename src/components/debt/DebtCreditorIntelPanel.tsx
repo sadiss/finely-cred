@@ -10,10 +10,10 @@ import {
   User,
   Wand2,
 } from 'lucide-react';
-import type { ParsedCreditReport } from '../../domain/creditReports';
+import type { ParsedCreditorContact, ParsedCreditReport } from '../../domain/creditReports';
 import type { DebtCase } from '../../domain/debt';
 import type { ProcessedDocument } from '../../domain/documents';
-import { createDebtCase } from '../../data/debtRepo';
+import { createDebtCase, listDebtByPartner } from '../../data/debtRepo';
 import {
   debtCaseFromSignal,
   computePartnerDebtSnapshot,
@@ -53,6 +53,9 @@ import {
 } from '../../features/os/finelyOsLightUi';
 
 type ReportRow = { id: string; parsed?: ParsedCreditReport | null };
+
+/** Chips stay compact by default; partners can expand to every reported account. */
+const TARGET_CHIP_LIMIT = 12;
 
 export function DebtCreditorIntelPanel({
   partnerId,
@@ -97,18 +100,14 @@ export function DebtCreditorIntelPanel({
     if (ws === 'repossession') return extractCollateralSignals(reports, 'repossession');
     return signals;
   }, [signals, reports, ws]);
+  // Full contact records (account ref, tradeline index, bureau) so the resolver
+  // can address the right account when one collector holds several placements.
   const contacts = useMemo(() => {
-    const out: Array<{ creditorName: string; address?: string; phone?: string; accountNumberMasked?: string }> = [];
+    const out: ParsedCreditorContact[] = [];
     for (const r of reports) {
       for (const c of contactsFromParsedReport(r.parsed as ParsedCreditReport | null | undefined)) {
-        const name = String(c?.creditorName || '').trim();
-        if (!name) continue;
-        out.push({
-          creditorName: name,
-          address: String(c?.address || '').trim() || undefined,
-          phone: String(c?.phone || '').trim() || undefined,
-          accountNumberMasked: String(c?.accountNumberMasked || '').trim() || undefined,
-        });
+        if (!String(c?.creditorName || '').trim()) continue;
+        out.push(c);
       }
     }
     return out;
@@ -141,7 +140,7 @@ export function DebtCreditorIntelPanel({
       resolveDebtPartyInfo({
         debt,
         signals,
-        contacts: contacts as never,
+        contacts,
         documents: processedDocuments,
         self: selfIdentity,
       }),
@@ -168,6 +167,7 @@ export function DebtCreditorIntelPanel({
   const [activeSignalId, setActiveSignalId] = useState<string | null>(null);
   const [savedNotice, setSavedNotice] = useState<string | null>(null);
   const [lookupBusy, setLookupBusy] = useState(false);
+  const [showAllTargets, setShowAllTargets] = useState(false);
   const [enrichMeta, setEnrichMeta] = useState<AddressEnrichmentResult | null>(null);
 
   useEffect(() => {
@@ -245,6 +245,18 @@ export function DebtCreditorIntelPanel({
       return;
     }
 
+    // One case per reported account — reuse the case already linked to this
+    // tradeline instead of stacking duplicates each time the tile is tapped.
+    const alreadyLinked = listDebtByPartner(partnerId).find(
+      (c) => c.reportId === signal.reportId && c.tradelineIndex === signal.tradelineIndex,
+    );
+    if (alreadyLinked) {
+      const next = mergeDebtCreditorFields(alreadyLinked, debtCaseFromSignal(signal, partnerId) as Partial<DebtCase>);
+      onDebtChange(next);
+      setSavedNotice(`Switched to the existing case for ${signal.creditorName}.`);
+      return;
+    }
+
     const draft = createDebtCase({
       partnerId,
       ...debtCaseFromSignal(signal, partnerId),
@@ -280,6 +292,19 @@ export function DebtCreditorIntelPanel({
   const lookupMailingAddress = async () => {
     setLookupBusy(true);
     try {
+      // Report addresses come first so "Fill address" uses the partner's own
+      // report before falling back to the directory or a web lookup.
+      const normalize = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+      const wanted = [recipientName, debt?.recipientName, debt?.collectorName, debt?.name]
+        .map((n) => normalize(String(n || '')))
+        .filter(Boolean);
+      const reportAddresses = reportCreditorTargets
+        .filter((t) => {
+          if (!t.address) return false;
+          const target = normalize(t.creditorName);
+          return wanted.some((w) => w === target || w.includes(target) || target.includes(w));
+        })
+        .map((t) => t.address as string);
       const result = await enrichRecipientAddress({
         preferCounsel: mode === 'court',
         nameCandidates: [
@@ -300,6 +325,7 @@ export function DebtCreditorIntelPanel({
           debt?.plaintiffLawFirmAddress,
           debt?.recipientAddress,
           party?.recipientAddress,
+          ...reportAddresses,
         ],
         phone: recipientPhone || debt?.recipientPhone || party?.recipientPhone,
       });
@@ -422,6 +448,9 @@ export function DebtCreditorIntelPanel({
                   <div className={`mt-3 text-lg font-black ${glowAccent === 'emerald' ? 'text-emerald-300' : glowAccent === 'fuchsia' ? 'text-fuchsia-300' : 'text-amber-300'}`}>
                     {balance}
                   </div>
+                  {s.accountNumberMasked ? (
+                    <div className={`mt-1 text-[10px] ${FINELY_OS_ENTITY_BODY}`}>Acct {s.accountNumberMasked}</div>
+                  ) : null}
                   <div className={`mt-auto pt-3 text-[10px] uppercase tracking-widest ${FINELY_OS_ENTITY_BODY}`}>
                     {typeLabel}
                     {s.bureau ? ` · ${s.bureau}` : ''}
@@ -429,6 +458,9 @@ export function DebtCreditorIntelPanel({
                   {s.accountStatus ? (
                     <div className={`text-[10px] ${FINELY_OS_ENTITY_BODY} line-clamp-1 mt-1`}>{s.accountStatus}</div>
                   ) : null}
+                  <div className={`text-[10px] mt-1 ${s.address ? 'text-emerald-300/80' : 'text-amber-200/80'}`}>
+                    {s.address ? 'Mailing address found' : 'No mailing address yet'}
+                  </div>
                   {active ? (
                     <div className={`mt-2 inline-flex items-center gap-1 text-[10px] ${glowAccent === 'emerald' ? 'text-emerald-300' : 'text-fuchsia-300'}`}>
                       <Check size={12} /> Selected
@@ -520,11 +552,26 @@ export function DebtCreditorIntelPanel({
 
         {reportCreditorTargets.length > 0 ? (
           <div className="space-y-1.5">
-            <div className={`text-[10px] uppercase tracking-widest ${FINELY_OS_ENTITY_BODY}`}>
-              Creditors and collectors on your report — tap to address the letter
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className={`text-[10px] uppercase tracking-widest ${FINELY_OS_ENTITY_BODY}`}>
+                Creditors and collectors on your report — tap to address the letter
+              </div>
+              {reportCreditorTargets.length > TARGET_CHIP_LIMIT ? (
+                <button
+                  type="button"
+                  onClick={() => setShowAllTargets((v) => !v)}
+                  className="text-[10px] font-semibold uppercase tracking-widest text-sky-300 hover:text-sky-200"
+                >
+                  {showAllTargets ? 'Show fewer' : `Show all ${reportCreditorTargets.length}`}
+                </button>
+              ) : null}
             </div>
+            <p className={`text-[10px] ${FINELY_OS_ENTITY_BODY}`}>
+              Each account is listed separately — two placements from the same collector show their own account
+              reference and balance.
+            </p>
             <div className="flex flex-wrap gap-1.5">
-              {reportCreditorTargets.slice(0, 12).map((t) => (
+              {(showAllTargets ? reportCreditorTargets : reportCreditorTargets.slice(0, TARGET_CHIP_LIMIT)).map((t) => (
                 <button
                   key={t.targetId}
                   type="button"
@@ -545,10 +592,10 @@ export function DebtCreditorIntelPanel({
                       ? 'border-fuchsia-400/35 bg-fuchsia-500/10 text-fuchsia-100 hover:bg-fuchsia-500/20'
                       : 'border-white/12 bg-black/30 text-white/75 hover:bg-white/[0.06]'
                   }`}
-                  title={t.address ? t.address : 'No mailing address on the report yet'}
+                  title={t.address ? `${t.label}\n${t.address}` : `${t.label} — no mailing address on the report yet`}
                 >
                   <Building2 size={11} />
-                  <span className="truncate max-w-[13rem]">{t.creditorName}</span>
+                  <span className="truncate max-w-[15rem]">{t.label}</span>
                   {t.hasAddress ? null : <span className="text-[9px] opacity-70">no address</span>}
                 </button>
               ))}

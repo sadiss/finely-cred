@@ -418,7 +418,31 @@ function mergeTradelines(base: ParsedTradeline[], extra: ParsedTradeline[]): Par
       .replace(/\s+/g, ' ')
       .trim();
 
-  const keyOf = (t: ParsedTradeline) => normCred(t.creditorName || '');
+  const fieldValue = (t: ParsedTradeline, ...needles: string[]) => {
+    for (const needle of needles) {
+      const row = (t.fields || []).find((f) => norm(f.label || '').toLowerCase().includes(needle));
+      const by = row?.byBureau ?? {};
+      const v = norm(by.EXP || by.TUC || by.EQF || '');
+      if (v) return v;
+    }
+    return '';
+  };
+
+  /**
+   * Merge only genuine repeats of the same account. Keying on creditor name
+   * alone folded two separate collections from one collector into a single
+   * tradeline, so account number (or balance + open date) joins the key.
+   */
+  const keyOf = (t: ParsedTradeline) => {
+    const name = normCred(t.creditorName || '');
+    if (!name) return '';
+    const acct = fieldValue(t, 'account #', 'account number', 'account no');
+    if (acct) return `${name}|acct:${acct.toLowerCase()}`;
+    const balance = fieldValue(t, 'balance', 'amount owed');
+    const opened = fieldValue(t, 'date opened', 'open date');
+    if (balance || opened) return `${name}|bal:${balance.toLowerCase()}|opened:${opened.toLowerCase()}`;
+    return name;
+  };
   const byKey = new Map<string, ParsedTradeline>();
 
   for (const t of base) {

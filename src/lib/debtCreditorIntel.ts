@@ -10,8 +10,10 @@ import {
 } from '../creditReports/negativePlaybooks';
 import { lookupKnownCreditorFromCandidates } from './knownCreditorDirectory';
 import {
+  accountRefKey,
   buildCreditorContacts,
   isSelfParty,
+  sameAccountRef,
   selfIdentityFromPersonalInfo,
   type SelfPartyIdentity,
 } from '../creditReports/creditorContactExtract';
@@ -80,16 +82,67 @@ export type ReportCreditorTarget = {
   balanceCents?: number;
   accountType?: string;
   accountStatus?: string;
+  dateOpened?: string;
+  /** Collection / charge-off classification when this target is a negative. */
+  negativeType?: 'collection' | 'charge_off';
   /** Collectors and charge-offs are the usual letter targets; lenders are still valid. */
   role: 'collector' | 'lender';
   hasAddress: boolean;
+  /** Name plus account / balance so two accounts from one collector read apart. */
+  label: string;
 };
+
+/**
+ * One key per *account*, not per creditor name. Two Midland placements share a
+ * name (and often a mailing address), so keying on name+address collapsed them
+ * into a single chip. Account reference wins; balance + open date is the
+ * fallback when the export masked the account away.
+ */
+function creditorTargetKey(args: {
+  name: string;
+  accountNumberMasked?: string;
+  balanceCents?: number;
+  dateOpened?: string;
+  address?: string;
+}): string {
+  const name = normCreditorName(args.name);
+  const acct = accountRefKey(args.accountNumberMasked);
+  if (acct) return `${name}|acct:${acct}`;
+  const balance = typeof args.balanceCents === 'number' && args.balanceCents > 0 ? String(args.balanceCents) : '';
+  const opened = String(args.dateOpened || '').trim();
+  if (balance || opened) return `${name}|bal:${balance}|opened:${opened}`;
+  return `${name}|addr:${normCreditorName(args.address || '')}`;
+}
+
+function creditorTargetLabel(args: {
+  name: string;
+  accountNumberMasked?: string;
+  balanceCents?: number;
+}): string {
+  const parts = [args.name];
+  const acct = accountRefKey(args.accountNumberMasked);
+  if (acct) parts.push(`••${acct}`);
+  if (typeof args.balanceCents === 'number' && args.balanceCents > 0) {
+    parts.push(
+      (args.balanceCents / 100).toLocaleString('en-US', {
+        style: 'currency',
+        currency: 'USD',
+        maximumFractionDigits: 0,
+      }),
+    );
+  }
+  return parts.join(' · ');
+}
 
 /**
  * Every creditor on the partner's reports — collectors *and* ordinary lenders —
  * so the letter TO block can be filled from the report instead of typed. This is
  * what surfaces Capital One / Affirm / Wells Fargo / Barclays / Eastern Bank
  * alongside the Midland collection.
+ *
+ * Each account stays its own target: separate collections from the same
+ * collector are separately selectable, each with its own account reference,
+ * balance, and mailing address.
  */
 export function listReportCreditorTargets(
   reports: Array<{ id: string; parsed?: ParsedCreditReport | null }>,
@@ -107,14 +160,28 @@ export function listReportCreditorTargets(
       const name = String(t.creditorName || '').trim();
       if (!name) return;
       if (isSelfParty({ name, address: t.creditorAddress }, self)) return;
-      const contact =
-        contacts.find((c) => c.tradelineIndex === tradelineIndex && namesLikelyMatch(c.creditorName, name)) ||
-        contacts.find((c) => namesLikelyMatch(c.creditorName, name));
-      const address = t.creditorAddress || contact?.address;
-      const key = `${normCreditorName(name)}|${normCreditorName(address || '')}`;
+      const nameMatches = contacts.filter((c) => namesLikelyMatch(c.creditorName, name));
+      const byAcct = t.accountNumberMasked
+        ? nameMatches.filter((c) => sameAccountRef(c.accountNumberMasked, t.accountNumberMasked))
+        : [];
+      const byIndex = contacts.filter((c) => c.tradelineIndex === tradelineIndex);
+      const ranked = [...byAcct, ...byIndex, ...nameMatches];
+      const address = t.creditorAddress || ranked.find((c) => c.address)?.address;
+      const phone = t.creditorPhone || ranked.find((c) => c.phone)?.phone;
+      // Account reference only travels with an account-level match.
+      const accountNumberMasked =
+        t.accountNumberMasked || [...byAcct, ...byIndex].find((c) => c.accountNumberMasked)?.accountNumberMasked;
+      const balanceCents = typeof t.balance === 'number' && t.balance > 0 ? Math.round(t.balance * 100) : undefined;
+      const key = creditorTargetKey({
+        name,
+        accountNumberMasked,
+        balanceCents,
+        dateOpened: t.dateOpened,
+        address,
+      });
       if (seen.has(key)) return;
       seen.add(key);
-      const balance = typeof t.balance === 'number' && t.balance > 0 ? Math.round(t.balance * 100) : undefined;
+      const negativeType = tradelineNegativeType(t);
       out.push({
         targetId: `${report.id}:${tradelineIndex}`,
         reportId: report.id,
@@ -122,13 +189,16 @@ export function listReportCreditorTargets(
         creditorName: name,
         originalCreditor: t.originalCreditor,
         address,
-        phone: t.creditorPhone || contact?.phone,
-        accountNumberMasked: t.accountNumberMasked || contact?.accountNumberMasked,
-        balanceCents: balance,
+        phone,
+        accountNumberMasked,
+        balanceCents,
         accountType: t.accountType,
         accountStatus: t.accountStatus,
-        role: tradelineNegativeType(t) ? 'collector' : 'lender',
+        dateOpened: t.dateOpened,
+        negativeType: negativeType ?? undefined,
+        role: negativeType ? 'collector' : 'lender',
         hasAddress: Boolean(address),
+        label: creditorTargetLabel({ name, accountNumberMasked, balanceCents }),
       });
     });
 
@@ -136,7 +206,12 @@ export function listReportCreditorTargets(
     contacts.forEach((c, i) => {
       const name = String(c.creditorName || '').trim();
       if (!name) return;
-      const key = `${normCreditorName(name)}|${normCreditorName(c.address || '')}`;
+      if (isSelfParty({ name, address: c.address }, self)) return;
+      const key = creditorTargetKey({
+        name,
+        accountNumberMasked: c.accountNumberMasked,
+        address: c.address,
+      });
       if (seen.has(key)) return;
       seen.add(key);
       out.push({
@@ -148,14 +223,17 @@ export function listReportCreditorTargets(
         accountNumberMasked: c.accountNumberMasked,
         role: 'collector',
         hasAddress: Boolean(c.address),
+        label: creditorTargetLabel({ name, accountNumberMasked: c.accountNumberMasked }),
       });
     });
   }
 
   return out.sort((a, b) => {
     const score = (x: ReportCreditorTarget) =>
-      (x.hasAddress ? 2 : 0) + (x.role === 'collector' ? 1 : 0);
-    return score(b) - score(a);
+      (x.hasAddress ? 4 : 0) + (x.role === 'collector' ? 2 : 0) + (x.accountNumberMasked ? 1 : 0);
+    const diff = score(b) - score(a);
+    if (diff !== 0) return diff;
+    return (b.balanceCents ?? 0) - (a.balanceCents ?? 0);
   });
 }
 
@@ -230,9 +308,7 @@ export function extractCollateralSignals(
       if (classifiedNegative !== required) return;
       const name = String(t.creditorName || '').trim();
       if (!name) return;
-      const contact =
-        contacts.find((c) => namesLikelyMatch(c.creditorName, name) && c.tradelineIndex === tradelineIndex) ||
-        contacts.find((c) => namesLikelyMatch(c.creditorName, name));
+      const facts = resolveTradelineContactFacts(t, tradelineIndex, contacts);
       const balance = typeof t.balance === 'number' && t.balance > 0 ? Math.round(t.balance * 100) : undefined;
       const negativeType = tradelineNegativeType(t) ?? 'charge_off';
       out.push({
@@ -240,17 +316,17 @@ export function extractCollateralSignals(
         reportId: report.id,
         tradelineIndex,
         creditorName: name,
-        originalCreditor: t.originalCreditor || contact?.creditorName,
-        accountNumberMasked: t.accountNumberMasked || contact?.accountNumberMasked,
+        originalCreditor: t.originalCreditor,
+        accountNumberMasked: facts.accountNumberMasked,
         balanceCents: balance,
-        address: t.creditorAddress || contact?.address,
-        phone: t.creditorPhone || contact?.phone,
-        bureau: contact?.bureau,
+        address: facts.address,
+        phone: facts.phone,
+        bureau: facts.bureau,
         negativeType,
         classifiedNegative,
         accountStatus: t.accountStatus,
         accountType: t.accountType,
-        confidence: contact?.address || t.creditorAddress ? 'high' : 'medium',
+        confidence: facts.address ? 'high' : 'medium',
       });
     });
   }
@@ -262,6 +338,33 @@ export function extractCollateralSignals(
     const score = (x: ReportedDebtSignal) => (x.confidence === 'high' ? 2 : 1) + (x.balanceCents ? 1 : 0);
     return score(b) - score(a);
   });
+}
+
+/**
+ * Resolve mailing details for one tradeline. Address may come from any contact
+ * for the same collector, but the account reference only travels with an
+ * account-level or same-row match so one placement's reference never lands on a
+ * sibling account.
+ */
+function resolveTradelineContactFacts(
+  t: ParsedTradeline,
+  tradelineIndex: number,
+  contacts: ParsedCreditorContact[],
+): { address?: string; phone?: string; accountNumberMasked?: string; bureau?: Bureau } {
+  const name = String(t.creditorName || '').trim();
+  const nameMatches = contacts.filter((c) => namesLikelyMatch(c.creditorName, name));
+  const byAcct = t.accountNumberMasked
+    ? nameMatches.filter((c) => sameAccountRef(c.accountNumberMasked, t.accountNumberMasked))
+    : [];
+  const byIndex = contacts.filter((c) => c.tradelineIndex === tradelineIndex);
+  const ranked = [...byAcct, ...byIndex, ...nameMatches];
+  return {
+    address: t.creditorAddress || ranked.find((c) => c.address)?.address,
+    phone: t.creditorPhone || ranked.find((c) => c.phone)?.phone,
+    accountNumberMasked:
+      t.accountNumberMasked || [...byAcct, ...byIndex].find((c) => c.accountNumberMasked)?.accountNumberMasked,
+    bureau: ranked.find((c) => c.bureau)?.bureau,
+  };
 }
 
 export function extractReportDebtSignals(reports: Array<{ id: string; parsed?: ParsedCreditReport | null }>): ReportedDebtSignal[] {
@@ -276,26 +379,26 @@ export function extractReportDebtSignals(reports: Array<{ id: string; parsed?: P
       const classifiedNegative = classifyTradelineNegativeType(t);
       const name = String(t.creditorName || '').trim();
       if (!name) return;
-      const contact =
-        contacts.find((c) => namesLikelyMatch(c.creditorName, name) && c.tradelineIndex === tradelineIndex) ||
-        contacts.find((c) => namesLikelyMatch(c.creditorName, name));
+      const facts = resolveTradelineContactFacts(t, tradelineIndex, contacts);
       const balance = typeof t.balance === 'number' && t.balance > 0 ? Math.round(t.balance * 100) : undefined;
       out.push({
         signalId: `${report.id}:${tradelineIndex}`,
         reportId: report.id,
         tradelineIndex,
         creditorName: name,
-        originalCreditor: t.originalCreditor || contact?.creditorName,
-        accountNumberMasked: t.accountNumberMasked || contact?.accountNumberMasked,
+        // Only the tradeline's own original-creditor field — a name-matched
+        // contact is the collector, never the original creditor.
+        originalCreditor: t.originalCreditor,
+        accountNumberMasked: facts.accountNumberMasked,
         balanceCents: balance,
-        address: t.creditorAddress || contact?.address,
-        phone: t.creditorPhone || contact?.phone,
-        bureau: contact?.bureau,
+        address: facts.address,
+        phone: facts.phone,
+        bureau: facts.bureau,
         negativeType,
         classifiedNegative,
         accountStatus: t.accountStatus,
         accountType: t.accountType,
-        confidence: contact?.address || t.creditorAddress ? 'high' : 'medium',
+        confidence: facts.address ? 'high' : 'medium',
       });
     });
   }
@@ -310,14 +413,30 @@ export function extractReportDebtSignals(reports: Array<{ id: string; parsed?: P
   });
 }
 
+/**
+ * Find the report contact that should address a letter. Ranked by account
+ * reference, then exact name, then loose name — and inside each rank an
+ * address-bearing contact always wins, because an exact-name contact that only
+ * had a phone number used to shadow the row that actually carried the mailing
+ * block and letters shipped with an empty TO address.
+ */
 export function matchCreditorContactForName(
   name: string,
   contacts: ParsedCreditorContact[],
+  accountRef?: string,
 ): ParsedCreditorContact | null {
   if (!name) return null;
-  const exact = contacts.find((c) => normCreditorName(c.creditorName) === normCreditorName(name));
-  if (exact) return exact;
-  return contacts.find((c) => namesLikelyMatch(c.creditorName, name)) ?? null;
+  const pool = contacts || [];
+  const byAcct = accountRef
+    ? pool.filter((c) => sameAccountRef(c.accountNumberMasked, accountRef) && namesLikelyMatch(c.creditorName, name))
+    : [];
+  const exact = pool.filter((c) => normCreditorName(c.creditorName) === normCreditorName(name));
+  const loose = pool.filter((c) => namesLikelyMatch(c.creditorName, name));
+  for (const group of [byAcct, exact, loose]) {
+    const withAddress = group.find((c) => String(c.address || '').trim());
+    if (withAddress) return withAddress;
+  }
+  return byAcct[0] ?? exact[0] ?? loose[0] ?? null;
 }
 
 export function debtCaseFromSignal(signal: ReportedDebtSignal, partnerId: string): Partial<DebtCase> {
@@ -369,9 +488,26 @@ export function resolveDebtPartyInfo(args: {
 
   const matchedSignal =
     signals.find((s) => s.reportId === debt.reportId && s.tradelineIndex === debt.tradelineIndex) ||
+    (debt.accountNumberMasked
+      ? signals.find(
+          (s) =>
+            sameAccountRef(s.accountNumberMasked, debt.accountNumberMasked) &&
+            namesLikelyMatch(s.creditorName, debt.name),
+        )
+      : undefined) ||
     signals.find((s) => namesLikelyMatch(s.creditorName, debt.name)) ||
     null;
-  const matchedContact = matchCreditorContactForName(debt.recipientName || debt.name, contacts);
+  // Account reference keeps the right sibling account's address on the letter
+  // when one collector holds several placements.
+  const matchedContact =
+    matchCreditorContactForName(
+      debt.recipientName || debt.name,
+      contacts,
+      debt.accountNumberMasked || matchedSignal?.accountNumberMasked,
+    ) ||
+    (debt.collectorName
+      ? matchCreditorContactForName(debt.collectorName, contacts, debt.accountNumberMasked)
+      : null);
   const matchedDoc =
     documents.find((d) => namesLikelyMatch(d.entities.collectorName || d.entities.creditorName || '', debt.name)) ?? null;
 
@@ -446,12 +582,32 @@ export function resolveDebtPartyInfo(args: {
       matchedDoc?.entities.collectorName ||
       recipientName,
     originalCreditor: debt.originalCreditor || matchedSignal?.originalCreditor,
-    accountNumberMasked: debt.accountNumberMasked || matchedSignal?.accountNumberMasked || matchedContact?.accountNumberMasked,
+    // Never borrow a sibling account's reference from a loose name match.
+    accountNumberMasked: debt.accountNumberMasked || matchedSignal?.accountNumberMasked,
     balanceCents: debt.amountCents || matchedSignal?.balanceCents,
     matchedFrom,
     signal: matchedSignal ?? undefined,
     autoFilled: matchedFrom !== 'manual' && matchedFrom !== 'debt_case',
   };
+}
+
+/**
+ * Mailing block for one debt case, resolved straight from the partner's uploaded
+ * reports (contacts + tradelines) plus the known-creditor directory. Letter
+ * builders that only had `debt.recipientAddress` use this so a validation letter
+ * never ships with an empty TO address when the report carried one.
+ */
+export function resolveDebtPartyInfoFromReports(debt: DebtCase | null): DebtPartyInfo | null {
+  if (!debt) return null;
+  const reports = listReportsByPartner(debt.partnerId).map((r) => ({ id: r.id, parsed: r.parsed }));
+  const signals = extractReportDebtSignals(reports);
+  const contacts: ParsedCreditorContact[] = [];
+  let self: SelfPartyIdentity | null = null;
+  for (const report of reports) {
+    contacts.push(...contactsFromParsedReport(report.parsed));
+    self = self || selfIdentityFromPersonalInfo(report.parsed?.personalInfo);
+  }
+  return resolveDebtPartyInfo({ debt, signals, contacts, self });
 }
 
 /** Persist resolved party onto debt when case is missing mailing fields. */
@@ -477,10 +633,11 @@ export function autoPersistDebtPartyIfEmpty(
     collectorName: debt.collectorName || party.collectorName,
     originalCreditor: debt.originalCreditor || party.originalCreditor,
     accountNumberMasked: debt.accountNumberMasked || party.accountNumberMasked,
-    // Also post onto counsel/firm TO fields used by letter builders
+    // Counsel/firm TO fields only when the match really is a firm — a collector
+    // address parked in the plaintiff-firm field misaddresses court letters later.
     plaintiffLawFirm: debt.plaintiffLawFirm || (firmLike ? party.recipientName : debt.plaintiffLawFirm),
     plaintiffLawFirmAddress:
-      debt.plaintiffLawFirmAddress || party.recipientAddress || undefined,
+      debt.plaintiffLawFirmAddress || (firmLike ? party.recipientAddress || undefined : debt.plaintiffLawFirmAddress),
   });
 }
 
@@ -701,7 +858,12 @@ export type PartnerDebtSnapshot = {
 function dedupeSignalBalanceCents(signals: ReportedDebtSignal[]): { cents: number; count: number } {
   const groups = new Map<string, ReportedDebtSignal>();
   for (const s of signals) {
-    const key = `${normCreditorName(s.creditorName)}::${String(s.accountNumberMasked || '').trim()}`;
+    // Account reference when the export has one; otherwise balance keeps two
+    // placements from the same collector counted separately.
+    const acct = accountRefKey(s.accountNumberMasked);
+    const key = acct
+      ? `${normCreditorName(s.creditorName)}::acct:${acct}`
+      : `${normCreditorName(s.creditorName)}::bal:${s.balanceCents ?? 0}`;
     const prev = groups.get(key);
     if (!prev) {
       groups.set(key, s);
