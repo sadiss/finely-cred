@@ -35,9 +35,9 @@ export interface DigitalInviteCardProps {
 
 /**
  * A premium, downloadable invite card. Each role renders a different physical
- * silhouette (placard / credential pass / docket ticket / charter banner /
- * vault key) with its own foil palette and engraved motif, so the set never
- * reads as one template recoloured.
+ * silhouette (placard / credential pass / case ticket / charter banner / vault
+ * door / share tag / petal / gem) with its own three-hue colour mix and foil
+ * emblem, so the set never reads as one template recoloured.
  */
 export function DigitalInviteCard({
   role,
@@ -64,6 +64,7 @@ export function DigitalInviteCard({
     '--fcdc-foil-mid': design.foil.foilMid,
     '--fcdc-foil-deep': design.foil.foilDeep,
     '--fcdc-accent': design.foil.accentRgb,
+    '--fcdc-mix': design.foil.mixRgb,
     '--fcdc-halo': design.foil.haloRgb,
   } as React.CSSProperties;
 
@@ -79,16 +80,17 @@ export function DigitalInviteCard({
             silhouette={design.silhouette}
             width={design.width}
             height={design.height}
-            line={design.foil.foilMid}
-            lineBright={design.foil.foilLight}
+            foil={design.foil}
           />
           <div className="fcdc-layer fcdc-grain" />
           <div className="fcdc-layer fcdc-vignette" />
+          <div className="fcdc-layer fcdc-lacquer" />
           <div className="fcdc-layer fcdc-gloss" />
           <div className="fcdc-layer fcdc-gloss-lower" />
           <div className="fcdc-layer fcdc-sweep" />
           <div className="fcdc-layer fcdc-edge" />
 
+          <SilhouetteChrome design={design} />
           <CardBody design={design} url={url} incentive={incentive} />
         </div>
       </div>
@@ -104,9 +106,9 @@ function Eyebrow({ text }: { text: string }) {
   return <span className="fcdc-eyebrow">{text}</span>;
 }
 
-function Title({ design, size }: { design: DigitalInviteDesign; size: number }) {
+function Title({ design }: { design: DigitalInviteDesign }) {
   return (
-    <h2 className="fcdc-title fcdc-foil" style={{ fontSize: size }}>
+    <h2 className="fcdc-title fcdc-foil" style={{ fontSize: design.titleSize }}>
       {design.roleTitle}
       {design.roleTitleSub ? (
         <>
@@ -118,10 +120,10 @@ function Title({ design, size }: { design: DigitalInviteDesign; size: number }) 
   );
 }
 
-function Chips({ items, max }: { items: string[]; max?: number }) {
+function Chips({ items }: { items: string[] }) {
   return (
     <div className="fcdc-chips">
-      {items.slice(0, max ?? items.length).map((item) => (
+      {items.map((item) => (
         <span key={item} className="fcdc-chip">
           <span className="fcdc-chip__dot" />
           {item}
@@ -171,31 +173,13 @@ function Seal({ design, size }: { design: DigitalInviteDesign; size: number }) {
   );
 }
 
-function QrBlock({
-  design,
-  url,
-  size,
-  align = 'center',
-}: {
-  design: DigitalInviteDesign;
-  url: string;
-  size: number;
-  align?: 'center' | 'left';
-}) {
+function QrBlock({ design, url }: { design: DigitalInviteDesign; url: string }) {
   return (
-    <div
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: align === 'center' ? 'center' : 'flex-start',
-        textAlign: align === 'center' ? 'center' : 'left',
-        gap: 10,
-      }}
-    >
+    <div className="fcdc-qr-block">
       <div className="fcdc-qr-plate">
         <InviteQrCode
           value={url}
-          size={size}
+          size={design.qrSize}
           eyeColor={design.foil.foilDeep}
           moduleColor="#0d0c0a"
           monogram={design.monogram}
@@ -212,9 +196,9 @@ function QrBlock({
  * "Finely Cred" lettering, so the row prints the URL beside it rather than
  * setting the brand name twice.
  */
-function BrandRow({ url, logoHeight = 72 }: { url: string; logoHeight?: number }) {
+function BrandRow({ url, logoHeight = 68 }: { url: string; logoHeight?: number }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+    <div className="fcdc-brandrow">
       <img
         src={BRAND_LOGO}
         alt="Finely Cred"
@@ -243,229 +227,112 @@ function Compliance({ text, style }: { text: string; style?: React.CSSProperties
   );
 }
 
-// ---------------------------------------------------------------------------
-// Per-silhouette layouts
-// ---------------------------------------------------------------------------
-
-function CardBody({
-  design,
-  url,
-  incentive,
-}: {
-  design: DigitalInviteDesign;
-  url: string;
-  incentive: string;
-}) {
+/** Physical detail that belongs to the card shape, not the copy. */
+function SilhouetteChrome({ design }: { design: DigitalInviteDesign }) {
   switch (design.silhouette) {
     case 'estate':
-      return <EstateBody design={design} url={url} incentive={incentive} />;
+      return <div className="fcdc-bevel" />;
     case 'credential':
-      return <CredentialBody design={design} url={url} incentive={incentive} />;
+      return <div className="fcdc-slot" />;
     case 'docket':
-      return <DocketBody design={design} url={url} incentive={incentive} />;
-    case 'ledger':
-      return <LedgerBody design={design} url={url} incentive={incentive} />;
+      return (
+        <div className="fcdc-stub">
+          <span className="fcdc-stub__text">Case Desk</span>
+        </div>
+      );
+    case 'tag':
+      return <div className="fcdc-punch" />;
     default:
-      return <VaultBody design={design} url={url} incentive={incentive} />;
+      return null;
   }
 }
 
+// ---------------------------------------------------------------------------
+// Layouts
+// ---------------------------------------------------------------------------
+
 type BodyProps = { design: DigitalInviteDesign; url: string; incentive: string };
 
-/** Landscape property placard — copy left, seal + QR stacked on the right rail. */
-function EstateBody({ design, url, incentive }: BodyProps) {
-  return (
-    <>
-      <div className="fcdc-bevel" />
-      <div className="fcdc-body">
-        <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minWidth: 0 }}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 16, alignItems: 'flex-start' }}>
-            <Eyebrow text={design.eyebrow} />
-            <Title design={design} size={74} />
-            <p className="fcdc-value">{design.valueProp}</p>
-            <Chips items={design.proofPoints} />
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-            <Ribbon text={incentive} />
-            <BrandRow url={url} />
-            <Compliance text={design.compliance} />
-          </div>
-        </div>
-
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            paddingTop: 30,
-          }}
-        >
-          <Seal design={design} size={118} />
-          <QrBlock design={design} url={url} size={196} />
-        </div>
-      </div>
-    </>
-  );
+function CardBody({ design, url, incentive }: BodyProps) {
+  if (design.layout === 'portrait') {
+    return <PortraitBody design={design} url={url} incentive={incentive} />;
+  }
+  return <SplitBody design={design} url={url} incentive={incentive} />;
 }
 
-/** Portrait credential pass — lanyard slot, holographic band, centred QR. */
-function CredentialBody({ design, url, incentive }: BodyProps) {
+/**
+ * Landscape + square silhouettes: copy on the left, seal above the QR on the
+ * right rail. Shape, colour mix, emblem, and title scale keep them apart.
+ */
+function SplitBody({ design, url, incentive }: BodyProps) {
   return (
-    <>
-      <div className="fcdc-slot" />
-      <div className="fcdc-body">
-        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16 }}>
+    <div className={`fcdc-body fcdc-body--${design.layout}`}>
+      <div className="fcdc-copy">
+        <div className="fcdc-copy__top">
           <Eyebrow text={design.eyebrow} />
-          <Seal design={design} size={104} />
-        </div>
-
-        <Title design={design} size={88} />
-
-        <div className="fcdc-holo">
-          <span className="fcdc-holo__text">Finely Cred · Verified Invite</span>
-        </div>
-
-        <p className="fcdc-value" style={{ maxWidth: 'none' }}>
-          {design.valueProp}
-        </p>
-
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'flex-start' }}>
-          <Chips items={design.proofPoints} />
-        </div>
-
-        <Ribbon text={incentive} />
-
-        <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: 16 }}>
-          <QrBlock design={design} url={url} size={214} />
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              borderTop: `1px solid rgba(${design.foil.haloRgb}, 0.22)`,
-              paddingTop: 16,
-            }}
-          >
-            <BrandRow url={url} logoHeight={64} />
-          </div>
-          <Compliance text={design.compliance} style={{ textAlign: 'center' }} />
-        </div>
-      </div>
-    </>
-  );
-}
-
-/** Square docket ticket — pleading rail, perforated stub carrying the QR. */
-function DocketBody({ design, url, incentive }: BodyProps) {
-  return (
-    <>
-      <div className="fcdc-rail">
-        <div className="fcdc-rail__nums">
-          {['01', '02', '03', '04', '05', '06', '07', '08'].map((n) => (
-            <span key={n}>{n}</span>
-          ))}
-        </div>
-      </div>
-      <div className="fcdc-perf">
-        <span className="fcdc-perf__notch fcdc-perf__notch--top" />
-        <span className="fcdc-perf__notch fcdc-perf__notch--bottom" />
-      </div>
-
-      <div className="fcdc-body">
-        <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minWidth: 0 }}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 16, alignItems: 'flex-start' }}>
-            <Eyebrow text={design.eyebrow} />
-            <Title design={design} size={66} />
-            <p className="fcdc-value" style={{ maxWidth: '34ch' }}>
-              {design.valueProp}
-            </p>
-            <Chips items={design.proofPoints} />
-          </div>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-            <Ribbon text={incentive} />
-            <BrandRow url={url} logoHeight={66} />
-            <Compliance text={design.compliance} style={{ maxWidth: '58ch' }} />
-          </div>
-        </div>
-
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: 18,
-          }}
-        >
-          <Seal design={design} size={112} />
-          <QrBlock design={design} url={url} size={182} />
-          <span
-            style={{
-              fontSize: 11,
-              fontWeight: 800,
-              letterSpacing: '0.4em',
-              textTransform: 'uppercase',
-              color: `rgba(${design.foil.haloRgb}, 0.6)`,
-            }}
-          >
-            Case Desk
-          </span>
-        </div>
-      </div>
-    </>
-  );
-}
-
-/** Wide charter banner for agency partners. */
-function LedgerBody({ design, url, incentive }: BodyProps) {
-  return (
-    <div className="fcdc-body">
-      <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minWidth: 0 }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 14, alignItems: 'flex-start' }}>
-          <Eyebrow text={design.eyebrow} />
-          <Title design={design} size={64} />
+          <Title design={design} />
           <p className="fcdc-value">{design.valueProp}</p>
           <Chips items={design.proofPoints} />
         </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+        <div className="fcdc-copy__foot">
           <Ribbon text={incentive} />
-          <BrandRow url={url} logoHeight={64} />
+          <BrandRow url={url} />
           <Compliance text={design.compliance} />
         </div>
       </div>
 
-      <div
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          paddingTop: 8,
-        }}
-      >
-        <Seal design={design} size={100} />
-        <QrBlock design={design} url={url} size={168} />
+      <div className="fcdc-rail-col">
+        <Seal design={design} size={112} />
+        <QrBlock design={design} url={url} />
       </div>
     </div>
   );
 }
 
-/** Arched portrait key for AU tradeline sellers. */
-function VaultBody({ design, url, incentive }: BodyProps) {
+/**
+ * Portrait silhouettes: a single stacked column. The credential pass runs
+ * left-aligned behind its diffraction band; the vault and petal cards centre.
+ */
+function PortraitBody({ design, url, incentive }: BodyProps) {
+  const centred = design.silhouette !== 'credential';
+
   return (
-    <div className="fcdc-body">
-      <Seal design={design} size={116} />
-      <Eyebrow text={design.eyebrow} />
-      <Title design={design} size={78} />
+    <div className={`fcdc-body fcdc-body--portrait`}>
+      {centred ? (
+        <>
+          <Seal design={design} size={112} />
+          <Eyebrow text={design.eyebrow} />
+          <Title design={design} />
+        </>
+      ) : (
+        <>
+          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16 }}>
+            <Eyebrow text={design.eyebrow} />
+            <Seal design={design} size={104} />
+          </div>
+          <Title design={design} />
+          <div className="fcdc-holo">
+            <span className="fcdc-holo__text">Finely Cred · Verified Invite</span>
+          </div>
+        </>
+      )}
+
       <p className="fcdc-value" style={{ maxWidth: 'none' }}>
         {design.valueProp}
       </p>
       <Chips items={design.proofPoints} />
       <Ribbon text={incentive} />
-      <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 18 }}>
-        <QrBlock design={design} url={url} size={200} />
+
+      <div
+        style={{
+          marginTop: 'auto',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: 16,
+        }}
+      >
+        <QrBlock design={design} url={url} />
         <BrandRow url={url} logoHeight={62} />
         <Compliance text={design.compliance} style={{ textAlign: 'center' }} />
       </div>

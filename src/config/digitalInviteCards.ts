@@ -11,7 +11,20 @@
  * `src/lib/leadAttribution.ts` for the generic promoter/UTM pipeline this feeds into.
  */
 
-export type DigitalInviteCardRole = 're' | 'cs' | 'case_help' | 'agency' | 'au_seller';
+/**
+ * Partner tracks people *join* (`re`…`au_seller`) plus service invites a partner
+ * hands to someone they are helping (`restore`, `tradelines`). Both kinds share
+ * the same tracked-URL contract and bonus pipeline.
+ */
+export type DigitalInviteCardRole =
+  | 're'
+  | 'cs'
+  | 'case_help'
+  | 'agency'
+  | 'au_seller'
+  | 'affiliate'
+  | 'restore'
+  | 'tradelines';
 
 export type DigitalInviteCardBonus = {
   id: string;
@@ -95,6 +108,44 @@ export const DIGITAL_INVITE_CARDS: Record<DigitalInviteCardRole, DigitalInviteCa
       label: 'Priority listing review',
       description:
         'You unlocked priority listing review by joining through your invite card — your first tradeline inventory goes live faster.',
+    },
+  },
+  affiliate: {
+    role: 'affiliate',
+    title: 'Affiliate Partner',
+    destPath: '/affiliate',
+    offerTag: 'affiliate_application',
+    bonus: {
+      id: 'priority_payout_setup',
+      label: 'Priority payout setup',
+      description:
+        'You unlocked priority affiliate activation by joining through your invite card — your tracked link and payout profile are set up ahead of the standard queue.',
+    },
+  },
+  restore: {
+    role: 'restore',
+    // `/fix-my-credit` redirects and drops query params, so the card points at
+    // the real service route to keep invite attribution intact.
+    destPath: '/pricing/personal-credit-restore',
+    title: 'Personal Credit Restore',
+    offerTag: 'personal_credit_restore',
+    bonus: {
+      id: 'priority_report_review',
+      label: 'Priority report review',
+      description:
+        'You unlocked a priority three-bureau report review by starting through this invite card — a specialist reads your report before your first call.',
+    },
+  },
+  tradelines: {
+    role: 'tradelines',
+    title: 'Tradeline Marketplace',
+    destPath: '/tradelines',
+    offerTag: 'au_tradelines',
+    bonus: {
+      id: 'priority_au_matching',
+      label: 'Priority AU matching',
+      description:
+        'You unlocked priority authorized-user matching by starting through this invite card — your profile is matched against available seasoned lines first.',
     },
   },
 };

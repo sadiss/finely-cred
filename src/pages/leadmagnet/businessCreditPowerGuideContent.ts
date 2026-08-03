@@ -92,19 +92,19 @@ export const BC_GUIDE_CHAPTERS: GuideChapter[] = [
             items: [
               {
                 label: 'Entity truth',
-                body: 'The legal name, address, phone, and EIN that appear identically everywhere a verifier can look. Chapter 02.',
+                body: 'The legal name, address, phone, and EIN that appear identically everywhere a verifier can look. Page 02.',
               },
               {
                 label: 'File presence',
-                body: 'A D-U-N-S number and live files at the business bureaus with real trade data flowing in. Chapters 03–04.',
+                body: 'A D-U-N-S number and live files at the business bureaus with real trade data flowing in. Pages 03–04.',
               },
               {
                 label: 'Financial optics',
-                body: 'Bank rating, average daily balance, and clean statement behavior. Chapter 06.',
+                body: 'Bank rating, average daily balance, and clean statement behavior. Page 06.',
               },
               {
                 label: 'Application discipline',
-                body: 'Sequenced, matched, and spaced applications instead of a shotgun week. Chapter 08.',
+                body: 'Sequenced, matched, and spaced applications instead of a shotgun week. Page 08.',
               },
             ],
           },
@@ -118,7 +118,7 @@ export const BC_GUIDE_CHAPTERS: GuideChapter[] = [
             kind: 'callout',
             tone: 'law',
             title: 'How to read this guide',
-            body: 'Nine chapters, roughly one per week of build work. Educational only · results vary · funding subject to underwriting.',
+            body: 'Nine pages, roughly one per week of build work. Educational only · results vary · funding subject to underwriting.',
           },
         ],
       },
@@ -206,7 +206,7 @@ export const BC_GUIDE_CHAPTERS: GuideChapter[] = [
             kind: 'callout',
             tone: 'note',
             title: 'Do this once, correctly',
-            body: 'Entity truth takes a focused week and then holds for years. Every later chapter compounds on top of it.',
+            body: 'Entity truth takes a focused week and then holds for years. Every later page compounds on top of it.',
           },
         ],
       },
@@ -266,13 +266,13 @@ export const BC_GUIDE_CHAPTERS: GuideChapter[] = [
             kind: 'paragraphs',
             items: [
               'A D-U-N-S number is free and can be requested directly from Dun & Bradstreet. Paid expedite and monitoring products exist, but they are optional and are not required to establish the number itself.',
-              'The Experian and Equifax business files typically come into existence when trade or public data appears — you cannot simply open them. That is why the vendor ladder in Chapter 04 is the engine of the whole build.',
+              'The Experian and Equifax business files typically come into existence when trade or public data appears — you cannot simply open them. That is why the vendor ladder in Page 04 is the engine of the whole build.',
             ],
           },
           {
             kind: 'steps',
             items: [
-              { label: 'Request the D-U-N-S number', body: 'Free directly from D&B. Use the exact identity ledger from Chapter 02.' },
+              { label: 'Request the D-U-N-S number', body: 'Free directly from D&B. Use the exact identity ledger from Page 02.' },
               { label: 'Verify what already exists', body: 'Check whether files exist under old addresses or name variants and get them consolidated.' },
               { label: 'Confirm the basics on file', body: 'Industry code, year started, employee count, and address should be accurate — errors here follow you into every pull.' },
               { label: 'Open reporting trade', body: 'Vendor accounts that report are the only dependable way to populate a thin business file.' },

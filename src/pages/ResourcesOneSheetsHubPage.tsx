@@ -25,7 +25,7 @@ export default function ResourcesOneSheetsHubPage() {
   usePublicSeoMeta({
     title: 'Partner one-sheets',
     description:
-      'Finely Cred partner one-sheet packs — business credit offer sheets, process briefs, and Credit Specialist path PDFs.',
+      'Finely Cred partner sheet packs — single-page business credit offer sheets, the 3-sheet Process Brief, the Credit Specialist 2-sheet playbook, and the personal restore, build, and AU/teen kits.',
     path: '/resources/one-sheets',
   });
 
@@ -33,7 +33,7 @@ export default function ResourcesOneSheetsHubPage() {
     <PageShell
       badge="Partner resources"
       title="Partner one-sheets"
-      subtitle="Short PDFs for offers, tiers, and talking points — pick a pack, download, then book a session."
+      subtitle="Single-page offer sheets plus multi-sheet kits — every card shows its true page count. Pick a pack, download, then book a session."
     >
       <div className={`${FINELY_OS_PAGE} fc-senior-simple`}>
         <PublicLaneTitle
@@ -45,7 +45,7 @@ export default function ResourcesOneSheetsHubPage() {
         <FinelyUnifiedHubLayout
           eyebrow="One-sheets hub"
           title="Partner one-sheets"
-          subtitle="Business credit destination sheets and Credit Specialist path materials. Results vary · not legal advice · funding subject to underwriting."
+          subtitle="Business credit destination sheets, the Credit Specialist 2-sheet playbook, and pointers to the dedicated restore, build, and AU/teen sheet pages. Results vary · not legal advice · funding subject to underwriting."
           accent="violet"
           kpis={[
             { label: 'Packs', value: String(PUBLIC_ONE_SHEET_PACKS.length), accent: 'violet' },

@@ -8,6 +8,7 @@ import { onDebtCaseUpdated } from '../../lib/debtWorkflowEngine';
 import { getCourtOutcomeByDebtCase, confirmCourtPlanPayment, setCourtOutcomeOrderOnFile } from '../../data/courtOutcomeRepo';
 import { PartnerCourtOutcomePanel } from '../../components/debt/PartnerCourtOutcomePanel';
 import { buildValidationLetterDraft } from '../../lib/validationLetterEngine';
+import { isCourtTrackLetter, isValidationTrackLetter } from '../../lib/letterProductLabels';
 import { DebtWorkflowPanel } from '../../components/debt/DebtWorkflowPanel';
 import { listEvidenceByPartner, upsertEvidence, deleteEvidence } from '../../data/evidenceRepo';
 import { listReportsByPartner } from '../../data/reportsRepo';
@@ -73,16 +74,9 @@ const SCENARIO_OPTIONS: { value: DebtScenario; label: string }[] = [
   { value: 'unknown', label: 'Not sure — show all options' },
 ] as const;
 
+/** Shared classifier so this page, Validation, and Court all agree on what a letter is. */
 function isCourtLetterId(id: string) {
-  return (
-    id.includes('summons') ||
-    id.includes('answer') ||
-    id.includes('affidavit') ||
-    id === 'post_suit_validation_demand' ||
-    id === 'assignment_chain_demand' ||
-    id === 'defendant_discovery_requests' ||
-    id === 'motion_to_compel_discovery'
-  );
+  return isCourtTrackLetter({ letterType: id });
 }
 
 export default function PartnerDebtDetailPage() {
@@ -117,7 +111,13 @@ export default function PartnerDebtDetailPage() {
   const isSummonsCase = debt?.type === 'summons';
   const letterIdsForCase = useMemo(() => {
     const pool = scenarioRec?.recommendedLetterTypes ?? DEBT_LETTER_SPECS.map((s) => s.id);
-    return pool.filter((id) => (isSummonsCase ? isCourtLetterId(id) : !isCourtLetterId(id)));
+    // Summons case: court work plus the validation demands that only apply once suit is filed.
+    // Debt case: validation letters only — no affidavits or court answers.
+    return pool.filter((id) =>
+      isSummonsCase
+        ? isCourtLetterId(id) || isValidationTrackLetter({ letterType: id, caseIsLitigation: true })
+        : isValidationTrackLetter({ letterType: id }),
+    );
   }, [scenarioRec, isSummonsCase]);
 
   const today = new Date().toISOString().slice(0, 10);
@@ -216,7 +216,8 @@ export default function PartnerDebtDetailPage() {
   const openValidationDraftFromClock = () => {
     if (!debt) return;
     const isCourt = debt.type === 'summons';
-    const letterType: DebtLetterType = isCourt ? 'summons_response_affidavit' : 'validation_request';
+    // Validation clock always drafts a validation demand — post-suit variant when a case is filed.
+    const letterType: DebtLetterType = isCourt ? 'post_suit_validation_demand' : 'validation_request';
     const text = buildValidationLetterDraft({
       debt,
       debtorName,
@@ -227,7 +228,7 @@ export default function PartnerDebtDetailPage() {
       creditorName: debt.name,
       letterType,
     });
-    setDraft({ specId: letterType, type: isCourt ? 'court' : 'validation', text });
+    setDraft({ specId: letterType, type: 'validation', text });
   };
 
   if (!partner) {
@@ -804,15 +805,16 @@ export default function PartnerDebtDetailPage() {
                               type="button"
                               className={buildBtnClass}
                               onClick={() => {
-                                const isCourt = isCourtLetterId(spec.id) || isSummons;
+                                // Tag by what the letter IS, not by the case type.
+                                const isCourt = isCourtLetterId(spec.id);
                                 const baseText = hasTemplateAccess
-                                  ? getLetterBody(spec.id, buildDebtLetterArgs(isCourt))
+                                  ? getLetterBody(spec.id, buildDebtLetterArgs(isCourt || isSummons))
                                   : `DATE: ${today}\n\nTO WHOM IT MAY CONCERN,\n\nI am writing regarding ${debt.name}.\n\n[Write your request here.]\n\nSincerely,\n${debtorName}\n`;
                                 setDraft({ specId: spec.id, type: isCourt ? 'court' : 'validation', text: baseText });
                               }}
                               title="Build an editable draft and save it to your Letters Vault"
                             >
-                              {isSummons ? 'Build court draft' : 'Build validation draft'}
+                              {isCourtLetterId(spec.id) ? 'Build court draft' : 'Build validation draft'}
                             </button>
                             <button
                               type="button"

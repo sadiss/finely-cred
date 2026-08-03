@@ -8,6 +8,7 @@
 
 import type {
   ParsedCreditorContact,
+  ParsedPersonalInfo,
   ParsedSection,
   ParsedTradeline,
   TradelineRow,
@@ -35,6 +36,71 @@ function namesLikelyMatch(a: string, b: string): boolean {
   if (x.includes(y) || y.includes(x)) return true;
   const parts = x.split(' ').filter((p) => p.length > 3);
   return parts.some((p) => y.includes(p));
+}
+
+/**
+ * The partner's own identity, used to keep their own name/address from ever
+ * becoming a letter recipient.
+ */
+export type SelfPartyIdentity = {
+  fullName?: string | null;
+  addresses?: Array<string | null | undefined>;
+};
+
+function normAddress(s?: string | null): string {
+  return String(s ?? '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '')
+    .trim();
+}
+
+/** Build a self identity from a parsed report's personal-information block. */
+export function selfIdentityFromPersonalInfo(pi?: ParsedPersonalInfo | null): SelfPartyIdentity | null {
+  if (!pi) return null;
+  const addresses = (pi.addresses || [])
+    .map((a) => a?.raw || [a?.line1, a?.city, a?.state, a?.zip].filter(Boolean).join(' '))
+    .filter(Boolean);
+  if (!pi.fullName && !addresses.length) return null;
+  return { fullName: pi.fullName, addresses };
+}
+
+/**
+ * True when a candidate recipient is really the partner. A letter addressed to
+ * the partner's own name or home address is always a data bug, never a target.
+ */
+export function isSelfParty(
+  candidate: { name?: string | null; address?: string | null },
+  self?: SelfPartyIdentity | null,
+): boolean {
+  if (!self) return false;
+  const name = clean(candidate.name);
+  const address = candidate.address;
+  const selfName = clean(self.fullName || '');
+  if (name && selfName && normName(name) === normName(selfName)) return true;
+  if (name && selfName) {
+    // "Roosevelt Corelus" vs "ROOSEVELT CORELUS JR" — every self token present.
+    const selfTokens = normName(selfName).split(' ').filter((t) => t.length > 2);
+    const nameTokens = new Set(normName(name).split(' '));
+    if (selfTokens.length >= 2 && selfTokens.every((t) => nameTokens.has(t))) return true;
+  }
+  const a = normAddress(address);
+  // Substring matching on short fragments ("pobox123") would swallow real
+  // collector addresses, so only compare full-length normalized blocks.
+  if (!a || a.length < 14) return false;
+  return (self.addresses || []).some((raw) => {
+    const s = normAddress(raw);
+    if (!s || s.length < 14) return false;
+    return a === s || a.includes(s) || s.includes(a);
+  });
+}
+
+/** Drop any extracted contact that is actually the partner's own mailing block. */
+export function rejectSelfCreditorContacts(
+  contacts: ParsedCreditorContact[],
+  self?: SelfPartyIdentity | null,
+): ParsedCreditorContact[] {
+  if (!self) return contacts;
+  return (contacts || []).filter((c) => !isSelfParty({ name: c.creditorName, address: c.address }, self));
 }
 
 /** True when a value looks like a US mailing address (not just a creditor name). */
@@ -394,6 +460,7 @@ export function extractContactsFromTradelines(tradelines: ParsedTradeline[]): Pa
 export function buildCreditorContacts(
   tradelines: ParsedTradeline[],
   sections: ParsedSection[] = [],
+  self?: SelfPartyIdentity | null,
 ): ParsedCreditorContact[] {
   const fromSections = extractContactsFromSections(sections);
   const fromTradelines = extractContactsFromTradelines(tradelines);
@@ -411,7 +478,7 @@ export function buildCreditorContacts(
   for (const c of fromSections) {
     if (!c.address) pushContact(out, seen, c);
   }
-  return out;
+  return rejectSelfCreditorContacts(out, self);
 }
 
 /**

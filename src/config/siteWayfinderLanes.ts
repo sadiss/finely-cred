@@ -74,17 +74,11 @@ export function matchSolutionsPath(p: string): boolean {
 }
 
 /**
- * Core header links — ≤7 public destinations with Solutions (not Services+Pricing).
- * Free guide is primary; Resources dropdown holds the rest of the library.
+ * Core header links — Home + Free guide as direct tabs.
+ * Solutions / Resources / Careers / Contact are dropdown menus.
  */
 export const PUBLIC_CORE_NAV: { id: string; label: string; path: string; match: (path: string) => boolean }[] = [
   { id: 'home', label: 'Home', path: '/', match: (p) => p === '/' },
-  {
-    id: 'solutions',
-    label: 'Solutions',
-    path: '/pricing',
-    match: (p) => p.startsWith('/pricing') || p.startsWith('/services'),
-  },
   {
     id: 'free-guide',
     label: 'Free guide',
@@ -93,33 +87,224 @@ export const PUBLIC_CORE_NAV: { id: string; label: string; path: string; match: 
   },
 ];
 
-/** Resources dropdown — ≤6 free guides + hub (bookstore/events live on the hub). */
-export const PUBLIC_RESOURCES_SECTIONS: PublicNavSection[] = [
+/** Solutions dropdown — pricing lanes + specialist path. */
+export const PUBLIC_SOLUTIONS_SECTIONS: PublicNavSection[] = [
   {
-    id: 'free',
-    title: 'Free guides',
+    id: 'core',
+    title: 'Core paths',
     links: [
-      { id: 'free-guide', label: 'Dispute letter guide', path: '/free-guide', hint: 'PDF + portal preview', badge: 'Popular' },
-      { id: 'free-debt', label: 'Debt & summons guide', path: '/free-debt-guide' },
-      { id: 'free-business', label: 'Business credit guide', path: '/free-business-guide' },
-      { id: 'free-tradeline', label: 'Tradeline guide', path: '/free-tradeline-guide' },
-      { id: 'free-score', label: 'Score roadmap', path: '/free-score-roadmap' },
-      { id: 'free-agency', label: 'Agency guide', path: '/free-agency-guide' },
+      {
+        id: 'personal-restore',
+        label: 'Personal restore',
+        path: '/pricing/personal-credit-restore',
+        hint: 'Disputes · deletions · restore sequencing',
+        badge: 'Popular',
+        accent: 'emerald',
+      },
+      {
+        id: 'personal-building',
+        label: 'Personal building',
+        path: '/pricing/personal-credit-building',
+        hint: 'Thin-file builds · utilization · maintenance',
+        accent: 'sky',
+      },
+      {
+        id: 'business',
+        label: 'Business credit',
+        path: '/pricing/business-credit',
+        hint: 'Entity · vendors · fundability',
+        accent: 'violet',
+      },
+      {
+        id: 'debt',
+        label: 'Debt & legal',
+        path: '/pricing/debt-legal',
+        hint: 'Collections · validation · summons',
+        accent: 'fuchsia',
+      },
     ],
   },
   {
-    id: 'library',
-    title: 'Hub',
-    links: [{ id: 'resources-hub', label: 'Resource hub', path: '/resources', hint: 'Guides, one-sheets, bookstore' }],
+    id: 'more',
+    title: 'More solutions',
+    links: [
+      {
+        id: 'wealth',
+        label: 'Wealth builder',
+        path: '/pricing/wealth-builder',
+        hint: 'Long-game credit & capital',
+        accent: 'amber',
+      },
+      {
+        id: 'tradelines',
+        label: 'Tradelines',
+        path: '/pricing/tradelines',
+        hint: 'Authorized-user strategy',
+        accent: 'emerald',
+      },
+      {
+        id: 'privacy',
+        label: 'Privacy & ID',
+        path: '/pricing/privacy-id',
+        hint: 'Freeze · lock · identity hygiene',
+        accent: 'sky',
+      },
+      {
+        id: 'bundles',
+        label: 'Bundles',
+        path: '/pricing/bundles',
+        hint: 'Combined programs',
+        accent: 'violet',
+      },
+      {
+        id: 'specialist',
+        label: 'Credit Specialist',
+        path: '/credit-specialist',
+        hint: 'Earn · serve · grow',
+        accent: 'amber',
+      },
+      {
+        id: 'all',
+        label: 'All packages',
+        path: '/pricing',
+        hint: 'Full DIY + DFY catalog',
+        accent: 'emerald',
+      },
+    ],
+  },
+];
+
+/**
+ * Resources dropdown — curated groups (not a mega-menu).
+ * Free guide stays a top-level tab; each cluster links to a dedicated page.
+ */
+export const PUBLIC_RESOURCES_SECTIONS: PublicNavSection[] = [
+  {
+    id: 'guides',
+    title: 'Guides',
+    links: [
+      {
+        id: 'guides-index',
+        label: 'All free guides',
+        path: '/resources/guides',
+        hint: 'Full index · funnels + PDFs',
+        badge: 'Library',
+        accent: 'emerald',
+      },
+      {
+        id: 'free-guide',
+        label: 'Dispute letter guide',
+        path: '/free-guide',
+        hint: 'PDF + portal preview',
+        badge: 'Popular',
+        accent: 'emerald',
+      },
+      { id: 'free-debt', label: 'Debt & summons guide', path: '/free-debt-guide', accent: 'fuchsia' },
+      { id: 'free-business', label: 'Business credit guide', path: '/free-business-guide', accent: 'violet' },
+      { id: 'free-tradeline', label: 'Tradeline guide', path: '/free-tradeline-guide', accent: 'emerald' },
+      { id: 'free-score', label: 'Score roadmap', path: '/free-score-roadmap', accent: 'sky' },
+      { id: 'free-agency', label: 'Agency guide', path: '/free-agency-guide', accent: 'amber' },
+    ],
+  },
+  {
+    id: 'onesheets',
+    title: 'Sheet kits',
+    links: [
+      {
+        id: 'onesheets-hub',
+        label: 'One-sheets hub',
+        path: '/resources/one-sheets',
+        hint: 'Legacy partner packs',
+        accent: 'violet',
+      },
+      {
+        id: 'bc-onesheets',
+        label: 'Business credit one-sheets',
+        path: '/resources/business-credit-one-sheets',
+        hint: '3-sheet Process Brief · tiers · talking points',
+        accent: 'violet',
+      },
+      {
+        id: 'restore-sheet',
+        label: 'Personal Credit Restore 3-sheet',
+        path: '/resources/personal-credit-restore-sheet',
+        hint: 'Rights · round one · escalation ladder',
+        accent: 'fuchsia',
+      },
+      {
+        id: 'build-sheet',
+        label: 'Personal Credit Build 2-sheet',
+        path: '/resources/personal-credit-build-sheet',
+        hint: 'Instrument ladder · utilization math',
+        accent: 'sky',
+      },
+      {
+        id: 'au-teen-sheet',
+        label: 'AU & Teen Credit 2-sheet',
+        path: '/resources/au-teen-credit-sheet',
+        hint: 'Issuer ages · reporting reality · handoff',
+        accent: 'amber',
+      },
+    ],
+  },
+  {
+    id: 'bookstore',
+    title: 'Bookstore',
+    links: [
+      {
+        id: 'bookstore',
+        label: 'Partner bookstore',
+        path: '/bookstore',
+        hint: 'Ebooks · kits · deep dives',
+        accent: 'amber',
+      },
+    ],
+  },
+  {
+    id: 'tools',
+    title: 'Tools',
+    links: [
+      {
+        id: 'monitoring',
+        label: 'Credit monitoring',
+        path: '/resources/credit-monitoring',
+        hint: 'Bureau pull partners',
+        accent: 'sky',
+      },
+      {
+        id: 'videos',
+        label: 'Video library',
+        path: '/resources/videos',
+        hint: 'Watch-how tours',
+        accent: 'fuchsia',
+      },
+      {
+        id: 'references',
+        label: 'Quick references',
+        path: '/resources/references',
+        hint: 'Cheat sheets',
+        accent: 'violet',
+      },
+    ],
+  },
+  {
+    id: 'community',
+    title: 'Community',
+    links: [
+      { id: 'events', label: 'Events', path: '/events', hint: 'Live sessions', accent: 'sky' },
+      { id: 'testimonials', label: 'Partner stories', path: '/testimonials', hint: 'Wins & walkthroughs', accent: 'emerald' },
+      { id: 'start-here', label: 'Start here', path: '/start-here', hint: 'Pick your lane', accent: 'amber' },
+      { id: 'resources-hub', label: 'Resource hub', path: '/resources', hint: 'Curated overview', accent: 'violet' },
+    ],
   },
 ];
 
 export const PUBLIC_CONTACT_LINKS: PublicNavLink[] = [
-  { id: 'contact', label: 'Contact us', path: '/contact', hint: 'Message the team' },
-  { id: 'help', label: 'Help center', path: '/help-center', hint: 'Plain-English playbooks' },
-  { id: 'session', label: 'Book a strategy call', path: '/enlightenment-session' },
-  { id: 'about', label: 'About Finely', path: '/about' },
-  { id: 'faq', label: 'FAQ', path: '/faq' },
+  { id: 'contact', label: 'Contact us', path: '/contact', hint: 'Message the team', accent: 'sky' },
+  { id: 'help', label: 'Help center', path: '/help-center', hint: 'Plain-English playbooks', accent: 'emerald' },
+  { id: 'session', label: 'Book a strategy call', path: '/enlightenment-session', hint: 'Talk with a specialist', accent: 'amber' },
+  { id: 'about', label: 'About Finely', path: '/about', accent: 'violet' },
+  { id: 'faq', label: 'FAQ', path: '/faq', accent: 'sky' },
 ];
 
 /** Head of Society — footer / dedicated entrance (not top nav). */
@@ -143,8 +328,23 @@ const OTHER_FREE_GUIDE_PREFIXES = [
   '/free-agency-guide',
 ];
 
+export function matchSolutionsPath(p: string): boolean {
+  return (
+    p.startsWith('/pricing') ||
+    p.startsWith('/services') ||
+    p.startsWith('/personal-credit') ||
+    p.startsWith('/credit-specialist') ||
+    p === '/fix-my-credit' ||
+    p === '/build-my-credit' ||
+    p === '/debt-summons-help' ||
+    p === '/business-credit' ||
+    p === '/business-credit-solutions'
+  );
+}
+
 export function matchResourcesPath(p: string): boolean {
   // Primary Free guide is a core nav item — avoid double-highlighting Resources.
+  if (p === '/free-guide' || p.startsWith('/free-guide/')) return false;
   if (OTHER_FREE_GUIDE_PREFIXES.some((prefix) => p === prefix || p.startsWith(`${prefix}/`))) return true;
   return (
     p.startsWith('/resources') ||

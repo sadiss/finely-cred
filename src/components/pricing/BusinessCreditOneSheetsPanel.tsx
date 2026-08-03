@@ -60,9 +60,9 @@ export function BusinessCreditOneSheetsPanel() {
           <FileText className="text-violet-300 mt-0.5 shrink-0" size={18} />
           <div>
             <div className={FINELY_OS_ENTITY_SUBLABEL}>Premium one-sheets</div>
-            <h3 className={`mt-1 ${FINELY_OS_ENTITY_VALUE}`}>Process brief + partner one-sheets</h3>
+            <h3 className={`mt-1 ${FINELY_OS_ENTITY_VALUE}`}>3-sheet Process Brief + partner one-sheets</h3>
             <p className={`mt-1 text-sm ${FINELY_OS_ENTITY_BODY}`}>
-              Start with the 3-page Process Brief, then Fundability Roadmap and Tier Ladder & Capital Outlook, then
+              Start with the 3-sheet Process Brief, then Fundability Roadmap and Tier Ladder & Capital Outlook, then
               destination PDFs. Results vary · not guaranteed · business credit only · funding subject to underwriting ·
               outlay varies by vendors.
             </p>
@@ -77,7 +77,9 @@ export function BusinessCreditOneSheetsPanel() {
       <div className={`${finelyOsDeckTile('emerald')} space-y-2 !p-3`}>
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="text-[10px] uppercase tracking-wider text-emerald-300/80">{brief.eyebrow}</div>
-          <span className={`${FINELY_OS_ENTITY_CHIP} bg-emerald-500/15 text-emerald-200`}>Featured · 3 pages</span>
+          <span className={`${FINELY_OS_ENTITY_CHIP} bg-emerald-500/15 text-emerald-200`}>
+            Featured · {brief.sheetLabel}
+          </span>
         </div>
         <div className="font-semibold text-white">{brief.title}</div>
         <p className={`text-xs ${FINELY_OS_ENTITY_BODY} line-clamp-2`}>{brief.summary}</p>
@@ -97,7 +99,7 @@ export function BusinessCreditOneSheetsPanel() {
           onClick={() => void onDownloadBrief()}
           className={`${FINELY_OS_PRIMARY_BTN} mt-1 inline-flex items-center gap-2`}
         >
-          <Download size={14} /> {busy === 'process_brief' ? 'Building…' : 'Download Process Brief (3 pg)'}
+          <Download size={14} /> {busy === 'process_brief' ? 'Building…' : brief.downloadLabel}
         </button>
       </div>
 

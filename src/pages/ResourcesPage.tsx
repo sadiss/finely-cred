@@ -14,6 +14,7 @@ import { FinelyNowDoThisStrip } from '../components/tours/FinelyNowDoThisStrip';
 import { FinelyNoticedStrip } from '../components/tours/FinelyNoticedStrip';
 import { buildResourcesNoticedItems } from '../lib/finelyProactiveSignals';
 import { PublicLaneTitle } from '../components/public/PublicLaneTitle';
+import { DedicatedSheetLinkStrip } from '../components/resources/DedicatedSheetLinkStrip';
 import { PUBLIC_RESOURCES_HUB_CARDS } from '../config/publicResourcesHub';
 import {
   FINELY_OS_COMPLIANCE_FOOTNOTE,
@@ -194,11 +195,13 @@ export default function ResourcesPage() {
           </FinelyUnifiedHubLayout>
         </div>
 
+        <DedicatedSheetLinkStrip className="mb-4" />
+
         <MarketingStaffChatStrip
           roleId="nurture_concierge"
           goal="personal"
           roleLabel="welcome concierge"
-          subline="Need help picking a guide, one-sheet, or bookstore title?"
+          subline="Need help picking a guide, sheet kit, or bookstore title?"
         />
         <FinelyOsPageFooter />
       </div>

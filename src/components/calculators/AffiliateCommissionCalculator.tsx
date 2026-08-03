@@ -72,11 +72,11 @@ export function AffiliateCommissionCalculator() {
 
   return (
     <CalculatorShell
-      badge="Affiliate commission"
+      badge="Affiliate payout"
       badgeIcon={<Percent size={14} />}
       accent="sky"
       title="Model your referral earnings"
-      description="Pick a Finely package preset, tune commission %, then scale with referrals per month. Upfront + recurring membership share stacks over time."
+      description="Pick a Finely package preset, tune payout %, then scale with referrals per month. Upfront + recurring membership share stacks over time."
       heroLabel="Per referral"
       heroValue={formatUsdFromCents(projection.grandTotalCents)}
       heroSub={includeRecurring ? `incl. ${recurringMonths} mo recurring` : 'upfront only'}
@@ -96,7 +96,7 @@ export function AffiliateCommissionCalculator() {
         <CalculatorField label="Referred sale ($)">
           <input value={saleAmount} onChange={(e) => { setSaleAmount(e.target.value); setPresetId('custom'); }} className={calcInputClass} />
         </CalculatorField>
-        <CalculatorField label={`Commission % (${commissionPct}%)`}>
+        <CalculatorField label={`Payout % (${commissionPct}%)`}>
           <input
             type="range"
             min={5}
@@ -117,7 +117,7 @@ export function AffiliateCommissionCalculator() {
 
       <label className={`flex items-center gap-3 ${FINELY_OS_ENTITY_BODY}`}>
         <input type="checkbox" checked={includeRecurring} onChange={(e) => setIncludeRecurring(e.target.checked)} className="accent-sky-600 w-4 h-4" />
-        Include recurring membership commission
+        Include recurring membership payout
       </label>
 
       {includeRecurring ? (
@@ -134,7 +134,7 @@ export function AffiliateCommissionCalculator() {
       <CalculatorMetricGrid
         accent="sky"
         items={[
-          { label: 'Upfront commission', value: formatUsdFromCents(projection.upfrontCents), sub: `${commissionPct}% of sale` },
+          { label: 'Upfront payout', value: formatUsdFromCents(projection.upfrontCents), sub: `${commissionPct}% of sale` },
           {
             label: 'Recurring total',
             value: formatUsdFromCents(projection.recurringTotalCents),

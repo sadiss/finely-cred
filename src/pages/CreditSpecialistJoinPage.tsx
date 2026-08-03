@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { PageShell } from '../components/layout/PageShell';
+import { CreditSpecialistGuideActions } from '../components/creditSpecialist/CreditSpecialistGuideActions';
 import { CreditSpecialistPricingTiers } from '../components/creditSpecialist/CreditSpecialistPricingTiers';
 import {
   CS_OFFER,
@@ -20,6 +21,7 @@ import { CS } from '../config/creditSpecialistProgram';
 import { createProgramApplication } from '../data/programApplicationsRepo';
 import { submitLeadCapture } from '../data/leadsRepo';
 import { addLeadNote, addLeadTags } from '../data/leadOpsRepo';
+import { DigitalInviteShareBand } from '../components/digitalCards';
 import { FinelyOsAlertBanner } from '../features/os/FinelyOsAlertBanner';
 import { FinelyOsPageFooter } from '../features/os/FinelyOsPageFooter';
 import {
@@ -75,11 +77,9 @@ const formInput = `${FINELY_OS_ENTITY_INPUT.replace('mt-2 ', '')} ${finelyOsGlow
 
 function HelpStrip({ onReadGuide }: { onReadGuide: () => void }) {
   return (
-    <div className={`${finelyOsCatalogCard('sky')} !p-3 flex flex-wrap items-center gap-2`}>
-      <span className={`${FINELY_OS_ENTITY_BODY} text-xs mr-1`}>Need a hand?</span>
-      <button type="button" onClick={onReadGuide} className={FINELY_OS_SECONDARY_BTN}>
-        <BookOpen size={14} /> Read Guide
-      </button>
+    <div className={`${finelyOsCatalogCard('sky')} !p-3 space-y-2`}>
+      <span className={`${FINELY_OS_ENTITY_BODY} text-xs`}>Need a hand?</span>
+      <CreditSpecialistGuideActions tone="os" size="sm" onReadGuide={onReadGuide} />
     </div>
   );
 }
@@ -596,6 +596,8 @@ export default function CreditSpecialistJoinPage() {
             </div>
           </section>
         )}
+
+        <DigitalInviteShareBand role="cs" />
 
         <p className={FINELY_OS_COMPLIANCE_FOOTNOTE}>{CS_OFFER.complianceFootnote}</p>
 

@@ -38,7 +38,28 @@ export const PUBLIC_SEO_CATALOG: PublicSeoRoute[] = [
     path: '/resources/business-credit-one-sheets',
     title: 'Business Credit Partner One-Sheets',
     description:
-      'Premium Business Credit partner one-sheets — fundability roadmap, tier ladder & capital outlook, four tiers, comparison, and named-cards path PDF downloads.',
+      'The 3-sheet Business Credit Process Brief plus premium partner one-sheets — fundability roadmap, tier ladder & capital outlook, four tiers, comparison, and named-cards path PDF downloads.',
+    hasSchema: true,
+  },
+  {
+    path: '/resources/personal-credit-restore-sheet',
+    title: 'Personal Credit Restore — 3-Sheet Field Kit',
+    description:
+      'Free 3-sheet personal credit restore field kit: the FCRA and FDCPA rights you invoke, the round-one dispute sequence with reason language and evidence pairing, and the escalation ladder with a 90-day hold plan.',
+    hasSchema: true,
+  },
+  {
+    path: '/resources/personal-credit-build-sheet',
+    title: 'Personal Credit Build — 2-Sheet Blueprint',
+    description:
+      'Free 2-sheet personal credit build blueprint: the five-rung instrument ladder from secured card to first unsecured approval, scoring weights, worked utilization math, statement-date timing, and a twelve-month calendar.',
+    hasSchema: true,
+  },
+  {
+    path: '/resources/au-teen-credit-sheet',
+    title: 'Authorized User & Teen Credit — 2-Sheet Parent Kit',
+    description:
+      'Free 2-sheet authorized user and teen credit parent kit: issuer minimum ages including the ~13 policies, which issuers commonly report a minor AU, the four gates an AU line must clear, a parent checklist, and the 18th-birthday handoff.',
     hasSchema: true,
   },
   {

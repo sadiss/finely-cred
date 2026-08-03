@@ -13,7 +13,12 @@ import { LetterAddressSummary, LetterDisclaimerFooter } from './LetterAddressSum
 import { DebtTrackEasyFlow } from './DebtTrackEasyFlow';
 import { LetterEasyFlowShell } from './LetterEasyFlowShell';
 import { buildLetterStudioTrackTabs, LetterTrackTabs } from './LetterTrackTabs';
-import { buildDebtLetterPathSteps, runDebtLetterStep, type DebtLetterStepId } from '../../lib/letterDebtFlow';
+import {
+  buildDebtLetterPathSteps,
+  runDebtLetterStep,
+  type DebtLetterStepId,
+  type DebtLetterTrack,
+} from '../../lib/letterDebtFlow';
 import { resolveDebtDraftBaseTitle, resolveDebtDraftTitle } from '../../lib/resolveDebtDraftTitle';
 import { isValidDisputeBuildStep } from '../../lib/letterStudioResume';
 import { identityPacketStatus } from '../../lib/identityEvidence';
@@ -24,7 +29,8 @@ import { buildDisputeReasonsWithAi } from '../../lib/disputeReasonAi';
 import { DisputeReasonsLibraryPanel } from './DisputeReasonsLibraryPanel';
 import { downloadInlineDisputeLetterPdf, type DisputeLetterItem } from '../../letters/generateDisputePdfInline';
 import { buildFiveStepDisputeIntro, buildFiveStepItemPreamble, dominantNegativeTypeFromCandidates } from '../../letters/disputeFiveStepLetter';
-import { upsertLetter } from '../../data/lettersRepo';
+import { listLettersByPartner, upsertLetter } from '../../data/lettersRepo';
+import { getCourtOutcomeByDebtCase } from '../../data/courtOutcomeRepo';
 import { addAuditEvent } from '../../data/auditRepo';
 import { newId } from '../../utils/ids';
 import { addRoundToCase, createDisputeCase, getCase, listCasesByPartner } from '../../data/casesRepo';
@@ -51,6 +57,7 @@ import { ForeclosureCenterView } from '../debt/ForeclosureCenterView';
 import { RepossessionCenterView } from '../debt/RepossessionCenterView';
 import { generateCatalogLetterBody } from '../../legal/generateCatalogLetter';
 import { catalogEntryById } from '../../legal/debtLetterCatalog';
+import { letterTrackFamily } from '../../lib/letterProductLabels';
 import { DebtLetterRichDraftWorkspace } from './DebtLetterPreview';
 import { SmartProofUploader } from '../evidence/SmartProofUploader';
 import { DEBT_LETTER_SPECS, SCENARIO_RECOMMENDATIONS, recommendScenarioFromDebt, getLetterBody } from '../../legal/debtLetterTemplates';
@@ -173,6 +180,32 @@ type DebtDraftTrack = 'validation' | 'court' | 'foreclosure' | 'repossession';
 
 function letterTypeForDebtDraft(track: DebtDraftTrack): import('../../domain/letters').LetterType {
   return track === 'validation' ? 'validation' : 'court';
+}
+
+/**
+ * Draft tagging follows the letter, not the open tab. Drafting a court answer from the
+ * Validation tab must still be stored (and labelled) as court work — and vice versa.
+ */
+function resolveDebtDraftTrack(args: {
+  catalogId?: string;
+  specId?: string;
+  fallback: DebtDraftTrack;
+}): DebtDraftTrack {
+  const entry = args.catalogId ? catalogEntryById(args.catalogId) : undefined;
+  const category = entry?.category;
+  if (category === 'court' || category === 'securitization') return 'court';
+  if (category === 'foreclosure') return 'foreclosure';
+  if (category === 'repossession') return 'repossession';
+  if (category === 'validation' || category === 'negotiation') return 'validation';
+  const family = letterTrackFamily({
+    catalogId: args.catalogId,
+    letterType: args.specId || entry?.letterType,
+    category,
+  });
+  if (family === 'court') return 'court';
+  // Bureau / furnisher letters are mailed dispute letters, never court filings.
+  if (family === 'validation' || family === 'credit') return 'validation';
+  return args.fallback;
 }
 
 function metaForDebtDraft(
@@ -3093,6 +3126,7 @@ useEffect(() => {
   };
 
   type LetterBuildStepId =
+    | 'report'
     | 'disputes'
     | 'screenshots'
     | 'reasons'
@@ -3100,13 +3134,30 @@ useEffect(() => {
     | 'identity'
     | 'ai'
     | 'templates'
-    | 'generate';
+    | 'generate'
+    | 'mail'
+    | 'escalate';
+
+  const disputeMailedCount = useMemo(() => {
+    if (!partner) return 0;
+    void storeVersion;
+    return listLettersByPartner(partner.id).filter(
+      (l) => l.type === 'dispute' && (l.status === 'mailed' || l.status === 'mail_pending'),
+    ).length;
+  }, [partner?.id, storeVersion]);
 
   const letterBuildPathSteps = useMemo((): LetterStepPathItem[] => {
     const lawsDone =
       selectedDisputes.length > 0 &&
       selectedDisputes.every((s) => (lawsByCandidateId[s.key] ?? []).length > 0);
+    const generatedCount = Object.values(lastGeneratedAtByBureau).filter(Boolean).length;
     return [
+      {
+        id: 'report',
+        label: 'Report',
+        meta: reports.length ? `${reports.length} on file` : 'Upload a report',
+        done: reports.length > 0,
+      },
       {
         id: 'disputes',
         label: 'Disputes',
@@ -3146,19 +3197,36 @@ useEffect(() => {
       {
         id: 'generate',
         label: 'Generate',
-        meta: `${Object.values(lastGeneratedAtByBureau).filter(Boolean).length}/3`,
-        done: Object.values(lastGeneratedAtByBureau).filter(Boolean).length > 0,
+        meta: `${generatedCount}/3`,
+        done: generatedCount > 0,
+      },
+      {
+        id: 'mail',
+        label: 'Mail & track',
+        meta: disputeMailedCount > 0 ? `${disputeMailedCount} sent` : 'Certified mail',
+        done: disputeMailedCount > 0,
+        disabled: generatedCount === 0,
+        disabledReason: 'Generate a bureau letter first',
+      },
+      {
+        id: 'escalate',
+        label: 'Escalate',
+        meta: 'If the bureau stalls',
+        done: false,
+        optional: true,
       },
     ];
   }, [
     disputeEvidenceLinked.linked,
     disputeEvidenceLinked.total,
+    disputeMailedCount,
     disputeReasonsSelected.total,
     disputeReasonsSelected.withAny,
     evidence,
     identityEvidenceIds,
     lastGeneratedAtByBureau,
     lawsByCandidateId,
+    reports.length,
     selectedDisputes,
   ]);
 
@@ -3173,6 +3241,27 @@ useEffect(() => {
 
   const runLetterBuildStep = (id: LetterBuildStepId) => {
     setTab('dispute');
+    if (id === 'report') {
+      if (reports.length === 0) {
+        openReports();
+        return;
+      }
+      setPickerOpen(true);
+      return;
+    }
+    if (id === 'mail') {
+      openVault();
+      return;
+    }
+    if (id === 'escalate') {
+      const el = document.getElementById('fc-dispute-step-escalate');
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        return;
+      }
+      navigate('/portal/escalations?tab=regulatory');
+      return;
+    }
     if (id === 'disputes') {
       setPickerOpen(true);
       return;
@@ -3353,7 +3442,7 @@ useEffect(() => {
       }
       const baseText = getLetterBody(specId, mergeArgs);
       openGeneratedDebtDraft({
-        track: isCourt ? 'court' : 'validation',
+        track: resolveDebtDraftTrack({ specId, fallback: isCourt ? 'court' : 'validation' }),
         specId,
         bodyText: baseText,
       });
@@ -3366,7 +3455,7 @@ useEffect(() => {
     }
   };
 
-  const buildCatalogDraft = (catalogId: string, track: DebtDraftTrack) => {
+  const buildCatalogDraft = (catalogId: string, tabTrack: DebtDraftTrack) => {
     setGenerateBusy(true);
     setDraftErr(null);
     try {
@@ -3394,6 +3483,12 @@ useEffect(() => {
       let baseText = '';
       const entry = catalogEntryById(resolvedCatalogId);
       const resolvedSpecId = (entry?.letterType || resolvedCatalogId) as string;
+      // Track comes from the catalog entry — the open tab is only a fallback.
+      const track = resolveDebtDraftTrack({
+        catalogId: resolvedCatalogId,
+        specId: resolvedSpecId,
+        fallback: tabTrack,
+      });
       try {
         baseText = generateCatalogLetterBody(resolvedCatalogId, mergeArgs);
       } catch (inner: any) {
@@ -3451,15 +3546,46 @@ useEffect(() => {
     return docs + ev;
   }, [processedDocuments.length, evidence.length]);
 
+  const debtTrack: DebtLetterTrack =
+    tab === 'validation' ||
+    tab === 'court' ||
+    tab === 'foreclosure' ||
+    tab === 'repossession' ||
+    tab === 'bankruptcy'
+      ? (tab as DebtLetterTrack)
+      : 'debt';
+
+  /** Court matters that already ended in a payment plan get the compliance rail, not the defense rail. */
+  const debtCourtOutcome = useMemo(
+    () => (debtId ? getCourtOutcomeByDebtCase(debtId) : null),
+    [debtId, storeVersion],
+  );
+  const debtPostCourtPlan = Boolean(debtCourtOutcome?.plan);
+  /** Decided without a plan (dismissed / satisfied / case resolved) — close-out rail, not defense. */
+  const debtPostCourtDecided = !debtPostCourtPlan && (Boolean(debtCourtOutcome) || debt?.status === 'resolved');
+
+  const debtMailedCount = useMemo(() => {
+    if (!partner) return 0;
+    void storeVersion;
+    return listLettersByPartner(partner.id).filter(
+      (l) => l.type !== 'dispute' && (l.status === 'mailed' || l.status === 'mail_pending'),
+    ).length;
+  }, [partner?.id, storeVersion]);
+
   const debtLetterPathSteps = useMemo(
     () =>
       buildDebtLetterPathSteps({
+        track: debtTrack,
         hasCase: Boolean(debtId),
         proofCount: debtProofCount,
         hasChosenLetter: Boolean(draft),
         hasDraftBody: Boolean(draft?.html?.trim()),
+        savedToVault: Boolean(draft?.letterId),
+        mailedCount: debtMailedCount,
+        postCourtPlan: debtPostCourtPlan,
+        postCourtDecided: debtPostCourtDecided,
       }),
-    [debtId, debtProofCount, draft],
+    [debtTrack, debtId, debtProofCount, draft, debtMailedCount, debtPostCourtPlan, debtPostCourtDecided],
   );
 
   const runDebtLetterBuildStep = (id: DebtLetterStepId) => {
@@ -3493,17 +3619,6 @@ useEffect(() => {
     return () => window.clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [partner?.id, didRestore, didApplyStepDeepLink, location.search]);
-
-  const debtTrackLabel =
-    tab === 'validation'
-      ? 'Validation'
-      : tab === 'court'
-        ? 'Court'
-        : tab === 'foreclosure'
-          ? 'Foreclosure'
-          : tab === 'repossession'
-            ? 'Repossession'
-            : 'Debt letter';
 
   const disputeBureau = workspaceBureau;
   const disputeBureauItems = selectedByBureau[disputeBureau] ?? [];
@@ -5800,7 +5915,9 @@ useEffect(() => {
                 }}
               />
 
-            <LetterEscalationPanel track="bureau_dispute" accent="sky" />
+            <section id="fc-dispute-step-escalate">
+              <LetterEscalationPanel track="bureau_dispute" accent="sky" />
+            </section>
           </EntitlementGate>
         )}
 
@@ -5822,7 +5939,7 @@ useEffect(() => {
             }
           >
             <DebtTrackEasyFlow
-              trackLabel={debtTrackLabel}
+              track={debtTrack}
               steps={debtLetterPathSteps}
               onStep={runDebtLetterBuildStep}
               onContinue={runDebtLetterBuildContinue}
@@ -5860,10 +5977,13 @@ useEffect(() => {
             }
           >
             <DebtTrackEasyFlow
-              trackLabel={debtTrackLabel}
+              track={debtTrack}
               steps={debtLetterPathSteps}
               onStep={runDebtLetterBuildStep}
               onContinue={runDebtLetterBuildContinue}
+              postCourtPlan={debtPostCourtPlan}
+              postCourtDecided={debtPostCourtDecided}
+              hideEscalationLadder={debtPostCourtPlan}
             >
             <AffidavitCourtCenterView
               {...debtCenterSharedProps}
@@ -5910,7 +6030,7 @@ useEffect(() => {
             }
           >
             <DebtTrackEasyFlow
-              trackLabel={debtTrackLabel}
+              track={debtTrack}
               steps={debtLetterPathSteps}
               onStep={runDebtLetterBuildStep}
               onContinue={runDebtLetterBuildContinue}
@@ -5951,7 +6071,7 @@ useEffect(() => {
             }
           >
             <DebtTrackEasyFlow
-              trackLabel={debtTrackLabel}
+              track={debtTrack}
               steps={debtLetterPathSteps}
               onStep={runDebtLetterBuildStep}
               onContinue={runDebtLetterBuildContinue}

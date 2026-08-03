@@ -56,6 +56,122 @@ export function classifyLetterProduct(args: {
   return 'other_letter';
 }
 
+/** Which workspace lane a letter belongs to. Court products must never surface on Validation. */
+export type LetterTrackFamily = 'validation' | 'court' | 'credit' | 'collateral' | 'other';
+
+/** Product kinds that are court work — blocked on the Validation lane. */
+export const COURT_PRODUCT_KINDS: LetterProductKind[] = ['court_filing', 'affidavit', 'discovery', 'hearing_kit_ui'];
+
+/**
+ * ID fragments that mean "this is court work" even when the catalog category is friendlier.
+ * Deliberately conservative: only pleading / sworn / discovery / hearing language.
+ */
+const COURT_ID_MARKERS = [
+  'affidavit',
+  'written_answer',
+  'summons_response',
+  'answer_general',
+  'motion_',
+  'counterclaim',
+  'pretrial_proof',
+  'courtroom_',
+  'day_kit',
+  'hearing_kit',
+  'discovery',
+  'compel',
+  'interrogator',
+  'affirmative_defenses',
+  'subpoena',
+  'deposition',
+  'sanctions',
+  'appeal_',
+  'request_jury',
+  'request_bench_trial',
+  'stipulated_dismissal',
+  'vexatious',
+];
+
+const CREDIT_ID_MARKERS = ['bureau', 'furnisher', 'reporting', 'metro2', 'specialty_cra', '_fcr'];
+
+/**
+ * Post-suit validation demands are real § 1692g letters, but they only make sense while a
+ * lawsuit is live — Validation gates them behind an actual litigation case.
+ */
+const POST_SUIT_VALIDATION_IDS = ['post_suit_validation_demand', 'mini_miranda_suit'];
+
+export function isPostSuitValidationLetter(args: {
+  letterType?: DebtLetterType | string | null;
+  catalogId?: string | null;
+}): boolean {
+  const id = `${String(args.catalogId || '')} ${String(args.letterType || '')}`.toLowerCase();
+  return POST_SUIT_VALIDATION_IDS.some((m) => id.includes(m));
+}
+
+/**
+ * Resolve the lane for a letter. Catalog `category` wins when supplied (it is authoritative);
+ * otherwise we infer from the id / letter type shape.
+ */
+export function letterTrackFamily(args: {
+  letterType?: DebtLetterType | string | null;
+  catalogId?: string | null;
+  category?: string | null;
+}): LetterTrackFamily {
+  const id = `${String(args.catalogId || '')} ${String(args.letterType || '')}`.toLowerCase();
+  const category = String(args.category || '').toLowerCase();
+  const looksCourt = COURT_ID_MARKERS.some((m) => id.includes(m));
+  const looksCredit = CREDIT_ID_MARKERS.some((m) => id.includes(m));
+
+  if (category === 'court' || category === 'securitization') return 'court';
+  if (category === 'validation' || category === 'negotiation') return looksCourt ? 'court' : 'validation';
+  if (category === 'reporting' || category === 'bureau') return 'credit';
+  if (category === 'foreclosure' || category === 'repossession') {
+    if (looksCredit) return 'credit';
+    return looksCourt ? 'court' : 'collateral';
+  }
+
+  if (looksCourt) return 'court';
+  if (looksCredit) return 'credit';
+  // Validation wins before collateral so ids like `validation_round2_deficiency` stay on Validation.
+  if (/validation|cease|chain_of_title|assignment_chain|time_barred|dispute|settlement|negotiat|licensing|accounting/.test(id)) {
+    return 'validation';
+  }
+  if (/foreclosure|repossession|repo_|redemption|reinstatement|escrow|note_possession|deficiency_balance/.test(id)) {
+    return 'collateral';
+  }
+  return 'other';
+}
+
+/**
+ * True when a letter may appear on the Validation lane.
+ * Root-cause guard: court filings, affidavits, discovery, and hearing kits are always excluded,
+ * and post-suit validation demands require an actual live lawsuit.
+ */
+export function isValidationTrackLetter(args: {
+  letterType?: DebtLetterType | string | null;
+  catalogId?: string | null;
+  category?: string | null;
+  /** Pass true when the selected case is an active lawsuit (summons served / pre-answer). */
+  caseIsLitigation?: boolean;
+}): boolean {
+  const kind = classifyLetterProduct({ letterType: args.letterType, catalogId: args.catalogId });
+  if (COURT_PRODUCT_KINDS.includes(kind)) return false;
+  const family = letterTrackFamily(args);
+  if (family !== 'validation' && family !== 'credit') return false;
+  if (isPostSuitValidationLetter(args) && !args.caseIsLitigation) return false;
+  return true;
+}
+
+/** True when a letter belongs to the Court / Affidavit lane. */
+export function isCourtTrackLetter(args: {
+  letterType?: DebtLetterType | string | null;
+  catalogId?: string | null;
+  category?: string | null;
+}): boolean {
+  const kind = classifyLetterProduct({ letterType: args.letterType, catalogId: args.catalogId });
+  if (COURT_PRODUCT_KINDS.includes(kind)) return true;
+  return letterTrackFamily(args) === 'court';
+}
+
 /** Short badge shown above Generate (UI only). */
 export function letterProductBadge(kind: LetterProductKind): string {
   switch (kind) {

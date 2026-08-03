@@ -1,13 +1,24 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ArrowRight, BadgeCheck, DollarSign, ShieldAlert, Users, Share2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { PageShell } from '../components/layout/PageShell';
 import { CareersQuickNav } from '../components/careers/CareersQuickNav';
 import { createProgramApplication } from '../data/programApplicationsRepo';
 import { submitLeadCapture } from '../data/leadsRepo';
-import { addLeadNote } from '../data/leadOpsRepo';
+import { addLeadNote, addLeadTags } from '../data/leadOpsRepo';
+import {
+  captureDigitalInviteCardFromUrl,
+  digitalInviteCardLeadAttributionFields,
+  digitalInviteCardLeadTags,
+  formatDigitalInviteCardNote,
+  getDigitalInviteCardEligibilityForRole,
+  markDigitalInviteCardRedeemed,
+} from '../lib/digitalInviteCardAttribution';
+import { getDigitalInviteCardDef } from '../config/digitalInviteCards';
+import { FinelyOsAlertBanner } from '../features/os/FinelyOsAlertBanner';
 import { AF, AFFILIATE_OFFERINGS } from '../config/affiliateProgram';
 import { AffiliateCommissionCalculator } from '../components/calculators/AffiliateCommissionCalculator';
+import { DigitalInviteShareBand } from '../components/digitalCards';
 import { BackToSiteButton } from '../components/navigation/BackToSiteButton';
 import { FinelyOsPageFooter } from '../features/os/FinelyOsPageFooter';
 import { FinelyOsPaginatedStack } from '../features/os/FinelyOsPaginatedStack';
@@ -28,7 +39,6 @@ import {
   FINELY_OS_SECONDARY_BTN,
   FINELY_OS_SUCCESS_BTN,
   finelyOsCatalogCard,
-  finelyOsLeadMagnetPanel,
 } from '../features/os/finelyOsLightUi';
 import { usePublicSeoMeta } from '../hooks/usePublicSeoMeta';
 
@@ -40,28 +50,27 @@ export default function AffiliatePage() {
   const navigate = useNavigate();
   usePublicSeoMeta({
     title: 'Affiliate program',
-    description: 'Earn commissions referring partners to Finely Cred restore, funding, and specialist programs.',
+    description: 'Earn payouts referring partners to Finely Cred restore, funding, and specialist programs.',
     path: '/affiliate',
   });
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
-  const [companyName, setCompanyName] = useState('');
-  const [website, setWebsite] = useState('');
-  const [instagram, setInstagram] = useState('');
-  const [tiktok, setTiktok] = useState('');
-  const [youtube, setYoutube] = useState('');
-  const [audienceSize, setAudienceSize] = useState('');
-  const [monthlyLeadsEstimate, setMonthlyLeadsEstimate] = useState('');
+  const [promoLink, setPromoLink] = useState('');
   const [niche, setNiche] = useState('');
-  const [regionsServed, setRegionsServed] = useState('');
-  const [referralCode, setReferralCode] = useState('');
   const [payoutPreference, setPayoutPreference] = useState<'stripe' | 'paypal' | 'zelle' | 'cash_app' | 'other'>('stripe');
   const [payoutHandle, setPayoutHandle] = useState('');
-  const [notes, setNotes] = useState('');
   const [status, setStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
   const [statusMsg, setStatusMsg] = useState<string | null>(null);
   const [laneTab, setLaneTab] = useState<'program' | 'apply'>('program');
+  const [cardEligibility, setCardEligibility] = useState(() => getDigitalInviteCardEligibilityForRole('affiliate'));
+
+  useEffect(() => {
+    captureDigitalInviteCardFromUrl(window.location.search, window.location.pathname);
+    setCardEligibility(getDigitalInviteCardEligibilityForRole('affiliate'));
+  }, []);
+
+  const cardBonus = getDigitalInviteCardDef('affiliate')?.bonus;
 
   const canSubmit = fullName.trim().length > 1 && email.trim().includes('@') && status !== 'sending';
 
@@ -76,17 +85,11 @@ export default function AffiliatePage() {
         fullName,
         email,
         phone,
-        companyName,
-        website,
-        socials: { instagram, tiktok, youtube },
-        audienceSize: audienceSize.trim() ? Number(audienceSize) : undefined,
-        monthlyLeadsEstimate: monthlyLeadsEstimate.trim() ? Number(monthlyLeadsEstimate) : undefined,
+        website: promoLink,
+        socials: promoLink ? { other: promoLink } : {},
         niche,
-        regionsServed,
-        referralCode,
         payoutPreference,
         payoutHandle,
-        notes,
       });
       window.dispatchEvent(new Event('finely:store'));
 
@@ -99,12 +102,22 @@ export default function AffiliatePage() {
         phone: phone.trim(),
         consentToContact: true,
         funnelPath: '/affiliate-toolkit',
+        ...(cardEligibility ? digitalInviteCardLeadAttributionFields(cardEligibility) : {}),
+        giveawayStack: cardEligibility && cardBonus ? [cardBonus.label] : undefined,
       });
-      addLeadNote(lead.lead.id, `Affiliate application submitted: ${app.id}\nCompany: ${companyName || '—'}\nWebsite: ${website || '—'}`);
+      addLeadNote(lead.lead.id, `Affiliate application submitted: ${app.id}\nPromo link: ${promoLink || '—'}`);
+      if (cardEligibility) {
+        addLeadTags(lead.lead.id, ['priority-review', ...digitalInviteCardLeadTags(cardEligibility)]);
+        addLeadNote(lead.lead.id, formatDigitalInviteCardNote(cardEligibility));
+        markDigitalInviteCardRedeemed(lead.lead.id);
+      }
 
       setStatus('sent');
-      setStatusMsg('Application received. Our team will reach out with next steps.');
-      setNotes('');
+      setStatusMsg(
+        cardEligibility && cardBonus
+          ? `Application received — ${cardBonus.label.toLowerCase()} is applied. Our team will reach out with next steps.`
+          : 'Application received. Our team will reach out with next steps.',
+      );
     } catch (err: any) {
       setStatus('error');
       setStatusMsg(err?.message || 'Could not submit application.');
@@ -112,11 +125,11 @@ export default function AffiliatePage() {
   };
 
   return (
-    <PageShell badge="Public" title={AF.programName} subtitle="Partner with Finely Cred — model commissions, share your link, and grow residual income.">
+    <PageShell badge="Public" title={AF.programName} subtitle="Partner with Finely Cred — model payouts, share your link, and grow residual income.">
       <div className={FINELY_OS_PAGE}>
         <div className="flex flex-wrap items-center gap-4">
           <BackToSiteButton variant="ghost" label="Back to home" />
-          <button type="button" onClick={() => navigate('/onboarding')} className={FINELY_OS_SUCCESS_BTN}>
+          <button type="button" onClick={() => navigate('/onboarding?lane=affiliate')} className={FINELY_OS_SUCCESS_BTN}>
             Start affiliate signup
           </button>
           <button type="button" onClick={() => navigate(AF.hubPath)} className={FINELY_OS_PRIMARY_BTN}>
@@ -126,10 +139,14 @@ export default function AffiliatePage() {
 
         <CareersQuickNav active="affiliates" className="mt-6" />
 
+        {cardEligibility && cardBonus ? (
+          <FinelyOsAlertBanner tone="success" message={cardBonus.description} />
+        ) : null}
+
         <FinelyUnifiedHubLayout
           eyebrow={AF.programName}
           title="Affiliate partnership"
-          subtitle="Model commissions, share your link, and grow residual income."
+          subtitle="Model payouts, share your link, and grow residual income."
           accent="sky"
           tabs={[
             { id: 'program', label: 'Program' },
@@ -138,11 +155,13 @@ export default function AffiliatePage() {
           activeTab={laneTab}
           onTabChange={(id) => setLaneTab(id as typeof laneTab)}
           primaryAction={{ label: 'Open affiliate hub', onClick: () => navigate(AF.hubPath) }}
-          secondaryAction={{ label: 'Start signup', onClick: () => navigate('/onboarding') }}
+          secondaryAction={{ label: 'Start signup', onClick: () => navigate('/onboarding?lane=affiliate') }}
         >
 
         {laneTab === 'program' && (
         <>
+        <DigitalInviteShareBand role="affiliate" />
+
         <AffiliateCommissionCalculator />
 
         <FinelyOsPaginatedStack
@@ -173,7 +192,7 @@ export default function AffiliatePage() {
         <div className="grid md:grid-cols-3 gap-6">
           {[
             { icon: Share2, title: 'Share & earn', body: 'Refer partners to Finely Cred with your unique link. When they sign up and engage with our services, you earn.' },
-            { icon: DollarSign, title: 'Commission structure', body: 'Competitive payouts on qualified referrals. Details and tiers are provided when you join the program.' },
+            { icon: DollarSign, title: 'Payout structure', body: 'Competitive payouts on qualified referrals. Details and tiers are provided when you join the program.' },
             { icon: Users, title: 'Who can join', body: 'Coaches, brokers, and anyone with an audience that benefits from credit education and funding readiness.' },
           ].map(({ icon: Icon, title, body }, idx) => (
             <div
@@ -210,6 +229,10 @@ export default function AffiliatePage() {
             </div>
           ) : null}
 
+          <p className={`${FINELY_OS_ENTITY_BODY} text-sm`}>
+            Short and quick — we&apos;ll follow up with your referral link, marketing kit, and payout setup.
+          </p>
+
           <form className="space-y-4" onSubmit={submit}>
             <div className="grid md:grid-cols-2 gap-4">
               <div>
@@ -223,50 +246,21 @@ export default function AffiliatePage() {
             </div>
             <div className="grid md:grid-cols-2 gap-4">
               <div>
-                <label className={formLabel}>Phone</label>
+                <label className={formLabel}>Phone (optional)</label>
                 <input value={phone} onChange={(e) => setPhone(e.target.value)} className={formInput} />
               </div>
               <div>
-                <label className={formLabel}>Company (optional)</label>
-                <input value={companyName} onChange={(e) => setCompanyName(e.target.value)} className={formInput} />
+                <label className={formLabel}>Where you&apos;ll promote (optional)</label>
+                <input value={promoLink} onChange={(e) => setPromoLink(e.target.value)} className={formInput} placeholder="Website, Instagram, TikTok…" />
               </div>
             </div>
             <div className="grid md:grid-cols-2 gap-4">
               <div>
-                <label className={formLabel}>Website (optional)</label>
-                <input value={website} onChange={(e) => setWebsite(e.target.value)} className={formInput} placeholder="https://…" />
-              </div>
-              <div>
-                <label className={formLabel}>Referral code (optional)</label>
-                <input value={referralCode} onChange={(e) => setReferralCode(e.target.value)} className={formInput} />
-              </div>
-            </div>
-
-            <details className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony`} open>
-              <summary className={`cursor-pointer select-none ${FINELY_OS_ENTITY_VALUE}`}>Socials + reach</summary>
-              <div className="mt-4 grid md:grid-cols-2 gap-4">
-                <input value={instagram} onChange={(e) => setInstagram(e.target.value)} className={formInput} placeholder="Instagram" />
-                <input value={tiktok} onChange={(e) => setTiktok(e.target.value)} className={formInput} placeholder="TikTok" />
-                <input value={youtube} onChange={(e) => setYoutube(e.target.value)} className={formInput} placeholder="YouTube" />
-                <input value={audienceSize} onChange={(e) => setAudienceSize(e.target.value.replace(/[^\d]/g, ''))} className={formInput} placeholder="Audience size (approx)" />
-                <input value={monthlyLeadsEstimate} onChange={(e) => setMonthlyLeadsEstimate(e.target.value.replace(/[^\d]/g, ''))} className={formInput} placeholder="Monthly leads estimate" />
-              </div>
-            </details>
-
-            <div className="grid md:grid-cols-2 gap-4">
-              <div>
-                <label className={formLabel}>Niche</label>
+                <label className={formLabel}>Niche (optional)</label>
                 <input value={niche} onChange={(e) => setNiche(e.target.value)} className={formInput} placeholder="Credit, funding, real estate…" />
               </div>
               <div>
-                <label className={formLabel}>Regions served</label>
-                <input value={regionsServed} onChange={(e) => setRegionsServed(e.target.value)} className={formInput} placeholder="States / cities / remote" />
-              </div>
-            </div>
-
-            <details className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony`}>
-              <summary className={`cursor-pointer select-none ${FINELY_OS_ENTITY_VALUE}`}>Payout preference</summary>
-              <div className="mt-4 grid md:grid-cols-2 gap-4">
+                <label className={formLabel}>Payout preference</label>
                 <select value={payoutPreference} onChange={(e) => setPayoutPreference(e.target.value as any)} className={formSelect}>
                   <option value="stripe">Stripe</option>
                   <option value="paypal">PayPal</option>
@@ -274,13 +268,11 @@ export default function AffiliatePage() {
                   <option value="cash_app">Cash App</option>
                   <option value="other">Other</option>
                 </select>
-                <input value={payoutHandle} onChange={(e) => setPayoutHandle(e.target.value)} className={formInput} placeholder="Payout handle (email/$cashtag/etc.)" />
               </div>
-            </details>
-
+            </div>
             <div>
-              <label className={formLabel}>Notes (optional)</label>
-              <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={4} className={`${formInput} resize-y`} />
+              <label className={formLabel}>Payout handle (optional)</label>
+              <input value={payoutHandle} onChange={(e) => setPayoutHandle(e.target.value)} className={formInput} placeholder="Email / $cashtag / PayPal.me…" />
             </div>
 
             <button type="submit" disabled={!canSubmit} className={`w-full justify-center ${FINELY_OS_PRIMARY_BTN} disabled:opacity-60 disabled:cursor-not-allowed`}>
@@ -296,7 +288,7 @@ export default function AffiliatePage() {
           roleId="affiliate_specialist"
           goal="not_sure"
           roleLabel="affiliate success specialist"
-          subline="Ask about referral links, commission structure, or co-marketing before you apply."
+          subline="Ask about referral links, payout structure, or co-marketing before you apply."
         />
 
         <FinelyOsPageFooter />

@@ -9,6 +9,8 @@ export { DigitalInviteCard } from './DigitalInviteCard';
 export type { DigitalInviteCardProps } from './DigitalInviteCard';
 export { DigitalInviteCardShare } from './DigitalInviteCardShare';
 export type { DigitalInviteCardShareProps } from './DigitalInviteCardShare';
+export { DigitalInviteShareBand } from './DigitalInviteShareBand';
+export type { DigitalInviteShareBandProps } from './DigitalInviteShareBand';
 export { InviteQrCode } from './InviteQrCode';
 export { InviteCardMotif } from './InviteCardMotif';
 export {

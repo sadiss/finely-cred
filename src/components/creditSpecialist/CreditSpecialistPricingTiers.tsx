@@ -66,9 +66,9 @@ export function CreditSpecialistPricingTiers({
                   <h3 className={`${CS_PUBLIC.cardTitle} mt-2`}>{tier.name}</h3>
                   <p className={`mt-1 ${CS_PUBLIC.bodySm}`}>{tier.tagline}</p>
                 </div>
-                <div className="text-right">
+                <div className="text-right rounded-xl border-2 border-emerald-200 bg-white px-3 py-2">
                   <div className={`${CS_PUBLIC.statHuge} text-emerald-700 text-3xl sm:text-4xl`}>{tier.keepPctLabel}</div>
-                  <div className={CS_PUBLIC.statLabel}>typical keep</div>
+                  <div className="text-sm font-semibold text-slate-500">typical keep</div>
                 </div>
               </div>
 
@@ -78,7 +78,7 @@ export function CreditSpecialistPricingTiers({
               </div>
 
               <p className={CS_PUBLIC.bodySm}>
-                <strong className="text-slate-900">Best for:</strong> {tier.bestFor}
+                <strong className="text-white">Best for:</strong> {tier.bestFor}
               </p>
 
               <button

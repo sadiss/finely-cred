@@ -151,7 +151,7 @@ export const PROGRAM_ROLE_MODEL = {
   rows: [
     {
       term: 'Credit specialist',
-      meaning: 'Anyone in the program running client files. Pay is a % of that file’s service fee (restore, build, business, etc.) — starts ~30%, not 80%.',
+      meaning: 'Anyone in the program running client files. Your keep is a % of that file’s service fee (restore, build, business, etc.) — starts ~30%, not 80%.',
     },
     {
       term: 'Certified partner',
@@ -159,7 +159,7 @@ export const PROGRAM_ROLE_MODEL = {
     },
     {
       term: 'Finely platform (software)',
-      meaning: 'The tools you work in — CRM, portal, letters, vault. Included at every training level. This is not a job title, not a pay tier, and not the same as agency white-label.',
+      meaning: 'The tools you work in — CRM, portal, letters, vault. Included at every training level. This is not a job title, not a payout tier, and not the same as agency white-label.',
     },
   ],
   percentOf: `Percentages are always of the client service fee on that sale (e.g. $1,500 restore). Building a company with team seats? See the ${AGENCY.programName} page — separate track.`,

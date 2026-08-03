@@ -6,10 +6,16 @@ test.describe('Finely Cred critical path', () => {
     await expect(page).toHaveTitle(/Finely/i);
   });
 
-  test('resources page has guides section', async ({ page }) => {
+  test('resources hub links to dedicated guides page', async ({ page }) => {
     await page.goto('/resources');
-    await expect(page.getByRole('heading', { name: /resource library/i }).first()).toBeVisible({ timeout: 15_000 });
-    await expect(page.getByRole('tab', { name: /guides.*playbooks/i })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /resource hub|resource library|guides, packs/i }).first()).toBeVisible({
+      timeout: 15_000,
+    });
+    await expect(page.getByRole('button', { name: /free guides/i }).first()).toBeVisible();
+    await page.goto('/resources/guides');
+    await expect(page.getByRole('heading', { name: /free guides|all free guides/i }).first()).toBeVisible({
+      timeout: 15_000,
+    });
   });
 
   test('free guide funnel loads', async ({ page }) => {

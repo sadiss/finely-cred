@@ -72,7 +72,7 @@ const CHAPTERS: AgencyGuideChapter[] = [
         heading: 'Effort is almost never the problem',
         paragraphs: [
           'Agency owners who plateau are usually working more hours than the ones who do not. That is what makes the plateau so disorienting: the obvious lever — try harder — is already pulled all the way down. What stalls is structural, and structure does not respond to effort.',
-          'Across credit-services agencies the same three failures appear again and again. An offer nobody can repeat back. A delivery process that lives in the owner\u2019s head. And a ceiling set by the number of hours that owner can personally touch a file. Every chapter after this one attacks one of those three.',
+          'Across credit-services agencies the same three failures appear again and again. An offer nobody can repeat back. A delivery process that lives in the owner\u2019s head. And a ceiling set by the number of hours that owner can personally touch a file. Every sheet after this one attacks one of those three.',
         ],
         metrics: [
           { value: '1', label: 'Named offer', note: 'One sentence a stranger can repeat correctly.' },

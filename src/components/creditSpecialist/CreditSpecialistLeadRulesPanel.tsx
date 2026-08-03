@@ -51,7 +51,7 @@ export function CreditSpecialistLeadRulesPanel({ compact = false, className = ''
               <li key={b.title} className={`flex gap-2 ${CS_PUBLIC.body}`}>
                 <Check size={18} className="text-amber-600 shrink-0 mt-0.5" />
                 <span>
-                  <strong className="text-slate-900">{b.title}:</strong> {b.body}
+                  <strong className="text-white">{b.title}:</strong> {b.body}
                 </span>
               </li>
             ))}

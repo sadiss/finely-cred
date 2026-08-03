@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, AlertCircle, Sparkles, Building2, Scale, Crown, Lock, Gift, Users } from 'lucide-react';
 import { PageShell } from '../components/layout/PageShell';
@@ -20,6 +20,10 @@ import {
   isLetterPackPackage,
 } from '../config/pricingCatalog';
 import { AgencyTierCard } from '../components/pricing/PricingCards';
+import { getPublicAgencyBuyInTiers } from '../config/agencyPartnersProgram';
+import { DigitalInviteShareBand } from '../components/digitalCards';
+import { captureDigitalInviteCardFromUrl } from '../lib/digitalInviteCardAttribution';
+import type { DigitalInviteCardRole } from '../config/digitalInviteCards';
 import { PricingPackageCatalog } from '../components/pricing/PricingPackageCatalog';
 import { BusinessCreditQuotePanel } from '../components/pricing/BusinessCreditQuotePanel';
 import { BusinessCreditOneSheetsPanel } from '../components/pricing/BusinessCreditOneSheetsPanel';
@@ -192,6 +196,8 @@ export default function PricingServicePage() {
     navigate(`/onboarding?${qs.toString()}`);
   };
 
+  const agencyBuyInTiers = useMemo(() => getPublicAgencyBuyInTiers(), []);
+
   const title = useMemo(() => meta?.title ?? 'Services', [meta]);
   const subtitle = useMemo(() => meta?.subtitle ?? 'Choose a service to view DIY + DFY options.', [meta]);
 
@@ -237,6 +243,19 @@ export default function PricingServicePage() {
     ],
     [category, mode, visible.length],
   );
+
+  /** Service lanes that ship a shareable invite card. */
+  const inviteCardRole: DigitalInviteCardRole | null =
+    meta?.slug === 'personal-credit-restore'
+      ? 'restore'
+      : meta?.slug === 'tradelines'
+        ? 'tradelines'
+        : null;
+
+  // Invite cards land on this route with `?invite=<role>&src=digital-card`.
+  useEffect(() => {
+    captureDigitalInviteCardFromUrl(window.location.search, window.location.pathname);
+  }, [meta?.slug]);
 
   const solutionKey = ((): PricingSolutionKey | null => {
     if (!category) return null;
@@ -402,14 +421,33 @@ export default function PricingServicePage() {
         ) : null}
 
         {category === 'agency' ? (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {agencyTiers
-              .filter((t) => t.isPublic)
-              .slice()
-              .sort((a, b) => a.sortOrder - b.sortOrder)
-              .map((tier) => (
-                <AgencyTierCard key={tier.id} tier={tier} onSelect={() => goToAgencySignup(tier.id)} />
-              ))}
+          <div className="space-y-6">
+            <div className={`${finelyOsCatalogCard('emerald')} !p-5 sm:!p-6 space-y-3`}>
+              <div className={FINELY_OS_ENTITY_SUBLABEL}>Step 1 — one-time buy-in</div>
+              <div className="grid sm:grid-cols-2 gap-3">
+                {agencyBuyInTiers.map((b) => (
+                  <div key={b.id} className="rounded-xl border-2 border-emerald-200 bg-white px-4 py-3">
+                    <div className="flex items-baseline justify-between gap-2">
+                      <span className="text-base font-bold text-slate-900">{b.name}</span>
+                      <span className="text-lg font-black text-emerald-700">{b.priceLabel}</span>
+                    </div>
+                    <p className="mt-1 text-xs text-slate-500">{b.tagline}</p>
+                  </div>
+                ))}
+              </div>
+              <p className={`${FINELY_OS_ENTITY_BODY} text-xs`}>
+                Buy-in activates your workspace + training seat. Pick a capacity tier below for ongoing payout %.
+              </p>
+            </div>
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {agencyTiers
+                .filter((t) => t.isPublic)
+                .slice()
+                .sort((a, b) => a.sortOrder - b.sortOrder)
+                .map((tier) => (
+                  <AgencyTierCard key={tier.id} tier={tier} onSelect={() => goToAgencySignup(tier.id)} />
+                ))}
+            </div>
           </div>
         ) : (
           <PricingPackageCatalog
@@ -485,6 +523,8 @@ export default function PricingServicePage() {
             </FinelyUnifiedSection>
           )}
         </FinelyUnifiedHubLayout>
+
+        {inviteCardRole ? <DigitalInviteShareBand role={inviteCardRole} /> : null}
 
         <FinelyOsPageFooter />
       </div>

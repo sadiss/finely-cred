@@ -17,6 +17,39 @@ export interface InviteQrCodeProps {
   className?: string;
 }
 
+const parseHex = (hex: string): [number, number, number] | null => {
+  const m = /^#?([0-9a-f]{6})$/i.exec(hex.trim());
+  if (!m) return null;
+  const n = parseInt(m[1], 16);
+  return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+};
+
+const relativeLuminance = ([r, g, b]: [number, number, number]) => {
+  const lin = (c: number) => {
+    const s = c / 255;
+    return s <= 0.03928 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4;
+  };
+  return 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
+};
+
+/**
+ * Finder eyes are struck in foil, but the lighter palettes (chrome, pearl) sit
+ * near the plate in luminance, which is where phone decoders start to fail.
+ * Darken the foil along its own hue until it clears roughly 6:1 against the
+ * plate — the eye still reads as metal, the scan stops depending on lighting.
+ */
+const withScanContrast = (hex: string): string => {
+  const rgb = parseHex(hex);
+  if (!rgb) return hex;
+  let [r, g, b] = rgb;
+  for (let i = 0; i < 12 && relativeLuminance([r, g, b]) > 0.1; i += 1) {
+    r = Math.round(r * 0.88);
+    g = Math.round(g * 0.88);
+    b = Math.round(b * 0.88);
+  }
+  return `#${[r, g, b].map((c) => c.toString(16).padStart(2, '0')).join('')}`;
+};
+
 /**
  * Branded QR plate rendered as inline SVG.
  *
@@ -28,13 +61,14 @@ export interface InviteQrCodeProps {
 export function InviteQrCode({
   value,
   size,
-  eyeColor,
+  eyeColor: rawEyeColor,
   moduleColor,
   plateColor = '#fbfaf6',
   monogram,
   className = '',
 }: InviteQrCodeProps) {
   const matrix = useMemo(() => encodeQrMatrixBestFit(value, 'H'), [value]);
+  const eyeColor = useMemo(() => withScanContrast(rawEyeColor), [rawEyeColor]);
 
   if (!matrix) {
     return (

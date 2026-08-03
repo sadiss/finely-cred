@@ -151,7 +151,7 @@ function ChapterSheet({ chapter, index }: { chapter: GeneratedGuidePage; index: 
       <div className="px-5 py-7 md:px-14 md:py-10 lg:px-16">
         <header className="fdg-sheet-head">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <span className="fdg-kicker">{chapter.kicker ?? 'Chapter'}</span>
+            <span className="fdg-kicker">{chapter.kicker ?? 'Page'}</span>
             <span className="fdg-meta-row">
               {String(index + 1).padStart(2, '0')} / {String(CHAPTERS.length).padStart(2, '0')}
               {chapter.readMinutes ? ` · ${chapter.readMinutes} min read` : ''}
@@ -284,9 +284,9 @@ export default function DisputeGuideReaderPage() {
         <aside className={cn('fdg-index p-3 lg:sticky lg:top-32 lg:self-start', indexOpen ? 'block' : 'hidden lg:block')}>
           <div className="mb-2 flex items-center justify-between px-1">
             <span className="fdg-kicker">Docket index</span>
-            <span className="fdg-meta-row">{CHAPTERS.length} ch.</span>
+            <span className="fdg-meta-row">{CHAPTERS.length} pg.</span>
           </div>
-          <nav className="max-h-[62vh] space-y-0.5 overflow-y-auto pr-1" aria-label="Guide chapters">
+          <nav className="max-h-[62vh] space-y-0.5 overflow-y-auto pr-1" aria-label="Guide pages">
             {CHAPTERS.map((c, i) => (
               <button
                 key={c.id}
@@ -323,7 +323,7 @@ export default function DisputeGuideReaderPage() {
                   onClick={() => goChapter(idx + 1)}
                   className="fdg-next-btn inline-flex h-11 items-center justify-center gap-2 rounded-md px-5 text-[10px] font-bold uppercase tracking-[0.14em]"
                 >
-                  Next chapter <ChevronRight size={15} />
+                  Next page <ChevronRight size={15} />
                 </button>
               ) : (
                 <Link

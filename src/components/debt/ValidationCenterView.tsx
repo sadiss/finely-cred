@@ -12,8 +12,14 @@ import { ValidationAdvisorChat } from './ValidationAdvisorChat';
 import { CollateralWorkstationSection, DebtVsDisputeExplainer } from './CollateralWorkstationSection';
 import { LetterCatalogBrowser } from './LetterCatalogBrowser';
 import { PartnerDefenseKnowledgePanel } from './PartnerDefenseKnowledgePanel';
-import { DEBT_LETTER_SPECS, SCENARIO_RECOMMENDATIONS } from '../../legal/debtLetterTemplates';
+import { SCENARIO_RECOMMENDATIONS } from '../../legal/debtLetterTemplates';
+import {
+  letterCatalogPool,
+  type DebtLetterCatalogEntry,
+  type LetterCatalogCategory,
+} from '../../legal/debtLetterCatalog';
 import { extractReportDebtSignals } from '../../lib/debtCreditorIntel';
+import { isValidationTrackLetter } from '../../lib/letterProductLabels';
 import { buildIntelligentLetterSuggestions } from '../../lib/intelligentLetterSuggestions';
 import { IntelligentLetterSuggestionsPanel } from '../letters/IntelligentLetterSuggestionsPanel';
 import { FinelyOsKpiGrid } from '../os/FinelyOsKpiGrid';
@@ -30,6 +36,9 @@ import {
 } from '../../features/os/finelyOsLightUi';
 
 type ReportRow = { id: string; parsed?: ParsedCreditReport | null };
+
+/** Stable so the catalog browser and the KPI count read the exact same categories. */
+const VALIDATION_EXTRA_CATEGORIES: LetterCatalogCategory[] = ['negotiation', 'reporting'];
 
 export function ValidationCenterView({
   debt,
@@ -74,15 +83,40 @@ export function ValidationCenterView({
   generateBusy?: boolean;
   generateError?: string | null;
 }) {
-  const specs = DEBT_LETTER_SPECS.filter(
-    (s) =>
-      !s.id.includes('summons') &&
-      !s.id.includes('answer') &&
-      !s.id.includes('affidavit') &&
-      s.id !== 'post_suit_validation_demand',
-  );
   const scenarioRec = SCENARIO_RECOMMENDATIONS.find((r) => r.scenario === recommendedScenario);
   const signals = React.useMemo(() => extractReportDebtSignals(reports), [reports]);
+
+  /**
+   * Validation lane = validation-classified products only. Affidavits, court answers,
+   * discovery, and hearing kits are blocked here — they live on the Court lane.
+   */
+  const caseIsLitigation =
+    debt?.type === 'summons' ||
+    recommendedScenario === 'summons_served' ||
+    recommendedScenario === 'post_35_days';
+
+  const validationEntryFilter = React.useCallback(
+    (entry: DebtLetterCatalogEntry) =>
+      isValidationTrackLetter({
+        letterType: entry.letterType,
+        catalogId: entry.id,
+        category: entry.category,
+        caseIsLitigation,
+      }),
+    [caseIsLitigation],
+  );
+
+  // Same pool the browser renders — so the KPI count can never drift from the visible list.
+  const visibleLetterPool = React.useMemo(
+    () =>
+      letterCatalogPool({
+        categories: ['validation', ...VALIDATION_EXTRA_CATEGORIES],
+        hub: 'debt',
+        filter: validationEntryFilter,
+      }),
+    [validationEntryFilter],
+  );
+
   const letterSuggestions = React.useMemo(
     () =>
       buildIntelligentLetterSuggestions({
@@ -109,8 +143,16 @@ export function ValidationCenterView({
             <ShieldCheck size={15} className="text-emerald-400 shrink-0" />
             <div>
               <span className={finelyOsMicroStat('emerald')}>Validation</span>
-              <div className={`mt-1 ${FINELY_OS_ENTITY_TITLE}`}>Step 1 — Validation letter track</div>
-              <p className={`${FINELY_OS_ENTITY_BODY} text-sm mt-1`}>Pick a case, choose a letter, draft — proof is optional at the bottom.</p>
+              <div className={`mt-1 ${FINELY_OS_ENTITY_TITLE}`}>
+                {caseIsLitigation
+                  ? 'Validation letters — court work stays on the Court lane'
+                  : 'Step 1 — Validation letter track'}
+              </div>
+              <p className={`${FINELY_OS_ENTITY_BODY} text-sm mt-1`}>
+                {caseIsLitigation
+                  ? 'This lane only drafts FDCPA validation and dispute letters. Answers, affidavits, and discovery are on Court.'
+                  : 'Pick a case, choose a letter, draft — proof is optional at the bottom.'}
+              </p>
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-2">
@@ -138,7 +180,7 @@ export function ValidationCenterView({
             { label: 'Reported', value: signals.length, accent: 'text-violet-300' },
             { label: 'Balance', value: totalBalanceLabel, accent: 'text-sky-300' },
             { label: 'Scenario', value: scenarioRec?.label?.split(' ').slice(0, 2).join(' ') || '—', accent: 'text-white/80' },
-            { label: 'Letters', value: specs.length, accent: 'text-white/80' },
+            { label: 'Validation letters', value: visibleLetterPool.length, accent: 'text-emerald-300' },
           ]}
         />
 
@@ -178,6 +220,32 @@ export function ValidationCenterView({
       />
 
       <div id="fc-debt-step-choose" className="scroll-mt-3 space-y-3">
+        {letterSuggestions.crossLink?.track === 'litigation' ? (
+          <div className="rounded-2xl border border-fuchsia-400/35 bg-fuchsia-500/10 px-3 py-2.5 flex flex-wrap items-start justify-between gap-3">
+            <div className="min-w-0">
+              <div className="text-[10px] font-black uppercase tracking-widest text-fuchsia-200/90">
+                Litigation detected — deadlines live on Court
+              </div>
+              <p className={`mt-1 text-xs max-w-2xl ${FINELY_OS_ENTITY_BODY}`}>{letterSuggestions.crossLink.reason}</p>
+            </div>
+            {onSwitchToCourt ? (
+              <button
+                type="button"
+                onClick={onSwitchToCourt}
+                className={`${FINELY_OS_SECONDARY_BTN} border-fuchsia-400/45 text-fuchsia-100`}
+              >
+                {letterSuggestions.crossLink.label} <ArrowRight size={12} />
+              </button>
+            ) : (
+              <Link
+                to="/portal/debt?tab=court"
+                className={`${FINELY_OS_SECONDARY_BTN} border-fuchsia-400/45 text-fuchsia-100`}
+              >
+                Open Court lane <ArrowRight size={12} />
+              </Link>
+            )}
+          </div>
+        ) : null}
         <IntelligentLetterSuggestionsPanel
           suggestions={letterSuggestions}
           accent="emerald"
@@ -191,7 +259,9 @@ export function ValidationCenterView({
         <LetterCatalogBrowser
           category="validation"
           accent="emerald"
-          extraCategories={['negotiation', 'reporting']}
+          extraCategories={VALIDATION_EXTRA_CATEGORIES}
+          letterHub="debt"
+          filterEntry={validationEntryFilter}
           onBuild={(id, entry) => {
             if (onBuildCatalogDraft) onBuildCatalogDraft(id);
             else if (entry.letterType) onBuildDraft(entry.letterType);

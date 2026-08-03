@@ -11,6 +11,7 @@ import { DEBT_LETTER_SPECS, SCENARIO_RECOMMENDATIONS, recommendScenarioFromDebt 
 import { getDebtBuyerCaseIntel } from '../legal/litigation/debtBuyerCaseIntelligence';
 import {
   classifyLetterProduct,
+  isValidationTrackLetter,
   letterGenerateCtaLabel,
   letterGenerateHint,
   letterProductBadge,
@@ -42,6 +43,13 @@ export type RankedLetterSuggestion = {
   uiOnly?: boolean;
 };
 
+/** Offer the other lane instead of silently swapping in its letters. */
+export type LetterTrackCrossLink = {
+  track: LetterSuggestionTrack;
+  label: string;
+  reason: string;
+};
+
 export type IntelligentLetterSuggestions = {
   track: LetterSuggestionTrack;
   headline: string;
@@ -49,6 +57,10 @@ export type IntelligentLetterSuggestions = {
   primary: RankedLetterSuggestion;
   alternatives: RankedLetterSuggestion[];
   all: RankedLetterSuggestion[];
+  /** Set when the case belongs to a different lane — UI shows a link, never other-lane letters. */
+  crossLink?: LetterTrackCrossLink;
+  /** True when the matter is decided (outcome on file / case resolved) — next steps are compliance. */
+  postCourt?: boolean;
 };
 
 function titleFor(letterType?: DebtLetterType, catalogId?: string): string {
@@ -112,9 +124,11 @@ function pushUnique(
     uiOnly?: boolean;
   },
   track: LetterSuggestionTrack,
+  guard?: (candidate: { letterType?: DebtLetterType; catalogId?: string }) => boolean,
 ) {
   const key = item.catalogId || item.letterType || item.title;
   if (bag.has(key)) return;
+  if (guard && !guard({ letterType: item.letterType, catalogId: item.catalogId })) return;
   const enriched = withProductMeta(item, track);
   bag.set(key, { ...enriched, rank: bag.size + 1, primary: bag.size === 0 });
 }
@@ -130,6 +144,13 @@ export function buildIntelligentLetterSuggestions(args: {
   hasDiscoveryDraft?: boolean;
   disputeRound?: number;
   bureauFocus?: boolean;
+  /** Post-hearing outcome on file (payment plan / judgment / dismissal), when known. */
+  courtOutcome?: {
+    kind?: string;
+    verdictSummary?: string;
+    writtenOrderOnFile?: boolean;
+    plan?: { monthlyCents?: number; termMonths?: number } | null;
+  } | null;
 }): IntelligentLetterSuggestions {
   const debt = args.debt ?? null;
   const hearingIso = (debt?.hearingDate || '').slice(0, 10);
@@ -163,15 +184,67 @@ export function buildIntelligentLetterSuggestions(args: {
   const missing = missingFieldHints(debt);
   const bag = new Map<string, RankedLetterSuggestion>();
   const track = args.track;
+
+  /**
+   * Track is honored FIRST. A summons case on the Validation lane no longer flips the whole
+   * engine into litigation — it produces validation letters plus a cross-link to Court.
+   */
+  const caseIsLitigation =
+    debt?.type === 'summons' || scenario === 'summons_served' || scenario === 'post_35_days';
+  const postCourt = Boolean(args.courtOutcome) || debt?.status === 'resolved';
+  const validationGuard = (candidate: { letterType?: DebtLetterType; catalogId?: string }) =>
+    isValidationTrackLetter({ ...candidate, caseIsLitigation });
+
   const push = (
     item: Omit<RankedLetterSuggestion, 'rank' | 'primary' | 'productKind' | 'productBadge' | 'generateLabel' | 'generateHint'> & {
       uiOnly?: boolean;
     },
-  ) => pushUnique(bag, item, track);
+  ) => pushUnique(bag, item, track, track === 'validation' ? validationGuard : undefined);
 
   const whyBase = (parts: string[]) => parts.filter(Boolean).join(' ');
 
-  if (track === 'litigation' || debt?.type === 'summons' || scenario === 'summons_served' || scenario === 'post_35_days') {
+  if (postCourt) {
+    // Matter is decided — the next steps are plan compliance and clean closure, never "answer the lawsuit".
+    const planLabel =
+      args.courtOutcome?.plan?.monthlyCents && args.courtOutcome?.plan?.termMonths
+        ? `${(args.courtOutcome.plan.monthlyCents / 100).toLocaleString('en-US', {
+            style: 'currency',
+            currency: 'USD',
+            maximumFractionDigits: 0,
+          })} per month for ${args.courtOutcome.plan.termMonths} months`
+        : args.courtOutcome?.verdictSummary || 'Outcome on file';
+    push({
+      letterType: undefined,
+      catalogId: 'validation_accounting_ledger',
+      title: 'Payment-plan ledger & payoff statement demand',
+      why: whyBase([
+        `${planLabel}.`,
+        'Ask for the running balance and written confirmation that every payment you made was credited — keep receipts with the letter.',
+        args.courtOutcome?.writtenOrderOnFile === false
+          ? 'The signed order / stipulation is not in your vault yet — request a stamped copy in the same letter.'
+          : '',
+      ]),
+      urgency: args.courtOutcome?.writtenOrderOnFile === false ? 'high' : 'normal',
+    });
+    push({
+      catalogId: 'court_stipulated_dismissal',
+      title: 'Satisfaction / stipulated dismissal request',
+      why: whyBase([
+        'When the plan is paid in full, ask plaintiff counsel to file satisfaction or a stipulated dismissal so the docket closes.',
+        'Do not rely on a verbal promise — get the closing paper.',
+      ]),
+      urgency: 'normal',
+    });
+    push({
+      catalogId: 'reporting_furnisher_direct',
+      title: 'Reporting accuracy demand after satisfaction',
+      why: whyBase([
+        'Once payments are credited, the tradeline must show the correct status and balance.',
+        'Dispute in writing if the furnisher still reports the pre-plan balance.',
+      ]),
+      urgency: 'normal',
+    });
+  } else if (track === 'litigation') {
     // Buyer-pattern letter priorities FIRST — Generate must always create a real letter.
     // Court-day kit is UI-only and must never steal the primary Generate CTA.
     for (const lt of buyerIntel.letterPriorities) {
@@ -252,9 +325,11 @@ export function buildIntelligentLetterSuggestions(args: {
       });
     }
   } else if (track === 'validation') {
-    const types = (scenarioRec?.recommendedLetterTypes || ['validation_request']).filter(
-      (t) => !String(t).includes('courtroom') && !String(t).includes('summons_response'),
-    );
+    // Validation shows validation letters only — affidavits, answers, discovery, and kits are excluded.
+    const types: DebtLetterType[] = (
+      scenarioRec?.recommendedLetterTypes || (['validation_request'] as DebtLetterType[])
+    ).filter((t) => validationGuard({ letterType: t }));
+    if (types.length === 0) types.push('validation_request');
     // Midland/debt-buyer off-suit still wants assignment chain
     if (buyerIntel.patternId.includes('midland') || buyerIntel.patternId.includes('pra') || buyerIntel.patternId.includes('velocity') || buyerIntel.patternId === 'debt_buyer_generic') {
       push({
@@ -341,23 +416,52 @@ export function buildIntelligentLetterSuggestions(args: {
   const primary = all[0]!;
   const alternatives = all.slice(1, 5);
 
-  const headline =
-    track === 'litigation'
+  const headline = postCourt
+    ? 'Work the plan — next letter keeps you compliant'
+    : track === 'litigation'
       ? daysLeft <= 3 && daysLeft >= 0
         ? 'Generate court answer letter next — hearing is imminent'
         : args.hasAnswerDraft
           ? 'Generate affidavit or next court letter'
           : 'Generate court answer letter next'
       : track === 'validation'
-        ? 'Generate validation letter next'
+        ? caseIsLitigation
+          ? 'Generate validation letter next — court deadlines live in Court'
+          : 'Generate validation letter next'
         : 'Generate letter next';
+
+  // Cross-link instead of silently swapping in the other lane's letters.
+  const crossLink: LetterTrackCrossLink | undefined =
+    !postCourt && track === 'validation' && caseIsLitigation
+      ? {
+          track: 'litigation',
+          label: 'Open Court — this case looks like litigation',
+          reason:
+            debt?.type === 'summons'
+              ? 'This case is filed as a lawsuit. Answer deadlines and affidavits live on the Court lane — validation letters here do not protect the answer deadline.'
+              : 'The scenario reads as summons served / past answer deadline. Court letters, affidavits, and discovery live on the Court lane.',
+        }
+      : !postCourt && track === 'litigation' && !caseIsLitigation
+        ? {
+            track: 'validation',
+            label: 'Open Validation — no lawsuit on this case yet',
+            reason:
+              'No summons or served date is on file. Start with FDCPA validation demands on the Validation lane and come back if you get sued.',
+          }
+        : undefined;
 
   return {
     track,
     headline,
-    patternLabel: buyerIntel.patternId !== 'unknown' ? buyerIntel.label : scenarioRec?.label,
+    patternLabel: postCourt
+      ? args.courtOutcome?.verdictSummary || 'Outcome on file'
+      : buyerIntel.patternId !== 'unknown'
+        ? buyerIntel.label
+        : scenarioRec?.label,
     primary,
     alternatives,
     all,
+    crossLink,
+    postCourt,
   };
 }

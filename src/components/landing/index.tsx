@@ -1812,27 +1812,27 @@ export function TestimonialDossier({
   const label = resultLabel ?? (amount ? 'Funded' : undefined);
   return (
     <div
-      className={`fc-testimonial-dossier card-lift h-full min-h-[340px] !p-6 ${finelyOsCatalogCard(accent)}`}
+      className={`fc-testimonial-dossier card-lift h-full min-h-[340px] !p-5 sm:!p-6 flex flex-col min-w-0 overflow-hidden ${finelyOsCatalogCard(accent)}`}
       data-fc-accent={accent}
     >
       {/* Mini Credit Card Visual */}
       {value && (
-        <div className="mb-6 p-4 rounded-2xl bg-black/[0.04] border border-black/10">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <CheckCircle2 size={16} className="text-emerald-700" />
-              <span className="text-xs text-emerald-800 font-semibold uppercase">{label || 'Result'}</span>
+        <div className="mb-6 p-4 rounded-2xl bg-black/[0.04] border border-black/10 min-w-0">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 min-w-0">
+              <CheckCircle2 size={16} className="text-emerald-700 shrink-0" />
+              <span className="text-xs text-emerald-800 font-semibold uppercase truncate">{label || 'Result'}</span>
             </div>
-            <span className="text-xl font-bold text-emerald-800">{value}</span>
+            <span className="text-xl font-bold text-emerald-800 shrink-0">{value}</span>
           </div>
         </div>
       )}
 
-      <div className="flex items-center gap-3 mb-4">
-        <div className="w-10 h-10 rounded-full bg-black/[0.04] border border-black/10 flex items-center justify-center">
+      <div className="flex items-center gap-3 mb-4 min-w-0">
+        <div className="w-10 h-10 shrink-0 rounded-full bg-black/[0.04] border border-black/10 flex items-center justify-center">
           <Star size={16} className="text-amber-700" />
         </div>
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1">
           <p className="text-sm font-semibold truncate">{name}</p>
           <div className="flex gap-0.5">
             {[...Array(5)].map((_, i) => (
@@ -1840,20 +1840,20 @@ export function TestimonialDossier({
             ))}
           </div>
         </div>
-        <div className="ml-auto flex items-center gap-2">
+        <div className="ml-auto shrink-0 flex items-center gap-2 max-w-[45%] sm:max-w-none">
           {service ? (
-            <span className="text-[9px] px-2 py-1 rounded-full border border-black/10 bg-white/60 uppercase tracking-widest font-bold whitespace-nowrap opacity-80">
+            <span className="text-[9px] px-2 py-1 rounded-full border border-black/10 bg-white/60 uppercase tracking-widest font-bold whitespace-nowrap opacity-80 truncate">
               {service}
             </span>
           ) : null}
-          <Verified size={16} className="text-emerald-800" />
+          <Verified size={16} className="text-emerald-800 shrink-0" />
         </div>
       </div>
 
-      <p className="text-sm leading-relaxed italic mb-4 opacity-80">"{review}"</p>
+      <p className="text-sm leading-relaxed italic mb-4 opacity-80 break-words">"{review}"</p>
 
-      <div className="mt-auto px-3 py-1.5 rounded-full bg-black/[0.04] border border-black/10 inline-block">
-        <span className="text-[10px] font-bold uppercase tracking-wider opacity-85">{milestone}</span>
+      <div className="mt-auto px-3 py-1.5 rounded-full bg-black/[0.04] border border-black/10 inline-block max-w-full">
+        <span className="text-[10px] font-bold uppercase tracking-wider opacity-85 truncate block">{milestone}</span>
       </div>
     </div>
   );

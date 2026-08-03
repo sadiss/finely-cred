@@ -20,9 +20,9 @@ export function CreditSpecialistOfferingsPanel({ compact = false, className = ''
     <div className={`space-y-8 sm:space-y-10 ${className}`}>
       <header>
         <p className={CS_PUBLIC.sectionKicker}>What you get</p>
-        <h2 className={`mt-2 ${CS_PUBLIC.sectionTitle}`}>Tools — not your pay %</h2>
+        <h2 className={`mt-2 ${CS_PUBLIC.sectionTitle}`}>Tools — not your payout %</h2>
         <p className={`mt-3 ${CS_PUBLIC.sectionLead}`}>
-          Everyone gets the Finely platform. Your percentage is on the <strong>Tiers &amp; pay</strong> tab.
+          Everyone gets the Finely platform. Your percentage is on the <strong className="text-white">Tiers &amp; payouts</strong> tab.
         </p>
       </header>
 
@@ -35,7 +35,7 @@ export function CreditSpecialistOfferingsPanel({ compact = false, className = ''
             <h3 className="mt-4 text-2xl sm:text-3xl font-bold">{featured.title}</h3>
             <p className="mt-4 text-lg text-white/80">{featured.description}</p>
             <p className="mt-4 text-emerald-300 text-sm font-medium flex items-center gap-2">
-              <Sparkles size={16} /> Software you work in — not a pay tier
+              <Sparkles size={16} /> Software you work in — not a payout tier
             </p>
           </div>
           <div className="lg:col-span-7 p-6 sm:p-8 bg-white">

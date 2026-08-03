@@ -33,9 +33,10 @@ import './lib/automationEventBridge';
 import { getOrCreatePartnerForSession } from './portal/getOrCreatePartnerForSession';
 import { PartnerSessionProvider, usePartnerSession } from './auth/PartnerSessionContext';
 import { adminPartnerFocusMatchesPath } from './lib/adminPartnerFocus';
-import { tradelinePromoPackages } from './config/pricingCatalog';
-import { PackageCard, variantForTierIndex } from './components/pricing/PricingCards';
 import { BackToSiteButton, consumeSignedOutFlag } from './components/navigation/BackToSiteButton';
+import { AuListingShowcase } from './components/tradelines/AuListingShowcase';
+import { DigitalInviteShareBand } from './components/digitalCards';
+import { captureDigitalInviteCardFromUrl } from './lib/digitalInviteCardAttribution';
 import { resolvePostAuthHomePath } from './lib/postAuthRouting';
 import { isAuthEntryPath, signupUrlForCareerPath } from './lib/onboardingRoleRouting';
 import { FreeGuideFunnelStyles } from './components/leadmagnet/FreeGuideFunnelStyles';
@@ -208,6 +209,9 @@ const ResourcesCreditMonitoringPage = lazy(() => import('./pages/ResourcesCredit
 const ResourcesVideosPage = lazy(() => import('./pages/ResourcesVideosPage'));
 const ResourcesReferencesPage = lazy(() => import('./pages/ResourcesReferencesPage'));
 const BusinessCreditOneSheetsPage = lazy(() => import('./pages/BusinessCreditOneSheetsPage'));
+const PersonalCreditRestoreSheetPage = lazy(() => import('./pages/resources/PersonalCreditRestoreSheetPage'));
+const PersonalCreditBuildSheetPage = lazy(() => import('./pages/resources/PersonalCreditBuildSheetPage'));
+const AuTeenCreditSheetPage = lazy(() => import('./pages/resources/AuTeenCreditSheetPage'));
 const StartHerePage = lazy(() => import('./pages/StartHerePage'));
 const LaunchHelpCenterPage = lazy(() => import('./pages/LaunchHelpCenterPage'));
 const BookstorePage = lazy(() => import('./pages/BookstorePage'));
@@ -491,7 +495,7 @@ function LandingRoute({ onGetStarted, onViewTradelines, onNavigate, addToCart, o
               </h2>
             </Reveal>
           </div>
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
             <Reveal delay={100}>
               <TestimonialDossier
                 id="FC-881"
@@ -595,6 +599,11 @@ function TradelinesRoute({ addToCart, onNavigate }: { addToCart: (item: any) => 
   const focus = new URLSearchParams(location.search).get('focus'); // 'primary' | 'au' | null
   const [miniCartPulse, setMiniCartPulse] = useState(0);
 
+  // Invite cards land here with `?invite=tradelines&src=digital-card`.
+  useEffect(() => {
+    captureDigitalInviteCardFromUrl(location.search, location.pathname);
+  }, [location.pathname, location.search]);
+
   useEffect(() => {
     if (!focus) return;
     const id = focus === 'primary' ? 'tradelines-primary' : focus === 'au' ? 'tradelines-au' : null;
@@ -610,15 +619,6 @@ function TradelinesRoute({ addToCart, onNavigate }: { addToCart: (item: any) => 
   const onAdd = (item: any) => {
     addToCart(item);
     setMiniCartPulse((v) => v + 1);
-  };
-
-  const goToCheckout = (pkgId: string, rail: 'stripe' | 'in_house') => {
-    const next = `/portal/checkout?package=${encodeURIComponent(pkgId)}&rail=${encodeURIComponent(rail)}`;
-    const qs = new URLSearchParams();
-    qs.set('package', pkgId);
-    qs.set('rail', rail);
-    qs.set('next', next);
-    navigate(`/onboarding?${qs.toString()}`);
   };
 
   return (
@@ -695,65 +695,34 @@ function TradelinesRoute({ addToCart, onNavigate }: { addToCart: (item: any) => 
           </section>
 
           {/* AU lane */}
-          <section id="tradelines-au" className="space-y-6">
-            <div className="flex items-end justify-between gap-6 flex-wrap">
-              <div>
-                <div className="text-xs font-semibold uppercase tracking-wider text-amber-400">AU Marketplace</div>
-                <h2 className="text-3xl font-light text-white mt-2">
-                  Institutional <span className="text-amber-500">Inventory</span>
-                </h2>
-                <p className="text-white/50 text-sm max-w-2xl mt-2">
-                  Browse authorized user tradelines. Each slot is verified and designed to post on schedule.
-                </p>
+          <section id="tradelines-au" className="space-y-10">
+            <AuListingShowcase onNavigateAuTeenSheet={() => navigate('/resources/au-teen-credit-sheet')} />
+
+            <div id="tradelines-au-live" className="space-y-6 scroll-mt-28">
+              <div className="flex items-end justify-between gap-6 flex-wrap">
+                <div>
+                  <div className="text-xs font-semibold uppercase tracking-wider text-amber-400">AU Marketplace</div>
+                  <h2 className="text-3xl font-light text-white mt-2">
+                    Institutional <span className="text-amber-500">Inventory</span>
+                  </h2>
+                  <p className="text-white/50 text-sm max-w-2xl mt-2">
+                    Browse authorized user tradelines. Each slot is verified and designed to post on schedule.
+                  </p>
+                </div>
+                <div className="flex flex-wrap gap-3 items-center">
+                  <Button variant="outline" onClick={() => onNavigate('checkout')} size="sm">
+                    Go to checkout <ArrowRight size={16} />
+                  </Button>
+                  <Button variant="outline" onClick={() => onNavigate('consultation')} size="sm">
+                    Get matched <ArrowRight size={16} />
+                  </Button>
+                </div>
               </div>
-              <div className="flex flex-wrap gap-3 items-center">
-                <Button variant="outline" onClick={() => onNavigate('checkout')} size="sm">
-                  Go to checkout <ArrowRight size={16} />
-                </Button>
-                <Button variant="outline" onClick={() => onNavigate('consultation')} size="sm">
-                  Get matched <ArrowRight size={16} />
-                </Button>
-              </div>
+              <TradelineMarketplace onAddToCart={onAdd} />
             </div>
-            <TradelineMarketplace onAddToCart={onAdd} />
           </section>
 
-          {/* Tradeline packages (in-house rail; shown previously under Services → Tradelines) */}
-          <section id="tradelines-packages" className="space-y-6">
-            <div className="flex items-end justify-between gap-6 flex-wrap">
-              <div>
-                <div className="text-xs font-semibold uppercase tracking-wider text-amber-400">Tradeline packages</div>
-                <h2 className="text-3xl font-light text-white mt-2">
-                  Packages (AU + Primary) — <span className="text-amber-500">in one place</span>
-                </h2>
-                <p className="text-white/50 text-sm max-w-3xl mt-2">
-                  These are program-style packages that combine authorized user placements with the in-house financing primary tradeline lane.
-                  Pick a package to apply and continue through onboarding.
-                </p>
-              </div>
-              <div className="flex flex-wrap gap-3 items-center">
-                <Button variant="outline" onClick={() => onNavigate('consultation')} size="sm">
-                  Get matched <ArrowRight size={16} />
-                </Button>
-              </div>
-            </div>
-
-            <div className="grid md:grid-cols-3 gap-6">
-              {tradelinePromoPackages
-                .filter((p) => p.isPublic)
-                .slice()
-                .sort((a, b) => a.sortOrder - b.sortOrder)
-                .slice(0, 6)
-                .map((pkg, idx, arr) => (
-                  <PackageCard
-                    key={pkg.id}
-                    pkg={pkg as any}
-                    variant={variantForTierIndex(idx, arr.length)}
-                    onSelect={(rail) => goToCheckout(pkg.id, rail)}
-                  />
-                ))}
-            </div>
-          </section>
+          <DigitalInviteShareBand role="tradelines" />
         </div>
       </div>
 
@@ -1482,6 +1451,10 @@ function AppInner() {
         <Route path="/resources/videos" element={<ResourcesVideosPage />} />
         <Route path="/resources/references" element={<ResourcesReferencesPage />} />
         <Route path="/resources/business-credit-one-sheets" element={<BusinessCreditOneSheetsPage />} />
+        {/* Dedicated sheet pages — each PDF gets its own home, not a shared hub */}
+        <Route path="/resources/personal-credit-restore-sheet" element={<PersonalCreditRestoreSheetPage />} />
+        <Route path="/resources/personal-credit-build-sheet" element={<PersonalCreditBuildSheetPage />} />
+        <Route path="/resources/au-teen-credit-sheet" element={<AuTeenCreditSheetPage />} />
         {/* Aliases — keep bookmarks; do not delete canonical routes */}
         <Route path="/guides" element={<Navigate to="/resources/guides" replace />} />
         <Route path="/one-sheets" element={<Navigate to="/resources/one-sheets" replace />} />

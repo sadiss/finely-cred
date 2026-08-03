@@ -128,7 +128,7 @@ export default function TradelineAdvantageGuideReaderPage() {
         <div className="relative z-30 mx-auto max-w-[76rem] px-4 pt-4 md:px-8">
           <div className="tlg-panel p-4">
             <div className="tlg-mono mb-3 text-[9.5px] uppercase tracking-[0.26em] text-[#7fe3ff]">
-              The wallet · {TOTAL} chapters · {totalMinutes} min total
+              The wallet · {TOTAL} pages · {totalMinutes} min total
             </div>
             <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
               {TL_GUIDE_CHAPTERS.map((ch, i) => (
@@ -157,7 +157,7 @@ export default function TradelineAdvantageGuideReaderPage() {
             <div className="tlg-face">
               <div className="tlg-face-meta">
                 <span>{TL_GUIDE_META.shortTitle}</span>
-                <span>Chapter {chapter.number}</span>
+                <span>Page {chapter.number}</span>
                 <span>{chapter.kicker}</span>
                 <span>{chapter.readMinutes} min</span>
               </div>
@@ -191,7 +191,7 @@ export default function TradelineAdvantageGuideReaderPage() {
             </div>
 
             <div className="tlg-takeaway">
-              <div className="tlg-takeaway-label">Chapter {chapter.number} — keep this</div>
+              <div className="tlg-takeaway-label">Page {chapter.number} — keep this</div>
               <p className="tlg-takeaway-body">{chapter.takeaway}</p>
             </div>
 
@@ -253,7 +253,7 @@ export default function TradelineAdvantageGuideReaderPage() {
               </div>
               <p className="mt-1.5 text-[13px] leading-relaxed text-white/55">
                 Re-pull your reports at day 75 and decide with data. If enhancement still fits the goal, review the
-                marketplace with the due-diligence questions from Chapter 04 in hand.
+                marketplace with the due-diligence questions from Page 04 in hand.
               </p>
             </div>
           ) : null}

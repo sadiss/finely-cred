@@ -49,7 +49,7 @@ export default function BusinessCreditOneSheetsPage() {
   usePublicSeoMeta({
     title: 'Business Credit Partner One-Sheets',
     description:
-      'Business Credit process brief plus premium partner one-sheets — Fundability Roadmap, Tier Ladder & Capital Outlook, Foundation, Builder, Elite, Empire, comparison, and named-cards path. Download PDFs and get a work-calibrated quote.',
+      'The 3-sheet Business Credit Process Brief plus premium single-page partner one-sheets — Fundability Roadmap, Tier Ladder & Capital Outlook, Foundation, Builder, Elite, Empire, comparison, and named-cards path. Download PDFs and get a work-calibrated quote.',
     path: '/resources/business-credit-one-sheets',
   });
 
@@ -83,7 +83,7 @@ export default function BusinessCreditOneSheetsPage() {
     <PageShell
       badge="Partner resources"
       title="Business Credit Partner One-Sheets"
-      subtitle="Start with the 3-page Process Brief, then the Fundability Roadmap (pillars + stage gates). Use Tier Ladder for capital outlook, then download your tier sheet and get a work-calibrated quote."
+      subtitle="Start with the 3-sheet Process Brief, then the Fundability Roadmap one-sheet (pillars + stage gates). Use Tier Ladder for capital outlook, then download your tier sheet and get a work-calibrated quote."
     >
       <div className={`${FINELY_OS_PAGE} fc-senior-simple`}>
         <FinelyUnifiedHubLayout
@@ -92,8 +92,8 @@ export default function BusinessCreditOneSheetsPage() {
           subtitle="Process Brief → Fundability Roadmap → Tier Ladder → destination sheet. Results vary · not guaranteed · business credit only · funding subject to underwriting · not legal advice."
           accent="amber"
           kpis={[
-            { label: 'Process brief', value: '3 pg', hint: 'How we build', accent: 'emerald' },
-            { label: 'One-sheets', value: String(sheets.length), hint: 'Distinct layouts', accent: 'amber' },
+            { label: 'Process brief', value: '3-sheet', hint: 'How we build', accent: 'emerald' },
+            { label: 'One-sheets', value: String(sheets.length), hint: 'Single-page layouts', accent: 'amber' },
             { label: 'Next step', value: 'Quote', hint: 'Work-calibrated', accent: 'violet' },
           ]}
           primaryAction={{
@@ -114,7 +114,7 @@ export default function BusinessCreditOneSheetsPage() {
         >
           {err ? <p className="mb-3 text-sm text-rose-300">{err}</p> : null}
 
-          {/* Featured 3-page process brief */}
+          {/* Featured 3-sheet process brief */}
           <article
             className={`${finelyOsCatalogCardCompact('emerald')} mb-4 space-y-3 border border-emerald-400/30`}
             data-fc-accent="emerald"
@@ -131,7 +131,7 @@ export default function BusinessCreditOneSheetsPage() {
               </div>
               <div className="flex shrink-0 flex-col items-end gap-1.5">
                 <span className={`${FINELY_OS_ENTITY_CHIP} bg-emerald-500/15 text-emerald-200`}>
-                  Featured · 3 pages
+                  Featured · {brief.sheetLabel}
                 </span>
                 <span className={`${FINELY_OS_ENTITY_CHIP} bg-black/30 text-white/55`}>Start here</span>
               </div>
@@ -165,8 +165,7 @@ export default function BusinessCreditOneSheetsPage() {
                 onClick={() => void onDownloadBrief()}
                 className={`${FINELY_OS_PRIMARY_BTN} inline-flex items-center gap-2`}
               >
-                <Download size={14} />{' '}
-                {busy === 'process_brief' ? 'Building…' : 'Download Process Brief (3 pages)'}
+                <Download size={14} /> {busy === 'process_brief' ? 'Building…' : brief.downloadLabel}
               </button>
               <button
                 type="button"

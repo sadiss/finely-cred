@@ -1566,6 +1566,55 @@ export const tradelinePromoPackages: PricingPackage[] = [
 ];
 
 // ─────────────────────────────────────────────────────────────────────────────
+// AGENCY BUY-IN (one-time workspace activation — separate from ongoing payout tiers)
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const agencyBuyInPackages: PricingPackage[] = [
+  {
+    id: 'agency_buyin_starter',
+    category: 'agency',
+    name: 'Agency Starter Buy-In',
+    tagline: 'One-time workspace activation',
+    description:
+      'Launch your branded tenant with a guided 30-day onboarding and a training seat on the apprenticeship track.',
+    highlights: [
+      'Branded workspace provisioning',
+      'Training seat (apprenticeship track)',
+      'First 30-day guided onboarding',
+    ],
+    priceAmount: 29700, // $297
+    interval: 'one_time',
+    rail: 'stripe',
+    delivery: 'DFY',
+    isPublic: true,
+    sortOrder: 1,
+    badge: 'Starter',
+    entitlementKeys: ['agency_buyin_starter'],
+  },
+  {
+    id: 'agency_buyin_operator',
+    category: 'agency',
+    name: 'Agency Operator Buy-In',
+    tagline: 'Priority provisioning + white-label kit',
+    description:
+      'Skip the queue with priority tenant provisioning and a white-label kit (co-brand assets + domain guidance) on top of the Starter buy-in.',
+    highlights: [
+      'Everything in Starter buy-in',
+      'Priority tenant provisioning',
+      'White-label kit (co-brand assets + domain guidance)',
+    ],
+    priceAmount: 99700, // $997
+    interval: 'one_time',
+    rail: 'stripe',
+    delivery: 'DFY',
+    isPublic: true,
+    sortOrder: 2,
+    badge: 'Operator',
+    entitlementKeys: ['agency_buyin_starter', 'agency_buyin_operator'],
+  },
+];
+
+// ─────────────────────────────────────────────────────────────────────────────
 // AGENCY PARTNER CAPACITY TIERS (tenant · seats · white-label)
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -1732,6 +1781,7 @@ export const allPackages: PricingPackage[] = [
   ...privacyPackages,
   ...bundlePackages,
   ...tradelinePromoPackages,
+  ...agencyBuyInPackages,
 ];
 
 export function getPackageById(id: string): PricingPackage | undefined {
@@ -1983,5 +2033,5 @@ export const categoryDescriptions: Record<PricingCategory, string> = {
   bundle: 'Save with our most popular combinations.',
   tradeline_promo:
     'Build credit fast with tradeline packages that report to Equifax.',
-  agency: 'Tools for credit repair professionals and agencies.',
+  agency: 'One-time workspace buy-in plus ongoing payout tiers for credit repair agencies.',
 };

@@ -45,7 +45,12 @@ export function buildValidationLetterDraft(args: {
   letterType?: DebtLetterType;
 }): string {
   const date = new Date().toISOString().slice(0, 10);
-  const type = args.letterType ?? (args.debt.type === 'summons' ? 'summons_response_affidavit' : 'validation_request');
+  /**
+   * Validation path stays validation. A summons case never silently becomes a sworn affidavit —
+   * court documents are generated from the Court lane, where deadlines and captions are handled.
+   */
+  const type =
+    args.letterType ?? (args.debt.type === 'summons' ? 'post_suit_validation_demand' : 'validation_request');
   return getLetterBody(type, {
     creditorName: args.creditorName ?? args.debt.recipientName ?? args.debt.name,
     debtorName: args.debtorName,

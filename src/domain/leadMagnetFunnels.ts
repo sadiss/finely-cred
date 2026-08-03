@@ -263,7 +263,7 @@ export const CREDIT_SPECIALIST_GUIDE_FUNNEL: LeadMagnetFunnelConfig = {
   metaTitle: 'Free Credit Specialist playbook',
   metaDesc:
     'Personal + business credit, debt challenge insight, court education, and specialist opportunity — read the free in-app guide anytime; optional tips below.',
-  urgencyText: 'Optional tips — e-guide & one-sheet are free to open without signup',
+  urgencyText: 'Optional tips — e-guide & 2-sheet playbook are free to open without signup',
   heroHeadline: 'Master the',
   heroHighlight: 'Specialist Craft',
   heroSub: '— then bring partners with Finely.',

@@ -349,7 +349,7 @@ export const SCORE_BOOST_CHAPTERS: ScoreBoostChapter[] = [
       {
         heading: 'Thin files need depth before they need aggression',
         paragraphs: [
-          'If you have two accounts and eleven months of history, no dispute strategy is going to help you. What helps is adding responsible, reporting depth and then leaving it alone. This chapter will not move your score by Friday — it is what makes the next ninety days compound instead of stall.',
+          'If you have two accounts and eleven months of history, no dispute strategy is going to help you. What helps is adding responsible, reporting depth and then leaving it alone. This page will not move your score by Friday — it is what makes the next ninety days compound instead of stall.',
         ],
         bullets: [
           'A secured card from an issuer that reports to all three bureaus is the standard entry point.',

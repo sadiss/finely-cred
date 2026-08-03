@@ -149,11 +149,11 @@ export default function AgentsPage() {
         <FinelyUnifiedHubLayout
           eyebrow={CS.programName}
           title="Credit specialist program"
-          subtitle="Program & stack = tools · Tiers & pay = your percentage · Apply = join"
+          subtitle="Program & stack = tools · Tiers & payouts = your percentage · Apply = join"
           accent="violet"
           tabs={[
             { id: 'program', label: '① Tools & platform' },
-            { id: 'economics', label: '② Tiers & pay' },
+            { id: 'economics', label: '② Tiers & payouts' },
             { id: 'apply', label: '③ Apply' },
           ]}
           activeTab={laneTab}
@@ -168,8 +168,8 @@ export default function AgentsPage() {
           <p className={CS_PUBLIC.pageKicker}>Credit specialist program</p>
           <h2 className={CS_PUBLIC.pageTitle}>Run client files on Finely</h2>
           <p className={CS_PUBLIC.pageLead}>
-            <strong className="text-slate-900">Credit specialist</strong> = you run restore, build, business, and debt files.
-            Pay starts around <strong className="text-emerald-700">30%</strong> per file — not 80%. Certified partner is the top step.
+            <strong className="text-white">Credit specialist</strong> = you run restore, build, business, and debt files.
+            Your keep starts around <strong className="text-white">30%</strong> per file — not 80%. Certified partner is the top step.
           </p>
           <div className="grid sm:grid-cols-3 gap-3 text-center">
             {[
@@ -193,7 +193,7 @@ export default function AgentsPage() {
           </p>
           <div className="flex flex-wrap gap-3">
             <button type="button" onClick={() => setLaneTab('economics')} className={FINELY_OS_PRIMARY_BTN}>
-              See tiers &amp; pay <ArrowRight size={16} />
+              See tiers &amp; payouts <ArrowRight size={16} />
             </button>
             <button type="button" onClick={() => navigate('/credit-specialist/join')} className={FINELY_OS_SECONDARY_BTN}>
               Join now

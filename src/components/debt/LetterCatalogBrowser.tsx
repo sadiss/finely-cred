@@ -1,8 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Search } from 'lucide-react';
 import {
-  catalogForCategory,
-  entryMatchesHub,
+  letterCatalogPool,
   type DebtLetterCatalogEntry,
   type LetterCatalogCategory,
   type LetterCatalogHub,
@@ -39,6 +38,7 @@ export function LetterCatalogBrowser({
   searchHint,
   compactHeader,
   letterHub,
+  filterEntry,
 }: {
   category: LetterCatalogCategory;
   accent: FinelyOsGlowAccent;
@@ -51,6 +51,8 @@ export function LetterCatalogBrowser({
   compactHeader?: boolean;
   /** Credit Letters vs Debt Letters hub filter */
   letterHub?: LetterCatalogHub;
+  /** Track guard — e.g. Validation blocks affidavits / court answers. Must match the caller's KPI count. */
+  filterEntry?: (entry: DebtLetterCatalogEntry) => boolean;
 }) {
   const [q, setQ] = useState('');
   const [sub, setSub] = useState<LetterCatalogCategory | 'all'>('all');
@@ -59,17 +61,15 @@ export function LetterCatalogBrowser({
     if (searchHint?.trim()) setQ(searchHint.trim());
   }, [searchHint]);
 
-  const pool = useMemo(() => {
-    const cats = [category, ...(extraCategories ?? [])];
-    const unique = new Map<string, DebtLetterCatalogEntry>();
-    for (const c of cats) {
-      for (const e of catalogForCategory(c, letterHub)) {
-        if (letterHub && !entryMatchesHub(e, letterHub)) continue;
-        unique.set(e.id, e);
-      }
-    }
-    return [...unique.values()];
-  }, [category, extraCategories, letterHub]);
+  const pool = useMemo(
+    () =>
+      letterCatalogPool({
+        categories: [category, ...(extraCategories ?? [])],
+        hub: letterHub,
+        filter: filterEntry,
+      }),
+    [category, extraCategories, letterHub, filterEntry],
+  );
 
   const filtered = useMemo(() => {
     const needle = q.trim().toLowerCase();

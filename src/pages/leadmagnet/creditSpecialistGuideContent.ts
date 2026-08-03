@@ -58,7 +58,7 @@ export const CS_GUIDE_META = {
   compliance: 'Results vary · not legal advice · funding subject to underwriting',
   edition: 'Finely Cred edition',
   valueLabel: '$297+',
-  onesheetLabel: 'Credit Specialist one-sheet',
+  twoSheetLabel: 'Credit Specialist 2-sheet playbook',
 } as const;
 
 /** Chapter numbers are derived from order so chapters can be inserted safely. */
@@ -70,7 +70,7 @@ const CS_GUIDE_CHAPTER_INPUTS: CreditSpecialistChapterInput[] = [
     title: 'The Specialist Advantage',
     subtitle: 'Why operators who teach systems outperform operators who chase leads',
     kicker: 'Start here',
-    teaser: 'Position, language, and the partner-first posture that makes every chapter usable.',
+    teaser: 'Position, language, and the partner-first posture that makes every page usable.',
     accent: 'gold',
     sections: [
       {
@@ -78,7 +78,7 @@ const CS_GUIDE_CHAPTER_INPUTS: CreditSpecialistChapterInput[] = [
         paragraphs: [
           'This is a field manual for Credit Specialists — people who help partners restore personal files, sequence business credit, respond to debt pressure, and unlock funding opportunity without hype.',
           'You will not find miracle guarantees. You will find frameworks Finely Cred trains specialists to use: factual findings, evidence discipline, fundability stage gates, and compliant opportunity framing.',
-          'Open any chapter from the landing preview. Read freely in the in-app reader. Join the program later when you want the full operating stack — reading never requires signup.',
+          'Open any page from the landing preview. Read freely in the in-app reader. Join the program later when you want the full operating stack — reading never requires signup.',
         ],
       },
       {
@@ -105,9 +105,9 @@ const CS_GUIDE_CHAPTER_INPUTS: CreditSpecialistChapterInput[] = [
         ],
       },
       {
-        heading: 'How to use the chapters',
+        heading: 'How to use the pages',
         paragraphs: [
-          'Read straight through once. Then return to the chapter that matches the partner sitting in front of you: personal restore, business fundability, debt pressure, or growth opportunity.',
+          'Read straight through once. Then return to the page that matches the partner sitting in front of you: personal restore, business fundability, debt pressure, or growth opportunity.',
         ],
         callout: 'Educational guide only. Results vary · not legal advice · funding subject to underwriting.',
       },
@@ -652,7 +652,7 @@ const CS_GUIDE_CHAPTER_INPUTS: CreditSpecialistChapterInput[] = [
         heading: 'Next step',
         paragraphs: [
           'Finish this guide, then open the Credit Specialist join path to see program tiers, economics, and application options. The guide teaches the craft; the program gives you the OS to deliver it at scale.',
-          'Keep reading as long as you want — signup is optional and separate from this e-guide and one-sheet.',
+          'Keep reading as long as you want — signup is optional and separate from this e-guide and the 2-sheet playbook.',
         ],
         callout: 'Application is not a job offer. Income varies. Educational positioning required. Results vary · not legal advice · funding subject to underwriting.',
       },

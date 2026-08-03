@@ -318,7 +318,7 @@ export default function TradelineAdvantageLandingPage() {
                 to={TL_GUIDE_READ_PATH}
                 className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-[#d4a447]/45 bg-[#d4a447]/10 px-4 py-2.5 text-[11px] font-black uppercase tracking-[0.14em] text-[#f0cc75] transition hover:border-[#f0cc75]/70 hover:bg-[#d4a447]/16"
               >
-                <BookOpen size={14} /> Read all {TL_GUIDE_CHAPTERS.length} chapters free — no signup
+                <BookOpen size={14} /> Read all {TL_GUIDE_CHAPTERS.length} pages free — no signup
               </Link>
               <div className="mt-3 flex flex-wrap gap-4">
                 <a href="#tla-preview" className="lm-secondary-book-link !mt-0">
@@ -351,7 +351,7 @@ export default function TradelineAdvantageLandingPage() {
         </div>
       </section>
 
-      {/* Chapter index — the whole guide is readable in-app before any signup */}
+      {/* Page index — the whole guide is readable in-app before any signup */}
       <section id="read-online" className="relative z-10 border-b border-[#5c2d54]/35 py-9 md:py-12">
         <div className="mx-auto max-w-7xl px-5 md:px-8">
           <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
@@ -361,14 +361,14 @@ export default function TradelineAdvantageLandingPage() {
                 {TL_GUIDE_META.title}
               </h2>
               <p className="mt-3 text-sm leading-relaxed text-white/62">
-                {TL_GUIDE_CHAPTERS.length} chapters in the browser — what a tradeline actually is, AU versus primary,
+                {TL_GUIDE_CHAPTERS.length} pages in the browser — what a tradeline actually is, AU versus primary,
                 what AU can and cannot do, underwriter-grade evaluation, utilization timing, compliance red flags, and
                 a 90-day calendar.
               </p>
             </div>
             <Link to={`${TL_GUIDE_READ_PATH}?chapter=what-is-a-tradeline`} className="shrink-0">
               <GoldButton className="!h-12">
-                <BookOpen size={15} /> Open Chapter 01
+                <BookOpen size={15} /> Open Page 01
               </GoldButton>
             </Link>
           </div>
