@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
+  ArrowLeft,
   ArrowRight,
   Building2,
   CheckCircle2,
@@ -17,12 +18,9 @@ import { useNavigate } from 'react-router-dom';
 import { PageShell } from '../components/layout/PageShell';
 import { CareersQuickNav } from '../components/careers/CareersQuickNav';
 import { LandingTypewriterTitle } from '../components/landing/LandingTypewriterTitle';
-import { MarketingStaffChatStrip } from '../components/marketing/MarketingStaffChatStrip';
-import { RealEstatePlaybookPanel } from '../components/realEstate/RealEstatePlaybookPanel';
 import {
   REAL_ESTATE_COMPLIANCE_FOOTNOTES,
   REAL_ESTATE_ONBOARDING_STEPS,
-  REAL_ESTATE_PLAYBOOK_META,
   listRealEstatePublicToolkitLevers,
   type RealEstatePlaybookLeverId,
 } from '../config/realEstatePartnerPlaybook';
@@ -44,6 +42,7 @@ import {
 } from '../lib/digitalInviteCardAttribution';
 import { getDigitalInviteCardDef } from '../config/digitalInviteCards';
 import {
+  FINELY_OS_BACK_LINK,
   FINELY_OS_COMPLIANCE_FOOTNOTE,
   FINELY_OS_ENTITY_INPUT,
   FINELY_OS_ENTITY_LABEL,
@@ -187,6 +186,9 @@ export default function RealEstateCareersPage() {
     >
       <div className={`${FINELY_OS_PAGE} max-w-6xl mx-auto space-y-0`}>
         <div className="px-0 py-2 space-y-3">
+          <a href="/" className={FINELY_OS_BACK_LINK}>
+            <ArrowLeft size={16} /> Home
+          </a>
           <CareersQuickNav active="real_estate" />
           {cardEligibility && cardBonus ? (
             <FinelyOsAlertBanner tone="success" message={cardBonus.description} />
@@ -352,11 +354,6 @@ export default function RealEstateCareersPage() {
               })}
             </div>
           </div>
-        </section>
-
-        {/* Importable playbook (compact) */}
-        <section className="mt-6 px-1">
-          <RealEstatePlaybookPanel mode="full" defaultOpen={false} title={REAL_ESTATE_PLAYBOOK_META.title} />
         </section>
 
         {/* Research caveats */}
@@ -526,15 +523,6 @@ export default function RealEstateCareersPage() {
             </form>
           </div>
         </section>
-
-        <div className="mt-6 px-1">
-          <MarketingStaffChatStrip
-            roleId="affiliate_specialist"
-            goal="business"
-            roleLabel="affiliate"
-            subline="Ask about real estate affiliation, partner handoffs, and compliant underwriting-readiness education."
-          />
-        </div>
 
         <div className="px-1 py-6">
           <FinelyOsPageFooter />

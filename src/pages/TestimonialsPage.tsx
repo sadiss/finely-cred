@@ -125,7 +125,7 @@ export default function TestimonialsPage() {
             <FinelyOsPaginatedStack
               items={playableVideos}
               pageSize={6}
-              itemSpacingClassName="grid md:grid-cols-3 gap-4"
+              itemSpacingClassName="grid sm:grid-cols-2 lg:grid-cols-3 gap-4"
               renderItem={(v, idx) => (
                 <div
                   key={v.id}
@@ -158,7 +158,7 @@ export default function TestimonialsPage() {
             <FinelyOsPaginatedStack
               items={texts}
               pageSize={9}
-              itemSpacingClassName="grid md:grid-cols-3 gap-6"
+              itemSpacingClassName="grid sm:grid-cols-2 lg:grid-cols-3 gap-6"
               renderItem={(t) => (
                 <TestimonialDossier
                   key={t.id}

@@ -491,7 +491,7 @@ function LandingRoute({ onGetStarted, onViewTradelines, onNavigate, addToCart, o
               </h2>
             </Reveal>
           </div>
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
             <Reveal delay={100}>
               <TestimonialDossier
                 id="FC-881"

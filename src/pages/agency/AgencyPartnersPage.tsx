@@ -10,7 +10,6 @@ import { AGENCY, AGENCY_OFFERINGS } from '../../config/agencyPartnersProgram';
 import { FinelyOsAlertBanner } from '../../features/os/FinelyOsAlertBanner';
 import { FinelyOsPageFooter } from '../../features/os/FinelyOsPageFooter';
 import { FinelyUnifiedHubLayout } from '../../features/unified/FinelyUnifiedHubLayout';
-import { MarketingStaffChatStrip } from '../../components/marketing/MarketingStaffChatStrip';
 import { usePublicSeoMeta } from '../../hooks/usePublicSeoMeta';
 import {
   captureDigitalInviteCardFromUrl,
@@ -51,6 +50,7 @@ export default function AgencyPartnersPage() {
       badge="Public"
       title={AGENCY.programName}
       subtitle="Company-level partnership — your brand, your team, Finely powers the operating system."
+      hideHero
     >
       <div className={FINELY_OS_PAGE}>
         <div className="flex flex-wrap items-center gap-4">
@@ -190,13 +190,6 @@ export default function AgencyPartnersPage() {
         <p className={FINELY_OS_COMPLIANCE_FOOTNOTE}>
           Results vary · not legal advice · agency partners are independent operators, not employees.
         </p>
-
-        <MarketingStaffChatStrip
-          roleId="lead_converter"
-          goal="business"
-          roleLabel="agency onboarding specialist"
-          subline="Questions about white-label tiers, tenant setup, or team seats before you sign up?"
-        />
 
         <FinelyOsPageFooter />
       </div>

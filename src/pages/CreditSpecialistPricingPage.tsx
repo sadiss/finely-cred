@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { PageShell } from '../components/layout/PageShell';
 import { CareersQuickNav } from '../components/careers/CareersQuickNav';
 import { CreditSpecialistCareerGuide } from '../components/creditSpecialist/CreditSpecialistCareerGuide';
+import { CreditSpecialistGuideActions } from '../components/creditSpecialist/CreditSpecialistGuideActions';
 import { CreditSpecialistLeadRulesPanel } from '../components/creditSpecialist/CreditSpecialistLeadRulesPanel';
 import { CreditSpecialistOfferingsPanel } from '../components/creditSpecialist/CreditSpecialistOfferingsPanel';
 import { CreditSpecialistPricingTiers } from '../components/creditSpecialist/CreditSpecialistPricingTiers';
@@ -21,7 +22,6 @@ import { FinelyUnifiedHubLayout } from '../features/unified/FinelyUnifiedHubLayo
 import { usePublicSeoMeta } from '../hooks/usePublicSeoMeta';
 import { LandingTypewriterTitle } from '../components/landing/LandingTypewriterTitle';
 import { PublicLaneTitle } from '../components/public/PublicLaneTitle';
-import { CS_GUIDE_READ_PATH } from './leadmagnet/creditSpecialistGuideContent';
 import {
   FINELY_OS_BACK_LINK,
   FINELY_OS_COMPLIANCE_FOOTNOTE,
@@ -108,9 +108,6 @@ export default function CreditSpecialistPricingPage() {
                 <button type="button" onClick={() => setLaneTab('tiers')} className={FINELY_OS_SECONDARY_BTN}>
                   Compare tiers
                 </button>
-                <button type="button" onClick={() => navigate(CS_GUIDE_READ_PATH)} className={FINELY_OS_SECONDARY_BTN}>
-                  <BookOpen size={14} /> Read Guide
-                </button>
               </>
             }
           />
@@ -125,6 +122,12 @@ export default function CreditSpecialistPricingPage() {
                 <div className="mt-1 text-[11px] sm:text-xs font-semibold uppercase tracking-wider text-white/60">{x.label}</div>
               </div>
             ))}
+          </div>
+          <div className="relative mt-6 max-w-3xl rounded-2xl border border-white/15 bg-white/[0.06] p-4 backdrop-blur">
+            <p className="text-[11px] font-black uppercase tracking-[0.2em] text-amber-300">
+              Free — read before you join
+            </p>
+            <CreditSpecialistGuideActions className="mt-3" tone="onDark" size="sm" />
           </div>
         </section>
 
@@ -265,10 +268,8 @@ export default function CreditSpecialistPricingPage() {
                 >
                   Skip to account signup
                 </button>
-                <button type="button" onClick={() => navigate(CS_GUIDE_READ_PATH)} className={FINELY_OS_SECONDARY_BTN}>
-                  <BookOpen size={14} /> Read Guide
-                </button>
               </div>
+              <CreditSpecialistGuideActions tone="os" size="sm" />
             </div>
           )}
         </FinelyUnifiedHubLayout>

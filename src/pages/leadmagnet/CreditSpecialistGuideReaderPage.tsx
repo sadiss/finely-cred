@@ -14,7 +14,7 @@ import {
   X,
 } from 'lucide-react';
 import { usePublicSeoMeta } from '../../hooks/usePublicSeoMeta';
-import { downloadCreditSpecialistOneSheet } from '../../resources/buildCreditSpecialistOneSheetPdf';
+import { downloadCreditSpecialistTwoSheet } from '../../resources/buildCreditSpecialistTwoSheetPdf';
 import '../../components/leadmagnet/leadMagnetLuxuryStage.css';
 import {
   CS_GUIDE_CHAPTERS,
@@ -155,10 +155,10 @@ export default function CreditSpecialistGuideReaderPage() {
     setTocOpen(false);
   };
 
-  const onDownloadOneSheet = async () => {
+  const onDownloadTwoSheet = async () => {
     setDownloading(true);
     try {
-      await downloadCreditSpecialistOneSheet();
+      await downloadCreditSpecialistTwoSheet();
     } finally {
       setDownloading(false);
     }
@@ -197,11 +197,11 @@ export default function CreditSpecialistGuideReaderPage() {
             </button>
             <button
               type="button"
-              onClick={() => void onDownloadOneSheet()}
+              onClick={() => void onDownloadTwoSheet()}
               disabled={downloading}
               className="csg-nav-cta hidden items-center gap-1.5 rounded-lg px-3 py-2 text-[10px] font-bold uppercase tracking-[0.12em] text-[#e8c96a] sm:inline-flex"
             >
-              <Download size={14} /> {downloading ? '…' : 'One-sheet'}
+              <Download size={14} /> {downloading ? '…' : '2-sheet PDF'}
             </button>
             <Link
               to={CS_JOIN_PATH}
@@ -313,7 +313,7 @@ export default function CreditSpecialistGuideReaderPage() {
                   <Sparkles size={14} /> Keep reading freely
                 </div>
                 <p className="mt-2 text-sm text-white/60">
-                  This e-guide is separate from signup. Download the one-sheet anytime — join only when you want the
+                  This e-guide is separate from signup. Take the 2-sheet playbook anytime — join only when you want the
                   program at <span className="text-[#f0cc75]">{CS_JOIN_PATH}</span>
                 </p>
                 <p className="csg-compliance mt-2">{CS_GUIDE_META.compliance}</p>
@@ -321,11 +321,11 @@ export default function CreditSpecialistGuideReaderPage() {
               <div className="flex flex-wrap gap-2">
                 <button
                   type="button"
-                  onClick={() => void onDownloadOneSheet()}
+                  onClick={() => void onDownloadTwoSheet()}
                   disabled={downloading}
-                  className="csg-ghost-btn inline-flex h-10 items-center justify-center gap-1.5 rounded-lg px-4 text-[10px] font-black uppercase tracking-[0.12em]"
+                  className="inline-flex h-10 items-center justify-center gap-1.5 rounded-lg border-2 border-white/70 bg-white/10 px-4 text-[10px] font-black uppercase tracking-[0.12em] text-white transition-all hover:border-white hover:bg-white/20 disabled:opacity-60"
                 >
-                  <Download size={14} /> {downloading ? 'Building…' : 'One-sheet'}
+                  <Download size={14} /> {downloading ? 'Building…' : 'Download 2-sheet'}
                 </button>
                 <Link
                   to={CS_GUIDE_PATH}

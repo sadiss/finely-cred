@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   ArrowRight,
@@ -6,7 +6,6 @@ import {
   Building2,
   Check,
   CreditCard,
-  Download,
   Gavel,
   Scale,
   ShieldCheck,
@@ -16,10 +15,10 @@ import {
   Users,
 } from 'lucide-react';
 import { LeadMagnetCobrandFooterMarks } from '../../components/brand/LeadMagnetCobrand';
+import { CreditSpecialistGuideActions } from '../../components/creditSpecialist/CreditSpecialistGuideActions';
 import { PremiumLeadMagnetCaptureForm } from '../../components/leadmagnet/PremiumLeadMagnetCaptureForm';
 import { CREDIT_SPECIALIST_GUIDE_FUNNEL } from '../../domain/leadMagnetFunnels';
 import { usePublicSeoMeta } from '../../hooks/usePublicSeoMeta';
-import { downloadCreditSpecialistOneSheet } from '../../resources/buildCreditSpecialistOneSheetPdf';
 import '../../components/leadmagnet/leadMagnetLuxuryStage.css';
 import {
   CS_GUIDE_CHAPTERS,
@@ -124,8 +123,6 @@ const PILLARS = [
 
 export default function CreditSpecialistGuideLandingPage() {
   const navigate = useNavigate();
-  const [downloading, setDownloading] = useState(false);
-  const [downloadErr, setDownloadErr] = useState<string | null>(null);
 
   usePublicSeoMeta({
     title: `${CS_GUIDE_META.title} — Free Credit Specialist E-Guide`,
@@ -136,18 +133,6 @@ export default function CreditSpecialistGuideLandingPage() {
   const openGuide = (chapterId?: string) => {
     const path = chapterId ? `${CS_GUIDE_READ_PATH}?chapter=${encodeURIComponent(chapterId)}` : CS_GUIDE_READ_PATH;
     navigate(path);
-  };
-
-  const onDownloadOneSheet = async () => {
-    setDownloading(true);
-    setDownloadErr(null);
-    try {
-      await downloadCreditSpecialistOneSheet();
-    } catch (e) {
-      setDownloadErr((e as Error)?.message || 'Download failed');
-    } finally {
-      setDownloading(false);
-    }
   };
 
   return (
@@ -194,35 +179,15 @@ export default function CreditSpecialistGuideLandingPage() {
             <div className="lm-lux-rule--short lm-lux-rule--draw mt-4" aria-hidden />
             <p className="csg-hero-lede mt-5 max-w-xl">
               Personal credit restore and build. Business fundability. Debt and laws insight. Opportunities to help
-              partners — and a compliant path toward financial freedom through craft. Open the readable in-app guide
-              now; download the one-sheet anytime. Join stays separate.
+              partners — and a compliant path toward financial freedom through craft. Read the in-app guide now, and
+              take the 2-sheet playbook with you. Join stays separate.
             </p>
-            <div className="mt-7 flex flex-wrap items-center gap-3">
-              <button
-                type="button"
-                onClick={() => openGuide()}
-                className="csg-gold-btn inline-flex h-12 items-center justify-center gap-2 rounded-lg px-7 text-[11px] font-black uppercase tracking-[0.16em]"
-              >
-                <span className="relative z-10 flex items-center gap-2">
-                  <BookOpen size={16} /> Open e-guide <ArrowRight size={16} />
-                </span>
-              </button>
-              <button
-                type="button"
-                onClick={() => void onDownloadOneSheet()}
-                disabled={downloading}
-                className="csg-ghost-btn inline-flex h-12 items-center justify-center gap-2 rounded-lg px-6 text-[11px] font-black uppercase tracking-[0.14em]"
-              >
-                <Download size={16} /> {downloading ? 'Building…' : 'Download one-sheet'}
-              </button>
-              <Link
-                to={CS_JOIN_PATH}
-                className="text-[11px] font-bold uppercase tracking-[0.14em] text-white/45 transition hover:text-[#f0cc75]"
-              >
-                Pricing & join →
-              </Link>
-            </div>
-            {downloadErr ? <p className="mt-2 text-sm text-rose-300">{downloadErr}</p> : null}
+            <CreditSpecialistGuideActions
+              className="mt-7"
+              tone="gold"
+              onReadGuide={() => openGuide()}
+              showJoinLink
+            />
             <p className="csg-compliance mt-3">{CS_GUIDE_META.compliance}</p>
           </div>
 
@@ -359,31 +324,21 @@ export default function CreditSpecialistGuideLandingPage() {
             </div>
             <h2 className="csg-serif mt-4 text-3xl font-semibold md:text-4xl">Stay on the specialist list</h2>
             <p className="mt-3 max-w-lg text-base text-white/55">
-              The e-guide and one-sheet are free without signup. Leave your details only if you want nurture tips and a
-              cleaner path into pricing later — reading is never blocked.
+              The e-guide and the 2-sheet playbook are free without signup. Leave your details only if you want nurture
+              tips and a cleaner path into pricing later — reading is never blocked.
             </p>
             <ul className="mt-6 space-y-3">
               <MiniCheck>Optional — open the reader anytime above</MiniCheck>
               <MiniCheck>Tagged as Credit Specialist guide in admin leads</MiniCheck>
               <MiniCheck>Join stays at {CS_JOIN_PATH} when you are ready</MiniCheck>
             </ul>
-            <div className="mt-6 flex flex-wrap gap-3">
-              <button
-                type="button"
-                onClick={() => openGuide()}
-                className="csg-ghost-btn inline-flex h-11 items-center justify-center gap-2 rounded-lg px-5 text-[11px] font-black uppercase tracking-[0.14em]"
-              >
-                <BookOpen size={14} /> Skip — open guide
-              </button>
-              <button
-                type="button"
-                onClick={() => void onDownloadOneSheet()}
-                disabled={downloading}
-                className="csg-ghost-btn inline-flex h-11 items-center justify-center gap-2 rounded-lg px-5 text-[11px] font-black uppercase tracking-[0.14em]"
-              >
-                <Download size={14} /> {downloading ? 'Building…' : 'Get one-sheet'}
-              </button>
-            </div>
+            <CreditSpecialistGuideActions
+              className="mt-6"
+              tone="onDark"
+              size="sm"
+              readLabel="Skip — Read Guide"
+              onReadGuide={() => openGuide()}
+            />
           </div>
           <div className="csg-pillar-card rounded-2xl p-5 md:p-6">
             <PremiumLeadMagnetCaptureForm
@@ -405,15 +360,17 @@ export default function CreditSpecialistGuideLandingPage() {
               <div>
                 <div className="csg-kicker">Your path forward</div>
                 <h2 className="csg-serif mt-4 text-3xl font-semibold md:text-4xl lg:text-5xl">
-                  Read the playbook. Download the one-sheet. Join when ready.
+                  Read the playbook. Take the 2-sheet. Join when ready.
                 </h2>
                 <p className="mt-4 max-w-xl text-base leading-relaxed text-white/60">
-                  The e-guide and one-sheet are convenient entry points — separate from signup and onboarding. When you
-                  want tiers, economics, and the application, continue to the Credit Specialist join path.
+                  The e-guide and the 2-sheet playbook are convenient entry points — separate from signup and
+                  onboarding. When you want tiers, economics, and the application, continue to the Credit Specialist
+                  join path.
                 </p>
                 <ol className="mt-7 space-y-3 text-sm text-white/70">
                   <li>
-                    <span className="font-bold text-[#f0cc75]">1.</span> Open the in-app guide or download the one-sheet
+                    <span className="font-bold text-[#f0cc75]">1.</span> Read the in-app guide or download the 2-sheet
+                    playbook
                   </li>
                   <li>
                     <span className="font-bold text-[#f0cc75]">2.</span> Study personal, business, debt, and opportunity
@@ -423,31 +380,13 @@ export default function CreditSpecialistGuideLandingPage() {
                     <span className="font-bold text-[#f0cc75]">3.</span> Join via {CS_JOIN_PATH} for pricing & signup
                   </li>
                 </ol>
-                <div className="mt-8 flex flex-wrap gap-3">
-                  <button
-                    type="button"
-                    onClick={() => openGuide()}
-                    className="csg-gold-btn inline-flex h-12 items-center justify-center gap-2 rounded-lg px-7 text-[11px] font-black uppercase tracking-[0.16em]"
-                  >
-                    <span className="relative z-10 flex items-center gap-2">
-                      Open guide reader <BookOpen size={16} />
-                    </span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => void onDownloadOneSheet()}
-                    disabled={downloading}
-                    className="csg-ghost-btn inline-flex h-12 items-center justify-center gap-2 rounded-lg px-6 text-[11px] font-black uppercase tracking-[0.14em]"
-                  >
-                    <Download size={16} /> {downloading ? 'Building…' : 'Download one-sheet'}
-                  </button>
-                  <Link
-                    to={CS_PRICING_PATH}
-                    className="inline-flex h-12 items-center justify-center px-2 text-[11px] font-bold uppercase tracking-[0.14em] text-white/45 transition hover:text-[#f0cc75]"
-                  >
-                    View pricing →
-                  </Link>
-                </div>
+                <CreditSpecialistGuideActions className="mt-8" tone="gold" onReadGuide={() => openGuide()} />
+                <Link
+                  to={CS_PRICING_PATH}
+                  className="mt-3 inline-flex items-center text-[11px] font-bold uppercase tracking-[0.14em] text-white/50 transition hover:text-[#f0cc75]"
+                >
+                  View pricing →
+                </Link>
                 <p className="csg-compliance mt-4">{CS_GUIDE_META.compliance}</p>
               </div>
               <GuideBookMockup onOpen={() => openGuide()} />

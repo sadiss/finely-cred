@@ -58,7 +58,7 @@ export const CS_GUIDE_META = {
   compliance: 'Results vary · not legal advice · funding subject to underwriting',
   edition: 'Finely Cred edition',
   valueLabel: '$297+',
-  onesheetLabel: 'Credit Specialist one-sheet',
+  twoSheetLabel: 'Credit Specialist 2-sheet playbook',
 } as const;
 
 /** Chapter numbers are derived from order so chapters can be inserted safely. */

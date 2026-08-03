@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Scale, ArrowRight, FileText } from 'lucide-react';
+import { Scale, ArrowLeft, ArrowRight, FileText } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { PageShell } from '../components/layout/PageShell';
 import { CareersQuickNav } from '../components/careers/CareersQuickNav';
@@ -22,6 +22,7 @@ import {
 } from '../lib/digitalInviteCardAttribution';
 import { getDigitalInviteCardDef } from '../config/digitalInviteCards';
 import {
+  FINELY_OS_BACK_LINK,
   FINELY_OS_ENTITY_INPUT,
   FINELY_OS_ENTITY_LABEL,
   FINELY_OS_ENTITY_SELECT,
@@ -160,6 +161,9 @@ export default function CaseHelpCareersPage() {
     >
       <div className={`${FINELY_OS_PAGE} max-w-5xl mx-auto space-y-0`}>
         <div className="px-4 py-4 space-y-3">
+          <a href="/" className={FINELY_OS_BACK_LINK}>
+            <ArrowLeft size={16} /> Home
+          </a>
           <CareersQuickNav active="case_help" />
           {cardEligibility && cardBonus ? (
             <FinelyOsAlertBanner tone="success" message={cardBonus.description} />

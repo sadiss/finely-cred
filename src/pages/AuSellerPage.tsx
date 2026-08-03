@@ -16,7 +16,6 @@ import { BackToSiteButton } from '../components/navigation/BackToSiteButton';
 import { FinelyOsAlertBanner } from '../features/os/FinelyOsAlertBanner';
 import { FinelyOsPageFooter } from '../features/os/FinelyOsPageFooter';
 import { FinelyUnifiedHubLayout } from '../features/unified/FinelyUnifiedHubLayout';
-import { MarketingStaffChatStrip } from '../components/marketing/MarketingStaffChatStrip';
 import { usePublicSeoMeta } from '../hooks/usePublicSeoMeta';
 import {
   captureDigitalInviteCardFromUrl,
@@ -231,13 +230,6 @@ export default function AuSellerPage() {
         <p className={FINELY_OS_COMPLIANCE_FOOTNOTE}>
           Tradeline supply involves issuer risk — follow marketplace rules and rotation best practices.
         </p>
-
-        <MarketingStaffChatStrip
-          roleId="support_specialist"
-          goal="tradelines"
-          roleLabel="AU marketplace specialist"
-          subline="Questions about listing seasons, activation, or buyer fulfillment before you join?"
-        />
 
         <FinelyOsPageFooter />
       </div>
