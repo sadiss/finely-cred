@@ -419,7 +419,12 @@ export function HubTeamChatPanel({ partnerId, partnerDisplayName, compact, initi
       return;
     }
     const sentAttachmentIds = sendableAttachments(newAttachments);
-    if (!newBody.trim() && !sentAttachmentIds.length) return;
+    if (!newBody.trim() && !sentAttachmentIds.length) {
+      if (newAttachments.length) {
+        setUploadError('new', 'Those attachments could not be found in your vault. Re-attach the file and send again.');
+      }
+      return;
+    }
     const messageBody = newBody.trim() || attachmentOnlyBody(sentAttachmentIds.length);
     const newMessageAttachments = sentAttachmentIds.map((id) => ({ evidenceId: id }));
 
@@ -489,7 +494,12 @@ export function HubTeamChatPanel({ partnerId, partnerDisplayName, compact, initi
       return;
     }
     const sentAttachmentIds = sendableAttachments(replyAttachments);
-    if (!replyBody.trim() && !sentAttachmentIds.length) return;
+    if (!replyBody.trim() && !sentAttachmentIds.length) {
+      if (replyAttachments.length) {
+        setUploadError('reply', 'Those attachments could not be found in your vault. Re-attach the file and send again.');
+      }
+      return;
+    }
     addThreadMessage({
       threadId: selectedThread.id,
       partnerId,
