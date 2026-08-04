@@ -219,7 +219,7 @@ export function ParsedReportViewer({
         createdAt: new Date().toISOString(),
       };
       upsertEvidence(item);
-      setNotice(`Saved evidence screenshot: ${filename}`);
+      setNotice(`Saved evidence screenshot: ${filename} — available in Team chat → Attach from vault.`);
     } catch (e: any) {
       setNotice(`Screenshot failed: ${e?.message || 'unknown error'}`);
     } finally {

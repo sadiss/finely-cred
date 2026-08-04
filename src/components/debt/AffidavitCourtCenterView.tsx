@@ -811,7 +811,15 @@ export function AffidavitCourtCenterView({
               Optional but powerful — link screenshots, payment proof, or the scrape PDF to this case. Skip with Continue if you already have papers.
             </p>
             {partner ? (
-              <DebtProofCaptureStrip partner={partner} debtCaseId={debt?.id} accent="fuchsia" uploadContext="court" />
+              <DebtProofCaptureStrip
+                partner={partner}
+                debt={debt}
+                debtCaseId={debt?.id}
+                accent="fuchsia"
+                uploadContext="court"
+                reports={reports}
+                onDebtChange={onDebtChange}
+              />
             ) : (
               <p className={FINELY_OS_ENTITY_BODY}>Sign in as partner to attach proof.</p>
             )}

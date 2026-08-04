@@ -27,6 +27,11 @@ import {
   formatAttachmentSize,
   uploadChatAttachment,
 } from '../../lib/chatAttachments';
+import {
+  CHAT_VAULT_ATTACH_LIMIT,
+  chatVaultAttachmentLabel,
+  listChatVaultAttachments,
+} from '../../lib/chatVaultAttachments';
 import { ChatAttachmentTray, type ChatAttachmentTrayItem } from './ChatAttachmentTray';
 import { FinelyPremiumEmojiPicker } from './FinelyPremiumEmojiPicker';
 import { getChatSettings } from '../../data/settingsRepo';
@@ -48,7 +53,7 @@ import {
   finelyOsMessageBubble,
 } from '../../features/os/finelyOsLightUi';
 
-const VAULT_ATTACH_LIMIT = 10;
+const VAULT_ATTACH_LIMIT = CHAT_VAULT_ATTACH_LIMIT;
 
 type ComposeMode = 'new' | 'reply';
 
@@ -257,8 +262,54 @@ export function HubTeamChatPanel({ partnerId, partnerDisplayName, compact, initi
     navigate(commsStudioUrlFromHandoff(handoff));
   };
 
-  const evidence = useMemo(() => (partnerId ? listEvidenceByPartner(partnerId) : []), [partnerId, version]);
-  const evidenceById = useMemo(() => new Map(evidence.map((e) => [e.id, e])), [evidence]);
+  const evidence = useMemo(
+    () => (partnerId ? listChatVaultAttachments(partnerId, VAULT_ATTACH_LIMIT) : []),
+    [partnerId, version],
+  );
+  const evidenceById = useMemo(() => {
+    // Resolve chips from full partner vault so sent/selected ids aren't dropped
+    // just because they fell outside the chat attach limit ranking.
+    const all = partnerId ? listEvidenceByPartner(partnerId) : [];
+    return new Map(all.map((e) => [e.id, e]));
+  }, [partnerId, version]);
+
+  const VaultAttachPicker = ({ mode }: { mode: ComposeMode }) => {
+    if (!evidence.length) return null;
+    const selected = mode === 'new' ? newAttachments : replyAttachments;
+    const screenshotCount = evidence.filter((e) => e.type === 'screenshot').length;
+    return (
+      <details open={screenshotCount > 0} className="rounded-xl border border-sky-500/25 bg-sky-500/8 px-3 py-2">
+        <summary className="cursor-pointer select-none text-[10px] font-black uppercase tracking-widest text-sky-200/85">
+          Attach from vault · {evidence.length}
+          {screenshotCount ? ` · ${screenshotCount} report screenshot${screenshotCount === 1 ? '' : 's'}` : ''}
+        </summary>
+        <p className="mt-1.5 text-[10px] text-white/45">
+          Credit-report screenshots appear first so you can send them without digging through older uploads.
+        </p>
+        <div className="mt-2 flex flex-wrap gap-1.5">
+          {evidence.map((ev) => (
+            <button
+              key={ev.id}
+              type="button"
+              onClick={() => toggleAttach(ev.id, mode)}
+              className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] border ${
+                selected.includes(ev.id)
+                  ? 'border-emerald-400/50 bg-emerald-500/15 text-emerald-50'
+                  : ev.type === 'screenshot'
+                    ? 'border-sky-400/35 bg-sky-500/10 text-sky-50 hover:bg-sky-500/20'
+                    : 'border-white/[0.08] text-white/55 hover:text-white/85'
+              }`}
+              title={ev.caption || ev.filename}
+            >
+              <Paperclip size={10} />
+              <span className="truncate max-w-[130px]">{chatVaultAttachmentLabel(ev)}</span>
+              {ev.sizeBytes ? <span className="text-white/35">{formatAttachmentSize(ev.sizeBytes)}</span> : null}
+            </button>
+          ))}
+        </div>
+      </details>
+    );
+  };
 
   const insertAtCursor = (mode: 'new' | 'reply', text: string) => {
     const ref = mode === 'new' ? newRef : replyRef;
@@ -355,14 +406,21 @@ export function HubTeamChatPanel({ partnerId, partnerDisplayName, compact, initi
     });
   };
 
+  const attachmentOnlyBody = (count: number) =>
+    count === 1
+      ? 'Shared an evidence file from the Documents Vault.'
+      : `Shared ${count} evidence files from the Documents Vault.`;
+
   const handleCreate = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!partnerId || !newBody.trim()) return;
+    if (!partnerId) return;
     if (uploadBusyMode === 'new') {
       setUploadError('new', 'Your attachment is still uploading — wait a moment, then send.');
       return;
     }
     const sentAttachmentIds = sendableAttachments(newAttachments);
+    if (!newBody.trim() && !sentAttachmentIds.length) return;
+    const messageBody = newBody.trim() || attachmentOnlyBody(sentAttachmentIds.length);
     const newMessageAttachments = sentAttachmentIds.map((id) => ({ evidenceId: id }));
 
     if (adminMode) {
@@ -374,7 +432,7 @@ export function HubTeamChatPanel({ partnerId, partnerDisplayName, compact, initi
         threadKind: 'general',
         initialMessage: {
           fromPartner: false,
-          body: newBody.trim(),
+          body: messageBody,
           attachments: newMessageAttachments,
         },
       });
@@ -388,7 +446,7 @@ export function HubTeamChatPanel({ partnerId, partnerDisplayName, compact, initi
       return;
     }
 
-    const routed = routeCommsIntent({ message: newBody, lane });
+    const routed = routeCommsIntent({ message: newBody || messageBody, lane });
     const topic = routed.primaryTopic ?? newTopic;
     let contactIds = selectedContactIds;
     if (!contactIds.length && routed.preferredStaff[0]) {
@@ -410,7 +468,7 @@ export function HubTeamChatPanel({ partnerId, partnerDisplayName, compact, initi
       threadKind: contactIds.length === 1 ? 'direct' : 'team',
       initialMessage: {
         fromPartner: true,
-        body: newBody.trim(),
+        body: messageBody,
         attachments: newMessageAttachments,
       },
     });
@@ -425,18 +483,19 @@ export function HubTeamChatPanel({ partnerId, partnerDisplayName, compact, initi
 
   const handleReply = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!partnerId || !selectedThread || !replyBody.trim()) return;
+    if (!partnerId || !selectedThread) return;
     if (uploadBusyMode === 'reply') {
       setUploadError('reply', 'Your attachment is still uploading — wait a moment, then send.');
       return;
     }
     const sentAttachmentIds = sendableAttachments(replyAttachments);
+    if (!replyBody.trim() && !sentAttachmentIds.length) return;
     addThreadMessage({
       threadId: selectedThread.id,
       partnerId,
       topic: selectedThread.topic,
       fromPartner: adminMode ? false : true,
-      body: replyBody.trim(),
+      body: replyBody.trim() || attachmentOnlyBody(sentAttachmentIds.length),
       attachments: sentAttachmentIds.map((id) => ({ evidenceId: id })),
     });
     setReplyBody('');
@@ -705,6 +764,7 @@ export function HubTeamChatPanel({ partnerId, partnerDisplayName, compact, initi
               error={uploadErrors.new}
               onDismissError={() => setUploadError('new', null)}
             />
+            <VaultAttachPicker mode="new" />
             <div className="flex flex-wrap gap-2">
               <button type="button" onClick={() => setEmojiOpen((p) => (p === 'new' ? null : 'new'))} className="px-2 py-1 rounded-lg border border-white/[0.08] text-xs text-white/70">
                 <Smile size={12} className="inline mr-1" /> Emoji
@@ -738,7 +798,11 @@ export function HubTeamChatPanel({ partnerId, partnerDisplayName, compact, initi
               </label>
               <button
                 type="submit"
-                disabled={!newBody.trim() || selectedContactIds.length === 0 || uploadBusyMode === 'new'}
+                disabled={
+                  (!newBody.trim() && !newAttachments.length) ||
+                  (!adminMode && selectedContactIds.length === 0) ||
+                  uploadBusyMode === 'new'
+                }
                 className={`ml-auto ${FINELY_OS_PRIMARY_BTN} !py-2 !px-4`}
               >
                 Send
@@ -964,37 +1028,14 @@ export function HubTeamChatPanel({ partnerId, partnerDisplayName, compact, initi
               </label>
               <button
                 type="submit"
-                disabled={!replyBody.trim() || uploadBusyMode === 'reply'}
+                disabled={(!replyBody.trim() && !replyAttachments.length) || uploadBusyMode === 'reply'}
                 className={`ml-auto ${FINELY_OS_PRIMARY_BTN} !py-2 !px-4`}
               >
                 <Send size={14} /> Send
               </button>
             </div>
             {evidence.length ? (
-              <details className="rounded-xl border border-white/10 bg-black/25 px-3 py-2">
-                <summary className="cursor-pointer select-none text-[10px] font-black uppercase tracking-widest text-white/55">
-                  Attach from vault · {evidence.length}
-                </summary>
-                <div className="mt-2 flex flex-wrap gap-1.5">
-                  {evidence.slice(0, VAULT_ATTACH_LIMIT).map((ev) => (
-                    <button
-                      key={ev.id}
-                      type="button"
-                      onClick={() => toggleAttach(ev.id, 'reply')}
-                      className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] border ${
-                        replyAttachments.includes(ev.id)
-                          ? 'border-emerald-400/50 bg-emerald-500/15 text-emerald-50'
-                          : 'border-white/[0.08] text-white/55 hover:text-white/85'
-                      }`}
-                      title={ev.filename}
-                    >
-                      <Paperclip size={10} />
-                      <span className="truncate max-w-[130px]">{ev.filename}</span>
-                      {ev.sizeBytes ? <span className="text-white/35">{formatAttachmentSize(ev.sizeBytes)}</span> : null}
-                    </button>
-                  ))}
-                </div>
-              </details>
+              <VaultAttachPicker mode="reply" />
             ) : null}
             <EmojiPicker mode="reply" />
             {gifOpen === 'reply' && gifsEnabled && (

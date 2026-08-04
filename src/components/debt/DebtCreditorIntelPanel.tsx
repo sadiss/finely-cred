@@ -176,8 +176,12 @@ export function DebtCreditorIntelPanel({
     setRecipientPhone(party?.recipientPhone || debt?.recipientPhone || '');
     setOriginalCreditor(party?.originalCreditor || debt?.originalCreditor || '');
     setAccountRef(party?.accountNumberMasked || debt?.accountNumberMasked || '');
-    setPlaintiffLawFirm(debt?.plaintiffLawFirm || debt?.collectorName || '');
-    setPlaintiffLawFirmAddress(debt?.plaintiffLawFirmAddress || '');
+    setPlaintiffLawFirm(debt?.plaintiffLawFirm || debt?.collectorName || party?.collectorName || party?.recipientName || '');
+    setPlaintiffLawFirmAddress(
+      debt?.plaintiffLawFirmAddress ||
+        (party?.matchedFrom === 'document' || party?.matchedFrom === 'directory' ? party?.recipientAddress : '') ||
+        '',
+    );
     setPlaintiffAttorneyName(debt?.plaintiffAttorneyName || '');
     setPlaintiffAttorneyBar(debt?.plaintiffAttorneyBarNumber || '');
     setAffidavitCounty(debt?.affidavitCounty || '');
@@ -204,6 +208,12 @@ export function DebtCreditorIntelPanel({
     setRecipientPhone(party.recipientPhone || '');
     setOriginalCreditor(party.originalCreditor || '');
     setAccountRef(party.accountNumberMasked || '');
+    if (party.collectorName || party.recipientName) {
+      setPlaintiffLawFirm(party.collectorName || party.recipientName || '');
+    }
+    if (party.recipientAddress) {
+      setPlaintiffLawFirmAddress(party.recipientAddress);
+    }
     if (debt) {
       const next = mergeDebtCreditorFields(debt, {
         recipientName: party.recipientName,
@@ -212,6 +222,8 @@ export function DebtCreditorIntelPanel({
         originalCreditor: party.originalCreditor,
         accountNumberMasked: party.accountNumberMasked,
         collectorName: party.collectorName || party.recipientName,
+        plaintiffLawFirm: party.collectorName || party.recipientName || undefined,
+        plaintiffLawFirmAddress: party.recipientAddress || undefined,
       });
       onDebtChange(next);
       setSavedNotice('Applied report / document match to this debt case.');
@@ -581,11 +593,28 @@ export function DebtCreditorIntelPanel({
                     if (t.phone) setRecipientPhone(t.phone);
                     if (t.originalCreditor) setOriginalCreditor(t.originalCreditor);
                     if (t.accountNumberMasked) setAccountRef(t.accountNumberMasked);
-                    setSavedNotice(
-                      t.address
-                        ? `Addressed to ${t.creditorName} from your report — review, then Save to debt case.`
-                        : `${t.creditorName} has no address on the report — use Fill address or type it from the notice.`,
-                    );
+                    if (debt) {
+                      const next = mergeDebtCreditorFields(debt, {
+                        recipientName: t.creditorName,
+                        recipientAddress: t.address || undefined,
+                        recipientPhone: t.phone,
+                        originalCreditor: t.originalCreditor,
+                        accountNumberMasked: t.accountNumberMasked,
+                        collectorName: t.creditorName,
+                      });
+                      onDebtChange(next);
+                      setSavedNotice(
+                        t.address
+                          ? `Saved ${t.creditorName} mailing address onto this case — letters will use it.`
+                          : `${t.creditorName} has no address on the report — use Fill address or type it from the notice.`,
+                      );
+                    } else {
+                      setSavedNotice(
+                        t.address
+                          ? `Addressed to ${t.creditorName} from your report — open/create a debt case to lock it in.`
+                          : `${t.creditorName} has no address on the report — use Fill address or type it from the notice.`,
+                      );
+                    }
                   }}
                   className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-[11px] font-semibold transition-colors ${
                     t.role === 'collector'

@@ -278,7 +278,15 @@ export function ValidationCenterView({
 
       {partner ? (
         <div id="fc-debt-step-proof" className="scroll-mt-3">
-          <DebtProofCaptureStrip partner={partner} debtCaseId={debt?.id} accent="emerald" uploadContext="validation" />
+          <DebtProofCaptureStrip
+            partner={partner}
+            debt={debt}
+            debtCaseId={debt?.id}
+            accent="emerald"
+            uploadContext="validation"
+            reports={reports}
+            onDebtChange={onDebtChange}
+          />
         </div>
       ) : null}
     </div>

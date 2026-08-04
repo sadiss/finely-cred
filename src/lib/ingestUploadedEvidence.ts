@@ -79,6 +79,7 @@ export async function ingestUploadedEvidence(args: {
         blobRef: args.item.blobRef,
         file: args.file,
         caption: intentCaption,
+        debtCaseId: args.debtCaseId,
       });
       docType = res.docType;
       summary = res.summary || '';
@@ -94,6 +95,7 @@ export async function ingestUploadedEvidence(args: {
         evidenceId: args.item.id,
         caption: intentCaption,
         filename: args.file.name,
+        debtCaseId: args.debtCaseId,
       });
       summary = `Classified from filename and caption as ${docType.replace(/_/g, ' ')}.`;
     }
@@ -108,6 +110,7 @@ export async function ingestUploadedEvidence(args: {
       filename: args.item.filename,
       entities,
       summary,
+      debtCaseId: args.debtCaseId,
     });
     summary = summary || `Saved and filed as ${docType.replace(/_/g, ' ')} based on your selection and caption.`;
   }

@@ -6,6 +6,8 @@
 
 import { extractPdfTextWithMeta } from '../../creditReports/parsePdfText';
 import { lookupKnownCreditor, lookupKnownCreditorFromCandidates } from '../knownCreditorDirectory';
+import { createProcessedDocument, listProcessedDocumentsByPartner, upsertProcessedDocument } from '../../data/documentsRepo';
+import type { DocumentType, ProcessedDocument } from '../../domain/documents';
 
 export type LitigationDocKind =
   | 'docket'
@@ -401,11 +403,17 @@ function extractEntitiesFromText(text: string): {
     fields.push(field('state', 'Jurisdiction state', entities.state, 'medium', 'Controls procedure, SOL framing, and licensing questions.', 'Caption')!);
   }
 
-  // Mailing address block near counsel / plaintiff (prefer firm address over random street hits)
+  // Mailing address block near counsel / plaintiff (prefer firm address over random street hits).
+  // Include single-line / OCR-flattened forms — real summons often put street + city/state/ZIP on one line
+  // or collapse newlines to spaces during OCR, which the old \n-only patterns always missed.
   const addrBlock = firstMatch(t, [
     /(?:Attorney(?:s)? for Plaintiff|Counsel for Plaintiff|Law\s+(?:Offices?|Firm|Group)|P\.?C\.?|LLP|LLC|PLLC)[^\n]{0,160}\n+([^\n]{0,90}\d{1,5}\s+[A-Za-z0-9 .,'#\-]+(?:Street|St\.?|Avenue|Ave\.?|Road|Rd\.?|Boulevard|Blvd\.?|Drive|Dr\.?|Lane|Ln\.?|Suite|Ste\.?|Floor|Fl\.?|Parkway|Pkwy\.?)[^\n]{0,50}\n[^\n]{0,90}\b[A-Z]{2}\s+\d{5}(?:-\d{4})?)/i,
     /(?:Mailing Address|Business Address|Firm Address|Address for Service)[:\s]*\n?([^\n]{0,90}\d{1,5}\s+[A-Za-z0-9 .,'#\-]+[^\n]{0,50}\n[^\n]{0,80}\b[A-Z]{2}\s+\d{5}(?:-\d{4})?)/i,
     /(\d{1,5}\s+[A-Za-z0-9 .,'#\-]+(?:Street|St\.?|Avenue|Ave\.?|Road|Rd\.?|Boulevard|Blvd\.?|Drive|Dr\.?|Lane|Ln\.?|Suite|Ste\.?|P\.?O\.?\s*Box|Parkway|Pkwy\.?)[^\n]{0,50}\n[^\n]{0,70}\b[A-Z]{2}\s+\d{5}(?:-\d{4})?)/i,
+    // Single-line street + city/state/ZIP (comma-separated letterheads)
+    /(\d{1,5}\s+[A-Za-z0-9 .,'#\-]+(?:Street|St\.?|Avenue|Ave\.?|Road|Rd\.?|Boulevard|Blvd\.?|Drive|Dr\.?|Lane|Ln\.?|Court|Ct\.?|Way|Circle|Cir\.?|Suite|Ste\.?|Floor|Fl\.?|Parkway|Pkwy\.?|Plaza|Place|Pl\.?)[^,\n]{0,50},\s*[A-Za-z .'-]{2,40},?\s*[A-Z]{2}\s+\d{5}(?:-\d{4})?)/i,
+    // OCR-flattened: street tokens then city + ST ZIP on the same line without a required comma
+    /(\d{1,5}\s+[A-Za-z0-9 .,'#\-]+(?:Street|St\.?|Avenue|Ave\.?|Road|Rd\.?|Boulevard|Blvd\.?|Drive|Dr\.?|Lane|Ln\.?|Suite|Ste\.?|Floor|Fl\.?|Parkway|Pkwy\.?)[^\n]{0,80}?\b[A-Za-z .'-]{2,40},?\s+[A-Z]{2}\s+\d{5}(?:-\d{4})?)/i,
     /(P\.?O\.?\s*Box\s+\d+[^\n]*\n[^\n]*\b[A-Z]{2}\s+\d{5}(?:-\d{4})?)/i,
     /((?:P\.?O\.?\s*Box|PO Box)\s+\d+[^\n,]*,?\s*[A-Za-z .]+,?\s*[A-Z]{2}\s+\d{5}(?:-\d{4})?)/i,
   ]);
@@ -717,9 +725,17 @@ export function enrichLitigationScrapeFromCreditReports(
     for (const c of parsed.creditorContacts || []) {
       const name = String(c.creditorName || '').trim();
       if (!name) continue;
+      const nameKey = name.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+      const candidates = [plaintiff, entities.collectorName, entities.creditorName, entities.plaintiffLawFirm, entities.counselName]
+        .map((x) => String(x || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim())
+        .filter(Boolean);
       const match =
-        (plaintiff && name.toLowerCase().includes(plaintiff.slice(0, 8))) ||
-        /midland|portfolio recovery|cavalry|lvnv/i.test(name);
+        candidates.some((cand) => {
+          if (!cand || !nameKey) return false;
+          if (cand === nameKey || cand.includes(nameKey) || nameKey.includes(cand)) return true;
+          const parts = nameKey.split(' ').filter((p) => p.length > 3);
+          return parts.some((p) => cand.includes(p));
+        }) || /midland|portfolio recovery|cavalry|lvnv|jefferson capital|syncb|capital one|citibank|discover|amex|american express/i.test(name);
       if (!match) continue;
       if (!entities.address && c.address) {
         entities.address = String(c.address);
@@ -843,4 +859,74 @@ export function mergeEmptyDebtFieldsFromScrape<T extends Record<string, unknown>
     next.amountCents = amountCents;
   }
   return next as T;
+}
+
+function docTypeFromLitigationKind(kind: LitigationDocKind): DocumentType {
+  switch (kind) {
+    case 'summons':
+    case 'complaint':
+      return 'summons';
+    case 'affidavit':
+      return 'affidavit';
+    case 'collector_letter':
+      return 'collection_notice';
+    case 'docket':
+    case 'court_filing':
+      return 'court_filing';
+    default:
+      return 'other';
+  }
+}
+
+/**
+ * Persist the regex-scraped entities (case #, parties, firm address, etc.) as a
+ * ProcessedDocument row so `resolveDebtPartyInfo` / letter builders can find this
+ * document's mailing address later — even when no debt case is open yet (so
+ * `onDebtChange`/Apply never ran) or the AI doc-intel pass missed a field.
+ * Merges into the existing ProcessedDocument for the same evidence when one was
+ * already created by the AI pass; never overwrites a value the AI already filled.
+ */
+export function persistLitigationScrapeAsDocument(args: {
+  partnerId: string;
+  evidenceId?: string;
+  blobRef?: string;
+  filename: string;
+  scraped: LitigationScrapeResult;
+}): ProcessedDocument | null {
+  const partnerId = String(args.partnerId || '').trim();
+  if (!partnerId) return null;
+  const entries = Object.entries(args.scraped.entities).filter(([, v]) => v && String(v).trim());
+  if (!entries.length) return null;
+
+  const existing = args.evidenceId
+    ? listProcessedDocumentsByPartner(partnerId).find((d) => d.evidenceId === args.evidenceId)
+    : undefined;
+
+  if (existing) {
+    const merged: Record<string, string> = { ...existing.entities };
+    let changed = false;
+    for (const [k, v] of entries) {
+      if (!String(merged[k] || '').trim()) {
+        merged[k] = v;
+        changed = true;
+      }
+    }
+    if (!changed) return existing;
+    return upsertProcessedDocument({
+      ...existing,
+      entities: merged,
+      summary: existing.summary || args.scraped.summary,
+    });
+  }
+
+  return createProcessedDocument({
+    partnerId,
+    evidenceId: args.evidenceId,
+    blobRef: args.blobRef || '',
+    filename: args.filename,
+    mimeType: 'application/octet-stream',
+    docType: docTypeFromLitigationKind(args.scraped.docKind),
+    entities: args.scraped.entities,
+    summary: args.scraped.summary,
+  });
 }

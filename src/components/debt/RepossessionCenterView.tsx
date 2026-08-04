@@ -221,7 +221,15 @@ export function RepossessionCenterView({
 
       {partner ? (
         <div id="fc-debt-step-proof" className="scroll-mt-3">
-          <DebtProofCaptureStrip partner={partner} debtCaseId={debt?.id} accent="rose" uploadContext="repossession" />
+          <DebtProofCaptureStrip
+            partner={partner}
+            debt={debt}
+            debtCaseId={debt?.id}
+            accent="rose"
+            uploadContext="repossession"
+            reports={reports}
+            onDebtChange={onDebtChange}
+          />
         </div>
       ) : null}
     </CollateralDefenseShell>

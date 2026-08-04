@@ -1,5 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import type { Partner } from '../../domain/partners';
+import type { DebtCase } from '../../domain/debt';
+import type { ParsedCreditReport } from '../../domain/creditReports';
 import { listEvidenceByPartner } from '../../data/evidenceRepo';
 import { UnifiedEvidenceCapture } from '../evidence/UnifiedEvidenceCapture';
 import { FINELY_OS_ENTITY_BODY } from '../../features/os/finelyOsLightUi';
@@ -25,6 +27,7 @@ function mapUploadContext(
 
 export function DebtProofCaptureStrip({
   partner,
+  debt,
   debtCaseId,
   bankruptcyCaseId,
   accent = 'emerald',
@@ -32,8 +35,12 @@ export function DebtProofCaptureStrip({
   defaultOpen,
   proofCount: proofCountProp,
   onUploaded,
+  onDebtChange,
+  reports,
+  autoApplyOnHighConfidence = true,
 }: {
   partner: Partner;
+  debt?: DebtCase | null;
   debtCaseId?: string;
   bankruptcyCaseId?: string;
   accent?: FinelyOsGlowAccent;
@@ -43,6 +50,10 @@ export function DebtProofCaptureStrip({
   /** Override auto-counted evidence files */
   proofCount?: number;
   onUploaded?: () => void;
+  /** Required for scrape Apply to write addresses onto the open Validation / Court case. */
+  onDebtChange?: (d: DebtCase) => void;
+  reports?: Array<{ id?: string; parsed?: ParsedCreditReport | null }>;
+  autoApplyOnHighConfidence?: boolean;
 }) {
   const [version, setVersion] = useState(0);
   const evidenceCount = useMemo(() => {
@@ -68,16 +79,21 @@ export function DebtProofCaptureStrip({
       <div className="mt-3 space-y-2">
         <p className={`text-xs ${FINELY_OS_ENTITY_BODY}`}>
           Same capture deck as Documents — type chips, drag-drop, camera, gallery, and scrape intel. Optional here;{' '}
-          <span className="text-white/75">Documents</span> is the full hub.
+          <span className="text-white/75">Documents</span> is the full hub. Scraped party addresses auto-fill empty
+          Validation / Court mailing fields when a case is open.
         </p>
         <UnifiedEvidenceCapture
           partner={partner}
           email={partner.profile.email}
-          debtCaseId={debtCaseId}
+          debt={debt ?? null}
+          debtCaseId={debtCaseId || debt?.id}
           bankruptcyCaseId={bankruptcyCaseId}
           uploadContext={mapUploadContext(uploadContext)}
           compact
           enableScrape
+          reports={reports}
+          onDebtChange={onDebtChange}
+          autoApplyOnHighConfidence={Boolean(onDebtChange) && autoApplyOnHighConfidence}
           onUploaded={() => {
             setVersion((v) => v + 1);
             onUploaded?.();

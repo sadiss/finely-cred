@@ -953,7 +953,7 @@ export function CreditIntelTabs({
         entityId: item.id,
         meta: { filename, source: item.source, reportId: reportId ?? null, sectionKey: args.key },
       });
-      setNotice(`Saved section evidence screenshot: ${filename}`);
+      setNotice(`Saved section evidence screenshot: ${filename} — available in Team chat → Attach from vault.`);
     } catch (e: any) {
       setNotice(`Section screenshot failed: ${e?.message || 'unknown error'}`);
     } finally {
@@ -1010,7 +1010,7 @@ export function CreditIntelTabs({
           creditorName: item.creditorName ?? null,
         },
       });
-      setNotice(`Saved screenshot for evidence vault. Attach it to the matching dispute item.`);
+      setNotice(`Saved screenshot for evidence vault — also available in Team chat → Attach from vault.`);
     } catch (e: any) {
       setNotice(`Screenshot failed: ${e?.message || 'unknown error'}`);
     } finally {

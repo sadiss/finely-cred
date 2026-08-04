@@ -509,7 +509,28 @@ export function resolveDebtPartyInfo(args: {
       ? matchCreditorContactForName(debt.collectorName, contacts, debt.accountNumberMasked)
       : null);
   const matchedDoc =
-    documents.find((d) => namesLikelyMatch(d.entities.collectorName || d.entities.creditorName || '', debt.name)) ?? null;
+    documents.find((d) => {
+      const ids = debt.processedDocumentIds || [];
+      if (ids.length && ids.includes(d.id)) return true;
+      const keys = [
+        d.entities.collectorName,
+        d.entities.creditorName,
+        d.entities.plaintiffLawFirm,
+        d.entities.counselName,
+        d.entities.plaintiffName,
+        d.entities.originalCreditor,
+      ].filter(Boolean) as string[];
+      const debtKeys = [
+        debt.name,
+        debt.recipientName,
+        debt.collectorName,
+        debt.plaintiffLawFirm,
+        debt.originalCreditor,
+      ].filter(Boolean) as string[];
+      return keys.some((k) => debtKeys.some((dk) => namesLikelyMatch(k, dk)));
+    }) ??
+    documents.find((d) => Boolean(d.entities.plaintiffLawFirmAddress || d.entities.address)) ??
+    null;
 
   // Prefer counsel / attorney office, then collector / creditor / tradeline names
   const directoryHit = lookupKnownCreditorFromCandidates([
