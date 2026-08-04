@@ -14,10 +14,8 @@ import { STAFF_MESSAGE_SNIPPETS } from '../../lib/staffMessageSnippets';
 import { fetchSupportReplySuggestions } from '../../lib/supportReplySuggestions';
 import { isFeatureEnabled } from '../../data/settingsRepo';
 import { listThreadsByPartner } from '../../data/supportRepo';
-import { listEvidenceByPartner, upsertEvidence } from '../../data/evidenceRepo';
-import { getBlobStore } from '../../storage/getBlobStore';
-import { newId } from '../../utils/ids';
-import type { EvidenceItem } from '../../domain/evidence';
+import { listEvidenceByPartner } from '../../data/evidenceRepo';
+import { describeChatAttachmentError, uploadChatAttachment } from '../../lib/chatAttachments';
 import {
   adminDeliveryState,
   formatAdminDeliveryWhen,
@@ -116,30 +114,12 @@ export function AdminPartnerMessagePanel({ partner }: Props) {
     setUploadBusy(true);
     setUploadErr(null);
     try {
-      const blobStore = getBlobStore();
-      const { ref } = await blobStore.put(file, {
-        partnerId: partner.id,
-        caption: 'Chat attachment',
-        scanMode: false,
-        kind: 'evidence',
-      });
-      const item: EvidenceItem = {
-        id: newId('evidence'),
-        partnerId: partner.id,
-        type: 'upload',
-        source: 'upload',
-        caption: 'Chat attachment',
-        filename: file.name || 'attachment',
-        mimeType: file.type || 'application/octet-stream',
-        sizeBytes: file.size,
-        blobRef: ref,
-        createdAt: new Date().toISOString(),
-      };
-      upsertEvidence(item);
+      const { item, warning } = await uploadChatAttachment({ file, partnerId: partner.id });
       setAttachmentIds((prev) => [...prev, item.id]);
+      if (warning) setUploadErr(warning);
       window.dispatchEvent(new CustomEvent('finely:store'));
     } catch (e: unknown) {
-      setUploadErr((e as Error)?.message || 'Upload failed.');
+      setUploadErr(describeChatAttachmentError(e));
     } finally {
       setUploadBusy(false);
     }
@@ -149,6 +129,10 @@ export function AdminPartnerMessagePanel({ partner }: Props) {
     const text = body.trim();
     if (!text) {
       setErr('Write a message first.');
+      return;
+    }
+    if (uploadBusy) {
+      setErr('An attachment is still uploading — wait a moment, then send.');
       return;
     }
     if (msgState.isRepeat && !msgState.canSend) {

@@ -10,6 +10,7 @@ import type { DebtCase } from '../domain/debt';
 import type {
   CreditReportRecord,
   ParsedCreditorContact,
+  ParsedSection,
   ParsedTradeline,
 } from '../domain/creditReports';
 import type { PartnerCourtOutcome } from '../domain/courtOutcomes';
@@ -95,6 +96,41 @@ export const ROOSEVELT_ORIGINAL_CREDITOR = 'Citibank, N.A.';
 export const ROOSEVELT_RECIPIENT_NAME = 'Midland Credit Management, Inc.';
 export const ROOSEVELT_RECIPIENT_ADDRESS = 'P.O. Box 939069\nSan Diego, CA 92193';
 export const ROOSEVELT_RECIPIENT_PHONE = '877-600-6800';
+
+/** Masked account reference the bureau prints for the Midland collection. */
+export const ROOSEVELT_COLLECTION_ACCOUNT_MASKED = '33435****';
+export const ROOSEVELT_COLLECTION_DATE_OPENED = '2025-07-01';
+
+/**
+ * Every mailing party on the collection matter: the servicing collector, the
+ * debt buyer named as plaintiff, and the original creditor. Validation letters
+ * can be addressed to any of the three, so each needs a mailing block on the
+ * report rather than only the collector.
+ */
+export const ROOSEVELT_COLLECTION_CONTACTS: ReadonlyArray<{
+  creditorName: string;
+  address: string;
+  phone?: string;
+  accountNumberMasked?: string;
+}> = [
+  {
+    creditorName: ROOSEVELT_RECIPIENT_NAME,
+    address: ROOSEVELT_RECIPIENT_ADDRESS,
+    phone: ROOSEVELT_RECIPIENT_PHONE,
+    accountNumberMasked: ROOSEVELT_COLLECTION_ACCOUNT_MASKED,
+  },
+  {
+    creditorName: ROOSEVELT_PLAINTIFF_NAME,
+    address: '350 Camino De La Reina, Suite 100\nSan Diego, CA 92108',
+    phone: ROOSEVELT_RECIPIENT_PHONE,
+    accountNumberMasked: ROOSEVELT_COLLECTION_ACCOUNT_MASKED,
+  },
+  {
+    creditorName: ROOSEVELT_ORIGINAL_CREDITOR,
+    address: 'P.O. Box 6500\nSioux Falls, SD 57117',
+    phone: '800-950-5114',
+  },
+];
 
 /**
  * Durable journey signals for the partner row (Supabase-backed), so the outcome
@@ -251,17 +287,28 @@ export function buildRooseveltTradelines(): ParsedTradeline[] {
   const collection: ParsedTradeline = {
     creditorName: 'MIDLANDCRE',
     originalCreditor: ROOSEVELT_ORIGINAL_CREDITOR,
-    accountNumberMasked: '33435****',
+    accountNumberMasked: ROOSEVELT_COLLECTION_ACCOUNT_MASKED,
     balance: 1094,
     highBalance: 1610,
     accountType: 'Collection',
     accountStatus: 'Derogatory / Collection',
-    dateOpened: '2025-07-01',
+    dateOpened: ROOSEVELT_COLLECTION_DATE_OPENED,
     creditorAddress: ROOSEVELT_RECIPIENT_ADDRESS,
     creditorPhone: ROOSEVELT_RECIPIENT_PHONE,
     fields: [
       { label: 'Account Status', byBureau: { TUC: 'Derogatory', EXP: 'Derogatory', EQF: 'Derogatory' } },
       { label: 'Balance', byBureau: { TUC: '$1,094', EXP: '$1,094', EQF: '$1,094' } },
+      // Account # and Date Opened keep this account keyed apart from any other
+      // Midland placement instead of merging on the collector name alone.
+      {
+        label: 'Account #',
+        byBureau: {
+          TUC: ROOSEVELT_COLLECTION_ACCOUNT_MASKED,
+          EXP: ROOSEVELT_COLLECTION_ACCOUNT_MASKED,
+          EQF: ROOSEVELT_COLLECTION_ACCOUNT_MASKED,
+        },
+      },
+      { label: 'Date Opened', byBureau: { TUC: '07/01/2025', EXP: '07/01/2025', EQF: '07/01/2025' } },
       { label: 'Original Creditor', byBureau: { TUC: ROOSEVELT_ORIGINAL_CREDITOR, EXP: ROOSEVELT_ORIGINAL_CREDITOR, EQF: ROOSEVELT_ORIGINAL_CREDITOR } },
       {
         label: 'Creditor Address',
@@ -269,6 +316,14 @@ export function buildRooseveltTradelines(): ParsedTradeline[] {
           TUC: ROOSEVELT_RECIPIENT_ADDRESS,
           EXP: ROOSEVELT_RECIPIENT_ADDRESS,
           EQF: ROOSEVELT_RECIPIENT_ADDRESS,
+        },
+      },
+      {
+        label: 'Creditor Phone',
+        byBureau: {
+          TUC: ROOSEVELT_RECIPIENT_PHONE,
+          EXP: ROOSEVELT_RECIPIENT_PHONE,
+          EQF: ROOSEVELT_RECIPIENT_PHONE,
         },
       },
     ],
@@ -291,9 +346,21 @@ export function buildRooseveltTradelines(): ParsedTradeline[] {
   return [collection, ...lenders];
 }
 
-/** Contact block the letter TO picker reads (collector first, then lenders). */
+/**
+ * Contact block the letter TO picker reads. Collection parties come first
+ * (collector, debt buyer, original creditor) so a validation letter can be
+ * addressed to any of them, then each lender tradeline.
+ */
 export function buildRooseveltCreditorContacts(): ParsedCreditorContact[] {
-  return buildRooseveltTradelines().map((t, tradelineIndex) => ({
+  const collectionParties: ParsedCreditorContact[] = ROOSEVELT_COLLECTION_CONTACTS.map((c) => ({
+    creditorName: c.creditorName,
+    accountNumberMasked: c.accountNumberMasked,
+    address: c.address,
+    phone: c.phone,
+    source: 'section' as const,
+    sectionKey: 'creditor_contacts',
+  }));
+  const fromTradelines: ParsedCreditorContact[] = buildRooseveltTradelines().map((t, tradelineIndex) => ({
     creditorName: t.creditorName,
     accountNumberMasked: t.accountNumberMasked,
     address: t.creditorAddress,
@@ -301,6 +368,62 @@ export function buildRooseveltCreditorContacts(): ParsedCreditorContact[] {
     source: 'tradeline' as const,
     tradelineIndex,
   }));
+  return [...collectionParties, ...fromTradelines];
+}
+
+/**
+ * "Creditor Contacts" section on the seeded report, so the section-based address
+ * extraction path (not just tradeline fields) has real data to read.
+ */
+export function buildRooseveltCreditorContactSection(): ParsedSection {
+  const rows: string[][] = [
+    ...ROOSEVELT_COLLECTION_CONTACTS.map((c) => [
+      c.creditorName,
+      c.address.replace(/\n/g, ', '),
+      c.phone || '',
+      c.accountNumberMasked || '',
+    ]),
+    ...ROOSEVELT_REPORT_SUMMARY.otherTradelines.map((t) => [
+      t.creditorName,
+      t.address.replace(/\n/g, ', '),
+      t.phone,
+      '',
+    ]),
+  ];
+  return {
+    key: 'creditor_contacts',
+    title: 'Creditor Contacts',
+    table: { columns: ['Creditor', 'Address', 'Phone', 'Account #'], rows },
+  };
+}
+
+/**
+ * Idempotent contact merge: keeps whatever the parser or partner already stored
+ * and adds any missing collection party / lender mailing block.
+ */
+export function mergeRooseveltCreditorContacts(
+  existing?: ParsedCreditorContact[] | null,
+): ParsedCreditorContact[] {
+  const out = [...(existing || [])];
+  for (const seed of buildRooseveltCreditorContacts()) {
+    const idx = out.findIndex(
+      (c) =>
+        normalizeCreditorKey(c.creditorName) === normalizeCreditorKey(seed.creditorName) &&
+        String(c.accountNumberMasked || '') === String(seed.accountNumberMasked || ''),
+    );
+    if (idx < 0) {
+      out.push(seed);
+      continue;
+    }
+    const current = out[idx]!;
+    out[idx] = {
+      ...seed,
+      ...current,
+      address: current.address || seed.address,
+      phone: current.phone || seed.phone,
+    };
+  }
+  return out;
 }
 
 function normalizeCreditorKey(name: string): string {
@@ -434,19 +557,31 @@ function ensureRooseveltReportPlaceholder(partnerId: string): CreditReportRecord
     const mergedTradelines = mergeRooseveltTradelines(existing.parsed?.tradelines);
     const tradelinesChanged = mergedTradelines.length !== (existing.parsed?.tradelines?.length ?? 0);
     const needsPersonalInfo = !existing.parsed?.personalInfo?.fullName;
-    const needsContacts = !existing.parsed?.creditorContacts?.length;
-    if (!tradelinesChanged && !needsPersonalInfo && !needsContacts) return existing;
+    const existingContacts = existing.parsed?.creditorContacts || [];
+    // Earlier seeds only supplied the collector, so collections went out without
+    // an address for the debt buyer / original creditor.
+    const needsContacts =
+      !existingContacts.length ||
+      ROOSEVELT_COLLECTION_CONTACTS.some(
+        (c) =>
+          !existingContacts.some(
+            (e) => normalizeCreditorKey(e.creditorName) === normalizeCreditorKey(c.creditorName) && e.address,
+          ),
+      );
+    const sections = existing.parsed?.sections || [];
+    const needsContactSection = !sections.some((s) => s.key === 'creditor_contacts');
+    if (!tradelinesChanged && !needsPersonalInfo && !needsContacts && !needsContactSection) return existing;
 
     return upsertReport({
       ...existing,
       parsed: {
         provider: existing.parsed?.provider || 'unknown',
-        sections: existing.parsed?.sections || [],
         ...existing.parsed,
         tradelines: mergedTradelines,
-        creditorContacts: existing.parsed?.creditorContacts?.length
-          ? existing.parsed.creditorContacts
-          : buildRooseveltCreditorContacts(),
+        sections: needsContactSection ? [...sections, buildRooseveltCreditorContactSection()] : sections,
+        creditorContacts: needsContacts
+          ? mergeRooseveltCreditorContacts(existingContacts)
+          : existingContacts,
         personalInfo: {
           ...(existing.parsed?.personalInfo || {}),
           fullName: existing.parsed?.personalInfo?.fullName || ROOSEVELT_DISPLAY_NAME,
@@ -498,7 +633,7 @@ function ensureRooseveltReportPlaceholder(partnerId: string): CreditReportRecord
         { bureau: 'EXP', value: 447, model: 'VantageScore' },
         { bureau: 'EQF', value: 441, model: 'VantageScore' },
       ],
-      sections: [],
+      sections: [buildRooseveltCreditorContactSection()],
       personalInfo: {
         fullName: ROOSEVELT_DISPLAY_NAME,
         addresses: [

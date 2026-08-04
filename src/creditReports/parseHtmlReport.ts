@@ -1234,14 +1234,30 @@ function parseCreditReportHtmlDocument(doc: Document, provider: CreditReportProv
     }
   }
 
-  // Basic cleanup: dedupe by creditorName + account number if present
+  // Dedupe true repeats only. Two collections from the same collector share a
+  // name and often mask the account away, so balance / open date / status join
+  // the key — otherwise separate accounts collapse into one tradeline.
   const seen = new Set<string>();
   const deduped: ParsedTradeline[] = [];
+  const fieldValue = (t: ParsedTradeline, ...needles: string[]) => {
+    for (const needle of needles) {
+      const row = (t.fields ?? []).find((f) => f?.label?.toLowerCase?.().includes(needle));
+      const by = row?.byBureau ?? {};
+      const v = (by.EXP || by.TUC || by.EQF || '').trim();
+      if (v) return v;
+    }
+    return '';
+  };
   for (const t of tradelines) {
-    const acctRow = (t.fields ?? []).find((f) => f?.label?.toLowerCase?.().includes('account #'));
-    const by = acctRow?.byBureau ?? {};
-    const acctKey = by.EXP || by.TUC || by.EQF || '';
-    const key = `${t.creditorName}::${acctKey}`;
+    const acctKey = fieldValue(t, 'account #', 'account number');
+    const key = acctKey
+      ? `${t.creditorName}::acct:${acctKey}`
+      : [
+          t.creditorName,
+          `bal:${fieldValue(t, 'balance', 'amount owed')}`,
+          `opened:${fieldValue(t, 'date opened', 'open date')}`,
+          `status:${fieldValue(t, 'account status', 'status')}`,
+        ].join('::');
     if (seen.has(key)) continue;
     seen.add(key);
     deduped.push(t);

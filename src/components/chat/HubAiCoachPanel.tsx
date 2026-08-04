@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ChevronRight, ExternalLink, Mic, MicOff, RotateCcw, Send, Sparkles, Volume2 } from 'lucide-react';
+import { ChevronRight, ExternalLink, Mic, MicOff, RotateCcw, Send, Sparkles, UploadCloud, Volume2 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import type { AiGatewayMessage } from '../../lib/aiClient';
 import { isFeatureEnabled } from '../../data/settingsRepo';
@@ -25,6 +25,12 @@ import { routeCommsIntent, buildThreadSubject, type CommsRoutingSuggestion } fro
 import { recordCommsRoutingFeedback } from '../../lib/staffIntelligenceEngine';
 import { addThreadMessage, getOrCreateThreadBySubject } from '../../data/supportRepo';
 import type { SupportTopic } from '../../domain/support';
+import {
+  CHAT_ATTACHMENT_ACCEPT,
+  describeChatAttachmentError,
+  uploadChatAttachment,
+} from '../../lib/chatAttachments';
+import { ChatAttachmentTray, type ChatAttachmentTrayItem } from './ChatAttachmentTray';
 import {
   FINELY_OS_ENTITY_INPUT,
   FINELY_OS_PRIMARY_BTN,
@@ -77,6 +83,9 @@ export function HubAiCoachPanel({ partnerId, lane, journeyStage, compact, userNa
   const [connecting, setConnecting] = useState(false);
   const [routingChips, setRoutingChips] = useState<CommsRoutingSuggestion[]>([]);
   const [lastUserText, setLastUserText] = useState('');
+  const [pendingAttachments, setPendingAttachments] = useState<ChatAttachmentTrayItem[]>([]);
+  const [uploadBusy, setUploadBusy] = useState(false);
+  const [uploadErr, setUploadErr] = useState<string | null>(null);
 
   const rosterTabs = useMemo(
     () => (showAllAgents ? listAllMessageableStaff() : listPortalStaffForLane(lane)),
@@ -204,14 +213,69 @@ export function HubAiCoachPanel({ partnerId, lane, journeyStage, compact, userNa
     if (el) el.scrollTop = el.scrollHeight;
   }, [messages, busy, connecting]);
 
+  const uploadAttachment = async (file: File) => {
+    setUploadBusy(true);
+    setUploadErr(null);
+    try {
+      const { item, warning } = await uploadChatAttachment({ file, partnerId });
+      setPendingAttachments((prev) => [
+        ...prev,
+        { id: item.id, filename: item.filename, sizeBytes: item.sizeBytes, warning },
+      ]);
+      window.dispatchEvent(new CustomEvent('finely:store'));
+    } catch (e: unknown) {
+      setUploadErr(describeChatAttachmentError(e));
+    } finally {
+      setUploadBusy(false);
+    }
+  };
+
+  /**
+   * The coach can't read binaries, so a file the partner attaches here is handed to
+   * the human team thread with the same message body. Returns the thread subject so
+   * the partner gets told exactly where the file landed.
+   */
+  const deliverAttachmentsToTeam = (body: string): string | null => {
+    if (!partnerId || !pendingAttachments.length) return null;
+    const topic: SupportTopic = routeCommsIntent({ message: body, lane }).primaryTopic ?? 'documents';
+    const subject = buildThreadSubject({ topic, staff: activeStaff ?? null, snippet: body });
+    const thread = getOrCreateThreadBySubject({ partnerId, topic, subject });
+    addThreadMessage({
+      threadId: thread.id,
+      partnerId,
+      topic,
+      fromPartner: true,
+      body,
+      attachments: pendingAttachments.map((a) => ({ evidenceId: a.id })),
+    });
+    window.dispatchEvent(new CustomEvent('finely:store'));
+    return thread.subject;
+  };
+
   const sendPrompt = useCallback(
     async (text: string) => {
       const trimmed = text.trim();
       if (!trimmed || busy) return;
+      if (uploadBusy) {
+        setUploadErr('Your attachment is still uploading — wait a moment, then send.');
+        return;
+      }
       setErr(null);
       setBusy(true);
       setInput('');
       setLastUserText(trimmed);
+
+      const attachmentCount = pendingAttachments.length;
+      const deliveredSubject = attachmentCount ? deliverAttachmentsToTeam(trimmed) : null;
+      if (deliveredSubject) {
+        setPendingAttachments([]);
+        setUploadErr(null);
+        setHandoffBanner(
+          `${attachmentCount === 1 ? 'Your file' : `Your ${attachmentCount} files`} went to the Finely team — open Team chat to see their reply.`,
+        );
+      } else if (attachmentCount) {
+        setUploadErr('We could not attach your file to a team thread. Open Team chat and send it there.');
+      }
       const routed = routeCommsIntent({ message: trimmed, lane, journeyStage });
       setRoutingChips(routed.suggestions);
       if (routed.preferredStaff[0] && routed.classifiedPersonaId !== personaId) {
@@ -258,7 +322,8 @@ export function HubAiCoachPanel({ partnerId, lane, journeyStage, compact, userNa
         setBusy(false);
       }
     },
-    [busy, messages, ctx, persona, personaId],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [busy, messages, ctx, persona, personaId, pendingAttachments, uploadBusy, partnerId, activeStaff, lane],
   );
 
   const onPickSuggestion = (node: AiSuggestionNode) => {
@@ -537,7 +602,18 @@ export function HubAiCoachPanel({ partnerId, lane, journeyStage, compact, userNa
         </div>
       </div>
 
-      <div className="p-3 border-t border-white/[0.08] flex items-center gap-2">
+      <div className="p-3 border-t border-white/[0.08] space-y-2">
+        {partnerId ? (
+          <ChatAttachmentTray
+            items={pendingAttachments}
+            onRemove={(id) => setPendingAttachments((prev) => prev.filter((x) => x.id !== id))}
+            busy={uploadBusy}
+            error={uploadErr}
+            onDismissError={() => setUploadErr(null)}
+            label="Will be sent to your Finely team"
+          />
+        ) : null}
+        <div className="flex items-center gap-2">
         {voice.supported ? (
           <button
             type="button"
@@ -562,6 +638,30 @@ export function HubAiCoachPanel({ partnerId, lane, journeyStage, compact, userNa
           }}
           disabled={busy}
         />
+        {partnerId ? (
+          <label
+            className={`inline-flex items-center justify-center ${FINELY_OS_SECONDARY_BTN} !px-3 ${
+              uploadBusy ? 'opacity-60 cursor-wait' : 'cursor-pointer'
+            }`}
+            title="Attach a photo, PDF, or document — it goes to your Finely team"
+          >
+            <UploadCloud size={14} />
+            <input
+              type="file"
+              className="hidden"
+              accept={CHAT_ATTACHMENT_ACCEPT}
+              disabled={uploadBusy || busy}
+              multiple
+              onChange={(e) => {
+                const files = Array.from(e.target.files ?? []);
+                e.currentTarget.value = '';
+                void (async () => {
+                  for (const f of files) await uploadAttachment(f);
+                })();
+              }}
+            />
+          </label>
+        ) : null}
         {lastAssistantText ? (
           <button
             type="button"
@@ -580,6 +680,7 @@ export function HubAiCoachPanel({ partnerId, lane, journeyStage, compact, userNa
         >
           <Send size={14} /> {busy ? '…' : 'Send'}
         </button>
+        </div>
       </div>
     </div>
   );

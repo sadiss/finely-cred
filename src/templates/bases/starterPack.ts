@@ -290,7 +290,7 @@ ${version === 3 ? '<br/><br/>Please send me an updated consumer report reflectin
 <div style="margin-top:14px;font-weight:700;">${esc(ctx.creditorName || '[COLLECTOR_NAME]')}</div>
 <div style="margin-top:14px;font-weight:700;">${esc(subject)}</div>
 <div style="margin-top:14px;">To Whom It May Concern,<br/><br/>
-This letter is a timely request for validation of the alleged debt referenced below. Until you provide validation, you must cease collection activity.
+I am writing in response to your communication regarding an alleged debt. Please refrain from contacting me by any form of communication unless and until you provide complete proof and a proper written response to every question stated below, as required by the laws cited for the alleged debt you say I owe. Under 15 U.S.C. &sect; 1692g(a)-(b), I am exercising my right to request validation, and I request that you cease collection activity until you mail proper validation.
 ${version === 2 ? '<br/><br/>Provide the name/address of the original creditor, the amount claimed with itemization, and documentation showing you have authority to collect.' : ''}
 ${version === 3 ? '<br/><br/>If you have reported this account to any consumer reporting agency without validation, I dispute the reporting and request immediate correction or deletion.' : ''}
 </div>

@@ -2579,20 +2579,19 @@ useEffect(() => {
   const recommendedScenario = useMemo(() => (debt ? recommendScenarioFromDebt(debt as any) : 'unknown'), [debt]);
 
   const creditorContacts = useMemo(() => {
-    const out: Array<{ creditorName: string; address?: string; phone?: string }> = [];
+    const out: import('../../domain/creditReports').ParsedCreditorContact[] = [];
     for (const r of reports) {
-      const contacts = contactsFromParsedReport((r as any)?.parsed);
-      for (const c of contacts) {
-        const name = String(c?.creditorName || '').trim();
-        if (!name) continue;
-        out.push({ creditorName: name, address: String(c?.address || '').trim() || undefined, phone: String(c?.phone || '').trim() || undefined });
+      for (const c of contactsFromParsedReport((r as any)?.parsed)) {
+        if (!String(c?.creditorName || '').trim()) continue;
+        out.push(c);
       }
     }
-    // De-dupe by normalized name + address (best effort).
+    // De-dupe by name + address + account so two placements from one collector
+    // stay separate rows instead of bunching into a single contact.
     const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
     const uniq = new Map<string, (typeof out)[number]>();
     for (const c of out) {
-      const key = `${norm(c.creditorName)}|${norm(c.address || '')}`;
+      const key = `${norm(c.creditorName)}|${norm(c.address || '')}|${norm(c.accountNumberMasked || '')}`;
       if (!uniq.has(key)) uniq.set(key, c);
     }
     return Array.from(uniq.values()).slice(0, 200);
@@ -2662,7 +2661,7 @@ useEffect(() => {
       resolveDebtPartyInfo({
         debt,
         signals: extractReportDebtSignals(reports),
-        contacts: creditorContacts as never,
+        contacts: creditorContacts,
         documents: processedDocuments,
       }),
     [debt, creditorContacts, processedDocuments, reports, storeVersion],

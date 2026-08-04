@@ -6,6 +6,7 @@ import type { DebtCase } from '../domain/debt';
 import { listAllDebtCases } from '../data/debtRepo';
 import { FDCPA_VALIDATION_DAYS, listDebtWorkflowTimers, type DebtWorkflowTimer } from './debtWorkflowEngine';
 import { getLetterBody } from '../legal/debtLetterTemplates';
+import { resolveDebtPartyInfoFromReports } from './debtCreditorIntel';
 import type { DebtLetterType } from '../domain/debtLegal';
 
 export type ValidationClockRow = {
@@ -51,6 +52,11 @@ export function buildValidationLetterDraft(args: {
    */
   const type =
     args.letterType ?? (args.debt.type === 'summons' ? 'post_suit_validation_demand' : 'validation_request');
+  // Case fields win; the credit report fills the mailing block when they are blank.
+  const fromReport = args.debt.recipientAddress ? null : resolveDebtPartyInfoFromReports(args.debt);
+  const recipientName =
+    args.debt.recipientName ?? args.debt.collectorName ?? fromReport?.recipientName ?? args.debt.name;
+  const recipientAddress = args.debt.recipientAddress || fromReport?.recipientAddress || undefined;
   return getLetterBody(type, {
     creditorName: args.creditorName ?? args.debt.recipientName ?? args.debt.name,
     debtorName: args.debtorName,
@@ -61,8 +67,13 @@ export function buildValidationLetterDraft(args: {
     debtorCity: args.debtorCity,
     debtorState: args.debtorState,
     debtorPostalCode: args.debtorPostalCode,
-    recipientName: args.debt.recipientName ?? args.debt.collectorName ?? args.debt.name,
-    recipientAddress: args.debt.recipientAddress,
+    recipientName,
+    recipientAddress,
+    originalCreditorName: args.debt.originalCreditor || fromReport?.originalCreditor,
+    debtCollectorName: args.debt.collectorName || fromReport?.collectorName,
+    accountNumber: args.debt.accountNumberMasked || fromReport?.accountNumberMasked,
+    plaintiffLawFirm: args.debt.plaintiffLawFirm,
+    plaintiffLawFirmAddress: args.debt.plaintiffLawFirmAddress,
   });
 }
 
