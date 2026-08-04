@@ -4,7 +4,6 @@
  * Educational merge-field extraction — never hardcode partner PII into templates.
  */
 
-import { extractPdfTextWithMeta } from '../../creditReports/parsePdfText';
 import { lookupKnownCreditor, lookupKnownCreditorFromCandidates } from '../knownCreditorDirectory';
 import { createProcessedDocument, listProcessedDocumentsByPartner, upsertProcessedDocument } from '../../data/documentsRepo';
 import type { DocumentType, ProcessedDocument } from '../../domain/documents';
@@ -88,7 +87,12 @@ function field(
   return { key, label, value: v, confidence, meaning, sourceHint };
 }
 
-function extractEntitiesFromText(text: string): {
+/**
+ * Pure text → entities/fields extraction (no File/PDF/OCR I/O), exported so unit
+ * tests / smoke scripts can exercise the regex patterns (case #, parties, and
+ * especially the single-line / OCR-flattened firm address block) directly.
+ */
+export function extractEntitiesFromText(text: string): {
   entities: Record<string, string>;
   fields: ScrapedLitigationField[];
 } {
@@ -590,6 +594,9 @@ async function extractTextFromAnyFile(
 
   opts?.onProgress?.('Extracting native PDF text…');
   let usedOcr = false;
+  // Lazy import — keeps the pure text/entity extraction (and any smoke/unit test
+  // that only needs `extractEntitiesFromText`) free of the pdfjs worker bundle.
+  const { extractPdfTextWithMeta } = await import('../../creditReports/parsePdfText');
   const extraction = await extractPdfTextWithMeta(file);
   let text = extraction.text || '';
 
