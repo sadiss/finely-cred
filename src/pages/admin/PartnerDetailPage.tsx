@@ -34,7 +34,11 @@ import { listEvidenceByPartner, upsertEvidence, deleteEvidence } from '../../dat
 import { deleteLetter, listLettersByPartner, upsertLetter } from '../../data/lettersRepo';
 import { getBlobStore } from '../../storage/getBlobStore';
 import { canAccessReportBlob } from '../../lib/reportBlobAccess';
-import { reparseStoredCreditReport } from '../../lib/reportParsePipeline';
+import {
+  recoverCreditorContactsFromStoredHtml,
+  reparseStoredCreditReport,
+  shouldRecoverCreditorContactsFromStoredHtml,
+} from '../../lib/reportParsePipeline';
 import { supabase, isSupabaseConfigured } from '../../lib/supabaseClient';
 import { openBlobRefInNewTab } from '../../lib/openBlobRef';
 import { isLegacyPendingReportBlob } from '../../lib/legacyPendingReport';
@@ -952,6 +956,44 @@ function PartnerDetailPageInner() {
     }
   };
 
+  // Auto-recover thin Creditor Contacts from the already-stored HTML (no re-upload).
+  const autoRecoverAttemptedRef = useRef<Set<string>>(new Set());
+  useEffect(() => {
+    if (!selectedReport?.id || !selectedReport.parsed) return;
+    if (selectedReport.fileType !== 'html') return;
+    if (isLegacyPendingReportBlob(selectedReport.rawBlobRef)) return;
+    if (!canAccessReportBlob(selectedReport.rawBlobRef)) return;
+    if (!shouldRecoverCreditorContactsFromStoredHtml(selectedReport.parsed)) return;
+    if (autoRecoverAttemptedRef.current.has(selectedReport.id)) return;
+    if (reparseReportId) return;
+
+    autoRecoverAttemptedRef.current.add(selectedReport.id);
+    let cancelled = false;
+    (async () => {
+      setReparseReportId(selectedReport.id);
+      setReparseReportErr(null);
+      try {
+        const result = await recoverCreditorContactsFromStoredHtml({ record: selectedReport as any });
+        if (cancelled) return;
+        if (result.ran) {
+          upsertReport(result.record);
+          setReportsRefreshKey((v) => v + 1);
+        }
+      } catch (err: any) {
+        if (!cancelled) {
+          autoRecoverAttemptedRef.current.delete(selectedReport.id);
+          setReparseReportErr(err?.message || 'Could not recover contacts from stored HTML.');
+        }
+      } finally {
+        if (!cancelled) setReparseReportId(null);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedReport?.id, selectedReport?.fileType]);
+
   const latestScoresRows = useMemo(() => {
     const scores = reports[0]?.parsed?.scores ?? [];
     if (!scores.length) return [];
@@ -1261,7 +1303,14 @@ function PartnerDetailPageInner() {
     <EntityDetailShell
       badge="Admin"
       title={partner.profile.fullName}
-      subtitle="Partner profile: reports, evidence, disputes, and letters are anchored here for full visibility."
+      subtitle={
+        tab === 'overview'
+          ? 'Command hub: status, scores, and what to do next.'
+          : tab === 'profile'
+            ? 'Edit contact, scores, entitlements, and portal access.'
+            : 'Partner profile: reports, evidence, disputes, and letters are anchored here for full visibility.'
+      }
+      surface={tab === 'overview' || tab === 'profile' ? 'admin' : 'default'}
       headerLeft={
         <div className="flex items-center gap-4">
           <button
@@ -2160,11 +2209,15 @@ function PartnerDetailPageInner() {
 
         {tab === 'reports' && (
           <div className="space-y-6 w-full max-w-full overflow-visible">
-            <ReportUploader
-              partnerId={partner.id}
-              uploadedBy="admin"
-              onCreated={handleReportCreated}
-            />
+            <div className="rounded-2xl border border-emerald-400/30 bg-gradient-to-br from-emerald-500/10 via-transparent to-transparent p-4 md:p-5 space-y-3">
+              <div className="text-[11px] font-black uppercase tracking-[0.22em] text-emerald-300">1 · Upload reports</div>
+              <p className="text-sm text-white/65">IdentityIQ / MyScoreIQ HTML preferred — Creditor Contacts are at the bottom of those exports.</p>
+              <ReportUploader
+                partnerId={partner.id}
+                uploadedBy="admin"
+                onCreated={handleReportCreated}
+              />
+            </div>
 
             <ReportFileStrip
               reports={reports}
@@ -2185,12 +2238,19 @@ function PartnerDetailPageInner() {
             )}
 
             {selectedReport ? (
-              <div className={`${finelyOsCatalogCard('violet')} !p-4 md:!p-5 w-full`}>
+              <div className="rounded-2xl border-2 border-amber-400/45 bg-gradient-to-br from-amber-500/15 via-orange-500/5 to-transparent p-4 md:p-6 shadow-[0_0_40px_rgba(251,191,36,0.12)] space-y-3">
+                <div>
+                  <div className="text-[11px] font-black uppercase tracking-[0.22em] text-amber-300">2 · Active report file</div>
+                  <div className="mt-2 text-xl md:text-2xl font-light text-white truncate" title={selectedReport.filename}>
+                    {selectedReport.filename}
+                  </div>
+                  <p className="mt-1 text-sm text-white/60">Open the original HTML, re-parse contacts, or delete — separate from Credit Intelligence below.</p>
+                </div>
                 <ReportActionsBar report={selectedReport}>
                   {!isLegacyPendingReportBlob(selectedReport.rawBlobRef) ? (
                     <button
                       type="button"
-                      className={FINELY_OS_SECONDARY_BTN}
+                      className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-amber-400 text-black font-black uppercase tracking-widest text-[10px] hover:brightness-110 shadow-[0_0_24px_rgba(251,191,36,0.35)]"
                       title="Open stored report file"
                       onClick={() =>
                         void openStoredDocument({
@@ -2277,13 +2337,18 @@ function PartnerDetailPageInner() {
                       onOpenEvidenceVault={() => setEvidencePicker({})}
                       onOpenTasks={() => setTabAndUrl('tasks')}
                       onReparseRequest={() => handleReparseReport(selectedReport)}
-                      tradelinesExternalAnchor={null}
                     />
                   </>
                 ) : null}
               </div>
             ) : selectedReport?.parsed ? (
-              <div className="space-y-6 w-full max-w-full overflow-visible">
+              <div className="rounded-2xl border-2 border-fuchsia-400/40 bg-gradient-to-br from-fuchsia-500/12 via-violet-500/5 to-transparent p-4 md:p-6 space-y-6 shadow-[0_0_48px_rgba(232,121,249,0.12)] w-full max-w-full overflow-visible">
+                <div>
+                  <div className="text-[11px] font-black uppercase tracking-[0.22em] text-fuchsia-300">3 · Credit Intelligence</div>
+                  <p className="mt-1 text-sm text-white/65">
+                    Creditors, collections, strategy, education, and simulation — separate from the file actions above.
+                  </p>
+                </div>
                 <CreditIntelTabs
                   parsed={selectedReport.parsed}
                   reportId={selectedReport.id}
@@ -2293,7 +2358,6 @@ function PartnerDetailPageInner() {
                   onOpenEvidenceVault={() => setEvidencePicker({})}
                   onOpenTasks={() => setTabAndUrl('tasks')}
                   onReparseRequest={() => handleReparseReport(selectedReport)}
-                  tradelinesExternalAnchor={null}
                 />
               </div>
             ) : selectedReport ? (

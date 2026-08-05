@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowLeft, ChevronDown, ChevronRight, FileText, RefreshCcw, ShieldCheck, Trash2 } from 'lucide-react';
 import { PageShell } from '../../components/layout/PageShell';
 import { useAuth } from '../../auth/AuthProvider';
@@ -22,7 +22,11 @@ import { usePartnerSession } from '../../auth/PartnerSessionContext';
 import { ADMIN_PARTNER_OVERRIDE_KEY } from '../../portal/getOrCreatePartnerForSession';
 import { getBlobStore } from '../../storage/getBlobStore';
 import { canAccessReportBlob } from '../../lib/reportBlobAccess';
-import { reparseStoredCreditReport } from '../../lib/reportParsePipeline';
+import {
+  recoverCreditorContactsFromStoredHtml,
+  reparseStoredCreditReport,
+  shouldRecoverCreditorContactsFromStoredHtml,
+} from '../../lib/reportParsePipeline';
 import { assessCreditorContactRecovery } from '../../creditReports/creditorContactExtract';
 import { persistRefreshedCreditorContactsOnReport } from '../../lib/debtCreditorIntel';
 import { computeReportIdentityCheck } from '../../creditReports/identityCheck';
@@ -96,7 +100,9 @@ export default function PartnerReportsPage() {
   const deepLink = useMemo(() => {
     const q = new URLSearchParams(location.search);
     const intelTabRaw = (q.get('intelTab') || '').trim();
-    const intelTab = intelTabRaw === 'collections' || intelTabRaw === 'accounts' ? intelTabRaw : null;
+    const intelTab = intelTabRaw === 'collections' || intelTabRaw === 'accounts' || intelTabRaw === 'late_payments' || intelTabRaw === 'creditors'
+      ? intelTabRaw
+      : null;
     const scrollToAccount = (q.get('scrollToAccount') || '').trim() || null;
     const returnTo = (q.get('returnTo') || '').trim() || null;
     return { intelTab, scrollToAccount, returnTo };
@@ -287,6 +293,12 @@ export default function PartnerReportsPage() {
       selectedContactBoard.collectionsWithAddress === 0,
   );
 
+  const canReparseSelected = Boolean(
+    selected &&
+      !isLegacyPendingReportBlob(selected.rawBlobRef) &&
+      canAccessReportBlob(selected.rawBlobRef),
+  );
+
   useEffect(() => {
     if (!selected?.id || !selected.parsed) return;
     if (!contactRecovery.recoverableFromStoredParse) return;
@@ -294,11 +306,62 @@ export default function PartnerReportsPage() {
     setReportsVersion((v) => v + 1);
   }, [selected?.id, contactRecovery.recoverableFromStoredParse]);
 
-  const canReparseSelected = Boolean(
-    selected &&
-      !isLegacyPendingReportBlob(selected.rawBlobRef) &&
-      canAccessReportBlob(selected.rawBlobRef),
-  );
+  // Old HTML uploads: if Open file still shows the bottom Creditor Contacts table
+  // but Creditors is stuck at ~11, re-read the stored blob automatically (no re-upload).
+  const autoRecoverAttemptedRef = useRef<Set<string>>(new Set());
+  useEffect(() => {
+    if (!selected?.id || !selected.parsed) return;
+    if (selected.fileType !== 'html') return;
+    if (!canReparseSelected) return;
+    if (!shouldRecoverCreditorContactsFromStoredHtml(selected.parsed)) return;
+    if (autoRecoverAttemptedRef.current.has(selected.id)) return;
+    if (reparseId) return;
+
+    autoRecoverAttemptedRef.current.add(selected.id);
+    let cancelled = false;
+    (async () => {
+      setReparseId(selected.id);
+      setReparseErr(null);
+      try {
+        const result = await recoverCreditorContactsFromStoredHtml({ record: selected as any });
+        if (cancelled) return;
+        if (result.ran) {
+          upsertReport(result.record);
+          setReportSyncNotice(
+            result.afterAddresses > result.beforeAddresses
+              ? {
+                  ok: true,
+                  message: `Recovered Creditor Contacts from your stored HTML — ${result.afterAddresses} mailing address(es) ready (was ${result.beforeAddresses}).`,
+                }
+              : result.afterAddresses > 0
+                ? {
+                    ok: true,
+                    message: `Re-read stored HTML — ${result.afterAddresses} creditor mailing address(es) on file.`,
+                  }
+                : {
+                    ok: false,
+                    message:
+                      'Re-read the stored file, but no Creditor Contacts addresses were found. Confirm this is an IdentityIQ / MyScoreIQ HTML export.',
+                  },
+          );
+          setReportsVersion((v) => v + 1);
+        }
+      } catch (e: any) {
+        if (!cancelled) {
+          // Allow a manual Re-parse retry if auto-recover fails.
+          autoRecoverAttemptedRef.current.delete(selected.id);
+          setReparseErr(e?.message || 'Could not recover contacts from stored HTML.');
+        }
+      } finally {
+        if (!cancelled) setReparseId(null);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selected?.id, selected?.fileType, canReparseSelected]);
 
   const handleReparse = async (r: any) => {
     setReparseErr(null);
@@ -428,7 +491,14 @@ export default function PartnerReportsPage() {
             </div>
           </div>
 
-        <ReportUploader
+        <div className="rounded-2xl border border-emerald-400/30 bg-gradient-to-br from-emerald-500/10 via-transparent to-transparent p-4 md:p-5 space-y-3">
+          <div className="flex flex-wrap items-end justify-between gap-2">
+            <div>
+              <div className="text-[11px] font-black uppercase tracking-[0.22em] text-emerald-300">1 · Upload reports</div>
+              <p className="mt-1 text-sm text-white/65">IdentityIQ / MyScoreIQ HTML preferred — that’s where Creditor Contacts live.</p>
+            </div>
+          </div>
+          <ReportUploader
           partnerId={partner.id}
           uploadedBy="partner"
           onCreated={(record) => {
@@ -454,6 +524,7 @@ export default function PartnerReportsPage() {
             setReportsVersion((v) => v + 1);
           }}
         />
+        </div>
 
         <FinelyUnifiedHubLayout
           eyebrow="Credit reports"
@@ -497,7 +568,18 @@ export default function PartnerReportsPage() {
             )}
 
             {selected ? (
-              <div className={`${finelyOsCatalogCard('violet')} !p-4 md:!p-5 w-full`}>
+              <div className="rounded-2xl border-2 border-amber-400/45 bg-gradient-to-br from-amber-500/15 via-orange-500/5 to-transparent p-4 md:p-6 shadow-[0_0_40px_rgba(251,191,36,0.12)] space-y-3">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <div className="text-[11px] font-black uppercase tracking-[0.22em] text-amber-300">2 · Active report file</div>
+                    <div className="mt-2 text-xl md:text-2xl font-light text-white truncate" title={selected.filename}>
+                      {selected.filename}
+                    </div>
+                    <p className="mt-1 text-sm text-white/60">
+                      Open the original file, re-parse contacts, or remove this upload — this bar is only for the selected report.
+                    </p>
+                  </div>
+                </div>
                 <ReportActionsBar report={selected}>
                   {selected.parsed ? (
                     <button
@@ -507,6 +589,26 @@ export default function PartnerReportsPage() {
                       onClick={() => setParseOverviewOpen(true)}
                     >
                       Parse overview
+                    </button>
+                  ) : null}
+                  {!isLegacyPendingReportBlob(selected.rawBlobRef) && canAccessReportBlob(selected.rawBlobRef) ? (
+                    <button
+                      type="button"
+                      className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-amber-400 text-black font-black uppercase tracking-widest text-[10px] hover:brightness-110 shadow-[0_0_24px_rgba(251,191,36,0.35)]"
+                      title="Open stored report file"
+                      onClick={async () => {
+                        try {
+                          const { openBlobRefInNewTab } = await import('../../lib/openBlobRef');
+                          await openBlobRefInNewTab({
+                            blobRef: selected.rawBlobRef,
+                            mimeType: selected.mimeType || (selected.fileType === 'pdf' ? 'application/pdf' : 'text/html'),
+                          });
+                        } catch (e: any) {
+                          setDeleteErr(e?.message || 'Could not open file.');
+                        }
+                      }}
+                    >
+                      Open file
                     </button>
                   ) : null}
                   <button
@@ -619,7 +721,6 @@ export default function PartnerReportsPage() {
                         onReparseRequest={canReparseSelected ? () => void handleReparse(selected as any) : undefined}
                         initialTab={(deepLink.intelTab as any) || undefined}
                         initialScrollToAccount={deepLink.scrollToAccount}
-                        tradelinesExternalAnchor={null}
                         onStartDispute={(candidate: DisputeCandidate, reasonTexts: string[]) => {
                           const item = candidateToCaseItem(candidate, { reasons: reasonTexts });
                           const c = createDisputeCase({
@@ -637,7 +738,13 @@ export default function PartnerReportsPage() {
                   ) : null}
                 </div>
               ) : selected?.parsed ? (
-                <div className="space-y-6">
+                <div className="rounded-2xl border-2 border-fuchsia-400/40 bg-gradient-to-br from-fuchsia-500/12 via-violet-500/5 to-transparent p-4 md:p-6 space-y-6 shadow-[0_0_48px_rgba(232,121,249,0.12)]">
+                  <div>
+                    <div className="text-[11px] font-black uppercase tracking-[0.22em] text-fuchsia-300">3 · Credit Intelligence</div>
+                    <p className="mt-1 text-sm text-white/65">
+                      Creditors, collections, strategy, education, and simulation for this report — separate from the file actions above.
+                    </p>
+                  </div>
                   {(selected.parsed.tradelines?.length ?? 0) === 0 ? (
                     <div className={FINELY_OS_NOTICE_WARN}>
                       Partial parse — no tradelines extracted. Try HTML export, re-parse, or upload a fuller report file.
@@ -723,7 +830,6 @@ export default function PartnerReportsPage() {
                     onReparseRequest={canReparseSelected ? () => void handleReparse(selected as any) : undefined}
                     initialTab={(deepLink.intelTab as any) || undefined}
                     initialScrollToAccount={deepLink.scrollToAccount}
-                    tradelinesExternalAnchor={null}
                     onStartDispute={(candidate: DisputeCandidate, reasonTexts: string[]) => {
                       const item = candidateToCaseItem(candidate, { reasons: reasonTexts });
                       const c = createDisputeCase({

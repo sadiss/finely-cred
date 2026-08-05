@@ -155,7 +155,8 @@ const COMPANY_HINT_RE =
  */
 export function looksLikeCompanyNameLine(raw?: string | null): boolean {
   const s = clean(raw);
-  if (!s || s.length < 3 || s.length > 90) return false;
+  // IdentityIQ truncates long furnishers mid-word; allow up to ~120 chars.
+  if (!s || s.length < 3 || s.length > 120) return false;
   if (looksLikePhone(s)) return false;
   if (/p\.?\s*o\.?\s*(box|drawer)/i.test(s)) return false;
   if (/\b\d{5}(?:-\d{4})?\b/.test(s)) return false;
@@ -169,11 +170,21 @@ export function looksLikeMailingAddress(raw?: string | null): boolean {
   if (!s || s.length < 8) return false;
   if (/p\.?\s*o\.?\s*(box|drawer)\s*#?\s*\d/i.test(s)) return true;
   if (/p\.?\s*o\.?\s*box/i.test(s)) return true;
-  // Street number + street word, or city/state/zip
-  if (/\b\d{1,6}\s+[A-Za-z]/.test(s) && /\b(st|street|ave|avenue|rd|road|blvd|drive|dr|ln|lane|ct|court|way|pkwy|parkway|suite|ste|floor|fl|unit|#)\b/i.test(s)) {
+  // Street number + street word
+  if (/\b\d{1,6}\s+[A-Za-z]/.test(s) && STREET_WORD_RE.test(s)) {
     return true;
   }
-  if (/\b[A-Z]{2}\s+\d{5}(?:-\d{4})?\b/.test(s)) return true;
+  // Street number + multi-word street when a ZIP is present (exports often omit "St/Ave")
+  if (/\b\d{1,6}\s+[A-Za-z][A-Za-z0-9 .'/-]{2,}/.test(s) && /\d{5}(?:-\d{4})?/.test(s)) {
+    return true;
+  }
+  // City ST ZIP / City, ST ZIP (common in Creditor Contacts without a street line)
+  if (
+    /\b[A-Za-z][A-Za-z .'-]{1,40}[,]?\s+[A-Z]{2}\s+\d{5}(?:-\d{4})?\b/.test(s) ||
+    /\b[A-Z]{2}\s+\d{5}(?:-\d{4})?\b/.test(s)
+  ) {
+    return true;
+  }
   if (/\b(AL|AK|AZ|AR|CA|CO|CT|DE|FL|GA|HI|ID|IL|IN|IA|KS|KY|LA|ME|MD|MA|MI|MN|MS|MO|MT|NE|NV|NH|NJ|NM|NY|NC|ND|OH|OK|OR|PA|RI|SC|SD|TN|TX|UT|VT|VA|WA|WV|WI|WY|DC)\b\s+\d{5}/i.test(s)) {
     return true;
   }
@@ -258,13 +269,18 @@ function pickField(fields: Record<string, string>, needles: string[]): string {
  * Dedupe key for a contact row. Account reference and tradeline index are part
  * of the key so two accounts from the same collector (two Midland placements,
  * for example) stay separate rows instead of collapsing into one.
+ *
+ * Phone last-4 keeps IdentityIQ twins that share a normalized address but list
+ * different customer-service lines as separate directory rows.
  */
 function contactDedupeKey(c: ParsedCreditorContact, name: string, address?: string): string {
+  const phoneDigits = clean(c.phone || '').replace(/\D/g, '');
+  const phoneKey = phoneDigits.length >= 4 ? phoneDigits.slice(-4) : '';
   return [
     normName(name),
     normAddress(address || ''),
-    clean(c.phone || '').replace(/\D/g, ''),
     accountRefKey(c.accountNumberMasked),
+    phoneKey,
     c.source === 'tradeline' && typeof c.tradelineIndex === 'number' ? `t${c.tradelineIndex}` : '',
   ].join('|');
 }
@@ -290,10 +306,12 @@ function pushContact(
   });
 }
 
-/** Pull contacts from a dedicated contacts / collections section table or items. */
+/** Pull contacts from a dedicated Creditor Contacts section table or items. */
 export function extractContactsFromSections(sections: ParsedSection[]): ParsedCreditorContact[] {
   const out: ParsedCreditorContact[] = [];
   const seen = new Set<string>();
+  // `collections` is an account list, not the Creditor Contacts directory.
+  // Only fall back to it when there is no dedicated contacts section (old PDF/text).
   const contactKeys = new Set(['creditor_contacts', 'collections']);
 
   // Remap mis-keyed sections whose *title* is clearly Creditor Contacts.
@@ -304,10 +322,20 @@ export function extractContactsFromSections(sections: ParsedSection[]): ParsedCr
     return section;
   });
 
+  const hasDedicatedContacts = normalized.some(
+    (s) =>
+      s.key === 'creditor_contacts' &&
+      ((s.table?.rows?.length || 0) >= 5 || (s.items?.length || 0) >= 5),
+  );
+
   for (const section of normalized) {
     if (!contactKeys.has(section.key)) continue;
+    // IdentityIQ "Collections" accounts must not be appended onto Creditor Contacts —
+    // that roughly doubles the Creditors tab (e.g. 36 + ~25 → ~61).
+    if (hasDedicatedContacts && section.key === 'collections') continue;
     const source: ParsedCreditorContact['source'] = 'section';
     const sectionKey = section.key;
+    let extractedFromTable = false;
 
     if (section.table?.columns?.length && section.table.rows?.length) {
       const cols = section.table.columns;
@@ -321,9 +349,13 @@ export function extractContactsFromSections(sections: ParsedSection[]): ParsedCr
         'name',
         'contact',
       ]);
-      const addrIdx = colIndex(cols, ['address', 'mailing', 'street', 'location']);
+      const addrIdx = colIndex(cols, ['address', 'mailing', 'street', 'location', 'city', 'state', 'zip', 'postal']);
       const phoneIdx = colIndex(cols, ['phone', 'telephone', 'tel', 'customer service']);
       const acctIdx = colIndex(cols, ['account #', 'account number', 'acct', 'account']);
+      const cityIdx = colIndex(cols, ['city']);
+      const stateIdx = colIndex(cols, ['state']);
+      const zipIdx = colIndex(cols, ['zip', 'postal', 'zip code']);
+      const streetIdx = colIndex(cols, ['street', 'address 1', 'address1', 'addr1', 'mailing']);
       const singleCol =
         cols.length === 1 ||
         (cols.length <= 2 && cols.every((c) => /detail|raw|text|line/i.test(c)));
@@ -335,7 +367,7 @@ export function extractContactsFromSections(sections: ParsedSection[]): ParsedCr
       const runFreeform = singleCol || addrIdx < 0;
       if (runFreeform) {
         const lines = section.table.rows
-          .slice(0, 200)
+          .slice(0, 400)
           .map((r) => clean(r.join(' ')))
           .filter(Boolean);
         for (const blob of groupFreeformContactLines(lines)) {
@@ -343,10 +375,11 @@ export function extractContactsFromSections(sections: ParsedSection[]): ParsedCr
           if (parsed) pushContact(out, seen, { ...parsed, source, sectionKey });
         }
         // Freeform already consumed the rows (Details table or no address column).
+        // Do not also walk section.items — they are mirrors of the same table.
         continue;
       }
 
-      for (const row of section.table.rows.slice(0, 80)) {
+      for (const row of section.table.rows.slice(0, 250)) {
         if (row.length === 1 && addrIdx < 0) continue;
 
         const name =
@@ -355,12 +388,22 @@ export function extractContactsFromSections(sections: ParsedSection[]): ParsedCr
           '';
         if (!name || /^(creditor|name|company|agency|collector)$/i.test(name)) continue;
 
-        let address = addrIdx >= 0 ? clean(row[addrIdx]) : '';
+        let address = addrIdx >= 0 ? cleanAddressBlock(row[addrIdx]) : '';
+        // Split Street / City / State / ZIP columns (common IdentityIQ layout)
+        if (!address || !looksLikeMailingAddress(address)) {
+          const parts = [streetIdx >= 0 ? row[streetIdx] : '', cityIdx >= 0 ? row[cityIdx] : '', stateIdx >= 0 ? row[stateIdx] : '', zipIdx >= 0 ? row[zipIdx] : '']
+            .map((p) => clean(p))
+            .filter(Boolean);
+          if (parts.length >= 2) {
+            const composed = parts.join(', ');
+            if (looksLikeMailingAddress(composed) || /\d{5}/.test(composed)) address = composed;
+          }
+        }
         // Sometimes address is smashed into remaining columns
         if (!address || !looksLikeMailingAddress(address)) {
           const rest = row
             .filter((_, i) => i !== nameIdx && i !== phoneIdx && i !== acctIdx)
-            .map(clean)
+            .map((cell) => cleanAddressBlock(cell) || clean(cell))
             .filter(Boolean)
             .join(', ');
           if (looksLikeMailingAddress(rest)) address = rest;
@@ -386,9 +429,11 @@ export function extractContactsFromSections(sections: ParsedSection[]): ParsedCr
           sectionKey,
         });
       }
+      extractedFromTable = true;
     }
 
-    if (section.items?.length) {
+    // Items are built from the same table rows — re-walking them doubles the Creditors tab.
+    if (section.items?.length && !extractedFromTable) {
       for (const item of section.items.slice(0, 80)) {
         const fields = item.fields || {};
         const name = pickField(fields, [
@@ -401,13 +446,21 @@ export function extractContactsFromSections(sections: ParsedSection[]): ParsedCr
           'name',
           'contact',
         ]);
-        const address = pickField(fields, ['address', 'mailing', 'street']);
+        const address = pickField(fields, ['address', 'mailing', 'street', 'city', 'location']);
         const phone = pickField(fields, ['phone', 'telephone', 'tel']);
         const acct = pickField(fields, ['account', 'acct']);
         if (!name && !address) continue;
+        // Compose city/state/zip when address field is only a street line
+        const city = pickField(fields, ['city']);
+        const state = pickField(fields, ['state']);
+        const zip = pickField(fields, ['zip', 'postal', 'zip code']);
+        const composed =
+          [address, city, state, zip].filter(Boolean).join(', ') || address;
+        // Never invent a creditor name from a street snippet — skip nameless rows.
+        if (!name) continue;
         pushContact(out, seen, {
-          creditorName: name || address.slice(0, 40),
-          address: address || undefined,
+          creditorName: name,
+          address: composed || undefined,
           phone: phone || undefined,
           accountNumberMasked: acct || undefined,
           source,
@@ -495,10 +548,16 @@ export function parseFreeformContactBlock(raw: string): ParsedCreditorContact | 
     .filter(Boolean);
   if (!lines.length) return null;
 
+  const looksLikeAccountMask = (line: string) =>
+    /^[\d*x#-]{4,}$/i.test(line.replace(/\s/g, '')) ||
+    /^(acct|account|#)\s*[:#]?\s*[\d*x-]{3,}/i.test(line);
+
   // "MIDLAND CREDIT MANAGEMENT, PO BOX 939069, SAN DIEGO CA 92193, 877-600-6800"
   // arrives as one line — split on commas so the name never swallows the address.
   const commaPacked =
-    lines.length === 1 && (lines[0]!.match(/,/g) || []).length >= 2 && looksLikeMailingAddress(lines[0]!);
+    lines.length === 1 &&
+    (lines[0]!.match(/,/g) || []).length >= 2 &&
+    (looksLikeMailingAddress(lines[0]!) || /\b[A-Z]{2}\s+\d{5}/.test(lines[0]!));
   if (commaPacked) {
     lines = lines[0]!
       .split(',')
@@ -509,6 +568,7 @@ export function parseFreeformContactBlock(raw: string): ParsedCreditorContact | 
   let phone: string | undefined;
   const addrLines: string[] = [];
   let name = '';
+  let accountNumberMasked: string | undefined;
 
   for (const line of lines) {
     if (looksLikePhone(line) && !phone) {
@@ -524,13 +584,22 @@ export function parseFreeformContactBlock(raw: string): ParsedCreditorContact | 
       addrLines.push(line.replace(/^(address|mailing)\s*:/i, '').trim());
       continue;
     }
+    // Account masks must not steal the address slot (****1234, 33435****).
+    if (looksLikeAccountMask(line)) {
+      if (!accountNumberMasked) accountNumberMasked = line;
+      continue;
+    }
     // A company name may carry digits ("1st Franklin Financial") — claim it as
     // the name before the address branch swallows it.
     if (!name && looksLikeCompanyNameLine(line) && !/^(creditor|contact)/i.test(line)) {
       name = line;
       continue;
     }
-    if (looksLikeMailingAddress(line) || /\d/.test(line)) {
+    if (
+      looksLikeMailingAddress(line) ||
+      /p\.?\s*o\.?\s*box/i.test(line) ||
+      (/\b\d{5}(?:-\d{4})?\b/.test(line) && /[A-Za-z]/.test(line))
+    ) {
       addrLines.push(line);
       continue;
     }
@@ -547,13 +616,13 @@ export function parseFreeformContactBlock(raw: string): ParsedCreditorContact | 
     name = m?.[1]?.trim() || '';
   }
   if (!name) return null;
-  if (!address && !phone) return null;
+  if (!address && !phone && !accountNumberMasked) return null;
   return {
     creditorName: name,
     address: address || undefined,
     phone,
+    accountNumberMasked,
     source: 'section',
-    sectionKey: 'creditor_contacts',
   };
 }
 
@@ -602,6 +671,10 @@ function tradelineContactIsRedundant(
 /**
  * Merge section + tradeline contacts. Prefer contacts that carry a mailing
  * address, and keep one row per account so separate collections never merge.
+ *
+ * When the report already has a full Creditor Contacts table (IdentityIQ /
+ * MyScoreIQ bottom directory), use that alone — tradeline address cards are a
+ * second copy of many of the same furnishers and inflate the Creditors tab.
  */
 export function buildCreditorContacts(
   tradelines: ParsedTradeline[],
@@ -617,9 +690,14 @@ export function buildCreditorContacts(
   for (const c of fromSections) {
     if (c.address) pushContact(out, seen, c);
   }
-  for (const c of fromTradelines) {
-    if (tradelineContactIsRedundant(out, c)) continue;
-    pushContact(out, seen, c);
+  const sectionWithAddress = out.length;
+  const dedicatedDirectory = sectionWithAddress >= 15;
+
+  if (!dedicatedDirectory) {
+    for (const c of fromTradelines) {
+      if (tradelineContactIsRedundant(out, c)) continue;
+      pushContact(out, seen, c);
+    }
   }
   // Section contacts that only had phone / acct
   for (const c of fromSections) {
@@ -736,18 +814,29 @@ export function mergeCreditorContactLists(
   for (const c of [...primary, ...secondary]) {
     const name = clean(c.creditorName);
     if (!name) continue;
+    const addrNorm = normAddress(c.address || '');
     const key = [
       normName(name),
       accountRefKey(c.accountNumberMasked),
-      c.source === 'tradeline' && typeof c.tradelineIndex === 'number' ? `t${c.tradelineIndex}` : '',
+      // Keep separate mailing rows for the same creditor (IdentityIQ lists multiple TO blocks).
+      addrNorm || (c.source === 'tradeline' && typeof c.tradelineIndex === 'number' ? `t${c.tradelineIndex}` : ''),
     ].join('|');
     const idx = out.findIndex((x) => {
+      const xAddr = normAddress(x.address || '');
       const xKey = [
         normName(x.creditorName),
         accountRefKey(x.accountNumberMasked),
-        x.source === 'tradeline' && typeof x.tradelineIndex === 'number' ? `t${x.tradelineIndex}` : '',
+        xAddr || (x.source === 'tradeline' && typeof x.tradelineIndex === 'number' ? `t${x.tradelineIndex}` : ''),
       ].join('|');
-      return xKey === key || (normName(x.creditorName) === normName(name) && !accountRefKey(c.accountNumberMasked) && !accountRefKey(x.accountNumberMasked));
+      if (xKey === key) return true;
+      // Same name + no account: merge only when addresses match or one side is missing.
+      const sameNameNoAcct =
+        normName(x.creditorName) === normName(name) &&
+        !accountRefKey(c.accountNumberMasked) &&
+        !accountRefKey(x.accountNumberMasked);
+      if (!sameNameNoAcct) return false;
+      if (!addrNorm || !xAddr) return true;
+      return addrNorm === xAddr;
     });
     if (idx >= 0) {
       out[idx] = prefer(out[idx]!, c);
@@ -773,7 +862,13 @@ export function refreshCreditorContactsOnParsed<T extends {
 }>(parsed: T): T {
   const self = selfIdentityFromPersonalInfo(parsed.personalInfo);
   const rebuilt = buildCreditorContacts(parsed.tradelines || [], parsed.sections || [], self);
-  const merged = mergeCreditorContactLists(rebuilt, parsed.creditorContacts || []);
+  const rebuiltAddrs = rebuilt.filter((c) => clean(c.address)).length;
+  // A full contacts-table rebuild must not re-absorb an older bloated cache
+  // (section + collections + tradelines) that still lives on the record.
+  const merged =
+    rebuiltAddrs >= 15
+      ? rebuilt
+      : mergeCreditorContactLists(rebuilt, parsed.creditorContacts || []);
   const tradelines = applyCreditorContactsToTradelines(parsed.tradelines || [], merged);
   return {
     ...parsed,

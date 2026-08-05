@@ -13,7 +13,6 @@ import {
   assessCreditorContactRecovery,
   hasCreditorContactSection,
   isSelfParty,
-  mergeCreditorContactLists,
   refreshCreditorContactsOnParsed,
   sameAccountRef,
   selfIdentityFromPersonalInfo,
@@ -40,12 +39,13 @@ function namesLikelyMatch(a: string, b: string) {
 
 function contactsFromParsed(parsed: ParsedCreditReport): ParsedCreditorContact[] {
   const self = selfIdentityFromPersonalInfo(parsed.personalInfo);
+  // refreshCreditorContactsOnParsed already rebuilds (and, when the contacts
+  // table is rich, prefers that over a bloated cached array). Merging again
+  // with `parsed.creditorContacts` used to re-inflate the Creditors tab
+  // (e.g. 36 IdentityIQ rows → ~61 after section + collections + cache).
   const refreshed = refreshCreditorContactsOnParsed(parsed);
-  const merged = mergeCreditorContactLists(
-    refreshed.creditorContacts || [],
-    Array.isArray(parsed.creditorContacts) ? parsed.creditorContacts : [],
-  );
-  return merged.filter((c) => !isSelfParty({ name: c.creditorName, address: c.address }, self));
+  const contacts = refreshed.creditorContacts || [];
+  return contacts.filter((c) => !isSelfParty({ name: c.creditorName, address: c.address }, self));
 }
 
 export type AddressSource = 'report_contact' | 'tradeline' | 'directory' | 'missing';
@@ -122,31 +122,43 @@ function collectionLabel(args: {
   return parts.join(' · ');
 }
 
-/** Strict: only real collection / charge-off — not every past-due open account. */
+/**
+ * Strict: only real collection / charge-off accounts.
+ * Uses account type + status (+ name/original creditor) — not every field remark —
+ * so Credit Intelligence counts match an account-type "Collection" filter.
+ */
 export function classifyCollectionOrChargeOff(
   t: ParsedTradeline,
 ): 'collection' | 'charge_off' | null {
-  const joined = [
-    t.creditorName,
-    t.accountType,
-    t.accountStatus,
-    t.originalCreditor,
-    ...(t.fields || []).map((f) => `${f.label || ''} ${Object.values(f.byBureau || {}).join(' ')}`),
-  ]
-    .join(' ')
-    .toLowerCase();
+  const type = String(t.accountType || '').toLowerCase().trim();
+  const status = String(t.accountStatus || '').toLowerCase().trim();
+  const name = String(t.creditorName || '').toLowerCase();
+  const orig = String(t.originalCreditor || '').toLowerCase();
+  const header = `${type} ${status} ${name} ${orig}`;
 
-  if (/(charge\s*off|charged\s*off|written\s*off|chargeoff)/.test(joined)) return 'charge_off';
+  // Prefer explicit account type (what the Accounts type filter uses).
+  if (/(charge\s*[- ]?off|charged\s*[- ]?off|written\s*[- ]?off|chargeoff)/.test(type)) return 'charge_off';
+  if (/(collection|collections|collector)/.test(type)) return 'collection';
+
+  if (/(charge\s*[- ]?off|charged\s*[- ]?off|written\s*[- ]?off|chargeoff)/.test(status)) return 'charge_off';
+  if (/(collection|collections|placed\s*for\s*collection)/.test(status)) return 'collection';
+
+  // Short codes on type/status only (not freeform remarks — those over-count).
+  if (/^(co|c\/o|chg|chgoff|charge)\b/.test(status) || status === 'co') return 'charge_off';
+  if (/^(coll|collection)\b/.test(status) || /^coll\b/.test(type)) return 'collection';
+
+  // Collector agency name with empty/ambiguous type still counts as collection.
   if (
-    /(collection|collections|collector|debt\s*collector|placed\s*for\s*collection|3rd\s*party|third\s*party|assigned\s*to|collection\s*agency)/.test(
-      joined,
-    )
+    /(collection|collections|collector|debt\s*collector|collection\s*agency)/.test(`${name} ${orig}`) &&
+    !/(revolving|installment|mortgage|auto|student|credit\s*card)/.test(type)
   ) {
     return 'collection';
   }
-  // Account type/status short codes common on tri-merge exports
-  if (/\b(coll|collection\s*account)\b/.test(joined)) return 'collection';
-  if (/\b(co|c\/o)\b/.test(String(t.accountStatus || '').toLowerCase())) return 'charge_off';
+
+  if (/(charge\s*[- ]?off|charged\s*[- ]?off)/.test(header) && /charge|co\b|written/.test(status + type)) {
+    return 'charge_off';
+  }
+
   return null;
 }
 
@@ -179,6 +191,17 @@ function rankContactForTradeline(
     if (hit) return { contact: hit, confidence };
   }
   return null;
+}
+
+function boardContactId(reportId: string, c: ParsedCreditorContact, index: number): string {
+  const acct = accountRefKey(c.accountNumberMasked);
+  if (acct) return `${reportId}:contact:${normCreditorName(c.creditorName)}:${acct}`;
+  // Preserve distinct mailing blocks for the same creditor name (IdentityIQ lists many).
+  const addrKey = String(c.address || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '')
+    .slice(0, 40);
+  return `${reportId}:contact:${normCreditorName(c.creditorName)}:${addrKey || `row${index}`}`;
 }
 
 /**
@@ -219,9 +242,7 @@ export function buildCollectionContactBoard(
 
     const ranked = rankContactForTradeline(t, tradelineIndex, rawContacts);
     const contact = ranked?.contact;
-    const contactId = contact
-      ? `${reportId}:contact:${normCreditorName(contact.creditorName)}:${accountRefKey(contact.accountNumberMasked) || 'na'}`
-      : undefined;
+    const contactId = contact ? boardContactId(reportId, contact, tradelineIndex) : undefined;
 
     let mailingAddress = String(t.creditorAddress || '').trim() || undefined;
     let phone = String(t.creditorPhone || '').trim() || undefined;
@@ -284,9 +305,7 @@ export function buildCollectionContactBoard(
   });
 
   const contacts: BoardContact[] = rawContacts.map((c, i) => {
-    const contactId = `${reportId}:contact:${normCreditorName(c.creditorName)}:${accountRefKey(c.accountNumberMasked) || i}`;
-    // Prefer stable id used when matching collections
-    const stableId = `${reportId}:contact:${normCreditorName(c.creditorName)}:${accountRefKey(c.accountNumberMasked) || 'na'}`;
+    const stableId = boardContactId(reportId, c, i);
     return {
       contactId: stableId,
       reportId,
@@ -317,7 +336,44 @@ export function buildCollectionContactBoard(
     });
   }
 
-  const contactList = Array.from(uniqContacts.values()).sort((a, b) => {
+  const contactList = Array.from(uniqContacts.values());
+
+  // Fill gaps on the Creditors directory using the same sources Collections already uses
+  // (linked collection mailing block → same-name collection → curated directory).
+  for (const c of contactList) {
+    if (c.address) {
+      c.hasAddress = true;
+      continue;
+    }
+    const linked = collections.find(
+      (row) => row.matchedContactId === c.contactId && row.mailingAddress,
+    );
+    if (linked?.mailingAddress) {
+      c.address = linked.mailingAddress;
+      c.phone = c.phone || linked.phone;
+      c.hasAddress = true;
+      continue;
+    }
+    const byName = collections.find(
+      (row) => row.mailingAddress && namesLikelyMatch(row.creditorName, c.creditorName),
+    );
+    if (byName?.mailingAddress) {
+      c.address = byName.mailingAddress;
+      c.phone = c.phone || byName.phone;
+      c.hasAddress = true;
+      continue;
+    }
+    if (useDirectory) {
+      const dir = lookupKnownCreditorFromCandidates([c.creditorName]);
+      if (dir?.address) {
+        c.address = dir.address;
+        c.phone = c.phone || dir.phone;
+        c.hasAddress = true;
+      }
+    }
+  }
+
+  contactList.sort((a, b) => {
     const score = (x: BoardContact) => (x.hasAddress ? 2 : 0) + (x.matchedCollectionCount > 0 ? 1 : 0);
     return score(b) - score(a) || a.creditorName.localeCompare(b.creditorName);
   });

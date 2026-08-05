@@ -2737,16 +2737,13 @@ useEffect(() => {
   };
 
   const buildDebtLetterArgs = () => {
-    const firm =
-      debt?.plaintiffLawFirm ||
-      debt?.collectorName ||
-      debtPartyInfo?.collectorName ||
-      debtPartyInfo?.recipientName;
-    const firmAddress =
-      debt?.plaintiffLawFirmAddress ||
-      debt?.recipientAddress ||
-      debtPartyInfo?.recipientAddress ||
-      '';
+    const isCourtDraft = draft?.type === 'court';
+    const firm = isCourtDraft
+      ? debt?.plaintiffLawFirm || debt?.collectorName || debtPartyInfo?.collectorName || debtPartyInfo?.recipientName
+      : debt?.plaintiffLawFirm;
+    const firmAddress = isCourtDraft
+      ? debt?.plaintiffLawFirmAddress || debt?.recipientAddress || debtPartyInfo?.recipientAddress || ''
+      : debt?.plaintiffLawFirmAddress || '';
     const reportAddr =
       matchedCreditorContact?.address ||
       (debtPartyInfo?.matchedFrom === 'report_contact' || debtPartyInfo?.matchedFrom === 'tradeline'
@@ -2754,6 +2751,7 @@ useEffect(() => {
         : '') ||
       '';
     const mailTo = resolveLetterMailRecipient({
+      preferCounsel: isCourtDraft,
       plaintiffLawFirm: firm,
       plaintiffLawFirmAddress: firmAddress,
       recipientName: debt?.recipientName || debtPartyInfo?.recipientName || debt?.name,
@@ -2770,7 +2768,8 @@ useEffect(() => {
       senderCity: canonicalIdentity.city,
       senderPostalCode: canonicalIdentity.postalCode,
     });
-    // Persist directory / report-contact TO onto the case when empty (never partner address)
+    // Persist directory / report-contact TO onto the case when empty (never partner address).
+    // Validation: recipient only. Court: may also seed counsel.
     if (
       debt &&
       !mailTo.missing &&
@@ -2782,8 +2781,12 @@ useEffect(() => {
         ...debt,
         recipientName: debt.recipientName || mailTo.name,
         recipientAddress: mailTo.address,
-        plaintiffLawFirm: debt.plaintiffLawFirm || firm || mailTo.name,
-        plaintiffLawFirmAddress: mailTo.address,
+        ...(isCourtDraft
+          ? {
+              plaintiffLawFirm: debt.plaintiffLawFirm || firm || mailTo.name,
+              plaintiffLawFirmAddress: mailTo.address,
+            }
+          : {}),
       });
     }
     if (mailTo.missing) {
@@ -2883,7 +2886,7 @@ useEffect(() => {
     setAddressLookupBusy(true);
     try {
       const result = await enrichRecipientAddress({
-        preferCounsel: draft?.type === 'court' || Boolean(debt.courtCaseNumber || debt.plaintiffLawFirm),
+        preferCounsel: draft?.type === 'court' || Boolean(debt.courtCaseNumber),
         nameCandidates: [
           debt.plaintiffLawFirm,
           debt.plaintiffAttorneyName,
@@ -2928,7 +2931,7 @@ useEffect(() => {
         ...debt,
         recipientName: debt.recipientName || debtPartyInfo.recipientName,
         recipientAddress: debtPartyInfo.recipientAddress,
-        plaintiffLawFirmAddress: debt.plaintiffLawFirmAddress || debtPartyInfo.recipientAddress,
+        // Do not copy collector mailing into plaintiff — that poisons validation TO.
       });
       setAddressEnrichMeta({
         name: debtPartyInfo.recipientName,
@@ -4263,9 +4266,9 @@ useEffect(() => {
                           }),
                         ...(() => {
                           const mailTo = resolveLetterMailRecipient({
-                            plaintiffLawFirm: debt?.plaintiffLawFirm || debtPartyInfo?.collectorName,
-                            plaintiffLawFirmAddress:
-                              debt?.plaintiffLawFirmAddress || debt?.recipientAddress || debtPartyInfo?.recipientAddress,
+                            preferCounsel: draft?.type === 'court',
+                            plaintiffLawFirm: debt?.plaintiffLawFirm,
+                            plaintiffLawFirmAddress: debt?.plaintiffLawFirmAddress,
                             recipientName: debt?.recipientName || debtPartyInfo?.recipientName || debt?.name,
                             recipientAddress: debt?.recipientAddress || debtPartyInfo?.recipientAddress,
                             debtCollectorName: debt?.collectorName || debtPartyInfo?.collectorName,
@@ -4297,7 +4300,6 @@ useEffect(() => {
                           handleDebtIntelChange({
                             ...debt,
                             recipientAddress: patch.toLinesText,
-                            plaintiffLawFirmAddress: debt.plaintiffLawFirmAddress || patch.toLinesText,
                           });
                         }
                       }}

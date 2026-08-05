@@ -181,6 +181,73 @@ function withRefreshedContacts(parsed: ParsedCreditReport | undefined): ParsedCr
   return parsed ? refreshCreditorContactsOnParsed(parsed) : parsed;
 }
 
+function countCreditorAddresses(parsed?: ParsedCreditReport | null): number {
+  return (parsed?.creditorContacts || []).filter((c) => String(c.address || '').trim()).length;
+}
+
+function creditorContactsSectionRowCount(parsed?: ParsedCreditReport | null): number {
+  const section = (parsed?.sections || []).find((s) => s.key === 'creditor_contacts');
+  return section?.table?.rows?.length || section?.items?.length || 0;
+}
+
+/**
+ * True when this stored parse almost certainly missed the IdentityIQ bottom
+ * Creditor Contacts table (typically 20–40 rows) and the raw HTML should be
+ * re-read — no re-upload required if the blob is still on disk.
+ */
+export function shouldRecoverCreditorContactsFromStoredHtml(
+  parsed?: ParsedCreditReport | null,
+): boolean {
+  if (!parsed) return false;
+  const tradelines = parsed.tradelines?.length ?? 0;
+  if (tradelines === 0) return false;
+  const withAddr = countCreditorAddresses(parsed);
+  const sectionRows = creditorContactsSectionRowCount(parsed);
+  // Already looks like a full contacts table.
+  if (withAddr >= 20 || sectionRows >= 20) return false;
+  const recovery = assessCreditorContactRecovery(parsed);
+  if (recovery.needsReparse) return true;
+  // Partial/old extract (e.g. stuck at ~11) while accounts exist.
+  if (withAddr > 0 && withAddr < 15) return true;
+  if (sectionRows > 0 && sectionRows < 15 && withAddr < 15) return true;
+  return withAddr === 0;
+}
+
+/**
+ * Re-read the partner's already-stored HTML blob and re-parse Creditor Contacts.
+ * Used automatically when an older parse is thin but Open file still shows the
+ * full bottom contacts table — no re-upload.
+ */
+export async function recoverCreditorContactsFromStoredHtml(args: {
+  record: CreditReportRecord;
+  onProgress?: ReportParseProgress;
+}): Promise<{
+  record: CreditReportRecord;
+  ran: boolean;
+  beforeAddresses: number;
+  afterAddresses: number;
+}> {
+  const beforeAddresses = countCreditorAddresses(args.record.parsed);
+  if (args.record.fileType !== 'html') {
+    return { record: args.record, ran: false, beforeAddresses, afterAddresses: beforeAddresses };
+  }
+  if (!shouldRecoverCreditorContactsFromStoredHtml(args.record.parsed)) {
+    return { record: args.record, ran: false, beforeAddresses, afterAddresses: beforeAddresses };
+  }
+
+  const updated = await reparseStoredCreditReport({
+    record: args.record,
+    onProgress: args.onProgress,
+  });
+  const afterAddresses = countCreditorAddresses(updated.parsed);
+  return {
+    record: updated,
+    ran: true,
+    beforeAddresses,
+    afterAddresses,
+  };
+}
+
 /** Re-run full parse pipeline (HTML enhanced + PDF fallback) from stored blob. */
 export async function reparseStoredCreditReport(args: {
   record: CreditReportRecord;

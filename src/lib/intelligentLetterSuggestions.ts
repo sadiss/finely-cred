@@ -326,24 +326,23 @@ export function buildIntelligentLetterSuggestions(args: {
     }
   } else if (track === 'validation') {
     // Validation shows validation letters only — affidavits, answers, discovery, and kits are excluded.
+    // Primary must always be a regular FDCPA / validation demand. Debt-buyer chain-of-title is
+    // an optional follow-up (Midland/PRA/etc.), never the default Generate letter.
     const types: DebtLetterType[] = (
       scenarioRec?.recommendedLetterTypes || (['validation_request'] as DebtLetterType[])
     ).filter((t) => validationGuard({ letterType: t }));
     if (types.length === 0) types.push('validation_request');
-    // Midland/debt-buyer off-suit still wants assignment chain
-    if (buyerIntel.patternId.includes('midland') || buyerIntel.patternId.includes('pra') || buyerIntel.patternId.includes('velocity') || buyerIntel.patternId === 'debt_buyer_generic') {
-      push({
-        letterType: 'assignment_chain_demand',
-        catalogId: 'validation_chain_of_title',
-        title: titleFor('assignment_chain_demand', 'validation_chain_of_title'),
-        why: whyBase([
-          `${buyerIntel.label}.`,
-          'Debt buyers often produce pool docs — demand account-level chain of title before you pay or settle.',
-        ]),
-        urgency: 'high',
-      });
+
+    // Prefer classic validation demand first (even if scenario list puts something else ahead).
+    const primaryTypes: DebtLetterType[] = [];
+    for (const preferred of ['validation_request', 'post_suit_validation_demand'] as DebtLetterType[]) {
+      if (types.includes(preferred) && !primaryTypes.includes(preferred)) primaryTypes.push(preferred);
     }
     for (const lt of types) {
+      if (!primaryTypes.includes(lt)) primaryTypes.push(lt);
+    }
+
+    for (const lt of primaryTypes) {
       const entry = catalogForLetterType(lt);
       push({
         letterType: lt,
@@ -356,6 +355,25 @@ export function buildIntelligentLetterSuggestions(args: {
           missing.length ? `Fill missing fields first: ${missing.slice(0, 2).join(', ')}.` : '',
         ]),
         urgency: scenario === 'validation_period' || scenario === 'first_contact' ? 'high' : 'normal',
+      });
+    }
+
+    // Debt buyers: offer chain of title as a secondary step after the validation demand.
+    if (
+      buyerIntel.patternId.includes('midland') ||
+      buyerIntel.patternId.includes('pra') ||
+      buyerIntel.patternId.includes('velocity') ||
+      buyerIntel.patternId === 'debt_buyer_generic'
+    ) {
+      push({
+        letterType: 'assignment_chain_demand',
+        catalogId: 'validation_chain_of_title',
+        title: titleFor('assignment_chain_demand', 'validation_chain_of_title'),
+        why: whyBase([
+          `${buyerIntel.label}.`,
+          'Optional follow-up after validation: demand account-level chain of title — debt buyers often produce pool docs only.',
+        ]),
+        urgency: 'normal',
       });
     }
   } else if (track === 'foreclosure' || track === 'repossession') {

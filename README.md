@@ -134,6 +134,7 @@ Canonical consultation booking: `/enlightenment-session` (`/consultation` redire
 
 | Doc | Topic |
 |-----|-------|
+| [docs/DEVELOPER_GUIDE.md](docs/DEVELOPER_GUIDE.md) | **Full-stack dev guide** — app, edge functions, AI gateway, env secrets, credit report parsing, admin, letters/validation/court, entitlements |
 | [DEVELOPER_HANDOFF.md](DEVELOPER_HANDOFF.md) | Live DB, RLS, storage, claim flow |
 | [docs/PRODUCTION_DEPLOY.md](docs/PRODUCTION_DEPLOY.md) | Deploy checklist + orchestrator |
 | [docs/PLATFORM_CRON.md](docs/PLATFORM_CRON.md) | Server cron ticks (digest, nurture, billing) |

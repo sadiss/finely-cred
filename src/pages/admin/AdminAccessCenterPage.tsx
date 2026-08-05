@@ -66,6 +66,7 @@ export default function AdminAccessCenterPage() {
   const [codeDrafts, setCodeDrafts] = useState<Record<SensitiveActionKey, string>>({
     partner_delete: '',
     hos_access_grant: '',
+    partner_access_grant: '',
     bulk_report_purge: '',
   });
 
@@ -452,12 +453,12 @@ export default function AdminAccessCenterPage() {
 
             <CollapsibleSection
               title="Sensitive action codes"
-              subtitle="Resettable authorization codes for partner deletion, HOS access grants, and bulk report purge. Store server-side in production."
+              subtitle="Resettable authorization codes for partner deletion, portal access grants, HOS keys, and bulk report purge."
               defaultOpen={false}
               storageKey="admin.access.sensitiveCodes"
             >
               <div className="space-y-4">
-                {(['partner_delete', 'hos_access_grant', 'bulk_report_purge'] as SensitiveActionKey[]).map((key) => {
+                {(['partner_delete', 'partner_access_grant', 'hos_access_grant', 'bulk_report_purge'] as SensitiveActionKey[]).map((key) => {
                   const configured = hasSensitiveActionCode(key);
                   return (
                     <div key={key} className={`${finelyOsCatalogCard('rose')} !p-4 space-y-2`}>

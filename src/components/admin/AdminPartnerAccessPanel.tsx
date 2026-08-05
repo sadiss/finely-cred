@@ -20,6 +20,7 @@ import {
 } from '../../lib/adminDeliveryCooldown';
 import { ensurePartnerEntitlementsAsync, SERVICE_ACCESS_BUNDLES, type EntitlementKey } from '../../billing/entitlements';
 import { PartnerServicesAccessCard } from './PartnerServicesAccessCard';
+import { SensitiveActionCodeGate } from './SensitiveActionCodeGate';
 import { LetterStreamStatusCard } from '../letters/LetterStreamStatusCard';
 import {
   FINELY_OS_ENTITY_BODY,
@@ -87,6 +88,7 @@ export function AdminPartnerAccessPanel({ partner, userRole, onUpdated }: Props)
   const [inviteCopied, setInviteCopied] = useState(false);
   const [accessFlags, setAccessFlags] = useState(() => readPartnerAccessFlagsStored(partner));
   const [deliveryTick, setDeliveryTick] = useState(0);
+  const [approveAccessGateOpen, setApproveAccessGateOpen] = useState(false);
 
   const inviteState = useMemo(
     () => adminDeliveryState(partner.id, 'invite', Date.now()),
@@ -535,7 +537,14 @@ export function AdminPartnerAccessPanel({ partner, userRole, onUpdated }: Props)
                     key={row.key}
                     type="button"
                     disabled={busy === 'access'}
-                    onClick={() => toggleFlag(row.key, !accessFlags[row.key])}
+                    onClick={() => {
+                      const next = !accessFlags[row.key];
+                      if (row.key === 'accessApproved' && next) {
+                        setApproveAccessGateOpen(true);
+                        return;
+                      }
+                      toggleFlag(row.key, next);
+                    }}
                     className={
                       'w-full text-left flex items-start gap-3 rounded-xl border px-4 py-3 transition-all ' +
                       (accessFlags[row.key]
@@ -695,6 +704,18 @@ export function AdminPartnerAccessPanel({ partner, userRole, onUpdated }: Props)
         </a>
       </div>
     </div>
+
+      <SensitiveActionCodeGate
+        open={approveAccessGateOpen}
+        action="partner_access_grant"
+        title="Authorize — Approve portal access"
+        description={`Moves ${partner.profile.fullName} from lead to active and sets portal access approved.`}
+        onClose={() => setApproveAccessGateOpen(false)}
+        onVerified={() => {
+          setApproveAccessGateOpen(false);
+          toggleFlag('accessApproved', true);
+        }}
+      />
     </div>
   );
 }

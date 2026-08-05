@@ -139,6 +139,7 @@ export default function PartnerDebtDetailPage() {
         signals: extractReportDebtSignals(reports),
         contacts: [],
         documents: processedDocuments,
+        preferCounsel: Boolean(debt?.courtCaseNumber || debt?.plaintiffLawFirm || debt?.plaintiffAttorneyName),
       }),
     [debt, processedDocuments, reports],
   );
@@ -164,7 +165,9 @@ export default function PartnerDebtDetailPage() {
       recipientName,
       recipientAddress: d.recipientAddress || debtPartyInfo?.recipientAddress,
       caseNumber: d.courtCaseNumber,
-      plaintiffLawFirm: d.plaintiffLawFirm || d.collectorName || debtPartyInfo?.collectorName,
+      plaintiffLawFirm: isCourt
+        ? d.plaintiffLawFirm || d.collectorName || debtPartyInfo?.collectorName
+        : d.plaintiffLawFirm,
       plaintiffLawFirmAddress: d.plaintiffLawFirmAddress,
       plaintiffAttorneyName: d.plaintiffAttorneyName,
       plaintiffAttorneyBarNumber: d.plaintiffAttorneyBarNumber,

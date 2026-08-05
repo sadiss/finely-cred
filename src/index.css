@@ -89,6 +89,37 @@ samp {
   --fc-text-muted: rgba(255, 255, 255, 0.62);
   /* Clean neutral page shells (no multi-color aurora) */
   --fc-shell-gradient: linear-gradient(180deg, var(--fc-bg-deep) 0%, var(--fc-bg) 50%, var(--fc-bg-deep) 100%);
+
+  /* Platinum Workspace — Partner Detail Overview/Profile (always light; not theme-toggle) */
+  --fc-admin-bg: #f4f5f7;
+  --fc-admin-bg-deep: #ebedf1;
+  --fc-admin-surface: #ffffff;
+  --fc-admin-surface-sunken: #f7f8fa;
+  --fc-admin-border: #e2e5ea;
+  --fc-admin-border-strong: #cbd2dc;
+  --fc-admin-ink: #141a22;
+  --fc-admin-ink-muted: #4b5563;
+  --fc-admin-ink-faint: #8a93a3;
+  --fc-admin-accent: #0f6b57;
+  --fc-admin-status-ok: #0e8f6b;
+  --fc-admin-status-warn: #b7791f;
+  --fc-admin-status-risk: #b42318;
+  --fc-admin-status-info: #3b5bdb;
+}
+
+/** Light admin workspace for Partner Overview / Profile (opt-in via class). */
+.fc-admin-workspace {
+  background: var(--fc-admin-bg);
+  color: var(--fc-admin-ink);
+  border-radius: 1rem;
+  padding: 1rem 1.25rem 1.5rem;
+  border: 1px solid var(--fc-admin-border);
+}
+
+.fc-admin-workspace input,
+.fc-admin-workspace textarea,
+.fc-admin-workspace select {
+  color: var(--fc-admin-ink);
 }
 
 /* ?? Light appearance (user toggle or system) ?? */

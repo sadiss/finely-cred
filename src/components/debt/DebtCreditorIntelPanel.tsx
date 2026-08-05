@@ -170,8 +170,9 @@ export function DebtCreditorIntelPanel({
         contacts,
         documents: processedDocuments,
         self: selfIdentity,
+        preferCounsel: mode === 'court',
       }),
-    [debt, signals, contacts, processedDocuments, selfIdentity],
+    [debt, signals, contacts, processedDocuments, selfIdentity, mode],
   );
 
   const summonsDocs = useMemo(
@@ -203,19 +204,26 @@ export function DebtCreditorIntelPanel({
     setRecipientPhone(party?.recipientPhone || debt?.recipientPhone || '');
     setOriginalCreditor(party?.originalCreditor || debt?.originalCreditor || '');
     setAccountRef(party?.accountNumberMasked || debt?.accountNumberMasked || '');
-    setPlaintiffLawFirm(debt?.plaintiffLawFirm || debt?.collectorName || party?.collectorName || party?.recipientName || '');
-    setPlaintiffLawFirmAddress(
-      debt?.plaintiffLawFirmAddress ||
-        (party?.matchedFrom === 'document' || party?.matchedFrom === 'directory' ? party?.recipientAddress : '') ||
-        '',
-    );
+    // Validation: never seed plaintiff from collector / bureau mailing.
+    // Court: keep counsel fields (case first, then document/directory firm matches).
+    if (mode === 'court') {
+      setPlaintiffLawFirm(debt?.plaintiffLawFirm || '');
+      setPlaintiffLawFirmAddress(
+        debt?.plaintiffLawFirmAddress ||
+          (party?.matchedFrom === 'document' || party?.matchedFrom === 'directory' ? party?.recipientAddress : '') ||
+          '',
+      );
+    } else {
+      setPlaintiffLawFirm(debt?.plaintiffLawFirm || '');
+      setPlaintiffLawFirmAddress(debt?.plaintiffLawFirmAddress || '');
+    }
     setPlaintiffAttorneyName(debt?.plaintiffAttorneyName || '');
     setPlaintiffAttorneyBar(debt?.plaintiffAttorneyBarNumber || '');
     setAffidavitCounty(debt?.affidavitCounty || '');
     setLoanId(debt?.loanId || '');
     setBorrowerId(debt?.borrowerId || '');
     if (party?.signal?.signalId) setActiveSignalId(party.signal.signalId);
-  }, [debt?.id, debt?.plaintiffLawFirm, debt?.plaintiffLawFirmAddress, debt?.plaintiffAttorneyName, debt?.plaintiffAttorneyBarNumber, debt?.affidavitCounty, debt?.loanId, debt?.borrowerId, debt?.collectorName, party?.recipientName, party?.recipientAddress, party?.recipientPhone, party?.originalCreditor, party?.accountNumberMasked, party?.signal?.signalId]);
+  }, [debt?.id, debt?.plaintiffLawFirm, debt?.plaintiffLawFirmAddress, debt?.plaintiffAttorneyName, debt?.plaintiffAttorneyBarNumber, debt?.affidavitCounty, debt?.loanId, debt?.borrowerId, debt?.collectorName, party?.recipientName, party?.recipientAddress, party?.recipientPhone, party?.originalCreditor, party?.accountNumberMasked, party?.signal?.signalId, mode]);
 
   // Auto-persist high-confidence match when case is missing mailing fields.
   useEffect(() => {
@@ -235,11 +243,20 @@ export function DebtCreditorIntelPanel({
     setRecipientPhone(party.recipientPhone || '');
     setOriginalCreditor(party.originalCreditor || '');
     setAccountRef(party.accountNumberMasked || '');
-    if (party.collectorName || party.recipientName) {
-      setPlaintiffLawFirm(party.collectorName || party.recipientName || '');
-    }
-    if (party.recipientAddress) {
-      setPlaintiffLawFirmAddress(party.recipientAddress);
+    const courtPatch =
+      mode === 'court'
+        ? {
+            plaintiffLawFirm: party.collectorName || party.recipientName || undefined,
+            plaintiffLawFirmAddress: party.recipientAddress || undefined,
+          }
+        : {};
+    if (mode === 'court') {
+      if (party.collectorName || party.recipientName) {
+        setPlaintiffLawFirm(party.collectorName || party.recipientName || '');
+      }
+      if (party.recipientAddress) {
+        setPlaintiffLawFirmAddress(party.recipientAddress);
+      }
     }
     if (debt) {
       const next = mergeDebtCreditorFields(debt, {
@@ -249,11 +266,14 @@ export function DebtCreditorIntelPanel({
         originalCreditor: party.originalCreditor,
         accountNumberMasked: party.accountNumberMasked,
         collectorName: party.collectorName || party.recipientName,
-        plaintiffLawFirm: party.collectorName || party.recipientName || undefined,
-        plaintiffLawFirmAddress: party.recipientAddress || undefined,
+        ...courtPatch,
       });
       onDebtChange(next);
-      setSavedNotice('Applied report / document match to this debt case.');
+      setSavedNotice(
+        mode === 'court'
+          ? 'Applied report / document match (including counsel fields).'
+          : 'Applied report contact to recipient — plaintiff/counsel left unchanged.',
+      );
     } else if (party.signal) {
       applySignal(party.signal);
     }
@@ -862,10 +882,14 @@ export function DebtCreditorIntelPanel({
             <div className="sm:col-span-2">
               <div className={`inline-flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL}`}>
                 <Scale size={14} className={mode === 'court' ? 'text-fuchsia-300' : 'text-emerald-300'} />
-                Case record fields (auto-fill all litigation letters)
+                {mode === 'court'
+                  ? 'Plaintiff / counsel (court & summons)'
+                  : 'Court / summons fields (optional)'}
               </div>
               <p className={`mt-1 text-[11px] ${FINELY_OS_ENTITY_BODY}`}>
-                Plaintiff attorney, bar number, affidavit county, and loan ID populate discovery, affidavits, and validation drafts from this case.
+                {mode === 'court'
+                  ? 'Counsel name and mailing populate courtroom letters, affidavits, and discovery.'
+                  : 'Leave blank for validation mail — TO uses the collector / Creditor Contacts block above. Fill only if this case becomes a summons matter.'}
               </p>
             </div>
             <div>
@@ -887,15 +911,17 @@ export function DebtCreditorIntelPanel({
             <div className={compact ? '' : 'md:col-span-2'}>
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <label className={FINELY_OS_ENTITY_LABEL}>Plaintiff firm mailing address</label>
-                <button
-                  type="button"
-                  className={FINELY_OS_SECONDARY_BTN}
-                  disabled={lookupBusy}
-                  onClick={() => void lookupMailingAddress()}
-                >
-                  <Wand2 size={14} />
-                  {lookupBusy ? 'Looking up…' : 'Fill counsel address'}
-                </button>
+                {mode === 'court' ? (
+                  <button
+                    type="button"
+                    className={FINELY_OS_SECONDARY_BTN}
+                    disabled={lookupBusy}
+                    onClick={() => void lookupMailingAddress()}
+                  >
+                    <Wand2 size={14} />
+                    {lookupBusy ? 'Looking up…' : 'Fill counsel address'}
+                  </button>
+                ) : null}
               </div>
               <textarea value={plaintiffLawFirmAddress} onChange={(e) => setPlaintiffLawFirmAddress(e.target.value)} rows={2} placeholder="Law firm address on summons" className={`${fieldInput} min-h-[64px]`} />
             </div>

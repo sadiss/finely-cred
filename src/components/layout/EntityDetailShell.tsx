@@ -2,6 +2,7 @@ import React from 'react';
 import { PageShell } from './PageShell';
 import { PartnerDetailSidebarNav } from '../../features/partner/PartnerDetailSidebarNav';
 import { FINELY_OS_PAGE } from '../../features/os/finelyOsLightUi';
+import { FC_ADMIN_PAGE } from '../../features/os/finelyOsAdminSurface';
 
 type TabSpec = { key: string; label: string; icon?: React.ReactNode; hidden?: boolean };
 
@@ -20,14 +21,26 @@ export function EntityDetailShell(args: {
   useSidebarNav?: boolean;
   /** @deprecated use useSidebarNav */
   useTabLanes?: boolean;
+  /**
+   * When "admin", Overview/Profile-style content uses Platinum Workspace
+   * (light graphite/white). Default keeps dark Finely OS chrome.
+   */
+  surface?: 'default' | 'admin';
   children: React.ReactNode;
 }) {
   const tabs = (args.tabs ?? []).filter((t) => !t.hidden);
   const useSidebar = args.useSidebarNav ?? false;
+  const adminSurface = args.surface === 'admin';
+  // Shared chrome (badge/back-links, header actions, sticky tab bar) stays on the
+  // existing dark Finely OS shell regardless of active tab — only the tab BODY
+  // (`args.children`) opts into the light admin workspace below. This avoids
+  // white-on-light-gray text in the header when `surface="admin"` is active.
+  const pageClass = adminSurface ? FC_ADMIN_PAGE : FINELY_OS_PAGE;
+  const bodyWrap = adminSurface ? 'fc-admin-workspace' : undefined;
 
   return (
     <PageShell badge={args.badge} title={args.title} subtitle={args.subtitle}>
-      <div className={FINELY_OS_PAGE}>
+      <div className={pageClass}>
         {(args.headerLeft || args.headerRight) ? (
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>{args.headerLeft}</div>
@@ -46,7 +59,7 @@ export function EntityDetailShell(args: {
                   {args.stickyBar}
                 </div>
               ) : null}
-              <div>{args.children}</div>
+              <div className={bodyWrap}>{args.children}</div>
             </div>
           </div>
         ) : (
@@ -59,7 +72,7 @@ export function EntityDetailShell(args: {
                 {args.stickyBar}
               </div>
             ) : null}
-            <div>{args.children}</div>
+            <div className={bodyWrap}>{args.children}</div>
           </>
         )}
       </div>

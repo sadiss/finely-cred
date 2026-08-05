@@ -14,7 +14,6 @@ import {
   accountRefKey,
   buildCreditorContacts,
   isSelfParty,
-  mergeCreditorContactLists,
   refreshCreditorContactsOnParsed,
   sameAccountRef,
   selfIdentityFromPersonalInfo,
@@ -74,12 +73,11 @@ export function buildCreditorContactsFromTradelines(tradelines: ParsedTradeline[
 export function contactsFromParsedReport(parsed?: ParsedCreditReport | null): ParsedCreditorContact[] {
   if (!parsed) return [];
   const self = selfIdentityFromPersonalInfo(parsed.personalInfo);
+  // refreshCreditorContactsOnParsed already prefers a rich contacts-table rebuild
+  // over a bloated cache — do not merge again (that re-inflated Validation/letters).
   const refreshed = refreshCreditorContactsOnParsed(parsed);
-  const merged = mergeCreditorContactLists(
-    refreshed.creditorContacts || [],
-    Array.isArray(parsed.creditorContacts) ? parsed.creditorContacts : [],
-  );
-  return merged.filter((c) => !isSelfParty({ name: c.creditorName, address: c.address }, self));
+  const contacts = refreshed.creditorContacts || [];
+  return contacts.filter((c) => !isSelfParty({ name: c.creditorName, address: c.address }, self));
 }
 
 /**
@@ -508,8 +506,13 @@ export function resolveDebtPartyInfo(args: {
   documents?: ProcessedDocument[];
   /** Partner's own name/address — never allowed to become the recipient. */
   self?: SelfPartyIdentity | null;
+  /**
+   * When true (court / summons), prefer plaintiff counsel fields for the TO block.
+   * Validation / debt letters leave this false so collector mailing wins.
+   */
+  preferCounsel?: boolean;
 }): DebtPartyInfo | null {
-  const { debt, signals, contacts, documents = [], self } = args;
+  const { debt, signals, contacts, documents = [], self, preferCounsel = false } = args;
   const notSelf = (name?: string | null, address?: string | null) =>
     !isSelfParty({ name, address }, self);
   if (!debt && signals[0]) {
@@ -629,27 +632,40 @@ export function resolveDebtPartyInfo(args: {
   const caseFirmUsable = notSelf(debt.plaintiffLawFirm, debt.plaintiffLawFirmAddress);
 
   // Creditor Contacts from the credit report are the primary TO source for
-  // validation / debt letters. Litigation scrapes fill firm/court fields, not
-  // the collector mailing block, unless the report had no contact address.
-  const recipientName =
-    (caseFirmUsable ? debt.plaintiffLawFirm : '') ||
-    (caseRecipientUsable ? debt.recipientName : '') ||
-    (notSelf(debt.collectorName) ? debt.collectorName : '') ||
-    (matchedContact && notSelf(matchedContact.creditorName) ? matchedContact.creditorName : '') ||
-    matchedDoc?.entities.plaintiffLawFirm ||
-    matchedDoc?.entities.collectorName ||
-    matchedDoc?.entities.creditorName ||
-    matchedSignal?.creditorName ||
-    directoryHit?.displayName ||
-    debt.name;
-  const recipientAddress =
-    (caseFirmUsable ? debt.plaintiffLawFirmAddress : '') ||
-    (caseRecipientUsable ? debt.recipientAddress : '') ||
-    matchedContact?.address ||
-    firmAddressFromDoc ||
-    matchedSignal?.address ||
-    directoryHit?.address ||
-    '';
+  // validation / debt letters. Litigation scrapes fill firm/court fields —
+  // prefer those only when preferCounsel (court mode / summons).
+  const recipientName = preferCounsel
+    ? (caseFirmUsable ? debt.plaintiffLawFirm : '') ||
+      (caseRecipientUsable ? debt.recipientName : '') ||
+      (notSelf(debt.collectorName) ? debt.collectorName : '') ||
+      (matchedContact && notSelf(matchedContact.creditorName) ? matchedContact.creditorName : '') ||
+      matchedDoc?.entities.plaintiffLawFirm ||
+      matchedDoc?.entities.collectorName ||
+      matchedDoc?.entities.creditorName ||
+      matchedSignal?.creditorName ||
+      directoryHit?.displayName ||
+      debt.name
+    : (caseRecipientUsable ? debt.recipientName : '') ||
+      (notSelf(debt.collectorName) ? debt.collectorName : '') ||
+      (matchedContact && notSelf(matchedContact.creditorName) ? matchedContact.creditorName : '') ||
+      matchedDoc?.entities.collectorName ||
+      matchedDoc?.entities.creditorName ||
+      matchedSignal?.creditorName ||
+      directoryHit?.displayName ||
+      debt.name;
+  const recipientAddress = preferCounsel
+    ? (caseFirmUsable ? debt.plaintiffLawFirmAddress : '') ||
+      (caseRecipientUsable ? debt.recipientAddress : '') ||
+      matchedContact?.address ||
+      firmAddressFromDoc ||
+      matchedSignal?.address ||
+      directoryHit?.address ||
+      ''
+    : (caseRecipientUsable ? debt.recipientAddress : '') ||
+      matchedContact?.address ||
+      matchedSignal?.address ||
+      directoryHit?.address ||
+      '';
   const recipientPhone =
     (caseRecipientUsable ? debt.recipientPhone : undefined) ||
     matchedContact?.phone ||
@@ -657,19 +673,21 @@ export function resolveDebtPartyInfo(args: {
     directoryHit?.phone;
 
   const matchedFrom: DebtPartyInfo['matchedFrom'] =
-    (caseFirmUsable && debt.plaintiffLawFirmAddress) || (caseRecipientUsable && debt.recipientAddress)
+    preferCounsel && caseFirmUsable && debt.plaintiffLawFirmAddress
       ? 'debt_case'
-      : matchedContact?.address
-        ? 'report_contact'
-        : firmAddressFromDoc
-          ? 'document'
-          : matchedSignal?.address
-            ? 'tradeline'
-            : directoryHit?.address
-              ? 'directory'
-              : matchedSignal
-                ? 'tradeline'
-                : 'manual';
+      : caseRecipientUsable && debt.recipientAddress
+        ? 'debt_case'
+        : matchedContact?.address
+          ? 'report_contact'
+          : preferCounsel && firmAddressFromDoc
+            ? 'document'
+            : matchedSignal?.address
+              ? 'tradeline'
+              : directoryHit?.address
+                ? 'directory'
+                : matchedSignal
+                  ? 'tradeline'
+                  : 'manual';
 
   return {
     recipientName,
