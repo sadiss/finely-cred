@@ -208,7 +208,7 @@ export function ValidationCenterView({
       </div>
 
       <DebtCreditorIntelPanel
-        partnerId={debt?.partnerId || debtCases[0]?.partnerId || ''}
+        partnerId={debt?.partnerId || partner?.id || debtCases[0]?.partnerId || ''}
         debt={debt}
         reports={reports}
         processedDocuments={processedDocuments}

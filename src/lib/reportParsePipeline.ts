@@ -4,6 +4,10 @@ import { parseCreditReportPdf } from '../creditReports/parsePdfReport';
 import { detectProviderFromHtml, detectProviderFromText } from '../creditReports/detectProvider';
 import { detectReportDateFromText } from '../creditReports/parsePdfText';
 import { htmlToPdfTextFallback } from '../creditReports/htmlToPdfFallback';
+import {
+  assessCreditorContactRecovery,
+  refreshCreditorContactsOnParsed,
+} from '../creditReports/creditorContactExtract';
 import { getBlobStore } from '../storage/getBlobStore';
 import {
   clearCachedParsedReport,
@@ -160,15 +164,21 @@ export function parseWarningForReport(parsed: ParsedCreditReport | undefined | n
   if (scoreCount === 0) {
     return 'Partial parse — tradelines found but bureau scores were not detected. You can still review accounts; re-parse if scores are missing.';
   }
-  const contacts = parsed.creditorContacts || [];
-  const addressBearing = contacts.filter((c) => Boolean(String(c.address || '').trim())).length;
-  const hasContactSection = (parsed.sections || []).some(
-    (s) => s.key === 'creditor_contacts' || /creditor\s*contact|contact\s*info/i.test(s.title || ''),
-  );
-  if (tlCount > 0 && addressBearing === 0 && (hasContactSection || contacts.length === 0)) {
+  // Judge contacts on what a refresh can still recover, not on the stored array —
+  // an older thin `creditorContacts` is fixed on read and should not raise a warning.
+  const recovery = assessCreditorContactRecovery(parsed);
+  if (recovery.needsReparse) {
     return 'Partial parse — accounts found but no Creditor Contacts mailing addresses. Re-parse or upload an HTML export so validation letters can autofill the TO block.';
   }
   return null;
+}
+
+/**
+ * Cached parses can predate contact-extractor fixes, so a re-parse that hits the
+ * fallback cache would otherwise be saved without mailing addresses.
+ */
+function withRefreshedContacts(parsed: ParsedCreditReport | undefined): ParsedCreditReport | undefined {
+  return parsed ? refreshCreditorContactsOnParsed(parsed) : parsed;
 }
 
 /** Re-run full parse pipeline (HTML enhanced + PDF fallback) from stored blob. */
@@ -196,7 +206,7 @@ export async function reparseStoredCreditReport(args: {
       ...args.record,
       provider: (bundle.provider ?? detectProviderFromHtml(html) ?? args.record.provider) as CreditReportProvider,
       reportDate: bundle.reportDate ?? args.record.reportDate,
-      parsed: bundle.parsed,
+      parsed: withRefreshedContacts(bundle.parsed),
       pdfText: bundle.pdfText,
       pdfMeta: bundle.pdfMeta as CreditReportRecord['pdfMeta'],
     };
@@ -216,6 +226,6 @@ export async function reparseStoredCreditReport(args: {
     reportDate: bundle.reportDate ?? args.record.reportDate,
     pdfText: bundle.pdfText,
     pdfMeta: bundle.pdfMeta as CreditReportRecord['pdfMeta'],
-    parsed: bundle.parsed,
+    parsed: withRefreshedContacts(bundle.parsed),
   };
 }

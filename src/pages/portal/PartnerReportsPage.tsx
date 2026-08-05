@@ -26,6 +26,8 @@ import { ADMIN_PARTNER_OVERRIDE_KEY } from '../../portal/getOrCreatePartnerForSe
 import { getBlobStore } from '../../storage/getBlobStore';
 import { canAccessReportBlob } from '../../lib/reportBlobAccess';
 import { reparseStoredCreditReport } from '../../lib/reportParsePipeline';
+import { assessCreditorContactRecovery } from '../../creditReports/creditorContactExtract';
+import { persistRefreshedCreditorContactsOnReport } from '../../lib/debtCreditorIntel';
 import { computeReportIdentityCheck } from '../../creditReports/identityCheck';
 import { createDisputeCase } from '../../data/casesRepo';
 import { candidateToCaseItem, nowIso } from '../../domain/cases';
@@ -277,6 +279,26 @@ export default function PartnerReportsPage() {
     return (selected as any)?.identityCheck ?? computeReportIdentityCheck({ partnerId: partner.id, parsed: selected.parsed });
   }, [partner?.id, selected?.id, Boolean(selected?.parsed)]);
 
+  // Contacts on older reports: a refresh recovers them from the stored parse;
+  // only a parse that never captured contact data needs the raw file re-parsed.
+  const contactRecovery = useMemo(
+    () => assessCreditorContactRecovery(selected?.parsed ?? null),
+    [selected?.id, selected?.parsed],
+  );
+
+  useEffect(() => {
+    if (!selected?.id || !selected.parsed) return;
+    if (!contactRecovery.recoverableFromStoredParse) return;
+    persistRefreshedCreditorContactsOnReport({ id: selected.id, parsed: selected.parsed });
+    setReportsVersion((v) => v + 1);
+  }, [selected?.id, contactRecovery.recoverableFromStoredParse]);
+
+  const canReparseSelected = Boolean(
+    selected &&
+      !isLegacyPendingReportBlob(selected.rawBlobRef) &&
+      canAccessReportBlob(selected.rawBlobRef),
+  );
+
   const handleReparse = async (r: any) => {
     setReparseErr(null);
     setReparseId(r.id);
@@ -289,6 +311,16 @@ export default function PartnerReportsPage() {
       }
       const updated = await reparseStoredCreditReport({ record: r });
       upsertReport(updated);
+      const after = assessCreditorContactRecovery(updated.parsed ?? null);
+      setReportSyncNotice(
+        after.refreshedWithAddress > 0
+          ? { ok: true, message: `Re-parse complete — ${after.refreshedWithAddress} creditor mailing address(es) recovered for letters.` }
+          : {
+              ok: false,
+              message:
+                'Re-parse complete, but this export contains no Creditor Contacts addresses. Download the HTML export from IdentityIQ / MyScoreIQ and upload it above — PDF exports often omit the contact table.',
+            },
+      );
       if (partner && updated.parsed) {
         captureScoreSnapshotFromReport({
           partnerId: partner.id,
@@ -523,6 +555,38 @@ export default function PartnerReportsPage() {
               </div>
             ) : null}
 
+            {selected?.parsed && contactRecovery.needsReparse ? (
+              <div className={`${finelyOsCatalogCard('amber')} !p-4 space-y-2`}>
+                <div className={FINELY_OS_ENTITY_VALUE}>Creditor mailing addresses missing</div>
+                <div className={FINELY_OS_ENTITY_BODY}>
+                  We found {contactRecovery.tradelineCount} account(s) on this report but no creditor or collector mailing
+                  addresses, so validation and dispute letters cannot autofill the TO block.{' '}
+                  {canReparseSelected
+                    ? 'Re-parse reads your stored file again with the latest contact extractor — no re-upload needed.'
+                    : 'The original file is no longer stored, so upload the HTML export again using the uploader above.'}
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <button
+                    type="button"
+                    className={FINELY_OS_PRIMARY_BTN}
+                    disabled={!canReparseSelected || Boolean(reparseId) || Boolean(deletingId)}
+                    onClick={() => void handleReparse(selected as any)}
+                    title={
+                      canReparseSelected
+                        ? 'Re-run parsing from your stored file to recover creditor contacts'
+                        : 'Stored file missing — re-upload to re-parse'
+                    }
+                  >
+                    <RefreshCcw size={14} />
+                    {reparseId === selected.id ? 'Re-parsing…' : 'Re-parse for contacts'}
+                  </button>
+                  <span className={FINELY_OS_ENTITY_SUBLABEL}>
+                    HTML exports from IdentityIQ / MyScoreIQ include the Creditor Contacts table; most PDF exports do not.
+                  </span>
+                </div>
+              </div>
+            ) : null}
+
             <div className="w-full max-w-full overflow-visible">
               {selected && isLegacyPendingReportBlob(selected.rawBlobRef) ? (
                 <div className="space-y-6">
@@ -554,6 +618,7 @@ export default function PartnerReportsPage() {
                         availableReports={reports.map((r) => ({ id: r.id, receivedAt: r.receivedAt, filename: r.filename, parsed: r.parsed }))}
                         onOpenEvidenceVault={() => setTab('evidence')}
                         onOpenTasks={() => navigate('/portal/projects')}
+                        onReparseRequest={canReparseSelected ? () => void handleReparse(selected as any) : undefined}
                         initialTab={(deepLink.intelTab as any) || undefined}
                         initialScrollToAccount={deepLink.scrollToAccount}
                         onStartDispute={(candidate: DisputeCandidate, reasonTexts: string[]) => {
@@ -1163,6 +1228,7 @@ export default function PartnerReportsPage() {
                     availableReports={reports.map((r) => ({ id: r.id, receivedAt: r.receivedAt, filename: r.filename, parsed: r.parsed }))}
                     onOpenEvidenceVault={() => setTab('evidence')}
                     onOpenTasks={() => navigate('/portal/projects')}
+                    onReparseRequest={canReparseSelected ? () => void handleReparse(selected as any) : undefined}
                     initialTab={(deepLink.intelTab as any) || undefined}
                     initialScrollToAccount={deepLink.scrollToAccount}
                     onStartDispute={(candidate: DisputeCandidate, reasonTexts: string[]) => {

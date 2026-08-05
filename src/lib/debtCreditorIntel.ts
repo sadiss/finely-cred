@@ -51,6 +51,14 @@ export type DebtPartyInfo = {
   signal?: ReportedDebtSignal;
   /** True when address came from auto sources (not typed by partner). */
   autoFilled?: boolean;
+  /**
+   * Report Creditor Contacts match, kept separate from the winning recipient.
+   * A summons scrape can own the firm block while the collector mailing block is
+   * still empty — this keeps the report answer available to fill it.
+   */
+  reportContactName?: string;
+  reportContactAddress?: string;
+  reportContactPhone?: string;
 };
 
 /** Build creditorContacts for PDF/text-parsed reports (and backfill older cached parses). */
@@ -495,19 +503,39 @@ export function resolveDebtPartyInfo(args: {
     !isSelfParty({ name, address }, self);
   if (!debt && signals[0]) {
     const s = signals[0];
+    // A negative tradeline often carries no mailing block of its own — the
+    // Creditor Contacts table does. Borrow it so the empty-case preview shows a
+    // real address instead of a bare name.
+    const contactForSignal = matchCreditorContactForName(s.creditorName, contacts, s.accountNumberMasked);
+    const address = s.address || (contactForSignal?.address && notSelf(contactForSignal.creditorName, contactForSignal.address) ? contactForSignal.address : '') || '';
     return {
       recipientName: s.creditorName,
-      recipientAddress: s.address || '',
-      recipientPhone: s.phone,
+      recipientAddress: address,
+      recipientPhone: s.phone || contactForSignal?.phone,
       collectorName: s.creditorName,
       originalCreditor: s.originalCreditor,
       accountNumberMasked: s.accountNumberMasked,
       balanceCents: s.balanceCents,
-      matchedFrom: 'tradeline',
+      matchedFrom: address && !s.address ? 'report_contact' : 'tradeline',
       signal: s,
     };
   }
-  if (!debt) return null;
+  if (!debt) {
+    // No case and no negative tradeline, but the report still lists creditors
+    // with mailing blocks — those are valid letter targets, so preview the best
+    // one instead of leaving every field blank.
+    const contact = (contacts || []).find((c) => c.address && notSelf(c.creditorName, c.address));
+    if (!contact) return null;
+    return {
+      recipientName: contact.creditorName,
+      recipientAddress: contact.address || '',
+      recipientPhone: contact.phone,
+      collectorName: contact.creditorName,
+      accountNumberMasked: contact.accountNumberMasked,
+      matchedFrom: 'report_contact',
+      autoFilled: true,
+    };
+  }
 
   const matchedSignal =
     signals.find((s) => s.reportId === debt.reportId && s.tradelineIndex === debt.tradelineIndex) ||
@@ -530,6 +558,17 @@ export function resolveDebtPartyInfo(args: {
     ) ||
     (debt.collectorName
       ? matchCreditorContactForName(debt.collectorName, contacts, debt.accountNumberMasked)
+      : null) ||
+    // Cases opened from a summons are often named after the plaintiff while the
+    // report lists the servicer — the shared account reference still identifies
+    // the right mailing block.
+    (debt.accountNumberMasked
+      ? contacts.find(
+          (c) =>
+            sameAccountRef(c.accountNumberMasked, debt.accountNumberMasked) &&
+            String(c.address || '').trim() &&
+            notSelf(c.creditorName, c.address),
+        ) ?? null
       : null);
   const matchedDoc =
     documents.find((d) => {
@@ -636,6 +675,12 @@ export function resolveDebtPartyInfo(args: {
     matchedFrom,
     signal: matchedSignal ?? undefined,
     autoFilled: matchedFrom !== 'manual' && matchedFrom !== 'debt_case',
+    reportContactName:
+      (matchedContact && notSelf(matchedContact.creditorName, matchedContact.address)
+        ? matchedContact.creditorName
+        : '') || matchedSignal?.creditorName,
+    reportContactAddress: matchedContact?.address || matchedSignal?.address,
+    reportContactPhone: matchedContact?.phone || matchedSignal?.phone,
   };
 }
 
@@ -665,19 +710,32 @@ export function autoPersistDebtPartyIfEmpty(
   self?: SelfPartyIdentity | null,
 ): DebtCase | null {
   if (!debt || !party) return null;
-  const hasTo =
-    Boolean(debt.recipientAddress || debt.plaintiffLawFirmAddress) &&
-    Boolean(debt.recipientName || debt.plaintiffLawFirm);
-  if (hasTo) return null;
-  if (!party.recipientAddress && !party.recipientName) return null;
+  // The collector mailing block is what letters address. A summons scrape that
+  // filled only the plaintiff-firm fields used to count as "done" here, which is
+  // why a case with an empty recipient address never picked up its report
+  // Creditor Contact.
+  const hasRecipient =
+    Boolean(String(debt.recipientAddress || '').trim()) && Boolean(String(debt.recipientName || '').trim());
+  if (hasRecipient) return null;
   if (party.matchedFrom === 'manual') return null;
+
+  const fallbackName = party.reportContactName || party.recipientName;
+  const fallbackAddress = party.reportContactAddress || party.recipientAddress;
+  const fallbackPhone = party.reportContactPhone || party.recipientPhone;
+  if (!fallbackAddress && !fallbackName) return null;
   // Never write the partner's own name/address into the letter TO block.
-  if (isSelfParty({ name: party.recipientName, address: party.recipientAddress }, self)) return null;
+  if (isSelfParty({ name: fallbackName, address: fallbackAddress }, self)) return null;
+  if (
+    String(debt.recipientName || '').trim() === String(fallbackName || '').trim() &&
+    String(debt.recipientAddress || '').trim() === String(fallbackAddress || '').trim()
+  ) {
+    return null;
+  }
   const firmLike = party.matchedFrom === 'directory' || party.matchedFrom === 'document';
   return mergeDebtCreditorFields(debt, {
-    recipientName: debt.recipientName || party.recipientName,
-    recipientAddress: debt.recipientAddress || party.recipientAddress || undefined,
-    recipientPhone: debt.recipientPhone || party.recipientPhone,
+    recipientName: debt.recipientName || fallbackName,
+    recipientAddress: debt.recipientAddress || fallbackAddress || undefined,
+    recipientPhone: debt.recipientPhone || fallbackPhone,
     collectorName: debt.collectorName || party.collectorName,
     originalCreditor: debt.originalCreditor || party.originalCreditor,
     accountNumberMasked: debt.accountNumberMasked || party.accountNumberMasked,

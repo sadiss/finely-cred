@@ -328,8 +328,11 @@ export function extractContactsFromSections(sections: ParsedSection[]): ParsedCr
         cols.length === 1 ||
         (cols.length <= 2 && cols.every((c) => /detail|raw|text|line/i.test(c)));
 
-      // Stacked freeform OCR lines: regroup into name + address + phone blobs
-      const runFreeform = singleCol || addrIdx < 0 || section.key === 'creditor_contacts';
+      // Stacked freeform OCR lines: regroup into name + address + phone blobs.
+      // Do NOT force freeform solely because key === creditor_contacts — a real
+      // Name/Address/Phone table must use the structured path. Forcing both
+      // paths produced junk "creditors" named after PO BOX / city lines.
+      const runFreeform = singleCol || addrIdx < 0;
       if (runFreeform) {
         const lines = section.table.rows
           .slice(0, 200)
@@ -339,8 +342,8 @@ export function extractContactsFromSections(sections: ParsedSection[]): ParsedCr
           const parsed = parseFreeformContactBlock(blob);
           if (parsed) pushContact(out, seen, { ...parsed, source, sectionKey });
         }
-        // Pure Details / freeform tables are done; structured tables may still add rows.
-        if (singleCol) continue;
+        // Freeform already consumed the rows (Details table or no address column).
+        continue;
       }
 
       for (const row of section.table.rows.slice(0, 80)) {
@@ -776,5 +779,63 @@ export function refreshCreditorContactsOnParsed<T extends {
     ...parsed,
     tradelines,
     creditorContacts: merged.length ? merged : undefined,
+  };
+}
+
+/** True when a stored section still carries creditor-contact data we can re-extract. */
+export function hasCreditorContactSection(sections?: ParsedSection[] | null): boolean {
+  return (sections || []).some(
+    (s) => s.key === 'creditor_contacts' || s.key === 'collections' || Boolean(creditorContactSectionHeading(s.title || '')),
+  );
+}
+
+/**
+ * What a stored report can still recover on its own, so the UI can tell the
+ * difference between "one refresh fixes this" and "the stored parse never
+ * captured contacts — re-parse the raw file".
+ */
+export type CreditorContactRecovery = {
+  tradelineCount: number;
+  /** Address-bearing contacts already saved on the report. */
+  storedWithAddress: number;
+  /** Address-bearing contacts after re-running extraction on the stored parse. */
+  refreshedWithAddress: number;
+  refreshedTotal: number;
+  hasContactSection: boolean;
+  /** Refresh alone recovers addresses — no re-parse or re-upload needed. */
+  recoverableFromStoredParse: boolean;
+  /** Nothing left to extract from the stored parse; the raw file must be re-parsed. */
+  needsReparse: boolean;
+};
+
+export function assessCreditorContactRecovery(parsed?: {
+  tradelines?: ParsedTradeline[];
+  sections?: ParsedSection[];
+  creditorContacts?: ParsedCreditorContact[];
+  personalInfo?: ParsedPersonalInfo | null;
+} | null): CreditorContactRecovery {
+  const empty: CreditorContactRecovery = {
+    tradelineCount: 0,
+    storedWithAddress: 0,
+    refreshedWithAddress: 0,
+    refreshedTotal: 0,
+    hasContactSection: false,
+    recoverableFromStoredParse: false,
+    needsReparse: false,
+  };
+  if (!parsed) return empty;
+  const tradelineCount = parsed.tradelines?.length ?? 0;
+  const storedWithAddress = (parsed.creditorContacts || []).filter((c) => clean(c.address)).length;
+  const refreshed = refreshCreditorContactsOnParsed(parsed);
+  const refreshedContacts = refreshed.creditorContacts || [];
+  const refreshedWithAddress = refreshedContacts.filter((c) => clean(c.address)).length;
+  return {
+    tradelineCount,
+    storedWithAddress,
+    refreshedWithAddress,
+    refreshedTotal: refreshedContacts.length,
+    hasContactSection: hasCreditorContactSection(parsed.sections),
+    recoverableFromStoredParse: refreshedWithAddress > storedWithAddress,
+    needsReparse: tradelineCount > 0 && refreshedWithAddress === 0,
   };
 }

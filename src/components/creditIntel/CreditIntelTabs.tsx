@@ -20,6 +20,8 @@ import {
 } from 'lucide-react';
 import type { Bureau, DisputeCandidate, ParsedCreditReport, ParsedCreditorContact, ParsedSection, ParsedSectionItem, ParsedTradeline, TradelineRow } from '../../domain/creditReports';
 import { deriveDisputeCandidates } from '../../creditReports/disputeCandidates';
+import { assessCreditorContactRecovery, refreshCreditorContactsOnParsed } from '../../creditReports/creditorContactExtract';
+import { contactsFromParsedReport, persistRefreshedCreditorContactsOnReport } from '../../lib/debtCreditorIntel';
 import { buildFactualDisputeSuggestions } from '../../lib/disputeLetterBuilder';
 import { bureauShortCode } from '../../utils/bureaus';
 import { computeCreditIntelReadiness, rankDisputeCandidates } from '../../creditReports/creditIntelInsights';
@@ -333,6 +335,7 @@ export function CreditIntelTabs({
   onOpenLetterGenerator,
   onOpenEvidenceVault,
   onOpenTasks,
+  onReparseRequest,
   initialTab,
   initialScrollToAccount,
   tradelinesExternalAnchor = 'fc-tradelines-full',
@@ -351,6 +354,8 @@ export function CreditIntelTabs({
   onOpenEvidenceVault?: () => void;
   /** When provided, opens Tasks & Notifications in the hosting page. */
   onOpenTasks?: () => void;
+  /** When provided, offers a one-click re-parse when the stored parse holds no creditor addresses. */
+  onReparseRequest?: () => void;
   /** Optional deep-link behavior when arriving from Letters. */
   initialTab?: TabKey;
   /** Optional deep-link auto-scroll target (uses ParsedReportViewer scrollToCreditorName). */
@@ -363,7 +368,7 @@ export function CreditIntelTabs({
     if (!parsed || typeof parsed !== 'object') {
       return { provider: 'unknown', tradelines: [], sections: [], scores: [] };
     }
-    return {
+    const base: ParsedCreditReport = {
       ...parsed,
       tradelines: sanitizeTradelines(parsed.tradelines),
       sections: Array.isArray(parsed.sections) ? parsed.sections : undefined,
@@ -371,6 +376,10 @@ export function CreditIntelTabs({
       creditorContacts: Array.isArray(parsed.creditorContacts) ? parsed.creditorContacts : undefined,
       personalInfo: parsed.personalInfo && typeof parsed.personalInfo === 'object' ? parsed.personalInfo : undefined,
     };
+    // Older parses stored an empty or address-less creditorContacts array. Rebuild
+    // from the report's own Creditor Contacts sections + tradelines so addresses
+    // appear without the partner having to re-parse the export.
+    return refreshCreditorContactsOnParsed(base);
   }, [parsed]);
 
   const [tab, setTab] = useState<TabKey>(initialTab ?? 'overview');
@@ -396,6 +405,22 @@ export function CreditIntelTabs({
     if (initialScrollToAccount) setScrollToAccount(initialScrollToAccount);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialTab, initialScrollToAccount]);
+
+  // Write recovered addresses back onto the stored report so Validation fields,
+  // debt intel, and letter recipients see the same contacts this tab shows.
+  useEffect(() => {
+    if (!reportId || !parsed) return;
+    const before = (parsed.creditorContacts || []).filter((c) => c.address).length;
+    const next = persistRefreshedCreditorContactsOnReport({ id: reportId, parsed });
+    const after = (next?.creditorContacts || []).filter((c) => c.address).length;
+    if (after > before) {
+      try {
+        window.dispatchEvent(new CustomEvent('finely:store'));
+      } catch {
+        /* ignore */
+      }
+    }
+  }, [reportId, parsed]);
 
   const disputeCandidates = useMemo(() => deriveDisputeCandidates(safeParsed, reportId), [safeParsed, reportId]);
   const totals = useMemo(() => computeMoneyTotals(safeParsed), [safeParsed]);
@@ -823,6 +848,24 @@ export function CreditIntelTabs({
     add('Equifax FICO 5 (mortgage classic)', 'fico 5');
     return rows;
   }, [safeParsed.scores]);
+
+  /**
+   * Prefer the rebuilt list: a thin legacy parse can hold an empty (or
+   * address-less) creditorContacts array while the report body still carries the
+   * Creditor Contacts section. Stored contacts stay as a backstop.
+   */
+  const creditorContacts = useMemo<ParsedCreditorContact[]>(() => {
+    const refreshed = contactsFromParsedReport(safeParsed);
+    if (refreshed.length) return refreshed;
+    return Array.isArray(parsed?.creditorContacts) ? parsed.creditorContacts : [];
+  }, [safeParsed, parsed]);
+
+  const creditorContactsWithAddress = useMemo(
+    () => creditorContacts.filter((c) => Boolean(c.address || c.phone)).length,
+    [creditorContacts],
+  );
+
+  const contactRecovery = useMemo(() => assessCreditorContactRecovery(safeParsed), [safeParsed]);
 
   const creditorContactsDerived = useMemo(() => {
     const matchLabel = (label: string) => {
@@ -1855,13 +1898,34 @@ export function CreditIntelTabs({
         <div className="fc-soft-surface-lg backdrop-blur-xl p-6 space-y-4">
           <p className="text-[10px] uppercase tracking-widest text-white/45">Creditor contacts (best-effort)</p>
           <p className="text-white/60 text-sm">
-            {parsed.creditorContacts?.length
-              ? 'Structured contacts derived from tradelines and collection sections.'
+            {creditorContacts.length
+              ? `Structured contacts rebuilt from this report's creditor contacts section, tradelines, and collection sections — ${creditorContacts.length} contact${
+                  creditorContacts.length === 1 ? '' : 's'
+                }, ${creditorContactsWithAddress} with an address or phone. These are the same addresses your dispute and validation letters use.`
               : 'This comes from whatever “creditor/subscriber/address/phone” fields exist inside the tradelines. If the export doesn’t include contact details, this list will be sparse.'}
           </p>
+          {contactRecovery.needsReparse ? (
+            <div className={`${finelyOsCatalogCard('amber')} !p-4 space-y-2`}>
+              <div className={FINELY_OS_ENTITY_VALUE}>No mailing addresses in this parse</div>
+              <p className={FINELY_OS_ENTITY_BODY}>
+                This report has {contactRecovery.tradelineCount} account(s) but no creditor or collector addresses, so letters
+                cannot autofill the TO block. Re-parse reads your stored file again with the latest contact extractor — no
+                re-upload needed.
+              </p>
+              {onReparseRequest ? (
+                <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => onReparseRequest()}>
+                  Re-parse for contacts
+                </button>
+              ) : (
+                <p className={FINELY_OS_ENTITY_SUBLABEL}>
+                  Use the Re-parse button on this report to recover contacts.
+                </p>
+              )}
+            </div>
+          ) : null}
           <div className="grid md:grid-cols-2 gap-4">
-            {safeParsed.creditorContacts?.length
-              ? safeParsed.creditorContacts.map((c, i) => (
+            {creditorContacts.length
+              ? creditorContacts.map((c, i) => (
                   <div key={`${c.creditorName}_${i}`} className="fc-soft-surface-lg p-5 space-y-2">
                     <div className="text-white/90 font-semibold truncate">{c.creditorName}</div>
                     <div className="text-[11px] text-white/70 font-mono space-y-1 whitespace-pre-wrap break-words">

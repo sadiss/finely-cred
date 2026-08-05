@@ -660,6 +660,26 @@ export function AffidavitCourtCenterView({
                 ))}
               </ol>
             </div>
+            {/* Report Creditor Contacts are usable before any court file exists —
+                waiting for step 2 left partners staring at empty party fields. */}
+            <div className="space-y-2">
+              <div className={`text-[10px] uppercase tracking-widest ${FINELY_OS_ENTITY_BODY}`}>
+                No papers yet? Address it from your credit report
+              </div>
+              <DebtCreditorIntelPanel
+                partnerId={debt?.partnerId || partner?.id || debtCases[0]?.partnerId || ''}
+                debt={debt}
+                reports={reports}
+                processedDocuments={processedDocuments}
+                mode="court"
+                senderFields={senderFields}
+                onDebtChange={onDebtChange}
+                onSenderPersist={onSenderPersist}
+                selectedSummonsDocId={selectedSummonsDocId ?? undefined}
+                onSummonsDocChange={onSummonsDocChange}
+                compact
+              />
+            </div>
           </div>
         ) : null}
 
@@ -680,7 +700,7 @@ export function AffidavitCourtCenterView({
             </div>
             <ExtractedCourtFactsPanel debt={debt} summonsContext={summonsCtx} />
             <DebtCreditorIntelPanel
-              partnerId={debt?.partnerId || debtCases[0]?.partnerId || partner?.id || ''}
+              partnerId={debt?.partnerId || partner?.id || debtCases[0]?.partnerId || ''}
               debt={debt}
               reports={reports}
               processedDocuments={processedDocuments}

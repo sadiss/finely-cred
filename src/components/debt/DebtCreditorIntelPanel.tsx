@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import {
   AlertTriangle,
   Building2,
@@ -27,6 +28,7 @@ import {
   persistRefreshedCreditorContactsOnReport,
   resolveDebtPartyInfo,
   type DebtPartyInfo,
+  type ReportCreditorTarget,
   type ReportedDebtSignal,
 } from '../../lib/debtCreditorIntel';
 import type { SelfPartyIdentity } from '../../creditReports/creditorContactExtract';
@@ -155,6 +157,10 @@ export function DebtCreditorIntelPanel({
   }, [senderFields.fullName, senderFields.address1, senderFields.address2, senderFields.city, senderFields.state, senderFields.postalCode, reports]);
 
   const reportCreditorTargets = useMemo(() => listReportCreditorTargets(reports), [reports]);
+  const targetsWithAddress = useMemo(
+    () => reportCreditorTargets.filter((t) => t.hasAddress).length,
+    [reportCreditorTargets],
+  );
 
   const party = useMemo(
     () =>
@@ -251,6 +257,90 @@ export function DebtCreditorIntelPanel({
     } else if (party.signal) {
       applySignal(party.signal);
     }
+  };
+
+  /**
+   * Address the letter from a report creditor. With no case open we create one
+   * from the report row so the mailing block actually persists — the old chip
+   * only moved text into local state and it vanished on the next render.
+   */
+  const applyReportTarget = (t: ReportCreditorTarget) => {
+    setRecipientName(t.creditorName);
+    if (t.address) setRecipientAddress(t.address);
+    if (t.phone) setRecipientPhone(t.phone);
+    if (t.originalCreditor) setOriginalCreditor(t.originalCreditor);
+    if (t.accountNumberMasked) setAccountRef(t.accountNumberMasked);
+    if (mode === 'court') {
+      setPlaintiffLawFirm((prev) => prev || t.creditorName);
+    }
+
+    const addressNote = t.address
+      ? `Saved ${t.creditorName} mailing address onto this case — letters will use it.`
+      : `${t.creditorName} has no address on the report — use Fill address or type it from the notice.`;
+
+    if (debt) {
+      onDebtChange(
+        mergeDebtCreditorFields(debt, {
+          recipientName: t.creditorName,
+          recipientAddress: t.address || undefined,
+          recipientPhone: t.phone,
+          originalCreditor: t.originalCreditor,
+          accountNumberMasked: t.accountNumberMasked,
+          collectorName: t.creditorName,
+        }),
+      );
+      setSavedNotice(addressNote);
+      return;
+    }
+
+    if (!partnerId) {
+      setSavedNotice(`Addressed to ${t.creditorName} — open a debt case above to save these fields.`);
+      return;
+    }
+
+    // One case per reported account, same rule the tradeline tiles follow.
+    const alreadyLinked = listDebtByPartner(partnerId).find(
+      (c) =>
+        (typeof t.tradelineIndex === 'number' && c.reportId === t.reportId && c.tradelineIndex === t.tradelineIndex) ||
+        (c.name || '').trim().toLowerCase() === t.creditorName.trim().toLowerCase(),
+    );
+    if (alreadyLinked) {
+      onDebtChange(
+        mergeDebtCreditorFields(alreadyLinked, {
+          recipientName: t.creditorName,
+          recipientAddress: t.address || undefined,
+          recipientPhone: t.phone,
+          originalCreditor: t.originalCreditor,
+          accountNumberMasked: t.accountNumberMasked,
+          collectorName: t.creditorName,
+        }),
+      );
+      setSavedNotice(`Switched to the existing case for ${t.creditorName}.`);
+      return;
+    }
+
+    const draft = createDebtCase({
+      partnerId,
+      type: mode === 'court' ? 'summons' : 'debt',
+      name: t.creditorName,
+      amountCents: t.balanceCents ?? 0,
+      collectorName: t.creditorName,
+      originalCreditor: t.originalCreditor,
+      recipientName: t.creditorName,
+      recipientAddress: t.address,
+      recipientPhone: t.phone,
+      accountNumberMasked: t.accountNumberMasked,
+      reportId: t.reportId,
+      tradelineIndex: t.tradelineIndex,
+      source: 'tradeline',
+      notes: 'Opened from Creditor Contacts on your credit report.',
+    });
+    onDebtChange(draft);
+    setSavedNotice(
+      t.address
+        ? `Opened a case for ${t.creditorName} and saved the report mailing address.`
+        : `Opened a case for ${t.creditorName} — add the mailing address from the notice.`,
+    );
   };
 
   const topSignals = displaySignals;
@@ -518,6 +608,30 @@ export function DebtCreditorIntelPanel({
         </div>
       ) : null}
 
+      {compact && party && (party.recipientName || party.recipientAddress) ? (
+        <div className={`${finelyOsCatalogCardCompact('emerald')} !p-3 space-y-1`}>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className={`inline-flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL}`}>
+              <Scale size={13} className="text-emerald-300" />
+              Letter goes to
+            </div>
+            <span className={finelyOsStatusChip(hasAutoMatch ? 'ok' : 'warn')}>
+              {party.matchedFrom.replace('_', ' ')}
+              {matchQuality ? ` · ${matchQuality}` : ''}
+            </span>
+          </div>
+          <div className={`text-sm font-semibold ${FINELY_OS_ENTITY_VALUE}`}>{party.recipientName || 'Collector'}</div>
+          {party.recipientAddress ? (
+            <div className={`whitespace-pre-wrap text-xs ${FINELY_OS_ENTITY_BODY}`}>{party.recipientAddress}</div>
+          ) : (
+            <div className="inline-flex items-start gap-1.5 text-[11px] text-amber-200/90">
+              <AlertTriangle size={12} className="mt-0.5 shrink-0" />
+              No mailing address yet — pick a Creditor Contact below or use Fill address.
+            </div>
+          )}
+        </div>
+      ) : null}
+
       {!compact && party ? (
         <div className={`${finelyOsCatalogCard('emerald')} !p-5 space-y-3`}>
           <div className="flex flex-wrap items-center justify-between gap-3">
@@ -587,7 +701,7 @@ export function DebtCreditorIntelPanel({
           <div className="space-y-1.5">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div className={`text-[10px] uppercase tracking-widest ${FINELY_OS_ENTITY_BODY}`}>
-                Creditors and collectors on your report — tap to address the letter
+                Creditor Contacts on your report — tap to {debt ? 'use for this case' : 'open a case and address the letter'}
               </div>
               {reportCreditorTargets.length > TARGET_CHIP_LIMIT ? (
                 <button
@@ -600,58 +714,75 @@ export function DebtCreditorIntelPanel({
               ) : null}
             </div>
             <p className={`text-[10px] ${FINELY_OS_ENTITY_BODY}`}>
-              Each account is listed separately — two placements from the same collector show their own account
-              reference and balance.
+              {targetsWithAddress} of {reportCreditorTargets.length} have a mailing address we can read. Each account is
+              listed separately — two placements from the same collector keep their own account reference and balance.
             </p>
-            <div className="flex flex-wrap gap-1.5">
+            <div className="grid gap-1.5 sm:grid-cols-2">
               {(showAllTargets ? reportCreditorTargets : reportCreditorTargets.slice(0, TARGET_CHIP_LIMIT)).map((t) => (
                 <button
                   key={t.targetId}
                   type="button"
-                  onClick={() => {
-                    setRecipientName(t.creditorName);
-                    if (t.address) setRecipientAddress(t.address);
-                    if (t.phone) setRecipientPhone(t.phone);
-                    if (t.originalCreditor) setOriginalCreditor(t.originalCreditor);
-                    if (t.accountNumberMasked) setAccountRef(t.accountNumberMasked);
-                    if (debt) {
-                      const next = mergeDebtCreditorFields(debt, {
-                        recipientName: t.creditorName,
-                        recipientAddress: t.address || undefined,
-                        recipientPhone: t.phone,
-                        originalCreditor: t.originalCreditor,
-                        accountNumberMasked: t.accountNumberMasked,
-                        collectorName: t.creditorName,
-                      });
-                      onDebtChange(next);
-                      setSavedNotice(
-                        t.address
-                          ? `Saved ${t.creditorName} mailing address onto this case — letters will use it.`
-                          : `${t.creditorName} has no address on the report — use Fill address or type it from the notice.`,
-                      );
-                    } else {
-                      setSavedNotice(
-                        t.address
-                          ? `Addressed to ${t.creditorName} from your report — open/create a debt case to lock it in.`
-                          : `${t.creditorName} has no address on the report — use Fill address or type it from the notice.`,
-                      );
-                    }
-                  }}
-                  className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-[11px] font-semibold transition-colors ${
+                  onClick={() => applyReportTarget(t)}
+                  className={`rounded-lg border px-2.5 py-2 text-left transition-colors ${
                     t.role === 'collector'
-                      ? 'border-fuchsia-400/35 bg-fuchsia-500/10 text-fuchsia-100 hover:bg-fuchsia-500/20'
-                      : 'border-white/12 bg-black/30 text-white/75 hover:bg-white/[0.06]'
+                      ? 'border-fuchsia-400/35 bg-fuchsia-500/10 hover:bg-fuchsia-500/20'
+                      : 'border-white/12 bg-black/30 hover:bg-white/[0.06]'
                   }`}
                   title={t.address ? `${t.label}\n${t.address}` : `${t.label} — no mailing address on the report yet`}
                 >
-                  <Building2 size={11} />
-                  <span className="truncate max-w-[15rem]">{t.label}</span>
-                  {t.hasAddress ? null : <span className="text-[9px] opacity-70">no address</span>}
+                  <div className="flex items-center justify-between gap-2">
+                    <span
+                      className={`inline-flex min-w-0 items-center gap-1.5 text-[11px] font-semibold ${
+                        t.role === 'collector' ? 'text-fuchsia-100' : 'text-white/80'
+                      }`}
+                    >
+                      <Building2 size={11} className="shrink-0" />
+                      <span className="truncate">{t.label}</span>
+                    </span>
+                    <span className="shrink-0 text-[9px] font-semibold uppercase tracking-widest text-sky-300">
+                      {debt ? 'Use for this case' : 'Use / open case'}
+                    </span>
+                  </div>
+                  {t.address ? (
+                    <div className="mt-1 line-clamp-2 whitespace-pre-line text-[10px] text-white/60">{t.address}</div>
+                  ) : (
+                    <div className="mt-1 text-[10px] text-amber-200/80">
+                      No mailing address on the report — use Fill address below
+                    </div>
+                  )}
+                  {t.phone ? <div className="text-[10px] text-white/40">{t.phone}</div> : null}
                 </button>
               ))}
             </div>
           </div>
-        ) : null}
+        ) : reports.length === 0 ? (
+          <div className="rounded-xl border border-dashed border-sky-400/30 bg-sky-500/[0.06] px-3 py-2.5 space-y-1">
+            <div className={`text-[10px] uppercase tracking-widest ${FINELY_OS_ENTITY_BODY}`}>
+              No credit report on file
+            </div>
+            <p className={`text-xs ${FINELY_OS_ENTITY_BODY}`}>
+              Creditor Contacts (collector names, mailing addresses, phones) come from your uploaded report. Upload one
+              and these fields fill themselves.
+            </p>
+            <Link to="/portal/reports" className={FINELY_OS_SECONDARY_BTN}>
+              Upload a credit report
+            </Link>
+          </div>
+        ) : (
+          <div className="rounded-xl border border-dashed border-amber-400/30 bg-amber-500/[0.07] px-3 py-2.5 space-y-1">
+            <div className={`text-[10px] uppercase tracking-widest ${FINELY_OS_ENTITY_BODY}`}>
+              No Creditor Contacts read from your report yet
+            </div>
+            <p className={`text-xs ${FINELY_OS_ENTITY_BODY}`}>
+              {reports.length} report{reports.length === 1 ? '' : 's'} on file, but no creditor names or mailing blocks
+              came through the parse. Re-upload the full report (including the Creditor Contacts pages), or type the
+              mailing address from the collection notice below.
+            </p>
+            <Link to="/portal/reports" className={FINELY_OS_SECONDARY_BTN}>
+              Re-upload / re-parse report
+            </Link>
+          </div>
+        )}
 
         <div className={`grid gap-3 sm:grid-cols-2 ${compact ? 'max-w-3xl' : ''}`}>
           <div className={compact ? FINELY_OS_FIELD_WIDTH : ''}>

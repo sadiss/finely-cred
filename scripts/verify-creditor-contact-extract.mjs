@@ -115,6 +115,28 @@ const midland = contacts.find((c) => /midland/i.test(c.creditorName));
 assert.ok(midland?.address && looksLikeMailingAddress(midland.address));
 ok(`buildCreditorContacts from section (${contacts.length})`);
 
+// Two-column Name/Address table must not invent junk creditors from street lines.
+const twoColContacts = buildCreditorContacts(
+  [],
+  [
+    {
+      key: 'creditor_contacts',
+      title: 'Creditor Contacts',
+      table: {
+        columns: ['Creditor Name', 'Address'],
+        rows: [
+          ['MIDLAND CREDIT MANAGEMENT', 'PO BOX 939069 SAN DIEGO CA 92193'],
+          ['PORTFOLIO RECOVERY ASSOCIATES LLC', '120 CORPORATE BLVD NORFOLK VA 23502'],
+        ],
+      },
+    },
+  ],
+);
+assert.equal(twoColContacts.length, 2, `expected 2 contacts, got ${twoColContacts.length}: ${JSON.stringify(twoColContacts.map((c) => c.creditorName))}`);
+assert.ok(!twoColContacts.some((c) => /^PO BOX/i.test(c.creditorName)), 'PO BOX must not become a creditor name');
+assert.ok(!twoColContacts.some((c) => /NORFOLK/i.test(c.creditorName)), 'city line must not become a creditor name');
+ok('two-column Creditor Contacts has no junk street-name rows');
+
 const tradelinesFilled = applyCreditorContactsToTradelines(tradelines, contacts);
 assert.ok(tradelinesFilled[0]?.creditorAddress?.includes('2121'));
 ok('section address applied onto tradeline');
