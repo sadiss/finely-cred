@@ -7,6 +7,7 @@ import {
   applyCreditorContactsToTradelines,
   buildCreditorContacts,
   creditorContactSectionHeading,
+  selfIdentityFromPersonalInfo,
 } from './creditorContactExtract';
 
 function norm(s: string) {
@@ -933,7 +934,8 @@ export function parseCreditReportText(rawText: string, providerHint?: CreditRepo
   const personalInfo = buildPersonalInfo(sections);
   const enrichedTradelines = tradelines.map(enrichParsedTradeline);
   // Section contacts (Creditor Contacts / Collections) + tradeline fields → letter TO autofill.
-  const creditorContacts = buildCreditorContacts(enrichedTradelines, sections);
+  const self = selfIdentityFromPersonalInfo(personalInfo);
+  const creditorContacts = buildCreditorContacts(enrichedTradelines, sections, self);
   const tradelinesWithContacts = applyCreditorContactsToTradelines(enrichedTradelines, creditorContacts);
 
   return {

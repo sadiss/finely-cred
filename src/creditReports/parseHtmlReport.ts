@@ -3,6 +3,7 @@ import {
   applyCreditorContactsToTradelines,
   buildCreditorContacts,
   creditorContactSectionHeading,
+  selfIdentityFromPersonalInfo,
 } from './creditorContactExtract';
 import { detectProviderFromHtml } from './detectProvider';
 import { parseCreditReportText } from './parseTextReport';
@@ -1283,7 +1284,8 @@ function parseCreditReportHtmlDocument(doc: Document, provider: CreditReportProv
   });
 
   const personalInfo = buildPersonalInfo(sectionsWithItems);
-  const creditorContacts = buildCreditorContacts(enrichedTradelines, sectionsWithItems);
+  const self = selfIdentityFromPersonalInfo(personalInfo);
+  const creditorContacts = buildCreditorContacts(enrichedTradelines, sectionsWithItems, self);
   const tradelinesWithContacts = applyCreditorContactsToTradelines(enrichedTradelines, creditorContacts);
 
   const scores = [

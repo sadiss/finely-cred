@@ -6,6 +6,7 @@ import { detectReportDateFromText } from '../creditReports/parsePdfText';
 import { htmlToPdfTextFallback } from '../creditReports/htmlToPdfFallback';
 import { getBlobStore } from '../storage/getBlobStore';
 import {
+  clearCachedParsedReport,
   getCachedParsedReport,
   hashReportContent,
   setCachedParsedReport,
@@ -159,6 +160,14 @@ export function parseWarningForReport(parsed: ParsedCreditReport | undefined | n
   if (scoreCount === 0) {
     return 'Partial parse — tradelines found but bureau scores were not detected. You can still review accounts; re-parse if scores are missing.';
   }
+  const contacts = parsed.creditorContacts || [];
+  const addressBearing = contacts.filter((c) => Boolean(String(c.address || '').trim())).length;
+  const hasContactSection = (parsed.sections || []).some(
+    (s) => s.key === 'creditor_contacts' || /creditor\s*contact|contact\s*info/i.test(s.title || ''),
+  );
+  if (tlCount > 0 && addressBearing === 0 && (hasContactSection || contacts.length === 0)) {
+    return 'Partial parse — accounts found but no Creditor Contacts mailing addresses. Re-parse or upload an HTML export so validation letters can autofill the TO block.';
+  }
   return null;
 }
 
@@ -167,6 +176,9 @@ export async function reparseStoredCreditReport(args: {
   record: CreditReportRecord;
   onProgress?: ReportParseProgress;
 }): Promise<CreditReportRecord> {
+  // Always bust cache so UI "Re-parse" picks up extractor fixes (contacts, etc.).
+  clearCachedParsedReport(args.record.id);
+
   const store = getBlobStore();
   const blob = await store.get(args.record.rawBlobRef);
   if (!blob) {
