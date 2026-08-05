@@ -238,6 +238,27 @@ export function listReportCreditorTargets(
       const name = String(c.creditorName || '').trim();
       if (!name) return;
       if (isSelfParty({ name, address: c.address }, self)) return;
+      // A contacts-table row for a creditor already listed as a tradeline is the
+      // same letter target — keying tradelines on balance and contacts on
+      // address produced two chips for one account.
+      const acct = accountRefKey(c.accountNumberMasked);
+      const already = out.find((t) => {
+        if (t.reportId !== report.id) return false;
+        if (typeof t.tradelineIndex !== 'number') return false;
+        if (normCreditorName(t.creditorName) !== normCreditorName(name)) return false;
+        if (acct) return sameAccountRef(t.accountNumberMasked, c.accountNumberMasked);
+        // Nothing to tell the placements apart — same creditor, same target.
+        if (!c.address) return true;
+        return !t.address || normCreditorName(t.address) === normCreditorName(c.address);
+      });
+      if (already) {
+        if (!already.address && c.address) {
+          already.address = c.address;
+          already.hasAddress = true;
+        }
+        if (!already.phone && c.phone) already.phone = c.phone;
+        return;
+      }
       const key = creditorTargetKey({
         name,
         accountNumberMasked: c.accountNumberMasked,

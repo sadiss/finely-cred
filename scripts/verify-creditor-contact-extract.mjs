@@ -17,6 +17,7 @@ import { enrichParsedTradeline } from '../src/creditReports/enrichParsedTradelin
 import {
   autoPersistDebtPartyIfEmpty,
   contactsFromParsedReport,
+  listReportCreditorTargets,
   resolveDebtPartyInfo,
 } from '../src/lib/debtCreditorIntel.ts';
 import { parseCreditReportText } from '../src/creditReports/parseTextReport.ts';
@@ -287,5 +288,99 @@ ok('autoPersistDebtPartyIfEmpty writes report contact onto debt');
 assert.ok(tradelinesFilled[0].creditorAddress);
 assert.ok(contacts.some((c) => c.source === 'section' && c.address));
 ok('report contact shape ready for letter TO autofill');
+
+// --- Validation / Affidavit panel surface -----------------------------------
+// The chips those centers render come from listReportCreditorTargets, so a
+// report with only a Creditor Contacts section (no tradelines) must still
+// produce address-bearing targets.
+const contactsOnlyTargets = listReportCreditorTargets([{ id: 'rep_contacts_only', parsed: parsedText }]);
+assert.ok(contactsOnlyTargets.length >= 2, `expected report targets, got ${contactsOnlyTargets.length}`);
+assert.ok(
+  contactsOnlyTargets.some((t) => /midland/i.test(t.creditorName) && t.hasAddress && /2121/.test(t.address || '')),
+  'Midland target should carry the report mailing address',
+);
+ok(`listReportCreditorTargets from Creditor Contacts (${contactsOnlyTargets.length})`);
+
+const tradelineTargets = listReportCreditorTargets([{ id: 'rep_full', parsed: { tradelines, sections } }]);
+assert.ok(
+  tradelineTargets.some((t) => /midland/i.test(t.creditorName) && t.hasAddress),
+  'tradeline target should inherit the section contact address',
+);
+assert.equal(
+  tradelineTargets.filter((t) => /midland/i.test(t.creditorName)).length,
+  1,
+  'one Midland account must not render as two chips',
+);
+ok(`listReportCreditorTargets from tradelines + sections (${tradelineTargets.length})`);
+
+// No debt case selected: the panel still needs a recipient preview so the
+// fields are not blank before a case exists.
+const noDebtParty = resolveDebtPartyInfo({
+  debt: null,
+  signals: [],
+  contacts: parsedText.creditorContacts || [],
+});
+assert.ok(noDebtParty?.recipientAddress, 'no-debt preview should fall back to a report contact address');
+assert.equal(noDebtParty?.matchedFrom, 'report_contact');
+ok('resolveDebtPartyInfo previews report contact with no debt case');
+
+// A negative tradeline with no mailing block of its own borrows the contact's.
+const noDebtSignalParty = resolveDebtPartyInfo({
+  debt: null,
+  signals: [
+    {
+      signalId: 'r1:0',
+      reportId: 'r1',
+      tradelineIndex: 0,
+      creditorName: 'MIDLAND CREDIT MANAGEMENT',
+      negativeType: 'collection',
+      classifiedNegative: 'collection',
+      confidence: 'medium',
+    },
+  ],
+  contacts: parsedText.creditorContacts || [],
+});
+assert.match(noDebtSignalParty?.recipientAddress || '', /2121/);
+ok('no-debt tradeline preview borrows the Creditor Contact address');
+
+// Summons scrape filled the firm block but the collector mailing block is still
+// empty — the report contact must still land on the case.
+const firmOnlyDebt = {
+  id: 'debt_firm_only',
+  partnerId: 'p1',
+  type: 'summons',
+  name: 'MIDLAND CREDIT MANAGEMENT',
+  amountCents: 109400,
+  status: 'open',
+  plaintiffLawFirm: 'SOME COLLECTION LAW FIRM',
+  plaintiffLawFirmAddress: '1 LAW FIRM WAY ANYTOWN NY 10001',
+  createdAt: new Date().toISOString(),
+  updatedAt: new Date().toISOString(),
+};
+const firmOnlyParty = resolveDebtPartyInfo({
+  debt: firmOnlyDebt,
+  signals: [],
+  contacts: parsedText.creditorContacts || [],
+});
+assert.match(firmOnlyParty?.reportContactAddress || '', /2121/);
+const firmOnlyPersisted = autoPersistDebtPartyIfEmpty(firmOnlyDebt, firmOnlyParty);
+assert.match(
+  firmOnlyPersisted?.recipientAddress || '',
+  /2121/,
+  'empty recipient address should fill from the report even when firm fields are set',
+);
+assert.equal(firmOnlyPersisted?.plaintiffLawFirmAddress, '1 LAW FIRM WAY ANYTOWN NY 10001');
+ok('autoPersist fills empty recipient block behind a scraped firm block');
+
+// Re-running must be a no-op once the case already carries name + address.
+assert.equal(
+  autoPersistDebtPartyIfEmpty(
+    { ...firmOnlyDebt, recipientName: 'MIDLAND CREDIT MANAGEMENT', recipientAddress: 'PO BOX 2121\nWARREN MI 48090' },
+    firmOnlyParty,
+  ),
+  null,
+  'autoPersist should not rewrite a case that already has a recipient block',
+);
+ok('autoPersist is idempotent once the recipient block is filled');
 
 console.log('\nAll creditor-contact extract checks passed.');
