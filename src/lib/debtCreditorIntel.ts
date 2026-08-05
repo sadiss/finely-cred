@@ -9,6 +9,7 @@ import {
   type NegativeType,
 } from '../creditReports/negativePlaybooks';
 import { lookupKnownCreditorFromCandidates } from './knownCreditorDirectory';
+import { classifyCollectionOrChargeOff } from './collectionContactBoard';
 import {
   accountRefKey,
   buildCreditorContacts,
@@ -330,19 +331,8 @@ export function classifyTradelineNegativeType(t: ParsedTradeline): NegativeType 
 }
 
 function tradelineNegativeType(t: ParsedTradeline): 'collection' | 'charge_off' | null {
-  const joined = tradelineJoined(t);
-  if (/(charge\s*off|charged\s*off|\bco\b|written\s*off)/.test(joined)) return 'charge_off';
-  if (
-    /(collection|collections|collector|debt\s*collector|placed\s*for\s*collection|3rd\s*party|third\s*party|assigned\s*to)/.test(
-      joined,
-    )
-  ) {
-    return 'collection';
-  }
-  if (/(past\s*due|delinquent|seriously\s*delinquent|late\s*payment|default|repossession|foreclosure)/.test(joined)) {
-    return 'collection';
-  }
-  return null;
+  // Strict: Validation only lists real collections / charge-offs — not every past-due open account.
+  return classifyCollectionOrChargeOff(t);
 }
 
 /** Strict filter — only tradelines classified as the requested collateral negative type. */

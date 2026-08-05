@@ -22,6 +22,7 @@ import type { Bureau, DisputeCandidate, ParsedCreditReport, ParsedCreditorContac
 import { deriveDisputeCandidates } from '../../creditReports/disputeCandidates';
 import { assessCreditorContactRecovery, refreshCreditorContactsOnParsed } from '../../creditReports/creditorContactExtract';
 import { contactsFromParsedReport, persistRefreshedCreditorContactsOnReport } from '../../lib/debtCreditorIntel';
+import { buildCollectionContactBoard } from '../../lib/collectionContactBoard';
 import { buildFactualDisputeSuggestions } from '../../lib/disputeLetterBuilder';
 import { bureauShortCode } from '../../utils/bureaus';
 import { computeCreditIntelReadiness, rankDisputeCandidates } from '../../creditReports/creditIntelInsights';
@@ -860,9 +861,14 @@ export function CreditIntelTabs({
     return Array.isArray(parsed?.creditorContacts) ? parsed.creditorContacts : [];
   }, [safeParsed, parsed]);
 
+  const contactBoard = useMemo(
+    () => buildCollectionContactBoard({ id: reportId || 'report', parsed: safeParsed }),
+    [reportId, safeParsed],
+  );
+
   const creditorContactsWithAddress = useMemo(
-    () => creditorContacts.filter((c) => Boolean(c.address || c.phone)).length,
-    [creditorContacts],
+    () => contactBoard.contactsWithAddress,
+    [contactBoard.contactsWithAddress],
   );
 
   const contactRecovery = useMemo(() => assessCreditorContactRecovery(safeParsed), [safeParsed]);
@@ -1895,15 +1901,15 @@ export function CreditIntelTabs({
       )}
 
       {tab === 'creditors' && (
-        <div className="fc-soft-surface-lg backdrop-blur-xl p-6 space-y-4">
-          <p className="text-[10px] uppercase tracking-widest text-white/45">Creditor contacts (best-effort)</p>
-          <p className="text-white/60 text-sm">
-            {creditorContacts.length
-              ? `Structured contacts rebuilt from this report's creditor contacts section, tradelines, and collection sections — ${creditorContacts.length} contact${
-                  creditorContacts.length === 1 ? '' : 's'
-                }, ${creditorContactsWithAddress} with an address or phone. These are the same addresses your dispute and validation letters use.`
-              : 'This comes from whatever “creditor/subscriber/address/phone” fields exist inside the tradelines. If the export doesn’t include contact details, this list will be sparse.'}
-          </p>
+        <div className="fc-soft-surface-lg backdrop-blur-xl p-6 space-y-6">
+          <div className="space-y-2">
+            <p className="text-[10px] uppercase tracking-widest text-white/45">Creditor Contacts (from your report)</p>
+            <p className="text-white/60 text-sm">
+              {contactBoard.contacts.length
+                ? `${contactBoard.contacts.length} contact${contactBoard.contacts.length === 1 ? '' : 's'} from the Creditor Contacts section and related fields — ${creditorContactsWithAddress} with a mailing address. Collections below are joined to these contacts for Validation letters.`
+                : 'No Creditor Contacts were recovered from this parse yet. Re-parse the stored file, or upload the HTML export that includes the Creditor Contacts pages.'}
+            </p>
+          </div>
           {contactRecovery.needsReparse ? (
             <div className={`${finelyOsCatalogCard('amber')} !p-4 space-y-2`}>
               <div className={FINELY_OS_ENTITY_VALUE}>No mailing addresses in this parse</div>
@@ -1924,15 +1930,21 @@ export function CreditIntelTabs({
             </div>
           ) : null}
           <div className="grid md:grid-cols-2 gap-4">
-            {creditorContacts.length
-              ? creditorContacts.map((c, i) => (
-                  <div key={`${c.creditorName}_${i}`} className="fc-soft-surface-lg p-5 space-y-2">
-                    <div className="text-white/90 font-semibold truncate">{c.creditorName}</div>
+            {contactBoard.contacts.length
+              ? contactBoard.contacts.map((c) => (
+                  <div key={c.contactId} className="fc-soft-surface-lg p-5 space-y-2">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="text-white/90 font-semibold truncate">{c.creditorName}</div>
+                      {c.matchedCollectionCount > 0 ? (
+                        <span className="shrink-0 text-[9px] uppercase tracking-widest text-fuchsia-300">
+                          {c.matchedCollectionCount} collection{c.matchedCollectionCount === 1 ? '' : 's'}
+                        </span>
+                      ) : null}
+                    </div>
                     <div className="text-[11px] text-white/70 font-mono space-y-1 whitespace-pre-wrap break-words">
                       {c.accountNumberMasked ? <div>acct: {c.accountNumberMasked}</div> : null}
                       {c.address ? <div>address: {c.address}</div> : null}
                       {c.phone ? <div>phone: {c.phone}</div> : null}
-                      {c.bureau ? <div>bureau: {bureauShortCode(c.bureau)}</div> : null}
                       <div className="text-white/45">source: {c.source}</div>
                       {!c.address && !c.phone ? (
                         <div className="text-white/45">No contact details for this entry.</div>
@@ -1960,6 +1972,45 @@ export function CreditIntelTabs({
                   </div>
                 ))}
           </div>
+
+          {contactBoard.collections.length > 0 ? (
+            <div className="space-y-3 pt-2 border-t border-white/10">
+              <div>
+                <p className="text-[10px] uppercase tracking-widest text-white/45">Collections & charge-offs (joined)</p>
+                <p className="text-white/60 text-sm mt-1">
+                  {contactBoard.collectionsWithAddress} of {contactBoard.collections.length} have a mailing address matched
+                  from Creditor Contacts{contactBoard.collectionsMissingAddress ? ` · ${contactBoard.collectionsMissingAddress} still missing` : ''}.
+                </p>
+              </div>
+              <div className="grid md:grid-cols-2 gap-3">
+                {contactBoard.collections.map((row) => (
+                  <div key={row.collectionId} className="fc-soft-surface p-4 space-y-1.5">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="text-white/90 text-sm font-semibold leading-snug">{row.label}</div>
+                      <span className="shrink-0 text-[9px] uppercase tracking-widest text-sky-300">
+                        {row.addressSource === 'report_contact'
+                          ? 'Report contact'
+                          : row.addressSource === 'directory'
+                            ? 'Directory'
+                            : row.addressSource === 'tradeline'
+                              ? 'Tradeline'
+                              : 'Missing'}
+                      </span>
+                    </div>
+                    {row.matchedContactName ? (
+                      <div className="text-[10px] text-white/45">Matched contact: {row.matchedContactName}</div>
+                    ) : (
+                      <div className="text-[10px] text-amber-200/80">No Creditor Contact match yet</div>
+                    )}
+                    {row.mailingAddress ? (
+                      <div className="text-[11px] text-white/70 font-mono whitespace-pre-wrap">{row.mailingAddress}</div>
+                    ) : null}
+                    {row.phone ? <div className="text-[10px] text-white/40">{row.phone}</div> : null}
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : null}
         </div>
       )}
 

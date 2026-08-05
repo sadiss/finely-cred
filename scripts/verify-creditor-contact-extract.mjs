@@ -20,6 +20,7 @@ import {
   listReportCreditorTargets,
   resolveDebtPartyInfo,
 } from '../src/lib/debtCreditorIntel.ts';
+import { buildCollectionContactBoard, classifyCollectionOrChargeOff } from '../src/lib/collectionContactBoard.ts';
 import { parseCreditReportText } from '../src/creditReports/parseTextReport.ts';
 
 function ok(label) {
@@ -382,5 +383,39 @@ assert.equal(
   'autoPersist should not rewrite a case that already has a recipient block',
 );
 ok('autoPersist is idempotent once the recipient block is filled');
+
+// --- Collection ↔ Creditor Contact board ------------------------------------
+const openCard = enrichParsedTradeline({
+  creditorName: 'CAPITAL ONE',
+  accountStatus: 'Open',
+  accountType: 'Revolving',
+  balance: 200,
+  fields: [{ label: 'Account Status', byBureau: { EXP: 'Open', TUC: 'Open', EQF: 'Open' } }],
+});
+assert.equal(classifyCollectionOrChargeOff(openCard), null);
+assert.equal(classifyCollectionOrChargeOff(tradelines[0]), 'collection');
+ok('classifyCollectionOrChargeOff is strict (open cards excluded)');
+
+const board = buildCollectionContactBoard(
+  {
+    id: 'rep_board',
+    parsed: {
+      tradelines: [...tradelines, openCard],
+      sections,
+      creditorContacts: contacts,
+    },
+  },
+  { useDirectoryFallback: false },
+);
+assert.equal(board.collections.length, 1, `expected 1 collection, got ${board.collections.length}`);
+assert.ok(board.contacts.length >= 2, 'board should list Creditor Contacts');
+assert.match(board.collections[0]?.mailingAddress || '', /2121/);
+assert.equal(board.collections[0]?.addressSource, 'report_contact');
+assert.ok(
+  board.contacts.some((c) => /midland/i.test(c.creditorName) && c.matchedCollectionCount >= 1),
+  'Midland contact should show matched collection count',
+);
+assert.ok(!board.collections.some((c) => /capital one/i.test(c.creditorName)), 'open Capital One must not appear as a collection');
+ok('collectionContactBoard joins Midland collection to report contact');
 
 console.log('\nAll creditor-contact extract checks passed.');
