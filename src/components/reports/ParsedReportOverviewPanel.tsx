@@ -1,6 +1,8 @@
 import React, { useMemo } from 'react';
 import { AlertTriangle, CheckCircle2, Database, FileText, ShieldCheck } from 'lucide-react';
 import type { ParsedCreditReport } from '../../domain/creditReports';
+import { contactsFromParsedReport } from '../../lib/debtCreditorIntel';
+import { buildCollectionContactBoard } from '../../lib/collectionContactBoard';
 import {
   FINELY_OS_ENTITY_BODY,
   FINELY_OS_ENTITY_SUBLABEL,
@@ -27,7 +29,10 @@ export function ParsedReportOverviewPanel({
     const sections = parsed.sections?.length ?? 0;
     const withHistory = (parsed.tradelines ?? []).filter((t) => t.paymentHistory2y?.months?.length).length;
     const hasPI = Boolean(parsed.personalInfo?.fullName || parsed.personalInfo?.addresses?.length || parsed.personalInfo?.ssnMasked);
-    const contacts = parsed.creditorContacts?.length ?? 0;
+    const rebuiltContacts = contactsFromParsedReport(parsed);
+    const board = buildCollectionContactBoard({ id: 'overview', parsed }, { useDirectoryFallback: false });
+    const contacts = Math.max(rebuiltContacts.length, board.contacts.length);
+    const contactsWithAddress = board.contactsWithAddress || rebuiltContacts.filter((c) => c.address).length;
     const fallback = Boolean(parsed.debug?.fallbackTradelinesUsed);
     const reportDate = parsed.reportDate || parsed.debug?.reportDateDetected;
     const quality: Array<{ kind: 'ok' | 'warn'; text: string }> = [];
@@ -40,7 +45,10 @@ export function ParsedReportOverviewPanel({
     if (sections > 0) quality.push({ kind: 'ok', text: `${sections} sections` });
     if (parsed.provider === 'unknown') quality.push({ kind: 'warn', text: 'Unknown provider' });
     if (fallback) quality.push({ kind: 'warn', text: 'Fallback tradeline detection' });
-    return { tradelines, scores, sections, withHistory, hasPI, contacts, fallback, reportDate, quality };
+    if (contactsWithAddress > 0) quality.push({ kind: 'ok', text: `${contactsWithAddress} creditor addresses` });
+    else if (contacts > 0) quality.push({ kind: 'warn', text: `${contacts} contacts, no addresses` });
+    else quality.push({ kind: 'warn', text: 'No Creditor Contacts yet' });
+    return { tradelines, scores, sections, withHistory, hasPI, contacts, contactsWithAddress, fallback, reportDate, quality };
   }, [parsed]);
 
   const hasWarnings = stats.quality.some((q) => q.kind === 'warn');
@@ -101,7 +109,12 @@ export function ParsedReportOverviewPanel({
             {q.text}
           </span>
         ))}
-        {stats.contacts > 0 && <span className={badgeClass('ok')}>{stats.contacts} contacts extracted</span>}
+        {stats.contactsWithAddress > 0 && (
+          <span className={badgeClass('ok')}>{stats.contactsWithAddress} creditor addresses</span>
+        )}
+        {stats.contacts > 0 && stats.contactsWithAddress === 0 && (
+          <span className={badgeClass('warn')}>{stats.contacts} contacts, no addresses</span>
+        )}
         {stats.hasPI && <span className={badgeClass('ok')}>Personal info found</span>}
       </div>
 

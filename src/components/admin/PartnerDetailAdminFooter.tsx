@@ -48,7 +48,7 @@ export function PartnerDetailAdminFooter({
   onUpdated: () => void;
   onOpenTab: (tab: TabKey) => void;
 }) {
-  const showAccess = true;
+  const showAccess = tab === 'overview' || tab === 'profile';
   const showBureauResources = tab === 'reports' || tab === 'debt';
   const showFullJourney = tab === 'overview' || tab === 'profile';
 

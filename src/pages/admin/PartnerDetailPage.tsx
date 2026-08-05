@@ -44,19 +44,8 @@ import { CreditIntelTabs } from '../../components/creditIntel/CreditIntelTabs';
 import { EvidenceUploader } from '../../components/evidence/EvidenceUploader';
 import { EvidenceList } from '../../components/evidence/EvidenceList';
 import { EvidencePickerModal } from '../../components/evidence/EvidencePickerModal';
-
-function fmtWhen(iso: string) {
-  try {
-    const d = new Date(iso);
-    if (!Number.isFinite(d.getTime())) return iso;
-    return d.toLocaleString();
-  } catch {
-    return iso;
-  }
-}
 import { ParsedReportOverviewPanel } from '../../components/reports/ParsedReportOverviewPanel';
 import { ParsedReportDiagnosticsPanel } from '../../components/reports/ParsedReportDiagnosticsPanel';
-import { ParsedReportViewer } from '../../components/reports/ParsedReportViewer';
 import type { Bureau, DisputeCandidate } from '../../domain/creditReports';
 import type { LetterRecord } from '../../domain/letters';
 import { deriveDisputeCandidates } from '../../creditReports/disputeCandidates';
@@ -2270,10 +2259,8 @@ function PartnerDetailPageInner() {
                       onOpenLetterGenerator={() => setTabAndUrl('letters')}
                       onOpenEvidenceVault={() => setEvidencePicker({})}
                       onOpenTasks={() => setTabAndUrl('tasks')}
+                      tradelinesExternalAnchor={null}
                     />
-                    <section className="w-full max-w-full overflow-visible" id="fc-tradelines-full">
-                      <ParsedReportViewer parsed={selectedReport.parsed} partnerId={partner.id} reportId={selectedReport.id} />
-                    </section>
                   </>
                 ) : null}
               </div>
@@ -2331,11 +2318,8 @@ function PartnerDetailPageInner() {
                   onOpenLetterGenerator={() => setTabAndUrl('letters')}
                   onOpenEvidenceVault={() => setEvidencePicker({})}
                   onOpenTasks={() => setTabAndUrl('tasks')}
+                  tradelinesExternalAnchor={null}
                 />
-
-                <section className="w-full max-w-full overflow-visible" id="fc-tradelines-full">
-                  <ParsedReportViewer parsed={selectedReport.parsed} partnerId={partner.id} reportId={selectedReport.id} />
-                </section>
               </div>
             ) : selectedReport ? (
               selectedReport.fileType === 'pdf' ? (

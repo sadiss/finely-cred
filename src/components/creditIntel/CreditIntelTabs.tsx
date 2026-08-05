@@ -22,7 +22,7 @@ import type { Bureau, DisputeCandidate, ParsedCreditReport, ParsedCreditorContac
 import { deriveDisputeCandidates } from '../../creditReports/disputeCandidates';
 import { assessCreditorContactRecovery, refreshCreditorContactsOnParsed } from '../../creditReports/creditorContactExtract';
 import { contactsFromParsedReport, persistRefreshedCreditorContactsOnReport } from '../../lib/debtCreditorIntel';
-import { buildCollectionContactBoard } from '../../lib/collectionContactBoard';
+import { buildCollectionContactBoard, classifyCollectionOrChargeOff } from '../../lib/collectionContactBoard';
 import { buildFactualDisputeSuggestions } from '../../lib/disputeLetterBuilder';
 import { bureauShortCode } from '../../utils/bureaus';
 import { computeCreditIntelReadiness, rankDisputeCandidates } from '../../creditReports/creditIntelInsights';
@@ -383,7 +383,7 @@ export function CreditIntelTabs({
     return refreshCreditorContactsOnParsed(base);
   }, [parsed]);
 
-  const [tab, setTab] = useState<TabKey>(initialTab ?? 'overview');
+  const [tab, setTab] = useState<TabKey>(initialTab ?? 'creditors');
   const [paydownAmount, setPaydownAmount] = useState<number>(1000);
   const [manualBalanceOverride, setManualBalanceOverride] = useState<string>('');
   const [manualLimitOverride, setManualLimitOverride] = useState<string>('');
@@ -520,24 +520,14 @@ export function CreditIntelTabs({
       const pick = (by: any) => (by?.EXP || by?.TUC || by?.EQF || '').toString();
       return rows.map((r) => pick(r.byBureau)).join(' ').trim();
     };
-    const allFieldBlob = (t: ParsedTradeline) => {
-      const parts: string[] = [];
-      for (const row of t.fields ?? []) {
-        if (!row) continue;
-        const by = row.byBureau ?? ({} as any);
-        const vals = [by.EXP, by.EQF, by.TUC].filter(Boolean).join(' ');
-        parts.push(`${row.label ?? ''} ${vals}`.trim());
-      }
-      return n(parts.join(' '));
-    };
 
     for (const t of safeParsed.tradelines ?? []) {
-      const typeBlob = n(
-        [
-          t.accountType ?? '',
-          findAnyField(t, 'account type', 'type of account', 'account type - detail', 'type detail', 'portfolio type'),
-        ].join(' '),
-      );
+      // Same strict rule as Validation / Creditor Contacts board — not every past-due open account.
+      if (classifyCollectionOrChargeOff(t)) {
+        buckets.collectionsAndChargeOffs.push(t);
+        continue;
+      }
+
       const status = n(t.accountStatus ?? '');
       const paymentStatus = n(
         findAnyField(
@@ -556,41 +546,17 @@ export function CreditIntelTabs({
           'delinquency',
         ),
       );
-      const anyField = allFieldBlob(t);
-
-      const isCollectionOrCO =
-        typeBlob.includes('collection') ||
-        paymentStatus.includes('collection') ||
-        anyField.includes('collection') ||
-        status.includes('charge') ||
-        status.includes('charge-off') ||
-        status.includes('charge off') ||
-        status.includes('chargeoff') ||
-        paymentStatus.includes('charge') ||
-        paymentStatus.includes('charge-off') ||
-        paymentStatus.includes('charge off') ||
-        paymentStatus.includes('chargeoff') ||
-        paymentStatus.includes('charged off') ||
-        anyField.includes('charge off') ||
-        anyField.includes('chargeoff') ||
-        anyField.includes('charged off') ||
-        anyField.includes('write off') ||
-        anyField.includes('writeoff') ||
-        status.includes('collection') ||
-        hasAnyDerogCode(t, (c) => c === 'co' || c === 'cl' || c.includes('col') || c.includes('charge'));
 
       const isLateOnly =
-        !isCollectionOrCO &&
-        (hasAnyDerogCode(t, (c) => ['30', '60', '90', '120'].includes(c)) ||
-          paymentStatus.includes('late') ||
-          paymentStatus.includes('delinq') ||
-          paymentStatus.includes('30') ||
-          paymentStatus.includes('60') ||
-          paymentStatus.includes('90') ||
-          paymentStatus.includes('120'));
+        hasAnyDerogCode(t, (c) => ['30', '60', '90', '120'].includes(c)) ||
+        paymentStatus.includes('late') ||
+        paymentStatus.includes('delinq') ||
+        paymentStatus.includes('30') ||
+        paymentStatus.includes('60') ||
+        paymentStatus.includes('90') ||
+        paymentStatus.includes('120');
 
       const isOtherDerog =
-        !isCollectionOrCO &&
         !isLateOnly &&
         (paymentStatus.includes('repo') ||
           paymentStatus.includes('repos') ||
@@ -599,8 +565,7 @@ export function CreditIntelTabs({
           status.includes('repo') ||
           status.includes('foreclos'));
 
-      if (isCollectionOrCO) buckets.collectionsAndChargeOffs.push(t);
-      else if (isLateOnly) buckets.latePayments.push(t);
+      if (isLateOnly) buckets.latePayments.push(t);
       else if (isOtherDerog) buckets.otherDerog.push(t);
     }
 
@@ -1482,12 +1447,23 @@ export function CreditIntelTabs({
             </button>
             <button className={tabBtn(tab === 'creditors')} onClick={() => setTab('creditors')}>
               <FileText size={12} className="inline mr-2" /> Creditors
+              {contactBoard.contactsWithAddress > 0
+                ? ` (${contactBoard.contactsWithAddress})`
+                : contactBoard.contacts.length > 0
+                  ? ` (${contactBoard.contacts.length})`
+                  : ''}
             </button>
             <button className={tabBtn(tab === 'accounts')} onClick={() => setTab('accounts')}>
               <SplitSquareVertical size={12} className="inline mr-2" /> Accounts
+              {safeParsed.tradelines?.length ? ` (${safeParsed.tradelines.length})` : ''}
             </button>
             <button className={tabBtn(tab === 'collections')} onClick={() => setTab('collections')}>
               <Scale size={12} className="inline mr-2" /> Collections
+              {contactBoard.collections.length
+                ? ` (${contactBoard.collections.length})`
+                : negativeBuckets.collectionsAndChargeOffs.length
+                  ? ` (${negativeBuckets.collectionsAndChargeOffs.length})`
+                  : ''}
             </button>
             <button className={tabBtn(tab === 'public_records')} onClick={() => setTab('public_records')}>
               <Gavel size={12} className="inline mr-2" /> Public records
@@ -2046,9 +2022,43 @@ export function CreditIntelTabs({
       {tab === 'collections' && (
         <div className="fc-soft-surface-lg backdrop-blur-xl p-6 space-y-6">
           <p className="text-[10px] uppercase tracking-widest text-white/45">Collections & charge-offs</p>
-          {/* From Account History — full account table + 2-year payment history (same layout as Accounts tab) */}
           <p className="text-white/60 text-sm">
-            These are collection / charge-off tradelines pulled from Account History. Expand an account to see details and payment history (when available).
+            Same list Validation uses: collection / charge-off accounts joined to Creditor Contacts mailing addresses
+            ({contactBoard.collectionsWithAddress} of {contactBoard.collections.length || collectionsDisplayTradelines.length} with an address).
+          </p>
+
+          {contactBoard.collections.length > 0 ? (
+            <div className="grid md:grid-cols-2 gap-3">
+              {contactBoard.collections.map((row) => (
+                <div key={row.collectionId} className="fc-soft-surface p-4 space-y-1.5">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="text-white/90 text-sm font-semibold leading-snug">{row.label}</div>
+                    <span className="shrink-0 text-[9px] uppercase tracking-widest text-sky-300">
+                      {row.addressSource === 'report_contact'
+                        ? 'Report contact'
+                        : row.addressSource === 'directory'
+                          ? 'Directory'
+                          : row.addressSource === 'tradeline'
+                            ? 'Tradeline'
+                            : 'Missing'}
+                    </span>
+                  </div>
+                  {row.matchedContactName ? (
+                    <div className="text-[10px] text-white/45">Matched contact: {row.matchedContactName}</div>
+                  ) : (
+                    <div className="text-[10px] text-amber-200/80">No Creditor Contact match yet</div>
+                  )}
+                  {row.mailingAddress ? (
+                    <div className="text-[11px] text-white/70 font-mono whitespace-pre-wrap">{row.mailingAddress}</div>
+                  ) : null}
+                  {row.phone ? <div className="text-[10px] text-white/40">{row.phone}</div> : null}
+                </div>
+              ))}
+            </div>
+          ) : null}
+
+          <p className="text-white/60 text-sm">
+            Full bureau field tables for these accounts (expand for payment history):
           </p>
           {collectionsDisplayTradelines.length > 0 ? (
             <ParsedReportViewer
@@ -2059,7 +2069,8 @@ export function CreditIntelTabs({
             />
           ) : (
             <p className="text-white/70 text-sm">
-              No collections detected in Account History. Upload a full report export; collection accounts from Account History and report sections will appear here.
+              No collections detected in Account History. Upload a full HTML IdentityIQ / MyScoreIQ export; collection
+              accounts will appear here.
             </p>
           )}
 

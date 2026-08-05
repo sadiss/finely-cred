@@ -9,7 +9,6 @@ import { listCreditAnalysisReportsByPartner, upsertCreditAnalysisReport } from '
 import { CreditAnalysisDeliverableStrip } from '../../components/reports/CreditAnalysisDeliverableCard';
 import { ReportUploader } from '../../components/reports/ReportUploader';
 import { ReportActionsBar, ReportFileStrip } from '../../components/reports/ReportFileStrip';
-import { ParsedReportViewer } from '../../components/reports/ParsedReportViewer';
 import { CreditIntelTabs } from '../../components/creditIntel/CreditIntelTabs';
 import { CreditIntelDashboardPanel } from '../../components/creditIntel/CreditIntelDashboardPanel';
 import { SmartProofUploader } from '../../components/evidence/SmartProofUploader';
@@ -621,6 +620,7 @@ export default function PartnerReportsPage() {
                         onReparseRequest={canReparseSelected ? () => void handleReparse(selected as any) : undefined}
                         initialTab={(deepLink.intelTab as any) || undefined}
                         initialScrollToAccount={deepLink.scrollToAccount}
+                        tradelinesExternalAnchor={null}
                         onStartDispute={(candidate: DisputeCandidate, reasonTexts: string[]) => {
                           const item = candidateToCaseItem(candidate, { reasons: reasonTexts });
                           const c = createDisputeCase({
@@ -634,9 +634,6 @@ export default function PartnerReportsPage() {
                           navigate(`/portal/letters?caseId=${encodeURIComponent(c.id)}`);
                         }}
                       />
-                      <section className="w-full max-w-full overflow-visible" id="fc-tradelines-full">
-                        <ParsedReportViewer parsed={selected.parsed} partnerId={partner.id} reportId={selected.id} />
-                      </section>
                     </>
                   ) : null}
                 </div>
@@ -1231,6 +1228,7 @@ export default function PartnerReportsPage() {
                     onReparseRequest={canReparseSelected ? () => void handleReparse(selected as any) : undefined}
                     initialTab={(deepLink.intelTab as any) || undefined}
                     initialScrollToAccount={deepLink.scrollToAccount}
+                    tradelinesExternalAnchor={null}
                     onStartDispute={(candidate: DisputeCandidate, reasonTexts: string[]) => {
                       const item = candidateToCaseItem(candidate, { reasons: reasonTexts });
                       const c = createDisputeCase({
@@ -1244,10 +1242,6 @@ export default function PartnerReportsPage() {
                       navigate(`/portal/letters?caseId=${encodeURIComponent(c.id)}`);
                     }}
                   />
-
-                  <section className="w-full max-w-full overflow-visible" id="fc-tradelines-full">
-                    <ParsedReportViewer parsed={selected.parsed} partnerId={partner.id} reportId={selected.id} />
-                  </section>
                 </div>
               ) : selected ? (
                 selected.fileType === 'pdf' ? (
