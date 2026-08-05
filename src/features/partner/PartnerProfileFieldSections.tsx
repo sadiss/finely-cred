@@ -63,7 +63,7 @@ export function PartnerProfileFieldSections(args: {
 
   if (!sections.length) {
     return (
-      <div className={`${FINELY_OS_ENTITY_BODY} text-sm`}>
+      <div className="text-sm text-[var(--fc-admin-ink-muted)]">
         No profile field sections configured. Add partner fields in Admin Settings.
       </div>
     );
@@ -82,22 +82,22 @@ export function PartnerProfileFieldSections(args: {
               className={
                 'text-left rounded-xl border px-4 py-3 transition-all hover:scale-[1.01] ' +
                 (filled
-                  ? 'border-emerald-400/40 bg-emerald-500/10 hover:border-emerald-400/55'
-                  : 'border-violet-400/25 bg-violet-500/8 hover:border-violet-400/45 hover:bg-violet-500/12')
+                  ? 'border-[var(--fc-admin-status-ok)]/35 bg-[var(--fc-admin-status-ok)]/[0.06] hover:border-[var(--fc-admin-status-ok)]/55'
+                  : 'border-[var(--fc-admin-border)] bg-[var(--fc-admin-surface-sunken)] hover:border-[var(--fc-admin-border-strong)]')
               }
             >
               <div className="flex items-center gap-2">
                 {filled ? (
-                  <Check size={14} className="text-emerald-400 shrink-0" />
+                  <Check size={14} className="text-[var(--fc-admin-status-ok)] shrink-0" />
                 ) : (
-                  <Plus size={14} className="text-violet-300 shrink-0" />
+                  <Plus size={14} className="text-[var(--fc-admin-accent)] shrink-0" />
                 )}
-                <span className={`${FINELY_OS_ENTITY_VALUE} text-sm`}>{s.title}</span>
+                <span className="text-sm font-semibold tracking-tight text-[var(--fc-admin-ink)]">{s.title}</span>
               </div>
-              <p className={`mt-1.5 ${FINELY_OS_ENTITY_BODY} text-xs leading-snug`}>
+              <p className="mt-1.5 text-xs leading-snug text-[var(--fc-admin-ink-muted)]">
                 {SECTION_HINTS[s.id] ?? 'Tap to open and fill out'}
               </p>
-              <p className="mt-1 text-[10px] uppercase tracking-wider text-white/45">
+              <p className="mt-1 text-[10px] uppercase tracking-wider text-[var(--fc-admin-ink-faint)]">
                 {filled ? 'Edit section' : 'Add info'}
               </p>
             </button>
