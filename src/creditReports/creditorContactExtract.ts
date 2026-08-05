@@ -296,7 +296,15 @@ export function extractContactsFromSections(sections: ParsedSection[]): ParsedCr
   const seen = new Set<string>();
   const contactKeys = new Set(['creditor_contacts', 'collections']);
 
-  for (const section of sections || []) {
+  // Remap mis-keyed sections whose *title* is clearly Creditor Contacts.
+  const normalized = (sections || []).map((section) => {
+    if (contactKeys.has(section.key)) return section;
+    const hit = creditorContactSectionHeading(section.title || '');
+    if (hit) return { ...section, key: hit.key, title: hit.title || section.title };
+    return section;
+  });
+
+  for (const section of normalized) {
     if (!contactKeys.has(section.key)) continue;
     const source: ParsedCreditorContact['source'] = 'section';
     const sectionKey = section.key;
@@ -321,16 +329,17 @@ export function extractContactsFromSections(sections: ParsedSection[]): ParsedCr
         (cols.length <= 2 && cols.every((c) => /detail|raw|text|line/i.test(c)));
 
       // Stacked freeform OCR lines: regroup into name + address + phone blobs
-      if (singleCol || (addrIdx < 0 && nameIdx < 0)) {
+      const runFreeform = singleCol || addrIdx < 0 || section.key === 'creditor_contacts';
+      if (runFreeform) {
         const lines = section.table.rows
-          .slice(0, 160)
+          .slice(0, 200)
           .map((r) => clean(r.join(' ')))
           .filter(Boolean);
         for (const blob of groupFreeformContactLines(lines)) {
           const parsed = parseFreeformContactBlock(blob);
           if (parsed) pushContact(out, seen, { ...parsed, source, sectionKey });
         }
-        // If we already got contacts from freeform, still allow structured rows below when columns exist
+        // Pure Details / freeform tables are done; structured tables may still add rows.
         if (singleCol) continue;
       }
 
@@ -659,23 +668,113 @@ export function applyCreditorContactsToTradelines(
 /** Section heading → key used by HTML + text parsers. */
 export function creditorContactSectionHeading(raw: string): { key: string; title: string } | null {
   const s = clean(raw).toLowerCase();
-  if (!s || s.length > 80) return null;
+  if (!s || s.length > 100) return null;
   // Avoid matching "contact us" footers / partner PI
-  if (/personal\s*information|consumer\s*contact|your\s*contact/.test(s)) return null;
+  if (/personal\s*information|consumer\s*contact|your\s*contact|contact\s*us\b|customer\s*service\s*hours/.test(s)) {
+    return null;
+  }
   if (
     s.includes('creditor contact') ||
     s.includes('creditor contacts') ||
+    s.includes('contacts for creditor') ||
+    s.includes('contact info for creditor') ||
+    s.includes('contact information for creditor') ||
     s.includes('collector contact') ||
     s.includes('collector contacts') ||
     s.includes('furnisher contact') ||
+    s.includes('furnisher information') ||
     s.includes('contact information') ||
     s.includes('contact info') ||
     s.includes('creditor information') ||
     s.includes('subscriber contact') ||
+    s.includes('subscriber information') ||
+    s.includes('creditor / collector') ||
+    s.includes('creditor/collector') ||
+    s.includes('how to contact') ||
+    s.includes('mailing addresses') ||
     s === 'contacts' ||
     s === 'contactors' // user-facing misnomer seen in feedback
   ) {
     return { key: 'creditor_contacts', title: 'Creditor Contacts' };
   }
   return null;
+}
+
+/**
+ * Merge stored + freshly rebuilt contacts. Address-bearing rows always win so a
+ * thin cached `creditorContacts` array never blocks re-extract from sections.
+ */
+export function mergeCreditorContactLists(
+  primary: ParsedCreditorContact[],
+  secondary: ParsedCreditorContact[],
+): ParsedCreditorContact[] {
+  const out: ParsedCreditorContact[] = [];
+  const seen = new Set<string>();
+  const prefer = (a: ParsedCreditorContact, b: ParsedCreditorContact): ParsedCreditorContact => {
+    const aScore = (a.address ? 4 : 0) + (a.phone ? 2 : 0) + (a.accountNumberMasked ? 1 : 0);
+    const bScore = (b.address ? 4 : 0) + (b.phone ? 2 : 0) + (b.accountNumberMasked ? 1 : 0);
+    if (bScore > aScore) {
+      return {
+        ...a,
+        ...b,
+        address: b.address || a.address,
+        phone: b.phone || a.phone,
+        accountNumberMasked: b.accountNumberMasked || a.accountNumberMasked,
+      };
+    }
+    return {
+      ...b,
+      ...a,
+      address: a.address || b.address,
+      phone: a.phone || b.phone,
+      accountNumberMasked: a.accountNumberMasked || b.accountNumberMasked,
+    };
+  };
+  for (const c of [...primary, ...secondary]) {
+    const name = clean(c.creditorName);
+    if (!name) continue;
+    const key = [
+      normName(name),
+      accountRefKey(c.accountNumberMasked),
+      c.source === 'tradeline' && typeof c.tradelineIndex === 'number' ? `t${c.tradelineIndex}` : '',
+    ].join('|');
+    const idx = out.findIndex((x) => {
+      const xKey = [
+        normName(x.creditorName),
+        accountRefKey(x.accountNumberMasked),
+        x.source === 'tradeline' && typeof x.tradelineIndex === 'number' ? `t${x.tradelineIndex}` : '',
+      ].join('|');
+      return xKey === key || (normName(x.creditorName) === normName(name) && !accountRefKey(c.accountNumberMasked) && !accountRefKey(x.accountNumberMasked));
+    });
+    if (idx >= 0) {
+      out[idx] = prefer(out[idx]!, c);
+      continue;
+    }
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(c);
+  }
+  return out;
+}
+
+/**
+ * Re-run section + tradeline contact extract on an already-parsed report and
+ * stamp addresses onto matching tradelines. Used so Validation / letters see
+ * contacts even when an older cached parse omitted `creditorContacts`.
+ */
+export function refreshCreditorContactsOnParsed<T extends {
+  tradelines?: ParsedTradeline[];
+  sections?: ParsedSection[];
+  creditorContacts?: ParsedCreditorContact[];
+  personalInfo?: ParsedPersonalInfo | null;
+}>(parsed: T): T {
+  const self = selfIdentityFromPersonalInfo(parsed.personalInfo);
+  const rebuilt = buildCreditorContacts(parsed.tradelines || [], parsed.sections || [], self);
+  const merged = mergeCreditorContactLists(rebuilt, parsed.creditorContacts || []);
+  const tradelines = applyCreditorContactsToTradelines(parsed.tradelines || [], merged);
+  return {
+    ...parsed,
+    tradelines,
+    creditorContacts: merged.length ? merged : undefined,
+  };
 }

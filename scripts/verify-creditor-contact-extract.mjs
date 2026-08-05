@@ -9,9 +9,17 @@ import {
   creditorContactSectionHeading,
   groupFreeformContactLines,
   looksLikeMailingAddress,
+  mergeCreditorContactLists,
   parseFreeformContactBlock,
+  refreshCreditorContactsOnParsed,
 } from '../src/creditReports/creditorContactExtract.ts';
 import { enrichParsedTradeline } from '../src/creditReports/enrichParsedTradeline.ts';
+import {
+  autoPersistDebtPartyIfEmpty,
+  contactsFromParsedReport,
+  resolveDebtPartyInfo,
+} from '../src/lib/debtCreditorIntel.ts';
+import { parseCreditReportText } from '../src/creditReports/parseTextReport.ts';
 
 function ok(label) {
   console.log(`  ✓ ${label}`);
@@ -20,6 +28,8 @@ function ok(label) {
 assert.equal(Boolean(creditorContactSectionHeading('Creditor Contacts')), true);
 assert.equal(Boolean(creditorContactSectionHeading('Contact Information')), true);
 assert.equal(Boolean(creditorContactSectionHeading('Contactors')), true);
+assert.equal(Boolean(creditorContactSectionHeading('Contact Info for Creditors')), true);
+assert.equal(Boolean(creditorContactSectionHeading('Furnisher Information')), true);
 assert.equal(creditorContactSectionHeading('Personal Information'), null);
 ok('section heading detection');
 
@@ -64,7 +74,6 @@ assert.ok(enriched.creditorAddress?.includes('PO BOX'));
 assert.ok(enriched.creditorPhone);
 ok('enrichParsedTradeline address/phone');
 
-// Reject "Original Creditor" name mistaken as address
 const noFalseAddr = enrichParsedTradeline({
   creditorName: 'Portfolio Recovery',
   fields: [
@@ -131,8 +140,128 @@ const freeformContacts = buildCreditorContacts(
 assert.ok(freeformContacts.some((c) => /midland/i.test(c.creditorName) && c.address));
 ok('freeform Details section extract');
 
-// Letter path wiring (resolveLetterMailRecipient) is covered via typecheck + LettersCommandCenter;
-// here we assert the data shape the letter layer consumes.
+const thinCached = {
+  tradelines,
+  sections,
+  creditorContacts: [{ creditorName: 'MIDLAND CREDIT MANAGEMENT', source: 'section' }],
+};
+const refreshed = refreshCreditorContactsOnParsed(thinCached);
+assert.ok(
+  (refreshed.creditorContacts || []).some((c) => /midland/i.test(c.creditorName) && c.address),
+  'refresh recovers address from sections',
+);
+ok('refreshCreditorContactsOnParsed recovers address');
+
+const merged = mergeCreditorContactLists(
+  [{ creditorName: 'MIDLAND CREDIT MANAGEMENT', source: 'section' }],
+  [
+    {
+      creditorName: 'MIDLAND CREDIT MANAGEMENT',
+      address: 'PO BOX 2121 WARREN MI 48090',
+      phone: '800-265-8825',
+      source: 'section',
+    },
+  ],
+);
+assert.ok(merged[0]?.address);
+ok('mergeCreditorContactLists prefers address-bearing');
+
+const fromParsed = contactsFromParsedReport(thinCached);
+assert.ok(fromParsed.some((c) => c.address), 'contactsFromParsedReport rebuilds past thin cache');
+ok('contactsFromParsedReport rebuilds past thin cache');
+
+const textReport = [
+  'IdentityIQ Credit Report',
+  'Creditor Contacts',
+  'MIDLAND CREDIT MANAGEMENT',
+  'PO BOX 2121',
+  'WARREN MI 48090',
+  '(800) 265-8825',
+  'PORTFOLIO RECOVERY ASSOCIATES',
+  '120 CORPORATE BLVD',
+  'NORFOLK VA 23502',
+  '800-772-1413',
+  'Account History',
+  'Creditor Name Midland Credit Management',
+  'Account Status Collection',
+  'Balance $1,094',
+].join('\n');
+const parsedText = parseCreditReportText(textReport, 'identityiq');
+assert.ok(
+  (parsedText.creditorContacts || []).some((c) => /midland/i.test(c.creditorName) && c.address),
+  `text parse should extract Midland address, got ${JSON.stringify(parsedText.creditorContacts)}`,
+);
+assert.ok(
+  (parsedText.creditorContacts || []).some((c) => /portfolio/i.test(c.creditorName) && c.address),
+  'text parse should extract PRA address',
+);
+ok(`parseCreditReportText Creditor Contacts (${parsedText.creditorContacts?.length || 0})`);
+
+const party = resolveDebtPartyInfo({
+  debt: {
+    id: 'debt_test',
+    partnerId: 'p1',
+    type: 'debt',
+    name: 'MIDLAND CREDIT MANAGEMENT',
+    amountCents: 109400,
+    status: 'open',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+  signals: [],
+  contacts: parsedText.creditorContacts || [],
+});
+assert.ok(party.recipientAddress, `debt party should get report contact address, got ${party.recipientAddress}`);
+assert.match(party.recipientName, /midland/i);
+assert.equal(party.matchedFrom, 'report_contact');
+ok('resolveDebtPartyInfo uses report Creditor Contacts for letter TO');
+
+// Report contacts beat litigation document scrapes for the collector TO block.
+const partyBeatsDoc = resolveDebtPartyInfo({
+  debt: {
+    id: 'debt_test2',
+    partnerId: 'p1',
+    type: 'debt',
+    name: 'MIDLAND CREDIT MANAGEMENT',
+    amountCents: 109400,
+    status: 'open',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+  signals: [],
+  contacts: parsedText.creditorContacts || [],
+  documents: [
+    {
+      id: 'doc1',
+      partnerId: 'p1',
+      kind: 'summons',
+      createdAt: new Date().toISOString(),
+      entities: {
+        collectorName: 'MIDLAND CREDIT MANAGEMENT',
+        address: '999 COURT HOUSE RD SOMEWHERE ST 00000',
+        plaintiffLawFirmAddress: '1 LAW FIRM WAY ANYTOWN NY 10001',
+      },
+    },
+  ],
+});
+assert.match(partyBeatsDoc?.recipientAddress || '', /2121/);
+assert.equal(partyBeatsDoc?.matchedFrom, 'report_contact');
+ok('report Creditor Contacts beat summons scrape for letter TO');
+
+const emptyDebt = {
+  id: 'debt_empty',
+  partnerId: 'p1',
+  type: 'debt',
+  name: 'MIDLAND CREDIT MANAGEMENT',
+  amountCents: 109400,
+  status: 'open',
+  createdAt: new Date().toISOString(),
+  updatedAt: new Date().toISOString(),
+};
+const persisted = autoPersistDebtPartyIfEmpty(emptyDebt, party);
+assert.ok(persisted?.recipientAddress?.includes('2121'), 'autoPersist should write report address onto empty debt');
+ok('autoPersistDebtPartyIfEmpty writes report contact onto debt');
+
 assert.ok(tradelinesFilled[0].creditorAddress);
 assert.ok(contacts.some((c) => c.source === 'section' && c.address));
 ok('report contact shape ready for letter TO autofill');

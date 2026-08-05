@@ -113,6 +113,7 @@
     "extract:premium-spreads": "node scripts/extract-premium-spread-pngs.mjs",
     "smoke:premium-spread-pdf": "npx tsx scripts/smoke-premium-spread-pdf.mjs",
     "smoke:litigation-address-scrape": "npx tsx scripts/smoke-litigation-address-scrape.mjs",
+    "verify:creditor-contacts": "npx tsx scripts/verify-creditor-contact-extract.mjs",
     "dispute:track:audit": "node scripts/audit-dispute-track-purity.mjs"
   },
   "devDependencies": {

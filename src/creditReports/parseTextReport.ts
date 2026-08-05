@@ -1,6 +1,6 @@
 import type { Bureau, CreditReportProvider, ParsedCreditReport, ParsedScore, ParsedSection, ParsedTable, ParsedTradeline, PaymentHistory2Y, TradelineRow } from '../domain/creditReports';
 import { detectProviderFromText } from './detectProvider';
-import { detectReportDateFromText } from './parsePdfText';
+import { detectReportDateFromText } from './detectReportDateFromText';
 import type { ParsedPersonalInfo } from '../domain/creditReports';
 import { enrichParsedTradeline } from './enrichParsedTradeline';
 import {
@@ -544,16 +544,19 @@ function extractSectionsFromText(lines: string[]): ParsedSection[] {
       .filter((r) => r.length >= 2)
       .slice(0, 240);
 
-    // Creditor Contacts often OCR as stacked freeform lines (name / street / city / phone)
-    // rather than multi-column rows — keep the raw block so contact extract can parse it.
+    // Creditor Contacts: always keep stacked freeform lines. OCR often invents
+    // fake 2-column rows ("MIDLAND CREDIT" | "MANAGEMENT") that skip the Details
+    // path and drop address/phone — that is why Validation letters ship blank.
+    if (hk.key === 'creditor_contacts' && block.length >= 2) {
+      sections.push({
+        key: hk.key,
+        title: hk.title,
+        table: { columns: ['Details'], rows: block.slice(0, 160).map((l) => [l]) },
+      });
+      continue;
+    }
+
     if (!rowsAll.length) {
-      if (hk.key === 'creditor_contacts' && block.length >= 2) {
-        sections.push({
-          key: hk.key,
-          title: hk.title,
-          table: { columns: ['Details'], rows: block.slice(0, 120).map((l) => [l]) },
-        });
-      }
       continue;
     }
 

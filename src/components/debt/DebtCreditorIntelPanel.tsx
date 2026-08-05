@@ -24,6 +24,7 @@ import {
   listReportCreditorTargets,
   listSummonsDocumentsForDebt,
   mergeDebtCreditorFields,
+  persistRefreshedCreditorContactsOnReport,
   resolveDebtPartyInfo,
   type DebtPartyInfo,
   type ReportedDebtSignal,
@@ -111,6 +112,26 @@ export function DebtCreditorIntelPanel({
       }
     }
     return out;
+  }, [reports]);
+
+  // Recover Creditor Contacts addresses from sections onto cached parses so
+  // Validation fields + letters see name/address/phone without a manual re-parse.
+  useEffect(() => {
+    let changed = false;
+    for (const r of reports) {
+      if (!r.id || !r.parsed) continue;
+      const before = (r.parsed.creditorContacts || []).filter((c) => c.address).length;
+      const next = persistRefreshedCreditorContactsOnReport({ id: r.id, parsed: r.parsed });
+      const after = (next?.creditorContacts || []).filter((c) => c.address).length;
+      if (after > before) changed = true;
+    }
+    if (changed) {
+      try {
+        window.dispatchEvent(new CustomEvent('finely:store'));
+      } catch {
+        /* ignore */
+      }
+    }
   }, [reports]);
 
   // The partner is never a valid letter recipient — collect every way we know
