@@ -1,6 +1,5 @@
 import React, { useMemo, useState } from 'react';
 import { Activity, ArrowRight, Pin, ScrollText, User, X } from 'lucide-react';
-import { KpiCard } from '../../components/ui/KpiCards';
 import { bureauShortCode } from '../../utils/bureaus';
 import type { PartnerOverallScoreResult } from '../../utils/partnerOverallScore';
 import type { ActivityTimelineItem } from '../../components/partner/PartnerActivityTimeline';
@@ -138,7 +137,7 @@ function ActivityInsightCards({
       <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
         {activeItems.slice(0, 6).map((item) => (
           <div key={item.id} className="flex items-start gap-2 rounded-lg border border-[var(--fc-admin-border)] bg-[var(--fc-admin-surface-sunken)] px-3 py-2">
-            {item.pinned ? <Pin size={12} className="mt-1 text-amber-300 shrink-0" /> : <Activity size={12} className="mt-1 opacity-40 shrink-0" />}
+            {item.pinned ? <Pin size={12} className="mt-1 text-[var(--fc-admin-status-warn)] shrink-0" /> : <Activity size={12} className="mt-1 opacity-40 shrink-0" />}
             <div className="min-w-0 flex-1">
               <div className={`text-sm ${FINELY_OS_ENTITY_VALUE} truncate`}>{item.title || item.body?.slice(0, 80) || 'Update'}</div>
               <div className={`text-[11px] ${FINELY_OS_ENTITY_BODY}`}>{fmtWhen(item.createdAt)}</div>
@@ -289,15 +288,18 @@ export function PartnerOverviewTab(args: {
 
       {args.overallScore ? (
         <div className="grid md:grid-cols-4 gap-3">
-          <KpiCard
-            label="Overall"
-            value={args.overallScore.overall}
-            hint="Readiness"
-            tone={args.overallScore.overall >= 80 ? 'emerald' : args.overallScore.overall >= 60 ? 'amber' : 'violet'}
-          />
-          <KpiCard label="Open cases" value={args.openPartnerCasesCount} hint="Disputes" tone="emerald" />
-          <KpiCard label="Evidence" value={args.evidenceCount} hint="On file" tone="sky" />
-          <KpiCard label="Improvements" value={args.overallScore.topActions.length} hint="Fast wins" tone="fuchsia" />
+          {[
+            { label: 'Overall', value: args.overallScore.overall, hint: 'Readiness' },
+            { label: 'Open cases', value: args.openPartnerCasesCount, hint: 'Disputes' },
+            { label: 'Evidence', value: args.evidenceCount, hint: 'On file' },
+            { label: 'Improvements', value: args.overallScore.topActions.length, hint: 'Fast wins' },
+          ].map((k) => (
+            <div key={k.label} className={finelyOsEntityKpi()}>
+              <p className={FINELY_OS_ENTITY_SUBLABEL}>{k.label}</p>
+              <p className={`mt-2 text-3xl font-semibold leading-none ${FINELY_OS_ENTITY_VALUE}`}>{k.value}</p>
+              <p className={`mt-2 text-xs ${FINELY_OS_ENTITY_BODY}`}>{k.hint}</p>
+            </div>
+          ))}
         </div>
       ) : null}
 
@@ -346,7 +348,7 @@ export function PartnerOverviewTab(args: {
         <button
           type="button"
           onClick={args.onOpenProfile}
-          className={`w-full text-left rounded-xl border border-amber-500/25 bg-amber-500/10 px-4 py-3 ${FINELY_OS_ENTITY_BODY} text-sm`}
+          className={`w-full text-left rounded-xl border border-[var(--fc-admin-status-warn)]/30 bg-[var(--fc-admin-status-warn)]/[0.08] px-4 py-3 ${FINELY_OS_ENTITY_BODY} text-sm`}
         >
           {args.emptyCustomFieldSections} profile section{args.emptyCustomFieldSections === 1 ? '' : 's'} still empty — open Profile to finish.
         </button>
