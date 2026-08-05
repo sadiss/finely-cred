@@ -21,6 +21,7 @@ import {
   Send,
   BarChart3,
   User,
+  X,
 } from 'lucide-react';
 import { downloadBlob } from '../../utils/download';
 import { PageShell } from '../../components/layout/PageShell';
@@ -45,7 +46,6 @@ import { EvidenceUploader } from '../../components/evidence/EvidenceUploader';
 import { EvidenceList } from '../../components/evidence/EvidenceList';
 import { EvidencePickerModal } from '../../components/evidence/EvidencePickerModal';
 import { ParsedReportOverviewPanel } from '../../components/reports/ParsedReportOverviewPanel';
-import { ParsedReportDiagnosticsPanel } from '../../components/reports/ParsedReportDiagnosticsPanel';
 import type { Bureau, DisputeCandidate } from '../../domain/creditReports';
 import type { LetterRecord } from '../../domain/letters';
 import { deriveDisputeCandidates } from '../../creditReports/disputeCandidates';
@@ -142,6 +142,8 @@ import {
   FINELY_OS_BANNER,
   FINELY_OS_ACTIVE_CHIP,
   FINELY_OS_VIEW_TABS,
+  FINELY_OS_FIXED_OVERLAY,
+  FINELY_OS_MODAL_SHELL,
   finelyOsEntityKpi,
   finelyOsInlineListItem,
   finelyOsListItem,
@@ -415,6 +417,7 @@ function PartnerDetailPageInner() {
   const [deleteReportErr, setDeleteReportErr] = useState<string | null>(null);
   const [reparseReportId, setReparseReportId] = useState<string | null>(null);
   const [reparseReportErr, setReparseReportErr] = useState<string | null>(null);
+  const [parseOverviewOpen, setParseOverviewOpen] = useState(false);
   const [analysisBusy, setAnalysisBusy] = useState(false);
   const [analysisNotice, setAnalysisNotice] = useState<string | null>(null);
   const [selectedCandidateIds, setSelectedCandidateIds] = useState<string[]>([]);
@@ -930,6 +933,22 @@ function PartnerDetailPageInner() {
       setAnalysisNotice(e?.message || 'Failed to generate report.');
     } finally {
       setAnalysisBusy(false);
+    }
+  };
+
+  // Re-parse a stored report. Shared by the Reports tab action bar and CreditIntelTabs' inline re-parse control.
+  const handleReparseReport = async (report: any) => {
+    if (!report || Boolean(reparseReportId)) return;
+    setReparseReportErr(null);
+    setReparseReportId(report.id);
+    try {
+      const updated = await reparseStoredCreditReport({ record: report });
+      upsertReport(updated);
+      setReportsRefreshKey((v) => v + 1);
+    } catch (err: any) {
+      setReparseReportErr(err?.message || 'Re-parse failed.');
+    } finally {
+      setReparseReportId(null);
     }
   };
 
@@ -2192,22 +2211,20 @@ function PartnerDetailPageInner() {
                       isLegacyPendingReportBlob(selectedReport.rawBlobRef) ||
                       !canAccessReportBlob(selectedReport.rawBlobRef)
                     }
-                    onClick={async () => {
-                      setReparseReportErr(null);
-                      setReparseReportId(selectedReport.id);
-                      try {
-                        const updated = await reparseStoredCreditReport({ record: selectedReport });
-                        upsertReport(updated);
-                        setReportsRefreshKey((v) => v + 1);
-                      } catch (err: any) {
-                        setReparseReportErr(err?.message || 'Re-parse failed.');
-                      } finally {
-                        setReparseReportId(null);
-                      }
-                    }}
+                    onClick={() => handleReparseReport(selectedReport)}
                   >
                     <RefreshCcw size={14} className="text-fuchsia-300" /> {reparseReportId === selectedReport.id ? 'Re-parsing…' : 'Re-parse'}
                   </button>
+                  {selectedReport.parsed ? (
+                    <button
+                      type="button"
+                      className={FINELY_OS_SECONDARY_BTN}
+                      title="View parsed report overview"
+                      onClick={() => setParseOverviewOpen(true)}
+                    >
+                      <FileText size={14} /> Parse overview
+                    </button>
+                  ) : null}
                   <button
                     type="button"
                     className={`${FINELY_OS_ENTITY_ACTION} disabled:opacity-60 disabled:cursor-not-allowed`}
@@ -2259,6 +2276,7 @@ function PartnerDetailPageInner() {
                       onOpenLetterGenerator={() => setTabAndUrl('letters')}
                       onOpenEvidenceVault={() => setEvidencePicker({})}
                       onOpenTasks={() => setTabAndUrl('tasks')}
+                      onReparseRequest={() => handleReparseReport(selectedReport)}
                       tradelinesExternalAnchor={null}
                     />
                   </>
@@ -2266,50 +2284,6 @@ function PartnerDetailPageInner() {
               </div>
             ) : selectedReport?.parsed ? (
               <div className="space-y-6 w-full max-w-full overflow-visible">
-                <ParsedReportOverviewPanel parsed={selectedReport.parsed} filename={selectedReport.filename} />
-                <ParsedReportDiagnosticsPanel
-                  parsed={selectedReport.parsed}
-                  filename={selectedReport.filename}
-                  variant="admin"
-                  pdfMeta={selectedReport.fileType === 'pdf' ? (selectedReport.pdfMeta as any) : undefined}
-                  defaultOpen={
-                    (selectedReport.parsed.tradelines?.length ?? 0) === 0 ||
-                    Boolean(selectedReport.parsed.debug?.fallbackTradelinesUsed) ||
-                    selectedReport.parsed.provider === 'unknown'
-                  }
-                />
-
-                <div className={`${finelyOsCatalogCard('emerald')} !p-5 md:!p-6 backdrop-blur-xl space-y-4 w-full`}>
-                  <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
-                    <div className="min-w-0 flex-1">
-                      <div className={`${FINELY_OS_ENTITY_SUBLABEL} text-emerald-300`}>Free deliverable</div>
-                      <div className={`mt-2 ${FINELY_OS_ENTITY_TITLE} text-base`}>Credit Analysis Report</div>
-                      <div className={`mt-1 ${FINELY_OS_ENTITY_BODY}`}>
-                        Multi-page PDF with scores, negatives breakdown, positives, and a personalized roadmap. Saved to the partner record and listed under Analysis Report.
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => setTabAndUrl('analysis')}
-                        className={`mt-3 inline-flex items-center gap-2 ${FINELY_OS_ENTITY_ACCENT_LINK}`}
-                        title="Open the Analysis Report tab"
-                      >
-                        Open Analysis Report tab <ExternalLink size={16} />
-                      </button>
-                    </div>
-                    <button
-                      type="button"
-                      className={`${FINELY_OS_PRIMARY_BTN} shrink-0`}
-                      disabled={analysisBusy}
-                      onClick={() => runGenerateAnalysis(selectedReport)}
-                    >
-                      {analysisBusy ? 'Creating premium report…' : 'Create premium analysis'}
-                    </button>
-                  </div>
-                  {analysisNotice ? (
-                    <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony text-sm ${FINELY_OS_ENTITY_BODY}`}>{analysisNotice}</div>
-                  ) : null}
-                </div>
-
                 <CreditIntelTabs
                   parsed={selectedReport.parsed}
                   reportId={selectedReport.id}
@@ -2318,6 +2292,7 @@ function PartnerDetailPageInner() {
                   onOpenLetterGenerator={() => setTabAndUrl('letters')}
                   onOpenEvidenceVault={() => setEvidencePicker({})}
                   onOpenTasks={() => setTabAndUrl('tasks')}
+                  onReparseRequest={() => handleReparseReport(selectedReport)}
                   tradelinesExternalAnchor={null}
                 />
               </div>
@@ -2344,6 +2319,43 @@ function PartnerDetailPageInner() {
                 Upload a report to view parsed tradelines.
               </div>
             )}
+
+            {parseOverviewOpen && selectedReport?.parsed ? (
+              <div className={FINELY_OS_FIXED_OVERLAY} role="presentation" onClick={() => setParseOverviewOpen(false)}>
+                <div
+                  className={`${FINELY_OS_MODAL_SHELL} relative z-10 w-full max-w-3xl mx-4 my-auto`}
+                  role="dialog"
+                  aria-modal="true"
+                  aria-labelledby="parse-overview-title"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <div className="flex items-start justify-between gap-3 border-b border-white/10 px-4 py-3">
+                    <div className="min-w-0">
+                      <div className={FINELY_OS_ENTITY_SUBLABEL}>Parse overview</div>
+                      <h2 id="parse-overview-title" className={`mt-1 ${FINELY_OS_ENTITY_TITLE} truncate`}>
+                        {selectedReport.filename}
+                      </h2>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setParseOverviewOpen(false)}
+                      className="shrink-0 rounded-full p-1.5 text-white/60 hover:text-white hover:bg-white/10 transition-colors"
+                      aria-label="Close"
+                    >
+                      <X size={18} />
+                    </button>
+                  </div>
+                  <div className="px-4 py-4 overflow-y-auto max-h-[72vh]">
+                    <ParsedReportOverviewPanel parsed={selectedReport.parsed} filename={selectedReport.filename} />
+                  </div>
+                  <div className="flex justify-end gap-2 border-t border-white/10 px-4 py-3">
+                    <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => setParseOverviewOpen(false)}>
+                      Close
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ) : null}
           </div>
         )}
 

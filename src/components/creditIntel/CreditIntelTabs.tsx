@@ -1877,116 +1877,84 @@ export function CreditIntelTabs({
       )}
 
       {tab === 'creditors' && (
-        <div className="fc-soft-surface-lg backdrop-blur-xl p-6 space-y-6">
-          <div className="space-y-2">
-            <p className="text-[10px] uppercase tracking-widest text-white/45">Creditor Contacts (from your report)</p>
+        <div className="fc-soft-surface-lg backdrop-blur-xl p-6 space-y-4">
+          <div className="space-y-1">
+            <p className="text-[10px] uppercase tracking-widest text-white/45">Creditor Contacts</p>
             <p className="text-white/60 text-sm">
               {contactBoard.contacts.length
-                ? `${contactBoard.contacts.length} contact${contactBoard.contacts.length === 1 ? '' : 's'} from the Creditor Contacts section and related fields — ${creditorContactsWithAddress} with a mailing address. Collections below are joined to these contacts for Validation letters.`
-                : 'No Creditor Contacts were recovered from this parse yet. Re-parse the stored file, or upload the HTML export that includes the Creditor Contacts pages.'}
+                ? `${contactBoard.contacts.length} contact${contactBoard.contacts.length === 1 ? '' : 's'} · ${creditorContactsWithAddress} with mailing address · ${contactBoard.collections.length} collection/charge-off account${contactBoard.collections.length === 1 ? '' : 's'} linked where matched.`
+                : 'No Creditor Contacts recovered yet. Use Re-parse on this report (IdentityIQ / MyScoreIQ HTML preferred).'}
             </p>
           </div>
-          {contactRecovery.needsReparse ? (
+
+          {contactBoard.contactsWithAddress === 0 &&
+          contactBoard.collectionsWithAddress === 0 &&
+          (contactBoard.contacts.length === 0 || contactRecovery.needsReparse) ? (
             <div className={`${finelyOsCatalogCard('amber')} !p-4 space-y-2`}>
-              <div className={FINELY_OS_ENTITY_VALUE}>No mailing addresses in this parse</div>
+              <div className={FINELY_OS_ENTITY_VALUE}>No mailing addresses yet</div>
               <p className={FINELY_OS_ENTITY_BODY}>
-                This report has {contactRecovery.tradelineCount} account(s) but no creditor or collector addresses, so letters
-                cannot autofill the TO block. Re-parse reads your stored file again with the latest contact extractor — no
-                re-upload needed.
+                Re-parse reads your stored HTML file again so Creditor Contacts can fill these cards.
               </p>
               {onReparseRequest ? (
                 <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => onReparseRequest()}>
                   Re-parse for contacts
                 </button>
               ) : (
-                <p className={FINELY_OS_ENTITY_SUBLABEL}>
-                  Use the Re-parse button on this report to recover contacts.
-                </p>
+                <p className={FINELY_OS_ENTITY_SUBLABEL}>Use Re-parse on this report.</p>
               )}
             </div>
           ) : null}
+
           <div className="grid md:grid-cols-2 gap-4">
-            {contactBoard.contacts.length
-              ? contactBoard.contacts.map((c) => (
-                  <div key={c.contactId} className="fc-soft-surface-lg p-5 space-y-2">
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="text-white/90 font-semibold truncate">{c.creditorName}</div>
-                      {c.matchedCollectionCount > 0 ? (
-                        <span className="shrink-0 text-[9px] uppercase tracking-widest text-fuchsia-300">
-                          {c.matchedCollectionCount} collection{c.matchedCollectionCount === 1 ? '' : 's'}
-                        </span>
-                      ) : null}
+            {(contactBoard.contacts.length ? contactBoard.contacts : []).map((c) => {
+              const linked = contactBoard.collections.filter((row) => row.matchedContactId === c.contactId);
+              return (
+                <div key={c.contactId} className="fc-soft-surface-lg p-5 space-y-2">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="text-white/90 font-semibold leading-snug">{c.creditorName}</div>
+                    {linked.length > 0 ? (
+                      <span className="shrink-0 text-[9px] uppercase tracking-widest text-fuchsia-300">
+                        {linked.length} collection{linked.length === 1 ? '' : 's'}
+                      </span>
+                    ) : null}
+                  </div>
+                  <div className="text-[11px] text-white/70 font-mono space-y-1 whitespace-pre-wrap break-words">
+                    {c.accountNumberMasked ? <div>acct: {c.accountNumberMasked}</div> : null}
+                    {c.address ? (
+                      <div>address: {c.address}</div>
+                    ) : (
+                      <div className="text-amber-200/80">No mailing address on this contact</div>
+                    )}
+                    {c.phone ? <div>phone: {c.phone}</div> : null}
+                  </div>
+                  {linked.length > 0 ? (
+                    <div className="pt-2 border-t border-white/10 space-y-1">
+                      {linked.map((row) => (
+                        <div key={row.collectionId} className="text-[10px] text-white/55">
+                          {row.label}
+                          {!row.mailingAddress && c.address ? ' · uses this mailing block' : ''}
+                        </div>
+                      ))}
                     </div>
+                  ) : null}
+                </div>
+              );
+            })}
+            {!contactBoard.contacts.length
+              ? creditorContactsDerived.map((c, i) => (
+                  <div key={`${c.creditorName}_${i}`} className="fc-soft-surface-lg p-5 space-y-2">
+                    <div className="text-white/90 font-semibold truncate">{c.creditorName}</div>
                     <div className="text-[11px] text-white/70 font-mono space-y-1 whitespace-pre-wrap break-words">
-                      {c.accountNumberMasked ? <div>acct: {c.accountNumberMasked}</div> : null}
-                      {c.address ? <div>address: {c.address}</div> : null}
                       {c.phone ? <div>phone: {c.phone}</div> : null}
-                      <div className="text-white/45">source: {c.source}</div>
-                      {!c.address && !c.phone ? (
-                        <div className="text-white/45">No contact details for this entry.</div>
+                      {c.address ? <div>address: {c.address}</div> : null}
+                      {!c.phone && !c.address ? (
+                        <div className="text-white/45">No contact fields on this tradeline.</div>
                       ) : null}
                     </div>
                   </div>
                 ))
-              : creditorContactsDerived.map((c, i) => (
-                  <div key={`${c.creditorName}_${i}`} className="fc-soft-surface-lg p-5 space-y-2">
-                    <div className="text-white/90 font-semibold truncate">{c.creditorName}</div>
-                    <div className="text-[11px] text-white/70 font-mono space-y-1 whitespace-pre-wrap break-words">
-                      {c.subscriber ? <div>subscriber: {c.subscriber}</div> : null}
-                      {c.phone ? <div>phone: {c.phone}</div> : null}
-                      {c.website ? <div>website: {c.website}</div> : null}
-                      {c.address ? <div>address: {c.address}</div> : null}
-                      {c.other.map((o, oi) => (
-                        <div key={oi}>
-                          {o.label}: {o.value}
-                        </div>
-                      ))}
-                      {!c.subscriber && !c.phone && !c.website && !c.address && c.other.length === 0 ? (
-                        <div className="text-white/45">No contact fields detected for this tradeline.</div>
-                      ) : null}
-                    </div>
-                  </div>
-                ))}
+              : null}
           </div>
-
-          {contactBoard.collections.length > 0 ? (
-            <div className="space-y-3 pt-2 border-t border-white/10">
-              <div>
-                <p className="text-[10px] uppercase tracking-widest text-white/45">Collections & charge-offs (joined)</p>
-                <p className="text-white/60 text-sm mt-1">
-                  {contactBoard.collectionsWithAddress} of {contactBoard.collections.length} have a mailing address matched
-                  from Creditor Contacts{contactBoard.collectionsMissingAddress ? ` · ${contactBoard.collectionsMissingAddress} still missing` : ''}.
-                </p>
-              </div>
-              <div className="grid md:grid-cols-2 gap-3">
-                {contactBoard.collections.map((row) => (
-                  <div key={row.collectionId} className="fc-soft-surface p-4 space-y-1.5">
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="text-white/90 text-sm font-semibold leading-snug">{row.label}</div>
-                      <span className="shrink-0 text-[9px] uppercase tracking-widest text-sky-300">
-                        {row.addressSource === 'report_contact'
-                          ? 'Report contact'
-                          : row.addressSource === 'directory'
-                            ? 'Directory'
-                            : row.addressSource === 'tradeline'
-                              ? 'Tradeline'
-                              : 'Missing'}
-                      </span>
-                    </div>
-                    {row.matchedContactName ? (
-                      <div className="text-[10px] text-white/45">Matched contact: {row.matchedContactName}</div>
-                    ) : (
-                      <div className="text-[10px] text-amber-200/80">No Creditor Contact match yet</div>
-                    )}
-                    {row.mailingAddress ? (
-                      <div className="text-[11px] text-white/70 font-mono whitespace-pre-wrap">{row.mailingAddress}</div>
-                    ) : null}
-                    {row.phone ? <div className="text-[10px] text-white/40">{row.phone}</div> : null}
-                  </div>
-                ))}
-              </div>
-            </div>
-          ) : null}
         </div>
       )}
 
@@ -2020,12 +1988,20 @@ export function CreditIntelTabs({
           )}
 
       {tab === 'collections' && (
-        <div className="fc-soft-surface-lg backdrop-blur-xl p-6 space-y-6">
-          <p className="text-[10px] uppercase tracking-widest text-white/45">Collections & charge-offs</p>
-          <p className="text-white/60 text-sm">
-            Same list Validation uses: collection / charge-off accounts joined to Creditor Contacts mailing addresses
-            ({contactBoard.collectionsWithAddress} of {contactBoard.collections.length || collectionsDisplayTradelines.length} with an address).
-          </p>
+        <div className="fc-soft-surface-lg backdrop-blur-xl p-6 space-y-4">
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <p className="text-[10px] uppercase tracking-widest text-white/45">Collections & charge-offs</p>
+              <p className="text-white/60 text-sm mt-1">
+                {contactBoard.collections.length
+                  ? `${contactBoard.collectionsWithAddress} of ${contactBoard.collections.length} have a mailing address (same join Validation uses).`
+                  : 'No collection or charge-off accounts detected on this report.'}
+              </p>
+            </div>
+            <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => setTab('accounts')}>
+              Bureau field tables
+            </button>
+          </div>
 
           {contactBoard.collections.length > 0 ? (
             <div className="grid md:grid-cols-2 gap-3">
@@ -2044,49 +2020,18 @@ export function CreditIntelTabs({
                     </span>
                   </div>
                   {row.matchedContactName ? (
-                    <div className="text-[10px] text-white/45">Matched contact: {row.matchedContactName}</div>
-                  ) : (
-                    <div className="text-[10px] text-amber-200/80">No Creditor Contact match yet</div>
-                  )}
+                    <div className="text-[10px] text-white/45">Contact: {row.matchedContactName}</div>
+                  ) : null}
                   {row.mailingAddress ? (
                     <div className="text-[11px] text-white/70 font-mono whitespace-pre-wrap">{row.mailingAddress}</div>
-                  ) : null}
+                  ) : (
+                    <div className="text-[10px] text-amber-200/80">No mailing address matched yet</div>
+                  )}
                   {row.phone ? <div className="text-[10px] text-white/40">{row.phone}</div> : null}
                 </div>
               ))}
             </div>
           ) : null}
-
-          <p className="text-white/60 text-sm">
-            Full bureau field tables for these accounts (expand for payment history):
-          </p>
-          {collectionsDisplayTradelines.length > 0 ? (
-            <ParsedReportViewer
-              parsed={{ ...safeParsed, tradelines: collectionsDisplayTradelines }}
-              partnerId={partnerId}
-              reportId={reportId}
-              showSequence
-            />
-          ) : (
-            <p className="text-white/70 text-sm">
-              No collections detected in Account History. Upload a full HTML IdentityIQ / MyScoreIQ export; collection
-              accounts will appear here.
-            </p>
-          )}
-
-          {/* Supplemental: provider “Collections / Public Records” sections when present */}
-          {(renderSection('collections') || renderSection('public_records')) && (
-            <div className="pt-2 space-y-4">
-              <div className="fc-soft-surface p-4">
-                <p className="text-[10px] uppercase tracking-widest text-white/45">From report sections (supplemental)</p>
-                <p className="mt-2 text-white/60 text-sm">
-                  Some provider exports list collections/public records outside Account History. If present, they’ll show here as additional rows/cards.
-                </p>
-              </div>
-              {renderSection('collections')}
-              {renderSection('public_records')}
-            </div>
-          )}
         </div>
       )}
 

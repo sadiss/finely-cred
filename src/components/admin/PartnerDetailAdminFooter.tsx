@@ -5,7 +5,6 @@ import { AdminPartnerAccessPanel } from './AdminPartnerAccessPanel';
 import { AdminPartnerMessagePanel } from './AdminPartnerMessagePanel';
 import { PartnerSpecialistAssignmentPanel } from './PartnerSpecialistAssignmentPanel';
 import { PartnerIntakeLinkPanel } from './PartnerIntakeLinkPanel';
-import { PartnerBureauResourcesPanel } from './PartnerBureauResourcesPanel';
 import { JourneyStageAdminControl } from '../journey/JourneyStageAdminControl';
 import { PartnerCreditRestoreHud } from '../../features/partner/PartnerCreditRestoreHud';
 import { PartnerCreditRestoreMiniRail } from '../../features/partner/PartnerCreditRestoreMiniRail';
@@ -49,33 +48,40 @@ export function PartnerDetailAdminFooter({
   onOpenTab: (tab: TabKey) => void;
 }) {
   const showAccess = tab === 'overview' || tab === 'profile';
-  const showBureauResources = tab === 'reports' || tab === 'debt';
+  const showBureauResources = false;
   const showFullJourney = tab === 'overview' || tab === 'profile';
+  const showRestoreRail = tab === 'reports' || tab === 'debt' || tab === 'letters' || tab === 'evidence';
 
   return (
     <>
-      {showBureauResources ? <PartnerBureauResourcesPanel /> : null}
+      {showRestoreRail ? (
+        <div className="mb-4">
+          <PartnerCreditRestoreMiniRail
+            reportsCount={reportsCount}
+            evidenceCount={evidenceCount}
+            lettersCount={lettersCount}
+            onOpenTab={(t) => onOpenTab(t as TabKey)}
+          />
+        </div>
+      ) : null}
 
       {showAccess ? (
         <>
-          {/* Access first — Grant Credit Letters / Debt cannot be missed on every tab */}
           <AdminPartnerAccessPanel partner={partner} onUpdated={onUpdated} />
           <AdminPartnerMessagePanel partner={partner} />
           <PartnerSpecialistAssignmentPanel partner={partner} onUpdated={onUpdated} />
         </>
       ) : null}
 
+      {showFullJourney ? (
       <section id="partner-client-journey" className={`${finelyOsCatalogCard('emerald')} !p-5 border-t-4 border-emerald-400/40 scroll-mt-8`}>
         <div>
           <p className={FINELY_OS_ENTITY_SUBLABEL}>Partner journey</p>
           <p className={`mt-1 ${FINELY_OS_ENTITY_BODY} text-sm`}>
-            {showFullJourney
-              ? 'Stage control and restore progress for this partner.'
-              : 'Quick restore progress — open Overview or Profile for access, invites, and full journey controls.'}
+            Stage control and restore progress for this partner.
           </p>
         </div>
 
-        {showFullJourney ? (
           <div className="mt-5 space-y-5">
             <JourneyStageAdminControl partner={partner} actorEmail={actorEmail} onUpdated={onUpdated} />
             <PartnerCreditRestoreHud
@@ -103,17 +109,8 @@ export function PartnerDetailAdminFooter({
               </div>
             </details>
           </div>
-        ) : (
-          <div className="mt-4">
-            <PartnerCreditRestoreMiniRail
-              reportsCount={reportsCount}
-              evidenceCount={evidenceCount}
-              lettersCount={lettersCount}
-              onOpenTab={(t) => onOpenTab(t as TabKey)}
-            />
-          </div>
-        )}
       </section>
+      ) : null}
     </>
   );
 }

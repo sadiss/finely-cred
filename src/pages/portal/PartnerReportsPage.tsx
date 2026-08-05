@@ -10,11 +10,9 @@ import { CreditAnalysisDeliverableStrip } from '../../components/reports/CreditA
 import { ReportUploader } from '../../components/reports/ReportUploader';
 import { ReportActionsBar, ReportFileStrip } from '../../components/reports/ReportFileStrip';
 import { CreditIntelTabs } from '../../components/creditIntel/CreditIntelTabs';
-import { CreditIntelDashboardPanel } from '../../components/creditIntel/CreditIntelDashboardPanel';
 import { SmartProofUploader } from '../../components/evidence/SmartProofUploader';
 import { EvidenceList } from '../../components/evidence/EvidenceList';
 import { ParsedReportOverviewPanel } from '../../components/reports/ParsedReportOverviewPanel';
-import { ParsedReportDiagnosticsPanel } from '../../components/reports/ParsedReportDiagnosticsPanel';
 import { PdfReportFallbackView } from '../../components/reports/PdfReportFallbackView';
 import { LegacyPendingReportNotice } from '../../components/reports/LegacyPendingReportNotice';
 import { isLegacyPendingReportBlob } from '../../lib/legacyPendingReport';
@@ -83,11 +81,10 @@ import type { TemplateVaultItem } from '../../domain/templateVault';
 import { captureScoreSnapshotFromReport, listCreditScoreSnapshots } from '../../data/creditScoreSnapshotsRepo';
 import { listLettersByPartner } from '../../data/lettersRepo';
 import { listCasesByPartner } from '../../data/casesRepo';
-import { buildCreditIntelDashboard, spawnDisputeTaskFromSuggestion } from '../../lib/creditIntelDashboard';
-import { listTasksByPartner } from '../../data/tasksRepo';
 import { PartnerCreditRestoreCommandStrip } from '../../components/partner/PartnerCreditRestoreCommandStrip';
 import { FinelyOsAlertBanner } from '../../features/os/FinelyOsAlertBanner';
 import { computeRestoreEvidenceCoverage } from '../../lib/evidenceCoverage';
+import { buildCollectionContactBoard } from '../../lib/collectionContactBoard';
 
 export default function PartnerReportsPage() {
   const auth = useAuth();
@@ -113,6 +110,7 @@ export default function PartnerReportsPage() {
   const [reparseId, setReparseId] = useState<string | null>(null);
   const [reparseErr, setReparseErr] = useState<string | null>(null);
   const [reportSyncNotice, setReportSyncNotice] = useState<{ ok: boolean; message: string } | null>(null);
+  const [parseOverviewOpen, setParseOverviewOpen] = useState(false);
 
   useEffect(() => {
     const onSync = (e: Event) => {
@@ -176,15 +174,6 @@ export default function PartnerReportsPage() {
     () => (partner ? listCreditScoreSnapshots(partner.id) : []),
     [partner, reportsVersion],
   );
-  const creditIntelModel = useMemo(() => {
-    if (!selected?.parsed) return null;
-    return buildCreditIntelDashboard({
-      parsed: selected.parsed,
-      snapshots: scoreSnapshots,
-      evidence,
-      letters,
-    });
-  }, [selected?.parsed, scoreSnapshots, evidence, letters]);
   const [analysisBusy, setAnalysisBusy] = useState(false);
   const [analysisNotice, setAnalysisNotice] = useState<string | null>(null);
   const [analysisVariant, setAnalysisVariant] = useState<'standard' | 'negatives_heavy' | 'funding_focus'>('standard');
@@ -283,6 +272,19 @@ export default function PartnerReportsPage() {
   const contactRecovery = useMemo(
     () => assessCreditorContactRecovery(selected?.parsed ?? null),
     [selected?.id, selected?.parsed],
+  );
+
+  const selectedContactBoard = useMemo(() => {
+    if (!selected) return null;
+    return buildCollectionContactBoard({ id: selected.id, parsed: selected.parsed ?? null });
+  }, [selected?.id, selected?.parsed]);
+
+  const showContactRecoveryBanner = Boolean(
+    selected?.parsed &&
+      contactRecovery.needsReparse &&
+      selectedContactBoard &&
+      selectedContactBoard.contactsWithAddress === 0 &&
+      selectedContactBoard.collectionsWithAddress === 0,
   );
 
   useEffect(() => {
@@ -497,6 +499,16 @@ export default function PartnerReportsPage() {
             {selected ? (
               <div className={`${finelyOsCatalogCard('violet')} !p-4 md:!p-5 w-full`}>
                 <ReportActionsBar report={selected}>
+                  {selected.parsed ? (
+                    <button
+                      type="button"
+                      className={FINELY_OS_SECONDARY_BTN}
+                      title="View the parsed report overview"
+                      onClick={() => setParseOverviewOpen(true)}
+                    >
+                      Parse overview
+                    </button>
+                  ) : null}
                   <button
                     type="button"
                     className={FINELY_OS_SECONDARY_BTN}
@@ -554,7 +566,7 @@ export default function PartnerReportsPage() {
               </div>
             ) : null}
 
-            {selected?.parsed && contactRecovery.needsReparse ? (
+            {selected?.parsed && showContactRecoveryBanner ? (
               <div className={`${finelyOsCatalogCard('amber')} !p-4 space-y-2`}>
                 <div className={FINELY_OS_ENTITY_VALUE}>Creditor mailing addresses missing</div>
                 <div className={FINELY_OS_ENTITY_BODY}>
@@ -596,19 +608,6 @@ export default function PartnerReportsPage() {
                   />
                   {selected.parsed ? (
                     <>
-                      {creditIntelModel ? (
-                        <CreditIntelDashboardPanel
-                          model={creditIntelModel}
-                          onSpawnTask={(candidateId) => {
-                            if (!partner) return;
-                            const suggestion = creditIntelModel.nextDisputes.find((d) => d.candidateId === candidateId);
-                            if (!suggestion) return;
-                            const titles = listTasksByPartner(partner.id).map((t) => t.title);
-                            spawnDisputeTaskFromSuggestion({ partnerId: partner.id, suggestion, existingTaskTitles: titles });
-                          }}
-                        />
-                      ) : null}
-                      <ParsedReportOverviewPanel parsed={selected.parsed} filename={selected.filename} />
                       <CreditIntelTabs
                         parsed={selected.parsed}
                         reportId={selected.id}
@@ -639,35 +638,11 @@ export default function PartnerReportsPage() {
                 </div>
               ) : selected?.parsed ? (
                 <div className="space-y-6">
-                  {creditIntelModel ? (
-                    <CreditIntelDashboardPanel
-                      model={creditIntelModel}
-                      onSpawnTask={(candidateId) => {
-                        if (!partner) return;
-                        const suggestion = creditIntelModel.nextDisputes.find((d) => d.candidateId === candidateId);
-                        if (!suggestion) return;
-                        const titles = listTasksByPartner(partner.id).map((t) => t.title);
-                        spawnDisputeTaskFromSuggestion({ partnerId: partner.id, suggestion, existingTaskTitles: titles });
-                      }}
-                    />
-                  ) : null}
-                  <ParsedReportOverviewPanel parsed={selected.parsed} filename={selected.filename} />
                   {(selected.parsed.tradelines?.length ?? 0) === 0 ? (
                     <div className={FINELY_OS_NOTICE_WARN}>
                       Partial parse — no tradelines extracted. Try HTML export, re-parse, or upload a fuller report file.
                     </div>
                   ) : null}
-                  <ParsedReportDiagnosticsPanel
-                    parsed={selected.parsed}
-                    filename={selected.filename}
-                    variant="partner"
-                    pdfMeta={selected.fileType === 'pdf' ? (selected.pdfMeta as any) : undefined}
-                    defaultOpen={
-                      (selected.parsed.tradelines?.length ?? 0) === 0 ||
-                      Boolean(selected.parsed.debug?.fallbackTradelinesUsed) ||
-                      selected.parsed.provider === 'unknown'
-                    }
-                  />
 
                   {identityCheck?.faults?.length ? (
                     <div className={`${finelyOsCatalogCard('violet')} !p-5 border-fuchsia-500/25 space-y-4`}>
@@ -733,486 +708,6 @@ export default function PartnerReportsPage() {
                             </div>
                           );
                         })}
-                      </div>
-                    </div>
-                  ) : null}
-
-                  <div className={`${finelyOsCatalogCard('violet')} !p-5 space-y-4`}>
-                    <div className="flex items-start justify-between gap-4">
-                      <div>
-                        <div className="text-[10px] uppercase tracking-widest text-emerald-700">Analysis system</div>
-                        <div className={`mt-2 ${FINELY_OS_ENTITY_VALUE}`}>
-                          Premium Credit Analysis
-                        </div>
-                        <div className={`mt-1 ${FINELY_OS_ENTITY_BODY}`}>
-                          Pick how the PDF is built, then create. Structured premium is the recommended partner dossier.
-                          Results vary · not legal advice · funding subject to underwriting.
-                        </div>
-                      </div>
-                      <div className="shrink-0 flex flex-col items-end gap-2">
-                        <button
-                          type="button"
-                          disabled={analysisBusy}
-                          onClick={async () => {
-                            if (!partner || !selected?.parsed) return;
-                            setAnalysisNotice(null);
-                            setAnalysisBusy(true);
-                            try {
-                              const candidates = deriveDisputeCandidates(selected.parsed, selected.id);
-                              const exhibits = analysisIncludeExhibits && !isPremiumAnalysisTemplate
-                                ? analysisExhibitIds
-                                    .map((id) => evidence.find((e) => e.id === id) ?? null)
-                                    .filter(Boolean)
-                                    .filter((e: any) => String(e?.mimeType || '').toLowerCase().startsWith('image/'))
-                                    .slice(0, 10)
-                                    .map((e: any) => ({ blobRef: e.blobRef, filename: e.filename, mimeType: e.mimeType, caption: e.caption }))
-                                : [];
-                              const generated = await generatePartnerCreditAnalysisReport({
-                                partner,
-                                report: selected,
-                                candidates,
-                                variant: analysisVariant,
-                                exhibits,
-                                template: effectiveAnalysisTemplateConfig,
-                                snapshots: scoreSnapshots,
-                              });
-                              const { blob, filename, displayTitle, pages, exhibitsIncluded } = generated;
-                              const payloadSnapshot =
-                                'payloadSnapshot' in generated ? generated.payloadSnapshot : undefined;
-                              const resolvedEngine = resolveCreditAnalysisEngine(effectiveAnalysisTemplateConfig);
-                              const store = getBlobStore();
-                              const put = await store.put(blob, { partnerId: partner.id, reportId: selected.id, kind: 'analysis_report' });
-                              const item = upsertCreditAnalysisReport({
-                                partnerId: partner.id,
-                                reportId: selected.id,
-                                title: displayTitle,
-                                filename,
-                                blobRef: put.ref,
-                                sizeBytes: blob.size,
-                                pages,
-                                sourceReportFilename: selected.filename,
-                                engine: resolvedEngine,
-                                payloadSnapshot: payloadSnapshot as Record<string, unknown> | undefined,
-                              });
-                              setEvidenceVersion((v) => v + 1);
-                              setAnalysisReportsVersion((v) => v + 1);
-                              addAuditEvent({
-                                partnerId: partner.id,
-                                actorType: 'partner',
-                                actorEmail: email || undefined,
-                                action: 'report.credit_analysis.generated',
-                                entityType: 'credit_analysis_report',
-                                entityId: item.id,
-                                meta: { pages, filename, reportId: selected.id, variant: analysisVariant, exhibitsIncluded, engine: resolvedEngine },
-                              });
-                              setAnalysisNotice(
-                                `Analysis created (${resolvedEngine.replace(/_/g, ' ')} · ${pages} pages${exhibitsIncluded ? ` • ${exhibitsIncluded} exhibit(s)` : ''}). Open or regenerate anytime from Strategy reports below.`,
-                              );
-                              const emailResult = await notifyAnalysisReportReady({
-                                partner,
-                                report: selected,
-                                candidates,
-                                analysis: item,
-                                actorEmail: email || undefined,
-                              });
-                              if (emailResult.sent) {
-                                setAnalysisNotice((prev) =>
-                                  `${prev ?? ''} Analysis summary email sent to your inbox.`.trim(),
-                                );
-                              }
-                            } catch (e: any) {
-                              setAnalysisNotice(e?.message || 'Failed to generate report.');
-                            } finally {
-                              setAnalysisBusy(false);
-                            }
-                          }}
-                          className={FINELY_OS_SUCCESS_BTN}
-                        >
-                          {analysisBusy ? 'Creating report…' : 'Create analysis PDF'}
-                        </button>
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <div className={FINELY_OS_ENTITY_LABEL}>How should we build this report?</div>
-                      <div className="grid md:grid-cols-3 gap-3">
-                        {CREDIT_ANALYSIS_ENGINE_OPTIONS.map((opt) => {
-                          const on = analysisEngine === opt.id;
-                          return (
-                            <button
-                              key={opt.id}
-                              type="button"
-                              onClick={() => setAnalysisEngine(opt.id)}
-                              className={
-                                'text-left rounded-xl border px-3 py-3 transition-all ' +
-                                (on
-                                  ? 'border-emerald-400/50 bg-emerald-500/15 shadow-[0_0_20px_-10px_rgba(52,211,153,0.5)]'
-                                  : 'border-white/12 bg-black/25 hover:border-white/25')
-                              }
-                            >
-                              <div className="flex items-center justify-between gap-2">
-                                <span className={`text-sm font-semibold ${FINELY_OS_ENTITY_VALUE}`}>{opt.shortLabel}</span>
-                                {opt.recommended ? (
-                                  <span className="rounded-md border border-emerald-400/40 bg-emerald-500/20 px-1.5 py-0.5 text-[9px] uppercase tracking-widest text-emerald-100">
-                                    Default
-                                  </span>
-                                ) : null}
-                              </div>
-                              <p className={`mt-1.5 text-[11px] ${FINELY_OS_ENTITY_BODY}`}>{opt.summary}</p>
-                              <p className={`mt-1.5 text-[10px] text-amber-100/80`}>Best for: {opt.bestFor}</p>
-                            </button>
-                          );
-                        })}
-                      </div>
-                      <p className={`text-[11px] ${FINELY_OS_ENTITY_BODY}`}>
-                        After bureau updates: select this report again → Create analysis PDF to regenerate. Older copies stay in
-                        your Analysis vault at <span className="font-mono text-white/70">/portal/analysis</span>.
-                      </p>
-                    </div>
-
-                    <div className="grid md:grid-cols-3 gap-4">
-                      <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony ${isPremiumAnalysisTemplate ? 'opacity-50 pointer-events-none' : ''}`}>
-                        <div className={FINELY_OS_ENTITY_LABEL}>Variant</div>
-                        <select
-                          value={analysisVariant}
-                          onChange={(e) => setAnalysisVariant(e.target.value as any)}
-                          className={`mt-2 w-full ${FINELY_OS_ENTITY_SELECT}`}
-                        >
-                          <option value="standard">Standard</option>
-                          <option value="negatives_heavy">Negatives-heavy</option>
-                          <option value="funding_focus">Funding-focus</option>
-                        </select>
-                        <div className={`mt-2 text-[11px] ${FINELY_OS_ENTITY_BODY}`}>Controls section density + emphasis.</div>
-                      </div>
-
-                      <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony ${isPremiumAnalysisTemplate ? 'opacity-50 pointer-events-none' : ''}`}>
-                        <div className="flex items-center justify-between gap-3">
-                          <div className={FINELY_OS_ENTITY_LABEL}>Exhibits</div>
-                          <label className={`inline-flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL}`}>
-                            <input
-                              type="checkbox"
-                              checked={analysisIncludeExhibits}
-                              onChange={(e) => setAnalysisIncludeExhibits(e.target.checked)}
-                              className="accent-amber-500"
-                            />
-                            Include
-                          </label>
-                        </div>
-                        <div className={`mt-2 ${FINELY_OS_ENTITY_BODY}`}>
-                          Selected: <span className="font-mono">{analysisExhibitIds.length}</span>
-                        </div>
-                        <div className={`mt-2 text-[11px] ${FINELY_OS_ENTITY_BODY}`}>Adds image exhibits in the appendix (screenshots/attachments).</div>
-                      </div>
-
-                      <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony`}>
-                        <div className={FINELY_OS_ENTITY_LABEL}>Templates (optional)</div>
-                        {analysisTemplates.length === 0 ? (
-                          <div className={`mt-2 ${FINELY_OS_ENTITY_BODY}`}>No saved analysis templates yet.</div>
-                        ) : (
-                          <select
-                            value={selectedAnalysisTemplate?.id ?? ''}
-                            onChange={(e) => setAnalysisTemplateId(e.target.value)}
-                            className={`mt-2 w-full ${FINELY_OS_ENTITY_SELECT}`}
-                            title="Apply a saved analysis template"
-                          >
-                            {analysisTemplates.map((t) => (
-                              <option key={t.id} value={t.id}>
-                                {t.title}
-                              </option>
-                            ))}
-                          </select>
-                        )}
-                        <button
-                          type="button"
-                          disabled={!partner}
-                          onClick={() => {
-                            if (!partner) return;
-                            const tenantId = (partner.tenantId || '').trim() || FINELY_TENANT_ID;
-                            const title = `Credit Analysis Template • ${analysisVariant}`;
-                            const cfg = {
-                              ...effectiveAnalysisTemplateConfig,
-                              version: 1,
-                              title: 'Credit Analysis Report',
-                              badgeLine: 'Premium deliverable • Strategy • Negatives • Next steps',
-                              engine: analysisEngine,
-                              variant: analysisVariant,
-                              exhibits: { max: analysisIncludeExhibits ? 10 : 0 },
-                              negatives: { maxPerBucket: analysisVariant === 'negatives_heavy' ? 40 : 18 },
-                              minPages: 22,
-                            };
-                            createTemplateVaultItem({
-                              tenantId,
-                              title,
-                              category: 'ops',
-                              tags: [
-                                'analysis_report_template',
-                                `analysis_variant:${analysisVariant}`,
-                                `analysis_engine:${analysisEngine}`,
-                              ],
-                              kind: 'text',
-                              bodyText: JSON.stringify(cfg, null, 2),
-                              requiredEntitlements: defaultRequiredEntitlementsForCategory('ops'),
-                              createdBy: { actorType: 'partner', email: email || undefined },
-                            });
-                            setAnalysisNotice('Saved current analysis settings as a template (Templates Vault).');
-                          }}
-                          className={`mt-3 ${FINELY_OS_SECONDARY_BTN}`}
-                          title="Save these settings into Templates Vault (requires Templates entitlement to view/use)"
-                        >
-                          Save template
-                        </button>
-
-                        <button
-                          type="button"
-                          disabled={!partner}
-                          onClick={() => {
-                            if (!partner) return;
-                            const base = effectiveAnalysisTemplateConfig;
-                            setAnalysisTemplateStudioEditId(selectedAnalysisTemplate?.id ?? null);
-                            setAnalysisTemplateStudioTitle(selectedAnalysisTemplate?.title || `Credit Analysis Template • ${analysisVariant}`);
-                            setAnalysisTemplateStudioJson(JSON.stringify(base, null, 2));
-                            setAnalysisTemplateStudioErr(null);
-                            setAnalysisTemplateStudioOpen(true);
-                          }}
-                          className={`mt-2 ${FINELY_OS_SECONDARY_BTN}`}
-                          title="Edit/save a template config (JSON) used by the PDF generator"
-                        >
-                          Template studio
-                        </button>
-                      </div>
-                    </div>
-
-                    {analysisIncludeExhibits ? (
-                      <details className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony`}>
-                        <summary className="cursor-pointer select-none">
-                          <div className="flex items-center justify-between gap-3">
-                            <div className={FINELY_OS_ENTITY_LABEL}>Pick exhibits (images)</div>
-                            <div className="text-[10px] uppercase tracking-widest text-violet-300">Expand</div>
-                          </div>
-                        </summary>
-                        <div className="mt-3 grid md:grid-cols-2 gap-2">
-                          {evidence
-                            .filter((e) => String(e.mimeType || '').toLowerCase().startsWith('image/'))
-                            .slice(0, 40)
-                            .map((ev) => (
-                              <label key={ev.id} className={`flex items-start gap-2 ${finelyOsListItem(analysisExhibitIds.includes(ev.id), 'amber')} !p-3 cursor-pointer`}>
-                                <input
-                                  type="checkbox"
-                                  checked={analysisExhibitIds.includes(ev.id)}
-                                  onChange={() =>
-                                    setAnalysisExhibitIds((prev) => (prev.includes(ev.id) ? prev.filter((x) => x !== ev.id) : [...prev, ev.id]))
-                                  }
-                                  className="mt-1"
-                                />
-                                <div className="min-w-0">
-                                  <div className={`${FINELY_OS_ENTITY_VALUE} text-sm truncate`}>{ev.filename}</div>
-                                  <div className={`mt-1 ${FINELY_OS_ENTITY_SUBLABEL} truncate`}>
-                                    {ev.mimeType} • {new Date(ev.createdAt).toLocaleDateString()}
-                                  </div>
-                                  {ev.caption ? <div className={`mt-1 ${FINELY_OS_ENTITY_BODY} text-xs line-clamp-2`}>{ev.caption}</div> : null}
-                                </div>
-                              </label>
-                            ))}
-                        </div>
-                        <div className={`mt-2 text-[11px] ${FINELY_OS_ENTITY_BODY}`}>
-                          Tip: keep exhibits tight (3–6). The report generator will include up to 10 image exhibits.
-                        </div>
-                      </details>
-                    ) : null}
-
-                    {analysisNotice ? <div className={FINELY_OS_NOTICE}>{analysisNotice}</div> : null}
-
-                    <div className="mt-4">
-                      <div className={`${FINELY_OS_ENTITY_LABEL} mb-2`}>Your strategy reports</div>
-                      <p className={`mb-3 text-[11px] ${FINELY_OS_ENTITY_BODY}`}>
-                        Downloads open the saved PDF from when it was generated. To refresh after bureau updates, create a new
-                        analysis above (pick Structured premium). Legacy copies can stay archived or be deleted.
-                      </p>
-                      <CreditAnalysisDeliverableStrip
-                        items={analysisReports}
-                        partner={partner ?? undefined}
-                        creditReport={selected ?? undefined}
-                        actorEmail={email || undefined}
-                        actorRole="partner"
-                        onChanged={() => setAnalysisReportsVersion((v) => v + 1)}
-                        emptyHint="Generate your first premium or standard analysis above."
-                      />
-                    </div>
-                  </div>
-
-                  {analysisTemplateStudioOpen ? (
-                    <div className="fixed inset-0 z-[999] flex items-center justify-center p-4">
-                      <div
-                        className="absolute inset-0 bg-black/80 backdrop-blur-sm"
-                        onClick={() => {
-                          if (analysisTemplateStudioSaving) return;
-                          setAnalysisTemplateStudioOpen(false);
-                        }}
-                      />
-                      <div
-                        className={`relative w-full max-w-4xl overflow-hidden ${finelyOsCatalogCard('violet')} !p-0 shadow-2xl`}
-                        role="dialog"
-                        aria-modal="true"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <div className="p-6 border-b border-white/[0.08] flex items-start justify-between gap-4">
-                          <div className="min-w-0">
-                            <div className={FINELY_OS_ENTITY_SUBLABEL}>Template studio</div>
-                            <div className={`mt-2 text-2xl font-light ${FINELY_OS_ENTITY_VALUE} truncate`}>
-                              Credit Analysis Report template (JSON)
-                            </div>
-                            <div className={`mt-1 ${FINELY_OS_ENTITY_BODY}`}>
-                              Saved to Templates Vault as an <span className={`${FINELY_OS_ENTITY_VALUE} font-mono`}>ops</span> template with tag{' '}
-                              <span className={`${FINELY_OS_ENTITY_VALUE} font-mono`}>analysis_report_template</span>.
-                            </div>
-                          </div>
-                          <button
-                            type="button"
-                            className={FINELY_OS_SECONDARY_BTN}
-                            disabled={analysisTemplateStudioSaving}
-                            onClick={() => setAnalysisTemplateStudioOpen(false)}
-                          >
-                            Close
-                          </button>
-                        </div>
-
-                        <div className="p-6 space-y-4">
-                          {analysisTemplateStudioErr ? (
-                            <div className={FINELY_OS_NOTICE_ERROR}>{analysisTemplateStudioErr}</div>
-                          ) : null}
-
-                          <div className="grid lg:grid-cols-3 gap-4">
-                            <div className="lg:col-span-1 min-w-0 space-y-3">
-                              <div>
-                                <div className={FINELY_OS_ENTITY_SUBLABEL}>Template title</div>
-                                <input
-                                  value={analysisTemplateStudioTitle}
-                                  onChange={(e) => setAnalysisTemplateStudioTitle(e.target.value)}
-                                  className={FINELY_OS_ENTITY_INPUT}
-                                  placeholder="Credit Analysis Template • Standard"
-                                />
-                              </div>
-                              <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony text-[11px] ${FINELY_OS_ENTITY_BODY} space-y-2`}>
-                                <div className={`${FINELY_OS_ENTITY_VALUE} font-semibold`}>Tips</div>
-                                <div>- Keep <span className={`${FINELY_OS_ENTITY_VALUE} font-mono`}>version: 1</span>.</div>
-                                <div>- Set <span className={`${FINELY_OS_ENTITY_VALUE} font-mono`}>variant</span> to control density.</div>
-                                <div>- Set <span className={`${FINELY_OS_ENTITY_VALUE} font-mono`}>exhibits.max</span> to 0 to disable exhibits.</div>
-                                <div>- Set <span className={`${FINELY_OS_ENTITY_VALUE} font-mono`}>negatives.maxPerBucket</span> for depth.</div>
-                                <div>- Set <span className={`${FINELY_OS_ENTITY_VALUE} font-mono`}>minPages</span> for premium padding.</div>
-                              </div>
-                              <div className="flex flex-wrap gap-2">
-                                <button
-                                  type="button"
-                                  disabled={analysisTemplateStudioSaving}
-                                  onClick={() => {
-                                    setAnalysisTemplateStudioErr(null);
-                                    try {
-                                      const obj = JSON.parse(analysisTemplateStudioJson || '{}');
-                                      const norm = normalizeCreditAnalysisReportTemplateConfig(obj);
-                                      if (!norm) throw new Error('Invalid template config. Expected { "version": 1, ... }.');
-                                      const v = String(norm.variant || '').trim();
-                                      if (v === 'standard' || v === 'negatives_heavy' || v === 'funding_focus') setAnalysisVariant(v as any);
-                                      if (typeof norm.exhibits?.max === 'number') setAnalysisIncludeExhibits(norm.exhibits.max > 0);
-                                      setAnalysisNotice('Applied template settings to this generator panel.');
-                                      setAnalysisTemplateStudioErr(null);
-                                    } catch (e: any) {
-                                      setAnalysisTemplateStudioErr(e?.message || 'Invalid JSON.');
-                                    }
-                                  }}
-                                  className={FINELY_OS_PRIMARY_BTN}
-                                >
-                                  Apply to generator
-                                </button>
-                                <button
-                                  type="button"
-                                  disabled={analysisTemplateStudioSaving}
-                                  onClick={async () => {
-                                    if (!partner) return;
-                                    const tenantId = (partner.tenantId || '').trim() || FINELY_TENANT_ID;
-                                    const title = (analysisTemplateStudioTitle || '').trim() || `Credit Analysis Template • ${analysisVariant}`;
-                                    setAnalysisTemplateStudioSaving(true);
-                                    setAnalysisTemplateStudioErr(null);
-                                    try {
-                                      const obj = JSON.parse(analysisTemplateStudioJson || '{}');
-                                      const norm = normalizeCreditAnalysisReportTemplateConfig(obj);
-                                      if (!norm) throw new Error('Invalid template config. Expected { "version": 1, ... }.');
-                                      createTemplateVaultItem({
-                                        tenantId,
-                                        title,
-                                        category: 'ops',
-                                        tags: ['analysis_report_template', `analysis_variant:${String(norm.variant || analysisVariant)}`],
-                                        kind: 'text',
-                                        bodyText: JSON.stringify(norm, null, 2),
-                                        requiredEntitlements: defaultRequiredEntitlementsForCategory('ops'),
-                                        createdBy: { actorType: 'partner', email: email || undefined },
-                                      });
-                                      setAnalysisNotice('Saved template to Templates Vault.');
-                                      setAnalysisTemplateStudioOpen(false);
-                                      setAnalysisTemplateStudioEditId(null);
-                                    } catch (e: any) {
-                                      setAnalysisTemplateStudioErr(e?.message || 'Failed to save template.');
-                                    } finally {
-                                      setAnalysisTemplateStudioSaving(false);
-                                    }
-                                  }}
-                                  className={`${FINELY_OS_SECONDARY_BTN} disabled:opacity-60`}
-                                >
-                                  Save as new
-                                </button>
-                                {analysisTemplateStudioEditId ? (
-                                  <button
-                                    type="button"
-                                    disabled={analysisTemplateStudioSaving}
-                                    onClick={async () => {
-                                      if (!partner || !analysisTemplateStudioEditId) return;
-                                      const tenantId = (partner.tenantId || '').trim() || FINELY_TENANT_ID;
-                                      setAnalysisTemplateStudioSaving(true);
-                                      setAnalysisTemplateStudioErr(null);
-                                      try {
-                                        const obj = JSON.parse(analysisTemplateStudioJson || '{}');
-                                        const norm = normalizeCreditAnalysisReportTemplateConfig(obj);
-                                        if (!norm) throw new Error('Invalid template config. Expected { "version": 1, ... }.');
-                                        const existing = analysisTemplates.find((t) => t.id === analysisTemplateStudioEditId) ?? null;
-                                        if (!existing) throw new Error('Original template not found.');
-                                        upsertTemplateVaultItem({
-                                          ...existing,
-                                          tenantId,
-                                          title: (analysisTemplateStudioTitle || existing.title).trim() || existing.title,
-                                          tags: ['analysis_report_template', `analysis_variant:${String(norm.variant || analysisVariant)}`],
-                                          kind: 'text',
-                                          bodyText: JSON.stringify(norm, null, 2),
-                                          requiredEntitlements: defaultRequiredEntitlementsForCategory('ops'),
-                                        });
-                                        setAnalysisNotice('Updated template in Templates Vault.');
-                                        setAnalysisTemplateStudioOpen(false);
-                                      } catch (e: any) {
-                                        setAnalysisTemplateStudioErr(e?.message || 'Failed to update template.');
-                                      } finally {
-                                        setAnalysisTemplateStudioSaving(false);
-                                      }
-                                    }}
-                                    className={`${FINELY_OS_SECONDARY_BTN} disabled:opacity-60`}
-                                  >
-                                    Update selected
-                                  </button>
-                                ) : null}
-                              </div>
-                            </div>
-
-                            <div className="lg:col-span-2 min-w-0">
-                              <div className={FINELY_OS_ENTITY_SUBLABEL}>Template JSON</div>
-                              <textarea
-                                value={analysisTemplateStudioJson}
-                                onChange={(e) => setAnalysisTemplateStudioJson(e.target.value)}
-                                className={`mt-2 w-full h-[520px] ${FINELY_OS_ENTITY_SELECT} font-mono text-sm`}
-                                spellCheck={false}
-                              />
-                              <div className={`mt-2 text-[11px] ${FINELY_OS_ENTITY_BODY}`}>
-                                This config is consumed by the PDF generator at generation time.
-                              </div>
-                            </div>
-                          </div>
-                        </div>
                       </div>
                     </div>
                   ) : null}
@@ -1301,6 +796,29 @@ export default function PartnerReportsPage() {
           </div>
         )}
         </FinelyUnifiedHubLayout>
+
+        {parseOverviewOpen && selected?.parsed ? (
+          <div
+            className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4"
+            onClick={() => setParseOverviewOpen(false)}
+          >
+            <div
+              className={`relative w-full max-w-4xl max-h-[85vh] overflow-y-auto ${finelyOsCatalogCard('violet')} !p-5 shadow-2xl`}
+              role="dialog"
+              aria-modal="true"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-start justify-between gap-4 mb-4">
+                <div className={FINELY_OS_ENTITY_LABEL}>Parse overview</div>
+                <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => setParseOverviewOpen(false)}>
+                  Close
+                </button>
+              </div>
+              <ParsedReportOverviewPanel parsed={selected.parsed} filename={selected.filename} />
+            </div>
+          </div>
+        ) : null}
+
         <FinelyOsPageFooter />
         </div>
       </EntitlementGate>
