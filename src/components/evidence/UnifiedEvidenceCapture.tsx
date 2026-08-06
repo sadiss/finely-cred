@@ -41,6 +41,7 @@ import {
   debtPatchFromLitigationScrape,
   enrichLitigationScrapeFromCreditReports,
   mergeEmptyDebtFieldsFromScrape,
+  persistLitigationScrapeAsDocument,
   scrapeLitigationDocument,
   type LitigationScrapeResult,
   type ScrapedLitigationField,
@@ -308,7 +309,7 @@ export function UnifiedEvidenceCapture({
     onScrapeApplied?.(scraped);
   };
 
-  const runScrape = async (file: File) => {
+  const runScrape = async (file: File, ctx?: { evidenceId?: string; blobRef?: string }) => {
     if (!enableScrape) return;
     setScrapeBusy(true);
     setScrapeErr(null);
@@ -326,6 +327,22 @@ export function UnifiedEvidenceCapture({
       }
       setScrapeResult(scraped);
       onScrapeComplete?.(scraped);
+      // Persist regardless of whether a debt case is open yet — so letter
+      // builders can resolve this document's party address later even without
+      // an Apply, and even when the AI doc-intel pass missed a field.
+      if (partner.id) {
+        try {
+          persistLitigationScrapeAsDocument({
+            partnerId: partner.id,
+            evidenceId: ctx?.evidenceId,
+            blobRef: ctx?.blobRef,
+            filename: file.name,
+            scraped,
+          });
+        } catch {
+          /* best-effort persistence only */
+        }
+      }
       const lines = scraped.fields.length
         ? scraped.fields.map((f) => `• ${f.label}: ${f.value} (${f.confidence})`).join('\n')
         : 'Few structured fields — review caption / type chips, then confirm manually.';
@@ -385,7 +402,7 @@ export function UnifiedEvidenceCapture({
     setResult(res);
     onUploaded?.(res);
     if (opts?.runScrapeToo !== false && enableScrape) {
-      void runScrape(finalFile);
+      void runScrape(finalFile, { evidenceId: res.evidence.id, blobRef: res.evidence.blobRef });
     }
     return res;
   };

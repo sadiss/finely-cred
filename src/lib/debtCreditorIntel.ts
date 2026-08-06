@@ -3,16 +3,18 @@ import type { DebtCase } from '../domain/debt';
 import type { ProcessedDocument } from '../domain/documents';
 import type { EvidenceItem } from '../domain/evidence';
 import { listDebtByPartner, upsertDebt } from '../data/debtRepo';
-import { listReportsByPartner } from '../data/reportsRepo';
+import { getReport, listReportsByPartner, upsertReport } from '../data/reportsRepo';
 import {
   classifyCandidateNegativeType,
   type NegativeType,
 } from '../creditReports/negativePlaybooks';
 import { lookupKnownCreditorFromCandidates } from './knownCreditorDirectory';
+import { classifyCollectionOrChargeOff } from './collectionContactBoard';
 import {
   accountRefKey,
   buildCreditorContacts,
   isSelfParty,
+  refreshCreditorContactsOnParsed,
   sameAccountRef,
   selfIdentityFromPersonalInfo,
   type SelfPartyIdentity,
@@ -49,6 +51,14 @@ export type DebtPartyInfo = {
   signal?: ReportedDebtSignal;
   /** True when address came from auto sources (not typed by partner). */
   autoFilled?: boolean;
+  /**
+   * Report Creditor Contacts match, kept separate from the winning recipient.
+   * A summons scrape can own the firm block while the collector mailing block is
+   * still empty — this keeps the report answer available to fill it.
+   */
+  reportContactName?: string;
+  reportContactAddress?: string;
+  reportContactPhone?: string;
 };
 
 /** Build creditorContacts for PDF/text-parsed reports (and backfill older cached parses). */
@@ -56,17 +66,37 @@ export function buildCreditorContactsFromTradelines(tradelines: ParsedTradeline[
   return buildCreditorContacts(tradelines, []);
 }
 
-/** Prefer stored contacts; rebuild from tradelines + sections when older parses omitted them. */
+/**
+ * Prefer freshly rebuilt section contacts over a thin cached `creditorContacts`
+ * array — cached rows without addresses used to block re-extract forever.
+ */
 export function contactsFromParsedReport(parsed?: ParsedCreditReport | null): ParsedCreditorContact[] {
   if (!parsed) return [];
   const self = selfIdentityFromPersonalInfo(parsed.personalInfo);
-  if (Array.isArray(parsed.creditorContacts) && parsed.creditorContacts.length) {
-    // Older cached parses can contain the partner's own PI block as a "contact".
-    return parsed.creditorContacts.filter(
-      (c) => !isSelfParty({ name: c.creditorName, address: c.address }, self),
-    );
-  }
-  return buildCreditorContacts(parsed.tradelines || [], parsed.sections || [], self);
+  // refreshCreditorContactsOnParsed already prefers a rich contacts-table rebuild
+  // over a bloated cache — do not merge again (that re-inflated Validation/letters).
+  const refreshed = refreshCreditorContactsOnParsed(parsed);
+  const contacts = refreshed.creditorContacts || [];
+  return contacts.filter((c) => !isSelfParty({ name: c.creditorName, address: c.address }, self));
+}
+
+/**
+ * Persist refreshed creditor contacts onto a stored report when addresses were
+ * recovered from sections/tradelines after an older thin parse.
+ */
+export function persistRefreshedCreditorContactsOnReport(report: {
+  id: string;
+  parsed?: ParsedCreditReport | null;
+}): ParsedCreditReport | null {
+  if (!report.parsed) return null;
+  const beforeAddrs = (report.parsed.creditorContacts || []).filter((c) => c.address).length;
+  const refreshed = refreshCreditorContactsOnParsed(report.parsed);
+  const afterAddrs = (refreshed.creditorContacts || []).filter((c) => c.address).length;
+  if (afterAddrs <= beforeAddrs) return refreshed;
+  const existing = getReport(report.id);
+  if (!existing) return refreshed;
+  upsertReport({ ...existing, parsed: refreshed });
+  return refreshed;
 }
 
 export type ReportCreditorTarget = {
@@ -207,6 +237,27 @@ export function listReportCreditorTargets(
       const name = String(c.creditorName || '').trim();
       if (!name) return;
       if (isSelfParty({ name, address: c.address }, self)) return;
+      // A contacts-table row for a creditor already listed as a tradeline is the
+      // same letter target — keying tradelines on balance and contacts on
+      // address produced two chips for one account.
+      const acct = accountRefKey(c.accountNumberMasked);
+      const already = out.find((t) => {
+        if (t.reportId !== report.id) return false;
+        if (typeof t.tradelineIndex !== 'number') return false;
+        if (normCreditorName(t.creditorName) !== normCreditorName(name)) return false;
+        if (acct) return sameAccountRef(t.accountNumberMasked, c.accountNumberMasked);
+        // Nothing to tell the placements apart — same creditor, same target.
+        if (!c.address) return true;
+        return !t.address || normCreditorName(t.address) === normCreditorName(c.address);
+      });
+      if (already) {
+        if (!already.address && c.address) {
+          already.address = c.address;
+          already.hasAddress = true;
+        }
+        if (!already.phone && c.phone) already.phone = c.phone;
+        return;
+      }
       const key = creditorTargetKey({
         name,
         accountNumberMasked: c.accountNumberMasked,
@@ -278,19 +329,8 @@ export function classifyTradelineNegativeType(t: ParsedTradeline): NegativeType 
 }
 
 function tradelineNegativeType(t: ParsedTradeline): 'collection' | 'charge_off' | null {
-  const joined = tradelineJoined(t);
-  if (/(charge\s*off|charged\s*off|\bco\b|written\s*off)/.test(joined)) return 'charge_off';
-  if (
-    /(collection|collections|collector|debt\s*collector|placed\s*for\s*collection|3rd\s*party|third\s*party|assigned\s*to)/.test(
-      joined,
-    )
-  ) {
-    return 'collection';
-  }
-  if (/(past\s*due|delinquent|seriously\s*delinquent|late\s*payment|default|repossession|foreclosure)/.test(joined)) {
-    return 'collection';
-  }
-  return null;
+  // Strict: Validation only lists real collections / charge-offs — not every past-due open account.
+  return classifyCollectionOrChargeOff(t);
 }
 
 /** Strict filter — only tradelines classified as the requested collateral negative type. */
@@ -466,25 +506,50 @@ export function resolveDebtPartyInfo(args: {
   documents?: ProcessedDocument[];
   /** Partner's own name/address — never allowed to become the recipient. */
   self?: SelfPartyIdentity | null;
+  /**
+   * When true (court / summons), prefer plaintiff counsel fields for the TO block.
+   * Validation / debt letters leave this false so collector mailing wins.
+   */
+  preferCounsel?: boolean;
 }): DebtPartyInfo | null {
-  const { debt, signals, contacts, documents = [], self } = args;
+  const { debt, signals, contacts, documents = [], self, preferCounsel = false } = args;
   const notSelf = (name?: string | null, address?: string | null) =>
     !isSelfParty({ name, address }, self);
   if (!debt && signals[0]) {
     const s = signals[0];
+    // A negative tradeline often carries no mailing block of its own — the
+    // Creditor Contacts table does. Borrow it so the empty-case preview shows a
+    // real address instead of a bare name.
+    const contactForSignal = matchCreditorContactForName(s.creditorName, contacts, s.accountNumberMasked);
+    const address = s.address || (contactForSignal?.address && notSelf(contactForSignal.creditorName, contactForSignal.address) ? contactForSignal.address : '') || '';
     return {
       recipientName: s.creditorName,
-      recipientAddress: s.address || '',
-      recipientPhone: s.phone,
+      recipientAddress: address,
+      recipientPhone: s.phone || contactForSignal?.phone,
       collectorName: s.creditorName,
       originalCreditor: s.originalCreditor,
       accountNumberMasked: s.accountNumberMasked,
       balanceCents: s.balanceCents,
-      matchedFrom: 'tradeline',
+      matchedFrom: address && !s.address ? 'report_contact' : 'tradeline',
       signal: s,
     };
   }
-  if (!debt) return null;
+  if (!debt) {
+    // No case and no negative tradeline, but the report still lists creditors
+    // with mailing blocks — those are valid letter targets, so preview the best
+    // one instead of leaving every field blank.
+    const contact = (contacts || []).find((c) => c.address && notSelf(c.creditorName, c.address));
+    if (!contact) return null;
+    return {
+      recipientName: contact.creditorName,
+      recipientAddress: contact.address || '',
+      recipientPhone: contact.phone,
+      collectorName: contact.creditorName,
+      accountNumberMasked: contact.accountNumberMasked,
+      matchedFrom: 'report_contact',
+      autoFilled: true,
+    };
+  }
 
   const matchedSignal =
     signals.find((s) => s.reportId === debt.reportId && s.tradelineIndex === debt.tradelineIndex) ||
@@ -507,9 +572,41 @@ export function resolveDebtPartyInfo(args: {
     ) ||
     (debt.collectorName
       ? matchCreditorContactForName(debt.collectorName, contacts, debt.accountNumberMasked)
+      : null) ||
+    // Cases opened from a summons are often named after the plaintiff while the
+    // report lists the servicer — the shared account reference still identifies
+    // the right mailing block.
+    (debt.accountNumberMasked
+      ? contacts.find(
+          (c) =>
+            sameAccountRef(c.accountNumberMasked, debt.accountNumberMasked) &&
+            String(c.address || '').trim() &&
+            notSelf(c.creditorName, c.address),
+        ) ?? null
       : null);
   const matchedDoc =
-    documents.find((d) => namesLikelyMatch(d.entities.collectorName || d.entities.creditorName || '', debt.name)) ?? null;
+    documents.find((d) => {
+      const ids = debt.processedDocumentIds || [];
+      if (ids.length && ids.includes(d.id)) return true;
+      const keys = [
+        d.entities.collectorName,
+        d.entities.creditorName,
+        d.entities.plaintiffLawFirm,
+        d.entities.counselName,
+        d.entities.plaintiffName,
+        d.entities.originalCreditor,
+      ].filter(Boolean) as string[];
+      const debtKeys = [
+        debt.name,
+        debt.recipientName,
+        debt.collectorName,
+        debt.plaintiffLawFirm,
+        debt.originalCreditor,
+      ].filter(Boolean) as string[];
+      return keys.some((k) => debtKeys.some((dk) => namesLikelyMatch(k, dk)));
+    }) ??
+    documents.find((d) => Boolean(d.entities.plaintiffLawFirmAddress || d.entities.address)) ??
+    null;
 
   // Prefer counsel / attorney office, then collector / creditor / tradeline names
   const directoryHit = lookupKnownCreditorFromCandidates([
@@ -534,24 +631,41 @@ export function resolveDebtPartyInfo(args: {
   const caseRecipientUsable = notSelf(debt.recipientName, debt.recipientAddress);
   const caseFirmUsable = notSelf(debt.plaintiffLawFirm, debt.plaintiffLawFirmAddress);
 
-  const recipientName =
-    (caseFirmUsable ? debt.plaintiffLawFirm : '') ||
-    (caseRecipientUsable ? debt.recipientName : '') ||
-    (notSelf(debt.collectorName) ? debt.collectorName : '') ||
-    matchedDoc?.entities.plaintiffLawFirm ||
-    matchedDoc?.entities.collectorName ||
-    matchedDoc?.entities.creditorName ||
-    matchedSignal?.creditorName ||
-    directoryHit?.displayName ||
-    debt.name;
-  const recipientAddress =
-    (caseFirmUsable ? debt.plaintiffLawFirmAddress : '') ||
-    (caseRecipientUsable ? debt.recipientAddress : '') ||
-    firmAddressFromDoc ||
-    matchedContact?.address ||
-    matchedSignal?.address ||
-    directoryHit?.address ||
-    '';
+  // Creditor Contacts from the credit report are the primary TO source for
+  // validation / debt letters. Litigation scrapes fill firm/court fields —
+  // prefer those only when preferCounsel (court mode / summons).
+  const recipientName = preferCounsel
+    ? (caseFirmUsable ? debt.plaintiffLawFirm : '') ||
+      (caseRecipientUsable ? debt.recipientName : '') ||
+      (notSelf(debt.collectorName) ? debt.collectorName : '') ||
+      (matchedContact && notSelf(matchedContact.creditorName) ? matchedContact.creditorName : '') ||
+      matchedDoc?.entities.plaintiffLawFirm ||
+      matchedDoc?.entities.collectorName ||
+      matchedDoc?.entities.creditorName ||
+      matchedSignal?.creditorName ||
+      directoryHit?.displayName ||
+      debt.name
+    : (caseRecipientUsable ? debt.recipientName : '') ||
+      (notSelf(debt.collectorName) ? debt.collectorName : '') ||
+      (matchedContact && notSelf(matchedContact.creditorName) ? matchedContact.creditorName : '') ||
+      matchedDoc?.entities.collectorName ||
+      matchedDoc?.entities.creditorName ||
+      matchedSignal?.creditorName ||
+      directoryHit?.displayName ||
+      debt.name;
+  const recipientAddress = preferCounsel
+    ? (caseFirmUsable ? debt.plaintiffLawFirmAddress : '') ||
+      (caseRecipientUsable ? debt.recipientAddress : '') ||
+      matchedContact?.address ||
+      firmAddressFromDoc ||
+      matchedSignal?.address ||
+      directoryHit?.address ||
+      ''
+    : (caseRecipientUsable ? debt.recipientAddress : '') ||
+      matchedContact?.address ||
+      matchedSignal?.address ||
+      directoryHit?.address ||
+      '';
   const recipientPhone =
     (caseRecipientUsable ? debt.recipientPhone : undefined) ||
     matchedContact?.phone ||
@@ -559,19 +673,21 @@ export function resolveDebtPartyInfo(args: {
     directoryHit?.phone;
 
   const matchedFrom: DebtPartyInfo['matchedFrom'] =
-    (caseFirmUsable && debt.plaintiffLawFirmAddress) || (caseRecipientUsable && debt.recipientAddress)
+    preferCounsel && caseFirmUsable && debt.plaintiffLawFirmAddress
       ? 'debt_case'
-      : firmAddressFromDoc
-        ? 'document'
+      : caseRecipientUsable && debt.recipientAddress
+        ? 'debt_case'
         : matchedContact?.address
           ? 'report_contact'
-          : matchedSignal?.address
-            ? 'tradeline'
-            : directoryHit?.address
-              ? 'directory'
-              : matchedSignal
-                ? 'tradeline'
-                : 'manual';
+          : preferCounsel && firmAddressFromDoc
+            ? 'document'
+            : matchedSignal?.address
+              ? 'tradeline'
+              : directoryHit?.address
+                ? 'directory'
+                : matchedSignal
+                  ? 'tradeline'
+                  : 'manual';
 
   return {
     recipientName,
@@ -588,6 +704,12 @@ export function resolveDebtPartyInfo(args: {
     matchedFrom,
     signal: matchedSignal ?? undefined,
     autoFilled: matchedFrom !== 'manual' && matchedFrom !== 'debt_case',
+    reportContactName:
+      (matchedContact && notSelf(matchedContact.creditorName, matchedContact.address)
+        ? matchedContact.creditorName
+        : '') || matchedSignal?.creditorName,
+    reportContactAddress: matchedContact?.address || matchedSignal?.address,
+    reportContactPhone: matchedContact?.phone || matchedSignal?.phone,
   };
 }
 
@@ -617,19 +739,32 @@ export function autoPersistDebtPartyIfEmpty(
   self?: SelfPartyIdentity | null,
 ): DebtCase | null {
   if (!debt || !party) return null;
-  const hasTo =
-    Boolean(debt.recipientAddress || debt.plaintiffLawFirmAddress) &&
-    Boolean(debt.recipientName || debt.plaintiffLawFirm);
-  if (hasTo) return null;
-  if (!party.recipientAddress && !party.recipientName) return null;
+  // The collector mailing block is what letters address. A summons scrape that
+  // filled only the plaintiff-firm fields used to count as "done" here, which is
+  // why a case with an empty recipient address never picked up its report
+  // Creditor Contact.
+  const hasRecipient =
+    Boolean(String(debt.recipientAddress || '').trim()) && Boolean(String(debt.recipientName || '').trim());
+  if (hasRecipient) return null;
   if (party.matchedFrom === 'manual') return null;
+
+  const fallbackName = party.reportContactName || party.recipientName;
+  const fallbackAddress = party.reportContactAddress || party.recipientAddress;
+  const fallbackPhone = party.reportContactPhone || party.recipientPhone;
+  if (!fallbackAddress && !fallbackName) return null;
   // Never write the partner's own name/address into the letter TO block.
-  if (isSelfParty({ name: party.recipientName, address: party.recipientAddress }, self)) return null;
+  if (isSelfParty({ name: fallbackName, address: fallbackAddress }, self)) return null;
+  if (
+    String(debt.recipientName || '').trim() === String(fallbackName || '').trim() &&
+    String(debt.recipientAddress || '').trim() === String(fallbackAddress || '').trim()
+  ) {
+    return null;
+  }
   const firmLike = party.matchedFrom === 'directory' || party.matchedFrom === 'document';
   return mergeDebtCreditorFields(debt, {
-    recipientName: debt.recipientName || party.recipientName,
-    recipientAddress: debt.recipientAddress || party.recipientAddress || undefined,
-    recipientPhone: debt.recipientPhone || party.recipientPhone,
+    recipientName: debt.recipientName || fallbackName,
+    recipientAddress: debt.recipientAddress || fallbackAddress || undefined,
+    recipientPhone: debt.recipientPhone || fallbackPhone,
     collectorName: debt.collectorName || party.collectorName,
     originalCreditor: debt.originalCreditor || party.originalCreditor,
     accountNumberMasked: debt.accountNumberMasked || party.accountNumberMasked,

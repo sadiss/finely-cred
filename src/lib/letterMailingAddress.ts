@@ -40,6 +40,11 @@ export type LetterRecipientSource = {
   senderAddress1?: string | null;
   senderCity?: string | null;
   senderPostalCode?: string | null;
+  /**
+   * Court / summons letters: prefer counsel fields.
+   * Validation / collector letters: prefer recipient / report contact (default false).
+   */
+  preferCounsel?: boolean;
 };
 
 const MISSING_RECIPIENT = '[CREDITOR / LAW FIRM NAME — REQUIRED]';
@@ -86,56 +91,89 @@ export function dedupeRecipientAddressLines(name: string, address: string): stri
  */
 export function resolveLetterMailRecipient(source: LetterRecipientSource): LetterMailRecipient {
   const senderName = clean(source.senderName);
+  const preferCounsel = Boolean(source.preferCounsel);
 
-  const nameCandidates = [
-    source.plaintiffLawFirm,
-    source.recipientName,
-    source.debtCollectorName,
-    source.collectorName,
-    source.creditorName,
-    source.debtName,
-    source.originalCreditorName,
-    source.plaintiffAttorneyName,
-  ]
-    .map(clean)
-    .filter(Boolean);
+  const nameCandidates = preferCounsel
+    ? [
+        source.plaintiffLawFirm,
+        source.recipientName,
+        source.debtCollectorName,
+        source.collectorName,
+        source.creditorName,
+        source.debtName,
+        source.originalCreditorName,
+        source.plaintiffAttorneyName,
+      ]
+    : [
+        source.recipientName,
+        source.debtCollectorName,
+        source.collectorName,
+        source.creditorName,
+        source.debtName,
+        source.originalCreditorName,
+        // Counsel last — validation mail should not silently become the law firm
+        source.plaintiffLawFirm,
+        source.plaintiffAttorneyName,
+      ]
+  ;
+  const nameList = nameCandidates.map(clean).filter(Boolean);
 
   // Drop name if it is clearly the partner/sender
   const name =
-    nameCandidates.find((n) => !senderName || norm(n) !== norm(senderName)) || '';
+    nameList.find((n) => !senderName || norm(n) !== norm(senderName)) || '';
 
-  const addressCandidates = [
-    source.plaintiffLawFirmAddress,
-    source.recipientAddress,
-    source.reportContactAddress,
-  ]
+  const addressCandidates = preferCounsel
+    ? [source.plaintiffLawFirmAddress, source.recipientAddress, source.reportContactAddress]
+    : [source.recipientAddress, source.reportContactAddress, source.plaintiffLawFirmAddress]
+  ;
+  const filteredAddrs = addressCandidates
     .map(clean)
     .filter(Boolean)
     .filter((a) => !looksLikeSenderAddress(a, source));
 
-  let address = addressCandidates[0] || '';
+  let address = filteredAddrs[0] || '';
   let addrSource: LetterMailRecipient['source'] = address
-    ? source.plaintiffLawFirmAddress || source.recipientAddress
-      ? 'case'
-      : source.reportContactAddress
-        ? 'enrichment'
-        : 'case'
+    ? preferCounsel
+      ? source.plaintiffLawFirmAddress || source.recipientAddress
+        ? 'case'
+        : source.reportContactAddress
+          ? 'enrichment'
+          : 'case'
+      : source.recipientAddress
+        ? 'case'
+        : source.reportContactAddress
+          ? 'enrichment'
+          : source.plaintiffLawFirmAddress
+            ? 'case'
+            : 'case'
     : 'missing';
   let directoryName = '';
 
   // Directory / enrichment IQ: firm / collector / attorney offices when scrape + case left TO blank
   if (!address) {
-    const namePool = [
-      source.plaintiffLawFirm,
-      source.plaintiffAttorneyName,
-      source.debtCollectorName,
-      source.collectorName,
-      source.recipientName,
-      source.creditorName,
-      source.debtName,
-      source.originalCreditorName,
-      name,
-    ];
+    const namePool = preferCounsel
+      ? [
+          source.plaintiffLawFirm,
+          source.plaintiffAttorneyName,
+          source.debtCollectorName,
+          source.collectorName,
+          source.recipientName,
+          source.creditorName,
+          source.debtName,
+          source.originalCreditorName,
+          name,
+        ]
+      : [
+          source.debtCollectorName,
+          source.collectorName,
+          source.recipientName,
+          source.creditorName,
+          source.debtName,
+          source.originalCreditorName,
+          source.plaintiffLawFirm,
+          source.plaintiffAttorneyName,
+          name,
+        ];
     const hit = lookupKnownCreditorFromCandidates(namePool);
     if (hit?.address && !looksLikeSenderAddress(hit.address, source)) {
       address = hit.address;
@@ -143,13 +181,11 @@ export function resolveLetterMailRecipient(source: LetterRecipientSource): Lette
       directoryName = hit.displayName;
     } else {
       const enriched = enrichRecipientAddressSync({
-        preferCounsel: Boolean(source.plaintiffLawFirm || source.plaintiffAttorneyName),
+        preferCounsel,
         nameCandidates: namePool,
-        addressCandidates: [
-          source.plaintiffLawFirmAddress,
-          source.recipientAddress,
-          source.reportContactAddress,
-        ],
+        addressCandidates: preferCounsel
+          ? [source.plaintiffLawFirmAddress, source.recipientAddress, source.reportContactAddress]
+          : [source.recipientAddress, source.reportContactAddress, source.plaintiffLawFirmAddress],
       });
       if (enriched?.address && !looksLikeSenderAddress(enriched.address, source)) {
         address = enriched.address;

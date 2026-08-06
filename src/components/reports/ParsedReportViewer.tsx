@@ -70,6 +70,8 @@ function responsibilityKind(responsibility?: string | null): 'AU' | 'Joint' | 'P
   return 'Other';
 }
 
+export { responsibilityKind };
+
 export function ParsedReportViewer({
   parsed,
   partnerId,
@@ -77,6 +79,9 @@ export function ParsedReportViewer({
   scrollToCreditorName,
   layout = 'list',
   showSequence = false,
+  hideFilters = false,
+  hideSummary = false,
+  scrollBody = false,
 }: {
   parsed: ParsedCreditReport;
   partnerId?: string;
@@ -84,6 +89,12 @@ export function ParsedReportViewer({
   scrollToCreditorName?: string | null;
   layout?: 'list' | 'grid';
   showSequence?: boolean;
+  /** When Credit Intelligence tabs already filter the list — no nested type/status filters. */
+  hideFilters?: boolean;
+  /** Skip the top “Parsed report / tradelines count” chrome. */
+  hideSummary?: boolean;
+  /** Show ~7 cards in a fixed-height scroller instead of page arrows. */
+  scrollBody?: boolean;
 }) {
   const isGrid = false;
   const [openIndex, setOpenIndex] = useState<number | null>(0);
@@ -176,10 +187,12 @@ export function ParsedReportViewer({
 
   const tradelineTotalPages = Math.max(1, Math.ceil(filteredTradelines.length / TRADELINE_PAGE_SIZE));
   const safeTradelinePage = Math.min(tradelinePage, tradelineTotalPages - 1);
-  const visibleTradelines = filteredTradelines.slice(
-    safeTradelinePage * TRADELINE_PAGE_SIZE,
-    safeTradelinePage * TRADELINE_PAGE_SIZE + TRADELINE_PAGE_SIZE,
-  );
+  const visibleTradelines = scrollBody
+    ? filteredTradelines
+    : filteredTradelines.slice(
+        safeTradelinePage * TRADELINE_PAGE_SIZE,
+        safeTradelinePage * TRADELINE_PAGE_SIZE + TRADELINE_PAGE_SIZE,
+      );
 
   async function captureTradelineScreenshot(args: { tradeline: ParsedTradeline; idx: number }) {
     if (!partnerId) return;
@@ -219,7 +232,7 @@ export function ParsedReportViewer({
         createdAt: new Date().toISOString(),
       };
       upsertEvidence(item);
-      setNotice(`Saved evidence screenshot: ${filename}`);
+      setNotice(`Saved evidence screenshot: ${filename} — available in Team chat → Attach from vault.`);
     } catch (e: any) {
       setNotice(`Screenshot failed: ${e?.message || 'unknown error'}`);
     } finally {
@@ -231,6 +244,7 @@ export function ParsedReportViewer({
     <div className="space-y-6 w-full max-w-full overflow-visible" data-fc-parsed-report-viewer>
       {notice && <div className={FINELY_OS_NOTICE}>{notice}</div>}
       {parseQualityNote ? <div className={FINELY_OS_NOTICE_WARN}>{parseQualityNote}</div> : null}
+      {!hideSummary ? (
       <div className={`${finelyOsGlassShell('catalog', 'sky')} flex items-start justify-between gap-6`}>
         <div className="space-y-1 min-w-0">
           <div className="inline-flex items-center gap-2 text-sky-800">
@@ -249,7 +263,9 @@ export function ParsedReportViewer({
           </p>
         </div>
       </div>
+      ) : null}
 
+      {!hideFilters ? (
       <div className={`${FINELY_OS_TOOLBAR} flex-wrap`}>
         <span className={FINELY_OS_ENTITY_SUBLABEL}>Filters</span>
         <input
@@ -344,6 +360,7 @@ export function ParsedReportViewer({
           </button>
         )}
       </div>
+      ) : null}
 
       <CollapsibleSection
         variant="dark"
@@ -355,9 +372,13 @@ export function ParsedReportViewer({
         className="!overflow-visible"
         bodyClassName="!p-0 !overflow-visible"
       >
-        <div className="p-4 md:p-6 space-y-5 w-full max-w-full overflow-visible">
+        <div
+          className={`p-4 md:p-6 space-y-5 w-full max-w-full ${
+            scrollBody ? 'max-h-[42rem] overflow-y-auto overflow-x-visible pr-2' : 'overflow-visible'
+          }`}
+        >
           {visibleTradelines.map((t, pageIdx) => {
-          const idx = safeTradelinePage * TRADELINE_PAGE_SIZE + pageIdx;
+          const idx = scrollBody ? pageIdx : safeTradelinePage * TRADELINE_PAGE_SIZE + pageIdx;
           const isOpen = openIndex === idx;
           const rk = responsibilityKind(t.responsibility);
           const fields = t.fields ?? [];
@@ -621,7 +642,7 @@ export function ParsedReportViewer({
           );
           })}
 
-          {filteredTradelines.length > TRADELINE_PAGE_SIZE ? (
+          {!scrollBody && filteredTradelines.length > TRADELINE_PAGE_SIZE ? (
             <div className={FINELY_OS_LUXURY_PAGINATION}>
               <span className={`text-xs ${FINELY_OS_ENTITY_SUBLABEL} normal-case tracking-normal font-mono`}>
                 Page {safeTradelinePage + 1} of {tradelineTotalPages} · {filteredTradelines.length} tradelines
@@ -644,6 +665,10 @@ export function ParsedReportViewer({
                   <ChevronRight size={14} />
                 </button>
               </div>
+            </div>
+          ) : scrollBody && filteredTradelines.length > 7 ? (
+            <div className="text-center text-[11px] text-white/40 pt-1">
+              Scroll for all {filteredTradelines.length} accounts
             </div>
           ) : null}
         </div>

@@ -47,8 +47,10 @@ import {
   contactsFromParsedReport,
   extractReportDebtSignals,
   formatSummonsContextForPrompt,
+  matchCreditorContactForName,
   resolveDebtPartyInfo,
 } from '../../lib/debtCreditorIntel';
+import { selfIdentityFromPersonalInfo, type SelfPartyIdentity } from '../../creditReports/creditorContactExtract';
 import { ValidationCenterView } from '../debt/ValidationCenterView';
 import { AffidavitCourtCenterView } from '../debt/AffidavitCourtCenterView';
 import { ExtractedCourtFactsPanel } from '../debt/ExtractedCourtFactsPanel';
@@ -2597,17 +2599,21 @@ useEffect(() => {
     return Array.from(uniq.values()).slice(0, 200);
   }, [reports.length, storeVersion]);
 
+  // Prefer address-bearing Creditor Contacts rows (phone-only must not win).
   const matchedCreditorContact = useMemo(() => {
-    if (!debt?.name) return null;
-    const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
-    const target = norm(debt.name);
-    if (!target) return null;
-    // Prefer exact-ish matches.
-    const exact = creditorContacts.find((c) => norm(c.creditorName) === target) ?? null;
-    if (exact) return exact;
-    // Fallback: contains match (handles "ABC Collections, LLC" vs "ABC Collections").
-    return creditorContacts.find((c) => norm(c.creditorName).includes(target) || target.includes(norm(c.creditorName))) ?? null;
-  }, [debt?.id, debt?.name, creditorContacts]);
+    if (!debt?.name && !debt?.collectorName && !debt?.recipientName) return null;
+    return (
+      matchCreditorContactForName(
+        debt?.recipientName || debt?.name || '',
+        creditorContacts,
+        debt?.accountNumberMasked,
+      ) ||
+      (debt?.collectorName
+        ? matchCreditorContactForName(debt.collectorName, creditorContacts, debt.accountNumberMasked)
+        : null) ||
+      null
+    );
+  }, [debt?.id, debt?.name, debt?.recipientName, debt?.collectorName, debt?.accountNumberMasked, creditorContacts]);
 
   const today = new Date().toISOString().slice(0, 10);
   const letterDate = letterDateDisplay();
@@ -2619,6 +2625,32 @@ useEffect(() => {
     const pi = (reports[0] as any)?.parsed?.personalInfo ?? null;
     return getCanonicalPartnerIdentity({ partner, tenantId, partnerCf, reportPersonalInfo: pi });
   }, [partner, partnerCf?.updatedAt, reports.length, tenantId]);
+
+  const letterSelfIdentity = useMemo<SelfPartyIdentity>(() => {
+    const addresses: string[] = [
+      [canonicalIdentity.address1 || canonicalIdentity.addressLine1, canonicalIdentity.address2, canonicalIdentity.cityStateZip]
+        .filter(Boolean)
+        .join(' '),
+    ].filter(Boolean);
+    for (const r of reports) {
+      const fromPi = selfIdentityFromPersonalInfo((r as any)?.parsed?.personalInfo);
+      for (const a of fromPi?.addresses || []) {
+        if (a) addresses.push(String(a));
+      }
+    }
+    return {
+      fullName: canonicalIdentity.fullName || undefined,
+      addresses,
+    };
+  }, [
+    canonicalIdentity.fullName,
+    canonicalIdentity.address1,
+    canonicalIdentity.addressLine1,
+    canonicalIdentity.address2,
+    canonicalIdentity.cityStateZip,
+    reports,
+    storeVersion,
+  ]);
 
   // Default sender fields from canonical identity (but do not clobber user edits).
   useEffect(() => {
@@ -2663,8 +2695,9 @@ useEffect(() => {
         signals: extractReportDebtSignals(reports),
         contacts: creditorContacts,
         documents: processedDocuments,
+        self: letterSelfIdentity,
       }),
-    [debt, creditorContacts, processedDocuments, reports, storeVersion],
+    [debt, creditorContacts, processedDocuments, reports, storeVersion, letterSelfIdentity],
   );
 
   const summonsAffidavitContext = useMemo(
@@ -2704,16 +2737,13 @@ useEffect(() => {
   };
 
   const buildDebtLetterArgs = () => {
-    const firm =
-      debt?.plaintiffLawFirm ||
-      debt?.collectorName ||
-      debtPartyInfo?.collectorName ||
-      debtPartyInfo?.recipientName;
-    const firmAddress =
-      debt?.plaintiffLawFirmAddress ||
-      debt?.recipientAddress ||
-      debtPartyInfo?.recipientAddress ||
-      '';
+    const isCourtDraft = draft?.type === 'court';
+    const firm = isCourtDraft
+      ? debt?.plaintiffLawFirm || debt?.collectorName || debtPartyInfo?.collectorName || debtPartyInfo?.recipientName
+      : debt?.plaintiffLawFirm;
+    const firmAddress = isCourtDraft
+      ? debt?.plaintiffLawFirmAddress || debt?.recipientAddress || debtPartyInfo?.recipientAddress || ''
+      : debt?.plaintiffLawFirmAddress || '';
     const reportAddr =
       matchedCreditorContact?.address ||
       (debtPartyInfo?.matchedFrom === 'report_contact' || debtPartyInfo?.matchedFrom === 'tradeline'
@@ -2721,6 +2751,7 @@ useEffect(() => {
         : '') ||
       '';
     const mailTo = resolveLetterMailRecipient({
+      preferCounsel: isCourtDraft,
       plaintiffLawFirm: firm,
       plaintiffLawFirmAddress: firmAddress,
       recipientName: debt?.recipientName || debtPartyInfo?.recipientName || debt?.name,
@@ -2737,7 +2768,8 @@ useEffect(() => {
       senderCity: canonicalIdentity.city,
       senderPostalCode: canonicalIdentity.postalCode,
     });
-    // Persist directory / report-contact TO onto the case when empty (never partner address)
+    // Persist directory / report-contact TO onto the case when empty (never partner address).
+    // Validation: recipient only. Court: may also seed counsel.
     if (
       debt &&
       !mailTo.missing &&
@@ -2749,8 +2781,12 @@ useEffect(() => {
         ...debt,
         recipientName: debt.recipientName || mailTo.name,
         recipientAddress: mailTo.address,
-        plaintiffLawFirm: debt.plaintiffLawFirm || firm || mailTo.name,
-        plaintiffLawFirmAddress: mailTo.address,
+        ...(isCourtDraft
+          ? {
+              plaintiffLawFirm: debt.plaintiffLawFirm || firm || mailTo.name,
+              plaintiffLawFirmAddress: mailTo.address,
+            }
+          : {}),
       });
     }
     if (mailTo.missing) {
@@ -2850,7 +2886,7 @@ useEffect(() => {
     setAddressLookupBusy(true);
     try {
       const result = await enrichRecipientAddress({
-        preferCounsel: draft?.type === 'court' || Boolean(debt.courtCaseNumber || debt.plaintiffLawFirm),
+        preferCounsel: draft?.type === 'court' || Boolean(debt.courtCaseNumber),
         nameCandidates: [
           debt.plaintiffLawFirm,
           debt.plaintiffAttorneyName,
@@ -2895,7 +2931,7 @@ useEffect(() => {
         ...debt,
         recipientName: debt.recipientName || debtPartyInfo.recipientName,
         recipientAddress: debtPartyInfo.recipientAddress,
-        plaintiffLawFirmAddress: debt.plaintiffLawFirmAddress || debtPartyInfo.recipientAddress,
+        // Do not copy collector mailing into plaintiff — that poisons validation TO.
       });
       setAddressEnrichMeta({
         name: debtPartyInfo.recipientName,
@@ -4230,9 +4266,9 @@ useEffect(() => {
                           }),
                         ...(() => {
                           const mailTo = resolveLetterMailRecipient({
-                            plaintiffLawFirm: debt?.plaintiffLawFirm || debtPartyInfo?.collectorName,
-                            plaintiffLawFirmAddress:
-                              debt?.plaintiffLawFirmAddress || debt?.recipientAddress || debtPartyInfo?.recipientAddress,
+                            preferCounsel: draft?.type === 'court',
+                            plaintiffLawFirm: debt?.plaintiffLawFirm,
+                            plaintiffLawFirmAddress: debt?.plaintiffLawFirmAddress,
                             recipientName: debt?.recipientName || debtPartyInfo?.recipientName || debt?.name,
                             recipientAddress: debt?.recipientAddress || debtPartyInfo?.recipientAddress,
                             debtCollectorName: debt?.collectorName || debtPartyInfo?.collectorName,
@@ -4264,7 +4300,6 @@ useEffect(() => {
                           handleDebtIntelChange({
                             ...debt,
                             recipientAddress: patch.toLinesText,
-                            plaintiffLawFirmAddress: debt.plaintiffLawFirmAddress || patch.toLinesText,
                           });
                         }
                       }}

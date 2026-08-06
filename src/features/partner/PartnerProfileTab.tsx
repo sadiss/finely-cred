@@ -1,31 +1,51 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { RefreshCcw } from 'lucide-react';
 import type { CustomFieldDefinition } from '../../domain/customFields';
 import type { FieldLayout } from '../../domain/fieldLayouts';
 import type { EntitlementKey } from '../../billing/entitlements';
 import { entitlementLabel } from '../../billing/entitlementLabels';
 import { PartnerProfileFieldSections } from './PartnerProfileFieldSections';
+import { SensitiveActionCodeGate } from '../../components/admin/SensitiveActionCodeGate';
 import { bureauShortCode } from '../../utils/bureaus';
 import {
-  FINELY_OS_DANGER_BTN,
-  FINELY_OS_DANGER_PANEL,
-  FINELY_OS_ENTITY_ACCENT_LINK,
-  FINELY_OS_ENTITY_ACTION,
-  FINELY_OS_ENTITY_BODY,
-  FINELY_OS_ENTITY_CHIP,
-  FINELY_OS_ENTITY_EMPTY,
-  FINELY_OS_ENTITY_INPUT,
-  FINELY_OS_ENTITY_LABEL,
-  FINELY_OS_ENTITY_SUBLABEL,
-  FINELY_OS_ENTITY_TITLE,
-  FINELY_OS_ENTITY_VALUE,
-  FINELY_OS_PRIMARY_BTN,
-  FINELY_OS_SECONDARY_BTN,
-  FINELY_OS_SUCCESS_BTN,
-  finelyOsCatalogCard,
-  finelyOsInlineListItem,
-  finelyOsStatusChip,
-} from '../os/finelyOsLightUi';
+  FC_ADMIN_BODY,
+  FC_ADMIN_DANGER_BTN,
+  FC_ADMIN_INPUT,
+  FC_ADMIN_LABEL,
+  FC_ADMIN_PRIMARY_BTN,
+  FC_ADMIN_SECONDARY_BTN,
+  FC_ADMIN_SUBLABEL,
+  FC_ADMIN_TITLE,
+  FC_ADMIN_VALUE,
+  fcAdminCard,
+  fcAdminStatusChip,
+} from '../os/finelyOsAdminSurface';
+
+const FINELY_OS_DANGER_BTN = FC_ADMIN_DANGER_BTN;
+const FINELY_OS_DANGER_PANEL =
+  'rounded-2xl border border-[var(--fc-admin-status-risk)]/30 bg-[var(--fc-admin-status-risk)]/5 p-5 space-y-2';
+const FINELY_OS_ENTITY_ACCENT_LINK =
+  'text-[var(--fc-admin-accent)] underline-offset-2 hover:underline font-semibold text-sm';
+const FINELY_OS_ENTITY_ACTION = FC_ADMIN_SECONDARY_BTN;
+const FINELY_OS_ENTITY_BODY = FC_ADMIN_BODY;
+const FINELY_OS_ENTITY_CHIP =
+  'inline-flex items-center rounded-full border border-[var(--fc-admin-border)] bg-[var(--fc-admin-surface-sunken)] px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[var(--fc-admin-ink-muted)]';
+const FINELY_OS_ENTITY_EMPTY = `rounded-xl border border-dashed border-[var(--fc-admin-border)] ${FC_ADMIN_BODY} px-4 py-6 text-center`;
+const FINELY_OS_ENTITY_INPUT = FC_ADMIN_INPUT;
+const FINELY_OS_ENTITY_LABEL = FC_ADMIN_LABEL;
+const FINELY_OS_ENTITY_SUBLABEL = FC_ADMIN_SUBLABEL;
+const FINELY_OS_ENTITY_TITLE = FC_ADMIN_TITLE;
+const FINELY_OS_ENTITY_VALUE = FC_ADMIN_VALUE;
+const FINELY_OS_PAGE = 'space-y-4';
+const FINELY_OS_PRIMARY_BTN = FC_ADMIN_PRIMARY_BTN;
+const FINELY_OS_SECONDARY_BTN = FC_ADMIN_SECONDARY_BTN;
+const FINELY_OS_SUCCESS_BTN = FC_ADMIN_PRIMARY_BTN;
+function finelyOsCatalogCardCompact(_accent?: string) {
+  return fcAdminCard('p-4');
+}
+function finelyOsStatusChip(tone: 'ok' | 'warn' | 'blocked') {
+  return fcAdminStatusChip(tone);
+}
 
 type ScoreRow = { model: string; exp?: number | null; eqf?: number | null; tuc?: number | null };
 
@@ -89,20 +109,53 @@ export function PartnerProfileTab(args: {
   onOpenSettings: () => void;
 }) {
   const { partner, profileDraft, setProfileDraft } = args;
+  const activeCount = Array.from(args.activeEntitlementKeys).length;
+  const [grantAllGateOpen, setGrantAllGateOpen] = useState(false);
 
   return (
-    <div className="space-y-6">
-      <div className={`${finelyOsCatalogCard('violet')} !p-5 w-full`}>
+    <div className={FINELY_OS_PAGE}>
+      {/* 1. Credit scores — fully visible, no <details> */}
+      <div className={`${finelyOsCatalogCardCompact('emerald')} w-full`}>
         <div className="flex items-start justify-between gap-3">
           <div>
-            <p className={FINELY_OS_ENTITY_SUBLABEL}>Contact & mailing</p>
-            <p className={`mt-2 ${FINELY_OS_ENTITY_TITLE}`}>{partner.profile.fullName}</p>
-            <p className={`mt-1 ${FINELY_OS_ENTITY_BODY}`}>Primary info used on letters and portal — full width, not duplicated in custom fields below.</p>
+            <p className={FINELY_OS_ENTITY_SUBLABEL}>Credit scores</p>
+            <p className={`mt-1 ${FINELY_OS_ENTITY_BODY}`}>Latest report on file, by model.</p>
           </div>
         </div>
 
-        <div className="mt-5 grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          <div className="sm:col-span-2 lg:col-span-3">
+        {args.latestScoresRows.length ? (
+          <div className="mt-4 rounded-xl border border-[var(--fc-admin-border)] overflow-hidden">
+            <div className="grid grid-cols-4 gap-2 px-4 py-2 bg-[var(--fc-admin-surface-sunken)] text-[10px] font-bold uppercase tracking-widest text-[var(--fc-admin-ink-faint)]">
+              <div>Model</div>
+              <div>EXP</div>
+              <div>EQF</div>
+              <div>{bureauShortCode('TUC')}</div>
+            </div>
+            <div className="divide-y divide-[var(--fc-admin-border)]">
+              {args.latestScoresRows.map((r) => (
+                <div key={r.model} className="grid grid-cols-4 gap-2 px-4 py-3 items-center">
+                  <div className={FINELY_OS_ENTITY_VALUE}>{r.model}</div>
+                  <div className="font-mono text-sm text-[var(--fc-admin-ink)]">{r.exp ?? '-'}</div>
+                  <div className="font-mono text-sm text-[var(--fc-admin-ink)]">{r.eqf ?? '-'}</div>
+                  <div className="font-mono text-sm text-[var(--fc-admin-ink)]">{r.tuc ?? '-'}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <div className={FINELY_OS_ENTITY_EMPTY}>No score values detected yet. Upload an HTML report that includes score summary.</div>
+        )}
+      </div>
+
+      {/* 2. Contact & mailing — tighter grid */}
+      <div className={`${finelyOsCatalogCardCompact('violet')} w-full`}>
+        <div>
+          <p className={FINELY_OS_ENTITY_SUBLABEL}>Contact & mailing</p>
+          <p className={`mt-1 ${FINELY_OS_ENTITY_TITLE}`}>{partner.profile.fullName}</p>
+        </div>
+
+        <div className="mt-4 grid sm:grid-cols-2 gap-3">
+          <div className="sm:col-span-2">
             <label className={FINELY_OS_ENTITY_LABEL}>Full name</label>
             <input
               value={profileDraft.fullName}
@@ -129,7 +182,7 @@ export function PartnerProfileTab(args: {
               placeholder="(555) 555-5555"
             />
           </div>
-          <div className="sm:col-span-2 lg:col-span-3">
+          <div>
             <label className={FINELY_OS_ENTITY_LABEL}>Address line 1</label>
             <input
               value={profileDraft.address1}
@@ -138,7 +191,7 @@ export function PartnerProfileTab(args: {
               placeholder="123 Main St"
             />
           </div>
-          <div className="sm:col-span-2 lg:col-span-3">
+          <div>
             <label className={FINELY_OS_ENTITY_LABEL}>Address line 2</label>
             <input
               value={profileDraft.address2}
@@ -156,62 +209,29 @@ export function PartnerProfileTab(args: {
               placeholder="City"
             />
           </div>
-          <div>
-            <label className={FINELY_OS_ENTITY_LABEL}>State</label>
-            <input
-              value={profileDraft.state}
-              onChange={(e) => setProfileDraft((p) => ({ ...p, state: e.target.value }))}
-              className={FINELY_OS_ENTITY_INPUT}
-              placeholder="ST"
-            />
-          </div>
-          <div>
-            <label className={FINELY_OS_ENTITY_LABEL}>Postal code</label>
-            <input
-              value={profileDraft.postalCode}
-              onChange={(e) => setProfileDraft((p) => ({ ...p, postalCode: e.target.value }))}
-              className={FINELY_OS_ENTITY_INPUT}
-              placeholder="12345"
-            />
-          </div>
-        </div>
-
-        <div id="partner-profile-fields" className="mt-6 pt-6 border-t border-white/10">
-          <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="grid grid-cols-2 gap-3">
             <div>
-              <p className={FINELY_OS_ENTITY_SUBLABEL}>Profile field sections</p>
-              <p className={`mt-2 ${FINELY_OS_ENTITY_BODY}`}>
-                Tap a section to open it — identity, business, monitoring logins, bureau logins, and notes.{' '}
-                <button type="button" onClick={args.onOpenSettings} className={FINELY_OS_ENTITY_ACCENT_LINK}>
-                  Admin Settings
-                </button>
-              </p>
-            </div>
-            <div className="flex flex-wrap gap-2 text-[10px] font-black uppercase tracking-widest">
-              <span className={FINELY_OS_ENTITY_CHIP}>
-                tenant: <span className={`${FINELY_OS_ENTITY_VALUE} font-mono`}>{args.tenantId}</span>
-              </span>
-              <span className={FINELY_OS_ENTITY_CHIP}>
-                defs <span className={FINELY_OS_ENTITY_VALUE}>{args.customDefs.length}</span>
-              </span>
-            </div>
-          </div>
-
-          {args.customDefs.length === 0 ? (
-            <div className={`mt-4 ${FINELY_OS_ENTITY_EMPTY}`}>No custom fields configured yet.</div>
-          ) : (
-            <div className="mt-4">
-              <PartnerProfileFieldSections
-                layout={args.partnerFieldLayout}
-                definitions={args.customDefs}
-                values={args.customFieldDraft || {}}
-                onChangeValue={args.updateCustomField}
+              <label className={FINELY_OS_ENTITY_LABEL}>State</label>
+              <input
+                value={profileDraft.state}
+                onChange={(e) => setProfileDraft((p) => ({ ...p, state: e.target.value }))}
+                className={FINELY_OS_ENTITY_INPUT}
+                placeholder="ST"
               />
             </div>
-          )}
+            <div>
+              <label className={FINELY_OS_ENTITY_LABEL}>Postal code</label>
+              <input
+                value={profileDraft.postalCode}
+                onChange={(e) => setProfileDraft((p) => ({ ...p, postalCode: e.target.value }))}
+                className={FINELY_OS_ENTITY_INPUT}
+                placeholder="12345"
+              />
+            </div>
+          </div>
         </div>
 
-        <div className="mt-5 flex flex-wrap items-center gap-2">
+        <div className="mt-4 flex flex-wrap items-center gap-2">
           <button type="button" className={FINELY_OS_PRIMARY_BTN} onClick={() => void args.onSaveProfile()}>
             Save contact & mailing
           </button>
@@ -221,72 +241,72 @@ export function PartnerProfileTab(args: {
         </div>
       </div>
 
-      <details className={`${finelyOsCatalogCard('violet')} !p-5 group`}>
-        <summary className={`cursor-pointer select-none ${FINELY_OS_ENTITY_VALUE}`}>Billing, entitlements & DTI</summary>
-        <div className="mt-5 space-y-6 border-t border-white/10 pt-5">
+      {/* 3. Module access / entitlements — compact, always visible */}
+      <div className={`${finelyOsCatalogCardCompact('violet')} w-full`}>
+        <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <div className="flex flex-wrap items-start justify-between gap-3">
-              <div>
-                <p className={FINELY_OS_ENTITY_SUBLABEL}>Portal entitlements</p>
-                <p className={`mt-2 ${FINELY_OS_ENTITY_BODY}`}>Controls which Partner Portal modules appear.</p>
-                <p className={`mt-1 text-xs font-mono ${FINELY_OS_ENTITY_BODY}`}>
-                  Active: {Array.from(args.activeEntitlementKeys).length} • Missing: {args.missingEntitlementKeys.length}
-                </p>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                <button
-                  type="button"
-                  className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-amber-500 text-black font-black uppercase tracking-widest text-[10px] hover:brightness-110 transition-all"
-                  onClick={args.onGrantAllEntitlements}
-                >
-                  Grant all portal modules
-                </button>
-                <button type="button" className={FINELY_OS_ENTITY_ACTION} onClick={args.onRefreshEntitlements}>
-                  <RefreshCcw size={14} /> Refresh
-                </button>
-              </div>
-            </div>
-            <div className="mt-4 grid md:grid-cols-2 gap-3">
-              <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony`}>
-                <div className={FINELY_OS_ENTITY_SUBLABEL}>Active keys</div>
-                {Array.from(args.activeEntitlementKeys).length ? (
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    {Array.from(args.activeEntitlementKeys)
-                      .sort()
-                      .map((k) => (
-                        <span key={k} className={`${finelyOsStatusChip('ok')} normal-case tracking-normal font-semibold`}>
-                          {entitlementLabel(k)}
-                        </span>
-                      ))}
-                  </div>
-                ) : (
-                  <div className={`mt-2 ${FINELY_OS_ENTITY_BODY}`}>None</div>
-                )}
-              </div>
-              <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony`}>
-                <div className={FINELY_OS_ENTITY_SUBLABEL}>Missing keys</div>
-                {args.missingEntitlementKeys.length ? (
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    {args.missingEntitlementKeys
-                      .slice()
-                      .sort()
-                      .map((k) => (
-                        <span
-                          key={k}
-                          className="px-3 py-1.5 rounded-xl border border-amber-500/35 bg-amber-500/15 text-amber-100 text-xs font-semibold normal-case tracking-normal"
-                        >
-                          {entitlementLabel(k)}
-                        </span>
-                      ))}
-                  </div>
-                ) : (
-                  <div className={`mt-2 ${FINELY_OS_ENTITY_BODY}`}>None</div>
-                )}
-              </div>
-            </div>
+            <p className={FINELY_OS_ENTITY_SUBLABEL}>Module access</p>
+            <p className={`mt-1 ${FINELY_OS_ENTITY_BODY}`}>
+              Entitlements control which Partner Portal modules this partner can see. {activeCount} active · {args.missingEntitlementKeys.length} missing.
+            </p>
           </div>
+          <div className="flex flex-wrap gap-2 shrink-0">
+            <button type="button" className={FINELY_OS_PRIMARY_BTN} onClick={() => setGrantAllGateOpen(true)}>
+              Grant all portal modules
+            </button>
+            <button type="button" className={FINELY_OS_ENTITY_ACTION} onClick={args.onRefreshEntitlements}>
+              <RefreshCcw size={14} /> Refresh
+            </button>
+          </div>
+        </div>
 
-          <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony space-y-4`}>
+        <div className="mt-4 grid sm:grid-cols-2 gap-4">
+          <div>
+            <div className={FINELY_OS_ENTITY_SUBLABEL}>Active</div>
+            {activeCount ? (
+              <div className="mt-2 flex flex-wrap gap-2">
+                {Array.from(args.activeEntitlementKeys)
+                  .sort()
+                  .map((k) => (
+                    <span key={k} className={`${finelyOsStatusChip('ok')} normal-case tracking-normal font-semibold`}>
+                      {entitlementLabel(k)}
+                    </span>
+                  ))}
+              </div>
+            ) : (
+              <div className={`mt-2 ${FINELY_OS_ENTITY_BODY}`}>None</div>
+            )}
+          </div>
+          <div>
+            <div className={FINELY_OS_ENTITY_SUBLABEL}>Missing</div>
+            {args.missingEntitlementKeys.length ? (
+              <div className="mt-2 flex flex-wrap gap-2">
+                {args.missingEntitlementKeys
+                  .slice()
+                  .sort()
+                  .map((k) => (
+                    <span
+                      key={k}
+                      className="px-3 py-1.5 rounded-xl border border-[var(--fc-admin-border)] bg-[var(--fc-admin-surface-sunken)] text-[var(--fc-admin-ink-muted)] text-xs font-semibold normal-case tracking-normal"
+                    >
+                      {entitlementLabel(k)}
+                    </span>
+                  ))}
+              </div>
+            ) : (
+              <div className={`mt-2 ${FINELY_OS_ENTITY_BODY}`}>None</div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* 4. DTI + Denefit contract — secondary, collapsed by default */}
+      <details className={`${finelyOsCatalogCardCompact('violet')} group w-full`}>
+        <summary className={`cursor-pointer select-none ${FINELY_OS_ENTITY_VALUE}`}>
+          Debt-to-income & Denefit contract
+        </summary>
+        <div className="mt-4 space-y-4 border-t border-[var(--fc-admin-border)] pt-4">
+          <div className="space-y-3">
             <div className="flex items-start justify-between gap-3">
               <div>
                 <p className={FINELY_OS_ENTITY_SUBLABEL}>Debt-to-income (DTI)</p>
@@ -297,7 +317,7 @@ export function PartnerProfileTab(args: {
                 <div className={`mt-1 text-2xl font-semibold ${FINELY_OS_ENTITY_VALUE}`}>{args.dti == null ? '-' : `${args.dti}%`}</div>
               </div>
             </div>
-            <div className="grid md:grid-cols-3 gap-4">
+            <div className="grid md:grid-cols-3 gap-3">
               <div>
                 <label className={FINELY_OS_ENTITY_LABEL}>Annual income</label>
                 <input
@@ -337,7 +357,7 @@ export function PartnerProfileTab(args: {
             </button>
           </div>
 
-          <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony space-y-3`}>
+          <div className="space-y-3 border-t border-[var(--fc-admin-border)] pt-4">
             <p className={FINELY_OS_ENTITY_SUBLABEL}>Custom Denefit contract</p>
             <div className="grid md:grid-cols-2 gap-3">
               <div className="md:col-span-2">
@@ -379,38 +399,46 @@ export function PartnerProfileTab(args: {
         </div>
       </details>
 
-      <details className={`${finelyOsCatalogCard('violet')} !p-5 group`}>
-        <summary className={`cursor-pointer select-none ${FINELY_OS_ENTITY_VALUE}`}>Credit scores (latest report)</summary>
-        <div className="mt-5 space-y-4 border-t border-white/10 pt-5">
-          {args.latestScoresRows.length ? (
-            args.latestScoresRows.map((r) => (
-              <div key={r.model} className={`${finelyOsInlineListItem()} p-4 w-full`}>
-                <div className={FINELY_OS_ENTITY_VALUE}>{r.model}</div>
-                <div className="mt-2 grid grid-cols-3 gap-2 text-[11px] max-w-xl">
-                  <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony`}>
-                    <div className={FINELY_OS_ENTITY_SUBLABEL}>EXP</div>
-                    <div className={`${FINELY_OS_ENTITY_VALUE} font-mono`}>{r.exp ?? '-'}</div>
-                  </div>
-                  <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony`}>
-                    <div className={FINELY_OS_ENTITY_SUBLABEL}>EQF</div>
-                    <div className={`${FINELY_OS_ENTITY_VALUE} font-mono`}>{r.eqf ?? '-'}</div>
-                  </div>
-                  <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony`}>
-                    <div className={FINELY_OS_ENTITY_SUBLABEL}>{bureauShortCode('TUC')}</div>
-                    <div className={`${FINELY_OS_ENTITY_VALUE} font-mono`}>{r.tuc ?? '-'}</div>
-                  </div>
-                </div>
-              </div>
-            ))
-          ) : (
-            <div className={FINELY_OS_ENTITY_BODY}>No score values detected yet. Upload an HTML report that includes score summary.</div>
-          )}
+      {/* 5. Profile field sections — quieter, existing behavior */}
+      <div className="rounded-2xl border border-[var(--fc-admin-border)] bg-[var(--fc-admin-surface)] p-4 w-full">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <p className={FINELY_OS_ENTITY_SUBLABEL}>Profile field sections</p>
+            <p className={`mt-1 ${FINELY_OS_ENTITY_BODY}`}>
+              Tap a section to open it — identity, business, monitoring logins, bureau logins, and notes.{' '}
+              <button type="button" onClick={args.onOpenSettings} className={FINELY_OS_ENTITY_ACCENT_LINK}>
+                Admin Settings
+              </button>
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2 text-[10px] font-black uppercase tracking-widest">
+            <span className={FINELY_OS_ENTITY_CHIP}>
+              tenant: <span className={`${FINELY_OS_ENTITY_VALUE} font-mono`}>{args.tenantId}</span>
+            </span>
+            <span className={FINELY_OS_ENTITY_CHIP}>
+              defs <span className={FINELY_OS_ENTITY_VALUE}>{args.customDefs.length}</span>
+            </span>
+          </div>
         </div>
-      </details>
 
+        {args.customDefs.length === 0 ? (
+          <div className={FINELY_OS_ENTITY_EMPTY}>No custom fields configured yet.</div>
+        ) : (
+          <div className="mt-4">
+            <PartnerProfileFieldSections
+              layout={args.partnerFieldLayout}
+              definitions={args.customDefs}
+              values={args.customFieldDraft || {}}
+              onChangeValue={args.updateCustomField}
+            />
+          </div>
+        )}
+      </div>
+
+      {/* 6. Danger zone — admin only, last */}
       {args.isAdmin ? (
         <div className={FINELY_OS_DANGER_PANEL}>
-          <div className={`${FINELY_OS_ENTITY_SUBLABEL} text-rose-300`}>Danger zone</div>
+          <div className={`${FINELY_OS_ENTITY_SUBLABEL} text-[var(--fc-admin-status-risk)]`}>Danger zone</div>
           <div className={`mt-2 ${FINELY_OS_ENTITY_BODY}`}>Hard delete removes the partner profile.</div>
           <div className="mt-3 flex flex-wrap items-center gap-2">
             <button
@@ -425,14 +453,14 @@ export function PartnerProfileTab(args: {
             </button>
           </div>
           {args.deleteOpen ? (
-            <div className={`mt-4 rounded-xl border border-rose-500/35 bg-white/[0.07] p-4 space-y-3 ${FINELY_OS_ENTITY_BODY}`}>
+            <div className={`mt-4 rounded-xl border border-[var(--fc-admin-status-risk)]/35 bg-[var(--fc-admin-status-risk)]/5 p-4 space-y-3 ${FINELY_OS_ENTITY_BODY}`}>
               <div className={`${FINELY_OS_ENTITY_BODY} text-sm`}>
-                Type <span className="font-mono font-semibold text-rose-300">DELETE</span> to confirm.
+                Type <span className="font-mono font-semibold text-[var(--fc-admin-status-risk)]">DELETE</span> to confirm.
               </div>
               <input
                 value={args.deletePhrase}
                 onChange={(e) => args.setDeletePhrase(e.target.value)}
-                className={`${FINELY_OS_ENTITY_INPUT} focus:border-rose-400`}
+                className={`${FINELY_OS_ENTITY_INPUT} focus:border-[var(--fc-admin-status-risk)]`}
                 placeholder="DELETE"
               />
               <div className="flex flex-wrap items-center gap-2">
@@ -452,6 +480,18 @@ export function PartnerProfileTab(args: {
           ) : null}
         </div>
       ) : null}
+
+      <SensitiveActionCodeGate
+        open={grantAllGateOpen}
+        action="partner_access_grant"
+        title="Authorize — Grant all portal modules"
+        description={`Grants every entitlement key for ${partner.profile.fullName} in one action.`}
+        onClose={() => setGrantAllGateOpen(false)}
+        onVerified={() => {
+          setGrantAllGateOpen(false);
+          args.onGrantAllEntitlements();
+        }}
+      />
     </div>
   );
 }

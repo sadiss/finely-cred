@@ -21,6 +21,7 @@ import {
   Send,
   BarChart3,
   User,
+  X,
 } from 'lucide-react';
 import { downloadBlob } from '../../utils/download';
 import { PageShell } from '../../components/layout/PageShell';
@@ -33,7 +34,11 @@ import { listEvidenceByPartner, upsertEvidence, deleteEvidence } from '../../dat
 import { deleteLetter, listLettersByPartner, upsertLetter } from '../../data/lettersRepo';
 import { getBlobStore } from '../../storage/getBlobStore';
 import { canAccessReportBlob } from '../../lib/reportBlobAccess';
-import { reparseStoredCreditReport } from '../../lib/reportParsePipeline';
+import {
+  recoverCreditorContactsFromStoredHtml,
+  reparseStoredCreditReport,
+  shouldRecoverCreditorContactsFromStoredHtml,
+} from '../../lib/reportParsePipeline';
 import { supabase, isSupabaseConfigured } from '../../lib/supabaseClient';
 import { openBlobRefInNewTab } from '../../lib/openBlobRef';
 import { isLegacyPendingReportBlob } from '../../lib/legacyPendingReport';
@@ -44,19 +49,7 @@ import { CreditIntelTabs } from '../../components/creditIntel/CreditIntelTabs';
 import { EvidenceUploader } from '../../components/evidence/EvidenceUploader';
 import { EvidenceList } from '../../components/evidence/EvidenceList';
 import { EvidencePickerModal } from '../../components/evidence/EvidencePickerModal';
-
-function fmtWhen(iso: string) {
-  try {
-    const d = new Date(iso);
-    if (!Number.isFinite(d.getTime())) return iso;
-    return d.toLocaleString();
-  } catch {
-    return iso;
-  }
-}
 import { ParsedReportOverviewPanel } from '../../components/reports/ParsedReportOverviewPanel';
-import { ParsedReportDiagnosticsPanel } from '../../components/reports/ParsedReportDiagnosticsPanel';
-import { ParsedReportViewer } from '../../components/reports/ParsedReportViewer';
 import type { Bureau, DisputeCandidate } from '../../domain/creditReports';
 import type { LetterRecord } from '../../domain/letters';
 import { deriveDisputeCandidates } from '../../creditReports/disputeCandidates';
@@ -153,6 +146,8 @@ import {
   FINELY_OS_BANNER,
   FINELY_OS_ACTIVE_CHIP,
   FINELY_OS_VIEW_TABS,
+  FINELY_OS_FIXED_OVERLAY,
+  FINELY_OS_MODAL_SHELL,
   finelyOsEntityKpi,
   finelyOsInlineListItem,
   finelyOsListItem,
@@ -426,6 +421,7 @@ function PartnerDetailPageInner() {
   const [deleteReportErr, setDeleteReportErr] = useState<string | null>(null);
   const [reparseReportId, setReparseReportId] = useState<string | null>(null);
   const [reparseReportErr, setReparseReportErr] = useState<string | null>(null);
+  const [parseOverviewOpen, setParseOverviewOpen] = useState(false);
   const [analysisBusy, setAnalysisBusy] = useState(false);
   const [analysisNotice, setAnalysisNotice] = useState<string | null>(null);
   const [selectedCandidateIds, setSelectedCandidateIds] = useState<string[]>([]);
@@ -944,6 +940,60 @@ function PartnerDetailPageInner() {
     }
   };
 
+  // Re-parse a stored report. Shared by the Reports tab action bar and CreditIntelTabs' inline re-parse control.
+  const handleReparseReport = async (report: any) => {
+    if (!report || Boolean(reparseReportId)) return;
+    setReparseReportErr(null);
+    setReparseReportId(report.id);
+    try {
+      const updated = await reparseStoredCreditReport({ record: report });
+      upsertReport(updated);
+      setReportsRefreshKey((v) => v + 1);
+    } catch (err: any) {
+      setReparseReportErr(err?.message || 'Re-parse failed.');
+    } finally {
+      setReparseReportId(null);
+    }
+  };
+
+  // Auto-recover thin Creditor Contacts from the already-stored HTML (no re-upload).
+  const autoRecoverAttemptedRef = useRef<Set<string>>(new Set());
+  useEffect(() => {
+    if (!selectedReport?.id || !selectedReport.parsed) return;
+    if (selectedReport.fileType !== 'html') return;
+    if (isLegacyPendingReportBlob(selectedReport.rawBlobRef)) return;
+    if (!canAccessReportBlob(selectedReport.rawBlobRef)) return;
+    if (!shouldRecoverCreditorContactsFromStoredHtml(selectedReport.parsed)) return;
+    if (autoRecoverAttemptedRef.current.has(selectedReport.id)) return;
+    if (reparseReportId) return;
+
+    autoRecoverAttemptedRef.current.add(selectedReport.id);
+    let cancelled = false;
+    (async () => {
+      setReparseReportId(selectedReport.id);
+      setReparseReportErr(null);
+      try {
+        const result = await recoverCreditorContactsFromStoredHtml({ record: selectedReport as any });
+        if (cancelled) return;
+        if (result.ran) {
+          upsertReport(result.record);
+          setReportsRefreshKey((v) => v + 1);
+        }
+      } catch (err: any) {
+        if (!cancelled) {
+          autoRecoverAttemptedRef.current.delete(selectedReport.id);
+          setReparseReportErr(err?.message || 'Could not recover contacts from stored HTML.');
+        }
+      } finally {
+        if (!cancelled) setReparseReportId(null);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedReport?.id, selectedReport?.fileType]);
+
   const latestScoresRows = useMemo(() => {
     const scores = reports[0]?.parsed?.scores ?? [];
     if (!scores.length) return [];
@@ -1253,7 +1303,14 @@ function PartnerDetailPageInner() {
     <EntityDetailShell
       badge="Admin"
       title={partner.profile.fullName}
-      subtitle="Partner profile: reports, evidence, disputes, and letters are anchored here for full visibility."
+      subtitle={
+        tab === 'overview'
+          ? 'Command hub: status, scores, and what to do next.'
+          : tab === 'profile'
+            ? 'Edit contact, scores, entitlements, and portal access.'
+            : 'Partner profile: reports, evidence, disputes, and letters are anchored here for full visibility.'
+      }
+      surface={tab === 'overview' || tab === 'profile' ? 'admin' : 'default'}
       headerLeft={
         <div className="flex items-center gap-4">
           <button
@@ -2152,11 +2209,15 @@ function PartnerDetailPageInner() {
 
         {tab === 'reports' && (
           <div className="space-y-6 w-full max-w-full overflow-visible">
-            <ReportUploader
-              partnerId={partner.id}
-              uploadedBy="admin"
-              onCreated={handleReportCreated}
-            />
+            <div className="rounded-2xl border border-emerald-400/30 bg-gradient-to-br from-emerald-500/10 via-transparent to-transparent p-4 md:p-5 space-y-3">
+              <div className="text-[11px] font-black uppercase tracking-[0.22em] text-emerald-300">1 · Upload reports</div>
+              <p className="text-sm text-white/65">IdentityIQ / MyScoreIQ HTML preferred — Creditor Contacts are at the bottom of those exports.</p>
+              <ReportUploader
+                partnerId={partner.id}
+                uploadedBy="admin"
+                onCreated={handleReportCreated}
+              />
+            </div>
 
             <ReportFileStrip
               reports={reports}
@@ -2177,12 +2238,19 @@ function PartnerDetailPageInner() {
             )}
 
             {selectedReport ? (
-              <div className={`${finelyOsCatalogCard('violet')} !p-4 md:!p-5 w-full`}>
+              <div className="rounded-2xl border-2 border-amber-400/45 bg-gradient-to-br from-amber-500/15 via-orange-500/5 to-transparent p-4 md:p-6 shadow-[0_0_40px_rgba(251,191,36,0.12)] space-y-3">
+                <div>
+                  <div className="text-[11px] font-black uppercase tracking-[0.22em] text-amber-300">2 · Active report file</div>
+                  <div className="mt-2 text-xl md:text-2xl font-light text-white truncate" title={selectedReport.filename}>
+                    {selectedReport.filename}
+                  </div>
+                  <p className="mt-1 text-sm text-white/60">Open the original HTML, re-parse contacts, or delete — separate from Credit Intelligence below.</p>
+                </div>
                 <ReportActionsBar report={selectedReport}>
                   {!isLegacyPendingReportBlob(selectedReport.rawBlobRef) ? (
                     <button
                       type="button"
-                      className={FINELY_OS_SECONDARY_BTN}
+                      className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-amber-400 text-black font-black uppercase tracking-widest text-[10px] hover:brightness-110 shadow-[0_0_24px_rgba(251,191,36,0.35)]"
                       title="Open stored report file"
                       onClick={() =>
                         void openStoredDocument({
@@ -2203,22 +2271,20 @@ function PartnerDetailPageInner() {
                       isLegacyPendingReportBlob(selectedReport.rawBlobRef) ||
                       !canAccessReportBlob(selectedReport.rawBlobRef)
                     }
-                    onClick={async () => {
-                      setReparseReportErr(null);
-                      setReparseReportId(selectedReport.id);
-                      try {
-                        const updated = await reparseStoredCreditReport({ record: selectedReport });
-                        upsertReport(updated);
-                        setReportsRefreshKey((v) => v + 1);
-                      } catch (err: any) {
-                        setReparseReportErr(err?.message || 'Re-parse failed.');
-                      } finally {
-                        setReparseReportId(null);
-                      }
-                    }}
+                    onClick={() => handleReparseReport(selectedReport)}
                   >
                     <RefreshCcw size={14} className="text-fuchsia-300" /> {reparseReportId === selectedReport.id ? 'Re-parsing…' : 'Re-parse'}
                   </button>
+                  {selectedReport.parsed ? (
+                    <button
+                      type="button"
+                      className={FINELY_OS_SECONDARY_BTN}
+                      title="View parsed report overview"
+                      onClick={() => setParseOverviewOpen(true)}
+                    >
+                      <FileText size={14} /> Parse overview
+                    </button>
+                  ) : null}
                   <button
                     type="button"
                     className={`${FINELY_OS_ENTITY_ACTION} disabled:opacity-60 disabled:cursor-not-allowed`}
@@ -2270,59 +2336,19 @@ function PartnerDetailPageInner() {
                       onOpenLetterGenerator={() => setTabAndUrl('letters')}
                       onOpenEvidenceVault={() => setEvidencePicker({})}
                       onOpenTasks={() => setTabAndUrl('tasks')}
+                      onReparseRequest={() => handleReparseReport(selectedReport)}
                     />
-                    <section className="w-full max-w-full overflow-visible" id="fc-tradelines-full">
-                      <ParsedReportViewer parsed={selectedReport.parsed} partnerId={partner.id} reportId={selectedReport.id} />
-                    </section>
                   </>
                 ) : null}
               </div>
             ) : selectedReport?.parsed ? (
-              <div className="space-y-6 w-full max-w-full overflow-visible">
-                <ParsedReportOverviewPanel parsed={selectedReport.parsed} filename={selectedReport.filename} />
-                <ParsedReportDiagnosticsPanel
-                  parsed={selectedReport.parsed}
-                  filename={selectedReport.filename}
-                  variant="admin"
-                  pdfMeta={selectedReport.fileType === 'pdf' ? (selectedReport.pdfMeta as any) : undefined}
-                  defaultOpen={
-                    (selectedReport.parsed.tradelines?.length ?? 0) === 0 ||
-                    Boolean(selectedReport.parsed.debug?.fallbackTradelinesUsed) ||
-                    selectedReport.parsed.provider === 'unknown'
-                  }
-                />
-
-                <div className={`${finelyOsCatalogCard('emerald')} !p-5 md:!p-6 backdrop-blur-xl space-y-4 w-full`}>
-                  <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
-                    <div className="min-w-0 flex-1">
-                      <div className={`${FINELY_OS_ENTITY_SUBLABEL} text-emerald-300`}>Free deliverable</div>
-                      <div className={`mt-2 ${FINELY_OS_ENTITY_TITLE} text-base`}>Credit Analysis Report</div>
-                      <div className={`mt-1 ${FINELY_OS_ENTITY_BODY}`}>
-                        Multi-page PDF with scores, negatives breakdown, positives, and a personalized roadmap. Saved to the partner record and listed under Analysis Report.
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => setTabAndUrl('analysis')}
-                        className={`mt-3 inline-flex items-center gap-2 ${FINELY_OS_ENTITY_ACCENT_LINK}`}
-                        title="Open the Analysis Report tab"
-                      >
-                        Open Analysis Report tab <ExternalLink size={16} />
-                      </button>
-                    </div>
-                    <button
-                      type="button"
-                      className={`${FINELY_OS_PRIMARY_BTN} shrink-0`}
-                      disabled={analysisBusy}
-                      onClick={() => runGenerateAnalysis(selectedReport)}
-                    >
-                      {analysisBusy ? 'Creating premium report…' : 'Create premium analysis'}
-                    </button>
-                  </div>
-                  {analysisNotice ? (
-                    <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony text-sm ${FINELY_OS_ENTITY_BODY}`}>{analysisNotice}</div>
-                  ) : null}
+              <div className="rounded-2xl border-2 border-fuchsia-400/40 bg-gradient-to-br from-fuchsia-500/12 via-violet-500/5 to-transparent p-4 md:p-6 space-y-6 shadow-[0_0_48px_rgba(232,121,249,0.12)] w-full max-w-full overflow-visible">
+                <div>
+                  <div className="text-[11px] font-black uppercase tracking-[0.22em] text-fuchsia-300">3 · Credit Intelligence</div>
+                  <p className="mt-1 text-sm text-white/65">
+                    Creditors, collections, strategy, education, and simulation — separate from the file actions above.
+                  </p>
                 </div>
-
                 <CreditIntelTabs
                   parsed={selectedReport.parsed}
                   reportId={selectedReport.id}
@@ -2331,11 +2357,8 @@ function PartnerDetailPageInner() {
                   onOpenLetterGenerator={() => setTabAndUrl('letters')}
                   onOpenEvidenceVault={() => setEvidencePicker({})}
                   onOpenTasks={() => setTabAndUrl('tasks')}
+                  onReparseRequest={() => handleReparseReport(selectedReport)}
                 />
-
-                <section className="w-full max-w-full overflow-visible" id="fc-tradelines-full">
-                  <ParsedReportViewer parsed={selectedReport.parsed} partnerId={partner.id} reportId={selectedReport.id} />
-                </section>
               </div>
             ) : selectedReport ? (
               selectedReport.fileType === 'pdf' ? (
@@ -2360,6 +2383,43 @@ function PartnerDetailPageInner() {
                 Upload a report to view parsed tradelines.
               </div>
             )}
+
+            {parseOverviewOpen && selectedReport?.parsed ? (
+              <div className={FINELY_OS_FIXED_OVERLAY} role="presentation" onClick={() => setParseOverviewOpen(false)}>
+                <div
+                  className={`${FINELY_OS_MODAL_SHELL} relative z-10 w-full max-w-3xl mx-4 my-auto`}
+                  role="dialog"
+                  aria-modal="true"
+                  aria-labelledby="parse-overview-title"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <div className="flex items-start justify-between gap-3 border-b border-white/10 px-4 py-3">
+                    <div className="min-w-0">
+                      <div className={FINELY_OS_ENTITY_SUBLABEL}>Parse overview</div>
+                      <h2 id="parse-overview-title" className={`mt-1 ${FINELY_OS_ENTITY_TITLE} truncate`}>
+                        {selectedReport.filename}
+                      </h2>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setParseOverviewOpen(false)}
+                      className="shrink-0 rounded-full p-1.5 text-white/60 hover:text-white hover:bg-white/10 transition-colors"
+                      aria-label="Close"
+                    >
+                      <X size={18} />
+                    </button>
+                  </div>
+                  <div className="px-4 py-4 overflow-y-auto max-h-[72vh]">
+                    <ParsedReportOverviewPanel parsed={selectedReport.parsed} filename={selectedReport.filename} />
+                  </div>
+                  <div className="flex justify-end gap-2 border-t border-white/10 px-4 py-3">
+                    <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => setParseOverviewOpen(false)}>
+                      Close
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ) : null}
           </div>
         )}
 

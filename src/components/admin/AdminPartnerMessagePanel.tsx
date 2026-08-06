@@ -14,8 +14,12 @@ import { STAFF_MESSAGE_SNIPPETS } from '../../lib/staffMessageSnippets';
 import { fetchSupportReplySuggestions } from '../../lib/supportReplySuggestions';
 import { isFeatureEnabled } from '../../data/settingsRepo';
 import { listThreadsByPartner } from '../../data/supportRepo';
-import { listEvidenceByPartner } from '../../data/evidenceRepo';
 import { describeChatAttachmentError, uploadChatAttachment } from '../../lib/chatAttachments';
+import {
+  CHAT_VAULT_ATTACH_LIMIT,
+  chatVaultAttachmentLabel,
+  listChatVaultAttachments,
+} from '../../lib/chatVaultAttachments';
 import {
   adminDeliveryState,
   formatAdminDeliveryWhen,
@@ -77,6 +81,7 @@ export function AdminPartnerMessagePanel({ partner }: Props) {
   const [tick, setTick] = useState(0);
   const [aiBusy, setAiBusy] = useState(false);
   const [aiSuggestions, setAiSuggestions] = useState<Array<{ title: string; body: string }>>([]);
+  const [vaultTick, setVaultTick] = useState(0);
 
   const partnerName = (partner.profile.fullName || 'Partner').trim();
   const email = (partner.profile.email || '').trim();
@@ -93,6 +98,12 @@ export function AdminPartnerMessagePanel({ partner }: Props) {
     return () => window.clearInterval(id);
   }, [msgState.isRepeat, msgState.canSend]);
 
+  useEffect(() => {
+    const onStore = () => setVaultTick((t) => t + 1);
+    window.addEventListener('finely:store', onStore as EventListener);
+    return () => window.removeEventListener('finely:store', onStore as EventListener);
+  }, []);
+
   const recentThreads = useMemo(
     () =>
       listThreadsByPartner(partner.id)
@@ -104,10 +115,11 @@ export function AdminPartnerMessagePanel({ partner }: Props) {
 
   const vaultAttachments = useMemo(
     () =>
-      listEvidenceByPartner(partner.id)
-        .slice(0, 8)
-        .map((item) => ({ id: item.id, label: item.filename })),
-    [partner.id, notice, attachmentIds.length],
+      listChatVaultAttachments(partner.id, CHAT_VAULT_ATTACH_LIMIT).map((item) => ({
+        id: item.id,
+        label: chatVaultAttachmentLabel(item),
+      })),
+    [partner.id, notice, attachmentIds.length, vaultTick],
   );
 
   const uploadAttachment = async (file: File) => {
@@ -127,8 +139,8 @@ export function AdminPartnerMessagePanel({ partner }: Props) {
 
   const sendMessage = async () => {
     const text = body.trim();
-    if (!text) {
-      setErr('Write a message first.');
+    if (!text && !attachmentIds.length) {
+      setErr('Write a message or attach evidence first.');
       return;
     }
     if (uploadBusy) {
@@ -146,6 +158,12 @@ export function AdminPartnerMessagePanel({ partner }: Props) {
       if (!ok) return;
     }
 
+    const messageBody =
+      text ||
+      (attachmentIds.length === 1
+        ? 'Shared an evidence file from the Documents Vault.'
+        : `Shared ${attachmentIds.length} evidence files from the Documents Vault.`);
+
     setBusy(true);
     setErr(null);
     setNotice(null);
@@ -157,7 +175,7 @@ export function AdminPartnerMessagePanel({ partner }: Props) {
           threadId: existing.id,
           partnerId: partner.id,
           topic: existing.topic,
-          body: text,
+          body: messageBody,
           attachments: attachmentIds.map((evidenceId) => ({ evidenceId })),
         });
         threadId = existing.id;
@@ -165,7 +183,7 @@ export function AdminPartnerMessagePanel({ partner }: Props) {
         const thread = sendPartnerOutreachMessage({
           partnerId: partner.id,
           partnerName,
-          body: text,
+          body: messageBody,
           topic,
           subject: `Message from Finely · ${partnerName}`,
           attachments: attachmentIds.map((evidenceId) => ({ evidenceId })),

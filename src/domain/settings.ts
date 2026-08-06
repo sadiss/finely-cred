@@ -140,6 +140,8 @@ export interface SensitiveActionCodes {
   partnerDelete?: string;
   /** Required to grant Head of Society access keys in admin. */
   hosAccessGrant?: string;
+  /** Required to grant partner portal module / toolkit access. */
+  partnerAccessGrant?: string;
   /** Required for bulk credit-report purge / destructive re-import. */
   bulkReportPurge?: string;
   updatedAt?: string;

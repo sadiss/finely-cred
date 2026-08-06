@@ -18,14 +18,15 @@ type Props = {
 
 const TAB_ROUTES: Record<string, string> = {
   reports: '/portal/reports',
-  analysis: '/portal/reports',
-  evidence: '/portal/evidence',
+  analysis: '/portal/analysis',
+  evidence: '/portal/documents',
   disputes: '/portal/disputes',
   letters: '/portal/letters',
-  tasks: '/portal/projects',
+  tasks: '/portal/my-tasks',
   notes: '/portal/partner',
   debt: '/portal/debt',
   overview: '/portal/partner',
+  profile: '/portal/partner',
 };
 
 export function PartnerCreditRestoreCommandStrip({

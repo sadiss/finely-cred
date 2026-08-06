@@ -60,9 +60,13 @@ export function FinelyChatComposeBox({
     onChange(`${value.slice(0, start)}${text}${value.slice(end)}`);
   };
 
+  /** Text or vault evidence is enough — attachment-only sends must stay available. */
+  const canSend = Boolean(value.trim() || selectedAttachmentIds.length);
+  const selectedVaultItems = attachments.filter((item) => selectedAttachmentIds.includes(item.id));
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!value.trim() || disabled || busy) return;
+    if (!canSend || disabled || busy || uploadBusy) return;
     onSubmit();
   };
 
@@ -73,6 +77,7 @@ export function FinelyChatComposeBox({
           <span className={FINELY_OS_ENTITY_LABEL}>{label}</span>
           <span className="text-[10px] font-semibold uppercase tracking-widest text-emerald-200/80">
             {value.trim().length} chars
+            {selectedAttachmentIds.length ? ` · ${selectedAttachmentIds.length} attached` : ''}
           </span>
         </div>
 
@@ -88,6 +93,44 @@ export function FinelyChatComposeBox({
             />
           </div>
         </div>
+
+        {attachments.length > 0 && onToggleAttachment ? (
+          <div className="px-3 pb-3 space-y-2">
+            <div className="rounded-xl border border-sky-500/25 bg-sky-500/8 p-3 space-y-2">
+              <div className={FINELY_OS_ENTITY_LABEL}>Attach from vault</div>
+              <div className="flex flex-wrap gap-2">
+                {attachments.map((item) => {
+                  const selected = selectedAttachmentIds.includes(item.id);
+                  return (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => onToggleAttachment(item.id)}
+                      className={
+                        'inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border text-[11px] font-medium transition-all ' +
+                        (selected
+                          ? 'border-sky-400/50 bg-sky-500/20 text-sky-100'
+                          : 'border-white/12 bg-[#101815] text-white/65 hover:border-sky-400/30 hover:text-white')
+                      }
+                    >
+                      <Paperclip size={11} />
+                      <span className="max-w-[140px] truncate">{item.label}</span>
+                      {selected ? <X size={10} /> : null}
+                    </button>
+                  );
+                })}
+              </div>
+              {selectedVaultItems.length ? (
+                <p className="text-[11px] text-emerald-200/90">
+                  {selectedVaultItems.length} evidence file{selectedVaultItems.length === 1 ? '' : 's'} ready —{' '}
+                  {value.trim() ? 'add a note if you want, then send.' : 'Send is available now (note optional).'}
+                </p>
+              ) : (
+                <p className="text-[11px] text-white/45">Tap files to attach them to this partner message.</p>
+              )}
+            </div>
+          </div>
+        ) : null}
 
         <div className="px-3 pb-3">
           <div className="rounded-xl border border-white/12 bg-black/35 px-3 py-2.5 flex flex-wrap items-center gap-2">
@@ -130,8 +173,13 @@ export function FinelyChatComposeBox({
             ) : null}
             <button
               type="submit"
-              disabled={!value.trim() || disabled || busy || uploadBusy}
+              disabled={!canSend || disabled || busy || uploadBusy}
               className={`ml-auto ${FINELY_OS_PRIMARY_BTN} !py-2.5 !px-5 disabled:opacity-45 shadow-lg shadow-fuchsia-500/10`}
+              title={
+                canSend
+                  ? submitLabel
+                  : 'Write a message or attach evidence from the vault, then send'
+              }
             >
               <Send size={14} /> {busy ? 'Sending…' : submitLabel}
             </button>
@@ -148,40 +196,12 @@ export function FinelyChatComposeBox({
         />
       ) : null}
 
-      {attachments.length > 0 && onToggleAttachment ? (
-        <div className="rounded-xl border border-sky-500/25 bg-sky-500/8 p-3 space-y-2">
-          <div className={FINELY_OS_ENTITY_LABEL}>Attach from vault</div>
-          <div className="flex flex-wrap gap-2">
-            {attachments.map((item) => {
-              const selected = selectedAttachmentIds.includes(item.id);
-              return (
-                <button
-                  key={item.id}
-                  type="button"
-                  onClick={() => onToggleAttachment(item.id)}
-                  className={
-                    'inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border text-[11px] font-medium transition-all ' +
-                    (selected
-                      ? 'border-sky-400/50 bg-sky-500/20 text-sky-100'
-                      : 'border-white/12 bg-[#101815] text-white/65 hover:border-sky-400/30 hover:text-white')
-                  }
-                >
-                  <Paperclip size={11} />
-                  <span className="max-w-[140px] truncate">{item.label}</span>
-                  {selected ? <X size={10} /> : null}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      ) : null}
-
       {uploadError ? (
         <div className="rounded-xl border border-rose-400/35 bg-rose-500/10 px-3 py-2 text-xs text-rose-200">{uploadError}</div>
       ) : null}
       {!compact ? (
         <p className={`text-[11px] ${FINELY_OS_ENTITY_BODY}`}>
-          Message area, tools, and attachments are separated so each block stays easy to spot.
+          Choose vault evidence above the send button — text is optional when files are attached.
         </p>
       ) : null}
     </form>

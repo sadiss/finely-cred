@@ -15,15 +15,17 @@ import {
   Scale,
   ShieldAlert,
   Search,
-  SplitSquareVertical,
   TrendingUp,
 } from 'lucide-react';
-import type { Bureau, DisputeCandidate, ParsedCreditReport, ParsedCreditorContact, ParsedSection, ParsedSectionItem, ParsedTradeline, TradelineRow } from '../../domain/creditReports';
+import type { Bureau, DisputeCandidate, ParsedCreditReport, ParsedSection, ParsedSectionItem, ParsedTradeline, TradelineRow } from '../../domain/creditReports';
 import { deriveDisputeCandidates } from '../../creditReports/disputeCandidates';
+import { refreshCreditorContactsOnParsed, extractContactsFromSections } from '../../creditReports/creditorContactExtract';
+import { persistRefreshedCreditorContactsOnReport } from '../../lib/debtCreditorIntel';
+import { buildCollectionContactBoard, classifyCollectionOrChargeOff } from '../../lib/collectionContactBoard';
 import { buildFactualDisputeSuggestions } from '../../lib/disputeLetterBuilder';
 import { bureauShortCode } from '../../utils/bureaus';
 import { computeCreditIntelReadiness, rankDisputeCandidates } from '../../creditReports/creditIntelInsights';
-import { ParsedReportViewer } from '../reports/ParsedReportViewer';
+import { ParsedReportViewer, responsibilityKind } from '../reports/ParsedReportViewer';
 import { SectionItemEvidenceSheet } from '../evidence/EvidenceSheet';
 import type { EvidenceItem } from '../../domain/evidence';
 import { getBlobStore } from '../../storage/getBlobStore';
@@ -52,11 +54,77 @@ import { FinelyOsPaginatedStack } from '../../features/os/FinelyOsPaginatedStack
 
 const INTEL_CATALOG_PAGE_SIZE = 12;
 
+function TypewriterLine({
+  text,
+  className,
+  speedMs = 28,
+}: {
+  text: string;
+  className?: string;
+  speedMs?: number;
+}) {
+  const [shown, setShown] = useState('');
+  useEffect(() => {
+    setShown('');
+    let i = 0;
+    const id = window.setInterval(() => {
+      i += 1;
+      setShown(text.slice(0, i));
+      if (i >= text.length) window.clearInterval(id);
+    }, speedMs);
+    return () => window.clearInterval(id);
+  }, [text, speedMs]);
+  return (
+    <span className={className}>
+      {shown}
+      <span className="inline-block w-[0.55ch] ml-0.5 animate-pulse text-amber-300/90">|</span>
+    </span>
+  );
+}
+
+function IntelHeroBanner({
+  eyebrow,
+  title,
+  subtitle,
+  accent = 'violet',
+}: {
+  eyebrow: string;
+  title: string;
+  subtitle: string;
+  accent?: 'violet' | 'amber' | 'sky' | 'emerald';
+}) {
+  const ring =
+    accent === 'amber'
+      ? 'from-amber-500/25 via-orange-400/10 to-transparent border-amber-400/30'
+      : accent === 'sky'
+        ? 'from-sky-500/25 via-cyan-400/10 to-transparent border-sky-400/30'
+        : accent === 'emerald'
+          ? 'from-emerald-500/25 via-teal-400/10 to-transparent border-emerald-400/30'
+          : 'from-fuchsia-500/25 via-violet-400/10 to-transparent border-fuchsia-400/30';
+  const eye =
+    accent === 'amber'
+      ? 'text-amber-300'
+      : accent === 'sky'
+        ? 'text-sky-300'
+        : accent === 'emerald'
+          ? 'text-emerald-300'
+          : 'text-fuchsia-300';
+  return (
+    <div className={`relative overflow-hidden rounded-2xl border bg-gradient-to-br ${ring} p-6 md:p-8`}>
+      <div className="pointer-events-none absolute -right-8 -top-10 h-40 w-40 rounded-full bg-white/5 blur-2xl" />
+      <div className={`text-[11px] font-black uppercase tracking-[0.22em] ${eye}`}>{eyebrow}</div>
+      <h3 className="mt-3 text-2xl md:text-3xl font-light text-white tracking-tight">
+        <TypewriterLine text={title} />
+      </h3>
+      <p className="mt-3 max-w-2xl text-sm md:text-base text-white/75 leading-relaxed">{subtitle}</p>
+    </div>
+  );
+}
+
 type TabKey =
   | 'overview'
   | 'pi'
   | 'creditors'
-  | 'accounts'
   | 'collections'
   | 'public_records'
   | 'late_payments'
@@ -67,6 +135,32 @@ type TabKey =
   | 'education'
   | 'comparison'
   | 'simulation';
+
+type RespFilter = '' | 'AU' | 'Primary' | 'Joint';
+type CollectionKindFilter = '' | 'collection' | 'charge_off';
+
+function normalizeIncomingTab(tab?: string | null): TabKey {
+  // Accounts tab removed — Credit Intelligence tabs are the filter.
+  if (tab === 'accounts') return 'collections';
+  if (
+    tab === 'overview' ||
+    tab === 'pi' ||
+    tab === 'creditors' ||
+    tab === 'collections' ||
+    tab === 'public_records' ||
+    tab === 'late_payments' ||
+    tab === 'inquiries' ||
+    tab === 'negatives' ||
+    tab === 'strategy' ||
+    tab === 'disputes' ||
+    tab === 'education' ||
+    tab === 'comparison' ||
+    tab === 'simulation'
+  ) {
+    return tab;
+  }
+  return 'creditors';
+}
 
 function safe(v?: string | number | null) {
   const s = `${v ?? ''}`.trim();
@@ -333,9 +427,9 @@ export function CreditIntelTabs({
   onOpenLetterGenerator,
   onOpenEvidenceVault,
   onOpenTasks,
+  onReparseRequest,
   initialTab,
   initialScrollToAccount,
-  tradelinesExternalAnchor = 'fc-tradelines-full',
 }: {
   parsed: ParsedCreditReport;
   reportId?: string;
@@ -351,19 +445,19 @@ export function CreditIntelTabs({
   onOpenEvidenceVault?: () => void;
   /** When provided, opens Tasks & Notifications in the hosting page. */
   onOpenTasks?: () => void;
+  /** When provided, offers a one-click re-parse when the stored parse holds no creditor addresses. */
+  onReparseRequest?: () => void;
   /** Optional deep-link behavior when arriving from Letters. */
-  initialTab?: TabKey;
+  initialTab?: TabKey | 'accounts';
   /** Optional deep-link auto-scroll target (uses ParsedReportViewer scrollToCreditorName). */
   initialScrollToAccount?: string | null;
-  /** When the host page renders tradelines below Credit Intel, Accounts tab links there instead of duplicating. */
-  tradelinesExternalAnchor?: string | null;
 }) {
   /** Guard against malformed or legacy stored data: ensure arrays exist so we never throw on .length or .filter. */
   const safeParsed = useMemo((): ParsedCreditReport => {
     if (!parsed || typeof parsed !== 'object') {
       return { provider: 'unknown', tradelines: [], sections: [], scores: [] };
     }
-    return {
+    const base: ParsedCreditReport = {
       ...parsed,
       tradelines: sanitizeTradelines(parsed.tradelines),
       sections: Array.isArray(parsed.sections) ? parsed.sections : undefined,
@@ -371,9 +465,13 @@ export function CreditIntelTabs({
       creditorContacts: Array.isArray(parsed.creditorContacts) ? parsed.creditorContacts : undefined,
       personalInfo: parsed.personalInfo && typeof parsed.personalInfo === 'object' ? parsed.personalInfo : undefined,
     };
+    // Older parses stored an empty or address-less creditorContacts array. Rebuild
+    // from the report's own Creditor Contacts sections + tradelines so addresses
+    // appear without the partner having to re-parse the export.
+    return refreshCreditorContactsOnParsed(base);
   }, [parsed]);
 
-  const [tab, setTab] = useState<TabKey>(initialTab ?? 'overview');
+  const [tab, setTab] = useState<TabKey>(() => normalizeIncomingTab(initialTab ?? 'creditors'));
   const [paydownAmount, setPaydownAmount] = useState<number>(1000);
   const [manualBalanceOverride, setManualBalanceOverride] = useState<string>('');
   const [manualLimitOverride, setManualLimitOverride] = useState<string>('');
@@ -385,17 +483,38 @@ export function CreditIntelTabs({
   const [insightsOpenId, setInsightsOpenId] = useState<string | null>(null);
   const [showEvidenceTables, setShowEvidenceTables] = useState(false);
   const [piOpen, setPiOpen] = useState(true);
-  const [restoreModeOn, setRestoreModeOn] = useState(true);
+  const [restoreModeOn, setRestoreModeOn] = useState(false);
   const [fixMissingEvidenceMode, setFixMissingEvidenceMode] = useState(false);
+  const [collectionKindFilter, setCollectionKindFilter] = useState<CollectionKindFilter>('');
+  const [collectionRespFilter, setCollectionRespFilter] = useState<RespFilter>('');
+  const [lateRespFilter, setLateRespFilter] = useState<RespFilter>('');
+  const [creditorQuery, setCreditorQuery] = useState('');
+  const [creditorAddrFilter, setCreditorAddrFilter] = useState<'' | 'with' | 'missing'>('');
   const navigate = useNavigate();
   const location = useLocation();
   const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   useEffect(() => {
-    if (initialTab) setTab(initialTab);
+    if (initialTab) setTab(normalizeIncomingTab(initialTab));
     if (initialScrollToAccount) setScrollToAccount(initialScrollToAccount);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialTab, initialScrollToAccount]);
+
+  // Write recovered addresses back onto the stored report so Validation fields,
+  // debt intel, and letter recipients see the same contacts this tab shows.
+  useEffect(() => {
+    if (!reportId || !parsed) return;
+    const before = (parsed.creditorContacts || []).filter((c) => c.address).length;
+    const next = persistRefreshedCreditorContactsOnReport({ id: reportId, parsed });
+    const after = (next?.creditorContacts || []).filter((c) => c.address).length;
+    if (after > before) {
+      try {
+        window.dispatchEvent(new CustomEvent('finely:store'));
+      } catch {
+        /* ignore */
+      }
+    }
+  }, [reportId, parsed]);
 
   const disputeCandidates = useMemo(() => deriveDisputeCandidates(safeParsed, reportId), [safeParsed, reportId]);
   const totals = useMemo(() => computeMoneyTotals(safeParsed), [safeParsed]);
@@ -462,7 +581,7 @@ export function CreditIntelTabs({
   };
 
   useEffect(() => {
-    if (tab === 'accounts' && scrollToAccount) {
+    if (tab === 'collections' && scrollToAccount) {
       const t = setTimeout(() => setScrollToAccount(null), 400);
       return () => clearTimeout(t);
     }
@@ -494,24 +613,14 @@ export function CreditIntelTabs({
       const pick = (by: any) => (by?.EXP || by?.TUC || by?.EQF || '').toString();
       return rows.map((r) => pick(r.byBureau)).join(' ').trim();
     };
-    const allFieldBlob = (t: ParsedTradeline) => {
-      const parts: string[] = [];
-      for (const row of t.fields ?? []) {
-        if (!row) continue;
-        const by = row.byBureau ?? ({} as any);
-        const vals = [by.EXP, by.EQF, by.TUC].filter(Boolean).join(' ');
-        parts.push(`${row.label ?? ''} ${vals}`.trim());
-      }
-      return n(parts.join(' '));
-    };
 
     for (const t of safeParsed.tradelines ?? []) {
-      const typeBlob = n(
-        [
-          t.accountType ?? '',
-          findAnyField(t, 'account type', 'type of account', 'account type - detail', 'type detail', 'portfolio type'),
-        ].join(' '),
-      );
+      // Same strict rule as Validation / Creditor Contacts board — not every past-due open account.
+      if (classifyCollectionOrChargeOff(t)) {
+        buckets.collectionsAndChargeOffs.push(t);
+        continue;
+      }
+
       const status = n(t.accountStatus ?? '');
       const paymentStatus = n(
         findAnyField(
@@ -530,41 +639,17 @@ export function CreditIntelTabs({
           'delinquency',
         ),
       );
-      const anyField = allFieldBlob(t);
-
-      const isCollectionOrCO =
-        typeBlob.includes('collection') ||
-        paymentStatus.includes('collection') ||
-        anyField.includes('collection') ||
-        status.includes('charge') ||
-        status.includes('charge-off') ||
-        status.includes('charge off') ||
-        status.includes('chargeoff') ||
-        paymentStatus.includes('charge') ||
-        paymentStatus.includes('charge-off') ||
-        paymentStatus.includes('charge off') ||
-        paymentStatus.includes('chargeoff') ||
-        paymentStatus.includes('charged off') ||
-        anyField.includes('charge off') ||
-        anyField.includes('chargeoff') ||
-        anyField.includes('charged off') ||
-        anyField.includes('write off') ||
-        anyField.includes('writeoff') ||
-        status.includes('collection') ||
-        hasAnyDerogCode(t, (c) => c === 'co' || c === 'cl' || c.includes('col') || c.includes('charge'));
 
       const isLateOnly =
-        !isCollectionOrCO &&
-        (hasAnyDerogCode(t, (c) => ['30', '60', '90', '120'].includes(c)) ||
-          paymentStatus.includes('late') ||
-          paymentStatus.includes('delinq') ||
-          paymentStatus.includes('30') ||
-          paymentStatus.includes('60') ||
-          paymentStatus.includes('90') ||
-          paymentStatus.includes('120'));
+        hasAnyDerogCode(t, (c) => ['30', '60', '90', '120'].includes(c)) ||
+        paymentStatus.includes('late') ||
+        paymentStatus.includes('delinq') ||
+        paymentStatus.includes('30') ||
+        paymentStatus.includes('60') ||
+        paymentStatus.includes('90') ||
+        paymentStatus.includes('120');
 
       const isOtherDerog =
-        !isCollectionOrCO &&
         !isLateOnly &&
         (paymentStatus.includes('repo') ||
           paymentStatus.includes('repos') ||
@@ -573,8 +658,7 @@ export function CreditIntelTabs({
           status.includes('repo') ||
           status.includes('foreclos'));
 
-      if (isCollectionOrCO) buckets.collectionsAndChargeOffs.push(t);
-      else if (isLateOnly) buckets.latePayments.push(t);
+      if (isLateOnly) buckets.latePayments.push(t);
       else if (isOtherDerog) buckets.otherDerog.push(t);
     }
 
@@ -824,6 +908,69 @@ export function CreditIntelTabs({
     return rows;
   }, [safeParsed.scores]);
 
+  const contactBoard = useMemo(
+    () => buildCollectionContactBoard({ id: reportId || 'report', parsed: safeParsed }),
+    [reportId, safeParsed],
+  );
+
+  /** Same Accounts viewer as Collections tab — stamp mailing address/phone from the board. */
+  const collectionsViewerTradelines = useMemo((): ParsedTradeline[] => {
+    const all = safeParsed.tradelines || [];
+    const byIndex = new Map(contactBoard.collections.map((c) => [c.tradelineIndex, c]));
+    return collectionsDisplayTradelines.map((t) => {
+      const idx = all.indexOf(t);
+      const row = idx >= 0 ? byIndex.get(idx) : undefined;
+      if (!row) return t;
+      return {
+        ...t,
+        creditorAddress: t.creditorAddress || row.mailingAddress || undefined,
+        creditorPhone: t.creditorPhone || row.phone || undefined,
+      } as ParsedTradeline;
+    });
+  }, [contactBoard.collections, safeParsed.tradelines, collectionsDisplayTradelines]);
+
+  const collectionKindCounts = useMemo(() => {
+    let collection = 0;
+    let charge_off = 0;
+    for (const t of collectionsViewerTradelines) {
+      const k = classifyCollectionOrChargeOff(t);
+      if (k === 'charge_off') charge_off += 1;
+      else collection += 1;
+    }
+    return { collection, charge_off, all: collectionsViewerTradelines.length };
+  }, [collectionsViewerTradelines]);
+
+  const collectionsFilteredForView = useMemo(() => {
+    let list = collectionsViewerTradelines;
+    if (collectionKindFilter) {
+      list = list.filter((t) => classifyCollectionOrChargeOff(t) === collectionKindFilter);
+    }
+    if (collectionRespFilter) {
+      list = list.filter((t) => responsibilityKind(t.responsibility) === collectionRespFilter);
+    }
+    return list;
+  }, [collectionsViewerTradelines, collectionKindFilter, collectionRespFilter]);
+
+  const collectionRespCounts = useMemo(() => {
+    const base = collectionKindFilter
+      ? collectionsViewerTradelines.filter((t) => classifyCollectionOrChargeOff(t) === collectionKindFilter)
+      : collectionsViewerTradelines;
+    const c = { AU: 0, Primary: 0, Joint: 0, Other: 0 };
+    for (const t of base) c[responsibilityKind(t.responsibility)] += 1;
+    return { ...c, all: base.length };
+  }, [collectionsViewerTradelines, collectionKindFilter]);
+
+  const lateFilteredForView = useMemo(() => {
+    if (!lateRespFilter) return latePaymentTradelines;
+    return latePaymentTradelines.filter((t) => responsibilityKind(t.responsibility) === lateRespFilter);
+  }, [latePaymentTradelines, lateRespFilter]);
+
+  const lateRespCounts = useMemo(() => {
+    const c = { AU: 0, Primary: 0, Joint: 0, Other: 0 };
+    for (const t of latePaymentTradelines) c[responsibilityKind(t.responsibility)] += 1;
+    return { ...c, all: latePaymentTradelines.length };
+  }, [latePaymentTradelines]);
+
   const creditorContactsDerived = useMemo(() => {
     const matchLabel = (label: string) => {
       const s = label.toLowerCase();
@@ -861,6 +1008,150 @@ export function CreditIntelTabs({
       };
     });
   }, [safeParsed.tradelines]);
+
+  const creditorDirectoryRows = useMemo(() => {
+    // Prefer live section extract so the IdentityIQ bottom table (30+) always surfaces,
+    // even when an older cached creditorContacts array was thin / over-deduped.
+    const fromSection = extractContactsFromSections(safeParsed.sections || []);
+    const fromParsed = Array.isArray(safeParsed.creditorContacts) ? safeParsed.creditorContacts : [];
+    const sectionStronger = fromSection.filter((c) => c.address).length > fromParsed.filter((c) => c.address).length;
+
+    const tradelineByName = new Map<string, { address?: string; phone?: string }>();
+    for (const t of safeParsed.tradelines || []) {
+      const key = String(t.creditorName || '')
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, ' ')
+        .trim();
+      if (!key) continue;
+      const prev = tradelineByName.get(key) || {};
+      tradelineByName.set(key, {
+        address: prev.address || t.creditorAddress,
+        phone: prev.phone || t.creditorPhone,
+      });
+    }
+    for (const d of creditorContactsDerived) {
+      const key = String(d.creditorName || '')
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, ' ')
+        .trim();
+      if (!key) continue;
+      const prev = tradelineByName.get(key) || {};
+      tradelineByName.set(key, {
+        address: prev.address || d.address,
+        phone: prev.phone || d.phone,
+      });
+    }
+
+    const sourceContacts = sectionStronger
+      ? fromSection
+      : contactBoard.contacts.length
+        ? null
+        : fromParsed.length
+          ? fromParsed
+          : null;
+
+    const dedupeRows = (
+      list: Array<{ id: string; name: string; address?: string; phone?: string }>,
+    ) => {
+      const seen = new Set<string>();
+      const out: typeof list = [];
+      for (const r of list) {
+        const key = [
+          String(r.name || '')
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, ' ')
+            .trim(),
+          String(r.address || '')
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, ''),
+        ].join('|');
+        if (seen.has(key)) continue;
+        seen.add(key);
+        out.push(r);
+      }
+      return out;
+    };
+
+    const rows = dedupeRows(
+      sourceContacts
+        ? sourceContacts.map((c, i) => ({
+            id: `${c.creditorName}_${c.address || ''}_${i}`,
+            name: c.creditorName,
+            address: c.address,
+            phone: c.phone,
+          }))
+        : contactBoard.contacts.length > 0
+          ? contactBoard.contacts.map((c) => {
+              const linked = contactBoard.collections.filter((row) => row.matchedContactId === c.contactId);
+              const key = c.creditorName
+                .toLowerCase()
+                .replace(/[^a-z0-9]+/g, ' ')
+                .trim();
+              const fromTl = tradelineByName.get(key);
+              return {
+                id: c.contactId,
+                name: c.creditorName,
+                address:
+                  c.address ||
+                  linked.find((row) => row.mailingAddress)?.mailingAddress ||
+                  fromTl?.address ||
+                  undefined,
+                phone: c.phone || linked.find((row) => row.phone)?.phone || fromTl?.phone || undefined,
+              };
+            })
+          : creditorContactsDerived.map((c, i) => ({
+              id: `${c.creditorName}_${i}`,
+              name: c.creditorName,
+              address: c.address,
+              phone: c.phone,
+            })),
+    );
+
+    const q = creditorQuery.trim().toLowerCase();
+    let filtered = rows;
+    if (q) filtered = filtered.filter((r) => [r.name, r.address, r.phone].join(' ').toLowerCase().includes(q));
+    if (creditorAddrFilter === 'with') filtered = filtered.filter((r) => Boolean(r.address));
+    if (creditorAddrFilter === 'missing') filtered = filtered.filter((r) => !r.address);
+    return filtered;
+  }, [
+    contactBoard.contacts,
+    contactBoard.collections,
+    creditorContactsDerived,
+    creditorQuery,
+    creditorAddrFilter,
+    safeParsed.tradelines,
+    safeParsed.sections,
+    safeParsed.creditorContacts,
+  ]);
+
+  const creditorAddrStats = useMemo(() => {
+    const all = creditorDirectoryRows;
+    // Stats should match the directory (deduped), not a second inflated source.
+    const fromSection = extractContactsFromSections(safeParsed.sections || []);
+    const baseNames =
+      fromSection.length >= 15
+        ? fromSection
+        : contactBoard.contacts.length > 0
+          ? contactBoard.contacts
+          : creditorContactsDerived;
+    const seen = new Set<string>();
+    const base: Array<{ address?: string }> = [];
+    for (const c of baseNames) {
+      const name = String((c as { creditorName?: string }).creditorName || (c as { name?: string }).name || '')
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, ' ')
+        .trim();
+      const addr = String((c as { address?: string }).address || '')
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '');
+      const key = `${name}|${addr}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      base.push({ address: (c as { address?: string }).address });
+    }
+    const withAddr = base.filter((c) => Boolean(c.address)).length;
+    return { all: base.length, withAddr, missing: Math.max(0, base.length - withAddr), shown: all.length };
+  }, [creditorDirectoryRows, contactBoard.contacts, creditorContactsDerived, safeParsed.sections]);
 
   const compareBase = useMemo(() => {
     if (!availableReports?.length) return null;
@@ -953,7 +1244,7 @@ export function CreditIntelTabs({
         entityId: item.id,
         meta: { filename, source: item.source, reportId: reportId ?? null, sectionKey: args.key },
       });
-      setNotice(`Saved section evidence screenshot: ${filename}`);
+      setNotice(`Saved section evidence screenshot: ${filename} — available in Team chat → Attach from vault.`);
     } catch (e: any) {
       setNotice(`Section screenshot failed: ${e?.message || 'unknown error'}`);
     } finally {
@@ -1010,7 +1301,7 @@ export function CreditIntelTabs({
           creditorName: item.creditorName ?? null,
         },
       });
-      setNotice(`Saved screenshot for evidence vault. Attach it to the matching dispute item.`);
+      setNotice(`Saved screenshot for evidence vault — also available in Team chat → Attach from vault.`);
     } catch (e: any) {
       setNotice(`Screenshot failed: ${e?.message || 'unknown error'}`);
     } finally {
@@ -1433,18 +1724,18 @@ export function CreditIntelTabs({
             </button>
             <button className={tabBtn(tab === 'creditors')} onClick={() => setTab('creditors')}>
               <FileText size={12} className="inline mr-2" /> Creditors
-            </button>
-            <button className={tabBtn(tab === 'accounts')} onClick={() => setTab('accounts')}>
-              <SplitSquareVertical size={12} className="inline mr-2" /> Accounts
+              {creditorAddrStats.all ? ` (${creditorAddrStats.all})` : ''}
             </button>
             <button className={tabBtn(tab === 'collections')} onClick={() => setTab('collections')}>
               <Scale size={12} className="inline mr-2" /> Collections
-            </button>
-            <button className={tabBtn(tab === 'public_records')} onClick={() => setTab('public_records')}>
-              <Gavel size={12} className="inline mr-2" /> Public records
+              {collectionKindCounts.all ? ` (${collectionKindCounts.all})` : ''}
             </button>
             <button className={tabBtn(tab === 'late_payments')} onClick={() => setTab('late_payments')}>
               <ShieldAlert size={12} className="inline mr-2" /> Late payments
+              {latePaymentTradelines.length ? ` (${latePaymentTradelines.length})` : ''}
+            </button>
+            <button className={tabBtn(tab === 'public_records')} onClick={() => setTab('public_records')}>
+              <Gavel size={12} className="inline mr-2" /> Public records
             </button>
             <button className={tabBtn(tab === 'negatives')} onClick={() => setTab('negatives')}>
               <ShieldAlert size={12} className="inline mr-2" /> Negatives
@@ -1497,7 +1788,7 @@ export function CreditIntelTabs({
               <div className="text-[10px] uppercase tracking-widest text-white/45">Top issues</div>
               <div className="text-white/90 font-semibold">{candidatePriority.length} negative item{candidatePriority.length === 1 ? '' : 's'}</div>
               <div className="text-white/60 text-sm">
-                Collections/charge-offs: <span className="text-white/85">{negativeBuckets.collectionsAndChargeOffs.length}</span> • Late payments:{' '}
+                Collections/charge-offs: <span className="text-white/85">{collectionKindCounts.all}</span> • Late payments:{' '}
                 <span className="text-white/85">{negativeBuckets.latePayments.length}</span>
               </div>
               <div className="pt-2 flex flex-wrap gap-2">
@@ -1564,9 +1855,13 @@ export function CreditIntelTabs({
                       onClick={() => {
                         const t = (nextMissingEvidenceCandidate.type || '').toLowerCase();
                         const isCol = t.includes('collection') || t.includes('charge');
-                        setTab(isCol ? 'collections' : 'accounts');
+                        const isLate = t.includes('late');
+                        const dest = isCol ? 'collections' : isLate ? 'late_payments' : 'creditors';
+                        setTab(dest);
                         setScrollToAccount(nextMissingEvidenceCandidate.account);
-                        setNotice(`Jumped you to ${isCol ? 'Collections' : 'Accounts'} — scroll to "${nextMissingEvidenceCandidate.account}".`);
+                        setNotice(
+                          `Jumped you to ${isCol ? 'Collections' : isLate ? 'Late payments' : 'Creditors'} — look for "${nextMissingEvidenceCandidate.account}".`,
+                        );
                       }}
                       className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-500 text-black text-[10px] font-black uppercase tracking-widest hover:brightness-110 transition-all"
                     >
@@ -1852,113 +2147,207 @@ export function CreditIntelTabs({
       )}
 
       {tab === 'creditors' && (
-        <div className="fc-soft-surface-lg backdrop-blur-xl p-6 space-y-4">
-          <p className="text-[10px] uppercase tracking-widest text-white/45">Creditor contacts (best-effort)</p>
-          <p className="text-white/60 text-sm">
-            {parsed.creditorContacts?.length
-              ? 'Structured contacts derived from tradelines and collection sections.'
-              : 'This comes from whatever “creditor/subscriber/address/phone” fields exist inside the tradelines. If the export doesn’t include contact details, this list will be sparse.'}
-          </p>
-          <div className="grid md:grid-cols-2 gap-4">
-            {safeParsed.creditorContacts?.length
-              ? safeParsed.creditorContacts.map((c, i) => (
-                  <div key={`${c.creditorName}_${i}`} className="fc-soft-surface-lg p-5 space-y-2">
-                    <div className="text-white/90 font-semibold truncate">{c.creditorName}</div>
-                    <div className="text-[11px] text-white/70 font-mono space-y-1 whitespace-pre-wrap break-words">
-                      {c.accountNumberMasked ? <div>acct: {c.accountNumberMasked}</div> : null}
-                      {c.address ? <div>address: {c.address}</div> : null}
-                      {c.phone ? <div>phone: {c.phone}</div> : null}
-                      {c.bureau ? <div>bureau: {bureauShortCode(c.bureau)}</div> : null}
-                      <div className="text-white/45">source: {c.source}</div>
-                      {!c.address && !c.phone ? (
-                        <div className="text-white/45">No contact details for this entry.</div>
-                      ) : null}
+        <div className="space-y-3">
+          <div className="flex flex-wrap items-center justify-between gap-3 px-1">
+            <div className="min-w-0">
+              <p className="text-[10px] uppercase tracking-widest text-white/45">Creditors</p>
+              <p className="text-white/55 text-sm mt-0.5">
+                {creditorAddrStats.all
+                  ? `${creditorAddrStats.withAddr} of ${creditorAddrStats.all} with mailing address`
+                  : 'Contact directory from your report'}
+              </p>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              {(
+                [
+                  { k: '' as const, label: `All (${creditorAddrStats.all})` },
+                  { k: 'with' as const, label: `With address (${creditorAddrStats.withAddr})` },
+                  { k: 'missing' as const, label: `Missing (${creditorAddrStats.missing})` },
+                ] as const
+              ).map((x) => (
+                <button
+                  key={x.k || 'all'}
+                  type="button"
+                  onClick={() => setCreditorAddrFilter(x.k)}
+                  className={finelyOsViewTab(creditorAddrFilter === x.k, 'violet')}
+                >
+                  {x.label}
+                </button>
+              ))}
+              <input
+                value={creditorQuery}
+                onChange={(e) => setCreditorQuery(e.target.value)}
+                placeholder="Search…"
+                className={`${FINELY_OS_ENTITY_INPUT} !mt-0 w-44 max-w-full`}
+              />
+            </div>
+          </div>
+
+          {creditorAddrStats.all > 0 && creditorAddrStats.all < 20 && onReparseRequest ? (
+            <div className={`${finelyOsCatalogCard('amber')} !p-4 space-y-2`}>
+              <div className={FINELY_OS_ENTITY_VALUE}>Creditor Contacts table looks incomplete</div>
+              <p className={FINELY_OS_ENTITY_BODY}>
+                IdentityIQ reports usually list 30+ creditors at the bottom. This parse only has {creditorAddrStats.all}.
+                Re-parse the stored HTML so the full Creditor Contacts table is loaded.
+              </p>
+              <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => onReparseRequest()}>
+                Re-parse for full contacts
+              </button>
+            </div>
+          ) : null}
+
+          {creditorDirectoryRows.length === 0 ? (
+            <div className={`${finelyOsCatalogCard('amber')} !p-4 space-y-2`}>
+              <div className={FINELY_OS_ENTITY_VALUE}>
+                {creditorQuery.trim() || creditorAddrFilter
+                  ? 'No contacts match these filters'
+                  : 'No creditor contacts yet'}
+              </div>
+              {!creditorQuery.trim() && !creditorAddrFilter ? (
+                <>
+                  <p className={FINELY_OS_ENTITY_BODY}>
+                    Re-parse reads your stored HTML so Creditor Contacts can fill this directory.
+                  </p>
+                  {onReparseRequest ? (
+                    <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => onReparseRequest()}>
+                      Re-parse for contacts
+                    </button>
+                  ) : (
+                    <p className={FINELY_OS_ENTITY_SUBLABEL}>Use Re-parse on this report.</p>
+                  )}
+                </>
+              ) : (
+                <button
+                  type="button"
+                  className={FINELY_OS_SECONDARY_BTN}
+                  onClick={() => {
+                    setCreditorQuery('');
+                    setCreditorAddrFilter('');
+                  }}
+                >
+                  Clear filters
+                </button>
+              )}
+            </div>
+          ) : (
+            <div className="rounded-xl border border-white/10 overflow-hidden">
+              <div className="hidden md:grid grid-cols-[minmax(10rem,1.1fr)_minmax(12rem,1.6fr)_minmax(7rem,0.7fr)] gap-3 px-4 py-2 border-b border-white/10 bg-white/[0.03]">
+                <div className="text-[10px] uppercase tracking-widest text-white/40">Name</div>
+                <div className="text-[10px] uppercase tracking-widest text-white/40">Mailing address</div>
+                <div className="text-[10px] uppercase tracking-widest text-white/40">Phone</div>
+              </div>
+              <div className="max-h-[36rem] overflow-y-auto divide-y divide-white/[0.06]">
+                {creditorDirectoryRows.map((c) => (
+                  <div
+                    key={c.id}
+                    className="grid md:grid-cols-[minmax(10rem,1.1fr)_minmax(12rem,1.6fr)_minmax(7rem,0.7fr)] gap-1 md:gap-3 px-4 py-2.5 hover:bg-white/[0.03] transition-colors"
+                  >
+                    <div className="text-sm text-white/90 font-medium leading-snug truncate" title={c.name}>
+                      {c.name}
                     </div>
-                  </div>
-                ))
-              : creditorContactsDerived.map((c, i) => (
-                  <div key={`${c.creditorName}_${i}`} className="fc-soft-surface-lg p-5 space-y-2">
-                    <div className="text-white/90 font-semibold truncate">{c.creditorName}</div>
-                    <div className="text-[11px] text-white/70 font-mono space-y-1 whitespace-pre-wrap break-words">
-                      {c.subscriber ? <div>subscriber: {c.subscriber}</div> : null}
-                      {c.phone ? <div>phone: {c.phone}</div> : null}
-                      {c.website ? <div>website: {c.website}</div> : null}
-                      {c.address ? <div>address: {c.address}</div> : null}
-                      {c.other.map((o, oi) => (
-                        <div key={oi}>
-                          {o.label}: {o.value}
-                        </div>
-                      ))}
-                      {!c.subscriber && !c.phone && !c.website && !c.address && c.other.length === 0 ? (
-                        <div className="text-white/45">No contact fields detected for this tradeline.</div>
-                      ) : null}
+                    <div className="text-[13px] text-white/70 leading-snug whitespace-pre-wrap break-words">
+                      {c.address || <span className="text-amber-200/70">Not on report yet</span>}
+                    </div>
+                    <div className="text-[13px] text-white/60 font-mono">
+                      {c.phone || <span className="text-white/30">—</span>}
                     </div>
                   </div>
                 ))}
-          </div>
+              </div>
+              {creditorDirectoryRows.length > 12 ? (
+                <div className="px-4 py-2 border-t border-white/10 text-[11px] text-white/40">
+                  Scroll for all {creditorDirectoryRows.length} contacts
+                </div>
+              ) : null}
+            </div>
+          )}
         </div>
       )}
 
-      {tab === 'accounts' && (
-        tradelinesExternalAnchor ? (
-          <div className={`${finelyOsCatalogCard('sky')} !p-5 md:!p-6 w-full space-y-3`}>
-            <div className={FINELY_OS_ENTITY_VALUE}>Accounts & tradelines</div>
-            <p className={FINELY_OS_ENTITY_BODY}>
-              Full bureau field tables and 2-year payment history are in the dedicated section below — full page width so nothing is cut off at Equifax or the end of the grid.
-            </p>
-            <button
-              type="button"
-              className={FINELY_OS_SECONDARY_BTN}
-              onClick={() => {
-                document.getElementById(tradelinesExternalAnchor)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-              }}
-            >
-              Jump to full tradelines section
-            </button>
-          </div>
-        ) : (
-        <div className="w-full max-w-full overflow-visible">
-            <ParsedReportViewer
-              parsed={safeParsed}
-              partnerId={partnerId}
-              reportId={reportId}
-              scrollToCreditorName={scrollToAccount}
-            />
-        </div>
-        )
-          )}
-
       {tab === 'collections' && (
-        <div className="fc-soft-surface-lg backdrop-blur-xl p-6 space-y-6">
-          <p className="text-[10px] uppercase tracking-widest text-white/45">Collections & charge-offs</p>
-          {/* From Account History — full account table + 2-year payment history (same layout as Accounts tab) */}
-          <p className="text-white/60 text-sm">
-            These are collection / charge-off tradelines pulled from Account History. Expand an account to see details and payment history (when available).
-          </p>
-          {collectionsDisplayTradelines.length > 0 ? (
+        <div className="w-full max-w-full space-y-4 overflow-visible">
+          <div className="px-1 space-y-3">
+            <div>
+              <p className="text-[10px] uppercase tracking-widest text-white/45">Collections & charge-offs</p>
+              <p className="text-white/60 text-sm mt-1">
+                {collectionKindCounts.all
+                  ? `${collectionKindCounts.all} collection/charge-off account${collectionKindCounts.all === 1 ? '' : 's'} — this tab is the filter.`
+                  : 'No collection or charge-off accounts detected on this report.'}
+              </p>
+            </div>
+
+            {collectionKindCounts.all > 0 ? (
+              <div className="flex flex-wrap items-center gap-2">
+                <span className={FINELY_OS_ENTITY_SUBLABEL}>Type</span>
+                {(
+                  [
+                    { k: '' as CollectionKindFilter, label: `All (${collectionKindCounts.all})` },
+                    { k: 'collection' as CollectionKindFilter, label: `Collections (${collectionKindCounts.collection})` },
+                    { k: 'charge_off' as CollectionKindFilter, label: `Charge-offs (${collectionKindCounts.charge_off})` },
+                  ] as const
+                ).map((x) => (
+                  <button
+                    key={x.k || 'all-kind'}
+                    type="button"
+                    onClick={() => setCollectionKindFilter(x.k)}
+                    className={finelyOsViewTab(collectionKindFilter === x.k, 'violet')}
+                  >
+                    {x.label}
+                  </button>
+                ))}
+                <span className={`${FINELY_OS_ENTITY_SUBLABEL} ml-2`}>Responsibility</span>
+                {(
+                  [
+                    { k: '' as RespFilter, label: `All (${collectionRespCounts.all})` },
+                    { k: 'Primary' as RespFilter, label: `Primary (${collectionRespCounts.Primary})` },
+                    { k: 'AU' as RespFilter, label: `AU (${collectionRespCounts.AU})` },
+                    { k: 'Joint' as RespFilter, label: `Joint (${collectionRespCounts.Joint})` },
+                  ] as const
+                ).map((x) => (
+                  <button
+                    key={x.k || 'all-resp'}
+                    type="button"
+                    onClick={() => setCollectionRespFilter(x.k)}
+                    className={finelyOsViewTab(collectionRespFilter === x.k, 'sky')}
+                  >
+                    {x.label}
+                  </button>
+                ))}
+              </div>
+            ) : null}
+          </div>
+
+          {collectionsFilteredForView.length > 0 ? (
             <ParsedReportViewer
-              parsed={{ ...safeParsed, tradelines: collectionsDisplayTradelines }}
+              parsed={{ ...safeParsed, tradelines: collectionsFilteredForView }}
               partnerId={partnerId}
               reportId={reportId}
               showSequence
+              hideFilters
+              hideSummary
+              scrollBody
+              scrollToCreditorName={scrollToAccount}
             />
+          ) : collectionKindCounts.all > 0 ? (
+            <div className="fc-soft-surface-lg p-5">
+              <div className="text-white/90 font-semibold">No accounts match these Credit Intelligence filters</div>
+              <button
+                type="button"
+                className={`${FINELY_OS_SECONDARY_BTN} mt-3`}
+                onClick={() => {
+                  setCollectionKindFilter('');
+                  setCollectionRespFilter('');
+                }}
+              >
+                Clear filters
+              </button>
+            </div>
           ) : (
-            <p className="text-white/70 text-sm">
-              No collections detected in Account History. Upload a full report export; collection accounts from Account History and report sections will appear here.
-            </p>
-          )}
-
-          {/* Supplemental: provider “Collections / Public Records” sections when present */}
-          {(renderSection('collections') || renderSection('public_records')) && (
-            <div className="pt-2 space-y-4">
-              <div className="fc-soft-surface p-4">
-                <p className="text-[10px] uppercase tracking-widest text-white/45">From report sections (supplemental)</p>
-                <p className="mt-2 text-white/60 text-sm">
-                  Some provider exports list collections/public records outside Account History. If present, they’ll show here as additional rows/cards.
-                </p>
+            <div className="fc-soft-surface-lg p-5">
+              <div className="text-white/90 font-semibold">No collections detected</div>
+              <div className="mt-2 text-white/60 text-sm">
+                If you expect collections, upload a full HTML export and use Re-parse on this report.
               </div>
-              {renderSection('collections')}
-              {renderSection('public_records')}
             </div>
           )}
         </div>
@@ -2011,48 +2400,65 @@ export function CreditIntelTabs({
       )}
 
       {tab === 'late_payments' && (
-        <div className="fc-soft-surface-lg backdrop-blur-xl p-6 space-y-6">
-          <p className="text-[10px] uppercase tracking-widest text-white/45">Late payments</p>
-          <p className="text-white/60 text-sm">
-            Late payments are derived from payment status fields and the 2‑year payment history grid (when included in your report export). This tab isolates “late-only” tradelines so you can review them quickly.
-          </p>
+        <div className="w-full max-w-full space-y-4 overflow-visible">
+          <div className="px-1 space-y-3">
+            <div>
+              <p className="text-[10px] uppercase tracking-widest text-white/45">Late payments</p>
+              <p className="text-white/60 text-sm mt-1">
+                {latePaymentTradelines.length
+                  ? `${latePaymentTradelines.length} late-payment account${latePaymentTradelines.length === 1 ? '' : 's'} — this tab is the filter.`
+                  : 'No late-payment tradelines detected on this report.'}
+              </p>
+            </div>
+            {latePaymentTradelines.length > 0 ? (
+              <div className="flex flex-wrap items-center gap-2">
+                <span className={FINELY_OS_ENTITY_SUBLABEL}>Responsibility</span>
+                {(
+                  [
+                    { k: '' as RespFilter, label: `All (${lateRespCounts.all})` },
+                    { k: 'Primary' as RespFilter, label: `Primary (${lateRespCounts.Primary})` },
+                    { k: 'AU' as RespFilter, label: `AU (${lateRespCounts.AU})` },
+                    { k: 'Joint' as RespFilter, label: `Joint (${lateRespCounts.Joint})` },
+                  ] as const
+                ).map((x) => (
+                  <button
+                    key={x.k || 'late-all'}
+                    type="button"
+                    onClick={() => setLateRespFilter(x.k)}
+                    className={finelyOsViewTab(lateRespFilter === x.k, 'sky')}
+                  >
+                    {x.label}
+                  </button>
+                ))}
+              </div>
+            ) : null}
+          </div>
 
-          {latePaymentTradelines.length > 0 ? (
+          {lateFilteredForView.length > 0 ? (
             <ParsedReportViewer
-              parsed={{ ...safeParsed, tradelines: latePaymentTradelines }}
+              parsed={{ ...safeParsed, tradelines: lateFilteredForView }}
               partnerId={partnerId}
               reportId={reportId}
               showSequence
+              hideFilters
+              hideSummary
+              scrollBody
             />
+          ) : latePaymentTradelines.length > 0 ? (
+            <div className="fc-soft-surface-lg p-5">
+              <div className="text-white/90 font-semibold">No accounts match this responsibility filter</div>
+              <button type="button" className={`${FINELY_OS_SECONDARY_BTN} mt-3`} onClick={() => setLateRespFilter('')}>
+                Clear filter
+              </button>
+            </div>
           ) : (
             <div className="fc-soft-surface-lg p-5">
               <div className="text-white/90 font-semibold">No late-payment tradelines detected</div>
               <div className="mt-2 text-white/60 text-sm">
-                If you expect late payments but don’t see them here, upload a full HTML export (preferred). Some providers omit the payment-history grid or compress delinquency codes into text that’s harder to extract.
+                If you expect late payments but don’t see them here, upload a full HTML export (preferred). Some providers omit the payment-history grid.
               </div>
             </div>
           )}
-
-          <div className="fc-soft-surface-lg p-5">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div className="text-white/90 font-semibold">Late-payment dispute candidates</div>
-              <button
-                type="button"
-                onClick={() => (onOpenLetterGenerator ? onOpenLetterGenerator() : setTab('disputes'))}
-                className="px-4 py-2 rounded-xl bg-amber-500 text-black font-black uppercase tracking-widest text-[10px] hover:brightness-110 transition-all"
-              >
-                Open disputes
-              </button>
-            </div>
-            <div className="mt-3 text-white/60 text-sm">
-              {(() => {
-                const n = disputeCandidates.filter((c) => c.type === 'Late Payment').length;
-                return n > 0
-                  ? `Detected ${n} late-payment candidate${n === 1 ? '' : 's'} from the dispute engine.`
-                  : 'No late-payment candidates detected by the dispute engine for this report.';
-              })()}
-            </div>
-          </div>
         </div>
       )}
 
@@ -2113,8 +2519,10 @@ export function CreditIntelTabs({
                     type="button"
                     onClick={() => {
                       const isCollections = c.type === 'Collection' || c.type === 'Charge-Off';
+                      const isLate = c.type === 'Late Payment';
                       if (isCollections) setTab('collections');
-                      else setTab('accounts');
+                      else if (isLate) setTab('late_payments');
+                      else setTab('creditors');
                       setScrollToAccount(c.account);
                     }}
                     className="text-left fc-light-glass-panel fc-light-chrome-panel transition-all p-4"
@@ -2161,7 +2569,7 @@ export function CreditIntelTabs({
           <div className="grid md:grid-cols-3 gap-4">
             <div className="fc-soft-surface-lg p-5">
               <div className="text-[10px] uppercase tracking-widest text-white/45">Collections/Charge-offs</div>
-              <div className="mt-2 text-3xl font-light text-white/90">{collectionsDisplayTradelines.length}</div>
+              <div className="mt-2 text-3xl font-light text-white/90">{collectionKindCounts.all}</div>
               <button
                 type="button"
                 onClick={() => setTab('collections')}
@@ -2228,53 +2636,53 @@ export function CreditIntelTabs({
       )}
 
       {tab === 'strategy' && (
-        <div className="fc-soft-surface-lg backdrop-blur-xl p-6 space-y-6">
-          <p className="text-[10px] uppercase tracking-widest text-white/45">Score insights</p>
+        <div className="space-y-6">
+          <IntelHeroBanner
+            eyebrow="Strategy"
+            title="Your restoration game plan"
+            subtitle="Readiness, blockers, and the next moves that actually move score — not a wall of equal-looking boxes."
+            accent="amber"
+          />
 
           <div className="grid lg:grid-cols-3 gap-4">
-            <div className="fc-soft-surface-lg p-5">
-              <div className="text-[10px] uppercase tracking-widest text-white/45">Readiness score</div>
-              <div className="mt-2 flex items-baseline gap-2">
-                <div className="text-4xl font-light text-white/90">{intelReadiness.score}</div>
+            <div className="relative overflow-hidden rounded-2xl border border-amber-400/35 bg-gradient-to-b from-amber-500/15 to-transparent p-6">
+              <div className="text-[11px] font-black uppercase tracking-[0.2em] text-amber-300">Readiness</div>
+              <div className="mt-3 flex items-baseline gap-2">
+                <div className="text-5xl font-light text-white">{intelReadiness.score}</div>
                 <div className="text-white/45 text-sm">/ 100</div>
               </div>
-              <div className="mt-3 text-white/60 text-sm">
-                Higher means your file is more “ready” to execute disputes (identity present, extraction strong, evidence attached).
-              </div>
-              <div className="mt-4 flex flex-wrap gap-2">
+              <p className="mt-3 text-sm text-white/70 leading-relaxed">
+                Higher means identity, extraction, and evidence are lined up so disputes can execute cleanly.
+              </p>
+              <div className="mt-5 flex flex-wrap gap-2">
                 <button
                   type="button"
                   onClick={() => setTab('disputes')}
-                  className="px-4 py-2 rounded-xl bg-amber-500 text-black font-black uppercase tracking-widest text-[10px] hover:brightness-110 transition-all"
+                  className="px-4 py-2.5 rounded-xl bg-amber-400 text-black font-black uppercase tracking-widest text-[10px] hover:brightness-110 shadow-[0_0_24px_rgba(251,191,36,0.35)]"
                 >
                   Open disputes
                 </button>
                 <button
                   type="button"
-                  onClick={() => {
-                    setTab('disputes');
-                    setShowEvidenceTables(true);
-                  }}
-                  className="px-4 py-2 fc-light-chrome-btn text-[10px] font-black uppercase tracking-widest text-white/70 transition-all"
-                >
-                  Evidence View
-                </button>
-                <button
-                  type="button"
                   onClick={() => setTab('simulation')}
-                  className="px-4 py-2 fc-light-chrome-btn text-[10px] font-black uppercase tracking-widest text-white/70 transition-all"
+                  className="px-4 py-2.5 rounded-xl border border-white/20 bg-white/5 text-[10px] font-black uppercase tracking-widest text-white/85 hover:bg-white/10"
                 >
-                  Simulate
+                  Try simulation
                 </button>
               </div>
             </div>
 
-            <div className="rounded-2xl border border-fuchsia-500/15 bg-fuchsia-500/[0.06] p-5 space-y-2">
-              <div className="text-fuchsia-300 font-semibold text-sm">Top blockers</div>
+            <div className="rounded-2xl border border-rose-400/30 bg-rose-500/[0.08] p-6 space-y-3">
+              <div className="flex items-center gap-2">
+                <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-rose-400/20 text-rose-200 text-xs font-black">1</span>
+                <div className="text-rose-200 font-semibold">Top blockers</div>
+              </div>
               {intelReadiness.blockers.length ? (
-                <ul className="space-y-1 text-white/85 text-sm list-disc pl-4">
+                <ul className="space-y-2 text-white/90 text-sm">
                   {intelReadiness.blockers.map((x, i) => (
-                    <li key={i}>{x}</li>
+                    <li key={i} className="rounded-xl border border-white/10 bg-black/20 px-3 py-2">
+                      {x}
+                    </li>
                   ))}
                 </ul>
               ) : (
@@ -2282,25 +2690,29 @@ export function CreditIntelTabs({
               )}
             </div>
 
-            <div className="rounded-2xl border border-emerald-500/15 bg-emerald-500/[0.06] p-5 space-y-2">
-              <div className="text-emerald-300 font-semibold text-sm">Next actions (recommended)</div>
+            <div className="rounded-2xl border border-emerald-400/30 bg-emerald-500/[0.08] p-6 space-y-3">
+              <div className="flex items-center gap-2">
+                <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-emerald-400/20 text-emerald-200 text-xs font-black">2</span>
+                <div className="text-emerald-200 font-semibold">Do this next</div>
+              </div>
               {intelReadiness.nextActions.length ? (
-                <ul className="space-y-1 text-white/85 text-sm list-disc pl-4">
+                <ul className="space-y-2 text-white/90 text-sm">
                   {intelReadiness.nextActions.map((x, i) => (
-                    <li key={i}>{x}</li>
+                    <li key={i} className="rounded-xl border border-white/10 bg-black/20 px-3 py-2">
+                      {x}
+                    </li>
                   ))}
                 </ul>
               ) : (
-                <p className="text-white/60 text-sm">No next actions needed. (Still monitor utilization and keep positive accounts reporting.)</p>
+                <p className="text-white/60 text-sm">Monitor utilization and keep positive accounts reporting.</p>
               )}
             </div>
           </div>
 
-          {/* Score factors + suggested dispute angles */}
           <div className="space-y-3">
-            <div className="text-[10px] uppercase tracking-widest text-white/45 font-black">Score factors from your report</div>
+            <div className="text-[11px] font-black uppercase tracking-[0.2em] text-white/50">Score factors from your report</div>
             <div className="grid md:grid-cols-2 gap-4">
-            <div className="rounded-2xl border border-emerald-500/15 bg-emerald-500/[0.06] p-5 space-y-2">
+            <div className="rounded-2xl border border-emerald-500/25 bg-emerald-500/[0.07] p-5 space-y-2">
               <div className="text-emerald-300 font-semibold text-sm">What&apos;s helping</div>
               {scoreFactors.helping.length ? (
                 <ul className="space-y-1 text-white/85 text-sm list-disc pl-4">
@@ -2773,10 +3185,11 @@ export function CreditIntelTabs({
                                               onClick={() => {
                                                 const t = (c.type || '').toLowerCase();
                                                 const isCol = t.includes('collection') || t.includes('charge');
-                                                setTab(isCol ? 'collections' : 'accounts');
+                                                const isLate = t.includes('late');
+                                                setTab(isCol ? 'collections' : isLate ? 'late_payments' : 'creditors');
                                                 setScrollToAccount(c.account);
                                                 setNotice(
-                                                  `Jumped you to ${isCol ? 'Collections' : 'Accounts'} — scroll to "${c.account}" and capture a screenshot.`
+                                                  `Jumped you to ${isCol ? 'Collections' : isLate ? 'Late payments' : 'Creditors'} — look for "${c.account}" and capture a screenshot.`,
                                                 );
                                               }}
                                               className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg fc-soft-surface text-[10px] font-black uppercase tracking-widest text-white/70 hover:bg-white/[0.05]"
@@ -3007,43 +3420,53 @@ export function CreditIntelTabs({
       )}
 
       {tab === 'education' && (
-        <div className="fc-soft-surface-lg backdrop-blur-xl p-6 space-y-6">
-          <p className="text-[10px] uppercase tracking-widest text-white/45">Tools & education</p>
-          <p className="text-white/85 text-sm">
-            Here’s the kind of knowledge that makes the rest of this app make sense. Use it to stay clear on how disputes work and how to use your report and letters.
-          </p>
+        <div className="space-y-6">
+          <IntelHeroBanner
+            eyebrow="Education"
+            title="Know the plays before you run them"
+            subtitle="Short, high-signal lessons so disputes, utilization, and letters stop feeling mysterious."
+            accent="violet"
+          />
 
           <div className="grid md:grid-cols-2 gap-4">
-            <div className="fc-soft-surface-lg p-5 space-y-3">
-              <div className="text-fuchsia-400 font-semibold text-sm">Dispute rounds: what actually changes</div>
-              <p className="text-white/70 text-sm">
-                Round 1 is your first formal dispute: the bureau contacts the furnisher and has 30 days to investigate. Round 2 and 3 are follow-ups—often with a slightly different angle or additional evidence. Many items get corrected or removed in Round 1; others need persistence. We structure your letters so each round is clear and professional.
-              </p>
-            </div>
-            <div className="fc-soft-surface-lg p-5 space-y-3">
-              <div className="text-fuchsia-400 font-semibold text-sm">Utilization: why it matters</div>
-              <p className="text-white/70 text-sm">
-                Revolving utilization is the ratio of your balance to your limit. High utilization (especially over 30%) can hurt your score even if you pay in full later—because the score often uses the balance that was reported on your statement date. Paying before the statement closes, or spreading balances across cards, can keep reported utilization in a better range (ideally 1–9%).
-              </p>
-            </div>
-          </div>
-
-          <div className="fc-soft-surface-lg p-5 space-y-3">
-            <div className="text-fuchsia-400 font-semibold text-sm">Your dispute letter: what we generate</div>
-            <p className="text-white/70 text-sm">
-              Each bureau letter we build for you follows a forensic-style template: your name and address at the top, the bureau’s dispute address, a clear subject line (e.g. NOTICE OF FACTUAL AUDIT & DISPUTE PURSUANT TO 15 U.S.C. § 1681i), an opening that states you’re disputing inaccurate reporting and requesting reinvestigation, then each disputed item with furnisher name, account identifier (last 4 or [DATA_NOT_READABLE] if we can’t read it), any balance/dates we have, your evidence exhibits, a short dispute statement, and bullet-point reasons. We never guess at data we can’t read—we mark it so your letter stays credible. You can add or edit text and export to PDF before mailing.
-            </p>
-          </div>
-
-          <div className="fc-soft-surface-lg p-5 space-y-3">
-            <div className="text-fuchsia-400 font-semibold text-sm">Funding readiness: personal vs business</div>
-            <p className="text-white/70 text-sm">
-              Cleaning up personal credit first (disputes, utilization, on-time history) usually sets you up better before chasing business credit or funding. Lenders often look at the person behind the business. Once your personal file is in good shape, building business tradelines and keeping business utilization low follows the same principles: accuracy, consistency, and proof.
-            </p>
+            {[
+              {
+                n: '01',
+                title: 'Dispute rounds: what actually changes',
+                body: 'Round 1 is your first formal dispute: the bureau contacts the furnisher and has 30 days to investigate. Round 2 and 3 are follow-ups—often with a different angle or more evidence. Many items clear in Round 1; others need persistence. We structure letters so each round stays clear and professional.',
+              },
+              {
+                n: '02',
+                title: 'Utilization: why it matters',
+                body: 'Revolving utilization is balance ÷ limit. Over ~30% can hurt even if you pay in full later—scores often use the balance on the statement date. Paying before statement close (or spreading balances) keeps reported utilization healthier (often aiming for 1–9%).',
+              },
+              {
+                n: '03',
+                title: 'Your dispute letter: what we generate',
+                body: 'Bureau letters follow a forensic template: your identity, bureau address, clear subject (e.g. § 1681i reinvestigation), then each item with furnisher, account ID, dates/balances we can read, exhibits, and bullet reasons. We never invent unread data—we mark gaps so the letter stays credible.',
+              },
+              {
+                n: '04',
+                title: 'Funding readiness: personal vs business',
+                body: 'Cleaning personal credit first usually comes before business funding. Lenders still look at the person behind the business. Once the personal file is solid, business tradelines follow the same rules: accuracy, consistency, and proof.',
+              },
+            ].map((card) => (
+              <div
+                key={card.n}
+                className="group relative overflow-hidden rounded-2xl border border-fuchsia-400/25 bg-gradient-to-br from-fuchsia-500/15 via-violet-500/5 to-transparent p-6 transition-transform hover:-translate-y-0.5"
+              >
+                <div className="pointer-events-none absolute -right-6 top-0 text-6xl font-black text-white/[0.06] group-hover:text-white/[0.1] transition-colors">
+                  {card.n}
+                </div>
+                <div className="text-[11px] font-black uppercase tracking-[0.2em] text-fuchsia-300">Lesson {card.n}</div>
+                <div className="mt-2 text-lg text-white font-semibold leading-snug">{card.title}</div>
+                <p className="mt-3 text-sm text-white/75 leading-relaxed">{card.body}</p>
+              </div>
+            ))}
           </div>
 
           <p className="text-[11px] text-white/45">
-            This is educational only and not legal or credit advice. Your situation may require professional guidance.
+            Educational only — not legal or credit advice. Your situation may need a licensed professional.
           </p>
         </div>
       )}
@@ -3120,12 +3543,22 @@ export function CreditIntelTabs({
       )}
 
       {tab === 'simulation' && (
-        <div className="fc-soft-surface-lg backdrop-blur-xl p-6 space-y-6">
-          <p className="text-[10px] uppercase tracking-widest text-white/45">Predictive simulation (derived)</p>
+        <div className="space-y-6">
+          <IntelHeroBanner
+            eyebrow="Simulation"
+            title="What if you pay this down?"
+            subtitle="Simulation estimates how revolving utilization could look after a pay-down — using balances and limits we extracted from your report (or your manual totals). It is not a score predictor and not a promise of approval."
+            accent="sky"
+          />
+
+          <div className="rounded-2xl border border-sky-400/25 bg-sky-500/[0.07] p-5 text-sm text-white/80 leading-relaxed">
+            <span className="font-semibold text-sky-200">How to use it:</span> enter a pay-down amount (and optional totals if the report didn’t extract them). We show estimated new balances and utilization % by bureau so you can compare “before vs after” for revolving accounts.
+          </div>
+
           <div className="grid md:grid-cols-3 gap-4">
-            <div className="md:col-span-1 space-y-4">
+            <div className="md:col-span-1 space-y-4 rounded-2xl border border-white/10 bg-white/[0.03] p-5">
               <div>
-                <label className="text-[10px] font-bold text-white/45 uppercase tracking-widest">Simulate pay-down amount</label>
+                <label className="text-[10px] font-bold text-sky-300/90 uppercase tracking-widest">Simulate pay-down amount</label>
                 <input
                   type="number"
                   value={paydownAmount}
@@ -3135,7 +3568,7 @@ export function CreditIntelTabs({
                   min={0}
                 />
               </div>
-              <div className="fc-soft-surface p-4 space-y-3">
+              <div className="rounded-xl border border-white/10 bg-black/20 p-4 space-y-3">
                 <p className="text-[10px] font-bold text-white/45 uppercase tracking-widest">Manual fallback (if report didn’t extract)</p>
                 <input
                   type="text"
@@ -3151,12 +3584,12 @@ export function CreditIntelTabs({
                   className={FINELY_OS_ENTITY_INPUT.replace('mt-2 ', '')}
                   placeholder="Total limit (e.g. 25000)"
                 />
-                <p className="text-[11px] text-white/45">Used when detected totals show “-”. Leave blank if report already has balance/limit.</p>
+                <p className="text-[11px] text-white/45">Used when detected totals show “-”. Leave blank if the report already has balance/limit.</p>
               </div>
             </div>
 
-            <div className="md:col-span-2 fc-soft-surface-lg p-5">
-              <p className="text-[10px] uppercase tracking-widest text-white/45">Estimated utilization after pay-down</p>
+            <div className="md:col-span-2 rounded-2xl border border-sky-400/20 bg-gradient-to-br from-sky-500/10 to-transparent p-5">
+              <p className="text-[11px] font-black uppercase tracking-[0.18em] text-sky-300">Estimated utilization after pay-down</p>
               <div className="mt-4">
                 {bureauTableRows([
                   {

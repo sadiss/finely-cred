@@ -60,6 +60,10 @@ export function createDebtCase(args: {
   recipientAddress?: string;
   recipientPhone?: string;
   accountNumberMasked?: string;
+  plaintiffLawFirm?: string;
+  plaintiffLawFirmAddress?: string;
+  plaintiffAttorneyName?: string;
+  plaintiffAttorneyBarNumber?: string;
   reportId?: string;
   tradelineIndex?: number;
   linkedEvidenceIds?: string[];
@@ -88,6 +92,10 @@ export function createDebtCase(args: {
     recipientAddress: args.recipientAddress,
     recipientPhone: args.recipientPhone,
     accountNumberMasked: args.accountNumberMasked,
+    plaintiffLawFirm: args.plaintiffLawFirm,
+    plaintiffLawFirmAddress: args.plaintiffLawFirmAddress,
+    plaintiffAttorneyName: args.plaintiffAttorneyName,
+    plaintiffAttorneyBarNumber: args.plaintiffAttorneyBarNumber,
     reportId: args.reportId,
     tradelineIndex: args.tradelineIndex,
     linkedEvidenceIds: args.linkedEvidenceIds,

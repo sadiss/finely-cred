@@ -221,7 +221,15 @@ export function ForeclosureCenterView({
 
       {partner ? (
         <div id="fc-debt-step-proof" className="scroll-mt-3">
-          <DebtProofCaptureStrip partner={partner} debtCaseId={debt?.id} accent="amber" uploadContext="foreclosure" />
+          <DebtProofCaptureStrip
+            partner={partner}
+            debt={debt}
+            debtCaseId={debt?.id}
+            accent="amber"
+            uploadContext="foreclosure"
+            reports={reports}
+            onDebtChange={onDebtChange}
+          />
         </div>
       ) : null}
     </CollateralDefenseShell>

@@ -27,6 +27,7 @@ export async function processUploadedDocument(args: {
   blobRef: string;
   file: File;
   caption?: string;
+  debtCaseId?: string;
 }): Promise<{
   docId: string;
   docType: DocumentType;
@@ -50,7 +51,7 @@ export async function processUploadedDocument(args: {
     imageDataUrl = await readAsDataUrl(args.file);
   }
 
-  const system = `You are a document intelligence engine for a credit/funding platform.\n\nTask:\n- Classify the document type.\n- Extract key entities into normalized keys.\n\nReturn ONLY valid JSON with this shape:\n{\n  \"docType\": \"articles_of_incorporation\"|\"ein_letter\"|\"id_document\"|\"ssn_card\"|\"utility_bill\"|\"bank_statement\"|\"credit_report\"|\"bureau_response\"|\"collection_notice\"|\"creditor_response\"|\"summons\"|\"affidavit\"|\"court_filing\"|\"bankruptcy_order\"|\"contract\"|\"other\"|\"unknown\",\n  \"summary\": string,\n  \"confidence\": number,\n  \"entities\": {\n    \"ein\": string,\n    \"businessLegalName\": string,\n    \"state\": string,\n    \"address\": string,\n    \"personName\": string,\n    \"creditorName\": string,\n    \"collectorName\": string,\n    \"accountName\": string,\n    \"caseNumber\": string,\n    \"courtName\": string,\n    \"amountClaimed\": string,\n    \"amount\": string,\n    \"dateServed\": string,\n    \"phone\": string,\n    \"bureau\": string\n  }\n}\n\nRules:\n- bureau_response = Experian/Equifax/TransUnion investigation results, e-OSCAR mail, dispute outcome letters.\n- collection_notice = third-party debt collector validation/demand letters.\n- creditor_response = original bank/creditor/servicer letter (not collector).\n- summons = civil summons and complaint (lawsuit served on consumer).\n- affidavit = sworn affidavit, notarized declaration, statement under penalty of perjury.\n- court_filing = motions, answers, discovery, court orders (not initial summons).\n- bankruptcy_order = bankruptcy petition, discharge, dismissal, docket, 341 notice.\n- ssn_card = Social Security card image.\n- If an entity is not present, omit it or use empty string.\n- EIN should be digits only (9 digits) if present.\n- Keep summary short (1-2 sentences).`;
+  const system = `You are a document intelligence engine for a credit/funding platform.\n\nTask:\n- Classify the document type.\n- Extract key entities into normalized keys.\n- Always extract EVERY party mailing address you can find (plaintiff, counsel/law firm, collector, original creditor, court).\n\nReturn ONLY valid JSON with this shape:\n{\n  \"docType\": \"articles_of_incorporation\"|\"ein_letter\"|\"id_document\"|\"ssn_card\"|\"utility_bill\"|\"bank_statement\"|\"credit_report\"|\"bureau_response\"|\"collection_notice\"|\"creditor_response\"|\"summons\"|\"affidavit\"|\"court_filing\"|\"bankruptcy_order\"|\"contract\"|\"other\"|\"unknown\",\n  \"summary\": string,\n  \"confidence\": number,\n  \"entities\": {\n    \"ein\": string,\n    \"businessLegalName\": string,\n    \"state\": string,\n    \"address\": string,\n    \"plaintiffLawFirmAddress\": string,\n    \"personName\": string,\n    \"creditorName\": string,\n    \"collectorName\": string,\n    \"plaintiffName\": string,\n    \"plaintiffLawFirm\": string,\n    \"counselName\": string,\n    \"plaintiffAttorneyName\": string,\n    \"plaintiffAttorneyBar\": string,\n    \"originalCreditor\": string,\n    \"accountName\": string,\n    \"caseNumber\": string,\n    \"courtName\": string,\n    \"amountClaimed\": string,\n    \"amount\": string,\n    \"dateServed\": string,\n    \"hearingDate\": string,\n    \"phone\": string,\n    \"bureau\": string\n  }\n}\n\nRules:\n- bureau_response = Experian/Equifax/TransUnion investigation results, e-OSCAR mail, dispute outcome letters.\n- collection_notice = third-party debt collector validation/demand letters.\n- creditor_response = original bank/creditor/servicer letter (not collector).\n- summons = civil summons and complaint (lawsuit served on consumer).\n- affidavit = sworn affidavit, notarized declaration, statement under penalty of perjury.\n- court_filing = motions, answers, discovery, court orders (not initial summons).\n- bankruptcy_order = bankruptcy petition, discharge, dismissal, docket, 341 notice.\n- ssn_card = Social Security card image.\n- If an entity is not present, omit it or use empty string.\n- EIN should be digits only (9 digits) if present.\n- address = best recipient mailing block for validation letters (prefer counsel/collector letterhead).\n- plaintiffLawFirmAddress = counsel / law firm mailing block when present (may match address).\n- Keep multi-line addresses with newlines when the letterhead shows street then city/state/ZIP.\n- Keep summary short (1-2 sentences).`;
 
   const userPayload = isPdf
     ? `CAPTION:\n${args.caption || ''}\n\nPDF_META:\n${JSON.stringify(pdfMeta)}\n\nTEXT:\n${extractedText.slice(0, 60_000)}`
@@ -86,6 +87,15 @@ export async function processUploadedDocument(args: {
     const ein = normalizeEin(entities.ein);
     if (ein) entities.ein = ein;
     else delete entities.ein;
+  }
+  // Mirror best mailing block onto firm address when counsel/firm is named.
+  if (!entities.plaintiffLawFirmAddress && entities.address) {
+    if (entities.plaintiffLawFirm || entities.counselName || entities.collectorName) {
+      entities.plaintiffLawFirmAddress = entities.address;
+    }
+  }
+  if (!entities.address && entities.plaintiffLawFirmAddress) {
+    entities.address = entities.plaintiffLawFirmAddress;
   }
 
   const created = createProcessedDocument({
@@ -136,6 +146,7 @@ export async function processUploadedDocument(args: {
     caption: args.caption,
     filename: args.file.name,
     summary: created.summary,
+    debtCaseId: args.debtCaseId,
   });
 
   return {

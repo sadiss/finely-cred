@@ -12,7 +12,14 @@ export function sendPartnerOutreachMessage(args: {
   fromAdmin?: boolean;
   attachments?: SupportMessage['attachments'];
 }) {
-  const body = args.body.trim();
+  const hasAttachments = (args.attachments?.length ?? 0) > 0;
+  const body =
+    args.body.trim() ||
+    (hasAttachments
+      ? args.attachments!.length === 1
+        ? 'Shared an evidence file from the Documents Vault.'
+        : `Shared ${args.attachments!.length} evidence files from the Documents Vault.`
+      : '');
   if (!body) throw new Error('Message body is required.');
 
   const staffIds = (args.staffIds ?? []).filter(Boolean);

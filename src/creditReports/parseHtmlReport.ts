@@ -3,6 +3,7 @@ import {
   applyCreditorContactsToTradelines,
   buildCreditorContacts,
   creditorContactSectionHeading,
+  selfIdentityFromPersonalInfo,
 } from './creditorContactExtract';
 import { detectProviderFromHtml } from './detectProvider';
 import { parseCreditReportText } from './parseTextReport';
@@ -288,6 +289,62 @@ function findFollowingAnyTable(root: Element, start: Element): HTMLTableElement 
   return null;
 }
 
+function looksLikeHelpOrInfoTable(table: HTMLTableElement): boolean {
+  const cls = `${table.getAttribute('class') || ''} ${table.getAttribute('id') || ''}`.toLowerCase();
+  if (/\bhelp[_-]?text\b|\binfo[_-]?box\b|\bdisclaimer\b/.test(cls)) return true;
+  const rows = table.querySelectorAll('tr');
+  if (rows.length > 3) return false;
+  const t = text(table).toLowerCase();
+  return (
+    t.includes('information about how to contact') ||
+    t.includes('listed below') ||
+    t.includes('for informational purposes') ||
+    (t.includes('help') && t.length < 280)
+  );
+}
+
+function looksLikeCreditorContactsTable(table: HTMLTableElement): boolean {
+  const cls = `${table.getAttribute('class') || ''}`.toLowerCase();
+  if (cls.includes('rpt_content_contacts') || cls.includes('content_contacts')) return true;
+  const header = Array.from(table.querySelectorAll('th, tr:first-child td'))
+    .map((c) => text(c).toLowerCase())
+    .join(' | ');
+  const hasName = /creditor|collector|subscriber|furnisher|company|name/.test(header);
+  const hasAddr = /address|mailing|street|location/.test(header);
+  const hasPhone = /phone|telephone|tel/.test(header);
+  return hasName && hasAddr && (hasPhone || table.querySelectorAll('tr').length >= 5);
+}
+
+/**
+ * IdentityIQ puts a small help_text table between the "Creditor Contacts" heading
+ * and the real Name/Address/Phone table. Never stop on that help table.
+ */
+function findFollowingCreditorContactsTable(doc: Document, start: Element): HTMLTableElement | null {
+  // Fast path: IdentityIQ / MyScoreIQ anchor + contacts class
+  const anchored =
+    (doc.querySelector('#CreditorContacts table.rpt_content_contacts') as HTMLTableElement | null) ||
+    (doc.querySelector('#CreditorContacts table.rpt_content_table') as HTMLTableElement | null) ||
+    (doc.querySelector('table.rpt_content_contacts') as HTMLTableElement | null);
+  if (anchored && !looksLikeHelpOrInfoTable(anchored)) return anchored;
+
+  let fallback: HTMLTableElement | null = null;
+  let cursor: Element | null = start;
+  for (let i = 0; i < 250 && cursor; i++) {
+    cursor = cursor.nextElementSibling;
+    if (!cursor) break;
+    const tables: HTMLTableElement[] = [];
+    if (cursor.matches('table')) tables.push(cursor as HTMLTableElement);
+    cursor.querySelectorAll('table').forEach((t) => tables.push(t as HTMLTableElement));
+    for (const table of tables) {
+      if (looksLikeHelpOrInfoTable(table)) continue;
+      if (looksLikeTradelineFieldsTable(table) || looksLikePaymentHistoryTable(table)) continue;
+      if (looksLikeCreditorContactsTable(table)) return table;
+      if (!fallback) fallback = table;
+    }
+  }
+  return fallback;
+}
+
 function parseGenericTable(table: HTMLTableElement): { columns: string[]; rows: string[][] } {
   const trs = Array.from(table.querySelectorAll('tr'));
   if (!trs.length) return { columns: [], rows: [] };
@@ -495,15 +552,40 @@ function extractSections(doc: Document): ParsedSection[] {
     out.push({ key: args.key, title: args.title, rows: fields });
   };
 
-  const addGenericSectionByKeywords = (args: { key: string; title: string; keywords: string[] }) => {
+  const addGenericSectionByKeywords = (args: {
+    key: string;
+    title: string;
+    keywords: string[];
+    /** Prefer IdentityIQ Creditor Contacts table (skip help_text). */
+    preferCreditorContactsTable?: boolean;
+  }) => {
     const matches = candidates.filter(({ t }) => args.keywords.some((k) => t.includes(k)));
     if (!matches.length) return;
     let merged: { columns: string[]; rows: string[][] } | null = null;
+
+    // IdentityIQ: one real contacts table at #CreditorContacts — take it once.
+    // Do not merge help_text or other "contact information" hits (duplicates + noise).
+    if (args.preferCreditorContactsTable) {
+      const table =
+        findFollowingCreditorContactsTable(doc, matches[0]!.el) ||
+        (doc.querySelector('table.rpt_content_contacts') as HTMLTableElement | null);
+      if (table && !looksLikeHelpOrInfoTable(table) && !looksLikeTradelineFieldsTable(table)) {
+        const parsed = parseGenericTable(table);
+        if (parsed.columns.length && parsed.rows.length) {
+          out.push({ key: args.key, title: args.title, table: parsed });
+          return;
+        }
+      }
+    }
+
     for (const m of matches.slice(0, 8)) {
-      const table = findFollowingAnyTable(doc.body, m.el);
+      const table = args.preferCreditorContactsTable
+        ? findFollowingCreditorContactsTable(doc, m.el)
+        : findFollowingAnyTable(doc.body, m.el);
       if (table) {
         // Guardrail: never treat tradeline field tables or payment-history grids as "collections/inquiries" sections.
         if (looksLikeTradelineFieldsTable(table) || looksLikePaymentHistoryTable(table)) continue;
+        if (looksLikeHelpOrInfoTable(table)) continue;
         const parsed = parseGenericTable(table);
         if (!parsed.columns.length || !parsed.rows.length) continue;
         merged = merged ? mergeGenericTables(merged, parsed) : parsed;
@@ -635,15 +717,25 @@ function extractSections(doc: Document): ParsedSection[] {
   addGenericSectionByKeywords({
     key: 'creditor_contacts',
     title: 'Creditor Contacts',
+    preferCreditorContactsTable: true,
     keywords: [
       'creditor contacts',
       'creditor contact',
+      'contacts for creditors',
+      'contact info for creditors',
+      'contact information for creditors',
       'collector contacts',
       'contact information',
       'contact info',
       'creditor information',
       'furnisher contact',
+      'furnisher information',
       'subscriber contact',
+      'subscriber information',
+      'creditor / collector',
+      'creditor/collector',
+      'how to contact',
+      'mailing addresses',
       'contactors',
     ],
   });
@@ -742,7 +834,39 @@ function extractSections(doc: Document): ParsedSection[] {
     out.push({ key: picked.key, title: picked.title, table: parsed });
   }
 
+  // Always prefer the IdentityIQ / MyScoreIQ Creditor Contacts table at the bottom.
+  // Keyword matching can hit the help_text blurb first; this overwrites thin junk sections.
+  forceIdentityIqCreditorContactsSection(doc, out);
+
   return out;
+}
+
+function forceIdentityIqCreditorContactsSection(doc: Document, out: ParsedSection[]): void {
+  const table =
+    (doc.querySelector('#CreditorContacts table.rpt_content_contacts') as HTMLTableElement | null) ||
+    (doc.querySelector('table.rpt_content_contacts') as HTMLTableElement | null) ||
+    (() => {
+      const wrap = doc.querySelector('#CreditorContacts');
+      if (!wrap) return null;
+      const tables = Array.from(wrap.querySelectorAll('table')) as HTMLTableElement[];
+      return tables.find((t) => !looksLikeHelpOrInfoTable(t) && looksLikeCreditorContactsTable(t)) || null;
+    })();
+  if (!table || looksLikeHelpOrInfoTable(table)) return;
+  if (looksLikeTradelineFieldsTable(table) || looksLikePaymentHistoryTable(table)) return;
+  const parsed = parseGenericTable(table);
+  if (!parsed.columns.length || parsed.rows.length < 5) return;
+  const section: ParsedSection = {
+    key: 'creditor_contacts',
+    title: 'Creditor Contacts',
+    table: parsed,
+  };
+  const idx = out.findIndex((s) => s.key === 'creditor_contacts');
+  const existingRows = idx >= 0 ? out[idx]!.table?.rows?.length || 0 : 0;
+  if (idx >= 0) {
+    if (parsed.rows.length >= existingRows) out[idx] = section;
+  } else {
+    out.push(section);
+  }
 }
 
 function extractScoreTables(doc: Document, providerHint: string): ParsedScore[] {
@@ -1274,7 +1398,8 @@ function parseCreditReportHtmlDocument(doc: Document, provider: CreditReportProv
   });
 
   const personalInfo = buildPersonalInfo(sectionsWithItems);
-  const creditorContacts = buildCreditorContacts(enrichedTradelines, sectionsWithItems);
+  const self = selfIdentityFromPersonalInfo(personalInfo);
+  const creditorContacts = buildCreditorContacts(enrichedTradelines, sectionsWithItems, self);
   const tradelinesWithContacts = applyCreditorContactsToTradelines(enrichedTradelines, creditorContacts);
 
   const scores = [

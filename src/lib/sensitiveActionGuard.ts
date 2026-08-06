@@ -1,17 +1,19 @@
 import { getSecuritySettings, loadSettings, updateSecuritySettings } from '../data/settingsRepo';
 import type { SensitiveActionCodes } from '../domain/settings';
 
-export type SensitiveActionKey = 'partner_delete' | 'hos_access_grant' | 'bulk_report_purge';
+export type SensitiveActionKey = 'partner_delete' | 'hos_access_grant' | 'partner_access_grant' | 'bulk_report_purge';
 
 const LABELS: Record<SensitiveActionKey, string> = {
   partner_delete: 'Delete partner file (all reports, letters, evidence)',
   hos_access_grant: 'Grant Head of Society access keys',
+  partner_access_grant: 'Grant partner portal module access',
   bulk_report_purge: 'Bulk purge / re-import credit reports',
 };
 
 const CODE_FIELD: Record<SensitiveActionKey, keyof SensitiveActionCodes> = {
   partner_delete: 'partnerDelete',
   hos_access_grant: 'hosAccessGrant',
+  partner_access_grant: 'partnerAccessGrant',
   bulk_report_purge: 'bulkReportPurge',
 };
 
