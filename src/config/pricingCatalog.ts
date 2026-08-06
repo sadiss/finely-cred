@@ -1567,22 +1567,29 @@ export const tradelinePromoPackages: PricingPackage[] = [
 
 // ─────────────────────────────────────────────────────────────────────────────
 // AGENCY BUY-IN (one-time workspace activation — separate from ongoing payout tiers)
+//
+// Each buy-in maps 1:1 to a capacity tier below (`agencyTiers`) — buying in activates
+// the matching tenant capacity (seats, file limits, white-label depth) on top of the
+// full Finely OS: CRM, AI agents/copilots, dispute engine, letters studio, and vault.
+// This is a real white-label business activation, not a SaaS seat license.
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const agencyBuyInPackages: PricingPackage[] = [
   {
     id: 'agency_buyin_starter',
     category: 'agency',
-    name: 'Agency Starter Buy-In',
-    tagline: 'One-time workspace activation',
+    name: 'Starter Buy-In',
+    tagline: 'Launch your solo agency tenant',
     description:
-      'Launch your branded tenant with a guided 30-day onboarding and a training seat on the apprenticeship track.',
+      'One-time activation for a single-seat agency tenant — the full Finely OS (CRM, AI agents, dispute engine, letters studio + vault) running in Finely-branded mode while you build volume. Maps to the Agency Starter capacity tier.',
     highlights: [
-      'Branded workspace provisioning',
-      'Training seat (apprenticeship track)',
-      'First 30-day guided onboarding',
+      'Full Finely OS: CRM, dispute engine, AI copilots, letters studio + vault',
+      '1 seat • up to 20 active partner files (Agency Starter tier)',
+      'Finely-branded portal while you launch',
+      'Training seat + guided 30-day onboarding (apprenticeship track)',
+      'Keep 30% while training → 45% once certified (Agency Starter split)',
     ],
-    priceAmount: 29700, // $297
+    priceAmount: 100000, // $1,000
     interval: 'one_time',
     rail: 'stripe',
     delivery: 'DFY',
@@ -1592,25 +1599,141 @@ export const agencyBuyInPackages: PricingPackage[] = [
     entitlementKeys: ['agency_buyin_starter'],
   },
   {
-    id: 'agency_buyin_operator',
+    id: 'agency_buyin_growth',
     category: 'agency',
-    name: 'Agency Operator Buy-In',
-    tagline: 'Priority provisioning + white-label kit',
+    name: 'Growth Buy-In',
+    tagline: 'Small agency, co-branded portal, 2 seats',
     description:
-      'Skip the queue with priority tenant provisioning and a white-label kit (co-brand assets + domain guidance) on top of the Starter buy-in.',
+      'Activates an Agency Growth tenant: a co-branded portal (your logo alongside Finely), 2 team seats, and the full platform stack sized for a small growing team. Maps to the Agency Growth capacity tier.',
     highlights: [
-      'Everything in Starter buy-in',
-      'Priority tenant provisioning',
-      'White-label kit (co-brand assets + domain guidance)',
+      'Everything in Starter Buy-In',
+      '2 seats • up to 50 active partner files (Agency Growth tier)',
+      'Co-branded portal — your logo alongside Finely',
+      'Lead Intelligence + Comms sequences unlocked',
+      'Priority support + onboarding call',
+      'Keep 42% while training → 52% once certified (Agency Growth split)',
     ],
-    priceAmount: 99700, // $997
+    priceAmount: 990000, // $9,900
     interval: 'one_time',
     rail: 'stripe',
     delivery: 'DFY',
     isPublic: true,
     sortOrder: 2,
+    badge: 'Growth',
+    entitlementKeys: ['agency_buyin_starter', 'agency_buyin_growth'],
+  },
+  {
+    id: 'agency_buyin_operator',
+    category: 'agency',
+    name: 'Operator Buy-In',
+    tagline: 'Team workflows, 4 seats, before full white-label',
+    description:
+      'Activates an Agency Operator tenant: advanced CRM routing, team workflows, and a marketing asset library across 4 seats — the step before full white-label. Maps to the Agency Operator capacity tier.',
+    highlights: [
+      'Everything in Growth Buy-In',
+      '4 seats • up to 100 active partner files (Agency Operator tier)',
+      'Advanced CRM routing + team workflows',
+      'Marketing asset library + Media Studio access',
+      'Mentor QA checkpoints on the certification path',
+      'Keep 46% while training → 58% once certified (Agency Operator split)',
+    ],
+    priceAmount: 2499700, // $24,997
+    interval: 'one_time',
+    rail: 'stripe',
+    delivery: 'DFY',
+    isPublic: true,
+    sortOrder: 3,
     badge: 'Operator',
-    entitlementKeys: ['agency_buyin_starter', 'agency_buyin_operator'],
+    entitlementKeys: ['agency_buyin_starter', 'agency_buyin_growth', 'agency_buyin_operator'],
+  },
+  {
+    id: 'agency_buyin_pro',
+    category: 'agency',
+    name: 'White-Label Pro Buy-In',
+    tagline: 'Full white-label + custom domain, 6 seats',
+    description:
+      'Activates a full white-label agency tenant on your own domain — 6 seats, API access, and a dedicated account manager. This is where the platform becomes invisible and the brand is entirely yours. Maps to the Agency White-Label Pro capacity tier.',
+    highlights: [
+      'Everything in Operator Buy-In',
+      '6 seats • up to 175 active partner files (Agency White-Label Pro tier)',
+      'Full white-label + custom domain (no Finely branding)',
+      'API access + lead routing',
+      'Dedicated account manager',
+      'Keep 50% at launch → 62% as independent operator (White-Label Pro split)',
+    ],
+    priceAmount: 9900000, // $99,000
+    interval: 'one_time',
+    rail: 'stripe',
+    delivery: 'DFY',
+    isPublic: true,
+    sortOrder: 4,
+    badge: 'White-Label',
+    entitlementKeys: [
+      'agency_buyin_starter',
+      'agency_buyin_growth',
+      'agency_buyin_operator',
+      'agency_buyin_pro',
+    ],
+  },
+  {
+    id: 'agency_buyin_scale',
+    category: 'agency',
+    name: 'Scale Buy-In',
+    tagline: 'High-volume white-label, 10 seats',
+    description:
+      'Activates a high-volume white-label tenant built for real scale: 10 seats, up to 300 active files, automation, and quarterly strategy calls on the certified partner track. Maps to the Agency Scale capacity tier.',
+    highlights: [
+      'Everything in White-Label Pro Buy-In',
+      '10 seats • up to 300 active partner files (Agency Scale tier)',
+      'White-label at scale + workflow automation',
+      'Quarterly strategy calls',
+      'Certified partner track eligible',
+      'Keep 50% ramp-up → 58% certified (Agency Scale split)',
+    ],
+    priceAmount: 24900000, // $249,000
+    interval: 'one_time',
+    rail: 'stripe',
+    delivery: 'DFY',
+    isPublic: true,
+    sortOrder: 5,
+    badge: 'Scale',
+    entitlementKeys: [
+      'agency_buyin_starter',
+      'agency_buyin_growth',
+      'agency_buyin_operator',
+      'agency_buyin_pro',
+      'agency_buyin_scale',
+    ],
+  },
+  {
+    id: 'agency_buyin_enterprise',
+    category: 'agency',
+    name: 'Enterprise Buy-In',
+    tagline: 'Unlimited scale, dedicated infrastructure',
+    description:
+      'The pinnacle activation: unlimited seats and partner files, enterprise white-label with dedicated infrastructure, a dedicated success team, and a custom negotiated revenue share. Maps to the Agency Enterprise capacity tier.',
+    highlights: [
+      'Everything in Scale Buy-In',
+      'Unlimited seats & active partner files (Agency Enterprise tier)',
+      'Enterprise white-label + dedicated infrastructure + custom domain',
+      'Dedicated success team + custom integrations + SLA',
+      'Custom revenue share — negotiated up to 68% keep at volume ceiling',
+    ],
+    priceAmount: 49900000, // $499,000
+    interval: 'one_time',
+    rail: 'stripe',
+    delivery: 'DFY',
+    isPublic: true,
+    sortOrder: 6,
+    badge: 'Enterprise',
+    entitlementKeys: [
+      'agency_buyin_starter',
+      'agency_buyin_growth',
+      'agency_buyin_operator',
+      'agency_buyin_pro',
+      'agency_buyin_scale',
+      'agency_buyin_enterprise',
+    ],
   },
 ];
 

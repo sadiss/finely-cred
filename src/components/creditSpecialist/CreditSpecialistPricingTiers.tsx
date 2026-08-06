@@ -52,14 +52,14 @@ export function CreditSpecialistPricingTiers({
             <article
               key={tier.id}
               className={
-                `${finelyOsCatalogCard(active ? 'emerald' : 'violet')} !p-5 sm:!p-6 border-2 space-y-4 ` +
+                `${finelyOsCatalogCard(active ? 'emerald' : 'sky')} !p-5 sm:!p-6 border-2 space-y-4 ` +
                 (active ? 'ring-4 ring-emerald-200 border-emerald-400' : '')
               }
             >
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
                   {tier.badge ? (
-                    <span className="inline-block text-xs font-bold uppercase tracking-wider text-white bg-gradient-to-r from-violet-600 to-fuchsia-600 px-2 py-1 rounded-md">
+                    <span className="inline-block text-xs font-bold uppercase tracking-wider text-[#1c1206] bg-gradient-to-r from-amber-500 to-amber-600 px-2 py-1 rounded-md">
                       {tier.badge}
                     </span>
                   ) : null}
@@ -84,7 +84,7 @@ export function CreditSpecialistPricingTiers({
               <button
                 type="button"
                 onClick={() => setExpandedId(open ? null : tier.id)}
-                className="inline-flex items-center gap-1 text-sm font-bold text-violet-700 hover:underline"
+                className="inline-flex items-center gap-1 text-sm font-bold text-sky-700 hover:underline"
               >
                 {open ? 'Hide details' : 'Show access · education · methods · tools · support'}
                 <ChevronDown size={16} className={open ? 'rotate-180 transition' : 'transition'} />

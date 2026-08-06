@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { LeadMagnetCobrandFooterMarks } from '../../components/brand/LeadMagnetCobrand';
 import { CreditSpecialistGuideActions } from '../../components/creditSpecialist/CreditSpecialistGuideActions';
+import { CreditSpecialistGuideBookMockup } from '../../components/creditSpecialist/CreditSpecialistGuideBookMockup';
 import { PremiumLeadMagnetCaptureForm } from '../../components/leadmagnet/PremiumLeadMagnetCaptureForm';
 import { CREDIT_SPECIALIST_GUIDE_FUNNEL } from '../../domain/leadMagnetFunnels';
 import { usePublicSeoMeta } from '../../hooks/usePublicSeoMeta';
@@ -45,45 +46,15 @@ function GuideBookMockup({
   tall?: boolean;
 }) {
   return (
-    <div className={cn('csg-mockup-stage', tall && 'py-4 md:py-6', className)}>
-      <div className="csg-mockup-glow" aria-hidden />
-      <button
-        type="button"
-        onClick={onOpen}
-        className="csg-book-btn"
-        aria-label={`Open ${CS_GUIDE_META.title} in the guide reader`}
-      >
-        <div className="csg-book">
-          <div className="csg-book-spine" aria-hidden />
-          <div className="csg-book-pages" aria-hidden />
-          <div className="csg-book-cover">
-            <div className="relative z-10">
-              <img
-                src="/brand/finely-cred-logo-light.png"
-                alt=""
-                className="mb-4 h-8 w-auto object-contain opacity-90"
-                width={120}
-                height={40}
-              />
-              <p className="text-[9px] font-bold uppercase tracking-[0.22em] text-[#95e000]/90">
-                {CS_GUIDE_META.edition}
-              </p>
-              <h3 className="csg-serif mt-2 text-[1.35rem] font-semibold leading-tight text-white sm:text-[1.5rem]">
-                {CS_GUIDE_META.title}
-              </h3>
-              <p className="mt-2 text-[10px] leading-relaxed text-white/55">{CS_GUIDE_META.tagline}</p>
-            </div>
-            <div className="relative z-10">
-              <div className="text-[9px] uppercase tracking-[0.18em] text-white/40">Free in-app guide</div>
-              <div className="mt-1 text-2xl font-black tabular-nums text-[#f0cc75]">{CS_GUIDE_META.valueLabel}</div>
-              <div className="mt-1 text-[10px] font-bold uppercase tracking-wider text-[#95e000]">Open to read →</div>
-            </div>
-          </div>
-        </div>
-      </button>
-      <div className="csg-book-open-hint">Click cover to open the reader</div>
-      <div className="csg-mockup-pedestal" aria-hidden />
-    </div>
+    <CreditSpecialistGuideBookMockup
+      title={CS_GUIDE_META.title}
+      edition={CS_GUIDE_META.edition}
+      tagline={CS_GUIDE_META.tagline}
+      valueLabel={CS_GUIDE_META.valueLabel}
+      onOpen={onOpen}
+      className={className}
+      tall={tall}
+    />
   );
 }
 

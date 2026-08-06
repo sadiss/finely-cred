@@ -1,8 +1,13 @@
-import React, { useEffect, useState } from 'react';
-import { ArrowRight, BadgeCheck, DollarSign, ShieldAlert, Users, Share2 } from 'lucide-react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { BadgeCheck, Calculator, ArrowRight, DollarSign, ShieldAlert, Share2, Users } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { PageShell } from '../components/layout/PageShell';
-import { CareersQuickNav } from '../components/careers/CareersQuickNav';
+import { CareerOtherTracksLink } from '../components/careers/CareerOtherTracksLink';
+import { CareerTierChooser, type CareerChoiceOption } from '../components/careers/CareerTierChooser';
+import { CareerPackagePanel } from '../components/careers/CareerPackagePanel';
+import { CareerChoiceApply } from '../components/careers/CareerChoiceApply';
+import { CareerTierStickySummary } from '../components/careers/CareerTierStickySummary';
+import { careerAccentText } from '../components/careers/careerUi';
 import { createProgramApplication } from '../data/programApplicationsRepo';
 import { submitLeadCapture } from '../data/leadsRepo';
 import { addLeadNote, addLeadTags } from '../data/leadOpsRepo';
@@ -16,53 +21,43 @@ import {
 } from '../lib/digitalInviteCardAttribution';
 import { getDigitalInviteCardDef } from '../config/digitalInviteCards';
 import { FinelyOsAlertBanner } from '../features/os/FinelyOsAlertBanner';
-import { AF, AFFILIATE_OFFERINGS } from '../config/affiliateProgram';
+import { AF, AFFILIATE_PATHS, AFFILIATE_STACKING_NOTE, getAffiliatePathById } from '../config/affiliateProgram';
+import { signupUrlForRole } from '../lib/onboardingRoleRouting';
 import { AffiliateCommissionCalculator } from '../components/calculators/AffiliateCommissionCalculator';
 import { DigitalInviteShareBand } from '../components/digitalCards';
 import { BackToSiteButton } from '../components/navigation/BackToSiteButton';
 import { FinelyOsPageFooter } from '../features/os/FinelyOsPageFooter';
-import { FinelyOsPaginatedStack } from '../features/os/FinelyOsPaginatedStack';
-import { FinelyUnifiedHubLayout } from '../features/unified/FinelyUnifiedHubLayout';
 import { MarketingStaffChatStrip } from '../components/marketing/MarketingStaffChatStrip';
 import {
-  FINELY_OS_ENTITY_BODY,
   FINELY_OS_ENTITY_INPUT,
   FINELY_OS_ENTITY_LABEL,
-
-  FINELY_OS_ENTITY_SELECT,
-  FINELY_OS_ENTITY_SUBLABEL,
-  FINELY_OS_ENTITY_VALUE,
   FINELY_OS_NOTICE_ERROR,
   FINELY_OS_NOTICE_SUCCESS,
   FINELY_OS_PAGE,
   FINELY_OS_PRIMARY_BTN,
-  FINELY_OS_SECONDARY_BTN,
-  FINELY_OS_SUCCESS_BTN,
-  finelyOsCatalogCard,
 } from '../features/os/finelyOsLightUi';
 import { usePublicSeoMeta } from '../hooks/usePublicSeoMeta';
 
 const formLabel = `block ${FINELY_OS_ENTITY_LABEL} mb-1`;
 const formInput = FINELY_OS_ENTITY_INPUT.replace('mt-2 ', '');
-const formSelect = FINELY_OS_ENTITY_SELECT;
+const APPLY_SECTION_ID = 'affiliate-apply';
 
 export default function AffiliatePage() {
   const navigate = useNavigate();
   usePublicSeoMeta({
     title: 'Affiliate program',
     description: 'Earn payouts referring partners to Finely Cred restore, funding, and specialist programs.',
-    path: '/affiliate',
+    path: AF.publicPath,
   });
+
+  const [selectedPathId, setSelectedPathId] = useState<string>(AFFILIATE_PATHS[0]?.id ?? '');
+  const selectedPath = getAffiliatePathById(selectedPathId) ?? AFFILIATE_PATHS[0] ?? null;
+
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
-  const [promoLink, setPromoLink] = useState('');
-  const [niche, setNiche] = useState('');
-  const [payoutPreference, setPayoutPreference] = useState<'stripe' | 'paypal' | 'zelle' | 'cash_app' | 'other'>('stripe');
-  const [payoutHandle, setPayoutHandle] = useState('');
   const [status, setStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
   const [statusMsg, setStatusMsg] = useState<string | null>(null);
-  const [laneTab, setLaneTab] = useState<'program' | 'apply'>('program');
   const [cardEligibility, setCardEligibility] = useState(() => getDigitalInviteCardEligibilityForRole('affiliate'));
 
   useEffect(() => {
@@ -72,11 +67,26 @@ export default function AffiliatePage() {
 
   const cardBonus = getDigitalInviteCardDef('affiliate')?.bonus;
 
+  const pathOptions: CareerChoiceOption[] = useMemo(
+    () =>
+      AFFILIATE_PATHS.map((p) => ({
+        id: p.id,
+        name: p.name,
+        badge: p.ladderLabel.split(' · ')[0],
+        description: p.description,
+        priceLabel: p.tagline,
+        accent: p.accent,
+      })),
+    [],
+  );
+
   const canSubmit = fullName.trim().length > 1 && email.trim().includes('@') && status !== 'sending';
+
+  const scrollToApply = () => document.getElementById(APPLY_SECTION_ID)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!canSubmit) return;
+    if (!canSubmit || !selectedPath) return;
     setStatus('sending');
     setStatusMsg(null);
     try {
@@ -85,18 +95,14 @@ export default function AffiliatePage() {
         fullName,
         email,
         phone,
-        website: promoLink,
-        socials: promoLink ? { other: promoLink } : {},
-        niche,
-        payoutPreference,
-        payoutHandle,
+        niche: selectedPath.name,
       });
       window.dispatchEvent(new Event('finely:store'));
 
       const lead = await submitLeadCapture({
         source: 'affiliate',
         offer: 'affiliate_application',
-        interest: niche.trim() || 'affiliate_program',
+        interest: selectedPath.name,
         fullName: fullName.trim(),
         email: email.trim(),
         phone: phone.trim(),
@@ -105,7 +111,7 @@ export default function AffiliatePage() {
         ...(cardEligibility ? digitalInviteCardLeadAttributionFields(cardEligibility) : {}),
         giveawayStack: cardEligibility && cardBonus ? [cardBonus.label] : undefined,
       });
-      addLeadNote(lead.lead.id, `Affiliate application submitted: ${app.id}\nPromo link: ${promoLink || '—'}`);
+      addLeadNote(lead.lead.id, `Affiliate application submitted: ${app.id}\nPath: ${selectedPath.name}`);
       if (cardEligibility) {
         addLeadTags(lead.lead.id, ['priority-review', ...digitalInviteCardLeadTags(cardEligibility)]);
         addLeadNote(lead.lead.id, formatDigitalInviteCardNote(cardEligibility));
@@ -115,9 +121,10 @@ export default function AffiliatePage() {
       setStatus('sent');
       setStatusMsg(
         cardEligibility && cardBonus
-          ? `Application received — ${cardBonus.label.toLowerCase()} is applied. Our team will reach out with next steps.`
-          : 'Application received. Our team will reach out with next steps.',
+          ? `Application received — ${cardBonus.label.toLowerCase()} is applied. Taking you to signup…`
+          : 'Application received. Taking you to signup…',
       );
+      navigate(signupUrlForRole('affiliate', { path: selectedPath.id }));
     } catch (err: any) {
       setStatus('error');
       setStatusMsg(err?.message || 'Could not submit application.');
@@ -125,116 +132,126 @@ export default function AffiliatePage() {
   };
 
   return (
-    <PageShell badge="Public" title={AF.programName} subtitle="Partner with Finely Cred — model payouts, share your link, and grow residual income.">
-      <div className={FINELY_OS_PAGE}>
-        <div className="flex flex-wrap items-center gap-4">
+    <PageShell badge="Public" title={AF.programName} subtitle="Model payouts, share your link, and grow residual income." hideHero>
+      <div className={`${FINELY_OS_PAGE} max-w-5xl mx-auto pb-20`}>
+        <div className="flex flex-wrap items-center justify-between gap-4">
           <BackToSiteButton variant="ghost" label="Back to home" />
-          <button type="button" onClick={() => navigate('/onboarding?lane=affiliate')} className={FINELY_OS_SUCCESS_BTN}>
-            Start affiliate signup
-          </button>
-          <button type="button" onClick={() => navigate(AF.hubPath)} className={FINELY_OS_PRIMARY_BTN}>
-            Open {AF.hubName}
-          </button>
-        </div>
-
-        <CareersQuickNav active="affiliates" className="mt-6" />
-
-        {cardEligibility && cardBonus ? (
-          <FinelyOsAlertBanner tone="success" message={cardBonus.description} />
-        ) : null}
-
-        <FinelyUnifiedHubLayout
-          eyebrow={AF.programName}
-          title="Affiliate partnership"
-          subtitle="Model payouts, share your link, and grow residual income."
-          accent="sky"
-          tabs={[
-            { id: 'program', label: 'Program' },
-            { id: 'apply', label: 'Apply' },
-          ]}
-          activeTab={laneTab}
-          onTabChange={(id) => setLaneTab(id as typeof laneTab)}
-          primaryAction={{ label: 'Open affiliate hub', onClick: () => navigate(AF.hubPath) }}
-          secondaryAction={{ label: 'Start signup', onClick: () => navigate('/onboarding?lane=affiliate') }}
-        >
-
-        {laneTab === 'program' && (
-        <>
-        <DigitalInviteShareBand role="affiliate" />
-
-        <AffiliateCommissionCalculator />
-
-        <FinelyOsPaginatedStack
-          items={[...AFFILIATE_OFFERINGS]}
-          pageSize={4}
-          itemSpacingClassName="grid md:grid-cols-2 gap-4"
-          renderItem={(item, idx) => (
-            <div
-              key={item.title}
-              className={`space-y-2 ${finelyOsCatalogCard((['sky', 'emerald', 'violet', 'amber'] as const)[idx % 4])} !p-5`}
-              data-fc-accent={(['sky', 'emerald', 'violet', 'amber'] as const)[idx % 4]}
-            >
-              <div className={FINELY_OS_ENTITY_VALUE}>{item.title}</div>
-              <p className={FINELY_OS_ENTITY_BODY}>{item.description}</p>
-            </div>
-          )}
-        />
-
-        <div className={`space-y-6 ${finelyOsCatalogCard('amber')} !p-6`} data-fc-accent="amber">
-          <blockquote className={`text-xl italic leading-relaxed ${FINELY_OS_ENTITY_BODY}`}>
-            &ldquo;The day I realized that residual income is far more profitable than chasing the next check,
-            was the day my mentality shifted towards wealth.&rdquo;
-          </blockquote>
-          <p className={`${FINELY_OS_ENTITY_VALUE} font-semibold text-fuchsia-700`}>— Sanz St Louis</p>
-          <p className={FINELY_OS_ENTITY_SUBLABEL}>Income Built Different</p>
-        </div>
-
-        <div className="grid md:grid-cols-3 gap-6">
-          {[
-            { icon: Share2, title: 'Share & earn', body: 'Refer partners to Finely Cred with your unique link. When they sign up and engage with our services, you earn.' },
-            { icon: DollarSign, title: 'Payout structure', body: 'Competitive payouts on qualified referrals. Details and tiers are provided when you join the program.' },
-            { icon: Users, title: 'Who can join', body: 'Coaches, brokers, and anyone with an audience that benefits from credit education and funding readiness.' },
-          ].map(({ icon: Icon, title, body }, idx) => (
-            <div
-              key={title}
-              className={`space-y-3 ${finelyOsCatalogCard((['violet', 'sky', 'emerald'] as const)[idx % 3])} !p-5`}
-              data-fc-accent={(['violet', 'sky', 'emerald'] as const)[idx % 3]}
-            >
-              <div className={`flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL} text-violet-700`}>
-                <Icon size={18} />
-                <span className={FINELY_OS_ENTITY_SUBLABEL}>{title}</span>
-              </div>
-              <p className={FINELY_OS_ENTITY_BODY}>{body}</p>
-            </div>
-          ))}
-        </div>
-        </>
-        )}
-
-        {laneTab === 'apply' && (
-        <div className={`space-y-4 ${finelyOsCatalogCard('sky')} !p-6`} data-fc-accent="sky">
-          <div className="flex items-center justify-between gap-3 flex-wrap">
-            <p className={FINELY_OS_ENTITY_VALUE}>Affiliate application</p>
-            <button type="button" onClick={() => navigate('/')} className={FINELY_OS_SECONDARY_BTN}>
-              Back to Home
+          <div className="flex flex-wrap items-center gap-3">
+            <CareerOtherTracksLink currentId="affiliates" />
+            <button type="button" onClick={() => navigate(AF.hubPath)} className={FINELY_OS_PRIMARY_BTN}>
+              Open {AF.hubName}
             </button>
           </div>
+        </div>
 
-          {statusMsg ? (
-            <div className={status === 'sent' ? FINELY_OS_NOTICE_SUCCESS : status === 'error' ? FINELY_OS_NOTICE_ERROR : `${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony`}>
-              <div className="inline-flex items-center gap-2 font-semibold">
-                {status === 'sent' ? <BadgeCheck size={16} /> : <ShieldAlert size={16} />}
-                <span>{statusMsg}</span>
-              </div>
-            </div>
-          ) : null}
+        {cardEligibility && cardBonus ? <FinelyOsAlertBanner tone="success" message={cardBonus.description} /> : null}
 
-          <p className={`${FINELY_OS_ENTITY_BODY} text-sm`}>
-            Short and quick — we&apos;ll follow up with your referral link, marketing kit, and payout setup.
+        {/* One calm hero — no stacked PageShell + hub-layout hero */}
+        <section className="rounded-3xl border-2 border-sky-200 bg-white p-6 sm:p-10 space-y-4">
+          <p className="text-[11px] font-black uppercase tracking-[0.28em] text-sky-700">{AF.programName}</p>
+          <h1 className="text-4xl sm:text-5xl font-black tracking-tight leading-[1.08] text-slate-900">
+            Refer partners. Get paid on real payouts.
+          </h1>
+          <p className="max-w-2xl text-[15px] leading-relaxed text-slate-600">
+            Share your link and earn {AF.defaultCommissionPct}% on every package sale — restore, business credit,
+            dispute letters. Choose a path to unlock the toolkit, priority, and bonuses built for how you'll
+            promote. No dispute files to run, no software to buy.
           </p>
+        </section>
 
-          <form className="space-y-4" onSubmit={submit}>
-            <div className="grid md:grid-cols-2 gap-4">
+        {/* The universal payout rule — same for every path, stated once, unmistakably additive */}
+        <section className="rounded-2xl border-2 border-amber-200 bg-amber-50 px-6 py-4 sm:px-8 sm:py-5">
+          <p className="text-[11px] font-black uppercase tracking-[0.24em] text-amber-700">Not percentage OR profit share — it stacks</p>
+          <p className="mt-1.5 text-sm sm:text-[15px] leading-relaxed text-slate-700">{AFFILIATE_STACKING_NOTE}</p>
+        </section>
+
+        {/* Top panel — affiliate paths ONLY */}
+        <section className="rounded-3xl border-2 border-slate-200 bg-slate-50 p-6 sm:p-8">
+          <CareerTierChooser
+            title="Choose your path"
+            subtitle="Referrer, recurring partner, or Denefit-focused partner — every path earns package % plus Denefit stacking. Picking a path unlocks the toolkit, priority, and bonuses built for how you'll promote."
+            options={pathOptions}
+            selectedId={selectedPathId}
+            onSelect={setSelectedPathId}
+            columns={3}
+          />
+        </section>
+
+        {/* What you get for the selected path — ladder buckets, not a flat checklist */}
+        {selectedPath ? (
+          <section className="space-y-3">
+            <div className="max-w-2xl space-y-1.5">
+              <p className={`text-[11px] font-black uppercase tracking-[0.24em] ${careerAccentText(selectedPath.accent)}`}>
+                {selectedPath.ladderLabel} · What you get
+              </p>
+              <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">{selectedPath.payoutLabel}</h2>
+            </div>
+            <CareerPackagePanel blocks={selectedPath.blocks} accent={selectedPath.accent} />
+          </section>
+        ) : null}
+
+        {/* Quote — its own band, generous margin, not cramped */}
+        <section className="rounded-3xl border-2 border-amber-200 bg-white p-8 sm:p-12">
+          <blockquote className="text-xl sm:text-2xl italic leading-relaxed text-slate-800">
+            &ldquo;The day I realized that residual income is far more profitable than chasing the next check, was the
+            day my mentality shifted towards wealth.&rdquo;
+          </blockquote>
+          <p className="mt-6 text-base font-bold text-amber-700">— Sanz St Louis</p>
+          <p className="mt-1 text-sm font-semibold uppercase tracking-widest text-slate-400">Income Built Different</p>
+        </section>
+
+        {/* Share & earn / Payout / Who can join — spaced white cards */}
+        <section className="grid gap-6 md:grid-cols-3">
+          {[
+            {
+              icon: Share2,
+              title: 'Share & earn',
+              body: 'Refer partners to Finely Cred with your unique link. When they sign up and engage with our services, you earn.',
+              tone: 'text-sky-700 bg-sky-50 border-sky-200',
+            },
+            {
+              icon: DollarSign,
+              title: 'Payout structure',
+              body: `Package % on every sale, plus the Denefit share stacking on top whenever a referral finances in-house. Your path sets the toolkit and priority — the stack itself never changes.`,
+              tone: 'text-emerald-700 bg-emerald-50 border-emerald-200',
+            },
+            {
+              icon: Users,
+              title: 'Who can join',
+              body: 'Coaches, brokers, and anyone with an audience that benefits from credit education and funding readiness.',
+              tone: 'text-amber-700 bg-amber-50 border-amber-200',
+            },
+          ].map(({ icon: Icon, title, body, tone }) => (
+            <div key={title} className="rounded-2xl border-2 border-slate-200 bg-white p-7 space-y-3">
+              <span className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-bold ${tone}`}>
+                <Icon size={14} /> {title}
+              </span>
+              <p className="text-sm leading-relaxed text-slate-600">{body}</p>
+            </div>
+          ))}
+        </section>
+
+        {/* Apply — choice-first: path already picked above, now a short form */}
+        <section id={APPLY_SECTION_ID} className="scroll-mt-24">
+          <CareerChoiceApply
+            kicker="Apply"
+            title="Get your referral link."
+            selectedLabel={selectedPath ? `Path: ${selectedPath.name} (${selectedPath.ladderLabel})` : 'Pick a path above'}
+            description="Short and quick — we'll follow up with your referral link, marketing kit, and payout setup."
+            ctaLabel={status === 'sending' ? 'Submitting…' : 'Submit application'}
+            onSubmit={submit}
+            submitDisabled={!canSubmit}
+            accent={selectedPath?.accent ?? 'emerald'}
+          >
+            {statusMsg ? (
+              <div className={status === 'sent' ? FINELY_OS_NOTICE_SUCCESS : status === 'error' ? FINELY_OS_NOTICE_ERROR : ''}>
+                <div className="inline-flex items-center gap-2 font-semibold">
+                  {status === 'sent' ? <BadgeCheck size={16} /> : <ShieldAlert size={16} />}
+                  <span>{statusMsg}</span>
+                </div>
+              </div>
+            ) : null}
+            <div className="grid sm:grid-cols-2 gap-4">
               <div>
                 <label className={formLabel}>Full name</label>
                 <input value={fullName} onChange={(e) => setFullName(e.target.value)} className={formInput} required />
@@ -244,45 +261,34 @@ export default function AffiliatePage() {
                 <input value={email} onChange={(e) => setEmail(e.target.value)} className={formInput} required />
               </div>
             </div>
-            <div className="grid md:grid-cols-2 gap-4">
-              <div>
-                <label className={formLabel}>Phone (optional)</label>
-                <input value={phone} onChange={(e) => setPhone(e.target.value)} className={formInput} />
-              </div>
-              <div>
-                <label className={formLabel}>Where you&apos;ll promote (optional)</label>
-                <input value={promoLink} onChange={(e) => setPromoLink(e.target.value)} className={formInput} placeholder="Website, Instagram, TikTok…" />
-              </div>
-            </div>
-            <div className="grid md:grid-cols-2 gap-4">
-              <div>
-                <label className={formLabel}>Niche (optional)</label>
-                <input value={niche} onChange={(e) => setNiche(e.target.value)} className={formInput} placeholder="Credit, funding, real estate…" />
-              </div>
-              <div>
-                <label className={formLabel}>Payout preference</label>
-                <select value={payoutPreference} onChange={(e) => setPayoutPreference(e.target.value as any)} className={formSelect}>
-                  <option value="stripe">Stripe</option>
-                  <option value="paypal">PayPal</option>
-                  <option value="zelle">Zelle</option>
-                  <option value="cash_app">Cash App</option>
-                  <option value="other">Other</option>
-                </select>
-              </div>
-            </div>
             <div>
-              <label className={formLabel}>Payout handle (optional)</label>
-              <input value={payoutHandle} onChange={(e) => setPayoutHandle(e.target.value)} className={formInput} placeholder="Email / $cashtag / PayPal.me…" />
+              <label className={formLabel}>Phone (optional)</label>
+              <input value={phone} onChange={(e) => setPhone(e.target.value)} className={`${formInput} sm:max-w-xs`} />
             </div>
+          </CareerChoiceApply>
+        </section>
 
-            <button type="submit" disabled={!canSubmit} className={`w-full justify-center ${FINELY_OS_PRIMARY_BTN} disabled:opacity-60 disabled:cursor-not-allowed`}>
-              {status === 'sending' ? 'Submitting…' : 'Submit application'} <ArrowRight size={14} />
+        {/* Calculator / toolkit — secondary, below the apply flow */}
+        <section className="rounded-3xl border-2 border-slate-200 bg-white p-6 sm:p-8 space-y-5">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p className="text-[11px] font-black uppercase tracking-[0.24em] text-slate-500">Model your payout</p>
+              <h2 className="mt-1 text-xl font-bold text-slate-900">Commission calculator</h2>
+            </div>
+            <button
+              type="button"
+              onClick={() => navigate('/affiliate-toolkit')}
+              className="inline-flex items-center gap-2 rounded-xl border-2 border-slate-200 bg-white px-4 py-2.5 text-sm font-bold text-slate-700 transition-all hover:border-slate-300"
+            >
+              <Calculator size={15} /> Open affiliate toolkit <ArrowRight size={14} />
             </button>
-          </form>
-        </div>
-        )}
+          </div>
+          <AffiliateCommissionCalculator />
+        </section>
 
-        </FinelyUnifiedHubLayout>
+        <DigitalInviteShareBand role="affiliate" />
+
+        <p className="text-xs text-slate-400">Results vary · not legal advice · affiliates are independent partners, not employees.</p>
 
         <MarketingStaffChatStrip
           roleId="affiliate_specialist"
@@ -293,6 +299,16 @@ export default function AffiliatePage() {
 
         <FinelyOsPageFooter />
       </div>
+
+      <CareerTierStickySummary
+        roleLabel="Affiliate"
+        tierName={selectedPath?.name}
+        economics={{ commissionLabel: selectedPath?.tagline }}
+        ctaLabel="Apply now"
+        onCta={scrollToApply}
+        accent={selectedPath?.accent ?? 'emerald'}
+        visible={Boolean(selectedPath)}
+      />
     </PageShell>
   );
 }

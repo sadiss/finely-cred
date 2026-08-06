@@ -22,7 +22,7 @@ type Props = {
    * viewport, `onLight` for ivory panels, `os` for theme-aware Finely OS surfaces.
    */
   tone?: CreditSpecialistGuideActionsTone;
-  size?: 'md' | 'sm';
+  size?: 'md' | 'sm' | 'lg';
   className?: string;
   readLabel?: string;
   /** Overrides the default navigation to the in-app reader. */
@@ -37,9 +37,10 @@ function cn(...classes: Array<string | false | null | undefined>) {
 const BASE =
   'inline-flex w-full items-center justify-center gap-2 rounded-xl font-black uppercase tracking-[0.14em] transition-all disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto';
 
-const SIZE: Record<'md' | 'sm', string> = {
+const SIZE: Record<'md' | 'sm' | 'lg', string> = {
   md: 'h-12 px-6 text-[11px]',
   sm: 'h-10 px-4 text-[10px]',
+  lg: 'h-14 px-8 text-[12px]',
 };
 
 type StyledTone = Exclude<CreditSpecialistGuideActionsTone, 'os'>;
@@ -88,17 +89,18 @@ export function CreditSpecialistGuideActions({
   }, []);
 
   const handleRead = onReadGuide ?? (() => navigate(CS_GUIDE_READ_PATH));
-  const iconSize = size === 'md' ? 16 : 14;
+  const iconSize = size === 'lg' ? 18 : size === 'md' ? 16 : 14;
+  const osSizeOverride = size === 'lg' ? '!h-14 !px-8 !text-xs' : size === 'sm' ? '!h-10 !px-4 !text-[10px]' : '';
 
   // Finely OS surfaces flip with the light/dark theme, so they reuse theme-aware tokens
   // instead of the hand-rolled contrast pairs.
   const readClass =
     tone === 'os'
-      ? cn('w-full sm:w-auto', FINELY_OS_SUCCESS_BTN)
+      ? cn('w-full sm:w-auto', osSizeOverride, FINELY_OS_SUCCESS_BTN)
       : cn(BASE, SIZE[size], READ_TONE[tone]);
   const downloadClass =
     tone === 'os'
-      ? cn('w-full sm:w-auto !border-emerald-400/45 ring-1 ring-emerald-400/25', FINELY_OS_SECONDARY_BTN)
+      ? cn('w-full sm:w-auto !border-emerald-400/45 ring-1 ring-emerald-400/25', osSizeOverride, FINELY_OS_SECONDARY_BTN)
       : cn(BASE, SIZE[size], DOWNLOAD_TONE[tone]);
 
   return (

@@ -23,8 +23,9 @@ type AuListing = {
   badge?: string;
 };
 
-/** Curated AU profile showcase — illustrative inventory shape, not live checkout pricing. Live, purchasable
- * seats are in the interactive marketplace below (`#tradelines-au-live`). */
+/** Curated AU profile showcase — illustrative inventory shape (issuer/limit/age/seats/season), not live checkout
+ * pricing. "Check availability" hands the listing to the parent, which gets the buyer matched to real seat
+ * availability — this is the only inventory section on `/tradelines`, no second competing grid. */
 const AU_LISTINGS: AuListing[] = [
   {
     id: 'amex-platinum',
@@ -165,31 +166,28 @@ function AuListingCard({ listing, onCheckAvailability }: { listing: AuListing; o
 }
 
 /**
- * Curated showcase of ~6-7 rich AU profile mockups (limit, age, seats, issuer, utilization optics, season).
- * "Check live availability" jumps to the real, purchasable inventory browser (`#tradelines-au-live`).
+ * Public AU inventory cards (limit, age, seats, issuer, utilization optics, season).
+ * "Check availability" is the buyer action — get matched / reserve — not a jump to a second competing grid.
  */
 export function AuListingShowcase({
   onNavigateAuTeenSheet,
-  liveAnchorId = 'tradelines-au-live',
+  onCheckAvailability,
 }: {
   onNavigateAuTeenSheet: () => void;
-  liveAnchorId?: string;
+  /** Buyer next step for this listing (get matched, checkout, etc.). */
+  onCheckAvailability: (listing: AuListing) => void;
 }) {
-  const scrollToLive = () => {
-    const el = document.getElementById(liveAnchorId);
-    el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  };
-
   return (
     <div className="space-y-6">
       <div className="flex items-end justify-between gap-6 flex-wrap">
         <div>
-          <div className="text-xs font-semibold uppercase tracking-wider text-amber-400">Featured AU profiles</div>
+          <div className="text-xs font-semibold uppercase tracking-wider text-amber-400">AU inventory</div>
           <h3 className="text-2xl font-light text-white mt-2">
-            Profile types <span className="text-amber-500">at a glance</span>
+            Browse profiles <span className="text-amber-500">and check availability</span>
           </h3>
           <p className="text-white/50 text-sm max-w-2xl mt-2">
-            Limit, age, open seats, issuer, reporting bureaus, and utilization optics — before you browse live inventory below.
+            Limit, age, open seats, issuer, reporting bureaus, and utilization optics. Check availability to get matched
+            or head to checkout.
           </p>
         </div>
         <div className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 text-emerald-200 text-[10px] font-black uppercase tracking-widest">
@@ -199,7 +197,7 @@ export function AuListingShowcase({
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
         {AU_LISTINGS.map((listing) => (
-          <AuListingCard key={listing.id} listing={listing} onCheckAvailability={scrollToLive} />
+          <AuListingCard key={listing.id} listing={listing} onCheckAvailability={() => onCheckAvailability(listing)} />
         ))}
       </div>
 

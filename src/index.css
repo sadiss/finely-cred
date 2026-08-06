@@ -105,7 +105,78 @@ samp {
   --fc-admin-status-warn: #b7791f;
   --fc-admin-status-risk: #b42318;
   --fc-admin-status-info: #3b5bdb;
+
+  /* Platinum Workspace — section tones (opt-in, Finely gold/navy/emerald/black
+     only — no purple/violet). These are deliberately SOLID/high-chroma, meant
+     to be used as strong 2px borders + a visible ~8-12% tint, or as fully
+     solid fills on chips/buttons — not a 5% wash that disappears on white. */
+  --fc-admin-tone-emerald: #0b7a5c;
+  --fc-admin-tone-emerald-ink: #065f46;
+  --fc-admin-tone-gold: #b7791f;
+  --fc-admin-tone-gold-ink: #7c4a0f;
+  --fc-admin-tone-sky: #0369a1;
+  --fc-admin-tone-sky-ink: #0c4a6e;
+  --fc-admin-tone-navy: #1e3a5f;
+  --fc-admin-tone-navy-ink: #14283f;
+  --fc-admin-tone-teal: #0f766e;
+  --fc-admin-tone-teal-ink: #0b5c54;
+  --fc-admin-tone-rose: #b42318;
+  --fc-admin-tone-rose-ink: #7f1d1d;
 }
+
+/* Platinum Workspace — deliberate surface system (Partner Overview / Profile).
+   Three intentional variants, never mixed at random:
+     - "soft"  = quiet, readable flat tint + border. Lists, activity, nav shortcuts.
+     - "solid" = rich saturated fill. Reserved for KPI numbers / score cells /
+       the handful of boxes that ARE the data (pops on purpose, not decoration).
+     - "ink"   = deep navy/black identity panel (hero only) with white text.
+
+   IMPORTANT — each class below also sets `color` directly (not just a Tailwind
+   utility on the child). `color` inherits to every descendant, so even if a
+   call site forgets an explicit text-color class, text INSIDE one of these
+   boxes still defaults to something readable instead of silently inheriting
+   whatever dark ink color the page shell set. Explicit Tailwind text-color
+   classes on a specific child (e.g. a muted sublabel) still win as normal —
+   this is just the safety-net default, never the thing fighting for control. */
+.fc-admin-ink-panel {
+  background: linear-gradient(155deg, #0a0f16 0%, #101d30 55%, #16283f 100%);
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  box-shadow: 0 18px 40px -20px rgba(4, 8, 14, 0.6);
+  color: #ffffff;
+}
+.fc-admin-ink-divider { border-color: rgba(255, 255, 255, 0.14) !important; }
+
+.fc-admin-solid-emerald,
+.fc-admin-solid-sky,
+.fc-admin-solid-navy,
+.fc-admin-solid-teal,
+.fc-admin-solid-rose {
+  color: #ffffff;
+}
+.fc-admin-solid-gold { color: #241a04; }
+
+.fc-admin-solid-emerald { background: linear-gradient(150deg, #17a97b 0%, #0a7a56 100%); border-color: rgba(10, 122, 86, 0.55) !important; box-shadow: 0 10px 22px -13px rgba(10, 122, 86, 0.5); }
+.fc-admin-solid-gold   { background: linear-gradient(150deg, #ecb93f 0%, #a86a13 100%); border-color: rgba(168, 106, 19, 0.55) !important; box-shadow: 0 10px 22px -13px rgba(168, 106, 19, 0.45); }
+.fc-admin-solid-sky    { background: linear-gradient(150deg, #2fb2f4 0%, #05699e 100%); border-color: rgba(5, 105, 158, 0.55) !important; box-shadow: 0 10px 22px -13px rgba(5, 105, 158, 0.45); }
+.fc-admin-solid-navy   { background: linear-gradient(150deg, #3a5680 0%, #16283f 100%); border-color: rgba(16, 28, 45, 0.6) !important; box-shadow: 0 10px 22px -13px rgba(16, 28, 45, 0.5); }
+.fc-admin-solid-teal   { background: linear-gradient(150deg, #27c3b1 0%, #0b7469 100%); border-color: rgba(11, 116, 105, 0.55) !important; box-shadow: 0 10px 22px -13px rgba(11, 116, 105, 0.45); }
+.fc-admin-solid-rose   { background: linear-gradient(150deg, #f0685f 0%, #a3241a 100%); border-color: rgba(163, 36, 26, 0.55) !important; box-shadow: 0 10px 22px -13px rgba(163, 36, 26, 0.45); }
+
+.fc-admin-soft-emerald,
+.fc-admin-soft-gold,
+.fc-admin-soft-sky,
+.fc-admin-soft-navy,
+.fc-admin-soft-teal,
+.fc-admin-soft-rose {
+  color: var(--fc-admin-ink);
+}
+
+.fc-admin-soft-emerald { background: #d9f4e7; border-color: rgba(11, 122, 92, 0.34) !important; }
+.fc-admin-soft-gold    { background: #f8e6be; border-color: rgba(183, 121, 31, 0.34) !important; }
+.fc-admin-soft-sky     { background: #d4eefb; border-color: rgba(3, 105, 161, 0.32) !important; }
+.fc-admin-soft-navy    { background: #dce3ee; border-color: rgba(30, 58, 95, 0.3) !important; }
+.fc-admin-soft-teal    { background: #d3f3ee; border-color: rgba(15, 118, 110, 0.32) !important; }
+.fc-admin-soft-rose    { background: #f9dad6; border-color: rgba(180, 35, 24, 0.32) !important; }
 
 /** Light admin workspace for Partner Overview / Profile (opt-in via class). */
 .fc-admin-workspace {

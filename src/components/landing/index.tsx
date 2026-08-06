@@ -441,13 +441,16 @@ export function HeroSection(_props: HeroSectionProps) {
 
             <Reveal delay={450}>
               <div className="flex flex-wrap justify-center lg:justify-start gap-4">
-                <Button variant="gold" onClick={() => navigate('/free-guide')} size="lg">
-                  Start free guide <ArrowRight size={18} />
+                <Button variant="gold" onClick={() => navigate('/pricing/business-credit')} size="lg">
+                  Build business credit <ArrowRight size={18} />
                 </Button>
                 <Button variant="platinum" onClick={() => navigate('/pricing')} size="lg">
-                  See solutions
+                  See all solutions
                 </Button>
               </div>
+              <p className="mt-3 text-sm text-white/45 max-w-xl mx-auto lg:mx-0 font-light">
+                Fundable business profiles, vendor lines, and capital readiness — start on the Business Credit path.
+              </p>
             </Reveal>
 
             <Reveal delay={550}>

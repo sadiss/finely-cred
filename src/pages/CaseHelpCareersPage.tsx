@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { ArrowLeft, ArrowRight, FileText, Gavel, Lock, ScrollText, Stamp, UserCheck, XCircle } from 'lucide-react';
+import { ArrowLeft, ArrowRight, FileText, Gavel, Lock, ScrollText, UserCheck, XCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { PageShell } from '../components/layout/PageShell';
-import { CareersQuickNav } from '../components/careers/CareersQuickNav';
+import { CareerOtherTracksLink } from '../components/careers/CareerOtherTracksLink';
+import { CareerTierChooser, type CareerChoiceOption } from '../components/careers/CareerTierChooser';
+import { CareerChoiceApply } from '../components/careers/CareerChoiceApply';
 import { DigitalInviteShareBand } from '../components/digitalCards';
 import { RoleGuideCta } from '../components/careers/RoleGuideCta';
 import { ROLE_ACTION_LEGEND, roleJoinBtn, roleSecondaryBtn } from '../components/careers/roleActionButtons';
@@ -63,6 +65,7 @@ const ROLES: Array<{
   docket: string;
   blurb: string;
   scope: string;
+  accent: CareerChoiceOption['accent'];
 }> = [
   {
     id: 'paralegal',
@@ -71,6 +74,7 @@ const ROLES: Array<{
     blurb:
       'Organize court papers, pull dockets, assemble letter and evidence packets, and keep hearing timelines honest on assigned partner matters.',
     scope: 'Prepares — does not advise. No legal advice, no appearances.',
+    accent: 'sky',
   },
   {
     id: 'attorney',
@@ -79,6 +83,7 @@ const ROLES: Array<{
     blurb:
       'Review formal answers, affidavits, and discovery; support litigation strategy sessions; meet partners by video inside logged sessions.',
     scope: 'Must be licensed where you practice. Engagement terms are set per matter.',
+    accent: 'navy',
   },
   {
     id: 'consultant',
@@ -87,6 +92,7 @@ const ROLES: Array<{
     blurb:
       'Read debt-buyer patterns, advise on validation sequencing, and assess partner readiness before a case escalates.',
     scope: 'Educational analysis only — never presented as legal advice.',
+    accent: 'gold',
   },
 ];
 
@@ -113,7 +119,16 @@ export default function CaseHelpCareersPage() {
   const [notes, setNotes] = useState('');
   const [status, setStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
   const [statusMsg, setStatusMsg] = useState<string | null>(null);
+  const [showOptionalDetails, setShowOptionalDetails] = useState(false);
   const [cardEligibility, setCardEligibility] = useState(() => getDigitalInviteCardEligibilityForRole('case_help'));
+
+  const roleOptions: CareerChoiceOption[] = ROLES.map((r) => ({
+    id: r.id,
+    name: r.title,
+    subtitle: r.docket,
+    description: r.blurb,
+    accent: r.accent,
+  }));
 
   useEffect(() => {
     captureDigitalInviteCardFromUrl(window.location.search, window.location.pathname);
@@ -195,10 +210,12 @@ export default function CaseHelpCareersPage() {
     >
       <div className={`${FINELY_OS_PAGE} max-w-5xl mx-auto space-y-0`}>
         <div className="px-1 py-3 space-y-3">
-          <a href="/" className={FINELY_OS_BACK_LINK}>
-            <ArrowLeft size={16} /> Home
-          </a>
-          <CareersQuickNav active="case_help" />
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <a href="/" className={FINELY_OS_BACK_LINK}>
+              <ArrowLeft size={16} /> Home
+            </a>
+            <CareerOtherTracksLink currentId="case_help" />
+          </div>
           {cardEligibility && cardBonus ? (
             <FinelyOsAlertBanner tone="success" message={cardBonus.description} />
           ) : null}
@@ -277,35 +294,20 @@ export default function CaseHelpCareersPage() {
               </p>
             </div>
 
-            {/* file tabs */}
-            <div className="flex flex-wrap gap-1.5">
-              {ROLES.map((r) => {
-                const isActive = r.id === role;
-                return (
-                  <button
-                    key={r.id}
-                    type="button"
-                    onClick={() => setRole(r.id)}
-                    className={`${SERIF} rounded-t-lg border border-b-0 px-4 py-2 text-sm font-bold transition-all ${
-                      isActive
-                        ? 'border-stone-500/60 bg-[#faf6ea] text-stone-900 shadow-[0_-3px_0_rgba(180,83,9,0.5)_inset]'
-                        : 'border-stone-400/40 bg-[#e7dfcc]/70 text-stone-600 hover:bg-[#efe7d4]'
-                    }`}
-                  >
-                    <span className="mr-2 text-[10px] uppercase tracking-[0.18em] text-stone-500">{r.docket}</span>
-                    {r.title}
-                  </button>
-                );
-              })}
-            </div>
+            {/* Big choice cards — pick a file, see scope, then apply */}
+            <CareerTierChooser
+              options={roleOptions}
+              selectedId={role}
+              onSelect={(id) => setRole(id as ProgramApplicationKind)}
+              columns={3}
+            />
 
             {activeRole ? (
-              <div className={`${DOSSIER_PANEL} rounded-tl-none`}>
+              <div className={`${DOSSIER_PANEL}`}>
                 <div className="flex flex-wrap items-baseline justify-between gap-3">
                   <h3 className={`${SERIF} text-2xl font-bold text-stone-900`}>{activeRole.title}</h3>
                   <span className={DOSSIER_LABEL}>{activeRole.docket}</span>
                 </div>
-                <p className={`mt-3 ${DOSSIER_BODY}`}>{activeRole.blurb}</p>
                 <p className={`mt-4 flex items-start gap-2 ${SERIF} text-sm italic text-stone-600`}>
                   <Lock size={14} className="mt-0.5 shrink-0" /> {activeRole.scope}
                 </p>
@@ -380,7 +382,7 @@ export default function CaseHelpCareersPage() {
 
         {/* Case desk profile + dossier mock */}
         <section
-          className={`mt-6 rounded-3xl border border-white/10 px-5 sm:px-8 py-12 ${finelyOsLandingContrastSection('fc-band-violet')}`}
+          className={`mt-6 rounded-3xl border border-white/10 px-5 sm:px-8 py-12 ${finelyOsLandingContrastSection('fc-band-ember')}`}
           data-fc-contrast-band="1"
         >
           <div className="max-w-5xl mx-auto grid gap-9 lg:grid-cols-[0.95fr_1.05fr] lg:items-start">
@@ -439,105 +441,106 @@ export default function CaseHelpCareersPage() {
           </div>
         </section>
 
-        {/* Apply — dossier intake form */}
+        {/* Apply — choice-first: file already picked above, now a short intake */}
         <section id="case-apply" className={`mt-6 rounded-3xl px-5 sm:px-8 py-12 ${finelyOsLandingWealthyIvorySection()}`}>
-          <div className="max-w-2xl mx-auto space-y-6">
-            <div className="space-y-2">
-              <p className={DOSSIER_KICKER}>Intake</p>
-              <h2 className={DOSSIER_TITLE}>Apply — {activeRole?.title}</h2>
-              <p className={DOSSIER_BODY}>
-                We review case-desk applications by hand and grant scoped partner access when approved.
-              </p>
-            </div>
-
-            <form onSubmit={submit} className={`${DOSSIER_PANEL} space-y-3.5`}>
-              <div className="flex items-center gap-2 border-b border-stone-300 pb-3">
-                <Stamp size={15} className="text-stone-600" />
-                <span className={DOSSIER_LABEL}>Applicant record</span>
-              </div>
-              <label className="block">
-                <span className={DOSSIER_LABEL}>Full name</span>
-                <input
-                  className={DOSSIER_INPUT}
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
-                  required
-                />
-              </label>
-              <label className="block">
-                <span className={DOSSIER_LABEL}>Email</span>
-                <input
-                  type="email"
-                  className={DOSSIER_INPUT}
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                />
-              </label>
+          <div className="max-w-2xl mx-auto space-y-4">
+            <CareerChoiceApply
+              kicker="Intake"
+              title="Apply to the case desk"
+              selectedLabel={`File: ${activeRole?.title ?? 'Pick a role above'}`}
+              description="We review case-desk applications by hand and grant scoped partner access when approved."
+              ctaLabel={status === 'sending' ? 'Submitting…' : 'Submit application'}
+              onSubmit={submit}
+              submitDisabled={!canSubmit}
+              accent="navy"
+              className="!rounded-sm !border-stone-400/50 !bg-[#faf6ea]"
+            >
+              {statusMsg ? (
+                <div className={status === 'sent' ? FINELY_OS_NOTICE_SUCCESS : status === 'error' ? FINELY_OS_NOTICE_ERROR : ''}>
+                  {statusMsg}
+                </div>
+              ) : null}
               <div className="grid sm:grid-cols-2 gap-3">
                 <label className="block">
-                  <span className={DOSSIER_LABEL}>Phone</span>
-                  <input className={DOSSIER_INPUT} value={phone} onChange={(e) => setPhone(e.target.value)} />
-                </label>
-                <label className="block">
-                  <span className={DOSSIER_LABEL}>Firm / company</span>
+                  <span className={DOSSIER_LABEL}>Full name</span>
                   <input
                     className={DOSSIER_INPUT}
-                    value={companyName}
-                    onChange={(e) => setCompanyName(e.target.value)}
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    required
+                  />
+                </label>
+                <label className="block">
+                  <span className={DOSSIER_LABEL}>Email</span>
+                  <input
+                    type="email"
+                    className={DOSSIER_INPUT}
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
                   />
                 </label>
               </div>
               <label className="block">
-                <span className={DOSSIER_LABEL}>Bar # / credentials (if any)</span>
-                <input
-                  className={DOSSIER_INPUT}
-                  value={barOrCreds}
-                  onChange={(e) => setBarOrCreds(e.target.value)}
-                />
+                <span className={DOSSIER_LABEL}>Phone (optional)</span>
+                <input className={`${DOSSIER_INPUT} sm:max-w-xs`} value={phone} onChange={(e) => setPhone(e.target.value)} />
               </label>
-              <label className="block">
-                <span className={DOSSIER_LABEL}>Role</span>
-                <select
-                  className={DOSSIER_INPUT}
-                  value={role}
-                  onChange={(e) => setRole(e.target.value as ProgramApplicationKind)}
-                >
-                  {ROLES.map((r) => (
-                    <option key={r.id} value={r.id}>
-                      {r.title}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label className="block">
-                <span className={DOSSIER_LABEL}>Why you want to help</span>
-                <textarea
-                  rows={3}
-                  className={DOSSIER_INPUT}
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                />
-              </label>
-              <button type="submit" disabled={!canSubmit} className={roleJoinBtn(ROLE)}>
-                Submit application <ArrowRight size={14} />
+
+              <button
+                type="button"
+                onClick={() => setShowOptionalDetails((v) => !v)}
+                className={`${SERIF} text-xs font-bold text-stone-600 underline underline-offset-2 hover:text-stone-900`}
+              >
+                {showOptionalDetails ? 'Hide optional details' : 'Add optional details (firm, bar/credentials, why you want to help)'}
               </button>
-              {status === 'sent' ? (
-                <div className="space-y-2">
-                  <div className={FINELY_OS_NOTICE_SUCCESS}>{statusMsg}</div>
-                  <button type="button" className={roleSecondaryBtn(ROLE)} onClick={() => navigate('/free-debt-guide/read')}>
-                    <FileText size={14} /> Read the case desk guide while you wait <ArrowRight size={14} />
-                  </button>
+
+              {showOptionalDetails ? (
+                <div className="space-y-3">
+                  <div className="grid sm:grid-cols-2 gap-3">
+                    <label className="block">
+                      <span className={DOSSIER_LABEL}>Firm / company</span>
+                      <input
+                        className={DOSSIER_INPUT}
+                        value={companyName}
+                        onChange={(e) => setCompanyName(e.target.value)}
+                      />
+                    </label>
+                    <label className="block">
+                      <span className={DOSSIER_LABEL}>Bar # / credentials (if any)</span>
+                      <input
+                        className={DOSSIER_INPUT}
+                        value={barOrCreds}
+                        onChange={(e) => setBarOrCreds(e.target.value)}
+                      />
+                    </label>
+                  </div>
+                  <label className="block">
+                    <span className={DOSSIER_LABEL}>Why you want to help</span>
+                    <textarea
+                      rows={3}
+                      className={DOSSIER_INPUT}
+                      value={notes}
+                      onChange={(e) => setNotes(e.target.value)}
+                    />
+                  </label>
                 </div>
               ) : null}
-              {status === 'error' ? <div className={FINELY_OS_NOTICE_ERROR}>{statusMsg}</div> : null}
+            </CareerChoiceApply>
+
+            {status === 'sent' ? (
+              <button type="button" className={roleSecondaryBtn(ROLE)} onClick={() => navigate('/free-debt-guide/read')}>
+                <FileText size={14} /> Read the case desk guide while you wait <ArrowRight size={14} />
+              </button>
+            ) : null}
+
+            <div className={`${DOSSIER_PANEL} !bg-transparent border-0 !shadow-none !p-0`}>
               <div className="border-t border-stone-300 pt-3.5">
                 <RoleGuideCta role={ROLE} ink="dark" compact />
               </div>
               <p className={`${FINELY_OS_COMPLIANCE_FOOTNOTE} !text-stone-600 !mx-0 !text-left`}>
                 {ROLE_COMPLIANCE_FOOTNOTES[ROLE]}
               </p>
-            </form>
+            </div>
           </div>
         </section>
 

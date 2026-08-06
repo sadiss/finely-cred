@@ -811,12 +811,12 @@ export function MobileNav({ isOpen, onClose, onNavigate, showThemeToggle = false
           <button
             type="button"
             onClick={() => {
-              onNavigate('/free-guide');
+              onNavigate('/pricing/business-credit');
               onClose();
             }}
             className="min-h-[44px] rounded-xl border border-amber-500/40 bg-gradient-to-r from-amber-600/90 to-amber-500/90 px-4 text-sm font-bold text-black shadow-lg shadow-amber-500/20"
           >
-            Start free guide
+            Business credit
           </button>
         </div>
 

@@ -26,16 +26,18 @@ import {
   recordAdminDelivery,
 } from '../../lib/adminDeliveryCooldown';
 import {
-  FINELY_OS_ENTITY_BODY,
   FINELY_OS_ENTITY_LABEL,
   FINELY_OS_ENTITY_SELECT,
-  FINELY_OS_ENTITY_SUBLABEL,
-  FINELY_OS_ENTITY_VALUE,
-  FINELY_OS_NOTICE_SUCCESS,
-  FINELY_OS_NOTICE_WARN,
   FINELY_OS_SECONDARY_BTN,
-  finelyOsCatalogCard,
 } from '../../features/os/finelyOsLightUi';
+import { fcAdminCard, fcAdminOnSolidBody, fcAdminOnSolidSublabel, fcAdminOnSolidValue } from '../../features/os/finelyOsAdminSurface';
+
+const FINELY_OS_ENTITY_BODY = fcAdminOnSolidBody('sky');
+const FINELY_OS_ENTITY_SUBLABEL = fcAdminOnSolidSublabel('sky');
+const FINELY_OS_ENTITY_VALUE = fcAdminOnSolidValue('sky');
+const FINELY_OS_NOTICE_SUCCESS =
+  'rounded-xl border border-emerald-300/40 bg-emerald-400/15 p-4 text-sm text-emerald-50 flex items-start gap-3';
+const FINELY_OS_NOTICE_WARN = 'rounded-xl border border-amber-300/40 bg-amber-400/15 p-4 text-sm text-amber-50';
 
 type Props = {
   partner: Partner;
@@ -50,7 +52,7 @@ function threadStatusStyle(status: SupportThreadStatus): { label: string; classN
     case 'waiting_on_team':
       return { label: 'Waiting on team', className: 'border-rose-400/40 bg-rose-500/15 text-rose-100' };
     case 'waiting_on_partner':
-      return { label: 'Waiting on partner', className: 'border-fuchsia-400/40 bg-fuchsia-500/15 text-fuchsia-100' };
+      return { label: 'Waiting on partner', className: 'border-sky-400/40 bg-sky-500/15 text-sky-100' };
     case 'resolved':
       return { label: 'Resolved', className: 'border-emerald-400/40 bg-emerald-500/15 text-emerald-100' };
     case 'closed':
@@ -228,11 +230,11 @@ export function AdminPartnerMessagePanel({ partner }: Props) {
   };
 
   return (
-    <div className={`${finelyOsCatalogCard('fuchsia')} !p-5 space-y-5`} id="admin-partner-message">
+    <div className={`${fcAdminCard('p-5', 'sky', 'solid')} space-y-5`} id="admin-partner-message">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div className="max-w-2xl">
           <div className="flex items-center gap-2">
-            <MessageSquareText size={18} className="text-fuchsia-300" />
+            <MessageSquareText size={18} className="text-white" />
             <div className={`text-lg ${FINELY_OS_ENTITY_VALUE}`}>Message partner</div>
           </div>
           <p className={`mt-2 text-sm ${FINELY_OS_ENTITY_BODY}`}>
@@ -252,7 +254,7 @@ export function AdminPartnerMessagePanel({ partner }: Props) {
         </div>
       ) : null}
 
-      <div className="rounded-2xl border border-fuchsia-400/20 bg-[#101815] p-4 space-y-3">
+      <div className="rounded-2xl border border-white/20 bg-black/15 p-4 space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <span className={FINELY_OS_ENTITY_LABEL}>Suggested messages</span>
           <button
@@ -290,7 +292,7 @@ export function AdminPartnerMessagePanel({ partner }: Props) {
               key={chip.id}
               type="button"
               onClick={() => setBody(chip.body(partnerName))}
-              className="px-2.5 py-1.5 rounded-lg border border-fuchsia-400/25 bg-fuchsia-500/10 text-[11px] text-fuchsia-100"
+              className="px-2.5 py-1.5 rounded-lg border border-white/25 bg-white/15 text-[11px] text-white"
             >
               {chip.emoji} {chip.label}
             </button>
@@ -303,7 +305,7 @@ export function AdminPartnerMessagePanel({ partner }: Props) {
                 key={`${s.title}-${i}`}
                 type="button"
                 onClick={() => setBody(s.body)}
-                className="text-left px-3 py-2 rounded-xl border border-violet-400/25 bg-violet-500/10 text-xs text-white/80 max-w-full"
+                className="text-left px-3 py-2 rounded-xl border border-white/20 bg-white/10 text-xs text-white/85 max-w-full"
                 title={s.body}
               >
                 ✨ {s.title}
@@ -333,15 +335,15 @@ export function AdminPartnerMessagePanel({ partner }: Props) {
       />
 
       <div className="grid gap-3 md:grid-cols-2">
-        <div className="rounded-2xl border-2 border-violet-400/25 bg-[#101815] p-4 space-y-2">
+        <div className="rounded-2xl border border-white/20 bg-black/15 p-4 space-y-2">
           <div className="flex items-center gap-2">
-            <Tag size={14} className="text-violet-300" />
+            <Tag size={14} className="text-white" />
             <span className={FINELY_OS_ENTITY_LABEL}>Message topic</span>
           </div>
           <select
             value={topic}
             onChange={(e) => setTopic(e.target.value as SupportTopic)}
-            className={`${FINELY_OS_ENTITY_SELECT} w-full !mt-1 border-2 border-violet-400/20 bg-[#151d19] text-white`}
+            className={`${FINELY_OS_ENTITY_SELECT} w-full !mt-1 border border-white/20 bg-black/25 text-white`}
           >
             {SUPPORT_TOPICS.map((t) => (
               <option key={t.value} value={t.value}>
@@ -352,12 +354,12 @@ export function AdminPartnerMessagePanel({ partner }: Props) {
           <p className={`text-xs ${FINELY_OS_ENTITY_BODY}`}>Used when starting a new thread.</p>
         </div>
 
-        <div className="rounded-2xl border-2 border-emerald-400/25 bg-[#101815] p-4 space-y-2">
+        <div className="rounded-2xl border border-white/30 bg-white/10 p-4 space-y-2">
           <div className="flex items-center gap-2">
-            <Mail size={14} className="text-emerald-300" />
+            <Mail size={14} className="text-white" />
             <span className={FINELY_OS_ENTITY_LABEL}>Portal inbox email</span>
           </div>
-          <div className="rounded-xl border border-emerald-400/20 bg-[#151d19] px-3 py-3 font-mono text-sm text-emerald-100 break-all">
+          <div className="rounded-xl border border-white/20 bg-black/20 px-3 py-3 font-mono text-sm text-white break-all">
             {email || 'No email on file'}
           </div>
           <p className={`text-xs ${FINELY_OS_ENTITY_BODY}`}>
@@ -378,16 +380,16 @@ export function AdminPartnerMessagePanel({ partner }: Props) {
       </div>
 
       {recentThreads.length ? (
-        <div className="rounded-2xl border-2 border-amber-400/20 bg-[#0d1411] p-4 space-y-4">
+        <div className="rounded-2xl border border-white/20 bg-black/15 p-4 space-y-4">
           <div className="flex items-center justify-between gap-3">
             <div>
               <div className="flex items-center gap-2">
-                <Clock3 size={14} className="text-amber-300" />
+                <Clock3 size={14} className="text-white" />
                 <span className={FINELY_OS_ENTITY_LABEL}>Recent threads</span>
               </div>
               <p className={`mt-1 text-sm ${FINELY_OS_ENTITY_BODY}`}>Tap a card to reopen the conversation in chat.</p>
             </div>
-            <span className="rounded-full border border-amber-400/30 bg-amber-500/10 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-amber-100">
+            <span className="rounded-full border border-white/30 bg-white/15 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-white">
               {recentThreads.length} active
             </span>
           </div>
@@ -397,9 +399,9 @@ export function AdminPartnerMessagePanel({ partner }: Props) {
               const topicMeta = SUPPORT_TOPICS.find((x) => x.value === t.topic);
               const status = threadStatusStyle(t.status);
               const accents = [
-                'border-fuchsia-400/35 hover:bg-fuchsia-500/8',
-                'border-sky-400/35 hover:bg-sky-500/8',
-                'border-emerald-400/35 hover:bg-emerald-500/8',
+                'border-white/25 hover:bg-white/10',
+                'border-white/20 hover:bg-white/[0.08]',
+                'border-white/15 hover:bg-white/[0.06]',
               ];
               return (
                 <button
@@ -415,7 +417,7 @@ export function AdminPartnerMessagePanel({ partner }: Props) {
                       partnerDisplayName: partnerName,
                     })
                   }
-                  className={`text-left rounded-2xl border-2 bg-[#121a17] p-4 transition-all ${accents[index % accents.length]}`}
+                  className={`text-left rounded-2xl border bg-black/15 p-4 transition-all ${accents[index % accents.length]}`}
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="w-11 h-11 rounded-2xl border border-white/10 bg-black/30 flex items-center justify-center text-xl shrink-0">
@@ -436,8 +438,8 @@ export function AdminPartnerMessagePanel({ partner }: Props) {
           </div>
         </div>
       ) : (
-        <div className="rounded-2xl border border-dashed border-white/15 bg-black/20 px-4 py-8 text-center">
-          <Send size={18} className="mx-auto text-fuchsia-300/80 mb-2" />
+        <div className="rounded-2xl border border-dashed border-white/25 bg-black/15 px-4 py-8 text-center">
+          <Send size={18} className="mx-auto text-white/80 mb-2" />
           <p className={`text-sm ${FINELY_OS_ENTITY_BODY}`}>No recent threads yet. Your first message will create one here.</p>
         </div>
       )}

@@ -9,7 +9,6 @@ import { BrowserRouter, Routes, Route, useLocation, useNavigate, Navigate, usePa
 import { Button, Reveal, Toast, LiveApprovalTicker, MobileNav, FullPageLoader, AppErrorBoundary, FlashyIcon } from './components/ui';
 import {
   HeroSection,
-  TradelineMarketplace,
   TestimonialDossier,
   WhatMakesDifferentSection,
   Footer,
@@ -271,7 +270,6 @@ const AffiliatePage = lazy(() => import('./pages/AffiliatePage'));
 const AuSellerPage = lazy(() => import('./pages/AuSellerPage'));
 const HetaSocietyPage = lazy(() => import('./pages/HetaSocietyPage'));
 const HetaSocietyPortalPage = lazy(() => import('./pages/portal/HetaSocietyPortalPage'));
-const AgentsPage = lazy(() => import('./pages/AgentsPage'));
 const CreditSpecialistPricingPage = lazy(() => import('./pages/CreditSpecialistPricingPage'));
 const CreditSpecialistJoinPage = lazy(() => import('./pages/CreditSpecialistJoinPage'));
 const CaseHelpCareersPage = lazy(() => import('./pages/CaseHelpCareersPage'));
@@ -423,7 +421,7 @@ function LandingRoute({ onGetStarted, onViewTradelines, onNavigate, addToCart, o
 
       {/* 1. Hero */}
       <div className="pt-[72px]">
-        <HeroSection onGetStarted={() => navigate('/free-guide')} onViewTradelines={onViewTradelines} />
+        <HeroSection onGetStarted={() => navigate('/pricing/business-credit')} onViewTradelines={onViewTradelines} />
       </div>
 
       {/* 2. Path chooser */}
@@ -621,6 +619,18 @@ function TradelinesRoute({ addToCart, onNavigate }: { addToCart: (item: any) => 
     setMiniCartPulse((v) => v + 1);
   };
 
+  const onCheckAuAvailability = (listing: { issuer: string; limit: string; age: string; id: string }) => {
+    onAdd({
+      id: `au-interest:${listing.id}`,
+      bank: listing.issuer,
+      limit: listing.limit,
+      age: listing.age,
+      kind: 'au_tradeline_interest',
+      label: `${listing.issuer} AU · check availability`,
+    });
+    onNavigate('consultation');
+  };
+
   return (
     <div className="min-h-screen pt-28 pb-0">
       <div className="px-6 pb-32 lg:pb-44">
@@ -694,31 +704,19 @@ function TradelinesRoute({ addToCart, onNavigate }: { addToCart: (item: any) => 
             </div>
           </section>
 
-          {/* AU lane */}
-          <section id="tradelines-au" className="space-y-10">
-            <AuListingShowcase onNavigateAuTeenSheet={() => navigate('/resources/au-teen-credit-sheet')} />
-
-            <div id="tradelines-au-live" className="space-y-6 scroll-mt-28">
-              <div className="flex items-end justify-between gap-6 flex-wrap">
-                <div>
-                  <div className="text-xs font-semibold uppercase tracking-wider text-amber-400">AU Marketplace</div>
-                  <h2 className="text-3xl font-light text-white mt-2">
-                    Institutional <span className="text-amber-500">Inventory</span>
-                  </h2>
-                  <p className="text-white/50 text-sm max-w-2xl mt-2">
-                    Browse authorized user tradelines. Each slot is verified and designed to post on schedule.
-                  </p>
-                </div>
-                <div className="flex flex-wrap gap-3 items-center">
-                  <Button variant="outline" onClick={() => onNavigate('checkout')} size="sm">
-                    Go to checkout <ArrowRight size={16} />
-                  </Button>
-                  <Button variant="outline" onClick={() => onNavigate('consultation')} size="sm">
-                    Get matched <ArrowRight size={16} />
-                  </Button>
-                </div>
-              </div>
-              <TradelineMarketplace onAddToCart={onAdd} />
+          {/* AU lane — single inventory row (showcase cards + Check availability → get matched). */}
+          <section id="tradelines-au" className="space-y-8">
+            <AuListingShowcase
+              onNavigateAuTeenSheet={() => navigate('/resources/au-teen-credit-sheet')}
+              onCheckAvailability={onCheckAuAvailability}
+            />
+            <div className="flex flex-wrap gap-3 items-center justify-center">
+              <Button variant="outline" onClick={() => onNavigate('checkout')} size="sm">
+                Go to checkout <ArrowRight size={16} />
+              </Button>
+              <Button variant="outline" onClick={() => onNavigate('consultation')} size="sm">
+                Get matched <ArrowRight size={16} />
+              </Button>
             </div>
           </section>
 
@@ -1053,7 +1051,9 @@ function AppInner() {
     !location.pathname.startsWith('/portal') &&
     !location.pathname.startsWith('/admin') &&
     !location.pathname.startsWith('/business') &&
-    !location.pathname.startsWith('/au') &&
+    // `/au/...` (marketplace, seller workspace) is app chrome; `/au-sellers` (`/au-seller`) is a
+    // public careers marketing page and must keep the public top nav.
+    !location.pathname.startsWith('/au/') &&
     !location.pathname.startsWith('/seller') &&
     !location.pathname.startsWith('/dashboard') &&
     !location.pathname.startsWith('/account') &&
@@ -1301,13 +1301,6 @@ function AppInner() {
                       </span>
                     )}
                   </button>
-
-                  {/* Sitewide CTA — Start free guide */}
-                  <div className="hidden lg:block">
-                    <Button onClick={() => handleNavigate('/free-guide')} size="sm">
-                      Start free guide
-                    </Button>
-                  </div>
                 </div>
               </div>
             </div>
@@ -1427,6 +1420,7 @@ function AppInner() {
         <Route path="/services/finelycred" element={<FinelyCredServicesPage />} />
         <Route path="/services/:service" element={<PricingServicePage />} />
         <Route path="/pricing" element={<PricingPage />} />
+        <Route path="/pricing/tradelines" element={<Navigate to="/tradelines" replace />} />
         <Route path="/pricing/:service" element={<PricingServicePage />} />
         {/* Legacy marketing slugs (resolve to real pricing/service views) */}
         <Route path="/fix-my-credit" element={<Navigate to="/pricing/personal-credit-restore" replace />} />
@@ -1474,7 +1468,7 @@ function AppInner() {
             </ProtectedRoute>
           }
         />
-        <Route path="/credit-specialists" element={<AgentsPage />} />
+        <Route path="/credit-specialists" element={<Navigate to="/credit-specialist" replace />} />
         {/* Credit Specialist pricing hub + join/onboarding (coordinate with /credit-specialist-guide) */}
         <Route path="/credit-specialist" element={<CreditSpecialistPricingPage />} />
         <Route path="/credit-specialist/join" element={<CreditSpecialistJoinPage />} />
@@ -1483,7 +1477,7 @@ function AppInner() {
         <Route path="/careers/real-estate" element={<RealEstateCareersPage />} />
         <Route path="/real-estate-partners" element={<Navigate to="/careers/real-estate" replace />} />
         <Route path="/agency-partners" element={<AgencyPartnersPage />} />
-        <Route path="/agents" element={<Navigate to="/credit-specialists" replace />} />
+        <Route path="/agents" element={<Navigate to="/credit-specialist" replace />} />
         <Route
           path="/credit-specialist/hub"
           element={

@@ -80,7 +80,7 @@ export function AffiliateCommissionCalculator() {
       heroLabel="Per referral"
       heroValue={formatUsdFromCents(projection.grandTotalCents)}
       heroSub={includeRecurring ? `incl. ${recurringMonths} mo recurring` : 'upfront only'}
-      footer={`Default affiliate rate ${AF.defaultCommissionPct}% upfront · ${AF.defaultRecurringCommissionPct}% recurring when eligible. Denefit contract stream (${AF.defaultDenefitsSharePct}%) stacks separately in the Denefit tab.`}
+      footer={`Default affiliate rate ${AF.defaultCommissionPct}% upfront · ${AF.defaultRecurringCommissionPct}% recurring when eligible. Denefit share (${AF.defaultDenefitsSharePct}%) stacks on top of this — never instead of it — see the Denefit tab.`}
     >
       <div className="space-y-2">
         <span className={FINELY_OS_ENTITY_LABEL}>Package preset</span>

@@ -10,7 +10,7 @@ export const AU_SELLER = {
   contractsPath: '/seller/contracts',
   payoutsPath: '/seller/payouts',
   messagesDeepLink: '/portal/messages?hub=team&topic=au',
-  defaultCommissionPct: 15,
+  defaultCommissionPct: 35,
   /** One-time seller activation (Stripe checkout package `au_seller_activation`). */
   startupFeeCents: 5000,
   startupFeeLabel: '$50 activation',
@@ -21,6 +21,47 @@ export const AU_SELLER = {
 } as const;
 
 export const AU_SELLER_MARKETING_HEADLINE = 'We market your tradelines. You supply the cards.';
+
+export type AuSellerPayoutTier = {
+  id: 'starter' | 'growth' | 'pro' | 'elite';
+  name: string;
+  payoutPct: number;
+  /** Plain-English requirement — shown as a single line, not a dense table. */
+  requirement: string;
+  badge?: string;
+};
+
+/** Simple payout ladder — floor is `AU_SELLER.defaultCommissionPct` (35%). Advancement is by
+ * inventory strength (card count + quality/reliability), reviewed automatically as sellers list
+ * and fulfill placements. Keep this list short and readable — no dense requirement tables. */
+export const AU_SELLER_PAYOUT_TIERS: AuSellerPayoutTier[] = [
+  {
+    id: 'starter',
+    name: 'Starter',
+    payoutPct: 35,
+    requirement: '1–2 verified cards, basic issuer requirements met.',
+  },
+  {
+    id: 'growth',
+    name: 'Growth',
+    payoutPct: 45,
+    requirement: '3+ cards, clean utilization, on-time season rotations.',
+    badge: 'Most sellers land here',
+  },
+  {
+    id: 'pro',
+    name: 'Pro',
+    payoutPct: 55,
+    requirement: 'Higher limits, multi-bureau reporting, dependable fulfillment.',
+  },
+  {
+    id: 'elite',
+    name: 'Elite',
+    payoutPct: 65,
+    requirement: 'Volume inventory + perfect season compliance.',
+    badge: 'Top sellers',
+  },
+];
 
 export const AU_SELLER_OFFERINGS = [
   {

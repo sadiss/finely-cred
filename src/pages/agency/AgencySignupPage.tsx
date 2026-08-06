@@ -1,32 +1,25 @@
 import React, { useMemo, useState } from 'react';
-import { ArrowRight, Building2, CheckCircle2, Crown, Users } from 'lucide-react';
+import { ArrowLeft, ArrowRight, BadgeCheck, Building2, CheckCircle2, LogIn, ShieldAlert } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { PageShell } from '../../components/layout/PageShell';
 import { useAuth } from '../../auth/AuthProvider';
 import { createTenant, createMembership } from '../../data/tenantsRepo';
 import { setActiveTenantId } from '../../tenancy/activeTenant';
 import { CareersQuickNav } from '../../components/careers/CareersQuickNav';
-import { AGENCY, getPublicAgencyBuyInTiers, recommendedAgencyBuyInIdForTier } from '../../config/agencyPartnersProgram';
+import { careerAccentText, careerSolidBtn } from '../../components/careers/careerUi';
+import {
+  AGENCY,
+  getAgencyPlanBullets,
+  getPublicAgencyBuyInTiers,
+  recommendedAgencyBuyInIdForTier,
+} from '../../config/agencyPartnersProgram';
 import { agencyTiers, getAgencyTierById } from '../../config/pricingCatalog';
-import { AgencySplitBreakdown, AgencySplitSummaryLine } from '../../components/pricing/AgencySplitBreakdown';
+import { AgencySplitBreakdown } from '../../components/pricing/AgencySplitBreakdown';
 import { FinelyOsPageFooter } from '../../features/os/FinelyOsPageFooter';
 import { FinelyOsPaginatedStack } from '../../features/os/FinelyOsPaginatedStack';
-import { FinelyUnifiedHubLayout } from '../../features/unified/FinelyUnifiedHubLayout';
 import { MarketingStaffChatStrip } from '../../components/marketing/MarketingStaffChatStrip';
 import { usePublicSeoMeta } from '../../hooks/usePublicSeoMeta';
-import {
-  FINELY_OS_ENTITY_BODY,
-  FINELY_OS_ENTITY_INPUT,
-  FINELY_OS_ENTITY_LABEL,
-  finelyOsCatalogCard,
-  FINELY_OS_ENTITY_SUBLABEL,
-  FINELY_OS_ENTITY_VALUE,
-  FINELY_OS_NOTICE_SUCCESS,
-  FINELY_OS_PAGE,
-  FINELY_OS_PRIMARY_BTN,
-  FINELY_OS_SECONDARY_BTN,
-  finelyOsListItem,
-} from '../../features/os/finelyOsLightUi';
+import { FINELY_OS_BACK_LINK, FINELY_OS_PAGE } from '../../features/os/finelyOsLightUi';
 
 function normalizeEmail(u: any): string {
   return (
@@ -41,8 +34,9 @@ function normalizeEmail(u: any): string {
   );
 }
 
-const formLabel = `block ${FINELY_OS_ENTITY_LABEL} mb-1`;
-const formInput = FINELY_OS_ENTITY_INPUT.replace('mt-2 ', '');
+const FORM_LABEL = 'block text-[11px] font-bold uppercase tracking-wide text-slate-500 mb-1.5';
+const FORM_INPUT =
+  'w-full rounded-xl border-2 border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-100 transition-colors';
 
 export default function AgencySignupPage() {
   const auth = useAuth();
@@ -50,8 +44,8 @@ export default function AgencySignupPage() {
   const [sp] = useSearchParams();
 
   usePublicSeoMeta({
-    title: 'Agency white-label signup',
-    description: 'Launch a credit services agency on Finely Cred — white-label partner OS, compliance workflows, and revenue share.',
+    title: 'Confirm your plan — agency signup',
+    description: 'Confirm your buy-in and capacity tier, then create your white-label agency workspace on Finely OS.',
     path: '/agency/signup',
   });
 
@@ -62,8 +56,8 @@ export default function AgencySignupPage() {
 
   const [agencyName, setAgencyName] = useState('');
   const [notice, setNotice] = useState<string | null>(null);
+  const [noticeTone, setNoticeTone] = useState<'success' | 'error'>('success');
   const [busy, setBusy] = useState(false);
-  const [laneTab, setLaneTab] = useState<'signup' | 'tiers'>('signup');
 
   const publicTiers = useMemo(
     () => agencyTiers.filter((t) => t.isPublic).slice().sort((a, b) => a.sortOrder - b.sortOrder),
@@ -75,6 +69,8 @@ export default function AgencySignupPage() {
     const id = recommendedAgencyBuyInIdForTier(tier?.id ?? null);
     return buyInTiers.find((b) => b.id === id) ?? buyInTiers[0] ?? null;
   }, [tier?.id, buyInTiers]);
+
+  const planBullets = useMemo(() => getAgencyPlanBullets(tier), [tier]);
 
   const tierDefaults = useMemo(() => {
     const id = tier?.id || '';
@@ -96,15 +92,18 @@ export default function AgencySignupPage() {
 
   const submit = () => {
     if (!auth.user?.id) {
-      setNotice('Please complete onboarding / sign in first.');
+      setNoticeTone('error');
+      setNotice('Please sign in or create a Finely account first.');
       return;
     }
     if (!email) {
+      setNoticeTone('error');
       setNotice('Email missing on session. Please re-authenticate.');
       return;
     }
     const name = agencyName.trim();
     if (name.length < 3) {
+      setNoticeTone('error');
       setNotice('Agency name must be at least 3 characters.');
       return;
     }
@@ -145,9 +144,11 @@ export default function AgencySignupPage() {
         }).catch(() => {}),
       );
 
+      setNoticeTone('success');
       setNotice(`Workspace created: ${tenant.name}`);
       window.setTimeout(() => navigate('/admin/access'), 450);
     } catch (e: any) {
+      setNoticeTone('error');
       setNotice(e?.message || 'Could not create agency workspace. Please try again.');
       setBusy(false);
     }
@@ -156,156 +157,167 @@ export default function AgencySignupPage() {
   return (
     <PageShell
       badge="Agency"
-      title="Create your agency workspace"
-      subtitle="Spin up a white‑label tenant, then configure branding, team seats, and feature access."
+      title="Confirm your plan"
+      subtitle="You already picked a buy-in and tier — confirm it below, then name your workspace."
+      hideHero
     >
-      <div className={FINELY_OS_PAGE}>
-        {notice ? <div className={FINELY_OS_NOTICE_SUCCESS}>{notice}</div> : null}
-
-        <CareersQuickNav active="agency_partners" className="mb-6" />
-
-        <FinelyUnifiedHubLayout
-          eyebrow={AGENCY.programName}
-          title="Create your agency workspace"
-          subtitle="Spin up a white-label tenant, then configure branding, team seats, and feature access."
-          accent="violet"
-          tabs={[
-            { id: 'signup', label: 'Workspace' },
-            { id: 'tiers', label: 'Tiers' },
-          ]}
-          activeTab={laneTab}
-          onTabChange={(id) => setLaneTab(id as typeof laneTab)}
-          primaryAction={{ label: 'Program overview', onClick: () => navigate(AGENCY.publicPath) }}
-          secondaryAction={{ label: 'Compare tiers', onClick: () => navigate('/pricing?tab=agency') }}
-        >
-        <div className="grid lg:grid-cols-12 gap-6">
-          <div className={`lg:col-span-7 min-w-0 space-y-4 ${finelyOsCatalogCard('violet')} !p-5`}>
-            <div className="inline-flex items-center gap-2 text-fuchsia-400">
-              <Building2 size={18} />
-              <span className={FINELY_OS_ENTITY_SUBLABEL}>Workspace</span>
-            </div>
-
-            <div className="space-y-1">
-              <label className={formLabel}>Agency name</label>
-              <input
-                value={agencyName}
-                onChange={(e) => setAgencyName(e.target.value)}
-                placeholder="Acme Credit Solutions"
-                className={formInput}
-              />
-              <div className={`${FINELY_OS_ENTITY_BODY} text-xs`}>
-                This becomes your tenant name + default brand name. You can customize it later in Tenants.
-              </div>
-            </div>
-
-            <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony space-y-2`}>
-              <div className={FINELY_OS_ENTITY_SUBLABEL}>Account</div>
-              <div className={FINELY_OS_ENTITY_BODY}>
-                Signed in as <span className={`font-mono font-semibold ${FINELY_OS_ENTITY_VALUE}`}>{email || '—'}</span>
-              </div>
-              <div className={`${FINELY_OS_ENTITY_BODY} text-xs`}>
-                After creation, you’ll be routed to <span className="font-mono">/admin/access</span> to verify tenant + permissions.
-              </div>
-            </div>
-
-            <button type="button" disabled={!canSubmit} onClick={submit} className={`${FINELY_OS_PRIMARY_BTN} disabled:opacity-60 disabled:cursor-not-allowed`}>
-              {busy ? 'Creating…' : 'Create workspace'} <ArrowRight size={16} />
+      <div className={`${FINELY_OS_PAGE} max-w-4xl mx-auto pb-20`}>
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div className="flex flex-wrap items-center gap-4">
+            <button type="button" onClick={() => navigate(-1)} className={FINELY_OS_BACK_LINK}>
+              <ArrowLeft size={16} /> Back
             </button>
-          </div>
-
-          <div className="lg:col-span-5 min-w-0 space-y-6">
-            <div className={`space-y-4 ${finelyOsCatalogCard('violet')} !p-5`}>
-              <div className="inline-flex items-center gap-2 text-fuchsia-400">
-                <Crown size={18} />
-                <span className={FINELY_OS_ENTITY_SUBLABEL}>Selected tier</span>
-              </div>
-
-              {tier ? (
-                <div className="space-y-2">
-                  <div className={FINELY_OS_ENTITY_VALUE}>{tier.name}</div>
-                  <div className={FINELY_OS_ENTITY_BODY}>{tier.description}</div>
-                  {tier.splitBreakdown?.length || tier.platformShareMinPct != null ? (
-                    <AgencySplitBreakdown tier={tier} variant="compact" className="mt-2" />
-                  ) : null}
-                  <div className={`${FINELY_OS_ENTITY_SUBLABEL} capitalize`}>{(tier.whiteLabelLevel ?? '').replace(/_/g, ' ')}</div>
-                  <div className={FINELY_OS_ENTITY_BODY}>
-                    Seats: {tier.seatLimit === -1 ? 'Unlimited' : tier.seatLimit} • Customers:{' '}
-                    {tier.activeClientLimit === -1 ? 'Unlimited' : tier.activeClientLimit}
-                  </div>
-                  <button type="button" onClick={() => navigate(AGENCY.publicPath)} className={`mt-2 ${FINELY_OS_SECONDARY_BTN}`}>
-                    Program overview →
-                  </button>
-                </div>
-              ) : (
-                <div className={FINELY_OS_ENTITY_BODY}>
-                  No tier selected. Go back to <span className="font-mono">/services?tab=agency</span> to pick a plan.
-                </div>
-              )}
-
-              {recommendedBuyIn ? (
-                <div className={`${finelyOsCatalogCard('emerald')} !p-4 fc-surface-harmony space-y-1`}>
-                  <div className={FINELY_OS_ENTITY_SUBLABEL}>One-time buy-in (recommended)</div>
-                  <div className={`${FINELY_OS_ENTITY_VALUE} text-lg`}>
-                    {recommendedBuyIn.name} — {recommendedBuyIn.priceLabel}
-                  </div>
-                  <div className={`${FINELY_OS_ENTITY_BODY} text-xs`}>
-                    {recommendedBuyIn.tagline}. Buy-in activates your workspace and training seat; billing is handled after
-                    your workspace is created.
-                  </div>
-                </div>
-              ) : null}
-
-              <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony`}>
-                <div className="inline-flex items-center gap-2 text-fuchsia-400">
-                  <Users size={16} />
-                  <span className={FINELY_OS_ENTITY_SUBLABEL}>What’s next</span>
-                </div>
-                <ul className={`mt-3 space-y-2 ${FINELY_OS_ENTITY_BODY}`}>
-                  <li className="flex items-start gap-2">
-                    <CheckCircle2 size={16} className="mt-0.5 text-emerald-600 shrink-0" />
-                    <span>Set active tenant + verify capabilities</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <CheckCircle2 size={16} className="mt-0.5 text-emerald-600 shrink-0" />
-                    <span>Configure branding + domain in Tenants</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <CheckCircle2 size={16} className="mt-0.5 text-emerald-600 shrink-0" />
-                    <span>Add team seats + roles in Team</span>
-                  </li>
-                </ul>
-              </div>
-            </div>
-
-            <div className={`${finelyOsCatalogCard('violet')} !p-5 space-y-3`}>
-              <div className={FINELY_OS_ENTITY_SUBLABEL}>Available tiers</div>
-              <FinelyOsPaginatedStack
-                items={publicTiers}
-                pageSize={4}
-                itemSpacingClassName="grid grid-cols-1 gap-2"
-                renderItem={(t) => (
-                  <button
-                    key={t.id}
-                    type="button"
-                    onClick={() => navigate(`/agency/signup?tier=${encodeURIComponent(t.id)}`)}
-                    className={`text-left w-full ${finelyOsListItem(tier?.id === t.id, 'amber')}`}
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <div className={`${FINELY_OS_ENTITY_VALUE} truncate`}>{t.name}</div>
-                        <div className={`${FINELY_OS_ENTITY_BODY} text-xs truncate`}>{t.description}</div>
-                      </div>
-                      <div className="text-emerald-300 text-xs shrink-0 text-right">
-                        <AgencySplitSummaryLine tier={t} />
-                      </div>
-                    </div>
-                  </button>
-                )}
-              />
-            </div>
+            <a href="/" className={FINELY_OS_BACK_LINK}>
+              <ArrowLeft size={16} /> Home
+            </a>
           </div>
         </div>
-        </FinelyUnifiedHubLayout>
+
+        <CareersQuickNav active="agency_partners" />
+
+        {notice ? (
+          <div
+            className={`rounded-xl border-2 p-4 text-sm flex items-start gap-3 ${
+              noticeTone === 'success' ? 'border-emerald-200 bg-emerald-50 text-emerald-800' : 'border-rose-200 bg-rose-50 text-rose-800'
+            }`}
+          >
+            {noticeTone === 'success' ? <BadgeCheck size={16} className="mt-0.5 shrink-0" /> : <ShieldAlert size={16} className="mt-0.5 shrink-0" />}
+            <span>{notice}</span>
+          </div>
+        ) : null}
+
+        {/* Confirm-tier card — this is a confirmation of the choice made on the previous page, not a new decision */}
+        <section className="rounded-3xl border-2 border-amber-200 bg-white p-6 sm:p-8 space-y-5">
+          <p className="text-[11px] font-black uppercase tracking-[0.24em] text-amber-700">Your plan</p>
+
+          {tier && recommendedBuyIn ? (
+            <>
+              <div className="flex flex-wrap items-start justify-between gap-4">
+                <div>
+                  <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">{recommendedBuyIn.name}</h2>
+                  <p className="mt-1 text-sm text-slate-500">{recommendedBuyIn.tagline}</p>
+                </div>
+                <div className="text-right shrink-0">
+                  <p className="text-3xl font-black text-amber-700">{recommendedBuyIn.priceLabel}</p>
+                  <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">one-time buy-in</p>
+                </div>
+              </div>
+
+              <ul className="grid gap-2 sm:grid-cols-2">
+                {planBullets.map((b) => (
+                  <li key={b} className="flex items-start gap-2 text-sm leading-relaxed text-slate-600">
+                    <CheckCircle2 size={15} className="mt-0.5 shrink-0 text-emerald-600" />
+                    <span>{b}</span>
+                  </li>
+                ))}
+              </ul>
+
+              {tier.splitBreakdown?.length ? (
+                <AgencySplitBreakdown tier={tier} variant="compact" theme="light" className="pt-1" />
+              ) : null}
+
+              <button
+                type="button"
+                onClick={() => navigate(AGENCY.publicPath)}
+                className="text-sm font-semibold text-slate-500 underline decoration-slate-300 underline-offset-4 hover:text-slate-800"
+              >
+                Change plan
+              </button>
+            </>
+          ) : (
+            <div className="space-y-3">
+              <p className="text-sm text-slate-600">
+                No plan selected yet. Head back to the program overview to pick a buy-in — capacity, seats, and
+                white-label depth all activate together.
+              </p>
+              <button type="button" onClick={() => navigate(AGENCY.publicPath)} className={careerSolidBtn('gold')}>
+                Pick a plan <ArrowRight size={15} />
+              </button>
+            </div>
+          )}
+        </section>
+
+        {/* Workspace details — short, choice-first form */}
+        <section className="rounded-3xl border-2 border-slate-200 bg-white p-6 sm:p-8 space-y-5">
+          <div className="inline-flex items-center gap-2">
+            <Building2 size={18} className={careerAccentText('navy')} />
+            <p className="text-[11px] font-black uppercase tracking-[0.24em] text-slate-500">Create your workspace</p>
+          </div>
+
+          <div>
+            <label className={FORM_LABEL}>Agency name</label>
+            <input
+              value={agencyName}
+              onChange={(e) => setAgencyName(e.target.value)}
+              placeholder="Acme Credit Solutions"
+              className={FORM_INPUT}
+            />
+            <p className="mt-1.5 text-xs text-slate-500">
+              This becomes your tenant name + default brand name. You can customize it later in Tenants.
+            </p>
+          </div>
+
+          <div className="rounded-xl border-2 border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
+            {auth.user?.id ? (
+              <>
+                Signed in as <span className="font-mono font-semibold text-slate-900">{email || '—'}</span>. After
+                creation, you’ll be routed to <span className="font-mono">/admin/access</span> to verify tenant + permissions.
+              </>
+            ) : (
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <span>Requires a Finely account. Sign in or create one to provision your tenant.</span>
+                <button
+                  type="button"
+                  onClick={() => navigate('/login')}
+                  className="inline-flex items-center gap-2 rounded-lg border-2 border-slate-300 bg-white px-3 py-2 text-xs font-bold text-slate-700 hover:border-slate-400"
+                >
+                  <LogIn size={14} /> Sign in
+                </button>
+              </div>
+            )}
+          </div>
+
+          <button
+            type="button"
+            disabled={!canSubmit}
+            onClick={submit}
+            className={`w-full sm:w-auto ${careerSolidBtn('gold', 'h-12 py-0 disabled:opacity-60 disabled:cursor-not-allowed')}`}
+          >
+            {busy ? 'Creating…' : 'Create workspace'} <ArrowRight size={16} />
+          </button>
+        </section>
+
+        {/* Compact tier browser — switch plans without leaving the confirm flow */}
+        <section className="rounded-3xl border-2 border-slate-200 bg-slate-50 p-6 sm:p-8 space-y-4">
+          <p className="text-[11px] font-black uppercase tracking-[0.24em] text-slate-500">Other capacity tiers</p>
+          <FinelyOsPaginatedStack
+            items={publicTiers}
+            pageSize={6}
+            itemSpacingClassName="grid grid-cols-1 sm:grid-cols-2 gap-3"
+            renderItem={(t) => (
+              <button
+                key={t.id}
+                type="button"
+                onClick={() => navigate(`/agency/signup?tier=${encodeURIComponent(t.id)}`)}
+                className={`text-left w-full rounded-xl border-2 p-4 transition-all ${
+                  tier?.id === t.id ? 'border-amber-400 bg-amber-50 ring-2 ring-amber-100' : 'border-slate-200 bg-white hover:border-slate-300'
+                }`}
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <div className="truncate text-sm font-bold text-slate-900">{t.name}</div>
+                    <div className="truncate text-xs text-slate-500">{t.description}</div>
+                  </div>
+                  {t.badge ? (
+                    <span className="shrink-0 rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-700">
+                      {t.badge}
+                    </span>
+                  ) : null}
+                </div>
+              </button>
+            )}
+          />
+        </section>
 
         <MarketingStaffChatStrip
           roleId="lead_converter"

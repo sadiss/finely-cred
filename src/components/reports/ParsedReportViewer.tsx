@@ -1,12 +1,8 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Camera, ChevronDown, Database, ShieldAlert, ChevronLeft, ChevronRight } from 'lucide-react';
 import type { Bureau, ParsedCreditReport, ParsedTradeline, TradelineRow } from '../../domain/creditReports';
-import type { EvidenceItem } from '../../domain/evidence';
 import { upsertEvidence } from '../../data/evidenceRepo';
-import { getBlobStore } from '../../storage/getBlobStore';
-import { newId } from '../../utils/ids';
-import { TradelineEvidenceSheet } from '../evidence/EvidenceSheet';
-import { captureReactElementPng } from '../../utils/captureReactPng';
+import { captureTradelineEvidenceScreenshot } from '../../lib/captureTradelineEvidenceScreenshot';
 import { CollapsibleSection } from '../ui/CollapsibleSection';
 import { bureauShortCode } from '../../utils/bureaus';
 import {
@@ -201,38 +197,13 @@ export function ParsedReportViewer({
     setSavingKey(key);
     setNotice(null);
     try {
-      // Capture a dedicated print-styled EvidenceSheet (white background, no UI chrome, no scrollbars).
-      const dataUrl = await captureReactElementPng(<TradelineEvidenceSheet tradeline={args.tradeline} showHeader={false} />, {
-        pixelRatio: 2,
-        widthPx: 1100,
-      });
-      const blob = await (await fetch(dataUrl)).blob();
-      const store = getBlobStore();
-      const put = await store.put(blob, {
-        kind: 'evidence_screenshot',
+      const item = await captureTradelineEvidenceScreenshot({
+        tradeline: args.tradeline,
         partnerId,
         reportId,
-        creditorName: args.tradeline.creditorName,
       });
-
-      const safeName = args.tradeline.creditorName.replace(/[^a-z0-9]+/gi, '_').replace(/^_+|_+$/g, '');
-      const filename = `Screenshot_${safeName || 'Tradeline'}_${new Date().toISOString().slice(0, 10)}.png`;
-      const item: EvidenceItem = {
-        id: newId('evidence'),
-        partnerId,
-        reportId,
-        type: 'screenshot',
-        source: 'tradeline_screenshot',
-        creditorName: args.tradeline.creditorName,
-        caption: `Tradeline screenshot: ${args.tradeline.creditorName}`,
-        filename,
-        mimeType: 'image/png',
-        sizeBytes: blob.size,
-        blobRef: put.ref,
-        createdAt: new Date().toISOString(),
-      };
       upsertEvidence(item);
-      setNotice(`Saved evidence screenshot: ${filename} — available in Team chat → Attach from vault.`);
+      setNotice(`Saved evidence screenshot: ${item.filename} — available in Team chat → Attach from vault.`);
     } catch (e: any) {
       setNotice(`Screenshot failed: ${e?.message || 'unknown error'}`);
     } finally {

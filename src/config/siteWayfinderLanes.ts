@@ -56,14 +56,15 @@ export type PublicNavSection = {
 };
 
 /**
- * Core header links — Home + Free guide as direct tabs.
+ * Core header links — Home + Free dispute guide as direct tabs.
  * Solutions / Resources / Careers / Contact are dropdown menus.
+ * (Hero CTAs are solution paths — do not duplicate another Free guide button in the header actions.)
  */
 export const PUBLIC_CORE_NAV: { id: string; label: string; path: string; match: (path: string) => boolean }[] = [
   { id: 'home', label: 'Home', path: '/', match: (p) => p === '/' },
   {
     id: 'free-guide',
-    label: 'Free guide',
+    label: 'Dispute guide',
     path: '/free-guide',
     match: (p) => p === '/free-guide' || p.startsWith('/free-guide/'),
   },
@@ -120,8 +121,8 @@ export const PUBLIC_SOLUTIONS_SECTIONS: PublicNavSection[] = [
       {
         id: 'tradelines',
         label: 'Tradelines',
-        path: '/pricing/tradelines',
-        hint: 'Authorized-user strategy',
+        path: '/tradelines',
+        hint: 'AU inventory · check availability',
         accent: 'emerald',
       },
       {
@@ -314,6 +315,7 @@ export function matchSolutionsPath(p: string): boolean {
   return (
     p.startsWith('/pricing') ||
     p.startsWith('/services') ||
+    p.startsWith('/tradelines') ||
     p.startsWith('/personal-credit') ||
     p.startsWith('/credit-specialist') ||
     p === '/fix-my-credit' ||
@@ -327,13 +329,14 @@ export function matchSolutionsPath(p: string): boolean {
 export function matchResourcesPath(p: string): boolean {
   // Primary Free guide is a core nav item — avoid double-highlighting Resources.
   if (p === '/free-guide' || p.startsWith('/free-guide/')) return false;
+  // Buyer tradelines marketplace lives under Solutions, not Resources.
+  if (p.startsWith('/tradelines')) return false;
   if (OTHER_FREE_GUIDE_PREFIXES.some((prefix) => p === prefix || p.startsWith(`${prefix}/`))) return true;
   return (
     p.startsWith('/resources') ||
     p.startsWith('/bookstore') ||
     p.startsWith('/events') ||
     p.startsWith('/testimonials') ||
-    p.startsWith('/tradelines') ||
     p === '/start-here'
   );
 }

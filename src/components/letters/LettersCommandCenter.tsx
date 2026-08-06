@@ -72,6 +72,8 @@ import type { TemplateTone, TemplateVariantRecipe } from '../../domain/templates
 import { renderTemplate } from '../../templates/render';
 import { DisputePickerModal, type SelectedDispute } from '../disputes/DisputePickerModal';
 import { rankEvidenceMatches, scoreEvidenceForAccount, evidenceMatchesAccount, describeEvidenceMismatch, EVIDENCE_MATCH_ATTACH_MIN } from '../../utils/evidenceMatch';
+import { findMatchingTradeline } from '../../lib/captureTradelineEvidenceScreenshot';
+import type { EvidencePickerAccount } from '../evidence/EvidencePickerModal';
 import { formatNumberedDisputeReasons, DISPUTE_DELETE_NOW } from '../../letters/disputeLetterFormat';
 import {
   clearLettersCommandCenterDraft,
@@ -2540,6 +2542,25 @@ useEffect(() => {
     return m;
   }, [reports]);
 
+  // Selectable accounts for the in-popup "choose account + take screenshot" capture flow.
+  const evidencePickerAccounts = useMemo((): EvidencePickerAccount[] => {
+    return selectedDisputes.map((s): EvidencePickerAccount => {
+      const rid = (s.source.kind === 'report' ? s.source.reportId : '') || s.candidate.reportId || '';
+      const parsed = rid ? parsedByReportId.get(rid) : undefined;
+      const tradeline = parsed ? findMatchingTradeline(parsed, s.candidate.account) : null;
+      return {
+        id: s.key,
+        label: s.candidate.account,
+        creditorName: s.candidate.account,
+        type: s.candidate.type,
+        bureau: s.candidate.bureau,
+        last4: tradeline?.accountNumberMasked ?? null,
+        tradeline,
+        reportId: rid || undefined,
+      };
+    });
+  }, [selectedDisputes, parsedByReportId]);
+
   const suggestionsById = useMemo(() => {
     const m: Record<string, { id: string; text: string }[]> = {};
     for (const s of selectedDisputes) {
@@ -3768,10 +3789,16 @@ useEffect(() => {
       {partner && evidencePicker && (
         <EvidencePickerModal
           open={Boolean(evidencePicker)}
-          title={evidencePicker.candidateId ? 'Attach screenshot' : 'Screenshot vault'}
+          title={
+            evidencePickerCandidate
+              ? `Attach screenshot · ${evidencePickerCandidate.candidate.account}`
+              : evidencePicker.candidateId
+                ? 'Attach screenshot'
+                : 'Screenshot vault'
+          }
           subtitle={
             evidencePickerCandidate
-              ? `Choose a screenshot for ${evidencePickerCandidate.candidate.account}.`
+              ? `Choose the account below, then take a screenshot right here — it auto-attaches to ${evidencePickerCandidate.candidate.account}.`
               : 'Choose a screenshot to attach (or upload a new one).'
           }
           partnerId={partner.id}
@@ -3782,9 +3809,12 @@ useEffect(() => {
           matchAccount={evidencePickerCandidate?.candidate.account}
           matchCandidateType={evidencePickerCandidate?.candidate.type}
           strictAccountMatch={Boolean(evidencePicker.candidateId)}
-          emptyHint="No matching screenshots for this account. Capture a screenshot from Reports that shows this creditor name."
+          emptyHint="No matching screenshots for this account. Choose the account above and take a screenshot right here."
           onGoCapture={() => goCapture({ candidate: evidencePickerCandidate })}
           pickLabel="Attach"
+          accounts={evidencePicker.candidateId ? evidencePickerAccounts : undefined}
+          selectedAccountId={evidencePicker.candidateId}
+          onSelectAccount={(id) => setEvidencePicker({ candidateId: id })}
           onPick={
             evidencePicker.candidateId
               ? (evidenceId) => {
@@ -4884,6 +4914,53 @@ useEffect(() => {
                   reasonsByCandidateId={reasonsByCandidateId}
                   compact
                 />
+
+                {selectedDisputes.length > 0 ? (
+                  <div className="rounded-xl border border-amber-400/30 bg-amber-500/[0.07] !p-3 space-y-2">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div className="text-[10px] font-black uppercase tracking-widest text-amber-200/80">
+                        Selected negatives ({selectedDisputes.length})
+                      </div>
+                      {evidencePickerCandidate ? (
+                        <div className="text-[10px] text-white/60">
+                          Attaching screenshot for{' '}
+                          <span className="text-amber-200 font-bold">{evidencePickerCandidate.candidate.account}</span>
+                        </div>
+                      ) : null}
+                    </div>
+                    <div className="flex flex-wrap gap-2 max-h-28 overflow-y-auto pr-1">
+                      {selectedDisputes.map((s) => {
+                        const isTargeted = evidencePicker?.candidateId === s.key;
+                        const hasEvidence = Boolean(evidenceByCandidateId[s.key]);
+                        return (
+                          <button
+                            key={s.key}
+                            type="button"
+                            onClick={() => {
+                              setWorkspaceBureau(s.candidate.bureau);
+                              setFocusedKeyByBureau((prev) => ({ ...prev, [s.candidate.bureau]: s.key }));
+                            }}
+                            title={`${s.candidate.account} \u00b7 ${s.candidate.type} \u00b7 ${bureauShortCode(s.candidate.bureau)}${hasEvidence ? ' \u00b7 screenshot attached' : ' \u00b7 no screenshot yet'}`}
+                            className={
+                              'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-semibold transition-all max-w-[220px] ' +
+                              (isTargeted
+                                ? 'border-amber-400 bg-amber-500 text-black shadow-[0_0_16px_-2px_rgba(251,191,36,0.65)]'
+                                : hasEvidence
+                                  ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-100 hover:bg-emerald-500/20'
+                                  : 'border-white/15 bg-black/40 text-white/75 hover:bg-white/10')
+                            }
+                          >
+                            <span className="truncate">{s.candidate.account}</span>
+                            <span className={isTargeted ? 'text-black/60 text-[10px]' : 'opacity-60 text-[10px]'}>
+                              {bureauShortCode(s.candidate.bureau)}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ) : null}
+
                 <div className="flex flex-wrap items-start justify-between gap-4">
                   <div className="min-w-0 flex-1">
                     <div className="text-sm font-semibold text-white">Bureau letters</div>

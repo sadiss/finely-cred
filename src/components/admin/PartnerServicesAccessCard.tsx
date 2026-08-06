@@ -10,15 +10,15 @@ import {
   ENTITLEMENT_KEYS,
 } from '../../billing/entitlements';
 import { hasEntitlement, listEntitlementsByPartner, revokeEntitlementsByPartnerKey } from '../../data/billingRepo';
-import {
-  FINELY_OS_ENTITY_BODY,
-  FINELY_OS_ENTITY_SUBLABEL,
-  FINELY_OS_ENTITY_VALUE,
-  FINELY_OS_NOTICE_SUCCESS,
-  FINELY_OS_NOTICE_WARN,
-  finelyOsCatalogCardCompact,
-} from '../../features/os/finelyOsLightUi';
 import { SensitiveActionCodeGate } from './SensitiveActionCodeGate';
+
+/** Nested inside the navy Access & authority panel — white-on-dark, no card-of-its-own border (avoids "card inside an identical card"). */
+const FINELY_OS_ENTITY_SUBLABEL = 'text-[10px] font-semibold uppercase tracking-[0.12em] text-white/60';
+const FINELY_OS_ENTITY_BODY = 'text-sm leading-relaxed text-white/75';
+const FINELY_OS_ENTITY_VALUE = 'font-semibold tracking-tight text-white/90';
+const FINELY_OS_NOTICE_SUCCESS =
+  'rounded-xl border border-emerald-300/40 bg-emerald-400/15 p-4 text-sm text-emerald-50 flex items-start gap-3';
+const FINELY_OS_NOTICE_WARN = 'rounded-xl border border-rose-300/40 bg-rose-400/15 p-4 text-sm text-rose-50';
 
 /** Specialty lanes only — Credit Letters is the hero CTA above (not duplicated here). */
 const EXTRA_LANES: ServiceAccessBundleId[] = ['business', 'au_tradelines'];
@@ -303,7 +303,7 @@ export function PartnerServicesAccessCard({
   const gate = gateCopy(pendingGrant);
 
   return (
-    <div id="partner-services-access" className={`${finelyOsCatalogCardCompact('emerald')} space-y-3`}>
+    <div id="partner-services-access" className="space-y-3">
       <div className="flex items-start justify-between gap-2">
         <div>
           <div className={`${FINELY_OS_ENTITY_SUBLABEL} flex items-center gap-1.5 text-emerald-200/90`}>
@@ -425,13 +425,13 @@ export function PartnerServicesAccessCard({
                 'w-full text-left flex items-center gap-2.5 rounded-xl border px-3 py-2.5 transition-all ' +
                 (debtOn
                   ? 'border-emerald-400/50 bg-emerald-500/20 cursor-default'
-                  : 'border-violet-400/30 bg-violet-500/10 hover:bg-violet-500/15')
+                  : 'border-amber-400/30 bg-amber-500/10 hover:bg-amber-500/15')
               }
             >
               <span
                 className={
                   'flex h-6 w-6 shrink-0 items-center justify-center rounded-md border text-xs font-bold ' +
-                  (debtOn ? 'border-emerald-300 bg-emerald-400 text-black' : 'border-violet-300/50 bg-black/30 text-violet-100')
+                  (debtOn ? 'border-emerald-300 bg-emerald-400 text-black' : 'border-amber-300/50 bg-black/30 text-amber-100')
                 }
                 aria-hidden
               >
@@ -444,7 +444,7 @@ export function PartnerServicesAccessCard({
                 <span className={`block text-[11px] ${FINELY_OS_ENTITY_BODY}`}>Validation, Court, debt workstations</span>
               </span>
               {!debtOn ? (
-                <span className="shrink-0 rounded-md border border-violet-300/40 bg-violet-500/15 px-2 py-1 text-[10px] font-semibold text-violet-100">
+                <span className="shrink-0 rounded-md border border-amber-300/40 bg-amber-500/15 px-2 py-1 text-[10px] font-semibold text-amber-100">
                   {busy === 'debt_letters' ? '…' : 'Grant'}
                 </span>
               ) : null}

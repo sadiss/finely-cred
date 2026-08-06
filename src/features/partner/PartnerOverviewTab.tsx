@@ -12,9 +12,19 @@ import {
   FC_ADMIN_VALUE,
   FC_ADMIN_PRIMARY_BTN,
   FC_ADMIN_SECONDARY_BTN,
+  FC_ADMIN_INK_TITLE,
+  FC_ADMIN_INK_SUBLABEL,
+  FC_ADMIN_INK_BODY,
+  FC_ADMIN_INK_DIVIDER,
   fcAdminCard,
   fcAdminKpi,
+  fcAdminScoreCell,
   fcAdminStatusChip,
+  fcAdminToneText,
+  fcAdminOnSolidText,
+  fcAdminOnSolidMuted,
+  type FcAdminTone,
+  type FcAdminCardVariant,
 } from '../os/finelyOsAdminSurface';
 
 /** Local aliases so existing className call sites stay readable. */
@@ -25,11 +35,13 @@ const FINELY_OS_ENTITY_TITLE = FC_ADMIN_TITLE;
 const FINELY_OS_ENTITY_VALUE = FC_ADMIN_VALUE;
 const FINELY_OS_PRIMARY_BTN = FC_ADMIN_PRIMARY_BTN;
 const FINELY_OS_SECONDARY_BTN = FC_ADMIN_SECONDARY_BTN;
-function finelyOsCatalogCard(_accent?: string) {
-  return fcAdminCard('p-5');
+/** Quiet, flat-tinted card — activity, nav shortcuts, secondary detail. Never the loud one on the page. */
+function finelyOsCatalogCard(tone: FcAdminTone = 'neutral') {
+  return fcAdminCard('p-5', tone, 'soft');
 }
-function finelyOsEntityKpi(_i?: number) {
-  return fcAdminKpi();
+/** KPI tile — the number is the point, so it's a rich `solid` fill by default. Pass `variant="soft"` to quiet one down. */
+function finelyOsEntityKpi(tone: FcAdminTone = 'neutral', variant: FcAdminCardVariant = 'solid') {
+  return fcAdminKpi(tone, variant);
 }
 function finelyOsStatusChip(tone: 'ok' | 'warn' | 'blocked') {
   return fcAdminStatusChip(tone);
@@ -87,24 +99,26 @@ function ActivityInsightCards({
 
   if (!sorted.length) {
     return (
-      <div className={`${finelyOsCatalogCard('emerald')} !p-5 ${FINELY_OS_ENTITY_BODY}`}>
+      <div className={`${finelyOsCatalogCard('neutral')} !p-5 ${FINELY_OS_ENTITY_BODY}`}>
         No recent partner activity yet.
       </div>
     );
   }
 
-  const cards: Array<{ id: keyof typeof buckets; label: string; value: number; hint: string }> = [
-    { id: 'recent', label: 'Recent', value: sorted.length, hint: 'Latest activity' },
-    { id: 'manual', label: 'Team notes', value: sorted.filter((i) => i.kind === 'manual').length, hint: 'Human-entered' },
-    { id: 'system', label: 'System', value: sorted.filter((i) => i.kind === 'system').length, hint: 'Automatic' },
-    { id: 'pinned', label: 'Pinned', value: sorted.filter((i) => i.pinned).length, hint: 'Priority' },
-    { id: 'partner', label: 'Partner-visible', value: sorted.filter((i) => i.visibility === 'partner').length, hint: 'Shared' },
+  const cards: Array<{ id: keyof typeof buckets; label: string; value: number; hint: string; tone: FcAdminTone }> = [
+    { id: 'recent', label: 'Recent', value: sorted.length, hint: 'Latest activity', tone: 'navy' },
+    { id: 'manual', label: 'Team notes', value: sorted.filter((i) => i.kind === 'manual').length, hint: 'Human-entered', tone: 'gold' },
+    { id: 'system', label: 'System', value: sorted.filter((i) => i.kind === 'system').length, hint: 'Automatic', tone: 'sky' },
+    { id: 'pinned', label: 'Pinned', value: sorted.filter((i) => i.pinned).length, hint: 'Priority', tone: 'rose' },
+    { id: 'partner', label: 'Partner-visible', value: sorted.filter((i) => i.visibility === 'partner').length, hint: 'Shared', tone: 'emerald' },
   ];
 
   const activeItems = buckets[activeBucket] ?? [];
 
   return (
-    <div className={`${finelyOsCatalogCard('emerald')} !p-5 space-y-4`}>
+    // Neutral container — this hosts five differently-toned chips (below), so the card itself stays
+    // quiet/graphite. A tinted container here would inevitably match one of its own chips.
+    <div className={`${finelyOsCatalogCard('neutral')} !p-5 space-y-4`}>
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <p className={FINELY_OS_ENTITY_SUBLABEL}>Activity</p>
@@ -115,24 +129,27 @@ function ActivityInsightCards({
         </button>
       </div>
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
-        {cards.map((c) => (
-          <button
-            key={c.id}
-            type="button"
-            onClick={() => {
-              setActiveBucket(c.id);
-              setModalBucket(c.id);
-            }}
-            className={`text-left rounded-xl border px-3 py-2.5 transition-all ${
-              activeBucket === c.id
-                ? 'border-[var(--fc-admin-accent)]/40 bg-[var(--fc-admin-accent)]/10'
-                : 'border-[var(--fc-admin-border)] bg-[var(--fc-admin-surface-sunken)] hover:border-[var(--fc-admin-border-strong)]'
-            }`}
-          >
-            <div className={FINELY_OS_ENTITY_SUBLABEL}>{c.label}</div>
-            <div className={`mt-1 text-lg font-semibold ${FINELY_OS_ENTITY_VALUE}`}>{c.value}</div>
-          </button>
-        ))}
+        {cards.map((c) => {
+          const active = activeBucket === c.id;
+          return (
+            <button
+              key={c.id}
+              type="button"
+              onClick={() => {
+                setActiveBucket(c.id);
+                setModalBucket(c.id);
+              }}
+              className={`text-left rounded-xl border px-3 py-2.5 transition-all hover:brightness-[0.97] ${
+                active ? `fc-admin-solid-${c.tone}` : `fc-admin-soft-${c.tone}`
+              }`}
+            >
+              <div className={`text-[11px] font-semibold uppercase tracking-wide ${active ? fcAdminOnSolidMuted(c.tone) : fcAdminToneText(c.tone)}`}>
+                {c.label}
+              </div>
+              <div className={`mt-1 text-lg font-semibold ${active ? fcAdminOnSolidText(c.tone) : fcAdminToneText(c.tone)}`}>{c.value}</div>
+            </button>
+          );
+        })}
       </div>
       <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
         {activeItems.slice(0, 6).map((item) => (
@@ -148,7 +165,7 @@ function ActivityInsightCards({
       {modalBucket ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" onClick={() => setModalBucket(null)}>
           <div
-            className={`${finelyOsCatalogCard('emerald')} !p-5 max-w-lg w-full max-h-[70vh] overflow-y-auto`}
+            className={`${finelyOsCatalogCard('neutral')} !p-5 max-w-lg w-full max-h-[70vh] overflow-y-auto`}
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between gap-2">
@@ -196,28 +213,31 @@ export function PartnerOverviewTab(args: {
   const primaryScore = args.latestScoresRows[0];
   const signup = derivePartnerSignupStatus(partner);
 
+  /** EXP / EQF / TUC each get a maximally distinct tone — blue / gold / green — so the trio never reads as "three identical blues". */
+  const SCORE_TONES: FcAdminTone[] = ['sky', 'gold', 'emerald'];
+
   return (
     <div className="space-y-5">
-      {/* Hero: identity + status + scores */}
-      <div className={`${finelyOsCatalogCard('emerald')} !p-5`}>
+      {/* Hero: identity command panel — deep ink, not another colored card. This is "where am I", so it commands attention on its own. */}
+      <div className={`${fcAdminCard('p-5', 'neutral', 'ink')}`}>
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
-              <p className={FINELY_OS_ENTITY_SUBLABEL}>Overview</p>
+              <p className={FC_ADMIN_INK_SUBLABEL}>Overview</p>
               <span className={finelyOsStatusChip(statusChipTone(partner.status))}>
                 {String(partner.status || 'lead').toUpperCase()}
               </span>
               <span className={finelyOsStatusChip(signupChipTone(signup.tone))}>{signup.label}</span>
             </div>
-            <p className={`mt-2 ${FINELY_OS_ENTITY_TITLE}`}>{partner.profile.fullName}</p>
-            <p className={`mt-1 ${FINELY_OS_ENTITY_BODY} text-sm`}>
+            <p className={`mt-2 ${FC_ADMIN_INK_TITLE}`}>{partner.profile.fullName}</p>
+            <p className={`mt-1 ${FC_ADMIN_INK_BODY} text-sm`}>
               {[partner.profile.email, partner.profile.phone].filter(Boolean).join(' · ') || 'No contact yet'}
             </p>
-            <p className={`mt-1 text-sm ${FINELY_OS_ENTITY_BODY}`}>{args.mailingSummary || 'Mailing address not set'}</p>
+            <p className={`mt-1 text-sm ${FC_ADMIN_INK_BODY}`}>{args.mailingSummary || 'Mailing address not set'}</p>
           </div>
           <div className="flex flex-col items-stretch sm:items-end gap-2 shrink-0">
             <div className="text-right">
-              <div className={FINELY_OS_ENTITY_SUBLABEL}>Profile type</div>
+              <div className={FC_ADMIN_INK_SUBLABEL}>Profile type</div>
               <select
                 value={partner.status}
                 onChange={(e) => args.onStatusChange(e.target.value)}
@@ -237,9 +257,9 @@ export function PartnerOverviewTab(args: {
         </div>
 
         {primaryScore ? (
-          <div className="mt-5 pt-5 border-t border-[var(--fc-admin-border)]">
+          <div className={`mt-5 pt-5 ${FC_ADMIN_INK_DIVIDER}`}>
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <p className={FINELY_OS_ENTITY_SUBLABEL}>Credit scores · {primaryScore.model}</p>
+              <p className={FC_ADMIN_INK_SUBLABEL}>Credit scores · {primaryScore.model}</p>
               {args.latestScoresRows.length > 1 ? (
                 <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={args.onOpenProfile}>
                   All models on Profile
@@ -251,60 +271,64 @@ export function PartnerOverviewTab(args: {
                 { label: 'EXP', value: primaryScore.exp },
                 { label: 'EQF', value: primaryScore.eqf },
                 { label: bureauShortCode('TUC'), value: primaryScore.tuc },
-              ].map((cell) => (
-                <div key={cell.label} className="rounded-xl border border-[var(--fc-admin-border)] bg-[var(--fc-admin-surface-sunken)] px-3 py-3 text-center">
-                  <div className={FINELY_OS_ENTITY_SUBLABEL}>{cell.label}</div>
-                  <div className={`mt-1 text-2xl font-semibold font-mono ${FINELY_OS_ENTITY_VALUE}`}>{cell.value ?? '—'}</div>
-                </div>
-              ))}
+              ].map((cell, i) => {
+                const tone = SCORE_TONES[i];
+                return (
+                  <div key={cell.label} className={fcAdminScoreCell(tone)}>
+                    <div className={`text-[11px] font-semibold uppercase tracking-wide ${fcAdminOnSolidMuted(tone)}`}>{cell.label}</div>
+                    <div className={`mt-1 text-2xl font-semibold font-mono ${fcAdminOnSolidText(tone)}`}>{cell.value ?? '—'}</div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         ) : (
-          <div className={`mt-5 pt-5 border-t border-[var(--fc-admin-border)] ${FINELY_OS_ENTITY_BODY} text-sm`}>
+          <div className={`mt-5 pt-5 ${FC_ADMIN_INK_DIVIDER} ${FC_ADMIN_INK_BODY} text-sm`}>
             No scores yet — upload a report to surface EXP / EQF / TU here.
           </div>
         )}
       </div>
 
-      {/* KPIs */}
+      {/* KPIs — hard counts, each its own solid color so the four read as distinct facts, not a repeated tile. */}
       <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
-        <div className={finelyOsEntityKpi(0)}>
-          <p className={FINELY_OS_ENTITY_SUBLABEL}>Reports</p>
-          <p className={`mt-1 text-2xl font-semibold ${FINELY_OS_ENTITY_VALUE}`}>{args.reportsCount}</p>
-        </div>
-        <div className={finelyOsEntityKpi(1)}>
-          <p className={FINELY_OS_ENTITY_SUBLABEL}>Letters</p>
-          <p className={`mt-1 text-2xl font-semibold ${FINELY_OS_ENTITY_VALUE}`}>{args.lettersCount}</p>
-        </div>
-        <div className={finelyOsEntityKpi(2)}>
-          <p className={FINELY_OS_ENTITY_SUBLABEL}>Debt / summons</p>
-          <p className={`mt-1 text-2xl font-semibold ${FINELY_OS_ENTITY_VALUE}`}>{args.debtCasesCount}</p>
-        </div>
-        <div className={finelyOsEntityKpi(3)}>
-          <p className={FINELY_OS_ENTITY_SUBLABEL}>Open tasks</p>
-          <p className={`mt-1 text-2xl font-semibold ${FINELY_OS_ENTITY_VALUE}`}>{args.openPartnerTasksCount}</p>
-        </div>
+        {(
+          [
+            { label: 'Reports', value: args.reportsCount, tone: 'sky' as FcAdminTone },
+            { label: 'Letters', value: args.lettersCount, tone: 'navy' as FcAdminTone },
+            { label: 'Debt / summons', value: args.debtCasesCount, tone: 'rose' as FcAdminTone },
+            { label: 'Open tasks', value: args.openPartnerTasksCount, tone: 'gold' as FcAdminTone },
+          ]
+        ).map((k) => (
+          <div key={k.label} className={finelyOsEntityKpi(k.tone)}>
+            <p className={`text-[11px] font-semibold uppercase tracking-wide ${fcAdminOnSolidMuted(k.tone)}`}>{k.label}</p>
+            <p className={`mt-1 text-2xl font-semibold ${fcAdminOnSolidText(k.tone)}`}>{k.value}</p>
+          </div>
+        ))}
       </div>
 
       {args.overallScore ? (
         <div className="grid md:grid-cols-4 gap-3">
-          {[
-            { label: 'Overall', value: args.overallScore.overall, hint: 'Readiness' },
-            { label: 'Open cases', value: args.openPartnerCasesCount, hint: 'Disputes' },
-            { label: 'Evidence', value: args.evidenceCount, hint: 'On file' },
-            { label: 'Improvements', value: args.overallScore.topActions.length, hint: 'Fast wins' },
-          ].map((k) => (
-            <div key={k.label} className={finelyOsEntityKpi()}>
-              <p className={FINELY_OS_ENTITY_SUBLABEL}>{k.label}</p>
-              <p className={`mt-2 text-3xl font-semibold leading-none ${FINELY_OS_ENTITY_VALUE}`}>{k.value}</p>
-              <p className={`mt-2 text-xs ${FINELY_OS_ENTITY_BODY}`}>{k.hint}</p>
+          {(
+            [
+              { label: 'Overall', value: args.overallScore.overall, hint: 'Readiness', tone: 'emerald' as FcAdminTone, variant: 'solid' as FcAdminCardVariant },
+              { label: 'Open cases', value: args.openPartnerCasesCount, hint: 'Disputes', tone: 'rose' as FcAdminTone, variant: 'solid' as FcAdminCardVariant },
+              { label: 'Evidence', value: args.evidenceCount, hint: 'On file', tone: 'gold' as FcAdminTone, variant: 'solid' as FcAdminCardVariant },
+              { label: 'Improvements', value: args.overallScore.topActions.length, hint: 'Fast wins', tone: 'teal' as FcAdminTone, variant: 'soft' as FcAdminCardVariant },
+            ]
+          ).map((k) => (
+            <div key={k.label} className={finelyOsEntityKpi(k.tone, k.variant)}>
+              <p className={`text-[11px] font-semibold uppercase tracking-wide ${k.variant === 'solid' ? fcAdminOnSolidMuted(k.tone) : fcAdminToneText(k.tone)}`}>{k.label}</p>
+              <p className={`mt-2 text-3xl font-semibold leading-none ${k.variant === 'solid' ? fcAdminOnSolidText(k.tone) : fcAdminToneText(k.tone)}`}>{k.value}</p>
+              <p className={`mt-2 text-xs ${k.variant === 'solid' ? fcAdminOnSolidMuted(k.tone) : FINELY_OS_ENTITY_BODY}`}>{k.hint}</p>
             </div>
           ))}
         </div>
       ) : null}
 
       {args.overallScore?.topActions?.length ? (
-        <details className={`${finelyOsCatalogCard('sky')} !p-4`}>
+        // Neutral (not colored): this is a disclosure widget, not a KPI/data box — staying white/bordered keeps it
+        // from ever accidentally matching a colored box directly above or below it.
+        <details className={`${finelyOsCatalogCard('neutral')} !p-4`}>
           <summary className={`cursor-pointer select-none ${FINELY_OS_ENTITY_VALUE}`}>Top improvements</summary>
           <div className="mt-3 grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {args.overallScore.topActions.slice(0, 6).map((a) => (
@@ -322,22 +346,25 @@ export function PartnerOverviewTab(args: {
         </details>
       ) : null}
 
+      {/* Quick-nav — same labels as the KPIs above, so these stay quiet/soft on purpose: they're shortcuts, not the data itself. */}
       <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
-        {[
-          { label: 'Reports', tab: 'reports', hint: `${args.reportsCount} on file` },
-          { label: 'Evidence', tab: 'evidence', hint: `${args.evidenceCount} files` },
-          { label: 'Letters', tab: 'letters', hint: 'Letter studio' },
-          { label: 'Tasks', tab: 'tasks', hint: `${args.openPartnerTasksCount} open` },
-        ].map((item) => (
+        {(
+          [
+            { label: 'Reports', tab: 'reports', hint: `${args.reportsCount} on file`, tone: 'teal' as FcAdminTone },
+            { label: 'Evidence', tab: 'evidence', hint: `${args.evidenceCount} files`, tone: 'gold' as FcAdminTone },
+            { label: 'Letters', tab: 'letters', hint: 'Letter studio', tone: 'navy' as FcAdminTone },
+            { label: 'Tasks', tab: 'tasks', hint: `${args.openPartnerTasksCount} open`, tone: 'emerald' as FcAdminTone },
+          ]
+        ).map((item) => (
           <button
             key={item.tab}
             type="button"
             onClick={() => args.onOpenTab(item.tab)}
-            className={`text-left ${finelyOsCatalogCard('sky')} !p-4 hover:border-[var(--fc-admin-border-strong)] transition-all`}
+            className={`text-left ${finelyOsCatalogCard(item.tone)} !p-4 hover:brightness-[0.97] transition-all`}
           >
-            <div className={FINELY_OS_ENTITY_SUBLABEL}>{item.label}</div>
+            <div className={`text-[11px] font-semibold uppercase tracking-wide ${fcAdminToneText(item.tone)}`}>{item.label}</div>
             <div className={`mt-1 text-sm ${FINELY_OS_ENTITY_BODY}`}>{item.hint}</div>
-            <div className={`mt-2 inline-flex items-center gap-1 text-xs ${FINELY_OS_ENTITY_VALUE}`}>
+            <div className={`mt-2 inline-flex items-center gap-1 text-xs font-semibold ${fcAdminToneText(item.tone)}`}>
               Open <ArrowRight size={12} />
             </div>
           </button>
@@ -348,7 +375,7 @@ export function PartnerOverviewTab(args: {
         <button
           type="button"
           onClick={args.onOpenProfile}
-          className={`w-full text-left rounded-xl border border-[var(--fc-admin-status-warn)]/30 bg-[var(--fc-admin-status-warn)]/[0.08] px-4 py-3 ${FINELY_OS_ENTITY_BODY} text-sm`}
+          className={`fc-admin-solid-gold w-full text-left rounded-xl border px-4 py-3 text-sm ${fcAdminOnSolidText('gold')}`}
         >
           {args.emptyCustomFieldSections} profile section{args.emptyCustomFieldSections === 1 ? '' : 's'} still empty — open Profile to finish.
         </button>
