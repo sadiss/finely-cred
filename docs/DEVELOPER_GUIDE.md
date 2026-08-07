@@ -774,8 +774,8 @@ These plans are historical build records, not living specs — once a plan's wor
 
 **Funnel & homepage video — no raster logo:**
 
-- Use `VideoFinelyCredWordmark` (`src/components/leadmagnet/VideoFinelyCredWordmark.tsx`) on `LeadMagnetFunnelHeroVideo` and `LandingCinematicVideoStage`.
-- Pre-play state on the homepage cinematic stage is a navy gradient + wordmark (not `home-credit-solutions-poster.png`).
+- Use `VideoFinelyCredWordmark` with `plaque` on `LandingCinematicVideoStage` and `LeadMagnetFunnelHeroVideo`.
+- Homepage cinematic **thumbnail** stays `public/media/home-credit-solutions-poster.png` (green materials composite). Do not swap it for a navy gradient or duplicate the debt standup mockup — overlay the wordmark plaque on the poster (and during playback) instead of showing a separate logo PNG.
 - Regenerating funnel mockups: `node scripts/build-debt-eradication-mockup.mjs` (kit under `public/images/lead-magnets/_kit/`).
 
 ---

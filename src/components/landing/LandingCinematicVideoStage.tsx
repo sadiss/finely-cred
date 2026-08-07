@@ -5,6 +5,7 @@ import { Reveal } from '../ui';
 import { finelyOsLandingContrastSection } from '../../features/os/finelyOsLightUi';
 import { LandingTypewriterTitle } from './LandingTypewriterTitle';
 import { VideoFinelyCredWordmark } from '../leadmagnet/VideoFinelyCredWordmark';
+import '../leadmagnet/premiumLeadMagnetShared.css';
 import './landingSellBands.css';
 
 /**
@@ -12,6 +13,8 @@ import './landingSellBands.css';
  * solutions explainer mp4 when available (restore · disputes · debt · funding).
  */
 const HOME_VIDEO_SRC = '/tours/cloud-home-overview.mp4';
+/** Green materials composite — keep this art; typography plaque replaces any logo in-frame. */
+const HOME_VIDEO_POSTER = '/media/home-credit-solutions-poster.png?v=solutions-home-20260807';
 
 function prefersReducedMotion(): boolean {
   return typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
@@ -86,18 +89,13 @@ export function LandingCinematicVideoStage() {
             <div className="lm-video-shell lm-video-shell--framed lm-video-grade--gold relative overflow-hidden rounded-[1.55rem] sm:rounded-[1.75rem] border border-white/10 bg-black aspect-video">
               <div className="absolute inset-0 opacity-30 pointer-events-none z-[1] lm-video-glow" aria-hidden />
 
-              <div className="absolute inset-0 z-[1] bg-gradient-to-br from-[#060c2f] via-[#0a1628] to-[#020618]" aria-hidden />
-
-              {!playing ? (
-                <div
-                  className={`absolute inset-0 z-[1] flex flex-col items-center justify-center gap-4 transition-opacity duration-500 ${
-                    playing ? 'opacity-0 pointer-events-none' : 'opacity-100'
-                  }`}
-                >
-                  <VideoFinelyCredWordmark />
-                  <p className="text-[10px] uppercase tracking-[0.28em] text-[#ffd993]/75">Full credit solutions</p>
-                </div>
-              ) : null}
+              <img
+                src={HOME_VIDEO_POSTER}
+                alt=""
+                className={`absolute inset-0 z-[1] h-full w-full object-cover transition-opacity duration-500 ${
+                  playing ? 'opacity-0 pointer-events-none' : 'opacity-100'
+                }`}
+              />
 
               <video
                 ref={videoRef}
@@ -105,6 +103,7 @@ export function LandingCinematicVideoStage() {
                   playing ? 'opacity-100' : 'opacity-0'
                 }`}
                 src={HOME_VIDEO_SRC}
+                poster={HOME_VIDEO_POSTER}
                 muted={muted}
                 playsInline
                 preload="metadata"
@@ -115,6 +114,16 @@ export function LandingCinematicVideoStage() {
               />
               <div className="absolute inset-0 lm-video-veil bg-gradient-to-t from-black/60 via-black/10 to-amber-900/10 pointer-events-none z-[2]" />
               <div className="lm-video-warm-overlay z-[2]" aria-hidden />
+
+              <VideoFinelyCredWordmark
+                className="absolute top-3 left-3 z-[4]"
+                size={playing ? 'sm' : 'md'}
+                plaque
+              />
+
+              <div className="absolute top-3 right-3 z-[3] px-3 py-1.5 rounded-full border border-[#e0b24a]/40 text-[9px] font-bold uppercase tracking-wider bg-black/55 backdrop-blur-md text-[#ffd993]">
+                Full credit solutions
+              </div>
 
               {!playing ? (
                 <button
@@ -150,14 +159,6 @@ export function LandingCinematicVideoStage() {
                   {muted ? 'Sound' : 'On'}
                 </button>
               ) : null}
-
-              {playing ? (
-                <VideoFinelyCredWordmark className="absolute top-3 right-3 z-[3]" size="sm" />
-              ) : null}
-
-              <div className="absolute top-3 left-3 z-[3] px-3 py-1.5 rounded-full border border-[#e0b24a]/40 text-[9px] font-bold uppercase tracking-wider bg-black/55 backdrop-blur-md text-[#ffd993]">
-                Full credit solutions
-              </div>
 
               {!playing ? (
                 <div className="absolute bottom-3 left-3 z-[3] flex flex-wrap gap-1.5 max-w-[70%] pointer-events-none">
