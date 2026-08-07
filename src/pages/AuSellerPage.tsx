@@ -12,10 +12,12 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { PageShell } from '../components/layout/PageShell';
-import { CareersQuickNav } from '../components/careers/CareersQuickNav';
+import { CareerOtherTracksLink } from '../components/careers/CareerOtherTracksLink';
 import { RoleGuideCta } from '../components/careers/RoleGuideCta';
 import { ROLE_ACTION_LEGEND, roleJoinBtn, roleSecondaryBtn } from '../components/careers/roleActionButtons';
 import { AuSellerShelfMock } from '../components/careers/roleProfileMockups';
+import { CareerChoiceApply } from '../components/careers/CareerChoiceApply';
+import { CareerTierStickySummary } from '../components/careers/CareerTierStickySummary';
 import { DigitalInviteShareBand } from '../components/digitalCards';
 import { DedicatedSheetLinkStrip } from '../components/resources/DedicatedSheetLinkStrip';
 import {
@@ -23,6 +25,7 @@ import {
   AU_SELLER_ACTIVATION_BULLETS,
   AU_SELLER_MARKETING_HEADLINE,
   AU_SELLER_OFFERINGS,
+  AU_SELLER_PAYOUT_TIERS,
 } from '../config/auSellerProgram';
 import {
   ROLE_BENEFITS,
@@ -92,7 +95,11 @@ export default function AuSellerPage() {
           <BackToSiteButton variant="ghost" label="Back to home" />
         </div>
 
-        <CareersQuickNav active="au_sellers" className="mt-4" />
+        <div className="mt-2 flex justify-end">
+          <div className="inline-block rounded-full bg-white/95 px-3.5 py-1.5 shadow-sm">
+            <CareerOtherTracksLink currentId="au_sellers" />
+          </div>
+        </div>
         {cardEligibility && cardBonus ? <FinelyOsAlertBanner tone="success" message={cardBonus.description} /> : null}
 
         {/* Supply-floor hero — shelf mock leads on the left, copy right (mirrored vs every other role page) */}
@@ -139,14 +146,17 @@ export default function AuSellerPage() {
                 <button type="button" onClick={() => navigate(AU_SELLER.hubPath)} className={roleSecondaryBtn(ROLE)}>
                   Open {AU_SELLER.hubName}
                 </button>
+              </div>
+              <p className="text-[12px] leading-relaxed text-white/45">
+                Looking to buy a tradeline instead of supplying one?{' '}
                 <button
                   type="button"
-                  onClick={() => navigate(AU_SELLER.marketplacePath)}
-                  className={roleSecondaryBtn(ROLE)}
+                  className="font-semibold text-sky-300 underline decoration-sky-400/40 underline-offset-4 hover:text-sky-200"
+                  onClick={() => navigate('/tradelines')}
                 >
-                  <ShoppingBag size={15} /> Buyer marketplace
+                  Browse buyer inventory <ShoppingBag size={12} className="inline -mt-0.5" />
                 </button>
-              </div>
+              </p>
 
               <div className="rounded-2xl border border-emerald-300/25 bg-black/40 p-5">
                 <p className={SHELF_KICKER}>Free — before you list a single card</p>
@@ -215,18 +225,13 @@ export default function AuSellerPage() {
               placements — buyers pay placement fees separately.
             </p>
           </div>
-          <div className="grid gap-3 sm:grid-cols-[1fr_1fr_1.4fr]">
+          <div className="grid gap-3 sm:grid-cols-[1fr_1.4fr]">
             <div className="rounded-2xl border border-emerald-300/30 bg-emerald-500/[0.1] p-5 text-center">
               <p className="text-[10px] font-black uppercase tracking-[0.22em] text-emerald-200/85">Activation</p>
               <p className="mt-2 text-3xl font-black tracking-tight text-emerald-100">{AU_SELLER.startupFeeLabel}</p>
               <p className="mt-1.5 text-[12px] text-white/55">
                 one-time · first {AU_SELLER.listingSeasonDays}-day season included
               </p>
-            </div>
-            <div className="rounded-2xl border border-white/12 bg-black/35 p-5 text-center">
-              <p className="text-[10px] font-black uppercase tracking-[0.22em] text-white/50">Typical payout</p>
-              <p className="mt-2 text-3xl font-black tracking-tight text-white/90">{AU_SELLER.defaultCommissionPct}%</p>
-              <p className="mt-1.5 text-[12px] text-white/55">of placement fee · varies by listing</p>
             </div>
             <div className="rounded-2xl border border-dashed border-emerald-200/30 bg-black/30 p-5">
               <p className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.22em] text-emerald-200/80">
@@ -242,6 +247,32 @@ export default function AuSellerPage() {
               </ul>
             </div>
           </div>
+
+          {/* Payout tier ladder — floor 35%, climbs with inventory strength */}
+          <div className="space-y-2.5">
+            <p className="text-[13px] leading-relaxed text-white/60">
+              Every seller starts at a <strong className="text-emerald-200">{AU_SELLER.defaultCommissionPct}% floor</strong> —
+              your share climbs automatically as your inventory grows and stays reliable.
+            </p>
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              {AU_SELLER_PAYOUT_TIERS.map((tier) => (
+                <div
+                  key={tier.id}
+                  className="relative rounded-2xl border border-emerald-300/25 bg-black/35 p-4"
+                >
+                  {tier.badge ? (
+                    <span className="absolute -top-2.5 right-4 rounded-full border border-emerald-300/40 bg-[#03181c] px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-emerald-200">
+                      {tier.badge}
+                    </span>
+                  ) : null}
+                  <p className="text-[10px] font-black uppercase tracking-[0.22em] text-emerald-200/80">{tier.name}</p>
+                  <p className="mt-1.5 text-2xl font-black tracking-tight text-white">{tier.payoutPct}%</p>
+                  <p className="mt-1.5 text-[12px] leading-relaxed text-white/55">{tier.requirement}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
           <p className="text-[13px] leading-relaxed text-white/60">
             Running partner restore or build files instead? That is the{' '}
             <button
@@ -316,14 +347,11 @@ export default function AuSellerPage() {
           </div>
         </section>
 
-        {/* Get started */}
-        <section className={`${SHELF_PANEL} space-y-5`}>
-          <div className="space-y-2.5">
+        {/* Get started — one clear path, choice-card apply (no field wall: signup collects the rest) */}
+        <section id="au-seller-apply" className="scroll-mt-24 space-y-4">
+          <div className="max-w-2xl space-y-2.5">
             <p className={SHELF_KICKER}>Get started</p>
             <h2 className={SHELF_TITLE}>Join as an AU seller.</h2>
-            <p className={SHELF_BODY}>
-              Create your account, complete seller onboarding, activate, and publish your first listings.
-            </p>
           </div>
           <ol className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-4">
             {[
@@ -338,14 +366,17 @@ export default function AuSellerPage() {
               </li>
             ))}
           </ol>
-          <div className="flex flex-wrap gap-3">
-            <button type="button" onClick={() => navigate(sellerSignupUrl)} className={roleJoinBtn(ROLE)}>
-              Start signup <ArrowRight size={15} />
-            </button>
-            <button type="button" onClick={() => navigate(AU_SELLER.hubPath)} className={roleSecondaryBtn(ROLE)}>
-              Already a seller? Open hub
-            </button>
-          </div>
+          <CareerChoiceApply
+            kicker="Your path"
+            title="AU Seller — one activation, no tier to pick."
+            selectedLabel={`Floor payout ${AU_SELLER.defaultCommissionPct}% · climbs to ${AU_SELLER_PAYOUT_TIERS[AU_SELLER_PAYOUT_TIERS.length - 1]?.payoutPct}%`}
+            description={`${AU_SELLER.startupFeeLabel} one-time activation includes your first ${AU_SELLER.listingSeasonDays}-day marketing season. Create your account and Finely walks you through verification and your first listing.`}
+            ctaLabel="Start signup"
+            onCtaClick={() => navigate(sellerSignupUrl)}
+            secondaryLabel="Already a seller? Open hub"
+            onSecondaryClick={() => navigate(AU_SELLER.hubPath)}
+            accent="emerald"
+          />
           <div className="border-t border-emerald-300/15 pt-4">
             <RoleGuideCta role={ROLE} compact />
           </div>
@@ -365,10 +396,18 @@ export default function AuSellerPage() {
           blurb="Sellers supply the lines; buyers need an invite. Hand this card to anyone shopping seasoned authorized-user spots and the visit stays tagged to you."
         />
 
-        <p className={FINELY_OS_COMPLIANCE_FOOTNOTE}>{ROLE_COMPLIANCE_FOOTNOTES[ROLE]}</p>
+        <p className={`${FINELY_OS_COMPLIANCE_FOOTNOTE} pb-16`}>{ROLE_COMPLIANCE_FOOTNOTES[ROLE]}</p>
 
         <FinelyOsPageFooter />
       </div>
+
+      <CareerTierStickySummary
+        roleLabel="AU Seller"
+        economics={{ keepPctLabel: `${AU_SELLER.defaultCommissionPct}%+ payout`, buyInLabel: `${AU_SELLER.startupFeeLabel} to activate` }}
+        ctaLabel="Start signup"
+        onCta={() => navigate(sellerSignupUrl)}
+        accent="emerald"
+      />
     </PageShell>
   );
 }

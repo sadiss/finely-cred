@@ -37,7 +37,7 @@ export function AgencyPartnersCareerGuide() {
             below — pick a buy-in once, then grow through capacity tiers as you scale.
           </p>
         </div>
-        <div className="grid sm:grid-cols-2 gap-4">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {buyInTiers.map((b) => (
             <div key={b.id} className="rounded-2xl border-2 border-emerald-200 bg-white p-6 space-y-3">
               <div className="flex items-center gap-2">

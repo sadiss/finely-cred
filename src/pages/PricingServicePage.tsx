@@ -424,7 +424,7 @@ export default function PricingServicePage() {
           <div className="space-y-6">
             <div className={`${finelyOsCatalogCard('emerald')} !p-5 sm:!p-6 space-y-3`}>
               <div className={FINELY_OS_ENTITY_SUBLABEL}>Step 1 — one-time buy-in</div>
-              <div className="grid sm:grid-cols-2 gap-3">
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
                 {agencyBuyInTiers.map((b) => (
                   <div key={b.id} className="rounded-xl border-2 border-emerald-200 bg-white px-4 py-3">
                     <div className="flex items-baseline justify-between gap-2">

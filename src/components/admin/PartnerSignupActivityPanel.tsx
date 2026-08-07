@@ -6,15 +6,12 @@ import {
   derivePartnerSignupStatus,
   formatAuthWhen,
   readPartnerAuthActivity,
-  signupStatusChipTone,
 } from '../../lib/partnerAuthActivity';
-import {
-  FINELY_OS_ENTITY_BODY,
-  FINELY_OS_ENTITY_SUBLABEL,
-  FINELY_OS_ENTITY_VALUE,
-  finelyOsCatalogCard,
-  finelyOsStatusChip,
-} from '../../features/os/finelyOsLightUi';
+import { fcAdminCard, fcAdminOnSolidBody, fcAdminOnSolidSublabel, fcAdminOnSolidValue } from '../../features/os/finelyOsAdminSurface';
+
+const FINELY_OS_ENTITY_SUBLABEL = fcAdminOnSolidSublabel('emerald');
+const FINELY_OS_ENTITY_BODY = fcAdminOnSolidBody('emerald');
+const FINELY_OS_ENTITY_VALUE = fcAdminOnSolidValue('emerald');
 
 type Props = {
   partner: Partner;
@@ -44,7 +41,7 @@ export function PartnerSignupActivityPanel({ partner }: Props) {
   ];
 
   return (
-    <div className={`${finelyOsCatalogCard('emerald')} !p-5 space-y-5`}>
+    <div className={`${fcAdminCard('p-5', 'emerald', 'solid')} space-y-5`}>
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="space-y-2">
           <p className={FINELY_OS_ENTITY_SUBLABEL}>Signup & access activity</p>
@@ -52,8 +49,8 @@ export function PartnerSignupActivityPanel({ partner }: Props) {
             <div
               className={
                 status.stage === 'active' || status.stage === 'signup_complete'
-                  ? 'inline-flex items-center gap-2.5 rounded-2xl border border-emerald-300/70 bg-gradient-to-b from-emerald-100 to-white px-5 py-2.5 text-emerald-950 shadow-sm'
-                  : `inline-flex items-center gap-2 rounded-2xl border px-4 py-2 ${finelyOsStatusChip(signupStatusChipTone(status.tone))}`
+                  ? 'inline-flex items-center gap-2.5 rounded-2xl border border-white/40 bg-white px-5 py-2.5 text-[var(--fc-admin-tone-emerald-ink)] shadow-sm'
+                  : 'inline-flex items-center gap-2 rounded-2xl border border-white/30 bg-white/15 px-4 py-2 text-white'
               }
             >
               <StageIcon size={status.stage === 'active' || status.stage === 'signup_complete' ? 18 : 14} />
@@ -62,7 +59,7 @@ export function PartnerSignupActivityPanel({ partner }: Props) {
             <p className={`text-sm ${FINELY_OS_ENTITY_BODY}`}>{status.detail}</p>
           </div>
         </div>
-        <div className="rounded-2xl border border-white/10 bg-black/25 px-4 py-3 min-w-[220px]">
+        <div className="rounded-2xl border border-white/25 bg-white/10 px-4 py-3 min-w-[220px]">
           <div className={`flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL}`}>
             <ShieldCheck size={14} />
             Quick read
@@ -83,12 +80,12 @@ export function PartnerSignupActivityPanel({ partner }: Props) {
             className={
               'rounded-2xl border px-4 py-3 ' +
               (step.done
-                ? 'border-emerald-400/35 bg-emerald-500/10'
-                : 'border-white/10 bg-black/20')
+                ? 'border-white/40 bg-white/20'
+                : 'border-white/15 bg-black/15')
             }
           >
             <div className={`text-[11px] uppercase tracking-widest ${FINELY_OS_ENTITY_SUBLABEL}`}>{step.label}</div>
-            <div className={`mt-1 text-sm font-semibold ${step.done ? 'text-emerald-200' : FINELY_OS_ENTITY_BODY}`}>
+            <div className={`mt-1 text-sm font-semibold ${step.done ? 'text-white' : FINELY_OS_ENTITY_BODY}`}>
               {step.done ? 'Complete' : 'Pending'}
             </div>
             {step.at ? <div className={`mt-1 text-xs ${FINELY_OS_ENTITY_BODY}`}>{formatAuthWhen(step.at)}</div> : null}
@@ -97,7 +94,7 @@ export function PartnerSignupActivityPanel({ partner }: Props) {
       </div>
 
       {timeline.length ? (
-        <div className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3 space-y-2">
+        <div className="rounded-2xl border border-white/20 bg-black/15 px-4 py-3 space-y-2">
           <div className={FINELY_OS_ENTITY_SUBLABEL}>Recent signup activity</div>
           {timeline.slice(0, 8).map((item) => (
             <div key={item.id} className="flex items-start justify-between gap-3 text-sm">
@@ -107,7 +104,7 @@ export function PartnerSignupActivityPanel({ partner }: Props) {
           ))}
         </div>
       ) : (
-        <div className={`rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm ${FINELY_OS_ENTITY_BODY}`}>
+        <div className={`rounded-2xl border border-white/20 bg-black/15 px-4 py-3 text-sm ${FINELY_OS_ENTITY_BODY}`}>
           No signup activity recorded yet. Send an invite to start tracking their setup progress here.
         </div>
       )}

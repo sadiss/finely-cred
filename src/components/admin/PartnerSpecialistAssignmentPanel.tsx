@@ -12,14 +12,21 @@ import {
   type CareTeamRole,
 } from '../../lib/partnerCareTeam';
 import {
-  FINELY_OS_ENTITY_BODY,
-  FINELY_OS_ENTITY_SUBLABEL,
-  FINELY_OS_ENTITY_VALUE,
-  FINELY_OS_NOTICE_SUCCESS,
-  FINELY_OS_PRIMARY_BTN,
-  FINELY_OS_SECONDARY_BTN,
-  finelyOsCatalogCard,
-} from '../../features/os/finelyOsLightUi';
+  fcAdminCard,
+  fcAdminOnSolidBody,
+  fcAdminOnSolidSublabel,
+  fcAdminOnSolidValue,
+  FC_ADMIN_PRIMARY_BTN,
+  fcAdminOnSolidSecondaryBtn,
+} from '../../features/os/finelyOsAdminSurface';
+
+const FINELY_OS_ENTITY_BODY = fcAdminOnSolidBody('navy');
+const FINELY_OS_ENTITY_SUBLABEL = fcAdminOnSolidSublabel('navy');
+const FINELY_OS_ENTITY_VALUE = fcAdminOnSolidValue('navy');
+const FINELY_OS_PRIMARY_BTN = FC_ADMIN_PRIMARY_BTN;
+const FINELY_OS_SECONDARY_BTN = fcAdminOnSolidSecondaryBtn('navy');
+const FINELY_OS_NOTICE_SUCCESS =
+  'rounded-xl border border-emerald-300/40 bg-emerald-400/15 p-4 text-sm text-emerald-50';
 
 const ROLES: CareTeamRole[] = ['specialist', 'coach', 'affiliate'];
 
@@ -81,7 +88,7 @@ export function PartnerSpecialistAssignmentPanel({
   };
 
   return (
-    <div className={`${finelyOsCatalogCard('fuchsia')} !p-5 space-y-5`}>
+    <div className={`${fcAdminCard('p-5', 'navy', 'solid')} space-y-5`}>
       <div className="flex items-center gap-2">
         <HandHeart size={16} className="text-fuchsia-300" />
         <div className={FINELY_OS_ENTITY_VALUE}>Care team assignment</div>

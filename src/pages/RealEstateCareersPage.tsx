@@ -19,7 +19,8 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { PageShell } from '../components/layout/PageShell';
-import { CareersQuickNav } from '../components/careers/CareersQuickNav';
+import { CareerOtherTracksLink } from '../components/careers/CareerOtherTracksLink';
+import { CareerChoiceApply } from '../components/careers/CareerChoiceApply';
 import { DigitalInviteShareBand } from '../components/digitalCards';
 import { RoleGuideCta } from '../components/careers/RoleGuideCta';
 import { ROLE_ACTION_LEGEND, roleJoinBtn, roleSecondaryBtn } from '../components/careers/roleActionButtons';
@@ -92,6 +93,8 @@ const ROLE = 're' as const;
 
 /** Editorial “ledger” layout — asymmetric split hero, hairline column rules, numbered rail. */
 const LEDGER_RULE = 'border-t border-white/10 pt-5';
+/** Dark-ink label for the apply form — it sits on `CareerChoiceApply`'s white card, not a dark OS panel. */
+const APPLY_FORM_LABEL = `${FINELY_OS_ENTITY_LABEL} !text-[#0a1628]/65`;
 
 /**
  * Real estate affiliation career path — agents/brokers refer buyers & sellers into
@@ -119,6 +122,7 @@ export default function RealEstateCareersPage() {
   const [notes, setNotes] = useState('');
   const [status, setStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
   const [statusMsg, setStatusMsg] = useState<string | null>(null);
+  const [showOptionalDetails, setShowOptionalDetails] = useState(false);
   const [cardEligibility, setCardEligibility] = useState(() => getDigitalInviteCardEligibilityForRole('re'));
 
   useEffect(() => {
@@ -208,10 +212,12 @@ export default function RealEstateCareersPage() {
     >
       <div className={`${FINELY_OS_PAGE} max-w-6xl mx-auto space-y-0`}>
         <div className="px-0 py-2 space-y-3">
-          <a href="/" className={FINELY_OS_BACK_LINK}>
-            <ArrowLeft size={16} /> Home
-          </a>
-          <CareersQuickNav active="real_estate" />
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <a href="/" className={FINELY_OS_BACK_LINK}>
+              <ArrowLeft size={16} /> Home
+            </a>
+            <CareerOtherTracksLink currentId="real_estate" />
+          </div>
           {cardEligibility && cardBonus ? (
             <FinelyOsAlertBanner tone="success" message={cardBonus.description} />
           ) : null}
@@ -351,7 +357,7 @@ export default function RealEstateCareersPage() {
 
         {/* Benefits · inside access · capabilities — hairline index on dark */}
         <section
-          className={`mt-6 rounded-3xl border border-white/10 px-5 sm:px-8 py-12 ${finelyOsLandingContrastSection('fc-band-violet')}`}
+          className={`mt-6 rounded-3xl border border-white/10 px-5 sm:px-8 py-12 ${finelyOsLandingContrastSection('fc-band-ember')}`}
           data-fc-contrast-band="1"
         >
           <div className="max-w-5xl mx-auto space-y-9">
@@ -571,111 +577,124 @@ export default function RealEstateCareersPage() {
           </div>
         </section>
 
-        {/* Apply */}
+        {/* Apply — choice-first: quick fields up front, brokerage details optional */}
         <section id="re-apply" className={`mt-6 rounded-3xl px-5 sm:px-8 py-12 ${finelyOsLandingWealthyIvorySection()}`}>
-          <div className="max-w-xl mx-auto space-y-6">
-            <div className="text-center space-y-2">
-              <p className={FINELY_OS_LANDING_IVORY_KICKER}>Apply</p>
-              <h2 className={`${FINELY_OS_LANDING_IVORY_TITLE} !text-3xl`}>Real estate affiliation</h2>
-              <p className={FINELY_OS_LANDING_IVORY_BODY}>
-                Tell us about your brokerage. We review applications and open affiliate access when approved.
-              </p>
-            </div>
-            <form onSubmit={submit} className={`${finelyOsLandingIvoryCard()} space-y-3`}>
-              <label className="block">
-                <span className={`${FINELY_OS_ENTITY_LABEL} text-[#0a1628]/65`}>Full name</span>
-                <input
-                  className={`${FINELY_OS_ENTITY_INPUT} mt-1`}
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
-                  required
-                />
-              </label>
-              <label className="block">
-                <span className={`${FINELY_OS_ENTITY_LABEL} text-[#0a1628]/65`}>Email</span>
-                <input
-                  type="email"
-                  className={`${FINELY_OS_ENTITY_INPUT} mt-1`}
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                />
-              </label>
-              <div className="grid sm:grid-cols-2 gap-3">
-                <label className="block">
-                  <span className={`${FINELY_OS_ENTITY_LABEL} text-[#0a1628]/65`}>Phone</span>
-                  <input className={`${FINELY_OS_ENTITY_INPUT} mt-1`} value={phone} onChange={(e) => setPhone(e.target.value)} />
-                </label>
-                <label className="block">
-                  <span className={`${FINELY_OS_ENTITY_LABEL} text-[#0a1628]/65`}>Brokerage / company</span>
-                  <input
-                    className={`${FINELY_OS_ENTITY_INPUT} mt-1`}
-                    value={companyName}
-                    onChange={(e) => setCompanyName(e.target.value)}
-                  />
-                </label>
-              </div>
-              <label className="block">
-                <span className={`${FINELY_OS_ENTITY_LABEL} text-[#0a1628]/65`}>License # / brokerage details</span>
-                <input
-                  className={`${FINELY_OS_ENTITY_INPUT} mt-1`}
-                  value={licenseOrBrokerage}
-                  onChange={(e) => setLicenseOrBrokerage(e.target.value)}
-                />
-              </label>
-              <div className="grid sm:grid-cols-2 gap-3">
-                <label className="block">
-                  <span className={`${FINELY_OS_ENTITY_LABEL} text-[#0a1628]/65`}>Markets served</span>
-                  <input
-                    className={`${FINELY_OS_ENTITY_INPUT} mt-1`}
-                    value={regionsServed}
-                    onChange={(e) => setRegionsServed(e.target.value)}
-                    placeholder="e.g. Metro Atlanta"
-                  />
-                </label>
-                <label className="block">
-                  <span className={`${FINELY_OS_ENTITY_LABEL} text-[#0a1628]/65`}>Est. monthly closings</span>
-                  <input
-                    className={`${FINELY_OS_ENTITY_INPUT} mt-1`}
-                    value={monthlyClosings}
-                    onChange={(e) => setMonthlyClosings(e.target.value)}
-                    inputMode="numeric"
-                  />
-                </label>
-              </div>
-              <label className="block">
-                <span className={`${FINELY_OS_ENTITY_LABEL} text-[#0a1628]/65`}>How you help buyers &amp; sellers</span>
-                <textarea
-                  rows={2}
-                  className={`${FINELY_OS_ENTITY_INPUT} mt-1`}
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                />
-              </label>
-              <div className="flex flex-wrap gap-2">
-                <button type="submit" disabled={!canSubmit} className={`${FINELY_OS_PRIMARY_BTN} disabled:opacity-60`}>
-                  Submit application <ArrowRight size={14} />
-                </button>
-                <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={goSignup}>
-                  Skip to signup
-                </button>
-              </div>
-              {status === 'sent' ? (
-                <div className="space-y-2">
-                  <div className={FINELY_OS_NOTICE_SUCCESS}>{statusMsg}</div>
-                  <button type="button" className={FINELY_OS_SUCCESS_BTN} onClick={goSignup}>
-                    Continue affiliate onboarding <ArrowRight size={14} />
-                  </button>
+          <div className="max-w-xl mx-auto space-y-4">
+            <CareerChoiceApply
+              kicker="Apply"
+              title="Real estate affiliation"
+              selectedLabel="Referral path — you refer, Finely runs the credit work"
+              description="Tell us about your brokerage. We review applications and open affiliate access when approved."
+              ctaLabel={status === 'sending' ? 'Submitting…' : 'Submit application'}
+              onSubmit={submit}
+              submitDisabled={!canSubmit}
+              secondaryLabel="Skip to signup"
+              onSecondaryClick={goSignup}
+              accent="gold"
+            >
+              {statusMsg ? (
+                <div className={status === 'sent' ? FINELY_OS_NOTICE_SUCCESS : status === 'error' ? FINELY_OS_NOTICE_ERROR : ''}>
+                  {statusMsg}
+                  {status === 'sent' ? (
+                    <button type="button" className={`${FINELY_OS_SUCCESS_BTN} mt-2`} onClick={goSignup}>
+                      Continue affiliate onboarding <ArrowRight size={14} />
+                    </button>
+                  ) : null}
                 </div>
               ) : null}
-              {status === 'error' ? <div className={FINELY_OS_NOTICE_ERROR}>{statusMsg}</div> : null}
-              <div className="border-t border-amber-900/15 pt-3">
-                <RoleGuideCta role={ROLE} ink="dark" compact />
+              <div className="grid sm:grid-cols-2 gap-3">
+                <label className="block">
+                  <span className={APPLY_FORM_LABEL}>Full name</span>
+                  <input
+                    className={`${FINELY_OS_ENTITY_INPUT} mt-1`}
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    required
+                  />
+                </label>
+                <label className="block">
+                  <span className={APPLY_FORM_LABEL}>Email</span>
+                  <input
+                    type="email"
+                    className={`${FINELY_OS_ENTITY_INPUT} mt-1`}
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                  />
+                </label>
               </div>
-              <p className={`${FINELY_OS_COMPLIANCE_FOOTNOTE} !text-[#0a1628]/55 !mx-0 !text-left`}>
-                Educational affiliation · not an offer of employment · {ROLE_COMPLIANCE_FOOTNOTES[ROLE]}
-              </p>
-            </form>
+              <label className="block">
+                <span className={APPLY_FORM_LABEL}>Phone (optional)</span>
+                <input className={`${FINELY_OS_ENTITY_INPUT} mt-1 sm:max-w-xs`} value={phone} onChange={(e) => setPhone(e.target.value)} />
+              </label>
+
+              <button
+                type="button"
+                onClick={() => setShowOptionalDetails((v) => !v)}
+                className="text-xs font-bold text-slate-500 underline underline-offset-2 hover:text-slate-800"
+              >
+                {showOptionalDetails ? 'Hide optional details' : 'Add brokerage details (company, license, markets, closings)'}
+              </button>
+
+              {showOptionalDetails ? (
+                <div className="space-y-3">
+                  <div className="grid sm:grid-cols-2 gap-3">
+                    <label className="block">
+                      <span className={APPLY_FORM_LABEL}>Brokerage / company</span>
+                      <input
+                        className={`${FINELY_OS_ENTITY_INPUT} mt-1`}
+                        value={companyName}
+                        onChange={(e) => setCompanyName(e.target.value)}
+                      />
+                    </label>
+                    <label className="block">
+                      <span className={APPLY_FORM_LABEL}>License # / brokerage details</span>
+                      <input
+                        className={`${FINELY_OS_ENTITY_INPUT} mt-1`}
+                        value={licenseOrBrokerage}
+                        onChange={(e) => setLicenseOrBrokerage(e.target.value)}
+                      />
+                    </label>
+                  </div>
+                  <div className="grid sm:grid-cols-2 gap-3">
+                    <label className="block">
+                      <span className={APPLY_FORM_LABEL}>Markets served</span>
+                      <input
+                        className={`${FINELY_OS_ENTITY_INPUT} mt-1`}
+                        value={regionsServed}
+                        onChange={(e) => setRegionsServed(e.target.value)}
+                        placeholder="e.g. Metro Atlanta"
+                      />
+                    </label>
+                    <label className="block">
+                      <span className={APPLY_FORM_LABEL}>Est. monthly closings</span>
+                      <input
+                        className={`${FINELY_OS_ENTITY_INPUT} mt-1`}
+                        value={monthlyClosings}
+                        onChange={(e) => setMonthlyClosings(e.target.value)}
+                        inputMode="numeric"
+                      />
+                    </label>
+                  </div>
+                  <label className="block">
+                    <span className={APPLY_FORM_LABEL}>How you help buyers &amp; sellers</span>
+                    <textarea
+                      rows={2}
+                      className={`${FINELY_OS_ENTITY_INPUT} mt-1`}
+                      value={notes}
+                      onChange={(e) => setNotes(e.target.value)}
+                    />
+                  </label>
+                </div>
+              ) : null}
+            </CareerChoiceApply>
+
+            <div className="border-t border-amber-900/15 pt-3">
+              <RoleGuideCta role={ROLE} ink="dark" compact />
+            </div>
+            <p className={`${FINELY_OS_COMPLIANCE_FOOTNOTE} !text-[#0a1628]/55 !mx-0 !text-left`}>
+              Educational affiliation · not an offer of employment · {ROLE_COMPLIANCE_FOOTNOTES[ROLE]}
+            </p>
           </div>
         </section>
 

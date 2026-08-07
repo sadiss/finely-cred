@@ -208,6 +208,12 @@ export function listPublicCreditSpecialistOfferTiers(): CreditSpecialistOfferTie
   return CREDIT_SPECIALIST_OFFER_TIERS.slice().sort((a, b) => a.sortOrder - b.sortOrder);
 }
 
+/** Four plain-English facts for the large tier price cards — one from each bucket. */
+export function getCreditSpecialistPlanBullets(tier: CreditSpecialistOfferTier | null | undefined): string[] {
+  if (!tier) return [];
+  return [tier.access[0], tier.education[0], tier.methods[0], tier.tools[0]].filter(Boolean) as string[];
+}
+
 /** Signup URL into unified auth with specialist role + offer intent query flags. */
 export function creditSpecialistAccountSignupUrl(args?: {
   tierId?: string;

@@ -1,7 +1,10 @@
-import React, { useMemo, useState } from 'react';
-import { AlertTriangle, ExternalLink, Paperclip, Trash2, X } from 'lucide-react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { AlertTriangle, Camera, ExternalLink, Paperclip, Trash2, X } from 'lucide-react';
+import type { Bureau, ParsedTradeline } from '../../domain/creditReports';
 import type { EvidenceItem } from '../../domain/evidence';
 import { openBlobRefInNewTab } from '../../lib/openBlobRef';
+import { captureTradelineEvidenceScreenshot } from '../../lib/captureTradelineEvidenceScreenshot';
+import { bureauFullName } from '../../utils/bureaus';
 import { EvidenceUploader } from './EvidenceUploader';
 import {
   EVIDENCE_MATCH_ATTACH_MIN,
@@ -10,6 +13,22 @@ import {
   scoreEvidenceForAccount,
 } from '../../utils/evidenceMatch';
 import { filterIdentityPacketEvidence } from '../../lib/identityEvidence';
+
+/** An attachable dispute account offered in the in-popup "choose account + capture" flow. */
+export type EvidencePickerAccount = {
+  id: string;
+  label: string;
+  creditorName: string;
+  type?: string;
+  bureau?: Bureau;
+  last4?: string | null;
+  /** Resolved parsed tradeline, when available — required to enable in-popup capture. */
+  tradeline?: ParsedTradeline | null;
+  reportId?: string;
+};
+
+const CHIP_CLS =
+  'inline-flex items-center px-2.5 py-1 rounded-lg border border-white/20 bg-black/30 text-white/80 text-[10px] font-black uppercase tracking-widest';
 
 type CategoryKey =
   | ''
@@ -57,6 +76,9 @@ export function EvidencePickerModal({
   matchAccount,
   matchCandidateType,
   strictAccountMatch = true,
+  accounts,
+  selectedAccountId,
+  onSelectAccount,
 }: {
   open: boolean;
   title: string;
@@ -81,11 +103,30 @@ export function EvidencePickerModal({
   matchAccount?: string;
   matchCandidateType?: string;
   strictAccountMatch?: boolean;
+  /** When provided, shows an in-popup "choose account + take screenshot" capture flow. */
+  accounts?: EvidencePickerAccount[];
+  /** Controlled: which account is currently targeted (drives the banner + capture). */
+  selectedAccountId?: string;
+  onSelectAccount?: (accountId: string) => void;
 }) {
   const [query, setQuery] = useState('');
   const [busyId, setBusyId] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [showNonMatching, setShowNonMatching] = useState(true);
+  const [capturing, setCapturing] = useState(false);
+  const [captureErr, setCaptureErr] = useState<string | null>(null);
+
+  const activeAccount = useMemo(() => {
+    if (!accounts?.length) return null;
+    return accounts.find((a) => a.id === selectedAccountId) ?? accounts[0] ?? null;
+  }, [accounts, selectedAccountId]);
+
+  useEffect(() => {
+    if (accounts?.length && !selectedAccountId && onSelectAccount) {
+      onSelectAccount(accounts[0]!.id);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [accounts, selectedAccountId]);
 
   const baseItems = useMemo(() => {
     if (filter === 'screenshots') return items.filter((x) => x.type === 'screenshot');
@@ -133,7 +174,35 @@ export function EvidencePickerModal({
     onPick?.(evidenceId);
   };
 
+  const handleCapture = async () => {
+    if (!activeAccount?.tradeline) {
+      setCaptureErr('No parsed tradeline found for this account yet — use "Go capture in Credit Intel" or upload a screenshot instead.');
+      return;
+    }
+    setCaptureErr(null);
+    setCapturing(true);
+    try {
+      const item = await captureTradelineEvidenceScreenshot({
+        tradeline: activeAccount.tradeline,
+        partnerId,
+        reportId: activeAccount.reportId ?? reportId,
+        creditorName: activeAccount.creditorName,
+      });
+      onUpsert(item);
+      if (onPick || onPickMany) tryPick(item.id);
+    } catch (e: any) {
+      setCaptureErr(e?.message || 'Screenshot capture failed.');
+    } finally {
+      setCapturing(false);
+    }
+  };
+
   if (!open) return null;
+
+  const bannerName = activeAccount?.label || matchAccount || null;
+  const bannerType = activeAccount?.type || matchCandidateType || null;
+  const bannerBureau = activeAccount?.bureau ?? null;
+  const bannerLast4 = activeAccount?.last4 || null;
 
   const handleOpen = async (item: EvidenceItem) => {
     setErr(null);
@@ -169,9 +238,9 @@ export function EvidencePickerModal({
                 type="button"
                 onClick={onGoCapture}
                 className="hidden sm:inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-white/[0.08] bg-white/5 hover:bg-white/10 text-[10px] font-black uppercase tracking-widest text-white/70 transition-all"
-                title="Open capture area"
+                title="Fallback: open Credit Intel to capture manually"
               >
-                Capture
+                Go capture <ExternalLink size={14} />
               </button>
             ) : null}
             {onOpenFullVault ? (
@@ -196,6 +265,78 @@ export function EvidencePickerModal({
         </div>
 
         <div className="p-6 space-y-6 max-h-[78vh] overflow-y-auto">
+          {bannerName ? (
+            <div className="rounded-2xl border-2 border-amber-400/80 bg-amber-500/20 p-4 shadow-[0_0_28px_-6px_rgba(251,191,36,0.5)]">
+              <div className="text-[10px] font-black uppercase tracking-widest text-amber-100/90">This screenshot is for</div>
+              <div className="mt-1 text-2xl font-bold text-white truncate">{bannerName}</div>
+              {bannerType || bannerBureau || bannerLast4 ? (
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {bannerType ? <span className={CHIP_CLS}>{bannerType}</span> : null}
+                  {bannerBureau ? <span className={CHIP_CLS}>{bureauFullName(bannerBureau)}</span> : null}
+                  {bannerLast4 ? <span className={CHIP_CLS}>Acct {bannerLast4}</span> : null}
+                </div>
+              ) : null}
+            </div>
+          ) : null}
+
+          {accounts && accounts.length > 0 ? (
+            <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/[0.08] p-5 space-y-3">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="text-[10px] uppercase tracking-widest text-emerald-200/80 font-black">Capture screenshot here</div>
+                {onGoCapture ? (
+                  <button
+                    type="button"
+                    onClick={onGoCapture}
+                    className="text-[10px] font-bold uppercase tracking-widest text-white/50 hover:text-white/80 underline underline-offset-4 transition-colors"
+                    title="Fallback: open Credit Intel to capture manually"
+                  >
+                    Go capture in Credit Intel instead
+                  </button>
+                ) : null}
+              </div>
+
+              <div className="flex flex-wrap items-end gap-3">
+                <label className="min-w-[220px] flex-1">
+                  <span className="block text-[10px] uppercase tracking-widest text-white/40 mb-1">Account</span>
+                  <select
+                    value={activeAccount?.id ?? ''}
+                    onChange={(e) => onSelectAccount?.(e.target.value)}
+                    className="w-full bg-fc-input border border-white/[0.08] rounded-xl px-4 py-2.5 text-white/85 focus:outline-none focus:border-emerald-500 transition-colors text-sm"
+                  >
+                    {accounts.map((a) => (
+                      <option key={a.id} value={a.id}>
+                        {a.label}
+                        {a.type ? ` — ${a.type}` : ''}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <button
+                  type="button"
+                  onClick={() => void handleCapture()}
+                  disabled={!activeAccount?.tradeline || capturing || !partnerId}
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-500 text-black font-black uppercase tracking-widest text-[11px] hover:brightness-110 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                  title={
+                    !activeAccount?.tradeline
+                      ? 'No parsed tradeline found for this account — use Go capture in Credit Intel instead.'
+                      : 'Capture a screenshot for this account'
+                  }
+                >
+                  <Camera size={16} />
+                  {capturing ? 'Capturing…' : 'Take screenshot'}
+                </button>
+              </div>
+
+              {!activeAccount?.tradeline ? (
+                <div className="text-xs text-amber-200/80">
+                  No parsed tradeline found for this account yet. Use "Go capture in Credit Intel instead" above, or upload a screenshot below.
+                </div>
+              ) : null}
+
+              {captureErr ? <div className="text-xs text-red-300">{captureErr}</div> : null}
+            </div>
+          ) : null}
+
           <EvidenceUploader
             partnerId={partnerId}
             reportId={reportId}

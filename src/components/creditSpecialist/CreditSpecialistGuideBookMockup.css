@@ -1,0 +1,151 @@
+/* Credit Specialist guide book — CSS 3D book mockup, extracted so it can render
+   anywhere (guide landing hero, pricing page hero) without depending on the
+   `.csg-page` ancestor. The wrapper class below defines its own copy of the
+   color vars it needs. */
+.csg-book-standalone {
+  --csg-gold: #d4a447;
+  --csg-gold-soft: #f0cc75;
+  --csg-lime: #95e000;
+}
+
+.csg-mockup-stage {
+  position: relative;
+  display: flex;
+  /* Needs an explicit width: flex parents shrink-to-fit, collapsing the book's
+     `width: min(100%, 260px)` to 0 otherwise. */
+  width: 100%;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 1.5rem 0 2rem;
+}
+
+.csg-mockup-glow {
+  position: absolute;
+  inset: 8% 18% 12%;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at 50% 60%, rgba(212, 164, 71, 0.35), rgba(149, 224, 0, 0.12) 45%, transparent 70%);
+  filter: blur(28px);
+  pointer-events: none;
+}
+
+.csg-mockup-pedestal {
+  position: absolute;
+  bottom: 0.35rem;
+  left: 50%;
+  width: min(72%, 280px);
+  height: 18px;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.55), transparent 70%);
+  pointer-events: none;
+}
+
+.csg-book-btn {
+  position: relative;
+  z-index: 2;
+  display: block;
+  width: min(100%, 260px);
+  aspect-ratio: 723 / 1024;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  perspective: 900px;
+  transition: transform 0.35s ease;
+}
+
+.csg-book-btn:hover,
+.csg-book-btn:focus-visible {
+  transform: translateY(-8px) scale(1.02);
+  outline: none;
+}
+
+.csg-book {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  animation: csg-float 5.5s ease-in-out infinite;
+}
+
+@keyframes csg-float {
+  0%,
+  100% {
+    transform: translateY(0) rotateY(-6deg) rotateX(2deg);
+  }
+  50% {
+    transform: translateY(-10px) rotateY(-4deg) rotateX(1deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .csg-book {
+    animation: none;
+    transform: rotateY(-5deg);
+  }
+}
+
+.csg-book-spine {
+  position: absolute;
+  inset: 2% auto 2% 0;
+  width: 10px;
+  transform: translateX(-5px);
+  border-radius: 4px 0 0 4px;
+  background: linear-gradient(180deg, #8a6a1a, #d4a447 40%, #5a4810);
+  z-index: 5;
+}
+
+.csg-book-pages {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 10px;
+  right: -14px;
+  border-radius: 3px 14px 14px 3px;
+  background: linear-gradient(90deg, #e8e2d4, #f7f3ea 30%, #ddd5c4);
+  box-shadow: 8px 12px 40px rgba(0, 0, 0, 0.45);
+  z-index: 8;
+}
+
+.csg-book-cover {
+  position: absolute;
+  inset: 0 0 0 9px;
+  overflow: hidden;
+  border-radius: 3px 14px 14px 3px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background:
+    radial-gradient(ellipse 80% 50% at 20% 10%, rgba(149, 224, 0, 0.22), transparent 50%),
+    radial-gradient(ellipse 60% 40% at 90% 80%, rgba(212, 164, 71, 0.28), transparent 55%),
+    linear-gradient(165deg, #0c1830 0%, #07101f 45%, #050a14 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 24px 60px rgba(0, 0, 0, 0.5);
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 1.15rem 1rem 1.1rem;
+  text-align: left;
+}
+
+.csg-book-cover::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.12), transparent 40%, rgba(0, 0, 0, 0.25));
+}
+
+.csg-book-open-hint {
+  position: absolute;
+  left: 50%;
+  bottom: -0.15rem;
+  z-index: 3;
+  transform: translateX(-50%);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--csg-gold-soft);
+  opacity: 0.85;
+  white-space: nowrap;
+}

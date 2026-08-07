@@ -145,7 +145,7 @@ export function PageShell({
       isAdmin ||
       isPortal ||
       pathname.startsWith('/business') ||
-      pathname.startsWith('/au') ||
+      pathname.startsWith('/au/') ||
       pathname.startsWith('/dashboard');
 
     // If the fixed public nav is not shown, don't reserve 112px of top padding.
@@ -153,7 +153,7 @@ export function PageShell({
       !pathname.startsWith('/portal') &&
       !pathname.startsWith('/admin') &&
       !pathname.startsWith('/business') &&
-      !pathname.startsWith('/au') &&
+      !pathname.startsWith('/au/') &&
       !pathname.startsWith('/dashboard');
     const topPad = useLargeTopPad ? 'pt-28' : 'pt-10';
 
@@ -177,7 +177,9 @@ export function PageShell({
     !pathname.startsWith('/portal') &&
     !pathname.startsWith('/admin') &&
     !pathname.startsWith('/business') &&
-    !pathname.startsWith('/au') &&
+    // `/au/...` (marketplace, seller workspace) is app chrome; `/au-sellers` (public careers
+    // marketing page) keeps the standard public hero top padding.
+    !pathname.startsWith('/au/') &&
     !pathname.startsWith('/dashboard') &&
     !pathname.startsWith('/seller') &&
     !pathname.startsWith('/account') &&
@@ -200,7 +202,7 @@ export function PageShell({
     isAdmin ||
     isPortal ||
     isBusiness ||
-    pathname.startsWith('/au') ||
+    pathname.startsWith('/au/') ||
     pathname.startsWith('/dashboard') ||
     pathname.startsWith('/seller') ||
     pathname.startsWith('/account');

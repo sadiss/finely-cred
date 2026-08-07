@@ -1,22 +1,28 @@
-import React, { useEffect, useState } from 'react';
-import { ArrowLeft, ArrowRight, Building2, Check, Rocket, ShieldCheck, UserCheck, XCircle } from 'lucide-react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { ArrowLeft, ArrowRight, Book, Building2, Download, LayoutDashboard, Rocket, ShieldCheck, UserCheck, Users, XCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { PageShell } from '../../components/layout/PageShell';
-import { CareersQuickNav } from '../../components/careers/CareersQuickNav';
-import { RoleGuideCta } from '../../components/careers/RoleGuideCta';
-import { ROLE_ACTION_LEGEND, roleJoinBtn, roleSecondaryBtn } from '../../components/careers/roleActionButtons';
-import { AgencyTenantConsoleMock } from '../../components/careers/roleProfileMockups';
-import { AgencyPartnersCareerGuide } from '../../components/agency/AgencyPartnersCareerGuide';
+import { CareerOtherTracksLink } from '../../components/careers/CareerOtherTracksLink';
+import { CareerPriceCardGrid, type CareerPriceCardOption } from '../../components/careers/CareerPriceCard';
+import type { CareerAccent } from '../../components/careers/careerUi';
+import { CareerPackagePanel } from '../../components/careers/CareerPackagePanel';
+import { CareerQualificationsPanel, type CareerQualificationItem } from '../../components/careers/CareerQualificationsPanel';
+import { CareerGuideTwoSheetMedia } from '../../components/careers/CareerGuideTwoSheetMedia';
+import { CareerChoiceApply } from '../../components/careers/CareerChoiceApply';
+import { CareerTierStickySummary } from '../../components/careers/CareerTierStickySummary';
 import { DigitalInviteShareBand } from '../../components/digitalCards';
-import { AGENCY, AGENCY_OFFERINGS, getPublicAgencyBuyInTiers } from '../../config/agencyPartnersProgram';
 import {
-  ROLE_BENEFITS,
-  ROLE_COMPLIANCE_FOOTNOTES,
-  ROLE_INSIDE_ACCESS,
-  ROLE_PROFILE_FEATURES,
-  ROLE_UNIQUE_CAPABILITIES,
-  ROLE_WORK_SPLIT,
-} from '../../config/rolePartnerPrograms';
+  AGENCY,
+  AGENCY_TRAINING_PHASE_LABEL,
+  AGENCY_WHITE_LABEL_LABEL,
+  agencyCapacityTierIdForBuyIn,
+  getAgencyPlanBullets,
+  getPublicAgencyBuyInTiers,
+  getPublicAgencyTiers,
+  recommendedAgencyBuyInIdForTier,
+} from '../../config/agencyPartnersProgram';
+import { formatAgencyTierKeepHeadline } from '../../config/pricingCatalog';
+import { ROLE_COMPLIANCE_FOOTNOTES, ROLE_WORK_SPLIT } from '../../config/rolePartnerPrograms';
 import { FinelyOsAlertBanner } from '../../features/os/FinelyOsAlertBanner';
 import { FinelyOsPageFooter } from '../../features/os/FinelyOsPageFooter';
 import { usePublicSeoMeta } from '../../hooks/usePublicSeoMeta';
@@ -33,25 +39,6 @@ import {
 
 const ROLE = 'agency' as const;
 
-/**
- * Obsidian operator console layout — full-bleed dark plates, gold hairlines, and a
- * sticky section rail instead of tabs. Deliberately unlike the specialist credential
- * hub, the RE ledger, the case-desk dossier, and the AU marketplace shelf.
- */
-const OBSIDIAN_PLATE =
-  'rounded-2xl border border-white/10 bg-[linear-gradient(155deg,rgba(255,255,255,0.045),rgba(0,0,0,0.35))] p-5 sm:p-6 backdrop-blur-sm';
-const GOLD_KICKER = 'text-[10px] font-black uppercase tracking-[0.32em] text-amber-200/85';
-const PLATE_TITLE = 'text-2xl sm:text-3xl font-bold tracking-tight text-white';
-const PLATE_BODY = 'text-sm sm:text-[15px] leading-relaxed text-white/70';
-
-const SECTIONS = [
-  { id: 'stack', label: 'Operating stack' },
-  { id: 'split', label: 'Who does the work' },
-  { id: 'economics', label: 'Tiers & payouts' },
-  { id: 'profile', label: 'Tenant profile' },
-  { id: 'signup', label: 'Sign up' },
-] as const;
-
 export default function AgencyPartnersPage() {
   const navigate = useNavigate();
   usePublicSeoMeta({
@@ -61,10 +48,7 @@ export default function AgencyPartnersPage() {
     path: AGENCY.publicPath,
   });
 
-  const [activeSection, setActiveSection] = useState<string>('stack');
   const [cardEligibility, setCardEligibility] = useState(() => getDigitalInviteCardEligibilityForRole('agency'));
-  const buyInTiers = getPublicAgencyBuyInTiers();
-  const workSplit = ROLE_WORK_SPLIT[ROLE];
 
   useEffect(() => {
     captureDigitalInviteCardFromUrl(window.location.search, window.location.pathname);
@@ -72,11 +56,72 @@ export default function AgencyPartnersPage() {
   }, []);
 
   const cardBonus = getDigitalInviteCardDef('agency')?.bonus;
+  const workSplit = ROLE_WORK_SPLIT[ROLE];
 
-  const jumpTo = (id: string) => {
-    setActiveSection(id);
-    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  const buyInTiers = useMemo(() => getPublicAgencyBuyInTiers(), []);
+  const capacityTiers = useMemo(() => getPublicAgencyTiers(), []);
+  const buyInAccents: CareerAccent[] = ['slate', 'emerald', 'sky', 'gold', 'rose', 'navy'];
+
+  const defaultCapacityId = capacityTiers.find((t) => t.badge === 'Popular')?.id ?? capacityTiers[0]?.id ?? '';
+  const [selectedCapacityId, setSelectedCapacityId] = useState(defaultCapacityId);
+  const [selectedBuyInId, setSelectedBuyInId] = useState<string>(
+    () => recommendedAgencyBuyInIdForTier(defaultCapacityId) ?? buyInTiers[0]?.id ?? '',
+  );
+
+  const selectedBuyIn = buyInTiers.find((b) => b.id === selectedBuyInId) ?? buyInTiers[0] ?? null;
+  const selectedCapacity = capacityTiers.find((t) => t.id === selectedCapacityId) ?? capacityTiers[0] ?? null;
+  // 1:1 mapping — each buy-in activates exactly one capacity tier, and vice versa.
+  const recommendedBuyInId = selectedCapacity ? recommendedAgencyBuyInIdForTier(selectedCapacity.id) : null;
+
+  const selectBuyIn = (id: string) => {
+    setSelectedBuyInId(id);
+    const matchedCapacityId = agencyCapacityTierIdForBuyIn(id);
+    if (matchedCapacityId) setSelectedCapacityId(matchedCapacityId);
   };
+
+  // One luxury card per buy-in — merges the 1:1 capacity tier's seats/files/white-label/keep%
+  // into 4 plain-English bullets, so partners make ONE choice instead of two dense grids.
+  const planOptions: CareerPriceCardOption[] = buyInTiers.map((b, i) => {
+    const capacity = capacityTiers.find((t) => t.id === b.capacityTierId);
+    return {
+      id: b.id,
+      name: b.name,
+      tagline: b.tagline,
+      badge: capacity?.badge,
+      priceLabel: b.priceLabel,
+      priceSubLabel: 'one-time buy-in',
+      bullets: getAgencyPlanBullets(capacity),
+      accent: buyInAccents[i % buyInAccents.length],
+    };
+  });
+
+  const qualifications: CareerQualificationItem[] = useMemo(() => {
+    if (!selectedCapacity) return [];
+    const seatText =
+      selectedCapacity.seatLimit === -1
+        ? 'Unlimited team seats'
+        : `Up to ${selectedCapacity.seatLimit} team seat${selectedCapacity.seatLimit === 1 ? '' : 's'}`;
+    const fileText =
+      selectedCapacity.activeClientLimit === -1
+        ? 'Unlimited active partner files'
+        : `Up to ${selectedCapacity.activeClientLimit} active partner files`;
+    const wl = selectedCapacity.whiteLabelLevel ? AGENCY_WHITE_LABEL_LABEL[selectedCapacity.whiteLabelLevel] : null;
+    const phase = selectedCapacity.recommendedTrainingPhase
+      ? AGENCY_TRAINING_PHASE_LABEL[selectedCapacity.recommendedTrainingPhase]
+      : null;
+    const recommendedBuyIn = recommendedBuyInId ? buyInTiers.find((b) => b.id === recommendedBuyInId) : null;
+    const items: CareerQualificationItem[] = [
+      { title: 'Team capacity', body: seatText },
+      { title: 'File capacity', body: fileText },
+    ];
+    if (wl) items.push({ title: 'White-label depth', body: wl });
+    if (phase) items.push({ title: 'Training phase', body: phase });
+    if (recommendedBuyIn) items.push({ title: 'Matching buy-in', body: `${recommendedBuyIn.name} activates this tier` });
+    items.push({ title: 'Finely account', body: 'Required to provision and own your tenant.' });
+    return items;
+  }, [selectedCapacity, recommendedBuyInId, buyInTiers]);
+
+  const goToSignup = () => navigate(`${AGENCY.signupPath}?tier=${selectedCapacityId}`);
 
   return (
     <PageShell
@@ -85,305 +130,270 @@ export default function AgencyPartnersPage() {
       subtitle="Company-level partnership — your brand, your team, Finely powers the operating system."
       hideHero
     >
-      <div className={`${FINELY_OS_PAGE} max-w-6xl mx-auto`}>
-        <div className="flex flex-wrap items-center gap-4">
-          <button type="button" onClick={() => navigate(-1)} className={FINELY_OS_BACK_LINK}>
-            <ArrowLeft size={16} /> Back
-          </button>
-          <a href="/" className={FINELY_OS_BACK_LINK}>
-            <ArrowLeft size={16} /> Home
-          </a>
+      <div className={`${FINELY_OS_PAGE} max-w-6xl mx-auto pb-20`}>
+        {/* Header — Back · Home · single CS cross-link (no 6-track jumble) */}
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div className="flex flex-wrap items-center gap-4">
+            <button type="button" onClick={() => navigate(-1)} className={FINELY_OS_BACK_LINK}>
+              <ArrowLeft size={16} /> Back
+            </button>
+            <a href="/" className={FINELY_OS_BACK_LINK}>
+              <ArrowLeft size={16} /> Home
+            </a>
+          </div>
+          <CareerOtherTracksLink currentId="agency_partners" only={['credit_specialists']} />
         </div>
 
-        <CareersQuickNav active="agency_partners" className="mt-4" />
         {cardEligibility && cardBonus ? <FinelyOsAlertBanner tone="success" message={cardBonus.description} /> : null}
 
-        {/* Obsidian hero — copy plate over a full-width tenant console mock */}
-        <section
-          className="relative overflow-hidden rounded-3xl border border-amber-300/20 p-6 sm:p-9"
-          style={{
-            background:
-              'linear-gradient(158deg,#080a0f 0%,#12161f 52%,#0a0d13 100%), radial-gradient(ellipse 55% 45% at 88% 2%, rgba(245,158,11,0.2), transparent 58%)',
-          }}
-        >
-          <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-amber-200/60 to-transparent" />
-
-          <div className="relative grid gap-8 lg:grid-cols-[1.15fr_0.85fr] lg:items-start">
+        {/* Hero — white/slate, gold brand accent, large guide imagery */}
+        <section className="rounded-3xl border-2 border-amber-200 bg-white p-6 sm:p-10">
+          <div className="grid gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:items-start">
             <div className="space-y-5">
-              <p className={GOLD_KICKER}>{AGENCY.programName}</p>
-              <h1 className="text-4xl sm:text-5xl font-black tracking-tight leading-[1.06] text-white">
-                Own a branded credit services{' '}
-                <span className="bg-[linear-gradient(96deg,#fde68a,#f59e0b,#fcd34d)] bg-clip-text text-transparent">
-                  company
-                </span>
-                .
+              <p className="text-[11px] font-black uppercase tracking-[0.28em] text-amber-700">{AGENCY.programName}</p>
+              <h1 className="text-4xl sm:text-5xl font-black tracking-tight leading-[1.08] text-slate-900">
+                Own a branded credit services company.
               </h1>
-              <p className={`${PLATE_BODY} max-w-xl`}>
+              <p className="max-w-xl text-[15px] leading-relaxed text-slate-600">
                 Agency partner means you run a tenant: your brand, your team seats, your partner routing, and a
                 white-label portal. Your operators run the files; Finely runs the platform, the method, and the
-                compliance rails underneath. This is not the solo specialist apprenticeship — that is a separate track.
+                compliance rails underneath.
               </p>
 
-              <div className="flex flex-wrap items-center gap-3">
-                <button type="button" onClick={() => navigate(AGENCY.signupPath)} className={roleJoinBtn(ROLE)}>
-                  Create agency workspace <ArrowRight size={15} />
-                </button>
-                <button type="button" onClick={() => jumpTo('economics')} className={roleSecondaryBtn(ROLE)}>
-                  See tiers &amp; payouts
-                </button>
-              </div>
-
-              {/* Distinct, prominent Agency Guide plate — gold on obsidian, unlike the join button */}
-              <div className="mt-2 rounded-2xl border border-amber-300/30 bg-black/45 p-5">
-                <p className={GOLD_KICKER}>Free — the agency launch guide</p>
-                <RoleGuideCta role={ROLE} className="mt-3" />
-                <p className="mt-3 text-[11px] leading-relaxed text-white/35">{ROLE_ACTION_LEGEND[ROLE]}</p>
-              </div>
-            </div>
-
-            <div className="space-y-3">
-              <div className="grid grid-cols-3 gap-2.5">
+              <div className="flex flex-wrap gap-2">
                 {[
-                  { n: 'Tenant', sub: 'your company' },
-                  { n: 'Seats', sub: 'team capacity' },
-                  { n: 'WL', sub: 'white-label depth' },
-                ].map((x) => (
-                  <div key={x.sub} className="rounded-xl border border-amber-300/20 bg-black/40 px-3 py-3.5 text-center">
-                    <div className="text-lg font-black tracking-tight text-amber-200">{x.n}</div>
-                    <div className="mt-1 text-[10px] font-bold uppercase tracking-[0.14em] text-white/45">{x.sub}</div>
-                  </div>
+                  { icon: Building2, label: workSplit.youDo[0], tone: 'text-amber-700 bg-amber-50 border-amber-200' },
+                  { icon: UserCheck, label: workSplit.finelyRuns[0], tone: 'text-sky-700 bg-sky-50 border-sky-200' },
+                  { icon: XCircle, label: workSplit.notYourJob[0], tone: 'text-slate-500 bg-slate-50 border-slate-200' },
+                ].map(({ icon: Icon, label, tone }) => (
+                  <span key={label} className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold ${tone}`}>
+                    <Icon size={13} /> {label}
+                  </span>
                 ))}
               </div>
-              {buyInTiers.length ? (
-                <div className="rounded-xl border border-white/10 bg-black/35 px-4 py-3.5">
-                  <p className="text-[10px] font-black uppercase tracking-[0.24em] text-white/45">One-time buy-in</p>
-                  <div className="mt-2 space-y-1.5">
-                    {buyInTiers.map((b) => (
-                      <div key={b.id} className="flex items-baseline justify-between gap-3">
-                        <span className="text-[13px] text-white/70">{b.name}</span>
-                        <span className="font-mono text-sm font-bold text-amber-200">{b.priceLabel}</span>
-                      </div>
-                    ))}
-                  </div>
+
+              <button
+                type="button"
+                onClick={goToSignup}
+                className="inline-flex items-center gap-2 rounded-xl bg-amber-500 px-6 py-3.5 text-sm font-bold text-[#1a1205] shadow-lg shadow-amber-500/25 transition-all hover:bg-amber-400"
+              >
+                Create agency workspace <ArrowRight size={15} />
+              </button>
+            </div>
+
+            <CareerGuideTwoSheetMedia
+              theme="light"
+              book={
+                <img
+                  src="/images/lead-magnets/agency-guide-book.png"
+                  alt="Agency launch guide — book"
+                  className="w-full rounded-2xl border border-slate-200/70 shadow-[0_30px_70px_-30px_rgba(15,23,42,0.35)]"
+                />
+              }
+              bundle={
+                <img
+                  src="/images/lead-magnets/agency-guide-bundle.png"
+                  alt="Agency launch guide — bundle"
+                  className="w-full rounded-2xl border border-slate-200/70 shadow-[0_30px_70px_-30px_rgba(15,23,42,0.35)]"
+                />
+              }
+              actions={
+                <div className="grid grid-cols-2 gap-3">
                   <button
                     type="button"
-                    onClick={() => jumpTo('economics')}
-                    className="mt-3 text-[11px] font-bold uppercase tracking-[0.16em] text-amber-200/80 underline decoration-amber-300/40 underline-offset-4 hover:text-amber-100"
+                    onClick={() => navigate('/free-agency-guide/read')}
+                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-sky-600 px-5 py-3.5 text-sm font-bold text-white shadow-lg shadow-sky-600/25 transition-all hover:bg-sky-700"
                   >
-                    What each buy-in includes
+                    <Book size={16} /> Read free
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => navigate('/free-agency-guide')}
+                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-amber-500 px-5 py-3.5 text-sm font-bold text-[#1a1205] shadow-lg shadow-amber-500/25 transition-all hover:bg-amber-400"
+                  >
+                    <Download size={16} /> Download
                   </button>
                 </div>
-              ) : null}
-            </div>
-          </div>
-
-          <div className="relative mt-8">
-            <AgencyTenantConsoleMock />
+              }
+            />
           </div>
         </section>
 
-        {/* Sticky section rail — this page navigates by section, not tabs */}
-        <nav
-          className="sticky top-2 z-20 -mx-1 overflow-x-auto rounded-2xl border border-amber-300/20 bg-black/75 px-2 py-2 backdrop-blur-xl [scrollbar-width:thin]"
-          aria-label="Agency program sections"
-        >
-          <div className="flex min-w-max items-center gap-1.5">
-            {SECTIONS.map((s) => (
-              <button
-                key={s.id}
-                type="button"
-                onClick={() => jumpTo(s.id)}
-                className={`rounded-xl px-3.5 py-2 text-[11px] font-black uppercase tracking-[0.16em] transition-all ${
-                  activeSection === s.id
-                    ? 'bg-amber-400/15 text-amber-100 ring-1 ring-amber-300/35'
-                    : 'text-white/50 hover:bg-white/[0.06] hover:text-white/85'
-                }`}
-              >
-                {s.label}
-              </button>
-            ))}
-          </div>
-        </nav>
-
-        {/* Operating stack */}
-        <section id="stack" className="scroll-mt-24 space-y-5">
-          <div className="max-w-2xl space-y-2.5">
-            <p className={GOLD_KICKER}>What you get</p>
-            <h2 className={PLATE_TITLE}>The agency operating stack.</h2>
-            <p className={PLATE_BODY}>
-              Four plates. Everything a company needs that a solo seat does not: branding, oversight, capacity, and
-              provisioning support.
+        {/* Top light panel — one choice, six luxury cards (no dense spreadsheet) */}
+        <section className="rounded-3xl border-2 border-slate-200 bg-slate-50 p-6 sm:p-8 space-y-6">
+          <div>
+            <p className="text-[11px] font-black uppercase tracking-[0.24em] text-slate-500">Build your plan</p>
+            <h2 className="mt-1 text-2xl font-bold text-slate-900">Pick your buy-in.</h2>
+            <p className="mt-1 max-w-2xl text-sm text-slate-500">
+              One-time buy-in, activates a matching capacity tier — seats, active partner files, white-label depth,
+              and your ongoing payout share while training vs when certified, all in one card.
             </p>
           </div>
-          <div className="grid gap-3 md:grid-cols-2">
-            {AGENCY_OFFERINGS.map((offering, i) => (
-              <div key={offering.title} className={OBSIDIAN_PLATE}>
-                <div className="flex items-start gap-4">
-                  <span className="font-mono text-lg font-black text-amber-300/45">{String(i + 1).padStart(2, '0')}</span>
-                  <div className="min-w-0 space-y-2.5">
-                    <h3 className="text-lg font-bold text-white">{offering.title}</h3>
-                    <p className="text-[13px] leading-relaxed text-white/65">{offering.description}</p>
-                    <ul className="space-y-1.5">
-                      {offering.included.map((item) => (
-                        <li key={item} className="flex gap-2 text-[13px] leading-relaxed text-white/60">
-                          <Check size={14} className="mt-0.5 shrink-0 text-amber-300" />
-                          {item}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
-              </div>
-            ))}
+
+          <CareerPriceCardGrid options={planOptions} selectedId={selectedBuyInId} onSelect={selectBuyIn} columns={3} />
+        </section>
+
+        {/* What you get for the selected tier */}
+        <section className="space-y-3">
+          <div className="max-w-2xl space-y-1.5">
+            <p className="text-[11px] font-black uppercase tracking-[0.24em] text-slate-500">What you get</p>
+            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">
+              {selectedCapacity ? `${selectedBuyIn?.name ?? ''} + ${selectedCapacity.name}` : 'Pick a plan above'}
+            </h2>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            {selectedBuyIn ? (
+              <CareerPackagePanel kicker="One-time buy-in" title={`${selectedBuyIn.name} (one-time)`} included={selectedBuyIn.included} accent="emerald" />
+            ) : null}
+            {selectedCapacity ? (
+              <CareerPackagePanel kicker="This tier includes" title={selectedCapacity.name} included={selectedCapacity.features} accent="gold" />
+            ) : null}
           </div>
         </section>
 
-        {/* Who does the work — full-width labelled rows (not columns, not cards) */}
-        <section id="split" className="scroll-mt-24 space-y-5">
-          <div className="max-w-2xl space-y-2.5">
-            <p className={GOLD_KICKER}>Who does the work</p>
-            <h2 className={PLATE_TITLE}>{workSplit.headline}</h2>
-          </div>
-          <div className="overflow-hidden rounded-2xl border border-white/10">
-            {[
-              { icon: Building2, label: 'You and your team', rows: workSplit.youDo, tone: 'text-amber-200' },
-              { icon: UserCheck, label: 'Finely runs', rows: workSplit.finelyRuns, tone: 'text-sky-200' },
-              { icon: XCircle, label: 'Never your problem', rows: workSplit.notYourJob, tone: 'text-rose-200' },
-            ].map(({ icon: Icon, label, rows, tone }) => (
-              <div
-                key={label}
-                className="grid gap-3 border-b border-white/10 bg-black/25 px-5 py-5 last:border-b-0 sm:grid-cols-[12rem_1fr] sm:gap-6"
-              >
-                <p className={`flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.24em] ${tone}`}>
-                  <Icon size={13} /> {label}
-                </p>
-                <ul className="grid gap-2 sm:grid-cols-3">
-                  {rows.map((r) => (
-                    <li key={r} className="text-[13px] leading-relaxed text-white/65">
-                      {r}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </div>
-        </section>
+        <CareerQualificationsPanel
+          heading="What it takes to qualify"
+          subheading="Plain-English requirements for the tier you picked above."
+          requirements={qualifications}
+          accent="navy"
+        />
 
-        {/* Tiers & payouts (buy-in + capacity splits) */}
-        <section id="economics" className="scroll-mt-24 space-y-5">
-          <div className="max-w-2xl space-y-2.5">
-            <p className={GOLD_KICKER}>Tiers &amp; payouts</p>
-            <h2 className={PLATE_TITLE}>One-time buy-in, then capacity payout tiers.</h2>
-            <p className={PLATE_BODY}>
-              The buy-in activates your tenant and training seat. Capacity tiers then set files, seats, white-label
-              depth, and your ongoing payout share.
+        {/* Upgrade dashboard mock — larger light console */}
+        <section className="rounded-3xl border-2 border-slate-200 bg-white p-6 sm:p-10 space-y-6">
+          <div>
+            <p className="text-[11px] font-black uppercase tracking-[0.24em] text-sky-700">This is your OS</p>
+            <h2 className="mt-1 text-2xl sm:text-3xl font-bold text-slate-900">Upgrade the console, upgrade the tier.</h2>
+            <p className="mt-1 max-w-2xl text-sm text-slate-500">
+              Seats, lanes, and white-label depth all live in one tenant workspace — the same console you provision on
+              signup, sized to whichever tier you pick above.
             </p>
           </div>
-          <div className="flex flex-wrap gap-3">
-            {buyInTiers.map((b) => (
-              <span
-                key={b.id}
-                className="inline-flex items-center gap-2 rounded-xl border border-amber-300/25 bg-black/40 px-3.5 py-2.5"
-              >
-                <Rocket size={14} className="text-amber-300" />
-                <span className="text-[13px] text-white/75">{b.name}</span>
-                <span className="font-mono text-sm font-bold text-amber-200">{b.priceLabel}</span>
-              </span>
-            ))}
-          </div>
-          <AgencyPartnersCareerGuide />
+          <AgencyLightConsoleMock />
         </section>
 
-        {/* Tenant profile: benefits, inside access, capabilities, profile features */}
-        <section id="profile" className="scroll-mt-24 space-y-6">
-          <div className="max-w-2xl space-y-2.5">
-            <p className={GOLD_KICKER}>Inside the tenant</p>
-            <h2 className={PLATE_TITLE}>Benefits, inside access, and owner-only powers.</h2>
-          </div>
+        {/* Choice CTA */}
+        <CareerChoiceApply
+          kicker="Provision your tenant"
+          title="Create your agency workspace."
+          selectedLabel={selectedCapacity ? `${selectedBuyIn?.name ?? ''} · ${selectedCapacity.name}` : 'No tier selected yet'}
+          description="Sign in or create a Finely account, then provision your tenant — agency name, tier, buy-in, and branding."
+          ctaLabel="Open agency signup"
+          onCtaClick={goToSignup}
+          loginNote="Requires a Finely login. If you only want to run your own partner files without a company tenant, use the Credit Specialist track instead."
+          secondaryLabel="Solo specialist instead?"
+          onSecondaryClick={() => navigate('/credit-specialist')}
+          accent="gold"
+        />
 
-          <div className="grid gap-3 md:grid-cols-2">
-            {ROLE_BENEFITS[ROLE].map((b) => (
-              <div key={b.label} className={`${OBSIDIAN_PLATE} !p-4`}>
-                <p className="flex items-center gap-2 text-[15px] font-semibold text-white/92">
-                  <ShieldCheck size={15} className="shrink-0 text-amber-300" />
-                  {b.label}
-                </p>
-                <p className="mt-1.5 pl-[1.55rem] text-[13px] leading-relaxed text-white/60">{b.detail}</p>
-              </div>
-            ))}
-          </div>
-
-          <div className="grid gap-6 lg:grid-cols-3">
-            {[
-              { title: 'Inside access', rows: ROLE_INSIDE_ACCESS[ROLE] },
-              { title: 'Only an owner can', rows: ROLE_UNIQUE_CAPABILITIES[ROLE] },
-              { title: 'Your tenant profile', rows: ROLE_PROFILE_FEATURES[ROLE] },
-            ].map((col) => (
-              <div key={col.title} className="space-y-3.5">
-                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/40">{col.title}</p>
-                <dl className="space-y-3">
-                  {col.rows.map((r) => (
-                    <div key={r.label} className="border-t border-amber-300/15 pt-2.5">
-                      <dt className="text-sm font-semibold text-white/90">{r.label}</dt>
-                      <dd className="mt-1 text-[13px] leading-relaxed text-white/55">{r.detail}</dd>
-                    </div>
-                  ))}
-                </dl>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* Sign up */}
-        <section id="signup" className="scroll-mt-24 space-y-5">
-          <div className={`${OBSIDIAN_PLATE} space-y-5`}>
-            <div className="space-y-2.5">
-              <p className={GOLD_KICKER}>Create your workspace</p>
-              <h2 className={PLATE_TITLE}>Provision the tenant.</h2>
-              <p className={PLATE_BODY}>
-                Sign in or create a Finely account, then provision your tenant — agency name, tier, buy-in, and branding.
-              </p>
-            </div>
-            <ol className="grid gap-2.5 sm:grid-cols-3">
-              {[
-                'Pick a capacity tier (upgrade later).',
-                'Set your agency name and white-label preferences.',
-                'Invite seats and route partners into your portal.',
-              ].map((step, i) => (
-                <li key={step} className="rounded-xl border border-white/10 bg-black/30 p-4">
-                  <span className="font-mono text-sm font-black text-amber-300/60">{String(i + 1).padStart(2, '0')}</span>
-                  <p className="mt-1.5 text-[13px] leading-relaxed text-white/70">{step}</p>
-                </li>
-              ))}
-            </ol>
-            <div className="flex flex-wrap gap-3">
-              <button type="button" onClick={() => navigate(AGENCY.signupPath)} className={roleJoinBtn(ROLE)}>
-                Open agency signup <ArrowRight size={15} />
-              </button>
-              <button type="button" onClick={() => navigate('/credit-specialist')} className={roleSecondaryBtn(ROLE)}>
-                Solo specialist instead?
-              </button>
-            </div>
-            <div className="flex gap-4 rounded-xl border border-white/10 bg-black/30 p-4">
-              <Building2 className="shrink-0 text-amber-300" size={24} />
-              <p className="text-[13px] leading-relaxed text-white/65">
-                Agency signup requires a Finely login. If you only want to run your own partner files without a company
-                tenant, use the Credit Specialist track instead.
-              </p>
-            </div>
-
-            <div className="border-t border-white/10 pt-4">
-              <RoleGuideCta role={ROLE} compact />
-            </div>
-          </div>
-
-          <DigitalInviteShareBand role="agency" />
-        </section>
+        <DigitalInviteShareBand role="agency" />
 
         <p className={FINELY_OS_COMPLIANCE_FOOTNOTE}>{ROLE_COMPLIANCE_FOOTNOTES[ROLE]}</p>
 
         <FinelyOsPageFooter />
       </div>
+
+      <CareerTierStickySummary
+        roleLabel="Agency"
+        tierName={selectedCapacity?.name}
+        economics={{
+          keepPctLabel: selectedCapacity ? formatAgencyTierKeepHeadline(selectedCapacity) ?? undefined : undefined,
+          buyInLabel: selectedBuyIn ? `${selectedBuyIn.name} ${selectedBuyIn.priceLabel}` : undefined,
+        }}
+        ctaLabel="Create workspace"
+        onCta={goToSignup}
+        accent="gold"
+        visible={Boolean(selectedCapacity)}
+      />
     </PageShell>
+  );
+}
+
+/** Larger, light-themed tenant console mock — sells "this is your operating system," not a screenshot of the dark OS. */
+function AgencyLightConsoleMock() {
+  const lanes = ['Restore', 'Build', 'Funding', 'AU'];
+  const seats = ['JD', 'MK', 'AR', '+'];
+  return (
+    <div className="overflow-hidden rounded-2xl border-2 border-slate-200 shadow-[0_40px_90px_-40px_rgba(15,23,42,0.25)]">
+      <div className="flex items-center gap-3 border-b border-slate-200 bg-slate-50 px-5 py-3">
+        <span className="flex gap-1.5">
+          <span className="h-2.5 w-2.5 rounded-full bg-rose-400" />
+          <span className="h-2.5 w-2.5 rounded-full bg-amber-400" />
+          <span className="h-2.5 w-2.5 rounded-full bg-emerald-500" />
+        </span>
+        <span className="flex-1 truncate rounded-md border border-slate-200 bg-white px-3 py-1.5 font-mono text-xs text-slate-500">
+          portal.yourbrand.com/partners
+        </span>
+        <span className="hidden rounded-full border border-amber-300 bg-amber-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest text-amber-700 sm:inline">
+          White-label
+        </span>
+      </div>
+
+      <div className="grid gap-0 sm:grid-cols-[13rem_1fr]">
+        <aside className="border-b border-slate-200 bg-slate-50 p-5 sm:border-b-0 sm:border-r">
+          <div className="flex items-center gap-2">
+            <span className="grid h-9 w-9 place-items-center rounded-lg border-2 border-dashed border-amber-300 text-[9px] font-black uppercase tracking-widest text-amber-700">
+              Logo
+            </span>
+            <span className="text-sm font-bold text-slate-900">Your Agency</span>
+          </div>
+          <div className="mt-5 space-y-1.5">
+            {['Partners', 'Disputes', 'Letters', 'Payouts', 'Team'].map((n, i) => (
+              <div
+                key={n}
+                className={`rounded-lg px-3 py-2 text-sm font-semibold ${i === 0 ? 'bg-amber-100 text-amber-800' : 'text-slate-500'}`}
+              >
+                {n}
+              </div>
+            ))}
+          </div>
+        </aside>
+
+        <div className="p-5 sm:p-8 space-y-6">
+          <div className="grid gap-3 sm:grid-cols-3">
+            {[
+              { icon: Users, label: 'Seats filled', value: `${seats.length - 1} / 6`, tone: 'text-sky-700 bg-sky-50 border-sky-200' },
+              { icon: LayoutDashboard, label: 'Active files', value: '38 / 100', tone: 'text-amber-700 bg-amber-50 border-amber-200' },
+              { icon: ShieldCheck, label: 'White-label', value: 'Co-branded', tone: 'text-emerald-700 bg-emerald-50 border-emerald-200' },
+            ].map(({ icon: Icon, label, value, tone }) => (
+              <div key={label} className={`rounded-xl border-2 p-4 ${tone}`}>
+                <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest">
+                  <Icon size={13} /> {label}
+                </div>
+                <div className="mt-1.5 text-xl font-black">{value}</div>
+              </div>
+            ))}
+          </div>
+
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Service lanes</p>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {lanes.map((lane) => (
+                <span key={lane} className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700">
+                  {lane}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Seat roster</p>
+            <div className="mt-2 flex -space-x-2">
+              {seats.map((s) => (
+                <span key={s} className="grid h-9 w-9 place-items-center rounded-full border-2 border-white bg-slate-800 text-[11px] font-black text-white">
+                  {s}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+            <Rocket size={16} className="shrink-0 text-amber-600" />
+            <p className="text-xs leading-relaxed text-slate-500">
+              Upgrade a tier and this console grows with you — more seats, more file capacity, deeper white-label.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
