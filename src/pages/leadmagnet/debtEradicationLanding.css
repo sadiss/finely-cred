@@ -75,7 +75,7 @@
 /* Squarer capture card — ~22rem wide, compact headline */
 .del-hero-form--capture {
   width: 100%;
-  max-width: 22rem;
+  max-width: 24rem;
   padding: 1.1rem 1.25rem;
   border-radius: 1rem;
 }
@@ -274,7 +274,7 @@
     justify-self: end;
     padding-left: clamp(0.25rem, 0.85in, 1.35rem);
     margin-right: 0;
-    width: min(100%, 22rem);
+    width: min(100%, 24rem);
   }
 }
 
@@ -286,7 +286,7 @@
   .del-hero-grid--book-form .del-hero-form-col {
     padding-left: clamp(0.5rem, 1in, 1.5rem);
     margin-right: 0;
-    width: min(100%, 22rem);
+    width: min(100%, 24rem);
   }
 }
 
@@ -305,7 +305,7 @@
 @media (min-width: 1024px) {
   .del-hero-form-col {
     justify-self: end;
-    width: min(100%, 22rem);
+    width: min(100%, 24rem);
   }
 }
 

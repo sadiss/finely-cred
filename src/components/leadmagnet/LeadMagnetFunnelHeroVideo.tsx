@@ -5,6 +5,7 @@ import { getFunnelMediaForConfig } from '../../data/leadMagnetFunnelMediaRepo';
 import { getResourceVideo } from '../../data/resourceVideosRepo';
 import { getBlobUrl } from '../../storage/getBlobUrl';
 import { FREE_DISPUTE_GUIDE_HERO_VIDEO_SRC } from './FreeDisputeGuideHeroVideo';
+import type { LeadMagnetVisualTheme } from './leadMagnetVisualThemes';
 import { VideoFinelyCredWordmark } from './VideoFinelyCredWordmark';
 import './premiumLeadMagnetShared.css';
 
@@ -97,6 +98,16 @@ export function LeadMagnetFunnelHeroVideo({ config, theme, posterUrl, className 
       });
     };
   }, [config.funnelId, config.id, posterUrl, theme.videoPosterImage]);
+
+  useEffect(() => {
+    if (!videoSrc || loading) return;
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduceMotion) return;
+    const el = videoRef.current;
+    if (!el) return;
+    el.muted = true;
+    void el.play().catch(() => undefined);
+  }, [videoSrc, loading]);
 
   const toggleSound = () => {
     const el = videoRef.current;
