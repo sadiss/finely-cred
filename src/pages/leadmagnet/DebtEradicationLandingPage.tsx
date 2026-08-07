@@ -33,10 +33,13 @@ const DEBT_THEME = getLeadMagnetVisualTheme(DEBT_FUNNEL);
 /**
  * Debt eradication lead magnet landing page — premium preview
  * Uses the real e-guide PNG (background removed only). No CSS book recreation.
- * Desktop hero: approved standup mockup LEFT · headline + capture form RIGHT.
+ * Desktop hero: title above · single-book mockup LEFT · capture form RIGHT (standup at bottom CTA).
  */
 
-import { DEBT_GUIDE_MOCKUP_STANDUP_SRC } from './debtGuideMockupAssets';
+import {
+  DEBT_GUIDE_MOCKUP_HERO_BOOK_SRC,
+  DEBT_GUIDE_MOCKUP_STANDUP_SRC,
+} from './debtGuideMockupAssets';
 
 function cn(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(' ');
@@ -94,33 +97,31 @@ function GuideMockup({
   tall?: boolean;
   footer?: boolean;
 }) {
-  const src = DEBT_GUIDE_MOCKUP_STANDUP_SRC;
-  const useStandupLayout = footer || tall;
+  const heroBook = tall && !footer;
+  const src = heroBook ? DEBT_GUIDE_MOCKUP_HERO_BOOK_SRC : DEBT_GUIDE_MOCKUP_STANDUP_SRC;
   return (
     <div
       className={cn(
         'del-mockup-stack',
-        tall && !footer && 'del-mockup-stack--hero',
-        useStandupLayout && 'del-mockup-stack--footer',
-        tall && footer && 'del-mockup-stack--hero-standup',
+        heroBook && 'del-mockup-stack--hero-book',
+        footer && 'del-mockup-stack--footer',
         className,
       )}
     >
-      {tall ? <div className="del-hero-stage-halo" aria-hidden /> : null}
-      {tall ? <div className="del-hero-gold-backlight" aria-hidden /> : null}
+      {heroBook ? <div className="del-hero-stage-halo" aria-hidden /> : null}
+      {heroBook ? <div className="del-hero-gold-backlight" aria-hidden /> : null}
       <div className="del-mockup-glow" aria-hidden />
       <img
         src={src}
         alt="The Ultimate Debt Freedom Guide — free e-guide from Finely Cred"
         className={cn(
           'del-mockup',
-          tall && 'del-mockup--hero lm-lux-float--soft',
-          useStandupLayout && 'del-mockup--footer',
-          tall && footer && 'del-mockup--hero-standup',
+          heroBook && 'del-mockup--hero-book lm-lux-float--soft',
+          footer && 'del-mockup--footer',
         )}
       />
       <div className="del-mockup-pedestal" aria-hidden />
-      {tall ? <div className="del-hero-stage-ring" aria-hidden /> : null}
+      {heroBook ? <div className="del-hero-stage-ring" aria-hidden /> : null}
     </div>
   );
 }
@@ -259,70 +260,72 @@ export default function DebtEradicationLandingPage() {
       <div className="lm-lux-grain lm-lux-grain--fixed pointer-events-none" aria-hidden />
       <div className="pointer-events-none fixed inset-x-0 top-0 z-0 h-[420px] bg-gradient-to-b from-[#060c2f]/55 to-transparent" />
 
-      {/* Hero — ivory field · standup mockup LEFT | headline + form RIGHT */}
+      {/* Hero — ivory field · full-width title · book LEFT | form RIGHT */}
       <section className="del-hero-section del-hero-section--ivory relative z-10 border-b border-[#e0b24a]/30 pt-20 md:pt-24">
         <div className="pointer-events-none absolute left-[8%] top-[18%] h-[380px] w-[380px] rounded-full bg-[#e0b24a]/12 blur-[110px]" />
         <div className="pointer-events-none absolute right-[10%] top-[22%] h-[320px] w-[320px] rounded-full bg-[#000c3c]/06 blur-[100px]" />
         <div className="absolute bottom-0 left-0 right-0 lm-lux-rule" />
-        <div className="del-hero-grid relative z-[2] mx-auto grid max-w-[94rem] items-center gap-10 px-5 md:px-8 lg:gap-12 xl:gap-14">
-          {/* Approved e-guide standup — left on desktop */}
-          <div className="del-hero-product-col relative z-10 order-2 flex min-w-0 flex-col items-center lg:order-1">
-            <div className="del-hero-stage relative flex w-full items-end justify-center">
-              <GuideMockup footer tall className="w-full max-w-none del-hero-standup" />
-            </div>
+        <div className="relative z-[2] mx-auto max-w-[94rem] px-5 md:px-8">
+          <div className="del-hero-head del-hero-head--full text-center">
+            <p className="del-hero-kicker text-[11px] font-black uppercase tracking-[0.22em] text-[#c4803d]">
+              Free debt &amp; summons guide
+            </p>
+            <h1 className="del-hero-title del-serif lm-lux-display del-hero-title--typewriter mt-3 md:mt-4">
+              <LandingTypewriterTitle
+                as="span"
+                text="Annihilate Your Debt."
+                className="del-hero-title-line del-hero-title-line--navy block"
+                speedMs={40}
+                delayMs={120}
+                caret
+                immediate
+              />
+              <LandingTypewriterTitle
+                as="span"
+                text="Take Back Control."
+                className="del-hero-title-line del-hero-title-line--gold block"
+                speedMs={42}
+                delayMs={980}
+                caret
+                immediate
+              />
+            </h1>
+            <div className="del-hero-title-rule lm-lux-rule--draw mx-auto" aria-hidden />
+            <p className="del-hero-lede mx-auto mt-5 max-w-2xl md:mt-6">
+              Crush collections, navigate summons with calm urgency, ease foreclosure fear, and rebuild stronger —
+              step by step.
+            </p>
           </div>
 
-          {/* Headline + capture — right on desktop */}
-          <div className="del-hero-copy relative z-20 order-1 flex min-w-0 flex-col lg:order-2">
-            <div className="del-hero-titleblock text-center lg:text-left">
-              <p className="del-hero-kicker text-[11px] font-black uppercase tracking-[0.22em] text-[#c4803d]">
-                Free debt &amp; summons guide
-              </p>
-              <h1 className="del-hero-title del-serif lm-lux-display mt-3 md:mt-4">
-                <LandingTypewriterTitle
-                  as="span"
-                  text="Annihilate Your Debt."
-                  className="del-hero-title-line del-hero-title-line--navy block"
-                  speedMs={40}
-                  delayMs={120}
-                  caret
-                />
-                <LandingTypewriterTitle
-                  as="span"
-                  text="Take Back Control."
-                  className="del-hero-title-line del-hero-title-line--gold block"
-                  speedMs={42}
-                  delayMs={980}
-                  caret
-                />
-              </h1>
-              <div className="del-hero-title-rule lm-lux-rule--draw mx-auto lg:mx-0" aria-hidden />
-              <p className="del-hero-lede mx-auto mt-5 max-w-xl md:mt-6 lg:mx-0">
-                Crush collections, navigate summons with calm urgency, ease foreclosure fear, and rebuild stronger —
-                step by step.
-              </p>
+          <div className="del-hero-grid del-hero-grid--book-form relative mt-8 grid items-end gap-10 md:mt-10 lg:mt-12">
+            <div className="del-hero-product-col relative z-10 order-2 flex min-w-0 flex-col items-center lg:order-1">
+              <div className="del-hero-stage relative flex w-full items-end justify-center">
+                <GuideMockup tall className="w-full max-w-none" />
+              </div>
             </div>
 
-            <div className="del-hero-form lm-lux-panel mt-7 max-w-md rounded-[1.35rem] p-5 md:p-6 mx-auto lg:mx-0">
-              <h2 className="mb-3 text-lg font-black uppercase tracking-[0.08em] text-white md:text-xl">
-                Get Your <span className="text-[#ffd993]">Free</span> Guide Now
-              </h2>
-              <PremiumLeadMagnetCaptureForm
-                funnelConfig={DEBT_FUNNEL}
-                accentClass="focus:border-[#ffd993] focus:ring-[#e0b24a]/15"
-              />
-              <p className="del-compliance mt-3">
-                Results vary · not legal advice · educational guide only
-              </p>
-              <Link
-                to={DEBT_GUIDE_READ_PATH}
-                className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-[#e0b24a]/45 bg-[#e0b24a]/10 px-4 py-2.5 text-[11px] font-black uppercase tracking-[0.14em] text-[#ffd993] transition hover:border-[#ffd993]/70 hover:bg-[#e0b24a]/16"
-              >
-                <BookOpen size={14} /> Read all {DEBT_GUIDE_CHAPTERS.length} pages free — no signup
-              </Link>
-              <Link to={DEBT_FUNNEL.bookingPath ?? '/enlightenment-session'} className="lm-secondary-book-link">
-                <Calendar size={14} /> Book a session
-              </Link>
+            <div className="del-hero-form-col relative z-20 order-1 min-w-0 lg:order-2">
+              <div className="del-hero-form del-hero-form--capture lm-lux-panel mx-auto lg:mx-0 lg:ml-auto">
+                <h2 className="del-hero-form-capture-title">
+                  Get Your <span className="text-[#ffd993]">Free</span> Guide Now
+                </h2>
+                <PremiumLeadMagnetCaptureForm
+                  funnelConfig={DEBT_FUNNEL}
+                  accentClass="focus:border-[#ffd993] focus:ring-[#e0b24a]/15"
+                />
+                <p className="del-compliance mt-3">
+                  Results vary · not legal advice · educational guide only
+                </p>
+                <Link
+                  to={DEBT_GUIDE_READ_PATH}
+                  className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-[#e0b24a]/45 bg-[#e0b24a]/10 px-4 py-2.5 text-[11px] font-black uppercase tracking-[0.14em] text-[#ffd993] transition hover:border-[#ffd993]/70 hover:bg-[#e0b24a]/16"
+                >
+                  <BookOpen size={14} /> Read all {DEBT_GUIDE_CHAPTERS.length} pages free — no signup
+                </Link>
+                <Link to={DEBT_FUNNEL.bookingPath ?? '/enlightenment-session'} className="lm-secondary-book-link">
+                  <Calendar size={14} /> Book a session
+                </Link>
+              </div>
             </div>
           </div>
         </div>

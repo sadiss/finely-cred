@@ -72,7 +72,63 @@
     inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
-/* ── Hero: standup mockup LEFT | headline + form RIGHT ── */
+/* Squarer capture card — ~22rem wide, compact headline */
+.del-hero-form--capture {
+  width: 100%;
+  max-width: 22rem;
+  padding: 1.1rem 1.25rem;
+  border-radius: 1rem;
+}
+
+.del-hero-form--capture .del-hero-form-capture-title,
+.del-hero-form--capture .del-hero-form-heading {
+  margin-bottom: 0.6rem;
+  font-size: 0.875rem;
+  font-weight: 900;
+  line-height: 1.3;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: #fff;
+}
+
+@media (min-width: 768px) {
+  .del-hero-form--capture {
+    padding: 1.15rem 1.35rem;
+  }
+
+  .del-hero-form--capture .del-hero-form-capture-title,
+  .del-hero-form--capture .del-hero-form-heading {
+    font-size: 0.9375rem;
+    letter-spacing: 0.065em;
+  }
+}
+
+.del-hero-form--capture .lm-lux-form {
+  --lm-field-h: 2.65rem;
+  gap: 0.55rem;
+}
+
+.del-hero-form--capture .lm-lux-btn {
+  min-height: 2.75rem;
+  height: auto;
+  padding-top: 0.65rem;
+  padding-bottom: 0.65rem;
+}
+
+.del-hero-form--capture .lm-secondary-book-link {
+  margin-top: 0.5rem;
+  font-size: 0.68rem;
+}
+
+.del-hero-title--typewriter .del-hero-title-line {
+  min-height: 1.12em;
+}
+
+.del-hero-section--ivory .del-hero-title--typewriter [class*='animate-pulse'] {
+  opacity: 1;
+}
+
+/* ── Hero: full-width title · single-book LEFT | form RIGHT ── */
 .del-hero-section {
   /* Clear fixed site nav + give title room to breathe */
   padding-top: clamp(5.75rem, 10vw, 7.5rem);
@@ -97,6 +153,14 @@
 }
 
 .del-hero-section--ivory .del-hero-title-line--gold {
+  background: none;
+  -webkit-background-clip: unset;
+  background-clip: unset;
+  -webkit-text-fill-color: unset;
+  color: #c4803d;
+}
+
+.del-hero-section--ivory .del-hero-title-line--gold > span[aria-hidden='true'] {
   background: linear-gradient(105deg, #c4803d 0%, #e0b24a 45%, #a67c2a 100%);
   -webkit-background-clip: text;
   background-clip: text;
@@ -146,9 +210,25 @@
   gap: 0;
 }
 
+@media (min-width: 1024px) {
+  .del-hero-product-col {
+    justify-self: start;
+  }
+}
+
 .del-hero-titleblock {
   width: 100%;
-  max-width: 36rem;
+  max-width: 52rem;
+  margin-inline: auto;
+  margin-bottom: 0;
+  padding-bottom: 0.25rem;
+}
+
+/* Full-width headline row above book | form */
+.del-hero-head--full {
+  width: 100%;
+  max-width: none;
+  margin-inline: 0;
   margin-bottom: 0;
   padding-bottom: 0.25rem;
 }
@@ -158,36 +238,74 @@
   margin-right: auto;
 }
 
-@media (min-width: 1024px) {
-  .del-hero-titleblock .del-hero-title-line--gold {
-    margin-left: 0;
-    margin-right: 0;
-  }
-}
-
 .del-hero-grid {
   width: 100%;
 }
 
 @media (min-width: 1024px) {
   .del-hero-grid {
-    grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
-    column-gap: 1.75rem;
-    align-items: center;
+    grid-template-columns: minmax(0, 1fr) minmax(0, auto);
+    column-gap: 5rem;
+    align-items: end;
   }
 }
 
 @media (min-width: 1280px) {
   .del-hero-grid {
-    grid-template-columns: minmax(0, 0.88fr) minmax(0, 1.12fr);
-    column-gap: 2rem;
+    column-gap: 6.5rem;
   }
 }
 
-@media (min-width: 1600px) {
+@media (min-width: 1536px) {
   .del-hero-grid {
-    grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
-    column-gap: 2.25rem;
+    column-gap: 8rem;
+  }
+}
+
+/* Book left · form right — balanced gap; form nudged ~1in left from far-right edge */
+@media (min-width: 1024px) {
+  .del-hero-grid.del-hero-grid--book-form {
+    grid-template-columns: minmax(0, 1.22fr) minmax(0, auto);
+    column-gap: clamp(2.5rem, 4vw, 4rem);
+    align-items: end;
+  }
+
+  .del-hero-grid--book-form .del-hero-form-col {
+    justify-self: end;
+    padding-left: clamp(0.25rem, 0.85in, 1.35rem);
+    margin-right: 0;
+    width: min(100%, 22rem);
+  }
+}
+
+@media (min-width: 1280px) {
+  .del-hero-grid.del-hero-grid--book-form {
+    column-gap: clamp(3rem, 4.5vw, 4.5rem);
+  }
+
+  .del-hero-grid--book-form .del-hero-form-col {
+    padding-left: clamp(0.5rem, 1in, 1.5rem);
+    margin-right: 0;
+    width: min(100%, 22rem);
+  }
+}
+
+@media (min-width: 1536px) {
+  .del-hero-grid.del-hero-grid--book-form {
+    column-gap: clamp(3.25rem, 5vw, 5rem);
+  }
+}
+
+.del-hero-form-col {
+  min-width: 0;
+  overflow: visible;
+  isolation: isolate;
+}
+
+@media (min-width: 1024px) {
+  .del-hero-form-col {
+    justify-self: end;
+    width: min(100%, 22rem);
   }
 }
 
@@ -252,9 +370,16 @@
   white-space: nowrap;
   margin-top: 0.12em;
   padding-bottom: 0.06em;
-  padding-right: 0.2em;
-  color: #ffd993;
+  padding-right: 0.28em;
+  color: #c4803d;
   overflow: visible;
+  background: none;
+  -webkit-background-clip: unset;
+  background-clip: unset;
+  -webkit-text-fill-color: unset;
+}
+
+.del-hero-title-line--gold > span[aria-hidden='true'] {
   background: linear-gradient(105deg, #ffd993 0%, #ffe7b0 42%, #e0b24a 88%);
   -webkit-background-clip: text;
   background-clip: text;
@@ -299,22 +424,44 @@
   padding-bottom: 0.5rem;
 }
 
-/* Landscape center-standup assets (~1367×768) — size to fill stage, no tall-booklet stretch */
-.del-mockup-stack--hero {
+/* Portrait single-book hero — centered in column, no landscape standup bleed */
+.del-mockup-stack--hero,
+.del-mockup-stack--hero-book {
   min-height: 0;
-  padding-bottom: 1.75rem; /* room for absolute pedestal under book */
+  padding-bottom: 1.75rem;
+  width: 100%;
+  max-width: 100%;
+  margin-inline: auto;
 }
 
 @media (min-width: 1024px) {
-  .del-mockup-stack--hero {
-    /* Soft bleed beside copy — landscape summons cutout, not tall booklet climb */
-    width: 108%;
-    max-width: none;
-    margin-left: -2%;
-    margin-right: -6%;
+  .del-mockup-stack--hero,
+  .del-mockup-stack--hero-book {
+    width: 100%;
+    max-width: min(100%, 42rem);
+    margin-left: 0;
+    margin-right: auto;
     padding-bottom: 2rem;
     overflow: visible;
     transform: none;
+  }
+}
+
+.del-mockup-stack--hero-book {
+  overflow-x: clip;
+  overflow-y: visible;
+  contain: layout style;
+}
+
+.del-mockup-stack--hero-book .del-hero-gold-backlight {
+  width: min(72%, 520px);
+  height: min(78%, 560px);
+}
+
+@media (min-width: 1024px) {
+  .del-mockup-stack--hero-book .del-hero-gold-backlight {
+    width: min(68%, 560px);
+    height: min(82%, 600px);
   }
 }
 
@@ -397,7 +544,8 @@
   pointer-events: none;
 }
 
-.del-mockup-stack--hero .del-mockup-glow {
+.del-mockup-stack--hero .del-mockup-glow,
+.del-mockup-stack--hero-book .del-mockup-glow {
   bottom: 0.1rem;
   height: 88px;
   width: min(50%, 360px);
@@ -417,61 +565,68 @@
   filter: drop-shadow(0 22px 42px rgba(0, 0, 0, 0.42));
 }
 
-/* Landscape debt & summons cutout (book + Summons Snapshot cards) */
-.del-mockup--hero {
-  width: 100%;
-  max-width: min(100%, 720px);
-  max-height: min(58vh, 560px);
+/* Portrait e-guide cover (single book) */
+.del-mockup--hero,
+.del-mockup--hero-book {
+  width: auto;
+  max-width: min(100%, 320px);
+  max-height: min(62vh, 520px);
+  margin-inline: auto;
   margin-bottom: 0;
   transform: none;
+  object-fit: contain;
+  object-position: center bottom;
   filter:
     drop-shadow(0 0 24px rgba(255, 217, 147, 0.28))
     drop-shadow(0 0 48px rgba(224, 178, 74, 0.2))
     drop-shadow(0 24px 44px rgba(4, 10, 54, 0.22));
 }
 
+/* Hero portrait asset — dominant presence (single book) */
+.del-mockup--hero-book {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: min(98%, 480px);
+  max-height: min(74vh, 720px);
+}
+
 @media (min-width: 768px) {
-  .del-mockup--hero {
-    max-height: min(62vh, 620px);
+  .del-mockup--hero,
+  .del-mockup--hero-book {
+    max-width: min(100%, 520px);
+    max-height: min(74vh, 720px);
+  }
+
+  .del-mockup--hero-book {
+    max-width: min(100%, 580px);
+    max-height: min(76vh, 760px);
   }
 }
 
 @media (min-width: 1024px) {
-  .del-mockup--hero {
-    max-width: min(100%, 820px);
-    max-height: min(68vh, 680px);
+  .del-mockup--hero,
+  .del-mockup--hero-book {
+    max-width: min(100%, 680px);
+    max-height: min(82vh, 900px);
   }
 
-  .del-mockup-stack--hero {
-    width: 108%;
-    margin-left: -2%;
-    margin-right: -6%;
+  .del-mockup--hero-book {
+    max-width: min(100%, 660px);
+    max-height: min(80vh, 880px);
   }
 }
 
 @media (min-width: 1280px) {
-  .del-mockup--hero {
-    max-width: min(100%, 920px);
-    max-height: min(72vh, 740px);
+  .del-mockup--hero,
+  .del-mockup--hero-book {
+    max-width: min(100%, 720px);
+    max-height: min(84vh, 960px);
   }
 
-  .del-mockup-stack--hero {
-    width: 112%;
-    margin-left: -4%;
-    margin-right: -8%;
-  }
-}
-
-@media (min-width: 1600px) {
-  .del-mockup--hero {
-    max-width: min(100%, 1840px);
-    max-height: min(96vh, 1280px);
-  }
-
-  .del-mockup-stack--hero {
-    width: 128%;
-    margin-left: -14%;
-    margin-right: -14%;
+  .del-mockup--hero-book {
+    max-width: min(100%, 700px);
+    max-height: min(82vh, 940px);
   }
 }
 
@@ -492,7 +647,8 @@
 }
 
 /* Hero pedestal: absolute under the book so it never widens the column / shoves copy */
-.del-mockup-stack--hero .del-mockup-pedestal {
+.del-mockup-stack--hero .del-mockup-pedestal,
+.del-mockup-stack--hero-book .del-mockup-pedestal {
   position: absolute;
   left: 50%;
   bottom: 0.2rem;
@@ -509,17 +665,19 @@
 }
 
 @media (min-width: 1024px) {
-  .del-mockup-stack--hero .del-mockup-pedestal {
-    width: min(48%, 380px);
-    height: 58px;
+  .del-mockup-stack--hero .del-mockup-pedestal,
+  .del-mockup-stack--hero-book .del-mockup-pedestal {
+    width: min(72%, 280px);
+    height: 52px;
     bottom: 0.25rem;
   }
 }
 
 @media (min-width: 1280px) {
-  .del-mockup-stack--hero .del-mockup-pedestal {
-    width: min(46%, 400px);
-    height: 62px;
+  .del-mockup-stack--hero .del-mockup-pedestal,
+  .del-mockup-stack--hero-book .del-mockup-pedestal {
+    width: min(68%, 300px);
+    height: 56px;
   }
 }
 
@@ -550,25 +708,6 @@
   bottom: 5%;
   width: min(88%, 260px);
   height: 90px;
-}
-
-.del-mockup-stack--hero-standup {
-  width: min(100%, 54rem);
-  margin-inline: auto;
-}
-
-.del-mockup--hero-standup {
-  width: 100%;
-  max-width: min(100%, 520px);
-  max-height: min(70vh, 480px);
-  height: auto;
-  object-fit: contain;
-  object-position: center bottom;
-  transform: none;
-}
-
-.del-hero-standup .del-mockup-pedestal {
-  opacity: 0.85;
 }
 
 /* ── Proof pillars (compact luxury) ── */
@@ -926,6 +1065,16 @@
 /* Shared luxury stage harmony + mobile polish */
 .del-hero-title.lm-lux-display {
   font-size: clamp(2.25rem, 1.35rem + 3.2vw, 3.55rem);
+  overflow: visible;
+}
+
+.del-hero-title--typewriter.lm-lux-display,
+.del-hero-title--typewriter .del-hero-title-line {
+  overflow: visible;
+}
+
+.del-hero-title--typewriter .del-hero-title-line--navy {
+  padding-right: 0.12em;
 }
 
 .del-proof-pillar,
@@ -978,12 +1127,14 @@
     width: calc(100% + 2.5rem);
   }
 
-  .del-mockup-stack--hero {
+  .del-mockup-stack--hero,
+  .del-mockup-stack--hero-book {
     min-height: 0;
     padding-inline: 0.4rem;
   }
 
-  .del-mockup--hero {
+  .del-mockup--hero,
+  .del-mockup--hero-book {
     max-width: 100%;
     max-height: min(72vh, 640px);
     margin-bottom: -0.15rem;

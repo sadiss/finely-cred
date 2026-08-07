@@ -751,22 +751,22 @@ These plans are historical build records, not living specs — once a plan's wor
 | `src/config/siteWayfinderLanes.ts` | Public wayfinder; Solutions **Tradelines → `/tradelines`**; `PUBLIC_CORE_NAV` (Home / Dispute guide) — see §14.5 |
 | `src/features/os/finelyOsAdminSurface.ts` | Platinum Workspace tokens/tones — see §14.4 |
 | `src/components/evidence/EvidencePickerModal.tsx` | Evidence picker + in-popup account choose/capture — see §14.7 |
-| `src/pages/leadmagnet/debtGuideMockupAssets.ts` | Approved debt funnel standup PNG — see §14.10 |
+| `src/pages/leadmagnet/debtGuideMockupAssets.ts` | Debt funnel hero book + standup PNG constants — see §14.10 |
 | `src/components/leadmagnet/VideoFinelyCredWordmark.tsx` | Typography-only video brand (no raster logo) — see §14.10 |
 
 ### 14.10 Debt guide funnel visuals & video branding (2026-08)
 
-**Canonical mockup (hero, homepage band, footer CTA):**
+**Canonical mockups (`debtGuideMockupAssets.ts`):**
 
-- Path: `public/images/lead-magnets/debt-eradication-standup.png`
-- Constant: `DEBT_GUIDE_MOCKUP_STANDUP_SRC` in `src/pages/leadmagnet/debtGuideMockupAssets.ts`
-- **Do not** use `debt-and-summons-mockup.png` or legacy booklet cutouts on `/free-debt-guide` or the homepage debt band — those were retired.
+- **Hero (single book):** `DEBT_GUIDE_MOCKUP_HERO_BOOK_SRC` → `public/images/lead-magnets/debt-eradication-mockup.png` — `/free-debt-guide` hero only (`GuideMockup` with `tall`, no `footer`).
+- **Standup stack (brochure + tablet + book):** `DEBT_GUIDE_MOCKUP_STANDUP_SRC` → `public/images/lead-magnets/debt-eradication-standup.png` — homepage debt band + `/free-debt-guide` footer CTA (`GuideMockup` with `footer`).
+- **Do not** use `debt-and-summons-mockup.png` or legacy booklet cutouts — those were retired.
 
 **`/free-debt-guide` hero layout:**
 
-- **Left:** standup mockup (`GuideMockup` with `footer` + `tall` on `DebtEradicationLandingPage.tsx`)
+- **Left:** single-book hero mockup (`GuideMockup` with `tall` on `DebtEradicationLandingPage.tsx`)
 - **Right:** headline + `PremiumLeadMagnetCaptureForm`
-- CSS: `debtEradicationLanding.css` (`del-hero-grid`, `del-mockup-stack--hero-standup`)
+- CSS: `debtEradicationLanding.css` (`del-hero-grid`, `del-mockup-stack--hero-book`)
 
 **Homepage debt band:**
 
