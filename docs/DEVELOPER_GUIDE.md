@@ -23,7 +23,7 @@ This guide is concrete about file paths so you can jump straight to the code. It
 11. [Troubleshooting matrix](#11-troubleshooting-matrix)
 12. [Useful npm scripts](#12-useful-npm-scripts)
 13. [Branching note](#13-branching-note)
-14. [Recent product surfaces (2026)](#14-recent-product-surfaces-2026) — careers/CS join, tradelines vs AU sellers, agency buy-ins, Platinum Workspace, home/nav wayfinding, affiliate + Denefit share, letters evidence capture, plan docs index
+14. [Recent product surfaces (2026)](#14-recent-product-surfaces-2026) — careers/CS join, tradelines vs AU sellers, agency buy-ins, Platinum Workspace, home/nav wayfinding, affiliate + Denefit share, letters evidence capture, **debt guide mockup + video wordmark (§14.10)**, plan docs index
 
 ---
 
@@ -751,6 +751,32 @@ These plans are historical build records, not living specs — once a plan's wor
 | `src/config/siteWayfinderLanes.ts` | Public wayfinder; Solutions **Tradelines → `/tradelines`**; `PUBLIC_CORE_NAV` (Home / Dispute guide) — see §14.5 |
 | `src/features/os/finelyOsAdminSurface.ts` | Platinum Workspace tokens/tones — see §14.4 |
 | `src/components/evidence/EvidencePickerModal.tsx` | Evidence picker + in-popup account choose/capture — see §14.7 |
+| `src/pages/leadmagnet/debtGuideMockupAssets.ts` | Approved debt funnel standup PNG — see §14.10 |
+| `src/components/leadmagnet/VideoFinelyCredWordmark.tsx` | Typography-only video brand (no raster logo) — see §14.10 |
+
+### 14.10 Debt guide funnel visuals & video branding (2026-08)
+
+**Canonical mockup (hero, homepage band, footer CTA):**
+
+- Path: `public/images/lead-magnets/debt-eradication-standup.png`
+- Constant: `DEBT_GUIDE_MOCKUP_STANDUP_SRC` in `src/pages/leadmagnet/debtGuideMockupAssets.ts`
+- **Do not** use `debt-and-summons-mockup.png` or legacy booklet cutouts on `/free-debt-guide` or the homepage debt band — those were retired.
+
+**`/free-debt-guide` hero layout:**
+
+- **Left:** standup mockup (`GuideMockup` with `footer` + `tall` on `DebtEradicationLandingPage.tsx`)
+- **Right:** headline + `PremiumLeadMagnetCaptureForm`
+- CSS: `debtEradicationLanding.css` (`del-hero-grid`, `del-mockup-stack--hero-standup`)
+
+**Homepage debt band:**
+
+- `src/components/landing/LandingDebtEradicationBand.tsx` imports the same `DEBT_GUIDE_MOCKUP_STANDUP_SRC`.
+
+**Funnel & homepage video — no raster logo:**
+
+- Use `VideoFinelyCredWordmark` (`src/components/leadmagnet/VideoFinelyCredWordmark.tsx`) on `LeadMagnetFunnelHeroVideo` and `LandingCinematicVideoStage`.
+- Pre-play state on the homepage cinematic stage is a navy gradient + wordmark (not `home-credit-solutions-poster.png`).
+- Regenerating funnel mockups: `node scripts/build-debt-eradication-mockup.mjs` (kit under `public/images/lead-magnets/_kit/`).
 
 ---
 
