@@ -39,6 +39,7 @@ function guessDocTypeFromText(caption?: string, filename?: string): DocumentType
   const s = `${caption || ''} ${filename || ''}`.toLowerCase();
   if (/affidavit|sworn|notary|perjury/.test(s)) return 'affidavit';
   if (/summons|complaint/.test(s) && !/answer to/.test(s)) return 'summons';
+  if (/docket|register of actions|case history|\broa\b|court events/.test(s)) return 'court_filing';
   if (/motion|discovery|court order|judgment|subpoena|filing/.test(s)) return 'court_filing';
   if (/bankruptcy|chapter\s*7|chapter\s*13|discharge/.test(s)) return 'bankruptcy_order';
   if (/creditor response|original creditor/.test(s)) return 'creditor_response';
@@ -438,18 +439,39 @@ export function routeProcessedDocument(args: {
     }
 
     default: {
+      if (args.debtCaseId) {
+        const debtCase = findOrCreateDebtCase(args.partnerId, entities, effectiveType, debtExtras);
+        linkedDebtCaseId = debtCase?.id;
+      }
       pushTask({
         partnerId: args.partnerId,
-        title: 'Review uploaded document',
+        title: args.debtCaseId ? 'Debt case document filed — review in Debt Center' : 'Review uploaded document',
         kind: 'general',
         status: 'pending',
-        stage: 'evidence',
+        stage: args.debtCaseId ? 'debt' : 'evidence',
         priority: 'normal',
         evidenceIds: args.evidenceId ? [args.evidenceId] : undefined,
         assignedTo: 'partner',
-        notes: args.summary || 'Document saved to vault. Classify and route manually if needed.',
-        meta: { route: 'other', href: '/portal/documents' },
+        notes:
+          args.summary ||
+          (args.debtCaseId
+            ? 'Document saved and linked to your open debt case. Continue validation or litigation steps.'
+            : 'Document saved to vault. Classify and route manually if needed.'),
+        meta: {
+          route: 'other',
+          href: args.debtCaseId ? `/portal/debt/${args.debtCaseId}` : '/portal/documents',
+          debtCaseId: args.debtCaseId,
+        },
       });
+      if (args.debtCaseId) {
+        actions.push({
+          id: 'debt',
+          label: 'Continue debt case',
+          description: 'Stay in Debt Center — scrape and letter tools are on this case.',
+          path: `/portal/debt/${args.debtCaseId}`,
+          priority: 'high',
+        });
+      }
       actions.push({
         id: 'documents',
         label: 'Documents vault',

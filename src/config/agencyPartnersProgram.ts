@@ -7,8 +7,11 @@ export function getPublicAgencyTiers(): AgencyTier[] {
 
 export const AGENCY = {
   programName: 'Agency Partner Program',
+  hubName: 'Agency Hub',
+  hubPath: '/agency/hub',
   signupPath: '/agency/signup',
   publicPath: '/agency-partners',
+  messagesDeepLink: '/portal/messages?hub=team&topic=agency_program',
 } as const;
 
 /**

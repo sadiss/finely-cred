@@ -39,6 +39,7 @@ import { FinelyUnifiedHubLayout } from '../../features/unified/FinelyUnifiedHubL
 import { ValidationAdvisorChat } from '../../components/debt/ValidationAdvisorChat';
 import { CourtAdvisorChat } from '../../components/debt/CourtAdvisorChat';
 import { CollateralWorkstationSection } from '../../components/debt/CollateralWorkstationSection';
+import { FdcpaPowerChips } from '../../components/debt/FdcpaPowerChips';
 import { SmartProofUploader } from '../../components/evidence/SmartProofUploader';
 import { DebtLetterDraftWorkspace } from '../../components/letters/DebtLetterPreview';
 import { senderPreviewLines } from '../../lib/letterSenderBlock';
@@ -513,7 +514,19 @@ export default function PartnerDebtDetailPage() {
         >
         {partner ? (
           <div className="mb-4 space-y-3">
-            <SmartProofUploader partner={partner} email={partner.profile.email} debtCaseId={debt.id} uploadContext="debt" compact />
+            <SmartProofUploader
+              partner={partner}
+              email={partner.profile.email}
+              debt={debt}
+              debtCaseId={debt.id}
+              uploadContext="debt"
+              compact
+              onDebtChange={(d) => {
+                onDebtCaseUpdated(debt, d);
+                setDebtState(d);
+              }}
+              onUploaded={() => setEvidenceVersion((v) => v + 1)}
+            />
             <PartnerDebtSnapshotStrip partnerId={partner.id} compact accent={isSummons ? 'fuchsia' : 'emerald'} />
             {(debtPartyInfo?.collectorName ||
               debtPartyInfo?.originalCreditor ||
@@ -576,13 +589,13 @@ export default function PartnerDebtDetailPage() {
               </div>
             ) : null}
             <div className="flex flex-wrap gap-2">
-              <button type="button" onClick={() => navigate('/portal/letters?tab=validation')} className={FINELY_OS_SECONDARY_BTN}>
+              <button type="button" onClick={() => navigate('/portal/debt?tab=validation')} className={FINELY_OS_SECONDARY_BTN}>
                 Validation workstation
               </button>
-              <button type="button" onClick={() => navigate('/portal/letters?tab=court')} className={FINELY_OS_SECONDARY_BTN}>
+              <button type="button" onClick={() => navigate('/portal/debt?tab=court')} className={FINELY_OS_SECONDARY_BTN}>
                 Affidavits & court
               </button>
-              <button type="button" onClick={() => navigate('/portal/letters?tab=bankruptcy')} className={FINELY_OS_SECONDARY_BTN}>
+              <button type="button" onClick={() => navigate('/portal/debt?tab=bankruptcy')} className={FINELY_OS_SECONDARY_BTN}>
                 Bankruptcy center
               </button>
             </div>
@@ -733,6 +746,8 @@ export default function PartnerDebtDetailPage() {
               Full center <ArrowRight size={12} />
             </button>
           </div>
+
+          <FdcpaPowerChips debt={debt} />
 
           <div className="space-y-3">
             {letterIdsForCase.map((letterId) => {

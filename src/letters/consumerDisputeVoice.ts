@@ -1,6 +1,7 @@
 /**
  * Canonical consumer voice for credit dispute letters and education.
  * Human first — noticed something wrong, real-life impact, pulled report, learned FCRA, then dispute.
+ * Partner-facing guide copy uses partner terminology; letter templates stay first-person.
  */
 
 export const CONSUMER_DISPUTE_OPENING = `To Whom It May Concern,
@@ -83,14 +84,14 @@ export const DISPUTE_GUIDE_FIVE_STEPS: DisputeGuideStep[] = [
     heading: 'Step 1 — Identify the target item',
     lead: 'One clean target beats ten scattered complaints.',
     paragraphs: [
-      'Start by pulling your own report from each bureau (or a tri-merge if you have one). Read it like a detective, not a victim: you are looking for one tradeline where the story on paper does not match reality.',
-      'Do not dispute everything at once. Bureaus and OCR systems flag “shotgun” letters. One negative per letter, one clear inaccuracy per round — that is how consumers win reinvestigations that actually stick.',
+      'Start by pulling your own report from each bureau (or a tri-merge if you have one). Read it like an analyst, not a victim: you are looking for one tradeline where the story on paper does not match reality — that is your Round 1 target.',
+      'Do not dispute everything at once. Bureaus and OCR systems flag "shotgun" letters. One negative per letter, one clear inaccuracy per round — that is how partners keep reinvestigations focused enough to stick.',
     ],
     bullets: [
       'Download or request your report (AnnualCreditReport.com, monitoring service, or bureau directly). Same-day pulls are best when you are actively disputing.',
       'Circle ONE negative tradeline per letter — the item hurting you most (collections, charge-offs, lates, wrong balances).',
       'Screenshot the exact fields: account name, status, balance, credit limit, date opened, date of first delinquency, last reported, and the 24-month payment grid.',
-      'Write down why it looks wrong in plain English before you open a template (“status says paid but grid shows 90-day lates”).',
+      'Write down why it looks wrong in plain English before you open a template ("status says paid but grid shows 90-day lates").',
       'Save screenshots to your Documents / Evidence vault before you draft — never dispute from memory.',
       'Note which bureau page it appeared on (Equifax, Experian, or TransUnion) — you mail each bureau separately.',
     ],
@@ -102,7 +103,7 @@ export const DISPUTE_GUIDE_FIVE_STEPS: DisputeGuideStep[] = [
     heading: 'Step 2 — Choose your dispute lane',
     lead: 'Pick the strongest honest angle — accuracy, verifiability, or completeness.',
     paragraphs: [
-      'Every dispute falls into one of three lanes. You are not arguing feelings; you are pointing at what the file shows versus what can be proven.',
+      'Every dispute falls into one of three primary lanes (with identity as a fourth when the file itself is split). You are not arguing feelings; you are pointing at what the file shows versus what can be proven.',
       'The lane you choose determines which exhibits you attach and which FCRA duty you invoke. Switching lanes mid-round weakens your paper trail — commit to one clean theory per letter.',
     ],
     bullets: [
@@ -110,11 +111,11 @@ export const DISPUTE_GUIDE_FIVE_STEPS: DisputeGuideStep[] = [
       'Unverifiable: the furnisher cannot produce a signed agreement, account ownership chain, or proof the debt is yours as reported.',
       'Incomplete: required Metro2 fields missing, wrong account type, or masked identifiers that prevent you from confirming the tradeline.',
       'Identity mismatch: name/address variants splitting your file — fix identity layer before heavy dispute rounds.',
-      'Never cite “illegal” or “fraud” without facts — factual findings tied to screenshots win reinvestigations.',
+      'Never cite "illegal" or "fraud" without facts — factual findings tied to screenshots are what reinvestigations can act on.',
       'Match the lane to your exhibit: inaccuracy needs field contradictions; unverifiable needs method-of-verification / incomplete reinvestigation language — not FDCPA debt-validation.',
     ],
     powerMove:
-      'Power move: Metro2 “status vs grid” conflicts are high-win — e.g., “Current” status with derogatory history codes in the same account block.',
+      'Power move: Metro2 "status vs grid" conflicts are high-leverage — e.g., "Current" status with derogatory history codes in the same account block.',
   },
   {
     id: 'step-3',
@@ -122,14 +123,14 @@ export const DISPUTE_GUIDE_FIVE_STEPS: DisputeGuideStep[] = [
     lead: 'Start in your own words — then cite the law you researched.',
     paragraphs: [
       'Your opening should read like you explaining the problem to someone who can help: what looks wrong on your report, how it is affecting your life (denials, apartment, car, rates), that you pulled your report and looked up your rights, and what you are asking them to do — not like a copy-paste template from the internet.',
-      'After your opening paragraphs, list the account once, tie each reason to an exhibit, and close with a clear request for reinvestigation results and method of verification.',
+      'After your opening paragraphs, list the account once, tie each reason to an exhibit, and close with a clear request for reinvestigation results and method of verification. Structure is how your story survives intake.',
     ],
     bullets: [
       'Opening — part 1: What you noticed that does not look right on your report.',
       'Opening — part 2: How it is hurting you (denied credit, apartment, auto loan, higher deposits, etc.).',
       'Opening — part 3: You pulled your report, compared records, researched the FCRA, and you are exercising your dispute rights.',
       'Body: One account block — furnisher, last 4 digits, specific fields that are wrong, numbered factual reasons.',
-      'Reference exhibits in the body (“See Exhibit A — report screenshot dated [date]”).',
+      'Reference exhibits in the body ("See Exhibit A — report screenshot dated [date]").',
       'Closing: Request reinvestigation, corrected report copy, and method of verification if anything is maintained.',
       'Hand-sign in ink; typed name and date; keep a full copy of everything mailed.',
     ],
@@ -141,13 +142,13 @@ export const DISPUTE_GUIDE_FIVE_STEPS: DisputeGuideStep[] = [
     heading: 'Step 4 — Attach minimum proof',
     lead: 'Less is more — but zero proof is a wasted stamp.',
     paragraphs: [
-      'Attach only what proves the specific claim in that letter. Over-attaching unrelated docs dilutes your argument and overwhelzes bureau intake.',
+      'Attach only what proves the specific claim in that letter. Over-attaching unrelated docs dilutes your argument and overwhelms bureau intake. Proof is a scalpel, not a filing cabinet.',
       'Label every attachment Exhibit A, B, C and cite it in the letter body. The reinvestigation analyst should not have to guess why a page is included.',
     ],
     bullets: [
       'Minimum identity pack: government ID + proof of address (utility bill, bank statement ≤ 90 days).',
       'For the tradeline: full account panel screenshot + payment history grid + any statement or letter that contradicts the bureau.',
-      'One exhibit per major claim — do not dump 40 pages “just in case.”',
+      'One exhibit per major claim — do not dump 40 pages "just in case."',
       'Print on plain white paper, black ink; avoid neon highlights and all-caps rage paragraphs.',
       'Keep a mailed copy: letter + exhibits + envelope front + certified mail receipt.',
       'Upload the same packet to your portal Evidence vault and link it to the dispute task.',
@@ -158,10 +159,10 @@ export const DISPUTE_GUIDE_FIVE_STEPS: DisputeGuideStep[] = [
   {
     id: 'step-5',
     heading: 'Step 5 — Follow-up cadence',
-    lead: 'Round 1 opens the file; Round 2 wins on their answer.',
+    lead: 'Round 1 opens the file; Round 2 is built on their answer.',
     paragraphs: [
       'Mail once, then wait for the bureau response (typically 30 days). Your job is not to spam — it is to document what changed and tighten the same claim with new facts from their reply.',
-      'If they “verify” without explaining how, that itself becomes Round 2 ammunition — request method of verification in writing and cite new contradictions.',
+      'If they "verify" without explaining how, that silence becomes Round 2 ammunition — request method of verification in writing and cite new contradictions. Discipline beats volume every time.',
     ],
     bullets: [
       'Round 1: one tradeline, one lane, certified mail, minimum exhibits, log sent date in Tasks.',
@@ -172,7 +173,7 @@ export const DISPUTE_GUIDE_FIVE_STEPS: DisputeGuideStep[] = [
       'Escalation path (CFPB, AG, BBB) only after your paper trail is organized — dates, tracking, exhibits.',
     ],
     powerMove:
-      'Power move: Create a one-page timeline (sent → delivered → response → next action). Funders and coaches take you seriously when your file is dated and disciplined.',
+      'Power move: Create a one-page timeline (sent → delivered → response → next action). Partners, coaches, and regulators take a dated file seriously — results still vary.',
   },
 ];
 

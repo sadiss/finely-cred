@@ -7,7 +7,7 @@ import { converseWithFinelyAi } from '../../lib/conversationalAi';
 import type { AgentPersonaId } from '../../domain/agentPersonas';
 import { getAgentPersona } from '../../domain/agentPersonas';
 import { getPortalStaffPersona, portalPersonaForLane } from '../../data/agentPersonasRepo';
-import { loadStaffRoster, resolveStaffOnDuty } from '../../data/staffRoster';
+import { forceStaffShiftPolicyResync, loadStaffRoster, resolveStaffOnDuty } from '../../data/staffRoster';
 import { staffMemberFullName, type StaffMember } from '../../domain/staffMember';
 import { StaffPortraitImg } from '../staff/StaffPortraitImg';
 import { resolveStaffPortraitUrl, STAFF_PORTRAIT_PHOTO_CLASS } from '../../lib/staffPortrait';
@@ -88,9 +88,11 @@ export function HubUnifiedConversationPanel({
   const [routingChips, setRoutingChips] = useState<CommsRoutingSuggestion[]>([]);
   const [personaId, setPersonaId] = useState<AgentPersonaId>(() => portalPersonaForLane(lane).id);
   const [activeStaff, setActiveStaff] = useState<StaffMember | null>(() => resolveStaffOnDuty(portalPersonaForLane(lane).id));
+  const [staffPinned, setStaffPinned] = useState(false);
   const [activeThreadId, setActiveThreadId] = useState<string | null>(null);
   const [storeVersion, setStoreVersion] = useState(0);
   const [showHistory, setShowHistory] = useState(false);
+  const [dutyTick, setDutyTick] = useState(0);
 
   const persona = useMemo(() => getPortalStaffPersona(personaId), [personaId]);
   const presentation = useMemo(() => {
@@ -114,9 +116,19 @@ export function HubUnifiedConversationPanel({
   ]);
 
   useEffect(() => {
-    const onStore = () => setStoreVersion((v) => v + 1);
+    const onStore = () => {
+      setStoreVersion((v) => v + 1);
+      setDutyTick((n) => n + 1);
+    };
     window.addEventListener('finely:store', onStore as EventListener);
     return () => window.removeEventListener('finely:store', onStore as EventListener);
+  }, []);
+
+  useEffect(() => {
+    forceStaffShiftPolicyResync();
+    setDutyTick((n) => n + 1);
+    const interval = window.setInterval(() => setDutyTick((n) => n + 1), 30_000);
+    return () => window.clearInterval(interval);
   }, []);
 
   useEffect(() => {
@@ -127,8 +139,15 @@ export function HubUnifiedConversationPanel({
 
   useEffect(() => {
     setPersonaId(portalPersonaForLane(lane).id);
+    setStaffPinned(false);
     setActiveStaff(resolveStaffOnDuty(portalPersonaForLane(lane).id));
   }, [lane]);
+
+  useEffect(() => {
+    if (staffPinned) return;
+    void dutyTick;
+    setActiveStaff(resolveStaffOnDuty(portalPersonaForLane(lane).id));
+  }, [dutyTick, lane, staffPinned]);
 
   useEffect(() => {
     const onStaffDm = (e: Event) => {
@@ -136,6 +155,7 @@ export function HubUnifiedConversationPanel({
       if (!detail?.staffId) return;
       const staff = loadStaffRoster().find((s) => s.id === detail.staffId);
       if (staff) {
+        setStaffPinned(true);
         setActiveStaff(staff);
         setPersonaId(staff.primaryRoleId);
       }

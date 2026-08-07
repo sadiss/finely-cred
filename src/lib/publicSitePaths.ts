@@ -4,6 +4,7 @@ const PUBLIC_PREFIXES = [
   '/free-debt-guide',
   '/free-business-guide',
   '/free-tradeline-guide',
+  '/case-desk-guide',
   '/resources',
   '/pricing',
   '/services',
@@ -48,8 +49,13 @@ export function isInternalWorkspacePath(pathname: string): boolean {
     path.startsWith('/business') ||
     path.startsWith('/credit-specialist') ||
     path.startsWith('/affiliate/hub') ||
+    path.startsWith('/agency/hub') ||
+    path.startsWith('/agency/signup') ||
+    path.startsWith('/case-help/hub') ||
+    path.startsWith('/real-estate/hub') ||
     path.startsWith('/agent') ||
     path.startsWith('/seller') ||
+    path.startsWith('/au-seller/hub') ||
     path.startsWith('/au/')
   );
 }

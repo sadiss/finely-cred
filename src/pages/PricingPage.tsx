@@ -2,6 +2,8 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { ArrowRight, Shield, Sparkles, Building2, Scale, Lock, Gift, Users, Crown, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { PageShell } from '../components/layout/PageShell';
+import { useAuth } from '../auth/AuthProvider';
+import { resolvePackageSelectPath } from '../lib/packageCheckoutRouting';
 import { getPricingControls } from '../data/settingsRepo';
 import {
   personalCreditPackages,
@@ -20,10 +22,10 @@ import {
 } from '../config/pricingCatalog';
 import { AgencyTierCard } from '../components/pricing/PricingCards';
 import { PricingPackageCatalog } from '../components/pricing/PricingPackageCatalog';
+import { ServicesChooserModal } from '../components/pricing/ServicesChooserModal';
 import { CS } from '../config/creditSpecialistProgram';
 import { startFinancingPreapprovalInterest } from '../lib/financingPreapprovalInterest';
 import { FinelyOsPageFooter } from '../features/os/FinelyOsPageFooter';
-import { FinelyUnifiedHubLayout } from '../features/unified/FinelyUnifiedHubLayout';
 import { MarketingStaffChatStrip } from '../components/marketing/MarketingStaffChatStrip';
 import { PricingSolutionsHero, type PricingSolutionKey } from '../features/os/PricingSolutionsHero';
 import { usePublicSeoMeta } from '../hooks/usePublicSeoMeta';
@@ -31,7 +33,6 @@ import { LandingTypewriterTitle } from '../components/landing/LandingTypewriterT
 import { LandingSellAtmosphere } from '../components/landing/LandingSellAtmosphere';
 import {
   FINELY_OS_ENTITY_BODY,
-
   FINELY_OS_ENTITY_SUBLABEL,
   FINELY_OS_ENTITY_VALUE,
   FINELY_OS_LUXURY_EMPTY,
@@ -86,6 +87,7 @@ const TABS: { key: TabKey; label: string; icon: React.ReactNode; accent: FinelyO
 
 export default function PricingPage() {
   const navigate = useNavigate();
+  const auth = useAuth();
   usePublicSeoMeta({
     title: 'Pricing & packages',
     description: 'Personal restore, business credit, debt & legal, tradelines, and Credit Specialist partnership tiers.',
@@ -96,6 +98,7 @@ export default function PricingPage() {
   const [deliveryMode, setDeliveryMode] = useState<DeliveryMode>('DFY');
   const [personalLane, setPersonalLane] = useState<PersonalLane>('restore');
   const [storeVersion, setStoreVersion] = useState(0);
+  const [chooserOpen, setChooserOpen] = useState(false);
 
   useEffect(() => {
     const onStore = () => setStoreVersion((v) => v + 1);
@@ -124,42 +127,46 @@ export default function PricingPage() {
   }, [searchParams]);
 
   const handleSelect = (pkgId?: string, rail?: 'stripe' | 'in_house') => {
-    // Pricing is public; route through onboarding so we can create/hydrate a partner session,
-    // then jump straight into checkout with the chosen rail.
     if (!pkgId) {
-      navigate('/onboarding');
+      navigate(auth.user ? '/portal/checkout' : '/signup?auth=signup');
       return;
     }
-    const next = `/portal/checkout?package=${encodeURIComponent(pkgId)}${rail ? `&rail=${encodeURIComponent(rail)}` : ''}`;
-    const qs = new URLSearchParams();
-    qs.set('package', pkgId);
-    if (rail) qs.set('rail', rail);
-    qs.set('next', next);
-    navigate(`/onboarding?${qs.toString()}`);
+    navigate(
+      resolvePackageSelectPath({
+        packageId: pkgId,
+        rail,
+        isAuthed: Boolean(auth.user),
+      }),
+    );
   };
 
   const handleAgencyTier = (tierId?: string) => {
+    if (auth.user) {
+      navigate(tierId ? `/agency/signup?tier=${encodeURIComponent(tierId)}` : '/agency/signup');
+      return;
+    }
     const qs = new URLSearchParams();
+    qs.set('auth', 'signup');
     qs.set('lane', 'agent');
     if (tierId) qs.set('tier', tierId);
     if (tierId) qs.set('next', `/agency/signup?tier=${encodeURIComponent(tierId)}`);
-    navigate(`/onboarding?${qs.toString()}`);
+    else qs.set('next', '/agency/signup');
+    navigate(`/signup?${qs.toString()}`);
   };
 
   const getPackagesForTab = (): PricingPackage[] => {
     switch (activeTab) {
       case 'personal_credit':
-        // Keep Personal tab clean: split Restore vs Building lanes.
-        // ChexSystems / Early Warning live under the separate "Banking Reports" tab.
         return personalCreditPackages
           .filter((p) => {
             const id = String(p.id || '');
             if (id === 'chexsystems_cleanup' || id === 'early_warning_cleanup') return false;
+            // Free lives in the ivory band only (band XOR card).
+            if (id === 'personal_free') return false;
 
             const isBuild =
               id.startsWith('personal_build') ||
               id.startsWith('personal_maintenance') ||
-              // Some catalog items are “building adjacent” but not strictly build IDs.
               id.includes('maintenance');
 
             if (personalLane === 'building') return isBuild;
@@ -202,11 +209,8 @@ export default function PricingPage() {
       .filter((p) => p.isPublic)
       .slice()
       .sort((a, b) => a.sortOrder - b.sortOrder);
-    // Agency tab uses a different renderer
     if (activeTab === 'agency') return [] as PricingPackage[];
-    // Tradeline promos are always hybrid; show in both modes
     if (activeTab === 'tradeline_promo') return pkgs;
-    // Bundles should be visible in both modes (no blank states)
     if (activeTab === 'bundle') return pkgs;
     return pkgs.filter((p) => {
       if (deliveryMode === 'DFY' && isLetterPackPackage(p)) return false;
@@ -218,48 +222,20 @@ export default function PricingPage() {
   const heroKey = (activeTab === 'banking_reports' ? 'personal_credit' : activeTab) as PricingSolutionKey;
 
   return (
-    <PageShell
-      badge="Solutions"
-      title="Solutions"
-      subtitle="Pick DIY or Done‑For‑You, then choose the solution that matches your goals."
-    >
+    <PageShell hideHero title="Solutions" subtitle="Pick DIY or Done‑For‑You, then choose the solution that matches your goals.">
       <div className={`${FINELY_OS_PAGE} space-y-0`}>
         <div className="space-y-4 py-4">
           <PricingSolutionsHero
             activeKey={heroKey}
-            mode="tabs"
-            onSelectKey={(key) => setActiveTab(key)}
+            onBrowseSolutions={() => setChooserOpen(true)}
+            browseLabel="Browse all solutions"
           />
-          <FinelyUnifiedHubLayout
-            eyebrow="Solutions & pricing"
-            title="Choose your execution lane"
-            subtitle="Personal restore, business credit, debt & legal, tradelines, and wealth builder paths."
-            accent={TAB_ACCENT[activeTab]}
-            kpis={[
-              { label: 'Categories', value: String(TABS.length), accent: 'emerald' },
-              { label: 'Mode', value: deliveryMode, accent: 'amber' },
-              {
-                label: 'Active lane',
-                value: TABS.find((t) => t.key === activeTab)?.label ?? 'Personal',
-                accent: TAB_ACCENT[activeTab],
-              },
-              { label: 'Fundability', value: 'Hub →', hint: 'Readiness scan', accent: 'sky' },
-            ]}
-            primaryAction={{ label: 'Fundability hub', onClick: () => navigate('/fundability-readiness') }}
-            secondaryAction={{ label: 'Start free', onClick: () => handleSelect('personal_free') }}
-            detailSlot={
-              <p className={FINELY_OS_COMPLIANCE_FOOTNOTE}>
-                Educational only · not legal advice · payments cover software access and guided workflows.
-              </p>
-            }
-          >
-            <p className={`${FINELY_OS_ENTITY_BODY} text-sm mb-4`}>
-              {tabDescription || 'Select a category below, then pick DIY or DFY delivery.'}
-            </p>
-          </FinelyUnifiedHubLayout>
+          <p className={FINELY_OS_COMPLIANCE_FOOTNOTE}>
+            Educational only · not legal advice · payments cover software access and guided workflows.
+          </p>
         </div>
 
-        {/* Champagne free-plan sell */}
+        {/* Champagne free-plan sell — sole Free entry on this page */}
         <section className={`-mx-4 sm:-mx-6 lg:-mx-8 2xl:-mx-10 px-4 sm:px-6 lg:px-8 2xl:px-10 py-12 sm:py-14 ${finelyOsLandingWealthyIvorySection()}`}>
           <div className="max-w-6xl mx-auto">
             <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
@@ -314,6 +290,7 @@ export default function PricingPage() {
                   onClick={() => {
                     setActiveTab('personal_credit');
                     setDeliveryMode('DIY');
+                    setPersonalLane('restore');
                   }}
                   className={FINELY_OS_SECONDARY_BTN}
                 >
@@ -490,7 +467,6 @@ export default function PricingPage() {
           </div>
         )}
 
-        {/* Package Grid or Agency Tiers */}
         {activeTab === 'agency' ? (
           <>
             <div className={`${finelyOsCatalogCard('violet')} !p-6 space-y-4`} data-fc-accent="violet">
@@ -542,7 +518,6 @@ export default function PricingPage() {
           </div>
         )}
 
-        {/* Tradeline Promo Extra Info */}
         {activeTab === 'tradeline_promo' && (
           <div className={`${FINELY_OS_NOTICE_WARN} flex items-start gap-3`}>
             <Shield size={18} className="mt-0.5 text-fuchsia-400 shrink-0" />
@@ -567,7 +542,6 @@ export default function PricingPage() {
 
         </div>
 
-        {/* Platinum final CTA */}
         <section
           className={`fc-sell relative overflow-hidden -mx-4 sm:-mx-6 lg:-mx-8 2xl:-mx-10 px-4 sm:px-6 lg:px-8 2xl:px-10 py-14 sm:py-20 ${finelyOsLandingContrastSection('fc-band-emerald')}`}
           data-fc-contrast-band="1"
@@ -600,6 +574,8 @@ export default function PricingPage() {
         <FinelyOsPageFooter />
         </div>
       </div>
+
+      <ServicesChooserModal open={chooserOpen} onClose={() => setChooserOpen(false)} activePath="/pricing" />
     </PageShell>
   );
 }

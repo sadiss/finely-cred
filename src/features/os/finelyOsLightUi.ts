@@ -430,6 +430,32 @@ export const FINELY_OS_PRIMARY_BTN = 'fc-button-brand';
 export const FINELY_OS_SUCCESS_BTN =
   'inline-flex items-center justify-center gap-2 min-w-0 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-3 sm:px-4 py-2 text-[10px] font-black uppercase tracking-wide whitespace-normal text-center leading-snug text-white shadow-md ring-1 ring-emerald-400/30 hover:brightness-110 transition-all disabled:opacity-60';
 
+/** Soft gold/emerald glow CTA — pricing “What’s included” / browse solutions (noticeable, not neon). */
+export const FINELY_OS_GLOW_INCLUDES_BTN =
+  'inline-flex items-center gap-2 rounded-xl border border-amber-400/40 bg-gradient-to-r from-amber-500/18 via-amber-500/10 to-emerald-500/16 px-4 py-2.5 text-xs font-semibold text-amber-50 shadow-[0_0_0_1px_rgba(251,191,36,0.22),0_0_18px_rgba(52,211,153,0.16),0_0_14px_rgba(251,191,36,0.12)] transition hover:border-amber-300/55 hover:shadow-[0_0_0_1px_rgba(251,191,36,0.32),0_0_22px_rgba(52,211,153,0.22),0_0_16px_rgba(251,191,36,0.16)]';
+
+/**
+ * Standalone “What’s included” on solid package cards — champagne metallic fill,
+ * black uppercase weight so it owns the CTA row (never a twin of Select).
+ */
+export const FINELY_OS_INCLUDES_STANDALONE_BTN =
+  'inline-flex w-full items-center justify-center gap-2 rounded-xl border-2 border-[#f3e2a8] bg-gradient-to-r from-[#fff8dc] via-[#efc96a] to-[#c99228] px-4 py-2.5 text-[11px] sm:text-xs font-black uppercase tracking-[0.08em] text-[#1a1400] shadow-[inset_0_1px_0_rgba(255,255,255,0.85),0_0_0_1px_rgba(251,191,36,0.5),0_10px_24px_-8px_rgba(180,120,20,0.7),0_0_22px_rgba(251,191,36,0.32)] transition hover:brightness-105 hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_0_0_1px_rgba(251,191,36,0.6),0_12px_28px_-6px_rgba(180,120,20,0.78),0_0_26px_rgba(251,191,36,0.4)]';
+
+/**
+ * Gold-card Includes — deep ink fill + champagne rim so it still pops on gold solids
+ * (champagne-on-champagne would blend).
+ */
+export const FINELY_OS_INCLUDES_STANDALONE_BTN_ON_GOLD =
+  'inline-flex w-full items-center justify-center gap-2 rounded-xl border-2 border-[#1a1400]/85 bg-gradient-to-r from-[#1a1400] via-[#2a1e08] to-[#14100a] px-4 py-2.5 text-[11px] sm:text-xs font-black uppercase tracking-[0.08em] text-[#f6e2a8] shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_0_0_1px_rgba(26,20,0,0.4),0_10px_24px_-8px_rgba(26,20,0,0.55),0_0_16px_rgba(251,191,36,0.22)] transition hover:brightness-110';
+
+/** Quiet Select on solid package cards — outline only, subordinate to What’s included. */
+export const FINELY_OS_PACKAGE_SELECT_BTN =
+  'inline-flex w-full items-center justify-center gap-2 rounded-xl border border-white/28 bg-black/15 px-4 py-1.5 text-[11px] font-medium tracking-wide text-white/75 backdrop-blur-sm transition hover:bg-black/25 hover:border-white/40 hover:text-white/90';
+
+/** Gold-card Select — dark outline / ink text so it stays quiet vs Includes. */
+export const FINELY_OS_PACKAGE_SELECT_BTN_ON_GOLD =
+  'inline-flex w-full items-center justify-center gap-2 rounded-xl border border-black/30 bg-black/10 px-4 py-1.5 text-[11px] font-medium tracking-wide text-[#2b1d05]/75 transition hover:bg-black/15 hover:border-black/40 hover:text-[#2b1d05]';
+
 export const FINELY_OS_DANGER_BTN =
   'inline-flex items-center justify-center gap-2 min-w-0 rounded-xl border border-rose-500/50 bg-gradient-to-r from-rose-600 to-rose-700 px-3 sm:px-4 py-2 text-[10px] font-black uppercase tracking-wide whitespace-normal text-center leading-snug text-white shadow-md ring-1 ring-rose-400/40 hover:brightness-110 transition-all disabled:opacity-60';
 

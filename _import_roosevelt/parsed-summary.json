@@ -1,0 +1,26 @@
+{
+  "partnerDisplayName": "Roosevelt Corelus",
+  "reportDate": "2026-07-21",
+  "scores": { "transUnion": 443, "experian": 447, "equifax": 441 },
+  "currentAddress": "30 Portland St, Haverhill, MA 01830",
+  "previousAddress": "70 Boylston St Apt 2, Malden, MA 02148",
+  "employers": ["CARC Appliance Repair", "Diamond Factory Service", "Self Employed"],
+  "publicRecords": 0,
+  "collectionHighlight": {
+    "creditor": "MIDLANDCRE",
+    "accountMasked": "33435****",
+    "balance": "$1,094.00",
+    "highCredit": "$1,610.00",
+    "status": "Derogatory / Collection",
+    "dateOpened": "07/01/2025",
+    "defenseContext": "Midland debt-buyer vs original Citibank account (Defense Book)"
+  },
+  "otherTradelinesSeen": [
+    "CAPITAL ONE",
+    "AFFIRM INC",
+    "WELLS FARGO CARD SERV",
+    "BARCLAYS BANK DELAWARE",
+    "EASTERNBK"
+  ],
+  "redactionNote": "SSN and full DOB intentionally omitted from this summary and from seed templates."
+}

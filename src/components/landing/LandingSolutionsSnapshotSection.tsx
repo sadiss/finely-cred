@@ -1,5 +1,5 @@
 /** Homepage — Done-for-you / Solutions snapshot on platinum champagne band. */
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { ArrowRight, CheckCircle2, Shield, Trophy, Zap } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Reveal } from '../ui';
@@ -39,6 +39,68 @@ type Props = {
   onViewPricing: () => void;
 };
 
+function prefersReducedMotion(): boolean {
+  return typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
+}
+
+/** Dual-path spotlight: DIY ↔ Done-For-You — one animated pair per viewport. */
+function DiyDfySwitcher() {
+  const phrases = ['DIY', 'Done-For-You'] as const;
+  const [idx, setIdx] = useState(0);
+  const [visible, setVisible] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const node = ref.current;
+    if (!node) return;
+    if (prefersReducedMotion()) {
+      setVisible(true);
+      return;
+    }
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setVisible(true);
+          observer.unobserve(node);
+        }
+      },
+      { threshold: 0.25 },
+    );
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (!visible || prefersReducedMotion()) return;
+    const t = window.setInterval(() => setIdx((n) => (n + 1) % phrases.length), 2600);
+    return () => window.clearInterval(t);
+  }, [visible, phrases.length]);
+
+  return (
+    <div
+      ref={ref}
+      className="mt-5 inline-flex items-center justify-center gap-2 rounded-full border border-[#e0b24a]/35 bg-[#0c1228]/55 px-4 py-2 backdrop-blur-sm"
+      aria-live="polite"
+    >
+      <span className="text-[10px] font-black uppercase tracking-[0.22em] text-white/45">Path</span>
+      <span className="relative h-[1.35em] min-w-[8.5rem] overflow-hidden text-center">
+        {phrases.map((p, i) => (
+          <span
+            key={p}
+            className={`absolute inset-0 flex items-center justify-center fc-sell-serif text-lg sm:text-xl font-semibold transition-all duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none ${
+              i === idx
+                ? 'opacity-100 translate-y-0 text-[#ffd993]'
+                : 'opacity-0 translate-y-3 text-white/30 pointer-events-none'
+            }`}
+          >
+            {p}
+          </span>
+        ))}
+      </span>
+    </div>
+  );
+}
+
 export function LandingSolutionsSnapshotSection({ onViewPricing }: Props) {
   const navigate = useNavigate();
 
@@ -54,7 +116,17 @@ export function LandingSolutionsSnapshotSection({ onViewPricing }: Props) {
         <div className="text-center mb-12 max-w-3xl mx-auto">
           <Reveal>
             <p className="fc-sell-kicker mb-5">Solutions</p>
-            <LandingTypewriterTitle text="DIY or Done-For-You — " accentText="your choice" />
+            <LandingTypewriterTitle
+              text="DIY or Done-For-You — "
+              accentText="your choice"
+              speedMs={52}
+              delayMs={180}
+              className="fc-sell-serif text-4xl sm:text-5xl lg:text-[3.35rem] font-semibold leading-[1.08] text-white"
+              accentClassName="text-[#ffd993] italic"
+            />
+            <div className="flex justify-center">
+              <DiyDfySwitcher />
+            </div>
             <p className="mt-5 text-base sm:text-lg text-white/55 leading-relaxed">
               Personal restore, business credit, debt strategy, tradelines, and wealth builder — one clear path to
               pricing.

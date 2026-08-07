@@ -1,22 +1,23 @@
 import React, { useMemo, useState } from 'react';
-import { ArrowLeft, ArrowRight, BadgeCheck, Building2, CheckCircle2, LogIn, ShieldAlert } from 'lucide-react';
+import { ArrowLeft, ArrowRight, BadgeCheck, Building2, LogIn, ShieldAlert } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { PageShell } from '../../components/layout/PageShell';
 import { useAuth } from '../../auth/AuthProvider';
 import { createTenant, createMembership } from '../../data/tenantsRepo';
 import { setActiveTenantId } from '../../tenancy/activeTenant';
 import { CareersQuickNav } from '../../components/careers/CareersQuickNav';
+import { CareerPriceCardGrid, type CareerPriceCardOption } from '../../components/careers/CareerPriceCard';
+import type { CareerAccent } from '../../components/careers/careerUi';
 import { careerAccentText, careerSolidBtn } from '../../components/careers/careerUi';
 import {
   AGENCY,
+  agencyCapacityTierIdForBuyIn,
   getAgencyPlanBullets,
   getPublicAgencyBuyInTiers,
   recommendedAgencyBuyInIdForTier,
 } from '../../config/agencyPartnersProgram';
-import { agencyTiers, getAgencyTierById } from '../../config/pricingCatalog';
-import { AgencySplitBreakdown } from '../../components/pricing/AgencySplitBreakdown';
+import { getAgencyTierById } from '../../config/pricingCatalog';
 import { FinelyOsPageFooter } from '../../features/os/FinelyOsPageFooter';
-import { FinelyOsPaginatedStack } from '../../features/os/FinelyOsPaginatedStack';
 import { MarketingStaffChatStrip } from '../../components/marketing/MarketingStaffChatStrip';
 import { usePublicSeoMeta } from '../../hooks/usePublicSeoMeta';
 import { FINELY_OS_BACK_LINK, FINELY_OS_PAGE } from '../../features/os/finelyOsLightUi';
@@ -38,39 +39,72 @@ const FORM_LABEL = 'block text-[11px] font-bold uppercase tracking-wide text-sla
 const FORM_INPUT =
   'w-full rounded-xl border-2 border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-100 transition-colors';
 
+const BUY_IN_ACCENTS: CareerAccent[] = ['slate', 'emerald', 'sky', 'gold', 'rose', 'navy'];
+
+function agencySignupAuthUrl(tierId?: string): string {
+  const next = tierId ? `/agency/signup?tier=${encodeURIComponent(tierId)}` : '/agency/signup';
+  const qs = new URLSearchParams({ auth: 'signup', next });
+  return `/signup?${qs.toString()}`;
+}
+
 export default function AgencySignupPage() {
   const auth = useAuth();
   const navigate = useNavigate();
-  const [sp] = useSearchParams();
+  const [sp, setSp] = useSearchParams();
 
   usePublicSeoMeta({
-    title: 'Confirm your plan — agency signup',
-    description: 'Confirm your buy-in and capacity tier, then create your white-label agency workspace on Finely OS.',
+    title: 'Create your agency workspace',
+    description: 'Pick your buy-in, confirm the short summary, then name your white-label agency workspace on Finely OS.',
     path: '/agency/signup',
   });
 
-  const tierId = (sp.get('tier') || '').trim();
-  const tier = useMemo(() => (tierId ? getAgencyTierById(tierId) ?? null : null), [tierId]);
+  const buyInTiers = useMemo(() => getPublicAgencyBuyInTiers(), []);
 
-  const email = useMemo(() => normalizeEmail(auth.user), [auth.user]);
+  const tierFromUrl = (sp.get('tier') || '').trim();
+  const initialBuyInId = useMemo(() => {
+    if (!tierFromUrl) return buyInTiers[0]?.id ?? '';
+    // Accept either capacity tier ids (agency_solo) or buy-in ids (agency_buyin_starter).
+    if (buyInTiers.some((b) => b.id === tierFromUrl)) return tierFromUrl;
+    return recommendedAgencyBuyInIdForTier(tierFromUrl) ?? buyInTiers[0]?.id ?? '';
+  }, [tierFromUrl, buyInTiers]);
 
+  const [selectedBuyInId, setSelectedBuyInId] = useState(initialBuyInId);
   const [agencyName, setAgencyName] = useState('');
   const [notice, setNotice] = useState<string | null>(null);
   const [noticeTone, setNoticeTone] = useState<'success' | 'error'>('success');
   const [busy, setBusy] = useState(false);
 
-  const publicTiers = useMemo(
-    () => agencyTiers.filter((t) => t.isPublic).slice().sort((a, b) => a.sortOrder - b.sortOrder),
-    [],
-  );
+  const email = useMemo(() => normalizeEmail(auth.user), [auth.user]);
 
-  const buyInTiers = useMemo(() => getPublicAgencyBuyInTiers(), []);
-  const recommendedBuyIn = useMemo(() => {
-    const id = recommendedAgencyBuyInIdForTier(tier?.id ?? null);
-    return buyInTiers.find((b) => b.id === id) ?? buyInTiers[0] ?? null;
-  }, [tier?.id, buyInTiers]);
+  const selectedBuyIn = buyInTiers.find((b) => b.id === selectedBuyInId) ?? buyInTiers[0] ?? null;
+  const capacityTierId = selectedBuyIn
+    ? agencyCapacityTierIdForBuyIn(selectedBuyIn.id) ?? selectedBuyIn.capacityTierId
+    : tierFromUrl || '';
+  const tier = useMemo(() => (capacityTierId ? getAgencyTierById(capacityTierId) ?? null : null), [capacityTierId]);
+  const planBullets = useMemo(() => getAgencyPlanBullets(tier).slice(0, 4), [tier]);
 
-  const planBullets = useMemo(() => getAgencyPlanBullets(tier), [tier]);
+  const selectBuyIn = (id: string) => {
+    setSelectedBuyInId(id);
+    const capacityId = agencyCapacityTierIdForBuyIn(id);
+    const next = new URLSearchParams(sp);
+    if (capacityId) next.set('tier', capacityId);
+    else next.set('tier', id);
+    setSp(next, { replace: true });
+  };
+
+  const planOptions: CareerPriceCardOption[] = buyInTiers.map((b, i) => {
+    const capacity = getAgencyTierById(b.capacityTierId);
+    return {
+      id: b.id,
+      name: b.name,
+      tagline: b.tagline,
+      badge: capacity?.badge,
+      priceLabel: b.priceLabel,
+      priceSubLabel: 'one-time buy-in',
+      bullets: getAgencyPlanBullets(capacity),
+      accent: BUY_IN_ACCENTS[i % BUY_IN_ACCENTS.length],
+    };
+  });
 
   const tierDefaults = useMemo(() => {
     const id = tier?.id || '';
@@ -88,7 +122,7 @@ export default function AgencySignupPage() {
     };
   }, [tier?.id]);
 
-  const canSubmit = Boolean(auth.user?.id && email && agencyName.trim().length >= 3 && !busy);
+  const canSubmit = Boolean(auth.user?.id && email && agencyName.trim().length >= 3 && selectedBuyIn && !busy);
 
   const submit = () => {
     if (!auth.user?.id) {
@@ -146,7 +180,7 @@ export default function AgencySignupPage() {
 
       setNoticeTone('success');
       setNotice(`Workspace created: ${tenant.name}`);
-      window.setTimeout(() => navigate('/admin/access'), 450);
+      window.setTimeout(() => navigate('/agency/hub'), 450);
     } catch (e: any) {
       setNoticeTone('error');
       setNotice(e?.message || 'Could not create agency workspace. Please try again.');
@@ -157,11 +191,11 @@ export default function AgencySignupPage() {
   return (
     <PageShell
       badge="Agency"
-      title="Confirm your plan"
-      subtitle="You already picked a buy-in and tier — confirm it below, then name your workspace."
+      title="Create your agency workspace"
+      subtitle="Pick your buy-in once, confirm the short summary, then name the tenant."
       hideHero
     >
-      <div className={`${FINELY_OS_PAGE} max-w-4xl mx-auto pb-20`}>
+      <div className={`${FINELY_OS_PAGE} max-w-5xl mx-auto pb-20`}>
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex flex-wrap items-center gap-4">
             <button type="button" onClick={() => navigate(-1)} className={FINELY_OS_BACK_LINK}>
@@ -186,58 +220,60 @@ export default function AgencySignupPage() {
           </div>
         ) : null}
 
-        {/* Confirm-tier card — this is a confirmation of the choice made on the previous page, not a new decision */}
-        <section className="rounded-3xl border-2 border-amber-200 bg-white p-6 sm:p-8 space-y-5">
-          <p className="text-[11px] font-black uppercase tracking-[0.24em] text-amber-700">Your plan</p>
-
-          {tier && recommendedBuyIn ? (
-            <>
-              <div className="flex flex-wrap items-start justify-between gap-4">
-                <div>
-                  <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">{recommendedBuyIn.name}</h2>
-                  <p className="mt-1 text-sm text-slate-500">{recommendedBuyIn.tagline}</p>
-                </div>
-                <div className="text-right shrink-0">
-                  <p className="text-3xl font-black text-amber-700">{recommendedBuyIn.priceLabel}</p>
-                  <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">one-time buy-in</p>
-                </div>
-              </div>
-
-              <ul className="grid gap-2 sm:grid-cols-2">
-                {planBullets.map((b) => (
-                  <li key={b} className="flex items-start gap-2 text-sm leading-relaxed text-slate-600">
-                    <CheckCircle2 size={15} className="mt-0.5 shrink-0 text-emerald-600" />
-                    <span>{b}</span>
-                  </li>
-                ))}
-              </ul>
-
-              {tier.splitBreakdown?.length ? (
-                <AgencySplitBreakdown tier={tier} variant="compact" theme="light" className="pt-1" />
-              ) : null}
-
-              <button
-                type="button"
-                onClick={() => navigate(AGENCY.publicPath)}
-                className="text-sm font-semibold text-slate-500 underline decoration-slate-300 underline-offset-4 hover:text-slate-800"
-              >
-                Change plan
-              </button>
-            </>
-          ) : (
-            <div className="space-y-3">
-              <p className="text-sm text-slate-600">
-                No plan selected yet. Head back to the program overview to pick a buy-in — capacity, seats, and
-                white-label depth all activate together.
-              </p>
-              <button type="button" onClick={() => navigate(AGENCY.publicPath)} className={careerSolidBtn('gold')}>
-                Pick a plan <ArrowRight size={15} />
-              </button>
-            </div>
-          )}
+        {/* One colorful buy-in chooser — no full includes re-list */}
+        <section className="rounded-3xl border-2 border-slate-200 bg-slate-50 p-6 sm:p-8 space-y-5">
+          <div>
+            <p className="text-[11px] font-black uppercase tracking-[0.24em] text-amber-700">Your plan</p>
+            <h2 className="mt-1 text-2xl font-bold tracking-tight text-slate-900">Pick your buy-in</h2>
+            <p className="mt-1 max-w-2xl text-sm text-slate-500">
+              One-time buy-in activates the matching capacity tier. Change it here anytime before you create the workspace.
+            </p>
+          </div>
+          <CareerPriceCardGrid
+            options={planOptions}
+            selectedId={selectedBuyInId}
+            onSelect={selectBuyIn}
+            columns={3}
+          />
         </section>
 
-        {/* Workspace details — short, choice-first form */}
+        {/* Short summary only */}
+        {selectedBuyIn && tier ? (
+          <section className="rounded-3xl border-2 border-amber-200 bg-white p-5 sm:p-6 space-y-3">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <p className="text-[11px] font-black uppercase tracking-[0.2em] text-amber-700">Summary</p>
+                <h3 className="mt-1 text-xl font-bold text-slate-900">
+                  {selectedBuyIn.name} · {tier.name}
+                </h3>
+                <p className="mt-0.5 text-sm text-slate-500">{selectedBuyIn.tagline}</p>
+              </div>
+              <div className="text-right shrink-0">
+                <p className="text-2xl font-black text-amber-700">{selectedBuyIn.priceLabel}</p>
+                <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">one-time</p>
+              </div>
+            </div>
+            <ul className="flex flex-wrap gap-2">
+              {planBullets.map((b) => (
+                <li
+                  key={b}
+                  className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-700"
+                >
+                  {b}
+                </li>
+              ))}
+            </ul>
+            <button
+              type="button"
+              onClick={() => navigate(AGENCY.publicPath)}
+              className="text-sm font-semibold text-slate-500 underline decoration-slate-300 underline-offset-4 hover:text-slate-800"
+            >
+              Compare on program page
+            </button>
+          </section>
+        ) : null}
+
+        {/* Workspace details */}
         <section className="rounded-3xl border-2 border-slate-200 bg-white p-6 sm:p-8 space-y-5">
           <div className="inline-flex items-center gap-2">
             <Building2 size={18} className={careerAccentText('navy')} />
@@ -265,13 +301,13 @@ export default function AgencySignupPage() {
               </>
             ) : (
               <div className="flex flex-wrap items-center justify-between gap-3">
-                <span>Requires a Finely account. Sign in or create one to provision your tenant.</span>
+                <span>Requires a Finely account. Sign in or create one — your buy-in stays on the return URL.</span>
                 <button
                   type="button"
-                  onClick={() => navigate('/login')}
+                  onClick={() => navigate(agencySignupAuthUrl(capacityTierId || undefined))}
                   className="inline-flex items-center gap-2 rounded-lg border-2 border-slate-300 bg-white px-3 py-2 text-xs font-bold text-slate-700 hover:border-slate-400"
                 >
-                  <LogIn size={14} /> Sign in
+                  <LogIn size={14} /> Sign in / create account
                 </button>
               </div>
             )}
@@ -285,38 +321,6 @@ export default function AgencySignupPage() {
           >
             {busy ? 'Creating…' : 'Create workspace'} <ArrowRight size={16} />
           </button>
-        </section>
-
-        {/* Compact tier browser — switch plans without leaving the confirm flow */}
-        <section className="rounded-3xl border-2 border-slate-200 bg-slate-50 p-6 sm:p-8 space-y-4">
-          <p className="text-[11px] font-black uppercase tracking-[0.24em] text-slate-500">Other capacity tiers</p>
-          <FinelyOsPaginatedStack
-            items={publicTiers}
-            pageSize={6}
-            itemSpacingClassName="grid grid-cols-1 sm:grid-cols-2 gap-3"
-            renderItem={(t) => (
-              <button
-                key={t.id}
-                type="button"
-                onClick={() => navigate(`/agency/signup?tier=${encodeURIComponent(t.id)}`)}
-                className={`text-left w-full rounded-xl border-2 p-4 transition-all ${
-                  tier?.id === t.id ? 'border-amber-400 bg-amber-50 ring-2 ring-amber-100' : 'border-slate-200 bg-white hover:border-slate-300'
-                }`}
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <div className="truncate text-sm font-bold text-slate-900">{t.name}</div>
-                    <div className="truncate text-xs text-slate-500">{t.description}</div>
-                  </div>
-                  {t.badge ? (
-                    <span className="shrink-0 rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-700">
-                      {t.badge}
-                    </span>
-                  ) : null}
-                </div>
-              </button>
-            )}
-          />
         </section>
 
         <MarketingStaffChatStrip

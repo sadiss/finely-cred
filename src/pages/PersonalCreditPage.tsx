@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { ArrowRight, Check, Shield, Sparkles, Star, Clock, Users, TrendingUp, CreditCard, UploadCloud, Gavel, FileText, ShieldCheck, Target, BriefcaseBusiness } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { PageShell } from '../components/layout/PageShell';
+import { useAuth } from '../auth/AuthProvider';
+import { resolvePackageSelectPath } from '../lib/packageCheckoutRouting';
 import { FlashyIcon } from '../components/ui';
 import { FinelyOsPageFooter } from '../features/os/FinelyOsPageFooter';
 import { StaffPortraitImg } from '../components/staff/StaffPortraitImg';
@@ -66,6 +68,7 @@ const PROCESS_STEPS = [
 
 export default function PersonalCreditPage() {
   const navigate = useNavigate();
+  const auth = useAuth();
   const [tab, setTab] = useState<PcTab>('overview');
   const noraOn = isNoraCapitalConfigured();
   const onDutyCoach = resolveStaffOnDuty('dispute_coach');
@@ -76,12 +79,13 @@ export default function PersonalCreditPage() {
   });
 
   const goToCheckout = (pkgId: string, rail?: 'stripe' | 'in_house') => {
-    const next = `/portal/checkout?package=${encodeURIComponent(pkgId)}${rail ? `&rail=${encodeURIComponent(rail)}` : ''}`;
-    const qs = new URLSearchParams();
-    qs.set('package', pkgId);
-    if (rail) qs.set('rail', rail);
-    qs.set('next', next);
-    navigate(`/onboarding?${qs.toString()}`);
+    navigate(
+      resolvePackageSelectPath({
+        packageId: pkgId,
+        rail,
+        isAuthed: Boolean(auth.user),
+      }),
+    );
   };
 
   // Get the flagship package for hero section

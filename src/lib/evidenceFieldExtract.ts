@@ -50,9 +50,24 @@ export function extractEvidenceFieldHints(item: Pick<EvidenceItem, 'filename' | 
   return hints;
 }
 
+const TRADELINE_ONLY_SECTION_KEYS = new Set([
+  'collections',
+  'charge_off',
+  'inquiries',
+  'public_records',
+  'bankruptcy',
+]);
+
 /** Apply extracted hints to an evidence item when fields are empty. */
 export function enrichEvidenceMetadata(item: EvidenceItem): EvidenceItem {
   const hints = extractEvidenceFieldHints(item);
+  if (
+    item.type === 'upload' &&
+    hints.sectionKey &&
+    TRADELINE_ONLY_SECTION_KEYS.has(hints.sectionKey)
+  ) {
+    delete hints.sectionKey;
+  }
   if (!hints.creditorName && !hints.sectionKey && !hints.accountLast4) return item;
 
   const captionParts = [item.caption].filter((c): c is string => Boolean(c));

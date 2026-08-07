@@ -43,14 +43,14 @@ export function AdminNavBar() {
 
   if (navMode === 'simple') {
     return (
-      <div className="lg:hidden mb-6">
+      <div className="lg:hidden mb-6" data-fc-admin-nav-bar="1">
         <FinelyAdminSimpleNav onShowFullNav={() => setMode('full')} />
       </div>
     );
   }
 
   return (
-    <div className="lg:hidden mb-6" data-fc-admin-nav="full">
+    <div className="lg:hidden mb-6" data-fc-admin-nav="full" data-fc-admin-nav-bar="1">
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
@@ -73,6 +73,7 @@ export function AdminNavBar() {
                 <button
                   key={x.path}
                   type="button"
+                  data-fc-admin-nav-item-active={active ? 'true' : 'false'}
                   onClick={() => {
                     navigate(x.path);
                     setOpen(false);
@@ -140,6 +141,7 @@ export function AdminNavRail({
         <button
           key={x.path}
           type="button"
+          data-fc-admin-nav-item-active={active ? 'true' : 'false'}
           onClick={() => navigate(x.path)}
           title={x.hint || x.label}
           className={`flex flex-col items-center justify-center w-11 h-11 rounded-2xl border transition-all ${
@@ -157,6 +159,7 @@ export function AdminNavRail({
       <button
         key={x.path}
         type="button"
+        data-fc-admin-nav-item-active={active ? 'true' : 'false'}
         onClick={() => navigate(x.path)}
         className={finelyOsSideRailNavItem(active)}
         title={x.hint || x.label}
@@ -171,9 +174,15 @@ export function AdminNavRail({
   };
 
   return (
-    <aside className={`hidden lg:block sticky top-24 self-start shrink-0 ${expanded ? 'w-[17rem]' : 'w-[5.5rem]'}`}>
-      <div className={`${FINELY_OS_SIDE_RAIL_SHELL} !max-h-[calc(100vh-6rem)] ${expanded ? '' : '!p-2'}`}>
-        <div className={FINELY_OS_SIDE_RAIL_GLOW} />
+    <aside
+      data-fc-admin-nav-rail="1"
+      className={`hidden lg:block sticky top-24 self-start shrink-0 ${expanded ? 'w-[17rem]' : 'w-[5.5rem]'}`}
+    >
+      <div
+        data-fc-admin-nav-rail-shell="1"
+        className={`${FINELY_OS_SIDE_RAIL_SHELL} !max-h-[calc(100vh-6rem)] ${expanded ? '' : '!p-2'}`}
+      >
+        <div data-fc-admin-nav-rail-glow="1" className={FINELY_OS_SIDE_RAIL_GLOW} />
 
         <div className={`relative flex items-center ${expanded ? 'justify-between px-2 pb-3 border-b border-white/[0.06] mb-3' : 'justify-center pb-2 mb-2'}`}>
           {expanded ? <FinelyCredLogo size="sm" forceLight className="lg:mx-0" /> : null}
@@ -238,7 +247,7 @@ export function AdminNavRail({
 
                 if (searching) {
                   return (
-                    <div key={g.label} className={FINELY_OS_SIDE_RAIL_GROUP}>
+                    <div key={g.label} data-fc-admin-nav-rail-group="1" className={FINELY_OS_SIDE_RAIL_GROUP}>
                       <div className="px-3 py-2.5 flex items-center justify-between gap-3">
                         <div className={FINELY_OS_SIDE_RAIL_LABEL}>{g.label}</div>
                         <div className={FINELY_OS_SIDE_RAIL_BADGE}>{g.items.length}</div>
@@ -251,6 +260,7 @@ export function AdminNavRail({
                 return (
                   <details
                     key={g.label}
+                    data-fc-admin-nav-rail-group="1"
                     className={`group ${FINELY_OS_SIDE_RAIL_GROUP}`}
                     open={isOpen}
                     onToggle={(e) => {

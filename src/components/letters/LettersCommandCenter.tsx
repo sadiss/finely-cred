@@ -90,6 +90,8 @@ import { getBlobUrl } from '../../storage/getBlobUrl';
 import { openBlobRefInNewTab } from '../../lib/openBlobRef';
 import { isLegacyPendingReportBlob } from '../../lib/legacyPendingReport';
 import { PartnerCreditWorkloadStrip } from '../partner/PartnerCreditWorkloadStrip';
+import { LetterPartnerNoteField } from './LetterPartnerNoteField';
+import { recordLetterPartnerNote } from '../../lib/letterPartnerNotes';
 import { downloadBlob, downloadText, openUrlInNewTab, triggerBrowserDownload } from '../../utils/download';
 import { RichTextEditor } from '../ui/RichTextEditor';
 import { htmlToPlainText, isProbablyHtml, plainTextToHtml, sanitizeHtmlForPreview } from '../../utils/richText';
@@ -2028,6 +2030,17 @@ WRITING STANDARD:
         letterIds: [letter.id],
         letterTitles: [letter.title || `${b} dispute letter`],
       });
+      if (letterPartnerNote.trim()) {
+        recordLetterPartnerNote({
+          partnerId: partner.id,
+          body: letterPartnerNote,
+          title: `Saved: ${letter.title || `${b} dispute letter`}`,
+          letterId: letter.id,
+          source: 'letter_save',
+          authorType: layout === 'embedded' ? 'admin' : 'partner',
+        });
+        setLetterPartnerNote('');
+      }
 
       // Save/track the round inside Dispute Center (cases).
       const onlyCaseId = (() => {
@@ -2898,6 +2911,8 @@ useEffect(() => {
   const [draftEvidencePickerOpen, setDraftEvidencePickerOpen] = useState(false);
   const [draftTemplatesOpen, setDraftTemplatesOpen] = useState(false);
   const [draftNotice, setDraftNotice] = useState<string | null>(null);
+  /** Optional PartnerNote body attached on Save PDF (debt + credit studios) */
+  const [letterPartnerNote, setLetterPartnerNote] = useState('');
 
   const fillDebtRecipientAddress = async () => {
     if (!debt) {
@@ -4346,7 +4361,14 @@ useEffect(() => {
                   </div>
                 </div>
 
-                <div id="fc-debt-step-generate" className="flex flex-wrap items-center justify-between gap-3 pt-2 scroll-mt-3 border-t border-white/10 sticky bottom-0 z-10 bg-[#0a0f0d]/95 backdrop-blur-sm py-3 -mx-1 px-1">
+                <div id="fc-debt-step-generate" className="space-y-2 pt-2 scroll-mt-3 border-t border-white/10 sticky bottom-0 z-10 bg-[#0a0f0d]/95 backdrop-blur-sm py-3 -mx-1 px-1">
+                  <LetterPartnerNoteField
+                    id="debt-letter-partner-note"
+                    value={letterPartnerNote}
+                    onChange={setLetterPartnerNote}
+                    label="Optional partner note (saved with letter)"
+                  />
+                  <div className="flex flex-wrap items-center justify-between gap-3">
                   <LetterEmailPartnerToggle
                     checked={emailPartnerOnEvents}
                     onChange={setEmailPartnerOnEvents}
@@ -4417,6 +4439,18 @@ useEffect(() => {
                           letterIds: [saved.id],
                           letterTitles: [title],
                         });
+                        if (letterPartnerNote.trim()) {
+                          recordLetterPartnerNote({
+                            partnerId: partner.id,
+                            body: letterPartnerNote,
+                            title: `Saved: ${title}`,
+                            letterId: saved.id,
+                            debtCaseId: debt?.id,
+                            source: 'letter_save',
+                            authorType: layout === 'embedded' ? 'admin' : 'partner',
+                          });
+                          setLetterPartnerNote('');
+                        }
 
                         setDraft(null);
                         openVault();
@@ -4431,6 +4465,7 @@ useEffect(() => {
                   >
                     {draftBusy ? 'Saving…' : draft.letterId ? 'Save PDF → Vault' : 'Save PDF → Vault'}
                   </button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -4526,6 +4561,18 @@ useEffect(() => {
                         letterIds: [saved.id],
                         letterTitles: [title],
                       });
+                      if (letterPartnerNote.trim()) {
+                        recordLetterPartnerNote({
+                          partnerId: partner.id,
+                          body: letterPartnerNote,
+                          title: `Saved: ${title}`,
+                          letterId: saved.id,
+                          debtCaseId: debt?.id,
+                          source: 'letter_save',
+                          authorType: layout === 'embedded' ? 'admin' : 'partner',
+                        });
+                        setLetterPartnerNote('');
+                      }
 
                       setDraft(null);
                       openVault();
@@ -4601,6 +4648,18 @@ useEffect(() => {
                         letterIds: [saved.id],
                         letterTitles: [title],
                       });
+                      if (letterPartnerNote.trim()) {
+                        recordLetterPartnerNote({
+                          partnerId: partner.id,
+                          body: letterPartnerNote,
+                          title: `Saved: ${title}`,
+                          letterId: saved.id,
+                          debtCaseId: debt?.id,
+                          source: 'letter_save',
+                          authorType: layout === 'embedded' ? 'admin' : 'partner',
+                        });
+                        setLetterPartnerNote('');
+                      }
 
                       if (pdf.pdfBlobRef) {
                         await downloadFromBlobRef(pdf.pdfBlobRef, pdf.filename, 'application/pdf');
@@ -5507,7 +5566,14 @@ useEffect(() => {
                         </div>
                       ) : null}
 
-                      <div className="flex flex-wrap items-center justify-between gap-3 pt-2 sticky bottom-0 z-10 bg-[#0a0f0d]/90 backdrop-blur-sm py-2">
+                      <div className="space-y-2 pt-2 sticky bottom-0 z-10 bg-[#0a0f0d]/90 backdrop-blur-sm py-2">
+                        <LetterPartnerNoteField
+                          id={`dispute-letter-partner-note-${b}`}
+                          value={letterPartnerNote}
+                          onChange={setLetterPartnerNote}
+                          label="Optional partner note (saved with letter)"
+                        />
+                      <div className="flex flex-wrap items-center justify-between gap-3">
                         <LetterEmailPartnerToggle
                           checked={emailPartnerOnEvents}
                           onChange={setEmailPartnerOnEvents}
@@ -5548,6 +5614,7 @@ useEffect(() => {
                           <PenLine size={14} /> {busy ? 'Generating…' : 'Generate PDF → Vault'}
                         </button>
                         </div>
+                      </div>
                       </div>
                     </div>
                   );

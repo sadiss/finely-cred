@@ -1,13 +1,32 @@
 import type { GeoCluster, StaffDepartment, StaffDepartmentId, StaffMemberSeed, StaffMissionType } from './types';
 import { ORGANIZATION_CO_OWNER, ORGANIZATION_OWNER } from '../../domain/organizationHierarchy';
 
-const shift = (label: string, startLocal: string, endLocal: string, days = 'Mon-Sun') => ({
-  label,
-  days,
-  startLocal,
-  endLocal,
-  timezone: 'America/New_York',
-});
+/** Cap every AI/operator desk to 8 hours max (overnight windows wrap past midnight). */
+const shift = (label: string, startLocal: string, endLocal: string, days = 'Mon-Sun') => {
+  const toMin = (hhmm: string) => {
+    const [h, m] = hhmm.split(':').map(Number);
+    return (h ?? 0) * 60 + (m ?? 0);
+  };
+  const toHhmm = (mins: number) => {
+    const normalized = ((mins % (24 * 60)) + 24 * 60) % (24 * 60);
+    const h = Math.floor(normalized / 60);
+    const m = normalized % 60;
+    return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+  };
+  let start = toMin(startLocal);
+  let end = toMin(endLocal);
+  const crossesMidnight = end <= start;
+  if (crossesMidnight) end += 24 * 60;
+  if (end - start > 8 * 60) end = start + 8 * 60;
+  return {
+    label,
+    days,
+    startLocal,
+    endLocal: crossesMidnight ? toHhmm(end % (24 * 60)) : toHhmm(end),
+    timezone: 'America/New_York',
+    crossesMidnight: crossesMidnight || undefined,
+  };
+};
 
 const portrait = (initials: string, emoji: string, gradient: string, glow: string, titleTag: string, visualHint: string) => ({ initials, emoji, gradient, glow, titleTag, visualHint });
 

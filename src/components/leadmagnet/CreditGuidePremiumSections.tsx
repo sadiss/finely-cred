@@ -14,7 +14,11 @@ import {
   Unlock,
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
-import { LeadMagnetEbook, LeadMagnetDeviceShowcase } from './LeadMagnetHeroMockup';
+import {
+  FreeGuideMaterialsShowcase,
+  LeadMagnetEbook,
+  LeadMagnetDeviceShowcase,
+} from './LeadMagnetHeroMockup';
 import { FreeDisputeGuideHeroVideo } from './FreeDisputeGuideHeroVideo';
 import { DisputeLetterGuideContentsList, DisputeLetterGuidePreview } from './DisputeLetterGuidePreview';
 import { FlashyIcon } from '../ui';
@@ -34,10 +38,11 @@ import {
   type LeadMagnetTrialState,
 } from '../../lib/leadMagnetTrial';
 import { getLeadAttribution } from '../../lib/leadAttribution';
-import { finelyOsCatalogCard, type FinelyOsPublicAccent } from '../../features/os/finelyOsLightUi';
-const FEATURE_ACCENTS: FinelyOsPublicAccent[] = ['emerald', 'sky', 'violet', 'amber', 'fuchsia', 'emerald'];
+import { LandingTypewriterTitle } from '../landing/LandingTypewriterTitle';
+import './leadMagnetLuxuryStage.css';
+import './creditGuidePremiumLanding.css';
 
-/** Opening chapters surfaced in the hero so the top half shows real substance, not promises. */
+/** Opening chapters surfaced so partners can read free without capture. */
 const HERO_CHAPTER_RAIL = [
   'read-this-first',
   'report-anatomy',
@@ -90,7 +95,7 @@ const OFFER_PILLARS = [
   {
     icon: FileText,
     title: 'Letters that move the file',
-    desc: 'Round-one dispute structure, evidence checklist, and language you can actually use.',
+    desc: 'Round-one dispute structure, evidence checklist, and finding-first language partners can actually send.',
   },
   {
     icon: LayoutDashboard,
@@ -113,7 +118,7 @@ const ACTION_STEPS = [
   {
     step: '02',
     title: 'Match the dispute angle',
-    desc: 'Choose factual language and FCRA timing based on what the bureau or furnisher must verify.',
+    desc: 'Choose one honest lane and FCRA timing based on what the bureau or furnisher must reinvestigate.',
   },
   {
     step: '03',
@@ -154,10 +159,19 @@ const GUIDE_COURSE_RECOMMENDATIONS = [
   { id: 'portal_tour', label: 'Portal tour', title: 'Finely Cred Partner Portal Tour', desc: 'Upload, checklist, and letter vault walkthrough.', next: '/portal/dashboard' },
 ] as const;
 
+function WealthKicker({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="cgp-kicker">
+      <Sparkles className="h-3.5 w-3.5" />
+      {children}
+    </div>
+  );
+}
+
 export function CreditGuidePremiumLanding({
   config,
   guide,
-  onGoForm,
+  onGoForm: _onGoForm,
   headlineOverride,
   ctaOverride,
   trustLabel = '10k+',
@@ -173,220 +187,183 @@ export function CreditGuidePremiumLanding({
   totalValue?: number;
   captureForm?: React.ReactNode;
 }) {
-  const goCapture = onGoForm;
   const [selectedIssueId, setSelectedIssueId] = useState<(typeof ISSUE_TRACKS)[number]['id']>('collections');
   const selectedIssue = ISSUE_TRACKS.find((item) => item.id === selectedIssueId) ?? ISSUE_TRACKS[0];
 
   return (
-    <div className="bg-mesh min-h-screen pb-14">
-      <header id="fg-hero" className="container relative z-10 mx-auto max-w-7xl px-4 pb-10 pt-20 sm:px-6 sm:pt-24">
-        <div className="fg-hero-shell relative overflow-x-clip rounded-[2rem] border border-white/[0.12] bg-[#101823]/90 p-4 shadow-[0_30px_100px_rgba(0,0,0,0.35)] sm:rounded-[2.5rem] sm:p-6 md:p-5 lg:p-8">
-          <div className="pointer-events-none absolute -right-24 -top-24 h-80 w-80 rounded-full bg-sky-400/16 blur-[90px]" />
-          <div className="pointer-events-none absolute -bottom-28 left-10 h-72 w-72 rounded-full bg-amber-300/10 blur-[90px]" />
+    <div className="cgp-page min-h-screen pb-14">
+      {/* Hero — ivory + cover green · copy + book (video sits with signup below) */}
+      <header id="fg-hero" className="cgp-hero relative z-10 pt-20 md:pt-24">
+        <div className="pointer-events-none absolute left-[8%] top-[18%] h-[340px] w-[340px] rounded-full bg-[#1aad4b]/12 blur-[110px]" />
+        <div className="relative z-[2] mx-auto grid max-w-[94rem] items-center gap-10 px-5 pb-10 md:px-8 lg:grid-cols-[1.05fr_0.95fr] lg:gap-12 lg:pb-12">
+          <div className="flex min-w-0 flex-col items-center text-center lg:items-start lg:text-left">
+            <p className="cgp-hero-kicker">Free dispute letter guide · partners welcome</p>
+            <h1 className="cgp-serif cgp-hero-title mt-3 md:mt-4">
+              {headlineOverride ? (
+                <span className="block">{headlineOverride}</span>
+              ) : (
+                <>
+                  <LandingTypewriterTitle
+                    as="span"
+                    text="Pick the negative item."
+                    className="block"
+                    speedMs={38}
+                    delayMs={100}
+                    caret
+                  />
+                  <LandingTypewriterTitle
+                    as="span"
+                    text="Get the dispute angle free."
+                    className="cgp-hero-title-accent mt-1 block"
+                    speedMs={40}
+                    delayMs={900}
+                    caret
+                  />
+                </>
+              )}
+            </h1>
+            <p className="cgp-hero-lede mt-5">
+              {guide.desc} Read free in your browser, or sign up for the PDF kit and portal preview — no credit card.
+            </p>
 
-          <div className="relative flex flex-col gap-5 md:flex-row md:items-start md:gap-5 lg:gap-6">
-            {/* Left: video then copy — stacks tight, no grid row stretch */}
-            <div className="min-w-0 flex-1 flex flex-col gap-5">
-              <div className="fg-video-hero-panel rounded-[1.65rem] border border-white/[0.08] bg-black/25 p-3 sm:p-4 lg:p-5">
-                <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                  <div className="inline-flex w-fit items-center gap-2 rounded-full border border-sky-300/35 bg-sky-300/10 px-4 py-2">
-                    <Sparkles className="h-3.5 w-3.5 text-sky-200" />
-                    <span className="text-[10px] font-black uppercase tracking-[0.22em] text-sky-100">
-                      Watch the free guide intro
-                    </span>
-                  </div>
-                  <span className="text-xs font-semibold uppercase tracking-wider text-white/45">Then claim the kit</span>
-                </div>
-                {guide.id === DISPUTE_LETTER_GUIDE_ID || config.id === 'credit' ? (
-                  <FreeDisputeGuideHeroVideo className="max-w-none rounded-[1.35rem] shadow-[0_30px_90px_rgba(0,0,0,0.38)]" />
-                ) : null}
-                <div className="mt-3 grid gap-2 md:grid-cols-1 lg:grid-cols-3">
-                  {HERO_PROOF.map((line, index) => (
-                    <div key={line} className={`rounded-2xl border p-3 text-sm font-semibold text-white/80 ${index === 0 ? 'border-sky-300/16 bg-sky-300/[0.07]' : index === 1 ? 'border-amber-300/16 bg-amber-300/[0.07]' : 'border-violet-300/16 bg-violet-300/[0.07]'}`}>
-                      <CheckCircle2 className={`mb-2 h-4 w-4 ${index === 0 ? 'text-sky-200' : index === 1 ? 'text-amber-200' : 'text-violet-200'}`} />
-                      {line}
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="rounded-[1.65rem] border border-white/[0.1] bg-slate-900/55 p-5 sm:p-6 md:p-5 lg:p-8">
-                <h1 className="max-w-5xl text-3xl font-black leading-[1.02] tracking-tight text-white sm:text-4xl md:text-[1.65rem] md:leading-[1.08] lg:text-5xl xl:text-6xl">
-                  {headlineOverride ?? (
-                    <>
-                      Pick the negative item.
-                      <span className="mt-2 block text-gradient-blue">Get the dispute angle free.</span>
-                      <span className="mt-3 block text-xl font-black leading-tight text-white/85 sm:text-2xl md:text-lg lg:text-3xl">
-                        Letters, timing, tracking, and a first-round workflow
-                      </span>
-                    </>
-                  )}
-                </h1>
-
-                <p className="mt-4 max-w-3xl text-sm leading-relaxed text-white/70 sm:text-base md:text-sm lg:text-lg">
-                  {guide.desc} Watch the intro, choose the item hurting your file, then claim the kit and start with a focused plan instead of another vague credit tip.
-                </p>
-
-                <div className="fg-issue-picker mt-6 rounded-[1.5rem] border border-sky-300/14 bg-white/[0.05] p-4 sm:p-5">
-                  <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-                    <div>
-                      <p className="text-[10px] font-black uppercase tracking-[0.22em] text-sky-200">Start with your biggest blocker</p>
-                      <h2 className="mt-1 text-xl font-black text-white">What needs to be disputed first?</h2>
-                    </div>
-                    <span className="text-xs font-semibold text-white/45">Personalizes your kit</span>
-                  </div>
-
-                  <div className="mt-4 grid grid-cols-2 gap-2 lg:grid-cols-4">
-                    {ISSUE_TRACKS.map((item) => {
-                      const active = item.id === selectedIssueId;
-                      return (
-                        <button
-                          key={item.id}
-                          type="button"
-                          onClick={() => setSelectedIssueId(item.id)}
-                          className={`rounded-2xl border px-3 py-3 text-left text-xs font-black uppercase tracking-wider transition ${
-                            active ? 'border-sky-300/60 bg-sky-300/10 text-sky-100' : 'border-white/[0.08] bg-slate-950/35 text-white/58 hover:border-sky-300/35 hover:text-white'
-                          }`}
-                        >
-                          {item.label}
-                        </button>
-                      );
-                    })}
-                  </div>
-
-                  <div className="mt-4 rounded-2xl border border-amber-300/18 bg-amber-300/[0.06] p-4">
-                    <p className="text-[10px] font-black uppercase tracking-[0.22em] text-amber-100">Your first-round angle</p>
-                    <h3 className="mt-1 text-lg font-black leading-snug text-white">{selectedIssue.promise}</h3>
-                    <div className="mt-3 grid gap-2 md:grid-cols-1 lg:grid-cols-3">
-                      {selectedIssue.plan.map((line) => (
-                        <div key={line} className="rounded-xl border border-white/[0.08] bg-white/[0.04] px-3 py-2 text-xs font-semibold text-white/65">
-                          <CheckCircle2 className="mr-1.5 inline h-3.5 w-3.5 text-amber-100" /> {line}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="mt-6 rounded-[1.5rem] border border-white/[0.1] bg-slate-950/40 p-4 sm:p-5">
-                  <div className="flex flex-wrap items-end justify-between gap-2">
-                    <div>
-                      <p className="text-[10px] font-black uppercase tracking-[0.22em] text-sky-200">
-                        Read it free — no email required
-                      </p>
-                      <h3 className="mt-1 text-lg font-black text-white">
-                        {DISPUTE_LETTER_GUIDE_PROGRAMMATIC_PAGES.length} pages, open in your browser
-                      </h3>
-                    </div>
-                    <Link
-                      to={DISPUTE_LETTER_GUIDE_READ_PATH}
-                      className="inline-flex items-center gap-2 rounded-xl border border-sky-300/40 bg-sky-300/10 px-4 py-2.5 text-[11px] font-black uppercase tracking-wider text-sky-100 transition hover:border-sky-300/70 hover:bg-sky-300/[0.16]"
-                    >
-                      <BookOpen className="h-3.5 w-3.5" /> Open the reader
-                    </Link>
-                  </div>
-                  <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-                    {HERO_CHAPTER_RAIL.map((chapter) => (
-                      <Link
-                        key={chapter.id}
-                        to={`${DISPUTE_LETTER_GUIDE_READ_PATH}?chapter=${chapter.id}`}
-                        className="group rounded-2xl border border-white/[0.08] bg-white/[0.035] px-3.5 py-3 transition hover:border-sky-300/40 hover:bg-sky-300/[0.07]"
-                      >
-                        <p className="text-[9px] font-black uppercase tracking-[0.2em] text-sky-200/80">
-                          {chapter.kicker ?? 'Page'}
-                        </p>
-                        <p className="mt-1 text-sm font-bold leading-snug text-white/85 group-hover:text-white">
-                          {chapter.title}
-                        </p>
-                        {chapter.subtitle ? (
-                          <p className="mt-1 line-clamp-2 text-[11px] leading-relaxed text-white/45">{chapter.subtitle}</p>
-                        ) : null}
-                      </Link>
-                    ))}
-                  </div>
-                  <p className="mt-3 text-[11px] text-white/40">Educational only · not legal advice · results vary</p>
-                </div>
-
-                <div className="mt-6 flex flex-col gap-3 lg:flex-row">
-                  <a href="#fg-preview" className="rounded-xl border border-white/[0.14] bg-white/[0.06] px-8 py-4 text-center text-sm font-black uppercase tracking-wider text-white/85 transition hover:border-sky-300/40 hover:text-sky-100">
-                    See portal preview
-                  </a>
-                  <a href="#fg-value" className="rounded-xl border border-sky-300/25 bg-sky-300/[0.08] px-8 py-4 text-center text-sm font-black uppercase tracking-wider text-sky-100 transition hover:border-sky-300/45 hover:bg-sky-300/[0.12]">
-                    What&apos;s in the free kit
-                  </a>
-                </div>
-              </div>
+            <div className="cgp-hero-actions justify-center lg:justify-start">
+              <a href="#fg-capture" className="cgp-cta">
+                Sign up free <ArrowRight className="h-4 w-4" />
+              </a>
+              <Link to={DISPUTE_LETTER_GUIDE_READ_PATH} className="cgp-cta cgp-cta--ghost">
+                <BookOpen className="h-4 w-4" /> Read free — no signup
+              </Link>
             </div>
 
-            {/* Right: e-book + form — independent column, no height coupling */}
-            <div className="flex w-full shrink-0 flex-col gap-4 md:w-[min(100%,300px)] md:gap-4 lg:w-[min(100%,340px)] lg:gap-5 xl:w-[min(100%,380px)]">
-              <div className="fg-offer-display relative overflow-visible rounded-[1.65rem] border border-sky-300/20 bg-[#101827]/88 p-4 md:p-4 lg:p-6">
-                <div className="absolute right-4 top-4 rounded-full border border-amber-300/35 bg-amber-300/10 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-amber-100">
-                  ${totalValue} free
+            <div className="mt-5 grid w-full max-w-lg gap-2 sm:grid-cols-3">
+              {HERO_PROOF.map((line) => (
+                <div key={line} className="cgp-card px-3 py-3 text-left text-[12px] font-semibold leading-snug text-[#0b1220]/75">
+                  <CheckCircle2 className="mb-1.5 h-3.5 w-3.5 text-[#1aad4b]" />
+                  {line}
                 </div>
-                <div className="flex justify-center overflow-visible px-2 pr-4 pt-2 md:pt-1">
-                  <LeadMagnetEbook />
-                </div>
-                <div className="mt-4 grid grid-cols-2 gap-2 md:gap-2.5 lg:mt-5 lg:gap-3">
-                  <div className="rounded-2xl border border-sky-300/14 bg-sky-300/[0.07] p-3 md:p-3 lg:p-4">
-                    <p className="text-xl font-black text-white md:text-lg lg:text-2xl">{LEAD_MAGNET_TRIAL_DAYS} days</p>
-                    <p className="mt-1 text-xs font-semibold uppercase tracking-wider text-white/45">Portal preview</p>
-                  </div>
-                  <div className="rounded-2xl border border-amber-300/14 bg-amber-300/[0.07] p-3 md:p-3 lg:p-4">
-                    <p className="text-xl font-black text-white md:text-lg lg:text-2xl">$0</p>
-                    <p className="mt-1 text-xs font-semibold uppercase tracking-wider text-white/45">No card needed</p>
-                  </div>
-                </div>
-                <div className="mt-3 rounded-2xl border border-white/[0.1] bg-slate-200/[0.06] p-4">
-                  <p className="text-[10px] font-black uppercase tracking-[0.22em] text-sky-200">Best for</p>
-                  <p className="mt-1 text-sm font-semibold leading-relaxed text-white/75">
-                    {selectedIssue.bestFor}
-                  </p>
-                </div>
-              </div>
-              {captureForm}
+              ))}
+            </div>
+            <p className="cgp-compliance mt-3">Results vary · not legal advice · educational guide only</p>
+          </div>
+
+          <div className="cgp-hero-media mx-auto lg:ml-auto">
+            <div className="cgp-hero-book-stage">
+              <LeadMagnetEbook />
             </div>
           </div>
         </div>
       </header>
 
-      <section className="container relative z-10 mx-auto max-w-7xl px-4 pb-12 sm:px-6">
-        <div className="grid gap-4 md:grid-cols-3">
-          {OFFER_PILLARS.map(({ icon: Icon, title, desc }) => (
-            <div key={title} className="fg-conversion-box rounded-[1.5rem] border border-white/[0.1] bg-white/[0.045] p-5 backdrop-blur-xl sm:p-6">
-              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl border border-[#39ff14]/30 bg-[#39ff14]/10 text-[#39ff14]">
-                <Icon className="h-5 w-5" />
+      {/* Under hero: signup LEFT + large video RIGHT (stack on mobile) */}
+      <section id="fg-capture" className="cgp-band relative z-10 scroll-mt-20 py-8 md:py-10">
+        <div className="mx-auto max-w-[94rem] px-5 md:px-8">
+          <div className="mb-6 max-w-2xl">
+            <WealthKicker>Claim the free kit</WealthKicker>
+            <h2 className="cgp-serif mt-3 text-2xl font-black tracking-[-0.03em] text-[#0b1220] md:text-3xl">
+              Sign up for the PDF + <span className="text-[#1aad4b]">full credit path</span>
+            </h2>
+            <p className="mt-2 max-w-xl text-sm leading-relaxed text-[#0b1220]/65">
+              ${totalValue} value · trusted by {trustLabel} partners · no credit card. See what Finely Cred offers beside
+              the form — restore, disputes, and funding readiness — or keep reading free in your browser.
+            </p>
+          </div>
+
+          <div className="cgp-capture-video-row">
+            <div className="cgp-capture-panel p-5 md:p-6">
+              <h2 className="mb-1 text-lg font-black uppercase tracking-[0.08em] text-white md:text-xl">
+                Get your <span className="text-[#4ade80]">free</span> kit
+              </h2>
+              <p className="mb-4 text-xs text-white/55">Instant access · partners welcome · educational only</p>
+              {captureForm}
+              <div className="mt-4 flex flex-wrap items-center gap-3">
+                <Link to={DISPUTE_LETTER_GUIDE_READ_PATH} className="text-xs font-semibold text-[#4ade80] underline-offset-2 hover:underline">
+                  Prefer to read free first
+                </Link>
               </div>
-              <h3 className="text-lg font-black text-white">{title}</h3>
-              <p className="mt-2 text-sm leading-relaxed text-white/60">{desc}</p>
+              <p className="cgp-compliance cgp-compliance--light mt-3">
+                Results vary · not legal advice · funding subject to underwriting
+              </p>
             </div>
-          ))}
+
+            {(guide.id === DISPUTE_LETTER_GUIDE_ID || config.id === 'credit') && (
+              <div className="cgp-capture-video-panel">
+                <div className="cgp-capture-video-label">
+                  <span>Finely Cred credit solutions</span>
+                  <span className="opacity-70">Restore · Disputes · Funding</span>
+                </div>
+                <p className="cgp-capture-video-sub">
+                  Overview of what we offer — not a site walkthrough
+                </p>
+                <FreeDisputeGuideHeroVideo showBadge={false} className="cgp-capture-video max-w-none rounded-[1rem]" />
+              </div>
+            )}
+          </div>
         </div>
       </section>
 
-      <section className="container relative z-10 mx-auto max-w-7xl px-4 pb-12 sm:px-6">
-        <div className="fg-path-section overflow-hidden rounded-[2rem] border border-white/[0.1] bg-white/[0.045] p-5 backdrop-blur-xl sm:p-8 lg:p-10">
-          <div className="grid gap-8 md:grid-cols-[0.92fr_1.08fr] md:items-center lg:grid-cols-[0.82fr_1.18fr]">
-            <div>
-              <p className="text-[11px] font-black uppercase tracking-[0.24em] text-[#39ff14]">Why people claim it</p>
-              <h2 className="mt-3 text-3xl font-black leading-tight text-white sm:text-4xl">
-                It turns “I need credit help” into <span className="text-gradient-green">what to do first.</span>
-              </h2>
-              <p className="mt-4 text-sm leading-relaxed text-white/60 sm:text-base">
-                This is not another generic PDF. It gives you a first-round plan, a toolkit, and a portal preview that makes the next action obvious.
-              </p>
-              <button type="button" onClick={goCapture} className="mt-6 fg-cta-primary rounded-xl px-8 py-4 text-sm inline-flex items-center justify-center gap-2">
-                Claim my free plan <ArrowRight className="h-4 w-4" />
-              </button>
-            </div>
+      {/* Device duo — early, large, impossible to miss */}
+      <section id="fg-preview" className="cgp-band cgp-band--ivory cgp-band--glow relative z-10 scroll-mt-16 py-14 md:py-16">
+        <div className="mx-auto max-w-[94rem] px-5 md:px-8">
+          <div className="mb-8 mx-auto max-w-3xl text-center">
+            <WealthKicker>See the converting preview</WealthKicker>
+            <h2 className="cgp-serif mt-4 text-3xl font-black leading-tight tracking-[-0.03em] text-[#0b1220] md:text-5xl">
+              Tablet + glowing phone — <span className="text-[#1aad4b]">Sign up free</span>, Round 1 letters, score climb
+            </h2>
+            <p className="mx-auto mt-4 max-w-2xl text-sm leading-relaxed text-[#0b1220]/65 sm:text-base">
+              Side-by-side partner preview of the full credit path: restore workflow, dispute Round 1, and the one-tap
+              signup that unlocks it — free, no card.
+            </p>
+          </div>
+          <div className="cgp-preview-stage mx-auto">
+            <LeadMagnetDeviceShowcase />
+          </div>
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+            <a href="#fg-capture" className="cgp-cta">
+              Sign up free <ArrowRight className="h-4 w-4" />
+            </a>
+            <p className="cgp-compliance m-0">Results vary · not legal advice · educational tools only</p>
+          </div>
+        </div>
+      </section>
 
-            <div className="grid gap-3 sm:grid-cols-2">
-              {ACTION_STEPS.map((item) => (
-                <div key={item.step} className="rounded-2xl border border-white/[0.09] bg-black/20 p-4 sm:p-5">
-                  <div className="mb-4 inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-[#39ff14]/25 bg-[#39ff14]/10 text-sm font-black text-[#39ff14]">
-                    {item.step}
-                  </div>
-                  <h3 className="text-base font-black text-white">{item.title}</h3>
-                  <p className="mt-2 text-sm leading-relaxed text-white/58">{item.desc}</p>
+      {/* Issue picker */}
+      <section className="cgp-band relative z-10 py-10 md:py-12">
+        <div className="mx-auto max-w-7xl px-5 md:px-8">
+          <WealthKicker>Start with your biggest blocker</WealthKicker>
+          <h2 className="cgp-serif mt-4 text-3xl font-black tracking-[-0.03em] text-[#0b1220] md:text-4xl">
+            What needs to be disputed <span className="text-[#1aad4b]">first?</span>
+          </h2>
+          <p className="mt-3 max-w-xl text-sm leading-relaxed text-[#0b1220]/60">
+            Personalizes your kit so round one starts on the item hurting approvals — not a vague tip sheet.
+          </p>
+
+          <div className="mt-5 grid grid-cols-2 gap-2 lg:grid-cols-4">
+            {ISSUE_TRACKS.map((item) => {
+              const active = item.id === selectedIssueId;
+              return (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => setSelectedIssueId(item.id)}
+                  className={`cgp-issue-btn ${active ? 'is-active' : ''}`}
+                >
+                  {item.label}
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="cgp-card mt-4 p-4 sm:p-5">
+            <p className="text-[10px] font-black uppercase tracking-[0.22em] text-[#0f7a35]">Your first-round angle</p>
+            <h3 className="mt-1 text-lg font-black leading-snug text-[#0b1220]">{selectedIssue.promise}</h3>
+            <p className="mt-2 text-sm text-[#0b1220]/55">{selectedIssue.bestFor}</p>
+            <div className="mt-3 grid gap-2 sm:grid-cols-3">
+              {selectedIssue.plan.map((line) => (
+                <div
+                  key={line}
+                  className="rounded-xl border border-[#1aad4b]/18 bg-white/70 px-3 py-2 text-xs font-semibold text-[#0b1220]/70"
+                >
+                  <CheckCircle2 className="mr-1.5 inline h-3.5 w-3.5 text-[#1aad4b]" /> {line}
                 </div>
               ))}
             </div>
@@ -394,87 +371,192 @@ export function CreditGuidePremiumLanding({
         </div>
       </section>
 
-      <section id="fg-preview" className="container mx-auto px-4 sm:px-6 max-w-6xl pb-12 scroll-mt-16">
-        <div className="fg-stage fg-preview-stage rounded-[1.75rem] sm:rounded-[2rem] p-6 sm:p-10 lg:p-12 xl:p-14 overflow-visible">
-          <div className="grid gap-12 sm:gap-14 lg:gap-20 xl:gap-24 lg:grid-cols-[minmax(0,0.4fr)_minmax(0,0.6fr)] lg:items-center">
-            <div className="min-w-0 lg:max-w-sm xl:max-w-md lg:pr-4 xl:pr-8">
-              <p className="text-[11px] font-bold uppercase tracking-widest text-[#39ff14] mb-3">Included free</p>
-              <h2 className="text-2xl sm:text-3xl font-black text-white leading-tight mb-3">
-                Track every dispute in the <span className="text-gradient-green">partner portal</span>, not spreadsheets.
+      {/* Read free — keep path */}
+      <section id="fg-read-free" className="cgp-band cgp-band--ivory relative z-10 py-10 md:py-12 scroll-mt-16">
+        <div className="mx-auto max-w-7xl px-5 md:px-8">
+          <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+            <div className="max-w-2xl">
+              <WealthKicker>Read it free · no email</WealthKicker>
+              <h2 className="cgp-serif mt-4 text-3xl font-black tracking-[-0.03em] text-[#0a1628] md:text-4xl">
+                {DISPUTE_LETTER_GUIDE_PROGRAMMATIC_PAGES.length} pages, open in your browser
               </h2>
-              <p className="text-white/60 text-sm sm:text-base mb-6 max-w-md">
-                The PDF gives you the playbook. The portal preview makes it real: upload reports, log bureau responses, and see your next steps in one dashboard.
+              <p className="mt-3 text-sm leading-relaxed text-[#0a1628]/65">
+                Open any chapter below. Capture is optional if you want the PDF kit and portal preview.
               </p>
-              <button type="button" onClick={goCapture} className="fg-cta-primary py-3.5 px-8 rounded-xl inline-flex items-center gap-2 text-sm">
-                Claim the free kit <ArrowRight className="w-4 h-4" />
-              </button>
             </div>
-            <div className="min-w-0 overflow-visible lg:pl-6 xl:pl-10 2xl:pl-12">
-              <LeadMagnetDeviceShowcase />
+            <Link to={DISPUTE_LETTER_GUIDE_READ_PATH} className="cgp-cta shrink-0">
+              <BookOpen className="h-4 w-4" /> Open the reader
+            </Link>
+          </div>
+          <div className="mt-7 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {HERO_CHAPTER_RAIL.map((chapter) => (
+              <Link
+                key={chapter.id}
+                to={`${DISPUTE_LETTER_GUIDE_READ_PATH}?chapter=${chapter.id}`}
+                className="cgp-card group px-4 py-3.5 transition hover:-translate-y-0.5"
+              >
+                <p className="text-[9px] font-black uppercase tracking-[0.2em] text-[#c4803d]">
+                  {chapter.kicker ?? 'Page'}
+                </p>
+                <p className="mt-1 text-sm font-bold leading-snug text-[#0a1628] group-hover:text-[#000c3c]">
+                  {chapter.title}
+                </p>
+                {chapter.subtitle ? (
+                  <p className="mt-1 line-clamp-2 text-[11px] leading-relaxed text-[#0a1628]/50">{chapter.subtitle}</p>
+                ) : null}
+              </Link>
+            ))}
+          </div>
+          <p className="cgp-compliance mt-4">Educational only · not legal advice · results vary</p>
+        </div>
+      </section>
+
+      {/* Pillars */}
+      <section className="cgp-band relative z-10 py-10">
+        <div className="mx-auto grid max-w-7xl gap-4 px-5 md:grid-cols-3 md:px-8">
+          {OFFER_PILLARS.map(({ icon: Icon, title, desc }) => (
+            <div key={title} className="cgp-card p-5 sm:p-6">
+              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl border border-[#1aad4b]/30 bg-[#1aad4b]/10 text-[#0f7a35]">
+                <Icon className="h-5 w-5" />
+              </div>
+              <h3 className="text-lg font-black text-[#0b1220]">{title}</h3>
+              <p className="mt-2 text-sm leading-relaxed text-[#0b1220]/60">{desc}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Path */}
+      <section className="cgp-band relative z-10 border-t border-[#1aad4b]/12 py-10 md:py-12">
+        <div className="mx-auto max-w-7xl px-5 md:px-8">
+          <div className="grid gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
+            <div>
+              <WealthKicker>Why partners claim it</WealthKicker>
+              <h2 className="cgp-serif mt-4 text-3xl font-black leading-tight tracking-[-0.03em] text-[#0b1220] md:text-4xl">
+                It turns “I need credit help” into <span className="text-[#1aad4b]">what to do first.</span>
+              </h2>
+              <p className="mt-4 text-sm leading-relaxed text-[#0b1220]/60 sm:text-base">
+                Not another generic PDF. A first-round plan, a toolkit, and a portal preview that makes the next action
+                obvious.
+              </p>
+              <a href="#fg-capture" className="cgp-cta mt-6">
+                Sign up free <ArrowRight className="h-4 w-4" />
+              </a>
+              <p className="cgp-compliance mt-3">Results vary · not legal advice</p>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {ACTION_STEPS.map((item) => (
+                <div key={item.step} className="cgp-card p-4 sm:p-5">
+                  <div className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-[#1aad4b]/25 bg-[#1aad4b]/10 text-sm font-black text-[#0f7a35]">
+                    {item.step}
+                  </div>
+                  <h3 className="text-base font-black text-[#0b1220]">{item.title}</h3>
+                  <p className="mt-2 text-sm leading-relaxed text-[#0b1220]/58">{item.desc}</p>
+                </div>
+              ))}
             </div>
           </div>
         </div>
       </section>
 
-      <section className="container mx-auto max-w-6xl px-4 pb-12 sm:px-6">
-        <div className="grid gap-4 md:grid-cols-3">
+      {/* Materials — one glossy composition */}
+      <section id="fg-materials" className="cgp-band cgp-band--ivory relative z-10 scroll-mt-16 py-12 md:py-14">
+        <div className="mx-auto max-w-7xl px-5 md:px-8">
+          <div className="mb-8 mx-auto max-w-2xl text-center">
+            <WealthKicker>Inside the free kit</WealthKicker>
+            <h2 className="cgp-serif mt-4 text-3xl font-black tracking-[-0.03em] text-[#0b1220] md:text-4xl">
+              Glossy pages. Real guide. <span className="text-[#1aad4b]">Phone preview of the ebook.</span>
+            </h2>
+            <p className="mt-3 text-sm leading-relaxed text-[#0b1220]/60">
+              One professional materials stage — brochure spreads, the standalone book, and the guide on a phone screen
+              as part of the same mockup.
+            </p>
+          </div>
+          <FreeGuideMaterialsShowcase />
+          <div className="cgp-materials-caption mx-auto mt-8 max-w-xl">
+            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#0f7a35]">Included free today</p>
+            <p className="mt-1 text-sm font-semibold text-[#0b1220]/85">
+              Guide PDF · chapter reader · {LEAD_MAGNET_TRIAL_DAYS}-day portal preview
+            </p>
+          </div>
+          <div className="mt-6 flex flex-wrap justify-center gap-3">
+            <a href="#fg-capture" className="cgp-cta">
+              Sign up free <ArrowRight className="h-4 w-4" />
+            </a>
+            <Link to={DISPUTE_LETTER_GUIDE_READ_PATH} className="cgp-cta cgp-cta--ghost">
+              <BookOpen className="h-4 w-4" /> Read free first
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Objections */}
+      <section className="cgp-band relative z-10 py-10">
+        <div className="mx-auto grid max-w-7xl gap-4 px-5 md:grid-cols-3 md:px-8">
           {OBJECTION_HANDLERS.map((item) => (
-            <div key={item.title} className="rounded-[1.5rem] border border-[#39ff14]/18 bg-[#07110d]/65 p-5 shadow-[0_24px_70px_rgba(0,0,0,0.22)] sm:p-6">
-              <ShieldCheck className="mb-4 h-6 w-6 text-[#39ff14]" />
-              <h3 className="text-base font-black text-white">{item.title}</h3>
-              <p className="mt-2 text-sm leading-relaxed text-white/58">{item.desc}</p>
+            <div key={item.title} className="cgp-card p-5 sm:p-6">
+              <ShieldCheck className="mb-4 h-6 w-6 text-[#1aad4b]" />
+              <h3 className="text-base font-black text-[#0b1220]">{item.title}</h3>
+              <p className="mt-2 text-sm leading-relaxed text-[#0b1220]/58">{item.desc}</p>
             </div>
           ))}
         </div>
       </section>
 
-      <main id="fg-value" className="container mx-auto px-4 sm:px-6 max-w-6xl pb-16 scroll-mt-16">
-        <div className="text-center max-w-2xl mx-auto mb-8">
-          <h2 className="text-2xl sm:text-3xl font-black text-white mb-2">
-            What you get <span className="text-gradient-green">free today</span>
-          </h2>
-          <p className="text-white/55 text-sm">A valuable stack with one clear action: claim access and start round one.</p>
-        </div>
+      {/* Value stack + capture CTA */}
+      <main id="fg-value" className="cgp-band relative z-10 scroll-mt-16 pb-16 pt-4">
+        <div className="mx-auto max-w-6xl px-5 md:px-8">
+          <div className="mx-auto mb-8 max-w-2xl text-center">
+            <h2 className="cgp-serif text-3xl font-black text-[#0b1220] md:text-4xl">
+              What you get <span className="text-[#1aad4b]">free today</span>
+            </h2>
+            <p className="mt-2 text-sm text-[#0b1220]/55">A valuable stack with one clear action: claim access and start round one.</p>
+            <p className="cgp-compliance mt-2">Results vary · not legal advice</p>
+          </div>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-10">
-          {config.features.map((f, i) => (
-            <div key={f.title} className={`${finelyOsCatalogCard(FEATURE_ACCENTS[i % FEATURE_ACCENTS.length])} !p-4 sm:!p-5`} data-fc-accent={FEATURE_ACCENTS[i % FEATURE_ACCENTS.length]}>
-              <FlashyIcon icon={f.icon} color="emerald" size="xs" className="!w-8 !h-8 mb-2" />
-              <h3 className="text-sm font-bold mb-1">{f.title}</h3>
-              <p className="text-xs opacity-75 leading-relaxed">{f.desc}</p>
-            </div>
-          ))}
-        </div>
-
-        <div id="fg-cta" className="fg-price-card rounded-2xl p-6 sm:p-8 max-w-2xl mx-auto text-center scroll-mt-16">
-          <p className="text-sm text-white/60 mb-2">Total value</p>
-          <p className="text-3xl sm:text-4xl font-black text-white mb-4">
-            <span className="line-through text-white/35 mr-2">${totalValue}</span>
-            <span className="text-gradient-green">$0</span>
-          </p>
-          <ul className="text-left space-y-2 mb-6 max-w-md mx-auto">
-            {config.valueStack.slice(0, 5).map((v) => (
-              <li key={v.label} className="flex items-center justify-between gap-3 text-sm text-white/80 border-b border-white/[0.06] pb-2">
-                <span className="inline-flex items-center gap-2 min-w-0">
-                  <Check className="w-4 h-4 text-[#39ff14] shrink-0" /> {v.label}
-                </span>
-                <span className="text-emerald-400 font-bold shrink-0">{v.value}</span>
-              </li>
-            ))}
-          </ul>
-          <div className="mb-6 grid gap-2 sm:grid-cols-2">
-            {TRUST_POINTS.map((point) => (
-              <div key={point} className="rounded-xl border border-white/[0.08] bg-white/[0.04] px-3 py-2 text-xs font-semibold text-white/65">
-                <CheckCircle2 className="mr-1.5 inline h-3.5 w-3.5 text-[#39ff14]" /> {point}
+          <div className="mb-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {config.features.map((f) => (
+              <div key={f.title} className="cgp-card !p-4 sm:!p-5">
+                <FlashyIcon icon={f.icon} color="emerald" size="xs" className="!mb-2 !h-8 !w-8" />
+                <h3 className="mb-1 text-sm font-bold text-[#0b1220]">{f.title}</h3>
+                <p className="text-xs leading-relaxed text-[#0b1220]/65">{f.desc}</p>
               </div>
             ))}
           </div>
-          <button type="button" onClick={goCapture} className="fg-cta-primary py-4 px-10 rounded-xl inline-flex items-center gap-2 text-base w-full sm:w-auto justify-center">
-            {ctaOverride ?? 'Get free access'} <ArrowRight className="w-5 h-5" />
-          </button>
-          <p className="mt-3 text-xs text-white/45">
-            <ShieldCheck className="w-3 h-3 inline mr-1" /> No credit card · Instant download · secure access
-          </p>
+
+          <div id="fg-cta" className="cgp-card mx-auto max-w-2xl scroll-mt-16 p-6 text-center sm:p-8">
+            <p className="mb-2 text-sm text-[#0b1220]/55">Total value</p>
+            <p className="mb-4 text-3xl font-black text-[#0b1220] sm:text-4xl">
+              <span className="mr-2 text-[#0b1220]/30 line-through">${totalValue}</span>
+              <span className="text-[#1aad4b]">$0</span>
+            </p>
+            <ul className="mx-auto mb-6 max-w-md space-y-2 text-left">
+              {config.valueStack.slice(0, 5).map((v) => (
+                <li key={v.label} className="flex items-center justify-between gap-3 border-b border-[#1aad4b]/12 pb-2 text-sm text-[#0b1220]/80">
+                  <span className="inline-flex min-w-0 items-center gap-2">
+                    <Check className="h-4 w-4 shrink-0 text-[#1aad4b]" /> {v.label}
+                  </span>
+                  <span className="shrink-0 font-bold text-[#0f7a35]">{v.value}</span>
+                </li>
+              ))}
+            </ul>
+            <div className="mb-6 grid gap-2 sm:grid-cols-2">
+              {TRUST_POINTS.map((point) => (
+                <div key={point} className="rounded-xl border border-[#1aad4b]/18 bg-white/70 px-3 py-2 text-xs font-semibold text-[#0b1220]/65">
+                  <CheckCircle2 className="mr-1.5 inline h-3.5 w-3.5 text-[#1aad4b]" /> {point}
+                </div>
+              ))}
+            </div>
+            <a href="#fg-capture" className="cgp-cta w-full justify-center sm:w-auto">
+              {ctaOverride ?? 'Sign up free'} <ArrowRight className="h-5 w-5" />
+            </a>
+            <p className="mt-3 text-xs text-[#0b1220]/45">
+              <ShieldCheck className="mr-1 inline h-3 w-3" /> No credit card · Instant download · secure access
+            </p>
+            <p className="cgp-compliance mt-2">
+              Results vary · not legal advice · funding subject to underwriting
+            </p>
+          </div>
         </div>
       </main>
     </div>
@@ -483,7 +565,7 @@ export function CreditGuidePremiumLanding({
 
 export function CreditGuidePremiumDownload({
   guide,
-  fullName,
+  fullName: _fullName,
   generating,
   downloadBusy,
   downloadErr,
@@ -515,35 +597,35 @@ export function CreditGuidePremiumDownload({
   }, [recommendedCourse.next]);
 
   return (
-    <main className="min-h-screen py-12 sm:py-16 px-4 bg-fc-shell">
-      <div className="max-w-5xl mx-auto grid lg:grid-cols-2 gap-6 lg:gap-10 items-start">
+    <main className="cgp-page lm-lux-theme--navy min-h-screen bg-[#000c3c] px-4 py-12 sm:py-16">
+      <div className="mx-auto grid max-w-5xl items-start gap-6 lg:grid-cols-2 lg:gap-10">
         <DisputeLetterGuidePreview className="w-full" />
-        <div className="bg-[#151c2a] border border-[#39ff14]/20 rounded-2xl sm:rounded-[2rem] p-6 sm:p-10 text-center shadow-[0_0_50px_rgba(57,255,20,0.12)]">
+        <div className="cgp-download-card rounded-2xl p-6 text-center sm:rounded-[2rem] sm:p-10">
           {generating ? (
             <div className="py-12">
-              <Loader2 className="w-12 h-12 text-[#39ff14] animate-spin mx-auto mb-4" />
-              <p className="text-white font-semibold">Assembling your {DISPUTE_LETTER_GUIDE_PAGE_COUNT}-page guide…</p>
+              <Loader2 className="mx-auto mb-4 h-12 w-12 animate-spin text-[#ffd993]" />
+              <p className="font-semibold text-white">Assembling your {DISPUTE_LETTER_GUIDE_PAGE_COUNT}-page guide…</p>
             </div>
           ) : (
             <>
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#39ff14]/10 border border-[#39ff14]/30 mb-6">
-                <Unlock className="w-4 h-4 text-[#39ff14]" />
-                <span className="text-xs font-bold text-[#39ff14] uppercase">Resource unlocked</span>
+              <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-[#e0b24a]/35 bg-[#e0b24a]/10 px-4 py-2">
+                <Unlock className="h-4 w-4 text-[#ffd993]" />
+                <span className="text-xs font-bold uppercase text-[#ffd993]">Resource unlocked</span>
               </div>
-              <h1 className="text-2xl sm:text-3xl font-black mb-2">
-                Your download is <span className="text-gradient-green">ready.</span>
+              <h1 className="cgp-serif mb-2 text-2xl font-black text-white sm:text-3xl">
+                Your download is <span className="text-[#ffd993]">ready.</span>
               </h1>
-              <p className="text-gray-400 mb-2 text-sm sm:text-base">{guide.title}</p>
-              {downloadErr ? <div className="mb-4 text-red-300 text-sm">{downloadErr}</div> : null}
+              <p className="mb-2 text-sm text-white/55 sm:text-base">{guide.title}</p>
+              {downloadErr ? <div className="mb-4 text-sm text-red-300">{downloadErr}</div> : null}
               {trialActive ? (
-                <div className="mb-6 inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs font-bold uppercase tracking-wider">
-                  <LayoutDashboard className="w-3.5 h-3.5" /> {formatTrialExpiryLabel(trialState)} — portal tools unlocked
+                <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-[#e0b24a]/35 bg-[#e0b24a]/10 px-4 py-2 text-xs font-bold uppercase tracking-wider text-[#ffd993]">
+                  <LayoutDashboard className="h-3.5 w-3.5" /> {formatTrialExpiryLabel(trialState)} — portal tools unlocked
                 </div>
               ) : null}
-              <DisputeLetterGuideContentsList className="text-left mb-6 max-w-md mx-auto" />
-              <div className="mb-6 rounded-2xl border border-emerald-500/25 bg-emerald-500/10 p-4 text-left">
-                <div className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-emerald-300">
-                  <BookOpen className="w-4 h-4" /> Recommended next course
+              <DisputeLetterGuideContentsList className="mx-auto mb-6 max-w-md text-left" />
+              <div className="mb-6 rounded-2xl border border-[#e0b24a]/25 bg-[#e0b24a]/10 p-4 text-left">
+                <div className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-[#ffd993]">
+                  <BookOpen className="h-4 w-4" /> Recommended next course
                 </div>
                 <div className="mt-3 grid grid-cols-2 gap-2">
                   {GUIDE_COURSE_RECOMMENDATIONS.map((rec) => (
@@ -552,25 +634,34 @@ export function CreditGuidePremiumDownload({
                       type="button"
                       onClick={() => setCourseNeed(rec.id)}
                       className={`rounded-xl border px-3 py-2 text-left text-[10px] font-bold ${
-                        courseNeed === rec.id ? 'border-emerald-500/50 bg-emerald-500/15 text-emerald-100' : 'border-white/[0.08] text-white/55'
+                        courseNeed === rec.id
+                          ? 'border-[#e0b24a]/50 bg-[#e0b24a]/15 text-[#ffd993]'
+                          : 'border-white/[0.08] text-white/55'
                       }`}
                     >
                       {rec.label}
                     </button>
                   ))}
                 </div>
-                <button type="button" onClick={() => navigate(courseOnboardingUrl)} className="mt-3 w-full py-3 rounded-xl border border-emerald-500/30 text-[10px] font-black uppercase text-emerald-100">
-                  Start {recommendedCourse.title} <ArrowRight className="w-4 h-4 inline" />
+                <button
+                  type="button"
+                  onClick={() => navigate(courseOnboardingUrl)}
+                  className="mt-3 w-full rounded-xl border border-[#e0b24a]/30 py-3 text-[10px] font-black uppercase text-[#ffd993]"
+                >
+                  Start {recommendedCourse.title} <ArrowRight className="inline h-4 w-4" />
                 </button>
               </div>
               <div className="flex flex-col gap-3">
-                <button type="button" disabled={downloadBusy} onClick={onDownload} className="fg-cta-primary py-4 rounded-xl w-full disabled:opacity-60">
+                <button type="button" disabled={downloadBusy} onClick={onDownload} className="fg-cta-primary w-full rounded-xl py-4 disabled:opacity-60">
                   {downloadBusy ? 'Preparing…' : autoDownloaded ? 'Download again' : 'Download PDF now'}
                 </button>
-                <button type="button" onClick={() => navigate(onboardingUrl)} className="fg-cta-secondary py-4 rounded-xl w-full text-sm uppercase">
-                  Continue to platform <ExternalLink className="w-4 h-4 inline ml-1" />
+                <button type="button" onClick={() => navigate(onboardingUrl)} className="fg-cta-secondary w-full rounded-xl py-4 text-sm uppercase">
+                  Continue to platform <ExternalLink className="ml-1 inline h-4 w-4" />
                 </button>
               </div>
+              <p className="cgp-compliance cgp-compliance--light mt-4">
+                Results vary · not legal advice · educational resources only
+              </p>
             </>
           )}
         </div>

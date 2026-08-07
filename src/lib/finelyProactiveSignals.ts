@@ -905,6 +905,127 @@ export function buildAffiliateNoticedItems(input: AffiliateSignalInput): FinelyN
   ];
 }
 
+export type AgencyHubSignalInput = {
+  seatCount: number;
+  tenantLive: boolean;
+  tab: string;
+};
+
+/** Agency hub — tenant seats and partner routing nudges. */
+export function buildAgencyHubNoticedItems(input: AgencyHubSignalInput): FinelyNoticedItem[] {
+  if (!input.tenantLive) {
+    return [
+      {
+        id: 'agency-tenant',
+        tone: 'warn',
+        text: 'Finish tenant setup so partners, letters, and white-label controls go live.',
+        actionLabel: 'White-label settings',
+        to: '/admin/access',
+      },
+    ];
+  }
+  if (input.seatCount <= 1 && input.tab !== 'team') {
+    return [
+      {
+        id: 'agency-seats',
+        tone: 'info',
+        text: 'Invite an operator seat when you are ready to share partner files across your team.',
+        actionLabel: 'Team tab',
+        to: '/agency/hub?tab=team',
+      },
+    ];
+  }
+  return [
+    {
+      id: 'agency-partners',
+      tone: 'success',
+      text: 'Workspace is live. Route the next partner file and keep letters moving.',
+      actionLabel: 'Partner files',
+      to: '/admin/partners',
+    },
+  ];
+}
+
+export type CaseHelpHubSignalInput = {
+  assignedCount: number;
+  tab: string;
+};
+
+/** Case Help hub — assigned matters only (post-approval). */
+export function buildCaseHelpHubNoticedItems(input: CaseHelpHubSignalInput): FinelyNoticedItem[] {
+  if (input.assignedCount === 0) {
+    return [
+      {
+        id: 'ch-wait-assign',
+        tone: 'info',
+        text: 'No assigned partner matters yet — Finely ops scopes files to your seat. You never get platform-wide access.',
+        actionLabel: 'Case desk guide',
+        to: '/case-desk-guide/read',
+      },
+    ];
+  }
+  if (input.tab !== 'matters') {
+    return [
+      {
+        id: 'ch-open-matters',
+        tone: 'success',
+        text: `You have ${input.assignedCount} assigned partner file${input.assignedCount === 1 ? '' : 's'}. Open Matters to work the desk.`,
+        actionLabel: 'Matters tab',
+        to: '/case-help/hub?tab=matters',
+      },
+    ];
+  }
+  return [
+    {
+      id: 'ch-packets',
+      tone: 'info',
+      text: 'Build letter and evidence packets for assigned partners — educational support, not legal representation.',
+      actionLabel: 'Letter studio',
+      to: '/portal/letters',
+    },
+  ];
+}
+
+export type RealEstateHubSignalInput = {
+  hasReferralCode: boolean;
+  tab: string;
+};
+
+/** Real Estate hub — tagged affiliate filter (no new auth role). */
+export function buildRealEstateHubNoticedItems(input: RealEstateHubSignalInput): FinelyNoticedItem[] {
+  if (!input.hasReferralCode) {
+    return [
+      {
+        id: 're-code',
+        tone: 'warn',
+        text: 'Confirm your affiliate referral code so RE handoffs stay tracked.',
+        actionLabel: 'Referrals tab',
+        to: '/real-estate/hub?tab=referrals',
+      },
+    ];
+  }
+  if (input.tab === 'playbook') {
+    return [
+      {
+        id: 're-playbook',
+        tone: 'info',
+        text: 'Underwriting levers are lender-dependent — educate first, then hand off to restore.',
+        actionLabel: 'Restore path',
+        to: '/pricing/personal-credit-restore',
+      },
+    ];
+  }
+  return [
+    {
+      id: 're-share',
+      tone: 'success',
+      text: 'RE lane is live. Share a tracked restore or score-readiness link with your next referral.',
+      actionLabel: 'Share referral',
+      to: '/real-estate/hub?tab=referrals',
+    },
+  ];
+}
+
 export type TemplatesSignalInput = {
   vaultCount: number;
   savedReasonCount: number;

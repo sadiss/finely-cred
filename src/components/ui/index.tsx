@@ -926,7 +926,7 @@ export function MobileNav({ isOpen, onClose, onNavigate, showThemeToggle = false
             <button
               type="button"
               onClick={() => {
-                onNavigate('/credit-specialist/join');
+                onNavigate('/credit-specialist');
                 onClose();
               }}
               className="mt-2 w-full text-left fc-nav-pill !rounded-xl !py-2.5 text-sm font-semibold"

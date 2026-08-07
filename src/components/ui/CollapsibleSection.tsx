@@ -89,17 +89,18 @@ export function CollapsibleSection({
 
   const shell =
     variant === 'light'
-      ? 'rounded-3xl border border-violet-200/60 bg-gradient-to-br from-violet-50/35 via-white to-sky-50/40 backdrop-blur-xl overflow-hidden ring-1 ring-inset ring-white/80 shadow-[0_1px_0_rgba(255,255,255,0.92)_inset,0_4px_18px_rgba(99,102,241,0.06)]'
+      ? // Ivory/dashboard: transparent shell + violet border glow — never opaque white/gray slabs.
+        'rounded-3xl border border-violet-500/40 bg-transparent overflow-hidden shadow-[0_0_0_1px_rgba(139,92,246,0.16),0_14px_44px_-16px_rgba(139,92,246,0.48),0_0_28px_-8px_rgba(139,92,246,0.22)] ring-1 ring-inset ring-violet-400/15'
       : 'fc-light-glass-panel fc-light-chrome-panel rounded-3xl overflow-hidden';
 
-  const headerBorder = variant === 'light' ? 'border-violet-100/80' : 'border-white/[0.08]';
-  const toggleHover = variant === 'light' ? 'hover:bg-violet-50/40' : 'hover:bg-white/[0.03]';
-  const chevronTone = variant === 'light' ? 'text-slate-500' : 'text-white/55';
+  const headerBorder = variant === 'light' ? 'border-violet-500/15' : 'border-white/[0.08]';
+  const toggleHover = variant === 'light' ? 'hover:bg-violet-500/[0.05]' : 'hover:bg-white/[0.03]';
+  const chevronTone = variant === 'light' ? 'text-violet-600/70' : 'text-white/55';
   const titleTone = variant === 'light' ? 'text-slate-900' : 'text-white';
   const subtitleTone = variant === 'light' ? 'text-slate-600' : 'text-white/60';
   const countChip =
     variant === 'light'
-      ? 'px-3 py-1 rounded-full border border-violet-100/80 bg-white/70 text-xs font-semibold text-slate-600'
+      ? 'px-3 py-1 rounded-full border border-violet-500/30 bg-violet-500/[0.08] text-xs font-semibold text-violet-800'
       : 'px-3 py-1 rounded-full border border-fuchsia-500/30 bg-fuchsia-500/10 text-xs font-semibold text-fuchsia-200';
 
   return (

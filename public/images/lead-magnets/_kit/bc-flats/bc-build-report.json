@@ -1,0 +1,71 @@
+{
+  "metrics": {
+    "coverW": 1200,
+    "coverH": 1600,
+    "spineW": 45,
+    "spineDepthFrac": 0.028125,
+    "pageH": 1576,
+    "pageHeightFrac": 0.985,
+    "peek": 204,
+    "peekFrac": 0.17,
+    "yawDeg": -11,
+    "marginRatio": 0.04
+  },
+  "stats": {
+    "label": "bc-live",
+    "size": "2793x2126",
+    "pctTransparent": 35.38,
+    "softAlpha": 439380,
+    "corners": [
+      {
+        "x": 0,
+        "y": 0,
+        "a": 0,
+        "r": 0,
+        "g": 0,
+        "b": 0
+      },
+      {
+        "x": 2792,
+        "y": 0,
+        "a": 0,
+        "r": 0,
+        "g": 0,
+        "b": 0
+      },
+      {
+        "x": 0,
+        "y": 2125,
+        "a": 0,
+        "r": 0,
+        "g": 0,
+        "b": 0
+      },
+      {
+        "x": 2792,
+        "y": 2125,
+        "a": 0,
+        "r": 0,
+        "g": 0,
+        "b": 0
+      }
+    ],
+    "cornerAlphaZero": true
+  },
+  "live": "E:\\Finely-Cred\\Tishobe\\finely-cred-main\\public\\images\\lead-magnets\\business-credit-power-guide-mockup.png",
+  "transparent": "E:\\Finely-Cred\\Tishobe\\finely-cred-main\\public\\images\\lead-magnets\\business-credit-power-guide-mockup-transparent.png",
+  "qa": {
+    "magenta": "E:\\Finely-Cred\\Tishobe\\finely-cred-main\\public\\images\\lead-magnets\\_qa-bc-on-magenta.png",
+    "dark": "E:\\Finely-Cred\\Tishobe\\finely-cred-main\\public\\images\\lead-magnets\\_qa-bc-on-hero-dark.png"
+  },
+  "flats": {
+    "cover": "E:\\Finely-Cred\\Tishobe\\finely-cred-main\\public\\images\\lead-magnets\\_kit\\bc-flats\\bc-cover.png",
+    "a": "E:\\Finely-Cred\\Tishobe\\finely-cred-main\\public\\images\\lead-magnets\\_kit\\bc-flats\\bc-spread-a-snapshot.png",
+    "b": "E:\\Finely-Cred\\Tishobe\\finely-cred-main\\public\\images\\lead-magnets\\_kit\\bc-flats\\bc-spread-b-review.png"
+  },
+  "backups": [
+    "E:\\Finely-Cred\\Tishobe\\finely-cred-main\\public\\images\\lead-magnets\\backup-before-bg-remove\\business-credit-power-guide-mockup-pre-luxury-1785389051275.png",
+    "E:\\Finely-Cred\\Tishobe\\finely-cred-main\\public\\images\\lead-magnets\\backup-before-bg-remove\\business-credit-power-guide-mockup-transparent-pre-luxury-1785389051275.png"
+  ],
+  "warnings": []
+}

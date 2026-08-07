@@ -49,11 +49,15 @@ function PillModule({
   const [rating, setRating] = useState(record?.reviewRating ?? 0);
 
   return (
-    <div className={`rounded-xl border ${done ? 'border-emerald-500/25 bg-emerald-500/5' : 'border-white/10 bg-black/30'} p-3 min-w-[200px] max-w-sm shrink-0`}>
+    <div
+      className={`rounded-xl border ${
+        done ? 'border-emerald-500/25 bg-emerald-500/[0.04]' : 'border-black/10 bg-transparent'
+      } p-3 min-w-[200px] max-w-sm shrink-0`}
+    >
       <div className="flex items-start gap-2">
-        <Icon size={16} className={done ? 'text-emerald-300' : 'text-violet-300'} />
+        <Icon size={16} className={done ? 'text-emerald-700' : 'text-violet-700'} />
         <div className="min-w-0 flex-1">
-          <div className="text-sm font-bold text-white leading-snug">{mod.title}</div>
+          <div className="text-sm font-bold text-slate-900 leading-snug">{mod.title}</div>
           <p className={`text-[11px] mt-1 line-clamp-2 ${FINELY_OS_ENTITY_BODY}`}>{mod.description}</p>
         </div>
       </div>
@@ -78,7 +82,7 @@ function PillModule({
         {!done ? (
           <button
             type="button"
-            className="text-[9px] text-white/30 hover:text-white/50"
+            className="text-[9px] text-slate-400 hover:text-slate-600"
             onClick={() => {
               dismissPartnerSuccessModule(partnerId, mod.id);
               onChange();
@@ -89,10 +93,10 @@ function PillModule({
         ) : null}
       </div>
       {expanded && mod.type === 'quiz' && mod.quiz?.[0] ? (
-        <div className="mt-3 space-y-2 border-t border-white/10 pt-3">
-          <p className="text-xs text-white/75">{mod.quiz[0].question}</p>
+        <div className="mt-3 space-y-2 border-t border-black/10 pt-3">
+          <p className="text-xs text-slate-700">{mod.quiz[0].question}</p>
           {mod.quiz[0].options.map((opt, i) => (
-            <label key={opt} className="flex items-center gap-2 text-xs text-white/70">
+            <label key={opt} className="flex items-center gap-2 text-xs text-slate-600">
               <input type="radio" checked={quizPick === i} onChange={() => setQuizPick(i)} />
               {opt}
             </label>
@@ -113,13 +117,13 @@ function PillModule({
         </div>
       ) : null}
       {expanded && mod.type === 'review' ? (
-        <div className="mt-3 border-t border-white/10 pt-3 flex gap-1">
+        <div className="mt-3 border-t border-black/10 pt-3 flex gap-1">
           {[1, 2, 3, 4, 5].map((n) => (
             <button
               key={n}
               type="button"
               onClick={() => setRating(n)}
-              className={`p-1 rounded ${rating >= n ? 'text-amber-300' : 'text-white/25'}`}
+              className={`p-1 rounded ${rating >= n ? 'text-amber-600' : 'text-slate-300'}`}
             >
               <Star size={12} fill={rating >= n ? 'currentColor' : 'none'} />
             </button>
@@ -154,8 +158,8 @@ export function PartnerSuccessExperiencePanel({ partnerId, lane, compact }: Prop
   return (
     <div className="space-y-2">
       <div>
-        <p className="text-[10px] font-bold uppercase tracking-widest text-violet-300/80">Partner success</p>
-        <h3 className="text-sm font-black text-white">{compact ? 'Quick wins' : 'Quizzes & check-ins'}</h3>
+        <p className="text-[10px] font-bold uppercase tracking-widest text-violet-700/80">Partner success</p>
+        <h3 className="text-sm font-black text-slate-900">{compact ? 'Quick wins' : 'Quizzes & check-ins'}</h3>
       </div>
       <div className={`flex gap-3 overflow-x-auto pb-2 ${compact ? '' : 'flex-wrap'}`}>
         {(shown.length ? shown : modules.slice(0, 2)).map((mod) => (

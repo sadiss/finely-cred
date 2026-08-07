@@ -3,6 +3,7 @@ import { ArrowLeft, ArrowRight, CreditCard, Building2, CheckCircle2, Clock, Shie
 import { PageShell } from '../../components/layout/PageShell';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { usePartnerSession } from '../../auth/PartnerSessionContext';
+import { buildPackageGuestEntryPath } from '../../lib/packageCheckoutRouting';
 import {
   createBillingAccount,
   getBillingAccountForPartner,
@@ -254,13 +255,35 @@ export default function PartnerCheckoutPage() {
   };
 
   if (!partner) {
+    const pkgId = packageIdFromUrl || selectedPackageId || 'personal_free';
+    const rail = railFromUrl || selectedRail || undefined;
+    const isFreeGate = (getPackageById(pkgId)?.priceAmount ?? 0) <= 0;
     return (
-      <PageShell badge="Partner Portal" title="Checkout" subtitle="Select your plan.">
+      <PageShell
+        badge="Partner Portal"
+        title={isFreeGate ? 'Activate free access' : 'Checkout'}
+        subtitle={isFreeGate ? 'Sign in or create an account to unlock your free DIY workspace.' : 'Sign in or create an account to activate your package.'}
+      >
         <div className={FINELY_OS_PAGE}>
-          <div className={`${FINELY_OS_LUXURY_EMPTY} text-left`}>No partner profile found. Complete onboarding first.</div>
-          <button type="button" onClick={() => navigate('/onboarding')} className={FINELY_OS_SUCCESS_BTN}>
-            Start onboarding <ArrowRight size={14} />
-          </button>
+          <div className={`${FINELY_OS_LUXURY_EMPTY} text-left`}>
+            Partner profile required. Sign in or create an account — your package selection stays on the return URL.
+          </div>
+          <div className="flex flex-wrap gap-3">
+            <button
+              type="button"
+              onClick={() => navigate(buildPackageGuestEntryPath({ packageId: pkgId, rail, entry: 'signup' }))}
+              className={FINELY_OS_SUCCESS_BTN}
+            >
+              Create account <ArrowRight size={14} />
+            </button>
+            <button
+              type="button"
+              onClick={() => navigate(buildPackageGuestEntryPath({ packageId: pkgId, rail, entry: 'login' }))}
+              className={FINELY_OS_SECONDARY_BTN}
+            >
+              Sign in
+            </button>
+          </div>
         </div>
       </PageShell>
     );
@@ -313,15 +336,20 @@ export default function PartnerCheckoutPage() {
   }
 
   if (submitted) {
+    const freeDone = isFreeSelected;
     return (
       <PageShell
         badge="Partner Portal"
-        title="Application Submitted"
-        subtitle="Your plan selection has been recorded."
+        title={freeDone ? 'Free access activated' : 'Application Submitted'}
+        subtitle={
+          freeDone
+            ? 'Your DIY workspace is ready. Upgrade anytime for Letters and higher-touch support.'
+            : 'Your plan selection has been recorded.'
+        }
       >
         <div className={FINELY_OS_PAGE}>
           {notice && (
-            <div className={`${selectedRail === 'in_house' ? FINELY_OS_NOTICE_SUCCESS : FINELY_OS_NOTICE_WARN} flex items-start gap-3`}>
+            <div className={`${freeDone || selectedRail === 'in_house' ? FINELY_OS_NOTICE_SUCCESS : FINELY_OS_NOTICE_WARN} flex items-start gap-3`}>
               <CheckCircle2 size={18} className="shrink-0 mt-0.5" />
               <div>{notice}</div>
             </div>
@@ -332,17 +360,28 @@ export default function PartnerCheckoutPage() {
             <div className={FINELY_OS_ENTITY_BODY}>{selectedPackage?.description}</div>
             <div className="text-amber-300 text-lg font-semibold">{selectedPackage ? formatPrice(selectedPackage.priceAmount) : '—'}</div>
             <div className={FINELY_OS_ENTITY_SUBLABEL}>
-              Rail: {selectedRail === 'stripe' ? 'Stripe' : 'In-house financing (reports to Equifax)'}
+              {freeDone
+                ? 'Plan: Free DIY · No credit card'
+                : `Rail: ${selectedRail === 'stripe' ? 'Stripe' : 'In-house financing (reports to Equifax)'}`}
             </div>
+            <p className={`text-[11px] ${FINELY_OS_ENTITY_BODY}`}>
+              Results vary · not legal advice · educational workflows only.
+            </p>
           </div>
 
           <div className="flex flex-wrap gap-4">
-            <button type="button" onClick={() => navigate('/portal/billing')} className={FINELY_OS_SUCCESS_BTN}>
-              View billing <ArrowRight size={14} />
+            <button type="button" onClick={() => navigate('/portal/dashboard')} className={FINELY_OS_SUCCESS_BTN}>
+              Open dashboard <ArrowRight size={14} />
             </button>
-            <button type="button" onClick={() => navigate('/portal/dashboard')} className={FINELY_OS_SECONDARY_BTN}>
-              Go to dashboard
-            </button>
+            {!freeDone ? (
+              <button type="button" onClick={() => navigate('/portal/billing')} className={FINELY_OS_SECONDARY_BTN}>
+                View billing
+              </button>
+            ) : (
+              <button type="button" onClick={() => navigate('/pricing')} className={FINELY_OS_SECONDARY_BTN}>
+                Explore upgrades
+              </button>
+            )}
           </div>
 
           <FinelyOsPageFooter />
@@ -354,42 +393,60 @@ export default function PartnerCheckoutPage() {
   return (
     <PageShell
       badge="Partner Portal"
-      title="Select Your Plan"
-      subtitle="Choose a package and payment method to continue."
+      title={isFreeSelected ? 'Activate free access' : 'Select Your Plan'}
+      subtitle={
+        isFreeSelected
+          ? 'Confirm free DIY access — no credit card. Upgrade anytime for Letters.'
+          : 'Choose a package and payment method to continue.'
+      }
     >
       <div className={FINELY_OS_PAGE}>
         <div className="flex flex-wrap items-center justify-between gap-4">
           <button type="button" onClick={() => navigate('/portal/dashboard')} className={FINELY_OS_BACK_LINK}>
-            <ArrowLeft size={16} /> Dashboard
+            <ArrowLeft size={16} /> Open dashboard
           </button>
           <button type="button" onClick={() => navigate('/pricing')} className={FINELY_OS_BACK_LINK}>
             View all pricing <ArrowRight size={16} />
           </button>
         </div>
 
-        {!stripeReady && !denefitsReady ? (
+        {!stripeReady && !denefitsReady && !isFreeSelected ? (
           <div className={`${FINELY_OS_BANNER} ${FINELY_OS_ENTITY_BODY} text-sm`}>{BILLING_DEMO_CHECKOUT_HINT}</div>
         ) : null}
 
         <FinelyUnifiedHubLayout
-          eyebrow="Checkout"
-          title="Select your plan & payment rail"
-          subtitle="Stripe for card checkout or in-house financing that reports to Equifax."
+          eyebrow={isFreeSelected ? 'Free DIY' : 'Checkout'}
+          title={isFreeSelected ? 'Activate free partner workspace' : 'Select your plan & payment rail'}
+          subtitle={
+            isFreeSelected
+              ? 'One click unlocks report tools, documents, and guided tasks. Results vary · not legal advice.'
+              : 'Stripe for card checkout or in-house financing that reports to Equifax.'
+          }
           accent="sky"
           kpis={[
             { label: 'Category', value: selectedCategory.replace(/_/g, ' '), hint: 'Catalog', accent: 'violet' },
             { label: 'Package', value: selectedPackage?.name?.slice(0, 16) ?? '—', hint: 'Selected', accent: 'amber' },
             { label: 'Rail', value: selectedRail ?? (isFreeSelected ? 'free' : '—'), hint: 'Payment', accent: 'emerald' },
-            { label: 'Stripe', value: stripeReady ? 'Live' : 'Demo', hint: 'Card', accent: 'sky' },
+            { label: 'Stripe', value: isFreeSelected ? 'N/A' : stripeReady ? 'Live' : 'Demo', hint: 'Card', accent: 'sky' },
           ]}
-          tabs={[
-            { id: 'catalog', label: 'Catalog' },
-            { id: 'package', label: 'Package', badge: selectedPackage ? '✓' : undefined },
-            { id: 'payment', label: 'Payment', badge: selectedRail ? '✓' : undefined },
-          ]}
-          activeTab={checkoutTab}
+          tabs={
+            isFreeSelected
+              ? [
+                  { id: 'package', label: 'Free plan', badge: '✓' },
+                ]
+              : [
+                  { id: 'catalog', label: 'Catalog' },
+                  { id: 'package', label: 'Package', badge: selectedPackage ? '✓' : undefined },
+                  { id: 'payment', label: 'Payment', badge: selectedRail ? '✓' : undefined },
+                ]
+          }
+          activeTab={isFreeSelected ? 'package' : checkoutTab}
           onTabChange={(id) => setCheckoutTab(id as CheckoutTab)}
-          primaryAction={{ label: 'Billing hub', onClick: () => navigate('/portal/billing') }}
+          primaryAction={
+            isFreeSelected
+              ? { label: 'Open dashboard', onClick: () => navigate('/portal/dashboard') }
+              : { label: 'Billing hub', onClick: () => navigate('/portal/billing') }
+          }
           secondaryAction={{ label: 'Compare pricing', onClick: () => navigate('/pricing') }}
         >
         {checkoutTab === 'catalog' && availablePackages.length > 1 && (

@@ -1,7 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, AlertCircle, Sparkles, Building2, Scale, Crown, Lock, Gift, Users } from 'lucide-react';
+import { AlertCircle, ArrowRight, Gift } from 'lucide-react';
 import { PageShell } from '../components/layout/PageShell';
+import { useAuth } from '../auth/AuthProvider';
+import { resolvePackageSelectPath } from '../lib/packageCheckoutRouting';
 import {
   personalCreditPackages,
   businessCreditPackages,
@@ -25,24 +27,24 @@ import { DigitalInviteShareBand } from '../components/digitalCards';
 import { captureDigitalInviteCardFromUrl } from '../lib/digitalInviteCardAttribution';
 import type { DigitalInviteCardRole } from '../config/digitalInviteCards';
 import { PricingPackageCatalog } from '../components/pricing/PricingPackageCatalog';
+import { ServicesChooserModal } from '../components/pricing/ServicesChooserModal';
 import { BusinessCreditQuotePanel } from '../components/pricing/BusinessCreditQuotePanel';
 import { BusinessCreditOneSheetsPanel } from '../components/pricing/BusinessCreditOneSheetsPanel';
 import { FinelyOsPageFooter } from '../features/os/FinelyOsPageFooter';
 import { MarketingStaffChatStrip } from '../components/marketing/MarketingStaffChatStrip';
-import { PricingSolutionsHero, type PricingSolutionKey } from '../features/os/PricingSolutionsHero';
-import { FinelyUnifiedHubLayout, FinelyUnifiedSection } from '../features/unified/FinelyUnifiedHubLayout';
 import { usePublicSeoMeta } from '../hooks/usePublicSeoMeta';
 import {
-  FINELY_OS_BACK_LINK,
+  FINELY_OS_COMPLIANCE_FOOTNOTE,
   FINELY_OS_ENTITY_BODY,
-  finelyOsCatalogCard,
   FINELY_OS_ENTITY_SUBLABEL,
   FINELY_OS_ENTITY_VALUE,
+  FINELY_OS_GLOW_INCLUDES_BTN,
   FINELY_OS_PAGE,
-  FINELY_OS_PRIMARY_BTN,
-  FINELY_OS_SECONDARY_BTN,
-  FINELY_OS_TOOLBAR,
+  FINELY_OS_SUCCESS_BTN,
   FINELY_OS_VIEW_TABS,
+  finelyOsCatalogCard,
+  finelyOsCatalogCardCompact,
+  finelyOsLandingIvoryCard,
   finelyOsListItem,
   finelyOsViewTab,
   type FinelyOsPublicAccent,
@@ -68,6 +70,25 @@ type ServiceMeta = {
   filter?: (pkg: PricingPackage) => boolean;
 };
 
+/** Restore DIY: Free, Core $49/mo, letter packs, Credit Starter $297 + DFY restore/platinum tiers. */
+function isPersonalRestorePackage(p: PricingPackage): boolean {
+  if (p.category !== 'personal_credit') return false;
+  const id = p.id;
+  if (id === 'chexsystems_cleanup' || id === 'early_warning_cleanup') return false;
+  if (id.startsWith('personal_build') || id.startsWith('personal_maintenance') || id.includes('maintenance')) {
+    return false;
+  }
+  return (
+    id === 'personal_free' ||
+    id === 'personal_core' ||
+    id === 'personal_starter' ||
+    id.startsWith('letters_pack_') ||
+    id.startsWith('personal_restore') ||
+    id === 'personal_platinum' ||
+    id.startsWith('personal_platinum')
+  );
+}
+
 function serviceMetaFromSlug(slugRaw: string | undefined): ServiceMeta | null {
   const slug = (slugRaw || '').toLowerCase() as ServiceSlug;
 
@@ -77,9 +98,7 @@ function serviceMetaFromSlug(slugRaw: string | undefined): ServiceMeta | null {
       category: 'personal_credit',
       title: 'Personal Credit Restore',
       subtitle: 'Disputes, deletions, and restoration sequencing to stabilize your personal credit profile.',
-      filter: (p) =>
-        p.category === 'personal_credit' &&
-        (p.id === 'personal_starter' || p.id.startsWith('personal_restore') || p.id.startsWith('personal_platinum')),
+      filter: isPersonalRestorePackage,
     };
   }
 
@@ -114,27 +133,12 @@ function serviceMetaFromSlug(slugRaw: string | undefined): ServiceMeta | null {
   }
 }
 
-function getIconFor(category: PricingCategory | 'agency') {
-  switch (category) {
-    case 'personal_credit':
-      return Sparkles;
-    case 'business_credit':
-      return Building2;
-    case 'debt_legal':
-      return Scale;
-    case 'wealth_builder':
-      return Crown;
-    case 'privacy_id':
-      return Lock;
-    case 'bundle':
-      return Gift;
-    case 'tradeline_promo':
-      return Sparkles;
-    case 'agency':
-      return Users;
-    default:
-      return Sparkles;
-  }
+function hubAccentFor(category: PricingCategory | 'agency' | null): FinelyOsPublicAccent {
+  if (category === 'business_credit') return 'violet';
+  if (category === 'debt_legal') return 'fuchsia';
+  if (category === 'tradeline_promo' || category === 'wealth_builder' || category === 'agency') return 'amber';
+  if (category === 'privacy_id') return 'sky';
+  return 'emerald';
 }
 
 function packagesFor(category: PricingCategory): PricingPackage[] {
@@ -160,7 +164,9 @@ function packagesFor(category: PricingCategory): PricingPackage[] {
 
 export default function PricingServicePage() {
   const navigate = useNavigate();
+  const auth = useAuth();
   const params = useParams();
+  const [chooserOpen, setChooserOpen] = useState(false);
   const basePath = useMemo(() => {
     try {
       const p = window.location.pathname || '';
@@ -171,7 +177,18 @@ export default function PricingServicePage() {
   }, []);
   const meta = serviceMetaFromSlug(params.service as ServiceSlug | undefined);
   const category = meta?.category ?? null;
-  const [mode, setMode] = useState<'DIY' | 'DFY'>('DFY');
+  const isRestoreLane = meta?.slug === 'personal-credit-restore';
+  /** Restore defaults DIY so Free surfaces immediately; other lanes keep DFY. */
+  const [mode, setMode] = useState<'DIY' | 'DFY'>(() =>
+    (params.service || '').toLowerCase() === 'personal-credit-restore' ||
+    (params.service || '').toLowerCase() === 'personal-credit'
+      ? 'DIY'
+      : 'DFY',
+  );
+
+  useEffect(() => {
+    if (isRestoreLane) setMode('DIY');
+  }, [isRestoreLane]);
 
   usePublicSeoMeta({
     title: meta ? `${meta.title} — Finely Cred pricing` : 'Service pricing — Finely Cred',
@@ -180,20 +197,27 @@ export default function PricingServicePage() {
   });
 
   const goToCheckout = (pkgId: string, rail: 'stripe' | 'in_house') => {
-    const next = `/portal/checkout?package=${encodeURIComponent(pkgId)}&rail=${encodeURIComponent(rail)}`;
-    const qs = new URLSearchParams();
-    qs.set('package', pkgId);
-    qs.set('rail', rail);
-    qs.set('next', next);
-    navigate(`/onboarding?${qs.toString()}`);
+    navigate(
+      resolvePackageSelectPath({
+        packageId: pkgId,
+        rail,
+        isAuthed: Boolean(auth.user),
+      }),
+    );
   };
 
   const goToAgencySignup = (tierId?: string) => {
+    if (auth.user) {
+      navigate(tierId ? `/agency/signup?tier=${encodeURIComponent(tierId)}` : '/agency/signup');
+      return;
+    }
     const qs = new URLSearchParams();
+    qs.set('auth', 'signup');
     qs.set('lane', 'agent');
     if (tierId) qs.set('tier', tierId);
     if (tierId) qs.set('next', `/agency/signup?tier=${encodeURIComponent(tierId)}`);
-    navigate(`/onboarding?${qs.toString()}`);
+    else qs.set('next', '/agency/signup');
+    navigate(`/signup?${qs.toString()}`);
   };
 
   const agencyBuyInTiers = useMemo(() => getPublicAgencyBuyInTiers(), []);
@@ -224,26 +248,6 @@ export default function PricingServicePage() {
     });
   }, [category, mode, scopedPkgs]);
 
-  const Icon = category ? getIconFor(category) : Sparkles;
-
-  type SvcTab = 'packages' | 'compare' | 'fundability';
-  const [svcTab, setSvcTab] = useState<SvcTab>('packages');
-
-  const svcKpis = useMemo(
-    () => [
-      {
-        label: 'Packages',
-        value: category === 'agency' ? String(agencyTiers.filter((t) => t.isPublic).length) : String(visible.length),
-        hint: category === 'agency' ? 'Agency tiers' : `${mode} options`,
-        accent: 'emerald' as const,
-      },
-      { label: 'Delivery', value: mode, hint: 'Current view', accent: 'amber' as const },
-      { label: 'Category', value: category === 'agency' ? 'Agency' : (categoryLabels[category as PricingCategory] ?? 'Service').split(' ')[0]!, hint: 'Service lane', accent: 'violet' as const },
-      { label: 'Checkout', value: 'Stripe + in-house', hint: 'Rails at checkout', accent: 'sky' as const },
-    ],
-    [category, mode, visible.length],
-  );
-
   /** Service lanes that ship a shareable invite card. */
   const inviteCardRole: DigitalInviteCardRole | null =
     meta?.slug === 'personal-credit-restore'
@@ -252,61 +256,111 @@ export default function PricingServicePage() {
         ? 'tradelines'
         : null;
 
-  // Invite cards land on this route with `?invite=<role>&src=digital-card`.
   useEffect(() => {
     captureDigitalInviteCardFromUrl(window.location.search, window.location.pathname);
   }, [meta?.slug]);
 
-  const solutionKey = ((): PricingSolutionKey | null => {
-    if (!category) return null;
-    if (category === 'agency') return 'agency';
-    return category as PricingSolutionKey;
-  })();
-
-  const hubAccent: FinelyOsPublicAccent =
-    category === 'business_credit'
-      ? 'violet'
-      : category === 'debt_legal'
-        ? 'fuchsia'
-        : category === 'tradeline_promo' || category === 'wealth_builder' || category === 'agency'
-          ? 'amber'
-          : category === 'privacy_id'
-            ? 'sky'
-            : 'emerald';
+  const currentPath = `${basePath}/${meta?.slug ?? params.service ?? ''}`;
+  const accent = hubAccentFor(category);
 
   return (
-    <PageShell badge="Solutions" title={title} subtitle={subtitle}>
-      <div className={FINELY_OS_PAGE}>
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <button type="button" onClick={() => navigate(basePath)} className={FINELY_OS_BACK_LINK} title="Back to all solutions">
-            <ArrowLeft size={16} /> All solutions
-          </button>
-          <div className={`${FINELY_OS_TOOLBAR} !p-2 inline-flex items-center gap-2`}>
-            <Icon size={14} className="text-fuchsia-400" />
-            <span className={`${FINELY_OS_ENTITY_SUBLABEL} font-mono`}>{category || 'pricing'}</span>
+    <PageShell hideHero title={title} subtitle={subtitle} surface={isRestoreLane ? 'ivory' : 'default'}>
+      <div className={`${FINELY_OS_PAGE}${isRestoreLane ? ' !space-y-4' : ''}`}>
+        <header
+          className={
+            isRestoreLane
+              ? `${finelyOsLandingIvoryCard()} !p-5 sm:!p-6`
+              : `${finelyOsCatalogCardCompact(accent)} !p-5 sm:!p-6`
+          }
+          data-fc-accent={accent}
+        >
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div className="min-w-0 space-y-2">
+              <p
+                className={`${FINELY_OS_ENTITY_SUBLABEL} tracking-[0.22em] ${
+                  isRestoreLane ? '!text-[#b8860b]' : ''
+                }`}
+              >
+                Solutions
+              </p>
+              <h1
+                className={`text-2xl sm:text-3xl font-semibold tracking-tight ${
+                  isRestoreLane ? 'text-[#0a1628]' : FINELY_OS_ENTITY_VALUE
+                }`}
+              >
+                {title}
+              </h1>
+              <p
+                className={`max-w-2xl text-sm sm:text-base ${
+                  isRestoreLane ? 'text-[#0a1628]/70' : FINELY_OS_ENTITY_BODY
+                }`}
+              >
+                {subtitle}
+              </p>
+              <p className={`${FINELY_OS_COMPLIANCE_FOOTNOTE} ${isRestoreLane ? '!text-[#0a1628]/45' : ''}`}>
+                Educational only · not legal advice · payments cover software access and guided workflows.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setChooserOpen(true)}
+              className={`shrink-0 self-start ${FINELY_OS_GLOW_INCLUDES_BTN}`}
+            >
+              Switch solution <ArrowRight size={14} />
+            </button>
           </div>
-        </div>
-
-        <PricingSolutionsHero activeKey={solutionKey} mode="navigate" />
+        </header>
 
         {category === 'personal_credit' ? (
-          <div className={`${FINELY_OS_TOOLBAR} flex-wrap justify-between`}>
-            <div className={FINELY_OS_ENTITY_BODY}>
-              Choose your lane: <span className={`font-semibold ${FINELY_OS_ENTITY_VALUE}`}>Restore</span> (cleanup) or{' '}
-              <span className={`font-semibold ${FINELY_OS_ENTITY_VALUE}`}>Building</span> (strengthening).
+          <div
+            className={`flex flex-wrap items-center justify-between gap-3 ${
+              isRestoreLane ? 'fc-glass-ivory rounded-2xl px-3 py-2.5' : ''
+            }`}
+          >
+            <div className={isRestoreLane ? 'text-sm text-[#0a1628]/70' : FINELY_OS_ENTITY_BODY}>
+              Lane:{' '}
+              <span className={`font-semibold ${isRestoreLane ? 'text-[#0a1628]' : FINELY_OS_ENTITY_VALUE}`}>
+                Restore
+              </span>{' '}
+              or{' '}
+              <span className={`font-semibold ${isRestoreLane ? 'text-[#0a1628]' : FINELY_OS_ENTITY_VALUE}`}>
+                Building
+              </span>
             </div>
-            <div className={FINELY_OS_VIEW_TABS}>
+            <div
+              className={
+                isRestoreLane
+                  ? 'inline-flex flex-wrap gap-2 p-1.5 rounded-2xl border border-amber-900/12 bg-white/55 backdrop-blur-md'
+                  : FINELY_OS_VIEW_TABS
+              }
+            >
               <button
                 type="button"
                 onClick={() => navigate(`${basePath}/personal-credit-restore`)}
-                className={finelyOsViewTab(meta?.slug === 'personal-credit-restore', 'emerald')}
+                className={
+                  isRestoreLane
+                    ? `inline-flex items-center justify-center gap-1.5 min-w-[6.5rem] px-4 sm:px-5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all ${
+                        meta?.slug === 'personal-credit-restore'
+                          ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-md'
+                          : 'text-[#0a1628]/55 hover:bg-black/[0.04] hover:text-[#0a1628]'
+                      }`
+                    : finelyOsViewTab(meta?.slug === 'personal-credit-restore', 'emerald')
+                }
               >
                 Restore
               </button>
               <button
                 type="button"
                 onClick={() => navigate(`${basePath}/personal-credit-building`)}
-                className={finelyOsViewTab(meta?.slug === 'personal-credit-building', 'sky')}
+                className={
+                  isRestoreLane
+                    ? `inline-flex items-center justify-center gap-1.5 min-w-[6.5rem] px-4 sm:px-5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all ${
+                        meta?.slug === 'personal-credit-building'
+                          ? 'bg-gradient-to-r from-sky-600 to-cyan-600 text-white shadow-md'
+                          : 'text-[#0a1628]/55 hover:bg-black/[0.04] hover:text-[#0a1628]'
+                      }`
+                    : finelyOsViewTab(meta?.slug === 'personal-credit-building', 'sky')
+                }
               >
                 Building
               </button>
@@ -314,24 +368,34 @@ export default function PricingServicePage() {
           </div>
         ) : null}
 
-        <FinelyUnifiedHubLayout
-          eyebrow="Solution pricing"
-          title={title}
-          subtitle={subtitle}
-          accent={hubAccent}
-          kpis={svcKpis}
-          tabs={[
-            { id: 'packages', label: 'Packages' },
-            { id: 'compare', label: 'Compare DIY vs DFY' },
-            { id: 'fundability', label: 'Fundability path' },
-          ]}
-          activeTab={svcTab}
-          onTabChange={(id) => setSvcTab(id as SvcTab)}
-          primaryAction={{ label: 'All services', onClick: () => navigate(basePath) }}
-          secondaryAction={{ label: 'Fundability hub', onClick: () => navigate('/fundability-readiness') }}
-        >
-          {svcTab === 'packages' && (
-            <div className="space-y-6">
+        {isRestoreLane ? (
+          <div
+            className="fc-admin-solid-emerald rounded-2xl border !p-4 sm:!p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 shadow-[0_14px_40px_-14px_rgba(16,185,129,0.55)]"
+            data-fc-accent="emerald"
+          >
+            <div className="min-w-0 space-y-1.5">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-white/30 bg-white/15 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white">
+                  <Gift size={12} /> Free DIY
+                </span>
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-white/75">No credit card</span>
+              </div>
+              <p className="text-base sm:text-lg font-semibold tracking-tight text-white">Start free access</p>
+              <p className="text-xs sm:text-sm leading-relaxed text-white/80">
+                Upload and analyze reports, organize documents, and get guided tasks — then upgrade when you are ready.
+                Results vary · not legal advice.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => goToCheckout('personal_free', 'stripe')}
+              className={`shrink-0 self-start sm:self-center ${FINELY_OS_SUCCESS_BTN}`}
+            >
+              Activate free access <ArrowRight size={16} />
+            </button>
+          </div>
+        ) : null}
+
         {category === 'business_credit' ? (
           <>
             <BusinessCreditQuotePanel />
@@ -375,6 +439,7 @@ export default function PricingServicePage() {
             <BusinessCreditOneSheetsPanel />
           </>
         ) : null}
+
         {category === 'debt_legal' ? (
           <div className={`${finelyOsCatalogCard('fuchsia')} !p-4 flex items-start gap-3`}>
             <AlertCircle size={18} className="mt-0.5 text-fuchsia-400 shrink-0" />
@@ -409,13 +474,41 @@ export default function PricingServicePage() {
 
         {category !== 'agency' ? (
           <div className="grid md:grid-cols-2 gap-4">
-            <button type="button" onClick={() => setMode('DIY')} className={finelyOsListItem(mode === 'DIY', 'amber')}>
-              <div className={FINELY_OS_ENTITY_VALUE}>DIY (Do‑It‑Yourself)</div>
-              <div className={`mt-1 ${FINELY_OS_ENTITY_BODY}`}>Templates, tools, and structured workflows — you execute.</div>
+            <button
+              type="button"
+              onClick={() => setMode('DIY')}
+              className={
+                isRestoreLane
+                  ? `fc-glass-ivory rounded-2xl p-4 text-left transition-all ${
+                      mode === 'DIY' ? 'ring-2 ring-amber-700/35 brightness-105' : 'hover:brightness-105'
+                    }`
+                  : finelyOsListItem(mode === 'DIY', 'amber')
+              }
+            >
+              <div className={isRestoreLane ? 'font-semibold tracking-tight text-[#0a1628]' : FINELY_OS_ENTITY_VALUE}>
+                DIY (Do‑It‑Yourself)
+              </div>
+              <div className={`mt-1 ${isRestoreLane ? 'text-sm text-[#0a1628]/70' : FINELY_OS_ENTITY_BODY}`}>
+                Templates, tools, and structured workflows — you execute.
+              </div>
             </button>
-            <button type="button" onClick={() => setMode('DFY')} className={finelyOsListItem(mode === 'DFY', 'emerald')}>
-              <div className={FINELY_OS_ENTITY_VALUE}>DFY (Done‑For‑You)</div>
-              <div className={`mt-1 ${FINELY_OS_ENTITY_BODY}`}>We build the packet strategy + tracking and guide execution.</div>
+            <button
+              type="button"
+              onClick={() => setMode('DFY')}
+              className={
+                isRestoreLane
+                  ? `fc-glass-ivory rounded-2xl p-4 text-left transition-all ${
+                      mode === 'DFY' ? 'ring-2 ring-emerald-700/35 brightness-105' : 'hover:brightness-105'
+                    }`
+                  : finelyOsListItem(mode === 'DFY', 'emerald')
+              }
+            >
+              <div className={isRestoreLane ? 'font-semibold tracking-tight text-[#0a1628]' : FINELY_OS_ENTITY_VALUE}>
+                DFY (Done‑For‑You)
+              </div>
+              <div className={`mt-1 ${isRestoreLane ? 'text-sm text-[#0a1628]/70' : FINELY_OS_ENTITY_BODY}`}>
+                We build the packet strategy + tracking and guide execution.
+              </div>
             </button>
           </div>
         ) : null}
@@ -423,7 +516,7 @@ export default function PricingServicePage() {
         {category === 'agency' ? (
           <div className="space-y-6">
             <div className={`${finelyOsCatalogCard('emerald')} !p-5 sm:!p-6 space-y-3`}>
-              <div className={FINELY_OS_ENTITY_SUBLABEL}>Step 1 — one-time buy-in</div>
+              <div className="text-[10px] font-black uppercase tracking-widest text-emerald-300">Step 1 — one-time buy-in</div>
               <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
                 {agencyBuyInTiers.map((b) => (
                   <div key={b.id} className="rounded-xl border-2 border-emerald-200 bg-white px-4 py-3">
@@ -454,6 +547,7 @@ export default function PricingServicePage() {
             packages={visible}
             pageSize={6}
             includePersonalCompare={category === 'personal_credit'}
+            cardSurface={isRestoreLane ? 'adminSolid' : 'default'}
             searchPlaceholder="Search packages…"
             selectLabel="Select"
             onSelect={(pkgId) => {
@@ -463,71 +557,24 @@ export default function PricingServicePage() {
             }}
           />
         )}
-            </div>
-          )}
 
-          {svcTab === 'compare' && (
-            <FinelyUnifiedSection title="How to choose" subtitle="DIY vs DFY — pick the execution style that fits.">
-        <div className={`${finelyOsCatalogCard('violet')} !p-5 space-y-4`}>
-          <p className={FINELY_OS_ENTITY_BODY}>
-            Pick DIY if you want immediate access and you’re comfortable executing the steps yourself. Pick DFY if you want structured execution,
-            packet building, and a guided workflow with fewer mistakes and better sequencing.
-          </p>
-          <ul className={`space-y-2 ${FINELY_OS_ENTITY_BODY}`}>
-            <li className="flex items-start gap-2">
-              <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
-              <span>
-                <span className={`font-semibold ${FINELY_OS_ENTITY_VALUE}`}>DIY</span>: templates, checklists, and education-first execution.
-              </span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
-              <span>
-                <span className={`font-semibold ${FINELY_OS_ENTITY_VALUE}`}>DFY</span>: workflow setup, strategy sequencing, and support for complex files.
-              </span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-sky-500 shrink-0" />
-              <span>
-                If a package includes in-house financing, you’ll see an <span className="text-emerald-300 font-semibold">In-house financing</span> option at checkout.
-              </span>
-            </li>
-          </ul>
-        </div>
-            </FinelyUnifiedSection>
-          )}
+        <MarketingStaffChatStrip
+          roleId="sales_closer"
+          goal="personal"
+          roleLabel="solutions advisor"
+          subline="Not sure which package in this category fits? Chat before checkout."
+          buttonTone="secondary"
+          surface={isRestoreLane ? 'ivory' : 'default'}
+        />
 
-          {svcTab === 'fundability' && (
-            <FinelyUnifiedSection title="Fundability-first checkout" subtitle="Packages are a lane — fundability is the destination.">
-              <p className={FINELY_OS_ENTITY_BODY}>
-                Before you commit, scan your fundability readiness. The hub shows personal + business signals, next actions, and when Nora Capital
-                handoff makes sense.
-              </p>
-              <div className="mt-4 flex flex-wrap gap-3">
-                <button type="button" onClick={() => navigate('/fundability-readiness')} className={FINELY_OS_PRIMARY_BTN}>
-                  Open fundability hub
-                </button>
-                <button type="button" onClick={() => navigate('/onboarding')} className={FINELY_OS_SECONDARY_BTN}>
-                  Get started
-                </button>
-              </div>
-              <div className="mt-6">
-                <MarketingStaffChatStrip
-                  roleId="sales_closer"
-                  goal="personal"
-                  roleLabel="solutions advisor"
-                  subline="Not sure which package in this category fits? Chat before checkout."
-                  buttonTone="secondary"
-                />
-              </div>
-            </FinelyUnifiedSection>
-          )}
-        </FinelyUnifiedHubLayout>
+        {inviteCardRole ? (
+          <DigitalInviteShareBand role={inviteCardRole} surface={isRestoreLane ? 'ivory' : 'default'} />
+        ) : null}
 
-        {inviteCardRole ? <DigitalInviteShareBand role={inviteCardRole} /> : null}
-
-        <FinelyOsPageFooter />
+        {isRestoreLane ? null : <FinelyOsPageFooter />}
       </div>
+
+      <ServicesChooserModal open={chooserOpen} onClose={() => setChooserOpen(false)} activePath={currentPath} />
     </PageShell>
   );
 }

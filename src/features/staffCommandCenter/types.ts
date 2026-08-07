@@ -46,6 +46,8 @@ export type StaffShiftWindow = {
   startLocal: string;
   endLocal: string;
   timezone: string;
+  /** When true, duty runs from startLocal through midnight into endLocal (e.g. 22:00–06:00). */
+  crossesMidnight?: boolean;
 };
 
 export type PortraitGender = 'feminine' | 'masculine' | 'neutral';

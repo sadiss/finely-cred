@@ -1,6 +1,7 @@
 import type { AgentPersona, AgentPersonaId } from '../../domain/agentPersonas';
 import { getAgentPersona } from '../../domain/agentPersonas';
-import { ensureStaffRosterSeeded, resolveStaffOnDuty } from '../../data/staffRoster';
+import { personaOnDutyAt } from '../../data/agentPersonasRepo';
+import { ensureStaffRosterSeeded, forceStaffShiftPolicyResync, resolveStaffOnDuty } from '../../data/staffRoster';
 import type { StaffMember } from '../../domain/staffMember';
 import { CO_OWNER_IDENTITY } from '../../domain/coOwnerPersona';
 import { resolveStaffPortraitUrl } from '../../lib/staffPortrait';
@@ -128,10 +129,11 @@ const PRESENTATION: Record<AgentPersonaId, Omit<PublicChatPersonaPresentation, '
     chipClass: 'bg-indigo-500/15 text-indigo-100 border-indigo-400/30',
   },
   lead_converter: {
-    firstName: 'Alex',
-    title: 'Trial Activation Coach',
-    tagline: 'One clear next step at a time.',
-    welcome: "Alex here — I'll help you activate your trial and upload your first report. Ready when you are.",
+    firstName: 'Cameron',
+    title: 'Revenue Activation Director',
+    tagline: 'One clear next step — trial to first win.',
+    welcome:
+      "Cameron here — I'll help you activate your path, upload your first report, and lock the next step. Ready when you are.",
     headerGradient: 'from-lime-500/15 to-emerald-500/15',
     avatarGradient: 'from-lime-400 to-emerald-500',
     accentText: 'text-lime-200',
@@ -280,6 +282,12 @@ function initialsFor(name: string): string {
   return (parts[0]?.slice(0, 2) ?? 'FC').toUpperCase();
 }
 
+/** Swap catalog first name in welcome copy for the on-duty specialist. */
+function welcomeForDuty(welcome: string, catalogFirst: string, dutyFirst: string): string {
+  if (!dutyFirst || !catalogFirst || dutyFirst === catalogFirst) return welcome;
+  return welcome.replace(new RegExp(`\\b${catalogFirst.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`), dutyFirst);
+}
+
 function avatarUrlFor(personaId: AgentPersonaId, staff: StaffMember | null): string {
   if (staff) return resolveStaffPortraitUrl(staff);
   const roleFallbackStaff: Partial<Record<AgentPersonaId, string>> = {
@@ -291,7 +299,7 @@ function avatarUrlFor(personaId: AgentPersonaId, staff: StaffMember | null): str
     support_specialist: 'staff-jordan-patel',
     appointment_setter: 'staff-sam-ortiz',
     sales_closer: 'staff-riley-chen',
-    lead_converter: 'staff-alex-wright',
+    lead_converter: 'staff-cameron-blake',
     debt_strategist: 'staff-casey-nguyen',
     ops_copilot: 'staff-isaac-bell',
     letter_ops_agent: 'staff-kai-morrison',
@@ -325,6 +333,7 @@ const STAFF_ROSTER_FALLBACK = [
   { id: 'staff-jordan-patel', firstName: 'Jordan', lastName: 'Patel', portraitGender: 'masculine' as const, avatarPath: '' },
   { id: 'staff-sam-ortiz', firstName: 'Sam', lastName: 'Ortiz', portraitGender: 'masculine' as const, avatarPath: '' },
   { id: 'staff-riley-chen', firstName: 'Riley', lastName: 'Chen', portraitGender: 'feminine' as const, avatarPath: '' },
+  { id: 'staff-cameron-blake', firstName: 'Cameron', lastName: 'Blake', portraitGender: 'masculine' as const, avatarPath: '' },
   { id: 'staff-alex-wright', firstName: 'Alex', lastName: 'Wright', portraitGender: 'masculine' as const, avatarPath: '' },
   { id: 'staff-casey-nguyen', firstName: 'Casey', lastName: 'Nguyen', portraitGender: 'masculine' as const, avatarPath: '' },
   { id: 'staff-isaac-bell', firstName: 'Isaac', lastName: 'Bell', portraitGender: 'masculine' as const, avatarPath: '' },
@@ -338,30 +347,53 @@ const STAFF_ROSTER_FALLBACK = [
   { id: 'staff-leo-vance', firstName: 'Leo', lastName: 'Vance', portraitGender: 'masculine' as const, avatarPath: '' },
 ];
 
-export function getPublicChatPersonaPresentation(persona: AgentPersona): PublicChatPersonaPresentation {
+export function getPublicChatPersonaPresentation(
+  persona: AgentPersona,
+  date = new Date(),
+): PublicChatPersonaPresentation {
   ensureStaffRosterSeeded();
   const base = PRESENTATION[persona.id] ?? PRESENTATION.finely_advisor;
-  const staff: StaffMember | null = resolveStaffOnDuty(persona.id);
+  const staff: StaffMember | null = resolveStaffOnDuty(persona.id, date);
   const firstName = staff?.firstName ?? (base.firstName || persona.name.split(' ')[0] || persona.name);
   const avatarUrl = avatarUrlFor(persona.id, staff);
   return {
     ...base,
     firstName,
     title: staff?.displayTitle || persona.displayTitle || base.title,
+    welcome: welcomeForDuty(base.welcome, base.firstName, firstName),
     initials: initialsFor(firstName),
     avatarUrl,
     staffMemberId: staff?.id,
   };
 }
 
-export function getPublicChatPersonaPresentationById(id: AgentPersonaId): PublicChatPersonaPresentation {
-  return getPublicChatPersonaPresentation(getAgentPersona(id) ?? getAgentPersona('finely_advisor')!);
+/** Force seed shift windows (max 8h) before reading the visible chat face. */
+export function refreshPublicChatOnDutyPresentation(date = new Date()): PublicChatPersonaPresentation {
+  forceStaffShiftPolicyResync();
+  return getPublicChatOnDutyPresentation(date);
 }
 
-/** Public widget AI receptionist — routes to live specialists after intake. */
+export function getPublicChatPersonaPresentationById(
+  id: AgentPersonaId,
+  date = new Date(),
+): PublicChatPersonaPresentation {
+  return getPublicChatPersonaPresentation(getAgentPersona(id) ?? getAgentPersona('finely_advisor')!, date);
+}
+
+/**
+ * Visible face of the public chat widget — sitewide on-duty human from staffRoster
+ * (personaOnDutyAt + resolveStaffOnDuty). AI may still reply in-thread as Aia.
+ */
+export function getPublicChatOnDutyPresentation(date = new Date()): PublicChatPersonaPresentation {
+  ensureStaffRosterSeeded();
+  return getPublicChatPersonaPresentation(personaOnDutyAt(date), date);
+}
+
+/** In-thread AI receptionist persona id — not the launcher/header face. */
 export const PUBLIC_CHAT_AI_PERSONA_ID: AgentPersonaId = 'nurture_concierge';
 export const AIA_GUIDE_STAFF_ID = 'staff-aia-guide';
 
+/** AI guide presentation for in-thread replies only — launcher/header use getPublicChatOnDutyPresentation. */
 export function getPublicChatAiReceptionistPresentation(): PublicChatPersonaPresentation {
   const aiaStaff = {
     id: AIA_GUIDE_STAFF_ID,

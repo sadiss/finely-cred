@@ -5,7 +5,6 @@ import {
   FINELY_OS_ENTITY_BODY,
   FINELY_OS_ENTITY_SUBLABEL,
   FINELY_OS_ENTITY_VALUE,
-  finelyOsCatalogCard,
   finelyOsStatusChip,
 } from '../../features/os/finelyOsLightUi';
 
@@ -56,27 +55,25 @@ export function PartnerActivityTimeline({
   });
 
   if (!sorted.length) {
-    return (
-      <div className={`${finelyOsCatalogCard(accent)} !p-6 ${FINELY_OS_ENTITY_BODY}`}>{emptyMessage}</div>
-    );
+    return <div className={`py-2 ${FINELY_OS_ENTITY_BODY}`}>{emptyMessage}</div>;
   }
 
   return (
-    <div className={`${finelyOsCatalogCard(accent)} !p-0 overflow-hidden w-full`}>
-      <div className="px-5 py-4 border-b border-white/[0.08] flex items-center gap-2">
-        <Activity size={16} className="text-fuchsia-300/80" />
+    <div className="w-full overflow-hidden bg-transparent" data-fc-accent={accent}>
+      <div className="px-1 py-3 border-b border-black/10 flex items-center gap-2">
+        <Activity size={16} className="text-fuchsia-600/80" />
         <span className={FINELY_OS_ENTITY_SUBLABEL}>Timeline</span>
         <span className={`ml-auto ${FINELY_OS_ENTITY_SUBLABEL} font-mono normal-case`}>{sorted.length} entries</span>
       </div>
-      <ol className="divide-y divide-white/[0.06]">
+      <ol className="divide-y divide-black/10">
         {sorted.map((item) => (
-          <li key={item.id} className="relative px-5 py-4 md:px-6 md:py-5 hover:bg-white/[0.02] transition-colors">
+          <li key={item.id} className="relative px-1 py-3 md:py-4 hover:bg-violet-500/[0.03] transition-colors">
             <div className="flex flex-col sm:flex-row sm:items-start gap-3 sm:gap-4">
-              <div className="shrink-0 w-10 h-10 rounded-xl border border-white/[0.1] bg-white/[0.04] flex items-center justify-center">
+              <div className="shrink-0 w-10 h-10 rounded-xl border border-violet-500/20 bg-violet-500/5 flex items-center justify-center">
                 {item.kind === 'manual' ? (
-                  <ScrollText size={16} className="text-violet-300" />
+                  <ScrollText size={16} className="text-violet-600" />
                 ) : (
-                  <Activity size={16} className="text-sky-300" />
+                  <Activity size={16} className="text-sky-600" />
                 )}
               </div>
               <div className="min-w-0 flex-1">

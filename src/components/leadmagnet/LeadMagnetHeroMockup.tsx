@@ -1,70 +1,34 @@
 import React from 'react';
 import {
+  ArrowRight,
   Bell,
-  ChevronDown,
   FileText,
   FolderOpen,
   Gavel,
   LayoutDashboard,
   ListChecks,
   MessageSquare,
-  ShieldAlert,
+  Sparkles,
+  TrendingUp,
 } from 'lucide-react';
 import { DISPUTE_LETTER_GUIDE_COVER } from '../../resources/disputeLetterGuideContent';
-import { PORTAL_NAV_LANES, PORTAL_PRIMARY_LINKS } from '../../config/portalNavLanes';
-import {
-  FINELY_OS_ENTITY_BODY,
-  FINELY_OS_ENTITY_SUBLABEL,
-  FINELY_OS_ENTITY_VALUE,
-  FINELY_OS_VIEW_TABS,
-  finelyOsCatalogCard,
-  finelyOsViewTab,
-} from '../../features/os/finelyOsLightUi';
 
-/** Demo partner file — mirrors a realistic mid-journey dashboard. */
+/** Demo partner file — conversion-forward mid-journey snapshot. */
 const DEMO = {
   overallScore: 682,
   scoreDelta: 24,
   readinessPct: 68,
-  reports: 1,
   negatives: 4,
-  evidence: 6,
   letters: 2,
-  openCases: 2,
-  openTasks: 3,
   vaultFiles: 6,
+  roundReady: 1,
 } as const;
 
-const RESTORE_STEPS = [
-  { label: '1. Upload report', done: true, hint: '1 on file' },
-  { label: '2. Analyze', done: true, hint: '4 negatives' },
-  { label: '3. Evidence', done: true, hint: '6 files' },
-  { label: '4. Dispute letters', done: false, hint: 'Draft next' },
+const SOLUTION_PILLARS = [
+  { title: 'Credit restore', hint: 'Clear the path', icon: TrendingUp },
+  { title: 'Dispute letters', hint: 'Round 1 ready', icon: Gavel },
+  { title: 'Funding readiness', hint: 'Education track', icon: Sparkles },
 ] as const;
-
-const HUB_KPIS = [
-  { label: 'Overall score', value: String(DEMO.overallScore), hint: 'Readiness index', accent: 'amber' as const },
-  { label: 'Open tasks', value: String(DEMO.openTasks), hint: 'In motion', accent: 'amber' as const },
-  { label: 'Open cases', value: String(DEMO.openCases), hint: 'Active disputes', accent: 'violet' as const },
-  { label: 'Vault files', value: String(DEMO.vaultFiles), hint: 'Evidence uploaded', accent: 'sky' as const },
-];
-
-const MISSION_ACTIONS = [
-  { tone: 'Priority', title: 'Open Letter Studio' },
-  { tone: 'Improvement', title: 'Run AI checklist' },
-  { tone: 'Improvement', title: 'Upload latest report' },
-] as const;
-
-const MODULE_TILES = [
-  { title: 'Credit reports', stat: `${DEMO.reports} report`, icon: FileText, accent: 'emerald' as const },
-  { title: 'Documents vault', stat: `${DEMO.vaultFiles} files`, icon: FolderOpen, accent: 'sky' as const },
-  { title: 'Dispute center', stat: `${DEMO.openCases} open cases`, icon: Gavel, accent: 'violet' as const },
-  { title: 'Tasks', stat: `${DEMO.openTasks} open tasks`, icon: ListChecks, accent: 'amber' as const },
-];
-
-const NAV_PREVIEW = PORTAL_PRIMARY_LINKS.slice(0, 5);
-
-const HUB_TABS = ['Overview', 'Journey', 'Activity', 'Modules', 'Workflow'] as const;
 
 export function FreeGuideBook({ className = '' }: { className?: string }) {
   return (
@@ -98,140 +62,99 @@ export function LeadMagnetEbook({ compact = false }: { compact?: boolean }) {
   );
 }
 
-function MockPortalNavStrip() {
-  return (
-    <div className="fg-mock-nav-row mb-2">
-      {NAV_PREVIEW.map(({ label, icon: Icon, path }) => (
-        <span key={path} className={`fg-mock-nav-pill ${path === '/portal/dashboard' ? 'is-active' : ''}`}>
-          <Icon size={10} strokeWidth={2.25} />
-          {label}
-        </span>
-      ))}
-      <span className="fg-mock-nav-pill">
-        More <ChevronDown size={10} />
-      </span>
-    </div>
-  );
-}
-
-function MockRestoreHud() {
-  return (
-    <div className={`${finelyOsCatalogCard('violet')} !p-2.5 space-y-2`} data-fc-accent="violet">
-      <div className="flex items-center justify-between gap-2">
-        <p className={`text-[10px] font-semibold ${FINELY_OS_ENTITY_VALUE}`}>Credit restore pipeline</p>
-        <span className="text-[9px] font-bold text-fuchsia-300/90">{DEMO.readinessPct}% ready</span>
-      </div>
-      <div className="grid grid-cols-4 gap-1">
-        {RESTORE_STEPS.map((s) => (
-          <div
-            key={s.label}
-            className={`rounded-md border px-1 py-1 text-center ${
-              s.done ? 'border-emerald-500/35 bg-emerald-500/10' : 'border-amber-500/30 bg-amber-500/10'
-            }`}
-          >
-            <div className={`text-[8px] font-bold leading-tight ${s.done ? 'text-emerald-300' : 'text-amber-300'}`}>
-              {s.label.replace(/^\d+\.\s/, '')}
-            </div>
-            <div className={`text-[7px] mt-0.5 ${FINELY_OS_ENTITY_BODY}`}>{s.hint}</div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function MockUnifiedHubShell() {
-  return (
-    <div
-      className={`fc-unified-hub-shell fc-light-black-scope fc-light-hero-panel fc-pop-surface fc-light-readable ${finelyOsCatalogCard('violet')} !p-2.5 space-y-2`}
-      data-fc-accent="violet"
-    >
-      <p className={`text-[10px] font-bold ${FINELY_OS_ENTITY_VALUE}`}>Your file — scroll or jump</p>
-      <div className="grid grid-cols-4 gap-1">
-        {HUB_KPIS.map((k) => (
-          <div key={k.label} className="fc-hub-kpi fc-light-pop-card fc-pop-surface rounded-md px-1.5 py-1" data-fc-accent={k.accent}>
-            <div className={`text-[7px] ${FINELY_OS_ENTITY_SUBLABEL}`}>{k.label}</div>
-            <div className={`text-xs font-semibold tabular-nums ${FINELY_OS_ENTITY_VALUE}`}>{k.value}</div>
-          </div>
-        ))}
-      </div>
-      <div className="flex flex-wrap gap-0.5">
-        {HUB_TABS.map((t, i) => (
-          <span key={t} className={`${finelyOsViewTab(i === 0, 'violet')} !px-1.5 !py-0.5 !text-[8px] pointer-events-none`}>
-            {t}
-          </span>
-        ))}
-      </div>
-      <div className="grid grid-cols-12 gap-1">
-        <div className="col-span-4 rounded-lg border border-emerald-500/30 bg-emerald-500/[0.08] p-1.5">
-          <div className={`text-[7px] ${FINELY_OS_ENTITY_SUBLABEL}`}>Overall score</div>
-          <div className="mt-0.5 flex items-end gap-0.5">
-            <span className="text-lg font-extralight text-emerald-300 tabular-nums leading-none">{DEMO.overallScore}</span>
-            <span className="text-[8px] font-bold text-emerald-400">+{DEMO.scoreDelta}</span>
-          </div>
-        </div>
-        <div className={`col-span-8 ${finelyOsCatalogCard('violet')} !p-1.5`} data-fc-accent="violet">
-          <div className={`text-[7px] ${FINELY_OS_ENTITY_SUBLABEL}`}>Mission control</div>
-          <div className="mt-1 grid grid-cols-3 gap-0.5">
-            {MISSION_ACTIONS.map((a) => (
-              <div key={a.title} className="rounded border border-white/[0.08] bg-white/[0.03] p-1">
-                <div className="text-[6px] uppercase text-violet-300">{a.tone}</div>
-                <div className={`text-[7px] font-semibold leading-tight mt-0.5 ${FINELY_OS_ENTITY_VALUE}`}>{a.title}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-        {MODULE_TILES.map((m) => (
-          <div key={m.title} className={`col-span-3 ${finelyOsCatalogCard(m.accent)} !p-1.5`} data-fc-accent={m.accent}>
-            <m.icon className="w-2.5 h-2.5 text-emerald-400 mb-0.5" />
-            <div className={`text-[8px] font-semibold ${FINELY_OS_ENTITY_VALUE}`}>{m.title}</div>
-            <div className={`text-[7px] ${FINELY_OS_ENTITY_BODY}`}>{m.stat}</div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
+/** Tablet screen — converting offer board (not a dense portal walkthrough). */
 function PortalDashboardBrowserMock() {
   return (
     <div className="fg-device-browser">
-      <div className="flex items-center gap-2 px-2.5 py-1.5 bg-[#070b10] border-b border-white/[0.06]">
+      <div className="flex items-center gap-2 px-2.5 py-1.5 bg-[#070b10] border-b border-emerald-400/25">
         <div className="flex gap-1 shrink-0">
           <span className="w-1.5 h-1.5 rounded-full bg-red-500/80" />
           <span className="w-1.5 h-1.5 rounded-full bg-amber-400/80" />
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400/80" />
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400/90 shadow-[0_0_8px_rgba(52,211,153,0.95)]" />
         </div>
-        <div className="flex flex-1 items-center min-w-0 px-2 py-0.5 rounded-md bg-black/35 border border-white/[0.05]">
-          <span className="text-[8px] text-white/45 truncate">finelycred.com/portal/dashboard</span>
+        <div className="flex flex-1 items-center min-w-0 px-2 py-0.5 rounded-md bg-black/40 border border-[#c9a227]/30">
+          <span className="text-[8px] text-[#e8c96a]/85 truncate font-semibold tracking-wide">
+            finelycred.com · full credit solutions
+          </span>
         </div>
-        <Bell className="w-3 h-3 text-white/30 shrink-0" />
+        <Bell className="w-3 h-3 text-emerald-300/60 shrink-0" />
       </div>
 
-      <div className="fg-device-browser-body fc-senior-simple space-y-2">
-        <MockPortalNavStrip />
-
-        <div>
-          <div className={`${FINELY_OS_ENTITY_SUBLABEL} !text-[7px] uppercase tracking-widest text-emerald-400/85`}>Partner Portal</div>
-          <div className={`text-sm font-bold ${FINELY_OS_ENTITY_VALUE}`}>Partner Dashboard</div>
+      <div className="fg-device-browser-body space-y-2">
+        <div className="flex items-start justify-between gap-2">
+          <div>
+            <div className="text-[7px] font-black uppercase tracking-[0.2em] text-[#e8c96a]">Finely Cred · partners</div>
+            <div className="text-[13px] font-black text-white leading-tight mt-0.5">
+              Restore · Disputes · Funding path
+            </div>
+          </div>
+          <span className="shrink-0 rounded-md border border-emerald-400/50 bg-emerald-500/20 px-1.5 py-1 text-[8px] font-black uppercase tracking-wide text-emerald-200 shadow-[0_0_14px_-2px_rgba(52,211,153,0.75)]">
+            Free today
+          </span>
         </div>
 
-        <div className="rounded-md border border-amber-500/22 bg-amber-500/10 px-2 py-1 flex items-center gap-1.5">
-          <ShieldAlert className="w-3 h-3 text-amber-300 shrink-0" />
-          <span className="text-[9px] text-amber-100/90 leading-snug">Draft dispute letters in Letter Studio.</span>
+        <div className="grid grid-cols-12 gap-1.5">
+          <div className="col-span-4 rounded-xl border border-emerald-400/45 bg-gradient-to-br from-emerald-500/25 to-emerald-900/40 p-2 text-center shadow-[0_0_28px_-6px_rgba(57,255,20,0.55)]">
+            <div className="text-[7px] font-bold uppercase tracking-wider text-emerald-200/80">Score climb</div>
+            <div className="mt-0.5 text-[1.35rem] font-extralight tabular-nums text-emerald-200 leading-none drop-shadow-[0_0_14px_rgba(52,211,153,0.7)]">
+              {DEMO.overallScore}
+            </div>
+            <div className="mt-1 text-[10px] font-black text-[#e8c96a]">+{DEMO.scoreDelta} pts</div>
+            <div className="text-[6px] text-emerald-100/50 mt-0.5">Results vary</div>
+          </div>
+
+          <div className="col-span-8 rounded-xl border border-[#c9a227]/40 bg-gradient-to-br from-[#c9a227]/18 to-black/40 p-2 shadow-[0_0_24px_-6px_rgba(201,162,39,0.55)]">
+            <div className="text-[7px] font-black uppercase tracking-[0.16em] text-[#e8c96a]">What you unlock free</div>
+            <div className="mt-1.5 grid grid-cols-3 gap-1">
+              {SOLUTION_PILLARS.map(({ title, hint, icon: Icon }) => (
+                <div
+                  key={title}
+                  className="rounded-lg border border-white/10 bg-black/35 px-1 py-1.5 text-center"
+                >
+                  <Icon className="mx-auto h-3 w-3 text-[#e8c96a] mb-0.5" />
+                  <div className="text-[8px] font-bold text-white leading-tight">{title}</div>
+                  <div className="text-[6.5px] text-emerald-200/70 mt-0.5">{hint}</div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
 
-        <MockRestoreHud />
-        <MockUnifiedHubShell />
-        <div className="fg-device-browser-fade" aria-hidden />
-        <div className="fg-device-phone-float">
-          <PortalPhoneMock />
+        <div className="rounded-xl border border-amber-400/50 bg-gradient-to-r from-amber-400/30 via-amber-500/20 to-emerald-500/15 px-2.5 py-2 flex items-center justify-between gap-2 shadow-[0_0_26px_-4px_rgba(251,191,36,0.7)]">
+          <div className="min-w-0">
+            <div className="text-[7px] font-black uppercase tracking-[0.18em] text-amber-100">Do this next</div>
+            <div className="text-[11px] font-black text-white leading-snug">
+              Sign up free · draft Round 1 letters
+            </div>
+          </div>
+          <span className="shrink-0 inline-flex items-center gap-0.5 rounded-lg bg-[#1aad4b] px-2 py-1.5 text-[9px] font-black uppercase tracking-wide text-[#04140a] shadow-[0_0_18px_rgba(57,255,20,0.55)]">
+            Sign up free <ArrowRight className="h-3 w-3" />
+          </span>
+        </div>
+
+        <div className="grid grid-cols-4 gap-1">
+          {[
+            { title: 'Round 1', stat: 'Letters ready', icon: Gavel },
+            { title: 'Proof vault', stat: `${DEMO.vaultFiles} files`, icon: FolderOpen },
+            { title: 'Negatives', stat: `${DEMO.negatives} in scope`, icon: FileText },
+            { title: 'Next step', stat: 'Claim free', icon: ListChecks },
+          ].map(({ title, stat, icon: Icon }) => (
+            <div
+              key={title}
+              className="rounded-lg border border-emerald-400/30 bg-emerald-500/[0.12] px-1 py-1.5 text-center shadow-[0_0_16px_-8px_rgba(52,211,153,0.65)]"
+            >
+              <Icon className="mx-auto h-2.5 w-2.5 text-emerald-300 mb-0.5" />
+              <div className="text-[8px] font-bold text-white">{title}</div>
+              <div className="text-[7px] text-emerald-100/70">{stat}</div>
+            </div>
+          ))}
         </div>
       </div>
     </div>
   );
 }
 
+/** Phone screen — glowing one-tap conversion surface. */
 function PortalPhoneMock() {
   return (
     <div className="fg-device-phone-bezel relative">
@@ -239,50 +162,51 @@ function PortalPhoneMock() {
       <div className="fg-device-phone-screen relative">
         <div className="fg-phone-ui">
           <div className="flex items-center justify-between gap-1 mb-1.5">
-            <span className="fg-phone-title">Dashboard</span>
-            <Bell className="w-[1.15em] h-[1.15em] text-white/35 shrink-0" strokeWidth={2.25} />
+            <span className="fg-phone-title">Finely Cred</span>
+            <Bell className="w-[1.15em] h-[1.15em] text-emerald-300/80 shrink-0" strokeWidth={2.25} />
           </div>
 
-          <div className="grid grid-cols-2 gap-[0.35em] mb-[0.65em]">
-            {PORTAL_NAV_LANES.slice(0, 2).map((lane) => (
-              <div
-                key={lane.id}
-                className={`rounded-[0.45em] border px-[0.45em] py-[0.35em] ${lane.id === 'work' ? 'border-emerald-500/35 bg-emerald-500/12' : 'border-white/10 bg-white/[0.03]'}`}
-              >
-                <div className={`fg-phone-label font-black ${lane.id === 'work' ? 'text-emerald-300' : 'text-white/45'}`}>
-                  {lane.label}
-                </div>
-              </div>
-            ))}
+          <div className="rounded-[0.5em] border border-[#c9a227]/55 bg-gradient-to-br from-[#c9a227]/30 to-emerald-600/20 px-[0.45em] py-[0.4em] mb-[0.55em] text-center shadow-[0_0_18px_-3px_rgba(201,162,39,0.75)]">
+            <div className="fg-phone-label font-black text-[#e8c96a]">Full credit solution</div>
+            <div className="fg-phone-title mt-[0.15em] text-white">Restore · Disputes · Funding</div>
           </div>
 
-          <div className="rounded-[0.45em] border border-emerald-500/28 bg-emerald-500/10 px-[0.45em] py-[0.55em] text-center mb-[0.65em]">
-            <div className="fg-phone-label">Overall score</div>
+          <div className="rounded-[0.5em] border border-emerald-400/50 bg-emerald-500/18 px-[0.45em] py-[0.6em] text-center mb-[0.55em] shadow-[0_0_22px_-4px_rgba(57,255,20,0.65),inset_0_0_20px_rgba(16,185,129,0.2)]">
+            <div className="fg-phone-label">Score climb</div>
             <div className="fg-phone-score">{DEMO.overallScore}</div>
-            <div className="text-emerald-400 font-bold" style={{ fontSize: '0.95em' }}>+{DEMO.scoreDelta}</div>
+            <div className="font-black text-[#e8c96a]" style={{ fontSize: '1em' }}>
+              +{DEMO.scoreDelta} · results vary
+            </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-[0.35em] mb-[0.65em]">
-            {[
-              { l: 'Tasks', v: DEMO.openTasks },
-              { l: 'Cases', v: DEMO.openCases },
-              { l: 'Vault', v: DEMO.vaultFiles },
-            ].map(({ l, v }) => (
-              <div key={l} className="rounded-[0.35em] border border-white/10 bg-white/[0.03] py-[0.35em] text-center">
-                <div className="fg-phone-label">{l}</div>
-                <div className="fg-phone-stat">{v}</div>
-              </div>
-            ))}
+          <div className="rounded-[0.45em] border border-emerald-400/35 bg-black/35 px-[0.4em] py-[0.4em] mb-[0.55em]">
+            <div className="fg-phone-label mb-[0.25em]">Round 1 letters</div>
+            <div className="flex items-center justify-between gap-1">
+              <span className="fg-phone-title text-white">{DEMO.roundReady} draft ready</span>
+              <Gavel className="w-[1.1em] h-[1.1em] text-emerald-300" />
+            </div>
           </div>
 
-          <div className="rounded-[0.45em] border border-amber-500/28 bg-amber-500/10 px-[0.45em] py-[0.45em] mt-auto">
-            <div className="fg-phone-label font-black text-amber-300">Next up</div>
-            <div className="fg-phone-title mt-[0.2em]">Dispute letters</div>
+          <div className="rounded-[0.55em] border border-amber-300/60 bg-gradient-to-br from-amber-400/40 to-[#1aad4b]/35 px-[0.45em] py-[0.65em] mt-auto text-center shadow-[0_0_24px_-2px_rgba(251,191,36,0.85)]">
+            <div className="fg-phone-label font-black text-amber-50">One tap</div>
+            <div className="fg-phone-title mt-[0.15em] text-white" style={{ fontSize: '1.15em' }}>
+              Sign up free
+            </div>
+            <div className="mt-[0.2em] text-emerald-100 font-bold" style={{ fontSize: '0.85em' }}>
+              Then draft Round 1 →
+            </div>
           </div>
 
-          <div className="grid grid-cols-4 gap-[0.25em] pt-[0.55em] mt-[0.45em] border-t border-white/[0.06]">
+          <div className="grid grid-cols-4 gap-[0.25em] pt-[0.55em] mt-[0.45em] border-t border-emerald-400/20">
             {[LayoutDashboard, FileText, Gavel, MessageSquare].map((Icon, i) => (
-              <div key={i} className={`flex justify-center py-[0.35em] rounded-[0.35em] ${i === 0 ? 'text-emerald-300 bg-emerald-500/12' : 'text-white/30'}`}>
+              <div
+                key={i}
+                className={`flex justify-center py-[0.35em] rounded-[0.35em] ${
+                  i === 2
+                    ? 'text-amber-100 bg-amber-500/25 shadow-[0_0_12px_-2px_rgba(251,191,36,0.85)]'
+                    : 'text-emerald-200/55'
+                }`}
+              >
                 <Icon className="w-[1.15em] h-[1.15em]" strokeWidth={2.25} />
               </div>
             ))}
@@ -296,9 +220,60 @@ function PortalPhoneMock() {
 export function LeadMagnetDeviceShowcase({ className = '' }: { className?: string }) {
   return (
     <div className={`fg-device-showcase ${className}`}>
-      <div className="fg-device-composition">
+      <div className="fg-device-composition fg-device-composition--duo">
         <div className="fg-device-ambient" aria-hidden />
-        <PortalDashboardBrowserMock />
+        <div className="fg-device-tablet-wrap">
+          <p className="fg-device-kicker">Tablet · score climb + Round 1</p>
+          <PortalDashboardBrowserMock />
+        </div>
+        <div className="fg-device-phone-solo">
+          <p className="fg-device-kicker fg-device-kicker--phone">Phone · Sign up free</p>
+          <PortalPhoneMock />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** Standalone phone mock for wealth materials bands. */
+export function FreeGuidePhoneMock({ className = '' }: { className?: string }) {
+  return (
+    <div className={`fg-materials-phone ${className}`}>
+      <PortalPhoneMock />
+    </div>
+  );
+}
+
+const MATERIALS_SPREADS = [
+  '/guides/credit-dispute-letter-guide/page-01.png',
+  '/guides/credit-dispute-letter-guide/page-03.png',
+  '/guides/credit-dispute-letter-guide/page-06.png',
+] as const;
+
+/**
+ * One composition: glossy brochure pages + guide book + phone showing the e-guide cover
+ * (not a separate portal phone parked beside the kit).
+ */
+export function FreeGuideMaterialsShowcase({ className = '' }: { className?: string }) {
+  return (
+    <div className={`fg-materials-showcase ${className}`}>
+      <div className="fg-materials-stage" aria-label="Dispute guide materials mockup">
+        {MATERIALS_SPREADS.map((src) => (
+          <figure key={src} className="fg-materials-sheet">
+            <img src={src} alt="" loading="lazy" />
+          </figure>
+        ))}
+        <div className="fg-materials-book">
+          <LeadMagnetEbook compact />
+        </div>
+        <div className="fg-materials-phone" aria-hidden={false}>
+          <div className="fg-materials-phone-bezel relative">
+            <span className="fg-materials-phone-notch" aria-hidden />
+            <div className="fg-materials-phone-screen">
+              <img src={DISPUTE_LETTER_GUIDE_COVER} alt="Dispute letter guide on phone" loading="lazy" />
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

@@ -80,7 +80,11 @@ export const AUTH_ROUTES: RouteSpec[] = [
   { path: '/credit-specialist/hub', title: 'Specialist Hub', badge: 'Credit Specialist' },
   { path: '/affiliate/hub', title: 'Affiliate Hub', badge: 'Affiliate' },
   { path: '/seller/hub', title: 'AU Seller Hub', badge: 'AU Seller' },
-  { path: '/agency/signup', title: 'Specialist Workspace Signup', badge: 'Credit Specialist' },
+  { path: '/au-seller/hub', title: 'AU Seller Hub (alias)', badge: 'AU Seller' },
+  { path: '/agency/hub', title: 'Agency Hub', badge: 'Agency' },
+  { path: '/agency/signup', title: 'Agency Workspace Signup', badge: 'Agency' },
+  { path: '/case-help/hub', title: 'Case Help Hub', badge: 'Case Help' },
+  { path: '/real-estate/hub', title: 'Real Estate Hub', badge: 'Real Estate Affiliate' },
   { path: '/claim', title: 'Claim Profile', badge: 'Auth' },
   { path: '/account/settings', title: 'Account Settings', badge: 'Account' },
 ];

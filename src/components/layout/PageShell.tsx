@@ -23,6 +23,7 @@ export function PageShell({
   back,
   children,
   hideHero,
+  surface = 'default',
 }: {
   title: string;
   subtitle?: string;
@@ -33,7 +34,10 @@ export function PageShell({
    * dedicated lane hero (e.g. `PublicLaneTitle`) immediately below, so partners never see two stacked
    * headline blocks. `title` is still used for the document title/SEO context. */
   hideHero?: boolean;
+  /** `ivory` = full-bleed wealthy white/ivory public shell (no black page chrome). */
+  surface?: 'default' | 'ivory';
 }) {
+  const ivorySurface = surface === 'ivory';
   const location = useLocation();
   const navigate = useNavigate();
   const auth = useAuth();
@@ -194,7 +198,15 @@ export function PageShell({
       pathname.startsWith('/services/') ||
       pathname === '/start-here' ||
       pathname.startsWith('/start-here/'));
-  const topPad = useLargeTopPad ? (showWayfinder ? 'pt-52' : 'pt-28') : 'pt-[max(0.75rem,env(safe-area-inset-top))]';
+  const onPersonalRestoreHero =
+    pathname.includes('/personal-credit-restore');
+  const topPad = useLargeTopPad
+    ? onPersonalRestoreHero
+      ? 'pt-0'
+      : showWayfinder
+        ? 'pt-52'
+        : 'pt-28'
+    : 'pt-[max(0.75rem,env(safe-area-inset-top))]';
   const isAdmin = pathname.startsWith('/admin');
   const isPortal = pathname.startsWith('/portal');
   const isBusiness = pathname.startsWith('/business');
@@ -217,21 +229,31 @@ export function PageShell({
         : useLargeTopPad
           ? 'public'
           : 'app';
+  const ivoryAdminSurface = isAdmin && ivorySurface;
 
   const showAccountMenu = Boolean(auth.user) && isAppRoute;
   const showThemeToggle = shouldShowPublicThemeToggle(auth.user?.email);
 
   const appTopChrome = useAppTopChrome ? (
     <header
-      className="sticky top-0 z-[170] mb-4 flex items-center justify-between gap-3 py-2.5 border-b border-white/[0.08] bg-fc-deep/92 backdrop-blur-lg fc-app-top-chrome"
+      className={`sticky top-0 z-[170] mb-4 flex items-center justify-between gap-3 py-2.5 border-b backdrop-blur-lg fc-app-top-chrome ${
+        ivoryAdminSurface
+          ? 'border-[#0a1628]/10 bg-white/80 text-[#0a1628] shadow-[0_10px_28px_-22px_rgba(10,22,40,0.38)]'
+          : 'border-white/[0.08] bg-fc-deep/92'
+      }`}
       data-fc-app-top-chrome="1"
+      data-fc-app-chrome-surface={ivoryAdminSurface ? 'ivory' : 'default'}
     >
-      <BackToSiteButton variant="ghost" label="Back to site" className="!px-3 !py-2 !text-xs shrink-0" />
+      <BackToSiteButton
+        variant="ghost"
+        label="Back to site"
+        className="fc-app-top-chrome-back !px-3 !py-2 !text-xs shrink-0"
+      />
       {showAccountMenu ? (
-        <div className="flex items-center gap-2 shrink-0">
+        <div data-fc-app-top-actions="1" className="flex items-center gap-2 shrink-0">
           {showThemeToggle ? <FinelyThemeToggle compact /> : null}
           <NotificationsBell />
-          <UserAccountMenu />
+          <UserAccountMenu className="fc-app-top-account" />
         </div>
       ) : null}
     </header>
@@ -403,7 +425,12 @@ export function PageShell({
       data-fc-pageshell-root="1"
       data-fc-app-surface={appSurface}
       data-fc-pathname={pathname}
-      className={`relative bg-fc-deep text-white fc-premium-icons ${topPad} min-h-screen pb-28 md:pb-20 overflow-x-clip`}
+      data-fc-shell-surface={ivorySurface ? 'ivory' : 'default'}
+      className={`relative fc-premium-icons ${topPad} min-h-screen pb-28 md:pb-20 overflow-x-clip ${
+        ivorySurface
+          ? 'fc-landing-wealthy-ivory text-[#0a1628]'
+          : 'bg-fc-deep text-white'
+      }`}
     >
       {debugUi ? (
         <div
@@ -510,18 +537,20 @@ export function PageShell({
         </div>
       ) : null}
       {showWayfinder ? <FinelySiteWayfinder /> : null}
-      <div className="absolute inset-0 pointer-events-none fc-pageshell-aurora" aria-hidden="true">
-        <div className="fc-pageshell-aurora-wash absolute inset-0 bg-gradient-to-b from-black/[0.06] via-transparent to-fc-deep/30" />
-        <div
-          className="fc-pageshell-aurora-glow fc-pageshell-aurora-glow-primary absolute -top-40 left-1/2 -translate-x-1/2 w-[1200px] h-[560px] blur-3xl opacity-30"
-          style={{
-            background:
-              'radial-gradient(ellipse at 50% 50%, rgba(var(--brand-primary-rgb),0.18) 0%, transparent 62%)',
-          }}
-        />
-        <div className="fc-pageshell-aurora-glow fc-pageshell-aurora-glow-violet absolute -top-24 -right-32 w-[720px] h-[520px] blur-3xl" />
-        <div className="fc-pageshell-aurora-glow fc-pageshell-aurora-glow-emerald absolute bottom-0 -left-40 w-[800px] h-[480px] blur-3xl" />
-      </div>
+      {ivorySurface ? null : (
+        <div className="absolute inset-0 pointer-events-none fc-pageshell-aurora" aria-hidden="true">
+          <div className="fc-pageshell-aurora-wash absolute inset-0 bg-gradient-to-b from-black/[0.06] via-transparent to-fc-deep/30" />
+          <div
+            className="fc-pageshell-aurora-glow fc-pageshell-aurora-glow-primary absolute -top-40 left-1/2 -translate-x-1/2 w-[1200px] h-[560px] blur-3xl opacity-30"
+            style={{
+              background:
+                'radial-gradient(ellipse at 50% 50%, rgba(var(--brand-primary-rgb),0.18) 0%, transparent 62%)',
+            }}
+          />
+          <div className="fc-pageshell-aurora-glow fc-pageshell-aurora-glow-violet absolute -top-24 -right-32 w-[720px] h-[520px] blur-3xl" />
+          <div className="fc-pageshell-aurora-glow fc-pageshell-aurora-glow-emerald absolute bottom-0 -left-40 w-[800px] h-[480px] blur-3xl" />
+        </div>
+      )}
       <div
         className={`relative min-w-0 overflow-x-clip ${
           // For admin, keep the left rail flush-left on desktop while preserving comfortable content padding.
@@ -550,12 +579,14 @@ export function PageShell({
             <div className="min-w-0 flex flex-col">
               {appTopChrome}
               <AdminNavBar />
-              <div className="space-y-6 mb-8 md:mb-12 fc-pageshell-hero">
+              <div className={`space-y-6 mb-8 md:mb-12 fc-pageshell-hero ${ivoryAdminSurface ? 'fc-pageshell-hero--ivory' : ''}`}>
                 {effectiveBack ? (
                   <button
                     type="button"
                     onClick={() => navigate((effectiveBack.to as any) ?? -1)}
-                    className="inline-flex items-center gap-2 text-white/60 hover:text-white transition-colors text-sm"
+                    className={`inline-flex items-center gap-2 transition-colors text-sm ${
+                      ivoryAdminSurface ? 'text-[#0a1628]/65 hover:text-[#0a1628]' : 'text-white/60 hover:text-white'
+                    }`}
                     title={effectiveBack.title || 'Back'}
                   >
                     <ArrowLeft size={16} /> {effectiveBack.label || 'Back'}
@@ -566,18 +597,30 @@ export function PageShell({
                     <span className="text-xs font-semibold uppercase tracking-wider">{badge}</span>
                   </div>
                 )}
-                <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-light leading-tight tracking-tight">
+                <h1
+                  className={`text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-light leading-tight tracking-tight ${
+                    ivoryAdminSurface ? 'text-[#0a1628]' : 'text-white'
+                  }`}
+                >
                   {title}
                 </h1>
                 {subtitle && (
-                  <p className="text-white/55 text-base sm:text-lg leading-relaxed max-w-3xl">
+                  <p
+                    className={`text-base sm:text-lg leading-relaxed max-w-3xl ${
+                      ivoryAdminSurface ? 'text-[#0a1628]/70' : 'text-white/55'
+                    }`}
+                  >
                     {subtitle}
                   </p>
                 )}
                 <div className="fc-divider" />
               </div>
               <div className="pb-16">
-                <div data-fc-route-content="1" data-fc-route-pathname={pathname} className="fc-light-black-scope fc-senior-simple min-w-0 overflow-x-clip">
+                <div
+                  data-fc-route-content="1"
+                  data-fc-route-pathname={pathname}
+                  className={`${ivorySurface ? 'fc-light-readable' : 'fc-light-black-scope'} fc-senior-simple min-w-0 overflow-x-clip`}
+                >
                   {children}
                 </div>
               </div>
@@ -592,7 +635,9 @@ export function PageShell({
                   <button
                     type="button"
                     onClick={() => navigate((effectiveBack.to as any) ?? -1)}
-                    className="inline-flex items-center gap-2 text-white/60 hover:text-white transition-colors text-sm"
+                    className={`inline-flex items-center gap-2 transition-colors text-sm ${
+                      ivorySurface ? 'text-[#0a1628]/65 hover:text-[#0a1628]' : 'text-white/60 hover:text-white'
+                    }`}
                     title={effectiveBack.title || 'Back'}
                   >
                     <ArrowLeft size={16} /> {effectiveBack.label || 'Back'}
@@ -605,7 +650,9 @@ export function PageShell({
                   <button
                     type="button"
                     onClick={() => navigate((effectiveBack.to as any) ?? -1)}
-                    className="inline-flex items-center gap-2 text-white/60 hover:text-white transition-colors text-sm"
+                    className={`inline-flex items-center gap-2 transition-colors text-sm ${
+                      ivorySurface ? 'text-[#0a1628]/65 hover:text-[#0a1628]' : 'text-white/60 hover:text-white'
+                    }`}
                     title={effectiveBack.title || 'Back'}
                   >
                     <ArrowLeft size={16} /> {effectiveBack.label || 'Back'}
@@ -620,7 +667,11 @@ export function PageShell({
                   {title}
                 </h1>
                 {subtitle && (
-                  <p className="text-white/55 text-sm sm:text-base md:text-lg leading-relaxed max-w-3xl">
+                  <p
+                    className={`${
+                      ivorySurface ? 'text-[#0a1628]/70' : 'text-white/55'
+                    } text-sm sm:text-base md:text-lg leading-relaxed max-w-3xl`}
+                  >
                     {subtitle}
                   </p>
                 )}
@@ -628,7 +679,11 @@ export function PageShell({
               </div>
             )}
             <div className={isAppRoute ? 'pb-16' : ''}>
-              <div data-fc-route-content="1" data-fc-route-pathname={pathname} className="fc-light-black-scope fc-senior-simple min-w-0 overflow-x-clip">
+              <div
+                data-fc-route-content="1"
+                data-fc-route-pathname={pathname}
+                className={`${ivorySurface ? 'fc-light-readable' : 'fc-light-black-scope'} fc-senior-simple min-w-0 overflow-x-clip`}
+              >
                 {children}
               </div>
             </div>

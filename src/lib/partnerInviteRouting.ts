@@ -110,9 +110,13 @@ export function clientFocusesForPartner(partner: Partner): string[] {
 
 export function landingPathForPartner(partner: Partner): string {
   const role = careerRoleForPartner(partner);
-  if (role === 'affiliate') return '/affiliate/hub';
-  if (role === 'agent') return '/agent/hub';
-  if (role === 'au_seller') return '/au-seller/hub';
+  const interest = String((partner.journeySignals as Record<string, unknown> | undefined)?.interest ?? '');
+  if (role === 'affiliate') {
+    if (interest.toLowerCase().includes('real_estate')) return '/real-estate/hub';
+    return '/affiliate/hub';
+  }
+  if (role === 'agent') return '/credit-specialist/hub';
+  if (role === 'au_seller') return '/seller/hub';
   return clientServiceForPartner(partner).landingPath;
 }
 

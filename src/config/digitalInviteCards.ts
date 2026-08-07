@@ -65,7 +65,7 @@ export const DIGITAL_INVITE_CARDS: Record<DigitalInviteCardRole, DigitalInviteCa
   cs: {
     role: 'cs',
     title: 'Credit Specialist',
-    destPath: '/credit-specialist/join',
+    destPath: '/credit-specialist',
     offerTag: 'credit_specialist_join',
     bonus: {
       id: 'bonus_lead_credit',

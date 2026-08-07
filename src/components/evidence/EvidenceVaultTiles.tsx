@@ -8,6 +8,9 @@ import { triggerBrowserDownload } from '../../utils/download';
 import { profileForDocType } from '../../lib/evidenceDocumentTaxonomy';
 import type { DocumentType } from '../../domain/documents';
 import {
+  groupEvidenceByVaultBucket,
+} from '../../lib/evidenceVaultGrouping';
+import {
   FINELY_OS_ENTITY_BODY,
   FINELY_OS_ENTITY_SELECT,
   FINELY_OS_ENTITY_SUBLABEL,
@@ -59,11 +62,6 @@ const CATEGORY_OPTIONS: { key: CategoryKey; label: string }[] = [
   { key: 'contracts', label: 'Contracts' },
   { key: 'other', label: 'Other' },
 ];
-
-function folderLabel(key?: string): string {
-  if (!key) return 'Other';
-  return CATEGORY_OPTIONS.find((c) => c.key === key)?.label ?? key.replace(/_/g, ' ');
-}
 
 function doctypeFromItem(item: EvidenceItem): DocumentType | null {
   const tag = (item.tags ?? []).find((t) => t.startsWith('doctype:'));
@@ -137,16 +135,7 @@ export function EvidenceVaultTiles({
     [items],
   );
 
-  const grouped = useMemo(() => {
-    const m = new Map<string, EvidenceItem[]>();
-    for (const e of visibleItems) {
-      const key = e.sectionKey || 'other';
-      const arr = m.get(key) ?? [];
-      arr.push(e);
-      m.set(key, arr);
-    }
-    return Array.from(m.entries()).sort((a, b) => folderLabel(a[0]).localeCompare(folderLabel(b[0])));
-  }, [visibleItems]);
+  const grouped = useMemo(() => groupEvidenceByVaultBucket(visibleItems), [visibleItems]);
 
   const [preview, setPreview] = useState<{ item: EvidenceItem; url: string; kind: 'image' | 'video'; revoke?: () => void } | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
@@ -256,14 +245,22 @@ export function EvidenceVaultTiles({
       {err ? <div className={`mb-3 ${FINELY_OS_NOTICE_ERROR}`}>{err}</div> : null}
 
       <div className="space-y-5">
-        {grouped.map(([sectionKey, sectionItems]) => (
-          <div key={sectionKey}>
+        {grouped.map(({ bucket, label, subgroups }) => (
+          <div key={bucket}>
             <div className="flex items-center justify-between gap-2 mb-2">
-              <div className={FINELY_OS_ENTITY_SUBLABEL}>{folderLabel(sectionKey)}</div>
-              <span className={`${finelyOsGlowKpi('emerald')} !py-1 !px-2 text-[10px]`}>{sectionItems.length}</span>
+              <div className={FINELY_OS_ENTITY_SUBLABEL}>{label}</div>
+              <span className={`${finelyOsGlowKpi('emerald')} !py-1 !px-2 text-[10px]`}>
+                {subgroups.reduce((n, s) => n + s.items.length, 0)}
+              </span>
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2">
-              {sectionItems.map((e) => {
+            <div className="space-y-3">
+              {subgroups.map((sub) => (
+                <div key={`${bucket}-${sub.key}`}>
+                  {subgroups.length > 1 ? (
+                    <div className="text-[10px] text-white/50 mb-1.5 capitalize">{sub.label}</div>
+                  ) : null}
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2">
+                    {sub.items.map((e) => {
                 const busy = busyId === e.id;
                 return (
                   <div key={e.id} className={`${finelyOsGlowTile('emerald', false)} !p-2 flex flex-col gap-1.5 min-h-[7.5rem]`}>
@@ -325,6 +322,9 @@ export function EvidenceVaultTiles({
                   </div>
                 );
               })}
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         ))}

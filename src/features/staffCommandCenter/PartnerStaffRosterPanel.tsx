@@ -34,10 +34,11 @@ import {
   resolveStaffOnDuty,
   updateStaffMemberShifts,
 } from '../../data/staffRoster';
-import { staffMemberFullName, type StaffMember, type StaffShiftBlock } from '../../domain/staffMember';
+import { staffMemberFullName, formatStaffShiftBlock, type StaffMember, type StaffShiftBlock } from '../../domain/staffMember';
 import { StaffPortraitImg } from '../../components/staff/StaffPortraitImg';
 import { syncStaffRosterToSupabase } from '../../data/staffSupabaseSync';
 import { AdminAgentPersonaEditor } from '../../components/admin/AdminAgentPersonaEditor';
+import { formatPartnerStaffShiftSummary } from '../../lib/staffShiftDisplay';
 import { STAFF_CMD_BODY, STAFF_CMD_EYEBROW, STAFF_CMD_PANEL, STAFF_CMD_TITLE } from './staffCommandUi';
 
 type Tab = 'on_duty' | 'roster' | 'personas' | 'routing';
@@ -81,9 +82,7 @@ function ShiftDayPicker({ days, onChange }: { days: number[]; onChange: (days: n
 }
 
 function shiftLabel(block: StaffMember['shiftBlocks'][0]): string {
-  const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-  const days = block.days.map((d) => dayNames[d]).join(', ');
-  return `${days} ${block.startHour}:00–${block.endHour}:00`;
+  return formatStaffShiftBlock(block);
 }
 
 /** Human partner-facing specialists — portal chat, disputes, funding (unified under Staff Command Center). */
@@ -173,12 +172,16 @@ export function PartnerStaffRosterPanel() {
               ) : (
                 onDutyNow.map((s) => {
                   const role = personas.find((p) => p.id === s.primaryRoleId);
+                  const shift = formatPartnerStaffShiftSummary(s);
                   return (
                     <div key={s.id} className={`${finelyOsInlineListItem()} flex items-center gap-4 p-4`}>
                       <StaffPortraitImg staff={s} className="w-12 h-12 rounded-2xl border border-amber-400/25" />
                       <div className="min-w-0">
                         <div className="font-semibold text-white">{staffMemberFullName(s)}</div>
                         <div className={`${FINELY_OS_ENTITY_BODY} text-xs`}>{role?.displayTitle ?? s.primaryRoleId}</div>
+                        {shift.dutyLine ? (
+                          <div className={`${FINELY_OS_ENTITY_BODY} text-[10px] mt-1 text-emerald-200/80`}>{shift.dutyLine}</div>
+                        ) : null}
                       </div>
                     </div>
                   );
@@ -221,6 +224,7 @@ export function PartnerStaffRosterPanel() {
             {filteredRoster.map((s) => {
               const persona = personas.find((p) => p.id === s.primaryRoleId);
               const isOnDuty = onDutyStaff?.id === s.id;
+              const shift = formatPartnerStaffShiftSummary(s);
               return (
                 <button
                   key={s.id}
@@ -236,6 +240,9 @@ export function PartnerStaffRosterPanel() {
                     <div className="min-w-0 flex-1">
                       <div className={`${FINELY_OS_ENTITY_VALUE}`}>{staffMemberFullName(s)}</div>
                       <div className={`${FINELY_OS_ENTITY_SUBLABEL} mt-0.5`}>{persona?.displayTitle ?? persona?.name ?? s.primaryRoleId}</div>
+                      {shift.dutyLine ? (
+                        <div className={`${FINELY_OS_ENTITY_BODY} text-[10px] mt-1`}>{shift.dutyLine}</div>
+                      ) : null}
                       <p className={`${FINELY_OS_ENTITY_BODY} text-xs mt-2`}>{s.bioLine}</p>
                     </div>
                   </div>
@@ -248,6 +255,7 @@ export function PartnerStaffRosterPanel() {
               <div className="font-semibold text-white">{staffMemberFullName(selectedStaff)} — shift editor</div>
               {editShifts.map((block, i) => (
                 <div key={i} className={`${finelyOsInlineListItem()} p-3 space-y-2`}>
+                  <div className={`${FINELY_OS_ENTITY_BODY} text-xs`}>{shiftLabel(block)}</div>
                   <div className="flex flex-wrap gap-3">
                     <div>
                       <label className={FINELY_OS_ENTITY_SUBLABEL}>Start</label>

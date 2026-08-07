@@ -1,6 +1,7 @@
 import React from 'react';
 import { ArrowLeft, Home } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { clearOnboardingProgress } from '../../lib/onboardingProgressStorage';
 
 type Props = {
   variant?: 'primary' | 'ghost' | 'bar';
@@ -63,6 +64,8 @@ export function BackToSiteButton({ variant = 'primary', className = '', label = 
 }
 
 export function markSignedOutAndGoHome(navigate: (path: string) => void) {
+  // Clear mid-wizard localStorage so the next guest session cannot revive a stale support/role step.
+  clearOnboardingProgress();
   try {
     sessionStorage.setItem('finely.signedOut', '1');
   } catch {

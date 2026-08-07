@@ -31,10 +31,11 @@ export interface DigitalInviteCardShareProps {
   clickable?: boolean;
   /**
    * `onDark` pins the controls to explicit light-on-dark styling. Use it inside
-   * `DigitalInviteShareBand` (or any fixed dark surface) so the theme's light
-   * mode can never paint dark text onto a dark panel.
+   * a fixed dark surface so the theme's light mode can never paint dark text
+   * onto a dark panel. `onIvory` pins navy-on-champagne controls for wealthy
+   * ivory shells.
    */
-  tone?: 'auto' | 'onDark';
+  tone?: 'auto' | 'onDark' | 'onIvory';
   className?: string;
 }
 
@@ -43,6 +44,12 @@ const ON_DARK_PRIMARY_BTN =
 
 const ON_DARK_SECONDARY_BTN =
   'inline-flex items-center justify-center gap-2 rounded-xl border border-white/25 bg-white/10 px-4 py-2.5 text-[10px] font-black uppercase tracking-wide text-white transition-colors hover:bg-white/20 disabled:opacity-60';
+
+const ON_IVORY_PRIMARY_BTN =
+  'inline-flex items-center justify-center gap-2 rounded-xl border border-amber-800/25 bg-gradient-to-b from-amber-200 via-amber-300 to-amber-500 px-4 py-2.5 text-[10px] font-black uppercase tracking-wide text-[#1a1400] shadow-md shadow-amber-900/10 transition-all hover:brightness-105 disabled:opacity-60';
+
+const ON_IVORY_SECONDARY_BTN =
+  'inline-flex items-center justify-center gap-2 rounded-xl border border-[#0a1628]/15 bg-white/70 px-4 py-2.5 text-[10px] font-black uppercase tracking-wide text-[#0a1628] transition-colors hover:bg-white disabled:opacity-60';
 
 /**
  * Mountable share block: the invite card plus download / copy / native-share
@@ -121,8 +128,12 @@ export function DigitalInviteCardShare({
 
   const cap = Math.min(maxWidth ?? design.width, design.width);
   const displayWidth = width > 0 ? Math.min(width, cap) : cap;
-  const primaryBtn = tone === 'onDark' ? ON_DARK_PRIMARY_BTN : FINELY_OS_PRIMARY_BTN;
-  const secondaryBtn = tone === 'onDark' ? ON_DARK_SECONDARY_BTN : FINELY_OS_SECONDARY_BTN;
+  const primaryBtn =
+    tone === 'onDark' ? ON_DARK_PRIMARY_BTN : tone === 'onIvory' ? ON_IVORY_PRIMARY_BTN : FINELY_OS_PRIMARY_BTN;
+  const secondaryBtn =
+    tone === 'onDark' ? ON_DARK_SECONDARY_BTN : tone === 'onIvory' ? ON_IVORY_SECONDARY_BTN : FINELY_OS_SECONDARY_BTN;
+  const footnoteTone =
+    tone === 'onIvory' ? 'text-[#0a1628]/45' : tone === 'onDark' ? 'text-white/55' : 'text-white/45';
 
   const card = (
     <DigitalInviteCard
@@ -170,7 +181,7 @@ export function DigitalInviteCardShare({
         </button>
       </div>
 
-      <p className={`text-[11px] leading-relaxed ${tone === 'onDark' ? 'text-white/55' : 'text-white/45'}`}>
+      <p className={`text-[11px] leading-relaxed ${footnoteTone}`}>
         Saves a print-ready PNG at {design.width * 2} × {design.height * 2}. Every scan and click through this
         card is attributed to the partner who shared it.
       </p>

@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../auth/AuthProvider';
 import {
   DESTINATION_OPTIONS,
   MATURITY_OPTIONS,
@@ -17,10 +18,12 @@ import {
   finelyOsCatalogCardCompact,
   finelyOsGlowTile,
 } from '../../features/os/finelyOsLightUi';
+import { resolvePackageSelectPath } from '../../lib/packageCheckoutRouting';
 import { BusinessCapitalOutlookBlock } from './BusinessCapitalOutlookBlock';
 
 export function BusinessCreditQuotePanel() {
   const navigate = useNavigate();
+  const auth = useAuth();
   const [maturity, setMaturity] = useState<BusinessMaturity>('startup');
   const [destination, setDestination] = useState<BusinessDestination>('G2_fundability');
   const [wantsNamedCards, setWantsNamedCards] = useState(false);
@@ -144,7 +147,14 @@ export function BusinessCreditQuotePanel() {
           <button
             type="button"
             className={FINELY_OS_PRIMARY_BTN}
-            onClick={() => navigate(`/portal/checkout?package=${quote.packageId}`)}
+            onClick={() =>
+              navigate(
+                resolvePackageSelectPath({
+                  packageId: quote.packageId,
+                  isAuthed: Boolean(auth.user),
+                }),
+              )
+            }
           >
             Continue with {quote.pkg.name}
           </button>

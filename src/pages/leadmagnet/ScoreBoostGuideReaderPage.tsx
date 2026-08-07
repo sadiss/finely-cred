@@ -7,9 +7,7 @@ import {
   ChevronRight,
   Download,
   Gauge,
-  List,
   ShieldAlert,
-  X,
 } from 'lucide-react';
 import { usePublicSeoMeta } from '../../hooks/usePublicSeoMeta';
 import { downloadScoreRoadmapPdf } from '../../resources/buildScoreRoadmapPdf';
@@ -20,7 +18,9 @@ import {
   type ScoreBoostChapter,
   type ScoreBoostSection,
 } from '../../resources/scoreRoadmapContent';
+import GuideReaderShell from './GuideReaderShell';
 import './scoreBoostGuideReader.css';
+import './guideReaderShell.css';
 
 const CHAPTERS = SCORE_BOOST_CHAPTERS;
 const LANDING_PATH = '/free-score-roadmap';
@@ -186,6 +186,17 @@ export default function ScoreBoostGuideReaderPage() {
   const linear = ((idx + 1) / CHAPTERS.length) * 100;
   const arcValue = chapter.arc ?? linear;
 
+  const shellChapters = useMemo(
+    () =>
+      CHAPTERS.map((c, i) => ({
+        id: c.id,
+        number: String(i + 1).padStart(2, '0'),
+        title: c.title,
+        teaser: c.window ?? c.subtitle,
+      })),
+    [],
+  );
+
   usePublicSeoMeta({
     title: `${chapter.title} — Boost Your Credit Score in 72 Hours`,
     description:
@@ -200,21 +211,9 @@ export default function ScoreBoostGuideReaderPage() {
       setIdx(clamped);
       setParams({ chapter: CHAPTERS[clamped]!.id }, { replace: true });
       setIndexOpen(false);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
     },
     [setParams],
   );
-
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      const target = e.target as HTMLElement | null;
-      if (target && /input|textarea|select/i.test(target.tagName)) return;
-      if (e.key === 'ArrowRight') goChapter(idx + 1);
-      if (e.key === 'ArrowLeft') goChapter(idx - 1);
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [goChapter, idx]);
 
   const onDownload = async () => {
     setDownloading(true);
@@ -226,50 +225,51 @@ export default function ScoreBoostGuideReaderPage() {
   };
 
   return (
-    <main className="sbg-reader relative">
-      <div className="sbg-field pointer-events-none fixed inset-0 z-0" aria-hidden />
-      <div className="sbg-field-ticks pointer-events-none fixed inset-0 z-0" aria-hidden />
-
-      <header className="sbg-bar sticky z-40" style={{ top: 'calc(env(safe-area-inset-top, 0px) + 4.25rem)' }}>
-        <div className="sbg-bar-rail">
-          <span className="sbg-bar-fill" style={{ width: `${linear}%` }} />
-        </div>
-        <div className="mx-auto flex max-w-[86rem] flex-wrap items-center justify-between gap-3 px-4 py-2.5 md:px-8">
-          <div className="flex min-w-0 items-center gap-3">
-            <button
-              type="button"
-              onClick={() => navigate(LANDING_PATH)}
-              className="sbg-ghost inline-flex items-center gap-1.5 rounded px-3 py-2 text-[10px] font-bold uppercase tracking-[0.16em]"
-            >
-              <ArrowLeft size={13} /> Landing
-            </button>
-            <span className="sbg-chip hidden sm:inline-flex">
-              <Gauge size={11} /> 72-hour roadmap
-            </span>
-          </div>
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => setIndexOpen((v) => !v)}
-              className="sbg-ghost inline-flex items-center gap-1.5 rounded px-3 py-2 text-[10px] font-bold uppercase tracking-[0.16em] lg:hidden"
-              aria-expanded={indexOpen}
-            >
-              {indexOpen ? <X size={13} /> : <List size={13} />} Steps
-            </button>
-            <button
-              type="button"
-              onClick={() => void onDownload()}
-              disabled={downloading}
-              className="sbg-solid inline-flex items-center gap-1.5 rounded px-3.5 py-2 text-[10px] uppercase tracking-[0.16em]"
-            >
-              <Download size={13} /> {downloading ? 'Building…' : 'Download PDF'}
-            </button>
-          </div>
-        </div>
-      </header>
-
-      <div className="relative z-10 mx-auto grid max-w-[86rem] gap-6 px-3 py-6 md:px-8 lg:grid-cols-[276px_minmax(0,1fr)] lg:gap-9 lg:py-9">
-        <aside className={cn('lg:sticky lg:top-32 lg:self-start', indexOpen ? 'block' : 'hidden lg:block')}>
+    <GuideReaderShell
+      className="sbg-reader relative"
+      chapters={shellChapters}
+      chapterIndex={idx}
+      onChapterChange={goChapter}
+      tocOpen={indexOpen}
+      onTocOpenChange={setIndexOpen}
+      tocToggleLabel="Steps"
+      storageKey="finely.guideReader.scoreBoost"
+      maxWidthClassName="max-w-[86rem]"
+      headerClassName="sbg-bar"
+      progressTrackClassName="sbg-bar-rail"
+      progressFillClassName="sbg-bar-fill"
+      atmosphere={
+        <>
+          <div className="sbg-field pointer-events-none fixed inset-0 z-0" aria-hidden />
+          <div className="sbg-field-ticks pointer-events-none fixed inset-0 z-0" aria-hidden />
+        </>
+      }
+      headerLeft={
+        <>
+          <button
+            type="button"
+            onClick={() => navigate(LANDING_PATH)}
+            className="sbg-ghost inline-flex items-center gap-1.5 rounded px-3 py-2 text-[10px] font-bold uppercase tracking-[0.16em]"
+          >
+            <ArrowLeft size={13} /> Landing
+          </button>
+          <span className="sbg-chip hidden sm:inline-flex">
+            <Gauge size={11} /> 72-hour roadmap
+          </span>
+        </>
+      }
+      headerRight={
+        <button
+          type="button"
+          onClick={() => void onDownload()}
+          disabled={downloading}
+          className="sbg-solid inline-flex items-center gap-1.5 rounded px-3.5 py-2 text-[10px] uppercase tracking-[0.16em]"
+        >
+          <Download size={13} /> {downloading ? 'Building…' : 'Download PDF'}
+        </button>
+      }
+      customToc={
+        <>
           <div className="sbg-panel px-3 py-4">
             <ScoreArc value={arcValue} />
             <div className="mt-2 text-center">
@@ -305,41 +305,56 @@ export default function ScoreBoostGuideReaderPage() {
             </nav>
             <p className="sbg-compliance mt-2 px-1.5">{SCORE_BOOST_COMPLIANCE}</p>
           </div>
-        </aside>
-
-        <div className="min-w-0">
+        </>
+      }
+      afterArticle={
+        <div className="sbg-panel mt-4 flex flex-col gap-3 px-5 py-4 sm:flex-row sm:items-center sm:justify-between md:px-10">
+          <div>
+            <div className="sbg-metric-label">Pairs with</div>
+            <p className="sbg-condensed mt-0.5 text-lg font-semibold uppercase text-white">
+              Free Credit Dispute Letter Guide
+            </p>
+            <p className="sbg-compliance mt-1">{SCORE_BOOST_COMPLIANCE}</p>
+          </div>
+          <Link
+            to={DISPUTE_GUIDE_PATH}
+            className="sbg-ghost inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded px-4 text-[10px] font-bold uppercase tracking-[0.16em]"
+          >
+            Read the dispute guide <ArrowRight size={14} />
+          </Link>
+        </div>
+      }
+      renderChapter={(i) => {
+        const ch = CHAPTERS[i] ?? CHAPTERS[0]!;
+        return (
           <article className="sbg-panel sbg-animate-panel px-5 py-7 md:px-10 md:py-9 lg:px-12">
             <div className="flex flex-wrap items-center gap-2.5">
-              <span className="sbg-window-tag">{chapter.window ?? 'Roadmap'}</span>
-              {chapter.speed ? (
-                <span className={`sbg-speed sbg-speed--${chapter.speed}`}>{SPEED_COPY[chapter.speed]}</span>
-              ) : null}
-              {chapter.readMinutes ? (
-                <span className="sbg-compliance">{chapter.readMinutes} min read</span>
-              ) : null}
+              <span className="sbg-window-tag">{ch.window ?? 'Roadmap'}</span>
+              {ch.speed ? <span className={`sbg-speed sbg-speed--${ch.speed}`}>{SPEED_COPY[ch.speed]}</span> : null}
+              {ch.readMinutes ? <span className="sbg-compliance">{ch.readMinutes} min read</span> : null}
             </div>
-            <h1 className="sbg-title mt-3">{chapter.title}</h1>
-            {chapter.subtitle ? <p className="sbg-sub mt-3 max-w-3xl">{chapter.subtitle}</p> : null}
+            <h1 className="sbg-title mt-3">{ch.title}</h1>
+            {ch.subtitle ? <p className="sbg-sub mt-3 max-w-3xl">{ch.subtitle}</p> : null}
 
             <div className="mt-7">
-              {chapter.sections.map((sec, i) => (
-                <SectionBlock key={`${chapter.id}-${i}`} section={sec} />
+              {ch.sections.map((sec, si) => (
+                <SectionBlock key={`${ch.id}-${si}`} section={sec} />
               ))}
             </div>
 
             <div className="mt-8 flex flex-col gap-3 border-t border-white/[0.08] pt-5 sm:flex-row sm:items-center sm:justify-between">
               <button
                 type="button"
-                disabled={idx <= 0}
-                onClick={() => goChapter(idx - 1)}
+                disabled={i <= 0}
+                onClick={() => goChapter(i - 1)}
                 className="sbg-ghost inline-flex h-11 items-center justify-center gap-2 rounded px-4 text-[10px] font-bold uppercase tracking-[0.16em]"
               >
                 <ChevronLeft size={15} /> Previous
               </button>
-              {idx < CHAPTERS.length - 1 ? (
+              {i < CHAPTERS.length - 1 ? (
                 <button
                   type="button"
-                  onClick={() => goChapter(idx + 1)}
+                  onClick={() => goChapter(i + 1)}
                   className="sbg-solid inline-flex h-11 items-center justify-center gap-2 rounded px-5 text-[10px] uppercase tracking-[0.16em]"
                 >
                   Next step <ChevronRight size={15} />
@@ -354,24 +369,8 @@ export default function ScoreBoostGuideReaderPage() {
               )}
             </div>
           </article>
-
-          <div className="sbg-panel mt-4 flex flex-col gap-3 px-5 py-4 sm:flex-row sm:items-center sm:justify-between md:px-10">
-            <div>
-              <div className="sbg-metric-label">Pairs with</div>
-              <p className="sbg-condensed mt-0.5 text-lg font-semibold uppercase text-white">
-                Free Credit Dispute Letter Guide
-              </p>
-              <p className="sbg-compliance mt-1">{SCORE_BOOST_COMPLIANCE}</p>
-            </div>
-            <Link
-              to={DISPUTE_GUIDE_PATH}
-              className="sbg-ghost inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded px-4 text-[10px] font-bold uppercase tracking-[0.16em]"
-            >
-              Read the dispute guide <ArrowRight size={14} />
-            </Link>
-          </div>
-        </div>
-      </div>
-    </main>
+        );
+      }}
+    />
   );
 }

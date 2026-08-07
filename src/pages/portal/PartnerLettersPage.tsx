@@ -37,12 +37,20 @@ export default function PartnerLettersPage() {
     const t = searchParams.get('tab');
     if (t === 'validation' || t === 'court') {
       setStudioTab('dispute');
+      navigate(`/portal/debt?tab=${t}`, { replace: true });
+      window.setTimeout(() => {
+        window.alert(
+          t === 'court'
+            ? 'Court / affidavit letters live under Debt Letters — opening that workstation.'
+            : 'Validation letters live under Debt Letters — opening that workstation.',
+        );
+      }, 0);
       return;
     }
     if (t === 'foreclosure' || t === 'repossession' || t === 'bankruptcy' || t === 'templates' || t === 'dispute') {
       setStudioTab(t);
     }
-  }, [searchParams]);
+  }, [searchParams, navigate]);
 
   useEffect(() => {
     const onStore = () => setStoreVersion((v) => v + 1);

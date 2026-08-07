@@ -282,6 +282,9 @@ export async function getOrCreatePartnerForSession(args: { user: User | null }):
       supportModel: meta.supportModel ?? userData.supportModel,
       helperName: meta.helperName ?? userData.helperName,
       priorCompany: meta.priorCompany ?? userData.priorCompany,
+      // RE = tagged affiliate (interest=real_estate) — no new auth role enum.
+      interest: meta.interest ?? userData.interest,
+      promoType: meta.promoType ?? userData.promoType,
     },
     intake,
   });

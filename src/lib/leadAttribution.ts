@@ -38,9 +38,11 @@ function save(attr: LeadAttribution) {
 export function captureLeadAttributionFromUrl(search: string, pathname = '/') {
   const params = new URLSearchParams(search);
   const ref = params.get('ref')?.trim();
-  const promoterRole = (params.get('promoter_role') || params.get('role'))?.trim();
-  const promoType = (params.get('promo_type') || params.get('type'))?.trim();
+  const promoterRole = (params.get('promoter_role') || params.get('promoterRole'))?.trim();
+  // Accept promo_type / promoType / type — RE signup uses promoType=real_estate_affiliate.
+  const promoType = (params.get('promo_type') || params.get('promoType') || params.get('type'))?.trim();
   const promoAsset = (params.get('promo_asset') || params.get('asset') || params.get('service'))?.trim();
+  const interest = (params.get('interest') || '').trim();
   const utmSource = params.get('utm_source')?.trim();
   const utmMedium = params.get('utm_medium')?.trim();
   const utmCampaign = params.get('utm_campaign')?.trim();
@@ -48,17 +50,34 @@ export function captureLeadAttributionFromUrl(search: string, pathname = '/') {
   const geoCity = (params.get('city') || params.get('geo') || params.get('metro'))?.trim();
   const geoCluster = (params.get('cluster') || params.get('dma'))?.trim();
 
-  if (!ref && !promoterRole && !promoType && !promoAsset && !utmSource && !utmMedium && !utmCampaign && !geoCity && !geoCluster) {
+  if (
+    !ref &&
+    !promoterRole &&
+    !promoType &&
+    !promoAsset &&
+    !interest &&
+    !utmSource &&
+    !utmMedium &&
+    !utmCampaign &&
+    !geoCity &&
+    !geoCluster
+  ) {
     return load();
   }
 
   const existing = load();
   if (existing?.referralCode && !ref) return existing;
 
+  // Persist interest on promoType when interest=real_estate so RE hub gates can read attribution.
+  const resolvedPromo =
+    promoType ||
+    (interest.toLowerCase().includes('real_estate') ? 'real_estate_affiliate' : undefined) ||
+    existing?.promoType;
+
   const attr: LeadAttribution = {
     referralCode: ref || existing?.referralCode,
     promoterRole: promoterRole || existing?.promoterRole,
-    promoType: promoType || existing?.promoType,
+    promoType: resolvedPromo,
     promoAsset: promoAsset || existing?.promoAsset,
     utmSource: utmSource || existing?.utmSource,
     utmMedium: utmMedium || existing?.utmMedium,

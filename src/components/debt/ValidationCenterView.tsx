@@ -23,6 +23,7 @@ import { isValidationTrackLetter } from '../../lib/letterProductLabels';
 import { buildIntelligentLetterSuggestions } from '../../lib/intelligentLetterSuggestions';
 import { IntelligentLetterSuggestionsPanel } from '../letters/IntelligentLetterSuggestionsPanel';
 import { FinelyOsKpiGrid } from '../os/FinelyOsKpiGrid';
+import { FdcpaPowerChips } from './FdcpaPowerChips';
 import {
   FINELY_OS_COMPACT_PAGE,
   FINELY_OS_ENTITY_BODY,
@@ -183,6 +184,12 @@ export function ValidationCenterView({
             { label: 'Validation letters', value: visibleLetterPool.length, accent: 'text-emerald-300' },
           ]}
         />
+
+        {debt ? (
+          <div className="mt-3">
+            <FdcpaPowerChips debt={debt} />
+          </div>
+        ) : null}
 
         <div id="fc-debt-step-case" className="mt-3 flex flex-wrap items-end gap-3 scroll-mt-3">
           <div className={FINELY_OS_FIELD_WIDTH_SM}>

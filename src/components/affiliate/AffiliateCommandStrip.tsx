@@ -33,15 +33,37 @@ export function AffiliateCommandStrip({ affiliate, loading }: Props) {
     'None';
   const campaigns = affiliate?.campaigns?.filter((c) => c.status === 'active').length ?? 0;
 
+  const sharePath = affiliate?.referralCode
+    ? `${AF.publicPath}?ref=${encodeURIComponent(affiliate.referralCode)}`
+    : AF.publicPath;
+
   return (
     <FinelyOsRoleCommandCenter
       roleLabel="Affiliate · Role OS 2.0"
       headline={loading ? 'Loading affiliate profile…' : affiliate ? 'Your affiliate dashboard' : 'Link your affiliate profile'}
-      subline="Track clicks, leads, conversions, pending payout, and active promos from one strip."
+      subline="Share → attribute → convert referred partners → get paid. One strip for today’s job."
       tiles={[
-        { id: 'clicks', label: 'Clicks', value: String(stats.clicks), accent: 'sky' },
-        { id: 'leads', label: 'Leads', value: String(stats.leads), accent: 'violet' },
-        { id: 'conv', label: 'Conversions', value: String(stats.conversions), accent: 'emerald' },
+        {
+          id: 'clicks',
+          label: 'Clicks',
+          value: String(stats.clicks),
+          accent: 'sky',
+          onClick: () => navigate(`${AF.hubPath}?tab=operate`),
+        },
+        {
+          id: 'leads',
+          label: 'Leads',
+          value: String(stats.leads),
+          accent: 'violet',
+          onClick: () => navigate(`${AF.hubPath}?tab=operate`),
+        },
+        {
+          id: 'conv',
+          label: 'Conversions',
+          value: String(stats.conversions),
+          accent: 'emerald',
+          onClick: () => navigate(`${AF.hubPath}?tab=payouts`),
+        },
         {
           id: 'pending',
           label: 'Pending payout',
@@ -52,14 +74,19 @@ export function AffiliateCommandStrip({ affiliate, loading }: Props) {
         },
       ]}
       alert={
-        campaigns === 0 && affiliate
-          ? { tone: 'info', message: 'Create a campaign in Operate to attribute traffic and payouts.' }
-          : affiliate && nextCampaign !== 'None'
-            ? { tone: 'success', message: `Next promo: ${nextCampaign}` }
-            : undefined
+        !affiliate?.referralCode
+          ? { tone: 'warning', message: 'Confirm your affiliate profile so the referral code and payouts attach here.' }
+          : campaigns === 0
+            ? { tone: 'info', message: 'Create a campaign in Operate to attribute traffic and payouts.' }
+            : nextCampaign !== 'None'
+              ? { tone: 'success', message: `Active promo: ${nextCampaign}` }
+              : undefined
       }
-      primaryAction={{ label: 'Share referral link', onClick: () => navigate(AF.publicPath) }}
-      secondaryAction={{ label: 'Campaigns', onClick: () => navigate(`${AF.hubPath}?tab=operate`) }}
+      primaryAction={{
+        label: affiliate?.referralCode ? 'Share referral link' : 'Finish affiliate setup',
+        onClick: () => navigate(affiliate?.referralCode ? sharePath : '/onboarding?lane=affiliate'),
+      }}
+      secondaryAction={{ label: 'Payout calc', onClick: () => navigate(`${AF.hubPath}?tab=calculator`) }}
     />
   );
 }

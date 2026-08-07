@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { Crown, GraduationCap, Layers } from 'lucide-react';
 import { agencyTiers } from '../../config/pricingCatalog';
+import { isCreditSpecialistOfferTierId } from '../../config/creditSpecialistOffer';
 import { CS } from '../../config/creditSpecialistProgram';
 import type { AgentOperatingModel, AgentSpecialtyId, PlatformLeverId } from '../../domain/agentProgram';
 import {
@@ -18,6 +19,17 @@ type StepProps = {
   update: (data: any) => void;
 };
 
+/** Capacity tiers are agency_* only — never treat cs_* offer ids as seat/file capacity. */
+function resolveCapacityTierId(data: any, existing?: Partial<AgentOperatingModel>): string {
+  const candidates = [data.agentTierId, existing?.capacityTierId, 'agency_solo'];
+  for (const id of candidates) {
+    if (!id) continue;
+    if (isCreditSpecialistOfferTierId(String(id))) continue;
+    if (String(id).startsWith('agency_')) return String(id);
+  }
+  return 'agency_solo';
+}
+
 function modelFromData(data: any): AgentOperatingModel {
   const existing = data.agentOperatingModel as Partial<AgentOperatingModel> | undefined;
   return defaultAgentOperatingModel({
@@ -25,7 +37,7 @@ function modelFromData(data: any): AgentOperatingModel {
       ? data.agentSpecialties
       : existing?.specialties,
     trainingPhase: existing?.trainingPhase ?? data.agentTrainingPhase,
-    capacityTierId: data.agentTierId || existing?.capacityTierId || 'agency_solo',
+    capacityTierId: resolveCapacityTierId(data, existing),
     levers: existing?.levers,
     sampleClientFeeCents: existing?.sampleClientFeeCents ?? 150000,
   });

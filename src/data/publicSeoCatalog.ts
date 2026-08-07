@@ -81,6 +81,19 @@ export const PUBLIC_SEO_CATALOG: PublicSeoRoute[] = [
     hasSchema: true,
   },
   {
+    path: '/case-desk-guide',
+    title: 'Case Desk Operator Guide',
+    description:
+      'Free operator handbook for Finely Cred case help — packet anatomy, scope discipline, validation-first doctrine, and complaint ladders.',
+    hasSchema: true,
+  },
+  {
+    path: '/case-desk-guide/read',
+    title: 'Read the Case Desk Operator Guide',
+    description: 'Read every chapter of the Case Desk Operator handbook free in your browser.',
+    hasSchema: false,
+  },
+  {
     path: '/free-business-guide',
     title: 'Free business credit guide',
     description: 'Entity hygiene, vendor credit sequencing, and D-U-N-S checklist.',

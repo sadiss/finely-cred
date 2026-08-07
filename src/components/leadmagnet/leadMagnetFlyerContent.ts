@@ -124,7 +124,7 @@ const FLYER: Record<string, LeadMagnetFlyerContent> = {
     ],
     foundation: [
       { title: 'No hype', desc: 'Education-first — no outcome guarantees.' },
-      { title: 'Compliance copy', desc: 'Safe language for clients.' },
+      { title: 'Compliance copy', desc: 'Safe language for partners.' },
       { title: 'Full restore context', desc: 'Tradelines as one lever only.' },
     ],
   },

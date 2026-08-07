@@ -95,7 +95,7 @@ export function FinelyUnifiedHubLayout({
 
   return (
     <div className="space-y-5 min-w-0 overflow-x-clip">
-      <div className={`fc-unified-hub-shell fc-light-black-scope fc-light-hero-panel fc-pop-surface fc-light-readable min-w-0 ${finelyOsCatalogCard(hubCatalogAccent(accent))} !p-4 sm:!p-6 overflow-hidden`} data-fc-accent={accent}>
+      <div className={`fc-unified-hub-shell fc-light-hero-panel fc-pop-surface fc-light-readable min-w-0 ${finelyOsCatalogCard(hubCatalogAccent(accent))} !p-4 sm:!p-6 overflow-hidden`} data-fc-accent={accent}>
         <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-6">
           <div className="min-w-0 space-y-2">
             {eyebrow ? (
@@ -165,11 +165,11 @@ export function FinelyUnifiedHubLayout({
       ) : null}
 
       {contentVariant === 'flush' ? (
-        <div className="fc-unified-hub-content fc-light-black-scope min-w-0 overflow-x-clip" data-fc-accent={accent}>
+        <div className="fc-unified-hub-content fc-light-readable min-w-0 overflow-x-clip" data-fc-accent={accent}>
           {children}
         </div>
       ) : (
-        <div className={`fc-unified-hub-content fc-light-black-scope fc-light-pop-card fc-pop-surface fc-light-readable min-w-0 overflow-x-clip ${finelyOsCatalogCard(hubCatalogAccent(accent))} !p-4 sm:!p-5`} data-fc-accent={accent}>{children}</div>
+        <div className={`fc-unified-hub-content fc-light-readable fc-light-pop-card fc-pop-surface min-w-0 overflow-x-clip ${finelyOsCatalogCard(hubCatalogAccent(accent))} !p-4 sm:!p-5`} data-fc-accent={accent}>{children}</div>
       )}
 
       {detailSlot ? (

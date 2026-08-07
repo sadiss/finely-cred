@@ -1,0 +1,192 @@
+/**
+ * Shared GuideReaderShell chrome — mode toggle, flip stage, denser TOC.
+ * Family skins (csg / fdg / dge / …) still own paper, rails, and typography.
+ */
+
+.grs-mode-toggle {
+  display: inline-flex;
+  align-items: stretch;
+  border-radius: 0.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(0, 0, 0, 0.28);
+  overflow: hidden;
+}
+
+.grs-mode-toggle__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.45rem 0.7rem;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.48);
+  transition: color 160ms ease, background 160ms ease;
+}
+
+.grs-mode-toggle__btn:hover {
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.grs-mode-toggle__btn.is-active {
+  color: #f0d089;
+  background: rgba(212, 164, 71, 0.16);
+}
+
+/* Parchment / light reader skins (Case Desk) */
+.grs-shell--light .grs-mode-toggle {
+  border-color: rgba(68, 64, 60, 0.28);
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.grs-shell--light .grs-mode-toggle__btn {
+  color: rgba(68, 64, 60, 0.55);
+}
+
+.grs-shell--light .grs-mode-toggle__btn:hover {
+  color: rgba(28, 25, 23, 0.9);
+}
+
+.grs-shell--light .grs-mode-toggle__btn.is-active {
+  color: #1c1917;
+  background: rgba(180, 140, 60, 0.18);
+}
+
+.grs-shell--light .grs-toc-title {
+  color: rgba(28, 25, 23, 0.92);
+}
+
+.grs-shell--light .grs-toc-teaser {
+  color: rgba(68, 64, 60, 0.55);
+}
+
+.grs-shell--light .grs-toc-num {
+  color: rgba(120, 90, 30, 0.9);
+}
+
+.grs-shell--light .grs-toc-item:hover {
+  background: rgba(28, 25, 23, 0.04);
+}
+
+.grs-shell--light .grs-toc-item.is-active {
+  background: rgba(180, 140, 60, 0.12);
+  border-color: rgba(120, 90, 30, 0.28);
+}
+
+.grs-shell--light .grs-flip-controls button {
+  border-color: rgba(68, 64, 60, 0.35) !important;
+  background: rgba(255, 255, 255, 0.75) !important;
+  color: rgba(28, 25, 23, 0.85) !important;
+}
+
+.grs-mode-toggle__btn:focus-visible {
+  outline: 2px solid rgba(240, 208, 137, 0.7);
+  outline-offset: -2px;
+}
+
+.grs-mode-toggle__btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.grs-toc-item {
+  display: flex;
+  width: 100%;
+  gap: 0.75rem;
+  border-radius: 0.75rem;
+  padding: 0.7rem 0.8rem;
+  text-align: left;
+  transition: background 160ms ease, border-color 160ms ease;
+  border: 1px solid transparent;
+}
+
+.grs-toc-item:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.grs-toc-item.is-active {
+  background: rgba(212, 164, 71, 0.1);
+  border-color: rgba(212, 164, 71, 0.28);
+}
+
+.grs-toc-num {
+  flex-shrink: 0;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  tabular-nums: true;
+  color: rgba(240, 208, 137, 0.85);
+  min-width: 1.6rem;
+}
+
+.grs-toc-title {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.3;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.grs-toc-teaser {
+  display: block;
+  margin-top: 0.2rem;
+  font-size: 11px;
+  line-height: 1.4;
+  color: rgba(255, 255, 255, 0.42);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.grs-flip-stage {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  min-height: min(72vh, 820px);
+}
+
+.grs-flip-stage .stf__parent {
+  margin: 0 auto;
+}
+
+.grs-flip-leaf {
+  background: transparent;
+  overflow: hidden;
+}
+
+.grs-flip-leaf__scroll {
+  height: 100%;
+  overflow: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  padding: 0;
+}
+
+.grs-flip-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.grs-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .grs-mode-toggle__btn {
+    transition: none;
+  }
+}

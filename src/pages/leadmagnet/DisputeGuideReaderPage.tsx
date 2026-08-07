@@ -20,7 +20,9 @@ import {
   type GeneratedGuidePage,
   type GeneratedGuideSection,
 } from '../../resources/disputeLetterGuideContent';
+import GuideReaderShell from './GuideReaderShell';
 import './disputeGuideReader.css';
+import './guideReaderShell.css';
 
 const CHAPTERS = DISPUTE_LETTER_GUIDE_PROGRAMMATIC_PAGES;
 const LANDING_PATH = '/free-guide';
@@ -193,13 +195,23 @@ export default function DisputeGuideReaderPage() {
   }, [initialIdx]);
 
   const chapter = CHAPTERS[idx] ?? CHAPTERS[0]!;
-  const progress = ((idx + 1) / CHAPTERS.length) * 100;
+
+  const shellChapters = useMemo(
+    () =>
+      CHAPTERS.map((c, i) => ({
+        id: c.id,
+        number: String(i + 1).padStart(2, '0'),
+        title: c.title,
+        teaser: c.subtitle ?? c.kicker,
+      })),
+    [],
+  );
 
   usePublicSeoMeta({
     title: `${chapter.title} — Free Credit Dispute Letter Guide`,
     description:
       chapter.subtitle ??
-      'Read the free Finely Cred dispute letter guide: FCRA rights, the 5-step framework, evidence standards, and certified mail workflow.',
+      'Read the free Finely Cred dispute letter guide for partners: FCRA rights, the 5-step framework, evidence standards, and certified mail workflow. Educational only · results vary.',
     path: DISPUTE_LETTER_GUIDE_READ_PATH,
   });
 
@@ -209,21 +221,9 @@ export default function DisputeGuideReaderPage() {
       setIdx(clamped);
       setParams({ chapter: CHAPTERS[clamped]!.id }, { replace: true });
       setIndexOpen(false);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
     },
     [setParams],
   );
-
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      const target = e.target as HTMLElement | null;
-      if (target && /input|textarea|select/i.test(target.tagName)) return;
-      if (e.key === 'ArrowRight') goChapter(idx + 1);
-      if (e.key === 'ArrowLeft') goChapter(idx - 1);
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [goChapter, idx]);
 
   const onDownload = async () => {
     setDownloading(true);
@@ -235,108 +235,92 @@ export default function DisputeGuideReaderPage() {
   };
 
   return (
-    <main className="fdg-reader relative">
-      <div className="fdg-desk pointer-events-none fixed inset-0 z-0" aria-hidden />
-      <div className="fdg-desk-grid pointer-events-none fixed inset-0 z-0" aria-hidden />
-
-      <header
-        className="fdg-docket-bar sticky z-40"
-        style={{ top: 'calc(env(safe-area-inset-top, 0px) + 4.25rem)' }}
-      >
-        <div className="fdg-progress-track">
-          <span className="fdg-progress-fill" style={{ width: `${progress}%` }} />
-        </div>
-        <div className="mx-auto flex max-w-[86rem] flex-wrap items-center justify-between gap-3 px-4 py-2.5 md:px-8">
-          <div className="flex min-w-0 items-center gap-3">
-            <button
-              type="button"
-              onClick={() => navigate(LANDING_PATH)}
-              className="fdg-ghost-btn inline-flex items-center gap-1.5 rounded-md px-3 py-2 text-[10px] font-bold uppercase tracking-[0.14em]"
-            >
-              <ArrowLeft size={13} /> Landing
-            </button>
-            <span className="fdg-stamp hidden sm:inline-flex">Dispute docket</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => setIndexOpen((v) => !v)}
-              className="fdg-ghost-btn inline-flex items-center gap-1.5 rounded-md px-3 py-2 text-[10px] font-bold uppercase tracking-[0.14em] lg:hidden"
-              aria-expanded={indexOpen}
-            >
-              {indexOpen ? <X size={13} /> : <List size={13} />} Index
-            </button>
-            <button
-              type="button"
-              onClick={() => void onDownload()}
-              disabled={downloading}
-              className="fdg-primary-btn inline-flex items-center gap-1.5 rounded-md px-3.5 py-2 text-[10px] font-bold uppercase tracking-[0.14em]"
-            >
-              <span className="relative z-10 inline-flex items-center gap-1.5">
-                <Download size={13} /> {downloading ? 'Building…' : 'Download PDF'}
-              </span>
-            </button>
-          </div>
-        </div>
-      </header>
-
-      <div className="relative z-10 mx-auto grid max-w-[86rem] gap-6 px-3 py-6 md:px-8 lg:grid-cols-[266px_minmax(0,1fr)] lg:gap-9 lg:py-9">
-        <aside className={cn('fdg-index p-3 lg:sticky lg:top-32 lg:self-start', indexOpen ? 'block' : 'hidden lg:block')}>
-          <div className="mb-2 flex items-center justify-between px-1">
-            <span className="fdg-kicker">Docket index</span>
-            <span className="fdg-meta-row">{CHAPTERS.length} pg.</span>
-          </div>
-          <nav className="max-h-[62vh] space-y-0.5 overflow-y-auto pr-1" aria-label="Guide pages">
-            {CHAPTERS.map((c, i) => (
-              <button
-                key={c.id}
-                type="button"
-                onClick={() => goChapter(i)}
-                className={cn('fdg-index-item rounded-r-md', i === idx && 'is-active')}
-                aria-current={i === idx ? 'true' : undefined}
-              >
-                <span className="fdg-index-num">{String(i + 1).padStart(2, '0')}</span>
-                <span className="fdg-index-title">{c.title}</span>
-              </button>
-            ))}
-          </nav>
-          <p className="fdg-compliance mt-3 px-1 !text-white/35">{COMPLIANCE}</p>
-        </aside>
-
-        <div className="min-w-0">
-          <ChapterSheet chapter={chapter} index={idx} />
-
-          <div className="fdg-sheet mt-4 overflow-hidden">
-            <div className="flex flex-col gap-3 px-5 py-4 md:flex-row md:items-center md:justify-between md:px-14">
-              <button
-                type="button"
-                disabled={idx <= 0}
-                onClick={() => goChapter(idx - 1)}
-                className="fdg-page-btn inline-flex h-11 items-center justify-center gap-2 rounded-md px-4 text-[10px] font-bold uppercase tracking-[0.14em]"
-              >
-                <ChevronLeft size={15} /> Previous
-              </button>
-              <p className="fdg-compliance order-last text-center md:order-none">{COMPLIANCE}</p>
-              {idx < CHAPTERS.length - 1 ? (
+    <GuideReaderShell
+      className="fdg-reader"
+      chapters={shellChapters}
+      chapterIndex={idx}
+      onChapterChange={goChapter}
+      tocOpen={indexOpen}
+      onTocOpenChange={setIndexOpen}
+      tocToggleLabel="Index"
+      tocLabel="Docket index"
+      tocTitle="Dispute letter guide"
+      tocSubtitle={`${CHAPTERS.length} pages`}
+      tocClassName="fdg-index p-3"
+      tocFooter={<p className="fdg-compliance mt-3 px-1 !text-white/35">{COMPLIANCE}</p>}
+      storageKey="finely.guideReader.dispute"
+      showFlipControls={false}
+      maxWidthClassName="max-w-[92rem]"
+      headerClassName="fdg-docket-bar"
+      progressTrackClassName="fdg-progress-track"
+      progressFillClassName="fdg-progress-fill"
+      atmosphere={
+        <>
+          <div className="fdg-desk pointer-events-none fixed inset-0 z-0" aria-hidden />
+          <div className="fdg-desk-grid pointer-events-none fixed inset-0 z-0" aria-hidden />
+        </>
+      }
+      headerLeft={
+        <>
+          <button
+            type="button"
+            onClick={() => navigate(LANDING_PATH)}
+            className="fdg-ghost-btn inline-flex items-center gap-1.5 rounded-md px-3 py-2 text-[10px] font-bold uppercase tracking-[0.14em]"
+          >
+            <ArrowLeft size={13} /> Landing
+          </button>
+          <span className="fdg-stamp hidden sm:inline-flex">Dispute docket</span>
+        </>
+      }
+      headerRight={
+        <button
+          type="button"
+          onClick={() => void onDownload()}
+          disabled={downloading}
+          className="fdg-primary-btn inline-flex items-center gap-1.5 rounded-md px-3.5 py-2 text-[10px] font-bold uppercase tracking-[0.14em]"
+        >
+          <span className="relative z-10 inline-flex items-center gap-1.5">
+            <Download size={13} /> {downloading ? 'Building…' : 'Download PDF'}
+          </span>
+        </button>
+      }
+      renderChapter={(i) => {
+        const ch = CHAPTERS[i] ?? CHAPTERS[0]!;
+        return (
+          <div className="space-y-4">
+            <ChapterSheet chapter={ch} index={i} />
+            <div className="fdg-sheet overflow-hidden">
+              <div className="flex flex-col gap-3 px-5 py-4 md:flex-row md:items-center md:justify-between md:px-14">
                 <button
                   type="button"
-                  onClick={() => goChapter(idx + 1)}
-                  className="fdg-next-btn inline-flex h-11 items-center justify-center gap-2 rounded-md px-5 text-[10px] font-bold uppercase tracking-[0.14em]"
+                  disabled={i <= 0}
+                  onClick={() => goChapter(i - 1)}
+                  className="fdg-page-btn inline-flex h-11 items-center justify-center gap-2 rounded-md px-4 text-[10px] font-bold uppercase tracking-[0.14em]"
                 >
-                  Next page <ChevronRight size={15} />
+                  <ChevronLeft size={15} /> Previous
                 </button>
-              ) : (
-                <Link
-                  to={LANDING_PATH}
-                  className="fdg-next-btn inline-flex h-11 items-center justify-center gap-2 rounded-md px-5 text-[10px] font-bold uppercase tracking-[0.14em]"
-                >
-                  Back to landing <ArrowRight size={15} />
-                </Link>
-              )}
+                <p className="fdg-compliance order-last text-center md:order-none">{COMPLIANCE}</p>
+                {i < CHAPTERS.length - 1 ? (
+                  <button
+                    type="button"
+                    onClick={() => goChapter(i + 1)}
+                    className="fdg-next-btn inline-flex h-11 items-center justify-center gap-2 rounded-md px-5 text-[10px] font-bold uppercase tracking-[0.14em]"
+                  >
+                    Next page <ChevronRight size={15} />
+                  </button>
+                ) : (
+                  <Link
+                    to={LANDING_PATH}
+                    className="fdg-next-btn inline-flex h-11 items-center justify-center gap-2 rounded-md px-5 text-[10px] font-bold uppercase tracking-[0.14em]"
+                  >
+                    Back to landing <ArrowRight size={15} />
+                  </Link>
+                )}
+              </div>
             </div>
           </div>
-        </div>
-      </div>
-    </main>
+        );
+      }}
+    />
   );
 }

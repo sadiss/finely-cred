@@ -1,9 +1,25 @@
 /** Role × route × entitlement reference for Role OS 2.0 (Admin Role Preview + docs). */
 
 import type { RoleWorkflowId } from './roleWorkflows';
+import { AGENCY } from './agencyPartnersProgram';
+import { CASE_HELP } from './caseHelpProgram';
+import { RE } from './realEstateProgram';
+import { AF } from './affiliateProgram';
+import { CS } from './creditSpecialistProgram';
+import { AU_SELLER } from './auSellerProgram';
 
-export type RoleCapabilityRole = 'partner' | 'business' | 'agent' | 'affiliate' | 'au_seller' | 'au_buyer' | 'heta_society' | 'admin';
-
+export type RoleCapabilityRole =
+  | 'partner'
+  | 'business'
+  | 'agent'
+  | 'affiliate'
+  | 'au_seller'
+  | 'au_buyer'
+  | 'heta_society'
+  | 'admin'
+  | 'agency'
+  | 'case_help'
+  | 'real_estate';
 
 export type RoleCapabilityRow = {
   role: RoleCapabilityRole;
@@ -31,21 +47,21 @@ export const ROLE_CAPABILITY_MATRIX: RoleCapabilityRow[] = [
   {
     role: 'agent',
     label: 'Credit Specialist',
-    primaryRoutes: ['/credit-specialist/hub', '/portal/dashboard', '/admin/partners'],
+    primaryRoutes: [CS.hubPath, '/portal/dashboard', '/admin/partners'],
     entitlements: ['reports', 'disputes', 'letters', 'tasks', 'messages'],
     earnModel: 'Revenue share — % keep on customer files',
   },
   {
     role: 'affiliate',
     label: 'Affiliate',
-    primaryRoutes: ['/affiliate/hub', '/affiliate/signup'],
+    primaryRoutes: [AF.hubPath, '/affiliate'],
     entitlements: ['affiliate tracking (referral_attributions)'],
     earnModel: 'Tiered commissions on referred conversions',
   },
   {
     role: 'au_seller',
     label: 'AU Seller',
-    primaryRoutes: ['/au-seller/hub', '/tradelines?focus=au'],
+    primaryRoutes: [AU_SELLER.hubPath, '/tradelines?focus=au'],
     entitlements: ['auMarketplace supply listings'],
     earnModel: 'Payout on fulfilled AU contract lifecycle',
   },
@@ -55,6 +71,27 @@ export const ROLE_CAPABILITY_MATRIX: RoleCapabilityRow[] = [
     primaryRoutes: ['/au/marketplace', '/au/request', '/au/orders'],
     entitlements: ['auMarketplace browse + order intake'],
     earnModel: 'Pays for tradeline placement — no outbound payouts',
+  },
+  {
+    role: 'agency',
+    label: 'Agency partner',
+    primaryRoutes: [AGENCY.hubPath, AGENCY.signupPath, AGENCY.publicPath],
+    entitlements: ['agency tenant', 'partners', 'letters', 'team seats', 'white-label'],
+    earnModel: 'Agency keep % on partner files — tenant_owner gate',
+  },
+  {
+    role: 'case_help',
+    label: 'Case Help (paralegal / attorney / consultant)',
+    primaryRoutes: [CASE_HELP.hubPath, CASE_HELP.publicPath],
+    entitlements: ['assigned partner matters', 'letters', 'debt desk', 'cases'],
+    earnModel: 'Scoped case-desk seat after admin approval → claim — not on bare apply',
+  },
+  {
+    role: 'real_estate',
+    label: 'Real Estate (tagged affiliate)',
+    primaryRoutes: [RE.hubPath, RE.publicPath, AF.hubPath],
+    entitlements: ['affiliate tracking + RE playbook filter (interest=real_estate)'],
+    earnModel: 'Same affiliate commissions — no separate auth role enum in v1',
   },
   {
     role: 'heta_society',
@@ -91,6 +128,12 @@ export function workflowIdForCapabilityRole(role: RoleCapabilityRole): RoleWorkf
       return 'au_seller';
     case 'au_buyer':
       return 'au_buyer';
+    case 'agency':
+      return 'agency';
+    case 'case_help':
+      return 'case_help';
+    case 'real_estate':
+      return 'real_estate';
     case 'heta_society':
       return 'client';
     default:

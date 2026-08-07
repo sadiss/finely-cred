@@ -21,29 +21,33 @@ export type AgentStaffConfig = {
   updatedAt: string;
 };
 
+/** Growth-first public schedule — lead_converter covers weekday + evening so Cameron/growth faces map correctly. */
 const DEFAULT_SHIFTS: PersonaShiftBlock[] = [
-  { personaId: 'support_specialist', days: [1, 2, 3, 4, 5], startHour: 8, endHour: 17 },
-  { personaId: 'finely_advisor', days: [1, 2, 3, 4, 5], startHour: 8, endHour: 17 },
+  { personaId: 'lead_converter', days: [1, 2, 3, 4, 5], startHour: 8, endHour: 21 },
   { personaId: 'sales_closer', days: [1, 2, 3, 4, 5], startHour: 17, endHour: 21 },
   { personaId: 'nurture_concierge', days: [0, 6], startHour: 9, endHour: 20 },
+  { personaId: 'support_specialist', days: [1, 2, 3, 4, 5], startHour: 8, endHour: 17 },
+  { personaId: 'finely_advisor', days: [1, 2, 3, 4, 5], startHour: 8, endHour: 17 },
   { personaId: 'debt_strategist', days: [2, 4], startHour: 10, endHour: 16 },
 ];
+
+const AGENT_STAFF_CONFIG_VERSION = 2;
 
 function defaultConfig(): AgentStaffConfig {
   return {
     shifts: DEFAULT_SHIFTS,
-    publicDefaultPersonaId: 'support_specialist',
+    publicDefaultPersonaId: 'lead_converter',
     portalDefaultPersonaId: 'support_specialist',
     updatedAt: new Date().toISOString(),
   };
 }
 
 export function loadAgentStaffConfig(): AgentStaffConfig {
-  return loadJson(KEY, defaultConfig(), 1);
+  return loadJson(KEY, defaultConfig(), AGENT_STAFF_CONFIG_VERSION);
 }
 
 export function saveAgentStaffConfig(cfg: AgentStaffConfig) {
-  saveJson(KEY, { ...cfg, updatedAt: new Date().toISOString() }, 1);
+  saveJson(KEY, { ...cfg, updatedAt: new Date().toISOString() }, AGENT_STAFF_CONFIG_VERSION);
   if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('finely:store'));
 }
 

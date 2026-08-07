@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowUpRight, BookOpen, Download, FileText, Scale, Stamp } from 'lucide-react';
+import { ArrowUpRight, BookOpen, Download, FileText, Stamp } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { ROLE_GUIDE_CTAS, type RolePageId } from '../../config/rolePartnerPrograms';
 
@@ -9,7 +9,7 @@ import { ROLE_GUIDE_CTAS, type RolePageId } from '../../config/rolePartnerProgra
  *
  * Each role gets its own silhouette: RE = gold ledger rule, case help = stamped
  * parchment, specialist = holographic credential, agency = obsidian gold plate,
- * AU seller = perforated boarding pass.
+ * AU seller = sky/violet guide tab (gold is reserved for signup).
  */
 const GUIDE_BTN: Record<RolePageId, string> = {
   re: 'inline-flex items-center gap-2.5 rounded-none border-y-2 border-amber-400/70 bg-amber-400/[0.07] px-6 py-3 text-[11px] font-black uppercase tracking-[0.24em] text-amber-200 transition-all hover:bg-amber-400/15 hover:tracking-[0.3em]',
@@ -18,8 +18,9 @@ const GUIDE_BTN: Record<RolePageId, string> = {
   cs: 'inline-flex items-center gap-2.5 rounded-full border border-violet-300/50 bg-[linear-gradient(110deg,rgba(167,139,250,0.22),rgba(56,189,248,0.16),rgba(217,70,239,0.2))] px-6 py-3 text-[11px] font-black uppercase tracking-[0.2em] text-white shadow-[0_0_0_1px_rgba(167,139,250,0.25),0_12px_34px_-18px_rgba(139,92,246,0.7)] transition-all hover:brightness-115',
   agency:
     'inline-flex items-center gap-2.5 rounded-xl border border-amber-300/40 bg-black/70 px-6 py-3.5 text-[11px] font-black uppercase tracking-[0.26em] text-amber-200 shadow-[inset_0_1px_0_rgba(255,255,255,0.14),0_18px_44px_-24px_rgba(245,158,11,0.55)] transition-all hover:border-amber-200/70 hover:text-amber-100',
+  // Solid sky→violet fill — high visibility on black shelf; gold reserved for signup.
   au_seller:
-    'group inline-flex items-center gap-3 rounded-r-2xl rounded-l-md border border-emerald-300/45 border-l-[6px] border-l-emerald-300/80 bg-emerald-400/[0.09] px-5 py-3 text-[11px] font-black uppercase tracking-[0.2em] text-emerald-100 transition-all hover:bg-emerald-400/[0.16] hover:pl-6',
+    'group inline-flex items-center gap-3 rounded-r-2xl rounded-l-md border border-sky-100/70 border-l-[6px] border-l-violet-200 bg-[linear-gradient(105deg,#38bdf8_0%,#6366f1_52%,#8b5cf6_100%)] px-5 py-3 text-[11px] font-black uppercase tracking-[0.2em] text-white shadow-[0_16px_40px_-18px_rgba(56,189,248,0.9)] transition-all hover:brightness-110 hover:pl-6',
 };
 
 const GUIDE_ICON: Record<RolePageId, React.ComponentType<{ size?: number; className?: string }>> = {
@@ -27,7 +28,7 @@ const GUIDE_ICON: Record<RolePageId, React.ComponentType<{ size?: number; classN
   case_help: Stamp,
   cs: BookOpen,
   agency: Download,
-  au_seller: Scale,
+  au_seller: BookOpen,
 };
 
 /** Secondary “read in browser” link — muted, per-role ink. */
@@ -39,7 +40,7 @@ const READ_LINK: Record<RolePageId, string> = {
   agency:
     'inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.18em] text-white/55 underline decoration-white/25 underline-offset-[6px] hover:text-amber-100',
   au_seller:
-    'inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.18em] text-emerald-200/75 underline decoration-emerald-300/40 underline-offset-[6px] hover:text-emerald-100',
+    'inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.18em] text-sky-200/85 underline decoration-sky-300/45 underline-offset-[6px] hover:text-sky-100',
 };
 
 type Props = {

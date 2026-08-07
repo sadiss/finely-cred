@@ -148,7 +148,7 @@ export const PUBLIC_SOLUTIONS_SECTIONS: PublicNavSection[] = [
       },
       {
         id: 'all',
-        label: 'All packages',
+        label: 'All solutions',
         path: '/pricing',
         hint: 'Full DIY + DFY catalog',
         accent: 'emerald',
@@ -183,6 +183,7 @@ export const PUBLIC_RESOURCES_SECTIONS: PublicNavSection[] = [
         accent: 'emerald',
       },
       { id: 'free-debt', label: 'Debt & summons guide', path: '/free-debt-guide', accent: 'fuchsia' },
+      { id: 'case-desk', label: 'Case Desk Operator Guide', path: '/case-desk-guide', accent: 'amber' },
       { id: 'free-business', label: 'Business credit guide', path: '/free-business-guide', accent: 'violet' },
       { id: 'free-tradeline', label: 'Tradeline guide', path: '/free-tradeline-guide', accent: 'emerald' },
       { id: 'free-score', label: 'Score roadmap', path: '/free-score-roadmap', accent: 'sky' },
@@ -305,6 +306,7 @@ export { PUBLIC_CAREER_PATHS, matchCareersPath } from './publicCareers';
 
 const OTHER_FREE_GUIDE_PREFIXES = [
   '/free-debt-guide',
+  '/case-desk-guide',
   '/free-business-guide',
   '/free-tradeline-guide',
   '/free-score-roadmap',

@@ -129,6 +129,14 @@ export const PUBLIC_FEATURED_FREE_GUIDES: {
     path: '/credit-specialist-guide',
     accent: 'amber',
   },
+  {
+    id: 'real_estate',
+    title: 'Real Estate Operator Guide',
+    desc: 'You refer · Finely runs credit — scripts, Fannie summaries, seven levers.',
+    path: '/real-estate-guide',
+    accent: 'amber',
+    badge: 'New',
+  },
 ];
 
 /**

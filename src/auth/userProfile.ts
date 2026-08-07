@@ -27,6 +27,11 @@ export type UserProfileMeta = {
   linkedin?: string;
   funding_target?: number;
   funding_timeline?: string;
+  /** Career / affiliate niche tag (e.g. real_estate) — not a separate auth role. */
+  interest?: string;
+  promoType?: string;
+  promoAsset?: string;
+  promoterRole?: string;
 };
 
 export function getUserEmail(user: User | null | undefined): string {

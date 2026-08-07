@@ -10,7 +10,14 @@ import { getAgentPersona } from '../../domain/agentPersonas';
 import { getPortalStaffPersona, portalPersonaForLane } from '../../data/agentPersonasRepo';
 import { consumeAgentHandoff } from '../../lib/agentHandoffBridge';
 import { resolveToolPath, toolsForPersona } from '../../lib/agentPersonaTools';
-import { listPortalStaffForLane, resolveStaffOnDuty, resolveStaffOnDutyForLane, loadStaffRoster, listAllMessageableStaff } from '../../data/staffRoster';
+import {
+  forceStaffShiftPolicyResync,
+  listPortalStaffForLane,
+  resolveStaffOnDuty,
+  resolveStaffOnDutyForLane,
+  loadStaffRoster,
+  listAllMessageableStaff,
+} from '../../data/staffRoster';
 import { staffMemberFullName, type StaffMember } from '../../domain/staffMember';
 import { StaffPortraitImg } from '../staff/StaffPortraitImg';
 import { resolveStaffPortraitUrl, STAFF_PORTRAIT_PHOTO_CLASS } from '../../lib/staffPortrait';
@@ -92,11 +99,26 @@ export function HubAiCoachPanel({ partnerId, lane, journeyStage, compact, userNa
     [lane, showAllAgents],
   );
   const [agentPickerOpen, setAgentPickerOpen] = useState(false);
+  const [dutyTick, setDutyTick] = useState(0);
   const persona = useMemo(() => getPortalStaffPersona(personaId), [personaId]);
+
+  useEffect(() => {
+    forceStaffShiftPolicyResync();
+    setDutyTick((n) => n + 1);
+    const onStore = () => setDutyTick((n) => n + 1);
+    const interval = window.setInterval(() => setDutyTick((n) => n + 1), 30_000);
+    window.addEventListener('finely:store', onStore);
+    return () => {
+      window.clearInterval(interval);
+      window.removeEventListener('finely:store', onStore);
+    };
+  }, []);
+
   const activeStaff: StaffMember | null = useMemo(() => {
+    void dutyTick;
     if (activeStaffId) return rosterTabs.find((s) => s.id === activeStaffId) ?? resolveStaffOnDutyForLane(lane);
     return resolveStaffOnDutyForLane(lane) ?? resolveStaffOnDuty(personaId);
-  }, [activeStaffId, rosterTabs, personaId, lane]);
+  }, [activeStaffId, rosterTabs, personaId, lane, dutyTick]);
 
   const presentation = useMemo(() => {
     const base = getPublicChatPersonaPresentation(persona);

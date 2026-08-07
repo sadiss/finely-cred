@@ -207,6 +207,7 @@ export type UploadIntentId =
   | 'bureau_response'
   | 'affidavit'
   | 'summons'
+  | 'docket'
   | 'collection_notice'
   | 'creditor_response'
   | 'court_filing'
@@ -241,6 +242,7 @@ export const UPLOAD_INTENT_PRESETS = [
   { id: 'bureau_response' as const, label: 'Bureau response', caption: 'Experian Equifax TransUnion investigation results dispute response', scanner: 'bureau_mail' as const },
   { id: 'affidavit' as const, label: 'Affidavit', caption: 'Affidavit sworn statement notarized declaration perjury', scanner: 'creditor_letter' as const },
   { id: 'summons' as const, label: 'Summons / complaint', caption: 'Civil summons complaint court lawsuit', scanner: 'creditor_letter' as const },
+  { id: 'docket' as const, label: 'Docket / ROA', caption: 'Court docket register of actions case history hearing date', scanner: 'creditor_letter' as const },
   { id: 'collection_notice' as const, label: 'Collector letter', caption: 'Debt collector validation notice collection letter FDCPA', scanner: 'creditor_letter' as const },
   { id: 'creditor_response' as const, label: 'Creditor / servicer letter', caption: 'Original creditor bank loan servicer mortgage auto lender letter', scanner: 'creditor_letter' as const },
   { id: 'court_filing' as const, label: 'Court filing', caption: 'Court motion answer discovery order filing', scanner: 'creditor_letter' as const },
@@ -286,7 +288,7 @@ export function documentTypeGroupsForContext(
     id: 'court',
     label: 'Court & legal filings',
     presets: UPLOAD_INTENT_PRESETS.filter((p) =>
-      ['affidavit', 'summons', 'court_filing', 'bankruptcy_order'].includes(p.id),
+      ['affidavit', 'summons', 'docket', 'court_filing', 'bankruptcy_order'].includes(p.id),
     ) as UploadPresetChip[],
   };
   const debt: DocumentTypeGroup = {
@@ -367,6 +369,7 @@ export function allPresetsFromGroups(groups: DocumentTypeGroup[]): UploadPresetC
 }
 
 export function docTypeFromIntent(intent: UploadIntentId): DocumentType {
+  if (intent === 'docket') return 'court_filing';
   if (intent === 'dispute_proof') return 'bank_statement';
   if (intent === 'id_document') return 'id_document';
   if (intent === 'ssn_card') return 'ssn_card';
@@ -375,11 +378,32 @@ export function docTypeFromIntent(intent: UploadIntentId): DocumentType {
   return intent;
 }
 
+/** Map filename/caption guess → upload chip for staging UI. */
+export function guessUploadIntentFromFile(caption?: string, filename?: string): UploadIntentId | null {
+  const s = `${caption || ''} ${filename || ''}`.toLowerCase();
+  if (/docket|register of actions|\broa\b|case history|court events/.test(s)) return 'docket';
+  const dt = guessDocTypeFromCaptionFilename(caption, filename);
+  if (dt === 'court_filing') return /docket|\broa\b/.test(s) ? 'docket' : 'court_filing';
+  if (dt === 'bureau_response') return 'bureau_response';
+  if (dt === 'affidavit') return 'affidavit';
+  if (dt === 'summons') return 'summons';
+  if (dt === 'collection_notice') return 'collection_notice';
+  if (dt === 'creditor_response') return 'creditor_response';
+  if (dt === 'bankruptcy_order') return 'bankruptcy_order';
+  if (dt === 'id_document') return 'id_document';
+  if (dt === 'ssn_card') return 'ssn_card';
+  if (dt === 'utility_bill') return 'utility_bill';
+  if (dt === 'credit_report') return 'credit_report';
+  if (dt === 'bank_statement') return 'dispute_proof';
+  return null;
+}
+
 export function guessDocTypeFromCaptionFilename(caption?: string, filename?: string): DocumentType {
   const s = `${caption || ''} ${filename || ''}`.toLowerCase();
   if (/bureau|experian|equifax|transunion|investigation|e-oscar|dispute results/.test(s)) return 'bureau_response';
   if (/affidavit|sworn|notary|perjury|declaration under/.test(s)) return 'affidavit';
   if (/summons|complaint/.test(s) && !/answer/.test(s)) return 'summons';
+  if (/docket|register of actions|case history|\broa\b|court events/.test(s)) return 'court_filing';
   if (/motion|discovery|interrogator|request for production|court order|judgment|subpoena/.test(s)) return 'court_filing';
   if (/bankruptcy|chapter\s*7|chapter\s*13|discharge order|petition.*bankrupt|341 meeting/.test(s)) return 'bankruptcy_order';
   if (/collection|collector|debt validation|validation notice|mini.?miranda/.test(s)) return 'collection_notice';

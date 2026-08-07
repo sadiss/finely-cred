@@ -72,7 +72,7 @@ export const PUBLIC_CAREER_TRACKS: PublicCareerTrack[] = [
     hint: 'You work assigned matters · scoped, audited access',
     description:
       'Paralegals, attorneys/counsel, and consultants who work assigned partner debt and litigation matters (packets, dockets, sessions) with scoped access.',
-    guidePath: '/free-debt-guide',
+    guidePath: '/case-desk-guide',
     guideLabel: 'Open Case Desk Guide',
   },
   {
@@ -83,8 +83,8 @@ export const PUBLIC_CAREER_TRACKS: PublicCareerTrack[] = [
     hint: 'You refer · Finely runs the credit work',
     description:
       'Agents and brokers who refer buyers and sellers into Finely-run restore, dispute, and AU prep work — you never process disputes yourself, and no approval is guaranteed.',
-    guidePath: '/free-score-roadmap',
-    guideLabel: 'Open Real Estate Guide',
+    guidePath: '/real-estate-guide',
+    guideLabel: 'Open Real Estate Operator Guide',
   },
 ];
 

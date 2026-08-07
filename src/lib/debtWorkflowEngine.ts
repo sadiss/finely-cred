@@ -74,7 +74,7 @@ export function onDebtCaseCreated(debt: DebtCase): { tasksCreated: number } {
         kind: 'fdcpa_validation',
         title: `FDCPA validation window: "${debt.name}"`,
         dueAt,
-        notes: `Casey (Debt Strategist): Send validation request within ${FDCPA_VALIDATION_DAYS} days of first written contact. Collectors must cease until validated. Educational only — not legal advice.`,
+        notes: `Casey (Debt Strategist): Send validation request within ${FDCPA_VALIDATION_DAYS} days of first written contact. After the validation letter is sent, collectors must cease collection — including suit — until they properly validate (not a guarantee they never sue; summons already filed still needs a court answer). Educational only — not legal advice.`,
       })
     ) {
       tasksCreated += 1;

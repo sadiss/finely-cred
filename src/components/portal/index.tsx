@@ -56,7 +56,16 @@ import { retryPendingInviteClaim } from '../../lib/retryPendingInviteClaim';
 import { landingPathForRole } from '../../lib/signupOpsGuide';
 import { resolvePostAuthHomePath } from '../../lib/postAuthRouting';
 import { buildPartnerConsentsFromSignup, signupLegalItems, type SignupLegalItemId } from '../../lib/signupLegalPack';
-import { clearOnboardingProgress, ONBOARDING_STORAGE_KEY } from '../../lib/onboardingProgressStorage';
+import {
+  clearOnboardingProgress,
+  ONBOARDING_STORAGE_KEY,
+  shouldSkipStickyOnboardingHydration,
+} from '../../lib/onboardingProgressStorage';
+import {
+  pickPreservedAuthSearch,
+  resolveAuthedOnboardingBouncePath,
+  searchHasPackageCheckoutIntent,
+} from '../../lib/packageCheckoutRouting';
 import { resolveOnboardingWizardNav } from '../../lib/onboardingWizardNav';
 import {
   OnboardingWizardHeaderContinue,
@@ -671,6 +680,7 @@ function createDefaultOnboardingUserData() {
     promoterRole: '',
     promoType: '',
     promoAsset: '',
+    interest: '',
     legalChecks: {} as Partial<Record<SignupLegalItemId, boolean>>,
     legalAcceptedName: '',
     confirmPassword: '',
@@ -841,6 +851,13 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
     if (window.location.pathname === '/signup') return 'signup';
     if (window.location.pathname === '/login') return 'login';
     if (window.location.pathname === '/forgot-password') return 'forgot';
+    // Package CTAs: open Create account immediately (no select flash / sticky wizard).
+    try {
+      const sp = new URLSearchParams(window.location.search);
+      if (sp.get('package') || (sp.get('next') || '').includes('/portal/checkout')) return 'signup';
+    } catch {
+      // ignore
+    }
     return 'select';
   });
   const [step, setStep] = useState(1);
@@ -900,6 +917,13 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
       }
       return;
     }
+    // Package / checkout / invite intent: never restore sticky mid-wizard (support trap).
+    if (shouldSkipStickyOnboardingHydration(location.search) || searchHasPackageCheckoutIntent(location.search)) {
+      clearOnboardingProgress();
+      storageHydratedRef.current = true;
+      setStep(1);
+      return;
+    }
     if (storageHydratedRef.current) return;
     storageHydratedRef.current = true;
     try {
@@ -934,11 +958,13 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
 
   const handleStartOver = useCallback(() => {
     resetOnboardingState({ authMode: 'signup' });
-    navigate('/onboarding', { replace: true });
+    const preserved = pickPreservedAuthSearch(location.search);
+    const qs = preserved.toString();
+    navigate(qs ? `/onboarding?${qs}` : '/onboarding', { replace: true });
     window.requestAnimationFrame(() => {
       onboardingScrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
     });
-  }, [navigate, resetOnboardingState]);
+  }, [location.search, navigate, resetOnboardingState]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -968,8 +994,10 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
     const focusParam = safeDecode(sp.get('focus') || '').trim();
     const isInvite = sp.get('invite') === '1';
     const attr = captureLeadAttributionFromUrl(location.search, location.pathname);
-    if (attr && !(isInvite && partnerIdParam)) {
-      const promoterRole = (attr.promoterRole || '').toLowerCase();
+    const interestParam = (sp.get('interest') || '').trim();
+    const promoTypeParam = (sp.get('promoType') || sp.get('promo_type') || '').trim();
+    if ((attr || interestParam || promoTypeParam) && !(isInvite && partnerIdParam)) {
+      const promoterRole = (attr?.promoterRole || '').toLowerCase();
       const mappedRole =
         promoterRole === 'seller'
           ? 'au_seller'
@@ -981,10 +1009,11 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
       setUserData((prev) => {
         const next = {
           ...prev,
-          referralCode: attr.referralCode || prev.referralCode,
-          promoterRole: attr.promoterRole || prev.promoterRole,
-          promoType: attr.promoType || prev.promoType,
-          promoAsset: attr.promoAsset || prev.promoAsset,
+          referralCode: attr?.referralCode || prev.referralCode,
+          promoterRole: attr?.promoterRole || prev.promoterRole,
+          promoType: promoTypeParam || attr?.promoType || prev.promoType,
+          promoAsset: attr?.promoAsset || prev.promoAsset,
+          interest: interestParam || prev.interest || (attr?.promoType?.includes('real_estate') ? 'real_estate' : ''),
           goal: prev.goal || (mappedRole === 'au_seller' ? 'au_seller' : mappedRole || prev.goal),
         };
         return mappedRole ? applyOnboardingRole(next, mappedRole) : next;
@@ -1058,6 +1087,11 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
           lane: prev.lane === 'other' ? 'funding_readiness' : prev.lane,
           goal: prev.goal || 'funding',
         }));
+        // Package CTAs land on Create account — not a restored wizard step.
+        if (!isInvite && location.pathname !== '/login' && authParam !== 'login' && authParam !== 'signin') {
+          setAuthMode('signup');
+          setStep(1);
+        }
       }
     }
 
@@ -1069,6 +1103,10 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
           ...prev,
           recommendedNextPath: decoded,
         }));
+        if (!isInvite && !packageId && decoded.includes('/portal/checkout') && location.pathname !== '/login') {
+          setAuthMode(authParam === 'login' || authParam === 'signin' ? 'login' : 'signup');
+          setStep(1);
+        }
       }
     }
 
@@ -1119,6 +1157,8 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
   useEffect(() => {
     if (!isOpen) return;
     if (isPartnerInviteUrl(location.search)) return;
+    // Do not re-stick a mid-wizard draft over an active package/checkout handoff.
+    if (searchHasPackageCheckoutIntent(location.search) && step > 1) return;
     try {
       localStorage.setItem(ONBOARDING_STORAGE_KEY, JSON.stringify({ userData, step, authMode }));
     } catch {
@@ -1137,6 +1177,16 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
     }
   }, [auth, isOpen, location.search]);
 
+  // Signed-in partner landing with package/next → portal checkout (no wizard flash / refresh).
+  useEffect(() => {
+    if (!isOpen || auth.isLoading || !auth.user) return;
+    if (isPartnerInviteUrl(location.search)) return;
+    const bounce = resolveAuthedOnboardingBouncePath(location.search);
+    if (!bounce) return;
+    clearOnboardingProgress();
+    onComplete(bounce);
+  }, [auth.isLoading, auth.user, isOpen, location.search, onComplete]);
+
   const updateData = (newData: Partial<typeof userData>) => {
     setAuthError(null);
     setUserData((prev) => ({ ...prev, ...newData }));
@@ -1149,10 +1199,26 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
       setStep(1);
     }
     setAuthMode(mode);
-    if (mode === 'login') navigate('/login', { replace: location.pathname === '/login' });
-    else if (mode === 'signup') navigate('/signup', { replace: location.pathname === '/signup' });
-    else if (mode === 'forgot') navigate('/forgot-password?auth=forgot', { replace: location.pathname === '/forgot-password' });
-    else if (location.pathname !== '/onboarding') navigate('/onboarding', { replace: true });
+    const preserved = pickPreservedAuthSearch(location.search);
+    // Keep package + next (+ rail) across Sign in ↔ Create account switches.
+    if (mode === 'login') {
+      preserved.set('auth', 'login');
+      const q = preserved.toString();
+      navigate(q ? `/login?${q}` : '/login', { replace: location.pathname === '/login' });
+    } else if (mode === 'signup') {
+      preserved.set('auth', 'signup');
+      const q = preserved.toString();
+      navigate(q ? `/signup?${q}` : '/signup', { replace: location.pathname === '/signup' });
+    } else if (mode === 'forgot') {
+      preserved.set('auth', 'forgot');
+      const q = preserved.toString();
+      navigate(q ? `/forgot-password?${q}` : '/forgot-password?auth=forgot', {
+        replace: location.pathname === '/forgot-password',
+      });
+    } else if (location.pathname !== '/onboarding') {
+      const q = preserved.toString();
+      navigate(q ? `/onboarding?${q}` : '/onboarding', { replace: true });
+    }
   };
 
   const nextStep = () => {
@@ -1310,6 +1376,7 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
           promoterRole: userData.promoterRole,
           promoType: userData.promoType,
           promoAsset: userData.promoAsset,
+          interest: userData.interest,
           legalConsents,
           legalAcceptedName: userData.legalAcceptedName,
           supportModel: userData.supportModel,
@@ -1443,6 +1510,8 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
   if (authMode === 'select') {
     const tenant = getActiveTenant();
     const brand = (tenant.settings.brandName || tenant.name || 'Finely Cred').trim() || 'Finely Cred';
+    const packageIntent = searchHasPackageCheckoutIntent(location.search) || Boolean(userData.selectedPackageId);
+    const isFreePkg = userData.selectedPackageId === 'personal_free';
 
     return (
       <OnboardingFlowShell
@@ -1471,10 +1540,16 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
               </div>
               <div className="text-[10px] font-black uppercase tracking-[0.25em] sm:tracking-[0.35em] text-white/55">Partner access</div>
               <h2 className="mt-3 sm:mt-4 text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-light text-white leading-tight">
-                Sign in or create your account.
+                {packageIntent
+                  ? isFreePkg
+                    ? 'Create your free partner workspace.'
+                    : 'Sign in or create an account to activate.'
+                  : 'Sign in or create your account.'}
               </h2>
               <p className="mt-3 sm:mt-4 text-white/60 text-sm md:text-base leading-relaxed max-w-2xl">
-                Choose an option on the right to continue.
+                {packageIntent
+                  ? 'After account setup you’ll land on checkout to activate access. Already a partner? Sign in.'
+                  : 'Choose Create account or Sign in to continue. Open dashboard is available after you’re signed in.'}
               </p>
             </div>
           </div>
@@ -1492,11 +1567,15 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
               <div className="space-y-1.5 sm:space-y-2">
                 <h3 className="text-xl sm:text-2xl font-light text-white">Create account</h3>
                 <p className="text-sm text-white/45">
-                  Complete the intake, get a recommended path, and enter the dashboard.
+                  {packageIntent
+                    ? isFreePkg
+                      ? 'No credit card — activate free DIY tools in your partner portal.'
+                      : 'Create your partner account, then continue to checkout to activate.'
+                    : 'Complete intake, get a recommended path, then enter your partner portal.'}
                 </p>
               </div>
               <div className="pt-1 w-full">
-                <div className="w-full fc-button-brand">Get started</div>
+                <div className="w-full fc-button-brand">Create account</div>
               </div>
             </button>
 
@@ -1511,10 +1590,14 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
               </div>
               <div className="space-y-1.5 sm:space-y-2">
                 <h3 className="text-xl sm:text-2xl font-light text-white">Sign in</h3>
-                <p className="text-sm text-white/45">Return to your dashboard, documents, and workflows.</p>
+                <p className="text-sm text-white/45">
+                  {packageIntent
+                    ? 'Return to your account — we’ll route you to activate your selected package.'
+                    : 'Return to your partner dashboard, documents, and workflows.'}
+                </p>
               </div>
               <div className="pt-1 w-full">
-                <div className="w-full fc-button-brand">Open dashboard</div>
+                <div className="w-full fc-button-brand">Sign in</div>
               </div>
             </button>
           </div>
@@ -1591,6 +1674,7 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
       setAuthBusy(true);
       setAuthError(null);
       try {
+        clearOnboardingProgress();
         await auth.signOut();
         setLoginPassword('');
       } finally {

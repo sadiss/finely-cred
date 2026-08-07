@@ -4,6 +4,8 @@ import { ArrowRight, Briefcase, Building2, CreditCard, Scale } from 'lucide-reac
 import { useNavigate } from 'react-router-dom';
 import { Button, Reveal, FlashyIcon } from '../ui';
 import { finelyOsCatalogCard, finelyOsLandingContrastSection, type FinelyOsPublicAccent } from '../../features/os/finelyOsLightUi';
+import { LandingTypewriterTitle } from './LandingTypewriterTitle';
+import './landingSellBands.css';
 
 const PATHS: Array<{
   icon: typeof CreditCard;
@@ -54,9 +56,14 @@ export function LandingPathChooserSection() {
       <div className="container mx-auto px-4 sm:px-6 max-w-6xl">
         <Reveal>
           <p className="text-xs font-bold tracking-[0.3em] text-emerald-300 uppercase mb-3 text-center">Who is this for?</p>
-          <h2 className="text-3xl lg:text-4xl font-light text-white text-center mb-3">
-            Pick your <span className="text-emerald-400 font-medium">path</span>
-          </h2>
+          <LandingTypewriterTitle
+            text="Pick your "
+            accentText="path"
+            className="text-3xl lg:text-4xl font-light text-white text-center mb-3"
+            accentClassName="text-emerald-400 font-medium"
+            speedMs={40}
+            delayMs={80}
+          />
           <p className="text-white/55 text-center max-w-2xl mx-auto mb-10">
             One clear next step — restore personal credit, handle debt, build business credit, or earn with Finely.
           </p>

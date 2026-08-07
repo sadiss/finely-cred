@@ -304,7 +304,7 @@ export default function AffiliatePage() {
         roleLabel="Affiliate"
         tierName={selectedPath?.name}
         economics={{ commissionLabel: selectedPath?.tagline }}
-        ctaLabel="Apply now"
+        ctaLabel="Submit application"
         onCta={scrollToApply}
         accent={selectedPath?.accent ?? 'emerald'}
         visible={Boolean(selectedPath)}

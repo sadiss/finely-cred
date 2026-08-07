@@ -13,10 +13,12 @@ import {
   WhatMakesDifferentSection,
   Footer,
   LandingPathChooserSection,
+  LandingCinematicVideoStage,
   LandingSolutionsSnapshotSection,
   LandingDebtEradicationBand,
   LandingAuthorizedUserSection,
   LandingFinancingPreapprovalSection,
+  MasteryOSSection,
 } from './components/landing';
 import { SovereignPortal } from './components/portal';
 import { MasteryOSDashboard } from './components/dashboard';
@@ -32,12 +34,15 @@ import './lib/automationEventBridge';
 import { getOrCreatePartnerForSession } from './portal/getOrCreatePartnerForSession';
 import { PartnerSessionProvider, usePartnerSession } from './auth/PartnerSessionContext';
 import { adminPartnerFocusMatchesPath } from './lib/adminPartnerFocus';
-import { BackToSiteButton, consumeSignedOutFlag } from './components/navigation/BackToSiteButton';
-import { AuListingShowcase } from './components/tradelines/AuListingShowcase';
+import { BackToSiteButton, consumeSignedOutFlag, markSignedOutAndGoHome } from './components/navigation/BackToSiteButton';
+import { AuListingShowcase, type AuShowcaseListing } from './components/tradelines/AuListingShowcase';
+import { auRequestSearchParams } from './lib/auMarketplaceInventory';
 import { DigitalInviteShareBand } from './components/digitalCards';
 import { captureDigitalInviteCardFromUrl } from './lib/digitalInviteCardAttribution';
 import { resolvePostAuthHomePath } from './lib/postAuthRouting';
 import { isAuthEntryPath, signupUrlForCareerPath } from './lib/onboardingRoleRouting';
+import { resolveAuthedOnboardingBouncePath } from './lib/packageCheckoutRouting';
+import { clearOnboardingProgress, peekOnboardingRecommendedNextPath } from './lib/onboardingProgressStorage';
 import { FreeGuideFunnelStyles } from './components/leadmagnet/FreeGuideFunnelStyles';
 import { LeadMagnetEbook } from './components/leadmagnet/LeadMagnetHeroMockup';
 import { AdminCommandPaletteHost } from './features/work/components/WorkCommandPalette';
@@ -245,7 +250,12 @@ const AgencyGuideReaderPage = lazy(() => import('./pages/leadmagnet/AgencyGuideR
 const SpecialistApplyFunnelPage = lazy(() => import('./pages/leadmagnet/SpecialistApplyFunnelPage'));
 const CreditSpecialistGuideLandingPage = lazy(() => import('./pages/leadmagnet/CreditSpecialistGuideLandingPage'));
 const CreditSpecialistGuideReaderPage = lazy(() => import('./pages/leadmagnet/CreditSpecialistGuideReaderPage'));
+const RealEstateGuideLandingPage = lazy(() => import('./pages/leadmagnet/RealEstateGuideLandingPage'));
+const RealEstateGuideReaderPage = lazy(() => import('./pages/leadmagnet/RealEstateGuideReaderPage'));
+const CaseDeskGuideLandingPage = lazy(() => import('./pages/leadmagnet/CaseDeskGuideLandingPage'));
+const CaseDeskGuideReaderPage = lazy(() => import('./pages/leadmagnet/CaseDeskGuideReaderPage'));
 const AffiliateToolkitFunnelPage = lazy(() => import('./pages/leadmagnet/AffiliateToolkitFunnelPage'));
+const AffiliateToolkitGuideReaderPage = lazy(() => import('./pages/leadmagnet/AffiliateToolkitGuideReaderPage'));
 const AdminSocialHubPage = lazy(() => import('./pages/admin/AdminSocialHubPage'));
 const PartnerLibraryPage = lazy(() => import('./pages/portal/PartnerLibraryPage'));
 const PartnerBookPurchasePage = lazy(() => import('./pages/portal/PartnerBookPurchasePage'));
@@ -275,7 +285,10 @@ const CreditSpecialistJoinPage = lazy(() => import('./pages/CreditSpecialistJoin
 const CaseHelpCareersPage = lazy(() => import('./pages/CaseHelpCareersPage'));
 const RealEstateCareersPage = lazy(() => import('./pages/RealEstateCareersPage'));
 const AgencySignupPage = lazy(() => import('./pages/agency/AgencySignupPage'));
+const AgencyHubPage = lazy(() => import('./pages/agency/AgencyHubPage'));
 const AgencyPartnersPage = lazy(() => import('./pages/agency/AgencyPartnersPage'));
+const CaseHelpHubPage = lazy(() => import('./pages/caseHelp/CaseHelpHubPage'));
+const RealEstateHubPage = lazy(() => import('./pages/realEstate/RealEstateHubPage'));
 const AgentHubPage = lazy(() => import('./pages/agent/AgentHubPage'));
 const AffiliateHubPage = lazy(() => import('./pages/affiliate/AffiliateHubPage'));
 const AccountSettingsPage = lazy(() => import('./pages/account/AccountSettingsPage'));
@@ -427,19 +440,25 @@ function LandingRoute({ onGetStarted, onViewTradelines, onNavigate, addToCart, o
       {/* 2. Path chooser */}
       <LandingPathChooserSection />
 
-      {/* 3. DFY / Solutions — platinum champagne */}
+      {/* 3. Cinematic product video stage */}
+      <LandingCinematicVideoStage />
+
+      {/* 4. DFY / Solutions — platinum champagne */}
       <LandingSolutionsSnapshotSection onViewPricing={onViewPricing} />
 
-      {/* 4. Debt eradication */}
+      {/* 5. Debt eradication */}
       <LandingDebtEradicationBand />
 
-      {/* 5. Authorized User program ($50) */}
+      {/* 6. Authorized User program ($50) */}
       <LandingAuthorizedUserSection />
 
-      {/* 6. In-house financing (compact) */}
+      {/* 7. In-house financing (compact) */}
       <LandingFinancingPreapprovalSection variant="compact" />
 
-      {/* 7. Free guide teaser */}
+      {/* 8. Mastery OS — device cluster + live approvals */}
+      <MasteryOSSection />
+
+      {/* 9. Free guide teaser */}
       <section className={`py-12 sm:py-16 ${finelyOsLandingContrastSection('fc-band-violet')}`} data-fc-contrast-band="1">
         <div className="container mx-auto px-4 sm:px-6 max-w-6xl">
           <Reveal>
@@ -479,7 +498,7 @@ function LandingRoute({ onGetStarted, onViewTradelines, onNavigate, addToCart, o
         </div>
       </section>
 
-      {/* 8. Social proof + compliance */}
+      {/* 10. Social proof + compliance */}
       <section className={`py-16 sm:py-20 ${finelyOsLightMeshSection('fc-band-dark')}`}>
         <div className="container mx-auto px-4 sm:px-6 max-w-6xl">
           <FinelyOsComplianceStrip className="mb-10" />
@@ -619,16 +638,28 @@ function TradelinesRoute({ addToCart, onNavigate }: { addToCart: (item: any) => 
     setMiniCartPulse((v) => v + 1);
   };
 
-  const onCheckAuAvailability = (listing: { issuer: string; limit: string; age: string; id: string }) => {
+  const onCheckAuAvailability = (listing: AuShowcaseListing) => {
+    const cartId =
+      listing.source === 'seller' && listing.sellerId && listing.listingId
+        ? `seller:${listing.sellerId}:${listing.listingId}`
+        : `au-interest:${listing.id}`;
     onAdd({
-      id: `au-interest:${listing.id}`,
+      id: cartId,
       bank: listing.issuer,
       limit: listing.limit,
       age: listing.age,
-      kind: 'au_tradeline_interest',
-      label: `${listing.issuer} AU · check availability`,
+      priceCents: listing.priceCents,
+      kind: listing.live ? 'au_tradeline' : 'au_tradeline_interest',
+      label: listing.live
+        ? `${listing.issuer} AU · reserve seat`
+        : `${listing.issuer} AU · check availability (demo)`,
+      source: listing.source,
+      sellerId: listing.sellerId,
+      listingId: listing.listingId,
+      slotsAvailable: listing.slotsAvailable,
     });
-    onNavigate('consultation');
+    // Live rows → buyer intake with listing id (auth bounce preserves deep link). Demo → same path, labeled demo.
+    navigate(`/au/request?${auRequestSearchParams(listing).toString()}`);
   };
 
   return (
@@ -714,8 +745,8 @@ function TradelinesRoute({ addToCart, onNavigate }: { addToCart: (item: any) => 
               <Button variant="outline" onClick={() => onNavigate('checkout')} size="sm">
                 Go to checkout <ArrowRight size={16} />
               </Button>
-              <Button variant="outline" onClick={() => onNavigate('consultation')} size="sm">
-                Get matched <ArrowRight size={16} />
+              <Button variant="outline" onClick={() => navigate('/au/request')} size="sm">
+                Start buyer intake <ArrowRight size={16} />
               </Button>
             </div>
           </section>
@@ -1093,25 +1124,24 @@ function AppInner() {
     if (
       location.pathname === '/onboarding' ||
       location.pathname === '/signup' ||
+      location.pathname === '/login' ||
       location.pathname === '/forgot-password'
     ) {
       const sp = new URLSearchParams(location.search);
       if (sp.get('invite') === '1') return;
 
-      let nextPath: string | null = sp.get('next');
+      // Prefer explicit next → package checkout → sticky draft. Never linger on sticky wizard.
+      let nextPath: string | null = resolveAuthedOnboardingBouncePath(location.search);
       if (!nextPath) {
-        try {
-          const raw = localStorage.getItem('finely.onboarding.v1');
-          const parsed = raw ? (JSON.parse(raw) as any) : null;
-          nextPath = parsed?.userData?.recommendedNextPath ?? null;
-        } catch {
-          nextPath = null;
-        }
+        nextPath = peekOnboardingRecommendedNextPath();
       }
 
       // Prevent loops
       if (nextPath && (nextPath.startsWith('/onboarding') || nextPath.startsWith('/login') || nextPath.startsWith('/signup'))) {
         nextPath = null;
+      }
+      if (nextPath?.includes('/portal/checkout') || sp.get('package')) {
+        clearOnboardingProgress();
       }
       navigate(nextPath || resolvePostAuthHomePath(auth.user), { replace: true });
     }
@@ -1495,6 +1525,30 @@ function AppInner() {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/agency/hub"
+          element={
+            <ProtectedRoute>
+              <AgencyHubPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/case-help/hub"
+          element={
+            <ProtectedRoute>
+              <CaseHelpHubPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/real-estate/hub"
+          element={
+            <ProtectedRoute>
+              <RealEstateHubPage />
+            </ProtectedRoute>
+          }
+        />
 
         {/* AU Seller portal */}
         <Route
@@ -1537,6 +1591,7 @@ function AppInner() {
             </ProtectedRoute>
           }
         />
+        <Route path="/au-seller/hub" element={<Navigate to="/seller/hub" replace />} />
         {/* AU seller portal aliases (route-map compatibility) */}
         <Route path="/au/seller/apply" element={<Navigate to="/seller/dashboard" replace />} />
         <Route path="/au/seller/dashboard" element={<Navigate to="/seller/dashboard" replace />} />
@@ -1556,14 +1611,7 @@ function AppInner() {
               <MasteryDashboardRoute
                 user={userData}
                 onLogout={() => {
-                  auth.signOut().finally(() => {
-                    try {
-                      sessionStorage.setItem('finely.signedOut', '1');
-                    } catch {
-                      // ignore
-                    }
-                    navigate('/');
-                  });
+                  auth.signOut().finally(() => markSignedOutAndGoHome(navigate));
                 }}
               />
             </ProtectedRoute>
@@ -2711,7 +2759,12 @@ function AppInner() {
         {/* Credit Specialist lead-magnet guide (in-app reader) — see CREDIT_SPECIALIST_GUIDE_ROUTE_SNIPPET.md */}
         <Route path="/credit-specialist-guide" element={<CreditSpecialistGuideLandingPage />} />
         <Route path="/credit-specialist-guide/read" element={<CreditSpecialistGuideReaderPage />} />
+        <Route path="/real-estate-guide" element={<RealEstateGuideLandingPage />} />
+        <Route path="/real-estate-guide/read" element={<RealEstateGuideReaderPage />} />
+        <Route path="/case-desk-guide" element={<CaseDeskGuideLandingPage />} />
+        <Route path="/case-desk-guide/read" element={<CaseDeskGuideReaderPage />} />
         <Route path="/affiliate-toolkit" element={<AffiliateToolkitFunnelPage />} />
+        <Route path="/affiliate-toolkit/read" element={<AffiliateToolkitGuideReaderPage />} />
         <Route path="/owners-guide" element={<ProtectedRoute><OwnersGuidePage /></ProtectedRoute>} />
         <Route path="/g/:code" element={<ShortReferralRedirectPage />} />
         <Route path="/consultation" element={<ConsultationCanonicalRedirect />} />
