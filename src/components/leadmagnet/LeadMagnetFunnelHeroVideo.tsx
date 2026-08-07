@@ -6,6 +6,7 @@ import { getResourceVideo } from '../../data/resourceVideosRepo';
 import { getBlobUrl } from '../../storage/getBlobUrl';
 import { FREE_DISPUTE_GUIDE_HERO_VIDEO_SRC } from './FreeDisputeGuideHeroVideo';
 import type { LeadMagnetVisualTheme } from './leadMagnetVisualThemes';
+import { VideoFinelyCredWordmark } from './VideoFinelyCredWordmark';
 import './premiumLeadMagnetShared.css';
 
 export type LeadMagnetVideoColorGrade = 'gold' | 'emerald' | 'plum' | 'navy';
@@ -98,6 +99,16 @@ export function LeadMagnetFunnelHeroVideo({ config, theme, posterUrl, className 
     };
   }, [config.funnelId, config.id, posterUrl, theme.videoPosterImage]);
 
+  useEffect(() => {
+    if (!videoSrc || loading) return;
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduceMotion) return;
+    const el = videoRef.current;
+    if (!el) return;
+    el.muted = true;
+    void el.play().catch(() => undefined);
+  }, [videoSrc, loading]);
+
   const toggleSound = () => {
     const el = videoRef.current;
     if (!el) return;
@@ -122,6 +133,7 @@ export function LeadMagnetFunnelHeroVideo({ config, theme, posterUrl, className 
         <div className="lm-video-placeholder-veil lm-video-veil" />
         <div className="lm-video-warm-overlay" aria-hidden />
         <div className="relative z-10 flex flex-col items-center gap-3 p-6">
+          <VideoFinelyCredWordmark className="mb-1" plaque />
           <span className="lm-video-play-ring">
             <Play className="w-7 h-7 text-white ml-1" fill="currentColor" />
           </span>
@@ -159,6 +171,7 @@ export function LeadMagnetFunnelHeroVideo({ config, theme, posterUrl, className 
       <div className="absolute top-3 left-3 z-[2] px-3 py-1.5 rounded-full border text-[9px] font-bold uppercase tracking-wider bg-black/50 backdrop-blur-md lm-video-badge">
         {label}
       </div>
+      <VideoFinelyCredWordmark className="absolute top-3 right-3 z-[2]" size="sm" plaque />
       {videoSrc ? (
         <button
           type="button"
