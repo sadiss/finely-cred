@@ -199,7 +199,7 @@ export function PageShell({
       pathname === '/start-here' ||
       pathname.startsWith('/start-here/'));
   const onPersonalRestoreHero =
-    pathname.includes('/personal-credit-restore');
+    pathname.includes('/personal-credit-restore') || pathname === '/personal-credit';
   const topPad = useLargeTopPad
     ? onPersonalRestoreHero
       ? 'pt-0'

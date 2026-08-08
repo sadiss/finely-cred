@@ -21,9 +21,11 @@ import {
   FINELY_OS_PRIMARY_BTN,
   FINELY_OS_SECONDARY_BTN,
   FINELY_OS_SUCCESS_BTN,
-  finelyOsCatalogCard,
-  finelyOsLightContrastBand,
-  finelyOsLightHeroPanel,
+  finelyOsIvorySolidTile,
+  finelyOsLaneCommandHeader,
+  FINELY_OS_LANE_COMMAND_KICKER,
+  FINELY_OS_LANE_COMMAND_TITLE,
+  FINELY_OS_LANE_COMMAND_BODY,
   FINELY_OS_PLATINUM_BTN,
   FINELY_OS_COMPLIANCE_FOOTNOTE,
 } from '../features/os/finelyOsLightUi';
@@ -95,18 +97,33 @@ export default function PersonalCreditPage() {
 
   return (
     <PageShell
+      surface="ivory"
+      hideHero
       badge="Personal Credit"
       title="Restore Your Credit. Reclaim Your Future."
       subtitle="We handle dispute letters and tracking — you focus on your goals."
     >
-      <div className={`${FINELY_OS_PAGE} fc-senior-simple space-y-8`}>
+      <div className={`${FINELY_OS_PAGE} fc-senior-simple space-y-6`} data-fc-personal-credit-lane="1">
+        <header className={finelyOsLaneCommandHeader()}>
+          <p className={FINELY_OS_LANE_COMMAND_KICKER}>Solutions · Personal credit restoration</p>
+          <h1 className={`${FINELY_OS_LANE_COMMAND_TITLE} mt-3`}>Restore Your Credit. Reclaim Your Future.</h1>
+          <p className={`${FINELY_OS_LANE_COMMAND_BODY} mt-4`}>
+            Professional dispute letters, bureau coverage, and a clear path to funding readiness — with the Finely Cred OS
+            behind every step.
+          </p>
+          <p className="mt-4 text-[11px] leading-relaxed text-white/45 max-w-3xl">
+            Results vary · not legal advice · educational dispute workflow only
+          </p>
+        </header>
+
         <FinelyNoticedStrip items={buildPersonalCreditNoticedItems({ tab })} />
         <FinelyNowDoThisStrip currentIndex={tab === 'packages' ? 0 : tab === 'overview' ? 0 : 1} />
         <FinelyUnifiedHubLayout
-          eyebrow="Personal credit lane"
-          title="Restore & build — one calm section at a time"
-          subtitle="Pick a tab for packages, process, platform tools, or your funding handoff."
+          eyebrow="Your lane"
+          title="Packages, process, and platform tools"
+          subtitle="One calm hub — pick a tab below. No duplicate headlines."
           accent="amber"
+          contentVariant="flush"
           kpis={STATS.map((s) => ({ label: s.label, value: s.value, accent: s.accent }))}
           tabs={[
             { id: 'overview', label: 'Overview' },
@@ -127,7 +144,7 @@ export default function PersonalCreditPage() {
         <>
         {/* Hero Package - Platinum */}
         {platinumPkg && (
-          <div className={`relative overflow-hidden ${finelyOsLightHeroPanel()}`} data-fc-accent="amber">
+          <div className={`${finelyOsIvorySolidTile('amber')} !p-6 sm:!p-8`} data-fc-accent="amber">
             <div className="relative flex flex-col lg:flex-row gap-8">
               <div className="flex-1 space-y-6 min-w-0">
                 <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-amber-500/30 bg-amber-500/10">
@@ -172,7 +189,7 @@ export default function PersonalCreditPage() {
           </div>
         )}
 
-        <div className={`${finelyOsCatalogCard('sky')} !p-6 text-center space-y-3`} data-fc-accent="sky">
+        <div className={`${finelyOsIvorySolidTile('sky')} text-center space-y-3`} data-fc-accent="sky">
           <p className={FINELY_OS_ENTITY_BODY}>Ready to browse packages or see the full process?</p>
           <div className="flex flex-wrap justify-center gap-2">
             <button type="button" onClick={() => setTab('packages')} className={FINELY_OS_SECONDARY_BTN}>
@@ -204,7 +221,7 @@ export default function PersonalCreditPage() {
 
           <div className="grid lg:grid-cols-3 gap-6">
             {starterPkg && (
-              <div className={`${finelyOsCatalogCard('amber')} !p-5 space-y-4`} data-fc-accent="amber">
+              <div className={`${finelyOsIvorySolidTile('amber')} space-y-4`} data-fc-accent="amber">
                 <div className="space-y-2">
                   <div className={`${FINELY_OS_ENTITY_VALUE} text-lg font-semibold`}>{starterPkg.name}</div>
                   <div className="text-amber-700/90 text-sm">{starterPkg.tagline}</div>
@@ -217,7 +234,7 @@ export default function PersonalCreditPage() {
             )}
 
             {restorePkg && (
-              <div className={`${finelyOsCatalogCard('emerald')} !p-5 space-y-4`} data-fc-accent="emerald">
+              <div className={`${finelyOsIvorySolidTile('emerald')} space-y-4`} data-fc-accent="emerald">
                 <div className="space-y-2">
                   <div className={`${FINELY_OS_ENTITY_VALUE} text-lg font-semibold`}>{restorePkg.name}</div>
                   <div className="text-emerald-700/90 text-sm">{restorePkg.tagline}</div>
@@ -230,7 +247,7 @@ export default function PersonalCreditPage() {
             )}
 
             {platinumPkg && (
-              <div className={`${finelyOsCatalogCard('sky')} !p-5 space-y-4 ring-1 ring-sky-400/25`} data-fc-accent="sky">
+              <div className={`${finelyOsIvorySolidTile('sky')} space-y-4 ring-1 ring-sky-400/20`} data-fc-accent="sky">
                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-sky-400/30 bg-sky-500/10 text-sky-200 text-[10px] font-black uppercase tracking-widest">
                   Premium
                 </div>
@@ -248,7 +265,7 @@ export default function PersonalCreditPage() {
         </div>
 
         {/* All packages — grouped catalog (no long comparison table) */}
-        <div className={`${finelyOsCatalogCard('violet')} !p-6 space-y-4`} data-fc-accent="violet">
+        <div className={`${finelyOsIvorySolidTile('violet')} space-y-4`} data-fc-accent="violet">
           <div>
             <h2 className={FINELY_OS_ENTITY_TITLE}>Browse all packages</h2>
             <p className={`mt-1 ${FINELY_OS_ENTITY_BODY} text-sm`}>
@@ -273,28 +290,26 @@ export default function PersonalCreditPage() {
 
         {tab === 'process' && (
         <>
-        <div className={finelyOsLightContrastBand()} data-fc-contrast-band="1">
         <div className="max-w-6xl mx-auto space-y-8">
           <div className="text-center space-y-3">
-            <p className="text-[11px] font-black uppercase tracking-[0.28em] text-amber-400">How it works</p>
-            <h2 className="fc-light-contrast-title text-3xl md:text-4xl font-bold">Our Process</h2>
-            <p className="fc-light-contrast-body max-w-2xl mx-auto text-lg">
+            <p className="text-[11px] font-black uppercase tracking-[0.28em] text-[#b8860b]">How it works</p>
+            <h2 className="text-3xl md:text-4xl font-bold text-[#0a1628]">Our Process</h2>
+            <p className="text-[#0a1628]/70 max-w-2xl mx-auto text-lg">
               Four disciplined steps — evidence-first, bureau-aware, and built for funding readiness.
             </p>
           </div>
 
           <div className="grid md:grid-cols-4 gap-4">
             {PROCESS_STEPS.map((step) => (
-              <div key={step.step} className={`space-y-3 ${finelyOsCatalogCard(step.step % 2 === 0 ? 'emerald' : 'amber')}`} data-fc-accent={step.step % 2 === 0 ? 'emerald' : 'amber'}>
-                <div className="w-10 h-10 rounded-full bg-amber-500/20 border border-amber-400/40 flex items-center justify-center">
-                  <span className="text-amber-700 font-bold">{step.step}</span>
+              <div key={step.step} className={`space-y-3 ${finelyOsIvorySolidTile(step.step % 2 === 0 ? 'emerald' : 'amber')}`} data-fc-accent={step.step % 2 === 0 ? 'emerald' : 'amber'}>
+                <div className="w-10 h-10 rounded-full bg-amber-500/15 border border-amber-400/40 flex items-center justify-center">
+                  <span className="text-amber-800 font-bold">{step.step}</span>
                 </div>
-                <h3 className="fc-light-contrast-title font-semibold text-lg">{step.title}</h3>
-                <p className="fc-light-contrast-body text-sm">{step.description}</p>
+                <h3 className="font-semibold text-lg text-[#0a1628]">{step.title}</h3>
+                <p className="text-sm text-[#0a1628]/70">{step.description}</p>
               </div>
             ))}
           </div>
-        </div>
         </div>
         </>
         )}
@@ -351,7 +366,7 @@ export default function PersonalCreditPage() {
               const Icon = x.icon;
               const accent = (['amber', 'emerald', 'sky', 'violet'] as const)[idx % 4];
               return (
-                <div key={x.title} className={`space-y-3 ${finelyOsCatalogCard(accent)} !p-5`} data-fc-accent={accent}>
+                <div key={x.title} className={`space-y-3 ${finelyOsIvorySolidTile(accent)}`} data-fc-accent={accent}>
                   <div className="w-12 h-12 rounded-2xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center">
                     <Icon size={20} className="text-amber-700" />
                   </div>
@@ -391,7 +406,7 @@ export default function PersonalCreditPage() {
         </div>
 
         {/* Wealth Builder + Nora Capital handoff */}
-        <div className={`${finelyOsCatalogCard('violet')} !p-6`} data-fc-accent="violet">
+        <div className={`${finelyOsIvorySolidTile('violet')} !p-6`} data-fc-accent="violet">
           <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
             <div className="flex-shrink-0 w-14 h-14 rounded-2xl bg-violet-500/15 border border-violet-500/30 flex items-center justify-center">
               <BriefcaseBusiness size={24} className="text-violet-700" />
@@ -433,7 +448,7 @@ export default function PersonalCreditPage() {
           subline="Ask about packages, dispute workflow, or whether DIY vs done-for-you fits your file."
         />
 
-        <div className={`${finelyOsCatalogCard('emerald')} !p-6`} data-fc-accent="emerald">
+        <div className={`${finelyOsIvorySolidTile('emerald')} !p-6`} data-fc-accent="emerald">
           <div className={`flex flex-wrap items-center justify-center gap-8 ${FINELY_OS_ENTITY_SUBLABEL}`}>
             <div className="flex items-center gap-2">
               <Shield size={20} />
@@ -471,11 +486,10 @@ export default function PersonalCreditPage() {
           subline="Free PDFs · honest page counts · no signup"
         />
 
-        <div className={finelyOsLightContrastBand('py-14')} data-fc-contrast-band="1">
-          <div className="max-w-3xl mx-auto text-center space-y-5">
-            <p className="text-[11px] font-black uppercase tracking-[0.28em] text-emerald-400">Take the first step</p>
-            <h2 className="fc-light-contrast-title text-3xl md:text-4xl font-bold">Ready to Transform Your Credit?</h2>
-            <p className="fc-light-contrast-body max-w-xl mx-auto text-lg">
+        <div className={`${finelyOsIvorySolidTile('amber')} !p-8 sm:!p-10 text-center space-y-5`} data-fc-accent="amber">
+            <p className="text-[11px] font-black uppercase tracking-[0.28em] text-[#b8860b]">Take the first step</p>
+            <h2 className="text-3xl md:text-4xl font-bold text-[#0a1628]">Ready to Transform Your Credit?</h2>
+            <p className="text-[#0a1628]/70 max-w-xl mx-auto text-lg">
               Start with our quick intake to see which package fits your situation. No commitment required.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
@@ -490,7 +504,6 @@ export default function PersonalCreditPage() {
                 Book a free strategy call <ArrowRight size={16} />
               </button>
             </div>
-          </div>
         </div>
 
         <FinelyOsPageFooter />

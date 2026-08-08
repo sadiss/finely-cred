@@ -45,6 +45,11 @@ import {
   finelyOsCatalogCard,
   finelyOsCatalogCardCompact,
   finelyOsLandingIvoryCard,
+  finelyOsIvorySolidTile,
+  finelyOsLaneCommandHeader,
+  FINELY_OS_LANE_COMMAND_KICKER,
+  FINELY_OS_LANE_COMMAND_TITLE,
+  FINELY_OS_LANE_COMMAND_BODY,
   finelyOsListItem,
   finelyOsViewTab,
   type FinelyOsPublicAccent,
@@ -269,7 +274,7 @@ export default function PricingServicePage() {
         <header
           className={
             isRestoreLane
-              ? `${finelyOsLandingIvoryCard()} !p-5 sm:!p-6`
+              ? `${finelyOsLaneCommandHeader()}`
               : `${finelyOsCatalogCardCompact(accent)} !p-5 sm:!p-6`
           }
           data-fc-accent={accent}
@@ -277,27 +282,37 @@ export default function PricingServicePage() {
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div className="min-w-0 space-y-2">
               <p
-                className={`${FINELY_OS_ENTITY_SUBLABEL} tracking-[0.22em] ${
-                  isRestoreLane ? '!text-[#b8860b]' : ''
-                }`}
+                className={
+                  isRestoreLane
+                    ? FINELY_OS_LANE_COMMAND_KICKER
+                    : `${FINELY_OS_ENTITY_SUBLABEL} tracking-[0.22em]`
+                }
               >
                 Solutions
               </p>
               <h1
-                className={`text-2xl sm:text-3xl font-semibold tracking-tight ${
-                  isRestoreLane ? 'text-[#0a1628]' : FINELY_OS_ENTITY_VALUE
-                }`}
+                className={
+                  isRestoreLane
+                    ? FINELY_OS_LANE_COMMAND_TITLE
+                    : `text-2xl sm:text-3xl font-semibold tracking-tight ${FINELY_OS_ENTITY_VALUE}`
+                }
               >
                 {title}
               </h1>
               <p
-                className={`max-w-2xl text-sm sm:text-base ${
-                  isRestoreLane ? 'text-[#0a1628]/70' : FINELY_OS_ENTITY_BODY
-                }`}
+                className={
+                  isRestoreLane
+                    ? FINELY_OS_LANE_COMMAND_BODY
+                    : `max-w-2xl text-sm sm:text-base ${FINELY_OS_ENTITY_BODY}`
+                }
               >
                 {subtitle}
               </p>
-              <p className={`${FINELY_OS_COMPLIANCE_FOOTNOTE} ${isRestoreLane ? '!text-[#0a1628]/45' : ''}`}>
+              <p
+                className={`${FINELY_OS_COMPLIANCE_FOOTNOTE} ${
+                  isRestoreLane ? '!text-white/45 !text-left' : ''
+                }`}
+              >
                 Educational only · not legal advice · payments cover software access and guided workflows.
               </p>
             </div>

@@ -710,6 +710,32 @@ export function finelyOsLightContrastBand(padding = 'py-12 px-6 sm:px-8 lg:px-10
   return `fc-light-contrast-band -mx-4 sm:-mx-6 lg:-mx-8 2xl:-mx-10 ${padding}`;
 }
 
+/** Ivory lane tiles — solid dashboard-style cards (no radial “tent” wash). */
+export function finelyOsIvorySolidTile(accent: FinelyOsPublicAccent = 'emerald') {
+  const bar: Record<FinelyOsPublicAccent, string> = {
+    violet: 'border-l-[5px] border-l-violet-500',
+    emerald: 'border-l-[5px] border-l-emerald-500',
+    amber: 'border-l-[5px] border-l-amber-500',
+    fuchsia: 'border-l-[5px] border-l-fuchsia-500',
+    sky: 'border-l-[5px] border-l-sky-500',
+    rose: 'border-l-[5px] border-l-rose-500',
+  };
+  return `fc-ivory-solid-tile rounded-xl border border-[#0a1628]/10 bg-white shadow-[0_10px_36px_-22px_rgba(10,22,40,0.28)] ${bar[accent]} p-5 sm:p-6`;
+}
+
+/** Personal / pricing lane hero — navy command strip (Solutions header). */
+export function finelyOsLaneCommandHeader() {
+  return 'rounded-2xl bg-[#0a1628] text-white p-6 sm:p-8 lg:p-10 shadow-[0_24px_64px_-28px_rgba(10,22,40,0.55)] border border-[#0a1628]';
+}
+
+export const FINELY_OS_LANE_COMMAND_KICKER =
+  'text-[11px] font-black uppercase tracking-[0.28em] text-[#e0b24a]';
+
+export const FINELY_OS_LANE_COMMAND_TITLE =
+  'text-3xl sm:text-4xl lg:text-[2.75rem] font-bold tracking-tight text-white leading-[1.08]';
+
+export const FINELY_OS_LANE_COMMAND_BODY = 'text-base sm:text-lg leading-relaxed text-white/78 max-w-3xl';
+
 /** Light-theme hero panel with dual accent wash */
 export function finelyOsLightHeroPanel() {
   return 'fc-light-hero-panel fc-pop-surface fc-light-readable rounded-3xl border p-6 sm:p-8 lg:p-10';

@@ -3077,6 +3077,19 @@ html[data-fc-theme="light"] ::selection {
     color: var(--fc-text) !important;
   }
 
+  /* Personal credit lane — flat ivory tiles (no radial tent / pop glow on hub shell) */
+  html[data-fc-theme="light"] [data-fc-personal-credit-lane="1"] .fc-unified-hub-shell.fc-accent-card {
+    background: #ffffff !important;
+    background-image: none !important;
+    box-shadow: 0 12px 40px -24px rgba(10, 22, 40, 0.18) !important;
+  }
+  html[data-fc-theme="light"] [data-fc-personal-credit-lane="1"] .fc-ivory-solid-tile {
+    background-image: none !important;
+  }
+  html[data-fc-theme="light"] [data-fc-personal-credit-lane="1"] .fc-hub-kpi.fc-pop-surface {
+    box-shadow: 0 8px 28px -18px rgba(10, 22, 40, 0.16) !important;
+  }
+
   /* ?? Part CG ? Hero + marketing closures wave 34 ?? */
   html[data-fc-theme="light"] .fc-lead-magnet-panel {
     box-shadow: var(--fc-light-pop-shadow-xl), var(--fc-glass-inset) !important;

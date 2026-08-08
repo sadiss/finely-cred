@@ -4,7 +4,6 @@ import { Play, Volume2, VolumeX } from 'lucide-react';
 import { Reveal } from '../ui';
 import { finelyOsLandingContrastSection } from '../../features/os/finelyOsLightUi';
 import { LandingTypewriterTitle } from './LandingTypewriterTitle';
-import { VideoFinelyCredWordmark } from '../leadmagnet/VideoFinelyCredWordmark';
 import '../leadmagnet/premiumLeadMagnetShared.css';
 import './landingSellBands.css';
 
@@ -13,8 +12,8 @@ import './landingSellBands.css';
  * solutions explainer mp4 when available (restore · disputes · debt · funding).
  */
 const HOME_VIDEO_SRC = '/tours/cloud-home-overview.mp4';
-/** Green materials composite — keep this art; typography plaque replaces any logo in-frame. */
-const HOME_VIDEO_POSTER = '/media/home-credit-solutions-poster.png?v=solutions-home-20260807';
+/** Green materials composite — no raster FC shield logo in frame (mask covers legacy poster art). */
+const HOME_VIDEO_POSTER = '/media/home-credit-solutions-poster.png?v=no-shield-20260808';
 
 function prefersReducedMotion(): boolean {
   return typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
@@ -115,10 +114,15 @@ export function LandingCinematicVideoStage() {
               <div className="absolute inset-0 lm-video-veil bg-gradient-to-t from-black/60 via-black/10 to-amber-900/10 pointer-events-none z-[2]" />
               <div className="lm-video-warm-overlay z-[2]" aria-hidden />
 
-              <VideoFinelyCredWordmark
-                className="absolute top-3 left-3 z-[4]"
-                size={playing ? 'sm' : 'md'}
-                plaque
+              {/* Legacy poster may contain old FC shield art — paint over with materials green (typography-only brand elsewhere). */}
+              <div
+                className="absolute left-[3%] bottom-[6%] z-[4] h-[20%] w-[26%] max-w-[220px] rounded-lg pointer-events-none"
+                style={{
+                  background:
+                    'linear-gradient(145deg, rgba(12,42,32,0.97) 0%, rgba(8,28,22,0.94) 55%, rgba(6,22,18,0.92) 100%)',
+                  boxShadow: '0 8px 28px rgba(0,0,0,0.35)',
+                }}
+                aria-hidden
               />
 
               <div className="absolute top-3 right-3 z-[3] px-3 py-1.5 rounded-full border border-[#e0b24a]/40 text-[9px] font-bold uppercase tracking-wider bg-black/55 backdrop-blur-md text-[#ffd993]">
