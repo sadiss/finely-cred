@@ -294,6 +294,7 @@ export function LeadMagnetFunnelShell({
             totalValue={totalValue}
             captureForm={
               <FunnelLeadCaptureForm
+                embedded
                 firstName={firstName}
                 lastName={lastName}
                 email={email}

@@ -20,10 +20,18 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
   }
 
   if (!user) {
-    const from = (location.state as { from?: string } | null)?.from || '';
-    const next = from.startsWith('/') ? `&next=${encodeURIComponent(from)}` : '';
+    const returnTo = `${location.pathname}${location.search || ''}`;
+    const nextQs = returnTo.startsWith('/') ? `&next=${encodeURIComponent(returnTo)}` : '';
     if (location.pathname.startsWith('/portal')) {
-      return <Navigate to={`/signup?auth=signup${next}`} replace state={{ from: location.pathname }} />;
+      return <Navigate to={`/signup?auth=signup${nextQs}`} replace state={{ from: returnTo }} />;
+    }
+    // Preserve deep-links (agency / case-help / RE hubs + agency signup) through auth bounce.
+    if (
+      location.pathname.startsWith('/agency/') ||
+      location.pathname.startsWith('/case-help/') ||
+      location.pathname.startsWith('/real-estate/')
+    ) {
+      return <Navigate to={`/signup?auth=signup${nextQs}`} replace state={{ from: returnTo }} />;
     }
     return <Navigate to="/onboarding" replace state={{ from: location.pathname }} />;
   }

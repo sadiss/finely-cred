@@ -17,7 +17,8 @@ export const LIBERATION_LAW_ANCHORS: LiberationLawAnchor[] = [
     id: 'fdcpa_809',
     cite: '15 U.S.C. § 1692g',
     shortName: 'FDCPA validation',
-    plainEnglish: 'Within 30 days of first written contact, you can demand validation. Collectors must stop collection until they validate (with limited exceptions).',
+    plainEnglish:
+      'Within 30 days of first written contact, you can demand validation. After you send a validation letter, collectors must cease collection — including bringing suit on that debt — until they properly validate (with limited exceptions). This is not a promise they can never sue, and a summons already filed still needs a timely court answer. Educational only — outcomes are never guaranteed.',
     consumerUse: ['validation', 'debt_buyer', 'post_summons'],
     pairsWith: ['fdcpa_805', 'fcra_623', 'state_collection_act'],
   },

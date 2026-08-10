@@ -1,6 +1,10 @@
 import type { GeneratedGuidePage } from './disputeLetterGuideContent';
 
-/** Restored + upgraded chapters from the original Finely dispute letter guide — consumer voice throughout. */
+/**
+ * Extended chapters of the Free Credit Dispute Letter Guide.
+ * Same statutes, process, and materials — stronger author voice.
+ * Educational only — not legal advice. Partner-facing copy throughout.
+ */
 export const DISPUTE_GUIDE_EXTENDED_PAGES: GeneratedGuidePage[] = [
   {
     id: 'fcra-rights',
@@ -9,8 +13,8 @@ export const DISPUTE_GUIDE_EXTENDED_PAGES: GeneratedGuidePage[] = [
     sections: [
       {
         paragraphs: [
-          'Most people only discover the Fair Credit Reporting Act after something goes wrong — a denial, a deposit requirement, a rate that makes no sense. You pulled your report, compared it to your life, and realized the file does not tell a true story. That is when FCRA becomes your backbone — not your opening sentence.',
-          'Under 15 U.S.C. § 1681i, you have the right to dispute incomplete or inaccurate information. The credit reporting agency must conduct a reasonable reinvestigation — usually within 30 days — and notify you of the results in writing.',
+          'Most partners only discover the Fair Credit Reporting Act after something goes wrong — a denial, a deposit requirement, a rate that makes no sense. You pulled your report, compared it to your life, and realized the file does not tell a true story. That is when FCRA becomes your backbone — not your opening sentence.',
+          'Under 15 U.S.C. § 1681i, you have the right to dispute incomplete or inaccurate information. The credit reporting agency must conduct a reasonable reinvestigation — usually within 30 days — and notify you of the results in writing. That duty is real. Your job is to make the request specific enough that the duty has something to attach to.',
         ],
       },
       {
@@ -29,11 +33,12 @@ export const DISPUTE_GUIDE_EXTENDED_PAGES: GeneratedGuidePage[] = [
           'Do not paste statute blocks without tying them to a specific field on your report.',
           'One account per letter keeps your FCRA request focused and harder to dismiss as frivolous.',
         ],
+        annotation: 'Rights without a finding read as noise. Finding first, statute second — always.',
       },
       {
         heading: 'Willful noncompliance (when they ignore you)',
         paragraphs: [
-          'When a CRA or furnisher willfully fails to comply with FCRA requirements, statutory damages may apply ($100 to $1,000 per violation) plus actual damages. That is why your paper trail — certified mail, dates, exhibits — matters more than sending ten angry letters.',
+          'When a CRA or furnisher willfully fails to comply with FCRA requirements, statutory damages may apply ($100 to $1,000 per violation) plus actual damages. That is why your paper trail — certified mail, dates, exhibits — matters more than sending ten angry letters. Documentation is how a partner converts silence into a record a regulator or licensed counsel can actually use. Educational only — not legal advice; no outcome is promised.',
         ],
       },
     ],
@@ -45,8 +50,8 @@ export const DISPUTE_GUIDE_EXTENDED_PAGES: GeneratedGuidePage[] = [
     sections: [
       {
         paragraphs: [
-          'Bureau intake often runs your letter through OCR (optical character recognition) before a person ever sees it. Neon fonts, wild templates, all-caps rage paragraphs, and shotgun disputes get flagged as “frivolous” or templated — even when your facts are solid.',
-          'Metro2 is the data language furnishers use. Your job is not to become a coder — it is to spot when the fields on your report contradict each other (status vs payment grid, balance vs limit, dates that do not timeline).',
+          'Bureau intake often runs your letter through OCR (optical character recognition) before a person ever sees it. Neon fonts, wild templates, all-caps rage paragraphs, and shotgun disputes get flagged as “frivolous” or templated — even when your facts are solid. Format is not vanity. Format is whether your finding reaches a human.',
+          'Metro2 is the data language furnishers use. Your job is not to become a coder — it is to spot when the fields on your report contradict each other (status vs payment grid, balance vs limit, dates that do not timeline). Those contradictions are the cleanest exhibits you will ever attach.',
         ],
       },
       {
@@ -72,7 +77,7 @@ export const DISPUTE_GUIDE_EXTENDED_PAGES: GeneratedGuidePage[] = [
       {
         heading: 'Power move',
         paragraphs: [
-          'Circle the exact conflicting field on your screenshot exhibit — guide the analyst’s eye. A reviewer who sees a clean contradiction often overrides a lazy “verified” response in Round 2.',
+          'Circle the exact conflicting field on your screenshot exhibit — guide the analyst’s eye. A reviewer who sees a clean contradiction has something concrete to act on in Round 2, instead of another vague “please delete” demand.',
         ],
       },
     ],
@@ -85,7 +90,7 @@ export const DISPUTE_GUIDE_EXTENDED_PAGES: GeneratedGuidePage[] = [
       {
         paragraphs: [
           'Online dispute buttons feel easy — but when you have been denied for an apartment or a car loan, “easy” is not the same as effective. Portals often limit what you can say, hide your full paper trail, and sometimes bury terms that weaken your position.',
-          'For serious inaccuracies — the ones blocking your life — certified mail creates a dated record you can escalate to CFPB, your state attorney general, or counsel if needed.',
+          'For serious inaccuracies — the ones blocking your life — certified mail creates a dated record you can escalate to CFPB, your state attorney general, or licensed counsel if needed. Convenience is for small fixes. Stakes require a trail.',
         ],
       },
       {
@@ -104,6 +109,10 @@ export const DISPUTE_GUIDE_EXTENDED_PAGES: GeneratedGuidePage[] = [
           'Identity-theft blocks when the bureau provides a dedicated fraud process.',
           'Always download or screenshot confirmation and any response — store in Evidence vault.',
         ],
+        evidence: {
+          label: 'Decision rule',
+          text: 'If the item is blocking housing, auto, or funding — mail it. If it is a typo you can prove in one screenshot, the portal can be enough.',
+        },
       },
     ],
   },
@@ -114,7 +123,7 @@ export const DISPUTE_GUIDE_EXTENDED_PAGES: GeneratedGuidePage[] = [
     sections: [
       {
         paragraphs: [
-          'A letter stream is how disciplined consumers win: one tradeline per letter, certified mail, copies of everything, dates logged like a case file. You are building a timeline a regulator or attorney can follow — not venting into the void.',
+          'A letter stream is how disciplined partners stay in control: one tradeline per letter, certified mail, copies of everything, dates logged like a case file. You are building a timeline a regulator or licensed attorney can follow — not venting into the void.',
         ],
       },
       {
@@ -153,7 +162,7 @@ export const DISPUTE_GUIDE_EXTENDED_PAGES: GeneratedGuidePage[] = [
     sections: [
       {
         paragraphs: [
-          'If you did the work — pulled your report, mailed certified, attached exhibits — and still get a boilerplate “verified” with no method of verification, escalation is rational. Regulators respond to timelines and copies, not caps-lock anger.',
+          'If you did the work — pulled your report, mailed certified, attached exhibits — and still get a boilerplate “verified” with no method of verification, escalation is rational. Regulators respond to timelines and copies, not caps-lock anger. Bring the file. Leave the rage at home.',
         ],
       },
       {
@@ -177,6 +186,10 @@ export const DISPUTE_GUIDE_EXTENDED_PAGES: GeneratedGuidePage[] = [
           'Many states accept consumer credit reporting complaints — search “[your state] attorney general consumer complaint.”',
           'BBB complaints can prompt corporate review (not a legal ruling) and supplement your timeline.',
         ],
+        evidence: {
+          label: 'Escalate only when ready',
+          text: 'A thin complaint without dates and exhibits wastes the channel. Organize first, file second.',
+        },
       },
     ],
   },
@@ -188,7 +201,7 @@ export const DISPUTE_GUIDE_EXTENDED_PAGES: GeneratedGuidePage[] = [
       {
         paragraphs: [
           'When collections or charge-offs show up on your report, the industry wants you to pay first and ask questions later. That often does not fix reporting — and it waives leverage. Our approach: challenge accuracy and demand validation on your terms before any payment conversation.',
-          'This is educational strategy, not legal advice. If you receive a summons or garnishment notice, consult a licensed attorney the same week.',
+          'This is educational strategy, not legal advice. If you receive a summons or garnishment notice, consult a licensed attorney the same week. Finely Cred does not represent you in court and does not promise any lawsuit outcome.',
         ],
       },
       {
@@ -218,7 +231,7 @@ export const DISPUTE_GUIDE_EXTENDED_PAGES: GeneratedGuidePage[] = [
     sections: [
       {
         paragraphs: [
-          'After you explain what you noticed and how it hurt you, the right statute gives your letter teeth. Letter Studio and Reasons OS attach these citations based on negative type — one clean claim per letter, never a statute dump.',
+          'After you explain what you noticed and how it hurt you, the right statute gives your letter structure. Letter Studio and Reasons OS attach these citations based on negative type — one clean claim per letter, never a statute dump. Story first. Citation second. One lane always.',
         ],
       },
       {
@@ -243,6 +256,10 @@ export const DISPUTE_GUIDE_EXTENDED_PAGES: GeneratedGuidePage[] = [
           'Wage garnishment: verify judgment validity, proper service, exemption laws — counsel required.',
           'Foreclosure: evaluate bankruptcy stay options (Ch. 7 vs 13) with licensed attorney.',
         ],
+        evidence: {
+          label: 'Court matters',
+          text: 'Educational only. Court strategy belongs with a licensed attorney in your jurisdiction — Finely Cred does not represent you and does not guarantee outcomes.',
+        },
       },
     ],
   },
@@ -253,7 +270,7 @@ export const DISPUTE_GUIDE_EXTENDED_PAGES: GeneratedGuidePage[] = [
     sections: [
       {
         paragraphs: [
-          'Sometimes collectors sue before you finish mailing. Sometimes they ignore validation entirely. An affidavit of dispute is a sworn statement of your position — not magic, but a structured record that you challenged the debt and lack knowledge of a valid contract.',
+          'Sometimes collectors sue before you finish mailing. Sometimes they ignore validation entirely. An affidavit of dispute is a sworn statement of your position — not magic, but a structured record that you challenged the debt and lack knowledge of a valid contract. Preparation improves options. It does not guarantee a courtroom result.',
         ],
       },
       {
@@ -281,6 +298,7 @@ export const DISPUTE_GUIDE_EXTENDED_PAGES: GeneratedGuidePage[] = [
           'Debt buyers often lack original note and assignment chain — validation exposes gaps.',
           'Different from FCRA bureau disputes — use the right framework for the right target.',
         ],
+        annotation: 'Bureau lane for reporting accuracy. Court lane for summons. Do not mix frameworks in one filing.',
       },
     ],
   },

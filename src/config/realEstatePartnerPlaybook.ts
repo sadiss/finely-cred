@@ -11,7 +11,7 @@
  * - Industry practice: lender-ordered rapid rescore often ~2–5 business days
  */
 
-import { signupUrlForRole } from '../lib/onboardingRoleRouting';
+import { RE_AFFILIATE_SIGNUP_PATH } from './realEstateProgram';
 
 export type RealEstatePlaybookAccent = 'violet' | 'emerald' | 'fuchsia' | 'amber' | 'sky' | 'rose';
 
@@ -107,10 +107,7 @@ export const REAL_ESTATE_PLAYBOOK_META = {
     'Lawful readiness levers for buyers, sellers, and RE affiliates — AU optics, DTI, disputes, and lender rescore prep.',
   audience: 'Real estate affiliates · partners preparing for mortgage underwriting',
   careersPath: '/careers/real-estate',
-  affiliateSignupPath: signupUrlForRole('affiliate', {
-    interest: 'real_estate',
-    promoType: 'real_estate_affiliate',
-  }),
+  affiliateSignupPath: RE_AFFILIATE_SIGNUP_PATH,
 } as const;
 
 /**
@@ -303,12 +300,97 @@ export const REAL_ESTATE_COMPLIANCE_FOOTNOTES: string[] = [
   'Fannie Mae Selling Guide and SEL citations are educational; always verify the current Selling Guide and the specific lender’s overlays before advising a live file',
 ];
 
-/** Toolkit tiles used by the public RE careers page (subset + marketing order). */
+/** Full public toolkit — all seven readiness levers, marketing order. */
 export const REAL_ESTATE_PUBLIC_TOOLKIT_LEVER_IDS: RealEstatePlaybookLeverId[] = [
   'high_limit_au_util',
   'dti_income_installments',
+  'own_card_utilization',
+  'inquiry_discipline',
+  'collections_chargeoff_optics',
   'dispute_factual_findings',
   'report_refresh_vs_rapid_rescore',
+];
+
+/** What's in it for the agent — clear WIIFM for careers + operator guide. */
+export const REAL_ESTATE_WIIFM = {
+  youRefer: [
+    'Spot the buyer or seller whose credit is blocking the contract',
+    'Hand them a tracked referral link and the Operator Guide',
+    'Stay on milestones so you can time the lender package',
+  ],
+  finelyRuns: [
+    'Report pulls, findings-based dispute letters, and bureau follow-up',
+    'AU tradeline education and marketplace placement prep',
+    'Paydown-proof packaging for the loan officer’s rapid-rescore ask',
+  ],
+  agentWins: [
+    'Contracts stop dying at the credit pull — a real lane instead of “come back next year”',
+    'Tracked referrals with milestone visibility (without exposing the partner file)',
+    'Payouts when a referred partner engages a program — terms shown when you join',
+    'Co-branded readiness materials you can put your name and market on',
+  ],
+} as const;
+
+/** Short question-script chips agents can say out loud. */
+export const REAL_ESTATE_QUESTION_SCRIPTS: Array<{ id: string; label: string; script: string }> = [
+  {
+    id: 'blocked-pull',
+    label: 'Blocked credit pull',
+    script:
+      '“Before the lender pulls, let’s get your file into a restore lane so we are solving the block — not guessing at the closing table.”',
+  },
+  {
+    id: 'util-paydown',
+    label: 'Utilization / paydown',
+    script:
+      '“Paying your own revolving balances before statement close is often the fastest lawful optics lever. Finely will map the dates with you.”',
+  },
+  {
+    id: 'au-not-dti',
+    label: 'AU ≠ DTI',
+    script:
+      '“An authorized-user tradeline may help score mix when models include it — it does not raise income or automatically fix DTI. We coach both tracks separately.”',
+  },
+  {
+    id: 'rescore-ask',
+    label: 'Lender rescore ask',
+    script:
+      '“Once paydowns or dispute updates post, we package proof so your loan officer can ask for a lender rapid rescore — typically a few business days, not a DIY overnight button.”',
+  },
+  {
+    id: 'no-promises',
+    label: 'No approval promise',
+    script:
+      '“Results vary. Finely runs the credit work; your lender and underwriter decide eligibility. Our job is a cleaner, better-documented file.”',
+  },
+];
+
+/** Research / regulatory chips for the careers resource rail. */
+export const REAL_ESTATE_RESEARCH_CHIPS: Array<{ id: string; label: string; href: string; external?: boolean }> = [
+  {
+    id: 'fannie-selling-guide',
+    label: 'Fannie Selling Guide',
+    href: 'https://selling-guide.fanniemae.com/',
+    external: true,
+  },
+  {
+    id: 'fannie-b3-5-3-06',
+    label: 'B3-5.3-06 AU',
+    href: 'https://selling-guide.fanniemae.com/Selling-Guide/Origination-thru-Closing/Subpart-B3-Underwriting-Borrowers/Chapter-B3-5-Credit-Assessment/Section-B3-5-3-Credit-Report-Analysis/1032992211/B3-5-3-06-Authorized-Users-of-Credit.htm',
+    external: true,
+  },
+  {
+    id: 'naag-ag',
+    label: 'Find your AG (NAAG)',
+    href: 'https://www.naag.org/find-my-ag/',
+    external: true,
+  },
+  {
+    id: 'cfpb',
+    label: 'CFPB complaint',
+    href: 'https://www.consumerfinance.gov/complaint/',
+    external: true,
+  },
 ];
 
 export function getRealEstatePlaybookLever(id: RealEstatePlaybookLeverId): RealEstatePlaybookLever | undefined {

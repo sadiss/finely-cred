@@ -27,7 +27,7 @@ const FUNNEL_TILES: Tile[] = [
   { id: 'tradeline', label: 'Tradeline guide', hint: 'AU vs primary education', path: '/free-tradeline-guide', accent: 'emerald', icon: BookOpen },
   { id: 'score', label: 'Score roadmap', hint: '5-step recovery sequence', path: '/free-score-roadmap', accent: 'sky', icon: BookOpen },
   { id: 'agency', label: 'Agency kit', hint: 'White-label partner OS', path: '/free-agency-guide', accent: 'amber', icon: BookOpen },
-  { id: 'specialist', label: 'Specialist join', hint: 'Join the specialist network', path: '/credit-specialist/join', accent: 'violet', icon: Users },
+  { id: 'specialist', label: 'Specialist join', hint: 'Join the specialist network', path: '/credit-specialist', accent: 'violet', icon: Users },
   { id: 'affiliate', label: 'Affiliate toolkit', hint: 'Referral + promo templates', path: '/affiliate-toolkit', accent: 'fuchsia', icon: Users },
 ];
 

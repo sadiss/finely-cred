@@ -34,6 +34,7 @@ import {
   finelyOsCatalogCard,
   finelyOsListItem,
 } from '../../features/os/finelyOsLightUi';
+import { FinelyOsTypedDeleteDialog } from '../../features/os/FinelyOsTypedDeleteDialog';
 
 function clampInt(n: number, min: number, max: number) {
   return Math.max(min, Math.min(max, Math.round(n)));
@@ -45,6 +46,7 @@ export default function AdminTestimonialsPage() {
   const [version, setVersion] = useState(0);
   const [q, setQ] = useState('');
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [deleteOpen, setDeleteOpen] = useState(false);
 
   useEffect(() => {
     const onStore = () => setVersion((v) => v + 1);
@@ -197,16 +199,11 @@ export default function AdminTestimonialsPage() {
                     </button>
                     <button
                       type="button"
-                      onClick={() => {
-                        deleteTestimonial(selected.id);
-                        window.dispatchEvent(new Event('finely:store'));
-                        setSelectedId(null);
-                        setVersion((v) => v + 1);
-                      }}
+                      onClick={() => setDeleteOpen(true)}
                       disabled={!canEdit}
                       className={FINELY_OS_DANGER_BTN}
                     >
-                      <Trash2 size={14} /> Delete
+                      <Trash2 size={14} /> Delete…
                     </button>
                   </div>
                 </div>
@@ -328,6 +325,21 @@ export default function AdminTestimonialsPage() {
         </div>
         <FinelyOsPageFooter />
       </div>
+      <FinelyOsTypedDeleteDialog
+        open={deleteOpen && Boolean(selected)}
+        title="Delete testimonial?"
+        description="This removes the testimonial from the public site immediately. Published cards will disappear from the homepage and testimonials page."
+        entityLabel={selected ? (selected.kind === 'video' ? (selected as VideoTestimonial).title : (selected as TextTestimonial).name) : undefined}
+        onClose={() => setDeleteOpen(false)}
+        onConfirm={() => {
+          if (!selected) return;
+          deleteTestimonial(selected.id);
+          window.dispatchEvent(new Event('finely:store'));
+          setSelectedId(null);
+          setDeleteOpen(false);
+          setVersion((v) => v + 1);
+        }}
+      />
     </PageShell>
   );
 }

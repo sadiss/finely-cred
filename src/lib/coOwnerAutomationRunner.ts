@@ -33,6 +33,7 @@ import { summarizeDevStudioForCoOwner } from './coOwnerDevStudio';
 import { buildOpsHealthSnapshot } from './opsHealthDashboard';
 import { summarizeExecutionRegistryForCoOwner } from './coOwnerExecutionRegistry';
 import { summarizeCoOwnerSuperhumanForCoOwner } from './coOwnerSuperhumanOps';
+import { summarizeGrowthForCoOwner } from './growthCoOwnerBrief';
 
 export type CoOwnerAutomationExecResult = {
   ok: boolean;
@@ -185,11 +186,12 @@ export function executeCoOwnerAutomationNow(executeKey: string): CoOwnerAutomati
         `Open tasks: ${tasks.length}`,
         `Active staff: ${staff.activeStaff}`,
         `Coverage gaps: ${staff.coverageGaps.length}`,
-      ].join(' · ');
+        summarizeGrowthForCoOwner(),
+      ].join('\n\n');
       return {
         ok: true,
         message: 'Daily ops snapshot ready.',
-        navigateTo: '/admin/workflow',
+        navigateTo: '/admin/growth-agents/results',
         prompt: withSnapshot(prefix, PROMPTS.daily_ops),
       };
     }

@@ -53,15 +53,47 @@ import {
 const ROLE = 'au_seller' as const;
 
 /**
- * Marketplace shelf layout — teal/emerald supply floor, single scroll, no tabs.
+ * Marketplace shelf layout — emerald supply floor with amber/gold payouts and sky guides.
  * Deliberately unlike the specialist credential hub, the obsidian agency console,
  * the RE referral ledger, and the parchment case-desk dossier.
  */
 const SHELF_PANEL =
-  'rounded-2xl border border-emerald-300/20 bg-[linear-gradient(150deg,rgba(6,78,59,0.28),rgba(2,20,26,0.55))] p-5 backdrop-blur-sm';
-const SHELF_KICKER = 'text-[10px] font-black uppercase tracking-[0.3em] text-emerald-200/85';
-const SHELF_TITLE = 'text-2xl sm:text-3xl font-bold tracking-tight text-white';
-const SHELF_BODY = 'text-sm sm:text-[15px] leading-relaxed text-white/70';
+  'rounded-2xl border border-white/14 bg-[linear-gradient(150deg,rgba(6,78,59,0.28),rgba(2,20,26,0.72))] p-5 backdrop-blur-sm';
+const SHELF_KICKER = 'text-[10px] font-black uppercase tracking-[0.3em] text-amber-100';
+const SHELF_TITLE = 'text-2xl sm:text-3xl font-bold tracking-tight text-white drop-shadow-[0_1px_12px_rgba(0,0,0,0.55)]';
+const SHELF_BODY = 'text-sm sm:text-[15px] leading-relaxed text-white/85';
+
+/** High-contrast payout ladder — % reads as ivory/amber on tinted black, never low-opacity green mush. */
+const TIER_ACCENT = [
+  {
+    border: 'border-emerald-200/55',
+    panel: 'bg-[linear-gradient(165deg,rgba(16,185,129,0.22),rgba(2,12,16,0.88))]',
+    badge: 'border-emerald-200/70 bg-[#041a14] text-emerald-50',
+    label: 'text-emerald-100',
+    pct: 'text-white',
+  },
+  {
+    border: 'border-amber-200/60',
+    panel: 'bg-[linear-gradient(165deg,rgba(251,191,36,0.24),rgba(18,12,4,0.9))]',
+    badge: 'border-amber-100/70 bg-[#1c1406] text-amber-50',
+    label: 'text-amber-100',
+    pct: 'text-amber-50',
+  },
+  {
+    border: 'border-sky-200/55',
+    panel: 'bg-[linear-gradient(165deg,rgba(56,189,248,0.22),rgba(4,14,22,0.9))]',
+    badge: 'border-sky-200/70 bg-[#061820] text-sky-50',
+    label: 'text-sky-100',
+    pct: 'text-white',
+  },
+  {
+    border: 'border-amber-100/65',
+    panel: 'bg-[linear-gradient(165deg,rgba(252,211,77,0.28),rgba(20,14,4,0.92))]',
+    badge: 'border-amber-50/75 bg-[#1a1406] text-amber-50',
+    label: 'text-amber-50',
+    pct: 'text-[#fff8e7]',
+  },
+] as const;
 
 export default function AuSellerPage() {
   const navigate = useNavigate();
@@ -102,21 +134,39 @@ export default function AuSellerPage() {
         </div>
         {cardEligibility && cardBonus ? <FinelyOsAlertBanner tone="success" message={cardBonus.description} /> : null}
 
-        {/* Supply-floor hero — shelf mock leads on the left, copy right (mirrored vs every other role page) */}
+        {/* Supply-floor hero — Seller Hub mock left, copy + CTAs right */}
         <section
-          className="relative overflow-hidden rounded-3xl border border-emerald-300/20 p-6 sm:p-9"
+          className="relative overflow-hidden rounded-3xl border border-white/12 p-6 sm:p-9"
           style={{
             background:
-              'linear-gradient(150deg,#02141a 0%,#052e2b 48%,#03181c 100%), radial-gradient(ellipse 55% 45% at 8% 4%, rgba(16,185,129,0.22), transparent 58%)',
+              'linear-gradient(145deg,#020b10 0%,#041820 38%,#0a1628 72%,#031018 100%), radial-gradient(ellipse 60% 50% at 92% 8%, rgba(251,191,36,0.22), transparent 55%), radial-gradient(ellipse 50% 45% at 6% 90%, rgba(16,185,129,0.18), transparent 52%), radial-gradient(ellipse 40% 35% at 55% 40%, rgba(56,189,248,0.1), transparent 60%)',
           }}
         >
-          <div className="relative grid gap-9 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
+          {/* Atmosphere layers */}
+          <div
+            className="pointer-events-none absolute inset-0 opacity-[0.07]"
+            style={{
+              backgroundImage:
+                'linear-gradient(rgba(255,255,255,0.35) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.35) 1px, transparent 1px)',
+              backgroundSize: '48px 48px',
+              maskImage: 'radial-gradient(ellipse 70% 60% at 50% 40%, black, transparent)',
+            }}
+          />
+          <div className="pointer-events-none absolute -right-16 -top-20 h-64 w-64 rounded-full bg-amber-400/15 blur-3xl" />
+          <div className="pointer-events-none absolute -bottom-24 -left-10 h-72 w-72 rounded-full bg-emerald-500/12 blur-3xl" />
+
+          <div className="relative grid gap-9 lg:grid-cols-[0.95fr_1.05fr] lg:items-center">
             <div className="order-2 lg:order-1">
               <AuSellerShelfMock />
             </div>
             <div className="order-1 space-y-5 lg:order-2">
-              <p className={SHELF_KICKER}>{AU_SELLER.programName}</p>
-              <h1 className="text-4xl sm:text-5xl font-black tracking-tight leading-[1.07] text-white">
+              <div className="flex flex-wrap items-center gap-2">
+                <p className={SHELF_KICKER}>{AU_SELLER.programName}</p>
+                <span className="rounded-full border border-emerald-300/40 bg-emerald-400/12 px-2.5 py-0.5 text-[9px] font-black uppercase tracking-[0.18em] text-emerald-100">
+                  Supply track
+                </span>
+              </div>
+              <h1 className="text-4xl sm:text-5xl font-black tracking-tight leading-[1.07] text-white drop-shadow-[0_2px_24px_rgba(0,0,0,0.45)]">
                 {AU_SELLER_MARKETING_HEADLINE}
               </h1>
               <p className={`${SHELF_BODY} max-w-xl`}>
@@ -127,18 +177,19 @@ export default function AuSellerPage() {
 
               <div className="grid grid-cols-3 gap-2.5 max-w-lg">
                 {[
-                  { icon: Megaphone, label: 'Buyer demand', sub: 'Finely markets' },
-                  { icon: CreditCard, label: 'Your inventory', sub: 'list & rotate' },
-                  { icon: Wallet, label: 'Payouts', sub: 'per placement' },
-                ].map(({ icon: Icon, label, sub }) => (
-                  <div key={label} className="rounded-xl border border-emerald-300/20 bg-black/35 px-3 py-3.5 text-center">
-                    <Icon className="mx-auto mb-1.5 text-emerald-300" size={20} />
-                    <div className="text-[12px] font-bold text-white/85">{label}</div>
-                    <div className="text-[10px] uppercase tracking-[0.12em] text-white/45">{sub}</div>
+                  { icon: Megaphone, label: 'Buyer demand', sub: 'Finely markets', tone: 'border-sky-300/30 bg-sky-500/[0.1]', iconCls: 'text-sky-300' },
+                  { icon: CreditCard, label: 'Your inventory', sub: 'list & rotate', tone: 'border-emerald-300/30 bg-emerald-500/[0.1]', iconCls: 'text-emerald-300' },
+                  { icon: Wallet, label: 'Payouts', sub: '35%+ floor', tone: 'border-amber-300/35 bg-amber-500/[0.12]', iconCls: 'text-amber-200' },
+                ].map(({ icon: Icon, label, sub, tone, iconCls }) => (
+                  <div key={label} className={`rounded-xl border ${tone} px-3 py-3.5 text-center`}>
+                    <Icon className={`mx-auto mb-1.5 ${iconCls}`} size={20} />
+                    <div className="text-[12px] font-bold text-white">{label}</div>
+                    <div className="text-[10px] uppercase tracking-[0.12em] text-white/60">{sub}</div>
                   </div>
                 ))}
               </div>
 
+              {/* Primary actions — gold signup vs sky guide vs cool hub */}
               <div className="flex flex-wrap items-center gap-3">
                 <button type="button" onClick={() => navigate(sellerSignupUrl)} className={roleJoinBtn(ROLE)}>
                   Start AU seller signup <ArrowRight size={15} />
@@ -147,7 +198,7 @@ export default function AuSellerPage() {
                   Open {AU_SELLER.hubName}
                 </button>
               </div>
-              <p className="text-[12px] leading-relaxed text-white/45">
+              <p className="text-[12px] leading-relaxed text-white/55">
                 Looking to buy a tradeline instead of supplying one?{' '}
                 <button
                   type="button"
@@ -158,10 +209,10 @@ export default function AuSellerPage() {
                 </button>
               </p>
 
-              <div className="rounded-2xl border border-emerald-300/25 bg-black/40 p-5">
-                <p className={SHELF_KICKER}>Free — before you list a single card</p>
+              <div className="rounded-2xl border border-sky-300/30 bg-[linear-gradient(135deg,rgba(56,189,248,0.12),rgba(139,92,246,0.1))] p-5">
+                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-sky-200">Free — before you list a single card</p>
                 <RoleGuideCta role={ROLE} className="mt-3" />
-                <p className="mt-3 text-[11px] leading-relaxed text-white/35">{ROLE_ACTION_LEGEND[ROLE]}</p>
+                <p className="mt-3 text-[11px] leading-relaxed text-white/50">{ROLE_ACTION_LEGEND[ROLE]}</p>
               </div>
             </div>
           </div>
@@ -174,26 +225,26 @@ export default function AuSellerPage() {
             <h2 className={SHELF_TITLE}>{workSplit.headline}</h2>
           </div>
           <div className="grid gap-3 lg:grid-cols-2">
-            <div className={SHELF_PANEL}>
+            <div className={`${SHELF_PANEL} !border-emerald-300/25`}>
               <p className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.24em] text-emerald-200">
                 <CreditCard size={13} /> Your side of the shelf
               </p>
               <ul className="mt-3 space-y-2.5">
                 {workSplit.youDo.map((l) => (
-                  <li key={l} className="flex gap-2.5 text-[13px] leading-relaxed text-white/70">
+                  <li key={l} className="flex gap-2.5 text-[13px] leading-relaxed text-white/85">
                     <Check size={14} className="mt-0.5 shrink-0 text-emerald-300" />
                     {l}
                   </li>
                 ))}
               </ul>
             </div>
-            <div className={`${SHELF_PANEL} !border-sky-300/20`}>
-              <p className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.24em] text-sky-200">
+            <div className={`${SHELF_PANEL} !border-sky-300/25`}>
+              <p className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.24em] text-sky-100">
                 <UserCheck size={13} /> Finely’s side
               </p>
               <ul className="mt-3 space-y-2.5">
                 {workSplit.finelyRuns.map((l) => (
-                  <li key={l} className="flex gap-2.5 text-[13px] leading-relaxed text-white/70">
+                  <li key={l} className="flex gap-2.5 text-[13px] leading-relaxed text-white/85">
                     <Check size={14} className="mt-0.5 shrink-0 text-sky-300" />
                     {l}
                   </li>
@@ -201,13 +252,13 @@ export default function AuSellerPage() {
               </ul>
             </div>
           </div>
-          <div className="rounded-2xl border border-rose-300/25 bg-rose-500/[0.06] px-5 py-4">
-            <p className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.24em] text-rose-200">
+          <div className="rounded-2xl border border-rose-300/35 bg-rose-500/[0.1] px-5 py-4">
+            <p className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.24em] text-rose-100">
               <XCircle size={13} /> Not the seller’s job
             </p>
             <ul className="mt-2.5 grid gap-2 sm:grid-cols-3">
               {workSplit.notYourJob.map((l) => (
-                <li key={l} className="text-[13px] leading-relaxed text-rose-100/70">
+                <li key={l} className="text-[13px] leading-relaxed text-rose-50/90">
                   {l}
                 </li>
               ))}
@@ -226,21 +277,23 @@ export default function AuSellerPage() {
             </p>
           </div>
           <div className="grid gap-3 sm:grid-cols-[1fr_1.4fr]">
-            <div className="rounded-2xl border border-emerald-300/30 bg-emerald-500/[0.1] p-5 text-center">
-              <p className="text-[10px] font-black uppercase tracking-[0.22em] text-emerald-200/85">Activation</p>
-              <p className="mt-2 text-3xl font-black tracking-tight text-emerald-100">{AU_SELLER.startupFeeLabel}</p>
-              <p className="mt-1.5 text-[12px] text-white/55">
+            <div className="rounded-2xl border border-amber-200/55 bg-[linear-gradient(160deg,rgba(251,191,36,0.22),rgba(2,20,26,0.65))] p-5 text-center shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
+              <p className="text-[10px] font-black uppercase tracking-[0.22em] text-amber-100">Activation</p>
+              <p className="mt-2 text-3xl font-black tracking-tight text-[#fff8e7] drop-shadow-[0_2px_10px_rgba(0,0,0,0.55)]">
+                {AU_SELLER.startupFeeLabel}
+              </p>
+              <p className="mt-1.5 text-[12px] text-white/80">
                 one-time · first {AU_SELLER.listingSeasonDays}-day season included
               </p>
             </div>
-            <div className="rounded-2xl border border-dashed border-emerald-200/30 bg-black/30 p-5">
-              <p className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.22em] text-emerald-200/80">
+            <div className="rounded-2xl border border-dashed border-sky-200/40 bg-black/45 p-5">
+              <p className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.22em] text-sky-100">
                 <RefreshCw size={12} /> Season terms
               </p>
               <ul className="mt-2.5 space-y-2">
                 {AU_SELLER_ACTIVATION_BULLETS.map((b) => (
-                  <li key={b} className="flex gap-2 text-[13px] leading-relaxed text-white/65">
-                    <Check size={14} className="mt-0.5 shrink-0 text-emerald-300" />
+                  <li key={b} className="flex gap-2 text-[13px] leading-relaxed text-white/82">
+                    <Check size={14} className="mt-0.5 shrink-0 text-sky-300" />
                     {b}
                   </li>
                 ))}
@@ -248,36 +301,50 @@ export default function AuSellerPage() {
             </div>
           </div>
 
-          {/* Payout tier ladder — floor 35%, climbs with inventory strength */}
+          {/* Payout tier ladder — high-contrast % numbers */}
           <div className="space-y-2.5">
-            <p className="text-[13px] leading-relaxed text-white/60">
-              Every seller starts at a <strong className="text-emerald-200">{AU_SELLER.defaultCommissionPct}% floor</strong> —
-              your share climbs automatically as your inventory grows and stays reliable.
+            <p className="text-[13px] leading-relaxed text-white/82">
+              Every seller starts at a{' '}
+              <strong className="text-amber-50">{AU_SELLER.defaultCommissionPct}% floor</strong> — your share climbs
+              automatically as your inventory grows and stays reliable.
             </p>
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-              {AU_SELLER_PAYOUT_TIERS.map((tier) => (
-                <div
-                  key={tier.id}
-                  className="relative rounded-2xl border border-emerald-300/25 bg-black/35 p-4"
-                >
-                  {tier.badge ? (
-                    <span className="absolute -top-2.5 right-4 rounded-full border border-emerald-300/40 bg-[#03181c] px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-emerald-200">
-                      {tier.badge}
-                    </span>
-                  ) : null}
-                  <p className="text-[10px] font-black uppercase tracking-[0.22em] text-emerald-200/80">{tier.name}</p>
-                  <p className="mt-1.5 text-2xl font-black tracking-tight text-white">{tier.payoutPct}%</p>
-                  <p className="mt-1.5 text-[12px] leading-relaxed text-white/55">{tier.requirement}</p>
-                </div>
-              ))}
+              {AU_SELLER_PAYOUT_TIERS.map((tier, i) => {
+                const accent = TIER_ACCENT[i % TIER_ACCENT.length];
+                return (
+                  <div
+                    key={tier.id}
+                    className={`relative rounded-2xl border ${accent.border} ${accent.panel} p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.1),0_12px_28px_-20px_rgba(0,0,0,0.8)]`}
+                  >
+                    {tier.badge ? (
+                      <span
+                        className={`absolute -top-2.5 right-4 rounded-full border px-2 py-0.5 text-[9px] font-black uppercase tracking-wider ${accent.badge}`}
+                      >
+                        {tier.badge}
+                      </span>
+                    ) : null}
+                    <p className={`text-[10px] font-black uppercase tracking-[0.22em] ${accent.label}`}>{tier.name}</p>
+                    <p
+                      className={`mt-2 text-4xl font-black tracking-tight tabular-nums leading-none ${accent.pct} drop-shadow-[0_2px_10px_rgba(0,0,0,0.65)]`}
+                    >
+                      {tier.payoutPct}
+                      <span className="text-2xl">%</span>
+                    </p>
+                    <p className={`mt-1.5 text-[11px] font-bold uppercase tracking-[0.14em] ${accent.label}`}>
+                      seller payout
+                    </p>
+                    <p className="mt-2 text-[12px] leading-relaxed text-white/82">{tier.requirement}</p>
+                  </div>
+                );
+              })}
             </div>
           </div>
 
-          <p className="text-[13px] leading-relaxed text-white/60">
+          <p className="text-[13px] leading-relaxed text-white/65">
             Running partner restore or build files instead? That is the{' '}
             <button
               type="button"
-              className="font-semibold text-emerald-200 underline decoration-emerald-300/40 underline-offset-4 hover:text-emerald-100"
+              className="font-semibold text-amber-200 underline decoration-amber-300/40 underline-offset-4 hover:text-amber-100"
               onClick={() => navigate('/credit-specialist')}
             >
               Credit Specialist
@@ -293,22 +360,37 @@ export default function AuSellerPage() {
             <h2 className={SHELF_TITLE}>Seller operating stack.</h2>
           </div>
           <div className="grid gap-3 md:grid-cols-2">
-            {AU_SELLER_OFFERINGS.map((offering) => (
-              <div key={offering.title} className={`${SHELF_PANEL} !p-4`}>
-                <h3 className="text-base font-bold text-white">{offering.title}</h3>
-                <p className="mt-1.5 text-[13px] leading-relaxed text-white/65">{offering.description}</p>
-                <div className="mt-3 flex flex-wrap gap-1.5">
-                  {offering.included.map((item) => (
-                    <span
-                      key={item}
-                      className="rounded-lg border border-emerald-300/20 bg-emerald-400/[0.08] px-2.5 py-1 text-[11px] font-semibold text-emerald-100/85"
-                    >
-                      {item}
-                    </span>
-                  ))}
+            {AU_SELLER_OFFERINGS.map((offering, i) => {
+              const chipTone =
+                i % 4 === 0
+                  ? 'border-emerald-300/25 bg-emerald-400/[0.1] text-emerald-100'
+                  : i % 4 === 1
+                    ? 'border-amber-300/25 bg-amber-400/[0.1] text-amber-100'
+                    : i % 4 === 2
+                      ? 'border-sky-300/25 bg-sky-400/[0.1] text-sky-100'
+                      : 'border-violet-300/25 bg-violet-400/[0.1] text-violet-100';
+              const panelTone =
+                i % 4 === 0
+                  ? '!border-emerald-300/20'
+                  : i % 4 === 1
+                    ? '!border-amber-300/25'
+                    : i % 4 === 2
+                      ? '!border-sky-300/20'
+                      : '!border-violet-300/20';
+              return (
+                <div key={offering.title} className={`${SHELF_PANEL} !p-4 ${panelTone}`}>
+                  <h3 className="text-base font-bold text-white">{offering.title}</h3>
+                  <p className="mt-1.5 text-[13px] leading-relaxed text-white/82">{offering.description}</p>
+                  <div className="mt-3 flex flex-wrap gap-1.5">
+                    {offering.included.map((item) => (
+                      <span key={item} className={`rounded-lg border px-2.5 py-1 text-[11px] font-semibold ${chipTone}`}>
+                        {item}
+                      </span>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </section>
 
@@ -320,25 +402,25 @@ export default function AuSellerPage() {
           </div>
           <div className="grid gap-3 md:grid-cols-2">
             {ROLE_BENEFITS[ROLE].map((b) => (
-              <div key={b.label} className="rounded-xl border border-white/10 bg-black/30 p-4">
-                <p className="text-[15px] font-semibold text-white/92">{b.label}</p>
-                <p className="mt-1 text-[13px] leading-relaxed text-white/60">{b.detail}</p>
+              <div key={b.label} className="rounded-xl border border-white/16 bg-black/45 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
+                <p className="text-[15px] font-semibold text-white">{b.label}</p>
+                <p className="mt-1 text-[13px] leading-relaxed text-white/80">{b.detail}</p>
               </div>
             ))}
           </div>
           <div className="grid gap-6 lg:grid-cols-3">
             {[
-              { title: 'Inside access', rows: ROLE_INSIDE_ACCESS[ROLE] },
-              { title: 'Only a supplier can', rows: ROLE_UNIQUE_CAPABILITIES[ROLE] },
-              { title: 'Your seller profile', rows: ROLE_PROFILE_FEATURES[ROLE] },
+              { title: 'Inside access', rows: ROLE_INSIDE_ACCESS[ROLE], accent: 'text-emerald-100' },
+              { title: 'Only a supplier can', rows: ROLE_UNIQUE_CAPABILITIES[ROLE], accent: 'text-amber-100' },
+              { title: 'Your seller profile', rows: ROLE_PROFILE_FEATURES[ROLE], accent: 'text-sky-100' },
             ].map((col) => (
               <div key={col.title} className="space-y-3.5">
-                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/40">{col.title}</p>
+                <p className={`text-[10px] font-black uppercase tracking-[0.3em] ${col.accent}`}>{col.title}</p>
                 <dl className="space-y-3">
                   {col.rows.map((r) => (
-                    <div key={r.label} className="border-t border-emerald-300/15 pt-2.5">
-                      <dt className="text-sm font-semibold text-white/90">{r.label}</dt>
-                      <dd className="mt-1 text-[13px] leading-relaxed text-white/55">{r.detail}</dd>
+                    <div key={r.label} className="border-t border-white/16 pt-2.5">
+                      <dt className="text-sm font-semibold text-white">{r.label}</dt>
+                      <dd className="mt-1 text-[13px] leading-relaxed text-white/78">{r.detail}</dd>
                     </div>
                   ))}
                 </dl>
@@ -355,14 +437,20 @@ export default function AuSellerPage() {
           </div>
           <ol className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-4">
             {[
-              'Sign up with the AU seller role.',
-              'Verify your supply-side profile and payout method.',
-              `Activate for ${AU_SELLER.startupFeeLabel} — includes your first marketing season.`,
-              `Publish listings in ${AU_SELLER.hubName} — Finely routes buyers to you.`,
-            ].map((step, i) => (
-              <li key={step} className="rounded-xl border border-emerald-300/15 bg-black/30 p-4">
-                <span className="font-mono text-sm font-black text-emerald-300/60">{String(i + 1).padStart(2, '0')}</span>
-                <p className="mt-1.5 text-[13px] leading-relaxed text-white/70">{step}</p>
+              { step: 'Sign up with the AU seller role.', tone: 'text-amber-200/80' },
+              { step: 'Verify your supply-side profile and payout method.', tone: 'text-emerald-200/80' },
+              {
+                step: `Activate for ${AU_SELLER.startupFeeLabel} — includes your first marketing season.`,
+                tone: 'text-sky-200/80',
+              },
+              {
+                step: `Publish listings in ${AU_SELLER.hubName} — Finely routes buyers to you.`,
+                tone: 'text-violet-200/80',
+              },
+            ].map((row, i) => (
+              <li key={row.step} className="rounded-xl border border-white/16 bg-black/45 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
+                <span className={`font-mono text-sm font-black ${row.tone}`}>{String(i + 1).padStart(2, '0')}</span>
+                <p className="mt-1.5 text-[13px] leading-relaxed text-white/82">{row.step}</p>
               </li>
             ))}
           </ol>
@@ -375,9 +463,9 @@ export default function AuSellerPage() {
             onCtaClick={() => navigate(sellerSignupUrl)}
             secondaryLabel="Already a seller? Open hub"
             onSecondaryClick={() => navigate(AU_SELLER.hubPath)}
-            accent="emerald"
+            accent="amber"
           />
-          <div className="border-t border-emerald-300/15 pt-4">
+          <div className="rounded-2xl border border-sky-300/25 bg-sky-500/[0.08] p-4">
             <RoleGuideCta role={ROLE} compact />
           </div>
         </section>
@@ -406,7 +494,7 @@ export default function AuSellerPage() {
         economics={{ keepPctLabel: `${AU_SELLER.defaultCommissionPct}%+ payout`, buyInLabel: `${AU_SELLER.startupFeeLabel} to activate` }}
         ctaLabel="Start signup"
         onCta={() => navigate(sellerSignupUrl)}
-        accent="emerald"
+        accent="amber"
       />
     </PageShell>
   );

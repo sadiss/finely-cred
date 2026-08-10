@@ -105,7 +105,7 @@ export default function FundabilityReadinessPage() {
           {tab === 'personal' && (
             <FinelyUnifiedSection title="Personal fundability" subtitle="Restore reporting first — then stack funding prep.">
               <div className="flex flex-wrap gap-3">
-                <button type="button" className={FINELY_OS_PRIMARY_BTN} onClick={() => navigate('/personal-credit')}>
+                <button type="button" className={FINELY_OS_PRIMARY_BTN} onClick={() => navigate('/pricing/personal-credit-restore')}>
                   Personal credit packages <ArrowRight size={14} />
                 </button>
                 <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => navigate('/free-guide')}>

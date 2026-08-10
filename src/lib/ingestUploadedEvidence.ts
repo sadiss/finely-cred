@@ -11,9 +11,11 @@ import {
   guessDocTypeFromCaptionFilename,
   type UploadIntentId,
   docTypeFromIntent,
+  guessUploadIntentFromFile,
 } from './evidenceDocumentTaxonomy';
 import { enrichEvidenceMetadata } from './evidenceFieldExtract';
 import { attachBureauResponseToDisputeCase } from '../data/casesRepo';
+import { getDebt, upsertDebt } from '../data/debtRepo';
 
 function applyDocIntelEntities(item: EvidenceItem, entities: Record<string, string>): EvidenceItem {
   const entries = Object.entries(entities).filter(([, v]) => v && String(v).trim());
@@ -61,6 +63,7 @@ export async function ingestUploadedEvidence(args: {
   disputeCaseId?: string;
   debtCaseId?: string;
   bankruptcyCaseId?: string;
+  uploadContext?: 'general' | 'bureau' | 'debt' | 'foreclosure' | 'repossession' | 'bankruptcy';
 }): Promise<IngestUploadResult> {
   let docType: DocumentType = args.intent ? docTypeFromIntent(args.intent) : 'unknown';
   let summary = '';
@@ -70,6 +73,11 @@ export async function ingestUploadedEvidence(args: {
   let routing: DocumentRouteResult;
 
   const intentCaption = args.item.caption || '';
+  const contextDebt =
+    args.uploadContext === 'debt' ||
+    args.uploadContext === 'foreclosure' ||
+    args.uploadContext === 'repossession' ||
+    Boolean(args.debtCaseId);
 
   if (args.file && isFeatureEnabled('docIntel')) {
     try {
@@ -86,6 +94,11 @@ export async function ingestUploadedEvidence(args: {
       entities = res.entities;
       routing = res.routing;
       processedDocumentId = res.docId;
+      if (args.intent) docType = docTypeFromIntent(args.intent);
+      else if (contextDebt && (docType === 'unknown' || docType === 'other')) {
+        const guessed = guessUploadIntentFromFile(intentCaption, args.file.name);
+        if (guessed) docType = docTypeFromIntent(guessed);
+      }
     } catch {
       docType = guessDocTypeFromCaptionFilename(intentCaption, args.file.name);
       if (args.intent) docType = docTypeFromIntent(args.intent);
@@ -102,6 +115,10 @@ export async function ingestUploadedEvidence(args: {
   } else {
     docType = guessDocTypeFromCaptionFilename(intentCaption, args.item.filename);
     if (args.intent) docType = docTypeFromIntent(args.intent);
+    else if (contextDebt) {
+      const guessed = guessUploadIntentFromFile(intentCaption, args.item.filename);
+      if (guessed) docType = docTypeFromIntent(guessed);
+    }
     routing = routeProcessedDocument({
       partnerId: args.partnerId,
       docType,
@@ -154,6 +171,30 @@ export async function ingestUploadedEvidence(args: {
       linkedDisputeCaseId: targetDisputeId,
       summary: `Bureau response filed to dispute case and evidence vault.`,
     };
+  }
+
+  if (args.debtCaseId) {
+    const debtCase = getDebt(args.debtCaseId);
+    if (debtCase && debtCase.partnerId === args.partnerId && !debtCase.linkedEvidenceIds?.includes(enriched.id)) {
+      const evIds = Array.from(new Set([...(debtCase.linkedEvidenceIds || []), enriched.id]));
+      const docIds = processedDocumentId
+        ? Array.from(new Set([...(debtCase.processedDocumentIds || []), processedDocumentId]))
+        : debtCase.processedDocumentIds;
+      upsertDebt({
+        ...debtCase,
+        linkedEvidenceIds: evIds,
+        processedDocumentIds: docIds,
+        status: debtCase.status === 'open' ? 'in_review' : debtCase.status,
+        source: debtCase.source || 'document',
+      });
+      routing = {
+        ...routing,
+        linkedDebtCaseId: debtCase.id,
+        summary: routing.linkedDebtCaseId
+          ? routing.summary
+          : `Linked to debt case “${debtCase.name}”. Stay in Debt Center to scrape and respond.`,
+      };
+    }
   }
 
   const filedMessage = `Filed to **${profile.label}** (${profile.folder.replace(/_/g, ' ')}) → ${profile.primaryRouteLabel}`;

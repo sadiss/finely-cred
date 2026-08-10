@@ -21,28 +21,29 @@ export function EntityDetailShell(args: {
   useSidebarNav?: boolean;
   /** @deprecated use useSidebarNav */
   useTabLanes?: boolean;
-  /**
-   * When "admin", Overview/Profile-style content uses Platinum Workspace
-   * (light graphite/white). Default keeps dark Finely OS chrome.
-   */
+  /** When "admin", Overview/Profile content uses the scoped dark-glass workspace. */
   surface?: 'default' | 'admin';
   children: React.ReactNode;
 }) {
   const tabs = (args.tabs ?? []).filter((t) => !t.hidden);
   const useSidebar = args.useSidebarNav ?? false;
   const adminSurface = args.surface === 'admin';
-  // Shared chrome (badge/back-links, header actions, sticky tab bar) stays on the
-  // existing dark Finely OS shell regardless of active tab — only the tab BODY
-  // (`args.children`) opts into the light admin workspace below. This avoids
-  // white-on-light-gray text in the header when `surface="admin"` is active.
+  // Admin entity details stay on the Finely dark shell. Only the tab body opts
+  // into its transparent workspace treatment below.
   const pageClass = adminSurface ? FC_ADMIN_PAGE : FINELY_OS_PAGE;
   const bodyWrap = adminSurface ? 'fc-admin-workspace' : undefined;
+  const stickyBarClass =
+    'sticky top-0 z-20 -mx-1 px-1 py-2 rounded-xl border border-violet-500/20 bg-fc-chrome/95 backdrop-blur-md shadow-lg shadow-black/10 fc-entity-sticky-bar';
 
   return (
-    <PageShell badge={args.badge} title={args.title} subtitle={args.subtitle}>
+    <PageShell
+      badge={args.badge}
+      title={args.title}
+      subtitle={args.subtitle}
+    >
       <div className={pageClass}>
         {(args.headerLeft || args.headerRight) ? (
-          <div className="flex flex-wrap items-center justify-between gap-4">
+          <div data-fc-entity-detail-header="1" className="flex flex-wrap items-center justify-between gap-4">
             <div>{args.headerLeft}</div>
             <div className="flex flex-wrap items-center gap-2">{args.headerRight}</div>
           </div>
@@ -52,10 +53,18 @@ export function EntityDetailShell(args: {
 
         {useSidebar && tabs.length && args.activeTabKey && args.onTabChange ? (
           <div className="grid lg:grid-cols-[minmax(220px,280px)_minmax(0,1fr)] gap-6 lg:gap-8 items-start">
-            <PartnerDetailSidebarNav tabs={tabs} activeTabKey={args.activeTabKey} onTabChange={args.onTabChange} />
+            <PartnerDetailSidebarNav
+              tabs={tabs}
+              activeTabKey={args.activeTabKey}
+              onTabChange={args.onTabChange}
+              light={false}
+            />
             <div className="min-w-0 space-y-6">
               {args.stickyBar ? (
-                <div className="sticky top-0 z-20 -mx-1 px-1 py-2 rounded-xl border border-violet-500/20 bg-fc-chrome/95 backdrop-blur-md shadow-lg shadow-black/10 fc-entity-sticky-bar">
+                <div
+                  data-fc-entity-sticky-surface="default"
+                  className={stickyBarClass}
+                >
                   {args.stickyBar}
                 </div>
               ) : null}
@@ -65,10 +74,18 @@ export function EntityDetailShell(args: {
         ) : (
           <>
             {tabs.length && args.activeTabKey && args.onTabChange ? (
-              <PartnerDetailSidebarNav tabs={tabs} activeTabKey={args.activeTabKey} onTabChange={args.onTabChange} />
+              <PartnerDetailSidebarNav
+                tabs={tabs}
+                activeTabKey={args.activeTabKey}
+                onTabChange={args.onTabChange}
+                light={false}
+              />
             ) : null}
             {args.stickyBar ? (
-              <div className="sticky top-0 z-20 -mx-1 px-1 py-2 rounded-xl border border-violet-500/20 bg-fc-chrome/95 backdrop-blur-md shadow-lg shadow-black/10 fc-entity-sticky-bar">
+              <div
+                data-fc-entity-sticky-surface="default"
+                className={stickyBarClass}
+              >
                 {args.stickyBar}
               </div>
             ) : null}

@@ -149,10 +149,10 @@ export const TOUR_MANIFEST: SiteTourDefinition[] = [
     title: 'Personal credit packages explained',
     lane: 'public',
     auth: 'none',
-    startPath: '/personal-credit',
+    startPath: '/pricing/personal-credit-restore',
     relatedSopId: 'sop-public-personal-credit',
     steps: [
-      step('s1', 'Packages tab', 'Compare restore and platinum packages.', '/personal-credit'),
+      step('s1', 'Packages tab', 'Compare restore and platinum packages.', '/pricing/personal-credit-restore'),
       step('s2', 'Start intake', 'Tap Start intake when you are ready.', '/onboarding'),
     ],
   },

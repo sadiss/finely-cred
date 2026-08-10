@@ -79,7 +79,7 @@ export function LandingFundabilityTrustSection() {
             </div>
             <button
               type="button"
-              onClick={() => navigate('/personal-credit')}
+              onClick={() => navigate('/pricing/personal-credit-restore')}
               className="text-[10px] font-black uppercase tracking-widest text-emerald-300 hover:text-white transition-colors"
             >
               See personal restore path →

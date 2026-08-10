@@ -51,6 +51,7 @@ export function createLeadCapture(args: Omit<LeadCapture, 'id' | 'createdAt'> & 
     utmSource: args.utmSource?.trim() || attr?.utmSource?.trim() || undefined,
     utmMedium: args.utmMedium?.trim() || attr?.utmMedium?.trim() || undefined,
     utmCampaign: args.utmCampaign?.trim() || attr?.utmCampaign?.trim() || undefined,
+    utmContent: args.utmContent?.trim() || attr?.utmContent?.trim() || undefined,
     funnelPath: args.funnelPath?.trim() || undefined,
     funnelId: args.funnelId?.trim() || undefined,
     goal: args.goal,

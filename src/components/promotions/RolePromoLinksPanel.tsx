@@ -71,7 +71,7 @@ export function RolePromoLinksPanel({
               asset: 'credit-specialist-join',
               url: buildPromotedUrl({
                 ...common,
-                path: '/credit-specialist/join',
+                path: '/credit-specialist',
                 promoType: 'service',
                 promoAsset: 'credit-specialist-join',
               }),

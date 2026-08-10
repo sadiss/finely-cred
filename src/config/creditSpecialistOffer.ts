@@ -226,7 +226,13 @@ export function creditSpecialistAccountSignupUrl(args?: {
     minLeads: String(CS_OFFER.minLeadsRequired),
     freeLeadsDays: String(CS_OFFER.freeLeadsWindowDays),
   });
-  if (args?.tierId) qs.set('tier', args.tierId);
+  // Use csTier (not tier) so offer ids never collide with agency_* capacity tiers in onboarding.
+  if (args?.tierId) qs.set('csTier', args.tierId);
   if (args?.next) qs.set('next', args.next);
   return `/signup?${qs.toString()}`;
+}
+
+/** True when an id is a Credit Specialist offer tier (not an agency capacity / buy-in id). */
+export function isCreditSpecialistOfferTierId(id: string | null | undefined): boolean {
+  return Boolean(id && String(id).startsWith('cs_'));
 }

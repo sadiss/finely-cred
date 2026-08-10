@@ -40,9 +40,13 @@ import {
   FINELY_OS_BACK_LINK,
   FINELY_OS_ENTITY_BODY,
   FINELY_OS_ENTITY_CHIP,
-  FINELY_OS_ENTITY_INPUT,
+  FINELY_OS_IVORY_ENTITY_BODY,
+  FINELY_OS_IVORY_ENTITY_INPUT,
+  FINELY_OS_IVORY_ENTITY_LABEL,
+  FINELY_OS_IVORY_ENTITY_VALUE,
   FINELY_OS_ENTITY_LABEL,
   finelyOsCatalogCard,
+  finelyOsIvorySolidTile,
   FINELY_OS_ENTITY_SUBLABEL,
   FINELY_OS_ENTITY_VALUE,
   FINELY_OS_LUXURY_EMPTY,
@@ -251,11 +255,12 @@ export default function PartnerBillingPage() {
   return (
     <PageShell
       badge="Partner Portal"
+      surface="ivory"
       title="Profile & Billing"
       subtitle="Account profile, billing, and compliance settings. Payments are processed via Stripe or in‑house financing depending on your plan."
     >
       {!partner ? (
-        <div className={FINELY_OS_PAGE}>
+        <div className={`${FINELY_OS_PAGE} fc-senior-simple`}>
           <div className={`${FINELY_OS_LUXURY_EMPTY} text-left`}>
             No partner profile found for this account. If you're an admin, use Partner Management to pick a partner.
           </div>
@@ -264,7 +269,7 @@ export default function PartnerBillingPage() {
           </button>
         </div>
       ) : (
-        <div className={FINELY_OS_PAGE}>
+        <div className={`${FINELY_OS_PAGE} fc-senior-simple`}>
           {notice && (
             <div className={`${FINELY_OS_NOTICE_WARN} flex items-center gap-3`}>
               <CheckCircle2 size={18} className="text-fuchsia-300 shrink-0" />
@@ -317,6 +322,7 @@ export default function PartnerBillingPage() {
           </div>
 
           <FinelyNoticedStrip
+            surface="light"
             items={buildBillingNoticedItems({
               trialActive: trial.isActive,
               activeModuleCount: activeEntitlementKeys.size,
@@ -324,7 +330,7 @@ export default function PartnerBillingPage() {
             })}
           />
 
-          <FinelyNowDoThisStrip currentIndex={billingTab === 'profile' ? 0 : 1} />
+          <FinelyNowDoThisStrip surface="light" currentIndex={billingTab === 'profile' ? 0 : 1} />
 
           <FinelyUnifiedHubLayout
             eyebrow="Profile & billing"
@@ -352,21 +358,21 @@ export default function PartnerBillingPage() {
           {billingTab === 'profile' && (
           <>
           <div className="grid lg:grid-cols-12 gap-6">
-            <div className={`lg:col-span-7 min-w-0 ${finelyOsCatalogCard('violet')} !p-5 space-y-3`}>
-              <div className={`inline-flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL} text-violet-300`}>
+            <div className={`lg:col-span-7 min-w-0 ${finelyOsIvorySolidTile('violet')} !p-5 space-y-3`}>
+              <div className={`inline-flex items-center gap-2 ${FINELY_OS_IVORY_ENTITY_LABEL} text-violet-700`}>
                 <Shield size={18} />
                 <span>Profile</span>
               </div>
-              <div className={FINELY_OS_ENTITY_BODY}>
-                <div className={FINELY_OS_ENTITY_VALUE}>{partner.profile.fullName}</div>
+              <div className={FINELY_OS_IVORY_ENTITY_BODY}>
+                <div className={FINELY_OS_IVORY_ENTITY_VALUE}>{partner.profile.fullName}</div>
                 <div className="mt-1">{partner.profile.email || email || '—'}</div>
                 <div className="mt-4 grid md:grid-cols-3 gap-3 items-end">
                   <div className="md:col-span-2">
-                    <label className={FINELY_OS_ENTITY_LABEL}>Phone</label>
+                    <label className={FINELY_OS_IVORY_ENTITY_LABEL}>Phone</label>
                     <input
                       value={phoneDraft}
                       onChange={(e) => setPhoneDraft(e.target.value)}
-                      className={FINELY_OS_ENTITY_INPUT}
+                      className={FINELY_OS_IVORY_ENTITY_INPUT}
                       placeholder="(555) 555-5555"
                     />
                   </div>
@@ -403,6 +409,7 @@ export default function PartnerBillingPage() {
                   layout={partnerFieldLayout}
                   definitions={partnerFieldDefs}
                   values={partnerValues}
+                  surface="ivory"
                   onChangeValue={(key, next, persist) => {
                     if (!partner) return;
                     setPartnerValues((prev) => {

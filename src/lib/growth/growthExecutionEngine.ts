@@ -56,9 +56,22 @@ export function planGrowthExecution(message: string, surface: 'cmo' | 'lead_inte
     steps.push({ id: newId('gstep'), label, delegate, action, status });
   };
 
+  const swarmLabel =
+    surface === 'lead_intel'
+      ? 'Queue simulation deep-swarm jobs (Overnight50 cadence — not live Serper)'
+      : 'Start deep Lead Intel swarm (multi-hour discovery)';
+  const geoLabel =
+    surface === 'lead_intel'
+      ? 'Queue simulation geo-scoped swarm jobs (ops cadence)'
+      : 'Rotate geo queries across priority cities';
+  const bgIntelLabel =
+    surface === 'lead_intel'
+      ? 'Queue simulation background swarm (use Caleb Find for live search)'
+      : 'Start background intel discovery';
+
   if (/\b(swarm|scrape|scraper|discover|prospect|intel|search everywhere|all day|overnight)\b/.test(lower)) {
-    add('Start deep Lead Intel swarm (multi-hour discovery)', 'night_owl_intel', 'start_deep_swarm');
-    add('Rotate geo queries across priority cities', 'geo_commander', 'geo_scan');
+    add(swarmLabel, 'night_owl_intel', 'start_deep_swarm');
+    add(geoLabel, 'geo_commander', 'geo_scan');
   }
 
   if (/\b(lead|200|growth|scale|traffic|funnel|magnet)\b/.test(lower)) {
@@ -83,20 +96,26 @@ export function planGrowthExecution(message: string, surface: 'cmo' | 'lead_inte
   }
 
   if (/\b(execute|run it|do it|automate|hands?.off|make it happen)\b/.test(lower) && steps.length === 0) {
-    add('Start deep Lead Intel swarm', 'night_owl_intel', 'start_deep_swarm');
+    add(surface === 'lead_intel' ? swarmLabel : 'Start deep Lead Intel swarm', 'night_owl_intel', 'start_deep_swarm');
     add('Stage default growth playbook', 'cmo_prime', 'stage_playbook');
   }
 
   if (steps.length === 0) {
     add('Stage recommended growth playbook from your question', 'cmo_prime', 'stage_playbook');
-    add('Start background intel discovery', 'night_owl_intel', 'start_deep_swarm');
+    add(bgIntelLabel, 'night_owl_intel', 'start_deep_swarm');
   }
 
   return steps.slice(0, 6);
 }
 
-export async function runGrowthExecutionStep(step: GrowthExecutionStep, context?: { message?: string; cities?: OvernightCity[] }): Promise<GrowthExecutionStep> {
+export async function runGrowthExecutionStep(
+  step: GrowthExecutionStep,
+  context?: { message?: string; cities?: OvernightCity[]; surface?: 'cmo' | 'lead_intel' },
+): Promise<GrowthExecutionStep> {
   const next = { ...step, status: 'running' as const };
+  const surface = context?.surface ?? 'cmo';
+  const simSwarmNote =
+    'Simulation queue only — not live Serper imports. Live finds: Caleb Find (Marketing Desk) or Live Lead Engine hunt. Worker: lead-intel-worker-tick (GROWTH_WORKER_LIVE=true for live ticks).';
   try {
     switch (step.action) {
       case 'start_deep_swarm': {
@@ -107,7 +126,11 @@ export async function runGrowthExecutionStep(step: GrowthExecutionStep, context?
           remote: true,
           deep: true,
         });
-        return { ...next, status: 'done', result: `Deep swarm queued ${jobs.length} jobs. Discovery runs for hours — check Live feed.` };
+        const result =
+          surface === 'lead_intel'
+            ? `Queued ${jobs.length} simulation swarm jobs. ${simSwarmNote}`
+            : `Deep swarm queued ${jobs.length} jobs. Discovery runs for hours — check Live feed.`;
+        return { ...next, status: 'done', result };
       }
       case 'geo_scan': {
         const jobs = await enqueueLeadIntelSwarm({
@@ -116,7 +139,11 @@ export async function runGrowthExecutionStep(step: GrowthExecutionStep, context?
           remote: true,
           deep: true,
         });
-        return { ...next, status: 'done', result: `Geo Commander queued ${jobs.length} city-scoped scans.` };
+        const result =
+          surface === 'lead_intel'
+            ? `Queued ${jobs.length} simulation geo-scoped jobs. ${simSwarmNote}`
+            : `Geo Commander queued ${jobs.length} city-scoped scans.`;
+        return { ...next, status: 'done', result };
       }
       case 'stage_playbook': {
         const out = launchCmoPlaybookByIntent(context?.message || 'generate leads');
@@ -173,7 +200,7 @@ export async function runAllSafeGrowthSteps(message: string, surface: 'cmo' | 'l
       results.push(step);
       continue;
     }
-    results.push(await runGrowthExecutionStep(step, { message }));
+    results.push(await runGrowthExecutionStep(step, { message, surface }));
   }
   const done = results.filter((r) => r.status === 'done').length;
   const summary = results.map((r) => `• ${delegateLabel(r.delegate)}: ${r.label} — ${r.status}${r.result ? ` (${r.result})` : ''}`).join('\n');
@@ -181,19 +208,33 @@ export async function runAllSafeGrowthSteps(message: string, surface: 'cmo' | 'l
 }
 
 export function buildExecutionAwareSystemPrompt(surface: 'cmo' | 'lead_intel') {
-  const capabilities = [
-    'Start deep Lead Intel swarm (hours-long multi-source discovery)',
-    'Enqueue geo scans for Dallas, Houston, Atlanta, Phoenix, Charlotte',
-    'Stage CMO playbooks → campaigns → Comms/Media/scheduler drafts',
-    'Delegate to Night Owl Intel, Geo Commander, Nurture Concierge, Content Director, Compliance Officer',
-    'Score and route hot prospects (import needs admin confirm)',
-    'Never auto-publish external or send without approval when risk is medium+',
-  ];
+  const capabilities =
+    surface === 'lead_intel'
+      ? [
+          'Live prospect search via Caleb Find (Marketing Desk) and lead-intel edge (Serper) — not via fake swarm counters',
+          'Queue simulation deep-swarm / Overnight50 jobs for ops cadence only — label them simulation',
+          'Background worker lead-intel-worker-tick: simulation unless GROWTH_WORKER_LIVE=true',
+          'Stage CMO playbooks → campaigns → Comms/Media/scheduler drafts',
+          'Score and route hot prospects (import needs admin confirm in staging)',
+          'Never auto-publish external or send without approval when risk is medium+',
+        ]
+      : [
+          'Start deep Lead Intel swarm (hours-long multi-source discovery)',
+          'Enqueue geo scans for Dallas, Houston, Atlanta, Phoenix, Charlotte',
+          'Stage CMO playbooks → campaigns → Comms/Media/scheduler drafts',
+          'Delegate to Night Owl Intel, Geo Commander, Nurture Concierge, Content Director, Compliance Officer',
+          'Score and route hot prospects (import needs admin confirm)',
+          'Never auto-publish external or send without approval when risk is medium+',
+        ];
+  const leadIntelTruth =
+    surface === 'lead_intel'
+      ? '\nLead Intel truth: Overnight50/deep-swarm UI counters are simulation unless explicitly live. Always steer owners to Caleb Find for real imports.'
+      : '';
   return `You are Finely Cred ${surface === 'cmo' ? 'CMO Prime' : 'Lead Intelligence Director'}. You ALREADY KNOW the full execution playbook. When asked a question:
 1) Answer directly with strategy
 2) List what you will execute now vs what needs approval
 3) Name which delegate owns each step
-You can execute internally: swarm, playbooks, drafts, geo queues. You cannot bypass compliance.
+You can execute internally: ${surface === 'lead_intel' ? 'simulation swarm queues, playbooks, drafts' : 'swarm, playbooks, drafts, geo queues'}. You cannot bypass compliance.${leadIntelTruth}
 
 Capabilities you control:
 ${capabilities.map((c) => `- ${c}`).join('\n')}

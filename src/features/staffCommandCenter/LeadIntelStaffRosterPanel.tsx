@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { getStaffRoster, leadIntelStaffIds, staffFullName } from './staffRoster';
 import { StaffAvatar, StaffStatusPill } from './StaffAvatar';
 import { StaffKindBadge } from './StaffKindBadge';
+import { formatStaffCommandDutyLine } from '../../lib/staffCommandShift';
 import {
   STAFF_CMD_BODY,
   STAFF_CMD_EYEBROW,
@@ -49,7 +50,9 @@ export function LeadIntelStaffRosterPanel({ compact = false }: { compact?: boole
       </div>
 
       <div className="space-y-3">
-        {roster.map((s) => (
+        {roster.map((s) => {
+          const dutyLine = formatStaffCommandDutyLine(s.shift);
+          return (
           <div
             key={s.id}
             className={`flex flex-wrap items-center gap-4 rounded-2xl border p-4 ${staffCmdCardBorder(s, false)}`}
@@ -63,13 +66,15 @@ export function LeadIntelStaffRosterPanel({ compact = false }: { compact?: boole
               <div className="text-sm font-semibold text-violet-200/90">{s.title}</div>
               <div className="mt-1 text-[11px] text-white/40">Codename: {s.codename}</div>
               <p className="mt-2 text-sm text-white/60 line-clamp-2">{s.personality.bio}</p>
+              {dutyLine ? <p className="mt-2 text-[10px] text-emerald-200/75 leading-snug">{dutyLine}</p> : null}
             </div>
             <div className="flex flex-col items-end gap-2">
               <StaffStatusPill status={s.status} />
               <span className="text-[10px] text-white/35 uppercase tracking-widest font-black">{s.workMode.replace(/_/g, ' ')}</span>
             </div>
           </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

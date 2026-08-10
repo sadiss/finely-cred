@@ -1095,27 +1095,31 @@ export function FreeGuideFunnelStyles() {
     }
     .fg-funnel .fg-device-ambient {
       position: absolute;
-      left: 55%;
-      top: 50%;
+      left: 52%;
+      top: 48%;
       transform: translate(-50%, -50%);
-      width: 105%;
-      height: 108%;
+      width: 118%;
+      height: 120%;
       pointer-events: none;
       z-index: 0;
       background:
-        radial-gradient(ellipse 50% 44% at 50% 48%, rgba(57, 255, 20, 0.11) 0%, transparent 72%),
-        radial-gradient(ellipse 38% 34% at 22% 78%, rgba(16, 185, 129, 0.06) 0%, transparent 75%);
-      filter: blur(48px);
-      opacity: 0.75;
+        radial-gradient(ellipse 52% 48% at 50% 45%, rgba(57, 255, 20, 0.26) 0%, transparent 70%),
+        radial-gradient(ellipse 40% 36% at 78% 70%, rgba(251, 191, 36, 0.16) 0%, transparent 72%),
+        radial-gradient(ellipse 36% 32% at 18% 78%, rgba(16, 185, 129, 0.14) 0%, transparent 75%);
+      filter: blur(42px);
+      opacity: 0.95;
     }
     .fg-funnel .fg-device-browser {
       position: relative;
       z-index: 1;
-      border-radius: 1rem;
+      border-radius: 1.15rem;
       overflow: hidden;
-      border: 1px solid rgba(255, 255, 255, 0.07);
+      border: 1px solid rgba(52, 211, 153, 0.35);
       background: #0a0f14;
-      box-shadow: 0 32px 64px -28px rgba(0, 0, 0, 0.82);
+      box-shadow:
+        0 0 0 1px rgba(57, 255, 20, 0.12),
+        0 0 48px -8px rgba(26, 173, 75, 0.45),
+        0 36px 70px -28px rgba(0, 0, 0, 0.85);
     }
     .fg-funnel .fg-device-browser-body {
       position: relative;
@@ -1147,10 +1151,12 @@ export function FreeGuideFunnelStyles() {
     .fg-funnel .fg-device-phone-float {
       position: absolute;
       z-index: 4;
-      width: clamp(92px, 24%, 124px);
+      width: clamp(102px, 26%, 138px);
       right: clamp(10px, 3.5%, 18px);
       bottom: clamp(10px, 4.5%, 18px);
-      filter: drop-shadow(0 14px 28px rgba(0, 0, 0, 0.45));
+      filter:
+        drop-shadow(0 0 18px rgba(52, 211, 153, 0.45))
+        drop-shadow(0 16px 32px rgba(0, 0, 0, 0.55));
     }
     @media (max-width: 639px) {
       .fg-funnel .fg-device-phone-float {
@@ -1170,12 +1176,13 @@ export function FreeGuideFunnelStyles() {
       }
     }
     .fg-funnel .fg-device-phone-bezel {
-      border-radius: 1.65rem;
+      border-radius: 1.7rem;
       padding: 5px;
-      background: linear-gradient(155deg, #3d3d3d 0%, #141414 48%, #222 100%);
+      background: linear-gradient(155deg, #4a4a4a 0%, #141414 48%, #2a2a2a 100%);
       box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.14),
-        0 0 0 1px rgba(255, 255, 255, 0.06);
+        inset 0 1px 0 rgba(255, 255, 255, 0.22),
+        0 0 0 1px rgba(52, 211, 153, 0.35),
+        0 0 22px rgba(26, 173, 75, 0.35);
     }
     .fg-funnel .fg-device-phone-screen {
       container-type: inline-size;

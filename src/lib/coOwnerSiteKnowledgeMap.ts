@@ -52,7 +52,7 @@ function portalSurfaces(): SiteSurface[] {
 const PUBLIC_SURFACES: SiteSurface[] = [
   { path: '/', label: 'Home', lane: 'public' },
   { path: '/start-here', label: 'Start here', lane: 'public' },
-  { path: '/personal-credit', label: 'Personal credit', lane: 'public' },
+  { path: '/pricing/personal-credit-restore', label: 'Personal credit restore', lane: 'public' },
   { path: '/resources', label: 'Resources', lane: 'public' },
   { path: '/fundability', label: 'Fundability readiness', lane: 'public' },
   { path: '/dashboard', label: 'Partner dashboard entry', lane: 'public' },

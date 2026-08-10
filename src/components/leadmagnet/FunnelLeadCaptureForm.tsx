@@ -4,6 +4,8 @@ import { FINELY_OS_ENTITY_INPUT } from '../../features/os/finelyOsLightUi';
 
 export type FunnelLeadCaptureFormProps = {
   id?: string;
+  /** Nested under a page capture panel — skip duplicate chrome / id collision. */
+  embedded?: boolean;
   firstName: string;
   lastName: string;
   email: string;
@@ -25,7 +27,8 @@ export type FunnelLeadCaptureFormProps = {
 };
 
 export function FunnelLeadCaptureForm({
-  id = 'fg-capture',
+  id,
+  embedded = false,
   firstName,
   lastName,
   email,
@@ -45,25 +48,38 @@ export function FunnelLeadCaptureForm({
   onMarketingChange,
   onSubmit,
 }: FunnelLeadCaptureFormProps) {
-  return (
-    <div id={id} className="fg-capture-card scroll-mt-24 rounded-[1.65rem] border border-sky-200/15 bg-white/[0.055] p-4 sm:p-5 backdrop-blur-xl">
-      <div className="mb-4 flex items-start justify-between gap-4">
-        <div>
-          <p className="text-[10px] font-black uppercase tracking-[0.22em] text-sky-200">Free access pass</p>
-          <h3 className="mt-1 text-xl font-black leading-tight text-white">Unlock the guide and portal preview.</h3>
-        </div>
-        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-sky-200/30 bg-sky-200/10 text-sky-100">
-          <Mail className="h-5 w-5" />
-        </div>
-      </div>
+  const rootId = id ?? (embedded ? 'fg-capture-form' : 'fg-capture');
 
-      <div className="mb-4 grid grid-cols-3 gap-2">
-        {['PDF guide', 'Portal preview', '$0 today'].map((item) => (
-          <div key={item} className="rounded-xl border border-white/[0.08] bg-slate-200/[0.07] px-2 py-2 text-center text-[10px] font-bold uppercase tracking-wide text-white/75">
-            {item}
+  return (
+    <div
+      id={rootId}
+      className={
+        embedded
+          ? 'fg-capture-card fg-capture-card--embedded'
+          : 'fg-capture-card scroll-mt-24 rounded-[1.65rem] border border-amber-200/20 bg-white/[0.055] p-4 sm:p-5 backdrop-blur-xl'
+      }
+    >
+      {!embedded ? (
+        <>
+          <div className="mb-4 flex items-start justify-between gap-4">
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-[0.22em] text-amber-100/90">Free access pass</p>
+              <h3 className="mt-1 text-xl font-black leading-tight text-white">Unlock the guide and portal preview.</h3>
+            </div>
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-amber-200/30 bg-amber-200/10 text-amber-100">
+              <Mail className="h-5 w-5" />
+            </div>
           </div>
-        ))}
-      </div>
+
+          <div className="mb-4 grid grid-cols-3 gap-2">
+            {['PDF guide', 'Portal preview', '$0 today'].map((item) => (
+              <div key={item} className="rounded-xl border border-white/[0.08] bg-slate-200/[0.07] px-2 py-2 text-center text-[10px] font-bold uppercase tracking-wide text-white/75">
+                {item}
+              </div>
+            ))}
+          </div>
+        </>
+      ) : null}
 
       <form onSubmit={onSubmit} className="space-y-2.5">
         <div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
@@ -129,8 +145,9 @@ export function FunnelLeadCaptureForm({
       </form>
 
       <p className="mt-3 flex items-center justify-center gap-1.5 text-center text-[10px] text-white/40">
-        <CheckCircle2 className="h-3 w-3 text-sky-200" /> ${totalValue} value · trusted by {trustLabel} partners
+        <CheckCircle2 className="h-3 w-3 text-amber-200/80" /> ${totalValue} value · trusted by {trustLabel} partners
       </p>
+      <p className="mt-1.5 text-center text-[10px] text-white/35">Results vary · not legal advice</p>
     </div>
   );
 }

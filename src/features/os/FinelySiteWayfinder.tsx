@@ -35,11 +35,17 @@ export function FinelySiteWayfinder() {
   const tab = searchParams.get('tab');
   const onSolutions =
     path.startsWith('/pricing') || path.startsWith('/services') || path.startsWith('/start-here');
+  const onPersonalRestoreHero = path.includes('/personal-credit-restore');
 
   const activeLane = useMemo(
     () => SITE_WAYFINDER_LANES.find((lane) => laneActive(path, lane.path, tab)) ?? null,
     [path, tab],
   );
+
+  /* Restore: hero lives in-page (PricingServicePage Solutions band) — no duplicate black header. */
+  if (onPersonalRestoreHero) {
+    return null;
+  }
 
   return (
     <div

@@ -524,10 +524,11 @@ function scoreChip(_score: number) {
       {view === 'discover' ? (
         <>
           <div className={`${finelyOsCatalogCard('emerald')} !p-5 space-y-3`} data-fc-accent="emerald">
-            <FinelyOsSectionTitle icon={Target} label="Daily growth target" accent="emerald" />
+            <FinelyOsSectionTitle icon={Target} label="Daily growth target (live Serper)" accent="emerald" />
             <p className={FINELY_OS_ENTITY_BODY}>
-              Goal: <strong className="text-emerald-300">{DAILY_LEAD_TARGET}+ qualified prospects per day</strong> with email or phone —
-              routed to free signup funnels like <code className="opacity-80">{recommendedSignupPath('clients')}</code>.
+              Stretch goal: <strong className="text-emerald-300">up to {DAILY_LEAD_TARGET} qualified prospects per session</strong> with email or phone when
+              search returns matches — routed to signup funnels like{' '}
+              <code className="opacity-80">{recommendedSignupPath('clients')}</code>. Not the same as overnight swarm simulation counters.
             </p>
             <div className="h-2 rounded-full bg-white/10 overflow-hidden">
               <div
@@ -543,7 +544,7 @@ function scoreChip(_score: number) {
               <span>With email: {results.filter((r) => (r.emails?.length ?? 0) > 0).length}</span>
             </div>
             <button type="button" onClick={() => void runDailyGrowthBatch()} disabled={busy || !features.leadIntel} className={FINELY_OS_PRIMARY_BTN}>
-              <Sparkles size={14} /> {busy ? 'Running daily batch…' : `Run daily growth batch (${DAILY_LEAD_TARGET}+ leads)`}
+              <Sparkles size={14} /> {busy ? 'Running live Serper batch…' : `Run live daily batch (Serper)`}
             </button>
           </div>
 
@@ -892,7 +893,12 @@ function scoreChip(_score: number) {
       ) : null}
 
       {view === 'copilot' ? (
-        <LeadIntelCopilot target={target} query={query} results={results} selectedUrls={selectedUrls} importedCount={importedProspects.length} />
+        <div className="space-y-3">
+          <p className={`text-xs ${FINELY_OS_ENTITY_BODY}`}>
+            Copilot plans safe internal steps. For live prospects, use Discover or Caleb Find — not simulation swarm counters.
+          </p>
+          <LeadIntelCopilot target={target} query={query} results={results} selectedUrls={selectedUrls} importedCount={importedProspects.length} />
+        </div>
       ) : null}
 
       {showCompliance ? (

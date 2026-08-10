@@ -47,6 +47,7 @@ import { ENTITLEMENT_KEYS } from '../../billing/entitlements';
 import { Button } from '../../components/ui';
 import { FinelyOsPaginatedStack } from '../../features/os/FinelyOsPaginatedStack';
 import { FinelyOsPageFooter } from '../../features/os/FinelyOsPageFooter';
+import { PartnerRestoreWorkspaceDock } from '../../features/partner/PartnerRestoreWorkspaceDock';
 import { FinelyUnifiedHubLayout } from '../../features/unified/FinelyUnifiedHubLayout';
 import { FinelyNowDoThisStrip } from '../../components/tours/FinelyNowDoThisStrip';
 import { FinelyNoticedStrip } from '../../components/tours/FinelyNoticedStrip';
@@ -925,6 +926,7 @@ export default function PartnerReportsPage() {
           </div>
         ) : null}
 
+        <PartnerRestoreWorkspaceDock variant="portal" className="mt-6 sticky bottom-3 z-20" />
         <FinelyOsPageFooter />
         </div>
       </EntitlementGate>

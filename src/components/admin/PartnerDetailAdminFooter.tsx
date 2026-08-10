@@ -7,7 +7,7 @@ import { PartnerSpecialistAssignmentPanel } from './PartnerSpecialistAssignmentP
 import { PartnerIntakeLinkPanel } from './PartnerIntakeLinkPanel';
 import { JourneyStageAdminControl } from '../journey/JourneyStageAdminControl';
 import { PartnerCreditRestoreHud } from '../../features/partner/PartnerCreditRestoreHud';
-import { PartnerCreditRestoreMiniRail } from '../../features/partner/PartnerCreditRestoreMiniRail';
+import { PartnerRestoreWorkspaceDock } from '../../features/partner/PartnerRestoreWorkspaceDock';
 import { RoleWorkflowPanel } from '../workflow/RoleWorkflowPanel';
 import { LegacyApplicationStatusBanner } from './LegacyApplicationStatusBanner';
 import {
@@ -54,17 +54,6 @@ export function PartnerDetailAdminFooter({
 
   return (
     <>
-      {showRestoreRail ? (
-        <div className="mb-4">
-          <PartnerCreditRestoreMiniRail
-            reportsCount={reportsCount}
-            evidenceCount={evidenceCount}
-            lettersCount={lettersCount}
-            onOpenTab={(t) => onOpenTab(t as TabKey)}
-          />
-        </div>
-      ) : null}
-
       {showAccess ? (
         <>
           <AdminPartnerAccessPanel partner={partner} onUpdated={onUpdated} />
@@ -110,6 +99,19 @@ export function PartnerDetailAdminFooter({
             </details>
           </div>
       </section>
+      ) : null}
+
+      {showRestoreRail ? (
+        <div className="mt-6">
+          <PartnerRestoreWorkspaceDock
+            variant="admin"
+            activeTab={
+              tab === 'reports' || tab === 'evidence' || tab === 'letters' || tab === 'debt' ? tab : undefined
+            }
+            onOpenTab={(t) => onOpenTab(t)}
+            className="sticky bottom-3 z-30"
+          />
+        </div>
       ) : null}
     </>
   );

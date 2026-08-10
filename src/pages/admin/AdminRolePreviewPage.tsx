@@ -5,8 +5,11 @@ import {
   Cross,
   BadgeCheck,
   BriefcaseBusiness,
+  Building2,
   Crown,
   ExternalLink,
+  Gavel,
+  Home,
   Share2,
   Shield,
   UserCog,
@@ -37,8 +40,22 @@ import { capabilitiesForRole, workflowIdForCapabilityRole, type RoleCapabilityRo
 import { RoleWorkflowPanel } from '../../components/workflow/RoleWorkflowPanel';
 import { demoRoleWorkflowProgress } from '../../lib/roleWorkflowProgress';
 import { LAUNCH_ROLE_COURSES } from '../../config/launchRoleCourses';
+import { AGENCY } from '../../config/agencyPartnersProgram';
+import { CASE_HELP } from '../../config/caseHelpProgram';
+import { RE } from '../../config/realEstateProgram';
 
-type RoleType = 'partner' | 'business' | 'agent' | 'affiliate' | 'au_seller' | 'au_buyer' | 'heta_society' | 'admin';
+type RoleType =
+  | 'partner'
+  | 'business'
+  | 'agent'
+  | 'affiliate'
+  | 'au_seller'
+  | 'au_buyer'
+  | 'agency'
+  | 'case_help'
+  | 'real_estate'
+  | 'heta_society'
+  | 'admin';
 
 type RoleConfig = {
   title: string;
@@ -184,6 +201,72 @@ const ROLE_CONFIG: Record<RoleType, RoleConfig> = {
     contracts: ['AU placement terms', 'Authorization and eligibility attestations'],
     payouts: ['N/A — buyer pays for tradeline placement'],
   },
+  agency: {
+    title: 'Agency partner',
+    shortLabel: 'Agency',
+    icon: Building2,
+    accent: 'amber',
+    previewPath: AGENCY.hubPath,
+    addPath: AGENCY.signupPath,
+    addLabel: 'Create agency workspace',
+    preview: [
+      'Agency Hub after tenant create — partners, letters, team, payouts, white-label',
+      'Gate: active membership on an agency-type tenant (tenant_owner / agency staff)',
+      'Separate from Credit Specialist lane — agency_* buy-in IDs never equal cs_*',
+    ],
+    access: [
+      { label: 'Agency Hub', path: AGENCY.hubPath },
+      { label: 'Agency signup', path: AGENCY.signupPath },
+      { label: 'Public careers', path: AGENCY.publicPath },
+      { label: 'Team & roles', path: '/admin/team' },
+    ],
+    contracts: ['Agency buy-in / operating terms', 'White-label brand settings on tenant'],
+    payouts: ['Agency keep % on partner files — configure in Finance / payout center'],
+  },
+  case_help: {
+    title: 'Case Help (case desk)',
+    shortLabel: 'Case Help',
+    icon: Gavel,
+    accent: 'fuchsia',
+    previewPath: CASE_HELP.hubPath,
+    addPath: '/admin/team',
+    addLabel: 'Invite case desk seat',
+    preview: [
+      'Hub only after admin approval → claim/signup — never promised on bare apply',
+      'Membership roles: paralegal / attorney / consultant with assignedPartnerIds scope',
+      'Matters desk: debt, letters, packets — educational; not legal representation',
+    ],
+    access: [
+      { label: 'Case Help Hub', path: CASE_HELP.hubPath },
+      { label: 'Careers apply', path: CASE_HELP.publicPath },
+      { label: 'Case desk guide', path: CASE_HELP.guidePath },
+      { label: 'Team invites', path: '/admin/team' },
+    ],
+    contracts: ['Case desk membership after approval', 'Scoped partner assignment'],
+    payouts: ['Seat / engagement terms set per matter — not a public self-serve payout hub'],
+  },
+  real_estate: {
+    title: 'Real Estate (tagged affiliate)',
+    shortLabel: 'RE',
+    icon: Home,
+    accent: 'emerald',
+    previewPath: RE.hubPath,
+    addPath: RE.signupPath,
+    addLabel: 'RE affiliate signup',
+    preview: [
+      'LOCKED: same affiliate auth role — interest=real_estate tag + filtered hub',
+      'No new auth role enum in v1 — referrals, handoff, score CTA, playbook',
+      'Full campaigns/payouts remain on Affiliate Hub',
+    ],
+    access: [
+      { label: 'Real Estate Hub', path: RE.hubPath },
+      { label: 'RE careers', path: RE.publicPath },
+      { label: 'Affiliate Hub', path: '/affiliate/hub' },
+      { label: 'Operator guide', path: RE.guidePath },
+    ],
+    contracts: ['Affiliate program terms', 'RE interest tag on signup / journeySignals'],
+    payouts: ['Same affiliate commission ladder — RE is a filtered view, not a new payout role'],
+  },
   heta_society: {
     title: 'Head of Society (HOS)',
     shortLabel: 'HOS',
@@ -231,7 +314,19 @@ const ROLE_CONFIG: Record<RoleType, RoleConfig> = {
   },
 };
 
-const ROLE_ORDER: RoleType[] = ['partner', 'heta_society', 'business', 'agent', 'affiliate', 'au_seller', 'au_buyer', 'admin'];
+const ROLE_ORDER: RoleType[] = [
+  'partner',
+  'heta_society',
+  'business',
+  'agent',
+  'affiliate',
+  'real_estate',
+  'agency',
+  'case_help',
+  'au_seller',
+  'au_buyer',
+  'admin',
+];
 
 const ICON_BOX: Record<RoleConfig['accent'], string> = {
   violet: 'border-violet-500/30 bg-violet-500/10 text-violet-300',
@@ -247,6 +342,9 @@ const TAB_ACCENTS: Record<RoleType, 'violet' | 'fuchsia' | 'emerald' | 'sky' | '
   business: 'emerald',
   agent: 'fuchsia',
   affiliate: 'violet',
+  real_estate: 'emerald',
+  agency: 'amber',
+  case_help: 'fuchsia',
   au_seller: 'emerald',
   au_buyer: 'sky',
   admin: 'violet',

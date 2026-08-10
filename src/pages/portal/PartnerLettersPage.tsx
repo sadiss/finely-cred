@@ -15,6 +15,7 @@ import { listCasesByPartner } from '../../data/casesRepo';
 import { listLettersByPartner } from '../../data/lettersRepo';
 import { listReportsByPartner } from '../../data/reportsRepo';
 import { FinelyOsPageFooter } from '../../features/os/FinelyOsPageFooter';
+import { PartnerRestoreWorkspaceDock } from '../../features/partner/PartnerRestoreWorkspaceDock';
 import { FinelyUnifiedHubLayout } from '../../features/unified/FinelyUnifiedHubLayout';
 import { FinelyNowDoThisStrip } from '../../components/tours/FinelyNowDoThisStrip';
 import { FinelyNoticedStrip } from '../../components/tours/FinelyNoticedStrip';
@@ -37,12 +38,20 @@ export default function PartnerLettersPage() {
     const t = searchParams.get('tab');
     if (t === 'validation' || t === 'court') {
       setStudioTab('dispute');
+      navigate(`/portal/debt?tab=${t}`, { replace: true });
+      window.setTimeout(() => {
+        window.alert(
+          t === 'court'
+            ? 'Court / affidavit letters live under Debt Letters — opening that workstation.'
+            : 'Validation letters live under Debt Letters — opening that workstation.',
+        );
+      }, 0);
       return;
     }
     if (t === 'foreclosure' || t === 'repossession' || t === 'bankruptcy' || t === 'templates' || t === 'dispute') {
       setStudioTab(t);
     }
-  }, [searchParams]);
+  }, [searchParams, navigate]);
 
   useEffect(() => {
     const onStore = () => setStoreVersion((v) => v + 1);
@@ -116,7 +125,7 @@ export default function PartnerLettersPage() {
     <PageShell
       badge="Partner Portal"
       title="Credit Letters"
-      subtitle="Bureau disputes and credit-report letter tracks → paper preview → Letters Vault. Debt validation & affidavits live under Debt Letters."
+      subtitle="Letter Studio — bureau disputes and credit-report letter tracks → paper preview → Letters Vault."
     >
       <FinelyNoticedStrip
         items={buildLettersNoticedItems({
@@ -153,6 +162,7 @@ export default function PartnerLettersPage() {
           onTabChange={setStudioTab}
         />
       </FinelyUnifiedHubLayout>
+      <PartnerRestoreWorkspaceDock variant="portal" className="mt-6 sticky bottom-3 z-20" />
       <FinelyOsPageFooter />
     </PageShell>
   );

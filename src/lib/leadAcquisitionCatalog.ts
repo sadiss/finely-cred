@@ -28,9 +28,33 @@ export function getPublicSiteOrigin(): string {
   return 'https://finelycred.com';
 }
 
+/** Content Studio / video workflow — `utm_content=video:{id}` on syndicated links. */
+export const LEAD_UTM_VIDEO_CONTENT_PREFIX = 'video:';
+
+export function buildVideoUtmContent(videoId: string): string {
+  const id = videoId.trim();
+  if (!id) return '';
+  return `${LEAD_UTM_VIDEO_CONTENT_PREFIX}${id}`;
+}
+
+export function parseVideoIdFromUtmContent(utmContent?: string | null): string | undefined {
+  const raw = utmContent?.trim();
+  if (!raw?.startsWith(LEAD_UTM_VIDEO_CONTENT_PREFIX)) return undefined;
+  const id = raw.slice(LEAD_UTM_VIDEO_CONTENT_PREFIX.length).trim();
+  return id || undefined;
+}
+
+/** Promote step → Hannah: `videoId` or `utm_content=video:{id}`. */
+export function resolvePromoteVideoIdFromSearch(search: string): string | undefined {
+  const params = new URLSearchParams(search.startsWith('?') ? search.slice(1) : search);
+  const direct = params.get('videoId')?.trim();
+  if (direct) return direct;
+  return parseVideoIdFromUtmContent(params.get('utm_content'));
+}
+
 export function buildLaneAcquisitionUrl(
   lane: LeadAcquisitionLane,
-  args?: { referralCode?: string; utmSource?: string; utmMedium?: string },
+  args?: { referralCode?: string; utmSource?: string; utmMedium?: string; utmContent?: string },
 ): string {
   const path = lane.query ? `${lane.path}?${lane.query}` : lane.path;
   return buildPromotedUrl({
@@ -39,6 +63,7 @@ export function buildLaneAcquisitionUrl(
     utmSource: args?.utmSource ?? 'syndication',
     utmMedium: args?.utmMedium ?? lane.utmMedium,
     utmCampaign: lane.utmCampaign,
+    utmContent: args?.utmContent,
     promoType: lane.audience === 'affiliate' ? 'signup' : 'guide',
     promoAsset: lane.id,
   });

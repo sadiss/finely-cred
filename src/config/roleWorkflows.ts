@@ -1,8 +1,20 @@
 import { CS } from './creditSpecialistProgram';
 import { AF } from './affiliateProgram';
 import { AU_SELLER } from './auSellerProgram';
+import { AGENCY } from './agencyPartnersProgram';
+import { CASE_HELP } from './caseHelpProgram';
+import { RE } from './realEstateProgram';
 
-export type RoleWorkflowId = 'client' | 'agent' | 'affiliate' | 'au_seller' | 'au_buyer' | 'business';
+export type RoleWorkflowId =
+  | 'client'
+  | 'agent'
+  | 'affiliate'
+  | 'au_seller'
+  | 'au_buyer'
+  | 'business'
+  | 'agency'
+  | 'case_help'
+  | 'real_estate';
 
 export type WorkflowStep = {
   title: string;
@@ -79,6 +91,39 @@ export const ROLE_WORKFLOWS: Record<RoleWorkflowId, { label: string; hubPath: st
       { title: 'Business disputes', description: 'Bureau disputes on business tradelines when needed.', path: '/business/disputes' },
     ],
   },
+  agency: {
+    label: 'Agency',
+    hubPath: AGENCY.hubPath,
+    steps: [
+      { title: 'Buy-in & workspace', description: 'Pick buy-in and create your agency tenant.', path: AGENCY.signupPath },
+      { title: 'Agency Hub', description: 'Partners, letters, team, payouts, white-label.', path: AGENCY.hubPath },
+      { title: 'Partner files', description: 'Route and run partner restore / debt / build lanes.', path: '/admin/partners' },
+      { title: 'Team seats', description: 'Invite operators and assign scope.', path: '/admin/team' },
+      { title: 'Partnership line', description: 'Ops support for your agency tenant.', path: AGENCY.messagesDeepLink },
+    ],
+  },
+  case_help: {
+    label: 'Case Help',
+    hubPath: CASE_HELP.hubPath,
+    steps: [
+      { title: 'Apply', description: 'Submit case-desk application (paralegal / attorney / consultant).', path: CASE_HELP.publicPath },
+      { title: 'Admin approval', description: 'Finely reviews and grants scoped membership — hub is not promised on bare apply.', path: CASE_HELP.publicPath },
+      { title: 'Claim / signup', description: 'Claim invite with the approved email to activate your seat.', path: `/signup?auth=signup&next=${encodeURIComponent(CASE_HELP.hubPath)}` },
+      { title: 'Case Help Hub', description: 'Assigned matters desk — packets, letters, sessions.', path: CASE_HELP.hubPath },
+      { title: 'Operator guide', description: 'Case desk handbook for scope and validation-first work.', path: CASE_HELP.guideReadPath },
+    ],
+  },
+  real_estate: {
+    label: 'Real Estate (tagged affiliate)',
+    hubPath: RE.hubPath,
+    steps: [
+      { title: 'RE affiliate signup', description: 'Affiliate role + interest=real_estate tag (no new auth enum).', path: RE.signupPath },
+      { title: 'Real Estate Hub', description: 'Filtered affiliate view: referrals, handoff, score CTA.', path: RE.hubPath },
+      { title: 'Referral toolkit', description: 'Tracked links for restore and readiness handoffs.', path: `${RE.hubPath}?tab=referrals` },
+      { title: 'Underwriting playbook', description: 'AU / DTI / rescore levers — lender-dependent.', path: `${RE.hubPath}?tab=playbook` },
+      { title: 'Full affiliate tools', description: 'Campaigns and payouts on the general Affiliate Hub.', path: AF.hubPath },
+    ],
+  },
 };
 
 export function workflowIdForPartner(lane?: string): RoleWorkflowId {
@@ -91,6 +136,11 @@ export function workflowIdForPartner(lane?: string): RoleWorkflowId {
 
 export function getWorkflowForRole(role: string, lane?: string): (typeof ROLE_WORKFLOWS)[RoleWorkflowId] {
   if (role === 'agent') return ROLE_WORKFLOWS.agent;
+  if (role === 'agency') return ROLE_WORKFLOWS.agency;
+  if (role === 'case_help' || role === 'paralegal' || role === 'attorney' || role === 'consultant') {
+    return ROLE_WORKFLOWS.case_help;
+  }
+  if (role === 'real_estate') return ROLE_WORKFLOWS.real_estate;
   if (role === 'affiliate') return ROLE_WORKFLOWS.affiliate;
   if (role === 'business' || lane === 'business_credit') return ROLE_WORKFLOWS.business;
   if (role === 'au_seller' || lane === 'au_seller') return ROLE_WORKFLOWS.au_seller;

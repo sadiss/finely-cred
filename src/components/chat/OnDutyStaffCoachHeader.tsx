@@ -1,8 +1,15 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Clock, MessageCircle } from 'lucide-react';
 import { portalPersonaForLane } from '../../data/agentPersonasRepo';
-import { resolveStaffOnDutyForLane, resolveStaffForBankruptcyScenario, resolveStaffForLaneFocus } from '../../data/staffRoster';
+import {
+  forceStaffShiftPolicyResync,
+  isStaffOnShift,
+  resolveStaffOnDutyForLane,
+  resolveStaffForBankruptcyScenario,
+  resolveStaffForLaneFocus,
+} from '../../data/staffRoster';
 import { staffMemberFullName } from '../../domain/staffMember';
+import { formatPartnerStaffShiftSummary } from '../../lib/staffShiftDisplay';
 import { StaffPortraitImg } from '../staff/StaffPortraitImg';
 import { getAgentPersona } from '../../domain/agentPersonas';
 import { FINELY_OS_ENTITY_SUBLABEL } from '../../features/os/finelyOsLightUi';
@@ -19,9 +26,27 @@ export function OnDutyStaffCoachHeader({ lane, scenarioId, focusId, compact, sub
   const [tick, setTick] = useState(0);
 
   useEffect(() => {
-    const onStore = () => setTick((n) => n + 1);
+    forceStaffShiftPolicyResync();
+    setTick((n) => n + 1);
+    const refresh = (forcePolicy = false) => {
+      if (forcePolicy) forceStaffShiftPolicyResync();
+      setTick((n) => n + 1);
+    };
+    const onStore = () => refresh(false);
+    const onFocus = () => {
+      if (document.visibilityState === 'hidden') return;
+      refresh(true);
+    };
+    const interval = window.setInterval(() => refresh(false), 30_000);
     window.addEventListener('finely:store', onStore);
-    return () => window.removeEventListener('finely:store', onStore);
+    window.addEventListener('focus', onFocus);
+    document.addEventListener('visibilitychange', onFocus);
+    return () => {
+      window.clearInterval(interval);
+      window.removeEventListener('finely:store', onStore);
+      window.removeEventListener('focus', onFocus);
+      document.removeEventListener('visibilitychange', onFocus);
+    };
   }, []);
 
   const { persona, staff } = useMemo(() => {
@@ -42,6 +67,9 @@ export function OnDutyStaffCoachHeader({ lane, scenarioId, focusId, compact, sub
     ? getAgentPersona(staff.primaryRoleId)?.displayTitle ?? persona.displayTitle ?? persona.role
     : persona.displayTitle ?? persona.role;
 
+  const shiftInfo = staff ? formatPartnerStaffShiftSummary(staff) : null;
+  const onShift = staff ? isStaffOnShift(staff) : false;
+
   if (compact) {
     return (
       <div className="flex items-center gap-2.5 min-w-0">
@@ -55,8 +83,12 @@ export function OnDutyStaffCoachHeader({ lane, scenarioId, focusId, compact, sub
         <div className="min-w-0">
           <div className="text-sm font-bold text-white truncate">{displayName}</div>
           <div className="text-[10px] text-emerald-300/90 uppercase tracking-wider font-semibold flex items-center gap-1">
-            <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" /> On duty
+            <span className={`inline-block h-1.5 w-1.5 rounded-full ${onShift ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'}`} />
+            {onShift ? 'On shift' : 'Coverage partner'}
           </div>
+          {shiftInfo?.dutyLine ? (
+            <div className="text-[9px] text-white/45 truncate max-w-[200px]">{shiftInfo.dutyLine}</div>
+          ) : null}
         </div>
       </div>
     );
@@ -75,10 +107,13 @@ export function OnDutyStaffCoachHeader({ lane, scenarioId, focusId, compact, sub
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-base font-black text-white">{displayName}</span>
           <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/30 bg-emerald-500/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-emerald-200">
-            <Clock size={10} /> On duty now
+            <Clock size={10} /> {onShift ? 'On shift now' : 'Coverage partner'}
           </span>
         </div>
         <div className={`${FINELY_OS_ENTITY_SUBLABEL} mt-0.5`}>{displayTitle}</div>
+        {shiftInfo?.dutyLine ? (
+          <p className="text-[11px] text-white/50 mt-0.5 leading-snug">{shiftInfo.dutyLine}</p>
+        ) : null}
         <p className="text-xs text-white/55 mt-1 leading-relaxed">
           {subtitle ?? 'Your specialist for this lane — ask questions in the chat below.'}
         </p>

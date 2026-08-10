@@ -24,6 +24,10 @@ import {
 } from '../config/creditSpecialistOffer';
 import { CS } from '../config/creditSpecialistProgram';
 import { ROLE_COMPLIANCE_FOOTNOTES, ROLE_WORK_SPLIT } from '../config/rolePartnerPrograms';
+import {
+  isCreditSpecialistJoinReadyForAccountSignup,
+  loadCreditSpecialistJoinIntent,
+} from '../lib/creditSpecialistJoinIntent';
 import { CS_GUIDE_META, CS_GUIDE_READ_PATH } from './leadmagnet/creditSpecialistGuideContent';
 import { FinelyOsPageFooter } from '../features/os/FinelyOsPageFooter';
 import { usePublicSeoMeta } from '../hooks/usePublicSeoMeta';
@@ -60,6 +64,7 @@ export default function CreditSpecialistPricingPage() {
 
   const selectedTier = getCreditSpecialistOfferTier(selectedTierId) ?? tiers[0]!;
   const selectedAccent: CareerAccent = TIER_ACCENT[selectedTier.id];
+  const canSkipToAccount = isCreditSpecialistJoinReadyForAccountSignup(loadCreditSpecialistJoinIntent());
 
   const selectTier = (id: string) => {
     setSelectedTierId(id as CreditSpecialistOfferTierId);
@@ -69,7 +74,8 @@ export default function CreditSpecialistPricingPage() {
   };
 
   const goJoin = (tierId?: string) => {
-    const qs = tierId ? `?tier=${encodeURIComponent(tierId)}` : '';
+    const id = tierId || selectedTierId;
+    const qs = id ? `?tier=${encodeURIComponent(id)}` : '';
     navigate(`${CS_OFFER.joinPath}${qs}`);
   };
 
@@ -138,19 +144,19 @@ export default function CreditSpecialistPricingPage() {
               </div>
 
               <div className="flex flex-wrap items-center gap-3 pt-1">
-                <a
-                  href="#choose-tier"
-                  className="inline-flex items-center gap-2 rounded-xl bg-amber-500 px-6 py-3 text-[12px] font-black uppercase tracking-[0.14em] text-[#1c1206] shadow-lg shadow-amber-500/25 transition-all hover:brightness-105"
-                >
-                  Choose your tier <ArrowRight size={16} />
-                </a>
                 <button
                   type="button"
                   onClick={() => goJoin(selectedTierId)}
+                  className="inline-flex items-center gap-2 rounded-xl bg-amber-500 px-6 py-3 text-[12px] font-black uppercase tracking-[0.14em] text-[#1c1206] shadow-lg shadow-amber-500/25 transition-all hover:brightness-105"
+                >
+                  Join as Credit Specialist <ArrowRight size={16} />
+                </button>
+                <a
+                  href="#choose-tier"
                   className="inline-flex items-center gap-2 rounded-xl border-2 border-slate-300 bg-white px-6 py-3 text-[12px] font-black uppercase tracking-[0.14em] text-slate-800 transition-all hover:border-slate-400 hover:bg-slate-50"
                 >
-                  Join the program
-                </button>
+                  Compare tiers
+                </a>
               </div>
             </div>
 
@@ -230,7 +236,15 @@ export default function CreditSpecialistPricingPage() {
               free-leads window. Pick where you're starting — you can graduate later.
             </p>
           </div>
-          <CareerPriceCardGrid options={tierOptions} selectedId={selectedTierId} onSelect={selectTier} columns={4} />
+          <CareerPriceCardGrid
+            options={tierOptions}
+            selectedId={selectedTierId}
+            onSelect={selectTier}
+            onConfirm={goJoin}
+            selectLabel="Join as Credit Specialist"
+            confirmLabel={(opt) => `Continue with ${opt.name}`}
+            columns={4}
+          />
         </section>
 
         {/* What you get — for the selected tier */}
@@ -290,15 +304,17 @@ export default function CreditSpecialistPricingPage() {
               onClick={() => goJoin(selectedTierId)}
               className="inline-flex items-center gap-2 rounded-xl bg-[#0a1628] px-6 py-3.5 text-[12px] font-black uppercase tracking-[0.14em] text-white shadow-sm transition-all hover:bg-[#132339]"
             >
-              Join {selectedTier.name} <ArrowRight size={16} />
+              Continue with {selectedTier.name} <ArrowRight size={16} />
             </button>
-            <button
-              type="button"
-              onClick={() => navigate(creditSpecialistAccountSignupUrl({ tierId: selectedTierId }))}
-              className="inline-flex items-center gap-2 rounded-xl border-2 border-slate-300 bg-white px-6 py-3.5 text-[12px] font-black uppercase tracking-[0.14em] text-slate-800 transition-all hover:border-slate-400 hover:bg-slate-50"
-            >
-              Skip to account signup
-            </button>
+            {canSkipToAccount ? (
+              <button
+                type="button"
+                onClick={() => navigate(creditSpecialistAccountSignupUrl({ tierId: selectedTierId }))}
+                className="inline-flex items-center gap-2 rounded-xl border-2 border-slate-300 bg-white px-6 py-3.5 text-[12px] font-black uppercase tracking-[0.14em] text-slate-800 transition-all hover:border-slate-400 hover:bg-slate-50"
+              >
+                Skip to account signup
+              </button>
+            ) : null}
           </div>
         </section>
 
@@ -313,7 +329,7 @@ export default function CreditSpecialistPricingPage() {
         roleLabel="Credit Specialist"
         tierName={selectedTier.name}
         economics={{ keepPctLabel: `${selectedTier.keepPctLabel} keep`, buyInLabel: '$0 platform fee' }}
-        ctaLabel="Join this tier"
+        ctaLabel={`Continue with ${selectedTier.name}`}
         onCta={() => goJoin(selectedTierId)}
         accent={selectedAccent}
       />

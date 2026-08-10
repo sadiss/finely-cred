@@ -1,9 +1,13 @@
 import { EXTENDED_FREE_GUIDES } from './extendedFreeGuides';
 import { CORE_PARTNER_GUIDES } from './corePartnerGuides';
 import { AGENCY_GUIDE } from './agencyGuideContent';
+import { AFFILIATE_TOOLKIT_FREE_GUIDE } from './affiliateToolkitFreeGuide';
+import { SCORE_BOOST_FREE_GUIDE } from './scoreBoostFreeGuide';
 
 export type FreeGuideId =
   | 'credit-dispute-letter-guide'
+  | 'score-boost-72-roadmap'
+  | 'affiliate-referral-toolkit'
   | 'the-agency-guide'
   | 'metro2-consistency-trap'
   | 'bureau-response-decoder'
@@ -56,7 +60,7 @@ export const FREE_GUIDES: FreeGuide[] = [
   {
     id: 'credit-dispute-letter-guide',
     title: 'Free Credit Dispute Letter Guide',
-    desc: 'The complete Finely Cred edition — expanded 5-step framework, first-person letter style, FCRA rights, OCR/Metro2 survival, certified mail, validation-first doctrine, law-per-negative, affidavits, and escalation.',
+    desc: 'The complete Finely Cred edition for partners — solution-first 5-step framework, first-person letter style, FCRA rights, OCR/Metro2 survival, certified mail, validation-first doctrine, law-per-negative, affidavits, and escalation. Educational only · results vary.',
     sections: [
       ...DISPUTE_GUIDE_FIVE_STEPS.map((step) => ({
         heading: step.heading,
@@ -82,6 +86,8 @@ export const FREE_GUIDES: FreeGuide[] = [
     ],
   },
   AGENCY_GUIDE,
+  SCORE_BOOST_FREE_GUIDE,
+  AFFILIATE_TOOLKIT_FREE_GUIDE,
   ...CORE_PARTNER_GUIDES,
 ];
 

@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, ArrowRight, ChevronLeft, ChevronRight, LayoutGrid, Ruler, X } from 'lucide-react';
+import { ArrowLeft, ArrowRight, ChevronLeft, ChevronRight, Ruler } from 'lucide-react';
 import { usePublicSeoMeta } from '../../hooks/usePublicSeoMeta';
 import {
   AGENCY_GUIDE_CHAPTERS,
@@ -11,13 +11,11 @@ import {
   type AgencyGuideChapter,
   type AgencyGuideSection,
 } from '../../resources/agencyGuideReaderContent';
+import GuideReaderShell from './GuideReaderShell';
 import './agencyGuideReader.css';
+import './guideReaderShell.css';
 
 const CHAPTERS = AGENCY_GUIDE_CHAPTERS;
-
-function cn(...classes: Array<string | false | null | undefined>) {
-  return classes.filter(Boolean).join(' ');
-}
 
 function SectionBlock({ section }: { section: AgencyGuideSection }) {
   return (
@@ -138,7 +136,17 @@ export default function AgencyGuideReaderPage() {
   }, [initialIdx]);
 
   const chapter = CHAPTERS[idx] ?? CHAPTERS[0]!;
-  const progress = ((idx + 1) / CHAPTERS.length) * 100;
+
+  const shellChapters = useMemo(
+    () =>
+      CHAPTERS.map((c) => ({
+        id: c.id,
+        number: c.sheet,
+        title: c.title,
+        teaser: c.kicker,
+      })),
+    [],
+  );
 
   usePublicSeoMeta({
     title: `${chapter.title} — The Agency Guide`,
@@ -152,129 +160,94 @@ export default function AgencyGuideReaderPage() {
       setIdx(clamped);
       setParams({ chapter: CHAPTERS[clamped]!.id }, { replace: true });
       setIndexOpen(false);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
     },
     [setParams],
   );
 
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      const target = e.target as HTMLElement | null;
-      if (target && /input|textarea|select/i.test(target.tagName)) return;
-      if (e.key === 'ArrowRight') goChapter(idx + 1);
-      if (e.key === 'ArrowLeft') goChapter(idx - 1);
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [goChapter, idx]);
-
   return (
-    <main className="agr-reader relative">
-      <div className="agr-table pointer-events-none fixed inset-0 z-0" aria-hidden />
-      <div className="agr-table-grid pointer-events-none fixed inset-0 z-0" aria-hidden />
-
-      <header
-        className="agr-rail sticky z-40"
-        style={{ top: 'calc(env(safe-area-inset-top, 0px) + 4.25rem)' }}
-      >
-        <div className="agr-progress">
-          <span style={{ width: `${progress}%` }} />
-        </div>
-        <div className="mx-auto flex max-w-[86rem] flex-wrap items-center justify-between gap-3 px-4 py-2.5 md:px-8">
-          <div className="flex min-w-0 items-center gap-3">
-            <button
-              type="button"
-              onClick={() => navigate(AGENCY_GUIDE_LANDING_PATH)}
-              className="agr-ghost-btn inline-flex items-center gap-1.5 rounded px-3 py-2 text-[10px] font-bold uppercase tracking-[0.14em]"
-            >
-              <ArrowLeft size={13} /> Landing
-            </button>
-            <span className="agr-tag hidden sm:inline-flex">Agency plan set</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => setIndexOpen((v) => !v)}
-              className="agr-ghost-btn inline-flex items-center gap-1.5 rounded px-3 py-2 text-[10px] font-bold uppercase tracking-[0.14em] lg:hidden"
-              aria-expanded={indexOpen}
-            >
-              {indexOpen ? <X size={13} /> : <LayoutGrid size={13} />} Sheets
-            </button>
-            <Link
-              to={AGENCY_GUIDE_LANDING_PATH}
-              className="agr-primary-btn inline-flex items-center gap-1.5 rounded px-3.5 py-2 text-[10px] font-bold uppercase tracking-[0.14em]"
-            >
-              Get the full kit
-            </Link>
-          </div>
-        </div>
-      </header>
-
-      <div className="relative z-10 mx-auto grid max-w-[86rem] gap-6 px-3 py-6 md:px-8 lg:grid-cols-[262px_minmax(0,1fr)] lg:gap-9 lg:py-9">
-        <aside
-          className={cn(
-            'agr-index p-2.5 lg:sticky lg:top-32 lg:self-start',
-            indexOpen ? 'block' : 'hidden lg:block',
-          )}
+    <GuideReaderShell
+      className="agr-reader relative"
+      chapters={shellChapters}
+      chapterIndex={idx}
+      onChapterChange={goChapter}
+      tocOpen={indexOpen}
+      onTocOpenChange={setIndexOpen}
+      tocToggleLabel="Sheets"
+      tocLabel="Sheet index"
+      tocTitle="Agency plan set"
+      tocSubtitle={`${CHAPTERS.length} sheets`}
+      tocClassName="agr-index p-2.5"
+      tocFooter={<p className="agr-compliance mt-3 px-1.5 pb-1">{AGENCY_GUIDE_COMPLIANCE}</p>}
+      storageKey="finely.guideReader.agency"
+      showFlipControls={false}
+      maxWidthClassName="max-w-[86rem]"
+      headerClassName="agr-rail"
+      progressTrackClassName="agr-progress"
+      atmosphere={
+        <>
+          <div className="agr-table pointer-events-none fixed inset-0 z-0" aria-hidden />
+          <div className="agr-table-grid pointer-events-none fixed inset-0 z-0" aria-hidden />
+        </>
+      }
+      headerLeft={
+        <>
+          <button
+            type="button"
+            onClick={() => navigate(AGENCY_GUIDE_LANDING_PATH)}
+            className="agr-ghost-btn inline-flex items-center gap-1.5 rounded px-3 py-2 text-[10px] font-bold uppercase tracking-[0.14em]"
+          >
+            <ArrowLeft size={13} /> Landing
+          </button>
+          <span className="agr-tag hidden sm:inline-flex">Agency plan set</span>
+        </>
+      }
+      headerRight={
+        <Link
+          to={AGENCY_GUIDE_LANDING_PATH}
+          className="agr-primary-btn inline-flex items-center gap-1.5 rounded px-3.5 py-2 text-[10px] font-bold uppercase tracking-[0.14em]"
         >
-          <div className="mb-2 flex items-center justify-between px-1.5 pt-1">
-            <span className="agr-tag">Sheet index</span>
-            <span className="agr-meta">{CHAPTERS.length} sheets</span>
-          </div>
-          <nav className="max-h-[62vh] overflow-y-auto pr-1" aria-label="Guide sheets">
-            {CHAPTERS.map((c, i) => (
-              <button
-                key={c.id}
-                type="button"
-                onClick={() => goChapter(i)}
-                className={cn('agr-index-item', i === idx && 'is-active')}
-                aria-current={i === idx ? 'true' : undefined}
-              >
-                <span className="agr-index-sheet agr-mono">{c.sheet}</span>
-                <span className="min-w-0">
-                  <span className="agr-index-title">{c.title}</span>
-                  <span className="agr-index-kicker">{c.kicker}</span>
-                </span>
-              </button>
-            ))}
-          </nav>
-          <p className="agr-compliance mt-3 px-1.5 pb-1">{AGENCY_GUIDE_COMPLIANCE}</p>
-        </aside>
-
-        <div className="min-w-0">
-          <PlanSheet chapter={chapter} index={idx} />
-
-          <div className="agr-sheet mt-4 overflow-hidden">
-            <div className="flex flex-col gap-3 px-5 py-4 md:flex-row md:items-center md:justify-between md:px-12">
-              <button
-                type="button"
-                disabled={idx <= 0}
-                onClick={() => goChapter(idx - 1)}
-                className="agr-ghost-btn inline-flex h-11 items-center justify-center gap-2 rounded px-4 text-[10px] font-bold uppercase tracking-[0.14em]"
-              >
-                <ChevronLeft size={15} /> Previous
-              </button>
-              <p className="agr-compliance order-last text-center md:order-none">{AGENCY_GUIDE_COMPLIANCE}</p>
-              {idx < CHAPTERS.length - 1 ? (
+          Get the full kit
+        </Link>
+      }
+      renderTocNumber={(ch) => <span className="agr-mono">{ch.number}</span>}
+      tocItemClassName={(active) => (active ? 'agr-index-item is-active' : 'agr-index-item')}
+      renderChapter={(i) => {
+        const ch = CHAPTERS[i] ?? CHAPTERS[0]!;
+        return (
+          <div className="space-y-4">
+            <PlanSheet chapter={ch} index={i} />
+            <div className="agr-sheet overflow-hidden">
+              <div className="flex flex-col gap-3 px-5 py-4 md:flex-row md:items-center md:justify-between md:px-12">
                 <button
                   type="button"
-                  onClick={() => goChapter(idx + 1)}
-                  className="agr-primary-btn inline-flex h-11 items-center justify-center gap-2 rounded px-5 text-[10px] font-bold uppercase tracking-[0.14em]"
+                  disabled={i <= 0}
+                  onClick={() => goChapter(i - 1)}
+                  className="agr-ghost-btn inline-flex h-11 items-center justify-center gap-2 rounded px-4 text-[10px] font-bold uppercase tracking-[0.14em]"
                 >
-                  Next sheet <ChevronRight size={15} />
+                  <ChevronLeft size={15} /> Previous
                 </button>
-              ) : (
-                <Link
-                  to={AGENCY_GUIDE_LANDING_PATH}
-                  className="agr-primary-btn inline-flex h-11 items-center justify-center gap-2 rounded px-5 text-[10px] font-bold uppercase tracking-[0.14em]"
-                >
-                  Back to landing <ArrowRight size={15} />
-                </Link>
-              )}
+                <p className="agr-compliance order-last text-center md:order-none">{AGENCY_GUIDE_COMPLIANCE}</p>
+                {i < CHAPTERS.length - 1 ? (
+                  <button
+                    type="button"
+                    onClick={() => goChapter(i + 1)}
+                    className="agr-primary-btn inline-flex h-11 items-center justify-center gap-2 rounded px-5 text-[10px] font-bold uppercase tracking-[0.14em]"
+                  >
+                    Next sheet <ChevronRight size={15} />
+                  </button>
+                ) : (
+                  <Link
+                    to={AGENCY_GUIDE_LANDING_PATH}
+                    className="agr-primary-btn inline-flex h-11 items-center justify-center gap-2 rounded px-5 text-[10px] font-bold uppercase tracking-[0.14em]"
+                  >
+                    Back to landing <ArrowRight size={15} />
+                  </Link>
+                )}
+              </div>
             </div>
           </div>
-        </div>
-      </div>
-    </main>
+        );
+      }}
+    />
   );
 }

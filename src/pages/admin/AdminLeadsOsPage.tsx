@@ -39,6 +39,7 @@ import { enrollLeadInNurtureSequence } from '../../lib/nurtureEngine';
 import { LeadBulkImportPanel } from '../../features/leadsOs/LeadBulkImportPanel';
 import { LeadScrapeSourcePicker } from '../../features/leadsOs/LeadScrapeSourcePicker';
 import { LeadTrashPanel } from '../../features/studioCommandOs/LeadTrashPanel';
+import { NurtureOpsStrip } from '../../features/leadsOs/NurtureOpsStrip';
 import { isLeadTrashed } from '../../features/studioCommandOs/leadTrashRepo';
 import { listInboxMessages } from '../../data/socialHubRepo';
 import { CmoUnifiedCommandCenter } from '../../components/cmo/CmoUnifiedCommandCenter';
@@ -146,6 +147,8 @@ export default function AdminLeadsOsPage() {
     setParams(p, { replace: true });
   };
 
+  const tab = mode;
+
   const syncMetaLeadsNurture = () => {
     let enrolled = 0;
     for (const lead of metaLeads) {
@@ -165,6 +168,16 @@ export default function AdminLeadsOsPage() {
   return (
     <PageShell badge="Admin" title="Owner Leads Ops" subtitle="Power tools for inbound, labs, social, and routing — daily marketing lives on Marketing Desk.">
       <div className={FINELY_OS_PAGE}>
+        <div className={`${FINELY_OS_VIEW_TABS} flex flex-wrap gap-1 mb-3`}>
+          <button type="button" className={finelyOsViewTab(tab === 'launcher')} onClick={() => setMode('launcher')}>
+            Launcher
+          </button>
+          {OWNER_TILES.map((t) => (
+            <button key={t.id} type="button" className={finelyOsViewTab(tab === t.id)} onClick={() => setMode(t.id)}>
+              {t.title}
+            </button>
+          ))}
+        </div>
         <div className="flex flex-wrap items-center justify-between gap-3">
           <button type="button" onClick={() => navigate('/admin')} className={FINELY_OS_BACK_LINK}>
             <ArrowLeft size={16} /> Admin Dashboard
@@ -202,6 +215,8 @@ export default function AdminLeadsOsPage() {
                 <span className={`${FINELY_OS_ENTITY_SUBLABEL}`}>Intel imports {intelImports.length}</span>
               </div>
             </div>
+
+            <NurtureOpsStrip />
 
             <div>
               <div className={FINELY_OS_ENTITY_SUBLABEL}>Marketing Desk</div>

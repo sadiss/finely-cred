@@ -10,7 +10,6 @@ import { finelyOsGlowKpi } from '../../features/os/finelyOsLightUi';
 
 const DISPLAY_ORDER: NegativeType[] = [
   'collection',
-  'charge_off',
   'inquiry',
   'public_record',
   'repossession',
@@ -21,8 +20,9 @@ const DISPLAY_ORDER: NegativeType[] = [
 ];
 
 function negativeLabel(key: NegativeType): string {
+  if (key === 'collection') return 'Coll. & charge-offs';
   const label = NEGATIVE_PLAYBOOKS[key]?.label ?? key;
-  return label.replace(/ verification| accounting/gi, '').slice(0, 18);
+  return label.replace(/ verification| accounting/gi, '').slice(0, 22);
 }
 
 export function PartnerCreditWorkloadStrip({
@@ -58,7 +58,13 @@ export function CreditWorkloadChips({
   snap: PartnerCreditWorkloadSnapshot;
   compact?: boolean;
 }) {
-  const negativeChips = DISPLAY_ORDER.filter((k) => (snap.negativeCounts[k] ?? 0) > 0).slice(0, compact ? 4 : 6);
+  const negativeChips = DISPLAY_ORDER.filter((k) => {
+    if (k === 'collection') {
+      const n = (snap.negativeCounts.collection ?? 0) + (snap.negativeCounts.charge_off ?? 0);
+      return n > 0;
+    }
+    return (snap.negativeCounts[k] ?? 0) > 0;
+  }).slice(0, compact ? 4 : 6);
 
   const workChips = [
     snap.selectedDisputes > 0 ? { label: 'Selected', value: snap.selectedDisputes } : null,
@@ -84,7 +90,11 @@ export function CreditWorkloadChips({
         {negativeChips.map((k) => (
           <div key={k} className={`${finelyOsGlowKpi('sky')} !px-3 !py-2`}>
             <div className="text-[10px] uppercase tracking-widest text-white/50">{negativeLabel(k)}</div>
-            <div className="text-sm font-bold text-white">{snap.negativeCounts[k]}</div>
+            <div className="text-sm font-bold text-white">
+              {k === 'collection'
+                ? (snap.negativeCounts.collection ?? 0) + (snap.negativeCounts.charge_off ?? 0)
+                : snap.negativeCounts[k]}
+            </div>
           </div>
         ))}
         {workChips.map((c) => (

@@ -4,7 +4,7 @@ import type { GeneratedGuidePage } from './disputeLetterGuideContent';
  * Opening chapters of the Free Credit Dispute Letter Guide.
  * These run before the 5-step framework so the first half of the guide teaches
  * how the reporting system actually works before asking anyone to write a word.
- * Educational only — not legal advice.
+ * Educational only — not legal advice. Partner-facing copy throughout.
  */
 export const DISPUTE_GUIDE_FRONT_MATTER_PAGES: GeneratedGuidePage[] = [
   {
@@ -19,14 +19,15 @@ export const DISPUTE_GUIDE_FRONT_MATTER_PAGES: GeneratedGuidePage[] = [
         heading: 'A dispute is a request for a reinvestigation — not an argument',
         paragraphs: [
           'When you dispute something on your credit report, you are not filing a lawsuit and you are not negotiating. You are telling a credit reporting agency that a specific piece of data in your file does not match reality, and you are asking them to reinvestigate it. That is the whole mechanism. Everything else in this guide exists to make that one request impossible to brush aside.',
-          'The reason so many disputes come back “verified” is not that the consumer was wrong. It is that the request arrived without a specific field, without a document, and without a reason a data analyst could act on. A letter that says “this account is not mine, please remove” gives the reinvestigation nothing to check. A letter that says “the status field reads Current while the payment grid in the same account block shows three 90-day lates, as shown in Exhibit A” gives them something they have to resolve.',
+          'The reason so many disputes come back “verified” is not that the partner was wrong. It is that the request arrived without a specific field, without a document, and without a reason a data analyst could act on. A letter that says “this account is not mine, please remove” gives the reinvestigation nothing to check. A letter that says “the status field reads Current while the payment grid in the same account block shows three 90-day lates, as shown in Exhibit A” gives them something they have to resolve.',
+          'Solution first: stop writing feelings into the envelope. Write a finding — one account, one contradiction, one exhibit that proves it. That single upgrade is how Round 1 stops dying at intake.',
         ],
         annotation: 'Specific field + attached proof + one account = a dispute that has to be worked, not clicked.',
       },
       {
         heading: 'The three parties, and what each one owes you',
         paragraphs: [
-          'Almost every frustration in this process comes from writing to the wrong party. There are three, and they have different jobs and different legal duties.',
+          'Almost every frustration in this process comes from writing to the wrong party. There are three, and they have different jobs and different legal duties. Name the duty before you stamp the envelope.',
         ],
         bullets: [
           'You — you supply the facts and the exhibits. Nothing moves until you pull your own report and document what you see.',
@@ -61,7 +62,7 @@ export const DISPUTE_GUIDE_FRONT_MATTER_PAGES: GeneratedGuidePage[] = [
         heading: 'Stop reading the score. Read the account block.',
         paragraphs: [
           'The three-digit number at the top of your report tells you how you are being judged. It tells you nothing about why. Every dispute you will ever write comes from the account block — the panel of fields underneath each tradeline — and from the payment grid that sits beside it.',
-          'Open one negative account and read these fields in order, writing down what each one says. You are not looking for anything “illegal.” You are looking for two facts that cannot both be true at the same time.',
+          'Open one negative account and read these fields in order, writing down what each one says. You are not hunting for anything “illegal.” You are hunting for two facts that cannot both be true at the same time — that is the contradiction that forces a real reinvestigation.',
         ],
         bullets: [
           'Furnisher / creditor name — is this a company you recognize, or a buyer you have never done business with?',
@@ -80,7 +81,7 @@ export const DISPUTE_GUIDE_FRONT_MATTER_PAGES: GeneratedGuidePage[] = [
       {
         heading: 'The contradiction hunt',
         paragraphs: [
-          'Now compare the fields against each other, and then compare the same account across all three bureaus. You are hunting for internal inconsistency, because internal inconsistency is the cleanest thing a reinvestigation can confirm without needing your side of the story at all.',
+          'Now compare the fields against each other, and then compare the same account across all three bureaus. Internal inconsistency is the cleanest claim a reinvestigation can confirm — often without needing your side of the story at all. That is your advantage. Use it.',
         ],
         bullets: [
           'Status says Paid or Current, but the grid shows derogatory marks in the same block.',
@@ -105,8 +106,8 @@ export const DISPUTE_GUIDE_FRONT_MATTER_PAGES: GeneratedGuidePage[] = [
       {
         heading: 'Write what the screen shows',
         paragraphs: [
-          'A factual finding describes something visible. A feeling describes something you believe. Reinvestigations resolve findings and discard feelings, so every reason you write should be something a stranger could confirm by looking at the same exhibit you attached.',
-          'The easiest way to hold yourself to this standard is to write each reason as if you were pointing at the page: “As you can see on the Equifax report dated March 4, the status field for this account reads Current while the payment history for the same account shows a 90-day late in November.” No adjectives. No accusation. Just the two facts that cannot coexist.',
+          'A factual finding describes something visible. A feeling describes something you believe. Reinvestigations resolve findings and discard feelings — so every reason you write should be something a stranger could confirm by looking at the same exhibit you attached.',
+          'Hold yourself to this sentence shape: “As you can see on the Equifax report dated March 4, the status field for this account reads Current while the payment history for the same account shows a 90-day late in November.” No adjectives. No accusation. Just the two facts that cannot coexist. That is the language that survives OCR and reaches a human who can act.',
         ],
         comparison: {
           badLabel: 'Discarded',
@@ -128,7 +129,7 @@ export const DISPUTE_GUIDE_FRONT_MATTER_PAGES: GeneratedGuidePage[] = [
       {
         heading: 'The four honest lanes',
         paragraphs: [
-          'Every legitimate dispute reason falls into one of four lanes. Pick one lane per letter and stay in it. A letter that wanders across all four reads as a template and gets treated like one.',
+          'Every legitimate dispute reason falls into one of four lanes. Pick one lane per letter and stay in it. A letter that wanders across all four reads as a template and gets treated like one. Commitment is strategy.',
         ],
         bullets: [
           'Inaccurate — a field states something that is demonstrably not true (wrong balance, wrong status, wrong date).',
@@ -155,6 +156,7 @@ export const DISPUTE_GUIDE_FRONT_MATTER_PAGES: GeneratedGuidePage[] = [
         heading: 'The bureau letter',
         paragraphs: [
           'You write to a credit reporting agency when the problem is what your file says. The agency has a duty to reinvestigate and to forward all relevant information you provide to the furnisher. This is your primary lane for contradictions, wrong dates, wrong balances, and accounts that do not belong to you.',
+          'Treat the bureau letter as the formal trigger of the reinvestigation clock. Certified mail with return receipt is how you prove when that clock started.',
         ],
         bullets: [
           'Send to the dispute address printed on your own report — not an address from a forum post.',
@@ -170,7 +172,7 @@ export const DISPUTE_GUIDE_FRONT_MATTER_PAGES: GeneratedGuidePage[] = [
           'A furnisher letter is not a substitute for the bureau dispute. Run them as a pair when the item is serious: bureau letter for the reinvestigation duty, furnisher letter for the source of the data.',
         ],
         bullets: [
-          'Address it to the customer service or credit reporting department listed on your statement or their website.',
+          'Address it to the credit reporting or dispute department listed on your statement or their website.',
           'Reference the account, the specific field, and what your own records show instead.',
           'Request that they correct their reporting to all three bureaus, not just the one you disputed with.',
           'Keep it short. One page, one issue, one attachment.',
@@ -190,7 +192,7 @@ export const DISPUTE_GUIDE_FRONT_MATTER_PAGES: GeneratedGuidePage[] = [
       {
         heading: 'Round 1 — days 0 to 35',
         paragraphs: [
-          'The clock does not start when you write the letter. It starts when the agency receives it, which is exactly why certified mail with return receipt is worth the few dollars. Your delivery date is the anchor for every follow-up in this map.',
+          'The clock does not start when you write the letter. It starts when the agency receives it — which is exactly why certified mail with return receipt is worth the few dollars. Your delivery date is the anchor for every follow-up in this map. Without it, you are arguing from memory.',
         ],
         bullets: [
           'Day 0 — mail certified with return receipt. Log the tracking number and the tradeline it covers.',
@@ -203,7 +205,7 @@ export const DISPUTE_GUIDE_FRONT_MATTER_PAGES: GeneratedGuidePage[] = [
         heading: 'Round 2 — days 35 to 90',
         paragraphs: [
           'Round 2 is not Round 1 sent again. It is a response to what they told you. If the item came back “verified” with no explanation of how, that silence is itself the new fact you write about — request the method of verification and name the specific field that was supposedly confirmed.',
-          'If the item was corrected but only on one bureau, that mismatch is now a fresh contradiction you can document across the other two. Every round should be shorter and more specific than the one before it.',
+          'If the item was corrected but only on one bureau, that mismatch is now a fresh contradiction you can document across the other two. Every round should be shorter and more specific than the one before it. That is how leverage compounds — not by volume, by precision.',
         ],
         bullets: [
           'Read the response for what changed, what did not, and what language they used to justify keeping it.',
@@ -213,7 +215,7 @@ export const DISPUTE_GUIDE_FRONT_MATTER_PAGES: GeneratedGuidePage[] = [
         ],
         evidence: {
           label: 'One page, always',
-          text: 'Keep a single-page timeline per tradeline: sent, delivered, responded, result, next action. It is the artifact that makes an attorney or a regulator take you seriously in under a minute.',
+          text: 'Keep a single-page timeline per tradeline: sent, delivered, responded, result, next action. It is the artifact that makes a regulator — or a licensed attorney, if you later need one — take you seriously in under a minute.',
         },
       },
     ],

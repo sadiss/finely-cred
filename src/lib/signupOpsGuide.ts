@@ -67,8 +67,11 @@ export const SIGNUP_ROLE_GUIDES: SignupRoleGuide[] = [
 export function landingPathForRole(role: string): string {
   const r = role.trim().toLowerCase();
   if (r === 'affiliate') return '/affiliate/hub';
-  if (r === 'au_seller') return '/au-seller/hub';
-  if (r === 'agent') return '/agent/hub';
+  if (r === 'real_estate') return '/real-estate/hub';
+  if (r === 'agency') return '/agency/hub';
+  if (r === 'case_help' || r === 'paralegal' || r === 'attorney' || r === 'consultant') return '/case-help/hub';
+  if (r === 'au_seller') return '/seller/hub';
+  if (r === 'agent') return '/credit-specialist/hub';
   if (r === 'admin') return '/dashboard';
   return '/portal/dashboard';
 }

@@ -27,6 +27,33 @@ function normCreditorName(s: string) {
     .trim();
 }
 
+function paymentHistoryCodes(t: ParsedTradeline): string[] {
+  const out: string[] = [];
+  const history = t.paymentHistory2y?.byBureau ?? {};
+  for (const codes of Object.values(history)) {
+    for (const c of codes ?? []) {
+      const code = String(c?.code ?? '').toLowerCase().trim();
+      if (code) out.push(code);
+    }
+  }
+  return out;
+}
+
+function tradelineStatusBlob(t: ParsedTradeline): string {
+  const parts: string[] = [
+    String(t.accountType || ''),
+    String(t.accountStatus || ''),
+    String(t.originalCreditor || ''),
+    String(t.creditorName || ''),
+  ];
+  for (const f of t.fields ?? []) {
+    const by = f.byBureau;
+    if (!by) continue;
+    parts.push(String(by.EXP ?? ''), String(by.TUC ?? ''), String(by.EQF ?? ''));
+  }
+  return parts.join(' ').toLowerCase();
+}
+
 function namesLikelyMatch(a: string, b: string) {
   const x = normCreditorName(a);
   const y = normCreditorName(b);
@@ -135,13 +162,39 @@ export function classifyCollectionOrChargeOff(
   const name = String(t.creditorName || '').toLowerCase();
   const orig = String(t.originalCreditor || '').toLowerCase();
   const header = `${type} ${status} ${name} ${orig}`;
+  const blob = tradelineStatusBlob(t);
+  const history = paymentHistoryCodes(t);
+
+  const historyChargeOff = history.some(
+    (c) =>
+      c === 'co' ||
+      c === 'c/o' ||
+      c === 'chg' ||
+      c === 'chgoff' ||
+      c === 'chargeoff' ||
+      /^charge/.test(c) ||
+      c === '9' /* Metro-2 charge-off */,
+  );
+  const historyCollection = history.some(
+    (c) => c === 'cl' || c === 'col' || c === 'coll' || c === 'collection' || /^coll/.test(c),
+  );
 
   // Prefer explicit account type (what the Accounts type filter uses).
-  if (/(charge\s*[- ]?off|charged\s*[- ]?off|written\s*[- ]?off|chargeoff)/.test(type)) return 'charge_off';
+  if (/(charge\s*[- ]?off|charged\s*[- ]?off|written\s*[- ]?off|chargeoff|bad\s*debt)/.test(type)) return 'charge_off';
   if (/(collection|collections|collector)/.test(type)) return 'collection';
 
-  if (/(charge\s*[- ]?off|charged\s*[- ]?off|written\s*[- ]?off|chargeoff)/.test(status)) return 'charge_off';
+  if (/(charge\s*[- ]?off|charged\s*[- ]?off|written\s*[- ]?off|chargeoff|bad\s*debt)/.test(status)) return 'charge_off';
   if (/(collection|collections|placed\s*for\s*collection)/.test(status)) return 'collection';
+
+  if (/(charge\s*[- ]?off|charged\s*[- ]?off|written\s*[- ]?off|chargeoff|bad\s*debt)/.test(blob)) {
+    return 'charge_off';
+  }
+  if (/(collection|collections|placed\s*for\s*collection|debt\s*collector)/.test(blob) && !/(revolving|installment|mortgage|auto|student|credit\s*card)/.test(type)) {
+    return 'collection';
+  }
+
+  if (historyChargeOff) return 'charge_off';
+  if (historyCollection) return 'collection';
 
   // Short codes on type/status only (not freeform remarks — those over-count).
   if (/^(co|c\/o|chg|chgoff|charge)\b/.test(status) || status === 'co') return 'charge_off';

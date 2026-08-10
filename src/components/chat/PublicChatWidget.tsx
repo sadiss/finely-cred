@@ -33,7 +33,13 @@ import { OPEN_PUBLIC_CHAT_EVENT, type PublicChatGoal } from '../../lib/publicCha
 import { emitPlatformEvent } from '../../domain/platformEvents';
 import { resolveToolPath, toolsForPersona } from '../../lib/agentPersonaTools';
 import type { AiGatewayMessage } from '../../lib/aiClient';
-import { getPublicChatPersonaPresentation, getPublicChatAiReceptionistPresentation, PUBLIC_CHAT_AI_PERSONA_ID } from './publicChatPersonaUi';
+import {
+  getPublicChatPersonaPresentation,
+  getPublicChatAiReceptionistPresentation,
+  getPublicChatOnDutyPresentation,
+  PUBLIC_CHAT_AI_PERSONA_ID,
+} from './publicChatPersonaUi';
+import { forceStaffShiftPolicyResync, getStaffMemberById, isStaffOnShift, staffShiftSummary } from '../../data/staffRoster';
 import { PublicChatStaffAvatar } from './PublicChatStaffAvatar';
 import { useAuth } from '../../auth/AuthProvider';
 import { findPartnerByEmail } from '../../data/partnersRepo';
@@ -180,10 +186,58 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
   const [handoffPhase, setHandoffPhase] = useState<'idle' | 'connecting' | 'connected'>('idle');
   const handoffTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  const [dutyTick, setDutyTick] = useState(0);
+
+  const refreshDutyFace = (opts?: { forcePolicy?: boolean }) => {
+    if (opts?.forcePolicy) forceStaffShiftPolicyResync();
+    setDutyTick((n) => n + 1);
+  };
+
+  useEffect(() => {
+    // Boot: re-apply max-8h seed shifts so stale Supabase/local long windows cannot pin Cameron.
+    refreshDutyFace({ forcePolicy: true });
+    const onFocus = () => {
+      if (document.visibilityState === 'hidden') return;
+      refreshDutyFace({ forcePolicy: true });
+    };
+    const onStore = () => refreshDutyFace();
+    const interval = window.setInterval(() => refreshDutyFace(), 30_000);
+    window.addEventListener('focus', onFocus);
+    document.addEventListener('visibilitychange', onFocus);
+    window.addEventListener('finely:store', onStore);
+    return () => {
+      window.clearInterval(interval);
+      window.removeEventListener('focus', onFocus);
+      document.removeEventListener('visibilitychange', onFocus);
+      window.removeEventListener('finely:store', onStore);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!open) return;
+    // Chat open: force policy re-sync so the visible face matches the current shift.
+    refreshDutyFace({ forcePolicy: true });
+  }, [open]);
+
   const persona = useMemo(() => resolvePersona(goal, personaOverrideId), [goal, personaOverrideId]);
-  const presentation = useMemo(() => getPublicChatPersonaPresentation(persona), [persona]);
+  const presentation = useMemo(() => {
+    void dutyTick;
+    return getPublicChatPersonaPresentation(persona);
+  }, [persona, dutyTick]);
   const aiPresentation = useMemo(() => getPublicChatAiReceptionistPresentation(), []);
-  const launcherPresentation = aiPresentation;
+  /** Collapsed launcher + open header face — on-duty human, not Aia. */
+  const launcherPresentation = useMemo(() => {
+    void dutyTick;
+    return getPublicChatOnDutyPresentation();
+  }, [dutyTick]);
+  const launcherShiftMeta = useMemo(() => {
+    void dutyTick;
+    const id = launcherPresentation.staffMemberId;
+    if (!id) return null;
+    const staff = getStaffMemberById(id);
+    if (!staff) return null;
+    return { onShift: isStaffOnShift(staff), summary: staffShiftSummary(staff) };
+  }, [launcherPresentation.staffMemberId, dutyTick]);
   const showSpecialistIdentity = handoffPhase === 'connecting' || handoffComplete;
 
   const goalLabel = useMemo(() => {
@@ -265,6 +319,7 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
   useEffect(() => {
     const handler = (e: Event) => {
       const detail = (e as CustomEvent).detail as { goal?: PublicChatGoal; leadId?: string; personaId?: AgentPersonaId };
+      refreshDutyFace({ forcePolicy: true });
       setOpen(true);
       if (detail.personaId) setPersonaOverrideId(detail.personaId);
       if (detail.goal) {
@@ -605,14 +660,24 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
       {!open && (
         <button
           type="button"
-          onClick={() => setOpen(true)}
+          onClick={() => {
+            refreshDutyFace({ forcePolicy: true });
+            setOpen(true);
+          }}
           className="fixed bottom-[max(1rem,env(safe-area-inset-bottom))] right-[max(1rem,env(safe-area-inset-right))] z-[120] inline-flex items-center gap-3 rounded-2xl border border-emerald-400/35 bg-gradient-to-r from-slate-900/95 via-emerald-950/90 to-teal-950/90 backdrop-blur-xl pl-2 pr-4 py-2 shadow-2xl hover:shadow-[0_20px_50px_-12px_rgba(16,185,129,0.45)] transition-all max-w-[calc(100vw-2rem)]"
-          title="AI guide · not legal advice"
+          title={`${launcherPresentation.firstName} on duty · not legal advice`}
         >
-          <PublicChatStaffAvatar presentation={launcherPresentation} size="sm" />
+          <PublicChatStaffAvatar
+            key={launcherPresentation.staffMemberId ?? launcherPresentation.firstName}
+            presentation={launcherPresentation}
+            size="sm"
+            showOnline
+          />
           <div className="text-left min-w-0">
-            <div className="text-[10px] font-black uppercase tracking-[0.28em] text-emerald-300/90">Chat with Aia</div>
-            <div className="text-xs text-white/80 truncate">AI guide · live specialist when ready</div>
+            <div className="text-[10px] font-black uppercase tracking-[0.28em] text-emerald-300/90">
+              Chat with {launcherPresentation.firstName}
+            </div>
+            <div className="text-xs text-white/80 truncate">On duty · AI helps in chat</div>
           </div>
         </button>
       )}
@@ -625,15 +690,25 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
               className={`shrink-0 px-4 pt-4 pb-3 border-b border-white/[0.08] ${
                 handoffComplete
                   ? `bg-gradient-to-br ${presentation.headerGradient}`
-                  : 'bg-gradient-to-br from-slate-800/40 via-emerald-900/30 to-teal-900/20'
+                  : `bg-gradient-to-br ${launcherPresentation.headerGradient}`
               }`}
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="flex items-start gap-3 min-w-0">
                   {showSpecialistIdentity ? (
-                    <PublicChatStaffAvatar presentation={presentation} size="lg" showOnline={handoffComplete} />
+                    <PublicChatStaffAvatar
+                      key={presentation.staffMemberId ?? presentation.firstName}
+                      presentation={presentation}
+                      size="lg"
+                      showOnline={handoffComplete}
+                    />
                   ) : (
-                    <PublicChatStaffAvatar presentation={launcherPresentation} size="lg" />
+                    <PublicChatStaffAvatar
+                      key={launcherPresentation.staffMemberId ?? launcherPresentation.firstName}
+                      presentation={launcherPresentation}
+                      size="lg"
+                      showOnline
+                    />
                   )}
                   <div className="min-w-0">
                     {handoffComplete ? (
@@ -659,11 +734,25 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
                       </>
                     ) : (
                       <>
-                        <span className="font-bold text-white text-base">{aiPresentation.firstName}</span>
-                        <div className="text-xs font-medium text-cyan-200/80 mt-0.5">
-                          {aiPresentation.title} · routing you to the right specialist
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="font-bold text-white text-base">{launcherPresentation.firstName}</span>
+                          <span
+                            className={`text-[9px] px-2 py-0.5 rounded-full uppercase tracking-wider font-bold border ${
+                              launcherShiftMeta?.onShift
+                                ? 'bg-emerald-400/25 text-emerald-50 border-emerald-300/35'
+                                : 'bg-white/10 text-white/70 border-white/20'
+                            }`}
+                          >
+                            {launcherShiftMeta?.onShift ? 'On shift' : 'After hours'}
+                          </span>
                         </div>
-                        <p className="text-[11px] text-white/45 mt-1 leading-snug">{aiPresentation.tagline}</p>
+                        <div className={`text-xs font-medium ${launcherPresentation.accentText} truncate mt-0.5`}>
+                          {launcherPresentation.title} · AI helps in this chat
+                          {launcherShiftMeta?.summary ? (
+                            <span className="text-white/45"> · {launcherShiftMeta.summary}</span>
+                          ) : null}
+                        </div>
+                        <p className="text-[11px] text-white/45 mt-1 leading-snug">{launcherPresentation.tagline}</p>
                       </>
                     )}
                   </div>
@@ -783,7 +872,7 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
               {busy ? (
                 <div className="flex justify-start gap-2.5 pr-6">
                   <PublicChatStaffAvatar
-                    presentation={showSpecialistIdentity ? presentation : launcherPresentation}
+                    presentation={showSpecialistIdentity ? presentation : aiPresentation}
                     size="sm"
                   />
                   <div className={`${finelyOsInlineListItem()} px-4 py-3 inline-flex gap-2 items-center`}>

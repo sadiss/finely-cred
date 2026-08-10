@@ -3,15 +3,12 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import {
   ArrowLeft,
   ArrowRight,
-  BookOpen,
   ChevronLeft,
   ChevronRight,
   Download,
   ExternalLink,
-  List,
   MessagesSquare,
   Sparkles,
-  X,
 } from 'lucide-react';
 import { usePublicSeoMeta } from '../../hooks/usePublicSeoMeta';
 import { downloadCreditSpecialistTwoSheet } from '../../resources/buildCreditSpecialistTwoSheetPdf';
@@ -25,8 +22,10 @@ import {
   creditSpecialistChapterIndex,
   type CreditSpecialistGuideChapter,
 } from './creditSpecialistGuideContent';
+import GuideReaderShell from './GuideReaderShell';
 import './creditSpecialistGuideLanding.css';
 import './creditSpecialistBinder.css';
+import './guideReaderShell.css';
 
 function cn(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(' ');
@@ -135,17 +134,23 @@ export default function CreditSpecialistGuideReaderPage() {
   }, [initialIdx]);
 
   const chapter = CS_GUIDE_CHAPTERS[chapterIdx] ?? CS_GUIDE_CHAPTERS[0]!;
-  const progress = ((chapterIdx + 1) / CS_GUIDE_CHAPTERS.length) * 100;
+
+  const shellChapters = useMemo(
+    () =>
+      CS_GUIDE_CHAPTERS.map((c) => ({
+        id: c.id,
+        number: c.number,
+        title: c.title,
+        teaser: c.kicker,
+      })),
+    [],
+  );
 
   usePublicSeoMeta({
     title: `${chapter.title} — ${CS_GUIDE_META.shortTitle}`,
     description: chapter.subtitle,
     path: CS_GUIDE_READ_PATH,
   });
-
-  useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, [chapterIdx]);
 
   const goChapter = (idx: number) => {
     const next = Math.max(0, Math.min(CS_GUIDE_CHAPTERS.length - 1, idx));
@@ -165,127 +170,135 @@ export default function CreditSpecialistGuideReaderPage() {
   };
 
   return (
-    <main className="csg-page csg-reader-shell csg-binder relative overflow-x-hidden selection:bg-[#c99b48]/30">
-      <div className="csg-atmosphere pointer-events-none fixed inset-0 z-0" aria-hidden />
-      <div className="lm-lux-grain lm-lux-grain--fixed pointer-events-none" aria-hidden />
-
-      <header className="csg-reader-nav sticky z-40" style={{ top: 'calc(env(safe-area-inset-top, 0px) + 4.25rem)' }}>
-        <div className="csg-progress">
-          <span style={{ width: `${progress}%` }} />
-        </div>
-        <div className="mx-auto flex max-w-[88rem] flex-wrap items-center justify-between gap-3 px-4 py-3 md:px-8">
-          <div className="flex min-w-0 items-center gap-3">
-            <button
-              type="button"
-              onClick={() => navigate(CS_GUIDE_PATH)}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2 text-[11px] font-bold uppercase tracking-[0.12em] text-white/70 transition hover:border-[#d4a447]/40 hover:text-[#f0cc75]"
-            >
-              <ArrowLeft size={14} /> Landing
-            </button>
-            <span className="hidden truncate text-[11px] font-bold uppercase tracking-[0.14em] text-white/45 sm:inline">
-              Specialist e-guide
-            </span>
-          </div>
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => setTocOpen((v) => !v)}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-[#d4a447]/35 bg-[#d4a447]/10 px-3 py-2 text-[11px] font-bold uppercase tracking-[0.12em] text-[#f0cc75] lg:hidden"
-              aria-expanded={tocOpen}
-            >
-              {tocOpen ? <X size={14} /> : <List size={14} />} Pages
-            </button>
-            <button
-              type="button"
-              onClick={() => void onDownloadTwoSheet()}
-              disabled={downloading}
-              className="csg-nav-cta hidden items-center gap-1.5 rounded-lg px-3 py-2 text-[10px] font-bold uppercase tracking-[0.12em] text-[#e8c96a] sm:inline-flex"
-            >
-              <Download size={14} /> {downloading ? '…' : '2-sheet PDF'}
-            </button>
-            <Link
-              to={CS_JOIN_PATH}
-              className="csg-ghost-btn inline-flex h-10 items-center justify-center rounded-lg px-3.5 text-[10px] font-black uppercase tracking-[0.14em]"
-            >
-              Join
-            </Link>
-          </div>
-        </div>
-      </header>
-
-      <div className="relative z-10 mx-auto grid max-w-[88rem] gap-6 px-4 py-6 md:px-8 lg:grid-cols-[260px_minmax(0,1fr)] lg:gap-8 lg:py-8">
-        {/* TOC — desktop always; mobile drawer */}
-        <aside
-          className={cn(
-            'csg-toc rounded-2xl p-4 lg:sticky lg:top-24 lg:self-start',
-            tocOpen ? 'block' : 'hidden lg:block',
-          )}
+    <GuideReaderShell
+      className="csg-page csg-reader-shell csg-binder relative overflow-x-hidden selection:bg-[#c99b48]/30"
+      chapters={shellChapters}
+      chapterIndex={chapterIdx}
+      onChapterChange={goChapter}
+      tocOpen={tocOpen}
+      onTocOpenChange={setTocOpen}
+      tocLabel="Table of contents"
+      tocTitle={CS_GUIDE_META.shortTitle}
+      tocSubtitle="Specialist e-guide"
+      tocClassName="csg-toc rounded-2xl p-4"
+      tocFooter={<p className="csg-compliance mt-4">{CS_GUIDE_META.compliance}</p>}
+      storageKey="finely.guideReader.creditSpecialist"
+      maxWidthClassName="max-w-[88rem]"
+      headerClassName="csg-reader-nav"
+      progressTrackClassName="csg-progress"
+      atmosphere={
+        <>
+          <div className="csg-atmosphere pointer-events-none fixed inset-0 z-0" aria-hidden />
+          <div className="lm-lux-grain lm-lux-grain--fixed pointer-events-none" aria-hidden />
+        </>
+      }
+      headerLeft={
+        <button
+          type="button"
+          onClick={() => navigate(CS_GUIDE_PATH)}
+          className="inline-flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2 text-[11px] font-bold uppercase tracking-[0.12em] text-white/70 transition hover:border-[#d4a447]/40 hover:text-[#f0cc75]"
         >
-          <div className="mb-3 flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-[#d4a447]">
-            <BookOpen size={14} /> Table of contents
-          </div>
-          <p className="csg-serif text-lg text-white">{CS_GUIDE_META.shortTitle}</p>
-          <nav className="mt-4 space-y-1.5" aria-label="Guide pages">
-            {CS_GUIDE_CHAPTERS.map((ch, i) => (
-              <button
-                key={ch.id}
-                type="button"
-                onClick={() => goChapter(i)}
-                className={cn('csg-toc-item flex w-full gap-3 rounded-xl px-3 py-2.5 text-left', i === chapterIdx && 'is-active')}
-              >
-                <span className={cn('text-[11px] font-black tabular-nums', `csg-accent-${ch.accent}`)}>{ch.number}</span>
-                <span className="min-w-0">
-                  <span className="block text-sm font-semibold text-white">{ch.title}</span>
-                  <span className="mt-0.5 block text-[11px] text-white/40 line-clamp-1">{ch.kicker}</span>
-                </span>
-              </button>
-            ))}
-          </nav>
-          <p className="csg-compliance mt-4">{CS_GUIDE_META.compliance}</p>
-        </aside>
-
-        <div className="min-w-0">
-          <article
-            key={chapter.id}
-            className="csg-article csg-binder-animate-page rounded-[1.35rem] p-5 md:p-8 md:pl-14 lg:p-10 lg:pl-16"
+          <ArrowLeft size={14} /> Landing
+        </button>
+      }
+      headerRight={
+        <>
+          <button
+            type="button"
+            onClick={() => void onDownloadTwoSheet()}
+            disabled={downloading}
+            className="csg-nav-cta hidden items-center gap-1.5 rounded-lg px-3 py-2 text-[10px] font-bold uppercase tracking-[0.12em] text-[#e8c96a] sm:inline-flex"
           >
+            <Download size={14} /> {downloading ? '…' : '2-sheet PDF'}
+          </button>
+          <Link
+            to={CS_JOIN_PATH}
+            className="csg-ghost-btn inline-flex h-10 items-center justify-center rounded-lg px-3.5 text-[10px] font-black uppercase tracking-[0.14em]"
+          >
+            Join
+          </Link>
+        </>
+      }
+      tocItemClassName={(active) => cn('csg-toc-item flex w-full gap-3 rounded-xl px-3 py-2.5 text-left', active && 'is-active')}
+      afterArticle={
+        <div className="csg-cta-panel mt-5 rounded-2xl p-5 md:p-6">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <div className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-[#95e000]">
+                <Sparkles size={14} /> Keep reading freely
+              </div>
+              <p className="mt-2 text-sm text-white/60">
+                This e-guide is separate from signup. Take the 2-sheet playbook anytime — join only when you want the
+                program at <span className="text-[#f0cc75]">{CS_JOIN_PATH}</span>
+              </p>
+              <p className="csg-compliance mt-2">{CS_GUIDE_META.compliance}</p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => void onDownloadTwoSheet()}
+                disabled={downloading}
+                className="inline-flex h-10 items-center justify-center gap-1.5 rounded-lg border-2 border-white/70 bg-white/10 px-4 text-[10px] font-black uppercase tracking-[0.12em] text-white transition-all hover:border-white hover:bg-white/20 disabled:opacity-60"
+              >
+                <Download size={14} /> {downloading ? 'Building…' : 'Download 2-sheet'}
+              </button>
+              <Link
+                to={CS_GUIDE_PATH}
+                className="csg-ghost-btn inline-flex h-10 items-center justify-center rounded-lg px-4 text-[10px] font-black uppercase tracking-[0.12em]"
+              >
+                Landing
+              </Link>
+              <Link
+                to={CS_JOIN_PATH}
+                className="inline-flex h-10 items-center justify-center rounded-lg px-3 text-[10px] font-bold uppercase tracking-[0.12em] text-white/45 transition hover:text-[#f0cc75]"
+              >
+                Join →
+              </Link>
+            </div>
+          </div>
+        </div>
+      }
+      renderChapter={(i) => {
+        const ch = CS_GUIDE_CHAPTERS[i] ?? CS_GUIDE_CHAPTERS[0]!;
+        return (
+          <article className="csg-article csg-binder-animate-page rounded-[1.35rem] p-5 md:p-8 md:pl-14 lg:p-10 lg:pl-16">
             <div className="flex items-start gap-4">
               <div className="csg-binder-stamp csg-binder-animate-stamp" aria-hidden>
-                <span className="csg-binder-stamp-num">{chapter.number}</span>
+                <span className="csg-binder-stamp-num">{ch.number}</span>
                 <span className="csg-binder-stamp-label">Page</span>
               </div>
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="csg-binder-lane">{chapter.kicker}</span>
+                  <span className="csg-binder-lane">{ch.kicker}</span>
                   <span className="csg-binder-meta">
-                    {chapterIdx + 1} of {CS_GUIDE_CHAPTERS.length}
+                    {i + 1} of {CS_GUIDE_CHAPTERS.length}
                   </span>
                 </div>
                 <h1 className="csg-serif mt-2.5 text-3xl font-semibold leading-tight tracking-[-0.02em] md:text-4xl lg:text-[2.6rem]">
-                  {chapter.title}
+                  {ch.title}
                 </h1>
               </div>
             </div>
-            <p className="mt-3 max-w-2xl text-base leading-relaxed md:text-lg">{chapter.subtitle}</p>
+            <p className="mt-3 max-w-2xl text-base leading-relaxed md:text-lg">{ch.subtitle}</p>
             <div className="lm-lux-rule--short lm-lux-rule--draw mt-5" aria-hidden />
 
             <div className="mt-8">
-              <ChapterBody chapter={chapter} />
+              <ChapterBody chapter={ch} />
             </div>
 
             <div className="mt-8 flex flex-wrap items-center justify-between gap-3 border-t border-[#e3dac6] pt-6">
               <button
                 type="button"
-                disabled={chapterIdx <= 0}
-                onClick={() => goChapter(chapterIdx - 1)}
+                disabled={i <= 0}
+                onClick={() => goChapter(i - 1)}
                 className="inline-flex h-11 items-center gap-2 rounded-lg border border-[#e3dac6] bg-white/60 px-4 text-[11px] font-black uppercase tracking-[0.12em] text-[#4a4234] transition hover:border-[#a8792a]/60 disabled:cursor-not-allowed disabled:opacity-35"
               >
                 <ChevronLeft size={16} /> Previous
               </button>
-              {chapterIdx < CS_GUIDE_CHAPTERS.length - 1 ? (
+              {i < CS_GUIDE_CHAPTERS.length - 1 ? (
                 <button
                   type="button"
-                  onClick={() => goChapter(chapterIdx + 1)}
+                  onClick={() => goChapter(i + 1)}
                   className="csg-gold-btn inline-flex h-11 items-center gap-2 rounded-lg px-5 text-[11px] font-black uppercase tracking-[0.12em]"
                 >
                   <span className="relative z-10 flex items-center gap-2">
@@ -304,46 +317,8 @@ export default function CreditSpecialistGuideReaderPage() {
               )}
             </div>
           </article>
-
-          {/* End-of-chapter strip — join stays secondary */}
-          <div className="csg-cta-panel mt-5 rounded-2xl p-5 md:p-6">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <div className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-[#95e000]">
-                  <Sparkles size={14} /> Keep reading freely
-                </div>
-                <p className="mt-2 text-sm text-white/60">
-                  This e-guide is separate from signup. Take the 2-sheet playbook anytime — join only when you want the
-                  program at <span className="text-[#f0cc75]">{CS_JOIN_PATH}</span>
-                </p>
-                <p className="csg-compliance mt-2">{CS_GUIDE_META.compliance}</p>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                <button
-                  type="button"
-                  onClick={() => void onDownloadTwoSheet()}
-                  disabled={downloading}
-                  className="inline-flex h-10 items-center justify-center gap-1.5 rounded-lg border-2 border-white/70 bg-white/10 px-4 text-[10px] font-black uppercase tracking-[0.12em] text-white transition-all hover:border-white hover:bg-white/20 disabled:opacity-60"
-                >
-                  <Download size={14} /> {downloading ? 'Building…' : 'Download 2-sheet'}
-                </button>
-                <Link
-                  to={CS_GUIDE_PATH}
-                  className="csg-ghost-btn inline-flex h-10 items-center justify-center rounded-lg px-4 text-[10px] font-black uppercase tracking-[0.12em]"
-                >
-                  Landing
-                </Link>
-                <Link
-                  to={CS_JOIN_PATH}
-                  className="inline-flex h-10 items-center justify-center rounded-lg px-3 text-[10px] font-bold uppercase tracking-[0.12em] text-white/45 transition hover:text-[#f0cc75]"
-                >
-                  Join →
-                </Link>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </main>
+        );
+      }}
+    />
   );
 }

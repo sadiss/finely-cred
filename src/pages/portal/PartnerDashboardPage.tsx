@@ -72,6 +72,20 @@ import {
 
 const DASH_CARD_ACCENTS = ['emerald', 'sky', 'violet', 'amber', 'fuchsia'] as const;
 
+/** Soft accent wash + glow for ivory surfaces — color pops without nested white/gray cards. */
+const DASH_ACTION_TINT: Record<(typeof DASH_CARD_ACCENTS)[number], string> = {
+  emerald:
+    'rounded-xl border border-emerald-500/50 bg-gradient-to-br from-emerald-400/28 via-emerald-500/12 to-transparent shadow-[0_0_0_1px_rgba(16,185,129,0.2),0_14px_36px_-10px_rgba(16,185,129,0.62),0_0_24px_-6px_rgba(16,185,129,0.28)]',
+  sky:
+    'rounded-xl border border-sky-500/50 bg-gradient-to-br from-sky-400/28 via-sky-500/12 to-transparent shadow-[0_0_0_1px_rgba(14,165,233,0.2),0_14px_36px_-10px_rgba(14,165,233,0.58),0_0_24px_-6px_rgba(14,165,233,0.26)]',
+  violet:
+    'rounded-xl border border-violet-500/50 bg-gradient-to-br from-violet-400/28 via-violet-500/12 to-transparent shadow-[0_0_0_1px_rgba(139,92,246,0.22),0_14px_36px_-10px_rgba(139,92,246,0.62),0_0_24px_-6px_rgba(139,92,246,0.28)]',
+  amber:
+    'rounded-xl border border-amber-500/55 bg-gradient-to-br from-amber-300/32 via-amber-500/14 to-transparent shadow-[0_0_0_1px_rgba(245,158,11,0.22),0_14px_36px_-10px_rgba(245,158,11,0.62),0_0_24px_-6px_rgba(245,158,11,0.28)]',
+  fuchsia:
+    'rounded-xl border border-fuchsia-500/50 bg-gradient-to-br from-fuchsia-400/28 via-fuchsia-500/12 to-transparent shadow-[0_0_0_1px_rgba(217,70,239,0.2),0_14px_36px_-10px_rgba(217,70,239,0.58),0_0_24px_-6px_rgba(217,70,239,0.26)]',
+};
+
 export default function PartnerDashboardPage() {
   const auth = useAuth();
   const navigate = useNavigate();
@@ -222,8 +236,10 @@ export default function PartnerDashboardPage() {
         reportsCount: reports.length,
         hasParsedReport: reports.some((r) => Boolean(r.parsed)),
         letters,
+        debtCases,
+        partnerId: partner?.id,
       }),
-    [reports, letters],
+    [reports, letters, debtCases, partner?.id],
   );
 
   const courtPlanAlert = useMemo(
@@ -400,6 +416,7 @@ export default function PartnerDashboardPage() {
       badge="Partner Portal"
       title="Partner Dashboard"
       subtitle="Your home base: next steps, uploads, and dispute progress — organized so you always know what to do next."
+      surface="ivory"
     >
       {!partner ? (
         <div className={`${FINELY_OS_PAGE} fc-senior-simple`}>
@@ -458,6 +475,7 @@ export default function PartnerDashboardPage() {
         <div className={`${FINELY_OS_PAGE} fc-senior-simple`}>
           <WelcomeBanner user={auth.user} partner={partner} />
           <FinelyNoticedStrip
+            surface="light"
             items={buildPortalNoticedItems({
               reportsCount: reports.length,
               lettersCount: letters.length,
@@ -466,15 +484,26 @@ export default function PartnerDashboardPage() {
               overallScore: overallScore?.overall ?? null,
             })}
           />
-          <FinelyNowDoThisStrip currentIndex={reports.length === 0 ? 0 : 2} />
+          <FinelyNowDoThisStrip surface="light" currentIndex={reports.length === 0 ? 0 : 2} />
           {restoreAlert.show ? (
             <div className="space-y-3">
               <FinelyOsAlertBanner tone={restoreAlert.tone} message={restoreAlert.message} />
-              {restoreAlert.ctaPath ? (
-                <button type="button" onClick={() => navigate(restoreAlert.ctaPath!)} className={FINELY_OS_PRIMARY_BTN}>
-                  {restoreAlert.ctaLabel ?? 'Continue'} <ArrowRight size={14} />
-                </button>
-              ) : null}
+              <div className="flex flex-wrap gap-2">
+                {restoreAlert.ctaPath ? (
+                  <button type="button" onClick={() => navigate(restoreAlert.ctaPath!)} className={FINELY_OS_PRIMARY_BTN}>
+                    {restoreAlert.ctaLabel ?? 'Continue'} <ArrowRight size={14} />
+                  </button>
+                ) : null}
+                {restoreAlert.secondaryCtaPath ? (
+                  <button
+                    type="button"
+                    onClick={() => navigate(restoreAlert.secondaryCtaPath!)}
+                    className={FINELY_OS_SECONDARY_BTN}
+                  >
+                    {restoreAlert.secondaryCtaLabel ?? 'Bureau letter now (optional)'}
+                  </button>
+                ) : null}
+              </div>
             </div>
           ) : null}
           {courtPlanAlert.show ? (
@@ -545,6 +574,7 @@ export default function PartnerDashboardPage() {
             title="Your file — scroll or jump"
             subtitle="Overview, journey, activity, modules, and workflow — all visible; tabs jump to each section."
             accent="violet"
+            contentVariant="flush"
             kpis={dashKpis}
             tabs={[
               { id: 'overview', label: 'Overview' },
@@ -579,7 +609,10 @@ export default function PartnerDashboardPage() {
                   onClick={() => navigate('/portal/checklist')}
                 />
               </div>
-              <div className={`lg:col-span-8 min-w-0 ${finelyOsCatalogCard('violet')} !p-5`} data-fc-accent="violet">
+              <div
+                className="lg:col-span-8 min-w-0 rounded-xl border border-violet-500/20 bg-transparent p-4 sm:p-5"
+                data-fc-accent="violet"
+              >
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div className="min-w-0">
                     <div className={FINELY_OS_ENTITY_LABEL}>Mission control</div>
@@ -609,22 +642,25 @@ export default function PartnerDashboardPage() {
 
                 {overallScore.topActions?.length ? (
                   <div className="mt-4 grid md:grid-cols-3 gap-3">
-                    {overallScore.topActions.slice(0, 3).map((a, idx) => (
-                      <button
-                        key={a.key}
-                        type="button"
-                        onClick={() => navigate(a.path || '/portal/checklist')}
-                        className={`${finelyOsCatalogCard(DASH_CARD_ACCENTS[idx % DASH_CARD_ACCENTS.length])} w-full text-left !p-4`}
-                        data-fc-accent={DASH_CARD_ACCENTS[idx % DASH_CARD_ACCENTS.length]}
-                        title={a.title}
-                      >
-                        <div className="text-[10px] uppercase tracking-widest text-violet-700">
-                          {a.severity === 'warn' ? 'Priority' : 'Improvement'}
-                        </div>
-                        <div className={`mt-2 ${FINELY_OS_ENTITY_VALUE}`}>{a.title}</div>
-                        <div className={`mt-2 ${FINELY_OS_ENTITY_BODY}`}>{a.desc}</div>
-                      </button>
-                    ))}
+                    {overallScore.topActions.slice(0, 3).map((a, idx) => {
+                      const tint = DASH_CARD_ACCENTS[idx % DASH_CARD_ACCENTS.length];
+                      return (
+                        <button
+                          key={a.key}
+                          type="button"
+                          onClick={() => navigate(a.path || '/portal/checklist')}
+                          className={`${DASH_ACTION_TINT[tint]} w-full text-left !p-4`}
+                          data-fc-accent={tint}
+                          title={a.title}
+                        >
+                          <div className="text-[10px] uppercase tracking-widest text-violet-700">
+                            {a.severity === 'warn' ? 'Priority' : 'Improvement'}
+                          </div>
+                          <div className={`mt-2 ${FINELY_OS_ENTITY_VALUE}`}>{a.title}</div>
+                          <div className={`mt-2 ${FINELY_OS_ENTITY_BODY}`}>{a.desc}</div>
+                        </button>
+                      );
+                    })}
                   </div>
                 ) : (
                   <div className={`mt-4 ${FINELY_OS_ENTITY_BODY}`}>No improvements detected right now.</div>
@@ -635,14 +671,12 @@ export default function PartnerDashboardPage() {
 
           {visibleNotes.length > 0 ? (
             <CollapsibleSection
-              variant="dark"
+              variant="light"
               title="Staff notes"
               subtitle="Updates from your credit specialist team."
               count={`${visibleNotes.length} note${visibleNotes.length === 1 ? '' : 's'}`}
               defaultOpen
               storageKey="portal.dashboard.staffNotes"
-              className="border-fuchsia-500/25"
-              headerClassName="border-white/[0.08]"
               actions={
                 <Button variant="outline" size="sm" onClick={() => navigate('/portal/messages?hub=ai')}>
                   Communication Hub <ArrowRight size={14} />
@@ -659,13 +693,13 @@ export default function PartnerDashboardPage() {
 
           {partner.lane === 'business_credit' && (
             <CollapsibleSection
-              variant="dark"
-              title={<span className="text-fuchsia-200">Business persona</span>}
+              variant="light"
+              title={<span className="text-fuchsia-800">Business persona</span>}
               subtitle="Your EIN profile (separate from personal)."
               defaultOpen={false}
               storageKey="portal.dashboard.businessPersona"
-              className="border-fuchsia-500/25"
-              headerClassName="border-white/[0.08]"
+              className="!border-fuchsia-500/40 shadow-[0_0_0_1px_rgba(217,70,239,0.14),0_14px_44px_-16px_rgba(217,70,239,0.42)]"
+              headerClassName="border-fuchsia-500/15"
               actions={
                 <Button variant="primary" size="sm" onClick={() => navigate('/business/profile')}>
                   Complete business profile <ArrowRight size={14} />
@@ -726,7 +760,7 @@ export default function PartnerDashboardPage() {
             return (
               <div id="fc-roadmap-console">
                 <CollapsibleSection
-                  variant="dark"
+                  variant="light"
                   title="Expedition map + Action Console"
                   subtitle="Terrain map with landmarks tied to your projects & tasks — plus Now / Next / Later actions."
                   count={`lane: ${partner.lane ?? '—'} • stage: ${partner.journeyStage ?? 'intake'}`}
@@ -757,7 +791,7 @@ export default function PartnerDashboardPage() {
                                   {items.length} item{items.length === 1 ? '' : 's'}
                                 </span>
                               </div>
-                              <div className="text-[10px] font-black uppercase tracking-widest text-violet-300">Open</div>
+                              <div className="text-[10px] font-black uppercase tracking-widest text-violet-700">Open</div>
                             </summary>
                             <div className="mt-4 space-y-3">
                               {items.map((a) => (
@@ -767,7 +801,7 @@ export default function PartnerDashboardPage() {
                                   onClick={() => navigate(a.path)}
                                   className={`${finelyOsInlineListItem()} w-full text-left p-5`}
                                 >
-                                  <div className="text-[10px] uppercase tracking-widest text-violet-300">{a.k}</div>
+                                  <div className="text-[10px] uppercase tracking-widest text-violet-700">{a.k}</div>
                                   <div className={`mt-2 ${FINELY_OS_ENTITY_VALUE}`}>{a.title}</div>
                                   <div className={`mt-2 ${FINELY_OS_ENTITY_BODY}`}>{a.desc}</div>
                                   <div className={`mt-4 inline-flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL}`}>
@@ -853,7 +887,7 @@ export default function PartnerDashboardPage() {
 
           {overallScore?.topActions?.length ? (
             <CollapsibleSection
-              variant="dark"
+              variant="light"
               title="Top improvements"
               subtitle="Fastest ways to raise your score and keep your workflow clean."
               count={`${overallScore.topActions.length}`}
@@ -884,14 +918,14 @@ export default function PartnerDashboardPage() {
           ) : null}
 
           <CollapsibleSection
-            variant="dark"
+            variant="light"
             title="Next steps & status"
             subtitle="Keep momentum without scrolling 20 pages."
             defaultOpen
             storageKey="portal.dashboard.nextSteps"
           >
             <div className="grid lg:grid-cols-12 gap-6">
-              <div className={`lg:col-span-7 min-w-0 ${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony !p-6 space-y-4`}>
+              <div className="lg:col-span-7 min-w-0 space-y-3">
                 <p className={FINELY_OS_ENTITY_LABEL}>Next steps</p>
 
                 {openTasks.length === 0 ? (
@@ -905,7 +939,7 @@ export default function PartnerDashboardPage() {
                     itemSpacingClassName="grid md:grid-cols-2 gap-3"
                     emptyMessage="No open tasks."
                     renderItem={(t) => (
-                      <div key={t.id} className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony`}>
+                      <div key={t.id} className="rounded-xl border border-black/10 bg-transparent p-3">
                         <div className="flex items-start justify-between gap-3">
                           <div className="min-w-0">
                             <div className={`${FINELY_OS_ENTITY_VALUE} truncate`}>{t.title}</div>
@@ -924,30 +958,30 @@ export default function PartnerDashboardPage() {
                 )}
               </div>
 
-              <div className={`lg:col-span-5 min-w-0 ${finelyOsCatalogCard('violet')} !p-6 space-y-4`}>
+              <div className="lg:col-span-5 min-w-0 space-y-3">
                 <p className={FINELY_OS_ENTITY_LABEL}>Status snapshot</p>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony`}>
+                <div className="grid grid-cols-2 rounded-xl border border-black/10 bg-transparent divide-x divide-y divide-black/10 overflow-hidden">
+                  <div className="p-3">
                     <div className={FINELY_OS_ENTITY_SUBLABEL}>Partner status</div>
                     <div className={`mt-2 ${FINELY_OS_ENTITY_VALUE}`}>{partner.status}</div>
                   </div>
-                  <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony`}>
+                  <div className="p-3">
                     <div className={FINELY_OS_ENTITY_SUBLABEL}>Primary route</div>
                     <div className={`mt-2 ${FINELY_OS_ENTITY_VALUE}`}>{partner.primaryRoute ?? '—'}</div>
                   </div>
-                  <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony`}>
+                  <div className="p-3">
                     <div className={FINELY_OS_ENTITY_SUBLABEL}>Lane</div>
                     <div className={`mt-2 ${FINELY_OS_ENTITY_VALUE}`}>{partner.lane ?? '—'}</div>
                   </div>
-                  <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony`}>
+                  <div className="p-3">
                     <div className={FINELY_OS_ENTITY_SUBLABEL}>Stage</div>
                     <div className={`mt-2 ${FINELY_OS_ENTITY_VALUE}`}>{partner.journeyStage ?? 'intake'}</div>
                   </div>
                 </div>
                 <div className={`${FINELY_OS_NOTICE_WARN} flex items-start gap-3`}>
-                  <ShieldAlert size={16} className="text-fuchsia-300 mt-0.5 shrink-0" />
+                  <ShieldAlert size={16} className="text-fuchsia-600 mt-0.5 shrink-0" />
                   <div>
-                    <p className="font-semibold text-fuchsia-100">Pro tip</p>
+                    <p className="font-semibold text-fuchsia-900">Pro tip</p>
                     <p className={`mt-1 ${FINELY_OS_ENTITY_BODY}`}>
                       If you receive bureau mail responses, upload them to your Documents Vault immediately — it keeps your rounds and follow-ups on schedule.
                     </p>
@@ -961,7 +995,7 @@ export default function PartnerDashboardPage() {
             <section id="portal-dash-modules" className="fc-scroll-section">
                 <h2 className="fc-launch-lane-header">All modules</h2>
           <CollapsibleSection
-            variant="dark"
+            variant="light"
             title="Modules"
             subtitle="Shortcuts to the most-used areas (kept collapsible so the dashboard stays compact)."
             count={`${dashboardModuleCards.length} shortcuts`}
@@ -996,7 +1030,7 @@ export default function PartnerDashboardPage() {
             <section id="portal-dash-workflow" className="fc-scroll-section space-y-6">
                 <h2 className="fc-launch-lane-header">Workflow &amp; tasks</h2>
           <CollapsibleSection
-            variant="dark"
+            variant="light"
             title="Onboarding checklist"
             subtitle="Execution-ready: reports uploaded, evidence captured, tasks completed."
             defaultOpen={false}

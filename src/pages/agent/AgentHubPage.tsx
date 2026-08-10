@@ -48,30 +48,44 @@ import { FinelyUnifiedHubLayout } from '../../features/unified/FinelyUnifiedHubL
 import { FinelyNowDoThisStrip } from '../../components/tours/FinelyNowDoThisStrip';
 import { FinelyNoticedStrip } from '../../components/tours/FinelyNoticedStrip';
 import { buildAgentNoticedItems } from '../../lib/finelyProactiveSignals';
+import { RoleHubToolDeck, type RoleHubTool } from '../../components/hubs/RoleHubToolDeck';
+import { RoleHubDeepenOverview } from '../../components/hubs/RoleHubDeepenOverview';
+import { HUB_PRODUCT_SHOT } from '../../config/productShots';
+import { ROLE_WORK_SPLIT, ROLE_GUIDE_CTAS } from '../../config/rolePartnerPrograms';
+import { FinelyOsAlertBanner } from '../../features/os/FinelyOsAlertBanner';
+import { resolveCreditSpecialistHubAccess } from '../../lib/roleHubAccess';
 import {
+  FINELY_OS_COMPACT_PAGE,
   FINELY_OS_ENTITY_BODY,
   FINELY_OS_ENTITY_EMPTY,
   FINELY_OS_ENTITY_SUBLABEL,
   FINELY_OS_ENTITY_VALUE,
   FINELY_OS_NOTICE_SUCCESS,
-  FINELY_OS_PAGE,
   FINELY_OS_PRIMARY_BTN,
   FINELY_OS_SECONDARY_BTN,
   finelyOsCatalogCard,
-  finelyOsKpiTile,
   finelyOsListItem,
 } from '../../features/os/finelyOsLightUi';
 
 type HubTab = 'overview' | 'economics' | 'growth' | 'communications' | 'setup' | 'training' | 'operate' | 'command';
 
 const QUICK_TOOLS = [
-  { label: 'Customer dashboard', path: '/portal/dashboard', icon: LayoutDashboard },
+  { label: 'Partner dashboard', path: '/portal/dashboard', icon: LayoutDashboard },
   { label: 'Partnership line', path: CS.messagesDeepLink, icon: MessageSquare },
   { label: 'Template library', path: '/portal/templates', icon: BookOpen },
   { label: 'Letter studio', path: '/portal/letters', icon: Rocket },
   { label: 'Courses & academy', path: '/portal/courses', icon: BookOpen },
   { label: 'Marketing resources', path: '/portal/education', icon: Megaphone },
   { label: 'Team & roles', path: '/admin/team', icon: Users },
+];
+
+const CS_TOOL_DECK: RoleHubTool[] = [
+  { id: 'partners', label: 'Partner files', detail: 'Assigned caseload', path: '/admin/partners', icon: Users, accent: 'emerald', badge: 'Operate' },
+  { id: 'letters', label: 'Letter studio', detail: 'Draft & mail disputes', path: '/portal/letters', icon: Rocket, accent: 'violet' },
+  { id: 'growth', label: 'Lead growth', detail: 'Pitch & capture', path: `${CS.hubPath}?tab=growth`, icon: Target, accent: 'amber' },
+  { id: 'training', label: 'Training', detail: 'Academy tracks', path: `${CS.hubPath}?tab=training`, icon: GraduationCap, accent: 'sky' },
+  { id: 'comms', label: 'Partnership line', detail: 'Message Finely', path: CS.messagesDeepLink, icon: MessageSquare, accent: 'fuchsia' },
+  { id: 'economics', label: 'Economics', detail: 'Keep % & payouts', path: `${CS.hubPath}?tab=economics`, icon: Calculator, accent: 'emerald' },
 ];
 
 const TABS: { id: HubTab; label: string; icon: React.ComponentType<{ size?: number }> }[] = [
@@ -207,13 +221,49 @@ export default function AgentHubPage() {
     setSaved(true);
   };
 
-  if (!auth.user) {
+  const nowDoItems = useMemo(
+    () => [
+      {
+        label: managedClientsCount === 0 ? 'Grow your first partner leads' : 'Open today’s partner file',
+        detail:
+          managedClientsCount === 0
+            ? 'Use Growth to capture leads, then wait for admin assignment onto partner files.'
+            : 'Review open tasks, draft letters, and update the partnership line.',
+        to: managedClientsCount === 0 ? `${CS.hubPath}?tab=growth` : '/admin/partners',
+      },
+      { label: 'Complete training phase', detail: 'Keep your keep % unlocked with academy progress.', to: `${CS.hubPath}?tab=training` },
+      { label: 'Message Finely', detail: 'Partnership line for blockers and escalations.', to: CS.messagesDeepLink },
+    ],
+    [managedClientsCount],
+  );
+
+  const gate = useMemo(() => resolveCreditSpecialistHubAccess(auth.user), [auth.user]);
+  const workSplit = ROLE_WORK_SPLIT.cs;
+  const csGuide = ROLE_GUIDE_CTAS.cs;
+
+  if (!gate.allowed) {
     return (
-      <PageShell badge={CS.plural} title={CS.hubName} subtitle="Sign in to access training, split calculator, partnership line, and tools.">
-        <div className={FINELY_OS_PAGE}>
-          <button type="button" onClick={() => navigate('/onboarding')} className={FINELY_OS_PRIMARY_BTN}>
-            Sign in
-          </button>
+      <PageShell
+        badge={CS.programName}
+        title={CS.hubName}
+        subtitle="Train, message Finely, configure white-label, and run partner files on one stack."
+        back={{ to: CS.pricingPath, label: 'Credit Specialist careers' }}
+      >
+        <div className={`${FINELY_OS_COMPACT_PAGE} max-w-3xl space-y-3`}>
+          <FinelyOsAlertBanner
+            tone={gate.reason === 'unauthenticated' ? 'info' : 'warning'}
+            message={gate.message}
+          />
+          <div className="flex flex-wrap gap-2">
+            {gate.cta ? (
+              <button type="button" onClick={() => navigate(gate.cta!.path)} className={FINELY_OS_PRIMARY_BTN}>
+                {gate.cta.label}
+              </button>
+            ) : null}
+            <button type="button" onClick={() => navigate(csGuide.path)} className={FINELY_OS_SECONDARY_BTN}>
+              Open Specialist Guide
+            </button>
+          </div>
           <FinelyOsPageFooter />
         </div>
       </PageShell>
@@ -224,10 +274,10 @@ export default function AgentHubPage() {
     <PageShell
       badge={CS.programName}
       title={CS.hubName}
-      subtitle="Revenue-share partnership — train, message Finely, configure white-label, and run customer files on one stack."
+      subtitle="Revenue-share partnership — train, message Finely, configure white-label, and run partner files on one stack."
       back={{ to: '/dashboard', label: 'Dashboard' }}
     >
-      <div className={`${FINELY_OS_PAGE} max-w-5xl`}>
+      <div className={`${FINELY_OS_COMPACT_PAGE} max-w-5xl`}>
         {saved ? <div className={FINELY_OS_NOTICE_SUCCESS}>Operating model saved.</div> : null}
 
         <CreditSpecialistHubCommandStrip clientCount={managedClientsCount} openTasks={openTasks} />
@@ -244,52 +294,45 @@ export default function AgentHubPage() {
             hasOperatingModel,
           })}
         />
-        <FinelyNowDoThisStrip currentIndex={managedClientsCount === 0 ? 0 : 1} />
+        <FinelyNowDoThisStrip
+          items={nowDoItems}
+          currentIndex={managedClientsCount === 0 ? 0 : openTasks > 0 ? 0 : 1}
+          className="!p-4"
+        />
 
         <FinelyUnifiedHubLayout
           eyebrow={CS.programName}
           title={CS.hubName}
-          subtitle="Revenue-share partnership — train, message Finely, configure white-label, and run customer files on one stack."
+          subtitle="Revenue-share partnership — train, message Finely, configure white-label, and run partner files on one stack."
           accent="emerald"
           kpis={[
             { label: 'Your keep', value: `${split.agentSharePct}%`, accent: 'emerald' },
-            { label: 'Customers', value: String(managedClientsCount), accent: 'amber' },
+            { label: 'Partners', value: String(managedClientsCount), accent: 'amber' },
             { label: 'Open tasks', value: String(openTasks), accent: 'sky' },
             { label: 'Training', value: split.phaseLabel, accent: 'violet' },
           ]}
           tabs={TABS.map(({ id, label }) => ({ id, label }))}
           activeTab={tab}
           onTabChange={(id) => setTab(id as HubTab)}
-          primaryAction={{ label: 'Customer dashboard', onClick: () => navigate('/portal/dashboard') }}
+          primaryAction={{ label: 'Partner dashboard', onClick: () => navigate('/portal/dashboard') }}
           secondaryAction={{ label: 'Partnership line', onClick: () => navigate(CS.messagesDeepLink) }}
         >
         {tab === 'overview' && (
           <>
-            <div className={`grid md:grid-cols-3 gap-4 ${finelyOsCatalogCard('emerald')} !p-5`} data-fc-accent="emerald">
-              <div className={finelyOsKpiTile(1)}>
-                <div className={`${FINELY_OS_ENTITY_SUBLABEL} text-emerald-700`}>Your keep</div>
-                <div className="text-4xl font-bold text-emerald-700 mt-1">{split.agentSharePct}%</div>
-                <div className={`${FINELY_OS_ENTITY_BODY} text-xs mt-2`}>Revenue share only — no platform fee</div>
-              </div>
-              <div className={finelyOsKpiTile(4)}>
-                <div className={`${FINELY_OS_ENTITY_SUBLABEL} text-amber-700`}>Training</div>
-                <div className={`text-xl font-semibold ${FINELY_OS_ENTITY_VALUE} mt-1`}>{split.phaseLabel}</div>
-                <div className={`${FINELY_OS_ENTITY_BODY} text-xs mt-2 capitalize`}>{(tier?.whiteLabelLevel ?? '').replace(/_/g, ' ') || tier?.name}</div>
-              </div>
-              <div className={finelyOsKpiTile(0)}>
-                <div className={FINELY_OS_ENTITY_SUBLABEL}>Capacity</div>
-                <div className={`text-xl font-semibold ${FINELY_OS_ENTITY_VALUE} mt-1`}>
-                  {tier?.activeClientLimit === -1 ? 'Unlimited' : tier?.activeClientLimit ?? 25} clients
-                </div>
-                <div className={`${FINELY_OS_ENTITY_BODY} text-xs mt-2`}>{tier?.seatLimit === -1 ? 'Unlimited' : tier?.seatLimit ?? 1} seats</div>
-              </div>
-            </div>
-            <div className={`${finelyOsCatalogCard('emerald')} !p-5 space-y-3`}>
+            <RoleHubDeepenOverview
+              split={workSplit}
+              accent="emerald"
+              nextStep={nowDoItems[0]}
+              shotKey={HUB_PRODUCT_SHOT.cs}
+              guide={{ label: csGuide.label, path: csGuide.path }}
+            />
+            <RoleHubToolDeck tools={CS_TOOL_DECK} title="Specialist tools" subtitle="One tap to the job — partners, letters, growth, training." />
+            <div className={`${finelyOsCatalogCard('emerald')} !p-4 space-y-3`}>
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <div className={FINELY_OS_ENTITY_SUBLABEL}>Your caseload</div>
                   <div className={`mt-1 text-lg font-semibold ${FINELY_OS_ENTITY_VALUE}`}>
-                    {managedClientsCount} assigned customer{managedClientsCount === 1 ? '' : 's'}
+                    {managedClientsCount} assigned partner{managedClientsCount === 1 ? '' : 's'}
                   </div>
                 </div>
                 <button type="button" onClick={() => setTab('operate')} className={FINELY_OS_SECONDARY_BTN}>
@@ -298,7 +341,7 @@ export default function AgentHubPage() {
               </div>
               {caseload.length === 0 ? (
                 <p className={`text-sm ${FINELY_OS_ENTITY_EMPTY}`}>
-                  No customers assigned yet. Admins assign you as Credit Specialist, Coach, or Business partner on a partner file.
+                  No partners assigned yet. Admins assign you as Credit Specialist, Coach, or Business partner on a partner file.
                 </p>
               ) : (
                 <ul className="space-y-2">
@@ -404,19 +447,19 @@ export default function AgentHubPage() {
         {tab === 'command' && <AgentCommandCenter model={model} />}
 
         {tab === 'operate' && (
-          <div className="space-y-4">
-            <div className={`${finelyOsCatalogCard('emerald')} !p-6 space-y-3`}>
-              <div className={FINELY_OS_ENTITY_SUBLABEL}>Assigned customers</div>
+          <div className="space-y-3">
+            <div className={`${finelyOsCatalogCard('emerald')} !p-4 space-y-3`}>
+              <div className={FINELY_OS_ENTITY_SUBLABEL}>Assigned partners</div>
               <p className={`text-sm ${FINELY_OS_ENTITY_BODY}`}>
-                Customers where you are Credit Specialist, Coach, or Business partner on the care team.
+                Partners where you are Credit Specialist, Coach, or Business partner on the care team.
               </p>
               {caseload.length === 0 ? (
-                <p className={FINELY_OS_ENTITY_EMPTY}>No assigned customers yet.</p>
+                <p className={FINELY_OS_ENTITY_EMPTY}>No assigned partners yet.</p>
               ) : (
                 <FinelyOsPaginatedStack
                   items={caseload}
                   pageSize={12}
-                  emptyMessage="No assigned customers."
+                  emptyMessage="No assigned partners."
                   renderItem={(c) => (
                     <button
                       key={c.id}
@@ -431,9 +474,9 @@ export default function AgentHubPage() {
                 />
               )}
             </div>
-            <div className={`space-y-4 ${finelyOsCatalogCard('emerald')} !p-6`} data-fc-accent="emerald">
+            <div className={`space-y-3 ${finelyOsCatalogCard('emerald')} !p-4`} data-fc-accent="emerald">
               <p className={FINELY_OS_ENTITY_BODY}>
-                Day-to-day tools for running customer files — disputes, comms, documents, and tasks. Your revenue share improves as you
+                Day-to-day tools for running partner files — disputes, comms, documents, and tasks. Your revenue share improves as you
                 move levers from Finely → Shared → You.
               </p>
               <div className="flex flex-wrap gap-3">

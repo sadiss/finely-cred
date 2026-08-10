@@ -26,6 +26,7 @@ import { resizeImageToDataUrl } from '../../utils/resizeImage';
 import { CS } from '../../config/creditSpecialistProgram';
 import { AF } from '../../config/affiliateProgram';
 import { markSignedOutAndGoHome } from '../../components/navigation/BackToSiteButton';
+import { clearOnboardingProgress } from '../../lib/onboardingProgressStorage';
 import { CommsWorkspaceActions } from '../../components/comms/CommsWorkspaceActions';
 import { FinelyOsPageFooter } from '../../features/os/FinelyOsPageFooter';
 import {
@@ -233,7 +234,10 @@ export default function AccountSettingsPage() {
     }
   };
 
-  const logout = () => auth.signOut().finally(() => markSignedOutAndGoHome(navigate));
+  const logout = () => {
+    clearOnboardingProgress();
+    auth.signOut().finally(() => markSignedOutAndGoHome(navigate));
+  };
 
   if (!auth.user) {
     return (

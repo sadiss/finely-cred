@@ -85,11 +85,21 @@ import type { TemplateVaultItem } from '../../domain/templateVault';
 import { createTemplateVaultItem, defaultRequiredEntitlementsForCategory, getTemplateVaultItem } from '../../data/templateVaultRepo';
 import { readActiveTemplateIdFromSession } from '../templates/TemplateLibraryHub';
 import { LetterDisputeCoachStrip } from './LetterDisputeCoachStrip';
+import { LetterStudioBureauSwitcher } from './LetterStudioBureauQueue';
+import { LetterStudioSavedVaultStrip } from './LetterStudioSavedVaultStrip';
+import {
+  FinelyOsStudioWorkstationLauncherRow,
+  FinelyOsStudioWorkstationModals,
+  type DisputeScreenshotGalleryItem,
+  type StudioWorkstationModal,
+} from '../os/FinelyOsStudioWorkstation';
 import { bureauDisputeAddress, SUBJECT_LINE } from '../../letters/disputeLetterTemplate';
 import { getBlobUrl } from '../../storage/getBlobUrl';
 import { openBlobRefInNewTab } from '../../lib/openBlobRef';
 import { isLegacyPendingReportBlob } from '../../lib/legacyPendingReport';
 import { PartnerCreditWorkloadStrip } from '../partner/PartnerCreditWorkloadStrip';
+import { LetterPartnerNoteField } from './LetterPartnerNoteField';
+import { recordLetterPartnerNote } from '../../lib/letterPartnerNotes';
 import { downloadBlob, downloadText, openUrlInNewTab, triggerBrowserDownload } from '../../utils/download';
 import { RichTextEditor } from '../ui/RichTextEditor';
 import { htmlToPlainText, isProbablyHtml, plainTextToHtml, sanitizeHtmlForPreview } from '../../utils/richText';
@@ -106,6 +116,12 @@ import {
   type LetterCitation,
 } from '../../domain/bureauDisputeLawResolver';
 import { letterCategoryForCandidate } from '../../creditReports/letterCategory';
+import {
+  matchDisputeCandidatesForDebtCase,
+  mergeHandoffIntoSelectedDisputes,
+  seedLawsForSelected,
+} from '../../lib/validationCreditLetterHandoff';
+import { getDebt } from '../../data/debtRepo';
 import { getCustomFieldValues } from '../../data/customFieldValuesRepo';
 import { FINELY_TENANT_ID } from '../../domain/tenants';
 import { injectPrintSafeCss } from './paperPreviewSrcDoc';
@@ -125,7 +141,6 @@ import {
 import { notifyLetterLifecycle } from '../../lib/letterLifecycleNotify';
 import { LetterEmailPartnerToggle } from './LetterEmailPartnerToggle';
 import { getNotificationPrefs } from '../../data/notificationPrefsRepo';
-import { LetterEscalationPanel } from './LetterEscalationPanel';
 import { getCanonicalPartnerIdentity } from '../../utils/canonicalPartnerIdentity';
 import { bureauFullName, bureauShortCode } from '../../utils/bureaus';
 import {
@@ -1138,6 +1153,9 @@ export function LettersCommandCenter({
   const [returnNotice, setReturnNotice] = useState<string | null>(null);
 
   const [storeVersion, setStoreVersion] = useState(0);
+  const [vaultHighlightLetterId, setVaultHighlightLetterId] = useState<string | null>(null);
+  const validationHandoffDoneRef = React.useRef<string | null>(null);
+  const handoffUrlProcessedRef = React.useRef('');
   useEffect(() => {
     const onStore = (ev: Event) => {
       setStoreVersion((v) => v + 1);
@@ -1343,6 +1361,7 @@ export function LettersCommandCenter({
   const [disputeTemplatesOpen, setDisputeTemplatesOpen] = useState<null | Bureau>(null);
   const [focusedKeyByBureau, setFocusedKeyByBureau] = useState<Record<Bureau, string | null>>({ EXP: null, EQF: null, TUC: null });
   const [previewModalBureau, setPreviewModalBureau] = useState<null | Bureau>(null);
+  const [workModal, setWorkModal] = useState<StudioWorkstationModal>(null);
 
   const isPaidLettersPackage = useMemo(() => {
     // Practical heuristic: paid packages grant templates access; trials often do not.
@@ -2028,6 +2047,17 @@ WRITING STANDARD:
         letterIds: [letter.id],
         letterTitles: [letter.title || `${b} dispute letter`],
       });
+      if (letterPartnerNote.trim()) {
+        recordLetterPartnerNote({
+          partnerId: partner.id,
+          body: letterPartnerNote,
+          title: `Saved: ${letter.title || `${b} dispute letter`}`,
+          letterId: letter.id,
+          source: 'letter_save',
+          authorType: layout === 'embedded' ? 'admin' : 'partner',
+        });
+        setLetterPartnerNote('');
+      }
 
       // Save/track the round inside Dispute Center (cases).
       const onlyCaseId = (() => {
@@ -2281,6 +2311,55 @@ WRITING STANDARD:
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [partner?.id]);
 
+  // Validation → Credit Letters handoff (from Debt Letters after generating validation).
+  useEffect(() => {
+    if (!partner?.id) return;
+    const q = new URLSearchParams(location.search);
+    if (q.get('handoff') !== 'validation') return;
+
+    const debtIdParam = q.get('debtId') || '';
+    const letterIdParam = q.get('letterId') || '';
+    const sig = `validation:${debtIdParam}:${letterIdParam}`;
+    if (handoffUrlProcessedRef.current === sig) return;
+    handoffUrlProcessedRef.current = sig;
+
+    const debtRow = debtIdParam ? getDebt(debtIdParam) : debt;
+    const handoff = matchDisputeCandidatesForDebtCase(debtRow, reports);
+    const existing = loadLettersCommandCenterDraft(partner.id);
+    const merged = mergeHandoffIntoSelectedDisputes(existing?.selectedDisputes ?? [], handoff);
+
+    if (merged.length) {
+      const laws = seedLawsForSelected(merged);
+      setSelectedDisputes(merged);
+      setLawsByCandidateId((prev) => ({ ...laws, ...prev }));
+      saveLettersCommandCenterDraft(partner.id, {
+        selectedDisputes: merged,
+        evidenceByCandidateId: existing?.evidenceByCandidateId ?? {},
+        reasonsByCandidateId: existing?.reasonsByCandidateId ?? {},
+        lawsByCandidateId: laws,
+        toneByBureau: existing?.toneByBureau ?? ({ EXP: 'formal', EQF: 'formal', TUC: 'formal' } as any),
+        roundByBureau: existing?.roundByBureau ?? ({ EXP: 'Round 1', EQF: 'Round 1', TUC: 'Round 1' } as any),
+        introByBureau: existing?.introByBureau ?? ({ EXP: '', EQF: '', TUC: '' } as any),
+      });
+    }
+
+    setTab('dispute');
+    if (letterIdParam) setVaultHighlightLetterId(letterIdParam);
+    const acct = debtRow?.name || 'this collector';
+    setReturnNotice(
+      handoff.length
+        ? `Validation saved. ${handoff.length} bureau dispute item${handoff.length === 1 ? '' : 's'} for ${acct} are loaded — attach proof and save PDF when you mail (not sent automatically).`
+        : 'Validation letter saved. Link this case to a report tradeline to auto-load matching bureau disputes.',
+    );
+
+    q.delete('handoff');
+    q.delete('debtId');
+    q.delete('letterId');
+    if (!q.get('tab')) q.set('tab', 'dispute');
+    navigate({ pathname: location.pathname, search: q.toString() ? `?${q.toString()}` : '' }, { replace: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [partner?.id, location.search, reports.length]);
+
   // Auto-save progress (debounced).
  // Auto-save progress (debounced).
 // Important:
@@ -2445,6 +2524,29 @@ useEffect(() => {
     for (const s of selectedDisputes) m[s.candidate.bureau].push(s);
     return m;
   }, [selectedDisputes]);
+
+  const disputeScreenshotGallery = useMemo((): DisputeScreenshotGalleryItem[] => {
+    const byEv = new Map<string, DisputeScreenshotGalleryItem>();
+    for (const s of selectedDisputes) {
+      const ids = evidenceIdsByCandidateId[s.key]?.length
+        ? evidenceIdsByCandidateId[s.key]!
+        : evidenceByCandidateId[s.key]
+          ? [evidenceByCandidateId[s.key]!]
+          : [];
+      const negativeLabel = String(s.candidate.account || '').trim() || 'Negative item';
+      for (const evId of ids) {
+        const ev = evidence.find((x) => x.id === evId);
+        if (!ev || ev.type !== 'screenshot') continue;
+        byEv.set(ev.id, {
+          key: `${s.key}-${ev.id}`,
+          ev,
+          negativeLabel,
+          bureau: s.candidate.bureau,
+        });
+      }
+    }
+    return Array.from(byEv.values());
+  }, [selectedDisputes, evidenceByCandidateId, evidenceIdsByCandidateId, evidence]);
 
   // Seed bureau-purpose laws for newly selected disputes (editable in Focused item).
   useEffect(() => {
@@ -2898,6 +3000,8 @@ useEffect(() => {
   const [draftEvidencePickerOpen, setDraftEvidencePickerOpen] = useState(false);
   const [draftTemplatesOpen, setDraftTemplatesOpen] = useState(false);
   const [draftNotice, setDraftNotice] = useState<string | null>(null);
+  /** Optional PartnerNote body attached on Save PDF (debt + credit studios) */
+  const [letterPartnerNote, setLetterPartnerNote] = useState('');
 
   const fillDebtRecipientAddress = async () => {
     if (!debt) {
@@ -3394,12 +3498,63 @@ useEffect(() => {
     if (next) runLetterBuildStep(next.id as LetterBuildStepId);
   };
 
+  const completeValidationCreditHandoff = (letterId: string, track: DebtDraftTrack) => {
+    if (!partner?.id || track !== 'validation') return;
+    if (validationHandoffDoneRef.current === letterId) return;
+    validationHandoffDoneRef.current = letterId;
+
+    const handoff = matchDisputeCandidatesForDebtCase(debt, reports);
+    const existing = loadLettersCommandCenterDraft(partner.id);
+    const merged = mergeHandoffIntoSelectedDisputes(existing?.selectedDisputes ?? [], handoff);
+    if (merged.length) {
+      const laws = seedLawsForSelected(merged);
+      saveLettersCommandCenterDraft(partner.id, {
+        selectedDisputes: merged,
+        evidenceByCandidateId: existing?.evidenceByCandidateId ?? {},
+        reasonsByCandidateId: existing?.reasonsByCandidateId ?? {},
+        lawsByCandidateId: laws,
+        toneByBureau: existing?.toneByBureau ?? ({ EXP: 'formal', EQF: 'formal', TUC: 'formal' } as any),
+        roundByBureau: existing?.roundByBureau ?? ({ EXP: 'Round 1', EQF: 'Round 1', TUC: 'Round 1' } as any),
+        introByBureau: existing?.introByBureau ?? ({ EXP: '', EQF: '', TUC: '' } as any),
+      });
+    }
+
+    setVaultHighlightLetterId(letterId);
+    setStoreVersion((v) => v + 1);
+    setDraftNotice(
+      handoff.length
+        ? debtCenterMode
+          ? 'Validation letter saved below. Opening Credit Letters with matching bureau disputes queued — save PDF there when you are ready to mail.'
+          : 'Validation letter saved. Matching bureau disputes are loaded on the Credit Letters tab.'
+        : 'Validation letter saved to your vault on this page.',
+    );
+
+    if (merged.length && !debtCenterMode) {
+      setSelectedDisputes(merged);
+      setLawsByCandidateId((prev) => ({ ...seedLawsForSelected(merged), ...prev }));
+      setTab('dispute');
+    }
+
+    if (debtCenterMode) {
+      const params = new URLSearchParams();
+      params.set('tab', 'dispute');
+      params.set('handoff', 'validation');
+      if (debt?.id) params.set('debtId', debt.id);
+      params.set('letterId', letterId);
+      window.setTimeout(() => navigate(`/portal/letters?${params.toString()}`), 700);
+    }
+  };
+
   const openGeneratedDebtDraft = (args: {
     track: DebtDraftTrack;
     specId: string;
     catalogId?: string;
     bodyText: string;
   }) => {
+    if (!partner?.id) {
+      setDraftErr('Sign in as a partner to save validation letters.');
+      return;
+    }
     const plain = String(args.bodyText || '').trim();
     if (!plain) {
       setDraftErr('Letter generation returned an empty body. Confirm case fields and try Generate letter again.');
@@ -3447,6 +3602,8 @@ useEffect(() => {
         letterIds: [letterId],
         letterTitles: [title],
       });
+      setStoreVersion((v) => v + 1);
+      completeValidationCreditHandoff(letterId, args.track);
     } catch (e: any) {
       setDraftNotice(e?.message || 'Draft opened, but vault save failed — use Save to Letters Vault.');
     }
@@ -4346,7 +4503,14 @@ useEffect(() => {
                   </div>
                 </div>
 
-                <div id="fc-debt-step-generate" className="flex flex-wrap items-center justify-between gap-3 pt-2 scroll-mt-3 border-t border-white/10 sticky bottom-0 z-10 bg-[#0a0f0d]/95 backdrop-blur-sm py-3 -mx-1 px-1">
+                <div id="fc-debt-step-generate" className="space-y-2 pt-2 scroll-mt-3 border-t border-white/10 sticky bottom-0 z-10 bg-[#0a0f0d]/95 backdrop-blur-sm py-3 -mx-1 px-1">
+                  <LetterPartnerNoteField
+                    id="debt-letter-partner-note"
+                    value={letterPartnerNote}
+                    onChange={setLetterPartnerNote}
+                    label="Optional partner note (saved with letter)"
+                  />
+                  <div className="flex flex-wrap items-center justify-between gap-3">
                   <LetterEmailPartnerToggle
                     checked={emailPartnerOnEvents}
                     onChange={setEmailPartnerOnEvents}
@@ -4417,9 +4581,29 @@ useEffect(() => {
                           letterIds: [saved.id],
                           letterTitles: [title],
                         });
+                        if (letterPartnerNote.trim()) {
+                          recordLetterPartnerNote({
+                            partnerId: partner.id,
+                            body: letterPartnerNote,
+                            title: `Saved: ${title}`,
+                            letterId: saved.id,
+                            debtCaseId: debt?.id,
+                            source: 'letter_save',
+                            authorType: layout === 'embedded' ? 'admin' : 'partner',
+                          });
+                          setLetterPartnerNote('');
+                        }
 
+                        setStoreVersion((v) => v + 1);
+                        setVaultHighlightLetterId(saved.id);
                         setDraft(null);
-                        openVault();
+                        if (debtCenterMode && draft.type === 'validation') {
+                          window.setTimeout(() => {
+                            document.getElementById('fc-letter-studio-vault')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                          }, 120);
+                        } else {
+                          openVault();
+                        }
                       } catch (e: any) {
                         setDraftErr(e?.message || 'Failed to save letter.');
                       } finally {
@@ -4431,6 +4615,7 @@ useEffect(() => {
                   >
                     {draftBusy ? 'Saving…' : draft.letterId ? 'Save PDF → Vault' : 'Save PDF → Vault'}
                   </button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -4526,6 +4711,18 @@ useEffect(() => {
                         letterIds: [saved.id],
                         letterTitles: [title],
                       });
+                      if (letterPartnerNote.trim()) {
+                        recordLetterPartnerNote({
+                          partnerId: partner.id,
+                          body: letterPartnerNote,
+                          title: `Saved: ${title}`,
+                          letterId: saved.id,
+                          debtCaseId: debt?.id,
+                          source: 'letter_save',
+                          authorType: layout === 'embedded' ? 'admin' : 'partner',
+                        });
+                        setLetterPartnerNote('');
+                      }
 
                       setDraft(null);
                       openVault();
@@ -4601,6 +4798,18 @@ useEffect(() => {
                         letterIds: [saved.id],
                         letterTitles: [title],
                       });
+                      if (letterPartnerNote.trim()) {
+                        recordLetterPartnerNote({
+                          partnerId: partner.id,
+                          body: letterPartnerNote,
+                          title: `Saved: ${title}`,
+                          letterId: saved.id,
+                          debtCaseId: debt?.id,
+                          source: 'letter_save',
+                          authorType: layout === 'embedded' ? 'admin' : 'partner',
+                        });
+                        setLetterPartnerNote('');
+                      }
 
                       if (pdf.pdfBlobRef) {
                         await downloadFromBlobRef(pdf.pdfBlobRef, pdf.filename, 'application/pdf');
@@ -4914,6 +5123,15 @@ useEffect(() => {
                   reasonsByCandidateId={reasonsByCandidateId}
                   compact
                 />
+
+                <div id="fc-dispute-step-escalate" className="scroll-mt-3">
+                  <FinelyOsStudioWorkstationLauncherRow
+                    escalationLabel="Bureau escalation ladder"
+                    onScreenshots={() => setWorkModal('screenshots')}
+                    onUploads={() => setWorkModal('uploads')}
+                    onEscalation={() => setWorkModal('escalation')}
+                  />
+                </div>
 
                 {selectedDisputes.length > 0 ? (
                   <div className="rounded-xl border border-amber-400/30 bg-amber-500/[0.07] !p-3 space-y-2">
@@ -5507,7 +5725,14 @@ useEffect(() => {
                         </div>
                       ) : null}
 
-                      <div className="flex flex-wrap items-center justify-between gap-3 pt-2 sticky bottom-0 z-10 bg-[#0a0f0d]/90 backdrop-blur-sm py-2">
+                      <div className="space-y-2 pt-2 sticky bottom-0 z-10 bg-[#0a0f0d]/90 backdrop-blur-sm py-2">
+                        <LetterPartnerNoteField
+                          id={`dispute-letter-partner-note-${b}`}
+                          value={letterPartnerNote}
+                          onChange={setLetterPartnerNote}
+                          label="Optional partner note (saved with letter)"
+                        />
+                      <div className="flex flex-wrap items-center justify-between gap-3">
                         <LetterEmailPartnerToggle
                           checked={emailPartnerOnEvents}
                           onChange={setEmailPartnerOnEvents}
@@ -5548,6 +5773,7 @@ useEffect(() => {
                           <PenLine size={14} /> {busy ? 'Generating…' : 'Generate PDF → Vault'}
                         </button>
                         </div>
+                      </div>
                       </div>
                     </div>
                   );
@@ -5892,56 +6118,26 @@ useEffect(() => {
               }
               footer={
                 <>
-              <details className="rounded-xl border border-white/10 bg-black/25 !p-3" open={screenshotEvidence.length === 0}>
-                <summary className="cursor-pointer text-sm font-semibold text-white">
-                  Screenshots & proof {screenshotEvidence.length === 0 ? '(upload or capture)' : `(${screenshotEvidence.length} recent)`}
-                </summary>
-                <div className="mt-3 space-y-3">
-                  <p className="text-xs text-white/50">
-                    Bureau dispute screenshots: capture from <span className="text-white/75">Reports</span> or upload here. General documents live in the Evidence vault.
-                  </p>
-                  {screenshotEvidence.length > 0 ? (
-                    <div className="flex flex-wrap gap-2">
-                      {screenshotEvidence.slice(0, 8).map((s) => (
-                        <button
-                          key={s.id}
-                          type="button"
-                          className="rounded-xl border border-white/10 bg-black/30 p-2 hover:border-sky-400/30 transition-all"
-                          title={s.filename || 'Attach to focused dispute'}
-                          onClick={() => {
-                            const focusedKey = focusedKeyByBureau[workspaceBureau];
-                            if (focusedKey) {
-                              setEvidenceByCandidateId((prev) => ({ ...prev, [focusedKey]: s.id }));
-                              setReturnNotice('Screenshot attached to the focused dispute item.');
-                            } else {
-                              setReturnNotice('Select a dispute item first, then click a screenshot to attach.');
-                            }
-                          }}
-                        >
-                          <InlineEvidenceThumb
-                            blobRef={s.blobRef}
-                            mimeType={s.mimeType}
-                            filename={s.filename}
-                            alt={s.filename || 'Screenshot'}
-                            size="sm"
-                          />
-                          <div className="mt-1 max-w-[6rem] truncate text-[9px] text-white/45">{s.filename || 'Screenshot'}</div>
-                        </button>
-                      ))}
-                    </div>
-                  ) : null}
-                  <SmartProofUploader
-                    partner={partner}
-                    email={partner.profile.email}
-                    compact
-                    uploadContext="bureau"
-                    onUploaded={() => {
-                      setEvidenceVersion((v) => v + 1);
-                      setReturnNotice('Upload complete — attach screenshots to each dispute item above.');
-                    }}
-                  />
-                </div>
-              </details>
+              <LetterStudioBureauSwitcher
+                active={workspaceBureau}
+                countsByBureau={{
+                  EXP: selectedByBureau.EXP.length,
+                  EQF: selectedByBureau.EQF.length,
+                  TUC: selectedByBureau.TUC.length,
+                }}
+                onSelect={(bb) => setWorkspaceBureau(bb)}
+              />
+
+              <LetterStudioSavedVaultStrip
+                partnerId={partner.id}
+                types={['dispute']}
+                storeVersion={storeVersion}
+                evidence={evidence}
+                accent="emerald"
+                title="Your bureau letters (vault)"
+                subtitle="Saved dispute PDFs from this studio — tap a card to preview or manage. Full archive is in Letters Vault."
+                onOpenFullVault={() => openVault()}
+              />
 
               <section className="rounded-2xl border border-violet-500/20 bg-black/30 p-5 sm:p-6 space-y-3">
                 <div>
@@ -6026,9 +6222,19 @@ useEffect(() => {
                 }}
               />
 
-            <section id="fc-dispute-step-escalate">
-              <LetterEscalationPanel track="bureau_dispute" accent="sky" />
-            </section>
+            <FinelyOsStudioWorkstationModals
+              partner={partner}
+              open={workModal}
+              onClose={() => setWorkModal(null)}
+              screenshotGallery={disputeScreenshotGallery}
+              screenshotEvidence={screenshotEvidence}
+              escalationTrack="bureau_dispute"
+              uploadContext="bureau"
+              onUploaded={() => {
+                setEvidenceVersion((v) => v + 1);
+                setStoreVersion((v) => v + 1);
+              }}
+            />
           </EntitlementGate>
         )}
 
@@ -6058,6 +6264,8 @@ useEffect(() => {
             <ValidationCenterView
               {...debtCenterSharedProps}
               partner={partner}
+              storeVersion={storeVersion}
+              onOpenLettersVault={() => openVault()}
               showPathSwitcher
               onSwitchToCourt={() => setTab('court')}
               onSwitchToBankruptcy={() => setTab('bankruptcy')}
@@ -6065,6 +6273,7 @@ useEffect(() => {
               onBuildCatalogDraft={(id) => buildCatalogDraft(id, 'validation')}
               generateBusy={generateBusy}
               generateError={draftErr}
+              vaultHighlightLetterId={vaultHighlightLetterId}
             />
             </DebtTrackEasyFlow>
           </EntitlementGate>
@@ -6099,6 +6308,8 @@ useEffect(() => {
             <AffidavitCourtCenterView
               {...debtCenterSharedProps}
               partner={partner}
+              storeVersion={storeVersion}
+              onOpenLettersVault={() => openVault()}
               showPathSwitcher
               onSwitchToValidation={() => setTab('validation')}
               onSwitchToBankruptcy={() => setTab('bankruptcy')}

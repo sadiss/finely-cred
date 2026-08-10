@@ -31,9 +31,12 @@ export type AuSellerPayoutTier = {
   badge?: string;
 };
 
-/** Simple payout ladder — floor is `AU_SELLER.defaultCommissionPct` (35%). Advancement is by
- * inventory strength (card count + quality/reliability), reviewed automatically as sellers list
- * and fulfill placements. Keep this list short and readable — no dense requirement tables. */
+/**
+ * Simple payout ladder — floor is `AU_SELLER.defaultCommissionPct` (35%).
+ * `payoutPct` is rendered large and high-contrast on the public careers page
+ * (ivory/amber on tinted black panels) — keep values short integers, no decimals.
+ * Advancement is by inventory strength; keep this list short — no dense tables.
+ */
 export const AU_SELLER_PAYOUT_TIERS: AuSellerPayoutTier[] = [
   {
     id: 'starter',

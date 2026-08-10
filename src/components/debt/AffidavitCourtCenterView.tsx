@@ -28,6 +28,7 @@ import {
 } from '../../lib/litigationHearingPlan';
 import { isRooseveltCourtPartner } from '../../data/rooseveltCourtPartnerSeed';
 import type { PartnerCourtOutcome } from '../../domain/courtOutcomes';
+import { listEvidenceByPartner } from '../../data/evidenceRepo';
 import {
   confirmCourtPlanPayment,
   getCourtOutcomeByDebtCase,
@@ -39,6 +40,7 @@ import { buildIntelligentLetterSuggestions } from '../../lib/intelligentLetterSu
 import { isCourtTrackLetter, letterGenerateCtaLabel } from '../../lib/letterProductLabels';
 import type { DebtLetterCatalogEntry, LetterCatalogCategory } from '../../legal/debtLetterCatalog';
 import { IntelligentLetterSuggestionsPanel } from '../letters/IntelligentLetterSuggestionsPanel';
+import { LetterStudioSavedVaultStrip } from '../letters/LetterStudioSavedVaultStrip';
 import { isCourtDayKitId } from '../../lib/letterBodySafety';
 import {
   FINELY_OS_COMPACT_PAGE,
@@ -135,6 +137,8 @@ export function AffidavitCourtCenterView({
   onSummonsDocChange,
   summonsDocCount,
   partner,
+  storeVersion = 0,
+  onOpenLettersVault,
   generateBusy = false,
   generateError = null,
 }: {
@@ -159,12 +163,18 @@ export function AffidavitCourtCenterView({
   onSummonsDocChange?: (id: string | null) => void;
   summonsDocCount?: number;
   partner?: Partner;
+  storeVersion?: number;
+  onOpenLettersVault?: () => void;
   generateBusy?: boolean;
   generateError?: string | null;
 }) {
   const [params] = useSearchParams();
   const defaultHearing = defaultUrgentHearingIso();
   const rooseveltMatter = isRooseveltCourtPartner(partner);
+  const vaultEvidence = useMemo(() => {
+    if (!partner?.id) return [];
+    return listEvidenceByPartner(partner.id);
+  }, [partner?.id, storeVersion]);
   const scenarioRec = SCENARIO_RECOMMENDATIONS.find((r) => r.scenario === recommendedScenario);
   const caseNumber = debt?.courtCaseNumber;
   const summonsCtx = buildSummonsAffidavitContext({ debt, documents: processedDocuments });
@@ -912,6 +922,18 @@ export function AffidavitCourtCenterView({
                   Checklist and scripts stay here. Vault holds only complete letters (answer, validation, affidavit) for mail.
                 </p>
               </div>
+            ) : null}
+            {partner ? (
+              <LetterStudioSavedVaultStrip
+                partnerId={partner.id}
+                types={['court']}
+                storeVersion={storeVersion}
+                evidence={vaultEvidence}
+                accent="rose"
+                title="Your court letters (vault)"
+                subtitle="Saved answer, affidavit, and court PDFs — coach help is below."
+                onOpenFullVault={onOpenLettersVault}
+              />
             ) : null}
             <details className="rounded-xl border border-white/10 bg-black/30 px-3 py-2">
               <summary className="cursor-pointer select-none text-xs font-semibold text-white/80">

@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { CheckCircle2, X } from 'lucide-react';
 import {
   formatPrice,
@@ -10,6 +11,7 @@ import {
   FINELY_OS_ENTITY_BODY,
   FINELY_OS_ENTITY_SUBLABEL,
   FINELY_OS_ENTITY_VALUE,
+  FINELY_OS_FIXED_OVERLAY,
   FINELY_OS_PRIMARY_BTN,
   FINELY_OS_SECONDARY_BTN,
   finelyOsCatalogCard,
@@ -25,6 +27,15 @@ type Props = {
 };
 
 export function ServicePackageDetailModal({ pkg, rail, onClose, onSelect, selectLabel = 'Select package' }: Props) {
+  useEffect(() => {
+    if (!pkg) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [pkg, onClose]);
+
   if (!pkg) return null;
 
   const details = getPackageDisplayDetails(pkg, rail);
@@ -33,12 +44,12 @@ export function ServicePackageDetailModal({ pkg, rail, onClose, onSelect, select
       ? 'Free'
       : `${formatPrice(pkg.priceAmount)}${pkg.interval === 'month' ? '/mo' : ''}`;
 
-  return (
-    <div className="fixed inset-0 z-[320]">
-      <div className="absolute inset-0 bg-slate-900/70 backdrop-blur-sm" onClick={onClose} aria-hidden />
+  const modal = (
+    <div className={`${FINELY_OS_FIXED_OVERLAY} z-[320]`} role="presentation">
+      <button type="button" className="absolute inset-0 cursor-default bg-slate-900/70 backdrop-blur-sm" aria-label="Close package details" onClick={onClose} />
       <div className="absolute inset-x-0 top-8 px-4 pb-8 max-h-[calc(100vh-2rem)] overflow-y-auto">
         <div
-          className={`mx-auto max-w-2xl shadow-2xl ${finelyOsCatalogCard('emerald')} !p-0 overflow-hidden`}
+          className={`relative mx-auto max-w-2xl shadow-2xl ${finelyOsCatalogCard('emerald')} !p-0 overflow-hidden`}
           role="dialog"
           aria-modal="true"
           aria-labelledby="pkg-detail-title"
@@ -142,4 +153,6 @@ export function ServicePackageDetailModal({ pkg, rail, onClose, onSelect, select
       </div>
     </div>
   );
+
+  return typeof document !== 'undefined' ? createPortal(modal, document.body) : modal;
 }

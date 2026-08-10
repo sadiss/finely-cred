@@ -1,11 +1,11 @@
 import React, { useMemo } from 'react';
-import { ArrowRight, Building2, Scale, Sparkles, Layers } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { ArrowRight, Building2, Layers, Scale, Sparkles } from 'lucide-react';
 import { LandingTypewriterTitle } from '../../components/landing/LandingTypewriterTitle';
 import {
   FINELY_OS_ENTITY_BODY,
   FINELY_OS_ENTITY_SUBLABEL,
   FINELY_OS_ENTITY_VALUE,
+  FINELY_OS_GLOW_INCLUDES_BTN,
   finelyOsCatalogCardCompact,
   type FinelyOsPublicAccent,
 } from './finelyOsLightUi';
@@ -21,92 +21,77 @@ export type PricingSolutionKey =
   | 'agency'
   | 'banking_reports';
 
-type SolutionTile = {
-  key: PricingSolutionKey;
+type HeroCopy = {
   label: string;
   sell: string;
   sellAccent: string;
-  hint: string;
-  path: string;
   accent: FinelyOsPublicAccent;
   Icon: typeof Sparkles;
 };
 
-const SOLUTION_TILES: SolutionTile[] = [
-  {
-    key: 'personal_credit',
+const HERO_BY_KEY: Partial<Record<PricingSolutionKey, HeroCopy>> = {
+  personal_credit: {
     label: 'Personal credit',
     sell: 'Restore the profile lenders ',
     sellAccent: 'actually read.',
-    hint: 'Restore · Building',
-    path: '/pricing/personal-credit-restore',
     accent: 'emerald',
     Icon: Sparkles,
   },
-  {
-    key: 'business_credit',
+  business_credit: {
     label: 'Business credit',
     sell: 'Entity strength, vendors, ',
     sellAccent: 'fundability.',
-    hint: 'Entity · Vendors',
-    path: '/pricing/business-credit',
     accent: 'violet',
     Icon: Building2,
   },
-  {
-    key: 'debt_legal',
+  debt_legal: {
     label: 'Debt & legal',
     sell: 'Collections, validation, summons — ',
     sellAccent: 'clear playbook.',
-    hint: 'Validation OS',
-    path: '/pricing/debt-legal',
     accent: 'fuchsia',
     Icon: Scale,
   },
-  {
-    key: 'tradeline_promo',
+  tradeline_promo: {
     label: 'Tradelines',
     sell: 'Authorized-user strategy — ',
     sellAccent: 'no hype.',
-    hint: 'AU strategy',
-    path: '/pricing/tradelines',
     accent: 'amber',
     Icon: Layers,
   },
-];
-
-const EXTRA_SELL: Partial<
-  Record<PricingSolutionKey, { label: string; sell: string; sellAccent: string; accent: FinelyOsPublicAccent }>
-> = {
   wealth_builder: {
     label: 'Wealth builder',
     sell: 'Long-game credit and capital for partners ',
     sellAccent: 'ready to scale.',
     accent: 'amber',
+    Icon: Sparkles,
   },
   privacy_id: {
     label: 'Privacy & ID',
     sell: 'Freeze, lock, identity hygiene — ',
     sellAccent: 'protect first.',
     accent: 'sky',
+    Icon: Sparkles,
   },
   bundle: {
     label: 'Bundles',
     sell: 'Combined programs priced as a ',
     sellAccent: 'system.',
     accent: 'violet',
+    Icon: Sparkles,
   },
   agency: {
     label: 'Credit Specialist',
     sell: 'Earn, serve, grow — revenue share, ',
     sellAccent: 'no access fee.',
     accent: 'amber',
+    Icon: Sparkles,
   },
   banking_reports: {
     label: 'Banking reports',
     sell: 'ChexSystems & Early Warning — ',
     sellAccent: 'banking ready.',
     accent: 'sky',
+    Icon: Sparkles,
   },
 };
 
@@ -119,53 +104,34 @@ const GLOW: Record<FinelyOsPublicAccent, string> = {
   rose: 'rgba(251,113,133,0.38)',
 };
 
-function resolveHero(active: PricingSolutionKey | null | undefined) {
-  const tile = SOLUTION_TILES.find((t) => t.key === active);
-  if (tile) {
-    return {
-      label: tile.label,
-      sell: tile.sell,
-      sellAccent: tile.sellAccent,
-      accent: tile.accent,
-      Icon: tile.Icon,
-    };
-  }
-  const extra = active ? EXTRA_SELL[active] : null;
-  if (extra) {
-    return {
-      label: extra.label,
-      sell: extra.sell,
-      sellAccent: extra.sellAccent,
-      accent: extra.accent,
-      Icon: Sparkles,
-    };
-  }
+function resolveHero(active: PricingSolutionKey | null | undefined): HeroCopy {
+  if (active && HERO_BY_KEY[active]) return HERO_BY_KEY[active]!;
   return {
-    label: 'Choose your solution',
+    label: 'All solutions',
     sell: 'Pick a path — then choose ',
     sellAccent: 'DIY or DFY.',
-    accent: 'emerald' as FinelyOsPublicAccent,
+    accent: 'emerald',
     Icon: Sparkles,
   };
 }
 
 export function PricingSolutionsHero({
   activeKey,
-  onSelectKey,
-  mode = 'navigate',
+  onBrowseSolutions,
+  browseLabel = 'Browse all solutions',
 }: {
   activeKey?: PricingSolutionKey | null;
-  onSelectKey?: (key: PricingSolutionKey) => void;
-  mode?: 'navigate' | 'tabs';
+  /** Opens ServicesChooserModal — replaces the old tile-wall chooser. */
+  onBrowseSolutions?: () => void;
+  browseLabel?: string;
 }) {
-  const navigate = useNavigate();
   const hero = useMemo(() => resolveHero(activeKey), [activeKey]);
   const HeroIcon = hero.Icon;
 
   return (
     <section className="space-y-3" data-fc-pricing-solutions="1">
       <div
-        className={`${finelyOsCatalogCardCompact(hero.accent)} relative overflow-hidden !p-5 sm:!p-7`}
+        className={`${finelyOsCatalogCardCompact(hero.accent)} relative overflow-hidden !p-5 sm:!p-6`}
         data-fc-accent={hero.accent}
       >
         <div
@@ -181,7 +147,7 @@ export function PricingSolutionsHero({
         <div className="relative flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="min-w-0 flex-1">
             <div className="mb-3 flex flex-wrap items-center gap-2">
-              <span className={`${FINELY_OS_ENTITY_SUBLABEL} tracking-[0.22em]`}>Selected solution</span>
+              <span className={`${FINELY_OS_ENTITY_SUBLABEL} tracking-[0.22em]`}>Solution</span>
               <span className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-black/30 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-white/85">
                 <HeroIcon size={12} /> {hero.label}
               </span>
@@ -200,54 +166,12 @@ export function PricingSolutionsHero({
               Results vary · not legal advice · funding subject to underwriting
             </p>
           </div>
-          <button
-            type="button"
-            onClick={() => navigate('/fundability-readiness')}
-            className="shrink-0 inline-flex items-center gap-2 self-start rounded-xl border border-white/15 bg-white/[0.06] px-4 py-2.5 text-xs font-semibold text-white/85 transition hover:bg-white/[0.1]"
-          >
-            Fundability hub <ArrowRight size={14} />
-          </button>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
-        {SOLUTION_TILES.map((tile) => {
-          const active =
-            activeKey === tile.key || (activeKey === 'banking_reports' && tile.key === 'personal_credit');
-          const Icon = tile.Icon;
-          return (
-            <button
-              key={tile.key}
-              type="button"
-              onClick={() => {
-                if (mode === 'tabs' && onSelectKey) onSelectKey(tile.key);
-                else navigate(tile.path);
-              }}
-              className={`${finelyOsCatalogCardCompact(tile.accent)} !p-3 sm:!p-3.5 text-left transition-all ${
-                active
-                  ? 'ring-2 ring-offset-0 ring-amber-400/45 shadow-[0_0_0_1px_rgba(251,191,36,0.28),0_14px_44px_-14px_rgba(0,0,0,0.7)]'
-                  : 'opacity-75 hover:opacity-100'
-              }`}
-              data-fc-accent={tile.accent}
-              data-active={active ? 'true' : 'false'}
-              aria-current={active ? 'true' : undefined}
-            >
-              <div className="flex items-center gap-2">
-                <span
-                  className={`inline-flex h-8 w-8 items-center justify-center rounded-xl border ${
-                    active ? 'border-white/25 bg-white/10' : 'border-white/10 bg-black/25'
-                  }`}
-                >
-                  <Icon size={15} className="text-white/85" />
-                </span>
-                <div className="min-w-0">
-                  <div className={`text-sm font-semibold truncate ${FINELY_OS_ENTITY_VALUE}`}>{tile.label}</div>
-                  <div className={`text-[11px] truncate ${FINELY_OS_ENTITY_BODY}`}>{tile.hint}</div>
-                </div>
-              </div>
+          {onBrowseSolutions ? (
+            <button type="button" onClick={onBrowseSolutions} className={`shrink-0 self-start ${FINELY_OS_GLOW_INCLUDES_BTN}`}>
+              {browseLabel} <ArrowRight size={14} />
             </button>
-          );
-        })}
+          ) : null}
+        </div>
       </div>
     </section>
   );

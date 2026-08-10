@@ -9,6 +9,7 @@ import { setSelectedStaff } from './staffCommandRepo';
 import { syncStaffSelectionToHumanOs } from './staffSelectionSync';
 import { StaffAvatar, StaffStatusPill } from './StaffAvatar';
 import { StaffKindBadge, isHumanStaffKind } from './StaffKindBadge';
+import { formatStaffCommandDutyLine } from '../../lib/staffCommandShift';
 import { StaffProfilePanel } from './StaffProfilePanel';
 import {
   STAFF_CMD_BODY,
@@ -189,6 +190,7 @@ export function StaffDirectoryPanel({
                         <StaffStatusPill status={x.status} />
                         <StaffKindBadge kind={x.kind} />
                       </div>
+                      <p className="mt-2 text-[10px] text-white/45 leading-snug">{formatStaffCommandDutyLine(x.shift)}</p>
                       <p className="mt-3 text-sm text-white/65">{x.personality.bio}</p>
                       <div className="mt-3 grid gap-2 sm:grid-cols-2">
                         <div className="rounded-xl border border-white/10 bg-black/20 p-3">

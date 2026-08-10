@@ -21,6 +21,15 @@ type Props = {
   options: CareerPriceCardOption[];
   selectedId: string;
   onSelect: (id: string) => void;
+  /**
+   * When set, a second click on an already-selected card (or the footer CTA while selected)
+   * confirms that choice — used for sellable "Continue with {tier}" CTAs on pricing pages.
+   */
+  onConfirm?: (id: string) => void;
+  /** Footer label when selected. Defaults to "Selected" (or "Continue…" when onConfirm is set). */
+  confirmLabel?: string | ((opt: CareerPriceCardOption) => string);
+  /** Footer label when not selected. Defaults to "Select". */
+  selectLabel?: string | ((opt: CareerPriceCardOption) => string);
   /** Max columns at desktop width — always 1 column on phone, 2 on tablet. */
   columns?: 2 | 3 | 4;
   maxBullets?: number;
@@ -34,7 +43,17 @@ type Props = {
  * decision on the page — always 1 → 2 → 3/4 columns so cards never crush into a spreadsheet
  * on phone.
  */
-export function CareerPriceCardGrid({ options, selectedId, onSelect, columns = 3, maxBullets = 4, className = '' }: Props) {
+export function CareerPriceCardGrid({
+  options,
+  selectedId,
+  onSelect,
+  onConfirm,
+  confirmLabel,
+  selectLabel,
+  columns = 3,
+  maxBullets = 4,
+  className = '',
+}: Props) {
   const colClass =
     columns === 2
       ? 'sm:grid-cols-2'
@@ -47,11 +66,23 @@ export function CareerPriceCardGrid({ options, selectedId, onSelect, columns = 3
       {options.map((opt) => {
         const accent = opt.accent ?? 'slate';
         const selected = opt.id === selectedId;
+        const idleLabel =
+          typeof selectLabel === 'function' ? selectLabel(opt) : selectLabel ?? 'Select';
+        const activeLabel =
+          typeof confirmLabel === 'function'
+            ? confirmLabel(opt)
+            : confirmLabel ?? (onConfirm ? `Continue with ${opt.name}` : 'Selected');
         return (
           <button
             key={opt.id}
             type="button"
-            onClick={() => onSelect(opt.id)}
+            onClick={() => {
+              if (selected && onConfirm) {
+                onConfirm(opt.id);
+                return;
+              }
+              onSelect(opt.id);
+            }}
             aria-pressed={selected}
             className={careerCardClass(accent, selected, 'w-full flex flex-col')}
           >
@@ -92,8 +123,8 @@ export function CareerPriceCardGrid({ options, selectedId, onSelect, columns = 3
                 selected ? 'bg-slate-900 text-white' : 'border-2 border-slate-200 text-slate-600 group-hover:border-slate-300'
               }`}
             >
-              {selected ? 'Selected' : 'Select'}
-              {!selected ? <ArrowRight size={12} /> : null}
+              {selected ? activeLabel : idleLabel}
+              <ArrowRight size={12} />
             </div>
           </button>
         );

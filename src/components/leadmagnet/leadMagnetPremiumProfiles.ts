@@ -169,7 +169,7 @@ export const LEAD_MAGNET_PREMIUM_PROFILES: Record<string, LeadMagnetPremiumProfi
     tracks: [
       { id: 'au', label: 'Authorized user', promise: 'Know what AU can and cannot do.', bestFor: 'Thin files, age gaps.', plan: ['Match account type', 'Utilization guard', 'Removal plan'] },
       { id: 'primary', label: 'Primary tradelines', promise: 'Understand real reporting depth.', bestFor: 'Building long-term file strength.', plan: ['Product fit', 'Payment history', 'Graduation path'] },
-      { id: 'inquiry', label: 'Inquiry control', promise: 'Stop sabotaging gains with pulls.', bestFor: 'Pre-mortgage, pre-funding clients.', plan: ['Freeze strategy', 'App batching', 'Monitoring'] },
+      { id: 'inquiry', label: 'Inquiry control', promise: 'Stop sabotaging gains with pulls.', bestFor: 'Pre-mortgage, pre-funding partners.', plan: ['Freeze strategy', 'App batching', 'Monitoring'] },
       { id: 'plan', label: 'Full restore plan', promise: 'Tradelines as one lever — not the whole engine.', bestFor: 'Serious rebuilds.', plan: ['Dispute lane', 'Utilization', 'Tradeline timing'] },
     ],
     timeline: [
@@ -249,39 +249,39 @@ export const LEAD_MAGNET_PREMIUM_PROFILES: Record<string, LeadMagnetPremiumProfi
     heroProof: ['White-label partner OS overview', 'Compliance-safe promo copy pack', 'Agency onboarding playbook'],
     problemTitle: 'Agencies scale on systems — not heroic burnout.',
     problemBody:
-      'If you are running restore or funding clients from group chats and spreadsheets, you are one busy month from chaos. This kit shows how partner-grade OS, compliance workflows, and onboarding discipline unlock scale.',
+      'If you are running restore or funding partners from group chats and spreadsheets, you are one busy month from chaos. This kit shows how partner-grade OS, compliance workflows, and onboarding discipline unlock scale.',
     painPoints: [
-      'Clients slip through cracks between sales and fulfillment',
+      'Partners slip through cracks between sales and fulfillment',
       'Promo copy that risks compliance complaints',
-      'No standard onboarding — every client is custom chaos',
+      'No standard onboarding — every partner file is custom chaos',
       'Revenue stuck because ops cannot handle more volume',
     ],
     chapters: [
-      { title: 'Partner OS map', bullets: ['Restore + funding lanes', 'Client portals', 'Task automation'] },
+      { title: 'Partner OS map', bullets: ['Restore + funding lanes', 'Partner portals', 'Task automation'] },
       { title: 'Compliance promo', bullets: ['Safe headlines', 'Disclosure patterns', 'Social templates'] },
       { title: 'Onboarding 30-day', bullets: ['Sales → fulfillment handoff', 'Document collection', 'Expectation setting'] },
       { title: 'Revenue lanes', bullets: ['DIY vs DFY', 'Tradelines', 'Funding referrals'] },
     ],
     tracks: [
       { id: 'solo', label: 'Solo → team', promise: 'First hire without breaking delivery.', bestFor: '1–3 person shops.', plan: ['SOP starter', 'Role split', 'QA pass'] },
-      { id: 'wl', label: 'White-label', promise: 'Brand the OS without building tech.', bestFor: 'Marketing-heavy agencies.', plan: ['Portal skin', 'Client comms', 'Billing lanes'] },
+      { id: 'wl', label: 'White-label', promise: 'Brand the OS without building tech.', bestFor: 'Marketing-heavy agencies.', plan: ['Portal skin', 'Partner comms', 'Billing lanes'] },
       { id: 'compliance', label: 'Compliance', promise: 'Sell aggressively — safely.', bestFor: 'Affiliates + ad runners.', plan: ['Copy pack', 'Review cadence', 'Complaint playbooks'] },
-      { id: 'scale', label: 'Scale', promise: 'Capacity tiers that match reality.', bestFor: '50+ active clients.', plan: ['Partner tiers', 'Overflow routing', 'Recruiting'] },
+      { id: 'scale', label: 'Scale', promise: 'Capacity tiers that match reality.', bestFor: '50+ active partners.', plan: ['Partner tiers', 'Overflow routing', 'Recruiting'] },
     ],
     timeline: [
-      { step: 'Day 1–7', detail: 'Audit current client journey' },
+      { step: 'Day 1–7', detail: 'Audit current partner journey' },
       { step: 'Week 2', detail: 'Deploy onboarding checklist' },
       { step: 'Week 3–4', detail: 'Swap promo copy to compliance pack' },
       { step: 'Month 2+', detail: 'Partner OS trial + advisor call' },
     ],
     bonusTools: [
-      { title: 'Client onboarding checklist', desc: '30-day first-touch to fulfilled.' },
+      { title: 'Partner onboarding checklist', desc: '30-day first-touch to fulfilled.' },
       { title: 'Compliance promo swipe file', desc: 'Headlines and CTAs that do not get you flagged.' },
       { title: 'Capacity tier worksheet', desc: 'Know when to recruit specialists or partners.' },
     ],
     portalHighlights: [
-      'Multi-client partner dashboard preview',
-      'White-label client portals',
+      'Multi-partner dashboard preview',
+      'White-label partner portals',
       'Letter ops + task automation',
       'Agency advisor activation call',
     ],
@@ -292,7 +292,7 @@ export const LEAD_MAGNET_PREMIUM_PROFILES: Record<string, LeadMagnetPremiumProfi
     formStepSub: 'Riley will map white-label fit on your advisor call.',
     faqs: [
       { q: 'Is this a franchise?', a: 'Partner education — you operate your brand under program terms.' },
-      { q: 'Do you guarantee client results?', a: 'No — we provide systems; outcomes depend on execution and file facts.' },
+      { q: 'Do you guarantee partner results?', a: 'No — we provide systems; outcomes depend on execution and file facts. Lawsuit and score outcomes are never guaranteed.' },
       { q: 'Can I see the software first?', a: 'Yes — portal preview included with signup.' },
     ],
   }),

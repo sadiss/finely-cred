@@ -7,8 +7,8 @@ const CAREER_LINKS = [
   {
     id: 'cs-join',
     label: 'Join as Credit Specialist',
-    path: '/credit-specialist/join',
-    hint: 'Apply / onboarding',
+    path: '/credit-specialist',
+    hint: 'Pricing → tiered join',
   },
 ];
 

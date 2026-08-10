@@ -16,9 +16,9 @@ const TIMING_LADDER = [
 ];
 
 const AGENCY_ITEMS = [
-  { id: 'brand_kit', label: 'White-label brand kit configured', hint: 'Logo, colors, domain email for client comms.' },
+  { id: 'brand_kit', label: 'White-label brand kit configured', hint: 'Logo, colors, domain email for partner comms.' },
   { id: 'compliance_copy', label: 'Compliance-safe promo copy approved', hint: 'No outcome guarantees in marketing.' },
-  { id: 'onboarding_sop', label: 'Client onboarding SOP documented', hint: 'Intake → report → dispute → funding handoff.' },
+  { id: 'onboarding_sop', label: 'Partner onboarding SOP documented', hint: 'Intake → report → dispute → funding handoff.' },
   { id: 'partner_portal', label: 'Partner portal walkthrough complete', hint: 'Know dispute, debt, and funding lanes.' },
   { id: 'first_lead', label: 'First lead magnet funnel live', hint: 'QR or link with UTM tracking.' },
   { id: 'nurture_seq', label: 'Nurture sequence tested', hint: 'Welcome email + 7-day follow-up.' },
@@ -74,7 +74,7 @@ export function FunnelAgencyActivationToolkit({ leadId, email }: Props) {
       email={email}
       funnelId="agency"
       title="30-day agency launch kit"
-      subtitle="White-label OS onboarding — check off each milestone before your first client."
+      subtitle="White-label OS onboarding — check off each milestone before your first partner."
       accent="violet"
       items={AGENCY_ITEMS}
       footerTip="Book your solutions advisor call to review compliance positioning for your market."

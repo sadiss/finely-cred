@@ -1,0 +1,421 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Yolie Dynamic Page 2 Proof</title>
+  <style>
+    :root {
+      --gold: #c9a226;
+      --cream: #f7f4ee;
+      --ink: #202020;
+      --soft: #68615a;
+      --green: #53c75e;
+      --dark: #141414;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: #101010;
+      color: #f7f4ee;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+    header {
+      padding: 18px 24px;
+      border-bottom: 1px solid rgba(201, 162, 38, 0.35);
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+      align-items: flex-end;
+    }
+    h1 { margin: 0 0 6px; font-size: 22px; }
+    p { margin: 0; color: #d7c9aa; }
+    #status {
+      max-width: 560px;
+      color: #f1d78b;
+      font-size: 13px;
+      text-align: right;
+    }
+    .stage {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 18px;
+      padding: 18px;
+      align-items: start;
+    }
+    .panel {
+      background: #171717;
+      border: 1px solid rgba(201, 162, 38, 0.28);
+      border-radius: 12px;
+      padding: 12px;
+      box-shadow: 0 20px 70px rgba(0, 0, 0, 0.45);
+    }
+    .panel h2 {
+      margin: 0 0 8px;
+      font-size: 17px;
+    }
+    .faulty h2 { color: #f1d78b; }
+    .corrected h2 { color: #7ee06b; }
+    .caption {
+      margin: 0 0 10px;
+      color: #d8c9a7;
+      font-size: 13px;
+    }
+    .faulty img, .proof-spread img {
+      display: block;
+      width: 100%;
+      height: auto;
+      border-radius: 7px;
+    }
+    .proof-spread {
+      position: relative;
+      overflow: hidden;
+      border-radius: 7px;
+      background: var(--cream);
+    }
+    .zone {
+      position: absolute;
+      font-weight: 700;
+      line-height: 1.05;
+      color: var(--ink);
+      z-index: 2;
+      white-space: nowrap;
+    }
+    .zone.small { font-size: clamp(7px, 0.74vw, 13px); font-weight: 600; }
+    .zone.tiny { font-size: clamp(6px, 0.54vw, 10px); font-weight: 600; }
+    .zone.score { color: #76d93f; font-size: clamp(18px, 2vw, 36px); font-weight: 500; }
+    .zone.gold { color: var(--gold); }
+    .zone.green { color: #4dbb38; }
+    .zone.white { color: #f8f3e8; }
+    .cover {
+      position: absolute;
+      z-index: 1;
+      border-radius: 3px;
+      background: rgba(247, 244, 238, 0.96);
+    }
+    .cover.dark {
+      background: rgba(20, 20, 20, 0.97);
+      border-radius: 5px;
+    }
+    .cover.panel {
+      background: rgba(18, 18, 18, 0.98);
+      border-radius: 7px;
+      border: none;
+      padding: 0;
+    }
+    .readiness-word {
+      left: 31.9%;
+      top: 20.7%;
+      width: 8.6%;
+      text-align: center;
+      font-family: Georgia, serif;
+      font-size: clamp(19px, 2vw, 34px);
+      color: #9c7630;
+    }
+    .readiness-status {
+      left: 32.3%;
+      top: 26.1%;
+      width: 8.2%;
+      text-align: center;
+      font-size: clamp(9px, 0.9vw, 16px);
+      color: #4dbb38;
+    }
+    .dynamic-badge {
+      position: absolute;
+      left: 3.6%;
+      top: 11.2%;
+      z-index: 3;
+      padding: 3px 8px;
+      border: 1px solid rgba(201, 162, 38, 0.4);
+      border-radius: 999px;
+      background: rgba(247, 244, 238, 0.9);
+      color: #80621e;
+      font-size: clamp(6px, 0.55vw, 10px);
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+    .data-note {
+      padding: 10px 12px;
+      margin-top: 10px;
+      border-radius: 8px;
+      background: rgba(201, 162, 38, 0.12);
+      border: 1px solid rgba(201, 162, 38, 0.35);
+      color: #f4e4b4;
+      font-size: 13px;
+    }
+    @media (max-width: 1200px) {
+      .stage { grid-template-columns: 1fr; }
+      #status { text-align: left; }
+      header { align-items: flex-start; flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>Page 2 Dynamic Proof: Faulty vs Corrected Yolie Example</h1>
+      <p>Only page 2. Left is the current broken output. Right uses dynamic values for Yolie where the page should be editable.</p>
+    </div>
+    <div id="status">Loading Yolie from app data...</div>
+  </header>
+
+  <main class="stage">
+    <section class="panel faulty">
+      <h2>Faulty Current Generated Page 2</h2>
+      <p class="caption">This is the problem: destructive bars and duplicated text over the artwork.</p>
+      <img src="/@fs/E:/Finely-Cred/Tishobe/finely-cred-main/_import_credit_analysis/rendered_smoke_review/02.png" alt="Faulty generated page 2" />
+    </section>
+
+    <section class="panel corrected">
+      <h2>Corrected Dynamic Proof Direction</h2>
+      <p class="caption">This side reads Yolie’s real app/report data when available, then replaces only the intended value zones.</p>
+      <div class="proof-spread" id="spread">
+        <img src="/credit-analysis/premium-spreads/v1/02_credit_readiness_and_analysis_overview.png" alt="Corrected dynamic page 2 proof" />
+
+        <div class="dynamic-badge" id="dynamicBadge">Dynamic: loading...</div>
+
+        <!-- Surgical covers only over static values, not across the full design. -->
+        <div class="cover" style="left:30.0%;top:18.6%;width:12.6%;height:10.6%;"></div>
+        <div class="cover dark" style="left:5.45%;top:40.8%;width:8.7%;height:5.7%;"></div>
+        <div class="cover dark" style="left:18.25%;top:40.8%;width:9.2%;height:5.7%;"></div>
+        <div class="cover dark" style="left:31.2%;top:40.8%;width:9.2%;height:5.7%;"></div>
+        <div class="cover" style="left:38.0%;top:52.1%;width:5.4%;height:2.9%;"></div>
+        <div class="cover" style="left:38.0%;top:60.4%;width:5.4%;height:2.9%;"></div>
+        <div class="cover" style="left:38.0%;top:68.5%;width:5.4%;height:2.9%;"></div>
+        <div class="cover" style="left:38.0%;top:76.7%;width:5.4%;height:2.9%;"></div>
+        <div class="cover" style="left:38.0%;top:84.9%;width:5.4%;height:2.9%;"></div>
+        <div class="cover panel" style="left:80.0%;top:74.4%;width:16.0%;height:19.6%;"></div>
+
+        <!-- Dynamic text replacements. -->
+        <div class="zone gold small" id="preparedFor" style="left:8.0%;top:9.75%;">PREPARED FOR YOLIE</div>
+        <div class="zone readiness-word" id="readinessWord">Moderate</div>
+        <div class="zone readiness-status" id="readinessStatus">Improving</div>
+
+        <div class="zone score" id="scoreTuc" style="left:5.75%;top:42.25%;">---</div>
+        <div class="zone score" id="scoreExp" style="left:18.85%;top:42.25%;">---</div>
+        <div class="zone score" id="scoreEqf" style="left:31.75%;top:42.25%;">---</div>
+        <div class="zone tiny white" id="sourceTuc" style="left:10.5%;top:44.25%;">actual report</div>
+        <div class="zone tiny white" id="sourceExp" style="left:23.9%;top:44.25%;">actual report</div>
+        <div class="zone tiny white" id="sourceEqf" style="left:36.65%;top:44.25%;">actual report</div>
+
+        <div class="zone small green" id="paymentStatus" style="left:39.2%;top:52.65%;">GOOD</div>
+        <div class="zone tiny" id="paymentDetail" style="left:38.9%;top:55.05%;">Consistent</div>
+
+        <div class="zone small gold" id="utilStatus" style="left:39.2%;top:60.75%;">FAIR</div>
+        <div class="zone tiny" id="utilDetail" style="left:38.9%;top:63.2%;">--% of available</div>
+
+        <div class="zone small green" id="ageStatus" style="left:39.2%;top:68.95%;">GOOD</div>
+        <div class="zone tiny" id="ageDetail" style="left:38.9%;top:71.35%;">Review</div>
+
+        <div class="zone small green" id="mixStatus" style="left:39.2%;top:77.1%;">GOOD</div>
+        <div class="zone tiny" id="mixDetail" style="left:38.9%;top:79.55%;">Balanced</div>
+
+        <div class="zone small green" id="inqStatus" style="left:39.2%;top:85.25%;">GOOD</div>
+        <div class="zone tiny" id="inqDetail" style="left:38.9%;top:87.7%;">-- in last 12 mos</div>
+
+        <div class="zone tiny gold" style="left:81.4%;top:76.0%;">QUICK READ</div>
+        <div class="zone tiny white" id="quickHelping" style="left:82.7%;top:79.1%;width:11.8%;white-space:normal;line-height:1.25;">Loading...</div>
+        <div class="zone tiny white" id="quickHurting" style="left:82.7%;top:84.1%;width:11.8%;white-space:normal;line-height:1.25;"></div>
+        <div class="zone tiny white" id="quickImprove" style="left:82.7%;top:89.2%;width:11.8%;white-space:normal;line-height:1.25;"></div>
+      </div>
+
+      <div class="data-note" id="dataNote">Waiting for dynamic data...</div>
+    </section>
+  </main>
+
+  <script type="module">
+    import { isSupabaseConfigured, supabase } from '/src/lib/supabaseClient.ts';
+
+    const $ = (id) => document.getElementById(id);
+
+    function readStore(key, fallback) {
+      try {
+        const raw = localStorage.getItem(key);
+        if (!raw) return fallback;
+        const parsed = JSON.parse(raw);
+        return parsed?.data ?? fallback;
+      } catch {
+        return fallback;
+      }
+    }
+
+    function bureauLabel(bureau) {
+      return bureau === 'TUC' ? 'TransUnion' : bureau === 'EXP' ? 'Experian' : 'Equifax';
+    }
+
+    function scoreFor(parsed, bureau) {
+      const hits = (parsed?.scores ?? []).filter((s) => s.bureau === bureau || String(s.sourceText || '').toUpperCase().includes(bureau));
+      if (!hits.length) return null;
+      return Math.max(...hits.map((s) => Number(s.value)).filter(Number.isFinite));
+    }
+
+    function utilForTradeline(t) {
+      if (typeof t?.balance === 'number' && typeof t?.creditLimit === 'number' && t.creditLimit > 0) {
+        return Math.round((t.balance / t.creditLimit) * 100);
+      }
+      const vals = Object.values(t?.utilizationPct ?? {}).filter((v) => typeof v === 'number' && Number.isFinite(v));
+      return vals.length ? Math.round(vals.reduce((a, b) => a + b, 0) / vals.length) : null;
+    }
+
+    function avgUtil(parsed) {
+      const vals = (parsed?.tradelines ?? []).map(utilForTradeline).filter((v) => v != null);
+      return vals.length ? Math.round(vals.reduce((a, b) => a + b, 0) / vals.length) : null;
+    }
+
+    function monthsBetween(date) {
+      if (!date) return null;
+      const d = new Date(date);
+      if (Number.isNaN(d.getTime())) return null;
+      const now = new Date();
+      return Math.max(0, (now.getFullYear() - d.getFullYear()) * 12 + now.getMonth() - d.getMonth());
+    }
+
+    function countInquiries(parsed) {
+      const sec = (parsed?.sections ?? []).find((s) => /inquir/i.test(s.key || '') || /inquir/i.test(s.title || ''));
+      return sec?.items?.length ?? sec?.rows?.length ?? sec?.table?.rows?.length ?? 0;
+    }
+
+    function isPositive(t) {
+      const hay = `${t?.accountStatus || ''} ${t?.accountType || ''}`.toLowerCase();
+      return !/(collection|charge.?off|late|delinquent|repossess|bankrupt|derog)/i.test(hay);
+    }
+
+    function buildVm(partner, report, source) {
+      const parsed = report?.parsed;
+      const scores = {
+        TUC: scoreFor(parsed, 'TUC'),
+        EXP: scoreFor(parsed, 'EXP'),
+        EQF: scoreFor(parsed, 'EQF'),
+      };
+      const scoreVals = Object.values(scores).filter((v) => v != null);
+      const headline = scoreVals.length ? Math.max(...scoreVals) : null;
+      const util = avgUtil(parsed);
+      const tradelines = parsed?.tradelines ?? [];
+      const open = tradelines.filter((t) => !/closed/i.test(String(t.accountStatus || ''))).length;
+      const positives = tradelines.filter(isPositive).length;
+      const negatives = Math.max(0, tradelines.length - positives);
+      const inq = countInquiries(parsed);
+      const ages = tradelines.map((t) => monthsBetween(t.dateOpened)).filter((v) => v != null);
+      const avgMonths = ages.length ? Math.round(ages.reduce((a, b) => a + b, 0) / ages.length) : null;
+      const revolving = tradelines.filter((t) => /revolv|card/i.test(String(t.accountType || ''))).length;
+      const installment = tradelines.filter((t) => /install|auto|mortgage|loan/i.test(String(t.accountType || ''))).length;
+      const paymentPct = tradelines.length ? Math.max(0, Math.round(((tradelines.length - negatives) / tradelines.length) * 100)) : null;
+
+      const readiness =
+        headline == null ? (negatives > 3 ? 'Building' : 'Moderate') :
+        headline >= 720 && negatives <= 1 ? 'Strong' :
+        headline >= 640 ? 'Moderate' :
+        headline >= 580 ? 'Building' : 'Urgent';
+
+      return {
+        partnerName: partner?.profile?.fullName || partner?.fullName || 'Yolie Benoit',
+        source,
+        filename: report?.filename || report?.fileName || 'credit report',
+        scores,
+        headline,
+        util,
+        open,
+        negatives,
+        inq,
+        avgMonths,
+        revolving,
+        installment,
+        paymentPct,
+        readiness,
+        readinessStatus: readiness === 'Strong' ? 'Ready' : readiness === 'Moderate' ? 'Improving' : readiness === 'Building' ? 'Building' : 'Needs Attention',
+      };
+    }
+
+    function findLocalYolie() {
+      const partners = readStore('finely.partners.v1', { partners: [] }).partners ?? [];
+      const reports = readStore('finely.creditReports.v1', { reports: [] }).reports ?? [];
+      const partner = partners.find((p) => /yolie/i.test(`${p?.profile?.fullName || ''} ${p?.profile?.email || ''} ${p?.fullName || ''} ${p?.email || ''}`));
+      if (!partner) return null;
+      const partnerReports = reports
+        .filter((r) => r.partnerId === partner.id && r.parsed)
+        .sort((a, b) => String(b.receivedAt || '').localeCompare(String(a.receivedAt || '')));
+      if (!partnerReports.length) return { partner, report: null, source: 'local partner found, no parsed report in browser storage' };
+      return { partner, report: partnerReports[0], source: 'browser local app data' };
+    }
+
+    async function findSupabaseYolie() {
+      if (!isSupabaseConfigured) return null;
+      const { data: partners, error } = await supabase
+        .from('partners')
+        .select('*')
+        .or('profile->>fullName.ilike.%Yolie%,profile->>email.ilike.%yolie%')
+        .limit(5);
+      if (error || !partners?.length) return null;
+      const row = partners[0];
+      const partner = {
+        id: row.id,
+        profile: row.profile || { fullName: 'Yolie Benoit' },
+      };
+      const { data: reportRows } = await supabase
+        .from('credit_reports')
+        .select('data,received_at,filename')
+        .eq('partner_id', row.id)
+        .order('received_at', { ascending: false })
+        .limit(10);
+      const report = (reportRows ?? []).map((r) => r.data).find((r) => r?.parsed) ?? null;
+      return { partner, report, source: report ? 'Supabase credit_reports' : 'Supabase partner found, no parsed report returned' };
+    }
+
+    function render(vm) {
+      $('preparedFor').textContent = `PREPARED FOR ${vm.partnerName.toUpperCase()}`;
+      $('readinessWord').textContent = vm.readiness;
+      $('readinessStatus').textContent = vm.readinessStatus;
+      $('scoreTuc').textContent = vm.scores.TUC ?? '---';
+      $('scoreExp').textContent = vm.scores.EXP ?? '---';
+      $('scoreEqf').textContent = vm.scores.EQF ?? '---';
+      $('sourceTuc').textContent = vm.scores.TUC == null ? 'not found' : 'actual report';
+      $('sourceExp').textContent = vm.scores.EXP == null ? 'not found' : 'actual report';
+      $('sourceEqf').textContent = vm.scores.EQF == null ? 'not found' : 'actual report';
+
+      const paymentGood = vm.paymentPct == null || vm.paymentPct >= 80;
+      $('paymentStatus').textContent = paymentGood ? 'GOOD' : 'REVIEW';
+      $('paymentDetail').textContent = vm.paymentPct == null ? 'Review' : `${vm.paymentPct}% positive`;
+
+      $('utilStatus').textContent = vm.util == null ? 'REVIEW' : vm.util <= 29 ? 'GOOD' : vm.util <= 49 ? 'FAIR' : 'HIGH';
+      $('utilStatus').className = `zone small ${vm.util != null && vm.util <= 29 ? 'green' : 'gold'}`;
+      $('utilDetail').textContent = vm.util == null ? 'Needs report data' : `${vm.util}% of available`;
+
+      $('ageStatus').textContent = vm.avgMonths == null ? 'REVIEW' : vm.avgMonths >= 36 ? 'GOOD' : 'BUILD';
+      $('ageDetail').textContent = vm.avgMonths == null ? 'Review' : vm.avgMonths >= 12 ? `${Math.floor(vm.avgMonths / 12)} yrs ${vm.avgMonths % 12} mos` : `${vm.avgMonths} mos`;
+
+      $('mixStatus').textContent = vm.revolving >= 2 && vm.installment >= 1 ? 'GOOD' : 'FAIR';
+      $('mixDetail').textContent = `${vm.revolving} rev / ${vm.installment} inst`;
+
+      $('inqStatus').textContent = vm.inq <= 2 ? 'GOOD' : vm.inq <= 5 ? 'FAIR' : 'HIGH';
+      $('inqStatus').className = `zone small ${vm.inq <= 2 ? 'green' : 'gold'}`;
+      $('inqDetail').textContent = `${vm.inq} on file`;
+
+      $('quickHelping').textContent = `Helping: ${vm.open} open account(s), ${vm.paymentPct ?? '--'}% positive pattern.`;
+      $('quickHurting').textContent = `Hurting: ${vm.negatives} negative item(s), utilization ${vm.util ?? '--'}%.`;
+      $('quickImprove').textContent = `Improve first: lower utilization and attack highest-impact negatives.`;
+
+      $('dynamicBadge').textContent = `Dynamic: ${vm.partnerName}`;
+      $('dataNote').textContent = `Dynamic source: ${vm.source}. Report: ${vm.filename}. Scores shown: ${bureauLabel('TUC')} ${vm.scores.TUC ?? 'not found'}, ${bureauLabel('EXP')} ${vm.scores.EXP ?? 'not found'}, ${bureauLabel('EQF')} ${vm.scores.EQF ?? 'not found'}.`;
+      $('status').textContent = `Loaded dynamic proof for ${vm.partnerName} from ${vm.source}.`;
+    }
+
+    async function main() {
+      const local = findLocalYolie();
+      const found = local?.report ? local : await findSupabaseYolie() ?? local;
+      if (!found?.report?.parsed) {
+        $('status').textContent = 'Yolie was found, but no parsed report data was available to this browser preview.';
+        $('dataNote').textContent = 'I need Yolie’s parsed credit report available in this browser/app session for the proof to show her actual scores. The layout still demonstrates the surgical dynamic zones, but the values remain placeholders until the report data is available.';
+        $('dynamicBadge').textContent = 'Dynamic: report not found';
+        return;
+      }
+      render(buildVm(found.partner, found.report, found.source));
+    }
+
+    main().catch((err) => {
+      $('status').textContent = `Could not load dynamic Yolie data: ${err?.message || err}`;
+      $('dataNote').textContent = 'Dynamic proof failed to load. Check the browser console for details.';
+    });
+  </script>
+</body>
+</html>

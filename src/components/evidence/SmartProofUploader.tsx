@@ -1,5 +1,6 @@
 import React from 'react';
 import type { Partner } from '../../domain/partners';
+import type { DebtCase } from '../../domain/debt';
 import type { IngestUploadResult } from '../../lib/ingestUploadedEvidence';
 import { UnifiedEvidenceCapture } from './UnifiedEvidenceCapture';
 
@@ -10,6 +11,8 @@ type Props = {
   disputeCaseId?: string;
   debtCaseId?: string;
   bankruptcyCaseId?: string;
+  debt?: DebtCase | null;
+  onDebtChange?: (d: DebtCase) => void;
   onUploaded?: (result: IngestUploadResult) => void;
   uploadContext?: 'general' | 'bureau' | 'debt' | 'foreclosure' | 'repossession' | 'bankruptcy';
   /** Default true — scrape intel panel beside the capture deck. */
@@ -27,6 +30,8 @@ export function SmartProofUploader({
   disputeCaseId,
   debtCaseId,
   bankruptcyCaseId,
+  debt,
+  onDebtChange,
   onUploaded,
   uploadContext = 'general',
   enableScrape = true,
@@ -39,6 +44,8 @@ export function SmartProofUploader({
       disputeCaseId={disputeCaseId}
       debtCaseId={debtCaseId}
       bankruptcyCaseId={bankruptcyCaseId}
+      debt={debt}
+      onDebtChange={onDebtChange}
       onUploaded={onUploaded}
       uploadContext={uploadContext}
       enableScrape={enableScrape}

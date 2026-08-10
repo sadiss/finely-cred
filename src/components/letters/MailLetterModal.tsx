@@ -31,6 +31,9 @@ import {
   enrichRecipientAddressSync,
   parseMailingAddress,
 } from '../../lib/recipientAddressEnrichment';
+import { LetterPartnerNoteField } from './LetterPartnerNoteField';
+import { recordLetterPartnerNote } from '../../lib/letterPartnerNotes';
+import { markValidationLetterMailed } from '../../lib/validationAccountState';
 
 type WizardStep = 'confirm' | 'mail' | 'track';
 
@@ -152,6 +155,8 @@ export function MailLetterModal({
   emailPartnerDefault = true,
   evidence = [],
   trackHref,
+  noteAuthorType = 'partner',
+  noteAuthorEmail,
 }: {
   open: boolean;
   partnerId: string;
@@ -180,6 +185,9 @@ export function MailLetterModal({
   /** When partner opts in, notify that letter is ready / mail_pending. */
   onNotifyReadyToMail?: (args: { emailPartner: boolean; to: MailAddress; from: MailAddress }) => void | Promise<void>;
   emailPartnerDefault?: boolean;
+  /** Specialist / admin mailing on behalf of partner */
+  noteAuthorType?: 'partner' | 'admin';
+  noteAuthorEmail?: string;
 }) {
   const canMail = Boolean(letter.pdfBlobRef);
   const [step, setStep] = useState<WizardStep>('confirm');
@@ -217,6 +225,7 @@ export function MailLetterModal({
   const [verifiedHash, setVerifiedHash] = useState<string | null>(null);
   const [mailType, setMailType] = useState<FinelyMailType>(() => defaultMailTypeForLetter(letter));
   const [emailPartner, setEmailPartner] = useState(emailPartnerDefault);
+  const [partnerNote, setPartnerNote] = useState('');
   const [addressHint, setAddressHint] = useState<string | null>(null);
 
   const currentHash = useMemo(() => {
@@ -240,6 +249,7 @@ export function MailLetterModal({
     setVerifiedHash(null);
     setAddressHint(null);
     setEmailPartner(emailPartnerDefault);
+    setPartnerNote('');
     setMailType(defaultMailTypeForLetter(letter));
     const disputeTo = mailDefaultsForDisputeRecipient(letter);
     const meta: any = (letter as any)?.meta ?? null;
@@ -446,6 +456,27 @@ export function MailLetterModal({
         from: fromClean,
         cost: res.cost,
       });
+      const debtCaseId =
+        letter.meta && 'debtId' in letter.meta && typeof (letter.meta as { debtId?: string }).debtId === 'string'
+          ? (letter.meta as { debtId?: string }).debtId
+          : undefined;
+      // Wait clock starts only when a validation letter is mailed — never court filings.
+      if (debtCaseId && letter.type === 'validation') {
+        markValidationLetterMailed({ debtCaseId, partnerId, mailedAt: new Date().toISOString() });
+      }
+      if (partnerNote.trim()) {
+        recordLetterPartnerNote({
+          partnerId,
+          body: partnerNote,
+          title: `Mailed: ${letter.title}`,
+          letterId: letter.id,
+          debtCaseId,
+          source: 'letter_mail',
+          authorType: noteAuthorType,
+          authorEmail: noteAuthorEmail,
+        });
+        setPartnerNote('');
+      }
       try {
         await onNotifyMailed?.({
           providerId: res.providerId,
@@ -589,6 +620,13 @@ export function MailLetterModal({
                 onChange={setEmailPartner}
                 label="Email partner"
                 hint="When ready / mailed"
+              />
+              <LetterPartnerNoteField
+                id="mail-letter-partner-note"
+                value={partnerNote}
+                onChange={setPartnerNote}
+                label="Optional partner note (saved on mail)"
+                placeholder="Log context for this mail action on the partner record…"
               />
 
               <div className="fc-light-glass-panel fc-light-chrome-panel p-4 space-y-3">

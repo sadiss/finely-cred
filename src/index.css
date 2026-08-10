@@ -152,15 +152,145 @@ samp {
 .fc-admin-solid-teal,
 .fc-admin-solid-rose {
   color: #ffffff;
+  position: relative;
+  isolation: isolate;
 }
-.fc-admin-solid-gold { color: #241a04; }
+.fc-admin-solid-gold {
+  color: #241a04;
+  position: relative;
+  isolation: isolate;
+}
 
-.fc-admin-solid-emerald { background: linear-gradient(150deg, #17a97b 0%, #0a7a56 100%); border-color: rgba(10, 122, 86, 0.55) !important; box-shadow: 0 10px 22px -13px rgba(10, 122, 86, 0.5); }
-.fc-admin-solid-gold   { background: linear-gradient(150deg, #ecb93f 0%, #a86a13 100%); border-color: rgba(168, 106, 19, 0.55) !important; box-shadow: 0 10px 22px -13px rgba(168, 106, 19, 0.45); }
-.fc-admin-solid-sky    { background: linear-gradient(150deg, #2fb2f4 0%, #05699e 100%); border-color: rgba(5, 105, 158, 0.55) !important; box-shadow: 0 10px 22px -13px rgba(5, 105, 158, 0.45); }
-.fc-admin-solid-navy   { background: linear-gradient(150deg, #3a5680 0%, #16283f 100%); border-color: rgba(16, 28, 45, 0.6) !important; box-shadow: 0 10px 22px -13px rgba(16, 28, 45, 0.5); }
-.fc-admin-solid-teal   { background: linear-gradient(150deg, #27c3b1 0%, #0b7469 100%); border-color: rgba(11, 116, 105, 0.55) !important; box-shadow: 0 10px 22px -13px rgba(11, 116, 105, 0.45); }
-.fc-admin-solid-rose   { background: linear-gradient(150deg, #f0685f 0%, #a3241a 100%); border-color: rgba(163, 36, 26, 0.55) !important; box-shadow: 0 10px 22px -13px rgba(163, 36, 26, 0.45); }
+/* Wealth gloss: metallic rim + inner highlight (keeps multi-tone family). */
+.fc-admin-solid-emerald,
+.fc-admin-solid-sky,
+.fc-admin-solid-navy,
+.fc-admin-solid-teal,
+.fc-admin-solid-rose,
+.fc-admin-solid-gold {
+  background-clip: padding-box;
+}
+.fc-admin-solid-emerald::before,
+.fc-admin-solid-sky::before,
+.fc-admin-solid-navy::before,
+.fc-admin-solid-teal::before,
+.fc-admin-solid-rose::before,
+.fc-admin-solid-gold::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    linear-gradient(118deg, rgba(255, 255, 255, 0.54) 0%, rgba(255, 255, 255, 0.2) 22%, transparent 48%),
+    linear-gradient(300deg, rgba(255, 255, 255, 0.16) 0%, transparent 38%),
+    radial-gradient(120% 70% at 100% 0%, rgba(255, 255, 255, 0.24) 0%, transparent 45%);
+  opacity: 1;
+}
+/* Thin metallic edge ring (gloss, not a second flat border). */
+.fc-admin-solid-emerald::after,
+.fc-admin-solid-sky::after,
+.fc-admin-solid-navy::after,
+.fc-admin-solid-teal::after,
+.fc-admin-solid-rose::after,
+.fc-admin-solid-gold::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: 2;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.35),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.22);
+}
+.fc-admin-solid-emerald > *,
+.fc-admin-solid-sky > *,
+.fc-admin-solid-navy > *,
+.fc-admin-solid-teal > *,
+.fc-admin-solid-rose > *,
+.fc-admin-solid-gold > * {
+  position: relative;
+  z-index: 1;
+}
+
+.fc-admin-solid-emerald {
+  background: linear-gradient(152deg, #3ae0b0 0%, #18b884 32%, #0c8a5e 64%, #056344 100%);
+  border-color: rgba(186, 250, 220, 0.62) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.38),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.2),
+    0 0 0 1px rgba(52, 211, 153, 0.34),
+    0 18px 40px -14px rgba(10, 122, 86, 0.62),
+    0 0 42px rgba(52, 211, 153, 0.3);
+}
+.fc-admin-solid-gold {
+  background: linear-gradient(152deg, #f9dc92 0%, #e8b84a 30%, #c48a18 62%, #8f5a0c 100%);
+  border-color: rgba(254, 240, 180, 0.72) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.52),
+    inset 0 -1px 0 rgba(80, 40, 0, 0.2),
+    0 0 0 1px rgba(251, 191, 36, 0.42),
+    0 18px 40px -14px rgba(168, 106, 19, 0.6),
+    0 0 42px rgba(251, 191, 36, 0.34);
+}
+.fc-admin-solid-sky {
+  background: linear-gradient(152deg, #6ed0fb 0%, #32b0ec 30%, #0c84c4 64%, #055f94 100%);
+  border-color: rgba(200, 240, 255, 0.62) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.38),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.18),
+    0 0 0 1px rgba(56, 189, 248, 0.36),
+    0 18px 40px -14px rgba(5, 105, 158, 0.56),
+    0 0 42px rgba(56, 189, 248, 0.3);
+}
+.fc-admin-solid-navy {
+  background: linear-gradient(152deg, #6a8ab8 0%, #456898 32%, #243e68 66%, #121f35 100%);
+  border-color: rgba(200, 220, 242, 0.52) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.28),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.3),
+    0 0 0 1px rgba(120, 150, 200, 0.38),
+    0 18px 40px -14px rgba(16, 28, 45, 0.62),
+    0 0 42px rgba(96, 130, 180, 0.3);
+}
+.fc-admin-solid-teal {
+  background: linear-gradient(152deg, #56e0ce 0%, #28c4b0 30%, #0e9486 64%, #06685c 100%);
+  border-color: rgba(170, 250, 235, 0.62) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.38),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.18),
+    0 0 0 1px rgba(45, 212, 191, 0.36),
+    0 18px 40px -14px rgba(11, 116, 105, 0.56),
+    0 0 42px rgba(45, 212, 191, 0.3);
+}
+.fc-admin-solid-rose {
+  background: linear-gradient(152deg, #fca098 0%, #e86858 30%, #b83028 64%, #801810 100%);
+  border-color: rgba(254, 215, 220, 0.58) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.34),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.2),
+    0 0 0 1px rgba(251, 113, 133, 0.34),
+    0 18px 40px -14px rgba(163, 36, 26, 0.56),
+    0 0 42px rgba(251, 113, 133, 0.26);
+}
+
+/* Restore pricing wayfinder — cinematic topic band under public nav. */
+.fc-wayfinder--restore-hero {
+  border-color: rgba(255, 255, 255, 0.08) !important;
+  background: #04080c !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.06) !important;
+}
+.fc-wayfinder-restore-veil {
+  background:
+    linear-gradient(180deg, rgba(4, 8, 12, 0.92) 0%, rgba(6, 12, 18, 0.96) 42%, rgba(8, 14, 20, 1) 100%),
+    radial-gradient(120% 80% at 70% 20%, rgba(251, 191, 36, 0.1) 0%, transparent 55%),
+    radial-gradient(90% 70% at 10% 80%, rgba(16, 185, 129, 0.08) 0%, transparent 50%);
+}
 
 .fc-admin-soft-emerald,
 .fc-admin-soft-gold,
@@ -213,33 +343,33 @@ html[data-fc-theme="light"] {
   /* Frosted glass ? luxury transparent tier (mesh shows through) + pop strong tier */
   --fc-glass-blur: 26px;
   --fc-glass-saturate: 185%;
-  --fc-glass-bg: rgba(255, 255, 255, 0.76);
-  --fc-glass-bg-strong: rgba(255, 255, 255, 0.94);
-  --fc-glass-bg-inner: rgba(255, 255, 255, 0.82);
-  --fc-glass-border: rgba(255, 255, 255, 0.96);
-  --fc-glass-border-dim: rgba(15, 23, 20, 0.11);
-  --fc-glass-shadow: 0 24px 56px -20px rgba(15, 23, 20, 0.18), 0 10px 26px -12px rgba(15, 23, 20, 0.08);
-  --fc-glass-inset: inset 0 1px 0 rgba(255, 255, 255, 0.98), inset 0 -1px 0 rgba(15, 23, 20, 0.05);
-  --fc-glass-specular: linear-gradient(168deg, rgba(255, 255, 255, 0.98) 0%, rgba(255, 255, 255, 0.62) 48%, rgba(255, 255, 255, 0.9) 100%);
-  --fc-glass-hover-lift: 0 32px 72px -22px rgba(15, 23, 20, 0.22), 0 12px 28px -12px rgba(15, 23, 20, 0.1);
+  --fc-glass-bg: rgba(255, 255, 255, 0.88);
+  --fc-glass-bg-strong: rgba(255, 255, 255, 0.97);
+  --fc-glass-bg-inner: rgba(255, 255, 255, 0.9);
+  --fc-glass-border: rgba(255, 255, 255, 0.98);
+  --fc-glass-border-dim: rgba(15, 23, 20, 0.1);
+  --fc-glass-shadow: 0 26px 60px -18px rgba(15, 23, 20, 0.16), 0 12px 28px -12px rgba(15, 23, 20, 0.08);
+  --fc-glass-inset: inset 0 1px 0 rgba(255, 255, 255, 1), inset 0 -1px 0 rgba(15, 23, 20, 0.04), inset 0 0 0 1px rgba(255, 248, 235, 0.35);
+  --fc-glass-specular: linear-gradient(168deg, rgba(255, 255, 255, 1) 0%, rgba(255, 250, 242, 0.78) 42%, rgba(255, 255, 255, 0.94) 100%);
+  --fc-glass-hover-lift: 0 34px 76px -20px rgba(15, 23, 20, 0.2), 0 14px 30px -12px rgba(15, 23, 20, 0.1);
   --fc-light-heading: #050807;
   --fc-light-body: rgba(15, 23, 20, 0.82);
   --fc-light-muted: rgba(15, 23, 20, 0.56);
   --fc-light-label: #b45309;
   --fc-light-label-muted: #92400e;
   --fc-light-scrim: rgba(232, 236, 234, 0.78);
-  --fc-light-pop-shadow: 0 28px 64px -20px rgba(15, 23, 20, 0.26), 0 12px 32px -14px rgba(15, 23, 20, 0.12);
-  --fc-light-pop-hover: 0 36px 80px -24px rgba(15, 23, 20, 0.32), 0 16px 36px -16px rgba(15, 23, 20, 0.14);
+  --fc-light-pop-shadow: 0 30px 68px -18px rgba(15, 23, 20, 0.22), 0 14px 34px -12px rgba(15, 23, 20, 0.1);
+  --fc-light-pop-hover: 0 38px 84px -22px rgba(15, 23, 20, 0.28), 0 18px 38px -14px rgba(15, 23, 20, 0.12);
   /* Part CD ? rich surface depth on ivory mesh (harmony, not literal float) */
-  --fc-light-pop-shadow-xl: 0 12px 32px -16px rgba(15, 23, 20, 0.14), 0 4px 12px -4px rgba(15, 23, 20, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.92);
-  --fc-light-pop-hover-xl: 0 16px 40px -18px rgba(15, 23, 20, 0.18), 0 6px 16px -6px rgba(15, 23, 20, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.96);
-  --fc-light-section-float: 0 16px 40px -20px rgba(15, 23, 20, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.94);
+  --fc-light-pop-shadow-xl: 0 14px 36px -14px rgba(15, 23, 20, 0.14), 0 5px 14px -4px rgba(15, 23, 20, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.96);
+  --fc-light-pop-hover-xl: 0 18px 44px -16px rgba(15, 23, 20, 0.18), 0 7px 18px -6px rgba(15, 23, 20, 0.1), inset 0 1px 0 rgba(255, 255, 255, 1);
+  --fc-light-section-float: 0 18px 44px -18px rgba(15, 23, 20, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.98);
   --fc-light-contrast-rise: 0 -32px 80px -40px rgba(0, 0, 0, 0.42), 0 56px 120px -52px rgba(0, 0, 0, 0.58), inset 0 1px 0 rgba(255, 255, 255, 0.1);
-  --fc-light-accent-glow-emerald: 0 24px 56px -18px rgba(16, 185, 129, 0.38);
-  --fc-light-accent-glow-violet: 0 24px 56px -18px rgba(139, 92, 246, 0.36);
-  --fc-light-accent-glow-amber: 0 24px 56px -18px rgba(245, 158, 11, 0.4);
-  --fc-light-accent-glow-sky: 0 24px 56px -18px rgba(14, 165, 233, 0.34);
-  --fc-light-accent-glow-fuchsia: 0 24px 56px -18px rgba(217, 70, 239, 0.34);
+  --fc-light-accent-glow-emerald: 0 20px 56px -4px rgba(16, 185, 129, 0.72);
+  --fc-light-accent-glow-violet: 0 20px 58px -4px rgba(139, 92, 246, 0.68);
+  --fc-light-accent-glow-amber: 0 20px 60px -4px rgba(245, 158, 11, 0.74);
+  --fc-light-accent-glow-sky: 0 20px 56px -4px rgba(14, 165, 233, 0.66);
+  --fc-light-accent-glow-fuchsia: 0 20px 58px -4px rgba(217, 70, 239, 0.66);
   --fc-light-contrast-bg: #0a0f0d;
   --fc-light-contrast-mid: #121a17;
   /* Part CU ? black primary cards + silver nested on ivory mesh */
@@ -268,12 +398,13 @@ html[data-fc-theme="light"] {
   --fc-shell-gradient: linear-gradient(168deg, #fcfaf7 0%, #f6f3ee 42%, #efecea 100%);
   /* Part CC ? wealthy ivory mesh (elegant transparent accent depth, like dark aurora) */
   --fc-light-luxury-mesh:
-    radial-gradient(ellipse 125% 92% at -8% -14%, rgba(251, 191, 36, 0.2) 0%, transparent 52%),
-    radial-gradient(ellipse 105% 82% at 110% -6%, rgba(139, 92, 246, 0.15) 0%, transparent 50%),
-    radial-gradient(ellipse 98% 78% at 50% 112%, rgba(16, 185, 129, 0.13) 0%, transparent 52%),
-    radial-gradient(ellipse 72% 58% at 86% 44%, rgba(56, 189, 248, 0.11) 0%, transparent 46%),
-    radial-gradient(ellipse 68% 52% at 6% 64%, rgba(217, 70, 239, 0.09) 0%, transparent 42%),
-    radial-gradient(ellipse 92% 68% at 46% 16%, rgba(255, 255, 255, 0.78) 0%, transparent 56%),
+    radial-gradient(ellipse 125% 92% at -8% -14%, rgba(251, 191, 36, 0.22) 0%, transparent 52%),
+    radial-gradient(ellipse 105% 82% at 110% -6%, rgba(139, 92, 246, 0.16) 0%, transparent 50%),
+    radial-gradient(ellipse 98% 78% at 50% 112%, rgba(16, 185, 129, 0.14) 0%, transparent 52%),
+    radial-gradient(ellipse 72% 58% at 86% 44%, rgba(56, 189, 248, 0.12) 0%, transparent 46%),
+    radial-gradient(ellipse 68% 52% at 6% 64%, rgba(217, 70, 239, 0.1) 0%, transparent 42%),
+    radial-gradient(ellipse 92% 68% at 46% 16%, rgba(255, 255, 255, 0.92) 0%, transparent 56%),
+    radial-gradient(ellipse 70% 48% at 72% 72%, rgba(255, 250, 242, 0.55) 0%, transparent 50%),
     var(--fc-shell-gradient);
 }
 
@@ -1460,7 +1591,7 @@ html[data-fc-theme="light"] ::selection {
     border-color: rgba(225, 29, 72, 0.28) !important;
   }
 
-  html[data-fc-theme="light"] .fc-wayfinder {
+  html[data-fc-theme="light"] .fc-wayfinder:not(.fc-wayfinder--restore-hero) {
     border-color: var(--fc-glass-border-dim);
     background: rgba(255, 255, 255, 0.68);
     backdrop-filter: blur(20px) saturate(var(--fc-glass-saturate));
@@ -2642,7 +2773,7 @@ html[data-fc-theme="light"] ::selection {
       var(--fc-glass-specular) !important;
   }
 
-  html[data-fc-theme="light"] .fc-wayfinder {
+  html[data-fc-theme="light"] .fc-wayfinder:not(.fc-wayfinder--restore-hero) {
     background: rgba(255, 255, 255, 0.78) !important;
     backdrop-filter: blur(24px) saturate(var(--fc-glass-saturate)) !important;
     -webkit-backdrop-filter: blur(24px) saturate(var(--fc-glass-saturate)) !important;
@@ -2944,6 +3075,19 @@ html[data-fc-theme="light"] ::selection {
   }
   html[data-fc-theme="light"] [data-fc-public-shell="1"] {
     color: var(--fc-text) !important;
+  }
+
+  /* Personal credit lane — flat ivory tiles (no radial tent / pop glow on hub shell) */
+  html[data-fc-theme="light"] [data-fc-personal-credit-lane="1"] .fc-unified-hub-shell.fc-accent-card {
+    background: #ffffff !important;
+    background-image: none !important;
+    box-shadow: 0 12px 40px -24px rgba(10, 22, 40, 0.18) !important;
+  }
+  html[data-fc-theme="light"] [data-fc-personal-credit-lane="1"] .fc-ivory-solid-tile {
+    background-image: none !important;
+  }
+  html[data-fc-theme="light"] [data-fc-personal-credit-lane="1"] .fc-hub-kpi.fc-pop-surface {
+    box-shadow: 0 8px 28px -18px rgba(10, 22, 40, 0.16) !important;
   }
 
   /* ?? Part CG ? Hero + marketing closures wave 34 ?? */
@@ -3501,6 +3645,538 @@ html[data-fc-theme="light"] ::selection {
   html[data-fc-theme="light"] [data-fc-contrast-band="1"] .fc-accent-card:hover {
     filter: brightness(1.02);
   }
+
+  /* ?? Part CZ ? Partner portal wealthy white overview (overrides Part CU black/silver on dashboard + ivory) ?? */
+  html[data-fc-theme="light"] :is(
+    [data-fc-app-surface="portal"][data-fc-pathname="/portal/dashboard"],
+    [data-fc-shell-surface="ivory"]
+  ) :is(
+    .fc-accent-card:not(.fc-accent-card .fc-accent-card),
+    .fc-surface-harmony,
+    .fc-unified-hub-shell,
+    .fc-unified-hub-content,
+    .fc-light-pop-card,
+    .fc-luxury-glass
+  ):not([class*="fc-admin-solid"]) {
+    background-color: var(--fc-glass-bg-strong) !important;
+    background-image:
+      radial-gradient(920px 340px at 96% 0%, rgba(139, 92, 246, 0.07) 0%, transparent 56%),
+      radial-gradient(780px 300px at 0% 100%, rgba(16, 185, 129, 0.06) 0%, transparent 54%),
+      radial-gradient(640px 260px at 48% 0%, rgba(251, 191, 36, 0.05) 0%, transparent 50%),
+      var(--fc-glass-specular) !important;
+    color: var(--fc-light-body) !important;
+    border-color: rgba(15, 23, 20, 0.1) !important;
+    box-shadow: var(--fc-light-pop-shadow), var(--fc-glass-inset) !important;
+    backdrop-filter: blur(var(--fc-glass-blur)) saturate(var(--fc-glass-saturate)) !important;
+    -webkit-backdrop-filter: blur(var(--fc-glass-blur)) saturate(var(--fc-glass-saturate)) !important;
+    transform: none !important;
+    filter: none !important;
+  }
+  html[data-fc-theme="light"] :is(
+    [data-fc-app-surface="portal"][data-fc-pathname="/portal/dashboard"],
+    [data-fc-shell-surface="ivory"]
+  ) :is(.fc-light-mesh-section, .fc-light-black-scope) .fc-accent-card:not(.fc-accent-card .fc-accent-card):not([class*="fc-admin-solid"]),
+  html[data-fc-theme="light"] :is(
+    [data-fc-app-surface="portal"][data-fc-pathname="/portal/dashboard"],
+    [data-fc-shell-surface="ivory"]
+  ) :is(.fc-light-mesh-section, .fc-light-black-scope) :is(
+    .fc-unified-hub-shell,
+    .fc-unified-hub-content,
+    .fc-light-pop-card,
+    .fc-luxury-glass,
+    .fc-surface-harmony
+  ):not([class*="fc-admin-solid"]) {
+    background-color: var(--fc-glass-bg-strong) !important;
+    background-image:
+      radial-gradient(920px 340px at 96% 0%, rgba(139, 92, 246, 0.07) 0%, transparent 56%),
+      radial-gradient(780px 300px at 0% 100%, rgba(16, 185, 129, 0.06) 0%, transparent 54%),
+      var(--fc-glass-specular) !important;
+    color: var(--fc-light-body) !important;
+    box-shadow: var(--fc-light-pop-shadow), var(--fc-glass-inset) !important;
+    backdrop-filter: blur(var(--fc-glass-blur)) saturate(var(--fc-glass-saturate)) !important;
+    -webkit-backdrop-filter: blur(var(--fc-glass-blur)) saturate(var(--fc-glass-saturate)) !important;
+  }
+  html[data-fc-theme="light"] :is(
+    [data-fc-app-surface="portal"][data-fc-pathname="/portal/dashboard"],
+    [data-fc-shell-surface="ivory"]
+  ) :is(.fc-light-mesh-section, .fc-light-black-scope) .fc-accent-card:not(.fc-accent-card .fc-accent-card):not([class*="fc-admin-solid"]) :is(
+    h1, h2, h3, h4, .font-semibold, .font-bold, .text-lg, .text-xl, .text-2xl, .text-3xl
+  ) {
+    color: var(--fc-light-heading) !important;
+  }
+  html[data-fc-theme="light"] :is(
+    [data-fc-app-surface="portal"][data-fc-pathname="/portal/dashboard"],
+    [data-fc-shell-surface="ivory"]
+  ) :is(.fc-light-mesh-section, .fc-light-black-scope) .fc-accent-card:not(.fc-accent-card .fc-accent-card):not([class*="fc-admin-solid"]) :is(
+    p, .text-sm, .text-xs, .opacity-80, .opacity-65, .opacity-60, [class*="text-white/"]
+  ) {
+    color: var(--fc-light-muted) !important;
+  }
+
+  /* Nested cards — soft accent washes only (no silver/gray slabs) */
+  html[data-fc-theme="light"] :is(
+    [data-fc-app-surface="portal"][data-fc-pathname="/portal/dashboard"],
+    [data-fc-shell-surface="ivory"]
+  ) .fc-accent-card .fc-accent-card:not([class*="fc-admin-solid"]),
+  html[data-fc-theme="light"] :is(
+    [data-fc-app-surface="portal"][data-fc-pathname="/portal/dashboard"],
+    [data-fc-shell-surface="ivory"]
+  ) :is(.fc-light-mesh-section, .fc-light-black-scope) .fc-accent-card .fc-accent-card:not([class*="fc-admin-solid"]),
+  html[data-fc-theme="light"] :is(
+    [data-fc-app-surface="portal"][data-fc-pathname="/portal/dashboard"],
+    [data-fc-shell-surface="ivory"]
+  ) :is(.fc-light-mesh-section, .fc-light-black-scope) .fc-accent-card:not(.fc-accent-card .fc-accent-card) .fc-surface-harmony.fc-accent-card {
+    background: transparent !important;
+    background-color: transparent !important;
+    background-image: none !important;
+    box-shadow: none !important;
+    color: var(--fc-light-body) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    border-color: rgba(15, 23, 20, 0.1) !important;
+  }
+  html[data-fc-theme="light"] :is(
+    [data-fc-app-surface="portal"][data-fc-pathname="/portal/dashboard"],
+    [data-fc-shell-surface="ivory"]
+  ) .fc-accent-card .fc-accent-card[data-fc-accent="emerald"]:not([class*="fc-admin-solid"]),
+  html[data-fc-theme="light"] :is(
+    [data-fc-app-surface="portal"][data-fc-pathname="/portal/dashboard"],
+    [data-fc-shell-surface="ivory"]
+  ) .fc-accent-card .fc-accent-card[class*="border-emerald"]:not([class*="fc-admin-solid"]) {
+    background: rgba(16, 185, 129, 0.06) !important;
+    border-color: rgba(16, 185, 129, 0.22) !important;
+  }
+  html[data-fc-theme="light"] :is(
+    [data-fc-app-surface="portal"][data-fc-pathname="/portal/dashboard"],
+    [data-fc-shell-surface="ivory"]
+  ) .fc-accent-card .fc-accent-card[data-fc-accent="violet"]:not([class*="fc-admin-solid"]),
+  html[data-fc-theme="light"] :is(
+    [data-fc-app-surface="portal"][data-fc-pathname="/portal/dashboard"],
+    [data-fc-shell-surface="ivory"]
+  ) .fc-accent-card .fc-accent-card[class*="border-violet"]:not([class*="fc-admin-solid"]) {
+    background: rgba(139, 92, 246, 0.06) !important;
+    border-color: rgba(139, 92, 246, 0.22) !important;
+  }
+  html[data-fc-theme="light"] :is(
+    [data-fc-app-surface="portal"][data-fc-pathname="/portal/dashboard"],
+    [data-fc-shell-surface="ivory"]
+  ) .fc-accent-card .fc-accent-card[data-fc-accent="amber"]:not([class*="fc-admin-solid"]),
+  html[data-fc-theme="light"] :is(
+    [data-fc-app-surface="portal"][data-fc-pathname="/portal/dashboard"],
+    [data-fc-shell-surface="ivory"]
+  ) .fc-accent-card .fc-accent-card[class*="border-amber"]:not([class*="fc-admin-solid"]) {
+    background: rgba(245, 158, 11, 0.07) !important;
+    border-color: rgba(245, 158, 11, 0.24) !important;
+  }
+  html[data-fc-theme="light"] :is(
+    [data-fc-app-surface="portal"][data-fc-pathname="/portal/dashboard"],
+    [data-fc-shell-surface="ivory"]
+  ) .fc-accent-card .fc-accent-card[data-fc-accent="sky"]:not([class*="fc-admin-solid"]),
+  html[data-fc-theme="light"] :is(
+    [data-fc-app-surface="portal"][data-fc-pathname="/portal/dashboard"],
+    [data-fc-shell-surface="ivory"]
+  ) .fc-accent-card .fc-accent-card[class*="border-sky"]:not([class*="fc-admin-solid"]) {
+    background: rgba(14, 165, 233, 0.06) !important;
+    border-color: rgba(14, 165, 233, 0.22) !important;
+  }
+  html[data-fc-theme="light"] :is(
+    [data-fc-app-surface="portal"][data-fc-pathname="/portal/dashboard"],
+    [data-fc-shell-surface="ivory"]
+  ) .fc-accent-card .fc-accent-card[data-fc-accent="fuchsia"]:not([class*="fc-admin-solid"]),
+  html[data-fc-theme="light"] :is(
+    [data-fc-app-surface="portal"][data-fc-pathname="/portal/dashboard"],
+    [data-fc-shell-surface="ivory"]
+  ) .fc-accent-card .fc-accent-card[class*="border-fuchsia"]:not([class*="fc-admin-solid"]) {
+    background: rgba(217, 70, 239, 0.06) !important;
+    border-color: rgba(217, 70, 239, 0.22) !important;
+  }
+  html[data-fc-theme="light"] :is(
+    [data-fc-app-surface="portal"][data-fc-pathname="/portal/dashboard"],
+    [data-fc-shell-surface="ivory"]
+  ) .fc-accent-card .fc-accent-card :is(h1, h2, h3, h4, .font-semibold, .font-bold, .text-lg, .text-xl) {
+    color: var(--fc-light-heading) !important;
+  }
+  html[data-fc-theme="light"] :is(
+    [data-fc-app-surface="portal"][data-fc-pathname="/portal/dashboard"],
+    [data-fc-shell-surface="ivory"]
+  ) .fc-accent-card .fc-accent-card :is(p, .text-sm, .text-xs, .opacity-60, .opacity-65, [class*="text-white/"]) {
+    color: var(--fc-light-muted) !important;
+  }
+
+  /* Hub KPIs — keep strong accent glow on white overview */
+  html[data-fc-theme="light"] :is(
+    [data-fc-app-surface="portal"][data-fc-pathname="/portal/dashboard"],
+    [data-fc-shell-surface="ivory"]
+  ) .fc-hub-kpi {
+    background: var(--fc-glass-bg-strong) !important;
+    color: var(--fc-light-heading) !important;
+    box-shadow: var(--fc-light-pop-shadow), var(--fc-glass-inset) !important;
+  }
+  html[data-fc-theme="light"] :is(
+    [data-fc-app-surface="portal"][data-fc-pathname="/portal/dashboard"],
+    [data-fc-shell-surface="ivory"]
+  ) :is(.fc-light-mesh-section, .fc-light-black-scope) .fc-unified-hub-shell.fc-accent-card .fc-hub-kpi {
+    background: var(--fc-glass-bg-strong) !important;
+    border-color: rgba(15, 23, 20, 0.1) !important;
+    box-shadow: var(--fc-light-pop-shadow), var(--fc-glass-inset) !important;
+    color: var(--fc-light-heading) !important;
+  }
+  html[data-fc-theme="light"] :is(
+    [data-fc-app-surface="portal"][data-fc-pathname="/portal/dashboard"],
+    [data-fc-shell-surface="ivory"]
+  ) .fc-hub-kpi[data-fc-accent="emerald"] {
+    background-color: rgba(16, 185, 129, 0.12) !important;
+    border-color: rgba(5, 150, 105, 0.38) !important;
+    box-shadow: var(--fc-light-pop-shadow), var(--fc-light-accent-glow-emerald), var(--fc-glass-inset) !important;
+  }
+  html[data-fc-theme="light"] :is(
+    [data-fc-app-surface="portal"][data-fc-pathname="/portal/dashboard"],
+    [data-fc-shell-surface="ivory"]
+  ) .fc-hub-kpi[data-fc-accent="violet"] {
+    background-color: rgba(139, 92, 246, 0.11) !important;
+    border-color: rgba(124, 58, 237, 0.36) !important;
+    box-shadow: var(--fc-light-pop-shadow), var(--fc-light-accent-glow-violet), var(--fc-glass-inset) !important;
+  }
+  html[data-fc-theme="light"] :is(
+    [data-fc-app-surface="portal"][data-fc-pathname="/portal/dashboard"],
+    [data-fc-shell-surface="ivory"]
+  ) .fc-hub-kpi[data-fc-accent="amber"] {
+    background-color: rgba(245, 158, 11, 0.14) !important;
+    border-color: rgba(217, 119, 6, 0.4) !important;
+    box-shadow: var(--fc-light-pop-shadow), var(--fc-light-accent-glow-amber), var(--fc-glass-inset) !important;
+  }
+  html[data-fc-theme="light"] :is(
+    [data-fc-app-surface="portal"][data-fc-pathname="/portal/dashboard"],
+    [data-fc-shell-surface="ivory"]
+  ) .fc-hub-kpi[data-fc-accent="sky"] {
+    background-color: rgba(14, 165, 233, 0.11) !important;
+    border-color: rgba(2, 132, 199, 0.36) !important;
+    box-shadow: var(--fc-light-pop-shadow), var(--fc-light-accent-glow-sky), var(--fc-glass-inset) !important;
+  }
+  html[data-fc-theme="light"] :is(
+    [data-fc-app-surface="portal"][data-fc-pathname="/portal/dashboard"],
+    [data-fc-shell-surface="ivory"]
+  ) .fc-hub-kpi[data-fc-accent="fuchsia"],
+  html[data-fc-theme="light"] :is(
+    [data-fc-app-surface="portal"][data-fc-pathname="/portal/dashboard"],
+    [data-fc-shell-surface="ivory"]
+  ) .fc-hub-kpi[data-fc-accent="rose"] {
+    background-color: rgba(217, 70, 239, 0.11) !important;
+    border-color: rgba(192, 38, 211, 0.36) !important;
+    box-shadow: var(--fc-light-pop-shadow), var(--fc-light-accent-glow-fuchsia), var(--fc-glass-inset) !important;
+  }
+  html[data-fc-theme="light"] :is(
+    [data-fc-app-surface="portal"][data-fc-pathname="/portal/dashboard"],
+    [data-fc-shell-surface="ivory"]
+  ) .fc-hub-kpi :is(.text-white, .text-lg, .font-semibold, h1, h2, h3) {
+    color: var(--fc-light-heading) !important;
+  }
+  html[data-fc-theme="light"] :is(
+    [data-fc-app-surface="portal"][data-fc-pathname="/portal/dashboard"],
+    [data-fc-shell-surface="ivory"]
+  ) .fc-hub-kpi :is(.text-white\/75, .text-white\/70, .text-xs, .text-sm, [class*="text-white/"]) {
+    color: var(--fc-light-muted) !important;
+  }
+
+  /* Top-level accent glow edges on white overview cards */
+  html[data-fc-theme="light"] :is(
+    [data-fc-app-surface="portal"][data-fc-pathname="/portal/dashboard"],
+    [data-fc-shell-surface="ivory"]
+  ) :is(.fc-light-mesh-section, .fc-light-black-scope) [data-fc-accent="emerald"].fc-accent-card:not(.fc-accent-card .fc-accent-card):not([class*="fc-admin-solid"]),
+  html[data-fc-theme="light"] :is(
+    [data-fc-app-surface="portal"][data-fc-pathname="/portal/dashboard"],
+    [data-fc-shell-surface="ivory"]
+  ) :is(.fc-light-mesh-section, .fc-light-black-scope) .fc-accent-card:not(.fc-accent-card .fc-accent-card):not([class*="fc-admin-solid"])[class*="border-emerald"] {
+    border-color: rgba(16, 185, 129, 0.36) !important;
+    box-shadow: var(--fc-light-pop-shadow), var(--fc-light-accent-glow-emerald), var(--fc-glass-inset) !important;
+  }
+  html[data-fc-theme="light"] :is(
+    [data-fc-app-surface="portal"][data-fc-pathname="/portal/dashboard"],
+    [data-fc-shell-surface="ivory"]
+  ) :is(.fc-light-mesh-section, .fc-light-black-scope) [data-fc-accent="violet"].fc-accent-card:not(.fc-accent-card .fc-accent-card):not([class*="fc-admin-solid"]),
+  html[data-fc-theme="light"] :is(
+    [data-fc-app-surface="portal"][data-fc-pathname="/portal/dashboard"],
+    [data-fc-shell-surface="ivory"]
+  ) :is(.fc-light-mesh-section, .fc-light-black-scope) .fc-accent-card:not(.fc-accent-card .fc-accent-card):not([class*="fc-admin-solid"])[class*="border-violet"] {
+    border-color: rgba(139, 92, 246, 0.36) !important;
+    box-shadow: var(--fc-light-pop-shadow), var(--fc-light-accent-glow-violet), var(--fc-glass-inset) !important;
+  }
+  html[data-fc-theme="light"] :is(
+    [data-fc-app-surface="portal"][data-fc-pathname="/portal/dashboard"],
+    [data-fc-shell-surface="ivory"]
+  ) :is(.fc-light-mesh-section, .fc-light-black-scope) [data-fc-accent="amber"].fc-accent-card:not(.fc-accent-card .fc-accent-card):not([class*="fc-admin-solid"]),
+  html[data-fc-theme="light"] :is(
+    [data-fc-app-surface="portal"][data-fc-pathname="/portal/dashboard"],
+    [data-fc-shell-surface="ivory"]
+  ) :is(.fc-light-mesh-section, .fc-light-black-scope) .fc-accent-card:not(.fc-accent-card .fc-accent-card):not([class*="fc-admin-solid"])[class*="border-amber"] {
+    border-color: rgba(245, 158, 11, 0.38) !important;
+    box-shadow: var(--fc-light-pop-shadow), var(--fc-light-accent-glow-amber), var(--fc-glass-inset) !important;
+  }
+  html[data-fc-theme="light"] :is(
+    [data-fc-app-surface="portal"][data-fc-pathname="/portal/dashboard"],
+    [data-fc-shell-surface="ivory"]
+  ) :is(.fc-light-mesh-section, .fc-light-black-scope) [data-fc-accent="sky"].fc-accent-card:not(.fc-accent-card .fc-accent-card):not([class*="fc-admin-solid"]),
+  html[data-fc-theme="light"] :is(
+    [data-fc-app-surface="portal"][data-fc-pathname="/portal/dashboard"],
+    [data-fc-shell-surface="ivory"]
+  ) :is(.fc-light-mesh-section, .fc-light-black-scope) .fc-accent-card:not(.fc-accent-card .fc-accent-card):not([class*="fc-admin-solid"])[class*="border-sky"] {
+    border-color: rgba(14, 165, 233, 0.36) !important;
+    box-shadow: var(--fc-light-pop-shadow), var(--fc-light-accent-glow-sky), var(--fc-glass-inset) !important;
+  }
+  html[data-fc-theme="light"] :is(
+    [data-fc-app-surface="portal"][data-fc-pathname="/portal/dashboard"],
+    [data-fc-shell-surface="ivory"]
+  ) :is(.fc-light-mesh-section, .fc-light-black-scope) [data-fc-accent="fuchsia"].fc-accent-card:not(.fc-accent-card .fc-accent-card):not([class*="fc-admin-solid"]),
+  html[data-fc-theme="light"] :is(
+    [data-fc-app-surface="portal"][data-fc-pathname="/portal/dashboard"],
+    [data-fc-shell-surface="ivory"]
+  ) :is(.fc-light-mesh-section, .fc-light-black-scope) .fc-accent-card:not(.fc-accent-card .fc-accent-card):not([class*="fc-admin-solid"])[class*="border-fuchsia"] {
+    border-color: rgba(217, 70, 239, 0.36) !important;
+    box-shadow: var(--fc-light-pop-shadow), var(--fc-light-accent-glow-fuchsia), var(--fc-glass-inset) !important;
+  }
+}
+
+/* Part DA — Ivory shell always forces wealthy white cards (dark OR light theme) */
+/* Unlayered + high specificity + !important so dark-theme card fills cannot win. */
+/* Ivory solid tiles + fields — dark ink (beats portal dark-theme fc-input) */
+[data-fc-shell-surface="ivory"] .fc-ivory-solid-tile {
+  color: var(--fc-light-body) !important;
+}
+[data-fc-shell-surface="ivory"] .fc-ivory-solid-tile :is(.fc-input, .fc-ivory-field) {
+  border-color: rgba(15, 23, 20, 0.14) !important;
+  background: rgba(255, 255, 255, 0.96) !important;
+  color: var(--fc-light-heading) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9), 0 0 0 1px rgba(15, 23, 20, 0.04) !important;
+}
+[data-fc-shell-surface="ivory"] .fc-ivory-solid-tile :is(.fc-input, .fc-ivory-field)::placeholder {
+  color: var(--fc-light-muted) !important;
+}
+
+[data-fc-shell-surface="ivory"] {
+  --fc-glass-blur: 26px;
+  --fc-glass-saturate: 185%;
+  --fc-glass-bg-strong: rgba(255, 255, 255, 0.97);
+  --fc-glass-inset: inset 0 1px 0 rgba(255, 255, 255, 1), inset 0 -1px 0 rgba(15, 23, 20, 0.04), inset 0 0 0 1px rgba(255, 248, 235, 0.35);
+  --fc-glass-specular: linear-gradient(168deg, rgba(255, 255, 255, 1) 0%, rgba(255, 250, 242, 0.78) 42%, rgba(255, 255, 255, 0.94) 100%);
+  --fc-light-heading: #050807;
+  --fc-light-body: rgba(15, 23, 20, 0.82);
+  --fc-light-muted: rgba(15, 23, 20, 0.56);
+  --fc-light-pop-shadow: 0 30px 68px -18px rgba(15, 23, 20, 0.22), 0 14px 34px -12px rgba(15, 23, 20, 0.1);
+  --fc-light-accent-glow-emerald: 0 20px 56px -4px rgba(16, 185, 129, 0.72);
+  --fc-light-accent-glow-violet: 0 20px 58px -4px rgba(139, 92, 246, 0.68);
+  --fc-light-accent-glow-amber: 0 20px 60px -4px rgba(245, 158, 11, 0.74);
+  --fc-light-accent-glow-sky: 0 20px 56px -4px rgba(14, 165, 233, 0.66);
+  --fc-light-accent-glow-fuchsia: 0 20px 58px -4px rgba(217, 70, 239, 0.66);
+  color: var(--fc-light-body);
+}
+
+[data-fc-shell-surface="ivory"] :is(
+  .fc-accent-card:not(.fc-accent-card .fc-accent-card),
+  .fc-surface-harmony:not(.fc-accent-card .fc-accent-card),
+  .fc-unified-hub-shell,
+  .fc-unified-hub-content,
+  .fc-light-pop-card:not(.fc-accent-card .fc-accent-card),
+  .fc-luxury-glass:not(.fc-accent-card .fc-accent-card),
+  .fc-hub-kpi
+):not([class*="fc-admin-solid"]) {
+  background-color: var(--fc-glass-bg-strong) !important;
+  background-image:
+    radial-gradient(920px 340px at 96% 0%, rgba(139, 92, 246, 0.07) 0%, transparent 56%),
+    radial-gradient(780px 300px at 0% 100%, rgba(16, 185, 129, 0.06) 0%, transparent 54%),
+    radial-gradient(640px 260px at 48% 0%, rgba(251, 191, 36, 0.05) 0%, transparent 50%),
+    var(--fc-glass-specular) !important;
+  color: var(--fc-light-body) !important;
+  border-color: rgba(15, 23, 20, 0.1) !important;
+  box-shadow: var(--fc-light-pop-shadow), var(--fc-glass-inset) !important;
+  backdrop-filter: blur(var(--fc-glass-blur)) saturate(var(--fc-glass-saturate)) !important;
+  -webkit-backdrop-filter: blur(var(--fc-glass-blur)) saturate(var(--fc-glass-saturate)) !important;
+  transform: none !important;
+  filter: none !important;
+}
+
+/* Beat Part CU black/silver scope fills that still attach in light theme */
+[data-fc-shell-surface="ivory"] :is(.fc-light-mesh-section, .fc-light-black-scope) :is(
+  .fc-accent-card:not(.fc-accent-card .fc-accent-card),
+  .fc-unified-hub-shell,
+  .fc-unified-hub-content,
+  .fc-light-pop-card,
+  .fc-luxury-glass,
+  .fc-surface-harmony
+):not([class*="fc-admin-solid"]) {
+  background-color: var(--fc-glass-bg-strong) !important;
+  background-image:
+    radial-gradient(920px 340px at 96% 0%, rgba(139, 92, 246, 0.07) 0%, transparent 56%),
+    radial-gradient(780px 300px at 0% 100%, rgba(16, 185, 129, 0.06) 0%, transparent 54%),
+    var(--fc-glass-specular) !important;
+  color: var(--fc-light-body) !important;
+  box-shadow: var(--fc-light-pop-shadow), var(--fc-glass-inset) !important;
+  backdrop-filter: blur(var(--fc-glass-blur)) saturate(var(--fc-glass-saturate)) !important;
+  -webkit-backdrop-filter: blur(var(--fc-glass-blur)) saturate(var(--fc-glass-saturate)) !important;
+}
+
+/* Readable dark text on ivory white cards (beats dark-theme text-white utilities) */
+[data-fc-shell-surface="ivory"] :is(
+  .fc-accent-card,
+  .fc-surface-harmony,
+  .fc-unified-hub-shell,
+  .fc-unified-hub-content,
+  .fc-light-pop-card,
+  .fc-luxury-glass,
+  .fc-hub-kpi
+):not([class*="fc-admin-solid"]) :is(
+  h1, h2, h3, h4, .font-semibold, .font-bold, .text-lg, .text-xl, .text-2xl, .text-3xl, .text-white, .text-white\/90, .text-white\/85
+) {
+  color: var(--fc-light-heading) !important;
+}
+[data-fc-shell-surface="ivory"] :is(
+  .fc-accent-card,
+  .fc-surface-harmony,
+  .fc-unified-hub-shell,
+  .fc-unified-hub-content,
+  .fc-light-pop-card,
+  .fc-luxury-glass,
+  .fc-hub-kpi
+):not([class*="fc-admin-solid"]) :is(
+  p, .text-sm, .text-xs, .opacity-80, .opacity-65, .opacity-60, .text-white\/80, .text-white\/75, .text-white\/70, .text-white\/65, .text-white\/60, .text-white\/55, .text-white\/50, [class*="text-white/"]
+) {
+  color: var(--fc-light-muted) !important;
+}
+
+/* Nested cards — soft accent tint washes only (no silver/black slabs) */
+[data-fc-shell-surface="ivory"] .fc-accent-card .fc-accent-card:not([class*="fc-admin-solid"]),
+[data-fc-shell-surface="ivory"] :is(.fc-light-mesh-section, .fc-light-black-scope) .fc-accent-card .fc-accent-card:not([class*="fc-admin-solid"]),
+[data-fc-shell-surface="ivory"] .fc-accent-card:not(.fc-accent-card .fc-accent-card) .fc-surface-harmony.fc-accent-card {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  color: var(--fc-light-body) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border-color: rgba(15, 23, 20, 0.1) !important;
+}
+[data-fc-shell-surface="ivory"] .fc-accent-card .fc-accent-card[data-fc-accent="emerald"]:not([class*="fc-admin-solid"]),
+[data-fc-shell-surface="ivory"] .fc-accent-card .fc-accent-card[class*="border-emerald"]:not([class*="fc-admin-solid"]) {
+  background: rgba(16, 185, 129, 0.07) !important;
+  border-color: rgba(16, 185, 129, 0.24) !important;
+}
+[data-fc-shell-surface="ivory"] .fc-accent-card .fc-accent-card[data-fc-accent="violet"]:not([class*="fc-admin-solid"]),
+[data-fc-shell-surface="ivory"] .fc-accent-card .fc-accent-card[class*="border-violet"]:not([class*="fc-admin-solid"]) {
+  background: rgba(139, 92, 246, 0.07) !important;
+  border-color: rgba(139, 92, 246, 0.24) !important;
+}
+[data-fc-shell-surface="ivory"] .fc-accent-card .fc-accent-card[data-fc-accent="amber"]:not([class*="fc-admin-solid"]),
+[data-fc-shell-surface="ivory"] .fc-accent-card .fc-accent-card[class*="border-amber"]:not([class*="fc-admin-solid"]) {
+  background: rgba(245, 158, 11, 0.08) !important;
+  border-color: rgba(245, 158, 11, 0.26) !important;
+}
+[data-fc-shell-surface="ivory"] .fc-accent-card .fc-accent-card[data-fc-accent="sky"]:not([class*="fc-admin-solid"]),
+[data-fc-shell-surface="ivory"] .fc-accent-card .fc-accent-card[class*="border-sky"]:not([class*="fc-admin-solid"]) {
+  background: rgba(14, 165, 233, 0.07) !important;
+  border-color: rgba(14, 165, 233, 0.24) !important;
+}
+[data-fc-shell-surface="ivory"] .fc-accent-card .fc-accent-card[data-fc-accent="fuchsia"]:not([class*="fc-admin-solid"]),
+[data-fc-shell-surface="ivory"] .fc-accent-card .fc-accent-card[class*="border-fuchsia"]:not([class*="fc-admin-solid"]) {
+  background: rgba(217, 70, 239, 0.07) !important;
+  border-color: rgba(217, 70, 239, 0.24) !important;
+}
+[data-fc-shell-surface="ivory"] .fc-accent-card .fc-accent-card :is(h1, h2, h3, h4, .font-semibold, .font-bold, .text-lg, .text-xl) {
+  color: var(--fc-light-heading) !important;
+}
+[data-fc-shell-surface="ivory"] .fc-accent-card .fc-accent-card :is(p, .text-sm, .text-xs, .opacity-60, .opacity-65, [class*="text-white/"]) {
+  color: var(--fc-light-muted) !important;
+}
+
+/* Hub KPIs — strong accent glows on white ivory overview */
+[data-fc-shell-surface="ivory"] .fc-hub-kpi {
+  background: var(--fc-glass-bg-strong) !important;
+  color: var(--fc-light-heading) !important;
+  box-shadow: var(--fc-light-pop-shadow), var(--fc-glass-inset) !important;
+}
+[data-fc-shell-surface="ivory"] :is(.fc-light-mesh-section, .fc-light-black-scope) .fc-unified-hub-shell.fc-accent-card .fc-hub-kpi {
+  background: var(--fc-glass-bg-strong) !important;
+  border-color: rgba(15, 23, 20, 0.1) !important;
+  box-shadow: var(--fc-light-pop-shadow), var(--fc-glass-inset) !important;
+  color: var(--fc-light-heading) !important;
+}
+[data-fc-shell-surface="ivory"] .fc-hub-kpi[data-fc-accent="emerald"] {
+  background-color: rgba(16, 185, 129, 0.14) !important;
+  border-color: rgba(5, 150, 105, 0.42) !important;
+  box-shadow:
+    var(--fc-light-pop-shadow),
+    0 20px 56px -4px rgba(16, 185, 129, 0.72),
+    0 0 0 1px rgba(16, 185, 129, 0.22),
+    var(--fc-glass-inset) !important;
+}
+[data-fc-shell-surface="ivory"] .fc-hub-kpi[data-fc-accent="violet"] {
+  background-color: rgba(139, 92, 246, 0.13) !important;
+  border-color: rgba(124, 58, 237, 0.4) !important;
+  box-shadow:
+    var(--fc-light-pop-shadow),
+    0 20px 58px -4px rgba(139, 92, 246, 0.68),
+    0 0 0 1px rgba(139, 92, 246, 0.2),
+    var(--fc-glass-inset) !important;
+}
+[data-fc-shell-surface="ivory"] .fc-hub-kpi[data-fc-accent="amber"] {
+  background-color: rgba(245, 158, 11, 0.16) !important;
+  border-color: rgba(217, 119, 6, 0.44) !important;
+  box-shadow:
+    var(--fc-light-pop-shadow),
+    0 20px 60px -4px rgba(245, 158, 11, 0.74),
+    0 0 0 1px rgba(245, 158, 11, 0.24),
+    var(--fc-glass-inset) !important;
+}
+[data-fc-shell-surface="ivory"] .fc-hub-kpi[data-fc-accent="sky"] {
+  background-color: rgba(14, 165, 233, 0.13) !important;
+  border-color: rgba(2, 132, 199, 0.4) !important;
+  box-shadow:
+    var(--fc-light-pop-shadow),
+    0 20px 56px -4px rgba(14, 165, 233, 0.66),
+    0 0 0 1px rgba(14, 165, 233, 0.2),
+    var(--fc-glass-inset) !important;
+}
+[data-fc-shell-surface="ivory"] .fc-hub-kpi[data-fc-accent="fuchsia"],
+[data-fc-shell-surface="ivory"] .fc-hub-kpi[data-fc-accent="rose"] {
+  background-color: rgba(217, 70, 239, 0.13) !important;
+  border-color: rgba(192, 38, 211, 0.4) !important;
+  box-shadow:
+    var(--fc-light-pop-shadow),
+    0 20px 58px -4px rgba(217, 70, 239, 0.66),
+    0 0 0 1px rgba(217, 70, 239, 0.2),
+    var(--fc-glass-inset) !important;
+}
+[data-fc-shell-surface="ivory"] .fc-hub-kpi :is(.text-white, .text-lg, .font-semibold, h1, h2, h3) {
+  color: var(--fc-light-heading) !important;
+}
+[data-fc-shell-surface="ivory"] .fc-hub-kpi :is(.text-white\/75, .text-white\/70, .text-xs, .text-sm, [class*="text-white/"]) {
+  color: var(--fc-light-muted) !important;
+}
+
+/* Top-level accent glow edges on ivory white cards */
+[data-fc-shell-surface="ivory"] [data-fc-accent="emerald"].fc-accent-card:not(.fc-accent-card .fc-accent-card):not([class*="fc-admin-solid"]),
+[data-fc-shell-surface="ivory"] .fc-accent-card:not(.fc-accent-card .fc-accent-card):not([class*="fc-admin-solid"])[class*="border-emerald"] {
+  border-color: rgba(16, 185, 129, 0.4) !important;
+  box-shadow: var(--fc-light-pop-shadow), var(--fc-light-accent-glow-emerald), var(--fc-glass-inset) !important;
+}
+[data-fc-shell-surface="ivory"] [data-fc-accent="violet"].fc-accent-card:not(.fc-accent-card .fc-accent-card):not([class*="fc-admin-solid"]),
+[data-fc-shell-surface="ivory"] .fc-accent-card:not(.fc-accent-card .fc-accent-card):not([class*="fc-admin-solid"])[class*="border-violet"] {
+  border-color: rgba(139, 92, 246, 0.4) !important;
+  box-shadow: var(--fc-light-pop-shadow), var(--fc-light-accent-glow-violet), var(--fc-glass-inset) !important;
+}
+[data-fc-shell-surface="ivory"] [data-fc-accent="amber"].fc-accent-card:not(.fc-accent-card .fc-accent-card):not([class*="fc-admin-solid"]),
+[data-fc-shell-surface="ivory"] .fc-accent-card:not(.fc-accent-card .fc-accent-card):not([class*="fc-admin-solid"])[class*="border-amber"] {
+  border-color: rgba(245, 158, 11, 0.42) !important;
+  box-shadow: var(--fc-light-pop-shadow), var(--fc-light-accent-glow-amber), var(--fc-glass-inset) !important;
+}
+[data-fc-shell-surface="ivory"] [data-fc-accent="sky"].fc-accent-card:not(.fc-accent-card .fc-accent-card):not([class*="fc-admin-solid"]),
+[data-fc-shell-surface="ivory"] .fc-accent-card:not(.fc-accent-card .fc-accent-card):not([class*="fc-admin-solid"])[class*="border-sky"] {
+  border-color: rgba(14, 165, 233, 0.4) !important;
+  box-shadow: var(--fc-light-pop-shadow), var(--fc-light-accent-glow-sky), var(--fc-glass-inset) !important;
+}
+[data-fc-shell-surface="ivory"] [data-fc-accent="fuchsia"].fc-accent-card:not(.fc-accent-card .fc-accent-card):not([class*="fc-admin-solid"]),
+[data-fc-shell-surface="ivory"] .fc-accent-card:not(.fc-accent-card .fc-accent-card):not([class*="fc-admin-solid"])[class*="border-fuchsia"] {
+  border-color: rgba(217, 70, 239, 0.4) !important;
+  box-shadow: var(--fc-light-pop-shadow), var(--fc-light-accent-glow-fuchsia), var(--fc-glass-inset) !important;
 }
 
 /* TipTap editor content styling (keeps text readable + print-friendly). */
@@ -4399,9 +5075,32 @@ html[data-fc-theme="dark"] .fc-testimonial-dossier.fc-accent-card {
   height: 28%;
   transform: translateX(-50%);
   border-radius: 50%;
-  background: radial-gradient(closest-side, rgba(251,191,36,0.28), rgba(251,191,36,0.08) 45%, transparent 72%);
-  filter: blur(18px);
+  background: radial-gradient(closest-side, rgba(251,191,36,0.38), rgba(251,191,36,0.12) 45%, transparent 72%);
+  filter: blur(20px);
   pointer-events: none;
+}
+
+@keyframes finely-card-sheen {
+  0%,
+  100% {
+    transform: rotate(28deg) translateX(-12%);
+    opacity: 0.35;
+  }
+  45% {
+    transform: rotate(28deg) translateX(8%);
+    opacity: 0.75;
+  }
+  70% {
+    transform: rotate(28deg) translateX(18%);
+    opacity: 0.45;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [class*='finely-card-sheen'] {
+    animation: none !important;
+    opacity: 0.4 !important;
+  }
 }
 
 .finely-wealth-ribbon {
@@ -5227,12 +5926,197 @@ html.fc-onboarding-portal-open body {
   color: #0a1628;
 }
 
+/* Frosted glass on ivory pricing shells (toolbar / nested chrome). */
+.fc-glass-ivory {
+  background:
+    linear-gradient(160deg, rgba(255, 252, 245, 0.78) 0%, rgba(245, 236, 220, 0.58) 100%);
+  border: 1px solid rgba(196, 128, 61, 0.26);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.7),
+    0 12px 32px -24px rgba(40, 28, 10, 0.28);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  color: #0a1628;
+}
+
+/*
+ * Full ivory PageShell (Personal Credit Restore): kill leftover black chrome.
+ * Do NOT retint package boxes — leave .fc-admin-solid-* / Activate-free solid band alone.
+ */
+[data-fc-shell-surface='ivory'] {
+  color: #0a1628;
+}
+
+[data-fc-shell-surface='ivory'] .fc-light-chrome-strip,
+[data-fc-shell-surface='ivory'] .fc-light-chrome-panel,
+[data-fc-shell-surface='ivory'] .fc-light-glass-panel,
+[data-fc-shell-surface='ivory'] .fc-soft-surface,
+[data-fc-shell-surface='ivory'] .fc-soft-surface-lg {
+  background: linear-gradient(160deg, rgba(255, 252, 245, 0.92) 0%, rgba(245, 236, 220, 0.78) 100%) !important;
+  border-color: rgba(196, 128, 61, 0.26) !important;
+  color: #0a1628 !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7), 0 10px 28px -22px rgba(40, 28, 10, 0.22) !important;
+}
+
+[data-fc-shell-surface='ivory'] .fc-view-tabs button:not([class*='from-']) {
+  color: rgba(10, 22, 40, 0.55) !important;
+}
+
+[data-fc-shell-surface='ivory'] .fc-view-tabs button:not([class*='from-']):hover {
+  background: rgba(196, 128, 61, 0.1) !important;
+  color: #0a1628 !important;
+}
+
+/* Dark glass marketing cards → champagne ivory (staff strip / OS footer). Package solid cards excluded. */
+[data-fc-shell-surface='ivory'] .fc-accent-card:not([class*='fc-admin-solid']),
+[data-fc-shell-surface='ivory'] .fc-luxury-glass:not([class*='fc-admin-solid']),
+[data-fc-shell-surface='ivory'] .fc-pop-surface:not([class*='fc-admin-solid']) {
+  background:
+    linear-gradient(160deg, rgba(255, 252, 245, 0.94) 0%, rgba(245, 236, 220, 0.82) 100%) !important;
+  border-color: rgba(196, 128, 61, 0.28) !important;
+  color: #0a1628 !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.72),
+    0 16px 40px -28px rgba(40, 28, 10, 0.22) !important;
+}
+
+[data-fc-shell-surface='ivory'] .fc-accent-card:not([class*='fc-admin-solid']) :is(.text-white, [class*='text-white/']),
+[data-fc-shell-surface='ivory'] .fc-luxury-glass:not([class*='fc-admin-solid']) :is(.text-white, [class*='text-white/']) {
+  color: #0a1628 !important;
+}
+
+[data-fc-shell-surface='ivory'] .fc-accent-card:not([class*='fc-admin-solid']) :is(.text-white\/55, .text-white\/60, .text-white\/70, .text-white\/45, .text-white\/40),
+[data-fc-shell-surface='ivory'] .fc-luxury-glass:not([class*='fc-admin-solid']) :is(.text-white\/55, .text-white\/60, .text-white\/70, .text-white\/45, .text-white\/40) {
+  color: rgba(10, 22, 40, 0.62) !important;
+}
+
+/* Invite share band — was near-black */
+[data-fc-shell-surface='ivory'] .bg-\[\#08070f\] {
+  background: linear-gradient(160deg, #fffdf8 0%, #f3ebdc 100%) !important;
+  border-color: rgba(196, 128, 61, 0.28) !important;
+  color: #0a1628 !important;
+}
+
+[data-fc-shell-surface='ivory'] .bg-\[\#08070f\] :is(.text-white, [class*='text-white/']) {
+  color: #0a1628 !important;
+}
+
+[data-fc-shell-surface='ivory'] .bg-\[\#08070f\] :is(.text-white\/70, .text-white\/60, .text-white\/55) {
+  color: rgba(10, 22, 40, 0.65) !important;
+}
+
+[data-fc-shell-surface='ivory'] nav[aria-label='Legal links'] {
+  color: rgba(10, 22, 40, 0.4) !important;
+}
+
+[data-fc-shell-surface='ivory'] nav[aria-label='Legal links'] a:hover {
+  color: #0a1628 !important;
+}
+
 .fc-landing-ivory-card :is(h1, h2, h3, h4, .font-bold, .font-semibold) {
   color: #0a1628;
 }
 
 .fc-landing-ivory-card :is(p, .text-sm, .text-xs) {
   color: rgba(10, 22, 40, 0.68);
+}
+
+/* —— Personal Credit Restore pricing (wealthy ivory + jewel package cards) —— */
+[data-fc-shell-surface='ivory'] .fc-landing-wealthy-ivory {
+  background:
+    radial-gradient(ellipse 85% 65% at 14% 4%, rgba(52, 211, 153, 0.14) 0%, transparent 52%),
+    radial-gradient(ellipse 72% 58% at 90% 92%, rgba(251, 191, 36, 0.2) 0%, transparent 54%),
+    radial-gradient(ellipse 50% 42% at 55% 45%, rgba(14, 165, 233, 0.07) 0%, transparent 48%),
+    linear-gradient(152deg, #faf4e6 0%, #f0e2c8 42%, #e6d4b4 100%);
+}
+
+.fc-restore-solutions-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background:
+    radial-gradient(ellipse 95% 75% at 8% 100%, rgba(52, 211, 153, 0.24) 0%, transparent 58%),
+    radial-gradient(ellipse 55% 48% at 94% 6%, rgba(251, 191, 36, 0.16) 0%, transparent 52%);
+}
+
+.fc-restore-solutions-hero > * {
+  position: relative;
+  z-index: 1;
+}
+
+.fc-restore-lane-toolbar {
+  border: 1px solid rgba(52, 211, 153, 0.28);
+  background: linear-gradient(135deg, rgba(8, 14, 22, 0.72) 0%, rgba(14, 26, 40, 0.58) 100%);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  box-shadow: 0 20px 48px -32px rgba(0, 0, 0, 0.55), 0 0 40px -20px rgba(52, 211, 153, 0.2);
+}
+
+/* Remove page-wide white “tent” and card gloss on Personal Credit Restore pricing */
+[data-fc-shell-surface='ivory']:has([data-fc-restore-pricing='1']) .fc-landing-wealthy-ivory::before {
+  display: none;
+}
+
+[data-fc-restore-pricing='1'] .fc-restore-solutions-hero::before {
+  display: none;
+}
+
+[data-fc-restore-pricing='1'] .fc-restore-solutions-hero :is(h1, h2, h3) {
+  color: #ffffff !important;
+}
+
+[data-fc-restore-pricing='1'] .fc-restore-solutions-hero p {
+  color: rgba(255, 255, 255, 0.78) !important;
+}
+
+[data-fc-restore-pricing='1'] .fc-restore-solutions-hero .text-amber-200,
+[data-fc-restore-pricing='1'] .fc-restore-solutions-hero [class*='text-amber'] {
+  color: rgb(253 230 138) !important;
+}
+
+[data-fc-restore-pricing='1'] [class*='fc-admin-solid']::before,
+[data-fc-restore-pricing='1'] [class*='fc-admin-solid']::after {
+  display: none !important;
+  content: none !important;
+}
+
+[data-fc-restore-pricing='1'] .fc-glass-ivory {
+  background: rgba(255, 252, 245, 0.94) !important;
+  border-color: rgba(10, 22, 40, 0.12) !important;
+  color: #0a1628 !important;
+  box-shadow: 0 10px 28px -20px rgba(10, 22, 40, 0.18) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+[data-fc-restore-pricing='1'] .fc-restore-catalog-toolbar {
+  box-shadow: 0 10px 28px -20px rgba(10, 22, 40, 0.15) !important;
+}
+
+[data-fc-restore-pricing='1'] [data-fc-marketing-staff-strip] .fc-glass-ivory {
+  background: #faf6ee !important;
+}
+
+/* Ivory shell must not force navy text onto colored buttons inside restore lane */
+[data-fc-restore-pricing='1'] .fc-restore-lane-toolbar button.text-white,
+[data-fc-restore-pricing='1'] .fc-restore-lane-toolbar .bg-gradient-to-r {
+  color: #ffffff !important;
+}
+
+[data-fc-restore-pricing='1'] .fc-restore-lane-toolbar button:not(.bg-gradient-to-r) {
+  color: rgba(255, 255, 255, 0.78) !important;
+}
+
+[data-fc-restore-pricing='1'] [class*='fc-admin-solid']:hover {
+  filter: none !important;
+  transform: translateY(-2px);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+[data-fc-restore-pricing='1'] [class*='fc-admin-solid'] {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 /* Dark depth ? not murky voids; subtle brand glows */
@@ -5273,4 +6157,815 @@ html.fc-onboarding-portal-open body {
   .fc-landing-dark-depth {
     transition: none !important;
   }
+}
+
+/*
+ * Admin partner detail — dark, transparent Finely glass.
+ *
+ * This is deliberately limited to the body wrapper. The surrounding PageShell,
+ * public site, Partner Portal, and other admin routes retain their own chrome.
+ */
+.fc-admin-workspace {
+  --fc-admin-bg: rgba(10, 15, 22, 0.66);
+  --fc-admin-bg-deep: rgba(5, 9, 14, 0.72);
+  --fc-admin-surface: rgba(17, 24, 35, 0.52);
+  --fc-admin-surface-sunken: rgba(4, 8, 13, 0.36);
+  --fc-admin-border: rgba(226, 232, 240, 0.14);
+  --fc-admin-border-strong: rgba(226, 232, 240, 0.24);
+  --fc-admin-ink: #f8fafc;
+  --fc-admin-ink-muted: rgba(226, 232, 240, 0.76);
+  --fc-admin-ink-faint: rgba(203, 213, 225, 0.62);
+  --fc-admin-accent: #8b5cf6;
+  --fc-admin-status-ok: #6ee7b7;
+  --fc-admin-status-warn: #fcd34d;
+  --fc-admin-status-risk: #fda4af;
+  --fc-admin-status-info: #7dd3fc;
+  --fc-admin-tone-emerald-ink: #a7f3d0;
+  --fc-admin-tone-gold-ink: #fde68a;
+  --fc-admin-tone-sky-ink: #bae6fd;
+  --fc-admin-tone-navy-ink: #dbeafe;
+  --fc-admin-tone-teal-ink: #99f6e4;
+  --fc-admin-tone-rose-ink: #fecdd3;
+  --fc-admin-tone-violet-ink: #ddd6fe;
+  --fc-ink-on-gold: #211804;
+  /* Local dark fallbacks for legacy Finely surface utilities used by the
+     Partner Detail tabs. These values inherit only within this workspace. */
+  --fc-bg-input: rgba(5, 10, 16, 0.72);
+  --fc-bg-elevated: rgba(16, 24, 36, 0.7);
+  --fc-panel: rgba(255, 255, 255, 0.055);
+  --fc-card: rgba(255, 255, 255, 0.07);
+  --fc-soft: rgba(255, 255, 255, 0.045);
+  --fc-text: #f8fafc;
+  --fc-text-muted: rgba(226, 232, 240, 0.72);
+  --fc-glass-bg: rgba(16, 24, 36, 0.62);
+  --fc-glass-bg-strong: rgba(10, 16, 25, 0.84);
+  --fc-glass-bg-inner: rgba(8, 13, 21, 0.66);
+  --fc-glass-border: rgba(226, 232, 240, 0.18);
+  --fc-glass-border-dim: rgba(226, 232, 240, 0.12);
+  --fc-admin-glass-rgb: 139 92 246;
+  --fc-admin-glass-rim-rgb: 196 181 253;
+  position: relative;
+  isolation: isolate;
+  color-scheme: dark;
+  background:
+    radial-gradient(82% 76% at -6% -14%, rgba(139, 92, 246, 0.22) 0%, transparent 61%),
+    radial-gradient(68% 62% at 106% 4%, rgba(52, 211, 153, 0.16) 0%, transparent 60%),
+    radial-gradient(64% 58% at 52% 112%, rgba(251, 191, 36, 0.1) 0%, transparent 62%),
+    linear-gradient(142deg, rgba(19, 27, 39, 0.72) 0%, rgba(8, 13, 20, 0.62) 54%, rgba(15, 20, 29, 0.7) 100%);
+  border-color: rgba(226, 232, 240, 0.2) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.16),
+    inset 0 0 0 1px rgba(167, 139, 250, 0.06),
+    0 28px 72px -52px rgba(0, 0, 0, 0.86),
+    0 0 68px -52px rgba(139, 92, 246, 0.42);
+  backdrop-filter: blur(24px) saturate(142%);
+  -webkit-backdrop-filter: blur(24px) saturate(142%);
+}
+
+/* Neutral and recessed content remain translucent, separated by hairline
+   dividers instead of stacking white or gray boxes inside the workspace. */
+.fc-admin-workspace [class*='bg-[var(--fc-admin-surface)]'] {
+  background:
+    radial-gradient(112% 96% at 0% 0%, rgba(139, 92, 246, 0.1) 0%, transparent 54%),
+    linear-gradient(138deg, rgba(25, 34, 47, 0.56) 0%, rgba(9, 14, 21, 0.4) 100%) !important;
+  border-color: rgba(226, 232, 240, 0.16) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.11),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.16),
+    0 16px 34px -30px rgba(0, 0, 0, 0.68);
+  backdrop-filter: blur(18px) saturate(132%);
+  -webkit-backdrop-filter: blur(18px) saturate(132%);
+}
+
+.fc-admin-workspace [class*='bg-[var(--fc-admin-surface-sunken)]'] {
+  background:
+    linear-gradient(138deg, rgba(18, 26, 36, 0.42) 0%, rgba(3, 7, 12, 0.3) 100%) !important;
+  border-color: rgba(226, 232, 240, 0.12) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.18);
+  backdrop-filter: blur(14px) saturate(122%);
+  -webkit-backdrop-filter: blur(14px) saturate(122%);
+}
+
+/* Inputs and the few legacy white controls inherit the same dark glass rather
+   than becoming bright interruptions in the transparent workspace. */
+.fc-admin-workspace :is(
+  input:not([type='checkbox']):not([type='radio']),
+  textarea,
+  select,
+  .fc-admin-dark-glass-select,
+  button[class*='bg-white'],
+  button[class*='bg-white/'],
+  [role='button'][class*='bg-white'],
+  [role='button'][class*='bg-white/']
+):not(.fc-admin-solid-gold):not(.fc-admin-solid-gold *) {
+  background:
+    linear-gradient(138deg, rgba(5, 10, 16, 0.62) 0%, rgba(20, 28, 39, 0.48) 100%) !important;
+  border-color: rgba(226, 232, 240, 0.18) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 0 0 1px rgba(139, 92, 246, 0.04) !important;
+  color: var(--fc-admin-ink) !important;
+}
+
+.fc-admin-workspace :is(input, textarea, select)::placeholder {
+  color: var(--fc-admin-ink-faint) !important;
+}
+
+.fc-admin-workspace :is(input, textarea, select):focus {
+  border-color: rgba(167, 139, 250, 0.74) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 0 0 3px rgba(139, 92, 246, 0.16) !important;
+}
+
+.fc-admin-workspace select option {
+  background: #0b1018;
+  color: var(--fc-admin-ink);
+}
+
+.fc-admin-workspace .fc-admin-ink-panel {
+  background:
+    radial-gradient(92% 100% at 0% 0%, rgba(139, 92, 246, 0.2) 0%, transparent 58%),
+    radial-gradient(76% 78% at 100% 100%, rgba(52, 211, 153, 0.1) 0%, transparent 58%),
+    linear-gradient(145deg, rgba(8, 14, 23, 0.84) 0%, rgba(11, 18, 29, 0.7) 100%) !important;
+  border-color: rgba(226, 232, 240, 0.18) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.15),
+    0 20px 42px -32px rgba(0, 0, 0, 0.8) !important;
+  backdrop-filter: blur(20px) saturate(136%);
+  -webkit-backdrop-filter: blur(20px) saturate(136%);
+}
+
+/* Soft tone families use deep tinted glass, with their accent reserved for a
+   thin rim and restrained halo so they stay informative rather than pastel. */
+.fc-admin-workspace :is(
+  .fc-admin-soft-emerald,
+  .fc-admin-soft-gold,
+  .fc-admin-soft-sky,
+  .fc-admin-soft-navy,
+  .fc-admin-soft-teal,
+  .fc-admin-soft-rose
+) {
+  color: var(--fc-admin-ink);
+  backdrop-filter: blur(16px) saturate(132%);
+  -webkit-backdrop-filter: blur(16px) saturate(132%);
+}
+
+.fc-admin-workspace .fc-admin-soft-emerald {
+  background:
+    radial-gradient(110% 92% at 0% 0%, rgba(52, 211, 153, 0.2) 0%, transparent 58%),
+    linear-gradient(138deg, rgba(6, 48, 40, 0.58) 0%, rgba(7, 21, 23, 0.46) 100%);
+  border-color: rgba(110, 231, 183, 0.34) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.13), 0 15px 28px -25px rgba(16, 185, 129, 0.54);
+}
+
+.fc-admin-workspace .fc-admin-soft-gold {
+  background:
+    radial-gradient(110% 92% at 0% 0%, rgba(251, 191, 36, 0.2) 0%, transparent 58%),
+    linear-gradient(138deg, rgba(62, 42, 10, 0.56) 0%, rgba(28, 22, 13, 0.46) 100%);
+  border-color: rgba(252, 211, 77, 0.34) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.13), 0 15px 28px -25px rgba(245, 158, 11, 0.48);
+}
+
+.fc-admin-workspace .fc-admin-soft-sky {
+  background:
+    radial-gradient(110% 92% at 0% 0%, rgba(56, 189, 248, 0.2) 0%, transparent 58%),
+    linear-gradient(138deg, rgba(9, 43, 63, 0.57) 0%, rgba(8, 20, 30, 0.46) 100%);
+  border-color: rgba(125, 211, 252, 0.34) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.13), 0 15px 28px -25px rgba(14, 165, 233, 0.48);
+}
+
+.fc-admin-workspace .fc-admin-soft-navy {
+  background:
+    radial-gradient(110% 92% at 0% 0%, rgba(129, 140, 248, 0.18) 0%, transparent 58%),
+    linear-gradient(138deg, rgba(30, 42, 68, 0.58) 0%, rgba(11, 18, 31, 0.48) 100%);
+  border-color: rgba(191, 219, 254, 0.28) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.13), 0 15px 28px -25px rgba(96, 130, 180, 0.42);
+}
+
+.fc-admin-workspace .fc-admin-soft-teal {
+  background:
+    radial-gradient(110% 92% at 0% 0%, rgba(45, 212, 191, 0.19) 0%, transparent 58%),
+    linear-gradient(138deg, rgba(7, 50, 49, 0.56) 0%, rgba(7, 22, 25, 0.46) 100%);
+  border-color: rgba(94, 234, 212, 0.32) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.13), 0 15px 28px -25px rgba(20, 184, 166, 0.46);
+}
+
+.fc-admin-workspace .fc-admin-soft-rose {
+  background:
+    radial-gradient(110% 92% at 0% 0%, rgba(251, 113, 133, 0.18) 0%, transparent 58%),
+    linear-gradient(138deg, rgba(68, 25, 36, 0.56) 0%, rgba(29, 15, 21, 0.46) 100%);
+  border-color: rgba(253, 164, 175, 0.32) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.13), 0 15px 28px -25px rgba(244, 63, 94, 0.42);
+}
+
+/* KPI and score cells stay rich and polished, but their glow is deliberately
+   contained so the data reads premium rather than neon. */
+.fc-admin-workspace .fc-admin-solid-emerald::before,
+.fc-admin-workspace .fc-admin-solid-gold::before,
+.fc-admin-workspace .fc-admin-solid-sky::before,
+.fc-admin-workspace .fc-admin-solid-navy::before,
+.fc-admin-workspace .fc-admin-solid-teal::before,
+.fc-admin-workspace .fc-admin-solid-rose::before {
+  background:
+    radial-gradient(88% 84% at 4% -8%, rgba(255, 255, 255, 0.5) 0%, transparent 52%),
+    linear-gradient(118deg, rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0.1) 26%, transparent 50%),
+    radial-gradient(88% 64% at 100% 100%, rgba(0, 0, 0, 0.2) 0%, transparent 55%);
+}
+
+.fc-admin-workspace .fc-admin-solid-emerald { --fc-admin-solid-halo: rgba(16, 185, 129, 0.3); }
+.fc-admin-workspace .fc-admin-solid-gold { --fc-admin-solid-halo: rgba(245, 158, 11, 0.28); }
+.fc-admin-workspace .fc-admin-solid-sky { --fc-admin-solid-halo: rgba(14, 165, 233, 0.26); }
+.fc-admin-workspace .fc-admin-solid-navy { --fc-admin-solid-halo: rgba(96, 130, 180, 0.24); }
+.fc-admin-workspace .fc-admin-solid-teal { --fc-admin-solid-halo: rgba(20, 184, 166, 0.26); }
+.fc-admin-workspace .fc-admin-solid-rose { --fc-admin-solid-halo: rgba(244, 63, 94, 0.25); }
+
+.fc-admin-workspace :is(
+  .fc-admin-solid-emerald,
+  .fc-admin-solid-gold,
+  .fc-admin-solid-sky,
+  .fc-admin-solid-navy,
+  .fc-admin-solid-teal,
+  .fc-admin-solid-rose
+) {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.4),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.22),
+    0 0 0 1px rgba(255, 255, 255, 0.13),
+    0 16px 34px -22px var(--fc-admin-solid-halo),
+    0 0 34px -30px var(--fc-admin-solid-halo);
+}
+
+/*
+ * Partner Detail's legacy OS cards can carry light-theme utilities even while
+ * mounted inside this dark workspace. Keep those quiet surfaces transparent
+ * and dark without touching the solid KPI family above.
+ */
+html .fc-admin-workspace :is(
+  .fc-light-chrome-strip,
+  .fc-light-chrome-panel,
+  .fc-light-glass-panel,
+  .fc-soft-surface,
+  .fc-soft-surface-lg,
+  .fc-accent-card,
+  .fc-luxury-glass,
+  .fc-pop-surface,
+  .fc-surface-harmony
+):not([class*='fc-admin-solid']) {
+  background:
+    radial-gradient(114% 100% at 0% 0%, rgb(var(--fc-admin-glass-rgb) / 0.14) 0%, transparent 58%),
+    linear-gradient(142deg, rgba(21, 30, 42, 0.62) 0%, rgba(7, 12, 19, 0.52) 100%) !important;
+  border-color: rgb(var(--fc-admin-glass-rim-rgb) / 0.28) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.18),
+    0 16px 34px -30px rgba(0, 0, 0, 0.68) !important;
+  color: var(--fc-admin-ink) !important;
+  backdrop-filter: blur(18px) saturate(132%) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(132%) !important;
+}
+
+/* Tone variables let glass cards and CTAs share a panel's accent without
+   turning a secondary action into a competing opaque color block. */
+.fc-admin-workspace :is(.fc-admin-soft-emerald, .fc-admin-dark-glass-tint-emerald, .fc-admin-dark-glass-cta--emerald) {
+  --fc-admin-glass-rgb: 16 185 129;
+  --fc-admin-glass-rim-rgb: 110 231 183;
+}
+.fc-admin-workspace :is(.fc-admin-soft-gold, .fc-admin-dark-glass-tint-gold, .fc-admin-dark-glass-cta--gold) {
+  --fc-admin-glass-rgb: 245 158 11;
+  --fc-admin-glass-rim-rgb: 252 211 77;
+}
+.fc-admin-workspace :is(.fc-admin-soft-sky, .fc-admin-dark-glass-tint-sky, .fc-admin-dark-glass-cta--sky) {
+  --fc-admin-glass-rgb: 14 165 233;
+  --fc-admin-glass-rim-rgb: 125 211 252;
+}
+.fc-admin-workspace :is(.fc-admin-dark-glass-tint-violet, .fc-admin-dark-glass-cta--violet) {
+  --fc-admin-glass-rgb: 139 92 246;
+  --fc-admin-glass-rim-rgb: 196 181 253;
+}
+.fc-admin-workspace :is(.fc-admin-soft-rose, .fc-admin-dark-glass-tint-rose, .fc-admin-dark-glass-cta--rose) {
+  --fc-admin-glass-rgb: 244 63 94;
+  --fc-admin-glass-rim-rgb: 253 164 175;
+}
+.fc-admin-workspace :is(.fc-admin-soft-navy, .fc-admin-dark-glass-tint-navy) {
+  --fc-admin-glass-rgb: 96 130 180;
+  --fc-admin-glass-rim-rgb: 191 219 254;
+}
+.fc-admin-workspace :is(.fc-admin-soft-teal, .fc-admin-dark-glass-tint-teal) {
+  --fc-admin-glass-rgb: 20 184 166;
+  --fc-admin-glass-rim-rgb: 94 234 212;
+}
+
+/* Overview/Profile already emits these hooks. Giving them a common surface
+   prevents unstyled transparent cards from disappearing into the workspace. */
+html .fc-admin-workspace :is(
+  .fc-admin-dark-glass-hero,
+  .fc-admin-dark-glass-activity,
+  .fc-admin-dark-glass-card
+) {
+  background:
+    radial-gradient(116% 102% at 0% 0%, rgb(var(--fc-admin-glass-rgb) / 0.18) 0%, transparent 58%),
+    linear-gradient(142deg, rgba(21, 30, 42, 0.68) 0%, rgba(7, 12, 19, 0.55) 100%) !important;
+  border-color: rgb(var(--fc-admin-glass-rim-rgb) / 0.3) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.2),
+    0 18px 38px -30px rgba(0, 0, 0, 0.72) !important;
+  color: var(--fc-admin-ink);
+  backdrop-filter: blur(18px) saturate(132%);
+  -webkit-backdrop-filter: blur(18px) saturate(132%);
+}
+
+html .fc-admin-workspace :is(.fc-admin-dark-glass-chip, .fc-admin-dark-glass-action) {
+  background:
+    radial-gradient(120% 112% at 0% 0%, rgb(var(--fc-admin-glass-rgb) / 0.16) 0%, transparent 58%),
+    linear-gradient(142deg, rgba(19, 28, 40, 0.58) 0%, rgba(6, 11, 18, 0.44) 100%) !important;
+  border-color: rgb(var(--fc-admin-glass-rim-rgb) / 0.26) !important;
+  color: var(--fc-admin-ink);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.09);
+}
+
+html .fc-admin-workspace :is(.fc-admin-dark-glass-chip, .fc-admin-dark-glass-action):hover {
+  background:
+    radial-gradient(120% 112% at 0% 0%, rgb(var(--fc-admin-glass-rgb) / 0.24) 0%, transparent 60%),
+    linear-gradient(142deg, rgba(25, 35, 49, 0.68) 0%, rgba(8, 14, 23, 0.54) 100%) !important;
+  border-color: rgb(var(--fc-admin-glass-rim-rgb) / 0.44) !important;
+}
+
+/* Reusable panel-coordinated CTA: pair the base with one modifier, e.g.
+   `fc-admin-dark-glass-cta fc-admin-dark-glass-cta--gold`. */
+html .fc-admin-workspace .fc-admin-dark-glass-cta {
+  --fc-admin-cta-ink: #f8fafc;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border: 1px solid rgb(var(--fc-admin-glass-rim-rgb) / 0.42);
+  border-radius: 0.5rem;
+  background:
+    radial-gradient(128% 115% at 0% 0%, rgb(var(--fc-admin-glass-rgb) / 0.32) 0%, transparent 56%),
+    linear-gradient(142deg, rgba(18, 27, 40, 0.9) 0%, rgba(6, 11, 18, 0.8) 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    0 10px 22px -18px rgb(var(--fc-admin-glass-rgb) / 0.78);
+  color: var(--fc-admin-cta-ink) !important;
+  transition: border-color 160ms ease, background 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+}
+
+html .fc-admin-workspace .fc-admin-dark-glass-cta:hover:not(:disabled) {
+  border-color: rgb(var(--fc-admin-glass-rim-rgb) / 0.62);
+  background:
+    radial-gradient(128% 115% at 0% 0%, rgb(var(--fc-admin-glass-rgb) / 0.42) 0%, transparent 58%),
+    linear-gradient(142deg, rgba(25, 35, 50, 0.94) 0%, rgba(8, 14, 23, 0.86) 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    0 13px 28px -18px rgb(var(--fc-admin-glass-rgb) / 0.88);
+  transform: translateY(-1px);
+}
+
+html .fc-admin-workspace .fc-admin-dark-glass-cta--emerald {
+  --fc-admin-cta-ink: var(--fc-admin-tone-emerald-ink);
+}
+
+html .fc-admin-workspace .fc-admin-dark-glass-cta--gold {
+  --fc-admin-cta-ink: var(--fc-admin-tone-gold-ink);
+}
+
+html .fc-admin-workspace .fc-admin-dark-glass-cta--sky {
+  --fc-admin-cta-ink: var(--fc-admin-tone-sky-ink);
+}
+
+html .fc-admin-workspace .fc-admin-dark-glass-cta--violet {
+  --fc-admin-cta-ink: var(--fc-admin-tone-violet-ink);
+}
+
+html .fc-admin-workspace .fc-admin-dark-glass-cta--rose {
+  --fc-admin-cta-ink: var(--fc-admin-tone-rose-ink);
+}
+
+/* Partner profile tab — ink modals + launch cards share tint tokens; lift modal rim slightly. */
+html .fc-admin-workspace.fc-partner-profile-tab .fc-partner-profile-popup {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    0 28px 56px -28px rgba(0, 0, 0, 0.88),
+    0 0 72px -40px rgb(var(--fc-admin-glass-rgb) / 0.55) !important;
+}
+
+html .fc-admin-workspace.fc-partner-profile-tab .fc-admin-dark-glass-cta:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Solid gold KPI tiles keep dark ink even when the workspace flips light-theme utilities. */
+html .fc-admin-workspace .fc-admin-solid-gold {
+  color: var(--fc-ink-on-gold) !important;
+}
+
+html .fc-admin-workspace .fc-admin-solid-gold :is(
+  [class*='text-black'],
+  [class*='text-slate-'],
+  [class*='text-gray-'],
+  [class*='text-zinc-'],
+  [class*='text-neutral-'],
+  [class*='text-stone-'],
+  [class*='text-white'],
+  [class*='text-ink'],
+  [class*='text-[#0'],
+  [class*='text-[#1a'],
+  [class*='text-[#14'],
+  [class*='text-[#2b']
+) {
+  color: var(--fc-ink-on-gold) !important;
+}
+
+/* White/gray legacy controls are darkened locally. Bright, intentional
+   gold/emerald/rose solid actions remain outside this selector. */
+html .fc-admin-workspace :is(
+  input:not([type='checkbox']):not([type='radio']),
+  textarea,
+  select,
+  .fc-admin-dark-glass-select,
+  button[class*='bg-white'],
+  button[class*='bg-white/'],
+  a[class*='bg-white'],
+  a[class*='bg-white/'],
+  [role='button'][class*='bg-white'],
+  [role='button'][class*='bg-white/'],
+  button[class*='bg-slate-'],
+  button[class*='bg-gray-'],
+  button[class*='bg-zinc-'],
+  button[class*='bg-neutral-'],
+  button[class*='bg-stone-'],
+  button[class*='hover:bg-white'],
+  button[class*='hover:bg-slate-'],
+  button[class*='hover:bg-gray-'],
+  a[class*='hover:bg-white'],
+  a[class*='hover:bg-slate-'],
+  a[class*='hover:bg-gray-'],
+  [role='button'][class*='hover:bg-white'],
+  [role='button'][class*='hover:bg-slate-'],
+  [role='button'][class*='hover:bg-gray-'],
+  button[class*='bg-[var(--fc-admin-ink)]'],
+  a[class*='bg-[var(--fc-admin-ink)]'],
+  [role='button'][class*='bg-[var(--fc-admin-ink)]'],
+  .fc-button-white,
+  .fc-button-white-sm,
+  .fc-light-chrome-btn
+):not(.fc-admin-solid-gold):not(.fc-admin-solid-gold *) {
+  background:
+    radial-gradient(130% 120% at 0% 0%, rgb(var(--fc-admin-glass-rgb) / 0.13) 0%, transparent 58%),
+    linear-gradient(142deg, rgba(5, 10, 16, 0.72) 0%, rgba(20, 28, 39, 0.56) 100%) !important;
+  border-color: rgba(226, 232, 240, 0.2) !important;
+  color: var(--fc-admin-ink) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 0 0 1px rgb(var(--fc-admin-glass-rgb) / 0.06) !important;
+}
+
+/*
+ * Safety net for pre-existing Tailwind dark ink utilities. It deliberately
+ * applies only below a dark/translucent workspace surface, never to the
+ * gold solid whose contrast depends on its dark ink.
+ */
+html .fc-admin-workspace :is(
+  .fc-admin-dark-glass-hero,
+  .fc-admin-dark-glass-activity,
+  .fc-admin-dark-glass-card,
+  .fc-admin-dark-glass-chip,
+  .fc-admin-dark-glass-action,
+  .fc-admin-dark-glass-cta,
+  .fc-admin-ink-panel,
+  .fc-admin-soft-emerald,
+  .fc-admin-soft-gold,
+  .fc-admin-soft-sky,
+  .fc-admin-soft-navy,
+  .fc-admin-soft-teal,
+  .fc-admin-soft-rose,
+  .fc-light-chrome-panel,
+  .fc-light-glass-panel,
+  .fc-soft-surface,
+  .fc-soft-surface-lg,
+  .fc-accent-card,
+  .fc-luxury-glass,
+  .fc-pop-surface,
+  .fc-surface-harmony,
+  [class*='bg-[var(--fc-admin-surface)]'],
+  [class*='bg-[var(--fc-admin-surface-sunken)]']
+) :is(
+  [class*='text-black'],
+  [class*='text-slate-'],
+  [class*='text-gray-'],
+  [class*='text-zinc-'],
+  [class*='text-neutral-'],
+  [class*='text-stone-'],
+  [class*='text-ink'],
+  [class*='text-[#0'],
+  [class*='text-[#1a'],
+  [class*='text-[#14'],
+  [class*='text-[#2b']
+):not(.fc-admin-solid-gold):not(.fc-admin-solid-gold *):not(.fc-button-brand):not(.fc-button-brand *):not(.fc-button-brand-surface):not(.fc-button-brand-surface *):not([class*='bg-amber-']):not([class*='bg-amber-'] *):not([class*='bg-yellow-']):not([class*='bg-yellow-'] *) {
+  color: var(--fc-admin-ink) !important;
+}
+
+/* Workspace-wide flip for legacy dark ink utilities on glass (not only nested panels). */
+html .fc-admin-workspace :is(
+  [class*='text-black'],
+  [class*='text-slate-'],
+  [class*='text-gray-'],
+  [class*='text-zinc-'],
+  [class*='text-neutral-'],
+  [class*='text-stone-'],
+  [class*='text-ink'],
+  [class*='text-[#0'],
+  [class*='text-[#1a'],
+  [class*='text-[#14'],
+  [class*='text-[#2b']
+):not(.fc-admin-solid-gold):not(.fc-admin-solid-gold *):not(.fc-button-brand):not(.fc-button-brand *):not(.fc-button-brand-surface):not(.fc-button-brand-surface *):not([class*='bg-amber-']):not([class*='bg-amber-'] *):not([class*='bg-yellow-']):not([class*='bg-yellow-'] *) {
+  color: var(--fc-admin-ink) !important;
+}
+
+html .fc-admin-workspace :is(
+  [class*='text-slate-4'],
+  [class*='text-slate-5'],
+  [class*='text-slate-6'],
+  [class*='text-gray-4'],
+  [class*='text-gray-5'],
+  [class*='text-gray-6'],
+  [class*='text-zinc-4'],
+  [class*='text-zinc-5'],
+  [class*='text-zinc-6'],
+  [class*='text-neutral-4'],
+  [class*='text-neutral-5'],
+  [class*='text-neutral-6']
+):not(.fc-admin-solid-gold):not(.fc-admin-solid-gold *):not(.fc-button-brand):not(.fc-button-brand *):not(.fc-button-brand-surface):not(.fc-button-brand-surface *):not([class*='bg-amber-']):not([class*='bg-amber-'] *):not([class*='bg-yellow-']):not([class*='bg-yellow-'] *) {
+  color: var(--fc-admin-ink-muted) !important;
+}
+
+/*
+ * Admin partner entity detail — full ivory PageShell.
+ *
+ * `EntityDetailShell surface="admin"` is the sole opt-in. Keep this selector
+ * paired so the existing dark admin shell and the partner portal retain their
+ * established chrome.
+ */
+[data-fc-app-surface="admin"][data-fc-shell-surface="ivory"] {
+  --fc-admin-ivory-ink: #0a1628;
+  --fc-admin-ivory-muted: rgba(10, 22, 40, 0.64);
+  --fc-admin-ivory-border: rgba(38, 35, 29, 0.14);
+  --fc-admin-ivory-warm-border: rgba(151, 104, 26, 0.24);
+  --fc-admin-ivory-glass: rgba(255, 253, 248, 0.82);
+}
+
+[data-fc-app-surface="admin"][data-fc-shell-surface="ivory"] .fc-app-top-chrome {
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.94) 0%, rgba(255, 249, 237, 0.78) 100%) !important;
+  border-color: var(--fc-admin-ivory-border) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.88),
+    0 10px 28px -22px rgba(10, 22, 40, 0.32) !important;
+  color: var(--fc-admin-ivory-ink);
+}
+
+[data-fc-app-surface="admin"][data-fc-shell-surface="ivory"] :is(
+  .fc-app-top-chrome-back,
+  .fc-app-top-chrome .fc-theme-toggle-compact,
+  .fc-app-top-chrome [data-fc-app-top-actions] > .relative > button[aria-label="Notifications"],
+  .fc-app-top-chrome .fc-app-top-account > button
+) {
+  background: rgba(255, 255, 255, 0.7) !important;
+  border-color: var(--fc-admin-ivory-border) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.88) !important;
+  color: var(--fc-admin-ivory-ink) !important;
+}
+
+[data-fc-app-surface="admin"][data-fc-shell-surface="ivory"] :is(
+  .fc-app-top-chrome-back,
+  .fc-app-top-chrome .fc-theme-toggle-compact,
+  .fc-app-top-chrome [data-fc-app-top-actions] > .relative > button[aria-label="Notifications"],
+  .fc-app-top-chrome .fc-app-top-account > button
+):hover {
+  background: rgba(255, 255, 255, 0.96) !important;
+  border-color: rgba(10, 22, 40, 0.24) !important;
+}
+
+[data-fc-app-surface="admin"][data-fc-shell-surface="ivory"] .fc-app-top-account > button :is(
+  .text-white,
+  [class*="text-white/"]
+) {
+  color: var(--fc-admin-ivory-ink) !important;
+}
+
+[data-fc-app-surface="admin"][data-fc-shell-surface="ivory"] .fc-pageshell-hero--ivory {
+  color: var(--fc-admin-ivory-ink);
+}
+
+[data-fc-app-surface="admin"][data-fc-shell-surface="ivory"] .fc-pageshell-hero--ivory h1 {
+  color: var(--fc-admin-ivory-ink) !important;
+}
+
+[data-fc-app-surface="admin"][data-fc-shell-surface="ivory"] .fc-pageshell-hero--ivory > p {
+  color: var(--fc-admin-ivory-muted) !important;
+}
+
+[data-fc-app-surface="admin"][data-fc-shell-surface="ivory"] .fc-pageshell-hero--ivory .fc-divider {
+  background: linear-gradient(90deg, transparent, rgba(10, 22, 40, 0.18), transparent) !important;
+}
+
+[data-fc-app-surface="admin"][data-fc-shell-surface="ivory"] [data-fc-entity-detail-header] :is(
+  button,
+  [class*="text-white/"]
+) {
+  color: var(--fc-admin-ivory-muted) !important;
+}
+
+[data-fc-app-surface="admin"][data-fc-shell-surface="ivory"] [data-fc-entity-detail-header] button:hover {
+  color: var(--fc-admin-ivory-ink) !important;
+}
+
+[data-fc-app-surface="admin"][data-fc-shell-surface="ivory"] .fc-entity-sticky-bar[data-fc-entity-sticky-surface="ivory"] {
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.86) 0%, rgba(255, 248, 234, 0.76) 100%) !important;
+  border-color: var(--fc-admin-ivory-warm-border) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.88),
+    0 12px 28px -22px rgba(10, 22, 40, 0.24) !important;
+}
+
+[data-fc-app-surface="admin"][data-fc-shell-surface="ivory"] .fc-entity-sticky-bar[data-fc-entity-sticky-surface="ivory"] > div > span {
+  color: var(--fc-admin-ivory-muted) !important;
+}
+
+[data-fc-app-surface="admin"][data-fc-shell-surface="ivory"] .fc-entity-sticky-bar[data-fc-entity-sticky-surface="ivory"] .fc-view-tabs {
+  background: rgba(255, 255, 255, 0.58) !important;
+  border-color: rgba(10, 22, 40, 0.12) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.88) !important;
+}
+
+[data-fc-app-surface="admin"][data-fc-shell-surface="ivory"] .fc-entity-sticky-bar[data-fc-entity-sticky-surface="ivory"] .fc-view-tabs button:not([class*="from-"]) {
+  color: var(--fc-admin-ivory-muted) !important;
+}
+
+[data-fc-app-surface="admin"][data-fc-shell-surface="ivory"] .fc-entity-sticky-bar[data-fc-entity-sticky-surface="ivory"] .fc-view-tabs button:not([class*="from-"]):hover {
+  background: rgba(151, 104, 26, 0.1) !important;
+  color: var(--fc-admin-ivory-ink) !important;
+}
+
+[data-fc-app-surface="admin"][data-fc-shell-surface="ivory"] .fc-partner-sidebar-nav[data-fc-sidebar-surface="ivory"] button:not([data-fc-tab-active="true"]) {
+  background: transparent !important;
+  border-color: rgba(10, 22, 40, 0.15) !important;
+  color: rgba(10, 22, 40, 0.7) !important;
+}
+
+[data-fc-app-surface="admin"][data-fc-shell-surface="ivory"] .fc-partner-sidebar-nav[data-fc-sidebar-surface="ivory"] button:not([data-fc-tab-active="true"]):hover {
+  background: rgba(255, 255, 255, 0.64) !important;
+  border-color: rgba(10, 22, 40, 0.28) !important;
+  color: var(--fc-admin-ivory-ink) !important;
+}
+
+[data-fc-app-surface="admin"][data-fc-shell-surface="ivory"] .fc-partner-sidebar-nav[data-fc-sidebar-surface="ivory"] [data-fc-tab-active="true"] {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.76),
+    0 10px 22px -18px rgba(10, 22, 40, 0.38) !important;
+}
+
+[data-fc-app-surface="admin"][data-fc-shell-surface="ivory"] .fc-partner-sidebar-nav[data-fc-sidebar-surface="ivory"] [data-fc-tab-active="true"].border-emerald-600\/35 {
+  background: rgba(16, 185, 129, 0.1) !important;
+  border-color: rgba(5, 150, 105, 0.38) !important;
+  color: #064e3b !important;
+}
+
+[data-fc-app-surface="admin"][data-fc-shell-surface="ivory"] .fc-partner-sidebar-nav[data-fc-sidebar-surface="ivory"] [data-fc-tab-active="true"].border-violet-600\/35 {
+  background: rgba(139, 92, 246, 0.1) !important;
+  border-color: rgba(109, 40, 217, 0.38) !important;
+  color: #4c1d95 !important;
+}
+
+[data-fc-app-surface="admin"][data-fc-shell-surface="ivory"] .fc-partner-sidebar-nav[data-fc-sidebar-surface="ivory"] [data-fc-tab-active="true"].border-sky-600\/35,
+[data-fc-app-surface="admin"][data-fc-shell-surface="ivory"] .fc-partner-sidebar-nav[data-fc-sidebar-surface="ivory"] [data-fc-tab-active="true"].border-sky-600\/32,
+[data-fc-app-surface="admin"][data-fc-shell-surface="ivory"] .fc-partner-sidebar-nav[data-fc-sidebar-surface="ivory"] [data-fc-tab-active="true"].border-sky-600\/30 {
+  background: rgba(14, 165, 233, 0.1) !important;
+  border-color: rgba(2, 132, 199, 0.38) !important;
+  color: #075985 !important;
+}
+
+[data-fc-app-surface="admin"][data-fc-shell-surface="ivory"] .fc-partner-sidebar-nav[data-fc-sidebar-surface="ivory"] [data-fc-tab-active="true"].border-amber-700\/35 {
+  background: rgba(245, 158, 11, 0.12) !important;
+  border-color: rgba(180, 83, 9, 0.4) !important;
+  color: #78350f !important;
+}
+
+[data-fc-app-surface="admin"][data-fc-shell-surface="ivory"] [data-fc-admin-nav-rail-shell="1"] {
+  background:
+    radial-gradient(900px 360px at 12% 0%, rgba(139, 92, 246, 0.08) 0%, transparent 58%),
+    radial-gradient(700px 280px at 88% 20%, rgba(16, 185, 129, 0.07) 0%, transparent 55%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.93) 0%, rgba(250, 243, 230, 0.84) 100%) !important;
+  border-color: var(--fc-admin-ivory-warm-border) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.92),
+    0 18px 44px -32px rgba(10, 22, 40, 0.28) !important;
+  color: var(--fc-admin-ivory-ink);
+}
+
+[data-fc-app-surface="admin"][data-fc-shell-surface="ivory"] [data-fc-admin-nav-rail-glow="1"] {
+  background:
+    radial-gradient(900px 360px at 12% 0%, rgba(139, 92, 246, 0.08) 0%, transparent 58%),
+    radial-gradient(700px 280px at 88% 20%, rgba(16, 185, 129, 0.06) 0%, transparent 55%) !important;
+}
+
+[data-fc-app-surface="admin"][data-fc-shell-surface="ivory"] [data-fc-admin-nav-rail-shell="1"] :is(
+  .text-white,
+  [class*="text-white/"]
+) {
+  color: var(--fc-admin-ivory-muted) !important;
+}
+
+[data-fc-app-surface="admin"][data-fc-shell-surface="ivory"] [data-fc-admin-nav-rail-shell="1"] [class*="text-violet-300"] {
+  color: #6d28d9 !important;
+}
+
+[data-fc-app-surface="admin"][data-fc-shell-surface="ivory"] [data-fc-admin-nav-rail-shell="1"] [class*="border-white"] {
+  border-color: var(--fc-admin-ivory-border) !important;
+}
+
+[data-fc-app-surface="admin"][data-fc-shell-surface="ivory"] [data-fc-admin-nav-rail-shell="1"] .fc-brand-logo {
+  filter: brightness(0.32) contrast(1.35) saturate(0.85);
+}
+
+[data-fc-app-surface="admin"][data-fc-shell-surface="ivory"] [data-fc-admin-nav-rail-shell="1"] button[aria-expanded] {
+  background: rgba(255, 255, 255, 0.66) !important;
+  border-color: var(--fc-admin-ivory-border) !important;
+  color: var(--fc-admin-ivory-ink) !important;
+}
+
+[data-fc-app-surface="admin"][data-fc-shell-surface="ivory"] [data-fc-admin-nav-rail-shell="1"] .fc-input {
+  background: rgba(255, 255, 255, 0.72) !important;
+  border-color: var(--fc-admin-ivory-border) !important;
+  color: var(--fc-admin-ivory-ink) !important;
+}
+
+[data-fc-app-surface="admin"][data-fc-shell-surface="ivory"] [data-fc-admin-nav-rail-shell="1"] .fc-input::placeholder {
+  color: rgba(10, 22, 40, 0.44) !important;
+}
+
+[data-fc-app-surface="admin"][data-fc-shell-surface="ivory"] [data-fc-admin-nav-rail-group="1"] {
+  background: rgba(255, 255, 255, 0.46) !important;
+  border-color: var(--fc-admin-ivory-border) !important;
+}
+
+[data-fc-app-surface="admin"][data-fc-shell-surface="ivory"] [data-fc-admin-nav-rail-group="1"] summary:hover {
+  background: rgba(151, 104, 26, 0.08) !important;
+}
+
+[data-fc-app-surface="admin"][data-fc-shell-surface="ivory"] [data-fc-admin-nav-item-active="false"] {
+  background: rgba(255, 255, 255, 0.5) !important;
+  border-color: rgba(10, 22, 40, 0.12) !important;
+  color: var(--fc-admin-ivory-muted) !important;
+}
+
+[data-fc-app-surface="admin"][data-fc-shell-surface="ivory"] [data-fc-admin-nav-item-active="false"]:hover {
+  background: rgba(255, 255, 255, 0.9) !important;
+  border-color: rgba(10, 22, 40, 0.24) !important;
+  color: var(--fc-admin-ivory-ink) !important;
+}
+
+[data-fc-app-surface="admin"][data-fc-shell-surface="ivory"] [data-fc-admin-nav-item-active="true"] {
+  border-color: rgba(124, 58, 237, 0.44) !important;
+  color: #ffffff !important;
+}
+
+[data-fc-app-surface="admin"][data-fc-shell-surface="ivory"] [data-fc-admin-nav-item-active="true"] :is(
+  .text-white,
+  [class*="text-white/"]
+) {
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+[data-fc-app-surface="admin"][data-fc-shell-surface="ivory"] [data-fc-admin-nav-item-active="true"] [class*="text-violet-300"] {
+  color: #ddd6fe !important;
+}
+
+[data-fc-app-surface="admin"][data-fc-shell-surface="ivory"] [data-fc-admin-nav-bar="1"] .fc-action-chip {
+  background: rgba(255, 255, 255, 0.7) !important;
+  border-color: var(--fc-admin-ivory-border) !important;
+  color: var(--fc-admin-ivory-ink) !important;
+}
+
+[data-fc-app-surface="admin"][data-fc-shell-surface="ivory"] [data-fc-admin-nav-bar="1"] .fc-view-tabs {
+  background: rgba(255, 255, 255, 0.62) !important;
+  border-color: var(--fc-admin-ivory-border) !important;
+}
+
+[data-fc-app-surface="admin"][data-fc-shell-surface="ivory"] [data-fc-admin-nav-bar="1"] .fc-view-tabs button:not([class*="from-"]) {
+  color: var(--fc-admin-ivory-muted) !important;
+}
+
+[data-fc-app-surface="admin"][data-fc-shell-surface="ivory"] [data-fc-admin-nav-bar="1"] .fc-admin-nav-mode-toggle {
+  color: var(--fc-admin-ivory-muted) !important;
+}
+
+[data-fc-app-surface="admin"][data-fc-shell-surface="ivory"] [data-fc-admin-nav-bar="1"] .fc-admin-nav-mode-toggle:hover {
+  color: var(--fc-admin-ivory-ink) !important;
 }

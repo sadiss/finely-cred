@@ -146,6 +146,13 @@ export function MarketingDeskHome({
             {!flagOn ? <span className={finelyOsMicroStat('amber')}>Flag off</span> : null}
           </div>
           <p className={`mt-1 text-sm ${FINELY_OS_ENTITY_BODY}`}>Today’s mission: {mission}</p>
+          <p className={`mt-1 text-xs ${FINELY_OS_ENTITY_BODY}`}>
+            Specialists live in{' '}
+            <button type="button" className="text-emerald-300/90 underline" onClick={() => navigate('/admin/growth-agents')}>
+              Growth Agents
+            </button>
+            {' '}— this desk is Caleb Brooks’s daily workroom.
+          </p>
           {findLast ? (
             <p className={`mt-0.5 text-[11px] ${FINELY_OS_ENTITY_BODY}`}>
               Last Find: {findLast.found} found · {findLast.autoSaved} auto-saved · {findLast.review} exceptions

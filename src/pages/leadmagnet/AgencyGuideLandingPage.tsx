@@ -140,7 +140,7 @@ export default function AgencyGuideLandingPage() {
 
   const benefits = [
     { icon: Target, title: 'Offer Clarity', desc: 'Define irresistible offers that convert.', accent: 'border-[#d4a447]/40 bg-[#d4a447]/10 text-[#f0cc75]' },
-    { icon: Users, title: 'Partner Attraction', desc: 'Position your agency to attract ideal partners.', accent: 'border-fuchsia-400/35 bg-fuchsia-500/10 text-fuchsia-300' },
+    { icon: Users, title: 'Partner Attraction', desc: 'Position your agency to attract ideal partners.', accent: 'border-amber-400/35 bg-amber-500/10 text-amber-200' },
     { icon: Cog, title: 'Smart Systems', desc: 'Deliver consistently with scalable systems.', accent: 'border-orange-400/35 bg-orange-500/10 text-orange-300' },
     { icon: BarChart3, title: 'Sustainable Growth', desc: 'Scale with confidence and more freedom.', accent: 'border-cyan-400/35 bg-cyan-500/10 text-cyan-300' },
     { icon: Star, title: 'Strong Positioning', desc: 'Stand out in crowded markets with clarity.', accent: 'border-[#d4a447]/40 bg-[#d4a447]/10 text-[#f0cc75]' },

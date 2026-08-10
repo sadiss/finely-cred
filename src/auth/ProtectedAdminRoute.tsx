@@ -7,6 +7,7 @@ import { FINELY_TENANT_ID } from '../domain/tenants';
 import { canAccessAdminArea, canManageTeam, canViewAllClients, getMembershipByUserAndTenant, isPlatformAdmin } from '../data/tenantsRepo';
 import { ensureFinelyPlatformAdminMembership } from '../data/tenantsRepo';
 import { getActiveTenantId } from '../tenancy/activeTenant';
+import { clearOnboardingProgress } from '../lib/onboardingProgressStorage';
 
 export function ProtectedAdminRoute({ children }: { children: React.ReactNode }) {
   const { isLoading, user, signOut } = useAuth();
@@ -84,7 +85,10 @@ export function ProtectedAdminRoute({ children }: { children: React.ReactNode })
               Back to Dashboard
             </button>
             <button
-              onClick={() => signOut().finally(() => navigate('/onboarding'))}
+              onClick={() => {
+                clearOnboardingProgress();
+                signOut().finally(() => navigate('/onboarding'));
+              }}
               className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl border border-white/[0.08] bg-white/5 hover:bg-white/10 text-[10px] font-black uppercase tracking-widest text-white/70 transition-all"
             >
               Switch account

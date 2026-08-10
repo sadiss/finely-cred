@@ -1,14 +1,13 @@
 import type { AgentPersonaId } from '../domain/agentPersonas';
 import { portalPersonaForLane } from './agentPersonasRepo';
 import type { StaffMember, StaffShiftBlock } from '../domain/staffMember';
+import { shiftBlockMatches } from '../domain/staffMember';
 import { listStaffByRole, loadStaffRoster } from './staffRoster';
 import { resolveStaffIdForBankruptcyScenario } from './staffBankruptcyScenarioCoaches';
 import { resolveStaffIdForLaneFocus } from './staffLaneFocusCoaches';
 
 function shiftMatches(block: StaffShiftBlock, date: Date): boolean {
-  const day = date.getDay();
-  const hour = date.getHours();
-  return block.days.includes(day) && hour >= block.startHour && hour < block.endHour;
+  return shiftBlockMatches(block, date);
 }
 
 function laneHash(lane: string): number {
@@ -74,8 +73,10 @@ export function resolveStaffOnDutyForLane(lane?: string, date = new Date()): Sta
   if (!pool.length) return null;
 
   const onShift = pool.filter((s) => s.shiftBlocks.some((b) => shiftMatches(b, date)));
-  const candidates = onShift.length >= 2 ? onShift : pool;
-  const idx = laneHash(l) % candidates.length;
+  // Use whoever is actually on shift (even a single specialist). Falling back to the full
+  // pool when only one person is on duty was pinning off-shift day faces (e.g. Cameron) at night.
+  const candidates = onShift.length > 0 ? onShift : pool;
+  const idx = (laneHash(l) + (onShift.length > 0 ? 0 : date.getHours())) % candidates.length;
   return candidates[idx] ?? candidates[0] ?? null;
 }
 

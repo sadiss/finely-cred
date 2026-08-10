@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { ArrowRight, BadgeCheck, Handshake, Plus, Search, ShieldAlert, Stamp, Store, XCircle } from 'lucide-react';
 import { PageShell } from '../../components/layout/PageShell';
 import { usePartnerSession } from '../../auth/PartnerSessionContext';
@@ -54,6 +55,7 @@ function clone<T>(x: T): T {
 }
 
 export default function PartnerBarterPage() {
+  const navigate = useNavigate();
   const { partner } = usePartnerSession();
   const [version, setVersion] = useState(0);
   const tenantId = useMemo(() => getActiveTenantId(), [version]);
@@ -322,7 +324,7 @@ export default function PartnerBarterPage() {
           activeTab={tab}
           onTabChange={(id) => setTab(id as typeof tab)}
           primaryAction={{ label: 'New listing', onClick: () => setCreateOpen(true) }}
-          secondaryAction={{ label: 'Partner dashboard', onClick: () => window.location.assign('/portal/dashboard') }}
+          secondaryAction={{ label: 'Partner dashboard', onClick: () => navigate('/portal/dashboard') }}
         >
 
         {tab === 'market' && (

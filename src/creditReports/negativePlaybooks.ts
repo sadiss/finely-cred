@@ -55,7 +55,8 @@ export function classifyCandidateNegativeType(c: DisputeCandidate): NegativeType
   if (/(identity\s*theft|fraud|not\s*mine|imposter)/i.test(joined)) return 'identity_theft';
   if (/(public\s*record|judgment|lien|tax\s*lien|eviction)/i.test(joined)) return 'public_record';
   if (/(personal\s*info|name|address|ssn|dob|employer)/i.test(joined)) return 'personal_info';
-  if (/(charge\s*off|charged\s*off|co\b)/i.test(joined)) return 'charge_off';
+  if (/(collections?\s*&\s*charge|collections?\s+and\s+charge)/i.test(joined)) return 'collection';
+  if (/(charge\s*[- ]?off|charged\s*off|chargeoff|\bco\b)/i.test(joined)) return 'charge_off';
   if (/(collection|collections|collector|debt\s*collector|past\s*due)/i.test(joined)) return 'collection';
 
   return 'unknown';
@@ -179,7 +180,7 @@ export const NEGATIVE_PLAYBOOKS: Record<NegativeType, NegativePlaybook> = {
   },
   collection: {
     key: 'collection',
-    label: 'Collection verification',
+    label: 'Coll. & charge-offs',
     aiHint:
       'Collections: describe how the account is characterized (collector, balance, DOFD) and why it does not match validated statements or ownership records.',
     tasks: [

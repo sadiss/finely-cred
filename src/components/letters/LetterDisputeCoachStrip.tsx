@@ -1,17 +1,16 @@
 import React, { useState } from 'react';
-import { Loader2, MessageSquare, Sparkles } from 'lucide-react';
+import { Loader2, MessageSquare } from 'lucide-react';
 import { isFeatureEnabled } from '../../data/settingsRepo';
 import { converseWithFinelyAi } from '../../lib/conversationalAi';
 import { openCommunicationHub } from '../chat/communicationHubModel';
 import { OnDutyStaffCoachHeader } from '../chat/OnDutyStaffCoachHeader';
 import {
-  FINELY_OS_ENTITY_BODY,
+  FINELY_OS_AI_DRAFT_BTN_SM,
   FINELY_OS_ENTITY_INPUT,
-  FINELY_OS_PRIMARY_BTN,
   FINELY_OS_SECONDARY_BTN,
-  FINELY_OS_ENTITY_SUBLABEL,
   finelyOsMessageBubble,
 } from '../../features/os/finelyOsLightUi';
+import { FinelyOsOnPageCoachShell, type FinelyOsCoachChip } from '../../features/os/FinelyOsOnPageCoachShell';
 
 const DISPUTE_SUGGESTIONS = [
   'Which negative items should I dispute first?',
@@ -41,9 +40,12 @@ export function LetterDisputeCoachStrip({
   const [err, setErr] = useState<string | null>(null);
   const [reply, setReply] = useState<string | null>(null);
 
-  const chips = DISPUTE_SUGGESTIONS.map((s) => {
-    if (!bureau) return s;
-    return s.replace(' on this tradeline', ` on ${bureau}`).replace('first?', `first on ${bureau}?`);
+  const chips: FinelyOsCoachChip[] = DISPUTE_SUGGESTIONS.map((s, i) => {
+    const prompt = !bureau
+      ? s
+      : s.replace(' on this tradeline', ` on ${bureau}`).replace('first?', `first on ${bureau}?`);
+    const short = prompt.length > 52 ? `${prompt.slice(0, 49)}…` : prompt;
+    return { id: `d-${i}`, label: short, prompt };
   });
 
   const askCoach = async (prompt: string) => {
@@ -82,64 +84,56 @@ export function LetterDisputeCoachStrip({
   return (
     <div className="w-full space-y-3">
       <OnDutyStaffCoachHeader lane="dispute" subtitle="Dispute letter specialist — on shift for bureau questions." />
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
-          <Sparkles size={16} className="text-violet-300" />
-          <span className={FINELY_OS_ENTITY_SUBLABEL}>Dispute letter coach</span>
-        </div>
-        <button
-          type="button"
-          className={FINELY_OS_SECONDARY_BTN}
-          onClick={() => openCommunicationHub({ tab: 'ai', expanded: true })}
-        >
-          Open full coach
-        </button>
-      </div>
-      <p className={`text-sm ${FINELY_OS_ENTITY_BODY}`}>
-        Tap a suggestion or ask a question — get help with reasons, evidence, and compliant wording while you draft
-        {bureau ? ` for ${bureau}` : ''}.
-      </p>
-      <div className="flex flex-wrap gap-2">
-        {chips.map((chip) => (
-          <button
-            key={chip}
-            type="button"
-            className={FINELY_OS_SECONDARY_BTN}
-            disabled={busy}
-            onClick={() => void askCoach(chip)}
-          >
-            {chip}
+      <FinelyOsOnPageCoachShell
+        accent="fuchsia"
+        kicker="Letter studio coach"
+        title="Dispute letter coach"
+        subtitle={
+          bureau
+            ? `Tap a suggestion or ask about reasons, evidence, and compliant wording for ${bureau}.`
+            : 'Tap a suggestion or ask about reasons, evidence, and compliant wording.'
+        }
+        chips={chips}
+        onChipSelect={(chip) => void askCoach(chip.prompt)}
+        headerExtra={
+          <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => openCommunicationHub({ tab: 'ai', expanded: true })}>
+            Full coach
           </button>
-        ))}
-      </div>
-      <div className="flex flex-col sm:flex-row gap-2">
-        <input
-          value={draft}
-          onChange={(e) => setDraft(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-              e.preventDefault();
-              void askCoach(draft);
-            }
-          }}
-          placeholder="Ask about dispute strategy, reasons, or evidence…"
-          className={`flex-1 ${FINELY_OS_ENTITY_INPUT}`}
-          disabled={busy}
-        />
-        <button
-          type="button"
-          className={FINELY_OS_PRIMARY_BTN}
-          disabled={!draft.trim() || busy}
-          onClick={() => void askCoach(draft)}
-        >
-          {busy ? <Loader2 size={14} className="animate-spin" /> : <MessageSquare size={14} />}
-          {busy ? 'Thinking…' : 'Ask coach'}
-        </button>
-      </div>
-      {err ? <div className="text-xs text-red-200/90">{err}</div> : null}
-      {reply ? (
-        <div className={`${finelyOsMessageBubble('assistant')} text-sm leading-relaxed whitespace-pre-wrap`}>{reply}</div>
-      ) : null}
+        }
+        composer={
+          <>
+            <div className="flex flex-col sm:flex-row gap-2">
+              <input
+                value={draft}
+                onChange={(e) => setDraft(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    void askCoach(draft);
+                  }
+                }}
+                placeholder="Ask about dispute strategy, reasons, or evidence…"
+                className={`flex-1 ${FINELY_OS_ENTITY_INPUT}`}
+                disabled={busy}
+                data-fc-coach-composer="1"
+              />
+              <button
+                type="button"
+                className={FINELY_OS_AI_DRAFT_BTN_SM}
+                disabled={!draft.trim() || busy}
+                onClick={() => void askCoach(draft)}
+              >
+                {busy ? <Loader2 size={14} className="animate-spin" /> : <MessageSquare size={14} />}
+                {busy ? 'Thinking…' : 'Ask coach'}
+              </button>
+            </div>
+            {err ? <div className="text-xs text-red-200/90">{err}</div> : null}
+            {reply ? (
+              <div className={`${finelyOsMessageBubble('assistant')} text-sm leading-relaxed whitespace-pre-wrap`}>{reply}</div>
+            ) : null}
+          </>
+        }
+      />
     </div>
   );
 }

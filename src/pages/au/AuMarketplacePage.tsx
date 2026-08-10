@@ -80,10 +80,15 @@ export default function AuMarketplacePage() {
         <TradelineMarketplace
           onAddToCart={(line: any) => {
             const p = new URLSearchParams();
+            const source = String(line.source || '') === 'seller' ? 'seller' : 'demo';
+            p.set('source', source);
             p.set('bank', String(line.bank ?? ''));
             p.set('limit', String(line.limit ?? ''));
             p.set('age', String(line.age ?? ''));
-            p.set('price', String(line.price ?? ''));
+            if (line.finalPriceCents != null) p.set('priceCents', String(line.finalPriceCents));
+            else if (line.basePriceCents != null) p.set('priceCents', String(line.basePriceCents));
+            if (line.sellerId) p.set('sellerId', String(line.sellerId));
+            if (line.listingId) p.set('listingId', String(line.listingId));
             navigate(`/au/request?${p.toString()}`);
           }}
         />

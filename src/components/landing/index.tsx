@@ -8,8 +8,7 @@ import {
 } from 'lucide-react';
 import { CARD_CONFIGS, Button, Reveal, FlashyIcon, AnimatedCounter, LoopingTypingHeader } from '../ui';
 import { loadSettings, getPricingControls, isFeatureEnabled } from '../../data/settingsRepo';
-import { listAuSellersByTenant, listAuSellersByTenantAsync } from '../../data/auSellerRepo';
-import type { AuSeller } from '../../domain/auSeller';
+import { listApprovedMarketplaceListingsAsync, type ApprovedMarketplaceListing } from '../../data/auSellerRepo';
 import { getActiveTenant, getActiveTenantId } from '../../tenancy/activeTenant';
 import { useNavigate } from 'react-router-dom';
 import { finelyOsCatalogCard, finelyOsLandingContrastSection, finelyOsLightMeshSection, finelyOsLandingPlatinumSection, type FinelyOsPublicAccent } from '../../features/os/finelyOsLightUi';
@@ -129,37 +128,53 @@ export function CreditCardAsset({
 
   return (
     <div 
-      className={`group relative w-full max-w-[330px] aspect-[11/7] rounded-[20px] p-4 sm:p-5 flex flex-col justify-between overflow-hidden ${config.bg} ${className} transition-all duration-300 ease-out hover:brightness-[1.03] hover:shadow-md`}
+      className={`group relative w-full max-w-[400px] aspect-[11/7] rounded-[22px] p-4 sm:p-6 flex flex-col justify-between overflow-hidden ${config.bg} ${className} transition-all duration-300 ease-out hover:brightness-[1.06] hover:shadow-xl`}
       style={{ 
-        boxShadow: '0 38px 78px -24px rgba(0,0,0,0.82), inset 0 1px 0 rgba(255,255,255,0.22), inset 0 -2px 0 rgba(0,0,0,0.52)',
+        boxShadow:
+          isGold
+            ? '0 48px 96px -28px rgba(0,0,0,0.78), 0 24px 48px -20px rgba(251,191,36,0.45), inset 0 1px 0 rgba(255,255,255,0.42), inset 0 -2px 0 rgba(0,0,0,0.45)'
+            : isPlatinum
+              ? '0 48px 96px -28px rgba(0,0,0,0.72), 0 20px 40px -16px rgba(255,255,255,0.22), inset 0 1px 0 rgba(255,255,255,0.55), inset 0 -2px 0 rgba(0,0,0,0.35)'
+              : '0 52px 110px -30px rgba(0,0,0,0.92), 0 28px 56px -22px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.28), inset 0 -2px 0 rgba(0,0,0,0.58)',
         ...style
       }}
     >
-      {/* Material layers */}
-      <div className="absolute inset-0 bg-gradient-to-br from-white/22 via-transparent to-black/40 pointer-events-none" />
+      {/* Material layers — wealthier gloss */}
+      <div className="absolute inset-0 bg-gradient-to-br from-white/32 via-transparent to-black/45 pointer-events-none" />
       <div
-        className="absolute inset-0 pointer-events-none opacity-80"
+        className="absolute inset-0 pointer-events-none opacity-90"
         style={{
           background:
-            'radial-gradient(180px 120px at 14% 18%, rgba(255,255,255,0.16), transparent 60%), radial-gradient(220px 150px at 86% 10%, rgba(255,255,255,0.08), transparent 60%)'
+            'radial-gradient(220px 150px at 12% 16%, rgba(255,255,255,0.28), transparent 58%), radial-gradient(260px 170px at 88% 8%, rgba(255,255,255,0.16), transparent 58%), radial-gradient(200px 140px at 70% 90%, rgba(255,215,128,0.10), transparent 65%)'
         }}
       />
-      <div className={`absolute inset-0 pointer-events-none ${isBlack ? 'opacity-[0.06]' : isGold ? 'opacity-[0.14]' : 'opacity-[0.12]'} bg-[url('https://www.transparenttextures.com/patterns/brushed-alum.png')]`} />
+      <div className={`absolute inset-0 pointer-events-none ${isBlack ? 'opacity-[0.08]' : isGold ? 'opacity-[0.18]' : 'opacity-[0.14]'} bg-[url('https://www.transparenttextures.com/patterns/brushed-alum.png')]`} />
       {/* Metallic micro-texture (line-free; keep base colors) */}
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
-          opacity: isBlack ? 0.18 : isGold ? 0.20 : 0.16,
+          opacity: isBlack ? 0.26 : isGold ? 0.28 : 0.22,
           mixBlendMode: isGold ? ('overlay' as any) : ('soft-light' as any),
           backgroundImage: [
-            'radial-gradient(280px 190px at 76% 14%, rgba(255,255,255,0.18), transparent 62%)',
-            'radial-gradient(320px 220px at 18% 86%, rgba(0,0,0,0.18), transparent 70%)',
+            'radial-gradient(320px 220px at 78% 12%, rgba(255,255,255,0.28), transparent 60%)',
+            'radial-gradient(280px 200px at 16% 88%, rgba(0,0,0,0.22), transparent 68%)',
+            'linear-gradient(118deg, transparent 35%, rgba(255,255,255,0.12) 48%, transparent 62%)',
           ].join(', '),
         }}
       />
+      {/* Always-on specular ribbon (wealth sheen) */}
+      <div
+        className="absolute -inset-[180%] pointer-events-none opacity-70 motion-safe:animate-[finely-card-sheen_7s_ease-in-out_infinite]"
+        style={{
+          background:
+            'linear-gradient(105deg, transparent 38%, rgba(255,255,255,0.08) 46%, rgba(255,255,255,0.32) 50%, rgba(255,255,255,0.08) 54%, transparent 62%)',
+          transform: 'rotate(28deg)',
+        }}
+        aria-hidden
+      />
       {isGold && (
         <div
-          className="absolute inset-0 pointer-events-none opacity-[0.18]"
+          className="absolute inset-0 pointer-events-none opacity-[0.22]"
           style={{
             backgroundImage: 'radial-gradient(rgba(0,0,0,0.16) 1px, transparent 1px)',
             backgroundSize: '6px 6px',
@@ -172,23 +187,23 @@ export function CreditCardAsset({
         <>
           <div className="absolute inset-0 pointer-events-none bg-white/[0.06] mix-blend-multiply" />
           <div
-            className="absolute -right-20 top-16 w-[460px] h-[160px] pointer-events-none opacity-80 transition-transform duration-700 ease-out group-hover:translate-x-3"
+            className="absolute -right-20 top-16 w-[520px] h-[180px] pointer-events-none opacity-95 transition-transform duration-700 ease-out group-hover:translate-x-4"
             style={{
               background:
-                'radial-gradient(closest-side at 30% 50%, rgba(255,255,255,0.14), transparent 70%), linear-gradient(135deg, rgba(255,255,255,0.10), rgba(255,255,255,0.00) 55%, rgba(255,255,255,0.10))',
+                'radial-gradient(closest-side at 30% 50%, rgba(255,255,255,0.22), transparent 70%), linear-gradient(135deg, rgba(255,255,255,0.16), rgba(255,255,255,0.00) 55%, rgba(255,255,255,0.14))',
               borderRadius: '999px',
               filter: 'blur(0.2px)',
               transform: 'rotate(-4deg)'
             }}
           />
           {/* Signature strip (subtle) */}
-          <div className="absolute left-5 right-16 top-[128px] h-6 rounded-md bg-white/10 border border-white/[0.08] pointer-events-none opacity-35" />
+          <div className="absolute left-5 right-16 top-[138px] h-6 rounded-md bg-white/12 border border-white/[0.10] pointer-events-none opacity-40" />
         </>
       )}
       {/* Platinum guilloché rings */}
       {isPlatinum && (
         <div
-          className="absolute inset-0 pointer-events-none opacity-[0.22]"
+          className="absolute inset-0 pointer-events-none opacity-[0.28]"
           style={{
             background:
               'radial-gradient(circle at 72% 68%, rgba(15,23,42,0.12) 0 1px, transparent 1px 10px), radial-gradient(circle at 72% 68%, rgba(15,23,42,0.10) 0 1px, transparent 1px 18px)',
@@ -197,22 +212,22 @@ export function CreditCardAsset({
         />
       )}
       {/* Moving specular streak on hover */}
-      <div className="absolute -inset-[200%] bg-gradient-to-r from-transparent via-white/22 to-transparent rotate-[35deg] translate-x-[-110%] group-hover:translate-x-[110%] transition-transform duration-1000 ease-out pointer-events-none" />
+      <div className="absolute -inset-[200%] bg-gradient-to-r from-transparent via-white/38 to-transparent rotate-[35deg] translate-x-[-110%] group-hover:translate-x-[110%] transition-transform duration-1000 ease-out pointer-events-none" />
       {/* Edge thickness illusion */}
-      <div className="absolute inset-0 pointer-events-none rounded-[20px]"
+      <div className="absolute inset-0 pointer-events-none rounded-[22px]"
         style={{
-          boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.10), inset 0 -10px 18px rgba(0,0,0,0.22), inset 0 10px 16px rgba(255,255,255,0.06)'
+          boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.16), inset 0 -12px 22px rgba(0,0,0,0.28), inset 0 12px 18px rgba(255,255,255,0.10)'
         }}
       />
-      <div className="absolute inset-0 pointer-events-none rounded-[20px] opacity-70"
+      <div className="absolute inset-0 pointer-events-none rounded-[22px] opacity-80"
         style={{
-          background: 'linear-gradient(180deg, rgba(255,255,255,0.10), transparent 22%, transparent 78%, rgba(0,0,0,0.25))'
+          background: 'linear-gradient(180deg, rgba(255,255,255,0.16), transparent 22%, transparent 78%, rgba(0,0,0,0.28))'
         }}
       />
       {/* Hologram mark */}
-      <div className="absolute bottom-5 right-5 w-10 h-10 rounded-full opacity-55 pointer-events-none bg-[conic-gradient(from_180deg,#fbbf24,#a78bfa,#22c55e,#38bdf8,#fbbf24)] blur-[0.2px] transition-transform duration-700 ease-out group-hover:scale-110" />
-      <div className="absolute bottom-6 right-6 w-8 h-8 rounded-full opacity-25 pointer-events-none bg-white blur-[0.5px]" />
-      <div className="absolute bottom-5 right-5 w-10 h-10 rounded-full pointer-events-none opacity-0 group-hover:opacity-20 transition-opacity duration-500"
+      <div className="absolute bottom-5 right-5 w-11 h-11 rounded-full opacity-65 pointer-events-none bg-[conic-gradient(from_180deg,#fbbf24,#a78bfa,#22c55e,#38bdf8,#fbbf24)] blur-[0.2px] transition-transform duration-700 ease-out group-hover:scale-110" />
+      <div className="absolute bottom-6 right-6 w-9 h-9 rounded-full opacity-30 pointer-events-none bg-white blur-[0.5px]" />
+      <div className="absolute bottom-5 right-5 w-11 h-11 rounded-full pointer-events-none opacity-0 group-hover:opacity-28 transition-opacity duration-500"
         style={{
           background: 'conic-gradient(from 180deg, #fbbf24, #a78bfa, #22c55e, #38bdf8, #fbbf24)',
           filter: 'hue-rotate(35deg)',
@@ -342,8 +357,9 @@ export function CreditCardAsset({
       </div>
 
       {/* Edge highlight + bevel */}
-      <div className="absolute inset-0 rounded-[20px] ring-1 ring-white/12 pointer-events-none" />
-      <div className="absolute inset-0 rounded-[20px] border border-black/20 pointer-events-none" />
+      <div className="absolute inset-0 rounded-[22px] ring-1 ring-white/18 pointer-events-none" />
+      <div className="absolute inset-0 rounded-[22px] border border-black/20 pointer-events-none" />
+      <div className="absolute inset-px rounded-[21px] ring-1 ring-amber-200/10 pointer-events-none opacity-70" />
     </div>
   );
 }
@@ -366,9 +382,11 @@ export function HeroSection(_props: HeroSectionProps) {
     'Institutional-grade credit architecture for personal, business, debt resolution, tradelines, and capital readiness — concierge execution or sovereign DIY access.'
   ).trim();
 
-  // The card fan is designed on a fixed 520×480 stage. We scale that whole stage
+  // The card fan is designed on a fixed 600×560 stage. We scale that whole stage
   // uniformly to fit the available column width so the cards stay pixel-perfect
   // (no reflow / clipping / squished numbers) on phone and tablet.
+  const CARD_STAGE_W = 600;
+  const CARD_STAGE_H = 560;
   const cardStageSlotRef = useRef<HTMLDivElement>(null);
   const [cardStageScale, setCardStageScale] = useState(1);
   useLayoutEffect(() => {
@@ -376,7 +394,7 @@ export function HeroSection(_props: HeroSectionProps) {
     if (!el || typeof ResizeObserver === 'undefined') return;
     const ro = new ResizeObserver((entries) => {
       const w = entries[0]?.contentRect.width ?? el.clientWidth;
-      if (w > 0) setCardStageScale(Math.min(1, w / 520));
+      if (w > 0) setCardStageScale(Math.min(1, w / CARD_STAGE_W));
     });
     ro.observe(el);
     return () => ro.disconnect();
@@ -477,25 +495,25 @@ export function HeroSection(_props: HeroSectionProps) {
             <div
               ref={cardStageSlotRef}
               className="relative w-full overflow-visible"
-              style={{ height: 480 * cardStageScale }}
+              style={{ height: CARD_STAGE_H * cardStageScale }}
             >
-              <div className="absolute -inset-8 rounded-[3rem] bg-gradient-to-br from-amber-500/10 via-transparent to-amber-600/5 blur-3xl pointer-events-none" />
-              {/* Positioning wrapper — centered on phone/tablet, right-aligned on desktop (unchanged desktop look) */}
-              <div className="absolute top-0 left-1/2 -translate-x-1/2 lg:left-auto lg:right-0 lg:translate-x-6">
+              <div className="absolute -inset-10 rounded-[3rem] bg-gradient-to-br from-amber-500/18 via-amber-200/5 to-amber-600/10 blur-3xl pointer-events-none" />
+              {/* Positioning wrapper — centered on phone/tablet, right-aligned on desktop */}
+              <div className="absolute top-0 left-1/2 -translate-x-1/2 lg:left-auto lg:right-0 lg:translate-x-4">
                 {/* Fixed-size design stage, scaled uniformly to fit the column */}
                 <div
                   className="relative origin-top lg:origin-top-right"
-                  style={{ width: 520, height: 480, transform: `scale(${cardStageScale})` }}
+                  style={{ width: CARD_STAGE_W, height: CARD_STAGE_H, transform: `scale(${cardStageScale})` }}
                 >
                   <div className="finely-card-pedestal" />
-                  <div className="absolute transition-all duration-500 hover:brightness-[1.03] left-0 top-0" style={{ zIndex: 2 }}>
-                    <CreditCardAsset type="gold" className="w-[min(100%,330px)] max-w-[330px] shadow-[0_40px_80px_-24px_rgba(251,191,36,0.35)]" />
+                  <div className="absolute transition-all duration-500 hover:brightness-[1.06] left-0 top-0" style={{ zIndex: 2 }}>
+                    <CreditCardAsset type="gold" className="w-[min(100%,400px)] max-w-[400px] shadow-[0_48px_96px_-24px_rgba(251,191,36,0.48)]" />
                   </div>
-                  <div className="absolute transition-all duration-500 hover:brightness-[1.03] left-0" style={{ top: '47.8%', zIndex: 1 }}>
-                    <CreditCardAsset type="platinum" className="w-[min(100%,330px)] max-w-[330px] shadow-[0_32px_64px_-20px_rgba(255,255,255,0.12)]" />
+                  <div className="absolute transition-all duration-500 hover:brightness-[1.06] left-0" style={{ top: '47.8%', zIndex: 1 }}>
+                    <CreditCardAsset type="platinum" className="w-[min(100%,400px)] max-w-[400px] shadow-[0_40px_80px_-20px_rgba(255,255,255,0.18)]" />
                   </div>
-                  <div className="absolute transition-all duration-500 hover:brightness-[1.03]" style={{ top: '23.9%', left: '30.8%', zIndex: 3 }}>
-                    <CreditCardAsset type="black" className="w-[min(100%,330px)] max-w-[330px] shadow-[0_48px_96px_-28px_rgba(0,0,0,0.75)]" />
+                  <div className="absolute transition-all duration-500 hover:brightness-[1.06]" style={{ top: '23.9%', left: '30.8%', zIndex: 3 }}>
+                    <CreditCardAsset type="black" className="w-[min(100%,400px)] max-w-[400px] shadow-[0_56px_110px_-28px_rgba(0,0,0,0.82)]" />
                   </div>
                 </div>
               </div>
@@ -654,7 +672,7 @@ export function ServicesSection({ onNavigate }: { onNavigate: (page: string) => 
       title: "Personal Credit", 
       desc: "Restore and optimize your personal credit profile for better rates and approvals.",
       accent: 'emerald' as const,
-      path: '/personal-credit',
+      path: '/pricing/personal-credit-restore',
     },
     { 
       icon: DollarSign, 
@@ -993,16 +1011,22 @@ export function MasteryOSSection() {
   const [scoreChange, setScoreChange] = useState(0);
   
   const approvals = [
-    { name: "Derrick M.", bank: "Navy Federal Credit Union", amount: "$85,000", type: "Business Line" },
-    { name: "Monique S.", bank: "PenFed Credit Union", amount: "$42,000", type: "Term Loan" },
-    { name: "Carlos V.", bank: "Alliant Credit Union", amount: "$60,000", type: "Business Card" },
-    { name: "Tanya R.", bank: "First Tech Federal CU", amount: "$75,000", type: "SBA Express" },
-    { name: "Evan P.", bank: "Suncoast Credit Union", amount: "$38,000", type: "Equipment Loan" },
-    { name: "Jasmine L.", bank: "Cross River Bank", amount: "$50,000", type: "Unsecured LOC" },
-    { name: "Noah G.", bank: "Celtic Bank", amount: "$120,000", type: "Startup Funding" },
-    { name: "Alicia B.", bank: "WebBank", amount: "$28,000", type: "Personal Credit" },
-    { name: "Bryan H.", bank: "Blue Ridge Bank", amount: "$35,000", type: "Business Card" },
-    { name: "Kiara D.", bank: "Sutton Bank", amount: "$40,000", type: "ISO Program" },
+    { name: 'Derrick M.', bank: 'Navy Federal Credit Union', amount: '$85,000', type: 'Business Line', location: 'Virginia Beach, VA' },
+    { name: 'Monique S.', bank: 'PenFed Credit Union', amount: '$42,000', type: 'Term Loan', location: 'Alexandria, VA' },
+    { name: 'Carlos V.', bank: 'Alliant Credit Union', amount: '$60,000', type: 'Business Card', location: 'Chicago, IL' },
+    { name: 'Tanya R.', bank: 'First Tech Federal CU', amount: '$75,000', type: 'SBA Express', location: 'Hillsboro, OR' },
+    { name: 'Evan P.', bank: 'Suncoast Credit Union', amount: '$38,000', type: 'Equipment Loan', location: 'Tampa, FL' },
+    { name: 'Jasmine L.', bank: 'Cross River Bank', amount: '$50,000', type: 'Unsecured LOC', location: 'Fort Lee, NJ' },
+    { name: 'Noah G.', bank: 'Celtic Bank', amount: '$120,000', type: 'Startup Funding', location: 'Salt Lake City, UT' },
+    { name: 'Alicia B.', bank: 'WebBank', amount: '$28,000', type: 'Personal Credit', location: 'Salt Lake City, UT' },
+    { name: 'Bryan H.', bank: 'Blue Ridge Bank', amount: '$35,000', type: 'Business Card', location: 'Martinsville, VA' },
+    { name: 'Kiara D.', bank: 'Sutton Bank', amount: '$40,000', type: 'ISO Program', location: 'Attica, OH' },
+    { name: 'Priya N.', bank: 'Live Oak Bank', amount: '$150,000', type: 'SBA 7(a)', location: 'Wilmington, NC' },
+    { name: 'Marcus T.', bank: 'Lendio Network', amount: '$55,000', type: 'Working Capital', location: 'Atlanta, GA' },
+    { name: 'Sofia R.', bank: 'American Express', amount: '$45,000', type: 'Business Charge', location: 'Miami, FL' },
+    { name: 'Andre W.', bank: 'Chase Business', amount: '$70,000', type: 'Ink Business LOC', location: 'Dallas, TX' },
+    { name: 'Helena K.', bank: 'Truist Bank', amount: '$95,000', type: 'Commercial LOC', location: 'Charlotte, NC' },
+    { name: 'Jamal C.', bank: 'Capital One Spark', amount: '$32,000', type: 'Business Card', location: 'McLean, VA' },
   ];
 
   const liveNotifications = [
@@ -1013,16 +1037,19 @@ export function MasteryOSSection() {
   ];
 
   const phoneStories = [
-    { icon: 'trending', title: 'Score movement', line: 'Utilization tuned + reporting optimized', value: '+52 pts', time: 'today' },
-    { icon: 'check', title: 'Dispute result', line: 'Verification failed — item deleted', value: '11 items', time: '48h' },
-    { icon: 'shield', title: 'Identity defense', line: 'Freeze + fraud lock completed', value: 'Secure', time: '10m' },
-    { icon: 'dollar', title: 'Funding', line: 'Approved with high‑approval lender', value: '$75K LOC', time: '1w' },
+    { icon: 'trending', title: 'Restore path', line: 'Round 1 letters ready · score climb tracked', value: 'Start free', time: 'now' },
+    { icon: 'check', title: 'Dispute kit', line: 'Bureau angles + mailing workflow unlocked', value: 'Free guide', time: 'today' },
+    { icon: 'shield', title: 'Debt & summons', line: 'Validation clocks + response playbook', value: 'Get guide', time: 'today' },
+    { icon: 'dollar', title: 'Funding path', line: 'Business credit readiness sequenced', value: 'See path', time: 'next' },
   ];
 
   useEffect(() => {
+    if (typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches) {
+      return;
+    }
     const interval = setInterval(() => {
       setActiveIdx((prev) => (prev + 1) % approvals.length);
-    }, 3500);
+    }, 3800);
     return () => clearInterval(interval);
   }, [approvals.length]);
 
@@ -1047,13 +1074,14 @@ export function MasteryOSSection() {
         <div className="text-center mb-16">
           <Reveal>
             <p className="text-xs font-bold tracking-[0.3em] text-amber-500 uppercase mb-4">
-              <Cpu size={14} className="inline mr-2" /> The Mastery OS
+              <Cpu size={14} className="inline mr-2" /> Full credit solutions
             </p>
             <h2 className="text-3xl lg:text-5xl font-light text-white mb-4">
-              Freedom <span className="text-amber-500">in Your Pocket</span>
+              Restore, dispute, defend, <span className="text-amber-500">fundamp; fund</span>
             </h2>
-            <p className="text-white/50 max-w-2xl mx-auto">
-              Institutional-grade autonomous capital architecture at your fingertips.
+            <p className="text-white/55 max-w-2xl mx-auto">
+              Tablet + phone preview of the partner path — clear next steps for personal restore, debt &amp; summons,
+              and funding readiness. Results vary · not legal advice.
             </p>
           </Reveal>
         </div>
@@ -1063,14 +1091,24 @@ export function MasteryOSSection() {
 
             {/* Device cluster — phone is scoped to the tablet so it rests on it cleanly (no box, no scroll) */}
             <div className="relative w-full max-w-[min(100%,800px)] mx-auto">
+              <div
+                className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[110%] pointer-events-none -z-0"
+                style={{
+                  background:
+                    'radial-gradient(ellipse 50% 45% at 50% 45%, rgba(251,191,36,0.22) 0%, transparent 65%), radial-gradient(ellipse 40% 40% at 75% 60%, rgba(16,185,129,0.2) 0%, transparent 70%)',
+                  filter: 'blur(40px)',
+                }}
+                aria-hidden
+              />
 
               {/* ==================== PREMIUM TABLET MOCKUP ==================== */}
-              <div className="relative w-full aspect-[4/3]">
-              {/* Tablet outer frame - metallic silver */}
+              <div className="relative w-full aspect-[4/3] z-[1]">
+              {/* Tablet outer frame - metallic silver + emerald/gold glow */}
               <div 
                 className="absolute inset-0 rounded-[28px] lg:rounded-[36px] fc-landing-device-bezel"
                 style={{
-                  boxShadow: '0 50px 100px -20px rgba(0,0,0,0.8), 0 30px 60px -10px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.1)'
+                  boxShadow:
+                    '0 0 0 1px rgba(52,211,153,0.35), 0 0 48px -8px rgba(251,191,36,0.45), 0 50px 100px -20px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.1)',
                 }}
               />
               
@@ -1116,16 +1154,16 @@ export function MasteryOSSection() {
                       <Cpu size={16} className="text-black" />
                     </div>
                     <div>
-                      <span className="text-white text-xs lg:text-sm font-semibold">Finely Vault</span>
+                      <span className="text-white text-xs lg:text-sm font-semibold">Partner solutions</span>
                       <div className="flex items-center gap-1.5">
                         <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                        <span className="text-emerald-400 text-[9px] lg:text-[10px]">Live</span>
+                        <span className="text-emerald-400 text-[9px] lg:text-[10px]">Restore · Debt · Funding</span>
                       </div>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <div className="px-2 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/30">
-                      <span className="text-[9px] lg:text-[10px] text-emerald-400 font-semibold">CONNECTED</span>
+                    <div className="px-2 py-1 rounded-full bg-amber-500/20 border border-amber-400/40 shadow-[0_0_16px_-4px_rgba(251,191,36,0.7)]">
+                      <span className="text-[9px] lg:text-[10px] text-amber-200 font-semibold">START FREE</span>
                     </div>
                   </div>
                 </div>
@@ -1135,24 +1173,28 @@ export function MasteryOSSection() {
                 <div className="absolute top-24 lg:top-28 bottom-16 left-0 right-0 flex items-center justify-center pr-0 sm:pr-[80px] md:pr-[100px] lg:pr-[120px]">
                   {approvals.map((app, idx) => (
                     <div 
-                      key={idx}
-                      className={`absolute text-center transition-all duration-700 ease-out ${
-                        idx === activeIdx ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-95 translate-y-4'
+                      key={`${app.name}-${app.bank}`}
+                      className={`absolute text-center transition-all duration-[900ms] ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none ${
+                        idx === activeIdx
+                          ? 'opacity-100 scale-100 translate-y-0 blur-0'
+                          : 'opacity-0 scale-[0.94] translate-y-5 blur-[2px] pointer-events-none'
                       }`}
+                      aria-hidden={idx !== activeIdx}
                     >
-                      <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500/15 border border-emerald-500/40 mb-4 shadow-[0_0_20px_rgba(16,185,129,0.2)]">
+                      <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500/15 border border-emerald-500/40 mb-4 shadow-[0_0_24px_rgba(16,185,129,0.28)]">
                         <CheckCircle2 size={14} className="text-emerald-400" />
                         <span className="text-emerald-400 text-[10px] lg:text-xs font-bold uppercase tracking-wider">Approved</span>
                       </div>
                       <h3 className="text-xl lg:text-3xl font-light text-white mb-1">
                         {app.name} <span className="text-white/60">secured</span>
                       </h3>
-                      <p className="text-3xl lg:text-5xl font-bold text-emerald-400 mb-2">{app.amount}</p>
-                      <div className="flex items-center justify-center gap-2">
-                        <span className="text-white/50 text-xs lg:text-sm">{app.bank}</span>
-                        <span className="text-white/30">•</span>
-                        <span className="text-amber-400/80 text-xs lg:text-sm">{app.type}</span>
+                      <p className="text-3xl lg:text-5xl font-bold text-emerald-400 mb-2 tabular-nums tracking-tight">{app.amount}</p>
+                      <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1 px-2">
+                        <span className="text-white/55 text-xs lg:text-sm">{app.bank}</span>
+                        <span className="text-white/25">•</span>
+                        <span className="text-amber-400/85 text-xs lg:text-sm">{app.type}</span>
                       </div>
+                      <p className="mt-2 text-[10px] lg:text-xs text-white/35 tracking-wide">{app.location}</p>
                     </div>
                   ))}
                 </div>
@@ -1185,12 +1227,13 @@ export function MasteryOSSection() {
             <div 
               className="hidden sm:block absolute bottom-[8%] right-[-5%] sm:right-[-7%] lg:right-[-10%] w-[22%] sm:w-[23%] lg:w-[24%] min-w-[110px] max-w-[185px] z-30"
             >
-              {/* Phone outer frame - titanium style */}
+              {/* Phone outer frame - titanium + glow */}
               <div 
                 className="relative aspect-[9/19.5] rounded-[32px] sm:rounded-[38px] lg:rounded-[44px]"
                 style={{
                   background: 'linear-gradient(145deg, #2d2d2d 0%, #1a1a1a 30%, #252525 70%, #1f1f1f 100%)',
-                  boxShadow: '0 50px 100px -20px rgba(0,0,0,0.9), 0 30px 60px -10px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.08), inset 0 -1px 0 rgba(0,0,0,0.5)'
+                  boxShadow:
+                    '0 0 0 1px rgba(52,211,153,0.4), 0 0 36px rgba(16,185,129,0.45), 0 50px 100px -20px rgba(0,0,0,0.9), inset 0 1px 0 rgba(255,255,255,0.08)',
                 }}
               >
                 {/* Side buttons - left */}
@@ -1227,9 +1270,9 @@ export function MasteryOSSection() {
                   {/* Phone overlay: multi-service success story */}
                   <div className="absolute inset-x-2.5 top-[44px] bottom-3 z-20 rounded-2xl bg-fc-section/75 border border-white/[0.08] backdrop-blur-md p-2.5 flex flex-col gap-2 min-h-0">
                     <div className="flex items-center justify-between">
-                      <div className="text-[9px] uppercase tracking-[0.26em] text-white/60 font-bold">Live outcomes</div>
-                      <div className="px-2 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/25">
-                        <span className="text-[8px] uppercase tracking-widest text-emerald-300 font-bold">active</span>
+                      <div className="text-[9px] uppercase tracking-[0.26em] text-amber-200/90 font-bold">Your next step</div>
+                      <div className="px-2 py-1 rounded-full bg-amber-500/20 border border-amber-400/40 shadow-[0_0_12px_-2px_rgba(251,191,36,0.65)]">
+                        <span className="text-[8px] uppercase tracking-widest text-amber-200 font-bold">claim free</span>
                       </div>
                     </div>
 
@@ -1247,7 +1290,10 @@ export function MasteryOSSection() {
                             <DollarSign size={12} className="text-amber-300" />
                           );
                         return (
-                          <div className="space-y-1.5 min-h-0">
+                          <div
+                            key={`${s.title}-${s.time}`}
+                            className="space-y-1.5 min-h-0 transition-all duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none"
+                          >
                             <div className="flex items-center justify-between gap-3">
                               <div className="inline-flex items-center gap-2 text-white/80">
                                 <span className="w-6 h-6 rounded-full bg-emerald-500/15 border border-emerald-500/25 flex items-center justify-center">
@@ -1443,7 +1489,7 @@ export function MarketplaceCard({ bank, limit, age, price, date, theme = 'platin
 // ============================================================================
 export function TradelineMarketplace({ onAddToCart }: { onAddToCart?: (line: any) => void }) {
   const [version, setVersion] = useState(0);
-  const [remoteSellers, setRemoteSellers] = useState<AuSeller[] | null>(null);
+  const [remoteListings, setRemoteListings] = useState<ApprovedMarketplaceListing[] | null>(null);
   const [remoteLoading, setRemoteLoading] = useState(false);
 
   useEffect(() => {
@@ -1455,12 +1501,19 @@ export function TradelineMarketplace({ onAddToCart }: { onAddToCart?: (line: any
   useEffect(() => {
     let cancelled = false;
     setRemoteLoading(true);
-    void listAuSellersByTenantAsync(getActiveTenantId()).then((sellers) => {
-      if (!cancelled) {
-        setRemoteSellers(sellers);
-        setRemoteLoading(false);
-      }
-    });
+    void listApprovedMarketplaceListingsAsync(getActiveTenantId())
+      .then((rows) => {
+        if (!cancelled) {
+          setRemoteListings(rows);
+          setRemoteLoading(false);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setRemoteListings([]);
+          setRemoteLoading(false);
+        }
+      });
     return () => {
       cancelled = true;
     };
@@ -1502,34 +1555,32 @@ export function TradelineMarketplace({ onAddToCart }: { onAddToCart?: (line: any
   };
 
   const sellerLines = useMemo(() => {
-    const tenantId = getActiveTenantId();
-    const sellers = remoteSellers ?? listAuSellersByTenant(tenantId);
-    const inventory: Array<any> = [];
-    for (const s of sellers) {
-      const contractOk = Boolean(s.contract.acceptedAt);
-      const sellerOk = s.status === 'active' && s.verification.status === 'verified' && contractOk;
-      if (!sellerOk) continue;
-      for (const l of s.listings) {
-        if (l.status !== 'approved') continue;
-        const pick = pickTheme(l.bank);
-        inventory.push({
-          id: `seller:${s.id}:${l.id}`,
-          bank: l.bank,
-          limit: l.limit,
-          age: l.age,
-          basePriceCents: Math.max(0, Math.round(l.priceCents)),
-          date: 'Schedule after intake',
-          theme: pick.theme,
-          cardType: pick.cardType,
-          hot: false,
-          sellerId: s.id,
-          listingId: l.id,
-          source: 'seller',
-        });
-      }
-    }
-    return inventory;
-  }, [remoteSellers, version]);
+    const rows = remoteListings ?? [];
+    return rows.map((l) => {
+      const pick = pickTheme(l.bank);
+      const seats =
+        l.slotsAvailable == null
+          ? 'Schedule after intake'
+          : l.slotsAvailable <= 0
+            ? '0 seats open'
+            : `${l.slotsAvailable} seat${l.slotsAvailable === 1 ? '' : 's'} open`;
+      return {
+        id: `seller:${l.sellerId}:${l.id}`,
+        bank: l.bank,
+        limit: l.limit,
+        age: l.age,
+        basePriceCents: Math.max(0, Math.round(l.priceCents)),
+        date: seats,
+        theme: pick.theme,
+        cardType: pick.cardType,
+        hot: l.slotsAvailable != null && l.slotsAvailable > 0 && l.slotsAvailable <= 2,
+        sellerId: l.sellerId,
+        listingId: l.id,
+        source: 'seller' as const,
+        slotsAvailable: l.slotsAvailable,
+      };
+    });
+  }, [remoteListings]);
 
   const demoLines = [
     { id: 1, bank: 'American Express', limit: '$45,000', age: '12 Years', basePriceCents: 120000, date: '21st', theme: 'platinum' as const, cardType: 'platinum' as const, hot: true },
@@ -1815,7 +1866,7 @@ export function TestimonialDossier({
   const label = resultLabel ?? (amount ? 'Funded' : undefined);
   return (
     <div
-      className={`fc-testimonial-dossier card-lift h-full min-h-[340px] !p-5 sm:!p-6 flex flex-col min-w-0 overflow-hidden ${finelyOsCatalogCard(accent)}`}
+      className={`fc-testimonial-dossier card-lift h-full min-h-0 sm:min-h-[300px] !p-4 sm:!p-6 flex flex-col min-w-0 max-w-full overflow-hidden ${finelyOsCatalogCard(accent)}`}
       data-fc-accent={accent}
     >
       {/* Mini Credit Card Visual */}
@@ -1831,26 +1882,24 @@ export function TestimonialDossier({
         </div>
       )}
 
-      <div className="flex items-center gap-3 mb-4 min-w-0">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 mb-4 min-w-0 w-full">
         <div className="w-10 h-10 shrink-0 rounded-full bg-black/[0.04] border border-black/10 flex items-center justify-center">
           <Star size={16} className="text-amber-700" />
         </div>
-        <div className="min-w-0 flex-1">
-          <p className="text-sm font-semibold truncate">{name}</p>
-          <div className="flex gap-0.5">
+        <div className="min-w-0 flex-1 w-full">
+          <p className="text-sm font-semibold break-words">{name}</p>
+          <div className="flex gap-0.5 mt-1">
             {[...Array(5)].map((_, i) => (
               <Star key={i} size={10} className="text-amber-700 fill-amber-500" />
             ))}
           </div>
-        </div>
-        <div className="ml-auto shrink-0 flex items-center gap-2 max-w-[45%] sm:max-w-none">
           {service ? (
-            <span className="text-[9px] px-2 py-1 rounded-full border border-black/10 bg-white/60 uppercase tracking-widest font-bold whitespace-nowrap opacity-80 truncate">
+            <span className="inline-block mt-2 text-[9px] px-2 py-1 rounded-full border border-black/10 bg-white/60 uppercase tracking-widest font-bold opacity-80">
               {service}
             </span>
           ) : null}
-          <Verified size={16} className="text-emerald-800 shrink-0" />
         </div>
+        <Verified size={16} className="text-emerald-800 shrink-0 self-start sm:self-center" />
       </div>
 
       <p className="text-sm leading-relaxed italic mb-4 opacity-80 break-words">"{review}"</p>
@@ -2167,6 +2216,7 @@ export { LandingFundabilityTrustSection } from './LandingFundabilityTrustSection
 export { LandingHeroOsRefreshSection } from './LandingHeroOsRefreshSection';
 export { LandingFinancingPreapprovalSection } from './LandingFinancingPreapprovalSection';
 export { LandingPathChooserSection } from './LandingPathChooserSection';
+export { LandingCinematicVideoStage } from './LandingCinematicVideoStage';
 export { LandingSolutionsSnapshotSection } from './LandingSolutionsSnapshotSection';
 export { LandingDebtEradicationBand } from './LandingDebtEradicationBand';
 export { LandingAuthorizedUserSection } from './LandingAuthorizedUserSection';

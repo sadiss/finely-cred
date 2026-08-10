@@ -13,6 +13,9 @@ const REQUIRED = [
   'src/pages/agent/AgentHubPage.tsx',
   'src/pages/affiliate/AffiliateHubPage.tsx',
   'src/pages/seller/AuSellerHubPage.tsx',
+  'src/pages/agency/AgencyHubPage.tsx',
+  'src/pages/caseHelp/CaseHelpHubPage.tsx',
+  'src/pages/realEstate/RealEstateHubPage.tsx',
 ];
 
 console.log('Finely Cred — role hub audit\n');

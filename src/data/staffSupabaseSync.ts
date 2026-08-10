@@ -1,8 +1,14 @@
 /** Supabase sync for staff roster (multi-admin parity) — source of truth is staff_members table. */
 import type { PortraitGender, StaffMember } from '../domain/staffMember';
+import { clampStaffShiftBlocks } from '../domain/staffMember';
 import { isSupabaseConfigured, supabase } from '../lib/supabaseClient';
 import { FINELY_TENANT_ID } from '../domain/tenants';
-import { loadStaffRoster, saveStaffRoster, seedStaffRoster, STAFF_ROSTER_SEED } from './staffRoster';
+import {
+  forceStaffShiftPolicyResync,
+  loadStaffRoster,
+  seedStaffRoster,
+  STAFF_ROSTER_SEED,
+} from './staffRoster';
 import { migrateLegacyLocalJson } from './tenantStateRepo';
 
 function rowFromMember(m: StaffMember, tenantId: string) {
@@ -17,13 +23,14 @@ function rowFromMember(m: StaffMember, tenantId: string) {
     avatar_path: m.avatarPath,
     portrait_gender: m.portraitGender,
     bio_line: m.bioLine,
-    shift_blocks: m.shiftBlocks,
+    shift_blocks: clampStaffShiftBlocks(m.shiftBlocks),
     active: m.active,
     updated_at: new Date().toISOString(),
   };
 }
 
 function memberFromRow(row: Record<string, unknown>): StaffMember {
+  const rawBlocks = Array.isArray(row.shift_blocks) ? (row.shift_blocks as StaffMember['shiftBlocks']) : [];
   return {
     id: String(row.id),
     firstName: String(row.first_name ?? ''),
@@ -34,7 +41,7 @@ function memberFromRow(row: Record<string, unknown>): StaffMember {
     avatarPath: String(row.avatar_path ?? ''),
     portraitGender: (row.portrait_gender as PortraitGender) ?? 'neutral',
     bioLine: String(row.bio_line ?? ''),
-    shiftBlocks: Array.isArray(row.shift_blocks) ? (row.shift_blocks as StaffMember['shiftBlocks']) : [],
+    shiftBlocks: clampStaffShiftBlocks(rawBlocks),
     active: row.active !== false,
   };
 }
@@ -82,6 +89,8 @@ export async function syncStaffRosterFromSupabase(args?: { tenantId?: string }):
 
     const members = data.map((row) => memberFromRow(row as Record<string, unknown>));
     seedStaffRoster(members);
+    // Re-apply max-8h seed windows and push corrected shifts (stale Cameron 8–21 rows, etc.).
+    forceStaffShiftPolicyResync();
     return { ok: true, count: members.length };
   } catch (err: unknown) {
     return { ok: false, count: 0, error: (err as Error)?.message ?? String(err) };

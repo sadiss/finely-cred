@@ -6,6 +6,7 @@ import { isAdminEmail } from '../../auth/admin';
 import { getUserDisplayName, getUserEmail, getUserRoleLabel } from '../../auth/userProfile';
 import { UserAvatar } from './UserAvatar';
 import { markSignedOutAndGoHome } from '../navigation/BackToSiteButton';
+import { clearOnboardingProgress } from '../../lib/onboardingProgressStorage';
 import { resolvePostAuthHomePath } from '../../lib/postAuthRouting';
 
 type UserAccountMenuProps = {
@@ -46,6 +47,7 @@ export function UserAccountMenu({ variant = 'default', className = '' }: UserAcc
 
   const logout = () => {
     setOpen(false);
+    clearOnboardingProgress();
     auth.signOut().finally(() => markSignedOutAndGoHome(navigate));
   };
 

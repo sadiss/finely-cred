@@ -14,12 +14,19 @@ import { isFeatureEnabled } from '../../data/settingsRepo';
 import { EntitlementGate } from '../../components/billing/EntitlementGate';
 import { ENTITLEMENT_KEYS } from '../../billing/entitlements';
 import { FinelyOsPageFooter } from '../../features/os/FinelyOsPageFooter';
+import { PartnerRestoreWorkspaceDock } from '../../features/partner/PartnerRestoreWorkspaceDock';
 import { FinelyUnifiedHubLayout, FinelyUnifiedSection } from '../../features/unified/FinelyUnifiedHubLayout';
 import { FinelyNowDoThisStrip } from '../../components/tours/FinelyNowDoThisStrip';
 import { FinelyNoticedStrip } from '../../components/tours/FinelyNoticedStrip';
 import { buildDocumentsNoticedItems } from '../../lib/finelyProactiveSignals';
 import { listLettersByPartner } from '../../data/lettersRepo';
 import { listReportsByPartner } from '../../data/reportsRepo';
+import {
+  EVIDENCE_VAULT_BUCKET_LABELS,
+  EVIDENCE_VAULT_BUCKET_ORDER,
+  evidenceVaultBucket,
+  type EvidenceVaultBucketId,
+} from '../../lib/evidenceVaultGrouping';
 import {
   FINELY_OS_PAGE,
   FINELY_OS_BACK_LINK,
@@ -46,7 +53,7 @@ export default function PartnerDocumentsPage() {
   const [docVersion, setDocVersion] = useState(0);
   const [docNotice, setDocNotice] = useState<string | null>(null);
   const [query, setQuery] = useState('');
-  const [kind, setKind] = useState<'all' | 'screenshot' | 'upload'>('all');
+  const [bucketFilter, setBucketFilter] = useState<'all' | EvidenceVaultBucketId>('all');
   type DocTab = 'upload' | 'vault' | 'intel';
   const [tab, setTab] = useState<DocTab>('upload');
 
@@ -57,12 +64,21 @@ export default function PartnerDocumentsPage() {
   const filteredEvidence = useMemo(() => {
     const q = query.trim().toLowerCase();
     return evidence.filter((e) => {
-      if (kind !== 'all' && e.type !== kind) return false;
+      if (bucketFilter !== 'all' && evidenceVaultBucket(e) !== bucketFilter) return false;
       if (!q) return true;
       const hay = `${e.filename || ''} ${e.caption || ''} ${e.creditorName || ''} ${e.sectionKey || ''}`.toLowerCase();
       return hay.includes(q);
     });
-  }, [evidence, kind, query]);
+  }, [evidence, bucketFilter, query]);
+
+  const bucketCounts = useMemo(() => {
+    const counts = new Map<EvidenceVaultBucketId, number>();
+    for (const e of evidence) {
+      const b = evidenceVaultBucket(e);
+      counts.set(b, (counts.get(b) ?? 0) + 1);
+    }
+    return counts;
+  }, [evidence]);
 
   const evidenceCounts = useMemo(() => {
     const screenshots = evidence.filter((e) => e.type === 'screenshot').length;
@@ -203,11 +219,28 @@ export default function PartnerDocumentsPage() {
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div className="flex flex-wrap items-center gap-2">
                   <div className={FINELY_OS_VIEW_TABS}>
-                    {(['all', 'screenshot', 'upload'] as const).map((k) => (
-                      <button key={k} type="button" onClick={() => setKind(k)} className={finelyOsViewTab(kind === k, 'emerald')}>
-                        {k}
-                      </button>
-                    ))}
+                    <button
+                      type="button"
+                      onClick={() => setBucketFilter('all')}
+                      className={finelyOsViewTab(bucketFilter === 'all', 'emerald')}
+                    >
+                      All
+                    </button>
+                    {EVIDENCE_VAULT_BUCKET_ORDER.map((b) => {
+                      const n = bucketCounts.get(b) ?? 0;
+                      if (!n) return null;
+                      return (
+                        <button
+                          key={b}
+                          type="button"
+                          onClick={() => setBucketFilter(b)}
+                          className={finelyOsViewTab(bucketFilter === b, 'emerald')}
+                          title={EVIDENCE_VAULT_BUCKET_LABELS[b]}
+                        >
+                          {EVIDENCE_VAULT_BUCKET_LABELS[b].replace(/ &.*/, '')} ({n})
+                        </button>
+                      );
+                    })}
                   </div>
                   <div className={FINELY_OS_ENTITY_SUBLABEL}>
                     {filteredEvidence.length} shown / {evidence.length} total
@@ -301,6 +334,7 @@ export default function PartnerDocumentsPage() {
               ) : null}
             </FinelyUnifiedHubLayout>
 
+            <PartnerRestoreWorkspaceDock variant="portal" className="mt-6 sticky bottom-3 z-20" />
             <FinelyOsPageFooter />
           </div>
         </EntitlementGate>

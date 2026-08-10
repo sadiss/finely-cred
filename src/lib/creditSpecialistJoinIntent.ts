@@ -104,6 +104,14 @@ export function clearCreditSpecialistJoinIntent(): void {
   }
 }
 
+/** True when join intent has a tier + both commitment checks — required before account-signup shortcuts. */
+export function isCreditSpecialistJoinReadyForAccountSignup(
+  intent: CreditSpecialistJoinIntent | null | undefined,
+): boolean {
+  if (!intent) return false;
+  return Boolean(intent.tierId && intent.committedMinLeads && intent.understoodFreeLeadsWindow);
+}
+
 /** Append a draft lead (manual entry or CSV row) to the intent's draft list. Dedupes by email. */
 export function addDraftLeadToJoinIntent(
   intent: CreditSpecialistJoinIntent,

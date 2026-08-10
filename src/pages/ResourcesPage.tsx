@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { ArrowRight, BookOpen, Calendar, Film, FileText, Library, ShieldCheck, Sparkles, Trophy } from 'lucide-react';
 import { Navigate, useNavigate, useSearchParams } from 'react-router-dom';
 import { PageShell } from '../components/layout/PageShell';
@@ -28,6 +28,9 @@ import {
   finelyOsLandingContrastSection,
 } from '../features/os/finelyOsLightUi';
 import { LandingSellAtmosphere } from '../components/landing/LandingSellAtmosphere';
+import { TOUR_MANIFEST } from '../config/tourManifest';
+import { FinelyTourPlayer } from '../components/tours/FinelyTourPlayer';
+import type { SiteTourDefinition } from '../domain/siteTourVideos';
 
 const CARD_ICONS: Record<string, React.ComponentType<{ size?: number; className?: string }>> = {
   guides: BookOpen,
@@ -52,6 +55,7 @@ export default function ResourcesPage() {
   const [searchParams] = useSearchParams();
   const auth = useAuth();
   const isAdmin = isAdminEmail(auth.user?.email);
+  const [previewTour, setPreviewTour] = useState<SiteTourDefinition | null>(null);
 
   usePublicSeoMeta({
     title: 'Resources & tools',
@@ -93,7 +97,7 @@ export default function ResourcesPage() {
     <PageShell
       badge="Public"
       title="Resource hub"
-      subtitle="Pick a lane — each card opens a dedicated page. No long scroll puzzle."
+      subtitle="Free guides, credit monitoring partners, and watch-how tours — pick a lane or book a strategy call."
       hideHero
     >
       <div className={`${FINELY_OS_PAGE} fc-senior-simple space-y-0`}>
@@ -185,7 +189,7 @@ export default function ResourcesPage() {
                 Fundability hub
               </button>
               <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => navigate('/enlightenment-session')}>
-                Book a session
+                Book a strategy call
               </button>
             </div>
 
@@ -196,6 +200,67 @@ export default function ResourcesPage() {
         </div>
 
         <DedicatedSheetLinkStrip className="mb-4" />
+
+        <div className="space-y-8 pb-6">
+          <section id="guides" className="fc-scroll-section space-y-3">
+            <h2 className="fc-launch-lane-header">Free guides, credit monitoring, and one-sheets</h2>
+            <p className={`text-sm ${FINELY_OS_ENTITY_BODY}`}>
+              Start with free guides if you&apos;re new. Need a human? Book a strategy call when you&apos;re ready.
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <button type="button" className={FINELY_OS_PRIMARY_BTN} onClick={() => navigate('/resources/guides')}>
+                Open guides <ArrowRight size={14} />
+              </button>
+              <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => navigate('/enlightenment-session')}>
+                Book a strategy call
+              </button>
+            </div>
+          </section>
+
+          <section id="monitoring" className="fc-scroll-section space-y-3">
+            <h2 className="fc-launch-lane-header">Credit monitoring partners</h2>
+            <p className={`text-sm ${FINELY_OS_ENTITY_BODY}`}>
+              Compare monitoring partners and pick the lane that fits your restore plan.
+            </p>
+            <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => navigate('/resources/credit-monitoring')}>
+              Monitoring partners <ArrowRight size={14} />
+            </button>
+          </section>
+
+          <section id="references" className="fc-scroll-section space-y-3">
+            <h2 className="fc-launch-lane-header">References &amp; bookstore</h2>
+            <p className={`text-sm ${FINELY_OS_ENTITY_BODY}`}>
+              Statutes, templates, and bookstore titles — educational only, not legal advice.
+            </p>
+            <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => navigate('/resources/references')}>
+              Open references <ArrowRight size={14} />
+            </button>
+          </section>
+
+          <section id="videos" className="fc-scroll-section space-y-3">
+            <h2 className="fc-launch-lane-header">Watch-how tours</h2>
+            <p className={`text-sm ${FINELY_OS_ENTITY_BODY}`}>
+              Factory watch-how tours — short MP4 walkthroughs for portal and public hubs.
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {TOUR_MANIFEST.slice(0, 4).map((tour) => (
+                <button
+                  key={tour.id}
+                  type="button"
+                  className={FINELY_OS_SECONDARY_BTN}
+                  onClick={() => setPreviewTour(tour)}
+                >
+                  {tour.title}
+                </button>
+              ))}
+              <button type="button" className={FINELY_OS_PRIMARY_BTN} onClick={() => navigate('/resources/videos')}>
+                Full video library <ArrowRight size={14} />
+              </button>
+            </div>
+          </section>
+        </div>
+
+        <FinelyTourPlayer tour={previewTour} open={Boolean(previewTour)} onClose={() => setPreviewTour(null)} allowVoice />
 
         <MarketingStaffChatStrip
           roleId="nurture_concierge"

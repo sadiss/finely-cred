@@ -7,9 +7,13 @@ import { isSupabaseConfigured } from '../lib/supabaseClient';
 import {
   supabaseCreateAuSeller,
   supabaseFindAuSellerByEmail,
+  supabaseListApprovedMarketplaceListings,
   supabaseListAuSellersByTenant,
   supabaseUpsertAuSeller,
 } from './auSellerSupabaseRepo';
+
+/** Approved marketplace row used by `/tradelines` + `/au/marketplace`. */
+export type ApprovedMarketplaceListing = AuSellerListing & { sellerId: string; sellerName?: string };
 
 const KEY = 'finely.au_sellers.v1';
 
@@ -37,6 +41,34 @@ export async function listAuSellersByTenantAsync(tenantId: string): Promise<AuSe
     if (remote.length) return remote;
   }
   return listAuSellersByTenant(tenantId);
+}
+
+/** Local mirror of supabaseListApprovedMarketplaceListings filters (active + verified + approved). */
+export function listApprovedMarketplaceListingsLocal(tenantId: string): ApprovedMarketplaceListing[] {
+  const out: ApprovedMarketplaceListing[] = [];
+  for (const s of listAuSellersByTenant(tenantId)) {
+    if (s.status !== 'active' || s.verification.status !== 'verified') continue;
+    for (const l of s.listings) {
+      if (l.status === 'approved') out.push({ ...l, sellerId: s.id, sellerName: s.fullName });
+    }
+  }
+  return out;
+}
+
+/**
+ * Shared AU marketplace inventory loader for `/tradelines` (AuListingShowcase) and `/au/marketplace`.
+ * Prefers Supabase approved rows; falls back to local verified sellers when remote is empty/unavailable.
+ */
+export async function listApprovedMarketplaceListingsAsync(tenantId: string): Promise<ApprovedMarketplaceListing[]> {
+  if (isSupabaseConfigured) {
+    try {
+      const remote = await supabaseListApprovedMarketplaceListings(tenantId);
+      if (remote.length) return remote;
+    } catch (e) {
+      console.warn('listApprovedMarketplaceListingsAsync supabase', e);
+    }
+  }
+  return listApprovedMarketplaceListingsLocal(tenantId);
 }
 
 export function listAuSellersByTenant(tenantId: string): AuSeller[] {

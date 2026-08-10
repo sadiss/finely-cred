@@ -164,6 +164,7 @@ export function kanbanStageForLead(lead: LeadCapture): LeadKanbanStage {
 
 /** Map kanban stage to lead_ops stage (local CRM). */
 export function leadOpsStageForLead(lead: LeadCapture): import('../domain/leadOps').LeadStage {
+  if (lead.offer === 'enlightenment_session') return 'booked';
   const k = kanbanStageForLead(lead);
   if (k === 'converted') return 'converted';
   if (k === 'qualified') return 'booked';

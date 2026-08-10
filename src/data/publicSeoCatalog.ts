@@ -35,6 +35,13 @@ export const PUBLIC_SEO_CATALOG: PublicSeoRoute[] = [
     hasSchema: true,
   },
   {
+    path: '/resources/videos',
+    title: 'Video library',
+    description:
+      'Finely Cred watch-how tours and resource videos for credit restore, dispute workflows, and funding readiness.',
+    hasSchema: true,
+  },
+  {
     path: '/resources/business-credit-one-sheets',
     title: 'Business Credit Partner One-Sheets',
     description:
@@ -79,6 +86,19 @@ export const PUBLIC_SEO_CATALOG: PublicSeoRoute[] = [
     title: 'Free debt validation guide',
     description: 'Collections validation playbook — FDCPA workflows, summons checklist, and portal preview.',
     hasSchema: true,
+  },
+  {
+    path: '/case-desk-guide',
+    title: 'Case Desk Operator Guide',
+    description:
+      'Free operator handbook for Finely Cred case help — packet anatomy, scope discipline, validation-first doctrine, and complaint ladders.',
+    hasSchema: true,
+  },
+  {
+    path: '/case-desk-guide/read',
+    title: 'Read the Case Desk Operator Guide',
+    description: 'Read every chapter of the Case Desk Operator handbook free in your browser.',
+    hasSchema: false,
   },
   {
     path: '/free-business-guide',
@@ -130,7 +150,7 @@ export const PUBLIC_SEO_CATALOG: PublicSeoRoute[] = [
     hasSchema: true,
   },
   {
-    path: '/personal-credit',
+    path: '/pricing/personal-credit-restore',
     title: 'Personal credit restore',
     description: 'DIY and done-for-you personal credit restore with dispute automation.',
     hasSchema: true,

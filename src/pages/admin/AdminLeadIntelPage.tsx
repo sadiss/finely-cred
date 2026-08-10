@@ -21,5 +21,5 @@ export default function AdminLeadIntelPage() {
     return <Navigate to="/admin/leads?tab=intel" replace />;
   }
 
-  return <Navigate to="/admin/marketing-desk?helper=find" replace />;
+  return <Navigate to="/admin/growth-agents/lead-discovery" replace />;
 }

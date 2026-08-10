@@ -1,4 +1,5 @@
 import type { Bureau, DisputeCandidate, ParsedCreditReport } from '../domain/creditReports';
+import { classifyCollectionOrChargeOff } from '../lib/collectionContactBoard';
 
 function norm(s: string) {
   return (s || '').toLowerCase();
@@ -58,6 +59,7 @@ export function deriveDisputeCandidates(parsed: ParsedCreditReport, reportId?: s
   const out: DisputeCandidate[] = [];
 
   for (const t of parsed.tradelines) {
+    const collLane = classifyCollectionOrChargeOff(t);
     const acctType = getField(t, 'Account Type')?.byBureau ?? {};
     const acctStatus = getField(t, 'Account Status')?.byBureau ?? {};
     const payStatus = getField(t, 'Payment Status')?.byBureau ?? {};
@@ -96,23 +98,35 @@ export function deriveDisputeCandidates(parsed: ParsedCreditReport, reportId?: s
       let statusLabel = 'Requires verification';
 
       const looksLikeCollection =
+        collLane === 'collection' ||
         statusBlob.includes('collection') ||
         typeBlob.includes('collection') ||
         historyCodes.some((x) => {
           const v = norm(x);
           return v.includes('col') || v === 'cl';
         });
-      const looksLikeChargeOff = statusBlob.includes('charge') || historyCodes.some((x) => norm(x) === 'co');
+      const looksLikeChargeOff =
+        collLane === 'charge_off' ||
+        statusBlob.includes('charge') ||
+        statusBlob.includes('charge-off') ||
+        statusBlob.includes('charge off') ||
+        statusBlob.includes('charged') ||
+        historyCodes.some((x) => {
+          const v = norm(x);
+          return v === 'co' || v === 'c/o' || v.includes('charge');
+        });
       const looksLikeRepo = statusBlob.includes('repo') || statusBlob.includes('repossession');
       const looksLikeForeclosure = statusBlob.includes('foreclos');
+      const isCollOrChargeOff = looksLikeCollection || looksLikeChargeOff;
       const looksLikeLate =
-        historyCodes.some((x) => ['30', '60', '90', '120'].includes(norm(x))) ||
-        statusBlob.includes('30') ||
-        statusBlob.includes('60') ||
-        statusBlob.includes('90') ||
-        statusBlob.includes('120') ||
-        statusBlob.includes('late') ||
-        statusBlob.includes('delinq');
+        !isCollOrChargeOff &&
+        (historyCodes.some((x) => ['30', '60', '90', '120'].includes(norm(x))) ||
+          statusBlob.includes('30') ||
+          statusBlob.includes('60') ||
+          statusBlob.includes('90') ||
+          statusBlob.includes('120') ||
+          statusBlob.includes('late') ||
+          statusBlob.includes('delinq'));
 
       if (looksLikeRepo) {
         issueType = 'Repossession';
@@ -122,12 +136,8 @@ export function deriveDisputeCandidates(parsed: ParsedCreditReport, reportId?: s
         issueType = 'Foreclosure';
         code = 'FCRA § 623';
         statusLabel = 'Reporting accuracy review';
-      } else if (looksLikeChargeOff && !looksLikeCollection) {
-        issueType = 'Charge-Off';
-        code = '15 U.S.C. § 1681';
-        statusLabel = 'Metro2 accuracy review';
-      } else if (looksLikeCollection) {
-        issueType = 'Collection';
+      } else if (isCollOrChargeOff) {
+        issueType = 'Collections & charge-offs';
         code = 'FCRA § 623';
         statusLabel = 'Validation required';
       } else if (looksLikeLate) {
@@ -178,7 +188,7 @@ export function deriveDisputeCandidates(parsed: ParsedCreditReport, reportId?: s
           return v ? !isEmptyish(v) : false;
         });
         if (!anyValue) continue;
-        const issueType = s.key === 'collections' ? 'Collection' : sectionToCandidateType(s.key);
+        const issueType = s.key === 'collections' ? 'Collections & charge-offs' : sectionToCandidateType(s.key);
         out.push({
           id: `${reportId || 'report'}_${s.key}_${b}`.replace(/\s+/g, '_'),
           bureau: b,
@@ -192,7 +202,7 @@ export function deriveDisputeCandidates(parsed: ParsedCreditReport, reportId?: s
       }
     } else if (s.table?.rows?.length) {
       // Generic tables (collections, inquiries) — create per-row or per-bureau candidates.
-      const issueType = s.key === 'collections' ? 'Collection' : s.key === 'inquiries' ? 'Inquiry' : sectionToCandidateType(s.key);
+      const issueType = s.key === 'collections' ? 'Collections & charge-offs' : s.key === 'inquiries' ? 'Inquiry' : sectionToCandidateType(s.key);
       const status =
         s.key === 'inquiries'
           ? 'Verify permissible purpose'
@@ -337,7 +347,12 @@ export function deriveDisputeCandidates(parsed: ParsedCreditReport, reportId?: s
   return filtered.filter((c) => {
     const k = `${c.reportId || ''}|${c.bureau}|${c.account}|${c.type}`;
     if (seen.has(k)) return false;
-    if (c.type === 'Collection' && c.id.includes('_collection_') && tradelineAccountBureau.has(`${norm(c.account)}|${c.bureau}`)) return false;
+    if (
+      (c.type === 'Collection' || c.type === 'Collections & charge-offs') &&
+      c.id.includes('_collection_') &&
+      tradelineAccountBureau.has(`${norm(c.account)}|${c.bureau}`)
+    )
+      return false;
     seen.add(k);
     return true;
   });

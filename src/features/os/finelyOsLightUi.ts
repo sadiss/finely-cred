@@ -430,6 +430,32 @@ export const FINELY_OS_PRIMARY_BTN = 'fc-button-brand';
 export const FINELY_OS_SUCCESS_BTN =
   'inline-flex items-center justify-center gap-2 min-w-0 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-3 sm:px-4 py-2 text-[10px] font-black uppercase tracking-wide whitespace-normal text-center leading-snug text-white shadow-md ring-1 ring-emerald-400/30 hover:brightness-110 transition-all disabled:opacity-60';
 
+/** Soft gold/emerald glow CTA — pricing “What’s included” / browse solutions (noticeable, not neon). */
+export const FINELY_OS_GLOW_INCLUDES_BTN =
+  'inline-flex items-center gap-2 rounded-xl border border-amber-400/40 bg-gradient-to-r from-amber-500/18 via-amber-500/10 to-emerald-500/16 px-4 py-2.5 text-xs font-semibold text-amber-50 shadow-[0_0_0_1px_rgba(251,191,36,0.22),0_0_18px_rgba(52,211,153,0.16),0_0_14px_rgba(251,191,36,0.12)] transition hover:border-amber-300/55 hover:shadow-[0_0_0_1px_rgba(251,191,36,0.32),0_0_22px_rgba(52,211,153,0.22),0_0_16px_rgba(251,191,36,0.16)]';
+
+/**
+ * Standalone “What’s included” on solid package cards — champagne metallic fill,
+ * black uppercase weight so it owns the CTA row (never a twin of Select).
+ */
+export const FINELY_OS_INCLUDES_STANDALONE_BTN =
+  'inline-flex w-full items-center justify-center gap-2 rounded-xl border-2 border-[#f3e2a8] bg-gradient-to-r from-[#fff8dc] via-[#efc96a] to-[#c99228] px-4 py-2.5 text-[11px] sm:text-xs font-black uppercase tracking-[0.08em] text-[#1a1400] shadow-[inset_0_1px_0_rgba(255,255,255,0.85),0_0_0_1px_rgba(251,191,36,0.5),0_10px_24px_-8px_rgba(180,120,20,0.7),0_0_22px_rgba(251,191,36,0.32)] transition hover:brightness-105 hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_0_0_1px_rgba(251,191,36,0.6),0_12px_28px_-6px_rgba(180,120,20,0.78),0_0_26px_rgba(251,191,36,0.4)]';
+
+/**
+ * Gold-card Includes — deep ink fill + champagne rim so it still pops on gold solids
+ * (champagne-on-champagne would blend).
+ */
+export const FINELY_OS_INCLUDES_STANDALONE_BTN_ON_GOLD =
+  'inline-flex w-full items-center justify-center gap-2 rounded-xl border-2 border-[#1a1400]/85 bg-gradient-to-r from-[#1a1400] via-[#2a1e08] to-[#14100a] px-4 py-2.5 text-[11px] sm:text-xs font-black uppercase tracking-[0.08em] text-[#f6e2a8] shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_0_0_1px_rgba(26,20,0,0.4),0_10px_24px_-8px_rgba(26,20,0,0.55),0_0_16px_rgba(251,191,36,0.22)] transition hover:brightness-110';
+
+/** Quiet Select on solid package cards — bold emerald CTA (subordinate to What’s included). */
+export const FINELY_OS_PACKAGE_SELECT_BTN =
+  'inline-flex w-full items-center justify-center gap-2 rounded-xl border-2 border-emerald-200/55 bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 px-4 py-2.5 text-[11px] sm:text-xs font-black uppercase tracking-[0.1em] text-white shadow-[0_0_0_1px_rgba(52,211,153,0.35),0_12px_28px_-10px_rgba(16,185,129,0.65),0_0_24px_rgba(52,211,153,0.28)] transition hover:brightness-110 hover:shadow-[0_0_0_1px_rgba(110,231,183,0.55),0_14px_32px_-8px_rgba(16,185,129,0.75),0_0_32px_rgba(52,211,153,0.38)]';
+
+/** Gold-card Select — ink + champagne rim. */
+export const FINELY_OS_PACKAGE_SELECT_BTN_ON_GOLD =
+  'inline-flex w-full items-center justify-center gap-2 rounded-xl border-2 border-[#1a1400]/70 bg-gradient-to-r from-[#1a1400] via-[#2d2208] to-[#14100a] px-4 py-2.5 text-[11px] sm:text-xs font-black uppercase tracking-[0.1em] text-[#f6e2a8] shadow-[0_10px_24px_-10px_rgba(26,20,0,0.55),0_0_20px_rgba(251,191,36,0.22)] transition hover:brightness-110';
+
 export const FINELY_OS_DANGER_BTN =
   'inline-flex items-center justify-center gap-2 min-w-0 rounded-xl border border-rose-500/50 bg-gradient-to-r from-rose-600 to-rose-700 px-3 sm:px-4 py-2 text-[10px] font-black uppercase tracking-wide whitespace-normal text-center leading-snug text-white shadow-md ring-1 ring-rose-400/40 hover:brightness-110 transition-all disabled:opacity-60';
 
@@ -678,11 +704,43 @@ export const FINELY_OS_LANDING_IVORY_BODY = 'text-[15px] sm:text-base leading-re
 export const FINELY_OS_LANDING_IVORY_KICKER =
   'text-[11px] font-black uppercase tracking-[0.28em] text-[#b8860b]';
 
+/** Dark ink on `finelyOsIvorySolidTile` / ivory `PageShell` profile bands */
+export const FINELY_OS_IVORY_ENTITY_LABEL =
+  'text-[10px] font-bold uppercase tracking-[0.14em] text-[#0a1628]/55';
+export const FINELY_OS_IVORY_ENTITY_BODY = FINELY_OS_LANDING_IVORY_BODY;
+export const FINELY_OS_IVORY_ENTITY_VALUE = 'font-semibold tracking-tight text-[#0a1628]';
+export const FINELY_OS_IVORY_ENTITY_INPUT = 'fc-input fc-ivory-field mt-2';
+
 
 /** Light-theme black contrast band — punchy section breaks on aurora shell */
 export function finelyOsLightContrastBand(padding = 'py-12 px-6 sm:px-8 lg:px-10') {
   return `fc-light-contrast-band -mx-4 sm:-mx-6 lg:-mx-8 2xl:-mx-10 ${padding}`;
 }
+
+/** Ivory lane tiles — solid dashboard-style cards (no radial “tent” wash). */
+export function finelyOsIvorySolidTile(accent: FinelyOsPublicAccent = 'emerald') {
+  const bar: Record<FinelyOsPublicAccent, string> = {
+    violet: 'border-l-[5px] border-l-violet-500',
+    emerald: 'border-l-[5px] border-l-emerald-500',
+    amber: 'border-l-[5px] border-l-amber-500',
+    fuchsia: 'border-l-[5px] border-l-fuchsia-500',
+    sky: 'border-l-[5px] border-l-sky-500',
+    rose: 'border-l-[5px] border-l-rose-500',
+  };
+  return `fc-ivory-solid-tile rounded-xl border border-[#0a1628]/10 bg-white shadow-[0_10px_36px_-22px_rgba(10,22,40,0.28)] ${bar[accent]} p-5 sm:p-6`;
+}
+
+export function finelyOsRestoreLaneHeroShell() {
+  return 'fc-restore-solutions-hero relative overflow-hidden rounded-[1.35rem] border border-emerald-400/30 bg-gradient-to-br from-[#050a10] via-[#0a1420] to-[#0f1c2e] p-6 sm:p-8 lg:p-10 shadow-[0_28px_72px_-32px_rgba(0,0,0,0.72),0_0_56px_-16px_rgba(52,211,153,0.28)]';
+}
+
+export const FINELY_OS_RESTORE_HERO_KICKER =
+  'text-[11px] font-black uppercase tracking-[0.28em] text-amber-200/95';
+
+export const FINELY_OS_RESTORE_HERO_TITLE =
+  'text-3xl sm:text-4xl lg:text-[2.85rem] font-bold tracking-tight text-white leading-[1.08]';
+
+export const FINELY_OS_RESTORE_HERO_BODY = 'text-base sm:text-lg leading-relaxed text-white/78 max-w-3xl';
 
 /** Light-theme hero panel with dual accent wash */
 export function finelyOsLightHeroPanel() {

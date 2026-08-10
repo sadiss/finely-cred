@@ -10,6 +10,7 @@ import { usePartnerSession } from '../../auth/PartnerSessionContext';
 import { EntitlementGate } from '../../components/billing/EntitlementGate';
 import { ENTITLEMENT_KEYS } from '../../billing/entitlements';
 import { FinelyOsPageFooter } from '../../features/os/FinelyOsPageFooter';
+import { PartnerRestoreWorkspaceDock } from '../../features/partner/PartnerRestoreWorkspaceDock';
 import { FinelyUnifiedHubLayout } from '../../features/unified/FinelyUnifiedHubLayout';
 import { PartnerLaneCoachPanel } from '../../components/chat/PartnerLaneCoachPanel';
 import { DebtLaneHandoffStrip } from '../../components/debt/DebtLaneHandoffStrip';
@@ -118,13 +119,14 @@ function AddCaseForm({
 export default function PartnerDebtPage() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
+  const [caseRefresh, setCaseRefresh] = useState(0);
   const { partner } = usePartnerSession();
   const [showAdd, setShowAdd] = useState(false);
   const [addName, setAddName] = useState('');
   const [addType, setAddType] = useState<'debt' | 'summons'>('debt');
   const [addAmount, setAddAmount] = useState('');
   const [addCaseNumber, setAddCaseNumber] = useState('');
-  const cases = useMemo(() => (partner ? listDebtByPartner(partner.id) : []), [partner]);
+  const cases = useMemo(() => (partner ? listDebtByPartner(partner.id) : []), [partner, caseRefresh]);
   const openCount = cases.filter((c) => c.status === 'open' || c.status === 'in_review').length;
   const resolvedCount = cases.filter((c) => c.status === 'resolved').length;
   const disputedCount = cases.filter((c) => c.status === 'disputed').length;
@@ -373,7 +375,15 @@ export default function PartnerDebtPage() {
 
               {tab === 'overview' && (
                 <div className="space-y-4">
-                  {partner ? <SmartProofUploader partner={partner} email={partner.profile.email} uploadContext="debt" compact /> : null}
+                  {partner ? (
+                    <SmartProofUploader
+                      partner={partner}
+                      email={partner.profile.email}
+                      uploadContext="debt"
+                      compact
+                      onUploaded={() => setCaseRefresh((v) => v + 1)}
+                    />
+                  ) : null}
                   {cases.length === 0 ? (
                     <div className={`${FINELY_OS_LUXURY_EMPTY} text-center space-y-4`}>
                       <Scale className="mx-auto text-violet-400/70" size={48} />
@@ -533,6 +543,7 @@ export default function PartnerDebtPage() {
               )}
             </FinelyUnifiedHubLayout>
 
+            <PartnerRestoreWorkspaceDock variant="portal" className="mt-6 sticky bottom-3 z-20" />
             <FinelyOsPageFooter />
           </div>
         </EntitlementGate>

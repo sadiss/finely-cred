@@ -1,7 +1,10 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import { Bot, Play, Sparkles, Zap } from 'lucide-react';
+import { Bot, ExternalLink, Play, Sparkles, Zap } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { converseWithFinelyAi } from '../../lib/conversationalAi';
 import { FinelyOsAIChatPanel, type FinelyOsChatMessage } from '../os/FinelyOsAIChatPanel';
+import { FinelyOsAlertBanner } from '../os/FinelyOsAlertBanner';
+import { FINELY_OS_SECONDARY_BTN } from '../os/finelyOsLightUi';
 import type { IntelResult } from './leadIntelModel';
 import type { ProspectTarget } from '../../domain/crmProspects';
 import {
@@ -16,8 +19,11 @@ function msgId() {
   return `li_${Math.random().toString(16).slice(2)}_${Date.now()}`;
 }
 
+const CALEB_FIND_HREF = '/admin/marketing-desk?helper=find';
+const WORKER_TICK_FN = 'lead-intel-worker-tick';
+
 const GREETING =
-  'I am your Lead Intelligence Director. I already know the full playbook — swarm, geo scans, CRM routing, CMO handoff. Ask anything; I will answer and execute (or delegate) what is safe.';
+  'I am your Lead Intelligence copilot — strategy, staging, and safe internal steps. Live prospect search runs in Caleb Find (Marketing Desk) via the lead-intel edge (Serper). Overnight “deep swarm” queues are simulation / ops cadence unless GROWTH_WORKER_LIVE=true on the lead-intel-worker-tick function. Ask what to find, import, or launch; I will not pretend fake swarm counters are real leads.';
 
 type Props = {
   target: ProspectTarget;
@@ -28,6 +34,7 @@ type Props = {
 };
 
 export function LeadIntelCopilot({ target, query, results, selectedUrls, importedCount }: Props) {
+  const navigate = useNavigate();
   const [busy, setBusy] = useState(false);
   const [execBusy, setExecBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -54,7 +61,14 @@ export function LeadIntelCopilot({ target, query, results, selectedUrls, importe
         selectedCount: selectedUrls.length,
         importedCount,
         topResults: top,
-        executionReady: ['start_deep_swarm', 'geo_scan', 'stage_playbook', 'import_hot_leads'],
+        executionReady: [
+          'live_find_caleb_marketing_desk',
+          'lead_intel_edge_search',
+          'worker_tick_lead_intel_worker_tick',
+          'simulation_swarm_queue_only',
+          'stage_playbook',
+          'import_hot_leads_admin_confirm',
+        ],
       },
       null,
       2,
@@ -128,6 +142,30 @@ export function LeadIntelCopilot({ target, query, results, selectedUrls, importe
 
   return (
     <div className="space-y-4">
+      <FinelyOsAlertBanner
+        tone="warning"
+        message={`Deep swarm / Overnight50 job queues are simulation by default — not multi-hour live scraping. Real finds: Caleb Find (Marketing Desk) or Live Lead Engine hunt below. Background ticks: Supabase function ${WORKER_TICK_FN} (simulation until GROWTH_WORKER_LIVE=true + SERPER on lead-intel).`}
+      />
+      <div className="flex flex-wrap gap-2">
+        <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => navigate(CALEB_FIND_HREF)}>
+          Caleb Find · Marketing Desk
+        </button>
+        <button
+          type="button"
+          className={FINELY_OS_SECONDARY_BTN}
+          onClick={() => document.getElementById('lead-hunt')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+        >
+          Live hunt card
+        </button>
+        <a
+          href="https://supabase.com/dashboard/project/_/functions"
+          target="_blank"
+          rel="noreferrer"
+          className={`${FINELY_OS_SECONDARY_BTN} inline-flex items-center gap-2 no-underline`}
+        >
+          {WORKER_TICK_FN} <ExternalLink size={12} />
+        </a>
+      </div>
       {steps.length > 0 ? (
         <div className="rounded-2xl border border-fuchsia-500/20 bg-fuchsia-500/5 p-4">
           <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
@@ -151,7 +189,12 @@ export function LeadIntelCopilot({ target, query, results, selectedUrls, importe
       ) : null}
 
       <div className="flex justify-end">
-        <button type="button" disabled={busy || execBusy} onClick={() => void send(draft || 'Execute deep swarm and stage growth playbook now', true)} className="inline-flex items-center gap-2 rounded-xl border border-fuchsia-400/30 bg-fuchsia-500/10 px-4 py-2 text-[10px] font-black uppercase tracking-wider text-fuchsia-100 disabled:opacity-50">
+        <button
+          type="button"
+          disabled={busy || execBusy}
+          onClick={() => void send(draft || 'Stage growth playbook and queue simulation swarm only — remind me to run Caleb Find for live Serper', true)}
+          className="inline-flex items-center gap-2 rounded-xl border border-fuchsia-400/30 bg-fuchsia-500/10 px-4 py-2 text-[10px] font-black uppercase tracking-wider text-fuchsia-100 disabled:opacity-50"
+        >
           <Zap size={14} /> Ask + auto-run safe steps
         </button>
       </div>
@@ -159,7 +202,7 @@ export function LeadIntelCopilot({ target, query, results, selectedUrls, importe
       <FinelyOsAIChatPanel
         icon={Sparkles}
         title="Lead Intelligence Director"
-        subtitle="Answers + executes: deep swarm, geo scans, CMO playbooks, CRM routing."
+        subtitle="Strategy + safe internal steps. Live search = Caleb Find / lead-intel. Swarm queue = simulation unless worker live."
         messages={messages}
         draft={draft}
         onDraftChange={setDraft}
@@ -167,15 +210,21 @@ export function LeadIntelCopilot({ target, query, results, selectedUrls, importe
         busy={busy || execBusy}
         error={err}
         placeholder="What should we find, import, and launch?"
-        emptyMessage="Ask anything — I know the full playbook and can delegate to the swarm."
+        emptyMessage="Ask for find strategy, staging, or playbooks — use Caleb Find for live Serper results."
         quickPrompts={[
-          { label: 'Deep swarm now', prompt: 'Start deep multi-hour lead intel swarm across all cities and execute geo scans.' },
+          {
+            label: 'Live find path',
+            prompt: 'Where should I run live prospect search (Caleb Find vs lead-intel edge) and what query should I use first?',
+          },
           { label: 'Import strategy', prompt: 'Which prospects should I import first and route into CRM sequences?' },
           { label: 'Outreach + CMO', prompt: 'Draft outreach and stage a CMO playbook for this target lane — then execute what is safe.' },
-          { label: 'Run everything', prompt: 'Execute full discovery: swarm, geo, playbook, comms queue — approval-first.' },
+          {
+            label: 'Simulation swarm',
+            prompt: 'Queue simulation deep-swarm jobs only and explain what lead-intel-worker-tick does when GROWTH_WORKER_LIVE is off.',
+          },
         ]}
-        onQuickPrompt={(p) => void send(p, p.includes('Execute') || p.includes('Start deep'))}
-        footerHint={`${results.length} results · ${selectedUrls.length} selected · Swarm-ready`}
+        onQuickPrompt={(p) => void send(p, p.includes('stage a CMO') || p.includes('simulation deep-swarm'))}
+        footerHint={`${results.length} results · ${selectedUrls.length} selected · Live find → Caleb Find`}
       />
     </div>
   );

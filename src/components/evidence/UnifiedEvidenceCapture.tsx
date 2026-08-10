@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   ArrowRight,
   Camera,
@@ -31,6 +31,7 @@ import { ingestUploadedEvidence, type IngestUploadResult } from '../../lib/inges
 import {
   allPresetsFromGroups,
   documentTypeGroupsForContext,
+  guessUploadIntentFromFile,
   type DocumentTypeGroup,
   type UploadIntentId,
   type UploadPresetChip,
@@ -168,8 +169,10 @@ export function UnifiedEvidenceCapture({
   const [scanMode, setScanMode] = useState(true);
   const [cameraOpen, setCameraOpen] = useState(false);
   const [dragOver, setDragOver] = useState(false);
+  const [staged, setStaged] = useState<PendingThumb[]>([]);
   const [pending, setPending] = useState<PendingThumb[]>([]);
   const [result, setResult] = useState<IngestUploadResult | null>(null);
+  const [saveNotice, setSaveNotice] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
 
   const [scrapeBusy, setScrapeBusy] = useState(false);
@@ -188,6 +191,20 @@ export function UnifiedEvidenceCapture({
   const allPresets = useMemo(() => allPresetsFromGroups(groups), [groups]);
   const preset = allPresets.find((p) => p.id === intent);
   const effectiveCaption = caption.trim() || preset?.caption || 'Uploaded document';
+  const activeDebtCaseId = debtCaseId || debt?.id;
+  const stayInDebtWorkflow = uploadContext === 'debt' && Boolean(activeDebtCaseId);
+
+  useEffect(() => {
+    const blockBrowserFileNavigation = (e: DragEvent) => {
+      e.preventDefault();
+    };
+    window.addEventListener('dragover', blockBrowserFileNavigation);
+    window.addEventListener('drop', blockBrowserFileNavigation);
+    return () => {
+      window.removeEventListener('dragover', blockBrowserFileNavigation);
+      window.removeEventListener('drop', blockBrowserFileNavigation);
+    };
+  }, []);
 
   const reports = useMemo(
     () => reportsProp ?? (partner.id ? listReportsByPartner(partner.id) : []),
@@ -200,7 +217,8 @@ export function UnifiedEvidenceCapture({
     const c = effectiveCaption.toLowerCase();
     if (intent === 'bureau_response' || c.includes('bureau')) return 'bureau_mail';
     if (intent === 'affidavit' || c.includes('affidavit')) return 'creditor_letter';
-    if (intent === 'summons' || intent === 'court_filing' || c.includes('summons')) return 'creditor_letter';
+    if (intent === 'summons' || intent === 'docket' || intent === 'court_filing' || c.includes('summons') || c.includes('docket'))
+      return 'creditor_letter';
     if (intent === 'id_document' || c.includes('driver') || c.includes('passport') || c.includes('license')) return 'id_card';
     if (intent === 'ssn_card' || c.includes('ssn') || c.includes('social security')) return 'ssn_card';
     return 'general';
@@ -211,6 +229,29 @@ export function UnifiedEvidenceCapture({
     setCaption(p.caption);
     setScannerOverride(p.scanner);
     setResult(null);
+    setSaveNotice(null);
+  };
+
+  const applyIntentGuessFromFile = (file: File) => {
+    if (intent) return;
+    const guessed = guessUploadIntentFromFile(caption, file.name);
+    if (guessed) {
+      const chip = allPresets.find((p) => p.id === guessed);
+      if (chip) {
+        setIntent(chip.id);
+        if (!caption.trim()) setCaption(chip.caption);
+        setScannerOverride(chip.scanner);
+      }
+      return;
+    }
+    if (uploadContext === 'debt' || uploadContext === 'foreclosure' || uploadContext === 'repossession') {
+      const docket = allPresets.find((p) => p.id === 'docket');
+      if (docket && /docket|roa|register|summons|complaint|court/i.test(file.name)) {
+        setIntent(docket.id);
+        if (!caption.trim()) setCaption(docket.caption);
+        setScannerOverride(docket.scanner);
+      }
+    }
   };
 
   const revokePending = (items: PendingThumb[]) => {
@@ -383,21 +424,40 @@ export function UnifiedEvidenceCapture({
     }
   };
 
+  const inferIntentFromFile = (file: File, forcedIntent?: UploadIntentId | null): UploadIntentId | undefined => {
+    if (forcedIntent) return forcedIntent;
+    if (intent) return intent;
+    const guessed = guessUploadIntentFromFile(effectiveCaption, file.name);
+    if (guessed) return guessed;
+    if (uploadContext !== 'debt' && uploadContext !== 'foreclosure' && uploadContext !== 'repossession') {
+      return undefined;
+    }
+    const hay = `${file.name} ${effectiveCaption}`.toLowerCase();
+    if (/docket|register of actions|case history|\broa\b/.test(hay)) return 'docket';
+    if (/summons|complaint/.test(hay) && !/answer/.test(hay)) return 'summons';
+    if (/affidavit|sworn|notary/.test(hay)) return 'affidavit';
+    if (/collector|validation notice|fdcpa|collection letter/.test(hay)) return 'collection_notice';
+    if (/motion|discovery|court order|judgment/.test(hay)) return 'court_filing';
+    return undefined;
+  };
+
   const ingestOne = async (
     file: File,
-    opts?: { skipScan?: boolean; captionOverride?: string; runScrapeToo?: boolean },
+    opts?: { skipScan?: boolean; captionOverride?: string; runScrapeToo?: boolean; intentOverride?: UploadIntentId },
   ) => {
     const { item, file: finalFile } = await persistFile(file, opts);
     const enriched = { ...item, caption: opts?.captionOverride?.trim() || effectiveCaption };
+    const resolvedIntent = inferIntentFromFile(finalFile, opts?.intentOverride ?? intent);
     const res = await ingestUploadedEvidence({
       partnerId: partner.id,
       item: enriched,
       file: finalFile,
       email,
-      intent: intent ?? undefined,
+      intent: resolvedIntent ?? undefined,
       disputeCaseId,
-      debtCaseId,
+      debtCaseId: activeDebtCaseId,
       bankruptcyCaseId,
+      uploadContext,
     });
     setResult(res);
     onUploaded?.(res);
@@ -407,22 +467,24 @@ export function UnifiedEvidenceCapture({
     return res;
   };
 
-  const processFiles = async (files: File[], opts?: { skipScan?: boolean }) => {
+  const processFiles = async (
+    files: File[],
+    opts?: { skipScan?: boolean; intentOverride?: UploadIntentId },
+  ) => {
     if (!files.length) return;
     setBusy(true);
     setErr(null);
+    setSaveNotice(null);
     const thumbs: PendingThumb[] = files.map((file) => ({
       id: newId('pend'),
       file,
       url: file.type.startsWith('image/') ? URL.createObjectURL(file) : '',
       status: 'queued' as const,
     }));
-    setPending((prev) => {
-      revokePending(prev.filter((p) => p.status === 'done' || p.status === 'error'));
-      return thumbs;
-    });
+    setPending(thumbs);
 
     try {
+      let lastResult: IngestUploadResult | null = null;
       for (let i = 0; i < thumbs.length; i++) {
         const t = thumbs[i]!;
         setPending((prev) => prev.map((p) => (p.id === t.id ? { ...p, status: 'uploading' } : p)));
@@ -434,10 +496,11 @@ export function UnifiedEvidenceCapture({
               ? `${baseCap} — ${i + 1}/${thumbs.length}`
               : baseCap;
         try {
-          await ingestOne(t.file, {
+          lastResult = await ingestOne(t.file, {
             skipScan: opts?.skipScan,
             captionOverride: cap,
             runScrapeToo: i === thumbs.length - 1,
+            intentOverride: opts?.intentOverride,
           });
           setPending((prev) => prev.map((p) => (p.id === t.id ? { ...p, status: 'done' } : p)));
         } catch (e: unknown) {
@@ -446,16 +509,58 @@ export function UnifiedEvidenceCapture({
           setErr(msg);
         }
       }
+      if (lastResult) {
+        setSaveNotice(
+          lastResult.filedMessage.replace(/\*\*/g, '') ||
+            `Saved to vault — ${lastResult.profile.label}.`,
+        );
+        window.dispatchEvent(new CustomEvent('finely:store', { detail: { key: 'evidence' } }));
+      }
+      setStaged((prev) => {
+        revokePending(prev);
+        return [];
+      });
     } finally {
       setBusy(false);
     }
+  };
+
+  const queueFiles = (files: File[]) => {
+    if (!files.length) return;
+    setErr(null);
+    setResult(null);
+    setSaveNotice(null);
+    applyIntentGuessFromFile(files[0]!);
+    const thumbs: PendingThumb[] = files.map((file) => ({
+      id: newId('pend'),
+      file,
+      url: file.type.startsWith('image/') ? URL.createObjectURL(file) : '',
+      status: 'queued' as const,
+    }));
+    setStaged((prev) => [...prev, ...thumbs]);
+  };
+
+  const confirmSaveToVault = () => {
+    if (!staged.length || busy) return;
+    const guessed = intent ?? guessUploadIntentFromFile(caption, staged[0]!.file.name) ?? undefined;
+    if (!guessed) {
+      setErr('Pick a document type above so we file this in the right vault section — then tap Save to vault.');
+      return;
+    }
+    if (!intent) {
+      const chip = allPresets.find((p) => p.id === guessed);
+      setIntent(guessed);
+      if (chip && !caption.trim()) setCaption(chip.caption);
+    }
+    const files = staged.map((s) => s.file);
+    void processFiles(files, { intentOverride: guessed });
   };
 
   const onDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setDragOver(false);
     const list = Array.from(e.dataTransfer.files || []);
-    if (list.length) void processFiles(list);
+    if (list.length) queueFiles(list);
   };
 
   const explainField = (f: ScrapedLitigationField) => {
@@ -534,11 +639,7 @@ export function UnifiedEvidenceCapture({
             : 'Align your document — we crop, enhance, classify, and scrape after capture.'
         }
         onSaveFiles={async ({ files }) => {
-          const baseCap = caption.trim() || effectiveCaption;
-          await processFiles(files, { skipScan: true });
-          if (baseCap && files.length > 1) {
-            /* captions applied inside processFiles via effectiveCaption */
-          }
+          queueFiles(files);
           setCaption('');
         }}
       />
@@ -558,8 +659,14 @@ export function UnifiedEvidenceCapture({
           </div>
         ) : (
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <span className={`${FINELY_OS_ENTITY_SUBLABEL} text-emerald-200/90`}>Evidence capture</span>
-            <span className="text-[10px] text-white/45">Vault + scrape · one unit</span>
+            <span className={`${FINELY_OS_ENTITY_SUBLABEL} text-emerald-200/90`}>
+              {uploadContext === 'debt' ? 'Debt & docket upload' : 'Evidence capture'}
+            </span>
+            <span className="text-[10px] text-white/45">
+              {uploadContext === 'debt'
+                ? 'Summons, docket, collector mail — stays in Debt Center'
+                : 'Vault + scrape · one unit'}
+            </span>
           </div>
         )}
 
@@ -623,6 +730,8 @@ export function UnifiedEvidenceCapture({
               onKeyDown={(e) => {
                 if (e.key === 'Enter' || e.key === ' ') fileRef.current?.click();
               }}
+              onClick={() => fileRef.current?.click()}
+              onDragEnter={(e) => e.preventDefault()}
               onDragOver={(e) => {
                 e.preventDefault();
                 setDragOver(true);
@@ -637,10 +746,12 @@ export function UnifiedEvidenceCapture({
             >
               <div className="inline-flex items-center justify-center gap-2 text-emerald-100 font-semibold text-sm">
                 {busy ? <Loader2 size={18} className="animate-spin" /> : <FileUp size={18} />}
-                {busy ? 'Uploading…' : 'Drag & drop files — or use buttons below'}
+                {busy ? 'Uploading…' : staged.length ? `${staged.length} file(s) ready — confirm type & save` : 'Drag & drop files — or use buttons below'}
               </div>
               <p className={`mt-2 text-xs ${FINELY_OS_ENTITY_BODY}`}>
-                Multi-file · PDF · images · video · HTML. Camera scan for phone-quality capture.
+                {uploadContext === 'debt'
+                  ? 'Pick Docket / ROA or Summons above, then drop your PDF — we file to this case and scrape fields here.'
+                  : 'Multi-file · PDF · images · video · HTML. Camera scan for phone-quality capture.'}
               </p>
               <input
                 ref={fileRef}
@@ -652,7 +763,7 @@ export function UnifiedEvidenceCapture({
                 onChange={(e) => {
                   const list = Array.from(e.target.files || []);
                   e.target.value = '';
-                  if (list.length) void processFiles(list);
+                  if (list.length) queueFiles(list);
                 }}
               />
               <input
@@ -665,7 +776,7 @@ export function UnifiedEvidenceCapture({
                 onChange={(e) => {
                   const list = Array.from(e.target.files || []);
                   e.target.value = '';
-                  if (list.length) void processFiles(list);
+                  if (list.length) queueFiles(list);
                 }}
               />
             </div>
@@ -708,52 +819,98 @@ export function UnifiedEvidenceCapture({
               Scan-style enhance (photos of letters)
             </label>
 
-            {pending.length > 0 ? (
-              <div className="flex flex-wrap gap-2">
-                {pending.map((p) => (
-                  <div
-                    key={p.id}
-                    className="relative w-16 h-16 rounded-lg border border-white/15 bg-black/40 overflow-hidden shrink-0"
-                    title={p.error || p.file.name}
-                  >
-                    {p.url ? (
-                      <img src={p.url} alt="" className="w-full h-full object-cover" />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-[9px] text-white/50 p-1 text-center">
-                        PDF
-                      </div>
-                    )}
+            {(staged.length > 0 || pending.length > 0) ? (
+              <div className="space-y-2">
+                <p className={`${FINELY_OS_ENTITY_SUBLABEL} text-[10px]`}>
+                  {staged.length ? 'Ready to save' : 'Saving…'}
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {(staged.length ? staged : pending).map((p) => (
                     <div
-                      className={`absolute inset-x-0 bottom-0 text-[8px] font-bold text-center py-0.5 ${
-                        p.status === 'done'
-                          ? 'bg-emerald-600/80'
-                          : p.status === 'error'
-                            ? 'bg-rose-600/80'
-                            : p.status === 'uploading'
-                              ? 'bg-amber-600/80'
-                              : 'bg-black/70'
-                      }`}
+                      key={p.id}
+                      className="relative w-16 h-16 rounded-lg border border-white/15 bg-black/40 overflow-hidden shrink-0"
+                      title={p.error || p.file.name}
                     >
-                      {p.status}
-                    </div>
-                    {p.status === 'done' || p.status === 'error' ? (
-                      <button
-                        type="button"
-                        className="absolute top-0.5 right-0.5 rounded-full bg-black/70 p-0.5 text-white/80"
-                        onClick={() => {
-                          setPending((prev) => {
-                            const next = prev.filter((x) => x.id !== p.id);
-                            if (p.url) URL.revokeObjectURL(p.url);
-                            return next;
-                          });
-                        }}
-                        aria-label="Dismiss preview"
+                      {p.url ? (
+                        <img src={p.url} alt="" className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-[9px] text-white/50 p-1 text-center">
+                          PDF
+                        </div>
+                      )}
+                      <div
+                        className={`absolute inset-x-0 bottom-0 text-[8px] font-bold text-center py-0.5 ${
+                          p.status === 'done'
+                            ? 'bg-emerald-600/80'
+                            : p.status === 'error'
+                              ? 'bg-rose-600/80'
+                              : p.status === 'uploading'
+                                ? 'bg-amber-600/80'
+                                : 'bg-black/70'
+                        }`}
                       >
-                        <X size={10} />
-                      </button>
+                        {p.status}
+                      </div>
+                      {p.status === 'queued' && staged.length > 0 ? (
+                        <button
+                          type="button"
+                          className="absolute top-0.5 right-0.5 rounded-full bg-black/70 p-0.5 text-white/80"
+                          onClick={() => {
+                            setStaged((prev) => {
+                              const next = prev.filter((x) => x.id !== p.id);
+                              if (p.url) URL.revokeObjectURL(p.url);
+                              return next;
+                            });
+                          }}
+                          aria-label="Remove from queue"
+                        >
+                          <X size={10} />
+                        </button>
+                      ) : null}
+                      {p.status === 'done' || p.status === 'error' ? (
+                        <button
+                          type="button"
+                          className="absolute top-0.5 right-0.5 rounded-full bg-black/70 p-0.5 text-white/80"
+                          onClick={() => {
+                            setPending((prev) => {
+                              const next = prev.filter((x) => x.id !== p.id);
+                              if (p.url) URL.revokeObjectURL(p.url);
+                              return next;
+                            });
+                          }}
+                          aria-label="Dismiss preview"
+                        >
+                          <X size={10} />
+                        </button>
+                      ) : null}
+                    </div>
+                  ))}
+                </div>
+                {staged.length > 0 ? (
+                  <div className="flex flex-wrap items-center gap-2">
+                    <button
+                      type="button"
+                      disabled={busy || staged.length === 0}
+                      onClick={confirmSaveToVault}
+                      className={`${FINELY_OS_PRIMARY_BTN} disabled:opacity-50`}
+                    >
+                      {busy ? (
+                        <>
+                          <Loader2 size={14} className="animate-spin" /> Saving…
+                        </>
+                      ) : (
+                        <>
+                          <CheckCircle2 size={14} /> Save to vault ({staged.length})
+                        </>
+                      )}
+                    </button>
+                    {!intent ? (
+                      <span className={`text-[11px] ${FINELY_OS_ENTITY_BODY} text-amber-200/90`}>
+                        Select document type first.
+                      </span>
                     ) : null}
                   </div>
-                ))}
+                ) : null}
               </div>
             ) : null}
           </div>
@@ -780,6 +937,7 @@ export function UnifiedEvidenceCapture({
             <Loader2 size={16} className="animate-spin" /> Identifying document and filing…
           </div>
         ) : null}
+        {saveNotice ? <p className={FINELY_OS_NOTICE_SUCCESS}>{saveNotice}</p> : null}
         {err ? <p className={`${compact ? 'text-xs' : 'text-sm'} text-red-300`}>{err}</p> : null}
 
         {result ? (
@@ -804,9 +962,12 @@ export function UnifiedEvidenceCapture({
               </div>
             </div>
             <div className="flex flex-wrap gap-2">
+              <button type="button" className={FINELY_OS_PRIMARY_BTN} onClick={() => navigate('/portal/documents')}>
+                Open evidence vault <ArrowRight size={14} />
+              </button>
               <button
                 type="button"
-                className={FINELY_OS_PRIMARY_BTN}
+                className={FINELY_OS_SECONDARY_BTN}
                 onClick={() => {
                   void openBlobRefInNewTab({
                     blobRef: result.evidence.blobRef,
@@ -818,17 +979,26 @@ export function UnifiedEvidenceCapture({
               >
                 <Eye size={14} /> View document
               </button>
-              <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => navigate(result.profile.primaryRoute)}>
-                {result.profile.primaryRouteLabel} <ArrowRight size={14} />
-              </button>
-              {result.routing.actions.slice(0, 3).map((a) => (
-                <button key={a.id} type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => navigate(a.path)}>
-                  {a.label}
+              {stayInDebtWorkflow ? (
+                <button
+                  type="button"
+                  className={FINELY_OS_SECONDARY_BTN}
+                  onClick={() => navigate(`/portal/debt/${activeDebtCaseId}`)}
+                >
+                  Continue on this case <ArrowRight size={14} />
                 </button>
-              ))}
-              <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => navigate('/portal/documents')}>
-                Evidence vault
-              </button>
+              ) : (
+                <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => navigate(result.profile.primaryRoute)}>
+                  {result.profile.primaryRouteLabel} <ArrowRight size={14} />
+                </button>
+              )}
+              {!stayInDebtWorkflow
+                ? result.routing.actions.slice(0, 3).map((a) => (
+                    <button key={a.id} type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => navigate(a.path)}>
+                      {a.label}
+                    </button>
+                  ))
+                : null}
             </div>
             <p className={FINELY_OS_NOTICE_SUCCESS}>{result.routing.summary}</p>
           </div>

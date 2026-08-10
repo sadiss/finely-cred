@@ -192,6 +192,26 @@ export function getAffiliatePathById(id: string): AffiliatePath | undefined {
   return AFFILIATE_PATHS.find((p) => p.id === id);
 }
 
+/** Hub deepen band — affiliate is referral-only (not in RolePageId work-split map). */
+export const AFFILIATE_WORK_SPLIT = {
+  headline: 'You refer partners. Finely delivers the packages and tracks payouts.',
+  youDo: [
+    'Share your tagged apply / pricing links',
+    'Attribute traffic with campaigns so payouts stay clean',
+    'Model commissions before you pitch a package',
+  ],
+  finelyRuns: [
+    'Partner onboarding, restore / build delivery, and dispute tooling',
+    'Attribution, payout batches, and Denefit residual tracking',
+    'Co-marketing kits and education library updates',
+  ],
+  notYourJob: [
+    'You do not run partner dispute files or letter studios',
+    'You do not process payments or underwriting decisions',
+    'You do not invent payout math — the published % stack is SSOT',
+  ],
+} as const;
+
 export const AFFILIATE_OFFERINGS = [
   {
     title: 'Tracked referral links',

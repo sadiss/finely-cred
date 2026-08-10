@@ -10,7 +10,6 @@ import {
   FileText,
   Gavel,
   Scale,
-  ScrollText,
   Send,
   ShieldCheck,
   Trash2,
@@ -22,6 +21,8 @@ import type { EvidenceItem } from '../../domain/evidence';
 import type { Bureau } from '../../domain/creditReports';
 import { bureauFullName } from '../../utils/bureaus';
 import { LetterFullPreviewModal } from './LetterFullPreviewModal';
+import { LetterBodyEditorModal } from './LetterBodyEditorModal';
+import { FinelyOsTypedDeleteDialog } from '../../features/os/FinelyOsTypedDeleteDialog';
 import {
   FINELY_OS_ENTITY_BODY,
   FINELY_OS_ENTITY_SUBLABEL,
@@ -140,6 +141,7 @@ export type SavedLetterCardProps = {
   onArchive?: () => void;
   onDelete?: () => void;
   onResumeStudio?: () => void;
+  onEdit?: () => void;
   canMail?: boolean;
   mailDisabled?: boolean;
   pdfDisabled?: boolean;
@@ -157,12 +159,15 @@ export function SavedLetterCard({
   onArchive,
   onDelete,
   onResumeStudio,
+  onEdit,
   canMail = false,
   mailDisabled = false,
   pdfDisabled = false,
 }: SavedLetterCardProps) {
   const [detailOpen, setDetailOpen] = useState(Boolean(defaultSnapshotOpen || highlighted));
   const [textOpen, setTextOpen] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
   const meta = typeMeta(letter.type);
   const Icon = meta.icon;
   const hasPdf = Boolean(letter.pdfBlobRef);
@@ -185,11 +190,21 @@ export function SavedLetterCard({
   const delivery = fmtDate(letter.mailing?.expectedDeliveryDate);
   const toneChip = statusTone(letter.status);
 
-  const openPreview = () => {
+  const openViewPdf = () => {
     if (hasPdf || letter.body) {
       setDetailOpen(false);
       setTextOpen(true);
     }
+  };
+
+  const startEdit = () => {
+    setDetailOpen(false);
+    setTextOpen(false);
+    if (onEdit) {
+      onEdit();
+      return;
+    }
+    setEditOpen(true);
   };
 
   useEffect(() => {
@@ -199,13 +214,6 @@ export function SavedLetterCard({
     }
   }, [autoOpenPreview, hasPdf, letter.body]);
 
-  const handleOpenContent = () => {
-    if (hasPdf && onOpenPdf) {
-      onOpenPdf();
-      return;
-    }
-    openPreview();
-  };
 
   useEffect(() => {
     if (!highlighted) return;
@@ -334,7 +342,7 @@ export function SavedLetterCard({
               {canOpenContent ? (
                 <button
                   type="button"
-                  onClick={openPreview}
+                  onClick={openViewPdf}
                   className={`${finelyOsDeckTile('fuchsia')} w-full !min-h-0 p-4 text-left hover:brightness-105`}
                 >
                   <div className="flex items-center justify-between gap-3">
@@ -343,9 +351,9 @@ export function SavedLetterCard({
                         <FileText size={18} />
                       </div>
                       <div className="min-w-0">
-                        <div className={`text-sm font-black ${FINELY_OS_ENTITY_VALUE}`}>Preview generated letter</div>
+                        <div className={`text-sm font-black ${FINELY_OS_ENTITY_VALUE}`}>View PDF</div>
                         <div className={`text-xs ${FINELY_OS_ENTITY_BODY}`}>
-                          {hasPdf ? 'Full PDF preview in viewer' : 'Formatted letter text'}
+                          {hasPdf ? 'Full letter with screenshots in PDF viewer' : 'No PDF yet — edit or resume studio'}
                           {letter.pdfFilename ? ` · ${letter.pdfFilename}` : ''}
                         </div>
                       </div>
@@ -362,14 +370,24 @@ export function SavedLetterCard({
               ) : null}
 
               <div className="flex flex-wrap gap-2">
-                {onOpenPdf ? (
+                {onOpenPdf && hasPdf ? (
                   <button
                     type="button"
-                    onClick={handleOpenContent}
-                    disabled={pdfDisabled || !canOpenContent}
+                    onClick={() => onOpenPdf()}
+                    disabled={pdfDisabled}
                     className={`${FINELY_OS_PRIMARY_BTN} !py-2.5 !px-4 !text-sm disabled:opacity-45`}
                   >
-                    <Download size={16} /> {hasPdf ? 'Open PDF' : 'View letter'}
+                    <Download size={16} /> Open PDF
+                  </button>
+                ) : null}
+                {canOpenContent ? (
+                  <button type="button" onClick={openViewPdf} className={`${FINELY_OS_SECONDARY_BTN} !py-2.5 !px-4 !text-sm`}>
+                    <Eye size={16} /> View PDF
+                  </button>
+                ) : null}
+                {(onEdit || letter.body || !hasPdf) ? (
+                  <button type="button" onClick={startEdit} className={`${FINELY_OS_SECONDARY_BTN} !py-2.5 !px-4 !text-sm`}>
+                    <FileText size={16} /> Edit
                   </button>
                 ) : null}
                 {canMail && onMail ? (
@@ -382,11 +400,6 @@ export function SavedLetterCard({
                     <Send size={16} /> Mail letter
                   </button>
                 ) : null}
-                {canOpenContent ? (
-                  <button type="button" onClick={openPreview} className={`${FINELY_OS_SECONDARY_BTN} !py-2.5 !px-4 !text-sm`}>
-                    <ScrollText size={16} /> Preview
-                  </button>
-                ) : null}
                 {onResumeStudio && !hasPdf ? (
                   <button type="button" onClick={onResumeStudio} className={`${FINELY_OS_SECONDARY_BTN} !py-2.5 !px-4 !text-sm`}>
                     <FileText size={16} /> Resume Studio
@@ -397,16 +410,19 @@ export function SavedLetterCard({
                     <Archive size={14} /> Archive
                   </button>
                 ) : null}
-                {onDelete ? (
+              </div>
+
+              {onDelete ? (
+                <div className="pt-2 mt-2 border-t border-white/10">
                   <button
                     type="button"
-                    onClick={onDelete}
-                    className="inline-flex items-center gap-2 rounded-xl border border-red-500/25 bg-red-500/10 px-3 py-2 text-[10px] font-black uppercase tracking-widest text-red-100 hover:bg-red-500/15"
+                    onClick={() => setDeleteOpen(true)}
+                    className="inline-flex items-center gap-2 rounded-xl border border-red-500/20 bg-red-500/5 px-3 py-2 text-[10px] font-black uppercase tracking-widest text-red-200/90 hover:bg-red-500/10"
                   >
-                    <Trash2 size={14} /> Delete
+                    <Trash2 size={14} /> Delete letter…
                   </button>
-                ) : null}
-              </div>
+                </div>
+              ) : null}
 
               {letter.mailing?.to ? (
                 <div className="flex flex-wrap items-center gap-2 text-[11px] text-white/50">
@@ -424,9 +440,30 @@ export function SavedLetterCard({
       )
         : null}
 
-      {textOpen && (letter.body || letter.pdfBlobRef) ? (
-        <LetterFullPreviewModal letter={letter} evidence={evidence} onClose={() => setTextOpen(false)} />
+      {textOpen ? (
+        <LetterFullPreviewModal
+          letter={letter}
+          onClose={() => setTextOpen(false)}
+          onOpenPdfTab={onOpenPdf && hasPdf ? () => onOpenPdf() : undefined}
+          onEdit={startEdit}
+        />
       ) : null}
+
+      {editOpen ? (
+        <LetterBodyEditorModal letter={letter} open={editOpen} onClose={() => setEditOpen(false)} />
+      ) : null}
+
+      <FinelyOsTypedDeleteDialog
+        open={deleteOpen}
+        title="Delete this letter?"
+        description="This permanently removes the letter and stored PDF from the vault. This cannot be undone."
+        entityLabel={letter.title}
+        onClose={() => setDeleteOpen(false)}
+        onConfirm={() => {
+          setDeleteOpen(false);
+          onDelete?.();
+        }}
+      />
     </>
   );
 }

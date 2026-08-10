@@ -14,11 +14,14 @@ import {
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { PageShell } from '../components/layout/PageShell';
 import { CreditSpecialistGuideActions } from '../components/creditSpecialist/CreditSpecialistGuideActions';
-import { CreditSpecialistPricingTiers } from '../components/creditSpecialist/CreditSpecialistPricingTiers';
+import { CareerPriceCardGrid, type CareerPriceCardOption } from '../components/careers/CareerPriceCard';
+import type { CareerAccent } from '../components/careers/careerUi';
 import {
   CS_OFFER,
   creditSpecialistAccountSignupUrl,
   getCreditSpecialistOfferTier,
+  getCreditSpecialistPlanBullets,
+  listPublicCreditSpecialistOfferTiers,
   type CreditSpecialistOfferTierId,
 } from '../config/creditSpecialistOffer';
 import { CS } from '../config/creditSpecialistProgram';
@@ -35,6 +38,7 @@ import {
   addDraftLeadToJoinIntent,
   defaultCreditSpecialistJoinIntent,
   formatCreditSpecialistJoinIntentNote,
+  isCreditSpecialistJoinReadyForAccountSignup,
   loadCreditSpecialistJoinIntent,
   minLeadsRequiredWithBonus,
   removeDraftLeadFromJoinIntent,
@@ -71,16 +75,22 @@ import {
   finelyOsGlowField,
 } from '../features/os/finelyOsLightUi';
 
-type StepId = 'welcome' | 'tier' | 'commit' | 'leads' | 'profile' | 'done';
+type StepId = 'tier' | 'commit' | 'leads' | 'profile' | 'done';
 
 const STEPS: CareerProgressStep[] = [
-  { id: 'welcome', label: 'Welcome', resultLabel: 'See what you unlock' },
-  { id: 'tier', label: 'Tier', resultLabel: 'Lock in your keep %' },
+  { id: 'tier', label: 'Tier', resultLabel: 'Pick your keep %' },
   { id: 'commit', label: 'Commit', resultLabel: 'Unlock full Specialist Hub' },
   { id: 'leads', label: 'Leads', resultLabel: 'Get a head start on your leads' },
   { id: 'profile', label: 'Profile', resultLabel: 'Two minutes to your account' },
   { id: 'done', label: 'Done', resultLabel: 'Create your account' },
 ];
+
+const TIER_ACCENT: Record<CreditSpecialistOfferTierId, CareerAccent> = {
+  cs_foundation: 'sky',
+  cs_builder: 'gold',
+  cs_pro: 'emerald',
+  cs_elite: 'navy',
+};
 
 const formLabel = `block ${FINELY_OS_ENTITY_LABEL} mb-1`;
 const formInput = `${FINELY_OS_ENTITY_INPUT.replace('mt-2 ', '')} ${finelyOsGlowField('amber')}`;
@@ -116,7 +126,8 @@ export default function CreditSpecialistJoinPage() {
     path: CS_OFFER.joinPath,
   });
 
-  const [step, setStep] = useState<StepId>('welcome');
+  const tiers = useMemo(() => listPublicCreditSpecialistOfferTiers(), []);
+  const [step, setStep] = useState<StepId>('tier');
   const [cardEligibility, setCardEligibility] = useState(() => getDigitalInviteCardEligibilityForRole('cs'));
   const [intent, setIntent] = useState<CreditSpecialistJoinIntent>(() =>
     defaultCreditSpecialistJoinIntent({
@@ -179,9 +190,26 @@ export default function CreditSpecialistJoinPage() {
 
   const draftEmailOk = useMemo(() => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(draftEmail.trim()), [draftEmail]);
 
+  const tierOptions: CareerPriceCardOption[] = tiers.map((t) => ({
+    id: t.id,
+    name: t.name,
+    tagline: t.tagline,
+    badge: t.badge,
+    priceLabel: `${t.keepPctLabel} keep`,
+    priceSubLabel: 'revenue share · no platform fee',
+    bullets: getCreditSpecialistPlanBullets(t),
+    accent: TIER_ACCENT[t.id],
+  }));
+
   const persistIntent = (next: CreditSpecialistJoinIntent) => {
     setIntent(next);
     saveCreditSpecialistJoinIntent(next);
+  };
+
+  const selectTier = (id: string) => {
+    const tier = getCreditSpecialistOfferTier(id);
+    if (!tier) return;
+    persistIntent({ ...intent, tierId: tier.id });
   };
 
   const goReadGuide = () => navigate(CS_GUIDE_READ_PATH);
@@ -348,10 +376,8 @@ export default function CreditSpecialistJoinPage() {
 
   const primaryCta = (() => {
     switch (step) {
-      case 'welcome':
-        return { label: 'Confirm my tier', onCta: goNext, ready: true };
       case 'tier':
-        return { label: `Continue with ${selectedTier?.name ?? 'tier'}`, onCta: goNext, ready: Boolean(intent.tierId) };
+        return { label: 'Continue', onCta: goNext, ready: Boolean(intent.tierId) };
       case 'commit':
         return {
           label: 'Unlock full Specialist Hub',
@@ -367,7 +393,11 @@ export default function CreditSpecialistJoinPage() {
           ready: profileOk && status !== 'sending',
         };
       case 'done':
-        return { label: 'Create account', onCta: () => navigate(signupUrl), ready: true };
+        return {
+          label: 'Create account',
+          onCta: () => navigate(signupUrl),
+          ready: isCreditSpecialistJoinReadyForAccountSignup(intent),
+        };
       default:
         return { label: 'Continue', onCta: goNext, ready: true };
     }
@@ -437,34 +467,22 @@ export default function CreditSpecialistJoinPage() {
           <div className={status === 'error' ? FINELY_OS_NOTICE_ERROR : FINELY_OS_NOTICE_SUCCESS}>{statusMsg}</div>
         ) : null}
 
-        {step === 'welcome' && (
-          <section className={`${finelyOsCatalogCard('amber')} !p-4 space-y-4`}>
-            <h2 className={FINELY_OS_ENTITY_TITLE}>Welcome — here’s the deal in plain English</h2>
-            {selectedTier ? (
-              <div className="rounded-xl border-2 border-emerald-400/40 bg-emerald-500/10 p-4 space-y-1">
-                <div className="text-xs font-bold uppercase tracking-wide text-emerald-300">Your selected tier</div>
-                <div className="text-lg font-black text-white">{selectedTier.name}</div>
-                <p className={`${FINELY_OS_ENTITY_BODY} text-xs`}>
-                  You keep <strong className="text-emerald-300">{selectedTier.keepPctLabel}</strong> — {selectedTier.priceHint}
-                </p>
-              </div>
-            ) : (
-              <p className={FINELY_OS_ENTITY_BODY}>
-                Finely Cred Credit Specialists run partner files on our OS. There is no flat platform fee. You unlock full
-                education, methods, and tools when you commit to bringing partners — starting with{' '}
-                <strong className={FINELY_OS_ENTITY_VALUE}>{intent.minLeadsRequired} leads</strong> inside a clear{' '}
-                <strong className={FINELY_OS_ENTITY_VALUE}>{CS_OFFER.freeLeadsWindowDays}-day</strong> window.
+        {step === 'tier' && (
+          <section className="space-y-4">
+            <div className={`${finelyOsCatalogCard('amber')} !p-4 space-y-3`}>
+              <h2 className={FINELY_OS_ENTITY_TITLE}>
+                {tierFromUrl ? 'Your tier is ready — continue when it looks right' : 'Pick your tier'}
+              </h2>
+              <p className={`${FINELY_OS_ENTITY_BODY} text-xs`}>
+                {tierFromUrl
+                  ? 'We pre-selected this from your link. Change it below if you want a different keep %, then continue.'
+                  : `No platform fee — transparent revenue share. Every level includes the ${intent.minLeadsRequired}-lead / ${CS_OFFER.freeLeadsWindowDays}-day commitment.`}
               </p>
-            )}
-            <div>
-              <p className={`${FINELY_OS_ENTITY_BODY} text-xs font-bold uppercase tracking-wide text-white/60 mb-2`}>
-                What unlocks when you finish
-              </p>
-              <div className="grid sm:grid-cols-3 gap-3">
+              <div className="grid sm:grid-cols-3 gap-2">
                 {[
                   { t: 'Access', d: 'CRM, disputes, vault, Specialist Hub' },
                   { t: 'Education', d: 'Academy + free playbook guide' },
-                  { t: 'Income path', d: 'Revenue share — illustrative, not guaranteed' },
+                  { t: 'Income path', d: 'Revenue share — illustrative only' },
                 ].map((x) => (
                   <div key={x.t} className="rounded-xl border border-white/10 bg-black/25 p-3">
                     <div className="text-sm font-bold text-white">{x.t}</div>
@@ -473,42 +491,23 @@ export default function CreditSpecialistJoinPage() {
                 ))}
               </div>
             </div>
-            <div className="flex flex-wrap gap-2">
-              <button type="button" onClick={goNext} className={FINELY_OS_PRIMARY_BTN}>
-                Continue — confirm my tier <ArrowRight size={14} />
-              </button>
-              <button type="button" onClick={() => navigate(CS_OFFER.pricingPath)} className={FINELY_OS_SECONDARY_BTN}>
-                Review pricing first
-              </button>
-            </div>
-          </section>
-        )}
-
-        {step === 'tier' && (
-          <section className="space-y-4">
-            <div className={`${finelyOsCatalogCard('amber')} !p-4 space-y-1`}>
-              <h2 className={FINELY_OS_ENTITY_TITLE}>
-                {tierFromUrl ? 'Confirm your tier' : 'Pick your tier'}
-              </h2>
-              <p className={`${FINELY_OS_ENTITY_BODY} text-xs`}>
-                {tierFromUrl
-                  ? 'We pre-selected this from your link — confirm it or pick a different level below.'
-                  : 'No platform fee — you keep a transparent % from each tier. Every level includes the same lead commitment.'}
-              </p>
-            </div>
             {selectedTier ? (
               <FinelyOsAlertBanner
                 tone="success"
-                message={`Great choice — ${selectedTier.name} keeps you ~${selectedTier.keepPctLabel}.`}
+                message={`${selectedTier.name} — you keep ~${selectedTier.keepPctLabel}.`}
               />
             ) : null}
-            <CreditSpecialistPricingTiers
-              selectedTierId={intent.tierId}
-              onSelectTier={(tier) => persistIntent({ ...intent, tierId: tier.id })}
+            <CareerPriceCardGrid
+              options={tierOptions}
+              selectedId={intent.tierId}
+              onSelect={selectTier}
+              selectLabel="Join as Credit Specialist"
+              confirmLabel="Selected"
+              columns={4}
             />
             <div className="flex flex-wrap gap-2">
-              <button type="button" onClick={goBack} className={FINELY_OS_SECONDARY_BTN}>
-                Back
+              <button type="button" onClick={() => navigate(CS_OFFER.pricingPath)} className={FINELY_OS_SECONDARY_BTN}>
+                Review pricing hub
               </button>
               <button
                 type="button"
@@ -516,7 +515,7 @@ export default function CreditSpecialistJoinPage() {
                 onClick={goNext}
                 className={`${FINELY_OS_PRIMARY_BTN} disabled:opacity-50 disabled:cursor-not-allowed`}
               >
-                Continue with {selectedTier?.name ?? 'tier'} <ArrowRight size={14} />
+                Continue <ArrowRight size={14} />
               </button>
             </div>
           </section>
@@ -871,9 +870,15 @@ export default function CreditSpecialistJoinPage() {
               </li>
             </ol>
             <div className="flex flex-wrap gap-2">
-              <button type="button" onClick={() => navigate(signupUrl)} className={FINELY_OS_PRIMARY_BTN}>
-                Create account <ArrowRight size={14} />
-              </button>
+              {isCreditSpecialistJoinReadyForAccountSignup(intent) ? (
+                <button type="button" onClick={() => navigate(signupUrl)} className={FINELY_OS_PRIMARY_BTN}>
+                  Create account <ArrowRight size={14} />
+                </button>
+              ) : (
+                <button type="button" onClick={() => setStep('tier')} className={FINELY_OS_PRIMARY_BTN}>
+                  Finish tier + commitment first <ArrowRight size={14} />
+                </button>
+              )}
               <button type="button" onClick={() => navigate(CS_OFFER.guidePath)} className={FINELY_OS_SECONDARY_BTN}>
                 <BookOpen size={14} /> Open specialist guide
               </button>

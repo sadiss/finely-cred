@@ -69,9 +69,9 @@ const EXAMPLE_LETTER_PAGE: GeneratedGuidePage = {
       heading: 'How to use this draft',
       paragraphs: [
         'Do not send this letter as written. Send this letter as structured. The opening establishes that a real person with real consequences pulled a real report; the body isolates one account and points at specific fields; the close asks for two concrete things. That skeleton is what survives intake.',
-        'Replace every bracket with your facts. If a sentence does not describe something true about your file, delete it rather than softening it.',
+        'Replace every bracket with your facts. If a sentence does not describe something true about your file, delete it rather than softening it. Honesty is sharper than polish.',
       ],
-      annotation: 'Read it out loud before you print it. If it sounds like a form, rewrite the opening.',
+      annotation: 'Read it out loud before you print it. If it sounds like a form, rewrite the opening until it sounds like you.',
     },
     {
       heading: 'Round 1 — bureau dispute',
@@ -105,7 +105,8 @@ const OVERVIEW_PAGE: GeneratedGuidePage = {
       heading: 'The whole method on one page',
       paragraphs: [
         'This is the Finely Cred method: identify one target, choose your lane, write in your own words, attach the minimum proof that carries the claim, then follow up with round discipline. Five steps, each one expanded into its own page later in this guide.',
-        'The order is not decorative. Choosing a lane before you have screenshots produces a theory you cannot support. Writing before you have chosen a lane produces a letter that argues four things at once. Following up before you have read their response produces Round 1 sent twice.',
+        'The order is not decorative — it is how leverage is built. Choosing a lane before you have screenshots produces a theory you cannot support. Writing before you have chosen a lane produces a letter that argues four things at once. Following up before you have read their response produces Round 1 sent twice.',
+        'Solution first: finish each step with an artifact in your folder. Feeling finished is not finishing.',
       ],
     },
     {
@@ -133,12 +134,11 @@ const OVERVIEW_PAGE: GeneratedGuidePage = {
       ],
       evidence: {
         label: 'Round discipline',
-        text: 'One tradeline per letter. One lane per letter. One bureau per envelope. This is the rule that makes everything else work.',
+        text: 'One tradeline per letter. One lane per letter. One bureau per envelope. This is the rule that makes everything else work. Results vary · not legal advice.',
       },
     },
   ],
 };
-
 /** Reader-only chapter framing for pages that come from shared modules. */
 const READER_META: Record<string, { kicker?: string; accent?: DisputeGuideAccent; readMinutes?: number }> = {
   'step-1': { kicker: 'Step 01 · Target', accent: 'sky', readMinutes: 5 },
@@ -178,7 +178,7 @@ export const DISPUTE_LETTER_GUIDE_PROGRAMMATIC_PAGES: GeneratedGuidePage[] = [
     sections: [
       {
         paragraphs: [
-          'This guide is educational material only — not legal advice. Laws and bureau procedures change. Consult a licensed attorney for legal strategy, especially if you receive a summons or judgment.',
+          'This guide is educational material only — not legal advice and not legal representation. Laws and bureau procedures change. Consult a licensed attorney for legal strategy, especially if you receive a summons or judgment. Finely Cred does not guarantee lawsuit or dispute outcomes.',
           'Finely Cred provides tools and workflows; outcomes depend on facts, documentation, and timing. No result is guaranteed. Results vary · not legal advice · funding subject to underwriting.',
         ],
       },

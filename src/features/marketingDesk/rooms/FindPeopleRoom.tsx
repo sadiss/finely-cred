@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Check, Loader2, Moon, Radar, Settings2, X } from 'lucide-react';
+import { Check, ChevronDown, ChevronUp, Loader2, Moon, Radar, Settings2, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import {
   FINELY_OS_ENTITY_BODY,
@@ -21,9 +21,12 @@ import {
   getMarketingFindLastRun,
   getMarketingFindReadiness,
   getMarketingFindSchedule,
+  getMarketingFindSuggestedQuery,
+  clearMarketingFindSuggestedQuery,
   huntForMarketingReview,
   listMarketingFindLaneOptions,
   listMarketingStagingQueue,
+  MARKETING_FIND_SKIP_LABELS,
   rejectMarketingStaged,
   runMarketingDailyPack,
   setMarketingDailyPackLanes,
@@ -32,6 +35,28 @@ import {
 } from '../marketingDeskHunt';
 import type { LeadEngineLane } from '../../leadIntel/leadEngineAutonomy';
 import { getMarketingLanePerformanceChips } from '../marketingDeskLanePerformance';
+import { prospectScoresFromHuntHit } from '../../growthAgents/growthMlScore';
+import { getGrowthMlLabel, saveLabelForHit } from '../../growthAgents/growthMlLabels';
+
+const RUN_DETAILS_MIN_VISIBLE_MS = 12_000;
+
+type RunSnapshot = {
+  result: Awaited<ReturnType<typeof huntForMarketingReview>>;
+  startedAt: number;
+  detailsOpen: boolean;
+};
+
+function skipReasonEntries(reasons: Record<string, number> | undefined): Array<{ code: string; count: number; label: string }> {
+  if (!reasons) return [];
+  return Object.entries(reasons)
+    .filter(([, n]) => n > 0)
+    .sort((a, b) => b[1] - a[1])
+    .map(([code, count]) => ({
+      code,
+      count,
+      label: MARKETING_FIND_SKIP_LABELS[code] || code.replace(/_/g, ' '),
+    }));
+}
 
 export function FindPeopleRoom() {
   const navigate = useNavigate();
@@ -42,12 +67,27 @@ export function FindPeopleRoom() {
   const [err, setErr] = useState<string | null>(null);
   const [showFix, setShowFix] = useState(false);
   const [geo, setGeo] = useState(() => getMarketingFindGeo());
+  const [runSnapshot, setRunSnapshot] = useState<RunSnapshot | null>(null);
+  const [runDetailsPinned, setRunDetailsPinned] = useState(false);
 
   useEffect(() => {
     const onStore = () => setTick((t) => t + 1);
     window.addEventListener('finely:store', onStore as EventListener);
     return () => window.removeEventListener('finely:store', onStore as EventListener);
   }, []);
+
+  useEffect(() => {
+    if (!runSnapshot) return;
+    const until = runSnapshot.startedAt + RUN_DETAILS_MIN_VISIBLE_MS;
+    const remaining = until - Date.now();
+    if (remaining <= 0) {
+      setRunDetailsPinned(false);
+      return;
+    }
+    setRunDetailsPinned(true);
+    const t = window.setTimeout(() => setRunDetailsPinned(false), remaining);
+    return () => window.clearTimeout(t);
+  }, [runSnapshot]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -81,6 +121,11 @@ export function FindPeopleRoom() {
     return getMarketingFindSchedule();
   }, [tick]);
 
+  const suggestedQuery = useMemo(() => {
+    void tick;
+    return getMarketingFindSuggestedQuery();
+  }, [tick]);
+
   const packLanes = useMemo(() => {
     void tick;
     return getMarketingDailyPackLanes();
@@ -107,13 +152,19 @@ export function FindPeopleRoom() {
   };
 
   const finishRun = (r: Awaited<ReturnType<typeof huntForMarketingReview>>) => {
-    if (r.error && r.found === 0) setErr(r.error);
+    const searchFailed = Boolean(r.error) && r.found === 0;
+    if (searchFailed) setErr(r.error ?? 'Search failed');
     else {
       setNotice(
         `Found ${r.found} · auto-saved ${r.autoSaved} · review ${r.review} · skipped ${r.skipped}` +
           (r.errors.length ? ` · ${r.errors.length} lane issue(s)` : ''),
       );
     }
+    setRunSnapshot({
+      result: r,
+      startedAt: Date.now(),
+      detailsOpen: true,
+    });
     if (needsSetup || r.error?.includes('Needs setup') || r.error?.includes('Search API')) setShowFix(true);
     setTick((t) => t + 1);
   };
@@ -123,6 +174,7 @@ export function FindPeopleRoom() {
     setBusy(true);
     setErr(null);
     setNotice(null);
+    setRunSnapshot(null);
     setProgress('Finding…');
     setMarketingFindGeo(geo);
     try {
@@ -146,6 +198,7 @@ export function FindPeopleRoom() {
     setBusy(true);
     setErr(null);
     setNotice(null);
+    setRunSnapshot(null);
     setProgress('Running today’s pack…');
     setMarketingFindGeo(geo);
     try {
@@ -166,6 +219,24 @@ export function FindPeopleRoom() {
 
   return (
     <div className={`space-y-3 ${busy ? 'pointer-events-none opacity-90' : ''}`}>
+      {suggestedQuery ? (
+        <div className="space-y-2">
+          <FinelyOsAlertBanner
+            tone="info"
+            message={`Suggested hunt from pillar video: ${suggestedQuery} — review city and lane, then tap Find now when ready.`}
+          />
+          <button
+            type="button"
+            className={FINELY_OS_SECONDARY_BTN}
+            onClick={() => {
+              clearMarketingFindSuggestedQuery();
+              setTick((t) => t + 1);
+            }}
+          >
+            Clear suggestion
+          </button>
+        </div>
+      ) : null}
       <div className="sticky top-0 z-10 rounded-2xl border border-emerald-400/25 bg-black/70 backdrop-blur-md !p-4 space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
@@ -220,6 +291,90 @@ export function FindPeopleRoom() {
 
       {err ? <FinelyOsAlertBanner tone="blocking" message={err} /> : null}
       {notice ? <FinelyOsAlertBanner tone="success" message={notice} /> : null}
+
+      {runSnapshot ? (
+        <section className={`${finelyOsCatalogCardCompact('sky')} space-y-2`} data-fc-accent="sky">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <div className={FINELY_OS_ENTITY_SUBLABEL}>Run details</div>
+              <div className="font-semibold text-white text-sm">What happened on this Find</div>
+            </div>
+            <button
+              type="button"
+              className={FINELY_OS_SECONDARY_BTN}
+              disabled={runDetailsPinned && runSnapshot.detailsOpen}
+              title={
+                runDetailsPinned && runSnapshot.detailsOpen
+                  ? `Details stay open for ${Math.ceil(RUN_DETAILS_MIN_VISIBLE_MS / 1000)}s after each run`
+                  : undefined
+              }
+              onClick={() =>
+                setRunSnapshot((prev) =>
+                  prev ? { ...prev, detailsOpen: runDetailsPinned ? true : !prev.detailsOpen } : prev,
+                )
+              }
+            >
+              {runSnapshot.detailsOpen ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+              {runSnapshot.detailsOpen ? 'Collapse' : 'Expand'}
+            </button>
+          </div>
+          {runDetailsPinned ? (
+            <p className={`text-xs ${FINELY_OS_ENTITY_BODY}`}>
+              Run summary stays visible for {Math.ceil(RUN_DETAILS_MIN_VISIBLE_MS / 1000)} seconds.
+            </p>
+          ) : null}
+          {runSnapshot.detailsOpen ? (
+            <div className="space-y-2">
+              <div className="flex flex-wrap gap-2">
+                {runSnapshot.result.error && runSnapshot.result.found === 0 ? (
+                  <span className={finelyOsMicroStat('rose')}>Search failed</span>
+                ) : (
+                  <span className={finelyOsMicroStat('emerald')}>Search returned results</span>
+                )}
+                {runSnapshot.result.found > 0 && runSnapshot.result.skipped > 0 ? (
+                  <span className={finelyOsMicroStat('amber')}>
+                    Filtered {runSnapshot.result.skipped} of {runSnapshot.result.found}
+                  </span>
+                ) : null}
+                {runSnapshot.result.found > 0 && runSnapshot.result.skipped === 0 ? (
+                  <span className={finelyOsMicroStat('sky')}>No junk skips this run</span>
+                ) : null}
+                {runSnapshot.result.errors.length && runSnapshot.result.found > 0 ? (
+                  <span className={finelyOsMicroStat('rose')}>
+                    {runSnapshot.result.errors.length} lane warning(s)
+                  </span>
+                ) : null}
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <span className={finelyOsMicroStat('violet')}>Found {runSnapshot.result.found}</span>
+                <span className={finelyOsMicroStat('emerald')}>Auto-saved {runSnapshot.result.autoSaved}</span>
+                <span className={finelyOsMicroStat('amber')}>Review {runSnapshot.result.review}</span>
+                <span className={finelyOsMicroStat('sky')}>Skipped {runSnapshot.result.skipped}</span>
+              </div>
+              {skipReasonEntries(runSnapshot.result.skipReasons).length ? (
+                <div className="space-y-1">
+                  <div className={FINELY_OS_ENTITY_SUBLABEL}>Skip reasons</div>
+                  <div className="flex flex-wrap gap-2">
+                    {skipReasonEntries(runSnapshot.result.skipReasons).map((row) => (
+                      <span key={row.code} className={finelyOsMicroStat('violet')} title={row.code}>
+                        {row.label} · {row.count}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              ) : runSnapshot.result.found > 0 && runSnapshot.result.skipped > 0 ? (
+                <p className={`text-xs ${FINELY_OS_ENTITY_BODY}`}>No skip breakdown saved for this run.</p>
+              ) : null}
+              {runSnapshot.result.error && runSnapshot.result.found === 0 ? (
+                <p className="text-xs text-rose-200/90">{runSnapshot.result.error}</p>
+              ) : null}
+              {runSnapshot.result.errors[0] && runSnapshot.result.found > 0 ? (
+                <p className={`text-xs text-amber-200/90`}>Lane note: {runSnapshot.result.errors[0]}</p>
+              ) : null}
+            </div>
+          ) : null}
+        </section>
+      ) : null}
 
       {showFix || needsSetup ? (
         <section className={`${finelyOsCatalogCardCompact('amber')} space-y-2`} data-fc-accent="amber">
@@ -313,6 +468,15 @@ export function FindPeopleRoom() {
           {lastRun.errors[0] ? (
             <p className={`text-xs text-rose-200/90`}>{lastRun.errors[0]}</p>
           ) : null}
+          {skipReasonEntries(lastRun.skipReasons).length ? (
+            <div className="flex flex-wrap gap-2">
+              {skipReasonEntries(lastRun.skipReasons).map((row) => (
+                <span key={row.code} className={finelyOsMicroStat('violet')} title={row.code}>
+                  {row.label} · {row.count}
+                </span>
+              ))}
+            </div>
+          ) : null}
         </section>
       ) : null}
 
@@ -373,7 +537,10 @@ export function FindPeopleRoom() {
           pageSize={8}
           emptyMessage="All clear — 0 exceptions. Find now or Daily pack; only mid-score people land here."
           itemSpacingClassName="space-y-2"
-          renderItem={(hit) => (
+          renderItem={(hit) => {
+            const ml = prospectScoresFromHuntHit(hit);
+            const saved = getGrowthMlLabel(hit.url || hit.domain || '');
+            return (
             <div key={hit.url} className="rounded-xl border border-white/10 bg-black/30 !p-3 space-y-2">
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
@@ -382,8 +549,22 @@ export function FindPeopleRoom() {
                     {hit.whyReason || hit.whyNote || 'Mid-score fit — approve or reject.'}
                   </p>
                 </div>
-                <span className="shrink-0 text-xs text-amber-200/90 tabular-nums">score {hit.score}</span>
+                <div className="flex flex-col items-end gap-1 shrink-0">
+                  <span className="text-xs text-amber-200/90 tabular-nums">hunt {hit.score}</span>
+                  <div className="flex flex-wrap gap-1 justify-end">
+                    <span className={finelyOsMicroStat('emerald')}>Talk {ml.conversationScore}</span>
+                    <span className={finelyOsMicroStat('sky')}>Guide {ml.selfSignupScore}</span>
+                  </div>
+                </div>
               </div>
+              {saved ? (
+                <span
+                  className={finelyOsMicroStat(saved.label === 'approve' ? 'emerald' : 'rose')}
+                  title={`Labeled ${new Date(saved.at).toLocaleString()}`}
+                >
+                  {saved.label === 'approve' ? 'Good fit saved' : 'Wrong fit saved'}
+                </span>
+              ) : null}
               <div className="flex flex-wrap gap-2">
                 <button
                   type="button"
@@ -408,9 +589,34 @@ export function FindPeopleRoom() {
                 >
                   <X size={14} /> Reject
                 </button>
+                <button
+                  type="button"
+                  disabled={busy}
+                  className={finelyOsMicroStat('emerald')}
+                  onClick={() => {
+                    saveLabelForHit(hit, 'approve');
+                    setNotice('Saved Good fit — trains Wave ML ranking.');
+                    setTick((t) => t + 1);
+                  }}
+                >
+                  Good fit
+                </button>
+                <button
+                  type="button"
+                  disabled={busy}
+                  className={finelyOsMicroStat('rose')}
+                  onClick={() => {
+                    saveLabelForHit(hit, 'reject');
+                    setNotice('Saved Wrong fit — trains Wave ML ranking.');
+                    setTick((t) => t + 1);
+                  }}
+                >
+                  Wrong fit
+                </button>
               </div>
             </div>
-          )}
+            );
+          }}
         />
       </section>
     </div>

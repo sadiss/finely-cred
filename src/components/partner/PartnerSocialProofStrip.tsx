@@ -24,11 +24,11 @@ export function PartnerSocialProofStrip({ staffId, compact = false }: Props) {
 
   if (compact) {
     return (
-      <div className="flex flex-wrap items-center gap-2 text-xs text-white/55">
-        <Share2 size={12} className="text-violet-300" />
+      <div className="flex flex-wrap items-center gap-2 text-xs text-slate-600">
+        <Share2 size={12} className="text-violet-700" />
         <span>Finely brand pages:</span>
         {platforms.slice(0, 2).map(([plat, slot]) => (
-          <span key={plat} className="rounded-full border border-white/10 px-2 py-0.5 text-white/60">
+          <span key={plat} className="rounded-full border border-black/10 bg-transparent px-2 py-0.5 text-slate-600">
             {plat} {slot?.handle}
           </span>
         ))}
@@ -37,10 +37,10 @@ export function PartnerSocialProofStrip({ staffId, compact = false }: Props) {
   }
 
   return (
-    <div className="rounded-2xl border border-violet-500/20 bg-violet-500/5 p-4">
+    <div className="rounded-2xl border border-violet-500/20 bg-violet-500/[0.04] p-4">
       <div className="flex items-start gap-3">
         {staff ? (
-          <div className="h-12 w-12 rounded-xl overflow-hidden ring-1 ring-white/15 shrink-0">
+          <div className="h-12 w-12 rounded-xl overflow-hidden ring-1 ring-black/10 shrink-0">
             <StaffPortraitImg
               staff={{
                 id: staff.id,
@@ -55,13 +55,13 @@ export function PartnerSocialProofStrip({ staffId, compact = false }: Props) {
           </div>
         ) : null}
         <div className="min-w-0 flex-1">
-          <div className="text-sm font-bold text-white">{presence.displayName}</div>
+          <div className="text-sm font-bold text-slate-900">{presence.displayName}</div>
           <p className={`text-xs mt-1 ${FINELY_OS_ENTITY_BODY}`}>{presence.bioLine}</p>
           <div className="flex flex-wrap gap-2 mt-3">
             {platforms.map(([plat, slot]) => (
               <span
                 key={plat}
-                className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-black/30 px-3 py-1 text-[10px] uppercase tracking-wider text-white/60"
+                className="inline-flex items-center gap-1 rounded-full border border-black/10 bg-transparent px-3 py-1 text-[10px] uppercase tracking-wider text-slate-600"
               >
                 {plat} · {slot?.handle}
                 <ExternalLink size={10} />

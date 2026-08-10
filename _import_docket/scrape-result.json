@@ -1,0 +1,20 @@
+{
+  "file": "DOCKET_NUMBER.pdf",
+  "pagesScanned": 4,
+  "totalPages": 4,
+  "textChars": 6,
+  "usedOcr": false,
+  "note": "Scanned image PDF — native text layer empty. Portal LitigationDocScraperChat runs tesseract OCR fallback on upload (src/lib/ocr/litigationDocScraper.ts → creditReports/pdfOcr.ts).",
+  "fields": {},
+  "expectedPipeline": [
+    "caseNumber",
+    "courtName",
+    "plaintiffName",
+    "defendantName (merge only — never hardcode into templates)",
+    "counselName",
+    "address",
+    "amountClaimed",
+    "hearingDate",
+    "dateServed"
+  ]
+}

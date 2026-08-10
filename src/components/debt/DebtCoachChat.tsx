@@ -18,6 +18,7 @@ import {
   type FinelyOsGlowAccent,
 } from '../../features/os/finelyOsLightUi';
 import { DebtCoachMessage, LegalResourceStrip } from './DebtCoachMessage';
+import { FinelyOsOnPageCoachShell, type FinelyOsCoachChip } from '../../features/os/FinelyOsOnPageCoachShell';
 
 export type DebtCoachQuickStep = {
   label: string;
@@ -80,6 +81,15 @@ export function DebtCoachChat({
             ? 'text-sky-300'
             : 'text-emerald-300';
   const chipBtn = FINELY_OS_SECONDARY_BTN;
+  const coachChips: FinelyOsCoachChip[] = [
+    ...quickSteps.map((s, i) => ({ id: `q-${i}`, label: s.label, prompt: s.prompt })),
+    ...promptChips.map((c, i) => ({
+      id: `p-${i}`,
+      label: c.label.length > 40 ? `${c.label.slice(0, 37)}…` : c.label,
+      prompt: c.prompt,
+    })),
+  ];
+
   const glowAccent: FinelyOsGlowAccent =
     accent === 'fuchsia' ? 'fuchsia' : accent === 'amber' ? 'amber' : accent === 'rose' ? 'rose' : accent === 'sky' ? 'sky' : 'emerald';
 
@@ -156,105 +166,62 @@ Write like a sharp human coach — warm, direct, no legalese walls. Use numbered
   }, [injectPrompt]);
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-white/10 bg-black/35">
-      <div className="border-b border-white/10 px-4 py-3 space-y-3">
-        <OnDutyStaffCoachHeader lane={coachLane ?? mode} compact />
-      </div>
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 px-4 py-3">
-        <div className="flex items-center gap-2 min-w-0">
-          <span className="shrink-0 opacity-90">{icon}</span>
-          <div className="min-w-0">
-            <div className={`text-[10px] uppercase tracking-widest font-black ${accentText}`}>{title}</div>
-            <div className={`text-sm font-semibold truncate ${FINELY_OS_ENTITY_VALUE}`}>{tagline}</div>
-          </div>
-        </div>
-        <button
-          type="button"
-          onClick={() => setWebOn((v) => !v)}
-          className={`${FINELY_OS_AI_DRAFT_BTN_SM} ${webOn ? '' : 'opacity-60'}`}
-          title="Pull official web snippets into answers"
-        >
-          <Globe size={12} /> {webOn ? 'Web research on' : 'Web off'}
-        </button>
-      </div>
-
-      <div className="px-4 py-3 space-y-3">
-        <div>
-          <div className={`${FINELY_OS_ENTITY_SUBLABEL} mb-1.5`}>Official links & workspace</div>
-          <LegalResourceStrip links={resources} accentClass={accentText} />
-        </div>
-
-        <div className="flex flex-wrap gap-1.5">
-          {quickSteps.map((s) => (
-            <button key={s.label} type="button" disabled={busy} className={chipBtn} onClick={() => void ask(s.prompt)}>
-              {s.label}
-            </button>
-          ))}
-          <button type="button" className={chipBtn} onClick={() => navigate('/portal/escalations?tab=regulatory')}>
-            File CFPB draft
+    <div className="space-y-3">
+      <OnDutyStaffCoachHeader lane={coachLane ?? mode} compact />
+      <FinelyOsOnPageCoachShell
+        accent={glowAccent}
+        kicker={title}
+        title={tagline}
+        chips={coachChips}
+        onChipSelect={(chip) => void ask(chip.prompt)}
+        visibleChipCount={5}
+        headerExtra={
+          <button
+            type="button"
+            onClick={() => setWebOn((v) => !v)}
+            className={`${FINELY_OS_AI_DRAFT_BTN_SM} ${webOn ? '' : 'opacity-60'}`}
+          >
+            <Globe size={12} /> {webOn ? 'Web on' : 'Web off'}
           </button>
-        </div>
-
-        <div className="flex flex-wrap gap-1.5">
-          {promptChips.map((c) => (
-            <button key={c.label} type="button" disabled={busy} className={chipBtn} onClick={() => void ask(c.prompt)}>
-              <Sparkles size={10} /> {c.label}
+        }
+        composer={
+          <>
+            <LegalResourceStrip links={resources} accentClass={accentText} />
+            <textarea
+              value={question}
+              onChange={(e) => setQuestion(e.target.value)}
+              rows={2}
+              className={finelyOsGlowTextarea(glowAccent)}
+              data-fc-coach-composer="1"
+              placeholder="Ask your coach…"
+            />
+            <button type="button" onClick={() => void ask()} disabled={busy || !question.trim()} className={FINELY_OS_AI_DRAFT_BTN_SM}>
+              <Send size={12} /> {busy ? 'Thinking…' : 'Get next steps'}
             </button>
-          ))}
-        </div>
-
-        <div className="rounded-xl border border-white/10 bg-black/25 p-4 space-y-3 w-full">
-          <div className="text-[10px] uppercase tracking-widest font-black text-white/70">Ask your coach</div>
-          <textarea
-            value={question}
-            onChange={(e) => setQuestion(e.target.value)}
-            rows={2}
-            className={finelyOsGlowTextarea(glowAccent)}
-            placeholder={
-              mode === 'court'
-                ? 'e.g. Served 10 days ago — what goes in my affidavit before the answer deadline?'
-                : mode === 'foreclosure'
-                  ? 'e.g. Dual-track foreclosure while mod pending — what letter stops the sale?'
-                  : mode === 'repossession'
-                    ? 'e.g. Repo at 2am with no default notice — what do I demand first?'
-                    : 'e.g. They sent a generic bill of sale — what do I demand next under 1692g?'
-            }
-          />
-          <button type="button" onClick={() => void ask()} disabled={busy || !question.trim()} className={FINELY_OS_AI_DRAFT_BTN_SM}>
-            <Send size={12} /> {busy ? 'Thinking…' : 'Get next steps'}
-          </button>
-          {answer ? (
-            <div className="rounded-lg border border-white/10 bg-black/30 p-3">
-              <DebtCoachMessage text={answer} accentClass="text-sky-300 hover:brightness-110" />
-            </div>
-          ) : null}
-          {sources.length > 0 ? (
-            <div className="pt-1">
-              <div className={`${FINELY_OS_ENTITY_SUBLABEL} mb-1`}>Sources used</div>
+            {answer ? (
+              <div className="rounded-lg border border-white/10 bg-black/30 p-3">
+                <DebtCoachMessage text={answer} accentClass="text-sky-300 hover:brightness-110" />
+              </div>
+            ) : null}
+            {sources.length > 0 ? (
               <div className="flex flex-wrap gap-1.5">
                 {sources.map((s) => (
-                  <a
-                    key={s.link}
-                    href={s.link}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className={`text-[10px] font-semibold ${accentText} underline underline-offset-2`}
-                    title={s.snippet}
-                  >
+                  <a key={s.link} href={s.link} target="_blank" rel="noopener noreferrer" className={`text-[10px] font-semibold ${accentText} underline`}>
                     {s.title.slice(0, 36)}
                   </a>
                 ))}
               </div>
-            </div>
-          ) : null}
-        </div>
-
-        {scenarioInfo?.legalWarning ? (
-          <p className={`text-xs ${FINELY_OS_ENTITY_BODY} rounded-lg border border-amber-500/25 bg-amber-500/10 px-3 py-2`}>
-            {scenarioInfo.legalWarning}
-          </p>
-        ) : null}
-      </div>
+            ) : null}
+          </>
+        }
+        footer={
+          scenarioInfo?.legalWarning ? (
+            <p className={`text-xs ${FINELY_OS_ENTITY_BODY} rounded-lg border border-amber-500/25 bg-amber-500/10 px-3 py-2`}>
+              {scenarioInfo.legalWarning}
+            </p>
+          ) : null
+        }
+      />
     </div>
   );
 }

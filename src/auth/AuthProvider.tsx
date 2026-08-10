@@ -241,6 +241,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       },
       signOut: async () => {
         try {
+          // Drop sticky onboarding drafts so the next guest never revives mid-wizard (e.g. support).
+          const { clearOnboardingProgress } = await import('../lib/onboardingProgressStorage');
+          clearOnboardingProgress();
+        } catch {
+          // ignore
+        }
+        try {
           if (isDevAuthEnabled) {
             setMockUser(null);
             try {

@@ -424,25 +424,84 @@
   color: var(--au-ink);
 }
 
-/* Stylised network mark — deliberately generic, never a real issuer logo */
+/* Stylised network marks — illustrative shapes/wordmarks, not trademark assets */
 .fc-au-card__network {
   display: flex;
   align-items: center;
+  flex-shrink: 0;
   color: var(--au-ink);
 }
 
-.fc-au-card__network span {
-  display: block;
-  width: 1.3rem;
-  height: 1.3rem;
-  border-radius: 9999px;
-  background: currentColor;
-  opacity: 0.38;
+/* Mastercard — colored interlocking circles (only when network is MC) */
+.fc-au-card__network--mastercard {
+  position: relative;
+  width: 2.35rem;
+  height: 1.45rem;
 }
 
-.fc-au-card__network span + span {
-  margin-left: -0.55rem;
-  opacity: 0.66;
+.fc-au-card__network--mastercard span {
+  position: absolute;
+  top: 50%;
+  display: block;
+  width: 1.35rem;
+  height: 1.35rem;
+  border-radius: 9999px;
+  transform: translateY(-50%);
+  opacity: 1;
+}
+
+.fc-au-card__network--mastercard span:first-child {
+  left: 0;
+  background: #eb001b;
+}
+
+.fc-au-card__network--mastercard span + span {
+  right: 0;
+  margin-left: 0;
+  background: #f79e1b;
+  opacity: 0.94;
+}
+
+/* Visa — italic wordmark */
+.fc-au-card__network--visa {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 0.95rem;
+  font-weight: 800;
+  font-style: italic;
+  letter-spacing: 0.08em;
+  color: var(--au-ink);
+  opacity: 0.88;
+}
+
+/* Amex — boxed mark */
+.fc-au-card__network--amex {
+  padding: 0.22rem 0.4rem;
+  border-radius: 0.28rem;
+  border: 1.5px solid currentColor;
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: 0.18em;
+  color: var(--au-ink);
+  opacity: 0.85;
+}
+
+/* Discover — orange disc + wordmark */
+.fc-au-card__network--discover {
+  gap: 0.28rem;
+  font-size: 7.5px;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  color: var(--au-ink);
+  opacity: 0.88;
+}
+
+.fc-au-card__network--discover i {
+  display: block;
+  width: 0.85rem;
+  height: 0.85rem;
+  border-radius: 9999px;
+  background: radial-gradient(circle at 35% 35%, #ffc107 0%, #f79e1b 45%, #e65100 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35);
 }
 
 .fc-au-card-caption {
@@ -543,10 +602,73 @@
   color: #ffd993;
 }
 
+/* ── Debt & summons mockup (homepage band) ──────────────────────────────────── */
+
+.fc-sell-debt-mockup {
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 0.5rem 0.25rem 1.25rem;
+}
+
+.fc-sell-debt-mockup__glow {
+  position: absolute;
+  left: 50%;
+  top: 42%;
+  z-index: 0;
+  width: 88%;
+  height: 78%;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 50% 48%, rgba(255, 242, 182, 0.42) 0%, rgba(224, 178, 74, 0.22) 38%, transparent 72%);
+  filter: blur(28px);
+  pointer-events: none;
+}
+
+.fc-sell-debt-mockup__halo {
+  position: absolute;
+  left: 50%;
+  bottom: 8%;
+  z-index: 0;
+  width: 62%;
+  height: 28%;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: radial-gradient(ellipse at 50% 70%, rgba(224, 178, 74, 0.28) 0%, transparent 70%);
+  filter: blur(18px);
+  pointer-events: none;
+}
+
+.fc-sell-debt-mockup__img {
+  max-height: min(420px, 52vh);
+  object-fit: contain;
+  animation: fc-sell-debt-float 6.5s ease-in-out infinite;
+}
+
+.fc-sell-debt-mockup__pedestal {
+  position: relative;
+  z-index: 0;
+  width: min(58%, 240px);
+  height: 10px;
+  margin-top: -0.35rem;
+  border-radius: 100%;
+  background: radial-gradient(ellipse at 50% 50%, rgba(224, 178, 74, 0.35) 0%, transparent 72%);
+  box-shadow: 0 0 28px rgba(224, 178, 74, 0.22);
+}
+
+@keyframes fc-sell-debt-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .fc-sell-atmosphere__beam,
   .fc-sell-champagne-card__sheen,
-  .fc-sell-price-jewel {
+  .fc-sell-price-jewel,
+  .fc-sell-debt-mockup__img {
     animation: none !important;
   }
 }
