@@ -40,7 +40,10 @@ import {
   FINELY_OS_BACK_LINK,
   FINELY_OS_ENTITY_BODY,
   FINELY_OS_ENTITY_CHIP,
-  FINELY_OS_ENTITY_INPUT,
+  FINELY_OS_IVORY_ENTITY_BODY,
+  FINELY_OS_IVORY_ENTITY_INPUT,
+  FINELY_OS_IVORY_ENTITY_LABEL,
+  FINELY_OS_IVORY_ENTITY_VALUE,
   FINELY_OS_ENTITY_LABEL,
   finelyOsCatalogCard,
   finelyOsIvorySolidTile,
@@ -356,20 +359,20 @@ export default function PartnerBillingPage() {
           <>
           <div className="grid lg:grid-cols-12 gap-6">
             <div className={`lg:col-span-7 min-w-0 ${finelyOsIvorySolidTile('violet')} !p-5 space-y-3`}>
-              <div className={`inline-flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL} text-violet-700`}>
+              <div className={`inline-flex items-center gap-2 ${FINELY_OS_IVORY_ENTITY_LABEL} text-violet-700`}>
                 <Shield size={18} />
                 <span>Profile</span>
               </div>
-              <div className={FINELY_OS_ENTITY_BODY}>
-                <div className={FINELY_OS_ENTITY_VALUE}>{partner.profile.fullName}</div>
+              <div className={FINELY_OS_IVORY_ENTITY_BODY}>
+                <div className={FINELY_OS_IVORY_ENTITY_VALUE}>{partner.profile.fullName}</div>
                 <div className="mt-1">{partner.profile.email || email || '—'}</div>
                 <div className="mt-4 grid md:grid-cols-3 gap-3 items-end">
                   <div className="md:col-span-2">
-                    <label className={FINELY_OS_ENTITY_LABEL}>Phone</label>
+                    <label className={FINELY_OS_IVORY_ENTITY_LABEL}>Phone</label>
                     <input
                       value={phoneDraft}
                       onChange={(e) => setPhoneDraft(e.target.value)}
-                      className={FINELY_OS_ENTITY_INPUT}
+                      className={FINELY_OS_IVORY_ENTITY_INPUT}
                       placeholder="(555) 555-5555"
                     />
                   </div>
@@ -406,6 +409,7 @@ export default function PartnerBillingPage() {
                   layout={partnerFieldLayout}
                   definitions={partnerFieldDefs}
                   values={partnerValues}
+                  surface="ivory"
                   onChangeValue={(key, next, persist) => {
                     if (!partner) return;
                     setPartnerValues((prev) => {

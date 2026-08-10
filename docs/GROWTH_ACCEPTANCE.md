@@ -1,6 +1,7 @@
 # Growth Agents — acceptance checklist (S1–S12)
 
 > **Execution spine:** [`FINELY_UNIFIED_MASTER_PLAN.md`](./FINELY_UNIFIED_MASTER_PLAN.md) is the single roadmap for launch, growth, and video.
+> **One-page matrix:** [`PLAN_COMPLETION_STATUS.md`](./PLAN_COMPLETION_STATUS.md) (code vs owner gates).
 > S1–S12 ship gates and manual scripts live here; mirror completion in the unified plan when a step passes.
 > Charter for waves and honesty rules: [`GROWTH_AUTOMATION_CHARTER.md`](./GROWTH_AUTOMATION_CHARTER.md).
 
@@ -84,6 +85,8 @@ Ship gates for the [growth master guide](./GROWTH_AGENT_MASTER.md). Run `npm run
 
 | Check | Pass criteria |
 |-------|----------------|
+| UI | [`GrowthAgentInfraStrip`](../src/features/growthAgents/GrowthAgentInfraStrip.tsx) on Caleb + Results — **Test worker** button |
+| Client | [`runGrowthWorkerTickTest`](../src/features/growthAgents/growthWorkerTick.ts) invokes `lead-intel-worker-tick` and persists last probe locally |
 | Default | `lead-intel-worker-tick` returns `mode: simulation` and **does not** inflate counters |
 | Live flag | `GROWTH_WORKER_LIVE=true` attempts one minimal `lead-intel` search per tick |
 | Honesty | Overnight / swarm UI labels practice vs live (no implied Serper imports in simulation) |
@@ -149,6 +152,7 @@ Ship gates for the [growth master guide](./GROWTH_AGENT_MASTER.md). Run `npm run
 
 | Check | Pass criteria |
 |-------|----------------|
+| UI | Same **Test worker** on [`GrowthAgentInfraStrip`](../src/features/growthAgents/GrowthAgentInfraStrip.tsx) — compact sidebar shows last probe via [`getLastGrowthWorkerProbe`](../src/features/growthAgents/growthWorkerTick.ts) |
 | Flag | `GROWTH_WORKER_LIVE=true` on `lead-intel-worker-tick` |
 | Cap | One cron tick processes **≤1** job |
 | Activity | Writes a **real** activity / job row when Serper succeeds |

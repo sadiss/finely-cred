@@ -36,8 +36,20 @@ When a partner generates a **validation** letter on Debt Letters:
 2. Matching **Collections & charge-offs** bureau candidates are merged into the Credit Letters draft (`saveLettersCommandCenterDraft`).
 3. Partner is routed to `/portal/letters?tab=dispute&handoff=validation` with disputes pre-selected (not mailed until PDF is generated on Credit Letters).
 
+Implementation: `src/lib/validationCreditLetterHandoff.ts` (`matchDisputeCandidatesForDebtCase`, `mergeHandoffIntoSelectedDisputes`, `seedLawsForSelected`); `LettersCommandCenter` reads `handoff=validation` (+ optional `debtId`, `letterId`), merges draft, switches to **dispute** tab, and strips query params. Debt Letters (`debtCenterMode`) navigates to Credit Letters after `completeValidationCreditHandoff`.
+
+## Manual QA — negatives & charge-offs
 
 1. Upload a report with charged-off tradelines (status or `CO` in payment grid).
 2. Credit Intel → **Coll. & charge-offs** tab lists them; **Late payments** does not.
 3. Disputes / Letter Studio categories show **Collections & charge-offs**.
 4. Debt validation queue includes matched charge-off tradelines.
+
+## Manual QA — validation handoff & restore dock (Stage 3)
+
+1. **Handoff:** On `/portal/debt`, open a debt case linked to a report tradeline → **Debt Letters** → generate **validation** → confirm vault entry on debt page, then redirect to `/portal/letters?tab=dispute&handoff=validation` with return notice and matching bureau disputes in the picker (draft persisted via `saveLettersCommandCenterDraft`).
+2. **Restore dock (portal):** On Reports, Documents (Evidence), Credit Letters, and Debt — sticky footer dock order left→right: **Reports · Evidence · Credit letters · Debt**; active lane highlighted.
+3. **Restore dock (admin):** Partner detail on Reports / Evidence / Letters / Debt tabs — same order via `PartnerDetailAdminFooter` + `PartnerRestoreWorkspaceDock` `variant="admin"`.
+4. **Ivory UX:** `/portal/billing` → **Profile** tab — phone + enterprise custom fields use dark ink on white tiles (readable). Public `/personal-credit` → **Overview** — `FinelyNoticedStrip` / `FinelyNowDoThisStrip` use `surface="light"`.
+
+Launch plan pointer: `.cursor/plans/8-hour_launch_sprint_cccde790.plan.md` (Stage 3 ivory + handoff lanes).

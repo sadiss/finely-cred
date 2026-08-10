@@ -1,6 +1,7 @@
 # Launch-Ready Sprint — Parts A–E
 
 > **Execution spine:** [`FINELY_UNIFIED_MASTER_PLAN.md`](./FINELY_UNIFIED_MASTER_PLAN.md) is the single roadmap for launch, growth, and video.
+> **One-page matrix:** [`PLAN_COMPLETION_STATUS.md`](./PLAN_COMPLETION_STATUS.md) (code vs owner gates).
 > This file holds Parts A–E gate commands and shipped inventory; check off Stage 1 items in the unified plan when audits pass.
 > Do not track duplicate todos in chat — use the unified doc.
 

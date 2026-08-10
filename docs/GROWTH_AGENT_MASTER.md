@@ -45,6 +45,12 @@ Use the checklist on Results or Caleb: open Results → find/review → contact 
 - **Talk** / **Guide** scores on Caleb and Review people  
 - **Good fit** / **Wrong fit** on exceptions — stored for ranking (target 5+ labels)
 
+## Nurture email (Leads OS)
+
+- **Cadence reference:** [`NURTURE_EMAIL_CADENCE.md`](./NURTURE_EMAIL_CADENCE.md) — timing buckets, dry-run vs live send, owner weekly review  
+- **Ops surface:** **Admin → Leads OS** → [`NurtureOpsStrip`](../src/features/leadsOs/NurtureOpsStrip.tsx) (today / 7d sent, **Run due steps**)  
+- **Live send:** `commsDelivery` on + Supabase; cron uses `processDueNurtureSteps` (dry-run until comms is live)
+
 ## Acceptance
 
 See `docs/GROWTH_ACCEPTANCE.md` for ship gates S1–S12.

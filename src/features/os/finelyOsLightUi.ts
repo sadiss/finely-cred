@@ -704,6 +704,13 @@ export const FINELY_OS_LANDING_IVORY_BODY = 'text-[15px] sm:text-base leading-re
 export const FINELY_OS_LANDING_IVORY_KICKER =
   'text-[11px] font-black uppercase tracking-[0.28em] text-[#b8860b]';
 
+/** Dark ink on `finelyOsIvorySolidTile` / ivory `PageShell` profile bands */
+export const FINELY_OS_IVORY_ENTITY_LABEL =
+  'text-[10px] font-bold uppercase tracking-[0.14em] text-[#0a1628]/55';
+export const FINELY_OS_IVORY_ENTITY_BODY = FINELY_OS_LANDING_IVORY_BODY;
+export const FINELY_OS_IVORY_ENTITY_VALUE = 'font-semibold tracking-tight text-[#0a1628]';
+export const FINELY_OS_IVORY_ENTITY_INPUT = 'fc-input fc-ivory-field mt-2';
+
 
 /** Light-theme black contrast band — punchy section breaks on aurora shell */
 export function finelyOsLightContrastBand(padding = 'py-12 px-6 sm:px-8 lg:px-10') {

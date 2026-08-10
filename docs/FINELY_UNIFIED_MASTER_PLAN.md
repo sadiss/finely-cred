@@ -4,7 +4,30 @@
 
 **North star:** Every workspace answers where am I / what matters / what next · qualified leads at $0 ad spend · honest automation labels · `npm run launch:sprint:status` exit **0** before launch is “green.”
 
+**Status matrix:** [`PLAN_COMPLETION_STATUS.md`](./PLAN_COMPLETION_STATUS.md) — Stages 0–6, S1–S12, code vs owner gates in one table.
+
 **Compliance (all surfaces):** Results vary · not legal advice · funding subject to underwriting
+
+---
+
+## Code complete vs owner gates
+
+| Layer | Meaning | How to verify |
+|-------|---------|---------------|
+| **Code complete** | Shipped in repo; automated launch audits pass | `npm run typecheck` · `npm run launch:sprint:status` exit **0** |
+| **Owner gate** | Environment, deploy, flags, or human QA | [`STAGE6_LAUNCH_OPS.md`](./STAGE6_LAUNCH_OPS.md) · [`PLAN_COMPLETION_STATUS.md`](./PLAN_COMPLETION_STATUS.md) owner rows |
+
+**Code complete (Stages 0–6 + S1–S12):** All checklist items below marked **[x]** are implemented and merge-safe. Simulation-first growth worker, Video Command stepper, restore handoff, and launch sprint inventory are in tree.
+
+**Owner gates (production “green” — not blockers for shipping code):**
+
+- [ ] **S6** — Run **Test worker** on Caleb/Results infra; confirm JSON `mode: simulation` when `GROWTH_WORKER_LIVE` is off (no phantom counters)
+- [ ] **S11** — Deploy `lead-intel-worker-tick`; set `GROWTH_WORKER_LIVE=true` only when ready; confirm ≤1 real job per tick
+- [ ] **Supabase deploy** — Edge functions `lead-intel` (+ `SERPER_API_KEY`) and `lead-intel-worker-tick` in your project
+- [ ] **Phase 21 keys** — Optional in-app cinematic providers; Google Labs + Content Studio `room=video` remains the supported path
+- [ ] **Senior QA** — `npm run launch:senior:qa` on your machine before production (or accept human walkthrough per [`SENIOR-QA-WALKTHROUGH.md`](./SENIOR-QA-WALKTHROUGH.md))
+
+Rollup: `npm run launch:preflight` · `npm run launch:ops`
 
 ---
 
@@ -31,7 +54,7 @@
 
 ## Stage 1 — Launch sprint gates green
 
-**Exit:** `npm run launch:sprint:status` exit **0** · `npm run typecheck` pass · `npm run launch:senior:qa` green (23 paths; dev mock auth when Supabase blank)
+**Exit:** `npm run launch:sprint:status` exit **0** · `npm run typecheck` pass · launch audits green (senior QA before prod → [Owner gates](#code-complete-vs-owner-gates))
 
 - [x] Fix ~10 failing launch audits (Resources anchors, senior UX, tours, portraits, strips, leads tab)
 - [x] Resources `#guides` `#monitoring` `#references` `#videos` + lane headers
@@ -46,10 +69,11 @@ Detail: [`LAUNCH-READY-SPRINT.md`](./LAUNCH-READY-SPRINT.md)
 
 **2A — S1–S7 (Wave 0 outbound truth)**
 
+- [x] **S1** Growth Agents nav, roster, Wave 0 agent homes (`/admin/growth-agents`)
 - [x] **S2** Results scoreboard 7d (booked, signups, found/saved, video signups, vs baseline)
 - [x] **S3/S4** Find → CRM, Review, Hannah UTMs + video `utm_content`, capture attribution on Results
 - [x] **S5** ML labels reorder queue (approve +28 / reject -55 on Review + Today’s 10)
-- [ ] **S6** Worker simulation vs `GROWTH_WORKER_LIVE` honesty — owner env (see STAGE6_LAUNCH_OPS)
+- [x] **S6** Worker simulation + honesty labels (code); owner: Test worker + live flag smoke → [Owner gates](#code-complete-vs-owner-gates)
 - [x] **S7** Esther week focus → Caleb prefill + pillar video id
 - [x] Daily 15-min playbook, infra strip (Caleb; add Results if missing), failure playbooks; Hannah maturity
 - [x] Merge Marketing OS Wave 1 Ruth brief — `summarizeGrowthForCoOwner` in `daily_ops`
@@ -59,7 +83,7 @@ Detail: [`LAUNCH-READY-SPRINT.md`](./LAUNCH-READY-SPRINT.md)
 - [x] **S8** Esther focus ↔ Caleb hunt queries; Hannah link from pillar video
 - [x] **S9** Public video route in SEO catalog; Lydia pins `/resources/videos`
 - [x] **S10** Pillar → Miriam/Jordan strip + Caleb suggest hunt from topics (manual approve)
-- [ ] **S11** Live worker: ≤1 job/tick — requires `GROWTH_WORKER_LIVE` + deploy
+- [x] **S11** Live worker handler ≤1 job/tick (code); owner: deploy + `GROWTH_WORKER_LIVE` → [Owner gates](#code-complete-vs-owner-gates)
 - [x] **S12** Results week-over-week vs week-0 baseline snapshot
 
 **2C — Lead ↔ video flywheel**
@@ -113,10 +137,18 @@ Detail: [`GROWTH_ACCEPTANCE.md`](./GROWTH_ACCEPTANCE.md) · [`GROWTH_AUTOMATION_
 
 ## Stage 6 — Production ops (owner-assisted)
 
-- [x] [`STAGE6_LAUNCH_OPS.md`](./STAGE6_LAUNCH_OPS.md) checklist (`launch:ops`, worker live flag notes, `launch:senior:qa` block)
+**Code complete**
+
+- [x] [`STAGE6_LAUNCH_OPS.md`](./STAGE6_LAUNCH_OPS.md) — commands, worker flag notes, honesty rules, pre-push checklist
+- [x] `npm run launch:ops` / `launch:preflight` rollups document code vs env blockers
+- [x] UI does not imply live Serper overnight counts while worker defaults to simulation
+
+**Owner gates** (see [Code complete vs owner gates](#code-complete-vs-owner-gates))
+
+- [ ] Supabase edge deploy (`lead-intel`, `lead-intel-worker-tick`) when ready for S6/S11 live
+- [ ] S6 + S11 manual smoke on deployed worker
 - [ ] Optional Phase 21 provider keys — do not block launch
-- [ ] Supabase edge deploy when ready for S6 live
-- [ ] Owner run: `npm run launch:senior:qa` before production (or trust `launch:preflight` rollup)
+- [ ] `npm run launch:senior:qa` before production (or waived walkthrough)
 
 **Exit:** Go-live steps documented; no false “live” labels in UI · senior QA green or explicitly waived with human walkthrough ([`SENIOR-QA-WALKTHROUGH.md`](./SENIOR-QA-WALKTHROUGH.md))
 

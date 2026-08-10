@@ -16,7 +16,7 @@ import { staffFeedAgentLabel } from '../staffCommandCenter/staffRoster';
 
 function fmt(n: number) { return new Intl.NumberFormat().format(n); }
 
-/** Deep swarm tick: 90s base + jitter — feels like hours of real work */
+/** Local simulation tick cadence — not live Serper. */
 const TICK_MS = 90_000;
 
 export function LeadIntelSwarmDashboard() {
@@ -64,11 +64,12 @@ export function LeadIntelSwarmDashboard() {
             <h2 className="mt-3 text-3xl md:text-4xl font-black text-white">Deep swarm queue (simulation / ops cadence)</h2>
             <p className="mt-3 text-white/65 text-sm md:text-base">
               Local tick counters are <strong className="text-amber-200">not</strong> live Serper imports. For real leads, use{' '}
-              <strong className="text-emerald-200">Start Lead Engine</strong> at the top of this page (or Lead Intel Hub Discover).
+              <strong className="text-emerald-200">Marketing Desk → Find</strong>, Caleb Find, or Lead Intel Hub Discover (live Serper).
             </p>
             {session ? (
               <p className="mt-3 inline-flex items-center gap-2 text-amber-200 text-sm font-semibold">
-                <Clock size={16} /> Est. {session.estimatedHours}+ hrs · {session.jobsTotal} jobs · {session.mode} mode
+                <Clock size={16} /> Simulated session · est. {session.estimatedHours}+ hrs display · {session.jobsTotal} queued jobs ·{' '}
+                {session.mode} mode
               </p>
             ) : null}
             {enabled && phaseLabel ? (
@@ -82,6 +83,8 @@ export function LeadIntelSwarmDashboard() {
           </div>
         </div>
       </div>
+
+      <p className="text-xs text-white/45">Stats below track the local simulation queue only — not Serper saves or CRM imports.</p>
 
       <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-4">
         {[['jobs', stats.totalJobs], ['discovered', stats.discovered], ['enriched', stats.enriched], ['hot', stats.hot], ['imported', stats.imported], ['sources', stats.sourceCount], ['queued', stats.queued], ['running', stats.running]].map(([label, value]) => (
@@ -105,9 +108,9 @@ export function LeadIntelSwarmDashboard() {
           </div>
         </div>
         <div className="rounded-3xl border border-white/10 bg-black/30 p-5">
-          <div className="flex items-center justify-between gap-3"><h3 className="text-white font-black">Live operations feed</h3><span className="inline-flex items-center gap-2 text-emerald-200 text-xs"><Activity size={14} /> {enabled ? 'deep continuous' : 'paused'}</span></div>
+          <div className="flex items-center justify-between gap-3"><h3 className="text-white font-black">Simulation ops feed</h3><span className="inline-flex items-center gap-2 text-amber-200/90 text-xs"><Activity size={14} /> {enabled ? 'simulation cadence' : 'paused'}</span></div>
           <div className="mt-4 space-y-3 max-h-[520px] overflow-y-auto pr-1">
-            {feed.length === 0 ? <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-6 text-white/55">Start deep swarm to see multi-hour progress.</div> : feed.map((f) => (
+            {feed.length === 0 ? <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-6 text-white/55">Start deep swarm to see simulated progress ticks — not imported CRM rows.</div> : feed.map((f) => (
               <div key={f.id} className="rounded-2xl border border-white/10 bg-white/[0.025] p-4">
                 <div className="flex items-start justify-between gap-3"><div className="text-white/80 text-sm"><span className="text-amber-200 font-bold">{staffFeedAgentLabel(f.agent)}</span> • {f.city}</div><span className="text-[10px] uppercase tracking-widest text-white/35">{f.severity}</span></div>
                 <div className="mt-2 text-white/65 text-sm">{f.message}</div>
@@ -118,7 +121,7 @@ export function LeadIntelSwarmDashboard() {
       </div>
 
       <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-5">
-        <h3 className="text-white font-black inline-flex items-center gap-2"><Search size={18} className="text-amber-300" /> Active deep scans</h3>
+        <h3 className="text-white font-black inline-flex items-center gap-2"><Search size={18} className="text-amber-300" /> Queued simulation jobs</h3>
         <div className="mt-4 space-y-2 max-h-[420px] overflow-y-auto">
           {jobs.filter((j) => j.status !== 'done').slice(0, 25).map((j) => (
             <div key={j.id} className="rounded-2xl border border-white/10 bg-black/30 p-4">
