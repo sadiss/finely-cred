@@ -19,6 +19,8 @@ import { upsertTask } from '../../data/tasksRepo';
 import { persistApprovedMarketingHit, findExistingMarketingProspect } from './marketingDeskPersist';
 import { ensureMarketingPipelineProject } from './marketingDeskProjects';
 import { createMarketingTask, createReviewImportsTask, findOpenMarketingTask } from './marketingDeskTasks';
+import { isSerperSearchMarkedOk, markSerperSearchOk } from '../growthAgents/growthFindTest';
+import { effectiveHuntSortScore } from '../growthAgents/growthMlScore';
 
 const STAGING_KEY = 'finely.marketing_desk_staging.v1';
 const GEO_KEY = 'finely.marketing_desk_find_geo.v1';
@@ -102,6 +104,28 @@ export type MarketingFindLastRun = {
   skipped: number;
   errors: string[];
   prospectIds: string[];
+  /** Aggregated junk / qualify skip codes from processQualifiedHits. */
+  skipReasons?: Record<string, number>;
+};
+
+/** Human labels for skip reason chips in Find UI. */
+export const MARKETING_FIND_SKIP_LABELS: Record<string, string> = {
+  no_company: 'No company signal',
+  placeholder_title: 'Placeholder title',
+  bad_tld: 'Risky domain TLD',
+  parking: 'Parked / for sale',
+  directory_listing: 'Directory listing',
+  thin_domain: 'Thin domain',
+  spammy_domain: 'Spammy domain',
+  disposable_email: 'Disposable email',
+  free_mail_no_company: 'Free mail, no company',
+  duplicate_email: 'Duplicate email',
+  duplicate: 'Already in CRM',
+  no_contact_weak: 'No contact, weak score',
+  low_score: 'Score below floor',
+  ai_reject: 'AI fit reject',
+  already_processed: 'Already staged',
+  persist_failed: 'Save failed',
 };
 
 export type MarketingFindReadinessStep = {
@@ -121,6 +145,7 @@ export type MarketingFindResult = {
   error?: string;
   /** @deprecated use found */
   staged?: number;
+  skipReasons?: Record<string, number>;
 };
 
 type StagingStore = {
@@ -145,6 +170,26 @@ export function getMarketingFindGeo(): string {
 
 export function setMarketingFindGeo(location: string) {
   saveJson(GEO_KEY, { location: (location || 'United States').trim() || 'United States' }, 1);
+  if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('finely:store'));
+}
+
+const SUGGESTED_QUERY_KEY = 'finely.marketing_desk_find_suggested_query.v1';
+
+/** Caleb / pillar video — prefills Find room; does not auto-run search. */
+export function getMarketingFindSuggestedQuery(): string | undefined {
+  const raw = loadJson<{ query?: string }>(SUGGESTED_QUERY_KEY, {}, 1);
+  const q = raw.query?.trim();
+  return q || undefined;
+}
+
+export function setMarketingFindSuggestedQuery(query: string) {
+  const q = query.trim();
+  saveJson(SUGGESTED_QUERY_KEY, q ? { query: q, updatedAt: new Date().toISOString() } : {}, 1);
+  if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('finely:store'));
+}
+
+export function clearMarketingFindSuggestedQuery() {
+  saveJson(SUGGESTED_QUERY_KEY, {}, 1);
   if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('finely:store'));
 }
 
@@ -255,8 +300,8 @@ export function getMarketingFindReadiness(): {
       label: 'Search API key (owner)',
       // Never mark Done client-side — key lives in function secrets; false Done was lying.
       detail:
-        'Owner adds SERPER_API_KEY on the lead-intel function secrets, then redeploys. Not verifiable here.',
-      done: false,
+        'Run Test search on Caleb Brooks or a successful Find. Owner adds SERPER_API_KEY on lead-intel if needed.',
+      done: isSerperSearchMarkedOk(),
       href: '/admin/settings',
     },
   ];
@@ -272,6 +317,7 @@ export function getMarketingFindReadiness(): {
 export function listMarketingStagingQueue(limit = 8): MarketingStagedHit[] {
   return loadStaging()
     .hits.filter((h) => (h.decision ?? 'pending') === 'pending')
+    .sort((a, b) => effectiveHuntSortScore(b) - effectiveHuntSortScore(a))
     .slice(0, limit);
 }
 
@@ -369,11 +415,30 @@ export function isJunkHit(hit: MarketingStagedHit): string | null {
 }
 
 function qualifyHit(hit: MarketingStagedHit): 'auto_approve' | 'review' | 'reject' {
+  return qualifyRoute(hit).route;
+}
+
+function qualifyRoute(hit: MarketingStagedHit): {
+  route: 'auto_approve' | 'review' | 'reject';
+  rejectReason?: string;
+} {
   const junk = isJunkHit(hit);
-  if (junk) return 'reject';
-  if (hit.score >= AUTO_APPROVE_SCORE) return 'auto_approve';
-  if (hit.score < AUTO_REJECT_SCORE) return 'reject';
-  return 'review';
+  if (junk) return { route: 'reject', rejectReason: junk };
+  if (hit.score >= AUTO_APPROVE_SCORE) return { route: 'auto_approve' };
+  if (hit.score < AUTO_REJECT_SCORE) return { route: 'reject', rejectReason: 'low_score' };
+  return { route: 'review' };
+}
+
+function mergeSkipReasons(
+  into: Record<string, number>,
+  from: Record<string, number> | undefined,
+): Record<string, number> {
+  if (!from) return into;
+  for (const [code, n] of Object.entries(from)) {
+    if (!n) continue;
+    into[code] = (into[code] ?? 0) + n;
+  }
+  return into;
 }
 
 type AiFitVerdict = 'approve' | 'reject' | 'review';
@@ -433,6 +498,7 @@ async function optionalAiFitVerdict(hit: MarketingStagedHit): Promise<{
 async function applyOptionalAiFit(
   hits: MarketingStagedHit[],
   routes: Map<string, 'auto_approve' | 'review' | 'reject'>,
+  rejectReasons: Map<string, string>,
 ): Promise<void> {
   const candidates = hits
     .filter((h) => routes.get(h.url) === 'review' && h.score >= AI_FIT_APPROVE_FLOOR)
@@ -444,7 +510,10 @@ async function applyOptionalAiFit(
     if (!fit) continue;
     hit.whyReason = fit.line;
     hit.whyNote = fit.line;
-    if (fit.verdict === 'reject') routes.set(hit.url, 'reject');
+    if (fit.verdict === 'reject') {
+      routes.set(hit.url, 'reject');
+      rejectReasons.set(hit.url, 'ai_reject');
+    }
     else if (fit.verdict === 'approve' && hit.score >= AI_FIT_APPROVE_FLOOR) {
       routes.set(hit.url, 'auto_approve');
     }
@@ -549,7 +618,13 @@ async function processQualifiedHits(args: {
   hits: MarketingStagedHit[];
   lane: LeadEngineLane;
   mergeStaging: boolean;
-}): Promise<{ autoSaved: number; review: number; skipped: number; prospectIds: string[] }> {
+}): Promise<{
+  autoSaved: number;
+  review: number;
+  skipped: number;
+  prospectIds: string[];
+  skipReasons: Record<string, number>;
+}> {
   ensureMarketingPipelineProject();
   const store = args.mergeStaging ? loadStaging() : { hits: [] as MarketingStagedHit[], huntedAt: undefined, lane: args.lane };
   const byUrl = new Map(store.hits.map((h) => [h.url, h]));
@@ -558,26 +633,35 @@ async function processQualifiedHits(args: {
   let review = 0;
   let skipped = 0;
   const prospectIds: string[] = [];
+  const skipReasons: Record<string, number> = {};
+  const bumpSkip = (code: string) => {
+    skipReasons[code] = (skipReasons[code] ?? 0) + 1;
+  };
 
   const fresh: MarketingStagedHit[] = [];
   const routes = new Map<string, 'auto_approve' | 'review' | 'reject'>();
+  const rejectReasons = new Map<string, string>();
 
   for (const hit of args.hits) {
     if (byUrl.has(hit.url) && (byUrl.get(hit.url)?.decision ?? 'pending') !== 'pending') {
       skipped += 1;
+      bumpSkip('already_processed');
       continue;
     }
     const tagged = { ...hit, lane: hit.lane || args.lane };
     fresh.push(tagged);
-    routes.set(tagged.url, qualifyHit(tagged));
+    const qualified = qualifyRoute(tagged);
+    routes.set(tagged.url, qualified.route);
+    if (qualified.rejectReason) rejectReasons.set(tagged.url, qualified.rejectReason);
   }
 
-  await applyOptionalAiFit(fresh, routes);
+  await applyOptionalAiFit(fresh, routes, rejectReasons);
 
   for (const hit of fresh) {
     const route = routes.get(hit.url) ?? 'review';
     if (route === 'reject') {
       skipped += 1;
+      bumpSkip(rejectReasons.get(hit.url) || isJunkHit(hit) || 'low_score');
       byUrl.set(hit.url, { ...hit, decision: 'skipped' });
       continue;
     }
@@ -598,6 +682,7 @@ async function processQualifiedHits(args: {
         });
       } else {
         skipped += 1;
+        bumpSkip('persist_failed');
       }
       continue;
     }
@@ -615,7 +700,7 @@ async function processQualifiedHits(args: {
   const pending = nextHits.filter((h) => (h.decision ?? 'pending') === 'pending').length;
   if (pending > 0) createReviewImportsTask(pending);
 
-  return { autoSaved, review, skipped, prospectIds };
+  return { autoSaved, review, skipped, prospectIds, skipReasons };
 }
 
 export async function huntForMarketingReview(args?: {
@@ -691,6 +776,7 @@ export async function huntForMarketingReview(args?: {
     errors: error ? [error] : [],
     error,
     staged: processed.review,
+    skipReasons: processed.skipReasons,
   };
 
   saveMarketingFindLastRun({
@@ -704,6 +790,7 @@ export async function huntForMarketingReview(args?: {
     skipped: result.skipped,
     errors: result.errors,
     prospectIds: processed.prospectIds,
+    skipReasons: processed.skipReasons,
   });
 
   appendLeadActivity({
@@ -716,6 +803,8 @@ export async function huntForMarketingReview(args?: {
 
   // Successful Find path clears Fix setup My work (create-or-refresh on fail).
   completeFindFailedFixSetupTask();
+
+  if (result.found > 0 && !result.error) markSerperSearchOk(true);
 
   return result;
 }
@@ -746,6 +835,7 @@ export async function runMarketingDailyPack(args?: {
   let skipped = 0;
   const errors: string[] = [];
   const prospectIds: string[] = [];
+  const skipReasons: Record<string, number> = {};
   let first = true;
 
   for (const lane of lanes) {
@@ -759,6 +849,7 @@ export async function runMarketingDailyPack(args?: {
     review = countMarketingStagingPending();
     skipped += processed.skipped;
     prospectIds.push(...processed.prospectIds);
+    mergeSkipReasons(skipReasons, processed.skipReasons);
   }
 
   const result: MarketingFindResult = {
@@ -769,6 +860,7 @@ export async function runMarketingDailyPack(args?: {
     errors,
     error: errors[0],
     staged: review,
+    skipReasons: Object.keys(skipReasons).length ? skipReasons : undefined,
   };
 
   saveMarketingFindLastRun({
@@ -782,6 +874,7 @@ export async function runMarketingDailyPack(args?: {
     skipped,
     errors,
     prospectIds,
+    skipReasons: result.skipReasons,
   });
 
   if (errors.length && found === 0) {
@@ -796,6 +889,8 @@ export async function runMarketingDailyPack(args?: {
     detail: `${lanes.length} lanes · review ${review}`,
     count: found,
   });
+
+  if (found > 0) markSerperSearchOk(true);
 
   return result;
 }

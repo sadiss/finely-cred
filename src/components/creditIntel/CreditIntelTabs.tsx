@@ -622,6 +622,7 @@ export function CreditIntelTabs({
       }
 
       const status = n(t.accountStatus ?? '');
+      const type = n(t.accountType ?? '');
       const paymentStatus = n(
         findAnyField(
           t,
@@ -637,8 +638,18 @@ export function CreditIntelTabs({
           'narrative',
           'status',
           'delinquency',
+          'account status',
         ),
       );
+
+      const chargeOffSignal =
+        hasAnyDerogCode(t, (c) => ['co', 'c/o', 'chg', 'chgoff', 'charge', 'chargeoff', '9'].includes(c)) ||
+        /charge\s*off|charged\s*off|written\s*off|bad\s*debt/.test(`${status} ${type} ${paymentStatus}`);
+
+      if (chargeOffSignal) {
+        buckets.collectionsAndChargeOffs.push(t);
+        continue;
+      }
 
       const isLateOnly =
         hasAnyDerogCode(t, (c) => ['30', '60', '90', '120'].includes(c)) ||
@@ -1727,7 +1738,7 @@ export function CreditIntelTabs({
               {creditorAddrStats.all ? ` (${creditorAddrStats.all})` : ''}
             </button>
             <button className={tabBtn(tab === 'collections')} onClick={() => setTab('collections')}>
-              <Scale size={12} className="inline mr-2" /> Collections
+              <Scale size={12} className="inline mr-2" /> Coll. & charge-offs
               {collectionKindCounts.all ? ` (${collectionKindCounts.all})` : ''}
             </button>
             <button className={tabBtn(tab === 'late_payments')} onClick={() => setTab('late_payments')}>

@@ -44,6 +44,32 @@ const ADMIN_SOLID_GLOW: Record<FcAdminTone, string> = {
     'shadow-[0_0_0_1px_rgba(251,113,133,0.42),0_16px_44px_-12px_rgba(225,29,72,0.5),0_0_36px_rgba(251,113,133,0.24)] hover:shadow-[0_0_0_1px_rgba(251,113,133,0.55),0_18px_48px_-10px_rgba(225,29,72,0.55)] hover:brightness-110',
 };
 
+function adminSolidMetaChipClass(m: string, cardTone: FcAdminTone): string {
+  const s = m.toLowerCase();
+  if (s.includes('disputes: unlimited')) {
+    return 'border-emerald-200/60 bg-emerald-600/50 text-white font-bold shadow-[0_0_18px_rgba(52,211,153,0.38)]';
+  }
+  if (s.includes('disputes: not')) {
+    return 'border-rose-200/45 bg-rose-600/40 text-white font-semibold';
+  }
+  if (s.includes('disputes:')) {
+    return 'border-sky-200/50 bg-sky-600/42 text-white font-semibold shadow-[0_0_14px_rgba(56,189,248,0.3)]';
+  }
+  if (s.includes('access:')) {
+    return 'border-amber-200/50 bg-amber-600/38 text-amber-50 font-semibold';
+  }
+  if (s.includes('done-for-you') || s.includes('hybrid') || s.includes('diy partner')) {
+    return 'border-fuchsia-200/45 bg-fuchsia-600/38 text-white font-semibold';
+  }
+  if (s.includes('financing')) {
+    return 'border-violet-200/45 bg-violet-600/38 text-white font-semibold';
+  }
+  if (cardTone === 'gold') {
+    return 'border-black/22 bg-black/10 text-[#2b1d05]/88 font-medium';
+  }
+  return 'border-white/28 bg-black/22 text-white/90 font-medium';
+}
+
 export type FinelyOsCatalogBadge = {
   label: string;
   className?: string;
@@ -70,7 +96,14 @@ export type FinelyOsCatalogViewMode = 'grid' | 'compact' | 'grouped';
 
 const DEFAULT_PAGE_SIZE = 24;
 
-function viewBtn(active: boolean, ivoryChrome: boolean) {
+function viewBtn(active: boolean, ivoryChrome: boolean, restoreChrome = false) {
+  if (restoreChrome) {
+    return `inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-wider transition-colors ${
+      active
+        ? 'bg-emerald-600 text-white shadow-sm'
+        : 'text-[#0a1628]/65 hover:bg-[#0a1628]/06'
+    }`;
+  }
   if (ivoryChrome) {
     return `inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-wider transition-colors ${
       active
@@ -101,6 +134,8 @@ export function FinelyOsCatalogBrowser({
   density = 'default',
   /** `adminSolid` = fc-admin-solid tones + glow (seeable on ivory/dark shells). */
   cardSurface = 'default',
+  /** Personal Credit Restore: light toolbar + no ivory “tent” on catalog chrome. */
+  restorePricingChrome = false,
 }: {
   items: FinelyOsCatalogItem[];
   pageSize?: number;
@@ -117,10 +152,12 @@ export function FinelyOsCatalogBrowser({
   titleClassName?: string;
   density?: 'default' | 'roomy';
   cardSurface?: FinelyOsCatalogCardSurface;
+  restorePricingChrome?: boolean;
 }) {
   const roomy = density === 'roomy';
   const adminSolid = cardSurface === 'adminSolid';
-  const ivoryChrome = adminSolid;
+  const ivoryChrome = adminSolid && !restorePricingChrome;
+  const restoreChrome = restorePricingChrome && adminSolid;
   const [query, setQuery] = useState('');
   const [page, setPage] = useState(0);
   const [view, setView] = useState<FinelyOsCatalogViewMode>(initialView);
@@ -242,8 +279,8 @@ export function FinelyOsCatalogBrowser({
             className={`mt-2.5 rounded-xl border px-2.5 py-2 ${
               adminSolid
                 ? adminTone === 'gold'
-                  ? 'border-black/15 bg-gradient-to-br from-white/25 via-black/[0.06] to-black/[0.1] shadow-[inset_0_1px_0_rgba(255,255,255,0.35)]'
-                  : 'border-white/25 bg-gradient-to-br from-white/[0.14] via-black/10 to-black/20 shadow-[inset_0_1px_0_rgba(255,255,255,0.22)]'
+                  ? 'border-black/18 bg-black/[0.08]'
+                  : 'border-white/20 bg-black/25'
                 : 'border-white/[0.08] bg-white/[0.03]'
             }`}
           >
@@ -278,16 +315,14 @@ export function FinelyOsCatalogBrowser({
           </div>
         ) : null}
         {item.meta?.length ? (
-          <div className={`mt-2 font-mono text-[10px] flex flex-wrap gap-1.5 ${metaToneClass}`}>
+          <div className={`mt-2.5 flex flex-wrap gap-1.5 ${adminSolid ? '' : `font-mono text-[10px] ${metaToneClass}`}`}>
             {item.meta.map((m) => (
               <span
                 key={m}
-                className={`rounded-md border px-1.5 py-0.5 ${
+                className={`rounded-lg border px-2 py-1 text-[10px] leading-snug ${
                   adminSolid
-                    ? adminTone === 'gold'
-                      ? 'border-black/20 bg-black/[0.08] text-[#2b1d05]/80'
-                      : 'border-white/25 bg-white/10 text-white/85'
-                    : 'border-current/15 opacity-90'
+                    ? adminSolidMetaChipClass(m, adminTone)
+                    : 'rounded-md border-current/15 opacity-90 px-1.5 py-0.5'
                 }`}
               >
                 {m}
@@ -334,18 +369,30 @@ export function FinelyOsCatalogBrowser({
 
   return (
     <div className="space-y-4">
-      <div className={`${FINELY_OS_TOOLBAR} ${ivoryChrome ? 'fc-glass-ivory !border-[#c4803d]/28' : ''}`}>
+      <div
+        className={`${FINELY_OS_TOOLBAR} ${
+          restoreChrome
+            ? 'fc-restore-catalog-toolbar !border-[#0a1628]/12 !bg-white/92'
+            : ivoryChrome
+              ? 'fc-glass-ivory !border-[#c4803d]/28'
+              : ''
+        }`}
+      >
         <div className="relative flex-1 min-w-[200px]">
           <Search
             size={14}
-            className={`absolute left-3 top-1/2 -translate-y-1/2 ${ivoryChrome ? 'text-[#0a1628]/40' : 'text-white/40'}`}
+            className={`absolute left-3 top-1/2 -translate-y-1/2 ${
+              restoreChrome ? 'text-[#0a1628]/45' : ivoryChrome ? 'text-[#0a1628]/40' : 'text-white/40'
+            }`}
           />
           <input
             value={query}
             onChange={(e) => resetPage(e.target.value)}
             placeholder={searchPlaceholder}
             className={`w-full pl-9 pr-3 py-2 mt-0 ${
-              ivoryChrome
+              restoreChrome
+                ? 'rounded-lg border border-[#0a1628]/15 bg-white text-[#0a1628] placeholder:text-[#0a1628]/40 focus:outline-none focus:ring-2 focus:ring-emerald-500/30'
+                : ivoryChrome
                 ? 'rounded-lg border border-[#c4803d]/28 bg-white/70 text-[#0a1628] placeholder:text-[#0a1628]/40 focus:outline-none focus:ring-2 focus:ring-amber-500/25'
                 : `${FINELY_OS_ENTITY_INPUT}`
             }`}
@@ -353,7 +400,7 @@ export function FinelyOsCatalogBrowser({
         </div>
         <span
           className={`text-xs whitespace-nowrap ${
-            ivoryChrome ? 'text-[#0a1628]/65' : FINELY_OS_ENTITY_BODY
+            restoreChrome ? 'text-[#0a1628]/70' : ivoryChrome ? 'text-[#0a1628]/65' : FINELY_OS_ENTITY_BODY
           }`}
         >
           {filtered.length} item{filtered.length === 1 ? '' : 's'}
@@ -361,13 +408,17 @@ export function FinelyOsCatalogBrowser({
         {showViewToggle ? (
           <div
             className={`inline-flex gap-0.5 rounded-xl p-0.5 ${
-              ivoryChrome ? 'fc-glass-ivory' : 'fc-light-glass-panel fc-light-chrome-panel'
+              restoreChrome
+                ? 'border border-[#0a1628]/10 bg-[#0a1628]/04'
+                : ivoryChrome
+                  ? 'fc-glass-ivory'
+                  : 'fc-light-glass-panel fc-light-chrome-panel'
             }`}
           >
             <button
               type="button"
               onClick={() => setView('grid')}
-              className={viewBtn(view === 'grid', ivoryChrome)}
+              className={viewBtn(view === 'grid', ivoryChrome, restoreChrome)}
               title="Grid"
             >
               <Grid3X3 size={12} /> Grid
@@ -375,7 +426,7 @@ export function FinelyOsCatalogBrowser({
             <button
               type="button"
               onClick={() => setView('compact')}
-              className={viewBtn(view === 'compact', ivoryChrome)}
+              className={viewBtn(view === 'compact', ivoryChrome, restoreChrome)}
               title="Compact"
             >
               <LayoutList size={12} /> Compact
@@ -383,7 +434,7 @@ export function FinelyOsCatalogBrowser({
             <button
               type="button"
               onClick={() => setView('grouped')}
-              className={viewBtn(view === 'grouped', ivoryChrome)}
+              className={viewBtn(view === 'grouped', ivoryChrome, restoreChrome)}
               title="Grouped"
             >
               <Layers size={12} /> Grouped
@@ -402,9 +453,11 @@ export function FinelyOsCatalogBrowser({
             <section key={key}>
               <h3
                 className={`mb-2 flex items-center gap-2 ${
-                  ivoryChrome
-                    ? 'text-[10px] font-semibold uppercase tracking-[0.12em] text-[#0a1628]/55'
-                    : FINELY_OS_ENTITY_SUBLABEL
+                  restoreChrome
+                    ? 'text-[10px] font-semibold uppercase tracking-[0.12em] text-[#0a1628]/60'
+                    : ivoryChrome
+                      ? 'text-[10px] font-semibold uppercase tracking-[0.12em] text-[#0a1628]/55'
+                      : FINELY_OS_ENTITY_SUBLABEL
                 }`}
               >
                 <span className={`h-2 w-2 rounded-full ${ivoryChrome ? 'bg-amber-700/70' : 'bg-violet-400'}`} />
@@ -436,10 +489,14 @@ export function FinelyOsCatalogBrowser({
       {filtered.length > pageSize ? (
         <div
           className={`${FINELY_OS_LUXURY_PAGINATION} flex-wrap gap-3 px-4 py-3 ${
-            ivoryChrome ? 'fc-glass-ivory !border-[#c4803d]/28' : ''
+            restoreChrome
+              ? 'fc-restore-catalog-toolbar !border-[#0a1628]/12 !bg-white/92'
+              : ivoryChrome
+                ? 'fc-glass-ivory !border-[#c4803d]/28'
+                : ''
           }`}
         >
-          <span className={`text-xs ${ivoryChrome ? 'text-[#0a1628]/65' : FINELY_OS_ENTITY_BODY}`}>
+          <span className={`text-xs ${restoreChrome || ivoryChrome ? 'text-[#0a1628]/65' : FINELY_OS_ENTITY_BODY}`}>
             Page {safePage + 1} of {totalPages} · showing {pageItems.length} of {filtered.length}
           </span>
           <div className="flex items-center gap-2">
@@ -448,7 +505,11 @@ export function FinelyOsCatalogBrowser({
               disabled={safePage <= 0}
               onClick={() => setPage((p) => Math.max(0, p - 1))}
               className={`${FINELY_OS_LUXURY_PAGINATION_BTN} gap-1 px-3 py-1.5 font-semibold ${
-                ivoryChrome ? '!border-[#c4803d]/30 !bg-white/55 !text-[#0a1628]' : ''
+                restoreChrome
+                  ? '!border-[#0a1628]/15 !bg-white/80 !text-[#0a1628]'
+                  : ivoryChrome
+                    ? '!border-[#c4803d]/30 !bg-white/55 !text-[#0a1628]'
+                    : ''
               }`}
             >
               <ChevronLeft size={14} /> Prev
@@ -458,7 +519,11 @@ export function FinelyOsCatalogBrowser({
               disabled={safePage >= totalPages - 1}
               onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
               className={`${FINELY_OS_LUXURY_PAGINATION_BTN} gap-1 px-3 py-1.5 font-semibold ${
-                ivoryChrome ? '!border-[#c4803d]/30 !bg-white/55 !text-[#0a1628]' : ''
+                restoreChrome
+                  ? '!border-[#0a1628]/15 !bg-white/80 !text-[#0a1628]'
+                  : ivoryChrome
+                    ? '!border-[#c4803d]/30 !bg-white/55 !text-[#0a1628]'
+                    : ''
               }`}
             >
               Next <ChevronRight size={14} />

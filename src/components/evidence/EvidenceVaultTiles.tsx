@@ -19,6 +19,7 @@ import {
   finelyOsGlowKpi,
   finelyOsGlowTile,
 } from '../../features/os/finelyOsLightUi';
+import { FinelyOsTypedDeleteDialog } from '../../features/os/FinelyOsTypedDeleteDialog';
 
 type CategoryKey =
   | ''
@@ -140,6 +141,7 @@ export function EvidenceVaultTiles({
   const [preview, setPreview] = useState<{ item: EvidenceItem; url: string; kind: 'image' | 'video'; revoke?: () => void } | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<EvidenceItem | null>(null);
 
   if (visibleItems.length === 0) {
     return <div className={FINELY_OS_ENTITY_BODY}>No evidence uploaded yet — use the upload tab to add documents.</div>;
@@ -312,7 +314,7 @@ export function EvidenceVaultTiles({
                       </button>
                       <button
                         type="button"
-                        onClick={() => onDelete(e.id)}
+                        onClick={() => setPendingDelete(e)}
                         className={`${FINELY_OS_SECONDARY_BTN} !px-1.5 !py-1 !text-[9px] text-red-200/90`}
                         title="Delete"
                       >
@@ -329,6 +331,19 @@ export function EvidenceVaultTiles({
           </div>
         ))}
       </div>
+      <FinelyOsTypedDeleteDialog
+        open={Boolean(pendingDelete)}
+        title="Delete this file?"
+        description="This permanently removes the file from your evidence vault."
+        entityLabel={pendingDelete?.filename || pendingDelete?.id}
+        onClose={() => setPendingDelete(null)}
+        onConfirm={() => {
+          if (!pendingDelete) return;
+          const id = pendingDelete.id;
+          setPendingDelete(null);
+          onDelete(id);
+        }}
+      />
     </>
   );
 }

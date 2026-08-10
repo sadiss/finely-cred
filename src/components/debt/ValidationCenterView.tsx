@@ -8,6 +8,12 @@ import type { ParsedCreditReport } from '../../domain/creditReports';
 import type { Partner } from '../../domain/partners';
 import { DebtCreditorIntelPanel } from './DebtCreditorIntelPanel';
 import { DebtProofCaptureStrip } from './DebtProofCaptureStrip';
+import {
+  FinelyOsStudioWorkstationLauncherRow,
+  FinelyOsStudioWorkstationModals,
+  type StudioWorkstationModal,
+} from '../os/FinelyOsStudioWorkstation';
+import { listEvidenceByPartner } from '../../data/evidenceRepo';
 import { ValidationAdvisorChat } from './ValidationAdvisorChat';
 import { CollateralWorkstationSection, DebtVsDisputeExplainer } from './CollateralWorkstationSection';
 import { LetterCatalogBrowser } from './LetterCatalogBrowser';
@@ -22,6 +28,7 @@ import { extractReportDebtSignals } from '../../lib/debtCreditorIntel';
 import { isValidationTrackLetter } from '../../lib/letterProductLabels';
 import { buildIntelligentLetterSuggestions } from '../../lib/intelligentLetterSuggestions';
 import { IntelligentLetterSuggestionsPanel } from '../letters/IntelligentLetterSuggestionsPanel';
+import { LetterStudioSavedVaultStrip } from '../letters/LetterStudioSavedVaultStrip';
 import { FinelyOsKpiGrid } from '../os/FinelyOsKpiGrid';
 import { FdcpaPowerChips } from './FdcpaPowerChips';
 import {
@@ -60,8 +67,11 @@ export function ValidationCenterView({
   onBuildCatalogDraft,
   canSeeTemplates,
   partner,
+  storeVersion = 0,
+  onOpenLettersVault,
   generateBusy = false,
   generateError = null,
+  vaultHighlightLetterId = null,
 }: {
   debt: DebtCase | null;
   debtId: string;
@@ -81,9 +91,24 @@ export function ValidationCenterView({
   onBuildCatalogDraft?: (catalogId: string) => void;
   canSeeTemplates: boolean;
   partner?: Partner;
+  storeVersion?: number;
+  onOpenLettersVault?: () => void;
   generateBusy?: boolean;
   generateError?: string | null;
+  vaultHighlightLetterId?: string | null;
 }) {
+  const [workModal, setWorkModal] = React.useState<StudioWorkstationModal>(null);
+  const [proofVersion, setProofVersion] = React.useState(0);
+  const screenshotEvidence = React.useMemo(() => {
+    void proofVersion;
+    if (!partner?.id) return [];
+    return listEvidenceByPartner(partner.id).filter((e) => e.type === 'screenshot');
+  }, [partner?.id, proofVersion]);
+  const vaultEvidence = React.useMemo(() => {
+    if (!partner?.id) return [];
+    return listEvidenceByPartner(partner.id);
+  }, [partner?.id, storeVersion, proofVersion]);
+
   const scenarioRec = SCENARIO_RECOMMENDATIONS.find((r) => r.scenario === recommendedScenario);
   const signals = React.useMemo(() => extractReportDebtSignals(reports), [reports]);
 
@@ -214,6 +239,13 @@ export function ValidationCenterView({
         ) : null}
       </div>
 
+      <FinelyOsStudioWorkstationLauncherRow
+        escalationLabel="Validation escalation ladder"
+        onScreenshots={() => setWorkModal('screenshots')}
+        onUploads={() => setWorkModal('uploads')}
+        onEscalation={() => setWorkModal('escalation')}
+      />
+
       <DebtCreditorIntelPanel
         partnerId={debt?.partnerId || partner?.id || debtCases[0]?.partnerId || ''}
         debt={debt}
@@ -279,22 +311,42 @@ export function ValidationCenterView({
 
       <PartnerDefenseKnowledgePanel mode="both" trackFilter="validation" compact />
 
+      {partner ? (
+        <LetterStudioSavedVaultStrip
+          partnerId={partner.id}
+          types={['validation']}
+          storeVersion={storeVersion}
+          evidence={vaultEvidence}
+          accent="emerald"
+          title="Your validation letters (vault)"
+          subtitle="Saved as soon as you generate — draft or PDF. Matching bureau disputes queue on Credit Letters."
+          onOpenFullVault={onOpenLettersVault}
+          highlightLetterId={vaultHighlightLetterId}
+        />
+      ) : null}
+
       <CollateralWorkstationSection title="Validation coach" subtitle="Ask about 1692g proof demands, licensing, chain of title, and your next move — full width section." accent="emerald">
         <ValidationAdvisorChat scenario={recommendedScenario} debtName={debt?.name} stateJurisdiction={debt?.stateJurisdiction} />
       </CollateralWorkstationSection>
 
       {partner ? (
-        <div id="fc-debt-step-proof" className="scroll-mt-3">
-          <DebtProofCaptureStrip
-            partner={partner}
-            debt={debt}
-            debtCaseId={debt?.id}
-            accent="emerald"
-            uploadContext="validation"
-            reports={reports}
-            onDebtChange={onDebtChange}
-          />
+        <div id="fc-debt-step-proof" className="scroll-mt-3 rounded-xl border border-emerald-400/20 bg-black/20 !p-3">
+          <p className={`text-xs ${FINELY_OS_ENTITY_BODY}`}>
+            Proof and collector documents live in pop-up workstations — use <span className="text-emerald-200 font-semibold">Proof & uploads</span> above.
+          </p>
         </div>
+      ) : null}
+
+      {partner ? (
+        <FinelyOsStudioWorkstationModals
+          partner={partner}
+          open={workModal}
+          onClose={() => setWorkModal(null)}
+          screenshotEvidence={screenshotEvidence}
+          escalationTrack="debt_validation"
+          uploadContext="validation"
+          onUploaded={() => setProofVersion((v) => v + 1)}
+        />
       ) : null}
     </div>
   );

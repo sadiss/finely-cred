@@ -65,7 +65,7 @@ export default function BookstorePage() {
           ]}
           activeTab={tab}
           onTabChange={(id) => setTab(id as BookTab)}
-          primaryAction={{ label: 'Personal credit lane', onClick: () => navigate('/personal-credit') }}
+          primaryAction={{ label: 'Personal credit lane', onClick: () => navigate('/pricing/personal-credit-restore') }}
           secondaryAction={{ label: 'Resources hub', onClick: () => navigate('/resources') }}
         >
           {tab === 'catalog' && (

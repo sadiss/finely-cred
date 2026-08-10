@@ -52,8 +52,8 @@ Agents should stage **`src/`**, **`public/`**, **`scripts/`**, **`docs/`**, `pac
 | URL | Check |
 |-----|--------|
 | `/` | Homepage video — no FC shield logo overlay |
-| `/personal-credit` | Ivory shell, navy Solutions header, solid tiles |
-| `/pricing/personal-credit-restore` | Black Solutions header, ivory background |
+| `/personal-credit` | Redirects to `/pricing/personal-credit-restore` |
+| `/pricing/personal-credit-restore` | Ivory hero, readable title, solid tiles, free DIY strip |
 | `/free-debt-guide` | Debt hero book + form |
 | `/free-guide` | Dispute video autoplay |
 

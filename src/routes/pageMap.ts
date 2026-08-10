@@ -13,7 +13,7 @@ export const PUBLIC_ROUTES: RouteSpec[] = [
   { path: '/debt-summons-help', title: 'Debt & Summons Help', badge: 'Public' },
   { path: '/business-credit-solutions', title: 'Business Credit Solutions', badge: 'Public' },
   { path: '/services', title: 'Services Overview', badge: 'Public' },
-  { path: '/personal-credit', title: 'Personal Credit Solutions', badge: 'Public' },
+  { path: '/pricing/personal-credit-restore', title: 'Personal Credit Restore', badge: 'Public' },
   { path: '/business-credit', title: 'Business Credit Solutions', badge: 'Public' },
   { path: '/funding-readiness', title: 'Funding Readiness', badge: 'Public' },
   { path: '/tradelines', title: 'Tradelines Overview', badge: 'Public' }, // real page exists

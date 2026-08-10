@@ -53,7 +53,7 @@ export const SOCIAL_SOP_LIBRARY: SocialSopTemplate[] = [
     ],
     requiredHashtags: ['#DisputeWorkflow', '#CreditRestore'],
     forbiddenPhrases: ['we sued', 'guaranteed deletion', 'CRO'],
-    cta: 'See partner portal preview → finelycred.com/personal-credit',
+    cta: 'See partner portal preview → finelycred.com/pricing/personal-credit-restore',
     approvalRequired: true,
   },
   {

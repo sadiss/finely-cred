@@ -95,6 +95,7 @@ export const STAFF_ROSTER_SEED: StaffMember[] = [
   m('staff-cameron-blake', 'Cameron', 'Blake', 'lead_converter', 'growth_sessions', 'masculine', 'Revenue Activation Director — trial-to-paid conversion & onboarding.', [WEEKDAY]),
   m('staff-elise-hart', 'Elise', 'Hart', 'social_creator', 'marketing', 'feminine', 'Growth Marketing Director — compliant campaigns & funnel creative.', [WEEKDAY, WEEKEND]),
   m('staff-drew-sinclair', 'Drew', 'Sinclair', 'affiliate_specialist', 'marketing', 'masculine', 'Partner Marketing Director — affiliate kits & co-marketing.', [WEEKDAY]),
+  m('staff-aia-guide', 'Aia', 'Guide', 'nurture_concierge', 'growth_sessions', 'feminine', 'Onboarding guide — plain-language portal help and strategy call booking.'),
   { ...m('staff-naomi-fairchild', 'Naomi', 'Fairchild', 'ops_copilot', 'partner_success', 'feminine', 'Chief Operating Officer — human floor under Co-Owner Ruth.'), displayTitle: 'Chief Operating Officer' },
   { ...m('staff-david-okonkwo', 'David', 'Okonkwo', 'compliance_agent', 'internal_ops', 'masculine', 'Chief Compliance & Trust Officer — human backstop for claims and consent.'), displayTitle: 'Chief Compliance Officer' },
   { ...m('staff-marcus-sterling-exec', 'Marcus', 'Sterling', 'sales_closer', 'growth_sessions', 'masculine', 'Chief Revenue Officer — consult quality and ethical close.'), displayTitle: 'Chief Revenue Officer' },

@@ -22,10 +22,10 @@ import {
   FINELY_OS_SECONDARY_BTN,
   FINELY_OS_SUCCESS_BTN,
   finelyOsIvorySolidTile,
-  finelyOsLaneCommandHeader,
-  FINELY_OS_LANE_COMMAND_KICKER,
-  FINELY_OS_LANE_COMMAND_TITLE,
-  FINELY_OS_LANE_COMMAND_BODY,
+  finelyOsRestoreLaneHeroShell,
+  FINELY_OS_RESTORE_HERO_KICKER,
+  FINELY_OS_RESTORE_HERO_TITLE,
+  FINELY_OS_RESTORE_HERO_BODY,
   FINELY_OS_PLATINUM_BTN,
   FINELY_OS_COMPLIANCE_FOOTNOTE,
 } from '../features/os/finelyOsLightUi';
@@ -104,10 +104,10 @@ export default function PersonalCreditPage() {
       subtitle="We handle dispute letters and tracking — you focus on your goals."
     >
       <div className={`${FINELY_OS_PAGE} fc-senior-simple space-y-6`} data-fc-personal-credit-lane="1">
-        <header className={finelyOsLaneCommandHeader()}>
-          <p className={FINELY_OS_LANE_COMMAND_KICKER}>Solutions · Personal credit restoration</p>
-          <h1 className={`${FINELY_OS_LANE_COMMAND_TITLE} mt-3`}>Restore Your Credit. Reclaim Your Future.</h1>
-          <p className={`${FINELY_OS_LANE_COMMAND_BODY} mt-4`}>
+        <header className={finelyOsRestoreLaneHeroShell()}>
+          <p className={FINELY_OS_RESTORE_HERO_KICKER}>Solutions · Personal credit restoration</p>
+          <h1 className={`${FINELY_OS_RESTORE_HERO_TITLE} mt-3`}>Restore Your Credit. Reclaim Your Future.</h1>
+          <p className={`${FINELY_OS_RESTORE_HERO_BODY} mt-4`}>
             Professional dispute letters, bureau coverage, and a clear path to funding readiness — with the Finely Cred OS
             behind every step.
           </p>
@@ -116,8 +116,8 @@ export default function PersonalCreditPage() {
           </p>
         </header>
 
-        <FinelyNoticedStrip items={buildPersonalCreditNoticedItems({ tab })} />
-        <FinelyNowDoThisStrip currentIndex={tab === 'packages' ? 0 : tab === 'overview' ? 0 : 1} />
+        <FinelyNoticedStrip items={buildPersonalCreditNoticedItems({ tab })} surface="light" />
+        <FinelyNowDoThisStrip currentIndex={tab === 'packages' ? 0 : tab === 'overview' ? 0 : 1} surface="light" />
         <FinelyUnifiedHubLayout
           eyebrow="Your lane"
           title="Packages, process, and platform tools"

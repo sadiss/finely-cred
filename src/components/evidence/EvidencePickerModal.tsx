@@ -6,6 +6,7 @@ import { openBlobRefInNewTab } from '../../lib/openBlobRef';
 import { captureTradelineEvidenceScreenshot } from '../../lib/captureTradelineEvidenceScreenshot';
 import { bureauFullName } from '../../utils/bureaus';
 import { EvidenceUploader } from './EvidenceUploader';
+import { FinelyOsTypedDeleteDialog } from '../../features/os/FinelyOsTypedDeleteDialog';
 import {
   EVIDENCE_MATCH_ATTACH_MIN,
   describeEvidenceMismatch,
@@ -115,6 +116,7 @@ export function EvidencePickerModal({
   const [showNonMatching, setShowNonMatching] = useState(true);
   const [capturing, setCapturing] = useState(false);
   const [captureErr, setCaptureErr] = useState<string | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<EvidenceItem | null>(null);
 
   const activeAccount = useMemo(() => {
     if (!accounts?.length) return null;
@@ -468,7 +470,7 @@ export function EvidencePickerModal({
 
                         <button
                           type="button"
-                          onClick={() => onDelete(e.id)}
+                          onClick={() => setPendingDelete(e)}
                           className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-white/5 border border-white/[0.08] text-white/60 hover:text-white hover:bg-white/10 transition-all text-[10px] font-black uppercase tracking-widest"
                           title="Delete"
                         >
@@ -484,6 +486,19 @@ export function EvidencePickerModal({
           </div>
         </div>
       </div>
+      <FinelyOsTypedDeleteDialog
+        open={Boolean(pendingDelete)}
+        title="Delete this file?"
+        description="This permanently removes the file from your evidence vault. Attached letters may lose their exhibit link."
+        entityLabel={pendingDelete?.filename || pendingDelete?.id}
+        onClose={() => setPendingDelete(null)}
+        onConfirm={() => {
+          if (!pendingDelete) return;
+          const id = pendingDelete.id;
+          setPendingDelete(null);
+          onDelete(id);
+        }}
+      />
     </div>
   );
 }

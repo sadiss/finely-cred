@@ -475,6 +475,7 @@ export default function PartnerDashboardPage() {
         <div className={`${FINELY_OS_PAGE} fc-senior-simple`}>
           <WelcomeBanner user={auth.user} partner={partner} />
           <FinelyNoticedStrip
+            surface="light"
             items={buildPortalNoticedItems({
               reportsCount: reports.length,
               lettersCount: letters.length,
@@ -483,7 +484,7 @@ export default function PartnerDashboardPage() {
               overallScore: overallScore?.overall ?? null,
             })}
           />
-          <FinelyNowDoThisStrip currentIndex={reports.length === 0 ? 0 : 2} />
+          <FinelyNowDoThisStrip surface="light" currentIndex={reports.length === 0 ? 0 : 2} />
           {restoreAlert.show ? (
             <div className="space-y-3">
               <FinelyOsAlertBanner tone={restoreAlert.tone} message={restoreAlert.message} />

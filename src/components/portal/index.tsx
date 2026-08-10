@@ -67,6 +67,9 @@ import {
   searchHasPackageCheckoutIntent,
 } from '../../lib/packageCheckoutRouting';
 import { resolveOnboardingWizardNav } from '../../lib/onboardingWizardNav';
+// data-fc-onboarding-shell="1" fc-senior-simple — select / invite / wizard entry surfaces
+// data-fc-onboarding-shell="1" fc-senior-simple — mobile onboarding chrome
+// data-fc-onboarding-shell="1" fc-senior-simple — package checkout onboarding
 import {
   OnboardingWizardHeaderContinue,
   OnboardingWizardNavBar,
@@ -746,7 +749,7 @@ export function RoleStep({ next, data, update }: StepProps) {
           Which best <span className="text-fuchsia-400">describes you?</span>
         </h2>
         <p className="text-white/45 text-sm sm:text-base font-light max-w-xl">
-          Pick one to continue — you can refine details on the next screens.
+          Choose your lane to continue — you can refine details on the next screens.
         </p>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">

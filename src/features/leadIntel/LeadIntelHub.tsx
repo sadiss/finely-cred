@@ -892,7 +892,12 @@ function scoreChip(_score: number) {
       ) : null}
 
       {view === 'copilot' ? (
-        <LeadIntelCopilot target={target} query={query} results={results} selectedUrls={selectedUrls} importedCount={importedProspects.length} />
+        <div className="space-y-3">
+          <p className={`text-xs ${FINELY_OS_ENTITY_BODY}`}>
+            Copilot plans safe internal steps. For live prospects, use Discover or Caleb Find — not simulation swarm counters.
+          </p>
+          <LeadIntelCopilot target={target} query={query} results={results} selectedUrls={selectedUrls} importedCount={importedProspects.length} />
+        </div>
       ) : null}
 
       {showCompliance ? (

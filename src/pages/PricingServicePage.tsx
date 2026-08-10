@@ -46,10 +46,10 @@ import {
   finelyOsCatalogCardCompact,
   finelyOsLandingIvoryCard,
   finelyOsIvorySolidTile,
-  finelyOsLaneCommandHeader,
-  FINELY_OS_LANE_COMMAND_KICKER,
-  FINELY_OS_LANE_COMMAND_TITLE,
-  FINELY_OS_LANE_COMMAND_BODY,
+  finelyOsRestoreLaneHeroShell,
+  FINELY_OS_RESTORE_HERO_KICKER,
+  FINELY_OS_RESTORE_HERO_TITLE,
+  FINELY_OS_RESTORE_HERO_BODY,
   finelyOsListItem,
   finelyOsViewTab,
   type FinelyOsPublicAccent,
@@ -270,56 +270,41 @@ export default function PricingServicePage() {
 
   return (
     <PageShell hideHero title={title} subtitle={subtitle} surface={isRestoreLane ? 'ivory' : 'default'}>
-      <div className={`${FINELY_OS_PAGE}${isRestoreLane ? ' !space-y-4' : ''}`}>
+      <div
+        className={`${FINELY_OS_PAGE}${isRestoreLane ? ' !space-y-8' : ''}`}
+        data-fc-restore-pricing={isRestoreLane ? '1' : undefined}
+      >
         <header
           className={
             isRestoreLane
-              ? `${finelyOsLaneCommandHeader()}`
+              ? `${finelyOsRestoreLaneHeroShell()} fc-restore-solutions-hero`
               : `${finelyOsCatalogCardCompact(accent)} !p-5 sm:!p-6`
           }
           data-fc-accent={accent}
         >
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-            <div className="min-w-0 space-y-2">
-              <p
-                className={
-                  isRestoreLane
-                    ? FINELY_OS_LANE_COMMAND_KICKER
-                    : `${FINELY_OS_ENTITY_SUBLABEL} tracking-[0.22em]`
-                }
-              >
+            <div className="min-w-0 space-y-3">
+              <p className={isRestoreLane ? FINELY_OS_RESTORE_HERO_KICKER : `${FINELY_OS_ENTITY_SUBLABEL} tracking-[0.22em]`}>
                 Solutions
               </p>
-              <h1
-                className={
-                  isRestoreLane
-                    ? FINELY_OS_LANE_COMMAND_TITLE
-                    : `text-2xl sm:text-3xl font-semibold tracking-tight ${FINELY_OS_ENTITY_VALUE}`
-                }
-              >
+              <h1 className={isRestoreLane ? FINELY_OS_RESTORE_HERO_TITLE : `text-2xl sm:text-3xl font-semibold tracking-tight ${FINELY_OS_ENTITY_VALUE}`}>
                 {title}
               </h1>
-              <p
-                className={
-                  isRestoreLane
-                    ? FINELY_OS_LANE_COMMAND_BODY
-                    : `max-w-2xl text-sm sm:text-base ${FINELY_OS_ENTITY_BODY}`
-                }
-              >
+              <p className={isRestoreLane ? FINELY_OS_RESTORE_HERO_BODY : `max-w-2xl text-sm sm:text-base ${FINELY_OS_ENTITY_BODY}`}>
                 {subtitle}
               </p>
-              <p
-                className={`${FINELY_OS_COMPLIANCE_FOOTNOTE} ${
-                  isRestoreLane ? '!text-white/45 !text-left' : ''
-                }`}
-              >
+              <p className={`${FINELY_OS_COMPLIANCE_FOOTNOTE} ${isRestoreLane ? '!text-white/50 !text-left' : ''}`}>
                 Educational only · not legal advice · payments cover software access and guided workflows.
               </p>
             </div>
             <button
               type="button"
               onClick={() => setChooserOpen(true)}
-              className={`shrink-0 self-start ${FINELY_OS_GLOW_INCLUDES_BTN}`}
+              className={
+                isRestoreLane
+                  ? 'shrink-0 self-start inline-flex items-center gap-2 rounded-xl border-2 border-amber-300/45 bg-gradient-to-r from-amber-500/25 via-amber-400/15 to-emerald-500/20 px-4 py-2.5 text-xs font-bold text-amber-50 shadow-[0_0_24px_rgba(251,191,36,0.22)] hover:border-amber-200/60 transition'
+                  : `shrink-0 self-start ${FINELY_OS_GLOW_INCLUDES_BTN}`
+              }
             >
               Switch solution <ArrowRight size={14} />
             </button>
@@ -329,23 +314,23 @@ export default function PricingServicePage() {
         {category === 'personal_credit' ? (
           <div
             className={`flex flex-wrap items-center justify-between gap-3 ${
-              isRestoreLane ? 'fc-glass-ivory rounded-2xl px-3 py-2.5' : ''
+              isRestoreLane ? 'fc-restore-lane-toolbar rounded-2xl px-4 py-3' : ''
             }`}
           >
-            <div className={isRestoreLane ? 'text-sm text-[#0a1628]/70' : FINELY_OS_ENTITY_BODY}>
+            <div className={isRestoreLane ? 'text-sm text-white/75' : FINELY_OS_ENTITY_BODY}>
               Lane:{' '}
-              <span className={`font-semibold ${isRestoreLane ? 'text-[#0a1628]' : FINELY_OS_ENTITY_VALUE}`}>
+              <span className={`font-semibold ${isRestoreLane ? 'text-emerald-200' : FINELY_OS_ENTITY_VALUE}`}>
                 Restore
               </span>{' '}
               or{' '}
-              <span className={`font-semibold ${isRestoreLane ? 'text-[#0a1628]' : FINELY_OS_ENTITY_VALUE}`}>
+              <span className={`font-semibold ${isRestoreLane ? 'text-sky-200' : FINELY_OS_ENTITY_VALUE}`}>
                 Building
               </span>
             </div>
             <div
               className={
                 isRestoreLane
-                  ? 'inline-flex flex-wrap gap-2 p-1.5 rounded-2xl border border-amber-900/12 bg-white/55 backdrop-blur-md'
+                  ? 'inline-flex flex-wrap gap-2 p-1.5 rounded-2xl border border-white/15 bg-black/35 backdrop-blur-md'
                   : FINELY_OS_VIEW_TABS
               }
             >
@@ -357,7 +342,7 @@ export default function PricingServicePage() {
                     ? `inline-flex items-center justify-center gap-1.5 min-w-[6.5rem] px-4 sm:px-5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all ${
                         meta?.slug === 'personal-credit-restore'
                           ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-md'
-                          : 'text-[#0a1628]/55 hover:bg-black/[0.04] hover:text-[#0a1628]'
+                          : 'text-white/75 hover:bg-white/10 hover:text-white'
                       }`
                     : finelyOsViewTab(meta?.slug === 'personal-credit-restore', 'emerald')
                 }
@@ -372,7 +357,7 @@ export default function PricingServicePage() {
                     ? `inline-flex items-center justify-center gap-1.5 min-w-[6.5rem] px-4 sm:px-5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all ${
                         meta?.slug === 'personal-credit-building'
                           ? 'bg-gradient-to-r from-sky-600 to-cyan-600 text-white shadow-md'
-                          : 'text-[#0a1628]/55 hover:bg-black/[0.04] hover:text-[#0a1628]'
+                          : 'text-white/75 hover:bg-white/10 hover:text-white'
                       }`
                     : finelyOsViewTab(meta?.slug === 'personal-credit-building', 'sky')
                 }
@@ -385,7 +370,7 @@ export default function PricingServicePage() {
 
         {isRestoreLane ? (
           <div
-            className="fc-admin-solid-emerald rounded-2xl border !p-4 sm:!p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 shadow-[0_14px_40px_-14px_rgba(16,185,129,0.55)]"
+            className="fc-admin-solid-emerald rounded-2xl border !p-4 sm:!p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 shadow-[0_14px_40px_-14px_rgba(16,185,129,0.55)] mt-1"
             data-fc-accent="emerald"
           >
             <div className="min-w-0 space-y-1.5">
@@ -494,16 +479,18 @@ export default function PricingServicePage() {
               onClick={() => setMode('DIY')}
               className={
                 isRestoreLane
-                  ? `fc-glass-ivory rounded-2xl p-4 text-left transition-all ${
-                      mode === 'DIY' ? 'ring-2 ring-amber-700/35 brightness-105' : 'hover:brightness-105'
+                  ? `fc-restore-mode-tile rounded-2xl p-5 sm:p-6 text-left transition-all border-2 ${
+                      mode === 'DIY'
+                        ? 'border-amber-400/55 bg-gradient-to-br from-amber-600/25 via-amber-900/20 to-[#0a1420] shadow-[0_0_32px_rgba(251,191,36,0.2)]'
+                        : 'border-white/10 bg-[#0a1420]/40 hover:border-amber-400/25'
                     }`
                   : finelyOsListItem(mode === 'DIY', 'amber')
               }
             >
-              <div className={isRestoreLane ? 'font-semibold tracking-tight text-[#0a1628]' : FINELY_OS_ENTITY_VALUE}>
+              <div className={isRestoreLane ? 'font-bold tracking-tight text-white text-lg' : FINELY_OS_ENTITY_VALUE}>
                 DIY (Do‑It‑Yourself)
               </div>
-              <div className={`mt-1 ${isRestoreLane ? 'text-sm text-[#0a1628]/70' : FINELY_OS_ENTITY_BODY}`}>
+              <div className={`mt-1 ${isRestoreLane ? 'text-sm text-white/72' : FINELY_OS_ENTITY_BODY}`}>
                 Templates, tools, and structured workflows — you execute.
               </div>
             </button>
@@ -512,16 +499,18 @@ export default function PricingServicePage() {
               onClick={() => setMode('DFY')}
               className={
                 isRestoreLane
-                  ? `fc-glass-ivory rounded-2xl p-4 text-left transition-all ${
-                      mode === 'DFY' ? 'ring-2 ring-emerald-700/35 brightness-105' : 'hover:brightness-105'
+                  ? `fc-restore-mode-tile rounded-2xl p-5 sm:p-6 text-left transition-all border-2 ${
+                      mode === 'DFY'
+                        ? 'border-emerald-400/55 bg-gradient-to-br from-emerald-600/28 via-teal-900/22 to-[#0a1420] shadow-[0_0_32px_rgba(52,211,153,0.22)]'
+                        : 'border-white/10 bg-[#0a1420]/40 hover:border-emerald-400/25'
                     }`
                   : finelyOsListItem(mode === 'DFY', 'emerald')
               }
             >
-              <div className={isRestoreLane ? 'font-semibold tracking-tight text-[#0a1628]' : FINELY_OS_ENTITY_VALUE}>
+              <div className={isRestoreLane ? 'font-bold tracking-tight text-white text-lg' : FINELY_OS_ENTITY_VALUE}>
                 DFY (Done‑For‑You)
               </div>
-              <div className={`mt-1 ${isRestoreLane ? 'text-sm text-[#0a1628]/70' : FINELY_OS_ENTITY_BODY}`}>
+              <div className={`mt-1 ${isRestoreLane ? 'text-sm text-white/72' : FINELY_OS_ENTITY_BODY}`}>
                 We build the packet strategy + tracking and guide execution.
               </div>
             </button>
@@ -564,7 +553,7 @@ export default function PricingServicePage() {
             includePersonalCompare={category === 'personal_credit'}
             cardSurface={isRestoreLane ? 'adminSolid' : 'default'}
             searchPlaceholder="Search packages…"
-            selectLabel="Select"
+            selectLabel="Select package"
             onSelect={(pkgId) => {
               const pkg = visible.find((p) => p.id === pkgId);
               const rail = pkg?.rail === 'in_house' ? 'in_house' : 'stripe';

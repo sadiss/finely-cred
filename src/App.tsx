@@ -176,6 +176,7 @@ const AdminLeadIntelPage = lazy(() => import('./pages/admin/AdminLeadIntelPage')
 const AdminSignupOpsPage = lazy(() => import('./pages/admin/AdminSignupOpsPage'));
 const AdminLeadsOsPage = lazy(() => import('./pages/admin/AdminLeadsOsPage'));
 const AdminMarketingDeskPage = lazy(() => import('./pages/admin/AdminMarketingDeskPage'));
+const AdminGrowthAgentsPage = lazy(() => import('./pages/admin/AdminGrowthAgentsPage'));
 const AdminCmoCommandPage = lazy(() => import('./pages/admin/AdminCmoCommandPage'));
 const AdminMediaStudioPage = lazy(() => import('./pages/admin/AdminMediaStudioPage'));
 const AdminVoiceStudioPage = lazy(() => import('./pages/admin/AdminVoiceStudioPage'));
@@ -222,7 +223,6 @@ const BookstorePage = lazy(() => import('./pages/BookstorePage'));
 const BookstoreProductPage = lazy(() => import('./pages/BookstoreProductPage'));
 const PricingPage = lazy(() => import('./pages/PricingPage'));
 const PricingServicePage = lazy(() => import('./pages/PricingServicePage'));
-const PersonalCreditPage = lazy(() => import('./pages/PersonalCreditPage'));
 const FundabilityReadinessPage = lazy(() => import('./pages/FundabilityReadinessPage'));
 const TestimonialsPage = lazy(() => import('./pages/TestimonialsPage'));
 const EventsPage = lazy(() => import('./pages/EventsPage'));
@@ -499,8 +499,8 @@ function LandingRoute({ onGetStarted, onViewTradelines, onNavigate, addToCart, o
       </section>
 
       {/* 10. Social proof + compliance */}
-      <section className={`py-16 sm:py-20 ${finelyOsLightMeshSection('fc-band-dark')}`}>
-        <div className="container mx-auto px-4 sm:px-6 max-w-6xl">
+      <section className={`py-16 sm:py-20 overflow-x-hidden ${finelyOsLightMeshSection('fc-band-dark')}`}>
+        <div className="container mx-auto px-4 sm:px-6 max-w-6xl min-w-0">
           <FinelyOsComplianceStrip className="mb-10" />
           <div className="text-center mb-12">
             <Reveal>
@@ -512,7 +512,7 @@ function LandingRoute({ onGetStarted, onViewTradelines, onNavigate, addToCart, o
               </h2>
             </Reveal>
           </div>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 min-w-0">
             <Reveal delay={100}>
               <TestimonialDossier
                 id="FC-881"
@@ -1464,7 +1464,7 @@ function AppInner() {
         <Route path="/blog" element={<Navigate to="/resources" replace />} />
         <Route path="/blog/:slug" element={<BlogCanonicalRedirect />} />
         <Route path="/rent-reporting" element={<Navigate to="/resources" replace />} />
-        <Route path="/personal-credit" element={<PersonalCreditPage />} />
+        <Route path="/personal-credit" element={<Navigate to="/pricing/personal-credit-restore" replace />} />
         {/* Stripe mock route removed for production */}
         <Route path="/start-here" element={<StartHerePage />} />
         <Route path="/help-center" element={<LaunchHelpCenterPage />} />
@@ -2321,6 +2321,22 @@ function AppInner() {
           }
         />
         <Route path="/admin/leads-os" element={<Navigate to="/admin/leads" replace />} />
+        <Route
+          path="/admin/growth-agents"
+          element={
+            <ProtectedAdminRoute>
+              <AdminGrowthAgentsPage />
+            </ProtectedAdminRoute>
+          }
+        />
+        <Route
+          path="/admin/growth-agents/:agentId"
+          element={
+            <ProtectedAdminRoute>
+              <AdminGrowthAgentsPage />
+            </ProtectedAdminRoute>
+          }
+        />
         <Route
           path="/admin/marketing-desk"
           element={

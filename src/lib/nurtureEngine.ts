@@ -15,6 +15,7 @@ import { isLeadTrashed } from '../features/studioCommandOs/leadTrashRepo';
 import { sendEmail } from './commsDeliveryClient';
 import { isSupabaseConfigured } from './supabaseClient';
 import { buildNurtureStepEmail } from './nurtureStepCopy';
+import { appendNurtureSendLog } from '../data/nurtureSendLogRepo';
 
 const DESK_MAIL_PAUSE_KEY = 'finely.marketing_desk_mail_pause.v1';
 
@@ -253,8 +254,28 @@ async function dispatchStep(args: {
       subject: copy.subject,
       text: copy.text,
     });
+    appendNurtureSendLog({
+      sequenceId: args.sequence.id,
+      stepId: args.step.id,
+      templateId: args.step.templateId,
+      channel: args.step.channel,
+      email,
+      leadId: args.enrollment.leadId,
+      status: 'sent',
+      dryRun: false,
+    });
     return { ...base, status: 'sent' };
   } catch {
+    appendNurtureSendLog({
+      sequenceId: args.sequence.id,
+      stepId: args.step.id,
+      templateId: args.step.templateId,
+      channel: args.step.channel,
+      email: email || undefined,
+      leadId: args.enrollment.leadId,
+      status: 'skipped',
+      dryRun: false,
+    });
     return base;
   }
 }
@@ -306,6 +327,9 @@ export async function processDueNurtureSteps(opts?: {
 
     const result = await dispatchStep({ enrollment, step, sequence, dryRun });
     results.push(result);
+    if (!dryRun && result.status === 'sent') {
+      // logged in dispatchStep
+    }
 
     if (!dryRun) {
       emitPlatformEvent({

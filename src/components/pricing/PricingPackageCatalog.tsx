@@ -252,6 +252,7 @@ export function PricingPackageCatalog({
         initialView="grid"
         density="roomy"
         cardSurface={cardSurface}
+        restorePricingChrome={adminSolid}
         groupLabels={PRICING_CATALOG_GROUP_LABELS}
         searchPlaceholder={searchPlaceholder}
         emptyMessage={emptyMessage}

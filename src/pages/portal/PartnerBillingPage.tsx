@@ -43,6 +43,7 @@ import {
   FINELY_OS_ENTITY_INPUT,
   FINELY_OS_ENTITY_LABEL,
   finelyOsCatalogCard,
+  finelyOsIvorySolidTile,
   FINELY_OS_ENTITY_SUBLABEL,
   FINELY_OS_ENTITY_VALUE,
   FINELY_OS_LUXURY_EMPTY,
@@ -251,11 +252,12 @@ export default function PartnerBillingPage() {
   return (
     <PageShell
       badge="Partner Portal"
+      surface="ivory"
       title="Profile & Billing"
       subtitle="Account profile, billing, and compliance settings. Payments are processed via Stripe or in‑house financing depending on your plan."
     >
       {!partner ? (
-        <div className={FINELY_OS_PAGE}>
+        <div className={`${FINELY_OS_PAGE} fc-senior-simple`}>
           <div className={`${FINELY_OS_LUXURY_EMPTY} text-left`}>
             No partner profile found for this account. If you're an admin, use Partner Management to pick a partner.
           </div>
@@ -264,7 +266,7 @@ export default function PartnerBillingPage() {
           </button>
         </div>
       ) : (
-        <div className={FINELY_OS_PAGE}>
+        <div className={`${FINELY_OS_PAGE} fc-senior-simple`}>
           {notice && (
             <div className={`${FINELY_OS_NOTICE_WARN} flex items-center gap-3`}>
               <CheckCircle2 size={18} className="text-fuchsia-300 shrink-0" />
@@ -317,6 +319,7 @@ export default function PartnerBillingPage() {
           </div>
 
           <FinelyNoticedStrip
+            surface="light"
             items={buildBillingNoticedItems({
               trialActive: trial.isActive,
               activeModuleCount: activeEntitlementKeys.size,
@@ -324,7 +327,7 @@ export default function PartnerBillingPage() {
             })}
           />
 
-          <FinelyNowDoThisStrip currentIndex={billingTab === 'profile' ? 0 : 1} />
+          <FinelyNowDoThisStrip surface="light" currentIndex={billingTab === 'profile' ? 0 : 1} />
 
           <FinelyUnifiedHubLayout
             eyebrow="Profile & billing"
@@ -352,8 +355,8 @@ export default function PartnerBillingPage() {
           {billingTab === 'profile' && (
           <>
           <div className="grid lg:grid-cols-12 gap-6">
-            <div className={`lg:col-span-7 min-w-0 ${finelyOsCatalogCard('violet')} !p-5 space-y-3`}>
-              <div className={`inline-flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL} text-violet-300`}>
+            <div className={`lg:col-span-7 min-w-0 ${finelyOsIvorySolidTile('violet')} !p-5 space-y-3`}>
+              <div className={`inline-flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL} text-violet-700`}>
                 <Shield size={18} />
                 <span>Profile</span>
               </div>

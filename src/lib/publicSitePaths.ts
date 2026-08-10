@@ -25,7 +25,7 @@ const PUBLIC_PREFIXES = [
   '/privacy',
   '/terms',
   '/disclaimer',
-  '/personal-credit',
+  '/pricing/personal-credit-restore',
   '/about',
 ];
 

@@ -345,7 +345,7 @@ export function buildFundabilityNoticedItems(input: FundabilitySignalInput): Fin
         tone: 'info',
         text: 'Personal restore starts with a report upload and dispute workflow.',
         actionLabel: 'Personal credit',
-        to: '/personal-credit',
+        to: '/pricing/personal-credit-restore',
       },
     ];
   }
@@ -728,7 +728,7 @@ export function buildPersonalCreditNoticedItems(input: PersonalCreditSignalInput
       tone: 'info',
       text: 'Most people start with a package review, then open onboarding.',
       actionLabel: 'View packages',
-      to: '/personal-credit',
+      to: '/pricing/personal-credit-restore',
     },
   ];
 }
@@ -796,7 +796,7 @@ export function buildResourcesNoticedItems(input: ResourcesSignalInput): FinelyN
         tone: 'info',
         text: 'Use quick references while you work disputes in the portal.',
         actionLabel: 'Personal credit',
-        to: '/personal-credit',
+        to: '/pricing/personal-credit-restore',
       },
     ];
   }
@@ -819,7 +819,7 @@ export function buildStartHereNoticedItems(): FinelyNoticedItem[] {
       tone: 'info',
       text: 'Most visitors want to fix credit first — packages and onboarding are one click away.',
       actionLabel: 'Personal credit',
-      to: '/personal-credit',
+      to: '/pricing/personal-credit-restore',
     },
   ];
 }

@@ -672,7 +672,7 @@ export function ServicesSection({ onNavigate }: { onNavigate: (page: string) => 
       title: "Personal Credit", 
       desc: "Restore and optimize your personal credit profile for better rates and approvals.",
       accent: 'emerald' as const,
-      path: '/personal-credit',
+      path: '/pricing/personal-credit-restore',
     },
     { 
       icon: DollarSign, 
@@ -1866,7 +1866,7 @@ export function TestimonialDossier({
   const label = resultLabel ?? (amount ? 'Funded' : undefined);
   return (
     <div
-      className={`fc-testimonial-dossier card-lift h-full min-h-[340px] !p-5 sm:!p-6 flex flex-col min-w-0 overflow-hidden ${finelyOsCatalogCard(accent)}`}
+      className={`fc-testimonial-dossier card-lift h-full min-h-0 sm:min-h-[300px] !p-4 sm:!p-6 flex flex-col min-w-0 max-w-full overflow-hidden ${finelyOsCatalogCard(accent)}`}
       data-fc-accent={accent}
     >
       {/* Mini Credit Card Visual */}
@@ -1882,26 +1882,24 @@ export function TestimonialDossier({
         </div>
       )}
 
-      <div className="flex items-center gap-3 mb-4 min-w-0">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 mb-4 min-w-0 w-full">
         <div className="w-10 h-10 shrink-0 rounded-full bg-black/[0.04] border border-black/10 flex items-center justify-center">
           <Star size={16} className="text-amber-700" />
         </div>
-        <div className="min-w-0 flex-1">
-          <p className="text-sm font-semibold truncate">{name}</p>
-          <div className="flex gap-0.5">
+        <div className="min-w-0 flex-1 w-full">
+          <p className="text-sm font-semibold break-words">{name}</p>
+          <div className="flex gap-0.5 mt-1">
             {[...Array(5)].map((_, i) => (
               <Star key={i} size={10} className="text-amber-700 fill-amber-500" />
             ))}
           </div>
-        </div>
-        <div className="ml-auto shrink-0 flex items-center gap-2 max-w-[45%] sm:max-w-none">
           {service ? (
-            <span className="text-[9px] px-2 py-1 rounded-full border border-black/10 bg-white/60 uppercase tracking-widest font-bold whitespace-nowrap opacity-80 truncate">
+            <span className="inline-block mt-2 text-[9px] px-2 py-1 rounded-full border border-black/10 bg-white/60 uppercase tracking-widest font-bold opacity-80">
               {service}
             </span>
           ) : null}
-          <Verified size={16} className="text-emerald-800 shrink-0" />
         </div>
+        <Verified size={16} className="text-emerald-800 shrink-0 self-start sm:self-center" />
       </div>
 
       <p className="text-sm leading-relaxed italic mb-4 opacity-80 break-words">"{review}"</p>

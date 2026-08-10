@@ -59,6 +59,7 @@ export function captureLeadAttributionFromUrl(search: string, pathname = '/') {
     !utmSource &&
     !utmMedium &&
     !utmCampaign &&
+    !utmContent &&
     !geoCity &&
     !geoCluster
   ) {
@@ -123,6 +124,7 @@ export function buildPromotedUrl(args: {
   utmSource?: string;
   utmMedium?: string;
   utmCampaign?: string;
+  utmContent?: string;
 }): string {
   const origin = typeof window !== 'undefined' ? window.location.origin : 'https://finelycred.com';
   const [basePath, existingQuery = ''] = args.path.split('?');
@@ -134,6 +136,7 @@ export function buildPromotedUrl(args: {
   if (args.utmSource) params.set('utm_source', args.utmSource);
   if (args.utmMedium) params.set('utm_medium', args.utmMedium);
   if (args.utmCampaign) params.set('utm_campaign', args.utmCampaign);
+  if (args.utmContent) params.set('utm_content', args.utmContent);
   const q = params.toString();
   return `${origin}${basePath}${q ? `?${q}` : ''}`;
 }

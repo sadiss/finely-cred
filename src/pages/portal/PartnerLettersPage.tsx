@@ -15,6 +15,7 @@ import { listCasesByPartner } from '../../data/casesRepo';
 import { listLettersByPartner } from '../../data/lettersRepo';
 import { listReportsByPartner } from '../../data/reportsRepo';
 import { FinelyOsPageFooter } from '../../features/os/FinelyOsPageFooter';
+import { PartnerRestoreWorkspaceDock } from '../../features/partner/PartnerRestoreWorkspaceDock';
 import { FinelyUnifiedHubLayout } from '../../features/unified/FinelyUnifiedHubLayout';
 import { FinelyNowDoThisStrip } from '../../components/tours/FinelyNowDoThisStrip';
 import { FinelyNoticedStrip } from '../../components/tours/FinelyNoticedStrip';
@@ -124,7 +125,7 @@ export default function PartnerLettersPage() {
     <PageShell
       badge="Partner Portal"
       title="Credit Letters"
-      subtitle="Bureau disputes and credit-report letter tracks → paper preview → Letters Vault. Debt validation & affidavits live under Debt Letters."
+      subtitle="Letter Studio — bureau disputes and credit-report letter tracks → paper preview → Letters Vault."
     >
       <FinelyNoticedStrip
         items={buildLettersNoticedItems({
@@ -161,6 +162,7 @@ export default function PartnerLettersPage() {
           onTabChange={setStudioTab}
         />
       </FinelyUnifiedHubLayout>
+      <PartnerRestoreWorkspaceDock variant="portal" className="mt-6 sticky bottom-3 z-20" />
       <FinelyOsPageFooter />
     </PageShell>
   );

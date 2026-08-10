@@ -10,6 +10,7 @@ import { usePartnerSession } from '../../auth/PartnerSessionContext';
 import { EntitlementGate } from '../../components/billing/EntitlementGate';
 import { ENTITLEMENT_KEYS } from '../../billing/entitlements';
 import { FinelyOsPageFooter } from '../../features/os/FinelyOsPageFooter';
+import { PartnerRestoreWorkspaceDock } from '../../features/partner/PartnerRestoreWorkspaceDock';
 import { FinelyUnifiedHubLayout } from '../../features/unified/FinelyUnifiedHubLayout';
 import { PartnerLaneCoachPanel } from '../../components/chat/PartnerLaneCoachPanel';
 import { DebtLaneHandoffStrip } from '../../components/debt/DebtLaneHandoffStrip';
@@ -542,6 +543,7 @@ export default function PartnerDebtPage() {
               )}
             </FinelyUnifiedHubLayout>
 
+            <PartnerRestoreWorkspaceDock variant="portal" className="mt-6 sticky bottom-3 z-20" />
             <FinelyOsPageFooter />
           </div>
         </EntitlementGate>

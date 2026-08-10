@@ -3,6 +3,8 @@ import { Calendar, CheckCircle2, Loader2 } from 'lucide-react';
 import { PublicSessionSlotPicker } from '../calendar/PublicSessionSlotPicker';
 import { createPublicAppointmentRequest, getPublicEnlightenmentSessionQuote } from '../../data/calendarRepo';
 import { addLeadNote } from '../../data/leadOpsRepo';
+import { syncInboundLeadSessionBooked } from '../../lib/crmLeadSync';
+import { getLeadCaptureById } from '../../data/leadsRepo';
 import { resolveStaffOnDuty } from '../../data/staffRoster';
 import { formatSlotRange, type BookableSlot } from '../../lib/calendarSlots';
 import { emitPlatformEvent } from '../../domain/platformEvents';
@@ -76,6 +78,8 @@ export function FunnelInlineSessionBook({ config, leadId, fullName, email, phone
         notes: [`Focus: ${focus}`, `Funnel: ${config.funnelId}`, `Lead: ${leadId}`].join('\n'),
       });
       window.dispatchEvent(new Event('finely:store'));
+      const lead = getLeadCaptureById(leadId);
+      if (lead) syncInboundLeadSessionBooked(lead, config.funnelId);
       addLeadNote(
         leadId,
         [

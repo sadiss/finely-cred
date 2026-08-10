@@ -15,6 +15,7 @@ import { shouldShowPublicThemeToggle } from '../../lib/finelyThemeAccess';
 import { persistAdminRailExpanded, readAdminRailExpanded } from '../../lib/finelyAdminRailExpanded';
 import { useAuth } from '../../auth/AuthProvider';
 import { applyTenantBranding, getActiveTenant } from '../../tenancy/activeTenant';
+import { FinelyLaunchHelpStrip } from '../tours/FinelyLaunchHelpStrip';
 
 export function PageShell({
   title,
@@ -198,14 +199,10 @@ export function PageShell({
       pathname.startsWith('/services/') ||
       pathname === '/start-here' ||
       pathname.startsWith('/start-here/'));
-  const onPersonalRestoreHero =
-    pathname.includes('/personal-credit-restore') || pathname === '/personal-credit';
   const topPad = useLargeTopPad
-    ? onPersonalRestoreHero
-      ? 'pt-0'
-      : showWayfinder
-        ? 'pt-52'
-        : 'pt-28'
+    ? showWayfinder
+      ? 'pt-52'
+      : 'pt-28'
     : 'pt-[max(0.75rem,env(safe-area-inset-top))]';
   const isAdmin = pathname.startsWith('/admin');
   const isPortal = pathname.startsWith('/portal');
@@ -621,6 +618,7 @@ export function PageShell({
                   data-fc-route-pathname={pathname}
                   className={`${ivorySurface ? 'fc-light-readable' : 'fc-light-black-scope'} fc-senior-simple min-w-0 overflow-x-clip`}
                 >
+                  <FinelyLaunchHelpStrip />
                   {children}
                 </div>
               </div>
@@ -684,6 +682,7 @@ export function PageShell({
                 data-fc-route-pathname={pathname}
                 className={`${ivorySurface ? 'fc-light-readable' : 'fc-light-black-scope'} fc-senior-simple min-w-0 overflow-x-clip`}
               >
+                <FinelyLaunchHelpStrip />
                 {children}
               </div>
             </div>

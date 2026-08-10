@@ -325,7 +325,7 @@ export default function EnlightenmentSessionPage() {
           activeTab={hubTab}
           onTabChange={(id) => setHubTab(id as SessionHubTab)}
           primaryAction={{ label: 'Pricing', onClick: () => navigate('/pricing') }}
-          secondaryAction={{ label: 'Personal credit', onClick: () => navigate('/personal-credit') }}
+          secondaryAction={{ label: 'Personal credit', onClick: () => navigate('/pricing/personal-credit-restore') }}
         >
           {hubTab === 'prep' && (
             <>

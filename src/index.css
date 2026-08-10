@@ -6007,6 +6007,104 @@ html.fc-onboarding-portal-open body {
   color: rgba(10, 22, 40, 0.68);
 }
 
+/* —— Personal Credit Restore pricing (wealthy ivory + jewel package cards) —— */
+[data-fc-shell-surface='ivory'] .fc-landing-wealthy-ivory {
+  background:
+    radial-gradient(ellipse 85% 65% at 14% 4%, rgba(52, 211, 153, 0.14) 0%, transparent 52%),
+    radial-gradient(ellipse 72% 58% at 90% 92%, rgba(251, 191, 36, 0.2) 0%, transparent 54%),
+    radial-gradient(ellipse 50% 42% at 55% 45%, rgba(14, 165, 233, 0.07) 0%, transparent 48%),
+    linear-gradient(152deg, #faf4e6 0%, #f0e2c8 42%, #e6d4b4 100%);
+}
+
+.fc-restore-solutions-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background:
+    radial-gradient(ellipse 95% 75% at 8% 100%, rgba(52, 211, 153, 0.24) 0%, transparent 58%),
+    radial-gradient(ellipse 55% 48% at 94% 6%, rgba(251, 191, 36, 0.16) 0%, transparent 52%);
+}
+
+.fc-restore-solutions-hero > * {
+  position: relative;
+  z-index: 1;
+}
+
+.fc-restore-lane-toolbar {
+  border: 1px solid rgba(52, 211, 153, 0.28);
+  background: linear-gradient(135deg, rgba(8, 14, 22, 0.72) 0%, rgba(14, 26, 40, 0.58) 100%);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  box-shadow: 0 20px 48px -32px rgba(0, 0, 0, 0.55), 0 0 40px -20px rgba(52, 211, 153, 0.2);
+}
+
+/* Remove page-wide white “tent” and card gloss on Personal Credit Restore pricing */
+[data-fc-shell-surface='ivory']:has([data-fc-restore-pricing='1']) .fc-landing-wealthy-ivory::before {
+  display: none;
+}
+
+[data-fc-restore-pricing='1'] .fc-restore-solutions-hero::before {
+  display: none;
+}
+
+[data-fc-restore-pricing='1'] .fc-restore-solutions-hero :is(h1, h2, h3) {
+  color: #ffffff !important;
+}
+
+[data-fc-restore-pricing='1'] .fc-restore-solutions-hero p {
+  color: rgba(255, 255, 255, 0.78) !important;
+}
+
+[data-fc-restore-pricing='1'] .fc-restore-solutions-hero .text-amber-200,
+[data-fc-restore-pricing='1'] .fc-restore-solutions-hero [class*='text-amber'] {
+  color: rgb(253 230 138) !important;
+}
+
+[data-fc-restore-pricing='1'] [class*='fc-admin-solid']::before,
+[data-fc-restore-pricing='1'] [class*='fc-admin-solid']::after {
+  display: none !important;
+  content: none !important;
+}
+
+[data-fc-restore-pricing='1'] .fc-glass-ivory {
+  background: rgba(255, 252, 245, 0.94) !important;
+  border-color: rgba(10, 22, 40, 0.12) !important;
+  color: #0a1628 !important;
+  box-shadow: 0 10px 28px -20px rgba(10, 22, 40, 0.18) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+[data-fc-restore-pricing='1'] .fc-restore-catalog-toolbar {
+  box-shadow: 0 10px 28px -20px rgba(10, 22, 40, 0.15) !important;
+}
+
+[data-fc-restore-pricing='1'] [data-fc-marketing-staff-strip] .fc-glass-ivory {
+  background: #faf6ee !important;
+}
+
+/* Ivory shell must not force navy text onto colored buttons inside restore lane */
+[data-fc-restore-pricing='1'] .fc-restore-lane-toolbar button.text-white,
+[data-fc-restore-pricing='1'] .fc-restore-lane-toolbar .bg-gradient-to-r {
+  color: #ffffff !important;
+}
+
+[data-fc-restore-pricing='1'] .fc-restore-lane-toolbar button:not(.bg-gradient-to-r) {
+  color: rgba(255, 255, 255, 0.78) !important;
+}
+
+[data-fc-restore-pricing='1'] [class*='fc-admin-solid']:hover {
+  filter: none !important;
+  transform: translateY(-2px);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+[data-fc-restore-pricing='1'] [class*='fc-admin-solid'] {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
 /* Dark depth ? not murky voids; subtle brand glows */
 .fc-landing-dark-depth {
   position: relative;

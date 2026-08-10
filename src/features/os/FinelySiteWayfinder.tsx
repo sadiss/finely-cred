@@ -42,27 +42,9 @@ export function FinelySiteWayfinder() {
     [path, tab],
   );
 
-  /* Restore: stretch black band to top — no photo, no service tiles. */
+  /* Restore: hero lives in-page (PricingServicePage Solutions band) — no duplicate black header. */
   if (onPersonalRestoreHero) {
-    return (
-      <div
-        className="fc-wayfinder fc-wayfinder--restore-hero relative z-30 w-full overflow-hidden bg-[#060c12]"
-        style={{ marginTop: 'calc(-1 * (env(safe-area-inset-top, 0px) + 4.25rem))' }}
-        aria-label="Personal credit restore"
-      >
-        <div className="fc-wayfinder-restore-veil absolute inset-0" aria-hidden />
-        <div className="relative fc-container flex min-h-[12rem] sm:min-h-[14rem] items-end pb-5 pt-[calc(env(safe-area-inset-top,0px)+5.75rem)]">
-          <div className="max-w-xl">
-            <p className="text-[10px] font-black uppercase tracking-[0.28em] text-amber-200/90">
-              Personal credit restore
-            </p>
-            <p className="mt-1.5 text-sm sm:text-base font-semibold text-white/88 leading-snug">
-              Disputes · deletions · restoration sequencing
-            </p>
-          </div>
-        </div>
-      </div>
-    );
+    return null;
   }
 
   return (

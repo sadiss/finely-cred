@@ -448,13 +448,13 @@ export const FINELY_OS_INCLUDES_STANDALONE_BTN =
 export const FINELY_OS_INCLUDES_STANDALONE_BTN_ON_GOLD =
   'inline-flex w-full items-center justify-center gap-2 rounded-xl border-2 border-[#1a1400]/85 bg-gradient-to-r from-[#1a1400] via-[#2a1e08] to-[#14100a] px-4 py-2.5 text-[11px] sm:text-xs font-black uppercase tracking-[0.08em] text-[#f6e2a8] shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_0_0_1px_rgba(26,20,0,0.4),0_10px_24px_-8px_rgba(26,20,0,0.55),0_0_16px_rgba(251,191,36,0.22)] transition hover:brightness-110';
 
-/** Quiet Select on solid package cards — outline only, subordinate to What’s included. */
+/** Quiet Select on solid package cards — bold emerald CTA (subordinate to What’s included). */
 export const FINELY_OS_PACKAGE_SELECT_BTN =
-  'inline-flex w-full items-center justify-center gap-2 rounded-xl border border-white/28 bg-black/15 px-4 py-1.5 text-[11px] font-medium tracking-wide text-white/75 backdrop-blur-sm transition hover:bg-black/25 hover:border-white/40 hover:text-white/90';
+  'inline-flex w-full items-center justify-center gap-2 rounded-xl border-2 border-emerald-200/55 bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 px-4 py-2.5 text-[11px] sm:text-xs font-black uppercase tracking-[0.1em] text-white shadow-[0_0_0_1px_rgba(52,211,153,0.35),0_12px_28px_-10px_rgba(16,185,129,0.65),0_0_24px_rgba(52,211,153,0.28)] transition hover:brightness-110 hover:shadow-[0_0_0_1px_rgba(110,231,183,0.55),0_14px_32px_-8px_rgba(16,185,129,0.75),0_0_32px_rgba(52,211,153,0.38)]';
 
-/** Gold-card Select — dark outline / ink text so it stays quiet vs Includes. */
+/** Gold-card Select — ink + champagne rim. */
 export const FINELY_OS_PACKAGE_SELECT_BTN_ON_GOLD =
-  'inline-flex w-full items-center justify-center gap-2 rounded-xl border border-black/30 bg-black/10 px-4 py-1.5 text-[11px] font-medium tracking-wide text-[#2b1d05]/75 transition hover:bg-black/15 hover:border-black/40 hover:text-[#2b1d05]';
+  'inline-flex w-full items-center justify-center gap-2 rounded-xl border-2 border-[#1a1400]/70 bg-gradient-to-r from-[#1a1400] via-[#2d2208] to-[#14100a] px-4 py-2.5 text-[11px] sm:text-xs font-black uppercase tracking-[0.1em] text-[#f6e2a8] shadow-[0_10px_24px_-10px_rgba(26,20,0,0.55),0_0_20px_rgba(251,191,36,0.22)] transition hover:brightness-110';
 
 export const FINELY_OS_DANGER_BTN =
   'inline-flex items-center justify-center gap-2 min-w-0 rounded-xl border border-rose-500/50 bg-gradient-to-r from-rose-600 to-rose-700 px-3 sm:px-4 py-2 text-[10px] font-black uppercase tracking-wide whitespace-normal text-center leading-snug text-white shadow-md ring-1 ring-rose-400/40 hover:brightness-110 transition-all disabled:opacity-60';
@@ -723,18 +723,17 @@ export function finelyOsIvorySolidTile(accent: FinelyOsPublicAccent = 'emerald')
   return `fc-ivory-solid-tile rounded-xl border border-[#0a1628]/10 bg-white shadow-[0_10px_36px_-22px_rgba(10,22,40,0.28)] ${bar[accent]} p-5 sm:p-6`;
 }
 
-/** Personal / pricing lane hero — navy command strip (Solutions header). */
-export function finelyOsLaneCommandHeader() {
-  return 'rounded-2xl bg-[#0a1628] text-white p-6 sm:p-8 lg:p-10 shadow-[0_24px_64px_-28px_rgba(10,22,40,0.55)] border border-[#0a1628]';
+export function finelyOsRestoreLaneHeroShell() {
+  return 'fc-restore-solutions-hero relative overflow-hidden rounded-[1.35rem] border border-emerald-400/30 bg-gradient-to-br from-[#050a10] via-[#0a1420] to-[#0f1c2e] p-6 sm:p-8 lg:p-10 shadow-[0_28px_72px_-32px_rgba(0,0,0,0.72),0_0_56px_-16px_rgba(52,211,153,0.28)]';
 }
 
-export const FINELY_OS_LANE_COMMAND_KICKER =
-  'text-[11px] font-black uppercase tracking-[0.28em] text-[#e0b24a]';
+export const FINELY_OS_RESTORE_HERO_KICKER =
+  'text-[11px] font-black uppercase tracking-[0.28em] text-amber-200/95';
 
-export const FINELY_OS_LANE_COMMAND_TITLE =
-  'text-3xl sm:text-4xl lg:text-[2.75rem] font-bold tracking-tight text-white leading-[1.08]';
+export const FINELY_OS_RESTORE_HERO_TITLE =
+  'text-3xl sm:text-4xl lg:text-[2.85rem] font-bold tracking-tight text-white leading-[1.08]';
 
-export const FINELY_OS_LANE_COMMAND_BODY = 'text-base sm:text-lg leading-relaxed text-white/78 max-w-3xl';
+export const FINELY_OS_RESTORE_HERO_BODY = 'text-base sm:text-lg leading-relaxed text-white/78 max-w-3xl';
 
 /** Light-theme hero panel with dual accent wash */
 export function finelyOsLightHeroPanel() {

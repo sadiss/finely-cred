@@ -45,7 +45,7 @@ export const PLATFORM_SOP_LIBRARY: PlatformSop[] = [
       { order: 2, label: 'Watch the overview', detail: 'Play the 2-minute site overview video.', route: '/resources#videos' },
       { order: 3, label: 'Begin intake', detail: 'Start onboarding when ready.', route: '/onboarding' },
     ],
-    relatedRoutes: ['/start-here', '/', '/onboarding', '/personal-credit'],
+    relatedRoutes: ['/start-here', '/', '/onboarding', '/pricing/personal-credit-restore'],
     relatedTourId: 'tour-home-overview',
   },
   {
@@ -179,11 +179,11 @@ export const PLATFORM_SOP_LIBRARY: PlatformSop[] = [
     whenToUse: 'Visitor is comparing restore packages and wants a clear next step.',
     ownerRole: 'sales_closer',
     steps: [
-      { order: 1, label: 'Compare packages', detail: 'See restore vs platinum coverage and pricing.', route: '/personal-credit' },
+      { order: 1, label: 'Compare packages', detail: 'See restore vs platinum coverage and pricing.', route: '/pricing/personal-credit-restore' },
       { order: 2, label: 'Start intake', detail: 'Create your account and pick your lane.', route: '/onboarding' },
       { order: 3, label: 'Set up monitoring', detail: 'Use the same partner links as Resources before upload.', route: '/resources#monitoring' },
     ],
-    relatedRoutes: ['/personal-credit'],
+    relatedRoutes: ['/pricing/personal-credit-restore'],
     relatedTourId: 'tour-personal-credit',
   },
   {

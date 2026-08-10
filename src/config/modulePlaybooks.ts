@@ -41,7 +41,7 @@ const PUBLIC_MODULES: ModulePlaybook[] = [
   },
   {
     id: 'mod-personal-credit',
-    path: '/personal-credit',
+    path: '/pricing/personal-credit-restore',
     title: 'Personal credit',
     plainSummary: 'Learn how credit repair works before you sign up.',
     lane: 'public',

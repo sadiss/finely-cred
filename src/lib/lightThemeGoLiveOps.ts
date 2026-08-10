@@ -14,7 +14,7 @@ export type LightThemePriorityRoute = {
 export const LIGHT_THEME_PRIORITY_ROUTES: LightThemePriorityRoute[] = [
   { path: '/', label: 'Landing', lane: 'public' },
   { path: '/start-here', label: 'Start Here', lane: 'public' },
-  { path: '/personal-credit', label: 'Personal credit', lane: 'public' },
+  { path: '/pricing/personal-credit-restore', label: 'Personal credit restore', lane: 'public' },
   { path: '/portal/dashboard', label: 'Partner dashboard', lane: 'portal' },
   { path: '/portal/letters', label: 'Letter Studio', lane: 'portal' },
   { path: '/portal/debt', label: 'Debt center', lane: 'portal' },

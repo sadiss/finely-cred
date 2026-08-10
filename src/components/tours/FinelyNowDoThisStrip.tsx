@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ArrowRight, ListChecks } from 'lucide-react';
 import { resolveFinelyPageContext } from '../../lib/finelyBrain/finelyBrainOrchestrate';
-import { FINELY_OS_PRIMARY_BTN, finelyOsCatalogCard } from '../../features/os/finelyOsLightUi';
+import { FINELY_OS_PRIMARY_BTN, finelyOsCatalogCard, finelyOsIvorySolidTile } from '../../features/os/finelyOsLightUi';
 
 export type NowDoThisItem = { label: string; detail?: string; to: string };
 
@@ -13,13 +13,20 @@ type Props = {
   currentIndex?: number;
   title?: string;
   className?: string;
+  surface?: 'dark' | 'light';
 };
 
 /**
  * "Now do this" — one job per screen (Launch Part D3).
  * Senior-simple: one big primary action + a small numbered preview of what's next.
  */
-export function FinelyNowDoThisStrip({ items, currentIndex = 0, title = 'Now do this', className = '' }: Props) {
+export function FinelyNowDoThisStrip({
+  items,
+  currentIndex = 0,
+  title = 'Now do this',
+  className = '',
+  surface = 'dark',
+}: Props) {
   const { pathname } = useLocation();
   const navigate = useNavigate();
 
@@ -38,21 +45,26 @@ export function FinelyNowDoThisStrip({ items, currentIndex = 0, title = 'Now do 
   const current = steps[idx];
   const upcoming = steps.slice(idx + 1, idx + 4);
 
+  const light = surface === 'light';
+  const shell = light ? finelyOsIvorySolidTile('amber') : finelyOsCatalogCard('amber');
+
   return (
     <div
-      className={`fc-senior-simple ${finelyOsCatalogCard('amber')} !p-5 space-y-4 ${className}`}
+      className={`fc-senior-simple ${shell} !p-5 space-y-4 ${className}`}
       data-fc-accent="amber"
       data-fc-now-do-this="1"
     >
-      <div className="flex items-center gap-2 text-amber-300">
+      <div className={`flex items-center gap-2 ${light ? 'text-amber-700' : 'text-amber-300'}`}>
         <ListChecks size={18} />
         <span className="text-xs font-bold uppercase tracking-[0.14em]">
           {title} · Step {idx + 1} of {total}
         </span>
       </div>
       <div className="space-y-1">
-        <p className="text-xl font-bold text-white/90">{current.label}</p>
-        {current.detail ? <p className="text-base leading-relaxed text-white/70">{current.detail}</p> : null}
+        <p className={`text-xl font-bold ${light ? 'text-[#0a1628]' : 'text-white/90'}`}>{current.label}</p>
+        {current.detail ? (
+          <p className={`text-base leading-relaxed ${light ? 'text-[#0a1628]/70' : 'text-white/70'}`}>{current.detail}</p>
+        ) : null}
       </div>
       <button
         type="button"
@@ -68,7 +80,11 @@ export function FinelyNowDoThisStrip({ items, currentIndex = 0, title = 'Now do 
               key={`${s.label}-${i}`}
               type="button"
               onClick={() => navigate(s.to)}
-              className="rounded-lg border border-white/12 bg-white/[0.04] px-3 py-2 text-xs font-semibold text-white/65 hover:text-white hover:border-white/25 transition-colors"
+              className={`rounded-lg border px-3 py-2 text-xs font-semibold transition-colors ${
+                light
+                  ? 'border-[#0a1628]/15 bg-white text-[#0a1628]/70 hover:border-[#0a1628]/30'
+                  : 'border-white/12 bg-white/[0.04] text-white/65 hover:text-white hover:border-white/25'
+              }`}
               title={s.detail}
             >
               {idx + i + 2}. {s.label}

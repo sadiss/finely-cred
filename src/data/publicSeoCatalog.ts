@@ -35,6 +35,13 @@ export const PUBLIC_SEO_CATALOG: PublicSeoRoute[] = [
     hasSchema: true,
   },
   {
+    path: '/resources/videos',
+    title: 'Video library',
+    description:
+      'Finely Cred watch-how tours and resource videos for credit restore, dispute workflows, and funding readiness.',
+    hasSchema: true,
+  },
+  {
     path: '/resources/business-credit-one-sheets',
     title: 'Business Credit Partner One-Sheets',
     description:
@@ -143,7 +150,7 @@ export const PUBLIC_SEO_CATALOG: PublicSeoRoute[] = [
     hasSchema: true,
   },
   {
-    path: '/personal-credit',
+    path: '/pricing/personal-credit-restore',
     title: 'Personal credit restore',
     description: 'DIY and done-for-you personal credit restore with dispute automation.',
     hasSchema: true,

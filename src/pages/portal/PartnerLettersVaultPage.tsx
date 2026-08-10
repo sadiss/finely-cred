@@ -4,10 +4,8 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { PageShell } from '../../components/layout/PageShell';
 import { useAuth } from '../../auth/AuthProvider';
 import { usePartnerSession } from '../../auth/PartnerSessionContext';
-import { listLettersByPartner, setLetterArchived, upsertLetter } from '../../data/lettersRepo';
+import { deleteLetter, listLettersByPartner, setLetterArchived, upsertLetter } from '../../data/lettersRepo';
 import { listEvidenceByPartner } from '../../data/evidenceRepo';
-import { listCreditAnalysisReportsByPartner } from '../../data/creditAnalysisReportsRepo';
-import { CreditAnalysisDeliverableStrip } from '../../components/reports/CreditAnalysisDeliverableCard';
 import { openBlobRefInNewTab } from '../../lib/openBlobRef';
 import type { LetterRecord, LetterStatus } from '../../domain/letters';
 import { isFeatureEnabled } from '../../data/settingsRepo';
@@ -29,7 +27,7 @@ import { EntitlementGate } from '../../components/billing/EntitlementGate';
 import { ENTITLEMENT_KEYS } from '../../billing/entitlements';
 import { FinelyOsPageFooter } from '../../features/os/FinelyOsPageFooter';
 import { FinelyOsPaginatedStack } from '../../features/os/FinelyOsPaginatedStack';
-import { FinelyUnifiedHubLayout, FinelyUnifiedSection } from '../../features/unified/FinelyUnifiedHubLayout';
+import { FinelyUnifiedHubLayout } from '../../features/unified/FinelyUnifiedHubLayout';
 import {
   FINELY_OS_COMPACT_PAGE,
   FINELY_OS_PAGE,
@@ -74,10 +72,6 @@ export default function PartnerLettersVaultPage() {
   const email = auth.user?.email || '';
   const { partner } = usePartnerSession();
   const letters = useMemo(() => (partner ? listLettersByPartner(partner.id) : []), [partner]);
-  const analysisReports = useMemo(() => {
-    if (!partner) return [];
-    return listCreditAnalysisReportsByPartner(partner.id);
-  }, [partner]);
   const [status, setStatus] = useState<LetterStatus | 'all'>('all');
   const [mailOpen, setMailOpen] = useState(false);
   const [mailLetter, setMailLetter] = useState<LetterRecord | null>(null);
@@ -88,8 +82,6 @@ export default function PartnerLettersVaultPage() {
   const [view, setView] = useState<'active' | 'archived'>('active');
   const [mailGateErr, setMailGateErr] = useState<string | null>(null);
   const [openErr, setOpenErr] = useState<string | null>(null);
-  type VaultTab = 'letters' | 'analysis';
-  const [hubTab, setHubTab] = useState<VaultTab>('letters');
   const evidence = useMemo(() => (partner ? listEvidenceByPartner(partner.id) : []), [partner]);
 
   const studioDraftResume = useMemo(() => {
@@ -176,9 +168,8 @@ export default function PartnerLettersVaultPage() {
       { label: 'Active', value: String(counts.active), hint: 'In vault', accent: 'emerald' as const },
       { label: 'Archived', value: String(counts.archived), hint: 'Stored', accent: 'violet' as const },
       { label: 'Shown', value: String(filtered.length), hint: 'Current filter', accent: 'amber' as const },
-      { label: 'Analysis PDFs', value: String(analysisReports.length), hint: 'Saved reports', accent: 'sky' as const },
     ],
-    [counts, filtered.length, analysisReports.length],
+    [counts, filtered.length],
   );
 
   const openPdf = async (l: LetterRecord) => {
@@ -334,6 +325,20 @@ export default function PartnerLettersVaultPage() {
             ? () => navigate(studioDraftResume)
             : undefined
         }
+        onDelete={() => {
+          const did = deleteLetter({ letterId: l.id });
+          if (!did || !partner) return;
+          addAuditEvent({
+            partnerId: partner.id,
+            actorType: 'partner',
+            actorEmail: email || undefined,
+            action: 'letter.deleted',
+            entityType: 'letter',
+            entityId: l.id,
+            meta: { type: l.type, title: l.title },
+          });
+          navigate(0);
+        }}
       />
     </div>
   );
@@ -522,19 +527,12 @@ export default function PartnerLettersVaultPage() {
           <FinelyUnifiedHubLayout
             eyebrow="Letters vault"
             title="Stored PDFs & mail tracking"
-            subtitle="Bureau, validation, court, and bankruptcy letters — plus saved analysis reports."
+            subtitle="Bureau, validation, court, and bankruptcy letters — PDF archive and mail tracking."
             accent="emerald"
             kpis={vaultKpis}
-            tabs={[
-              { id: 'letters', label: 'Letters', badge: filtered.length || undefined },
-              { id: 'analysis', label: 'Analysis reports', badge: analysisReports.length || undefined },
-            ]}
-            activeTab={hubTab}
-            onTabChange={(id) => setHubTab(id as VaultTab)}
             primaryAction={{ label: 'Letter Studio', onClick: () => navigate('/portal/letters') }}
             secondaryAction={{ label: 'Upload responses', onClick: () => navigate('/portal/documents') }}
           >
-            {hubTab === 'letters' && (
               <div className="space-y-4">
           <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony space-y-4`}>
             <div className={FINELY_OS_ENTITY_LABEL}>Next best action</div>
@@ -656,16 +654,6 @@ export default function PartnerLettersVaultPage() {
             </div>
           </div>
               </div>
-            )}
-
-            {hubTab === 'analysis' && (
-          <FinelyUnifiedSection title="Strategy reports" subtitle="Credit analysis PDFs — separate from dispute evidence.">
-            <CreditAnalysisDeliverableStrip
-              items={analysisReports}
-              emptyHint="None yet. Generate one from Reports after uploading and parsing a credit file."
-            />
-          </FinelyUnifiedSection>
-            )}
           </FinelyUnifiedHubLayout>
 
           <FinelyOsPageFooter />

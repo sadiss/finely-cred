@@ -8,13 +8,15 @@ npm install
 npm run dev
 ```
 
-Open **http://127.0.0.1:5173**
+Open **http://127.0.0.1:5173** (not the GitHub repo URL — that is code, not the live site).
+
+**Troubleshooting:** If the page won’t load, run `npm run dev` from the project root; try a hard refresh (Ctrl+Shift+R). For phone preview on the same Wi‑Fi: `npm run dev -- --host` and open `http://<your-pc-ip>:5173`. Portal and Letter Studio need `.env.local` with Supabase keys (see full mode below).
 
 ## Modes
 
 | Mode | Requirements | What works |
 |------|----------------|------------|
-| **Marketing-only** | No Supabase keys | Homepage, `/personal-credit`, `/pricing`, `/resources`, `/fundability-readiness` |
+| **Marketing-only** | No Supabase keys | Homepage, `/pricing/personal-credit-restore`, `/pricing`, `/resources`, `/fundability-readiness` |
 | **Full** | `.env.local` with `VITE_SUPABASE_URL` + `VITE_SUPABASE_ANON_KEY` | Auth, portal, admin, cloud sync, edge-backed features |
 
 Check your setup:
@@ -66,9 +68,9 @@ npm run launch:preflight
 | Route | Purpose |
 |-------|---------|
 | `/` | Landing |
-| `/personal-credit` | Personal credit marketing hub |
+| `/pricing/personal-credit-restore` | Personal credit restore pricing + free DIY |
 | `/portal/dashboard` | Partner portal |
-| `/portal/letters` | Letter Studio (unified hub) |
+| `/portal/letters` | Letter Studio (unified hub) — Credit/Dispute tab: thick bureau switcher below letter work; Screenshots / Proof / Escalation buttons open pop-ups |
 | `/admin/dashboard` | Admin OS |
 | `/fundability-readiness` | Fundability unified hub |
 

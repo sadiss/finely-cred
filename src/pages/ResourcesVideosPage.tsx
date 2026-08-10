@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { ArrowRight, Film, X } from 'lucide-react';
+import { ArrowRight, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { PageShell } from '../components/layout/PageShell';
 import { useAuth } from '../auth/AuthProvider';
@@ -9,6 +9,7 @@ import { getBlobUrl } from '../storage/getBlobUrl';
 import { ResourceVideoThumb } from '../components/resources/ResourceVideoThumb';
 import { PUBLIC_DEMO_VIDEOS_ENABLED } from '../config/publicMediaPolicy';
 import { TOUR_MANIFEST } from '../config/tourManifest';
+import { listPartnerLessonVideos } from '../lib/publicResourceVideoLibrary';
 import { getTourPosterPublicUrl } from '../domain/tourPlayback';
 import { FinelyTourPlayer } from '../components/tours/FinelyTourPlayer';
 import { TourVideoStatusBadge } from '../components/tours/TourVideoStatusBadge';
@@ -51,6 +52,7 @@ export default function ResourcesVideosPage() {
   }, []);
 
   const resourceVideos = useMemo(() => listPublicResourceVideos(), [storeVersion]);
+  const partnerLessons = useMemo(() => listPartnerLessonVideos(resourceVideos, TOUR_MANIFEST), [resourceVideos]);
   const showPublicVideos = PUBLIC_DEMO_VIDEOS_ENABLED;
   const previewTour = useMemo(() => TOUR_MANIFEST.find((t) => t.id === previewTourId) ?? null, [previewTourId]);
 
@@ -77,111 +79,133 @@ export default function ResourcesVideosPage() {
   };
 
   return (
-    <PageShell badge="Public" title="Video library" subtitle="Watch-how tours and short lessons — plain English, one screen at a time.">
+    <PageShell
+      badge="Public"
+      title="Video library"
+      subtitle="Watch-how tours and partner lessons — two lanes, no duplicate walkthroughs."
+    >
       <div className={`${FINELY_OS_PAGE} fc-senior-simple`}>
         <PublicLaneTitle
           lane="resources"
-          eyebrow="Watch how"
-          text="Slow walkthroughs. One screen at a time."
-          highlight="One screen at a time."
+          eyebrow="Video library"
+          text="Factory tours and partner lessons."
+          highlight="partner lessons."
         />
         <FinelyUnifiedHubLayout
-          eyebrow="Watch how"
-          title="Video library"
-          subtitle="Slow walkthroughs for major screens. No account needed for public tours when demos are enabled."
+          eyebrow="Video library"
+          title="Watch-how tours & partner lessons"
+          subtitle="Tours come from the factory manifest. Partner lessons are studio uploads — we hide any upload that mirrors a tour so you only see it once."
           accent="fuchsia"
           kpis={[
-            { label: 'Tours', value: String(TOUR_MANIFEST.length), accent: 'violet' },
-            { label: 'Uploads', value: String(resourceVideos.length), accent: 'sky' },
+            { label: 'Watch-how tours', value: String(TOUR_MANIFEST.length), accent: 'violet' },
+            { label: 'Partner lessons', value: String(partnerLessons.length), accent: 'sky' },
           ]}
           primaryAction={{ label: 'Free guides', onClick: () => navigate('/resources/guides') }}
           secondaryAction={{ label: 'Resource hub', onClick: () => navigate('/resources') }}
         >
           {showPublicVideos ? (
-            <>
-              <section className={`mb-4 space-y-3 ${finelyOsCatalogCard('violet')} !p-5`} data-fc-accent="violet">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-violet-500/30 bg-violet-500/15">
-                    <Film size={18} className="text-violet-700" />
-                  </div>
-                  <div>
-                    <span className={`${FINELY_OS_ENTITY_SUBLABEL} text-violet-700`}>Step-by-step tours</span>
-                    <div className={`text-xs font-semibold uppercase tracking-wider ${FINELY_OS_ENTITY_BODY}`}>Watch how</div>
-                  </div>
-                </div>
-                <FinelyOsPaginatedStack
-                  items={TOUR_MANIFEST}
-                  pageSize={6}
-                  itemSpacingClassName="grid md:grid-cols-2 lg:grid-cols-3 gap-3"
-                  renderItem={(tour, idx) => (
-                    <div
-                      key={tour.id}
-                      className={`overflow-hidden ${finelyOsCatalogCard((['violet', 'sky', 'emerald'] as const)[idx % 3])} !p-0`}
-                      data-fc-accent={(['violet', 'sky', 'emerald'] as const)[idx % 3]}
-                    >
-                      <div className="aspect-video border-b border-white/[0.08] bg-black/20">
-                        <img
-                          src={getTourPosterPublicUrl(tour.id)}
-                          alt=""
-                          className="h-full w-full object-cover object-top"
-                          loading="lazy"
-                        />
-                      </div>
-                      <div className="space-y-3 p-4">
-                        <div className={`font-semibold ${FINELY_OS_ENTITY_VALUE}`}>{tour.title}</div>
-                        <TourVideoStatusBadge tourId={tour.id} />
-                        <button type="button" onClick={() => setPreviewTourId(tour.id)} className={`${FINELY_OS_PRIMARY_BTN} w-full justify-center`}>
-                          Watch tour <ArrowRight size={14} />
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                />
-              </section>
-
-              {resourceVideos.length ? (
-                <section className={`space-y-3 ${finelyOsCatalogCard('sky')} !p-5`} data-fc-accent="sky">
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-sky-500/30 bg-sky-500/15">
-                      <Film size={18} className="text-sky-700" />
-                    </div>
-                    <div>
-                      <span className={`${FINELY_OS_ENTITY_SUBLABEL} text-sky-700`}>Uploaded lessons</span>
-                      <div className={`text-xs font-semibold uppercase tracking-wider ${FINELY_OS_ENTITY_BODY}`}>Watch & learn</div>
-                    </div>
-                  </div>
+            <div className="space-y-8">
+              <section id="watch-how-tours" className="fc-scroll-section space-y-3">
+                <h2 className="fc-launch-lane-header">Watch-how tours</h2>
+                <p className={`text-sm ${FINELY_OS_ENTITY_BODY}`}>
+                  Factory watch-how tours — short MP4 walkthroughs for portal and public hubs. No account needed.
+                </p>
+                <div className={`space-y-3 ${finelyOsCatalogCard('violet')} !p-4`} data-fc-accent="violet">
                   <FinelyOsPaginatedStack
-                    items={resourceVideos}
+                    items={TOUR_MANIFEST}
                     pageSize={6}
                     itemSpacingClassName="grid md:grid-cols-2 lg:grid-cols-3 gap-3"
-                    renderItem={(v, idx) => (
+                    renderItem={(tour, idx) => (
                       <div
-                        key={v.id}
-                        className={`group overflow-hidden ${finelyOsCatalogCard((['sky', 'emerald', 'violet'] as const)[idx % 3])} !p-0`}
-                        data-fc-accent={(['sky', 'emerald', 'violet'] as const)[idx % 3]}
+                        key={tour.id}
+                        className={`overflow-hidden ${finelyOsCatalogCard((['violet', 'sky', 'emerald'] as const)[idx % 3])} !p-0`}
+                        data-fc-accent={(['violet', 'sky', 'emerald'] as const)[idx % 3]}
                       >
-                        <ResourceVideoThumb video={v} onClick={() => void openVideo(v.id)} />
+                        <div className="aspect-video border-b border-white/[0.08] bg-black/20">
+                          <img
+                            src={getTourPosterPublicUrl(tour.id)}
+                            alt=""
+                            className="h-full w-full object-cover object-top"
+                            loading="lazy"
+                          />
+                        </div>
                         <div className="space-y-3 p-4">
-                          <div className={`font-semibold transition-colors group-hover:text-sky-700 ${FINELY_OS_ENTITY_VALUE}`}>{v.title}</div>
-                          {v.desc ? <div className={`line-clamp-3 text-sm ${FINELY_OS_ENTITY_BODY}`}>{v.desc}</div> : null}
+                          <div className={`font-semibold ${FINELY_OS_ENTITY_VALUE}`}>{tour.title}</div>
+                          <TourVideoStatusBadge tourId={tour.id} />
                           <button
                             type="button"
-                            onClick={() => void openVideo(v.id)}
-                            className={`${FINELY_OS_PRIMARY_BTN} w-full justify-center !from-sky-600 !to-cyan-600`}
+                            onClick={() => setPreviewTourId(tour.id)}
+                            className={`${FINELY_OS_PRIMARY_BTN} w-full justify-center`}
                           >
-                            Watch video <ArrowRight size={14} />
+                            Watch tour <ArrowRight size={14} />
                           </button>
                         </div>
                       </div>
                     )}
                   />
-                </section>
-              ) : (
-                <div className={`${FINELY_OS_LUXURY_EMPTY} ${finelyOsCatalogCard('sky')} !p-5`} data-fc-accent="sky">
-                  No extra uploaded videos yet — the tour library above covers every major workflow.
                 </div>
-              )}
-            </>
+              </section>
+
+              <section id="partner-lessons" className="fc-scroll-section space-y-3">
+                <h2 className="fc-launch-lane-header">Partner lessons</h2>
+                <p className={`text-sm ${FINELY_OS_ENTITY_BODY}`}>
+                  Studio uploads and education clips — not duplicated in the tour lane above.
+                </p>
+                {partnerLessons.length ? (
+                  <div className={`space-y-3 ${finelyOsCatalogCard('sky')} !p-4`} data-fc-accent="sky">
+                    <FinelyOsPaginatedStack
+                      items={partnerLessons}
+                      pageSize={6}
+                      itemSpacingClassName="grid md:grid-cols-2 lg:grid-cols-3 gap-3"
+                      renderItem={(v, idx) => (
+                        <div
+                          key={v.id}
+                          className={`group overflow-hidden ${finelyOsCatalogCard((['sky', 'emerald', 'violet'] as const)[idx % 3])} !p-0`}
+                          data-fc-accent={(['sky', 'emerald', 'violet'] as const)[idx % 3]}
+                        >
+                          <ResourceVideoThumb video={v} onClick={() => void openVideo(v.id)} />
+                          <div className="space-y-3 p-4">
+                            <div className={`font-semibold transition-colors group-hover:text-sky-700 ${FINELY_OS_ENTITY_VALUE}`}>
+                              {v.title}
+                            </div>
+                            {v.desc ? <div className={`line-clamp-3 text-sm ${FINELY_OS_ENTITY_BODY}`}>{v.desc}</div> : null}
+                            <div className="flex flex-col gap-2">
+                              <button
+                                type="button"
+                                onClick={() => void openVideo(v.id)}
+                                className={`${FINELY_OS_PRIMARY_BTN} w-full justify-center !from-sky-600 !to-cyan-600`}
+                              >
+                                Watch lesson <ArrowRight size={14} />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => navigate('/enlightenment-session')}
+                                className={`${FINELY_OS_SECONDARY_BTN} w-full justify-center`}
+                              >
+                                Book a strategy call
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    />
+                  </div>
+                ) : (
+                  <div className={`${FINELY_OS_LUXURY_EMPTY} ${finelyOsCatalogCard('sky')} !p-4`} data-fc-accent="sky">
+                    No partner lessons published yet — use the watch-how tours above for every major workflow.
+                  </div>
+                )}
+              </section>
+
+              <div className={`flex flex-wrap gap-3 ${finelyOsCatalogCard('amber')} !p-4`} data-fc-accent="amber">
+                <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => navigate('/resources/guides')}>
+                  All free guides
+                </button>
+                <button type="button" className={FINELY_OS_PRIMARY_BTN} onClick={() => navigate('/enlightenment-session')}>
+                  Book a strategy call <ArrowRight size={14} />
+                </button>
+              </div>
+            </div>
           ) : isAdmin ? (
             <div className={`${finelyOsCatalogCard('sky')} !p-5`} data-fc-accent="sky">
               <div className={`${FINELY_OS_ENTITY_SUBLABEL} text-sky-700`}>Video demos — admin only</div>
