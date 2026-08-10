@@ -1,17 +1,23 @@
 -- Finely Cred CMO Phase 5: scale intelligence, forecasting, budgets, experiments, autonomy policy.
 -- Review RLS predicates against your existing admin/user model before applying in production.
 
+-- cmo_growth_events already created (and reconciled) by 202606300001/202606300002.
+-- Re-declaring a conflicting schema here would be a silent no-op once the table
+-- exists — reconcile via ALTER instead so occurred_at/asset_id/account_id/metadata
+-- are actually present.
 create table if not exists public.cmo_growth_events (
   id text primary key,
-  occurred_at timestamptz not null default now(),
-  channel text not null,
-  campaign_id text,
-  asset_id text,
-  account_id text,
-  event_type text not null,
-  value numeric,
-  metadata jsonb not null default '{}'::jsonb
+  created_at timestamptz not null default now()
 );
+alter table public.cmo_growth_events
+  add column if not exists occurred_at timestamptz not null default now(),
+  add column if not exists channel text,
+  add column if not exists campaign_id text,
+  add column if not exists asset_id text,
+  add column if not exists account_id text,
+  add column if not exists event_type text,
+  add column if not exists value numeric,
+  add column if not exists metadata jsonb not null default '{}'::jsonb;
 
 create table if not exists public.cmo_channel_models (
   channel text primary key,

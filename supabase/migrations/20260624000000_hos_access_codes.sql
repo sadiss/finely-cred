@@ -27,6 +27,7 @@ create index if not exists hos_access_codes_created_at_idx on public.hos_access_
 alter table public.hos_access_codes enable row level security;
 
 -- Public can validate/redeem via edge function (service role). No direct anon select.
+drop policy if exists hos_access_codes_admin_all on public.hos_access_codes;
 create policy hos_access_codes_admin_all on public.hos_access_codes
   for all
   using (

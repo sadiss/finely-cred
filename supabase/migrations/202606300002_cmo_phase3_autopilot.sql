@@ -25,15 +25,21 @@ create table if not exists public.cmo_autopilot_runs (
   updated_at timestamptz not null default now()
 );
 
+-- cmo_growth_events was already created by 202606300001_cmo_growth_os_phase2.sql with a
+-- different column set. `create table if not exists` is a silent no-op once that table
+-- exists, so re-declaring a conflicting schema here left this migration's columns
+-- (event_type, payload) missing on the real table — breaking the index below with
+-- "column event_type does not exist". Reconcile via ALTER instead.
 create table if not exists public.cmo_growth_events (
-  id uuid primary key default gen_random_uuid(),
-  event_type text not null,
-  campaign_id text,
-  prospect_id text,
-  channel text,
-  payload jsonb not null default '{}'::jsonb,
+  id text primary key,
   created_at timestamptz not null default now()
 );
+alter table public.cmo_growth_events
+  add column if not exists event_type text,
+  add column if not exists campaign_id text,
+  add column if not exists prospect_id text,
+  add column if not exists channel text,
+  add column if not exists payload jsonb not null default '{}'::jsonb;
 
 create table if not exists public.cmo_experiments (
   id text primary key,
