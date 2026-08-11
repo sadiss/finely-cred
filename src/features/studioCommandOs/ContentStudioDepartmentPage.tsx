@@ -425,9 +425,11 @@ export function ContentStudioDepartmentPage() {
             },
           ],
         });
-        const parsed = JSON.parse(out.text.slice(out.text.indexOf('{'), out.text.lastIndexOf('}') + 1)) as { researchBrief?: string; scriptDraft?: string };
-        researchBrief = parsed.researchBrief || researchBrief;
-        scriptDraft = parsed.scriptDraft || scriptDraft;
+        const parsed = JSON.parse(out.text.slice(out.text.indexOf('{'), out.text.lastIndexOf('}') + 1)) as { researchBrief?: unknown; scriptDraft?: unknown };
+        // Gateway JSON isn't schema-validated — guard against non-string fields (e.g. nested
+        // objects/arrays) so bad AI output never gets persisted and crashes later `.trim()`/render calls.
+        if (typeof parsed.researchBrief === 'string' && parsed.researchBrief.trim()) researchBrief = parsed.researchBrief;
+        if (typeof parsed.scriptDraft === 'string' && parsed.scriptDraft.trim()) scriptDraft = parsed.scriptDraft;
       } catch {
         // Gateway can be offline locally; the department still needs a deterministic brief.
       }
@@ -567,7 +569,7 @@ export function ContentStudioDepartmentPage() {
   }
 
   async function renderVoiceNarration(job: ContentStudioJob) {
-    const script = (job.scriptDraft || job.voicePlan || job.researchBrief || job.intake.prompt).trim();
+    const script = String(job.scriptDraft || job.voicePlan || job.researchBrief || job.intake.prompt || '').trim();
     if (!script) {
       setErr('Generate a script or voice plan first.');
       return;
@@ -1080,11 +1082,11 @@ export function ContentStudioDepartmentPage() {
           <div className="space-y-4">
             <div className="rounded-3xl border border-white/10 bg-black/30 p-5">
               <div className="inline-flex items-center gap-2 text-amber-200 font-black uppercase tracking-widest text-[10px]"><Search size={14} /> Research brief</div>
-              <pre className="mt-4 whitespace-pre-wrap text-sm text-white/65 leading-relaxed font-sans">{activeJob.researchBrief || 'Generate a research brief to fill this workroom.'}</pre>
+              <pre className="mt-4 whitespace-pre-wrap text-sm text-white/65 leading-relaxed font-sans">{(typeof activeJob.researchBrief === 'string' && activeJob.researchBrief) || 'Generate a research brief to fill this workroom.'}</pre>
             </div>
             <div className="rounded-3xl border border-white/10 bg-black/30 p-5">
               <div className="inline-flex items-center gap-2 text-sky-200 font-black uppercase tracking-widest text-[10px]"><FileText size={14} /> Script draft</div>
-              <pre className="mt-4 whitespace-pre-wrap text-sm text-white/65 leading-relaxed font-sans">{activeJob.scriptDraft || 'Generate a script to fill this workroom.'}</pre>
+              <pre className="mt-4 whitespace-pre-wrap text-sm text-white/65 leading-relaxed font-sans">{(typeof activeJob.scriptDraft === 'string' && activeJob.scriptDraft) || 'Generate a script to fill this workroom.'}</pre>
             </div>
           </div>
 

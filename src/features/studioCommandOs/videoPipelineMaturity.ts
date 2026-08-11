@@ -52,6 +52,12 @@ const VIDEO_ASSET_TYPES = new Set([
   'social_clip',
 ]);
 
+/** AI-gateway JSON isn't schema-validated at write time, so persisted job text fields
+ * can occasionally be non-string (object/array) — guard before calling string methods. */
+function textField(v: unknown): string {
+  return typeof v === 'string' ? v : '';
+}
+
 function jobAssets(job: ContentStudioJob, assets: ContentStudioAsset[]): ContentStudioAsset[] {
   const ids = new Set(job.assetIds);
   return assets.filter((a) => a.jobId === job.id || ids.has(a.id));
@@ -62,12 +68,12 @@ function isVideoJob(job: ContentStudioJob): boolean {
 }
 
 function stageScript(job: ContentStudioJob): { percent: number; done: boolean; hint: string } {
-  const hasScript = Boolean(job.scriptDraft?.trim() || job.scenePlan?.trim());
+  const hasScript = Boolean(textField(job.scriptDraft).trim() || textField(job.scenePlan).trim());
   const rank = STATUS_RANK[job.status] ?? 0;
   if (hasScript || rank >= STATUS_RANK.script_ready) {
     return { percent: 100, done: true, hint: hasScript ? 'Script or scene plan on file' : 'Status: script ready' };
   }
-  if (job.researchBrief?.trim()) {
+  if (textField(job.researchBrief).trim()) {
     return { percent: 40, done: false, hint: 'Research brief exists — script pending' };
   }
   return { percent: rank >= STATUS_RANK.researching ? 20 : 0, done: false, hint: 'No script yet' };
@@ -78,7 +84,7 @@ function stageImages(
   related: ContentStudioAsset[],
 ): { percent: number; done: boolean; hint: string } {
   const imageAssets = related.filter((a) => a.assetType === 'image' || a.assetType === 'thumbnail');
-  const hasDesign = Boolean(job.designPlan?.trim());
+  const hasDesign = Boolean(textField(job.designPlan).trim());
   const rank = STATUS_RANK[job.status] ?? 0;
   const providerDone = job.providerPlan.some(
     (p) => ['openai_images', 'canva'].includes(p.provider) && p.status === 'complete',
@@ -103,7 +109,7 @@ function stageVo(
   related: ContentStudioAsset[],
 ): { percent: number; done: boolean; hint: string } {
   const audioAssets = related.filter((a) => a.assetType === 'audio');
-  const hasVoice = Boolean(job.voicePlan?.trim());
+  const hasVoice = Boolean(textField(job.voicePlan).trim());
   const rank = STATUS_RANK[job.status] ?? 0;
   const providerDone = job.providerPlan.some(
     (p) => ['voice_studio', 'elevenlabs'].includes(p.provider) && p.status === 'complete',
