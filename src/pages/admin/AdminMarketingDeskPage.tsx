@@ -4,6 +4,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { PageShell } from '../../components/layout/PageShell';
 import { FinelyOsPageFooter } from '../../features/os/FinelyOsPageFooter';
 import { FINELY_OS_BACK_LINK, FINELY_OS_COMPACT_PAGE, FINELY_OS_SECONDARY_BTN } from '../../features/os/finelyOsLightUi';
+import { MarketingDeskAgentStrip } from '../../features/marketingDesk/MarketingDeskAgentStrip';
 import { MarketingDeskHome } from '../../features/marketingDesk/MarketingDeskHome';
 import type { MarketingDeskHelperId } from '../../features/marketingDesk/marketingDeskGlossary';
 import { FindPeopleRoom } from '../../features/marketingDesk/rooms/FindPeopleRoom';
@@ -50,7 +51,7 @@ export default function AdminMarketingDeskPage() {
     <PageShell
       badge="Admin"
       title="Marketing Desk"
-      subtitle="Find · Board · Clean · Ruth · Mail — plain English daily desk."
+      subtitle="Caleb's daily workroom — Find · Board · Mail."
     >
       <div className={FINELY_OS_COMPACT_PAGE}>
         <div className="flex flex-wrap items-center justify-between gap-2">
@@ -62,8 +63,12 @@ export default function AdminMarketingDeskPage() {
             <ArrowLeft size={16} /> {helper ? 'Marketing Desk home' : 'Admin Dashboard'}
           </button>
           {!helper ? (
-            <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => navigate('/admin/leads')}>
-              Owner Leads Ops
+            <button
+              type="button"
+              className={FINELY_OS_SECONDARY_BTN}
+              onClick={() => navigate('/admin/growth-agents/lead-discovery')}
+            >
+              Open Caleb desk
             </button>
           ) : null}
         </div>
@@ -75,6 +80,7 @@ export default function AdminMarketingDeskPage() {
           />
         ) : null}
 
+        {!helper ? <MarketingDeskAgentStrip /> : null}
         {!helper ? <MarketingDeskHome onOpenHelper={openHelper} /> : null}
         {helper === 'find' ? <FindPeopleRoom /> : null}
         {helper === 'board' ? <BoardRoom /> : null}

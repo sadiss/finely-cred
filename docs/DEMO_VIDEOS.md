@@ -11,8 +11,41 @@ Use this for **training**, **sales**, and **onboarding** when the live site need
 | **Scanner step screenshots** | `public/tours/site-scan/{target-id}/` | `/tours/site-scan/scan-free-guide/step-01.png` |
 | **Manifest tour MP4s** | `public/tours/` | `/tours/tour-onboarding-start.mp4` |
 | **Index manifest** | `public/tours/demos/index.json` | Lists all generated demos |
+| **Launch presenter demo (WebM)** | `public/demos/finely-launch-demo.webm` | `/demos/finely-launch-demo.webm` |
 
 After deploy, videos are served from your domain at the same paths (e.g. `https://finelycred.com/tours/demos/scan-free-guide.mp4`).
+
+## Launch presenter demo (Phase 6 — Ken Burns + voice)
+
+**Requirements:** **ffmpeg** (see below). Optional: Supabase + voice-studio for ElevenLabs narration; otherwise Windows SAPI / macOS `say` / Linux `espeak`.
+
+```bash
+npm run demo:launch:video
+# force re-render:
+npm run demo:launch:video -- --force
+# voice modes: --voice=auto | studio | local | none
+```
+
+Output: `public/demos/finely-launch-demo.webm` + manifest JSON. Embedded on **Resources** (`/resources#presenter-demo`) as **Presenter demo** (local TTS when cinematic APIs unavailable).
+
+**Commit the WebM:** `public/demos/finely-launch-demo.webm` is a deploy asset — check it in after re-render. Intermediate files under `public/demos/.render-work/` stay local (gitignored).
+
+### ffmpeg — PATH or portable fallback
+
+`scripts/generate-launch-demo-video.mjs` resolves ffmpeg in this order:
+
+1. **`ffmpeg` on PATH** (preferred) — install once per machine:
+   - **Windows:** `winget install Gyan.FFmpeg` or [ffmpeg builds](https://www.gyan.dev/ffmpeg/builds/) essentials zip
+   - **macOS:** `brew install ffmpeg`
+   - **Linux:** `sudo apt install ffmpeg` (or distro equivalent)
+2. **Portable fallback** (no global install) — place binaries under `scripts/.tools/ffmpeg/bin/`:
+   - Download the **ffmpeg essentials** build (~100MB) from [gyan.dev/ffmpeg/builds](https://www.gyan.dev/ffmpeg/builds/)
+   - Extract so `ffmpeg` (or `ffmpeg.exe` on Windows) lives at:
+     - `scripts/.tools/ffmpeg/bin/ffmpeg` (macOS/Linux)
+     - `scripts/.tools/ffmpeg/bin/ffmpeg.exe` (Windows)
+   - Verify: `node scripts/generate-launch-demo-video.mjs` (or `npm run demo:launch:video`)
+
+`scripts/.tools/` is **gitignored** — each developer sets up portable ffmpeg locally; do not commit the zip or extracted tree.
 
 ## Automated pipeline (self-sufficient)
 

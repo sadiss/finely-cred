@@ -12,6 +12,8 @@ import { getNotificationPrefs } from '../data/notificationPrefsRepo';
 import { getPartnerSync } from '../data/partnersRepo';
 import { isFeatureEnabled } from '../data/settingsRepo';
 import { isLeadTrashed } from '../features/studioCommandOs/leadTrashRepo';
+import { getProspect } from '../data/crmProspectsRepo';
+import { prospectAllowsColdEmail } from '../features/marketingDesk/marketingProspectConsent';
 import { sendEmail } from './commsDeliveryClient';
 import { isSupabaseConfigured } from './supabaseClient';
 import { buildNurtureStepEmail } from './nurtureStepCopy';
@@ -185,6 +187,11 @@ function shouldSkipEnrollmentSend(enrollment: NurtureEnrollment): string | null 
   if (email) {
     const lead = listLeadCaptures().find((l) => (l.email || '').trim().toLowerCase() === email);
     if (lead && lead.consentEmailMarketing === false) return 'unsubscribed';
+  }
+
+  if (enrollment.sequenceId === 'seq_cold_prospect') {
+    const prospect = getProspect(enrollment.leadId);
+    if (!prospectAllowsColdEmail(prospect)) return 'no_cold_consent';
   }
 
   const muteKind = nurtureMuteKindForSequence(enrollment.sequenceId);

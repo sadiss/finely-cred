@@ -27,6 +27,7 @@ import { CS } from '../../config/creditSpecialistProgram';
 import { AF } from '../../config/affiliateProgram';
 import { markSignedOutAndGoHome } from '../../components/navigation/BackToSiteButton';
 import { clearOnboardingProgress } from '../../lib/onboardingProgressStorage';
+import { finelyCtaNavigate } from '../../lib/finelyCtaIntent';
 import { CommsWorkspaceActions } from '../../components/comms/CommsWorkspaceActions';
 import { FinelyOsPageFooter } from '../../features/os/FinelyOsPageFooter';
 import {
@@ -242,7 +243,7 @@ export default function AccountSettingsPage() {
   if (!auth.user) {
     return (
       <PageShell badge="Account" title="Sign in required" subtitle="Please sign in to manage your account settings.">
-        <button type="button" onClick={() => navigate('/onboarding')} className={FINELY_OS_SUCCESS_BTN}>
+        <button type="button" onClick={() => finelyCtaNavigate(navigate, 'personal_intake')} className={FINELY_OS_SUCCESS_BTN}>
           Sign in
         </button>
       </PageShell>

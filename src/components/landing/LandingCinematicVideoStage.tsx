@@ -9,12 +9,6 @@ import './landingSellBands.css';
 
 const HOME_VIDEO_SRC = '/tours/cloud-home-overview.mp4';
 
-const HOME_VIDEO_STATS = [
-  { value: '700+', label: 'Funding-ready path' },
-  { value: '3', label: 'Bureau coverage' },
-  { value: '24/7', label: 'Partner OS access' },
-] as const;
-
 const HOME_VIDEO_LANES = ['Restore', 'Disputes', 'Debt', 'Funding', 'Letters'] as const;
 
 function prefersReducedMotion(): boolean {
@@ -70,8 +64,11 @@ export function LandingCinematicVideoStage() {
               speedMs={42}
             />
             <p className="mt-4 text-sm sm:text-base text-white/55 leading-relaxed">
-              Personal restore · dispute letters · debt &amp; summons response · business credit &amp; funding readiness —
-              one partner path from messy file to clear next step.
+              A full credit solutions company — not a SaaS demo. Personal restore, dispute letters, debt &amp; summons
+              response, business credit, and funding readiness with concierge execution or sovereign DIY access.
+            </p>
+            <p className="mt-2 text-xs sm:text-sm text-emerald-200/55 leading-relaxed">
+              FCRA-aware workflows · encrypted partner vault · one clear next step from messy file to fundable profile.
             </p>
           </Reveal>
         </div>
@@ -111,20 +108,15 @@ export function LandingCinematicVideoStage() {
                     ))}
                   </div>
 
-                  <div className="grid grid-cols-3 gap-3 sm:gap-6 max-w-lg mx-auto w-full">
-                    {HOME_VIDEO_STATS.map((stat) => (
-                      <div key={stat.label} className="text-center">
-                        <div className="fc-sell-serif text-xl sm:text-2xl md:text-3xl font-bold tabular-nums text-[#ffd993] drop-shadow-[0_2px_12px_rgba(0,0,0,0.45)]">
-                          {stat.value}
-                        </div>
-                        <div className="mt-1 text-[8px] sm:text-[9px] font-bold uppercase tracking-[0.14em] text-white/55">
-                          {stat.label}
-                        </div>
-                      </div>
-                    ))}
+                  <div className="mx-auto max-w-md text-center px-2">
+                    <p className="text-[10px] sm:text-xs font-semibold uppercase tracking-[0.2em] text-emerald-100/75">
+                      Full credit solutions company
+                    </p>
+                    <p className="mt-2 text-xs sm:text-sm text-white/50 leading-relaxed">
+                      Watch how partners move from dispute to deletion to funding readiness — guided by specialists, not
+                      software alone.
+                    </p>
                   </div>
-
-                  <div className="h-8 sm:h-10" />
                 </div>
               </div>
 
@@ -150,8 +142,8 @@ export function LandingCinematicVideoStage() {
                   className="absolute inset-0 z-[3] flex flex-col items-center justify-center gap-3 group"
                   aria-label="Play Finely Cred credit solutions overview"
                 >
-                  <span className="relative inline-flex h-[4.5rem] w-[4.5rem] sm:h-[5.25rem] sm:w-[5.25rem] items-center justify-center rounded-full border-2 border-[#ffd993]/60 bg-gradient-to-br from-[#1aad4b]/90 via-[#0d8a3a] to-[#065a28] text-[#04140a] shadow-[0_0_0_12px_rgba(26,173,75,0.25),0_0_48px_rgba(56,189,120,0.45),0_24px_64px_rgba(0,0,0,0.5)] ring-1 ring-white/30 transition-transform duration-300 group-hover:scale-105">
-                    <Play className="ml-1 h-9 w-9 sm:h-10 sm:w-10 fill-current text-[#fffef8]" strokeWidth={0} />
+                  <span className="relative inline-flex h-[4.5rem] w-[4.5rem] sm:h-[5.25rem] sm:w-[5.25rem] items-center justify-center rounded-full border-2 border-[#ffd993]/70 bg-[linear-gradient(135deg,#ffeaa7_0%,#fdcb6e_18%,#f39c12_42%,#d68910_58%,#f39c12_72%,#fdcb6e_88%,#ffeaa7_100%)] text-[#1a1400] shadow-[0_0_0_12px_rgba(251,191,36,0.22),0_0_48px_rgba(224,178,74,0.45),0_24px_64px_rgba(0,0,0,0.5)] ring-1 ring-white/35 transition-transform duration-300 group-hover:scale-105">
+                    <Play className="ml-1 h-9 w-9 sm:h-10 sm:w-10 fill-current text-[#1a1400]" strokeWidth={0} />
                   </span>
                   <span className="rounded-full bg-black/45 px-4 py-1.5 text-[10px] font-bold uppercase tracking-[0.2em] text-white/95 border border-emerald-400/30 backdrop-blur-md">
                     Watch overview
@@ -177,7 +169,10 @@ export function LandingCinematicVideoStage() {
             </div>
           </div>
         </Reveal>
-        <p className="fc-sell-compliance text-center mt-5">Results vary · not legal advice · funding subject to underwriting</p>
+        <p className="fc-sell-compliance text-center mt-5 max-w-2xl mx-auto">
+          Results vary · not legal advice · funding subject to underwriting · Finely Cred is a credit solutions company,
+          not legal counsel or a bureau
+        </p>
       </div>
     </section>
   );

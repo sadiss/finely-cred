@@ -121,7 +121,7 @@ export function finelyBrainOrchestrate(input: FinelyBrainInput): FinelyBrainResu
     return {
       reply: ctx.sop
         ? `${ctx.sop.title}. ${ctx.sop.whenToUse} Follow the numbered steps on this page, or ask me to walk through one step at a time.`
-        : 'Video walkthroughs are coming soon. Tell me what you are trying to do and I will guide you step by step.',
+        : 'Tell me what you are trying to do on this page and I will guide you step by step.',
       personaId: ctx.personaId,
       citations,
       sopId: ctx.sop?.id,

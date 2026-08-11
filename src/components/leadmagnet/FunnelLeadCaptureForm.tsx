@@ -1,6 +1,6 @@
 import React, { type FormEvent } from 'react';
 import { ArrowRight, CheckCircle2, Lock, Mail, ShieldCheck } from 'lucide-react';
-import { FINELY_OS_ENTITY_INPUT } from '../../features/os/finelyOsLightUi';
+import { FINELY_OS_ENTITY_INPUT, FINELY_OS_MOBILE_FORM_COMPACT } from '../../features/os/finelyOsLightUi';
 
 export type FunnelLeadCaptureFormProps = {
   id?: string;
@@ -81,7 +81,7 @@ export function FunnelLeadCaptureForm({
         </>
       ) : null}
 
-      <form onSubmit={onSubmit} className="space-y-2.5">
+      <form onSubmit={onSubmit} className={`space-y-2.5 ${FINELY_OS_MOBILE_FORM_COMPACT}`}>
         <div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
           <input
             value={firstName}

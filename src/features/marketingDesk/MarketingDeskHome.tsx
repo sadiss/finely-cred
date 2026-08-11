@@ -17,7 +17,7 @@ import { FinelyOsPaginatedStack } from '../os/FinelyOsPaginatedStack';
 import { FinelyTourPlayer } from '../../components/tours/FinelyTourPlayer';
 import { getTourById } from '../../config/tourManifest';
 import { isFeatureEnabled } from '../../data/settingsRepo';
-import { MARKETING_DESK_GLOSSARY, MARKETING_DESK_HELPERS, type MarketingDeskHelperId } from './marketingDeskGlossary';
+import { MARKETING_DESK_HELPERS, type MarketingDeskHelperId } from './marketingDeskGlossary';
 import { getMarketingDeskKpis, listMarketingMyWork } from './marketingDeskKpis';
 import { getMarketingMailStatus } from './marketingDeskMailStatus';
 import {
@@ -66,7 +66,9 @@ export function MarketingDeskHome({
 
   const kpis = useMemo(() => {
     void tick;
-    return getMarketingDeskKpis();
+    const all = getMarketingDeskKpis();
+    const pick = ['found', 'review', 'booked'];
+    return pick.map((id) => all.find((k) => k.id === id)).filter(Boolean) as ReturnType<typeof getMarketingDeskKpis>;
   }, [tick]);
   const mail = useMemo(() => {
     void tick;
@@ -126,13 +128,7 @@ export function MarketingDeskHome({
             ? 'Clear today’s to-dos'
             : 'Find new people';
 
-  const primary = () => {
-    if (!findReady.ready) onOpenHelper('find');
-    else if (mail.status === 'needs_setup') onOpenHelper('mail');
-    else if (stagingPending > 0) navigate('/admin/marketing-desk?helper=find#exceptions');
-    else if (myWork[0]) navigate(deepLinkForMarketingTask(myWork[0]));
-    else onOpenHelper('find');
-  };
+  const primary = () => navigate('/admin/growth-agents/lead-discovery');
 
   return (
     <div className={FINELY_OS_COMPACT_PAGE}>
@@ -160,7 +156,7 @@ export function MarketingDeskHome({
           ) : null}
         </div>
         <button type="button" className={FINELY_OS_PRIMARY_BTN} onClick={primary}>
-          {mission} <ArrowRight size={14} />
+          Open Caleb desk <ArrowRight size={14} />
         </button>
       </div>
 
@@ -218,7 +214,7 @@ export function MarketingDeskHome({
       />
 
       {/* 2. KPI chips — deck tiles only, no list chrome */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2">
+      <div className="grid grid-cols-3 gap-2">
         {kpis.map((k) => (
           <button
             key={k.id}
@@ -416,16 +412,6 @@ export function MarketingDeskHome({
             Replay tour
           </button>
         </div>
-        <div className="mt-4">
-          <div className={FINELY_OS_ENTITY_SUBLABEL}>Plain English</div>
-          <ul className={`mt-2 space-y-1 text-xs ${FINELY_OS_ENTITY_BODY}`}>
-            {MARKETING_DESK_GLOSSARY.map((g) => (
-              <li key={g.say}>
-                <span className="text-white/90 font-semibold">{g.say}</span> = {g.means}
-              </li>
-            ))}
-          </ul>
-        </div>
       </details>
 
       {tour ? (
@@ -441,22 +427,11 @@ export function MarketingDeskHome({
 
       {/* 7. Footer owner tools */}
       <div className="flex flex-wrap gap-2 pt-1">
-        <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => navigate('/admin/leads')}>
-          Owner Leads Ops
-        </button>
         <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => navigate('/admin/projects')}>
           Projects & Tasks
         </button>
         <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => navigate('/admin/comms')}>
           Comms Studio
-        </button>
-        <button
-          type="button"
-          className={FINELY_OS_SECONDARY_BTN}
-          onClick={() => navigate('/admin/preview')}
-          title="Structure preview — live theme unchanged"
-        >
-          Layout previews
         </button>
       </div>
     </div>

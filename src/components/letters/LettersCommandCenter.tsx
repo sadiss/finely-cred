@@ -106,6 +106,8 @@ import { htmlToPlainText, isProbablyHtml, plainTextToHtml, sanitizeHtmlForPrevie
 import { callAiGateway } from '../../lib/aiClient';
 import { extractFirstJsonObject } from '../../utils/jsonExtract';
 import { canUseAiDraft } from '../../billing/aiDraftAccess';
+import { checkDisputeLetterEvidenceGate } from '../../lib/evidenceGates';
+import { checkIdentityVaultGate } from '../../lib/documentVaultGates';
 import { isFeatureEnabled } from '../../data/settingsRepo';
 import { classifyCandidateNegativeType, NEGATIVE_PLAYBOOKS, type NegativeType } from '../../creditReports/negativePlaybooks';
 import {
@@ -140,6 +142,10 @@ import {
 } from '../../lib/recipientAddressEnrichment';
 import { notifyLetterLifecycle } from '../../lib/letterLifecycleNotify';
 import { LetterEmailPartnerToggle } from './LetterEmailPartnerToggle';
+import { PostGenerateLetterModal, type PostGenerateLetterAction } from './PostGenerateLetterModal';
+import { MailLetterModal } from './MailLetterModal';
+import type { LetterRecord } from '../../domain/letters';
+import { notifyLetterMailed } from '../../lib/letterMailedNotify';
 import { getNotificationPrefs } from '../../data/notificationPrefsRepo';
 import { getCanonicalPartnerIdentity } from '../../utils/canonicalPartnerIdentity';
 import { bureauFullName, bureauShortCode } from '../../utils/bureaus';
@@ -159,6 +165,8 @@ import {
   FINELY_OS_AI_DRAFT_BTN_SM,
   finelyOsViewTab,
 } from '../../features/os/finelyOsLightUi';
+import { adminPartnerNavFromPortalHref, adminPartnerTab, portalPreviewUrl } from '../../lib/adminPartnerRoutes';
+import { ValidationCreditHandoffStrip } from './ValidationCreditHandoffStrip';
 
 const LCC_AI_DRAFT_BTN =
   'inline-flex items-center gap-2 rounded-xl border border-fuchsia-500/30 bg-fuchsia-500/10 px-4 py-2 text-[10px] font-black uppercase tracking-widest text-fuchsia-100 hover:bg-fuchsia-500/15 transition-all disabled:opacity-60 disabled:cursor-not-allowed';
@@ -1140,6 +1148,18 @@ export function LettersCommandCenter({
 }) {
   const navigate = useNavigate();
   const location = useLocation();
+  const goPortalHref = (href: string) => {
+    if (layout === 'embedded' && partner?.id) {
+      const trimmed = href.trim();
+      if (trimmed.startsWith('/portal/billing')) {
+        navigate(portalPreviewUrl(trimmed));
+        return;
+      }
+      navigate(adminPartnerNavFromPortalHref(partner.id, trimmed));
+      return;
+    }
+    navigate(href);
+  };
   const [internalTab, setInternalTab] = useState<TabKey>('dispute');
   const tab = activeTab ?? internalTab;
   const setTab = (next: TabKey) => {
@@ -1156,6 +1176,17 @@ export function LettersCommandCenter({
   const [vaultHighlightLetterId, setVaultHighlightLetterId] = useState<string | null>(null);
   const validationHandoffDoneRef = React.useRef<string | null>(null);
   const handoffUrlProcessedRef = React.useRef('');
+  const [postGenerateHandoff, setPostGenerateHandoff] = useState<null | {
+    letterId: string;
+    handoffCount: number;
+    creditLettersSearch: string;
+  }>(null);
+  const [validationHandoffConfirm, setValidationHandoffConfirm] = useState<null | {
+    debtName: string;
+    matchCount: number;
+  }>(null);
+  const [debtMailOpen, setDebtMailOpen] = useState(false);
+  const [debtMailLetter, setDebtMailLetter] = useState<LetterRecord | null>(null);
   useEffect(() => {
     const onStore = (ev: Event) => {
       setStoreVersion((v) => v + 1);
@@ -1175,6 +1206,38 @@ export function LettersCommandCenter({
   const [evidenceVersion, setEvidenceVersion] = useState(0);
   const evidence = useMemo(() => (partner ? listEvidenceByPartner(partner.id) : []), [partner, evidenceVersion]);
   const screenshotEvidence = useMemo(() => evidence.filter((x) => x.type === 'screenshot'), [evidence]);
+
+  const canMailLetters = useMemo(() => isFeatureEnabled('letterMailing'), [storeVersion]);
+
+  const requestMailLetter = (letter: LetterRecord) => {
+    if (!letter.pdfBlobRef) {
+      setDraftNotice('Save a PDF to this letter before mailing.');
+      return;
+    }
+    if (letter.type === 'dispute') {
+      const idGate = checkIdentityVaultGate(evidence);
+      if (!idGate.ok) {
+        setDraftNotice(
+          `Upload government ID and proof of address in Documents Vault before mailing dispute letters. Missing: ${idGate.missing.map((m) => m.label).join(', ')}.`,
+        );
+        return;
+      }
+      const evGate = checkDisputeLetterEvidenceGate({ letter, evidence });
+      if (!evGate.ok) {
+        setDraftNotice(evGate.message);
+        return;
+      }
+    }
+    setDebtMailLetter(letter);
+    setDebtMailOpen(true);
+  };
+
+  const focusStudioVaultStrip = (letterId?: string) => {
+    if (letterId) setVaultHighlightLetterId(letterId);
+    window.setTimeout(() => {
+      document.getElementById('fc-letter-studio-vault')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 120);
+  };
 
   const canSeeTemplates = useMemo(() => {
     if (!partner) return false;
@@ -1396,12 +1459,12 @@ export function LettersCommandCenter({
     if (args?.letterId) qs.set('letterId', args.letterId);
     if (args?.preview) qs.set('preview', '1');
     const to = args?.letterId ? `/portal/letters/vault?${qs.toString()}` : '/portal/letters/vault';
-    navigate(to);
+    goPortalHref(to);
   };
 
   const openReports = () => {
     if (onOpenReports) return onOpenReports();
-    navigate('/portal/reports');
+    goPortalHref('/portal/reports');
   };
 
   const isCollectionsType = (type: string | undefined | null) => {
@@ -1409,22 +1472,28 @@ export function LettersCommandCenter({
     return t.includes('collection') || t.includes('charge-off') || t.includes('charge off');
   };
 
+  const creditLettersReturnAfterCapture = () => {
+    if (layout === 'embedded' && partner?.id) {
+      return adminPartnerTab(partner.id, 'letters', { fromCapture: '1' });
+    }
+    return '/portal/letters?fromCapture=1';
+  };
+
   const goCapture = (args?: { candidate?: SelectedDispute | null }) => {
-    // Standalone portal flow: deep-link directly into Credit Intel Collections/Accounts and back.
-    if (layout !== 'standalone') return openReports();
     const candidate = args?.candidate ?? null;
     const intelTab = candidate ? (isCollectionsType(candidate.candidate.type) ? 'collections' : 'accounts') : 'collections';
     const scrollToAccount = candidate ? candidate.candidate.account : '';
     const qs = new URLSearchParams();
     qs.set('intelTab', intelTab);
     if (scrollToAccount) qs.set('scrollToAccount', scrollToAccount);
-    qs.set('returnTo', '/portal/letters?fromCapture=1');
-    navigate(`/portal/reports?${qs.toString()}`);
+    qs.set('returnTo', creditLettersReturnAfterCapture());
+    goPortalHref(`/portal/reports?${qs.toString()}`);
   };
+
+  const handoffQueryTabForNavigation = () => (layout === 'embedded' ? 'letters' : 'dispute');
 
   // One-time notice when returning from capture flow.
   useEffect(() => {
-    if (layout !== 'standalone') return;
     const q = new URLSearchParams(location.search);
     const from = q.get('fromCapture');
     if (!from) return;
@@ -1454,12 +1523,12 @@ export function LettersCommandCenter({
 
   const openDisputeCenter = () => {
     if (onOpenDisputeCenter) return onOpenDisputeCenter();
-    navigate('/portal/disputes');
+    goPortalHref('/portal/disputes');
   };
 
   const openDebtCenter = () => {
     if (onOpenDebtCenter) return onOpenDebtCenter();
-    navigate('/portal/debt');
+    goPortalHref('/portal/debt');
   };
 
   const clearDisputeStudioDraft = () => {
@@ -2171,7 +2240,8 @@ WRITING STANDARD:
       });
       setFocusedKeyByBureau((prev) => ({ ...prev, [b]: null }));
 
-      openVault({ letterId: letter.id, preview: true });
+      setStoreVersion((v) => v + 1);
+      focusStudioVaultStrip(letter.id);
     } catch (e: any) {
       setPdfErr(e?.message || 'Failed to generate PDF.');
     } finally {
@@ -2346,16 +2416,17 @@ WRITING STANDARD:
     setTab('dispute');
     if (letterIdParam) setVaultHighlightLetterId(letterIdParam);
     const acct = debtRow?.name || 'this collector';
+    setValidationHandoffConfirm({ debtName: acct, matchCount: handoff.length });
     setReturnNotice(
       handoff.length
-        ? `Validation saved. ${handoff.length} bureau dispute item${handoff.length === 1 ? '' : 's'} for ${acct} are loaded — attach proof and save PDF when you mail (not sent automatically).`
+        ? null
         : 'Validation letter saved. Link this case to a report tradeline to auto-load matching bureau disputes.',
     );
 
     q.delete('handoff');
     q.delete('debtId');
     q.delete('letterId');
-    if (!q.get('tab')) q.set('tab', 'dispute');
+    q.set('tab', handoffQueryTabForNavigation());
     navigate({ pathname: location.pathname, search: q.toString() ? `?${q.toString()}` : '' }, { replace: true });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [partner?.id, location.search, reports.length]);
@@ -2581,6 +2652,55 @@ useEffect(() => {
     }
     return out;
   }, [selectedDisputes, evidenceByCandidateId]);
+
+  const attachBureauScreenshot = () => {
+    const b = workspaceBureau;
+    const items = selectedByBureau[b] ?? [];
+    if (!items.length) {
+      setPickerOpen(true);
+      return;
+    }
+    const focusedKey = focusedKeyByBureau[b];
+    const target =
+      items.find((x) => x.key === focusedKey) ??
+      items.find((x) => !evidenceByCandidateId[x.key]) ??
+      items[0] ??
+      null;
+    if (!target) return;
+    setFocusedKeyByBureau((prev) => ({ ...prev, [b]: target.key }));
+    if (screenshotEvidence.length === 0) {
+      goCapture({ candidate: target });
+      return;
+    }
+    setEvidencePicker({ candidateId: target.key });
+  };
+
+  const persistHandoffDisputeSelections = () => {
+    if (!partner?.id) return;
+    const existing = loadLettersCommandCenterDraft(partner.id);
+    const laws = seedLawsForSelected(selectedDisputes);
+    saveLettersCommandCenterDraft(partner.id, {
+      selectedDisputes,
+      evidenceByCandidateId: existing?.evidenceByCandidateId ?? evidenceByCandidateId,
+      reasonsByCandidateId: existing?.reasonsByCandidateId ?? reasonsByCandidateId,
+      lawsByCandidateId: { ...laws, ...(lawsByCandidateId as Record<string, LetterCitation[]>) },
+      toneByBureau: existing?.toneByBureau ?? toneByBureau,
+      roundByBureau: existing?.roundByBureau ?? roundByBureau,
+      introByBureau: existing?.introByBureau ?? introByBureau,
+    });
+    setDraftSavedAt(new Date().toISOString());
+    addAuditEvent({
+      partnerId: partner.id,
+      actorType: layout === 'embedded' ? 'admin' : 'partner',
+      actorEmail: undefined,
+      action: 'letter.disputes_handoff_confirmed',
+      entityType: 'partner',
+      entityId: partner.id,
+      meta: { count: selectedDisputes.length },
+    });
+    setValidationHandoffConfirm(null);
+    setReturnNotice(null);
+  };
 
   useEffect(() => {
     if (!selectedDisputes.length) return;
@@ -3419,7 +3539,7 @@ useEffect(() => {
         el.scrollIntoView({ behavior: 'smooth', block: 'start' });
         return;
       }
-      navigate('/portal/escalations?tab=regulatory');
+      goPortalHref('/portal/escalations?tab=regulatory');
       return;
     }
     if (id === 'disputes') {
@@ -3498,6 +3618,40 @@ useEffect(() => {
     if (next) runLetterBuildStep(next.id as LetterBuildStepId);
   };
 
+  const handlePostGenerateLetterAction = (action: PostGenerateLetterAction) => {
+    const ctx = postGenerateHandoff;
+    setPostGenerateHandoff(null);
+    if (!ctx || !partner?.id) return;
+    if (action === 'stay') return;
+    if (action === 'creditLetters') {
+      goPortalHref(`/portal/letters?${ctx.creditLettersSearch}`);
+      return;
+    }
+    if (action === 'savePdf') {
+      setDraftNotice('Save PDF below — then you can mail from here or open Credit Letters.');
+      window.setTimeout(() => {
+        document.getElementById('fc-debt-step-generate')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 80);
+      return;
+    }
+    if (action === 'mail') {
+      const letter = listLettersByPartner(partner.id).find((l) => l.id === ctx.letterId) ?? null;
+      if (!letter) {
+        setDraftNotice('Letter record missing — generate again.');
+        return;
+      }
+      if (!letter.pdfBlobRef) {
+        setDraftNotice('Save PDF first — Finely Mail needs a vault PDF on this letter.');
+        window.setTimeout(() => {
+          document.getElementById('fc-debt-step-generate')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 80);
+        return;
+      }
+      setDebtMailLetter(letter);
+      setDebtMailOpen(true);
+    }
+  };
+
   const completeValidationCreditHandoff = (letterId: string, track: DebtDraftTrack) => {
     if (!partner?.id || track !== 'validation') return;
     if (validationHandoffDoneRef.current === letterId) return;
@@ -3524,9 +3678,11 @@ useEffect(() => {
     setDraftNotice(
       handoff.length
         ? debtCenterMode
-          ? 'Validation letter saved below. Opening Credit Letters with matching bureau disputes queued — save PDF there when you are ready to mail.'
+          ? 'Validation letter saved below. Choose Mail, Save PDF, or Go to Credit Letters when you are ready.'
           : 'Validation letter saved. Matching bureau disputes are loaded on the Credit Letters tab.'
-        : 'Validation letter saved to your vault on this page.',
+        : debtCenterMode
+          ? 'Validation letter saved below. Choose your next step in the dialog.'
+          : 'Validation letter saved to your vault on this page.',
     );
 
     if (merged.length && !debtCenterMode) {
@@ -3537,11 +3693,15 @@ useEffect(() => {
 
     if (debtCenterMode) {
       const params = new URLSearchParams();
-      params.set('tab', 'dispute');
+      params.set('tab', handoffQueryTabForNavigation());
       params.set('handoff', 'validation');
       if (debt?.id) params.set('debtId', debt.id);
       params.set('letterId', letterId);
-      window.setTimeout(() => navigate(`/portal/letters?${params.toString()}`), 700);
+      setPostGenerateHandoff({
+        letterId,
+        handoffCount: handoff.length,
+        creditLettersSearch: params.toString(),
+      });
     }
   };
 
@@ -3751,7 +3911,10 @@ useEffect(() => {
     onDebtIdChange: setDebtId,
     onOpenDebtCenter: openDebtCenter,
     canSeeTemplates,
+    adminPartnerId: layout === 'embedded' ? partner.id : undefined,
   };
+
+  const embeddedPartnerId = layout === 'embedded' ? partner.id : undefined;
 
   const debtProofCount = useMemo(() => {
     const docs = processedDocuments.length;
@@ -3934,7 +4097,7 @@ useEffect(() => {
           }}
           onOpenFullVault={() => {
             setIdentityPickerOpen(false);
-            navigate('/portal/documents');
+            goPortalHref('/portal/documents');
           }}
           onClose={() => setIdentityPickerOpen(false)}
           autoPickOnUpload={false}
@@ -4262,7 +4425,7 @@ useEffect(() => {
                   ) : (
                     <button
                       type="button"
-                      onClick={() => navigate('/portal/billing')}
+                      onClick={() => goPortalHref('/portal/billing')}
                       className="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-white/[0.08] bg-white/5 hover:bg-white/10 text-[10px] font-black uppercase tracking-widest text-white/70 transition-all"
                       title="Premium feature: upgrade to unlock AI drafting"
                       disabled={draftBusy}
@@ -4623,6 +4786,96 @@ useEffect(() => {
         </>
       ) : null}
 
+      <PostGenerateLetterModal
+        open={Boolean(postGenerateHandoff)}
+        handoffCount={postGenerateHandoff?.handoffCount ?? 0}
+        onClose={() => setPostGenerateHandoff(null)}
+        onAction={handlePostGenerateLetterAction}
+      />
+
+      {debtMailOpen && debtMailLetter && partner ? (
+        <MailLetterModal
+          open={debtMailOpen}
+          partnerId={partner.id}
+          letter={debtMailLetter}
+          evidence={evidence}
+          defaultFromName={partner.profile.fullName || 'Partner'}
+          defaultFromAddress={(() => {
+            const route: any = partner.primaryRoute ? (partner.routes as any)?.[partner.primaryRoute] : null;
+            const p = route?.personal ?? null;
+            if (!p) return undefined;
+            return {
+              addressLine1: p.address1 ?? '',
+              addressLine2: p.address2 ?? '',
+              city: p.city ?? '',
+              state: p.state ?? '',
+              zip: p.postalCode ?? '',
+            };
+          })()}
+          emailPartnerDefault={emailPartnerOnEvents}
+          onClose={() => {
+            setDebtMailOpen(false);
+            setDebtMailLetter(null);
+          }}
+          onStatus={({ status: st, error, to, from }) => {
+            upsertLetter({
+              ...debtMailLetter,
+              status: st,
+              mailing: {
+                provider: 'finely',
+                providerId: debtMailLetter.mailing?.providerId,
+                createdAt: debtMailLetter.mailing?.createdAt ?? new Date().toISOString(),
+                expectedDeliveryDate: debtMailLetter.mailing?.expectedDeliveryDate,
+                status: st === 'mail_pending' ? 'pending' : st === 'mail_failed' ? 'failed' : debtMailLetter.mailing?.status,
+                lastError: st === 'mail_failed' ? (error ?? 'Mailing failed') : undefined,
+                to,
+                from,
+              },
+            });
+            setStoreVersion((v) => v + 1);
+          }}
+          onMailed={({ providerId, expectedDeliveryDate, to, from }) => {
+            const updated = upsertLetter({
+              ...debtMailLetter,
+              status: 'mailed',
+              mailing: {
+                provider: 'finely',
+                providerId,
+                createdAt: new Date().toISOString(),
+                expectedDeliveryDate,
+                status: 'mailed',
+                to,
+                from,
+              },
+            });
+            addAuditEvent({
+              partnerId: partner.id,
+              actorType: layout === 'embedded' ? 'admin' : 'partner',
+              actorEmail: undefined,
+              action: 'letter.mailed',
+              entityType: 'letter',
+              entityId: updated.id,
+              meta: { provider: 'finely', providerId, expectedDeliveryDate: expectedDeliveryDate ?? null },
+            });
+            setDebtMailLetter(updated);
+            setStoreVersion((v) => v + 1);
+          }}
+          onNotifyMailed={({ providerId, expectedDeliveryDate, to, from }) =>
+            void notifyLetterMailed({
+              partnerId: partner.id,
+              partner,
+              letterIds: [debtMailLetter.id],
+              letterTitles: [debtMailLetter.title],
+              providerIds: [providerId],
+              to,
+              from,
+              expectedDeliveryDate,
+              actorRole: layout === 'embedded' ? 'admin' : 'partner',
+            })
+          }
+        />
+      ) : null}
+
       {/* Global â€œSave vs Save+Downloadâ€ chooser (partner-only) */}
       {pdfChoice ? (
         <div className="fixed inset-0 z-[170] flex items-center justify-center p-4">
@@ -4850,7 +5103,7 @@ useEffect(() => {
         {layout === 'standalone' && !unifiedShell ? (
           <div className="flex flex-wrap items-center justify-between gap-4">
             <button
-              onClick={() => navigate('/portal/dashboard')}
+              onClick={() => goPortalHref('/portal/dashboard')}
               className="inline-flex items-center gap-2 text-white/60 hover:text-white transition-colors text-sm"
             >
               <ArrowLeft size={16} /> Partner Dashboard
@@ -5124,6 +5377,16 @@ useEffect(() => {
                   compact
                 />
 
+                {validationHandoffConfirm ? (
+                  <ValidationCreditHandoffStrip
+                    debtName={validationHandoffConfirm.debtName}
+                    matchCount={validationHandoffConfirm.matchCount}
+                    onEditDisputes={() => setPickerOpen(true)}
+                    onSaveDisputes={persistHandoffDisputeSelections}
+                    onDismiss={() => setValidationHandoffConfirm(null)}
+                  />
+                ) : null}
+
                 <div id="fc-dispute-step-escalate" className="scroll-mt-3">
                   <FinelyOsStudioWorkstationLauncherRow
                     escalationLabel="Bureau escalation ladder"
@@ -5133,7 +5396,7 @@ useEffect(() => {
                   />
                 </div>
 
-                {selectedDisputes.length > 0 ? (
+                {selectedDisputes.length > 0 && !validationHandoffConfirm ? (
                   <div className="rounded-xl border border-amber-400/30 bg-amber-500/[0.07] !p-3 space-y-2">
                     <div className="flex flex-wrap items-center justify-between gap-2">
                       <div className="text-[10px] font-black uppercase tracking-widest text-amber-200/80">
@@ -5218,7 +5481,7 @@ useEffect(() => {
                 <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-red-200/90 text-sm">{pdfErr}</div>
               ) : null}
 
-              {returnNotice ? (
+              {returnNotice && !validationHandoffConfirm ? (
                 <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/25 text-white/75 text-sm">{returnNotice}</div>
               ) : null}
 
@@ -5365,7 +5628,7 @@ useEffect(() => {
                           ) : (
                             <button
                               type="button"
-                              onClick={() => navigate('/portal/billing')}
+                              onClick={() => goPortalHref('/portal/billing')}
                               className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-white/[0.08] bg-white/5 hover:bg-white/10 text-[10px] font-black uppercase tracking-widest text-white/70 transition-all"
                               title="Premium feature: upgrade to unlock AI drafting"
                             >
@@ -6126,6 +6389,19 @@ useEffect(() => {
                   TUC: selectedByBureau.TUC.length,
                 }}
                 onSelect={(bb) => setWorkspaceBureau(bb)}
+                trailingActions={
+                  <>
+                    <button
+                      type="button"
+                      onClick={attachBureauScreenshot}
+                      className="inline-flex items-center gap-2 rounded-xl border border-sky-400/35 bg-sky-500/10 px-3 py-2 text-[10px] font-black uppercase tracking-widest text-sky-100 hover:bg-sky-500/20 transition-all"
+                      title="Attach a bureau screenshot for the active bureau letter"
+                    >
+                      <ImageIcon size={14} /> Attach bureau screenshot
+                    </button>
+                    <LetterDisputeCoachStrip bureau={workspaceBureau} partnerId={partner.id} />
+                  </>
+                }
               />
 
               <LetterStudioSavedVaultStrip
@@ -6135,19 +6411,12 @@ useEffect(() => {
                 evidence={evidence}
                 accent="emerald"
                 title="Your bureau letters (vault)"
-                subtitle="Saved dispute PDFs from this studio — tap a card to preview or manage. Full archive is in Letters Vault."
+                subtitle="Saved dispute PDFs from this studio — preview, mail, or delete here. Full archive opens separately."
                 onOpenFullVault={() => openVault()}
+                highlightLetterId={vaultHighlightLetterId}
+                canMail={canMailLetters}
+                onMailLetter={requestMailLetter}
               />
-
-              <section className="rounded-2xl border border-violet-500/20 bg-black/30 p-5 sm:p-6 space-y-3">
-                <div>
-                  <h3 className="text-sm font-semibold text-white">Dispute letter coach</h3>
-                  <p className="mt-1 text-xs text-white/55">
-                    Full-width help with reasons, evidence, and 5-step framing — not squeezed into a side panel.
-                  </p>
-                </div>
-                <LetterDisputeCoachStrip bureau={workspaceBureau} partnerId={partner.id} />
-              </section>
 
               <LetterDisclaimerFooter />
                 </>
@@ -6260,6 +6529,9 @@ useEffect(() => {
               steps={debtLetterPathSteps}
               onStep={runDebtLetterBuildStep}
               onContinue={runDebtLetterBuildContinue}
+              inlineStudioVault
+              onOpenFullVault={() => openVault()}
+              adminPartnerId={embeddedPartnerId}
             >
             <ValidationCenterView
               {...debtCenterSharedProps}
@@ -6274,6 +6546,8 @@ useEffect(() => {
               generateBusy={generateBusy}
               generateError={draftErr}
               vaultHighlightLetterId={vaultHighlightLetterId}
+              canMailLetters={canMailLetters}
+              onMailLetter={requestMailLetter}
             />
             </DebtTrackEasyFlow>
           </EntitlementGate>
@@ -6304,6 +6578,9 @@ useEffect(() => {
               postCourtPlan={debtPostCourtPlan}
               postCourtDecided={debtPostCourtDecided}
               hideEscalationLadder={debtPostCourtPlan}
+              inlineStudioVault
+              onOpenFullVault={() => openVault()}
+              adminPartnerId={embeddedPartnerId}
             >
             <AffidavitCourtCenterView
               {...debtCenterSharedProps}
@@ -6317,6 +6594,9 @@ useEffect(() => {
               onBuildCatalogDraft={(id) => buildCatalogDraft(id, 'court')}
               generateBusy={generateBusy}
               generateError={draftErr}
+              canMailLetters={canMailLetters}
+              onMailLetter={requestMailLetter}
+              vaultHighlightLetterId={vaultHighlightLetterId}
               selectedSummonsDocId={selectedSummonsDocId}
               onSummonsDocChange={setSelectedSummonsDocId}
               summonsDocCount={processedDocuments.filter((d) => {
@@ -6356,6 +6636,7 @@ useEffect(() => {
               steps={debtLetterPathSteps}
               onStep={runDebtLetterBuildStep}
               onContinue={runDebtLetterBuildContinue}
+              adminPartnerId={embeddedPartnerId}
             >
             <ForeclosureCenterView
               {...debtCenterSharedProps}
@@ -6397,6 +6678,7 @@ useEffect(() => {
               steps={debtLetterPathSteps}
               onStep={runDebtLetterBuildStep}
               onContinue={runDebtLetterBuildContinue}
+              adminPartnerId={embeddedPartnerId}
             >
             <RepossessionCenterView
               {...debtCenterSharedProps}
@@ -6439,6 +6721,7 @@ useEffect(() => {
           >
             <BankruptcyLetterStudioPanel
               partner={partner}
+              adminPartnerId={embeddedPartnerId}
               showPathSwitcher
               onSwitchToValidation={() => setTab('validation')}
               onSwitchToCourt={() => setTab('court')}

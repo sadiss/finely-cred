@@ -4,6 +4,7 @@ import type { Partner } from '../../domain/partners';
 import {
   DESTINATION_OPTIONS,
   MATURITY_OPTIONS,
+  recommendBusinessCreditPackage,
   type BusinessDestination,
   type BusinessMaturity,
 } from '../../config/businessCreditQuoteEngine';
@@ -66,6 +67,17 @@ export function BusinessCreditDestinationCockpit({ partner }: { partner: Partner
     () => DESTINATION_OPTIONS.find((d) => d.id === state.destination),
     [state.destination],
   );
+  const quote = useMemo(
+    () =>
+      recommendBusinessCreditPackage({
+        maturity: state.maturity,
+        destination: state.destination,
+        wantsNamedCards: state.namedCards.length > 0,
+        namedProducts: state.namedCards.join(', '),
+        delivery: 'HYBRID',
+      }),
+    [state.maturity, state.destination, state.namedCards],
+  );
   const Icon = DEST_ICON[state.destination] ?? Target;
 
   const nextDo =
@@ -120,6 +132,21 @@ export function BusinessCreditDestinationCockpit({ partner }: { partner: Partner
             {d.label}
           </button>
         ))}
+      </div>
+
+      <div className={`${finelyOsCatalogCardCompact('sky')} !p-3 space-y-2`} data-fc-accent="sky">
+        <div className={FINELY_OS_ENTITY_SUBLABEL}>Why this matches you</div>
+        <p className={`text-sm font-semibold text-white`}>
+          {quote.pkg.name} · {quote.totalLabel}
+        </p>
+        <ul className={`space-y-1 text-xs ${FINELY_OS_ENTITY_BODY}`}>
+          {quote.why.map((line) => (
+            <li key={line}>• {line}</li>
+          ))}
+        </ul>
+        <p className="text-[10px] uppercase tracking-wider text-white/45">
+          Results vary · funding subject to underwriting · not legal advice
+        </p>
       </div>
 
       <div className={`${finelyOsCatalogCardCompact('fuchsia')} !p-3`} data-fc-accent="fuchsia">

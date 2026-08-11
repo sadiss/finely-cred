@@ -19,7 +19,8 @@ import {
   LeadMagnetEbook,
   LeadMagnetDeviceShowcase,
 } from './LeadMagnetHeroMockup';
-import { FreeDisputeGuideHeroVideo } from './FreeDisputeGuideHeroVideo';
+import { LeadMagnetFunnelHeroVideo } from './LeadMagnetFunnelHeroVideo';
+import { getLeadMagnetVisualTheme } from './leadMagnetVisualThemes';
 import { DisputeLetterGuideContentsList, DisputeLetterGuidePreview } from './DisputeLetterGuidePreview';
 import { FlashyIcon } from '../ui';
 import type { FreeGuide } from '../../resources/freeGuides';
@@ -189,6 +190,7 @@ export function CreditGuidePremiumLanding({
 }) {
   const [selectedIssueId, setSelectedIssueId] = useState<(typeof ISSUE_TRACKS)[number]['id']>('collections');
   const selectedIssue = ISSUE_TRACKS.find((item) => item.id === selectedIssueId) ?? ISSUE_TRACKS[0];
+  const theme = useMemo(() => getLeadMagnetVisualTheme(config), [config]);
 
   return (
     <div className="cgp-page min-h-screen pb-14">
@@ -269,7 +271,7 @@ export function CreditGuidePremiumLanding({
           </div>
 
           <div className="cgp-capture-video-row">
-            <div className="cgp-capture-panel p-5 md:p-6">
+            <div className="cgp-capture-panel fc-mobile-form-compact p-5 md:p-6">
               <h2 className="mb-1 text-lg font-black uppercase tracking-[0.08em] text-white md:text-xl">
                 Get your <span className="text-[#4ade80]">free</span> kit
               </h2>
@@ -294,7 +296,13 @@ export function CreditGuidePremiumLanding({
                 <p className="cgp-capture-video-sub">
                   Overview of what we offer — not a site walkthrough
                 </p>
-                <FreeDisputeGuideHeroVideo showBadge={false} className="cgp-capture-video max-w-none rounded-[1rem]" />
+                <LeadMagnetFunnelHeroVideo
+                  config={config}
+                  theme={theme}
+                  onGoForm={_onGoForm}
+                  colorGrade="emerald"
+                  className="lm-video-shell--hero-lg cgp-capture-video max-w-none rounded-[1rem]"
+                />
               </div>
             )}
           </div>

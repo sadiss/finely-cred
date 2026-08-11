@@ -35,23 +35,28 @@ import {
   finelyOsCatalogCardCompact,
   finelyOsMicroStat,
 } from '../../features/os/finelyOsLightUi';
+import { adminEmbeddedNavHref } from '../../lib/adminPartnerRoutes';
 
 type Track = 'filing' | 'credit';
 
 export function BankruptcyLetterStudioPanel({
   partner,
+  adminPartnerId,
   onSavedToVault,
   showPathSwitcher,
   onSwitchToValidation,
   onSwitchToCourt,
 }: {
   partner: Partner;
+  /** When set, `/portal/*` navigations resolve to admin partner workspace routes. */
+  adminPartnerId?: string;
   onSavedToVault?: (letterId: string) => void;
   showPathSwitcher?: boolean;
   onSwitchToValidation?: () => void;
   onSwitchToCourt?: () => void;
 }) {
   const navigate = useNavigate();
+  const nav = (href: string) => adminEmbeddedNavHref(adminPartnerId, href);
   const [track, setTrack] = useState<Track>('filing');
   const [bkId, setBkId] = useState<string | null>(null);
   const [version, setVersion] = useState(0);
@@ -93,9 +98,9 @@ export function BankruptcyLetterStudioPanel({
       openDraft: () => {
         if (draft) document.getElementById('fc-bk-step-draft')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       },
-      openVault: () => navigate('/portal/letters/vault'),
+      openVault: () => navigate(nav('/portal/letters/vault')),
     });
-    if (id === 'escalate') navigate('/portal/escalations?tab=regulatory');
+    if (id === 'escalate') navigate(nav('/portal/escalations?tab=regulatory'));
   };
 
   const runBkContinue = () => {

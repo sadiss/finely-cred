@@ -22,7 +22,8 @@ Command strip (Find Ready · Mail Ready) · KPI chips (Found · Auto-saved · Ne
 ## Mail spine (A4)
 - Ready = `commsDelivery` + Supabase (+ owner cron note)
 - Checklist UI in Mail room · Pause / Resume · tiles ≤6
-- Approve/auto-approve enroll cold; unsub + trash cancel
+- Manual Approve enrolls link-first (`seq_invite_opt_in`) or cold when consent + `coldOutboundAutopilot` on; auto-save is CRM-only (`enrollMail: false`)
+- unsub + trash cancel
 - Stop-on-reply: webhook ingest/sync + live cron drain → pause + Hot reply to-do
 
 ## Booked (A5) + Wave B

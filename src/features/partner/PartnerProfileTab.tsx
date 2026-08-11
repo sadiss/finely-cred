@@ -1,11 +1,9 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { ChevronRight, RefreshCcw, X } from 'lucide-react';
+import { ChevronRight, X } from 'lucide-react';
 import type { CustomFieldDefinition } from '../../domain/customFields';
 import type { FieldLayout } from '../../domain/fieldLayouts';
 import type { EntitlementKey } from '../../billing/entitlements';
-import { entitlementLabel } from '../../billing/entitlementLabels';
 import { PartnerProfileFieldSections } from './PartnerProfileFieldSections';
-import { SensitiveActionCodeGate } from '../../components/admin/SensitiveActionCodeGate';
 import { bureauShortCode } from '../../utils/bureaus';
 import {
   FC_ADMIN_DANGER_BTN,
@@ -67,7 +65,7 @@ function finelyOsStatusChip(tone: 'ok' | 'warn' | 'blocked') {
 }
 
 type ScoreRow = { model: string; exp?: number | null; eqf?: number | null; tuc?: number | null };
-type ProfilePanel = 'contact' | 'scores' | 'financial' | 'access' | 'fields' | 'danger';
+type ProfilePanel = 'contact' | 'scores' | 'financial' | 'fields' | 'danger';
 type ProfileActionAccent = ProfileGlassTone;
 
 function statusChipTone(status: string): 'ok' | 'warn' | 'blocked' {
@@ -213,7 +211,6 @@ export function PartnerProfileTab(args: {
 }) {
   const { partner, profileDraft, setProfileDraft } = args;
   const activeCount = Array.from(args.activeEntitlementKeys).length;
-  const [grantAllGateOpen, setGrantAllGateOpen] = useState(false);
   const [activePanel, setActivePanel] = useState<ProfilePanel | null>(null);
   const partnerStatus = String(partner.status || 'lead');
   const profileName = profileDraft.fullName.trim() || partner.profile.fullName || 'Partner profile';
@@ -232,7 +229,7 @@ export function PartnerProfileTab(args: {
   }, [args.setDeleteOpen, args.setDeletePhrase]);
 
   useEffect(() => {
-    if (!activePanel || grantAllGateOpen) return;
+    if (!activePanel) return;
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         event.preventDefault();
@@ -241,7 +238,19 @@ export function PartnerProfileTab(args: {
     };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [activePanel, closePopup, grantAllGateOpen]);
+  }, [activePanel, closePopup]);
+
+  const openAccessPanel = () => {
+    const el = document.getElementById('admin-partner-access-panel');
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      try {
+        window.history.replaceState(null, '', '#admin-partner-access-panel');
+      } catch {
+        /* ignore */
+      }
+    }
+  };
 
   return (
     <div className={`fc-admin-workspace fc-partner-profile-tab rounded-3xl border p-3 sm:p-4 ${FINELY_OS_PAGE}`}>
@@ -299,9 +308,9 @@ export function PartnerProfileTab(args: {
         <PartnerProfileLaunchCard
           accent="emerald"
           title="Access & entitlements"
-          description={`${activeCount} active portal modules · ${args.missingEntitlementKeys.length} missing.`}
-          buttonLabel="Manage access"
-          onClick={() => setActivePanel('access')}
+          description={`${activeCount} active portal modules · ${args.missingEntitlementKeys.length} missing. Grants and invites live in Access & authority below.`}
+          buttonLabel="Open access panel"
+          onClick={openAccessPanel}
         />
         <PartnerProfileLaunchCard
           accent="violet"
@@ -576,72 +585,6 @@ export function PartnerProfileTab(args: {
         </PartnerProfilePopup>
       ) : null}
 
-      {activePanel === 'access' ? (
-        <PartnerProfilePopup
-          id="partner-access-title"
-          tone="emerald"
-          eyebrow="Access & authority"
-          title="Manage portal access"
-          description={`Entitlements control which Partner Portal modules this partner can see. ${activeCount} active · ${args.missingEntitlementKeys.length} missing.`}
-          onClose={closePopup}
-        >
-          <div className="flex flex-wrap items-center gap-2">
-            <button
-              type="button"
-              className={profileDarkGlassCta('emerald')}
-              onClick={() => {
-                setActivePanel(null);
-                setGrantAllGateOpen(true);
-              }}
-            >
-              Grant all portal modules
-            </button>
-            <button type="button" className={FINELY_OS_DARK_SECONDARY_BTN} onClick={args.onRefreshEntitlements}>
-              <RefreshCcw size={14} aria-hidden="true" /> Refresh
-            </button>
-          </div>
-
-          <div className="mt-4 grid gap-4 sm:grid-cols-2">
-            <section>
-              <div className={FINELY_OS_DARK_GLASS_SUBLABEL}>Active</div>
-              {activeCount ? (
-                <div className="mt-2 flex flex-wrap gap-2">
-                  {Array.from(args.activeEntitlementKeys)
-                    .sort()
-                    .map((k) => (
-                      <span key={k} className={`${finelyOsStatusChip('ok')} normal-case tracking-normal font-semibold`}>
-                        {entitlementLabel(k)}
-                      </span>
-                    ))}
-                </div>
-              ) : (
-                <div className={`mt-2 ${FINELY_OS_DARK_GLASS_BODY}`}>None</div>
-              )}
-            </section>
-            <section>
-              <div className={FINELY_OS_DARK_GLASS_SUBLABEL}>Missing</div>
-              {args.missingEntitlementKeys.length ? (
-                <div className="mt-2 flex flex-wrap gap-2">
-                  {args.missingEntitlementKeys
-                    .slice()
-                    .sort()
-                    .map((k) => (
-                      <span
-                        key={k}
-                        className="rounded-xl border border-white/25 bg-white/[0.08] px-3 py-1.5 text-xs font-semibold normal-case tracking-normal text-white/80"
-                      >
-                        {entitlementLabel(k)}
-                      </span>
-                    ))}
-                </div>
-              ) : (
-                <div className={`mt-2 ${FINELY_OS_DARK_GLASS_BODY}`}>None</div>
-              )}
-            </section>
-          </div>
-        </PartnerProfilePopup>
-      ) : null}
-
       {activePanel === 'fields' ? (
         <PartnerProfilePopup
           id="partner-profile-fields-title"
@@ -751,18 +694,6 @@ export function PartnerProfileTab(args: {
           </div>
         </PartnerProfilePopup>
       ) : null}
-
-      <SensitiveActionCodeGate
-        open={grantAllGateOpen}
-        action="partner_access_grant"
-        title="Authorize — Grant all portal modules"
-        description={`Grants every entitlement key for ${partner.profile.fullName} in one action.`}
-        onClose={() => setGrantAllGateOpen(false)}
-        onVerified={() => {
-          setGrantAllGateOpen(false);
-          args.onGrantAllEntitlements();
-        }}
-      />
     </div>
   );
 }

@@ -1232,6 +1232,45 @@ html[data-fc-theme="light"] ::selection {
     background: rgba(255, 255, 255, 0.06);
     border-color: rgba(255, 255, 255, 0.1);
   }
+  .fc-nav-trial-cta {
+    padding: 0.375rem 0.875rem;
+    border-radius: 0.5rem;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    transition: color 150ms, background-color 150ms, border-color 150ms, box-shadow 150ms, transform 150ms;
+    color: #ecfdf5;
+    border: 1px solid rgba(52, 211, 153, 0.42);
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.38) 0%, rgba(14, 165, 233, 0.28) 100%);
+    box-shadow:
+      0 0 18px -4px rgba(52, 211, 153, 0.42),
+      0 0 28px -10px rgba(56, 189, 248, 0.32),
+      inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  }
+  .fc-nav-trial-cta:hover {
+    color: #fff;
+    border-color: rgba(52, 211, 153, 0.62);
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.52) 0%, rgba(14, 165, 233, 0.38) 100%);
+    box-shadow:
+      0 0 22px -2px rgba(52, 211, 153, 0.52),
+      0 0 34px -8px rgba(56, 189, 248, 0.42),
+      inset 0 1px 0 rgba(255, 255, 255, 0.16);
+    transform: translateY(-1px);
+  }
+  html[data-fc-theme="light"] .fc-nav-trial-cta {
+    color: #064e3b;
+    border-color: rgba(5, 150, 105, 0.45);
+    background: linear-gradient(135deg, rgba(167, 243, 208, 0.85) 0%, rgba(186, 230, 253, 0.75) 100%);
+    box-shadow:
+      0 0 16px -4px rgba(16, 185, 129, 0.35),
+      0 0 24px -8px rgba(14, 165, 233, 0.25),
+      inset 0 1px 0 rgba(255, 255, 255, 0.65);
+  }
+  html[data-fc-theme="light"] .fc-nav-trial-cta:hover {
+    color: #022c22;
+    border-color: rgba(5, 150, 105, 0.62);
+    background: linear-gradient(135deg, rgba(110, 231, 183, 0.95) 0%, rgba(125, 211, 252, 0.85) 100%);
+  }
   .fc-public-nav-panel {
     border-radius: 1rem;
     border: 1px solid rgba(255, 255, 255, 0.1);
@@ -1465,14 +1504,34 @@ html[data-fc-theme="light"] ::selection {
     background: radial-gradient(ellipse at 50% 50%, rgba(var(--brand-primary-rgb), 0.1) 0%, transparent 62%) !important;
   }
 
-  html[data-fc-theme="light"] .fc-public-shell {
+  /* Ivory lanes only — default public marketing stays on dark obsidian shell */
+  html[data-fc-theme="light"] .fc-public-shell:has([data-fc-shell-surface="ivory"]) {
     background-color: transparent;
     background-image: none;
   }
 
-  html[data-fc-theme="light"] [data-fc-pageshell-root="1"] {
+  html[data-fc-theme="light"] [data-fc-pageshell-root="1"][data-fc-shell-surface="ivory"] {
     background-color: transparent !important;
     color: var(--fc-text);
+  }
+
+  html[data-fc-theme="light"] [data-fc-public-shell="1"]:not(:has([data-fc-shell-surface="ivory"])) {
+    --fc-bg: #0b1110;
+    --fc-bg-deep: #060908;
+    --fc-bg-section: #0d1512;
+    --fc-bg-section-alt: #0f1815;
+    --fc-bg-chrome: #0a100e;
+    --fc-shell-gradient: linear-gradient(180deg, #060908 0%, #0b1110 50%, #060908 100%);
+    background-color: var(--fc-bg-deep) !important;
+    background-image: var(--fc-shell-gradient) !important;
+    color: #fff !important;
+  }
+
+  html[data-fc-theme="light"] [data-fc-pageshell-root="1"][data-fc-shell-surface="default"] {
+    --fc-bg-deep: #060908;
+    --fc-bg: #0b1110;
+    background-color: var(--fc-bg-deep) !important;
+    color: #fff !important;
   }
 
   html[data-fc-theme="light"] [data-fc-pageshell-root="1"] > .fc-pageshell-aurora {
@@ -1599,58 +1658,58 @@ html[data-fc-theme="light"] ::selection {
     box-shadow: var(--fc-glass-shadow), var(--fc-glass-inset);
   }
 
-  /* Readable text on light shell ? scoped to app surfaces */
-  html[data-fc-theme="light"] [data-fc-pageshell-root="1"] .text-white,
-  html[data-fc-theme="light"] [data-fc-public-shell="1"] .text-white {
+  /* Readable text on light shell — ivory public lanes only (dark marketing keeps white type) */
+  html[data-fc-theme="light"] [data-fc-pageshell-root="1"][data-fc-shell-surface="ivory"] .text-white,
+  html[data-fc-theme="light"] [data-fc-public-shell="1"]:has([data-fc-shell-surface="ivory"]) .text-white {
     color: rgba(15, 20, 18, 0.92) !important;
   }
-  html[data-fc-theme="light"] [data-fc-pageshell-root="1"] .text-white\/90,
-  html[data-fc-theme="light"] [data-fc-public-shell="1"] .text-white\/90 {
+  html[data-fc-theme="light"] [data-fc-pageshell-root="1"][data-fc-shell-surface="ivory"] .text-white\/90,
+  html[data-fc-theme="light"] [data-fc-public-shell="1"]:has([data-fc-shell-surface="ivory"]) .text-white\/90 {
     color: rgba(15, 20, 18, 0.88) !important;
   }
-  html[data-fc-theme="light"] [data-fc-pageshell-root="1"] .text-white\/80,
-  html[data-fc-theme="light"] [data-fc-public-shell="1"] .text-white\/80 {
+  html[data-fc-theme="light"] [data-fc-pageshell-root="1"][data-fc-shell-surface="ivory"] .text-white\/80,
+  html[data-fc-theme="light"] [data-fc-public-shell="1"]:has([data-fc-shell-surface="ivory"]) .text-white\/80 {
     color: rgba(15, 20, 18, 0.78) !important;
   }
-  html[data-fc-theme="light"] [data-fc-pageshell-root="1"] .text-white\/75,
-  html[data-fc-theme="light"] [data-fc-public-shell="1"] .text-white\/75 {
+  html[data-fc-theme="light"] [data-fc-pageshell-root="1"][data-fc-shell-surface="ivory"] .text-white\/75,
+  html[data-fc-theme="light"] [data-fc-public-shell="1"]:has([data-fc-shell-surface="ivory"]) .text-white\/75 {
     color: rgba(15, 20, 18, 0.72) !important;
   }
-  html[data-fc-theme="light"] [data-fc-pageshell-root="1"] .text-white\/70,
-  html[data-fc-theme="light"] [data-fc-public-shell="1"] .text-white\/70 {
+  html[data-fc-theme="light"] [data-fc-pageshell-root="1"][data-fc-shell-surface="ivory"] .text-white\/70,
+  html[data-fc-theme="light"] [data-fc-public-shell="1"]:has([data-fc-shell-surface="ivory"]) .text-white\/70 {
     color: rgba(15, 20, 18, 0.68) !important;
   }
-  html[data-fc-theme="light"] [data-fc-pageshell-root="1"] .text-white\/65,
-  html[data-fc-theme="light"] [data-fc-public-shell="1"] .text-white\/65 {
+  html[data-fc-theme="light"] [data-fc-pageshell-root="1"][data-fc-shell-surface="ivory"] .text-white\/65,
+  html[data-fc-theme="light"] [data-fc-public-shell="1"]:has([data-fc-shell-surface="ivory"]) .text-white\/65 {
     color: rgba(15, 20, 18, 0.62) !important;
   }
-  html[data-fc-theme="light"] [data-fc-pageshell-root="1"] .text-white\/60,
-  html[data-fc-theme="light"] [data-fc-public-shell="1"] .text-white\/60 {
+  html[data-fc-theme="light"] [data-fc-pageshell-root="1"][data-fc-shell-surface="ivory"] .text-white\/60,
+  html[data-fc-theme="light"] [data-fc-public-shell="1"]:has([data-fc-shell-surface="ivory"]) .text-white\/60 {
     color: rgba(15, 20, 18, 0.58) !important;
   }
-  html[data-fc-theme="light"] [data-fc-pageshell-root="1"] .text-white\/55,
-  html[data-fc-theme="light"] [data-fc-public-shell="1"] .text-white\/55 {
+  html[data-fc-theme="light"] [data-fc-pageshell-root="1"][data-fc-shell-surface="ivory"] .text-white\/55,
+  html[data-fc-theme="light"] [data-fc-public-shell="1"]:has([data-fc-shell-surface="ivory"]) .text-white\/55 {
     color: rgba(15, 20, 18, 0.52) !important;
   }
-  html[data-fc-theme="light"] [data-fc-pageshell-root="1"] .text-white\/50,
-  html[data-fc-theme="light"] [data-fc-public-shell="1"] .text-white\/50,
-  html[data-fc-theme="light"] [data-fc-pageshell-root="1"] .text-white\/45,
-  html[data-fc-theme="light"] [data-fc-public-shell="1"] .text-white\/45,
-  html[data-fc-theme="light"] [data-fc-pageshell-root="1"] .text-white\/40,
-  html[data-fc-theme="light"] [data-fc-public-shell="1"] .text-white\/40 {
+  html[data-fc-theme="light"] [data-fc-pageshell-root="1"][data-fc-shell-surface="ivory"] .text-white\/50,
+  html[data-fc-theme="light"] [data-fc-public-shell="1"]:has([data-fc-shell-surface="ivory"]) .text-white\/50,
+  html[data-fc-theme="light"] [data-fc-pageshell-root="1"][data-fc-shell-surface="ivory"] .text-white\/45,
+  html[data-fc-theme="light"] [data-fc-public-shell="1"]:has([data-fc-shell-surface="ivory"]) .text-white\/45,
+  html[data-fc-theme="light"] [data-fc-pageshell-root="1"][data-fc-shell-surface="ivory"] .text-white\/40,
+  html[data-fc-theme="light"] [data-fc-public-shell="1"]:has([data-fc-shell-surface="ivory"]) .text-white\/40 {
     color: rgba(15, 20, 18, 0.48) !important;
   }
-  html[data-fc-theme="light"] [data-fc-pageshell-root="1"] .border-white\/\[0\.08\],
-  html[data-fc-theme="light"] [data-fc-public-shell="1"] .border-white\/\[0\.08\] {
+  html[data-fc-theme="light"] [data-fc-pageshell-root="1"][data-fc-shell-surface="ivory"] .border-white\/\[0\.08\],
+  html[data-fc-theme="light"] [data-fc-public-shell="1"]:has([data-fc-shell-surface="ivory"]) .border-white\/\[0\.08\] {
     border-color: rgba(15, 23, 20, 0.1) !important;
   }
 
-  html[data-fc-theme="light"] [data-fc-pageshell-root="1"],
-  html[data-fc-theme="light"] [data-fc-public-shell="1"] {
+  html[data-fc-theme="light"] [data-fc-pageshell-root="1"][data-fc-shell-surface="ivory"],
+  html[data-fc-theme="light"] [data-fc-public-shell="1"]:has([data-fc-shell-surface="ivory"]) {
     color: var(--fc-text) !important;
   }
-  html[data-fc-theme="light"] [data-fc-pageshell-root="1"].text-white,
-  html[data-fc-theme="light"] [data-fc-public-shell="1"].text-white {
+  html[data-fc-theme="light"] [data-fc-pageshell-root="1"][data-fc-shell-surface="ivory"].text-white,
+  html[data-fc-theme="light"] [data-fc-public-shell="1"]:has([data-fc-shell-surface="ivory"]).text-white {
     color: var(--fc-text) !important;
   }
 
@@ -3073,21 +3132,8 @@ html[data-fc-theme="light"] ::selection {
   html[data-fc-theme="light"] .fc-light-mesh-section .text-emerald-300 {
     color: #047857 !important;
   }
-  html[data-fc-theme="light"] [data-fc-public-shell="1"] {
+  html[data-fc-theme="light"] [data-fc-public-shell="1"]:has([data-fc-shell-surface="ivory"]) {
     color: var(--fc-text) !important;
-  }
-
-  /* Personal credit lane — flat ivory tiles (no radial tent / pop glow on hub shell) */
-  html[data-fc-theme="light"] [data-fc-personal-credit-lane="1"] .fc-unified-hub-shell.fc-accent-card {
-    background: #ffffff !important;
-    background-image: none !important;
-    box-shadow: 0 12px 40px -24px rgba(10, 22, 40, 0.18) !important;
-  }
-  html[data-fc-theme="light"] [data-fc-personal-credit-lane="1"] .fc-ivory-solid-tile {
-    background-image: none !important;
-  }
-  html[data-fc-theme="light"] [data-fc-personal-credit-lane="1"] .fc-hub-kpi.fc-pop-surface {
-    box-shadow: 0 8px 28px -18px rgba(10, 22, 40, 0.16) !important;
   }
 
   /* ?? Part CG ? Hero + marketing closures wave 34 ?? */
@@ -3646,9 +3692,8 @@ html[data-fc-theme="light"] ::selection {
     filter: brightness(1.02);
   }
 
-  /* ?? Part CZ ? Partner portal wealthy white overview (overrides Part CU black/silver on dashboard + ivory) ?? */
+  /* ?? Part CZ ? Ivory public / portal lanes only (wealthy white tiles) ?? */
   html[data-fc-theme="light"] :is(
-    [data-fc-app-surface="portal"][data-fc-pathname="/portal/dashboard"],
     [data-fc-shell-surface="ivory"]
   ) :is(
     .fc-accent-card:not(.fc-accent-card .fc-accent-card),
@@ -3673,11 +3718,9 @@ html[data-fc-theme="light"] ::selection {
     filter: none !important;
   }
   html[data-fc-theme="light"] :is(
-    [data-fc-app-surface="portal"][data-fc-pathname="/portal/dashboard"],
     [data-fc-shell-surface="ivory"]
   ) :is(.fc-light-mesh-section, .fc-light-black-scope) .fc-accent-card:not(.fc-accent-card .fc-accent-card):not([class*="fc-admin-solid"]),
   html[data-fc-theme="light"] :is(
-    [data-fc-app-surface="portal"][data-fc-pathname="/portal/dashboard"],
     [data-fc-shell-surface="ivory"]
   ) :is(.fc-light-mesh-section, .fc-light-black-scope) :is(
     .fc-unified-hub-shell,
@@ -3697,7 +3740,6 @@ html[data-fc-theme="light"] ::selection {
     -webkit-backdrop-filter: blur(var(--fc-glass-blur)) saturate(var(--fc-glass-saturate)) !important;
   }
   html[data-fc-theme="light"] :is(
-    [data-fc-app-surface="portal"][data-fc-pathname="/portal/dashboard"],
     [data-fc-shell-surface="ivory"]
   ) :is(.fc-light-mesh-section, .fc-light-black-scope) .fc-accent-card:not(.fc-accent-card .fc-accent-card):not([class*="fc-admin-solid"]) :is(
     h1, h2, h3, h4, .font-semibold, .font-bold, .text-lg, .text-xl, .text-2xl, .text-3xl
@@ -3705,7 +3747,6 @@ html[data-fc-theme="light"] ::selection {
     color: var(--fc-light-heading) !important;
   }
   html[data-fc-theme="light"] :is(
-    [data-fc-app-surface="portal"][data-fc-pathname="/portal/dashboard"],
     [data-fc-shell-surface="ivory"]
   ) :is(.fc-light-mesh-section, .fc-light-black-scope) .fc-accent-card:not(.fc-accent-card .fc-accent-card):not([class*="fc-admin-solid"]) :is(
     p, .text-sm, .text-xs, .opacity-80, .opacity-65, .opacity-60, [class*="text-white/"]
@@ -3715,15 +3756,12 @@ html[data-fc-theme="light"] ::selection {
 
   /* Nested cards — soft accent washes only (no silver/gray slabs) */
   html[data-fc-theme="light"] :is(
-    [data-fc-app-surface="portal"][data-fc-pathname="/portal/dashboard"],
     [data-fc-shell-surface="ivory"]
   ) .fc-accent-card .fc-accent-card:not([class*="fc-admin-solid"]),
   html[data-fc-theme="light"] :is(
-    [data-fc-app-surface="portal"][data-fc-pathname="/portal/dashboard"],
     [data-fc-shell-surface="ivory"]
   ) :is(.fc-light-mesh-section, .fc-light-black-scope) .fc-accent-card .fc-accent-card:not([class*="fc-admin-solid"]),
   html[data-fc-theme="light"] :is(
-    [data-fc-app-surface="portal"][data-fc-pathname="/portal/dashboard"],
     [data-fc-shell-surface="ivory"]
   ) :is(.fc-light-mesh-section, .fc-light-black-scope) .fc-accent-card:not(.fc-accent-card .fc-accent-card) .fc-surface-harmony.fc-accent-card {
     background: transparent !important;
@@ -3736,68 +3774,56 @@ html[data-fc-theme="light"] ::selection {
     border-color: rgba(15, 23, 20, 0.1) !important;
   }
   html[data-fc-theme="light"] :is(
-    [data-fc-app-surface="portal"][data-fc-pathname="/portal/dashboard"],
     [data-fc-shell-surface="ivory"]
   ) .fc-accent-card .fc-accent-card[data-fc-accent="emerald"]:not([class*="fc-admin-solid"]),
   html[data-fc-theme="light"] :is(
-    [data-fc-app-surface="portal"][data-fc-pathname="/portal/dashboard"],
     [data-fc-shell-surface="ivory"]
   ) .fc-accent-card .fc-accent-card[class*="border-emerald"]:not([class*="fc-admin-solid"]) {
     background: rgba(16, 185, 129, 0.06) !important;
     border-color: rgba(16, 185, 129, 0.22) !important;
   }
   html[data-fc-theme="light"] :is(
-    [data-fc-app-surface="portal"][data-fc-pathname="/portal/dashboard"],
     [data-fc-shell-surface="ivory"]
   ) .fc-accent-card .fc-accent-card[data-fc-accent="violet"]:not([class*="fc-admin-solid"]),
   html[data-fc-theme="light"] :is(
-    [data-fc-app-surface="portal"][data-fc-pathname="/portal/dashboard"],
     [data-fc-shell-surface="ivory"]
   ) .fc-accent-card .fc-accent-card[class*="border-violet"]:not([class*="fc-admin-solid"]) {
     background: rgba(139, 92, 246, 0.06) !important;
     border-color: rgba(139, 92, 246, 0.22) !important;
   }
   html[data-fc-theme="light"] :is(
-    [data-fc-app-surface="portal"][data-fc-pathname="/portal/dashboard"],
     [data-fc-shell-surface="ivory"]
   ) .fc-accent-card .fc-accent-card[data-fc-accent="amber"]:not([class*="fc-admin-solid"]),
   html[data-fc-theme="light"] :is(
-    [data-fc-app-surface="portal"][data-fc-pathname="/portal/dashboard"],
     [data-fc-shell-surface="ivory"]
   ) .fc-accent-card .fc-accent-card[class*="border-amber"]:not([class*="fc-admin-solid"]) {
     background: rgba(245, 158, 11, 0.07) !important;
     border-color: rgba(245, 158, 11, 0.24) !important;
   }
   html[data-fc-theme="light"] :is(
-    [data-fc-app-surface="portal"][data-fc-pathname="/portal/dashboard"],
     [data-fc-shell-surface="ivory"]
   ) .fc-accent-card .fc-accent-card[data-fc-accent="sky"]:not([class*="fc-admin-solid"]),
   html[data-fc-theme="light"] :is(
-    [data-fc-app-surface="portal"][data-fc-pathname="/portal/dashboard"],
     [data-fc-shell-surface="ivory"]
   ) .fc-accent-card .fc-accent-card[class*="border-sky"]:not([class*="fc-admin-solid"]) {
     background: rgba(14, 165, 233, 0.06) !important;
     border-color: rgba(14, 165, 233, 0.22) !important;
   }
   html[data-fc-theme="light"] :is(
-    [data-fc-app-surface="portal"][data-fc-pathname="/portal/dashboard"],
     [data-fc-shell-surface="ivory"]
   ) .fc-accent-card .fc-accent-card[data-fc-accent="fuchsia"]:not([class*="fc-admin-solid"]),
   html[data-fc-theme="light"] :is(
-    [data-fc-app-surface="portal"][data-fc-pathname="/portal/dashboard"],
     [data-fc-shell-surface="ivory"]
   ) .fc-accent-card .fc-accent-card[class*="border-fuchsia"]:not([class*="fc-admin-solid"]) {
     background: rgba(217, 70, 239, 0.06) !important;
     border-color: rgba(217, 70, 239, 0.22) !important;
   }
   html[data-fc-theme="light"] :is(
-    [data-fc-app-surface="portal"][data-fc-pathname="/portal/dashboard"],
     [data-fc-shell-surface="ivory"]
   ) .fc-accent-card .fc-accent-card :is(h1, h2, h3, h4, .font-semibold, .font-bold, .text-lg, .text-xl) {
     color: var(--fc-light-heading) !important;
   }
   html[data-fc-theme="light"] :is(
-    [data-fc-app-surface="portal"][data-fc-pathname="/portal/dashboard"],
     [data-fc-shell-surface="ivory"]
   ) .fc-accent-card .fc-accent-card :is(p, .text-sm, .text-xs, .opacity-60, .opacity-65, [class*="text-white/"]) {
     color: var(--fc-light-muted) !important;
@@ -3805,7 +3831,6 @@ html[data-fc-theme="light"] ::selection {
 
   /* Hub KPIs — keep strong accent glow on white overview */
   html[data-fc-theme="light"] :is(
-    [data-fc-app-surface="portal"][data-fc-pathname="/portal/dashboard"],
     [data-fc-shell-surface="ivory"]
   ) .fc-hub-kpi {
     background: var(--fc-glass-bg-strong) !important;
@@ -3813,7 +3838,6 @@ html[data-fc-theme="light"] ::selection {
     box-shadow: var(--fc-light-pop-shadow), var(--fc-glass-inset) !important;
   }
   html[data-fc-theme="light"] :is(
-    [data-fc-app-surface="portal"][data-fc-pathname="/portal/dashboard"],
     [data-fc-shell-surface="ivory"]
   ) :is(.fc-light-mesh-section, .fc-light-black-scope) .fc-unified-hub-shell.fc-accent-card .fc-hub-kpi {
     background: var(--fc-glass-bg-strong) !important;
@@ -3822,7 +3846,6 @@ html[data-fc-theme="light"] ::selection {
     color: var(--fc-light-heading) !important;
   }
   html[data-fc-theme="light"] :is(
-    [data-fc-app-surface="portal"][data-fc-pathname="/portal/dashboard"],
     [data-fc-shell-surface="ivory"]
   ) .fc-hub-kpi[data-fc-accent="emerald"] {
     background-color: rgba(16, 185, 129, 0.12) !important;
@@ -3830,7 +3853,6 @@ html[data-fc-theme="light"] ::selection {
     box-shadow: var(--fc-light-pop-shadow), var(--fc-light-accent-glow-emerald), var(--fc-glass-inset) !important;
   }
   html[data-fc-theme="light"] :is(
-    [data-fc-app-surface="portal"][data-fc-pathname="/portal/dashboard"],
     [data-fc-shell-surface="ivory"]
   ) .fc-hub-kpi[data-fc-accent="violet"] {
     background-color: rgba(139, 92, 246, 0.11) !important;
@@ -3838,7 +3860,6 @@ html[data-fc-theme="light"] ::selection {
     box-shadow: var(--fc-light-pop-shadow), var(--fc-light-accent-glow-violet), var(--fc-glass-inset) !important;
   }
   html[data-fc-theme="light"] :is(
-    [data-fc-app-surface="portal"][data-fc-pathname="/portal/dashboard"],
     [data-fc-shell-surface="ivory"]
   ) .fc-hub-kpi[data-fc-accent="amber"] {
     background-color: rgba(245, 158, 11, 0.14) !important;
@@ -3846,7 +3867,6 @@ html[data-fc-theme="light"] ::selection {
     box-shadow: var(--fc-light-pop-shadow), var(--fc-light-accent-glow-amber), var(--fc-glass-inset) !important;
   }
   html[data-fc-theme="light"] :is(
-    [data-fc-app-surface="portal"][data-fc-pathname="/portal/dashboard"],
     [data-fc-shell-surface="ivory"]
   ) .fc-hub-kpi[data-fc-accent="sky"] {
     background-color: rgba(14, 165, 233, 0.11) !important;
@@ -3854,11 +3874,9 @@ html[data-fc-theme="light"] ::selection {
     box-shadow: var(--fc-light-pop-shadow), var(--fc-light-accent-glow-sky), var(--fc-glass-inset) !important;
   }
   html[data-fc-theme="light"] :is(
-    [data-fc-app-surface="portal"][data-fc-pathname="/portal/dashboard"],
     [data-fc-shell-surface="ivory"]
   ) .fc-hub-kpi[data-fc-accent="fuchsia"],
   html[data-fc-theme="light"] :is(
-    [data-fc-app-surface="portal"][data-fc-pathname="/portal/dashboard"],
     [data-fc-shell-surface="ivory"]
   ) .fc-hub-kpi[data-fc-accent="rose"] {
     background-color: rgba(217, 70, 239, 0.11) !important;
@@ -3866,13 +3884,11 @@ html[data-fc-theme="light"] ::selection {
     box-shadow: var(--fc-light-pop-shadow), var(--fc-light-accent-glow-fuchsia), var(--fc-glass-inset) !important;
   }
   html[data-fc-theme="light"] :is(
-    [data-fc-app-surface="portal"][data-fc-pathname="/portal/dashboard"],
     [data-fc-shell-surface="ivory"]
   ) .fc-hub-kpi :is(.text-white, .text-lg, .font-semibold, h1, h2, h3) {
     color: var(--fc-light-heading) !important;
   }
   html[data-fc-theme="light"] :is(
-    [data-fc-app-surface="portal"][data-fc-pathname="/portal/dashboard"],
     [data-fc-shell-surface="ivory"]
   ) .fc-hub-kpi :is(.text-white\/75, .text-white\/70, .text-xs, .text-sm, [class*="text-white/"]) {
     color: var(--fc-light-muted) !important;
@@ -3880,55 +3896,45 @@ html[data-fc-theme="light"] ::selection {
 
   /* Top-level accent glow edges on white overview cards */
   html[data-fc-theme="light"] :is(
-    [data-fc-app-surface="portal"][data-fc-pathname="/portal/dashboard"],
     [data-fc-shell-surface="ivory"]
   ) :is(.fc-light-mesh-section, .fc-light-black-scope) [data-fc-accent="emerald"].fc-accent-card:not(.fc-accent-card .fc-accent-card):not([class*="fc-admin-solid"]),
   html[data-fc-theme="light"] :is(
-    [data-fc-app-surface="portal"][data-fc-pathname="/portal/dashboard"],
     [data-fc-shell-surface="ivory"]
   ) :is(.fc-light-mesh-section, .fc-light-black-scope) .fc-accent-card:not(.fc-accent-card .fc-accent-card):not([class*="fc-admin-solid"])[class*="border-emerald"] {
     border-color: rgba(16, 185, 129, 0.36) !important;
     box-shadow: var(--fc-light-pop-shadow), var(--fc-light-accent-glow-emerald), var(--fc-glass-inset) !important;
   }
   html[data-fc-theme="light"] :is(
-    [data-fc-app-surface="portal"][data-fc-pathname="/portal/dashboard"],
     [data-fc-shell-surface="ivory"]
   ) :is(.fc-light-mesh-section, .fc-light-black-scope) [data-fc-accent="violet"].fc-accent-card:not(.fc-accent-card .fc-accent-card):not([class*="fc-admin-solid"]),
   html[data-fc-theme="light"] :is(
-    [data-fc-app-surface="portal"][data-fc-pathname="/portal/dashboard"],
     [data-fc-shell-surface="ivory"]
   ) :is(.fc-light-mesh-section, .fc-light-black-scope) .fc-accent-card:not(.fc-accent-card .fc-accent-card):not([class*="fc-admin-solid"])[class*="border-violet"] {
     border-color: rgba(139, 92, 246, 0.36) !important;
     box-shadow: var(--fc-light-pop-shadow), var(--fc-light-accent-glow-violet), var(--fc-glass-inset) !important;
   }
   html[data-fc-theme="light"] :is(
-    [data-fc-app-surface="portal"][data-fc-pathname="/portal/dashboard"],
     [data-fc-shell-surface="ivory"]
   ) :is(.fc-light-mesh-section, .fc-light-black-scope) [data-fc-accent="amber"].fc-accent-card:not(.fc-accent-card .fc-accent-card):not([class*="fc-admin-solid"]),
   html[data-fc-theme="light"] :is(
-    [data-fc-app-surface="portal"][data-fc-pathname="/portal/dashboard"],
     [data-fc-shell-surface="ivory"]
   ) :is(.fc-light-mesh-section, .fc-light-black-scope) .fc-accent-card:not(.fc-accent-card .fc-accent-card):not([class*="fc-admin-solid"])[class*="border-amber"] {
     border-color: rgba(245, 158, 11, 0.38) !important;
     box-shadow: var(--fc-light-pop-shadow), var(--fc-light-accent-glow-amber), var(--fc-glass-inset) !important;
   }
   html[data-fc-theme="light"] :is(
-    [data-fc-app-surface="portal"][data-fc-pathname="/portal/dashboard"],
     [data-fc-shell-surface="ivory"]
   ) :is(.fc-light-mesh-section, .fc-light-black-scope) [data-fc-accent="sky"].fc-accent-card:not(.fc-accent-card .fc-accent-card):not([class*="fc-admin-solid"]),
   html[data-fc-theme="light"] :is(
-    [data-fc-app-surface="portal"][data-fc-pathname="/portal/dashboard"],
     [data-fc-shell-surface="ivory"]
   ) :is(.fc-light-mesh-section, .fc-light-black-scope) .fc-accent-card:not(.fc-accent-card .fc-accent-card):not([class*="fc-admin-solid"])[class*="border-sky"] {
     border-color: rgba(14, 165, 233, 0.36) !important;
     box-shadow: var(--fc-light-pop-shadow), var(--fc-light-accent-glow-sky), var(--fc-glass-inset) !important;
   }
   html[data-fc-theme="light"] :is(
-    [data-fc-app-surface="portal"][data-fc-pathname="/portal/dashboard"],
     [data-fc-shell-surface="ivory"]
   ) :is(.fc-light-mesh-section, .fc-light-black-scope) [data-fc-accent="fuchsia"].fc-accent-card:not(.fc-accent-card .fc-accent-card):not([class*="fc-admin-solid"]),
   html[data-fc-theme="light"] :is(
-    [data-fc-app-surface="portal"][data-fc-pathname="/portal/dashboard"],
     [data-fc-shell-surface="ivory"]
   ) :is(.fc-light-mesh-section, .fc-light-black-scope) .fc-accent-card:not(.fc-accent-card .fc-accent-card):not([class*="fc-admin-solid"])[class*="border-fuchsia"] {
     border-color: rgba(217, 70, 239, 0.36) !important;
@@ -5036,9 +5042,14 @@ html[data-fc-theme="dark"] .fc-testimonial-dossier.fc-accent-card {
   gap: 0.5rem 1rem;
   padding: 0.65rem 1.25rem;
   border-radius: 9999px;
-  border: 1px solid rgba(251, 191, 36, 0.22);
-  background: linear-gradient(135deg, rgba(251,191,36,0.08), rgba(255,255,255,0.03));
-  box-shadow: 0 12px 40px -20px rgba(251, 191, 36, 0.35), inset 0 1px 0 rgba(255,255,255,0.08);
+  border: 1px solid rgba(52, 211, 153, 0.22);
+  background:
+    linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(14, 165, 233, 0.06)),
+    linear-gradient(135deg, rgba(251, 191, 36, 0.06), rgba(255, 255, 255, 0.03));
+  box-shadow:
+    0 12px 40px -20px rgba(52, 211, 153, 0.28),
+    0 8px 28px -18px rgba(251, 191, 36, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
 .finely-institutional-bar-item {

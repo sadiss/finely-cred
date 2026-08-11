@@ -11,6 +11,7 @@ import { CollateralDefenseShell, type CollateralPlaybookStep } from './Collatera
 import { CollateralWorkstationSection, DebtVsDisputeExplainer } from './CollateralWorkstationSection';
 import { catalogForCategory, type LetterCatalogHub } from '../../legal/debtLetterCatalog';
 import { extractCollateralSignals } from '../../lib/debtCreditorIntel';
+import { adminEmbeddedNavHref } from '../../lib/adminPartnerRoutes';
 import {
   FINELY_OS_ENTITY_SUBLABEL,
   FINELY_OS_FIELD_WIDTH_SM,
@@ -54,6 +55,7 @@ export function RepossessionCenterView({
   onDebtIdChange,
   onBuildCatalogDraft,
   letterHub = 'debt',
+  adminPartnerId,
 }: {
   debt: DebtCase | null;
   debtCases: DebtCase[];
@@ -69,7 +71,9 @@ export function RepossessionCenterView({
   onSwitchToForeclosure?: () => void;
   onBuildCatalogDraft: (catalogId: string) => void;
   letterHub?: LetterCatalogHub;
+  adminPartnerId?: string;
 }) {
+  const nav = (href: string) => adminEmbeddedNavHref(adminPartnerId, href);
   const isCredit = letterHub === 'credit';
   const playbook = isCredit ? CREDIT_PLAYBOOK : DEBT_PLAYBOOK;
   const [activeStep, setActiveStep] = useState(isCredit ? 'tradeline' : 'wrongful');
@@ -126,11 +130,11 @@ export function RepossessionCenterView({
       ]}
       headerActions={
         isCredit ? (
-          <Link to="/portal/debt?tab=repossession" className={FINELY_OS_SECONDARY_BTN} title="UCC repo, sale notice, and deficiency letters to the lender">
+          <Link to={nav('/portal/debt?tab=repossession')} className={FINELY_OS_SECONDARY_BTN} title="UCC repo, sale notice, and deficiency letters to the lender">
             Debt repo letters →
           </Link>
         ) : (
-          <Link to="/portal/letters?tab=repossession" className={FINELY_OS_SECONDARY_BTN} title="Bureau / specialty CRA repossession reporting disputes">
+          <Link to={nav('/portal/letters?tab=repossession')} className={FINELY_OS_SECONDARY_BTN} title="Bureau / specialty CRA repossession reporting disputes">
             Credit repo letters →
           </Link>
         )

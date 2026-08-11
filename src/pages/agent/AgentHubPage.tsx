@@ -44,7 +44,12 @@ import { onboardCreditSpecialistCommunication } from '../../lib/creditSpecialist
 import { PayoutCenterPanel } from '../../components/payouts/PayoutCenterPanel';
 import { FinelyOsPageFooter } from '../../features/os/FinelyOsPageFooter';
 import { FinelyOsPaginatedStack } from '../../features/os/FinelyOsPaginatedStack';
-import { FinelyUnifiedHubLayout } from '../../features/unified/FinelyUnifiedHubLayout';
+import {
+  FinelyUnifiedHubLayout,
+  PartnerHubLauncherGrid,
+  PartnerHubWorkModal,
+  usePartnerHubLauncher,
+} from '../../features/unified/FinelyUnifiedHubLayout';
 import { FinelyNowDoThisStrip } from '../../components/tours/FinelyNowDoThisStrip';
 import { FinelyNoticedStrip } from '../../components/tours/FinelyNoticedStrip';
 import { buildAgentNoticedItems } from '../../lib/finelyProactiveSignals';
@@ -54,6 +59,12 @@ import { HUB_PRODUCT_SHOT } from '../../config/productShots';
 import { ROLE_WORK_SPLIT, ROLE_GUIDE_CTAS } from '../../config/rolePartnerPrograms';
 import { FinelyOsAlertBanner } from '../../features/os/FinelyOsAlertBanner';
 import { resolveCreditSpecialistHubAccess } from '../../lib/roleHubAccess';
+import {
+  AGENT_TAB_TO_LAUNCHER,
+  buildAgentHubLauncherTiles,
+  ROLE_HUB_MODAL_ACCENT,
+  type AgentHubLauncherId,
+} from '../../components/partner/roleHubLauncherPresets';
 import {
   FINELY_OS_COMPACT_PAGE,
   FINELY_OS_ENTITY_BODY,
@@ -66,8 +77,6 @@ import {
   finelyOsCatalogCard,
   finelyOsListItem,
 } from '../../features/os/finelyOsLightUi';
-
-type HubTab = 'overview' | 'economics' | 'growth' | 'communications' | 'setup' | 'training' | 'operate' | 'command';
 
 const QUICK_TOOLS = [
   { label: 'Partner dashboard', path: '/portal/dashboard', icon: LayoutDashboard },
@@ -88,25 +97,14 @@ const CS_TOOL_DECK: RoleHubTool[] = [
   { id: 'economics', label: 'Economics', detail: 'Keep % & payouts', path: `${CS.hubPath}?tab=economics`, icon: Calculator, accent: 'emerald' },
 ];
 
-const TABS: { id: HubTab; label: string; icon: React.ComponentType<{ size?: number }> }[] = [
-  { id: 'overview', label: 'Overview', icon: Sparkles },
-  { id: 'economics', label: 'Economics', icon: Calculator },
-  { id: 'growth', label: 'Growth', icon: Target },
-  { id: 'communications', label: 'Communications', icon: MessageSquare },
-  { id: 'setup', label: 'Setup & white-label', icon: Settings2 },
-  { id: 'training', label: 'Training', icon: GraduationCap },
-  { id: 'command', label: 'Command center', icon: Rocket },
-  { id: 'operate', label: 'Operate', icon: LayoutDashboard },
-];
-
 export default function AgentHubPage() {
   const auth = useAuth();
   const { partner } = usePartnerSession();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const meta = getUserProfileMeta(auth.user);
+  const hubLauncher = usePartnerHubLauncher<AgentHubLauncherId>();
 
-  const [tab, setTab] = useState<HubTab>('overview');
   const [model, setModel] = useState<AgentOperatingModel>(() => defaultAgentOperatingModel());
   const [saved, setSaved] = useState(false);
   const [managedClientsCount, setManagedClientsCount] = useState(0);
@@ -114,19 +112,10 @@ export default function AgentHubPage() {
 
   useEffect(() => {
     const t = searchParams.get('tab');
-    if (
-      t === 'overview' ||
-      t === 'economics' ||
-      t === 'growth' ||
-      t === 'communications' ||
-      t === 'setup' ||
-      t === 'training' ||
-      t === 'command' ||
-      t === 'operate'
-    ) {
-      setTab(t);
+    if (t && t in AGENT_TAB_TO_LAUNCHER) {
+      hubLauncher.open(AGENT_TAB_TO_LAUNCHER[t]);
     }
-  }, [searchParams]);
+  }, [searchParams, hubLauncher.open]);
 
   useEffect(() => {
     if (!auth.user?.id) return;
@@ -224,7 +213,7 @@ export default function AgentHubPage() {
   const nowDoItems = useMemo(
     () => [
       {
-        label: managedClientsCount === 0 ? 'Grow your first partner leads' : 'Open today’s partner file',
+        label: managedClientsCount === 0 ? 'Grow your first partner leads' : "Open today's partner file",
         detail:
           managedClientsCount === 0
             ? 'Use Growth to capture leads, then wait for admin assignment onto partner files.'
@@ -241,6 +230,18 @@ export default function AgentHubPage() {
   const workSplit = ROLE_WORK_SPLIT.cs;
   const csGuide = ROLE_GUIDE_CTAS.cs;
 
+  const hubLauncherTiles = useMemo(
+    () =>
+      buildAgentHubLauncherTiles({
+        keepPct: split.agentSharePct,
+        partnerCount: managedClientsCount,
+        openTasks,
+        trainingPhase: split.phaseLabel,
+        hasOperatingModel,
+      }),
+    [split.agentSharePct, split.phaseLabel, managedClientsCount, openTasks, hasOperatingModel],
+  );
+
   if (!gate.allowed) {
     return (
       <PageShell
@@ -250,10 +251,7 @@ export default function AgentHubPage() {
         back={{ to: CS.pricingPath, label: 'Credit Specialist careers' }}
       >
         <div className={`${FINELY_OS_COMPACT_PAGE} max-w-3xl space-y-3`}>
-          <FinelyOsAlertBanner
-            tone={gate.reason === 'unauthenticated' ? 'info' : 'warning'}
-            message={gate.message}
-          />
+          <FinelyOsAlertBanner tone={gate.reason === 'unauthenticated' ? 'info' : 'warning'} message={gate.message} />
           <div className="flex flex-wrap gap-2">
             {gate.cta ? (
               <button type="button" onClick={() => navigate(gate.cta!.path)} className={FINELY_OS_PRIMARY_BTN}>
@@ -281,12 +279,7 @@ export default function AgentHubPage() {
         {saved ? <div className={FINELY_OS_NOTICE_SUCCESS}>Operating model saved.</div> : null}
 
         <CreditSpecialistHubCommandStrip clientCount={managedClientsCount} openTasks={openTasks} />
-
-        <CreditSpecialistLeadCommitmentPanel
-          referralCode={specialistReferralCode}
-          windowStartedAt={commitmentWindowStart}
-        />
-
+        <CreditSpecialistLeadCommitmentPanel referralCode={specialistReferralCode} windowStartedAt={commitmentWindowStart} />
         <FinelyNoticedStrip
           items={buildAgentNoticedItems({
             managedCustomers: managedClientsCount,
@@ -311,158 +304,49 @@ export default function AgentHubPage() {
             { label: 'Open tasks', value: String(openTasks), accent: 'sky' },
             { label: 'Training', value: split.phaseLabel, accent: 'violet' },
           ]}
-          tabs={TABS.map(({ id, label }) => ({ id, label }))}
-          activeTab={tab}
-          onTabChange={(id) => setTab(id as HubTab)}
           primaryAction={{ label: 'Partner dashboard', onClick: () => navigate('/portal/dashboard') }}
           secondaryAction={{ label: 'Partnership line', onClick: () => navigate(CS.messagesDeepLink) }}
+          launcherSlot={<PartnerHubLauncherGrid tiles={hubLauncherTiles} onOpen={hubLauncher.open} />}
         >
-        {tab === 'overview' && (
-          <>
-            <RoleHubDeepenOverview
-              split={workSplit}
-              accent="emerald"
-              nextStep={nowDoItems[0]}
-              shotKey={HUB_PRODUCT_SHOT.cs}
-              guide={{ label: csGuide.label, path: csGuide.path }}
-            />
-            <RoleHubToolDeck tools={CS_TOOL_DECK} title="Specialist tools" subtitle="One tap to the job — partners, letters, growth, training." />
-            <div className={`${finelyOsCatalogCard('emerald')} !p-4 space-y-3`}>
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <div>
-                  <div className={FINELY_OS_ENTITY_SUBLABEL}>Your caseload</div>
-                  <div className={`mt-1 text-lg font-semibold ${FINELY_OS_ENTITY_VALUE}`}>
-                    {managedClientsCount} assigned partner{managedClientsCount === 1 ? '' : 's'}
-                  </div>
+          {null}
+        </FinelyUnifiedHubLayout>
+
+        <PartnerHubWorkModal
+          open={hubLauncher.isOpen('overview')}
+          onClose={hubLauncher.close}
+          title="Specialist overview"
+          subtitle="Caseload, tools, offerings, and operating model snapshot."
+          accent={ROLE_HUB_MODAL_ACCENT.overview}
+        >
+          <RoleHubDeepenOverview
+            split={workSplit}
+            accent="emerald"
+            nextStep={nowDoItems[0]}
+            shotKey={HUB_PRODUCT_SHOT.cs}
+            guide={{ label: csGuide.label, path: csGuide.path }}
+          />
+          <RoleHubToolDeck tools={CS_TOOL_DECK} title="Specialist tools" subtitle="One tap to the job — partners, letters, growth, training." />
+          <div className={`${finelyOsCatalogCard('emerald')} !p-4 space-y-3`}>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <div className={FINELY_OS_ENTITY_SUBLABEL}>Your caseload</div>
+                <div className={`mt-1 text-lg font-semibold ${FINELY_OS_ENTITY_VALUE}`}>
+                  {managedClientsCount} assigned partner{managedClientsCount === 1 ? '' : 's'}
                 </div>
-                <button type="button" onClick={() => setTab('operate')} className={FINELY_OS_SECONDARY_BTN}>
-                  <Users size={14} /> Open caseload
-                </button>
               </div>
-              {caseload.length === 0 ? (
-                <p className={`text-sm ${FINELY_OS_ENTITY_EMPTY}`}>
-                  No partners assigned yet. Admins assign you as Credit Specialist, Coach, or Business partner on a partner file.
-                </p>
-              ) : (
-                <ul className="space-y-2">
-                  {caseload.slice(0, 6).map((c) => (
-                    <li key={c.id}>
-                      <button
-                        type="button"
-                        onClick={() => navigate(`/admin/partners/${c.id}`)}
-                        className={`${finelyOsListItem(false, 'emerald')} w-full text-left`}
-                      >
-                        <div className={`font-semibold ${FINELY_OS_ENTITY_VALUE}`}>{c.profile.fullName || c.profile.email}</div>
-                        <div className={`text-xs ${FINELY_OS_ENTITY_BODY}`}>{c.profile.email || c.id}</div>
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              )}
-              {caseload.length > 6 ? (
-                <p className={`text-xs ${FINELY_OS_ENTITY_BODY}`}>+{caseload.length - 6} more on Operate tab</p>
-              ) : null}
-            </div>
-            <CreditSpecialistOfferingsPanel compact />
-            <RoleWorkflowPanel roleId="agent" compact completedSteps={agentWorkflowProgress} />
-            <AgentSplitCalculator
-              model={model}
-              onChangeModel={patchModel}
-              onChangeLever={setLever}
-              onChangeSampleFee={(cents: number) => patchModel({ sampleClientFeeCents: cents })}
-            />
-            <button type="button" onClick={() => void persist()} className={FINELY_OS_PRIMARY_BTN}>
-              Save operating model
-            </button>
-          </>
-        )}
-
-        {tab === 'economics' && (
-          <div className="space-y-6">
-            <AgentSplitCalculator
-              model={model}
-              onChangeModel={patchModel}
-              onChangeLever={setLever}
-              onChangeSampleFee={(cents: number) => patchModel({ sampleClientFeeCents: cents })}
-            />
-            <DenefitsContractCalculator defaultSpecialistSharePct={12} />
-            <DenefitsEnrollmentPanel audience="specialist" compact />
-            {auth.user?.id ? <PayoutCenterPanel role="agent" ownerId={auth.user.id} ownerEmail={auth.user.email ?? undefined} /> : null}
-            <button type="button" onClick={() => void persist()} className={FINELY_OS_PRIMARY_BTN}>
-              Save operating model
-            </button>
-          </div>
-        )}
-
-        {tab === 'growth' && <SpecialistLeadGrowthPanel model={model} />}
-
-        {tab === 'communications' && partner?.id ? (
-          <CreditSpecialistCommsPanel partnerId={partner.id} specialistName={getUserDisplayName(auth.user)} tierName={tier?.name} />
-        ) : tab === 'communications' ? (
-          <div className={FINELY_OS_ENTITY_EMPTY}>Complete onboarding to open your partnership line with Finely.</div>
-        ) : null}
-
-        {tab === 'setup' && (
-          <>
-            <AgentWhiteLabelSetup capacityTierId={model.capacityTierId} />
-            <div className={`space-y-4 ${finelyOsCatalogCard('violet')} !p-6`} data-fc-accent="violet">
-              <div className={`text-sm font-semibold ${FINELY_OS_ENTITY_VALUE}`}>Upgrade path</div>
-              <div className="grid sm:grid-cols-2 gap-3">
-                <FinelyOsPaginatedStack
-                  items={[...AGENCY_TIER_IDS]}
-                  pageSize={6}
-                  itemSpacingClassName="grid sm:grid-cols-2 gap-3"
-                  renderItem={(id) => {
-                    const t = getAgencyTierById(id);
-                    if (!t) return null;
-                    const active = model.capacityTierId === id;
-                    return (
-                      <button
-                        key={id}
-                        type="button"
-                        onClick={() =>
-                          patchModel({
-                            capacityTierId: id,
-                            trainingPhase: t.recommendedTrainingPhase ?? model.trainingPhase,
-                          })
-                        }
-                        className={`text-left ${finelyOsListItem(active, 'amber')}`}
-                      >
-                        <div className={`${FINELY_OS_ENTITY_VALUE} text-sm`}>{t.name}</div>
-                        <div className={`${FINELY_OS_ENTITY_BODY} text-xs mt-1 capitalize`}>{(t.whiteLabelLevel ?? '').replace(/_/g, ' ')}</div>
-                      </button>
-                    );
-                  }}
-                />
-              </div>
-              <button type="button" onClick={() => void persist()} className={FINELY_OS_PRIMARY_BTN}>
-                Save tier selection
+              <button type="button" onClick={() => hubLauncher.open('operate')} className={FINELY_OS_SECONDARY_BTN}>
+                <Users size={14} /> Open caseload
               </button>
             </div>
-          </>
-        )}
-
-        {tab === 'training' && <UnifiedTrainingPanel specialties={model.specialties} audience="credit_specialist" />}
-
-        {tab === 'command' && <AgentCommandCenter model={model} />}
-
-        {tab === 'operate' && (
-          <div className="space-y-3">
-            <div className={`${finelyOsCatalogCard('emerald')} !p-4 space-y-3`}>
-              <div className={FINELY_OS_ENTITY_SUBLABEL}>Assigned partners</div>
-              <p className={`text-sm ${FINELY_OS_ENTITY_BODY}`}>
-                Partners where you are Credit Specialist, Coach, or Business partner on the care team.
+            {caseload.length === 0 ? (
+              <p className={`text-sm ${FINELY_OS_ENTITY_EMPTY}`}>
+                No partners assigned yet. Admins assign you as Credit Specialist, Coach, or Business partner on a partner file.
               </p>
-              {caseload.length === 0 ? (
-                <p className={FINELY_OS_ENTITY_EMPTY}>No assigned partners yet.</p>
-              ) : (
-                <FinelyOsPaginatedStack
-                  items={caseload}
-                  pageSize={12}
-                  emptyMessage="No assigned partners."
-                  renderItem={(c) => (
+            ) : (
+              <ul className="space-y-2">
+                {caseload.slice(0, 6).map((c) => (
+                  <li key={c.id}>
                     <button
-                      key={c.id}
                       type="button"
                       onClick={() => navigate(`/admin/partners/${c.id}`)}
                       className={`${finelyOsListItem(false, 'emerald')} w-full text-left`}
@@ -470,27 +354,165 @@ export default function AgentHubPage() {
                       <div className={`font-semibold ${FINELY_OS_ENTITY_VALUE}`}>{c.profile.fullName || c.profile.email}</div>
                       <div className={`text-xs ${FINELY_OS_ENTITY_BODY}`}>{c.profile.email || c.id}</div>
                     </button>
-                  )}
-                />
-              )}
-            </div>
-            <div className={`space-y-3 ${finelyOsCatalogCard('emerald')} !p-4`} data-fc-accent="emerald">
-              <p className={FINELY_OS_ENTITY_BODY}>
-                Day-to-day tools for running partner files — disputes, comms, documents, and tasks. Your revenue share improves as you
-                move levers from Finely → Shared → You.
-              </p>
-              <div className="flex flex-wrap gap-3">
-                {QUICK_TOOLS.map(({ label, path, icon: Icon }) => (
-                  <button key={path} type="button" onClick={() => navigate(path)} className={FINELY_OS_SECONDARY_BTN}>
-                    <Icon size={14} /> {label}
-                  </button>
+                  </li>
                 ))}
-              </div>
+              </ul>
+            )}
+            {caseload.length > 6 ? (
+              <p className={`text-xs ${FINELY_OS_ENTITY_BODY}`}>+{caseload.length - 6} more on Operate</p>
+            ) : null}
+          </div>
+          <CreditSpecialistOfferingsPanel compact />
+          <RoleWorkflowPanel roleId="agent" compact completedSteps={agentWorkflowProgress} />
+          <AgentSplitCalculator
+            model={model}
+            onChangeModel={patchModel}
+            onChangeLever={setLever}
+            onChangeSampleFee={(cents: number) => patchModel({ sampleClientFeeCents: cents })}
+          />
+          <button type="button" onClick={() => void persist()} className={FINELY_OS_PRIMARY_BTN}>
+            Save operating model
+          </button>
+        </PartnerHubWorkModal>
+
+        <PartnerHubWorkModal
+          open={hubLauncher.isOpen('economics')}
+          onClose={hubLauncher.close}
+          title="Economics & payouts"
+          subtitle="Revenue split, Denefit share, and payout center."
+          accent={ROLE_HUB_MODAL_ACCENT.economics}
+        >
+          <AgentSplitCalculator
+            model={model}
+            onChangeModel={patchModel}
+            onChangeLever={setLever}
+            onChangeSampleFee={(cents: number) => patchModel({ sampleClientFeeCents: cents })}
+          />
+          <DenefitsContractCalculator defaultSpecialistSharePct={12} />
+          <DenefitsEnrollmentPanel audience="specialist" compact />
+          {auth.user?.id ? <PayoutCenterPanel role="agent" ownerId={auth.user.id} ownerEmail={auth.user.email ?? undefined} /> : null}
+          <button type="button" onClick={() => void persist()} className={FINELY_OS_PRIMARY_BTN}>
+            Save operating model
+          </button>
+        </PartnerHubWorkModal>
+
+        <PartnerHubWorkModal
+          open={hubLauncher.isOpen('growth')}
+          onClose={hubLauncher.close}
+          title="Lead growth"
+          subtitle="Capture leads and grow your assigned caseload."
+          accent={ROLE_HUB_MODAL_ACCENT.growth}
+        >
+          <SpecialistLeadGrowthPanel model={model} />
+        </PartnerHubWorkModal>
+
+        <PartnerHubWorkModal
+          open={hubLauncher.isOpen('communications')}
+          onClose={hubLauncher.close}
+          title="Partnership line"
+          subtitle="Message Finely ops and partner comms."
+          accent={ROLE_HUB_MODAL_ACCENT.communications}
+        >
+          {partner?.id ? (
+            <CreditSpecialistCommsPanel partnerId={partner.id} specialistName={getUserDisplayName(auth.user)} tierName={tier?.name} />
+          ) : (
+            <div className={FINELY_OS_ENTITY_EMPTY}>Complete onboarding to open your partnership line with Finely.</div>
+          )}
+        </PartnerHubWorkModal>
+
+        <PartnerHubWorkModal
+          open={hubLauncher.isOpen('setup')}
+          onClose={hubLauncher.close}
+          title="Setup & training"
+          subtitle="White-label, tier upgrades, and academy progress."
+          accent={ROLE_HUB_MODAL_ACCENT.setup}
+        >
+          <AgentWhiteLabelSetup capacityTierId={model.capacityTierId} />
+          <div className={`space-y-4 ${finelyOsCatalogCard('violet')} !p-6`} data-fc-accent="violet">
+            <div className={`text-sm font-semibold ${FINELY_OS_ENTITY_VALUE}`}>Upgrade path</div>
+            <div className="grid sm:grid-cols-2 gap-3">
+              <FinelyOsPaginatedStack
+                items={[...AGENCY_TIER_IDS]}
+                pageSize={6}
+                itemSpacingClassName="grid sm:grid-cols-2 gap-3"
+                renderItem={(id) => {
+                  const t = getAgencyTierById(id);
+                  if (!t) return null;
+                  const active = model.capacityTierId === id;
+                  return (
+                    <button
+                      key={id}
+                      type="button"
+                      onClick={() =>
+                        patchModel({
+                          capacityTierId: id,
+                          trainingPhase: t.recommendedTrainingPhase ?? model.trainingPhase,
+                        })
+                      }
+                      className={`text-left ${finelyOsListItem(active, 'amber')}`}
+                    >
+                      <div className={`${FINELY_OS_ENTITY_VALUE} text-sm`}>{t.name}</div>
+                      <div className={`${FINELY_OS_ENTITY_BODY} text-xs mt-1 capitalize`}>{(t.whiteLabelLevel ?? '').replace(/_/g, ' ')}</div>
+                    </button>
+                  );
+                }}
+              />
+            </div>
+            <button type="button" onClick={() => void persist()} className={FINELY_OS_PRIMARY_BTN}>
+              Save tier selection
+            </button>
+          </div>
+          <UnifiedTrainingPanel specialties={model.specialties} audience="credit_specialist" />
+        </PartnerHubWorkModal>
+
+        <PartnerHubWorkModal
+          open={hubLauncher.isOpen('operate')}
+          onClose={hubLauncher.close}
+          title="Operate"
+          subtitle="Caseload, command center, and day-to-day partner file tools."
+          accent={ROLE_HUB_MODAL_ACCENT.operate}
+        >
+          <div className={`${finelyOsCatalogCard('emerald')} !p-4 space-y-3`}>
+            <div className={FINELY_OS_ENTITY_SUBLABEL}>Assigned partners</div>
+            <p className={`text-sm ${FINELY_OS_ENTITY_BODY}`}>
+              Partners where you are Credit Specialist, Coach, or Business partner on the care team.
+            </p>
+            {caseload.length === 0 ? (
+              <p className={FINELY_OS_ENTITY_EMPTY}>No assigned partners yet.</p>
+            ) : (
+              <FinelyOsPaginatedStack
+                items={caseload}
+                pageSize={12}
+                emptyMessage="No assigned partners."
+                renderItem={(c) => (
+                  <button
+                    key={c.id}
+                    type="button"
+                    onClick={() => navigate(`/admin/partners/${c.id}`)}
+                    className={`${finelyOsListItem(false, 'emerald')} w-full text-left`}
+                  >
+                    <div className={`font-semibold ${FINELY_OS_ENTITY_VALUE}`}>{c.profile.fullName || c.profile.email}</div>
+                    <div className={`text-xs ${FINELY_OS_ENTITY_BODY}`}>{c.profile.email || c.id}</div>
+                  </button>
+                )}
+              />
+            )}
+          </div>
+          <AgentCommandCenter model={model} />
+          <div className={`space-y-3 ${finelyOsCatalogCard('emerald')} !p-4`} data-fc-accent="emerald">
+            <p className={FINELY_OS_ENTITY_BODY}>
+              Day-to-day tools for running partner files — disputes, comms, documents, and tasks. Your revenue share improves as you
+              move levers from Finely → Shared → You.
+            </p>
+            <div className="flex flex-wrap gap-3">
+              {QUICK_TOOLS.map(({ label, path, icon: Icon }) => (
+                <button key={path} type="button" onClick={() => navigate(path)} className={FINELY_OS_SECONDARY_BTN}>
+                  <Icon size={14} /> {label}
+                </button>
+              ))}
             </div>
           </div>
-        )}
-
-        </FinelyUnifiedHubLayout>
+        </PartnerHubWorkModal>
 
         <FinelyOsPageFooter />
       </div>

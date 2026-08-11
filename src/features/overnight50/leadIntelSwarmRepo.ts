@@ -2,7 +2,7 @@ import { loadJson, saveJson } from '../../data/localJsonStore';
 import { newId } from '../../utils/ids';
 import { isSupabaseConfigured, supabase } from '../../lib/supabaseClient';
 import { buildQueryPool } from './queryExpander';
-import { LEAD_INTEL_SOURCE_ADAPTERS } from './sourceAdapters';
+import { LEAD_INTEL_SOURCE_ADAPTERS, getLeadIntelSourceRuntimeMode, getPriorityLiveSourceAdapters } from './sourceAdapters';
 import type { LeadIntelJob, LeadIntelLiveFeedEvent, OvernightAttribution, OvernightCity, SwarmSession, SyntheticStaffAgent } from './types';
 
 const KEY = 'finely.overnight50.v1';
@@ -134,11 +134,17 @@ export async function enqueueLeadIntelSwarm(args?: {
     activeLabel: 'Night Owl Intel shift — multi-hour discovery',
   };
   saveStore(s);
+  const liveSources = sourceIds?.filter((id) => getLeadIntelSourceRuntimeMode(id) === 'live').length ?? 0;
+  const simSources = (sourceIds?.length ?? 0) - liveSources;
+  const priorityLabels = getPriorityLiveSourceAdapters()
+    .slice(0, 3)
+    .map((a) => a.label)
+    .join(', ');
   addLeadIntelFeed({
     city: 'System',
     sourceId: 'serper_web',
     agent: 'Night Owl Intel',
-    message: `Deep swarm queued ${jobs.length} jobs across ${sourceIds?.length ?? 7} source types. Estimated runtime: ${s.swarmSession.estimatedHours}+ hours at compliant cadence.`,
+    message: `Deep swarm queued ${jobs.length} jobs — ${liveSources} live-path · ${simSources} simulation-only sources. Marketing Desk Find uses live priority: ${priorityLabels || 'Serper web'}. Est. runtime: ${s.swarmSession.estimatedHours}+ hours.`,
     severity: 'success',
   });
   if (args?.remote && isSupabaseConfigured) {
@@ -234,6 +240,10 @@ function advanceFastJob(job: LeadIntelJob): LeadIntelJob {
 export function getSwarmStats() {
   const jobs = listLeadIntelJobs(8000);
   const session = getSwarmSession();
+  const liveSourceCount = LEAD_INTEL_SOURCE_ADAPTERS.filter(
+    (a) => getLeadIntelSourceRuntimeMode(a.id) === 'live',
+  ).length;
+  const simulationSourceCount = LEAD_INTEL_SOURCE_ADAPTERS.length - liveSourceCount;
   return {
     totalJobs: jobs.length,
     queued: jobs.filter((j) => j.status === 'queued').length,
@@ -244,10 +254,18 @@ export function getSwarmStats() {
     hot: jobs.reduce((n, j) => n + j.hot, 0),
     imported: jobs.reduce((n, j) => n + j.imported, 0),
     sourceCount: LEAD_INTEL_SOURCE_ADAPTERS.length,
+    liveSourceCount,
+    simulationSourceCount,
+    priorityMarketingSourceIds: getPriorityLiveSourceAdapters().map((a) => a.id),
     estimatedHours: session?.estimatedHours ?? 0,
     sessionMode: session?.mode ?? 'idle',
     activeLabel: session?.activeLabel ?? '',
   };
+}
+
+/** Live overnight50 adapters wired to Marketing Desk Find staging (Serper + internal). */
+export function getMarketingStagingPrioritySourceIds() {
+  return getPriorityLiveSourceAdapters().map((a) => a.id);
 }
 
 export function listOvernightAttributions(limit = 300): OvernightAttribution[] {

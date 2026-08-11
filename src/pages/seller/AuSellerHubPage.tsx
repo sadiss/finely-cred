@@ -34,7 +34,12 @@ import type { AuSeller } from '../../domain/auSeller';
 import { PayoutCenterPanel } from '../../components/payouts/PayoutCenterPanel';
 import { FinelyOsPageFooter } from '../../features/os/FinelyOsPageFooter';
 import { FinelyOsPaginatedStack } from '../../features/os/FinelyOsPaginatedStack';
-import { FinelyUnifiedHubLayout } from '../../features/unified/FinelyUnifiedHubLayout';
+import {
+  FinelyUnifiedHubLayout,
+  PartnerHubLauncherGrid,
+  PartnerHubWorkModal,
+  usePartnerHubLauncher,
+} from '../../features/unified/FinelyUnifiedHubLayout';
 import { FinelyNowDoThisStrip } from '../../components/tours/FinelyNowDoThisStrip';
 import { FinelyNoticedStrip } from '../../components/tours/FinelyNoticedStrip';
 import { RoleHubToolDeck, type RoleHubTool } from '../../components/hubs/RoleHubToolDeck';
@@ -43,6 +48,12 @@ import { HUB_PRODUCT_SHOT } from '../../config/productShots';
 import { ROLE_WORK_SPLIT, ROLE_GUIDE_CTAS } from '../../config/rolePartnerPrograms';
 import { FinelyOsAlertBanner } from '../../features/os/FinelyOsAlertBanner';
 import { resolveAuSellerHubAccess } from '../../lib/roleHubAccess';
+import {
+  AU_SELLER_TAB_TO_LAUNCHER,
+  buildAuSellerHubLauncherTiles,
+  ROLE_HUB_MODAL_ACCENT,
+  type AuSellerHubLauncherId,
+} from '../../components/partner/roleHubLauncherPresets';
 import {
   FINELY_OS_COMPACT_PAGE,
   FINELY_OS_ENTITY_BODY,
@@ -62,22 +73,12 @@ const AU_TOOL_DECK: RoleHubTool[] = [
   { id: 'line', label: 'AU seller line', detail: 'Message Finely', path: AU_SELLER.messagesDeepLink, icon: MessageSquare, accent: 'fuchsia' },
 ];
 
-type HubTab = 'overview' | 'marketplace' | 'economics' | 'training' | 'operate';
-
-const TABS: { id: HubTab; label: string; icon: React.ComponentType<{ size?: number }> }[] = [
-  { id: 'overview', label: 'Overview', icon: Sparkles },
-  { id: 'marketplace', label: 'Marketplace', icon: ShoppingBag },
-  { id: 'economics', label: 'Economics', icon: Percent },
-  { id: 'training', label: 'Training', icon: GraduationCap },
-  { id: 'operate', label: 'Operate', icon: LayoutDashboard },
-];
-
 export default function AuSellerHubPage() {
   const auth = useAuth();
   const { partner } = usePartnerSession();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const [tab, setTab] = useState<HubTab>('overview');
+  const hubLauncher = usePartnerHubLauncher<AuSellerHubLauncherId>();
   const [seller, setSeller] = useState<AuSeller | null>(null);
   const [sellerLoading, setSellerLoading] = useState(true);
 
@@ -97,10 +98,10 @@ export default function AuSellerHubPage() {
 
   useEffect(() => {
     const t = searchParams.get('tab');
-    if (t === 'marketplace' || t === 'economics' || t === 'training' || t === 'operate' || t === 'overview') {
-      setTab(t);
+    if (t && t in AU_SELLER_TAB_TO_LAUNCHER) {
+      hubLauncher.open(AU_SELLER_TAB_TO_LAUNCHER[t]);
     }
-  }, [searchParams]);
+  }, [searchParams, hubLauncher.open]);
 
   const listingsCount = useMemo(
     () => seller?.listings?.filter((l) => l.status !== 'draft').length ?? 0,
@@ -125,6 +126,16 @@ export default function AuSellerHubPage() {
         sellerVerified: seller?.verification?.status === 'verified',
       }),
     [partner, seller, listingsCount],
+  );
+
+  const hubLauncherTiles = useMemo(
+    () =>
+      buildAuSellerHubLauncherTiles({
+        listingsCount,
+        verified: seller?.verification?.status === 'verified',
+        hasSellerProfile: Boolean(seller),
+      }),
+    [listingsCount, seller],
   );
 
   const nowDoItems = useMemo(
@@ -270,49 +281,60 @@ export default function AuSellerHubPage() {
             { label: 'Profile', value: seller ? 'Active' : 'Setup', accent: 'amber' },
             { label: 'Marketplace', value: 'Live', accent: 'sky' },
           ]}
-          tabs={TABS.map(({ id, label }) => ({ id, label }))}
-          activeTab={tab}
-          onTabChange={(id) => setTab(id as HubTab)}
           primaryAction={{ label: 'Manage listings', onClick: () => navigate(AU_SELLER.listingsPath) }}
           secondaryAction={{ label: 'AU seller line', onClick: () => navigate(AU_SELLER.messagesDeepLink) }}
+          launcherSlot={<PartnerHubLauncherGrid tiles={hubLauncherTiles} onOpen={hubLauncher.open} />}
         >
-        {tab === 'overview' && (
-          <>
-            <AuSellerActivationPanel variant="hub" activated={hasActivation} />
-            <AuSellerCommandStrip seller={seller} loading={sellerLoading} />
-            <RoleHubDeepenOverview
-              split={workSplit}
-              accent="violet"
-              nextStep={nowDoItems[0]}
-              shotKey={HUB_PRODUCT_SHOT.au_seller}
-              guide={{ label: auGuide.label, path: auGuide.path }}
-            />
-            <RoleHubToolDeck tools={AU_TOOL_DECK} title="AU seller tools" subtitle="List → verify → fulfill → get paid." />
-            <RoleWorkflowPanel roleId="au_seller" compact completedSteps={auSellerWorkflowProgress} />
-            <FinelyOsPaginatedStack
-              items={[...AU_SELLER_OFFERINGS]}
-              pageSize={4}
-              itemSpacingClassName="grid md:grid-cols-2 gap-3"
-              renderItem={(item, idx) => (
-                <div
-                  key={item.title}
-                  className={`space-y-2 ${finelyOsCatalogCard((['violet', 'emerald', 'sky', 'amber'] as const)[idx % 4])} !p-4`}
-                  data-fc-accent={(['violet', 'emerald', 'sky', 'amber'] as const)[idx % 4]}
-                >
-                  <div className={`${FINELY_OS_ENTITY_VALUE} font-semibold`}>{item.title}</div>
-                  <p className={FINELY_OS_ENTITY_BODY}>{item.description}</p>
-                  <ul className={`text-xs ${FINELY_OS_ENTITY_BODY} space-y-1`}>
-                    {item.included.map((line) => (
-                      <li key={line}>• {line}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            />
-          </>
-        )}
+          {null}
+        </FinelyUnifiedHubLayout>
 
-        {tab === 'marketplace' && (
+        <PartnerHubWorkModal
+          open={hubLauncher.isOpen('overview')}
+          onClose={hubLauncher.close}
+          title="AU seller overview"
+          subtitle="Activation, tools, offerings, and seller workflow."
+          accent={ROLE_HUB_MODAL_ACCENT.overview}
+        >
+          <AuSellerActivationPanel variant="hub" activated={hasActivation} />
+          <AuSellerCommandStrip seller={seller} loading={sellerLoading} />
+          <RoleHubDeepenOverview
+            split={workSplit}
+            accent="violet"
+            nextStep={nowDoItems[0]}
+            shotKey={HUB_PRODUCT_SHOT.au_seller}
+            guide={{ label: auGuide.label, path: auGuide.path }}
+          />
+          <RoleHubToolDeck tools={AU_TOOL_DECK} title="AU seller tools" subtitle="List → verify → fulfill → get paid." />
+          <RoleWorkflowPanel roleId="au_seller" compact completedSteps={auSellerWorkflowProgress} />
+          <FinelyOsPaginatedStack
+            items={[...AU_SELLER_OFFERINGS]}
+            pageSize={4}
+            itemSpacingClassName="grid md:grid-cols-2 gap-3"
+            renderItem={(item, idx) => (
+              <div
+                key={item.title}
+                className={`space-y-2 ${finelyOsCatalogCard((['violet', 'emerald', 'sky', 'amber'] as const)[idx % 4])} !p-4`}
+                data-fc-accent={(['violet', 'emerald', 'sky', 'amber'] as const)[idx % 4]}
+              >
+                <div className={`${FINELY_OS_ENTITY_VALUE} font-semibold`}>{item.title}</div>
+                <p className={FINELY_OS_ENTITY_BODY}>{item.description}</p>
+                <ul className={`text-xs ${FINELY_OS_ENTITY_BODY} space-y-1`}>
+                  {item.included.map((line) => (
+                    <li key={line}>• {line}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          />
+        </PartnerHubWorkModal>
+
+        <PartnerHubWorkModal
+          open={hubLauncher.isOpen('marketplace')}
+          onClose={hubLauncher.close}
+          title="Marketplace"
+          subtitle="Share your shelf and manage partner-facing inventory."
+          accent={ROLE_HUB_MODAL_ACCENT.marketplace}
+        >
           <div className={`space-y-3 ${finelyOsCatalogCard('violet')} !p-4`} data-fc-accent="violet">
             <p className={FINELY_OS_ENTITY_BODY}>Share your marketplace presence and manage partner-facing inventory.</p>
             <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony`}>
@@ -331,9 +353,15 @@ export default function AuSellerHubPage() {
               ))}
             </div>
           </div>
-        )}
+        </PartnerHubWorkModal>
 
-        {tab === 'economics' && (
+        <PartnerHubWorkModal
+          open={hubLauncher.isOpen('economics')}
+          onClose={hubLauncher.close}
+          title="Economics & payouts"
+          subtitle="Placement fees, Denefit share, and payout center."
+          accent={ROLE_HUB_MODAL_ACCENT.economics}
+        >
           <div className="space-y-4">
             <div className={`${finelyOsCatalogCard('emerald')} !p-4 ${FINELY_OS_ENTITY_BODY}`}>
               Many AU sellers also refer partners into Denefit in-house contracts for restoration packages — model that recurring stream alongside AU placement fees.
@@ -342,34 +370,46 @@ export default function AuSellerHubPage() {
             <DenefitsContractCalculator audience="affiliate" compact />
             <DenefitsEnrollmentPanel audience="affiliate" compact />
           </div>
-        )}
+        </PartnerHubWorkModal>
 
-        {tab === 'training' && <UnifiedTrainingPanel audience="affiliate" specialties={['tradelines']} />}
+        <PartnerHubWorkModal
+          open={hubLauncher.isOpen('training')}
+          onClose={hubLauncher.close}
+          title="AU seller training"
+          subtitle="Tradeline seller academy and fulfillment playbook."
+          accent={ROLE_HUB_MODAL_ACCENT.training}
+        >
+          <UnifiedTrainingPanel audience="affiliate" specialties={['tradelines']} />
+        </PartnerHubWorkModal>
 
-        {tab === 'operate' && (
+        <PartnerHubWorkModal
+          open={hubLauncher.isOpen('operate')}
+          onClose={hubLauncher.close}
+          title="Operate"
+          subtitle="Listings, contracts, automation, and day-to-day seller ops."
+          accent={ROLE_HUB_MODAL_ACCENT.operate}
+        >
           <div className="space-y-6">
             <AuSellerRoleAutomationPanel partnerId={partner?.id} listingsCount={listingsCount} />
             <div className={`space-y-3 ${finelyOsCatalogCard('violet')} !p-4`} data-fc-accent="violet">
-            <p className={FINELY_OS_ENTITY_BODY}>Day-to-day AU seller operations.</p>
-            <div className="flex flex-wrap gap-3">
-              {[
-                { label: 'Listings', path: AU_SELLER.listingsPath, icon: CreditCard },
-                { label: 'Contracts', path: AU_SELLER.contractsPath, icon: Link2 },
-                { label: 'Payouts', path: AU_SELLER.payoutsPath, icon: Wallet },
-                { label: 'Education', path: '/portal/education', icon: Megaphone },
-                { label: 'Messages', path: AU_SELLER.messagesDeepLink, icon: MessageSquare },
-              ].map(({ label, path, icon: Icon }) => (
-                <button key={path} type="button" onClick={() => navigate(path)} className={FINELY_OS_SECONDARY_BTN}>
-                  <Icon size={14} /> {label}
-                </button>
-              ))}
-            </div>
-            {partner ? <div className={`text-xs ${FINELY_OS_ENTITY_SUBLABEL}`}>Partner ID: {partner.id}</div> : null}
+              <p className={FINELY_OS_ENTITY_BODY}>Day-to-day AU seller operations.</p>
+              <div className="flex flex-wrap gap-3">
+                {[
+                  { label: 'Listings', path: AU_SELLER.listingsPath, icon: CreditCard },
+                  { label: 'Contracts', path: AU_SELLER.contractsPath, icon: Link2 },
+                  { label: 'Payouts', path: AU_SELLER.payoutsPath, icon: Wallet },
+                  { label: 'Education', path: '/portal/education', icon: Megaphone },
+                  { label: 'Messages', path: AU_SELLER.messagesDeepLink, icon: MessageSquare },
+                ].map(({ label, path, icon: Icon }) => (
+                  <button key={path} type="button" onClick={() => navigate(path)} className={FINELY_OS_SECONDARY_BTN}>
+                    <Icon size={14} /> {label}
+                  </button>
+                ))}
+              </div>
+              {partner ? <div className={`text-xs ${FINELY_OS_ENTITY_SUBLABEL}`}>Partner ID: {partner.id}</div> : null}
             </div>
           </div>
-        )}
-
-        </FinelyUnifiedHubLayout>
+        </PartnerHubWorkModal>
 
         <FinelyOsPageFooter />
       </div>

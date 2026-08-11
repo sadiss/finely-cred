@@ -1,6 +1,7 @@
 import React from 'react';
 import { ArrowRight, CheckCircle2, Shield, Sparkles } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { finelyCtaNavigate } from '../lib/finelyCtaIntent';
 import { PageShell } from '../components/layout/PageShell';
 import { MarketingStaffChatStrip } from '../components/marketing/MarketingStaffChatStrip';
 import { usePublicSeoMeta } from '../hooks/usePublicSeoMeta';
@@ -75,7 +76,7 @@ export default function FinelyCredServicesPage() {
               consent gates, and underwriting packet export that lenders can actually use.
             </p>
             <div className="flex flex-wrap justify-center gap-3 mt-6">
-              <button type="button" className={FINELY_OS_PRIMARY_BTN} onClick={() => navigate('/onboarding')}>
+              <button type="button" className={FINELY_OS_PRIMARY_BTN} onClick={() => finelyCtaNavigate(navigate, 'personal_intake')}>
                 Start partner portal
                 <ArrowRight size={16} className="inline ml-1" />
               </button>

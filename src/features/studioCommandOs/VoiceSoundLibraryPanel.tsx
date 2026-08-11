@@ -76,12 +76,15 @@ export function VoiceSoundLibraryPanel({
       return;
     }
     setPlayingId(voiceId);
-    playVoicePreview({
+    void playVoicePreview({
+      voiceId,
       text: preview.text,
       pitch: preview.pitch,
       rate: preview.rate,
       gender: preview.gender,
       onEnd: () => setPlayingId((id) => (id === voiceId ? null : id)),
+    }).then((mode) => {
+      if (mode === 'none') setPreviewErr('Voice preview unavailable in this browser.');
     });
   };
 

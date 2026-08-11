@@ -2,6 +2,7 @@
 import React from 'react';
 import { ArrowRight, Bot, Layers, ShieldCheck, Sparkles } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { finelyCtaNavigate } from '../../lib/finelyCtaIntent';
 import { Button, Reveal, FlashyIcon } from '../ui';
 import { finelyOsCatalogCard, finelyOsLandingContrastSection, type FinelyOsPublicAccent } from '../../features/os/finelyOsLightUi';
 
@@ -52,7 +53,7 @@ export function LandingFundabilityTrustSection() {
               <Button variant="gold" size="lg" onClick={() => navigate('/fundability-readiness')}>
                 Open fundability hub <ArrowRight size={16} />
               </Button>
-              <Button variant="platinum" size="lg" onClick={() => navigate('/onboarding')}>
+              <Button variant="platinum" size="lg" onClick={() => finelyCtaNavigate(navigate, 'personal_intake')}>
                 Get started
               </Button>
             </div>

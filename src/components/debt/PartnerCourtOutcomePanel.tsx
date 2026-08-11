@@ -18,6 +18,7 @@ import {
 } from '../../lib/postCourtPaymentPlanPath';
 import { FinelyOsAlertBanner } from '../../features/os/FinelyOsAlertBanner';
 import { FinelyOsPaginatedStack } from '../../features/os/FinelyOsPaginatedStack';
+import { adminEmbeddedNavHref } from '../../lib/adminPartnerRoutes';
 import {
   FINELY_OS_ENTITY_BODY,
   FINELY_OS_ENTITY_SUBLABEL,
@@ -55,11 +56,14 @@ export function PartnerCourtOutcomePanel({
   outcome,
   onConfirmPayment,
   onMarkOrderOnFile,
+  adminPartnerId,
 }: {
   outcome: PartnerCourtOutcome;
   onConfirmPayment?: (dueIso: string) => void;
   onMarkOrderOnFile?: () => void;
+  adminPartnerId?: string;
 }) {
+  const nav = (href: string) => adminEmbeddedNavHref(adminPartnerId, href);
   const [trigger, setTrigger] = useState<PostCourtEscalationTrigger | 'all'>('all');
 
   const confirmedCount = outcome.confirmedPaymentIsos?.length ?? 0;
@@ -98,7 +102,7 @@ export function PartnerCourtOutcomePanel({
             legal advice
           </p>
         </div>
-        <Link to="/portal/escalations" className={FINELY_OS_SECONDARY_BTN}>
+        <Link to={nav('/portal/escalations')} className={FINELY_OS_SECONDARY_BTN}>
           <ShieldAlert size={13} /> Escalate this plan
         </Link>
       </div>
@@ -133,7 +137,7 @@ export function PartnerCourtOutcomePanel({
         <p className={`mt-1 text-xs ${FINELY_OS_ENTITY_BODY}`}>{currentStep.nextAction}</p>
         <div className="mt-2 flex flex-wrap gap-2">
           {currentStep.href ? (
-            <Link to={currentStep.href} className={`${FINELY_OS_PRIMARY_BTN} !py-1.5 !px-3 !text-[11px]`}>
+            <Link to={nav(currentStep.href)} className={`${FINELY_OS_PRIMARY_BTN} !py-1.5 !px-3 !text-[11px]`}>
               {currentStep.hrefLabel || 'Open'}
             </Link>
           ) : null}
@@ -193,7 +197,7 @@ export function PartnerCourtOutcomePanel({
                   <div className="mt-1.5 flex flex-wrap items-center gap-2">
                     <span className="text-[10px] uppercase tracking-widest text-white/40">{s.timing}</span>
                     {s.href ? (
-                      <Link to={s.href} className={`${FINELY_OS_SECONDARY_BTN} !text-[11px]`}>
+                      <Link to={nav(s.href)} className={`${FINELY_OS_SECONDARY_BTN} !text-[11px]`}>
                         {s.hrefLabel || 'Open'}
                       </Link>
                     ) : null}
@@ -288,7 +292,7 @@ export function PartnerCourtOutcomePanel({
                   </div>
                   <div className="flex flex-wrap gap-2">
                     {s.href ? (
-                      <Link to={s.href} className={`${FINELY_OS_SECONDARY_BTN} !text-[11px]`}>
+                      <Link to={nav(s.href)} className={`${FINELY_OS_SECONDARY_BTN} !text-[11px]`}>
                         {s.hrefLabel || 'Open'}
                       </Link>
                     ) : null}

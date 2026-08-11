@@ -2,6 +2,7 @@
 import React from 'react';
 import { ArrowRight, Bot, Layers, Sparkles, Target } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { finelyCtaNavigate } from '../../lib/finelyCtaIntent';
 import { Button, Reveal, FlashyIcon } from '../ui';
 import { finelyOsCatalogCard, finelyOsLightMeshSection } from '../../features/os/finelyOsLightUi';
 
@@ -35,7 +36,7 @@ export function LandingHeroOsRefreshSection() {
                   <Button variant="gold" size="md" onClick={() => navigate('/fundability-readiness')}>
                     Fundability hub <ArrowRight size={16} />
                   </Button>
-                  <Button variant="platinum" size="md" onClick={() => navigate('/onboarding')}>
+                  <Button variant="platinum" size="md" onClick={() => finelyCtaNavigate(navigate, 'personal_intake')}>
                     Get started
                   </Button>
                 </div>

@@ -21,6 +21,9 @@ import { ensureMarketingPipelineProject } from './marketingDeskProjects';
 import { createMarketingTask, createReviewImportsTask, findOpenMarketingTask } from './marketingDeskTasks';
 import { isSerperSearchMarkedOk, markSerperSearchOk } from '../growthAgents/growthFindTest';
 import { effectiveHuntSortScore } from '../growthAgents/growthMlScore';
+import { getMarketingStagingPrioritySourceIds } from '../overnight50/leadIntelSwarmRepo';
+import { getLeadIntelSourceAdapter } from '../overnight50/sourceAdapters';
+import type { LeadIntelSourceId } from '../overnight50/types';
 
 const STAGING_KEY = 'finely.marketing_desk_staging.v1';
 const GEO_KEY = 'finely.marketing_desk_find_geo.v1';
@@ -91,6 +94,9 @@ export type MarketingStagedHit = {
   decision?: 'pending' | 'approved' | 'rejected' | 'auto_approved' | 'skipped';
   prospectId?: string;
   lane?: LeadEngineLane;
+  /** Priority overnight50 live adapter backing this Find hit (Serper path). */
+  overnightSourceId?: LeadIntelSourceId;
+  sourceRuntime?: 'live' | 'simulation';
 };
 
 export type MarketingFindLastRun = {
@@ -161,6 +167,19 @@ function loadStaging(): StagingStore {
 function saveStaging(store: StagingStore) {
   saveJson(STAGING_KEY, store, 1);
   if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('finely:store'));
+}
+
+/** Tag live Find hits with priority overnight50 adapter ids (Marketing Desk staging path). */
+function tagPriorityOvernightSources(hits: MarketingStagedHit[]): MarketingStagedHit[] {
+  const primaryId = getMarketingStagingPrioritySourceIds()[0] ?? 'serper_web';
+  const adapter = getLeadIntelSourceAdapter(primaryId);
+  const label = adapter?.label ?? 'Serper Web';
+  return hits.map((hit) => ({
+    ...hit,
+    overnightSourceId: primaryId,
+    sourceRuntime: 'live' as const,
+    whyNote: hit.whyNote?.includes(label) ? hit.whyNote : `${hit.whyNote || 'Lane fit from Find.'} · Live Find · ${label}`,
+  }));
 }
 
 export function getMarketingFindGeo(): string {
@@ -611,7 +630,7 @@ async function invokeLaneHunt(args: {
       lane: args.lane,
     });
   }
-  return { hits };
+  return { hits: tagPriorityOvernightSources(hits) };
 }
 
 async function processQualifiedHits(args: {
@@ -670,7 +689,7 @@ async function processQualifiedHits(args: {
         hit,
         lane: hit.lane || args.lane,
         sourceNote: '[Marketing Desk] Auto-saved (smart qualify)',
-        enrollMail: true,
+        enrollMail: false,
       });
       if (persisted.ok && persisted.prospectId) {
         autoSaved += 1;
@@ -1070,6 +1089,6 @@ export function autoApproveMarketingHit(
     hit,
     lane: lane ?? hit.lane ?? 'business_credit',
     sourceNote: '[Marketing Desk] Auto-saved (smart qualify)',
-    enrollMail: true,
+    enrollMail: false,
   });
 }

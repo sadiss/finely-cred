@@ -2,6 +2,12 @@
 
 Sovereign Supreme build: public site, partner portal, admin ops, dispute letters, credit report intelligence, voice studio, and launch automation.
 
+## Developer guide (start here)
+
+**[docs/DEVELOPER_GUIDE.md](docs/DEVELOPER_GUIDE.md)** — full-stack runbook for new developers: local setup, env secrets, Supabase migrations, edge functions, CTA routing, growth agents, video/voice studio, live mail, admin view-as, and Aug 2026 launch sprint (§15).
+
+Quick links: [LOCAL_DEV.md](docs/LOCAL_DEV.md) · [DEVELOPER_HANDOFF.md](docs/DEVELOPER_HANDOFF.md) · [PRODUCTION_DEPLOY.md](docs/PRODUCTION_DEPLOY.md) · [DEMO_VIDEOS.md](docs/DEMO_VIDEOS.md)
+
 ## Quick start
 
 ```bash

@@ -40,6 +40,7 @@ function servicesAgreementLabel(role: OnboardingRole): string {
   if (role === 'agent') return 'Independent Credit Specialist Agreement';
   if (role === 'affiliate') return 'Affiliate Agreement';
   if (role === 'au_seller') return 'AU Seller & Supply Agreement';
+  if (role === 'case_help') return 'Case Desk & Scoped Access Agreement';
   return 'Customer Portal & Services Agreement';
 }
 
@@ -52,6 +53,9 @@ function servicesAgreementSummary(role: OnboardingRole): string {
   }
   if (role === 'au_seller') {
     return 'Tradeline supply listing rules, contract acceptance, payout terms, and verification requirements.';
+  }
+  if (role === 'case_help') {
+    return 'Scoped portal access on assigned partner matters, audit trails, confidentiality, and boundaries — educational workflow support, not legal representation unless separately engaged.';
   }
   return 'Portal access, report uploads, dispute workflow tools, and scope of DIY vs done-for-you services.';
 }
@@ -128,7 +132,7 @@ export function signupLegalItems(ctx: SignupLegalContext): SignupLegalItem[] {
     },
   ];
 
-  if (hasDebtFocus(ctx)) {
+  if (hasDebtFocus(ctx) || role === 'case_help') {
     items.push({
       id: 'debtServices',
       label: 'Debt & Collections Workflow Acknowledgment',

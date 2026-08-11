@@ -47,6 +47,11 @@ import {
   commsStudioUrlFromHandoff,
   saveComposeHandoffDraft,
 } from '../../lib/commsConversationHandoff';
+import {
+  adminDisputeCollaborationUrl,
+  adminPartnerNavFromPortalHref,
+  adminPartnerTab,
+} from '../../lib/adminPartnerRoutes';
 import { Button } from '../ui';
 
 type Props = {
@@ -131,15 +136,33 @@ export function DisputeCaseWorkflowPanel({ caseId, partnerId, mode = 'partner', 
   };
 
   const openLetters = (round?: DisputeRoundLabel) => {
-    const q = new URLSearchParams({ caseId });
-    if (round) q.set('round', round);
-    navigate(mode === 'admin' ? `/portal/letters?${q}` : `/portal/letters?${q}`);
+    const query: Record<string, string> = { caseId };
+    if (round) query.round = round;
+    if (mode === 'admin') {
+      navigate(adminPartnerTab(partnerId, 'letters', query));
+      return;
+    }
+    const q = new URLSearchParams(query);
+    navigate(`/portal/letters?${q}`);
   };
 
   const openComplaints = (round?: DisputeRoundLabel) => {
-    const q = new URLSearchParams({ caseId });
-    if (round) q.set('round', round);
+    const query: Record<string, string> = { caseId };
+    if (round) query.round = round;
+    if (mode === 'admin') {
+      navigate(adminDisputeCollaborationUrl(query));
+      return;
+    }
+    const q = new URLSearchParams(query);
     navigate(`/portal/escalations?${q}`);
+  };
+
+  const goHref = (href: string) => {
+    if (mode === 'admin') {
+      navigate(adminPartnerNavFromPortalHref(partnerId, href));
+      return;
+    }
+    navigate(href);
   };
 
   const handleMessageTeam = () => {
@@ -224,7 +247,13 @@ export function DisputeCaseWorkflowPanel({ caseId, partnerId, mode = 'partner', 
                 {step.record?.letterId ? (
                   <button
                     type="button"
-                    onClick={() => navigate(`/portal/letters/vault?letterId=${encodeURIComponent(step.record!.letterId!)}`)}
+                    onClick={() =>
+                      mode === 'admin'
+                        ? navigate(
+                            adminPartnerTab(partnerId, 'letters', { letterId: step.record!.letterId! }),
+                          )
+                        : navigate(`/portal/letters/vault?letterId=${encodeURIComponent(step.record!.letterId!)}`)
+                    }
                     className="text-[10px] uppercase tracking-widest text-emerald-300 hover:text-emerald-200"
                   >
                     View letter
@@ -359,7 +388,7 @@ export function DisputeCaseWorkflowPanel({ caseId, partnerId, mode = 'partner', 
                     <div className="text-xs text-white/55 mt-0.5">{step.detail}</div>
                     <div className="text-[10px] uppercase tracking-widest text-white/35 mt-1">{step.actor.replace(/_/g, ' ')}</div>
                     {step.href ? (
-                      <button type="button" onClick={() => navigate(step.href!)} className="text-[10px] text-emerald-300 mt-1">
+                      <button type="button" onClick={() => goHref(step.href!)} className="text-[10px] text-emerald-300 mt-1">
                         Open →
                       </button>
                     ) : null}

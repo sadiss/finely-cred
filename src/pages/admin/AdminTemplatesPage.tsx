@@ -25,6 +25,7 @@ import { AnalysisReportBuilderPanel } from '../../components/reports/AnalysisRep
 import { FinelyOsCatalogBrowser, type FinelyOsCatalogItem } from '../../features/os/FinelyOsCatalogBrowser';
 import { FINELY_OS_PAGE, FINELY_OS_BACK_LINK, FINELY_OS_BANNER, FINELY_OS_BOARD_SHELL, FINELY_OS_ENTITY_BODY, FINELY_OS_ENTITY_TITLE, FINELY_OS_ENTITY_SUBLABEL, FINELY_OS_ENTITY_LABEL, FINELY_OS_ENTITY_VALUE, FINELY_OS_ENTITY_INPUT, FINELY_OS_ENTITY_SELECT, finelyOsCatalogCard, FINELY_OS_ENTITY_CHIP, FINELY_OS_PRIMARY_BTN, FINELY_OS_SECONDARY_BTN, FINELY_OS_SUCCESS_BTN, FINELY_OS_VIEW_TABS, finelyOsViewTab, finelyOsStatusChip } from '../../features/os/finelyOsLightUi';
 import { FinelyOsPageFooter } from '../../features/os/FinelyOsPageFooter';
+import { adminPartnerTab, portalPreviewUrl } from '../../lib/adminPartnerRoutes';
 
 const blobStore = getBlobStore();
 
@@ -477,7 +478,18 @@ export default function AdminTemplatesPage() {
           <button type="button" onClick={() => navigate('/admin')} className={FINELY_OS_BACK_LINK} title="Back to Admin Dashboard">
             <ArrowLeft size={16} /> Admin Dashboard
           </button>
-          <button type="button" onClick={() => navigate('/portal/documents')} className={FINELY_OS_SECONDARY_BTN} title="Open partner Documents Vault">
+          <button
+            type="button"
+            onClick={() =>
+              navigate(
+                partnerId
+                  ? adminPartnerTab(partnerId, 'evidence')
+                  : portalPreviewUrl('/portal/documents'),
+              )
+            }
+            className={FINELY_OS_SECONDARY_BTN}
+            title="Open partner Documents Vault"
+          >
             <Upload size={14} /> Documents Vault
           </button>
         </div>

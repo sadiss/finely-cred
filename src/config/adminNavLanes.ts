@@ -71,7 +71,6 @@ export const ADMIN_NAV_GROUPS: AdminNavGroupDef[] = [
       { path: '/admin/crm', label: 'Leads & CRM', icon: Target, hint: 'Pipeline + prospects + inbound' },
       { path: '/admin/growth-agents', label: 'Growth Agents', icon: Sparkles, hint: 'Results · Caleb · Hannah · specialists' },
       { path: '/admin/marketing-desk', label: 'Marketing Desk', icon: Sparkles, hint: 'Caleb\'s daily workroom · Find · Board' },
-      { path: '/admin/leads', label: 'Owner Leads Ops', icon: Target, hint: 'Power tools · practice mode · advanced labs' },
       { path: '/admin/projects', label: 'Projects & Tasks', icon: FolderKanban, hint: 'Master projects + child tasks' },
       { path: '/admin/workload', label: 'Workload', icon: ListChecks, hint: 'Open tasks by assignee' },
       { path: '/admin/playbooks', label: 'Playbooks', icon: BookOpen, hint: 'Service delivery task templates' },
@@ -100,7 +99,6 @@ export const ADMIN_NAV_GROUPS: AdminNavGroupDef[] = [
       { path: '/admin/lead-acquisition', label: 'Lead acquisition', icon: Globe, hint: 'Syndication feeds + webhook posting' },
       { path: '/admin/ops-agent', label: 'Ruth · Co-Owner', icon: Crown, hint: 'AI co-owner command' },
       { path: '/admin/phone-hub', label: 'Phone Hub', icon: Phone, hint: 'Calls & SMS' },
-      { path: '/admin/growth-agents/lead-discovery', label: 'Find new people', icon: Sparkles, hint: 'Caleb Brooks · Lead Discovery' },
     ],
   },
   {

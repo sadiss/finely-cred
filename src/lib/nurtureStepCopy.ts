@@ -226,6 +226,16 @@ export function buildNurtureStepEmail(args: {
           subject: args.stepSubject ?? 'Quick idea for your business credit path',
           text: `Hi ${ctx.firstName},\n\nI came across your company and thought Finely Cred's partner path (business credit + funding readiness) might fit.\n\nIf useful: ${sessionUrl}\n\nReply STOP or use unsubscribe below anytime.`,
         };
+      case 'invite_opt_in_link':
+        return {
+          subject: args.stepSubject ?? 'Partner resources — opt in if useful',
+          text: `Hi ${ctx.firstName},\n\nSharing Finely Cred partner one-sheets and a free guide — no cold follow-ups unless you opt in on the page.\n\nOne-sheets: https://finelycred.com/resources/business-credit-one-sheets\nFree guide: https://finelycred.com/resources\n\nReply STOP anytime.`,
+        };
+      case 'invite_opt_in_reminder':
+        return {
+          subject: args.stepSubject ?? 'Still interested? One link, no pressure',
+          text: `Hi ${ctx.firstName},\n\nQuick reminder — skim partner resources when you have a minute. We only add you to nurture email if you opt in on the site.\n\nhttps://finelycred.com/resources/business-credit-one-sheets`,
+        };
       case 'cold_prospect_d2':
         return {
           subject: args.stepSubject ?? 'A short next step (2 minutes)',

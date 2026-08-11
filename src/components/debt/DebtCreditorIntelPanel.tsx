@@ -14,6 +14,7 @@ import {
 import type { ParsedCreditorContact, ParsedCreditReport } from '../../domain/creditReports';
 import type { DebtCase } from '../../domain/debt';
 import type { ProcessedDocument } from '../../domain/documents';
+import { adminEmbeddedNavHref } from '../../lib/adminPartnerRoutes';
 import { createDebtCase, listDebtByPartner } from '../../data/debtRepo';
 import {
   debtCaseFromSignal,
@@ -75,8 +76,10 @@ export function DebtCreditorIntelPanel({
   selectedSummonsDocId,
   onSummonsDocChange,
   compact = false,
+  adminPartnerId,
 }: {
   partnerId: string;
+  adminPartnerId?: string;
   debt: DebtCase | null;
   reports: ReportRow[];
   processedDocuments: ProcessedDocument[];
@@ -98,6 +101,7 @@ export function DebtCreditorIntelPanel({
   onSummonsDocChange?: (docId: string | null) => void;
   compact?: boolean;
 }) {
+  const nav = (href: string) => adminEmbeddedNavHref(adminPartnerId, href);
   const signals = useMemo(() => extractReportDebtSignals(reports), [reports]);
   const ws = workstation ?? mode;
   const displaySignals = useMemo(() => {
@@ -785,7 +789,7 @@ export function DebtCreditorIntelPanel({
               Creditor Contacts and collection accounts come from your uploaded report. Upload one and these fields fill
               themselves.
             </p>
-            <Link to="/portal/reports" className={FINELY_OS_SECONDARY_BTN}>
+            <Link to={nav('/portal/reports')} className={FINELY_OS_SECONDARY_BTN}>
               Upload a credit report
             </Link>
           </div>
@@ -802,7 +806,7 @@ export function DebtCreditorIntelPanel({
               . Open Reports → Creditors to review contacts, or Re-parse the report if the Creditor Contacts pages were
               missing from the parse.
             </p>
-            <Link to="/portal/reports" className={FINELY_OS_SECONDARY_BTN}>
+            <Link to={nav('/portal/reports')} className={FINELY_OS_SECONDARY_BTN}>
               Open reports / re-parse
             </Link>
           </div>

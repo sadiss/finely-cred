@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { ArrowUpRight, ChevronDown, ChevronRight, ExternalLink, ShieldAlert } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { escalationStepsForTrack, type EscalationTrack } from '../../lib/letterEscalationPaths';
+import { adminEmbeddedNavHref } from '../../lib/adminPartnerRoutes';
 import { REGULATORY_PORTALS } from '../../lib/legalResources';
 import {
   FINELY_OS_ENTITY_BODY,
@@ -16,12 +17,15 @@ export function LetterEscalationPanel({
   track,
   accent = 'amber',
   compact = false,
+  adminPartnerId,
 }: {
   track: EscalationTrack;
   accent?: 'amber' | 'violet' | 'sky' | 'emerald' | 'fuchsia';
   compact?: boolean;
+  adminPartnerId?: string;
 }) {
   const navigate = useNavigate();
+  const nav = (href: string) => adminEmbeddedNavHref(adminPartnerId, href);
   const steps = escalationStepsForTrack(track);
   const [openLevel, setOpenLevel] = useState<number>(1);
 
@@ -50,10 +54,10 @@ export function LetterEscalationPanel({
           </div>
         </div>
         <div className="flex flex-wrap gap-1.5">
-          <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => navigate('/portal/escalations?tab=regulatory')}>
+          <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => navigate(nav('/portal/escalations?tab=regulatory'))}>
             Open escalations
           </button>
-          <Link to="/portal/letters/vault" className={FINELY_OS_SECONDARY_BTN}>
+          <Link to={nav('/portal/letters/vault')} className={FINELY_OS_SECONDARY_BTN}>
             Letters vault
           </Link>
         </div>
@@ -116,7 +120,7 @@ export function LetterEscalationPanel({
                     ) : step.level >= 4 ? (
                       <button
                         type="button"
-                        onClick={() => navigate(`/portal/escalations?tab=regulatory&body=${step.level === 4 ? 'CFPB' : 'AG'}`)}
+                        onClick={() => navigate(nav(`/portal/escalations?tab=regulatory&body=${step.level === 4 ? 'CFPB' : 'AG'}`))}
                         className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-300 hover:text-amber-200"
                       >
                         Draft in Finely <ArrowUpRight size={10} />

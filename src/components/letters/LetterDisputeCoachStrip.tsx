@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Loader2, MessageSquare } from 'lucide-react';
+import { createPortal } from 'react-dom';
+import { Loader2, MessageSquare, X } from 'lucide-react';
 import { isFeatureEnabled } from '../../data/settingsRepo';
 import { converseWithFinelyAi } from '../../lib/conversationalAi';
 import { openCommunicationHub } from '../chat/communicationHubModel';
@@ -7,6 +8,9 @@ import { OnDutyStaffCoachHeader } from '../chat/OnDutyStaffCoachHeader';
 import {
   FINELY_OS_AI_DRAFT_BTN_SM,
   FINELY_OS_ENTITY_INPUT,
+  FINELY_OS_ENTITY_SUBLABEL,
+  FINELY_OS_FIXED_OVERLAY,
+  FINELY_OS_MODAL_SHELL,
   FINELY_OS_SECONDARY_BTN,
   finelyOsMessageBubble,
 } from '../../features/os/finelyOsLightUi';
@@ -35,6 +39,7 @@ export function LetterDisputeCoachStrip({
   partnerId?: string;
 }) {
   const enabled = isFeatureEnabled('aiGateway');
+  const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState('');
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -81,7 +86,7 @@ export function LetterDisputeCoachStrip({
     }
   };
 
-  return (
+  const coachBody = (
     <div className="w-full space-y-3">
       <OnDutyStaffCoachHeader lane="dispute" subtitle="Dispute letter specialist — on shift for bureau questions." />
       <FinelyOsOnPageCoachShell
@@ -135,5 +140,43 @@ export function LetterDisputeCoachStrip({
         }
       />
     </div>
+  );
+
+  return (
+    <>
+      <button type="button" className={FINELY_OS_AI_DRAFT_BTN_SM} onClick={() => setOpen(true)}>
+        <MessageSquare size={14} />
+        Ask dispute coach
+      </button>
+
+      {open
+        ? createPortal(
+            <div className={`${FINELY_OS_FIXED_OVERLAY} z-[9100] flex items-center justify-center p-3 sm:p-4`}>
+              <div className="absolute inset-0 bg-black/85 backdrop-blur-md" onClick={() => setOpen(false)} aria-hidden />
+              <div
+                className={`${FINELY_OS_MODAL_SHELL} relative z-[1] w-full max-w-2xl border-fuchsia-400/20`}
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="letter-dispute-coach-title"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="flex items-start justify-between gap-3 border-b border-white/10 px-4 py-4">
+                  <div className="min-w-0">
+                    <div className={FINELY_OS_ENTITY_SUBLABEL}>Letter studio</div>
+                    <div id="letter-dispute-coach-title" className="text-lg font-bold text-white">
+                      Dispute letter coach
+                    </div>
+                  </div>
+                  <button type="button" onClick={() => setOpen(false)} className={`${FINELY_OS_SECONDARY_BTN} !p-2`} aria-label="Close">
+                    <X size={16} />
+                  </button>
+                </div>
+                <div className="p-4 max-h-[72vh] overflow-y-auto">{coachBody}</div>
+              </div>
+            </div>,
+            document.body,
+          )
+        : null}
+    </>
   );
 }

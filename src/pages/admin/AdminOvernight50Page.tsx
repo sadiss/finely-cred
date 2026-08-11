@@ -4,13 +4,15 @@ import { PageShell } from '../../components/layout/PageShell';
 import { buildMicroBudgetPlan } from '../../lib/geo/microBudgetBrain';
 import { LeadIntelSwarmDashboard } from '../../features/overnight50/LeadIntelSwarmDashboard';
 import { SyntheticStaffFloor } from '../../features/overnight50/SyntheticStaffFloor';
+import { FinelyOsAlertBanner } from '../../features/os/FinelyOsAlertBanner';
 
 export default function AdminOvernight50Page() {
   const budget = useMemo(() => buildMicroBudgetPlan(), []);
   const target = budget.freeLeadPlan.reduce((n, x) => n + x.targetLeads, 0) + budget.paidLeadEstimate.high;
   return (
-    <PageShell badge="Admin" title="Overnight50 War Room" subtitle="Geo funnels, budget math, simulation swarm labs, synthetic staff — honest attribution (live finds = Caleb Find / Lead Intel).">
-      <div className="space-y-8">
+    <PageShell badge="Admin" title="Overnight50 War Room" subtitle="Simulation labs — live finds run on Caleb Find / Marketing Desk.">
+      <div className="space-y-4">
+        <FinelyOsAlertBanner tone="warning" message="Simulation only · not live finds. Use Caleb desk or Marketing Desk → Find for real Serper imports." />
         <section className="rounded-3xl border border-white/10 bg-gradient-to-br from-slate-950 via-black to-amber-950/30 p-6">
           <div className="flex flex-wrap items-center justify-between gap-5">
             <div>

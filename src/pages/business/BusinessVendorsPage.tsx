@@ -11,6 +11,7 @@ import { ensureVendorCatalogDefaultsOnce, listVendors } from '../../data/vendors
 import { listVendorProgress, setVendorProgress } from '../../data/vendorProgressRepo';
 import { KpiCard } from '../../components/ui/KpiCards';
 import { FinelyOsPageFooter } from '../../features/os/FinelyOsPageFooter';
+import { FinelyOsPaginatedStack } from '../../features/os/FinelyOsPaginatedStack';
 import { FinelyUnifiedHubLayout } from '../../features/unified/FinelyUnifiedHubLayout';
 import type { Vendor, VendorTier } from '../../domain/vendors';
 import {
@@ -27,16 +28,18 @@ import {
   FINELY_OS_ENTITY_SUBLABEL,
   FINELY_OS_ENTITY_VALUE,
   FINELY_OS_NOTICE,
-  FINELY_OS_NOTICE_WARN,
   FINELY_OS_PRIMARY_BTN,
   FINELY_OS_SECONDARY_BTN,
-  FINELY_OS_SUCCESS_BTN,
   FINELY_OS_PAGE,
   finelyOsCatalogCard,
+  finelyOsCatalogCardCompact,
   finelyOsStatusChip,
+  type FinelyOsPublicAccent,
 } from '../../features/os/finelyOsLightUi';
 
 const TIERS: VendorTier[] = [1, 2, 3, 4];
+const VENDOR_ROW_ACCENTS: FinelyOsPublicAccent[] = ['emerald', 'sky', 'violet', 'amber', 'fuchsia'];
+const VENDOR_PAGE_SIZE = 8;
 
 function tierBadge(tier: VendorTier) {
   if (tier === 1) return { label: 'Tier 1', cls: 'border-emerald-500/30 bg-emerald-500/10 text-emerald-700' };
@@ -47,11 +50,21 @@ function tierBadge(tier: VendorTier) {
 
 type VendorTab = 'vendors' | 'readiness';
 
-function VendorCard({
+function sortTierVendors(items: Vendor[], recommendedIds: Set<string>) {
+  return [...items].sort((a, b) => {
+    const aRec = recommendedIds.has(a.id) ? 0 : 1;
+    const bRec = recommendedIds.has(b.id) ? 0 : 1;
+    if (aRec !== bRec) return aRec - bRec;
+    return a.name.localeCompare(b.name);
+  });
+}
+
+function VendorRow({
   vendor,
   opened,
   skipped,
   recommended,
+  accent,
   partnerId,
   tenantId,
   onChange,
@@ -60,66 +73,60 @@ function VendorCard({
   opened: boolean;
   skipped: boolean;
   recommended?: boolean;
+  accent: FinelyOsPublicAccent;
   partnerId: string;
   tenantId: string;
   onChange: () => void;
 }) {
+  const markOpened = () => {
+    setVendorProgress({ partnerId, vendorId: vendor.id, status: 'opened', tenantId });
+    onChange();
+  };
+
+  const primaryAction = () => {
+    if (vendor.website) {
+      window.open(vendor.website, '_blank', 'noopener,noreferrer');
+      if (!opened) markOpened();
+      return;
+    }
+    if (opened) {
+      setVendorProgress({ partnerId, vendorId: vendor.id, status: 'recommended', tenantId });
+      onChange();
+      return;
+    }
+    markOpened();
+  };
+
+  const ctaLabel = vendor.website ? (opened ? 'Revisit vendor' : 'Open vendor') : opened ? 'Undo opened' : 'Mark opened';
+
   return (
-    <div className={`${finelyOsCatalogCard(recommended ? 'amber' : 'emerald')} !p-4 space-y-3`} data-fc-accent={recommended ? 'amber' : 'emerald'}>
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
+    <div className={`${finelyOsCatalogCardCompact(accent)} !p-3`} data-fc-accent={accent}>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
             <div className={`${FINELY_OS_ENTITY_VALUE} truncate`}>{vendor.name}</div>
             {recommended ? (
-              <span className="inline-flex items-center gap-1 rounded-full border border-amber-400/35 bg-amber-500/15 px-2 py-0.5 text-[9px] font-black uppercase text-amber-800">
+              <span className="inline-flex items-center gap-1 rounded-full border border-amber-400/35 bg-amber-500/15 px-2 py-0.5 text-[9px] font-black uppercase text-amber-200">
                 <Star size={10} /> Best fit
               </span>
             ) : null}
           </div>
-          <div className={`mt-1 ${FINELY_OS_ENTITY_SUBLABEL} font-mono`}>
+          <div className={`mt-0.5 ${FINELY_OS_ENTITY_SUBLABEL} font-mono`}>
             Tier {vendor.tier} • {vendor.category}
           </div>
+          {vendor.notes ? <div className={`mt-1 text-sm ${FINELY_OS_ENTITY_BODY} line-clamp-2`}>{vendor.notes}</div> : null}
+          {vendor.prerequisites?.length ? (
+            <div className={`mt-1 text-xs ${FINELY_OS_ENTITY_SUBLABEL}`}>Prereqs: {vendor.prerequisites.slice(0, 2).join(' • ')}</div>
+          ) : null}
         </div>
-        <span className={finelyOsStatusChip(opened ? 'ok' : skipped ? 'blocked' : 'warn')}>
-          {opened ? 'Opened' : skipped ? 'Skipped' : 'New'}
-        </span>
-      </div>
-
-      {vendor.notes ? <div className={FINELY_OS_ENTITY_BODY}>{vendor.notes}</div> : null}
-      {vendor.prerequisites?.length ? (
-        <div className={`text-xs ${FINELY_OS_ENTITY_SUBLABEL}`}>
-          Prereqs: {vendor.prerequisites.slice(0, 3).join(' • ')}
-        </div>
-      ) : null}
-
-      <div className="flex flex-wrap items-center gap-2 pt-1">
-        {vendor.website ? (
-          <a href={vendor.website} target="_blank" rel="noopener noreferrer" className={FINELY_OS_SECONDARY_BTN}>
-            Open <ExternalLink size={14} />
-          </a>
-        ) : null}
-        <button
-          type="button"
-          onClick={() => {
-            setVendorProgress({ partnerId, vendorId: vendor.id, status: opened ? 'recommended' : 'opened', tenantId });
-            onChange();
-          }}
-          className={opened ? FINELY_OS_SECONDARY_BTN : FINELY_OS_SUCCESS_BTN}
-        >
-          {opened ? <Circle size={14} /> : <CheckCircle2 size={14} />} {opened ? 'Undo' : 'Opened'}
-        </button>
-        {!opened ? (
-          <button
-            type="button"
-            onClick={() => {
-              setVendorProgress({ partnerId, vendorId: vendor.id, status: skipped ? 'recommended' : 'skipped', tenantId });
-              onChange();
-            }}
-            className={FINELY_OS_SECONDARY_BTN}
-          >
-            Skip
+        <div className="flex shrink-0 flex-col items-end gap-2">
+          <span className={finelyOsStatusChip(opened ? 'ok' : skipped ? 'blocked' : 'warn')}>
+            {opened ? 'Opened' : skipped ? 'Skipped' : 'New'}
+          </span>
+          <button type="button" onClick={primaryAction} className={opened ? FINELY_OS_SECONDARY_BTN : FINELY_OS_PRIMARY_BTN}>
+            {vendor.website ? <ExternalLink size={14} /> : opened ? <Circle size={14} /> : <CheckCircle2 size={14} />} {ctaLabel}
           </button>
-        ) : null}
+        </div>
       </div>
     </div>
   );
@@ -281,53 +288,34 @@ export default function BusinessVendorsPage() {
                               </div>
                             </div>
                           ) : (
-                            <div className="mt-5 space-y-5">
-                              {recommended.length > 0 ? (
-                                <div>
-                                  <p className={`mb-3 ${FINELY_OS_ENTITY_SUBLABEL} font-black uppercase tracking-wide`}>
-                                    Recommended for {BUSINESS_TYPE_OPTIONS.find((o) => o.id === businessType)?.label}
-                                  </p>
-                                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
-                                    {recommended.map((v) => {
-                                      const pr = progressByVendorId.get(v.id) ?? null;
-                                      return (
-                                        <VendorCard
-                                          key={v.id}
-                                          vendor={v}
-                                          opened={pr?.status === 'opened'}
-                                          skipped={pr?.status === 'skipped'}
-                                          recommended
-                                          partnerId={partner.id}
-                                          tenantId={tenantId}
-                                          onChange={refresh}
-                                        />
-                                      );
-                                    })}
-                                  </div>
-                                </div>
-                              ) : null}
-
-                              <details className={`${finelyOsCatalogCard('sky')} !p-4`} data-fc-accent="sky">
-                                <summary className={`cursor-pointer ${FINELY_OS_ENTITY_VALUE}`}>All Tier {tier} vendors ({items.length})</summary>
-                                <div className="mt-4 grid md:grid-cols-2 lg:grid-cols-3 gap-3">
-                                  {items
-                                    .filter((v) => !recommendedIds.has(v.id))
-                                    .map((v) => {
-                                      const pr = progressByVendorId.get(v.id) ?? null;
-                                      return (
-                                        <VendorCard
-                                          key={v.id}
-                                          vendor={v}
-                                          opened={pr?.status === 'opened'}
-                                          skipped={pr?.status === 'skipped'}
-                                          partnerId={partner.id}
-                                          tenantId={tenantId}
-                                          onChange={refresh}
-                                        />
-                                      );
-                                    })}
-                                </div>
-                              </details>
+                            <div className="mt-4 space-y-3">
+                              <p className={FINELY_OS_ENTITY_SUBLABEL}>
+                                {recommended.length > 0
+                                  ? `Best-fit vendors for ${BUSINESS_TYPE_OPTIONS.find((o) => o.id === businessType)?.label} appear first.`
+                                  : `${items.length} vendor${items.length === 1 ? '' : 's'} in this tier.`}
+                              </p>
+                              <FinelyOsPaginatedStack
+                                items={sortTierVendors(items, recommendedIds)}
+                                pageSize={VENDOR_PAGE_SIZE}
+                                itemSpacingClassName="space-y-2"
+                                emptyMessage={`No Tier ${tier} vendors yet.`}
+                                renderItem={(v, idx) => {
+                                  const pr = progressByVendorId.get(v.id) ?? null;
+                                  return (
+                                    <VendorRow
+                                      key={v.id}
+                                      vendor={v}
+                                      opened={pr?.status === 'opened'}
+                                      skipped={pr?.status === 'skipped'}
+                                      recommended={recommendedIds.has(v.id)}
+                                      accent={VENDOR_ROW_ACCENTS[idx % VENDOR_ROW_ACCENTS.length]}
+                                      partnerId={partner.id}
+                                      tenantId={tenantId}
+                                      onChange={refresh}
+                                    />
+                                  );
+                                }}
+                              />
                             </div>
                           )}
                         </details>

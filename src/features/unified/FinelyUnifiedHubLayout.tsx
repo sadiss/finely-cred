@@ -49,6 +49,12 @@ type Props = {
   contentVariant?: 'card' | 'flush';
   /** Wider, readable tab buttons */
   tabDensity?: 'default' | 'comfortable';
+  /** Light ivory marketing shell (personal credit lane) */
+  variant?: 'default' | 'ivoryMarketing' | 'darkDeskLightSheets';
+  primaryActionClassName?: string;
+  secondaryActionClassName?: string;
+  /** Big glow launcher tiles — hides tab nav when set (Phase 4 partner hub pattern). */
+  launcherSlot?: React.ReactNode;
 };
 
 function hubCatalogAccent(accent: Props['accent'] = 'emerald'): FinelyOsPublicAccent {
@@ -89,33 +95,76 @@ export function FinelyUnifiedHubLayout({
   detailLabel = 'More detail',
   contentVariant = 'card',
   tabDensity = 'default',
+  variant = 'default',
+  primaryActionClassName,
+  secondaryActionClassName,
+  launcherSlot,
 }: Props) {
   const [detailOpen, setDetailOpen] = useState(false);
   const tabId = activeTab ?? tabs?.[0]?.id;
+  const ivory = variant === 'ivoryMarketing';
+  const darkDesk = variant === 'darkDeskLightSheets';
+
+  const shellClass = ivory
+    ? 'pc-restore-hub-shell fc-light-readable min-w-0 overflow-hidden'
+    : darkDesk
+      ? 'pc-restore-hub-shell pc-restore-hub-shell--desk fc-light-black-scope min-w-0 overflow-hidden !p-4 sm:!p-6'
+      : `fc-unified-hub-shell fc-light-hero-panel fc-pop-surface fc-light-readable min-w-0 ${finelyOsCatalogCard(hubCatalogAccent(accent))} !p-4 sm:!p-6 overflow-hidden`;
+
+  const primaryBtn = primaryActionClassName ?? FINELY_OS_PRIMARY_BTN;
+  const secondaryBtn = secondaryActionClassName ?? FINELY_OS_PLATINUM_BTN;
 
   return (
-    <div className="space-y-5 min-w-0 overflow-x-clip">
-      <div className={`fc-unified-hub-shell fc-light-hero-panel fc-pop-surface fc-light-readable min-w-0 ${finelyOsCatalogCard(hubCatalogAccent(accent))} !p-4 sm:!p-6 overflow-hidden`} data-fc-accent={accent}>
-        <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-6">
+    <div className="space-y-4 min-w-0 overflow-x-clip">
+      <div className={shellClass} data-fc-accent={accent}>
+        <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-4">
           <div className="min-w-0 space-y-2">
             {eyebrow ? (
-              <p className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.22em] text-amber-300/85">
-                <span className="h-1 w-1 rounded-full bg-amber-300/85" />
+              <p
+                className={
+                  ivory || darkDesk
+                    ? 'pc-restore-hub-eyebrow'
+                    : 'inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.22em] text-amber-300/85'
+                }
+              >
+                {!ivory && !darkDesk ? <span className="h-1 w-1 rounded-full bg-amber-300/85" /> : null}
                 {eyebrow}
               </p>
             ) : null}
-            <h1 className={`text-2xl md:text-3xl font-bold ${FINELY_OS_ENTITY_VALUE}`}>{title}</h1>
-            {subtitle ? <p className={`${FINELY_OS_ENTITY_BODY} max-w-3xl text-base`}>{subtitle}</p> : null}
+            <h2
+              className={
+                ivory
+                  ? 'pc-restore-hub-title'
+                  : darkDesk
+                    ? 'text-2xl md:text-3xl font-bold text-white tracking-tight'
+                    : `text-2xl md:text-3xl font-bold ${FINELY_OS_ENTITY_VALUE}`
+              }
+            >
+              {title}
+            </h2>
+            {subtitle ? (
+              <p
+                className={
+                  ivory
+                    ? 'pc-restore-hub-sub max-w-3xl'
+                    : darkDesk
+                      ? 'pc-restore-hub-sub-dark max-w-3xl text-base'
+                      : `${FINELY_OS_ENTITY_BODY} max-w-3xl text-base`
+                }
+              >
+                {subtitle}
+              </p>
+            ) : null}
           </div>
           {(primaryAction || secondaryAction) && (
             <div className="flex flex-wrap gap-2 shrink-0">
               {secondaryAction ? (
-                <button type="button" onClick={secondaryAction.onClick} className={FINELY_OS_PLATINUM_BTN}>
+                <button type="button" onClick={secondaryAction.onClick} className={secondaryBtn}>
                   {secondaryAction.label}
                 </button>
               ) : null}
               {primaryAction ? (
-                <button type="button" onClick={primaryAction.onClick} className={FINELY_OS_PRIMARY_BTN}>
+                <button type="button" onClick={primaryAction.onClick} className={primaryBtn}>
                   {primaryAction.label}
                 </button>
               ) : null}
@@ -123,15 +172,25 @@ export function FinelyUnifiedHubLayout({
           )}
         </div>
         {kpis?.length ? (
-          <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div className={`mt-4 grid grid-cols-2 md:grid-cols-4 gap-2 ${ivory || darkDesk ? '' : 'gap-3 mt-6'}`}>
             {kpis.map((k) => (
               <div
                 key={k.label}
-                className={`fc-hub-kpi fc-light-pop-card fc-pop-surface rounded-xl border px-4 py-3 ${hubKpiTileClass(k.accent, accent)}`}
+                className={
+                  ivory || darkDesk
+                    ? 'pc-restore-kpi'
+                    : `fc-hub-kpi fc-light-pop-card fc-pop-surface rounded-xl border px-4 py-3 ${hubKpiTileClass(k.accent, accent)}`
+                }
                 data-fc-accent={k.accent ?? accent}
               >
-                <div className={FINELY_OS_ENTITY_SUBLABEL}>{k.label}</div>
-                <div className={`mt-1 text-lg font-semibold ${FINELY_OS_ENTITY_VALUE}`}>{k.value}</div>
+                <div className={ivory || darkDesk ? 'pc-restore-kpi-label' : FINELY_OS_ENTITY_SUBLABEL}>{k.label}</div>
+                <div
+                  className={
+                    ivory || darkDesk ? 'pc-restore-kpi-value mt-0.5' : `mt-1 text-lg font-semibold ${FINELY_OS_ENTITY_VALUE}`
+                  }
+                >
+                  {k.value}
+                </div>
                 {k.hint ? <div className={`mt-0.5 text-[10px] ${FINELY_OS_ENTITY_BODY}`}>{k.hint}</div> : null}
               </div>
             ))}
@@ -139,7 +198,9 @@ export function FinelyUnifiedHubLayout({
         ) : null}
       </div>
 
-      {tabs?.length && onTabChange ? (
+      {launcherSlot ? <div className="min-w-0">{launcherSlot}</div> : null}
+
+      {!launcherSlot && tabs?.length && onTabChange ? (
         <div className="-mx-1 overflow-x-auto pb-1 [scrollbar-width:thin]">
           <div className={`${FINELY_OS_VIEW_TABS} ${tabDensity === 'comfortable' ? 'gap-2.5' : ''} min-w-max`} role="tablist">
             {tabs.map((t) => (
@@ -164,13 +225,13 @@ export function FinelyUnifiedHubLayout({
         </div>
       ) : null}
 
-      {contentVariant === 'flush' ? (
+      {!launcherSlot && (contentVariant === 'flush' ? (
         <div className="fc-unified-hub-content fc-light-readable min-w-0 overflow-x-clip" data-fc-accent={accent}>
           {children}
         </div>
       ) : (
         <div className={`fc-unified-hub-content fc-light-readable fc-light-pop-card fc-pop-surface min-w-0 overflow-x-clip ${finelyOsCatalogCard(hubCatalogAccent(accent))} !p-4 sm:!p-5`} data-fc-accent={accent}>{children}</div>
-      )}
+      ))}
 
       {detailSlot ? (
         <details
@@ -207,3 +268,8 @@ export function FinelyUnifiedSection({
     </section>
   );
 }
+
+/** Phase 4 partner hub launcher — re-export for role dashboards using `launcherSlot`. */
+export { usePartnerHubLauncher } from '../../components/partner/usePartnerHubLauncher';
+export { PartnerHubLauncherGrid, PartnerHubLauncherTile } from '../../components/partner/PartnerHubLauncherTile';
+export { PartnerHubWorkModal } from '../../components/partner/PartnerHubWorkModal';

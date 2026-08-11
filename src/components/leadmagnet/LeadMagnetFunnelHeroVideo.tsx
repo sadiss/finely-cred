@@ -22,7 +22,7 @@ type Props = {
 
 export function LeadMagnetFunnelHeroVideo({ config, theme, posterUrl, className = '', onGoForm, colorGrade = 'gold' }: Props) {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const [muted, setMuted] = useState(true);
+  const [muted, setMuted] = useState(false);
   const [videoSrc, setVideoSrc] = useState<string | null>(null);
   const [posterSrc, setPosterSrc] = useState<string | null>(posterUrl ?? null);
   const [loading, setLoading] = useState(true);
@@ -105,8 +105,15 @@ export function LeadMagnetFunnelHeroVideo({ config, theme, posterUrl, className 
     if (reduceMotion) return;
     const el = videoRef.current;
     if (!el) return;
-    el.muted = true;
-    void el.play().catch(() => undefined);
+    el.muted = false;
+    el.volume = 0.85;
+    setMuted(false);
+    void el.play().catch(() => {
+      el.muted = true;
+      el.volume = 1;
+      setMuted(true);
+      void el.play().catch(() => undefined);
+    });
   }, [videoSrc, loading]);
 
   const toggleSound = () => {
@@ -159,7 +166,7 @@ export function LeadMagnetFunnelHeroVideo({ config, theme, posterUrl, className 
           src={videoSrc}
           poster={posterSrc ?? undefined}
           autoPlay
-          muted
+          muted={muted}
           loop
           playsInline
           preload="auto"

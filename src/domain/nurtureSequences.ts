@@ -287,6 +287,29 @@ export const NURTURE_SEQUENCES: NurtureSequenceDef[] = [
     ],
   },
   {
+    id: 'seq_invite_opt_in',
+    name: 'Invite opt-in (link first)',
+    funnelId: 'invite_opt_in',
+    agentPersonaId: 'finely_advisor',
+    enabled: true,
+    steps: [
+      {
+        id: 'invite_d0',
+        delayHours: 0,
+        channel: 'email',
+        templateId: 'invite_opt_in_link',
+        subject: 'Partner resources — opt in if useful',
+      },
+      {
+        id: 'invite_d5',
+        delayHours: 120,
+        channel: 'email',
+        templateId: 'invite_opt_in_reminder',
+        subject: 'Still interested? One link, no pressure',
+      },
+    ],
+  },
+  {
     id: 'seq_offer_pack',
     name: 'Offer pack (Marketing Desk)',
     funnelId: 'offer_pack',

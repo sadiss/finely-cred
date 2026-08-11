@@ -35,7 +35,8 @@ export function Overnight50AdminNav({ compact = false, className = '' }: Props) 
             12h leads: <strong className="text-white">{overnight.total}</strong>
           </span>
           <span className="rounded-full border border-white/10 bg-black/30 px-3 py-1 text-white/70">
-            Jobs: <strong className="text-white">{stats.running + stats.queued}</strong>
+            Jobs: <strong className="text-white">{stats.running + stats.queued}</strong>{' '}
+            <span className="text-white/45">(simulation)</span>
           </span>
         </div>
       </div>

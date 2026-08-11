@@ -37,7 +37,7 @@ const PATHS: Array<{
     desc: 'Entity setup, vendor credit, and fundability for your company.',
     path: '/pricing/business-credit',
     cta: 'See business',
-    accent: 'violet',
+    accent: 'sky',
   },
   {
     icon: Briefcase,

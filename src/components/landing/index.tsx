@@ -13,6 +13,7 @@ import { getActiveTenant, getActiveTenantId } from '../../tenancy/activeTenant';
 import { useNavigate } from 'react-router-dom';
 import { finelyOsCatalogCard, finelyOsLandingContrastSection, finelyOsLightMeshSection, finelyOsLandingPlatinumSection, type FinelyOsPublicAccent } from '../../features/os/finelyOsLightUi';
 import { FinelyOsComplianceStrip } from '../../features/os/FinelyOsComplianceStrip';
+import { finelyCtaNavigate } from '../../lib/finelyCtaIntent';
 import { FinelyCredLogo } from '../brand/FinelyCredLogo';
 
 // ============================================================================
@@ -436,15 +437,15 @@ export function HeroSection(_props: HeroSectionProps) {
             </Reveal>
 
             <Reveal delay={250}>
-              <div className="finely-institutional-bar mx-auto lg:mx-0 max-w-xl">
+              <div className="finely-institutional-bar mx-auto lg:mx-0 max-w-2xl">
                 {[
-                  { icon: Verified, label: 'Verified Institution' },
-                  { icon: BadgeCheck, label: 'FCRA Compliant' },
-                  { icon: Lock, label: 'Encrypted Vault' },
-                  { icon: Star, label: 'Concierge Tier' },
-                ].map(({ icon: Icon, label }) => (
+                  { icon: Verified, label: 'Full credit solutions', tone: 'text-emerald-300/90' },
+                  { icon: BadgeCheck, label: 'FCRA compliant', tone: 'text-sky-300/90' },
+                  { icon: Lock, label: 'Encrypted vault', tone: 'text-emerald-300/90' },
+                  { icon: Shield, label: 'Partner OS access', tone: 'text-sky-300/90' },
+                ].map(({ icon: Icon, label, tone }) => (
                   <span key={label} className="finely-institutional-bar-item">
-                    <Icon size={12} className="text-amber-300/90 shrink-0" />
+                    <Icon size={12} className={`${tone} shrink-0`} />
                     {label}
                   </span>
                 ))}
@@ -465,9 +466,12 @@ export function HeroSection(_props: HeroSectionProps) {
                 <Button variant="platinum" onClick={() => navigate('/pricing')} size="lg">
                   See all solutions
                 </Button>
+                <Button variant="emerald" onClick={() => navigate('/free-guide')} size="lg">
+                  Start free guide <ArrowRight size={18} />
+                </Button>
               </div>
               <p className="mt-3 text-sm text-white/45 max-w-xl mx-auto lg:mx-0 font-light">
-                Fundable business profiles, vendor lines, and capital readiness — start on the Business Credit path.
+                Start with the free dispute guide — no card required — or explore business credit and full solution paths.
               </p>
             </Reveal>
 
@@ -1365,7 +1369,7 @@ export function MasteryOSSection() {
             <Button variant="gold" size="lg" onClick={() => navigate('/portal/partner')}>
               See partner portal <ArrowRight size={18} />
             </Button>
-            <Button variant="platinum" size="lg" onClick={() => navigate('/onboarding')}>
+            <Button variant="platinum" size="lg" onClick={() => finelyCtaNavigate(navigate, 'personal_intake')}>
               Start DIY trial
             </Button>
           </div>

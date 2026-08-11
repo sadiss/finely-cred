@@ -6,6 +6,7 @@ import type { DebtLetterType, DebtScenario } from '../../domain/debtLegal';
 import type { ProcessedDocument } from '../../domain/documents';
 import type { ParsedCreditReport } from '../../domain/creditReports';
 import type { Partner } from '../../domain/partners';
+import type { LetterRecord } from '../../domain/letters';
 import { DebtCreditorIntelPanel } from './DebtCreditorIntelPanel';
 import { DebtProofCaptureStrip } from './DebtProofCaptureStrip';
 import {
@@ -15,7 +16,7 @@ import {
 } from '../os/FinelyOsStudioWorkstation';
 import { listEvidenceByPartner } from '../../data/evidenceRepo';
 import { ValidationAdvisorChat } from './ValidationAdvisorChat';
-import { CollateralWorkstationSection, DebtVsDisputeExplainer } from './CollateralWorkstationSection';
+import { DebtVsDisputeExplainer } from './CollateralWorkstationSection';
 import { LetterCatalogBrowser } from './LetterCatalogBrowser';
 import { PartnerDefenseKnowledgePanel } from './PartnerDefenseKnowledgePanel';
 import { SCENARIO_RECOMMENDATIONS } from '../../legal/debtLetterTemplates';
@@ -25,6 +26,7 @@ import {
   type LetterCatalogCategory,
 } from '../../legal/debtLetterCatalog';
 import { extractReportDebtSignals } from '../../lib/debtCreditorIntel';
+import { adminEmbeddedNavHref } from '../../lib/adminPartnerRoutes';
 import { isValidationTrackLetter } from '../../lib/letterProductLabels';
 import { buildIntelligentLetterSuggestions } from '../../lib/intelligentLetterSuggestions';
 import { IntelligentLetterSuggestionsPanel } from '../letters/IntelligentLetterSuggestionsPanel';
@@ -72,6 +74,9 @@ export function ValidationCenterView({
   generateBusy = false,
   generateError = null,
   vaultHighlightLetterId = null,
+  canMailLetters = false,
+  onMailLetter,
+  adminPartnerId,
 }: {
   debt: DebtCase | null;
   debtId: string;
@@ -96,7 +101,12 @@ export function ValidationCenterView({
   generateBusy?: boolean;
   generateError?: string | null;
   vaultHighlightLetterId?: string | null;
+  canMailLetters?: boolean;
+  onMailLetter?: (letter: LetterRecord) => void;
+  /** When set, `/portal/*` links resolve to admin partner workspace routes. */
+  adminPartnerId?: string;
 }) {
+  const nav = (href: string) => adminEmbeddedNavHref(adminPartnerId, href);
   const [workModal, setWorkModal] = React.useState<StudioWorkstationModal>(null);
   const [proofVersion, setProofVersion] = React.useState(0);
   const screenshotEvidence = React.useMemo(() => {
@@ -192,7 +202,7 @@ export function ValidationCenterView({
                 Bankruptcy <ArrowRight size={12} />
               </button>
             ) : null}
-            <Link to="/portal/escalations?tab=regulatory" className={FINELY_OS_SECONDARY_BTN}>
+            <Link to={nav('/portal/escalations?tab=regulatory')} className={FINELY_OS_SECONDARY_BTN}>
               Escalations
             </Link>
           </div>
@@ -248,6 +258,7 @@ export function ValidationCenterView({
 
       <DebtCreditorIntelPanel
         partnerId={debt?.partnerId || partner?.id || debtCases[0]?.partnerId || ''}
+        adminPartnerId={adminPartnerId}
         debt={debt}
         reports={reports}
         processedDocuments={processedDocuments}
@@ -277,7 +288,7 @@ export function ValidationCenterView({
               </button>
             ) : (
               <Link
-                to="/portal/debt?tab=court"
+                to={nav('/portal/debt?tab=court')}
                 className={`${FINELY_OS_SECONDARY_BTN} border-fuchsia-400/45 text-fuchsia-100`}
               >
                 Open Court lane <ArrowRight size={12} />
@@ -309,7 +320,7 @@ export function ValidationCenterView({
       </div>
       {!canSeeTemplates ? <div className="text-[10px] text-white/40">Full template bodies unlock on paid tiers.</div> : null}
 
-      <PartnerDefenseKnowledgePanel mode="both" trackFilter="validation" compact />
+      <PartnerDefenseKnowledgePanel mode="both" trackFilter="validation" compact adminPartnerId={adminPartnerId} />
 
       {partner ? (
         <LetterStudioSavedVaultStrip
@@ -319,15 +330,15 @@ export function ValidationCenterView({
           evidence={vaultEvidence}
           accent="emerald"
           title="Your validation letters (vault)"
-          subtitle="Saved as soon as you generate — draft or PDF. Matching bureau disputes queue on Credit Letters."
+          subtitle="Saved as soon as you generate — draft or PDF. Preview, mail, or delete here; full archive opens separately."
           onOpenFullVault={onOpenLettersVault}
           highlightLetterId={vaultHighlightLetterId}
+          canMail={canMailLetters}
+          onMailLetter={onMailLetter}
         />
       ) : null}
 
-      <CollateralWorkstationSection title="Validation coach" subtitle="Ask about 1692g proof demands, licensing, chain of title, and your next move — full width section." accent="emerald">
-        <ValidationAdvisorChat scenario={recommendedScenario} debtName={debt?.name} stateJurisdiction={debt?.stateJurisdiction} />
-      </CollateralWorkstationSection>
+      <ValidationAdvisorChat scenario={recommendedScenario} debtName={debt?.name} stateJurisdiction={debt?.stateJurisdiction} />
 
       {partner ? (
         <div id="fc-debt-step-proof" className="scroll-mt-3 rounded-xl border border-emerald-400/20 bg-black/20 !p-3">

@@ -58,6 +58,10 @@
   min-height: 280px;
 }
 
+.lm-video-shell--hero-lg {
+  min-height: clamp(220px, 56vw, 520px);
+}
+
 @media (min-width: 768px) {
   .lm-video-shell--framed {
     min-height: 360px;

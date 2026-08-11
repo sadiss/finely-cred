@@ -6,7 +6,12 @@ import { CheckCircle2 } from 'lucide-react';
 
 import { getOnboardingStepLabel } from '../../onboarding/pipeline';
 
-import { FINELY_OS_ENTITY_BODY, FINELY_OS_ENTITY_SUBLABEL, finelyOsInlineListItem } from '../../features/os/finelyOsLightUi';
+import {
+  FINELY_OS_ENTITY_BODY,
+  FINELY_OS_ENTITY_SUBLABEL,
+  FINELY_OS_MOBILE_FORM_COMPACT,
+  finelyOsInlineListItem,
+} from '../../features/os/finelyOsLightUi';
 
 
 
@@ -36,7 +41,7 @@ export function OnboardingExperienceShell({ stepIndex, stepKeys, currentKey, lan
 
   return (
 
-    <div className="space-y-4 sm:space-y-6 min-w-0">
+    <div className={`space-y-4 sm:space-y-6 min-w-0 ${FINELY_OS_MOBILE_FORM_COMPACT}`}>
 
       {showProgressRail && labels.length > 1 ? (
       <div className={`grid gap-1.5 sm:gap-2 ${labels.length <= 3 ? 'grid-cols-3' : labels.length === 4 ? 'grid-cols-2 sm:grid-cols-4' : 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-5'}`}>

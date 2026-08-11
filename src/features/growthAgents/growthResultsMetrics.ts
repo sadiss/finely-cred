@@ -9,6 +9,8 @@ import { getMarketingLanePerformanceChips } from '../marketingDesk/marketingDesk
 import { loadJson, saveJson } from '../../data/localJsonStore';
 import { getGrowthWeekFocus } from './growthWeekFocus';
 import { LEAD_UTM_VIDEO_CONTENT_PREFIX } from '../../lib/leadAcquisitionCatalog';
+import { getMarketingFindReadiness } from '../marketingDesk/marketingDeskHunt';
+import { getDailyQuotaProgress, pickQuotaDeficitBucket } from './growthDailyQuota';
 
 const BASELINE_KEY = 'finely.growth_results_baseline.v1';
 
@@ -106,6 +108,32 @@ export function buildGrowthResultsSnapshot(): GrowthResultsSnapshot {
     todaySentence,
     weekFocusLabel,
   };
+}
+
+/** Plain-English blocker for the shared results strip on every Growth Agent desk. */
+export function resolveGrowthBlocker(): string {
+  const readiness = getMarketingFindReadiness();
+  if (!readiness.ready) {
+    const pending = readiness.steps.find((s) => !s.done);
+    return pending?.detail || readiness.label || 'Find needs setup — turn on flags in Settings.';
+  }
+  const snap = buildGrowthResultsSnapshot();
+  if (snap.needsReview > 0) {
+    return `${snap.needsReview} people waiting in Review — approve or skip before more find.`;
+  }
+  const quota = getDailyQuotaProgress();
+  const deficit = pickQuotaDeficitBucket(quota);
+  const bucket = quota.buckets.find((b) => b.id === deficit);
+  if (bucket && bucket.count < bucket.cap) {
+    return `${bucket.label} behind today (${bucket.count}/${bucket.cap}).`;
+  }
+  if (snap.lastFindSummary?.startsWith('Issue:')) {
+    return snap.lastFindSummary.replace(/^Issue:\s*/, '');
+  }
+  if (snap.booked7d === 0 && snap.signups7d === 0 && snap.foundSaved7d === 0) {
+    return 'No pipeline movement this week — run today\'s mission or copy a guide link.';
+  }
+  return 'Clear — keep daily rhythm.';
 }
 
 export function compareToBaseline(): { bookedDelta: number; signupsDelta: number; foundDelta: number } | null {

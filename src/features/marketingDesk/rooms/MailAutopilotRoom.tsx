@@ -16,6 +16,7 @@ import {
   isMarketingMailPaused,
   setMarketingMailPaused,
 } from '../marketingDeskMailStatus';
+import { isColdOutboundAutopilotEnabled } from '../../growthAgents/calebAutoFind';
 
 export function MailAutopilotRoom() {
   const navigate = useNavigate();
@@ -27,6 +28,10 @@ export function MailAutopilotRoom() {
   const paused = useMemo(() => {
     void tick;
     return isMarketingMailPaused();
+  }, [tick]);
+  const coldAutopilot = useMemo(() => {
+    void tick;
+    return isColdOutboundAutopilotEnabled();
   }, [tick]);
 
   const chip = mail.status === 'ready' ? 'ok' : mail.status === 'paused' ? 'warn' : 'blocked';
@@ -128,7 +133,10 @@ export function MailAutopilotRoom() {
       <p className={`text-xs ${FINELY_OS_ENTITY_BODY}`}>
         Active enrollments: {mail.activeEnrollments}. Approve in Find, inbound capture, offer, and Booked enroll
         here. Unsubscribe, Clean out junk, Booked/Won, and Pause all stop mail now. Reply/bounce/complaint pause
-        when the email webhook is wired (owner ops) — Hot reply to-dos then appear in My work.
+        when the email webhook is wired (owner ops) — Hot reply to-dos then appear in My work.{' '}
+        {coldAutopilot
+          ? 'coldOutboundAutopilot is on — seq_cold_prospect can enroll when consent allows.'
+          : 'coldOutboundAutopilot is off by default — link-first invite only until you enable it on Caleb.'}
       </p>
     </div>
   );

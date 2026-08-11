@@ -43,6 +43,7 @@ export function ValidationAdvisorChat({
       quickSteps={QUICK}
       promptChips={CHIPS}
       coachLane="validation"
+      modalLaunch={{ triggerLabel: 'Ask validation coach' }}
     />
   );
 }

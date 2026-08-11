@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import type { Partner } from '../domain/partners';
 import { getOrCreatePartnerForSession } from '../portal/getOrCreatePartnerForSession';
 import { FinelyOsDataErrorBanner } from '../features/os/FinelyOsDataErrorBanner';
+import { AdminPartnerViewAsBanner } from '../components/admin/AdminPartnerViewAsBanner';
 import { useAuth } from './AuthProvider';
 
 interface PartnerSessionContextValue {
@@ -59,6 +60,7 @@ export function PartnerSessionProvider({ children }: { children: React.ReactNode
           />
         </div>
       ) : null}
+      <AdminPartnerViewAsBanner />
       {children}
     </PartnerSessionContext.Provider>
   );

@@ -24,6 +24,7 @@ import {
   ROOSEVELT_HEARING_ISO,
   isRooseveltCourtPartner,
 } from '../../data/rooseveltCourtPartnerSeed';
+import { adminEmbeddedNavHref } from '../../lib/adminPartnerRoutes';
 import { FinelyOsPaginatedStack } from '../../features/os/FinelyOsPaginatedStack';
 import {
   FINELY_OS_COMPACT_PAGE,
@@ -194,6 +195,7 @@ export function PartnerDefenseKnowledgePanel({
   defaultOpen = false,
   partner,
   hearingIso,
+  adminPartnerId,
 }: {
   mode?: PanelMode;
   trackFilter?: DefenseTrack;
@@ -201,7 +203,9 @@ export function PartnerDefenseKnowledgePanel({
   defaultOpen?: boolean;
   partner?: Partner | null;
   hearingIso?: string;
+  adminPartnerId?: string;
 }) {
+  const nav = (href: string) => adminEmbeddedNavHref(adminPartnerId, href);
   const [query, setQuery] = useState('');
   const [tab, setTab] = useState<'defense' | 'laws'>(mode === 'laws' ? 'laws' : 'defense');
   const courtPartner = isRooseveltCourtPartner(partner);
@@ -269,10 +273,10 @@ export function PartnerDefenseKnowledgePanel({
                     . Merge fields and Jul 27 quick-fill apply to this partner — not Yolie (credit restore).
                   </p>
                   <div className="mt-2 flex flex-wrap gap-2">
-                    <Link to="/portal/debt?tab=litigation&stage=answer" className={`${FINELY_OS_SECONDARY_BTN} !text-[11px]`}>
+                    <Link to={nav('/portal/debt?tab=litigation&stage=answer')} className={`${FINELY_OS_SECONDARY_BTN} !text-[11px]`}>
                       Written answer
                     </Link>
-                    <Link to="/portal/debt?tab=litigation&stage=hearing" className={`${FINELY_OS_SECONDARY_BTN} !text-[11px]`}>
+                    <Link to={nav('/portal/debt?tab=litigation&stage=hearing')} className={`${FINELY_OS_SECONDARY_BTN} !text-[11px]`}>
                       Hearing card
                     </Link>
                   </div>
@@ -373,13 +377,13 @@ export function PartnerDefenseKnowledgePanel({
           ) : null}
 
           <div className="flex flex-wrap gap-2">
-            <Link to="/portal/debt?tab=court" className={FINELY_OS_SECONDARY_BTN}>
+            <Link to={nav('/portal/debt?tab=court')} className={FINELY_OS_SECONDARY_BTN}>
               Open Court
             </Link>
-            <Link to="/portal/debt?tab=validation" className={FINELY_OS_SECONDARY_BTN}>
+            <Link to={nav('/portal/debt?tab=validation')} className={FINELY_OS_SECONDARY_BTN}>
               Open Validation
             </Link>
-            <Link to="/portal/letters" className={FINELY_OS_SECONDARY_BTN}>
+            <Link to={nav('/portal/letters')} className={FINELY_OS_SECONDARY_BTN}>
               Credit Letters
             </Link>
           </div>

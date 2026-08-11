@@ -548,6 +548,55 @@
   color: rgba(124, 32, 39, 0.75);
 }
 
+/* educational redacted court-paper samples */
+.dge-sample-doc {
+  margin: 1.35rem 0;
+  padding: 0;
+  border: 1px solid rgba(124, 32, 39, 0.35);
+  border-radius: 2px;
+  background: linear-gradient(180deg, rgba(255, 252, 245, 0.98), rgba(236, 228, 209, 0.92));
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.65),
+    0 12px 28px rgba(10, 15, 28, 0.12);
+}
+
+.dge-sample-doc-cap {
+  padding: 0.65rem 1rem 0.35rem;
+  font-family: 'Inter', sans-serif;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(124, 32, 39, 0.88);
+}
+
+.dge-sample-doc-compliance {
+  margin: 0;
+  padding: 0 1rem 0.55rem;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: rgba(74, 69, 59, 0.85);
+  border-bottom: 1px dashed rgba(201, 183, 141, 0.65);
+}
+
+.dge-sample-doc-body {
+  margin: 0;
+  padding: 0.85rem 1rem 1rem;
+  font-family: 'IBM Plex Mono', ui-monospace, 'SF Mono', monospace;
+  font-size: 0.72rem;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: #1a1712;
+  max-height: min(22rem, 52vh);
+  overflow: auto;
+}
+
+.dge-sample-doc-line {
+  display: block;
+}
+
 /* statute chips */
 .dge-chip-label {
   font-size: 10px;

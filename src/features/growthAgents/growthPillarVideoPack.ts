@@ -106,3 +106,23 @@ export function buildGrowthHuntQueryFromPillar(record: VideoCommandRecord, city:
 export function promoteVideoIdForGrowthRecord(record: VideoCommandRecord): string {
   return promoteVideoIdForRecord(record);
 }
+
+/** Jordan shot list — beats from upload intel or standard pillar cuts. */
+export function buildGrowthShotList(args: {
+  record: VideoCommandRecord;
+  analysis?: VideoUploadAnalysis | null;
+}): string[] {
+  const { record } = args;
+  const analysis = args.analysis ?? analysisForVideoCommandRecord(record);
+  const title = record.title.trim() || 'Pillar video';
+  const topics = analysis?.keyTopics?.length ? analysis.keyTopics : [title];
+
+  const topicShots = topics.slice(0, 4).map((t, i) => `Cut ${i + 2}: B-roll or text overlay — ${t}.`);
+  return [
+    'Cut 1: Hook frame — bold text on dark/gold brand plate (3s).',
+    ...topicShots,
+    'Cut final: CTA card — book session + Hannah tracked guide link on screen.',
+    'B-roll: portal dashboard, letter studio, or bureau screenshot (blur PII).',
+    'Captions: burn-in or platform auto-captions — educational only disclaimer in description.',
+  ];
+}

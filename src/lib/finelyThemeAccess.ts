@@ -75,8 +75,7 @@ export function themeToggleOptions(email?: string | null): FinelySiteThemePrefer
   return ['dark', 'system'];
 }
 
-/** Public marketing chrome — theme toggle is admin-only. */
-export function shouldShowPublicThemeToggle(email?: string | null): boolean {
-  if (!email?.trim()) return false;
-  return isAdminEmail(email);
+/** Public marketing chrome — no theme toggle until light theme is launch-ready sitewide. */
+export function shouldShowPublicThemeToggle(_email?: string | null): boolean {
+  return false;
 }

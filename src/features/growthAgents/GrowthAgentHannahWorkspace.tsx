@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { GrowthAgentWorkspaceShell } from './GrowthAgentWorkspaceShell';
 import { getGrowthAgent, GROWTH_AGENT_WAVE0_LANE } from './growthAgentRegistry';
-import { getAgentMaturity, markHannahCampaignLinkCopied } from './growthAgentMaturity';
+import { getHannahMaturity, markHannahCampaignLinkCopied } from './growthAgentMaturity';
 import { buildGrowthResultsSnapshot } from './growthResultsMetrics';
 import { setGrowthWeekFocus } from './growthWeekFocus';
 import {
@@ -10,9 +10,12 @@ import {
   buildVideoUtmContent,
   laneSyndicationMessage,
   LEAD_ACQUISITION_LANES,
+  resolveLaneCtaIntentMeta,
   resolvePromoteVideoIdFromSearch,
   type LeadAcquisitionLane,
 } from '../../lib/leadAcquisitionCatalog';
+import { listDistributionJobs, patchDistributionJob } from '../../data/leadDistributionRepo';
+import { GrowthAgentHannahCommandGuide } from './GrowthAgentHannahCommandGuide';
 import {
   FINELY_OS_ENTITY_BODY,
   FINELY_OS_ENTITY_INPUT,
@@ -21,14 +24,43 @@ import {
   FINELY_OS_SECONDARY_BTN,
   FINELY_OS_SUCCESS_BTN,
   finelyOsCatalogCardCompact,
+  finelyOsMicroStat,
   finelyOsStatusChip,
 } from '../os/finelyOsLightUi';
+import { FinelyOsPaginatedStack } from '../os/FinelyOsPaginatedStack';
 
 function hannahLanesForPicker(): LeadAcquisitionLane[] {
   const agent = getGrowthAgent('capture-links');
   const ids = agent?.acquisitionLaneIds;
   if (!ids?.length) return LEAD_ACQUISITION_LANES;
   return LEAD_ACQUISITION_LANES.filter((l) => ids.includes(l.id));
+}
+
+function parseUtmFields(fullUrl: string): Record<string, string> {
+  try {
+    const u = new URL(fullUrl, typeof window !== 'undefined' ? window.location.origin : 'https://finelycred.com');
+    const keys = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'ref'];
+    const out: Record<string, string> = {};
+    for (const k of keys) {
+      const v = u.searchParams.get(k)?.trim();
+      if (v) out[k] = v;
+    }
+    return out;
+  } catch {
+    return {};
+  }
+}
+
+function buildMagnetUrl(
+  lane: LeadAcquisitionLane,
+  referralCode: string,
+  videoUtmContent?: string,
+): string {
+  return buildLaneAcquisitionUrl(lane, {
+    referralCode: referralCode.trim() || undefined,
+    utmSource: 'growth_agent_hannah',
+    utmContent: videoUtmContent,
+  });
 }
 
 export function GrowthAgentHannahWorkspace() {
@@ -42,7 +74,7 @@ export function GrowthAgentHannahWorkspace() {
   });
   const [referralCode, setReferralCode] = useState('finely');
   const [copied, setCopied] = useState<string | null>(null);
-  const [maturityTick, setMaturityTick] = useState(0);
+  const [tick, setTick] = useState(0);
 
   const promoteVideoId = useMemo(
     () => resolvePromoteVideoIdFromSearch(searchParams.toString()),
@@ -55,20 +87,36 @@ export function GrowthAgentHannahWorkspace() {
     setGrowthWeekFocus({ pillarVideoId: promoteVideoId });
   }, [promoteVideoId]);
 
+  useEffect(() => {
+    const onStore = () => setTick((t) => t + 1);
+    window.addEventListener('finely:store', onStore as EventListener);
+    return () => window.removeEventListener('finely:store', onStore as EventListener);
+  }, []);
+
   const lane = lanes.find((l) => l.id === laneId) ?? lanes[0];
-  const acquisitionUrl = lane
-    ? buildLaneAcquisitionUrl(lane, {
-        referralCode: referralCode.trim() || undefined,
-        utmSource: 'growth_agent_hannah',
-        utmContent: videoUtmContent,
-      })
-    : '';
+  const acquisitionUrl = lane ? buildMagnetUrl(lane, referralCode, videoUtmContent) : '';
   const syndicationBlurb = lane ? laneSyndicationMessage(lane, acquisitionUrl) : '';
+  const utmFields = useMemo(() => parseUtmFields(acquisitionUrl), [acquisitionUrl]);
+
+  const magnetRows = useMemo(() => {
+    return lanes.map((l) => ({
+      lane: l,
+      url: buildMagnetUrl(l, referralCode, videoUtmContent),
+      cta: resolveLaneCtaIntentMeta(l),
+    }));
+  }, [lanes, referralCode, videoUtmContent]);
+
+  const activeCta = useMemo(() => (lane ? resolveLaneCtaIntentMeta(lane) : null), [lane]);
+
+  const approveQueue = useMemo(() => {
+    void tick;
+    return listDistributionJobs(40).filter((j) => j.status === 'draft' || j.status === 'queued');
+  }, [tick]);
 
   const maturity = useMemo(() => {
-    void maturityTick;
-    return getAgentMaturity(agent);
-  }, [agent, maturityTick]);
+    void tick;
+    return getHannahMaturity();
+  }, [tick]);
   const results = useMemo(() => buildGrowthResultsSnapshot(), []);
 
   const copyText = async (key: string, text: string) => {
@@ -77,12 +125,17 @@ export function GrowthAgentHannahWorkspace() {
       setCopied(key);
       if (key === 'link') {
         markHannahCampaignLinkCopied();
-        setMaturityTick((t) => t + 1);
+        setTick((t) => t + 1);
       }
       setTimeout(() => setCopied(null), 2000);
     } catch {
       /* ignore */
     }
+  };
+
+  const approveJob = (jobId: string) => {
+    patchDistributionJob(jobId, { status: 'approved' });
+    setTick((t) => t + 1);
   };
 
   return (
@@ -93,6 +146,7 @@ export function GrowthAgentHannahWorkspace() {
       mission={agent.mission}
       maturityPercent={maturity.percent}
       maturityLabel={maturity.label}
+      headerAside={<GrowthAgentHannahCommandGuide tick={tick} />}
       alertMessage={
         promoteVideoId
           ? `Content Studio promote — links include utm_content=${videoUtmContent}. Copy before posting.`
@@ -119,22 +173,22 @@ export function GrowthAgentHannahWorkspace() {
       }
       lastRunBlock={
         <p className={FINELY_OS_ENTITY_BODY}>
-          Default campaign: credit restore guide — matches Wave 0 lane. Open Lead Acquisition for QR and webhook tools.
+          Active lane: {lane?.label ?? '—'} · {approveQueue.length} job(s) awaiting approve in queue stub.
         </p>
       }
       statusBlock={
         <ul className="space-y-1 text-sm">
           <li>Campaigns in picker: {lanes.length}</li>
-          <li>Active lane: {lane?.label ?? '—'}</li>
+          <li>Week focus lane: {results.weekFocusLabel}</li>
           {promoteVideoId ? <li>Video attribution: {videoUtmContent}</li> : null}
         </ul>
       }
     >
       <div className={finelyOsCatalogCardCompact('amber')}>
-        <div className={FINELY_OS_ENTITY_SUBLABEL}>Campaign</div>
+        <div className={FINELY_OS_ENTITY_SUBLABEL}>Campaign link</div>
         {promoteVideoId ? (
           <p className={`mt-2 text-xs ${FINELY_OS_ENTITY_BODY}`}>
-            Promote step video id <span className="font-mono text-amber-200/90">{promoteVideoId}</span> — tracked in utm_content.
+            Promote video id <span className="font-mono text-amber-200/90">{promoteVideoId}</span>
           </p>
         ) : null}
         <select
@@ -149,6 +203,14 @@ export function GrowthAgentHannahWorkspace() {
           ))}
         </select>
         <p className={`mt-2 text-xs ${FINELY_OS_ENTITY_BODY}`}>{lane?.description}</p>
+        {activeCta ? (
+          <p className={`mt-2 text-xs ${FINELY_OS_ENTITY_BODY}`}>
+            CTA intent:{' '}
+            <span className={finelyOsMicroStat('amber')}>{activeCta.intentLabel}</span>
+            <span className="text-white/50"> · </span>
+            <span className="font-mono text-[10px] text-white/70">{activeCta.path}</span>
+          </p>
+        ) : null}
 
         <label className={`mt-3 block text-xs ${FINELY_OS_ENTITY_BODY}`}>Referral code</label>
         <input
@@ -167,15 +229,100 @@ export function GrowthAgentHannahWorkspace() {
           >
             {copied === 'link' ? 'Link copied' : 'Copy link'}
           </button>
-          <button
-            type="button"
-            className={FINELY_OS_SECONDARY_BTN}
-            onClick={() => void copyText('blurb', syndicationBlurb)}
-          >
+          <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => void copyText('blurb', syndicationBlurb)}>
             {copied === 'blurb' ? 'Blurb copied' : 'Copy blurb'}
           </button>
           {lane?.id === GROWTH_AGENT_WAVE0_LANE ? finelyOsStatusChip('ok') : finelyOsStatusChip('warn')}
         </div>
+
+        <div className={`mt-3 ${FINELY_OS_ENTITY_SUBLABEL}`}>UTM copy chips</div>
+        <div className="mt-2 flex flex-wrap gap-2">
+          {Object.entries(utmFields).map(([k, v]) => (
+            <button
+              key={k}
+              type="button"
+              className={finelyOsMicroStat('amber')}
+              title={v}
+              onClick={() => void copyText(`utm-${k}`, v)}
+            >
+              {copied === `utm-${k}` ? 'Copied' : `${k}=${v.length > 18 ? `${v.slice(0, 16)}…` : v}`}
+            </button>
+          ))}
+          {!Object.keys(utmFields).length ? (
+            <span className={`text-xs ${FINELY_OS_ENTITY_BODY}`}>Pick a lane to load UTM chips.</span>
+          ) : null}
+        </div>
+      </div>
+
+      <div className={finelyOsCatalogCardCompact('amber')}>
+        <div className={FINELY_OS_ENTITY_SUBLABEL}>Lane magnet link factory</div>
+        <p className={`mt-1 text-xs ${FINELY_OS_ENTITY_BODY}`}>
+          One tracked URL per offer lane — paths resolve via finelyCtaIntent (guide, intake, career, consultation).
+        </p>
+        <FinelyOsPaginatedStack
+          items={magnetRows}
+          pageSize={4}
+          renderItem={(row) => (
+            <div className="rounded-xl border border-white/10 bg-black/25 p-3 text-sm space-y-2">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <span className="font-semibold text-white">{row.lane.label}</span>
+                <div className="flex flex-wrap gap-1.5">
+                  <span className={finelyOsMicroStat('emerald')}>{row.cta.intentLabel}</span>
+                  <span className={finelyOsMicroStat('sky')}>{row.lane.utmCampaign}</span>
+                </div>
+              </div>
+              <p className={`text-[10px] font-mono break-all text-white/60`}>{row.cta.path}</p>
+              <p className={`text-[10px] font-mono break-all ${FINELY_OS_ENTITY_BODY}`}>{row.url}</p>
+              <button
+                type="button"
+                className={FINELY_OS_SECONDARY_BTN}
+                onClick={() => void copyText(`magnet-${row.lane.id}`, row.url)}
+              >
+                {copied === `magnet-${row.lane.id}` ? 'Copied' : 'Copy magnet link'}
+              </button>
+            </div>
+          )}
+        />
+      </div>
+
+      <div className={finelyOsCatalogCardCompact('sky')}>
+        <div className={FINELY_OS_ENTITY_SUBLABEL}>Syndication approve queue</div>
+        <p className={`mt-1 text-xs ${FINELY_OS_ENTITY_BODY}`}>
+          Approve distribution jobs before webhooks fire. Empty queue? Build campaigns in Lead Acquisition.
+        </p>
+        {approveQueue.length === 0 ? (
+          <p className={`mt-3 text-sm ${FINELY_OS_ENTITY_BODY}`}>
+            No draft jobs — stub shows lanes ready to copy. Open Lead Acquisition to queue webhook posts.
+          </p>
+        ) : (
+          <FinelyOsPaginatedStack
+            items={approveQueue}
+            pageSize={3}
+            renderItem={(job) => (
+              <div className="rounded-xl border border-white/10 bg-black/25 p-3 text-sm space-y-2">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="font-semibold text-white truncate max-w-[200px]">
+                    {job.message.length > 48 ? `${job.message.slice(0, 48)}…` : job.message}
+                  </span>
+                  <span className={finelyOsStatusChip(job.status === 'queued' ? 'warn' : 'blocked')}>{job.status}</span>
+                </div>
+                <p className={`text-[10px] font-mono break-all ${FINELY_OS_ENTITY_BODY}`}>{job.finalUrl}</p>
+                <div className="flex flex-wrap gap-2">
+                  <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => approveJob(job.id)}>
+                    Approve locally
+                  </button>
+                  <button
+                    type="button"
+                    className={FINELY_OS_SECONDARY_BTN}
+                    onClick={() => navigate('/admin/lead-acquisition')}
+                  >
+                    Run in hub
+                  </button>
+                </div>
+              </div>
+            )}
+          />
+        )}
       </div>
 
       <div className={finelyOsCatalogCardCompact('amber')}>
@@ -188,10 +335,19 @@ export function GrowthAgentHannahWorkspace() {
 
       <div className="flex flex-wrap gap-2">
         <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => navigate('/admin/lead-acquisition')}>
-          Open Lead Acquisition
+          Lead Acquisition
         </button>
-        <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => navigate('/admin/marketing-desk')}>
-          Marketing Desk
+        <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => navigate('/admin/marketing-desk?helper=board')}>
+          Desk · Board
+        </button>
+        <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => navigate('/admin/marketing-desk?helper=mail')}>
+          Desk · Mail
+        </button>
+        <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => navigate('/admin/marketing-desk?helper=find')}>
+          Desk · Find
+        </button>
+        <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => navigate('/admin/growth-agents/marketing-director')}>
+          Esther · week focus
         </button>
       </div>
     </GrowthAgentWorkspaceShell>

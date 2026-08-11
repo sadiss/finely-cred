@@ -28,6 +28,25 @@ const BENEFITS = [
   { Icon: ShieldCheck, title: 'Compliance-first education', text: 'Marketplace rules, rotation guidance, and AU specialty training.' },
 ] as const;
 
+const LAW_MARKETPLACE = [
+  {
+    kicker: 'AU reporting relationship',
+    text: 'When a partner is added as an authorized user on your revolving account, the issuer may report that tradeline on their credit file — age, limit, and payment history can appear as profile signals inside a broader restore plan.',
+  },
+  {
+    kicker: 'What allows marketplace selling',
+    text: 'Cardholders who own verified, seasoned inventory may list AU slots on Finely\'s marketplace. We verify seller profiles, publish listings, run buyer intake, and route qualified orders — you fulfill placements under our marketplace rules.',
+  },
+  {
+    kicker: 'What the $50 get-in covers',
+    text: `One-time seller activation: profile verification, marketplace listing setup, and your first ${AU_SELLER.listingSeasonDays}-day managed marketing season. Partners browsing the marketplace pay separately for placements.`,
+  },
+  {
+    kicker: 'Rotation rules',
+    text: `Remove buyers from each card at the end of every ~${AU_SELLER.listingSeasonDays}-day season. Rotation protects issuer risk, keeps inventory eligible for the next cycle, and is required before re-listing.`,
+  },
+] as const;
+
 /** Illustrative AU tradeline listings — finishes/limits are examples, never a live inventory feed. */
 const AU_CARDS: {
   finish: AuCardFinish;
@@ -58,8 +77,8 @@ export function LandingAuthorizedUserSection() {
     >
       <LandingSellAtmosphere tone="emerald" />
 
-      <div className="container mx-auto px-4 sm:px-6 max-w-6xl relative z-10">
-        <div className="text-center mb-12 max-w-3xl mx-auto">
+      <div className="container mx-auto px-4 sm:px-6 max-w-4xl relative z-10">
+        <div className="text-center mb-12">
           <Reveal>
             <p className="fc-sell-kicker mb-5">Authorized User program</p>
             <LandingTypewriterTitle
@@ -76,15 +95,15 @@ export function LandingAuthorizedUserSection() {
           </Reveal>
         </div>
 
-        <div className="grid lg:grid-cols-[1.05fr_0.95fr] gap-6 lg:gap-8 items-stretch">
+        <div className="space-y-8">
           <Reveal>
-            <div className="relative h-full overflow-hidden rounded-[1.5rem] border border-[#e0b24a]/28 bg-gradient-to-br from-[#0a1a14]/90 via-[#06120c]/88 to-[#040a08]/95 p-7 sm:p-9">
+            <div className="relative overflow-hidden rounded-[1.5rem] border border-[#e0b24a]/28 bg-gradient-to-br from-[#0a1a14]/90 via-[#06120c]/88 to-[#040a08]/95 p-7 sm:p-9">
               <div className="absolute inset-0 bg-[radial-gradient(ellipse_50%_45%_at_100%_0%,rgba(163,230,53,0.12),transparent_55%)] pointer-events-none" />
               <div className="relative">
-                <h3 className="fc-sell-serif text-2xl sm:text-3xl font-semibold text-white">What AU selling is</h3>
+                <h3 className="fc-sell-serif text-2xl sm:text-3xl font-semibold text-white text-center">What AU selling is</h3>
                 <div className="mt-4 space-y-3.5 text-sm sm:text-[15px] leading-relaxed text-white/58">
                   <p>
-                    Authorized User tradelines let a buyer appear on a seasoned revolving account with strong limits and
+                    Authorized User tradelines let a partner appear on a seasoned revolving account with strong limits and
                     clean payment history — a profile signal that can support age, mix, and utilization when structured
                     inside a broader restore plan.
                   </p>
@@ -93,18 +112,53 @@ export function LandingAuthorizedUserSection() {
                     handles intake, and routes orders to your seller workspace. You fulfill, rotate on schedule, and earn
                     per placement.
                   </p>
-                  <p>
-                    The <span className="text-[#ffd993] font-semibold">$50 get-in fee</span> covers profile verification,
-                    marketplace listing, and your first managed season. Buyers pay separately. Earnings and inventory
-                    availability vary.
-                  </p>
                 </div>
               </div>
             </div>
           </Reveal>
 
+          <Reveal delay={80}>
+            <p className="fc-sell-kicker text-center mb-5">Six reasons partners list with us</p>
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {BENEFITS.map((b) => (
+                <div key={b.title} className="fc-sell-benefit-chip">
+                  <span className="mt-0.5 shrink-0 text-[#ffd993]">
+                    <b.Icon size={15} />
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block text-[13px] font-semibold text-white/88">{b.title}</span>
+                    <span className="block text-[11px] leading-relaxed text-white/48">{b.text}</span>
+                  </span>
+                </div>
+              ))}
+            </div>
+          </Reveal>
+
           <Reveal delay={120}>
-            <div className="relative h-full overflow-hidden rounded-[1.5rem] border border-[#e0b24a]/45 bg-gradient-to-b from-[#1a160e]/95 via-[#12100c]/92 to-[#0a0e0c]/96 p-7 sm:p-9 flex flex-col items-center text-center shadow-[0_0_60px_-20px_rgba(224,178,74,0.45)]">
+            <div className="relative overflow-hidden rounded-[1.5rem] border border-white/12 bg-black/25 p-7 sm:p-9">
+              <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_50%_at_50%_0%,rgba(163,230,53,0.08),transparent_60%)] pointer-events-none" />
+              <div className="relative">
+                <h3 className="fc-sell-serif text-xl sm:text-2xl font-semibold text-white text-center">Law &amp; marketplace</h3>
+                <p className="mt-3 text-center text-sm text-white/50 max-w-2xl mx-auto">
+                  How authorized-user reporting works, what Finely&apos;s marketplace covers, and the rules every seller follows.
+                </p>
+                <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-2">
+                  {LAW_MARKETPLACE.map((item) => (
+                    <div key={item.kicker} className="rounded-xl border border-white/8 bg-black/20 p-4">
+                      <p className="text-[10px] font-black uppercase tracking-[0.28em] text-[#ffd993]/90">{item.kicker}</p>
+                      <p className="mt-2 text-sm leading-relaxed text-white/58">{item.text}</p>
+                    </div>
+                  ))}
+                </div>
+                <p className="fc-sell-compliance text-center mt-6">
+                  Results vary · not legal advice · educational overview only · issuer policies and bureau reporting differ
+                </p>
+              </div>
+            </div>
+          </Reveal>
+
+          <Reveal delay={160}>
+            <div className="relative mx-auto max-w-md overflow-hidden rounded-[1.5rem] border border-[#e0b24a]/45 bg-gradient-to-b from-[#1a160e]/95 via-[#12100c]/92 to-[#0a0e0c]/96 p-7 sm:p-9 flex flex-col items-center text-center shadow-[0_0_60px_-20px_rgba(224,178,74,0.45)]">
               <div className="fc-sell-champagne-card__sheen opacity-50" />
               <p className="relative text-[10px] font-black uppercase tracking-[0.3em] text-[#ffd993]/90">Start · get-in fee</p>
               <div className="relative mt-5 fc-sell-price-jewel">
@@ -136,7 +190,7 @@ export function LandingAuthorizedUserSection() {
         <div className="mt-14">
           <p className="fc-sell-kicker text-center mb-2">The cards partners list</p>
           <p className="text-center text-sm text-white/50 mb-7 max-w-2xl mx-auto">
-            Six example listings. Every card stays with its owner — buyers are added as an authorized user for one
+            Six example listings. Every card stays with its owner — partners are added as an authorized user for one
             marketing season, then rotated off.
           </p>
           <div className="fc-au-card-grid grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -160,7 +214,7 @@ export function LandingAuthorizedUserSection() {
             Illustrative listings for demonstration · not live inventory · limits, age, and availability vary by seller
           </p>
 
-          <div className="mt-8 mx-auto max-w-3xl rounded-2xl border border-[#e0b24a]/28 bg-black/30 p-5 text-center">
+          <div className="mt-8 rounded-2xl border border-[#e0b24a]/28 bg-black/30 p-5 text-center">
             <p className="text-[10px] font-black uppercase tracking-[0.28em] text-[#ffd993]/90">
               Adding a teen as an authorized user?
             </p>
@@ -178,27 +232,6 @@ export function LandingAuthorizedUserSection() {
             </button>
           </div>
         </div>
-
-        <div className="mt-12">
-          <p className="fc-sell-kicker text-center mb-5">Six reasons partners list with us</p>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {BENEFITS.map((b) => (
-              <div key={b.title} className="fc-sell-benefit-chip">
-                <span className="mt-0.5 shrink-0 text-[#ffd993]">
-                  <b.Icon size={15} />
-                </span>
-                <span className="min-w-0">
-                  <span className="block text-[13px] font-semibold text-white/88">{b.title}</span>
-                  <span className="block text-[11px] leading-relaxed text-white/48">{b.text}</span>
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <p className="fc-sell-compliance text-center mt-8">
-          Results vary · not a credit score guarantee · issuer risk applies · follow marketplace rotation rules
-        </p>
       </div>
     </section>
   );

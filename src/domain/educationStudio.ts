@@ -21,6 +21,11 @@ export type CourseStudioMeta = {
   lastGeneratedAt?: string;
   marketingHeadline?: string;
   marketingSummary?: string;
+  /** Cohort / community settings (Course Command Center step 5). */
+  cohortEnabled?: boolean;
+  cohortMaxSize?: number;
+  cohortStartDate?: string;
+  communityEnabled?: boolean;
 };
 
 export type VideoScenePlan = {

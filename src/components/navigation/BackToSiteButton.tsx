@@ -2,6 +2,7 @@ import React from 'react';
 import { ArrowLeft, Home } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { clearOnboardingProgress } from '../../lib/onboardingProgressStorage';
+import { finelyCtaNavigate } from '../../lib/finelyCtaIntent';
 
 type Props = {
   variant?: 'primary' | 'ghost' | 'bar';
@@ -21,7 +22,7 @@ export function BackToSiteButton({ variant = 'primary', className = '', label = 
             <p className="text-sm text-white/60 mt-1">Browse the public site or sign back in to continue.</p>
           </div>
           <div className="flex flex-wrap gap-3">
-            <button type="button" onClick={() => navigate('/onboarding')} className="fc-button-brand px-6 py-3.5 text-sm">
+            <button type="button" onClick={() => finelyCtaNavigate(navigate, 'personal_intake')} className="fc-button-brand px-6 py-3.5 text-sm">
               Sign in
             </button>
             <button

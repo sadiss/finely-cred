@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo, useEffect } from 'react';
 import { ArrowRight, Building2, Crown, Layers, ShieldCheck, Sparkles, Target, TrendingUp } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { PageShell } from '../../components/layout/PageShell';
@@ -14,7 +14,13 @@ import { BusinessCreditLadderPanel } from '../../components/business/BusinessCre
 import { BusinessCreditRoadmapPanel } from '../../components/business/BusinessCreditRoadmapPanel';
 import { BusinessCreditDestinationCockpit } from '../../components/business/BusinessCreditDestinationCockpit';
 import { FinelyOsPageFooter } from '../../features/os/FinelyOsPageFooter';
-import { FinelyUnifiedHubLayout, FinelyUnifiedSection } from '../../features/unified/FinelyUnifiedHubLayout';
+import {
+  FinelyUnifiedHubLayout,
+  FinelyUnifiedSection,
+  PartnerHubLauncherGrid,
+  PartnerHubWorkModal,
+  usePartnerHubLauncher,
+} from '../../features/unified/FinelyUnifiedHubLayout';
 import { FinelyNowDoThisStrip } from '../../components/tours/FinelyNowDoThisStrip';
 import { FinelyNoticedStrip } from '../../components/tours/FinelyNoticedStrip';
 import { buildBusinessNoticedItems } from '../../lib/finelyProactiveSignals';
@@ -23,13 +29,17 @@ import { BUSINESS_ROADMAP_STEPS } from '../../domain/businessCredit';
 import { getBusinessCreditProfile } from '../../data/businessCreditRepo';
 import { evaluateFoundationSteps } from '../../lib/businessVendorSequencing';
 import {
+  BUSINESS_DASHBOARD_TAB_TO_LAUNCHER,
+  buildBusinessDashboardLauncherTiles,
+  ROLE_HUB_MODAL_ACCENT,
+  type BusinessDashboardLauncherId,
+} from '../../components/partner/roleHubLauncherPresets';
+import {
   FINELY_OS_ENTITY_BODY,
   FINELY_OS_ENTITY_VALUE,
   FINELY_OS_PAGE,
   finelyOsCatalogCard,
 } from '../../features/os/finelyOsLightUi';
-
-type BizTab = 'overview' | 'actions' | 'readiness' | 'workflow';
 
 const MODULE_CARDS = [
   { path: '/business/profile', title: 'Business profile', body: 'Entity, EIN, NAICS, address hygiene — the identity layer funders verify first.', cta: 'Open profile', icon: Building2, accent: 'amber' as const },
@@ -44,22 +54,42 @@ export default function BusinessDashboardPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { partner } = usePartnerSession();
-  const [tab, setTab] = useState<BizTab>('overview');
+  const hubLauncher = usePartnerHubLauncher<BusinessDashboardLauncherId>();
 
   useEffect(() => {
     const t = searchParams.get('tab');
-    if (t === 'overview' || t === 'actions' || t === 'readiness' || t === 'workflow') setTab(t);
-  }, [searchParams]);
-
-  const selectTab = (id: BizTab) => {
-    setTab(id);
-    navigate(`/business/dashboard?tab=${id}`, { replace: true });
-  };
+    if (t && t in BUSINESS_DASHBOARD_TAB_TO_LAUNCHER) {
+      hubLauncher.open(BUSINESS_DASHBOARD_TAB_TO_LAUNCHER[t]);
+    }
+  }, [searchParams, hubLauncher.open]);
 
   const businessWorkflowProgress = useMemo(
     () => computeRoleWorkflowProgress('business', { partner }),
     [partner],
   );
+
+  const profileMetrics = useMemo(() => {
+    if (!partner) {
+      return {
+        foundationPct: 0,
+        roadmapDone: 0,
+        vendorTierDone: false,
+        fundingReady: false,
+      };
+    }
+    const profile = getBusinessCreditProfile(partner.id);
+    const roadmapDone = BUSINESS_ROADMAP_STEPS.filter((s) => profile.roadmap?.[s.id]?.done).length;
+    const foundation = evaluateFoundationSteps({
+      business: (partner.routes as { business_build?: { business?: Record<string, unknown> } })?.business_build?.business,
+      partnerId: partner.id,
+    });
+    return {
+      foundationPct: foundation.percent,
+      roadmapDone,
+      vendorTierDone: Boolean(profile.roadmap?.vendor_tier1?.done),
+      fundingReady: Boolean(profile.roadmap?.funding_package?.done),
+    };
+  }, [partner]);
 
   const kpis = useMemo(() => {
     if (!partner) {
@@ -71,7 +101,7 @@ export default function BusinessDashboardPage() {
       ];
     }
     const profile = getBusinessCreditProfile(partner.id);
-    const roadmapDone = BUSINESS_ROADMAP_STEPS.filter((s) => profile.roadmap?.[s.id]?.done).length;
+    const roadmapDone = profileMetrics.roadmapDone;
     const foundation = evaluateFoundationSteps({
       business: (partner.routes as { business_build?: { business?: Record<string, unknown> } })?.business_build?.business,
       partnerId: partner.id,
@@ -82,7 +112,20 @@ export default function BusinessDashboardPage() {
       { label: 'Roadmap', value: `${roadmapDone}/10`, hint: `${Math.round((roadmapDone / 10) * 100)}% complete`, accent: 'sky' as const },
       { label: 'Capital', value: profile.roadmap?.funding_package?.done ? 'Ready' : 'Building', hint: 'Doc package', accent: 'violet' as const },
     ];
-  }, [partner]);
+  }, [partner, profileMetrics.roadmapDone]);
+
+  const hubLauncherTiles = useMemo(
+    () =>
+      buildBusinessDashboardLauncherTiles({
+        foundationPct: profileMetrics.foundationPct,
+        roadmapDone: profileMetrics.roadmapDone,
+        vendorTierDone: profileMetrics.vendorTierDone,
+        fundingReady: profileMetrics.fundingReady,
+      }),
+    [profileMetrics],
+  );
+
+  const activeTabForNotices = hubLauncher.openId ?? 'overview';
 
   return (
     <PageShell
@@ -97,12 +140,12 @@ export default function BusinessDashboardPage() {
 
         <FinelyNoticedStrip
           items={buildBusinessNoticedItems({
-            tab,
+            tab: activeTabForNotices === 'modules' ? 'actions' : activeTabForNotices,
             workflowStepsComplete: businessWorkflowProgress.size,
             workflowStepsTotal: ROLE_WORKFLOWS.business?.steps.length ?? 4,
           })}
         />
-        <FinelyNowDoThisStrip currentIndex={tab === 'readiness' ? 0 : tab === 'actions' ? 1 : 0} />
+        <FinelyNowDoThisStrip currentIndex={activeTabForNotices === 'readiness' ? 0 : activeTabForNotices === 'modules' ? 1 : 0} />
 
         {partner ? <BusinessCreditDestinationCockpit partner={partner} /> : null}
         {partner ? <BusinessFundabilityScorecard partner={partner} /> : null}
@@ -113,73 +156,92 @@ export default function BusinessDashboardPage() {
           subtitle="Six modules — profile, vendors, bureaus, lender logic, capital, disputes — wired to the same roadmap."
           accent="amber"
           kpis={kpis}
-          tabs={[
-            { id: 'overview', label: 'Overview' },
-            { id: 'actions', label: 'Modules' },
-            { id: 'readiness', label: 'Readiness' },
-            { id: 'workflow', label: 'Workflow' },
-          ]}
-          activeTab={tab}
-          onTabChange={(id) => selectTab(id as BizTab)}
           primaryAction={{ label: 'Business profile', onClick: () => navigate('/business/profile') }}
           secondaryAction={{ label: 'Vendor center', onClick: () => navigate('/business/vendors') }}
+          launcherSlot={<PartnerHubLauncherGrid tiles={hubLauncherTiles} onOpen={hubLauncher.open} />}
         >
-          {tab === 'overview' && (
-            <FinelyUnifiedSection title="How fundability is built" subtitle="Sequencing beats random applications.">
-              <ul className={`list-disc pl-5 ${FINELY_OS_ENTITY_BODY} space-y-2`}>
-                <li>Establish a coherent commercial identity — name, address, phone, EIN, and domain must match everywhere.</li>
-                <li>Open Tier 1 net-30 vendors that report before chasing revolving or high-limit products.</li>
-                <li>Track bureau scores and tradeline depth — PAYDEX and Intelliscore move with payment behavior.</li>
-                <li>Run lender logic before applications — protect personal and business inquiry budgets.</li>
-              </ul>
-              <div className="mt-4 grid md:grid-cols-3 gap-3">
-                {[
-                  { icon: Layers, t: 'Foundation', d: 'Entity + address + 411 + domain email' },
-                  { icon: ShieldCheck, t: 'Sequence', d: 'Vendor tiers unlock as foundation completes' },
-                  { icon: Crown, t: 'Capital', d: 'Doc package + relationships for underwriting' },
-                ].map(({ icon: Icon, t, d }, idx) => (
-                  <div key={t} className={`${finelyOsCatalogCard((['amber', 'emerald', 'violet'] as const)[idx % 3])} !p-4`} data-fc-accent={(['amber', 'emerald', 'violet'] as const)[idx % 3]}>
-                    <Icon size={16} className="text-amber-700 mb-2" />
-                    <div className={`font-semibold text-sm ${FINELY_OS_ENTITY_VALUE}`}>{t}</div>
-                    <p className={`mt-1 text-xs ${FINELY_OS_ENTITY_BODY}`}>{d}</p>
-                  </div>
-                ))}
-              </div>
-            </FinelyUnifiedSection>
-          )}
-
-          {tab === 'actions' && (
-            <FinelyUnifiedSection title="Business credit modules" subtitle="Jump to any workstation.">
-              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                {MODULE_CARDS.map((item) => {
-                  const Icon = item.icon;
-                  return (
-                    <button key={item.path} type="button" onClick={() => navigate(item.path)} className={`text-left !p-5 ${finelyOsCatalogCard(item.accent)}`} data-fc-accent={item.accent}>
-                      <Icon size={16} className="text-amber-700 mb-2" />
-                      <div className={`font-semibold ${FINELY_OS_ENTITY_VALUE}`}>{item.title}</div>
-                      <div className={`mt-1 text-sm ${FINELY_OS_ENTITY_BODY}`}>{item.body}</div>
-                      <div className="mt-3 inline-flex items-center gap-2 text-[10px] uppercase tracking-wider text-emerald-700">
-                        {item.cta} <ArrowRight size={12} />
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-            </FinelyUnifiedSection>
-          )}
-
-          {tab === 'readiness' && (
-            <div className="space-y-6">
-              {partner ? <BusinessCreditLadderPanel partnerId={partner.id} /> : null}
-              {partner ? <BusinessCreditRoadmapPanel partnerId={partner.id} /> : null}
-              <BusinessReadinessChecklist />
-            </div>
-          )}
-
-          {tab === 'workflow' && (
-            <RoleWorkflowPanel roleId="business" compact completedSteps={businessWorkflowProgress} />
-          )}
+          {null}
         </FinelyUnifiedHubLayout>
+
+        <PartnerHubWorkModal
+          open={hubLauncher.isOpen('overview')}
+          onClose={hubLauncher.close}
+          title="Fundability overview"
+          subtitle="How business credit is built — foundation, sequencing, and capital path."
+          accent={ROLE_HUB_MODAL_ACCENT.overview}
+        >
+          <FinelyUnifiedSection title="How fundability is built" subtitle="Sequencing beats random applications.">
+            <ul className={`list-disc pl-5 ${FINELY_OS_ENTITY_BODY} space-y-2`}>
+              <li>Establish a coherent commercial identity — name, address, phone, EIN, and domain must match everywhere.</li>
+              <li>Open Tier 1 net-30 vendors that report before chasing revolving or high-limit products.</li>
+              <li>Track bureau scores and tradeline depth — PAYDEX and Intelliscore move with payment behavior.</li>
+              <li>Run lender logic before applications — protect personal and business inquiry budgets.</li>
+            </ul>
+            <div className="mt-4 grid md:grid-cols-3 gap-3">
+              {[
+                { icon: Layers, t: 'Foundation', d: 'Entity + address + 411 + domain email' },
+                { icon: ShieldCheck, t: 'Sequence', d: 'Vendor tiers unlock as foundation completes' },
+                { icon: Crown, t: 'Capital', d: 'Doc package + relationships for underwriting' },
+              ].map(({ icon: Icon, t, d }, idx) => (
+                <div key={t} className={`${finelyOsCatalogCard((['amber', 'emerald', 'violet'] as const)[idx % 3])} !p-4`} data-fc-accent={(['amber', 'emerald', 'violet'] as const)[idx % 3]}>
+                  <Icon size={16} className="text-amber-700 mb-2" />
+                  <div className={`font-semibold text-sm ${FINELY_OS_ENTITY_VALUE}`}>{t}</div>
+                  <p className={`mt-1 text-xs ${FINELY_OS_ENTITY_BODY}`}>{d}</p>
+                </div>
+              ))}
+            </div>
+          </FinelyUnifiedSection>
+        </PartnerHubWorkModal>
+
+        <PartnerHubWorkModal
+          open={hubLauncher.isOpen('modules')}
+          onClose={hubLauncher.close}
+          title="Business credit modules"
+          subtitle="Jump to any workstation."
+          accent={ROLE_HUB_MODAL_ACCENT.modules}
+        >
+          <FinelyUnifiedSection title="Business credit modules" subtitle="Jump to any workstation.">
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {MODULE_CARDS.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <button key={item.path} type="button" onClick={() => navigate(item.path)} className={`text-left !p-5 ${finelyOsCatalogCard(item.accent)}`} data-fc-accent={item.accent}>
+                    <Icon size={16} className="text-amber-700 mb-2" />
+                    <div className={`font-semibold ${FINELY_OS_ENTITY_VALUE}`}>{item.title}</div>
+                    <div className={`mt-1 text-sm ${FINELY_OS_ENTITY_BODY}`}>{item.body}</div>
+                    <div className="mt-3 inline-flex items-center gap-2 text-[10px] uppercase tracking-wider text-emerald-700">
+                      {item.cta} <ArrowRight size={12} />
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </FinelyUnifiedSection>
+        </PartnerHubWorkModal>
+
+        <PartnerHubWorkModal
+          open={hubLauncher.isOpen('readiness')}
+          onClose={hubLauncher.close}
+          title="Readiness"
+          subtitle="Credit ladder, roadmap progress, and foundation checklist."
+          accent={ROLE_HUB_MODAL_ACCENT.readiness}
+        >
+          <div className="space-y-6">
+            {partner ? <BusinessCreditLadderPanel partnerId={partner.id} /> : null}
+            {partner ? <BusinessCreditRoadmapPanel partnerId={partner.id} /> : null}
+            <BusinessReadinessChecklist />
+          </div>
+        </PartnerHubWorkModal>
+
+        <PartnerHubWorkModal
+          open={hubLauncher.isOpen('workflow')}
+          onClose={hubLauncher.close}
+          title="Business workflow"
+          subtitle="Workflow checklist and next-step guidance."
+          accent={ROLE_HUB_MODAL_ACCENT.workflow}
+        >
+          <RoleWorkflowPanel roleId="business" compact completedSteps={businessWorkflowProgress} />
+        </PartnerHubWorkModal>
 
         <FinelyOsPageFooter />
       </div>
