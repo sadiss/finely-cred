@@ -24,6 +24,7 @@ This guide is concrete about file paths so you can jump straight to the code. It
 12. [Useful npm scripts](#12-useful-npm-scripts)
 13. [Branching note](#13-branching-note)
 14. [Recent product surfaces (2026)](#14-recent-product-surfaces-2026) — careers/CS join, tradelines vs AU sellers, agency buy-ins, Platinum Workspace, home/nav wayfinding, affiliate + Denefit share, letters evidence capture, **debt guide mockup + video wordmark (§14.10)**, plan docs index
+15. [Launch sprint runbook (Aug 2026)](#15-launch-sprint-runbook-aug-2026) — **CTA spine, growth agents, video/voice studio, mail live mode, admin view-as, partner hub launchers, client seeds, personal credit UX**
 
 ---
 
@@ -153,7 +154,8 @@ Two env surfaces exist and must not be confused:
 | `SENDGRID_API_KEY`, `SENDGRID_FROM_EMAIL` | same as above | Legacy fallback email transport |
 | `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_FROM_PHONE` | `send-sms`, `send-invite-sms`, `twilio-webhook` | SMS (US default) |
 | `SMS_API_ID`, `SMS_API_KEY`, `SMS_SENDER_ID`, `SMS_PROVIDER`, `SMS_REST_SEND_URL` | `send-sms` | REST SMS gateway fallback |
-| `MAIL_PROVIDER`, `MAIL_API_ID`, `MAIL_API_KEY`, `MAIL_TEST_MODE`, `MAIL_DEBUG`/`LETTERSTREAM_DEBUG` | `mailer` | Physical letter mailing (LetterStream / Finely Mail white-label) |
+| `MAIL_PROVIDER`, `MAIL_API_ID`, `MAIL_API_KEY`, `MAIL_LIVE_MODE` / `LETTERSTREAM_LIVE_MODE`, `MAIL_TEST_MODE`, `MAIL_DEBUG`/`LETTERSTREAM_DEBUG` | `mailer` | Physical letter mailing (LetterStream / Finely Mail white-label). Set **`MAIL_LIVE_MODE=true`** and unset test/debug secrets when the account is live — see §15.4 |
+| `FAL_KEY` / `FAL_API_KEY` | `video-motion-render` | Optional cinematic motion (Luma via Fal). Presenter Mode (stills + VO + browser WebM) works without this — see §15.3 |
 | `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` | `stripe-checkout`, `stripe-webhook`, `stripe-verify`, `public-session-checkout` | Payments |
 | `META_APP_ID`, `META_APP_SECRET`, `META_VERIFY_TOKEN` | `meta-oauth`, `meta-webhook`, `meta-publish-post` | Meta lead ads + inbox |
 | `NORA_CAPITAL_BASE_URL`, `NORA_CAPITAL_API_KEY`, `NORA_CAPITAL_WEBHOOK_SECRET`, `NORA_CAPITAL_ALLOWED_PATHS_JSON` | `nora-capital`, `nora-capital-webhook` | Nora Capital bidirectional API |
@@ -405,7 +407,7 @@ type DebtLetterCatalogEntry = {
 - **Function:** `mailer` (op: `ping` | `status` | `verify` | send). **Flag:** `letterMailing`. **Client:** `src/lib/mailerClient.ts`.
 - **Admin mail-for-partner:** `/admin/mail`. **Partner vault (batch + single):** `/portal/letters/vault`. **Admin partner letters tab:** `/admin/partners/:id?tab=letters`.
 - A letter PDF must exist in blob storage (`pdfBlobRef`) before it can be mailed.
-- UI shows a **TEST MODE** banner when `MAIL_TEST_MODE` / debug flags are set or vendor test-mode is detectable — confirm this banner is **off** before treating a send as live USPS mail.
+- UI shows a **TEST MODE** banner when `MAIL_TEST_MODE` / debug flags are set or vendor test-mode is detectable — confirm this banner is **off** (or green **LIVE production mail** shows) before treating a send as live USPS mail. Production flip: `MAIL_LIVE_MODE=true` on the `mailer` edge function + remove test/debug secrets + redeploy — see §15.4.
 - Redeploy `mailer` after any secret/testmode change: `npx supabase functions deploy mailer --no-verify-jwt`.
 
 ### 9.4 Litigation Command
@@ -471,7 +473,10 @@ Full incident writeup: `DEV_URGENT_GRANT_ACCESS_AND_LETTERS.md` (repo root).
 | Report parses but letters have no recipient address | Creditor Contacts section not detected | Open Parsing diagnostics panel; if `needsReparse`, click Re-parse; if still missing, re-upload the **HTML** export (not PDF) |
 | Admin grants access but partner still locked out on another device | `entitlements_admin_write` RLS policy migration not applied | Apply `supabase/migrations/202607240001_entitlements_admin_write.sql` |
 | Sensitive action always fails even with a code entered | Code was never set, or wrong key | Set the code in `/admin/access` → Sensitive action codes; confirm you're using the matching `SensitiveActionKey` |
-| Physical letter shows as "sent" but you're not sure if it's live USPS | `MAIL_TEST_MODE` / vendor test flag active | Check the TEST MODE banner in the mail UI before trusting a send as live |
+| Physical letter shows as "sent" but you're not sure if it's live USPS | `MAIL_TEST_MODE` / vendor test flag active | Set `MAIL_LIVE_MODE=true`, unset `MAIL_TEST_MODE`/`MAIL_DEBUG`, redeploy `mailer`; confirm green LIVE banner (§15.4) |
+| Bare `/onboarding` links in public CTAs | Audit drift | Run `npm run cta:bare-onboarding:audit` — must return 0; use `resolveFinelyCtaPath()` (§15.1) |
+| `/resources#presenter-demo` shows "Video not generated yet" | WebM missing from deploy | Run `npm run demo:launch:video` locally, commit `public/demos/finely-launch-demo.webm` (§15.3) |
+| Admin Partners missing Max Jean-Baptiste after deploy | Migration not applied | Run `supabase db push` (migration `202608110001_max_jean_baptiste_partner_seed.sql`) or open Admin → Partners (auto-seed on load) — §15.7 |
 | `platform-cron` / `automation-runner` runs but nothing happens | Dry-run default | Pass `{ "action": "tick", "dryRun": false }` explicitly |
 | Build fails in CI but works locally | Local `.env.local` values leaking into a check that expects placeholders | CI sets `VITE_SUPABASE_URL=https://ci-placeholder.supabase.co` explicitly for the build job — don't assume local secrets are used in CI |
 | `npm run build` fails | Any of: sitemap generation, staff portraits fetch, `tsc`, `vite build`, deploy-handoff, or dist verification | Run `npm run typecheck` alone first to isolate TS errors from the other build sub-steps |
@@ -505,6 +510,9 @@ Full list is in `package.json`; the ones you'll actually use day-to-day:
 | `npm run predeploy:check` | Full production gate incl. local secrets + RLS |
 | `npm run post-deploy:verify -- https://your-domain.com` | Smoke-check a deployed URL |
 | `npm run voice:prerender` / `voice:catalog:check` | Pre-render/verify Voice Studio narration assets |
+| `npm run demo:launch:video` | Generate launch presenter WebM (`public/demos/finely-launch-demo.webm`) — needs ffmpeg; see `docs/DEMO_VIDEOS.md` |
+| `npm run cta:bare-onboarding:audit` | Fail if any public CTA still links bare `/onboarding` (must be 0 before merge) |
+| `npm run tour:scan:video` / `tour:demos:full` | Playwright site scan + tour MP4 pipeline (dev server on `:5173`) |
 | `npm run audit:legacy` / `extract:legacy-reasons` | Legacy SQL/dispute-reason audits (migration support) |
 | `npm run verify:creditor-contacts` | Smoke-verify creditor contact extraction against sample reports |
 | `npm run dispute:track:audit` | Validation vs court track purity audit (no cross-contamination between hubs) |
@@ -535,8 +543,8 @@ Product/IA work that landed around careers sell pages, tradelines vs AU sellers,
 | [14.7](#147-letters-in-popup-account-choose--screenshot-capture) | Letters: in-popup account choose + screenshot capture | Shipped |
 | [14.8](#148-plan-docs-index-docsplans) | Plan docs index (`docs/plans/`) | Reference |
 | [14.9](#149-key-configs-quick-index) | Key configs (quick index) | Reference |
-
-### 14.1 Careers sellable pages + CS join wizard
+| [14.10](#1410-debt-guide-funnel-visuals--video-branding-2026-08) | Debt guide mockup + video wordmark | Shipped |
+| [15](#15-launch-sprint-runbook-aug-2026) | **Launch sprint runbook (Aug 2026)** — CTA, agents, video, mail, view-as, seeds | **Primary reference for latest ship** |
 
 Public career / join surfaces (full public chrome via `PageShell`):
 
@@ -753,6 +761,11 @@ These plans are historical build records, not living specs — once a plan's wor
 | `src/components/evidence/EvidencePickerModal.tsx` | Evidence picker + in-popup account choose/capture — see §14.7 |
 | `src/pages/leadmagnet/debtGuideMockupAssets.ts` | Debt funnel hero book + standup PNG constants — see §14.10 |
 | `src/components/leadmagnet/VideoFinelyCredWordmark.tsx` | Typography-only video brand (no raster logo) — see §14.10 |
+| `src/lib/finelyCtaIntent.ts` | CTA intent spine — see §15.1 |
+| `src/features/studioCommandOs/VideoCreateWizard.tsx` | Easy-mode video wizard — see §15.3 |
+| `src/lib/mediaProviderRouter.ts` | Presenter Mode video pipeline — see §15.3 |
+| `src/data/maxJeanBaptistePartnerSeed.ts` | Max Jean-Baptiste client seed — see §15.7 |
+| `src/lib/adminPartnerViewAs.ts` | Admin partner view-as — see §15.5 |
 
 ### 14.10 Debt guide funnel visuals & video branding (2026-08)
 
@@ -780,6 +793,211 @@ These plans are historical build records, not living specs — once a plan's wor
 
 ---
 
+## 15. Launch sprint runbook (Aug 2026)
+
+**Status: shipped** on branch `fix/debt-guide-mockup-video-wordmark`. This section is the developer runbook for the Aug 2026 launch sprint — CTA routing, growth agents, video/voice studio, live mail, admin view-as, role hub launchers, client seeds, and personal credit public UX.
+
+### 15.1 CTA intent spine
+
+**Problem solved:** Public buttons were linking bare `/onboarding`, losing lane/goal context. All CTAs now route through one resolver.
+
+| Piece | Location |
+|-------|----------|
+| Intent resolver | `src/lib/finelyCtaIntent.ts` — `resolveFinelyCtaPath(intent, opts)` |
+| Portal bootstrap | `src/components/portal/index.tsx` — reads `goal`, `tier`, `focus`, `leadId` query params |
+| Role routing | `src/lib/onboardingRoleRouting.ts` — includes `case_help` + six career tracks |
+| Audit gate | `scripts/audit-bare-onboarding.mjs` |
+
+**What to run before merge:**
+
+```powershell
+npm run cta:bare-onboarding:audit   # must report 0 bare /onboarding links
+```
+
+**Intents:** `personal_free_guide`, `personal_intake`, `personal_package`, `business_intake`, `debt_intake`, `funding_intake`, `consultation`, `career_track`, `lead_magnet`.
+
+**Verify:** `/personal-credit`, `/free-guide`, role hubs (`/agency`, `/affiliate`, `/case-help`, etc.) — each primary CTA should land with the correct onboarding query string, not a naked `/onboarding`.
+
+### 15.2 Growth agents + marketing desk
+
+| Goal | Admin route | Key files |
+|------|-------------|-----------|
+| Agent roster | `/admin/growth-agents` | `src/features/growthAgents/GrowthAgentsRoster.tsx`, `growthAgentRegistry.ts` |
+| Find people (Caleb) | `/admin/growth-agents/lead-discovery` | `GrowthAgentCalebWorkspace.tsx`, `calebAutoFind.ts`, `calebQuotaMission.ts` |
+| CTA / capture links (Hannah) | `/admin/growth-agents/capture-links` | `GrowthAgentHannahWorkspace.tsx` |
+| Marketing director (Esther) | `/admin/growth-agents/marketing-director` | `GrowthAgentEstherWorkspace.tsx` |
+| Pipeline (Benjamin) | Benjamin workspace + command guide | `benjaminPipelineQueue.ts` |
+| Daily workroom | `/admin/marketing-desk` | `src/features/marketingDesk/MarketingDeskHome.tsx` |
+| Growth automation | `/admin/growth-automation` | `FinelyAutomationConsole.tsx`, `src/lib/finelyAutomationOrchestrator.ts` |
+| Capability scorecard | Admin growth surfaces | `FinelyCapabilityScorecard.tsx`, `src/lib/finelyCapabilityMetrics.ts` |
+
+**Setup checklist:**
+
+1. Admin → Settings → enable **`marketingDesk`** and **`leadIntel`** feature flags.
+2. Supabase connected (`VITE_SUPABASE_URL` + `VITE_SUPABASE_ANON_KEY` in `.env.local`).
+3. Deploy edge functions **`lead-intel`** and **`lead-intel-worker-tick`**.
+4. Set **`SERPER_API_KEY`** on `lead-intel` (required for Caleb Test search / Find).
+5. **`GROWTH_WORKER_LIVE`** — leave **unset/false** until ready for live overnight ticks (default = simulation, no counter inflation).
+6. Caleb → **Test search** → **Find new people** before flipping live worker.
+
+**Deep reference:** `docs/GROWTH_AGENT_MASTER.md`, `docs/GROWTH_ACCEPTANCE.md` (S1–S12), `docs/GROWTH_AUTOMATION_CHARTER.md`.
+
+### 15.3 Video + voice studio
+
+**What works today (Presenter Mode):** AI storyboard plan → OpenAI scene stills → Voice Studio TTS → browser WebM stitch. Cinematic providers (Kling, Runway, Veo) are **Planned** — UI may show readiness badges but only Presenter Mode + optional Fal/Luma motion edge are real paths.
+
+| Surface | Route | Key files |
+|---------|-------|-----------|
+| Content Studio home | `/admin/content-studio` | `ContentStudioDepartmentPage.tsx` |
+| Easy wizard (3-step) | `/admin/content-studio?wizard=open` | `VideoCreateWizard.tsx` — Brief → Scenes → Export |
+| Advanced video room | `?view=advanced&room=video` | `VideoStudioPremiumShell.tsx` → `GeminiStyleVideoCommand.tsx` |
+| Course lesson videos | `/admin/courses/:id` (Step 4) or `room=course_videos` | `AdminCourseEditorPage.tsx`, `CourseVideoBatchWorkroom.tsx` |
+| Partner playback | `/portal/courses/:id` | `CourseLessonVideoPlayer.tsx` |
+| Public presenter demo | `/resources#presenter-demo` | `LaunchPresenterDemoSection.tsx` |
+
+**Pipeline router:** `src/lib/mediaProviderRouter.ts` (plan → stills → voice → stitch). **Shared actions:** `src/features/studioCommandOs/videoCommandActions.ts`.
+
+**Generate launch demo WebM (public Resources player):**
+
+```powershell
+npm run demo:launch:video
+npm run demo:launch:video -- --force          # re-render
+npm run demo:launch:video -- --voice=studio   # Supabase Voice Studio narration
+```
+
+**Requirements:** ffmpeg on PATH **or** portable binary at `scripts/.tools/ffmpeg/bin/ffmpeg.exe` (gitignored — each dev installs locally). Output: `public/demos/finely-launch-demo.webm` — **commit this file** after render so deploy clones show the demo.
+
+**Voice samples:**
+
+```powershell
+npm run voice:prerender
+npm run voice:catalog:check
+```
+
+**Secrets (edge):** `OPENAI_API_KEY`, `CARTESIA_API_KEY`, `ELEVENLABS_API_KEY`, `VOICE_CLONE_FINELY_PRIMARY_ID`; optional motion: **`FAL_KEY`** on `video-motion-render`.
+
+**Feature flag:** Admin → Settings → **`videoStudio`** (required for image gen in Media Studio).
+
+**Asset map:** `docs/DEMO_VIDEOS.md` · acceptance QA: `docs/VIDEO_COMMAND_ACCEPTANCE.md` · master plan: `docs/PLAN_VIDEO_COURSE_MAXIMUM.md`.
+
+### 15.4 LetterStream live production mail
+
+LetterStream account is **live** — edge function must not send with debug/test flags.
+
+| Secret (Supabase → `mailer` edge) | Effect |
+|-----------------------------------|--------|
+| **`MAIL_LIVE_MODE=true`** (or `LETTERSTREAM_LIVE_MODE=true`) | Forces production: no `debug` param, `testMode: false` |
+| **Unset** `MAIL_TEST_MODE`, `LETTERSTREAM_TEST_MODE`, `MAIL_DEBUG`, `LETTERSTREAM_DEBUG` | Required when account is live |
+
+| File | Role |
+|------|------|
+| `supabase/functions/mailer/index.ts` | `resolveMailLiveMode()`, `resolveMailTestMode()`, send path |
+| `src/lib/mailerClient.ts` | `getMailProviderStatus()` — surfaces `liveMode` + `testMode` |
+| `src/components/letters/LetterStreamStatusCard.tsx` | Admin mail readiness card |
+| `src/components/mailing/MailProviderStatusBanner.tsx` | Partner letter-send banner |
+
+**Deploy checklist:**
+
+1. Supabase Dashboard → Edge Functions → **`mailer`** → Secrets: set `MAIL_LIVE_MODE=true`.
+2. Remove/unset all test/debug mail secrets.
+3. Redeploy: `npx supabase functions deploy mailer --no-verify-jwt`
+4. Admin → Mail (or any letter send flow) → **Refresh** → confirm green **LIVE production mail** banner (not amber TEST MODE).
+
+### 15.5 Admin partner view-as
+
+Lets admins open the partner portal as a specific partner without logging out.
+
+| Piece | File |
+|-------|------|
+| Override state | `src/lib/adminPartnerViewAs.ts` |
+| Session wiring | `src/auth/PartnerSessionContext.tsx` |
+| UI button + banner | `AdminPartnerViewAsButton.tsx`, `AdminPartnerViewAsBanner.tsx` |
+| Safe admin routes | `src/lib/adminPartnerRoutes.ts` |
+
+**Rule:** Amber view-as banner must stay visible while impersonating. **`PartnerDetailPage.tsx`** — patch scripts only (`scripts/_patch-partner-detail-*.mjs`), never direct StrReplace.
+
+### 15.6 Partner hub launchers (role dashboards)
+
+Each role hub shows a tile grid → modal work surfaces (compact luxury density).
+
+| Piece | File |
+|-------|------|
+| Presets per role | `src/components/partner/roleHubLauncherPresets.ts` |
+| Tile + modal UI | `PartnerHubLauncherTile.tsx`, `PartnerHubWorkModal.tsx` |
+| Hook | `usePartnerHubLauncher.ts` |
+
+**Hubs wired:** Agency, AU Seller, Real Estate, Business Dashboard, Affiliate, Case Help, Agent, Business Profile — respective `*HubPage.tsx` files under `src/pages/`.
+
+### 15.7 Client seed: Max Jr Ralph Jean-Baptiste
+
+Idempotent partner record — email added later by admin.
+
+| Field | Value |
+|-------|--------|
+| Display name | Max Jr Ralph Jean-Baptiste |
+| Stable ID | `c7d4a291-5e83-4b6f-9a2c-1f8e6d3b7045` |
+| Import key | `finely:max-jr-ralph-jean-baptiste-v1` |
+| Route / lane | `personal_restore` / `funding_readiness` |
+| Journey stage | `intake` |
+| Email | Empty until admin adds in partner detail |
+
+| Piece | Location |
+|-------|----------|
+| App seed (auto on Partners load) | `src/data/maxJeanBaptistePartnerSeed.ts` → `ensureMaxJeanBaptistePartnerAsync()` |
+| SQL migration | `supabase/migrations/202608110001_max_jean_baptiste_partner_seed.sql` |
+| Admin UI trigger | `src/pages/admin/PartnersListPage.tsx` (fires ensure before fetch) |
+
+**After deploy:** `supabase db push` (or let CI apply migration) → Admin → **Partners** → **Refresh** → Max appears in directory.
+
+### 15.8 Personal credit public UX
+
+| Piece | Location |
+|-------|----------|
+| Glass hero shell | `src/features/personalCredit/PersonalCreditHeroShell.tsx` |
+| Restore arc KPI | `src/components/marketing/RestoreScoreArc.tsx` |
+| Visual CSS | `src/features/personalCredit/personalCreditRestoreVisual.css` |
+| Public page | `/personal-credit` → `src/pages/PersonalCreditPage.tsx` |
+| Hero image reference | `docs/PERSONAL_CREDIT_RESTORE_HERO_IMAGES.md` |
+
+### 15.9 Finely Brain + public help
+
+| Piece | Location |
+|-------|----------|
+| Page-aware public answers | `src/lib/finelyBrain/finelyPublicAnswer.ts` |
+| Orchestration | `src/lib/finelyBrain/finelyBrainOrchestrate.ts` |
+| Ask Finely strip | `MarketingStaffChatStrip` on public pages |
+
+Partners see plain-English help on public routes (Voice + suggested chips). Not a replacement for legal advice — compliance strip stays near stats/AI surfaces.
+
+### 15.10 Course command center
+
+| Surface | Route | Key files |
+|---------|-------|-----------|
+| Admin course editor (5-step wizard) | `/admin/courses/:id` | `AdminCourseEditorPage.tsx` |
+| Partner course player | `/portal/courses/:id` | `PartnerCoursePage.tsx`, `CourseLessonVideoPlayer.tsx` |
+| Lesson content split | — | `src/components/courses/courseLessonContentSplit.ts` |
+
+Video attach flow: course Step 4 → `VideoCreateWizard` modal → export attaches `video_asset` block to lesson.
+
+### 15.11 Aug 2026 key files (quick index)
+
+| File | What it owns |
+|------|----------------|
+| `src/lib/finelyCtaIntent.ts` | CTA spine — §15.1 |
+| `scripts/audit-bare-onboarding.mjs` | CTA audit gate |
+| `src/lib/finelyAutomationOrchestrator.ts` | Growth automation console |
+| `src/lib/finelyCapabilityMetrics.ts` | Capability scorecard metrics |
+| `src/lib/mediaProviderRouter.ts` | Video Presenter Mode router |
+| `src/features/studioCommandOs/VideoCreateWizard.tsx` | 3-step video wizard |
+| `scripts/generate-launch-demo-video.mjs` | Launch demo WebM generator |
+| `src/components/resources/LaunchPresenterDemoSection.tsx` | Public demo player |
+| `supabase/functions/mailer/index.ts` | Mail live/test mode |
+| `src/data/maxJeanBaptistePartnerSeed.ts` | Max client seed |
+| `src/lib/adminPartnerViewAs.ts` | Admin view-as |
+| `src/components/partner/roleHubLauncherPresets.ts` | Role hub tiles |
+
+---
+
 ## See also
 
 - `docs/LOCAL_DEV.md` — quick start + modes + key routes
@@ -789,7 +1007,8 @@ These plans are historical build records, not living specs — once a plan's wor
 - `docs/SECURITY_ARCHITECTURE_SUPABASE.md` — target-state RLS/tenant model
 - `docs/PLATFORM_CRON.md` — server cron ticks (digest, nurture, billing)
 - `docs/VOICE_STUDIO_API.md` — Voice Studio render API
-- `docs/plans/tradelines-au-split-and-agency-buyin.md` — tradelines vs AU sellers + agency buy-in rules (§14.2, §14.3, §14.8)
+- `docs/DEMO_VIDEOS.md` — demo video assets, ffmpeg setup, launch presenter WebM
+- `docs/GROWTH_AGENT_MASTER.md` — growth agents quick path map
 - `docs/plans/partner-overview-profile-professional-ui.md` — Platinum Workspace (admin Overview/Profile) plan (§14.4, §14.8)
 - `docs/plans/admin-color-pop-agency-buyins-push.md` — admin color-pop + 6-tier agency buy-ins + guide update (§14.3, §14.4, §14.8)
 - `DEV_URGENT_GRANT_ACCESS_AND_LETTERS.md`, `DEV_URGENT_MAIL_AND_LITIGATION.md`, `DEV_URGENT_LITIGATION_ROLES_MEETINGS.md`, `DEV_URGENT_BC_PRICING_ONESHEETS.md` (repo root) — current in-flight priority handoffs
