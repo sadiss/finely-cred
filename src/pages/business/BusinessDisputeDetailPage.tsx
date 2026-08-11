@@ -88,6 +88,7 @@ function buildLetterText(args: {
   lines.push('- See attached documents supporting this dispute.');
   lines.push('');
   lines.push('Sincerely,');
+  lines.push('');
   lines.push(args.representativeName);
   return lines.join('\n');
 }
@@ -248,7 +249,7 @@ export default function BusinessDisputeDetailPage() {
                       items: dispute.negativeItems ?? [],
                     });
                     const safe = dispute.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
-                    const filename = `FinelyCred_BusinessDispute_${dispute.bureau}_${safe || dispute.id}_${new Date().toISOString().slice(0, 10)}.pdf`;
+                    const filename = `Letter_BusinessDispute_${dispute.bureau}_${safe || dispute.id}_${new Date().toISOString().slice(0, 10)}.pdf`;
                     const pdf = await generateTextPdfToVault({
                       text,
                       filename,

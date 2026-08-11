@@ -247,7 +247,7 @@ export default function ResourcesPage() {
             </button>
           </section>
 
-          <LaunchPresenterDemoSection />
+          {isAdmin ? <LaunchPresenterDemoSection /> : null}
 
           {PUBLIC_DEMO_VIDEOS_ENABLED ? (
           <section id="videos" className="fc-scroll-section space-y-3">

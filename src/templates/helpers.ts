@@ -65,10 +65,9 @@ export function wrapLetterHtml(args: {
   const { lineHeight, paragraphSpacingPx } = paragraphSpacingStyle(args.variant);
   const header =
     args.variant.kind === 'branded_modern'
-      ? `<div style="display:flex;justify-content:space-between;gap:12px;margin-bottom:${paragraphSpacingPx}px;">
-  <div style="font-weight:700;letter-spacing:0.12em;text-transform:uppercase;">Finely Cred</div>
+      ? `<div style="display:flex;justify-content:flex-end;gap:12px;margin-bottom:${paragraphSpacingPx}px;">
   <div style="font-size:12px;opacity:0.85;">${esc(args.title)}</div>
-</div><div style="height:1px;background:#111;opacity:0.25;margin-bottom:${paragraphSpacingPx}px;"></div>`
+</div>`
       : '';
 
   const footer = args.footerNote

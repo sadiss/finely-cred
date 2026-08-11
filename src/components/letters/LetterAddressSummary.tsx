@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { AlertTriangle, MapPin, Wand2 } from 'lucide-react';
 import {
+  FINELY_OS_COMPACT_PAGE,
+  FINELY_OS_COMPACT_INPUT,
+  FINELY_OS_COMPACT_TEXTAREA,
   FINELY_OS_ENTITY_BODY,
-  FINELY_OS_ENTITY_INPUT,
-  FINELY_OS_ENTITY_LABEL,
-  FINELY_OS_FIELD_WIDTH,
+  FINELY_OS_ENTITY_SUBLABEL,
   FINELY_OS_SECONDARY_BTN,
   finelyOsStatusChip,
 } from '../../features/os/finelyOsLightUi';
@@ -74,15 +75,15 @@ export function LetterAddressSummary({
               </span>
             ) : null}
           </div>
-          <p className={`${FINELY_OS_ENTITY_BODY} text-sm truncate`} title={fromSummary}>
+          <p className={`${FINELY_OS_ENTITY_BODY} text-xs truncate`} title={fromSummary}>
             <span className="text-white/50">From </span>
             {fromSummary || '—'}
           </p>
-          <p className={`${FINELY_OS_ENTITY_BODY} text-sm truncate`} title={toSummary}>
+          <p className={`${FINELY_OS_ENTITY_BODY} text-xs truncate`} title={toSummary}>
             <span className="text-white/50">To </span>
             {toSummary || '—'}
           </p>
-          <p className={`${FINELY_OS_ENTITY_BODY} text-sm truncate`} title={value.subject}>
+          <p className={`${FINELY_OS_ENTITY_BODY} text-xs truncate`} title={value.subject}>
             <span className="text-white/50">Subject </span>
             {value.subject.trim() || '—'}
           </p>
@@ -110,54 +111,54 @@ export function LetterAddressSummary({
       </div>
 
       {open ? (
-        <div className={`grid gap-2 pt-2 border-t border-white/10 ${FINELY_OS_FIELD_WIDTH}`}>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2 border-t border-white/10">
           <label className="block">
-            <span className={FINELY_OS_ENTITY_LABEL}>Your name</span>
+            <span className={FINELY_OS_ENTITY_SUBLABEL}>Your name</span>
             <input
-              className={`${FINELY_OS_ENTITY_INPUT} !mt-1`}
+              className={`${FINELY_OS_COMPACT_INPUT} !max-w-none mt-1`}
               value={value.fromName}
               onChange={(e) => onChange({ fromName: e.target.value })}
             />
           </label>
           <label className="block">
-            <span className={FINELY_OS_ENTITY_LABEL}>Street</span>
+            <span className={FINELY_OS_ENTITY_SUBLABEL}>Street</span>
             <input
-              className={`${FINELY_OS_ENTITY_INPUT} !mt-1`}
+              className={`${FINELY_OS_COMPACT_INPUT} !max-w-none mt-1`}
               value={value.fromLine1}
               onChange={(e) => onChange({ fromLine1: e.target.value })}
             />
           </label>
           <label className="block">
-            <span className={FINELY_OS_ENTITY_LABEL}>Apt / suite (optional)</span>
+            <span className={FINELY_OS_ENTITY_SUBLABEL}>Apt / suite (optional)</span>
             <input
-              className={`${FINELY_OS_ENTITY_INPUT} !mt-1`}
+              className={`${FINELY_OS_COMPACT_INPUT} !max-w-none mt-1`}
               value={value.fromLine2 || ''}
               onChange={(e) => onChange({ fromLine2: e.target.value })}
             />
           </label>
           <label className="block">
-            <span className={FINELY_OS_ENTITY_LABEL}>City, ST ZIP</span>
+            <span className={FINELY_OS_ENTITY_SUBLABEL}>City, ST ZIP</span>
             <input
-              className={`${FINELY_OS_ENTITY_INPUT} !mt-1`}
+              className={`${FINELY_OS_COMPACT_INPUT} !max-w-none mt-1`}
               value={value.fromCityStateZip}
               onChange={(e) => onChange({ fromCityStateZip: e.target.value })}
             />
           </label>
           <label className="block">
-            <span className={FINELY_OS_ENTITY_LABEL}>{toNameLabel}</span>
+            <span className={FINELY_OS_ENTITY_SUBLABEL}>{toNameLabel}</span>
             <input
-              className={`${FINELY_OS_ENTITY_INPUT} !mt-1`}
+              className={`${FINELY_OS_COMPACT_INPUT} !max-w-none mt-1`}
               value={value.toName}
               onChange={(e) => onChange({ toName: e.target.value })}
             />
           </label>
-          <label className="block">
-            <span className={`${FINELY_OS_ENTITY_LABEL} inline-flex items-center gap-1`}>
-              <MapPin size={12} /> {toAddrLabel}
+          <label className="block sm:col-span-2">
+            <span className={`${FINELY_OS_ENTITY_SUBLABEL} inline-flex items-center gap-1`}>
+              <MapPin size={11} /> {toAddrLabel}
             </span>
             <textarea
               rows={2}
-              className={`${FINELY_OS_ENTITY_INPUT} !mt-1`}
+              className={`${FINELY_OS_COMPACT_TEXTAREA} !max-w-none mt-1`}
               value={value.toLinesText}
               onChange={(e) => onChange({ toLinesText: e.target.value })}
               placeholder={
@@ -167,10 +168,10 @@ export function LetterAddressSummary({
               }
             />
           </label>
-          <label className="block">
-            <span className={FINELY_OS_ENTITY_LABEL}>Subject</span>
+          <label className="block sm:col-span-2">
+            <span className={FINELY_OS_ENTITY_SUBLABEL}>Subject</span>
             <input
-              className={`${FINELY_OS_ENTITY_INPUT} !mt-1`}
+              className={`${FINELY_OS_COMPACT_INPUT} !max-w-none mt-1`}
               value={value.subject}
               onChange={(e) => onChange({ subject: e.target.value })}
             />

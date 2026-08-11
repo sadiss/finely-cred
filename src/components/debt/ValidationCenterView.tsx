@@ -19,6 +19,7 @@ import { ValidationAdvisorChat } from './ValidationAdvisorChat';
 import { DebtVsDisputeExplainer } from './CollateralWorkstationSection';
 import { LetterCatalogBrowser } from './LetterCatalogBrowser';
 import { PartnerDefenseKnowledgePanel } from './PartnerDefenseKnowledgePanel';
+import { FinelyOsWorkstationCoachHub } from '../../features/os/FinelyOsWorkstationCoachHub';
 import { SCENARIO_RECOMMENDATIONS } from '../../legal/debtLetterTemplates';
 import {
   letterCatalogPool,
@@ -306,6 +307,21 @@ export function ValidationCenterView({
             else if (letterType) onBuildDraft(letterType);
           }}
         />
+        {partner ? (
+          <LetterStudioSavedVaultStrip
+            partnerId={partner.id}
+            types={['validation']}
+            storeVersion={storeVersion}
+            evidence={vaultEvidence}
+            accent="emerald"
+            title="Your validation letters (vault)"
+            subtitle="Saved as soon as you generate — draft or PDF. Preview, mail, or delete here; full archive opens separately."
+            onOpenFullVault={onOpenLettersVault}
+            highlightLetterId={vaultHighlightLetterId}
+            canMail={canMailLetters}
+            onMailLetter={onMailLetter}
+          />
+        ) : null}
         <LetterCatalogBrowser
           category="validation"
           accent="emerald"
@@ -320,25 +336,30 @@ export function ValidationCenterView({
       </div>
       {!canSeeTemplates ? <div className="text-[10px] text-white/40">Full template bodies unlock on paid tiers.</div> : null}
 
-      <PartnerDefenseKnowledgePanel mode="both" trackFilter="validation" compact adminPartnerId={adminPartnerId} />
-
-      {partner ? (
-        <LetterStudioSavedVaultStrip
-          partnerId={partner.id}
-          types={['validation']}
-          storeVersion={storeVersion}
-          evidence={vaultEvidence}
-          accent="emerald"
-          title="Your validation letters (vault)"
-          subtitle="Saved as soon as you generate — draft or PDF. Preview, mail, or delete here; full archive opens separately."
-          onOpenFullVault={onOpenLettersVault}
-          highlightLetterId={vaultHighlightLetterId}
-          canMail={canMailLetters}
-          onMailLetter={onMailLetter}
-        />
-      ) : null}
-
-      <ValidationAdvisorChat scenario={recommendedScenario} debtName={debt?.name} stateJurisdiction={debt?.stateJurisdiction} />
+      <FinelyOsWorkstationCoachHub
+        accent="emerald"
+        launcherLabel="Validation coach & laws"
+        launcherHint="Ask Finely · FDCPA steps · deficiency letters · rights reference"
+        modalTitle="Validation workstation"
+        modalSubtitle="Coach answers · Defense Book · Laws & Rights"
+        coachTab={
+          <ValidationAdvisorChat
+            embedded
+            scenario={recommendedScenario}
+            debtName={debt?.name}
+            stateJurisdiction={debt?.stateJurisdiction}
+          />
+        }
+        lawsTab={
+          <PartnerDefenseKnowledgePanel
+            mode="both"
+            trackFilter="validation"
+            compact
+            defaultOpen
+            adminPartnerId={adminPartnerId}
+          />
+        }
+      />
 
       {partner ? (
         <div id="fc-debt-step-proof" className="scroll-mt-3 rounded-xl border border-emerald-400/20 bg-black/20 !p-3">

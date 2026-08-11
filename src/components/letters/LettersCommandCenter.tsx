@@ -103,6 +103,7 @@ import { recordLetterPartnerNote } from '../../lib/letterPartnerNotes';
 import { downloadBlob, downloadText, openUrlInNewTab, triggerBrowserDownload } from '../../utils/download';
 import { RichTextEditor } from '../ui/RichTextEditor';
 import { htmlToPlainText, isProbablyHtml, plainTextToHtml, sanitizeHtmlForPreview } from '../../utils/richText';
+import { stripLetterVendorBranding, stripLetterVendorBrandingHtml } from '../../lib/letterBodySafety';
 import { callAiGateway } from '../../lib/aiClient';
 import { extractFirstJsonObject } from '../../utils/jsonExtract';
 import { canUseAiDraft } from '../../billing/aiDraftAccess';
@@ -144,6 +145,7 @@ import { notifyLetterLifecycle } from '../../lib/letterLifecycleNotify';
 import { LetterEmailPartnerToggle } from './LetterEmailPartnerToggle';
 import { PostGenerateLetterModal, type PostGenerateLetterAction } from './PostGenerateLetterModal';
 import { MailLetterModal } from './MailLetterModal';
+import { LetterFullPreviewModal } from './LetterFullPreviewModal';
 import type { LetterRecord } from '../../domain/letters';
 import { notifyLetterMailed } from '../../lib/letterMailedNotify';
 import { getNotificationPrefs } from '../../data/notificationPrefsRepo';
@@ -716,7 +718,8 @@ function DisputeLetterPaperPreview({
                       />
                       <div>
                         <div>Sincerely,</div>
-                        <div className="mt-6">{senderName}</div>
+                        <div className="mt-2">&nbsp;</div>
+                        <div>{senderName}</div>
                       </div>
                     </div>
                   ) : (
@@ -823,6 +826,8 @@ function DisputeLetterIframePreview({
     const bureauAddr = bureauAddress ?? bureauDisputeAddress(bureau);
     const headerDate = letterDateDisplay();
     const subject = (subjectLine || '').trim() || SUBJECT_LINE;
+    const safeIntroHtml = stripLetterVendorBrandingHtml(introHtml || '');
+    const safeFooterHtml = stripLetterVendorBrandingHtml(footerHtml || '');
 
     const body = `
       <div class="page">
@@ -841,7 +846,7 @@ function DisputeLetterIframePreview({
 
         <div class="subject">${escText(subject)}</div>
 
-        <div class="prose">${sanitizeHtmlForPreview(introHtml || '')}</div>
+        <div class="prose">${sanitizeHtmlForPreview(safeIntroHtml)}</div>
 
         ${(() => {
           const groups = aggregateLetterLaws(
@@ -902,10 +907,11 @@ function DisputeLetterIframePreview({
             .join('')}
         </div>
 
-        <div class="prose">${sanitizeHtmlForPreview(footerHtml || '')}</div>
+        <div class="prose">${sanitizeHtmlForPreview(safeFooterHtml)}</div>
 
         <div class="sig">
           <div>Sincerely,</div>
+          <br/><br/>
           <div class="sigName">${escText(senderName)}</div>
         </div>
       </div>
@@ -1187,6 +1193,7 @@ export function LettersCommandCenter({
   }>(null);
   const [debtMailOpen, setDebtMailOpen] = useState(false);
   const [debtMailLetter, setDebtMailLetter] = useState<LetterRecord | null>(null);
+  const [draftSavedPreviewLetter, setDraftSavedPreviewLetter] = useState<LetterRecord | null>(null);
   useEffect(() => {
     const onStore = (ev: Event) => {
       setStoreVersion((v) => v + 1);
@@ -1906,6 +1913,7 @@ WRITING STANDARD:
         !introTextRaw.trim() || isStockDisputeIntro(introTextRaw)
           ? fiveStepIntro
           : mergeTransferNote(introTextRaw, roundTransferNote);
+      const introTextForMail = stripLetterVendorBranding(introText);
 
     setPdfErr(null);
     setPdfBusyByBureau((prev) => ({ ...prev, [b]: true }));
@@ -1998,7 +2006,7 @@ WRITING STANDARD:
       const missingEvidence = disputeItems.filter((x) => !x.evidence?.blobRef);
 
       const footerHtml = footerByBureau[b] || plainTextToHtml(defaultDisputeFooter(tone));
-      const footerText = htmlToPlainText(footerHtml || '') || defaultDisputeFooter(tone);
+      const footerText = stripLetterVendorBranding(htmlToPlainText(footerHtml || '') || defaultDisputeFooter(tone));
 
       addAuditEvent({
         partnerId: partner.id,
@@ -2016,7 +2024,7 @@ WRITING STANDARD:
         round,
         tone,
         items: disputeItems,
-        introOverride: introText,
+        introOverride: introTextForMail,
         footerOverride: footerText,
         senderNameOverride: senderName || undefined,
         senderAddress: {
@@ -2034,7 +2042,7 @@ WRITING STANDARD:
           return { name, lines: lines.length ? lines : bureauDisputeAddress(b).lines };
         })(),
         subjectLineOverride: (subjectLineByBureau[b] || '').trim() || undefined,
-        filename: `FinelyCred_Dispute_${safePartnerName(senderName || canonicalIdentity.fullName)}_${bureauShortCode(b)}_${today}.pdf`,
+        filename: `Dispute_${safePartnerName(senderName || canonicalIdentity.fullName)}_${bureauShortCode(b)}_${today}.pdf`,
         persistToVault: true,
         autoDownload: false,
         includeBlob: opts.download,
@@ -2054,7 +2062,7 @@ WRITING STANDARD:
           bureau: b,
           round,
           tone,
-          intro: introText,
+          intro: introTextForMail,
           items: disputeItems,
           sender: {
             name: senderName || canonicalIdentity.fullName || undefined,
@@ -2083,7 +2091,7 @@ WRITING STANDARD:
           bureau: b,
           round,
           tone,
-          introOverride: introText,
+          introOverride: introTextForMail,
           footerOverride: footerText,
           candidateIds: disputeItems.map((x) => x.candidate.id),
           evidenceByCandidateId,
@@ -3705,6 +3713,106 @@ useEffect(() => {
     }
   };
 
+  const saveDebtDraftPdf = async (opts?: { download?: boolean }) => {
+    if (!draft || !partner?.id) return false;
+    if (!canUseLetters) {
+      setDraftErr('Letters is locked on your current plan. Open Billing to unlock Letters.');
+      return false;
+    }
+    const plain = stripLetterVendorBranding(htmlToPlainText(draft.html || ''));
+    if (!plain.trim()) {
+      setDraftErr('Draft is empty.');
+      return false;
+    }
+    const draftTrack = draft.type;
+    setDraftBusy(true);
+    setDraftErr(null);
+    try {
+      persistDebtSenderSnapshot();
+      const createdAt = new Date().toISOString();
+      const title =
+        draft.title ||
+        resolveDebtDraftTitle({
+          specId: draft.specId,
+          catalogId: draft.catalogId,
+          track: draft.type,
+          debtName: debt?.name,
+        });
+
+      const pdf = await generateTextPdfToVault({
+        text: plain,
+        filename: `Letter_${draft.type}_${safePartnerName(debt?.name || 'letter')}_${today}.pdf`,
+        meta: { partnerId: partner.id, debtId: debt?.id, type: draft.type },
+      });
+
+      const saved = upsertLetter({
+        id: draft.letterId || newId('letter'),
+        partnerId: partner.id,
+        type: letterTypeForDebtDraft(draft.type),
+        title,
+        createdAt,
+        body: plain,
+        status: 'generated',
+        pdfBlobRef: pdf.pdfBlobRef ?? undefined,
+        pdfFilename: pdf.filename,
+        relatedEvidenceIds: draft.evidenceId ? [draft.evidenceId] : [],
+        meta: metaForDebtDraft(draft, debt, String(recommendedScenario || '')),
+      });
+      addAuditEvent({
+        partnerId: partner.id,
+        actorType: layout === 'embedded' ? 'admin' : 'partner',
+        actorEmail: undefined,
+        action: 'letter.saved',
+        entityType: 'letter',
+        entityId: saved.id,
+        meta: { kind: draft.type, pdfBlobRef: pdf.pdfBlobRef ?? null, filename: pdf.filename, debtId: debt?.id ?? null },
+      });
+      notifyPartnerLetterEvent({
+        event: 'saved',
+        letterIds: [saved.id],
+        letterTitles: [title],
+      });
+      if (letterPartnerNote.trim()) {
+        recordLetterPartnerNote({
+          partnerId: partner.id,
+          body: letterPartnerNote,
+          title: `Saved: ${title}`,
+          letterId: saved.id,
+          debtCaseId: debt?.id,
+          source: 'letter_save',
+          authorType: layout === 'embedded' ? 'admin' : 'partner',
+        });
+        setLetterPartnerNote('');
+      }
+
+      if (opts?.download) {
+        if (pdf.pdfBlobRef) {
+          await downloadFromBlobRef(pdf.pdfBlobRef, pdf.filename, 'application/pdf');
+        } else {
+          setDraftErr('Saved, but could not generate a download link.');
+        }
+      }
+
+      setStoreVersion((v) => v + 1);
+      setVaultHighlightLetterId(saved.id);
+      setDraftSavedPreviewLetter(saved);
+      setDraft(null);
+      if (debtCenterMode && draftTrack === 'validation') {
+        window.setTimeout(() => {
+          document.getElementById('fc-letter-studio-vault')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 120);
+      } else if (!debtCenterMode) {
+        openVault();
+      }
+      return true;
+    } catch (e: any) {
+      setDraftErr(e?.message || 'Failed to save letter.');
+      return false;
+    } finally {
+      setDraftBusy(false);
+    }
+  };
+
   const openGeneratedDebtDraft = (args: {
     track: DebtDraftTrack;
     specId: string;
@@ -3715,7 +3823,7 @@ useEffect(() => {
       setDraftErr('Sign in as a partner to save validation letters.');
       return;
     }
-    const plain = String(args.bodyText || '').trim();
+    const plain = stripLetterVendorBranding(String(args.bodyText || '').trim());
     if (!plain) {
       setDraftErr('Letter generation returned an empty body. Confirm case fields and try Generate letter again.');
       return;
@@ -3763,7 +3871,10 @@ useEffect(() => {
         letterTitles: [title],
       });
       setStoreVersion((v) => v + 1);
-      completeValidationCreditHandoff(letterId, args.track);
+      setVaultHighlightLetterId(letterId);
+      if (args.track === 'validation') {
+        completeValidationCreditHandoff(letterId, args.track);
+      }
     } catch (e: any) {
       setDraftNotice(e?.message || 'Draft opened, but vault save failed — use Save to Letters Vault.');
     }
@@ -4405,6 +4516,21 @@ useEffect(() => {
                 <div className="flex items-center gap-1.5 flex-wrap justify-end">
                   <button
                     type="button"
+                    disabled={draftBusy}
+                    onClick={() => {
+                      if (shouldPromptForDownload({ kind: 'debt' })) {
+                        setPdfChoice({ kind: 'debt' });
+                        return;
+                      }
+                      void saveDebtDraftPdf();
+                    }}
+                    className={`${FINELY_OS_PRIMARY_BTN} !py-2 !px-3 !text-[10px] disabled:opacity-60 disabled:cursor-not-allowed`}
+                    title="Save PDF to Letters Vault and preview the letter"
+                  >
+                    {draftBusy ? 'Saving…' : 'Save & generate letter'}
+                  </button>
+                  <button
+                    type="button"
                     onClick={() => setDraftTemplatesOpen(true)}
                     className="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-white/[0.08] bg-white/5 hover:bg-white/10 text-[10px] font-black uppercase tracking-widest text-white/70 transition-all"
                     title="Insert a saved template or attach a file enclosure"
@@ -4448,7 +4574,7 @@ useEffect(() => {
                           })} template • ${new Date().toISOString().slice(0, 10)}`,
                           category,
                           kind: 'text',
-                          bodyText: htmlToPlainText(draft.html || ''),
+                          bodyText: stripLetterVendorBranding(htmlToPlainText(draft.html || '')),
                           requiredEntitlements: defaultRequiredEntitlementsForCategory(category),
                           createdBy: { actorType: 'partner' },
                         } as any);
@@ -4519,7 +4645,7 @@ useEffect(() => {
                     accent={draft.type === 'court' ? 'fuchsia' : 'emerald'}
                     minHeightPx={280}
                     editorLabel="Edit letter"
-                    heroLayout={Boolean(draft.preferPreview)}
+                    heroLayout
                     initialView="preview"
                     previewResetKey={draft.previewKey || `${draft.specId}:${draft.catalogId || ''}`}
                     showAddressChrome={false}
@@ -4683,100 +4809,17 @@ useEffect(() => {
                   <button
                     type="button"
                     disabled={draftBusy}
-                    onClick={async () => {
-                      if (!canUseLetters) {
-                        setDraftErr('Letters is locked on your current plan. Open Billing to unlock Letters.');
-                        return;
-                      }
-                      const plain = htmlToPlainText(draft.html || '');
-                      if (!plain.trim()) {
-                        setDraftErr('Draft is empty.');
-                        return;
-                      }
+                    onClick={() => {
                       if (shouldPromptForDownload({ kind: 'debt' })) {
                         setPdfChoice({ kind: 'debt' });
                         return;
                       }
-                      setDraftBusy(true);
-                      setDraftErr(null);
-                      try {
-                        persistDebtSenderSnapshot();
-                        const createdAt = new Date().toISOString();
-                        const title =
-                          draft.title ||
-                          resolveDebtDraftTitle({
-                            specId: draft.specId,
-                            catalogId: draft.catalogId,
-                            track: draft.type,
-                            debtName: debt?.name,
-                          });
-
-                        const pdf = await generateTextPdfToVault({
-                          text: plain,
-                          filename: `FinelyCred_${draft.type}_${safePartnerName(debt?.name || 'letter')}_${today}.pdf`,
-                          meta: { partnerId: partner.id, debtId: debt?.id, type: draft.type },
-                        });
-
-                        const saved = upsertLetter({
-                          id: draft.letterId || newId('letter'),
-                          partnerId: partner.id,
-                          type: letterTypeForDebtDraft(draft.type),
-                          title,
-                          createdAt,
-                          body: plain,
-                          status: 'generated',
-                          pdfBlobRef: pdf.pdfBlobRef ?? undefined,
-                          pdfFilename: pdf.filename,
-                          relatedEvidenceIds: draft.evidenceId ? [draft.evidenceId] : [],
-                          meta: metaForDebtDraft(draft, debt, String(recommendedScenario || '')),
-                        });
-                        addAuditEvent({
-                          partnerId: partner.id,
-                          actorType: layout === 'embedded' ? 'admin' : 'partner',
-                          actorEmail: undefined,
-                          action: 'letter.saved',
-                          entityType: 'letter',
-                          entityId: saved.id,
-                          meta: { kind: draft.type, pdfBlobRef: pdf.pdfBlobRef ?? null, filename: pdf.filename, debtId: debt?.id ?? null },
-                        });
-                        notifyPartnerLetterEvent({
-                          event: 'saved',
-                          letterIds: [saved.id],
-                          letterTitles: [title],
-                        });
-                        if (letterPartnerNote.trim()) {
-                          recordLetterPartnerNote({
-                            partnerId: partner.id,
-                            body: letterPartnerNote,
-                            title: `Saved: ${title}`,
-                            letterId: saved.id,
-                            debtCaseId: debt?.id,
-                            source: 'letter_save',
-                            authorType: layout === 'embedded' ? 'admin' : 'partner',
-                          });
-                          setLetterPartnerNote('');
-                        }
-
-                        setStoreVersion((v) => v + 1);
-                        setVaultHighlightLetterId(saved.id);
-                        setDraft(null);
-                        if (debtCenterMode && draft.type === 'validation') {
-                          window.setTimeout(() => {
-                            document.getElementById('fc-letter-studio-vault')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                          }, 120);
-                        } else {
-                          openVault();
-                        }
-                      } catch (e: any) {
-                        setDraftErr(e?.message || 'Failed to save letter.');
-                      } finally {
-                        setDraftBusy(false);
-                      }
+                      void saveDebtDraftPdf();
                     }}
                     className={`${FINELY_OS_PRIMARY_BTN} disabled:opacity-60 disabled:cursor-not-allowed`}
                     title="Save this letter (PDF) into Letters Vault"
                   >
-                    {draftBusy ? 'Saving…' : draft.letterId ? 'Save PDF → Vault' : 'Save PDF → Vault'}
+                    {draftBusy ? 'Saving…' : 'Save & generate letter'}
                   </button>
                   </div>
                 </div>
@@ -4792,6 +4835,23 @@ useEffect(() => {
         onClose={() => setPostGenerateHandoff(null)}
         onAction={handlePostGenerateLetterAction}
       />
+
+      {draftSavedPreviewLetter ? (
+        <LetterFullPreviewModal
+          letter={draftSavedPreviewLetter}
+          onClose={() => setDraftSavedPreviewLetter(null)}
+          onOpenPdfTab={
+            draftSavedPreviewLetter.pdfBlobRef
+              ? () =>
+                  void openBlobRefInNewTab({
+                    blobRef: draftSavedPreviewLetter.pdfBlobRef!,
+                    mimeType: 'application/pdf',
+                    preferSigned: true,
+                  })
+              : undefined
+          }
+        />
+      ) : null}
 
       {debtMailOpen && debtMailLetter && partner ? (
         <MailLetterModal
@@ -4911,79 +4971,8 @@ useEffect(() => {
                   setPdfChoice(null);
                   if (!choice) return;
                   if (choice.kind === 'debt') {
-                    // Save-only (no download)
-                    // Re-trigger the existing save handler by setting shouldPrompt false behavior inline:
-                    // We simply run the same logic as the button, without download.
                     if (!draft) return;
-                    const plain = htmlToPlainText(draft.html || '');
-                    if (!plain.trim()) return;
-                    setDraftBusy(true);
-                    setDraftErr(null);
-                    try {
-                      persistDebtSenderSnapshot();
-                      const createdAt = new Date().toISOString();
-                      const title =
-                        draft.title ||
-                        resolveDebtDraftTitle({
-                          specId: draft.specId,
-                          catalogId: draft.catalogId,
-                          track: draft.type,
-                          debtName: debt?.name,
-                        });
-
-                      const pdf = await generateTextPdfToVault({
-                        text: plain,
-                        filename: `FinelyCred_${draft.type}_${safePartnerName(debt?.name || 'letter')}_${today}.pdf`,
-                        meta: { partnerId: partner.id, debtId: debt?.id, type: draft.type },
-                      });
-
-                      const saved = upsertLetter({
-                        id: draft.letterId || newId('letter'),
-                        partnerId: partner.id,
-                        type: letterTypeForDebtDraft(draft.type),
-                        title,
-                        createdAt,
-                        body: plain,
-                        status: 'generated',
-                        pdfBlobRef: pdf.pdfBlobRef ?? undefined,
-                        pdfFilename: pdf.filename,
-                        relatedEvidenceIds: draft.evidenceId ? [draft.evidenceId] : [],
-                        meta: metaForDebtDraft(draft, debt, String(recommendedScenario || '')),
-                      });
-                      addAuditEvent({
-                        partnerId: partner.id,
-                        actorType: layout === 'embedded' ? 'admin' : 'partner',
-                        actorEmail: undefined,
-                        action: 'letter.saved',
-                        entityType: 'letter',
-                        entityId: saved.id,
-                        meta: { kind: draft.type, pdfBlobRef: pdf.pdfBlobRef ?? null, filename: pdf.filename, debtId: debt?.id ?? null },
-                      });
-                      notifyPartnerLetterEvent({
-                        event: 'saved',
-                        letterIds: [saved.id],
-                        letterTitles: [title],
-                      });
-                      if (letterPartnerNote.trim()) {
-                        recordLetterPartnerNote({
-                          partnerId: partner.id,
-                          body: letterPartnerNote,
-                          title: `Saved: ${title}`,
-                          letterId: saved.id,
-                          debtCaseId: debt?.id,
-                          source: 'letter_save',
-                          authorType: layout === 'embedded' ? 'admin' : 'partner',
-                        });
-                        setLetterPartnerNote('');
-                      }
-
-                      setDraft(null);
-                      openVault();
-                    } catch (e: any) {
-                      setDraftErr(e?.message || 'Failed to save letter.');
-                    } finally {
-                      setDraftBusy(false);
-                    }
+                    await saveDebtDraftPdf({ download: false });
                   }
                   if (choice.kind === 'dispute') {
                     await generateDisputeLetterForBureau(choice.bureau, { download: false });
@@ -5002,81 +4991,7 @@ useEffect(() => {
                   if (!choice) return;
                   if (choice.kind === 'debt') {
                     if (!draft) return;
-                    const plain = htmlToPlainText(draft.html || '');
-                    if (!plain.trim()) return;
-                    setDraftBusy(true);
-                    setDraftErr(null);
-                    try {
-                      persistDebtSenderSnapshot();
-                      const createdAt = new Date().toISOString();
-                      const title =
-                        draft.title ||
-                        resolveDebtDraftTitle({
-                          specId: draft.specId,
-                          catalogId: draft.catalogId,
-                          track: draft.type,
-                          debtName: debt?.name,
-                        });
-
-                      const pdf = await generateTextPdfToVault({
-                        text: plain,
-                        filename: `FinelyCred_${draft.type}_${safePartnerName(debt?.name || 'letter')}_${today}.pdf`,
-                        meta: { partnerId: partner.id, debtId: debt?.id, type: draft.type },
-                      });
-
-                      const saved = upsertLetter({
-                        id: draft.letterId || newId('letter'),
-                        partnerId: partner.id,
-                        type: letterTypeForDebtDraft(draft.type),
-                        title,
-                        createdAt,
-                        body: plain,
-                        status: 'generated',
-                        pdfBlobRef: pdf.pdfBlobRef ?? undefined,
-                        pdfFilename: pdf.filename,
-                        relatedEvidenceIds: draft.evidenceId ? [draft.evidenceId] : [],
-                        meta: metaForDebtDraft(draft, debt, String(recommendedScenario || '')),
-                      });
-                      addAuditEvent({
-                        partnerId: partner.id,
-                        actorType: layout === 'embedded' ? 'admin' : 'partner',
-                        actorEmail: undefined,
-                        action: 'letter.saved',
-                        entityType: 'letter',
-                        entityId: saved.id,
-                        meta: { kind: draft.type, pdfBlobRef: pdf.pdfBlobRef ?? null, filename: pdf.filename, debtId: debt?.id ?? null },
-                      });
-                      notifyPartnerLetterEvent({
-                        event: 'saved',
-                        letterIds: [saved.id],
-                        letterTitles: [title],
-                      });
-                      if (letterPartnerNote.trim()) {
-                        recordLetterPartnerNote({
-                          partnerId: partner.id,
-                          body: letterPartnerNote,
-                          title: `Saved: ${title}`,
-                          letterId: saved.id,
-                          debtCaseId: debt?.id,
-                          source: 'letter_save',
-                          authorType: layout === 'embedded' ? 'admin' : 'partner',
-                        });
-                        setLetterPartnerNote('');
-                      }
-
-                      if (pdf.pdfBlobRef) {
-                        await downloadFromBlobRef(pdf.pdfBlobRef, pdf.filename, 'application/pdf');
-                      } else {
-                        setDraftErr('Saved, but could not generate a download link.');
-                      }
-
-                      setDraft(null);
-                      openVault();
-                    } catch (e: any) {
-                      setDraftErr(e?.message || 'Failed to save letter.');
-                    } finally {
-                      setDraftBusy(false);
-                    }
+                    await saveDebtDraftPdf({ download: true });
                   }
 
                   if (choice.kind === 'dispute') {
@@ -6921,9 +6836,10 @@ useEffect(() => {
                       setTplSaveBusy(true);
                       try {
                         const createdAt = new Date().toISOString();
+                        const mailText = stripLetterVendorBranding(tplText);
                         const pdf = await generateTextPdfToVault({
-                          text: tplText,
-                          filename: `FinelyCred_Template_${tplSaveType}_${safePartnerName(partner.profile.fullName)}_${today}.pdf`,
+                          text: mailText,
+                          filename: `Letter_Template_${tplSaveType}_${safePartnerName(partner.profile.fullName)}_${today}.pdf`,
                           meta: { partnerId: partner.id, type: tplSaveType },
                         });
 

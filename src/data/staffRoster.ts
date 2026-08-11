@@ -337,15 +337,22 @@ function orderStaffPoolForRole(roleId: AgentPersonaId, pool: StaffMember[]): Sta
   return ordered;
 }
 
-/** On-duty human for a role at a given time. Never pins the first curated face 24/7 when off-shift. */
+/** Stable daily rotation index — same face all day, changes at midnight local. */
+function dailyRotationIndex(pool: StaffMember[], date: Date): number {
+  if (!pool.length) return 0;
+  const startOfYear = new Date(date.getFullYear(), 0, 0);
+  const dayOfYear = Math.floor((date.getTime() - startOfYear.getTime()) / 86_400_000);
+  return dayOfYear % pool.length;
+}
+
+/** On-duty human for a role at a given time. Daily shift rotation — never pins one face 24/7. */
 export function resolveStaffOnDuty(roleId: AgentPersonaId, date = new Date()): StaffMember | null {
   const pool = orderStaffPoolForRole(roleId, listStaffByRole(roleId));
   if (!pool.length) return null;
   const onShift = pool.filter((s) => isStaffOnShift(s, date));
-  // Curated order while overlapping (Cameron day before Alex evening). After 17:00 only Alex matches.
-  if (onShift.length) return onShift[0]!;
+  if (onShift.length) return onShift[dailyRotationIndex(onShift, date)]!;
   const afterHours = preferAfterHoursStaff(pool);
-  return afterHours[date.getHours() % afterHours.length] ?? null;
+  return afterHours[dailyRotationIndex(afterHours, date)] ?? null;
 }
 
 export { resolveStaffOnDutyForLane, resolveStaffForBankruptcyScenario, resolveStaffForLaneFocus } from './staffLaneAssignment';

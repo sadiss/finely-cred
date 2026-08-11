@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Maximize2, Minimize2, ZoomIn, ZoomOut } from 'lucide-react';
 import { highlightMissingLetterPlaceholders } from '../../lib/letterSenderBlock';
 import { plainTextToHtml, sanitizeHtmlForPreview } from '../../utils/richText';
+import { stripLetterVendorBranding, stripLetterVendorBrandingHtml } from '../../lib/letterBodySafety';
 import { RichTextEditor } from '../ui/RichTextEditor';
 
 const BRACKET_PLACEHOLDER_RE = /\[[A-Z0-9 #/.,&'-]+\]/g;
@@ -61,10 +62,10 @@ export function DebtLetterPreview({
   const previewHtml = useMemo(() => {
     if (html?.trim()) {
       return highlightBracketPlaceholders(
-        highlightMissingLetterPlaceholders(sanitizeHtmlForPreview(html)),
+        highlightMissingLetterPlaceholders(sanitizeHtmlForPreview(stripLetterVendorBrandingHtml(html))),
       );
     }
-    return textToPreviewHtml(text || '');
+    return textToPreviewHtml(stripLetterVendorBranding(text || ''));
   }, [html, text]);
 
   const accentBorder =

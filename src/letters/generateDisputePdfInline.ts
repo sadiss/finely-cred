@@ -7,6 +7,7 @@ import { downloadBlob } from '../utils/download';
 import { bureauShortCode } from '../utils/bureaus';
 import { classifyCandidateNegativeType } from '../creditReports/negativePlaybooks';
 import { aggregateLetterLaws } from '../domain/bureauDisputeLawResolver';
+import { stripLetterVendorBranding } from '../lib/letterBodySafety';
 
 export type DisputeLetterItem = {
   candidate: DisputeCandidate;
@@ -172,7 +173,8 @@ export async function downloadInlineDisputeLetterPdf(args: {
       accountLabel: args.items.length === 1 ? args.items[0]?.candidate.account : undefined,
     });
   })();
-  const intro = (args.introOverride || '').trim() ? args.introOverride!.trim() + '\n' : introDefault + '\n';
+  const introRaw = (args.introOverride || '').trim() ? args.introOverride!.trim() + '\n' : introDefault + '\n';
+  const intro = stripLetterVendorBranding(introRaw);
 
   drawWrapped(intro, { color: rgb(0.12, 0.12, 0.12) });
   y -= 12;
@@ -218,7 +220,8 @@ export async function downloadInlineDisputeLetterPdf(args: {
       : args.tone === 'conversational'
         ? `Please review the exhibit and numbered reasons and delete what is reporting wrong. Send me an updated report in writing within the time required by law (typically 30 days).\n\nPlease do not share or sell my personal information beyond what is needed to handle this dispute.`
         : `Please review the attached exhibits and numbered factual reasons and delete inaccurate reporting as described. Send written confirmation and an updated report within the time period required by applicable law (typically 30 days).\n\nPlease do not sell or share my personal information beyond what is required to process this dispute.`;
-  const footer = (args.footerOverride || '').trim() ? args.footerOverride!.trim() + '\n' : footerDefault;
+  const footerRaw = (args.footerOverride || '').trim() ? args.footerOverride!.trim() + '\n' : footerDefault;
+  const footer = stripLetterVendorBranding(footerRaw);
 
   // Items with inline evidence + reasons
   for (let i = 0; i < args.items.length; i++) {
@@ -334,7 +337,7 @@ export async function downloadInlineDisputeLetterPdf(args: {
     }
 
     // Optional narrative (AI drafted or user-entered) under reasons.
-    const narrative = (item.narrative ?? '').trim();
+    const narrative = stripLetterVendorBranding((item.narrative ?? '').trim());
     if (narrative) {
       ensureSpace(20);
       page.drawText('Narrative:', {
@@ -364,18 +367,14 @@ export async function downloadInlineDisputeLetterPdf(args: {
   y -= 10;
   drawWrapped(footer, { color: rgb(0.12, 0.12, 0.12) });
   y -= 14;
-  drawWrapped(`Sincerely,\n${senderName}\n`, { bold: false });
-  drawWrapped('Generated for internal dispute workflow. Not legal advice. Verify facts before mailing or submission.', {
-    size: 9,
-    color: rgb(0.45, 0.45, 0.45),
-  });
+  drawWrapped(`Sincerely,\n\n${senderName}\n`, { bold: false });
 
   const pdfBytes = await pdfDoc.save();
   const copy = Uint8Array.from(pdfBytes);
   const blob = new Blob([copy], { type: 'application/pdf' });
   const filename =
     args.filename ??
-    `FinelyCred_${sanitizeFilename(senderName)}_${bureauShortCode(args.bureau)}_${sanitizeFilename(args.round)}.pdf`;
+    `Dispute_${sanitizeFilename(senderName)}_${bureauShortCode(args.bureau)}_${sanitizeFilename(args.round)}.pdf`;
 
   let pdfBlobRef: string | null = null;
   const persist = args.persistToVault ?? true;

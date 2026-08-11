@@ -1,7 +1,7 @@
 import type { User } from '@supabase/supabase-js';
 import { isAdminEmail } from '../auth/admin';
 import type { PartnerRoute, PartnerRouteIntake } from '../domain/partners';
-import { claimPartnerViaEdge, createPartner, findPartnerByClaimedUserId, findPartnerByEmail, getPartner, upsertPartner } from '../data/partnersRepo';
+import { claimPartnerViaEdge, createPartner, findPartnerByClaimedUserId, findPartnerByEmail, adminGetPartner, upsertPartner } from '../data/partnersRepo';
 import { ensurePartnerTrialEntitlements } from '../billing/entitlements';
 import { ensureEnterpriseDefaultsOnce } from '../data/seedEnterpriseDefaults';
 import { ensureVendorCatalogDefaultsOnce } from '../data/vendorsRepo';
@@ -109,7 +109,7 @@ export async function getOrCreatePartnerForSession(args: { user: User | null }):
   if (isAdminEmail(email)) {
     const overrideId = (localStorage.getItem(ADMIN_PARTNER_OVERRIDE_KEY) || '').trim();
     if (overrideId) {
-      const p = await getPartner(overrideId);
+      const p = await adminGetPartner(overrideId);
       if (p) return p;
     }
     return null;
@@ -126,7 +126,7 @@ export async function getOrCreatePartnerForSession(args: { user: User | null }):
     if (adminResult.data) {
       const overrideId = (localStorage.getItem(ADMIN_PARTNER_OVERRIDE_KEY) || '').trim();
       if (overrideId) {
-        const p = await getPartner(overrideId);
+        const p = await adminGetPartner(overrideId);
         if (p) return p;
       }
       return null;

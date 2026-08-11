@@ -6,7 +6,7 @@ import { getForeclosureQualifiedWrittenRequestBody } from './specialized/foreclo
 import { getSecuritizationAnswerBody } from './specialized/securitizationBodies';
 import { getCounterclaimOutlineBody } from './specialized/counterclaimBodies';
 import { getCreditCollateralBureauBody } from './specialized/creditCollateralBureauBodies';
-import { isCourtDayKitId, scrubLetterBodyForMail } from '../lib/letterBodySafety';
+import { isCourtDayKitId, stripLetterVendorBranding } from '../lib/letterBodySafety';
 import { formatLetterRecipientBlock, resolveLetterMailRecipient } from '../lib/letterMailingAddress';
 
 export const COURT_DAY_KIT_UI_ONLY_ERROR =
@@ -122,7 +122,7 @@ export function generateCatalogLetterBody(catalogId: string, args: DebtLetterBui
       },
       safeArgs,
     );
-    return scrubLetterBodyForMail(body);
+    return stripLetterVendorBranding(body);
   }
 
   if (entry.tier === 'full' && entry.letterType) {
@@ -135,7 +135,7 @@ export function generateCatalogLetterBody(catalogId: string, args: DebtLetterBui
     const creditBody = getCreditCollateralBureauBody(entry.id, safeArgs);
     body = creditBody || genericOutline(entry, safeArgs);
   }
-  return scrubLetterBodyForMail(body);
+  return stripLetterVendorBranding(body);
 }
 
 export function resolveCatalogDraftId(id: string): string {

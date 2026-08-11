@@ -31,6 +31,7 @@ import { EvidencePickerModal } from '../../components/evidence/EvidencePickerMod
 import { upsertLetter } from '../../data/lettersRepo';
 import { newId } from '../../utils/ids';
 import { generateTextPdfToVault } from '../../letters/generateTextPdf';
+import { stripLetterVendorBranding } from '../../lib/letterBodySafety';
 import { getCanonicalPartnerIdentity } from '../../utils/canonicalPartnerIdentity';
 import { getCustomFieldValues } from '../../data/customFieldValuesRepo';
 import { FINELY_TENANT_ID } from '../../domain/tenants';
@@ -414,9 +415,10 @@ export default function PartnerDebtDetailPage() {
                           const createdAt = new Date().toISOString();
                           const spec = letterSpecsByType.get(draft.specId);
                           const title = spec ? `${spec.title} • ${debt.name}` : `${draft.type} letter • ${debt.name}`;
+                          const mailBody = stripLetterVendorBranding(draft.text);
                           const pdf = await generateTextPdfToVault({
-                            text: draft.text,
-                            filename: `FinelyCred_${draft.type}_${debt.name}_${today}.pdf`,
+                            text: mailBody,
+                            filename: `Letter_${draft.type}_${debt.name}_${today}.pdf`,
                             meta: { partnerId: partner.id, debtId: debt.id, type: draft.type },
                           });
 
@@ -426,7 +428,7 @@ export default function PartnerDebtDetailPage() {
                             type: draft.type,
                             title,
                             createdAt,
-                            body: draft.text,
+                            body: mailBody,
                             status: 'generated',
                             pdfBlobRef: pdf.pdfBlobRef ?? undefined,
                             pdfFilename: pdf.filename,
@@ -1002,9 +1004,10 @@ export default function PartnerDebtDetailPage() {
                             const createdAt = new Date().toISOString();
                             const spec = letterSpecsByType.get(draft.specId);
                             const title = spec ? `${spec.title} • ${debt.name}` : `${draft.type} letter • ${debt.name}`;
+                            const mailBody = stripLetterVendorBranding(draft.text);
                             const pdf = await generateTextPdfToVault({
-                              text: draft.text,
-                              filename: `FinelyCred_${draft.type}_${debt.name}_${today}.pdf`,
+                              text: mailBody,
+                              filename: `Letter_${draft.type}_${debt.name}_${today}.pdf`,
                               meta: { partnerId: partner.id, debtId: debt.id, type: draft.type },
                             });
 
@@ -1014,7 +1017,7 @@ export default function PartnerDebtDetailPage() {
                               type: draft.type,
                               title,
                               createdAt,
-                              body: draft.text,
+                              body: mailBody,
                               status: 'generated',
                               pdfBlobRef: pdf.pdfBlobRef ?? undefined,
                               pdfFilename: pdf.filename,
