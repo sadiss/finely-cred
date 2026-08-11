@@ -10,9 +10,9 @@ const LAST_STOP_KEY = 'finely.marketing_desk_last_stop_on_reply.v1';
 /** Preferred Desk sequence tiles (≤6) — plain English names. */
 const DESK_SEQUENCE_TILES: Array<{ id: string; name: string }> = [
   { id: 'seq_cold_prospect', name: 'Cold' },
+  { id: 'seq_invite_opt_in', name: 'Link-first invite' },
   { id: 'seq_inbound_nurture', name: 'Inbound welcome' },
   { id: 'seq_partner_onboard_keepwarm', name: 'Partner onboard' },
-  { id: 'seq_partner_monthly_education', name: 'Partner education' },
   { id: 'seq_offer_pack', name: 'Offer' },
   { id: 'seq_booked_confirm', name: 'Booked' },
 ];

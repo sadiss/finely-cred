@@ -1,0 +1,39 @@
+{
+  "id": "finely-launch-demo",
+  "title": "Finely Cred launch presenter demo",
+  "label": "Presenter demo (local TTS)",
+  "kind": "presenter_demo",
+  "cinematicApi": false,
+  "output": "/demos/finely-launch-demo.webm",
+  "durationSec": 28,
+  "scenes": [
+    {
+      "id": "hook",
+      "beat": "Hook the pain point",
+      "caption": "Your credit path should feel organized.",
+      "durationSec": 9,
+      "motion": "zoom-in",
+      "voice": "windows-sapi"
+    },
+    {
+      "id": "path",
+      "beat": "Show the organized path",
+      "caption": "Dispute letters, portal tools, one lane at a time.",
+      "durationSec": 10,
+      "motion": "pan-left",
+      "voice": "windows-sapi"
+    },
+    {
+      "id": "cta",
+      "beat": "Clear CTA",
+      "caption": "Start your free guide or book a strategy call.",
+      "durationSec": 9,
+      "motion": "zoom-out",
+      "voice": "windows-sapi"
+    }
+  ],
+  "voiceWarnings": [],
+  "generatedAt": "2026-08-11T05:52:44.251Z",
+  "generator": "scripts/generate-launch-demo-video.mjs",
+  "complianceNote": "Results vary · not legal advice · educational only"
+}

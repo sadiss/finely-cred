@@ -34,6 +34,10 @@ import {
   finelyOsStatusChip,
   type FinelyOsDeckAccent,
 } from '../../features/os/finelyOsLightUi';
+import {
+  debtLetterCardFactsFromLetter,
+  formatDebtLetterStatLine,
+} from '../../lib/debtLetterCardFacts';
 
 function fmtWhen(iso: string) {
   try {
@@ -129,6 +133,93 @@ function workflowSteps(status: LetterStatus | string | undefined, hasPdf: boolea
   ];
 }
 
+export const SAVED_LETTER_DECK_ACCENTS: FinelyOsDeckAccent[] = ['emerald', 'sky', 'violet', 'amber', 'fuchsia', 'rose'];
+
+function deckAccentFace(accent: FinelyOsDeckAccent) {
+  const map: Record<
+    FinelyOsDeckAccent,
+    {
+      hover: string;
+      highlight: string;
+      bar: string;
+      orb: string;
+      paper: string;
+      paperBar: string;
+      openText: string;
+      roundChip: string;
+      iconShadow: string;
+    }
+  > = {
+    emerald: {
+      hover: 'hover:border-emerald-400/35',
+      highlight: 'ring-2 ring-emerald-400/50 scale-[1.02] border-emerald-300/50',
+      bar: 'bg-gradient-to-b from-emerald-300 via-emerald-500 to-teal-500',
+      orb: 'bg-emerald-500/10',
+      paper: 'border-emerald-400/35 shadow-[0_0_12px_-2px_rgba(16,185,129,0.45)]',
+      paperBar: 'from-emerald-500/50 via-teal-400/40 to-emerald-500/30',
+      openText: 'text-emerald-200',
+      roundChip: 'border-emerald-400/25 bg-emerald-500/15 text-emerald-100',
+      iconShadow: 'shadow-[0_0_14px_-4px_rgba(16,185,129,0.55)]',
+    },
+    sky: {
+      hover: 'hover:border-sky-400/35',
+      highlight: 'ring-2 ring-sky-400/50 scale-[1.02] border-sky-300/50',
+      bar: 'bg-gradient-to-b from-sky-300 via-sky-500 to-cyan-500',
+      orb: 'bg-sky-500/10',
+      paper: 'border-sky-400/35 shadow-[0_0_12px_-2px_rgba(14,165,233,0.45)]',
+      paperBar: 'from-sky-500/50 via-cyan-400/40 to-sky-500/30',
+      openText: 'text-sky-200',
+      roundChip: 'border-sky-400/25 bg-sky-500/15 text-sky-100',
+      iconShadow: 'shadow-[0_0_14px_-4px_rgba(14,165,233,0.55)]',
+    },
+    violet: {
+      hover: 'hover:border-violet-400/35',
+      highlight: 'ring-2 ring-violet-400/50 scale-[1.02] border-violet-300/50',
+      bar: 'bg-gradient-to-b from-violet-300 via-violet-500 to-purple-500',
+      orb: 'bg-violet-500/10',
+      paper: 'border-violet-400/35 shadow-[0_0_12px_-2px_rgba(139,92,246,0.45)]',
+      paperBar: 'from-violet-500/50 via-purple-400/40 to-violet-500/30',
+      openText: 'text-violet-200',
+      roundChip: 'border-violet-400/25 bg-violet-500/15 text-violet-100',
+      iconShadow: 'shadow-[0_0_14px_-4px_rgba(139,92,246,0.55)]',
+    },
+    amber: {
+      hover: 'hover:border-amber-400/35',
+      highlight: 'ring-2 ring-amber-400/50 scale-[1.02] border-amber-300/50',
+      bar: 'bg-gradient-to-b from-amber-300 via-amber-500 to-orange-500',
+      orb: 'bg-amber-500/10',
+      paper: 'border-amber-400/35 shadow-[0_0_12px_-2px_rgba(245,158,11,0.45)]',
+      paperBar: 'from-amber-500/50 via-orange-400/40 to-amber-500/30',
+      openText: 'text-amber-200',
+      roundChip: 'border-amber-400/25 bg-amber-500/15 text-amber-100',
+      iconShadow: 'shadow-[0_0_14px_-4px_rgba(245,158,11,0.55)]',
+    },
+    fuchsia: {
+      hover: 'hover:border-fuchsia-400/35',
+      highlight: 'ring-2 ring-fuchsia-400/50 scale-[1.02] border-fuchsia-300/50',
+      bar: 'bg-gradient-to-b from-fuchsia-300 via-fuchsia-500 to-violet-500',
+      orb: 'bg-fuchsia-500/10',
+      paper: 'border-fuchsia-400/35 shadow-[0_0_12px_-2px_rgba(217,70,239,0.45)]',
+      paperBar: 'from-fuchsia-500/50 via-violet-400/40 to-fuchsia-500/30',
+      openText: 'text-fuchsia-200',
+      roundChip: 'border-fuchsia-400/25 bg-fuchsia-500/15 text-fuchsia-100',
+      iconShadow: 'shadow-[0_0_14px_-4px_rgba(217,70,239,0.55)]',
+    },
+    rose: {
+      hover: 'hover:border-rose-400/35',
+      highlight: 'ring-2 ring-rose-400/50 scale-[1.02] border-rose-300/50',
+      bar: 'bg-gradient-to-b from-rose-300 via-rose-500 to-pink-500',
+      orb: 'bg-rose-500/10',
+      paper: 'border-rose-400/35 shadow-[0_0_12px_-2px_rgba(244,63,94,0.45)]',
+      paperBar: 'from-rose-500/50 via-pink-400/40 to-rose-500/30',
+      openText: 'text-rose-200',
+      roundChip: 'border-rose-400/25 bg-rose-500/15 text-rose-100',
+      iconShadow: 'shadow-[0_0_14px_-4px_rgba(244,63,94,0.55)]',
+    },
+  };
+  return map[accent];
+}
+
 export type SavedLetterCardProps = {
   letter: LetterRecord;
   id?: string;
@@ -136,6 +227,9 @@ export type SavedLetterCardProps = {
   defaultSnapshotOpen?: boolean;
   autoOpenPreview?: boolean;
   evidence?: EvidenceItem[];
+  deckAccent?: FinelyOsDeckAccent;
+  /** Vault strip registers draft preview opener for body-only letters. */
+  onOpenLetter?: (openPreview: () => void) => (() => void) | void;
   onOpenPdf?: () => void;
   onMail?: () => void;
   onArchive?: () => void;
@@ -154,6 +248,8 @@ export function SavedLetterCard({
   defaultSnapshotOpen = false,
   autoOpenPreview = false,
   evidence = [],
+  deckAccent = 'fuchsia',
+  onOpenLetter,
   onOpenPdf,
   onMail,
   onArchive,
@@ -170,6 +266,7 @@ export function SavedLetterCard({
   const [deleteOpen, setDeleteOpen] = useState(false);
   const meta = typeMeta(letter.type);
   const Icon = meta.icon;
+  const face = deckAccentFace(deckAccent);
   const hasPdf = Boolean(letter.pdfBlobRef);
   const canOpenContent = hasPdf || Boolean(letter.body);
   const bureau =
@@ -185,6 +282,7 @@ export function SavedLetterCard({
       ? String((letter.meta as { tone?: string }).tone || '')
       : '';
   const stats = disputeStats(letter);
+  const debtFacts = debtLetterCardFactsFromLetter(letter);
   const bureauUi = bureauTheme(bureau);
   const steps = workflowSteps(letter.status, hasPdf);
   const delivery = fmtDate(letter.mailing?.expectedDeliveryDate);
@@ -214,6 +312,14 @@ export function SavedLetterCard({
     }
   }, [autoOpenPreview, hasPdf, letter.body]);
 
+  useEffect(() => {
+    if (!onOpenLetter) return;
+    const openPreview = () => {
+      setDetailOpen(false);
+      setTextOpen(true);
+    };
+    return onOpenLetter(openPreview) ?? undefined;
+  }, [onOpenLetter, letter.id]);
 
   useEffect(() => {
     if (!highlighted) return;
@@ -223,40 +329,64 @@ export function SavedLetterCard({
 
   const statLine = stats
     ? `${stats.items} items · ${stats.evidence} proof · ${stats.reasons} reasons`
-    : hasPdf
-      ? 'PDF stored'
-      : 'Draft letter';
+    : debtFacts
+      ? formatDebtLetterStatLine(debtFacts)
+      : hasPdf
+        ? 'PDF stored'
+        : 'Draft letter';
 
   return (
     <>
-      <button
-        id={id}
-        type="button"
-        onClick={() => setDetailOpen(true)}
-        className={`group relative min-h-[100px] overflow-hidden rounded-2xl border border-white/10 bg-[#090d12] text-left shadow-[0_8px_24px_-12px_rgba(0,0,0,0.65)] transition-all hover:scale-[1.02] hover:border-fuchsia-400/35 ${
-          highlighted ? 'ring-2 ring-fuchsia-400/50 scale-[1.02] border-fuchsia-300/50' : ''
-        }`}
-      >
-        <div className="absolute inset-y-0 left-0 w-1 bg-gradient-to-b from-fuchsia-300 via-fuchsia-500 to-violet-500" />
-        <div className="absolute -right-6 -top-6 h-20 w-20 rounded-full bg-fuchsia-500/10 blur-2xl" />
+      <div className="group relative">
+        {onDelete ? (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setDeleteOpen(true);
+            }}
+            className="absolute top-2 right-2 z-10 inline-flex h-7 w-7 items-center justify-center rounded-lg border border-red-500/25 bg-black/70 text-red-200/90 opacity-0 transition-all hover:bg-red-500/15 group-hover:opacity-100 focus:opacity-100"
+            aria-label="Delete letter"
+            title="Delete letter"
+          >
+            <Trash2 size={13} />
+          </button>
+        ) : null}
+        <button
+          id={id}
+          type="button"
+          onClick={() => setDetailOpen(true)}
+          className={`group relative min-h-[100px] w-full overflow-hidden rounded-2xl border border-white/10 bg-[#090d12] text-left shadow-[0_8px_24px_-12px_rgba(0,0,0,0.65)] transition-all hover:scale-[1.02] ${face.hover} ${
+            highlighted ? face.highlight : ''
+          }`}
+        >
+        <div className={`absolute inset-y-0 left-0 w-1 ${face.bar}`} />
+        <div className={`absolute -right-6 -top-6 h-20 w-20 rounded-full blur-2xl ${face.orb}`} />
         <div className="relative flex h-full items-stretch gap-2.5 p-3 pl-4">
-          <div className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl border ${meta.chip}`}>
-            <Icon size={16} className="text-current" />
+          <div
+            className={`relative grid h-11 w-11 shrink-0 place-items-center rounded-xl border ${face.iconShadow} ${meta.chip}`}
+          >
+            <div className="pointer-events-none absolute inset-0 rounded-xl bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.22),transparent_55%)]" />
+            <Icon size={17} strokeWidth={2.25} className="relative text-current drop-shadow-[0_1px_2px_rgba(0,0,0,0.45)]" />
           </div>
 
           <div className="min-w-0 flex-1 flex flex-col justify-between gap-1.5">
             <div className="flex items-start justify-between gap-2">
               <div className="min-w-0">
                 <div className={`truncate text-[10px] font-black uppercase tracking-[0.14em] ${FINELY_OS_ENTITY_SUBLABEL}`}>Generated letter</div>
-                <div className={`truncate text-[12px] font-black leading-tight ${FINELY_OS_ENTITY_VALUE}`}>{letter.title}</div>
+                <div className="truncate text-[12px] font-black leading-tight text-white/95">{letter.title}</div>
                 <div className={`truncate text-[9px] normal-case ${FINELY_OS_ENTITY_BODY}`}>{fmtWhen(letter.createdAt)}</div>
               </div>
-              <div className="h-10 w-8 shrink-0 rounded-sm border border-fuchsia-400/20 bg-[#120a18] shadow-md overflow-hidden rotate-2 group-hover:rotate-0 transition-transform" aria-hidden>
-                <div className="h-1 bg-fuchsia-500/30" />
+              <div
+                className={`relative h-10 w-8 shrink-0 rounded-sm border bg-[#120a18] overflow-hidden rotate-2 group-hover:rotate-0 transition-transform ${face.paper}`}
+                aria-hidden
+              >
+                <div className={`h-1 bg-gradient-to-r ${face.paperBar}`} />
+                <div className="absolute bottom-0.5 right-0.5 h-2.5 w-2.5 rounded-full border border-emerald-400/40 bg-emerald-500/25" />
                 <div className="p-0.5 space-y-0.5">
-                  <div className="h-0.5 rounded bg-white/15 w-full" />
-                  <div className="h-0.5 rounded bg-white/10 w-4/5" />
-                  <div className="h-0.5 rounded bg-white/10 w-full" />
+                  <div className="h-0.5 rounded bg-white/20 w-full" />
+                  <div className="h-0.5 rounded bg-white/12 w-4/5" />
+                  <div className="h-0.5 rounded bg-white/12 w-full" />
                 </div>
               </div>
             </div>
@@ -264,19 +394,20 @@ export function SavedLetterCard({
             <div className="flex flex-wrap items-center gap-1">
               <span className={finelyOsMicroStat(meta.accent)}>{meta.label}</span>
               {bureau ? <span className={finelyOsMicroStat(bureauUi.badge)}>{bureauFullName(bureau as Bureau)}</span> : null}
-              {round ? <span className="rounded-md border border-fuchsia-400/25 bg-fuchsia-500/15 px-1.5 py-0.5 text-[9px] font-black uppercase text-fuchsia-100">{round}</span> : null}
+              {round ? <span className={`rounded-md border px-1.5 py-0.5 text-[9px] font-black uppercase ${face.roundChip}`}>{round}</span> : null}
               <span className="rounded-md border border-emerald-400/20 bg-emerald-500/10 px-1.5 py-0.5 text-[9px] font-black uppercase text-emerald-100">{hasPdf ? 'PDF ready' : 'Draft'}</span>
             </div>
 
             <div className="flex items-center justify-between gap-2">
               <span className={`truncate text-[9px] ${FINELY_OS_ENTITY_BODY}`}>{statLine}</span>
-              <span className="inline-flex shrink-0 items-center gap-0.5 text-[9px] font-black uppercase tracking-widest text-fuchsia-200">
+              <span className={`inline-flex shrink-0 items-center gap-0.5 text-[9px] font-black uppercase tracking-widest ${face.openText}`}>
                 <Eye size={11} /> Open letter
               </span>
             </div>
           </div>
         </div>
-      </button>
+        </button>
+      </div>
 
       {detailOpen
         ? createPortal(
@@ -297,7 +428,7 @@ export function SavedLetterCard({
                     {bureau ? <span className={finelyOsMicroStat(bureauUi.badge)}>{bureauFullName(bureau as Bureau)}</span> : null}
                     <span className={finelyOsStatusChip(toneChip)}>{statusLabel(letter.status)}</span>
                   </div>
-                  <h3 className={`mt-2 text-lg sm:text-xl font-black leading-tight ${FINELY_OS_ENTITY_VALUE}`}>{letter.title}</h3>
+                  <h3 className="mt-2 text-lg sm:text-xl font-black leading-tight text-white/95">{letter.title}</h3>
                   <p className={`mt-1 text-xs ${FINELY_OS_ENTITY_BODY}`}>
                     {fmtWhen(letter.createdAt)}
                     {round ? ` · ${round}` : ''}
@@ -313,12 +444,29 @@ export function SavedLetterCard({
 
             <div className="max-h-[72vh] overflow-y-auto p-4 sm:p-5 space-y-4">
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                {[
-                  { label: 'PDF', value: hasPdf ? 'Ready' : '—' },
-                  { label: 'Items', value: stats?.items ?? '—' },
-                  { label: 'Proof', value: stats?.evidence ?? '—' },
-                  { label: 'Reasons', value: stats?.reasons ?? '—' },
-                ].map((kpi, i) => (
+                {(debtFacts
+                  ? [
+                      { label: 'PDF', value: hasPdf ? 'Ready' : '—' },
+                      {
+                        label: 'Principle',
+                        value: debtFacts.keyPrinciple || '—',
+                      },
+                      {
+                        label: 'When',
+                        value: debtFacts.whenToUse[0] || '—',
+                      },
+                      {
+                        label: 'Laws',
+                        value: debtFacts.laws.length ? debtFacts.laws.slice(0, 2).join(' · ') : '—',
+                      },
+                    ]
+                  : [
+                      { label: 'PDF', value: hasPdf ? 'Ready' : '—' },
+                      { label: 'Items', value: stats?.items ?? '—' },
+                      { label: 'Proof', value: stats?.evidence ?? '—' },
+                      { label: 'Reasons', value: stats?.reasons ?? '—' },
+                    ]
+                ).map((kpi, i) => (
                   <div key={kpi.label} className={`${finelyOsDeckTile(['fuchsia', 'sky', 'emerald', 'amber'][i] as FinelyOsDeckAccent)} !min-h-0 p-3`}>
                     <div className={FINELY_OS_ENTITY_SUBLABEL}>{kpi.label}</div>
                     <div className={`mt-1 text-lg font-black ${FINELY_OS_ENTITY_VALUE}`}>{kpi.value}</div>

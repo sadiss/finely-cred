@@ -15,6 +15,7 @@ import { getActiveTenantId } from '../../tenancy/activeTenant';
 import { FINELY_TENANT_ID } from '../../domain/tenants';
 import { getStaffCommsCapabilities } from '../../lib/staffCommsPermissions';
 import { ClickableCard } from '../../components/ui';
+import { AdminPartnerViewAsButton } from '../../components/admin/AdminPartnerViewAsButton';
 import { FinelyOsPageFooter } from '../../features/os/FinelyOsPageFooter';
 import { FinelyOsDataErrorBanner } from '../../features/os/FinelyOsDataErrorBanner';
 import { FinelyOsAlertBanner } from '../../features/os/FinelyOsAlertBanner';
@@ -23,6 +24,7 @@ import { FinelyUnifiedHubLayout } from '../../features/unified/FinelyUnifiedHubL
 import { FinelyNowDoThisStrip } from '../../components/tours/FinelyNowDoThisStrip';
 import { FinelyNoticedStrip } from '../../components/tours/FinelyNoticedStrip';
 import { buildPartnersAdminNoticedItems } from '../../lib/finelyProactiveSignals';
+import { ensureMaxJeanBaptistePartnerAsync } from '../../data/maxJeanBaptistePartnerSeed';
 import {
   derivePartnerSignupStatus,
   healClaimedPartnersStuckPending,
@@ -99,19 +101,23 @@ export default function PartnersListPage() {
     if (!auth.user) { setLoading(false); return; }
     setLoading(true);
     setFetchErr(null);
-    fetchAllPartnersAsAdmin()
-      .then(async (data) => {
-        try {
-          const healed = await healClaimedPartnersStuckPending(data);
-          setPartners(healed.partners);
-        } catch {
-          setPartners(data);
-        }
-        setLoading(false);
-      })
-      .catch((e: unknown) => {
-        setFetchErr((e as Error)?.message || 'Could not load partners.');
-        setLoading(false);
+    void ensureMaxJeanBaptistePartnerAsync()
+      .catch(() => undefined)
+      .finally(() => {
+        fetchAllPartnersAsAdmin()
+          .then(async (data) => {
+            try {
+              const healed = await healClaimedPartnersStuckPending(data);
+              setPartners(healed.partners);
+            } catch {
+              setPartners(data);
+            }
+            setLoading(false);
+          })
+          .catch((e: unknown) => {
+            setFetchErr((e as Error)?.message || 'Could not load partners.');
+            setLoading(false);
+          });
       });
   }, [auth.user, fetchKey]);
 
@@ -516,6 +522,22 @@ export default function PartnersListPage() {
                 ) : null}
 
                 <div className="mt-4 flex flex-wrap gap-2" role="presentation" onClick={(e) => e.stopPropagation()}>
+                  <AdminPartnerViewAsButton partnerId={p.id} className={`${FINELY_OS_SUCCESS_BTN} cursor-pointer inline-flex`} />
+                  <span
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        navigate(`/admin/partners/${p.id}?tab=profile#admin-partner-access-panel`);
+                      }
+                    }}
+                    onClick={() => navigate(`/admin/partners/${p.id}?tab=profile#admin-partner-access-panel`)}
+                    className={`${FINELY_OS_SECONDARY_BTN} cursor-pointer inline-flex`}
+                    title="Grant modules and portal access (Profile tab)"
+                  >
+                    Portal access <ArrowRight size={12} />
+                  </span>
                   <span
                     role="button"
                     tabIndex={0}

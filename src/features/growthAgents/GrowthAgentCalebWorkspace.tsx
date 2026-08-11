@@ -19,6 +19,7 @@ import { buildGrowthResultsSnapshot } from './growthResultsMetrics';
 import { LeadEngineOneButton } from '../leadIntel/LeadEngineOneButton';
 import { LeadIntelCopilot } from '../leadIntel/LeadIntelCopilot';
 import { LeadIntelHub } from '../leadIntel/LeadIntelHub';
+import { LeadIntelSwarmDashboard } from '../overnight50/LeadIntelSwarmDashboard';
 import { buildHuntQueries } from '../leadIntel/leadEngineAutonomy';
 import { listProspects } from '../../data/crmProspectsRepo';
 import { GrowthAgentInfraStrip } from './GrowthAgentInfraStrip';
@@ -28,12 +29,25 @@ import {
   FINELY_OS_ENTITY_SUBLABEL,
   FINELY_OS_ENTITY_VALUE,
   FINELY_OS_SECONDARY_BTN,
+  FINELY_OS_PRIMARY_BTN,
   finelyOsCatalogCardCompact,
   finelyOsMicroStat,
 } from '../os/finelyOsLightUi';
 import { FinelyOsPaginatedStack } from '../os/FinelyOsPaginatedStack';
 import { GROWTH_AGENT_WAVE0_LANE } from './growthAgentRegistry';
 import { buildGrowthHuntQueryFromPillar, resolveGrowthPillarVideoRecord } from './growthPillarVideoPack';
+import { GrowthAgentCalebCommandGuide } from './GrowthAgentCalebCommandGuide';
+import {
+  calebAutoStatusLine,
+  isCalebAutoFindEnabled,
+  isColdOutboundAutopilotEnabled,
+  runCalebAutoFindIfDue,
+  setCalebAutoFindEnabled,
+  setColdOutboundAutopilotEnabled,
+} from './calebAutoFind';
+import { MarketingConsentChip } from '../marketingDesk/MarketingConsentChip';
+import { getDailyQuotaProgress, GROWTH_DAILY_QUOTA_TOTAL } from './growthDailyQuota';
+import { calebTodaysMissionPreview, runCalebTodaysMission } from './calebQuotaMission';
 
 export function GrowthAgentCalebWorkspace() {
   const navigate = useNavigate();
@@ -42,7 +56,20 @@ export function GrowthAgentCalebWorkspace() {
   const [finding, setFinding] = useState(false);
   const [testMsg, setTestMsg] = useState<string | null>(null);
   const [findMsg, setFindMsg] = useState<string | null>(null);
+  const [missionBusy, setMissionBusy] = useState(false);
+  const [missionMsg, setMissionMsg] = useState<string | null>(null);
+  const [autoBusy, setAutoBusy] = useState(false);
   const agent = getGrowthAgent('lead-discovery')!;
+
+  const autoEnabled = useMemo(() => {
+    void tick;
+    return isCalebAutoFindEnabled();
+  }, [tick]);
+
+  const coldOutboundEnabled = useMemo(() => {
+    void tick;
+    return isColdOutboundAutopilotEnabled();
+  }, [tick]);
 
   useEffect(() => {
     const onStore = () => setTick((t) => t + 1);
@@ -70,9 +97,62 @@ export function GrowthAgentCalebWorkspace() {
     return getGrowthWeekFocus();
   }, [tick]);
 
+  useEffect(() => {
+    if (!isCalebAutoFindEnabled()) return;
+    let cancelled = false;
+    setAutoBusy(true);
+    void runCalebAutoFindIfDue(focus.city)
+      .then((r) => {
+        if (cancelled || !r) return;
+        if (r.error && r.found === 0) setFindMsg(r.error);
+        else
+          setFindMsg(
+            `Auto daily pack · ${r.found} from search · ${r.autoSaved} saved · ${r.review} to review` +
+              (r.errors.length ? ` · ${r.errors[0]}` : ''),
+          );
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setAutoBusy(false);
+          setTick((t) => t + 1);
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [focus.city]);
+
+  const toggleAutoFind = () => {
+    const next = !isCalebAutoFindEnabled();
+    setCalebAutoFindEnabled(next, focus.city);
+    if (next) {
+      setAutoBusy(true);
+      void runCalebAutoFindIfDue(focus.city)
+        .then((r) => {
+          if (r?.error && r.found === 0) setFindMsg(r.error);
+          else if (r)
+            setFindMsg(
+              `Auto daily pack · ${r.found} from search · ${r.autoSaved} saved · ${r.review} to review`,
+            );
+        })
+        .finally(() => {
+          setAutoBusy(false);
+          setTick((t) => t + 1);
+        });
+    } else {
+      setFindMsg('Auto-find off — Caleb will not run daily pack or overnight find until you turn it back on.');
+      setTick((t) => t + 1);
+    }
+  };
+
   const results = useMemo(() => {
     void tick;
     return buildGrowthResultsSnapshot();
+  }, [tick]);
+
+  const dailyQuota = useMemo(() => {
+    void tick;
+    return getDailyQuotaProgress();
   }, [tick]);
 
   const todayQueue = useMemo(() => {
@@ -127,6 +207,21 @@ export function GrowthAgentCalebWorkspace() {
     }
   };
 
+  const runTodaysMission = async () => {
+    setMissionBusy(true);
+    setMissionMsg(null);
+    try {
+      const r = await runCalebTodaysMission(focus.city);
+      setMissionMsg(r.message);
+      if (r.findResult && !r.skippedFind) {
+        setFindMsg(r.message);
+      }
+    } finally {
+      setMissionBusy(false);
+      setTick((t) => t + 1);
+    }
+  };
+
   const runFind = async () => {
     setFinding(true);
     setFindMsg(null);
@@ -157,18 +252,33 @@ export function GrowthAgentCalebWorkspace() {
       mission={agent.mission}
       maturityPercent={maturity.percent}
       maturityLabel={maturity.label}
-      alertMessage={!readiness.ready ? 'Finish setup below before expecting finds.' : undefined}
-      alertTone="warning"
+      headerAside={<GrowthAgentCalebCommandGuide tick={tick} />}
+      alertMessage={
+        autoEnabled
+          ? calebAutoStatusLine()
+          : !readiness.ready
+            ? 'Turn auto-find on below — we enable Find flags for you. Supabase + Serper on the server still required for live results.'
+            : undefined
+      }
+      alertTone={autoEnabled && readiness.ready ? 'success' : 'warning'}
       primaryAction={{
-        label: finding ? 'Finding…' : 'Find new people',
-        onClick: () => void runFind(),
-        disabled: finding,
+        label: autoBusy
+          ? 'Auto-find running…'
+          : autoEnabled
+            ? 'Turn auto-find off'
+            : 'Turn auto-find on',
+        onClick: toggleAutoFind,
+        disabled: autoBusy,
       }}
-      secondaryAction={{
-        label: testing ? 'Testing…' : 'Test search',
-        onClick: () => void runTest(),
-      }}
-      nextStep={results.todaySentence}
+      secondaryAction={
+        pending > 0
+          ? {
+              label: `Review ${pending} people`,
+              onClick: () => navigate('/admin/marketing-desk?helper=find'),
+            }
+          : undefined
+      }
+      nextStep={autoEnabled ? calebAutoStatusLine() : results.todaySentence}
       setupBlock={
         <ul className="space-y-1">
           {maturity.items.map((i) => (
@@ -203,6 +313,82 @@ export function GrowthAgentCalebWorkspace() {
         </ul>
       }
     >
+      <div className={finelyOsCatalogCardCompact('sky')}>
+        <div className={FINELY_OS_ENTITY_SUBLABEL}>Daily mission · {GROWTH_DAILY_QUOTA_TOTAL}/day balanced</div>
+        <p className={`mt-1 text-sm font-semibold text-white`}>
+          Today {dailyQuota.totalCount}/{dailyQuota.totalCap} pipeline events ({dailyQuota.totalPct}%)
+        </p>
+        <p className={`mt-1 text-xs ${FINELY_OS_ENTITY_BODY}`}>{calebTodaysMissionPreview(focus.city)}</p>
+        <div className="mt-2 flex flex-wrap gap-2">
+          {dailyQuota.buckets.map((b) => (
+            <span key={b.id} className={finelyOsMicroStat('sky')}>
+              {b.label}: {b.count}/{b.cap}
+            </span>
+          ))}
+        </div>
+        <div className="mt-3 flex flex-wrap gap-2">
+          <button
+            type="button"
+            className={FINELY_OS_PRIMARY_BTN}
+            disabled={missionBusy}
+            onClick={() => void runTodaysMission()}
+          >
+            {missionBusy ? 'Running mission…' : "Run today's mission"}
+          </button>
+        </div>
+        {missionMsg ? <p className={`mt-2 text-xs text-emerald-200/90`}>{missionMsg}</p> : null}
+        <p className={`mt-2 text-xs ${FINELY_OS_ENTITY_BODY}`}>
+          Week focus {results.weekFocusLabel}. Inbound + link-first outreach only — no unconsented cold mail.
+        </p>
+      </div>
+
+      <div className={finelyOsCatalogCardCompact('emerald')}>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <div className={FINELY_OS_ENTITY_SUBLABEL}>Auto-find</div>
+            <p className={`mt-1 text-sm font-semibold text-white`}>
+              {autoEnabled ? 'On — daily pack runs for you' : 'Off — nothing runs until you turn it on'}
+            </p>
+            <p className={`mt-1 text-xs ${FINELY_OS_ENTITY_BODY}`}>
+              Set your city below once. Caleb handles search test, daily pack, and Find while I sleep. Only use{' '}
+              <strong className="text-white/90">Turn auto-find off</strong> to stop.
+            </p>
+          </div>
+          <button
+            type="button"
+            className={FINELY_OS_PRIMARY_BTN}
+            disabled={autoBusy}
+            onClick={toggleAutoFind}
+          >
+            {autoBusy ? 'Working…' : autoEnabled ? 'Turn off' : 'Turn on'}
+          </button>
+        </div>
+      </div>
+
+      <div className={finelyOsCatalogCardCompact('rose')}>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <div className={FINELY_OS_ENTITY_SUBLABEL}>Cold outbound autopilot</div>
+            <p className={`mt-1 text-sm font-semibold text-white`}>
+              {coldOutboundEnabled ? 'On — seq_cold_prospect when consent allows' : 'Off by default — link-first invite only'}
+            </p>
+            <p className={`mt-1 text-xs ${FINELY_OS_ENTITY_BODY}`}>
+              Manual Approve still queues link-first invites for discovered contacts. Turn this on only when you have lawful B2B outreach basis.
+            </p>
+          </div>
+          <button
+            type="button"
+            className={FINELY_OS_SECONDARY_BTN}
+            onClick={() => {
+              setColdOutboundAutopilotEnabled(!coldOutboundEnabled);
+              setTick((t) => t + 1);
+            }}
+          >
+            {coldOutboundEnabled ? 'Turn off' : 'Turn on'}
+          </button>
+        </div>
+      </div>
+
       <GrowthAgentInfraStrip />
 
       <div className={finelyOsCatalogCardCompact('emerald')}>
@@ -231,13 +417,30 @@ export function GrowthAgentCalebWorkspace() {
 
       <GrowthDailyPlaybook />
 
+      <details className={`${finelyOsCatalogCardCompact('sky')} group`}>
+        <summary className={`cursor-pointer list-none flex items-center justify-between gap-2 ${FINELY_OS_ENTITY_VALUE} text-sm font-semibold`}>
+          Manual find (optional)
+          <span className="text-[10px] font-bold uppercase tracking-widest text-white/40 group-open:text-sky-200">Expand</span>
+        </summary>
+        <div className="mt-3 flex flex-wrap gap-2 border-t border-white/10 pt-3">
+          <button type="button" className={FINELY_OS_SECONDARY_BTN} disabled={finding} onClick={() => void runFind()}>
+            {finding ? 'Finding…' : 'Find once now'}
+          </button>
+          <button type="button" className={FINELY_OS_SECONDARY_BTN} disabled={testing} onClick={() => void runTest()}>
+            {testing ? 'Testing…' : 'Test search again'}
+          </button>
+        </div>
+      </details>
+
       <div className={finelyOsCatalogCardCompact('amber')}>
         <div className={FINELY_OS_ENTITY_SUBLABEL}>Today&apos;s 10 to contact</div>
         <p className={`mt-1 text-xs ${FINELY_OS_ENTITY_BODY}`}>
           Ranked by Talk score (book a session). Guide score favors free-guide signup.
         </p>
         {todayQueue.length === 0 ? (
-          <p className={`mt-3 text-sm ${FINELY_OS_ENTITY_BODY}`}>Run Find new people first.</p>
+          <p className={`mt-3 text-sm ${FINELY_OS_ENTITY_BODY}`}>
+            {autoEnabled ? 'Auto-find will populate this after today’s pack runs.' : 'Turn auto-find on or use Manual find.'}
+          </p>
         ) : (
           <FinelyOsPaginatedStack
             items={todayQueue}
@@ -251,6 +454,7 @@ export function GrowthAgentCalebWorkspace() {
                       {p.company?.name || p.company?.website || 'Prospect'}
                     </div>
                     <div className="flex flex-wrap gap-1.5 shrink-0">
+                      <MarketingConsentChip prospect={p} />
                       <span className={finelyOsMicroStat('emerald')} title={row.reasons[0]}>
                         Talk {row.conversationScore}
                       </span>
@@ -278,22 +482,27 @@ export function GrowthAgentCalebWorkspace() {
 
       <LeadEngineOneButton />
 
-      <div className={finelyOsCatalogCardCompact('fuchsia')}>
-        <div className={FINELY_OS_ENTITY_SUBLABEL}>Lead Intelligence Director</div>
-        <p className={`mt-1 text-xs ${FINELY_OS_ENTITY_BODY}`}>
-          Strategy copilot only — live Serper search is Caleb Find (Marketing Desk) or the Live Lead Engine card below. Swarm queues are simulation unless{' '}
-          <code className="text-fuchsia-200/90">lead-intel-worker-tick</code> runs with GROWTH_WORKER_LIVE=true.
-        </p>
-        <div className="mt-3">
-          <LeadIntelCopilot
-            target="clients"
-            query={copilotQuery}
-            results={[]}
-            selectedUrls={[]}
-            importedCount={importedIntelCount}
-          />
+      <details className={`${finelyOsCatalogCardCompact('fuchsia')} group`}>
+        <summary className={`cursor-pointer list-none flex items-center justify-between gap-2 ${FINELY_OS_ENTITY_VALUE} text-sm font-semibold`}>
+          Strategy copilot (optional)
+          <span className="text-[10px] font-bold uppercase tracking-widest text-white/40 group-open:text-fuchsia-200">Expand</span>
+        </summary>
+        <div className="mt-3 border-t border-white/10 pt-3">
+          <div className={FINELY_OS_ENTITY_SUBLABEL}>Lead Intelligence Director</div>
+          <p className={`mt-1 text-xs ${FINELY_OS_ENTITY_BODY}`}>
+            Chat only — live imports come from auto-find. Swarm counters are simulation unless the live worker flag is on.
+          </p>
+          <div className="mt-3">
+            <LeadIntelCopilot
+              target="clients"
+              query={copilotQuery}
+              results={[]}
+              selectedUrls={[]} 
+              importedCount={importedIntelCount}
+            />
+          </div>
         </div>
-      </div>
+      </details>
 
       <details className={`${finelyOsCatalogCardCompact('violet')} group`}>
         <summary className={`cursor-pointer list-none flex items-center justify-between gap-2 ${FINELY_OS_ENTITY_VALUE} text-sm font-semibold`}>
@@ -302,6 +511,16 @@ export function GrowthAgentCalebWorkspace() {
         </summary>
         <div className="mt-3 border-t border-white/10 pt-3">
           <LeadIntelHub embedded showCompliance={false} />
+        </div>
+      </details>
+
+      <details className={`${finelyOsCatalogCardCompact('amber')} group`}>
+        <summary className={`cursor-pointer list-none flex items-center justify-between gap-2 ${FINELY_OS_ENTITY_VALUE} text-sm font-semibold`}>
+          Overnight50 simulation (advanced)
+          <span className="text-[10px] font-bold uppercase tracking-widest text-white/40 group-open:text-amber-200">Expand</span>
+        </summary>
+        <div className="mt-3 border-t border-white/10 pt-3 space-y-3">
+          <LeadIntelSwarmDashboard />
         </div>
       </details>
 

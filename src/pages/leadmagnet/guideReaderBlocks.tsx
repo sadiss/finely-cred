@@ -23,6 +23,13 @@ export type GuideBlock =
       kind: 'compare';
       left: { title: string; items: string[] };
       right: { title: string; items: string[] };
+    }
+  | {
+      kind: 'sampleDocument';
+      title: string;
+      /** Defaults to the standard debt-guide compliance strip when omitted. */
+      complianceLabel?: string;
+      lines: string[];
     };
 
 export type GuideSection = {
@@ -246,6 +253,26 @@ export function GuideBlockView({ block, prefix }: { block: GuideBlock; prefix: s
           ))}
         </div>
       );
+
+    case 'sampleDocument': {
+      const compliance =
+        block.complianceLabel ??
+        'Educational redacted sample · not legal advice · not your court papers.';
+      return (
+        <figure className={`${p}-sample-doc`}>
+          <figcaption className={`${p}-sample-doc-cap`}>{block.title}</figcaption>
+          <p className={`${p}-sample-doc-compliance`}>{compliance}</p>
+          <pre className={`${p}-sample-doc-body`}>
+            {block.lines.map((line, i) => (
+              <span key={`${i}-${line.slice(0, 24)}`} className={`${p}-sample-doc-line`}>
+                {line === '' ? '\u00A0' : line}
+                {'\n'}
+              </span>
+            ))}
+          </pre>
+        </figure>
+      );
+    }
 
     default:
       return null;

@@ -1,5 +1,6 @@
-import React, { useMemo } from 'react';
-import { MessageCircle } from 'lucide-react';
+import React, { useMemo, useState } from 'react';
+import { createPortal } from 'react-dom';
+import { MessageCircle, MessageSquare, X } from 'lucide-react';
 import type { AgentPersonaId } from '../../domain/agentPersonas';
 import { listMarketingDisplayStaff } from '../../data/staffRoster';
 import { openPublicChat, type PublicChatGoal } from '../../lib/publicChatEvents';
@@ -8,6 +9,9 @@ import {
   FINELY_OS_ENTITY_BODY,
   FINELY_OS_ENTITY_SUBLABEL,
   FINELY_OS_ENTITY_VALUE,
+  FINELY_OS_FIXED_OVERLAY,
+  FINELY_OS_MODAL_SHELL,
+  FINELY_OS_SECONDARY_BTN,
   finelyOsCatalogCard,
 } from '../../features/os/finelyOsLightUi';
 
@@ -20,15 +24,26 @@ type Props = {
   buttonTone?: 'success' | 'secondary';
   /** `ivory` = clean paper cards on wealthy public shells (no dark glass wash). */
   surface?: 'default' | 'ivory';
+  /** When set, renders a collapsed trigger button that opens the staff grid in a modal. */
+  modalLaunch?: { triggerLabel?: string };
 };
 
-export function MarketingStaffChatStrip({ roleId, goal, roleLabel, subline, surface = 'default' }: Props) {
+export function MarketingStaffChatStrip({
+  roleId,
+  goal,
+  roleLabel,
+  subline,
+  surface = 'default',
+  modalLaunch,
+}: Props) {
+  const [modalOpen, setModalOpen] = useState(false);
   const staffPool = useMemo(() => listMarketingDisplayStaff(roleId), [roleId]);
   if (!staffPool.length) return null;
 
   const ivory = surface === 'ivory';
+  const triggerLabel = modalLaunch?.triggerLabel ?? `Ask ${roleLabel}`;
 
-  return (
+  const stripBody = (
     <div
       className={`${
         ivory
@@ -95,4 +110,55 @@ export function MarketingStaffChatStrip({ roleId, goal, roleLabel, subline, surf
       </div>
     </div>
   );
+
+  if (modalLaunch) {
+    return (
+      <>
+        <button
+          type="button"
+          className="inline-flex items-center gap-2 rounded-xl border border-violet-500/30 bg-violet-500/10 px-3 py-2 text-[10px] font-black uppercase tracking-widest text-violet-100 hover:bg-violet-500/15 transition-all"
+          onClick={() => setModalOpen(true)}
+        >
+          <MessageSquare size={14} />
+          {triggerLabel}
+        </button>
+
+        {modalOpen
+          ? createPortal(
+              <div className={`${FINELY_OS_FIXED_OVERLAY} z-[9100] flex items-center justify-center p-3 sm:p-4`}>
+                <div className="absolute inset-0 bg-black/85 backdrop-blur-md" onClick={() => setModalOpen(false)} aria-hidden />
+                <div
+                  className={`${FINELY_OS_MODAL_SHELL} relative z-[1] w-full max-w-3xl border-violet-400/20`}
+                  role="dialog"
+                  aria-modal="true"
+                  aria-labelledby="marketing-staff-chat-title"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <div className="flex items-start justify-between gap-3 border-b border-white/10 px-4 py-4">
+                    <div className="min-w-0">
+                      <div className={FINELY_OS_ENTITY_SUBLABEL}>Credit specialist team</div>
+                      <div id="marketing-staff-chat-title" className="text-lg font-bold text-white">
+                        {triggerLabel}
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setModalOpen(false)}
+                      className={`${FINELY_OS_SECONDARY_BTN} !p-2`}
+                      aria-label="Close"
+                    >
+                      <X size={16} />
+                    </button>
+                  </div>
+                  <div className="p-4 max-h-[72vh] overflow-y-auto">{stripBody}</div>
+                </div>
+              </div>,
+              document.body,
+            )
+          : null}
+      </>
+    );
+  }
+
+  return stripBody;
 }

@@ -111,7 +111,7 @@ export function AgentOperatingModelStep({ next, prev, data, update }: StepProps)
                 key={spec.id}
                 type="button"
                 onClick={() => toggleSpecialty(spec.id)}
-                className={`text-left rounded-xl border p-3 sm:p-3.5 transition-all min-h-[72px] ${
+                className={`text-left rounded-xl border p-3 sm:p-3.5 transition-all min-h-0 sm:min-h-[72px] ${
                   active ? 'border-fuchsia-500/50 bg-fuchsia-500/10' : 'border-white/[0.1] bg-white/[0.04] hover:border-white/20'
                 }`}
               >
@@ -136,7 +136,7 @@ export function AgentOperatingModelStep({ next, prev, data, update }: StepProps)
                 key={phase.id}
                 type="button"
                 onClick={() => patchModel({ trainingPhase: phase.id })}
-                className={`text-left rounded-xl border p-3 sm:p-3.5 transition-all min-h-[88px] ${
+                className={`text-left rounded-xl border p-3 sm:p-3.5 transition-all min-h-0 sm:min-h-[88px] ${
                   active ? 'border-emerald-500/40 bg-emerald-500/10' : 'border-white/[0.1] bg-white/[0.04] hover:border-white/20'
                 }`}
               >

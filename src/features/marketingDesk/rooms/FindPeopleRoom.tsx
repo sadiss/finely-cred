@@ -37,6 +37,9 @@ import type { LeadEngineLane } from '../../leadIntel/leadEngineAutonomy';
 import { getMarketingLanePerformanceChips } from '../marketingDeskLanePerformance';
 import { prospectScoresFromHuntHit } from '../../growthAgents/growthMlScore';
 import { getGrowthMlLabel, saveLabelForHit } from '../../growthAgents/growthMlLabels';
+import { MarketingConsentChipFromHit } from '../MarketingConsentChip';
+import { consentForMarketingDeskHit } from '../marketingProspectConsent';
+import { getLeadIntelSourceRuntimeLabel } from '../../overnight50/sourceAdapters';
 
 const RUN_DETAILS_MIN_VISIBLE_MS = 12_000;
 
@@ -246,7 +249,7 @@ export function FindPeopleRoom() {
           <span className={finelyOsStatusChip(readiness.ready ? 'ok' : 'blocked')}>{readiness.label}</span>
         </div>
         <p className={`text-sm ${FINELY_OS_ENTITY_BODY}`}>
-          Strong fits save themselves. Mid fits land in Review (max 8). Junk and duplicates skip quietly.
+          Strong fits save themselves (CRM only — no mail until you Approve). Mid fits land in Review (max 8). Junk and duplicates skip quietly.
         </p>
         <label className="block max-w-md">
           <div className={FINELY_OS_ENTITY_SUBLABEL}>Location</div>
@@ -540,6 +543,7 @@ export function FindPeopleRoom() {
           renderItem={(hit) => {
             const ml = prospectScoresFromHuntHit(hit);
             const saved = getGrowthMlLabel(hit.url || hit.domain || '');
+            const consent = consentForMarketingDeskHit({ emails: hit.emails });
             return (
             <div key={hit.url} className="rounded-xl border border-white/10 bg-black/30 !p-3 space-y-2">
               <div className="flex items-start justify-between gap-2">
@@ -552,6 +556,16 @@ export function FindPeopleRoom() {
                 <div className="flex flex-col items-end gap-1 shrink-0">
                   <span className="text-xs text-amber-200/90 tabular-nums">hunt {hit.score}</span>
                   <div className="flex flex-wrap gap-1 justify-end">
+                    <MarketingConsentChipFromHit
+                      consentBasis={consent.consentBasis}
+                      leadType={consent.leadType}
+                      emailMarketingAllowed={consent.emailMarketingAllowed}
+                    />
+                    {hit.sourceRuntime === 'live' ? (
+                      <span className={finelyOsMicroStat('emerald')} title={hit.overnightSourceId ?? 'serper_web'}>
+                        {getLeadIntelSourceRuntimeLabel(hit.overnightSourceId ?? 'serper_web')}
+                      </span>
+                    ) : null}
                     <span className={finelyOsMicroStat('emerald')}>Talk {ml.conversationScore}</span>
                     <span className={finelyOsMicroStat('sky')}>Guide {ml.selfSignupScore}</span>
                   </div>

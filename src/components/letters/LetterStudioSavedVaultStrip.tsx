@@ -1,12 +1,13 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import { ScrollText } from 'lucide-react';
 import type { LetterRecord, LetterType } from '../../domain/letters';
 import type { EvidenceItem } from '../../domain/evidence';
 import { listLettersByPartner } from '../../data/lettersRepo';
 import { deleteLetter } from '../../data/lettersRepo';
-import { SavedLetterCard } from './SavedLetterCard';
+import { SavedLetterCard, SAVED_LETTER_DECK_ACCENTS } from './SavedLetterCard';
 import { openBlobRefInNewTab } from '../../lib/openBlobRef';
 import { FinelyOsPaginatedStack } from '../../features/os/FinelyOsPaginatedStack';
+import { isFeatureEnabled } from '../../data/settingsRepo';
 import {
   FINELY_OS_ENTITY_BODY,
   FINELY_OS_SECONDARY_BTN,
@@ -23,6 +24,8 @@ export function LetterStudioSavedVaultStrip({
   onOpenFullVault,
   accent = 'emerald',
   highlightLetterId = null,
+  canMail: canMailProp,
+  onMailLetter,
 }: {
   partnerId: string;
   types: LetterType[];
@@ -33,9 +36,14 @@ export function LetterStudioSavedVaultStrip({
   onOpenFullVault?: () => void;
   accent?: 'emerald' | 'violet' | 'amber' | 'sky' | 'rose';
   highlightLetterId?: string | null;
+  /** Defaults to platform letterMailing feature flag when omitted */
+  canMail?: boolean;
+  onMailLetter?: (letter: LetterRecord) => void;
 }) {
   const [openErr, setOpenErr] = useState<string | null>(null);
   const [refresh, setRefresh] = useState(0);
+  const draftPreviewOpeners = useRef(new Map<string, () => void>());
+  const canMail = canMailProp ?? isFeatureEnabled('letterMailing');
 
   const letters = useMemo(() => {
     void storeVersion;
@@ -48,13 +56,21 @@ export function LetterStudioSavedVaultStrip({
 
   const openPdf = async (l: LetterRecord) => {
     setOpenErr(null);
-    if (!l.pdfBlobRef && l.body) return;
-    if (!l.pdfBlobRef) {
-      setOpenErr('No PDF on this letter yet — open the card to read the saved draft, or generate a PDF from the preview.');
+    if (l.pdfBlobRef) {
+      const result = await openBlobRefInNewTab({ blobRef: l.pdfBlobRef, mimeType: 'application/pdf' });
+      if (!result.ok) setOpenErr(result.message);
       return;
     }
-    const result = await openBlobRefInNewTab({ blobRef: l.pdfBlobRef, mimeType: 'application/pdf' });
-    if (!result.ok) setOpenErr(result.message);
+    if (l.body) {
+      const openDraft = draftPreviewOpeners.current.get(l.id);
+      if (openDraft) {
+        openDraft();
+        return;
+      }
+      setOpenErr('Draft saved — click the card to read the letter, or use Save PDF → Vault to add a PDF.');
+      return;
+    }
+    setOpenErr('No PDF on this letter yet — open the card to read the saved draft, or generate a PDF from the preview.');
   };
 
   return (
@@ -92,20 +108,30 @@ export function LetterStudioSavedVaultStrip({
           items={letters}
           pageSize={6}
           itemSpacingClassName="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4"
-          renderItem={(l) => (
+          renderItem={(l, index) => (
             <SavedLetterCard
               key={l.id}
               id={`studio-vault-${l.id}`}
               letter={l}
+              deckAccent={SAVED_LETTER_DECK_ACCENTS[index % SAVED_LETTER_DECK_ACCENTS.length]}
               highlighted={highlightLetterId === l.id}
               defaultSnapshotOpen={highlightLetterId === l.id}
+              autoOpenPreview={highlightLetterId === l.id}
               evidence={evidence}
-              canMail={false}
+              canMail={canMail}
               pdfDisabled={false}
-              mailDisabled
+              mailDisabled={!l.pdfBlobRef}
+              onOpenLetter={(openPreview) => {
+                draftPreviewOpeners.current.set(l.id, openPreview);
+                return () => {
+                  draftPreviewOpeners.current.delete(l.id);
+                };
+              }}
               onOpenPdf={() => void openPdf(l)}
+              onMail={onMailLetter ? () => onMailLetter(l) : undefined}
               onDelete={() => {
                 deleteLetter({ letterId: l.id });
+                draftPreviewOpeners.current.delete(l.id);
                 setRefresh((v) => v + 1);
               }}
             />

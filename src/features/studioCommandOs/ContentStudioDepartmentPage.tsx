@@ -27,11 +27,25 @@ import { newId } from '../../utils/ids';
 import { generateTextPdfToVault } from '../../letters/generateTextPdf';
 import { openBlobRefInNewTab } from '../../lib/openBlobRef';
 import { VideoStudioPremiumShell } from './VideoStudioPremiumShell';
+import {
+  VideoCreateWizard,
+  VideoCreateWizardEntry,
+  type VideoCreateWizardPresetId,
+} from './VideoCreateWizard';
+import { buildGrowthPillarScript, resolveGrowthPillarVideoRecord } from '../growthAgents/growthPillarVideoPack';
+import {
+  FINELY_OS_ENTITY_BODY,
+  FINELY_OS_ENTITY_SUBLABEL,
+  FINELY_OS_ENTITY_TITLE,
+  FINELY_OS_SECONDARY_BTN,
+  finelyOsCatalogCardCompact,
+} from '../os/finelyOsLightUi';
 import { VoiceSoundLibraryPanel } from './VoiceSoundLibraryPanel';
 import { CourseVideoBatchWorkroom } from './CourseVideoBatchWorkroom';
 import { SiteNavigationVideoWorkroom } from './SiteNavigationVideoWorkroom';
 import { StudioActionDeck, StudioKpiCards, StudioSection } from './StudioKpiCards';
 import { FinelyUnifiedHubLayout } from '../unified/FinelyUnifiedHubLayout';
+import { FinelyCapabilityScorecard } from '../admin/FinelyCapabilityScorecard';
 import {
   advanceContentStudioJob,
   createContentStudioJob,
@@ -67,6 +81,8 @@ type WorkroomDef = {
   icon: React.ComponentType<{ size?: number; className?: string }>;
   summary: string;
 };
+
+type StudioView = 'home' | 'advanced';
 
 const workrooms: WorkroomDef[] = [
   { id: 'intake', label: 'Intake', icon: Sparkles, summary: 'Start any content request from one prompt.' },
@@ -223,11 +239,43 @@ export function ContentStudioDepartmentPage() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [version, setVersion] = useState(0);
+  const studioView: StudioView = searchParams.get('view') === 'advanced' ? 'advanced' : 'home';
+  const wizardOpen = searchParams.get('wizard') === 'open';
+  const wizardPreset = (searchParams.get('preset') as VideoCreateWizardPresetId | null) ?? undefined;
+  const fromPillar = searchParams.get('from') === 'pillar';
+  const promoteVideoIdFromUrl = searchParams.get('videoId')?.trim() || undefined;
   const roomParam = searchParams.get('room') as ContentStudioWorkroom | null;
   const activeWorkroom: ContentStudioWorkroom =
     roomParam && workrooms.some((w) => w.id === roomParam) ? roomParam : 'intake';
+  const setStudioView = (view: StudioView) => {
+    const next = new URLSearchParams(searchParams);
+    if (view === 'advanced') {
+      next.set('view', 'advanced');
+      if (!next.get('room')) next.set('room', 'intake');
+    } else {
+      next.delete('view');
+      next.delete('room');
+    }
+    next.delete('wizard');
+    setSearchParams(next, { replace: true });
+  };
+  const openWizard = (preset?: VideoCreateWizardPresetId) => {
+    const next = new URLSearchParams(searchParams);
+    next.delete('view');
+    next.delete('room');
+    next.set('wizard', 'open');
+    if (preset) next.set('preset', preset);
+    else next.delete('preset');
+    setSearchParams(next, { replace: true });
+  };
+  const closeWizard = () => {
+    const next = new URLSearchParams(searchParams);
+    next.delete('wizard');
+    setSearchParams(next, { replace: true });
+  };
   const setActiveWorkroom = (id: ContentStudioWorkroom) => {
     const next = new URLSearchParams(searchParams);
+    next.set('view', 'advanced');
     next.set('room', id);
     setSearchParams(next, { replace: true });
   };
@@ -280,6 +328,23 @@ export function ContentStudioDepartmentPage() {
   );
   const reviewJobs = jobs.filter((j) => j.status === 'needs_review');
   const readyAssets = assets.filter((a) => a.status === 'approved' || a.status === 'published');
+  const myVideos = useMemo(
+    () => assets.filter((a) => a.assetType === 'video' && a.blobRef).slice().sort((a, b) => (b.updatedAt || '').localeCompare(a.updatedAt || '')),
+    [assets],
+  );
+  const wizardInitialRequest = useMemo(() => {
+    if (!fromPillar) return undefined;
+    const pillar = promoteVideoIdFromUrl
+      ? resolveGrowthPillarVideoRecord(promoteVideoIdFromUrl)
+      : resolveGrowthPillarVideoRecord();
+    if (!pillar) return undefined;
+    const script = buildGrowthPillarScript({ record: pillar });
+    return {
+      prompt: script || `Create a compliance-safe video from pillar "${pillar.title}". Educational only — results vary.`,
+      offer: pillar.title,
+      audience: 'credit-focused partners',
+    };
+  }, [fromPillar, promoteVideoIdFromUrl]);
 
   const kpis: StudioUxKpi[] = [
     { label: 'Production jobs', value: jobs.length, hint: 'Every request has owner, status, and audit trail', tone: 'amber' },
@@ -289,18 +354,23 @@ export function ContentStudioDepartmentPage() {
   ];
 
   useEffect(() => {
-    if (!searchParams.get('room')) {
-      const next = new URLSearchParams(searchParams);
-      next.set('room', 'intake');
-      setSearchParams(next, { replace: true });
-    }
-  }, [searchParams, setSearchParams]);
-
-  useEffect(() => {
     if (courseIdFromUrl && lessonIdFromUrl) {
       setSelectedCourseLesson(`${courseIdFromUrl}::${lessonIdFromUrl}`);
     }
   }, [courseIdFromUrl, lessonIdFromUrl]);
+
+  useEffect(() => {
+    if (!courseIdFromUrl && !lessonIdFromUrl && !tourIdFromUrl && !staffFromUrl) return;
+    if (searchParams.get('view') === 'advanced') return;
+    const next = new URLSearchParams(searchParams);
+    next.set('view', 'advanced');
+    if (!next.get('room')) {
+      if (courseIdFromUrl) next.set('room', 'course_videos');
+      else if (tourIdFromUrl) next.set('room', 'navigation_tours');
+      else next.set('room', 'intake');
+    }
+    setSearchParams(next, { replace: true });
+  }, [courseIdFromUrl, lessonIdFromUrl, tourIdFromUrl, staffFromUrl, searchParams, setSearchParams]);
 
   useEffect(() => {
     const staffId = searchParams.get('staff');
@@ -312,6 +382,7 @@ export function ContentStudioDepartmentPage() {
     setVersion((v) => v + 1);
     setNotice(`${staffFullName(staff)} opened a Content Studio job from Staff Command Center.`);
     const next = new URLSearchParams(searchParams);
+    next.set('view', 'advanced');
     next.set('room', staff.id === 'shorts_factory' ? 'video' : 'intake');
     setSearchParams(next, { replace: true });
   }, [searchParams.get('staff')]);
@@ -757,20 +828,67 @@ export function ContentStudioDepartmentPage() {
       {err ? <div className="rounded-3xl border border-rose-500/30 bg-rose-500/10 p-4 text-rose-100 text-sm">{err}</div> : null}
       {notice ? <div className="rounded-3xl border border-emerald-500/30 bg-emerald-500/10 p-4 text-emerald-100 text-sm inline-flex gap-3"><CheckCircle2 size={18} />{notice}</div> : null}
 
+      {studioView === 'home' ? (
+        <FinelyUnifiedHubLayout
+          eyebrow="Content Studio"
+          title="Create your video"
+          subtitle="3-step wizard — brief, horizontal scene deck, export. Full production workrooms live under Advanced studio."
+          accent="amber"
+          kpis={kpis.map((k) => ({ ...k, value: String(k.value) }))}
+          primaryAction={{ label: 'Create video', onClick: () => openWizard(wizardPreset ?? 'reel_28') }}
+          secondaryAction={{ label: 'Advanced studio', onClick: () => setStudioView('advanced') }}
+          contentVariant="flush"
+        >
+          <FinelyCapabilityScorecard variant="compact" showPipelineStages className="mb-4" />
+          <VideoCreateWizardEntry
+            onStart={(preset) => openWizard(preset)}
+            activePreset={wizardPreset ?? (fromPillar ? 'ad_60' : 'reel_28')}
+          />
+
+          <div className={`${finelyOsCatalogCardCompact('violet')} mt-4 space-y-3`}>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <p className={FINELY_OS_ENTITY_SUBLABEL}>My videos</p>
+                <h3 className={FINELY_OS_ENTITY_TITLE}>{myVideos.length} rendered clip(s)</h3>
+              </div>
+              <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => setStudioView('advanced')}>
+                Asset registry
+              </button>
+            </div>
+            {myVideos.length ? (
+              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                {myVideos.map((a) => (
+                  <div key={a.id} className="rounded-2xl border border-white/10 bg-black/25 p-3 space-y-2">
+                    <div className="text-sm font-bold text-white truncate">{a.title}</div>
+                    {a.blobRef ? <ContentStudioVideoPreview blobRef={a.blobRef} /> : null}
+                    <div className={`text-[10px] uppercase tracking-widest ${FINELY_OS_ENTITY_BODY}`}>
+                      {a.status} · {a.provider || 'render'}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className={`text-sm ${FINELY_OS_ENTITY_BODY}`}>
+                No videos yet — run the wizard above to render your first WebM.
+              </p>
+            )}
+          </div>
+        </FinelyUnifiedHubLayout>
+      ) : (
       <FinelyUnifiedHubLayout
-        eyebrow="Content Studio Department OS"
-        title="Super video & content production floor"
-        subtitle="Gemini-style research, Canva-like design plans, ElevenLabs voice path, prompt-to-video, e-books, review gates, and publish bridges — stacked full-width workrooms."
+        eyebrow="Advanced studio"
+        title="Full content production floor"
+        subtitle="Research, script, design, voice, course batches, tours, e-books, review, and publish bridges — for power users."
         accent="amber"
         kpis={kpis.map((k) => ({ ...k, value: String(k.value) }))}
         tabs={workrooms.map((w) => ({ id: w.id, label: w.label, badge: w.id === 'review' && reviewJobs.length ? reviewJobs.length : undefined }))}
         activeTab={activeWorkroom}
         onTabChange={(id) => setActiveWorkroom(id as ContentStudioWorkroom)}
-        primaryAction={{ label: 'Open super video', onClick: () => setActiveWorkroom('video') }}
-        secondaryAction={{ label: 'New job', onClick: () => setActiveWorkroom('intake') }}
+        primaryAction={{ label: '← Easy mode', onClick: () => setStudioView('home') }}
         contentVariant="flush"
         tabDensity="comfortable"
       >
+      <FinelyCapabilityScorecard variant="compact" showPipelineStages className="mb-4" />
       {ownerStaff ? (
         <div className="rounded-2xl border border-amber-400/30 bg-amber-500/10 p-4 mb-5 flex flex-wrap items-center gap-4">
           <StaffAvatar staff={ownerStaff} size="md" active />
@@ -826,7 +944,7 @@ export function ContentStudioDepartmentPage() {
                   <option value="business_funding">Business funding</option>
                 </select>
               </label>
-              <button type="button" className="fc-button-brand sm:col-span-2 lg:col-span-4" onClick={createJob}>
+              <button type="button" className="fc-button-soft sm:col-span-2 lg:col-span-4" onClick={createJob}>
                 <Sparkles size={15} /> Create production job <ArrowRight size={14} />
               </button>
             </div>
@@ -838,7 +956,7 @@ export function ContentStudioDepartmentPage() {
         <StudioSection
           eyebrow="production queue"
           title="Active jobs"
-          right={activeJob ? <button type="button" className="fc-button-brand" onClick={() => void generateResearchAndScript(activeJob)} disabled={busy}><Wand2 size={14} /> Generate brief + script</button> : null}
+          right={activeJob ? <button type="button" className="fc-button-soft" onClick={() => void generateResearchAndScript(activeJob)} disabled={busy}><Wand2 size={14} /> Generate brief + script</button> : null}
         >
           {!jobs.length ? (
             <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-6 text-white/55">No Content Studio jobs yet. Start from intake.</div>
@@ -902,7 +1020,7 @@ export function ContentStudioDepartmentPage() {
           right={
             <div className="flex flex-wrap gap-2">
               <button type="button" className="fc-button-soft" onClick={() => markForReview(activeJob)}><ShieldCheck size={14} /> Send to review</button>
-              <button type="button" className="fc-button-brand" onClick={() => approveJob(activeJob)}><CheckCircle2 size={14} /> Approve</button>
+              <button type="button" className="fc-button-soft" onClick={() => approveJob(activeJob)}><CheckCircle2 size={14} /> Approve</button>
             </div>
           }
         >
@@ -938,7 +1056,7 @@ export function ContentStudioDepartmentPage() {
           <div className="rounded-[2rem] border border-amber-400/15 bg-amber-500/10 p-5">
             <div className="text-[10px] uppercase tracking-[0.24em] text-amber-200 font-black">Workroom actions</div>
             <div className="mt-4 flex flex-wrap gap-2">
-              <button type="button" className="fc-button-brand" onClick={() => void generateResearchAndScript(activeJob)} disabled={busy}>
+              <button type="button" className="fc-button-soft" onClick={() => void generateResearchAndScript(activeJob)} disabled={busy}>
                 <Wand2 size={14} /> Research + script
               </button>
               <button type="button" className="fc-button-soft" onClick={() => void generateWorkroomAsset(activeJob, 'design')} disabled={busy}>
@@ -947,7 +1065,7 @@ export function ContentStudioDepartmentPage() {
               <button type="button" className="fc-button-soft" onClick={() => void generateWorkroomAsset(activeJob, 'voice')} disabled={busy}>
                 <Mic2 size={14} /> Voice plan
               </button>
-              <button type="button" className="fc-button-brand" onClick={() => void renderVoiceNarration(activeJob)} disabled={busy}>
+              <button type="button" className="fc-button-soft" onClick={() => void renderVoiceNarration(activeJob)} disabled={busy}>
                 <Mic2 size={14} /> Render narration (ElevenLabs)
               </button>
               <button type="button" className="fc-button-soft" onClick={() => void generateWorkroomAsset(activeJob, 'ebook')} disabled={busy}>
@@ -1063,7 +1181,7 @@ export function ContentStudioDepartmentPage() {
                     <CheckCircle2 size={14} /> Approve
                   </button>
                   {(a.assetType === 'ebook' || a.assetType === 'guide_pdf' || a.assetType === 'script' || a.assetType === 'research_brief') ? (
-                    <button type="button" className="fc-button-brand" onClick={() => void renderAssetToPdf(a)} disabled={busy || !((a.script || a.summary || a.transcript || '').trim())}>
+                    <button type="button" className="fc-button-soft" onClick={() => void renderAssetToPdf(a)} disabled={busy || !((a.script || a.summary || a.transcript || '').trim())}>
                       <FileText size={14} /> Render PDF
                     </button>
                   ) : null}
@@ -1085,7 +1203,7 @@ export function ContentStudioDepartmentPage() {
                   </button>
                   {a.assetType === 'video' ? (
                     <>
-                      <button type="button" className="fc-button-brand" disabled={!a.blobRef} onClick={() => publishAssetToResources(a)} title={!a.blobRef ? 'Render/export media first' : 'Publish to private Resources'}>
+                    <button type="button" className="fc-button-soft" disabled={!a.blobRef} onClick={() => publishAssetToResources(a)} title={!a.blobRef ? 'Render/export media first' : 'Publish to private Resources'}>
                         <Library size={14} /> Resources
                       </button>
                       <button type="button" className="fc-button-soft" disabled={!a.blobRef} onClick={() => setAssetAsLeadMagnetHero(a)} title={!a.blobRef ? 'Render/export video first' : 'Set as selected lead magnet hero video'}>
@@ -1108,7 +1226,9 @@ export function ContentStudioDepartmentPage() {
       ) : null}
 
       </FinelyUnifiedHubLayout>
+      )}
 
+      {studioView === 'advanced' ? (
       <StudioSection eyebrow="publish bridges" title="Where this department connects across Finely Cred">
         <p className="text-sm text-white/55 mb-4 max-w-3xl">
           One-click push uses your best approved video asset, then opens the destination workspace. Full per-asset controls remain in the Assets workroom.
@@ -1128,7 +1248,7 @@ export function ContentStudioDepartmentPage() {
               <div className="mt-3 text-white font-black">{title}</div>
               <div className="mt-2 text-sm text-white/55 leading-relaxed">{detail}</div>
               <div className="flex flex-wrap gap-2 mt-4">
-                <button type="button" className="fc-button-brand" onClick={() => oneClickBridgePush(target, href)}>
+                <button type="button" className="fc-button-soft" onClick={() => oneClickBridgePush(target, href)}>
                   One-click push <ArrowRight size={14} />
                 </button>
                 <button type="button" className="fc-button-soft" onClick={() => navigate(href)}>
@@ -1140,6 +1260,16 @@ export function ContentStudioDepartmentPage() {
           })}
         </div>
       </StudioSection>
+      ) : null}
+
+      <VideoCreateWizard
+        open={wizardOpen}
+        onOpenChange={(open) => (open ? openWizard(wizardPreset) : closeWizard())}
+        presetId={wizardPreset ?? (fromPillar ? 'ad_60' : 'reel_28')}
+        initialRequest={wizardInitialRequest}
+        promoteVideoId={promoteVideoIdFromUrl}
+        onExported={() => setVersion((v) => v + 1)}
+      />
     </div>
   );
 }

@@ -51,7 +51,10 @@ import {
   type PublicChatDocAnalysis,
 } from '../../lib/publicChatDocumentIntake';
 import { openCommunicationHub } from './communicationHubModel';
-import { finelyBrainOrchestrate } from '../../lib/finelyBrain/finelyBrainOrchestrate';
+import {
+  finelyPublicAnswer,
+  shouldUseFinelyPublicAnswer,
+} from '../../lib/finelyBrain/finelyPublicAnswer';
 import {
   FINELY_OS_ENTITY_CHIP,
   FINELY_OS_ENTITY_INPUT,
@@ -445,6 +448,32 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
       return;
     }
 
+    if (!attachments?.length && shouldUseFinelyPublicAnswer(trimmed)) {
+      setBusy(true);
+      setTypingLabel(`${presentation.firstName} ${t(activeLocale, 'typing')}`);
+      const delayMs = humanReplyDelayMs({ userMessage: aiText });
+      await new Promise((r) => window.setTimeout(r, delayMs));
+      try {
+        const result = finelyPublicAnswer({
+          pathname,
+          message: trimmed,
+          channel: 'chat',
+          seniorMode: easyReadMode,
+        });
+        const kbRefs = result.citations.slice(0, 2).map((c) => c.title);
+        pushBot(sprinkleChatEmoji(result.reply), result.personaId, 'knowledge_local', kbRefs.length ? kbRefs : undefined);
+        setAiHistory((prev) => [
+          ...prev,
+          { role: 'user', content: aiText },
+          { role: 'assistant', content: result.reply },
+        ]);
+      } finally {
+        setTypingLabel(null);
+        setBusy(false);
+      }
+      return;
+    }
+
     const classified = classifyMessageIntent(trimmed);
     let activePersona = personaOverride ?? (handoffComplete ? persona : getEffectiveAgentPersona(PUBLIC_CHAT_AI_PERSONA_ID));
     const activePersonaId = handoffComplete ? activePersona.id : PUBLIC_CHAT_AI_PERSONA_ID;
@@ -583,7 +612,12 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
     const prompt = 'What should I do on this page?';
     setOptionsOpen(false);
     pushUser(prompt);
-    const result = finelyBrainOrchestrate({ pathname, userMessage: prompt, seniorMode: easyReadMode });
+    const result = finelyPublicAnswer({
+      pathname,
+      message: prompt,
+      channel: 'chat',
+      seniorMode: easyReadMode,
+    });
     pushBot(sprinkleChatEmoji(result.reply), result.personaId, 'knowledge_local');
   };
 

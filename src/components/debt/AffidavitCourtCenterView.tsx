@@ -6,6 +6,7 @@ import type { DebtLetterType, DebtScenario } from '../../domain/debtLegal';
 import type { ProcessedDocument } from '../../domain/documents';
 import type { ParsedCreditReport } from '../../domain/creditReports';
 import type { Partner } from '../../domain/partners';
+import type { LetterRecord } from '../../domain/letters';
 import { upsertDebt } from '../../data/debtRepo';
 import { DebtCreditorIntelPanel } from './DebtCreditorIntelPanel';
 import { DebtProofCaptureStrip } from './DebtProofCaptureStrip';
@@ -55,6 +56,8 @@ import {
   finelyOsGlowField,
   finelyOsStatusChip,
 } from '../../features/os/finelyOsLightUi';
+import { DEBT_GUIDE_READ_PATH } from '../../pages/leadmagnet/debtEradicationGuideContent';
+import { adminEmbeddedNavHref } from '../../lib/adminPartnerRoutes';
 
 type ReportRow = { id: string; parsed?: ParsedCreditReport | null };
 
@@ -141,6 +144,10 @@ export function AffidavitCourtCenterView({
   onOpenLettersVault,
   generateBusy = false,
   generateError = null,
+  canMailLetters = false,
+  onMailLetter,
+  vaultHighlightLetterId = null,
+  adminPartnerId,
 }: {
   debt: DebtCase | null;
   debtId: string;
@@ -167,7 +174,12 @@ export function AffidavitCourtCenterView({
   onOpenLettersVault?: () => void;
   generateBusy?: boolean;
   generateError?: string | null;
+  canMailLetters?: boolean;
+  onMailLetter?: (letter: LetterRecord) => void;
+  vaultHighlightLetterId?: string | null;
+  adminPartnerId?: string;
 }) {
+  const nav = (href: string) => adminEmbeddedNavHref(adminPartnerId, href);
   const [params] = useSearchParams();
   const defaultHearing = defaultUrgentHearingIso();
   const rooseveltMatter = isRooseveltCourtPartner(partner);
@@ -538,6 +550,7 @@ export function AffidavitCourtCenterView({
         <div className="fc-lit-in">
           <PartnerCourtOutcomePanel
             outcome={courtOutcome}
+            adminPartnerId={adminPartnerId}
             onConfirmPayment={(dueIso) => {
               const next = confirmCourtPlanPayment(courtOutcome.id, dueIso);
               if (next) setCourtOutcome(next);
@@ -636,6 +649,12 @@ export function AffidavitCourtCenterView({
                   Drop the summons, docket PDF, affidavit, or collector letter below. Finely scrapes the fields, then{' '}
                   <strong className="text-white/90">Apply</strong> fills every empty case field. You only confirm what matters.
                 </p>
+                <Link
+                  to={`${DEBT_GUIDE_READ_PATH}?chapter=summons`}
+                  className="inline-block text-[11px] text-amber-200/90 underline underline-offset-2 hover:text-amber-100"
+                >
+                  First time reading court papers? Free field manual Page V — redacted summons &amp; complaint samples
+                </Link>
               </div>
             ) : null}
             <LitigationDocScraperChat
@@ -678,6 +697,7 @@ export function AffidavitCourtCenterView({
               </div>
               <DebtCreditorIntelPanel
                 partnerId={debt?.partnerId || partner?.id || debtCases[0]?.partnerId || ''}
+                adminPartnerId={adminPartnerId}
                 debt={debt}
                 reports={reports}
                 processedDocuments={processedDocuments}
@@ -711,6 +731,7 @@ export function AffidavitCourtCenterView({
             <ExtractedCourtFactsPanel debt={debt} summonsContext={summonsCtx} />
             <DebtCreditorIntelPanel
               partnerId={debt?.partnerId || partner?.id || debtCases[0]?.partnerId || ''}
+              adminPartnerId={adminPartnerId}
               debt={debt}
               reports={reports}
               processedDocuments={processedDocuments}
@@ -754,7 +775,7 @@ export function AffidavitCourtCenterView({
                   </button>
                 ) : (
                   <Link
-                    to="/portal/debt?tab=validation"
+                    to={nav('/portal/debt?tab=validation')}
                     className={`${FINELY_OS_SECONDARY_BTN} border-emerald-400/45 text-emerald-100`}
                   >
                     Open Validation lane <ArrowRight size={12} />
@@ -796,7 +817,7 @@ export function AffidavitCourtCenterView({
               </button>
             </div>
             <div className="flex flex-wrap gap-2">
-              <Link to="/portal/letters/vault" className={`${FINELY_OS_SECONDARY_BTN} inline-flex items-center gap-1.5`}>
+              <Link to={nav('/portal/letters/vault')} className={`${FINELY_OS_SECONDARY_BTN} inline-flex items-center gap-1.5`}>
                 <Mail size={14} /> Open vault (mail-ready)
               </Link>
               <button
@@ -879,7 +900,7 @@ export function AffidavitCourtCenterView({
                 Open court-day kit (hearing card) <ArrowRight size={16} />
               </button>
               <Link
-                to="/portal/letters/vault"
+                to={nav('/portal/letters/vault')}
                 className={`${FINELY_OS_PRIMARY_BTN} w-full justify-center inline-flex items-center gap-2`}
               >
                 <Mail size={16} /> Mail letters → Vault
@@ -931,8 +952,11 @@ export function AffidavitCourtCenterView({
                 evidence={vaultEvidence}
                 accent="rose"
                 title="Your court letters (vault)"
-                subtitle="Saved answer, affidavit, and court PDFs — coach help is below."
+                subtitle="Saved answer, affidavit, and court PDFs — preview, mail, or delete here."
                 onOpenFullVault={onOpenLettersVault}
+                highlightLetterId={vaultHighlightLetterId}
+                canMail={canMailLetters}
+                onMailLetter={onMailLetter}
               />
             ) : null}
             <details className="rounded-xl border border-white/10 bg-black/30 px-3 py-2">
@@ -1024,6 +1048,7 @@ export function AffidavitCourtCenterView({
             defaultOpen={false}
             partner={partner}
             hearingIso={hearingIso || undefined}
+            adminPartnerId={adminPartnerId}
           />
         </div>
       </details>
@@ -1048,7 +1073,7 @@ export function AffidavitCourtCenterView({
       ) : null}
 
       <p className="text-center text-[9px] text-white/30">
-        <Link to="/portal/escalations?tab=regulatory" className="underline hover:text-white/50">
+        <Link to={nav('/portal/escalations?tab=regulatory')} className="underline hover:text-white/50">
           Escalations
         </Link>
         {' · '}Educational self-help · not legal advice · results vary

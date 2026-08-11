@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { ArrowLeft, ArrowRight, Mail, Phone, Send, CheckCircle2, ShieldAlert } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { finelyCtaNavigate } from '../lib/finelyCtaIntent';
 import { PageShell } from '../components/layout/PageShell';
 import { submitLeadCapture } from '../data/leadsRepo';
 import { addLeadNote } from '../data/leadOpsRepo';
@@ -186,7 +187,7 @@ export default function ContactPage() {
                 <button type="submit" disabled={!canSend} className={FINELY_OS_SUCCESS_BTN}>
                   {status === 'sending' ? 'Sending…' : 'Send'} <ArrowRight size={14} />
                 </button>
-                <button type="button" onClick={() => navigate('/onboarding')} className={FINELY_OS_SECONDARY_BTN}>
+                <button type="button" onClick={() => finelyCtaNavigate(navigate, 'personal_intake')} className={FINELY_OS_SECONDARY_BTN}>
                   Apply instead <ArrowRight size={14} />
                 </button>
               </div>

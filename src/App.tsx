@@ -177,6 +177,7 @@ const AdminSignupOpsPage = lazy(() => import('./pages/admin/AdminSignupOpsPage')
 const AdminLeadsOsPage = lazy(() => import('./pages/admin/AdminLeadsOsPage'));
 const AdminMarketingDeskPage = lazy(() => import('./pages/admin/AdminMarketingDeskPage'));
 const AdminGrowthAgentsPage = lazy(() => import('./pages/admin/AdminGrowthAgentsPage'));
+const AdminGrowthAutomationPage = lazy(() => import('./pages/admin/AdminGrowthAutomationPage'));
 const AdminCmoCommandPage = lazy(() => import('./pages/admin/AdminCmoCommandPage'));
 const AdminMediaStudioPage = lazy(() => import('./pages/admin/AdminMediaStudioPage'));
 const AdminVoiceStudioPage = lazy(() => import('./pages/admin/AdminVoiceStudioPage'));
@@ -223,6 +224,7 @@ const BookstorePage = lazy(() => import('./pages/BookstorePage'));
 const BookstoreProductPage = lazy(() => import('./pages/BookstoreProductPage'));
 const PricingPage = lazy(() => import('./pages/PricingPage'));
 const PricingServicePage = lazy(() => import('./pages/PricingServicePage'));
+const PersonalCreditPage = lazy(() => import('./pages/PersonalCreditPage'));
 const FundabilityReadinessPage = lazy(() => import('./pages/FundabilityReadinessPage'));
 const TestimonialsPage = lazy(() => import('./pages/TestimonialsPage'));
 const EventsPage = lazy(() => import('./pages/EventsPage'));
@@ -1314,6 +1316,9 @@ function AppInner() {
                 </div>
                 <div className="flex items-center justify-end gap-2 shrink-0">
                     {showPublicThemeToggle ? <FinelyThemeToggle compact /> : null}
+                    <button type="button" onClick={() => handleNavigate('/free-guide')} className="fc-nav-trial-cta">
+                      Start free guide
+                    </button>
                     <button type="button" onClick={() => handleNavigate('/login')} className="fc-nav-pill-ghost">
                       Login
                     </button>
@@ -1451,6 +1456,8 @@ function AppInner() {
         <Route path="/services/:service" element={<PricingServicePage />} />
         <Route path="/pricing" element={<PricingPage />} />
         <Route path="/pricing/tradelines" element={<Navigate to="/tradelines" replace />} />
+        <Route path="/pricing/personal-credit-restore" element={<PersonalCreditPage />} />
+        <Route path="/personal-credit" element={<PersonalCreditPage />} />
         <Route path="/pricing/:service" element={<PricingServicePage />} />
         {/* Legacy marketing slugs (resolve to real pricing/service views) */}
         <Route path="/fix-my-credit" element={<Navigate to="/pricing/personal-credit-restore" replace />} />
@@ -1464,7 +1471,6 @@ function AppInner() {
         <Route path="/blog" element={<Navigate to="/resources" replace />} />
         <Route path="/blog/:slug" element={<BlogCanonicalRedirect />} />
         <Route path="/rent-reporting" element={<Navigate to="/resources" replace />} />
-        <Route path="/personal-credit" element={<Navigate to="/pricing/personal-credit-restore" replace />} />
         {/* Stripe mock route removed for production */}
         <Route path="/start-here" element={<StartHerePage />} />
         <Route path="/help-center" element={<LaunchHelpCenterPage />} />
@@ -2326,6 +2332,14 @@ function AppInner() {
           element={
             <ProtectedAdminRoute>
               <AdminGrowthAgentsPage />
+            </ProtectedAdminRoute>
+          }
+        />
+        <Route
+          path="/admin/growth-automation"
+          element={
+            <ProtectedAdminRoute>
+              <AdminGrowthAutomationPage />
             </ProtectedAdminRoute>
           }
         />

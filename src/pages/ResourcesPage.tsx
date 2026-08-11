@@ -31,6 +31,8 @@ import { LandingSellAtmosphere } from '../components/landing/LandingSellAtmosphe
 import { TOUR_MANIFEST } from '../config/tourManifest';
 import { FinelyTourPlayer } from '../components/tours/FinelyTourPlayer';
 import type { SiteTourDefinition } from '../domain/siteTourVideos';
+import { PUBLIC_DEMO_VIDEOS_ENABLED } from '../config/publicMediaPolicy';
+import { LaunchPresenterDemoSection } from '../components/resources/LaunchPresenterDemoSection';
 
 const CARD_ICONS: Record<string, React.ComponentType<{ size?: number; className?: string }>> = {
   guides: BookOpen,
@@ -56,6 +58,14 @@ export default function ResourcesPage() {
   const auth = useAuth();
   const isAdmin = isAdminEmail(auth.user?.email);
   const [previewTour, setPreviewTour] = useState<SiteTourDefinition | null>(null);
+
+  const hubCards = useMemo(
+    () =>
+      PUBLIC_DEMO_VIDEOS_ENABLED
+        ? PUBLIC_RESOURCES_HUB_CARDS
+        : PUBLIC_RESOURCES_HUB_CARDS.filter((c) => c.id !== 'videos'),
+    [],
+  );
 
   usePublicSeoMeta({
     title: 'Resources & tools',
@@ -97,7 +107,7 @@ export default function ResourcesPage() {
     <PageShell
       badge="Public"
       title="Resource hub"
-      subtitle="Free guides, credit monitoring partners, and watch-how tours — pick a lane or book a strategy call."
+      subtitle="Free guides, credit monitoring partners, and partner education — pick a lane or book a strategy call."
       hideHero
     >
       <div className={`${FINELY_OS_PAGE} fc-senior-simple space-y-0`}>
@@ -132,7 +142,7 @@ export default function ResourcesPage() {
             subtitle="Each card opens its own route — guides, one-sheets, bookstore, monitoring, videos, stories, and events."
             accent="violet"
             kpis={[
-              { label: 'Lanes', value: String(PUBLIC_RESOURCES_HUB_CARDS.length), accent: 'violet' },
+              { label: 'Lanes', value: String(hubCards.length), accent: 'violet' },
               { label: 'Start', value: 'Guides', accent: 'emerald' },
             ]}
             primaryAction={{ label: 'All free guides', onClick: () => navigate('/resources/guides') }}
@@ -155,7 +165,7 @@ export default function ResourcesPage() {
             </div>
 
             <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-              {PUBLIC_RESOURCES_HUB_CARDS.map((card) => {
+              {hubCards.map((card) => {
                 const Icon = CARD_ICONS[card.id] ?? BookOpen;
                 return (
                   <button
@@ -237,6 +247,9 @@ export default function ResourcesPage() {
             </button>
           </section>
 
+          <LaunchPresenterDemoSection />
+
+          {PUBLIC_DEMO_VIDEOS_ENABLED ? (
           <section id="videos" className="fc-scroll-section space-y-3">
             <h2 className="fc-launch-lane-header">Watch-how tours</h2>
             <p className={`text-sm ${FINELY_OS_ENTITY_BODY}`}>
@@ -258,9 +271,12 @@ export default function ResourcesPage() {
               </button>
             </div>
           </section>
+          ) : null}
         </div>
 
+        {PUBLIC_DEMO_VIDEOS_ENABLED ? (
         <FinelyTourPlayer tour={previewTour} open={Boolean(previewTour)} onClose={() => setPreviewTour(null)} allowVoice />
+        ) : null}
 
         <MarketingStaffChatStrip
           roleId="nurture_concierge"

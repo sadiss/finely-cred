@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Mail, ShieldAlert } from 'lucide-react';
+import { adminEmbeddedNavHref } from '../../lib/adminPartnerRoutes';
 import { LetterStepPath, type LetterStepPathItem } from './LetterStepPath';
 import { LetterDisclaimerFooter } from './LetterAddressSummary';
 import { LetterEscalationPanel } from './LetterEscalationPanel';
@@ -34,6 +35,9 @@ export function DebtTrackEasyFlow({
   postCourtDecided = false,
   /** Suppress the ladder when a richer one is already on screen (court outcome panel). */
   hideEscalationLadder = false,
+  inlineStudioVault = false,
+  onOpenFullVault,
+  adminPartnerId,
 }: {
   track: DebtLetterTrack;
   steps: LetterStepPathItem[];
@@ -44,7 +48,11 @@ export function DebtTrackEasyFlow({
   postCourtPlan?: boolean;
   postCourtDecided?: boolean;
   hideEscalationLadder?: boolean;
+  inlineStudioVault?: boolean;
+  onOpenFullVault?: () => void;
+  adminPartnerId?: string;
 }) {
+  const nav = (href: string) => adminEmbeddedNavHref(adminPartnerId, href);
   const label = debtTrackLabel(track);
   const mainSteps = steps.filter((s) => !s.optional);
   const nextStep = mainSteps.find((s) => !s.done && !s.disabled) ?? mainSteps.find((s) => !s.done) ?? null;
@@ -82,18 +90,43 @@ export function DebtTrackEasyFlow({
             </div>
           </div>
           <div className="flex flex-wrap gap-1.5">
-            <Link to="/portal/letters/vault" className={FINELY_OS_SECONDARY_BTN}>
-              Letters vault
-            </Link>
-            <Link to="/portal/documents" className={FINELY_OS_SECONDARY_BTN}>
+            {inlineStudioVault ? (
+              <button
+                type="button"
+                className={FINELY_OS_SECONDARY_BTN}
+                onClick={() =>
+                  document.getElementById('fc-letter-studio-vault')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                }
+              >
+                Studio vault
+              </button>
+            ) : (
+              <Link to={nav('/portal/letters/vault')} className={FINELY_OS_SECONDARY_BTN}>
+                Letters vault
+              </Link>
+            )}
+            {onOpenFullVault ? (
+              <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={onOpenFullVault}>
+                Full archive
+              </button>
+            ) : inlineStudioVault ? (
+              <Link to={nav('/portal/letters/vault')} className={FINELY_OS_SECONDARY_BTN}>
+                Full archive
+              </Link>
+            ) : null}
+            <Link to={nav('/portal/documents')} className={FINELY_OS_SECONDARY_BTN}>
               Save the receipt
             </Link>
           </div>
         </div>
         <p className={`text-xs ${FINELY_OS_ENTITY_BODY}`}>
-          {track === 'court'
-            ? 'File the stamped copy with the court, serve plaintiff counsel, then upload the stamped filing and proof of service to your vault.'
-            : 'Send certified mail with return receipt, then upload the mailing receipt and tracking number so the clock is provable later.'}
+          {inlineStudioVault
+            ? track === 'court'
+              ? 'Use the studio vault on this page for mail-ready PDFs. File stamped copies and proof of service in Documents.'
+              : 'Use the studio vault on this page to preview or mail — then upload certified-mail receipts in Documents.'
+            : track === 'court'
+              ? 'File the stamped copy with the court, serve plaintiff counsel, then upload the stamped filing and proof of service to your vault.'
+              : 'Send certified mail with return receipt, then upload the mailing receipt and tracking number so the clock is provable later.'}
         </p>
       </section>
 
@@ -110,7 +143,7 @@ export function DebtTrackEasyFlow({
             </p>
           </div>
         ) : (
-          <LetterEscalationPanel track={escalationTrack} accent={accent} compact />
+          <LetterEscalationPanel track={escalationTrack} accent={accent} compact adminPartnerId={adminPartnerId} />
         )}
       </section>
 

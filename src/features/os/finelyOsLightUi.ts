@@ -325,6 +325,9 @@ export const FINELY_OS_ENTITY_VALUE = 'font-semibold tracking-tight text-white/9
 
 export const FINELY_OS_ENTITY_INPUT = 'fc-input mt-2';
 
+/** Wrapper for capture/onboarding forms — tightens field height on screens ≤640px (see index.css). */
+export const FINELY_OS_MOBILE_FORM_COMPACT = 'fc-mobile-form-compact';
+
 export const FINELY_OS_ENTITY_CHIP =
   'px-3 py-2 fc-light-glass-panel fc-light-chrome-panel rounded-xl text-white/70 text-[10px] font-black uppercase tracking-wide whitespace-normal text-center leading-snug';
 

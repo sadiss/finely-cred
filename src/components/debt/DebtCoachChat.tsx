@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Globe, Send, Sparkles } from 'lucide-react';
+import { createPortal } from 'react-dom';
+import { Globe, MessageSquare, Send, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { isFeatureEnabled } from '../../data/settingsRepo';
 import { callAiGateway } from '../../lib/aiClient';
@@ -13,6 +14,8 @@ import {
   FINELY_OS_ENTITY_BODY,
   FINELY_OS_ENTITY_SUBLABEL,
   FINELY_OS_ENTITY_VALUE,
+  FINELY_OS_FIXED_OVERLAY,
+  FINELY_OS_MODAL_SHELL,
   FINELY_OS_SECONDARY_BTN,
   finelyOsGlowTextarea,
   type FinelyOsGlowAccent,
@@ -41,6 +44,7 @@ export function DebtCoachChat({
   accent = 'emerald',
   coachLane,
   injectPrompt,
+  modalLaunch,
 }: {
   mode: 'validation' | 'court' | 'foreclosure' | 'repossession';
   scenario: DebtScenario;
@@ -57,8 +61,10 @@ export function DebtCoachChat({
   accent?: 'emerald' | 'fuchsia' | 'amber' | 'rose' | 'sky';
   coachLane?: string;
   injectPrompt?: string;
+  modalLaunch?: { triggerLabel: string };
 }) {
   const navigate = useNavigate();
+  const [modalOpen, setModalOpen] = useState(false);
   const [question, setQuestion] = useState('');
   const [answer, setAnswer] = useState('');
   const [sources, setSources] = useState<LegalResearchSnippet[]>([]);
@@ -165,7 +171,33 @@ Write like a sharp human coach — warm, direct, no legalese walls. Use numbered
     // eslint-disable-next-line react-hooks/exhaustive-deps -- fire once per injected prompt from parent
   }, [injectPrompt]);
 
-  return (
+  const triggerBtnClass =
+    accent === 'emerald'
+      ? 'inline-flex items-center gap-2 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-[10px] font-black uppercase tracking-widest text-emerald-100 hover:bg-emerald-500/15 transition-all disabled:opacity-60'
+      : accent === 'fuchsia'
+        ? FINELY_OS_AI_DRAFT_BTN_SM
+        : accent === 'amber'
+          ? 'inline-flex items-center gap-2 rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-[10px] font-black uppercase tracking-widest text-amber-100 hover:bg-amber-500/15 transition-all disabled:opacity-60'
+          : accent === 'rose'
+            ? 'inline-flex items-center gap-2 rounded-xl border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-[10px] font-black uppercase tracking-widest text-rose-100 hover:bg-rose-500/15 transition-all disabled:opacity-60'
+            : accent === 'sky'
+              ? 'inline-flex items-center gap-2 rounded-xl border border-sky-500/30 bg-sky-500/10 px-3 py-2 text-[10px] font-black uppercase tracking-widest text-sky-100 hover:bg-sky-500/15 transition-all disabled:opacity-60'
+              : FINELY_OS_AI_DRAFT_BTN_SM;
+
+  const borderAccent =
+    accent === 'emerald'
+      ? 'border-emerald-400/20'
+      : accent === 'fuchsia'
+        ? 'border-fuchsia-400/20'
+        : accent === 'amber'
+          ? 'border-amber-400/20'
+          : accent === 'rose'
+            ? 'border-rose-400/20'
+            : accent === 'sky'
+              ? 'border-sky-400/20'
+              : 'border-violet-400/20';
+
+  const coachBody = (
     <div className="space-y-3">
       <OnDutyStaffCoachHeader lane={coachLane ?? mode} compact />
       <FinelyOsOnPageCoachShell
@@ -224,4 +256,54 @@ Write like a sharp human coach — warm, direct, no legalese walls. Use numbered
       />
     </div>
   );
+
+  if (modalLaunch) {
+    return (
+      <>
+        <button type="button" className={triggerBtnClass} onClick={() => setModalOpen(true)}>
+          <MessageSquare size={14} />
+          {modalLaunch.triggerLabel}
+        </button>
+
+        {modalOpen
+          ? createPortal(
+              <div className={`${FINELY_OS_FIXED_OVERLAY} z-[9100] flex items-center justify-center p-3 sm:p-4`}>
+                <div className="absolute inset-0 bg-black/85 backdrop-blur-md" onClick={() => setModalOpen(false)} aria-hidden />
+                <div
+                  className={`${FINELY_OS_MODAL_SHELL} relative z-[1] w-full max-w-2xl ${borderAccent}`}
+                  role="dialog"
+                  aria-modal="true"
+                  aria-labelledby="debt-coach-modal-title"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <div className="flex items-start justify-between gap-3 border-b border-white/10 px-4 py-4">
+                    <div className="min-w-0 flex items-start gap-2">
+                      {icon}
+                      <div>
+                        <div className={FINELY_OS_ENTITY_SUBLABEL}>{title}</div>
+                        <div id="debt-coach-modal-title" className="text-lg font-bold text-white">
+                          {tagline}
+                        </div>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setModalOpen(false)}
+                      className={`${FINELY_OS_SECONDARY_BTN} !p-2`}
+                      aria-label="Close"
+                    >
+                      <X size={16} />
+                    </button>
+                  </div>
+                  <div className="p-4 max-h-[72vh] overflow-y-auto">{coachBody}</div>
+                </div>
+              </div>,
+              document.body,
+            )
+          : null}
+      </>
+    );
+  }
+
+  return coachBody;
 }

@@ -29,13 +29,16 @@ export function LetterStudioBureauSwitcher({
   active,
   countsByBureau,
   onSelect,
+  trailingActions,
 }: {
   active: Bureau;
   countsByBureau: Record<Bureau, number>;
   onSelect: (b: Bureau) => void;
+  /** Compact actions on the bureau switcher header row (e.g. attach screenshot). */
+  trailingActions?: React.ReactNode;
 }) {
   const withItems = BUREAUS.filter((b) => (countsByBureau[b] ?? 0) > 0);
-  if (withItems.length < 2) return null;
+  if (withItems.length < 2 && !trailingActions) return null;
 
   return (
     <section
@@ -43,12 +46,20 @@ export function LetterStudioBureauSwitcher({
       className="w-full mt-6 pt-6 border-t-2 border-white/20 space-y-4 scroll-mt-6"
       data-fc-bureau-switcher="1"
     >
-      <div>
-        <h3 className="text-base sm:text-lg font-black text-white tracking-tight">Work on another bureau letter</h3>
-        <p className="mt-1 text-sm text-white/65 max-w-3xl">
-          One letter per bureau. Each block is a full studio — click to switch. Blue = Experian, Red = Equifax, Green = TransUnion.
-        </p>
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div className="min-w-0">
+          <h3 className="text-base sm:text-lg font-black text-white tracking-tight">
+            {withItems.length >= 2 ? 'Work on another bureau letter' : 'Bureau letter studio'}
+          </h3>
+          <p className="mt-1 text-sm text-white/65 max-w-3xl">
+            {withItems.length >= 2
+              ? 'One letter per bureau. Each block is a full studio — click to switch. Blue = Experian, Red = Equifax, Green = TransUnion.'
+              : 'Attach bureau proof for this letter, then save PDF when you mail.'}
+          </p>
+        </div>
+        {trailingActions ? <div className="flex flex-wrap items-center gap-2 shrink-0">{trailingActions}</div> : null}
       </div>
+      {withItems.length >= 2 ? (
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full">
         {BUREAUS.map((b) => {
           const n = countsByBureau[b] ?? 0;
@@ -84,6 +95,7 @@ export function LetterStudioBureauSwitcher({
           );
         })}
       </div>
+      ) : null}
     </section>
   );
 }

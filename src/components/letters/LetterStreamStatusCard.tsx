@@ -15,7 +15,7 @@ import { FinelyOsAlertBanner } from '../../features/os/FinelyOsAlertBanner';
 import { FINELY_MAIL_COPY } from '../../lib/mailWhiteLabel';
 
 /**
- * Admin/ops Finely Mail readiness. Surfaces LetterStream TEST mode when detectable.
+ * Admin/ops Finely Mail readiness. Surfaces TEST vs LIVE production state.
  */
 export function LetterStreamStatusCard({ compact }: { compact?: boolean }) {
   const [busy, setBusy] = useState(false);
@@ -68,13 +68,19 @@ export function LetterStreamStatusCard({ compact }: { compact?: boolean }) {
       <p className={`${FINELY_OS_ENTITY_BODY} text-xs`}>
         Secrets: <code className="text-white/70">MAIL_API_ID</code> + <code className="text-white/70">MAIL_API_KEY</code> on the{' '}
         <code className="text-white/70">mailer</code> edge function. Optional:{' '}
-        <code className="text-white/70">MAIL_TEST_MODE</code>, <code className="text-white/70">MAIL_DEBUG</code>.
+        <code className="text-white/70">MAIL_LIVE_MODE=true</code> when production is live, or remove{' '}
+        <code className="text-white/70">MAIL_TEST_MODE</code> / <code className="text-white/70">MAIL_DEBUG</code>.
       </p>
 
       {status?.testMode ? (
         <FinelyOsAlertBanner
           tone="warning"
           message="TEST MODE detected — do not treat mailed letters as live USPS production until LetterStream test mode / MAIL_TEST_MODE is off."
+        />
+      ) : status?.ok && status.liveMode !== false ? (
+        <FinelyOsAlertBanner
+          tone="success"
+          message="LIVE production mail — LetterStream is connected for real USPS submission. Results vary · keep prepaid balance funded."
         />
       ) : null}
 

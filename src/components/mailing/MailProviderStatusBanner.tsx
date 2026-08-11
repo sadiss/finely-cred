@@ -58,6 +58,11 @@ export function MailProviderStatusBanner({
           tone="warning"
           message="TEST MODE — LetterStream / Finely Mail is in test or debug mode. Do not treat sends as live USPS production until test mode is turned off in the mail account (and MAIL_TEST_MODE / MAIL_DEBUG edge secrets)."
         />
+      ) : status?.ok ? (
+        <FinelyOsAlertBanner
+          tone="success"
+          message="LIVE production mail — Finely Mail is connected for real USPS letter submission."
+        />
       ) : null}
 
       <div

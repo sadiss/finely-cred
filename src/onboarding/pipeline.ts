@@ -1,4 +1,4 @@
-export type OnboardingRole = '' | 'client' | 'au_seller' | 'agent' | 'affiliate';
+export type OnboardingRole = '' | 'client' | 'au_seller' | 'agent' | 'affiliate' | 'case_help';
 
 export type OnboardingUserData = {
   role: OnboardingRole;
@@ -29,7 +29,7 @@ export function getOnboardingStepKeys(data: OnboardingUserData): string[] {
 
   if (role === 'agent') return ['role', 'agentTier', 'recommendation', 'legal', 'profile'];
 
-  // AU seller + affiliate: lean path
+  // AU seller, affiliate, case desk: lean path
   return ['role', 'recommendation', 'legal', 'profile'];
 }
 

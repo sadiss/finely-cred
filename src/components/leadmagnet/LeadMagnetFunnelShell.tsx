@@ -454,7 +454,7 @@ export function LeadMagnetFunnelShell({
                 ))}
               </ul>
             ) : null}
-            <form id="funnel-unlock-form" onSubmit={submitForm} className="space-y-3">
+            <form id="funnel-unlock-form" onSubmit={submitForm} className="fc-mobile-form-compact space-y-3">
               <div className="grid grid-cols-2 gap-3">
                 <input value={firstName} onChange={(e) => setFirstName(e.target.value)} placeholder="First name" className={FINELY_OS_ENTITY_INPUT} />
                 <input value={lastName} onChange={(e) => setLastName(e.target.value)} placeholder="Last name" className={FINELY_OS_ENTITY_INPUT} />

@@ -1,35 +1,24 @@
 import React, { useMemo, useState } from 'react';
 import { ArrowRight, Bot, CheckCircle2, Clapperboard, Download, Film, Image as ImageIcon, Mic2, Play, Plus, Sparkles, Trash2, Wand2 } from 'lucide-react';
-import { callAiGateway } from '../../lib/aiClient';
-import { generateImages } from '../../lib/imageGenClient';
-import { downloadBlob, exportScenesToWebm } from '../../lib/mediaExport';
-import { aspectToSize, MEDIA_RENDER_PRESETS, type Aspect, type MediaProject } from '../../domain/mediaStudio';
-import { addAudioTrack, addRenderHistory, createMediaProject, deleteAudioTrack, deleteMediaProject, getMediaProject, listMediaProjects, patchScene, upsertMediaProject } from '../../data/mediaStudioRepo';
 import { getBlobStore } from '../../storage/getBlobStore';
+import { addAudioTrack, deleteAudioTrack, deleteMediaProject, getMediaProject, listMediaProjects } from '../../data/mediaStudioRepo';
 import { renderContentStudioNarration, scriptFromVideoPlan } from './contentStudioVoice';
-import { upsertResourceVideo } from '../../data/resourceVideosRepo';
-import { buildAiStoryboardPrompt, buildFallbackVideoPlan, convertPlanToMediaProject, normalizeVideoRequest, summarizePlan } from './mediaCommandBrain';
-import { CONTENT_STUDIO_CAPABILITIES, SUPER_VIDEO_TIERS } from './contentStudioPresets';
-import { deleteVideoCommandPlan, listMediaPromptHistory, listVideoCommandPlans, saveVideoCommandPlan } from './studioCommandRepo';
+import { deleteVideoCommandPlan, listMediaPromptHistory, listVideoCommandPlans } from './studioCommandRepo';
 import type { VideoCommandPlan, VideoCommandRequest } from './types';
 import { StudioActionDeck, StudioKpiCards, StudioSection } from './StudioKpiCards';
-import { saveContentStudioAsset, listContentStudioAssets, deleteContentStudioAsset } from './contentStudioRepo';
+import { listContentStudioAssets, deleteContentStudioAsset } from './contentStudioRepo';
 import { ContentStudioVideoPreview } from './ContentStudioVideoPreview';
-
-function parseJson<T>(text: string): T | null {
-  try {
-    const start = text.indexOf('{');
-    const end = text.lastIndexOf('}');
-    const slice = start >= 0 && end >= start ? text.slice(start, end + 1) : text;
-    return JSON.parse(slice) as T;
-  } catch {
-    return null;
-  }
-}
-
-function cleanFilename(s: string) {
-  return (s || 'finely-video').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 70) || 'finely-video';
-}
+import {
+  createProjectFromVideoPlan,
+  downloadExportedVideo,
+  exportMediaProjectWebm,
+  generateProjectSceneVisuals,
+  generateVideoPlan,
+  summarizePlan,
+} from './videoCommandActions';
+import { CONTENT_STUDIO_CAPABILITIES, SUPER_VIDEO_TIERS } from './contentStudioPresets';
+import { normalizeVideoRequest } from './mediaCommandBrain';
+import type { Aspect, MediaProject } from '../../domain/mediaStudio';
 
 /** Anti-list storyboard: deck tiles + one focused beat (not a vertical prompt wall). */
 function StoryboardBoard({
@@ -118,34 +107,6 @@ function StoryboardBoard({
   );
 }
 
-function planFromAiJson(raw: any, request: VideoCommandRequest): VideoCommandPlan | null {
-  if (!raw || !Array.isArray(raw.scenes)) return null;
-  const fallback = buildFallbackVideoPlan(request);
-  const scenes = raw.scenes.slice(0, 18).map((s: any, idx: number) => ({
-    id: `scene_${idx + 1}`,
-    beat: String(s.beat || s.title || fallback.scenes[idx]?.beat || `Scene ${idx + 1}`),
-    durationSec: Math.max(2, Math.min(10, Math.round(Number(s.durationSec || fallback.scenes[idx]?.durationSec || 4)))),
-    visualPrompt: String(s.visualPrompt || s.imagePrompt || fallback.scenes[idx]?.visualPrompt || request.prompt),
-    motionPrompt: String(s.motionPrompt || fallback.scenes[idx]?.motionPrompt || 'Subtle cinematic motion, polished and professional.'),
-    caption: String(s.caption || fallback.scenes[idx]?.caption || ''),
-    voiceover: String(s.voiceover || fallback.scenes[idx]?.voiceover || ''),
-    callout: s.callout ? String(s.callout) : fallback.scenes[idx]?.callout,
-    complianceNote: s.complianceNote ? String(s.complianceNote) : fallback.scenes[idx]?.complianceNote,
-  }));
-  return {
-    ...fallback,
-    id: `video_plan_${Date.now().toString(16)}`,
-    title: String(raw.title || fallback.title).slice(0, 120),
-    hook: String(raw.hook || fallback.hook),
-    cta: String(raw.cta || fallback.cta),
-    scenes,
-    totalDurationSec: scenes.reduce((a: number, b: any) => a + b.durationSec, 0),
-    platformCutdowns: Array.isArray(raw.platformCutdowns) ? raw.platformCutdowns.slice(0, 8) : fallback.platformCutdowns,
-    renderChecklist: Array.isArray(raw.renderChecklist) ? raw.renderChecklist.slice(0, 12).map(String) : fallback.renderChecklist,
-    complianceFlags: Array.isArray(raw.complianceFlags) ? raw.complianceFlags.slice(0, 12).map(String) : fallback.complianceFlags,
-  };
-}
-
 export function GeminiStyleVideoCommand({ initialRequest }: { initialRequest?: Partial<VideoCommandRequest> }) {
   const [version, setVersion] = useState(0);
   const [busy, setBusy] = useState(false);
@@ -193,41 +154,18 @@ export function GeminiStyleVideoCommand({ initialRequest }: { initialRequest?: P
   async function generatePlan(mode: 'ai' | 'fallback' = 'ai') {
     setBusy(true); setErr(null); setNotice(null);
     try {
-      const normalized = normalizeVideoRequest(request);
-      let plan: VideoCommandPlan | null = null;
-      if (mode === 'ai') {
-        const ai = buildAiStoryboardPrompt(normalized);
-        try {
-          const out = await callAiGateway({
-            taskType: ai.taskType,
-            responseFormat: 'json',
-            messages: [
-              { role: 'system', content: ai.system },
-              { role: 'user', content: ai.user },
-            ],
-          });
-          const parsed = parseJson<any>(out.text);
-          plan = parsed ? planFromAiJson(parsed, normalized) : null;
-        } catch (e: any) {
-          plan = null;
-          setNotice(`AI plan fell back to local planner: ${e?.message || 'gateway unavailable'}`);
-        }
-      }
-      if (!plan) plan = buildFallbackVideoPlan(normalized);
-      saveVideoCommandPlan(plan);
+      const { plan, normalizedRequest, notice: planNotice } = await generateVideoPlan(request, mode);
       setActivePlanId(plan.id);
-      setRequest(normalized);
+      setRequest(normalizedRequest);
       setVersion((v) => v + 1);
-      setNotice(`Video command generated: ${summarizePlan(plan)}`);
+      setNotice(planNotice ?? `Video command generated: ${summarizePlan(plan)}`);
     } catch (e: any) {
       setErr(e?.message || 'Video plan failed.');
     } finally { setBusy(false); }
   }
 
   function createProjectFromPlan(plan: VideoCommandPlan) {
-    const p = createMediaProject({ title: plan.title, aspect: plan.request.aspect, stylePreset: plan.request.visualStyle as any });
-    const next = convertPlanToMediaProject(plan, p);
-    upsertMediaProject(next);
+    const next = createProjectFromVideoPlan(plan);
     setActiveProjectId(next.id);
     setVersion((v) => v + 1);
     setNotice('Project created from plan. Generate scene visuals next.');
@@ -236,26 +174,9 @@ export function GeminiStyleVideoCommand({ initialRequest }: { initialRequest?: P
   async function generateSceneVisuals(project: MediaProject) {
     setBusy(true); setErr(null); setNotice(null);
     try {
-      const size = aspectToSize(project.aspect);
-      const missing = project.scenes.filter((s) => !s.imageDataUrl);
-      if (!missing.length) { setNotice('All scenes already have visuals.'); return; }
-      for (let i = 0; i < missing.length; i += 1) {
-        const s = missing[i];
-        setNotice(`Generating scene visual ${i + 1}/${missing.length}…`);
-        // eslint-disable-next-line no-await-in-loop
-        const gen = await generateImages({
-          prompt: `${s.prompt}\nNo logos, no watermarks, no text overlays. Premium Finely Cred cinematic style.`,
-          size: size.imageSize,
-          quality: 'high',
-          style: 'vivid',
-          n: 1,
-          idempotencyKey: `studio-command:${project.id}:${s.id}:${s.prompt.slice(0, 70)}`,
-        });
-        const img = gen.images[0];
-        if (img?.dataUrl) patchScene(project.id, s.id, { imageDataUrl: img.dataUrl });
-      }
+      const { generated } = await generateProjectSceneVisuals(project, setNotice);
       setVersion((v) => v + 1);
-      setNotice(`Generated visuals for ${missing.length} scene(s).`);
+      setNotice(generated ? `Generated visuals for ${generated} scene(s).` : 'All scenes already have visuals.');
     } catch (e: any) {
       setErr(e?.message || 'Scene visual generation failed.');
     } finally { setBusy(false); }
@@ -293,47 +214,15 @@ export function GeminiStyleVideoCommand({ initialRequest }: { initialRequest?: P
   async function exportProject(project: MediaProject) {
     setBusy(true); setErr(null); setNotice(null);
     try {
-      const preset = MEDIA_RENDER_PRESETS.find((p) => p.id === project.renderPresetId) ?? MEDIA_RENDER_PRESETS.find((p) => project.aspect === '9:16' ? p.id.includes('1080x1920') : p.id.includes('1080p')) ?? MEDIA_RENDER_PRESETS[0];
-      const scenes = project.scenes.filter((s) => s.imageDataUrl).map((s) => ({ id: s.id, imageDataUrl: s.imageDataUrl!, caption: s.caption, durationSec: s.durationSec, transition: s.transition }));
-      if (!scenes.length) throw new Error('Generate visuals before exporting video.');
-      const store = getBlobStore();
-      const audioBlobs: Array<{ blob: Blob; volume?: number; startSec?: number; endSec?: number }> = [];
-      for (const t of (project.audioTracks ?? []).slice(0, 6)) {
-        // eslint-disable-next-line no-await-in-loop
-        const audio = await store.get(t.blobRef);
-        if (audio) audioBlobs.push({ blob: audio, volume: t.volume, startSec: t.startSec, endSec: t.endSec });
-      }
-      const blob = await exportScenesToWebm({
-        scenes,
-        width: preset.width,
-        height: preset.height,
-        fps: preset.fps,
-        captionStyle: project.captionStyle,
-        audioTracks: audioBlobs.length ? audioBlobs : undefined,
+      const exported = await exportMediaProjectWebm(project);
+      downloadExportedVideo(exported.blobRef, exported.filename);
+      setLastExport({
+        blobRef: exported.blobRef,
+        filename: exported.filename,
+        title: exported.title,
+        assetId: exported.assetId,
+        projectId: exported.projectId,
       });
-      const filename = `${cleanFilename(project.title)}.webm`;
-      downloadBlob(blob, filename);
-      const { ref } = await store.put(blob, { kind: 'content_studio_video', source: 'content_studio', projectId: project.id, title: project.title });
-      const resource = upsertResourceVideo({
-        title: `${project.title} (Content Studio)`,
-        desc: 'Generated and exported from Content Studio. Review before making public.',
-        blobRef: ref,
-        mimeType: blob.type || 'video/webm',
-        tags: ['content-studio', project.aspect, project.stylePreset],
-        isPublic: false,
-      });
-      const asset = saveContentStudioAsset({
-        title: project.title,
-        assetType: 'video',
-        status: 'needs_review',
-        provider: 'ffmpeg',
-        blobRef: ref,
-        summary: `Rendered ${project.scenes.length} scene(s) as ${filename}. Saved to Resources as ${resource.title}.`,
-        publishTargets: ['resources', 'download_only'],
-        complianceNotes: ['Resource video is private by default. Review copy, claims, captions, and target page before publishing.'],
-      });
-      addRenderHistory(project.id, { presetId: preset.id, filename, blobRef: ref, note: 'Content Studio export + private Resource video' });
-      setLastExport({ blobRef: ref, filename, title: project.title, assetId: asset.id, projectId: project.id });
       setVersion((v) => v + 1);
       setNotice('Video rendered — preview below. Approve, publish, or delete from your library.');
     } catch (e: any) { setErr(e?.message || 'Export failed.'); }
@@ -372,12 +261,7 @@ export function GeminiStyleVideoCommand({ initialRequest }: { initialRequest?: P
               <button
                 type="button"
                 className="fc-button-soft"
-                onClick={() => {
-                  void (async () => {
-                    const b = await getBlobStore().get(lastExport.blobRef);
-                    if (b) downloadBlob(b, lastExport.filename);
-                  })();
-                }}
+                onClick={() => downloadExportedVideo(lastExport.blobRef, lastExport.filename)}
               >
                 <Download size={14} /> Download again
               </button>
@@ -430,6 +314,23 @@ export function GeminiStyleVideoCommand({ initialRequest }: { initialRequest?: P
           </div>
         </StudioSection>
       ) : null}
+
+      <div className="rounded-2xl border border-sky-400/25 bg-sky-500/10 p-4 flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <div className="text-[10px] uppercase tracking-widest text-sky-200 font-black">Presenter demo</div>
+          <div className="mt-1 text-sm text-white/70">
+            Pre-built launch walkthrough: Ken Burns motion + voice at <code className="text-white/80">/demos/finely-launch-demo.webm</code>
+          </div>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <a href="/demos/finely-launch-demo.webm" className="fc-button-soft" download>
+            <Download size={14} /> Download WebM
+          </a>
+          <a href="/resources#presenter-demo" className="fc-button-soft">
+            <Play size={14} /> Resources embed
+          </a>
+        </div>
+      </div>
 
       <div className="rounded-[2rem] border border-amber-400/25 bg-gradient-to-br from-amber-500/14 via-violet-500/8 to-black/40 p-5 md:p-7 space-y-5">
         <div>

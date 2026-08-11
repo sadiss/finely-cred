@@ -154,7 +154,7 @@ export function UniversalPremiumLeadMagnetLanding({
       <section id="fg-capture" className="container mx-auto max-w-lg px-4 sm:px-6 mt-8 scroll-mt-24">
         <h2 className="lm-flyer-section-title text-center">{profile.captureHeadline}</h2>
         <p className="text-center text-base text-white/55 mt-2 mb-5">{profile.captureSub}</p>
-        <div className="lm-capture-card">
+        <div className="lm-capture-card fc-mobile-form-compact">
           <p className="text-center text-sm text-white/50 mb-5 pb-5 border-b border-white/10">
             {staffName} · {staffTitle}
           </p>

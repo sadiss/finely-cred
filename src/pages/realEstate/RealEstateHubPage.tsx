@@ -26,7 +26,12 @@ import { UnifiedTrainingPanel } from '../../components/training/UnifiedTrainingP
 import { BackToSiteButton } from '../../components/navigation/BackToSiteButton';
 import { FinelyOsPageFooter } from '../../features/os/FinelyOsPageFooter';
 import { FinelyOsAlertBanner } from '../../features/os/FinelyOsAlertBanner';
-import { FinelyUnifiedHubLayout } from '../../features/unified/FinelyUnifiedHubLayout';
+import {
+  FinelyUnifiedHubLayout,
+  PartnerHubLauncherGrid,
+  PartnerHubWorkModal,
+  usePartnerHubLauncher,
+} from '../../features/unified/FinelyUnifiedHubLayout';
 import { FinelyOsRoleCommandCenter } from '../../features/os/FinelyOsRoleCommandCenter';
 import { FinelyNowDoThisStrip } from '../../components/tours/FinelyNowDoThisStrip';
 import { FinelyNoticedStrip } from '../../components/tours/FinelyNoticedStrip';
@@ -35,6 +40,12 @@ import { findAffiliateByEmail, findAffiliateByPartnerId } from '../../data/affil
 import type { Affiliate } from '../../domain/affiliate';
 import { resolveRealEstateHubAccess } from '../../lib/roleHubAccess';
 import { buildRealEstateHubNoticedItems } from '../../lib/finelyProactiveSignals';
+import {
+  REAL_ESTATE_TAB_TO_LAUNCHER,
+  buildRealEstateHubLauncherTiles,
+  ROLE_HUB_MODAL_ACCENT,
+  type RealEstateHubLauncherId,
+} from '../../components/partner/roleHubLauncherPresets';
 import {
   FINELY_OS_COMPACT_PAGE,
   FINELY_OS_COMPLIANCE_FOOTNOTE,
@@ -45,16 +56,6 @@ import {
   FINELY_OS_SECONDARY_BTN,
   finelyOsCatalogCardCompact,
 } from '../../features/os/finelyOsLightUi';
-
-type HubTab = 'overview' | 'referrals' | 'playbook' | 'training' | 'operate';
-
-const TABS: { id: HubTab; label: string }[] = [
-  { id: 'overview', label: 'Overview' },
-  { id: 'referrals', label: 'Referrals' },
-  { id: 'playbook', label: 'Playbook' },
-  { id: 'training', label: 'Training' },
-  { id: 'operate', label: 'Operate' },
-];
 
 const RE_TOOL_DECK: RoleHubTool[] = [
   { id: 'ref', label: 'Referrals', detail: 'Tracked handoff links', path: `${RE.hubPath}?tab=referrals`, icon: Link2, accent: 'emerald', badge: 'Primary' },
@@ -70,14 +71,16 @@ export default function RealEstateHubPage() {
   const { partner } = usePartnerSession();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const [tab, setTab] = useState<HubTab>('overview');
+  const hubLauncher = usePartnerHubLauncher<RealEstateHubLauncherId>();
   const [affiliate, setAffiliate] = useState<Affiliate | null>(null);
   const [affiliateLoading, setAffiliateLoading] = useState(() => Boolean(auth.user));
 
   useEffect(() => {
     const t = searchParams.get('tab');
-    if (t && TABS.some((x) => x.id === t)) setTab(t as HubTab);
-  }, [searchParams]);
+    if (t && t in REAL_ESTATE_TAB_TO_LAUNCHER) {
+      hubLauncher.open(REAL_ESTATE_TAB_TO_LAUNCHER[t]);
+    }
+  }, [searchParams, hubLauncher.open]);
 
   useEffect(() => {
     if (!auth.user) {
@@ -106,9 +109,19 @@ export default function RealEstateHubPage() {
   );
 
   const split = ROLE_WORK_SPLIT.re;
+
+  const hubLauncherTiles = useMemo(
+    () =>
+      buildRealEstateHubLauncherTiles({
+        hasReferralCode: Boolean(affiliate?.referralCode),
+        affiliateStatus: affiliate?.status,
+      }),
+    [affiliate?.referralCode, affiliate?.status],
+  );
+
   const noticedItems = useMemo(
-    () => buildRealEstateHubNoticedItems({ hasReferralCode: Boolean(affiliate?.referralCode), tab }),
-    [affiliate?.referralCode, tab],
+    () => buildRealEstateHubNoticedItems({ hasReferralCode: Boolean(affiliate?.referralCode), tab: hubLauncher.openId ?? 'overview' }),
+    [affiliate?.referralCode, hubLauncher.openId],
   );
   const nowDoItems = useMemo(
     () => [
@@ -220,115 +233,140 @@ export default function RealEstateHubPage() {
             { label: 'Status', value: affiliate?.status ?? '—', accent: 'amber' },
             { label: 'Auth role', value: 'affiliate', accent: 'violet' },
           ]}
-          tabs={TABS}
-          activeTab={tab}
-          onTabChange={(id) => setTab(id as HubTab)}
           primaryAction={{ label: 'Share referral', onClick: () => navigate(AF.publicPath) }}
           secondaryAction={{ label: 'Full affiliate hub', onClick: () => navigate(AF.hubPath) }}
+          launcherSlot={<PartnerHubLauncherGrid tiles={hubLauncherTiles} onOpen={hubLauncher.open} />}
         >
-          {tab === 'overview' && (
-            <div className="space-y-3">
-              <AffiliateCommandStrip affiliate={affiliate} loading={affiliateLoading} />
-              <FinelyOsRoleCommandCenter
-                roleLabel="Real Estate · tagged affiliate"
-                headline="What matters now"
-                subline="Spot the credit block, hand off with a tracked link, stay on milestones — Finely runs the file."
-                tiles={[
-                  { id: 'ref', label: 'Referrals', value: affiliate?.referralCode ? 'Ready' : 'Setup', accent: 'emerald', onClick: () => setTab('referrals') },
-                  { id: 'restore', label: 'Handoff', value: 'Restore', accent: 'amber', onClick: () => navigate('/pricing/personal-credit-restore') },
-                  { id: 'score', label: 'Score path', value: 'CTA', accent: 'sky', onClick: () => navigate('/free-score-roadmap') },
-                  { id: 'au', label: 'AU optics', value: 'Educate', accent: 'violet', onClick: () => navigate('/tradelines?focus=au') },
-                ]}
-                primaryAction={{ label: 'Partner restore path', onClick: () => navigate('/pricing/personal-credit-restore') }}
-                secondaryAction={{ label: 'RE operator guide', onClick: () => navigate(RE.guideReadPath) }}
-              />
-              <RoleHubToolDeck
-                tools={RE_TOOL_DECK}
-                title="RE affiliate tools"
-                subtitle="Tag → hand off → educate — same affiliate role, filtered hub."
-              />
-              <div className={`${finelyOsCatalogCardCompact('emerald')} !p-4 space-y-2`}>
-                <div className={FINELY_OS_ENTITY_SUBLABEL}>You run / Finely runs</div>
-                <p className={`text-sm font-semibold ${FINELY_OS_ENTITY_VALUE}`}>{split.headline}</p>
-                <div className="grid sm:grid-cols-3 gap-2">
-                  {[
-                    { t: 'You do', rows: split.youDo },
-                    { t: 'Finely runs', rows: split.finelyRuns },
-                    { t: 'Not your job', rows: split.notYourJob },
-                  ].map((col) => (
-                    <div key={col.t}>
-                      <div className={`${FINELY_OS_ENTITY_SUBLABEL} mb-1`}>{col.t}</div>
-                      <ul className={`text-xs ${FINELY_OS_ENTITY_BODY} space-y-1`}>
-                        {col.rows.slice(0, 3).map((r) => (
-                          <li key={r}>• {r}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  ))}
+          {null}
+        </FinelyUnifiedHubLayout>
+
+        <PartnerHubWorkModal
+          open={hubLauncher.isOpen('overview')}
+          onClose={hubLauncher.close}
+          title="RE affiliate overview"
+          subtitle="Command center, tools, workflow, and you-run / Finely-runs split."
+          accent={ROLE_HUB_MODAL_ACCENT.overview}
+        >
+          <AffiliateCommandStrip affiliate={affiliate} loading={affiliateLoading} />
+          <FinelyOsRoleCommandCenter
+            roleLabel="Real Estate · tagged affiliate"
+            headline="What matters now"
+            subline="Spot the credit block, hand off with a tracked link, stay on milestones — Finely runs the file."
+            tiles={[
+              { id: 'ref', label: 'Referrals', value: affiliate?.referralCode ? 'Ready' : 'Setup', accent: 'emerald', onClick: () => hubLauncher.open('referrals') },
+              { id: 'restore', label: 'Handoff', value: 'Restore', accent: 'amber', onClick: () => navigate('/pricing/personal-credit-restore') },
+              { id: 'score', label: 'Score path', value: 'CTA', accent: 'sky', onClick: () => navigate('/free-score-roadmap') },
+              { id: 'au', label: 'AU optics', value: 'Educate', accent: 'violet', onClick: () => navigate('/tradelines?focus=au') },
+            ]}
+            primaryAction={{ label: 'Partner restore path', onClick: () => navigate('/pricing/personal-credit-restore') }}
+            secondaryAction={{ label: 'RE operator guide', onClick: () => navigate(RE.guideReadPath) }}
+          />
+          <RoleHubToolDeck tools={RE_TOOL_DECK} title="RE affiliate tools" subtitle="Tag → hand off → educate — same affiliate role, filtered hub." />
+          <div className={`${finelyOsCatalogCardCompact('emerald')} !p-4 space-y-2`}>
+            <div className={FINELY_OS_ENTITY_SUBLABEL}>You run / Finely runs</div>
+            <p className={`text-sm font-semibold ${FINELY_OS_ENTITY_VALUE}`}>{split.headline}</p>
+            <div className="grid sm:grid-cols-3 gap-2">
+              {[
+                { t: 'You do', rows: split.youDo },
+                { t: 'Finely runs', rows: split.finelyRuns },
+                { t: 'Not your job', rows: split.notYourJob },
+              ].map((col) => (
+                <div key={col.t}>
+                  <div className={`${FINELY_OS_ENTITY_SUBLABEL} mb-1`}>{col.t}</div>
+                  <ul className={`text-xs ${FINELY_OS_ENTITY_BODY} space-y-1`}>
+                    {col.rows.slice(0, 3).map((r) => (
+                      <li key={r}>• {r}</li>
+                    ))}
+                  </ul>
                 </div>
-              </div>
-              <RoleWorkflowPanel roleId="real_estate" compact />
+              ))}
             </div>
-          )}
+          </div>
+          <RoleWorkflowPanel roleId="real_estate" compact />
+        </PartnerHubWorkModal>
 
-          {tab === 'referrals' && (
-            <div className="space-y-3">
-              <AffiliateReferralToolkit />
-              <div className={`${finelyOsCatalogCardCompact('sky')} !p-4 space-y-2`}>
-                <div className={`text-sm font-semibold ${FINELY_OS_ENTITY_VALUE}`}>RE handoff links</div>
-                <p className={`text-xs ${FINELY_OS_ENTITY_BODY}`}>
-                  Send buyers/sellers into restore or funding readiness — tracked to your affiliate code when present.
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  <button type="button" onClick={() => navigate('/pricing/personal-credit-restore')} className={FINELY_OS_PRIMARY_BTN}>
-                    <Target size={14} /> Restore path
-                  </button>
-                  <button type="button" onClick={() => navigate('/free-score-roadmap')} className={FINELY_OS_SECONDARY_BTN}>
-                    Score roadmap
-                  </button>
-                  <button type="button" onClick={() => navigate('/tradelines?focus=au')} className={FINELY_OS_SECONDARY_BTN}>
-                    AU education
-                  </button>
-                  <button type="button" onClick={() => navigate(`${AF.hubPath}?tab=calculator`)} className={FINELY_OS_SECONDARY_BTN}>
-                    <Percent size={14} /> Payout calc
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {tab === 'playbook' && <RealEstatePlaybookPanel mode="full" />}
-
-          {tab === 'training' && (
-            <div className="space-y-3">
-              <UnifiedTrainingPanel audience="affiliate" specialties={['personal_restore']} />
-              <button type="button" onClick={() => navigate(RE.guideReadPath)} className={FINELY_OS_SECONDARY_BTN}>
-                <BookOpen size={14} /> <GraduationCap size={14} /> Operator handbook
-              </button>
-            </div>
-          )}
-
-          {tab === 'operate' && (
-            <div className={`${finelyOsCatalogCardCompact('violet')} !p-4 space-y-3`}>
+        <PartnerHubWorkModal
+          open={hubLauncher.isOpen('referrals')}
+          onClose={hubLauncher.close}
+          title="Referrals"
+          subtitle="Tracked handoff links for restore and score readiness."
+          accent={ROLE_HUB_MODAL_ACCENT.referrals}
+        >
+          <div className="space-y-3">
+            <AffiliateReferralToolkit />
+            <div className={`${finelyOsCatalogCardCompact('sky')} !p-4 space-y-2`}>
+              <div className={`text-sm font-semibold ${FINELY_OS_ENTITY_VALUE}`}>RE handoff links</div>
               <p className={`text-xs ${FINELY_OS_ENTITY_BODY}`}>
-                Same affiliate role — RE hub is a filtered view. Full campaigns and payouts live on Affiliate Hub.
+                Send buyers/sellers into restore or funding readiness — tracked to your affiliate code when present.
               </p>
               <div className="flex flex-wrap gap-2">
-                {[
-                  { label: 'Affiliate hub', path: AF.hubPath, icon: Link2 },
-                  { label: 'RE careers', path: RE.publicPath, icon: Home },
-                  { label: 'Messages', path: RE.messagesDeepLink, icon: MessageSquare },
-                  { label: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
-                  { label: 'Overview', path: `${RE.hubPath}?tab=overview`, icon: Sparkles },
-                ].map(({ label, path, icon: Icon }) => (
-                  <button key={label} type="button" onClick={() => navigate(path)} className={FINELY_OS_SECONDARY_BTN}>
-                    <Icon size={14} /> {label}
-                  </button>
-                ))}
+                <button type="button" onClick={() => navigate('/pricing/personal-credit-restore')} className={FINELY_OS_PRIMARY_BTN}>
+                  <Target size={14} /> Restore path
+                </button>
+                <button type="button" onClick={() => navigate('/free-score-roadmap')} className={FINELY_OS_SECONDARY_BTN}>
+                  Score roadmap
+                </button>
+                <button type="button" onClick={() => navigate('/tradelines?focus=au')} className={FINELY_OS_SECONDARY_BTN}>
+                  AU education
+                </button>
+                <button type="button" onClick={() => navigate(`${AF.hubPath}?tab=calculator`)} className={FINELY_OS_SECONDARY_BTN}>
+                  <Percent size={14} /> Payout calc
+                </button>
               </div>
             </div>
-          )}
-        </FinelyUnifiedHubLayout>
+          </div>
+        </PartnerHubWorkModal>
+
+        <PartnerHubWorkModal
+          open={hubLauncher.isOpen('playbook')}
+          onClose={hubLauncher.close}
+          title="Underwriting playbook"
+          subtitle="AU / DTI / rescore levers for RE partners."
+          accent={ROLE_HUB_MODAL_ACCENT.playbook}
+        >
+          <RealEstatePlaybookPanel mode="full" />
+        </PartnerHubWorkModal>
+
+        <PartnerHubWorkModal
+          open={hubLauncher.isOpen('training')}
+          onClose={hubLauncher.close}
+          title="RE training"
+          subtitle="Operator handbook and affiliate academy tracks."
+          accent={ROLE_HUB_MODAL_ACCENT.training}
+        >
+          <UnifiedTrainingPanel audience="affiliate" specialties={['personal_restore']} />
+          <button type="button" onClick={() => navigate(RE.guideReadPath)} className={FINELY_OS_SECONDARY_BTN}>
+            <BookOpen size={14} /> <GraduationCap size={14} /> Operator handbook
+          </button>
+        </PartnerHubWorkModal>
+
+        <PartnerHubWorkModal
+          open={hubLauncher.isOpen('operate')}
+          onClose={hubLauncher.close}
+          title="Operate"
+          subtitle="Full affiliate hub, messages, and day-to-day RE links."
+          accent={ROLE_HUB_MODAL_ACCENT.operate}
+        >
+          <div className={`${finelyOsCatalogCardCompact('violet')} !p-4 space-y-3`}>
+            <p className={`text-xs ${FINELY_OS_ENTITY_BODY}`}>
+              Same affiliate role — RE hub is a filtered view. Full campaigns and payouts live on Affiliate Hub.
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {[
+                { label: 'Affiliate hub', path: AF.hubPath, icon: Link2 },
+                { label: 'RE careers', path: RE.publicPath, icon: Home },
+                { label: 'Messages', path: RE.messagesDeepLink, icon: MessageSquare },
+                { label: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
+                { label: 'Overview', path: `${RE.hubPath}?tab=overview`, icon: Sparkles },
+              ].map(({ label, path, icon: Icon }) => (
+                <button key={label} type="button" onClick={() => navigate(path)} className={FINELY_OS_SECONDARY_BTN}>
+                  <Icon size={14} /> {label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </PartnerHubWorkModal>
+
         <p className={`mt-3 ${FINELY_OS_COMPLIANCE_FOOTNOTE}`}>
           Results vary · not legal advice · funding and underwriting subject to lender approval · payouts subject to verification · not income or closing guarantees
         </p>

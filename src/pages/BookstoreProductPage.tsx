@@ -12,6 +12,7 @@ import { FinelyOsPageFooter } from '../features/os/FinelyOsPageFooter';
 import { FinelyOsPaginatedStack } from '../features/os/FinelyOsPaginatedStack';
 import { FinelyUnifiedHubLayout } from '../features/unified/FinelyUnifiedHubLayout';
 import { useAuth } from '../auth/AuthProvider';
+import { finelyCtaNavigate } from '../lib/finelyCtaIntent';
 import { usePublicSeoMeta } from '../hooks/usePublicSeoMeta';
 import { CommsWorkspaceActions } from '../components/comms/CommsWorkspaceActions';
 import { BookMarkdownRenderer } from '../components/bookstore/BookMarkdownRenderer';
@@ -146,7 +147,7 @@ export default function BookstoreProductPage() {
                 >
                   Download sample PDF
                 </button>
-                <button type="button" onClick={() => navigate('/onboarding')} className={FINELY_OS_SECONDARY_BTN}>
+                <button type="button" onClick={() => finelyCtaNavigate(navigate, 'personal_intake')} className={FINELY_OS_SECONDARY_BTN}>
                   Start onboarding <ArrowRight size={14} />
                 </button>
                 <button type="button" onClick={() => navigate('/resources')} className={FINELY_OS_SECONDARY_BTN}>

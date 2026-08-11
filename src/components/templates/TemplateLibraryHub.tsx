@@ -33,6 +33,7 @@ import {
   finelyOsInlineListItem,
   finelyOsViewTab,
 } from '../../features/os/finelyOsLightUi';
+import { adminPartnerNavFromPortalHref } from '../../lib/adminPartnerRoutes';
 
 const ACTIVE_TEMPLATE_KEY = 'fc.templateLibrary.activeVaultId';
 
@@ -65,7 +66,16 @@ export function readActiveTemplateIdFromSession(): string | null {
   }
 }
 
-export function TemplateLibraryHub({ partner, unifiedShell }: { partner: Partner; unifiedShell?: boolean }) {
+export function TemplateLibraryHub({
+  partner,
+  unifiedShell,
+  layout = 'standalone',
+}: {
+  partner: Partner;
+  unifiedShell?: boolean;
+  /** When embedded in admin partner workspace, portal deep links map to admin routes. */
+  layout?: 'standalone' | 'embedded';
+}) {
   const navigate = useNavigate();
   const [params, setParams] = useSearchParams();
   const section = (params.get('section') as HubSection) || 'overview';
@@ -173,7 +183,12 @@ export function TemplateLibraryHub({ partner, unifiedShell }: { partner: Partner
     const q = new URLSearchParams();
     if (opts?.vaultId) q.set('template', opts.vaultId);
     if (opts?.baseId) q.set('base', opts.baseId);
-    navigate(`/portal/letters${q.toString() ? `?${q}` : ''}`);
+    const href = `/portal/letters${q.toString() ? `?${q}` : ''}`;
+    if (layout === 'embedded') {
+      navigate(adminPartnerNavFromPortalHref(partner.id, href));
+      return;
+    }
+    navigate(href);
   };
 
   return (

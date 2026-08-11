@@ -1,5 +1,23 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { ArrowLeft, ArrowRight, Bot, BookOpen, CheckCircle2, Clapperboard, Copy, Headphones, LayoutGrid, Loader2, Plus, Save, Sparkles, Trash2, GraduationCap } from 'lucide-react';
+import {
+  ArrowLeft,
+  ArrowRight,
+  BookOpen,
+  CheckCircle2,
+  ChevronRight,
+  Clapperboard,
+  Copy,
+  GraduationCap,
+  Headphones,
+  LayoutGrid,
+  Loader2,
+  Plus,
+  Save,
+  Sparkles,
+  Trash2,
+  Users,
+  Wand2,
+} from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { PageShell } from '../../components/layout/PageShell';
 import { getCourse, upsertCourse } from '../../data/coursesRepo';
@@ -14,11 +32,18 @@ import { FinelyOsGlassPanel } from '../../features/os/FinelyOsGlassPanel';
 import { FinelyOsIconBadge } from '../../features/os/FinelyOsIconBadge';
 import { FinelyOsPageFooter } from '../../features/os/FinelyOsPageFooter';
 import { CoursePublishChecklist } from '../../features/educationStudio/CoursePublishChecklist';
-import { CourseIntelligencePanel } from '../../features/educationStudio/CourseIntelligencePanel';
 import { CourseVideoProductionCommand } from '../../features/educationStudio/CourseVideoProductionCommand';
-import { narrateAllCourseLessons, narrateCourseLesson } from '../../lib/courseVoiceNarrate';
+import { narrateCourseLesson } from '../../lib/courseVoiceNarrate';
 import { runCourseLessonAgent } from '../../lib/courseLessonAgent';
-import { getVoiceStudioStatus } from '../../lib/voiceStudioClient';
+import {
+  attachBlobToCourseLesson,
+  inferLessonVideoStage,
+  countLessonScenesForLesson,
+  lessonHasAttachedVideo,
+  lessonMarkdownFromBlocks,
+  videoCommandRequestFromCourseLesson,
+} from '../../features/educationStudio/courseVideoBridge';
+import { VideoCreateWizard } from '../../features/studioCommandOs/VideoCreateWizard';
 import {
   FINELY_OS_BACK_LINK,
   FINELY_OS_BANNER,
@@ -31,13 +56,20 @@ import {
   FINELY_OS_PRIMARY_BTN,
   FINELY_OS_SECONDARY_BTN,
   FINELY_OS_SUCCESS_BTN,
-  FINELY_OS_VIEW_TABS,
-  finelyOsInlineListItem,
+  finelyOsDeckTile,
   finelyOsListItem,
-  finelyOsViewTab,
+  finelyOsMicroStat,
 } from '../../features/os/finelyOsLightUi';
 
-type StudioTab = 'curriculum' | 'authoring' | 'video' | 'experience';
+type CommandStep = 'idea' | 'outline' | 'teach' | 'videos' | 'community';
+
+const WIZARD_STEPS: Array<{ id: CommandStep; label: string }> = [
+  { id: 'idea', label: '1 · Idea' },
+  { id: 'outline', label: '2 · Outline' },
+  { id: 'teach', label: '3 · Teach' },
+  { id: 'videos', label: '4 · Videos' },
+  { id: 'community', label: '5 · Publish' },
+];
 
 function cloneCourse(c: Course): Course {
   return JSON.parse(JSON.stringify(c)) as Course;
@@ -52,12 +84,11 @@ function normalizeTags(raw: string): string[] {
 }
 
 function lessonMarkdown(lesson: CourseLesson): string {
-  const md = lesson.content
-    .filter((b) => b.type === 'markdown')
-    .map((b) => String((b as any)?.data?.markdown ?? ''))
-    .join('\n\n')
-    .trim();
-  return md || '';
+  return lessonMarkdownFromBlocks(lesson);
+}
+
+function stepIndex(step: CommandStep): number {
+  return WIZARD_STEPS.findIndex((s) => s.id === step);
 }
 
 export default function AdminCourseEditorPage() {
@@ -67,6 +98,7 @@ export default function AdminCourseEditorPage() {
   const [saved, setSaved] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [commandStep, setCommandStep] = useState<CommandStep>('idea');
 
   useEffect(() => {
     const onStore = () => setVersion((v) => v + 1);
@@ -88,30 +120,44 @@ export default function AdminCourseEditorPage() {
     if (!draft) return null;
     const mod = draft.modules.find((m) => m.id === (activeModuleId ?? draft.modules[0]?.id));
     if (!mod) return null;
-    const lesson = mod.lessons.find((l) => l.id === (activeLessonId ?? mod.lessons[0]?.id)) ?? null;
-    return lesson;
+    return mod.lessons.find((l) => l.id === (activeLessonId ?? mod.lessons[0]?.id)) ?? null;
   }, [activeLessonId, activeModuleId, draft]);
-  const allLessonsFlat = useMemo(() => {
-    if (!draft) return [] as Array<{ id: string; title: string }>;
-    const out: Array<{ id: string; title: string }> = [];
-    for (const m of draft.modules ?? []) for (const l of m.lessons ?? []) out.push({ id: l.id, title: l.title });
-    return out;
-  }, [draft]);
 
   const [tagsRaw, setTagsRaw] = useState('');
-  const [studioTab, setStudioTab] = useState<StudioTab>('curriculum');
   const [voiceNotice, setVoiceNotice] = useState<string | null>(null);
   const [voiceBusy, setVoiceBusy] = useState(false);
   const [agentNotice, setAgentNotice] = useState<string | null>(null);
   const [agentBusy, setAgentBusy] = useState(false);
   const [agentPartnerId, setAgentPartnerId] = useState('');
-  const voiceStudio = useMemo(() => getVoiceStudioStatus(), []);
+  const [videoNotice, setVideoNotice] = useState<string | null>(null);
+  const [wizardOpen, setWizardOpen] = useState(false);
+  const [wizardLessonId, setWizardLessonId] = useState<string | null>(null);
+
   const videoStyle = (draft?.studio?.productionStyle ?? 'cinematic') as VideoProductionStyle;
   const videoProvider = (draft?.studio?.videoProvider ?? 'kling') as VideoProviderId;
   const lessonScenes = useMemo(
     () => (draft?.videoScenes ?? []).filter((s) => s.lessonId === activeLesson?.id),
     [draft?.videoScenes, activeLesson?.id],
   );
+
+  const wizardLesson = useMemo(() => {
+    if (!draft || !wizardLessonId) return activeLesson;
+    for (const m of draft.modules) {
+      const l = m.lessons.find((x) => x.id === wizardLessonId);
+      if (l) return l;
+    }
+    return activeLesson;
+  }, [activeLesson, draft, wizardLessonId]);
+
+  const wizardInitialRequest = useMemo(() => {
+    if (!draft || !wizardLesson) return undefined;
+    return videoCommandRequestFromCourseLesson({
+      course: draft,
+      lesson: wizardLesson,
+      lessonMarkdown: lessonMarkdown(wizardLesson),
+    });
+  }, [draft, wizardLesson]);
+
   useEffect(() => {
     if (!draft) return;
     setTagsRaw((draft.tags ?? []).join(', '));
@@ -151,6 +197,11 @@ export default function AdminCourseEditorPage() {
     setVersion((v) => v + 1);
   };
 
+  const patchStudio = (patch: NonNullable<Course['studio']>) => {
+    if (!draft) return;
+    setDraft({ ...draft, studio: { ...(draft.studio ?? {}), ...patch } });
+  };
+
   const addModule = () => {
     if (!draft) return;
     const mod: CourseModule = { id: newId('mod'), title: `Module ${draft.modules.length + 1}`, lessons: [] };
@@ -187,9 +238,7 @@ export default function AdminCourseEditorPage() {
     const lessons = mod.lessons.filter((l) => l.id !== lessonId);
     next.modules[modIdx] = { ...mod, lessons };
     setDraft(next);
-    if (activeLessonId === lessonId) {
-      setActiveLessonId(lessons[0]?.id ?? null);
-    }
+    if (activeLessonId === lessonId) setActiveLessonId(lessons[0]?.id ?? null);
   };
 
   const removeModule = (moduleId: string) => {
@@ -223,27 +272,6 @@ export default function AdminCourseEditorPage() {
     setDraft({ ...draft, modules: [...draft.modules, copy] });
     setActiveModuleId(copy.id);
     setActiveLessonId(copy.lessons[0]?.id ?? null);
-  };
-
-  const updateActiveLessonMarkdown = (md: string) => {
-    if (!draft || !activeLesson) return;
-    const next = cloneCourse(draft);
-    for (const m of next.modules) {
-      const li = m.lessons.findIndex((l) => l.id === activeLesson.id);
-      if (li < 0) continue;
-      const l = m.lessons[li]!;
-      const existing: any[] = Array.isArray((l as any).content) ? ([...(l as any).content] as any[]) : [];
-      const idx = existing.findIndex((b) => b?.type === 'markdown');
-      if (idx >= 0) {
-        const cur = existing[idx] ?? {};
-        existing[idx] = { ...cur, type: 'markdown', data: { ...(cur?.data || {}), markdown: md } };
-        m.lessons[li] = { ...l, content: existing as any };
-      } else {
-        m.lessons[li] = { ...l, content: [{ id: newId('blk'), type: 'markdown', data: { markdown: md } }, ...existing] as any };
-      }
-      break;
-    }
-    setDraft(next);
   };
 
   const aiGenerateOutline = async () => {
@@ -286,6 +314,7 @@ export default function AdminCourseEditorPage() {
       setDraft(next);
       setActiveModuleId(next.modules[0]?.id ?? null);
       setActiveLessonId(next.modules[0]?.lessons[0]?.id ?? null);
+      setCommandStep('outline');
     } catch (e: any) {
       setErr(e?.message || 'AI outline failed.');
     } finally {
@@ -352,6 +381,27 @@ export default function AdminCourseEditorPage() {
     }
   };
 
+  const updateActiveLessonMarkdown = (md: string) => {
+    if (!draft || !activeLesson) return;
+    const next = cloneCourse(draft);
+    for (const m of next.modules) {
+      const li = m.lessons.findIndex((l) => l.id === activeLesson.id);
+      if (li < 0) continue;
+      const l = m.lessons[li]!;
+      const existing: any[] = Array.isArray((l as any).content) ? ([...(l as any).content] as any[]) : [];
+      const idx = existing.findIndex((b) => b?.type === 'markdown');
+      if (idx >= 0) {
+        const cur = existing[idx] ?? {};
+        existing[idx] = { ...cur, type: 'markdown', data: { ...(cur?.data || {}), markdown: md } };
+        m.lessons[li] = { ...l, content: existing as any };
+      } else {
+        m.lessons[li] = { ...l, content: [{ id: newId('blk'), type: 'markdown', data: { markdown: md } }, ...existing] as any };
+      }
+      break;
+    }
+    setDraft(next);
+  };
+
   const narrateActiveLesson = async () => {
     if (!draft || !activeLesson) return;
     setVoiceBusy(true);
@@ -366,24 +416,7 @@ export default function AdminCourseEditorPage() {
     }
   };
 
-  const narrateEntireCourse = async () => {
-    if (!draft) return;
-    setVoiceBusy(true);
-    setVoiceNotice(null);
-    try {
-      const res = await narrateAllCourseLessons({
-        course: draft,
-        onProgress: (done, total, title) => setVoiceNotice(`Rendering ${done}/${total}: ${title}`),
-      });
-      setVoiceNotice(`Done — ${res.ok} rendered, ${res.failed} failed.`);
-    } catch (e: unknown) {
-      setVoiceNotice((e as Error)?.message ?? 'Bulk narration failed.');
-    } finally {
-      setVoiceBusy(false);
-    }
-  };
-
-  const runLessonAgent = async (dryRun = false) => {
+  const runLessonAgent = async () => {
     if (!draft || !activeLesson) return;
     setAgentBusy(true);
     setAgentNotice(null);
@@ -392,7 +425,7 @@ export default function AdminCourseEditorPage() {
         course: draft,
         lesson: activeLesson,
         partnerId: agentPartnerId.trim() || undefined,
-        dryRun,
+        dryRun: false,
       });
       setAgentNotice(res.summary);
     } catch (e: unknown) {
@@ -400,6 +433,38 @@ export default function AdminCourseEditorPage() {
     } finally {
       setAgentBusy(false);
     }
+  };
+
+  const openVideoWizard = (lessonId: string) => {
+    setWizardLessonId(lessonId);
+    setActiveLessonId(lessonId);
+    for (const m of draft?.modules ?? []) {
+      if (m.lessons.some((l) => l.id === lessonId)) {
+        setActiveModuleId(m.id);
+        break;
+      }
+    }
+    setWizardOpen(true);
+  };
+
+  const autoProduceAllStub = () => {
+    if (!draft) return;
+    const pending = draft.modules.reduce((n, m) => n + m.lessons.filter((l) => !lessonHasAttachedVideo(l)).length, 0);
+    setVideoNotice(
+      pending
+        ? `Auto-produce all (stub): ${pending} lesson(s) queued for batch pipeline. Use Produce video per lesson until batch automation ships.`
+        : 'All lessons already have attached videos.',
+    );
+  };
+
+  const goNext = () => {
+    const idx = stepIndex(commandStep);
+    if (idx < WIZARD_STEPS.length - 1) setCommandStep(WIZARD_STEPS[idx + 1]!.id);
+  };
+
+  const goPrev = () => {
+    const idx = stepIndex(commandStep);
+    if (idx > 0) setCommandStep(WIZARD_STEPS[idx - 1]!.id);
   };
 
   if (!id) {
@@ -410,19 +475,17 @@ export default function AdminCourseEditorPage() {
     return <PageShell badge="Admin" title="Course not found" subtitle="This course does not exist." />;
   }
 
+  const lessonCount = draft.modules.reduce((n, m) => n + m.lessons.length, 0);
+
   return (
-    <PageShell badge="Admin" title="AI Education Studio" subtitle={draft.title}>
+    <PageShell badge="Admin" title="Course Command Center" subtitle={draft.title}>
       <div className={FINELY_OS_PAGE}>
         <div className="flex flex-wrap items-center justify-between gap-3">
           <button type="button" onClick={() => navigate('/admin/courses')} className={FINELY_OS_BACK_LINK}>
-            <ArrowLeft size={16} /> Education Studio
+            <ArrowLeft size={16} /> Courses
           </button>
           <div className="flex flex-wrap gap-2">
-            <button
-              type="button"
-              onClick={() => navigate(`/portal/courses/${draft.id}`)}
-              className={FINELY_OS_SECONDARY_BTN}
-            >
+            <button type="button" onClick={() => navigate(`/portal/courses/${draft.id}`)} className={FINELY_OS_SECONDARY_BTN}>
               Preview <ArrowRight size={12} />
             </button>
             <button type="button" onClick={save} className={saved ? FINELY_OS_SUCCESS_BTN : FINELY_OS_PRIMARY_BTN}>
@@ -434,263 +497,423 @@ export default function AdminCourseEditorPage() {
         <div className={FINELY_OS_BANNER}>
           <FinelyOsIconBadge icon={GraduationCap} accent="emerald" size={18} className="p-2.5 mt-0.5" />
           <p className={`${FINELY_OS_ENTITY_BODY} leading-relaxed`}>
-            Five-engine studio: curriculum, authoring, video production, multimedia blocks, and learner experience — edit each layer without rebuilding manually.
+            Five-step command center: idea → outline → teach → videos → community &amp; publish. One obvious next step at each layer.
           </p>
         </div>
 
-        <div className={FINELY_OS_VIEW_TABS}>
-          {(
-            [
-              ['curriculum', LayoutGrid, 'Curriculum'],
-              ['authoring', BookOpen, 'Authoring'],
-              ['video', Clapperboard, 'Video'],
-              ['experience', GraduationCap, 'Experience'],
-            ] as const
-          ).map(([tab, Icon, label]) => (
-            <button key={tab} type="button" onClick={() => setStudioTab(tab)} className={finelyOsViewTab(studioTab === tab, tab === 'video' ? 'fuchsia' : 'emerald')}>
-              <Icon size={14} /> {label}
-            </button>
-          ))}
+        <div className="flex flex-wrap items-center gap-1.5">
+          {WIZARD_STEPS.map((s, idx) => {
+            const active = commandStep === s.id;
+            const done = stepIndex(commandStep) > idx;
+            return (
+              <React.Fragment key={s.id}>
+                {idx > 0 ? <ChevronRight size={14} className="text-white/30 shrink-0" aria-hidden /> : null}
+                <button
+                  type="button"
+                  onClick={() => setCommandStep(s.id)}
+                  className={`rounded-lg border px-3 py-1.5 text-xs font-semibold transition-all ${
+                    active
+                      ? 'border-emerald-400/50 bg-emerald-500/15 text-emerald-50'
+                      : done
+                        ? 'border-emerald-400/25 bg-emerald-500/8 text-emerald-200/80'
+                        : 'border-white/12 bg-black/30 text-white/55 hover:text-white/75'
+                  }`}
+                >
+                  {s.label}
+                </button>
+              </React.Fragment>
+            );
+          })}
         </div>
 
         {err ? <div className={FINELY_OS_NOTICE_ERROR}>{err}</div> : null}
 
-        <div className="grid lg:grid-cols-12 gap-6">
-          <div className="lg:col-span-4 space-y-4">
-            <FinelyOsGlassPanel icon={BookOpen} title="Curriculum tree" subtitle="Modules and lessons" accent="emerald" variant="inner" actions={
-              <button type="button" onClick={addModule} className={FINELY_OS_SECONDARY_BTN}><Plus size={14} /> Module</button>
-            }>
-              <div className="space-y-3">
+        {commandStep === 'idea' ? (
+          <FinelyOsGlassPanel icon={Sparkles} title="Step 1 — Idea" subtitle="Course concept and AI outline" accent="violet">
+            <div className="grid md:grid-cols-2 gap-4">
+              <label className="md:col-span-2">
+                <div className={FINELY_OS_ENTITY_SUBLABEL}>Title</div>
+                <input value={draft.title} onChange={(e) => setDraft({ ...draft, title: e.target.value })} className={FINELY_OS_ENTITY_INPUT} />
+              </label>
+              <label className="md:col-span-2">
+                <div className={FINELY_OS_ENTITY_SUBLABEL}>Description</div>
+                <textarea value={draft.desc} onChange={(e) => setDraft({ ...draft, desc: e.target.value })} className={`${FINELY_OS_ENTITY_INPUT} min-h-[88px]`} rows={3} />
+              </label>
+              <label className="md:col-span-2">
+                <div className={FINELY_OS_ENTITY_SUBLABEL}>Tags</div>
+                <input value={tagsRaw} onChange={(e) => setTagsRaw(e.target.value)} className={FINELY_OS_ENTITY_INPUT} placeholder="personal, disputes" />
+              </label>
+            </div>
+            <div className="mt-4 pt-4 border-t border-white/[0.06]">
+              <button type="button" onClick={() => void aiGenerateOutline()} disabled={busy} className={`w-full sm:w-auto ${FINELY_OS_PRIMARY_BTN} justify-center py-3`}>
+                {busy ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />} Generate AI outline
+              </button>
+              <p className={`mt-2 ${FINELY_OS_ENTITY_BODY}`}>One click builds modules and lesson titles — then refine in Outline and Teach.</p>
+            </div>
+          </FinelyOsGlassPanel>
+        ) : null}
+
+        {commandStep === 'outline' ? (
+          <FinelyOsGlassPanel
+            icon={LayoutGrid}
+            title="Step 2 — Outline"
+            subtitle={`${draft.modules.length} modules · ${lessonCount} lessons`}
+            accent="emerald"
+            actions={
+              <button type="button" onClick={addModule} className={FINELY_OS_SECONDARY_BTN}>
+                <Plus size={14} /> Module
+              </button>
+            }
+          >
+            {draft.modules.length === 0 ? (
+              <p className={FINELY_OS_ENTITY_BODY}>No modules yet — go to Idea and generate an AI outline, or add a module.</p>
+            ) : (
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
                 {draft.modules.map((m) => {
-                  const active = m.id === (activeModuleId ?? draft.modules[0]?.id);
+                  const moduleActive = m.id === (activeModuleId ?? draft.modules[0]?.id);
                   return (
-                    <div key={m.id} className={finelyOsListItem(active, 'emerald')}>
-                      <div className="flex items-start gap-2">
-                        <button type="button" onClick={() => { setActiveModuleId(m.id); setActiveLessonId(m.lessons[0]?.id ?? null); }} className="flex-1 text-left min-w-0">
-                          <div className={FINELY_OS_ENTITY_VALUE}>{m.title}</div>
-                          <div className={`mt-1 ${FINELY_OS_ENTITY_SUBLABEL}`}>lessons: {m.lessons.length}</div>
-                        </button>
+                    <div key={m.id} className={`${finelyOsDeckTile('emerald', moduleActive)} !p-4 space-y-3`}>
+                      <div className="flex items-start justify-between gap-2">
+                        <input
+                          value={m.title}
+                          onChange={(e) => {
+                            const next = cloneCourse(draft);
+                            const mi = next.modules.findIndex((x) => x.id === m.id);
+                            if (mi >= 0) next.modules[mi] = { ...next.modules[mi]!, title: e.target.value };
+                            setDraft(next);
+                            setActiveModuleId(m.id);
+                          }}
+                          className={`${FINELY_OS_ENTITY_VALUE} bg-transparent border-none outline-none w-full`}
+                        />
                         <div className="flex shrink-0 gap-1">
-                          <button type="button" onClick={() => duplicateModule(m.id)} className="p-1.5 rounded-lg border border-white/[0.08] text-white/50 hover:text-white" title="Duplicate module"><Copy size={12} /></button>
-                          <button type="button" onClick={() => removeModule(m.id)} className="p-1.5 rounded-lg border border-red-500/25 text-red-300/80 hover:bg-red-500/10" title="Delete module"><Trash2 size={12} /></button>
+                          <button type="button" onClick={() => duplicateModule(m.id)} className="p-1 rounded border border-white/10 text-white/50 hover:text-white" title="Duplicate">
+                            <Copy size={11} />
+                          </button>
+                          <button type="button" onClick={() => removeModule(m.id)} className="p-1 rounded border border-red-500/25 text-red-300/80" title="Delete">
+                            <Trash2 size={11} />
+                          </button>
                         </div>
                       </div>
-                      <div className="mt-3 space-y-1">
+                      <div className="space-y-1.5">
                         {m.lessons.map((l) => {
-                          const isActiveLesson = l.id === (activeLessonId ?? m.lessons[0]?.id);
+                          const lessonActive = l.id === activeLessonId;
                           return (
                             <div key={l.id} className="flex items-center gap-1">
-                              <button type="button" onClick={() => { setActiveModuleId(m.id); setActiveLessonId(l.id); }} className={`flex-1 text-left px-3 py-2 rounded-xl border text-xs transition-all ${finelyOsListItem(isActiveLesson, 'emerald')}`}>
-                                {l.title}
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setActiveModuleId(m.id);
+                                  setActiveLessonId(l.id);
+                                }}
+                                className={`flex-1 text-left px-2.5 py-2 rounded-xl border text-xs ${finelyOsListItem(lessonActive, 'emerald')}`}
+                              >
+                                <div className="truncate font-semibold">{l.title}</div>
+                                {l.summary ? <div className={`truncate ${FINELY_OS_ENTITY_BODY}`}>{l.summary}</div> : null}
                               </button>
-                              <button type="button" onClick={() => removeLesson(m.id, l.id)} className="p-1.5 rounded-lg border border-red-500/20 text-red-300/70 hover:bg-red-500/10 shrink-0" title="Delete lesson"><Trash2 size={11} /></button>
+                              <button type="button" onClick={() => removeLesson(m.id, l.id)} className="p-1 rounded border border-red-500/20 text-red-300/70 shrink-0">
+                                <Trash2 size={10} />
+                              </button>
                             </div>
                           );
                         })}
-                        <button type="button" onClick={() => addLesson(m.id)} className={`w-full ${FINELY_OS_SECONDARY_BTN} justify-center`}><Plus size={14} /> Lesson</button>
+                        <button type="button" onClick={() => addLesson(m.id)} className={`w-full ${FINELY_OS_SECONDARY_BTN} !py-1.5 justify-center text-xs`}>
+                          <Plus size={12} /> Lesson
+                        </button>
                       </div>
                     </div>
                   );
                 })}
-                {draft.modules.length === 0 ? (
-                  <p className={`text-xs ${FINELY_OS_ENTITY_BODY} py-2`}>No modules yet — add one or generate an AI outline.</p>
-                ) : null}
               </div>
-            </FinelyOsGlassPanel>
-
-            <FinelyOsGlassPanel icon={Sparkles} title="Curriculum engine" subtitle="AI outline for this course" accent="violet" variant="inner">
-              <button type="button" onClick={aiGenerateOutline} disabled={busy} className={`w-full ${FINELY_OS_PRIMARY_BTN} justify-center py-3`}>
-                <Sparkles size={14} /> Generate outline
-              </button>
-            </FinelyOsGlassPanel>
-
-            <FinelyOsGlassPanel icon={CheckCircle2} title="Publish readiness" accent="amber" variant="inner" headerless>
-              <CoursePublishChecklist course={draft} />
-            </FinelyOsGlassPanel>
-
-            <CourseIntelligencePanel
-              course={draft}
-              onApplyCourse={(next) => {
-                setDraft(next);
-                setTagsRaw((next.tags ?? []).join(', '));
-              }}
-              onRunBulkNarration={async () => {
-                setBusy(true);
-                try {
-                  await narrateAllCourseLessons({ course: draft });
-                } finally {
-                  setBusy(false);
-                }
-              }}
-              bulkBusy={busy}
-            />
-          </div>
-
-          <div className="lg:col-span-8 space-y-4">
-            {(studioTab === 'curriculum' || studioTab === 'authoring') && (
-              <FinelyOsGlassPanel icon={BookOpen} title="Course metadata" accent="violet">
-                <div className="grid md:grid-cols-2 gap-4">
-                  <label className="md:col-span-2">
-                    <div className={FINELY_OS_ENTITY_SUBLABEL}>Title</div>
-                    <input value={draft.title} onChange={(e) => setDraft({ ...draft, title: e.target.value })} className={FINELY_OS_ENTITY_INPUT} />
-                  </label>
-                  <label className="md:col-span-2">
-                    <div className={FINELY_OS_ENTITY_SUBLABEL}>Description</div>
-                    <textarea value={draft.desc} onChange={(e) => setDraft({ ...draft, desc: e.target.value })} className={`${FINELY_OS_ENTITY_INPUT} min-h-[90px]`} />
-                  </label>
-                  <label className="md:col-span-2">
-                    <div className={FINELY_OS_ENTITY_SUBLABEL}>Tags</div>
-                    <input value={tagsRaw} onChange={(e) => setTagsRaw(e.target.value)} className={FINELY_OS_ENTITY_INPUT} placeholder="personal, disputes" />
-                  </label>
-                  <label className={`inline-flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL}`}>
-                    <input type="checkbox" checked={draft.published} onChange={(e) => setDraft({ ...draft, published: e.target.checked })} className="accent-violet-600" />
-                    Published
-                  </label>
-                </div>
-                {draft.studio?.learningObjectives?.length ? (
-                  <div className="mt-4">
-                    <div className={FINELY_OS_ENTITY_SUBLABEL}>Learning objectives</div>
-                    <ul className={`mt-2 space-y-1 ${FINELY_OS_ENTITY_BODY}`}>
-                      {draft.studio.learningObjectives.map((o) => <li key={o}>• {o}</li>)}
-                    </ul>
-                  </div>
-                ) : null}
-              </FinelyOsGlassPanel>
             )}
+          </FinelyOsGlassPanel>
+        ) : null}
 
-            {studioTab === 'authoring' && (
-              <FinelyOsGlassPanel icon={Bot} title="Lesson authoring" subtitle="Blocks, scripts, quizzes" accent="emerald" actions={
-                <div className="flex flex-wrap gap-2">
-                  <button type="button" onClick={aiGenerateLessonScript} disabled={busy || !activeLesson} className={FINELY_OS_SUCCESS_BTN}><Sparkles size={14} /> Script</button>
-                  <button type="button" onClick={aiGenerateStoryboard} disabled={busy || !activeLesson} className={FINELY_OS_SECONDARY_BTN}><Bot size={14} /> Storyboard</button>
-                  <button type="button" onClick={() => void narrateActiveLesson()} disabled={voiceBusy || !activeLesson} className={FINELY_OS_SECONDARY_BTN}>
-                    {voiceBusy ? <Loader2 size={14} className="animate-spin" /> : <Headphones size={14} />} Narrate lesson
-                  </button>
-                  <button type="button" onClick={() => void runLessonAgent(false)} disabled={agentBusy || !activeLesson} className={FINELY_OS_PRIMARY_BTN}>
-                    {agentBusy ? <Loader2 size={14} className="animate-spin" /> : <Bot size={14} />} Run lesson agent
-                  </button>
+        {commandStep === 'teach' ? (
+          <div className="grid lg:grid-cols-12 gap-4">
+            <div className="lg:col-span-4 space-y-3">
+              <FinelyOsGlassPanel icon={BookOpen} title="Lessons" subtitle="Pick a lesson to edit" accent="emerald" variant="inner" headerless>
+                <div className="space-y-2 max-h-[60vh] overflow-y-auto">
+                  {draft.modules.map((m) => (
+                    <div key={m.id} className="space-y-1">
+                      <div className={`${FINELY_OS_ENTITY_SUBLABEL} px-1`}>{m.title}</div>
+                      {m.lessons.map((l) => {
+                        const active = l.id === activeLessonId;
+                        return (
+                          <button
+                            key={l.id}
+                            type="button"
+                            onClick={() => {
+                              setActiveModuleId(m.id);
+                              setActiveLessonId(l.id);
+                            }}
+                            className={`${finelyOsDeckTile('violet', active)} !p-3 w-full text-left`}
+                          >
+                            <div className={FINELY_OS_ENTITY_VALUE}>{l.title}</div>
+                            {l.summary ? <div className={`mt-1 truncate ${FINELY_OS_ENTITY_BODY}`}>{l.summary}</div> : null}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  ))}
                 </div>
-              }>
+              </FinelyOsGlassPanel>
+            </div>
+            <div className="lg:col-span-8">
+              <FinelyOsGlassPanel
+                icon={BookOpen}
+                title={activeLesson ? activeLesson.title : 'Lesson editor'}
+                subtitle="Slide-panel authoring — blocks, scripts, narration"
+                accent="violet"
+                actions={
+                  activeLesson ? (
+                    <div className="flex flex-wrap gap-2">
+                      <button type="button" onClick={() => void aiGenerateLessonScript()} disabled={busy} className={FINELY_OS_SUCCESS_BTN}>
+                        <Sparkles size={14} /> Script
+                      </button>
+                      <button type="button" onClick={() => void narrateActiveLesson()} disabled={voiceBusy} className={FINELY_OS_SECONDARY_BTN}>
+                        {voiceBusy ? <Loader2 size={14} className="animate-spin" /> : <Headphones size={14} />} Narrate
+                      </button>
+                    </div>
+                  ) : null
+                }
+              >
                 {!activeLesson ? (
-                  <p className={FINELY_OS_ENTITY_BODY}>Select a lesson from the curriculum tree.</p>
+                  <p className={FINELY_OS_ENTITY_BODY}>Select a lesson from the panel.</p>
                 ) : (
                   <div className="space-y-4">
-                    {agentNotice ? <div className={FINELY_OS_BANNER}>{agentNotice}</div> : null}
-                    <label>
-                      <div className={FINELY_OS_ENTITY_SUBLABEL}>Optional partner ID — creates Work OS checklist tasks</div>
-                      <input value={agentPartnerId} onChange={(e) => setAgentPartnerId(e.target.value)} className={FINELY_OS_ENTITY_INPUT} placeholder="partner_… (leave blank for narrate + event only)" />
-                    </label>
-                    <div className="grid md:grid-cols-2 gap-4">
+                    {agentNotice || voiceNotice ? (
+                      <div className={FINELY_OS_BANNER}>{agentNotice ?? voiceNotice}</div>
+                    ) : null}
+                    <div className="grid md:grid-cols-2 gap-3">
                       <label className="md:col-span-2">
                         <div className={FINELY_OS_ENTITY_SUBLABEL}>Lesson title</div>
-                        <input value={activeLesson.title} onChange={(e) => {
-                          if (!draft) return;
-                          const next = cloneCourse(draft);
-                          for (const m of next.modules) {
-                            const li = m.lessons.findIndex((l) => l.id === activeLesson.id);
-                            if (li >= 0) m.lessons[li] = { ...m.lessons[li]!, title: e.target.value };
-                          }
-                          setDraft(next);
-                        }} className={FINELY_OS_ENTITY_INPUT} />
+                        <input
+                          value={activeLesson.title}
+                          onChange={(e) => {
+                            const next = cloneCourse(draft);
+                            for (const mod of next.modules) {
+                              const li = mod.lessons.findIndex((l) => l.id === activeLesson.id);
+                              if (li >= 0) mod.lessons[li] = { ...mod.lessons[li]!, title: e.target.value };
+                            }
+                            setDraft(next);
+                          }}
+                          className={FINELY_OS_ENTITY_INPUT}
+                        />
                       </label>
                       <label className="md:col-span-2">
                         <div className={FINELY_OS_ENTITY_SUBLABEL}>Summary</div>
-                        <input value={activeLesson.summary ?? ''} onChange={(e) => {
-                          if (!draft) return;
-                          const next = cloneCourse(draft);
-                          for (const m of next.modules) {
-                            const li = m.lessons.findIndex((l) => l.id === activeLesson.id);
-                            if (li >= 0) m.lessons[li] = { ...m.lessons[li]!, summary: e.target.value || undefined };
-                          }
-                          setDraft(next);
-                        }} className={FINELY_OS_ENTITY_INPUT} />
+                        <input
+                          value={activeLesson.summary ?? ''}
+                          onChange={(e) => {
+                            const next = cloneCourse(draft);
+                            for (const mod of next.modules) {
+                              const li = mod.lessons.findIndex((l) => l.id === activeLesson.id);
+                              if (li >= 0) mod.lessons[li] = { ...mod.lessons[li]!, summary: e.target.value || undefined };
+                            }
+                            setDraft(next);
+                          }}
+                          className={FINELY_OS_ENTITY_INPUT}
+                        />
                       </label>
                     </div>
-                    <LessonBlockEditor value={activeLesson.content as any} onChange={(blocks) => {
-                      if (!draft) return;
-                      const next = cloneCourse(draft);
-                      for (const m of next.modules) {
-                        const li = m.lessons.findIndex((l) => l.id === activeLesson.id);
-                        if (li >= 0) m.lessons[li] = { ...m.lessons[li]!, content: blocks as any };
-                      }
-                      setDraft(next);
-                    }} />
-                    <button type="button" onClick={() => activeLesson && navigator.clipboard?.writeText(lessonMarkdown(activeLesson))} className={FINELY_OS_SECONDARY_BTN}><Copy size={14} /> Copy markdown</button>
+                    <LessonBlockEditor
+                      value={activeLesson.content as any}
+                      onChange={(blocks) => {
+                        const next = cloneCourse(draft);
+                        for (const mod of next.modules) {
+                          const li = mod.lessons.findIndex((l) => l.id === activeLesson.id);
+                          if (li >= 0) mod.lessons[li] = { ...mod.lessons[li]!, content: blocks as any };
+                        }
+                        setDraft(next);
+                      }}
+                    />
+                    <div className="flex flex-wrap gap-2">
+                      <button type="button" onClick={() => void runLessonAgent()} disabled={agentBusy} className={FINELY_OS_SECONDARY_BTN}>
+                        Run lesson agent
+                      </button>
+                      <input
+                        value={agentPartnerId}
+                        onChange={(e) => setAgentPartnerId(e.target.value)}
+                        className={`${FINELY_OS_ENTITY_INPUT} max-w-xs`}
+                        placeholder="Partner ID (optional)"
+                      />
+                    </div>
                   </div>
                 )}
               </FinelyOsGlassPanel>
-            )}
-
-            {studioTab === 'video' && (
-              <>
-                <div className="flex flex-wrap gap-2">
-                  <button type="button" onClick={() => navigate(`/admin/content-studio?room=course_videos&courseId=${draft.id}${activeLesson ? `&lessonId=${activeLesson.id}` : ''}`)} className={FINELY_OS_PRIMARY_BTN}>
-                    <Clapperboard size={14} /> Content Studio — course videos
-                  </button>
-                  <button type="button" onClick={() => navigate('/admin/voice-studio')} className={FINELY_OS_SECONDARY_BTN}>
-                    <Headphones size={14} /> Voice Studio narration
-                  </button>
-                </div>
-                <CourseVideoProductionCommand
-                  courseId={draft.id}
-                  course={draft}
-                  lesson={activeLesson}
-                  lessonMarkdown={activeLesson ? lessonMarkdown(activeLesson) : ''}
-                  style={videoStyle}
-                  provider={videoProvider}
-                  onStyleChange={(s) => setDraft({ ...draft, studio: { ...(draft.studio ?? {}), productionStyle: s } })}
-                  onProviderChange={(p) => setDraft({ ...draft, studio: { ...(draft.studio ?? {}), videoProvider: p } })}
-                  scenes={lessonScenes}
-                  onScenesChange={(scenes) => {
-                    const other = (draft.videoScenes ?? []).filter((s) => s.lessonId !== activeLesson?.id);
-                    setDraft({ ...draft, videoScenes: [...other, ...scenes] });
-                  }}
-                  onGenerateScript={aiGenerateLessonScript}
-                  onGenerateStoryboard={aiGenerateStoryboard}
-                  busy={busy}
-                  onLessonSelect={(lessonId) => {
-                    setActiveLessonId(lessonId);
-                    for (const m of draft.modules) {
-                      if (m.lessons.some((l) => l.id === lessonId)) {
-                        setActiveModuleId(m.id);
-                        break;
-                      }
-                    }
-                  }}
-                />
-              </>
-            )}
-
-            {studioTab === 'experience' && (
-              <FinelyOsGlassPanel icon={GraduationCap} title="Learning experience" subtitle="Portal player, progress, certificates" accent="sky">
-                <p className={FINELY_OS_ENTITY_BODY}>
-                  Learners access published courses in the portal player with drip schedules, prerequisites, quizzes, and certificate issuance on completion.
-                </p>
-                <div className="mt-4 flex flex-wrap gap-2">
-                  <button type="button" onClick={() => navigate(`/portal/courses/${draft.id}`)} className={FINELY_OS_PRIMARY_BTN}>Open portal preview</button>
-                  <button type="button" onClick={() => void narrateEntireCourse()} disabled={voiceBusy} className={FINELY_OS_SECONDARY_BTN}>
-                    {voiceBusy ? <Loader2 size={14} className="animate-spin" /> : <Headphones size={14} />} Narrate all lessons
-                  </button>
-                </div>
-                {voiceNotice ? <p className={`mt-3 text-sm ${FINELY_OS_ENTITY_BODY}`}>{voiceNotice}</p> : null}
-                {!voiceStudio.available ? (
-                  <p className={`mt-2 text-xs text-amber-200/80 ${FINELY_OS_ENTITY_BODY}`}>{voiceStudio.reason ?? 'Voice Studio unavailable — browser preview only in dev.'}</p>
-                ) : null}
-                {draft.studio?.marketingHeadline ? (
-                  <div className={`mt-4 ${finelyOsInlineListItem()} !p-4`}>
-                    <div className={FINELY_OS_ENTITY_SUBLABEL}>Marketing headline</div>
-                    <div className={FINELY_OS_ENTITY_VALUE}>{draft.studio.marketingHeadline}</div>
-                    {draft.studio.marketingSummary ? <p className={`mt-2 ${FINELY_OS_ENTITY_BODY}`}>{draft.studio.marketingSummary}</p> : null}
-                  </div>
-                ) : null}
-              </FinelyOsGlassPanel>
-            )}
+            </div>
           </div>
+        ) : null}
+
+        {commandStep === 'videos' ? (
+          <div className="space-y-4">
+            {videoNotice ? <div className={`${FINELY_OS_BANNER} text-sm`}>{videoNotice}</div> : null}
+            <FinelyOsGlassPanel
+              icon={Clapperboard}
+              title="Step 4 — Videos"
+              subtitle="Produce lesson videos via VideoCreateWizard"
+              accent="fuchsia"
+              actions={
+                <button type="button" onClick={autoProduceAllStub} className={FINELY_OS_SECONDARY_BTN}>
+                  <Wand2 size={14} /> Auto-produce all (stub)
+                </button>
+              }
+            >
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                {draft.modules.flatMap((m) =>
+                  m.lessons.map((l) => {
+                    const sceneCount = countLessonScenesForLesson(draft, l.id);
+                    const stage = inferLessonVideoStage({ lesson: l, sceneCount });
+                    const hasVideo = lessonHasAttachedVideo(l);
+                    const active = l.id === activeLessonId;
+                    return (
+                      <div key={l.id} className={`${finelyOsDeckTile('fuchsia', active)} !p-3 space-y-2`}>
+                        <div className="min-w-0">
+                          <div className={`${FINELY_OS_ENTITY_VALUE} truncate`}>{l.title}</div>
+                          <div className={`${FINELY_OS_ENTITY_SUBLABEL} truncate`}>{m.title}</div>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          <span className={finelyOsMicroStat(hasVideo ? 'emerald' : 'fuchsia')}>{hasVideo ? 'Attached' : stage}</span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => openVideoWizard(l.id)}
+                          className={`w-full ${FINELY_OS_PRIMARY_BTN} justify-center !py-2 text-xs`}
+                        >
+                          <Clapperboard size={12} /> Produce video
+                        </button>
+                      </div>
+                    );
+                  }),
+                )}
+              </div>
+            </FinelyOsGlassPanel>
+            <CourseVideoProductionCommand
+              courseId={draft.id}
+              course={draft}
+              lesson={activeLesson}
+              lessonMarkdown={activeLesson ? lessonMarkdown(activeLesson) : ''}
+              style={videoStyle}
+              provider={videoProvider}
+              onStyleChange={(s) => setDraft({ ...draft, studio: { ...(draft.studio ?? {}), productionStyle: s } })}
+              onProviderChange={(p) => setDraft({ ...draft, studio: { ...(draft.studio ?? {}), videoProvider: p } })}
+              scenes={lessonScenes}
+              onScenesChange={(scenes: VideoScenePlan[]) => {
+                const other = (draft.videoScenes ?? []).filter((s) => s.lessonId !== activeLesson?.id);
+                setDraft({ ...draft, videoScenes: [...other, ...scenes] });
+              }}
+              onGenerateScript={aiGenerateLessonScript}
+              onGenerateStoryboard={aiGenerateStoryboard}
+              busy={busy}
+              onLessonSelect={(lessonId) => {
+                setActiveLessonId(lessonId);
+                for (const m of draft.modules) {
+                  if (m.lessons.some((l) => l.id === lessonId)) {
+                    setActiveModuleId(m.id);
+                    break;
+                  }
+                }
+              }}
+            />
+          </div>
+        ) : null}
+
+        {commandStep === 'community' ? (
+          <div className="grid lg:grid-cols-2 gap-4">
+            <FinelyOsGlassPanel icon={Users} title="Step 5 — Community & cohort" subtitle="Learner cohort settings" accent="sky">
+              <div className="space-y-4">
+                <label className={`inline-flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL}`}>
+                  <input
+                    type="checkbox"
+                    checked={Boolean(draft.studio?.communityEnabled)}
+                    onChange={(e) => patchStudio({ communityEnabled: e.target.checked })}
+                    className="accent-sky-600"
+                  />
+                  Enable community tab for partners
+                </label>
+                <label className={`inline-flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL}`}>
+                  <input
+                    type="checkbox"
+                    checked={Boolean(draft.studio?.cohortEnabled)}
+                    onChange={(e) => patchStudio({ cohortEnabled: e.target.checked })}
+                    className="accent-sky-600"
+                  />
+                  Cohort enrollment (limited seats)
+                </label>
+                <label>
+                  <div className={FINELY_OS_ENTITY_SUBLABEL}>Max cohort size</div>
+                  <input
+                    type="number"
+                    min={1}
+                    max={500}
+                    value={draft.studio?.cohortMaxSize ?? ''}
+                    onChange={(e) => patchStudio({ cohortMaxSize: e.target.value ? Number(e.target.value) : undefined })}
+                    className={FINELY_OS_ENTITY_INPUT}
+                    placeholder="50"
+                  />
+                </label>
+                <label>
+                  <div className={FINELY_OS_ENTITY_SUBLABEL}>Cohort start date</div>
+                  <input
+                    type="date"
+                    value={draft.studio?.cohortStartDate?.slice(0, 10) ?? ''}
+                    onChange={(e) => patchStudio({ cohortStartDate: e.target.value ? `${e.target.value}T00:00:00.000Z` : undefined })}
+                    className={FINELY_OS_ENTITY_INPUT}
+                  />
+                </label>
+                <label className={`inline-flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL}`}>
+                  <input type="checkbox" checked={draft.published} onChange={(e) => setDraft({ ...draft, published: e.target.checked })} className="accent-emerald-600" />
+                  Published — visible in partner portal
+                </label>
+              </div>
+            </FinelyOsGlassPanel>
+            <FinelyOsGlassPanel icon={CheckCircle2} title="Publish checklist" accent="amber" variant="inner" headerless>
+              <CoursePublishChecklist course={draft} />
+              <div className="mt-4 flex flex-wrap gap-2">
+                <button type="button" onClick={() => navigate(`/portal/courses/${draft.id}`)} className={FINELY_OS_PRIMARY_BTN}>
+                  Open portal preview
+                </button>
+                <button type="button" onClick={save} className={FINELY_OS_SECONDARY_BTN}>
+                  Save &amp; publish settings
+                </button>
+              </div>
+            </FinelyOsGlassPanel>
+          </div>
+        ) : null}
+
+        <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-white/[0.06]">
+          <button type="button" onClick={goPrev} disabled={commandStep === 'idea'} className={FINELY_OS_SECONDARY_BTN}>
+            <ArrowLeft size={14} /> Back
+          </button>
+          <button type="button" onClick={goNext} disabled={commandStep === 'community'} className={FINELY_OS_PRIMARY_BTN}>
+            Next <ArrowRight size={14} />
+          </button>
         </div>
 
         <FinelyOsPageFooter variant="hidden" />
       </div>
+
+      <VideoCreateWizard
+        open={wizardOpen}
+        onOpenChange={setWizardOpen}
+        presetId="guide_promo"
+        initialRequest={wizardInitialRequest}
+        onExportComplete={({ blobRef, filename }) => {
+          if (!draft || !wizardLesson) return;
+          const next = attachBlobToCourseLesson({
+            course: draft,
+            lessonId: wizardLesson.id,
+            blobRef,
+            title: `${wizardLesson.title} — lesson video`,
+            summary: filename,
+          });
+          setDraft(cloneCourse(next));
+          setVideoNotice(`Video attached to "${wizardLesson.title}".`);
+          window.dispatchEvent(new Event('finely:store'));
+          setVersion((v) => v + 1);
+        }}
+        onExported={() => setVersion((v) => v + 1)}
+      />
     </PageShell>
   );
 }
-

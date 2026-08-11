@@ -4,6 +4,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { PageShell } from '../components/layout/PageShell';
 import { useAuth } from '../auth/AuthProvider';
 import { resolvePackageSelectPath } from '../lib/packageCheckoutRouting';
+import { finelyCtaNavigate } from '../lib/finelyCtaIntent';
 import { getPricingControls } from '../data/settingsRepo';
 import {
   personalCreditPackages,
@@ -555,7 +556,7 @@ export default function PricingPage() {
                   Complete our quick intake and we&apos;ll recommend the best path based on your goals.
                 </div>
               </div>
-              <button type="button" onClick={() => navigate('/onboarding')} className={FINELY_OS_SUCCESS_BTN}>
+              <button type="button" onClick={() => finelyCtaNavigate(navigate, 'personal_intake')} className={FINELY_OS_SUCCESS_BTN}>
                 Start intake <ArrowRight size={14} />
               </button>
             </div>

@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { ArrowLeft, ArrowRight, Gavel, ShieldAlert } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { finelyCtaNavigate } from '../../lib/finelyCtaIntent';
 import { PageShell } from '../../components/layout/PageShell';
 import { DisputeCaseWorkflowPanel } from '../../components/disputes/DisputeCaseWorkflowPanel';
 import { SmartProofUploader } from '../../components/evidence/SmartProofUploader';
@@ -43,7 +44,7 @@ export default function PartnerDisputeDetailPage() {
             icon={Gavel}
             title="Partner profile required"
             description="Complete onboarding or ask an admin to link your account to a partner file."
-            primaryAction={{ label: 'Start onboarding', onClick: () => navigate('/onboarding') }}
+            primaryAction={{ label: 'Start onboarding', onClick: () => finelyCtaNavigate(navigate, 'personal_intake') }}
             secondaryAction={{ label: 'Partner dashboard', onClick: () => navigate('/portal/dashboard') }}
           />
         </div>

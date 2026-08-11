@@ -11,6 +11,7 @@ import {
 } from '../os/finelyOsLightUi';
 import type { GrowthAgentAccent } from './growthAgentRegistry';
 import { FinelyOsAlertBanner } from '../os/FinelyOsAlertBanner';
+import { GrowthAgentResultsStrip } from './GrowthAgentResultsStrip';
 
 const ACCENT_RING: Record<GrowthAgentAccent, string> = {
   emerald: 'border-emerald-500/35 bg-emerald-500/5',
@@ -36,6 +37,7 @@ export function GrowthAgentWorkspaceShell({
   lastRunBlock,
   statusBlock,
   nextStep,
+  headerAside,
   children,
 }: {
   accent: GrowthAgentAccent;
@@ -52,6 +54,8 @@ export function GrowthAgentWorkspaceShell({
   lastRunBlock?: React.ReactNode;
   statusBlock?: React.ReactNode;
   nextStep?: string;
+  /** Sits under the readiness % — e.g. Caleb command guide launcher */
+  headerAside?: React.ReactNode;
   children?: React.ReactNode;
 }) {
   const ring = ACCENT_RING[accent];
@@ -65,10 +69,13 @@ export function GrowthAgentWorkspaceShell({
             <p className="text-sm font-semibold text-white/80">{roleTitle}</p>
             <p className={`mt-2 text-sm max-w-2xl ${FINELY_OS_ENTITY_BODY}`}>{mission}</p>
           </div>
-          <div className="text-right">
-            <div className="text-2xl font-black text-white">{maturityPercent}%</div>
-            <div className="text-[10px] uppercase tracking-widest text-white/50 font-bold">ready</div>
-            <p className={`mt-1 text-xs max-w-[140px] ${FINELY_OS_ENTITY_BODY}`}>{maturityLabel}</p>
+          <div className="flex flex-col items-stretch sm:items-end gap-2 min-w-[160px] max-w-[220px]">
+            <div className="text-right">
+              <div className="text-2xl font-black text-white">{maturityPercent}%</div>
+              <div className="text-[10px] uppercase tracking-widest text-white/50 font-bold">ready</div>
+              <p className={`mt-1 text-xs max-w-[140px] ml-auto ${FINELY_OS_ENTITY_BODY}`}>{maturityLabel}</p>
+            </div>
+            {headerAside}
           </div>
         </div>
         <div className="mt-3 flex flex-wrap gap-2">
@@ -91,6 +98,8 @@ export function GrowthAgentWorkspaceShell({
       </div>
 
       {alertMessage ? <FinelyOsAlertBanner tone={alertTone || 'info'} message={alertMessage} /> : null}
+
+      <GrowthAgentResultsStrip accent={accent} />
 
       {nextStep ? (
         <div className={finelyOsCatalogCardCompact(accent)}>

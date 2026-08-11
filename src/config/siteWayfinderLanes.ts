@@ -20,7 +20,7 @@ export const SITE_WAYFINDER_LANES: SiteWayfinderLane[] = [
     label: 'Business credit',
     hint: 'Entity & funding',
     path: '/pricing/business-credit',
-    accent: 'violet',
+    accent: 'sky',
   },
   {
     id: 'debt',

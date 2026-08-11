@@ -38,6 +38,9 @@ import { ONBOARDING_MONITORING_NOW_DO_ITEMS } from '../../config/onboardingMonit
 import { HEAD_OF_SOCIETY_NAME, HETA_SOCIETY_SHORT } from '../../config/hetaSocietyProgram';
 import {
   applyOnboardingRole,
+  defaultFocusForLane,
+  focusFromParam,
+  goalFromParam,
   laneFromParam,
   laneToOnboardingRole,
   normalizeOnboardingRole,
@@ -652,7 +655,7 @@ function createDefaultOnboardingUserData() {
     name: '',
     email: '',
     password: '',
-    role: '' as '' | 'client' | 'au_seller' | 'agent' | 'affiliate',
+    role: '' as '' | 'client' | 'au_seller' | 'agent' | 'affiliate' | 'case_help',
     focuses: [] as string[],
     agentTierId: '',
     agentSpecialties: [] as string[],
@@ -691,6 +694,7 @@ function createDefaultOnboardingUserData() {
     supportModel: '' as string,
     helperName: '',
     priorCompany: '',
+    leadId: '' as string,
   };
 }
 
@@ -710,7 +714,7 @@ function OnboardingShellChrome({ onClose }: { onClose: () => void }) {
 
 // --- STEP: ROLE (defines the user's primary role first) ---
 const ROLE_CARDS: Array<{
-  id: 'client' | 'au_seller' | 'agent' | 'affiliate';
+  id: 'client' | 'au_seller' | 'agent' | 'affiliate' | 'case_help';
   title: string;
   desc: string;
   Icon: any;
@@ -719,8 +723,9 @@ const ROLE_CARDS: Array<{
 }> = [
   { id: 'client', title: 'Customer', desc: 'Improve my credit, kill debt, build business credit, or get funding. (Most people choose this.)', Icon: ShieldCheck },
   { id: 'au_seller', title: 'AU Seller', desc: 'We market your AU tradelines — $50 activation, 60-day seasons, seller payouts.', Icon: Building2, lane: 'au_seller', goal: 'au_seller' },
-  { id: 'agent', title: 'Credit Specialist', desc: 'Run customer files as a Finely partner — revenue share, training, white-label, and a direct line to our team.', Icon: Briefcase, lane: 'agent', goal: 'agent' },
+  { id: 'agent', title: 'Credit Specialist', desc: 'Run partner files as a Finely partner — revenue share, training, white-label, and a direct line to our team.', Icon: Briefcase, lane: 'agent', goal: 'agent' },
   { id: 'affiliate', title: 'Affiliate', desc: 'Refer partners and earn payouts with tracked links.', Icon: Trophy, lane: 'affiliate', goal: 'affiliate' },
+  { id: 'case_help', title: 'Case desk', desc: 'Paralegal, attorney, or consultant — work assigned partner debt and litigation matters with scoped, audited access.', Icon: Gavel, goal: 'case_help' },
 ];
 
 export function RoleStep({ next, data, update }: StepProps) {
@@ -897,7 +902,7 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
     const role = userData.role;
     if (role === 'client') return 7;
     if (role === 'agent') return 5;
-    if (role === 'au_seller' || role === 'affiliate') return 4;
+    if (role === 'au_seller' || role === 'affiliate' || role === 'case_help') return 4;
     return 7;
   }, [partnerInviteFlow, TOTAL_STEPS, userData.role]);
 
@@ -995,10 +1000,68 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
     const emailParam = safeDecode(sp.get('email') || '').trim();
     const partnerIdParam = safeDecode(sp.get('partnerId') || '').trim();
     const focusParam = safeDecode(sp.get('focus') || '').trim();
+    const goalParam = safeDecode(sp.get('goal') || '').trim();
+    const tierParam = safeDecode(sp.get('tier') || sp.get('agentTier') || '').trim();
+    const nameParam = safeDecode(sp.get('name') || sp.get('fullName') || '').trim();
+    const phoneParam = safeDecode(sp.get('phone') || '').trim();
+    const leadIdParam = safeDecode(sp.get('leadId') || sp.get('lead_id') || '').trim();
     const isInvite = sp.get('invite') === '1';
+    const goalBootstrap = goalParam ? goalFromParam(goalParam) : null;
+    const focusBootstrap = focusParam ? focusFromParam(focusParam) : null;
     const attr = captureLeadAttributionFromUrl(location.search, location.pathname);
     const interestParam = (sp.get('interest') || '').trim();
     const promoTypeParam = (sp.get('promoType') || sp.get('promo_type') || '').trim();
+
+    // Resolve URL context synchronously (used for skipRole step advance — avoid stale userData).
+    let resolvedRole: import('../../onboarding/pipeline').OnboardingRole | '' = roleParam;
+    let resolvedFocuses: string[] = focusBootstrap ? [focusBootstrap.focusId] : [];
+    let resolvedLane: OnboardingLane = focusBootstrap?.lane ?? 'other';
+    let resolvedGoal = goalBootstrap?.goal ?? focusBootstrap?.goal ?? '';
+    let resolvedAgentTierId = tierParam;
+
+    if (goalBootstrap) {
+      if (goalBootstrap.focusId && !resolvedFocuses.length) resolvedFocuses = [goalBootstrap.focusId];
+      if (goalBootstrap.lane) resolvedLane = goalBootstrap.lane;
+      if (goalBootstrap.role) resolvedRole = goalBootstrap.role;
+    }
+
+    let mappedLane: OnboardingLane | null = null;
+    if (laneParam) {
+      mappedLane = laneFromParam(safeDecode(laneParam)) as OnboardingLane;
+      resolvedLane = mappedLane;
+      const laneRole = laneToOnboardingRole(mappedLane);
+      if (laneRole) resolvedRole = resolvedRole || laneRole;
+      if (!resolvedFocuses.length) {
+        const laneFocus = defaultFocusForLane(
+          mappedLane as import('../../lib/onboardingRoleRouting').OnboardingLane,
+        );
+        if (laneFocus) {
+          resolvedFocuses = [laneFocus.focusId];
+          resolvedGoal = resolvedGoal || laneFocus.goal;
+        }
+      }
+      if (!resolvedGoal) {
+        resolvedGoal =
+          mappedLane === 'debt_kill'
+            ? 'debt'
+            : mappedLane === 'business_credit'
+              ? 'business'
+              : mappedLane === 'au_seller'
+                ? 'au_seller'
+                : mappedLane === 'affiliate'
+                  ? 'affiliate'
+                  : mappedLane === 'agent'
+                    ? 'agent'
+                    : mappedLane === 'other'
+                      ? 'restore'
+                      : 'funding';
+      }
+    }
+
+    if (resolvedRole === 'agent' && tierParam) {
+      resolvedAgentTierId = tierParam;
+    }
+
     if ((attr || interestParam || promoTypeParam) && !(isInvite && partnerIdParam)) {
       const promoterRole = (attr?.promoterRole || '').toLowerCase();
       const mappedRole =
@@ -1037,6 +1100,39 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
       setForgotEmail((prev) => prev || emailParam);
     }
 
+    if (!isInvite && (nameParam || phoneParam || leadIdParam)) {
+      setUserData((prev) => ({
+        ...prev,
+        name: prev.name || nameParam,
+        phone: prev.phone || phoneParam,
+        leadId: prev.leadId || leadIdParam,
+      }));
+    }
+
+    if (!isInvite && (goalBootstrap || focusBootstrap || resolvedFocuses.length || resolvedGoal || tierParam)) {
+      setUserData((prev) => {
+        let next: ReturnType<typeof createDefaultOnboardingUserData> = {
+          ...prev,
+          goal: prev.goal || resolvedGoal,
+          lane: (resolvedLane || prev.lane) as OnboardingLane,
+          focuses: prev.focuses?.length ? prev.focuses : resolvedFocuses,
+        };
+        if (resolvedRole) {
+          next = applyOnboardingRole(next, resolvedRole) as typeof next;
+          next = {
+            ...next,
+            goal: prev.goal || resolvedGoal || next.goal,
+            lane: (resolvedLane || next.lane) as OnboardingLane,
+            focuses: prev.focuses?.length ? prev.focuses : resolvedFocuses,
+          };
+        }
+        if (resolvedRole === 'agent' && tierParam) {
+          next.agentTierId = prev.agentTierId || tierParam;
+        }
+        return next;
+      });
+    }
+
     if (isInvite) {
       setAuthMode('signup');
       setStep(1);
@@ -1073,9 +1169,11 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
         setUserData((prev) => ({ ...prev, invitePartnerId: partnerIdParam }));
       }
       if (focusParam) {
+        const inviteFocus = focusFromParam(focusParam);
         setUserData((prev) => ({
           ...prev,
-          focuses: prev.focuses?.length ? prev.focuses : [focusParam],
+          focuses: prev.focuses?.length ? prev.focuses : [inviteFocus?.focusId ?? focusParam],
+          ...(inviteFocus && !prev.goal ? { goal: inviteFocus.goal, lane: inviteFocus.lane } : {}),
         }));
       }
     }
@@ -1083,13 +1181,24 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
     if (packageId) {
       const pkg = getPackageById(packageId);
       if (pkg) {
-        setUserData((prev) => ({
-          ...prev,
-          selectedPackageId: pkg.id,
-          selectedRail: rail ?? prev.selectedRail,
-          lane: prev.lane === 'other' ? 'funding_readiness' : prev.lane,
-          goal: prev.goal || 'funding',
-        }));
+        const isPersonalPkg = pkg.id.includes('personal') || pkg.category === 'personal_credit';
+        setUserData((prev) => {
+          let next = {
+            ...prev,
+            selectedPackageId: pkg.id,
+            selectedRail: rail ?? prev.selectedRail,
+            lane: isPersonalPkg ? ('other' as OnboardingLane) : prev.lane === 'other' ? ('funding_readiness' as OnboardingLane) : prev.lane,
+            goal: prev.goal || (isPersonalPkg ? 'restore' : 'funding'),
+            focuses:
+              prev.focuses?.length ? prev.focuses : isPersonalPkg ? ['personal_restore'] : prev.focuses,
+          };
+          if (!prev.role && isPersonalPkg) {
+            next = applyOnboardingRole(next, 'client') as typeof next;
+          }
+          return next;
+        });
+        if (isPersonalPkg && !resolvedRole) resolvedRole = 'client';
+        if (isPersonalPkg && !resolvedFocuses.length) resolvedFocuses = ['personal_restore'];
         // Package CTAs land on Create account — not a restored wizard step.
         if (!isInvite && location.pathname !== '/login' && authParam !== 'login' && authParam !== 'signin') {
           setAuthMode('signup');
@@ -1113,44 +1222,28 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
       }
     }
 
-    let mappedLane: OnboardingLane | null = null;
-    if (laneParam && !isInvite) {
-      mappedLane = laneFromParam(safeDecode(laneParam)) as OnboardingLane;
-      const laneRole = laneToOnboardingRole(mappedLane);
-      setUserData((prev) => {
-        const nextRole = roleParam || laneRole || prev.role;
-        const base = {
-          ...prev,
-          lane: mappedLane!,
-          goal:
-            prev.goal ||
-            (mappedLane === 'debt_kill'
-              ? 'debt'
-              : mappedLane === 'business_credit'
-                ? 'business'
-                : mappedLane === 'au_seller'
-                  ? 'au_seller'
-                  : mappedLane === 'affiliate'
-                    ? 'affiliate'
-                    : mappedLane === 'agent'
-                      ? 'agent'
-                      : 'funding'),
-        };
-        return nextRole ? applyOnboardingRole(base, nextRole as any) : base;
-      });
-    } else if (roleParam && !isInvite) {
-      setUserData((prev) => applyOnboardingRole(prev, roleParam));
-    }
+    const effectiveRole = resolvedRole || (mappedLane ? laneToOnboardingRole(mappedLane) : '');
+    const onAuthEntry =
+      authMode === 'signup' ||
+      location.pathname === '/signup' ||
+      location.pathname === '/onboarding' ||
+      authParam === 'signup';
+    const hasFocusIntent = Boolean(focusParam || resolvedFocuses.length);
+    const shouldSkipRolePicker =
+      !isInvite &&
+      skipRole &&
+      effectiveRole &&
+      onAuthEntry &&
+      (hasFocusIntent ? Boolean(focusParam && roleParam) : true);
 
-    const effectiveRole = roleParam || (mappedLane ? laneToOnboardingRole(mappedLane) : '');
-    if (!isInvite && effectiveRole && skipRole && (authMode === 'signup' || location.pathname === '/signup' || authParam === 'signup')) {
+    if (shouldSkipRolePicker) {
       setAuthMode('signup');
       setStep((prevStep) => {
         const afterRole = stepAfterRoleSelection({
-          role: effectiveRole,
-          focuses: userData.focuses,
-          lane: mappedLane ?? userData.lane,
-          agentTierId: userData.agentTierId,
+          role: effectiveRole as import('../../onboarding/pipeline').OnboardingRole,
+          focuses: resolvedFocuses,
+          lane: resolvedLane,
+          agentTierId: resolvedAgentTierId,
         });
         return Math.max(prevStep, afterRole);
       });
@@ -1385,6 +1478,7 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
           supportModel: userData.supportModel,
           helperName: userData.helperName,
           priorCompany: userData.priorCompany,
+          leadId: userData.leadId || undefined,
         },
       });
 
@@ -1484,7 +1578,7 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
       const inviteLanding =
         userData.recommendedNextPath ||
         (invite ? invite.nextPath : '') ||
-        (userData.role ? landingPathForRole(userData.role as 'client' | 'au_seller' | 'agent' | 'affiliate') : '');
+        (userData.role ? landingPathForRole(userData.role) : '');
       const nextPath = inviteLanding || resolvePostAuthHomePath(signedInUser);
       clearOnboardingProgress();
       onComplete(nextPath);

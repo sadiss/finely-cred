@@ -13,13 +13,26 @@ export type GrowthAgentCapability = {
   tier: 'live' | 'preview' | 'soon';
 };
 
-const CONTENT_STUDIO_PROMOTE_BASE = '/admin/content-studio?room=video&step=promote';
+const CONTENT_STUDIO_PROMOTE_BASE = '/admin/content-studio?view=advanced&room=video&step=promote';
 
 /** Deep link — Miriam/Jordan promote step; optional Hannah attribution video id. */
 export function buildGrowthContentStudioPromoteUrl(videoId?: string): string {
   const id = videoId?.trim();
   if (!id) return CONTENT_STUDIO_PROMOTE_BASE;
-  const params = new URLSearchParams({ room: 'video', step: 'promote', videoId: id });
+  const params = new URLSearchParams({ view: 'advanced', room: 'video', step: 'promote', videoId: id });
+  return `/admin/content-studio?${params.toString()}`;
+}
+
+/** Phase 8 — open easy-mode video wizard (Jordan pillar / Miriam reel). */
+export function buildGrowthContentStudioWizardUrl(opts?: {
+  preset?: 'reel_28' | 'ad_60' | 'guide_promo' | 'city_spotlight';
+  videoId?: string;
+  fromPillar?: boolean;
+}): string {
+  const params = new URLSearchParams({ wizard: 'open' });
+  if (opts?.preset) params.set('preset', opts.preset);
+  if (opts?.videoId) params.set('videoId', opts.videoId);
+  if (opts?.fromPillar) params.set('from', 'pillar');
   return `/admin/content-studio?${params.toString()}`;
 }
 

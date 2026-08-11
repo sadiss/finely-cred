@@ -7,6 +7,7 @@ const ROLE_LABEL: Record<OnboardingRole, string> = {
   agent: 'Credit Specialist (independent partner)',
   affiliate: 'Affiliate partner',
   au_seller: 'AU Seller',
+  case_help: 'Case desk partner',
 };
 
 /** Plain-language excerpt shown inline before signup — not a solicitation; operational terms only. */
@@ -38,6 +39,9 @@ export function signupLegalPreviewText(id: SignupLegalItemId, role: OnboardingRo
       if (role === 'au_seller') {
         return 'Tradeline supply listing rules, contract acceptance, verification, and payout terms while you sell AU inventory on the platform.';
       }
+      if (role === 'case_help') {
+        return 'Scoped access on assigned partner matters, audit logging, confidentiality, and workflow boundaries — not legal representation unless separately engaged.';
+      }
       return 'Portal access scope, DIY vs done-for-you boundaries, document handling, and service limits for customer files.';
     case 'debtServices':
       return 'Debt validation and collection correspondence tools are educational workflow aids — not legal representation. You remain responsible for deadlines, court dates, and responses to collectors.';
@@ -47,6 +51,9 @@ export function signupLegalPreviewText(id: SignupLegalItemId, role: OnboardingRo
       }
       if (role === 'affiliate' || role === 'au_seller') {
         return 'If you leave the program: referral links deactivate, pending commissions pay out per schedule, and you remove Finely branding from your channels. Confidential client/platform data must not be retained.';
+      }
+      if (role === 'case_help') {
+        return 'If you leave the case desk: scoped matter access revokes immediately, export only what your engagement permits, and you must not retain partner PII outside Finely vault rules.';
       }
       return 'If you close your account: download your documents and letters from the vault, cancel active subscriptions, and request file deletion under privacy settings. No ongoing service obligations after closure.';
     default:

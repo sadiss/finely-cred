@@ -55,7 +55,14 @@ type ReqBody = {
 };
 
 /** LetterStream TEST / debug mode — never silent in product UI. */
+function resolveMailLiveMode(): boolean {
+  if (/^(1|true|yes|on)$/i.test(Deno.env.get('MAIL_LIVE_MODE') || '')) return true;
+  if (/^(1|true|yes|on)$/i.test(Deno.env.get('LETTERSTREAM_LIVE_MODE') || '')) return true;
+  return false;
+}
+
 function resolveMailDebugLevel(): 1 | 2 | 3 | undefined {
+  if (resolveMailLiveMode()) return undefined;
   const raw = (Deno.env.get('MAIL_DEBUG') || Deno.env.get('LETTERSTREAM_DEBUG') || '').trim();
   if (raw === '1' || raw === '2' || raw === '3') return Number(raw) as 1 | 2 | 3;
   if (/^(1|true|yes|on)$/i.test(Deno.env.get('MAIL_TEST_MODE') || '')) return 3;
@@ -63,12 +70,14 @@ function resolveMailDebugLevel(): 1 | 2 | 3 | undefined {
   return undefined;
 }
 
+/** Vendor + env test detection — explicit phrases only (avoid false positives on live accounts). */
 function resolveMailTestMode(pingText?: string): boolean {
+  if (resolveMailLiveMode()) return false;
   if (/^(1|true|yes|on)$/i.test(Deno.env.get('MAIL_TEST_MODE') || '')) return true;
   if (/^(1|true|yes|on)$/i.test(Deno.env.get('LETTERSTREAM_TEST_MODE') || '')) return true;
   if (resolveMailDebugLevel()) return true;
   const hay = String(pingText || '');
-  return /\btest\s*mode\b|\btestmode\b|\bsandbox\b|\bdebug\b/i.test(hay);
+  return /\btest\s*mode\b|\btestmode\b|\bsandbox\s*mode\b|\bin\s*test\b/i.test(hay);
 }
 
 function extractBalanceHint(raw: unknown): number | null {
@@ -230,6 +239,7 @@ Deno.serve(async (req) => {
         provider: publicProvider,
         message: 'Mail service reachable',
         testMode: resolveMailTestMode(),
+        liveMode: resolveMailLiveMode(),
         debugLevel: resolveMailDebugLevel() ?? null,
         balanceUsd: null,
       });
@@ -248,6 +258,7 @@ Deno.serve(async (req) => {
         message: sanitizeMailUserMessage(summary.message),
         messages: parsed.messages.map((m) => ({ ...m, details: sanitizeMailUserMessage(m.details) })),
         testMode,
+        liveMode: resolveMailLiveMode(),
         debugLevel: debugLevel ?? null,
         balanceUsd,
         estimatedCostUsd: 1.85,
@@ -258,6 +269,7 @@ Deno.serve(async (req) => {
         provider: publicProvider,
         error: sanitizeMailUserMessage((e as Error)?.message || 'Mail connectivity check failed'),
         testMode: resolveMailTestMode(),
+        liveMode: resolveMailLiveMode(),
         debugLevel: resolveMailDebugLevel() ?? null,
         balanceUsd: null,
       }, { status: 500 });

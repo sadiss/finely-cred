@@ -1,5 +1,29 @@
 import type { LeadIntelSourceAdapter, LeadIntelSourceId } from './types';
 
+/** Sources with a real CRM / webhook / Serper path today (not swarm tick counters). */
+const LIVE_SOURCE_IDS = new Set<LeadIntelSourceId>([
+  'serper_web',
+  'serper_news',
+  'serper_places',
+  'dead_lead_revival',
+  'affiliate_referral_loop',
+  'seo_inbound_forms',
+  'sms_reply_capture',
+  'email_reply_capture',
+  'webhook_meta_leads',
+  'webhook_google_lsa',
+  'csv_seed_expansion',
+]);
+
+/** Priority live adapters shared with Marketing Desk Find staging (Serper + internal). */
+export const PRIORITY_MARKETING_SOURCE_IDS: LeadIntelSourceId[] = [
+  'serper_web',
+  'serper_places',
+  'dead_lead_revival',
+  'affiliate_referral_loop',
+  'seo_inbound_forms',
+];
+
 export const LEAD_INTEL_SOURCE_ADAPTERS: LeadIntelSourceAdapter[] = [
 
   { id: 'serper_web' as LeadIntelSourceId, label: 'Serper Web', method: 'official_api', requiresEnv: ['VITE_SERPER_ENABLED'], defaultDailyCap: 30, defaultCadenceMinutes: 15, supportsContinuous: true, notes: 'Queues gracefully when credentials are missing; uses public or official sources only.' },
@@ -48,6 +72,20 @@ export const LEAD_INTEL_SOURCE_ADAPTERS: LeadIntelSourceAdapter[] = [
 
 export function getLeadIntelSourceAdapter(id: LeadIntelSourceId): LeadIntelSourceAdapter | null {
   return LEAD_INTEL_SOURCE_ADAPTERS.find((a) => a.id === id) ?? null;
+}
+
+export function getLeadIntelSourceRuntimeMode(id: LeadIntelSourceId): 'live' | 'simulation' {
+  return LIVE_SOURCE_IDS.has(id) ? 'live' : 'simulation';
+}
+
+export function getLeadIntelSourceRuntimeLabel(id: LeadIntelSourceId): string {
+  return getLeadIntelSourceRuntimeMode(id) === 'live' ? 'Live path' : 'Simulation only';
+}
+
+export function getPriorityLiveSourceAdapters(): LeadIntelSourceAdapter[] {
+  return PRIORITY_MARKETING_SOURCE_IDS.map((id) => getLeadIntelSourceAdapter(id)).filter(
+    (a): a is LeadIntelSourceAdapter => Boolean(a),
+  );
 }
 
 export function sourceRequiresManualReview(id: LeadIntelSourceId): boolean {

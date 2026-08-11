@@ -20,6 +20,7 @@ import {
 } from '../../lib/adminDeliveryCooldown';
 import { ensurePartnerEntitlementsAsync, SERVICE_ACCESS_BUNDLES, type EntitlementKey } from '../../billing/entitlements';
 import { PartnerServicesAccessCard } from './PartnerServicesAccessCard';
+import { AdminPartnerViewAsButton } from './AdminPartnerViewAsButton';
 import { SensitiveActionCodeGate } from './SensitiveActionCodeGate';
 import { LetterStreamStatusCard } from '../letters/LetterStreamStatusCard';
 import {
@@ -139,6 +140,13 @@ export function AdminPartnerAccessPanel({ partner, userRole, onUpdated }: Props)
   React.useEffect(() => {
     setAccessFlags(readPartnerAccessFlagsStored(partner));
   }, [partner.id, partner.updatedAt, partner.journeySignals]);
+
+  React.useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (window.location.hash !== '#admin-partner-access-panel') return;
+    const el = document.getElementById('admin-partner-access-panel');
+    el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, [partner.id]);
 
   const email = (partner.profile.email || '').trim();
   const careerRole = careerRoleForPartner(partner);
@@ -366,14 +374,20 @@ export function AdminPartnerAccessPanel({ partner, userRole, onUpdated }: Props)
   };
 
   return (
-    <div className="space-y-4">
+    <div id="admin-partner-access-panel" className="space-y-4 scroll-mt-8">
       <PartnerSignupActivityPanel partner={partner} />
 
       {/* Access & authority — deep navy solid panel. This is the weighty "who can get in" box. */}
       <div className={`${fcAdminCard('p-5', 'navy', 'solid')} space-y-4`}>
-        <div className="flex items-center gap-2">
-          <Shield size={16} />
-          <div className={NAVY_VALUE}>Access & authority</div>
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <Shield size={16} />
+            <div className={NAVY_VALUE}>Access & authority</div>
+          </div>
+          <AdminPartnerViewAsButton
+            partnerId={partner.id}
+            className={`${NAVY_SECONDARY_BTN} inline-flex !text-xs`}
+          />
         </div>
         <p className={`${NAVY_BODY} text-xs`}>
           Grant modules first (below). Invite emails and outreach live in the gold panel; approval toggles are secondary.

@@ -119,6 +119,7 @@ import { TASK_PROGRESS_STAGES, WorkBoardShell, WorkCalendarView, WorkKanbanBoard
 import type { WorkStageDefinition } from '../../domain/settings';
 import type { TaskStatus } from '../../domain/tasks';
 import { PartnerDetailAdminFooter } from '../../components/admin/PartnerDetailAdminFooter';
+import { AdminPartnerViewAsButton } from '../../components/admin/AdminPartnerViewAsButton';
 import { workflowIdForPartner } from '../../config/roleWorkflows';
 import { computeRoleWorkflowProgress } from '../../lib/roleWorkflowProgress';
 import { PartnerCompactGrid } from '../../features/partner/PartnerCompactGrid';
@@ -1328,6 +1329,7 @@ function PartnerDetailPageInner() {
       }
       headerRight={
         <div className="flex flex-wrap items-center gap-2">
+          <AdminPartnerViewAsButton partnerId={partner.id} className={`${FINELY_OS_SECONDARY_BTN} !py-2 !text-xs`} />
           <div className={`${FINELY_OS_ENTITY_SUBLABEL} font-mono normal-case tracking-normal`}>partner_id: {partner.id}</div>
         </div>
       }

@@ -39,3 +39,15 @@ _import_roosevelt/Roosevelts-Report.html
 _import_roosevelt/text-lines.txt
 _import_roosevelt/parse-report*.mjs
 
+# Local script tooling (portable ffmpeg ~100MB — not committed)
+scripts/.tools/
+
+# Launch demo render cache (intermediate PNG/WAV/segments — not committed)
+public/demos/.render-work/
+
+# Committable demo asset (do NOT ignore):
+# public/demos/finely-launch-demo.webm
+
+# Windows reserved-name accident (never commit)
+NUL.css
+

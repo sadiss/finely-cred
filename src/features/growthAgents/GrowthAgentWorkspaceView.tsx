@@ -1,22 +1,22 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { HUNT_LANE_PRESETS } from '../leadIntel/leadEngineAutonomy';
 import { GrowthAgentWorkspaceShell } from './GrowthAgentWorkspaceShell';
 import { getGrowthAgent, type GrowthAgentDef, buildGrowthContentStudioPromoteUrl, GROWTH_AGENT_WAVE0_LANE } from './growthAgentRegistry';
 import { getAgentMaturity } from './growthAgentMaturity';
-import { getGrowthWeekFocus, setGrowthWeekFocus } from './growthWeekFocus';
 import { GrowthAgentCalebWorkspace } from './GrowthAgentCalebWorkspace';
 import { GrowthAgentHannahWorkspace } from './GrowthAgentHannahWorkspace';
+import { GrowthAgentEstherWorkspace } from './GrowthAgentEstherWorkspace';
+import { GrowthAgentBenjaminWorkspace } from './GrowthAgentBenjaminWorkspace';
+import { GrowthAgentRebeccaWorkspace } from './GrowthAgentRebeccaWorkspace';
 import { GrowthAgentLydiaWorkspace } from './GrowthAgentLydiaWorkspace';
+import { GrowthAgentMiriamWorkspace } from './GrowthAgentMiriamWorkspace';
+import { GrowthAgentJordanWorkspace } from './GrowthAgentJordanWorkspace';
 import {
   FINELY_OS_ENTITY_BODY,
-  FINELY_OS_ENTITY_INPUT,
-  FINELY_OS_ENTITY_SELECT,
   FINELY_OS_ENTITY_SUBLABEL,
   FINELY_OS_SECONDARY_BTN,
   finelyOsCatalogCardCompact,
 } from '../os/finelyOsLightUi';
-import type { LeadEngineLane } from '../leadIntel/leadEngineAutonomy';
 import { buildGrowthResultsSnapshot } from './growthResultsMetrics';
 import { getVideoCommandRecord, listVideoCommandRecords } from '../../data/videoCommandRecordRepo';
 import {
@@ -32,73 +32,6 @@ import {
   LEAD_ACQUISITION_LANES,
 } from '../../lib/leadAcquisitionCatalog';
 import { getResourceVideo } from '../../data/resourceVideosRepo';
-
-function EstherFocusPanel() {
-  const [tick, setTick] = useState(0);
-  const focus = useMemo(() => {
-    void tick;
-    return getGrowthWeekFocus();
-  }, [tick]);
-
-  const pillarRecord = useMemo(() => {
-    void tick;
-    const key = focus.pillarVideoId?.trim();
-    if (!key) return null;
-    return (
-      getVideoCommandRecord(key) ??
-      listVideoCommandRecords().find((r) => r.resourceVideoId === key || r.id === key) ??
-      null
-    );
-  }, [focus.pillarVideoId, tick]);
-
-  useEffect(() => {
-    const onStore = () => setTick((t) => t + 1);
-    window.addEventListener('finely:store', onStore as EventListener);
-    return () => window.removeEventListener('finely:store', onStore as EventListener);
-  }, []);
-
-  return (
-    <div className={finelyOsCatalogCardCompact('violet')}>
-      <div className={FINELY_OS_ENTITY_SUBLABEL}>This week&apos;s focus</div>
-      {focus.pillarVideoId ? (
-        <p className={`mt-2 text-xs ${FINELY_OS_ENTITY_BODY}`}>
-          Pillar video:{' '}
-          <span className="text-white/90">{pillarRecord?.title ?? focus.pillarVideoId}</span>
-          {pillarRecord ? (
-            <span className="text-white/45"> · {pillarRecord.lifecycle} workflow</span>
-          ) : null}
-        </p>
-      ) : null}
-      <label className={`mt-3 block text-xs ${FINELY_OS_ENTITY_BODY}`}>Lane</label>
-      <select
-        className={`${FINELY_OS_ENTITY_SELECT} mt-1 max-w-md`}
-        value={focus.lane}
-        onChange={(e) => {
-          setGrowthWeekFocus({ lane: e.target.value as LeadEngineLane });
-          setTick((t) => t + 1);
-        }}
-      >
-        {HUNT_LANE_PRESETS.map((p) => (
-          <option key={p.id} value={p.id}>
-            {p.label}
-          </option>
-        ))}
-      </select>
-      <label className={`mt-3 block text-xs ${FINELY_OS_ENTITY_BODY}`}>City</label>
-      <input
-        className={`${FINELY_OS_ENTITY_INPUT} mt-1 max-w-md`}
-        value={focus.city}
-        onChange={(e) => {
-          setGrowthWeekFocus({ city: e.target.value });
-          setTick((t) => t + 1);
-        }}
-      />
-      <p className={`mt-3 text-sm ${FINELY_OS_ENTITY_BODY}`}>
-        Caleb uses restore lane in Wave 0; changing lane here prepares the next wave. Book CTA: {focus.ctaPath}
-      </p>
-    </div>
-  );
-}
 
 function SocialMediaPillarStrip({ agent }: { agent: GrowthAgentDef }) {
   const navigate = useNavigate();
@@ -267,7 +200,6 @@ function GenericAgentWorkspace({ agent }: { agent: GrowthAgentDef }) {
       lastRunBlock={<p>{results.lastFindSummary || 'No find run yet.'}</p>}
       statusBlock={<p>Booked (7d): {results.booked7d} · Signups (7d): {results.signups7d}</p>}
     >
-      {agent.id === 'marketing-director' ? <EstherFocusPanel /> : null}
       {agent.id === 'social' || agent.id === 'media' ? <SocialMediaPillarStrip agent={agent} /> : null}
       <div className="grid sm:grid-cols-2 gap-3">
         {agent.capabilities.map((c) => (
@@ -302,8 +234,23 @@ export function GrowthAgentWorkspaceView({ agentId }: { agentId: string }) {
   if (agent.id === 'capture-links') {
     return <GrowthAgentHannahWorkspace />;
   }
+  if (agent.id === 'marketing-director') {
+    return <GrowthAgentEstherWorkspace />;
+  }
   if (agent.id === 'seo-local') {
     return <GrowthAgentLydiaWorkspace />;
+  }
+  if (agent.id === 'social') {
+    return <GrowthAgentMiriamWorkspace />;
+  }
+  if (agent.id === 'media') {
+    return <GrowthAgentJordanWorkspace />;
+  }
+  if (agent.id === 'partnerships') {
+    return <GrowthAgentBenjaminWorkspace />;
+  }
+  if (agent.id === 'specialist-recruit') {
+    return <GrowthAgentRebeccaWorkspace />;
   }
   return <GenericAgentWorkspace agent={agent} />;
 }

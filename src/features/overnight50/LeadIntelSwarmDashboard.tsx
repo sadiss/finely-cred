@@ -10,9 +10,10 @@ import {
   runLocalSwarmTick,
   setSwarmEnabled,
 } from './leadIntelSwarmRepo';
-import { LEAD_INTEL_SOURCE_ADAPTERS } from './sourceAdapters';
+import { LEAD_INTEL_SOURCE_ADAPTERS, getLeadIntelSourceRuntimeLabel, getLeadIntelSourceRuntimeMode } from './sourceAdapters';
 import { DEFAULT_OVERNIGHT50_CITIES } from './queryExpander';
 import { staffFeedAgentLabel } from '../staffCommandCenter/staffRoster';
+import { FinelyOsAlertBanner } from '../os/FinelyOsAlertBanner';
 
 function fmt(n: number) { return new Intl.NumberFormat().format(n); }
 
@@ -56,6 +57,7 @@ export function LeadIntelSwarmDashboard() {
 
   return (
     <section className="space-y-6">
+      <FinelyOsAlertBanner tone="warning" message="Simulation only · not live finds. Real imports: Marketing Desk → Find or Caleb desk." />
       <div className="rounded-3xl border border-white/10 bg-gradient-to-br from-emerald-500/10 via-black/40 to-amber-500/10 p-6 overflow-hidden relative">
         <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-amber-300/50 to-transparent" />
         <div className="flex flex-wrap items-start justify-between gap-5">
@@ -97,13 +99,30 @@ export function LeadIntelSwarmDashboard() {
 
       <div className="space-y-6">
         <div className="rounded-3xl border border-white/10 bg-black/30 p-5">
-          <div className="flex items-center justify-between gap-3"><h3 className="text-white font-black">Source adapters</h3><span className="text-white/40 text-xs">{LEAD_INTEL_SOURCE_ADAPTERS.length} configured</span></div>
+          <div className="flex items-center justify-between gap-3"><h3 className="text-white font-black">Source adapters</h3><span className="text-white/40 text-xs">{LEAD_INTEL_SOURCE_ADAPTERS.length} configured · live vs simulation</span></div>
           <div className="mt-4 space-y-2 max-h-[520px] overflow-y-auto pr-1">
-            {LEAD_INTEL_SOURCE_ADAPTERS.slice(0, 12).map((s) => (
+            {LEAD_INTEL_SOURCE_ADAPTERS.slice(0, 12).map((s) => {
+              const runtime = getLeadIntelSourceRuntimeMode(s.id);
+              const runtimeCls =
+                runtime === 'live'
+                  ? 'border-emerald-400/30 bg-emerald-500/10 text-emerald-200'
+                  : 'border-amber-400/25 bg-amber-500/10 text-amber-200/90';
+              return (
               <div key={s.id} className="rounded-2xl border border-white/10 bg-white/[0.025] p-4">
-                <div className="flex items-start justify-between gap-3"><div><div className="text-white/90 font-semibold">{s.label}</div><div className="mt-1 text-white/45 text-xs">{s.method} • {s.defaultCadenceMinutes}m cadence</div></div><ShieldCheck size={16} className="text-emerald-300" /></div>
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <div className="text-white/90 font-semibold">{s.label}</div>
+                      <span className={`rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${runtimeCls}`}>
+                        {getLeadIntelSourceRuntimeLabel(s.id)}
+                      </span>
+                    </div>
+                    <div className="mt-1 text-white/45 text-xs">{s.method} • {s.defaultCadenceMinutes}m cadence</div>
+                  </div>
+                  <ShieldCheck size={16} className={runtime === 'live' ? 'text-emerald-300' : 'text-amber-300/80'} />
+                </div>
               </div>
-            ))}
+            );})}
             <p className="text-xs text-white/40">+{LEAD_INTEL_SOURCE_ADAPTERS.length - 12} more in rotation</p>
           </div>
         </div>

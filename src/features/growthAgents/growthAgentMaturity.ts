@@ -14,6 +14,9 @@ import {
 } from './growthPillarVideoPack';
 import { getGrowthWeekFocus } from './growthWeekFocus';
 import { getLastGrowthWorkerProbe } from './growthWorkerTick';
+import { isCalebAutoFindEnabled } from './calebAutoFind';
+import { countBenjaminPipeline } from './benjaminPipelineQueue';
+import { buildRebeccaApplyMetrics } from './rebeccaApplyMetrics';
 import type { GrowthAgentDef } from './growthAgentRegistry';
 
 export type GrowthMaturityReport = {
@@ -23,6 +26,8 @@ export type GrowthMaturityReport = {
 };
 
 const HANNAH_LINK_COPIED_KEY = 'finely.growth.hannah.copied_lane.v1';
+const BENJAMIN_LINK_COPIED_KEY = 'finely.growth.benjamin.copied_referral.v1';
+const REBECCA_LINK_COPIED_KEY = 'finely.growth.rebecca.copied_apply.v1';
 const WEEK_FOCUS_KEY = 'finely.growth_week_focus.v1';
 
 export function isHannahCampaignLinkCopied(): boolean {
@@ -60,20 +65,44 @@ export function getCalebMaturity(): GrowthMaturityReport {
   const readiness = getMarketingFindReadiness();
   const ml = countGrowthMlLabels();
   const workerProbed = Boolean(getLastGrowthWorkerProbe());
+  const autoOn = isCalebAutoFindEnabled();
   const items = [
     { id: 'desk', label: 'Marketing Desk turned on', done: isFeatureEnabled('marketingDesk') },
     { id: 'leadIntel', label: 'Find engine turned on', done: Boolean(readiness.steps.find((s) => s.id === 'leadIntel')?.done) },
     { id: 'supabase', label: 'Supabase connected', done: isSupabaseConfigured },
     { id: 'serper', label: 'Search tested successfully', done: isSerperSearchMarkedOk() },
-    { id: 'labels', label: 'Learning labels (5+)', done: ml.total >= 5 },
-    { id: 'worker', label: 'Nightly worker probed once', done: workerProbed },
+    {
+      id: 'labels',
+      label: autoOn ? 'Learning labels (optional — mark fits in Review)' : 'Learning labels (5+)',
+      done: ml.total >= 5 || autoOn,
+    },
+    {
+      id: 'worker',
+      label: autoOn ? 'Worker wired (auto-check when auto is on)' : 'Nightly worker probed once',
+      done: workerProbed || autoOn,
+    },
     { id: 'agents', label: 'Growth Agents home live', done: true },
   ];
   const done = items.filter((i) => i.done).length;
-  const percent = Math.round((done / items.length) * 100);
+  let percent = Math.round((done / items.length) * 100);
+  if (autoOn && readiness.ready && !isSerperSearchMarkedOk()) {
+    percent = Math.max(percent, 72);
+  }
+  if (autoOn && readiness.ready && isSerperSearchMarkedOk()) {
+    percent = 100;
+  }
   return {
     percent,
-    label: percent >= 80 ? 'Ready to hunt daily' : percent >= 40 ? 'Finish setup, then hunt' : 'Needs setup',
+    label:
+      autoOn && readiness.ready
+        ? isSerperSearchMarkedOk()
+          ? 'Auto on — hunting for you'
+          : 'Auto on — running search check'
+        : percent >= 80
+          ? 'Ready to hunt daily'
+          : percent >= 40
+            ? 'Finish setup, then hunt'
+            : 'Needs setup',
     items,
   };
 }
@@ -189,6 +218,88 @@ export function getMiriamMaturity(): GrowthMaturityReport {
   };
 }
 
+export function isBenjaminReferralLinkCopied(): boolean {
+  try {
+    return localStorage.getItem(BENJAMIN_LINK_COPIED_KEY) === '1';
+  } catch {
+    return false;
+  }
+}
+
+export function markBenjaminReferralLinkCopied(): void {
+  try {
+    localStorage.setItem(BENJAMIN_LINK_COPIED_KEY, '1');
+  } catch {
+    /* ignore */
+  }
+}
+
+export function isRebeccaApplyLinkCopied(): boolean {
+  try {
+    return localStorage.getItem(REBECCA_LINK_COPIED_KEY) === '1';
+  } catch {
+    return false;
+  }
+}
+
+export function markRebeccaApplyLinkCopied(): void {
+  try {
+    localStorage.setItem(REBECCA_LINK_COPIED_KEY, '1');
+  } catch {
+    /* ignore */
+  }
+}
+
+export function getBenjaminMaturity(): GrowthMaturityReport {
+  const copied = isBenjaminReferralLinkCopied();
+  const pipeline = countBenjaminPipeline();
+  const hasPipeline = pipeline.total >= 1;
+  const outreachStarted = pipeline.outreachSent >= 1 || pipeline.booked >= 1;
+
+  const items = [
+    { id: 'link', label: 'Referral loop link copied once', done: copied },
+    { id: 'pipeline', label: 'Affiliate/B2B pipeline has rows', done: hasPipeline },
+    { id: 'outreach', label: 'Outreach or booked stage reached', done: outreachStarted },
+  ];
+  const done = items.filter((i) => i.done).length;
+  const percent = Math.round((done / items.length) * 100);
+  return {
+    percent,
+    label:
+      percent >= 75
+        ? 'Activate referral loops'
+        : percent >= 35
+          ? 'Copy link · seed pipeline'
+          : 'Wave 4 — partnership setup',
+    items,
+  };
+}
+
+export function getRebeccaMaturity(): GrowthMaturityReport {
+  const copied = isRebeccaApplyLinkCopied();
+  const metrics = buildRebeccaApplyMetrics();
+  const hasCaptures = metrics.totalAllTime >= 1;
+  const nurtureLive = metrics.activeNurture >= 1 || metrics.completedNurture >= 1;
+
+  const items = [
+    { id: 'link', label: 'Apply funnel link copied once', done: copied },
+    { id: 'captures', label: 'Specialist-tagged lead capture', done: hasCaptures },
+    { id: 'nurture', label: 'Specialist nurture enrolled', done: nurtureLive },
+  ];
+  const done = items.filter((i) => i.done).length;
+  const percent = Math.round((done / items.length) * 100);
+  return {
+    percent,
+    label:
+      percent >= 75
+        ? 'Hand off in Desk · Mail'
+        : percent >= 35
+          ? 'Syndicate apply link'
+          : 'Wave 4 — recruit setup',
+    items,
+  };
+}
+
 export function getJordanMaturity(): GrowthMaturityReport {
   const { record, pillarLinked, focusMatches, hasIntel } = pillarMaturityBase();
   const script = record ? buildGrowthPillarScript({ record }).trim() : '';
@@ -224,6 +335,8 @@ export function getAgentMaturity(agent: GrowthAgentDef): GrowthMaturityReport {
   if (agent.id === 'seo-local') return getLydiaMaturity();
   if (agent.id === 'social') return getMiriamMaturity();
   if (agent.id === 'media') return getJordanMaturity();
+  if (agent.id === 'partnerships') return getBenjaminMaturity();
+  if (agent.id === 'specialist-recruit') return getRebeccaMaturity();
   return {
     percent: agent.wave > 2 ? 15 : 35,
     label: agent.wave > 2 ? 'Coming soon' : 'Wave 1 — opening tools',

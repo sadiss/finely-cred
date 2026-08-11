@@ -16,9 +16,15 @@ import {
   nextActionForImport,
   type LeadEngineLane,
 } from '../leadIntel/leadEngineAutonomy';
-import { enrollColdProspectMail } from './marketingDeskMail';
+import { enrollColdProspectMail, enrollInviteOptInMail, type MailEnrollResult } from './marketingDeskMail';
 import { createReviewImportsTask } from './marketingDeskTasks';
 import { ensureMarketingPipelineProject } from './marketingDeskProjects';
+import {
+  consentForMarketingDeskHit,
+  prospectAllowsColdEmail,
+  type MarketingConsentSnapshot,
+} from './marketingProspectConsent';
+import type { ProspectConsentBasis, ProspectLeadType } from '../../domain/crmProspects';
 
 export type MarketingPersistHit = {
   url: string;
@@ -33,6 +39,9 @@ export type MarketingPersistHit = {
   confidence?: number;
   meta?: { description?: string };
   whyNote?: string;
+  consentBasis?: ProspectConsentBasis;
+  leadType?: ProspectLeadType;
+  emailMarketingAllowed?: boolean;
 };
 
 export type MarketingPersistResult = {
@@ -83,6 +92,55 @@ export function findExistingMarketingProspect(hit: MarketingPersistHit): Prospec
   return null;
 }
 
+function mergeConsentOnProspect(
+  existing: Prospect | null,
+  incoming: MarketingConsentSnapshot,
+): MarketingConsentSnapshot {
+  if (existing && prospectAllowsColdEmail(existing)) {
+    return {
+      consentBasis: existing.consentBasis ?? incoming.consentBasis,
+      leadType: existing.leadType ?? incoming.leadType,
+      emailMarketingAllowed: true,
+    };
+  }
+  return incoming;
+}
+
+function shouldAttemptMailEnrollment(enrollMail: boolean | undefined, consent: MarketingConsentSnapshot): boolean {
+  if (enrollMail === false) return false;
+  if (enrollMail === true) return true;
+  return consent.emailMarketingAllowed;
+}
+
+function mailEnrollNote(mail: MailEnrollResult, consent: MarketingConsentSnapshot, hasEmail: boolean): string {
+  if (mail.enrolled) {
+    return consent.emailMarketingAllowed
+      ? 'Cold mail sequence enrolled.'
+      : 'Link-first opt-in invite queued (no cold consent).';
+  }
+  if (mail.fallbackTask) {
+    if (mail.reason === 'cold_autopilot_off') {
+      return 'Saved — cold mail gated (coldOutboundAutopilot off; link-first invite or manual outreach).';
+    }
+    if (mail.reason === 'needs_setup') {
+      return 'Saved — follow-up to-do created (mail not Ready).';
+    }
+    if (mail.reason === 'no_email') {
+      return 'Saved to CRM — add email before mail enroll.';
+    }
+    return consent.emailMarketingAllowed
+      ? 'Saved — follow-up to-do created (cold mail not Ready).'
+      : 'Saved — link-first to-do (mail not Ready).';
+  }
+  if (!consent.emailMarketingAllowed) {
+    return 'Saved to CRM — discovered lead; cold mail gated.';
+  }
+  if (!hasEmail) {
+    return 'Saved to CRM — add email before mail enroll.';
+  }
+  return 'Saved to CRM.';
+}
+
 /**
  * Upsert CRM prospect + enroll cold mail (or nurture to-do fallback).
  * Call after human Approve or smart auto-approve. Idempotent on website/email/domain.
@@ -111,8 +169,16 @@ export function persistApprovedMarketingHit(args: {
   const pack = buildOutreachCopyPack({ lane, companyName: hit.title, website: hit.url });
   const notePrefix = args.sourceNote || '[Marketing Desk] Approved';
   const domain = domainFromUrl(hit.url, hit.domain) || undefined;
+  const baseConsent = consentForMarketingDeskHit({
+    source: 'lead_intel_search',
+    emails: hit.emails,
+    consentBasis: hit.consentBasis,
+    leadType: hit.leadType,
+    emailMarketingAllowed: hit.emailMarketingAllowed,
+  });
 
   const existing = findExistingMarketingProspect(hit);
+  const consent = mergeConsentOnProspect(existing, baseConsent);
   let prospectId: string;
   let deduped = false;
 
@@ -122,6 +188,9 @@ export function persistApprovedMarketingHit(args: {
       score: Math.max(existing.score ?? 0, hit.score),
       tags: Array.from(new Set([...(existing.tags ?? []), ...tags])),
       nextAction,
+      consentBasis: consent.consentBasis,
+      leadType: consent.leadType,
+      emailMarketingAllowed: consent.emailMarketingAllowed,
       company: {
         ...existing.company,
         website: existing.company.website ?? hit.url,
@@ -161,7 +230,12 @@ export function persistApprovedMarketingHit(args: {
         confidence: hit.confidence,
       },
     });
-    patchProspect(created.id, { nextAction });
+    patchProspect(created.id, {
+      nextAction,
+      consentBasis: consent.consentBasis,
+      leadType: consent.leadType,
+      emailMarketingAllowed: consent.emailMarketingAllowed,
+    });
     addProspectNote(created.id, `${notePrefix}.\n${hit.whyNote || ''}`);
     prospectId = created.id;
   }
@@ -171,8 +245,15 @@ export function persistApprovedMarketingHit(args: {
   }
 
   let mailEnrolled = false;
-  let mailNote = 'Saved to CRM.';
-  if (args.enrollMail !== false) {
+  const attemptMail = shouldAttemptMailEnrollment(args.enrollMail, consent);
+  const hasEmail = Boolean((hit.emails?.[0] || '').trim().includes('@'));
+  let mailNote = !attemptMail
+    ? consent.emailMarketingAllowed
+      ? 'Saved to CRM — mail skipped (auto-save only).'
+      : 'Saved to CRM — discovered lead; cold mail gated.'
+    : 'Saved to CRM.';
+
+  if (attemptMail && consent.emailMarketingAllowed) {
     const mail = enrollColdProspectMail({
       prospectId,
       email: hit.emails?.[0],
@@ -180,11 +261,18 @@ export function persistApprovedMarketingHit(args: {
       lane,
     });
     mailEnrolled = mail.enrolled;
-    mailNote = mail.enrolled
-      ? 'Cold mail sequence enrolled.'
-      : mail.fallbackTask
-        ? 'Saved — follow-up to-do created (mail not Ready).'
-        : 'Saved to CRM.';
+    mailNote = mailEnrollNote(mail, consent, hasEmail);
+  } else if (attemptMail && hasEmail) {
+    const mail = enrollInviteOptInMail({
+      prospectId,
+      email: hit.emails?.[0],
+      fullName: hit.title,
+      lane,
+    });
+    mailEnrolled = mail.enrolled;
+    mailNote = mailEnrollNote(mail, consent, hasEmail);
+  } else if (attemptMail && !hasEmail) {
+    mailNote = mailEnrollNote({ enrolled: false, fallbackTask: true, reason: 'no_email' }, consent, hasEmail);
   }
 
   return {

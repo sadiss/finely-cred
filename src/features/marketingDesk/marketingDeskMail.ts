@@ -12,8 +12,11 @@ import {
 import { getMarketingMailStatus, isMarketingMailPaused } from './marketingDeskMailStatus';
 import { createMarketingTask, createOfferTask } from './marketingDeskTasks';
 import type { LeadEngineLane } from '../leadIntel/leadEngineAutonomy';
+import { prospectAllowsColdEmail } from './marketingProspectConsent';
+import { isColdOutboundAutopilotEnabled } from '../growthAgents/calebAutoFind';
 
 export const SEQ_COLD_PROSPECT = 'seq_cold_prospect';
+export const SEQ_INVITE_OPT_IN = 'seq_invite_opt_in';
 export const SEQ_OFFER_PACK = 'seq_offer_pack';
 export const SEQ_BOOKED_CONFIRM = 'seq_booked_confirm';
 export const SEQ_INBOUND_WELCOME = 'seq_inbound_nurture';
@@ -38,6 +41,11 @@ export function enrollColdProspectMail(args: {
   fullName?: string;
   lane?: LeadEngineLane | string;
 }): MailEnrollResult {
+  const prospect = getProspect(args.prospectId);
+  if (!prospectAllowsColdEmail(prospect)) {
+    return enrollInviteOptInMail(args);
+  }
+
   const email = (args.email || '').trim().toLowerCase();
   if (!email || !email.includes('@')) {
     createMarketingTask({
@@ -49,6 +57,19 @@ export function enrollColdProspectMail(args: {
       href: '/admin/marketing-desk?helper=find',
     });
     return { enrolled: false, fallbackTask: true, reason: 'no_email' };
+  }
+
+  if (!isColdOutboundAutopilotEnabled()) {
+    createMarketingTask({
+      kind: 'nurture',
+      title: `Cold gated — ${args.fullName || email}`,
+      prospectId: args.prospectId,
+      lane: args.lane,
+      notes: `coldOutboundAutopilot is off (default) — link-first invite or manual outreach to ${email}.`,
+      href: '/admin/marketing-desk?helper=mail',
+      meta: { email },
+    });
+    return { enrolled: false, fallbackTask: true, reason: 'cold_autopilot_off' };
   }
 
   if (!mailCanAutopilot()) {
@@ -95,6 +116,69 @@ export function enrollColdProspectMail(args: {
     enrolled: true,
     enrollmentId: enrollment.id,
   };
+}
+
+/** Discovered leads — one link-first invite, no cold touches until they opt in. */
+export function enrollInviteOptInMail(args: {
+  prospectId: string;
+  email?: string;
+  fullName?: string;
+  lane?: LeadEngineLane | string;
+}): MailEnrollResult {
+  const email = (args.email || '').trim().toLowerCase();
+  if (!email || !email.includes('@')) {
+    createMarketingTask({
+      kind: 'nurture',
+      title: `Link-first invite — ${args.fullName || 'prospect'}`,
+      prospectId: args.prospectId,
+      lane: args.lane,
+      notes: 'No email — add contact, then send opt-in link (no cold sequence).',
+      href: '/admin/marketing-desk?helper=find',
+    });
+    return { enrolled: false, fallbackTask: true, reason: 'no_email' };
+  }
+
+  if (!mailCanAutopilot()) {
+    createMarketingTask({
+      kind: 'nurture',
+      title: `Link-first invite — ${args.fullName || email}`,
+      prospectId: args.prospectId,
+      lane: args.lane,
+      notes: `Mail Needs setup or Paused. Send opt-in link manually to ${email} — cold mail gated.`,
+      href: '/admin/marketing-desk?helper=mail',
+      meta: { email },
+    });
+    return { enrolled: false, fallbackTask: true, reason: 'needs_setup' };
+  }
+
+  const enrollment = enrollLeadInNurtureSequence({
+    leadId: args.prospectId,
+    sequenceId: SEQ_INVITE_OPT_IN,
+    tenantId: 'finely_cred',
+    context: {
+      email,
+      fullName: args.fullName,
+      prospectId: args.prospectId,
+      lane: args.lane,
+      source: 'marketing_desk_invite_opt_in',
+      funnelPath: '/resources/business-credit-one-sheets',
+    },
+  });
+
+  if (!enrollment) {
+    createMarketingTask({
+      kind: 'nurture',
+      title: `Link-first invite — ${args.fullName || email}`,
+      prospectId: args.prospectId,
+      lane: args.lane,
+      notes: `Invite sequence unavailable. Send opt-in link manually to ${email}.`,
+      href: '/admin/marketing-desk?helper=mail',
+      meta: { email },
+    });
+    return { enrolled: false, fallbackTask: true, reason: 'sequence_disabled' };
+  }
+
+  return { enrolled: true, enrollmentId: enrollment.id };
 }
 
 /** Offer action → offer-pack sequence or Offer task. */

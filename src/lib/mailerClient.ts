@@ -39,6 +39,8 @@ export type MailProviderStatus = {
   code?: number;
   /** True when LetterStream TEST mode / MAIL_TEST_MODE / debug debug is active. */
   testMode: boolean;
+  /** True when MAIL_LIVE_MODE forces production sends (no debug/test flags). */
+  liveMode?: boolean;
   debugLevel?: number | null;
   /** Prepaid balance in USD when the API (or ping payload) exposes it. */
   balanceUsd: number | null;
@@ -49,7 +51,10 @@ const DEFAULT_EST_COST_USD = 1.85;
 
 function coerceStatus(data: Record<string, unknown> | null | undefined, fallbackErr?: string): MailProviderStatus {
   const raw = data || {};
-  const testMode = Boolean(raw.testMode) || /\btest\s*mode\b|\btestmode\b|\bsandbox\b/i.test(String(raw.message || raw.error || ''));
+  const testMode =
+    !Boolean(raw.liveMode) &&
+    (Boolean(raw.testMode) ||
+      /\btest\s*mode\b|\btestmode\b|\bsandbox\s*mode\b|\bin\s*test\b/i.test(String(raw.message || raw.error || '')));
   const balanceRaw = raw.balanceUsd;
   const balanceUsd =
     typeof balanceRaw === 'number' && Number.isFinite(balanceRaw)
@@ -68,6 +73,7 @@ function coerceStatus(data: Record<string, unknown> | null | undefined, fallback
     error: typeof raw.error === 'string' ? raw.error : fallbackErr,
     code: typeof raw.code === 'number' ? raw.code : undefined,
     testMode,
+    liveMode: Boolean(raw.liveMode),
     debugLevel: typeof raw.debugLevel === 'number' ? raw.debugLevel : raw.debugLevel === null ? null : undefined,
     balanceUsd,
     estimatedCostUsd: est,

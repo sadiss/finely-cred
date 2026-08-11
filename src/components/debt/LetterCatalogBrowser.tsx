@@ -18,6 +18,10 @@ import {
   finelyOsMicroStat,
   type FinelyOsGlowAccent,
 } from '../../features/os/finelyOsLightUi';
+import {
+  debtLetterCardFactsFromCatalogEntry,
+  debtLetterWhenToUseSnippet,
+} from '../../lib/debtLetterCardFacts';
 
 const CATEGORY_LABELS: Record<LetterCatalogCategory, string> = {
   validation: 'Validation',
@@ -160,14 +164,28 @@ export function LetterCatalogBrowser({
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 max-h-[min(70vh,640px)] overflow-y-auto pr-1">
-        {filtered.map((e) => (
+        {filtered.map((e) => {
+          const facts = debtLetterCardFactsFromCatalogEntry(e);
+          const whenSnippet = debtLetterWhenToUseSnippet(facts);
+          return (
           <div key={e.id} className={`${finelyOsCatalogCardCompact(accent)} !p-3 flex flex-col gap-2 min-h-[8rem]`}>
             {e.id.startsWith('courtroom_') ? (
               <span className="text-[9px] font-black uppercase tracking-widest text-fuchsia-300/90">Courtroom pack</span>
             ) : null}
             <div className={`${FINELY_OS_ENTITY_TITLE} text-xs leading-snug line-clamp-2`}>{e.title}</div>
-            <p className={`text-sm line-clamp-2 flex-1 ${FINELY_OS_ENTITY_BODY} text-white/75`}>{e.shortDescription}</p>
-            <div className="text-[9px] text-white/45 line-clamp-1">{e.laws.slice(0, 2).join(' · ')}</div>
+            {facts.keyPrinciple ? (
+              <p className={`text-[11px] font-semibold leading-snug line-clamp-2 flex-1 ${FINELY_OS_ENTITY_BODY} text-white/85`}>
+                {facts.keyPrinciple}
+              </p>
+            ) : null}
+            {whenSnippet ? (
+              <p className={`text-[10px] line-clamp-2 ${FINELY_OS_ENTITY_BODY} text-white/60`}>
+                When: {whenSnippet}
+              </p>
+            ) : (
+              <p className={`text-sm line-clamp-2 flex-1 ${FINELY_OS_ENTITY_BODY} text-white/75`}>{e.shortDescription}</p>
+            )}
+            <div className="text-[9px] text-white/45 line-clamp-1">{facts.laws.slice(0, 2).join(' · ')}</div>
             <button
               type="button"
               onClick={() => onBuild(e.id, e)}
@@ -176,7 +194,8 @@ export function LetterCatalogBrowser({
               {e.tier === 'full' ? 'Draft this letter' : 'Build letter'}
             </button>
           </div>
-        ))}
+          );
+        })}
       </div>
 
       {filtered.length === 0 ? (

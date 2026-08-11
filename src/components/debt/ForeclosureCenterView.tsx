@@ -11,6 +11,7 @@ import { CollateralDefenseShell, type CollateralPlaybookStep } from './Collatera
 import { CollateralWorkstationSection, DebtVsDisputeExplainer } from './CollateralWorkstationSection';
 import { catalogForCategory, type LetterCatalogHub } from '../../legal/debtLetterCatalog';
 import { extractCollateralSignals } from '../../lib/debtCreditorIntel';
+import { adminEmbeddedNavHref } from '../../lib/adminPartnerRoutes';
 import {
   FINELY_OS_ENTITY_SUBLABEL,
   FINELY_OS_FIELD_WIDTH_SM,
@@ -54,6 +55,7 @@ export function ForeclosureCenterView({
   onDebtIdChange,
   onBuildCatalogDraft,
   letterHub = 'debt',
+  adminPartnerId,
 }: {
   debt: DebtCase | null;
   debtCases: DebtCase[];
@@ -69,7 +71,9 @@ export function ForeclosureCenterView({
   onSwitchToRepossession?: () => void;
   onBuildCatalogDraft: (catalogId: string) => void;
   letterHub?: LetterCatalogHub;
+  adminPartnerId?: string;
 }) {
+  const nav = (href: string) => adminEmbeddedNavHref(adminPartnerId, href);
   const isCredit = letterHub === 'credit';
   const playbook = isCredit ? CREDIT_PLAYBOOK : DEBT_PLAYBOOK;
   const [activeStep, setActiveStep] = useState(isCredit ? 'tradeline' : 'mitigate');
@@ -126,11 +130,11 @@ export function ForeclosureCenterView({
       ]}
       headerActions={
         isCredit ? (
-          <Link to="/portal/debt?tab=foreclosure" className={FINELY_OS_SECONDARY_BTN} title="Servicer QWR, dual-track, and foreclosure answer letters">
+          <Link to={nav('/portal/debt?tab=foreclosure')} className={FINELY_OS_SECONDARY_BTN} title="Servicer QWR, dual-track, and foreclosure answer letters">
             Debt FC letters →
           </Link>
         ) : (
-          <Link to="/portal/letters?tab=foreclosure" className={FINELY_OS_SECONDARY_BTN} title="Bureau / specialty CRA foreclosure reporting disputes">
+          <Link to={nav('/portal/letters?tab=foreclosure')} className={FINELY_OS_SECONDARY_BTN} title="Bureau / specialty CRA foreclosure reporting disputes">
             Credit FC letters →
           </Link>
         )

@@ -17,6 +17,16 @@ export type ProspectSource =
   | 'referral'
   | 'lead_capture';
 
+/** Why we believe email marketing is allowed (TCPA/CAN-SPAM desk policy). */
+export type ProspectConsentBasis =
+  | 'inbound_form_opt_in'
+  | 'lead_capture_opt_in'
+  | 'partner_consent'
+  | 'discovered_no_consent'
+  | 'unknown';
+
+export type ProspectLeadType = 'inbound' | 'discovered' | 'referral' | 'import';
+
 export type ProspectTouchKind = 'note' | 'enriched' | 'assigned' | 'stage_change' | 'email_sent' | 'sms_sent' | 'converted' | 'work_linked';
 
 export type ProspectTouch = {
@@ -80,6 +90,12 @@ export type Prospect = {
 
   notes: ProspectNote[];
   touches: ProspectTouch[];
+
+  /** Marketing Desk / nurture consent (optional on legacy rows). */
+  consentBasis?: ProspectConsentBasis;
+  leadType?: ProspectLeadType;
+  /** Explicit email nurture permission — false blocks cold + promo sends. */
+  emailMarketingAllowed?: boolean;
 };
 
 export function nowIso() {
