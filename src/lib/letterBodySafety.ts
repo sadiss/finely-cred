@@ -43,6 +43,27 @@ const PASSWORD_RE = /\b(?:Password|Passcode|Temp(?:orary)?\s*Password)\s*[:=]\s*
 const EMAIL_ABOVE_RE =
   /You may send electronically to my email address above or mail the information to me at my home address also listed above\./gi;
 
+/** Finely Cred / vendor letterhead lines — never on partner-facing mailed letters. */
+const FINELY_BRAND_LINE_RE =
+  /^\s*.*\b(?:FINELY CRED|Finely Cred|FinelyCred)\b.*$/gim;
+
+const EDUCATIONAL_WORKFLOW_LINE_RE =
+  /^\s*.*\b(?:Educational workflow|educational workflow)\b.*$/gim;
+
+const GENERATED_INTERNAL_LINE_RE =
+  /^\s*.*\bGenerated for internal dispute workflow\b.*$/gim;
+
+const EDUCATIONAL_DRAFT_FOOTER_LINE_RE =
+  /^\s*.*\bEducational draft(?: only)?\.?\s*(?:Review with a licensed attorney|Review with a licensed attorney\/qualified professional).*$/gim;
+
+const VERIFY_BEFORE_MAILING_LINE_RE =
+  /^\s*.*\bVerify facts before mailing(?: or submission)?\.?\s*$/gim;
+
+const FINELY_BRAND_INLINE_RE =
+  /\b(?:FINELY CRED|Finely Cred|FinelyCred)\s*[•·\-|,]\s*(?:Educational workflow document|Educational draft|Educational reference only)[^.\n]*/gi;
+
+const SIGNATURE_CLOSING_RE = /^(Sincerely,|Thank you,|Regards,|Respectfully,)$/im;
+
 /** True when body looks like hearing-kit / playbook guidance rather than a mailed letter. */
 export function isHearingKitGuidanceBody(text: string): boolean {
   const t = String(text || '');
@@ -123,6 +144,92 @@ function scrubCoachAndMetaProse(text: string): string {
   return out;
 }
 
+function scrubVendorBrandingProse(text: string): string {
+  let out = text;
+  out = out.replace(FINELY_BRAND_LINE_RE, '');
+  out = out.replace(EDUCATIONAL_WORKFLOW_LINE_RE, '');
+  out = out.replace(GENERATED_INTERNAL_LINE_RE, '');
+  out = out.replace(EDUCATIONAL_DRAFT_FOOTER_LINE_RE, '');
+  out = out.replace(VERIFY_BEFORE_MAILING_LINE_RE, '');
+  out = out.replace(FINELY_BRAND_INLINE_RE, '');
+  out = out.replace(
+    /^\s*.*\b(?:Educational reference only|educational reference only)\b.*$/gim,
+    '',
+  );
+  out = out.replace(
+    /^\s*.*\b(?:Educational self-help|EDUCATIONAL SELF-HELP)\b.*$/gim,
+    '',
+  );
+  out = out.replace(
+    /^\s*.*\bfunding subject to underwriting\b.*$/gim,
+    '',
+  );
+  return out;
+}
+
+/** Ensure "Sincerely," then blank line then signature name in plain text. */
+export function normalizeLetterSignatureSpacing(text: string): string {
+  const lines = String(text || '').split('\n');
+  const out: string[] = [];
+  for (let i = 0; i < lines.length; i += 1) {
+    const line = lines[i] ?? '';
+    out.push(line);
+    if (SIGNATURE_CLOSING_RE.test(line.trim())) {
+      const next = (lines[i + 1] ?? '').trim();
+      const afterNext = (lines[i + 2] ?? '').trim();
+      if (next && !SIGNATURE_CLOSING_RE.test(next) && !afterNext) {
+        out.push('');
+      }
+    }
+  }
+  return out.join('\n');
+}
+
+/** Ensure "Sincerely," then blank line then signature name in HTML. */
+export function normalizeLetterSignatureSpacingHtml(html: string): string {
+  let out = String(html || '');
+  out = out.replace(
+    /(Sincerely,|Thank you,|Regards,|Respectfully,)(\s*(?:<br\s*\/?>\s*)+)(?!<br\s*\/?>)/gi,
+    '$1<br/><br/>',
+  );
+  out = out.replace(
+    /(Sincerely,|Thank you,|Regards,|Respectfully,)\s*<\/p>\s*<p>\s*(?!<br)/gi,
+    '$1</p><p><br/></p><p>',
+  );
+  return out;
+}
+
+/**
+ * Strip Finely Cred branding, letterheads, and educational footers from plain-text letter bodies.
+ * Call before save, PDF generation, and paper preview.
+ */
+export function stripLetterVendorBranding(text: string): string {
+  let out = scrubLetterBodyForMail(text);
+  out = scrubVendorBrandingProse(out);
+  out = normalizeLetterSignatureSpacing(out);
+  out = out.replace(/\n{3,}/g, '\n\n').trim();
+  return out;
+}
+
+/**
+ * Strip Finely Cred branding, letterheads, and educational footers from HTML letter bodies.
+ */
+export function stripLetterVendorBrandingHtml(html: string): string {
+  let out = scrubLetterHtmlForMail(html);
+  out = out.replace(/<div[^>]*>\s*(?:FINELY CRED|Finely Cred|FinelyCred)\s*<\/div>/gi, '');
+  out = out.replace(FINELY_BRAND_INLINE_RE, '');
+  out = out.replace(
+    /<div[^>]*>\s*[^<]*(?:Educational draft|Educational workflow|Generated for internal dispute workflow)[^<]*<\/div>/gi,
+    '',
+  );
+  out = out.replace(
+    /<p[^>]*>\s*[^<]*(?:Educational draft|Educational workflow|Generated for internal dispute workflow|not legal advice)[^<]*<\/p>/gi,
+    (block) => (/I do not waive|reserve all rights|Defendant does not waive/i.test(block) ? block : ''),
+  );
+  out = normalizeLetterSignatureSpacingHtml(out);
+  return out.trim();
+}
+
 /**
  * Scrub letter plain text before PDF / mail / draft HTML conversion.
  * Does not invent content — only removes unsafe / instructional lines and phrases.
@@ -178,17 +285,17 @@ export function scrubLetterBodyForMail(text: string): string {
 
 /** Strip email from HTML letter drafts (safety net after plainTextToHtml). */
 export function scrubLetterHtmlForMail(html: string): string {
-  const plainish = scrubLetterBodyForMail(
+  const plainish = stripLetterVendorBranding(
     String(html || '')
       .replace(/<br\s*\/?>/gi, '\n')
       .replace(/<\/p>/gi, '\n')
       .replace(/<[^>]+>/g, ' '),
   );
-  // Prefer scrubbing the HTML string in place for common patterns
   let out = String(html || '');
   out = out.replace(FINELY_EMAIL_RE, '');
   out = out.replace(ANY_EMAIL_RE, '');
   out = out.replace(DISCLAIMER_PHRASE_RE, '');
+  out = out.replace(FINELY_BRAND_INLINE_RE, '');
   out = out.replace(/Email:\s*[^<\n]+/gi, '');
   out = out.replace(/Email Address:\s*[^<\n]+/gi, '');
   void plainish;

@@ -811,12 +811,12 @@ export function MobileNav({ isOpen, onClose, onNavigate, showThemeToggle = false
           <button
             type="button"
             onClick={() => {
-              onNavigate('/free-guide');
+              onNavigate('/signup');
               onClose();
             }}
             className="fc-nav-trial-cta min-h-[44px] text-sm font-semibold"
           >
-            Start free guide
+            Start free trial
           </button>
         </div>
 

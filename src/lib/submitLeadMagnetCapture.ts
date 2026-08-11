@@ -1,4 +1,4 @@
-import { submitLeadCapture } from '../data/leadsRepo';
+import { submitLeadCapture, findLeadCapturesByEmail } from '../data/leadsRepo';
 import { addLeadNote } from '../data/leadOpsRepo';
 import { recordFunnelConversion, assignFunnelVariant } from '../data/funnelExperimentsRepo';
 import { emitFunnelStepCompleted } from '../domain/platformEvents';
@@ -10,6 +10,17 @@ import { startLeadMagnetTrial } from './leadMagnetTrial';
 import { findFreeGuideById } from '../resources/freeGuides';
 import { addLeadTags } from '../data/leadOpsRepo';
 import { isCreditSpecialistLeadOffer } from './leadOfferLabels';
+import { isFinelyAdminTestMode } from './finelyAdminTestMode';
+
+export class LeadMagnetDuplicateLaneError extends Error {
+  existingFunnelId: string;
+
+  constructor(existingFunnelId: string) {
+    super('This email already signed up for another guide lane. Open your original guide link or contact support.');
+    this.name = 'LeadMagnetDuplicateLaneError';
+    this.existingFunnelId = existingFunnelId;
+  }
+}
 
 export type LeadMagnetCaptureInput = {
   funnelConfig: LeadMagnetFunnelConfig;
@@ -45,6 +56,16 @@ export async function submitLeadMagnetCapture(args: LeadMagnetCaptureInput): Pro
   const guide = findFreeGuideById(args.funnelConfig.guideId);
   const attr = getLeadAttribution();
   const abVariant = assignFunnelVariant(args.funnelConfig.funnelId);
+
+  if (!isFinelyAdminTestMode()) {
+    const prior = findLeadCapturesByEmail(email).filter((l) => l.source === 'lead_magnet');
+    const otherLane = prior.find(
+      (l) => l.funnelId && l.funnelId !== args.funnelConfig.funnelId,
+    );
+    if (otherLane?.funnelId) {
+      throw new LeadMagnetDuplicateLaneError(otherLane.funnelId);
+    }
+  }
 
   const result = await submitLeadCapture({
     source: 'lead_magnet',

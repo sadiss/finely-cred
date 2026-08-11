@@ -70,6 +70,7 @@ import { CreditAnalysisDeliverableStrip } from '../../components/reports/CreditA
 import { openCommunicationHub } from '../../components/chat/communicationHubModel';
 import { setAdminPartnerFocus } from '../../lib/adminPartnerFocus';
 import { downloadInlineDisputeLetterPdf } from '../../letters/generateDisputePdfInline';
+import { stripLetterVendorBranding } from '../../lib/letterBodySafety';
 import { computePartnerOverallScore } from '../../utils/partnerOverallScore';
 import { addAuditEvent, listAuditEventsByPartner } from '../../data/auditRepo';
 import { createDisputeCase, listCasesByPartner, addRoundToCase, upsertCase } from '../../data/casesRepo';
@@ -189,6 +190,7 @@ LEGAL BASIS: ${candidate.code}
 Please investigate this matter and provide written results of your investigation. If you cannot verify the information with competent evidence, the item must be deleted or corrected.
 
 Sincerely,
+
 ${partnerName}
 `;
 }
@@ -228,7 +230,7 @@ function buildLetterBodyText(args: {
       `I am writing to dispute inaccurate and/or unverified information appearing on my credit file.\n\n` +
       baseFacts +
       `Please investigate this matter and provide written results of your investigation. If you cannot verify the information with competent evidence, the item must be deleted or corrected.\n\n` +
-      `Sincerely,\n${partnerName}\n`
+      `Sincerely,\n\n${partnerName}\n`
     );
   }
   if (tone === 'conversational') {
@@ -267,9 +269,6 @@ function buildLetterBodyHtml(args: {
     <div style="font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;line-height:1.55;color:#e5e7eb;">
       <pre style="white-space:pre-wrap;background:rgba(0,0,0,0.25);border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:16px;margin:0;color:#e5e7eb;">${escapeHtml(text)}</pre>
       ${evidence}
-      <p style="margin-top:14px;color:#9ca3af;font-size:12px;">
-        Generated for internal dispute workflow. Not legal advice. Verify facts before mailing or submission.
-      </p>
     </div>
   `;
 }
@@ -315,20 +314,14 @@ async function downloadPdfWithEvidence(args: {
     return lines;
   };
 
+  const letterText = stripLetterVendorBranding(args.letterText);
+
   // Page 1: Letter body
   let page = pdfDoc.addPage([pageWidth, pageHeight]);
   let y = pageHeight - margin;
-  page.drawText('FINELY CRED — DISPUTE LETTER', {
-    x: margin,
-    y,
-    size: 12,
-    font: fontBold,
-    color: rgb(0.91, 0.91, 0.91),
-  });
-  y -= 24;
 
   const maxWidth = pageWidth - margin * 2;
-  const lines = wrap(args.letterText, maxWidth);
+  const lines = wrap(letterText, maxWidth);
   for (const line of lines) {
     if (y < margin) {
       page = pdfDoc.addPage([pageWidth, pageHeight]);

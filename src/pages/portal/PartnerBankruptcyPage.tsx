@@ -33,6 +33,7 @@ import {
   FINELY_OS_SECONDARY_BTN,
 } from '../../features/os/finelyOsLightUi';
 import { generateTextPdfToVault } from '../../letters/generateTextPdf';
+import { stripLetterVendorBranding } from '../../lib/letterBodySafety';
 import { upsertLetter } from '../../data/lettersRepo';
 import { newId } from '../../utils/ids';
 import { DebtLetterDraftWorkspace } from '../../components/letters/DebtLetterPreview';
@@ -81,9 +82,10 @@ export default function PartnerBankruptcyPage() {
     try {
       const createdAt = new Date().toISOString();
       const title = `Bankruptcy: ${draft.id}`;
+      const mailBody = stripLetterVendorBranding(draft.text);
       const pdf = await generateTextPdfToVault({
-        text: draft.text,
-        filename: `FinelyCred_bankruptcy_${draft.id}_${createdAt.slice(0, 10)}.pdf`,
+        text: mailBody,
+        filename: `Letter_bankruptcy_${draft.id}_${createdAt.slice(0, 10)}.pdf`,
         meta: { partnerId: partner.id, context: 'bankruptcy', letterSpecId: draft.id },
       });
       upsertLetter({
@@ -92,7 +94,7 @@ export default function PartnerBankruptcyPage() {
         type: 'validation',
         title,
         createdAt,
-        body: draft.text,
+        body: mailBody,
         status: 'generated',
         pdfBlobRef: pdf.pdfBlobRef ?? undefined,
         pdfFilename: pdf.filename,

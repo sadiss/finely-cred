@@ -21,7 +21,7 @@ import {
   getCourtroomPretrialProofNoticeBody,
   getCourtroomWrittenAnswerBody,
 } from './courtroomPackBodies';
-import { scrubLetterBodyForMail } from '../lib/letterBodySafety';
+import { stripLetterVendorBranding } from '../lib/letterBodySafety';
 import { formatLetterRecipientBlock, resolveLetterMailRecipient } from '../lib/letterMailingAddress';
 
 const FDCPA_809: LegalCitation = {
@@ -857,5 +857,5 @@ export function getLetterBody(
     default:
       body = getDebtDisputeLetterBody(safeArgs);
   }
-  return scrubLetterBodyForMail(body);
+  return stripLetterVendorBranding(body);
 }

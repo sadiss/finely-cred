@@ -29,6 +29,12 @@ export function getLeadCaptureById(leadId: string): LeadCapture | null {
   return loadStore().leads.find((l) => l.id === leadId) ?? null;
 }
 
+export function findLeadCapturesByEmail(email: string): LeadCapture[] {
+  const normalized = (email || '').trim().toLowerCase();
+  if (!normalized) return [];
+  return loadStore().leads.filter((l) => (l.email || '').trim().toLowerCase() === normalized);
+}
+
 export function createLeadCapture(args: Omit<LeadCapture, 'id' | 'createdAt'> & { id?: string; createdAt?: string }): LeadCapture {
   const store = loadStore();
   const attr = getLeadAttribution();

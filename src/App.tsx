@@ -1,4 +1,4 @@
-import React, { Suspense, lazy, useEffect, useState } from 'react';
+import React, { Suspense, useEffect, useState } from 'react';
 import { 
   Shield, Zap, Trophy, UserCheck, ShoppingBag, ArrowRight, Menu,
   Download, Sparkles, CreditCard
@@ -76,224 +76,225 @@ import { FinelyCredLogo } from './components/brand/FinelyCredLogo';
 import { SiteViewportPreview } from './components/layout/SiteViewportPreview';
 import { Overnight50SiteBootstrap } from './components/overnight50/Overnight50SiteBootstrap';
 import { inPreviewFrame } from './lib/inPreviewFrame';
+import { lazyWithRetry } from './lib/lazyWithRetry';
 
 // Route-level code splitting (keeps main bundle lean)
-const PartnerReportsPage = lazy(() => import('./pages/portal/PartnerReportsPage'));
-const PartnerAnalysisVaultPage = lazy(() => import('./pages/portal/PartnerAnalysisVaultPage'));
-const PartnerDisputesPage = lazy(() => import('./pages/portal/PartnerDisputesPage'));
-const PartnerTasksPage = lazy(() => import('./pages/portal/PartnerTasksPage'));
-const PartnerDashboardPage = lazy(() => import('./pages/portal/PartnerDashboardPage'));
-const PartnerChecklistPage = lazy(() => import('./pages/portal/PartnerChecklistPage'));
-const PartnerDocumentsPage = lazy(() => import('./pages/portal/PartnerDocumentsPage'));
-const PartnerDisputeDetailPage = lazy(() => import('./pages/portal/PartnerDisputeDetailPage'));
-const PartnerEducationPage = lazy(() => import('./pages/portal/PartnerEducationPage'));
-const PartnerTrainingAcademyPage = lazy(() => import('./pages/portal/PartnerTrainingAcademyPage'));
-const PartnerMessagesPage = lazy(() => import('./pages/portal/PartnerMessagesPage'));
-const PartnerLettersPage = lazy(() => import('./pages/portal/PartnerLettersPage'));
-const PartnerTemplateLibraryPage = lazy(() => import('./pages/portal/PartnerTemplateLibraryPage'));
-const PartnerLettersVaultPage = lazy(() => import('./pages/portal/PartnerLettersVaultPage'));
-const PartnerBillingPage = lazy(() => import('./pages/portal/PartnerBillingPage'));
-const PartnerCalendarPage = lazy(() => import('./pages/portal/PartnerCalendarPage'));
-const VideoMeetingRoomPage = lazy(() => import('./pages/portal/VideoMeetingRoomPage'));
-const InstantVideoCallPage = lazy(() => import('./pages/portal/InstantVideoCallPage'));
-const PartnerProjectsPage = lazy(() => import('./pages/portal/PartnerProjectsPage'));
-const PartnerProjectWorkspacePage = lazy(() => import('./pages/portal/PartnerProjectWorkspacePage'));
-const PartnerMyTasksPage = lazy(() => import('./pages/portal/PartnerMyTasksPage'));
-const PartnerWorkPage = lazy(() => import('./pages/portal/PartnerWorkPage'));
-const PartnerDebtPage = lazy(() => import('./pages/portal/PartnerDebtPage'));
-const PartnerBankruptcyPage = lazy(() => import('./pages/portal/PartnerBankruptcyPage'));
-const PartnerDebtDetailPage = lazy(() => import('./pages/portal/PartnerDebtDetailPage'));
-const PartnerBuildPage = lazy(() => import('./pages/portal/PartnerBuildPage'));
-const PartnerIdentityTheftPage = lazy(() => import('./pages/portal/PartnerIdentityTheftPage'));
-const PartnerEscalationsPage = lazy(() => import('./pages/portal/PartnerEscalationsPage'));
-const PartnerCheckoutPage = lazy(() => import('./pages/portal/PartnerCheckoutPage'));
-const PartnerWealthPathsPage = lazy(() => import('./pages/portal/PartnerWealthPathsPage'));
-const PartnerTradelineMarketplacePage = lazy(() => import('./pages/portal/PartnerTradelineMarketplacePage'));
-const PartnerCoursesPage = lazy(() => import('./pages/portal/PartnerCoursesPage'));
-const PartnerCoursePage = lazy(() => import('./pages/portal/PartnerCoursePage'));
-const PartnerBarterPage = lazy(() => import('./pages/portal/PartnerBarterPage'));
-const PortalPartnerSelectPage = lazy(() => import('./pages/portal/PortalPartnerSelectPage'));
+const PartnerReportsPage = lazyWithRetry(() => import('./pages/portal/PartnerReportsPage'));
+const PartnerAnalysisVaultPage = lazyWithRetry(() => import('./pages/portal/PartnerAnalysisVaultPage'));
+const PartnerDisputesPage = lazyWithRetry(() => import('./pages/portal/PartnerDisputesPage'));
+const PartnerTasksPage = lazyWithRetry(() => import('./pages/portal/PartnerTasksPage'));
+const PartnerDashboardPage = lazyWithRetry(() => import('./pages/portal/PartnerDashboardPage'));
+const PartnerChecklistPage = lazyWithRetry(() => import('./pages/portal/PartnerChecklistPage'));
+const PartnerDocumentsPage = lazyWithRetry(() => import('./pages/portal/PartnerDocumentsPage'));
+const PartnerDisputeDetailPage = lazyWithRetry(() => import('./pages/portal/PartnerDisputeDetailPage'));
+const PartnerEducationPage = lazyWithRetry(() => import('./pages/portal/PartnerEducationPage'));
+const PartnerTrainingAcademyPage = lazyWithRetry(() => import('./pages/portal/PartnerTrainingAcademyPage'));
+const PartnerMessagesPage = lazyWithRetry(() => import('./pages/portal/PartnerMessagesPage'));
+const PartnerLettersPage = lazyWithRetry(() => import('./pages/portal/PartnerLettersPage'));
+const PartnerTemplateLibraryPage = lazyWithRetry(() => import('./pages/portal/PartnerTemplateLibraryPage'));
+const PartnerLettersVaultPage = lazyWithRetry(() => import('./pages/portal/PartnerLettersVaultPage'));
+const PartnerBillingPage = lazyWithRetry(() => import('./pages/portal/PartnerBillingPage'));
+const PartnerCalendarPage = lazyWithRetry(() => import('./pages/portal/PartnerCalendarPage'));
+const VideoMeetingRoomPage = lazyWithRetry(() => import('./pages/portal/VideoMeetingRoomPage'));
+const InstantVideoCallPage = lazyWithRetry(() => import('./pages/portal/InstantVideoCallPage'));
+const PartnerProjectsPage = lazyWithRetry(() => import('./pages/portal/PartnerProjectsPage'));
+const PartnerProjectWorkspacePage = lazyWithRetry(() => import('./pages/portal/PartnerProjectWorkspacePage'));
+const PartnerMyTasksPage = lazyWithRetry(() => import('./pages/portal/PartnerMyTasksPage'));
+const PartnerWorkPage = lazyWithRetry(() => import('./pages/portal/PartnerWorkPage'));
+const PartnerDebtPage = lazyWithRetry(() => import('./pages/portal/PartnerDebtPage'));
+const PartnerBankruptcyPage = lazyWithRetry(() => import('./pages/portal/PartnerBankruptcyPage'));
+const PartnerDebtDetailPage = lazyWithRetry(() => import('./pages/portal/PartnerDebtDetailPage'));
+const PartnerBuildPage = lazyWithRetry(() => import('./pages/portal/PartnerBuildPage'));
+const PartnerIdentityTheftPage = lazyWithRetry(() => import('./pages/portal/PartnerIdentityTheftPage'));
+const PartnerEscalationsPage = lazyWithRetry(() => import('./pages/portal/PartnerEscalationsPage'));
+const PartnerCheckoutPage = lazyWithRetry(() => import('./pages/portal/PartnerCheckoutPage'));
+const PartnerWealthPathsPage = lazyWithRetry(() => import('./pages/portal/PartnerWealthPathsPage'));
+const PartnerTradelineMarketplacePage = lazyWithRetry(() => import('./pages/portal/PartnerTradelineMarketplacePage'));
+const PartnerCoursesPage = lazyWithRetry(() => import('./pages/portal/PartnerCoursesPage'));
+const PartnerCoursePage = lazyWithRetry(() => import('./pages/portal/PartnerCoursePage'));
+const PartnerBarterPage = lazyWithRetry(() => import('./pages/portal/PartnerBarterPage'));
+const PortalPartnerSelectPage = lazyWithRetry(() => import('./pages/portal/PortalPartnerSelectPage'));
 
-const PartnersListPage = lazy(() => import('./pages/admin/PartnersListPage'));
-const PartnerDetailPage = lazy(() => import('./pages/admin/PartnerDetailPage'));
-const AdminPartnerImportPage = lazy(() => import('./pages/admin/AdminPartnerImportPage'));
-const AdminMailLettersPage = lazy(() => import('./pages/admin/AdminMailLettersPage'));
-const CasesPage = lazy(() => import('./pages/admin/CasesPage'));
-const AdminCaseDetailPage = lazy(() => import('./pages/admin/AdminCaseDetailPage'));
-const AdminDisputeCollaborationPage = lazy(() => import('./pages/admin/AdminDisputeCollaborationPage'));
-const AdminDashboardPage = lazy(() => import('./pages/admin/AdminDashboardPage'));
-const AdminDashboardIvoryPreviewPage = lazy(() => import('./pages/admin/AdminDashboardIvoryPreviewPage'));
-const AdminAccessCenterPage = lazy(() => import('./pages/admin/AdminAccessCenterPage'));
-const AdminSettingsPage = lazy(() => import('./pages/admin/AdminSettingsPage'));
-const AdminBillingPage = lazy(() => import('./pages/admin/AdminBillingPage'));
-const ParsingLabPage = lazy(() => import('./pages/admin/ParsingLabPage'));
-const AdminSupportInboxPage = lazy(() => import('./pages/admin/AdminSupportInboxPage'));
-const AdminMessagesPage = lazy(() => import('./pages/admin/AdminMessagesPage'));
-const AdminWorkflowQueuePage = lazy(() => import('./pages/admin/AdminWorkflowQueuePage'));
-const AdminAutomationsPage = lazy(() => import('./pages/admin/AdminAutomationsPage'));
-const AdminCommsStudioPage = lazy(() => import('./pages/admin/AdminCommsStudioPage'));
-const AdminGrowthCommandPage = lazy(() => import('./pages/admin/AdminGrowthCommandPage'));
-const AdminTemplatesPage = lazy(() => import('./pages/admin/AdminTemplatesPage'));
-const AdminVendorsPage = lazy(() => import('./pages/admin/AdminVendorsPage'));
-const AdminResourcesPage = lazy(() => import('./pages/admin/AdminResourcesPage'));
-const AdminTourStudioPage = lazy(() => import('./pages/admin/AdminTourStudioPage'));
-const AdminBookstorePage = lazy(() => import('./pages/admin/AdminBookstorePage'));
-const AdminTestimonialsPage = lazy(() => import('./pages/admin/AdminTestimonialsPage'));
-const AdminPartnerSuccessEditorPage = lazy(() => import('./pages/admin/AdminPartnerSuccessEditorPage'));
-const AdminOpsAgentPage = lazy(() => import('./pages/admin/AdminOpsAgentPage'));
-const AdminPhoneHubPage = lazy(() => import('./pages/admin/AdminPhoneHubPage'));
-const AdminTeamRolesPage = lazy(() => import('./pages/admin/AdminTeamRolesPage'));
-const AdminRolePreviewPage = lazy(() => import('./pages/admin/AdminRolePreviewPage'));
-const AdminIvoryPreviewHubPage = lazy(() => import('./pages/admin/AdminIvoryPreviewHubPage'));
-const AdminIvoryMarketingDeskPreviewPage = lazy(() => import('./pages/admin/AdminIvoryMarketingDeskPreviewPage'));
-const AdminIvoryLeadsPreviewPage = lazy(() => import('./pages/admin/AdminIvoryLeadsPreviewPage'));
-const AdminIvoryCrmPreviewPage = lazy(() => import('./pages/admin/AdminIvoryCrmPreviewPage'));
-const AdminIvoryPricingPreviewPage = lazy(() => import('./pages/admin/AdminIvoryPricingPreviewPage'));
-const AdminTenantsPage = lazy(() => import('./pages/admin/AdminTenantsPage'));
-const AdminAuSellersPage = lazy(() => import('./pages/admin/AdminAuSellersPage'));
-const AdminCalendarPage = lazy(() => import('./pages/admin/AdminCalendarPage'));
-const AdminProjectsPage = lazy(() => import('./pages/admin/AdminProjectsPage'));
-const AdminProjectWorkspacePage = lazy(() => import('./pages/admin/AdminProjectWorkspacePage'));
-const AdminCrmWorkspacePage = lazy(() => import('./pages/admin/AdminCrmWorkspacePage'));
-const AdminCrmRecordPage = lazy(() => import('./pages/admin/AdminCrmRecordPage'));
-const AdminCrmReferralsPage = lazy(() => import('./pages/admin/AdminCrmReferralsPage'));
-const AdminCrmRoutingPage = lazy(() => import('./pages/admin/AdminCrmRoutingPage'));
-const AdminPlaybooksPage = lazy(() => import('./pages/admin/AdminPlaybooksPage'));
-const AdminWorkloadPage = lazy(() => import('./pages/admin/AdminWorkloadPage'));
-const AdminProjectTemplatesPage = lazy(() => import('./pages/admin/AdminProjectTemplatesPage'));
-const AdminPortfolioDashboardPage = lazy(() => import('./pages/admin/AdminPortfolioDashboardPage'));
-const AdminCrmSequencesPage = lazy(() => import('./pages/admin/AdminCrmSequencesPage'));
-const AdminMyTasksPage = lazy(() => import('./pages/admin/AdminMyTasksPage'));
-const AdminTasksPage = lazy(() => import('./pages/admin/AdminTasksPage'));
-const AdminGuidePage = lazy(() => import('./pages/admin/AdminGuidePage'));
+const PartnersListPage = lazyWithRetry(() => import('./pages/admin/PartnersListPage'));
+const PartnerDetailPage = lazyWithRetry(() => import('./pages/admin/PartnerDetailPage'));
+const AdminPartnerImportPage = lazyWithRetry(() => import('./pages/admin/AdminPartnerImportPage'));
+const AdminMailLettersPage = lazyWithRetry(() => import('./pages/admin/AdminMailLettersPage'));
+const CasesPage = lazyWithRetry(() => import('./pages/admin/CasesPage'));
+const AdminCaseDetailPage = lazyWithRetry(() => import('./pages/admin/AdminCaseDetailPage'));
+const AdminDisputeCollaborationPage = lazyWithRetry(() => import('./pages/admin/AdminDisputeCollaborationPage'));
+const AdminDashboardPage = lazyWithRetry(() => import('./pages/admin/AdminDashboardPage'));
+const AdminDashboardIvoryPreviewPage = lazyWithRetry(() => import('./pages/admin/AdminDashboardIvoryPreviewPage'));
+const AdminAccessCenterPage = lazyWithRetry(() => import('./pages/admin/AdminAccessCenterPage'));
+const AdminSettingsPage = lazyWithRetry(() => import('./pages/admin/AdminSettingsPage'));
+const AdminBillingPage = lazyWithRetry(() => import('./pages/admin/AdminBillingPage'));
+const ParsingLabPage = lazyWithRetry(() => import('./pages/admin/ParsingLabPage'));
+const AdminSupportInboxPage = lazyWithRetry(() => import('./pages/admin/AdminSupportInboxPage'));
+const AdminMessagesPage = lazyWithRetry(() => import('./pages/admin/AdminMessagesPage'));
+const AdminWorkflowQueuePage = lazyWithRetry(() => import('./pages/admin/AdminWorkflowQueuePage'));
+const AdminAutomationsPage = lazyWithRetry(() => import('./pages/admin/AdminAutomationsPage'));
+const AdminCommsStudioPage = lazyWithRetry(() => import('./pages/admin/AdminCommsStudioPage'));
+const AdminGrowthCommandPage = lazyWithRetry(() => import('./pages/admin/AdminGrowthCommandPage'));
+const AdminTemplatesPage = lazyWithRetry(() => import('./pages/admin/AdminTemplatesPage'));
+const AdminVendorsPage = lazyWithRetry(() => import('./pages/admin/AdminVendorsPage'));
+const AdminResourcesPage = lazyWithRetry(() => import('./pages/admin/AdminResourcesPage'));
+const AdminTourStudioPage = lazyWithRetry(() => import('./pages/admin/AdminTourStudioPage'));
+const AdminBookstorePage = lazyWithRetry(() => import('./pages/admin/AdminBookstorePage'));
+const AdminTestimonialsPage = lazyWithRetry(() => import('./pages/admin/AdminTestimonialsPage'));
+const AdminPartnerSuccessEditorPage = lazyWithRetry(() => import('./pages/admin/AdminPartnerSuccessEditorPage'));
+const AdminOpsAgentPage = lazyWithRetry(() => import('./pages/admin/AdminOpsAgentPage'));
+const AdminPhoneHubPage = lazyWithRetry(() => import('./pages/admin/AdminPhoneHubPage'));
+const AdminTeamRolesPage = lazyWithRetry(() => import('./pages/admin/AdminTeamRolesPage'));
+const AdminRolePreviewPage = lazyWithRetry(() => import('./pages/admin/AdminRolePreviewPage'));
+const AdminIvoryPreviewHubPage = lazyWithRetry(() => import('./pages/admin/AdminIvoryPreviewHubPage'));
+const AdminIvoryMarketingDeskPreviewPage = lazyWithRetry(() => import('./pages/admin/AdminIvoryMarketingDeskPreviewPage'));
+const AdminIvoryLeadsPreviewPage = lazyWithRetry(() => import('./pages/admin/AdminIvoryLeadsPreviewPage'));
+const AdminIvoryCrmPreviewPage = lazyWithRetry(() => import('./pages/admin/AdminIvoryCrmPreviewPage'));
+const AdminIvoryPricingPreviewPage = lazyWithRetry(() => import('./pages/admin/AdminIvoryPricingPreviewPage'));
+const AdminTenantsPage = lazyWithRetry(() => import('./pages/admin/AdminTenantsPage'));
+const AdminAuSellersPage = lazyWithRetry(() => import('./pages/admin/AdminAuSellersPage'));
+const AdminCalendarPage = lazyWithRetry(() => import('./pages/admin/AdminCalendarPage'));
+const AdminProjectsPage = lazyWithRetry(() => import('./pages/admin/AdminProjectsPage'));
+const AdminProjectWorkspacePage = lazyWithRetry(() => import('./pages/admin/AdminProjectWorkspacePage'));
+const AdminCrmWorkspacePage = lazyWithRetry(() => import('./pages/admin/AdminCrmWorkspacePage'));
+const AdminCrmRecordPage = lazyWithRetry(() => import('./pages/admin/AdminCrmRecordPage'));
+const AdminCrmReferralsPage = lazyWithRetry(() => import('./pages/admin/AdminCrmReferralsPage'));
+const AdminCrmRoutingPage = lazyWithRetry(() => import('./pages/admin/AdminCrmRoutingPage'));
+const AdminPlaybooksPage = lazyWithRetry(() => import('./pages/admin/AdminPlaybooksPage'));
+const AdminWorkloadPage = lazyWithRetry(() => import('./pages/admin/AdminWorkloadPage'));
+const AdminProjectTemplatesPage = lazyWithRetry(() => import('./pages/admin/AdminProjectTemplatesPage'));
+const AdminPortfolioDashboardPage = lazyWithRetry(() => import('./pages/admin/AdminPortfolioDashboardPage'));
+const AdminCrmSequencesPage = lazyWithRetry(() => import('./pages/admin/AdminCrmSequencesPage'));
+const AdminMyTasksPage = lazyWithRetry(() => import('./pages/admin/AdminMyTasksPage'));
+const AdminTasksPage = lazyWithRetry(() => import('./pages/admin/AdminTasksPage'));
+const AdminGuidePage = lazyWithRetry(() => import('./pages/admin/AdminGuidePage'));
 // AdminTaskCreatorPage removed: task creation is unified into Projects/Tasks pages
-const AdminCoursesPage = lazy(() => import('./pages/admin/AdminCoursesPage'));
-const AdminCourseEditorPage = lazy(() => import('./pages/admin/AdminCourseEditorPage'));
-const AdminSecretVaultPage = lazy(() => import('./pages/admin/AdminSecretVaultPage'));
-const AdminFinanceAllocatorPage = lazy(() => import('./pages/admin/AdminFinanceAllocatorPage'));
-const AdminMonitoringPage = lazy(() => import('./pages/admin/AdminMonitoringPage'));
-const AdminLeadIntelPage = lazy(() => import('./pages/admin/AdminLeadIntelPage'));
-const AdminSignupOpsPage = lazy(() => import('./pages/admin/AdminSignupOpsPage'));
-const AdminLeadsOsPage = lazy(() => import('./pages/admin/AdminLeadsOsPage'));
-const AdminMarketingDeskPage = lazy(() => import('./pages/admin/AdminMarketingDeskPage'));
-const AdminGrowthAgentsPage = lazy(() => import('./pages/admin/AdminGrowthAgentsPage'));
-const AdminGrowthAutomationPage = lazy(() => import('./pages/admin/AdminGrowthAutomationPage'));
-const AdminCmoCommandPage = lazy(() => import('./pages/admin/AdminCmoCommandPage'));
-const AdminMediaStudioPage = lazy(() => import('./pages/admin/AdminMediaStudioPage'));
-const AdminVoiceStudioPage = lazy(() => import('./pages/admin/AdminVoiceStudioPage'));
-const AdminNoraCapitalPage = lazy(() => import('./pages/admin/AdminNoraCapitalPage'));
-const FinelyBridgeOpsPage = lazy(() => import('./pages/admin/FinelyBridgeOpsPage'));
-const FinelyCredServicesPage = lazy(() => import('./pages/FinelyCredServicesPage'));
-const ResetPasswordPage = lazy(() => import('./pages/ResetPasswordPage'));
-const AdminProductsPage = lazy(() => import('./pages/admin/AdminProductsPage'));
-const AdminCmsPage = lazy(() => import('./pages/admin/AdminCmsPage'));
-const AdminAnalyticsPage = lazy(() => import('./pages/admin/AdminAnalyticsPage'));
-const AdminSitewideUxCommandPage = lazy(() => import('./pages/admin/AdminSitewideUxCommandPage'));
-const AdminStudioUxCommandPage = lazy(() => import('./pages/admin/AdminStudioUxCommandPage'));
-const AdminOvernight50Page = lazy(() => import('./pages/admin/AdminOvernight50Page'));
-const AdminGeoWarRoomPage = lazy(() => import('./pages/admin/AdminGeoWarRoomPage'));
-const AdminStaffCommandCenterPage = lazy(() => import('./pages/admin/AdminStaffCommandCenterPage'));
+const AdminCoursesPage = lazyWithRetry(() => import('./pages/admin/AdminCoursesPage'));
+const AdminCourseEditorPage = lazyWithRetry(() => import('./pages/admin/AdminCourseEditorPage'));
+const AdminSecretVaultPage = lazyWithRetry(() => import('./pages/admin/AdminSecretVaultPage'));
+const AdminFinanceAllocatorPage = lazyWithRetry(() => import('./pages/admin/AdminFinanceAllocatorPage'));
+const AdminMonitoringPage = lazyWithRetry(() => import('./pages/admin/AdminMonitoringPage'));
+const AdminLeadIntelPage = lazyWithRetry(() => import('./pages/admin/AdminLeadIntelPage'));
+const AdminSignupOpsPage = lazyWithRetry(() => import('./pages/admin/AdminSignupOpsPage'));
+const AdminLeadsOsPage = lazyWithRetry(() => import('./pages/admin/AdminLeadsOsPage'));
+const AdminMarketingDeskPage = lazyWithRetry(() => import('./pages/admin/AdminMarketingDeskPage'));
+const AdminGrowthAgentsPage = lazyWithRetry(() => import('./pages/admin/AdminGrowthAgentsPage'));
+const AdminGrowthAutomationPage = lazyWithRetry(() => import('./pages/admin/AdminGrowthAutomationPage'));
+const AdminCmoCommandPage = lazyWithRetry(() => import('./pages/admin/AdminCmoCommandPage'));
+const AdminMediaStudioPage = lazyWithRetry(() => import('./pages/admin/AdminMediaStudioPage'));
+const AdminVoiceStudioPage = lazyWithRetry(() => import('./pages/admin/AdminVoiceStudioPage'));
+const AdminNoraCapitalPage = lazyWithRetry(() => import('./pages/admin/AdminNoraCapitalPage'));
+const FinelyBridgeOpsPage = lazyWithRetry(() => import('./pages/admin/FinelyBridgeOpsPage'));
+const FinelyCredServicesPage = lazyWithRetry(() => import('./pages/FinelyCredServicesPage'));
+const ResetPasswordPage = lazyWithRetry(() => import('./pages/ResetPasswordPage'));
+const AdminProductsPage = lazyWithRetry(() => import('./pages/admin/AdminProductsPage'));
+const AdminCmsPage = lazyWithRetry(() => import('./pages/admin/AdminCmsPage'));
+const AdminAnalyticsPage = lazyWithRetry(() => import('./pages/admin/AdminAnalyticsPage'));
+const AdminSitewideUxCommandPage = lazyWithRetry(() => import('./pages/admin/AdminSitewideUxCommandPage'));
+const AdminStudioUxCommandPage = lazyWithRetry(() => import('./pages/admin/AdminStudioUxCommandPage'));
+const AdminOvernight50Page = lazyWithRetry(() => import('./pages/admin/AdminOvernight50Page'));
+const AdminGeoWarRoomPage = lazyWithRetry(() => import('./pages/admin/AdminGeoWarRoomPage'));
+const AdminStaffCommandCenterPage = lazyWithRetry(() => import('./pages/admin/AdminStaffCommandCenterPage'));
 
-const BusinessDashboardPage = lazy(() => import('./pages/business/BusinessDashboardPage'));
-const BusinessProfilePage = lazy(() => import('./pages/business/BusinessProfilePage'));
-const BusinessVendorsPage = lazy(() => import('./pages/business/BusinessVendorsPage'));
-const BusinessFundingPage = lazy(() => import('./pages/business/BusinessFundingPage'));
-const BusinessDocumentsPage = lazy(() => import('./pages/business/BusinessDocumentsPage'));
-const BusinessBillionPathPage = lazy(() => import('./pages/business/BusinessBillionPathPage'));
-const BusinessBureausPage = lazy(() => import('./pages/business/BusinessBureausPage'));
-const BusinessDisputesPage = lazy(() => import('./pages/business/BusinessDisputesPage'));
-const BusinessDisputeDetailPage = lazy(() => import('./pages/business/BusinessDisputeDetailPage'));
+const BusinessDashboardPage = lazyWithRetry(() => import('./pages/business/BusinessDashboardPage'));
+const BusinessProfilePage = lazyWithRetry(() => import('./pages/business/BusinessProfilePage'));
+const BusinessVendorsPage = lazyWithRetry(() => import('./pages/business/BusinessVendorsPage'));
+const BusinessFundingPage = lazyWithRetry(() => import('./pages/business/BusinessFundingPage'));
+const BusinessDocumentsPage = lazyWithRetry(() => import('./pages/business/BusinessDocumentsPage'));
+const BusinessBillionPathPage = lazyWithRetry(() => import('./pages/business/BusinessBillionPathPage'));
+const BusinessBureausPage = lazyWithRetry(() => import('./pages/business/BusinessBureausPage'));
+const BusinessDisputesPage = lazyWithRetry(() => import('./pages/business/BusinessDisputesPage'));
+const BusinessDisputeDetailPage = lazyWithRetry(() => import('./pages/business/BusinessDisputeDetailPage'));
 
-const AuMarketplacePage = lazy(() => import('./pages/au/AuMarketplacePage'));
-const AuRequestPage = lazy(() => import('./pages/au/AuRequestPage'));
-const AuOrdersPage = lazy(() => import('./pages/au/AuOrdersPage'));
+const AuMarketplacePage = lazyWithRetry(() => import('./pages/au/AuMarketplacePage'));
+const AuRequestPage = lazyWithRetry(() => import('./pages/au/AuRequestPage'));
+const AuOrdersPage = lazyWithRetry(() => import('./pages/au/AuOrdersPage'));
 
-const ResourcesPage = lazy(() => import('./pages/ResourcesPage'));
-const ResourcesGuidesPage = lazy(() => import('./pages/ResourcesGuidesPage'));
-const ResourcesOneSheetsHubPage = lazy(() => import('./pages/ResourcesOneSheetsHubPage'));
-const ResourcesCreditMonitoringPage = lazy(() => import('./pages/ResourcesCreditMonitoringPage'));
-const ResourcesVideosPage = lazy(() => import('./pages/ResourcesVideosPage'));
-const ResourcesReferencesPage = lazy(() => import('./pages/ResourcesReferencesPage'));
-const BusinessCreditOneSheetsPage = lazy(() => import('./pages/BusinessCreditOneSheetsPage'));
-const PersonalCreditRestoreSheetPage = lazy(() => import('./pages/resources/PersonalCreditRestoreSheetPage'));
-const PersonalCreditBuildSheetPage = lazy(() => import('./pages/resources/PersonalCreditBuildSheetPage'));
-const AuTeenCreditSheetPage = lazy(() => import('./pages/resources/AuTeenCreditSheetPage'));
-const StartHerePage = lazy(() => import('./pages/StartHerePage'));
-const LaunchHelpCenterPage = lazy(() => import('./pages/LaunchHelpCenterPage'));
-const BookstorePage = lazy(() => import('./pages/BookstorePage'));
-const BookstoreProductPage = lazy(() => import('./pages/BookstoreProductPage'));
-const PricingPage = lazy(() => import('./pages/PricingPage'));
-const PricingServicePage = lazy(() => import('./pages/PricingServicePage'));
-const PersonalCreditPage = lazy(() => import('./pages/PersonalCreditPage'));
-const FundabilityReadinessPage = lazy(() => import('./pages/FundabilityReadinessPage'));
-const TestimonialsPage = lazy(() => import('./pages/TestimonialsPage'));
-const EventsPage = lazy(() => import('./pages/EventsPage'));
-const CheckoutPage = lazy(() => import('./pages/CheckoutPage'));
-const ContactPage = lazy(() => import('./pages/ContactPage'));
-const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
-const SellerDashboardPage = lazy(() => import('./pages/seller/SellerDashboardPage'));
-const SellerListingsPage = lazy(() => import('./pages/seller/SellerListingsPage'));
-const SellerContractsPage = lazy(() => import('./pages/seller/SellerContractsPage'));
-const SellerPayoutsPage = lazy(() => import('./pages/seller/SellerPayoutsPage'));
-const AuSellerHubPage = lazy(() => import('./pages/seller/AuSellerHubPage'));
-const EnlightenmentSessionPage = lazy(() => import('./pages/EnlightenmentSessionPage'));
-const FreeGuideFunnelPage = lazy(() => import('./pages/leadmagnet/FreeGuideFunnelPage'));
-const DisputeGuideReaderPage = lazy(() => import('./pages/leadmagnet/DisputeGuideReaderPage'));
-const ScoreBoostGuideReaderPage = lazy(() => import('./pages/leadmagnet/ScoreBoostGuideReaderPage'));
-const DebtGuideFunnelPage = lazy(() => import('./pages/leadmagnet/DebtGuideFunnelPage'));
-const DebtEradicationGuideReaderPage = lazy(() => import('./pages/leadmagnet/DebtEradicationGuideReaderPage'));
-const BusinessGuideFunnelPage = lazy(() => import('./pages/leadmagnet/BusinessGuideFunnelPage'));
-const BusinessCreditPowerGuideReaderPage = lazy(() => import('./pages/leadmagnet/BusinessCreditPowerGuideReaderPage'));
-const TradelineGuideFunnelPage = lazy(() => import('./pages/leadmagnet/TradelineGuideFunnelPage'));
-const TradelineAdvantageGuideReaderPage = lazy(() => import('./pages/leadmagnet/TradelineAdvantageGuideReaderPage'));
-const ScoreRoadmapFunnelPage = lazy(() => import('./pages/leadmagnet/ScoreRoadmapFunnelPage'));
-const AgencyGuideFunnelPage = lazy(() => import('./pages/leadmagnet/AgencyGuideFunnelPage'));
-const AgencyGuideReaderPage = lazy(() => import('./pages/leadmagnet/AgencyGuideReaderPage'));
-const SpecialistApplyFunnelPage = lazy(() => import('./pages/leadmagnet/SpecialistApplyFunnelPage'));
-const CreditSpecialistGuideLandingPage = lazy(() => import('./pages/leadmagnet/CreditSpecialistGuideLandingPage'));
-const CreditSpecialistGuideReaderPage = lazy(() => import('./pages/leadmagnet/CreditSpecialistGuideReaderPage'));
-const RealEstateGuideLandingPage = lazy(() => import('./pages/leadmagnet/RealEstateGuideLandingPage'));
-const RealEstateGuideReaderPage = lazy(() => import('./pages/leadmagnet/RealEstateGuideReaderPage'));
-const CaseDeskGuideLandingPage = lazy(() => import('./pages/leadmagnet/CaseDeskGuideLandingPage'));
-const CaseDeskGuideReaderPage = lazy(() => import('./pages/leadmagnet/CaseDeskGuideReaderPage'));
-const AffiliateToolkitFunnelPage = lazy(() => import('./pages/leadmagnet/AffiliateToolkitFunnelPage'));
-const AffiliateToolkitGuideReaderPage = lazy(() => import('./pages/leadmagnet/AffiliateToolkitGuideReaderPage'));
-const AdminSocialHubPage = lazy(() => import('./pages/admin/AdminSocialHubPage'));
-const PartnerLibraryPage = lazy(() => import('./pages/portal/PartnerLibraryPage'));
-const PartnerBookPurchasePage = lazy(() => import('./pages/portal/PartnerBookPurchasePage'));
-const PartnerBundlePurchasePage = lazy(() => import('./pages/portal/PartnerBundlePurchasePage'));
-const AdminAgentStaffPage = lazy(() => import('./pages/admin/AdminAgentStaffPage'));
-const AdminHandsFreeOpsPage = lazy(() => import('./pages/admin/AdminHandsFreeOpsPage'));
-const AdminLeadMagnetFunnelsPage = lazy(() => import('./pages/admin/AdminLeadMagnetFunnelsPage'));
-const AdminLeadAcquisitionPage = lazy(() => import('./pages/admin/AdminLeadAcquisitionPage'));
-const AdminFunnelExperimentsPage = lazy(() => import('./pages/admin/AdminFunnelExperimentsPage'));
-const AdminIntegrationHubPage = lazy(() => import('./pages/admin/AdminIntegrationHubPage'));
-const NotificationsCenterPage = lazy(() => import('./pages/NotificationsCenterPage'));
-const OwnersGuidePage = lazy(() => import('./pages/OwnersGuidePage'));
-const ShortReferralRedirectPage = lazy(() => import('./pages/leadmagnet/ShortReferralRedirectPage'));
-const FaqPage = lazy(() => import('./pages/FaqPage'));
-const UnsubscribePage = lazy(() => import('./pages/UnsubscribePage'));
-const ClaimPartnerProfilePage = lazy(() => import('./pages/ClaimPartnerProfilePage'));
-const PartnerSelfIntakePage = lazy(() => import('./pages/PartnerSelfIntakePage'));
-const TermsPage = lazy(() => import('./pages/legal/TermsPage'));
-const PrivacyPage = lazy(() => import('./pages/legal/PrivacyPage'));
-const DisclaimerPage = lazy(() => import('./pages/legal/DisclaimerPage'));
-const AffiliatePage = lazy(() => import('./pages/AffiliatePage'));
-const AuSellerPage = lazy(() => import('./pages/AuSellerPage'));
-const HetaSocietyPage = lazy(() => import('./pages/HetaSocietyPage'));
-const HetaSocietyPortalPage = lazy(() => import('./pages/portal/HetaSocietyPortalPage'));
-const CreditSpecialistPricingPage = lazy(() => import('./pages/CreditSpecialistPricingPage'));
-const CreditSpecialistJoinPage = lazy(() => import('./pages/CreditSpecialistJoinPage'));
-const CaseHelpCareersPage = lazy(() => import('./pages/CaseHelpCareersPage'));
-const RealEstateCareersPage = lazy(() => import('./pages/RealEstateCareersPage'));
-const AgencySignupPage = lazy(() => import('./pages/agency/AgencySignupPage'));
-const AgencyHubPage = lazy(() => import('./pages/agency/AgencyHubPage'));
-const AgencyPartnersPage = lazy(() => import('./pages/agency/AgencyPartnersPage'));
-const CaseHelpHubPage = lazy(() => import('./pages/caseHelp/CaseHelpHubPage'));
-const RealEstateHubPage = lazy(() => import('./pages/realEstate/RealEstateHubPage'));
-const AgentHubPage = lazy(() => import('./pages/agent/AgentHubPage'));
-const AffiliateHubPage = lazy(() => import('./pages/affiliate/AffiliateHubPage'));
-const AccountSettingsPage = lazy(() => import('./pages/account/AccountSettingsPage'));
+const ResourcesPage = lazyWithRetry(() => import('./pages/ResourcesPage'));
+const ResourcesGuidesPage = lazyWithRetry(() => import('./pages/ResourcesGuidesPage'));
+const ResourcesOneSheetsHubPage = lazyWithRetry(() => import('./pages/ResourcesOneSheetsHubPage'));
+const ResourcesCreditMonitoringPage = lazyWithRetry(() => import('./pages/ResourcesCreditMonitoringPage'));
+const ResourcesVideosPage = lazyWithRetry(() => import('./pages/ResourcesVideosPage'));
+const ResourcesReferencesPage = lazyWithRetry(() => import('./pages/ResourcesReferencesPage'));
+const BusinessCreditOneSheetsPage = lazyWithRetry(() => import('./pages/BusinessCreditOneSheetsPage'));
+const PersonalCreditRestoreSheetPage = lazyWithRetry(() => import('./pages/resources/PersonalCreditRestoreSheetPage'));
+const PersonalCreditBuildSheetPage = lazyWithRetry(() => import('./pages/resources/PersonalCreditBuildSheetPage'));
+const AuTeenCreditSheetPage = lazyWithRetry(() => import('./pages/resources/AuTeenCreditSheetPage'));
+const StartHerePage = lazyWithRetry(() => import('./pages/StartHerePage'));
+const LaunchHelpCenterPage = lazyWithRetry(() => import('./pages/LaunchHelpCenterPage'));
+const BookstorePage = lazyWithRetry(() => import('./pages/BookstorePage'));
+const BookstoreProductPage = lazyWithRetry(() => import('./pages/BookstoreProductPage'));
+const PricingPage = lazyWithRetry(() => import('./pages/PricingPage'));
+const PricingServicePage = lazyWithRetry(() => import('./pages/PricingServicePage'));
+const PersonalCreditPage = lazyWithRetry(() => import('./pages/PersonalCreditPage'));
+const FundabilityReadinessPage = lazyWithRetry(() => import('./pages/FundabilityReadinessPage'));
+const TestimonialsPage = lazyWithRetry(() => import('./pages/TestimonialsPage'));
+const EventsPage = lazyWithRetry(() => import('./pages/EventsPage'));
+const CheckoutPage = lazyWithRetry(() => import('./pages/CheckoutPage'));
+const ContactPage = lazyWithRetry(() => import('./pages/ContactPage'));
+const NotFoundPage = lazyWithRetry(() => import('./pages/NotFoundPage'));
+const SellerDashboardPage = lazyWithRetry(() => import('./pages/seller/SellerDashboardPage'));
+const SellerListingsPage = lazyWithRetry(() => import('./pages/seller/SellerListingsPage'));
+const SellerContractsPage = lazyWithRetry(() => import('./pages/seller/SellerContractsPage'));
+const SellerPayoutsPage = lazyWithRetry(() => import('./pages/seller/SellerPayoutsPage'));
+const AuSellerHubPage = lazyWithRetry(() => import('./pages/seller/AuSellerHubPage'));
+const EnlightenmentSessionPage = lazyWithRetry(() => import('./pages/EnlightenmentSessionPage'));
+const FreeGuideFunnelPage = lazyWithRetry(() => import('./pages/leadmagnet/FreeGuideFunnelPage'));
+const DisputeGuideReaderPage = lazyWithRetry(() => import('./pages/leadmagnet/DisputeGuideReaderPage'));
+const ScoreBoostGuideReaderPage = lazyWithRetry(() => import('./pages/leadmagnet/ScoreBoostGuideReaderPage'));
+const DebtGuideFunnelPage = lazyWithRetry(() => import('./pages/leadmagnet/DebtGuideFunnelPage'));
+const DebtEradicationGuideReaderPage = lazyWithRetry(() => import('./pages/leadmagnet/DebtEradicationGuideReaderPage'));
+const BusinessGuideFunnelPage = lazyWithRetry(() => import('./pages/leadmagnet/BusinessGuideFunnelPage'));
+const BusinessCreditPowerGuideReaderPage = lazyWithRetry(() => import('./pages/leadmagnet/BusinessCreditPowerGuideReaderPage'));
+const TradelineGuideFunnelPage = lazyWithRetry(() => import('./pages/leadmagnet/TradelineGuideFunnelPage'));
+const TradelineAdvantageGuideReaderPage = lazyWithRetry(() => import('./pages/leadmagnet/TradelineAdvantageGuideReaderPage'));
+const ScoreRoadmapFunnelPage = lazyWithRetry(() => import('./pages/leadmagnet/ScoreRoadmapFunnelPage'));
+const AgencyGuideFunnelPage = lazyWithRetry(() => import('./pages/leadmagnet/AgencyGuideFunnelPage'));
+const AgencyGuideReaderPage = lazyWithRetry(() => import('./pages/leadmagnet/AgencyGuideReaderPage'));
+const SpecialistApplyFunnelPage = lazyWithRetry(() => import('./pages/leadmagnet/SpecialistApplyFunnelPage'));
+const CreditSpecialistGuideLandingPage = lazyWithRetry(() => import('./pages/leadmagnet/CreditSpecialistGuideLandingPage'));
+const CreditSpecialistGuideReaderPage = lazyWithRetry(() => import('./pages/leadmagnet/CreditSpecialistGuideReaderPage'));
+const RealEstateGuideLandingPage = lazyWithRetry(() => import('./pages/leadmagnet/RealEstateGuideLandingPage'));
+const RealEstateGuideReaderPage = lazyWithRetry(() => import('./pages/leadmagnet/RealEstateGuideReaderPage'));
+const CaseDeskGuideLandingPage = lazyWithRetry(() => import('./pages/leadmagnet/CaseDeskGuideLandingPage'));
+const CaseDeskGuideReaderPage = lazyWithRetry(() => import('./pages/leadmagnet/CaseDeskGuideReaderPage'));
+const AffiliateToolkitFunnelPage = lazyWithRetry(() => import('./pages/leadmagnet/AffiliateToolkitFunnelPage'));
+const AffiliateToolkitGuideReaderPage = lazyWithRetry(() => import('./pages/leadmagnet/AffiliateToolkitGuideReaderPage'));
+const AdminSocialHubPage = lazyWithRetry(() => import('./pages/admin/AdminSocialHubPage'));
+const PartnerLibraryPage = lazyWithRetry(() => import('./pages/portal/PartnerLibraryPage'));
+const PartnerBookPurchasePage = lazyWithRetry(() => import('./pages/portal/PartnerBookPurchasePage'));
+const PartnerBundlePurchasePage = lazyWithRetry(() => import('./pages/portal/PartnerBundlePurchasePage'));
+const AdminAgentStaffPage = lazyWithRetry(() => import('./pages/admin/AdminAgentStaffPage'));
+const AdminHandsFreeOpsPage = lazyWithRetry(() => import('./pages/admin/AdminHandsFreeOpsPage'));
+const AdminLeadMagnetFunnelsPage = lazyWithRetry(() => import('./pages/admin/AdminLeadMagnetFunnelsPage'));
+const AdminLeadAcquisitionPage = lazyWithRetry(() => import('./pages/admin/AdminLeadAcquisitionPage'));
+const AdminFunnelExperimentsPage = lazyWithRetry(() => import('./pages/admin/AdminFunnelExperimentsPage'));
+const AdminIntegrationHubPage = lazyWithRetry(() => import('./pages/admin/AdminIntegrationHubPage'));
+const NotificationsCenterPage = lazyWithRetry(() => import('./pages/NotificationsCenterPage'));
+const OwnersGuidePage = lazyWithRetry(() => import('./pages/OwnersGuidePage'));
+const ShortReferralRedirectPage = lazyWithRetry(() => import('./pages/leadmagnet/ShortReferralRedirectPage'));
+const FaqPage = lazyWithRetry(() => import('./pages/FaqPage'));
+const UnsubscribePage = lazyWithRetry(() => import('./pages/UnsubscribePage'));
+const ClaimPartnerProfilePage = lazyWithRetry(() => import('./pages/ClaimPartnerProfilePage'));
+const PartnerSelfIntakePage = lazyWithRetry(() => import('./pages/PartnerSelfIntakePage'));
+const TermsPage = lazyWithRetry(() => import('./pages/legal/TermsPage'));
+const PrivacyPage = lazyWithRetry(() => import('./pages/legal/PrivacyPage'));
+const DisclaimerPage = lazyWithRetry(() => import('./pages/legal/DisclaimerPage'));
+const AffiliatePage = lazyWithRetry(() => import('./pages/AffiliatePage'));
+const AuSellerPage = lazyWithRetry(() => import('./pages/AuSellerPage'));
+const HetaSocietyPage = lazyWithRetry(() => import('./pages/HetaSocietyPage'));
+const HetaSocietyPortalPage = lazyWithRetry(() => import('./pages/portal/HetaSocietyPortalPage'));
+const CreditSpecialistPricingPage = lazyWithRetry(() => import('./pages/CreditSpecialistPricingPage'));
+const CreditSpecialistJoinPage = lazyWithRetry(() => import('./pages/CreditSpecialistJoinPage'));
+const CaseHelpCareersPage = lazyWithRetry(() => import('./pages/CaseHelpCareersPage'));
+const RealEstateCareersPage = lazyWithRetry(() => import('./pages/RealEstateCareersPage'));
+const AgencySignupPage = lazyWithRetry(() => import('./pages/agency/AgencySignupPage'));
+const AgencyHubPage = lazyWithRetry(() => import('./pages/agency/AgencyHubPage'));
+const AgencyPartnersPage = lazyWithRetry(() => import('./pages/agency/AgencyPartnersPage'));
+const CaseHelpHubPage = lazyWithRetry(() => import('./pages/caseHelp/CaseHelpHubPage'));
+const RealEstateHubPage = lazyWithRetry(() => import('./pages/realEstate/RealEstateHubPage'));
+const AgentHubPage = lazyWithRetry(() => import('./pages/agent/AgentHubPage'));
+const AffiliateHubPage = lazyWithRetry(() => import('./pages/affiliate/AffiliateHubPage'));
+const AccountSettingsPage = lazyWithRetry(() => import('./pages/account/AccountSettingsPage'));
 
 type NavView =
   | 'landing'
@@ -480,10 +481,10 @@ function LandingRoute({ onGetStarted, onViewTradelines, onNavigate, addToCart, o
                   <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
                     <button
                       type="button"
-                      onClick={() => navigate('/free-guide')}
+                      onClick={() => navigate('/signup')}
                       className="inline-flex items-center justify-center gap-2 px-7 py-4 rounded-xl font-black uppercase tracking-wider text-sm w-full sm:w-auto bg-gradient-to-r from-amber-500 to-amber-600 text-black shadow-lg shadow-amber-500/25 hover:brightness-110 transition-all"
                     >
-                      Start free guide <ArrowRight className="w-5 h-5" />
+                      Start free trial <ArrowRight className="w-5 h-5" />
                     </button>
                     <span className="text-xs opacity-60 inline-flex items-center gap-1.5">
                       <Download className="w-3.5 h-3.5 text-emerald-700" /> Instant PDF to your inbox
@@ -582,10 +583,10 @@ function LandingRoute({ onGetStarted, onViewTradelines, onNavigate, addToCart, o
               <div className="flex flex-col sm:flex-row justify-center gap-4 pt-2">
                 <button
                   type="button"
-                  onClick={() => navigate('/free-guide')}
+                  onClick={() => navigate('/signup')}
                   className="group relative inline-flex items-center justify-center gap-3 px-8 py-4 rounded-xl fc-button-platinum-surface font-bold uppercase tracking-wider text-sm transition-all duration-300 hover:scale-105"
                 >
-                  <span className="relative z-[1]">Start free guide</span>
+                  <span className="relative z-[1]">Start free trial</span>
                   <ArrowRight size={18} className="relative z-[1] group-hover:translate-x-1 transition-transform" />
                 </button>
                 <button
@@ -1316,8 +1317,8 @@ function AppInner() {
                 </div>
                 <div className="flex items-center justify-end gap-2 shrink-0">
                     {showPublicThemeToggle ? <FinelyThemeToggle compact /> : null}
-                    <button type="button" onClick={() => handleNavigate('/free-guide')} className="fc-nav-trial-cta">
-                      Start free guide
+                    <button type="button" onClick={() => handleNavigate('/signup')} className="fc-nav-trial-cta">
+                      Start free trial
                     </button>
                     <button type="button" onClick={() => handleNavigate('/login')} className="fc-nav-pill-ghost">
                       Login

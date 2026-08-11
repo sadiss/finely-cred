@@ -23,10 +23,13 @@ export function ValidationAdvisorChat({
   scenario,
   debtName,
   stateJurisdiction,
+  embedded = false,
 }: {
   scenario: DebtScenario;
   debtName?: string;
   stateJurisdiction?: string;
+  /** When true, render inline (no launcher button) — for FinelyOsWorkstationCoachHub. */
+  embedded?: boolean;
 }) {
   return (
     <DebtCoachChat
@@ -43,7 +46,7 @@ export function ValidationAdvisorChat({
       quickSteps={QUICK}
       promptChips={CHIPS}
       coachLane="validation"
-      modalLaunch={{ triggerLabel: 'Ask validation coach' }}
+      modalLaunch={embedded ? undefined : { triggerLabel: 'Ask validation coach' }}
     />
   );
 }

@@ -40,6 +40,7 @@ import { listHosAccessCodes } from '../../lib/hetaSocietyAccessCodes';
 import { StaffSocialPresenceStrip } from '../../features/staffCommandCenter/StaffSocialPresenceStrip';
 import { listCommsSends, listCommsTemplates } from '../../data/commsRepo';
 import { listCommsSequences } from '../../data/commsSequencesRepo';
+import { isFinelyAdminTestMode, setFinelyAdminTestMode } from '../../lib/finelyAdminTestMode';
 
 type AdminDashSection = 'overview' | 'ops' | 'modules';
 
@@ -57,6 +58,13 @@ export default function AdminDashboardPage() {
 
   const [statsError, setStatsError] = useState<string | null>(null);
   const [statsKey, setStatsKey] = useState(0);
+  const [testMode, setTestMode] = useState(() => isFinelyAdminTestMode());
+
+  useEffect(() => {
+    const sync = () => setTestMode(isFinelyAdminTestMode());
+    window.addEventListener('finely:store', sync);
+    return () => window.removeEventListener('finely:store', sync);
+  }, []);
   const commsOps = useMemo(() => {
     const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
     const sends = listCommsSends(400);
@@ -538,7 +546,23 @@ export default function AdminDashboardPage() {
           <ActionLink to="/dashboard" title="Back to Finely Cred Dashboard" icon={<ArrowLeft size={16} />}>
             Dashboard
           </ActionLink>
-          <div className={`${FINELY_OS_ENTITY_SUBLABEL} font-mono`}>admin</div>
+          <div className="flex flex-wrap items-center gap-3">
+            <label className="inline-flex items-center gap-2 rounded-xl border border-amber-400/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-100 cursor-pointer">
+              <FlaskConical size={14} className="shrink-0" />
+              <span className="font-semibold">Test mode</span>
+              <input
+                type="checkbox"
+                checked={testMode}
+                onChange={(e) => {
+                  setFinelyAdminTestMode(e.target.checked);
+                  setTestMode(e.target.checked);
+                }}
+                className="accent-amber-400"
+              />
+              <span className="text-[10px] text-white/50">Bypass duplicate lead-lane guard</span>
+            </label>
+            <div className={`${FINELY_OS_ENTITY_SUBLABEL} font-mono`}>admin</div>
+          </div>
         </div>
 
         {statsError ? (
