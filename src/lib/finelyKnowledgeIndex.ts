@@ -16,8 +16,23 @@ import { PLATFORM_SOP_LIBRARY } from '../domain/platformSops';
 import { TOUR_MANIFEST } from '../config/tourManifest';
 import { MODULE_PLAYBOOKS } from '../config/modulePlaybooks';
 import { getKnowledgeCorpus } from './kbFeatureMapSync';
+import { ALL_FREE_GUIDES } from '../resources/freeGuides';
+import { DISPUTE_LETTER_GUIDE_PROGRAMMATIC_PAGES, DISPUTE_LETTER_GUIDE_READ_PATH } from '../resources/disputeLetterGuideContent';
+import {
+  BC_GUIDE_CHAPTERS,
+  BC_GUIDE_META,
+} from '../pages/leadmagnet/businessCreditPowerGuideContent';
+import {
+  DEBT_GUIDE_CHAPTERS,
+  DEBT_GUIDE_META,
+} from '../pages/leadmagnet/debtEradicationGuideContent';
+import {
+  TL_GUIDE_CHAPTERS,
+  TL_GUIDE_META,
+} from '../pages/leadmagnet/tradelineAdvantageGuideContent';
+import { flattenDisputeGuidePages, flattenGuideChapters } from './eguideKnowledgeFlatten';
 
-export type KnowledgeSource = 'sop' | 'tour' | 'article' | 'module';
+export type KnowledgeSource = 'sop' | 'tour' | 'article' | 'module' | 'eguide';
 
 export type FinelyKnowledgeChunk = {
   id: string;
@@ -121,8 +136,48 @@ export function buildFinelyKnowledgeChunks(): FinelyKnowledgeChunk[] {
     });
   }
 
+  for (const guide of ALL_FREE_GUIDES) {
+    for (const [si, section] of guide.sections.entries()) {
+      chunks.push({
+        id: `eguide:${guide.id}:section-${si}`,
+        source: 'eguide',
+        title: `${guide.title} — ${section.heading}`,
+        text: [guide.title, guide.desc, section.heading, ...section.bullets].join('\n'),
+        tags: ['eguide', guide.id, 'free guide', 'partner guide'],
+        route: guideRouteForId(guide.id),
+      });
+    }
+  }
+
+  for (const flat of flattenGuideChapters('debt-eradication', DEBT_GUIDE_META, DEBT_GUIDE_CHAPTERS)) {
+    chunks.push({ ...flat, source: 'eguide' });
+  }
+  for (const flat of flattenGuideChapters('business-credit-power', BC_GUIDE_META, BC_GUIDE_CHAPTERS)) {
+    chunks.push({ ...flat, source: 'eguide' });
+  }
+  for (const flat of flattenGuideChapters('tradeline-advantage', TL_GUIDE_META, TL_GUIDE_CHAPTERS)) {
+    chunks.push({ ...flat, source: 'eguide' });
+  }
+  for (const flat of flattenDisputeGuidePages(DISPUTE_LETTER_GUIDE_PROGRAMMATIC_PAGES, DISPUTE_LETTER_GUIDE_READ_PATH)) {
+    chunks.push({ ...flat, source: 'eguide' });
+  }
+
   CACHE = chunks;
   return chunks;
+}
+
+function guideRouteForId(id: string): string | undefined {
+  if (id === 'credit-dispute-letter-guide') return '/free-guide/read';
+  if (id.includes('debt') || id === 'collections-validation-deep-dive' || id === 'debt-settlement-tax-traps') {
+    return '/free-debt-guide/read';
+  }
+  if (id.includes('business') || id.includes('vendor') || id.includes('ucc') || id.includes('funding')) {
+    return '/free-business-guide/read';
+  }
+  if (id.includes('tradeline') || id.includes('primary-tradeline') || id.includes('combo-tradeline')) {
+    return '/free-tradeline-guide/read';
+  }
+  return '/resources/guides';
 }
 
 /** Force a rebuild (e.g. after dynamic KB sync). */
@@ -163,13 +218,39 @@ export type FinelyKnowledgeSearchOpts = {
   /** Restrict to certain sources */
   sources?: KnowledgeSource[];
   minScore?: number;
+  /** When true, exclude admin/partner/internal SOPs and portal-only tours/modules. */
+  publicSafe?: boolean;
 };
+
+const INTERNAL_ROUTE_PREFIXES = ['/admin', '/portal'];
+
+/** Sources safe for public strip, chat, and voice — no admin SOPs or internal ops. */
+export const PUBLIC_KNOWLEDGE_SOURCES: KnowledgeSource[] = ['eguide', 'article'];
+
+export function isPublicSafeKnowledgeChunk(chunk: FinelyKnowledgeChunk): boolean {
+  if (chunk.source === 'eguide' || chunk.source === 'article') return true;
+  if (chunk.source === 'sop') {
+    const aud = chunk.tags.find((t) =>
+      ['visitor', 'partner', 'affiliate', 'agent', 'admin', 'all'].includes(t),
+    );
+    if (aud === 'admin' || aud === 'agent' || aud === 'partner' || aud === 'affiliate') return false;
+    return aud === 'visitor' || aud === 'all';
+  }
+  if (chunk.source === 'tour' || chunk.source === 'module') {
+    const route = chunk.route ?? '';
+    return !INTERNAL_ROUTE_PREFIXES.some((p) => route.startsWith(p));
+  }
+  return false;
+}
 
 /** Top-k retrieval across the unified index. Empty query → route-relevant defaults. */
 export function searchFinelyKnowledge(query: string, opts: FinelyKnowledgeSearchOpts = {}): FinelyKnowledgeHit[] {
   const limit = Math.max(1, Math.min(12, opts.limit ?? 5));
   const minScore = opts.minScore ?? 1;
   let chunks = buildFinelyKnowledgeChunks();
+  if (opts.publicSafe) {
+    chunks = chunks.filter(isPublicSafeKnowledgeChunk);
+  }
   if (opts.sources?.length) {
     const allow = new Set(opts.sources);
     chunks = chunks.filter((c) => allow.has(c.source));
@@ -192,6 +273,18 @@ export function searchFinelyKnowledge(query: string, opts: FinelyKnowledgeSearch
     .slice(0, limit);
 }
 
+/** Public-safe retrieval — eGuides + visitor articles only; never admin SOPs. */
+export function searchFinelyKnowledgePublic(
+  query: string,
+  opts: Omit<FinelyKnowledgeSearchOpts, 'publicSafe' | 'sources'> = {},
+): FinelyKnowledgeHit[] {
+  return searchFinelyKnowledge(query, {
+    ...opts,
+    publicSafe: true,
+    sources: PUBLIC_KNOWLEDGE_SOURCES,
+  });
+}
+
 /** Format hits for injection into an AI system prompt (cited, authoritative). */
 export function formatFinelyKnowledgeForPrompt(hits: FinelyKnowledgeHit[]): string {
   if (!hits.length) return '';
@@ -206,13 +299,14 @@ export function sourceLabel(source: KnowledgeSource): string {
   if (source === 'sop') return 'SOP';
   if (source === 'tour') return 'Video tour';
   if (source === 'module') return 'Module guide';
+  if (source === 'eguide') return 'E-Guide';
   return 'Guide';
 }
 
 /** Count of indexed chunks per source — for launch gates / admin telemetry. */
 export function finelyKnowledgeIndexStats(): { total: number; bySource: Record<KnowledgeSource, number> } {
   const chunks = buildFinelyKnowledgeChunks();
-  const bySource: Record<KnowledgeSource, number> = { sop: 0, tour: 0, article: 0, module: 0 };
+  const bySource: Record<KnowledgeSource, number> = { sop: 0, tour: 0, article: 0, module: 0, eguide: 0 };
   for (const c of chunks) bySource[c.source] += 1;
   return { total: chunks.length, bySource };
 }

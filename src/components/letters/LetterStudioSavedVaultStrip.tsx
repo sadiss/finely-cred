@@ -24,6 +24,8 @@ export function LetterStudioSavedVaultStrip({
   onOpenFullVault,
   accent = 'emerald',
   highlightLetterId = null,
+  suppressAutoPreview = false,
+  onLetterSaved,
   canMail: canMailProp,
   onMailLetter,
 }: {
@@ -36,6 +38,9 @@ export function LetterStudioSavedVaultStrip({
   onOpenFullVault?: () => void;
   accent?: 'emerald' | 'violet' | 'amber' | 'sky' | 'rose';
   highlightLetterId?: string | null;
+  /** When true, highlight vault cards but do not auto-open preview/detail modals. */
+  suppressAutoPreview?: boolean;
+  onLetterSaved?: () => void;
   /** Defaults to platform letterMailing feature flag when omitted */
   canMail?: boolean;
   onMailLetter?: (letter: LetterRecord) => void;
@@ -115,8 +120,8 @@ export function LetterStudioSavedVaultStrip({
               letter={l}
               deckAccent={SAVED_LETTER_DECK_ACCENTS[index % SAVED_LETTER_DECK_ACCENTS.length]}
               highlighted={highlightLetterId === l.id}
-              defaultSnapshotOpen={highlightLetterId === l.id}
-              autoOpenPreview={highlightLetterId === l.id}
+              defaultSnapshotOpen={!suppressAutoPreview && highlightLetterId === l.id}
+              autoOpenPreview={!suppressAutoPreview && highlightLetterId === l.id}
               evidence={evidence}
               canMail={canMail}
               pdfDisabled={false}
@@ -133,6 +138,10 @@ export function LetterStudioSavedVaultStrip({
                 deleteLetter({ letterId: l.id });
                 draftPreviewOpeners.current.delete(l.id);
                 setRefresh((v) => v + 1);
+              }}
+              onSaved={() => {
+                setRefresh((v) => v + 1);
+                onLetterSaved?.();
               }}
             />
           )}

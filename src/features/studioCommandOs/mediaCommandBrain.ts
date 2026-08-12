@@ -1,5 +1,12 @@
-import type { Aspect, MediaProject } from '../../domain/mediaStudio';
+import type { Aspect, MediaProject, MediaTransition, VideoStylePresetId } from '../../domain/mediaStudio';
 import { nowIso } from '../../domain/mediaStudio';
+import {
+  assignTransitionForScene,
+  buildScenePrompt,
+  captionStyleForPreset,
+  getVideoStylePreset,
+  type VideoStylePresetId as PresetId,
+} from '../../domain/videoStylePresets';
 import type { VideoCommandPlan, VideoCommandRequest, VideoGenerationIntent, VideoScenePlan } from './types';
 
 const INTENT_CTA: Record<VideoGenerationIntent, string> = {
@@ -16,9 +23,12 @@ const INTENT_CTA: Record<VideoGenerationIntent, string> = {
 const VISUAL_HINTS: Record<VideoCommandRequest['visualStyle'], string> = {
   luxury: 'platinum, gold, premium finance, elegant lighting, cinematic trust',
   cinematic: 'dramatic motion, filmic lighting, high contrast, polished camera language',
+  documentary: 'authentic B-roll, natural lighting, editorial realism, informative pacing',
+  kinetic: 'energetic motion, punchy transitions, bold contrast, fast professional cuts',
+  minimal: 'spacious negative space, refined typography, calm authority',
+  ugc_reel: 'phone-native UGC reel, authentic partner moments, social-native vertical feel',
   modern: 'clean UI overlays, crisp product shots, fast professional cuts',
   bold: 'energetic, high contrast, punchy transitions, strong headlines',
-  minimal: 'spacious negative space, refined typography, calm authority',
 };
 
 const VOICE_HINTS: Record<VideoCommandRequest['voiceStyle'], string> = {
@@ -90,6 +100,7 @@ export function buildFallbackVideoPlan(input: Partial<VideoCommandRequest>): Vid
   const cta = INTENT_CTA[req.intent];
   const city = req.city ? `${req.city} ` : '';
   const visual = VISUAL_HINTS[req.visualStyle];
+  const stylePreset = getVideoStylePreset(req.visualStyle);
   const beats = [
     'Hook the pain point immediately',
     'Show the confusing current state',
@@ -111,10 +122,11 @@ export function buildFallbackVideoPlan(input: Partial<VideoCommandRequest>): Vid
       id: `scene_${idx + 1}`,
       beat,
       durationSec: d,
-      visualPrompt:
+      visualPrompt: buildScenePrompt(
         `${local}${visual}, premium Finely Cred style, realistic finance/credit growth imagery, no text, no logos, polished lighting. Scene beat: ${beat}. User prompt: ${req.prompt}`,
-      motionPrompt:
-        `Slow cinematic push-in, subtle parallax, premium transitions, ${req.aspect} composition, keep movement smooth and professional.`,
+        req.visualStyle,
+      ),
+      motionPrompt: `${stylePreset.motionHint}, ${req.aspect} composition, keep movement smooth and professional.`,
       caption: req.includeCaptions ? (idx === 0 ? 'Your credit path should feel organized.' : idx === durations.length - 1 ? cta : beat.replace(/^Show /, '').replace(/^Add /, '')) : '',
       voiceover:
         req.voiceStyle === 'none'
@@ -122,6 +134,7 @@ export function buildFallbackVideoPlan(input: Partial<VideoCommandRequest>): Vid
           : `${beat}. Finely Cred helps you understand the next step without pressure, confusion, or unrealistic promises.`,
       callout: idx === durations.length - 1 ? cta : undefined,
       complianceNote: req.complianceStrict ? 'No guaranteed approval, deletion, score increase, or funding claim.' : undefined,
+      transition: assignTransitionForScene(req.visualStyle, idx, durations.length),
     };
   });
   return {
@@ -152,18 +165,20 @@ export function buildFallbackVideoPlan(input: Partial<VideoCommandRequest>): Vid
 
 export function convertPlanToMediaProject(plan: VideoCommandPlan, project: MediaProject): MediaProject {
   const now = nowIso();
+  const presetId = plan.request.visualStyle as PresetId;
   return {
     ...project,
     title: plan.title.slice(0, 120),
     aspect: plan.request.aspect as Aspect,
-    stylePreset: plan.request.visualStyle as any,
+    stylePreset: presetId as VideoStylePresetId,
+    captionStyle: captionStyleForPreset(presetId),
     scenes: plan.scenes.map((s, idx) => ({
       id: `${project.id}_cmd_${idx}_${Date.now().toString(16)}`,
-      prompt: s.visualPrompt,
+      prompt: buildScenePrompt(s.visualPrompt, presetId),
       caption: s.caption,
       durationSec: s.durationSec,
       voiceoverText: s.voiceover,
-      transition: idx === 0 ? { type: 'cut' } : { type: 'fade', durationSec: 0.35 },
+      transition: (s.transition as MediaTransition | undefined) ?? assignTransitionForScene(presetId, idx, plan.scenes.length),
       createdAt: now,
       updatedAt: now,
     })),

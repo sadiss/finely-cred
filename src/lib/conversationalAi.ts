@@ -63,6 +63,7 @@ export async function converseWithFinelyAi(args: {
         surface: args.context.surface,
         personaId: args.context.personaId,
         limit: 5,
+        contextRoute: args.context.pathname,
       });
   const knowledge = routed.chunks;
   const kbBlock = routed.promptBlock;

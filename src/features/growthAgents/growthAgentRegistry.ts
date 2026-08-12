@@ -2,6 +2,62 @@ import type { LeadEngineLane } from '../leadIntel/leadEngineAutonomy';
 
 export type GrowthAgentAccent = 'emerald' | 'amber' | 'sky' | 'violet' | 'fuchsia' | 'rose';
 
+/** Caleb Brooks pipeline subagents — geo scan → qualify → enrich → handoff. */
+export type CalebSubagentId = 'geo_scanner' | 'qualifier' | 'enricher' | 'handoff';
+
+export type CalebSubagentWorker = {
+  id: CalebSubagentId;
+  label: string;
+  role: string;
+  mission: string;
+  accent: GrowthAgentAccent;
+  order: number;
+  tier: 'live' | 'preview';
+};
+
+export const CALEB_SUBAGENT_WORKERS: CalebSubagentWorker[] = [
+  {
+    id: 'geo_scanner',
+    label: 'Geo Scanner',
+    role: 'Metro shard rotation',
+    mission: 'Rotate 60+ US metros daily — city-queue hunts instead of one national string.',
+    accent: 'sky',
+    order: 1,
+    tier: 'live',
+  },
+  {
+    id: 'qualifier',
+    label: 'Qualifier',
+    role: 'Smart qualify',
+    mission: 'Score lane fit, skip junk/dupes, route auto-save vs review band.',
+    accent: 'emerald',
+    order: 2,
+    tier: 'live',
+  },
+  {
+    id: 'enricher',
+    label: 'Enricher',
+    role: 'Contact enrich',
+    mission: 'Pull emails, phones, and intent signals from live Serper hits.',
+    accent: 'violet',
+    order: 3,
+    tier: 'live',
+  },
+  {
+    id: 'handoff',
+    label: 'Handoff',
+    role: 'CRM + review',
+    mission: 'Stage review queue, auto-save high scores, and prep Mail enroll on approve.',
+    accent: 'amber',
+    order: 4,
+    tier: 'live',
+  },
+];
+
+export function listCalebSubagentWorkers(): CalebSubagentWorker[] {
+  return [...CALEB_SUBAGENT_WORKERS].sort((a, b) => a.order - b.order);
+}
+
 export type GrowthAgentCapability = {
   id: string;
   label: string;
@@ -49,6 +105,8 @@ export type GrowthAgentDef = {
   acquisitionLaneIds?: string[];
   setupKeys?: string[];
   capabilities: GrowthAgentCapability[];
+  /** Caleb pipeline workers (lead-discovery only). */
+  subagents?: CalebSubagentWorker[];
 };
 
 export const GROWTH_AGENT_WAVE0_LANE: LeadEngineLane = 'credit_restore';
@@ -65,8 +123,9 @@ export const GROWTH_AGENTS: GrowthAgentDef[] = [
     marketingTypes: ['outbound_discovery'],
     primaryLane: GROWTH_AGENT_WAVE0_LANE,
     setupKeys: ['marketingDesk', 'leadIntel', 'supabase', 'serper'],
+    subagents: CALEB_SUBAGENT_WORKERS,
     capabilities: [
-      { id: 'find', label: 'Find new people', description: 'Live search for your city and restore lane.', tier: 'live', href: '/admin/marketing-desk?helper=find' },
+      { id: 'find', label: 'Find new people', description: 'Live search across rotating US metros and restore lane.', tier: 'live', href: '/admin/marketing-desk?helper=find' },
       { id: 'test', label: 'Test search', description: 'One-row proof that search is connected.', tier: 'live', runKey: 'test_search' },
       { id: 'review', label: 'Review people', description: 'Approve or skip mid-score matches.', tier: 'live', href: '/admin/marketing-desk?helper=find#exceptions' },
       { id: 'today10', label: "Today's 10 to contact", description: 'Best prospects to email or message today.', tier: 'live', runKey: 'today_ten' },
@@ -204,6 +263,22 @@ export const GROWTH_AGENTS: GrowthAgentDef[] = [
     marketingTypes: ['recruiting'],
     capabilities: [
       { id: 'apply', label: 'Specialist apply funnel', description: 'Tracked apply path.', tier: 'live', href: '/admin/lead-acquisition' },
+    ],
+  },
+  {
+    id: 'appointment-setter',
+    name: 'Alex Rivera',
+    roleTitle: 'Appointment Setter',
+    mission: 'Turn warm CRM leads into booked strategy calls — self-book links, reminders, audio-first join.',
+    accent: 'sky',
+    wave: 1,
+    marketingTypes: ['appointments', 'sessions'],
+    setupKeys: ['commsDelivery', 'calendar'],
+    capabilities: [
+      { id: 'warm-outreach', label: 'Warm lead outreach', description: 'Create self-book links + email for contacted CRM leads.', tier: 'live', runKey: 'alex_outreach' },
+      { id: 'invites', label: 'Invite links', description: 'Admin calendar — copy `/book/i/:token` links.', tier: 'live', href: '/admin/calendar' },
+      { id: 'calendar', label: 'Open calendar', description: 'Confirm sessions and send meeting invites.', tier: 'live', href: '/admin/calendar' },
+      { id: 'crm', label: 'CRM board', description: 'Move leads to Contacted → Booked.', tier: 'live', href: '/admin/crm' },
     ],
   },
 ];

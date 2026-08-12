@@ -55,6 +55,13 @@ export function ingestEmailWebhookEvent(args: {
   store.events.unshift(event);
   save(store);
   void syncEmailWebhookEventToSupabase(event);
+  void import('../features/marketingDesk/marketingDeskStopOnReply').then(({ applyStopOnReplyFromWebhookEvent }) => {
+    try {
+      applyStopOnReplyFromWebhookEvent(event);
+    } catch {
+      /* non-blocking */
+    }
+  });
   return event;
 }
 

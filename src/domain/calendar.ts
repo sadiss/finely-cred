@@ -119,6 +119,34 @@ export type PublicAppointmentRequest = {
   updatedAt: string;
 };
 
+/** Admin-issued self-book link — `/book/i/:token` */
+export type BookingInviteStatus = 'active' | 'expired' | 'revoked';
+
+export type BookingInvite = {
+  id: string;
+  /** URL-safe token (not the internal id) */
+  token: string;
+  label?: string;
+  topic: ConsultationTopic;
+  durationMinutes: SlotDuration;
+  /** Optional CRM / lead / partner linkage */
+  crmRecordId?: string;
+  leadId?: string;
+  partnerId?: string;
+  guestName?: string;
+  guestEmail?: string;
+  guestPhone?: string;
+  expiresAt?: string;
+  maxUses: number;
+  useCount: number;
+  status: BookingInviteStatus;
+  /** Last scheduled event id when invite was redeemed */
+  lastEventId?: string;
+  createdAt: string;
+  updatedAt: string;
+  lastUsedAt?: string;
+};
+
 export function nowIso() {
   return new Date().toISOString();
 }

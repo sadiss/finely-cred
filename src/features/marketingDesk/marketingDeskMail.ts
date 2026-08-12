@@ -9,6 +9,7 @@ import {
   cancelNurtureEnrollmentsForLead,
   cancelNurtureEnrollmentsForEmail,
 } from '../../lib/nurtureEngine';
+import { loadJson, saveJson } from '../../data/localJsonStore';
 import { getMarketingMailStatus, isMarketingMailPaused } from './marketingDeskMailStatus';
 import { createMarketingTask, createOfferTask } from './marketingDeskTasks';
 import type { LeadEngineLane } from '../leadIntel/leadEngineAutonomy';
@@ -331,6 +332,60 @@ export function pauseMarketingMailForEmail(
   }
   return { cancelled, prospectId: prospect?.id, email: normalized };
 }
+
+export type MarketingMailSequenceChip = {
+  id: string;
+  label: string;
+  active: number;
+  sequenceId: string;
+};
+
+/** Plain-English sequence chips for Ruth strip / Mail room (≤6). */
+export function listMarketingMailSequenceChips(): MarketingMailSequenceChip[] {
+  return getMarketingMailStatus().sequenceTiles.map((t) => ({
+    id: t.id,
+    label: t.name,
+    active: t.active,
+    sequenceId: t.id,
+  }));
+}
+
+const INBOUND_AUTO_KEY = 'finely.marketing_desk_inbound_auto_enroll.v1';
+
+function markInboundAutoEnrolled(leadId: string) {
+  const store = loadJson<{ ids: string[] }>(INBOUND_AUTO_KEY, { ids: [] }, 1);
+  if (store.ids.includes(leadId)) return;
+  store.ids.unshift(leadId);
+  store.ids = store.ids.slice(0, 300);
+  saveJson(INBOUND_AUTO_KEY, store, 1);
+}
+
+function wasInboundAutoEnrolled(leadId: string): boolean {
+  return loadJson<{ ids: string[] }>(INBOUND_AUTO_KEY, { ids: [] }, 1).ids.includes(leadId);
+}
+
+/**
+ * Auto-enroll hook — inbound Board lead → seq_inbound_nurture when Mail Ready.
+ * Deduped per lead id; falls back to nurture to-do when Needs setup.
+ */
+export function autoEnrollMarketingInboundLead(args: {
+  leadId: string;
+  email?: string;
+  fullName?: string;
+  recordId?: string;
+}): MailEnrollResult {
+  if (!args.leadId?.trim() || wasInboundAutoEnrolled(args.leadId)) {
+    return { enrolled: false, reason: 'already_enrolled' };
+  }
+  const result = enrollInboundWelcomeMail(args);
+  if (result.enrolled || result.fallbackTask) {
+    markInboundAutoEnrolled(args.leadId);
+  }
+  return result;
+}
+
+/** Auto-enroll hook — staging approve path (Find). Re-export for nurture wiring. */
+export { enrollColdProspectMail as autoEnrollMarketingColdProspect };
 
 export function resolveEmailForProspect(prospectId: string): { email?: string; fullName?: string } {
   const p = getProspect(prospectId);

@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { LayoutGrid, Loader2, Paperclip, Send, Sparkles, ShieldCheck, X } from 'lucide-react';
+import { LayoutGrid, Loader2, Paperclip, Send, Smile, Sparkles, ShieldCheck, X } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { submitLeadCapture } from '../../data/leadsRepo';
 import { converseWithFinelyAi } from '../../lib/conversationalAi';
@@ -46,11 +46,12 @@ import { useAuth } from '../../auth/AuthProvider';
 import { findPartnerByEmail } from '../../data/partnersRepo';
 import {
   analyzePublicChatDocumentHeuristic,
+  enrichPublicChatReply,
   formatPublicChatDocReply,
   persistPublicChatDocumentForPartner,
-  sprinkleChatEmoji,
   type PublicChatDocAnalysis,
 } from '../../lib/publicChatDocumentIntake';
+import { FinelyPremiumEmojiPicker } from './FinelyPremiumEmojiPicker';
 import { openCommunicationHub } from './communicationHubModel';
 import {
   finelyPublicAnswer,
@@ -91,6 +92,7 @@ const AI_RECEPTIONIST_PROMPT =
 const LANE_OPTIONS = [
   {
     id: 'personal' as const,
+    emoji: '✨',
     label: 'Personal restore',
     roleHint: 'Credit Restoration',
     card: 'border-emerald-400/50 bg-emerald-600/35 hover:bg-emerald-500/45',
@@ -98,6 +100,7 @@ const LANE_OPTIONS = [
   },
   {
     id: 'business' as const,
+    emoji: '🚀',
     label: 'Business credit',
     roleHint: 'Funding Strategist',
     card: 'border-amber-400/50 bg-amber-600/30 hover:bg-amber-500/40',
@@ -105,6 +108,7 @@ const LANE_OPTIONS = [
   },
   {
     id: 'tradelines' as const,
+    emoji: '💳',
     label: 'Tradelines',
     roleHint: 'Funding Strategist',
     card: 'border-violet-400/50 bg-violet-600/30 hover:bg-violet-500/40',
@@ -112,6 +116,7 @@ const LANE_OPTIONS = [
   },
   {
     id: 'debt' as const,
+    emoji: '🛡️',
     label: 'Debt help',
     roleHint: 'Debt Resolution',
     card: 'border-orange-400/50 bg-orange-600/30 hover:bg-orange-500/40',
@@ -120,12 +125,12 @@ const LANE_OPTIONS = [
 ] as const;
 
 const QUICK_TOPICS = [
-  { label: 'How disputes work', prompt: 'How do credit disputes work step by step?' },
-  { label: 'DIY vs DFY', prompt: 'What is the difference between DIY and done-for-you at Finely Cred?' },
-  { label: 'Free guide', prompt: 'What do I get in the free credit dispute guide?' },
-  { label: 'Debt help', prompt: 'How does Finely Cred help with collections or debt validation?' },
-  { label: 'Business credit', prompt: 'How do I build business credit the right way?' },
-  { label: 'Upload my report', prompt: 'How do I upload a credit report in the portal?' },
+  { emoji: '📋', label: 'How disputes work', prompt: 'How do credit disputes work step by step?' },
+  { emoji: '⚖️', label: 'DIY vs DFY', prompt: 'What is the difference between DIY and done-for-you at Finely Cred?' },
+  { emoji: '🎁', label: 'Free guide', prompt: 'What do I get in the free credit dispute guide?' },
+  { emoji: '🛡️', label: 'Debt help', prompt: 'How does Finely Cred help with collections or debt validation?' },
+  { emoji: '🚀', label: 'Business credit', prompt: 'How do I build business credit the right way?' },
+  { emoji: '📎', label: 'Upload my report', prompt: 'How do I upload a credit report in the portal?' },
 ];
 
 function newId() {
@@ -180,10 +185,12 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
 
   const [draft, setDraft] = useState('');
   const [optionsOpen, setOptionsOpen] = useState(false);
+  const [emojiOpen, setEmojiOpen] = useState(false);
   const [easyReadMode, setEasyReadMode] = useState(true);
   const [pendingAttachments, setPendingAttachments] = useState<PublicChatDocAnalysis[]>([]);
   const [attachmentBusy, setAttachmentBusy] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const [followUps, setFollowUps] = useState<string[]>([]);
   const [aiHistory, setAiHistory] = useState<AiGatewayMessage[]>([]);
   const [handoffComplete, setHandoffComplete] = useState(false);
@@ -356,8 +363,19 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
   const pushBot = (text: string, personaId: AgentPersonaId, source?: ChatMsg['source'], kbRefs?: string[]) => {
     setMessages((prev) => [
       ...prev,
-      { id: newId(), role: 'bot', text: sprinkleChatEmoji(text, goal), source, personaId, kbRefs },
+      { id: newId(), role: 'bot', text: enrichPublicChatReply(text, goal), source, personaId, kbRefs },
     ]);
+  };
+
+  const insertEmojiAtCursor = (emoji: string) => {
+    const el = textareaRef.current;
+    if (!el) {
+      setDraft((prev) => `${prev}${emoji}`);
+      return;
+    }
+    const start = el.selectionStart ?? draft.length;
+    const end = el.selectionEnd ?? draft.length;
+    setDraft(`${draft.slice(0, start)}${emoji}${draft.slice(end)}`);
   };
 
   const pushUser = (text: string, attachments?: PublicChatDocAnalysis[]) => {
@@ -450,7 +468,7 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
       return;
     }
 
-    if (!attachments?.length && shouldUseFinelyPublicAnswer(trimmed)) {
+    if (!attachments?.length && shouldUseFinelyPublicAnswer(trimmed, pathname)) {
       setBusy(true);
       setTypingLabel(`${presentation.firstName} ${t(activeLocale, 'typing')}`);
       const delayMs = humanReplyDelayMs({ userMessage: aiText });
@@ -463,7 +481,7 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
           seniorMode: easyReadMode,
         });
         const kbRefs = result.citations.slice(0, 2).map((c) => c.title);
-        pushBot(sprinkleChatEmoji(result.reply), result.personaId, 'knowledge_local', kbRefs.length ? kbRefs : undefined);
+        pushBot(enrichPublicChatReply(result.reply, goal), result.personaId, 'knowledge_local', kbRefs.length ? kbRefs : undefined);
         setAiHistory((prev) => [
           ...prev,
           { role: 'user', content: aiText },
@@ -620,7 +638,7 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
       channel: 'chat',
       seniorMode: easyReadMode,
     });
-    pushBot(sprinkleChatEmoji(result.reply), result.personaId, 'knowledge_local');
+    pushBot(enrichPublicChatReply(result.reply, goal), result.personaId, 'knowledge_local');
   };
 
   const pickGoal = (g: Goal) => {
@@ -700,7 +718,7 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
             refreshDutyFace({ forcePolicy: true });
             setOpen(true);
           }}
-          className="fixed bottom-[max(1rem,env(safe-area-inset-bottom))] right-[max(1rem,env(safe-area-inset-right))] z-[120] inline-flex items-center gap-3 rounded-2xl border border-emerald-400/35 bg-gradient-to-r from-slate-900/95 via-emerald-950/90 to-teal-950/90 backdrop-blur-xl pl-2 pr-4 py-2 shadow-2xl hover:shadow-[0_20px_50px_-12px_rgba(16,185,129,0.45)] transition-all max-w-[calc(100vw-2rem)]"
+          className="fixed bottom-[max(1rem,env(safe-area-inset-bottom))] right-[max(1rem,env(safe-area-inset-right))] z-[120] inline-flex items-center gap-3 rounded-2xl border border-emerald-400/40 bg-gradient-to-br from-emerald-600/90 via-teal-700/85 to-cyan-900/80 backdrop-blur-xl pl-2 pr-4 py-2 shadow-[0_12px_40px_-8px_rgba(16,185,129,0.55),0_0_0_1px_rgba(139,92,246,0.25)] hover:shadow-[0_20px_50px_-12px_rgba(16,185,129,0.55),0_0_24px_-4px_rgba(45,212,191,0.35)] transition-all max-w-[calc(100vw-2rem)] ring-1 ring-violet-400/20"
           title={`${launcherPresentation.firstName} on duty · not legal advice`}
         >
           <PublicChatStaffAvatar
@@ -720,10 +738,14 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
 
       {open && (
         <div className="fixed inset-0 sm:inset-auto sm:bottom-5 sm:right-5 z-[120] sm:w-[min(440px,calc(100vw-2rem))] sm:max-h-[calc(100vh-2rem)] flex flex-col">
-          <div className="relative flex flex-col h-full sm:h-[min(640px,calc(100vh-2rem))] sm:rounded-3xl border border-emerald-500/20 bg-[#070d0b] shadow-[0_24px_80px_-20px_rgba(0,0,0,0.85)] overflow-hidden ring-1 ring-white/5">
+          <div className="relative flex flex-col h-full sm:h-[min(640px,calc(100vh-2rem))] sm:rounded-3xl border border-emerald-500/25 bg-[#070d0b] shadow-[0_24px_80px_-20px_rgba(0,0,0,0.85)] overflow-hidden ring-1 ring-white/5">
+            <div
+              aria-hidden
+              className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_20%_-10%,rgba(16,185,129,0.12),transparent_55%),radial-gradient(ellipse_60%_40%_at_90%_20%,rgba(45,212,191,0.08),transparent_50%),radial-gradient(ellipse_50%_35%_at_70%_100%,rgba(139,92,246,0.07),transparent_45%)]"
+            />
             {/* Header */}
             <div
-              className={`shrink-0 px-4 pt-4 pb-3 border-b border-white/[0.08] ${
+              className={`relative z-10 shrink-0 px-4 pt-4 pb-3 border-b border-white/[0.08] ${
                 handoffComplete
                   ? `bg-gradient-to-br ${presentation.headerGradient}`
                   : `bg-gradient-to-br ${launcherPresentation.headerGradient}`
@@ -806,7 +828,7 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
 
             <div
               ref={scrollerRef}
-              className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-3 sm:px-4 py-4 space-y-4 bg-[#0c1014] border-y border-white/[0.06]"
+              className="relative flex-1 min-h-0 overflow-y-auto overscroll-contain px-3 sm:px-4 py-4 space-y-4 bg-[#0a100e]/90 border-y border-white/[0.06]"
             >
               {handoffPhase === 'connecting' ? (
                 <div className="rounded-2xl border border-sky-400/30 bg-sky-500/10 px-4 py-3 flex items-center gap-3 animate-pulse">
@@ -919,7 +941,7 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
               ) : null}
             </div>
 
-            <div className="shrink-0 px-3 py-3 border-t border-white/[0.08] bg-[#070d0b] space-y-2">
+            <div className="relative shrink-0 px-3 py-3 border-t border-white/[0.08] bg-[#070d0b]/95 space-y-2">
               {pendingAttachments.length ? (
                 <div className="flex flex-wrap gap-1.5">
                   {pendingAttachments.map((a) => (
@@ -930,38 +952,15 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
                   ))}
                 </div>
               ) : null}
-              <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => setOptionsOpen((v) => !v)}
-                className={`shrink-0 inline-flex items-center gap-1.5 px-3 py-2.5 rounded-xl border-2 text-[10px] font-black uppercase tracking-wider shadow-[0_0_18px_-4px_rgba(251,191,36,0.55)] ${
-                  optionsOpen
-                    ? 'border-amber-300 bg-gradient-to-br from-amber-400 to-orange-500 text-black'
-                    : 'border-amber-400/80 bg-gradient-to-br from-amber-500/25 to-orange-600/30 text-amber-50 hover:from-amber-400/40 hover:to-orange-500/40'
-                }`}
-                aria-expanded={optionsOpen}
-                aria-label={optionsOpen ? t(locale, 'closeOptions') : t(locale, 'openOptions')}
-              >
-                <LayoutGrid size={14} />
-                ✨ {t(locale, 'openOptions')}
-              </button>
-              <input ref={fileInputRef} type="file" accept="application/pdf,image/*,.html,.htm" className="hidden" onChange={(e) => void handleAttachmentPick(e.target.files)} />
-              <button
-                type="button"
-                disabled={attachmentBusy || pendingAttachments.length >= MAX_CHAT_ATTACHMENTS}
-                onClick={() => fileInputRef.current?.click()}
-                className="shrink-0 inline-flex items-center gap-1 px-2.5 py-2.5 rounded-xl border border-sky-400/40 bg-sky-500/15 text-[10px] font-bold uppercase tracking-wide text-sky-100 hover:bg-sky-500/25 disabled:opacity-40"
-                title={`Attach up to ${MAX_CHAT_ATTACHMENTS} documents (PDF, image, HTML)`}
-              >
-                {attachmentBusy ? <Loader2 size={14} className="animate-spin" /> : <Paperclip size={14} />}
-                Docs
-              </button>
-              <input
+
+              <textarea
+                ref={textareaRef}
                 value={draft}
                 onChange={(e) => setDraft(e.target.value)}
                 placeholder={handoffComplete ? `Message ${presentation.firstName}…` : `Message ${launcherPresentation.firstName}…`}
                 dir={isRtlLocale(locale) ? 'rtl' : 'ltr'}
-                className="flex-1 min-w-0 bg-white/[0.08] border border-white/20 rounded-xl px-4 py-3.5 text-[15px] text-white placeholder:text-white/45 focus:border-emerald-400/55 focus:outline-none focus:ring-1 focus:ring-emerald-500/35"
+                rows={3}
+                className="w-full bg-white/[0.08] border border-emerald-400/25 rounded-xl px-4 py-3 text-[15px] text-white placeholder:text-white/45 focus:border-emerald-400/55 focus:outline-none focus:ring-1 focus:ring-emerald-500/35 resize-none leading-relaxed shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]"
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' && !e.shiftKey) {
                     e.preventDefault();
@@ -970,17 +969,109 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
                 }}
                 disabled={busy}
               />
-              <button
-                type="button"
-                onClick={() => void sendMessage(draft)}
-                disabled={busy || (!sanitize(draft) && !pendingAttachments.length)}
-                className="p-3 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-500 text-black disabled:opacity-40 shadow-lg shrink-0"
-                title="Send"
-              >
-                <Send size={18} />
-              </button>
+
+              <div className="flex flex-wrap items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEmojiOpen(false);
+                    setOptionsOpen((v) => !v);
+                  }}
+                  className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border text-[10px] font-black uppercase tracking-wider shadow-[0_0_14px_-4px_rgba(251,191,36,0.45)] ${
+                    optionsOpen
+                      ? 'border-amber-300 bg-gradient-to-br from-amber-400 to-orange-500 text-black'
+                      : 'border-amber-400/80 bg-gradient-to-br from-amber-500/25 to-orange-600/30 text-amber-50 hover:from-amber-400/40 hover:to-orange-500/40'
+                  }`}
+                  aria-expanded={optionsOpen}
+                  aria-label={optionsOpen ? t(locale, 'closeOptions') : t(locale, 'openOptions')}
+                >
+                  <LayoutGrid size={14} />
+                  {t(locale, 'openOptions')}
+                </button>
+                <input ref={fileInputRef} type="file" accept="application/pdf,image/*,.html,.htm" className="hidden" onChange={(e) => void handleAttachmentPick(e.target.files)} />
+                <button
+                  type="button"
+                  disabled={attachmentBusy || pendingAttachments.length >= MAX_CHAT_ATTACHMENTS}
+                  onClick={() => fileInputRef.current?.click()}
+                  className="inline-flex items-center gap-1 px-3 py-2 rounded-xl border border-sky-400/40 bg-sky-500/15 text-[10px] font-bold uppercase tracking-wide text-sky-100 hover:bg-sky-500/25 disabled:opacity-40"
+                  title={`Attach up to ${MAX_CHAT_ATTACHMENTS} documents (PDF, image, HTML)`}
+                >
+                  {attachmentBusy ? <Loader2 size={14} className="animate-spin" /> : <Paperclip size={14} />}
+                  Attach
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setOptionsOpen(false);
+                    setEmojiOpen((open) => !open);
+                  }}
+                  className={`inline-flex items-center gap-1 px-3 py-2 rounded-xl border text-[10px] font-bold uppercase tracking-wide transition-all ${
+                    emojiOpen
+                      ? 'border-fuchsia-400/50 bg-fuchsia-500/20 text-fuchsia-100 shadow-[0_0_0_1px_rgba(217,70,239,0.25)]'
+                      : 'border-white/15 bg-white/[0.06] text-white/80 hover:border-fuchsia-400/35 hover:bg-fuchsia-500/10'
+                  }`}
+                  aria-expanded={emojiOpen}
+                  aria-label="Insert emoji"
+                >
+                  <Smile size={14} />
+                  Emoji
+                </button>
+                <button
+                  type="button"
+                  onClick={() => void sendMessage(draft)}
+                  disabled={busy || (!sanitize(draft) && !pendingAttachments.length)}
+                  className="ml-auto inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-500 text-black disabled:opacity-40 shadow-lg shadow-emerald-500/20 text-[10px] font-black uppercase tracking-wider"
+                  title="Send"
+                >
+                  <Send size={16} />
+                  Send
+                </button>
               </div>
-              <div className="flex flex-wrap items-center gap-1 pt-1.5">
+
+              {emojiOpen ? (
+                <FinelyPremiumEmojiPicker
+                  className="mt-1"
+                  onPick={(emoji) => {
+                    insertEmojiAtCursor(emoji);
+                    setEmojiOpen(false);
+                  }}
+                />
+              ) : null}
+
+              {followUps.length > 0 ? (
+                <div className="flex flex-wrap gap-1.5 pt-0.5">
+                  <span className={`${FINELY_OS_ENTITY_SUBLABEL} shrink-0 self-center mr-0.5 text-teal-200/80`}>{t(locale, 'suggestedReplies')}:</span>
+                  {followUps.map((f) => (
+                    <button
+                      key={f}
+                      type="button"
+                      onClick={() => void sendMessage(f)}
+                      className="px-2.5 py-1.5 rounded-full border border-teal-400/35 bg-teal-500/15 text-[10px] text-teal-50 hover:bg-teal-500/25 text-left"
+                    >
+                      {f}
+                    </button>
+                  ))}
+                </div>
+              ) : null}
+
+              {!goal && !handoffComplete ? (
+                <div className="flex flex-wrap gap-1.5 pt-0.5">
+                  <span className={`${FINELY_OS_ENTITY_SUBLABEL} shrink-0 self-center mr-0.5 text-emerald-200/80`}>{t(locale, 'pickLaneToStart')}:</span>
+                  {LANE_OPTIONS.map((x) => (
+                    <button
+                      key={x.id}
+                      data-testid={`public-chat-lane-chip-${x.id}`}
+                      type="button"
+                      onClick={() => pickGoal(x.id)}
+                      className={`px-2.5 py-1.5 rounded-full border text-[10px] font-semibold text-left transition-all ${x.card}`}
+                    >
+                      {x.emoji} {x.label}
+                    </button>
+                  ))}
+                </div>
+              ) : null}
+
+              <div className="flex flex-wrap items-center gap-1 pt-0.5">
                 <span className={`${FINELY_OS_ENTITY_SUBLABEL} shrink-0 mr-0.5`}>{t(locale, 'language')}:</span>
                 {CHAT_LOCALE_ORDER.map((loc) => (
                   <button
@@ -1034,7 +1125,7 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
                               onClick={() => pickGoal(x.id)}
                               className={`px-2.5 py-2.5 rounded-xl border text-left transition-all ${x.card}`}
                             >
-                              <div className="text-[9px] font-black uppercase tracking-widest text-white/90">{x.label}</div>
+                              <div className="text-[9px] font-black uppercase tracking-widest text-white/90">{x.emoji} {x.label}</div>
                               <div className={`text-[9px] mt-0.5 ${x.sub}`}>{x.roleHint}</div>
                             </button>
                           ))}
@@ -1102,7 +1193,7 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
                             }}
                             className="px-2.5 py-1.5 rounded-lg border border-white/12 bg-white/[0.04] text-[9px] font-semibold text-white/75 hover:border-emerald-400/35 hover:text-emerald-100"
                           >
-                            {topic.label}
+                            {topic.emoji} {topic.label}
                           </button>
                         ))}
                       </div>

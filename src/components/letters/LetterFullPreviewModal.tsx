@@ -6,6 +6,8 @@ import { bureauShortCode } from '../../utils/bureaus';
 import type { Bureau } from '../../domain/creditReports';
 import { getBlobUrl } from '../../storage/getBlobUrl';
 import { openBlobRefInNewTab } from '../../lib/openBlobRef';
+import { isProbablyHtml } from '../../utils/richText';
+import { DebtLetterPreview } from './DebtLetterPreview';
 import {
   FINELY_OS_ENTITY_BODY,
   FINELY_OS_ENTITY_SUBLABEL,
@@ -28,7 +30,10 @@ export function LetterFullPreviewModal({
 }) {
   const [pdfUrl, setPdfUrl] = useState('');
   const hasPdf = Boolean(letter.pdfBlobRef);
+  const hasBody = Boolean(letter.body?.trim());
   const meta = letter.meta as DisputeLetterMeta | undefined;
+  const bodyHtml = hasBody && isProbablyHtml(letter.body!) ? letter.body : undefined;
+  const bodyText = hasBody && !bodyHtml ? letter.body : undefined;
 
   useEffect(() => {
     if (!hasPdf) return undefined;
@@ -60,7 +65,7 @@ export function LetterFullPreviewModal({
       <div className="relative z-[1] flex w-full sm:max-w-6xl max-h-[100dvh] sm:max-h-[94vh] flex-col overflow-hidden rounded-none sm:rounded-[1.75rem] border-0 sm:border border-fuchsia-400/20 bg-[#070b10] shadow-[0_40px_120px_-40px_rgba(0,0,0,0.95)]">
         <div className="shrink-0 border-b border-white/10 px-4 py-3 sm:px-6 sm:py-4 flex items-start justify-between gap-3 bg-[radial-gradient(900px_360px_at_5%_0%,rgba(217,70,239,0.15),transparent_60%),linear-gradient(180deg,#120a18_0%,#070b10_100%)]">
           <div className="min-w-0 flex-1">
-            <div className={FINELY_OS_ENTITY_SUBLABEL}>View PDF — full letter</div>
+            <div className={FINELY_OS_ENTITY_SUBLABEL}>{hasPdf ? 'View PDF — full letter' : 'Letter preview'}</div>
             <div className={`text-base sm:text-xl font-black truncate ${FINELY_OS_ENTITY_VALUE}`}>{letter.title}</div>
             {meta?.bureau ? (
               <div className={`mt-1 text-xs ${FINELY_OS_ENTITY_BODY}`}>
@@ -85,6 +90,17 @@ export function LetterFullPreviewModal({
             ) : (
               <div className={`${FINELY_OS_ENTITY_BODY} text-center py-16`}>Loading PDF…</div>
             )
+          ) : hasBody ? (
+            <div className="h-full min-h-[50vh] sm:min-h-0 overflow-y-auto rounded-xl sm:rounded-2xl border border-white/10 bg-[#0a0f0d] p-3 sm:p-4">
+              <DebtLetterPreview
+                html={bodyHtml}
+                text={bodyText}
+                showToolbar={false}
+                showAddressChrome={false}
+                compact
+                accent="fuchsia"
+              />
+            </div>
           ) : (
             <div className={`${FINELY_OS_ENTITY_BODY} text-center py-16 space-y-3`}>
               <FileText className="mx-auto text-white/30" size={40} />

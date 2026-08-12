@@ -13,6 +13,7 @@ import {
   finelyOsStatusChip,
 } from '../os/finelyOsLightUi';
 import { FinelyOsAlertBanner } from '../os/FinelyOsAlertBanner';
+import { FinelyMarketingWowStrip } from '../../components/marketing/FinelyMarketingWowStrip';
 import { FinelyOsPaginatedStack } from '../os/FinelyOsPaginatedStack';
 import { FinelyTourPlayer } from '../../components/tours/FinelyTourPlayer';
 import { getTourById } from '../../config/tourManifest';
@@ -159,6 +160,8 @@ export function MarketingDeskHome({
           Open Caleb desk <ArrowRight size={14} />
         </button>
       </div>
+
+      <FinelyMarketingWowStrip compact title="Organic wow angles" subtitle="" className="!p-3" />
 
       {/* While you slept — morning brief */}
       {brief.hasSignal || brief.sleepOn ? (

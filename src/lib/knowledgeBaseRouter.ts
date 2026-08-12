@@ -8,6 +8,11 @@ import {
   type RetrievedKnowledgeChunk,
 } from '../knowledge/retrieveKnowledge';
 import { resolveFinelyPageContext } from './finelyBrain/finelyBrainOrchestrate';
+import {
+  formatFinelyKnowledgeForPrompt,
+  searchFinelyKnowledgePublic,
+  type FinelyKnowledgeHit,
+} from './finelyKnowledgeIndex';
 
 export { resolveFinelyPageContext as launchOsHelpForPath };
 
@@ -92,13 +97,46 @@ export function routeKnowledgeForPath(pathname: string, query?: string) {
   });
 }
 
+/** Partner-facing surfaces must never inject admin SOPs into AI prompts. */
+const PARTNER_SAFE_SURFACES: ReadonlySet<AiSurface> = new Set(['communication_hub']);
+
+function publicHitsToChunks(hits: FinelyKnowledgeHit[]): RetrievedKnowledgeChunk[] {
+  return hits.map((h) => ({
+    article: {
+      id: h.id,
+      title: h.title,
+      category: 'portal' as KnowledgeCategory,
+      tags: [],
+      content: h.text,
+      links: h.route ? [{ label: h.title, path: h.route }] : undefined,
+    },
+    score: h.score,
+    excerpt: h.snippet,
+  }));
+}
+
 export function routeKnowledgeForQuery(args: {
   query: string;
   surface?: AiSurface;
   personaId?: AgentPersonaId;
   supportTopic?: SupportTopic;
   limit?: number;
+  /** Current route for public-safe RAG affinity (portal coach). */
+  contextRoute?: string;
 }): { chunks: RetrievedKnowledgeChunk[]; promptBlock: string; followUps: string[] } {
+  if (args.surface && PARTNER_SAFE_SURFACES.has(args.surface)) {
+    const hits = searchFinelyKnowledgePublic(args.query, {
+      limit: args.limit ?? 5,
+      contextRoute: args.contextRoute,
+    });
+    const chunks = publicHitsToChunks(hits);
+    return {
+      chunks,
+      promptBlock: formatFinelyKnowledgeForPrompt(hits),
+      followUps: suggestFollowUps(chunks),
+    };
+  }
+
   const categoryBoost =
     (args.personaId && PERSONA_CATEGORY[args.personaId]) ||
     (args.supportTopic && TOPIC_CATEGORY[args.supportTopic]) ||

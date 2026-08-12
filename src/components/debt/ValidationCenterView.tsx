@@ -75,6 +75,8 @@ export function ValidationCenterView({
   generateBusy = false,
   generateError = null,
   vaultHighlightLetterId = null,
+  suppressVaultAutoPreview = false,
+  onVaultLetterSaved,
   canMailLetters = false,
   onMailLetter,
   adminPartnerId,
@@ -102,6 +104,8 @@ export function ValidationCenterView({
   generateBusy?: boolean;
   generateError?: string | null;
   vaultHighlightLetterId?: string | null;
+  suppressVaultAutoPreview?: boolean;
+  onVaultLetterSaved?: () => void;
   canMailLetters?: boolean;
   onMailLetter?: (letter: LetterRecord) => void;
   /** When set, `/portal/*` links resolve to admin partner workspace routes. */
@@ -318,6 +322,8 @@ export function ValidationCenterView({
             subtitle="Saved as soon as you generate — draft or PDF. Preview, mail, or delete here; full archive opens separately."
             onOpenFullVault={onOpenLettersVault}
             highlightLetterId={vaultHighlightLetterId}
+            suppressAutoPreview={suppressVaultAutoPreview}
+            onLetterSaved={onVaultLetterSaved}
             canMail={canMailLetters}
             onMailLetter={onMailLetter}
           />

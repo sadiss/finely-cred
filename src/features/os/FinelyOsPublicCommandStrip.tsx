@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { ArrowRight, BookOpen, Calendar, ChevronDown, DollarSign, Users } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { FlashyIcon } from '../../components/ui';
+import { FinelyMarketingWowStrip } from '../../components/marketing/FinelyMarketingWowStrip';
 import { FinelyOsPaginatedStack } from './FinelyOsPaginatedStack';
 import { finelyOsCatalogCard, finelyOsLandingContrastSection, FINELY_OS_ENTITY_BODY, FINELY_OS_ENTITY_SUBLABEL, FINELY_OS_ENTITY_VALUE } from './finelyOsLightUi';
 
@@ -15,14 +16,14 @@ type Tile = {
 };
 
 const PRIMARY_TILES: Tile[] = [
-  { id: 'guide', label: 'Free guide', hint: 'Dispute letter kit + DIY trial', path: '/free-guide', accent: 'emerald', icon: BookOpen },
+  { id: 'guide', label: 'Free guide', hint: 'Live portal + Letter Studio trial', path: '/free-guide', accent: 'emerald', icon: BookOpen },
   { id: 'pricing', label: 'See pricing', hint: 'DIY, DFY, and wealth paths', path: '/pricing', accent: 'amber', icon: DollarSign },
   { id: 'session', label: 'Book a strategy call', hint: 'Free 60-minute call', path: '/enlightenment-session', accent: 'violet', icon: Calendar },
   { id: 'specialists', label: 'Credit specialists', hint: 'Done-for-you partner program', path: '/credit-specialist', accent: 'sky', icon: Users },
 ];
 
 const FUNNEL_TILES: Tile[] = [
-  { id: 'debt', label: 'Debt guide', hint: 'Collections validation playbook', path: '/free-debt-guide', accent: 'fuchsia', icon: BookOpen },
+  { id: 'debt', label: 'Debt guide', hint: 'Fight-back validation OS', path: '/free-debt-guide', accent: 'fuchsia', icon: BookOpen },
   { id: 'business', label: 'Business credit', hint: 'Entity + vendor credit jumpstart', path: '/free-business-guide', accent: 'violet', icon: BookOpen },
   { id: 'tradeline', label: 'Tradeline guide', hint: 'AU vs primary education', path: '/free-tradeline-guide', accent: 'emerald', icon: BookOpen },
   { id: 'score', label: 'Score roadmap', hint: '5-step recovery sequence', path: '/free-score-roadmap', accent: 'sky', icon: BookOpen },
@@ -104,6 +105,7 @@ export function FinelyOsPublicCommandStrip() {
             ) : null}
           </div>
         </div>
+        <FinelyMarketingWowStrip compact className="!p-3 border-emerald-400/15" />
       </div>
     </section>
   );

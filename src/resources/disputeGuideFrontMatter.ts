@@ -44,6 +44,7 @@ export const DISPUTE_GUIDE_FRONT_MATTER_PAGES: GeneratedGuidePage[] = [
         bullets: [
           'Read the first five pages before you write anything — they are the difference between a letter and a filing.',
           'Work the 5-step framework in order. Each step gets its own page with a power move at the end.',
+          'Open the live portal preview to run Letter Studio, track rounds, and vault evidence — the PDF is a companion, not the whole system.',
           'Use the example letter as a shape, not a script. Copy the structure; write the facts in your own words.',
           'Come back to the escalation pages only after Round 1 has a documented response or a documented silence.',
         ],

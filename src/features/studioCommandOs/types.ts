@@ -39,7 +39,7 @@ export type VideoCommandRequest = {
   aspect: '16:9' | '9:16' | '1:1';
   intent: VideoGenerationIntent;
   voiceStyle: 'none' | 'warm_authority' | 'luxury_confident' | 'direct_operator' | 'friendly_educator';
-  visualStyle: 'luxury' | 'cinematic' | 'modern' | 'bold' | 'minimal';
+  visualStyle: 'luxury' | 'cinematic' | 'documentary' | 'kinetic' | 'minimal' | 'ugc_reel' | 'modern' | 'bold';
   audience: string;
   offer: string;
   city?: string;
@@ -61,6 +61,10 @@ export type VideoScenePlan = {
   voiceover: string;
   callout?: string;
   complianceNote?: string;
+  /** Per-scene transition into the next shot (auto-assigned from style preset). */
+  transition?: import('../../domain/mediaStudio').MediaTransition;
+  /** Set after visual generation — used in Edit & Style step. */
+  imageDataUrl?: string;
 };
 
 export type VideoCommandPlan = {

@@ -60,7 +60,7 @@ import { RepossessionCenterView } from '../debt/RepossessionCenterView';
 import { generateCatalogLetterBody } from '../../legal/generateCatalogLetter';
 import { catalogEntryById } from '../../legal/debtLetterCatalog';
 import { letterTrackFamily } from '../../lib/letterProductLabels';
-import { DebtLetterRichDraftWorkspace } from './DebtLetterPreview';
+import { LetterEditorShell } from './LetterEditorShell';
 import { SmartProofUploader } from '../evidence/SmartProofUploader';
 import { DEBT_LETTER_SPECS, SCENARIO_RECOMMENDATIONS, recommendScenarioFromDebt, getLetterBody } from '../../legal/debtLetterTemplates';
 import type { DebtLetterType, DebtScenario } from '../../domain/debtLegal';
@@ -101,8 +101,7 @@ import { PartnerCreditWorkloadStrip } from '../partner/PartnerCreditWorkloadStri
 import { LetterPartnerNoteField } from './LetterPartnerNoteField';
 import { recordLetterPartnerNote } from '../../lib/letterPartnerNotes';
 import { downloadBlob, downloadText, openUrlInNewTab, triggerBrowserDownload } from '../../utils/download';
-import { RichTextEditor } from '../ui/RichTextEditor';
-import { htmlToPlainText, isProbablyHtml, plainTextToHtml, sanitizeHtmlForPreview } from '../../utils/richText';
+import { htmlToPlainText, isProbablyHtml, plainTextToHtml, sanitizeHtmlForPreview, ensureHtmlDraft } from '../../utils/richText';
 import { stripLetterVendorBranding, stripLetterVendorBrandingHtml } from '../../lib/letterBodySafety';
 import { callAiGateway } from '../../lib/aiClient';
 import { extractFirstJsonObject } from '../../utils/jsonExtract';
@@ -445,12 +444,6 @@ function defaultDisputeFooter(tone: LetterTone) {
     `Please review the attached exhibits and numbered factual reasons and delete inaccurate reporting as described. Send written confirmation and an updated report within the time period required by applicable law (typically 30 days).\n\n` +
     `Please do not sell or share my personal information beyond what is required to process this dispute.`
   );
-}
-
-function ensureHtmlDraft(s: string) {
-  const v = (s || '').trim();
-  if (!v) return '<p></p>';
-  return isProbablyHtml(v) ? v : plainTextToHtml(v);
 }
 
 function DisputeLetterPaperPreview({
@@ -1187,6 +1180,12 @@ export function LettersCommandCenter({
     handoffCount: number;
     creditLettersSearch: string;
   }>(null);
+  const [pendingPostGenerateHandoff, setPendingPostGenerateHandoff] = useState<null | {
+    letterId: string;
+    handoffCount: number;
+    creditLettersSearch: string;
+  }>(null);
+  const debtDraftWasOpenRef = React.useRef(false);
   const [validationHandoffConfirm, setValidationHandoffConfirm] = useState<null | {
     debtName: string;
     matchCount: number;
@@ -2249,7 +2248,10 @@ WRITING STANDARD:
       setFocusedKeyByBureau((prev) => ({ ...prev, [b]: null }));
 
       setStoreVersion((v) => v + 1);
-      focusStudioVaultStrip(letter.id);
+      setDraftSavedPreviewLetter(letter);
+      window.setTimeout(() => {
+        document.getElementById('fc-letter-studio-vault')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 120);
     } catch (e: any) {
       setPdfErr(e?.message || 'Failed to generate PDF.');
     } finally {
@@ -3131,6 +3133,33 @@ useEffect(() => {
   /** Optional PartnerNote body attached on Save PDF (debt + credit studios) */
   const [letterPartnerNote, setLetterPartnerNote] = useState('');
 
+  useEffect(() => {
+    if (draft) {
+      debtDraftWasOpenRef.current = true;
+      return;
+    }
+    if (!debtDraftWasOpenRef.current) return;
+    debtDraftWasOpenRef.current = false;
+    setPendingPostGenerateHandoff((pending) => {
+      if (pending) setPostGenerateHandoff(pending);
+      return null;
+    });
+  }, [draft]);
+
+  const closeDebtDraftModal = () => {
+    if (draftBusy) return;
+    setDraftErr(null);
+    setDraft((current) => {
+      if (current?.letterId) {
+        window.setTimeout(() => setVaultHighlightLetterId(current.letterId!), 0);
+      }
+      return null;
+    });
+  };
+
+  const bumpVaultStore = () => setStoreVersion((v) => v + 1);
+  const suppressVaultAutoPreview = Boolean(draft);
+
   const fillDebtRecipientAddress = async () => {
     if (!debt) {
       setDraftNotice('Select a debt case first, then fill the mailing address.');
@@ -3681,7 +3710,6 @@ useEffect(() => {
       });
     }
 
-    setVaultHighlightLetterId(letterId);
     setStoreVersion((v) => v + 1);
     setDraftNotice(
       handoff.length
@@ -3705,11 +3733,69 @@ useEffect(() => {
       params.set('handoff', 'validation');
       if (debt?.id) params.set('debtId', debt.id);
       params.set('letterId', letterId);
-      setPostGenerateHandoff({
+      setPendingPostGenerateHandoff({
         letterId,
         handoffCount: handoff.length,
         creditLettersSearch: params.toString(),
       });
+    }
+  };
+
+  const saveDebtDraftText = async (): Promise<boolean> => {
+    if (!draft || !partner?.id) return false;
+    const bodyHtml = stripLetterVendorBrandingHtml(ensureHtmlDraft(draft.html || ''));
+    const plain = stripLetterVendorBranding(htmlToPlainText(bodyHtml));
+    if (!plain.trim()) {
+      setDraftErr('Draft is empty.');
+      return false;
+    }
+    setDraftBusy(true);
+    setDraftErr(null);
+    try {
+      persistDebtSenderSnapshot();
+      const createdAt = new Date().toISOString();
+      const title =
+        draft.title ||
+        resolveDebtDraftTitle({
+          specId: draft.specId,
+          catalogId: draft.catalogId,
+          track: draft.type,
+          debtName: debt?.name,
+        });
+      const saved = upsertLetter({
+        id: draft.letterId || newId('letter'),
+        partnerId: partner.id,
+        type: letterTypeForDebtDraft(draft.type),
+        title,
+        createdAt,
+        body: bodyHtml,
+        status: 'generated',
+        relatedEvidenceIds: draft.evidenceId ? [draft.evidenceId] : [],
+        meta: metaForDebtDraft(draft, debt, String(recommendedScenario || '')),
+      });
+      addAuditEvent({
+        partnerId: partner.id,
+        actorType: layout === 'embedded' ? 'admin' : 'partner',
+        actorEmail: undefined,
+        action: 'letter.saved',
+        entityType: 'letter',
+        entityId: saved.id,
+        meta: { kind: draft.type, source: 'save_text', debtId: debt?.id ?? null },
+      });
+      notifyPartnerLetterEvent({
+        event: 'saved',
+        letterIds: [saved.id],
+        letterTitles: [title],
+      });
+      setStoreVersion((v) => v + 1);
+      setDraft((prev) => (prev ? { ...prev, letterId: saved.id, html: bodyHtml } : prev));
+      setDraftNotice('Draft text saved to Letters Vault — add a PDF anytime with Save & generate letter.');
+      return true;
+    } catch (e: any) {
+      setDraftErr(e?.message || 'Failed to save letter text.');
+      return false;
+    } finally {
+      setDraftBusy(false);
     }
   };
 
@@ -3719,7 +3805,8 @@ useEffect(() => {
       setDraftErr('Letters is locked on your current plan. Open Billing to unlock Letters.');
       return false;
     }
-    const plain = stripLetterVendorBranding(htmlToPlainText(draft.html || ''));
+    const bodyHtml = stripLetterVendorBrandingHtml(ensureHtmlDraft(draft.html || ''));
+    const plain = stripLetterVendorBranding(htmlToPlainText(bodyHtml));
     if (!plain.trim()) {
       setDraftErr('Draft is empty.');
       return false;
@@ -3751,7 +3838,7 @@ useEffect(() => {
         type: letterTypeForDebtDraft(draft.type),
         title,
         createdAt,
-        body: plain,
+        body: bodyHtml,
         status: 'generated',
         pdfBlobRef: pdf.pdfBlobRef ?? undefined,
         pdfFilename: pdf.filename,
@@ -3832,6 +3919,7 @@ useEffect(() => {
       setDraftErr('Letter generation is locked on this plan. Grant Debt or Letters access, then click Generate letter.');
       return;
     }
+    const bodyHtml = stripLetterVendorBrandingHtml(plainTextToHtml(plain));
     const previewKey = `${args.track}:${args.catalogId || args.specId}:${Date.now()}`;
     const letterId = newId('letter');
     const title = resolveDebtDraftTitle({
@@ -3847,7 +3935,7 @@ useEffect(() => {
         type: letterTypeForDebtDraft(args.track),
         title,
         createdAt: new Date().toISOString(),
-        body: plain,
+        body: bodyHtml,
         status: 'generated',
         relatedEvidenceIds: [],
         meta: metaForDebtDraft(
@@ -3871,7 +3959,6 @@ useEffect(() => {
         letterTitles: [title],
       });
       setStoreVersion((v) => v + 1);
-      setVaultHighlightLetterId(letterId);
       if (args.track === 'validation') {
         completeValidationCreditHandoff(letterId, args.track);
       }
@@ -3883,7 +3970,7 @@ useEffect(() => {
       catalogId: args.catalogId,
       type: args.track,
       title,
-      html: plainTextToHtml(plain),
+      html: bodyHtml,
       preferPreview: true,
       previewKey,
       letterId,
@@ -4487,8 +4574,7 @@ useEffect(() => {
               className="absolute inset-0"
               onClick={() => {
                 if (draftBusy) return;
-                setDraftErr(null);
-                setDraft(null);
+                closeDebtDraftModal();
               }}
             />
             <div
@@ -4591,11 +4677,7 @@ useEffect(() => {
                   </button>
                   <button
                     type="button"
-                    onClick={() => {
-                      if (draftBusy) return;
-                      setDraftErr(null);
-                      setDraft(null);
-                    }}
+                    onClick={() => closeDebtDraftModal()}
                     className="hidden sm:inline-flex px-3 py-2 rounded-xl border border-white/[0.08] bg-white/5 hover:bg-white/10 text-[10px] font-black uppercase tracking-widest text-white/70 transition-all disabled:opacity-60 disabled:cursor-not-allowed"
                     disabled={draftBusy}
                   >
@@ -4603,11 +4685,7 @@ useEffect(() => {
                   </button>
                   <button
                     type="button"
-                    onClick={() => {
-                      if (draftBusy) return;
-                      setDraftErr(null);
-                      setDraft(null);
-                    }}
+                    onClick={() => closeDebtDraftModal()}
                     className="inline-flex items-center justify-center w-10 h-10 rounded-xl border border-white/[0.08] bg-white/5 hover:bg-white/10 text-white/70 transition-all disabled:opacity-60 disabled:cursor-not-allowed"
                     disabled={draftBusy}
                     aria-label="Close draft"
@@ -4639,14 +4717,13 @@ useEffect(() => {
                       </p>
                     </div>
                   ) : null}
-                  <DebtLetterRichDraftWorkspace
+                  <LetterEditorShell
                     html={ensureHtmlDraft(draft.html || '')}
                     onChangeHtml={(html) => setDraft((prev) => (prev ? { ...prev, html } : prev))}
                     accent={draft.type === 'court' ? 'fuchsia' : 'emerald'}
-                    minHeightPx={280}
+                    minHeightPx={480}
                     editorLabel="Edit letter"
-                    heroLayout
-                    initialView="preview"
+                    initialView="split"
                     previewResetKey={draft.previewKey || `${draft.specId}:${draft.catalogId || ''}`}
                     showAddressChrome={false}
                   />
@@ -4806,6 +4883,16 @@ useEffect(() => {
                     hint={layout === 'embedded' ? 'Notify partner by email' : 'Email me on save'}
                     label={layout === 'embedded' ? 'Email partner' : 'Email me'}
                   />
+                  <div className="flex flex-wrap items-center gap-2">
+                  <button
+                    type="button"
+                    disabled={draftBusy}
+                    onClick={() => void saveDebtDraftText()}
+                    className={`${FINELY_OS_SECONDARY_BTN} disabled:opacity-60 disabled:cursor-not-allowed`}
+                    title="Save edited text to Letters Vault without generating a PDF"
+                  >
+                    {draftBusy ? 'Saving…' : 'Save text to vault'}
+                  </button>
                   <button
                     type="button"
                     disabled={draftBusy}
@@ -4822,6 +4909,7 @@ useEffect(() => {
                     {draftBusy ? 'Saving…' : 'Save & generate letter'}
                   </button>
                   </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -4830,7 +4918,7 @@ useEffect(() => {
       ) : null}
 
       <PostGenerateLetterModal
-        open={Boolean(postGenerateHandoff)}
+        open={Boolean(postGenerateHandoff) && !draft}
         handoffCount={postGenerateHandoff?.handoffCount ?? 0}
         onClose={() => setPostGenerateHandoff(null)}
         onAction={handlePostGenerateLetterAction}
@@ -5863,11 +5951,15 @@ useEffect(() => {
                                   </button>
                                 </div>
                               </div>
-                              <RichTextEditor
-                                valueHtml={ensureHtmlDraft(introHtml || '')}
+                              <LetterEditorShell
+                                html={ensureHtmlDraft(introHtml || '')}
                                 onChangeHtml={(html) => setIntroByBureau((prev) => ({ ...prev, [b]: html }))}
-                                placeholder="Write the opening paragraphs hereâ€¦"
-                                minHeightPx={260}
+                                placeholder="Write the opening paragraphs here…"
+                                minHeightPx={480}
+                                editorLabel="Opening paragraphs"
+                                accent="fuchsia"
+                                previewCompact
+                                showViewToggle={false}
                               />
                               <div className="text-[11px] text-white/40">
                                 The rest of the letter is structured automatically (items, screenshots, reasons).
@@ -5888,11 +5980,15 @@ useEffect(() => {
                                   </button>
                                 </div>
                               </div>
-                              <RichTextEditor
-                                valueHtml={ensureHtmlDraft(footerHtml || '')}
+                              <LetterEditorShell
+                                html={ensureHtmlDraft(footerHtml || '')}
                                 onChangeHtml={(html) => setFooterByBureau((prev) => ({ ...prev, [b]: html }))}
-                                placeholder="Write the closing block hereâ€¦"
-                                minHeightPx={320}
+                                placeholder="Write the closing block here…"
+                                minHeightPx={480}
+                                editorLabel="Closing / demand block"
+                                accent="fuchsia"
+                                previewCompact
+                                showViewToggle={false}
                               />
                               <div className="text-[11px] text-white/40">
                                 This is the editable bottom section. Signature is appended automatically.
@@ -6329,6 +6425,8 @@ useEffect(() => {
                 subtitle="Saved dispute PDFs from this studio — preview, mail, or delete here. Full archive opens separately."
                 onOpenFullVault={() => openVault()}
                 highlightLetterId={vaultHighlightLetterId}
+                suppressAutoPreview={suppressVaultAutoPreview}
+                onLetterSaved={bumpVaultStore}
                 canMail={canMailLetters}
                 onMailLetter={requestMailLetter}
               />
@@ -6461,6 +6559,8 @@ useEffect(() => {
               generateBusy={generateBusy}
               generateError={draftErr}
               vaultHighlightLetterId={vaultHighlightLetterId}
+              suppressVaultAutoPreview={suppressVaultAutoPreview}
+              onVaultLetterSaved={bumpVaultStore}
               canMailLetters={canMailLetters}
               onMailLetter={requestMailLetter}
             />
@@ -6512,6 +6612,8 @@ useEffect(() => {
               canMailLetters={canMailLetters}
               onMailLetter={requestMailLetter}
               vaultHighlightLetterId={vaultHighlightLetterId}
+              suppressVaultAutoPreview={suppressVaultAutoPreview}
+              onVaultLetterSaved={bumpVaultStore}
               selectedSummonsDocId={selectedSummonsDocId}
               onSummonsDocChange={setSelectedSummonsDocId}
               summonsDocCount={processedDocuments.filter((d) => {

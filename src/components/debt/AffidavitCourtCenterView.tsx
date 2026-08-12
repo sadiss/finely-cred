@@ -147,6 +147,8 @@ export function AffidavitCourtCenterView({
   canMailLetters = false,
   onMailLetter,
   vaultHighlightLetterId = null,
+  suppressVaultAutoPreview = false,
+  onVaultLetterSaved,
   adminPartnerId,
 }: {
   debt: DebtCase | null;
@@ -177,6 +179,8 @@ export function AffidavitCourtCenterView({
   canMailLetters?: boolean;
   onMailLetter?: (letter: LetterRecord) => void;
   vaultHighlightLetterId?: string | null;
+  suppressVaultAutoPreview?: boolean;
+  onVaultLetterSaved?: () => void;
   adminPartnerId?: string;
 }) {
   const nav = (href: string) => adminEmbeddedNavHref(adminPartnerId, href);
@@ -955,6 +959,8 @@ export function AffidavitCourtCenterView({
                 subtitle="Saved answer, affidavit, and court PDFs — preview, mail, or delete here."
                 onOpenFullVault={onOpenLettersVault}
                 highlightLetterId={vaultHighlightLetterId}
+                suppressAutoPreview={suppressVaultAutoPreview}
+                onLetterSaved={onVaultLetterSaved}
                 canMail={canMailLetters}
                 onMailLetter={onMailLetter}
               />

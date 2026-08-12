@@ -7,6 +7,7 @@ import {
   Download,
   Megaphone,
   Sparkles,
+  Star,
   Wand2,
   X,
 } from 'lucide-react';
@@ -51,8 +52,17 @@ import {
 import { scriptFromVideoPlan } from './contentStudioVoice';
 import { saveVideoCommandPlan } from './studioCommandRepo';
 import { saveContentStudioAsset } from './contentStudioRepo';
+import { exportToPresenterReference, runAutoProductionPipeline } from '../../lib/presenterVideoQualityBridge';
 import { ContentStudioVideoPreview } from './ContentStudioVideoPreview';
-import { VideoSceneDeck } from './VideoSceneDeck';
+import { VideoCreationCopilotPanel } from './VideoCreationCopilotPanel';
+import { mergeVideoCopilotBrief } from './videoCreationCopilotBrain';
+import {
+  assignTransitionForScene,
+  buildScenePrompt,
+  getVideoStylePreset,
+  VIDEO_STYLE_PRESETS,
+} from '../../domain/videoStylePresets';
+import { VideoTimelineEditor } from './VideoTimelineEditor';
 import type { VideoCommandPlan, VideoCommandRequest, VideoScenePlan } from './types';
 import type { LeadEngineLane } from '../leadIntel/leadEngineAutonomy';
 
@@ -91,25 +101,34 @@ const WIZARD_PRESETS: Array<{
 ];
 
 const WIZARD_STEPS = [
-  { id: 1, label: 'Brief' },
-  { id: 2, label: 'Scenes' },
-  { id: 3, label: 'Export' },
+  { id: 1, label: 'Plan' },
+  { id: 2, label: 'Format' },
+  { id: 3, label: 'Scenes' },
+  { id: 4, label: 'Edit & Style' },
+  { id: 5, label: 'Export' },
 ] as const;
+
+type WizardStep = (typeof WIZARD_STEPS)[number]['id'];
 
 function parsePlanJson(raw: unknown, request: VideoCommandRequest): VideoCommandPlan | null {
   const data = raw as { scenes?: unknown[]; title?: string; hook?: string; cta?: string };
   if (!data?.scenes?.length) return null;
   const fallback = buildFallbackVideoPlan(request);
-  const scenes = data.scenes.slice(0, 18).map((s: any, idx: number) => ({
+  const sceneCount = Math.min(18, data.scenes.length);
+  const scenes = data.scenes.slice(0, sceneCount).map((s: any, idx: number) => ({
     id: `scene_${idx + 1}`,
     beat: String(s.beat || s.title || fallback.scenes[idx]?.beat || `Scene ${idx + 1}`),
     durationSec: Math.max(2, Math.min(10, Math.round(Number(s.durationSec || fallback.scenes[idx]?.durationSec || 4)))),
-    visualPrompt: String(s.visualPrompt || s.imagePrompt || fallback.scenes[idx]?.visualPrompt || request.prompt),
-    motionPrompt: String(s.motionPrompt || fallback.scenes[idx]?.motionPrompt || 'Subtle cinematic motion.'),
+    visualPrompt: buildScenePrompt(
+      String(s.visualPrompt || s.imagePrompt || fallback.scenes[idx]?.visualPrompt || request.prompt),
+      request.visualStyle,
+    ),
+    motionPrompt: String(s.motionPrompt || fallback.scenes[idx]?.motionPrompt || getVideoStylePreset(request.visualStyle).motionHint),
     caption: String(s.caption || fallback.scenes[idx]?.caption || ''),
     voiceover: String(s.voiceover || fallback.scenes[idx]?.voiceover || ''),
     callout: s.callout ? String(s.callout) : fallback.scenes[idx]?.callout,
     complianceNote: s.complianceNote ? String(s.complianceNote) : fallback.scenes[idx]?.complianceNote,
+    transition: assignTransitionForScene(request.visualStyle, idx, sceneCount),
   }));
   return {
     ...fallback,
@@ -143,7 +162,8 @@ export function VideoCreateWizard({
   onExportComplete,
 }: VideoCreateWizardProps) {
   const navigate = useNavigate();
-  const [step, setStep] = useState<1 | 2 | 3>(1);
+  const [step, setStep] = useState<WizardStep>(1);
+  const [visualsReady, setVisualsReady] = useState(false);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
@@ -152,6 +172,8 @@ export function VideoCreateWizard({
   const [projectId, setProjectId] = useState<string | null>(null);
   const [exportBlobRef, setExportBlobRef] = useState<string | null>(null);
   const [exportFilename, setExportFilename] = useState<string | null>(null);
+  const [exportAssetId, setExportAssetId] = useState<string | null>(null);
+  const [autoProductionDone, setAutoProductionDone] = useState(false);
   const [request, setRequest] = useState<VideoCommandRequest>(() =>
     normalizeVideoRequest({
       prompt: 'Create a premium Finely Cred video that educates partners without overpromising outcomes.',
@@ -189,6 +211,9 @@ export function VideoCreateWizard({
     setPlan(null);
     setProjectId(null);
     setExportBlobRef(null);
+    setExportAssetId(null);
+    setAutoProductionDone(false);
+    setVisualsReady(false);
     setErr(null);
     setNotice(null);
   }, [open, activePreset, initialRequest]);
@@ -199,13 +224,97 @@ export function VideoCreateWizard({
     setRequest((r) => normalizeVideoRequest({ ...r, ...preset.request }));
   };
 
+  const applyCopilotBrief = useCallback((patch: Partial<VideoCommandRequest>, suggestedPreset?: VideoCreateWizardPresetId) => {
+    setRequest((r) => normalizeVideoRequest({ ...r, ...mergeVideoCopilotBrief(patch, suggestedPreset) }));
+    setNotice('Copilot plan applied — review the brief, then generate scenes.');
+  }, []);
+
   const patchSceneInPlan = useCallback((sceneId: string, patch: Partial<VideoScenePlan>) => {
     setPlan((prev) => {
       if (!prev) return prev;
       const scenes = prev.scenes.map((s) => (s.id === sceneId ? { ...s, ...patch } : s));
       return { ...prev, scenes, totalDurationSec: scenes.reduce((a, b) => a + b.durationSec, 0) };
     });
+    if (projectId && patch.durationSec != null) {
+      patchScene(projectId, sceneId, { durationSec: patch.durationSec });
+    }
+  }, [projectId]);
+
+  const reorderSceneInPlan = useCallback((sceneId: string, direction: 'up' | 'down') => {
+    setPlan((prev) => {
+      if (!prev) return prev;
+      const idx = prev.scenes.findIndex((s) => s.id === sceneId);
+      if (idx < 0) return prev;
+      const nextIdx = direction === 'up' ? idx - 1 : idx + 1;
+      if (nextIdx < 0 || nextIdx >= prev.scenes.length) return prev;
+      const scenes = [...prev.scenes];
+      [scenes[idx], scenes[nextIdx]] = [scenes[nextIdx]!, scenes[idx]!];
+      const withTransitions = scenes.map((s, i) => ({
+        ...s,
+        transition: assignTransitionForScene(prev.request.visualStyle, i, scenes.length),
+      }));
+      return { ...prev, scenes: withTransitions, totalDurationSec: withTransitions.reduce((a, b) => a + b.durationSec, 0) };
+    });
   }, []);
+
+  const regenStill = useCallback(
+    async (sceneId: string) => {
+      if (!plan || !projectId) return;
+      const scene = plan.scenes.find((s) => s.id === sceneId);
+      if (!scene) return;
+      setBusy(true);
+      setErr(null);
+      try {
+        const project = getMediaProject(projectId);
+        if (!project) throw new Error('Project not found.');
+        const mediaScene = project.scenes.find((s) => s.prompt === scene.visualPrompt || s.caption === scene.caption);
+        const rendered = await renderScene({
+          projectId: project.id,
+          sceneId: mediaScene?.id ?? sceneId,
+          prompt: scene.visualPrompt,
+          aspect: project.aspect,
+          onProgress: (msg) => setNotice(msg),
+        });
+        if (rendered.imageDataUrl) {
+          patchSceneInPlan(sceneId, { imageDataUrl: rendered.imageDataUrl });
+          if (mediaScene) patchScene(project.id, mediaScene.id, { imageDataUrl: rendered.imageDataUrl });
+        }
+        setNotice('Scene still regenerated.');
+      } catch (e: unknown) {
+        setErr(e instanceof Error ? e.message : 'Regen failed.');
+      } finally {
+        setBusy(false);
+      }
+    },
+    [plan, projectId, patchSceneInPlan],
+  );
+
+  const swapSceneStyle = useCallback(
+    (sceneId: string) => {
+      const cycle = VIDEO_STYLE_PRESETS.filter((p) => !['modern', 'bold'].includes(p.id)).map((p) => p.id);
+      setPlan((prev) => {
+        if (!prev) return prev;
+        const idx = prev.scenes.findIndex((s) => s.id === sceneId);
+        if (idx < 0) return prev;
+        const currentIdx = cycle.indexOf(prev.request.visualStyle as (typeof cycle)[number]);
+        const nextStyle = cycle[(currentIdx + 1) % cycle.length]!;
+        const preset = getVideoStylePreset(nextStyle);
+        const scenes = prev.scenes.map((s, i) =>
+          s.id === sceneId
+            ? {
+                ...s,
+                visualPrompt: buildScenePrompt(s.visualPrompt.split('. Premium')[0] || s.visualPrompt, nextStyle),
+                motionPrompt: preset.motionHint,
+                transition: assignTransitionForScene(nextStyle, i, prev.scenes.length),
+              }
+            : s,
+        );
+        return { ...prev, scenes };
+      });
+      setNotice('Scene style swapped — transitions updated for this shot.');
+    },
+    [],
+  );
 
   async function generatePlan() {
     setBusy(true);
@@ -240,7 +349,7 @@ export function VideoCreateWizard({
       saveVideoCommandPlan(nextPlan);
       setPlan(nextPlan);
       setRequest(normalized);
-      setStep(2);
+      setStep(3);
       setNotice(summarizePlan(nextPlan));
     } catch (e: unknown) {
       setErr(e instanceof Error ? e.message : 'Plan generation failed.');
@@ -258,6 +367,8 @@ export function VideoCreateWizard({
       let project: MediaProject;
       if (projectId) {
         project = getMediaProject(projectId)!;
+        project = convertPlanToMediaProject(plan, project);
+        upsertMediaProject(project);
       } else {
         project = createMediaProject({
           title: plan.title,
@@ -271,7 +382,7 @@ export function VideoCreateWizard({
 
       const missing = project.scenes.filter((s) => !s.imageDataUrl);
       for (let i = 0; i < missing.length; i += 1) {
-        const s = missing[i];
+        const s = missing[i]!;
         setNotice(`Generating visual ${i + 1}/${missing.length}…`);
         // eslint-disable-next-line no-await-in-loop
         const scene = await renderScene({
@@ -281,7 +392,11 @@ export function VideoCreateWizard({
           aspect: project.aspect,
           onProgress: (msg) => setNotice(msg),
         });
-        if (scene.imageDataUrl) patchScene(project.id, s.id, { imageDataUrl: scene.imageDataUrl });
+        if (scene.imageDataUrl) {
+          patchScene(project.id, s.id, { imageDataUrl: scene.imageDataUrl });
+          const planScene = plan.scenes[i];
+          if (planScene) patchSceneInPlan(planScene.id, { imageDataUrl: scene.imageDataUrl });
+        }
       }
 
       try {
@@ -303,10 +418,33 @@ export function VideoCreateWizard({
         /* voice optional offline */
       }
 
-      setStep(3);
-      setNotice('Scenes ready — preview and export below.');
+      setVisualsReady(true);
+      setStep(4);
+      setNotice('Visuals ready — tweak timeline, then export.');
     } catch (e: unknown) {
       setErr(e instanceof Error ? e.message : 'Visual generation failed.');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function continueToExport() {
+    if (!plan || !projectId) return;
+    setBusy(true);
+    setErr(null);
+    setNotice(null);
+    try {
+      const result = await runAutoProductionPipeline({
+        plan,
+        projectId,
+        onProgress: (msg) => setNotice(msg),
+      });
+      setPlan(result.plan);
+      setAutoProductionDone(true);
+      setNotice(result.notice);
+      setStep(5);
+    } catch (e: unknown) {
+      setErr(e instanceof Error ? e.message : 'Auto production failed.');
     } finally {
       setBusy(false);
     }
@@ -318,23 +456,36 @@ export function VideoCreateWizard({
     setErr(null);
     setNotice(null);
     try {
+      let activePlan = plan;
+      if (!autoProductionDone) {
+        const result = await runAutoProductionPipeline({
+          plan,
+          projectId,
+          onProgress: (msg) => setNotice(msg),
+        });
+        activePlan = result.plan;
+        setPlan(result.plan);
+        setAutoProductionDone(true);
+        if (result.notice) setNotice(result.notice);
+      }
+
       const project = getMediaProject(projectId);
       if (!project) throw new Error('Project not found.');
-      const stitched = await stitchProject({ project, plan });
+      const stitched = await stitchProject({ project, plan: activePlan });
       const { blob, filename, presetId } = stitched;
       downloadBlob(blob, filename);
       const store = getBlobStore();
-      const { ref } = await store.put(blob, { kind: 'content_studio_video', source: 'wizard', title: plan.title });
+      const { ref } = await store.put(blob, { kind: 'content_studio_video', source: 'wizard', title: activePlan.title });
       upsertResourceVideo({
-        title: `${plan.title} (Content Studio)`,
+        title: `${activePlan.title} (Content Studio)`,
         desc: 'Generated via video wizard. Review before publishing publicly.',
         blobRef: ref,
         mimeType: blob.type || 'video/webm',
         tags: ['content-studio', 'wizard', project.aspect],
         isPublic: false,
       });
-      saveContentStudioAsset({
-        title: plan.title,
+      const asset = saveContentStudioAsset({
+        title: activePlan.title,
         assetType: 'video',
         status: 'needs_review',
         provider: 'ffmpeg',
@@ -346,6 +497,7 @@ export function VideoCreateWizard({
       addRenderHistory(project.id, { presetId, filename, blobRef: ref, note: 'Video wizard export' });
       setExportBlobRef(ref);
       setExportFilename(filename);
+      setExportAssetId(asset.id);
       setNotice('Video exported — download started. Publish or send to Hannah when ready.');
       onExported?.();
       onExportComplete?.({ blobRef: ref, filename });
@@ -372,7 +524,7 @@ export function VideoCreateWizard({
       <div className={`${FINELY_OS_MODAL_SHELL} relative w-full max-w-4xl !max-h-[min(94vh,920px)]`}>
         <div className="flex items-start justify-between gap-3 border-b border-white/10 px-4 py-3">
           <div>
-            <p className={`${FINELY_OS_ENTITY_SUBLABEL} text-amber-300`}>Video wizard · step {step} of 3</p>
+            <p className={`${FINELY_OS_ENTITY_SUBLABEL} text-amber-300`}>Video wizard · step {step} of 5</p>
             <h2 className={FINELY_OS_ENTITY_TITLE}>Create your video</h2>
           </div>
           <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => onOpenChange(false)} aria-label="Close wizard">
@@ -411,6 +563,22 @@ export function VideoCreateWizard({
 
           {step === 1 ? (
             <div className="space-y-4">
+              <VideoCreationCopilotPanel compact onApplyBrief={applyCopilotBrief} />
+              <textarea
+                value={request.prompt}
+                onChange={(e) => setRequest((r) => ({ ...r, prompt: e.target.value }))}
+                rows={4}
+                className={`${FINELY_OS_COMPACT_TEXTAREA} w-full`}
+                placeholder="Describe the video: audience, hook, offer, compliance-safe tone…"
+              />
+              <p className={`text-xs ${FINELY_OS_ENTITY_BODY}`}>
+                Next: pick format, aspect, and visual style preset.
+              </p>
+            </div>
+          ) : null}
+
+          {step === 2 ? (
+            <div className="space-y-4">
               <div className="flex flex-wrap gap-2">
                 {WIZARD_PRESETS.map((p) => {
                   const active =
@@ -428,13 +596,50 @@ export function VideoCreateWizard({
                   );
                 })}
               </div>
-              <textarea
-                value={request.prompt}
-                onChange={(e) => setRequest((r) => ({ ...r, prompt: e.target.value }))}
-                rows={4}
-                className={`${FINELY_OS_COMPACT_TEXTAREA} w-full`}
-                placeholder="Describe the video: audience, hook, offer, compliance-safe tone…"
-              />
+              <div className="grid sm:grid-cols-2 gap-3">
+                <label className="block">
+                  <span className={FINELY_OS_ENTITY_SUBLABEL}>Duration (sec)</span>
+                  <input
+                    type="number"
+                    min={6}
+                    max={180}
+                    value={request.durationSec}
+                    onChange={(e) => setRequest((r) => ({ ...r, durationSec: Number(e.target.value) || 28 }))}
+                    className="fc-input mt-1"
+                  />
+                </label>
+                <label className="block">
+                  <span className={FINELY_OS_ENTITY_SUBLABEL}>Aspect</span>
+                  <select
+                    value={request.aspect}
+                    onChange={(e) => setRequest((r) => ({ ...r, aspect: e.target.value as VideoCommandRequest['aspect'] }))}
+                    className="mt-1 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2.5 text-sm text-white/80"
+                  >
+                    <option value="9:16">9:16 Reels</option>
+                    <option value="16:9">16:9 YouTube</option>
+                    <option value="1:1">1:1 Square</option>
+                  </select>
+                </label>
+              </div>
+              <label className="block">
+                <span className={FINELY_OS_ENTITY_SUBLABEL}>Visual style preset</span>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {VIDEO_STYLE_PRESETS.filter((p) => !['modern', 'bold'].includes(p.id)).map((p) => {
+                    const active = request.visualStyle === p.id;
+                    return (
+                      <button
+                        key={p.id}
+                        type="button"
+                        onClick={() => setRequest((r) => ({ ...r, visualStyle: p.id as VideoCommandRequest['visualStyle'] }))}
+                        className={`${finelyOsDeckTile('violet', active)} !w-auto px-3 py-2 text-left`}
+                      >
+                        <div className="text-sm font-bold text-white">{p.label}</div>
+                        <div className={`text-[10px] ${FINELY_OS_ENTITY_BODY}`}>{p.hint}</div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </label>
               <div className="grid sm:grid-cols-2 gap-3">
                 <label className="block">
                   <span className={FINELY_OS_ENTITY_SUBLABEL}>City / metro</span>
@@ -461,30 +666,68 @@ export function VideoCreateWizard({
                 </label>
               </div>
               <p className={`text-xs ${FINELY_OS_ENTITY_BODY}`}>
-                {lanePreset?.description} · Offer: {lanePreset?.freeGuide}
+                {lanePreset?.description} · Offer: {lanePreset?.freeGuide} · Style drives transitions + caption chrome
               </p>
             </div>
           ) : null}
 
-          {step === 2 && plan ? (
+          {step === 3 && plan ? (
             <div className="space-y-4">
               <div className={`${finelyOsCatalogCardCompact('amber')} !p-3`}>
                 <div className="text-white font-bold">{plan.title}</div>
                 <div className={`mt-1 text-xs ${FINELY_OS_ENTITY_BODY}`}>
-                  {plan.totalDurationSec}s · {plan.scenes.length} scenes · {plan.request.aspect}
+                  {plan.totalDurationSec}s · {plan.scenes.length} scenes · {plan.request.aspect} · {plan.request.visualStyle}
                 </div>
                 <p className={`mt-2 text-sm ${FINELY_OS_ENTITY_BODY}`}>{plan.hook}</p>
               </div>
-              <VideoSceneDeck scenes={plan.scenes} onSceneChange={patchSceneInPlan} editable />
-              <p className={`text-xs ${FINELY_OS_ENTITY_BODY}`}>Tap a scene to edit beat, caption, and voiceover in a popup.</p>
+              <VideoTimelineEditor
+                scenes={plan.scenes}
+                stylePresetId={plan.request.visualStyle}
+                onSceneChange={patchSceneInPlan}
+                onReorder={reorderSceneInPlan}
+                editable
+                showEnhancements={false}
+              />
+              <p className={`text-xs ${FINELY_OS_ENTITY_BODY}`}>
+                Reorder shots, trim duration, edit beats — then build visuals.
+              </p>
             </div>
           ) : null}
 
-          {step === 3 ? (
+          {step === 4 && plan ? (
+            <div className="space-y-4">
+              <div className={`${finelyOsCatalogCardCompact('violet')} !p-3`}>
+                <div className="text-white font-bold">Edit &amp; style</div>
+                <div className={`mt-1 text-xs ${FINELY_OS_ENTITY_BODY}`}>
+                  {getVideoStylePreset(plan.request.visualStyle).label} · {visualsReady ? 'Visuals generated' : 'Build visuals to preview stills'}
+                </div>
+              </div>
+              <VideoTimelineEditor
+                scenes={plan.scenes}
+                stylePresetId={plan.request.visualStyle}
+                onSceneChange={patchSceneInPlan}
+                onReorder={reorderSceneInPlan}
+                onRegenStill={visualsReady ? (id) => void regenStill(id) : undefined}
+                onSwapStyle={swapSceneStyle}
+                editable
+                showEnhancements
+              />
+              <p className={`text-xs ${FINELY_OS_ENTITY_BODY}`}>
+                Punchier captions, trim hints, regen stills, swap per-scene style — then continue to export.
+              </p>
+            </div>
+          ) : null}
+
+          {step === 5 ? (
             <div className="space-y-4">
               {exportBlobRef ? <ContentStudioVideoPreview blobRef={exportBlobRef} /> : null}
+              {autoProductionDone ? (
+                <div className="rounded-xl border border-sky-500/30 bg-sky-500/10 p-3 text-sm text-sky-100">
+                  Auto production applied — voice, captions, and transitions ready for export.
+                </div>
+              ) : null}
               <div className="flex flex-wrap gap-2">
-                {['Draft', 'Review', 'Resources', 'Hannah'].map((chip) => (
+                {['Auto VO', 'Captions', 'Transitions', 'Draft', 'Review', 'Resources', 'Hannah'].map((chip) => (
                   <span key={chip} className={finelyOsMicroStat(chip === 'Hannah' ? 'amber' : 'violet')}>
                     {chip}
                   </span>
@@ -500,23 +743,37 @@ export function VideoCreateWizard({
         <div className="border-t border-white/10 px-4 py-3 flex flex-wrap items-center justify-between gap-3">
           <div className="flex flex-wrap gap-2">
             {step > 1 ? (
-              <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => setStep((s) => (s > 1 ? ((s - 1) as 1 | 2 | 3) : s))}>
+              <button
+                type="button"
+                className={FINELY_OS_SECONDARY_BTN}
+                onClick={() => setStep((s) => (s > 1 ? ((s - 1) as WizardStep) : s))}
+              >
                 Back
               </button>
             ) : null}
           </div>
           <div className="flex flex-wrap gap-2">
             {step === 1 ? (
+              <button type="button" className={FINELY_OS_PRIMARY_BTN} onClick={() => setStep(2)}>
+                Format <ArrowRight size={14} />
+              </button>
+            ) : null}
+            {step === 2 ? (
               <button type="button" className={FINELY_OS_PRIMARY_BTN} onClick={() => void generatePlan()} disabled={busy}>
                 <Wand2 size={15} /> Generate scenes <ArrowRight size={14} />
               </button>
             ) : null}
-            {step === 2 ? (
+            {step === 3 ? (
               <button type="button" className={FINELY_OS_PRIMARY_BTN} onClick={() => void buildProjectAndVisuals()} disabled={busy || !plan}>
                 <Sparkles size={15} /> Build visuals &amp; voice
               </button>
             ) : null}
-            {step === 3 ? (
+            {step === 4 ? (
+              <button type="button" className={FINELY_OS_PRIMARY_BTN} onClick={() => void continueToExport()} disabled={!visualsReady || busy}>
+                Continue to export <ArrowRight size={14} />
+              </button>
+            ) : null}
+            {step === 5 ? (
               <>
                 <button
                   type="button"
@@ -528,6 +785,24 @@ export function VideoCreateWizard({
                   }}
                 >
                   <Download size={14} /> Download
+                </button>
+                <button
+                  type="button"
+                  className={FINELY_OS_SECONDARY_BTN}
+                  disabled={!exportBlobRef}
+                  onClick={() => {
+                    if (!exportBlobRef || !plan) return;
+                    exportToPresenterReference({
+                      blobRef: exportBlobRef,
+                      assetId: exportAssetId ?? undefined,
+                      title: plan.title,
+                      plan,
+                      project: projectId ? getMediaProject(projectId) ?? undefined : undefined,
+                    });
+                    setNotice('Saved as presenter quality reference — Resources admin banner updated.');
+                  }}
+                >
+                  <Star size={14} /> Set quality reference
                 </button>
                 <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => navigate(hannahUrl)}>
                   <Megaphone size={14} /> Send to Hannah
@@ -555,9 +830,9 @@ export function VideoCreateWizardEntry({ onStart, activePreset = 'reel_28' }: Vi
     <div className={`${finelyOsCatalogCardCompact('amber')} space-y-3`}>
       <div>
         <p className={`${FINELY_OS_ENTITY_SUBLABEL} text-amber-300`}>Easy mode</p>
-        <h2 className={FINELY_OS_ENTITY_TITLE}>3-step video wizard</h2>
+        <h2 className={FINELY_OS_ENTITY_TITLE}>5-step video wizard</h2>
         <p className={`mt-1 text-sm ${FINELY_OS_ENTITY_BODY} max-w-2xl`}>
-          Type your brief, review a horizontal scene deck, export WebM — then publish to Resources or send to Hannah for tracked links.
+          Plan → format → scenes → edit &amp; style → export WebM — then publish to Resources or send to Hannah for tracked links.
         </p>
       </div>
       <div className="flex flex-wrap gap-2">

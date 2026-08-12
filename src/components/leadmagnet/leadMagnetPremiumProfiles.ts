@@ -27,8 +27,8 @@ export type LeadMagnetPremiumProfile = {
 };
 
 const SHARED_PORTAL = [
+  'Open live Letter Studio + task board — not PDF-only',
   'Upload reports and preview the real partner portal',
-  'Task board + document vault for your lane',
   'AI-assisted checklists (trial features lock after preview)',
   'Specialist follow-up when you want hands-on help',
 ];
@@ -54,10 +54,10 @@ function profile(
 export const LEAD_MAGNET_PREMIUM_PROFILES: Record<string, LeadMagnetPremiumProfile> = {
   debt: profile({
     accent: 'sky',
-    heroProof: ['FDCPA-aware validation workflows', 'Summons-first checklist if court papers arrived', 'Free portal preview — no card'],
-    problemTitle: 'Collectors move fast. Your paperwork should move faster.',
+    heroProof: ['Fight-back validation OS — not passive hope', 'Summons-first checklist if court papers arrived', 'Live debt lane portal — no card'],
+    problemTitle: 'Collectors move fast. Your fight-back paperwork should move faster.',
     problemBody:
-      'Most people freeze when collections hit — not because they lack willpower, but because they lack a sequence. This kit gives you the order of operations: validate, document, respond, escalate.',
+      'Most people freeze when collections hit — not because they lack willpower, but because they lack a sequence. This kit gives you the order of operations: validate in writing, document every contact, respond with proof, escalate when they stall.',
     painPoints: [
       'Calls that never stop because nothing is in writing',
       'Accounts re-aging or showing balances you cannot verify',
@@ -88,8 +88,8 @@ export const LEAD_MAGNET_PREMIUM_PROFILES: Record<string, LeadMagnetPremiumProfi
       { title: 'Summons red-flag scanner', desc: 'Quick triage if court paperwork landed in your mailbox.' },
     ],
     portalHighlights: SHARED_PORTAL,
-    captureHeadline: 'Get the debt validation playbook',
-    captureSub: 'PDF + call scripts + portal preview. Educational only — not legal advice.',
+    captureHeadline: 'Get the fight-back debt validation playbook',
+    captureSub: 'Live portal tools + call scripts + validation letters. Educational only — not legal advice.',
     successHeadline: 'Your debt playbook + validation toolkit are ready',
     formStepTitle: 'Unlock the validation kit',
     formStepSub: 'Instant PDF. Casey, your debt strategist, can review your next step after download.',

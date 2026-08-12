@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { ArrowRight, Bot, CheckCircle2, Clapperboard, Download, Film, Image as ImageIcon, Mic2, Play, Plus, Sparkles, Trash2, Wand2 } from 'lucide-react';
+import { ArrowRight, Bot, CheckCircle2, Clapperboard, Download, Film, Image as ImageIcon, Mic2, Play, Plus, Sparkles, Star, Trash2, Wand2 } from 'lucide-react';
 import { getBlobStore } from '../../storage/getBlobStore';
 import { addAudioTrack, deleteAudioTrack, deleteMediaProject, getMediaProject, listMediaProjects } from '../../data/mediaStudioRepo';
 import { renderContentStudioNarration, scriptFromVideoPlan } from './contentStudioVoice';
@@ -18,6 +18,9 @@ import {
 } from './videoCommandActions';
 import { CONTENT_STUDIO_CAPABILITIES, SUPER_VIDEO_TIERS } from './contentStudioPresets';
 import { normalizeVideoRequest } from './mediaCommandBrain';
+import { VideoCreationCopilotPanel } from './VideoCreationCopilotPanel';
+import { mergeVideoCopilotBrief } from './videoCreationCopilotBrain';
+import { exportToPresenterReference } from '../../lib/presenterVideoQualityBridge';
 import type { Aspect, MediaProject } from '../../domain/mediaStudio';
 
 /** Anti-list storyboard: deck tiles + one focused beat (not a vertical prompt wall). */
@@ -268,6 +271,24 @@ export function GeminiStyleVideoCommand({ initialRequest }: { initialRequest?: P
               <button
                 type="button"
                 className="fc-button-soft"
+                disabled={!lastExport.blobRef}
+                onClick={() => {
+                  const project = getMediaProject(lastExport.projectId);
+                  exportToPresenterReference({
+                    blobRef: lastExport.blobRef,
+                    assetId: lastExport.assetId,
+                    title: lastExport.title,
+                    plan: activePlan,
+                    project: project ?? undefined,
+                  });
+                  setNotice('Saved as presenter quality reference — match from Resources admin banner.');
+                }}
+              >
+                <Star size={14} /> Set quality reference
+              </button>
+              <button
+                type="button"
+                className="fc-button-soft"
                 onClick={() => {
                   if (lastExport.assetId) deleteContentStudioAsset(lastExport.assetId);
                   setLastExport(null);
@@ -383,7 +404,13 @@ export function GeminiStyleVideoCommand({ initialRequest }: { initialRequest?: P
         title="Type the video you want. The system builds the plan, scenes, captions, voiceover, and render path."
         right={<button type="button" className="fc-button-brand" onClick={() => void generatePlan('ai')} disabled={busy}><Wand2 size={15} /> Generate video plan</button>}
       >
-        <div className="rounded-[2rem] border border-amber-400/20 bg-gradient-to-br from-amber-500/12 via-white/[0.04] to-black/30 p-5 md:p-7 space-y-5">
+        <VideoCreationCopilotPanel
+          onApplyBrief={(patch, suggestedPreset) => {
+            setRequest((r) => normalizeVideoRequest(mergeVideoCopilotBrief(patch, suggestedPreset)));
+            setNotice('Copilot brief applied — generate a video plan when ready.');
+          }}
+        />
+        <div className="rounded-[2rem] border border-amber-400/20 bg-gradient-to-br from-amber-500/12 via-white/[0.04] to-black/30 p-5 md:p-7 space-y-5 mt-4">
           <textarea
             value={request.prompt}
             onChange={(e) => setRequest((r) => ({ ...r, prompt: e.target.value }))}
@@ -394,7 +421,7 @@ export function GeminiStyleVideoCommand({ initialRequest }: { initialRequest?: P
             <label className="block"><div className="text-[10px] uppercase tracking-widest text-white/40">Duration</div><input type="number" value={request.durationSec} min={6} max={180} onChange={(e) => setRequest((r) => ({ ...r, durationSec: Number(e.target.value) || 28 }))} className="fc-input mt-2" /></label>
             <label className="block"><div className="text-[10px] uppercase tracking-widest text-white/40">Aspect</div><select value={request.aspect} onChange={(e) => setRequest((r) => ({ ...r, aspect: e.target.value as Aspect }))} className="mt-2 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-3 text-sm text-white/80"><option value="9:16">9:16 Reels/Shorts</option><option value="16:9">16:9 YouTube</option><option value="1:1">1:1 Square</option></select></label>
             <label className="block"><div className="text-[10px] uppercase tracking-widest text-white/40">Intent</div><select value={request.intent} onChange={(e) => setRequest((r) => ({ ...r, intent: e.target.value as any }))} className="mt-2 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-3 text-sm text-white/80"><option value="lead_magnet_ad">Lead magnet ad</option><option value="business_credit_education">Business credit education</option><option value="tradeline_explainer">Tradeline explainer</option><option value="funding_readiness">Funding readiness</option><option value="recruiting_ad">Recruiting ad</option><option value="authority_clip">Authority clip</option><option value="event_promo">Event promo</option></select></label>
-            <label className="block"><div className="text-[10px] uppercase tracking-widest text-white/40">Visual style</div><select value={request.visualStyle} onChange={(e) => setRequest((r) => ({ ...r, visualStyle: e.target.value as any }))} className="mt-2 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-3 text-sm text-white/80"><option value="luxury">Luxury</option><option value="cinematic">Cinematic</option><option value="modern">Modern</option><option value="bold">Bold</option><option value="minimal">Minimal</option></select></label>
+            <label className="block"><div className="text-[10px] uppercase tracking-widest text-white/40">Visual style</div><select value={request.visualStyle} onChange={(e) => setRequest((r) => ({ ...r, visualStyle: e.target.value as any }))} className="mt-2 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-3 text-sm text-white/80"><option value="luxury">Luxury</option><option value="cinematic">Cinematic</option><option value="documentary">Documentary</option><option value="kinetic">Kinetic</option><option value="minimal">Minimal</option><option value="ugc_reel">UGC Reel</option><option value="modern">Modern</option><option value="bold">Bold</option></select></label>
             <label className="block"><div className="text-[10px] uppercase tracking-widest text-white/40">Voice</div><select value={request.voiceStyle} onChange={(e) => setRequest((r) => ({ ...r, voiceStyle: e.target.value as any }))} className="mt-2 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-3 text-sm text-white/80"><option value="none">No voice</option><option value="warm_authority">Warm authority</option><option value="luxury_confident">Luxury confident</option><option value="direct_operator">Direct operator</option><option value="friendly_educator">Friendly educator</option></select></label>
             <label className="block"><div className="text-[10px] uppercase tracking-widest text-white/40">City</div><input value={request.city ?? ''} onChange={(e) => setRequest((r) => ({ ...r, city: e.target.value }))} className="fc-input mt-2" placeholder="Dallas" /></label>
           </div>

@@ -4243,6 +4243,19 @@ html[data-fc-theme="light"] ::selection {
 .fc-paper-prose p {
   margin: 0 0 10px 0;
 }
+.fc-paper-prose p + p {
+  margin-top: 0.65em;
+}
+.fc-paper-prose p:empty,
+.fc-paper-prose p:has(> br:only-child) {
+  min-height: 0.85em;
+  margin: 0 0 8px 0;
+}
+.fc-paper-prose br + br {
+  display: block;
+  margin-top: 0.45em;
+  content: '';
+}
 .fc-paper-prose ul,
 .fc-paper-prose ol {
   padding-left: 18px;
