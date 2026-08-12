@@ -61,15 +61,15 @@ const LANE_CTA_INTENT: Partial<
   Record<string, { intent: FinelyCtaIntentId; options?: FinelyCtaIntentOptions }>
 > = {
   credit_restore: { intent: 'personal_free_guide' },
-  score_roadmap: { intent: 'personal_free_guide' },
+  score_roadmap: { intent: 'score_roadmap_intake' },
   debt_relief: { intent: 'personal_free_guide' },
   business_credit: { intent: 'business_intake' },
-  tradeline_au: { intent: 'personal_free_guide' },
+  tradeline_au: { intent: 'tradeline_intake' },
   agency_white_label: { intent: 'business_intake' },
-  credit_specialist: { intent: 'career_track', options: { careerPath: 'credit_specialist' } },
-  affiliate: { intent: 'lead_magnet', options: { leadMagnetLane: 'affiliate' } },
-  affiliate_program: { intent: 'lead_magnet', options: { leadMagnetLane: 'affiliate' } },
-  au_seller: { intent: 'lead_magnet', options: { leadMagnetLane: 'au_seller' } },
+  credit_specialist: { intent: 'agent_intake' },
+  affiliate: { intent: 'affiliate_intake' },
+  affiliate_program: { intent: 'affiliate_intake' },
+  au_seller: { intent: 'au_seller_intake' },
   strategy_call: { intent: 'consultation', options: { consultationLane: 'General' } },
 };
 
@@ -81,6 +81,7 @@ export type LaneCtaIntentMeta = {
 
 const INTENT_LABELS: Record<FinelyCtaIntentId, string> = {
   personal_free_guide: 'Start free guide',
+  personal_free_trial: 'Start free trial',
   personal_intake: 'Personal intake',
   personal_package: 'Package checkout',
   business_intake: 'Business intake',
@@ -89,6 +90,13 @@ const INTENT_LABELS: Record<FinelyCtaIntentId, string> = {
   consultation: 'Book a session',
   career_track: 'Career track',
   lead_magnet: 'Lead magnet',
+  affiliate_intake: 'Affiliate signup',
+  au_seller_intake: 'AU seller signup',
+  au_buyer_intake: 'AU buyer intake',
+  tradeline_intake: 'Tradeline intake',
+  agent_intake: 'Agent signup',
+  score_roadmap_intake: 'Score roadmap intake',
+  heta_intake: 'HETA Society intake',
 };
 
 /** Hannah CTA factory — intent + resolved path for each lane magnet. */

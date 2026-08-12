@@ -5205,7 +5205,7 @@ useEffect(() => {
                   onClick={() =>
                     onRequestGrantEntitlements([ENTITLEMENT_KEYS.disputes, ENTITLEMENT_KEYS.letters])
                   }
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-amber-400/40 bg-amber-500/15 hover:bg-amber-500/25 text-[10px] font-black uppercase tracking-widest text-amber-50 transition-all"
+                  className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border-2 border-amber-400/50 bg-gradient-to-r from-amber-500/25 to-amber-600/15 hover:from-amber-500/35 hover:to-amber-600/25 shadow-[0_0_24px_-8px_rgba(251,191,36,0.55)] text-[11px] font-black uppercase tracking-widest text-amber-50 transition-all"
                 >
                   Grant Credit Letters access
                 </button>
@@ -5608,7 +5608,7 @@ useEffect(() => {
                                 return out;
                               });
                             }}
-                            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-white/[0.08] bg-white/5 hover:bg-white/10 text-[10px] font-black uppercase tracking-widest text-white/70 transition-all"
+                            className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border-2 border-amber-400/50 bg-gradient-to-r from-amber-500/25 to-amber-600/15 hover:from-amber-500/35 hover:to-amber-600/25 shadow-[0_0_24px_-8px_rgba(251,191,36,0.55)] text-[11px] font-black uppercase tracking-widest text-amber-50 transition-all"
                             title="Apply recommended reasons to every selected item (stores an Undo snapshot)"
                           >
                             Auto reasons
@@ -5632,7 +5632,7 @@ useEffect(() => {
                             <button
                               type="button"
                               onClick={() => goPortalHref('/portal/billing')}
-                              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-white/[0.08] bg-white/5 hover:bg-white/10 text-[10px] font-black uppercase tracking-widest text-white/70 transition-all"
+                              className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border-2 border-amber-400/50 bg-gradient-to-r from-amber-500/25 to-amber-600/15 hover:from-amber-500/35 hover:to-amber-600/25 shadow-[0_0_24px_-8px_rgba(251,191,36,0.55)] text-[11px] font-black uppercase tracking-widest text-amber-50 transition-all"
                               title="Premium feature: upgrade to unlock AI drafting"
                             >
                               <Lock size={14} /> Premium AI
@@ -5660,7 +5660,7 @@ useEffect(() => {
                           <button
                             type="button"
                             onClick={() => setGroupByCreditorByBureau((prev) => ({ ...prev, [b]: !(prev[b] ?? true) }))}
-                            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-white/[0.08] bg-white/5 hover:bg-white/10 text-[10px] font-black uppercase tracking-widest text-white/70 transition-all"
+                            className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border-2 border-amber-400/50 bg-gradient-to-r from-amber-500/25 to-amber-600/15 hover:from-amber-500/35 hover:to-amber-600/25 shadow-[0_0_24px_-8px_rgba(251,191,36,0.55)] text-[11px] font-black uppercase tracking-widest text-amber-50 transition-all"
                             title="Group items by company name (reduces long lists)"
                           >
                             {groupOn ? 'Grouped' : 'Ungrouped'}
@@ -5728,7 +5728,7 @@ useEffect(() => {
                           <button
                             type="button"
                             onClick={() => setStudioOpenByBureau((prev) => ({ ...prev, [b]: !(prev[b] ?? true) }))}
-                            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-white/[0.08] bg-white/5 hover:bg-white/10 text-[10px] font-black uppercase tracking-widest text-white/70 transition-all"
+                            className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border-2 border-amber-400/50 bg-gradient-to-r from-amber-500/25 to-amber-600/15 hover:from-amber-500/35 hover:to-amber-600/25 shadow-[0_0_24px_-8px_rgba(251,191,36,0.55)] text-[11px] font-black uppercase tracking-widest text-amber-50 transition-all"
                             title="Toggle editor + preview"
                           >
                             <ScrollText size={14} /> {studioOpen ? 'Hide studio' : 'Open studio'}
@@ -6530,9 +6530,9 @@ useEffect(() => {
                 <button
                   type="button"
                   onClick={() => onRequestGrantEntitlements([ENTITLEMENT_KEYS.debt])}
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-white/[0.08] bg-white/5 hover:bg-white/10 text-[10px] font-black uppercase tracking-widest text-white/70 transition-all"
+                  className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border-2 border-emerald-400/45 bg-gradient-to-r from-emerald-500/20 to-emerald-600/10 hover:from-emerald-500/30 shadow-[0_0_24px_-8px_rgba(52,211,153,0.45)] text-[11px] font-black uppercase tracking-widest text-emerald-50 transition-all"
                 >
-                  Grant access
+                  Grant debt &amp; validation access
                 </button>
               ) : null
             }
@@ -6578,9 +6578,9 @@ useEffect(() => {
                 <button
                   type="button"
                   onClick={() => onRequestGrantEntitlements([ENTITLEMENT_KEYS.debt])}
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-white/[0.08] bg-white/5 hover:bg-white/10 text-[10px] font-black uppercase tracking-widest text-white/70 transition-all"
+                  className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border-2 border-emerald-400/45 bg-gradient-to-r from-emerald-500/20 to-emerald-600/10 hover:from-emerald-500/30 shadow-[0_0_24px_-8px_rgba(52,211,153,0.45)] text-[11px] font-black uppercase tracking-widest text-emerald-50 transition-all"
                 >
-                  Grant access
+                  Grant debt &amp; validation access
                 </button>
               ) : null
             }
@@ -6641,9 +6641,9 @@ useEffect(() => {
                         : [ENTITLEMENT_KEYS.letters, ENTITLEMENT_KEYS.packForeclosure],
                     )
                   }
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-amber-400/40 bg-amber-500/15 hover:bg-amber-500/25 text-[10px] font-black uppercase tracking-widest text-amber-50 transition-all"
+                  className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border-2 border-amber-400/50 bg-gradient-to-r from-amber-500/25 to-amber-600/15 hover:from-amber-500/35 hover:to-amber-600/25 shadow-[0_0_24px_-8px_rgba(251,191,36,0.55)] text-[11px] font-black uppercase tracking-widest text-amber-50 transition-all"
                 >
-                  Grant access
+                  Grant foreclosure letter access
                 </button>
               ) : null
             }
@@ -6683,9 +6683,9 @@ useEffect(() => {
                         : [ENTITLEMENT_KEYS.letters, ENTITLEMENT_KEYS.packRepossession],
                     )
                   }
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-amber-400/40 bg-amber-500/15 hover:bg-amber-500/25 text-[10px] font-black uppercase tracking-widest text-amber-50 transition-all"
+                  className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border-2 border-amber-400/50 bg-gradient-to-r from-amber-500/25 to-amber-600/15 hover:from-amber-500/35 hover:to-amber-600/25 shadow-[0_0_24px_-8px_rgba(251,191,36,0.55)] text-[11px] font-black uppercase tracking-widest text-amber-50 transition-all"
                 >
-                  Grant access
+                  Grant repossession letter access
                 </button>
               ) : null
             }
@@ -6729,9 +6729,9 @@ useEffect(() => {
                         : [ENTITLEMENT_KEYS.disputes, ENTITLEMENT_KEYS.letters, ENTITLEMENT_KEYS.packBankruptcy],
                     )
                   }
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-amber-400/40 bg-amber-500/15 hover:bg-amber-500/25 text-[10px] font-black uppercase tracking-widest text-amber-50 transition-all"
+                  className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border-2 border-amber-400/50 bg-gradient-to-r from-amber-500/25 to-amber-600/15 hover:from-amber-500/35 hover:to-amber-600/25 shadow-[0_0_24px_-8px_rgba(251,191,36,0.55)] text-[11px] font-black uppercase tracking-widest text-amber-50 transition-all"
                 >
-                  Grant access
+                  Grant bankruptcy letter access
                 </button>
               ) : null
             }
@@ -6760,9 +6760,9 @@ useEffect(() => {
                 <button
                   type="button"
                   onClick={() => onRequestGrantEntitlements([ENTITLEMENT_KEYS.templates])}
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-white/[0.08] bg-white/5 hover:bg-white/10 text-[10px] font-black uppercase tracking-widest text-white/70 transition-all"
+                  className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border-2 border-violet-400/45 bg-gradient-to-r from-violet-500/20 to-violet-600/10 hover:from-violet-500/30 shadow-[0_0_24px_-8px_rgba(167,139,250,0.45)] text-[11px] font-black uppercase tracking-widest text-violet-50 transition-all"
                 >
-                  Grant access
+                  Grant template library access
                 </button>
               ) : null
             }

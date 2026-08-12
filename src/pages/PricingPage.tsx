@@ -4,7 +4,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { PageShell } from '../components/layout/PageShell';
 import { useAuth } from '../auth/AuthProvider';
 import { resolvePackageSelectPath } from '../lib/packageCheckoutRouting';
-import { finelyCtaNavigate } from '../lib/finelyCtaIntent';
+import { finelyCtaNavigate, resolveFinelyCtaPath } from '../lib/finelyCtaIntent';
 import { getPricingControls } from '../data/settingsRepo';
 import {
   personalCreditPackages,
@@ -482,7 +482,7 @@ export default function PricingPage() {
                 <button type="button" onClick={() => navigate(CS.publicPath)} className={FINELY_OS_PRIMARY_BTN}>
                   Explore {CS.plural} <ArrowRight size={14} />
                 </button>
-                <button type="button" onClick={() => navigate('/onboarding?goal=agent')} className={FINELY_OS_SUCCESS_BTN}>
+                <button type="button" onClick={() => navigate(resolveFinelyCtaPath('agent_intake'))} className={FINELY_OS_SUCCESS_BTN}>
                   Apply to program <ArrowRight size={14} />
                 </button>
                 <button type="button" onClick={() => navigate(CS.hubPath)} className={FINELY_OS_SECONDARY_BTN}>

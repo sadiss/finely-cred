@@ -26,7 +26,9 @@ export async function deletePartnerCompletely(partnerId: string): Promise<{ ok: 
       reports.forEach((report) => deleteReport(report.id));
 
       const letters = listLettersByPartner(partnerId);
-      letters.forEach((letter) => deleteLetter({ letterId: letter.id }));
+      for (const letter of letters) {
+        await deleteLetter({ letterId: letter.id });
+      }
     } catch (e) {
       console.warn('Partial cleanup of related data:', e);
     }

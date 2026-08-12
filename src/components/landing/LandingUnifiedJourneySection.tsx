@@ -4,6 +4,9 @@ import { ArrowRight, Building2, CreditCard, Sparkles, Target } from 'lucide-reac
 import { useNavigate } from 'react-router-dom';
 import { Button, Reveal, FlashyIcon } from '../ui';
 import { finelyOsCatalogCard, finelyOsLandingContrastSection, type FinelyOsPublicAccent } from '../../features/os/finelyOsLightUi';
+import { resolveFinelyCtaPath } from '../../lib/finelyCtaIntent';
+
+const PERSONAL_INTAKE_PATH = resolveFinelyCtaPath('personal_intake');
 
 const STEPS: Array<{
   icon: typeof Sparkles;
@@ -17,7 +20,7 @@ const STEPS: Array<{
     icon: Sparkles,
     title: 'Create your profile',
     desc: '2-minute onboarding — pick personal, business, or funding lane.',
-    path: '/onboarding',
+    path: PERSONAL_INTAKE_PATH,
     cta: 'Start free',
     accent: 'emerald',
   },

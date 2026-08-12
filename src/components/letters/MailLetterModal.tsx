@@ -8,13 +8,14 @@ import { openUrlInNewTab } from '../../utils/download';
 import {
   formatMailAddressOneLine,
   mailLetterViaProvider,
+  quoteMailOptionsViaProvider,
   verifyMailAddressesViaProvider,
   type MailAddress,
   type MailAddressVerificationResult,
 } from '../../lib/mailerClient';
 import { FINELY_MAIL_COPY } from '../../lib/mailWhiteLabel';
 import { buildLetterAgentChain } from '../../lib/letterAgentChain';
-import { canAffordMailSend, chargeMailSend, formatMailCreditsUsd, DEFAULT_MAIL_COST_CENTS } from '../../data/mailCreditsRepo';
+import { canAffordMailSend, chargeMailSend, formatMailCreditsUsd, setMailCostPerLetterCents, DEFAULT_MAIL_COST_CENTS } from '../../data/mailCreditsRepo';
 import {
   MAIL_CLASS_CHOICES,
   defaultMailTypeForLetter,
@@ -224,6 +225,9 @@ export function MailLetterModal({
   );
   const [verifiedHash, setVerifiedHash] = useState<string | null>(null);
   const [mailType, setMailType] = useState<FinelyMailType>(() => defaultMailTypeForLetter(letter));
+  const [quoteBusy, setQuoteBusy] = useState(false);
+  const [quoteByType, setQuoteByType] = useState<Partial<Record<FinelyMailType, number>>>({});
+  const [quoteErr, setQuoteErr] = useState<string | null>(null);
   const [emailPartner, setEmailPartner] = useState(emailPartnerDefault);
   const [partnerNote, setPartnerNote] = useState('');
   const [addressHint, setAddressHint] = useState<string | null>(null);
@@ -302,6 +306,53 @@ export function MailLetterModal({
       setVerifyErr(null);
     }
   }, [open, currentHash, verifiedHash]);
+
+  const selectedCostCents = useMemo(() => {
+    const q = quoteByType[mailType];
+    return q != null && Number.isFinite(q) ? Math.round(q * 100) : DEFAULT_MAIL_COST_CENTS;
+  }, [quoteByType, mailType]);
+
+  useEffect(() => {
+    if (!open || !letter.pdfBlobRef || step !== 'confirm') return;
+    const need = (a: MailAddress) => !a.name?.trim() || !a.addressLine1?.trim() || !a.city?.trim() || !a.state?.trim() || !a.zip?.trim();
+    if (need(to) || need(from)) return;
+    const handle = window.setTimeout(() => {
+      void (async () => {
+        setQuoteBusy(true);
+        setQuoteErr(null);
+        try {
+          const res = await quoteMailOptionsViaProvider({
+            letterId: letter.id,
+            pdfBlobRef: letter.pdfBlobRef!,
+            to: { ...to, state: sanitizeState(to.state), zip: zipOnly(to.zip) },
+            from: { ...from, state: sanitizeState(from.state), zip: zipOnly(from.zip) },
+          });
+          if (!res.ok) {
+            setQuoteErr(res.error || 'Live pricing unavailable');
+            return;
+          }
+          const map: Partial<Record<FinelyMailType, number>> = {};
+          for (const q of res.quotes) {
+            if (
+              q.costUsd != null &&
+              Number.isFinite(q.costUsd) &&
+              (q.mailType === 'firstclass' || q.mailType === 'certified' || q.mailType === 'certnoerr')
+            ) {
+              map[q.mailType] = q.costUsd;
+            }
+          }
+          setQuoteByType(map);
+          const selected = map[mailType];
+          if (selected != null) setMailCostPerLetterCents(Math.round(selected * 100));
+        } catch (e: unknown) {
+          setQuoteErr((e as Error)?.message || 'Quote failed');
+        } finally {
+          setQuoteBusy(false);
+        }
+      })();
+    }, 500);
+    return () => window.clearTimeout(handle);
+  }, [open, step, letter.id, letter.pdfBlobRef, currentHash, mailType, to, from]);
 
   useEffect(() => {
     if (!open) return;
@@ -417,10 +468,10 @@ export function MailLetterModal({
       setStep('confirm');
       return;
     }
-    const afford = canAffordMailSend();
+    const afford = canAffordMailSend(undefined, selectedCostCents);
     if (!afford.ok) {
       setErr(
-        `Insufficient internal mailing budget. Need ${formatMailCreditsUsd(afford.costCents)}; available ${formatMailCreditsUsd(afford.balanceCents)}. Add funds below or in Admin Settings.`,
+        `Insufficient mailing ledger. Need ${formatMailCreditsUsd(selectedCostCents)} for ${mailClassChoice(mailType).shortLabel}; available ${formatMailCreditsUsd(afford.balanceCents)}. Sync LetterStream prepaid in Admin Settings.`,
       );
       return;
     }
@@ -569,7 +620,11 @@ export function MailLetterModal({
                 <div className="text-[10px] uppercase tracking-widest text-white/40 pt-2">Return address</div>
                 <div className="text-sm text-white/75">{from.name.trim() ? formatMailAddressOneLine(from) : 'Fill the From address below'}</div>
                 <div className={`text-xs ${FINELY_OS_ENTITY_BODY}`}>
-                  Est. ~{formatMailCreditsUsd(DEFAULT_MAIL_COST_CENTS)} per color letter (actual may vary by mail class).
+                  {quoteBusy
+                    ? 'Fetching live LetterStream pricing…'
+                    : quoteByType[mailType] != null
+                      ? `Live quote: ${formatMailCreditsUsd(selectedCostCents)} for ${mailClassChoice(mailType).shortLabel}`
+                      : `Est. ~${formatMailCreditsUsd(DEFAULT_MAIL_COST_CENTS)} per color letter (complete addresses for live quote).`}
                 </div>
               </div>
 
@@ -577,10 +632,13 @@ export function MailLetterModal({
                 <div className="text-white font-semibold text-sm">Mail class</div>
                 <p className={`text-xs ${FINELY_OS_ENTITY_BODY}`}>
                   Default selected for this letter: <span className="text-amber-100">{mailClassChoice(mailType).shortLabel}</span>.{' '}
-                  {mailClassChoice(mailType).speedNote} LetterStream has no true overnight Express — First Class is the fastest letter path; Certified (RR) is the legal-proof path.
+                  {mailClassChoice(mailType).speedNote} Prices below come from LetterStream preauth when addresses are complete.
                 </p>
+                {quoteErr ? <p className="text-xs text-amber-100/90">{quoteErr}</p> : null}
                 <div className="grid gap-2">
-                  {MAIL_CLASS_CHOICES.map((c) => (
+                  {MAIL_CLASS_CHOICES.map((c) => {
+                    const liveUsd = quoteByType[c.id];
+                    return (
                     <label
                       key={c.id}
                       className={`flex items-start gap-3 rounded-xl border px-3 py-2.5 cursor-pointer ${
@@ -596,12 +654,17 @@ export function MailLetterModal({
                         checked={mailType === c.id}
                         onChange={() => setMailType(c.id)}
                       />
-                      <span>
-                        <span className="block text-sm font-semibold text-white">{c.label}</span>
+                      <span className="flex-1 min-w-0">
+                        <span className="flex flex-wrap items-center justify-between gap-2">
+                          <span className="block text-sm font-semibold text-white">{c.label}</span>
+                          <span className="text-xs font-mono text-amber-100/95 shrink-0">
+                            {quoteBusy ? '…' : liveUsd != null ? formatMailCreditsUsd(Math.round(liveUsd * 100)) : `~${formatMailCreditsUsd(DEFAULT_MAIL_COST_CENTS)}`}
+                          </span>
+                        </span>
                         <span className={`block text-xs ${FINELY_OS_ENTITY_BODY}`}>{c.useWhen}</span>
                       </span>
                     </label>
-                  ))}
+                  );})}
                 </div>
               </div>
 

@@ -2223,6 +2223,7 @@ export { LandingPathChooserSection } from './LandingPathChooserSection';
 export { LandingCinematicVideoStage } from './LandingCinematicVideoStage';
 export { LandingSolutionsSnapshotSection } from './LandingSolutionsSnapshotSection';
 export { LandingDebtEradicationBand } from './LandingDebtEradicationBand';
+export { LandingMaterialsPreviewBand } from './LandingMaterialsPreviewBand';
 export { LandingAuthorizedUserSection } from './LandingAuthorizedUserSection';
 export { LandingSellAtmosphere } from './LandingSellAtmosphere';
 export { LandingTypewriterTitle, FinelyRevealTitle } from './LandingTypewriterTitle';

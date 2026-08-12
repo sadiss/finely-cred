@@ -11,6 +11,7 @@ import {
   finelyOsCatalogCard,
   finelyOsKpiTile,
 } from '../../features/os/finelyOsLightUi';
+import { resolveFinelyCtaPath } from '../../lib/finelyCtaIntent';
 
 type Props = {
   variant?: 'paywall' | 'hub';
@@ -60,7 +61,7 @@ export function AuSellerActivationPanel({ variant = 'paywall', activated = false
             >
               Pay {AU_SELLER.startupFeeLabel} & activate <ArrowRight size={14} />
             </button>
-            <button type="button" onClick={() => navigate('/onboarding?lane=au_seller')} className={FINELY_OS_SECONDARY_BTN}>
+            <button type="button" onClick={() => navigate(resolveFinelyCtaPath('au_seller_intake'))} className={FINELY_OS_SECONDARY_BTN}>
               Review seller signup
             </button>
           </div>

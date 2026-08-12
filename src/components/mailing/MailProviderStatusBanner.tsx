@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { AlertTriangle, RefreshCcw, Wallet } from 'lucide-react';
 import { getMailProviderStatus, type MailProviderStatus } from '../../lib/mailerClient';
-import { formatMailCreditsUsd, getMailCreditWallet, DEFAULT_MAIL_COST_CENTS } from '../../data/mailCreditsRepo';
+import { formatMailCreditsUsd, getMailCreditWallet, syncProviderMailBalance, DEFAULT_MAIL_COST_CENTS } from '../../data/mailCreditsRepo';
 import { FINELY_MAIL_COPY } from '../../lib/mailWhiteLabel';
 import {
   FINELY_OS_ENTITY_BODY,
@@ -37,6 +37,7 @@ export function MailProviderStatusBanner({
     try {
       const s = await getMailProviderStatus();
       setStatus(s);
+      syncProviderMailBalance({ balanceUsd: s.balanceUsd });
       if (!s.ok) setErr(s.error || s.message || 'Mail provider not ready');
     } catch (e: unknown) {
       setStatus(null);
@@ -87,10 +88,16 @@ export function MailProviderStatusBanner({
                   </span>
                 </>
               ) : (
-                <span className="text-white/45"> · Provider balance not returned by API (use prepaid dashboard)</span>
+                <span className="text-white/45"> · LetterStream prepaid — sync or open prepaid dashboard</span>
               )}
               {' '}
-              · Internal budget {formatMailCreditsUsd(local.balanceCents)}
+              · Send ledger {formatMailCreditsUsd(local.balanceCents)}
+              {local.providerBalanceCents != null && local.balanceCents > local.providerBalanceCents ? (
+                <span className="text-rose-200/90">
+                  {' '}
+                  · Over prepaid by {formatMailCreditsUsd(local.balanceCents - local.providerBalanceCents)}
+                </span>
+              ) : null}
             </p>
           </div>
           <button type="button" className={FINELY_OS_SECONDARY_BTN} disabled={busy} onClick={() => void load()}>

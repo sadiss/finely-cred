@@ -970,14 +970,14 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
                 disabled={busy}
               />
 
-              <div className="flex flex-wrap items-center gap-1.5">
+              <div className="grid grid-cols-4 gap-1.5 items-stretch">
                 <button
                   type="button"
                   onClick={() => {
                     setEmojiOpen(false);
                     setOptionsOpen((v) => !v);
                   }}
-                  className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border text-[10px] font-black uppercase tracking-wider shadow-[0_0_14px_-4px_rgba(251,191,36,0.45)] ${
+                  className={`inline-flex items-center justify-center gap-1.5 px-2 py-2 rounded-xl border text-[10px] font-black uppercase tracking-wider shadow-[0_0_14px_-4px_rgba(251,191,36,0.45)] ${
                     optionsOpen
                       ? 'border-amber-300 bg-gradient-to-br from-amber-400 to-orange-500 text-black'
                       : 'border-amber-400/80 bg-gradient-to-br from-amber-500/25 to-orange-600/30 text-amber-50 hover:from-amber-400/40 hover:to-orange-500/40'
@@ -986,18 +986,18 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
                   aria-label={optionsOpen ? t(locale, 'closeOptions') : t(locale, 'openOptions')}
                 >
                   <LayoutGrid size={14} />
-                  {t(locale, 'openOptions')}
+                  <span className="hidden sm:inline">{t(locale, 'openOptions')}</span>
                 </button>
                 <input ref={fileInputRef} type="file" accept="application/pdf,image/*,.html,.htm" className="hidden" onChange={(e) => void handleAttachmentPick(e.target.files)} />
                 <button
                   type="button"
                   disabled={attachmentBusy || pendingAttachments.length >= MAX_CHAT_ATTACHMENTS}
                   onClick={() => fileInputRef.current?.click()}
-                  className="inline-flex items-center gap-1 px-3 py-2 rounded-xl border border-sky-400/40 bg-sky-500/15 text-[10px] font-bold uppercase tracking-wide text-sky-100 hover:bg-sky-500/25 disabled:opacity-40"
+                  className="inline-flex items-center justify-center gap-1 px-2 py-2 rounded-xl border border-sky-400/40 bg-sky-500/15 text-[10px] font-bold uppercase tracking-wide text-sky-100 hover:bg-sky-500/25 disabled:opacity-40"
                   title={`Attach up to ${MAX_CHAT_ATTACHMENTS} documents (PDF, image, HTML)`}
                 >
                   {attachmentBusy ? <Loader2 size={14} className="animate-spin" /> : <Paperclip size={14} />}
-                  Attach
+                  <span className="hidden sm:inline">Attach</span>
                 </button>
                 <button
                   type="button"
@@ -1005,7 +1005,7 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
                     setOptionsOpen(false);
                     setEmojiOpen((open) => !open);
                   }}
-                  className={`inline-flex items-center gap-1 px-3 py-2 rounded-xl border text-[10px] font-bold uppercase tracking-wide transition-all ${
+                  className={`inline-flex items-center justify-center gap-1 px-2 py-2 rounded-xl border text-[10px] font-bold uppercase tracking-wide transition-all ${
                     emojiOpen
                       ? 'border-fuchsia-400/50 bg-fuchsia-500/20 text-fuchsia-100 shadow-[0_0_0_1px_rgba(217,70,239,0.25)]'
                       : 'border-white/15 bg-white/[0.06] text-white/80 hover:border-fuchsia-400/35 hover:bg-fuchsia-500/10'
@@ -1014,13 +1014,13 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
                   aria-label="Insert emoji"
                 >
                   <Smile size={14} />
-                  Emoji
+                  <span className="hidden sm:inline">Emoji</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => void sendMessage(draft)}
                   disabled={busy || (!sanitize(draft) && !pendingAttachments.length)}
-                  className="ml-auto inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-500 text-black disabled:opacity-40 shadow-lg shadow-emerald-500/20 text-[10px] font-black uppercase tracking-wider"
+                  className="inline-flex items-center justify-center gap-1.5 px-2 py-2 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-500 text-black disabled:opacity-40 shadow-lg shadow-emerald-500/20 text-[10px] font-black uppercase tracking-wider"
                   title="Send"
                 >
                   <Send size={16} />
@@ -1039,55 +1039,61 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
               ) : null}
 
               {followUps.length > 0 ? (
-                <div className="flex flex-wrap gap-1.5 pt-0.5">
-                  <span className={`${FINELY_OS_ENTITY_SUBLABEL} shrink-0 self-center mr-0.5 text-teal-200/80`}>{t(locale, 'suggestedReplies')}:</span>
-                  {followUps.map((f) => (
-                    <button
-                      key={f}
-                      type="button"
-                      onClick={() => void sendMessage(f)}
-                      className="px-2.5 py-1.5 rounded-full border border-teal-400/35 bg-teal-500/15 text-[10px] text-teal-50 hover:bg-teal-500/25 text-left"
-                    >
-                      {f}
-                    </button>
-                  ))}
+                <div className="space-y-1.5 pt-0.5">
+                  <span className={`${FINELY_OS_ENTITY_SUBLABEL} block text-teal-200/80`}>{t(locale, 'suggestedReplies')}</span>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+                    {followUps.map((f) => (
+                      <button
+                        key={f}
+                        type="button"
+                        onClick={() => void sendMessage(f)}
+                        className="w-full px-2.5 py-2 rounded-xl border border-teal-400/35 bg-teal-500/15 text-[10px] text-teal-50 hover:bg-teal-500/25 text-left leading-snug"
+                      >
+                        {f}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               ) : null}
 
               {!goal && !handoffComplete ? (
-                <div className="flex flex-wrap gap-1.5 pt-0.5">
-                  <span className={`${FINELY_OS_ENTITY_SUBLABEL} shrink-0 self-center mr-0.5 text-emerald-200/80`}>{t(locale, 'pickLaneToStart')}:</span>
-                  {LANE_OPTIONS.map((x) => (
-                    <button
-                      key={x.id}
-                      data-testid={`public-chat-lane-chip-${x.id}`}
-                      type="button"
-                      onClick={() => pickGoal(x.id)}
-                      className={`px-2.5 py-1.5 rounded-full border text-[10px] font-semibold text-left transition-all ${x.card}`}
-                    >
-                      {x.emoji} {x.label}
-                    </button>
-                  ))}
+                <div className="space-y-1.5 pt-0.5">
+                  <span className={`${FINELY_OS_ENTITY_SUBLABEL} block text-emerald-200/80`}>{t(locale, 'pickLaneToStart')}</span>
+                  <div className="grid grid-cols-2 gap-1.5">
+                    {LANE_OPTIONS.map((x) => (
+                      <button
+                        key={x.id}
+                        data-testid={`public-chat-lane-chip-${x.id}`}
+                        type="button"
+                        onClick={() => pickGoal(x.id)}
+                        className={`w-full px-2.5 py-2 rounded-xl border text-[10px] font-semibold text-left transition-all ${x.card}`}
+                      >
+                        {x.emoji} {x.label}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               ) : null}
 
-              <div className="flex flex-wrap items-center gap-1 pt-0.5">
-                <span className={`${FINELY_OS_ENTITY_SUBLABEL} shrink-0 mr-0.5`}>{t(locale, 'language')}:</span>
-                {CHAT_LOCALE_ORDER.map((loc) => (
-                  <button
-                    key={loc}
-                    type="button"
-                    onClick={() => setLocale(loc)}
-                    className={`px-2 py-1 rounded-lg text-[10px] font-semibold border transition-colors ${
-                      locale === loc
-                        ? 'border-emerald-400/50 bg-emerald-500/20 text-emerald-100'
-                        : 'border-white/12 bg-white/[0.04] text-white/55 hover:border-white/25 hover:text-white/80'
-                    }`}
-                    aria-pressed={locale === loc}
-                  >
-                    {CHAT_LOCALE_LABELS[loc]}
-                  </button>
-                ))}
+              <div className="space-y-1.5 pt-0.5">
+                <span className={`${FINELY_OS_ENTITY_SUBLABEL} block`}>{t(locale, 'language')}</span>
+                <div className="grid grid-cols-4 gap-1.5">
+                  {CHAT_LOCALE_ORDER.map((loc) => (
+                    <button
+                      key={loc}
+                      type="button"
+                      onClick={() => setLocale(loc)}
+                      className={`w-full py-1.5 rounded-lg text-[10px] font-semibold border transition-colors text-center ${
+                        locale === loc
+                          ? 'border-emerald-400/50 bg-emerald-500/20 text-emerald-100'
+                          : 'border-white/12 bg-white/[0.04] text-white/55 hover:border-white/25 hover:text-white/80'
+                      }`}
+                      aria-pressed={locale === loc}
+                    >
+                      {CHAT_LOCALE_LABELS[loc]}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
             <p className="shrink-0 text-[9px] text-center text-white/30 pb-2 px-3">Educational guidance · not legal advice</p>

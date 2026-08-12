@@ -10,7 +10,8 @@ import type { LetterRecord } from '../../domain/letters';
 import { DebtCreditorIntelPanel } from './DebtCreditorIntelPanel';
 import { DebtProofCaptureStrip } from './DebtProofCaptureStrip';
 import {
-  FinelyOsStudioWorkstationLauncherRow,
+  FinelyOsEscalationHeroButton,
+  FinelyOsStudioWorkstationMiniLaunchers,
   FinelyOsStudioWorkstationModals,
   type StudioWorkstationModal,
 } from '../os/FinelyOsStudioWorkstation';
@@ -178,21 +179,23 @@ export function ValidationCenterView({
     <div className={FINELY_OS_COMPACT_PAGE}>
       <DebtVsDisputeExplainer variant="debt" />
 
-      <div className={finelyOsCatalogCardCompact('violet')}>
-        <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
-          <div className="flex items-center gap-2 min-w-0">
-            <ShieldCheck size={15} className="text-emerald-400 shrink-0" />
+      <div className={`${finelyOsCatalogCardCompact('violet')} !p-4 md:!p-5 border-violet-400/35`}>
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="rounded-xl bg-violet-500/20 border border-violet-400/40 p-2.5 shrink-0">
+              <ShieldCheck size={22} className="text-violet-200" />
+            </div>
             <div>
-              <span className={finelyOsMicroStat('emerald')}>Validation</span>
-              <div className={`mt-1 ${FINELY_OS_ENTITY_TITLE}`}>
+              <span className={finelyOsMicroStat('violet')}>Validation track</span>
+              <div className={`mt-1 text-xl md:text-2xl font-semibold ${FINELY_OS_ENTITY_TITLE}`}>
                 {caseIsLitigation
                   ? 'Validation letters — court work stays on the Court lane'
                   : 'Step 1 — Validation letter track'}
               </div>
-              <p className={`${FINELY_OS_ENTITY_BODY} text-sm mt-1`}>
+              <p className={`${FINELY_OS_ENTITY_BODY} text-sm mt-1 max-w-2xl`}>
                 {caseIsLitigation
                   ? 'This lane only drafts FDCPA validation and dispute letters. Answers, affidavits, and discovery are on Court.'
-                  : 'Pick a case, choose a letter, draft — proof is optional at the bottom.'}
+                  : 'Pick a case, choose a letter, draft — proof and escalation open from the workstations below.'}
               </p>
             </div>
           </div>
@@ -215,7 +218,7 @@ export function ValidationCenterView({
 
         <FinelyOsKpiGrid
           dense
-          glow="emerald"
+          glow="violet"
           columns={4}
           items={[
             { label: 'Reported', value: signals.length, accent: 'text-violet-300' },
@@ -254,12 +257,18 @@ export function ValidationCenterView({
         ) : null}
       </div>
 
-      <FinelyOsStudioWorkstationLauncherRow
-        escalationLabel="Validation escalation ladder"
-        onScreenshots={() => setWorkModal('screenshots')}
-        onUploads={() => setWorkModal('uploads')}
-        onEscalation={() => setWorkModal('escalation')}
-      />
+      <div className="space-y-3">
+        <FinelyOsEscalationHeroButton
+          label="Validation escalation ladder"
+          hint="CFPB · state AG · BBB · bureau follow-up — opens in a full pop-up workstation"
+          accent="amber"
+          onClick={() => setWorkModal('escalation')}
+        />
+        <FinelyOsStudioWorkstationMiniLaunchers
+          onScreenshots={() => setWorkModal('screenshots')}
+          onUploads={() => setWorkModal('uploads')}
+        />
+      </div>
 
       <DebtCreditorIntelPanel
         partnerId={debt?.partnerId || partner?.id || debtCases[0]?.partnerId || ''}
@@ -303,7 +312,7 @@ export function ValidationCenterView({
         ) : null}
         <IntelligentLetterSuggestionsPanel
           suggestions={letterSuggestions}
-          accent="emerald"
+          accent="sky"
           busy={generateBusy}
           error={generateError}
           onBuild={({ letterType, catalogId }) => {
@@ -317,7 +326,7 @@ export function ValidationCenterView({
             types={['validation']}
             storeVersion={storeVersion}
             evidence={vaultEvidence}
-            accent="emerald"
+            accent="amber"
             title="Your validation letters (vault)"
             subtitle="Saved as soon as you generate — draft or PDF. Preview, mail, or delete here; full archive opens separately."
             onOpenFullVault={onOpenLettersVault}
@@ -331,6 +340,7 @@ export function ValidationCenterView({
         <LetterCatalogBrowser
           category="validation"
           accent="emerald"
+          compactHeader
           extraCategories={VALIDATION_EXTRA_CATEGORIES}
           letterHub="debt"
           filterEntry={validationEntryFilter}

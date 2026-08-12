@@ -15,6 +15,7 @@ import { useAuth } from '../../auth/AuthProvider';
 import { getUserDisplayName, getUserProfileMeta } from '../../auth/userProfile';
 import { usePartnerSession } from '../../auth/PartnerSessionContext';
 import { AF, AFFILIATE_OFFERINGS, AFFILIATE_WORK_SPLIT, getAffiliatePathById } from '../../config/affiliateProgram';
+import { resolveFinelyCtaPath } from '../../lib/finelyCtaIntent';
 import { AffiliateCommissionCalculator } from '../../components/calculators/AffiliateCommissionCalculator';
 import { AffiliateCommissionOptimizer } from '../../components/affiliate/AffiliateCommissionOptimizer';
 import { DenefitsContractCalculator } from '../../components/calculators/BenefitsContractCalculator';
@@ -124,7 +125,7 @@ export default function AffiliateHubPage() {
         detail: affiliate?.referralCode
           ? 'Send the tagged apply link — track clicks and conversions here.'
           : 'Finish signup so your referral code and payouts attach to this hub.',
-        to: affiliate?.referralCode ? AF.publicPath : '/onboarding?lane=affiliate',
+        to: affiliate?.referralCode ? AF.publicPath : resolveFinelyCtaPath('affiliate_intake'),
       },
       { label: 'Create a campaign', detail: 'Attribute traffic in Operate so payouts stay clean.', to: `${AF.hubPath}?tab=operate` },
       { label: 'Model a payout', detail: 'Use the calculator before you pitch a package.', to: `${AF.hubPath}?tab=calculator` },

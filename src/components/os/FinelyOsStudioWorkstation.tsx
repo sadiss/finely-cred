@@ -109,6 +109,94 @@ const LAUNCHER_META: Record<
   },
 };
 
+export function FinelyOsEscalationHeroButton({
+  label = 'Escalation ladder',
+  hint = 'CFPB, AG, BBB & bureau follow-up steps',
+  accent = 'amber',
+  onClick,
+}: {
+  label?: string;
+  hint?: string;
+  accent?: 'fuchsia' | 'sky' | 'amber' | 'violet';
+  onClick: () => void;
+}) {
+  const glow: Record<string, string> = {
+    fuchsia: 'shadow-[0_0_48px_-8px_rgba(217,70,239,0.7)] ring-2 ring-fuchsia-400/45 border-fuchsia-400/55',
+    sky: 'shadow-[0_0_48px_-8px_rgba(56,189,248,0.6)] ring-2 ring-sky-400/45 border-sky-400/55',
+    amber: 'shadow-[0_0_48px_-8px_rgba(251,191,36,0.55)] ring-2 ring-amber-400/45 border-amber-400/55',
+    violet: 'shadow-[0_0_48px_-8px_rgba(167,139,250,0.65)] ring-2 ring-violet-400/45 border-violet-400/55',
+  };
+  const fill: Record<string, string> = {
+    fuchsia: 'bg-gradient-to-br from-fuchsia-600/40 via-violet-900/45 to-black',
+    sky: 'bg-gradient-to-br from-sky-600/40 via-cyan-900/45 to-black',
+    amber: 'bg-gradient-to-br from-amber-600/40 via-orange-900/45 to-black',
+    violet: 'bg-gradient-to-br from-violet-600/40 via-indigo-900/45 to-black',
+  };
+  return (
+    <div className="flex flex-col items-center gap-3 py-1">
+      <button
+        type="button"
+        onClick={onClick}
+        className={`w-full max-w-md rounded-2xl border-2 px-6 py-8 text-center transition-all hover:brightness-110 hover:scale-[1.02] active:scale-[0.99] ${glow[accent]} ${fill[accent]}`}
+      >
+        <div className="inline-flex rounded-xl bg-black/35 p-3 text-white mb-3">
+          <ShieldAlert size={28} />
+        </div>
+        <div className="text-[10px] font-black uppercase tracking-[0.24em] text-white/70">Step · Escalate</div>
+        <div className="text-xl sm:text-2xl font-black text-white mt-1 leading-tight">{label}</div>
+        <div className="text-sm text-white/75 mt-2 leading-snug">{hint}</div>
+      </button>
+    </div>
+  );
+}
+
+export function FinelyOsStudioWorkstationMiniLaunchers({
+  onScreenshots,
+  onUploads,
+}: {
+  onScreenshots: () => void;
+  onUploads: () => void;
+}) {
+  const items = [
+    { id: 'screenshots' as const, onClick: onScreenshots },
+    { id: 'uploads' as const, onClick: onUploads },
+  ];
+
+  const glow: Record<string, string> = {
+    fuchsia: 'shadow-[0_0_32px_-10px_rgba(217,70,239,0.55)] ring-2 ring-fuchsia-400/35 border-fuchsia-400/45',
+    sky: 'shadow-[0_0_32px_-10px_rgba(56,189,248,0.45)] ring-2 ring-sky-400/35 border-sky-400/45',
+  };
+
+  const fill: Record<string, string> = {
+    fuchsia: 'bg-gradient-to-br from-fuchsia-600/30 via-violet-900/35 to-black',
+    sky: 'bg-gradient-to-br from-sky-600/30 via-cyan-900/35 to-black',
+  };
+
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full max-w-2xl mx-auto" data-fc-studio-mini-launchers="1">
+      {items.map(({ id, onClick }) => {
+        const meta = LAUNCHER_META[id];
+        return (
+          <button
+            key={id}
+            type="button"
+            onClick={onClick}
+            className={`w-full rounded-xl border-2 px-4 py-4 text-left transition-all hover:brightness-110 ${glow[meta.accent]} ${fill[meta.accent]}`}
+          >
+            <div className="flex items-center gap-3">
+              <span className="shrink-0 rounded-lg bg-black/35 p-2 text-white">{meta.icon}</span>
+              <div className="min-w-0">
+                <div className="text-[10px] font-black uppercase tracking-widest text-white/65">{meta.kicker}</div>
+                <div className="text-sm font-bold text-white mt-0.5">{meta.title}</div>
+              </div>
+            </div>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 export function FinelyOsStudioWorkstationLauncherRow({
   onScreenshots,
   onUploads,

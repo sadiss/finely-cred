@@ -7,6 +7,7 @@ import { FinelyUnifiedHubLayout, FinelyUnifiedSection } from '../features/unifie
 import { FinelyNowDoThisStrip } from '../components/tours/FinelyNowDoThisStrip';
 import { FinelyNoticedStrip } from '../components/tours/FinelyNoticedStrip';
 import { buildFundabilityNoticedItems } from '../lib/finelyProactiveSignals';
+import { resolveFinelyCtaPath } from '../lib/finelyCtaIntent';
 import { FinelyOsOverviewStatTile } from '../features/os/FinelyOsOverviewStatTile';
 import { MarketingStaffChatStrip } from '../components/marketing/MarketingStaffChatStrip';
 import { BusinessReadinessChecklist } from '../components/business/BusinessReadinessChecklist';
@@ -72,7 +73,7 @@ export default function FundabilityReadinessPage() {
           ]}
           activeTab={tab}
           onTabChange={(id) => setTab(id as Tab)}
-          primaryAction={{ label: 'Start onboarding', onClick: () => navigate('/onboarding?lane=funding_readiness') }}
+          primaryAction={{ label: 'Start onboarding', onClick: () => navigate(resolveFinelyCtaPath('funding_intake')) }}
           secondaryAction={{ label: 'Book strategy call', onClick: () => navigate('/enlightenment-session?focus=funding') }}
           detailSlot={
             <ul className={`${FINELY_OS_ENTITY_BODY} text-sm space-y-2 list-disc pl-4`}>

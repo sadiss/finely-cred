@@ -171,8 +171,15 @@ function scrubVendorBrandingProse(text: string): string {
 export function normalizeLetterBlockSpacing(text: string): string {
   let out = String(text || '');
   out = out.replace(/\n{3,}/g, '\n\n');
-  out = out.replace(/([^\n])\n([A-Z][A-Z0-9 &/'()-]{2,}:?\s*\n)/g, '$1\n\n$2');
-  out = out.replace(/^([A-Z][A-Z0-9 &/'()-]{2,}:?\s*)\n(?!\n)/gm, '$1\n\n');
+  // Only pad around explicit section headers — not creditor/collector names or mailing addresses.
+  out = out.replace(
+    /([^\n])\n((?:RE:|Date:|To Whom It May Concern:)[^\n]*\n)/gi,
+    '$1\n\n$2',
+  );
+  out = out.replace(
+    /^((?:RE:|Date:|To Whom It May Concern:)[^\n]*)\n(?!\n)/gim,
+    '$1\n\n',
+  );
   return out.trim();
 }
 
