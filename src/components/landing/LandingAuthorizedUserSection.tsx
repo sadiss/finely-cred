@@ -13,6 +13,7 @@ import { useNavigate } from 'react-router-dom';
 import { Reveal } from '../ui';
 import { AU_SELLER, AU_SELLER_MARKETING_HEADLINE } from '../../config/auSellerProgram';
 import { signupUrlForRole } from '../../lib/onboardingRoleRouting';
+import { resolveFinelyCtaPath } from '../../lib/finelyCtaIntent';
 import { finelyOsLandingContrastSection } from '../../features/os/finelyOsLightUi';
 import { LandingTypewriterTitle } from './LandingTypewriterTitle';
 import { LandingSellAtmosphere } from './LandingSellAtmosphere';
@@ -67,7 +68,7 @@ const AU_CARDS: {
 
 export function LandingAuthorizedUserSection() {
   const navigate = useNavigate();
-  const sellerSignupUrl = signupUrlForRole('au_seller', { next: AU_SELLER.hubPath }) ?? '/onboarding?lane=au_seller';
+  const sellerSignupUrl = signupUrlForRole('au_seller', { next: AU_SELLER.hubPath }) ?? resolveFinelyCtaPath('au_seller_intake');
 
   return (
     <section
@@ -77,7 +78,7 @@ export function LandingAuthorizedUserSection() {
     >
       <LandingSellAtmosphere tone="emerald" />
 
-      <div className="container mx-auto px-4 sm:px-6 max-w-4xl relative z-10">
+      <div className="container mx-auto px-4 sm:px-6 max-w-6xl relative z-10">
         <div className="text-center mb-12">
           <Reveal>
             <p className="fc-sell-kicker mb-5">Authorized User program</p>
@@ -158,31 +159,76 @@ export function LandingAuthorizedUserSection() {
           </Reveal>
 
           <Reveal delay={160}>
-            <div className="relative mx-auto max-w-md overflow-hidden rounded-[1.5rem] border border-[#e0b24a]/45 bg-gradient-to-b from-[#1a160e]/95 via-[#12100c]/92 to-[#0a0e0c]/96 p-7 sm:p-9 flex flex-col items-center text-center shadow-[0_0_60px_-20px_rgba(224,178,74,0.45)]">
-              <div className="fc-sell-champagne-card__sheen opacity-50" />
-              <p className="relative text-[10px] font-black uppercase tracking-[0.3em] text-[#ffd993]/90">Start · get-in fee</p>
-              <div className="relative mt-5 fc-sell-price-jewel">
-                <span className="fc-sell-price-jewel__amount">$50</span>
-                <span className="fc-sell-price-jewel__label">one-time</span>
+            <div className="grid gap-4 lg:grid-cols-[1fr_minmax(240px,280px)_1fr] lg:items-stretch max-w-5xl mx-auto">
+              {/* Left — why AUs matter */}
+              <div className="relative overflow-hidden rounded-[1.25rem] border border-emerald-400/30 bg-gradient-to-br from-emerald-950/50 via-black/40 to-black/60 p-5 sm:p-6 flex flex-col justify-between">
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-[0.28em] text-emerald-200/90">Why AUs matter</p>
+                  <h4 className="mt-2 text-lg font-semibold text-white leading-snug">Profile signals partners pay for</h4>
+                  <p className="mt-2 text-sm text-white/55 leading-relaxed">
+                    Seasoned revolving lines can add age, limit, and clean payment history to a partner file — when structured inside a broader restore plan, not as a magic score jump.
+                  </p>
+                </div>
+                <ul className="mt-4 space-y-2 text-xs text-white/50">
+                  <li>· Issuer-reported tradeline history</li>
+                  <li>· Utilization and mix support</li>
+                  <li>· Finely handles buyer marketing &amp; intake</li>
+                </ul>
               </div>
-              <p className="relative mt-4 text-sm text-white/55 max-w-xs">
-                First {AU_SELLER.listingSeasonDays}-day marketing season included · ~{AU_SELLER.defaultCommissionPct}%
-                typical seller share
-              </p>
-              <button
-                type="button"
-                onClick={() => navigate(sellerSignupUrl)}
-                className="relative fc-sell-cta-gold mt-7 w-full max-w-sm"
-              >
-                Start AU seller signup <ArrowRight size={16} />
-              </button>
-              <button
-                type="button"
-                onClick={() => navigate(AU_SELLER.publicPath)}
-                className="relative mt-3 text-xs text-white/40 hover:text-[#ffd993] transition-colors underline-offset-4 hover:underline"
-              >
-                Full program details
-              </button>
+
+              {/* Center — $50 for life activation */}
+              <div className="relative overflow-hidden rounded-[1.5rem] border border-[#e0b24a]/45 bg-gradient-to-b from-[#1a160e]/95 via-[#12100c]/92 to-[#0a0e0c]/96 p-6 sm:p-7 flex flex-col items-center text-center shadow-[0_0_60px_-20px_rgba(224,178,74,0.45)]">
+                <div className="fc-sell-champagne-card__sheen opacity-50" />
+                <p className="relative text-[10px] font-black uppercase tracking-[0.3em] text-[#ffd993]/90">For life · one-time</p>
+                <div className="relative mt-4 fc-sell-price-jewel">
+                  <span className="fc-sell-price-jewel__amount">$50</span>
+                  <span className="fc-sell-price-jewel__label">activation</span>
+                </div>
+                <p className="relative mt-3 text-xs font-semibold uppercase tracking-widest text-[#ffd993]/85">
+                  Residual income · money while you sleep
+                </p>
+                <p className="relative mt-2 text-sm text-white/55 max-w-[220px]">
+                  First {AU_SELLER.listingSeasonDays}-day season included · marketplace listing · seller hub for life
+                </p>
+                <button
+                  type="button"
+                  onClick={() => navigate(sellerSignupUrl)}
+                  className="relative fc-sell-cta-gold mt-5 w-full"
+                >
+                  Start AU seller signup <ArrowRight size={16} />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => navigate(AU_SELLER.publicPath)}
+                  className="relative mt-2 text-[11px] text-white/40 hover:text-[#ffd993] transition-colors underline-offset-4 hover:underline"
+                >
+                  Full program details
+                </button>
+              </div>
+
+              {/* Right — potential earnings */}
+              <div className="relative overflow-hidden rounded-[1.25rem] border border-amber-400/30 bg-gradient-to-br from-amber-950/40 via-black/40 to-black/60 p-5 sm:p-6 flex flex-col justify-between">
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-[0.28em] text-amber-200/90">Potential earnings</p>
+                  <h4 className="mt-2 text-lg font-semibold text-white leading-snug">Realistic placement math</h4>
+                  <p className="mt-2 text-sm text-white/55 leading-relaxed">
+                    Illustrative only — your inventory, limits, and seasons drive actual payouts. We help you build card depth so listings stay eligible cycle after cycle.
+                  </p>
+                </div>
+                <div className="mt-4 grid grid-cols-2 gap-2">
+                  <div className="rounded-lg border border-white/10 bg-black/30 px-3 py-2.5 text-center">
+                    <div className="text-lg font-light text-amber-100">2</div>
+                    <div className="text-[10px] uppercase tracking-wider text-white/45">Partners per card / ~60 days</div>
+                  </div>
+                  <div className="rounded-lg border border-white/10 bg-black/30 px-3 py-2.5 text-center">
+                    <div className="text-lg font-light text-emerald-200">~{AU_SELLER.defaultCommissionPct}%</div>
+                    <div className="text-[10px] uppercase tracking-wider text-white/45">Typical seller share</div>
+                  </div>
+                </div>
+                <p className="mt-3 text-[10px] text-white/40 leading-relaxed">
+                  Results vary · not a guarantee · issuer and marketplace rules apply
+                </p>
+              </div>
             </div>
           </Reveal>
         </div>

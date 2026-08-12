@@ -20,6 +20,9 @@ export type MailCreditWallet = {
   tenantId: string;
   balanceCents: number;
   costPerLetterCents: number;
+  /** Last known LetterStream prepaid balance (USD cents), when API exposes it. */
+  providerBalanceCents: number | null;
+  providerBalanceUpdatedAt?: string | null;
   transactions: MailCreditTxn[];
   updatedAt: string;
 };
@@ -34,6 +37,14 @@ function saveStore(store: Store) {
   saveJson(KEY, store, 1);
 }
 
+function normalizeWallet(w: MailCreditWallet): MailCreditWallet {
+  return {
+    ...w,
+    providerBalanceCents: w.providerBalanceCents ?? null,
+    providerBalanceUpdatedAt: w.providerBalanceUpdatedAt ?? null,
+  };
+}
+
 export function getMailCreditWallet(tenantId: string = FINELY_TENANT_ID): MailCreditWallet {
   const store = loadStore();
   let w = store.wallets.find((x) => x.tenantId === tenantId);
@@ -42,22 +53,67 @@ export function getMailCreditWallet(tenantId: string = FINELY_TENANT_ID): MailCr
       tenantId,
       balanceCents: 0,
       costPerLetterCents: DEFAULT_MAIL_COST_CENTS,
+      providerBalanceCents: null,
+      providerBalanceUpdatedAt: null,
       transactions: [],
       updatedAt: new Date().toISOString(),
     };
     store.wallets.push(w);
     saveStore(store);
   }
-  return w;
+  return normalizeWallet(w);
 }
 
 export function formatMailCreditsUsd(cents: number) {
   return (cents / 100).toLocaleString(undefined, { style: 'currency', currency: 'USD' });
 }
 
-export function canAffordMailSend(tenantId?: string): { ok: boolean; balanceCents: number; costCents: number } {
+export function canAffordMailSend(tenantId?: string, costCents?: number): { ok: boolean; balanceCents: number; costCents: number } {
   const w = getMailCreditWallet(tenantId);
-  return { ok: w.balanceCents >= w.costPerLetterCents, balanceCents: w.balanceCents, costCents: w.costPerLetterCents };
+  const cost = costCents ?? w.costPerLetterCents;
+  return { ok: w.balanceCents >= cost, balanceCents: w.balanceCents, costCents: cost };
+}
+
+export function syncProviderMailBalance(args: { balanceUsd: number | null; tenantId?: string }): MailCreditWallet {
+  const tenantId = args.tenantId || FINELY_TENANT_ID;
+  const store = loadStore();
+  const w = getMailCreditWallet(tenantId);
+  const idx = store.wallets.findIndex((x) => x.tenantId === tenantId);
+  const providerBalanceCents =
+    typeof args.balanceUsd === 'number' && Number.isFinite(args.balanceUsd)
+      ? Math.round(args.balanceUsd * 100)
+      : null;
+  const next: MailCreditWallet = {
+    ...w,
+    providerBalanceCents,
+    providerBalanceUpdatedAt: providerBalanceCents != null ? new Date().toISOString() : w.providerBalanceUpdatedAt ?? null,
+    updatedAt: new Date().toISOString(),
+  };
+  if (idx >= 0) store.wallets[idx] = next;
+  else store.wallets.push(next);
+  saveStore(store);
+  return next;
+}
+
+export function maxReplenishCents(tenantId?: string): number | null {
+  const w = getMailCreditWallet(tenantId);
+  if (w.providerBalanceCents == null) return null;
+  return Math.max(0, w.providerBalanceCents - w.balanceCents);
+}
+
+export function setMailCostPerLetterCents(costCents: number, tenantId?: string): MailCreditWallet {
+  const tenantIdResolved = tenantId || FINELY_TENANT_ID;
+  const store = loadStore();
+  const w = getMailCreditWallet(tenantIdResolved);
+  const idx = store.wallets.findIndex((x) => x.tenantId === tenantIdResolved);
+  const next: MailCreditWallet = {
+    ...w,
+    costPerLetterCents: Math.max(1, Math.round(costCents)),
+    updatedAt: new Date().toISOString(),
+  };
+  if (idx >= 0) store.wallets[idx] = next;
+  saveStore(store);
+  return next;
 }
 
 export function replenishMailCredits(args: {
@@ -65,12 +121,22 @@ export function replenishMailCredits(args: {
   amountCents: number;
   note?: string;
   actorEmail?: string;
-}): MailCreditWallet {
+  /** When true, skip provider cap (manual override — shows variance in UI). */
+  force?: boolean;
+}): { wallet: MailCreditWallet; capped?: boolean; varianceCents?: number } {
   const tenantId = args.tenantId || FINELY_TENANT_ID;
   const store = loadStore();
   const w = getMailCreditWallet(tenantId);
   const idx = store.wallets.findIndex((x) => x.tenantId === tenantId);
-  const amount = Math.max(0, Math.round(args.amountCents));
+  let amount = Math.max(0, Math.round(args.amountCents));
+  let capped = false;
+  let varianceCents: number | undefined;
+  const max = maxReplenishCents(tenantId);
+  if (!args.force && max != null && amount > max) {
+    varianceCents = amount - max;
+    amount = max;
+    capped = true;
+  }
   const next: MailCreditWallet = {
     ...w,
     balanceCents: w.balanceCents + amount,
@@ -90,7 +156,7 @@ export function replenishMailCredits(args: {
   if (idx >= 0) store.wallets[idx] = next;
   else store.wallets.push(next);
   saveStore(store);
-  return next;
+  return { wallet: next, capped, varianceCents };
 }
 
 export function chargeMailSend(args: {

@@ -30,6 +30,7 @@ import { resolveLeadMagnetConfig } from '../../data/leadMagnetFunnelsRepo';
 import { CreditGuidePremiumDownload, CreditGuidePremiumLanding } from './CreditGuidePremiumSections';
 import { UniversalPremiumLeadMagnetLanding } from './UniversalPremiumLeadMagnetLanding';
 import { getLeadMagnetPremiumProfile } from './leadMagnetPremiumProfiles';
+import { resolveLaneOnboardingPath } from '../../lib/finelyCtaIntent';
 import { FunnelLeadCaptureForm } from './FunnelLeadCaptureForm';
 import { FunnelCollectionDisputePanel } from './FunnelCollectionDisputePanel';
 import { FinelyOsPaginatedStack } from '../../features/os/FinelyOsPaginatedStack';
@@ -237,12 +238,15 @@ export function LeadMagnetFunnelShell({
 
   const onboardingUrl = useMemo(() => {
     const attr = getLeadAttribution();
-    const params = new URLSearchParams();
-    params.set('lane', activeConfig.onboardingLane);
-    if (attr?.referralCode) params.set('ref', attr.referralCode);
-    params.set('next', '/portal/dashboard');
-    return `/onboarding?${params.toString()}`;
-  }, [activeConfig.onboardingLane]);
+    return resolveLaneOnboardingPath(activeConfig.onboardingLane, {
+      referralCode: attr?.referralCode,
+      next: '/portal/dashboard',
+      email: email.trim() || undefined,
+      name: fullName.trim() || undefined,
+      phone: phone.trim() || undefined,
+      leadId: leadId ?? undefined,
+    });
+  }, [activeConfig.onboardingLane, email, fullName, leadId, phone]);
 
   const totalValue = activeConfig.valueStack.reduce((sum, v) => sum + parseInt(v.value.replace(/\D/g, ''), 10), 0);
   const trialActive = Boolean(getLeadMagnetTrial()?.leadId);

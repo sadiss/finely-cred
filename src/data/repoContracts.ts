@@ -37,6 +37,6 @@ export interface LettersRepo {
   listLettersByPartner(partnerId: string): LetterRecord[];
   upsertLetter(l: LetterRecord): LetterRecord;
   setLetterArchived(args: { letterId: string; archived: boolean }): LetterRecord | null;
-  deleteLetter(args: { letterId: string }): boolean;
+  deleteLetter(args: { letterId: string }): Promise<{ ok: boolean; error?: string }>;
 }
 

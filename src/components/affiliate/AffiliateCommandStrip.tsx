@@ -4,6 +4,7 @@ import type { Affiliate } from '../../domain/affiliate';
 import { AF } from '../../config/affiliateProgram';
 import { affiliateConversionStats, listAffiliateAttributionsAsync } from '../../data/affiliateRepo';
 import { FinelyOsRoleCommandCenter } from '../../features/os/FinelyOsRoleCommandCenter';
+import { resolveFinelyCtaPath } from '../../lib/finelyCtaIntent';
 
 type Props = {
   affiliate: Affiliate | null;
@@ -84,7 +85,7 @@ export function AffiliateCommandStrip({ affiliate, loading }: Props) {
       }
       primaryAction={{
         label: affiliate?.referralCode ? 'Share referral link' : 'Finish affiliate setup',
-        onClick: () => navigate(affiliate?.referralCode ? sharePath : '/onboarding?lane=affiliate'),
+        onClick: () => navigate(affiliate?.referralCode ? sharePath : resolveFinelyCtaPath('affiliate_intake')),
       }}
       secondaryAction={{ label: 'Payout calc', onClick: () => navigate(`${AF.hubPath}?tab=calculator`) }}
     />

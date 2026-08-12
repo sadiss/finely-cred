@@ -238,8 +238,12 @@ export function resolveLetterMailRecipient(source: LetterRecipientSource): Lette
 export function formatLetterRecipientBlock(rec: LetterMailRecipient): string {
   const name = clean(rec.name);
   const address = dedupeRecipientAddressLines(name, rec.address);
-  // One recipient block only — name once, then street lines (never partner)
-  return [name, address].filter(Boolean).join('\n');
+  const addressLines = address
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean);
+  // One recipient block only — name once, then street lines with no blank gap
+  return [name, ...addressLines].filter(Boolean).join('\n');
 }
 
 /** One-line sender/debtor for Re: lines — never dump the full multi-line home address there. */

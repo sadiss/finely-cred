@@ -305,7 +305,7 @@ export const AFFILIATE_FUNNEL: LeadMagnetFunnelConfig = {
   agentRole: 'Affiliate Success Specialist',
   guideId: 'affiliate-referral-toolkit',
   offer: 'affiliate_toolkit',
-  onboardingLane: 'personal_restore',
+  onboardingLane: 'affiliate',
   metaTitle: 'Free affiliate toolkit',
   metaDesc: 'Referral links, QR kits, and compliant promo templates for Finely Cred partners.',
   urgencyText: 'FREE — Affiliate toolkit + success specialist',

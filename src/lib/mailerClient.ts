@@ -47,7 +47,24 @@ export type MailProviderStatus = {
   estimatedCostUsd: number;
 };
 
+export type MailQuoteOption = {
+  mailType: 'firstclass' | 'certified' | 'certnoerr' | 'flat';
+  costUsd: number | null;
+  code?: number;
+  message?: string;
+};
+
 const DEFAULT_EST_COST_USD = 1.85;
+
+function parseMailEdgeError(error: unknown, data: Record<string, unknown> | null | undefined): string {
+  if (typeof data?.error === 'string' && data.error.trim()) return data.error;
+  if (typeof data?.message === 'string' && data.message.trim()) return data.message;
+  const msg = (error as Error)?.message || '';
+  if (/non-2xx/i.test(msg)) {
+    return 'Mail edge function rejected the request — confirm EDGE_ADMIN_EMAILS includes your login and MAIL_API_ID/MAIL_API_KEY are set on the deployed mailer function.';
+  }
+  return msg || 'Mail request failed';
+}
 
 function coerceStatus(data: Record<string, unknown> | null | undefined, fallbackErr?: string): MailProviderStatus {
   const raw = data || {};
@@ -104,9 +121,54 @@ export async function getMailProviderStatus(): Promise<MailProviderStatus> {
   });
 
   if (error) {
-    return coerceStatus(data as Record<string, unknown> | null, error.message);
+    return coerceStatus(data as Record<string, unknown> | null, parseMailEdgeError(error, data as Record<string, unknown> | null));
   }
   return coerceStatus(data as Record<string, unknown> | null);
+}
+
+/** Live LetterStream preauth quotes per mail class for a specific letter PDF. */
+export async function quoteMailOptionsViaProvider(args: {
+  letterId: string;
+  pdfBlobRef: string;
+  to: MailAddress;
+  from: MailAddress;
+  mailTypes?: Array<'firstclass' | 'certified' | 'certnoerr'>;
+}): Promise<{ ok: boolean; quotes: MailQuoteOption[]; error?: string }> {
+  if (!isFeatureEnabled('letterMailing')) {
+    throw new Error('Letter mailing is disabled (Feature Flags).');
+  }
+  if (!isSupabaseConfigured) {
+    throw new Error('Supabase is not configured (missing env).');
+  }
+
+  const { data, error } = await supabase.functions.invoke('mailer', {
+    body: {
+      op: 'quote',
+      letterId: args.letterId,
+      pdfBlobRef: args.pdfBlobRef,
+      to: args.to,
+      from: args.from,
+      mailTypes: args.mailTypes ?? ['firstclass', 'certified', 'certnoerr'],
+      options: { color: true, doubleSided: true, coverSheet: true },
+    },
+  });
+
+  if (error) {
+    return { ok: false, quotes: [], error: parseMailEdgeError(error, data as Record<string, unknown> | null) };
+  }
+  const raw = data as Record<string, unknown> | null;
+  if (!raw?.ok) {
+    return { ok: false, quotes: [], error: parseMailEdgeError(null, raw ?? undefined) };
+  }
+  const quotes = Array.isArray(raw.quotes)
+    ? (raw.quotes as Array<Record<string, unknown>>).map((q) => ({
+        mailType: String(q.mailType || 'firstclass') as MailQuoteOption['mailType'],
+        costUsd: typeof q.costUsd === 'number' && Number.isFinite(q.costUsd) ? q.costUsd : null,
+        code: typeof q.code === 'number' ? q.code : undefined,
+        message: typeof q.message === 'string' ? q.message : undefined,
+      }))
+    : [];
+  return { ok: true, quotes };
 }
 
 export async function verifyMailAddressesViaProvider(args: {
@@ -128,7 +190,7 @@ export async function verifyMailAddressesViaProvider(args: {
     },
   });
 
-  if (error) throw new Error(error.message);
+  if (error) throw new Error(parseMailEdgeError(error, data as Record<string, unknown> | null));
   if (!data?.ok) throw new Error(data?.error || 'Verification failed.');
 
   const provider = normalizeMailProvider(data.provider);
@@ -173,7 +235,7 @@ export async function mailLetterViaProvider(args: {
     },
   });
 
-  if (error) throw new Error(error.message);
+  if (error) throw new Error(parseMailEdgeError(error, data as Record<string, unknown> | null));
   if (!data?.ok) throw new Error(data?.error || data?.message || 'Mailing failed.');
 
   return {

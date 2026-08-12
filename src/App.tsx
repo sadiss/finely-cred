@@ -16,6 +16,7 @@ import {
   LandingCinematicVideoStage,
   LandingSolutionsSnapshotSection,
   LandingDebtEradicationBand,
+  LandingMaterialsPreviewBand,
   LandingAuthorizedUserSection,
   LandingFinancingPreapprovalSection,
   MasteryOSSection,
@@ -42,6 +43,7 @@ import { captureDigitalInviteCardFromUrl } from './lib/digitalInviteCardAttribut
 import { resolvePostAuthHomePath } from './lib/postAuthRouting';
 import { isAuthEntryPath, signupUrlForCareerPath } from './lib/onboardingRoleRouting';
 import { resolveAuthedOnboardingBouncePath } from './lib/packageCheckoutRouting';
+import { resolveFinelyCtaPath } from './lib/finelyCtaIntent';
 import { clearOnboardingProgress, peekOnboardingRecommendedNextPath } from './lib/onboardingProgressStorage';
 import { FreeGuideFunnelStyles } from './components/leadmagnet/FreeGuideFunnelStyles';
 import { LeadMagnetEbook } from './components/leadmagnet/LeadMagnetHeroMockup';
@@ -423,6 +425,8 @@ function LandingRoute({ onGetStarted, onViewTradelines, onNavigate, addToCart, o
 }) {
   const [showSignedOutBar, setShowSignedOutBar] = useState(false);
   const navigate = useNavigate();
+  const auth = useAuth();
+  const personalFreeTrialPath = resolveFinelyCtaPath('personal_free_trial', { isAuthed: Boolean(auth.user) });
   usePublicSeoMeta({
     title: 'Finely Cred — credit restore & funding OS',
     description:
@@ -483,7 +487,7 @@ function LandingRoute({ onGetStarted, onViewTradelines, onNavigate, addToCart, o
                   <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
                     <button
                       type="button"
-                      onClick={() => navigate('/signup')}
+                      onClick={() => navigate(personalFreeTrialPath)}
                       className="inline-flex items-center justify-center gap-2 px-7 py-4 rounded-xl font-black uppercase tracking-wider text-sm w-full sm:w-auto bg-gradient-to-r from-amber-500 to-amber-600 text-black shadow-lg shadow-amber-500/25 hover:brightness-110 transition-all"
                     >
                       Start free trial <ArrowRight className="w-5 h-5" />
@@ -502,6 +506,8 @@ function LandingRoute({ onGetStarted, onViewTradelines, onNavigate, addToCart, o
           </Reveal>
         </div>
       </section>
+
+      <LandingMaterialsPreviewBand />
 
       {/* 10. Social proof + compliance */}
       <section className={`py-16 sm:py-20 overflow-x-hidden ${finelyOsLightMeshSection('fc-band-dark')}`}>
@@ -585,7 +591,7 @@ function LandingRoute({ onGetStarted, onViewTradelines, onNavigate, addToCart, o
               <div className="flex flex-col sm:flex-row justify-center gap-4 pt-2">
                 <button
                   type="button"
-                  onClick={() => navigate('/signup')}
+                  onClick={() => navigate(personalFreeTrialPath)}
                   className="group relative inline-flex items-center justify-center gap-3 px-8 py-4 rounded-xl fc-button-platinum-surface font-bold uppercase tracking-wider text-sm transition-all duration-300 hover:scale-105"
                 >
                   <span className="relative z-[1]">Start free trial</span>
@@ -794,6 +800,7 @@ function TradelinesRoute({ addToCart, onNavigate }: { addToCart: (item: any) => 
 }
 
 function AboutRoute({ onNavigate }: { onNavigate: (view: NavView) => void }) {
+  const navigate = useNavigate();
   usePublicSeoMeta({
     title: 'About Finely Cred',
     description: 'Credit systems architecture since 2014 — DIY and done-for-you restore, funding, and partner OS.',
@@ -932,7 +939,7 @@ function AboutRoute({ onNavigate }: { onNavigate: (view: NavView) => void }) {
                 </div>
 
                 <div className="flex flex-wrap gap-3 items-center">
-                  <Button variant="gold" size="lg" onClick={() => onNavigate('onboarding')}>
+                  <Button variant="gold" size="lg" onClick={() => navigate(resolveFinelyCtaPath('personal_intake'))}>
                     Start intake <ArrowRight size={18} />
                   </Button>
                   <Button variant="platinum" size="lg" onClick={() => onNavigate('consultation')}>
@@ -1014,6 +1021,7 @@ function MasteryDashboardRoute({
 
 function AppInner() {
   const auth = useAuth();
+  const personalFreeTrialPath = resolveFinelyCtaPath('personal_free_trial', { isAuthed: Boolean(auth.user) });
   const showPublicThemeToggle = shouldShowPublicThemeToggle(auth.user?.email);
   const [cart, setCart] = useState<any[]>([]);
   const [toast, setToast] = useState<string | null>(null);
@@ -1319,7 +1327,7 @@ function AppInner() {
                 </div>
                 <div className="flex items-center justify-end gap-2 shrink-0">
                     {showPublicThemeToggle ? <FinelyThemeToggle compact /> : null}
-                    <button type="button" onClick={() => handleNavigate('/signup')} className="fc-nav-trial-cta">
+                    <button type="button" onClick={() => handleNavigate(personalFreeTrialPath)} className="fc-nav-trial-cta">
                       Start free trial
                     </button>
                     <button type="button" onClick={() => handleNavigate('/login')} className="fc-nav-pill-ghost">
@@ -1386,7 +1394,7 @@ function AppInner() {
           path="/"
           element={
             <LandingRoute
-              onGetStarted={() => navigate('/onboarding')}
+              onGetStarted={() => navigate(resolveFinelyCtaPath('personal_intake'))}
               onViewTradelines={() => navigate('/tradelines')}
               onNavigate={(v) => navigate(routeFromView(v))}
               addToCart={addToCart}
@@ -1400,7 +1408,7 @@ function AppInner() {
           path="/onboarding"
           element={
             <LandingRoute
-              onGetStarted={() => navigate('/onboarding')}
+              onGetStarted={() => navigate(resolveFinelyCtaPath('personal_intake'))}
               onViewTradelines={() => navigate('/tradelines')}
               onNavigate={(v) => navigate(routeFromView(v))}
               addToCart={addToCart}

@@ -71,6 +71,9 @@ verify_jwt = false
 [functions.admin-list-partners]
 verify_jwt = false
 
+[functions.admin-delete-workflow]
+verify_jwt = false
+
 [functions.meta-webhook]
 verify_jwt = false
 

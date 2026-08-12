@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import { CheckCircle2, Sparkles, Menu, X } from 'lucide-react';
+import { useAuth } from '../../auth/AuthProvider';
+import { resolveFinelyCtaPath } from '../../lib/finelyCtaIntent';
 import { FinelyOsPaginatedStack } from '../../features/os/FinelyOsPaginatedStack';
 import { FinelyThemeToggle } from '../../features/os/FinelyThemeToggle';
 import {
@@ -769,6 +771,8 @@ interface MobileNavProps {
 
 export function MobileNav({ isOpen, onClose, onNavigate, showThemeToggle = false }: MobileNavProps) {
   const location = useLocation();
+  const auth = useAuth();
+  const personalFreeTrialPath = resolveFinelyCtaPath('personal_free_trial', { isAuthed: Boolean(auth.user) });
   if (!isOpen) return null;
 
   return (
@@ -811,7 +815,7 @@ export function MobileNav({ isOpen, onClose, onNavigate, showThemeToggle = false
           <button
             type="button"
             onClick={() => {
-              onNavigate('/signup');
+              onNavigate(personalFreeTrialPath);
               onClose();
             }}
             className="fc-nav-trial-cta min-h-[44px] text-sm font-semibold"

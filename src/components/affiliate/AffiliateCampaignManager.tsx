@@ -13,6 +13,7 @@ import {FINELY_OS_ENTITY_BODY,
   FINELY_OS_SECONDARY_BTN,
   finelyOsInlineListItem,
   finelyOsCatalogCard,} from '../../features/os/finelyOsLightUi';
+import { resolveFinelyCtaPath } from '../../lib/finelyCtaIntent';
 
 type Props = {
   affiliate: Affiliate;
@@ -22,7 +23,7 @@ type Props = {
 export function AffiliateCampaignManager({ affiliate, onUpdated }: Props) {
   const [name, setName] = useState('');
   const [utmCampaign, setUtmCampaign] = useState('');
-  const [landingPath, setLandingPath] = useState('/onboarding');
+  const [landingPath, setLandingPath] = useState(resolveFinelyCtaPath('affiliate_intake'));
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
@@ -42,7 +43,7 @@ export function AffiliateCampaignManager({ affiliate, onUpdated }: Props) {
         utmSource: 'affiliate',
         utmMedium: 'referral',
         utmCampaign: utmCampaign.trim() || name.trim().toLowerCase().replace(/\s+/g, '-'),
-        landingPath: landingPath.trim() || '/onboarding',
+        landingPath: landingPath.trim() || resolveFinelyCtaPath('affiliate_intake'),
         status: 'active',
         createdAt: now,
         updatedAt: now,

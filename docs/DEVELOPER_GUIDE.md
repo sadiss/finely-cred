@@ -816,7 +816,15 @@ These plans are historical build records, not living specs — once a plan's wor
 npm run cta:bare-onboarding:audit   # must report 0 bare /onboarding links
 ```
 
-**Intents:** `personal_free_guide`, `personal_intake`, `personal_package`, `business_intake`, `debt_intake`, `funding_intake`, `consultation`, `career_track`, `lead_magnet`.
+**Intents:** `personal_free_guide`, `personal_free_trial`, `personal_intake`, `personal_package`, `business_intake`, `debt_intake`, `funding_intake`, `consultation`, `career_track`, `lead_magnet`.
+
+**Sitewide “Start free trial”** → `personal_free_trial` → `personal_free` package signup (credit restore DIY), **not** bare `/signup` or role picker:
+
+```text
+/onboarding?package=personal_free&rail=stripe&focus=personal_restore&lane=other&role=client&skipRole=1&next=/portal/checkout?package=personal_free&rail=stripe&auth=signup
+```
+
+Used in: public nav (`App.tsx`), mobile nav (`MobileNav`), homepage CTA bands.
 
 **Verify:** `/personal-credit`, `/free-guide`, role hubs (`/agency`, `/affiliate`, `/case-help`, etc.) — each primary CTA should land with the correct onboarding query string, not a naked `/onboarding`.
 

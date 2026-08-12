@@ -7,6 +7,7 @@ import { FinelyOsPageFooter } from '../features/os/FinelyOsPageFooter';
 import { FinelyOsPaginatedStack } from '../features/os/FinelyOsPaginatedStack';
 import { FinelyUnifiedHubLayout } from '../features/unified/FinelyUnifiedHubLayout';
 import { usePublicSeoMeta } from '../hooks/usePublicSeoMeta';
+import { resolveFinelyCtaPath } from '../lib/finelyCtaIntent';
 import {
   FINELY_OS_BACK_LINK,
   FINELY_OS_DANGER_BTN,
@@ -124,7 +125,7 @@ export default function CheckoutPage({
           ]}
           tabs={[{ id: 'cart', label: 'Cart' }]}
           activeTab="cart"
-          primaryAction={{ label: 'Continue AU request', onClick: () => navigate(`/onboarding?next=${encodeURIComponent('/au/request')}`) }}
+          primaryAction={{ label: 'Continue AU request', onClick: () => navigate(resolveFinelyCtaPath('au_buyer_intake')) }}
           secondaryAction={cart.length > 0 ? { label: 'Clear cart', onClick: clear } : { label: 'Browse inventory', onClick: () => navigate('/tradelines?focus=au') }}
         >
         {cart.length === 0 ? (
@@ -180,7 +181,7 @@ export default function CheckoutPage({
                   </div>
                 </div>
                 <div className="flex flex-col gap-3">
-                  <button type="button" onClick={() => navigate(`/onboarding?next=${encodeURIComponent('/au/request')}`)} className={`justify-center ${FINELY_OS_SUCCESS_BTN}`}>
+                  <button type="button" onClick={() => navigate(resolveFinelyCtaPath('au_buyer_intake'))} className={`justify-center ${FINELY_OS_SUCCESS_BTN}`}>
                     Continue AU request <ArrowRight size={16} />
                   </button>
                   <button type="button" onClick={() => navigate('/consultation?lane=Authorized%20Users%20(AU)')} className={`justify-center ${FINELY_OS_SECONDARY_BTN}`}>

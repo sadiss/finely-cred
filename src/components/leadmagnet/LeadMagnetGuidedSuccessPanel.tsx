@@ -14,6 +14,7 @@ import { saveAgentHandoff } from '../../lib/agentHandoffBridge';
 import { goalFromFunnelConfig, openPublicChat } from '../../lib/publicChatEvents';
 import { FunnelFreeToolkitRouter } from './funnelFreeTools/FunnelFreeToolkitRouter';
 import { getLeadMagnetPremiumProfile } from './leadMagnetPremiumProfiles';
+import { resolveLaneOnboardingPath } from '../../lib/finelyCtaIntent';
 
 type Props = {
   funnelConfig: LeadMagnetFunnelConfig;
@@ -37,14 +38,15 @@ export function LeadMagnetGuidedSuccessPanel({ funnelConfig, leadId, fullName, e
 
   const onboardingUrl = useMemo(() => {
     const attr = getLeadAttribution();
-    const params = new URLSearchParams();
-    params.set('lane', funnelConfig.onboardingLane);
-    if (email) params.set('email', email);
-    if (leadId) params.set('leadId', leadId);
-    if (attr?.referralCode) params.set('ref', attr.referralCode);
-    params.set('next', '/portal/dashboard');
-    return `/onboarding?${params.toString()}`;
-  }, [funnelConfig.onboardingLane, email, leadId]);
+    return resolveLaneOnboardingPath(funnelConfig.onboardingLane, {
+      referralCode: attr?.referralCode,
+      next: '/portal/dashboard',
+      email,
+      name: fullName,
+      phone,
+      leadId,
+    });
+  }, [funnelConfig.onboardingLane, email, fullName, leadId, phone]);
 
   const bookingUrl = useMemo(() => {
     const params = new URLSearchParams();

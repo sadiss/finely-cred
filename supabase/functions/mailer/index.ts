@@ -36,7 +36,8 @@ type MailAddress = {
 
 type ReqBody = {
   /** Defaults to 'send' when omitted. */
-  op?: 'send' | 'verify' | 'ping' | 'status';
+  op?: 'send' | 'verify' | 'ping' | 'status' | 'quote';
+  mailTypes?: Array<'firstclass' | 'certified' | 'certnoerr' | 'flat'>;
   partnerId?: string;
   letterId?: string;
   pdfBlobRef?: string;
@@ -248,11 +249,12 @@ Deno.serve(async (req) => {
       const debugLevel = resolveMailDebugLevel();
       const parsed = await letterStreamAuthPing(debugLevel ? { debug: debugLevel } : undefined);
       const summary = summarizeLetterStreamResponse(parsed);
+      const authValidPing = summary.code === -998 && /\bauth\s*valid\b/i.test(summary.message);
       const rawBlob = JSON.stringify(parsed.raw ?? parsed.messages ?? '');
       const testMode = resolveMailTestMode(rawBlob + ' ' + summary.message);
       const balanceUsd = extractBalanceHint(parsed.raw) ?? extractBalanceHint(rawBlob);
       return json({
-        ok: summary.ok,
+        ok: summary.ok || authValidPing,
         provider: publicProvider,
         code: summary.code,
         message: sanitizeMailUserMessage(summary.message),
@@ -272,6 +274,81 @@ Deno.serve(async (req) => {
         liveMode: resolveMailLiveMode(),
         debugLevel: resolveMailDebugLevel() ?? null,
         balanceUsd: null,
+      }, { status: 500 });
+    }
+  }
+
+  if (op === 'quote') {
+    if (!body.pdfBlobRef || !body.to || !body.from) {
+      return json({ error: 'Missing pdfBlobRef, to, or from for quote' }, { status: 400 });
+    }
+    const toErr = requiredAddr(body.to);
+    const fromErr = requiredAddr(body.from);
+    if (toErr) return json({ error: `To address invalid: ${toErr}` }, { status: 400 });
+    if (fromErr) return json({ error: `From address invalid: ${fromErr}` }, { status: 400 });
+    if (provider !== 'letterstream') {
+      return json({
+        ok: true,
+        provider: publicProvider,
+        quotes: (body.mailTypes?.length ? body.mailTypes : ['firstclass', 'certified', 'certnoerr']).map((mailType) => ({
+          mailType,
+          costUsd: 1.85,
+          code: -200,
+          message: 'Estimated — connect LetterStream for live quotes',
+        })),
+      });
+    }
+
+    try {
+      const { bucket, path } = parseSupabaseRef(body.pdfBlobRef);
+      const supabase = createClient(ctx.supabaseUrl, serviceKey);
+      const { data: blob, error: downloadErr } = await supabase.storage.from(bucket).download(path);
+      if (downloadErr || !blob) {
+        return json({ error: downloadErr?.message || 'Could not download PDF for quote' }, { status: 500 });
+      }
+      const pdfBytes = new Uint8Array(await blob.arrayBuffer());
+      const mailTypes = body.mailTypes?.length
+        ? body.mailTypes
+        : (['firstclass', 'certified', 'certnoerr'] as const);
+      const docId = buildLetterStreamDocId(body.letterId || 'quote');
+      const jobName = buildLetterStreamJobName(body.letterId || 'quote');
+      const quotes: Array<{ mailType: string; costUsd: number | null; code: number; message: string }> = [];
+
+      for (const mailType of mailTypes) {
+        const parsed = await letterStreamSendSingleFile({
+          to: body.to!,
+          from: body.from!,
+          pdfBytes,
+          jobName: `${jobName.slice(0, 14)}_${mailType.slice(0, 4)}`.slice(0, 20),
+          docId: `${docId.slice(0, 14)}_${mailType.slice(0, 4)}`.slice(0, 20),
+          options: {
+            color: body.options?.color ?? true,
+            doubleSided: body.options?.doubleSided ?? true,
+            mailType,
+            coverSheet: body.options?.coverSheet ?? true,
+            pages: body.options?.pages,
+            preauth: true,
+            debug: resolveMailDebugLevel(),
+          },
+        });
+        const summary = summarizeLetterStreamResponse(parsed);
+        const costUsd =
+          typeof summary.cost === 'number' && Number.isFinite(summary.cost)
+            ? summary.cost
+            : null;
+        quotes.push({
+          mailType,
+          costUsd,
+          code: summary.code,
+          message: sanitizeMailUserMessage(summary.message),
+        });
+      }
+
+      return json({ ok: true, provider: publicProvider, quotes });
+    } catch (e) {
+      return json({
+        ok: false,
+        error: sanitizeMailUserMessage((e as Error)?.message || 'Quote failed'),
       }, { status: 500 });
     }
   }

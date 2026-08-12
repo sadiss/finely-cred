@@ -57,6 +57,7 @@ import {
   finelyOsStatusChip,
   type FinelyOsGlowAccent,
 } from '../../features/os/finelyOsLightUi';
+import { FinelyOsWorkstationModal } from '../../features/os/FinelyOsWorkstationModal';
 
 type ReportRow = { id: string; parsed?: ParsedCreditReport | null };
 
@@ -199,7 +200,7 @@ export function DebtCreditorIntelPanel({
   const [activeSignalId, setActiveSignalId] = useState<string | null>(null);
   const [savedNotice, setSavedNotice] = useState<string | null>(null);
   const [lookupBusy, setLookupBusy] = useState(false);
-  const [showAllTargets, setShowAllTargets] = useState(false);
+  const [collectionsModalOpen, setCollectionsModalOpen] = useState(false);
   const [enrichMeta, setEnrichMeta] = useState<AddressEnrichmentResult | null>(null);
 
   useEffect(() => {
@@ -715,71 +716,26 @@ export function DebtCreditorIntelPanel({
         ) : null}
 
         {collectionRows.length > 0 ? (
-          <div className="space-y-1.5">
+          <button
+            type="button"
+            onClick={() => setCollectionsModalOpen(true)}
+            className="w-full rounded-xl border-2 border-fuchsia-400/40 bg-gradient-to-br from-fuchsia-600/25 via-violet-900/30 to-black px-4 py-4 text-left hover:brightness-110 transition-all"
+          >
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <div className={`text-[10px] uppercase tracking-widest ${FINELY_OS_ENTITY_BODY}`}>
-                Collections & charge-offs — matched to Creditor Contacts
+              <div>
+                <div className="text-[10px] font-black uppercase tracking-widest text-fuchsia-200/90">
+                  Collections & charge-offs
+                </div>
+                <div className={`mt-1 text-sm font-semibold ${FINELY_OS_ENTITY_VALUE}`}>
+                  {collectionRows.length} account{collectionRows.length === 1 ? '' : 's'} · {targetsWithAddress} with mailing address
+                </div>
+                <p className={`mt-1 text-xs ${FINELY_OS_ENTITY_BODY}`}>
+                  Tap to open the full collector list — pick one to auto-fill this letter.
+                </p>
               </div>
-              {collectionRows.length > TARGET_CHIP_LIMIT ? (
-                <button
-                  type="button"
-                  onClick={() => setShowAllTargets((v) => !v)}
-                  className="text-[10px] font-semibold uppercase tracking-widest text-sky-300 hover:text-sky-200"
-                >
-                  {showAllTargets ? 'Show fewer' : `Show all ${collectionRows.length}`}
-                </button>
-              ) : null}
+              <span className={finelyOsStatusChip(targetsWithAddress > 0 ? 'ok' : 'warn')}>Open list</span>
             </div>
-            <p className={`text-[10px] ${FINELY_OS_ENTITY_BODY}`}>
-              {targetsWithAddress} of {collectionRows.length} have a mailing address
-              {collectionBoard.contactsWithAddress
-                ? ` · ${collectionBoard.contactsWithAddress} Creditor Contact${collectionBoard.contactsWithAddress === 1 ? '' : 's'} with address on the report`
-                : ''}
-              . Tap a row to address the letter for that account.
-            </p>
-            <div className="grid gap-1.5 sm:grid-cols-2">
-              {(showAllTargets ? collectionRows : collectionRows.slice(0, TARGET_CHIP_LIMIT)).map((t) => (
-                <button
-                  key={t.collectionId}
-                  type="button"
-                  onClick={() => applyCollection(t)}
-                  className={`rounded-lg border px-2.5 py-2 text-left transition-colors ${
-                    t.mailingAddress
-                      ? 'border-fuchsia-400/35 bg-fuchsia-500/10 hover:bg-fuchsia-500/20'
-                      : 'border-amber-400/30 bg-amber-500/[0.07] hover:bg-amber-500/15'
-                  }`}
-                  title={t.mailingAddress ? `${t.label}\n${t.mailingAddress}` : `${t.label} — no mailing address yet`}
-                >
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="inline-flex min-w-0 items-center gap-1.5 text-[11px] font-semibold text-fuchsia-100">
-                      <Building2 size={11} className="shrink-0" />
-                      <span className="truncate">{t.label}</span>
-                    </span>
-                    <span className="shrink-0 text-[9px] font-semibold uppercase tracking-widest text-sky-300">
-                      {t.addressSource === 'report_contact'
-                        ? 'Report contact'
-                        : t.addressSource === 'directory'
-                          ? 'Directory'
-                          : t.addressSource === 'tradeline'
-                            ? 'Tradeline'
-                            : 'Missing'}
-                    </span>
-                  </div>
-                  {t.matchedContactName && t.matchedContactName !== t.creditorName ? (
-                    <div className="mt-0.5 text-[10px] text-white/45">Contact: {t.matchedContactName}</div>
-                  ) : null}
-                  {t.mailingAddress ? (
-                    <div className="mt-1 line-clamp-2 whitespace-pre-line text-[10px] text-white/60">{t.mailingAddress}</div>
-                  ) : (
-                    <div className="mt-1 text-[10px] text-amber-200/80">
-                      No mailing address matched yet — Re-parse report or Fill address
-                    </div>
-                  )}
-                  {t.phone ? <div className="text-[10px] text-white/40">{t.phone}</div> : null}
-                </button>
-              ))}
-            </div>
-          </div>
+          </button>
         ) : reports.length === 0 ? (
           <div className="rounded-xl border border-dashed border-sky-400/30 bg-sky-500/[0.06] px-3 py-2.5 space-y-1">
             <div className={`text-[10px] uppercase tracking-widest ${FINELY_OS_ENTITY_BODY}`}>
@@ -812,7 +768,7 @@ export function DebtCreditorIntelPanel({
           </div>
         )}
 
-        <div className={`grid gap-3 sm:grid-cols-2 ${compact ? 'max-w-3xl' : ''}`}>
+        <div className={`grid gap-3 sm:grid-cols-2 lg:grid-cols-3 ${compact ? 'max-w-5xl' : ''}`}>
           <div className={compact ? FINELY_OS_FIELD_WIDTH : ''}>
             <label className={FINELY_OS_ENTITY_LABEL}>Recipient name</label>
             <input
@@ -1048,6 +1004,58 @@ export function DebtCreditorIntelPanel({
           ) : null}
         </div>
       ) : null}
+
+      <FinelyOsWorkstationModal
+        open={collectionsModalOpen}
+        onClose={() => setCollectionsModalOpen(false)}
+        title="Collections & charge-offs"
+        subtitle={`${collectionRows.length} accounts from your report — tap one to fill the mailing block`}
+        accent="fuchsia"
+        size="large"
+      >
+        <div className="space-y-2 max-h-[70vh] overflow-y-auto pr-1">
+          {collectionRows.map((t) => (
+            <button
+              key={t.collectionId}
+              type="button"
+              onClick={() => {
+                applyCollection(t);
+                setCollectionsModalOpen(false);
+              }}
+              className={`w-full rounded-xl border px-3 py-3 text-left transition-colors ${
+                t.mailingAddress
+                  ? 'border-fuchsia-400/35 bg-fuchsia-500/10 hover:bg-fuchsia-500/20'
+                  : 'border-amber-400/30 bg-amber-500/[0.07] hover:bg-amber-500/15'
+              }`}
+            >
+              <div className="flex items-center justify-between gap-2">
+                <span className="inline-flex min-w-0 items-center gap-1.5 text-sm font-semibold text-fuchsia-100">
+                  <Building2 size={13} className="shrink-0" />
+                  <span>{t.label}</span>
+                </span>
+                <span className="shrink-0 text-[9px] font-semibold uppercase tracking-widest text-sky-300">
+                  {t.addressSource === 'report_contact'
+                    ? 'Report contact'
+                    : t.addressSource === 'directory'
+                      ? 'Directory'
+                      : t.addressSource === 'tradeline'
+                        ? 'Tradeline'
+                        : 'Missing'}
+                </span>
+              </div>
+              {t.matchedContactName && t.matchedContactName !== t.creditorName ? (
+                <div className="mt-1 text-xs text-white/45">Contact: {t.matchedContactName}</div>
+              ) : null}
+              {t.mailingAddress ? (
+                <div className="mt-2 whitespace-pre-line text-xs text-white/70">{t.mailingAddress}</div>
+              ) : (
+                <div className="mt-2 text-xs text-amber-200/80">No mailing address yet — Re-parse report or Fill address</div>
+              )}
+              {t.phone ? <div className="text-xs text-white/45 mt-1">{t.phone}</div> : null}
+            </button>
+          ))}
+        </div>
+      </FinelyOsWorkstationModal>
     </div>
   );
 }

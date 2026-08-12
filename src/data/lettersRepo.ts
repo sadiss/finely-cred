@@ -6,6 +6,11 @@ import { addTombstone, filterTombstoned } from './deleteTombstoneStore';
 
 const KEY = 'finely.letters.v1';
 
+const FUNCTIONS_URL = (() => {
+  const url = (import.meta.env.VITE_SUPABASE_URL as string | undefined)?.trim();
+  return url ? `${url.replace(/\/$/, '')}/functions/v1` : '';
+})();
+
 type Store = { letters: LetterRecord[] };
 
 function loadStore(): Store {
@@ -17,7 +22,22 @@ function saveStore(store: Store) {
 }
 
 export function listLettersByPartner(partnerId: string): LetterRecord[] {
-  return loadStore().letters.filter((l) => l.partnerId === partnerId).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  return filterTombstoned(
+    loadStore().letters.filter((l) => l.partnerId === partnerId),
+    'letter',
+  ).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+}
+
+async function adminDeleteLetterRemote(letterId: string): Promise<boolean> {
+  if (!FUNCTIONS_URL) return false;
+  const session = await supabase.auth.getSession();
+  const token = session.data.session?.access_token;
+  if (!token) return false;
+  const res = await fetch(
+    `${FUNCTIONS_URL}/admin-delete-workflow?kind=letter&id=${encodeURIComponent(letterId)}`,
+    { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } },
+  );
+  return res.ok;
 }
 
 export function upsertLetter(letter: LetterRecord): LetterRecord {
@@ -96,20 +116,24 @@ export function setLetterArchived(args: { letterId: string; archived: boolean })
   return next;
 }
 
-export function deleteLetter(args: { letterId: string }): boolean {
+export async function deleteLetter(args: { letterId: string }): Promise<{ ok: boolean; error?: string }> {
   addTombstone(args.letterId, 'letter');
   const store = loadStore();
   const before = store.letters.length;
   store.letters = store.letters.filter((l) => l.id !== args.letterId);
-  if (store.letters.length === before) return false;
+  if (store.letters.length === before) return { ok: false, error: 'Letter not found locally' };
   saveStore(store);
 
-  if (isSupabaseConfigured) {
-    queueMicrotask(() => {
-      void supabase.from('letters').delete().eq('id', args.letterId);
-    });
+  if (!isSupabaseConfigured) return { ok: true };
+
+  const { error } = await supabase.from('letters').delete().eq('id', args.letterId);
+  if (error) {
+    const adminOk = await adminDeleteLetterRemote(args.letterId);
+    if (adminOk) return { ok: true };
+    console.warn(`deleteLetter Supabase error (kept tombstoned locally): ${error.message}`);
+    return { ok: true, error: `Removed locally; server delete blocked: ${error.message}` };
   }
-  return true;
+  return { ok: true };
 }
 
 export function replaceLettersSnapshotForPartner(args: { partnerId: string; letters: LetterRecord[] }) {

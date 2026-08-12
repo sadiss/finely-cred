@@ -135,9 +135,10 @@ export function LetterStudioSavedVaultStrip({
               onOpenPdf={() => void openPdf(l)}
               onMail={onMailLetter ? () => onMailLetter(l) : undefined}
               onDelete={() => {
-                deleteLetter({ letterId: l.id });
-                draftPreviewOpeners.current.delete(l.id);
-                setRefresh((v) => v + 1);
+                void deleteLetter({ letterId: l.id }).then(() => {
+                  draftPreviewOpeners.current.delete(l.id);
+                  setRefresh((v) => v + 1);
+                });
               }}
               onSaved={() => {
                 setRefresh((v) => v + 1);
