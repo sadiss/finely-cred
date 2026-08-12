@@ -1,10 +1,26 @@
 export type Aspect = '16:9' | '9:16' | '1:1';
 
+export type MediaTransitionType = 'cut' | 'fade' | 'dissolve' | 'wipe' | 'zoom' | 'ken_burns';
+
 export type MediaTransition = {
-  type: 'cut' | 'fade';
-  /** Only used for fade. */
+  type: MediaTransitionType;
+  /** Crossfade / dissolve / wipe / zoom duration (seconds). */
   durationSec?: number;
+  /** Wipe direction. */
+  direction?: 'left' | 'right' | 'up' | 'down';
+  /** Zoom transition direction. */
+  zoom?: 'in' | 'out';
 };
+
+export type VideoStylePresetId =
+  | 'cinematic'
+  | 'luxury'
+  | 'documentary'
+  | 'kinetic'
+  | 'minimal'
+  | 'ugc_reel'
+  | 'modern'
+  | 'bold';
 
 export type MediaCaptionStyle = {
   enabled: boolean;
@@ -56,7 +72,7 @@ export type MediaProject = {
   id: string;
   title: string;
   aspect: Aspect;
-  stylePreset: 'luxury' | 'modern' | 'cinematic' | 'minimal' | 'bold';
+  stylePreset: VideoStylePresetId;
   createdAt: string;
   updatedAt: string;
   scenes: MediaScene[];

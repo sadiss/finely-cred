@@ -24,11 +24,24 @@ import { effectiveHuntSortScore } from '../growthAgents/growthMlScore';
 import { getMarketingStagingPrioritySourceIds } from '../overnight50/leadIntelSwarmRepo';
 import { getLeadIntelSourceAdapter } from '../overnight50/sourceAdapters';
 import type { LeadIntelSourceId } from '../overnight50/types';
+import {
+  advanceHuntMetroQueue,
+  getMetroShardRotationMeta,
+  isNationalGeoFallback,
+  metroShardSummaryLine,
+  metroShortLabel,
+  resolveDailyPackMetroTargets,
+  resolveMarketingHuntLocation,
+} from './usMetroShardMap';
 
 const STAGING_KEY = 'finely.marketing_desk_staging.v1';
 const GEO_KEY = 'finely.marketing_desk_find_geo.v1';
 const SCHEDULE_KEY = 'finely.marketing_desk_find_schedule.v1';
 const LAST_RUN_KEY = 'finely.marketing_desk_find_last_run.v1';
+const HUNT_SCHEDULER_KEY = 'finely.marketing_desk_hunt_scheduler.v1';
+
+/** Client-side hunt tick cadence when edge cron is unavailable (15 min). */
+export const MARKETING_HUNT_TICK_MS = 15 * 60 * 1000;
 
 export const AUTO_APPROVE_SCORE = 70;
 export const AUTO_REJECT_SCORE = 40;
@@ -103,6 +116,8 @@ export type MarketingFindLastRun = {
   at: string;
   mode: 'one_tap' | 'daily_pack' | 'scheduled';
   location: string;
+  /** Metro shard targets when pack hunts multiple cities. */
+  locations?: string[];
   lanes: LeadEngineLane[];
   found: number;
   autoSaved: number;
@@ -184,12 +199,27 @@ function tagPriorityOvernightSources(hits: MarketingStagedHit[]): MarketingStage
 
 export function getMarketingFindGeo(): string {
   const raw = loadJson<{ location?: string }>(GEO_KEY, {}, 1);
-  return (raw.location || 'United States').trim() || 'United States';
+  const stored = (raw.location || '').trim();
+  if (stored && !isNationalGeoFallback(stored)) return stored;
+  return resolveMarketingHuntLocation();
 }
 
 export function setMarketingFindGeo(location: string) {
-  saveJson(GEO_KEY, { location: (location || 'United States').trim() || 'United States' }, 1);
+  const loc = (location || '').trim();
+  saveJson(
+    GEO_KEY,
+    { location: loc && !isNationalGeoFallback(loc) ? loc : resolveMarketingHuntLocation() },
+    1,
+  );
   if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('finely:store'));
+}
+
+export function getMarketingMetroShardMeta() {
+  return getMetroShardRotationMeta();
+}
+
+export function getMarketingMetroShardSummary(): string {
+  return metroShardSummaryLine();
 }
 
 const SUGGESTED_QUERY_KEY = 'finely.marketing_desk_find_suggested_query.v1';
@@ -240,7 +270,7 @@ export function setMarketingFindSchedule(
     SCHEDULE_KEY,
     {
       enabled,
-      location: (location || getMarketingFindGeo()).trim(),
+      location: (location || resolveMarketingHuntLocation()).trim(),
       lanes: lanes?.length ? lanes : prev.lanes,
       updatedAt: new Date().toISOString(),
     },
@@ -730,7 +760,7 @@ export async function huntForMarketingReview(args?: {
   ensureMarketingPipelineProject();
   const readiness = getMarketingFindReadiness();
   const lane = args?.lane ?? 'business_credit';
-  const location = (args?.location || getMarketingFindGeo()).trim();
+  const location = resolveMarketingHuntLocation(args?.location);
   const mode = args?.mode ?? 'one_tap';
 
   if (!readiness.ready) {
@@ -825,6 +855,8 @@ export async function huntForMarketingReview(args?: {
 
   if (result.found > 0 && !result.error) markSerperSearchOk(true);
 
+  advanceHuntMetroQueue();
+
   return result;
 }
 
@@ -834,7 +866,8 @@ export async function runMarketingDailyPack(args?: {
   mode?: MarketingFindLastRun['mode'];
 }): Promise<MarketingFindResult> {
   ensureMarketingPipelineProject();
-  const location = (args?.location || getMarketingFindGeo()).trim();
+  const metroTargets = resolveDailyPackMetroTargets(args?.location);
+  const primaryLocation = metroTargets[0] ?? resolveMarketingHuntLocation();
   const lanes = args?.lanes?.length ? args.lanes : getMarketingDailyPackLanes();
   const mode = args?.mode ?? 'daily_pack';
   const readiness = getMarketingFindReadiness();
@@ -845,7 +878,7 @@ export async function runMarketingDailyPack(args?: {
   }
 
   if (!readiness.ready) {
-    return huntForMarketingReview({ lane: lanes[0], location, mode });
+    return huntForMarketingReview({ lane: lanes[0], location: primaryLocation, mode });
   }
 
   let found = 0;
@@ -857,18 +890,20 @@ export async function runMarketingDailyPack(args?: {
   const skipReasons: Record<string, number> = {};
   let first = true;
 
-  for (const lane of lanes) {
-    const { hits, error } = await invokeLaneHunt({ lane, location });
-    if (error) errors.push(`${lane}: ${error}`);
-    if (!hits.length) continue;
-    found += hits.length;
-    const processed = await processQualifiedHits({ hits, lane, mergeStaging: !first });
-    first = false;
-    autoSaved += processed.autoSaved;
-    review = countMarketingStagingPending();
-    skipped += processed.skipped;
-    prospectIds.push(...processed.prospectIds);
-    mergeSkipReasons(skipReasons, processed.skipReasons);
+  for (const location of metroTargets) {
+    for (const lane of lanes) {
+      const { hits, error } = await invokeLaneHunt({ lane, location });
+      if (error) errors.push(`${metroShortLabel(location)}/${lane}: ${error}`);
+      if (!hits.length) continue;
+      found += hits.length;
+      const processed = await processQualifiedHits({ hits, lane, mergeStaging: !first });
+      first = false;
+      autoSaved += processed.autoSaved;
+      review = countMarketingStagingPending();
+      skipped += processed.skipped;
+      prospectIds.push(...processed.prospectIds);
+      mergeSkipReasons(skipReasons, processed.skipReasons);
+    }
   }
 
   const result: MarketingFindResult = {
@@ -885,7 +920,8 @@ export async function runMarketingDailyPack(args?: {
   saveMarketingFindLastRun({
     at: new Date().toISOString(),
     mode,
-    location,
+    location: primaryLocation,
+    locations: metroTargets,
     lanes,
     found,
     autoSaved,
@@ -905,11 +941,13 @@ export async function runMarketingDailyPack(args?: {
   appendLeadActivity({
     kind: 'daily_pack',
     label: `Marketing Desk pack · ${found} found · ${autoSaved} auto-saved`,
-    detail: `${lanes.length} lanes · review ${review}`,
+    detail: `${metroTargets.length} metros · ${lanes.length} lanes · review ${review}`,
     count: found,
   });
 
   if (found > 0) markSerperSearchOk(true);
+
+  advanceHuntMetroQueue();
 
   return result;
 }
@@ -997,6 +1035,7 @@ function isSameLocalDay(iso: string): boolean {
 /**
  * Cron entry — Daily pack when Find while I sleep is On.
  * Once per local day (platform cron may tick every minute while admin is open).
+ * Uses metro shard rotation instead of a single national string.
  */
 export async function runScheduledMarketingFind(): Promise<MarketingFindResult | null> {
   const schedule = getMarketingFindSchedule();
@@ -1007,11 +1046,133 @@ export async function runScheduledMarketingFind(): Promise<MarketingFindResult |
     return null;
   }
 
+  const metroTargets = resolveDailyPackMetroTargets(schedule.location);
   return runMarketingDailyPack({
-    location: schedule.location || getMarketingFindGeo(),
+    location: schedule.location && !isNationalGeoFallback(schedule.location) ? schedule.location : undefined,
     lanes: getMarketingDailyPackLanes(),
     mode: 'scheduled',
   });
+}
+
+export type MarketingHuntTickResult = {
+  ok: boolean;
+  mode: 'edge' | 'client' | 'skipped';
+  message: string;
+  location?: string;
+  found?: number;
+  at: string;
+};
+
+type HuntSchedulerStore = { lastTickAt?: string; lastEdgeAt?: string };
+
+function loadHuntSchedulerStore(): HuntSchedulerStore {
+  return loadJson<HuntSchedulerStore>(HUNT_SCHEDULER_KEY, {}, 1);
+}
+
+function saveHuntSchedulerStore(patch: Partial<HuntSchedulerStore>) {
+  const prev = loadHuntSchedulerStore();
+  saveJson(HUNT_SCHEDULER_KEY, { ...prev, ...patch }, 1);
+}
+
+/** Invoke marketing-hunt-tick edge when Supabase is configured; else client daily pack. */
+export async function runMarketingHuntTick(): Promise<MarketingHuntTickResult> {
+  const at = new Date().toISOString();
+  const schedule = getMarketingFindSchedule();
+  if (!schedule.enabled) {
+    return { ok: true, mode: 'skipped', message: 'Find schedule off — no hunt tick.', at };
+  }
+
+  saveHuntSchedulerStore({ lastTickAt: at });
+
+  if (isSupabaseConfigured) {
+    try {
+      const meta = getMetroShardRotationMeta();
+      const { data, error } = await supabase.functions.invoke('marketing-hunt-tick', {
+        body: {
+          location: resolveMarketingHuntLocation(schedule.location),
+          shardIndex: meta.shardIndex,
+          metros: meta.citiesToday,
+          lanes: getMarketingDailyPackLanes(),
+        },
+      });
+      if (!error && data?.ok !== false) {
+        saveHuntSchedulerStore({ lastEdgeAt: at });
+        if (data?.triggerClientPack) {
+          const clientRun = await runScheduledMarketingFind();
+          return {
+            ok: true,
+            mode: 'edge',
+            message: String(data.message || 'Edge hunt tick OK — client pack ran.'),
+            location: String(data.location || meta.primaryCity),
+            found: clientRun?.found,
+            at,
+          };
+        }
+        return {
+          ok: true,
+          mode: 'edge',
+          message: String(data?.message || 'Edge marketing-hunt-tick completed.'),
+          location: String(data?.location || meta.primaryCity),
+          found: Number(data?.found ?? 0),
+          at,
+        };
+      }
+    } catch {
+      /* fall through to client scheduler */
+    }
+  }
+
+  const clientRun = await runScheduledMarketingFind();
+  if (!clientRun) {
+    return { ok: true, mode: 'client', message: 'Client hunt tick — already ran today.', at };
+  }
+  return {
+    ok: !clientRun.error,
+    mode: 'client',
+    message: clientRun.error
+      ? clientRun.error
+      : `Client pack · ${clientRun.found} found · ${clientRun.autoSaved} saved`,
+    location: clientRun.found >= 0 ? resolveMarketingHuntLocation(schedule.location) : undefined,
+    found: clientRun.found,
+    at,
+  };
+}
+
+let huntSchedulerInterval: number | null = null;
+
+/** 24/7 client-side hunt scheduler while admin is open (pairs with edge marketing-hunt-tick). */
+export function startMarketingHuntScheduler(opts?: { intervalMs?: number }): () => void {
+  stopMarketingHuntScheduler();
+  const ms = opts?.intervalMs ?? MARKETING_HUNT_TICK_MS;
+  const tick = () => {
+    void runMarketingHuntTick();
+  };
+  tick();
+  huntSchedulerInterval = window.setInterval(tick, ms);
+  return stopMarketingHuntScheduler;
+}
+
+export function stopMarketingHuntScheduler() {
+  if (huntSchedulerInterval != null) {
+    window.clearInterval(huntSchedulerInterval);
+    huntSchedulerInterval = null;
+  }
+}
+
+export function getMarketingHuntSchedulerStatus(): {
+  enabled: boolean;
+  lastTickAt?: string;
+  lastEdgeAt?: string;
+  shardSummary: string;
+} {
+  const sched = getMarketingFindSchedule();
+  const store = loadHuntSchedulerStore();
+  return {
+    enabled: sched.enabled,
+    lastTickAt: store.lastTickAt,
+    lastEdgeAt: store.lastEdgeAt,
+    shardSummary: metroShardSummaryLine(),
+  };
 }
 
 export function rejectMarketingStaged(url: string) {

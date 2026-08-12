@@ -364,10 +364,30 @@ export async function processDueNurtureSteps(opts?: {
 }
 
 let wired = false;
+let deskMailWired = false;
+
+/** Marketing Desk auto-enroll + stop-on-reply hooks (Part D3). */
+export function wireMarketingDeskMailNurture() {
+  if (deskMailWired) return;
+  deskMailWired = true;
+
+  onPlatformEvent((event) => {
+    if (event.type !== 'lead.created' || !event.leadId) return;
+    void import('../features/marketingDesk/marketingDeskMail').then(({ autoEnrollMarketingInboundLead }) => {
+      autoEnrollMarketingInboundLead({
+        leadId: event.leadId!,
+        email: String(event.payload?.email ?? ''),
+        fullName: String(event.payload?.fullName ?? event.payload?.name ?? ''),
+        recordId: `crm_lead_${event.leadId}`,
+      });
+    });
+  });
+}
 
 export function wireNurtureEngine() {
   if (wired) return;
   wired = true;
+  wireMarketingDeskMailNurture();
   onPlatformEvent((event) => {
     if (event.type !== 'lead.magnet_download' || !event.leadId) return;
     const sequenceId = String(event.payload?.sequenceId ?? '');

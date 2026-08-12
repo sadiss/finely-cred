@@ -167,6 +167,15 @@ function scrubVendorBrandingProse(text: string): string {
   return out;
 }
 
+/** Normalize blank lines between letter blocks (sections, paragraphs). */
+export function normalizeLetterBlockSpacing(text: string): string {
+  let out = String(text || '');
+  out = out.replace(/\n{3,}/g, '\n\n');
+  out = out.replace(/([^\n])\n([A-Z][A-Z0-9 &/'()-]{2,}:?\s*\n)/g, '$1\n\n$2');
+  out = out.replace(/^([A-Z][A-Z0-9 &/'()-]{2,}:?\s*)\n(?!\n)/gm, '$1\n\n');
+  return out.trim();
+}
+
 /** Ensure "Sincerely," then blank line then signature name in plain text. */
 export function normalizeLetterSignatureSpacing(text: string): string {
   const lines = String(text || '').split('\n');
@@ -206,6 +215,7 @@ export function normalizeLetterSignatureSpacingHtml(html: string): string {
 export function stripLetterVendorBranding(text: string): string {
   let out = scrubLetterBodyForMail(text);
   out = scrubVendorBrandingProse(out);
+  out = normalizeLetterBlockSpacing(out);
   out = normalizeLetterSignatureSpacing(out);
   out = out.replace(/\n{3,}/g, '\n\n').trim();
   return out;

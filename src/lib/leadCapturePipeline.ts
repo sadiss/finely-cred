@@ -124,4 +124,13 @@ export async function runLeadCapturePipeline(args: LeadCapturePipelineArgs): Pro
     guideTitle: args.guideTitle,
     downloadUrl: lead.funnelPath ? buildFunnelDownloadUrl(lead.funnelPath) : undefined,
   });
+
+  void import('../features/marketingDesk/marketingDeskMail').then(({ autoEnrollMarketingInboundLead }) =>
+    autoEnrollMarketingInboundLead({
+      leadId: lead.id,
+      email: lead.email,
+      fullName: lead.fullName,
+      recordId: `crm_lead_${lead.id}`,
+    }),
+  );
 }

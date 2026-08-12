@@ -56,9 +56,9 @@ const HERO_CHAPTER_RAIL = [
   .filter((p): p is NonNullable<typeof p> => Boolean(p));
 
 const HERO_PROOF = [
-  'Exact dispute letter workflow',
+  'Live Letter Studio + dispute workflow',
   'FCRA timing and bureau response tracker',
-  'Free portal preview with no credit card',
+  'Portal preview with no credit card',
 ] as const;
 
 const ISSUE_TRACKS = [
@@ -100,8 +100,8 @@ const OFFER_PILLARS = [
   },
   {
     icon: LayoutDashboard,
-    title: 'A place to track the round',
-    desc: `${LEAD_MAGNET_TRIAL_DAYS}-day portal preview for uploads, deadlines, bureau responses, and next steps.`,
+    title: 'Live portal — not PDF-only',
+    desc: `${LEAD_MAGNET_TRIAL_DAYS}-day preview for uploads, Letter Studio, deadlines, and round tracking.`,
   },
   {
     icon: TrendingUp,

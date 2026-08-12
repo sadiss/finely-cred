@@ -60,7 +60,7 @@ export const FREE_GUIDES: FreeGuide[] = [
   {
     id: 'credit-dispute-letter-guide',
     title: 'Free Credit Dispute Letter Guide',
-    desc: 'The complete Finely Cred edition for partners — solution-first 5-step framework, first-person letter style, FCRA rights, OCR/Metro2 survival, certified mail, validation-first doctrine, law-per-negative, affidavits, and escalation. Educational only · results vary.',
+    desc: 'The complete Finely Cred edition for partners — solution-first 5-step framework, live Letter Studio + portal preview, first-person letter style, FCRA rights, OCR/Metro2 survival, certified mail, validation-first doctrine, law-per-negative, affidavits, and escalation. Educational only · results vary.',
     sections: [
       ...DISPUTE_GUIDE_FIVE_STEPS.map((step) => ({
         heading: step.heading,

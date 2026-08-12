@@ -14,6 +14,7 @@ import {
   Search,
   ShieldCheck,
   Sparkles,
+  Star,
   Trash2,
   Wand2,
 } from 'lucide-react';
@@ -32,6 +33,7 @@ import {
   VideoCreateWizardEntry,
   type VideoCreateWizardPresetId,
 } from './VideoCreateWizard';
+import { VideoCreationCopilotPanel } from './VideoCreationCopilotPanel';
 import { buildGrowthPillarScript, resolveGrowthPillarVideoRecord } from '../growthAgents/growthPillarVideoPack';
 import {
   FINELY_OS_ENTITY_BODY,
@@ -62,6 +64,7 @@ import { ContentStudioVideoPreview } from './ContentStudioVideoPreview';
 import { hydrateProviderPlan } from './contentStudioProviders';
 import { intakeFromStaff, isCreativeStaffId } from './contentStudioHandoff';
 import { renderContentStudioNarration } from './contentStudioVoice';
+import { exportToPresenterReference, parseMatchPresenterFromSearch } from '../../lib/presenterVideoQualityBridge';
 import { findStaff, staffFullName } from '../staffCommandCenter/staffRoster';
 import { StaffAvatar } from '../staffCommandCenter/StaffAvatar';
 import type {
@@ -73,6 +76,7 @@ import type {
   ContentStudioSourceSurface,
   ContentStudioWorkroom,
   StudioUxKpi,
+  VideoCommandRequest,
 } from './types';
 
 type WorkroomDef = {
@@ -265,6 +269,7 @@ export function ContentStudioDepartmentPage() {
     next.delete('room');
     next.set('wizard', 'open');
     if (preset) next.set('preset', preset);
+    else if (copilotPreset) next.set('preset', copilotPreset);
     else next.delete('preset');
     setSearchParams(next, { replace: true });
   };
@@ -296,6 +301,8 @@ export function ContentStudioDepartmentPage() {
     brandPreset: 'finely_dark',
     complianceStrict: true,
   });
+  const [copilotBrief, setCopilotBrief] = useState<Partial<VideoCommandRequest> | null>(null);
+  const [copilotPreset, setCopilotPreset] = useState<VideoCreateWizardPresetId | undefined>();
 
   const jobs = useMemo(() => listContentStudioJobs(), [version]);
   const assets = useMemo(() => listContentStudioAssets(), [version]);
@@ -333,18 +340,22 @@ export function ContentStudioDepartmentPage() {
     [assets],
   );
   const wizardInitialRequest = useMemo(() => {
-    if (!fromPillar) return undefined;
+    const matchPresenter = parseMatchPresenterFromSearch(searchParams);
+    const fromCopilot = copilotBrief ?? undefined;
+    const merged = matchPresenter ? { ...fromCopilot, ...matchPresenter } : fromCopilot;
+    if (!fromPillar) return merged;
     const pillar = promoteVideoIdFromUrl
       ? resolveGrowthPillarVideoRecord(promoteVideoIdFromUrl)
       : resolveGrowthPillarVideoRecord();
-    if (!pillar) return undefined;
+    if (!pillar) return merged;
     const script = buildGrowthPillarScript({ record: pillar });
     return {
+      ...merged,
       prompt: script || `Create a compliance-safe video from pillar "${pillar.title}". Educational only — results vary.`,
       offer: pillar.title,
       audience: 'credit-focused partners',
     };
-  }, [fromPillar, promoteVideoIdFromUrl]);
+  }, [fromPillar, promoteVideoIdFromUrl, copilotBrief, searchParams]);
 
   const kpis: StudioUxKpi[] = [
     { label: 'Production jobs', value: jobs.length, hint: 'Every request has owner, status, and audit trail', tone: 'amber' },
@@ -831,18 +842,26 @@ export function ContentStudioDepartmentPage() {
       {studioView === 'home' ? (
         <FinelyUnifiedHubLayout
           eyebrow="Content Studio"
-          title="Create your video"
-          subtitle="3-step wizard — brief, horizontal scene deck, export. Full production workrooms live under Advanced studio."
+          title="Plan your video with copilot"
+          subtitle="Tap a starter or describe your clip — then continue to the 3-step wizard for scenes and export."
           accent="amber"
           kpis={kpis.map((k) => ({ ...k, value: String(k.value) }))}
-          primaryAction={{ label: 'Create video', onClick: () => openWizard(wizardPreset ?? 'reel_28') }}
+          primaryAction={{ label: 'Open wizard', onClick: () => openWizard(copilotPreset ?? wizardPreset ?? 'reel_28') }}
           secondaryAction={{ label: 'Advanced studio', onClick: () => setStudioView('advanced') }}
           contentVariant="flush"
         >
           <FinelyCapabilityScorecard variant="compact" showPipelineStages className="mb-4" />
+          <VideoCreationCopilotPanel
+            onApplyBrief={(patch, suggestedPreset) => {
+              setCopilotBrief(patch);
+              if (suggestedPreset) setCopilotPreset(suggestedPreset);
+              setNotice('Copilot plan saved — open the wizard or tap Continue to format.');
+            }}
+            onContinue={() => openWizard(copilotPreset ?? 'reel_28')}
+          />
           <VideoCreateWizardEntry
             onStart={(preset) => openWizard(preset)}
-            activePreset={wizardPreset ?? (fromPillar ? 'ad_60' : 'reel_28')}
+            activePreset={copilotPreset ?? wizardPreset ?? (fromPillar ? 'ad_60' : 'reel_28')}
           />
 
           <div className={`${finelyOsCatalogCardCompact('violet')} mt-4 space-y-3`}>
@@ -1215,6 +1234,20 @@ export function ContentStudioDepartmentPage() {
                       <button type="button" className="fc-button-soft" disabled={!a.blobRef} onClick={() => publishAssetToTourDemo(a)} title={!a.blobRef ? 'Render/export video first' : 'Queue tour clip job'}>
                         <Clapperboard size={14} /> Tour demo
                       </button>
+                      <button
+                        type="button"
+                        className="fc-button-soft"
+                        disabled={!a.blobRef}
+                        onClick={() => {
+                          if (!a.blobRef) return;
+                          exportToPresenterReference({ blobRef: a.blobRef, assetId: a.id, title: a.title });
+                          setNotice(`"${a.title}" saved as presenter quality reference.`);
+                          setVersion((v) => v + 1);
+                        }}
+                        title={!a.blobRef ? 'Render/export video first' : 'Set as presenter quality bar for Content Studio matching'}
+                      >
+                        <Star size={14} /> Quality reference
+                      </button>
                     </>
                   ) : null}
                 </div>
@@ -1265,7 +1298,7 @@ export function ContentStudioDepartmentPage() {
       <VideoCreateWizard
         open={wizardOpen}
         onOpenChange={(open) => (open ? openWizard(wizardPreset) : closeWizard())}
-        presetId={wizardPreset ?? (fromPillar ? 'ad_60' : 'reel_28')}
+        presetId={copilotPreset ?? wizardPreset ?? (fromPillar ? 'ad_60' : 'reel_28')}
         initialRequest={wizardInitialRequest}
         promoteVideoId={promoteVideoIdFromUrl}
         onExported={() => setVersion((v) => v + 1)}

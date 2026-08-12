@@ -82,7 +82,7 @@ export const PUBLIC_FEATURED_FREE_GUIDES: {
   {
     id: 'dispute',
     title: 'Dispute letter guide',
-    desc: '5-step playbook with instant PDF and portal preview.',
+    desc: '5-step playbook — opens Letter Studio, task board, and portal preview (not PDF-only).',
     path: '/free-guide',
     accent: 'emerald',
     badge: 'Popular',
@@ -90,7 +90,7 @@ export const PUBLIC_FEATURED_FREE_GUIDES: {
   {
     id: 'debt',
     title: 'Debt & summons guide',
-    desc: 'Validation-first response when collectors or courts show up.',
+    desc: 'Fight-back validation lane — FDCPA workflows, summons triage, live debt task board.',
     path: '/free-debt-guide',
     accent: 'fuchsia',
   },

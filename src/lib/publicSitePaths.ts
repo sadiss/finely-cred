@@ -14,6 +14,8 @@ const PUBLIC_PREFIXES = [
   '/affiliate',
   '/enlightenment-session',
   '/consultation',
+  '/book',
+  '/meet',
   '/claim',
   '/unsubscribe',
   '/tradelines',

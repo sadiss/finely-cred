@@ -45,20 +45,31 @@ export type MeetingEmbedOptions = {
   roomPassword?: string;
   startWithAudioMuted?: boolean;
   startWithVideoMuted?: boolean;
+  /** Audio-first guest join — mic on, camera off by default */
+  audioFirst?: boolean;
 };
 
 /** Rich embed URL — Daily room path or Jitsi with prejoin + display name. */
 export function buildFinelyMeetingEmbedUrl(opts: MeetingEmbedOptions): string {
+  const audioFirst = Boolean(opts.audioFirst);
+  const startWithAudioMuted = opts.startWithAudioMuted ?? false;
+  const startWithVideoMuted = opts.startWithVideoMuted ?? (audioFirst ? true : false);
+
   const domain = dailyDomain();
   if (domain) {
-    // Daily prebuilt — user name via query is limited; room URL is enough for join.
-    return `https://${domain}/${encodeURIComponent(opts.roomName)}`;
+    const q = new URLSearchParams();
+    if (audioFirst) {
+      q.set('startVideoOff', 'true');
+      q.set('startAudioOff', 'false');
+    }
+    const suffix = q.toString() ? `?${q.toString()}` : '';
+    return `https://${domain}/${encodeURIComponent(opts.roomName)}${suffix}`;
   }
   const base = `https://meet.jit.si/${encodeURIComponent(opts.roomName)}`;
   const params = new URLSearchParams();
   params.set('config.prejoinPageEnabled', 'true');
-  params.set('config.startWithAudioMuted', String(opts.startWithAudioMuted ?? false));
-  params.set('config.startWithVideoMuted', String(opts.startWithVideoMuted ?? false));
+  params.set('config.startWithAudioMuted', String(startWithAudioMuted));
+  params.set('config.startWithVideoMuted', String(startWithVideoMuted));
   params.set('config.disableDeepLinking', 'true');
   params.set('config.enableWelcomePage', 'false');
   params.set('config.defaultLanguage', 'en');
@@ -70,6 +81,16 @@ export function buildFinelyMeetingEmbedUrl(opts: MeetingEmbedOptions): string {
   params.set('userInfo.displayName', opts.displayName);
   if (opts.email) params.set('userInfo.email', opts.email);
   return `${base}#${params.toString()}`;
+}
+
+/** Public guest join path — audio-first, no portal login required */
+export function buildGuestMeetingJoinPath(eventId: string): string {
+  return `/meet/${encodeURIComponent(eventId)}`;
+}
+
+/** Audio-first embed for public guest routes */
+export function buildGuestMeetingEmbedUrl(opts: Omit<MeetingEmbedOptions, 'audioFirst'>): string {
+  return buildFinelyMeetingEmbedUrl({ ...opts, audioFirst: true });
 }
 
 /** Legacy helper — append display name to existing URL */

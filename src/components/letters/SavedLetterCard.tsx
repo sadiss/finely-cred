@@ -236,6 +236,7 @@ export type SavedLetterCardProps = {
   onDelete?: () => void;
   onResumeStudio?: () => void;
   onEdit?: () => void;
+  onSaved?: () => void;
   canMail?: boolean;
   mailDisabled?: boolean;
   pdfDisabled?: boolean;
@@ -256,6 +257,7 @@ export function SavedLetterCard({
   onDelete,
   onResumeStudio,
   onEdit,
+  onSaved,
   canMail = false,
   mailDisabled = false,
   pdfDisabled = false,
@@ -598,7 +600,13 @@ export function SavedLetterCard({
       ) : null}
 
       {editOpen ? (
-        <LetterBodyEditorModal letter={letter} open={editOpen} onClose={() => setEditOpen(false)} />
+        <LetterBodyEditorModal
+          letter={letter}
+          open={editOpen}
+          onClose={() => setEditOpen(false)}
+          onSaved={() => onSaved?.()}
+          evidence={evidence}
+        />
       ) : null}
 
       <FinelyOsTypedDeleteDialog

@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ChevronRight, ExternalLink, Mic, MicOff, RotateCcw, Send, Sparkles, UploadCloud, Volume2 } from 'lucide-react';
+import { ChevronRight, ExternalLink, Mic, MicOff, RotateCcw, Send, Sparkles, UploadCloud } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import type { AiGatewayMessage } from '../../lib/aiClient';
 import { isFeatureEnabled } from '../../data/settingsRepo';
@@ -39,7 +39,7 @@ import {
 } from '../../lib/chatAttachments';
 import { ChatAttachmentTray, type ChatAttachmentTrayItem } from './ChatAttachmentTray';
 import {
-  FINELY_OS_ENTITY_INPUT,
+  FINELY_OS_COMPACT_TEXTAREA,
   FINELY_OS_PRIMARY_BTN,
   FINELY_OS_SECONDARY_BTN,
   finelyOsMessageBubble,
@@ -49,7 +49,11 @@ import {
   finelyOsInlineListItem,
 } from '../../features/os/finelyOsLightUi';
 import { FinelyOsAiGatewayBanner } from '../../features/os/FinelyOsAiGatewayBanner';
-import { useFinelyVoiceInput, speakFinelyText } from '../../hooks/useFinelyVoiceInput';
+import { useFinelyVoiceInput } from '../../hooks/useFinelyVoiceInput';
+import {
+  finelyPublicAnswer,
+  shouldUseFinelyPublicAnswer,
+} from '../../lib/finelyBrain/finelyPublicAnswer';
 
 type Props = {
   partnerId?: string;
@@ -142,14 +146,17 @@ export function HubAiCoachPanel({ partnerId, lane, journeyStage, compact, userNa
     },
   ]);
 
-  const voice = useFinelyVoiceInput((text) => setInput(text));
-  const lastAssistantText = useMemo(() => {
-    for (let i = messages.length - 1; i >= 0; i -= 1) {
-      const m = messages[i];
-      if (m?.role === 'assistant' && m.content.trim()) return m.content.trim();
-    }
-    return '';
-  }, [messages]);
+  const voice = useFinelyVoiceInput({
+    onResult: (text) => setInput((prev) => (prev.trim() ? `${prev.trim()} ${text}` : text)),
+  });
+
+  const displayInput = useMemo(() => {
+    if (!voice.listening || !voice.interimTranscript) return input;
+    const base = input.trim();
+    const interim = voice.interimTranscript.trim();
+    if (!base) return interim;
+    return `${base} ${interim}`;
+  }, [input, voice.listening, voice.interimTranscript]);
 
   useEffect(() => {
     setMessages([
@@ -307,6 +314,30 @@ export function HubAiCoachPanel({ partnerId, lane, journeyStage, compact, userNa
       const userMsg: ChatMessage = { id: newMsgId(), role: 'user', content: trimmed, ts: new Date().toISOString() };
       const history = [...messages, userMsg];
       setMessages(history);
+
+      if (shouldUseFinelyPublicAnswer(trimmed, pathname)) {
+        try {
+          const publicResult = finelyPublicAnswer({
+            pathname,
+            message: trimmed,
+            channel: 'chat',
+          });
+          setMessages((prev) => [
+            ...prev,
+            {
+              id: newMsgId(),
+              role: 'assistant',
+              content: publicResult.reply,
+              ts: new Date().toISOString(),
+              source: 'knowledge_local',
+            },
+          ]);
+          setFollowUps([]);
+          return;
+        } catch {
+          // fall through to live coach
+        }
+      }
 
       const classified = classifyMessageIntent(trimmed);
       let activePersona = persona;
@@ -593,6 +624,84 @@ export function HubAiCoachPanel({ partnerId, lane, journeyStage, compact, userNa
       ) : null}
 
       <div className="border-t border-white/[0.08] p-3 space-y-2 bg-white/[0.05]">
+        {partnerId ? (
+          <ChatAttachmentTray
+            items={pendingAttachments}
+            onRemove={(id) => setPendingAttachments((prev) => prev.filter((x) => x.id !== id))}
+            busy={uploadBusy}
+            error={uploadErr}
+            onDismissError={() => setUploadErr(null)}
+            label="Will be sent to your Finely team"
+          />
+        ) : null}
+        <textarea
+          value={displayInput}
+          onChange={(e) => setInput(e.target.value)}
+          placeholder="Tell me what you're working on…"
+          rows={3}
+          className={`w-full resize-none ${FINELY_OS_COMPACT_TEXTAREA} !mt-0 border-emerald-500/20 focus:border-emerald-500/40 ${
+            voice.listening ? 'border-amber-400/35 shadow-[0_0_0_1px_rgba(251,191,36,0.2)]' : ''
+          }`}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+              e.preventDefault();
+              void sendPrompt(input.trim() ? input : displayInput);
+            }
+          }}
+          disabled={busy}
+        />
+        {voice.listening ? (
+          <p className="text-[10px] text-emerald-200/75 animate-pulse">Listening — your words appear here as you speak…</p>
+        ) : null}
+        <div className="flex flex-wrap items-center gap-2">
+          {voice.supported ? (
+            <button
+              type="button"
+              onClick={() => (voice.listening ? voice.stop() : voice.start())}
+              className={`inline-flex items-center justify-center gap-1.5 ${FINELY_OS_SECONDARY_BTN} !px-3`}
+              title={voice.listening ? 'Stop dictation' : 'Dictate your message'}
+              disabled={busy}
+            >
+              {voice.listening ? <MicOff size={14} /> : <Mic size={14} />}
+              {voice.listening ? 'Stop' : 'Mic'}
+            </button>
+          ) : null}
+          {partnerId ? (
+            <label
+              className={`inline-flex items-center justify-center gap-1.5 ${FINELY_OS_SECONDARY_BTN} !px-3 ${
+                uploadBusy ? 'opacity-60 cursor-wait' : 'cursor-pointer'
+              }`}
+              title="Attach a photo, PDF, or document — it goes to your Finely team"
+            >
+              <UploadCloud size={14} /> Attach
+              <input
+                type="file"
+                className="hidden"
+                accept={CHAT_ATTACHMENT_ACCEPT}
+                disabled={uploadBusy || busy}
+                multiple
+                onChange={(e) => {
+                  const files = Array.from(e.target.files ?? []);
+                  e.currentTarget.value = '';
+                  void (async () => {
+                    for (const f of files) await uploadAttachment(f);
+                  })();
+                }}
+              />
+            </label>
+          ) : null}
+          <button
+            type="button"
+            onClick={() => void sendPrompt(input.trim() ? input : displayInput)}
+            disabled={busy || !(input.trim() || displayInput.trim())}
+            className={`inline-flex items-center justify-center gap-1.5 ${FINELY_OS_PRIMARY_BTN} disabled:opacity-50 ml-auto`}
+          >
+            <Send size={14} /> {busy ? '…' : 'Send'}
+          </button>
+        </div>
+      </div>
+
+      <div className="border-t border-white/[0.08] p-3 space-y-2 bg-white/[0.03]">
         <div className="flex items-center gap-2 text-[10px] uppercase tracking-widest text-fuchsia-300/90 font-black">
           <Sparkles size={12} />
           {path.length === 0 ? 'Try asking about…' : path[path.length - 1]?.label}
@@ -621,87 +730,6 @@ export function HubAiCoachPanel({ partnerId, lane, journeyStage, compact, userNa
               {node.navigate && !node.children?.length ? <ExternalLink size={11} className="text-white/40" /> : null}
             </button>
           ))}
-        </div>
-      </div>
-
-      <div className="p-3 border-t border-white/[0.08] space-y-2">
-        {partnerId ? (
-          <ChatAttachmentTray
-            items={pendingAttachments}
-            onRemove={(id) => setPendingAttachments((prev) => prev.filter((x) => x.id !== id))}
-            busy={uploadBusy}
-            error={uploadErr}
-            onDismissError={() => setUploadErr(null)}
-            label="Will be sent to your Finely team"
-          />
-        ) : null}
-        <div className="flex items-center gap-2">
-        {voice.supported ? (
-          <button
-            type="button"
-            onClick={() => (voice.listening ? voice.stop() : voice.start())}
-            className={`inline-flex items-center justify-center ${FINELY_OS_SECONDARY_BTN} !px-3`}
-            title={voice.listening ? 'Stop listening' : 'Speak your question'}
-            disabled={busy}
-          >
-            {voice.listening ? <MicOff size={14} /> : <Mic size={14} />}
-          </button>
-        ) : null}
-        <input
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder="Tell me what you're working on…"
-          className={`flex-1 ${FINELY_OS_ENTITY_INPUT} !mt-0 border-emerald-500/20 focus:border-emerald-500/40`}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-              e.preventDefault();
-              void sendPrompt(input);
-            }
-          }}
-          disabled={busy}
-        />
-        {partnerId ? (
-          <label
-            className={`inline-flex items-center justify-center ${FINELY_OS_SECONDARY_BTN} !px-3 ${
-              uploadBusy ? 'opacity-60 cursor-wait' : 'cursor-pointer'
-            }`}
-            title="Attach a photo, PDF, or document — it goes to your Finely team"
-          >
-            <UploadCloud size={14} />
-            <input
-              type="file"
-              className="hidden"
-              accept={CHAT_ATTACHMENT_ACCEPT}
-              disabled={uploadBusy || busy}
-              multiple
-              onChange={(e) => {
-                const files = Array.from(e.target.files ?? []);
-                e.currentTarget.value = '';
-                void (async () => {
-                  for (const f of files) await uploadAttachment(f);
-                })();
-              }}
-            />
-          </label>
-        ) : null}
-        {lastAssistantText ? (
-          <button
-            type="button"
-            onClick={() => speakFinelyText(lastAssistantText)}
-            className={`inline-flex items-center justify-center ${FINELY_OS_SECONDARY_BTN} !px-3`}
-            title="Read last reply aloud"
-          >
-            <Volume2 size={14} />
-          </button>
-        ) : null}
-        <button
-          type="button"
-          onClick={() => void sendPrompt(input)}
-          disabled={busy || !input.trim()}
-          className={`inline-flex items-center justify-center gap-1.5 ${FINELY_OS_PRIMARY_BTN} disabled:opacity-50`}
-        >
-          <Send size={14} /> {busy ? '…' : 'Send'}
-        </button>
         </div>
       </div>
     </div>

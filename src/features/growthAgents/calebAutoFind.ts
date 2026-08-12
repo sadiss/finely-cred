@@ -1,23 +1,51 @@
 /**
  * Caleb auto-find — default ON; turn off to stop scheduled + auto daily pack.
+ * Subagent pipeline: GeoScanner → Qualifier → Enricher → Handoff.
  */
 import { loadJson, saveJson } from '../../data/localJsonStore';
 import { updateFeatureFlags, getFeatureFlags } from '../../data/settingsRepo';
 import {
   getMarketingFindLastRun,
-  getMarketingFindGeo,
   getMarketingFindReadiness,
+  getMarketingMetroShardSummary,
   runMarketingDailyPack,
+  runMarketingHuntTick,
   setMarketingFindGeo,
   setMarketingFindSchedule,
+  startMarketingHuntScheduler,
+  stopMarketingHuntScheduler,
   type MarketingFindResult,
 } from '../marketingDesk/marketingDeskHunt';
+import {
+  getMetroShardRotationMeta,
+  resolveMarketingHuntLocation,
+} from '../marketingDesk/usMetroShardMap';
+import {
+  listCalebSubagentWorkers,
+  type CalebSubagentId,
+  type CalebSubagentWorker,
+} from './growthAgentRegistry';
 import { runGrowthFindTestSearch } from './growthFindTest';
 import { runGrowthWorkerTickTest } from './growthWorkerTick';
 
 const AUTO_KEY = 'finely.caleb.auto_find.v1';
 const COLD_OUTBOUND_KEY = 'finely.caleb.cold_outbound_autopilot.v1';
 const SESSION_BOOT_KEY = 'finely.caleb.auto_session_boot.v1';
+const SUBAGENT_KEY = 'finely.caleb.subagent_status.v1';
+
+export type CalebSubagentStatus = {
+  id: CalebSubagentId;
+  label: string;
+  lastAt?: string;
+  lastMessage?: string;
+  ok?: boolean;
+};
+
+export type CalebPipelineResult = MarketingFindResult & {
+  subagents: CalebSubagentStatus[];
+  location: string;
+  shardSummary: string;
+};
 
 function dispatchStore() {
   if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('finely:store'));
@@ -43,10 +71,86 @@ export function isCalebAutoFindEnabled(): boolean {
 
 export function setCalebAutoFindEnabled(enabled: boolean, location?: string) {
   saveJson(AUTO_KEY, { enabled, updatedAt: new Date().toISOString() }, 1);
-  const loc = (location || getMarketingFindGeo()).trim() || 'United States';
+  const loc = resolveMarketingHuntLocation(location);
   setMarketingFindSchedule(enabled, loc);
-  if (enabled) setMarketingFindGeo(loc);
+  if (enabled) {
+    setMarketingFindGeo(loc);
+    if (typeof window !== 'undefined') startMarketingHuntScheduler();
+  } else if (typeof window !== 'undefined') {
+    stopMarketingHuntScheduler();
+  }
   dispatchStore();
+}
+
+export function listCalebSubagents(): CalebSubagentWorker[] {
+  return listCalebSubagentWorkers();
+}
+
+export function getCalebSubagentStatuses(): CalebSubagentStatus[] {
+  const stored = loadJson<{ rows?: CalebSubagentStatus[] }>(SUBAGENT_KEY, {}, 1);
+  const byId = new Map((stored.rows ?? []).map((r) => [r.id, r]));
+  return listCalebSubagentWorkers().map((w) => ({
+    id: w.id,
+    label: w.label,
+    lastAt: byId.get(w.id)?.lastAt,
+    lastMessage: byId.get(w.id)?.lastMessage,
+    ok: byId.get(w.id)?.ok,
+  }));
+}
+
+function persistSubagentStatus(id: CalebSubagentId, message: string, ok: boolean) {
+  const workers = listCalebSubagentWorkers();
+  const prev = getCalebSubagentStatuses();
+  const next = workers.map((w) => {
+    if (w.id !== id) {
+      const p = prev.find((r) => r.id === w.id);
+      return p ?? { id: w.id, label: w.label };
+    }
+    return { id, label: w.label, lastAt: new Date().toISOString(), lastMessage: message, ok };
+  });
+  saveJson(SUBAGENT_KEY, { rows: next }, 1);
+  dispatchStore();
+}
+
+/** Run Caleb subagent pipeline for one daily pack cycle. */
+export async function runCalebSubagentPipeline(city?: string): Promise<CalebPipelineResult | null> {
+  if (!isCalebAutoFindEnabled()) return null;
+  ensureCalebFeatureFlags();
+  const readiness = getMarketingFindReadiness();
+  if (!readiness.ready) return null;
+
+  const location = resolveMarketingHuntLocation(city);
+  const shardSummary = getMarketingMetroShardSummary();
+
+  persistSubagentStatus('geo_scanner', `Scanning ${location} · ${shardSummary}`, true);
+  setMarketingFindGeo(location);
+
+  persistSubagentStatus('qualifier', 'Smart qualify thresholds active (≥70 auto · mid review)', true);
+
+  const pack = await runMarketingDailyPack({ location, mode: 'daily_pack' });
+
+  persistSubagentStatus(
+    'enricher',
+    pack.found > 0
+      ? `Enriched ${pack.found} live Serper hit(s) for ${location}`
+      : 'No new hits — enrich idle',
+    pack.found > 0 || !pack.error,
+  );
+
+  persistSubagentStatus(
+    'handoff',
+    pack.autoSaved > 0 || pack.review > 0
+      ? `${pack.autoSaved} auto-saved · ${pack.review} in review queue`
+      : 'Review queue unchanged',
+    !pack.error,
+  );
+
+  return {
+    ...pack,
+    subagents: getCalebSubagentStatuses(),
+    location,
+    shardSummary,
+  };
 }
 
 /** Default false — owner must turn on before seq_cold_prospect autopilot enrolls. */
@@ -112,16 +216,23 @@ export async function runCalebAutoFindIfDue(city: string): Promise<MarketingFind
   const readiness = getMarketingFindReadiness();
   if (!readiness.ready) return null;
   if (alreadyRanFindToday()) return null;
-  const location = (city || getMarketingFindGeo()).trim() || 'United States';
+  const location = resolveMarketingHuntLocation(city);
   setMarketingFindGeo(location);
   setMarketingFindSchedule(true, location);
-  return runMarketingDailyPack({ location, mode: 'daily_pack' });
+  if (typeof window !== 'undefined') startMarketingHuntScheduler();
+  void runMarketingHuntTick();
+  const pipeline = await runCalebSubagentPipeline(location);
+  return pipeline;
 }
 
 export function calebAutoStatusLine(): string {
   if (!isCalebAutoFindEnabled()) return 'Auto-find is off — turn on to run daily pack for you.';
   const readiness = getMarketingFindReadiness();
+  const meta = getMetroShardRotationMeta();
+  const shard = meta.citiesToday.map((c) => c.split(',')[0]).slice(0, 3).join(', ');
   if (!readiness.ready) return 'Auto-find is on — finishing one-time setup (flags + Supabase).';
-  if (alreadyRanFindToday()) return 'Auto-find is on — today’s pack already ran. Review people or wait until tomorrow.';
-  return 'Auto-find is on — Caleb runs the daily pack and overnight find while you work.';
+  if (alreadyRanFindToday()) {
+    return `Auto-find is on — today's pack ran (${shard}…). Review people or wait until tomorrow.`;
+  }
+  return `Auto-find is on — Caleb rotates ${meta.poolSize} metros (today: ${shard}…). Geo Scanner → Qualifier → Enricher → Handoff.`;
 }

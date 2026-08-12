@@ -2,6 +2,7 @@ import { loadJson, saveJson } from '../../data/localJsonStore';
 import { newId } from '../../utils/ids';
 import { isSupabaseConfigured, supabase } from '../../lib/supabaseClient';
 import { buildQueryPool } from './queryExpander';
+import { getDailyMetroShardPack, metroShardSummaryLine } from '../marketingDesk/usMetroShardMap';
 import { LEAD_INTEL_SOURCE_ADAPTERS, getLeadIntelSourceRuntimeMode, getPriorityLiveSourceAdapters } from './sourceAdapters';
 import type { LeadIntelJob, LeadIntelLiveFeedEvent, OvernightAttribution, OvernightCity, SwarmSession, SyntheticStaffAgent } from './types';
 
@@ -266,6 +267,68 @@ export function getSwarmStats() {
 /** Live overnight50 adapters wired to Marketing Desk Find staging (Serper + internal). */
 export function getMarketingStagingPrioritySourceIds() {
   return getPriorityLiveSourceAdapters().map((a) => a.id);
+}
+
+export type LiveSerperBridgeSnapshot = {
+  shardSummary: string;
+  metroPack: string[];
+  stagingPending: number;
+  lastFindAt?: string;
+  lastFindFound?: number;
+  lastFindAutoSaved?: number;
+  workerMode?: string;
+  workerMessage?: string;
+  workerAt?: string;
+};
+
+/** Bridge simulation dashboard to live Marketing Desk / Serper queue signals. */
+export function getLiveSerperBridgeSnapshot(args?: {
+  stagingPending?: number;
+  lastFindAt?: string;
+  lastFindFound?: number;
+  lastFindAutoSaved?: number;
+  workerMode?: string;
+  workerMessage?: string;
+  workerAt?: string;
+}): LiveSerperBridgeSnapshot {
+  const pack = getDailyMetroShardPack().map((c) => c.split(',')[0]!.trim());
+  return {
+    shardSummary: metroShardSummaryLine(),
+    metroPack: pack,
+    stagingPending: args?.stagingPending ?? 0,
+    lastFindAt: args?.lastFindAt,
+    lastFindFound: args?.lastFindFound,
+    lastFindAutoSaved: args?.lastFindAutoSaved,
+    workerMode: args?.workerMode,
+    workerMessage: args?.workerMessage,
+    workerAt: args?.workerAt,
+  };
+}
+
+/** Optional remote tick — marketing-hunt-tick (live Serper) then worker probe. */
+export async function runLiveSerperBridgeTick(): Promise<{ ok: boolean; message: string }> {
+  if (!isSupabaseConfigured) {
+    return { ok: false, message: 'Supabase not configured — simulation only.' };
+  }
+  try {
+    const hunt = await supabase.functions.invoke('marketing-hunt-tick', {
+      body: { metros: getDailyMetroShardPack() },
+    });
+    if (hunt.error) {
+      return { ok: false, message: hunt.error.message };
+    }
+    const msg = String((hunt.data as { message?: string })?.message || 'marketing-hunt-tick OK');
+    addLeadIntelFeed({
+      city: 'System',
+      sourceId: 'serper_web',
+      agent: 'Geo Scanner',
+      message: `Live bridge · ${msg}`,
+      severity: 'info',
+    });
+    return { ok: true, message: msg };
+  } catch (e) {
+    return { ok: false, message: e instanceof Error ? e.message : 'Live bridge tick failed' };
+  }
 }
 
 export function listOvernightAttributions(limit = 300): OvernightAttribution[] {

@@ -35,37 +35,51 @@ const WIDTH = 1280;
 const HEIGHT = 720;
 const FPS = 30;
 
-/** Presenter demo scenes — mirrors Content Studio fallback beats (3-scene cut). */
+/** Presenter demo scenes — mirrors Content Studio 5-step wizard + E8 differentiators (4-scene reel). */
 const SCENES = [
   {
     id: 'hook',
-    beat: 'Hook the pain point',
+    beat: 'Hook — clarity before urgency',
     image: path.join(root, 'public/tours/tour-home-overview/step-01.png'),
-    caption: 'Your credit path should feel organized.',
+    caption: 'Live portal tools — not PDF-only.',
     voiceover:
-      'Your next credit move should feel clear before it feels urgent. Finely Cred helps partners understand the next step without pressure or unrealistic promises.',
-    durationSec: 9,
+      'Your next credit move should feel clear before it feels urgent. Finely Cred opens real partner tools from every free guide — Letter Studio, task board, and vault preview in one login.',
+    durationSec: 8,
     motion: 'zoom-in',
+    accent: '#34d399',
   },
   {
-    id: 'path',
-    beat: 'Show the organized path',
+    id: 'restore',
+    beat: 'Restore lane — disputes + evidence',
     image: path.join(root, 'public/tours/tour-portal-dispute-letter/step-02.png'),
-    caption: 'Dispute letters, portal tools, one lane at a time.',
+    caption: 'Factual dispute letters · evidence vault · certified mail.',
     voiceover:
-      'Upload your report, review factual findings, and send dispute letters from one workspace. No scattered tabs, no guesswork about what to do next.',
-    durationSec: 10,
+      'Upload bureau reports, attach screenshots as factual findings, and mail dispute letters from one workspace. No scattered tabs — every round tracked in the portal.',
+    durationSec: 9,
     motion: 'pan-left',
+    accent: '#a78bfa',
+  },
+  {
+    id: 'debt',
+    beat: 'Fight-back debt + build while you pay',
+    image: path.join(root, 'public/tours/tour-marketing-desk/step-01.png'),
+    caption: 'Validation-first debt lane · financing that reports.',
+    voiceover:
+      'When collectors move, your validation sequence moves faster. Fight back with paperwork, not panic — and eligible partners can build credit while they pay through in-house financing. Results vary — not legal advice.',
+    durationSec: 9,
+    motion: 'pan-right',
+    accent: '#f472b6',
   },
   {
     id: 'cta',
-    beat: 'Clear CTA',
+    beat: 'Clear CTA — guide, chat, or book',
     image: path.join(root, 'public/marketing/personal-credit-restore-hero-reference.png'),
-    caption: 'Start your free guide or book a strategy call.',
+    caption: 'Start free guide · chat with us · book a session.',
     voiceover:
-      'Start with a free guide, or book a strategy call when you want a human in the loop. Results vary — this is education, not legal advice.',
-    durationSec: 9,
+      'Start with a free guide, chat with our team anytime, or book a strategy call when you want a human in the loop. Finely Cred — restore, debt, business credit, and funding in one OS.',
+    durationSec: 8,
     motion: 'zoom-out',
+    accent: '#fbbf24',
   },
 ];
 
@@ -127,6 +141,12 @@ function kenBurnsFilter(scene, durationSec) {
   if (scene.motion === 'pan-left') {
     return (
       `zoompan=z='1.18':x='(iw-iw/zoom)*on/${frames}':y='ih/2-(ih/zoom/2)':` +
+      `d=${frames}:s=${s}:fps=${FPS}`
+    );
+  }
+  if (scene.motion === 'pan-right') {
+    return (
+      `zoompan=z='1.18':x='(iw-iw/zoom)*(1-on/${frames})':y='ih/2-(ih/zoom/2)':` +
       `d=${frames}:s=${s}:fps=${FPS}`
     );
   }
@@ -244,17 +264,24 @@ async function ensureSlidePng(scene, outPng) {
   const srcW = meta.width ?? WIDTH;
   const srcH = meta.height ?? HEIGHT;
 
+  const accent = scene.accent ?? '#34d399';
   const captionSvg = `
 <svg width="${WIDTH}" height="${HEIGHT}" xmlns="http://www.w3.org/2000/svg">
   <defs>
     <linearGradient id="vig" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="55%" stop-color="#000000" stop-opacity="0"/>
-      <stop offset="100%" stop-color="#000000" stop-opacity="0.45"/>
+      <stop offset="50%" stop-color="#000000" stop-opacity="0"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0.55"/>
+    </linearGradient>
+    <linearGradient id="accentBar" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="${accent}" stop-opacity="0.95"/>
+      <stop offset="100%" stop-color="#14b8a6" stop-opacity="0.85"/>
     </linearGradient>
   </defs>
   <rect width="100%" height="100%" fill="url(#vig)"/>
-  <rect x="40" y="${HEIGHT - 120}" width="${WIDTH - 80}" height="72" rx="18" fill="rgba(0,0,0,0.55)" stroke="rgba(255,255,255,0.12)" stroke-width="2"/>
-  <text x="56" y="${HEIGHT - 72}" fill="rgba(255,255,255,0.92)" font-family="Inter, Arial, sans-serif" font-size="28" font-weight="600">${scene.caption.replace(/&/g, '&amp;').replace(/</g, '&lt;')}</text>
+  <rect x="32" y="${HEIGHT - 128}" width="${WIDTH - 64}" height="84" rx="20" fill="rgba(0,0,0,0.62)" stroke="rgba(255,255,255,0.14)" stroke-width="2"/>
+  <rect x="32" y="${HEIGHT - 128}" width="6" height="84" rx="3" fill="url(#accentBar)"/>
+  <text x="56" y="${HEIGHT - 78}" fill="rgba(255,255,255,0.95)" font-family="Inter, Arial, sans-serif" font-size="26" font-weight="700">${scene.caption.replace(/&/g, '&amp;').replace(/</g, '&lt;')}</text>
+  <text x="56" y="${HEIGHT - 48}" fill="rgba(255,255,255,0.55)" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="500">Finely Cred · presenter demo</text>
 </svg>`;
 
   await sharp(src)
@@ -365,7 +392,7 @@ async function main() {
   fs.mkdirSync(outDir, { recursive: true });
   fs.mkdirSync(workDir, { recursive: true });
 
-  console.log('Finely Cred launch presenter demo — 3-scene Ken Burns WebM\n');
+  console.log('Finely Cred launch presenter demo — 4-scene Ken Burns WebM (E8 differentiators)\n');
 
   const voiceReport = [];
   const segments = [];

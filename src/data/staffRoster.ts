@@ -203,38 +203,54 @@ export const MARKETING_BLACK_STAFF_IDS = new Set([
   'staff-imani-cooper',
 ]);
 
+/** Asian team members featured on public marketing for portrait diversity. */
+export const MARKETING_ASIAN_STAFF_IDS = new Set([
+  'staff-casey-nguyen',
+  'staff-jordan-patel',
+  'staff-priya-shah',
+  'staff-riley-chen',
+  'staff-dana-kim',
+  'staff-calvin-wu',
+  'staff-leo-park',
+  'staff-miles-chen',
+  'staff-tiffany-nguyen',
+  'staff-brandon-kim',
+  'staff-henry-ng',
+  'staff-michelle-aguilar',
+]);
+
 /**
  * Curated public faces per lane — not the full roster.
  * Each strip shows up to four people with at least three Black team members where possible.
  */
 const MARKETING_DISPLAY_BY_ROLE: Partial<Record<AgentPersonaId, string[]>> = {
-  finely_advisor: ['staff-marcus-reed', 'staff-jasmine-kerr', 'staff-victor-stone', 'staff-morgan-hale'],
-  dispute_coach: ['staff-jasmine-kerr', 'staff-adrian-stone', 'staff-taylor-brooks', 'staff-dana-kim'],
-  funding_strategist: ['staff-marcus-reed', 'staff-cameron-blake', 'staff-mia-thompson', 'staff-derek-ford'],
-  nurture_concierge: ['staff-ruby-santos', 'staff-avery-luna', 'staff-cameron-blake', 'staff-jasmine-kerr'],
-  support_specialist: ['staff-tyler-banks', 'staff-jordan-patel', 'staff-lily-martinez', 'staff-ava-dunn'],
-  appointment_setter: ['staff-nina-cole', 'staff-sam-ortiz', 'staff-victor-stone', 'staff-renee-cole'],
-  sales_closer: ['staff-victor-stone', 'staff-adrian-stone', 'staff-riley-chen', 'staff-brielle-monroe'],
+  finely_advisor: ['staff-marcus-reed', 'staff-priya-shah', 'staff-jasmine-kerr', 'staff-calvin-wu'],
+  dispute_coach: ['staff-jasmine-kerr', 'staff-dana-kim', 'staff-henry-ng', 'staff-adrian-stone'],
+  funding_strategist: ['staff-marcus-reed', 'staff-leo-park', 'staff-mia-thompson', 'staff-cameron-blake'],
+  nurture_concierge: ['staff-ruby-santos', 'staff-casey-nguyen', 'staff-cameron-blake', 'staff-jasmine-kerr'],
+  support_specialist: ['staff-tyler-banks', 'staff-jordan-patel', 'staff-renee-cole', 'staff-lily-martinez'],
+  appointment_setter: ['staff-nina-cole', 'staff-brandon-kim', 'staff-victor-stone', 'staff-renee-cole'],
+  sales_closer: ['staff-victor-stone', 'staff-riley-chen', 'staff-adrian-stone', 'staff-brielle-monroe'],
   lead_converter: ['staff-cameron-blake', 'staff-yolanda-cruz', 'staff-marcus-reed', 'staff-alex-wright'],
-  debt_strategist: ['staff-omar-hassan', 'staff-darnell-price', 'staff-monique-baker', 'staff-terrence-floyd'],
-  education_coach: ['staff-nate-brooks', 'staff-olivia-park', 'staff-jasmine-kerr', 'staff-priya-shah'],
+  debt_strategist: ['staff-omar-hassan', 'staff-tiffany-nguyen', 'staff-darnell-price', 'staff-monique-baker'],
+  education_coach: ['staff-priya-shah', 'staff-jasmine-kerr', 'staff-victor-stone', 'staff-olivia-park'],
   affiliate_specialist: ['staff-miles-chen', 'staff-harper-wells', 'staff-adrian-stone', 'staff-drew-sinclair'],
-  social_creator: ['staff-jamie-foster', 'staff-elise-hart', 'staff-ethan-cross', 'staff-renee-cole'],
+  social_creator: ['staff-jamie-foster', 'staff-elise-hart', 'staff-renee-cole', 'staff-imani-cooper'],
 };
 
 function pickDiverseMarketingSubset(pool: StaffMember[], max: number): StaffMember[] {
   if (pool.length <= max) return pool;
   const black = pool.filter((s) => MARKETING_BLACK_STAFF_IDS.has(s.id));
-  const rest = pool.filter((s) => !MARKETING_BLACK_STAFF_IDS.has(s.id));
+  const asian = pool.filter((s) => MARKETING_ASIAN_STAFF_IDS.has(s.id));
+  const rest = pool.filter((s) => !MARKETING_BLACK_STAFF_IDS.has(s.id) && !MARKETING_ASIAN_STAFF_IDS.has(s.id));
   const picked: StaffMember[] = [];
-  for (const s of black) {
-    if (picked.length >= max) break;
-    picked.push(s);
-  }
-  for (const s of rest) {
-    if (picked.length >= max) break;
+  const tryPush = (s: StaffMember) => {
+    if (picked.length >= max) return;
     if (!picked.some((p) => p.id === s.id)) picked.push(s);
-  }
+  };
+  for (const s of black) tryPush(s);
+  for (const s of asian) tryPush(s);
+  for (const s of rest) tryPush(s);
   return picked.slice(0, max);
 }
 
@@ -347,7 +363,9 @@ function dailyRotationIndex(pool: StaffMember[], date: Date): number {
 
 /** On-duty human for a role at a given time. Daily shift rotation — never pins one face 24/7. */
 export function resolveStaffOnDuty(roleId: AgentPersonaId, date = new Date()): StaffMember | null {
-  const pool = orderStaffPoolForRole(roleId, listStaffByRole(roleId));
+  const curated = listMarketingDisplayStaff(roleId, 6);
+  const fallback = listStaffByRole(roleId);
+  const pool = orderStaffPoolForRole(roleId, curated.length ? curated : fallback);
   if (!pool.length) return null;
   const onShift = pool.filter((s) => isStaffOnShift(s, date));
   if (onShift.length) return onShift[dailyRotationIndex(onShift, date)]!;

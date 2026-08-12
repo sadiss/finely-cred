@@ -25,6 +25,7 @@ This guide is concrete about file paths so you can jump straight to the code. It
 13. [Branching note](#13-branching-note)
 14. [Recent product surfaces (2026)](#14-recent-product-surfaces-2026) — careers/CS join, tradelines vs AU sellers, agency buy-ins, Platinum Workspace, home/nav wayfinding, affiliate + Denefit share, letters evidence capture, **debt guide mockup + video wordmark (§14.10)**, plan docs index
 15. [Launch sprint runbook (Aug 2026)](#15-launch-sprint-runbook-aug-2026) — **CTA spine, growth agents, video/voice studio, mail live mode, admin view-as, partner hub launchers, client seeds, personal credit UX**
+16. [Platform expansion ship (Aug 2026)](#16-platform-expansion-ship-aug-2026) — **letters preview/save, unified chat brain, public chat UX, nationwide geo hunts, Ruth Command, video copilot 5-step wizard, booking invites, Alex appointments, marketing wow layer**
 
 ---
 
@@ -521,7 +522,7 @@ Full list is in `package.json`; the ones you'll actually use day-to-day:
 
 ## 13. Branching note
 
-- This repo's docs (`docs/DEVELOPER_HANDOFF.md`, `DEV_URGENT_*.md` at repo root) currently direct engineers to work on **existing feature/preview branches** (e.g. `preview/sitewide-ux-pack-merge` per the urgent handoff notes) rather than cutting new branches for urgent fixes. At the time of writing this guide, the checked-out branch is `fix/chat-vault-screenshots-and-address-extract` with local uncommitted changes.
+- This repo's docs (`docs/DEVELOPER_HANDOFF.md`, `DEV_URGENT_*.md` at repo root) currently direct engineers to work on **existing feature/preview branches** rather than cutting new branches for urgent fixes. At the time of writing this guide, the active ship branch is **`fix/debt-guide-mockup-video-wordmark`** (letters, chat, marketing geo, video copilot, booking).
 - **Do not invent a new branching process.** Check `git branch --show-current` and the most recent `DEV_URGENT_*.md` file at the repo root before starting work — they name the exact branch to use for in-flight priorities.
 - **Do not commit or push** as part of following this guide — that decision belongs to the owner/team lead per the workspace rules.
 - `PartnerDetailPage.tsx` must only be modified via patch scripts (`scripts/_patch-partner-detail-*.mjs`), never `StrReplace`/direct edits — this applies regardless of which branch you're on.
@@ -544,7 +545,8 @@ Product/IA work that landed around careers sell pages, tradelines vs AU sellers,
 | [14.8](#148-plan-docs-index-docsplans) | Plan docs index (`docs/plans/`) | Reference |
 | [14.9](#149-key-configs-quick-index) | Key configs (quick index) | Reference |
 | [14.10](#1410-debt-guide-funnel-visuals--video-branding-2026-08) | Debt guide mockup + video wordmark | Shipped |
-| [15](#15-launch-sprint-runbook-aug-2026) | **Launch sprint runbook (Aug 2026)** — CTA, agents, video, mail, view-as, seeds | **Primary reference for latest ship** |
+| [15](#15-launch-sprint-runbook-aug-2026) | **Launch sprint runbook (Aug 2026)** — CTA, agents, video, mail, view-as, seeds | **Primary reference for Aug sprint baseline** |
+| [16](#16-platform-expansion-ship-aug-2026) | **Platform expansion ship (Aug 2026)** — letters, chat brain, geo hunts, Ruth, copilot wizard, booking | **Latest ship on `fix/debt-guide-mockup-video-wordmark`** |
 
 Public career / join surfaces (full public chrome via `PageShell`):
 
@@ -849,21 +851,24 @@ npm run cta:bare-onboarding:audit   # must report 0 bare /onboarding links
 | Surface | Route | Key files |
 |---------|-------|-----------|
 | Content Studio home | `/admin/content-studio` | `ContentStudioDepartmentPage.tsx` |
-| Easy wizard (3-step) | `/admin/content-studio?wizard=open` | `VideoCreateWizard.tsx` — Brief → Scenes → Export |
+| Easy wizard (5-step) | `/admin/content-studio?wizard=open` | `VideoCreateWizard.tsx` — Plan → Format → Scenes → Edit & Style → Export |
+| Video copilot chat | Content Studio home + wizard step 1 | `VideoCreationCopilotPanel.tsx`, `videoCreationCopilotBrain.ts` |
 | Advanced video room | `?view=advanced&room=video` | `VideoStudioPremiumShell.tsx` → `GeminiStyleVideoCommand.tsx` |
 | Course lesson videos | `/admin/courses/:id` (Step 4) or `room=course_videos` | `AdminCourseEditorPage.tsx`, `CourseVideoBatchWorkroom.tsx` |
 | Partner playback | `/portal/courses/:id` | `CourseLessonVideoPlayer.tsx` |
-| Public presenter demo | `/resources#presenter-demo` | `LaunchPresenterDemoSection.tsx` |
+| Public presenter demo | `/resources#presenter-demo` | `LaunchPresenterDemoSection.tsx` (public player; admin quality-bar optional) |
 
 **Pipeline router:** `src/lib/mediaProviderRouter.ts` (plan → stills → voice → stitch). **Shared actions:** `src/features/studioCommandOs/videoCommandActions.ts`.
 
-**Generate launch demo WebM (public Resources player):**
+**Generate launch demo WebM (public Resources player — 4-scene / ~34s reel):**
 
 ```powershell
 npm run demo:launch:video
-npm run demo:launch:video -- --force          # re-render
+npm run demo:launch:video -- --force          # re-render (updates public/demos/finely-launch-demo.webm + .json)
 npm run demo:launch:video -- --voice=studio   # Supabase Voice Studio narration
 ```
+
+Scenes cover: live portal tools (not PDF-only), dispute vault, fight-back debt lane, CTA. Script: `scripts/generate-launch-demo-video.mjs`.
 
 **Requirements:** ffmpeg on PATH **or** portable binary at `scripts/.tools/ffmpeg/bin/ffmpeg.exe` (gitignored — each dev installs locally). Output: `public/demos/finely-launch-demo.webm` — **commit this file** after render so deploy clones show the demo.
 
@@ -988,13 +993,107 @@ Video attach flow: course Step 4 → `VideoCreateWizard` modal → export attach
 | `src/lib/finelyAutomationOrchestrator.ts` | Growth automation console |
 | `src/lib/finelyCapabilityMetrics.ts` | Capability scorecard metrics |
 | `src/lib/mediaProviderRouter.ts` | Video Presenter Mode router |
-| `src/features/studioCommandOs/VideoCreateWizard.tsx` | 3-step video wizard |
-| `scripts/generate-launch-demo-video.mjs` | Launch demo WebM generator |
+| `src/features/studioCommandOs/VideoCreateWizard.tsx` | 5-step video wizard |
+| `src/features/studioCommandOs/videoCreationCopilotBrain.ts` | Video copilot brain |
+| `scripts/generate-launch-demo-video.mjs` | Launch demo WebM generator (4-scene reel) |
 | `src/components/resources/LaunchPresenterDemoSection.tsx` | Public demo player |
 | `supabase/functions/mailer/index.ts` | Mail live/test mode |
 | `src/data/maxJeanBaptistePartnerSeed.ts` | Max client seed |
 | `src/lib/adminPartnerViewAs.ts` | Admin view-as |
 | `src/components/partner/roleHubLauncherPresets.ts` | Role hub tiles |
+
+---
+
+## 16. Platform expansion ship (Aug 2026)
+
+**Status: shipped** on branch `fix/debt-guide-mockup-video-wordmark`. Builds on §15 with letters reliability, unified public chat intelligence, nationwide marketing geo, Ruth Command strip, video copilot depth, self-book scheduling, and organic marketing differentiators.
+
+### 16.1 Letters — preview, save, unified editor
+
+| Fix | Key files |
+|-----|-----------|
+| Generate → single preview surface (no “No PDF stored yet” steal) | `LettersCommandCenter.tsx`, `LetterStudioSavedVaultStrip.tsx`, `SavedLetterCard.tsx` |
+| Body-only PDF fallback in preview modal | `LetterFullPreviewModal.tsx` → `DebtLetterPreview` |
+| Save text without PDF + HTML body consistency | `saveDebtDraftText`, `letterBodySafety.ts` |
+| Unified rich editor (480px, toolbar, paper preview) | `LetterEditorShell.tsx`, `LetterBodyEditorModal.tsx` |
+| Dispute vault edit → reload intro/footer from meta + PDF regen | `regenerateSavedLetterPdf.ts` |
+
+**Verify:** Admin/partner Letters → Generate validation letter → one modal with preview → Edit → Save text → reopen confirms body.
+
+### 16.2 Public chat + unified brain
+
+| Piece | Location |
+|-------|----------|
+| eGuide RAG index (dispute, debt, BC, tradeline) | `src/lib/eguideKnowledgeFlatten.ts`, `finelyKnowledgeIndex.ts` |
+| Public-safe filter (no admin/SOP leaks) | `searchFinelyKnowledgePublic()`, `finelyPublicAnswer.ts` |
+| Public chat composer (full-width, emoji picker, chips below) | `PublicChatWidget.tsx` |
+| Contextual reply emojis | `enrichPublicChatReply()` in `publicChatDocumentIntake.ts` |
+| Portrait diversity audit | `scripts/audit-chat-portrait-diversity.mjs`, `staffRoster.ts` |
+| Hub coach parity | `HubAiCoachPanel.tsx`, `knowledgeBaseRouter.ts` |
+
+**Verify:** Public homepage → chat bubble → diverse on-duty face, emoji picker, lane chips with icons. Ask a guide question — answer cites public eGuide content only.
+
+### 16.3 Marketing Desk — geo shards + Ruth Command
+
+| Piece | Location |
+|-------|----------|
+| 62-metro US shard map + daily rotation | `usMetroShardMap.ts`, `marketingDeskHunt.ts`, `queryExpander.ts` |
+| Caleb subagent pipeline | `growthAgentRegistry.ts`, `calebAutoFind.ts` |
+| Edge hunt tick (optional live Serper) | `supabase/functions/marketing-hunt-tick/` |
+| Swarm live bridge | `LeadIntelSwarmDashboard.tsx`, `leadIntelSwarmRepo.ts` |
+| Ruth Command strip (co-owner weekly focus) | `MarketingDeskRuthCommandStrip.tsx`, `marketingDeskRuthFocus.ts` |
+| Mail nurture auto-enroll + stop-on-reply | `marketingDeskMail.ts`, `nurtureEngine.ts`, `commsWebhookRepo.ts` |
+
+**Note:** Page stays **Marketing Desk** — Ruth is a command strip, not a page rename.
+
+**Deploy geo cron (optional):**
+
+```powershell
+npx supabase functions deploy marketing-hunt-tick
+# Optional secret: MARKETING_HUNT_LIVE=true for one Serper probe per tick
+```
+
+### 16.4 Video studio — copilot + 5-step wizard + styles
+
+| Piece | Location |
+|-------|----------|
+| Copilot chat (transcribe-only mic, no TTS on mic path) | `VideoCreationCopilotPanel.tsx`, `useFinelyVoiceInput.ts` |
+| Brain task | `content.studio.video_copilot.v1` via `videoCreationCopilotBrain.ts` |
+| 5-step wizard | `VideoCreateWizard.tsx` |
+| Style presets + transitions | `videoStylePresets.ts`, `mediaExport.ts`, `VideoTimelineEditor.tsx` |
+| Presenter quality reference loop | `presenterVideoQualityBridge.ts`, `LaunchPresenterDemoSection.tsx` |
+
+**Verify:** `/admin/content-studio` → copilot chat → Continue to format → export. Voice mic writes text only.
+
+### 16.5 Booking + Alex appointment agent
+
+| Surface | Route | Key files |
+|---------|-------|-----------|
+| Admin invite links | `/admin/calendar` | `BookingInvitePanel.tsx`, `bookingInviteRepo.ts` |
+| Public self-book | `/book/i/:token` | `PublicSelfBookInvitePage.tsx` |
+| Audio-first guest join | `/meet/:eventId` | `GuestMeetingJoinPage.tsx`, `meetingUrls.ts` |
+| Alex Rivera agent | `/admin/growth-agents/appointment-setter` | `GrowthAgentAlexWorkspace.tsx`, `alexAppointmentAutomation.ts` |
+| Meeting reminders | Admin calendar load | `meetingReminderAutomation.ts` |
+
+**Migration:** `supabase/migrations/202608112000_booking_invites.sql` (apply with `supabase db push` when ready).
+
+### 16.6 Marketing wow layer (organic, no paid ads)
+
+| Piece | Location |
+|-------|----------|
+| Differentiator chips + copy | `finelyMarketingDifferentiators.ts`, `FinelyMarketingWowStrip.tsx` |
+| Public command strip | `FinelyOsPublicCommandStrip.tsx` |
+| Lead magnet / guide copy | `leadMagnetFunnels.ts`, `freeGuides.ts`, `denefitsProgram.ts` |
+
+**Positioning:** Guides open **live portal tools**; debt lane = **fight-back validation OS**; in-house financing **builds credit while you pay**.
+
+### 16.7 QA gates before push
+
+```powershell
+npm run typecheck
+node scripts/audit-chat-portrait-diversity.mjs
+npm run demo:launch:video -- --force   # optional — refreshes public presenter reel
+```
 
 ---
 

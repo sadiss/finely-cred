@@ -8,6 +8,7 @@ import { GrowthAgentHannahWorkspace } from './GrowthAgentHannahWorkspace';
 import { GrowthAgentEstherWorkspace } from './GrowthAgentEstherWorkspace';
 import { GrowthAgentBenjaminWorkspace } from './GrowthAgentBenjaminWorkspace';
 import { GrowthAgentRebeccaWorkspace } from './GrowthAgentRebeccaWorkspace';
+import { GrowthAgentAlexWorkspace } from './GrowthAgentAlexWorkspace';
 import { GrowthAgentLydiaWorkspace } from './GrowthAgentLydiaWorkspace';
 import { GrowthAgentMiriamWorkspace } from './GrowthAgentMiriamWorkspace';
 import { GrowthAgentJordanWorkspace } from './GrowthAgentJordanWorkspace';
@@ -251,6 +252,9 @@ export function GrowthAgentWorkspaceView({ agentId }: { agentId: string }) {
   }
   if (agent.id === 'specialist-recruit') {
     return <GrowthAgentRebeccaWorkspace />;
+  }
+  if (agent.id === 'appointment-setter') {
+    return <GrowthAgentAlexWorkspace />;
   }
   return <GenericAgentWorkspace agent={agent} />;
 }

@@ -22,6 +22,8 @@ import { getAccessiblePartnerIdsForAdmin } from '../../tenancy/adminPartnerScope
 import { FinelyOsPaginatedStack } from '../../features/os/FinelyOsPaginatedStack';
 import { FinelyOsPageFooter } from '../../features/os/FinelyOsPageFooter';
 import { FinelyOsOverviewStatTile } from '../../features/os/FinelyOsOverviewStatTile';
+import { BookingInvitePanel } from '../../components/calendar/BookingInvitePanel';
+import { runMeetingReminderAutomation } from '../../lib/meetingReminderAutomation';
 import {
   FINELY_OS_PAGE,
   FINELY_OS_BACK_LINK,
@@ -65,6 +67,7 @@ export default function AdminCalendarPage() {
   useEffect(() => {
     const onStore = () => setVersion((v) => v + 1);
     window.addEventListener('finely:store', onStore as EventListener);
+    void runMeetingReminderAutomation({ withinHours: 24 });
     return () => window.removeEventListener('finely:store', onStore as EventListener);
   }, []);
 
@@ -232,6 +235,8 @@ export default function AdminCalendarPage() {
             Triage strategy call requests, schedule meetings, and manage public ops calendar slots.
           </p>
         </div>
+
+        <BookingInvitePanel />
 
         {schedulePublicReq && (
           <div className={`${FINELY_OS_NOTICE_SUCCESS} space-y-4`}>

@@ -1,4 +1,5 @@
 import { downloadBlob as downloadBlobUtil } from '../utils/download';
+import type { MediaTransition } from '../domain/mediaStudio';
 
 export function dataUrlToBlob(dataUrl: string): Blob {
   const s = String(dataUrl || '');
@@ -26,7 +27,7 @@ export type VideoScene = {
   imageDataUrl: string;
   caption?: string;
   durationSec: number;
-  transition?: { type: 'cut' | 'fade'; durationSec?: number };
+  transition?: MediaTransition;
 };
 
 async function loadImage(dataUrl: string): Promise<HTMLImageElement> {
@@ -36,6 +37,53 @@ async function loadImage(dataUrl: string): Promise<HTMLImageElement> {
     img.onerror = () => reject(new Error('Failed to load image'));
     img.src = dataUrl;
   });
+}
+
+type DrawCoverOpts = {
+  scale?: number;
+  offsetX?: number;
+  offsetY?: number;
+  sceneProgress?: number;
+  kenBurns?: boolean;
+};
+
+function drawCover(
+  ctx: CanvasRenderingContext2D,
+  im: HTMLImageElement,
+  canvasW: number,
+  canvasH: number,
+  opts?: DrawCoverOpts,
+) {
+  const iw = im.naturalWidth || im.width;
+  const ih = im.naturalHeight || im.height;
+  let scale = Math.max(canvasW / iw, canvasH / ih);
+  let offsetX = opts?.offsetX ?? 0;
+  let offsetY = opts?.offsetY ?? 0;
+
+  if (opts?.kenBurns && opts.sceneProgress != null) {
+    const p = opts.sceneProgress;
+    const kbScale = 1 + p * 0.1;
+    scale *= kbScale;
+    offsetX += (p - 0.5) * canvasW * 0.04;
+    offsetY += (0.5 - p) * canvasH * 0.02;
+  }
+
+  if (opts?.scale != null) scale *= opts.scale;
+
+  const dw = iw * scale;
+  const dh = ih * scale;
+  const dx = (canvasW - dw) / 2 + offsetX;
+  const dy = (canvasH - dh) / 2 + offsetY;
+  ctx.drawImage(im, dx, dy, dw, dh);
+}
+
+function easeInOut(t: number) {
+  return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+}
+
+function transitionDurationSec(transition?: MediaTransition): number {
+  if (!transition || transition.type === 'cut') return 0;
+  return Math.max(0.1, Math.min(2.0, Number(transition.durationSec ?? 0.45)));
 }
 
 function drawCaption(
@@ -64,7 +112,6 @@ function drawCaption(
   ctx.lineWidth = 2;
   ctx.beginPath();
   const r = 18;
-  // rounded rect
   ctx.moveTo(x + r, y);
   ctx.lineTo(x + w - r, y);
   ctx.quadraticCurveTo(x + w, y, x + w, y + r);
@@ -82,7 +129,6 @@ function drawCaption(
   ctx.font = `600 ${Math.max(18, Math.round(height * 0.04))}px Inter, system-ui, -apple-system, Segoe UI, sans-serif`;
   ctx.textBaseline = 'middle';
 
-  // simple word wrap
   const words = text.split(/\s+/).slice(0, 60);
   const lines: string[] = [];
   let line = '';
@@ -102,6 +148,94 @@ function drawCaption(
   const startY = y + h / 2 - ((shown.length - 1) * lineH) / 2;
   shown.forEach((ln, idx) => ctx.fillText(ln, x + pad, startY + idx * lineH));
   ctx.restore();
+}
+
+function drawVignette(ctx: CanvasRenderingContext2D, w: number, h: number) {
+  const grd = ctx.createLinearGradient(0, h * 0.55, 0, h);
+  grd.addColorStop(0, 'rgba(0,0,0,0)');
+  grd.addColorStop(1, 'rgba(0,0,0,0.45)');
+  ctx.fillStyle = grd;
+  ctx.fillRect(0, 0, w, h);
+}
+
+type TransitionDrawArgs = {
+  ctx: CanvasRenderingContext2D;
+  canvasW: number;
+  canvasH: number;
+  currentImg: HTMLImageElement;
+  nextImg: HTMLImageElement | null;
+  transition: MediaTransition | undefined;
+  t: number;
+  sceneProgress: number;
+};
+
+function drawSceneFrame(args: TransitionDrawArgs) {
+  const { ctx, canvasW, canvasH, currentImg, nextImg, transition, t, sceneProgress } = args;
+  const type = transition?.type ?? 'cut';
+  const kenBurnsInScene = type === 'ken_burns';
+
+  ctx.fillStyle = '#0b1110';
+  ctx.fillRect(0, 0, canvasW, canvasH);
+
+  if (!nextImg || t <= 0 || type === 'cut') {
+    drawCover(ctx, currentImg, canvasW, canvasH, {
+      sceneProgress,
+      kenBurns: kenBurnsInScene,
+    });
+    return;
+  }
+
+  const eased = type === 'dissolve' ? easeInOut(t) : t;
+  const zoomDir = transition?.zoom === 'out' ? 'out' : 'in';
+
+  if (type === 'fade' || type === 'dissolve') {
+    ctx.save();
+    ctx.globalAlpha = 1 - eased;
+    drawCover(ctx, currentImg, canvasW, canvasH, { sceneProgress });
+    ctx.globalAlpha = eased;
+    drawCover(ctx, nextImg, canvasW, canvasH);
+    ctx.restore();
+    return;
+  }
+
+  if (type === 'wipe') {
+    drawCover(ctx, currentImg, canvasW, canvasH, { sceneProgress });
+    const dir = transition?.direction ?? 'left';
+    ctx.save();
+    ctx.beginPath();
+    if (dir === 'left') ctx.rect(canvasW * (1 - eased), 0, canvasW * eased, canvasH);
+    else if (dir === 'right') ctx.rect(0, 0, canvasW * eased, canvasH);
+    else if (dir === 'up') ctx.rect(0, canvasH * (1 - eased), canvasW, canvasH * eased);
+    else ctx.rect(0, 0, canvasW, canvasH * eased);
+    ctx.clip();
+    drawCover(ctx, nextImg, canvasW, canvasH);
+    ctx.restore();
+    return;
+  }
+
+  if (type === 'zoom') {
+    const outScale = zoomDir === 'in' ? 1 + eased * 0.15 : 1 - eased * 0.08;
+    const inScale = zoomDir === 'in' ? 0.88 + eased * 0.12 : 1.12 - eased * 0.12;
+    ctx.save();
+    ctx.globalAlpha = 1 - eased * 0.85;
+    drawCover(ctx, currentImg, canvasW, canvasH, { scale: outScale, sceneProgress });
+    ctx.globalAlpha = eased;
+    drawCover(ctx, nextImg, canvasW, canvasH, { scale: inScale });
+    ctx.restore();
+    return;
+  }
+
+  if (type === 'ken_burns') {
+    ctx.save();
+    ctx.globalAlpha = 1 - eased * 0.35;
+    drawCover(ctx, currentImg, canvasW, canvasH, { sceneProgress, kenBurns: true });
+    ctx.globalAlpha = eased;
+    drawCover(ctx, nextImg, canvasW, canvasH, { sceneProgress: eased, kenBurns: true });
+    ctx.restore();
+    return;
+  }
+
+  drawCover(ctx, currentImg, canvasW, canvasH, { sceneProgress, kenBurns: kenBurnsInScene });
 }
 
 export async function exportScenesToWebm(args: {
@@ -124,7 +258,6 @@ export async function exportScenesToWebm(args: {
 
   const videoStream = canvas.captureStream(fps);
 
-  // Optional audio mix
   let stream: MediaStream = videoStream;
   if (args.audioTracks && args.audioTracks.length) {
     const AudioCtx = (window as any).AudioContext || (window as any).webkitAudioContext;
@@ -155,7 +288,6 @@ export async function exportScenesToWebm(args: {
       }
 
       try {
-        // Ensure the context is running
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
         audioCtx.resume?.();
       } catch {
@@ -178,52 +310,45 @@ export async function exportScenesToWebm(args: {
   rec.start(250);
   await started;
 
+  const imageCache = new Map<string, HTMLImageElement>();
+  async function getImg(dataUrl: string) {
+    let img = imageCache.get(dataUrl);
+    if (!img) {
+      img = await loadImage(dataUrl);
+      imageCache.set(dataUrl, img);
+    }
+    return img;
+  }
+
   for (let si = 0; si < scenes.length; si++) {
     const scene = scenes[si]!;
-    const img = await loadImage(scene.imageDataUrl);
+    const img = await getImg(scene.imageDataUrl);
     const next = scenes[si + 1] ?? null;
-    const nextImg = next && scene.transition?.type === 'fade' ? await loadImage(next.imageDataUrl) : null;
+    const nextImg = next ? await getImg(next.imageDataUrl) : null;
+    const transition = scene.transition;
+    const transType = transition?.type ?? 'cut';
+    const needsNext = transType !== 'cut' && nextImg != null;
     const frames = Math.max(1, Math.round(scene.durationSec * fps));
-    const fadeSec = scene.transition?.type === 'fade' ? Math.max(0.1, Math.min(2.0, Number(scene.transition?.durationSec ?? 0.5))) : 0;
+    const fadeSec = needsNext ? transitionDurationSec(transition) : 0;
     const fadeFrames = fadeSec ? Math.max(1, Math.round(fadeSec * fps)) : 0;
+
     for (let f = 0; f < frames; f++) {
-      // background
-      ctx.fillStyle = '#0b1110';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      const sceneProgress = frames <= 1 ? 0 : f / (frames - 1);
+      const inTransition = Boolean(needsNext && fadeFrames > 0 && f >= Math.max(0, frames - fadeFrames));
+      const t = inTransition ? Math.max(0, Math.min(1, (f - (frames - fadeFrames)) / fadeFrames)) : 0;
 
-      // draw image cover
-      const drawCover = (im: HTMLImageElement) => {
-        const iw = im.naturalWidth || im.width;
-        const ih = im.naturalHeight || im.height;
-        const scale = Math.max(canvas.width / iw, canvas.height / ih);
-        const dw = iw * scale;
-        const dh = ih * scale;
-        const dx = (canvas.width - dw) / 2;
-        const dy = (canvas.height - dh) / 2;
-        ctx.drawImage(im, dx, dy, dw, dh);
-      };
+      drawSceneFrame({
+        ctx,
+        canvasW: canvas.width,
+        canvasH: canvas.height,
+        currentImg: img,
+        nextImg: inTransition ? nextImg : null,
+        transition,
+        t,
+        sceneProgress,
+      });
 
-      // If fading, crossfade into the next scene image at the end.
-      const inFade = Boolean(nextImg && fadeFrames > 0 && f >= Math.max(0, frames - fadeFrames));
-      if (!inFade) {
-        drawCover(img);
-      } else {
-        const start = frames - fadeFrames;
-        const t = Math.max(0, Math.min(1, (f - start) / fadeFrames));
-        ctx.save();
-        ctx.globalAlpha = 1 - t;
-        drawCover(img);
-        ctx.globalAlpha = t;
-        drawCover(nextImg!);
-        ctx.restore();
-      }
-
-      // subtle vignette + caption
-      const grd = ctx.createLinearGradient(0, canvas.height * 0.55, 0, canvas.height);
-      grd.addColorStop(0, 'rgba(0,0,0,0)');
-      grd.addColorStop(1, 'rgba(0,0,0,0.45)');
-      ctx.fillStyle = grd;
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      drawVignette(ctx, canvas.width, canvas.height);
       drawCaption(ctx, scene.caption || '', canvas.width, canvas.height, args.captionStyle);
 
       await new Promise((r) => setTimeout(r, tickMs));
@@ -236,4 +361,3 @@ export async function exportScenesToWebm(args: {
 
   return new Blob(chunks, { type: mimeType });
 }
-

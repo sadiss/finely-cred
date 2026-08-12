@@ -238,6 +238,8 @@ const SellerContractsPage = lazyWithRetry(() => import('./pages/seller/SellerCon
 const SellerPayoutsPage = lazyWithRetry(() => import('./pages/seller/SellerPayoutsPage'));
 const AuSellerHubPage = lazyWithRetry(() => import('./pages/seller/AuSellerHubPage'));
 const EnlightenmentSessionPage = lazyWithRetry(() => import('./pages/EnlightenmentSessionPage'));
+const PublicSelfBookInvitePage = lazyWithRetry(() => import('./pages/PublicSelfBookInvitePage'));
+const GuestMeetingJoinPage = lazyWithRetry(() => import('./pages/GuestMeetingJoinPage'));
 const FreeGuideFunnelPage = lazyWithRetry(() => import('./pages/leadmagnet/FreeGuideFunnelPage'));
 const DisputeGuideReaderPage = lazyWithRetry(() => import('./pages/leadmagnet/DisputeGuideReaderPage'));
 const ScoreBoostGuideReaderPage = lazyWithRetry(() => import('./pages/leadmagnet/ScoreBoostGuideReaderPage'));
@@ -2757,6 +2759,8 @@ function AppInner() {
         <Route path="/contact" element={<ContactPage />} />
         <Route path="/unsubscribe" element={<UnsubscribePage />} />
         <Route path="/enlightenment-session" element={<EnlightenmentSessionPage />} />
+        <Route path="/book/i/:token" element={<PublicSelfBookInvitePage />} />
+        <Route path="/meet/:eventId" element={<GuestMeetingJoinPage />} />
         <Route path="/free-guide" element={<FreeGuideFunnelPage />} />
         <Route path="/free-guide/read" element={<DisputeGuideReaderPage />} />
         <Route path="/head-of-society" element={<HetaSocietyPage />} />

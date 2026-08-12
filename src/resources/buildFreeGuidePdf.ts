@@ -313,17 +313,27 @@ export function resolveGuidePdfTheme(guideId?: string, title?: string): GuidePdf
   return getGuidePdfTheme(resolveGuidePdfThemeId(guideId, title));
 }
 
-export function pdfSafeText(s: string) {
+export function normalizeEguidePunctuation(s: string): string {
   return String(s ?? '')
-    .replace(/[‘’]/g, "'")
-    .replace(/[“”]/g, '"')
-    .replace(/[–—]/g, '-')
-    .replace(/•/g, '-')
-    .replace(/→/g, '->')
-    .replace(/←/g, '<-')
-    .replace(/…/g, '...')
-    .replace(/©/g, '(c)')
-    .replace(/[^\x09\x0A\x0D\x20-\x7E]/g, '');
+    .replace(/\s{2,}/g, ' ')
+    .replace(/\s+([,.!?;:])/g, '$1')
+    .replace(/([.!?])([A-Za-z])/g, '$1 $2')
+    .trim();
+}
+
+export function pdfSafeText(s: string) {
+  return normalizeEguidePunctuation(
+    String(s ?? '')
+      .replace(/[‘’]/g, "'")
+      .replace(/[“”]/g, '"')
+      .replace(/[–—]/g, '-')
+      .replace(/•/g, '-')
+      .replace(/→/g, '->')
+      .replace(/←/g, '<-')
+      .replace(/…/g, '...')
+      .replace(/©/g, '(c)')
+      .replace(/[^\x09\x0A\x0D\x20-\x7E]/g, ''),
+  );
 }
 
 export function wrapPdfText(

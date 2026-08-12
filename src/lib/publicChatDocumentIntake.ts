@@ -224,10 +224,74 @@ export function formatPublicChatDocReply(analysis: PublicChatDocAnalysis, index:
   return parts.join('\n');
 }
 
-export function sprinkleChatEmoji(text: string, goal?: string | null): string {
-  if (/[\u{1F300}-\u{1FAFF}]/u.test(text)) return text;
-  const lead =
-    goal === 'debt' ? '💪' : goal === 'business' ? '🚀' : goal === 'personal' ? '✨' : '👋';
-  if (text.length < 80) return `${lead} ${text}`;
-  return text.replace(/^(Got it|Perfect|Great|Thanks|Hi|Hello|Bonjour|Hola)/i, (m) => `${lead} ${m}`);
+type PublicChatGoalLane = 'personal' | 'business' | 'tradelines' | 'debt' | 'not_sure' | string | null | undefined;
+
+const LANE_LEAD_EMOJI: Record<string, string> = {
+  personal: '✨',
+  business: '🚀',
+  tradelines: '💳',
+  debt: '🛡️',
+  not_sure: '👋',
+};
+
+const TOPIC_EMOJI: Array<{ pattern: RegExp; emoji: string }> = [
+  { pattern: /\b(dispute|bureau|equifax|experian|transunion|fcra|609)\b/i, emoji: '📋' },
+  { pattern: /\b(debt|collection|validation|summons|collector)\b/i, emoji: '🛡️' },
+  { pattern: /\b(business|llc|vendor|duns|ein)\b/i, emoji: '🏢' },
+  { pattern: /\b(tradeline|authorized user|au\b|primary)\b/i, emoji: '💳' },
+  { pattern: /\b(upload|report|document|pdf|attach)\b/i, emoji: '📎' },
+  { pattern: /\b(appointment|session|book|schedule|call)\b/i, emoji: '📅' },
+  { pattern: /\b(funding|loan|credit card|mortgage)\b/i, emoji: '💰' },
+  { pattern: /\b(guide|free|diy|dfy)\b/i, emoji: '🎁' },
+  { pattern: /\b(thank|perfect|great|got it|welcome|hello|hi\b|bonjour|hola)\b/i, emoji: '🙂' },
+];
+
+function countEmojis(text: string): number {
+  return (text.match(/[\u{1F300}-\u{1FAFF}]/gu) ?? []).length;
+}
+
+function pickContextEmoji(text: string, goal?: PublicChatGoalLane): string | null {
+  for (const { pattern, emoji } of TOPIC_EMOJI) {
+    if (pattern.test(text)) return emoji;
+  }
+  if (goal && LANE_LEAD_EMOJI[goal]) return LANE_LEAD_EMOJI[goal];
+  return '👋';
+}
+
+/** Lane- and topic-aware reply polish — at most two emojis, never stacked on existing ones. */
+export function enrichPublicChatReply(text: string, goal?: PublicChatGoalLane): string {
+  const trimmed = (text || '').trim();
+  if (!trimmed) return trimmed;
+  if (countEmojis(trimmed) >= 2) return trimmed;
+
+  const laneEmoji = goal ? LANE_LEAD_EMOJI[goal] : undefined;
+  const topicEmoji = pickContextEmoji(trimmed, goal);
+  const picks: string[] = [];
+
+  if (laneEmoji && !trimmed.includes(laneEmoji)) picks.push(laneEmoji);
+  if (topicEmoji && topicEmoji !== laneEmoji && !trimmed.includes(topicEmoji) && picks.length < 2) {
+    picks.push(topicEmoji);
+  }
+  if (!picks.length) return trimmed;
+
+  if (countEmojis(trimmed) === 1) {
+    const only = picks[0];
+    return only ? `${only} ${trimmed}` : trimmed;
+  }
+
+  if (trimmed.length < 96) {
+    return `${picks.slice(0, 2).join(' ')} ${trimmed}`;
+  }
+
+  const greetingMatch = trimmed.match(/^(Got it|Perfect|Great|Thanks|Hi|Hello|Bonjour|Hola|Sure|Absolutely)/i);
+  if (greetingMatch) {
+    return trimmed.replace(greetingMatch[0], `${picks[0]} ${greetingMatch[0]}`);
+  }
+
+  return `${picks[0]} ${trimmed}`;
+}
+
+/** @deprecated Prefer enrichPublicChatReply — kept for existing imports. */
+export function sprinkleChatEmoji(text: string, goal?: PublicChatGoalLane): string {
+  return enrichPublicChatReply(text, goal);
 }

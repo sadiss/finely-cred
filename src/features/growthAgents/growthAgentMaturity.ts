@@ -15,6 +15,7 @@ import {
 import { getGrowthWeekFocus } from './growthWeekFocus';
 import { getLastGrowthWorkerProbe } from './growthWorkerTick';
 import { isCalebAutoFindEnabled } from './calebAutoFind';
+import { countAlexOutreachToday, listWarmLeadsForBooking } from './alexAppointmentAutomation';
 import { countBenjaminPipeline } from './benjaminPipelineQueue';
 import { buildRebeccaApplyMetrics } from './rebeccaApplyMetrics';
 import type { GrowthAgentDef } from './growthAgentRegistry';
@@ -325,8 +326,28 @@ export function getJordanMaturity(): GrowthMaturityReport {
   };
 }
 
+export function getAlexMaturity(): GrowthMaturityReport {
+  const comms = isFeatureEnabled('commsDelivery');
+  const outreach = countAlexOutreachToday() >= 1;
+  const warm = listWarmLeadsForBooking(1).length >= 1;
+  const items = [
+    { id: 'calendar', label: 'Calendar + invites live', done: true },
+    { id: 'warm', label: 'Warm CRM leads in queue', done: warm },
+    { id: 'comms', label: 'Comms Delivery for invite email', done: comms },
+    { id: 'outreach', label: 'Outreach run today', done: outreach },
+  ];
+  const done = items.filter((i) => i.done).length;
+  const percent = Math.round((done / items.length) * 100);
+  return {
+    percent,
+    label: outreach ? 'Wave 1 — follow up booked sessions' : 'Wave 1 — run warm outreach',
+    items,
+  };
+}
+
 export function getAgentMaturity(agent: GrowthAgentDef): GrowthMaturityReport {
   if (agent.id === 'lead-discovery') return getCalebMaturity();
+  if (agent.id === 'appointment-setter') return getAlexMaturity();
   if (agent.wave === 0) return getCalebMaturity();
   if (agent.wave === 1 && agent.id === 'capture-links') {
     return getHannahMaturity();

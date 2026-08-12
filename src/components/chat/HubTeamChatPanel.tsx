@@ -1,13 +1,10 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   MessageSquareText,
   Mail,
   Paperclip,
   Plus,
-  Send,
-  Smile,
   Sparkles,
-  UploadCloud,
   X,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -22,7 +19,6 @@ import type { SupportTopic } from '../../domain/support';
 import { openBlobRefInNewTab } from '../../lib/openBlobRef';
 import type { EvidenceItem } from '../../domain/evidence';
 import {
-  CHAT_ATTACHMENT_ACCEPT,
   describeChatAttachmentError,
   formatAttachmentSize,
   uploadChatAttachment,
@@ -33,7 +29,7 @@ import {
   listChatVaultAttachments,
 } from '../../lib/chatVaultAttachments';
 import { ChatAttachmentTray, type ChatAttachmentTrayItem } from './ChatAttachmentTray';
-import { FinelyPremiumEmojiPicker } from './FinelyPremiumEmojiPicker';
+import { FinelyChatComposeBox } from './FinelyChatComposeBox';
 import { getChatSettings } from '../../data/settingsRepo';
 import { fetchSupportReplySuggestions } from '../../lib/supportReplySuggestions';
 import { STAFF_MESSAGE_SNIPPETS } from '../../lib/staffMessageSnippets';
@@ -157,7 +153,6 @@ export function HubTeamChatPanel({ partnerId, partnerDisplayName, compact, initi
   const [newAttachments, setNewAttachments] = useState<string[]>([]);
   const [replyBody, setReplyBody] = useState('');
   const [replyAttachments, setReplyAttachments] = useState<string[]>([]);
-  const [emojiOpen, setEmojiOpen] = useState<null | 'new' | 'reply'>(null);
   const [gifOpen, setGifOpen] = useState<null | 'new' | 'reply'>(null);
   const [gifQuery, setGifQuery] = useState('');
   const [gifBusy, setGifBusy] = useState(false);
@@ -174,8 +169,6 @@ export function HubTeamChatPanel({ partnerId, partnerDisplayName, compact, initi
   const [threadFilter, setThreadFilter] = useState<'all' | 'direct' | 'team'>('all');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [composeRouting, setComposeRouting] = useState<CommsRoutingSuggestion[]>([]);
-  const replyRef = useRef<HTMLTextAreaElement | null>(null);
-  const newRef = useRef<HTMLTextAreaElement | null>(null);
 
   const tenorApiKey = useMemo(() => getChatSettings().tenorApiKey ?? '', []);
   const gifsEnabled = Boolean(tenorApiKey);
@@ -273,55 +266,18 @@ export function HubTeamChatPanel({ partnerId, partnerDisplayName, compact, initi
     return new Map(all.map((e) => [e.id, e]));
   }, [partnerId, version]);
 
-  const VaultAttachPicker = ({ mode }: { mode: ComposeMode }) => {
-    if (!evidence.length) return null;
-    const selected = mode === 'new' ? newAttachments : replyAttachments;
-    const screenshotCount = evidence.filter((e) => e.type === 'screenshot').length;
-    return (
-      <details open={screenshotCount > 0} className="rounded-xl border border-sky-500/25 bg-sky-500/8 px-3 py-2">
-        <summary className="cursor-pointer select-none text-[10px] font-black uppercase tracking-widest text-sky-200/85">
-          Attach from vault · {evidence.length}
-          {screenshotCount ? ` · ${screenshotCount} report screenshot${screenshotCount === 1 ? '' : 's'}` : ''}
-        </summary>
-        <p className="mt-1.5 text-[10px] text-white/45">
-          Credit-report screenshots appear first so you can send them without digging through older uploads.
-        </p>
-        <div className="mt-2 flex flex-wrap gap-1.5">
-          {evidence.map((ev) => (
-            <button
-              key={ev.id}
-              type="button"
-              onClick={() => toggleAttach(ev.id, mode)}
-              className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] border ${
-                selected.includes(ev.id)
-                  ? 'border-emerald-400/50 bg-emerald-500/15 text-emerald-50'
-                  : ev.type === 'screenshot'
-                    ? 'border-sky-400/35 bg-sky-500/10 text-sky-50 hover:bg-sky-500/20'
-                    : 'border-white/[0.08] text-white/55 hover:text-white/85'
-              }`}
-              title={ev.caption || ev.filename}
-            >
-              <Paperclip size={10} />
-              <span className="truncate max-w-[130px]">{chatVaultAttachmentLabel(ev)}</span>
-              {ev.sizeBytes ? <span className="text-white/35">{formatAttachmentSize(ev.sizeBytes)}</span> : null}
-            </button>
-          ))}
-        </div>
-      </details>
-    );
-  };
+  const vaultComposeAttachments = useMemo(
+    () =>
+      evidence.map((ev) => ({
+        id: ev.id,
+        label: chatVaultAttachmentLabel(ev),
+      })),
+    [evidence],
+  );
 
   const insertAtCursor = (mode: 'new' | 'reply', text: string) => {
-    const ref = mode === 'new' ? newRef : replyRef;
     const setter = mode === 'new' ? setNewBody : setReplyBody;
-    const el = ref.current;
-    if (!el) {
-      setter((prev) => `${prev}${text}`);
-      return;
-    }
-    const start = el.selectionStart ?? el.value.length;
-    const end = el.selectionEnd ?? el.value.length;
-    setter(`${el.value.slice(0, start)}${text}${el.value.slice(end)}`);
+    setter((prev) => `${prev}${text}`);
   };
 
   const toggleAttach = (id: string, mode: 'new' | 'reply') => {
@@ -411,8 +367,7 @@ export function HubTeamChatPanel({ partnerId, partnerDisplayName, compact, initi
       ? 'Shared an evidence file from the Documents Vault.'
       : `Shared ${count} evidence files from the Documents Vault.`;
 
-  const handleCreate = (e: React.FormEvent) => {
-    e.preventDefault();
+  const submitNew = () => {
     if (!partnerId) return;
     if (uploadBusyMode === 'new') {
       setUploadError('new', 'Your attachment is still uploading — wait a moment, then send.');
@@ -486,8 +441,8 @@ export function HubTeamChatPanel({ partnerId, partnerDisplayName, compact, initi
     setComposeErr(null);
   };
 
-  const handleReply = (e: React.FormEvent) => {
-    e.preventDefault();
+
+  const submitReply = () => {
     if (!partnerId || !selectedThread) return;
     if (uploadBusyMode === 'reply') {
       setUploadError('reply', 'Your attachment is still uploading — wait a moment, then send.');
@@ -523,13 +478,6 @@ export function HubTeamChatPanel({ partnerId, partnerDisplayName, compact, initi
       }));
   }, [selectedContactIds]);
 
-  const EmojiPicker = ({ mode }: { mode: 'new' | 'reply' }) =>
-    emojiOpen === mode ? (
-      <FinelyPremiumEmojiPicker
-        className="mt-2"
-        onPick={(emoji) => insertAtCursor(mode, emoji)}
-      />
-    ) : null;
 
   if (!partnerId) {
     return (
@@ -657,7 +605,7 @@ export function HubTeamChatPanel({ partnerId, partnerDisplayName, compact, initi
 
       <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
         {showNew && (
-          <form onSubmit={handleCreate} className="border-b border-white/[0.08] p-3 space-y-3 bg-fuchsia-500/5 shrink-0 max-h-[48vh] overflow-y-auto">
+          <div className="border-b border-white/[0.08] p-3 space-y-3 bg-fuchsia-500/5 shrink-0 max-h-[48vh] overflow-y-auto">
             <div className="flex items-center justify-between gap-2">
               <div className="text-[10px] uppercase tracking-widest text-fuchsia-300 font-black">✨ New team thread</div>
               <button type="button" onClick={() => setShowNew(false)} className="p-1.5 rounded-lg border border-white/[0.08] text-white/50 hover:text-white">
@@ -759,68 +707,61 @@ export function HubTeamChatPanel({ partnerId, partnerDisplayName, compact, initi
               placeholder="Subject (optional — auto-generated if blank)"
               className="w-full bg-fc-input border border-white/[0.08] rounded-xl px-2 py-1.5 text-white text-xs placeholder:text-white/30"
             />
-            <textarea
-              ref={newRef}
+            <FinelyChatComposeBox
               value={newBody}
-              onChange={(e) => setNewBody(e.target.value)}
+              onChange={setNewBody}
+              onSubmit={submitNew}
+              label={adminMode ? 'Message to partner' : 'New team message'}
               placeholder="Message Finely ops, your specialist, or program team…"
-              rows={2}
-              className="w-full bg-fc-input border border-white/[0.08] rounded-xl px-3 py-2 text-white text-sm resize-none"
-            />
-            <ChatAttachmentTray
-              items={trayItems(newAttachments)}
-              onRemove={(id) => removeAttachment(id, 'new')}
+              compact={compact}
               busy={uploadBusyMode === 'new'}
-              error={uploadErrors.new}
-              onDismissError={() => setUploadError('new', null)}
+              uploadBusy={uploadBusyMode === 'new'}
+              uploadError={uploadErrors.new}
+              onUploadFile={(file) => uploadFile(file, 'new')}
+              attachments={vaultComposeAttachments}
+              selectedAttachmentIds={newAttachments}
+              onToggleAttachment={(id) => toggleAttach(id, 'new')}
+              disabled={
+                (!adminMode && selectedContactIds.length === 0) || uploadBusyMode === 'new'
+              }
+              submitLabel="Send"
             />
-            <VaultAttachPicker mode="new" />
+            {gifsEnabled && gifOpen === 'new' ? (
+              <div className="rounded-xl border border-white/[0.08] p-2 space-y-2">
+                <input
+                  value={gifQuery}
+                  onChange={(e) => setGifQuery(e.target.value)}
+                  placeholder="Search GIFs…"
+                  className="w-full bg-fc-input border border-white/[0.08] rounded-lg px-2 py-1 text-white text-xs"
+                />
+                <div className="grid grid-cols-4 gap-1 max-h-24 overflow-y-auto">
+                  {gifResults.map((g) => (
+                    <button
+                      key={g.id}
+                      type="button"
+                      onClick={() => {
+                        insertAtCursor('new', `${g.url}\n`);
+                        setGifOpen(null);
+                      }}
+                      className="rounded-lg overflow-hidden border border-white/[0.08]"
+                    >
+                      {/* eslint-disable-next-line jsx-a11y/alt-text */}
+                      <img src={g.previewUrl || g.url} className="w-full h-14 object-cover" loading="lazy" />
+                    </button>
+                  ))}
+                </div>
+                {gifErr ? <div className="text-xs text-red-200">{gifErr}</div> : null}
+              </div>
+            ) : null}
             <div className="flex flex-wrap gap-2">
-              <button type="button" onClick={() => setEmojiOpen((p) => (p === 'new' ? null : 'new'))} className="px-2 py-1 rounded-lg border border-white/[0.08] text-xs text-white/70">
-                <Smile size={12} className="inline mr-1" /> Emoji
-              </button>
-              {gifsEnabled && (
+              {gifsEnabled ? (
                 <button type="button" onClick={() => setGifOpen((p) => (p === 'new' ? null : 'new'))} className="px-2 py-1 rounded-lg border border-white/[0.08] text-xs text-white/70">
                   GIF
                 </button>
-              )}
-              <label
-                className={`px-2 py-1 rounded-lg border border-white/[0.08] text-xs text-white/70 ${
-                  uploadBusyMode === 'new' ? 'opacity-60 cursor-wait' : 'cursor-pointer hover:border-emerald-400/35'
-                }`}
-                title="Attach a photo, PDF, or document"
-              >
-                <UploadCloud size={12} className="inline mr-1" /> {uploadBusyMode === 'new' ? 'Uploading…' : 'Attach file'}
-                <input
-                  type="file"
-                  className="hidden"
-                  accept={CHAT_ATTACHMENT_ACCEPT}
-                  disabled={uploadBusyMode === 'new'}
-                  onChange={(e) => {
-                    const files = Array.from(e.target.files ?? []);
-                    e.currentTarget.value = '';
-                    void (async () => {
-                      for (const f of files) await uploadFile(f, 'new');
-                    })();
-                  }}
-                  multiple
-                />
-              </label>
-              <button
-                type="submit"
-                disabled={
-                  (!newBody.trim() && !newAttachments.length) ||
-                  (!adminMode && selectedContactIds.length === 0) ||
-                  uploadBusyMode === 'new'
-                }
-                className={`ml-auto ${FINELY_OS_PRIMARY_BTN} !py-2 !px-4`}
-              >
-                Send
-              </button>
+              ) : null}
             </div>
-            <EmojiPicker mode="new" />
             {composeErr ? <div className="text-xs text-red-200">{composeErr}</div> : null}
-          </form>
+          </div>
         )}
 
         <div className="flex-1 overflow-y-auto p-3 pb-6 space-y-3 min-h-0">
@@ -868,7 +809,7 @@ export function HubTeamChatPanel({ partnerId, partnerDisplayName, compact, initi
         </div>
 
         {selectedThread && (
-          <form onSubmit={handleReply} className="border-t-2 border-fuchsia-500/20 p-3 space-y-3 bg-[#070b09]/95 shrink-0">
+          <div className="border-t-2 border-fuchsia-500/20 p-3 space-y-3 bg-[#070b09]/95 shrink-0">
             <div className="flex items-center justify-between gap-2 flex-wrap">
               <span className="text-[10px] text-white/40 truncate">{selectedThread.subject}</span>
               <div className="flex items-center gap-2 flex-wrap">
@@ -987,95 +928,68 @@ export function HubTeamChatPanel({ partnerId, partnerDisplayName, compact, initi
                     ))}
               </div>
             ) : null}
-            <div className="rounded-2xl border-2 border-amber-400/25 bg-[#151d19] shadow-inner">
-              <textarea
-                ref={replyRef}
-                value={replyBody}
-                onChange={(e) => setReplyBody(e.target.value)}
-                placeholder="Reply with emojis, files, or GIFs…"
-                rows={compact ? 2 : 3}
-                className="w-full bg-transparent border-0 outline-none px-4 py-3 text-white text-sm resize-none min-h-[88px] placeholder:text-white/35"
-              />
-            </div>
             <ChatAttachmentTray
               items={trayItems(replyAttachments)}
               onRemove={(id) => removeAttachment(id, 'reply')}
               busy={uploadBusyMode === 'reply'}
-              error={uploadErrors.reply}
+              error={null}
               onDismissError={() => setUploadError('reply', null)}
             />
-            <div className="rounded-xl border border-white/12 bg-black/35 px-3 py-2.5 flex flex-wrap items-center gap-2">
-              <button type="button" onClick={() => setEmojiOpen((p) => (p === 'reply' ? null : 'reply'))} className="p-2.5 rounded-xl border border-white/15 bg-white/[0.06] text-white/80 hover:border-fuchsia-400/35">
-                <Smile size={14} />
-              </button>
-              {gifsEnabled && (
-                <button type="button" onClick={() => setGifOpen((p) => (p === 'reply' ? null : 'reply'))} className="p-2.5 rounded-xl border border-white/15 bg-white/[0.06] text-white/80 hover:border-sky-400/35">
+            <FinelyChatComposeBox
+              value={replyBody}
+              onChange={setReplyBody}
+              onSubmit={submitReply}
+              label={`Reply · ${selectedThread.subject}`}
+              placeholder="Reply with emojis, files, or GIFs…"
+              compact={compact}
+              busy={uploadBusyMode === 'reply'}
+              uploadBusy={uploadBusyMode === 'reply'}
+              uploadError={uploadErrors.reply}
+              onUploadFile={(file) => uploadFile(file, 'reply')}
+              attachments={vaultComposeAttachments}
+              selectedAttachmentIds={replyAttachments}
+              onToggleAttachment={(id) => toggleAttach(id, 'reply')}
+              submitLabel="Send"
+            />
+            {gifsEnabled ? (
+              <>
+                <button
+                  type="button"
+                  onClick={() => setGifOpen((p) => (p === 'reply' ? null : 'reply'))}
+                  className="px-2 py-1 rounded-lg border border-white/[0.08] text-xs text-white/70"
+                >
                   GIF
                 </button>
-              )}
-              <label
-                className={`inline-flex items-center gap-1.5 px-2.5 py-2 rounded-xl border border-white/15 bg-white/[0.06] text-white/80 text-[11px] font-semibold ${
-                  uploadBusyMode === 'reply' ? 'opacity-60 cursor-wait' : 'hover:border-emerald-400/35 cursor-pointer'
-                }`}
-                title="Attach a photo, PDF, or document"
-              >
-                <UploadCloud size={14} />
-                {uploadBusyMode === 'reply' ? 'Uploading…' : 'Attach'}
-                <input
-                  type="file"
-                  className="hidden"
-                  accept={CHAT_ATTACHMENT_ACCEPT}
-                  disabled={uploadBusyMode === 'reply'}
-                  onChange={(e) => {
-                    const files = Array.from(e.target.files ?? []);
-                    e.currentTarget.value = '';
-                    void (async () => {
-                      for (const f of files) await uploadFile(f, 'reply');
-                    })();
-                  }}
-                  multiple
-                />
-              </label>
-              <button
-                type="submit"
-                disabled={(!replyBody.trim() && !replyAttachments.length) || uploadBusyMode === 'reply'}
-                className={`ml-auto ${FINELY_OS_PRIMARY_BTN} !py-2 !px-4`}
-              >
-                <Send size={14} /> Send
-              </button>
-            </div>
-            {evidence.length ? (
-              <VaultAttachPicker mode="reply" />
+                {gifOpen === 'reply' ? (
+                  <div className="rounded-xl border border-white/[0.08] p-2 space-y-2">
+                    <input
+                      value={gifQuery}
+                      onChange={(e) => setGifQuery(e.target.value)}
+                      placeholder="Search GIFs…"
+                      className="w-full bg-fc-input border border-white/[0.08] rounded-lg px-2 py-1 text-white text-xs"
+                    />
+                    <div className="grid grid-cols-4 gap-1 max-h-24 overflow-y-auto">
+                      {gifResults.map((g) => (
+                        <button
+                          key={g.id}
+                          type="button"
+                          onClick={() => {
+                            insertAtCursor('reply', `${g.url}\n`);
+                            setGifOpen(null);
+                          }}
+                          className="rounded-lg overflow-hidden border border-white/[0.08]"
+                        >
+                          {/* eslint-disable-next-line jsx-a11y/alt-text */}
+                          <img src={g.previewUrl || g.url} className="w-full h-14 object-cover" loading="lazy" />
+                        </button>
+                      ))}
+                    </div>
+                    {gifErr ? <div className="text-xs text-red-200">{gifErr}</div> : null}
+                  </div>
+                ) : null}
+              </>
             ) : null}
-            <EmojiPicker mode="reply" />
-            {gifOpen === 'reply' && gifsEnabled && (
-              <div className="rounded-xl border border-white/[0.08] p-2 space-y-2">
-                <input
-                  value={gifQuery}
-                  onChange={(e) => setGifQuery(e.target.value)}
-                  placeholder="Search GIFs…"
-                  className="w-full bg-fc-input border border-white/[0.08] rounded-lg px-2 py-1 text-white text-xs"
-                />
-                <div className="grid grid-cols-4 gap-1 max-h-24 overflow-y-auto">
-                  {gifResults.map((g) => (
-                    <button
-                      key={g.id}
-                      type="button"
-                      onClick={() => {
-                        insertAtCursor('reply', `${g.url}\n`);
-                        setGifOpen(null);
-                      }}
-                      className="rounded-lg overflow-hidden border border-white/[0.08]"
-                    >
-                      {/* eslint-disable-next-line jsx-a11y/alt-text */}
-                      <img src={g.previewUrl || g.url} className="w-full h-14 object-cover" loading="lazy" />
-                    </button>
-                  ))}
-                </div>
-                {gifErr ? <div className="text-xs text-red-200">{gifErr}</div> : null}
-              </div>
-            )}
-          </form>
+          </div>
         )}
       </div>
     </div>

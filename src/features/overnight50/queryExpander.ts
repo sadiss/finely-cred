@@ -1,9 +1,24 @@
 import type { LeadIntelSourceId, OvernightCity } from './types';
+import {
+  getDailyMetroShardPack,
+  getQueryModifierMetros,
+  metroShortLabel,
+  US_METRO_SHARD_CITIES,
+} from '../marketingDesk/usMetroShardMap';
 
-export const DEFAULT_OVERNIGHT50_CITIES = ["Dallas", "Houston", "Atlanta", "Phoenix", "Charlotte"] as const;
+/** @deprecated use US_METRO_SHARD_CITIES — kept for imports; first 5 legacy seeds. */
+export const DEFAULT_OVERNIGHT50_CITIES = US_METRO_SHARD_CITIES.slice(8, 13).map((c) =>
+  metroShortLabel(c),
+) as unknown as readonly ['Dallas', 'Houston', 'Atlanta', 'Phoenix', 'Charlotte'];
 
 const serviceIntents = ["credit repair help", "fix credit score consultation", "business credit funding readiness", "authorized user tradeline seller", "credit specialist remote role", "agency partner credit repair", "affiliate credit repair program", "business funding partner", "dispute letter help", "credit monitoring help", "debt collection validation", "startup funding readiness"] as const;
-const modifiers = ["near me", "today", "consultation", "guide", "checklist", "help", "apply", "remote", "partner program", "Dallas", "Houston", "Atlanta", "Phoenix", "Charlotte", "free", "best", "local", "urgent", "how to", "looking for"] as const;
+
+const STATIC_MODIFIERS = ["near me", "today", "consultation", "guide", "checklist", "help", "apply", "remote", "partner program", "free", "best", "local", "urgent", "how to", "looking for"] as const;
+
+function buildModifiers(date?: Date): string[] {
+  const geoMods = getQueryModifierMetros(8, date);
+  return [...STATIC_MODIFIERS, ...geoMods];
+}
 
 export type QueryPlan = { id: string; city: OvernightCity; sourceId: LeadIntelSourceId; query: string; priority: number; reason: string };
 
@@ -13,8 +28,17 @@ function stableHash(s: string) {
   return Math.abs(h).toString(36);
 }
 
-export function buildQueryPool(args?: { cities?: OvernightCity[]; sourceIds?: LeadIntelSourceId[]; limit?: number }): QueryPlan[] {
-  const cities = args?.cities?.length ? args.cities : [...DEFAULT_OVERNIGHT50_CITIES];
+export function buildQueryPool(args?: {
+  cities?: OvernightCity[];
+  sourceIds?: LeadIntelSourceId[];
+  limit?: number;
+  /** When set, rotates geo modifiers + default city pack for that day. */
+  date?: Date;
+}): QueryPlan[] {
+  const date = args?.date;
+  const defaultCities = getDailyMetroShardPack({ date, packSize: 12 }).map((c) => metroShortLabel(c));
+  const cities = args?.cities?.length ? args.cities : defaultCities;
+  const modifiers = buildModifiers(date);
   const sourceIds: LeadIntelSourceId[] = args?.sourceIds?.length ? args.sourceIds : ['serper_web','serper_places','reddit_geo','craigslist_services','review_sites','dead_lead_revival','affiliate_referral_loop'];
   const out: QueryPlan[] = [];
   for (const city of cities) {
@@ -22,7 +46,7 @@ export function buildQueryPool(args?: { cities?: OvernightCity[]; sourceIds?: Le
       for (const intent of serviceIntents) {
         for (const mod of modifiers) {
           const query = `${city} ${intent} ${mod}`.replace(/\s+/g, ' ').trim();
-          out.push({ id: `q_${stableHash(`${sourceId}:${query}`)}`, city, sourceId, query, priority: intent.includes('consultation') || intent.includes('apply') ? 90 : 50, reason: 'geo intent + source rotation' });
+          out.push({ id: `q_${stableHash(`${sourceId}:${query}`)}`, city, sourceId, query, priority: intent.includes('consultation') || intent.includes('apply') ? 90 : 50, reason: 'geo intent + metro shard rotation' });
         }
       }
     }

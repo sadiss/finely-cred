@@ -5,35 +5,43 @@
   "kind": "presenter_demo",
   "cinematicApi": false,
   "output": "/demos/finely-launch-demo.webm",
-  "durationSec": 28,
+  "durationSec": 34,
   "scenes": [
     {
       "id": "hook",
-      "beat": "Hook the pain point",
-      "caption": "Your credit path should feel organized.",
-      "durationSec": 9,
+      "beat": "Hook — clarity before urgency",
+      "caption": "Live portal tools — not PDF-only.",
+      "durationSec": 8,
       "motion": "zoom-in",
       "voice": "windows-sapi"
     },
     {
-      "id": "path",
-      "beat": "Show the organized path",
-      "caption": "Dispute letters, portal tools, one lane at a time.",
-      "durationSec": 10,
+      "id": "restore",
+      "beat": "Restore lane — disputes + evidence",
+      "caption": "Factual dispute letters · evidence vault · certified mail.",
+      "durationSec": 9,
       "motion": "pan-left",
       "voice": "windows-sapi"
     },
     {
-      "id": "cta",
-      "beat": "Clear CTA",
-      "caption": "Start your free guide or book a strategy call.",
+      "id": "debt",
+      "beat": "Fight-back debt + build while you pay",
+      "caption": "Validation-first debt lane · financing that reports.",
       "durationSec": 9,
+      "motion": "pan-right",
+      "voice": "windows-sapi"
+    },
+    {
+      "id": "cta",
+      "beat": "Clear CTA — guide, chat, or book",
+      "caption": "Start free guide · chat with us · book a session.",
+      "durationSec": 8,
       "motion": "zoom-out",
       "voice": "windows-sapi"
     }
   ],
   "voiceWarnings": [],
-  "generatedAt": "2026-08-11T05:52:44.251Z",
+  "generatedAt": "2026-08-12T02:06:15.507Z",
   "generator": "scripts/generate-launch-demo-video.mjs",
   "complianceNote": "Results vary · not legal advice · educational only"
 }

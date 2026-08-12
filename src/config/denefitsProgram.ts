@@ -32,7 +32,7 @@ export const FINANCING_PREAPPROVAL_PUBLIC = {
   eyebrow: 'In-house financing',
   title: 'Payment plans that report while you build',
   description:
-    'Eligible partners can explore Equifax-reporting contracts and financing readiness through a short pre-approval application — so you know your options before you commit.',
+    'Eligible partners can explore Equifax-reporting in-house financing and a credit-building payment path — so restore work and monthly payments reinforce the same file story.',
   bullets: [
     'Equifax-reporting contracts as you pay',
     'Financing readiness check before enrollment',

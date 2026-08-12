@@ -17,7 +17,7 @@ import {
 } from '../../leadIntel/leadEngineAutonomy';
 import { FinelyOsAlertBanner } from '../../os/FinelyOsAlertBanner';
 import { createBookTask, createOfferTask } from '../marketingDeskTasks';
-import { enrollColdProspectMail, enrollOrSendOfferMail } from '../marketingDeskMail';
+import { enrollColdProspectMail, enrollOrSendOfferMail, listMarketingMailSequenceChips } from '../marketingDeskMail';
 import { getRuthWeeklyLaneTip } from '../marketingDeskRuthLaneTip';
 
 /**
@@ -27,6 +27,7 @@ export function RuthRoom() {
   const navigate = useNavigate();
   const [notice, setNotice] = useState<string | null>(null);
   const weeklyTip = getRuthWeeklyLaneTip();
+  const sequenceChips = listMarketingMailSequenceChips();
 
   const topProspect = () => listLeadEngineProspects()[0];
 
@@ -183,6 +184,30 @@ export function RuthRoom() {
           </button>
         </div>
       </div>
+
+      {sequenceChips.length ? (
+        <div className={`${finelyOsCatalogCardCompact('sky')} space-y-2`} data-fc-accent="sky">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className={FINELY_OS_ENTITY_SUBLABEL}>Mail sequences</div>
+            <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => navigate('/admin/marketing-desk?helper=mail')}>
+              Mail room
+            </button>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {sequenceChips.map((chip) => (
+              <button
+                key={chip.id}
+                type="button"
+                className={finelyOsMicroStat('sky')}
+                title={`${chip.active} active enrollments`}
+                onClick={() => navigate('/admin/marketing-desk?helper=mail')}
+              >
+                {chip.label} · {chip.active}
+              </button>
+            ))}
+          </div>
+        </div>
+      ) : null}
 
       <RuthLeadEngineBrief compact />
     </div>

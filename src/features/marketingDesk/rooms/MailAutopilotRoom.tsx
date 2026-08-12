@@ -16,6 +16,7 @@ import {
   isMarketingMailPaused,
   setMarketingMailPaused,
 } from '../marketingDeskMailStatus';
+import { listMarketingMailSequenceChips } from '../marketingDeskMail';
 import { isColdOutboundAutopilotEnabled } from '../../growthAgents/calebAutoFind';
 
 export function MailAutopilotRoom() {
@@ -32,6 +33,10 @@ export function MailAutopilotRoom() {
   const coldAutopilot = useMemo(() => {
     void tick;
     return isColdOutboundAutopilotEnabled();
+  }, [tick]);
+  const sequenceChips = useMemo(() => {
+    void tick;
+    return listMarketingMailSequenceChips();
   }, [tick]);
 
   const chip = mail.status === 'ready' ? 'ok' : mail.status === 'paused' ? 'warn' : 'blocked';
@@ -113,6 +118,14 @@ export function MailAutopilotRoom() {
           })}
         </ul>
       </section>
+
+      <div className="flex flex-wrap gap-2">
+        {sequenceChips.map((chip) => (
+          <span key={chip.id} className={finelyOsMicroStat('sky')} title={`Sequence ${chip.sequenceId}`}>
+            {chip.label} · {chip.active} active
+          </span>
+        ))}
+      </div>
 
       <div className="grid sm:grid-cols-2 gap-3">
         {mail.sequenceTiles.map((tile) => (

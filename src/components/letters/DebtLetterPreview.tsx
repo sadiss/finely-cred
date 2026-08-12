@@ -1,9 +1,9 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Maximize2, Minimize2, ZoomIn, ZoomOut } from 'lucide-react';
 import { highlightMissingLetterPlaceholders } from '../../lib/letterSenderBlock';
 import { plainTextToHtml, sanitizeHtmlForPreview } from '../../utils/richText';
 import { stripLetterVendorBranding, stripLetterVendorBrandingHtml } from '../../lib/letterBodySafety';
-import { RichTextEditor } from '../ui/RichTextEditor';
+import { LetterEditorShell } from './LetterEditorShell';
 
 const BRACKET_PLACEHOLDER_RE = /\[[A-Z0-9 #/.,&'-]+\]/g;
 
@@ -284,10 +284,9 @@ export function DebtLetterRichDraftWorkspace({
   recipientAddress,
   accent = 'emerald',
   editorLabel = 'Letter editor',
-  minHeightPx = 280,
+  minHeightPx = 480,
   heroLayout = false,
   showAddressChrome = false,
-  /** When this changes (e.g. new suggestion build), force paper preview into view. */
   previewResetKey,
   initialView,
 }: {
@@ -301,20 +300,10 @@ export function DebtLetterRichDraftWorkspace({
   editorLabel?: string;
   minHeightPx?: number;
   heroLayout?: boolean;
-  /** Keep false for debt/court letters — body already has Sender → Date → Recipient. */
   showAddressChrome?: boolean;
   previewResetKey?: string;
   initialView?: 'split' | 'edit' | 'preview';
 }) {
-  const [view, setView] = useState<'split' | 'edit' | 'preview'>(
-    initialView || (heroLayout ? 'preview' : 'edit'),
-  );
-
-  useEffect(() => {
-    if (!previewResetKey && !heroLayout) return;
-    setView(initialView || 'preview');
-  }, [previewResetKey, heroLayout, initialView]);
-
   if (heroLayout) {
     return (
       <div id="fc-letter-paper-preview" className="space-y-3 scroll-mt-3">
@@ -331,7 +320,14 @@ export function DebtLetterRichDraftWorkspace({
         <details open className="rounded-xl border border-white/10 bg-black/25 !p-3">
           <summary className="cursor-pointer select-none text-sm font-semibold text-white">Edit letter — full body editable</summary>
           <div className="mt-3">
-            <RichTextEditor valueHtml={html} onChangeHtml={onChangeHtml} minHeightPx={minHeightPx} placeholder="Write your letter here…" />
+            <LetterEditorShell
+              html={html}
+              onChangeHtml={onChangeHtml}
+              minHeightPx={minHeightPx}
+              placeholder="Write your letter here…"
+              showViewToggle={false}
+              initialView="edit"
+            />
           </div>
         </details>
       </div>
@@ -339,42 +335,21 @@ export function DebtLetterRichDraftWorkspace({
   }
 
   return (
-    <div id="fc-letter-paper-preview" className="space-y-3 scroll-mt-3">
-      <div className="flex flex-wrap gap-1.5 p-1 rounded-xl border border-white/10 bg-black/25 w-fit">
-        {(['preview', 'split', 'edit'] as const).map((v) => (
-          <button
-            key={v}
-            type="button"
-            onClick={() => setView(v)}
-            className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${
-              view === v ? 'bg-white/15 text-white' : 'text-white/50 hover:text-white/80'
-            }`}
-          >
-            {v}
-          </button>
-        ))}
-      </div>
-
-      <div className={`grid gap-4 ${view === 'split' ? 'lg:grid-cols-2' : 'grid-cols-1'}`}>
-        {view !== 'preview' ? (
-          <div className="space-y-2">
-            <div className="text-sm font-semibold text-white/85">{editorLabel}</div>
-            <RichTextEditor valueHtml={html} onChangeHtml={onChangeHtml} minHeightPx={minHeightPx} placeholder="Write your letter here…" />
-          </div>
-        ) : null}
-
-        {view !== 'edit' ? (
-          <DebtLetterPreview
-            html={html}
-            letterDate={letterDate}
-            senderLines={senderLines}
-            recipientName={recipientName}
-            recipientAddress={recipientAddress}
-            accent={accent}
-            showAddressChrome={showAddressChrome}
-          />
-        ) : null}
-      </div>
+    <div id="fc-letter-paper-preview" className="scroll-mt-3">
+      <LetterEditorShell
+        html={html}
+        onChangeHtml={onChangeHtml}
+        letterDate={letterDate}
+        senderLines={senderLines}
+        recipientName={recipientName}
+        recipientAddress={recipientAddress}
+        accent={accent}
+        editorLabel={editorLabel}
+        minHeightPx={minHeightPx}
+        showAddressChrome={showAddressChrome}
+        previewResetKey={previewResetKey}
+        initialView={initialView || 'split'}
+      />
     </div>
   );
 }

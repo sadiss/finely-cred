@@ -16,6 +16,13 @@ function escHtml(s: string) {
     .replaceAll("'", '&#039;');
 }
 
+/** Normalize draft text to editor-ready HTML. */
+export function ensureHtmlDraft(s: string): string {
+  const v = (s || '').trim();
+  if (!v) return '<p></p>';
+  return isProbablyHtml(v) ? v : plainTextToHtml(v);
+}
+
 /** Convert plain text (with newlines) into simple paragraph HTML. */
 export function plainTextToHtml(text: string): string {
   const raw = (text || '').replaceAll('\r\n', '\n');
@@ -23,12 +30,12 @@ export function plainTextToHtml(text: string): string {
   const html = blocks
     .map((b) => {
       const t = b.trimEnd();
-      if (!t.trim()) return '<p></p>';
+      if (!t.trim()) return '<p><br /></p>';
       const withBr = escHtml(t).replaceAll('\n', '<br />');
       return `<p>${withBr}</p>`;
     })
     .join('');
-  return html || '<p></p>';
+  return html || '<p><br /></p>';
 }
 
 /** A conservative sanitizer for rendering editor HTML inside the app. */
