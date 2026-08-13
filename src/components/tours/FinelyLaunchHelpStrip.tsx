@@ -1,17 +1,15 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import { Mic, Sparkles } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
   FINELY_PUBLIC_COMPLIANCE_LINE,
   finelyPublicAnswer,
   type FinelyPublicTopic,
 } from '../../lib/finelyBrain/finelyPublicAnswer';
-import { speakFinelyText, useFinelyVoiceInput } from '../../hooks/useFinelyVoiceInput';
-import { guardVoiceScript } from '../../lib/complianceEngine';
 import { FINELY_OS_SECONDARY_BTN } from '../../features/os/finelyOsLightUi';
 import { PUBLIC_DEMO_VIDEOS_ENABLED } from '../../config/publicMediaPolicy';
 
-const VOICE_PROMPTS = [
+const TEXT_PROMPTS = [
   { label: 'What is Finely?', prompt: 'What is Finely Cred?' },
   { label: 'Restore credit', prompt: 'How do I restore my credit?' },
   { label: 'Free guide', prompt: 'start free guide' },
@@ -109,7 +107,7 @@ function FinelyStripAnswer({ reply, topic }: { reply: string; topic: FinelyPubli
   );
 }
 
-/** Compact Ask Finely strip mounted from PageShell on public and portal routes. */
+/** Compact Ask Finely strip mounted from PageShell on public and portal routes — text only. */
 export function FinelyLaunchHelpStrip() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -118,7 +116,7 @@ export function FinelyLaunchHelpStrip() {
   const [busy, setBusy] = useState(false);
 
   const ask = useCallback(
-    (userMessage: string, channel: 'strip' | 'voice' = 'strip') => {
+    (userMessage: string) => {
       const trimmed = userMessage.trim();
       if (!trimmed) return;
       setBusy(true);
@@ -126,23 +124,17 @@ export function FinelyLaunchHelpStrip() {
         const res = finelyPublicAnswer({
           pathname: location.pathname,
           message: trimmed,
-          channel,
+          channel: 'strip',
           seniorMode: true,
         });
         setReply(res.reply);
         setTopic(res.topic);
-        if (channel === 'voice') {
-          speakFinelyText(guardVoiceScript(res.reply));
-        }
       } finally {
         setBusy(false);
       }
     },
     [location.pathname],
   );
-
-  const onVoiceResult = useCallback((text: string) => ask(text, 'voice'), [ask]);
-  const { supported, listening, start, stop } = useFinelyVoiceInput(onVoiceResult);
 
   return (
     <div
@@ -155,22 +147,11 @@ export function FinelyLaunchHelpStrip() {
           Ask Finely
         </span>
       </div>
-      <p className="mt-1 max-w-xl text-xs leading-relaxed text-white/52">
-        Tap <span className="text-white/70">Voice</span> to ask a quick question about this page — speak naturally. We answer in
-        plain English, not a chatbot wall.
+      <p className="mt-1 max-w-xl text-xs leading-relaxed text-white/62">
+        Tap a prompt below for a plain-English answer about this page — no voice, just clear text.
       </p>
 
       <div className="mt-2.5 flex flex-wrap items-center gap-2">
-        {supported ? (
-          <button
-            type="button"
-            className={`${FINELY_OS_SECONDARY_BTN} !text-xs !py-1.5 !px-3`}
-            onClick={() => (listening ? stop() : start())}
-            aria-pressed={listening}
-          >
-            <Mic size={13} aria-hidden /> {listening ? 'Listening…' : 'Voice'}
-          </button>
-        ) : null}
         {PUBLIC_DEMO_VIDEOS_ENABLED ? (
           <button
             type="button"
@@ -184,7 +165,7 @@ export function FinelyLaunchHelpStrip() {
 
       <div className="mt-2 flex flex-wrap items-center gap-1.5">
         <span className="text-[10px] font-semibold uppercase tracking-wider text-white/35">Try</span>
-        {VOICE_PROMPTS.map((item) => (
+        {TEXT_PROMPTS.map((item) => (
           <button
             key={item.label}
             type="button"

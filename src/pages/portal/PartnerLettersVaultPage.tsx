@@ -5,6 +5,7 @@ import { PageShell } from '../../components/layout/PageShell';
 import { useAuth } from '../../auth/AuthProvider';
 import { usePartnerSession } from '../../auth/PartnerSessionContext';
 import { deleteLetter, listLettersByPartner, setLetterArchived, upsertLetter } from '../../data/lettersRepo';
+import { backfillPartnerLettersMailTo } from '../../lib/letterMailToBackfill';
 import { listEvidenceByPartner } from '../../data/evidenceRepo';
 import { openBlobRefInNewTab } from '../../lib/openBlobRef';
 import type { LetterRecord, LetterStatus } from '../../domain/letters';
@@ -71,7 +72,11 @@ export default function PartnerLettersVaultPage() {
   const auth = useAuth();
   const email = auth.user?.email || '';
   const { partner } = usePartnerSession();
-  const letters = useMemo(() => (partner ? listLettersByPartner(partner.id) : []), [partner]);
+  const [lettersVersion, setLettersVersion] = useState(0);
+  const letters = useMemo(
+    () => (partner ? listLettersByPartner(partner.id) : []),
+    [partner, lettersVersion],
+  );
   const [status, setStatus] = useState<LetterStatus | 'all'>('all');
   const [mailOpen, setMailOpen] = useState(false);
   const [mailLetter, setMailLetter] = useState<LetterRecord | null>(null);
@@ -90,6 +95,15 @@ export default function PartnerLettersVaultPage() {
     if (!draft?.selectedDisputes?.length) return null;
     return letterStudioResumeUrl(draft);
   }, [partner, letters.length]);
+
+  useEffect(() => {
+    if (!partner?.id) return;
+    const sessionKey = `finely.letterMailToBackfill::${partner.id}`;
+    if (typeof window !== 'undefined' && sessionStorage.getItem(sessionKey) === '1') return;
+    const changed = backfillPartnerLettersMailTo(partner.id);
+    if (changed > 0) setLettersVersion((v) => v + 1);
+    if (typeof window !== 'undefined') sessionStorage.setItem(sessionKey, '1');
+  }, [partner?.id]);
 
   useEffect(() => {
     try {

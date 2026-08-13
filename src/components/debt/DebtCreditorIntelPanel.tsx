@@ -47,6 +47,7 @@ import {
   FINELY_OS_ENTITY_SUBLABEL,
   FINELY_OS_ENTITY_VALUE,
   FINELY_OS_FIELD_WIDTH,
+  FINELY_OS_FIELD_WIDTH_SM,
   FINELY_OS_PRIMARY_BTN,
   FINELY_OS_SECONDARY_BTN,
   finelyOsCatalogCard,
@@ -58,6 +59,7 @@ import {
   type FinelyOsGlowAccent,
 } from '../../features/os/finelyOsLightUi';
 import { FinelyOsWorkstationModal } from '../../features/os/FinelyOsWorkstationModal';
+import './validationDebtLayout.css';
 
 type ReportRow = { id: string; parsed?: ParsedCreditReport | null };
 
@@ -685,44 +687,15 @@ export function DebtCreditorIntelPanel({
         </div>
       ) : null}
 
-      <div className={`${cardShell('sky')} ${pad} space-y-4`}>
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <div className={`inline-flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL}`}>
-              <Building2 size={14} className="text-sky-300" />
-              Collector / creditor mailing info
-            </div>
-            {!compact ? (
-            <p className={`mt-2 ${FINELY_OS_ENTITY_BODY}`}>
-              This is who receives your{' '}
-              {ws === 'foreclosure' ? 'RESPA / loss mitigation letter' : ws === 'repossession' ? 'repo or deficiency letter' : mode === 'validation' ? 'validation request' : 'court response'}.
-              Edit before you build the draft.
-            </p>
-            ) : null}
-          </div>
-          {party ? (
-            <span className={finelyOsStatusChip(party.matchedFrom === 'debt_case' ? 'warn' : 'ok')}>
-              Source: {party.matchedFrom.replace('_', ' ')}
-              {matchQuality ? ` · ${matchQuality}` : ''}
-            </span>
-          ) : null}
-        </div>
-
-        {!compact && !recipientAddress.trim() ? (
-          <div className="flex items-start gap-2 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-xs text-amber-100/90 max-w-xl">
-            <AlertTriangle size={14} className="shrink-0 mt-0.5" />
-            Mailing address is required before you send.
-          </div>
-        ) : null}
-
-        {collectionRows.length > 0 ? (
+      {collectionRows.length > 0 ? (
+        <div className={`${finelyOsCatalogCardCompact('fuchsia')} !p-3`}>
           <button
             type="button"
             onClick={() => setCollectionsModalOpen(true)}
-            className="w-full rounded-xl border-2 border-fuchsia-400/40 bg-gradient-to-br from-fuchsia-600/25 via-violet-900/30 to-black px-4 py-4 text-left hover:brightness-110 transition-all"
+            className="w-full rounded-xl border border-fuchsia-400/35 bg-gradient-to-br from-fuchsia-600/20 via-violet-900/25 to-black/60 px-3 py-3 text-left hover:brightness-110 transition-all"
           >
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <div>
+              <div className="min-w-0">
                 <div className="text-[10px] font-black uppercase tracking-widest text-fuchsia-200/90">
                   Collections & charge-offs
                 </div>
@@ -730,74 +703,119 @@ export function DebtCreditorIntelPanel({
                   {collectionRows.length} account{collectionRows.length === 1 ? '' : 's'} · {targetsWithAddress} with mailing address
                 </div>
                 <p className={`mt-1 text-xs ${FINELY_OS_ENTITY_BODY}`}>
-                  Tap to open the full collector list — pick one to auto-fill this letter.
+                  Pick a collector — auto-fills the mailing block below.
                 </p>
               </div>
               <span className={finelyOsStatusChip(targetsWithAddress > 0 ? 'ok' : 'warn')}>Open list</span>
             </div>
           </button>
-        ) : reports.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-sky-400/30 bg-sky-500/[0.06] px-3 py-2.5 space-y-1">
-            <div className={`text-[10px] uppercase tracking-widest ${FINELY_OS_ENTITY_BODY}`}>
-              No credit report on file
-            </div>
-            <p className={`text-xs ${FINELY_OS_ENTITY_BODY}`}>
-              Creditor Contacts and collection accounts come from your uploaded report. Upload one and these fields fill
-              themselves.
-            </p>
-            <Link to={nav('/portal/reports')} className={FINELY_OS_SECONDARY_BTN}>
-              Upload a credit report
-            </Link>
+        </div>
+      ) : reports.length === 0 ? (
+        <div className={`${finelyOsCatalogCardCompact('fuchsia')} !p-3 space-y-2`}>
+          <div className={`text-[10px] uppercase tracking-widest ${FINELY_OS_ENTITY_BODY}`}>No credit report on file</div>
+          <p className={`text-xs ${FINELY_OS_ENTITY_BODY}`}>
+            Collection accounts come from your uploaded report.
+          </p>
+          <Link to={nav('/portal/reports')} className={FINELY_OS_SECONDARY_BTN}>
+            Upload a credit report
+          </Link>
+        </div>
+      ) : (
+        <div className={`${finelyOsCatalogCardCompact('fuchsia')} !p-3 space-y-2`}>
+          <div className={`text-[10px] uppercase tracking-widest ${FINELY_OS_ENTITY_BODY}`}>
+            No collections or charge-offs on this report yet
           </div>
-        ) : (
-          <div className="rounded-xl border border-dashed border-amber-400/30 bg-amber-500/[0.07] px-3 py-2.5 space-y-1">
-            <div className={`text-[10px] uppercase tracking-widest ${FINELY_OS_ENTITY_BODY}`}>
-              No collections or charge-offs on this report yet
-            </div>
-            <p className={`text-xs ${FINELY_OS_ENTITY_BODY}`}>
-              {reports.length} report{reports.length === 1 ? '' : 's'} on file
-              {collectionBoard.contactsWithAddress
-                ? `, and ${collectionBoard.contactsWithAddress} Creditor Contact address${collectionBoard.contactsWithAddress === 1 ? '' : 'es'} were read`
-                : ', but no Creditor Contacts mailing blocks came through'}
-              . Open Reports → Creditors to review contacts, or Re-parse the report if the Creditor Contacts pages were
-              missing from the parse.
-            </p>
-            <Link to={nav('/portal/reports')} className={FINELY_OS_SECONDARY_BTN}>
-              Open reports / re-parse
-            </Link>
-          </div>
-        )}
+          <p className={`text-xs ${FINELY_OS_ENTITY_BODY}`}>
+            {reports.length} report{reports.length === 1 ? '' : 's'} on file
+            {collectionBoard.contactsWithAddress
+              ? ` · ${collectionBoard.contactsWithAddress} Creditor Contact address${collectionBoard.contactsWithAddress === 1 ? '' : 'es'} read`
+              : ''}
+            .
+          </p>
+          <Link to={nav('/portal/reports')} className={FINELY_OS_SECONDARY_BTN}>
+            Open reports / re-parse
+          </Link>
+        </div>
+      )}
 
-        <div className={`grid gap-3 sm:grid-cols-2 lg:grid-cols-3 ${compact ? 'max-w-5xl' : ''}`}>
-          <div className={compact ? FINELY_OS_FIELD_WIDTH : ''}>
+      <div className={`${cardShell('sky')} ${pad} space-y-3`}>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <div className={`inline-flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL}`}>
+              <Building2 size={14} className="text-sky-300" />
+              Collector mailing address
+            </div>
+            {!compact ? (
+            <p className={`mt-1.5 ${FINELY_OS_ENTITY_BODY}`}>
+              Who receives your{' '}
+              {ws === 'foreclosure' ? 'RESPA / loss mitigation letter' : ws === 'repossession' ? 'repo or deficiency letter' : mode === 'validation' ? 'validation request' : 'court response'}.
+            </p>
+            ) : (
+              <p className={`mt-1 text-[10px] ${FINELY_OS_ENTITY_BODY}`}>Saved on the debt case when you tap Save.</p>
+            )}
+          </div>
+          {party ? (
+            <span className={finelyOsStatusChip(party.matchedFrom === 'debt_case' ? 'warn' : 'ok')}>
+              {party.matchedFrom.replace('_', ' ')}
+              {matchQuality ? ` · ${matchQuality}` : ''}
+            </span>
+          ) : null}
+        </div>
+
+        {!compact && !recipientAddress.trim() ? (
+          <div className="flex items-start gap-2 rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-100/90 max-w-xl">
+            <AlertTriangle size={14} className="shrink-0 mt-0.5" />
+            Mailing address is required before you send.
+          </div>
+        ) : null}
+
+        <div className={compact ? 'fc-validation-mail-deck' : 'grid gap-3 sm:grid-cols-2 lg:grid-cols-3'}>
+          <div className={compact ? 'fc-field-span-2' : FINELY_OS_FIELD_WIDTH}>
             <label className={FINELY_OS_ENTITY_LABEL}>Recipient name</label>
             <input
               value={recipientName}
               onChange={(e) => setRecipientName(e.target.value)}
-              placeholder="Collector or plaintiff legal name"
-              className={fieldInput}
+              placeholder="Collector legal name"
+              className={`${fieldInput} w-full`}
             />
           </div>
-          <div className={compact ? FINELY_OS_FIELD_WIDTH : ''}>
-            <label className={FINELY_OS_ENTITY_LABEL}>Original creditor (if different)</label>
+          <div className={compact ? '' : FINELY_OS_FIELD_WIDTH}>
+            <label className={FINELY_OS_ENTITY_LABEL}>Phone</label>
+            <input
+              value={recipientPhone}
+              onChange={(e) => setRecipientPhone(e.target.value)}
+              placeholder="Optional"
+              className={`${fieldInput} w-full`}
+            />
+          </div>
+          <div className={compact ? '' : FINELY_OS_FIELD_WIDTH}>
+            <label className={FINELY_OS_ENTITY_LABEL}>Account ref</label>
+            <input
+              value={accountRef}
+              onChange={(e) => setAccountRef(e.target.value)}
+              placeholder="Last 4 / masked #"
+              className={`${fieldInput} w-full`}
+            />
+          </div>
+          <div className={compact ? 'fc-field-span-2' : FINELY_OS_FIELD_WIDTH}>
+            <label className={FINELY_OS_ENTITY_LABEL}>Original creditor</label>
             <input
               value={originalCreditor}
               onChange={(e) => setOriginalCreditor(e.target.value)}
-              placeholder="e.g. Capital One, Synchrony"
-              className={fieldInput}
+              placeholder="If different from collector"
+              className={`${fieldInput} w-full`}
             />
           </div>
-          <div className={compact ? 'sm:col-span-2 max-w-xl' : 'md:col-span-2'}>
+          <div className={compact ? 'fc-field-span-4' : 'md:col-span-2'}>
             <div className="flex flex-wrap items-center justify-between gap-2">
               <label className={FINELY_OS_ENTITY_LABEL}>Mailing address</label>
               <button
                 type="button"
-                className={FINELY_OS_SECONDARY_BTN}
+                className={`${FINELY_OS_SECONDARY_BTN} !py-1.5 !px-2.5 text-[10px]`}
                 disabled={lookupBusy}
                 onClick={() => void lookupMailingAddress()}
-                title="Fill from directory, report, or web lookup when configured"
               >
-                <Wand2 size={14} />
+                <Wand2 size={12} />
                 {lookupBusy ? 'Looking up…' : 'Fill address'}
               </button>
             </div>
@@ -805,40 +823,48 @@ export function DebtCreditorIntelPanel({
               value={recipientAddress}
               onChange={(e) => setRecipientAddress(e.target.value)}
               rows={compact ? 2 : 3}
-              placeholder="Street, suite, city, state, ZIP"
-              className={`${fieldInput} ${compact ? 'min-h-[64px]' : 'min-h-[88px]'}`}
+              placeholder="Street, city, state, ZIP"
+              className={`${fieldInput} w-full ${compact ? 'min-h-[56px]' : 'min-h-[88px]'}`}
             />
             {enrichMeta?.verifyRequired || (!recipientAddress.trim() && enrichMeta?.source === 'missing') ? (
-              <p className="mt-1 text-[11px] text-amber-200/85">
-                Verify address against the collection notice or summons before mailing.
-                {enrichMeta?.hint ? ` ${enrichMeta.hint}` : ''}
-              </p>
+              <p className="mt-1 text-[10px] text-amber-200/85">Verify against the notice before mailing.</p>
             ) : enrichMeta?.hint ? (
-              <p className="mt-1 text-[11px] text-emerald-200/80">{enrichMeta.hint}</p>
+              <p className="mt-1 text-[10px] text-emerald-200/80">{enrichMeta.hint}</p>
             ) : null}
-          </div>
-          <div className={compact ? FINELY_OS_FIELD_WIDTH : ''}>
-            <label className={FINELY_OS_ENTITY_LABEL}>Phone (optional)</label>
-            <input
-              value={recipientPhone}
-              onChange={(e) => setRecipientPhone(e.target.value)}
-              placeholder="Collector phone"
-              className={fieldInput}
-            />
-          </div>
-          <div className={compact ? FINELY_OS_FIELD_WIDTH : ''}>
-            <label className={FINELY_OS_ENTITY_LABEL}>Account reference</label>
-            <input
-              value={accountRef}
-              onChange={(e) => setAccountRef(e.target.value)}
-              placeholder="Last 4 or masked account #"
-              className={fieldInput}
-            />
           </div>
         </div>
 
         {mode === 'court' || mode === 'validation' ? (
-          <div className={`mt-4 pt-4 border-t border-white/10 grid gap-3 sm:grid-cols-2 ${compact ? 'max-w-3xl' : ''}`}>
+          mode === 'validation' && compact ? (
+            <details className="rounded-xl border border-white/10 bg-black/20 !p-3">
+              <summary className="cursor-pointer list-none text-[10px] font-black uppercase tracking-widest text-emerald-200/90 [&::-webkit-details-marker]:hidden">
+                Court / summons fields (optional)
+              </summary>
+              <div className="mt-3 grid gap-2 sm:grid-cols-2 max-w-3xl">
+                <div>
+                  <label className={FINELY_OS_ENTITY_LABEL}>Plaintiff law firm</label>
+                  <input value={plaintiffLawFirm} onChange={(e) => setPlaintiffLawFirm(e.target.value)} placeholder="Collection law firm" className={`${fieldInput} w-full max-w-xs`} />
+                </div>
+                <div>
+                  <label className={FINELY_OS_ENTITY_LABEL}>Plaintiff attorney</label>
+                  <input value={plaintiffAttorneyName} onChange={(e) => setPlaintiffAttorneyName(e.target.value)} placeholder="Attorney of record" className={`${fieldInput} w-full max-w-xs`} />
+                </div>
+                <div>
+                  <label className={FINELY_OS_ENTITY_LABEL}>Bar number</label>
+                  <input value={plaintiffAttorneyBar} onChange={(e) => setPlaintiffAttorneyBar(e.target.value)} placeholder="State bar #" className={`${fieldInput} w-full max-w-xs`} />
+                </div>
+                <div>
+                  <label className={FINELY_OS_ENTITY_LABEL}>Affidavit county</label>
+                  <input value={affidavitCounty} onChange={(e) => setAffidavitCounty(e.target.value)} placeholder="County" className={`${fieldInput} w-full max-w-xs`} />
+                </div>
+                <div className="sm:col-span-2 max-w-md">
+                  <label className={FINELY_OS_ENTITY_LABEL}>Plaintiff firm address</label>
+                  <textarea value={plaintiffLawFirmAddress} onChange={(e) => setPlaintiffLawFirmAddress(e.target.value)} rows={2} className={`${fieldInput} w-full min-h-[56px]`} />
+                </div>
+              </div>
+            </details>
+          ) : (
+          <div className={`pt-3 border-t border-white/10 grid gap-3 sm:grid-cols-2 ${compact ? 'max-w-3xl' : ''}`}>
             <div className="sm:col-span-2">
               <div className={`inline-flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL}`}>
                 <Scale size={14} className={mode === 'court' ? 'text-fuchsia-300' : 'text-emerald-300'} />
@@ -894,9 +920,10 @@ export function DebtCreditorIntelPanel({
               <input value={borrowerId} onChange={(e) => setBorrowerId(e.target.value)} placeholder="Borrower / customer ID" className={fieldInput} />
             </div>
           </div>
+          )
         ) : null}
 
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2 pt-1 border-t border-white/10">
           {party && (party.autoFilled || party.matchedFrom !== 'manual') ? (
             <button type="button" onClick={useFromReport} className={FINELY_OS_SECONDARY_BTN}>
               <Wand2 size={14} />

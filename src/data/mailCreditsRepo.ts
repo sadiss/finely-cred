@@ -2,8 +2,11 @@ import { loadJson, saveJson } from './localJsonStore';
 import { newId } from '../utils/ids';
 import { FINELY_TENANT_ID } from '../domain/tenants';
 
+import { mailClassChoice } from '../lib/mailClassOptions';
+
 const KEY = 'finely.mailCredits.v1';
-export const DEFAULT_MAIL_COST_CENTS = 185;
+/** Certified + ERR typical LetterStream cost — used when live quote unavailable. */
+export const DEFAULT_MAIL_COST_CENTS = mailClassChoice('certified').estCostCents;
 
 export type MailCreditTxn = {
   id: string;

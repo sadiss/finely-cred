@@ -5,6 +5,8 @@ import type { EvidenceItem } from '../../domain/evidence';
 import { listLettersByPartner } from '../../data/lettersRepo';
 import { deleteLetter } from '../../data/lettersRepo';
 import { SavedLetterCard, SAVED_LETTER_DECK_ACCENTS } from './SavedLetterCard';
+import type { Bureau } from '../../domain/creditReports';
+import { bureauFullName } from '../../utils/bureaus';
 import { openBlobRefInNewTab } from '../../lib/openBlobRef';
 import { FinelyOsPaginatedStack } from '../../features/os/FinelyOsPaginatedStack';
 import { isFeatureEnabled } from '../../data/settingsRepo';
@@ -28,6 +30,7 @@ export function LetterStudioSavedVaultStrip({
   onLetterSaved,
   canMail: canMailProp,
   onMailLetter,
+  groupByBureau = false,
 }: {
   partnerId: string;
   types: LetterType[];
@@ -44,6 +47,8 @@ export function LetterStudioSavedVaultStrip({
   /** Defaults to platform letterMailing feature flag when omitted */
   canMail?: boolean;
   onMailLetter?: (letter: LetterRecord) => void;
+  /** Group bureau dispute letters by EXP/EQF/TUC instead of one flat list. */
+  groupByBureau?: boolean;
 }) {
   const [openErr, setOpenErr] = useState<string | null>(null);
   const [refresh, setRefresh] = useState(0);
@@ -78,6 +83,64 @@ export function LetterStudioSavedVaultStrip({
     setOpenErr('No PDF on this letter yet — open the card to read the saved draft, or generate a PDF from the preview.');
   };
 
+  const bureauGroups = useMemo(() => {
+    if (!groupByBureau) return null;
+    const order: Array<{ key: string; label: string }> = [
+      { key: 'EXP', label: bureauFullName('EXP') },
+      { key: 'EQF', label: bureauFullName('EQF') },
+      { key: 'TUC', label: bureauFullName('TUC') },
+      { key: 'OTHER', label: 'Other bureau letters' },
+    ];
+    const buckets = new Map<string, LetterRecord[]>();
+    for (const l of letters) {
+      const bureau =
+        l.type === 'dispute' && l.meta && typeof l.meta === 'object' && 'bureau' in l.meta
+          ? String((l.meta as { bureau?: Bureau }).bureau || 'OTHER')
+          : 'OTHER';
+      const key = bureau === 'EXP' || bureau === 'EQF' || bureau === 'TUC' ? bureau : 'OTHER';
+      const list = buckets.get(key) ?? [];
+      list.push(l);
+      buckets.set(key, list);
+    }
+    return order
+      .map((entry) => ({ ...entry, letters: buckets.get(entry.key) ?? [] }))
+      .filter((entry) => entry.letters.length > 0);
+  }, [groupByBureau, letters]);
+
+  const renderLetterCard = (l: LetterRecord, index: number) => (
+    <SavedLetterCard
+      key={l.id}
+      id={`studio-vault-${l.id}`}
+      letter={l}
+      deckAccent={SAVED_LETTER_DECK_ACCENTS[index % SAVED_LETTER_DECK_ACCENTS.length]}
+      highlighted={highlightLetterId === l.id}
+      defaultSnapshotOpen={!suppressAutoPreview && highlightLetterId === l.id}
+      autoOpenPreview={!suppressAutoPreview && highlightLetterId === l.id}
+      evidence={evidence}
+      canMail={canMail}
+      pdfDisabled={false}
+      mailDisabled={!l.pdfBlobRef}
+      onOpenLetter={(openPreview) => {
+        draftPreviewOpeners.current.set(l.id, openPreview);
+        return () => {
+          draftPreviewOpeners.current.delete(l.id);
+        };
+      }}
+      onOpenPdf={() => void openPdf(l)}
+      onMail={onMailLetter ? () => onMailLetter(l) : undefined}
+      onDelete={() => {
+        void deleteLetter({ letterId: l.id }).then(() => {
+          draftPreviewOpeners.current.delete(l.id);
+          setRefresh((v) => v + 1);
+        });
+      }}
+      onSaved={() => {
+        setRefresh((v) => v + 1);
+        onLetterSaved?.();
+      }}
+    />
+  );
+
   return (
     <section
       id="fc-letter-studio-vault"
@@ -108,44 +171,26 @@ export function LetterStudioSavedVaultStrip({
           No saved letters yet. Choose a validation letter above — it saves here automatically. Add a PDF anytime with{' '}
           <span className="text-white font-semibold">Save PDF → Vault</span> in the preview.
         </p>
+      ) : bureauGroups ? (
+        <div className="space-y-5">
+          {bureauGroups.map((group) => (
+            <div key={group.key} className="space-y-3">
+              <div className="text-[10px] font-black uppercase tracking-widest text-white/55">{group.label}</div>
+              <FinelyOsPaginatedStack
+                items={group.letters}
+                pageSize={6}
+                itemSpacingClassName="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4"
+                renderItem={(l, index) => renderLetterCard(l, index)}
+              />
+            </div>
+          ))}
+        </div>
       ) : (
         <FinelyOsPaginatedStack
           items={letters}
           pageSize={6}
           itemSpacingClassName="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4"
-          renderItem={(l, index) => (
-            <SavedLetterCard
-              key={l.id}
-              id={`studio-vault-${l.id}`}
-              letter={l}
-              deckAccent={SAVED_LETTER_DECK_ACCENTS[index % SAVED_LETTER_DECK_ACCENTS.length]}
-              highlighted={highlightLetterId === l.id}
-              defaultSnapshotOpen={!suppressAutoPreview && highlightLetterId === l.id}
-              autoOpenPreview={!suppressAutoPreview && highlightLetterId === l.id}
-              evidence={evidence}
-              canMail={canMail}
-              pdfDisabled={false}
-              mailDisabled={!l.pdfBlobRef}
-              onOpenLetter={(openPreview) => {
-                draftPreviewOpeners.current.set(l.id, openPreview);
-                return () => {
-                  draftPreviewOpeners.current.delete(l.id);
-                };
-              }}
-              onOpenPdf={() => void openPdf(l)}
-              onMail={onMailLetter ? () => onMailLetter(l) : undefined}
-              onDelete={() => {
-                void deleteLetter({ letterId: l.id }).then(() => {
-                  draftPreviewOpeners.current.delete(l.id);
-                  setRefresh((v) => v + 1);
-                });
-              }}
-              onSaved={() => {
-                setRefresh((v) => v + 1);
-                onLetterSaved?.();
-              }}
-            />
-          )}
+          renderItem={(l, index) => renderLetterCard(l, index)}
         />
       )}
     </section>

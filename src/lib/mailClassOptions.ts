@@ -18,6 +18,8 @@ export type MailClassChoice = {
   shortLabel: string;
   useWhen: string;
   speedNote: string;
+  /** UI + ledger fallback when LetterStream live quote unavailable (USD cents). */
+  estCostCents: number;
 };
 
 export const MAIL_CLASS_CHOICES: MailClassChoice[] = [
@@ -28,6 +30,7 @@ export const MAIL_CLASS_CHOICES: MailClassChoice[] = [
     useWhen:
       'Best for court filings, validation demands, and affidavits — tracking plus electronic signature proof of delivery.',
     speedNote: 'Slightly slower than First Class (signature required), but strongest proof for legal mail.',
+    estCostCents: 800,
   },
   {
     id: 'firstclass',
@@ -36,6 +39,7 @@ export const MAIL_CLASS_CHOICES: MailClassChoice[] = [
     useWhen:
       'Use when you need the letter out ASAP and do not need a signature / return-receipt file (still USPS First-Class).',
     speedNote: 'Fastest LetterStream letter path available here — not overnight Express.',
+    estCostCents: 350,
   },
   {
     id: 'certnoerr',
@@ -43,11 +47,17 @@ export const MAIL_CLASS_CHOICES: MailClassChoice[] = [
     shortLabel: 'Certified (no ERR)',
     useWhen: 'Certified tracking without purchasing the electronic return-receipt signature file.',
     speedNote: 'Same accountable Certified path; no ERR signature PDF stored.',
+    estCostCents: 650,
   },
 ];
 
 export function mailClassChoice(id: FinelyMailType): MailClassChoice {
   return MAIL_CLASS_CHOICES.find((c) => c.id === id) || MAIL_CLASS_CHOICES[0]!;
+}
+
+/** Fallback estimate (USD) when provider quote is unavailable — certified + ERR ≈ $8. */
+export function mailClassEstCostUsd(id: FinelyMailType): number {
+  return mailClassChoice(id).estCostCents / 100;
 }
 
 /** Heuristic: court / validation / affidavit / discovery → Certified+ERR; else First Class for speed. */

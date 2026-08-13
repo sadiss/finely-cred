@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   ArrowLeft,
   ArrowRight,
@@ -70,7 +70,9 @@ import { usePartnerHubLauncher } from '../../components/partner/usePartnerHubLau
 import {
   PARTNER_HUB_ACTION_TINT,
   PARTNER_HUB_LAUNCHER_ACCENTS,
+  partnerHubModuleCardClass,
 } from '../../components/partner/partnerHubLauncherUi';
+import '../../features/partner/partnerPortalVisual.css';
 import { buildPortalNoticedItems } from '../../lib/finelyProactiveSignals';
 import {
   FINELY_OS_PAGE,
@@ -526,8 +528,8 @@ export default function PartnerDashboardPage() {
           )}
         </div>
       ) : (
-        <div className={`${FINELY_OS_PAGE} fc-senior-simple`}>
-          <WelcomeBanner user={auth.user} partner={partner} />
+        <div className={`${FINELY_OS_PAGE} fc-senior-simple`} data-fc-partner-portal="1">
+          <WelcomeBanner user={auth.user} partner={partner} surface="portal" />
           <PartnerCreditRestoreCommandStrip
             partner={partner}
             reportsCount={reports.length}
@@ -563,6 +565,22 @@ export default function PartnerDashboardPage() {
 
           <PartnerHubLauncherGrid tiles={hubLauncherTiles} onOpen={hubLauncher.open} />
 
+          <div
+            className={`${PARTNER_HUB_ACTION_TINT.emerald} !p-4 sm:!p-5 flex flex-wrap items-center justify-between gap-4`}
+            data-fc-partner-map-teaser="1"
+          >
+            <div className="min-w-0">
+              <p className={`${FINELY_OS_ENTITY_SUBLABEL} text-emerald-200/90`}>Progression map</p>
+              <p className={`mt-1 text-lg font-semibold ${FINELY_OS_ENTITY_VALUE}`}>Your expedition from intake to fund-ready</p>
+              <p className={`mt-1 text-sm ${FINELY_OS_ENTITY_BODY} max-w-2xl`}>
+                Terrain map with landmarks tied to your projects and tasks — open Credit restore to view the full map and action console.
+              </p>
+            </div>
+            <button type="button" className={FINELY_OS_PRIMARY_BTN} onClick={() => hubLauncher.open('restore')}>
+              Open progression map <ArrowRight size={14} />
+            </button>
+          </div>
+
           <div className="flex flex-wrap items-center justify-between gap-4">
             <button type="button" onClick={() => navigate('/dashboard')} className={FINELY_OS_BACK_LINK} title="Back to Finely Cred Dashboard">
               <ArrowLeft size={16} /> Dashboard
@@ -592,7 +610,7 @@ export default function PartnerDashboardPage() {
             accent="emerald"
           >
             <FinelyNoticedStrip
-              surface="light"
+              surface="dark"
               items={buildPortalNoticedItems({
                 reportsCount: reports.length,
                 lettersCount: letters.length,
@@ -648,7 +666,7 @@ export default function PartnerDashboardPage() {
                             data-fc-accent={tint}
                             title={a.title}
                           >
-                            <div className="text-[10px] uppercase tracking-widest text-violet-700">
+                            <div className={`text-[10px] uppercase tracking-widest ${FINELY_OS_ENTITY_SUBLABEL}`}>
                               {a.severity === 'warn' ? 'Priority' : 'Improvement'}
                             </div>
                             <div className={`mt-2 ${FINELY_OS_ENTITY_VALUE}`}>{a.title}</div>
@@ -664,7 +682,7 @@ export default function PartnerDashboardPage() {
               </div>
             ) : null}
             <CollapsibleSection
-              variant="light"
+              variant="dark"
               title="Expedition map + Action Console"
               subtitle="Terrain map with landmarks tied to your projects & tasks â€” plus Now / Next / Later actions."
               count={`lane: ${partner.lane ?? 'â€”'} â€¢ stage: ${partner.journeyStage ?? 'intake'}`}
@@ -695,7 +713,7 @@ export default function PartnerDashboardPage() {
                               {items.length} item{items.length === 1 ? '' : 's'}
                             </span>
                           </div>
-                          <div className="text-[10px] font-black uppercase tracking-widest text-violet-700">Open</div>
+                          <div className={`text-[10px] font-black uppercase tracking-widest ${FINELY_OS_ENTITY_SUBLABEL}`}>Open</div>
                         </summary>
                         <div className="mt-4 space-y-3">
                           {items.map((a) => (
@@ -705,7 +723,7 @@ export default function PartnerDashboardPage() {
                               onClick={() => navigate(a.path)}
                               className={`${finelyOsInlineListItem()} w-full text-left p-5`}
                             >
-                              <div className="text-[10px] uppercase tracking-widest text-violet-700">{a.k}</div>
+                              <div className={`text-[10px] uppercase tracking-widest ${FINELY_OS_ENTITY_SUBLABEL}`}>{a.k}</div>
                               <div className={`mt-2 ${FINELY_OS_ENTITY_VALUE}`}>{a.title}</div>
                               <div className={`mt-2 ${FINELY_OS_ENTITY_BODY}`}>{a.desc}</div>
                               <div className={`mt-4 inline-flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL}`}>
@@ -745,7 +763,7 @@ export default function PartnerDashboardPage() {
             />
             {visibleNotes.length > 0 ? (
               <CollapsibleSection
-                variant="light"
+                variant="dark"
                 title="Staff notes"
                 subtitle="Updates from your credit specialist team."
                 count={`${visibleNotes.length} note${visibleNotes.length === 1 ? '' : 's'}`}
@@ -783,10 +801,10 @@ export default function PartnerDashboardPage() {
                   key={c.key}
                   type="button"
                   onClick={c.onClick}
-                  className={`${finelyOsCatalogCard(PARTNER_HUB_LAUNCHER_ACCENTS[idx % PARTNER_HUB_LAUNCHER_ACCENTS.length])} w-full text-left !p-4`}
+                  className={partnerHubModuleCardClass(PARTNER_HUB_LAUNCHER_ACCENTS[idx % PARTNER_HUB_LAUNCHER_ACCENTS.length])}
                   data-fc-accent={PARTNER_HUB_LAUNCHER_ACCENTS[idx % PARTNER_HUB_LAUNCHER_ACCENTS.length]}
                 >
-                  <div className="flex items-center gap-3 text-violet-700">
+                  <div className={`flex items-center gap-3 ${FINELY_OS_ENTITY_SUBLABEL}`}>
                     {c.icon}
                     <span className="text-[10px] font-black uppercase tracking-widest">{c.title}</span>
                   </div>
@@ -817,10 +835,10 @@ export default function PartnerDashboardPage() {
                   key={c.key}
                   type="button"
                   onClick={c.onClick}
-                  className={`${finelyOsCatalogCard(PARTNER_HUB_LAUNCHER_ACCENTS[idx % PARTNER_HUB_LAUNCHER_ACCENTS.length])} w-full text-left !p-4`}
+                  className={partnerHubModuleCardClass(PARTNER_HUB_LAUNCHER_ACCENTS[idx % PARTNER_HUB_LAUNCHER_ACCENTS.length])}
                   data-fc-accent={PARTNER_HUB_LAUNCHER_ACCENTS[idx % PARTNER_HUB_LAUNCHER_ACCENTS.length]}
                 >
-                  <div className="flex items-center gap-3 text-violet-700">
+                  <div className={`flex items-center gap-3 ${FINELY_OS_ENTITY_SUBLABEL}`}>
                     {c.icon}
                     <span className="text-[10px] font-black uppercase tracking-widest">{c.title}</span>
                   </div>
@@ -840,8 +858,8 @@ export default function PartnerDashboardPage() {
           >
             {partner.lane === 'business_credit' ? (
               <CollapsibleSection
-                variant="light"
-                title={<span className="text-fuchsia-800">Business persona</span>}
+                variant="dark"
+                title={<span className="text-fuchsia-200">Business persona</span>}
                 subtitle="Your EIN profile (separate from personal)."
                 defaultOpen
                 storageKey="portal.dashboard.businessPersona"
@@ -907,10 +925,10 @@ export default function PartnerDashboardPage() {
                   key={c.key}
                   type="button"
                   onClick={c.onClick}
-                  className={`${finelyOsCatalogCard(PARTNER_HUB_LAUNCHER_ACCENTS[idx % PARTNER_HUB_LAUNCHER_ACCENTS.length])} w-full text-left !p-4`}
+                  className={partnerHubModuleCardClass(PARTNER_HUB_LAUNCHER_ACCENTS[idx % PARTNER_HUB_LAUNCHER_ACCENTS.length])}
                   data-fc-accent={PARTNER_HUB_LAUNCHER_ACCENTS[idx % PARTNER_HUB_LAUNCHER_ACCENTS.length]}
                 >
-                  <div className="flex items-center gap-3 text-violet-700">
+                  <div className={`flex items-center gap-3 ${FINELY_OS_ENTITY_SUBLABEL}`}>
                     {c.icon}
                     <span className="text-[10px] font-black uppercase tracking-widest">{c.title}</span>
                   </div>
@@ -953,7 +971,7 @@ export default function PartnerDashboardPage() {
               />
             </div>
             <CollapsibleSection
-              variant="light"
+              variant="dark"
               title="Next steps & status"
               subtitle="Keep momentum without scrolling 20 pages."
               defaultOpen
@@ -1024,7 +1042,7 @@ export default function PartnerDashboardPage() {
               </div>
             </CollapsibleSection>
             <CollapsibleSection
-              variant="light"
+              variant="dark"
               title="Onboarding checklist"
               subtitle="Execution-ready: reports uploaded, evidence captured, tasks completed."
               defaultOpen={false}

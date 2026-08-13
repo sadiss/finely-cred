@@ -1,4 +1,6 @@
-/* Personal credit restore lane — dark desk + light sheet cards */
+/* Personal credit restore lane — ivory wealthy service page */
+
+@import '../os/ivoryWealthyPublic.css';
 
 [data-fc-personal-credit-lane='1'] {
   --pc-hero-ink: #f8fafc;
@@ -8,6 +10,685 @@
   --pc-champagne: #0a1420;
   --pc-champagne-deep: #050a10;
 }
+
+/* Ivory shell washes — emerald + amber restore lane */
+[data-fc-shell-surface='ivory']:has([data-fc-restore-pricing='1']) .fc-container {
+  max-width: min(1720px, 100%);
+}
+
+[data-fc-shell-surface='ivory'][data-fc-pageshell-root='1']:has([data-fc-restore-pricing='1']).fc-landing-wealthy-ivory {
+  background:
+    radial-gradient(ellipse 78% 52% at 4% 0%, rgba(52, 211, 153, 0.07), transparent 54%),
+    radial-gradient(ellipse 62% 48% at 96% 8%, rgba(251, 191, 36, 0.06), transparent 50%),
+    radial-gradient(ellipse 58% 44% at 92% 92%, rgba(45, 138, 103, 0.05), transparent 52%),
+    linear-gradient(180deg, #ffffff 0%, #fefefe 45%, #fafafa 100%) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 1) !important;
+}
+
+[data-fc-shell-surface='ivory'][data-fc-pageshell-root='1']:has([data-fc-restore-pricing='1']).fc-landing-wealthy-ivory::before {
+  display: none !important;
+}
+
+[data-fc-restore-pricing='1'] .pc-restore-stat-tile {
+  text-align: center;
+  position: relative;
+  z-index: 1;
+  isolation: isolate;
+}
+
+[data-fc-restore-pricing='1'] .pc-restore-stat-label {
+  margin-top: 0.35rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  line-height: 1.35;
+  color: rgba(255, 255, 255, 0.88);
+}
+
+[data-fc-restore-pricing='1'] .fc-ivory-glow-figure {
+  font-size: clamp(2rem, 3.5vw, 2.65rem) !important;
+}
+
+[data-fc-restore-pricing='1'] .fc-ivory-pop-tile .fc-ivory-card-title {
+  font-size: clamp(1.25rem, 2.2vw, 1.65rem) !important;
+  font-weight: 700 !important;
+  line-height: 1.15 !important;
+}
+
+[data-fc-restore-pricing='1'] .fc-ivory-pop-violet .fc-ivory-body-text,
+[data-fc-restore-pricing='1'] .fc-ivory-pop-violet .fc-ivory-card-title {
+  color: #f3e8ff !important;
+}
+
+[data-fc-restore-pricing='1'] .fc-ivory-pop-violet .fc-ivory-glow-figure {
+  color: #faf5ff !important;
+}
+
+[data-fc-restore-pricing='1'] .pc-restore-kicker--on-pop {
+  color: #fde68a !important;
+  text-shadow: 0 0 18px rgba(251, 191, 36, 0.45);
+}
+
+[data-fc-restore-pricing='1'] .fc-ivory-pop-violet .pc-restore-kicker--on-pop {
+  color: #e9d5ff !important;
+  text-shadow: 0 0 16px rgba(167, 139, 250, 0.55);
+}
+
+[data-fc-restore-pricing='1'] .pc-restore-process-step .pc-restore-step-num {
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: rgba(0, 0, 0, 0.22);
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  box-shadow: none !important;
+  color: rgba(255, 255, 255, 0.95);
+}
+
+[data-fc-restore-pricing='1'] .pc-restore-process-step h3 {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: clamp(1.15rem, 2vw, 1.35rem);
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  color: rgba(255, 255, 255, 0.96) !important;
+}
+
+[data-fc-restore-pricing='1'] .pc-restore-trust-row {
+  border-radius: 1rem;
+  border: 1px solid rgba(52, 211, 153, 0.32);
+  background: linear-gradient(155deg, rgba(4, 48, 36, 0.92) 0%, rgba(2, 20, 16, 0.88) 100%);
+  padding: 1.15rem 1.25rem;
+}
+
+[data-fc-restore-pricing='1'] .pc-restore-trust-row span {
+  color: rgba(255, 255, 255, 0.88);
+}
+
+/* No glass tent on pop tiles — solid accent fill, fully opaque */
+[data-fc-restore-pricing='1'] .fc-ivory-pop-tile,
+[data-fc-restore-pricing='1'] .fc-ivory-pop-amber,
+[data-fc-restore-pricing='1'] .fc-ivory-pop-emerald,
+[data-fc-restore-pricing='1'] .fc-ivory-pop-violet,
+[data-fc-restore-pricing='1'] .fc-ivory-pop-sky,
+[data-fc-restore-pricing='1'] .fc-ivory-pop-rose,
+[data-fc-restore-pricing='1'] .fc-ivory-pop-fuchsia {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  box-shadow: none !important;
+}
+
+[data-fc-restore-pricing='1'] .fc-ivory-pop-amber {
+  background: linear-gradient(155deg, #92400e 0%, #451a03 100%) !important;
+  border-color: rgba(251, 191, 36, 0.62) !important;
+  box-shadow: 0 0 32px -6px rgba(251, 191, 36, 0.45) !important;
+}
+
+[data-fc-restore-pricing='1'] .fc-ivory-pop-emerald {
+  background: linear-gradient(155deg, #065f46 0%, #022c22 100%) !important;
+  border-color: rgba(52, 211, 153, 0.62) !important;
+  box-shadow: 0 0 32px -6px rgba(52, 211, 153, 0.5) !important;
+}
+
+[data-fc-restore-pricing='1'] .fc-ivory-pop-violet {
+  background: linear-gradient(155deg, #5b21b6 0%, #2e1065 100%) !important;
+  border-color: rgba(167, 139, 250, 0.62) !important;
+  box-shadow: 0 0 32px -6px rgba(167, 139, 250, 0.45) !important;
+}
+
+[data-fc-restore-pricing='1'] .fc-ivory-pop-sky {
+  background: linear-gradient(155deg, #075985 0%, #082f49 100%) !important;
+  border-color: rgba(56, 189, 248, 0.62) !important;
+  box-shadow: 0 0 32px -6px rgba(56, 189, 248, 0.45) !important;
+}
+
+[data-fc-restore-pricing='1'] .fc-ivory-pop-rose {
+  background: linear-gradient(155deg, #9f1239 0%, #4c0519 100%) !important;
+  border-color: rgba(244, 63, 94, 0.62) !important;
+  box-shadow: 0 0 32px -6px rgba(244, 63, 94, 0.42) !important;
+}
+
+[data-fc-restore-pricing='1'] .fc-ivory-pop-fuchsia {
+  background: linear-gradient(155deg, #86198f 0%, #4a044e 100%) !important;
+  border-color: rgba(232, 121, 249, 0.62) !important;
+  box-shadow: 0 0 32px -6px rgba(217, 70, 239, 0.42) !important;
+}
+
+/* Kill legacy dark desk tent if it ever reappears */
+[data-fc-restore-pricing='1'] .pc-restore-hub-shell--desk {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+
+/* AU-matching dark glass for browse catalog + OS shell */
+[data-fc-restore-pricing='1'] .fc-restore-dark-panel {
+  background: linear-gradient(160deg, rgba(6, 10, 18, 0.55) 0%, rgba(3, 5, 12, 0.48) 100%) !important;
+  border-color: rgba(255, 255, 255, 0.14) !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+}
+
+[data-fc-restore-pricing='1'] .fc-restore-dark-panel :is(.text-white, [class*='text-white/']) {
+  color: rgba(255, 255, 255, 0.88) !important;
+}
+
+[data-fc-restore-pricing='1'] .pc-restore-os-tile {
+  border: 1px solid rgba(255, 255, 255, 0.14) !important;
+  background: linear-gradient(160deg, rgba(8, 12, 20, 0.55) 0%, rgba(4, 6, 12, 0.5) 100%) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  box-shadow: none !important;
+}
+
+[data-fc-restore-pricing='1'] .pc-restore-os-tile:hover {
+  border-color: rgba(255, 255, 255, 0.22) !important;
+  background: linear-gradient(160deg, rgba(10, 14, 22, 0.62) 0%, rgba(6, 8, 14, 0.58) 100%) !important;
+  box-shadow: none !important;
+}
+
+[data-fc-restore-pricing='1'] .pc-restore-os-tile--emerald:hover {
+  border-color: rgba(52, 211, 153, 0.38) !important;
+}
+
+[data-fc-restore-pricing='1'] .pc-restore-os-tile--sky:hover {
+  border-color: rgba(56, 189, 248, 0.38) !important;
+}
+
+[data-fc-restore-pricing='1'] .pc-restore-os-tile--violet:hover {
+  border-color: rgba(167, 139, 250, 0.38) !important;
+}
+
+[data-fc-restore-pricing='1'] .pc-restore-os-tile--amber:hover {
+  border-color: rgba(251, 191, 36, 0.38) !important;
+}
+
+/* Kill luxury-glass tent on sheet link cards inside restore lane */
+[data-fc-restore-pricing='1'] .fc-accent-card.fc-luxury-glass,
+[data-fc-restore-pricing='1'] .fc-accent-card.fc-pop-surface {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  box-shadow: none !important;
+}
+
+/* Solid emerald chat strip — no violet overlay, readable staff cards */
+[data-fc-restore-pricing='1'] .fc-restore-chat-strip,
+[data-fc-restore-pricing='1'] [data-fc-marketing-staff-strip='1'].fc-restore-chat-strip {
+  background: linear-gradient(155deg, #0f4a38 0%, #062a20 48%, #083328 100%) !important;
+  background-image: none !important;
+  border: 1px solid rgba(52, 211, 153, 0.55) !important;
+  box-shadow: 0 16px 40px -16px rgba(6, 78, 59, 0.55) !important;
+  border-radius: 1.25rem;
+  overflow: hidden;
+  color: #ffffff !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+[data-fc-restore-pricing='1'] .fc-restore-chat-strip::before,
+[data-fc-restore-pricing='1'] .fc-restore-chat-strip::after,
+[data-fc-restore-pricing='1'] [data-fc-marketing-staff-strip='1'].fc-restore-chat-strip::before,
+[data-fc-restore-pricing='1'] [data-fc-marketing-staff-strip='1'].fc-restore-chat-strip::after {
+  display: none !important;
+  content: none !important;
+}
+
+[data-fc-restore-pricing='1'] .fc-restore-chat-strip :is(.text-sm, .text-xs, [class*='ENTITY_VALUE'], [class*='ENTITY_BODY'], [class*='ENTITY_SUBLABEL']) {
+  color: rgba(255, 255, 255, 0.94) !important;
+}
+
+[data-fc-restore-pricing='1'] .fc-restore-chat-strip [class*='text-white/50'],
+[data-fc-restore-pricing='1'] .fc-restore-chat-strip [class*='text-white/60'] {
+  color: rgba(255, 255, 255, 0.78) !important;
+}
+
+[data-fc-restore-pricing='1'] .fc-restore-chat-strip .grid > div {
+  background: rgba(0, 0, 0, 0.28) !important;
+  border: 1px solid rgba(110, 231, 183, 0.38) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+}
+
+[data-fc-restore-pricing='1'] .fc-restore-chat-strip .grid > div :is(.text-xs, .font-semibold, [class*='ENTITY_VALUE']) {
+  color: #ffffff !important;
+}
+
+[data-fc-restore-pricing='1'] .fc-restore-chat-strip .grid > div [class*='text-[9px]'],
+[data-fc-restore-pricing='1'] .fc-restore-chat-strip .grid > div [class*='line-clamp'] {
+  color: rgba(255, 255, 255, 0.82) !important;
+}
+
+[data-fc-restore-pricing='1'] [data-fc-marketing-staff-strip='1'].fc-restore-chat-strip button {
+  border-color: rgba(110, 231, 183, 0.55) !important;
+  background: rgba(6, 95, 70, 0.85) !important;
+  color: #ecfdf5 !important;
+}
+
+[data-fc-restore-pricing='1'] [data-fc-marketing-staff-strip='1'].fc-restore-chat-strip button:hover {
+  background: rgba(4, 120, 87, 0.95) !important;
+  color: #ffffff !important;
+}
+
+/* Beat ivory light-theme text inversion on restore chat strip */
+html[data-fc-theme='light'] [data-fc-restore-pricing='1'] .fc-restore-chat-strip,
+html[data-fc-theme='light'] [data-fc-restore-pricing='1'] .fc-restore-chat-strip :is(.text-white, [class*='text-white/']) {
+  color: rgba(255, 255, 255, 0.94) !important;
+}
+
+html[data-fc-theme='light'] [data-fc-restore-pricing='1'] .fc-restore-chat-strip .grid > div,
+html[data-fc-theme='light'] [data-fc-restore-pricing='1'] .fc-restore-chat-strip .grid > div :is(.text-white, [class*='text-white/']) {
+  color: rgba(255, 255, 255, 0.92) !important;
+}
+
+/* Emerald-themed legal footer on ivory */
+[data-fc-shell-surface='ivory']:has([data-fc-restore-pricing='1']) nav[aria-label='Legal links'] {
+  margin-top: 2.75rem;
+  padding-top: 1.25rem;
+  padding-bottom: 2.5rem;
+  border-top: 1px solid rgba(5, 150, 105, 0.18);
+  color: rgba(5, 150, 105, 0.55) !important;
+}
+
+[data-fc-shell-surface='ivory']:has([data-fc-restore-pricing='1']) nav[aria-label='Legal links'] a {
+  color: rgba(5, 150, 105, 0.78) !important;
+  font-weight: 600;
+  transition: color 0.2s ease;
+}
+
+[data-fc-shell-surface='ivory']:has([data-fc-restore-pricing='1']) nav[aria-label='Legal links'] a:hover {
+  color: rgba(4, 120, 87, 0.98) !important;
+}
+
+[data-fc-restore-pricing='1'] [data-fc-contrast-band='1'] :is(h1, h2, h3, .text-white, [class*='text-white/']) {
+  color: rgba(255, 255, 255, 0.95) !important;
+}
+
+[data-fc-restore-pricing='1'] .pc-restore-title--playfair {
+  font-family: 'Playfair Display', Georgia, 'Times New Roman', serif;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+
+[data-fc-restore-pricing='1'] .pc-restore-spectrum-wrap {
+  padding: 0.35rem 0 0.15rem;
+}
+
+[data-fc-restore-pricing='1'] .pc-restore-spectrum {
+  background: rgba(10, 22, 40, 0.1);
+  padding: 4px;
+}
+
+[data-fc-restore-pricing='1'] .pc-restore-spectrum-labels {
+  font-size: 0.6875rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: rgba(10, 22, 40, 0.78);
+}
+
+[data-fc-restore-pricing='1'] .pc-restore-spectrum-labels span:last-child {
+  color: #047857;
+  font-weight: 900;
+}
+
+[data-fc-restore-pricing='1'] .pc-restore-command {
+  border-color: rgba(10, 22, 40, 0.1);
+  background: linear-gradient(165deg, #ffffff 0%, #f8fafc 100%);
+  box-shadow: 0 12px 36px -24px rgba(0, 0, 0, 0.12);
+}
+
+[data-fc-restore-pricing='1'] .pc-restore-command .pc-restore-hub-sub {
+  color: var(--pc-sheet-ink-muted);
+}
+
+/* DIY / DFY path switcher */
+.pc-restore-path-switch {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.65rem;
+  padding: 0.45rem;
+  border-radius: 1.15rem;
+  border: 1px solid rgba(10, 22, 40, 0.1);
+  background: linear-gradient(165deg, #ffffff 0%, #f8fafc 100%);
+  box-shadow: 0 12px 36px -24px rgba(0, 0, 0, 0.12);
+}
+
+.pc-restore-path-switch__btn {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.35rem;
+  padding: 1rem 1.1rem;
+  border-radius: 0.9rem;
+  border: 1px solid rgba(10, 22, 40, 0.1);
+  background: rgba(255, 255, 255, 0.72);
+  text-align: left;
+  transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+}
+
+.pc-restore-path-switch__btn:hover {
+  border-color: rgba(10, 22, 40, 0.16);
+  background: rgba(255, 255, 255, 0.92);
+}
+
+.pc-restore-path-switch__label {
+  font-size: 1.2rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--pc-sheet-ink);
+}
+
+.pc-restore-path-switch__hint {
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: var(--pc-sheet-ink-muted);
+}
+
+.pc-restore-path-switch__btn--active {
+  box-shadow: none;
+}
+
+.pc-restore-path-switch__btn--active.pc-restore-path-switch__btn--dfy {
+  border-color: rgba(5, 150, 105, 0.45);
+  background: linear-gradient(155deg, rgba(4, 48, 36, 0.1) 0%, rgba(255, 255, 255, 0.98) 100%);
+}
+
+.pc-restore-path-switch__btn--active.pc-restore-path-switch__btn--diy {
+  border-color: rgba(124, 58, 237, 0.4);
+  background: linear-gradient(155deg, rgba(62, 16, 96, 0.08) 0%, rgba(255, 255, 255, 0.98) 100%);
+}
+
+.pc-restore-path-switch__btn--active .pc-restore-path-switch__label {
+  color: #0a1628;
+}
+
+/* Compare catalog — richer bed, tier cards pop */
+[data-fc-restore-pricing='1'] .fc-restore-catalog-panel {
+  background: linear-gradient(
+    165deg,
+    rgba(8, 12, 20, 0.78) 0%,
+    rgba(4, 24, 18, 0.68) 45%,
+    rgba(8, 12, 20, 0.75) 100%
+  ) !important;
+  border: 1px solid rgba(52, 211, 153, 0.28) !important;
+  box-shadow:
+    0 0 0 1px rgba(167, 139, 250, 0.12),
+    0 24px 56px -20px rgba(0, 0, 0, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+}
+
+[data-fc-restore-pricing='1'] .fc-restore-catalog-panel > .flex h3,
+[data-fc-restore-pricing='1'] .fc-restore-catalog-panel h3.text-lg {
+  background: linear-gradient(90deg, #6ee7b7, #a78bfa, #38bdf8);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent !important;
+}
+
+[data-fc-restore-pricing='1'] .fc-restore-catalog-panel .fc-restore-catalog-toolbar {
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  background: rgba(255, 255, 255, 0.04) !important;
+  box-shadow: none !important;
+}
+
+[data-fc-restore-pricing='1'] .fc-restore-catalog-panel .fc-restore-catalog-toolbar input {
+  border-color: rgba(255, 255, 255, 0.14) !important;
+  background: rgba(0, 0, 0, 0.35) !important;
+  color: rgba(255, 255, 255, 0.92) !important;
+}
+
+[data-fc-restore-pricing='1'] .fc-restore-catalog-panel .fc-restore-catalog-toolbar input::placeholder {
+  color: rgba(255, 255, 255, 0.42) !important;
+}
+
+/* Compare tiers — transparent glass (not metallic solid) */
+[data-fc-restore-pricing='1'] .fc-restore-catalog-panel [class*='fc-admin-solid'] {
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  box-shadow: none !important;
+}
+
+[data-fc-restore-pricing='1'] .fc-restore-catalog-panel [class*='fc-admin-solid']::before,
+[data-fc-restore-pricing='1'] .fc-restore-catalog-panel [class*='fc-admin-solid']::after {
+  display: none !important;
+  content: none !important;
+}
+
+[data-fc-restore-pricing='1'] .fc-restore-catalog-panel .fc-admin-solid-emerald {
+  background: linear-gradient(165deg, rgba(16, 185, 129, 0.38) 0%, rgba(255, 255, 255, 0.08) 100%) !important;
+  border-color: rgba(52, 211, 153, 0.58) !important;
+  box-shadow: 0 0 28px -8px rgba(52, 211, 153, 0.45) !important;
+}
+
+[data-fc-restore-pricing='1'] .fc-restore-catalog-panel .fc-admin-solid-navy {
+  background: linear-gradient(165deg, rgba(56, 89, 148, 0.42) 0%, rgba(255, 255, 255, 0.08) 100%) !important;
+  border-color: rgba(96, 165, 250, 0.52) !important;
+  box-shadow: 0 0 28px -8px rgba(56, 189, 248, 0.38) !important;
+}
+
+[data-fc-restore-pricing='1'] .fc-restore-catalog-panel [data-catalog-item-id='personal_restore_5000'] {
+  background: linear-gradient(165deg, rgba(180, 120, 20, 0.48) 0%, rgba(255, 255, 255, 0.1) 100%) !important;
+  border-color: rgba(251, 191, 36, 0.62) !important;
+  box-shadow: 0 0 32px -8px rgba(251, 191, 36, 0.48) !important;
+  color: rgba(255, 255, 255, 0.96) !important;
+}
+
+[data-fc-restore-pricing='1'] .fc-restore-catalog-panel [data-catalog-item-id='personal_restore_5000'] :is(h3, .font-semibold, p, span, li) {
+  color: rgba(255, 255, 255, 0.92) !important;
+}
+
+[data-fc-restore-pricing='1'] .fc-restore-catalog-panel [data-catalog-item-id='personal_platinum'] {
+  background: linear-gradient(165deg, rgba(124, 58, 237, 0.45) 0%, rgba(255, 255, 255, 0.1) 100%) !important;
+  border-color: rgba(167, 139, 250, 0.62) !important;
+  box-shadow: 0 0 32px -8px rgba(167, 139, 250, 0.5) !important;
+  color: rgba(255, 255, 255, 0.96) !important;
+}
+
+[data-fc-restore-pricing='1'] .fc-restore-catalog-panel [data-catalog-item-id='personal_platinum'] :is(h3, .font-semibold, p, span, li) {
+  color: rgba(255, 255, 255, 0.92) !important;
+}
+
+[data-fc-restore-pricing='1'] .fc-restore-catalog-panel .fc-admin-solid-gold {
+  background: linear-gradient(165deg, rgba(124, 58, 237, 0.22) 0%, rgba(255, 255, 255, 0.08) 100%) !important;
+  border-color: rgba(167, 139, 250, 0.45) !important;
+  color: rgba(255, 255, 255, 0.96) !important;
+}
+
+[data-fc-restore-pricing='1'] .fc-restore-catalog-panel .fc-admin-solid-gold :is(h3, .font-semibold, p, span, li) {
+  color: rgba(255, 255, 255, 0.92) !important;
+}
+
+[data-fc-restore-pricing='1'] .fc-restore-catalog-panel .fc-admin-solid-sky {
+  background: linear-gradient(165deg, rgba(14, 165, 233, 0.38) 0%, rgba(255, 255, 255, 0.08) 100%) !important;
+  border-color: rgba(56, 189, 248, 0.55) !important;
+  box-shadow: 0 0 28px -8px rgba(56, 189, 248, 0.4) !important;
+}
+
+[data-fc-restore-pricing='1'] .fc-restore-catalog-panel .fc-admin-solid-teal {
+  background: linear-gradient(165deg, rgba(45, 212, 191, 0.35) 0%, rgba(255, 255, 255, 0.08) 100%) !important;
+  border-color: rgba(45, 212, 191, 0.52) !important;
+  box-shadow: 0 0 28px -8px rgba(45, 212, 191, 0.38) !important;
+}
+
+[data-fc-restore-pricing='1'] .fc-restore-catalog-panel .fc-admin-solid-rose {
+  background: linear-gradient(165deg, rgba(244, 63, 94, 0.38) 0%, rgba(255, 255, 255, 0.08) 100%) !important;
+  border-color: rgba(244, 63, 94, 0.55) !important;
+  box-shadow: 0 0 28px -8px rgba(244, 63, 94, 0.4) !important;
+}
+
+[data-fc-restore-pricing='1'] .fc-restore-catalog-panel [class*='fc-admin-solid'] :is(h3, .font-semibold) {
+  font-size: clamp(1.15rem, 2vw, 1.45rem) !important;
+  font-weight: 700 !important;
+  line-height: 1.2 !important;
+}
+
+/* All package copy on dark pop + compare tiles — white (beats ivory shell dark inversion) */
+[data-fc-restore-pricing='1'] .fc-ivory-pop-tile :is(
+  .fc-ivory-body-text,
+  .fc-ivory-card-title,
+  .fc-ivory-glow-figure,
+  p,
+  span,
+  li
+),
+[data-fc-restore-pricing='1'] .fc-restore-catalog-panel [class*='fc-admin-solid'] :is(
+  h3,
+  p,
+  span,
+  li,
+  ul,
+  .font-semibold,
+  .font-medium,
+  .font-mono
+),
+[data-fc-restore-pricing='1'] .fc-restore-catalog-panel [class*='fc-admin-solid'] :is(
+  .text-white,
+  [class*='text-white/'],
+  [class*='text-[#2b1d05]'],
+  [class*='text-[#1a1400]']
+) {
+  color: rgba(255, 255, 255, 0.92) !important;
+}
+
+[data-fc-restore-pricing='1'] .fc-restore-catalog-panel [class*='fc-admin-solid'] .font-mono {
+  color: rgba(255, 255, 255, 0.96) !important;
+  font-weight: 700 !important;
+}
+
+[data-fc-restore-pricing='1'] .fc-ivory-pop-tile .fc-ivory-glow-figure {
+  color: rgba(255, 255, 255, 0.98) !important;
+}
+
+[data-fc-restore-pricing='1'] .fc-ivory-pop-tile .fc-ivory-body-text {
+  color: rgba(255, 255, 255, 0.88) !important;
+}
+
+html[data-fc-theme='light'] [data-fc-restore-pricing='1'] .fc-ivory-pop-tile :is(
+  .fc-ivory-body-text,
+  .fc-ivory-card-title,
+  .fc-ivory-glow-figure,
+  p,
+  span
+),
+html[data-fc-theme='light'] [data-fc-restore-pricing='1'] .fc-restore-catalog-panel [class*='fc-admin-solid'] :is(
+  h3,
+  p,
+  span,
+  li,
+  .font-semibold,
+  .font-medium,
+  .font-mono,
+  ul
+),
+html[data-fc-theme='light'] [data-fc-restore-pricing='1'] .fc-restore-catalog-panel [class*='fc-admin-solid'] :is(
+  .text-white,
+  [class*='text-white/'],
+  [class*='text-[#2b1d05]'],
+  [class*='text-[#1a1400]']
+) {
+  color: rgba(255, 255, 255, 0.92) !important;
+}
+
+html[data-fc-theme='light'] [data-fc-restore-pricing='1'] .fc-restore-catalog-panel [class*='fc-admin-solid'] .font-mono {
+  color: rgba(255, 255, 255, 0.96) !important;
+  font-weight: 700 !important;
+}
+
+html[data-fc-theme='light'] [data-fc-restore-pricing='1'] .fc-ivory-pop-tile .fc-ivory-glow-figure {
+  color: rgba(255, 255, 255, 0.98) !important;
+}
+
+html[data-fc-theme='light'] [data-fc-restore-pricing='1'] .fc-ivory-pop-tile .fc-ivory-body-text {
+  color: rgba(255, 255, 255, 0.88) !important;
+}
+
+[data-fc-restore-pricing='1'] .pc-restore-command {
+  border-color: rgba(10, 22, 40, 0.1);
+  background: linear-gradient(165deg, #ffffff 0%, #f8fafc 100%);
+  box-shadow: 0 12px 36px -24px rgba(0, 0, 0, 0.12);
+}
+
+[data-fc-restore-pricing='1'] .pc-restore-path-switch {
+  border-color: rgba(10, 22, 40, 0.1);
+  background: linear-gradient(165deg, #ffffff 0%, #f8fafc 100%);
+  box-shadow: 0 12px 36px -24px rgba(0, 0, 0, 0.12);
+}
+
+[data-fc-restore-pricing='1'] .pc-restore-path-switch__btn {
+  background: rgba(248, 250, 252, 0.92);
+}
+
+[data-fc-restore-pricing='1'] .pc-restore-path-switch__btn--active.pc-restore-path-switch__btn--dfy {
+  border-color: rgba(5, 150, 105, 0.45);
+  background: linear-gradient(155deg, rgba(4, 48, 36, 0.1) 0%, rgba(255, 255, 255, 0.98) 100%);
+}
+
+[data-fc-restore-pricing='1'] .pc-restore-path-switch__btn--active.pc-restore-path-switch__btn--diy {
+  border-color: rgba(124, 58, 237, 0.4);
+  background: linear-gradient(155deg, rgba(62, 16, 96, 0.08) 0%, rgba(255, 255, 255, 0.98) 100%);
+}
+
+.pc-restore-os-icon--fuchsia {
+  border: 1px solid rgba(232, 121, 249, 0.35);
+  background: rgba(217, 70, 239, 0.14);
+  box-shadow: 0 0 22px rgba(217, 70, 239, 0.36);
+}
+
+.pc-restore-os-tile--fuchsia:hover {
+  border-color: rgba(232, 121, 249, 0.38) !important;
+}
+
+/* No dark-glass tent from proactive strips on ivory restore lane */
+[data-fc-restore-pricing='1'] [data-fc-noticed-strip] .fc-accent-card,
+[data-fc-restore-pricing='1'] [data-fc-now-do-this] {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* OS tiles — larger glowing icons */
+.pc-restore-os-icon {
+  width: 3.25rem;
+  height: 3.25rem;
+  border-radius: 0.95rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.85rem;
+}
+
+.pc-restore-os-icon--emerald {
+  border: 1px solid rgba(52, 211, 153, 0.35);
+  background: rgba(16, 185, 129, 0.14);
+  box-shadow: 0 0 22px rgba(16, 185, 129, 0.38);
+}
+
+.pc-restore-os-icon--sky {
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  background: rgba(14, 165, 233, 0.14);
+  box-shadow: 0 0 22px rgba(56, 189, 248, 0.38);
+}
+
+.pc-restore-os-icon--violet {
+  border: 1px solid rgba(167, 139, 250, 0.35);
+  background: rgba(139, 92, 246, 0.14);
+  box-shadow: 0 0 22px rgba(139, 92, 246, 0.38);
+}
+
+.pc-restore-os-icon--amber {
+  border: 1px solid rgba(251, 191, 36, 0.35);
+  background: rgba(245, 158, 11, 0.14);
+  box-shadow: 0 0 22px rgba(251, 191, 36, 0.38);
+}
+
+.pc-restore-os-icon--rose {
+  border: 1px solid rgba(244, 63, 94, 0.35);
+  background: rgba(225, 29, 72, 0.14);
+  box-shadow: 0 0 22px rgba(244, 63, 94, 0.36);
+}
+
+.pc-restore-kpi--accent-amber { border-left: 4px solid #d97706; }
+.pc-restore-kpi--accent-violet { border-left: 4px solid #7c3aed; }
+.pc-restore-kpi--accent-sky { border-left: 4px solid #0284c7; }
+.pc-restore-kpi--accent-rose { border-left: 4px solid #e11d48; }
 
 .pc-restore-hero {
   position: relative;
@@ -117,9 +798,9 @@
 }
 
 .pc-restore-title {
-  font-size: clamp(1.75rem, 4vw, 2.65rem);
+  font-size: clamp(2.1rem, 4.8vw, 3.25rem);
   font-weight: 700;
-  line-height: 1.08;
+  line-height: 1.06;
   color: var(--pc-hero-ink);
   letter-spacing: -0.02em;
 }
@@ -194,7 +875,7 @@
   border-radius: 1rem;
   border: 1px solid rgba(255, 255, 255, 0.1);
   background: linear-gradient(135deg, rgba(15, 23, 42, 0.72), rgba(5, 10, 16, 0.85));
-  box-shadow: 0 16px 40px -28px rgba(0, 0, 0, 0.55);
+  box-shadow: none;
 }
 
 .pc-restore-command .pc-restore-hub-sub {
@@ -208,25 +889,166 @@
   border-radius: 999px;
   overflow: hidden;
   padding: 3px;
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(10, 22, 40, 0.06);
+  position: relative;
+}
+
+.pc-restore-spectrum--animated {
+  box-shadow:
+    0 0 32px -4px rgba(239, 68, 68, 0.55),
+    0 0 40px -6px rgba(34, 197, 94, 0.45),
+    inset 0 0 12px rgba(255, 255, 255, 0.12);
+  animation: pc-restore-spectrum-glow 2.8s ease-in-out infinite;
+}
+
+@keyframes pc-restore-spectrum-glow {
+  0%,
+  100% {
+    filter: brightness(1) saturate(1);
+  }
+  50% {
+    filter: brightness(1.14) saturate(1.18);
+  }
+}
+
+@keyframes pc-restore-spectrum-pulse {
+  0%,
+  100% {
+    filter: brightness(1);
+  }
+  50% {
+    filter: brightness(1.18);
+  }
 }
 
 .pc-restore-spectrum-seg {
-  height: 8px;
+  height: 14px;
   border-radius: 999px;
+  position: relative;
+  z-index: 1;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  animation: pc-restore-seg-breathe 3.6s ease-in-out infinite;
+}
+
+.pc-restore-spectrum-seg:nth-child(1) {
+  animation-delay: 0s;
+}
+.pc-restore-spectrum-seg:nth-child(2) {
+  animation-delay: 0.15s;
+}
+.pc-restore-spectrum-seg:nth-child(3) {
+  animation-delay: 0.3s;
+}
+.pc-restore-spectrum-seg:nth-child(4) {
+  animation-delay: 0.45s;
+}
+.pc-restore-spectrum-seg:nth-child(5) {
+  animation-delay: 0.6s;
+}
+
+@keyframes pc-restore-seg-breathe {
+  0%,
+  100% {
+    filter: brightness(1);
+    transform: scaleY(1);
+  }
+  50% {
+    filter: brightness(1.22);
+    transform: scaleY(1.08);
+  }
+}
+
+/* Credit-score hierarchy: poor → excellent (green last) */
+.pc-restore-spectrum-seg--poor {
+  background: linear-gradient(90deg, #991b1b, #ef4444);
+}
+
+.pc-restore-spectrum-seg--fair {
+  background: linear-gradient(90deg, #c2410c, #f97316);
+}
+
+.pc-restore-spectrum-seg--good {
+  background: linear-gradient(90deg, #ca8a04, #facc15);
+}
+
+.pc-restore-spectrum-seg--verygood {
+  background: linear-gradient(90deg, #65a30d, #a3e635);
+}
+
+.pc-restore-spectrum-seg--excellent {
+  background: linear-gradient(90deg, #047857, #22c55e);
+}
+
+.pc-restore-spectrum-sweep {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  background: linear-gradient(
+    105deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.08) 38%,
+    rgba(255, 255, 255, 0.95) 50%,
+    rgba(255, 255, 255, 0.08) 62%,
+    transparent 78%
+  );
+  background-size: 42% 100%;
+  animation: pc-restore-spectrum-progress 1.65s linear infinite;
+  mix-blend-mode: overlay;
+}
+
+.pc-restore-spectrum-sweep--comet {
+  z-index: 4;
+  background: linear-gradient(
+    105deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.04) 44%,
+    rgba(255, 255, 255, 1) 50%,
+    rgba(167, 243, 208, 0.85) 52%,
+    transparent 60%
+  );
+  background-size: 18% 100%;
+  animation: pc-restore-spectrum-progress 1.65s linear infinite;
+  mix-blend-mode: soft-light;
+  filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.85));
+}
+
+.pc-restore-spectrum-sweep--glow {
+  z-index: 2;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(52, 211, 153, 0.08) 35%,
+    rgba(52, 211, 153, 0.28) 50%,
+    rgba(52, 211, 153, 0.08) 65%,
+    transparent 100%
+  );
+  background-size: 70% 100%;
+  animation: pc-restore-spectrum-progress 1.65s linear infinite;
+  mix-blend-mode: screen;
+  opacity: 0.85;
+}
+
+@keyframes pc-restore-spectrum-progress {
+  0% {
+    background-position: -70% 0;
+  }
+  100% {
+    background-position: 170% 0;
+  }
 }
 
 .pc-restore-spectrum-labels {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   gap: 0.25rem;
-  margin-top: 0.35rem;
-  font-size: 9px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
+  margin-top: 0.45rem;
+  font-size: 0.6875rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   text-align: center;
-  color: rgba(248, 250, 252, 0.52);
+  color: rgba(10, 22, 40, 0.72);
 }
 
 .pc-restore-hub-eyebrow {
@@ -253,11 +1075,12 @@
   color: rgba(248, 250, 252, 0.62);
 }
 
+/* Legacy hub shell — avoid page-level wrapper */
 .pc-restore-hub-shell--desk {
   border-radius: 1rem;
   border: 1px solid rgba(255, 255, 255, 0.1);
   background: linear-gradient(135deg, rgba(15, 23, 42, 0.72), rgba(5, 10, 16, 0.88));
-  box-shadow: 0 16px 40px -28px rgba(0, 0, 0, 0.55);
+  box-shadow: none;
 }
 
 .pc-restore-kpi {
@@ -404,16 +1227,14 @@
   width: 2.25rem;
   height: 2.25rem;
   border-radius: 9999px;
-  border: 1px solid rgba(255, 255, 255, 0.28);
-  background: rgba(255, 255, 255, 0.14);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(10, 22, 40, 0.12);
+  background: rgba(255, 255, 255, 0.85);
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 700;
-  color: var(--pc-hero-ink);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  color: var(--pc-sheet-ink);
+  box-shadow: none;
 }
 
 .pc-restore-btn {
@@ -456,16 +1277,29 @@
   box-shadow: 0 14px 36px -10px rgba(45, 138, 103, 0.4);
 }
 
-.pc-restore-btn--sky {
-  border: 1px solid rgba(2, 132, 199, 0.45);
-  background: rgba(255, 255, 255, 0.92);
-  color: #0369a1;
+.pc-restore-btn--ghost-light {
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  box-shadow: 0 0 20px -6px rgba(167, 139, 250, 0.45);
+}
+
+.pc-restore-btn--ghost-light:hover {
+  background: rgba(255, 255, 255, 0.18);
+  border-color: rgba(255, 255, 255, 0.72);
 }
 
 .pc-restore-btn--violet {
-  border: 1px solid rgba(124, 58, 237, 0.45);
-  background: rgba(124, 58, 237, 0.08);
-  color: #5b21b6;
+  border: 1px solid rgba(167, 139, 250, 0.65);
+  background: linear-gradient(135deg, #5b21b6 0%, #7c3aed 55%, #6d28d9 100%);
+  color: #faf5ff;
+  box-shadow: 0 14px 36px -10px rgba(124, 58, 237, 0.55), 0 0 24px rgba(167, 139, 250, 0.28);
+}
+
+.pc-restore-btn--sky {
+  border: 1px solid rgba(56, 189, 248, 0.55);
+  background: linear-gradient(135deg, #0369a1 0%, #0ea5e9 100%);
+  color: #f0f9ff;
 }
 
 .pc-restore-btn--ghost {
@@ -508,39 +1342,34 @@
 }
 
 .pc-restore-os-tile:hover {
-  border-color: rgba(255, 255, 255, 0.38);
-  background: rgba(255, 255, 255, 0.12);
-  box-shadow:
-    0 12px 32px -12px rgba(0, 0, 0, 0.35),
-    0 0 24px -4px rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.22);
+  background: linear-gradient(160deg, rgba(10, 14, 22, 0.62) 0%, rgba(6, 8, 14, 0.58) 100%);
+  box-shadow: none;
 }
 
 .pc-restore-os-tile--emerald:hover {
-  box-shadow:
-    0 12px 32px -12px rgba(0, 0, 0, 0.35),
-    0 0 28px -4px rgba(52, 211, 153, 0.28);
-  border-color: rgba(52, 211, 153, 0.42);
+  border-color: rgba(52, 211, 153, 0.38);
+  box-shadow: none;
 }
 
 .pc-restore-os-tile--sky:hover {
-  box-shadow:
-    0 12px 32px -12px rgba(0, 0, 0, 0.35),
-    0 0 28px -4px rgba(56, 189, 248, 0.28);
-  border-color: rgba(56, 189, 248, 0.42);
+  border-color: rgba(56, 189, 248, 0.38);
+  box-shadow: none;
 }
 
 .pc-restore-os-tile--violet:hover {
-  box-shadow:
-    0 12px 32px -12px rgba(0, 0, 0, 0.35),
-    0 0 28px -4px rgba(167, 139, 250, 0.28);
-  border-color: rgba(167, 139, 250, 0.42);
+  border-color: rgba(167, 139, 250, 0.38);
+  box-shadow: none;
 }
 
 .pc-restore-os-tile--amber:hover {
-  box-shadow:
-    0 12px 32px -12px rgba(0, 0, 0, 0.35),
-    0 0 28px -4px rgba(251, 191, 36, 0.28);
-  border-color: rgba(251, 191, 36, 0.42);
+  box-shadow: none;
+  border-color: rgba(251, 191, 36, 0.38) !important;
+}
+
+.pc-restore-os-tile--rose:hover {
+  box-shadow: none;
+  border-color: rgba(244, 63, 94, 0.38) !important;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -550,45 +1379,82 @@
   .pc-restore-btn:hover {
     transform: none;
   }
+  .pc-restore-spectrum-sweep,
+  .pc-restore-spectrum-sweep--comet,
+  .pc-restore-spectrum-sweep--glow {
+    animation: none !important;
+    display: none;
+  }
+  .pc-restore-spectrum--animated,
+  .pc-restore-spectrum-seg {
+    animation: none !important;
+  }
 }
 
-/* Ivory PageShell: keep restore lane cards + desk shell visible (beat global ivory retints) */
-[data-fc-shell-surface='ivory'] [data-fc-personal-credit-lane='1'] .pc-restore-card:not(.pc-restore-card--glass),
-[data-fc-shell-surface='ivory'] [data-fc-personal-credit-lane='1'] .pc-restore-kpi:not(.pc-restore-kpi--glass) {
+/* Now do this — restore lane flavor */
+[data-fc-restore-pricing='1'] .pc-restore-now-strip {
+  position: relative;
+  overflow: hidden;
+  border-radius: 1.15rem !important;
+  border: 1px solid rgba(52, 211, 153, 0.38) !important;
+  background: linear-gradient(135deg, rgba(4, 48, 36, 0.12) 0%, rgba(62, 16, 96, 0.08) 50%, rgba(8, 40, 72, 0.1) 100%) !important;
+  box-shadow:
+    0 16px 40px -24px rgba(10, 22, 40, 0.35),
+    0 0 32px -12px rgba(52, 211, 153, 0.25) !important;
+}
+
+[data-fc-restore-pricing='1'] .pc-restore-now-strip::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(
+    90deg,
+    rgba(52, 211, 153, 0.65),
+    rgba(167, 139, 250, 0.65),
+    rgba(56, 189, 248, 0.65),
+    rgba(52, 211, 153, 0.65)
+  );
+  background-size: 300% 100%;
+  animation: pc-restore-now-border 5s linear infinite;
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+@keyframes pc-restore-now-border {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 300% 50%;
+  }
+}
+
+[data-fc-restore-pricing='1'] .pc-restore-now-strip .text-xl {
+  font-size: clamp(1.35rem, 2.5vw, 1.75rem) !important;
+  font-weight: 800 !important;
+  color: #0a1628 !important;
+}
+
+[data-fc-restore-pricing='1'] .pc-restore-now-strip .fc-button-brand {
+  background: linear-gradient(135deg, #047857 0%, #10b981 50%, #059669 100%) !important;
+  border: 1px solid rgba(52, 211, 153, 0.55) !important;
+  color: #ecfdf5 !important;
+  box-shadow: 0 14px 36px -10px rgba(16, 185, 129, 0.45) !important;
+}
+
+/* Legacy pc-restore-card rules — do not override ivory pop tiles on restore pricing */
+[data-fc-shell-surface='ivory'] [data-fc-restore-pricing='1'] .pc-restore-card:not(.pc-restore-card--glass):not(.fc-ivory-pop-tile) {
   background: linear-gradient(165deg, #fbfaf7 0%, #f5f2ea 100%) !important;
   border-color: rgba(10, 22, 40, 0.08) !important;
   color: var(--pc-sheet-ink) !important;
-  box-shadow: 0 12px 36px -24px rgba(0, 0, 0, 0.45) !important;
+  box-shadow: none !important;
 }
 
-[data-fc-shell-surface='ivory'] [data-fc-personal-credit-lane='1'] .pc-restore-kpi--glass {
-  border-color: rgba(255, 255, 255, 0.25) !important;
-  background: rgba(255, 255, 255, 0.08) !important;
-  backdrop-filter: blur(24px) !important;
-  -webkit-backdrop-filter: blur(24px) !important;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
-}
-
-[data-fc-shell-surface='ivory'] [data-fc-personal-credit-lane='1'] .pc-restore-os-tile {
-  border-color: rgba(255, 255, 255, 0.25) !important;
-  background: rgba(255, 255, 255, 0.08) !important;
-  backdrop-filter: blur(24px) !important;
-  -webkit-backdrop-filter: blur(24px) !important;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
-}
-
-[data-fc-shell-surface='ivory'] [data-fc-personal-credit-lane='1'] .pc-restore-hub-shell--desk {
-  background: linear-gradient(135deg, rgba(15, 23, 42, 0.72), rgba(5, 10, 16, 0.88)) !important;
-  border-color: rgba(255, 255, 255, 0.1) !important;
-  color: #f8fafc !important;
-}
-
-[data-fc-shell-surface='ivory'] [data-fc-personal-credit-lane='1'] .pc-restore-command {
-  background: linear-gradient(135deg, rgba(15, 23, 42, 0.72), rgba(5, 10, 16, 0.85)) !important;
-  border-color: rgba(255, 255, 255, 0.1) !important;
-}
-
-/* Remove page-wide tan tent gloss on Personal Credit Restore lane */
-[data-fc-shell-surface='ivory']:has([data-fc-personal-credit-lane='1']) .fc-landing-wealthy-ivory::before {
+/* Remove page-wide tan tent gloss when not on restore ivory */
+[data-fc-shell-surface='ivory']:has([data-fc-personal-credit-lane='1']:not([data-fc-restore-pricing='1'])) .fc-landing-wealthy-ivory::before {
   display: none;
 }

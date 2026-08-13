@@ -15,13 +15,8 @@ import {
 } from '../../lib/mailerClient';
 import { FINELY_MAIL_COPY } from '../../lib/mailWhiteLabel';
 import { buildLetterAgentChain } from '../../lib/letterAgentChain';
-import { canAffordMailSend, chargeMailSend, formatMailCreditsUsd, setMailCostPerLetterCents, DEFAULT_MAIL_COST_CENTS } from '../../data/mailCreditsRepo';
-import {
-  MAIL_CLASS_CHOICES,
-  defaultMailTypeForLetter,
-  mailClassChoice,
-  type FinelyMailType,
-} from '../../lib/mailClassOptions';
+import { canAffordMailSend, chargeMailSend, formatMailCreditsUsd, setMailCostPerLetterCents } from '../../data/mailCreditsRepo';
+import { MAIL_CLASS_CHOICES, defaultMailTypeForLetter, mailClassChoice, type FinelyMailType } from '../../lib/mailClassOptions';
 import { MailCreditsPanel } from '../mailing/MailCreditsPanel';
 import { MailProviderStatusBanner } from '../mailing/MailProviderStatusBanner';
 import { LetterAgentChainStrip } from './LetterAgentChainStrip';
@@ -29,9 +24,14 @@ import { LetterEmailPartnerToggle } from './LetterEmailPartnerToggle';
 import { appendAiActionAudit } from '../../data/aiActionAuditLog';
 import { FINELY_OS_PRIMARY_BTN, FINELY_OS_SECONDARY_BTN, FINELY_OS_ENTITY_BODY } from '../../features/os/finelyOsLightUi';
 import {
+  enrichRecipientAddress,
   enrichRecipientAddressSync,
   parseMailingAddress,
 } from '../../lib/recipientAddressEnrichment';
+import { getDebt } from '../../data/debtRepo';
+import { resolveMailModalToAddress } from '../../lib/letterMailingAddress';
+import { backfillLetterMailToMeta } from '../../lib/letterMailToBackfill';
+import { upsertLetter } from '../../data/lettersRepo';
 import { LetterPartnerNoteField } from './LetterPartnerNoteField';
 import { recordLetterPartnerNote } from '../../lib/letterPartnerNotes';
 import { markValidationLetterMailed } from '../../lib/validationAccountState';
@@ -57,6 +57,19 @@ function parseCityStateZip(s: string): { city: string; state: string; zip: strin
 function mailDefaultsForDisputeRecipient(letter: LetterRecord): Partial<MailAddress> | null {
   const meta: any = (letter as any)?.meta ?? null;
   const isObj = meta && typeof meta === 'object';
+
+  if (isObj && meta.bureauMailingAddress) {
+    const name = String(meta.bureauMailingName || '').trim();
+    const fromSaved = resolveMailModalToAddress({
+      letter: {
+        meta: {
+          mailToName: name,
+          mailToAddress: String(meta.bureauMailingAddress),
+        },
+      },
+    });
+    if (fromSaved) return fromSaved;
+  }
 
   if (isObj && (meta.context === 'business_dispute' || meta.bureauKind === 'business') && meta.businessBureau) {
     const addr = businessBureauDisputeAddress(meta.businessBureau);
@@ -190,7 +203,8 @@ export function MailLetterModal({
   noteAuthorType?: 'partner' | 'admin';
   noteAuthorEmail?: string;
 }) {
-  const canMail = Boolean(letter.pdfBlobRef);
+  const [effectiveLetter, setEffectiveLetter] = useState(letter);
+  const canMail = Boolean(effectiveLetter.pdfBlobRef);
   const [step, setStep] = useState<WizardStep>('confirm');
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -246,6 +260,9 @@ export function MailLetterModal({
 
   useEffect(() => {
     if (!open) return;
+    const { letter: backfilled, changed } = backfillLetterMailToMeta(letter);
+    if (changed) upsertLetter(backfilled);
+    setEffectiveLetter(backfilled);
     setStep('confirm');
     setErr(null);
     setMailedMeta(null);
@@ -254,37 +271,63 @@ export function MailLetterModal({
     setAddressHint(null);
     setEmailPartner(emailPartnerDefault);
     setPartnerNote('');
-    setMailType(defaultMailTypeForLetter(letter));
-    const disputeTo = mailDefaultsForDisputeRecipient(letter);
-    const meta: any = (letter as any)?.meta ?? null;
-    const enrich = enrichRecipientAddressSync({
-      preferCounsel: Boolean(meta?.debtTrack === 'court' || meta?.context === 'debt'),
-      nameCandidates: [
-        disputeTo?.name,
-        letter.title,
-        meta?.creditorName,
-        meta?.plaintiffLawFirm,
-        meta?.collectorName,
-      ],
-      addressCandidates: [
-        [disputeTo?.addressLine1, disputeTo?.addressLine2, [disputeTo?.city, disputeTo?.state, disputeTo?.zip].filter(Boolean).join(', ')]
-          .filter(Boolean)
-          .join('\n'),
-        meta?.recipientAddress,
-        meta?.plaintiffLawFirmAddress,
-      ],
+    setMailType(defaultMailTypeForLetter(backfilled));
+    const disputeTo = mailDefaultsForDisputeRecipient(backfilled);
+    const meta: any = (backfilled as any)?.meta ?? null;
+    const linkedDebt =
+      meta?.debtId && typeof meta.debtId === 'string' ? getDebt(meta.debtId) : null;
+    const resolvedTo = resolveMailModalToAddress({
+      letter: backfilled,
+      linkedDebt,
+      disputeBureauDefaults: disputeTo,
     });
-    const structured = enrich?.structured || (enrich?.address ? parseMailingAddress(enrich.address) : null);
-    const useEnrich = Boolean(enrich?.address && (!disputeTo?.addressLine1 || !disputeTo?.city));
+    const enrich = resolvedTo
+      ? null
+      : enrichRecipientAddressSync({
+          preferCounsel: Boolean(meta?.debtTrack === 'court'),
+          nameCandidates: [
+            disputeTo?.name,
+            backfilled.title,
+            meta?.creditorName,
+            linkedDebt?.name,
+            meta?.plaintiffLawFirm,
+            linkedDebt?.plaintiffLawFirm,
+            meta?.collectorName,
+            linkedDebt?.collectorName,
+            meta?.recipientName,
+            linkedDebt?.recipientName,
+          ],
+          addressCandidates: [
+            meta?.mailToAddress,
+            meta?.recipientAddress,
+            linkedDebt?.recipientAddress,
+            meta?.plaintiffLawFirmAddress,
+            linkedDebt?.plaintiffLawFirmAddress,
+          ],
+        });
+    const enrichParsed =
+      enrich?.structured || (enrich?.address ? parseMailingAddress(enrich.address) : null);
+    const structured = resolvedTo
+      ? resolvedTo
+      : enrichParsed
+        ? {
+            name: enrich?.name || disputeTo?.name || linkedDebt?.collectorName || linkedDebt?.name || '',
+            addressLine1: enrichParsed.line1 || disputeTo?.addressLine1 || '',
+            addressLine2: enrichParsed.line2 || disputeTo?.addressLine2 || '',
+            city: enrichParsed.city || disputeTo?.city || '',
+            state: enrichParsed.state || disputeTo?.state || '',
+            zip: enrichParsed.zip || disputeTo?.zip || '',
+          }
+        : null;
     setTo({
-      name: disputeTo?.name || enrich?.name || '',
-      addressLine1: disputeTo?.addressLine1 || (useEnrich ? structured?.line1 || '' : ''),
-      addressLine2: disputeTo?.addressLine2 || (useEnrich ? structured?.line2 || '' : ''),
-      city: disputeTo?.city || (useEnrich ? structured?.city || '' : ''),
-      state: disputeTo?.state || (useEnrich ? structured?.state || '' : ''),
-      zip: disputeTo?.zip || (useEnrich ? structured?.zip || '' : ''),
+      name: structured?.name || disputeTo?.name || linkedDebt?.collectorName || linkedDebt?.name || '',
+      addressLine1: structured?.addressLine1 || disputeTo?.addressLine1 || '',
+      addressLine2: structured?.addressLine2 || disputeTo?.addressLine2 || '',
+      city: structured?.city || disputeTo?.city || '',
+      state: structured?.state || disputeTo?.state || '',
+      zip: structured?.zip || disputeTo?.zip || '',
     });
-    if (useEnrich && enrich?.verifyRequired) {
+    if (enrich?.verifyRequired) {
       setAddressHint(enrich.hint || 'Verify recipient address before mailing.');
     }
     setFrom({
@@ -295,6 +338,61 @@ export function MailLetterModal({
       state: defaultFromAddress?.state ?? '',
       zip: defaultFromAddress?.zip ?? '',
     });
+
+    const needAsync = (a: MailAddress) =>
+      !a.name?.trim() || !a.addressLine1?.trim() || !a.city?.trim() || !a.state?.trim() || !a.zip?.trim();
+    const initialTo = {
+      name: structured?.name || disputeTo?.name || linkedDebt?.collectorName || linkedDebt?.name || '',
+      addressLine1: structured?.addressLine1 || disputeTo?.addressLine1 || '',
+      addressLine2: structured?.addressLine2 || disputeTo?.addressLine2 || '',
+      city: structured?.city || disputeTo?.city || '',
+      state: structured?.state || disputeTo?.state || '',
+      zip: structured?.zip || disputeTo?.zip || '',
+    };
+    if (needAsync(initialTo)) {
+      let alive = true;
+      void enrichRecipientAddress({
+        preferCounsel: Boolean(meta?.debtTrack === 'court'),
+        nameCandidates: [
+          disputeTo?.name,
+          backfilled.title,
+          meta?.creditorName,
+          linkedDebt?.name,
+          meta?.plaintiffLawFirm,
+          linkedDebt?.plaintiffLawFirm,
+          meta?.collectorName,
+          linkedDebt?.collectorName,
+          meta?.recipientName,
+          linkedDebt?.recipientName,
+        ],
+        addressCandidates: [
+          meta?.mailToAddress,
+          meta?.recipientAddress,
+          linkedDebt?.recipientAddress,
+          meta?.plaintiffLawFirmAddress,
+          linkedDebt?.plaintiffLawFirmAddress,
+        ],
+      }).then((asyncEnrich) => {
+        if (!alive || !asyncEnrich) return;
+        const asyncStructured =
+          asyncEnrich.structured || (asyncEnrich.address ? parseMailingAddress(asyncEnrich.address) : null);
+        setTo((prev) => ({
+          name: prev.name?.trim() ? prev.name : asyncEnrich.name || prev.name,
+          addressLine1: prev.addressLine1?.trim() ? prev.addressLine1 : asyncStructured?.line1 || prev.addressLine1,
+          addressLine2: prev.addressLine2?.trim() ? prev.addressLine2 : asyncStructured?.line2 || prev.addressLine2,
+          city: prev.city?.trim() ? prev.city : asyncStructured?.city || prev.city,
+          state: prev.state?.trim() ? prev.state : asyncStructured?.state || prev.state,
+          zip: prev.zip?.trim() ? prev.zip : asyncStructured?.zip || prev.zip,
+        }));
+        if (asyncEnrich.verifyRequired) {
+          setAddressHint(asyncEnrich.hint || 'Verify recipient address before mailing.');
+        }
+      });
+      return () => {
+        alive = false;
+      };
+    }
+    return undefined;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, letter.id]);
 
@@ -309,11 +407,11 @@ export function MailLetterModal({
 
   const selectedCostCents = useMemo(() => {
     const q = quoteByType[mailType];
-    return q != null && Number.isFinite(q) ? Math.round(q * 100) : DEFAULT_MAIL_COST_CENTS;
+    return q != null && Number.isFinite(q) ? Math.round(q * 100) : mailClassChoice(mailType).estCostCents;
   }, [quoteByType, mailType]);
 
   useEffect(() => {
-    if (!open || !letter.pdfBlobRef || step !== 'confirm') return;
+    if (!open || !effectiveLetter.pdfBlobRef || step !== 'confirm') return;
     const need = (a: MailAddress) => !a.name?.trim() || !a.addressLine1?.trim() || !a.city?.trim() || !a.state?.trim() || !a.zip?.trim();
     if (need(to) || need(from)) return;
     const handle = window.setTimeout(() => {
@@ -322,8 +420,8 @@ export function MailLetterModal({
         setQuoteErr(null);
         try {
           const res = await quoteMailOptionsViaProvider({
-            letterId: letter.id,
-            pdfBlobRef: letter.pdfBlobRef!,
+            letterId: effectiveLetter.id,
+            pdfBlobRef: effectiveLetter.pdfBlobRef!,
             to: { ...to, state: sanitizeState(to.state), zip: zipOnly(to.zip) },
             from: { ...from, state: sanitizeState(from.state), zip: zipOnly(from.zip) },
           });
@@ -352,11 +450,11 @@ export function MailLetterModal({
       })();
     }, 500);
     return () => window.clearTimeout(handle);
-  }, [open, step, letter.id, letter.pdfBlobRef, currentHash, mailType, to, from]);
+  }, [open, step, effectiveLetter.id, effectiveLetter.pdfBlobRef, currentHash, mailType, to, from]);
 
   useEffect(() => {
     if (!open) return;
-    if (!letter.pdfBlobRef) {
+    if (!effectiveLetter.pdfBlobRef) {
       setPdfPreview(null);
       return;
     }
@@ -364,7 +462,7 @@ export function MailLetterModal({
     let revoke: (() => void) | undefined;
     void (async () => {
       try {
-        const res = await getBlobUrl(letter.pdfBlobRef!, { mimeType: 'application/pdf', preferSigned: true });
+        const res = await getBlobUrl(effectiveLetter.pdfBlobRef!, { mimeType: 'application/pdf', preferSigned: true });
         if (!mounted || !res?.url) return;
         revoke = res.revoke;
         setPdfPreview({ url: res.url, revoke: res.revoke });
@@ -381,7 +479,7 @@ export function MailLetterModal({
         /* ignore */
       }
     };
-  }, [open, letter.pdfBlobRef]);
+  }, [open, effectiveLetter.pdfBlobRef]);
 
   const invalid = useMemo(() => {
     const need = (a: MailAddress) =>
@@ -410,7 +508,7 @@ export function MailLetterModal({
     return !bad.has(toDel) && !bad.has(fromDel);
   }, [verifyRes, deliverability]);
 
-  const agentChain = useMemo(() => buildLetterAgentChain({ letter, evidence }), [letter, evidence]);
+  const agentChain = useMemo(() => buildLetterAgentChain({ letter: effectiveLetter, evidence }), [effectiveLetter, evidence]);
 
   if (!open) return null;
 
@@ -449,7 +547,7 @@ export function MailLetterModal({
   };
 
   const submit = async () => {
-    if (!letter.pdfBlobRef) return;
+    if (!effectiveLetter.pdfBlobRef) return;
     if (invalid || busy) return;
     if (!agentChain.readyToMail) {
       setErr(agentChain.blockingMessage ?? 'Complete the review steps before mailing.');
@@ -459,7 +557,7 @@ export function MailLetterModal({
         detail: agentChain.blockingMessage,
         partnerId,
         status: 'blocked',
-        meta: { letterId: letter.id },
+        meta: { letterId: effectiveLetter.id },
       });
       return;
     }
@@ -483,8 +581,8 @@ export function MailLetterModal({
       onStatus?.({ status: 'mail_pending', to: toClean, from: fromClean });
       const res = await mailLetterViaProvider({
         partnerId,
-        letterId: letter.id,
-        pdfBlobRef: letter.pdfBlobRef,
+        letterId: effectiveLetter.id,
+        pdfBlobRef: effectiveLetter.pdfBlobRef,
         to: toClean,
         from: fromClean,
         options: { color: true, doubleSided: true, mailType },
@@ -493,7 +591,7 @@ export function MailLetterModal({
         typeof res.cost === 'number' && Number.isFinite(res.cost)
           ? Math.round(res.cost * (res.cost < 20 ? 100 : 1))
           : undefined;
-      chargeMailSend({ letterId: letter.id, partnerId, costCents });
+      chargeMailSend({ letterId: effectiveLetter.id, partnerId, costCents });
       setMailedMeta({
         providerId: res.providerId,
         expectedDeliveryDate: res.expectedDeliveryDate,
@@ -508,19 +606,19 @@ export function MailLetterModal({
         cost: res.cost,
       });
       const debtCaseId =
-        letter.meta && 'debtId' in letter.meta && typeof (letter.meta as { debtId?: string }).debtId === 'string'
-          ? (letter.meta as { debtId?: string }).debtId
+        effectiveLetter.meta && 'debtId' in effectiveLetter.meta && typeof (effectiveLetter.meta as { debtId?: string }).debtId === 'string'
+          ? (effectiveLetter.meta as { debtId?: string }).debtId
           : undefined;
       // Wait clock starts only when a validation letter is mailed — never court filings.
-      if (debtCaseId && letter.type === 'validation') {
+      if (debtCaseId && effectiveLetter.type === 'validation') {
         markValidationLetterMailed({ debtCaseId, partnerId, mailedAt: new Date().toISOString() });
       }
       if (partnerNote.trim()) {
         recordLetterPartnerNote({
           partnerId,
           body: partnerNote,
-          title: `Mailed: ${letter.title}`,
-          letterId: letter.id,
+          title: `Mailed: ${effectiveLetter.title}`,
+          letterId: effectiveLetter.id,
           debtCaseId,
           source: 'letter_mail',
           authorType: noteAuthorType,
@@ -557,7 +655,7 @@ export function MailLetterModal({
   ];
 
   return (
-    <div className="fixed inset-0 z-[300] flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-[9600] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => (busy || step === 'track' ? null : onClose())} />
       <div
         className="relative w-full max-w-4xl rounded-3xl border border-white/[0.08] bg-fc-shell shadow-2xl overflow-hidden"
@@ -568,7 +666,7 @@ export function MailLetterModal({
         <div className="p-4 border-b border-white/[0.08] flex items-start justify-between gap-4">
           <div className="min-w-0">
             <div className="text-[10px] uppercase tracking-widest text-white/40">{FINELY_MAIL_COPY.serviceName}</div>
-            <div className="mt-1 text-xl font-light text-white truncate">{letter.title}</div>
+            <div className="mt-1 text-xl font-light text-white truncate">{effectiveLetter.title}</div>
             <p className={`mt-1 text-sm ${FINELY_OS_ENTITY_BODY}`}>
               First-timer path: Confirm address → Mail → Track. One clear action per step.
             </p>
@@ -610,7 +708,7 @@ export function MailLetterModal({
             </div>
           ) : null}
           {err ? <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-3 text-red-100 text-sm">{err}</div> : null}
-          {letter.type === 'dispute' ? <LetterAgentChainStrip steps={agentChain.steps} /> : null}
+          {effectiveLetter.type === 'dispute' ? <LetterAgentChainStrip steps={agentChain.steps} /> : null}
 
           {step === 'confirm' ? (
             <>
@@ -624,7 +722,7 @@ export function MailLetterModal({
                     ? 'Fetching live LetterStream pricing…'
                     : quoteByType[mailType] != null
                       ? `Live quote: ${formatMailCreditsUsd(selectedCostCents)} for ${mailClassChoice(mailType).shortLabel}`
-                      : `Est. ~${formatMailCreditsUsd(DEFAULT_MAIL_COST_CENTS)} per color letter (complete addresses for live quote).`}
+                      : `Est. ${formatMailCreditsUsd(selectedCostCents)} for ${mailClassChoice(mailType).shortLabel} (complete addresses for live quote).`}
                 </div>
               </div>
 
@@ -658,7 +756,7 @@ export function MailLetterModal({
                         <span className="flex flex-wrap items-center justify-between gap-2">
                           <span className="block text-sm font-semibold text-white">{c.label}</span>
                           <span className="text-xs font-mono text-amber-100/95 shrink-0">
-                            {quoteBusy ? '…' : liveUsd != null ? formatMailCreditsUsd(Math.round(liveUsd * 100)) : `~${formatMailCreditsUsd(DEFAULT_MAIL_COST_CENTS)}`}
+                            {quoteBusy ? '…' : liveUsd != null ? formatMailCreditsUsd(Math.round(liveUsd * 100)) : formatMailCreditsUsd(c.estCostCents)}
                           </span>
                         </span>
                         <span className={`block text-xs ${FINELY_OS_ENTITY_BODY}`}>{c.useWhen}</span>
@@ -772,7 +870,7 @@ export function MailLetterModal({
                   From: {formatMailAddressOneLine(from)}
                 </p>
                 <p className={`text-sm ${FINELY_OS_ENTITY_BODY}`}>
-                  Cost estimate ~{formatMailCreditsUsd(DEFAULT_MAIL_COST_CENTS)}. One tap sends this PDF via {FINELY_MAIL_COPY.serviceName}.
+                  Cost estimate {formatMailCreditsUsd(selectedCostCents)} ({mailClassChoice(mailType).shortLabel}). One tap sends this PDF via {FINELY_MAIL_COPY.serviceName}.
                 </p>
                 {addressHint ? (
                   <p className="text-xs text-amber-100/90 flex items-start gap-1.5">

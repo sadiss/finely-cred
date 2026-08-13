@@ -8,10 +8,8 @@ import type { ParsedCreditReport } from '../../domain/creditReports';
 import type { Partner } from '../../domain/partners';
 import type { LetterRecord } from '../../domain/letters';
 import { DebtCreditorIntelPanel } from './DebtCreditorIntelPanel';
-import { DebtProofCaptureStrip } from './DebtProofCaptureStrip';
 import {
-  FinelyOsEscalationHeroButton,
-  FinelyOsStudioWorkstationMiniLaunchers,
+  FinelyOsStudioWorkstationLauncherRow,
   FinelyOsStudioWorkstationModals,
   type StudioWorkstationModal,
 } from '../os/FinelyOsStudioWorkstation';
@@ -257,16 +255,12 @@ export function ValidationCenterView({
         ) : null}
       </div>
 
-      <div className="space-y-3">
-        <FinelyOsEscalationHeroButton
-          label="Validation escalation ladder"
-          hint="CFPB · state AG · BBB · bureau follow-up — opens in a full pop-up workstation"
-          accent="amber"
-          onClick={() => setWorkModal('escalation')}
-        />
-        <FinelyOsStudioWorkstationMiniLaunchers
+      <div className="flex justify-center">
+        <FinelyOsStudioWorkstationLauncherRow
+          escalationLabel="Validation escalation ladder"
           onScreenshots={() => setWorkModal('screenshots')}
           onUploads={() => setWorkModal('uploads')}
+          onEscalation={() => setWorkModal('escalation')}
         />
       </div>
 
@@ -341,6 +335,7 @@ export function ValidationCenterView({
           category="validation"
           accent="emerald"
           compactHeader
+          generateHeroMatch
           extraCategories={VALIDATION_EXTRA_CATEGORIES}
           letterHub="debt"
           filterEntry={validationEntryFilter}

@@ -35,6 +35,8 @@ export function DebtTrackEasyFlow({
   postCourtDecided = false,
   /** Suppress the ladder when a richer one is already on screen (court outcome panel). */
   hideEscalationLadder = false,
+  /** Omit the bottom escalation section entirely (validation workstation opens ladder above). */
+  suppressEscalationSection = false,
   inlineStudioVault = false,
   onOpenFullVault,
   adminPartnerId,
@@ -48,6 +50,7 @@ export function DebtTrackEasyFlow({
   postCourtPlan?: boolean;
   postCourtDecided?: boolean;
   hideEscalationLadder?: boolean;
+  suppressEscalationSection?: boolean;
   inlineStudioVault?: boolean;
   onOpenFullVault?: () => void;
   adminPartnerId?: string;
@@ -130,22 +133,24 @@ export function DebtTrackEasyFlow({
         </p>
       </section>
 
-      <section id="fc-debt-step-escalate" className="space-y-2">
-        {hideEscalationLadder ? (
-          <div className={`${finelyOsCatalogCardCompact(accent)} space-y-1`}>
-            <div className="flex items-center gap-2">
-              <ShieldAlert size={14} className="text-fuchsia-300" />
-              <div className={FINELY_OS_ENTITY_SUBLABEL}>Escalation</div>
+      {!suppressEscalationSection ? (
+        <section id="fc-debt-step-escalate" className="space-y-2">
+          {hideEscalationLadder ? (
+            <div className={`${finelyOsCatalogCardCompact(accent)} space-y-1`}>
+              <div className="flex items-center gap-2">
+                <ShieldAlert size={14} className="text-fuchsia-300" />
+                <div className={FINELY_OS_ENTITY_SUBLABEL}>Escalation</div>
+              </div>
+              <p className={`text-xs ${FINELY_OS_ENTITY_BODY}`}>
+                This matter is on a payment plan — the plan escalation ladder (missed payment, wrong balance, missing
+                close-out paperwork) is in the court outcome panel above.
+              </p>
             </div>
-            <p className={`text-xs ${FINELY_OS_ENTITY_BODY}`}>
-              This matter is on a payment plan — the plan escalation ladder (missed payment, wrong balance, missing
-              close-out paperwork) is in the court outcome panel above.
-            </p>
-          </div>
-        ) : (
-          <LetterEscalationPanel track={escalationTrack} accent={accent} compact adminPartnerId={adminPartnerId} />
-        )}
-      </section>
+          ) : (
+            <LetterEscalationPanel track={escalationTrack} accent={accent} compact adminPartnerId={adminPartnerId} />
+          )}
+        </section>
+      ) : null}
 
       {uploadFooter ? (
         <section className={`space-y-2 ${LETTER_L5_CHROME_COLLAPSE}`}>{uploadFooter}</section>

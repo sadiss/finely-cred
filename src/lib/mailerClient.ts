@@ -1,6 +1,7 @@
 import { supabase, isSupabaseConfigured } from './supabaseClient';
 import { isFeatureEnabled } from '../data/settingsRepo';
 import { FINELY_MAIL_PROVIDER, type FinelyMailProvider, normalizeMailProvider } from './mailWhiteLabel';
+import { mailClassEstCostUsd } from './mailClassOptions';
 
 export type MailProvider = FinelyMailProvider;
 
@@ -54,7 +55,7 @@ export type MailQuoteOption = {
   message?: string;
 };
 
-const DEFAULT_EST_COST_USD = 1.85;
+const DEFAULT_EST_COST_USD = mailClassEstCostUsd('certified');
 
 function parseMailEdgeError(error: unknown, data: Record<string, unknown> | null | undefined): string {
   if (typeof data?.error === 'string' && data.error.trim()) return data.error;

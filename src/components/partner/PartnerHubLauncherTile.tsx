@@ -8,6 +8,7 @@ import {
 } from '../../features/os/finelyOsLightUi';
 import {
   PARTNER_HUB_ACTION_TINT,
+  partnerHubIconShellClass,
   type PartnerHubLauncherAccent,
 } from './partnerHubLauncherUi';
 
@@ -41,7 +42,7 @@ export function PartnerHubLauncherTile<T extends string = string>({
       data-fc-hub-launcher={id}
     >
       <div className="flex items-start justify-between gap-3">
-        <span className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-white/15 bg-black/20 text-violet-800 group-hover:text-violet-900">
+        <span className={`inline-flex h-11 w-11 items-center justify-center rounded-xl border ${partnerHubIconShellClass(accent)}`}>
           <Icon size={22} />
         </span>
         {badge ? (

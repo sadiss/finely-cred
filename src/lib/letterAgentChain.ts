@@ -33,15 +33,18 @@ export function buildLetterAgentChain(args: {
   const evidence = args.evidence ?? [];
   const steps: LetterAgentChainStep[] = [];
 
-  const coachDone = disputeReasonsComplete(letter);
+  const coachDone = letter.type !== 'dispute' || disputeReasonsComplete(letter);
   steps.push({
     id: 'coach',
-    label: 'Dispute coach',
-    agent: 'Dispute coach',
+    label: letter.type === 'dispute' ? 'Dispute coach' : 'Letter review',
+    agent: letter.type === 'dispute' ? 'Dispute coach' : 'Letter ops',
     status: coachDone ? 'done' : 'blocked',
-    detail: coachDone
-      ? 'Every disputed item has a reason selected.'
-      : 'Pick a dispute reason for each item before mailing.',
+    detail:
+      letter.type !== 'dispute'
+        ? 'Debt and validation letters mail without a bureau ID packet.'
+        : coachDone
+          ? 'Every disputed item has a reason selected.'
+          : 'Pick a dispute reason for each item before mailing.',
   });
 
   const hasPdf = Boolean(letter.pdfBlobRef);
@@ -53,20 +56,32 @@ export function buildLetterAgentChain(args: {
     detail: hasPdf ? 'PDF saved to your letter vault.' : 'Generate and save the letter PDF first.',
   });
 
-  const evidenceGate = checkDisputeLetterEvidenceGate({ letter, evidence });
-  const identityGate = checkIdentityDocumentGate(evidence);
-  const complianceDone = evidenceGate.ok && identityGate.ok;
-  steps.push({
-    id: 'compliance',
-    label: 'Compliance review',
-    agent: 'Compliance',
-    status: complianceDone ? 'done' : coachDone && hasPdf ? 'blocked' : 'pending',
-    detail: complianceDone
-      ? 'Evidence and ID documents linked.'
-      : !identityGate.ok
-        ? identityGate.message
-        : evidenceGate.message || 'Link tradeline screenshots for each disputed item.',
-  });
+  if (letter.type !== 'dispute') {
+    steps.push({
+      id: 'compliance',
+      label: 'Compliance review',
+      agent: 'Compliance',
+      status: hasPdf ? 'done' : 'blocked',
+      detail: hasPdf
+        ? 'Creditor/debt letters do not require an ID packet — PDF is ready to mail.'
+        : 'Generate and save the letter PDF first.',
+    });
+  } else {
+    const evidenceGate = checkDisputeLetterEvidenceGate({ letter, evidence });
+    const identityGate = checkIdentityDocumentGate(evidence);
+    const complianceDone = evidenceGate.ok && identityGate.ok;
+    steps.push({
+      id: 'compliance',
+      label: 'Compliance review',
+      agent: 'Compliance',
+      status: complianceDone ? 'done' : coachDone && hasPdf ? 'blocked' : 'pending',
+      detail: complianceDone
+        ? 'Evidence and ID documents linked.'
+        : !identityGate.ok
+          ? identityGate.message
+          : evidenceGate.message || 'Link tradeline screenshots for each disputed item.',
+    });
+  }
 
   const readyToMail = steps.every((s) => s.status === 'done');
   const blocking = steps.find((s) => s.status === 'blocked');

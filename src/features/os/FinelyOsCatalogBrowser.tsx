@@ -44,7 +44,7 @@ const ADMIN_SOLID_GLOW: Record<FcAdminTone, string> = {
     'shadow-[0_0_0_1px_rgba(251,113,133,0.42),0_16px_44px_-12px_rgba(225,29,72,0.5),0_0_36px_rgba(251,113,133,0.24)] hover:shadow-[0_0_0_1px_rgba(251,113,133,0.55),0_18px_48px_-10px_rgba(225,29,72,0.55)] hover:brightness-110',
 };
 
-function adminSolidMetaChipClass(m: string, cardTone: FcAdminTone): string {
+function adminSolidMetaChipClass(m: string, cardTone: FcAdminTone, darkBed = false): string {
   const s = m.toLowerCase();
   if (s.includes('disputes: unlimited')) {
     return 'border-emerald-200/60 bg-emerald-600/50 text-white font-bold shadow-[0_0_18px_rgba(52,211,153,0.38)]';
@@ -64,7 +64,7 @@ function adminSolidMetaChipClass(m: string, cardTone: FcAdminTone): string {
   if (s.includes('financing')) {
     return 'border-violet-200/45 bg-violet-600/38 text-white font-semibold';
   }
-  if (cardTone === 'gold') {
+  if (cardTone === 'gold' && !darkBed) {
     return 'border-black/22 bg-black/10 text-[#2b1d05]/88 font-medium';
   }
   return 'border-white/28 bg-black/22 text-white/90 font-medium';
@@ -136,6 +136,8 @@ export function FinelyOsCatalogBrowser({
   cardSurface = 'default',
   /** Personal Credit Restore: light toolbar + no ivory “tent” on catalog chrome. */
   restorePricingChrome = false,
+  /** Solid black catalog bed — dark toolbar + colored admin-solid cards (no ivory/white chrome). */
+  catalogDarkBed = false,
 }: {
   items: FinelyOsCatalogItem[];
   pageSize?: number;
@@ -153,11 +155,13 @@ export function FinelyOsCatalogBrowser({
   density?: 'default' | 'roomy';
   cardSurface?: FinelyOsCatalogCardSurface;
   restorePricingChrome?: boolean;
+  catalogDarkBed?: boolean;
 }) {
   const roomy = density === 'roomy';
   const adminSolid = cardSurface === 'adminSolid';
-  const ivoryChrome = adminSolid && !restorePricingChrome;
-  const restoreChrome = restorePricingChrome && adminSolid;
+  const darkBed = catalogDarkBed && adminSolid;
+  const ivoryChrome = adminSolid && !restorePricingChrome && !darkBed;
+  const restoreChrome = restorePricingChrome && adminSolid && !darkBed;
   const [query, setQuery] = useState('');
   const [page, setPage] = useState(0);
   const [view, setView] = useState<FinelyOsCatalogViewMode>(initialView);
@@ -209,14 +213,29 @@ export function FinelyOsCatalogBrowser({
     const adminTone: FcAdminTone =
       item.adminTone ?? ADMIN_TONE_ROTATION[accentIndex % ADMIN_TONE_ROTATION.length];
     const selected = selectedIds?.has(item.id);
-    const titleToneClass = adminSolid ? fcAdminOnSolidValue(adminTone) : FINELY_OS_ENTITY_VALUE;
-    const bodyToneClass = adminSolid ? fcAdminOnSolidBody(adminTone) : FINELY_OS_ENTITY_BODY;
-    const metaToneClass = adminSolid ? fcAdminOnSolidSublabel(adminTone) : FINELY_OS_ENTITY_SUBLABEL;
-    const subtitleToneClass = adminSolid
-      ? `${fcAdminOnSolidMuted(adminTone)} font-medium font-mono`
-      : 'font-medium font-mono text-violet-300/75';
+    const onDarkSolid = adminSolid && darkBed;
+    const titleToneClass = onDarkSolid
+      ? 'font-semibold tracking-tight text-white'
+      : adminSolid
+        ? fcAdminOnSolidValue(adminTone)
+        : FINELY_OS_ENTITY_VALUE;
+    const bodyToneClass = onDarkSolid
+      ? 'text-sm leading-relaxed text-white/82'
+      : adminSolid
+        ? fcAdminOnSolidBody(adminTone)
+        : FINELY_OS_ENTITY_BODY;
+    const metaToneClass = onDarkSolid
+      ? 'text-[11px] font-semibold uppercase tracking-wide text-white/72'
+      : adminSolid
+        ? fcAdminOnSolidSublabel(adminTone)
+        : FINELY_OS_ENTITY_SUBLABEL;
+    const subtitleToneClass = onDarkSolid
+      ? 'font-medium font-mono text-white/88'
+      : adminSolid
+        ? `${fcAdminOnSolidMuted(adminTone)} font-medium font-mono`
+        : 'font-medium font-mono text-violet-300/75';
     const defaultBadgeClass = adminSolid
-      ? adminTone === 'gold'
+      ? adminTone === 'gold' && !darkBed
         ? 'border-black/20 bg-black/10 text-[#2b1d05]/85'
         : 'border-white/25 bg-white/15 text-white/90'
       : 'border-white/[0.08] bg-white/[0.07] text-white/60';
@@ -278,7 +297,7 @@ export function FinelyOsCatalogBrowser({
           <div
             className={`mt-2.5 rounded-xl border px-2.5 py-2 ${
               adminSolid
-                ? adminTone === 'gold'
+                ? adminTone === 'gold' && !darkBed
                   ? 'border-black/18 bg-black/[0.08]'
                   : 'border-white/20 bg-black/25'
                 : 'border-white/[0.08] bg-white/[0.03]'
@@ -286,11 +305,13 @@ export function FinelyOsCatalogBrowser({
           >
             <div
               className={`mb-1.5 text-[9px] font-black uppercase tracking-[0.14em] ${
-                adminSolid
-                  ? adminTone === 'gold'
-                    ? 'text-[#2b1d05]/70'
-                    : 'text-white/85'
-                  : 'text-violet-300/80'
+                onDarkSolid
+                  ? 'text-white/90'
+                  : adminSolid
+                    ? adminTone === 'gold' && !darkBed
+                      ? 'text-[#2b1d05]/70'
+                      : 'text-white/90'
+                    : 'text-violet-300/80'
               }`}
             >
               Included for partners
@@ -301,14 +322,14 @@ export function FinelyOsCatalogBrowser({
                   <span
                     className={`mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full ${
                       adminSolid
-                        ? adminTone === 'gold'
+                        ? adminTone === 'gold' && !darkBed
                           ? 'bg-[#2b1d05]/55'
-                          : 'bg-white/75'
+                          : 'bg-white/80'
                         : 'bg-violet-400/80'
                     }`}
                     aria-hidden
                   />
-                  <span className="line-clamp-2">{h}</span>
+                  <span className={`line-clamp-2 ${onDarkSolid ? 'text-white/92' : ''}`}>{h}</span>
                 </li>
               ))}
             </ul>
@@ -321,7 +342,7 @@ export function FinelyOsCatalogBrowser({
                 key={m}
                 className={`rounded-lg border px-2 py-1 text-[10px] leading-snug ${
                   adminSolid
-                    ? adminSolidMetaChipClass(m, adminTone)
+                    ? adminSolidMetaChipClass(m, adminTone, darkBed)
                     : 'rounded-md border-current/15 opacity-90 px-1.5 py-0.5'
                 }`}
               >
@@ -344,8 +365,8 @@ export function FinelyOsCatalogBrowser({
 
     const className = adminSolid
       ? `text-left w-full transition-all ${fcAdminCard(padClass, adminTone, 'solid')} ${ADMIN_SOLID_GLOW[adminTone]} ${
-          selected ? 'ring-2 ring-white/50 brightness-110' : ''
-        } ${onItemClick || selectable ? 'cursor-pointer' : ''}`
+          darkBed ? '!text-white' : ''
+        } ${selected ? 'ring-2 ring-white/50 brightness-110' : ''} ${onItemClick || selectable ? 'cursor-pointer' : ''}`
       : `text-left w-full rounded-2xl border transition-all shadow-sm hover:shadow-md backdrop-blur-sm ring-1 ring-inset ${padClass} ${
           selected
             ? 'border-violet-500/40 bg-violet-500/12 ring-violet-400/25'
@@ -354,14 +375,20 @@ export function FinelyOsCatalogBrowser({
 
     if (selectable) {
       return (
-        <label key={item.id} className={className}>
+        <label key={item.id} className={className} data-catalog-item-id={darkBed ? item.id : undefined}>
           {inner}
         </label>
       );
     }
 
     return (
-      <button key={item.id} type="button" onClick={() => onItemClick?.(item.id)} className={className}>
+      <button
+        key={item.id}
+        type="button"
+        onClick={() => onItemClick?.(item.id)}
+        className={className}
+        data-catalog-item-id={darkBed ? item.id : undefined}
+      >
         {inner}
       </button>
     );
@@ -371,7 +398,9 @@ export function FinelyOsCatalogBrowser({
     <div className="space-y-4">
       <div
         className={`${FINELY_OS_TOOLBAR} ${
-          restoreChrome
+          darkBed
+            ? 'fc-restore-catalog-toolbar !border-white/12 !bg-white/[0.04]'
+            : restoreChrome
             ? 'fc-restore-catalog-toolbar !border-[#0a1628]/12 !bg-white/92'
             : ivoryChrome
               ? 'fc-glass-ivory !border-[#c4803d]/28'
@@ -489,7 +518,9 @@ export function FinelyOsCatalogBrowser({
       {filtered.length > pageSize ? (
         <div
           className={`${FINELY_OS_LUXURY_PAGINATION} flex-wrap gap-3 px-4 py-3 ${
-            restoreChrome
+            darkBed
+              ? 'fc-restore-catalog-toolbar !border-white/12 !bg-white/[0.04]'
+              : restoreChrome
               ? 'fc-restore-catalog-toolbar !border-[#0a1628]/12 !bg-white/92'
               : ivoryChrome
                 ? 'fc-glass-ivory !border-[#c4803d]/28'

@@ -263,7 +263,7 @@ Deno.serve(async (req) => {
         liveMode: resolveMailLiveMode(),
         debugLevel: debugLevel ?? null,
         balanceUsd,
-        estimatedCostUsd: 1.85,
+        estimatedCostUsd: 8,
       });
     } catch (e) {
       return json({
@@ -292,7 +292,7 @@ Deno.serve(async (req) => {
         provider: publicProvider,
         quotes: (body.mailTypes?.length ? body.mailTypes : ['firstclass', 'certified', 'certnoerr']).map((mailType) => ({
           mailType,
-          costUsd: 1.85,
+          costUsd: mailType === 'certified' ? 8 : mailType === 'certnoerr' ? 6.5 : 3.5,
           code: -200,
           message: 'Estimated — connect LetterStream for live quotes',
         })),
@@ -335,7 +335,11 @@ Deno.serve(async (req) => {
         const costUsd =
           typeof summary.cost === 'number' && Number.isFinite(summary.cost)
             ? summary.cost
-            : null;
+            : mailType === 'firstclass'
+              ? 3.5
+              : mailType === 'certnoerr'
+                ? 6.5
+                : 8;
         quotes.push({
           mailType,
           costUsd,

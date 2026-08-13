@@ -18,6 +18,7 @@ import {
   finelyOsMicroStat,
   type FinelyOsGlowAccent,
 } from '../../features/os/finelyOsLightUi';
+import '../debt/validationDebtLayout.css';
 import {
   debtLetterCardFactsFromCatalogEntry,
   debtLetterWhenToUseSnippet,
@@ -43,6 +44,7 @@ export function LetterCatalogBrowser({
   compactHeader,
   letterHub,
   filterEntry,
+  generateHeroMatch,
 }: {
   category: LetterCatalogCategory;
   accent: FinelyOsGlowAccent;
@@ -57,6 +59,8 @@ export function LetterCatalogBrowser({
   letterHub?: LetterCatalogHub;
   /** Track guard — e.g. Validation blocks affidavits / court answers. Must match the caller's KPI count. */
   filterEntry?: (entry: DebtLetterCatalogEntry) => boolean;
+  /** Match amber generate-hero styling from IntelligentLetterSuggestionsPanel */
+  generateHeroMatch?: boolean;
 }) {
   const [q, setQ] = useState('');
   const [sub, setSub] = useState<LetterCatalogCategory | 'all'>('all');
@@ -110,15 +114,19 @@ export function LetterCatalogBrowser({
   }, [category]);
 
   return (
-    <div className="space-y-3">
+    <div className={generateHeroMatch ? 'fc-validation-catalog-shell rounded-2xl p-3 space-y-3' : 'space-y-3'}>
       {!compactHeader ? (
-        <div className={finelyOsCatalogCardCompact(accent)}>
+        <div className={generateHeroMatch ? 'fc-validation-generate-card rounded-xl !p-3' : finelyOsCatalogCardCompact(accent)}>
           <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
-            <span className={finelyOsMicroStat(accent)}>{CATEGORY_LABELS[category]} letter library</span>
+            <span className={generateHeroMatch ? 'text-[10px] font-black uppercase tracking-widest text-amber-200' : finelyOsMicroStat(accent)}>
+              {generateHeroMatch ? 'Full validation letter library' : `${CATEGORY_LABELS[category]} letter library`}
+            </span>
             <span className="text-[10px] text-white/50">{pool.length} letters · {filtered.length} shown</span>
           </div>
           <p className={`text-xs ${FINELY_OS_ENTITY_BODY}`}>
-            Pick a scenario — each letter lists the laws it uses and generates a draft you can edit. Educational only; verify local rules.
+            {generateHeroMatch
+              ? 'Browse every validation-stage letter — same generate styling as the recommendation above.'
+              : 'Pick a scenario — each letter lists the laws it uses and generates a draft you can edit. Educational only; verify local rules.'}
           </p>
           {lawHints.length ? (
             <div className="mt-3 flex flex-wrap gap-2">
@@ -132,7 +140,9 @@ export function LetterCatalogBrowser({
         </div>
       ) : (
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <span className={finelyOsMicroStat(accent)}>Letter picks for this stage</span>
+          <span className={generateHeroMatch ? 'text-[10px] font-black uppercase tracking-widest text-amber-200' : finelyOsMicroStat(accent)}>
+            {generateHeroMatch ? 'Letter library' : 'Letter picks for this stage'}
+          </span>
           <span className="text-[10px] text-white/50">{filtered.length} of {pool.length}</span>
         </div>
       )}
@@ -168,7 +178,7 @@ export function LetterCatalogBrowser({
           const facts = debtLetterCardFactsFromCatalogEntry(e);
           const whenSnippet = debtLetterWhenToUseSnippet(facts);
           return (
-          <div key={e.id} className={`${finelyOsCatalogCardCompact(accent)} !p-3 flex flex-col gap-2 min-h-[8rem]`}>
+          <div key={e.id} className={`${generateHeroMatch ? 'fc-validation-catalog-card rounded-xl' : finelyOsCatalogCardCompact(accent)} !p-3 flex flex-col gap-2 min-h-[7.5rem]`}>
             {e.id.startsWith('courtroom_') ? (
               <span className="text-[9px] font-black uppercase tracking-widest text-fuchsia-300/90">Courtroom pack</span>
             ) : null}
@@ -189,9 +199,9 @@ export function LetterCatalogBrowser({
             <button
               type="button"
               onClick={() => onBuild(e.id, e)}
-              className={`${FINELY_OS_PRIMARY_BTN} self-stretch justify-center text-[10px] !py-2`}
+              className={`${generateHeroMatch ? 'fc-generate-cta fc-validation-generate-hero !bg-amber-400 !text-black hover:!brightness-110 ' : ''}${FINELY_OS_PRIMARY_BTN} self-stretch justify-center text-[10px] !py-2`}
             >
-              {e.tier === 'full' ? 'Draft this letter' : 'Build letter'}
+              {e.tier === 'full' ? 'Generate letter' : 'Generate letter'}
             </button>
           </div>
           );
