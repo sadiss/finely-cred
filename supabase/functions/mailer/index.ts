@@ -406,7 +406,9 @@ Deno.serve(async (req) => {
 
   try {
     const { path } = parseSupabaseRef(body.pdfBlobRef);
-    if (!path.includes(`/partners/${body.partnerId}/`)) {
+    // Stored paths are "partners/{partnerId}/..." (no leading slash — see
+    // src/storage/SupabaseBlobStore.ts), so match without one too.
+    if (!path.startsWith(`partners/${body.partnerId}/`)) {
       return json({ error: 'Forbidden (blob not owned by partner)' }, { status: 403 });
     }
   } catch (e) {

@@ -1,7 +1,7 @@
 -- =====================================================================
 -- Finely Cred - LIVE database setup (run ONCE, in order)
 -- HOW: Supabase Dashboard -> SQL Editor -> New query -> paste ALL -> Run
--- Safe to re-run (idempotent). Auto-generated from supabase/migrations (37 files).
+-- Safe to re-run (idempotent). Auto-generated from supabase/migrations (40 files).
 -- Regenerate: node scripts/rebuild-live-setup.mjs
 -- After running, see docs/PRODUCTION_DEPLOY.md for env vars, secrets, deploy:functions.
 -- =====================================================================
@@ -2861,4 +2861,130 @@ using (public.is_admin())
 with check (public.is_admin());
 
 -- Partners can still only read their own rows (existing entitlements_select_own).
+
+
+-- ============================================================
+-- SECTION: 202608110001_max_jean_baptiste_partner_seed.sql
+-- ============================================================
+
+-- Max Jr Ralph Jean-Baptiste — credit-restore client (email added later by admin).
+-- Idempotent: safe to re-run on deploy; appears in Admin Partners after refresh.
+
+insert into public.partners (
+  id,
+  tenant_id,
+  status,
+  profile,
+  primary_route,
+  lane,
+  journey_stage,
+  import_source,
+  import_external_id,
+  journey_signals,
+  created_at,
+  updated_at
+)
+values (
+  'c7d4a291-5e83-4b6f-9a2c-1f8e6d3b7045',
+  'tenant_finely_primary',
+  'active',
+  jsonb_build_object('fullName', 'Max Jr Ralph Jean-Baptiste'),
+  'personal_restore',
+  'funding_readiness',
+  'intake',
+  'manual',
+  'finely:max-jr-ralph-jean-baptiste-v1',
+  jsonb_build_object('clientSeed', 'max-jr-ralph-jean-baptiste-v1'),
+  now(),
+  now()
+)
+on conflict (id) do update set
+  status = excluded.status,
+  profile = coalesce(public.partners.profile, '{}'::jsonb) || excluded.profile,
+  primary_route = coalesce(excluded.primary_route, public.partners.primary_route),
+  lane = coalesce(excluded.lane, public.partners.lane),
+  journey_stage = coalesce(excluded.journey_stage, public.partners.journey_stage),
+  import_source = coalesce(public.partners.import_source, excluded.import_source),
+  import_external_id = coalesce(public.partners.import_external_id, excluded.import_external_id),
+  journey_signals = coalesce(public.partners.journey_signals, '{}'::jsonb) || excluded.journey_signals,
+  updated_at = now();
+
+
+-- ============================================================
+-- SECTION: 202608112000_booking_invites.sql
+-- ============================================================
+
+-- Booking self-schedule invites (Phase 3 — local-first mirror; optional server sync)
+create table if not exists public.booking_invites (
+  id text primary key,
+  tenant_id text not null default 'finely_cred',
+  token text not null unique,
+  label text,
+  topic text not null default 'enlightenment',
+  duration_minutes int not null default 30,
+  crm_record_id text,
+  lead_id text,
+  partner_id text,
+  guest_name text,
+  guest_email text,
+  guest_phone text,
+  expires_at timestamptz,
+  max_uses int not null default 1,
+  use_count int not null default 0,
+  status text not null default 'active',
+  last_event_id text,
+  last_used_at timestamptz,
+  payload jsonb not null default '{}'::jsonb,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create index if not exists booking_invites_token_idx on public.booking_invites (token);
+create index if not exists booking_invites_status_idx on public.booking_invites (tenant_id, status, created_at desc);
+
+alter table public.booking_invites enable row level security;
+
+drop policy if exists booking_invites_admin on public.booking_invites;
+create policy booking_invites_admin on public.booking_invites
+for all to authenticated
+using (public.is_admin())
+with check (public.is_admin());
+
+drop policy if exists booking_invites_public_read on public.booking_invites;
+create policy booking_invites_public_read on public.booking_invites
+for select to anon, authenticated
+using (status = 'active');
+
+
+-- ============================================================
+-- SECTION: 20260812120000_workflow_delete_rls.sql
+-- ============================================================
+
+-- Allow partners (and admins) to delete their own workflow rows.
+-- Without these policies, client-side deletes silently fail under RLS and
+-- records reappear after the next Supabase sync.
+
+drop policy if exists letters_delete_own on public.letters;
+create policy letters_delete_own on public.letters
+for delete
+to authenticated
+using (public.is_partner_owner(partner_id) or public.is_admin());
+
+drop policy if exists evidence_delete_own on public.evidence;
+create policy evidence_delete_own on public.evidence
+for delete
+to authenticated
+using (public.is_partner_owner(partner_id) or public.is_admin());
+
+drop policy if exists credit_reports_delete_own on public.credit_reports;
+create policy credit_reports_delete_own on public.credit_reports
+for delete
+to authenticated
+using (public.is_partner_owner(partner_id) or public.is_admin());
+
+drop policy if exists cases_delete_own on public.cases;
+create policy cases_delete_own on public.cases
+for delete
+to authenticated
+using (public.is_partner_owner(partner_id) or public.is_admin());
 
