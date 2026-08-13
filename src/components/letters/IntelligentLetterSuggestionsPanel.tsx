@@ -6,10 +6,10 @@ import {
   FINELY_OS_ENTITY_BODY,
   FINELY_OS_PRIMARY_BTN,
   FINELY_OS_SECONDARY_BTN,
-  finelyOsGlowPanel,
   finelyOsGlowTile,
   finelyOsStatusChip,
 } from '../../features/os/finelyOsLightUi';
+import '../debt/validationDebtLayout.css';
 
 export const LETTER_SUGGEST_PANEL_ID = 'fc-letter-suggest-panel';
 export const LETTER_SUGGEST_PRIMARY_ID = 'fc-letter-suggest-primary';
@@ -75,14 +75,15 @@ export function IntelligentLetterSuggestionsPanel({
     });
   };
 
-  const glowAccent = accent === 'emerald' ? 'emerald' : accent === 'sky' ? 'sky' : accent === 'violet' ? 'violet' : 'fuchsia';
+  const altAccent = (i: number): 'violet' | 'sky' | 'fuchsia' => {
+    const accents: Array<'violet' | 'sky' | 'fuchsia'> = ['violet', 'sky', 'fuchsia'];
+    return accents[i % accents.length] ?? 'violet';
+  };
 
   return (
     <section
       id={LETTER_SUGGEST_PANEL_ID}
-      className={`relative overflow-hidden rounded-2xl border px-3 py-3 space-y-3 scroll-mt-4 ${finelyOsGlowPanel(
-        primary.urgency === 'critical' ? 'amber' : glowAccent,
-      )} ${flash ? 'ring-2 ring-amber-300/70' : ''}`}
+      className={`fc-validation-suggest-shell relative overflow-hidden rounded-2xl px-3 py-3 space-y-3 scroll-mt-4 ${flash ? 'ring-2 ring-amber-300/70' : ''}`}
       aria-label="Recommended letters"
     >
       <style>{`
@@ -140,7 +141,7 @@ export function IntelligentLetterSuggestionsPanel({
 
       <div
         id={LETTER_SUGGEST_PRIMARY_ID}
-        className={`fc-suggest-primary relative w-full rounded-xl border border-amber-300/55 bg-gradient-to-br from-amber-500/25 via-black/50 to-fuchsia-500/15 px-3 py-3 space-y-3 ${finelyOsGlowTile(
+        className={`fc-validation-generate-card fc-validation-generate-hero relative w-full rounded-xl px-3 py-3 space-y-3 ${finelyOsGlowTile(
           'amber',
           true,
         )}`}
@@ -160,7 +161,7 @@ export function IntelligentLetterSuggestionsPanel({
           type="button"
           id={LETTER_SUGGEST_GENERATE_ID}
           disabled={busy}
-          className={`fc-generate-cta ${FINELY_OS_PRIMARY_BTN} w-full sm:w-auto justify-center gap-1.5 !bg-amber-400 !text-black hover:!brightness-110 disabled:opacity-60 disabled:cursor-not-allowed`}
+          className={`fc-generate-cta fc-validation-generate-hero ${FINELY_OS_PRIMARY_BTN} w-full sm:w-auto justify-center gap-1.5 !bg-amber-400 !text-black hover:!brightness-110 disabled:opacity-60 disabled:cursor-not-allowed`}
           onClick={() => focusAndAct(primary)}
           aria-label={primary.generateLabel}
         >
@@ -184,31 +185,43 @@ export function IntelligentLetterSuggestionsPanel({
       ) : null}
 
       {alts.length > 0 ? (
-        <div className="relative space-y-2">
-          <div className="text-[10px] font-black uppercase tracking-widest text-white/55">Also recommended</div>
-          <div className="grid gap-2 sm:grid-cols-2">
-            {alts.map((s) => (
-              <div
-                key={`${s.rank}-${s.catalogId || s.letterType}`}
-                className={`${finelyOsGlowTile(glowAccent)} px-3 py-2.5 space-y-1.5`}
-              >
-                <div className="flex flex-wrap items-center gap-1.5">
-                  <span className="text-[10px] text-white/40">#{s.rank}</span>
-                  <div className="text-xs font-semibold text-white/95">{s.title}</div>
-                  <span className={urgencyChip(s.urgency)}>{s.urgency}</span>
-                </div>
-                <p className="text-[10px] font-semibold text-amber-100/80">{s.productBadge}</p>
-                <p className={`text-[11px] leading-snug ${FINELY_OS_ENTITY_BODY}`}>{s.why}</p>
-                <button
-                  type="button"
-                  disabled={busy}
-                  className={`${FINELY_OS_SECONDARY_BTN} text-[10px] border-amber-300/40 text-amber-100 disabled:opacity-60`}
-                  onClick={() => focusAndAct(s)}
+        <div className="relative space-y-3">
+          <div className="text-[10px] font-black uppercase tracking-widest text-sky-200/90">Also recommended</div>
+          <div className="fc-validation-alt-grid">
+            {alts.map((s, i) => {
+              const accent = altAccent(i);
+              return (
+                <article
+                  key={`${s.rank}-${s.catalogId || s.letterType}`}
+                  className={`fc-validation-alt-card fc-validation-alt-card--${accent}`}
                 >
-                  {s.uiOnly ? 'Open hearing kit' : s.generateLabel.replace(/^Generate /i, 'Generate ')}
-                </button>
-              </div>
-            ))}
+                  <div className="fc-validation-alt-card__head">
+                    <div className="fc-validation-alt-card__icon" aria-hidden>
+                      <FileText size={16} />
+                    </div>
+                    <div className="flex flex-wrap items-center justify-end gap-1.5">
+                      <span className="fc-validation-alt-card__rank">Alt #{s.rank}</span>
+                      <span className={urgencyChip(s.urgency)}>{s.urgency}</span>
+                    </div>
+                  </div>
+                  <div className="fc-validation-alt-card__body">
+                    <h4 className="text-sm font-bold text-white leading-snug line-clamp-2">{s.title}</h4>
+                    <p className="text-[10px] font-semibold text-white/85">{s.productBadge}</p>
+                    <p className={`text-[11px] leading-snug line-clamp-3 ${FINELY_OS_ENTITY_BODY} text-white/88`}>
+                      {s.why}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    disabled={busy}
+                    className={`fc-validation-alt-card__cta ${FINELY_OS_SECONDARY_BTN} disabled:opacity-60`}
+                    onClick={() => focusAndAct(s)}
+                  >
+                    {s.uiOnly ? 'Open hearing kit' : s.generateLabel.replace(/^Generate /i, 'Generate ')}
+                  </button>
+                </article>
+              );
+            })}
           </div>
         </div>
       ) : null}

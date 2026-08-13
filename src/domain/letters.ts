@@ -26,6 +26,9 @@ export type DisputeLetterMeta = {
   aiNarrativeByCandidateKey?: Record<string, string>;
   /** Optional AI follow-up questions shown during drafting. */
   aiQuestions?: string[];
+  /** Bureau mailing block saved from draft (overrides canonical PO box when set). */
+  bureauMailingName?: string;
+  bureauMailingAddress?: string;
 };
 
 export type BusinessDisputeLetterMeta = {
@@ -44,6 +47,15 @@ export type ValidationLetterMeta = {
   scenario?: string;
   catalogId?: string;
   debtTrack?: 'validation' | 'court' | 'foreclosure' | 'repossession';
+  creditorName?: string;
+  collectorName?: string;
+  recipientName?: string;
+  recipientAddress?: string;
+  /** Per-letter mail To snapshot (preferred over case-level recipientAddress). */
+  mailToName?: string;
+  mailToAddress?: string;
+  plaintiffLawFirm?: string;
+  plaintiffLawFirmAddress?: string;
 } | {
   /** Template library export saved as a partner-owned letter. */
   context: 'template';
@@ -63,6 +75,15 @@ export type CourtLetterMeta = {
   jurisdictionState?: string;
   catalogId?: string;
   debtTrack?: 'validation' | 'court' | 'foreclosure' | 'repossession';
+  creditorName?: string;
+  collectorName?: string;
+  recipientName?: string;
+  recipientAddress?: string;
+  /** Per-letter mail To snapshot (preferred over case-level recipientAddress). */
+  mailToName?: string;
+  mailToAddress?: string;
+  plaintiffLawFirm?: string;
+  plaintiffLawFirmAddress?: string;
 } | {
   /** Template library export saved as a partner-owned letter. */
   context: 'template';

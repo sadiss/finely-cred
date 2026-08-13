@@ -35,10 +35,10 @@ function adminToneForPackage(pkg: PricingPackage): FcAdminTone {
     return h % 2 === 0 ? 'gold' : 'teal';
   }
   // Restore DFY ladder — each tier keeps its own tone in the adminSolid family.
-  if (id === 'personal_restore_starter') return 'teal';
+  if (id === 'personal_restore_starter') return 'sky';
   if (id === 'personal_restore') return 'navy';
-  if (id === 'personal_platinum' || id.includes('platinum')) return 'gold';
-  if (id === 'personal_restore_5000') return 'rose';
+  if (id === 'personal_platinum' || id.includes('platinum')) return 'rose';
+  if (id === 'personal_restore_5000') return 'gold';
   if (id === 'personal_restore_7000') return 'emerald';
   if (id === 'personal_restore_10000') return 'sky';
   if (id.includes('restore')) return 'navy';
@@ -219,6 +219,9 @@ type PricingPackageCatalogProps = {
   emptyMessage?: string;
   /** Admin solid/glow cards — per-service tones; pair with ivory restore shell. */
   cardSurface?: FinelyOsCatalogCardSurface;
+  /** Solid black catalog panel — dark toolbar + full-color tier cards. */
+  catalogDarkBed?: boolean;
+  titleClassName?: string;
 };
 
 /** Paginated, grouped package browser — no long comparison tables. */
@@ -231,6 +234,8 @@ export function PricingPackageCatalog({
   selectLabel = 'Select',
   emptyMessage = 'No packages match your search.',
   cardSurface = 'default',
+  catalogDarkBed = false,
+  titleClassName,
 }: PricingPackageCatalogProps) {
   const [detailId, setDetailId] = useState<string | null>(null);
   const detailPkg = useMemo(
@@ -252,12 +257,13 @@ export function PricingPackageCatalog({
         initialView="grid"
         density="roomy"
         cardSurface={cardSurface}
-        restorePricingChrome={adminSolid}
+        restorePricingChrome={adminSolid && !catalogDarkBed}
+        catalogDarkBed={catalogDarkBed}
         groupLabels={PRICING_CATALOG_GROUP_LABELS}
         searchPlaceholder={searchPlaceholder}
         emptyMessage={emptyMessage}
         showViewToggle
-        titleClassName="text-lg sm:text-xl font-semibold"
+        titleClassName={titleClassName ?? 'text-lg sm:text-xl font-semibold'}
         renderTrailing={(item) =>
           adminSolid ? (
             <div className="flex flex-col gap-2.5 w-full pt-1">
@@ -268,9 +274,11 @@ export function PricingPackageCatalog({
                   setDetailId(item.id);
                 }}
                 className={
-                  item.adminTone === 'gold'
-                    ? FINELY_OS_INCLUDES_STANDALONE_BTN_ON_GOLD
-                    : FINELY_OS_INCLUDES_STANDALONE_BTN
+                  catalogDarkBed
+                    ? FINELY_OS_INCLUDES_STANDALONE_BTN
+                    : item.adminTone === 'gold'
+                      ? FINELY_OS_INCLUDES_STANDALONE_BTN_ON_GOLD
+                      : FINELY_OS_INCLUDES_STANDALONE_BTN
                 }
                 title="View full scope and deliverables"
               >
@@ -284,9 +292,11 @@ export function PricingPackageCatalog({
                     onSelect(item.id);
                   }}
                   className={
-                    item.adminTone === 'gold'
-                      ? FINELY_OS_PACKAGE_SELECT_BTN_ON_GOLD
-                      : FINELY_OS_PACKAGE_SELECT_BTN
+                    catalogDarkBed
+                      ? `${FINELY_OS_PACKAGE_SELECT_BTN} w-full`
+                      : item.adminTone === 'gold'
+                        ? FINELY_OS_PACKAGE_SELECT_BTN_ON_GOLD
+                        : FINELY_OS_PACKAGE_SELECT_BTN
                   }
                 >
                   {selectLabel} <ArrowRight size={12} />

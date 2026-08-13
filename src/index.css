@@ -1699,6 +1699,44 @@ html[data-fc-theme="light"] ::selection {
   html[data-fc-theme="light"] [data-fc-public-shell="1"]:has([data-fc-shell-surface="ivory"]) .text-white\/40 {
     color: rgba(15, 20, 18, 0.48) !important;
   }
+
+  /* Personal credit restore — dark pop + compare tiles keep white copy on ivory shell */
+  html[data-fc-theme="light"] [data-fc-restore-pricing="1"] .fc-ivory-pop-tile :is(
+    .fc-ivory-body-text,
+    .fc-ivory-card-title,
+    .fc-ivory-glow-figure,
+    p,
+    span,
+    li,
+    h2,
+    h3
+  ),
+  html[data-fc-theme="light"] [data-fc-restore-pricing="1"] .fc-restore-catalog-panel [class*="fc-admin-solid"] :is(
+    h3,
+    p,
+    span,
+    li,
+    ul,
+    .font-semibold,
+    .font-medium,
+    .font-mono,
+    .text-white,
+    [class*="text-white/"],
+    [class*="text-[#2b1d05]"],
+    [class*="text-[#1a1400]"]
+  ) {
+    color: rgba(255, 255, 255, 0.92) !important;
+  }
+
+  html[data-fc-theme="light"] [data-fc-restore-pricing="1"] .fc-restore-catalog-panel [class*="fc-admin-solid"] .font-mono {
+    color: rgba(255, 255, 255, 0.96) !important;
+    font-weight: 700 !important;
+  }
+
+  html[data-fc-theme="light"] [data-fc-restore-pricing="1"] .fc-ivory-pop-tile .fc-ivory-glow-figure {
+    color: rgba(255, 255, 255, 0.98) !important;
+  }
+
   html[data-fc-theme="light"] [data-fc-pageshell-root="1"][data-fc-shell-surface="ivory"] .border-white\/\[0\.08\],
   html[data-fc-theme="light"] [data-fc-public-shell="1"]:has([data-fc-shell-surface="ivory"]) .border-white\/\[0\.08\] {
     border-color: rgba(15, 23, 20, 0.1) !important;
@@ -6098,12 +6136,6 @@ html.fc-onboarding-portal-open body {
 [data-fc-restore-pricing='1'] .fc-restore-solutions-hero .text-amber-200,
 [data-fc-restore-pricing='1'] .fc-restore-solutions-hero [class*='text-amber'] {
   color: rgb(253 230 138) !important;
-}
-
-[data-fc-restore-pricing='1'] [class*='fc-admin-solid']::before,
-[data-fc-restore-pricing='1'] [class*='fc-admin-solid']::after {
-  display: none !important;
-  content: none !important;
 }
 
 [data-fc-restore-pricing='1'] .fc-glass-ivory {

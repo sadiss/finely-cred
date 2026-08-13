@@ -34,6 +34,7 @@ import {
   finelyOsStatusChip,
   type FinelyOsDeckAccent,
 } from '../../features/os/finelyOsLightUi';
+import { downloadLetterPdf } from '../../lib/downloadLetterPdf';
 import {
   debtLetterCardFactsFromLetter,
   formatDebtLetterStatLine,
@@ -105,13 +106,6 @@ function typeMeta(type: LetterType): {
     chip: 'border-rose-400/30 bg-rose-500/15 text-rose-100',
     seal: 'bg-rose-500/20 text-rose-200 border-rose-400/35',
   };
-}
-
-function bureauTheme(bureau: string) {
-  if (bureau === 'EXP') return { badge: 'sky' as const, paper: 'from-sky-50 to-white', seal: 'bg-sky-500/15 text-sky-700 border-sky-300/50' };
-  if (bureau === 'EQF') return { badge: 'rose' as const, paper: 'from-rose-50 to-white', seal: 'bg-rose-500/15 text-rose-700 border-rose-300/50' };
-  if (bureau === 'TUC') return { badge: 'emerald' as const, paper: 'from-emerald-50 to-white', seal: 'bg-emerald-500/15 text-emerald-700 border-emerald-300/50' };
-  return { badge: 'violet' as const, paper: 'from-slate-50 to-white', seal: 'bg-slate-500/15 text-slate-700 border-slate-300/50' };
 }
 
 function disputeStats(letter: LetterRecord) {
@@ -231,6 +225,7 @@ export type SavedLetterCardProps = {
   /** Vault strip registers draft preview opener for body-only letters. */
   onOpenLetter?: (openPreview: () => void) => (() => void) | void;
   onOpenPdf?: () => void;
+  onDownload?: () => void;
   onMail?: () => void;
   onArchive?: () => void;
   onDelete?: () => void;
@@ -252,6 +247,7 @@ export function SavedLetterCard({
   deckAccent = 'fuchsia',
   onOpenLetter,
   onOpenPdf,
+  onDownload,
   onMail,
   onArchive,
   onDelete,
@@ -266,8 +262,9 @@ export function SavedLetterCard({
   const [textOpen, setTextOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [downloadBusy, setDownloadBusy] = useState(false);
+  const [downloadErr, setDownloadErr] = useState<string | null>(null);
   const meta = typeMeta(letter.type);
-  const Icon = meta.icon;
   const face = deckAccentFace(deckAccent);
   const hasPdf = Boolean(letter.pdfBlobRef);
   const canOpenContent = hasPdf || Boolean(letter.body);
@@ -285,12 +282,17 @@ export function SavedLetterCard({
       : '';
   const stats = disputeStats(letter);
   const debtFacts = debtLetterCardFactsFromLetter(letter);
-  const bureauUi = bureauTheme(bureau);
   const steps = workflowSteps(letter.status, hasPdf);
   const delivery = fmtDate(letter.mailing?.expectedDeliveryDate);
   const toneChip = statusTone(letter.status);
 
   const openViewPdf = () => {
+    if (hasPdf && onOpenPdf) {
+      setDetailOpen(false);
+      setTextOpen(false);
+      void onOpenPdf();
+      return;
+    }
     if (hasPdf || letter.body) {
       setDetailOpen(false);
       setTextOpen(true);
@@ -305,6 +307,19 @@ export function SavedLetterCard({
       return;
     }
     setEditOpen(true);
+  };
+
+  const runDownload = async () => {
+    if (onDownload) {
+      onDownload();
+      return;
+    }
+    if (!hasPdf) return;
+    setDownloadBusy(true);
+    setDownloadErr(null);
+    const res = await downloadLetterPdf(letter);
+    if (!res.ok) setDownloadErr(res.message || 'Download failed');
+    setDownloadBusy(false);
   };
 
   useEffect(() => {
@@ -358,49 +373,47 @@ export function SavedLetterCard({
           id={id}
           type="button"
           onClick={() => setDetailOpen(true)}
-          className={`group relative min-h-[100px] w-full overflow-hidden rounded-2xl border border-white/22 bg-[#121820] text-left shadow-[0_8px_28px_-10px_rgba(0,0,0,0.7),inset_0_1px_0_rgba(255,255,255,0.06)] transition-all hover:scale-[1.02] ${face.hover} ${
+          className={`group relative min-h-[88px] w-full overflow-hidden rounded-2xl border border-white/22 bg-[#121820] text-left shadow-[0_8px_28px_-10px_rgba(0,0,0,0.7),inset_0_1px_0_rgba(255,255,255,0.06)] transition-all hover:scale-[1.01] ${face.hover} ${
             highlighted ? face.highlight : ''
           }`}
         >
         <div className={`absolute inset-y-0 left-0 w-1 ${face.bar}`} />
-        <div className={`absolute -right-6 -top-6 h-20 w-20 rounded-full blur-2xl ${face.orb}`} />
         <div className="relative flex h-full items-stretch gap-2.5 p-3 pl-4">
-          <div
-            className={`relative grid h-11 w-11 shrink-0 place-items-center rounded-xl border ${face.iconShadow} ${meta.chip}`}
-          >
-            <div className="pointer-events-none absolute inset-0 rounded-xl bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.22),transparent_55%)]" />
-            <Icon size={17} strokeWidth={2.25} className="relative text-current drop-shadow-[0_1px_2px_rgba(0,0,0,0.45)]" />
-          </div>
-
           <div className="min-w-0 flex-1 flex flex-col justify-between gap-1.5">
-            <div className="flex items-start justify-between gap-2">
-              <div className="min-w-0">
-                <div className={`truncate text-[10px] font-black uppercase tracking-[0.14em] ${FINELY_OS_ENTITY_SUBLABEL}`}>Generated letter</div>
-                <div className="truncate text-[12px] font-black leading-tight text-white/95">{letter.title}</div>
-                <div className={`truncate text-[9px] normal-case ${FINELY_OS_ENTITY_BODY}`}>{fmtWhen(letter.createdAt)}</div>
+            <div className="min-w-0">
+              <div className={`truncate text-[10px] font-black uppercase tracking-[0.14em] ${FINELY_OS_ENTITY_SUBLABEL}`}>
+                {meta.label}
+                {bureau ? ` · ${bureauFullName(bureau as Bureau)}` : ''}
+                {round ? ` · ${round}` : ''}
               </div>
-              <div
-                className={`relative h-10 w-8 shrink-0 rounded-sm border bg-[#120a18] overflow-hidden rotate-2 group-hover:rotate-0 transition-transform ${face.paper}`}
-                aria-hidden
-              >
-                <div className={`h-1 bg-gradient-to-r ${face.paperBar}`} />
-                <div className="absolute bottom-0.5 right-0.5 h-2.5 w-2.5 rounded-full border border-emerald-400/40 bg-emerald-500/25" />
-                <div className="p-0.5 space-y-0.5">
-                  <div className="h-0.5 rounded bg-white/20 w-full" />
-                  <div className="h-0.5 rounded bg-white/12 w-4/5" />
-                  <div className="h-0.5 rounded bg-white/12 w-full" />
-                </div>
-              </div>
+              <div className="truncate text-[12px] font-black leading-tight text-white/95">{letter.title}</div>
+              <div className={`truncate text-[9px] normal-case ${FINELY_OS_ENTITY_BODY}`}>{fmtWhen(letter.createdAt)}</div>
             </div>
 
             <div className="flex flex-wrap items-center gap-1">
-              <span className={finelyOsMicroStat(meta.accent)}>{meta.label}</span>
-              {bureau ? <span className={finelyOsMicroStat(bureauUi.badge)}>{bureauFullName(bureau as Bureau)}</span> : null}
-              {round ? <span className={`rounded-md border px-1.5 py-0.5 text-[9px] font-black uppercase ${face.roundChip}`}>{round}</span> : null}
-              <span className="rounded-md border border-emerald-400/20 bg-emerald-500/10 px-1.5 py-0.5 text-[9px] font-black uppercase text-emerald-100">{hasPdf ? 'PDF ready' : 'Draft'}</span>
+              <span className="rounded-md border border-emerald-400/20 bg-emerald-500/10 px-1.5 py-0.5 text-[9px] font-black uppercase text-emerald-100">
+                {hasPdf ? 'PDF ready' : 'Draft'}
+              </span>
+              <span className={finelyOsStatusChip(toneChip)}>{statusLabel(letter.status)}</span>
             </div>
 
-            <div className="flex items-center justify-between gap-2">
+              <div className="flex flex-wrap gap-2 pt-1">
+                {hasPdf ? (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      void runDownload();
+                    }}
+                    disabled={downloadBusy}
+                    className="inline-flex items-center gap-1 rounded-md border border-white/20 bg-white/10 px-2 py-1 text-[9px] font-black uppercase tracking-widest text-white/85 hover:bg-white/15 disabled:opacity-50"
+                  >
+                    <Download size={11} /> {downloadBusy ? '…' : 'Download'}
+                  </button>
+                ) : null}
+              </div>
+
+              <div className="flex items-center justify-between gap-2">
               <span className={`truncate text-[9px] ${FINELY_OS_ENTITY_BODY}`}>{statLine}</span>
               <span className={`inline-flex shrink-0 items-center gap-0.5 text-[9px] font-black uppercase tracking-widest ${face.openText}`}>
                 <Eye size={11} /> Open letter
@@ -424,18 +437,15 @@ export function SavedLetterCard({
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-1.5">
-                    <span className={finelyOsMicroStat(meta.accent)}>
-                      <Icon size={10} className="inline mr-1" /> {meta.label}
-                    </span>
-                    {bureau ? <span className={finelyOsMicroStat(bureauUi.badge)}>{bureauFullName(bureau as Bureau)}</span> : null}
+                    <span className={finelyOsMicroStat(meta.accent)}>{meta.label}</span>
                     <span className={finelyOsStatusChip(toneChip)}>{statusLabel(letter.status)}</span>
                   </div>
                   <h3 className="mt-2 text-lg sm:text-xl font-black leading-tight text-white/95">{letter.title}</h3>
                   <p className={`mt-1 text-xs ${FINELY_OS_ENTITY_BODY}`}>
                     {fmtWhen(letter.createdAt)}
+                    {bureau ? ` · ${bureauFullName(bureau as Bureau)}` : ''}
                     {round ? ` · ${round}` : ''}
                     {tone ? ` · ${tone}` : ''}
-                    {bureau ? ` · ${bureauFullName(bureau as Bureau)}` : ''}
                   </p>
                 </div>
                 <button type="button" onClick={() => setDetailOpen(false)} className={`${FINELY_OS_SECONDARY_BTN} !py-2`}>
@@ -520,6 +530,16 @@ export function SavedLetterCard({
               ) : null}
 
               <div className="flex flex-wrap gap-2">
+                {hasPdf ? (
+                  <button
+                    type="button"
+                    onClick={() => void runDownload()}
+                    disabled={downloadBusy || pdfDisabled}
+                    className={`${FINELY_OS_SECONDARY_BTN} !py-2.5 !px-4 !text-sm disabled:opacity-45`}
+                  >
+                    <Download size={16} /> {downloadBusy ? 'Downloading…' : 'Download PDF'}
+                  </button>
+                ) : null}
                 {onOpenPdf && hasPdf ? (
                   <button
                     type="button"
@@ -543,7 +563,11 @@ export function SavedLetterCard({
                 {canMail && onMail ? (
                   <button
                     type="button"
-                    onClick={onMail}
+                    onClick={() => {
+                      setDetailOpen(false);
+                      setTextOpen(false);
+                      onMail();
+                    }}
                     disabled={mailDisabled || !hasPdf}
                     className={`${FINELY_OS_PRIMARY_BTN} !py-2.5 !px-4 !text-sm !bg-amber-500/90 disabled:opacity-45`}
                   >
@@ -555,7 +579,12 @@ export function SavedLetterCard({
                     <FileText size={16} /> Resume Studio
                   </button>
                 ) : null}
-                {onArchive ? (
+
+              {downloadErr ? (
+                <p className="text-xs text-rose-300/90">{downloadErr}</p>
+              ) : null}
+
+              {onArchive ? (
                   <button type="button" onClick={onArchive} className={`${FINELY_OS_SECONDARY_BTN} !py-2 !text-[10px]`}>
                     <Archive size={14} /> Archive
                   </button>

@@ -16,6 +16,7 @@ import { persistAdminRailExpanded, readAdminRailExpanded } from '../../lib/finel
 import { useAuth } from '../../auth/AuthProvider';
 import { applyTenantBranding, getActiveTenant } from '../../tenancy/activeTenant';
 import { FinelyLaunchHelpStrip } from '../tours/FinelyLaunchHelpStrip';
+import '../../features/partner/partnerPortalVisual.css';
 
 export function PageShell({
   title,
@@ -206,6 +207,7 @@ export function PageShell({
     : 'pt-[max(0.75rem,env(safe-area-inset-top))]';
   const isAdmin = pathname.startsWith('/admin');
   const isPortal = pathname.startsWith('/portal');
+  const isPartnerDashboard = pathname === '/portal/dashboard';
   const isBusiness = pathname.startsWith('/business');
   const isAppRoute =
     isAdmin ||
@@ -551,7 +553,7 @@ export function PageShell({
       <div
         className={`relative min-w-0 overflow-x-clip ${
           // For admin, keep the left rail flush-left on desktop while preserving comfortable content padding.
-          isAdmin ? 'w-full px-2 sm:px-4 lg:pl-0 lg:pr-6 2xl:pr-8' : 'fc-container'
+          isAdmin ? 'w-full px-2 sm:px-4 lg:pl-0 lg:pr-6 2xl:pr-8' : isPartnerDashboard ? 'fc-container fc-container--portal-full' : 'fc-container'
         } ${
           isAppRoute ? 'flex flex-col' : ''
         }`}
@@ -661,7 +663,11 @@ export function PageShell({
                     <span className="text-xs font-semibold uppercase tracking-wider">{badge}</span>
                   </div>
                 )}
-                <h1 className={`font-light leading-tight tracking-tight ${isPortal ? 'text-2xl sm:text-3xl md:text-4xl lg:text-5xl' : 'text-3xl sm:text-4xl md:text-5xl lg:text-6xl'}`}>
+                <h1
+                  className={`font-light leading-tight tracking-tight ${
+                    ivorySurface ? 'text-[#0a1628]' : 'text-white'
+                  } ${isPortal ? 'text-2xl sm:text-3xl md:text-4xl lg:text-5xl' : 'text-3xl sm:text-4xl md:text-5xl lg:text-6xl'}`}
+                >
                   {title}
                 </h1>
                 {subtitle && (

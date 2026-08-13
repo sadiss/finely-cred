@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   ArrowRight,
   Shield,
@@ -17,7 +17,6 @@ import { PageShell } from '../components/layout/PageShell';
 import { useAuth } from '../auth/AuthProvider';
 import { resolvePackageSelectPath } from '../lib/packageCheckoutRouting';
 import { finelyCtaNavigate, resolveFinelyCtaPath } from '../lib/finelyCtaIntent';
-import { FlashyIcon } from '../components/ui';
 import { FinelyOsPageFooter } from '../features/os/FinelyOsPageFooter';
 import { StaffPortraitImg } from '../components/staff/StaffPortraitImg';
 import { MarketingStaffChatStrip } from '../components/marketing/MarketingStaffChatStrip';
@@ -26,24 +25,31 @@ import { resolveStaffOnDuty } from '../data/staffRoster';
 import { usePublicSeoMeta } from '../hooks/usePublicSeoMeta';
 import { FINELY_OS_ENTITY_TITLE, FINELY_OS_PAGE } from '../features/os/finelyOsLightUi';
 import { FinelyNowDoThisStrip } from '../components/tours/FinelyNowDoThisStrip';
-import { FinelyNoticedStrip } from '../components/tours/FinelyNoticedStrip';
-import { buildPersonalCreditNoticedItems } from '../lib/finelyProactiveSignals';
-import { personalCreditPackages, formatPrice } from '../config/pricingCatalog';
+import { personalCreditPackages, formatPrice, type PricingPackage } from '../config/pricingCatalog';
 import { PricingPackageCatalog } from '../components/pricing/PricingPackageCatalog';
 import {
   PersonalCreditCommandStrip,
   PersonalCreditHeroShell,
+  PersonalCreditPathSwitcher,
   PersonalCreditRestoreSpectrum,
+  type PersonalCreditRestorePath,
 } from '../features/personalCredit/PersonalCreditHeroShell';
-import { PC_RESTORE_BTN, pcRestoreCardClass } from '../features/personalCredit/personalCreditRestoreButtons';
+import { PC_RESTORE_BTN } from '../features/personalCredit/personalCreditRestoreButtons';
 import '../features/personalCredit/personalCreditRestoreVisual.css';
 
+const POP_ACCENT = {
+  emerald: 'fc-ivory-pop-emerald',
+  violet: 'fc-ivory-pop-violet',
+  sky: 'fc-ivory-pop-sky',
+  rose: 'fc-ivory-pop-rose',
+  fuchsia: 'fc-ivory-pop-fuchsia',
+} as const;
 
 const STATS = [
   { value: '700+', label: 'Score path partners target', accent: 'emerald' as const },
-  { value: '45 days', label: 'First review window', accent: 'amber' as const },
-  { value: '3 bureaus', label: 'Comprehensive coverage', accent: 'violet' as const },
-  { value: '24/7', label: 'Platform access', accent: 'sky' as const },
+  { value: '45 days', label: 'First review window', accent: 'violet' as const },
+  { value: '3 bureaus', label: 'Comprehensive coverage', accent: 'sky' as const },
+  { value: '24/7', label: 'Platform access', accent: 'rose' as const },
 ];
 
 const PROCESS_STEPS = [
@@ -57,7 +63,7 @@ const PROCESS_STEPS = [
     step: 2,
     title: 'Strategy Planning',
     description: 'Custom dispute strategy based on your unique situation, goals, and timeline.',
-    accent: 'amber' as const,
+    accent: 'violet' as const,
   },
   {
     step: 3,
@@ -73,31 +79,38 @@ const PROCESS_STEPS = [
   },
 ];
 
-const OS_TILE_ACCENTS = ['emerald', 'sky', 'violet', 'amber'] as const;
+const OS_TILE_ACCENTS = ['sky', 'violet', 'emerald', 'rose', 'fuchsia', 'sky'] as const;
+
+type OsAccent = (typeof OS_TILE_ACCENTS)[number];
 
 const OS_ICON_ACCENT: Record<
-  (typeof OS_TILE_ACCENTS)[number],
-  { wrap: string; icon: string; tile: string }
+  OsAccent,
+  { icon: string; tile: string; glow: string }
 > = {
   emerald: {
-    wrap: 'border-emerald-400/30 bg-emerald-500/15',
     icon: 'text-emerald-300',
     tile: 'pc-restore-os-tile--emerald',
+    glow: 'pc-restore-os-icon--emerald',
   },
   sky: {
-    wrap: 'border-sky-400/30 bg-sky-500/15',
     icon: 'text-sky-300',
     tile: 'pc-restore-os-tile--sky',
+    glow: 'pc-restore-os-icon--sky',
   },
   violet: {
-    wrap: 'border-violet-400/30 bg-violet-500/15',
     icon: 'text-violet-300',
     tile: 'pc-restore-os-tile--violet',
+    glow: 'pc-restore-os-icon--violet',
   },
-  amber: {
-    wrap: 'border-amber-400/30 bg-amber-500/15',
-    icon: 'text-amber-300',
-    tile: 'pc-restore-os-tile--amber',
+  rose: {
+    icon: 'text-rose-300',
+    tile: 'pc-restore-os-tile--rose',
+    glow: 'pc-restore-os-icon--rose',
+  },
+  fuchsia: {
+    icon: 'text-fuchsia-300',
+    tile: 'pc-restore-os-tile--fuchsia',
+    glow: 'pc-restore-os-icon--fuchsia',
   },
 };
 
@@ -110,61 +123,120 @@ const OS_TILES = [
   { icon: Target, title: 'Milestones + tracking', desc: 'Stabilization → dispute rounds → documented follow-through.', href: resolveFinelyCtaPath('personal_intake') },
 ];
 
-function PersonalCreditPackageCards({
-  starterPkg,
-  restorePkg,
-  platinumPkg,
+/** Restore lane only — exclude building, maintenance, and unrelated hybrid programs. */
+function filterPersonalPackagesByPath(path: PersonalCreditRestorePath): PricingPackage[] {
+  return personalCreditPackages.filter((p) => {
+    if (p.category !== 'personal_credit') return false;
+    if (p.id.startsWith('personal_build')) return false;
+    if (p.id.startsWith('personal_maintenance')) return false;
+    if (p.id === 'personal_core') return false;
+    if (path === 'dfy') {
+      return p.delivery === 'DFY' && (p.id.includes('restore') || p.id === 'personal_platinum');
+    }
+    return p.delivery === 'DIY';
+  });
+}
+
+type FeaturedCard = {
+  pkg: PricingPackage;
+  accent: 'emerald' | 'sky' | 'violet' | 'rose' | 'fuchsia';
+  badge?: string;
+  cta: string;
+  btn: string;
+  rail?: 'stripe' | 'in_house';
+};
+
+function btnForAccent(accent: FeaturedCard['accent']) {
+  if (accent === 'violet') return PC_RESTORE_BTN.violet;
+  if (accent === 'sky') return PC_RESTORE_BTN.sky;
+  return PC_RESTORE_BTN.emerald;
+}
+
+function featuredCardsForPath(path: PersonalCreditRestorePath): FeaturedCard[] {
+  if (path === 'dfy') {
+    const cards: FeaturedCard[] = [];
+    const restore = personalCreditPackages.find((p) => p.id === 'personal_restore');
+    const platinum = personalCreditPackages.find((p) => p.id === 'personal_platinum');
+    const starterDfy = personalCreditPackages.find((p) => p.id === 'personal_restore_starter');
+    if (restore) {
+      cards.push({ pkg: restore, accent: 'emerald', badge: 'Most picked', cta: 'Get started', btn: btnForAccent('emerald') });
+    }
+    if (platinum) {
+      cards.push({
+        pkg: platinum,
+        accent: 'violet',
+        badge: 'Premium',
+        cta: 'Finance & build credit',
+        btn: PC_RESTORE_BTN.violet,
+        rail: 'in_house',
+      });
+    }
+    if (starterDfy) {
+      cards.push({ pkg: starterDfy, accent: 'sky', cta: 'Start entry restore', btn: btnForAccent('sky') });
+    }
+    return cards;
+  }
+
+  const cards: FeaturedCard[] = [];
+  const starter = personalCreditPackages.find((p) => p.id === 'personal_starter');
+  const free = personalCreditPackages.find((p) => p.id === 'personal_free');
+  const letterPack = personalCreditPackages.find((p) => p.id.startsWith('letters_pack_'));
+  if (starter) {
+    cards.push({ pkg: starter, accent: 'fuchsia', cta: 'Start DIY', btn: btnForAccent('fuchsia'), rail: 'stripe' });
+  }
+  if (free) {
+    cards.push({ pkg: free, accent: 'sky', badge: 'Free tier', cta: 'Open free tools', btn: btnForAccent('sky') });
+  }
+  if (letterPack) {
+    cards.push({
+      pkg: letterPack,
+      accent: 'rose',
+      badge: 'Letter pack',
+      cta: 'Get letter pack',
+      btn: btnForAccent('rose'),
+      rail: 'stripe',
+    });
+  }
+  return cards;
+}
+
+function PersonalCreditFeaturedCards({
+  path,
   goToCheckout,
 }: {
-  starterPkg: (typeof personalCreditPackages)[number] | undefined;
-  restorePkg: (typeof personalCreditPackages)[number] | undefined;
-  platinumPkg: (typeof personalCreditPackages)[number] | undefined;
+  path: PersonalCreditRestorePath;
   goToCheckout: (pkgId: string, rail?: 'stripe' | 'in_house') => void;
 }) {
+  const cards = featuredCardsForPath(path);
+  if (!cards.length) {
+    return (
+      <div className={`fc-ivory-glass-panel fc-ivory-pop-tile ${POP_ACCENT.sky} fc-ivory-body-text text-sm`}>
+        Packages are loading — check back in a moment.
+      </div>
+    );
+  }
+
   return (
     <div className="grid lg:grid-cols-3 gap-4">
-      {starterPkg ? (
-        <div className={`${pcRestoreCardClass('amber')} space-y-4`}>
+      {cards.map(({ pkg, accent, badge, cta, btn, rail }) => (
+        <div key={pkg.id} className={`fc-ivory-glass-panel fc-ivory-pop-tile ${POP_ACCENT[accent]} space-y-4`}>
+          {badge ? (
+            <span className={`fc-ivory-tone-badge fc-ivory-tone-badge--${accent === 'violet' ? 'violet' : 'emerald'}`}>
+              {badge}
+            </span>
+          ) : null}
           <div className="space-y-1">
-            <div className="font-semibold text-lg pc-restore-card-ink">{starterPkg.name}</div>
-            <div className="text-amber-800/90 text-sm">{starterPkg.tagline}</div>
-            <div className="text-3xl font-bold pc-restore-card-ink">{formatPrice(starterPkg.priceAmount)}</div>
+            <div className="fc-ivory-card-title text-xl sm:text-2xl font-bold">{pkg.name}</div>
+            <div className="fc-ivory-body-text text-sm sm:text-base opacity-95">{pkg.tagline}</div>
+            <div className={`fc-ivory-glow-figure fc-ivory-glow-figure--${accent}`}>
+              {pkg.priceAmount === 0 ? 'Free' : formatPrice(pkg.priceAmount)}
+            </div>
           </div>
-          <button type="button" onClick={() => goToCheckout(starterPkg.id, 'stripe')} className={`w-full ${PC_RESTORE_BTN.ghost}`}>
-            Start DIY <ArrowRight size={14} />
+          <button type="button" onClick={() => goToCheckout(pkg.id, rail)} className={`w-full ${btn}`}>
+            {cta} <ArrowRight size={14} />
           </button>
         </div>
-      ) : null}
-      {restorePkg ? (
-        <div className={`${pcRestoreCardClass('emerald')} space-y-4 ring-1 ring-emerald-400/20`}>
-          <span className="inline-flex px-2 py-0.5 rounded-full border border-emerald-400/35 bg-emerald-500/10 text-emerald-800 text-[10px] font-black uppercase tracking-widest">
-            Most picked
-          </span>
-          <div className="space-y-1">
-            <div className="font-semibold text-lg pc-restore-card-ink">{restorePkg.name}</div>
-            <div className="text-emerald-800/90 text-sm">{restorePkg.tagline}</div>
-            <div className="text-3xl font-bold pc-restore-card-ink">{formatPrice(restorePkg.priceAmount)}</div>
-          </div>
-          <button type="button" onClick={() => goToCheckout(restorePkg.id)} className={`w-full ${PC_RESTORE_BTN.emerald}`}>
-            Get started <ArrowRight size={14} />
-          </button>
-        </div>
-      ) : null}
-      {platinumPkg ? (
-        <div className={`${pcRestoreCardClass('violet')} space-y-4 ring-1 ring-violet-400/15`}>
-          <span className="inline-flex px-2 py-0.5 rounded-full border border-violet-400/35 bg-violet-500/10 text-violet-800 text-[10px] font-black uppercase tracking-widest">
-            Premium
-          </span>
-          <div className="space-y-1">
-            <div className="font-semibold text-lg pc-restore-card-ink">{platinumPkg.name}</div>
-            <div className="text-sm pc-restore-card-muted">{platinumPkg.tagline}</div>
-            <div className="text-3xl font-bold pc-restore-card-ink">{formatPrice(platinumPkg.priceAmount)}</div>
-          </div>
-          <button type="button" onClick={() => goToCheckout(platinumPkg.id, 'in_house')} className={`w-full ${PC_RESTORE_BTN.platinum}`}>
-            Finance & build credit <ArrowRight size={14} />
-          </button>
-        </div>
-      ) : null}
+      ))}
     </div>
   );
 }
@@ -173,6 +245,9 @@ export default function PersonalCreditPage() {
   const navigate = useNavigate();
   const auth = useAuth();
   const onDutyCoach = resolveStaffOnDuty('dispute_coach');
+  const [restorePath, setRestorePath] = useState<PersonalCreditRestorePath>('dfy');
+
+  const pathPackages = useMemo(() => filterPersonalPackagesByPath(restorePath), [restorePath]);
 
   usePublicSeoMeta({
     title: 'Personal credit restoration',
@@ -190,18 +265,20 @@ export default function PersonalCreditPage() {
     );
   };
 
-  const platinumPkg = personalCreditPackages.find((p) => p.id === 'personal_platinum');
-  const restorePkg = personalCreditPackages.find((p) => p.id === 'personal_restore');
-  const starterPkg = personalCreditPackages.find((p) => p.id === 'personal_starter');
-
   return (
     <PageShell
       hideHero
+      surface="ivory"
       badge="Personal Credit"
       title="Restore Your Credit. Reclaim Your Future."
       subtitle="We handle dispute letters and tracking — you focus on your goals."
     >
-      <div className={`${FINELY_OS_PAGE} fc-senior-simple space-y-4`} data-fc-personal-credit-lane="1">
+      <div
+        className={`${FINELY_OS_PAGE} fc-senior-simple space-y-4`}
+        data-fc-personal-credit-lane="1"
+        data-fc-restore-pricing="1"
+        data-fc-ivory-wealthy="1"
+      >
         <PersonalCreditHeroShell
           onStartFreeGuide={() => finelyCtaNavigate(navigate, 'personal_free_guide')}
           onBookSession={() => finelyCtaNavigate(navigate, 'consultation', { consultationLane: 'Personal Credit' })}
@@ -209,190 +286,211 @@ export default function PersonalCreditPage() {
 
         <PersonalCreditRestoreSpectrum />
 
-        <PersonalCreditCommandStrip onStartIntake={() => finelyCtaNavigate(navigate, 'personal_intake')} />
+        <PersonalCreditCommandStrip
+          onComparePackages={() => {
+            document.getElementById('pc-packages')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }}
+          onStartFreeGuide={() => finelyCtaNavigate(navigate, 'personal_free_guide')}
+        />
 
-        <FinelyNoticedStrip items={buildPersonalCreditNoticedItems({ tab: 'overview' })} />
-        <FinelyNowDoThisStrip currentIndex={0} />
+        <FinelyNowDoThisStrip surface="light" currentIndex={0} className="pc-restore-now-strip" title="Your next move" />
 
-        <div className="pc-restore-hub-shell pc-restore-hub-shell--desk space-y-6 !p-4">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
-            {STATS.map((s) => (
-              <div key={s.label} className="pc-restore-kpi pc-restore-kpi--glass">
-                <div className="text-lg font-bold pc-restore-card-ink">{s.value}</div>
-                <div className="text-[11px] pc-restore-card-muted leading-snug">{s.label}</div>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          {STATS.map((s) => (
+            <div
+              key={s.label}
+              className={`fc-ivory-glass-panel fc-ivory-pop-tile pc-restore-stat-tile ${POP_ACCENT[s.accent]}`}
+            >
+              <div className={`fc-ivory-glow-figure fc-ivory-glow-figure--${s.accent}`}>{s.value}</div>
+              <div className="pc-restore-stat-label">{s.label}</div>
+            </div>
+          ))}
+        </div>
+
+        <section className="space-y-4" id="pc-packages">
+          <PersonalCreditPathSwitcher value={restorePath} onChange={setRestorePath} />
+
+          <div>
+            <h2 className={`${FINELY_OS_ENTITY_TITLE} text-[#0a1628] text-2xl sm:text-3xl font-bold`}>
+              {restorePath === 'dfy' ? 'Done-for-you restore packages' : 'Do-it-yourself packages'}
+            </h2>
+            <p className="pc-restore-hub-sub mt-1 text-sm">
+              {restorePath === 'dfy'
+                ? 'We run disputes, track responses, and escalate — pick a depth, then start intake.'
+                : 'Templates, letter packs, and platform tools — you drive the workflow.'}
+            </p>
+          </div>
+
+          <PersonalCreditFeaturedCards path={restorePath} goToCheckout={goToCheckout} />
+
+          <div className="fc-restore-catalog-panel rounded-[1rem] p-4 space-y-4">
+            <div className="flex flex-wrap items-end justify-between gap-3">
+              <div>
+                <h3 className="text-lg font-bold text-white tracking-tight">
+                  {restorePath === 'dfy' ? 'Compare done-for-you tiers' : 'Compare DIY tools & letter packs'}
+                </h3>
+                <p className="mt-1 text-sm text-white/75">Search or paginate — no endless scroll.</p>
+              </div>
+              <button type="button" onClick={() => navigate('/pricing')} className={PC_RESTORE_BTN.ghost}>
+                View full pricing <ArrowRight size={14} />
+              </button>
+            </div>
+            <PricingPackageCatalog
+              packages={pathPackages}
+              pageSize={6}
+              includePersonalCompare
+              cardSurface="adminSolid"
+              catalogDarkBed
+              titleClassName="text-xl sm:text-2xl font-bold tracking-tight"
+              searchPlaceholder={
+                restorePath === 'dfy'
+                  ? 'Search restore tiers, platinum, entry DFY…'
+                  : 'Search DIY starter, letter packs, free tools…'
+              }
+              onSelect={(pkgId) => {
+                const pkg = pathPackages.find((p) => p.id === pkgId);
+                const preferredRail =
+                  pkg?.rail === 'in_house' ? 'in_house' : pkg?.rail === 'stripe' ? 'stripe' : undefined;
+                goToCheckout(pkgId, preferredRail);
+              }}
+            />
+          </div>
+        </section>
+
+        <section className="space-y-4" id="pc-process">
+          <div className="text-center space-y-2 max-w-2xl mx-auto">
+            <p className="pc-restore-kicker">How it works</p>
+            <h2 className={`${FINELY_OS_ENTITY_TITLE} text-[#0a1628] text-2xl sm:text-3xl font-bold`}>Our process</h2>
+            <p className="pc-restore-hub-sub text-sm">Four disciplined steps — evidence-first and bureau-aware.</p>
+          </div>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            {PROCESS_STEPS.map((step) => (
+              <div
+                key={step.step}
+                className={`fc-ivory-glass-panel fc-ivory-pop-tile pc-restore-process-step ${POP_ACCENT[step.accent]} space-y-2`}
+              >
+                <div className="pc-restore-step-num">{step.step}</div>
+                <h3>{step.title}</h3>
+                <p className="fc-ivory-body-text text-sm">{step.description}</p>
               </div>
             ))}
           </div>
+        </section>
 
-          <section className="space-y-4" id="pc-packages">
+        <section className="fc-ivory-glass-panel fc-restore-dark-panel rounded-[1rem] p-4 space-y-4" id="pc-platform">
+          <div className="flex flex-wrap items-end justify-between gap-4">
             <div>
-              <h2 className={`${FINELY_OS_ENTITY_TITLE} text-[color:var(--pc-hero-ink)]`}>Choose your restore lane</h2>
-              <p className="pc-restore-desk-sub mt-1 text-sm">Three depths — same program. Pick one, then start intake.</p>
+              <h2 className="text-xl font-bold text-white tracking-tight">The Finely Cred OS</h2>
+              <p className="mt-1 text-sm text-white/75">
+                Uploads, evidence, disputes, letters, and tracking — not a static brochure.
+              </p>
             </div>
-            <PersonalCreditPackageCards
-              starterPkg={starterPkg}
-              restorePkg={restorePkg}
-              platinumPkg={platinumPkg}
-              goToCheckout={goToCheckout}
-            />
-            {!starterPkg && !restorePkg && !platinumPkg ? (
-              <div className={`${pcRestoreCardClass('amber')} text-sm pc-restore-card-muted`}>
-                Package tiers are loading —{' '}
-                <a href="/pricing/personal-credit-restore" className="text-sky-700 underline underline-offset-2">
-                  view full pricing
-                </a>
-                .
-              </div>
-            ) : null}
-            <div className={`${pcRestoreCardClass('violet', true)} space-y-4`}>
-              <div className="flex flex-wrap items-end justify-between gap-3">
-                <div>
-                  <h3 className="font-semibold pc-restore-card-ink">Browse all packages</h3>
-                  <p className="mt-1 pc-restore-card-muted text-sm">Search or paginate — no endless scroll.</p>
-                </div>
-                <button type="button" onClick={() => navigate('/pricing')} className={PC_RESTORE_BTN.ghost}>
-                  View full pricing <ArrowRight size={14} />
+            <button type="button" onClick={() => finelyCtaNavigate(navigate, 'personal_intake')} className={PC_RESTORE_BTN.sky}>
+              Start intake <ArrowRight size={14} />
+            </button>
+          </div>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
+            {OS_TILES.map((x, i) => {
+              const Icon = x.icon;
+              const accent = OS_TILE_ACCENTS[i % OS_TILE_ACCENTS.length];
+              const accentStyle = OS_ICON_ACCENT[accent];
+              return (
+                <button
+                  key={x.title}
+                  type="button"
+                  className={`pc-restore-os-tile ${accentStyle.tile}`}
+                  onClick={() => navigate(x.href)}
+                >
+                  <div className={`pc-restore-os-icon ${accentStyle.glow}`}>
+                    <Icon size={24} className={accentStyle.icon} />
+                  </div>
+                  <div className="font-semibold text-left text-white/95">{x.title}</div>
+                  <div className="text-sm text-white/72 mt-1 text-left">{x.desc}</div>
                 </button>
-              </div>
-              <PricingPackageCatalog
-                packages={personalCreditPackages}
-                pageSize={6}
-                includePersonalCompare
-                searchPlaceholder="Search restore tiers, letter packs…"
-                onSelect={(pkgId) => {
-                  const pkg = personalCreditPackages.find((p) => p.id === pkgId);
-                  const preferredRail =
-                    pkg?.rail === 'in_house' ? 'in_house' : pkg?.rail === 'stripe' ? 'stripe' : undefined;
-                  goToCheckout(pkgId, preferredRail);
-                }}
-              />
-            </div>
-          </section>
-
-          <section className={`${pcRestoreCardClass('emerald', true)} space-y-4`} id="pc-process">
-            <div className="text-center space-y-2 max-w-2xl mx-auto">
-              <p className="pc-restore-kicker">How it works</p>
-              <h2 className="text-xl font-bold text-[color:var(--pc-hero-ink)]">Our process</h2>
-              <p className="pc-restore-desk-sub text-sm">Four disciplined steps — evidence-first and bureau-aware.</p>
-            </div>
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-              {PROCESS_STEPS.map((step) => (
-                <div key={step.step} className={`${pcRestoreCardClass(step.accent)} space-y-2`}>
-                  <div className="pc-restore-step-num">{step.step}</div>
-                  <h3 className="font-semibold pc-restore-card-ink">{step.title}</h3>
-                  <p className="text-sm pc-restore-card-muted">{step.description}</p>
-                </div>
-              ))}
-            </div>
-          </section>
-
-          <section className={`${pcRestoreCardClass('sky', true)} space-y-4`} id="pc-platform">
-            <div className="flex flex-wrap items-end justify-between gap-4">
-              <div>
-                <h2 className={`${FINELY_OS_ENTITY_TITLE} text-[color:var(--pc-hero-ink)]`}>The Finely Cred OS</h2>
-                <p className="pc-restore-desk-sub mt-1 text-sm">
-                  Uploads, evidence, disputes, letters, and tracking — not a static brochure.
-                </p>
-              </div>
-              <button type="button" onClick={() => finelyCtaNavigate(navigate, 'personal_intake')} className={PC_RESTORE_BTN.sky}>
-                Start intake <ArrowRight size={14} />
-              </button>
-            </div>
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
-              {OS_TILES.map((x, i) => {
-                const Icon = x.icon;
-                const accent = OS_TILE_ACCENTS[i % OS_TILE_ACCENTS.length];
-                const accentStyle = OS_ICON_ACCENT[accent];
-                return (
-                  <button
-                    key={x.title}
-                    type="button"
-                    className={`pc-restore-os-tile ${accentStyle.tile}`}
-                    onClick={() => navigate(x.href)}
-                  >
-                    <div
-                      className={`w-11 h-11 rounded-xl border flex items-center justify-center mb-3 ${accentStyle.wrap}`}
-                    >
-                      <Icon size={20} className={accentStyle.icon} />
-                    </div>
-                    <div className="font-semibold pc-restore-card-ink text-left">{x.title}</div>
-                    <div className="text-sm pc-restore-card-muted mt-1 text-left">{x.desc}</div>
-                  </button>
-                );
-              })}
-            </div>
-          </section>
-
+              );
+            })}
+          </div>
           <p className="text-xs text-white/45 leading-relaxed text-center px-2">
             Results vary · not legal advice · educational dispute workflow only
           </p>
-        </div>
+        </section>
 
-        <div className="flex justify-center">
+        <div className="fc-ivory-page-tail space-y-8">
           <MarketingStaffChatStrip
             roleId="dispute_coach"
             goal="personal"
             roleLabel="dispute specialist"
             subline="Ask about packages, dispute workflow, or whether DIY vs done-for-you fits your file."
-            modalLaunch={{ triggerLabel: 'Ask dispute specialist' }}
+            surface="restore-emerald"
+            stripClassName="fc-restore-chat-strip"
           />
-        </div>
 
-        <div className={`${pcRestoreCardClass('emerald')} !p-5`}>
-          <div className="flex flex-wrap items-center justify-center gap-6 text-sm pc-restore-card-muted">
-            <div className="flex items-center gap-2">
-              <Shield size={18} className="text-emerald-700" />
-              <span>Secure & compliant</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Clock size={18} className="text-amber-700" />
-              <span>Fast turnaround</span>
-            </div>
-            {onDutyCoach ? (
+          <div className={`fc-ivory-glass-panel fc-ivory-pop-tile ${POP_ACCENT.sky} !p-5`}>
+            <div className="flex flex-wrap items-center justify-center gap-6 text-sm">
               <div className="flex items-center gap-2">
-                <StaffPortraitImg staff={onDutyCoach} className="w-8 h-8 rounded-full border border-emerald-400/30" />
-                <span>
-                  {onDutyCoach.firstName}, dispute specialist
-                </span>
+                <Shield size={18} className="text-sky-300" />
+                <span className="fc-ivory-body-text text-sm">Secure & compliant</span>
               </div>
-            ) : (
               <div className="flex items-center gap-2">
-                <Users size={18} />
-                <span>Expert support</span>
+                <Clock size={18} className="text-violet-300" />
+                <span className="fc-ivory-body-text text-sm">Fast turnaround</span>
               </div>
-            )}
-            <div className="flex items-center gap-2">
-              <Star size={18} className="text-amber-600" />
-              <span>Partner wins vary</span>
+              {onDutyCoach ? (
+                <div className="flex items-center gap-2">
+                  <StaffPortraitImg staff={onDutyCoach} className="w-8 h-8 rounded-full border border-emerald-400/30" />
+                  <span className="fc-ivory-body-text text-sm">
+                    {onDutyCoach.firstName}, dispute specialist
+                  </span>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <Users size={18} className="text-violet-300" />
+                  <span className="fc-ivory-body-text text-sm">Expert support</span>
+                </div>
+              )}
+              <div className="flex items-center gap-2">
+                <Star size={18} className="text-emerald-300" />
+                <span className="fc-ivory-body-text text-sm">Partner wins vary</span>
+              </div>
             </div>
           </div>
+
+          <DedicatedSheetLinkStrip
+            surface="ivoryWealthy"
+            only={['restore', 'build']}
+            heading="Prefer to start on your own? Take the sheets."
+            subline="Free PDFs · honest page counts · no signup"
+          />
+
+          <section
+            className={`fc-ivory-glass-panel fc-ivory-pop-tile ${POP_ACCENT.violet} !p-8 text-center space-y-4`}
+          >
+            <p className="pc-restore-kicker pc-restore-kicker--on-pop">Take the first step</p>
+            <h2 className="fc-ivory-section-title fc-ivory-section-title--on-dark text-2xl md:text-3xl lg:text-4xl">
+              Ready to move your file forward?
+            </h2>
+            <p className="fc-ivory-body-text max-w-xl mx-auto text-base sm:text-lg">
+              Quick intake — see which package fits. No commitment required.
+            </p>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+              <button type="button" onClick={() => finelyCtaNavigate(navigate, 'personal_intake')} className={`${PC_RESTORE_BTN.emerald} !px-8 !py-3`}>
+                Start intake <ArrowRight size={16} />
+              </button>
+              <button
+                type="button"
+                onClick={() => finelyCtaNavigate(navigate, 'consultation', { consultationLane: 'Personal Credit' })}
+                className={`${PC_RESTORE_BTN.ghostLight} !px-8 !py-3`}
+              >
+                Book a session <ArrowRight size={16} />
+              </button>
+            </div>
+            <p className="text-xs text-white/55 leading-relaxed">
+              Results vary · not legal advice · funding subject to underwriting
+            </p>
+          </section>
+
+          <FinelyOsPageFooter />
         </div>
-
-        <DedicatedSheetLinkStrip
-          only={['restore', 'build']}
-          heading="Prefer to start on your own? Take the sheets."
-          subline="Free PDFs · honest page counts · no signup"
-        />
-
-        <div className={`${pcRestoreCardClass('amber')} !p-8 text-center space-y-4`}>
-          <p className="pc-restore-kicker">Take the first step</p>
-          <h2 className="text-2xl md:text-3xl font-bold pc-restore-card-ink">Ready to move your file forward?</h2>
-          <p className="pc-restore-card-muted max-w-xl mx-auto">Quick intake — see which package fits. No commitment required.</p>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-            <button type="button" onClick={() => finelyCtaNavigate(navigate, 'personal_intake')} className={`${PC_RESTORE_BTN.emerald} !px-8 !py-3`}>
-              Start intake <ArrowRight size={16} />
-            </button>
-            <button
-              type="button"
-              onClick={() => finelyCtaNavigate(navigate, 'consultation', { consultationLane: 'Personal Credit' })}
-              className={`${PC_RESTORE_BTN.platinum} !px-8 !py-3`}
-            >
-              Book a session <ArrowRight size={16} />
-            </button>
-          </div>
-        </div>
-
-        <FinelyOsPageFooter />
       </div>
     </PageShell>
   );

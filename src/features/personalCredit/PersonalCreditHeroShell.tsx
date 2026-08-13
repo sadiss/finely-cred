@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { ArrowRight } from 'lucide-react';
+import { LandingTypewriterTitle } from '../../components/landing/LandingTypewriterTitle';
 import { PC_RESTORE_BTN } from './personalCreditRestoreButtons';
 
 type Props = {
@@ -38,18 +39,26 @@ export function PersonalCreditHeroShell({ onStartFreeGuide, onBookSession }: Pro
       <div className="pc-restore-hero-overlay-bottom" aria-hidden />
 
       <div className="pc-restore-hero-inner pc-restore-hero-inner--copy-only">
-        <div className="space-y-4 min-w-0 max-w-xl">
+        <div className="space-y-4 min-w-0 max-w-xl" data-fc-contrast-band="1">
           <p className="pc-restore-kicker">Solutions · Personal credit restoration</p>
-          <h1 className="pc-restore-title">Restore your credit. Reclaim your future.</h1>
+          <LandingTypewriterTitle
+            as="h1"
+            text="Restore your credit. "
+            accentText="Reclaim your future."
+            className="pc-restore-title pc-restore-title--playfair text-white"
+            accentClassName="text-emerald-200 italic"
+            speedMs={34}
+            caret
+          />
           <p className="pc-restore-lede">
             Professional dispute letters, three-bureau coverage, and step-by-step tracking — powered by the Finely Cred OS
             behind every step.
           </p>
           <div className="flex flex-wrap gap-2 pt-1">
-            <button type="button" className={PC_RESTORE_BTN.gold} onClick={onStartFreeGuide}>
+            <button type="button" className={PC_RESTORE_BTN.emerald} onClick={onStartFreeGuide}>
               Start free guide <ArrowRight size={14} />
             </button>
-            <button type="button" className={PC_RESTORE_BTN.platinum} onClick={onBookSession}>
+            <button type="button" className={PC_RESTORE_BTN.sky} onClick={onBookSession}>
               Book a session <ArrowRight size={14} />
             </button>
           </div>
@@ -64,19 +73,22 @@ export function PersonalCreditHeroShell({ onStartFreeGuide, onBookSession }: Pro
 
 export function PersonalCreditRestoreSpectrum() {
   const segs = [
-    { bg: 'linear-gradient(90deg,#9b2d4a,#c45c2a)', label: 'Stabilize' },
-    { bg: 'linear-gradient(90deg,#c45c2a,#b8860b)', label: 'Dispute' },
-    { bg: 'linear-gradient(90deg,#b8860b,#1f7a5c)', label: 'Monitor' },
-    { bg: 'linear-gradient(90deg,#1f7a5c,#3db896)', label: 'Build' },
-    { bg: 'linear-gradient(90deg,#3db896,#d4af37)', label: 'Fund-ready' },
+    { cls: 'pc-restore-spectrum-seg--poor', label: 'Stabilize' },
+    { cls: 'pc-restore-spectrum-seg--fair', label: 'Dispute' },
+    { cls: 'pc-restore-spectrum-seg--good', label: 'Monitor' },
+    { cls: 'pc-restore-spectrum-seg--verygood', label: 'Build' },
+    { cls: 'pc-restore-spectrum-seg--excellent', label: 'Fund-ready' },
   ];
 
   return (
-    <div className="min-w-0">
-      <div className="pc-restore-spectrum" role="img" aria-label="Restore path from stabilize to fund-ready">
+    <div className="min-w-0 pc-restore-spectrum-wrap">
+      <div className="pc-restore-spectrum pc-restore-spectrum--animated" role="img" aria-label="Restore path from stabilize to fund-ready">
         {segs.map((s) => (
-          <div key={s.label} className="pc-restore-spectrum-seg" style={{ background: s.bg }} />
+          <div key={s.label} className={`pc-restore-spectrum-seg ${s.cls}`} />
         ))}
+        <div className="pc-restore-spectrum-sweep" aria-hidden />
+        <div className="pc-restore-spectrum-sweep pc-restore-spectrum-sweep--comet" aria-hidden />
+        <div className="pc-restore-spectrum-sweep pc-restore-spectrum-sweep--glow" aria-hidden />
       </div>
       <div className="pc-restore-spectrum-labels">
         {segs.map((s) => (
@@ -87,20 +99,64 @@ export function PersonalCreditRestoreSpectrum() {
   );
 }
 
-export function PersonalCreditCommandStrip({ onStartIntake }: { onStartIntake: () => void }) {
+export function PersonalCreditCommandStrip({
+  onComparePackages,
+  onStartFreeGuide,
+}: {
+  onComparePackages: () => void;
+  onStartFreeGuide: () => void;
+}) {
   return (
     <div className="pc-restore-command">
       <div className="min-w-0">
         <p className="pc-restore-hub-eyebrow">What to do next</p>
         <p className="pc-restore-hub-sub text-sm font-medium">
-          Scroll for packages, how it works, and platform tools — or start intake now.
+          New here? Compare restore packages below or start with the free guide — no credit report or dashboard required yet.
         </p>
       </div>
       <div className="flex flex-wrap gap-2 shrink-0">
-        <button type="button" className={PC_RESTORE_BTN.emerald} onClick={onStartIntake}>
-          Start intake
+        <button type="button" className={PC_RESTORE_BTN.emerald} onClick={onComparePackages}>
+          Compare packages
+        </button>
+        <button type="button" className={PC_RESTORE_BTN.ghost} onClick={onStartFreeGuide}>
+          Start free guide
         </button>
       </div>
+    </div>
+  );
+}
+
+export type PersonalCreditRestorePath = 'dfy' | 'diy';
+
+export function PersonalCreditPathSwitcher({
+  value,
+  onChange,
+}: {
+  value: PersonalCreditRestorePath;
+  onChange: (path: PersonalCreditRestorePath) => void;
+}) {
+  return (
+    <div className="pc-restore-path-switch" role="tablist" aria-label="Restore package path">
+      <button
+        type="button"
+        role="tab"
+        aria-selected={value === 'dfy'}
+        className={`pc-restore-path-switch__btn ${value === 'dfy' ? 'pc-restore-path-switch__btn--active pc-restore-path-switch__btn--dfy' : ''}`}
+        onClick={() => onChange('dfy')}
+      >
+        <span className="pc-restore-path-switch__label">Done for you</span>
+        <span className="pc-restore-path-switch__hint">We dispute, track, and escalate on your file</span>
+      </button>
+      <button
+        type="button"
+        role="tab"
+        aria-selected={value === 'diy'}
+        className={`pc-restore-path-switch__btn ${value === 'diy' ? 'pc-restore-path-switch__btn--active pc-restore-path-switch__btn--diy' : ''}`}
+        onClick={() => onChange('diy')}
+      >
+        <span className="pc-restore-path-switch__label">Do it yourself</span>
+        <span className="pc-restore-path-switch__hint">Templates, letter packs, and platform tools</span>
+      </button>
     </div>
   );
 }

@@ -1,0 +1,172 @@
+/* Partner portal — full width, zero blur overlays, visible glow tiles + map */
+
+.fc-container--portal-full {
+  max-width: none !important;
+  width: 100% !important;
+  padding-left: max(0.75rem, env(safe-area-inset-left));
+  padding-right: max(0.75rem, env(safe-area-inset-right));
+}
+
+@media (min-width: 640px) {
+  .fc-container--portal-full {
+    padding-left: max(1.25rem, env(safe-area-inset-left));
+    padding-right: max(1.25rem, env(safe-area-inset-right));
+  }
+}
+
+@media (min-width: 1536px) {
+  .fc-container--portal-full {
+    padding-left: max(2rem, env(safe-area-inset-left));
+    padding-right: max(2rem, env(safe-area-inset-right));
+  }
+}
+
+/* Kill glass blur stacks on partner dashboard + hub modals */
+[data-fc-partner-portal='1'] :is(.fc-luxury-glass, .fc-light-glass-panel, .fc-light-chrome-panel, .fc-pop-surface),
+[data-fc-partner-hub-modal='1'] :is(.fc-luxury-glass, .fc-light-glass-panel, .fc-light-chrome-panel, .fc-pop-surface),
+[data-fc-partner-hub-modal-root='1'] :is(.fc-luxury-glass, .fc-light-glass-panel, .fc-light-chrome-panel) {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  filter: none !important;
+}
+
+[data-fc-partner-portal='1'] [data-fc-partner-hub-launcher='1'] .fc-partner-hub-glow-tile,
+[data-fc-partner-hub-modal='1'] .fc-partner-hub-glow-tile {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+[data-fc-partner-portal='1'] [data-fc-partner-hub-launcher='1'] .fc-partner-hub-glow-tile :is(.text-white, [class*='text-white/'], [class*='ENTITY_VALUE'], [class*='ENTITY_BODY'], [class*='ENTITY_SUBLABEL']),
+[data-fc-partner-hub-modal='1'] .fc-partner-hub-glow-tile :is(.text-white, [class*='text-white/'], [class*='ENTITY_VALUE'], [class*='ENTITY_BODY'], [class*='ENTITY_SUBLABEL']) {
+  color: rgba(255, 255, 255, 0.94) !important;
+}
+
+html[data-fc-theme='light'] [data-fc-partner-portal='1'] .fc-spotlight-panel,
+html[data-fc-theme='light'] [data-fc-partner-hub-modal='1'] .fc-spotlight-panel {
+  border-color: rgba(255, 255, 255, 0.18) !important;
+  background: linear-gradient(165deg, rgba(18, 24, 38, 0.96) 0%, rgba(10, 14, 24, 0.94) 100%) !important;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.08),
+    0 16px 40px -18px rgba(0, 0, 0, 0.55) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+html[data-fc-theme='light'] [data-fc-partner-portal='1'] .fc-spotlight-panel :is(.text-white, [class*='text-white/']),
+html[data-fc-theme='light'] [data-fc-partner-hub-modal='1'] .fc-spotlight-panel :is(.text-white, [class*='text-white/']) {
+  color: rgba(255, 255, 255, 0.92) !important;
+}
+
+html[data-fc-theme='light'] [data-fc-partner-hub-modal='1'] .fc-accent-card.fc-luxury-glass:not([class*='fc-admin-solid']) {
+  border-color: rgba(255, 255, 255, 0.14) !important;
+  background: linear-gradient(165deg, rgba(14, 20, 34, 0.94) 0%, rgba(8, 12, 22, 0.92) 100%) !important;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.06), 0 12px 32px -16px rgba(0, 0, 0, 0.45) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+html[data-fc-theme='light'] [data-fc-partner-hub-modal='1'] [data-fc-accent='emerald'].fc-accent-card:not([class*='fc-admin-solid']),
+html[data-fc-theme='light'] [data-fc-partner-portal='1'] [data-fc-accent='emerald'].fc-partner-hub-glow-tile {
+  border-color: rgba(52, 211, 153, 0.55) !important;
+  background: linear-gradient(165deg, rgba(4, 56, 42, 0.95) 0%, rgba(8, 14, 24, 0.92) 100%) !important;
+  box-shadow: 0 0 36px -10px rgba(52, 211, 153, 0.55) !important;
+}
+
+html[data-fc-theme='light'] [data-fc-partner-hub-modal='1'] [data-fc-accent='violet'].fc-accent-card:not([class*='fc-admin-solid']),
+html[data-fc-theme='light'] [data-fc-partner-portal='1'] [data-fc-accent='violet'].fc-partner-hub-glow-tile {
+  border-color: rgba(167, 139, 250, 0.55) !important;
+  background: linear-gradient(165deg, rgba(52, 18, 82, 0.95) 0%, rgba(8, 14, 24, 0.92) 100%) !important;
+  box-shadow: 0 0 36px -10px rgba(167, 139, 250, 0.5) !important;
+}
+
+html[data-fc-theme='light'] [data-fc-partner-hub-modal='1'] [data-fc-accent='sky'].fc-accent-card:not([class*='fc-admin-solid']),
+html[data-fc-theme='light'] [data-fc-partner-portal='1'] [data-fc-accent='sky'].fc-partner-hub-glow-tile {
+  border-color: rgba(56, 189, 248, 0.55) !important;
+  background: linear-gradient(165deg, rgba(8, 52, 82, 0.95) 0%, rgba(8, 14, 24, 0.92) 100%) !important;
+  box-shadow: 0 0 36px -10px rgba(56, 189, 248, 0.48) !important;
+}
+
+html[data-fc-theme='light'] [data-fc-partner-hub-modal='1'] [data-fc-accent='amber'].fc-accent-card:not([class*='fc-admin-solid']),
+html[data-fc-theme='light'] [data-fc-partner-portal='1'] [data-fc-accent='amber'].fc-partner-hub-glow-tile {
+  border-color: rgba(251, 191, 36, 0.55) !important;
+  background: linear-gradient(165deg, rgba(78, 32, 4, 0.95) 0%, rgba(8, 14, 24, 0.92) 100%) !important;
+  box-shadow: 0 0 36px -10px rgba(251, 191, 36, 0.48) !important;
+}
+
+html[data-fc-theme='light'] [data-fc-partner-hub-modal='1'] [data-fc-accent='fuchsia'].fc-accent-card:not([class*='fc-admin-solid']),
+html[data-fc-theme='light'] [data-fc-partner-portal='1'] [data-fc-accent='fuchsia'].fc-partner-hub-glow-tile {
+  border-color: rgba(232, 121, 249, 0.55) !important;
+  background: linear-gradient(165deg, rgba(82, 8, 88, 0.95) 0%, rgba(8, 14, 24, 0.92) 100%) !important;
+  box-shadow: 0 0 36px -10px rgba(217, 70, 239, 0.48) !important;
+}
+
+html[data-fc-theme='light'] [data-fc-partner-hub-modal='1'] .fc-accent-card:not([class*='fc-admin-solid']) :is(h1, h2, h3, .font-semibold, .font-bold, [class*='ENTITY_VALUE']),
+html[data-fc-theme='light'] [data-fc-partner-portal='1'] .fc-accent-card:not([class*='fc-admin-solid']) :is(h1, h2, h3, .font-semibold, .font-bold, [class*='ENTITY_VALUE']) {
+  color: rgba(255, 255, 255, 0.96) !important;
+}
+
+html[data-fc-theme='light'] [data-fc-partner-hub-modal='1'] .fc-accent-card:not([class*='fc-admin-solid']) :is(p, .text-sm, .text-xs, [class*='ENTITY_BODY'], [class*='ENTITY_SUBLABEL']),
+html[data-fc-theme='light'] [data-fc-partner-portal='1'] .fc-accent-card:not([class*='fc-admin-solid']) :is(p, .text-sm, .text-xs, [class*='ENTITY_BODY'], [class*='ENTITY_SUBLABEL']) {
+  color: rgba(255, 255, 255, 0.78) !important;
+}
+
+html[data-fc-theme='light'] [data-fc-partner-portal='1'] .fc-accent-card.fc-luxury-glass:not(.fc-partner-hub-glow-tile):not([class*='fc-admin-solid']) {
+  border-color: rgba(167, 139, 250, 0.38) !important;
+  background: linear-gradient(165deg, rgba(46, 16, 72, 0.88) 0%, rgba(8, 14, 24, 0.92) 100%) !important;
+  box-shadow: 0 0 32px -12px rgba(167, 139, 250, 0.42) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+html[data-fc-theme='light'] [data-fc-partner-welcome='1'] :is(.text-white, [class*='text-white/']) {
+  color: rgba(255, 255, 255, 0.94) !important;
+}
+
+[data-fc-partner-portal='1'] [data-fc-partner-map-teaser='1'] {
+  border-color: rgba(52, 211, 153, 0.45) !important;
+}
+
+/* Journey map — solid, sharp, no glass wash */
+[data-fc-partner-hub-modal='1'] [data-fc-journey-map='1'] {
+  border-color: rgba(52, 211, 153, 0.35) !important;
+  background: linear-gradient(165deg, #0a1218 0%, #060a10 100%) !important;
+  box-shadow: 0 0 40px -12px rgba(52, 211, 153, 0.35) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+[data-fc-partner-hub-modal='1'] [data-fc-journey-map='1'] :is(.text-white, [class*='text-white/']) {
+  color: rgba(255, 255, 255, 0.92) !important;
+}
+
+[data-fc-partner-hub-modal='1'] [data-fc-journey-map='1'] .fc-light-glass-panel,
+[data-fc-partner-hub-modal='1'] [data-fc-journey-map='1'] .fc-light-chrome-panel {
+  background: rgba(0, 0, 0, 0.35) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+[data-fc-partner-hub-modal='1'] section.fc-light-glass-panel,
+[data-fc-partner-hub-modal='1'] section.fc-light-chrome-panel {
+  background: linear-gradient(165deg, rgba(12, 18, 30, 0.96) 0%, rgba(8, 12, 20, 0.94) 100%) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+[data-fc-partner-hub-modal='1'] section.fc-light-glass-panel :is(h1, h2, h3, .font-semibold, .text-lg),
+[data-fc-partner-hub-modal='1'] section.fc-light-chrome-panel :is(h1, h2, h3, .font-semibold, .text-lg) {
+  color: rgba(255, 255, 255, 0.96) !important;
+}
+
+[data-fc-partner-hub-modal='1'] section.fc-light-glass-panel :is(p, .text-base, .text-sm, .text-xs),
+[data-fc-partner-hub-modal='1'] section.fc-light-chrome-panel :is(p, .text-base, .text-sm, .text-xs) {
+  color: rgba(255, 255, 255, 0.72) !important;
+}
+
+/* Beat light-theme inversion inside partner scope */
+html[data-fc-theme='light'] [data-fc-partner-portal='1'].fc-light-black-scope :is(.text-white, [class*='text-white/']),
+html[data-fc-theme='light'] [data-fc-partner-hub-modal='1'] :is(.text-white, [class*='text-white/']) {
+  color: rgba(255, 255, 255, 0.92) !important;
+}

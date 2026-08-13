@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { ExternalLink, FileText, X } from 'lucide-react';
+import { ExternalLink, FileText, X, Download } from 'lucide-react';
 import type { LetterRecord, DisputeLetterMeta } from '../../domain/letters';
 import { bureauShortCode } from '../../utils/bureaus';
 import type { Bureau } from '../../domain/creditReports';
 import { getBlobUrl } from '../../storage/getBlobUrl';
 import { openBlobRefInNewTab } from '../../lib/openBlobRef';
+import { downloadLetterPdf } from '../../lib/downloadLetterPdf';
 import { isProbablyHtml } from '../../utils/richText';
 import { DebtLetterPreview } from './DebtLetterPreview';
 import {
@@ -29,6 +30,8 @@ export function LetterFullPreviewModal({
   onEdit?: () => void;
 }) {
   const [pdfUrl, setPdfUrl] = useState('');
+  const [pdfErr, setPdfErr] = useState<string | null>(null);
+  const [pdfBusy, setPdfBusy] = useState(false);
   const hasPdf = Boolean(letter.pdfBlobRef);
   const hasBody = Boolean(letter.body?.trim());
   const meta = letter.meta as DisputeLetterMeta | undefined;
@@ -38,15 +41,32 @@ export function LetterFullPreviewModal({
   useEffect(() => {
     if (!hasPdf) return undefined;
     let alive = true;
-    void getBlobUrl(letter.pdfBlobRef!, { mimeType: 'application/pdf', preferSigned: true }).then((res) => {
-      if (!alive) {
-        res?.revoke?.();
-        return;
-      }
-      if (res?.url) setPdfUrl(res.url);
-    });
+    let revoke: (() => void) | undefined;
+    setPdfErr(null);
+    setPdfUrl('');
+    setPdfBusy(true);
+    void getBlobUrl(letter.pdfBlobRef!, { mimeType: 'application/pdf', preferSigned: true })
+      .then((res) => {
+        if (!alive) {
+          res?.revoke?.();
+          return;
+        }
+        if (!res?.url) {
+          setPdfErr('Could not load this PDF from storage. Try Open PDF in a new tab or re-save the letter.');
+          return;
+        }
+        revoke = res.revoke;
+        setPdfUrl(res.url);
+      })
+      .catch(() => {
+        if (alive) setPdfErr('Could not load this PDF. Try Open PDF in a new tab.');
+      })
+      .finally(() => {
+        if (alive) setPdfBusy(false);
+      });
     return () => {
       alive = false;
+      revoke?.();
     };
   }, [hasPdf, letter.pdfBlobRef]);
 
@@ -56,7 +76,11 @@ export function LetterFullPreviewModal({
       return;
     }
     if (!letter.pdfBlobRef) return;
-    void openBlobRefInNewTab({ blobRef: letter.pdfBlobRef, mimeType: 'application/pdf', preferSigned: true });
+    void openBlobRefInNewTab({ blobRef: letter.pdfBlobRef, mimeType: 'application/pdf', preferSigned: true }).then(
+      (res) => {
+        if (!res.ok) setPdfErr(res.message);
+      },
+    );
   };
 
   return createPortal(
@@ -87,8 +111,15 @@ export function LetterFullPreviewModal({
                 src={pdfUrl}
                 className="h-full min-h-[50vh] sm:min-h-0 w-full rounded-xl sm:rounded-2xl border border-white/10 bg-white shadow-2xl"
               />
+            ) : pdfErr ? (
+              <div className={`${FINELY_OS_ENTITY_BODY} text-center py-16 space-y-4 px-4`}>
+                <p>{pdfErr}</p>
+                <button type="button" onClick={openExternal} className={`${FINELY_OS_PRIMARY_BTN} !py-2.5 !text-sm`}>
+                  <ExternalLink size={16} /> Open PDF in new tab
+                </button>
+              </div>
             ) : (
-              <div className={`${FINELY_OS_ENTITY_BODY} text-center py-16`}>Loading PDF…</div>
+              <div className={`${FINELY_OS_ENTITY_BODY} text-center py-16`}>{pdfBusy ? 'Loading PDF…' : 'Preparing PDF…'}</div>
             )
           ) : hasBody ? (
             <div className="h-full min-h-[50vh] sm:min-h-0 overflow-y-auto rounded-xl sm:rounded-2xl border border-white/10 bg-[#0a0f0d] p-3 sm:p-4">
@@ -111,9 +142,18 @@ export function LetterFullPreviewModal({
 
         <div className="shrink-0 border-t border-white/10 px-3 py-3 sm:px-6 flex flex-wrap gap-2 bg-[#070b10]">
           {hasPdf ? (
-            <button type="button" onClick={openExternal} className={`${FINELY_OS_PRIMARY_BTN} !py-2.5 !text-sm flex-1 sm:flex-none min-w-[8rem]`}>
-              <ExternalLink size={16} /> Open PDF
-            </button>
+            <>
+              <button
+                type="button"
+                onClick={() => void downloadLetterPdf(letter)}
+                className={`${FINELY_OS_SECONDARY_BTN} !py-2.5 !text-sm flex-1 sm:flex-none min-w-[8rem]`}
+              >
+                <Download size={16} /> Download PDF
+              </button>
+              <button type="button" onClick={openExternal} className={`${FINELY_OS_PRIMARY_BTN} !py-2.5 !text-sm flex-1 sm:flex-none min-w-[8rem]`}>
+                <ExternalLink size={16} /> Open PDF
+              </button>
+            </>
           ) : null}
           {onEdit ? (
             <button type="button" onClick={onEdit} className={`${FINELY_OS_SECONDARY_BTN} !py-2.5 !text-sm flex-1 sm:flex-none`}>

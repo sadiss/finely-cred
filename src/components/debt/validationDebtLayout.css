@@ -1,0 +1,258 @@
+/* Validation debt lane — shared generate-letter visual language */
+
+.fc-validation-generate-hero {
+  animation: fcValidationGenerateGlow 2.4s ease-in-out infinite;
+}
+
+@keyframes fcValidationGenerateGlow {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 1px rgba(251, 191, 36, 0.42),
+      0 0 18px rgba(251, 191, 36, 0.26);
+  }
+  50% {
+    box-shadow:
+      0 0 0 2px rgba(253, 230, 138, 0.68),
+      0 0 28px rgba(251, 191, 36, 0.42);
+  }
+}
+
+.fc-validation-generate-card {
+  border: 1px solid rgba(251, 191, 36, 0.45);
+  background: linear-gradient(145deg, rgba(251, 191, 36, 0.16) 0%, rgba(0, 0, 0, 0.55) 48%, rgba(217, 70, 239, 0.08) 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.fc-validation-suggest-shell {
+  border: 1px solid rgba(56, 189, 248, 0.28);
+  background: linear-gradient(160deg, rgba(14, 165, 233, 0.1) 0%, rgba(0, 0, 0, 0.45) 55%, rgba(0, 0, 0, 0.62) 100%);
+}
+
+.fc-validation-alt-row {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(0, 0, 0, 0.28);
+}
+
+/* Also-recommended — luxury accent tile boxes (not list rows) */
+.fc-validation-alt-grid {
+  display: grid;
+  gap: 0.85rem;
+}
+
+@media (min-width: 640px) {
+  .fc-validation-alt-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1280px) {
+  .fc-validation-alt-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.fc-validation-alt-card {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  min-height: 11rem;
+  padding: 1rem 1rem 0.9rem;
+  border-radius: 1.1rem;
+  isolation: isolate;
+  transition: transform 0.24s ease, box-shadow 0.24s ease, border-color 0.24s ease;
+}
+
+.fc-validation-alt-card::before {
+  content: '';
+  position: absolute;
+  inset: 0 auto auto 0;
+  width: 100%;
+  height: 3px;
+  opacity: 0.92;
+  z-index: 1;
+}
+
+.fc-validation-alt-card::after {
+  content: '';
+  position: absolute;
+  top: -28%;
+  right: -18%;
+  width: 52%;
+  height: 58%;
+  border-radius: 999px;
+  filter: blur(28px);
+  opacity: 0.55;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.fc-validation-alt-card:hover {
+  transform: translateY(-4px) scale(1.01);
+}
+
+.fc-validation-alt-card__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.1rem;
+  height: 2.1rem;
+  border-radius: 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(0, 0, 0, 0.28);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.fc-validation-alt-card__head {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.fc-validation-alt-card__body {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  flex: 1;
+}
+
+.fc-validation-alt-card__cta {
+  position: relative;
+  z-index: 2;
+  margin-top: auto;
+  width: 100%;
+  justify-content: center;
+  font-size: 10px;
+  padding-top: 0.45rem;
+  padding-bottom: 0.45rem;
+  border-color: rgba(255, 255, 255, 0.22) !important;
+  background: rgba(0, 0, 0, 0.22) !important;
+  color: rgba(255, 255, 255, 0.95) !important;
+}
+
+.fc-validation-alt-card__cta:hover {
+  background: rgba(255, 255, 255, 0.12) !important;
+}
+
+.fc-validation-alt-card--violet {
+  border: 1px solid rgba(167, 139, 250, 0.52);
+  background: linear-gradient(158deg, rgba(88, 28, 135, 0.72) 0%, rgba(24, 10, 44, 0.94) 46%, rgba(8, 6, 16, 0.92) 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 18px 44px -18px rgba(139, 92, 246, 0.62);
+}
+
+.fc-validation-alt-card--violet::before {
+  background: linear-gradient(90deg, rgba(196, 181, 253, 0.95), rgba(139, 92, 246, 0.35));
+}
+
+.fc-validation-alt-card--violet::after {
+  background: rgba(167, 139, 250, 0.42);
+}
+
+.fc-validation-alt-card--violet:hover {
+  border-color: rgba(196, 181, 253, 0.68);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.16),
+    0 24px 52px -14px rgba(139, 92, 246, 0.72);
+}
+
+.fc-validation-alt-card--sky {
+  border: 1px solid rgba(56, 189, 248, 0.5);
+  background: linear-gradient(158deg, rgba(14, 116, 144, 0.68) 0%, rgba(8, 22, 38, 0.94) 46%, rgba(6, 10, 18, 0.92) 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 18px 44px -18px rgba(14, 165, 233, 0.55);
+}
+
+.fc-validation-alt-card--sky::before {
+  background: linear-gradient(90deg, rgba(186, 230, 253, 0.95), rgba(14, 165, 233, 0.35));
+}
+
+.fc-validation-alt-card--sky::after {
+  background: rgba(56, 189, 248, 0.38);
+}
+
+.fc-validation-alt-card--sky:hover {
+  border-color: rgba(125, 211, 252, 0.68);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.16),
+    0 24px 52px -14px rgba(14, 165, 233, 0.65);
+}
+
+.fc-validation-alt-card--fuchsia {
+  border: 1px solid rgba(232, 121, 249, 0.5);
+  background: linear-gradient(158deg, rgba(134, 25, 143, 0.68) 0%, rgba(28, 8, 36, 0.94) 46%, rgba(10, 6, 14, 0.92) 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 18px 44px -18px rgba(217, 70, 239, 0.55);
+}
+
+.fc-validation-alt-card--fuchsia::before {
+  background: linear-gradient(90deg, rgba(245, 208, 254, 0.95), rgba(217, 70, 239, 0.35));
+}
+
+.fc-validation-alt-card--fuchsia::after {
+  background: rgba(232, 121, 249, 0.38);
+}
+
+.fc-validation-alt-card--fuchsia:hover {
+  border-color: rgba(240, 171, 252, 0.68);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.16),
+    0 24px 52px -14px rgba(217, 70, 239, 0.65);
+}
+
+.fc-validation-alt-card__rank {
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.fc-validation-alt-card--violet .fc-validation-alt-card__rank { color: #e9d5ff; }
+.fc-validation-alt-card--sky .fc-validation-alt-card__rank { color: #bae6fd; }
+.fc-validation-alt-card--fuchsia .fc-validation-alt-card__rank { color: #f5d0fe; }
+
+.fc-validation-alt-card--violet .fc-validation-alt-card__icon { color: #ddd6fe; }
+.fc-validation-alt-card--sky .fc-validation-alt-card__icon { color: #bae6fd; }
+.fc-validation-alt-card--fuchsia .fc-validation-alt-card__icon { color: #f5d0fe; }
+
+.fc-validation-catalog-shell {
+  border: 1px solid rgba(251, 191, 36, 0.32);
+  background: linear-gradient(180deg, rgba(251, 191, 36, 0.07) 0%, rgba(0, 0, 0, 0.5) 100%);
+}
+
+.fc-validation-catalog-card {
+  border: 1px solid rgba(251, 191, 36, 0.22);
+  background: linear-gradient(160deg, rgba(251, 191, 36, 0.08) 0%, rgba(0, 0, 0, 0.42) 100%);
+}
+
+.fc-validation-mail-deck {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.625rem 0.75rem;
+  max-width: 42rem;
+}
+
+@media (min-width: 768px) {
+  .fc-validation-mail-deck {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.fc-validation-mail-deck .fc-field-span-2 {
+  grid-column: span 2;
+}
+
+.fc-validation-mail-deck .fc-field-span-4 {
+  grid-column: 1 / -1;
+  max-width: 32rem;
+}

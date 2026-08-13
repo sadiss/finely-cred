@@ -134,7 +134,8 @@ import {
   resolveCityStateZip,
   senderPreviewLines,
 } from '../../lib/letterSenderBlock';
-import { resolveLetterMailRecipient } from '../../lib/letterMailingAddress';
+import { parseLetterRecipientBlock, resolveLetterMailRecipient } from '../../lib/letterMailingAddress';
+import { backfillPartnerLettersMailTo } from '../../lib/letterMailToBackfill';
 import {
   enrichRecipientAddress,
   enrichmentToDebtPatch,
@@ -238,15 +239,36 @@ function resolveDebtDraftTrack(args: {
 
 function metaForDebtDraft(
   draft: { type: DebtDraftTrack; specId: string; catalogId?: string },
-  debt: { id?: string } | null | undefined,
+  debt: import('../../domain/debt').DebtCase | null | undefined,
   scenario: string,
+  mailTo?: { name: string; address: string },
 ): import('../../domain/letters').ValidationLetterMeta | import('../../domain/letters').CourtLetterMeta {
+  const recipientMeta = debt
+    ? {
+        creditorName: debt.name || undefined,
+        collectorName: debt.collectorName || undefined,
+        recipientName: mailTo?.name || debt.recipientName || undefined,
+        recipientAddress: mailTo?.address || debt.recipientAddress || undefined,
+        mailToName: mailTo?.name || debt.recipientName || undefined,
+        mailToAddress: mailTo?.address || debt.recipientAddress || undefined,
+        plaintiffLawFirm: debt.plaintiffLawFirm || undefined,
+        plaintiffLawFirmAddress: debt.plaintiffLawFirmAddress || undefined,
+      }
+    : mailTo
+      ? {
+          recipientName: mailTo.name,
+          recipientAddress: mailTo.address,
+          mailToName: mailTo.name,
+          mailToAddress: mailTo.address,
+        }
+      : {};
   const common = {
     context: 'debt' as const,
     debtId: debt?.id,
     letterSpecId: draft.specId,
     scenario,
     ...(draft.catalogId ? { catalogId: draft.catalogId, debtTrack: draft.type } : {}),
+    ...recipientMeta,
   };
   if (draft.type === 'court' || draft.type === 'foreclosure' || draft.type === 'repossession') {
     return {
@@ -1194,6 +1216,14 @@ export function LettersCommandCenter({
   const [debtMailLetter, setDebtMailLetter] = useState<LetterRecord | null>(null);
   const [draftSavedPreviewLetter, setDraftSavedPreviewLetter] = useState<LetterRecord | null>(null);
   useEffect(() => {
+    if (!partner?.id) return;
+    const sessionKey = `finely.letterMailToBackfill::${partner.id}`;
+    if (typeof window !== 'undefined' && sessionStorage.getItem(sessionKey) === '1') return;
+    backfillPartnerLettersMailTo(partner.id);
+    if (typeof window !== 'undefined') sessionStorage.setItem(sessionKey, '1');
+  }, [partner?.id]);
+
+  useEffect(() => {
     const onStore = (ev: Event) => {
       setStoreVersion((v) => v + 1);
       // Evidence is stored in localJsonStore and written from other screens (Reports/Credit Intel).
@@ -1234,6 +1264,7 @@ export function LettersCommandCenter({
         return;
       }
     }
+    setDraftSavedPreviewLetter(null);
     setDebtMailLetter(letter);
     setDebtMailOpen(true);
   };
@@ -2097,6 +2128,18 @@ WRITING STANDARD:
           reasonsByCandidateId,
           aiNarrativeByCandidateKey,
           aiQuestions: aiQuestionsByBureau?.[b] ?? [],
+          bureauMailingName: (() => {
+            const cur = bureauAddressDraftByBureau[b];
+            return String(cur?.name || '').trim() || bureauDisputeAddress(b).name;
+          })(),
+          bureauMailingAddress: (() => {
+            const cur = bureauAddressDraftByBureau[b];
+            const lines = String(cur?.linesText || '')
+              .split('\n')
+              .map((x) => x.trim())
+              .filter(Boolean);
+            return (lines.length ? lines : bureauDisputeAddress(b).lines).join('\n');
+          })(),
         },
       });
 
@@ -3762,6 +3805,12 @@ useEffect(() => {
           track: draft.type,
           debtName: debt?.name,
         });
+      const mailToSnapshot = (() => {
+        const args = buildDebtLetterArgs();
+        const name = String(args.recipientName || args.plaintiffLawFirm || '').trim();
+        const address = String(args.plaintiffLawFirmAddress || args.recipientAddress || '').trim();
+        return name && address ? { name, address } : undefined;
+      })();
       const saved = upsertLetter({
         id: draft.letterId || newId('letter'),
         partnerId: partner.id,
@@ -3771,7 +3820,7 @@ useEffect(() => {
         body: bodyHtml,
         status: 'generated',
         relatedEvidenceIds: draft.evidenceId ? [draft.evidenceId] : [],
-        meta: metaForDebtDraft(draft, debt, String(recommendedScenario || '')),
+        meta: metaForDebtDraft(draft, debt, String(recommendedScenario || ''), mailToSnapshot),
       });
       addAuditEvent({
         partnerId: partner.id,
@@ -3832,6 +3881,12 @@ useEffect(() => {
         meta: { partnerId: partner.id, debtId: debt?.id, type: draft.type },
       });
 
+      const mailToSnapshot = (() => {
+        const args = buildDebtLetterArgs();
+        const name = String(args.recipientName || args.plaintiffLawFirm || '').trim();
+        const address = String(args.plaintiffLawFirmAddress || args.recipientAddress || '').trim();
+        return name && address ? { name, address } : undefined;
+      })();
       const saved = upsertLetter({
         id: draft.letterId || newId('letter'),
         partnerId: partner.id,
@@ -3843,7 +3898,7 @@ useEffect(() => {
         pdfBlobRef: pdf.pdfBlobRef ?? undefined,
         pdfFilename: pdf.filename,
         relatedEvidenceIds: draft.evidenceId ? [draft.evidenceId] : [],
-        meta: metaForDebtDraft(draft, debt, String(recommendedScenario || '')),
+        meta: metaForDebtDraft(draft, debt, String(recommendedScenario || ''), mailToSnapshot),
       });
       addAuditEvent({
         partnerId: partner.id,
@@ -3929,6 +3984,15 @@ useEffect(() => {
       debtName: debt?.name,
     });
     try {
+      const parsedTo = parseLetterRecipientBlock(plain);
+      const mergeArgs = buildDebtLetterArgs();
+      const mailToSnapshot =
+        parsedTo ??
+        (() => {
+          const name = String(mergeArgs.recipientName || mergeArgs.plaintiffLawFirm || '').trim();
+          const address = String(mergeArgs.plaintiffLawFirmAddress || mergeArgs.recipientAddress || '').trim();
+          return name && address ? { name, address } : undefined;
+        })();
       upsertLetter({
         id: letterId,
         partnerId: partner.id,
@@ -3942,6 +4006,7 @@ useEffect(() => {
           { type: args.track, specId: args.specId, catalogId: args.catalogId },
           debt,
           String(recommendedScenario || ''),
+          mailToSnapshot,
         ),
       });
       addAuditEvent({
@@ -6421,9 +6486,10 @@ useEffect(() => {
                 storeVersion={storeVersion}
                 evidence={evidence}
                 accent="emerald"
-                title="Your bureau letters (vault)"
-                subtitle="Saved dispute PDFs from this studio — preview, mail, or delete here. Full archive opens separately."
-                onOpenFullVault={() => openVault()}
+                title="Saved bureau letters"
+                subtitle="Saved dispute PDFs from this studio — grouped by bureau. Preview, mail, or delete here."
+                onOpenFullVault={unifiedShell ? undefined : () => openVault()}
+                groupByBureau
                 highlightLetterId={vaultHighlightLetterId}
                 suppressAutoPreview={suppressVaultAutoPreview}
                 onLetterSaved={bumpVaultStore}
@@ -6543,6 +6609,7 @@ useEffect(() => {
               onStep={runDebtLetterBuildStep}
               onContinue={runDebtLetterBuildContinue}
               inlineStudioVault
+              suppressEscalationSection={debtTrack === 'validation'}
               onOpenFullVault={() => openVault()}
               adminPartnerId={embeddedPartnerId}
             >

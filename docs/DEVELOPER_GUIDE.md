@@ -26,6 +26,7 @@ This guide is concrete about file paths so you can jump straight to the code. It
 14. [Recent product surfaces (2026)](#14-recent-product-surfaces-2026) — careers/CS join, tradelines vs AU sellers, agency buy-ins, Platinum Workspace, home/nav wayfinding, affiliate + Denefit share, letters evidence capture, **debt guide mockup + video wordmark (§14.10)**, plan docs index
 15. [Launch sprint runbook (Aug 2026)](#15-launch-sprint-runbook-aug-2026) — **CTA spine, growth agents, video/voice studio, mail live mode, admin view-as, partner hub launchers, client seeds, personal credit UX**
 16. [Platform expansion ship (Aug 2026)](#16-platform-expansion-ship-aug-2026) — **letters preview/save, unified chat brain, public chat UX, nationwide geo hunts, Ruth Command, video copilot 5-step wizard, booking invites, Alex appointments, marketing wow layer**
+17. [Restore lane + letters ship (Aug 2026)](#17-restore-lane--letters-ship-aug-2026) — **personal credit package tile text, Ask Finely text-only strip, per-class mail pricing, letter mail-To backfill, partner hub modals**
 
 ---
 
@@ -546,7 +547,8 @@ Product/IA work that landed around careers sell pages, tradelines vs AU sellers,
 | [14.9](#149-key-configs-quick-index) | Key configs (quick index) | Reference |
 | [14.10](#1410-debt-guide-funnel-visuals--video-branding-2026-08) | Debt guide mockup + video wordmark | Shipped |
 | [15](#15-launch-sprint-runbook-aug-2026) | **Launch sprint runbook (Aug 2026)** — CTA, agents, video, mail, view-as, seeds | **Primary reference for Aug sprint baseline** |
-| [16](#16-platform-expansion-ship-aug-2026) | **Platform expansion ship (Aug 2026)** — letters, chat brain, geo hunts, Ruth, copilot wizard, booking | **Latest ship on `fix/debt-guide-mockup-video-wordmark`** |
+| [16](#16-platform-expansion-ship-aug-2026) | **Platform expansion ship (Aug 2026)** — letters, chat brain, geo hunts, Ruth, copilot wizard, booking | Shipped |
+| [17](#17-restore-lane--letters-ship-aug-2026) | **Restore lane + letters ship (Aug 2026)** — package tile text, Ask Finely strip, mail pricing, mail-To backfill, hub modals | **Latest ship on `fix/debt-guide-mockup-video-wordmark`** |
 
 Public career / join surfaces (full public chrome via `PageShell`):
 
@@ -1102,6 +1104,106 @@ npm run typecheck
 node scripts/audit-chat-portrait-diversity.mjs
 npm run demo:launch:video -- --force   # optional — refreshes public presenter reel
 ```
+
+---
+
+## 17. Restore lane + letters ship (Aug 2026)
+
+**Status: shipped** on branch `fix/debt-guide-mockup-video-wordmark`. Builds on §16 with personal credit restore readability on dark package tiles, a text-only Ask Finely strip, per-class letter-mail pricing, mail-To meta backfill for saved letters, and partner portal hub modal fixes.
+
+### 17.1 Personal credit restore — white text on package tiles
+
+**Problem solved:** Ivory `PageShell` and the site-wide light-theme inversion rule remap `.text-white` → dark ink. Personal credit restore uses **dark accent pop tiles** (emerald, gold, navy, sky, rose) for featured packages and the compare catalog — prices, taglines, and meta chips must stay **white**, not inherit dark ink.
+
+| Issue | Fix |
+|-------|-----|
+| Light theme inverts `.text-white` inside ivory shells | Carve-out in `src/index.css` under `[data-fc-restore-pricing="1"]` for `.fc-ivory-pop-tile` + `.fc-restore-catalog-panel [class*='fc-admin-solid']` |
+| Gold `fc-admin-solid-gold` tiles use dark ink on transparent dark bed | `FinelyOsCatalogBrowser` prop `catalogDarkBed` → explicit `text-white` / `!text-white` on card shell when `adminSolid` + dark bed |
+| Featured pop tiles + compare catalog inconsistent | `personalCreditRestoreVisual.css` theme-agnostic white rules on all `.fc-ivory-pop-*` accents and catalog solid cards |
+
+| Piece | Location |
+|-------|----------|
+| Page scope marker | `PersonalCreditPage.tsx` — `data-fc-restore-pricing="1"` |
+| Compare / DFY catalog | `PricingPackageCatalog.tsx` — passes `catalogDarkBed` |
+| Catalog browser dark bed | `FinelyOsCatalogBrowser.tsx` — `catalogDarkBed` + `cardSurface="adminSolid"` |
+| Visual CSS | `src/features/personalCredit/personalCreditRestoreVisual.css` |
+| Light-theme exception | `src/index.css` (~line 1702) |
+
+**Verify:** `/personal-credit` → scroll to featured package tiles + **Compare tiers** catalog → every price (`fc-ivory-glow-figure`), title, tagline, and meta chip is readable white on every accent (sky, emerald, navy, gold, rose). Toggle public light theme if enabled — text must not flip to dark ink.
+
+### 17.2 Ask Finely — text-only strip
+
+**Problem solved:** The sitewide help strip no longer exposes mic / TTS on public and portal chrome. Partners get prompt chips → plain-text answers via `finelyPublicAnswer()` — no voice input, no read-aloud.
+
+| Piece | Location |
+|-------|----------|
+| Ask Finely strip (public + portal) | `FinelyLaunchHelpStrip.tsx` — mounted from `PageShell.tsx` |
+| Brain | `finelyPublicAnswer()` in `src/lib/finelyBrain/finelyPublicAnswer.ts` |
+| Prompt chips | `TEXT_PROMPTS` — “What is Finely?”, “Restore credit”, “Free guide” |
+| Staff specialist grid (separate) | `MarketingStaffChatStrip.tsx` — opens `PublicChatWidget` on tap; still no mic on the strip itself |
+
+**Not the same surface:** `HubAiCoachPanel.tsx` (portal workspace coach) and video studio copilot may still use **transcribe-only** mic — that is intentional workspace tooling, not the Ask Finely strip.
+
+**Verify:** Any route using `PageShell` (public marketing or `/portal/*`) → **Ask Finely** strip visible → tap “What is Finely?” → plain-text reply appears below chips. No mic button, no TTS playback control on the strip.
+
+### 17.3 Letter mail pricing — per-class `estCostCents`
+
+**Problem solved:** Mail UI showed a flat certified-mail estimate (`DEFAULT_MAIL_COST_CENTS`) regardless of selected USPS class. Single-letter send now uses **per-class fallback cents** from `mailClassOptions.ts`; live LetterStream quotes override when addresses are complete.
+
+| Mail class (`FinelyMailType`) | Fallback `estCostCents` | Typical use |
+|-------------------------------|-------------------------|-------------|
+| `firstclass` | 350 ($3.50) | Fastest path when proof/signature not required |
+| `certnoerr` | 650 ($6.50) | Certified tracking without electronic return receipt |
+| `certified` | 800 ($8.00) | Certified + ERR — default for court/validation/affidavit letters |
+
+| Piece | Location |
+|-------|----------|
+| Class catalog + fallback cents | `src/lib/mailClassOptions.ts` — `MAIL_CLASS_CHOICES`, `mailClassChoice()`, `mailClassEstCostUsd()` |
+| Single-letter modal pricing | `MailLetterModal.tsx` — `selectedCostCents` uses live quote when available, else `mailClassChoice(mailType).estCostCents` (not flat `DEFAULT_MAIL_COST_CENTS`) |
+| Ledger default (wallet display only) | `mailCreditsRepo.ts` — `DEFAULT_MAIL_COST_CENTS = mailClassChoice('certified').estCostCents` |
+| Default class heuristic | `defaultMailTypeForLetter()` / `defaultMailTypeForBatch()` in `mailClassOptions.ts` |
+
+**Rule:** When adding mail-cost UI, always read `mailClassChoice(selectedType).estCostCents` for the active class. Reserve `DEFAULT_MAIL_COST_CENTS` for wallet/ledger fallbacks where no class is selected yet.
+
+**Verify:** Partner Letters → open **Mail** on a saved letter with PDF → switch mail class (First Class vs Certified+ERR) → estimate line updates per class. Complete To/From addresses → live quote replaces fallback when LetterStream preauth succeeds.
+
+### 17.4 Letter mail-To backfill for existing letters
+
+**Problem solved:** Older saved letters lacked `meta.mailToName` / `meta.mailToAddress`, so the mail modal opened with an empty recipient even when the letter body had a TO block.
+
+| Piece | Location |
+|-------|----------|
+| Single-letter backfill | `backfillLetterMailToMeta()` in `src/lib/letterMailToBackfill.ts` |
+| Partner batch backfill | `backfillPartnerLettersMailTo(partnerId)` — parses body via `parseLetterRecipientBlock()`, falls back to bureau defaults for disputes |
+| Letters hub (session once) | `LettersCommandCenter.tsx` — `useEffect` keyed on `partner.id`, sessionStorage guard `finely.letterMailToBackfill::<partnerId>` |
+| Vault page (session once) | `PartnerLettersVaultPage.tsx` — same backfill + refreshes list when count > 0 |
+| Mail modal (on open) | `MailLetterModal.tsx` — calls `backfillLetterMailToMeta()` before populate |
+
+Backfill also aligns `meta.recipientName` / `meta.recipientAddress` and, for bureau disputes, `meta.bureauMailingName` / `meta.bureauMailingAddress` when missing or mismatched.
+
+**Verify:** Open an older validation letter (body has creditor TO block, meta empty) → Mail modal → recipient fields pre-filled from body. Re-open Letters hub in a fresh tab — backfill runs once per partner session, not on every navigation.
+
+### 17.5 Partner portal — hub modal fixes
+
+**Problem solved:** Hub launcher modals were narrow, backdrop-blurred, and hard to read on the dark partner portal. Dashboard tiles lacked visible accent glow.
+
+| Fix | Key files |
+|-----|-----------|
+| Full-width hub work modals, dim overlay only (no backdrop blur) | `PartnerHubWorkModal.tsx` — `max-w-[min(98vw,1760px)]`, `bg-black/70` scrim |
+| Portal dashboard uses full container width | `PageShell.tsx` — `fc-container--portal-full` on partner dashboard |
+| Glow launcher tiles on dark portal bed | `partnerHubLauncherUi.ts`, `partnerPortalVisual.css`, `PartnerHubLauncherTile.tsx` |
+| Welcome banner readable on portal | `WelcomeBanner.tsx` — `surface="portal"` |
+| Credit restore progression map in hub modal | `PartnerDashboardPage.tsx` — restore teaser → `PartnerHubWorkModal` → `JourneyMapView` |
+
+**Verify:** `/portal/dashboard` → tap **Credit restore** or **Disputes** hub tile → modal spans viewport width, solid dark shell, content not clipped by blur. Launcher tiles show accent glow borders on the dark dashboard bed.
+
+### 17.6 QA before push
+
+```powershell
+npm run typecheck
+```
+
+**Manual smoke:** §17.1 package tiles → §17.2 Ask Finely strip → §17.3 mail class estimate → §17.4 backfilled recipient → §17.5 hub modal width.
 
 ---
 

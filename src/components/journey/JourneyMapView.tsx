@@ -115,7 +115,7 @@ export function JourneyMapView(args: {
   const totalOpen = useMemo(() => [...workloadMap.values()].reduce((a, w) => a + w.openTasks, 0), [workloadMap]);
 
   return (
-    <div className="rounded-3xl border border-emerald-500/15 bg-gradient-to-br from-fc-deep via-fc-shell to-fc-chrome overflow-hidden shadow-2xl shadow-black/50">
+    <div className="rounded-3xl border border-emerald-500/15 bg-gradient-to-br from-[#0a1218] via-[#0a1018] to-[#060a10] overflow-hidden shadow-2xl shadow-black/50" data-fc-journey-map="1">
       <div className="px-5 py-4 border-b border-white/[0.08] flex flex-wrap items-center justify-between gap-3 bg-white/[0.05]">
         <div className="min-w-0">
           <div className="inline-flex items-center gap-2 text-emerald-300/80">
