@@ -98,7 +98,10 @@ export async function generateTextPdfToVault(args: {
     }
   });
 
-  const bytes = await doc.save();
+  // useObjectStreams: false keeps page dictionaries as plain text in the PDF bytes —
+  // the mailer edge function estimates page count via a text scan for "/Type /Page",
+  // which can't see markers hidden inside compressed object streams.
+  const bytes = await doc.save({ useObjectStreams: false });
   const blob = new Blob([new Uint8Array(bytes)], { type: 'application/pdf' });
   const filename = sanitizeFilename(args.filename).endsWith('.pdf') ? sanitizeFilename(args.filename) : `${sanitizeFilename(args.filename)}.pdf`;
 

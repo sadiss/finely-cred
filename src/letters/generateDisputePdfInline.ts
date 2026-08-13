@@ -369,7 +369,10 @@ export async function downloadInlineDisputeLetterPdf(args: {
   y -= 14;
   drawWrapped(`Sincerely,\n\n${senderName}\n`, { bold: false });
 
-  const pdfBytes = await pdfDoc.save();
+  // useObjectStreams: false keeps page dictionaries as plain text in the PDF bytes —
+  // the mailer edge function estimates page count via a text scan for "/Type /Page",
+  // which can't see markers hidden inside compressed object streams.
+  const pdfBytes = await pdfDoc.save({ useObjectStreams: false });
   const copy = Uint8Array.from(pdfBytes);
   const blob = new Blob([copy], { type: 'application/pdf' });
   const filename =
