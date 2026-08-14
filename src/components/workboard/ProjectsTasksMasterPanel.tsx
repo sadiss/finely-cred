@@ -1,18 +1,25 @@
 import React from 'react';
-import { CheckCircle2, FolderKanban, PauseCircle, Plus } from 'lucide-react';
+import { ArrowRight, CheckCircle2, FolderKanban, Layers, PauseCircle, Plus } from 'lucide-react';
 import type { Project } from '../../domain/projects';
 import { FinelyOsPaginatedStack } from '../../features/os/FinelyOsPaginatedStack';
+import {
+  FINELY_OS_ENTITY_BODY,
+  FINELY_OS_ENTITY_SUBLABEL,
+  FINELY_OS_PRIMARY_BTN,
+  finelyOsCatalogCardCompact,
+  finelyOsGlowTile,
+} from '../../features/os/finelyOsLightUi';
 
 const STATUS_DOT: Record<string, string> = {
-  active: 'bg-amber-400',
-  paused: 'bg-slate-400',
-  completed: 'bg-emerald-400',
+  active: 'bg-emerald-400',
+  paused: 'bg-sky-400',
+  completed: 'bg-violet-400',
 };
 
 type Props = {
   projects: Project[];
   selectedId: string | null;
-  onSelect: (id: string) => void;
+  onSelect: (id: string | null) => void;
   onOpenProject?: (id: string) => void;
   onCreateProject?: () => void;
   showCreateButton?: boolean;
@@ -30,71 +37,92 @@ export function ProjectsTasksMasterPanel({
   stageLabelById,
   taskCountByProject,
 }: Props) {
-  const openProject = (id: string) => {
-    onSelect(id);
-    if (onOpenProject) onOpenProject(id);
-  };
-
   return (
-    <aside className="fc-light-glass-panel fc-light-chrome-panel overflow-hidden shrink-0 w-full lg:w-[280px]">
-      <div className="px-4 py-3 border-b border-white/[0.08] flex items-center justify-between gap-2">
+    <aside className={`${finelyOsCatalogCardCompact('violet')} shrink-0 w-full lg:w-[280px] !p-0 overflow-hidden`}>
+      <div className="px-3 py-2.5 border-b border-white/[0.08] flex items-center justify-between gap-2">
         <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-white/50">
-          <FolderKanban size={14} className="text-amber-400" /> Projects
+          <FolderKanban size={14} className="text-violet-300" /> Projects
         </div>
         {showCreateButton && onCreateProject ? (
-          <button
-            type="button"
-            onClick={onCreateProject}
-            className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-amber-500 text-black text-[9px] font-black uppercase tracking-widest hover:brightness-110"
-            title="New project"
-          >
+          <button type="button" onClick={onCreateProject} className={`${FINELY_OS_PRIMARY_BTN} !px-2.5 !py-1.5 !text-[9px]`} title="New project">
             <Plus size={12} /> New
           </button>
         ) : null}
       </div>
-      <div className="p-2">
+
+      <div className="p-2 space-y-1.5">
+        <button
+          type="button"
+          onClick={() => onSelect(null)}
+          className={`w-full text-left px-3 py-2 rounded-xl transition-all border ${finelyOsGlowTile('sky', selectedId === null)}`}
+        >
+          <div className="flex items-center gap-2">
+            <Layers size={14} className="text-sky-300 shrink-0" />
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-white/90">All projects</p>
+              <p className={`text-[10px] ${FINELY_OS_ENTITY_BODY}`}>Show every task in scope</p>
+            </div>
+          </div>
+        </button>
+
         <FinelyOsPaginatedStack
           items={projects}
           pageSize={10}
           emptyMessage="No projects yet. Create one to add tasks."
+          itemSpacingClassName="space-y-1.5"
           renderItem={(p) => {
             const active = p.id === selectedId;
             const counts = taskCountByProject?.get(p.id);
             const stageLabel = stageLabelById.get(String(p.stage ?? 'intake')) ?? String(p.stage ?? 'intake');
             return (
-              <button
+              <div
                 key={p.id}
-                type="button"
-                onClick={() => openProject(p.id)}
-                className={`w-full text-left px-3 py-3 rounded-xl transition-colors cursor-pointer border ${
-                  active ? 'bg-amber-500/10 border-amber-500/40' : 'border-white/5 hover:bg-white/[0.03]'
-                }`}
-                title="Open project details"
+                className={`rounded-xl border transition-all ${finelyOsGlowTile('violet', active)}`}
               >
-                <div className="flex items-start gap-2">
-                  <span className={`mt-1.5 h-2 w-2 rounded-full shrink-0 ${STATUS_DOT[p.status] ?? STATUS_DOT.active}`} />
-                  <div className="min-w-0 flex-1">
-                    <p className={`text-sm font-semibold truncate ${active ? 'text-amber-100' : 'text-white/85'}`}>{p.title}</p>
-                    <p className="text-[11px] text-white/45 mt-0.5 truncate">{stageLabel} · {p.status}</p>
-                    {counts ? (
-                      <p className="text-[10px] text-white/35 mt-1 flex items-center gap-2">
-                        <span>{counts.open} open</span>
-                        <span className="inline-flex items-center gap-0.5 text-emerald-400/80">
-                          <CheckCircle2 size={10} /> {counts.done}
-                        </span>
+                <button
+                  type="button"
+                  onClick={() => onSelect(p.id)}
+                  className="w-full text-left px-3 py-2.5 cursor-pointer"
+                  title="Filter tasks for this project"
+                >
+                  <div className="flex items-start gap-2">
+                    <span className={`mt-1.5 h-2 w-2 rounded-full shrink-0 ${STATUS_DOT[p.status] ?? STATUS_DOT.active}`} />
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-semibold truncate text-white/90">{p.title}</p>
+                      <p className={`text-[11px] mt-0.5 truncate ${FINELY_OS_ENTITY_BODY}`}>
+                        {stageLabel} · {p.status}
                       </p>
-                    ) : null}
-                    <p className="text-[9px] uppercase tracking-widest text-amber-300/70 mt-2 font-black">Click to open details</p>
+                      {counts ? (
+                        <p className={`text-[10px] mt-1 flex items-center gap-2 ${FINELY_OS_ENTITY_BODY}`}>
+                          <span>{counts.open} open</span>
+                          <span className="inline-flex items-center gap-0.5 text-emerald-400/80">
+                            <CheckCircle2 size={10} /> {counts.done}
+                          </span>
+                        </p>
+                      ) : null}
+                    </div>
+                    {p.status === 'paused' ? <PauseCircle size={14} className="text-white/40 shrink-0 mt-0.5" /> : null}
                   </div>
-                  {p.status === 'paused' ? <PauseCircle size={14} className="text-white/40 shrink-0 mt-0.5" /> : null}
-                </div>
-              </button>
+                </button>
+                {onOpenProject ? (
+                  <div className="px-3 pb-2.5 pt-0">
+                    <button
+                      type="button"
+                      onClick={() => onOpenProject(p.id)}
+                      className="inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-sky-300/90 hover:text-sky-200 transition-colors"
+                    >
+                      Open workspace <ArrowRight size={10} />
+                    </button>
+                  </div>
+                ) : null}
+              </div>
             );
           }}
         />
       </div>
-      <div className="px-4 py-3 border-t border-white/[0.08] text-[10px] text-white/35 leading-relaxed">
-        Click any project to open its editable detail popup. Tasks for that project appear in the board on the right.
+
+      <div className={`px-3 py-2.5 border-t border-white/[0.08] ${FINELY_OS_ENTITY_SUBLABEL} normal-case tracking-normal leading-relaxed`}>
+        Select a project to filter tasks on the board, or open its full workspace.
       </div>
     </aside>
   );

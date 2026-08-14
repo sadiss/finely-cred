@@ -494,6 +494,7 @@ Please provide the following validation and answer each numbered request in writ
 
 15. Confirm whether you will cease collection, calls, letters, credit reporting, sale, assignment, litigation threats, and any other collection activity until proper validation has been mailed to me as required by 15 U.S.C. § 1692g(b).
 
+
 If you cannot provide the requested validation, accounting, licensing proof, chain of title, and authority to collect, then you must cease collection activity and close or return this matter. If you are furnishing this alleged account to any consumer reporting agency without adequate validation, I dispute the accuracy, completeness, ownership, balance, and collectability of that reporting.
 
 Please preserve all records, communications, call notes, collection notes, account-level purchase records, placement records, assignment documents, payment history, ledger entries, and credit reporting records related to this alleged account.

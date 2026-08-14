@@ -16,6 +16,7 @@ const TOPIC_LABELS: Record<ConsultationTopic, string> = {
   enlightenment: 'Strategy call',
   credit_restore: 'Credit restore session',
   business_build: 'Business build session',
+  funding_strategy: 'Funding strategy session',
   debt_summons: 'Debt & summons session',
   identity_theft: 'Identity theft session',
   billing: 'Billing session',

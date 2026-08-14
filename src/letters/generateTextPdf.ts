@@ -1,5 +1,5 @@
 import { getBlobStore } from '../storage/getBlobStore';
-import { stripLetterVendorBranding } from '../lib/letterBodySafety';
+import { isLetterClosingParagraphLine, stripLetterVendorBranding } from '../lib/letterBodySafety';
 
 function sanitizeFilename(s: string) {
   return (s || 'Letter').replace(/[^\w\-]+/g, '_').replace(/^_+|_+$/g, '');
@@ -73,10 +73,13 @@ export async function generateTextPdfToVault(args: {
   };
 
   const lines = wrap(letterText, font, fontSize);
+  let prevInkLine = '';
   for (const line of lines) {
     ensureSpace(lineHeight);
     if (!line.trim()) {
-      y -= lineHeight;
+      const extraGap = /^\s*\d+\.\s+/.test(prevInkLine) ? lineHeight : 0;
+      y -= lineHeight + extraGap;
+      prevInkLine = '';
       continue;
     }
     const trimmed = line.trim();
@@ -87,6 +90,15 @@ export async function generateTextPdfToVault(args: {
     const leadingSpaces = drawText.length - drawText.trimStart().length;
     const spaceWidth = font.widthOfTextAtSize(' ', fontSize);
     const ink = isMarkdownHeading ? drawText : drawText.trimStart() || drawText;
+    if (
+      prevInkLine &&
+      /^\s*\d+\.\s+/.test(prevInkLine) &&
+      !isNumbered &&
+      !isBullet &&
+      isLetterClosingParagraphLine(ink)
+    ) {
+      y -= lineHeight;
+    }
     page.drawText(ink, {
       x: margin + (isBullet || isNumbered ? 10 : 0) + leadingSpaces * spaceWidth,
       y,
@@ -96,6 +108,7 @@ export async function generateTextPdfToVault(args: {
       maxWidth,
     });
     y -= lineHeight;
+    prevInkLine = ink;
   }
 
   const pages = doc.getPages();

@@ -11,8 +11,9 @@
 
 .fc-portal-sticky-tabs__strip > button,
 .fc-portal-sticky-tabs__strip > details > summary {
-  flex: 0 1 auto;
+  flex: 1 1 4.75rem;
   min-height: 2.75rem;
+  max-width: 100%;
 }
 
 .fc-portal-nav-structured,

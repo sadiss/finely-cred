@@ -1,7 +1,10 @@
+import type { StaffShiftBlock } from './staffMember';
+
 export type ConsultationTopic =
   | 'enlightenment'
   | 'credit_restore'
   | 'business_build'
+  | 'funding_strategy'
   | 'debt_summons'
   | 'identity_theft'
   | 'billing'
@@ -31,6 +34,25 @@ export type CalendarStaffAssignee = {
   /** When false, skipped in rotation. */
   enabled: boolean;
   roleLabel?: string;
+  /** Growth agent registry id — e.g. appointment-setter, lead-discovery. */
+  growthAgentId?: string;
+  /** Human staff roster id for shift/on-duty matching. */
+  staffRosterId?: string;
+  /** Direct shift blocks when not linked to staffRoster (AI agent hosts). */
+  shiftBlocks?: StaffShiftBlock[];
+  /** When true (default), skip in rotation when off shift. Set false for always-available hosts. */
+  respectShiftSchedule?: boolean;
+  /** Consultation topics this host accepts; omit = all topics. */
+  topics?: ConsultationTopic[];
+};
+
+/** Resolved host for a confirmed booking — persisted on calendar events. */
+export type CalendarBookingHost = {
+  staffAssigneeId?: string;
+  displayName: string;
+  email?: string;
+  roleLabel?: string;
+  growthAgentId?: string;
 };
 
 export type CalendarBookingSettings = {
@@ -104,6 +126,17 @@ export type CalendarEvent = {
   emailReminderSentAt?: string;
   /** Post-meeting notes (admin enters after call) */
   meetingNotes?: string;
+  /** Heuristic summary generated from meetingNotes after the call */
+  postMeetingSummary?: string;
+  /** Suggested next-step chips saved with the event */
+  postMeetingNextSteps?: string[];
+  /** Round-robin / assigned session host (Calendly-style). */
+  hostStaffAssigneeId?: string;
+  hostDisplayName?: string;
+  hostEmail?: string;
+  hostRoleLabel?: string;
+  /** Growth agent attribution when host maps to Alex, Caleb, etc. */
+  hostGrowthAgentId?: string;
   createdAt: string;
   updatedAt: string;
 };

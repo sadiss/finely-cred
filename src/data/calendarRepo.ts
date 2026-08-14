@@ -432,6 +432,66 @@ export function setEventMeetingNotes(id: string, meetingNotes: string | undefine
   return next;
 }
 
+export function setEventPostMeetingIntel(
+  id: string,
+  args: {
+    meetingNotes?: string;
+    postMeetingSummary?: string;
+    postMeetingNextSteps?: string[];
+    status?: CalendarEventStatus;
+  },
+): CalendarEvent | null {
+  const store = loadStore();
+  const idx = store.events.findIndex((e) => e.id === id);
+  if (idx < 0) return null;
+  const cur = store.events[idx]!;
+  const next = {
+    ...cur,
+    meetingNotes: args.meetingNotes !== undefined ? args.meetingNotes.trim() || undefined : cur.meetingNotes,
+    postMeetingSummary: args.postMeetingSummary?.trim() || undefined,
+    postMeetingNextSteps: args.postMeetingNextSteps?.length ? args.postMeetingNextSteps : undefined,
+    status: args.status ?? cur.status,
+    updatedAt: nowIso(),
+  };
+  store.events[idx] = next;
+  saveStore(store);
+  void syncCalendarEventToSupabase(next);
+  return next;
+}
+
+/** Mark a session complete and persist post-call notes/intelligence. */
+export function completeCalendarEvent(
+  id: string,
+  args?: {
+    meetingNotes?: string;
+    postMeetingSummary?: string;
+    postMeetingNextSteps?: string[];
+  },
+): CalendarEvent | null {
+  return setEventPostMeetingIntel(id, {
+    ...args,
+    status: 'completed',
+  });
+}
+
+export function isCalendarEventPast(ev: CalendarEvent, nowMs = Date.now()): boolean {
+  const endMs = Date.parse(ev.endAt);
+  return Number.isFinite(endMs) && endMs < nowMs;
+}
+
+export function listPastCalendarEvents(args?: { partnerIds?: Set<string>; limit?: number }): CalendarEvent[] {
+  const nowMs = Date.now();
+  const limit = args?.limit ?? 40;
+  return listCalendarEvents()
+    .filter((e) => {
+      if (e.status === 'cancelled') return false;
+      if (args?.partnerIds && !args.partnerIds.has(e.partnerId)) return false;
+      return isCalendarEventPast(e, nowMs);
+    })
+    .sort((a, b) => b.endAt.localeCompare(a.endAt))
+    .slice(0, limit);
+}
+
 export function scheduleEventFromPublicRequest(args: {
   requestId: string;
   startAt: string;
@@ -440,6 +500,11 @@ export function scheduleEventFromPublicRequest(args: {
   location?: string;
   slotDurationMinutes?: SlotDuration;
   confirm?: boolean;
+  hostStaffAssigneeId?: string;
+  hostDisplayName?: string;
+  hostEmail?: string;
+  hostRoleLabel?: string;
+  hostGrowthAgentId?: string;
 }): CalendarEvent | null {
   const store = loadStore();
   const req = store.publicAppointmentRequests.find((r) => r.id === args.requestId);
@@ -458,6 +523,11 @@ export function scheduleEventFromPublicRequest(args: {
     slotDurationMinutes: args.slotDurationMinutes ?? (req.preferredSlotMinutes as SlotDuration | undefined),
     timezone: req.timezone,
     sourceRequestId: req.id,
+    hostStaffAssigneeId: args.hostStaffAssigneeId,
+    hostDisplayName: args.hostDisplayName,
+    hostEmail: args.hostEmail,
+    hostRoleLabel: args.hostRoleLabel,
+    hostGrowthAgentId: args.hostGrowthAgentId,
   });
 
   const idx = store.publicAppointmentRequests.findIndex((r) => r.id === args.requestId);

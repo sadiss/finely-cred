@@ -58,7 +58,13 @@ export type MailQuoteOption = {
 const DEFAULT_EST_COST_USD = mailClassEstCostUsd('certified');
 
 function parseMailEdgeError(error: unknown, data: Record<string, unknown> | null | undefined): string {
-  if (typeof data?.error === 'string' && data.error.trim()) return data.error;
+  if (typeof data?.error === 'string' && data.error.trim()) {
+    const code = typeof data.code === 'number' ? data.code : null;
+    if (code === -904) {
+      return `${data.error.trim()} If this persists, regenerate the letter PDF and mail again.`;
+    }
+    return data.error.trim();
+  }
   if (typeof data?.message === 'string' && data.message.trim()) return data.message;
   const msg = (error as Error)?.message || '';
   if (/non-2xx/i.test(msg)) {

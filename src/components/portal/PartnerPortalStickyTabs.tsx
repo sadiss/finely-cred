@@ -1,14 +1,10 @@
 import React from 'react';
-import { ChevronDown, Lock } from 'lucide-react';
+import { Lock } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { usePartnerSession } from '../../auth/PartnerSessionContext';
 import { ENTITLEMENT_KEYS } from '../../billing/entitlements';
 import { hasEntitlement } from '../../data/billingRepo';
-import {
-  isPortalNavPathActive,
-  PORTAL_SECONDARY_LINKS,
-  PORTAL_STICKY_TABS,
-} from '../../config/portalNavLanes';
+import { isPortalNavPathActive, PORTAL_FULL_NAV_TABS } from '../../config/portalNavLanes';
 import {
   FINELY_OS_ENTITY_SUBLABEL,
   FINELY_OS_VIEW_TABS,
@@ -24,7 +20,7 @@ function entitlementForPath(path: string): string | null {
   if (path.startsWith('/portal/templates')) return ENTITLEMENT_KEYS.templates;
   if (path.startsWith('/portal/letters')) return ENTITLEMENT_KEYS.letters;
   if (path.startsWith('/portal/debt')) return ENTITLEMENT_KEYS.debt;
-  if (path.startsWith('/portal/build')) return ENTITLEMENT_KEYS.businessBuild;
+  if (path.startsWith('/portal/build') || path.startsWith('/business/')) return ENTITLEMENT_KEYS.businessBuild;
   return null;
 }
 
@@ -36,14 +32,12 @@ function isNavLocked(partnerId: string | undefined, path: string, requiredKey: s
   return !hasEntitlement(partnerId, requiredKey);
 }
 
-/** Admin-style structured tabs for the partner portal — primary lanes only; secondary in More. */
+/** Full-width partner nav — every destination visible; locked lanes show a lock icon. */
 export function PartnerPortalStickyTabs({ compact }: { compact?: boolean }) {
   const navigate = useNavigate();
   const location = useLocation();
   const pathname = location.pathname;
   const { partner } = usePartnerSession();
-
-  const moreActive = PORTAL_SECONDARY_LINKS.some((l) => isPortalNavPathActive(pathname, l.path));
 
   return (
     <div className="fc-portal-sticky-tabs space-y-2" data-fc-portal-sticky-tabs="1">
@@ -58,8 +52,10 @@ export function PartnerPortalStickyTabs({ compact }: { compact?: boolean }) {
           ) : null}
         </span>
       </div>
-      <div className={`${FINELY_OS_VIEW_TABS} fc-portal-sticky-tabs__strip w-full !flex-wrap !gap-2 !p-2`}>
-        {PORTAL_STICKY_TABS.map(({ path, label, accent }) => {
+      <div
+        className={`${FINELY_OS_VIEW_TABS} fc-portal-sticky-tabs__strip w-full !flex !flex-wrap !items-stretch !justify-stretch !gap-1.5 !p-2`}
+      >
+        {PORTAL_FULL_NAV_TABS.map(({ path, label, accent }) => {
           const active = isPortalNavPathActive(pathname, path);
           const requiredKey = partner ? entitlementForPath(path) : null;
           const locked = isNavLocked(partner?.id, path, requiredKey);
@@ -68,50 +64,18 @@ export function PartnerPortalStickyTabs({ compact }: { compact?: boolean }) {
               key={path}
               type="button"
               aria-current={active ? 'page' : undefined}
+              aria-disabled={locked ? true : undefined}
               onClick={() => navigate(locked ? '/portal/billing' : path)}
-              className={`${finelyOsViewTab(active, accent)} ${compact ? '!py-2 !text-xs !min-w-[5.5rem]' : ''} ${
-                locked && !active ? '!opacity-45' : ''
-              }`}
-              title={locked ? `${label} (locked)` : label}
+              className={`${finelyOsViewTab(active, accent)} flex-1 min-w-[4.75rem] !justify-center gap-1 ${
+                compact ? '!py-2 !text-[10px] !px-2' : '!py-2.5 !text-xs !px-2.5'
+              } ${locked && !active ? '!opacity-70' : ''}`}
+              title={locked ? `${label} — upgrade to unlock` : label}
             >
-              {locked ? <Lock size={12} aria-hidden /> : null}
-              {label}
+              {locked ? <Lock size={11} aria-hidden className="shrink-0 opacity-90" /> : null}
+              <span className="truncate">{label}</span>
             </button>
           );
         })}
-
-        <details className="relative inline-block">
-          <summary
-            className={`list-none cursor-pointer ${finelyOsViewTab(moreActive, 'amber')} ${
-              compact ? '!py-2 !text-xs !min-w-[5.5rem]' : ''
-            }`}
-            title="More tools"
-            aria-label="More portal destinations"
-          >
-            More <ChevronDown size={12} aria-hidden />
-          </summary>
-          <div className="absolute right-0 mt-2 z-50 min-w-[13rem] rounded-2xl border border-white/15 bg-[#0a1018]/98 p-2 shadow-2xl backdrop-blur-md">
-            {PORTAL_SECONDARY_LINKS.map(({ path, label, icon: Icon }) => {
-              const active = isPortalNavPathActive(pathname, path);
-              const requiredKey = partner ? entitlementForPath(path) : null;
-              const locked = isNavLocked(partner?.id, path, requiredKey);
-              return (
-                <button
-                  key={path}
-                  type="button"
-                  onClick={() => navigate(locked ? '/portal/billing' : path)}
-                  className={`w-full text-left ${finelyOsViewTab(active, 'emerald')} !w-full !justify-start mb-1 last:mb-0 ${
-                    locked && !active ? '!opacity-45' : ''
-                  }`}
-                  aria-current={active ? 'page' : undefined}
-                >
-                  {locked ? <Lock size={12} aria-hidden /> : <Icon size={12} aria-hidden />}
-                  {label}
-                </button>
-              );
-            })}
-          </div>
-        </details>
       </div>
     </div>
   );

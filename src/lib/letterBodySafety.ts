@@ -167,10 +167,46 @@ function scrubVendorBrandingProse(text: string): string {
   return out;
 }
 
+/** Lines that start post-list closing / disclaimer / CTA paragraphs (debt + bureau letters). */
+const LETTER_CLOSING_PARAGRAPH_RE =
+  /^(?:If you cannot|Until you(?: cure| must)?|Please preserve|Please confirm|Please treat|Please answer|Please review|Please refrain|You have thirty|Because you|This letter is made|I reserve all rights|Cease and desist|Failure to comply|I do not consent|For the avoidance|If validation|Continued collection|You must cease|You may not|This is my (?:final|second)|This is not an admission|This request is not a refusal|Sincerely,|Thank you,|Regards,|Respectfully,)/i;
+
+export function isLetterClosingParagraphLine(line: string): boolean {
+  return LETTER_CLOSING_PARAGRAPH_RE.test(String(line || '').trim());
+}
+
+function ensureBlankLineBeforeClosingParagraphs(text: string): string {
+  const lines = text.split('\n');
+  const out: string[] = [];
+  for (const line of lines) {
+    const trimmed = line.trim();
+    const prevNonEmpty = [...out].reverse().find((l) => l.trim()) ?? '';
+    if (
+      trimmed &&
+      isLetterClosingParagraphLine(trimmed) &&
+      prevNonEmpty.trim() &&
+      (out[out.length - 1] ?? '').trim() !== ''
+    ) {
+      out.push('');
+    }
+    out.push(line);
+  }
+  return out.join('\n');
+}
+
 /** Normalize blank lines between letter blocks (sections, paragraphs). */
 export function normalizeLetterBlockSpacing(text: string): string {
-  let out = String(text || '');
+  let out = String(text || '').replace(/\r\n/g, '\n');
   out = out.replace(/\n{3,}/g, '\n\n');
+
+  // End of numbered list → blank line before the next prose paragraph (not another list line).
+  out = out.replace(/^(\d+\.\s[^\n]+)\n(?!\n|\d+\.\s|[•\-*]\s)/gm, '$1\n\n');
+
+  // End of bullet line → blank line before prose.
+  out = out.replace(/^([•\-*]\s[^\n]+)\n(?!\n|[•\-*]\s|\d+\.\s)/gm, '$1\n\n');
+
+  out = ensureBlankLineBeforeClosingParagraphs(out);
+
   // Only pad around explicit section headers — not creditor/collector names or mailing addresses.
   out = out.replace(
     /([^\n])\n((?:RE:|Date:|To Whom It May Concern:)[^\n]*\n)/gi,
@@ -180,7 +216,11 @@ export function normalizeLetterBlockSpacing(text: string): string {
     /^((?:RE:|Date:|To Whom It May Concern:)[^\n]*)\n(?!\n)/gim,
     '$1\n\n',
   );
-  return out.trim();
+
+  // Signature block breathing room.
+  out = out.replace(/\n(Sincerely,|Thank you,|Regards,|Respectfully,)\n(?!\n)/gi, '\n\n$1\n\n');
+
+  return out.replace(/\n{3,}/g, '\n\n').trim();
 }
 
 /** Ensure "Sincerely," then blank line then signature name in plain text. */

@@ -26,9 +26,11 @@ import {
 } from '../../data/commsSuppressionRepo';
 import { logAgentAction } from '../../lib/agentAuditLog';
 import { isInternalStaffEmail } from '../../lib/meetingEmailGuards';
+import { resolveOutreachHostForGrowthAgent } from '../../lib/calendarStaffRotation';
 
 const AUTO_KEY = 'finely.alex.appointment_autopilot.v1';
 const OUTREACH_KEY = 'finely.alex.outreach_sent.v1';
+const ALEX_AGENT_ID = 'appointment-setter';
 
 export type AlexOutreachRecord = {
   crmRecordId: string;
@@ -149,6 +151,7 @@ export async function runAlexAppointmentOutreach(args?: {
   };
 
   let processed = 0;
+  const outreachHost = resolveOutreachHostForGrowthAgent(ALEX_AGENT_ID);
   for (const { record, reason } of candidates) {
     if (processed >= limit) break;
     if (!args?.force && alreadyOutreached(record.id)) {
@@ -170,7 +173,7 @@ export async function runAlexAppointmentOutreach(args?: {
     const invite =
       existingInvite ??
       createBookingInvite({
-        label: `Alex — ${name}`,
+        label: `${outreachHost.displayName} — ${name}`,
         topic: 'enlightenment',
         durationMinutes: 30,
         crmRecordId: record.id,
@@ -192,7 +195,7 @@ export async function runAlexAppointmentOutreach(args?: {
     const overCap = isOverFrequencyCap(frequencyCapKey);
     if (isFeatureEnabled('commsDelivery') && suppression.suppressed) {
       logAgentAction({
-        agentId: 'appointment-setter',
+        agentId: ALEX_AGENT_ID,
         action: 'outreach.suppressed',
         entityType: 'crm_record',
         entityId: record.id,
@@ -208,8 +211,8 @@ export async function runAlexAppointmentOutreach(args?: {
           toName: record.contact.fullName || name,
           title: 'Book your free strategy call',
           joinUrl: bookUrl,
-          hostName: 'Alex Rivera',
-          hostRoleLabel: 'Appointment Setter',
+          hostName: outreachHost.displayName,
+          hostRoleLabel: outreachHost.roleLabel ?? 'Appointment Setter',
           agenda: `${reason}. Pick a time that works — audio-first video room included.`,
           scheduleUrl: bookUrl,
           intent: 'outreach',
@@ -219,7 +222,7 @@ export async function runAlexAppointmentOutreach(args?: {
           result.emailsSent++;
           recordSendForFrequencyCap(frequencyCapKey);
           logAgentAction({
-            agentId: 'appointment-setter',
+            agentId: ALEX_AGENT_ID,
             action: 'outreach.sent',
             entityType: 'crm_record',
             entityId: record.id,
@@ -246,7 +249,7 @@ export async function runAlexAppointmentOutreach(args?: {
     if (!hasAlexTask) {
       createMarketingTask({
         kind: 'book',
-        title: `Alex — book session nudge — ${name}`,
+        title: `${outreachHost.displayName} — book session nudge — ${name}`,
         notes: [
           reason,
           `Self-book: ${bookUrl}`,

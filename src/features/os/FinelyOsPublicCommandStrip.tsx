@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { ArrowRight, BookOpen, Calendar, ChevronDown, DollarSign, Users } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../auth/AuthProvider';
 import { FlashyIcon } from '../../components/ui';
 import { FinelyMarketingWowStrip } from '../../components/marketing/FinelyMarketingWowStrip';
 import { FinelyOsPaginatedStack } from './FinelyOsPaginatedStack';
+import { finelyCtaNavigate, resolveFinelyCtaPath } from '../../lib/finelyCtaIntent';
 import { finelyOsCatalogCard, finelyOsLandingContrastSection, FINELY_OS_ENTITY_BODY, FINELY_OS_ENTITY_SUBLABEL, FINELY_OS_ENTITY_VALUE } from './finelyOsLightUi';
 
 type Tile = {
@@ -16,7 +18,7 @@ type Tile = {
 };
 
 const PRIMARY_TILES: Tile[] = [
-  { id: 'guide', label: 'Free guide', hint: 'Live portal + Letter Studio trial', path: '/free-guide', accent: 'emerald', icon: BookOpen },
+  { id: 'trial', label: 'Start free trial', hint: 'Credit restore signup — portal + Letter Studio', path: '__personal_free_trial__', accent: 'emerald', icon: BookOpen },
   { id: 'pricing', label: 'See pricing', hint: 'DIY, DFY, and wealth paths', path: '/pricing', accent: 'amber', icon: DollarSign },
   { id: 'session', label: 'Book a strategy call', hint: 'Free 60-minute call', path: '/enlightenment-session', accent: 'violet', icon: Calendar },
   { id: 'specialists', label: 'Credit specialists', hint: 'Done-for-you partner program', path: '/credit-specialist', accent: 'sky', icon: Users },
@@ -34,7 +36,14 @@ const FUNNEL_TILES: Tile[] = [
 
 export function FinelyOsPublicCommandStrip() {
   const navigate = useNavigate();
+  const auth = useAuth();
   const [showMore, setShowMore] = useState(false);
+  const personalFreeTrialPath = resolveFinelyCtaPath('personal_free_trial', { isAuthed: Boolean(auth.user) });
+
+  const resolveTilePath = (path: string) => {
+    if (path === '__personal_free_trial__') return personalFreeTrialPath;
+    return path;
+  };
 
   return (
     <section className={`relative z-10 -mt-2 pb-8 ${finelyOsLandingContrastSection('fc-band-emerald')}`} data-fc-contrast-band="1">
@@ -47,10 +56,10 @@ export function FinelyOsPublicCommandStrip() {
             </div>
             <button
               type="button"
-              onClick={() => navigate('/free-guide')}
+              onClick={() => finelyCtaNavigate(navigate, 'personal_free_trial', { isAuthed: Boolean(auth.user) })}
               className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm bg-gradient-to-r from-amber-500 to-amber-600 text-black hover:brightness-110 transition-all"
             >
-              Start free guide <ArrowRight size={16} />
+              Start free trial <ArrowRight size={16} />
             </button>
           </div>
           <FinelyOsPaginatedStack
@@ -61,7 +70,7 @@ export function FinelyOsPublicCommandStrip() {
               <button
                 key={t.id}
                 type="button"
-                onClick={() => navigate(t.path)}
+                onClick={() => navigate(resolveTilePath(t.path))}
                 className={`text-left ${finelyOsCatalogCard(t.accent)} !p-4`}
                 data-fc-accent={t.accent}
               >

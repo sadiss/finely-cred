@@ -31,6 +31,29 @@ if (!src.includes('const canReparseSelectedReport = Boolean(')) {
   }
 }
 
+const blockedReasonBlock = [
+  '  const selectedReportReparseBlockedReason = useMemo(() => {',
+  '    if (!selectedReport) return undefined;',
+  '    if (isLegacyPendingReportBlob(selectedReport.rawBlobRef)) {',
+  "      return 'Re-parse is unavailable — this report was migrated without the original file. Re-upload the HTML export above, or restore files from the legacy server ZIP on Admin → Partner Import.';",
+  '    }',
+  '    if (!canAccessReportBlob(selectedReport.rawBlobRef)) {',
+  "      return 'Re-parse is unavailable — no stored file is accessible. Re-upload the original HTML or PDF export.';",
+  '    }',
+  '    return undefined;',
+  '  }, [selectedReport]);',
+].join(eol);
+
+if (!src.includes('const selectedReportReparseBlockedReason = useMemo(')) {
+  const anchor = canReparseBlock + eol;
+  if (src.includes(anchor)) {
+    src = src.replace(anchor, `${anchor}${blockedReasonBlock}${eol}`);
+    console.log('Added selectedReportReparseBlockedReason');
+  } else {
+    console.warn('Needle not found for selectedReportReparseBlockedReason insertion');
+  }
+}
+
 const oldHandle = [
   '  const handleReparseReport = async (report: any) => {',
   '    if (!report || Boolean(reparseReportId)) return;',
@@ -64,13 +87,42 @@ if (src.includes(newHandle)) {
   console.log('Patched handleReparseReport guards');
 }
 
-const oldOnReparse = `onReparseRequest={() => handleReparseReport(selectedReport)}`;
-const newOnReparse = `onReparseRequest={canReparseSelectedReport ? () => handleReparseReport(selectedReport) : undefined}`;
-if (src.includes(newOnReparse)) {
-  console.log('onReparseRequest guard already present');
+const oldOnReparse = `onReparseRequest={canReparseSelectedReport ? () => handleReparseReport(selectedReport) : undefined}`;
+const newOnReparse = [
+  'onReparseRequest={canReparseSelectedReport ? () => handleReparseReport(selectedReport) : undefined}',
+  'reparseBlockedReason={selectedReportReparseBlockedReason}',
+].join(eol);
+if (src.includes('reparseBlockedReason={selectedReportReparseBlockedReason}')) {
+  console.log('reparseBlockedReason already present');
 } else if (src.includes(oldOnReparse)) {
   src = src.split(oldOnReparse).join(newOnReparse);
-  console.log('Guarded CreditIntelTabs onReparseRequest');
+  console.log('Added reparseBlockedReason to CreditIntelTabs');
+}
+
+const oldDisabledBtn = [
+  '                    disabled={',
+  '                      Boolean(reparseReportId) ||',
+  '                      deletingReportId === selectedReport.id ||',
+  '                      isLegacyPendingReportBlob(selectedReport.rawBlobRef) ||',
+  '                      !canAccessReportBlob(selectedReport.rawBlobRef)',
+  '                    }',
+].join(eol);
+
+const newDisabledBtn = [
+  '                    disabled={',
+  '                      Boolean(reparseReportId) ||',
+  '                      deletingReportId === selectedReport.id ||',
+  '                      isLegacyPendingReportBlob(selectedReport.rawBlobRef) ||',
+  '                      !canAccessReportBlob(selectedReport.rawBlobRef)',
+  '                    }',
+  '                    title={selectedReportReparseBlockedReason ?? undefined}',
+].join(eol);
+
+if (src.includes('title={selectedReportReparseBlockedReason ?? undefined}')) {
+  console.log('Re-parse button title already present');
+} else if (src.includes(oldDisabledBtn)) {
+  src = src.replace(oldDisabledBtn, newDisabledBtn);
+  console.log('Added Re-parse button title tooltip');
 }
 
 if (src === before) {

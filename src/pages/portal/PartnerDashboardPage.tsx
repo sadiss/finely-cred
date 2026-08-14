@@ -30,6 +30,7 @@ import { FinelyOsPaginatedStack } from '../../features/os/FinelyOsPaginatedStack
 import { FinelyOsDataErrorBanner } from '../../features/os/FinelyOsDataErrorBanner';
 import { partnerNoteToTimelineItem } from '../../components/partner/PartnerActivityTimeline';
 import { PartnerOverviewTab } from '../../features/partner/PartnerOverviewTab';
+import { PartnerPortalHubLauncherSection } from '../../components/partner/PartnerPortalHubLauncherSection';
 import { ensurePartnerOnboardingTasks } from '../../lib/partnerOnboardingEngine';
 import '../../features/partner/partnerPortalVisual.css';
 import {
@@ -268,7 +269,7 @@ export default function PartnerDashboardPage() {
             <>
               <div className="flex items-center justify-between gap-4">
                 <div>
-                  <div className={FINELY_OS_ENTITY_LABEL}>Admin â€” Select a Partner</div>
+                  <div className={FINELY_OS_ENTITY_LABEL}>Admin — Select a Partner</div>
                   <div className={`mt-1 ${FINELY_OS_ENTITY_BODY}`}>Click a partner below to view their portal dashboard.</div>
                 </div>
                 <button type="button" onClick={() => navigate('/dashboard')} className={FINELY_OS_PRIMARY_BTN}>
@@ -279,7 +280,7 @@ export default function PartnerDashboardPage() {
                 <FinelyOsDataErrorBanner message={partnerPickerErr} onRetry={() => setPartnerFetchKey((k) => k + 1)} />
               ) : null}
               {partnerPickerLoading ? (
-                <div className={`${FINELY_OS_LUXURY_EMPTY} text-left`}>Loading partnersâ€¦</div>
+                <div className={`${FINELY_OS_LUXURY_EMPTY} text-left`}>Loading partners…</div>
               ) : allPartners.length === 0 ? (
                 <div className={`${FINELY_OS_LUXURY_EMPTY} text-left`}>No partners found.</div>
               ) : (
@@ -297,7 +298,7 @@ export default function PartnerDashboardPage() {
                       data-fc-accent={PARTNER_HUB_LAUNCHER_ACCENTS[idx % PARTNER_HUB_LAUNCHER_ACCENTS.length]}
                     >
                       <div className={FINELY_OS_ENTITY_VALUE}>{p.profile.fullName || 'Unnamed'}</div>
-                      <div className={`${FINELY_OS_ENTITY_BODY} text-xs truncate`}>{p.profile.email || 'â€”'}</div>
+                      <div className={`${FINELY_OS_ENTITY_BODY} text-xs truncate`}>{p.profile.email || '—'}</div>
                       <div className={FINELY_OS_ENTITY_SUBLABEL}>{p.status}</div>
                     </button>
                   )}
@@ -317,6 +318,24 @@ export default function PartnerDashboardPage() {
         </div>
       ) : (
         <div className={`${FINELY_OS_PAGE} fc-senior-simple`} data-fc-partner-portal="1">
+          {isAdmin ? (
+            <div className={`${finelyOsCatalogCard('violet')} !p-3 flex flex-wrap items-center justify-between gap-2`}>
+              <div>
+                <div className={FINELY_OS_ENTITY_LABEL}>Admin — viewing as partner</div>
+                <div className={`${FINELY_OS_ENTITY_VALUE} text-base`}>{partner.profile.fullName || partner.id}</div>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  localStorage.removeItem(ADMIN_PARTNER_OVERRIDE_KEY);
+                  refresh();
+                }}
+                className={FINELY_OS_SECONDARY_BTN}
+              >
+                <ArrowLeft size={12} /> Change partner
+              </button>
+            </div>
+          ) : null}
           <PartnerCreditRestoreCommandStrip
             partner={partner}
             reportsCount={reports.length}
@@ -349,6 +368,8 @@ export default function PartnerDashboardPage() {
               </div>
             </div>
           ) : null}
+
+          <PartnerPortalHubLauncherSection partner={partner} refresh={refresh} />
 
           <div className="fc-admin-dark-glass-surface rounded-2xl border border-white/10 p-1 sm:p-2">
             <PartnerOverviewTab

@@ -408,6 +408,31 @@ type DebtLetterCatalogEntry = {
 - Letter body generation: `src/legal/generateCatalogLetter.ts` (outline tier) and the full `DebtLetterType` body generators referenced by `letterType` (full tier).
 - Title resolution: `src/lib/resolveDebtDraftTitle.ts`. Suggestions: `src/lib/intelligentLetterSuggestions.ts`.
 
+#### 9.2.1 Letter closing spacing (disclaimer + CTA after numbered lists)
+
+> **Quick reference — read this first when partners say “the closing is cramped”**
+
+| What | Where |
+|------|--------|
+| **Single normalizer (all letters)** | `normalizeLetterBlockSpacing()` in `src/lib/letterBodySafety.ts` — runs inside `stripLetterVendorBranding()` before every PDF, preview, and save |
+| **Plain → HTML paragraphs** | `plainTextToHtml()` in `src/utils/richText.ts` — calls the normalizer so editor/preview get separate `<p>` blocks |
+| **HTML → plain round-trip** | `htmlToPlainText()` — re-applies the normalizer after conversion |
+| **Debt validation 30-day block** | `VALIDATION_30_DAY_RECEIPT_BLOCK` in `src/legal/validationLetterClauses.ts` |
+| **Full validation letter body** | `getValidationRequestBody()` in `src/legal/debtLetterTemplates.ts` |
+| **PDF extra gap after list → closing** | `src/letters/generateTextPdf.ts` (debt/court letters) |
+| **Paper preview CSS** | `.fc-paper-prose p + p` in `src/index.css` |
+
+**Rule:** After the **last numbered demand** (e.g. item 15 on debt validation), there must be a **blank line** before disclaimer / CTA / 30-day / “Sincerely,” blocks. Do **not** hand-fix spacing in the editor — extend `normalizeLetterBlockSpacing()` or the template in `debtLetterTemplates.ts`.
+
+**Verify before merge:**
+
+```powershell
+node scripts/verify-letter-closing-spacing.mjs
+npm run typecheck
+```
+
+**Partner-visible check:** Letter Studio → generate **Initial validation (FDCPA § 809)** → paper preview → confirm visible gap after item 15 before “If you cannot provide…” and before the 30-day block.
+
 ### 9.3 Mailing letters
 
 - **Function:** `mailer` (op: `ping` | `status` | `verify` | send). **Flag:** `letterMailing`. **Client:** `src/lib/mailerClient.ts`.
@@ -415,6 +440,7 @@ type DebtLetterCatalogEntry = {
 - A letter PDF must exist in blob storage (`pdfBlobRef`) before it can be mailed.
 - UI shows a **TEST MODE** banner when `MAIL_TEST_MODE` / debug flags are set or vendor test-mode is detectable — confirm this banner is **off** (or green **LIVE production mail** shows) before treating a send as live USPS mail. Production flip: `MAIL_LIVE_MODE=true` on the `mailer` edge function + remove test/debug secrets + redeploy — see §15.4.
 - Redeploy `mailer` after any secret/testmode change: `npx supabase functions deploy mailer --no-verify-jwt`.
+- **LetterStream `-904` (page count mismatch):** `estimatePdfPageCount()` in `supabase/functions/_shared/letterStreamClient.ts` reads the PDF `/Type /Pages` `/Count` before send. If LetterStream still returns `-904`, the client **auto-retries once** without the `pages` field so the vendor reads the file directly. UI copy: `src/lib/mailerClient.ts`. If both attempts fail, regenerate the letter PDF from Letter Studio and retry.
 
 ### 9.4 Litigation Command
 
@@ -480,7 +506,9 @@ Full incident writeup: `DEV_URGENT_GRANT_ACCESS_AND_LETTERS.md` (repo root).
 | Admin grants access but partner still locked out on another device | `entitlements_admin_write` RLS policy migration not applied | Apply `supabase/migrations/202607240001_entitlements_admin_write.sql` |
 | Sensitive action always fails even with a code entered | Code was never set, or wrong key | Set the code in `/admin/access` → Sensitive action codes; confirm you're using the matching `SensitiveActionKey` |
 | Physical letter shows as "sent" but you're not sure if it's live USPS | `MAIL_TEST_MODE` / vendor test flag active | Set `MAIL_LIVE_MODE=true`, unset `MAIL_TEST_MODE`/`MAIL_DEBUG`, redeploy `mailer`; confirm green LIVE banner (§15.4) |
+| Mail send fails with `-904` / "page count does not match" | Stale `pages` field vs actual PDF | Edge auto-retries without `pages`; redeploy `mailer` if code is old; regenerate letter PDF and retry (§9.3) |
 | Bare `/onboarding` links in public CTAs | Audit drift | Run `npm run cta:bare-onboarding:audit` — must return 0; use `resolveFinelyCtaPath()` (§15.1) |
+| Letter closing / disclaimer glued to last numbered item | Missing `\n\n` or editor merged `<p>` | Run `node scripts/verify-letter-closing-spacing.mjs`; fix `normalizeLetterBlockSpacing()` (§9.2.1) — not manual partner spacing |
 | `/resources#presenter-demo` shows "Video not generated yet" | WebM missing from deploy | Run `npm run demo:launch:video` locally, commit `public/demos/finely-launch-demo.webm` (§15.3) |
 | Admin Partners missing Max Jean-Baptiste after deploy | Migration not applied | Run `supabase db push` (migration `202608110001_max_jean_baptiste_partner_seed.sql`) or open Admin → Partners (auto-seed on load) — §15.7 |
 | `platform-cron` / `automation-runner` runs but nothing happens | Dry-run default | Pass `{ "action": "tick", "dryRun": false }` explicitly |
@@ -835,7 +863,7 @@ npm run cta:bare-onboarding:audit   # must report 0 bare /onboarding links
 
 Used in: public nav (`App.tsx`), mobile nav (`MobileNav`), homepage CTA bands.
 
-**Verify:** `/personal-credit`, `/free-guide`, role hubs (`/agency`, `/affiliate`, `/case-help`, etc.) — each primary CTA should land with the correct onboarding query string, not a naked `/onboarding`.
+**Verify:** `/personal-credit` primary CTA → `personal_free_trial` (credit-restore signup onboarding, **not** `/free-guide`). Role hubs (`/agency`, `/affiliate`, `/case-help`, etc.) — each primary CTA should land with the correct onboarding query string, not a naked `/onboarding`.
 
 ### 15.2 Growth agents + marketing desk
 
@@ -924,6 +952,18 @@ LetterStream account is **live** — edge function must not send with debug/test
 2. Remove/unset all test/debug mail secrets.
 3. Redeploy: `npx supabase functions deploy mailer --no-verify-jwt`
 4. Admin → Mail (or any letter send flow) → **Refresh** → confirm green **LIVE production mail** banner (not amber TEST MODE).
+
+**`-904` page-count mismatch:** When LetterStream rejects a send because declared `pages` ≠ PDF body, `letterStreamSendSingleFile()` logs `detectedPages`, retries once **without** the `pages` field, and surfaces a clearer partner/admin message via `mailerClient.ts`. Deploy after changes: `npx supabase functions deploy mailer --no-verify-jwt`.
+
+**Required secrets checklist (`mailer` edge):**
+
+| Secret | Required when |
+|--------|----------------|
+| `MAIL_API_ID`, `MAIL_API_KEY` | Always — LetterStream credentials |
+| `MAIL_LIVE_MODE=true` | Production USPS sends |
+| `EDGE_ADMIN_EMAILS` | Admin mail-for-partner + guarded ops (comma-separated allowlist) |
+
+Unset for live production: `MAIL_TEST_MODE`, `LETTERSTREAM_TEST_MODE`, `MAIL_DEBUG`, `LETTERSTREAM_DEBUG`.
 
 ### 15.5 Admin partner view-as
 

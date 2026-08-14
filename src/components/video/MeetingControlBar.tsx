@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import type { JitsiMeetingControls } from '../../hooks/useJitsiMeetingApi';
 import {
   Camera,
@@ -17,6 +17,7 @@ import {
   Video,
   VideoOff,
 } from 'lucide-react';
+import { MeetingNotesEditor } from '../calendar/MeetingNotesEditor';
 
 export type MeetingLayout = 'grid' | 'spotlight' | 'sidebar';
 
@@ -29,6 +30,11 @@ type Props = {
   showEndCall?: boolean;
   /** When set, mic/cam/share control the live Jitsi session. */
   jitsi?: JitsiMeetingControls | null;
+  /** Controlled meeting notes (during/after call). */
+  notes?: string;
+  onNotesChange?: (notes: string) => void;
+  /** Called when notes should persist (e.g. on end call). */
+  onNotesSave?: (notes: string) => void;
   children: React.ReactNode;
 };
 
@@ -40,14 +46,29 @@ export function MeetingControlBar({
   onEndCall,
   showEndCall,
   jitsi,
+  notes: controlledNotes,
+  onNotesChange,
+  onNotesSave,
   children,
 }: Props) {
   const [micOn, setMicOn] = useState(true);
   const [camOn, setCamOn] = useState(true);
   const [layout, setLayout] = useState<MeetingLayout>('grid');
   const [panel, setPanel] = useState<'none' | 'chat' | 'people'>('none');
-  const [notes, setNotes] = useState('');
+  const [localNotes, setLocalNotes] = useState('');
   const [virtualBg, setVirtualBg] = useState(false);
+
+  const notes = controlledNotes ?? localNotes;
+  const setNotes = onNotesChange ?? setLocalNotes;
+
+  useEffect(() => {
+    if (controlledNotes !== undefined) setLocalNotes(controlledNotes);
+  }, [controlledNotes]);
+
+  const handleEndCall = () => {
+    if (notes.trim()) onNotesSave?.(notes.trim());
+    onEndCall?.();
+  };
 
   const layoutBtn = (mode: MeetingLayout, label: string, Icon: typeof Grid3X3) => (
     <button
@@ -146,7 +167,7 @@ export function MeetingControlBar({
           {showEndCall && onEndCall ? (
             <button
               type="button"
-              onClick={onEndCall}
+              onClick={handleEndCall}
               className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-red-500/30 bg-red-500/15 text-[10px] font-black uppercase text-red-200"
             >
               <VideoOff size={14} /> End
@@ -198,14 +219,24 @@ export function MeetingControlBar({
               )}
             </div>
           ) : (
-            <div className="flex-1 flex flex-col p-3 min-h-0">
-              <textarea
+            <div className="flex-1 flex flex-col p-3 min-h-0 overflow-y-auto">
+              <MeetingNotesEditor
                 value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                placeholder="Action items, follow-ups, dispute notes…"
-                className="flex-1 min-h-[120px] w-full bg-fc-input border border-white/[0.08] rounded-xl px-3 py-2 text-white text-sm resize-none"
+                onChange={setNotes}
+                rows={6}
+                compact
+                hint="Notes stay on this device until you end the call or save from Admin Calendar."
               />
-              <p className="mt-2 text-[9px] text-white/35">Notes stay on this device for the session.</p>
+              {onNotesSave ? (
+                <button
+                  type="button"
+                  onClick={() => onNotesSave(notes.trim())}
+                  disabled={!notes.trim()}
+                  className="mt-2 inline-flex items-center justify-center rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-[10px] font-black uppercase tracking-widest text-emerald-200 disabled:opacity-40"
+                >
+                  Save notes
+                </button>
+              ) : null}
             </div>
           )}
         </aside>

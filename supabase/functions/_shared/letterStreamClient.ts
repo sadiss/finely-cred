@@ -133,10 +133,91 @@ export function buildLetterStreamJobName(seed: string): string {
   return job;
 }
 
-export function estimatePdfPageCount(bytes: Uint8Array): number {
+/**
+ * Read page count from PDF `/Type /Pages` `/Count` entries.
+ * Uses the minimum Count when multiple Page trees exist (avoids phantom over-counts).
+ */
+function readPdfPagesCounts(bytes: Uint8Array): number[] {
   const text = new TextDecoder('latin1').decode(bytes);
-  const matches = text.match(/\/Type\s*\/Page[^s]/g);
-  return Math.max(1, matches?.length ?? 1);
+  const counts: number[] = [];
+  for (const match of text.matchAll(/\/Type\s*\/Pages\b[\s\S]{0,800}?\/Count\s+(\d+)/g)) {
+    const n = Number(match[1]);
+    if (Number.isFinite(n) && n >= 1 && n <= 999) counts.push(n);
+  }
+  for (const match of text.matchAll(/\/Count\s+(\d+)[\s\S]{0,400}?\/Type\s*\/Pages\b/g)) {
+    const n = Number(match[1]);
+    if (Number.isFinite(n) && n >= 1 && n <= 999) counts.push(n);
+  }
+  return counts;
+}
+
+/**
+ * Best-effort page count for LetterStream `pages` field.
+ * Prefer authoritative `/Count`; never over-state vs actual PDF pages.
+ */
+export function estimatePdfPageCount(bytes: Uint8Array): number {
+  const counts = readPdfPagesCounts(bytes);
+  if (counts.length) return Math.min(...counts);
+
+  const text = new TextDecoder('latin1').decode(bytes);
+
+  const linear = text.match(/\/Linearized\s+1[\s\S]{0,300}?\/N\s+(\d+)/);
+  if (linear?.[1]) {
+    const n = Number(linear[1]);
+    if (Number.isFinite(n) && n >= 1) return n;
+  }
+
+  const leafPages = text.match(/\/Type\s*\/Page(?!\s*s)/g);
+  if (leafPages?.length === 1) return 1;
+
+  return 1;
+}
+
+function letterStreamResponseCode(parsed: LetterStreamResponse): number {
+  return parsed.messages[0]?.code ?? -999;
+}
+
+async function postLetterStreamForm(form: FormData): Promise<LetterStreamResponse> {
+  const res = await fetch(API_URL, { method: 'POST', body: form });
+  const raw = await res.text();
+  return parseLetterStreamResponse(raw);
+}
+
+function buildLetterStreamSendForm(args: {
+  creds: { apiId: string; apiKey: string };
+  uniqueId: string;
+  hash: string;
+  jobName: string;
+  from: LetterStreamMailAddress;
+  to: LetterStreamMailAddress;
+  docId: string;
+  pdfBytes: Uint8Array;
+  opts: LetterStreamSendOptions;
+  pages?: number;
+}): FormData {
+  const form = new FormData();
+  form.set('a', args.creds.apiId);
+  form.set('h', args.hash);
+  form.set('t', args.uniqueId);
+  form.set('job', args.jobName);
+  form.set('from', formatLetterStreamFrom(args.from));
+  form.append('to[]', formatLetterStreamTo(args.to, args.docId));
+  if (args.pages != null && Number.isFinite(args.pages) && args.pages >= 1) {
+    form.set('pages', String(Math.round(args.pages)));
+  }
+  form.set('mailtype', args.opts.mailType ?? 'firstclass');
+  form.set('coversheet', (args.opts.coverSheet ?? true) ? 'true' : 'false');
+  form.set('duplex', (args.opts.doubleSided ?? true) ? 'Y' : 'N');
+  form.set('ink', (args.opts.color ?? true) ? 'C' : 'B');
+  form.set('paper', args.opts.paper ?? 'W');
+  if (args.opts.preauth) form.set('preauth', '1');
+  if (args.opts.debug) form.set('debug', String(args.opts.debug));
+  form.append(
+    'single_file',
+    new Blob([args.pdfBytes], { type: 'application/pdf' }),
+    `${args.docId}.pdf`,
+  );
+  return form;
 }
 
 export function parseLetterStreamResponse(raw: string): LetterStreamResponse {
@@ -208,6 +289,7 @@ export function letterStreamErrorLabel(code: number): string {
     [-902]: 'Missing sender address',
     [-910]: 'Missing document file',
     [-916]: 'Could not read PDF',
+    [-904]: 'PDF page count mismatch — regenerate the letter PDF and try again',
     [-980]: 'Mail service maintenance — try again later',
     [-997]: 'Rate limit exceeded',
   };
@@ -249,32 +331,30 @@ export async function letterStreamSendSingleFile(args: {
   const uniqueId = buildLetterStreamUniqueId();
   const hash = await buildLetterStreamAuthHash(creds.apiKey, uniqueId);
   const opts = args.options ?? {};
-  const pages = opts.pages ?? estimatePdfPageCount(args.pdfBytes);
+  const declaredPages = opts.pages ?? estimatePdfPageCount(args.pdfBytes);
 
-  const form = new FormData();
-  form.set('a', creds.apiId);
-  form.set('h', hash);
-  form.set('t', uniqueId);
-  form.set('job', args.jobName);
-  form.set('from', formatLetterStreamFrom(args.from));
-  form.append('to[]', formatLetterStreamTo(args.to, args.docId));
-  form.set('pages', String(pages));
-  form.set('mailtype', opts.mailType ?? 'firstclass');
-  form.set('coversheet', (opts.coverSheet ?? true) ? 'true' : 'false');
-  form.set('duplex', (opts.doubleSided ?? true) ? 'Y' : 'N');
-  form.set('ink', (opts.color ?? true) ? 'C' : 'B');
-  form.set('paper', opts.paper ?? 'W');
-  if (opts.preauth) form.set('preauth', '1');
-  if (opts.debug) form.set('debug', String(opts.debug));
-  form.append(
-    'single_file',
-    new Blob([args.pdfBytes], { type: 'application/pdf' }),
-    `${args.docId}.pdf`,
-  );
+  const baseArgs = {
+    creds,
+    uniqueId,
+    hash,
+    jobName: args.jobName,
+    from: args.from,
+    to: args.to,
+    docId: args.docId,
+    pdfBytes: args.pdfBytes,
+    opts,
+  };
 
-  const res = await fetch(API_URL, { method: 'POST', body: form });
-  const raw = await res.text();
-  return parseLetterStreamResponse(raw);
+  let form = buildLetterStreamSendForm({ ...baseArgs, pages: declaredPages });
+  let parsed = await postLetterStreamForm(form);
+
+  // -904: declared pages ≠ PDF — retry letting LetterStream read the file directly.
+  if (letterStreamResponseCode(parsed) === -904 && declaredPages != null) {
+    form = buildLetterStreamSendForm({ ...baseArgs, pages: undefined });
+    parsed = await postLetterStreamForm(form);
+  }
+
+  return parsed;
 }
 
 export async function letterStreamAuthorizePreauth(authcode: string): Promise<LetterStreamResponse> {

@@ -1,4 +1,6 @@
 import type { CreditReportFileType, CreditReportRecord, CreditReportProvider, ParsedCreditReport } from '../domain/creditReports';
+import { isLegacyPendingReportBlob } from './legacyPendingReport';
+import { canAccessReportBlob } from './reportBlobAccess';
 import { parseCreditReportHtmlEnhanced } from '../creditReports/parseHtmlReport';
 import { parseCreditReportPdf } from '../creditReports/parsePdfReport';
 import { detectProviderFromHtml, detectProviderFromText } from '../creditReports/detectProvider';
@@ -253,6 +255,15 @@ export async function reparseStoredCreditReport(args: {
   record: CreditReportRecord;
   onProgress?: ReportParseProgress;
 }): Promise<CreditReportRecord> {
+  if (isLegacyPendingReportBlob(args.record.rawBlobRef)) {
+    throw new Error(
+      'This report was migrated without the original file. Re-upload the HTML export above, or restore files from the legacy server ZIP on Admin → Partner Import.',
+    );
+  }
+  if (!canAccessReportBlob(args.record.rawBlobRef)) {
+    throw new Error('This report has no accessible stored file. Re-upload the original HTML or PDF export.');
+  }
+
   // Always bust cache so UI "Re-parse" picks up extractor fixes (contacts, etc.).
   clearCachedParsedReport(args.record.id);
 

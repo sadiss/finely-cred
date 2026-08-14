@@ -4,11 +4,11 @@ import { LandingTypewriterTitle } from '../../components/landing/LandingTypewrit
 import { PC_RESTORE_BTN } from './personalCreditRestoreButtons';
 
 type Props = {
-  onStartFreeGuide: () => void;
+  onStartFreeTrial: () => void;
   onBookSession: () => void;
 };
 
-export function PersonalCreditHeroShell({ onStartFreeGuide, onBookSession }: Props) {
+export function PersonalCreditHeroShell({ onStartFreeTrial, onBookSession }: Props) {
   const [heroUrl, setHeroUrl] = useState('/marketing/personal-credit-hero.webp');
 
   useEffect(() => {
@@ -55,8 +55,8 @@ export function PersonalCreditHeroShell({ onStartFreeGuide, onBookSession }: Pro
             behind every step.
           </p>
           <div className="flex flex-wrap gap-2 pt-1">
-            <button type="button" className={PC_RESTORE_BTN.emerald} onClick={onStartFreeGuide}>
-              Start free guide <ArrowRight size={14} />
+            <button type="button" className={PC_RESTORE_BTN.emerald} onClick={onStartFreeTrial}>
+              Start free trial <ArrowRight size={14} />
             </button>
             <button type="button" className={PC_RESTORE_BTN.sky} onClick={onBookSession}>
               Book a session <ArrowRight size={14} />
@@ -94,33 +94,6 @@ export function PersonalCreditRestoreSpectrum() {
         {segs.map((s) => (
           <span key={s.label}>{s.label}</span>
         ))}
-      </div>
-    </div>
-  );
-}
-
-export function PersonalCreditCommandStrip({
-  onComparePackages,
-  onStartFreeGuide,
-}: {
-  onComparePackages: () => void;
-  onStartFreeGuide: () => void;
-}) {
-  return (
-    <div className="pc-restore-command">
-      <div className="min-w-0">
-        <p className="pc-restore-hub-eyebrow">What to do next</p>
-        <p className="pc-restore-hub-sub text-sm font-medium">
-          New here? Compare restore packages below or start with the free guide — no credit report or dashboard required yet.
-        </p>
-      </div>
-      <div className="flex flex-wrap gap-2 shrink-0">
-        <button type="button" className={PC_RESTORE_BTN.emerald} onClick={onComparePackages}>
-          Compare packages
-        </button>
-        <button type="button" className={PC_RESTORE_BTN.ghost} onClick={onStartFreeGuide}>
-          Start free guide
-        </button>
       </div>
     </div>
   );
