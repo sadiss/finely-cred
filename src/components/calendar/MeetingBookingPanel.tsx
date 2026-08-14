@@ -1,10 +1,12 @@
-import React, { useMemo, useState } from 'react';
-import { ArrowRight, CalendarDays } from 'lucide-react';
+import React, { useState } from 'react';
+import { ArrowRight } from 'lucide-react';
 import type { CalendarBookingSettings, ConsultationTopic, SlotDuration } from '../../domain/calendar';
-import { bookPartnerConsultationSlot, createConsultationRequest, listCalendarEvents } from '../../data/calendarRepo';
-import { BookingTimeSlotPicker } from './BookingTimeSlotPicker';
+import { bookPartnerConsultationSlot, createConsultationRequest } from '../../data/calendarRepo';
+import { PublicSessionSlotPicker } from './PublicSessionSlotPicker';
 import { VoiceNoteRecorder } from './VoiceNoteRecorder';
-import { isoDayKey, type BookableSlot, slotDurationOptions, formatSlotRange } from '../../lib/calendarSlots';
+import { VoiceTranscriptField } from './VoiceTranscriptField';
+import { type BookableSlot, slotDurationOptions, formatSlotRange } from '../../lib/calendarSlots';
+import { finelyOsGlowTile } from '../../features/os/finelyOsLightUi';
 
 const TOPICS: Array<{ id: ConsultationTopic; label: string; desc: string }> = [
   { id: 'enlightenment', label: 'Strategy call', desc: 'Free 60-minute call — map your next moves.' },
@@ -24,13 +26,12 @@ type Props = {
 };
 
 export function MeetingBookingPanel({ partnerId, settings, onBooked }: Props) {
-  const allEvents = listCalendarEvents();
   const durations = settings.allowedDurations.length ? settings.allowedDurations : slotDurationOptions();
 
   const [mode, setMode] = useState<'instant' | 'request'>('instant');
   const [topic, setTopic] = useState<ConsultationTopic>('enlightenment');
   const [duration, setDuration] = useState<SlotDuration>(settings.defaultDuration);
-  const [dayKey, setDayKey] = useState<string | null>(isoDayKey(new Date()));
+  const [dayKey, setDayKey] = useState<string | null>(null);
   const [selectedSlot, setSelectedSlot] = useState<BookableSlot | null>(null);
   const [meetingAgenda, setMeetingAgenda] = useState('');
   const [details, setDetails] = useState('');
@@ -40,11 +41,6 @@ export function MeetingBookingPanel({ partnerId, settings, onBooked }: Props) {
   const [err, setErr] = useState<string | null>(null);
   const [ok, setOk] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-
-  const pickDay = (key: string) => {
-    setDayKey(key);
-    setSelectedSlot(null);
-  };
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -112,32 +108,13 @@ export function MeetingBookingPanel({ partnerId, settings, onBooked }: Props) {
     }
   };
 
-  const monthStart = useMemo(() => {
-    const d = dayKey ? new Date(`${dayKey}T12:00:00`) : new Date();
-    return new Date(d.getFullYear(), d.getMonth(), 1);
-  }, [dayKey]);
-
-  const dayGrid = useMemo(() => {
-    const start = monthStart;
-    const firstDow = start.getDay();
-    const gridStart = new Date(start);
-    gridStart.setDate(start.getDate() - firstDow);
-    const days: Date[] = [];
-    for (let i = 0; i < 42; i++) {
-      const d = new Date(gridStart);
-      d.setDate(gridStart.getDate() + i);
-      days.push(d);
-    }
-    return days;
-  }, [monthStart]);
-
   return (
-    <form onSubmit={submit} className="space-y-6">
-      <div className="inline-flex items-center gap-1 fc-light-glass-panel fc-light-chrome-panel p-1">
+    <form onSubmit={submit} className="space-y-6 min-w-0 overflow-x-clip">
+      <div className="flex flex-col sm:flex-row items-stretch gap-1 fc-light-glass-panel fc-light-chrome-panel p-1 w-full sm:w-auto">
         <button
           type="button"
           onClick={() => setMode('instant')}
-          className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
+          className={`flex-1 min-h-[44px] px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-normal text-center leading-snug ${
             mode === 'instant' ? 'bg-amber-500 text-black' : 'text-white/70 hover:text-white hover:bg-white/5'
           }`}
         >
@@ -146,7 +123,7 @@ export function MeetingBookingPanel({ partnerId, settings, onBooked }: Props) {
         <button
           type="button"
           onClick={() => setMode('request')}
-          className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
+          className={`flex-1 min-h-[44px] px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-normal text-center leading-snug ${
             mode === 'request' ? 'bg-amber-500 text-black' : 'text-white/70 hover:text-white hover:bg-white/5'
           }`}
         >
@@ -161,154 +138,125 @@ export function MeetingBookingPanel({ partnerId, settings, onBooked }: Props) {
         <div className="rounded-2xl border border-fuchsia-500/25 bg-fuchsia-500/10 p-4 text-fuchsia-100 text-sm">{err}</div>
       ) : null}
 
-      <div className="grid lg:grid-cols-12 gap-6">
-        <div className="lg:col-span-5 space-y-4">
-          <div className="fc-light-glass-panel fc-light-chrome-panel p-5 space-y-4">
-            <div className="inline-flex items-center gap-2 text-violet-400">
-              <CalendarDays size={16} />
-              <span className="text-[10px] font-black uppercase tracking-widest">Select date</span>
-            </div>
-            <div className="text-sm text-white/60">{monthStart.toLocaleString(undefined, { month: 'long', year: 'numeric' })}</div>
-            <div className="grid grid-cols-7 gap-0 border border-white/[0.08] rounded-xl overflow-hidden">
-              {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((d, i) => (
-                <div key={`${d}-${i}`} className="px-1 py-2 text-[9px] uppercase tracking-widest text-white/40 text-center bg-fc-input border-b border-white/[0.08]">
-                  {d}
-                </div>
-              ))}
-              {dayGrid.map((day) => {
-                const key = isoDayKey(day);
-                const inMonth = day.getMonth() === monthStart.getMonth();
-                const past = day < new Date(new Date().toDateString());
-                const selected = dayKey === key;
-                const isToday = key === isoDayKey(new Date());
+      {mode === 'instant' ? (
+        <PublicSessionSlotPicker
+          durationMinutes={duration}
+          onDurationChange={(d) => {
+            setDuration(d);
+            setSelectedSlot(null);
+          }}
+          selectedDay={dayKey}
+          onDayChange={setDayKey}
+          selectedSlot={selectedSlot}
+          onSlotChange={setSelectedSlot}
+          allowedDurations={durations}
+          settingsOverride={settings}
+          showDurationPicker={false}
+        />
+      ) : null}
+
+      <div className="fc-light-glass-panel fc-light-chrome-panel p-4 sm:p-6 space-y-4 min-w-0 overflow-x-clip">
+        <div className="grid sm:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-[10px] uppercase tracking-widest text-white/50 mb-1">Topic</label>
+            <div className="flex flex-wrap gap-1.5">
+              {TOPICS.map((t) => {
+                const active = t.id === topic;
                 return (
                   <button
-                    key={key}
+                    key={t.id}
                     type="button"
-                    disabled={past || !inMonth}
-                    onClick={() => pickDay(key)}
-                    className={`min-h-[44px] border-t border-r border-white/[0.08] text-sm font-semibold transition-all disabled:opacity-25 ${
-                      selected ? 'bg-amber-500 text-black' : isToday ? 'bg-fuchsia-500/15 text-fuchsia-200' : inMonth ? 'bg-white/[0.05] text-white/75 hover:bg-white/[0.04]' : 'bg-white/[0.03] text-white/25'
-                    }`}
+                    onClick={() => setTopic(t.id)}
+                    className={`px-2.5 py-2 min-h-[44px] text-[10px] font-bold whitespace-normal text-left leading-snug ${finelyOsGlowTile(active ? 'violet' : 'sky', active)} ${active ? 'text-violet-100' : 'text-white/70'}`}
                   >
-                    {day.getDate()}
+                    {t.label}
+                  </button>
+                );
+              })}
+            </div>
+            <div className="mt-1 text-white/50 text-xs">{TOPICS.find((t) => t.id === topic)?.desc}</div>
+          </div>
+          <div>
+            <label className="block text-[10px] uppercase tracking-widest text-white/50 mb-1">Duration</label>
+            <div className="flex flex-wrap gap-1.5">
+              {durations.map((d) => {
+                const active = d === duration;
+                return (
+                  <button
+                    key={d}
+                    type="button"
+                    onClick={() => {
+                      setDuration(d);
+                      setSelectedSlot(null);
+                    }}
+                    className={`px-3 py-2 min-h-[44px] text-[10px] font-bold ${finelyOsGlowTile(active ? 'amber' : 'sky', active)} ${active ? 'text-amber-100' : 'text-white/70'}`}
+                  >
+                    {d} min
                   </button>
                 );
               })}
             </div>
           </div>
-
-          {mode === 'instant' ? (
-            <BookingTimeSlotPicker
-              dayKey={dayKey}
-              durationMinutes={duration}
-              existingEvents={allEvents}
-              settings={settings}
-              selectedSlot={selectedSlot}
-              onSelectSlot={setSelectedSlot}
-            />
-          ) : null}
         </div>
 
-        <div className="lg:col-span-7 fc-light-glass-panel fc-light-chrome-panel p-6 space-y-4">
-          <div className="grid sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-[10px] uppercase tracking-widest text-white/50 mb-1">Topic</label>
-              <select
-                value={topic}
-                onChange={(e) => setTopic(e.target.value as ConsultationTopic)}
-                className="w-full bg-fc-input border border-white/[0.08] rounded-xl px-3 py-2 text-white text-sm"
-              >
-                {TOPICS.map((t) => (
-                  <option key={t.id} value={t.id}>
-                    {t.label}
-                  </option>
-                ))}
-              </select>
-              <div className="mt-1 text-white/50 text-xs">{TOPICS.find((t) => t.id === topic)?.desc}</div>
-            </div>
-            <div>
-              <label className="block text-[10px] uppercase tracking-widest text-white/50 mb-1">Duration</label>
-              <select
-                value={duration}
-                onChange={(e) => {
-                  setDuration(Number(e.target.value) as SlotDuration);
-                  setSelectedSlot(null);
-                }}
-                className="w-full bg-fc-input border border-white/[0.08] rounded-xl px-3 py-2 text-white text-sm"
-              >
-                {durations.map((d) => (
-                  <option key={d} value={d}>
-                    {d} minutes
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-xs text-emerald-100 leading-relaxed">
-            Booking rules: {settings.minNoticeHours}h minimum notice, no next-day booking after {settings.cutoffHourPreviousDay}:00,
-            working hours {settings.startHour}:00–{settings.endHour}:00, and blocked internal slots are hidden automatically.
-          </div>
-
-          <div>
-            <label className="block text-[10px] uppercase tracking-widest text-white/50 mb-1">
-              Meeting agenda {mode === 'instant' ? '(required)' : ''}
-            </label>
-            <textarea
-              value={meetingAgenda}
-              onChange={(e) => setMeetingAgenda(e.target.value)}
-              rows={3}
-              placeholder="What should we cover? Dispute round, funding readiness, documents review…"
-              className="w-full bg-fc-input border border-white/[0.08] rounded-xl px-3 py-2 text-white text-sm placeholder:text-white/30 resize-y"
-            />
-          </div>
-
-          <div>
-            <label className="block text-[10px] uppercase tracking-widest text-white/50 mb-1">More details</label>
-            <textarea
-              value={details}
-              onChange={(e) => setDetails(e.target.value)}
-              rows={2}
-              placeholder="Context, urgency, links to documents, bureau targets…"
-              className="w-full bg-fc-input border border-white/[0.08] rounded-xl px-3 py-2 text-white text-sm placeholder:text-white/30 resize-y"
-            />
-          </div>
-
-          <div>
-            <label className="block text-[10px] uppercase tracking-widest text-white/50 mb-1">Notes (optional)</label>
-            <textarea
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              rows={2}
-              placeholder="Anything else for your case manager"
-              className="w-full bg-fc-input border border-white/[0.08] rounded-xl px-3 py-2 text-white text-sm placeholder:text-white/30 resize-y"
-            />
-          </div>
-
-          {mode === 'request' ? (
-            <div>
-              <label className="block text-[10px] uppercase tracking-widest text-white/50 mb-1">Availability</label>
-              <textarea
-                value={availability}
-                onChange={(e) => setAvailability(e.target.value)}
-                rows={2}
-                placeholder="Example: Mon–Wed after 2pm ET, or flexible mornings"
-                className="w-full bg-fc-input border border-white/[0.08] rounded-xl px-3 py-2 text-white text-sm placeholder:text-white/30 resize-y"
-              />
-            </div>
-          ) : null}
-
-          <VoiceNoteRecorder partnerId={partnerId} value={voiceNote} onChange={setVoiceNote} />
-
-          <button
-            type="submit"
-            disabled={busy}
-            className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-amber-500 text-black font-black uppercase tracking-widest text-[10px] hover:brightness-110 transition-all disabled:opacity-50"
-          >
-            {mode === 'instant' ? 'Confirm session' : 'Submit request'} <ArrowRight size={14} />
-          </button>
+        <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-xs text-emerald-100 leading-relaxed">
+          Booking rules: {settings.minNoticeHours}h minimum notice, no next-day booking after {settings.cutoffHourPreviousDay}:00,
+          working hours {settings.startHour}:00–{settings.endHour}:00, and blocked internal slots are hidden automatically.
         </div>
+
+        <VoiceTranscriptField
+          label={`Meeting agenda ${mode === 'instant' ? '(required)' : ''}`}
+          value={meetingAgenda}
+          onChange={setMeetingAgenda}
+          rows={3}
+          accent="violet"
+          placeholder="What should we cover? Dispute round, funding readiness, documents review…"
+        />
+
+        <div>
+          <label className="block text-[10px] uppercase tracking-widest text-white/50 mb-1">More details</label>
+          <textarea
+            value={details}
+            onChange={(e) => setDetails(e.target.value)}
+            rows={2}
+            placeholder="Context, urgency, links to documents, bureau targets…"
+            className="w-full bg-fc-input border border-white/[0.08] rounded-xl px-3 py-2 text-white text-sm placeholder:text-white/30 resize-y"
+          />
+        </div>
+
+        <div>
+          <label className="block text-[10px] uppercase tracking-widest text-white/50 mb-1">Notes (optional)</label>
+          <textarea
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            rows={2}
+            placeholder="Anything else for your case manager"
+            className="w-full bg-fc-input border border-white/[0.08] rounded-xl px-3 py-2 text-white text-sm placeholder:text-white/30 resize-y"
+          />
+        </div>
+
+        {mode === 'request' ? (
+          <div>
+            <label className="block text-[10px] uppercase tracking-widest text-white/50 mb-1">Availability</label>
+            <textarea
+              value={availability}
+              onChange={(e) => setAvailability(e.target.value)}
+              rows={2}
+              placeholder="Example: Mon–Wed after 2pm ET, or flexible mornings"
+              className="w-full bg-fc-input border border-white/[0.08] rounded-xl px-3 py-2 text-white text-sm placeholder:text-white/30 resize-y"
+            />
+          </div>
+        ) : null}
+
+        <VoiceNoteRecorder partnerId={partnerId} value={voiceNote} onChange={setVoiceNote} />
+
+        <button
+          type="submit"
+          disabled={busy || (mode === 'instant' && !selectedSlot)}
+          className="w-full sm:w-auto inline-flex items-center justify-center gap-2 min-h-[44px] px-5 py-3 rounded-xl bg-amber-500 text-black font-black uppercase tracking-widest text-[10px] whitespace-normal text-center leading-snug hover:brightness-110 transition-all disabled:opacity-50"
+        >
+          {mode === 'instant' ? 'Confirm session' : 'Submit request'} <ArrowRight size={14} />
+        </button>
       </div>
     </form>
   );

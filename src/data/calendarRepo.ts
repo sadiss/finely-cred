@@ -13,6 +13,7 @@ import { loadJson, saveJson } from './localJsonStore';
 import { createNotification } from './notificationsRepo';
 import { buildFinelyMeetingUrl } from '../lib/meetingUrls';
 import { onConsultationScheduled } from '../lib/calendarBookingEngine';
+import { syncCalendarEventToSupabase } from './calendarServerSync';
 
 const KEY = 'finely.calendar.v1';
 const ADDITIONAL_ENLIGHTENMENT_SESSION_CENTS = 10_000;
@@ -346,6 +347,7 @@ export function upsertCalendarEvent(ev: CalendarEvent): CalendarEvent {
   if (idx >= 0) store.events[idx] = next;
   else store.events.push(next);
   saveStore(store);
+  void syncCalendarEventToSupabase(next);
   return next;
 }
 
@@ -415,6 +417,7 @@ export function setEventStatus(id: string, status: CalendarEventStatus): Calenda
   const next = { ...store.events[idx]!, status, updatedAt: nowIso() };
   store.events[idx] = next;
   saveStore(store);
+  void syncCalendarEventToSupabase(next);
   return next;
 }
 
@@ -425,6 +428,7 @@ export function setEventMeetingNotes(id: string, meetingNotes: string | undefine
   const next = { ...store.events[idx]!, meetingNotes: meetingNotes?.trim() || undefined, updatedAt: nowIso() };
   store.events[idx] = next;
   saveStore(store);
+  void syncCalendarEventToSupabase(next);
   return next;
 }
 
@@ -510,6 +514,7 @@ export function sendUpcomingReminders(args?: { withinHours?: number; now?: Date 
 
   const store = loadStore();
   let changed = 0;
+  const touched: CalendarEvent[] = [];
   const nextEvents = store.events.map((ev) => {
     if (ev.status !== 'confirmed') return ev;
     if (ev.reminderSentAt) return ev;
@@ -528,13 +533,28 @@ export function sendUpcomingReminders(args?: { withinHours?: number; now?: Date 
       meta: { eventId: ev.id, startAt: ev.startAt, type: ev.type },
     });
     changed++;
-    return { ...ev, reminderSentAt: nowIso(), updatedAt: nowIso() };
+    const nextEv = { ...ev, reminderSentAt: nowIso(), updatedAt: nowIso() };
+    touched.push(nextEv);
+    return nextEv;
   });
 
   if (changed) {
     store.events = nextEvents;
     saveStore(store);
+    for (const ev of touched) void syncCalendarEventToSupabase(ev);
   }
   return changed;
+}
+
+/** Mark email/SMS reminder sent for a confirmed event (separate from in-app reminderSentAt). */
+export function markEventEmailReminderSent(id: string): CalendarEvent | null {
+  const store = loadStore();
+  const idx = store.events.findIndex((e) => e.id === id);
+  if (idx < 0) return null;
+  const next = { ...store.events[idx]!, emailReminderSentAt: nowIso(), updatedAt: nowIso() };
+  store.events[idx] = next;
+  saveStore(store);
+  void syncCalendarEventToSupabase(next);
+  return next;
 }
 

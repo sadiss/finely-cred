@@ -1,8 +1,21 @@
 import { callAiGateway } from '../../lib/aiClient';
 import { isFeatureEnabled } from '../../data/settingsRepo';
 import { getMarketingFindGeo } from '../marketingDesk/marketingDeskHunt';
+import { detectMissingTechniques } from './mediaGapCheck';
 import type { VideoCommandRequest, VideoGenerationIntent } from './types';
 import type { VideoCreateWizardPresetId } from './VideoCreateWizard';
+
+function techniqueTipLine(args: {
+  intent: VideoGenerationIntent;
+  durationSec: number;
+  aspect: VideoCommandRequest['aspect'];
+  includeCaptions: boolean;
+  visualStyle: VideoCommandRequest['visualStyle'];
+}): string {
+  const [suggestion] = detectMissingTechniques(args);
+  if (!suggestion) return '';
+  return `\n💡 Technique tip: ${suggestion.suggestion} (${suggestion.techniqueId})`;
+}
 
 export type VideoCopilotMessage = {
   id: string;
@@ -49,6 +62,14 @@ function localCopilotReply(userText: string, history: VideoCopilotMessage[]): Vi
   const intent = inferIntent(combined);
   const cityMatch = combined.match(/\b(?:in|for)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?)\b/);
   const city = cityMatch?.[1] ?? getMarketingFindGeo();
+  const presetPatch = preset ? VIDEO_COPILOT_PRESET_PATCH[preset] : undefined;
+  const tip = techniqueTipLine({
+    intent: presetPatch?.intent ?? intent,
+    durationSec: presetPatch?.durationSec ?? 28,
+    aspect: presetPatch?.aspect ?? '9:16',
+    includeCaptions: true,
+    visualStyle: 'luxury',
+  });
 
   return {
     reply: [
@@ -63,6 +84,7 @@ function localCopilotReply(userText: string, history: VideoCopilotMessage[]): Vi
         : 'Next: choose duration and aspect (28s reel, 60s ad, guide promo, or city spotlight).',
       '',
       'When the plan looks right, continue to **Format** then **Generate scenes**.',
+      tip,
     ].join('\n'),
     requestPatch: {
       prompt: combined.trim(),
@@ -133,18 +155,28 @@ export async function runVideoCreationCopilotTurn(args: {
     const end = out.text.lastIndexOf('}');
     const parsed = start >= 0 && end >= start ? JSON.parse(out.text.slice(start, end + 1)) : null;
     if (!parsed?.reply) return localCopilotReply(trimmed, args.history);
+    const resolvedIntent = (parsed.intent as VideoGenerationIntent) || inferIntent(trimmed);
+    const resolvedPreset = parsed.suggestedPreset || inferPreset(trimmed);
+    const presetPatch = resolvedPreset ? VIDEO_COPILOT_PRESET_PATCH[resolvedPreset as VideoCreateWizardPresetId] : undefined;
+    const tip = techniqueTipLine({
+      intent: presetPatch?.intent ?? resolvedIntent,
+      durationSec: presetPatch?.durationSec ?? 28,
+      aspect: presetPatch?.aspect ?? '9:16',
+      includeCaptions: true,
+      visualStyle: 'luxury',
+    });
     return {
-      reply: String(parsed.reply),
+      reply: `${String(parsed.reply)}${tip}`,
       requestPatch: {
         prompt: String(parsed.prompt || trimmed),
         audience: parsed.audience ? String(parsed.audience) : undefined,
         offer: parsed.offer ? String(parsed.offer) : undefined,
         city: parsed.city ? String(parsed.city) : getMarketingFindGeo(),
-        intent: (parsed.intent as VideoGenerationIntent) || inferIntent(trimmed),
+        intent: resolvedIntent,
         complianceStrict: true,
         includeCaptions: true,
       },
-      suggestedPreset: parsed.suggestedPreset || inferPreset(trimmed),
+      suggestedPreset: resolvedPreset,
     };
   } catch {
     return localCopilotReply(trimmed, args.history);

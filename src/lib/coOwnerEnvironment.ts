@@ -45,8 +45,8 @@ ENVIRONMENT — TESTING / QA MODE (critical):
 - If owner asks "how are we doing?" — lead with: code track, launch gates, test coverage, then optional production checklist — NOT doom from empty CRM.
 `.trim();
 
-export function buildCoOwnerTestingPromptBlock(): string {
-  const deep = buildCoOwnerDeepReasoningPrompt();
+export function buildCoOwnerTestingPromptBlock(query?: string): string {
+  const deep = buildCoOwnerDeepReasoningPrompt(query);
   if (!isCoOwnerTestingMode()) {
     return [`Environment: ${getCoOwnerEnvironmentMode().toUpperCase()} — interpret metrics for live operations.`, deep].join('\n\n');
   }

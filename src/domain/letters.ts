@@ -4,6 +4,8 @@ import type { BusinessBureau } from './businessCredit';
 export type LetterType = 'dispute' | 'validation' | 'court';
 
 export type LetterStatus =
+  /** Work-in-progress — editable, not emailed, shown in Drafts. */
+  | 'draft'
   | 'generated'
   | 'mail_pending'
   | 'mail_failed'

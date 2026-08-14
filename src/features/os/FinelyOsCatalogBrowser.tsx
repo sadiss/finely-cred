@@ -42,6 +42,8 @@ const ADMIN_SOLID_GLOW: Record<FcAdminTone, string> = {
     'shadow-[0_0_0_1px_rgba(45,212,191,0.42),0_16px_44px_-12px_rgba(13,148,136,0.55),0_0_36px_rgba(45,212,191,0.26)] hover:shadow-[0_0_0_1px_rgba(45,212,191,0.55),0_18px_48px_-10px_rgba(13,148,136,0.6)] hover:brightness-110',
   rose:
     'shadow-[0_0_0_1px_rgba(251,113,133,0.42),0_16px_44px_-12px_rgba(225,29,72,0.5),0_0_36px_rgba(251,113,133,0.24)] hover:shadow-[0_0_0_1px_rgba(251,113,133,0.55),0_18px_48px_-10px_rgba(225,29,72,0.55)] hover:brightness-110',
+  violet:
+    'shadow-[0_0_0_1px_rgba(167,139,250,0.42),0_16px_44px_-12px_rgba(124,58,237,0.5),0_0_36px_rgba(167,139,250,0.24)] hover:shadow-[0_0_0_1px_rgba(167,139,250,0.55),0_18px_48px_-10px_rgba(124,58,237,0.55)] hover:brightness-110',
 };
 
 function adminSolidMetaChipClass(m: string, cardTone: FcAdminTone, darkBed = false): string {

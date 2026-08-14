@@ -122,6 +122,7 @@ export function SendMeetingInvitePanel({
         hostName,
         hostRoleLabel,
         scheduleUrl: `${origin}/portal/calendar`,
+        intent: 'manual',
       });
       if (!res.ok) throw new Error(res.error || 'Email failed.');
       setOk(`Meeting email sent to ${toEmail.trim() || partner?.profile.email}.`);

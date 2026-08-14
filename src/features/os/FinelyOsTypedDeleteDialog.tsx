@@ -1,15 +1,17 @@
 import React, { useEffect, useId, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { AlertTriangle, X } from 'lucide-react';
+import { AlertTriangle } from 'lucide-react';
 import {
   FINELY_OS_DANGER_BTN,
   FINELY_OS_SECONDARY_BTN,
   FINELY_OS_ENTITY_BODY,
   FINELY_OS_ENTITY_VALUE,
   FINELY_OS_FIXED_OVERLAY,
+  FINELY_OS_MODAL_HEADER,
   FINELY_OS_MODAL_SHELL,
   finelyOsGlowField,
 } from './finelyOsLightUi';
+import { FinelyOsModalCloseButton } from './FinelyOsModalCloseButton';
 
 export type FinelyOsTypedDeleteDialogProps = {
   open: boolean;
@@ -52,7 +54,7 @@ export function FinelyOsTypedDeleteDialog({
         aria-labelledby={`${inputId}-title`}
         aria-describedby={`${inputId}-desc`}
       >
-        <div className="flex items-start justify-between gap-3 border-b border-white/10 px-4 py-4">
+        <div className={FINELY_OS_MODAL_HEADER}>
           <div className="flex items-start gap-3 min-w-0">
             <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-rose-400/35 bg-rose-500/15 text-rose-200">
               <AlertTriangle size={18} />
@@ -64,9 +66,7 @@ export function FinelyOsTypedDeleteDialog({
               {entityLabel ? <p className="mt-0.5 text-xs text-rose-200/80 truncate">{entityLabel}</p> : null}
             </div>
           </div>
-          <button type="button" onClick={onClose} disabled={busy} className={`${FINELY_OS_SECONDARY_BTN} !p-2`} aria-label="Close">
-            <X size={16} />
-          </button>
+          <FinelyOsModalCloseButton onClick={onClose} disabled={busy} />
         </div>
         <div className="px-4 py-4 space-y-4">
           <p id={`${inputId}-desc`} className={`text-sm leading-relaxed ${FINELY_OS_ENTITY_BODY}`}>

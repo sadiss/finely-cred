@@ -18,6 +18,14 @@ import { isFeatureEnabled } from '../../data/settingsRepo';
 import { createMarketingTask, findOpenMarketingTask } from '../marketingDesk/marketingDeskTasks';
 import { crmRecordDisplayName } from '../../domain/crmRecords';
 import { createNotification } from '../../data/notificationsRepo';
+import {
+  checkSuppression,
+  isOverFrequencyCap,
+  recordSendForFrequencyCap,
+  resolveFrequencyCapKey,
+} from '../../data/commsSuppressionRepo';
+import { logAgentAction } from '../../lib/agentAuditLog';
+import { isInternalStaffEmail } from '../../lib/meetingEmailGuards';
 
 const AUTO_KEY = 'finely.alex.appointment_autopilot.v1';
 const OUTREACH_KEY = 'finely.alex.outreach_sent.v1';
@@ -65,7 +73,7 @@ function isSameLocalDay(iso: string): boolean {
 
 export function isAlexAppointmentAutopilotEnabled(): boolean {
   const raw = loadJson<{ enabled?: boolean }>(AUTO_KEY, {}, 1);
-  if (raw.enabled === undefined) return true;
+  if (raw.enabled === undefined) return false;
   return Boolean(raw.enabled);
 }
 
@@ -150,6 +158,10 @@ export async function runAlexAppointmentOutreach(args?: {
 
     const name = crmRecordDisplayName(record);
     const email = record.contact.email!.trim();
+    if (isInternalStaffEmail(email)) {
+      result.skipped++;
+      continue;
+    }
     const leadId = record.sourceRef?.type === 'lead' ? record.sourceRef.id : undefined;
 
     const existingInvite = listBookingInvites().find(
@@ -175,7 +187,20 @@ export async function runAlexAppointmentOutreach(args?: {
     const bookUrl = `${origin}${buildBookingInvitePath(invite.token)}`;
     let emailOk = false;
 
-    if (isFeatureEnabled('commsDelivery')) {
+    const suppression = checkSuppression({ email, channel: 'email' });
+    const frequencyCapKey = await resolveFrequencyCapKey({ email, crmRecordId: record.id });
+    const overCap = isOverFrequencyCap(frequencyCapKey);
+    if (isFeatureEnabled('commsDelivery') && suppression.suppressed) {
+      logAgentAction({
+        agentId: 'appointment-setter',
+        action: 'outreach.suppressed',
+        entityType: 'crm_record',
+        entityId: record.id,
+        reasoning: `Suppressed: ${suppression.reason}`,
+      });
+    } else if (isFeatureEnabled('commsDelivery') && overCap) {
+      result.errors.push(`${email} skipped — already contacted within frequency window`);
+    } else if (isFeatureEnabled('commsDelivery')) {
       try {
         const res = await sendMeetingInviteEmail({
           partnerId: record.partnerId || 'admin_growth',
@@ -187,10 +212,20 @@ export async function runAlexAppointmentOutreach(args?: {
           hostRoleLabel: 'Appointment Setter',
           agenda: `${reason}. Pick a time that works — audio-first video room included.`,
           scheduleUrl: bookUrl,
+          intent: 'outreach',
         });
         emailOk = res.ok;
-        if (res.ok) result.emailsSent++;
-        else result.errors.push(res.error || `Email failed for ${email}`);
+        if (res.ok) {
+          result.emailsSent++;
+          recordSendForFrequencyCap(frequencyCapKey);
+          logAgentAction({
+            agentId: 'appointment-setter',
+            action: 'outreach.sent',
+            entityType: 'crm_record',
+            entityId: record.id,
+            reasoning: reason,
+          });
+        } else result.errors.push(res.error || `Email failed for ${email}`);
       } catch (e: unknown) {
         result.errors.push((e as Error)?.message || `Email failed for ${email}`);
       }

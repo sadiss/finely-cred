@@ -33,19 +33,29 @@ export async function generateTextPdfToVault(args: {
         lines.push('');
         continue;
       }
-      const words = p.split(/\s+/);
+      // Keep short lines verbatim — preserves partner spacing edits.
+      if (useFont.widthOfTextAtSize(p, useFontSize) <= maxWidth) {
+        lines.push(p);
+        continue;
+      }
+      const words = p.split(' ');
       let line = '';
       for (const w of words) {
-        const next = line ? `${line} ${w}` : w;
+        if (w === '') {
+          if (line.endsWith(' ')) continue;
+          line += ' ';
+          continue;
+        }
+        const next = line ? `${line}${line.endsWith(' ') ? '' : ' '}${w}` : w;
         const width = useFont.widthOfTextAtSize(next, useFontSize);
         if (width <= maxWidth) {
           line = next;
         } else {
-          if (line) lines.push(line);
+          if (line.trim()) lines.push(line);
           line = w;
         }
       }
-      if (line) lines.push(line);
+      if (line.trim()) lines.push(line);
     }
     return lines;
   };
@@ -65,17 +75,20 @@ export async function generateTextPdfToVault(args: {
   const lines = wrap(letterText, font, fontSize);
   for (const line of lines) {
     ensureSpace(lineHeight);
-    if (!line) {
-      y -= lineHeight * 0.7;
+    if (!line.trim()) {
+      y -= lineHeight;
       continue;
     }
     const trimmed = line.trim();
     const isMarkdownHeading = /^#{1,4}\s+/.test(trimmed);
-    const drawText = isMarkdownHeading ? trimmed.replace(/^#{1,4}\s+/, '') : trimmed;
-    const isNumbered = /^\d+\.\s+/.test(trimmed);
-    const isBullet = /^[-•]\s+/.test(trimmed);
-    page.drawText(drawText, {
-      x: margin + (isBullet || isNumbered ? 10 : 0),
+    const drawText = isMarkdownHeading ? trimmed.replace(/^#{1,4}\s+/, '') : line.replace(/\s+$/g, '');
+    const isNumbered = /^\s*\d+\.\s+/.test(drawText);
+    const isBullet = /^\s*[-•]\s+/.test(drawText);
+    const leadingSpaces = drawText.length - drawText.trimStart().length;
+    const spaceWidth = font.widthOfTextAtSize(' ', fontSize);
+    const ink = isMarkdownHeading ? drawText : drawText.trimStart() || drawText;
+    page.drawText(ink, {
+      x: margin + (isBullet || isNumbered ? 10 : 0) + leadingSpaces * spaceWidth,
       y,
       size: fontSize,
       font,
@@ -98,10 +111,7 @@ export async function generateTextPdfToVault(args: {
     }
   });
 
-  // useObjectStreams: false keeps page dictionaries as plain text in the PDF bytes —
-  // the mailer edge function estimates page count via a text scan for "/Type /Page",
-  // which can't see markers hidden inside compressed object streams.
-  const bytes = await doc.save({ useObjectStreams: false });
+  const bytes = await doc.save();
   const blob = new Blob([new Uint8Array(bytes)], { type: 'application/pdf' });
   const filename = sanitizeFilename(args.filename).endsWith('.pdf') ? sanitizeFilename(args.filename) : `${sanitizeFilename(args.filename)}.pdf`;
 

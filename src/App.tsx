@@ -10,6 +10,8 @@ import { Button, Reveal, Toast, LiveApprovalTicker, MobileNav, FullPageLoader, A
 import {
   HeroSection,
   TestimonialDossier,
+  ProvenResultsStrip,
+  HomeHeroProofStrip,
   WhatMakesDifferentSection,
   Footer,
   LandingPathChooserSection,
@@ -44,6 +46,8 @@ import { resolvePostAuthHomePath } from './lib/postAuthRouting';
 import { isAuthEntryPath, signupUrlForCareerPath } from './lib/onboardingRoleRouting';
 import { resolveAuthedOnboardingBouncePath } from './lib/packageCheckoutRouting';
 import { resolveFinelyCtaPath } from './lib/finelyCtaIntent';
+import { ensureDefaultExperiments, assignFunnelVariant, getAssignedCtaDestination } from './data/funnelExperimentsRepo';
+import { persistCtaBridgeVariant } from './lib/funnelCtaBridge';
 import { clearOnboardingProgress, peekOnboardingRecommendedNextPath } from './lib/onboardingProgressStorage';
 import { FreeGuideFunnelStyles } from './components/leadmagnet/FreeGuideFunnelStyles';
 import { LeadMagnetEbook } from './components/leadmagnet/LeadMagnetHeroMockup';
@@ -139,6 +143,7 @@ const AdminGrowthCommandPage = lazyWithRetry(() => import('./pages/admin/AdminGr
 const AdminTemplatesPage = lazyWithRetry(() => import('./pages/admin/AdminTemplatesPage'));
 const AdminVendorsPage = lazyWithRetry(() => import('./pages/admin/AdminVendorsPage'));
 const AdminResourcesPage = lazyWithRetry(() => import('./pages/admin/AdminResourcesPage'));
+const AdminComplianceReviewPage = lazyWithRetry(() => import('./pages/admin/AdminComplianceReviewPage'));
 const AdminTourStudioPage = lazyWithRetry(() => import('./pages/admin/AdminTourStudioPage'));
 const AdminBookstorePage = lazyWithRetry(() => import('./pages/admin/AdminBookstorePage'));
 const AdminTestimonialsPage = lazyWithRetry(() => import('./pages/admin/AdminTestimonialsPage'));
@@ -221,6 +226,28 @@ const BusinessCreditOneSheetsPage = lazyWithRetry(() => import('./pages/Business
 const PersonalCreditRestoreSheetPage = lazyWithRetry(() => import('./pages/resources/PersonalCreditRestoreSheetPage'));
 const PersonalCreditBuildSheetPage = lazyWithRetry(() => import('./pages/resources/PersonalCreditBuildSheetPage'));
 const AuTeenCreditSheetPage = lazyWithRetry(() => import('./pages/resources/AuTeenCreditSheetPage'));
+// C1 — public doctrine articles (debt-litigation, business-credit, non-citizen/international).
+// Each route has a `needs_review` ComplianceReviewRecord — see /admin/compliance-review (C0 gate).
+const DebtDefenseValidationLettersPage = lazyWithRetry(() => import('./pages/resources/DebtDefenseValidationLettersPage'));
+const DebtDefenseSummonsAnswerPage = lazyWithRetry(() => import('./pages/resources/DebtDefenseSummonsAnswerPage'));
+const DebtDefenseDiscoveryDemandsPage = lazyWithRetry(() => import('./pages/resources/DebtDefenseDiscoveryDemandsPage'));
+const DebtDefensePostJudgmentPage = lazyWithRetry(() => import('./pages/resources/DebtDefensePostJudgmentPage'));
+const FdcpaCollectorViolationsPage = lazyWithRetry(() => import('./pages/resources/FdcpaCollectorViolationsPage'));
+const BusinessCreditTierMatrixPage = lazyWithRetry(() => import('./pages/resources/BusinessCreditTierMatrixPage'));
+const BusinessCreditFundingInstrumentsPage = lazyWithRetry(() => import('./pages/resources/BusinessCreditFundingInstrumentsPage'));
+const BusinessCreditBuildingMistakesPage = lazyWithRetry(() => import('./pages/resources/BusinessCreditBuildingMistakesPage'));
+const NonCitizenBusinessCreditPage = lazyWithRetry(() => import('./pages/resources/NonCitizenBusinessCreditPage'));
+const InternationalCreditSystemsGuidePage = lazyWithRetry(() => import('./pages/resources/InternationalCreditSystemsGuidePage'));
+const OutcomeWizardPage = lazyWithRetry(() => import('./pages/resources/OutcomeWizardPage'));
+// C3 — DIY vs. DFY vs. traditional credit-repair comparison page. Route has a `needs_review`
+// ComplianceReviewRecord — see /admin/compliance-review (C0 gate).
+const CreditRepairComparisonPage = lazyWithRetry(() => import('./pages/resources/CreditRepairComparisonPage'));
+// C4 — state-specific debt-defense landing pages (highest compliance scrutiny — see C0.3).
+// Each route has a `needs_review`, `highestScrutiny: true` ComplianceReviewRecord with a 3-month
+// re-verification cadence — see /admin/compliance-review.
+const DebtDefenseTexasPage = lazyWithRetry(() => import('./pages/resources/DebtDefenseTexasPage'));
+const DebtDefenseNewYorkPage = lazyWithRetry(() => import('./pages/resources/DebtDefenseNewYorkPage'));
+const DebtDefensePennsylvaniaPage = lazyWithRetry(() => import('./pages/resources/DebtDefensePennsylvaniaPage'));
 const StartHerePage = lazyWithRetry(() => import('./pages/StartHerePage'));
 const LaunchHelpCenterPage = lazyWithRetry(() => import('./pages/LaunchHelpCenterPage'));
 const BookstorePage = lazyWithRetry(() => import('./pages/BookstorePage'));
@@ -230,6 +257,9 @@ const PricingServicePage = lazyWithRetry(() => import('./pages/PricingServicePag
 const PersonalCreditPage = lazyWithRetry(() => import('./pages/PersonalCreditPage'));
 const FundabilityReadinessPage = lazyWithRetry(() => import('./pages/FundabilityReadinessPage'));
 const TestimonialsPage = lazyWithRetry(() => import('./pages/TestimonialsPage'));
+const ResultsPage = lazyWithRetry(() => import('./pages/ResultsPage'));
+// C2 — public before/after proof gallery, the visual "at a glance" companion to /results (B1).
+const BeforeAfterGalleryPage = lazyWithRetry(() => import('./pages/BeforeAfterGalleryPage'));
 const EventsPage = lazyWithRetry(() => import('./pages/EventsPage'));
 const CheckoutPage = lazyWithRetry(() => import('./pages/CheckoutPage'));
 const ContactPage = lazyWithRetry(() => import('./pages/ContactPage'));
@@ -437,14 +467,32 @@ function LandingRoute({ onGetStarted, onViewTradelines, onNavigate, addToCart, o
     setShowSignedOutBar(consumeSignedOutFlag());
   }, []);
 
+  // D3 — homepage hero CTA-destination A/B test: seed the experiment (idempotent,
+  // additive) and record the impression as soon as the hero is actually viewed
+  // (not just on click), so view-through rate is measurable per variant.
+  useEffect(() => {
+    ensureDefaultExperiments();
+    assignFunnelVariant('homepage_hero');
+  }, []);
+
+  const handleHeroGetStarted = () => {
+    const variant = assignFunnelVariant('homepage_hero');
+    const destination = getAssignedCtaDestination('homepage_hero', '/pricing/business-credit');
+    persistCtaBridgeVariant('homepage_hero', variant);
+    navigate(destination);
+  };
+
   return (
     <div data-fc-home-shell="1">
       {showSignedOutBar ? <BackToSiteButton variant="bar" /> : null}
 
       {/* 1. Hero */}
       <div className="pt-[72px]">
-        <HeroSection onGetStarted={() => navigate('/pricing/business-credit')} onViewTradelines={onViewTradelines} />
+        <HeroSection onGetStarted={handleHeroGetStarted} onViewTradelines={onViewTradelines} />
       </div>
+
+      {/* 1b. Condensed proof/trust strip — directly beneath the hero (was buried at section #10) */}
+      <HomeHeroProofStrip />
 
       {/* 2. Path chooser */}
       <LandingPathChooserSection />
@@ -561,6 +609,10 @@ function LandingRoute({ onGetStarted, onViewTradelines, onNavigate, addToCart, o
               />
             </Reveal>
           </div>
+
+          <Reveal delay={400}>
+            <ProvenResultsStrip />
+          </Reveal>
         </div>
       </section>
 
@@ -1496,12 +1548,30 @@ function AppInner() {
         <Route path="/resources/personal-credit-restore-sheet" element={<PersonalCreditRestoreSheetPage />} />
         <Route path="/resources/personal-credit-build-sheet" element={<PersonalCreditBuildSheetPage />} />
         <Route path="/resources/au-teen-credit-sheet" element={<AuTeenCreditSheetPage />} />
+        {/* C1 doctrine articles — debt-litigation, business-credit, non-citizen/international */}
+        <Route path="/resources/debt-defense-validation-letters" element={<DebtDefenseValidationLettersPage />} />
+        <Route path="/resources/debt-defense-summons-answer" element={<DebtDefenseSummonsAnswerPage />} />
+        <Route path="/resources/debt-defense-discovery-demands" element={<DebtDefenseDiscoveryDemandsPage />} />
+        <Route path="/resources/debt-defense-post-judgment" element={<DebtDefensePostJudgmentPage />} />
+        <Route path="/resources/fdcpa-collector-violations" element={<FdcpaCollectorViolationsPage />} />
+        <Route path="/resources/business-credit-tier-matrix" element={<BusinessCreditTierMatrixPage />} />
+        <Route path="/resources/business-credit-funding-instruments" element={<BusinessCreditFundingInstrumentsPage />} />
+        <Route path="/resources/business-credit-building-mistakes" element={<BusinessCreditBuildingMistakesPage />} />
+        <Route path="/resources/non-citizen-business-credit" element={<NonCitizenBusinessCreditPage />} />
+        <Route path="/resources/international-credit-systems-guide" element={<InternationalCreditSystemsGuidePage />} />
+        <Route path="/resources/which-program-fits" element={<OutcomeWizardPage />} />
+        {/* C4 state-specific debt-defense landing pages — highest compliance scrutiny (C0.3) */}
+        <Route path="/resources/debt-defense-texas" element={<DebtDefenseTexasPage />} />
+        <Route path="/resources/debt-defense-new-york" element={<DebtDefenseNewYorkPage />} />
+        <Route path="/resources/debt-defense-pennsylvania" element={<DebtDefensePennsylvaniaPage />} />
         {/* Aliases — keep bookmarks; do not delete canonical routes */}
         <Route path="/guides" element={<Navigate to="/resources/guides" replace />} />
         <Route path="/one-sheets" element={<Navigate to="/resources/one-sheets" replace />} />
         <Route path="/partner-stories" element={<Navigate to="/testimonials" replace />} />
         <Route path="/events" element={<EventsPage />} />
         <Route path="/testimonials" element={<TestimonialsPage />} />
+        <Route path="/results" element={<ResultsPage />} />
+        <Route path="/results/before-after" element={<BeforeAfterGalleryPage />} />
         <Route path="/bookstore" element={<BookstorePage />} />
         <Route path="/bookstore/:id" element={<BookstoreProductPage />} />
         <Route path="/affiliate" element={<AffiliatePage />} />
@@ -2748,6 +2818,14 @@ function AppInner() {
           element={
             <ProtectedAdminRoute>
               <AdminResourcesPage />
+            </ProtectedAdminRoute>
+          }
+        />
+        <Route
+          path="/admin/compliance-review"
+          element={
+            <ProtectedAdminRoute>
+              <AdminComplianceReviewPage />
             </ProtectedAdminRoute>
           }
         />

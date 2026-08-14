@@ -10,6 +10,8 @@ import { dispatchAutomationRunner } from './serverAutomationClient';
 import { isFeatureEnabled } from '../data/settingsRepo';
 import { newId } from '../utils/ids';
 import { nowIso } from '../domain/cases';
+import { enrollCrmRecordInAutomationGraph } from '../features/automation/graphEngine';
+import { getCrmRecord } from '../data/crmRecordsRepo';
 
 function runLightweightActions(rule: { id: string; name: string; actions: Array<{ type: string; title?: string; body?: string; personaId?: string; sequenceId?: string }> }, event: PlatformEvent) {
   for (const action of rule.actions) {
@@ -33,6 +35,21 @@ function runLightweightActions(rule: { id: string; name: string; actions: Array<
       });
     }
   }
+}
+
+/** True if the rule's flow canvas has real multi-step nodes (wait/branch/goal) that need the graph engine to traverse over time. */
+function ruleNeedsGraphTraversal(rule: { flow?: { nodes: Array<{ type: string }> } }): boolean {
+  return Boolean(rule.flow?.nodes?.some((n) => n.type === 'wait' || n.type === 'branch' || n.type === 'goal'));
+}
+
+/** Best-effort CRM record id resolution from a platform event, for graph-engine enrollment. */
+function resolveCrmRecordIdFromEvent(event: PlatformEvent): string | null {
+  if (event.entityType === 'crm_record' && event.entityId) return event.entityId;
+  if (event.leadId) {
+    const candidate = `crm_lead_${event.leadId}`;
+    return getCrmRecord(candidate) ? candidate : null;
+  }
+  return null;
 }
 
 function handlePlatformEvent(event: PlatformEvent) {
@@ -68,6 +85,11 @@ function handlePlatformEvent(event: PlatformEvent) {
 
     if (!hasOps) {
       runLightweightActions(rule as any, event);
+    }
+
+    if (ruleNeedsGraphTraversal(rule)) {
+      const recordId = resolveCrmRecordIdFromEvent(event);
+      if (recordId) enrollCrmRecordInAutomationGraph(rule.id, recordId);
     }
 
     if (event.partnerId && hasComms) {

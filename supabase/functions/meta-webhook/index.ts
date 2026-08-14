@@ -6,6 +6,7 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.1';
 import { corsHeaders } from '../_shared/cors.ts';
 import { json, logEdgeEvent, requireEnv } from '../_shared/edgeGuard.ts';
+import { sendInstantLeadAckServerSide } from '../_shared/sendInstantLeadAck.ts';
 
 function hexFromBuffer(buf: ArrayBuffer): string {
   return Array.from(new Uint8Array(buf))
@@ -39,28 +40,116 @@ function adminClient() {
   });
 }
 
+type LeadgenFieldData = { name?: string; values?: string[] };
+
+function pickField(fieldData: LeadgenFieldData[], patterns: string[]): string | undefined {
+  for (const pattern of patterns) {
+    const hit = fieldData.find((f) => (f.name ?? '').toLowerCase().includes(pattern));
+    const value = hit?.values?.[0];
+    if (value) return String(value).trim();
+  }
+  return undefined;
+}
+
+/** Fetches the real name/email/phone for a Meta Lead Ads submission via the Graph API `/{leadgen_id}` endpoint. */
+async function fetchMetaLeadgenDetails(args: {
+  admin: ReturnType<typeof createClient>;
+  leadgenId: string;
+  pageId: string;
+}): Promise<{ fullName?: string; email?: string; phone?: string; adId?: string } | null> {
+  try {
+    const { data: conn } = await args.admin
+      .from('meta_connections')
+      .select('access_token')
+      .eq('tenant_id', 'finely_cred')
+      .eq('page_id', args.pageId)
+      .maybeSingle();
+    const accessToken = conn?.access_token as string | undefined;
+    if (!accessToken) {
+      await logEdgeEvent({
+        namespace: 'meta-webhook',
+        level: 'warn',
+        event: 'leadgen_no_page_token',
+        meta: { pageId: args.pageId, leadgenId: args.leadgenId },
+      });
+      return null;
+    }
+
+    const url = `https://graph.facebook.com/v19.0/${encodeURIComponent(args.leadgenId)}?fields=field_data,ad_id&access_token=${encodeURIComponent(accessToken)}`;
+    const res = await fetch(url);
+    const data = await res.json();
+    if (!res.ok) {
+      await logEdgeEvent({
+        namespace: 'meta-webhook',
+        level: 'warn',
+        event: 'leadgen_fetch_failed',
+        meta: { leadgenId: args.leadgenId, error: data?.error?.message ?? `HTTP ${res.status}` },
+      });
+      return null;
+    }
+
+    const fieldData: LeadgenFieldData[] = Array.isArray(data.field_data) ? data.field_data : [];
+    return {
+      fullName: pickField(fieldData, ['full_name', 'name']),
+      email: pickField(fieldData, ['email']),
+      phone: pickField(fieldData, ['phone_number', 'phone']),
+      adId: data.ad_id ? String(data.ad_id) : undefined,
+    };
+  } catch (e: unknown) {
+    await logEdgeEvent({
+      namespace: 'meta-webhook',
+      level: 'warn',
+      event: 'leadgen_fetch_error',
+      meta: { leadgenId: args.leadgenId, message: (e as Error)?.message },
+    });
+    return null;
+  }
+}
+
 async function ingestLeadgen(args: { leadgenId: string; formId: string; pageId: string; createdAt: string }) {
   const leadId = `lead_meta_${args.leadgenId}`;
   const admin = adminClient();
+  const details = await fetchMetaLeadgenDetails({ admin, leadgenId: args.leadgenId, pageId: args.pageId });
+
   const { error } = await admin.from('lead_captures').upsert(
     {
       id: leadId,
       source: 'agent',
       offer: 'general_inquiry',
       interest: 'meta_lead_ad',
-      full_name: 'Meta Lead',
-      email: `meta+${args.leadgenId}@lead.local`,
-      phone: null,
+      full_name: details?.fullName || 'Meta Lead',
+      // Fallback placeholder only when the Graph API fetch could not resolve a real email
+      // (e.g. page token missing/expired) — never silently drops the lead.
+      email: details?.email || `meta+${args.leadgenId}@lead.local`,
+      phone: details?.phone || null,
       consent_to_contact: true,
       referral_source: 'meta_lead_form',
       funnel_path: '/admin/social-hub',
       utm_source: 'facebook',
       utm_medium: 'lead_ad',
       utm_campaign: args.formId,
+      utm_content: details?.adId ?? null,
     },
     { onConflict: 'id' },
   );
   if (error) throw new Error(error.message);
+  await logEdgeEvent({
+    namespace: 'meta-webhook',
+    level: 'info',
+    event: 'leadgen_ingested',
+    meta: { leadId, resolvedRealDetails: Boolean(details?.email || details?.fullName) },
+  });
+
+  // Meta Lead Ads leads bypass the client-side lead-capture pipeline entirely (this is a
+  // direct server-side upsert) and previously received ZERO acknowledgment. Send one now.
+  await sendInstantLeadAckServerSide(admin, {
+    leadId,
+    email: details?.email,
+    phone: details?.phone,
+    fullName: details?.fullName,
+    tenantId: 'finely_cred',
+  });
+
   return leadId;
 }
 

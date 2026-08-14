@@ -22,7 +22,7 @@ export function autoEnrollCrmRecordInDefaultSequence(
     const seq = sequences.find((s) => s.id === 'seq_inbound_nurture') ?? sequences[0];
     if (!seq) return false;
 
-    enrollCrmRecordInSequence({ recordId, sequenceId: seq.id });
+    enrollCrmRecordInSequence({ recordId, sequenceId: seq.id, currentStage: record.stage });
     const note = args?.noteLabel ?? `[Sequence] Auto-enrolled in "${seq.name}"`;
     if (record.sourceRef?.type === 'lead') {
       addLeadNote(record.sourceRef.id, note);

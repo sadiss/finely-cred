@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Camera, X, RotateCw, Wand2, FileDown, Layers, Trash2, Crop, SwitchCamera, Zap } from 'lucide-react';
+import { Camera, RotateCw, Wand2, FileDown, Layers, Trash2, Crop, SwitchCamera, Zap } from 'lucide-react';
 import type { CropMargins, DocScanProfile, ScanPreset } from '../../utils/imageScan';
 import {
   detectDocumentBoundsAdvanced,
@@ -18,6 +18,8 @@ import {
   type CaptureReadiness,
 } from '../../lib/captureReadiness';
 import { DocumentScannerGuideFrame } from './DocumentScannerGuideFrame';
+import { FINELY_OS_MODAL_HEADER } from '../../features/os/finelyOsLightUi';
+import { FinelyOsModalCloseButton } from '../../features/os/FinelyOsModalCloseButton';
 
 type PageDraft = {
   id: string;
@@ -499,9 +501,9 @@ export function CameraCaptureModal({
     !starting;
 
   return (
-    <div className="fixed inset-0 z-[130] bg-black/85 backdrop-blur-md flex items-start sm:items-center justify-center p-0 sm:p-4 overflow-y-auto">
+    <div className="fixed inset-0 z-[130] bg-black/85 backdrop-blur-md flex items-start sm:items-center justify-center p-3 sm:p-4 md:p-6 overflow-y-auto">
       <div className="w-full max-w-6xl min-h-0 max-h-[100dvh] sm:max-h-[94vh] rounded-none sm:rounded-2xl border-0 sm:border border-white/[0.08] bg-fc-shell shadow-2xl overflow-hidden flex flex-col">
-        <div className="flex items-center justify-between gap-4 p-4 border-b border-white/[0.08]">
+        <div className={FINELY_OS_MODAL_HEADER}>
           <div className="min-w-0">
             <div className="text-white font-semibold">{title}</div>
             <div className="text-white/50 text-xs mt-1">
@@ -509,14 +511,7 @@ export function CameraCaptureModal({
                 'Align your document in the frame — only the card/letter inside the box is captured and enhanced.'}
             </div>
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="p-2 rounded-xl bg-white/5 border border-white/[0.08] text-white/60 hover:text-white hover:bg-white/10 transition-all"
-            title="Close"
-          >
-            <X size={16} />
-          </button>
+          <FinelyOsModalCloseButton onClick={onClose} />
         </div>
 
         <div className="grid lg:grid-cols-12 gap-0 flex-1 min-h-0 overflow-y-auto">

@@ -149,6 +149,7 @@ import {
   FINELY_OS_ACTIVE_CHIP,
   FINELY_OS_VIEW_TABS,
   FINELY_OS_FIXED_OVERLAY,
+  FINELY_OS_MODAL_HEADER,
   FINELY_OS_MODAL_SHELL,
   finelyOsEntityKpi,
   finelyOsInlineListItem,
@@ -156,6 +157,8 @@ import {
   finelyOsStatusChip,
   finelyOsViewTab,
 } from '../../features/os/finelyOsLightUi';
+import { FinelyOsModalCloseButton } from '../../features/os/FinelyOsModalCloseButton';
+import { syncPartnerAuthStateFromLive } from '../../lib/partnerAuthActivity';
 import { FinelyOsPageFooter } from '../../features/os/FinelyOsPageFooter';
 import { VoiceToTaskButton } from '../../features/work/components/VoiceToTaskButton';
 
@@ -486,10 +489,24 @@ function PartnerDetailPageInner() {
 
   useEffect(() => {
     if (!id) { setPartner(null); return; }
-    adminGetPartner(id).then((p) => {
-      if (!p || !p.profile || typeof p.profile.fullName !== 'string') setPartner(null);
-      else setPartner(p);
-    });
+    let cancelled = false;
+    void (async () => {
+      const p = await adminGetPartner(id);
+      if (cancelled) return;
+      if (!p || !p.profile || typeof p.profile.fullName !== 'string') {
+        setPartner(null);
+        return;
+      }
+      try {
+        const synced = await syncPartnerAuthStateFromLive({ partner: p, persist: true });
+        if (!cancelled) setPartner(synced.partner);
+      } catch {
+        if (!cancelled) setPartner(p);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, [id, partnerVersion]);
 
   useEffect(() => {
@@ -590,6 +607,11 @@ function PartnerDetailPageInner() {
     const idToUse = selectedReportId ?? reports[0].id;
     return reports.find((r) => r.id === idToUse) ?? reports[0];
   }, [reports, selectedReportId]);
+  const canReparseSelectedReport = Boolean(
+    selectedReport &&
+    !isLegacyPendingReportBlob(selectedReport.rawBlobRef) &&
+    canAccessReportBlob(selectedReport.rawBlobRef),
+  );
 
   const evidence = useMemo(() => (partner ? listEvidenceByPartner(partner.id) : []), [partner, notesVersion]);
   const letters = useMemo(() => (partner ? listLettersByPartner(partner.id) : []), [partner, notesVersion]);
@@ -940,6 +962,12 @@ function PartnerDetailPageInner() {
     setReparseReportErr(null);
     setReparseReportId(report.id);
     try {
+      if (isLegacyPendingReportBlob(report.rawBlobRef)) {
+        throw new Error('This report was migrated without the original file. Re-upload the HTML export above, or restore files from the legacy server ZIP on Admin → Partner Import.');
+      }
+      if (!canAccessReportBlob(report.rawBlobRef)) {
+        throw new Error('This report has no accessible stored file. Re-upload the original HTML or PDF export.');
+      }
       const updated = await reparseStoredCreditReport({ record: report });
       upsertReport(updated);
       setReportsRefreshKey((v) => v + 1);
@@ -2331,7 +2359,7 @@ function PartnerDetailPageInner() {
                       onOpenLetterGenerator={() => setTabAndUrl('letters')}
                       onOpenEvidenceVault={() => setEvidencePicker({})}
                       onOpenTasks={() => setTabAndUrl('tasks')}
-                      onReparseRequest={() => handleReparseReport(selectedReport)}
+                      onReparseRequest={canReparseSelectedReport ? () => handleReparseReport(selectedReport) : undefined}
                     />
                   </>
                 ) : null}
@@ -2352,7 +2380,7 @@ function PartnerDetailPageInner() {
                   onOpenLetterGenerator={() => setTabAndUrl('letters')}
                   onOpenEvidenceVault={() => setEvidencePicker({})}
                   onOpenTasks={() => setTabAndUrl('tasks')}
-                  onReparseRequest={() => handleReparseReport(selectedReport)}
+                  onReparseRequest={canReparseSelectedReport ? () => handleReparseReport(selectedReport) : undefined}
                 />
               </div>
             ) : selectedReport ? (
@@ -2388,21 +2416,14 @@ function PartnerDetailPageInner() {
                   aria-labelledby="parse-overview-title"
                   onClick={(e) => e.stopPropagation()}
                 >
-                  <div className="flex items-start justify-between gap-3 border-b border-white/10 px-4 py-3">
+                  <div className={FINELY_OS_MODAL_HEADER}>
                     <div className="min-w-0">
                       <div className={FINELY_OS_ENTITY_SUBLABEL}>Parse overview</div>
                       <h2 id="parse-overview-title" className={`mt-1 ${FINELY_OS_ENTITY_TITLE} truncate`}>
                         {selectedReport.filename}
                       </h2>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => setParseOverviewOpen(false)}
-                      className="shrink-0 rounded-full p-1.5 text-white/60 hover:text-white hover:bg-white/10 transition-colors"
-                      aria-label="Close"
-                    >
-                      <X size={18} />
-                    </button>
+                    <FinelyOsModalCloseButton onClick={() => setParseOverviewOpen(false)} />
                   </div>
                   <div className="px-4 py-4 overflow-y-auto max-h-[72vh]">
                     <ParsedReportOverviewPanel parsed={selectedReport.parsed} filename={selectedReport.filename} />
@@ -2676,6 +2697,7 @@ function PartnerDetailPageInner() {
                         id={`letter-${l.id}`}
                         letter={l}
                         highlighted={highlightLetterId === l.id}
+                        evidence={evidence}
                         canMail={isFeatureEnabled('letterMailing')}
                         onOpenPdf={() => {
                           const ref = (l as any).pdfBlobRef as string | undefined;

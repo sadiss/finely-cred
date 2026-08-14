@@ -23,6 +23,16 @@ export type CalendarBlockedWindow = {
   endTime: string; // HH:mm
 };
 
+/** Staff member in round-robin scheduling (Calendly-style rotation). */
+export type CalendarStaffAssignee = {
+  id: string;
+  displayName: string;
+  email: string;
+  /** When false, skipped in rotation. */
+  enabled: boolean;
+  roleLabel?: string;
+};
+
 export type CalendarBookingSettings = {
   timezone?: string;
   startHour: number;
@@ -34,8 +44,13 @@ export type CalendarBookingSettings = {
   allowedWeekdays: number[];
   allowedDurations: SlotDuration[];
   defaultDuration: SlotDuration;
+  /** Calendly-style booking horizon — how many days out slots are offered. */
+  maxAdvanceDays: number;
   meetingTypes: Array<{ id: string; label: string; durationMinutes: SlotDuration; description?: string }>;
   blockedWindows: CalendarBlockedWindow[];
+  /** Distribute new bookings across enabled staff (round-robin). */
+  roundRobinEnabled?: boolean;
+  staffAssignees?: CalendarStaffAssignee[];
 };
 
 export type ConsultationRequest = {
@@ -64,7 +79,7 @@ export type ConsultationRequest = {
 };
 
 export type CalendarEventType = 'consultation' | 'follow_up' | 'ops';
-export type CalendarEventStatus = 'tentative' | 'confirmed' | 'completed' | 'cancelled';
+export type CalendarEventStatus = 'tentative' | 'confirmed' | 'completed' | 'cancelled' | 'no_show';
 
 export type CalendarEvent = {
   id: string;
@@ -83,7 +98,10 @@ export type CalendarEvent = {
   meetingUrl?: string;
   location?: string;
   sourceRequestId?: string;
+  /** In-app reminder notification sent (portal/admin calendar load). */
   reminderSentAt?: string;
+  /** Email/SMS reminder sent for this confirmed event. */
+  emailReminderSentAt?: string;
   /** Post-meeting notes (admin enters after call) */
   meetingNotes?: string;
   createdAt: string;
@@ -122,6 +140,11 @@ export type PublicAppointmentRequest = {
 /** Admin-issued self-book link — `/book/i/:token` */
 export type BookingInviteStatus = 'active' | 'expired' | 'revoked';
 
+/** Who this invite was created for — shapes email copy and internal reporting. */
+export type BookingInviteAudience = 'partner' | 'guest' | 'internal';
+
+export type BookingInviteEmailStatus = 'not_sent' | 'sending' | 'sent' | 'failed';
+
 export type BookingInvite = {
   id: string;
   /** URL-safe token (not the internal id) */
@@ -136,6 +159,11 @@ export type BookingInvite = {
   guestName?: string;
   guestEmail?: string;
   guestPhone?: string;
+  /** Existing partner vs new/guest contact vs internal team invite. */
+  audience?: BookingInviteAudience;
+  emailStatus?: BookingInviteEmailStatus;
+  emailSentAt?: string;
+  emailError?: string;
   expiresAt?: string;
   maxUses: number;
   useCount: number;

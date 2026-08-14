@@ -12,6 +12,7 @@ const DEFAULT_SETTINGS: CalendarBookingSettings = {
   allowedWeekdays: [1, 2, 3, 4, 5],
   allowedDurations: [20, 30, 60, 90],
   defaultDuration: 30,
+  maxAdvanceDays: 30,
   meetingTypes: [
     { id: 'enlightenment', label: 'Strategy call', durationMinutes: 30, description: 'Free call — map your next steps.' },
     { id: 'file_review', label: 'File review', durationMinutes: 60, description: 'Reports, evidence, and dispute round.' },
@@ -23,6 +24,11 @@ const DEFAULT_SETTINGS: CalendarBookingSettings = {
     { id: 'tue-ops', label: 'Ops review', dayOfWeek: 2, startTime: '10:30', endTime: '12:00' },
     { id: 'wed-casework', label: 'Casework block', dayOfWeek: 3, startTime: '15:00', endTime: '17:00' },
     { id: 'fri-fulfillment', label: 'Fulfillment block', dayOfWeek: 5, startTime: '13:00', endTime: '15:00' },
+  ],
+  roundRobinEnabled: false,
+  staffAssignees: [
+    { id: 'host-alex', displayName: 'Alex Rivera', email: 'alex@finelycred.com', enabled: true, roleLabel: 'Session Coordinator' },
+    { id: 'host-sanz', displayName: 'Sanz St. Louis', email: 'sanz@finelycred.com', enabled: true, roleLabel: 'Founder / Specialist' },
   ],
 };
 
@@ -47,8 +53,13 @@ function normalize(settings: Partial<CalendarBookingSettings> | null | undefined
       : DEFAULT_SETTINGS.allowedWeekdays,
     allowedDurations,
     defaultDuration,
+    maxAdvanceDays: Math.max(1, Math.min(365, Math.round(settings?.maxAdvanceDays ?? DEFAULT_SETTINGS.maxAdvanceDays))),
     meetingTypes: Array.isArray(settings?.meetingTypes) && settings!.meetingTypes.length ? settings!.meetingTypes : DEFAULT_SETTINGS.meetingTypes,
     blockedWindows: Array.isArray(settings?.blockedWindows) ? settings!.blockedWindows : DEFAULT_SETTINGS.blockedWindows,
+    roundRobinEnabled: Boolean(settings?.roundRobinEnabled),
+    staffAssignees: Array.isArray(settings?.staffAssignees) && settings!.staffAssignees.length
+      ? settings!.staffAssignees
+      : DEFAULT_SETTINGS.staffAssignees,
   };
 }
 

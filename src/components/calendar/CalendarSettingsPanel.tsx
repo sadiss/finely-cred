@@ -1,8 +1,13 @@
 import React, { useMemo, useState } from 'react';
-import { CalendarClock, Plus, RotateCcw, Save, X } from 'lucide-react';
-import type { CalendarBlockedWindow, CalendarBookingSettings, SlotDuration } from '../../domain/calendar';
+import { CalendarClock, Cloud, Eye, Plus, RotateCcw, Save, Users, X } from 'lucide-react';
+import type { CalendarBlockedWindow, CalendarBookingSettings, CalendarStaffAssignee, SlotDuration } from '../../domain/calendar';
 import { resetCalendarBookingSettings, saveCalendarBookingSettings } from '../../data/calendarSettingsRepo';
+import { isFeatureEnabled } from '../../data/settingsRepo';
+import { getCalendarExternalSyncPreviewStatus } from '../../lib/calendarProviderSync';
+import { resetRoundRobinCursor } from '../../lib/calendarStaffRotation';
 import { newId } from '../../utils/ids';
+import { PublicSessionSlotPicker } from './PublicSessionSlotPicker';
+import type { BookableSlot } from '../../lib/calendarSlots';
 import {FINELY_OS_ENTITY_BODY,
   FINELY_OS_ENTITY_INPUT,
   FINELY_OS_ENTITY_LABEL,
@@ -15,7 +20,9 @@ import {FINELY_OS_ENTITY_BODY,
   FINELY_OS_DANGER_BTN,
   finelyOsGlassShell,
   finelyOsKpiTile,
-  finelyOsCatalogCard,} from '../../features/os/finelyOsLightUi';
+  finelyOsCatalogCard,
+  finelyOsInlineListItem,
+  finelyOsStatusChip,} from '../../features/os/finelyOsLightUi';
 
 const DAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const DURATION_OPTIONS: SlotDuration[] = [20, 30, 60, 90];
@@ -35,9 +42,13 @@ export function CalendarSettingsPanel({
 }) {
   const [draft, setDraft] = useState(settings);
   const [notice, setNotice] = useState<string | null>(null);
+  const [previewDay, setPreviewDay] = useState<string | null>(null);
+  const [previewSlot, setPreviewSlot] = useState<BookableSlot | null>(null);
+  const [previewDuration, setPreviewDuration] = useState<SlotDuration>(settings.defaultDuration);
 
   React.useEffect(() => {
     setDraft(settings);
+    setPreviewDuration(settings.defaultDuration);
   }, [settings]);
 
   const blockedSummary = useMemo(() => {
@@ -118,11 +129,25 @@ export function CalendarSettingsPanel({
             <input type="number" min={0} max={23} value={draft.cutoffHourPreviousDay} onChange={(e) => setDraft((p) => ({ ...p, cutoffHourPreviousDay: Number(e.target.value) }))} className={`${FINELY_OS_ENTITY_INPUT.replace('mt-2 ', '')} w-full`} />
           </label>
           <label className="space-y-2">
-            <span className={FINELY_OS_ENTITY_LABEL}>Default duration</span>
-            <select value={draft.defaultDuration} onChange={(e) => setDraft((p) => ({ ...p, defaultDuration: Number(e.target.value) as SlotDuration }))} className={`${FINELY_OS_ENTITY_INPUT.replace('mt-2 ', '')} w-full`}>
-              {DURATION_OPTIONS.map((d) => <option key={d} value={d}>{d} minutes</option>)}
-            </select>
+            <span className={FINELY_OS_ENTITY_LABEL}>Booking horizon</span>
+            <input type="number" min={1} max={365} value={draft.maxAdvanceDays} onChange={(e) => setDraft((p) => ({ ...p, maxAdvanceDays: Number(e.target.value) }))} className={`${FINELY_OS_ENTITY_INPUT.replace('mt-2 ', '')} w-full`} />
           </label>
+        </div>
+
+        <div className="space-y-3">
+          <div className={FINELY_OS_ENTITY_LABEL}>Default duration</div>
+          <div className="flex flex-wrap gap-2">
+            {DURATION_OPTIONS.map((duration) => (
+              <button
+                key={duration}
+                type="button"
+                onClick={() => setDraft((p) => ({ ...p, defaultDuration: duration }))}
+                className={seg(draft.defaultDuration === duration)}
+              >
+                {duration}m
+              </button>
+            ))}
+          </div>
         </div>
 
         <div className="space-y-3">
@@ -178,19 +203,182 @@ export function CalendarSettingsPanel({
           </div>
           <div className="space-y-2">
             {draft.blockedWindows.map((block) => (
-              <div key={block.id} className={`grid md:grid-cols-12 gap-2 p-3 ${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony`}>
-                <input value={block.label} onChange={(e) => setDraft((p) => ({ ...p, blockedWindows: p.blockedWindows.map((b) => b.id === block.id ? { ...b, label: e.target.value } : b) }))} className={`md:col-span-4 ${FINELY_OS_ENTITY_INPUT.replace('mt-2 ', '')}`} />
-                <select value={block.dayOfWeek ?? 1} onChange={(e) => setDraft((p) => ({ ...p, blockedWindows: p.blockedWindows.map((b) => b.id === block.id ? { ...b, dayOfWeek: Number(e.target.value), dayKey: undefined } : b) }))} className={`md:col-span-2 ${FINELY_OS_ENTITY_INPUT.replace('mt-2 ', '')}`}>
-                  {DAY_LABELS.map((label, day) => <option key={label} value={day}>{label}</option>)}
-                </select>
-                <input type="time" value={block.startTime} onChange={(e) => setDraft((p) => ({ ...p, blockedWindows: p.blockedWindows.map((b) => b.id === block.id ? { ...b, startTime: e.target.value } : b) }))} className={`md:col-span-2 ${FINELY_OS_ENTITY_INPUT.replace('mt-2 ', '')}`} />
-                <input type="time" value={block.endTime} onChange={(e) => setDraft((p) => ({ ...p, blockedWindows: p.blockedWindows.map((b) => b.id === block.id ? { ...b, endTime: e.target.value } : b) }))} className={`md:col-span-2 ${FINELY_OS_ENTITY_INPUT.replace('mt-2 ', '')}`} />
-                <button type="button" onClick={() => setDraft((p) => ({ ...p, blockedWindows: p.blockedWindows.filter((b) => b.id !== block.id) }))} className={`md:col-span-2 ${FINELY_OS_DANGER_BTN}`}>
-                  <X size={13} /> Remove
+              <div key={block.id} className={`space-y-2 p-3 ${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony`}>
+                <div className="flex items-center gap-2">
+                  <input value={block.label} onChange={(e) => setDraft((p) => ({ ...p, blockedWindows: p.blockedWindows.map((b) => b.id === block.id ? { ...b, label: e.target.value } : b) }))} className={`flex-1 ${FINELY_OS_ENTITY_INPUT.replace('mt-2 ', '')}`} />
+                  <input type="time" value={block.startTime} onChange={(e) => setDraft((p) => ({ ...p, blockedWindows: p.blockedWindows.map((b) => b.id === block.id ? { ...b, startTime: e.target.value } : b) }))} className={`w-auto ${FINELY_OS_ENTITY_INPUT.replace('mt-2 ', '')}`} />
+                  <input type="time" value={block.endTime} onChange={(e) => setDraft((p) => ({ ...p, blockedWindows: p.blockedWindows.map((b) => b.id === block.id ? { ...b, endTime: e.target.value } : b) }))} className={`w-auto ${FINELY_OS_ENTITY_INPUT.replace('mt-2 ', '')}`} />
+                  <button type="button" onClick={() => setDraft((p) => ({ ...p, blockedWindows: p.blockedWindows.filter((b) => b.id !== block.id) }))} className={FINELY_OS_DANGER_BTN}>
+                    <X size={13} /> Remove
+                  </button>
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {DAY_LABELS.map((label, day) => (
+                    <button
+                      key={label}
+                      type="button"
+                      onClick={() => setDraft((p) => ({ ...p, blockedWindows: p.blockedWindows.map((b) => b.id === block.id ? { ...b, dayOfWeek: day, dayKey: undefined } : b) }))}
+                      className={seg((block.dayOfWeek ?? 1) === day)}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className={`space-y-3 p-3 ${finelyOsCatalogCard('violet')} !p-4 fc-surface-harmony`}>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="inline-flex items-center gap-2 text-violet-300">
+              <Users size={14} />
+              <span className={FINELY_OS_ENTITY_LABEL}>Staff rotation (round-robin)</span>
+            </div>
+            <label className="inline-flex items-center gap-2 text-xs text-white/70 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={Boolean(draft.roundRobinEnabled)}
+                onChange={(e) => setDraft((p) => ({ ...p, roundRobinEnabled: e.target.checked }))}
+                className="rounded border-violet-400/40"
+              />
+              Auto-assign hosts
+            </label>
+          </div>
+          <p className={`${FINELY_OS_ENTITY_BODY} text-xs`}>
+            When enabled, new public bookings rotate across enabled staff — same idea as Calendly round-robin. Host name on the invite updates automatically.
+          </p>
+          <div className="space-y-2">
+            {(draft.staffAssignees ?? []).map((staff) => (
+              <div key={staff.id} className={`flex flex-wrap items-center gap-2 p-2 ${finelyOsInlineListItem()}`}>
+                <input
+                  type="checkbox"
+                  checked={staff.enabled}
+                  onChange={(e) =>
+                    setDraft((p) => ({
+                      ...p,
+                      staffAssignees: (p.staffAssignees ?? []).map((s) =>
+                        s.id === staff.id ? { ...s, enabled: e.target.checked } : s,
+                      ),
+                    }))
+                  }
+                  title="Include in rotation"
+                />
+                <input
+                  value={staff.displayName}
+                  onChange={(e) =>
+                    setDraft((p) => ({
+                      ...p,
+                      staffAssignees: (p.staffAssignees ?? []).map((s) =>
+                        s.id === staff.id ? { ...s, displayName: e.target.value } : s,
+                      ),
+                    }))
+                  }
+                  placeholder="Display name"
+                  className={`flex-1 min-w-[120px] ${FINELY_OS_ENTITY_INPUT.replace('mt-2 ', '')}`}
+                />
+                <input
+                  value={staff.email}
+                  onChange={(e) =>
+                    setDraft((p) => ({
+                      ...p,
+                      staffAssignees: (p.staffAssignees ?? []).map((s) =>
+                        s.id === staff.id ? { ...s, email: e.target.value } : s,
+                      ),
+                    }))
+                  }
+                  placeholder="email@finelycred.com"
+                  className={`flex-1 min-w-[160px] ${FINELY_OS_ENTITY_INPUT.replace('mt-2 ', '')}`}
+                />
+                <input
+                  value={staff.roleLabel ?? ''}
+                  onChange={(e) =>
+                    setDraft((p) => ({
+                      ...p,
+                      staffAssignees: (p.staffAssignees ?? []).map((s) =>
+                        s.id === staff.id ? { ...s, roleLabel: e.target.value } : s,
+                      ),
+                    }))
+                  }
+                  placeholder="Role on invite"
+                  className={`w-36 ${FINELY_OS_ENTITY_INPUT.replace('mt-2 ', '')}`}
+                />
+                <button
+                  type="button"
+                  onClick={() =>
+                    setDraft((p) => ({
+                      ...p,
+                      staffAssignees: (p.staffAssignees ?? []).filter((s) => s.id !== staff.id),
+                    }))
+                  }
+                  className={FINELY_OS_DANGER_BTN}
+                >
+                  <X size={12} />
                 </button>
               </div>
             ))}
           </div>
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                const next: CalendarStaffAssignee = {
+                  id: newId('host'),
+                  displayName: 'New host',
+                  email: '',
+                  enabled: true,
+                  roleLabel: 'Specialist',
+                };
+                setDraft((p) => ({ ...p, staffAssignees: [...(p.staffAssignees ?? []), next] }));
+              }}
+              className={FINELY_OS_SECONDARY_BTN}
+            >
+              <Plus size={13} /> Add staff
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                resetRoundRobinCursor();
+                setNotice('Round-robin cursor reset — next booking goes to first enabled host.');
+                setTimeout(() => setNotice(null), 2200);
+              }}
+              className={FINELY_OS_SECONDARY_BTN}
+            >
+              <RotateCcw size={13} /> Reset rotation
+            </button>
+          </div>
+          {draft.roundRobinEnabled ? (
+            <div className={`text-[10px] ${FINELY_OS_ENTITY_BODY}`}>
+              Active pool:{' '}
+              {(draft.staffAssignees ?? []).filter((s) => s.enabled && s.email.includes('@')).length || 'none — add at least one enabled email'}
+            </div>
+          ) : null}
+        </div>
+
+        <ExternalCalendarSyncTeaser />
+
+        <div className={`space-y-3 p-3 ${finelyOsCatalogCard('emerald')} !p-4 fc-surface-harmony`}>
+          <div className="inline-flex items-center gap-2 text-emerald-300">
+            <Eye size={14} />
+            <span className={FINELY_OS_ENTITY_LABEL}>Booking preview</span>
+          </div>
+          <p className={`${FINELY_OS_ENTITY_BODY} text-xs`}>
+            Same date + time picker partners and public visitors see. Adjust settings above, then pick a day and time chip to verify open slots.
+          </p>
+          <PublicSessionSlotPicker
+            durationMinutes={previewDuration}
+            onDurationChange={(d) => {
+              setPreviewDuration(d);
+              setPreviewSlot(null);
+              setDraft((p) => ({ ...p, defaultDuration: d }));
+            }}
+            selectedDay={previewDay}
+            onDayChange={setPreviewDay}
+            selectedSlot={previewSlot}
+            onSlotChange={setPreviewSlot}
+            allowedDurations={draft.allowedDurations}
+            settingsOverride={draft}
+          />
         </div>
 
         <div className="flex flex-wrap justify-end gap-2 pt-2">
@@ -202,6 +390,51 @@ export function CalendarSettingsPanel({
           </button>
         </div>
       </div>
+    </div>
+  );
+}
+
+/**
+ * J1 groundwork — compact "coming soon" affordance for external calendar
+ * sync. Always shows a one-line notice so the roadmap item is visible; the
+ * expanded provider preview (sourced from the real stub adapter, not
+ * hardcoded copy) only appears once `calendarExternalSync` is flipped on —
+ * see src/lib/calendarProviderSync.ts and src/domain/settings.ts.
+ */
+function ExternalCalendarSyncTeaser() {
+  const enabled = isFeatureEnabled('calendarExternalSync');
+
+  if (!enabled) {
+    return (
+      <div className={`flex items-center gap-2 px-3 py-2 text-xs ${FINELY_OS_ENTITY_BODY}`}>
+        <Cloud size={13} className="shrink-0 text-white/40" />
+        Google Calendar &amp; Outlook sync — coming soon.
+      </div>
+    );
+  }
+
+  const providers = getCalendarExternalSyncPreviewStatus();
+  return (
+    <div className={`space-y-3 p-3 ${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony`}>
+      <div className="flex items-center gap-2">
+        <Cloud size={14} className="text-sky-300" />
+        <span className={FINELY_OS_ENTITY_LABEL}>External calendar sync (preview)</span>
+      </div>
+      <p className={`${FINELY_OS_ENTITY_BODY} text-xs`}>
+        Push confirmed sessions to a connected Google Calendar or Outlook and pull busy/free time to avoid double-booking.
+        Not live yet — needs a registered OAuth app before a real connection can be made.
+      </p>
+      <div className="flex flex-wrap gap-2">
+        {providers.map((p) => (
+          <div key={p.provider} className={`${finelyOsInlineListItem()} flex items-center gap-2 px-3 py-2`}>
+            <span className={FINELY_OS_ENTITY_VALUE}>{p.label}</span>
+            <span className={finelyOsStatusChip('blocked')}>Coming soon</span>
+          </div>
+        ))}
+      </div>
+      <button type="button" disabled className={`${FINELY_OS_SECONDARY_BTN} opacity-50 cursor-not-allowed`}>
+        Connect (requires OAuth setup)
+      </button>
     </div>
   );
 }

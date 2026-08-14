@@ -101,6 +101,7 @@ export function upsertProspect(p: Prospect): Prospect {
   if (idx >= 0) store.prospects[idx] = next;
   else store.prospects.push(next);
   saveStore(store);
+  void import('./crmServerSync').then((m) => m.syncProspectToSupabase(next));
   return next;
 }
 
@@ -183,6 +184,31 @@ export function patchProspect(prospectId: string, patch: Partial<Prospect>): Pro
   const p = getProspect(prospectId);
   if (!p) return null;
   return upsertProspect({ ...p, ...(patch as any) });
+}
+
+/**
+ * Merge prospects pulled from Supabase (`crmServerSync.ts`'s
+ * `pullCrmSnapshotFromSupabase()`) into the local store — additive restore
+ * path for a fresh browser/device or after local storage was cleared.
+ * Prefers whichever side has the newer `updatedAt` per row so an
+ * offline-edited local session isn't silently clobbered by a stale pull.
+ */
+export function mergeProspectsFromServer(serverProspects: Prospect[]): { added: number; updated: number } {
+  const store = loadStore();
+  let added = 0;
+  let updated = 0;
+  for (const sp of serverProspects) {
+    const idx = store.prospects.findIndex((p) => p.id === sp.id);
+    if (idx < 0) {
+      store.prospects.push(sp);
+      added += 1;
+    } else if (sp.updatedAt > store.prospects[idx].updatedAt) {
+      store.prospects[idx] = sp;
+      updated += 1;
+    }
+  }
+  if (added || updated) saveStore(store);
+  return { added, updated };
 }
 
 /** CRM → Work bridge — timeline touch when converting or linking delivery. */

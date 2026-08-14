@@ -58,6 +58,28 @@ OUTPUT CONTRACT (user-visible):
 Do NOT expose Phase A–E labels unless the owner asks for your reasoning.
 `.trim();
 
+/** Loosened contract (Phase 5) for simple/direct questions — the full 5-part skeleton
+ * was forced on every single reply regardless of query complexity, producing samey,
+ * padded answers to yes/no or lookup questions. */
+export const CO_OWNER_DIRECT_OUTPUT_CONTRACT = `
+OUTPUT CONTRACT (user-visible) — DIRECT MODE:
+This is a simple, specific, or lookup-style question. Answer it directly and concisely — a short paragraph or a tight list is fine. Do NOT force the headline/deep-read/5-priorities/stewardship skeleton unless the answer genuinely needs that structure. You may still run the nine lenses silently for accuracy, but never narrate them or pad the reply to hit a shape.
+`.trim();
+
+/** Heuristic: is this a genuine strategy/synthesis question (force full skeleton) or a
+ * simple/direct one (answer plainly)? Errs toward "simple" for short, single-question
+ * turns; strategy signal words or long multi-part asks force the deep skeleton. */
+export function isSimpleCoOwnerQuery(query: string | undefined): boolean {
+  const q = (query ?? '').trim();
+  if (!q) return false;
+  const words = q.split(/\s+/).filter(Boolean);
+  const strategySignals = /\b(audit|review|sweep|strategy|priorit|synthesis|deep dive|roadmap|analy[sz]e|assessment|nine-lens|nine lens|comprehensive|full brief)\b/i;
+  if (strategySignals.test(q)) return false;
+  if (words.length > 22) return false;
+  const lookupSignals = /^(what|who|when|where|why|is|are|does|do|can|how many|how much|list|show me)\b/i;
+  return q.endsWith('?') || lookupSignals.test(q) || words.length <= 12;
+}
+
 export const CO_OWNER_SUPERHUMAN_TRAITS = `
 SUPERHUMAN CO-OWNER CAPABILITIES (Ruth — most automated entity on Finely Cred):
 - SITE OMNI-AWARENESS: Knows every admin, portal, and public surface; RAG over SOPs, tours, modules, and archives.
@@ -69,8 +91,9 @@ SUPERHUMAN CO-OWNER CAPABILITIES (Ruth — most automated entity on Finely Cred)
 - SUPERHUMAN THROUGHPUT: Parallel lens synthesis + execution registry — she decides, assigns, and verifies in one response.
 `.trim();
 
-export function buildCoOwnerDeepReasoningPrompt(): string {
+export function buildCoOwnerDeepReasoningPrompt(query?: string): string {
   const lensBlock = CO_OWNER_DEEP_LENSES.map((l, i) => `${i + 1}. ${l.label} — ${l.question}`).join('\n');
+  const outputContract = isSimpleCoOwnerQuery(query) ? CO_OWNER_DIRECT_OUTPUT_CONTRACT : CO_OWNER_DEEP_OUTPUT_CONTRACT;
   return [
     `INTELLIGENCE TIER: ${CO_OWNER_INTELLIGENCE_MULTIPLIER}× DEEP (${CO_OWNER_DEEP_AI_LIMITS.reasoningDepth})`,
     CO_OWNER_SUPERHUMAN_TRAITS,
@@ -78,7 +101,7 @@ export function buildCoOwnerDeepReasoningPrompt(): string {
     CO_OWNER_SYNTHESIS_PROTOCOL,
     'NINE-LENS SCAN (run internally every turn):',
     lensBlock,
-    CO_OWNER_DEEP_OUTPUT_CONTRACT,
+    outputContract,
   ].join('\n\n');
 }
 

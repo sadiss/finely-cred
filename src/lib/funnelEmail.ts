@@ -16,6 +16,8 @@ import { ensureDefaultEmailDomainsOnce, refreshDefaultEmailSignatureBranding } f
 
 import { buildFunnelDownloadUrl } from './funnelPublicLinks';
 
+import { markLeadFirstTouch } from './leadFirstTouchTracking';
+
 
 
 export async function sendImmediateWelcomeEmail(args: {
@@ -104,6 +106,8 @@ export async function sendImmediateWelcomeEmail(args: {
       emailDomainId: email.emailDomainId,
 
     });
+
+    void markLeadFirstTouch(args.lead.id, 'email');
 
     return { sent: true };
 

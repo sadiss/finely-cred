@@ -46,7 +46,11 @@ export async function processReferralReward(args: {
       kind: 'system',
       title: args.eventType === 'lead' ? 'New referred lead' : 'Referral conversion',
       body: `Referral ${args.referralCode} — ${args.eventType}.`,
-      href: '/affiliate',
+      // `/affiliate` is the public "apply to become an affiliate" marketing page, not a
+      // partner's own referral dashboard — it would land an existing affiliate back on a
+      // signup form. Point at the partner dashboard, which now hosts PartnerReferralPanel
+      // (Wave 4 / L1) directly below the case-team card.
+      href: '/portal',
     });
   }
 }

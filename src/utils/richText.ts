@@ -75,30 +75,38 @@ export function sanitizeHtmlForPreview(html: string): string {
   }
 }
 
-/** Convert editor HTML into plain-text suitable for PDF generators. */
+/** Convert editor HTML into plain-text suitable for PDF generators. Preserves line breaks and spacing. */
 export function htmlToPlainText(html: string): string {
   const input = (html || '').trim();
   if (!input) return '';
   try {
     const doc = new DOMParser().parseFromString(input, 'text/html');
 
-    // Remove hidden / non-content nodes.
     doc.querySelectorAll('script,style,iframe,object,embed,link,meta').forEach((n) => n.remove());
 
-    const out: string[] = [];
-    const pushText = (t: string) => {
-      const cleaned = t.replace(/\s+/g, ' ').trim();
-      if (cleaned) out.push(cleaned);
-    };
-    const pushNewline = () => {
-      // Avoid runaway blank lines.
-      if (out.length === 0) return;
-      if (out[out.length - 1] !== '\n') out.push('\n');
-    };
+    const BLOCK = new Set([
+      'p',
+      'div',
+      'section',
+      'article',
+      'h1',
+      'h2',
+      'h3',
+      'h4',
+      'h5',
+      'h6',
+      'blockquote',
+      'pre',
+      'header',
+      'footer',
+    ]);
+    const LIST = new Set(['ul', 'ol']);
 
-    const walk = (node: Node) => {
+    const parts: string[] = [];
+
+    const convert = (node: Node) => {
       if (node.nodeType === Node.TEXT_NODE) {
-        pushText(node.textContent || '');
+        parts.push(node.textContent ?? '');
         return;
       }
       if (node.nodeType !== Node.ELEMENT_NODE) return;
@@ -107,46 +115,43 @@ export function htmlToPlainText(html: string): string {
       const tag = el.tagName.toLowerCase();
 
       if (tag === 'br') {
-        pushNewline();
-        return;
-      }
-      if (tag === 'p' || tag === 'div' || tag === 'section' || tag === 'article') {
-        // paragraph-ish blocks
-        for (const child of Array.from(el.childNodes)) walk(child);
-        pushNewline();
-        pushNewline();
-        return;
-      }
-      if (tag === 'li') {
-        // list item: "- item"
-        out.push('-');
-        out.push(' ');
-        for (const child of Array.from(el.childNodes)) walk(child);
-        pushNewline();
-        return;
-      }
-      if (tag === 'ul' || tag === 'ol') {
-        for (const child of Array.from(el.childNodes)) walk(child);
-        pushNewline();
-        return;
-      }
-      if (tag === 'h1' || tag === 'h2' || tag === 'h3' || tag === 'h4' || tag === 'h5' || tag === 'h6') {
-        for (const child of Array.from(el.childNodes)) walk(child);
-        pushNewline();
-        pushNewline();
+        parts.push('\n');
         return;
       }
 
-      for (const child of Array.from(el.childNodes)) walk(child);
+      if (tag === 'hr') {
+        parts.push('\n\n');
+        return;
+      }
+
+      if (tag === 'li') {
+        parts.push('- ');
+        for (const child of Array.from(el.childNodes)) convert(child);
+        parts.push('\n');
+        return;
+      }
+
+      if (LIST.has(tag)) {
+        for (const child of Array.from(el.childNodes)) convert(child);
+        parts.push('\n');
+        return;
+      }
+
+      const isBlock = BLOCK.has(tag);
+      if (isBlock) parts.push('\n');
+
+      for (const child of Array.from(el.childNodes)) convert(child);
+
+      if (isBlock) parts.push('\n');
     };
 
-    walk(doc.body);
+    for (const child of Array.from(doc.body.childNodes)) convert(child);
 
-    // Join tokens, then normalize newlines/spaces.
-    const joined = out.join('');
-    return joined
+    return parts
+      .join('')
+      .replace(/\r\n/g, '\n')
       .replace(/[ \t]+\n/g, '\n')
-      .replace(/\n{3,}/g, '\n\n')
+      .replace(/\n{4,}/g, '\n\n\n')
       .trim();
   } catch {
     return (html || '').replaceAll('\r\n', '\n').trim();

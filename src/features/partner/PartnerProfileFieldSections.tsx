@@ -9,8 +9,10 @@ import {
   FINELY_OS_ENTITY_VALUE,
   FINELY_OS_PRIMARY_BTN,
   FINELY_OS_SECONDARY_BTN,
+  FINELY_OS_MODAL_HEADER,
   finelyOsCatalogCard,
 } from '../os/finelyOsLightUi';
+import { FinelyOsModalCloseButton } from '../os/FinelyOsModalCloseButton';
 
 const SECTION_HINTS: Record<string, string> = {
   identity: 'Legal first/last name, DOB, SSN last 4',
@@ -117,7 +119,7 @@ export function PartnerProfileFieldSections(args: {
             className={`${finelyOsCatalogCard('violet')} !p-0 w-full max-w-3xl max-h-[min(90vh,820px)] flex flex-col shadow-2xl`}
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-start justify-between gap-4 p-5 border-b border-white/10">
+            <div className={`${FINELY_OS_MODAL_HEADER} sm:px-5 sm:py-5`}>
               <div>
                 <p className={FINELY_OS_ENTITY_SUBLABEL}>Profile section</p>
                 <h3 id="partner-field-modal-title" className={`mt-1 ${FINELY_OS_ENTITY_VALUE} text-lg`}>
@@ -127,14 +129,7 @@ export function PartnerProfileFieldSections(args: {
                   {SECTION_HINTS[openSection.id] ?? 'Fill in the fields below — saved automatically on blur.'}
                 </p>
               </div>
-              <button
-                type="button"
-                className={`${FINELY_OS_SECONDARY_BTN} !p-2`}
-                onClick={() => setOpenSectionId(null)}
-                aria-label="Close"
-              >
-                <X size={18} />
-              </button>
+              <FinelyOsModalCloseButton onClick={() => setOpenSectionId(null)} />
             </div>
 
             <div className="flex-1 overflow-y-auto p-5">

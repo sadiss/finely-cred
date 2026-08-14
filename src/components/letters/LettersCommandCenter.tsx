@@ -30,6 +30,13 @@ import { DisputeReasonsLibraryPanel } from './DisputeReasonsLibraryPanel';
 import { downloadInlineDisputeLetterPdf, type DisputeLetterItem } from '../../letters/generateDisputePdfInline';
 import { buildFiveStepDisputeIntro, buildFiveStepItemPreamble, dominantNegativeTypeFromCandidates } from '../../letters/disputeFiveStepLetter';
 import { listLettersByPartner, upsertLetter } from '../../data/lettersRepo';
+import {
+  confirmCloseLetterDraft,
+  confirmMarkLetterFinal,
+  LETTER_DRAFT_STATUS,
+  LETTER_FINAL_STATUS,
+} from '../../lib/letterDraftLifecycle';
+import { MarkLetterFinalModal } from './MarkLetterFinalModal';
 import { getCourtOutcomeByDebtCase } from '../../data/courtOutcomeRepo';
 import { addAuditEvent } from '../../data/auditRepo';
 import { newId } from '../../utils/ids';
@@ -63,6 +70,12 @@ import { letterTrackFamily } from '../../lib/letterProductLabels';
 import { LetterEditorShell } from './LetterEditorShell';
 import { SmartProofUploader } from '../evidence/SmartProofUploader';
 import { DEBT_LETTER_SPECS, SCENARIO_RECOMMENDATIONS, recommendScenarioFromDebt, getLetterBody } from '../../legal/debtLetterTemplates';
+import { getAllAuthorityCitations, type AuthorityCitation } from '../../data/authorityCitationsRepo';
+import {
+  ensureValidation30DayBlockInBody,
+  replaceValidationIntroInBody,
+  VALIDATION_INTRO_VARIANT_COUNT,
+} from '../../legal/validationLetterClauses';
 import type { DebtLetterType, DebtScenario } from '../../domain/debtLegal';
 import { EntitlementGate } from '../billing/EntitlementGate';
 import { generateTextPdfToVault } from '../../letters/generateTextPdf';
@@ -158,15 +171,19 @@ import {
   FINELY_OS_ENTITY_BODY,
   FINELY_OS_ENTITY_CHIP,
   finelyOsCatalogCard,
+  finelyOsCatalogCardCompact,
+  finelyOsGlowTile,
   FINELY_OS_ENTITY_SUBLABEL,
   FINELY_OS_ENTITY_VALUE,  FINELY_OS_PRIMARY_BTN,
   FINELY_OS_SECONDARY_BTN,
   FINELY_OS_VIEW_TABS,
   FINELY_OS_FIXED_OVERLAY,
+  FINELY_OS_MODAL_HEADER,
   FINELY_OS_ENTITY_TITLE,
   FINELY_OS_AI_DRAFT_BTN_SM,
   finelyOsViewTab,
 } from '../../features/os/finelyOsLightUi';
+import { FinelyOsModalCloseButton } from '../../features/os/FinelyOsModalCloseButton';
 import { adminPartnerNavFromPortalHref, adminPartnerTab, portalPreviewUrl } from '../../lib/adminPartnerRoutes';
 import { ValidationCreditHandoffStrip } from './ValidationCreditHandoffStrip';
 
@@ -177,6 +194,39 @@ const LCC_AI_DRAFT_BTN_SM =
   'inline-flex items-center gap-2 rounded-xl border border-fuchsia-500/30 bg-fuchsia-500/10 px-3 py-2 text-[10px] font-black uppercase tracking-widest text-fuchsia-100 hover:bg-fuchsia-500/15 transition-all disabled:opacity-60';
 
 const LCC_MODAL_SHELL = `${finelyOsCatalogCard('violet')} !p-0 overflow-hidden shadow-2xl flex flex-col`;
+
+/**
+ * Loose keyword match between a debt letter spec's `legalBasis` cites/short names and the
+ * statutory-authority citation pack — good enough for a reference panel, not exhaustive.
+ */
+function relevantAuthorityCitationsForSpec(
+  spec: { legalBasis?: { cite: string; shortName: string }[] } | null | undefined,
+): AuthorityCitation[] {
+  if (!spec?.legalBasis?.length) return [];
+  const keywords = new Set<string>();
+  for (const basis of spec.legalBasis) {
+    const cite = String(basis.cite || '').toLowerCase();
+    const shortName = String(basis.shortName || '').toLowerCase();
+    // Pull statute/section-like tokens (e.g. "1692g", "1681s-2", "3-308").
+    (cite.match(/\d{3,4}[a-z]?(-\d+)?/g) || []).forEach((tok) => keywords.add(tok));
+    for (const word of shortName.split(/[^a-z0-9]+/)) {
+      if (word.length >= 4 && !['fdcpa', 'fcra'].includes(word)) keywords.add(word);
+    }
+  }
+  if (!keywords.size) return [];
+  const all = getAllAuthorityCitations();
+  const seen = new Set<string>();
+  const matches: AuthorityCitation[] = [];
+  for (const citation of all) {
+    const haystack = `${citation.statuteOrRegulation} ${citation.topic}`.toLowerCase();
+    const isMatch = Array.from(keywords).some((kw) => haystack.includes(kw));
+    if (isMatch && !seen.has(citation.id)) {
+      seen.add(citation.id);
+      matches.push(citation);
+    }
+  }
+  return matches.slice(0, 8);
+}
 
 export type LettersStudioTab = 'dispute' | 'validation' | 'court' | 'foreclosure' | 'repossession' | 'bankruptcy' | 'templates';
 type TabKey = LettersStudioTab;
@@ -1432,9 +1482,10 @@ export function LettersCommandCenter({
   const [addressEnrichMeta, setAddressEnrichMeta] = useState<AddressEnrichmentResult | null>(null);
 
   const notifyPartnerLetterEvent = (args: {
-    event: 'generated' | 'saved' | 'ready_to_mail';
+    event: 'ready_to_mail';
     letterIds: string[];
     letterTitles: string[];
+    emailPartner?: boolean;
   }) => {
     if (!partner?.id) return;
     void notifyLetterLifecycle({
@@ -1443,10 +1494,14 @@ export function LettersCommandCenter({
       event: args.event,
       letterIds: args.letterIds,
       letterTitles: args.letterTitles,
-      emailPartner: emailPartnerOnEvents,
+      emailPartner: args.emailPartner ?? emailPartnerOnEvents,
       actorRole: layout === 'embedded' ? 'admin' : 'partner',
     });
   };
+  const [markFinalOpen, setMarkFinalOpen] = useState(false);
+  const [markFinalPending, setMarkFinalPending] = useState<
+    null | { kind: 'debt'; download?: boolean } | { kind: 'dispute'; bureau: Bureau; download?: boolean }
+  >(null);
   const [studioOpenByBureau, setStudioOpenByBureau] = useState<Record<Bureau, boolean>>({ EXP: true, EQF: true, TUC: true });
   const [workspaceBureau, setWorkspaceBureau] = useState<Bureau>('EXP');
   const [lastGeneratedAtByBureau, setLastGeneratedAtByBureau] = useState<Record<Bureau, string | null>>({
@@ -2080,6 +2135,11 @@ WRITING STANDARD:
 
       if (opts.download && res.blob) downloadBlob({ blob: res.blob, filename: res.filename });
 
+      if (!confirmMarkLetterFinal({ title: `Dispute letter • ${bureauShortCode(b)} • ${round}`, withPdf: true })) {
+        setReturnNotice('PDF generated — open Save again when ready to mark final.');
+        return;
+      }
+
       const createdAt = nowIso();
       const letterId = newId('letter');
       const letter = upsertLetter({
@@ -2161,11 +2221,7 @@ WRITING STANDARD:
         entityId: letter.id,
         meta: { kind: 'dispute', pdfBlobRef: res.pdfBlobRef ?? null, filename: res.filename },
       });
-      notifyPartnerLetterEvent({
-        event: 'saved',
-        letterIds: [letter.id],
-        letterTitles: [letter.title || `${b} dispute letter`],
-      });
+      // Ready-to-mail email only when partner marks final — not on every generate.
       if (letterPartnerNote.trim()) {
         recordLetterPartnerNote({
           partnerId: partner.id,
@@ -3126,7 +3182,10 @@ useEffect(() => {
       stateNote: (debt?.stateJurisdiction || summonsAffidavitContext.jurisdictionState)
         ? ` In ${debt?.stateJurisdiction || summonsAffidavitContext.jurisdictionState}, the applicable SOL may apply.`
         : undefined,
-      // Always merge scrape/case court fields so validation + affidavits get amount/court/counsel too.
+      introVariantIndex:
+        draft?.specId === 'validation_request' || draft?.catalogId === 'validation_initial_fdcpa'
+          ? draft?.introVariantIndex ?? 0
+          : undefined,
       summonsContext: {
         courtName: summonsAffidavitContext.courtName || debt?.courtName,
         courtDivision: summonsAffidavitContext.courtDivision,
@@ -3166,6 +3225,10 @@ useEffect(() => {
     previewKey?: string;
     /** Vault letter id created on Generate — Save updates the same record */
     letterId?: string;
+    /** validation_request intro opener variant (0-based) */
+    introVariantIndex?: number;
+    /** Previous html before intro swap — revert target */
+    introRevertHtml?: string;
   }>(null);
   const [generateBusy, setGenerateBusy] = useState(false);
   const [draftBusy, setDraftBusy] = useState(false);
@@ -3175,6 +3238,20 @@ useEffect(() => {
   const [draftNotice, setDraftNotice] = useState<string | null>(null);
   /** Optional PartnerNote body attached on Save PDF (debt + credit studios) */
   const [letterPartnerNote, setLetterPartnerNote] = useState('');
+
+  /** Last html persisted to the vault for the open draft — used to detect unsaved edits so Close never silently discards them. */
+  const draftSyncedHtmlRef = React.useRef<string>('');
+  const draftHasUnsavedEdits = Boolean(draft) && ensureHtmlDraft(draft?.html || '') !== draftSyncedHtmlRef.current;
+
+  /** Active debt/court letter spec for the open draft — drives the Legal authority panel below. */
+  const activeDebtLetterSpec = useMemo(
+    () => DEBT_LETTER_SPECS.find((s) => s.id === draft?.specId) ?? null,
+    [draft?.specId],
+  );
+  const relevantAuthorityCitations = useMemo(
+    () => relevantAuthorityCitationsForSpec(activeDebtLetterSpec),
+    [activeDebtLetterSpec],
+  );
 
   useEffect(() => {
     if (draft) {
@@ -3189,15 +3266,61 @@ useEffect(() => {
     });
   }, [draft]);
 
-  const closeDebtDraftModal = () => {
+  const closeDebtDraftModal = async () => {
     if (draftBusy) return;
-    setDraftErr(null);
-    setDraft((current) => {
-      if (current?.letterId) {
-        window.setTimeout(() => setVaultHighlightLetterId(current.letterId!), 0);
-      }
-      return null;
+    const choice = confirmCloseLetterDraft({
+      hasUnsavedEdits: draftHasUnsavedEdits,
+      hasVaultDraft: Boolean(draft?.letterId),
     });
+    if (choice === 'cancel') return;
+    if (choice === 'save_draft') {
+      const ok = await saveDebtDraftText();
+      if (!ok) return;
+    }
+    setDraftErr(null);
+    setDraft(null);
+  };
+
+  const isValidationIntroDraft =
+    draft?.type === 'validation' &&
+    (draft.specId === 'validation_request' || draft.catalogId === 'validation_initial_fdcpa');
+
+  const cycleValidationIntroVariant = () => {
+    if (!draft || !isValidationIntroDraft) return;
+    const plain = stripLetterVendorBranding(htmlToPlainText(draft.html || ''));
+    const nextIdx = ((draft.introVariantIndex ?? 0) + 1) % VALIDATION_INTRO_VARIANT_COUNT;
+    const replaced = replaceValidationIntroInBody(plain, nextIdx);
+    if (!replaced) {
+      setDraftErr('Could not swap the intro — the letter may have been edited. Restore structure or regenerate.');
+      return;
+    }
+    setDraftErr(null);
+    setDraft((prev) =>
+      prev
+        ? {
+            ...prev,
+            introRevertHtml: prev.html,
+            introVariantIndex: nextIdx,
+            html: stripLetterVendorBrandingHtml(plainTextToHtml(replaced)),
+            previewKey: `${prev.previewKey || prev.specId}:intro:${nextIdx}`,
+          }
+        : prev,
+    );
+  };
+
+  const revertValidationIntroVariant = () => {
+    if (!draft?.introRevertHtml) return;
+    setDraftErr(null);
+    setDraft((prev) =>
+      prev
+        ? {
+            ...prev,
+            html: prev.introRevertHtml!,
+            introRevertHtml: undefined,
+            previewKey: `${prev.previewKey || prev.specId}:revert:${Date.now()}`,
+          }
+        : prev,
+    );
   };
 
   const bumpVaultStore = () => setStoreVersion((v) => v + 1);
@@ -3818,7 +3941,7 @@ useEffect(() => {
         title,
         createdAt,
         body: bodyHtml,
-        status: 'generated',
+        status: LETTER_DRAFT_STATUS,
         relatedEvidenceIds: draft.evidenceId ? [draft.evidenceId] : [],
         meta: metaForDebtDraft(draft, debt, String(recommendedScenario || ''), mailToSnapshot),
       });
@@ -3829,16 +3952,15 @@ useEffect(() => {
         action: 'letter.saved',
         entityType: 'letter',
         entityId: saved.id,
-        meta: { kind: draft.type, source: 'save_text', debtId: debt?.id ?? null },
-      });
-      notifyPartnerLetterEvent({
-        event: 'saved',
-        letterIds: [saved.id],
-        letterTitles: [title],
+        meta: { kind: draft.type, source: 'save_text', debtId: debt?.id ?? null, draft: true },
       });
       setStoreVersion((v) => v + 1);
+      draftSyncedHtmlRef.current = bodyHtml;
       setDraft((prev) => (prev ? { ...prev, letterId: saved.id, html: bodyHtml } : prev));
-      setDraftNotice('Draft text saved to Letters Vault — add a PDF anytime with Save & generate letter.');
+      if (draft.type === 'validation') {
+        completeValidationCreditHandoff(saved.id, draft.type);
+      }
+      setDraftNotice('Draft saved to Letters Vault — mark as final when ready to send.');
       return true;
     } catch (e: any) {
       setDraftErr(e?.message || 'Failed to save letter text.');
@@ -3848,12 +3970,13 @@ useEffect(() => {
     }
   };
 
-  const saveDebtDraftPdf = async (opts?: { download?: boolean }) => {
+  const saveDebtDraftPdf = async (opts?: { download?: boolean; asFinal?: boolean }) => {
     if (!draft || !partner?.id) return false;
     if (!canUseLetters) {
       setDraftErr('Letters is locked on your current plan. Open Billing to unlock Letters.');
       return false;
     }
+    const asFinal = opts?.asFinal !== false;
     const bodyHtml = stripLetterVendorBrandingHtml(ensureHtmlDraft(draft.html || ''));
     const plain = stripLetterVendorBranding(htmlToPlainText(bodyHtml));
     if (!plain.trim()) {
@@ -3894,7 +4017,7 @@ useEffect(() => {
         title,
         createdAt,
         body: bodyHtml,
-        status: 'generated',
+        status: asFinal ? LETTER_FINAL_STATUS : LETTER_DRAFT_STATUS,
         pdfBlobRef: pdf.pdfBlobRef ?? undefined,
         pdfFilename: pdf.filename,
         relatedEvidenceIds: draft.evidenceId ? [draft.evidenceId] : [],
@@ -3904,16 +4027,19 @@ useEffect(() => {
         partnerId: partner.id,
         actorType: layout === 'embedded' ? 'admin' : 'partner',
         actorEmail: undefined,
-        action: 'letter.saved',
+        action: asFinal ? 'letter.marked_final' : 'letter.saved',
         entityType: 'letter',
         entityId: saved.id,
         meta: { kind: draft.type, pdfBlobRef: pdf.pdfBlobRef ?? null, filename: pdf.filename, debtId: debt?.id ?? null },
       });
-      notifyPartnerLetterEvent({
-        event: 'saved',
-        letterIds: [saved.id],
-        letterTitles: [title],
-      });
+      if (asFinal && emailPartnerOnEvents) {
+        notifyPartnerLetterEvent({
+          event: 'ready_to_mail',
+          letterIds: [saved.id],
+          letterTitles: [title],
+          emailPartner: true,
+        });
+      }
       if (letterPartnerNote.trim()) {
         recordLetterPartnerNote({
           partnerId: partner.id,
@@ -3936,6 +4062,7 @@ useEffect(() => {
       }
 
       setStoreVersion((v) => v + 1);
+      draftSyncedHtmlRef.current = bodyHtml;
       setVaultHighlightLetterId(saved.id);
       setDraftSavedPreviewLetter(saved);
       setDraft(null);
@@ -3955,6 +4082,12 @@ useEffect(() => {
     }
   };
 
+  const requestSaveDebtDraftPdf = (opts?: { download?: boolean }) => {
+    if (!draft) return;
+    setMarkFinalPending({ kind: 'debt', download: opts?.download });
+    setMarkFinalOpen(true);
+  };
+
   const openGeneratedDebtDraft = (args: {
     track: DebtDraftTrack;
     specId: string;
@@ -3965,7 +4098,11 @@ useEffect(() => {
       setDraftErr('Sign in as a partner to save validation letters.');
       return;
     }
-    const plain = stripLetterVendorBranding(String(args.bodyText || '').trim());
+    const plainRaw = stripLetterVendorBranding(String(args.bodyText || '').trim());
+    const plain =
+      args.specId === 'validation_request' || args.catalogId === 'validation_initial_fdcpa'
+        ? ensureValidation30DayBlockInBody(plainRaw)
+        : plainRaw;
     if (!plain) {
       setDraftErr('Letter generation returned an empty body. Confirm case fields and try Generate letter again.');
       return;
@@ -3976,60 +4113,13 @@ useEffect(() => {
     }
     const bodyHtml = stripLetterVendorBrandingHtml(plainTextToHtml(plain));
     const previewKey = `${args.track}:${args.catalogId || args.specId}:${Date.now()}`;
-    const letterId = newId('letter');
     const title = resolveDebtDraftTitle({
       specId: args.specId,
       catalogId: args.catalogId,
       track: args.track,
       debtName: debt?.name,
     });
-    try {
-      const parsedTo = parseLetterRecipientBlock(plain);
-      const mergeArgs = buildDebtLetterArgs();
-      const mailToSnapshot =
-        parsedTo ??
-        (() => {
-          const name = String(mergeArgs.recipientName || mergeArgs.plaintiffLawFirm || '').trim();
-          const address = String(mergeArgs.plaintiffLawFirmAddress || mergeArgs.recipientAddress || '').trim();
-          return name && address ? { name, address } : undefined;
-        })();
-      upsertLetter({
-        id: letterId,
-        partnerId: partner.id,
-        type: letterTypeForDebtDraft(args.track),
-        title,
-        createdAt: new Date().toISOString(),
-        body: bodyHtml,
-        status: 'generated',
-        relatedEvidenceIds: [],
-        meta: metaForDebtDraft(
-          { type: args.track, specId: args.specId, catalogId: args.catalogId },
-          debt,
-          String(recommendedScenario || ''),
-          mailToSnapshot,
-        ),
-      });
-      addAuditEvent({
-        partnerId: partner.id,
-        actorType: layout === 'embedded' ? 'admin' : 'partner',
-        actorEmail: undefined,
-        action: 'letter.saved',
-        entityType: 'letter',
-        entityId: letterId,
-        meta: { kind: args.track, debtId: debt?.id ?? null, source: 'generate_letter', catalogId: args.catalogId ?? null },
-      });
-      notifyPartnerLetterEvent({
-        event: 'generated',
-        letterIds: [letterId],
-        letterTitles: [title],
-      });
-      setStoreVersion((v) => v + 1);
-      if (args.track === 'validation') {
-        completeValidationCreditHandoff(letterId, args.track);
-      }
-    } catch (e: any) {
-      setDraftNotice(e?.message || 'Draft opened, but vault save failed — use Save to Letters Vault.');
-    }
+    draftSyncedHtmlRef.current = ensureHtmlDraft(bodyHtml);
     setDraft({
       specId: args.specId,
       catalogId: args.catalogId,
@@ -4038,7 +4128,9 @@ useEffect(() => {
       html: bodyHtml,
       preferPreview: true,
       previewKey,
-      letterId,
+      ...(args.specId === 'validation_request' || args.catalogId === 'validation_initial_fdcpa'
+        ? { introVariantIndex: 0, introRevertHtml: undefined }
+        : {}),
     });
     // Ensure the modal paper preview is in view after Generate (never silent success).
     window.setTimeout(() => {
@@ -4661,8 +4753,26 @@ useEffect(() => {
                       })}
                   </div>
                   {draft.letterId ? (
-                    <p className="mt-0.5 text-[11px] text-emerald-200/85">Saved to Letters Vault as a draft — edit below, then update PDF when ready.</p>
-                  ) : null}
+                    <p className="mt-0.5 text-[11px] text-amber-200/90 flex items-center gap-1.5 flex-wrap">
+                      <span className="inline-flex items-center gap-1 rounded-md border-2 border-amber-400/60 bg-amber-500/20 px-1.5 py-0.5 text-[9px] font-black uppercase tracking-widest text-amber-50">
+                        DRAFT
+                      </span>
+                      <span>Saved as draft — mark as final when ready to send.</span>
+                      {draftHasUnsavedEdits ? (
+                        <span className="inline-flex items-center gap-1 rounded-md border border-amber-400/40 bg-amber-500/15 px-1.5 py-0.5 text-[9px] font-black uppercase tracking-widest text-amber-100">
+                          <span className="h-1.5 w-1.5 rounded-full bg-amber-300 animate-pulse" /> Unsaved edits
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 rounded-md border border-emerald-400/25 bg-emerald-500/10 px-1.5 py-0.5 text-[9px] font-black uppercase tracking-widest text-emerald-200/80">
+                          All changes saved
+                        </span>
+                      )}
+                    </p>
+                  ) : (
+                    <p className="mt-0.5 text-[11px] text-amber-200/85">
+                      Preview only — not in vault yet. Save as draft or mark final to keep this letter.
+                    </p>
+                  )}
                 </div>
                 <div className="flex items-center gap-1.5 flex-wrap justify-end">
                   <button
@@ -4673,12 +4783,12 @@ useEffect(() => {
                         setPdfChoice({ kind: 'debt' });
                         return;
                       }
-                      void saveDebtDraftPdf();
+                      void requestSaveDebtDraftPdf();
                     }}
                     className={`${FINELY_OS_PRIMARY_BTN} !py-2 !px-3 !text-[10px] disabled:opacity-60 disabled:cursor-not-allowed`}
                     title="Save PDF to Letters Vault and preview the letter"
                   >
-                    {draftBusy ? 'Saving…' : 'Save & generate letter'}
+                    {draftBusy ? 'Saving…' : 'Mark final & save PDF'}
                   </button>
                   <button
                     type="button"
@@ -4782,6 +4892,36 @@ useEffect(() => {
                       </p>
                     </div>
                   ) : null}
+                  {isValidationIntroDraft ? (
+                    <div className="rounded-xl border border-emerald-400/35 bg-emerald-500/10 px-3 py-2.5 space-y-2">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <div className="text-xs font-semibold text-emerald-50/95">
+                          Intro version {(draft.introVariantIndex ?? 0) + 1} of {VALIDATION_INTRO_VARIANT_COUNT}
+                          <span className="text-emerald-100/70 font-normal"> · opening wording only — legal demands unchanged</span>
+                        </div>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={cycleValidationIntroVariant}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-emerald-400/40 bg-emerald-500/15 hover:bg-emerald-500/25 text-[10px] font-black uppercase tracking-widest text-emerald-50 transition-all"
+                            title="Cycle to the next intro opener — same legal body and 30-day closing block"
+                          >
+                            Choose different version
+                          </button>
+                          {draft.introRevertHtml ? (
+                            <button
+                              type="button"
+                              onClick={revertValidationIntroVariant}
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-white/15 bg-white/5 hover:bg-white/10 text-[10px] font-black uppercase tracking-widest text-white/75 transition-all"
+                              title="Restore the intro from before your last version change"
+                            >
+                              Revert to previous version
+                            </button>
+                          ) : null}
+                        </div>
+                      </div>
+                    </div>
+                  ) : null}
                   <LetterEditorShell
                     html={ensureHtmlDraft(draft.html || '')}
                     onChangeHtml={(html) => setDraft((prev) => (prev ? { ...prev, html } : prev))}
@@ -4792,6 +4932,41 @@ useEffect(() => {
                     previewResetKey={draft.previewKey || `${draft.specId}:${draft.catalogId || ''}`}
                     showAddressChrome={false}
                   />
+
+                  {activeDebtLetterSpec ? (
+                    <details className={`${finelyOsCatalogCardCompact('sky')} group`}>
+                      <summary className="cursor-pointer select-none flex items-center justify-between gap-2 text-sm font-semibold text-white/90">
+                        <span className="inline-flex items-center gap-1.5">
+                          <Scale size={14} className="text-sky-300 shrink-0" />
+                          Legal authority
+                          {relevantAuthorityCitations.length ? (
+                            <span className="text-[10px] font-normal text-sky-200/70">({relevantAuthorityCitations.length})</span>
+                          ) : null}
+                        </span>
+                        <span className="text-[9px] font-black uppercase tracking-widest text-sky-200/60 group-open:hidden">Show cites</span>
+                      </summary>
+                      <div className="mt-2 space-y-1.5">
+                        {relevantAuthorityCitations.length === 0 ? (
+                          <p className="text-[11px] text-white/50">No matched statutory citations for this letter type yet.</p>
+                        ) : (
+                          relevantAuthorityCitations.map((c) => (
+                            <details key={c.id} className={`${finelyOsGlowTile('sky')} !p-2.5`}>
+                              <summary className="cursor-pointer select-none text-[11px] font-semibold text-sky-100/90">
+                                {c.statuteOrRegulation} — {c.topic}
+                              </summary>
+                              <div className="mt-1.5 space-y-1 text-[11px] leading-relaxed">
+                                <p className="text-white/60 italic">{c.marketingSafeSummary}</p>
+                                <p className="text-white/70">{c.footnoteText}</p>
+                                {c.casePrecedent ? <p className="text-white/45">Case: {c.casePrecedent}</p> : null}
+                                {c.agencyGuidance ? <p className="text-white/45">Guidance: {c.agencyGuidance}</p> : null}
+                              </div>
+                            </details>
+                          ))
+                        )}
+                        <p className="text-[10px] text-white/35 pt-0.5">Reference only — not legal advice. Verify current statute text before filing.</p>
+                      </div>
+                    </details>
+                  ) : null}
 
                   <details className="rounded-xl border border-white/10 bg-black/25 !p-3">
                     <summary className="cursor-pointer select-none text-sm font-semibold text-white">
@@ -4945,7 +5120,7 @@ useEffect(() => {
                   <LetterEmailPartnerToggle
                     checked={emailPartnerOnEvents}
                     onChange={setEmailPartnerOnEvents}
-                    hint={layout === 'embedded' ? 'Notify partner by email' : 'Email me on save'}
+                    hint={layout === 'embedded' ? 'Email partner when marked final' : 'Email me when marked final'}
                     label={layout === 'embedded' ? 'Email partner' : 'Email me'}
                   />
                   <div className="flex flex-wrap items-center gap-2">
@@ -4956,7 +5131,7 @@ useEffect(() => {
                     className={`${FINELY_OS_SECONDARY_BTN} disabled:opacity-60 disabled:cursor-not-allowed`}
                     title="Save edited text to Letters Vault without generating a PDF"
                   >
-                    {draftBusy ? 'Saving…' : 'Save text to vault'}
+                    {draftBusy ? 'Saving…' : 'Save draft to vault'}
                   </button>
                   <button
                     type="button"
@@ -4966,12 +5141,12 @@ useEffect(() => {
                         setPdfChoice({ kind: 'debt' });
                         return;
                       }
-                      void saveDebtDraftPdf();
+                      void requestSaveDebtDraftPdf();
                     }}
                     className={`${FINELY_OS_PRIMARY_BTN} disabled:opacity-60 disabled:cursor-not-allowed`}
                     title="Save this letter (PDF) into Letters Vault"
                   >
-                    {draftBusy ? 'Saving…' : 'Save & generate letter'}
+                    {draftBusy ? 'Saving…' : 'Mark final & save PDF'}
                   </button>
                   </div>
                   </div>
@@ -4981,6 +5156,40 @@ useEffect(() => {
           </div>
         </>
       ) : null}
+
+      <MarkLetterFinalModal
+        open={markFinalOpen}
+        title={
+          markFinalPending?.kind === 'debt'
+            ? draft?.title ||
+              resolveDebtDraftBaseTitle({
+                specId: draft?.specId || '',
+                catalogId: draft?.catalogId,
+                track: draft?.type || 'validation',
+              })
+            : markFinalPending?.kind === 'dispute'
+              ? `Dispute letter • ${bureauShortCode(markFinalPending.bureau)}`
+              : 'Letter'
+        }
+        withPdf
+        emailPartner={emailPartnerOnEvents}
+        onEmailPartnerChange={setEmailPartnerOnEvents}
+        emailHint={layout === 'embedded' ? 'Email partner once when final' : 'Email me once when final'}
+        busy={draftBusy}
+        onClose={() => {
+          setMarkFinalOpen(false);
+          setMarkFinalPending(null);
+        }}
+        onConfirm={() => {
+          const pending = markFinalPending;
+          setMarkFinalOpen(false);
+          setMarkFinalPending(null);
+          if (!pending) return;
+          if (pending.kind === 'debt') {
+            void saveDebtDraftPdf({ download: pending.download, asFinal: true });
+          }
+        }}
+      />
 
       <PostGenerateLetterModal
         open={Boolean(postGenerateHandoff) && !draft}
@@ -5091,7 +5300,7 @@ useEffect(() => {
 
       {/* Global â€œSave vs Save+Downloadâ€ chooser (partner-only) */}
       {pdfChoice ? (
-        <div className="fixed inset-0 z-[170] flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[170] flex items-center justify-center p-3 sm:p-4 md:p-6">
           <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setPdfChoice(null)} />
           <div
             className="relative w-full max-w-2xl max-h-[92vh] rounded-3xl border border-white/[0.08] bg-[#0a0f0d] shadow-2xl overflow-hidden flex flex-col"
@@ -5099,21 +5308,13 @@ useEffect(() => {
             aria-modal="true"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="p-4 md:p-6 border-b border-white/[0.08] flex items-start justify-between gap-4 shrink-0">
+            <div className={`${FINELY_OS_MODAL_HEADER} sm:px-6 sm:py-5`}>
               <div className="min-w-0">
                 <div className="text-[10px] uppercase tracking-widest text-white/40">Generate PDF</div>
                 <div className="mt-2 text-2xl font-light text-white">How do you want to proceed?</div>
                 <div className="mt-1 text-white/60 text-sm">By default, we save the PDF into your profile (Letters Vault).</div>
               </div>
-              <button
-                type="button"
-                onClick={() => setPdfChoice(null)}
-                className="inline-flex items-center justify-center w-10 h-10 rounded-xl border border-white/[0.08] bg-white/5 hover:bg-white/10 text-white/70 transition-all"
-                aria-label="Close"
-                title="Close"
-              >
-                <X size={18} />
-              </button>
+              <FinelyOsModalCloseButton onClick={() => setPdfChoice(null)} />
             </div>
             <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-3">
               <button
@@ -5125,7 +5326,7 @@ useEffect(() => {
                   if (!choice) return;
                   if (choice.kind === 'debt') {
                     if (!draft) return;
-                    await saveDebtDraftPdf({ download: false });
+                    await requestSaveDebtDraftPdf({ download: false });
                   }
                   if (choice.kind === 'dispute') {
                     await generateDisputeLetterForBureau(choice.bureau, { download: false });
@@ -5144,7 +5345,7 @@ useEffect(() => {
                   if (!choice) return;
                   if (choice.kind === 'debt') {
                     if (!draft) return;
-                    await saveDebtDraftPdf({ download: true });
+                    await requestSaveDebtDraftPdf({ download: true });
                   }
 
                   if (choice.kind === 'dispute') {
@@ -5167,19 +5368,19 @@ useEffect(() => {
         </div>
       ) : null}
 
-      <div data-fc-letter-studio="1" className="space-y-3 w-full">
+      <div data-fc-letter-studio="1" className="space-y-3 w-full min-w-0 overflow-x-clip">
         {layout === 'standalone' && !unifiedShell ? (
-          <div className="flex flex-wrap items-center justify-between gap-4">
+          <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center sm:justify-between gap-3">
             <button
               onClick={() => goPortalHref('/portal/dashboard')}
-              className="inline-flex items-center gap-2 text-white/60 hover:text-white transition-colors text-sm"
+              className="inline-flex items-center gap-2 text-white/60 hover:text-white transition-colors text-sm min-h-[44px]"
             >
               <ArrowLeft size={16} /> Partner Dashboard
             </button>
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
               <button
                 onClick={() => openVault()}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-500 text-black font-black uppercase tracking-widest text-[10px] hover:brightness-110 transition-all"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 min-h-[44px] px-4 py-2 rounded-xl bg-amber-500 text-black font-black uppercase tracking-widest text-[10px] whitespace-normal text-center leading-snug hover:brightness-110 transition-all"
                 title="Open your Letters Vault (saved PDFs)"
               >
                 <ScrollText size={14} /> Letters Vault
@@ -5193,7 +5394,8 @@ useEffect(() => {
         ) : null}
 
         {debtCenterMode && !(activeTab != null && onTabChange) ? (
-          <div className="flex flex-wrap gap-2 p-1 rounded-2xl border border-white/10 bg-black/30">
+          <div className="-mx-1 overflow-x-auto pb-1 [scrollbar-width:thin]">
+          <div className="flex flex-wrap sm:flex-nowrap gap-2 p-1 rounded-2xl border border-white/10 bg-black/30 min-w-max sm:min-w-0">
             {(
               [
                 { key: 'validation' as const, label: 'Validation', accent: 'border-emerald-400/40 bg-emerald-500/15 text-emerald-100' },
@@ -5208,13 +5410,14 @@ useEffect(() => {
                 type="button"
                 className={
                   (tab === t.key ? t.accent : 'bg-white/5 text-white/75 border-white/10 hover:bg-white/10') +
-                  ' inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border text-[10px] font-black uppercase tracking-widest transition-all'
+                  ' inline-flex items-center gap-2 min-h-[44px] shrink-0 px-3 sm:px-4 py-2.5 rounded-xl border text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap'
                 }
                 onClick={() => setTab(t.key)}
               >
                 {t.label}
               </button>
             ))}
+          </div>
           </div>
         ) : null}
 
@@ -5242,14 +5445,14 @@ useEffect(() => {
                   </div>
                 ))}
               </div>
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <div className="text-white/55 text-sm">
+              <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center sm:justify-between gap-3">
+                <div className="text-white/55 text-sm min-w-0">
                   Next: <span className="text-white/85 font-semibold">{nextBestAction.label}</span>
                 </div>
                 <button
                   type="button"
                   onClick={runNextBestAction}
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-amber-500/25 bg-amber-500/15 hover:bg-amber-500/20 text-[10px] font-black uppercase tracking-widest text-amber-100 transition-all"
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 min-h-[44px] px-4 py-2 rounded-xl border border-amber-500/25 bg-amber-500/15 hover:bg-amber-500/20 text-[10px] font-black uppercase tracking-widest text-amber-100 transition-all"
                 >
                   Do next <ChevronRight size={14} />
                 </button>
@@ -5510,18 +5713,18 @@ useEffect(() => {
                   </div>
                 ) : null}
 
-                <div className="flex flex-wrap items-start justify-between gap-4">
+                <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-start justify-between gap-4">
                   <div className="min-w-0 flex-1">
                     <div className="text-sm font-semibold text-white">Bureau letters</div>
                     <div className="mt-2 text-white/70 text-sm">
                       Use the path above to <span className="text-white font-medium">Select disputes</span>, then attach evidence inline. Selections split into separate bureau letters (Experian, Equifax, TransUnion).
                     </div>
                   </div>
-                  <div className="flex flex-wrap items-center gap-2">
+                  <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-2 w-full sm:w-auto shrink-0">
                     <button
                       type="button"
                       onClick={() => openDisputeCenter()}
-                      className="inline-flex items-center gap-2 px-4 py-3 rounded-xl border border-white/[0.08] bg-white/5 hover:bg-white/10 text-[10px] font-black uppercase tracking-widest text-white/70 transition-all"
+                      className="w-full sm:w-auto inline-flex items-center justify-center gap-2 min-h-[44px] px-4 py-3 rounded-xl border border-white/[0.08] bg-white/5 hover:bg-white/10 text-[10px] font-black uppercase tracking-widest text-white/70 transition-all whitespace-normal text-center leading-snug"
                       title="Open dispute case tracking"
                     >
                       Dispute cases <ChevronRight size={14} />
@@ -5529,7 +5732,7 @@ useEffect(() => {
                     <button
                       type="button"
                       onClick={() => setReasonsLibraryOpen(true)}
-                      className="inline-flex items-center gap-2 px-4 py-3 rounded-xl border border-white/[0.08] bg-white/5 hover:bg-white/10 text-[10px] font-black uppercase tracking-widest text-white/70 transition-all"
+                      className="w-full sm:w-auto inline-flex items-center justify-center gap-2 min-h-[44px] px-4 py-3 rounded-xl border border-white/[0.08] bg-white/5 hover:bg-white/10 text-[10px] font-black uppercase tracking-widest text-white/70 transition-all whitespace-normal text-center leading-snug"
                       title="Reference-only dispute reasons library"
                     >
                       <FileText size={14} /> Reason library
@@ -5657,7 +5860,7 @@ useEffect(() => {
                             ) : null}
                           </div>
                         </div>
-                        <div className="flex flex-wrap items-center gap-3">
+                        <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-2 sm:gap-3 w-full sm:w-auto">
                           <button
                             type="button"
                             onClick={() => {
@@ -5673,7 +5876,7 @@ useEffect(() => {
                                 return out;
                               });
                             }}
-                            className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border-2 border-amber-400/50 bg-gradient-to-r from-amber-500/25 to-amber-600/15 hover:from-amber-500/35 hover:to-amber-600/25 shadow-[0_0_24px_-8px_rgba(251,191,36,0.55)] text-[11px] font-black uppercase tracking-widest text-amber-50 transition-all"
+                            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 min-h-[44px] px-5 py-2.5 rounded-xl border-2 border-amber-400/50 bg-gradient-to-r from-amber-500/25 to-amber-600/15 hover:from-amber-500/35 hover:to-amber-600/25 shadow-[0_0_24px_-8px_rgba(251,191,36,0.55)] text-[11px] font-black uppercase tracking-widest text-amber-50 transition-all whitespace-normal text-center leading-snug"
                             title="Apply recommended reasons to every selected item (stores an Undo snapshot)"
                           >
                             Auto reasons

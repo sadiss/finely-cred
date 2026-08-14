@@ -27,6 +27,9 @@ import {
 } from './growthAgentRegistry';
 import { runGrowthFindTestSearch } from './growthFindTest';
 import { runGrowthWorkerTickTest } from './growthWorkerTick';
+import { runCalebHandoffRouterForProspects } from './subagents/calebReasoningSubagents';
+import { isFeatureEnabled } from '../../data/settingsRepo';
+import { isSupabaseConfigured } from '../../lib/supabaseClient';
 
 const AUTO_KEY = 'finely.caleb.auto_find.v1';
 const COLD_OUTBOUND_KEY = 'finely.caleb.cold_outbound_autopilot.v1';
@@ -125,7 +128,14 @@ export async function runCalebSubagentPipeline(city?: string): Promise<CalebPipe
   persistSubagentStatus('geo_scanner', `Scanning ${location} · ${shardSummary}`, true);
   setMarketingFindGeo(location);
 
-  persistSubagentStatus('qualifier', 'Smart qualify thresholds active (≥70 auto · mid review)', true);
+  const aiReasoningAvailable = isFeatureEnabled('aiGateway') && isSupabaseConfigured;
+  persistSubagentStatus(
+    'qualifier',
+    aiReasoningAvailable
+      ? 'AI-gateway reasoning active on mid-band hits (≥70 auto · mid review)'
+      : 'Deterministic thresholds only — AI Gateway off, reasoning falls back to score bands',
+    true,
+  );
 
   const pack = await runMarketingDailyPack({ location, mode: 'daily_pack' });
 
@@ -137,10 +147,21 @@ export async function runCalebSubagentPipeline(city?: string): Promise<CalebPipe
     pack.found > 0 || !pack.error,
   );
 
+  const lastRun = getMarketingFindLastRun();
+  let routedCount = 0;
+  if (lastRun?.prospectIds?.length) {
+    try {
+      const routed = await runCalebHandoffRouterForProspects(lastRun.prospectIds);
+      routedCount = routed.filter((r) => r.routedToAlex).length;
+    } catch {
+      // non-blocking — handoff routing failure should never break the find pipeline
+    }
+  }
+
   persistSubagentStatus(
     'handoff',
     pack.autoSaved > 0 || pack.review > 0
-      ? `${pack.autoSaved} auto-saved · ${pack.review} in review queue`
+      ? `${pack.autoSaved} auto-saved · ${pack.review} in review queue${routedCount > 0 ? ` · ${routedCount} routed to Alex now` : ''}`
       : 'Review queue unchanged',
     !pack.error,
   );

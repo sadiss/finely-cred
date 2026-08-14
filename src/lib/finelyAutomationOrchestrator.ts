@@ -39,6 +39,15 @@ import { getMarketingMorningBrief, type MarketingMorningBrief } from '../feature
 import { buildFinelyCapabilityReport, type FinelyCapabilityReport } from './finelyCapabilityMetrics';
 import { processDueNurtureSteps } from './nurtureEngine';
 import { newId } from '../utils/ids';
+import { runAlexAppointmentAutopilotIfDue } from '../features/growthAgents/alexAppointmentAutomation';
+import { runAlexNoShowRecoverySweep } from '../features/growthAgents/subagents/alexNoShowRecovery';
+import { runHannahSyndicationWatcher } from '../features/growthAgents/subagents/hannahSyndicationWatcher';
+import { runEstherStrategyReview } from '../features/growthAgents/subagents/estherStrategySubagent';
+import { runLydiaSeoHealthCheck } from '../features/growthAgents/subagents/lydiaSeoHealthSubagent';
+import { runMiriamContentPriorityReview } from '../features/growthAgents/subagents/miriamContentPrioritySubagent';
+import { runJordanVideoPipelineReview } from '../features/growthAgents/subagents/jordanVideoPipelineSubagent';
+import { runBenjaminPartnershipReview } from '../features/growthAgents/subagents/benjaminPartnershipSubagent';
+import { runRebeccaRecruitingReview } from '../features/growthAgents/subagents/rebeccaRecruitingSubagent';
 
 export type FinelyAutomationJobKind =
   | 'daily_find_pack'
@@ -47,7 +56,8 @@ export type FinelyAutomationJobKind =
   | 'course_lesson_video_batch'
   | 'course_auto_narrate'
   | 'inbound_nurture_tick'
-  | 'scorecard_refresh';
+  | 'scorecard_refresh'
+  | 'agent_team_tick';
 
 export type FinelyAutomationJobStatus =
   | 'queued'
@@ -98,6 +108,7 @@ export const AUTOMATION_JOB_LABELS: Record<FinelyAutomationJobKind, string> = {
   course_auto_narrate: 'Course auto-narrate',
   inbound_nurture_tick: 'Inbound nurture tick',
   scorecard_refresh: 'Scorecard refresh',
+  agent_team_tick: 'Agent team tick (Alex + growth-agent sub-agents)',
 };
 
 function dispatchStore() {
@@ -449,6 +460,57 @@ export async function runAutomationJob(
         });
       }
 
+      case 'agent_team_tick': {
+        if (dryRun) {
+          return finishJob(record, {
+            status: 'skipped',
+            summary: 'Dry run — Alex outreach + growth-agent sub-agent reasoning not executed',
+          });
+        }
+        const alexOutreach = await runAlexAppointmentAutopilotIfDue();
+        const noShow = await runAlexNoShowRecoverySweep();
+        const shouldRunWatcher = !opts?.force ? !jobRanThisWeek('agent_team_tick') : true;
+        const syndication = shouldRunWatcher ? runHannahSyndicationWatcher() : null;
+
+        // Phase 5b — Esther/Lydia/Miriam/Jordan/Benjamin/Rebecca real reasoning sub-agents.
+        // Each function guards its own daily/weekly cadence internally (subagentCadence.ts),
+        // so it is safe to call every tick without duplicate spam.
+        const esther = await runEstherStrategyReview();
+        const lydia = await runLydiaSeoHealthCheck();
+        const miriam = await runMiriamContentPriorityReview();
+        const jordan = await runJordanVideoPipelineReview();
+        const benjamin = await runBenjaminPartnershipReview();
+        const rebecca = await runRebeccaRecruitingReview();
+
+        const parts = [
+          alexOutreach ? `${alexOutreach.emailsSent} outreach email(s)` : 'outreach already ran today',
+          `${noShow.recovered} no-show recover(y/ies)`,
+          syndication?.topChannel ? `top channel: ${syndication.topChannel.channelKey}` : 'channel scoring skipped',
+          esther.action && esther.action !== 'no_action' ? `Esther: ${esther.action}` : null,
+          lydia.action && lydia.action !== 'no_action' ? `Lydia: ${lydia.action}` : null,
+          miriam.action && miriam.action !== 'no_action' ? `Miriam: ${miriam.action}` : null,
+          jordan.action && jordan.action !== 'no_action' ? `Jordan: ${jordan.action}` : null,
+          benjamin.processed ? `Benjamin: ${benjamin.processed} affiliate action(s)` : null,
+          rebecca.processed ? `Rebecca: ${rebecca.processed} follow-up(s)` : null,
+        ].filter(Boolean);
+
+        return finishJob(record, {
+          status: 'completed',
+          summary: `Agent team tick — ${parts.join(' · ')}`,
+          counts: {
+            outreachEmails: alexOutreach?.emailsSent ?? 0,
+            noShowsRecovered: noShow.recovered,
+            channelsScored: syndication?.channelsScored ?? 0,
+            estherActed: esther.ok && esther.action && esther.action !== 'no_action' ? 1 : 0,
+            lydiaActed: lydia.ok && lydia.action && lydia.action !== 'no_action' ? 1 : 0,
+            miriamActed: miriam.ok && miriam.action && miriam.action !== 'no_action' ? 1 : 0,
+            jordanActed: jordan.ok && jordan.action && jordan.action !== 'no_action' ? 1 : 0,
+            benjaminProcessed: benjamin.processed ?? 0,
+            rebeccaProcessed: rebecca.processed ?? 0,
+          },
+        });
+      }
+
       default:
         return finishJob(record, {
           status: 'failed',
@@ -483,6 +545,7 @@ export async function runGrowthAutopilotTick(opts?: {
   if (opts?.force || !jobRanToday('daily_find_pack', now)) queue.push('daily_find_pack');
   queue.push('inbound_nurture_tick');
   if (opts?.force || !jobRanToday('scorecard_refresh', now)) queue.push('scorecard_refresh');
+  queue.push('agent_team_tick');
   if (opts?.force || !jobRanThisWeek('pillar_video_render', now)) queue.push('pillar_video_render');
   if (opts?.force || !jobRanToday('course_lesson_video_batch', now)) queue.push('course_lesson_video_batch');
   if (opts?.force || !jobRanToday('course_auto_narrate', now)) queue.push('course_auto_narrate');

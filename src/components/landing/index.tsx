@@ -15,6 +15,8 @@ import { finelyOsCatalogCard, finelyOsLandingContrastSection, finelyOsLightMeshS
 import { FinelyOsComplianceStrip } from '../../features/os/FinelyOsComplianceStrip';
 import { finelyCtaNavigate } from '../../lib/finelyCtaIntent';
 import { FinelyCredLogo } from '../brand/FinelyCredLogo';
+import { categoryLabels } from '../../config/pricingCatalog';
+import { getFeaturedCaseStudies, getCaseStudyProofStats, type CaseStudy } from '../../data/caseStudiesRepo';
 
 // ============================================================================
 // REALISTIC CREDIT CARD - Horizontal display optimized
@@ -373,7 +375,7 @@ interface HeroSectionProps {
   onViewTradelines: () => void;
 }
 
-export function HeroSection(_props: HeroSectionProps) {
+export function HeroSection({ onGetStarted }: HeroSectionProps) {
   const navigate = useNavigate();
   const tenant = useMemo(() => getActiveTenant(), []);
   const brand = (tenant.settings.brandName || tenant.name || 'Finely Cred').trim();
@@ -460,7 +462,7 @@ export function HeroSection(_props: HeroSectionProps) {
 
             <Reveal delay={450}>
               <div className="flex flex-wrap justify-center lg:justify-start gap-4">
-                <Button variant="gold" onClick={() => navigate('/pricing/business-credit')} size="lg">
+                <Button variant="gold" onClick={onGetStarted} size="lg">
                   Build business credit <ArrowRight size={18} />
                 </Button>
                 <Button variant="platinum" onClick={() => navigate('/pricing')} size="lg">
@@ -1911,6 +1913,135 @@ export function TestimonialDossier({
       <div className="mt-auto px-3 py-1.5 rounded-full bg-black/[0.04] border border-black/10 inline-block max-w-full">
         <span className="text-[10px] font-bold uppercase tracking-wider opacity-85 truncate block">{milestone}</span>
       </div>
+    </div>
+  );
+}
+
+// ============================================================================
+// HOME HERO PROOF STRIP — condensed trust/proof strip for directly beneath
+// the hero. Distinct from ProvenResultsStrip below (a full case-study card
+// grid, further down the page): this is a single compact KPI row + a link
+// into the full /results library, sized to avoid tall marketing-hero
+// spacing immediately after the hero. Numbers are computed live from
+// caseStudiesRepo — never fabricated.
+// ============================================================================
+function HomeProofStat({ value, label }: { value: string; label: string }) {
+  return (
+    <div className="flex items-baseline gap-1.5 min-w-0">
+      <span className="text-lg sm:text-xl font-black text-emerald-800 whitespace-nowrap">{value}</span>
+      <span className="text-[10px] uppercase tracking-wider opacity-60 whitespace-nowrap">{label}</span>
+    </div>
+  );
+}
+
+export function HomeHeroProofStrip({ className = '' }: { className?: string }) {
+  const navigate = useNavigate();
+  const stats = useMemo(() => getCaseStudyProofStats(), []);
+
+  return (
+    <section className={`py-5 sm:py-6 ${className}`} data-fc-hero-proof-strip="1">
+      <div className="container mx-auto px-4 sm:px-6 max-w-6xl">
+        <div
+          className={`flex flex-col lg:flex-row lg:items-center gap-4 lg:gap-6 !p-4 sm:!p-5 ${finelyOsCatalogCard('emerald')}`}
+          data-fc-accent="emerald"
+        >
+          <div className="flex items-center gap-2 shrink-0">
+            <BadgeCheck size={16} className="text-emerald-600 shrink-0" />
+            <span className="text-[10px] font-black uppercase tracking-[0.2em] opacity-70 whitespace-nowrap">
+              Documented results
+            </span>
+          </div>
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-2 flex-1 min-w-0">
+            <HomeProofStat value={String(stats.totalCount)} label="Case studies" />
+            {stats.avgScoreLift != null ? (
+              <HomeProofStat value={`+${stats.avgScoreLift}`} label="Avg score lift" />
+            ) : null}
+            {stats.totalFundingSecured > 0 ? (
+              <HomeProofStat value={`$${Math.round(stats.totalFundingSecured / 1000)}K+`} label="Funding secured" />
+            ) : null}
+            <HomeProofStat value={String(stats.categoryCount)} label="Practice areas" />
+          </div>
+          <button
+            type="button"
+            onClick={() => navigate('/results')}
+            className="shrink-0 inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider border border-emerald-600/30 text-emerald-800 bg-emerald-500/10 hover:bg-emerald-500/20 transition-colors whitespace-nowrap"
+          >
+            See real case studies <ArrowRight size={14} />
+          </button>
+        </div>
+        <p className="mt-2 text-center lg:text-left text-[10px] opacity-55 italic px-1">
+          Results vary · not legal advice · funding subject to underwriting
+        </p>
+      </div>
+    </section>
+  );
+}
+
+// ============================================================================
+// PROVEN RESULTS STRIP — real case studies, sourced from caseStudiesRepo
+// Extends the testimonials section (does not replace/duplicate it) with
+// verifiable numbers: funding amounts, score deltas, and a statutory-basis
+// footnote chip per case. Compliance disclaimer always renders alongside.
+// ============================================================================
+const CASE_STUDY_CATEGORY_LABELS: Record<CaseStudy['category'], string> = {
+  ...categoryLabels,
+  heta_society: 'HOS Society',
+};
+
+export function ProvenResultsStrip({ caseStudies, className = '' }: { caseStudies?: CaseStudy[]; className?: string }) {
+  const items = useMemo(() => caseStudies ?? getFeaturedCaseStudies(6), [caseStudies]);
+  if (!items.length) return null;
+
+  return (
+    <div className={`mt-10 sm:mt-12 ${className}`}>
+      <div className="flex items-center justify-center gap-2 mb-5">
+        <BadgeCheck size={14} className="text-emerald-500 shrink-0" />
+        <span className="text-[11px] font-black uppercase tracking-[0.25em] text-white/60">
+          Proven results — real case studies
+        </span>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 min-w-0">
+        {items.map((cs) => {
+          const stat = cs.fundingSecured
+            ? { label: 'Funded', value: cs.fundingSecured }
+            : cs.startingScore != null && cs.endingScore != null
+            ? { label: 'Score lift', value: `${cs.startingScore} → ${cs.endingScore}` }
+            : null;
+          return (
+            <div
+              key={cs.id}
+              className={`!p-4 flex flex-col min-w-0 ${finelyOsCatalogCard('sky')}`}
+              data-fc-accent="sky"
+            >
+              <div className="flex items-center justify-between gap-2 mb-2 min-w-0">
+                <span className="text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full border border-black/10 bg-white/60 opacity-80 truncate">
+                  {CASE_STUDY_CATEGORY_LABELS[cs.category] ?? 'Case study'}
+                </span>
+                {stat ? (
+                  <span className="text-xs font-bold text-emerald-800 shrink-0">
+                    {stat.label}: {stat.value}
+                  </span>
+                ) : null}
+              </div>
+              <p className="text-sm font-semibold mb-1 truncate">{cs.partnerAlias}</p>
+              <p className="text-xs leading-relaxed opacity-75 mb-3">{cs.summary}</p>
+              <div className="mt-auto flex flex-wrap gap-1.5">
+                {cs.statutoryBasis.slice(0, 2).map((basis) => (
+                  <span
+                    key={basis}
+                    className="text-[9px] px-2 py-0.5 rounded-full border border-black/10 bg-black/[0.03] opacity-70"
+                  >
+                    {basis.split('(')[0].trim()}
+                  </span>
+                ))}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      <FinelyOsComplianceStrip className="mt-6">
+        Results vary · not legal advice · funding subject to underwriting
+      </FinelyOsComplianceStrip>
     </div>
   );
 }

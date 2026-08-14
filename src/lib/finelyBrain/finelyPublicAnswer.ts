@@ -85,6 +85,27 @@ export function shouldUseFinelyPublicAnswer(message: string, pathname?: string):
   return hasStrongPublicKnowledgeHit(message, pathname);
 }
 
+/**
+ * True when the message reads like the visitor is describing their own
+ * specific situation (a dollar amount, a credit-score-style number, or a
+ * long multi-clause narrative) rather than asking a short, generic FAQ.
+ *
+ * G1: several `classifyFinelyPublicTopic()` buckets used single, broad
+ * keywords (e.g. "cost", "fund", "fix my credit") that matched anywhere in
+ * a message — including inside a long, personal narrative that happens to
+ * mention one of those words. This guard keeps those buckets narrow: a
+ * question this specific gets real, adaptive LLM reasoning instead of a
+ * generic canned/local-knowledge snippet, even if it contains an
+ * FAQ-shaped keyword.
+ */
+function looksLikeSpecificSituation(msg: string): boolean {
+  if (/\$\s?\d/.test(msg)) return true;
+  if (/\b\d{3}\s*(score|fico)\b/.test(msg)) return true;
+  if (/\b\d{4,}\b/.test(msg)) return true;
+  const wordCount = msg.split(/\s+/).filter(Boolean).length;
+  return wordCount > 22;
+}
+
 export function classifyFinelyPublicTopic(message: string): FinelyPublicTopic | null {
   const msg = message.toLowerCase().trim();
   if (!msg) return null;
@@ -104,16 +125,32 @@ export function classifyFinelyPublicTopic(message: string): FinelyPublicTopic | 
     return 'pricing_funding';
   }
 
+  // Narrowed (G1): the old rule also matched any message that merely
+  // mentioned a dispute-ish word and a debt-ish word anywhere
+  // (`/\b(dispute|bureau).*(debt|collection|collector)\b/` and its
+  // mirror), which caught genuinely personal, situation-specific questions
+  // ("I disputed a $4,200 collection with the bureau, why won't the
+  // collector remove it?") and gave them a generic explainer instead of
+  // real reasoning about the visitor's actual case. Kept only messages
+  // that are explicitly *asking to compare* the two letter types.
   if (
     /\b(dispute letters?|debt letters?|validation letters?).*(vs|versus|or|difference|different)\b/.test(msg) ||
-    /\b(dispute|bureau).*(debt|collection|collector)\b/.test(msg) ||
-    /\b(debt|collection).*(dispute|bureau|credit report)\b/.test(msg) ||
-    /\bdispute vs debt\b/.test(msg)
+    /\bdispute vs debt\b/.test(msg) ||
+    /\bwhat('s| is) the difference between (a |an )?(dispute|debt|validation) letter/.test(msg)
   ) {
     return 'dispute_vs_debt';
   }
 
-  if (/\b(credit restore|restore my credit|personal restore|fix my credit|repair my credit)\b/.test(msg)) {
+  // Narrowed (G1): dropped "fix my credit" / "repair my credit" — those are
+  // generic enough phrases that they routinely show up inside long,
+  // situation-specific questions (a bankruptcy, several collections, a
+  // specific balance) that deserve real reasoning, not a canned snippet.
+  // Also gated on `looksLikeSpecificSituation` so a detailed version of the
+  // remaining phrases still reaches the LLM.
+  if (
+    !looksLikeSpecificSituation(msg) &&
+    /\b(credit restore|restore my credit|personal restore|how does (personal )?credit restore work)\b/.test(msg)
+  ) {
     return 'credit_restore';
   }
 
@@ -123,11 +160,21 @@ export function classifyFinelyPublicTopic(message: string): FinelyPublicTopic | 
     return 'page_help';
   }
 
+  // Narrowed (G1): this used to be one giant single-keyword bucket —
+  // `price|pricing|cost|fund|funding|loan|underwrit|guarantee|legal
+  // advice|lawsuit|attorney|sue|fdcpa|fcra rights` — where a single word
+  // appearing anywhere in the message (e.g. "attorney", "sue", "lawsuit",
+  // "guarantee", "underwrit*") short-circuited to a canned reply. Those
+  // words are exactly the signal that a visitor is asking about their own
+  // legal/financial situation, which real LLM reasoning (guarded by the
+  // "never legal advice" system prompt already on the public persona)
+  // serves far better than a local-knowledge snippet. Kept only pure
+  // pricing/service-navigation keywords, and gated on
+  // `looksLikeSpecificSituation` so a long, detailed question that happens
+  // to mention "cost" still reaches real reasoning.
   if (
-    /\b(price|pricing|cost|fund|funding|loan|underwrit|guarantee|legal advice|lawsuit|attorney|sue|fdcpa|fcra rights)\b/.test(
-      msg,
-    ) ||
-    /\b(diy|dfy|done-for-you|done for you)\b/.test(msg)
+    !looksLikeSpecificSituation(msg) &&
+    (/\b(price|pricing|cost|fund|funding)\b/.test(msg) || /\b(diy|dfy|done-for-you|done for you)\b/.test(msg))
   ) {
     return 'pricing_funding';
   }

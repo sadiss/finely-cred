@@ -55,11 +55,11 @@ export default function ResetPasswordPage() {
   };
 
   return (
-    <div className="min-h-screen bg-fc-shell flex items-center justify-center p-6">
-      <div className="max-w-md w-full fc-light-glass-panel fc-light-chrome-panel rounded-2xl p-8 space-y-6">
-        <div className="flex items-center gap-3">
-          <KeyRound className="text-fuchsia-300" size={24} />
-          <h1 className="text-xl font-bold text-white">Set new password</h1>
+    <div className="min-h-screen bg-fc-shell flex items-center justify-center p-4 sm:p-6">
+      <div className="max-w-md w-full min-w-0 fc-light-glass-panel fc-light-chrome-panel rounded-2xl p-5 sm:p-8 space-y-6">
+        <div className="flex items-center gap-3 min-w-0">
+          <KeyRound className="text-fuchsia-300 shrink-0" size={24} />
+          <h1 className="text-lg sm:text-xl font-bold text-white">Set new password</h1>
         </div>
 
         {!isSupabaseConfigured ? (
@@ -82,7 +82,7 @@ export default function ResetPasswordPage() {
               <PasswordInput
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full bg-fc-input border border-white/[0.08] rounded-xl px-4 py-3 text-white text-sm"
+                className="w-full min-h-[48px] bg-fc-input border border-white/[0.08] rounded-xl px-4 py-3 text-white text-sm"
                 autoComplete="new-password"
               />
             </label>
@@ -91,7 +91,7 @@ export default function ResetPasswordPage() {
               <PasswordInput
                 value={confirm}
                 onChange={(e) => setConfirm(e.target.value)}
-                className="w-full bg-fc-input border border-white/[0.08] rounded-xl px-4 py-3 text-white text-sm"
+                className="w-full min-h-[48px] bg-fc-input border border-white/[0.08] rounded-xl px-4 py-3 text-white text-sm"
                 autoComplete="new-password"
               />
             </label>            {err ? <p className="text-rose-300 text-sm">{err}</p> : null}

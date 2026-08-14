@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { MessageCircle, MessageSquare, X } from 'lucide-react';
+import { MessageCircle, MessageSquare } from 'lucide-react';
 import type { AgentPersonaId } from '../../domain/agentPersonas';
 import { listMarketingDisplayStaff } from '../../data/staffRoster';
 import { openPublicChat, type PublicChatGoal } from '../../lib/publicChatEvents';
@@ -10,10 +10,12 @@ import {
   FINELY_OS_ENTITY_SUBLABEL,
   FINELY_OS_ENTITY_VALUE,
   FINELY_OS_FIXED_OVERLAY,
+  FINELY_OS_MODAL_HEADER,
   FINELY_OS_MODAL_SHELL,
   FINELY_OS_SECONDARY_BTN,
   finelyOsCatalogCard,
 } from '../../features/os/finelyOsLightUi';
+import { FinelyOsModalCloseButton } from '../../features/os/FinelyOsModalCloseButton';
 
 type Props = {
   roleId: AgentPersonaId;
@@ -187,21 +189,14 @@ export function MarketingStaffChatStrip({
                   aria-labelledby="marketing-staff-chat-title"
                   onClick={(e) => e.stopPropagation()}
                 >
-                  <div className="flex items-start justify-between gap-3 border-b border-white/10 px-4 py-4">
+                  <div className={FINELY_OS_MODAL_HEADER}>
                     <div className="min-w-0">
                       <div className={FINELY_OS_ENTITY_SUBLABEL}>Credit specialist team</div>
                       <div id="marketing-staff-chat-title" className="text-lg font-bold text-white">
                         {triggerLabel}
                       </div>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => setModalOpen(false)}
-                      className={`${FINELY_OS_SECONDARY_BTN} !p-2`}
-                      aria-label="Close"
-                    >
-                      <X size={16} />
-                    </button>
+                    <FinelyOsModalCloseButton onClick={() => setModalOpen(false)} />
                   </div>
                   <div className="p-4 max-h-[72vh] overflow-y-auto">{stripBody}</div>
                 </div>

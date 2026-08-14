@@ -122,6 +122,8 @@ samp {
   --fc-admin-tone-teal-ink: #0b5c54;
   --fc-admin-tone-rose: #b42318;
   --fc-admin-tone-rose-ink: #7f1d1d;
+  --fc-admin-tone-violet: #6d28d9;
+  --fc-admin-tone-violet-ink: #4c1d95;
 }
 
 /* Platinum Workspace — deliberate surface system (Partner Overview / Profile).
@@ -150,7 +152,8 @@ samp {
 .fc-admin-solid-sky,
 .fc-admin-solid-navy,
 .fc-admin-solid-teal,
-.fc-admin-solid-rose {
+.fc-admin-solid-rose,
+.fc-admin-solid-violet {
   color: #ffffff;
   position: relative;
   isolation: isolate;
@@ -167,6 +170,7 @@ samp {
 .fc-admin-solid-navy,
 .fc-admin-solid-teal,
 .fc-admin-solid-rose,
+.fc-admin-solid-violet,
 .fc-admin-solid-gold {
   background-clip: padding-box;
 }
@@ -175,6 +179,7 @@ samp {
 .fc-admin-solid-navy::before,
 .fc-admin-solid-teal::before,
 .fc-admin-solid-rose::before,
+.fc-admin-solid-violet::before,
 .fc-admin-solid-gold::before {
   content: '';
   position: absolute;
@@ -194,6 +199,7 @@ samp {
 .fc-admin-solid-navy::after,
 .fc-admin-solid-teal::after,
 .fc-admin-solid-rose::after,
+.fc-admin-solid-violet::after,
 .fc-admin-solid-gold::after {
   content: '';
   position: absolute;
@@ -211,6 +217,7 @@ samp {
 .fc-admin-solid-navy > *,
 .fc-admin-solid-teal > *,
 .fc-admin-solid-rose > *,
+.fc-admin-solid-violet > *,
 .fc-admin-solid-gold > * {
   position: relative;
   z-index: 1;
@@ -237,14 +244,24 @@ samp {
     0 0 42px rgba(251, 191, 36, 0.34);
 }
 .fc-admin-solid-sky {
-  background: linear-gradient(152deg, #6ed0fb 0%, #32b0ec 30%, #0c84c4 64%, #055f94 100%);
-  border-color: rgba(200, 240, 255, 0.62) !important;
+  background: linear-gradient(152deg, #38bdf8 0%, #0ea5e9 28%, #0369a1 62%, #0c4a6e 100%);
+  border-color: rgba(186, 230, 253, 0.68) !important;
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.38),
     inset 0 -1px 0 rgba(0, 0, 0, 0.18),
-    0 0 0 1px rgba(56, 189, 248, 0.36),
-    0 18px 40px -14px rgba(5, 105, 158, 0.56),
-    0 0 42px rgba(56, 189, 248, 0.3);
+    0 0 0 1px rgba(56, 189, 248, 0.42),
+    0 18px 40px -14px rgba(2, 132, 199, 0.62),
+    0 0 42px rgba(56, 189, 248, 0.34);
+}
+.fc-admin-solid-violet {
+  background: linear-gradient(152deg, #ddd6fe 0%, #a78bfa 26%, #7c3aed 58%, #4c1d95 100%);
+  border-color: rgba(221, 214, 254, 0.66) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.36),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.22),
+    0 0 0 1px rgba(167, 139, 250, 0.44),
+    0 18px 40px -14px rgba(109, 40, 217, 0.62),
+    0 0 42px rgba(139, 92, 246, 0.36);
 }
 .fc-admin-solid-navy {
   background: linear-gradient(152deg, #6a8ab8 0%, #456898 32%, #243e68 66%, #121f35 100%);
@@ -297,16 +314,18 @@ samp {
 .fc-admin-soft-sky,
 .fc-admin-soft-navy,
 .fc-admin-soft-teal,
-.fc-admin-soft-rose {
+.fc-admin-soft-rose,
+.fc-admin-soft-violet {
   color: var(--fc-admin-ink);
 }
 
 .fc-admin-soft-emerald { background: #d9f4e7; border-color: rgba(11, 122, 92, 0.34) !important; }
 .fc-admin-soft-gold    { background: #f8e6be; border-color: rgba(183, 121, 31, 0.34) !important; }
-.fc-admin-soft-sky     { background: #d4eefb; border-color: rgba(3, 105, 161, 0.32) !important; }
+.fc-admin-soft-sky     { background: #cceeff; border-color: rgba(2, 132, 199, 0.38) !important; }
 .fc-admin-soft-navy    { background: #dce3ee; border-color: rgba(30, 58, 95, 0.3) !important; }
 .fc-admin-soft-teal    { background: #d3f3ee; border-color: rgba(15, 118, 110, 0.32) !important; }
 .fc-admin-soft-rose    { background: #f9dad6; border-color: rgba(180, 35, 24, 0.32) !important; }
+.fc-admin-soft-violet  { background: #ede9fe; border-color: rgba(109, 40, 217, 0.34) !important; }
 
 /** Light admin workspace for Partner Overview / Profile (opt-in via class). */
 .fc-admin-workspace {
@@ -669,7 +688,7 @@ html[data-fc-theme="light"] ::selection {
   }
 
   .fc-button-soft {
-    @apply inline-flex items-center justify-center gap-2 min-w-0 px-3 sm:px-4 py-2 rounded-xl border border-white/15 text-[10px] font-black uppercase tracking-wide text-white/90 transition-all whitespace-normal text-center leading-snug;
+    @apply inline-flex items-center justify-center gap-2 min-w-0 min-h-[44px] px-3 sm:px-4 py-2 rounded-xl border border-white/15 text-[10px] font-black uppercase tracking-wide text-white/90 transition-all whitespace-normal text-center leading-snug;
     background: color-mix(in srgb, var(--fc-bg-elevated) 88%, black 12%);
   }
   .fc-button-soft:hover {
@@ -703,7 +722,7 @@ html[data-fc-theme="light"] ::selection {
   }
 
   .fc-button-brand {
-    @apply fc-button-brand-surface inline-flex items-center justify-center gap-2 min-w-0 px-3 sm:px-5 py-2.5 sm:py-3 text-[10px] font-black uppercase tracking-wide whitespace-normal text-center leading-snug;
+    @apply fc-button-brand-surface inline-flex items-center justify-center gap-2 min-w-0 min-h-[44px] px-3 sm:px-5 py-2.5 sm:py-3 text-[10px] font-black uppercase tracking-wide whitespace-normal text-center leading-snug;
   }
 
   /* High-visibility white CTA (secondary actions that must be seen) */
@@ -6387,10 +6406,18 @@ html.fc-onboarding-portal-open body {
 
 .fc-admin-workspace .fc-admin-soft-sky {
   background:
-    radial-gradient(110% 92% at 0% 0%, rgba(56, 189, 248, 0.2) 0%, transparent 58%),
-    linear-gradient(138deg, rgba(9, 43, 63, 0.57) 0%, rgba(8, 20, 30, 0.46) 100%);
-  border-color: rgba(125, 211, 252, 0.34) !important;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.13), 0 15px 28px -25px rgba(14, 165, 233, 0.48);
+    radial-gradient(110% 92% at 0% 0%, rgba(56, 189, 248, 0.24) 0%, transparent 58%),
+    linear-gradient(138deg, rgba(6, 52, 82, 0.62) 0%, rgba(6, 18, 32, 0.5) 100%);
+  border-color: rgba(125, 211, 252, 0.4) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.13), 0 15px 28px -25px rgba(14, 165, 233, 0.56);
+}
+
+.fc-admin-workspace .fc-admin-soft-violet {
+  background:
+    radial-gradient(110% 92% at 0% 0%, rgba(167, 139, 250, 0.24) 0%, transparent 58%),
+    linear-gradient(138deg, rgba(46, 16, 101, 0.62) 0%, rgba(22, 10, 48, 0.5) 100%);
+  border-color: rgba(196, 181, 253, 0.38) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.13), 0 15px 28px -25px rgba(124, 58, 237, 0.54);
 }
 
 .fc-admin-workspace .fc-admin-soft-navy {
@@ -6424,7 +6451,8 @@ html.fc-onboarding-portal-open body {
 .fc-admin-workspace .fc-admin-solid-sky::before,
 .fc-admin-workspace .fc-admin-solid-navy::before,
 .fc-admin-workspace .fc-admin-solid-teal::before,
-.fc-admin-workspace .fc-admin-solid-rose::before {
+.fc-admin-workspace .fc-admin-solid-rose::before,
+.fc-admin-workspace .fc-admin-solid-violet::before {
   background:
     radial-gradient(88% 84% at 4% -8%, rgba(255, 255, 255, 0.5) 0%, transparent 52%),
     linear-gradient(118deg, rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0.1) 26%, transparent 50%),
@@ -6433,10 +6461,11 @@ html.fc-onboarding-portal-open body {
 
 .fc-admin-workspace .fc-admin-solid-emerald { --fc-admin-solid-halo: rgba(16, 185, 129, 0.3); }
 .fc-admin-workspace .fc-admin-solid-gold { --fc-admin-solid-halo: rgba(245, 158, 11, 0.28); }
-.fc-admin-workspace .fc-admin-solid-sky { --fc-admin-solid-halo: rgba(14, 165, 233, 0.26); }
+.fc-admin-workspace .fc-admin-solid-sky { --fc-admin-solid-halo: rgba(14, 165, 233, 0.32); }
 .fc-admin-workspace .fc-admin-solid-navy { --fc-admin-solid-halo: rgba(96, 130, 180, 0.24); }
 .fc-admin-workspace .fc-admin-solid-teal { --fc-admin-solid-halo: rgba(20, 184, 166, 0.26); }
 .fc-admin-workspace .fc-admin-solid-rose { --fc-admin-solid-halo: rgba(244, 63, 94, 0.25); }
+.fc-admin-workspace .fc-admin-solid-violet { --fc-admin-solid-halo: rgba(139, 92, 246, 0.34); }
 
 .fc-admin-workspace :is(
   .fc-admin-solid-emerald,
@@ -6444,7 +6473,8 @@ html.fc-onboarding-portal-open body {
   .fc-admin-solid-sky,
   .fc-admin-solid-navy,
   .fc-admin-solid-teal,
-  .fc-admin-solid-rose
+  .fc-admin-solid-rose,
+  .fc-admin-solid-violet
 ) {
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.4),
@@ -6498,7 +6528,7 @@ html .fc-admin-workspace :is(
   --fc-admin-glass-rim-rgb: 125 211 252;
 }
 .fc-admin-workspace :is(.fc-admin-dark-glass-tint-violet, .fc-admin-dark-glass-cta--violet) {
-  --fc-admin-glass-rgb: 139 92 246;
+  --fc-admin-glass-rgb: 124 58 237;
   --fc-admin-glass-rim-rgb: 196 181 253;
 }
 .fc-admin-workspace :is(.fc-admin-soft-rose, .fc-admin-dark-glass-tint-rose, .fc-admin-dark-glass-cta--rose) {

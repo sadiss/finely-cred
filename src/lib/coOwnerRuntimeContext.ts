@@ -43,7 +43,10 @@ export {
   buildCoOwnerTestingPromptBlock,
 } from './coOwnerEnvironment';
 
-export function buildCoOwnerIntelligenceBrief(extra?: Record<string, unknown>, opts?: { query?: string; route?: string }): string {
+export function buildCoOwnerIntelligenceBrief(
+  extra?: Record<string, unknown>,
+  opts?: { query?: string; route?: string; recentMessages?: string[] },
+): string {
   const mode = getCoOwnerEnvironmentMode();
   const readiness = getLaunchFinalReadiness();
   const exec = getExecutiveOrgStats();
@@ -65,7 +68,7 @@ export function buildCoOwnerIntelligenceBrief(extra?: Record<string, unknown>, o
     summarizeExecutionRegistryForCoOwner(),
     summarizeDevStudioForCoOwner(),
     summarizeCoOwnerSuperhumanForCoOwner(),
-    buildCoOwnerSiteKnowledgeContext(opts?.query ?? 'operations launch credit', opts?.route),
+    buildCoOwnerSiteKnowledgeContext(opts?.query ?? '', opts?.route, opts?.recentMessages),
     `Ops health: ${JSON.stringify(buildOpsHealthSnapshot()).slice(0, 600)}`,
     `Environment: ${mode.toUpperCase()} · supabase=${isSupabaseConfigured ? 'configured' : 'marketing-only/test'} · aiGateway=${isFeatureEnabled('aiGateway') ? 'on' : 'off'}`,
     `Operating substrate: ${mastery.totalCapabilities} role capabilities · ${archive.totalArchiveEntries} archive refs · ${exec.totalHats} executive hats`,

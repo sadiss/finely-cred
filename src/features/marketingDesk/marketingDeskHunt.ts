@@ -4,6 +4,7 @@
  */
 import { supabase, isSupabaseConfigured } from '../../lib/supabaseClient';
 import { callAiGateway } from '../../lib/aiClient';
+import { logQualifierVerdict } from '../growthAgents/subagents/calebReasoningSubagents';
 import { getFeatureFlags, isFeatureEnabled } from '../../data/settingsRepo';
 import { loadJson, saveJson } from '../../data/localJsonStore';
 import { findProspectByWebsite, listProspects } from '../../data/crmProspectsRepo';
@@ -559,6 +560,11 @@ async function applyOptionalAiFit(
     if (!fit) continue;
     hit.whyReason = fit.line;
     hit.whyNote = fit.line;
+    try {
+      logQualifierVerdict({ entityId: hit.url, verdict: fit.verdict, reasoning: fit.line });
+    } catch {
+      // non-blocking attribution log
+    }
     if (fit.verdict === 'reject') {
       routes.set(hit.url, 'reject');
       rejectReasons.set(hit.url, 'ai_reject');

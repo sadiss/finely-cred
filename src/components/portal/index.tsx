@@ -5,6 +5,7 @@ import {
   Target, Lock, ArrowLeft, X, Key, ScanLine, LogOut
 } from 'lucide-react';
 import { Button, PasswordInput, ProgressBar } from '../ui';
+import { MfaChallengePanel } from '../auth/MfaChallengePanel';
 import { useAuth } from '../../auth/AuthProvider';
 import { isAdminEmail, listBootstrapAdminEmails } from '../../auth/admin';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -485,13 +486,13 @@ export function BlueprintRecommendation({ next, prev, data, update }: StepProps)
         <div className="flex flex-col sm:flex-row gap-3">
           <button
             onClick={() => setPathAndContinue(rec.nextPath)}
-            className="fc-button-brand px-6 py-4"
+            className="fc-button-brand w-full sm:w-auto min-h-[44px]"
           >
             {rec.ctaLabel} <Target size={14} />
           </button>
           <button
             onClick={next}
-            className="inline-flex items-center justify-center gap-2 px-6 py-4 fc-light-glass-panel fc-light-chrome-panel rounded-xl hover:bg-white/[0.06] text-[10px] font-black uppercase tracking-widest text-white/90 transition-all"
+            className="inline-flex w-full sm:w-auto min-h-[44px] items-center justify-center gap-2 px-6 py-4 fc-light-glass-panel fc-light-chrome-panel rounded-xl hover:bg-white/[0.06] text-[10px] font-black uppercase tracking-widest text-white/90 transition-all whitespace-normal text-center leading-snug"
           >
             Create account first <ArrowLeft size={14} className="rotate-180" />
           </button>
@@ -621,21 +622,19 @@ export function CredentialCreation({
         </div>
       )}
 
-      <div className="flex flex-wrap items-center justify-between gap-4">
+      <div className="flex flex-col-reverse sm:flex-row sm:flex-wrap items-stretch sm:items-center sm:justify-between gap-4">
         {onPrev ? (
           <button
             type="button"
             onClick={onPrev}
-            className="inline-flex items-center gap-2 px-5 py-3 fc-light-glass-panel fc-light-chrome-panel rounded-xl text-[10px] font-black uppercase tracking-widest text-white/70 hover:bg-white/[0.04] hover:border-white/20 transition-all"
+            className="inline-flex w-full sm:w-auto items-center justify-center gap-2 px-5 py-3 min-h-[48px] fc-light-glass-panel fc-light-chrome-panel rounded-xl text-[10px] font-black uppercase tracking-widest text-white/70 hover:bg-white/[0.04] hover:border-white/20 transition-all"
           >
             <ArrowLeft size={14} /> Previous
           </button>
-        ) : <div />}
-        <Button
-          onClick={() => onSubmit(email, password)}
-          disabled={!email || !password || isBusy}
-          size="lg"
-        >
+        ) : (
+          <div className="hidden sm:block sm:w-[140px]" aria-hidden />
+        )}
+        <Button onClick={() => onSubmit(email, password)} disabled={!email || !password || isBusy} size="lg" className="w-full sm:w-auto min-h-[48px]">
           {isBusy ? 'Initializing…' : 'Access Protocol'}
         </Button>
       </div>
@@ -875,6 +874,8 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
   const [forgotEmail, setForgotEmail] = useState('');
+  const [mfaPending, setMfaPending] = useState(false);
+  const [pendingNextPath, setPendingNextPath] = useState<string | null>(null);
   const [userData, setUserData] = useState(() => {
     const base = createDefaultOnboardingUserData();
     if (typeof window === 'undefined') return base;
@@ -1368,14 +1369,37 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
         return;
       }
       const user = res.user ?? auth.user;
+      const nextPath = userData.recommendedNextPath || (isAdminEmail(user?.email) ? '/admin' : resolvePostAuthHomePath(user));
+      if (res.mfaRequired) {
+        setPendingNextPath(nextPath);
+        setMfaPending(true);
+        return;
+      }
       if (user?.id && user.email) {
         await retryPendingInviteClaim({ userId: user.id, email: user.email });
         const { trackPartnerSignIn } = await import('../../lib/partnerAuthActivity');
         await trackPartnerSignIn(user).catch(() => null);
       }
-      const nextPath = userData.recommendedNextPath || (isAdminEmail(user?.email) ? '/admin' : resolvePostAuthHomePath(user));
       clearOnboardingProgress();
       onComplete(nextPath);
+    } finally {
+      setAuthBusy(false);
+    }
+  };
+
+  const completeLoginAfterMfa = async () => {
+    setAuthBusy(true);
+    try {
+      const user = auth.user;
+      if (user?.id && user.email) {
+        await retryPendingInviteClaim({ userId: user.id, email: user.email });
+        const { trackPartnerSignIn } = await import('../../lib/partnerAuthActivity');
+        await trackPartnerSignIn(user).catch(() => null);
+      }
+      clearOnboardingProgress();
+      onComplete(pendingNextPath || resolvePostAuthHomePath(user));
+      setMfaPending(false);
+      setPendingNextPath(null);
     } finally {
       setAuthBusy(false);
     }
@@ -1821,6 +1845,20 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
             </div>
           ) : null}
 
+          {mfaPending ? (
+            <div className="space-y-4">
+              <MfaChallengePanel
+                title="Two-step verification"
+                subtitle="Enter the 6-digit code from your authenticator app to finish signing in."
+                onVerified={() => void completeLoginAfterMfa()}
+                onCancel={() => {
+                  setMfaPending(false);
+                  setPendingNextPath(null);
+                  void auth.signOut();
+                }}
+              />
+            </div>
+          ) : (
           <div className="space-y-4">
             <form
               className="space-y-4"
@@ -1882,6 +1920,7 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
             </Button>
             </form>
           </div>
+          )}
           <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
           <button 
             type="button"

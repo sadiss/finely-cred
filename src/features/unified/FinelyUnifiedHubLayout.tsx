@@ -157,14 +157,14 @@ export function FinelyUnifiedHubLayout({
             ) : null}
           </div>
           {(primaryAction || secondaryAction) && (
-            <div className="flex flex-wrap gap-2 shrink-0">
+            <div className="flex flex-col sm:flex-row flex-wrap gap-2 w-full lg:w-auto shrink-0 min-w-0">
               {secondaryAction ? (
-                <button type="button" onClick={secondaryAction.onClick} className={secondaryBtn}>
+                <button type="button" onClick={secondaryAction.onClick} className={`${secondaryBtn} w-full sm:w-auto min-h-[44px]`}>
                   {secondaryAction.label}
                 </button>
               ) : null}
               {primaryAction ? (
-                <button type="button" onClick={primaryAction.onClick} className={primaryBtn}>
+                <button type="button" onClick={primaryAction.onClick} className={`${primaryBtn} w-full sm:w-auto min-h-[44px]`}>
                   {primaryAction.label}
                 </button>
               ) : null}

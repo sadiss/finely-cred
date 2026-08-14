@@ -1,6 +1,7 @@
 import React from 'react';
-import { PenLine, Save, X } from 'lucide-react';
+import { PenLine, Save } from 'lucide-react';
 import { FINELY_OS_SECONDARY_BTN } from '../../features/os/finelyOsLightUi';
+import { FinelyOsModalCloseButton } from '../../features/os/FinelyOsModalCloseButton';
 
 export function ValidationCreditHandoffStrip({
   debtName,
@@ -53,14 +54,7 @@ export function ValidationCreditHandoffStrip({
         >
           <Save size={14} /> Save disputes
         </button>
-        <button
-          type="button"
-          onClick={onDismiss}
-          className={`${FINELY_OS_SECONDARY_BTN} !p-2`}
-          aria-label="Dismiss handoff notice"
-        >
-          <X size={14} />
-        </button>
+        <FinelyOsModalCloseButton onClick={onDismiss} aria-label="Dismiss handoff notice" iconSize={16} />
       </div>
     </div>
   );

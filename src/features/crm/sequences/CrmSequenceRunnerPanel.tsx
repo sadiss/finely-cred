@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Play, Pause, RefreshCw, Workflow } from 'lucide-react';
+import { FlaskConical, Play, Pause, RefreshCw, Workflow } from 'lucide-react';
 import type { CrmSequence } from '../../../domain/crmSequences';
 import { getCrmRecord } from '../../../data/crmRecordsRepo';
 import {
@@ -17,6 +17,7 @@ import {
   FINELY_OS_LUXURY_PAGINATION_BTN,
   FINELY_OS_NOTICE_SUCCESS,
   FINELY_OS_PRIMARY_BTN,
+  finelyOsCatalogCard,
   finelyOsStatusChip,
 } from '../../os/finelyOsLightUi';
 import {
@@ -26,6 +27,9 @@ import {
   getActionStepDueMs,
   runDueCrmSequenceSteps,
 } from './runCrmSequenceEngine';
+import { computeCrmSequenceVariantResults } from './crmSequenceVariantResults';
+
+const VARIANT_LABEL: Record<'control' | 'variant_a', string> = { control: 'Control', variant_a: 'Variant A' };
 
 export function CrmSequenceRunnerPanel({ sequence }: { sequence: CrmSequence | null }) {
   const [version, setVersion] = useState(0);
@@ -48,6 +52,10 @@ export function CrmSequenceRunnerPanel({ sequence }: { sequence: CrmSequence | n
   );
 
   const activeCount = enrollments.filter((e) => !e.completedAt && !e.pausedAt).length;
+  const variantResults = useMemo(
+    () => (sequence ? computeCrmSequenceVariantResults(sequence) : null),
+    [sequence, version],
+  );
 
   if (!sequence) return null;
 
@@ -63,8 +71,8 @@ export function CrmSequenceRunnerPanel({ sequence }: { sequence: CrmSequence | n
           <span className={finelyOsStatusChip('warn')}>{dueForSequence.length} due now</span>
           <button
             type="button"
-            onClick={() => {
-              const results = runDueCrmSequenceSteps({ maxPerRun: 50 });
+            onClick={async () => {
+              const results = await runDueCrmSequenceSteps({ maxPerRun: 50 });
               setLastRun(results.map((r) => r.message));
               setVersion((v) => v + 1);
             }}
@@ -81,6 +89,33 @@ export function CrmSequenceRunnerPanel({ sequence }: { sequence: CrmSequence | n
             <div key={line}>{line}</div>
           ))}
           {lastRun.length > 5 ? <div className="text-emerald-300">+{lastRun.length - 5} more</div> : null}
+        </div>
+      ) : null}
+
+      {variantResults?.hasVariantSteps ? (
+        <div className={`${finelyOsCatalogCard('fuchsia')} !p-3 fc-surface-harmony space-y-2`}>
+          <div className="flex items-center justify-between gap-2">
+            <span className={`flex items-center gap-1.5 text-xs font-bold ${FINELY_OS_ENTITY_VALUE}`}>
+              <FlaskConical size={12} className="text-fuchsia-300" /> A/B email results
+            </span>
+            {variantResults.leadingVariant ? (
+              <span className={finelyOsStatusChip('ok')}>{VARIANT_LABEL[variantResults.leadingVariant]} leading</span>
+            ) : (
+              <span className={finelyOsStatusChip('warn')}>No clear leader yet</span>
+            )}
+          </div>
+          <div className="grid sm:grid-cols-2 gap-2">
+            {variantResults.stats.map((s) => (
+              <div key={s.variant} className="rounded-lg border border-white/10 bg-black/25 p-2">
+                <div className={`text-[10px] font-bold uppercase tracking-wide ${FINELY_OS_ENTITY_SUBLABEL}`}>{VARIANT_LABEL[s.variant]}</div>
+                <div className={`text-sm font-bold ${FINELY_OS_ENTITY_VALUE}`}>{Math.round(s.advanceRate * 100)}% advanced</div>
+                <div className={`text-[10px] ${FINELY_OS_ENTITY_BODY}`}>
+                  {s.resolved} resolved · {s.pending} pending · {s.enrolled} enrolled
+                </div>
+              </div>
+            ))}
+          </div>
+          <p className={`text-[10px] ${FINELY_OS_ENTITY_BODY}`}>{variantResults.sampleSizeNote}</p>
         </div>
       ) : null}
 

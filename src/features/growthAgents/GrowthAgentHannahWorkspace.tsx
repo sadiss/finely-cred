@@ -19,11 +19,11 @@ import { GrowthAgentHannahCommandGuide } from './GrowthAgentHannahCommandGuide';
 import {
   FINELY_OS_ENTITY_BODY,
   FINELY_OS_ENTITY_INPUT,
-  FINELY_OS_ENTITY_SELECT,
   FINELY_OS_ENTITY_SUBLABEL,
   FINELY_OS_SECONDARY_BTN,
   FINELY_OS_SUCCESS_BTN,
   finelyOsCatalogCardCompact,
+  finelyOsGlowTile,
   finelyOsMicroStat,
   finelyOsStatusChip,
 } from '../os/finelyOsLightUi';
@@ -191,17 +191,21 @@ export function GrowthAgentHannahWorkspace() {
             Promote video id <span className="font-mono text-amber-200/90">{promoteVideoId}</span>
           </p>
         ) : null}
-        <select
-          className={`${FINELY_OS_ENTITY_SELECT} mt-2 max-w-md`}
-          value={laneId}
-          onChange={(e) => setLaneId(e.target.value)}
-        >
-          {lanes.map((l) => (
-            <option key={l.id} value={l.id}>
-              {l.label}
-            </option>
-          ))}
-        </select>
+        <div className="mt-2 flex flex-wrap gap-1.5 max-w-md">
+          {lanes.map((l) => {
+            const active = l.id === laneId;
+            return (
+              <button
+                key={l.id}
+                type="button"
+                onClick={() => setLaneId(l.id)}
+                className={`px-2.5 py-1.5 text-[10px] font-bold ${finelyOsGlowTile(active ? 'amber' : 'sky', active)} ${active ? 'text-amber-100' : 'text-white/70'}`}
+              >
+                {l.label}
+              </button>
+            );
+          })}
+        </div>
         <p className={`mt-2 text-xs ${FINELY_OS_ENTITY_BODY}`}>{lane?.description}</p>
         {activeCta ? (
           <p className={`mt-2 text-xs ${FINELY_OS_ENTITY_BODY}`}>

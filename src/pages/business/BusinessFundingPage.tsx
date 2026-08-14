@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { ArrowRight, Sparkles } from 'lucide-react';
+import { ArrowRight, Globe, Sparkles } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { PageShell } from '../../components/layout/PageShell';
 import { BusinessNav } from '../../components/business/BusinessNav';
@@ -13,6 +13,7 @@ import {
   FINELY_OS_ENTITY_INPUT,
   FINELY_OS_ENTITY_LABEL,
   FINELY_OS_ENTITY_SUBLABEL,
+  FINELY_OS_ENTITY_VALUE,
   FINELY_OS_NOTICE_WARN,
   FINELY_OS_PAGE,
   FINELY_OS_PRIMARY_BTN,
@@ -20,6 +21,9 @@ import {
   finelyOsCatalogCard,
   finelyOsInlineListItem,
 } from '../../features/os/finelyOsLightUi';
+import { NON_CITIZEN_PANEL_ANCHOR_ID } from './BusinessProfilePage';
+
+const NON_CITIZEN_PROFILE_LINK = `/business/profile?panel=non-citizen#${NON_CITIZEN_PANEL_ANCHOR_ID}`;
 
 type FundingTab = 'engine' | 'guide';
 
@@ -93,6 +97,27 @@ export default function BusinessFundingPage() {
               </div>
             </div>
           )}
+
+          <div className={`${finelyOsCatalogCard('sky')} !p-4 flex flex-wrap items-center justify-between gap-3`} data-fc-accent="sky">
+            <div className="flex items-start gap-3 min-w-0">
+              <Globe size={18} className="mt-0.5 text-sky-300 shrink-0" />
+              <div className="min-w-0">
+                <div className={FINELY_OS_ENTITY_VALUE}>Not a U.S. citizen, or applying from outside the U.S.?</div>
+                <div className={`mt-1 ${FINELY_OS_ENTITY_SUBLABEL}`}>
+                  ITIN holders, foreign nationals, non-resident LLCs, DACA recipients, and green card holders each have
+                  different funding rules and lender optics — see the matched loan types and documentation in your
+                  Business Profile.
+                </div>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => navigate(NON_CITIZEN_PROFILE_LINK)}
+              className={`${FINELY_OS_SECONDARY_BTN} shrink-0`}
+            >
+              Non-citizen &amp; international funding <ArrowRight size={14} />
+            </button>
+          </div>
 
           {tab === 'engine' && (
         <div className="grid lg:grid-cols-12 gap-6">

@@ -3,7 +3,8 @@ import { ArrowLeft, Clock, Download, Link as LinkIcon, Video, Calendar } from 'l
 import { useNavigate } from 'react-router-dom';
 import { PageShell } from '../../components/layout/PageShell';
 import { usePartnerSession } from '../../auth/PartnerSessionContext';
-import { listEventsByPartner, listRequestsByPartner, sendUpcomingReminders } from '../../data/calendarRepo';
+import { listEventsByPartner, listRequestsByPartner } from '../../data/calendarRepo';
+import { runMeetingReminderAutomation } from '../../lib/meetingReminderAutomation';
 import type { CalendarEvent } from '../../domain/calendar';
 import { calendarEventToIcs } from '../../utils/ics';
 import { downloadText } from '../../utils/download';
@@ -59,7 +60,7 @@ export default function PartnerCalendarPage() {
   }, []);
 
   useEffect(() => {
-    sendUpcomingReminders({ withinHours: 24 });
+    void runMeetingReminderAutomation({ withinHours: 24 });
   }, [version]);
 
   const events = useMemo(() => (partner ? listEventsByPartner(partner.id) : []), [partner, version]);

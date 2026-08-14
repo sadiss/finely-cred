@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Sparkles, X } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
 import type { TaskItem, TaskKind, TaskPriority, TaskStage, TaskVisibility } from '../../../domain/tasks';
 import type { TaskResultType } from '../../../domain/workResults';
 import { TASK_RESULT_LABELS } from '../../../domain/workResults';
@@ -11,6 +11,7 @@ import {
   FINELY_OS_ENTITY_SUBLABEL,
   FINELY_OS_ENTITY_VALUE,
   FINELY_OS_GLASS_CATALOG,
+  FINELY_OS_MODAL_HEADER,
   FINELY_OS_NOTICE_ERROR,
   FINELY_OS_PRIMARY_BTN,
   FINELY_OS_SECONDARY_BTN,
@@ -18,6 +19,7 @@ import {
   FINELY_OS_VIEW_TABS,
   finelyOsViewTab,
 } from '../../os/finelyOsLightUi';
+import { FinelyOsModalCloseButton } from '../../os/FinelyOsModalCloseButton';
 
 type Tab = 'what' | 'who' | 'when' | 'result' | 'playbook' | 'review';
 
@@ -152,16 +154,14 @@ export function TaskCreateWizard({
   return (
     <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
       <div className={`${FINELY_OS_GLASS_CATALOG} w-full max-w-lg max-h-[90vh] overflow-y-auto space-y-4`}>
-        <div className="flex items-start justify-between gap-3">
+        <div className={FINELY_OS_MODAL_HEADER}>
           <div>
             <div className={`inline-flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL} text-violet-300`}>
               <Sparkles size={16} /> Work OS · AI Create
             </div>
             <h3 className={FINELY_OS_ENTITY_VALUE}>New results-driven task</h3>
           </div>
-          <button type="button" onClick={onClose} className="text-white/50 hover:text-white">
-            <X size={20} />
-          </button>
+          <FinelyOsModalCloseButton onClick={onClose} />
         </div>
 
         <div className={`${FINELY_OS_VIEW_TABS} flex-wrap`}>

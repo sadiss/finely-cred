@@ -44,6 +44,9 @@ verify_jwt = false
 [functions.lead-intel]
 verify_jwt = false
 
+[functions.lead-intel-fetch-proxy]
+verify_jwt = false
+
 [functions.mailer]
 verify_jwt = false
 
@@ -75,6 +78,9 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.meta-webhook]
+verify_jwt = false
+
+[functions.sendgrid-webhook]
 verify_jwt = false
 
 [functions.meta-oauth]

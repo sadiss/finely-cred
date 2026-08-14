@@ -9,7 +9,6 @@ import {
   Sparkles,
   Star,
   Wand2,
-  X,
 } from 'lucide-react';
 import { callAiGateway } from '../../lib/aiClient';
 import { downloadBlob } from '../../lib/mediaExport';
@@ -35,6 +34,7 @@ import {
   FINELY_OS_ENTITY_SUBLABEL,
   FINELY_OS_ENTITY_TITLE,
   FINELY_OS_FIXED_OVERLAY,
+  FINELY_OS_MODAL_HEADER,
   FINELY_OS_MODAL_SHELL,
   FINELY_OS_PRIMARY_BTN,
   FINELY_OS_SECONDARY_BTN,
@@ -42,6 +42,7 @@ import {
   finelyOsDeckTile,
   finelyOsMicroStat,
 } from '../os/finelyOsLightUi';
+import { FinelyOsModalCloseButton } from '../os/FinelyOsModalCloseButton';
 import {
   buildAiStoryboardPrompt,
   buildFallbackVideoPlan,
@@ -522,14 +523,12 @@ export function VideoCreateWizard({
   return (
     <div className={`${FINELY_OS_FIXED_OVERLAY} flex items-start justify-center overflow-y-auto p-4 md:p-8`}>
       <div className={`${FINELY_OS_MODAL_SHELL} relative w-full max-w-4xl !max-h-[min(94vh,920px)]`}>
-        <div className="flex items-start justify-between gap-3 border-b border-white/10 px-4 py-3">
+        <div className={FINELY_OS_MODAL_HEADER}>
           <div>
             <p className={`${FINELY_OS_ENTITY_SUBLABEL} text-amber-300`}>Video wizard · step {step} of 5</p>
             <h2 className={FINELY_OS_ENTITY_TITLE}>Create your video</h2>
           </div>
-          <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => onOpenChange(false)} aria-label="Close wizard">
-            <X size={16} />
-          </button>
+          <FinelyOsModalCloseButton onClick={() => onOpenChange(false)} aria-label="Close wizard" />
         </div>
 
         <div className="flex flex-wrap gap-2 px-4 py-2 border-b border-white/10">

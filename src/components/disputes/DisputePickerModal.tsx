@@ -11,7 +11,6 @@ import {
   Sparkles,
   Square,
   TrendingDown,
-  X,
   Zap,
 } from 'lucide-react';
 import type { Bureau, DisputeCandidate, ParsedCreditReport } from '../../domain/creditReports';
@@ -19,6 +18,8 @@ import type { DisputeCase } from '../../domain/cases';
 import { deriveDisputeCandidates } from '../../creditReports/disputeCandidates';
 import { bureauFullName, bureauShortCode } from '../../utils/bureaus';
 import { letterCategoryForCandidate } from '../../creditReports/letterCategory';
+import { FINELY_OS_MODAL_HEADER } from '../../features/os/finelyOsLightUi';
+import { FinelyOsModalCloseButton } from '../../features/os/FinelyOsModalCloseButton';
 
 export type DisputePickSource =
   | { kind: 'report'; reportId: string }
@@ -189,8 +190,8 @@ export function DisputePickerModal({
         aria-modal="true"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="shrink-0 p-5 md:p-6 border-b border-white/10 bg-gradient-to-r from-amber-500/10 via-transparent to-fuchsia-500/5">
-          <div className="flex items-start justify-between gap-4">
+        <div className={`${FINELY_OS_MODAL_HEADER} p-5 md:p-6 bg-gradient-to-r from-amber-500/10 via-transparent to-fuchsia-500/5`}>
+          <div className="flex items-start justify-between gap-4 w-full">
             <div>
               <div className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-amber-300">
                 <Sparkles size={12} /> Dispute intelligence
@@ -200,9 +201,7 @@ export function DisputePickerModal({
                 Pick by category — collections, lates, inquiries, and more. We split selections into separate bureau letters automatically.
               </p>
             </div>
-            <button type="button" onClick={onClose} className="rounded-xl border border-white/10 bg-white/5 p-2.5 text-white/70 hover:bg-white/10">
-              <X size={18} />
-            </button>
+            <FinelyOsModalCloseButton onClick={onClose} />
           </div>
 
           <div className="mt-5 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5">

@@ -1,14 +1,14 @@
 import React from 'react';
 import { createPortal } from 'react-dom';
-import { X } from 'lucide-react';
 import {
-  FINELY_OS_SECONDARY_BTN,
   FINELY_OS_ENTITY_SUBLABEL,
   FINELY_OS_ENTITY_VALUE,
   FINELY_OS_FIXED_OVERLAY,
+  FINELY_OS_MODAL_HEADER,
   FINELY_OS_MODAL_SHELL,
   type FinelyOsGlowAccent,
 } from './finelyOsLightUi';
+import { FinelyOsModalCloseButton } from './FinelyOsModalCloseButton';
 
 const ACCENT_BORDER: Record<FinelyOsGlowAccent, string> = {
   emerald: 'border-emerald-400/30',
@@ -46,19 +46,17 @@ export function FinelyOsWorkstationModal({
       : 'w-full sm:max-w-2xl lg:max-w-4xl max-h-[92vh] sm:max-h-[72vh]';
 
   return createPortal(
-    <div className={`${FINELY_OS_FIXED_OVERLAY} z-[8800] flex items-end sm:items-center justify-center p-0 sm:p-4`}>
+    <div className={`${FINELY_OS_FIXED_OVERLAY} z-[8800] flex items-end sm:items-center justify-center p-3 sm:p-4 md:p-6`}>
       <div className="absolute inset-0 bg-black/85 backdrop-blur-md" onClick={onClose} aria-hidden />
       <div
         className={`${FINELY_OS_MODAL_SHELL} relative z-[1] flex flex-col overflow-hidden rounded-t-2xl sm:rounded-2xl border ${ACCENT_BORDER[accent]} ${sizeClass}`}
       >
-        <div className="shrink-0 flex items-start justify-between gap-3 border-b border-white/10 px-4 py-4">
+        <div className={FINELY_OS_MODAL_HEADER}>
           <div className="min-w-0">
             <div className={FINELY_OS_ENTITY_SUBLABEL}>{subtitle ?? 'Workstation'}</div>
             <h2 className={`text-lg font-bold truncate ${FINELY_OS_ENTITY_VALUE}`}>{title}</h2>
           </div>
-          <button type="button" onClick={onClose} className={`${FINELY_OS_SECONDARY_BTN} !p-2`} aria-label="Close">
-            <X size={16} />
-          </button>
+          <FinelyOsModalCloseButton onClick={onClose} />
         </div>
         <div className="flex-1 overflow-y-auto p-4 sm:p-5">{children}</div>
         {footer ? <div className="shrink-0 border-t border-white/10 px-4 py-3">{footer}</div> : null}

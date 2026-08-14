@@ -1,11 +1,12 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { ArrowRight, Shield, Sparkles, Building2, Scale, Lock, Gift, Users, Crown, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { ArrowRight, Shield, Sparkles, Building2, Scale, Lock, Gift, Users, Crown, AlertCircle, CheckCircle2, Phone } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { PageShell } from '../components/layout/PageShell';
 import { useAuth } from '../auth/AuthProvider';
 import { resolvePackageSelectPath } from '../lib/packageCheckoutRouting';
 import { finelyCtaNavigate, resolveFinelyCtaPath } from '../lib/finelyCtaIntent';
-import { getPricingControls } from '../data/settingsRepo';
+import { getPricingControls, loadSettings } from '../data/settingsRepo';
+import { buildTelHref, DEFAULT_SUPPORT_PHONE_DISPLAY } from '../lib/telLink';
 import {
   personalCreditPackages,
   businessCreditPackages,
@@ -17,6 +18,7 @@ import {
   agencyTiers,
   categoryDescriptions,
   formatPrice,
+  getDebtPackageGuidanceForBalance,
   type PricingPackage,
   type PricingCategory,
   isLetterPackPackage,
@@ -86,6 +88,14 @@ const TABS: { key: TabKey; label: string; icon: React.ReactNode; accent: FinelyO
   { key: 'agency', label: CS.pricingTabLabel, icon: <Users size={16} />, accent: 'amber' },
 ];
 
+/** Representative cents per debt-balance band — feeds getDebtPackageGuidanceForBalance() for the "which tier fits" picker. */
+const DEBT_BALANCE_BANDS: { label: string; amountCents: number }[] = [
+  { label: 'Under $10k', amountCents: 500_000 },
+  { label: '$10k–$25k', amountCents: 1_500_000 },
+  { label: '$25k–$100k', amountCents: 5_000_000 },
+  { label: '$100k+', amountCents: 15_000_000 },
+];
+
 export default function PricingPage() {
   const navigate = useNavigate();
   const auth = useAuth();
@@ -100,6 +110,7 @@ export default function PricingPage() {
   const [personalLane, setPersonalLane] = useState<PersonalLane>('restore');
   const [storeVersion, setStoreVersion] = useState(0);
   const [chooserOpen, setChooserOpen] = useState(false);
+  const [debtBalanceBandCents, setDebtBalanceBandCents] = useState<number | null>(null);
 
   useEffect(() => {
     const onStore = () => setStoreVersion((v) => v + 1);
@@ -139,6 +150,17 @@ export default function PricingPage() {
         isAuthed: Boolean(auth.user),
       }),
     );
+  };
+
+  /** Custom-quote pseudo-tiers (D1/D2) route to intake instead of checkout — no sticker price to check out with. */
+  const handleSelectPackage = (pkgId: string, packages: PricingPackage[]) => {
+    const pkg = packages.find((p) => p.id === pkgId);
+    if (pkg?.isCustomQuote) {
+      finelyCtaNavigate(navigate, pkg.category === 'debt_legal' ? 'debt_intake' : 'personal_intake');
+      return;
+    }
+    const rail = pkg?.rail === 'in_house' ? 'in_house' : pkg?.rail === 'stripe' ? 'stripe' : undefined;
+    handleSelect(pkgId, rail);
   };
 
   const handleAgencyTier = (tierId?: string) => {
@@ -221,6 +243,13 @@ export default function PricingPage() {
   }, [activeTab, deliveryMode, getPackagesForTab]);
 
   const heroKey = (activeTab === 'banking_reports' ? 'personal_credit' : activeTab) as PricingSolutionKey;
+  const supportPhone = loadSettings().site.supportPhone || DEFAULT_SUPPORT_PHONE_DISPLAY;
+  const supportTelHref = buildTelHref(supportPhone);
+
+  const debtBalanceRecommendation = useMemo(
+    () => (debtBalanceBandCents != null ? getDebtPackageGuidanceForBalance(debtBalanceBandCents) : null),
+    [debtBalanceBandCents],
+  );
 
   return (
     <PageShell hideHero title="Solutions" subtitle="Pick DIY or Done‑For‑You, then choose the solution that matches your goals.">
@@ -438,12 +467,42 @@ export default function PricingPage() {
               </p>
               <div className={`mt-4 rounded-xl border border-fuchsia-500/20 bg-black/25 !p-3`}>
                 <div className={`text-xs font-semibold uppercase tracking-wider ${FINELY_OS_ENTITY_SUBLABEL}`}>
-                  Typical debt balance → starting package
+                  Which tier fits your balance?
                 </div>
                 <p className={`mt-1 text-xs ${FINELY_OS_ENTITY_BODY}`}>
-                  Illustrative guidance only — exact package and pricing confirmed after intake.
+                  Pick your approximate total debt balance — illustrative guidance only, exact package and pricing confirmed after intake.
                 </p>
-                <div className="mt-2 overflow-x-auto">
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {DEBT_BALANCE_BANDS.map((band) => (
+                    <button
+                      key={band.label}
+                      type="button"
+                      onClick={() => setDebtBalanceBandCents(band.amountCents)}
+                      className={finelyOsViewTab(debtBalanceBandCents === band.amountCents, 'fuchsia')}
+                    >
+                      {band.label}
+                    </button>
+                  ))}
+                </div>
+                {debtBalanceRecommendation ? (
+                  <div className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-fuchsia-500/25 bg-fuchsia-500/[0.08] px-3 py-2.5">
+                    <div className={`text-sm ${FINELY_OS_ENTITY_BODY}`}>
+                      Recommended: <span className={`font-semibold ${FINELY_OS_ENTITY_VALUE}`}>{debtBalanceRecommendation.name}</span>{' '}
+                      · {formatPrice(debtBalanceRecommendation.priceAmount)}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setActiveTab('debt_legal');
+                        handleSelectPackage(debtBalanceRecommendation.id, debtLegalPackages);
+                      }}
+                      className={FINELY_OS_SUCCESS_BTN}
+                    >
+                      Start with this tier <ArrowRight size={14} />
+                    </button>
+                  </div>
+                ) : null}
+                <div className="mt-3 overflow-x-auto">
                   <table className="w-full text-xs text-left">
                     <thead>
                       <tr className="text-white/50 border-b border-white/10">
@@ -452,7 +511,7 @@ export default function PricingPage() {
                       </tr>
                     </thead>
                     <tbody className="text-white/75">
-                      {debtLegalPackages.filter((p) => p.debtBalanceGuidance).map((p) => (
+                      {debtLegalPackages.filter((p) => p.debtBalanceGuidance && p.isPublic).map((p) => (
                         <tr key={p.id} className="border-b border-white/5">
                           <td className="py-2 pr-3">{p.debtBalanceGuidance?.label}</td>
                           <td className="py-2">
@@ -505,12 +564,7 @@ export default function PricingPage() {
             includePersonalCompare={activeTab === 'personal_credit' || activeTab === 'banking_reports'}
             searchPlaceholder="Search packages in this category…"
             selectLabel="Select"
-            onSelect={(pkgId) => {
-              const pkg = visiblePackages.find((p) => p.id === pkgId);
-              const rail =
-                pkg?.rail === 'in_house' ? 'in_house' : pkg?.rail === 'stripe' ? 'stripe' : undefined;
-              handleSelect(pkgId, rail);
-            }}
+            onSelect={(pkgId) => handleSelectPackage(pkgId, visiblePackages)}
           />
         ) : (
           <div className={FINELY_OS_LUXURY_EMPTY}>
@@ -556,9 +610,14 @@ export default function PricingPage() {
                   Complete our quick intake and we&apos;ll recommend the best path based on your goals.
                 </div>
               </div>
-              <button type="button" onClick={() => finelyCtaNavigate(navigate, 'personal_intake')} className={FINELY_OS_SUCCESS_BTN}>
-                Start intake <ArrowRight size={14} />
-              </button>
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto">
+                <button type="button" onClick={() => finelyCtaNavigate(navigate, 'personal_intake')} className={FINELY_OS_SUCCESS_BTN}>
+                  Start intake <ArrowRight size={14} />
+                </button>
+                <a href={supportTelHref} className={FINELY_OS_SECONDARY_BTN}>
+                  <Phone size={14} /> Call {supportPhone}
+                </a>
+              </div>
             </div>
             <p className={`${FINELY_OS_COMPLIANCE_FOOTNOTE} mt-6 text-center`}>Results vary · not legal advice · educational dispute workflow only.</p>
           </div>
@@ -577,6 +636,14 @@ export default function PricingPage() {
       </div>
 
       <ServicesChooserModal open={chooserOpen} onClose={() => setChooserOpen(false)} activePath="/pricing" />
+
+      {/* Mobile-only click-to-call bar (B7) — high-intent partners often prefer calling from a phone */}
+      <a
+        href={supportTelHref}
+        className="fixed inset-x-3 bottom-3 z-40 flex sm:hidden items-center justify-center gap-2 rounded-xl border border-amber-400/50 bg-gradient-to-r from-amber-600 via-amber-500 to-amber-400 px-4 py-3 text-[11px] font-black uppercase tracking-[0.14em] text-[#1a1408] shadow-[0_16px_40px_rgba(217,168,66,0.4)]"
+      >
+        <Phone size={16} /> Call now — {supportPhone}
+      </a>
     </PageShell>
   );
 }

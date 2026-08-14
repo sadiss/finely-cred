@@ -61,6 +61,7 @@ export function createBookingInvite(args: {
   guestName?: string;
   guestEmail?: string;
   guestPhone?: string;
+  audience?: import('../domain/calendar').BookingInviteAudience;
   expiresAt?: string;
   maxUses?: number;
 }): BookingInvite {
@@ -78,6 +79,8 @@ export function createBookingInvite(args: {
     guestName: (args.guestName || '').trim() || undefined,
     guestEmail: (args.guestEmail || '').trim() || undefined,
     guestPhone: (args.guestPhone || '').trim() || undefined,
+    audience: args.audience ?? (args.partnerId ? 'partner' : 'guest'),
+    emailStatus: 'not_sent',
     expiresAt: args.expiresAt,
     maxUses: Math.max(1, Math.round(args.maxUses ?? 1)),
     useCount: 0,
@@ -111,6 +114,25 @@ export function setBookingInviteStatus(id: string, status: BookingInviteStatus):
 
 export function revokeBookingInvite(id: string): BookingInvite | null {
   return setBookingInviteStatus(id, 'revoked');
+}
+
+export function markBookingInviteEmail(
+  id: string,
+  patch: { status: import('../domain/calendar').BookingInviteEmailStatus; error?: string },
+): BookingInvite | null {
+  const rows = loadInvites();
+  const idx = rows.findIndex((r) => r.id === id);
+  if (idx < 0) return null;
+  const next: BookingInvite = {
+    ...rows[idx]!,
+    emailStatus: patch.status,
+    emailError: patch.status === 'failed' ? patch.error : undefined,
+    emailSentAt: patch.status === 'sent' ? nowIso() : rows[idx]!.emailSentAt,
+    updatedAt: nowIso(),
+  };
+  rows[idx] = next;
+  saveInvites(rows);
+  return next;
 }
 
 export function markBookingInviteUsed(args: {

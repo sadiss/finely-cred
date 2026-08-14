@@ -3,7 +3,7 @@ import { Activity, ArrowRight, Pin, ScrollText, User, X } from 'lucide-react';
 import { bureauShortCode } from '../../utils/bureaus';
 import type { PartnerOverallScoreResult } from '../../utils/partnerOverallScore';
 import type { ActivityTimelineItem } from '../../components/partner/PartnerActivityTimeline';
-import { derivePartnerSignupStatus } from '../../lib/partnerAuthActivity';
+import { derivePartnerSignupStatus, resolvePartnerAccessState } from '../../lib/partnerAuthActivity';
 import {
   FC_ADMIN_INK_BODY,
   FC_ADMIN_INK_SUBLABEL,
@@ -11,6 +11,7 @@ import {
   FC_ADMIN_INK_VALUE,
   FC_ADMIN_ON_SOLID_SECONDARY_BTN,
   FC_ADMIN_PRIMARY_BTN,
+  fcAdminAccentStatusChip,
   fcAdminKpi,
   fcAdminScoreCell,
   fcAdminStatusChip,
@@ -58,10 +59,11 @@ function statusChipTone(status: string): 'ok' | 'warn' | 'blocked' {
   return 'blocked';
 }
 
-function signupChipTone(tone: 'amber' | 'emerald' | 'violet' | 'sky' | 'rose'): 'ok' | 'warn' | 'blocked' {
-  if (tone === 'emerald' || tone === 'sky') return 'ok';
-  if (tone === 'rose') return 'blocked';
-  return 'warn';
+function signupAccentChip(tone: ReturnType<typeof derivePartnerSignupStatus>['tone']) {
+  if (tone === 'emerald' || tone === 'sky') return fcAdminAccentStatusChip(tone === 'sky' ? 'sky' : 'emerald');
+  if (tone === 'rose') return fcAdminAccentStatusChip('rose');
+  if (tone === 'violet') return fcAdminAccentStatusChip('violet');
+  return fcAdminAccentStatusChip('gold');
 }
 
 function ActivityInsightCards({
@@ -185,6 +187,7 @@ function ActivityInsightCards({
 }
 
 export function PartnerOverviewTab(args: {
+  variant?: 'admin' | 'portal';
   partner: any;
   mailingSummary: string | null;
   profileRouteKey: string;
@@ -202,13 +205,46 @@ export function PartnerOverviewTab(args: {
   onOpenTab: (tab: string) => void;
   onNavigate: (path: string) => void;
   activityItems?: ActivityTimelineItem[];
+  /** Portal-only — funding goals + capital readiness panel below score tiles. */
+  readinessSlot?: React.ReactNode;
 }) {
   const { partner } = args;
+  const variant = args.variant ?? 'admin';
+  const isPortal = variant === 'portal';
   const primaryScore = args.latestScoresRows[0];
+  const access = resolvePartnerAccessState(partner);
   const signup = derivePartnerSignupStatus(partner);
 
   /** EXP / EQF / TUC each get a maximally distinct tone — blue / gold / green — so the trio never reads as "three identical blues". */
   const SCORE_TONES: FcAdminTone[] = ['sky', 'gold', 'emerald'];
+
+  const taskKpis = isPortal
+    ? ([
+        { label: 'Open tasks', value: args.openPartnerTasksCount, tone: 'gold' as FcAdminTone },
+        { label: 'Reports', value: args.reportsCount, tone: 'sky' as FcAdminTone },
+        { label: 'Evidence', value: args.evidenceCount, tone: 'teal' as FcAdminTone },
+        { label: 'Open disputes', value: args.openPartnerCasesCount, tone: 'rose' as FcAdminTone },
+      ] as const)
+    : ([
+        { label: 'Reports', value: args.reportsCount, tone: 'sky' as FcAdminTone },
+        { label: 'Letters', value: args.lettersCount, tone: 'navy' as FcAdminTone },
+        { label: 'Debt / summons', value: args.debtCasesCount, tone: 'rose' as FcAdminTone },
+        { label: 'Open tasks', value: args.openPartnerTasksCount, tone: 'gold' as FcAdminTone },
+      ] as const);
+
+  const quickNavItems = isPortal
+    ? ([
+        { label: 'Reports', tab: 'reports', hint: `${args.reportsCount} on file`, tone: 'sky' as FcAdminTone },
+        { label: 'Evidence', tab: 'evidence', hint: `${args.evidenceCount} files`, tone: 'gold' as FcAdminTone },
+        { label: 'Tasks', tab: 'tasks', hint: `${args.openPartnerTasksCount} open`, tone: 'emerald' as FcAdminTone },
+        { label: 'Disputes', tab: 'disputes', hint: `${args.openPartnerCasesCount} open`, tone: 'rose' as FcAdminTone },
+      ] as const)
+    : ([
+        { label: 'Reports', tab: 'reports', hint: `${args.reportsCount} on file`, tone: 'teal' as FcAdminTone },
+        { label: 'Evidence', tab: 'evidence', hint: `${args.evidenceCount} files`, tone: 'gold' as FcAdminTone },
+        { label: 'Letters', tab: 'letters', hint: 'Letter studio', tone: 'navy' as FcAdminTone },
+        { label: 'Tasks', tab: 'tasks', hint: `${args.openPartnerTasksCount} open`, tone: 'emerald' as FcAdminTone },
+      ] as const);
 
   return (
     <div className="space-y-4">
@@ -218,10 +254,16 @@ export function PartnerOverviewTab(args: {
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
               <p className={FINELY_OS_DARK_GLASS_SUBLABEL}>Overview</p>
-              <span className={finelyOsStatusChip(statusChipTone(partner.status))}>
-                {String(partner.status || 'lead').toUpperCase()}
-              </span>
-              <span className={finelyOsStatusChip(signupChipTone(signup.tone))}>{signup.label}</span>
+              {!isPortal ? (
+                <>
+                  <span className={finelyOsStatusChip(statusChipTone(partner.status))}>
+                    {String(partner.status || 'lead').toUpperCase()}
+                  </span>
+                  <span className={signupAccentChip(signup.tone)}>{access.label}</span>
+                </>
+              ) : (
+                <span className={signupAccentChip(signup.tone)}>{access.label}</span>
+              )}
             </div>
             <p className={`mt-2 ${FINELY_OS_DARK_GLASS_TITLE}`}>{partner.profile.fullName}</p>
             <p className={`mt-1 ${FINELY_OS_DARK_GLASS_BODY}`}>
@@ -230,23 +272,31 @@ export function PartnerOverviewTab(args: {
             <p className={`mt-1 ${FINELY_OS_DARK_GLASS_BODY}`}>{args.mailingSummary || 'Mailing address not set'}</p>
           </div>
           <div className="flex flex-col items-stretch sm:items-end gap-2 shrink-0">
-            <div className="text-right">
-              <div className={FINELY_OS_DARK_GLASS_SUBLABEL}>Profile type</div>
-              <select
-                value={partner.status}
-                onChange={(e) => args.onStatusChange(e.target.value)}
-                className={`sm:w-[160px] ${FINELY_OS_DARK_GLASS_SELECT}`}
-              >
-                <option value="lead">Lead</option>
-                <option value="active">Active</option>
-                <option value="paused">Paused</option>
-              </select>
-            </div>
-            <div className="flex flex-wrap gap-2">
+            {!isPortal ? (
+              <>
+                <div className="text-right">
+                  <div className={FINELY_OS_DARK_GLASS_SUBLABEL}>Profile type</div>
+                  <select
+                    value={partner.status}
+                    onChange={(e) => args.onStatusChange(e.target.value)}
+                    className={`sm:w-[160px] ${FINELY_OS_DARK_GLASS_SELECT}`}
+                  >
+                    <option value="lead">Lead</option>
+                    <option value="active">Active</option>
+                    <option value="paused">Paused</option>
+                  </select>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <button type="button" className={FINELY_OS_PRIMARY_BTN} onClick={args.onOpenProfile}>
+                    <User size={14} /> Profile & access
+                  </button>
+                </div>
+              </>
+            ) : (
               <button type="button" className={FINELY_OS_PRIMARY_BTN} onClick={args.onOpenProfile}>
-                <User size={14} /> Profile & access
+                <User size={14} /> My profile
               </button>
-            </div>
+            )}
           </div>
         </div>
 
@@ -283,16 +333,9 @@ export function PartnerOverviewTab(args: {
         )}
       </div>
 
-      {/* KPIs — hard counts, each its own solid color so the four read as distinct facts, not a repeated tile. */}
+      {/* KPIs — task + file counts in distinct color tiles */}
       <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
-        {(
-          [
-            { label: 'Reports', value: args.reportsCount, tone: 'sky' as FcAdminTone },
-            { label: 'Letters', value: args.lettersCount, tone: 'navy' as FcAdminTone },
-            { label: 'Debt / summons', value: args.debtCasesCount, tone: 'rose' as FcAdminTone },
-            { label: 'Open tasks', value: args.openPartnerTasksCount, tone: 'gold' as FcAdminTone },
-          ]
-        ).map((k) => (
+        {taskKpis.map((k) => (
           <div key={k.label} className={finelyOsEntityKpi(k.tone)}>
             <p className={`text-[11px] font-semibold uppercase tracking-wide ${fcAdminOnSolidMuted(k.tone)}`}>{k.label}</p>
             <p className={`mt-1 text-2xl font-semibold ${fcAdminOnSolidText(k.tone)}`}>{k.value}</p>
@@ -300,22 +343,30 @@ export function PartnerOverviewTab(args: {
         ))}
       </div>
 
-      {args.overallScore ? (
-        <div className="grid md:grid-cols-4 gap-3">
-          {(
-            [
-              { label: 'Overall', value: args.overallScore.overall, hint: 'Readiness', tone: 'emerald' as FcAdminTone, surface: 'solid' as const },
-              { label: 'Open cases', value: args.openPartnerCasesCount, hint: 'Disputes', tone: 'rose' as FcAdminTone, surface: 'solid' as const },
-              { label: 'Evidence', value: args.evidenceCount, hint: 'On file', tone: 'gold' as FcAdminTone, surface: 'solid' as const },
-              { label: 'Improvements', value: args.overallScore.topActions.length, hint: 'Fast wins', tone: 'teal' as FcAdminTone, surface: 'glass' as const },
-            ]
-          ).map((k) => (
-            <div key={k.label} className={k.surface === 'solid' ? finelyOsEntityKpi(k.tone, 'solid') : finelyOsCatalogCard(k.tone)}>
-              <p className={`text-[11px] font-semibold uppercase tracking-wide ${k.surface === 'solid' ? fcAdminOnSolidMuted(k.tone) : FINELY_OS_DARK_GLASS_SUBLABEL}`}>{k.label}</p>
-              <p className={`mt-2 text-3xl font-semibold leading-none ${k.surface === 'solid' ? fcAdminOnSolidText(k.tone) : FINELY_OS_DARK_GLASS_VALUE}`}>{k.value}</p>
-              <p className={`mt-2 text-xs ${k.surface === 'solid' ? fcAdminOnSolidMuted(k.tone) : FINELY_OS_DARK_GLASS_BODY}`}>{k.hint}</p>
+      {args.overallScore || args.readinessSlot ? (
+        <div className="space-y-3">
+          <p className={FINELY_OS_DARK_GLASS_SUBLABEL}>
+            {isPortal ? 'Restore readiness' : 'Readiness signals'}
+          </p>
+          {args.overallScore ? (
+            <div className="grid md:grid-cols-4 gap-3">
+              {(
+                [
+                  { label: 'Overall', value: args.overallScore.overall, hint: 'Readiness', tone: 'emerald' as FcAdminTone, surface: 'solid' as const },
+                  { label: 'Open cases', value: args.openPartnerCasesCount, hint: 'Disputes', tone: 'rose' as FcAdminTone, surface: 'solid' as const },
+                  { label: 'Evidence', value: args.evidenceCount, hint: 'On file', tone: 'gold' as FcAdminTone, surface: 'solid' as const },
+                  { label: 'Improvements', value: args.overallScore.topActions.length, hint: 'Fast wins', tone: 'teal' as FcAdminTone, surface: 'glass' as const },
+                ]
+              ).map((k) => (
+                <div key={k.label} className={k.surface === 'solid' ? finelyOsEntityKpi(k.tone, 'solid') : finelyOsCatalogCard(k.tone)}>
+                  <p className={`text-[11px] font-semibold uppercase tracking-wide ${k.surface === 'solid' ? fcAdminOnSolidMuted(k.tone) : FINELY_OS_DARK_GLASS_SUBLABEL}`}>{k.label}</p>
+                  <p className={`mt-2 text-3xl font-semibold leading-none ${k.surface === 'solid' ? fcAdminOnSolidText(k.tone) : FINELY_OS_DARK_GLASS_VALUE}`}>{k.value}</p>
+                  <p className={`mt-2 text-xs ${k.surface === 'solid' ? fcAdminOnSolidMuted(k.tone) : FINELY_OS_DARK_GLASS_BODY}`}>{k.hint}</p>
+                </div>
+              ))}
             </div>
-          ))}
+          ) : null}
+          {args.readinessSlot}
         </div>
       ) : null}
 
@@ -342,16 +393,9 @@ export function PartnerOverviewTab(args: {
         </details>
       ) : null}
 
-      {/* Quick-nav — same labels as the KPIs above, so these stay quiet/soft on purpose: they're shortcuts, not the data itself. */}
+      {/* Quick-nav shortcuts */}
       <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
-        {(
-          [
-            { label: 'Reports', tab: 'reports', hint: `${args.reportsCount} on file`, tone: 'teal' as FcAdminTone },
-            { label: 'Evidence', tab: 'evidence', hint: `${args.evidenceCount} files`, tone: 'gold' as FcAdminTone },
-            { label: 'Letters', tab: 'letters', hint: 'Letter studio', tone: 'navy' as FcAdminTone },
-            { label: 'Tasks', tab: 'tasks', hint: `${args.openPartnerTasksCount} open`, tone: 'emerald' as FcAdminTone },
-          ]
-        ).map((item) => (
+        {quickNavItems.map((item) => (
           <button
             key={item.tab}
             type="button"
@@ -378,13 +422,24 @@ export function PartnerOverviewTab(args: {
       ) : null}
 
       {args.activityItems?.length ? (
-        <ActivityInsightCards items={args.activityItems} onOpenNotes={() => args.onOpenTab('notes')} />
+        isPortal ? (
+          <details className={`${finelyOsCatalogCard('navy')} !p-4`}>
+            <summary className={`cursor-pointer select-none ${FINELY_OS_DARK_GLASS_VALUE}`}>Recent activity</summary>
+            <div className="mt-3">
+              <ActivityInsightCards items={args.activityItems} onOpenNotes={() => args.onOpenTab('notes')} />
+            </div>
+          </details>
+        ) : (
+          <ActivityInsightCards items={args.activityItems} onOpenNotes={() => args.onOpenTab('notes')} />
+        )
       ) : null}
 
-      <p className="text-[11px] text-white/50">
-        Route {String(args.profileRouteKey).replaceAll('_', ' ')} · Tenant{' '}
-        <span className="font-mono">{partner.tenantId}</span> · Updated {new Date(partner.updatedAt).toLocaleString()}
-      </p>
+      {!isPortal ? (
+        <p className="text-[11px] text-white/50">
+          Route {String(args.profileRouteKey).replaceAll('_', ' ')} · Tenant{' '}
+          <span className="font-mono">{partner.tenantId}</span> · Updated {new Date(partner.updatedAt).toLocaleString()}
+        </p>
+      ) : null}
     </div>
   );
 }

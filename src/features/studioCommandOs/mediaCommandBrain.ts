@@ -7,6 +7,7 @@ import {
   getVideoStylePreset,
   type VideoStylePresetId as PresetId,
 } from '../../domain/videoStylePresets';
+import { detectMissingTechniques } from './mediaGapCheck';
 import type { VideoCommandPlan, VideoCommandRequest, VideoGenerationIntent, VideoScenePlan } from './types';
 
 const INTENT_CTA: Record<VideoGenerationIntent, string> = {
@@ -137,6 +138,13 @@ export function buildFallbackVideoPlan(input: Partial<VideoCommandRequest>): Vid
       transition: assignTransitionForScene(req.visualStyle, idx, durations.length),
     };
   });
+  const techniqueGaps = detectMissingTechniques({
+    intent: req.intent,
+    durationSec: req.durationSec,
+    aspect: req.aspect,
+    includeCaptions: req.includeCaptions,
+    visualStyle: req.visualStyle,
+  });
   return {
     id: `video_plan_${Date.now().toString(16)}`,
     createdAt: nowIso(),
@@ -158,6 +166,7 @@ export function buildFallbackVideoPlan(input: Partial<VideoCommandRequest>): Vid
       'Generate voiceover or upload voice track.',
       'Export 9:16 for Reels/Shorts/TikTok or 16:9 for YouTube.',
       'Queue post with tracked short link and approval gate.',
+      ...techniqueGaps.map((gap) => `Add technique: ${gap.suggestion}`),
     ],
     complianceFlags: req.complianceStrict ? ['credit_safe_claims_required', 'no_guarantees', 'review_before_external_publish'] : ['review_before_external_publish'],
   };

@@ -14,6 +14,7 @@ import { isFeatureEnabled } from '../data/settingsRepo';
 import { isLeadTrashed } from '../features/studioCommandOs/leadTrashRepo';
 import { getProspect } from '../data/crmProspectsRepo';
 import { prospectAllowsColdEmail } from '../features/marketingDesk/marketingProspectConsent';
+import { checkSuppression } from '../data/commsSuppressionRepo';
 import { sendEmail } from './commsDeliveryClient';
 import { isSupabaseConfigured } from './supabaseClient';
 import { buildNurtureStepEmail } from './nurtureStepCopy';
@@ -187,6 +188,8 @@ function shouldSkipEnrollmentSend(enrollment: NurtureEnrollment): string | null 
   if (email) {
     const lead = listLeadCaptures().find((l) => (l.email || '').trim().toLowerCase() === email);
     if (lead && lead.consentEmailMarketing === false) return 'unsubscribed';
+    const suppression = checkSuppression({ email, channel: 'email' });
+    if (suppression.suppressed) return `suppressed_${suppression.reason}`;
   }
 
   if (enrollment.sequenceId === 'seq_cold_prospect') {

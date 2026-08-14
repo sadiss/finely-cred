@@ -32,4 +32,5 @@ export const ADMIN_FEATURE_MATRIX: AdminFeatureMatrixRow[] = [
   { flag: 'wealthPaths', label: 'Wealth Paths', effect: 'Wealth journey lanes on dashboard', secrets: 'None (content flags)' },
   { flag: 'apiAccess', label: 'API Access', effect: 'REST integrations (Phase 2)', secrets: 'API keys (edge)' },
   { flag: 'lightThemePublic', label: 'Light Theme (public)', effect: 'Show Light in theme toggles for all users', secrets: 'None (CSS theme system)' },
+  { flag: 'missedCallTextBack', label: 'Missed-Call Text-Back', effect: 'Auto-SMS + booking link + follow-up task on unanswered support calls', secrets: 'TWILIO_ACCOUNT_SID/TWILIO_AUTH_TOKEN/TWILIO_FROM_PHONE + MISSED_CALL_TEXTBACK_ENABLED=true (edge)' },
 ];

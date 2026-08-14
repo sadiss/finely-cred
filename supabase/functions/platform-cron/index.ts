@@ -8,6 +8,13 @@ import { corsHeaders } from '../_shared/cors.ts';
 import { json, logEdgeEvent, requireEnv } from '../_shared/edgeGuard.ts';
 import { authorizeCronOrService } from '../_shared/cronAuth.ts';
 import { publishMetaSocialPost } from '../_shared/metaGraphPublish.ts';
+import { processTaskOverdueSweep } from '../_shared/processTaskOverdueSweep.ts';
+import { processDueMeetingReminders } from '../_shared/processDueMeetingReminders.ts';
+import { processDueNoShowRecovery } from '../_shared/processDueNoShowRecovery.ts';
+import { processDueCrmSequenceSteps } from '../_shared/processDueCrmSequenceSteps.ts';
+import { processDueBillingDunning } from '../_shared/processDueBillingDunning.ts';
+import { processDueWinBack } from '../_shared/processDueWinBack.ts';
+import { processDueRetries } from '../_shared/sendRetryQueue.ts';
 
 type SocialDuePost = {
   id: string;
@@ -42,6 +49,10 @@ const CRON_STEPS = [
   'social_autopilot',
   'social_publish',
   'automation_sweep',
+  'meeting_reminders',
+  'no_show_recovery',
+  'crm_sequences',
+  'send_retry_queue',
 ] as const;
 
 const TENANT_ID = 'finely_cred';
@@ -211,12 +222,12 @@ Deno.serve(async (req) => {
         {
           ok: true,
           service: 'platform-cron',
-          version: 6,
+          version: 8,
           steps: CRON_STEPS,
           voicePipelineVersion: Deno.env.get('VOICE_PIPELINE_VERSION') || 'v1',
           socialPipelineVersion: 'v2',
           automationPipelineVersion: 'v3',
-          nurturePipelineVersion: 'v2',
+          nurturePipelineVersion: 'v3',
         },
         { headers: corsHeaders },
       );
@@ -243,6 +254,31 @@ Deno.serve(async (req) => {
       const automationSweep = runAutomation
         ? await invokeAutomationCronSweep({ supabaseUrl, serviceRoleKey, dryRun })
         : { ok: false as const, error: 'skipped' };
+      // task_overdue — tags overdue work_tasks rows (already synced server-side).
+      const taskOverdue = await processTaskOverdueSweep({ admin, dryRun, tenantId: TENANT_ID });
+      // F1 — real calendar_events-backed server sends; work purely from a server
+      // tick, no admin/partner browser tab required. See processDueMeetingReminders.ts
+      // and processDueNoShowRecovery.ts for the suppression + quiet-hours guards.
+      const meetingReminders = await processDueMeetingReminders({ admin, dryRun, tenantId: TENANT_ID });
+      const noShowRecovery = await processDueNoShowRecovery({ admin, dryRun, tenantId: TENANT_ID });
+      // F2 — real crm_sequences/crm_sequence_enrollments-backed server sends,
+      // with quiet-hours + cross-channel frequency-cap guards. See
+      // processDueCrmSequenceSteps.ts's header comment for how this avoids
+      // double-sending against the existing nurture-enrollment cadence above.
+      const crmSequenceSteps = await processDueCrmSequenceSteps({ admin, dryRun, tenantId: TENANT_ID });
+      // F3 — billing_dunning / win_back read real `agreements`/`entitlements`
+      // server truth directly (no new table needed) — see each processor's
+      // header comment. support_sla / admin_digest / partner_digest remain
+      // client-only: they read from localStorage-backed repos (support
+      // threads, notification digests) with no server table yet.
+      const billingDunning = await processDueBillingDunning({ admin, dryRun });
+      const winBack = await processDueWinBack({ admin, dryRun });
+      // F5 — retries failed sends any of the processors above (or a prior
+      // tick's run of them) queued via enqueueRetry(), with exponential
+      // backoff (5min/30min/2hr, then permanently failed). Runs last so a
+      // send failure earlier in THIS same tick is retried on a later tick,
+      // never re-attempted twice within one invocation.
+      const sendRetryQueue = await processDueRetries({ admin, dryRun, tenantId: TENANT_ID });
 
       const tickPayload = {
         at,
@@ -257,6 +293,13 @@ Deno.serve(async (req) => {
           fromDb: shouldLoadDb,
         },
         automationSweep,
+        taskOverdue,
+        meetingReminders,
+        noShowRecovery,
+        crmSequenceSteps,
+        billingDunning,
+        winBack,
+        sendRetryQueue,
         nurture: automationSweep.ok
           ? {
               candidates: automationSweep.nurtureCandidates,

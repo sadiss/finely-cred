@@ -39,6 +39,7 @@ import {
   debtLetterCardFactsFromLetter,
   formatDebtLetterStatLine,
 } from '../../lib/debtLetterCardFacts';
+import { isLetterDraft, letterDraftBadgeLabel } from '../../lib/letterDraftLifecycle';
 
 function fmtWhen(iso: string) {
   try {
@@ -71,7 +72,9 @@ function statusTone(status: LetterStatus | string | undefined): 'ok' | 'warn' | 
 }
 
 function statusLabel(status: LetterStatus | string | undefined) {
-  return String(status || 'generated').replaceAll('_', ' ');
+  const s = String(status || 'generated').toLowerCase();
+  if (s === 'draft') return 'Draft';
+  return s.replaceAll('_', ' ');
 }
 
 function typeMeta(type: LetterType): {
@@ -232,6 +235,7 @@ export type SavedLetterCardProps = {
   onResumeStudio?: () => void;
   onEdit?: () => void;
   onSaved?: () => void;
+  onMarkFinal?: () => void;
   canMail?: boolean;
   mailDisabled?: boolean;
   pdfDisabled?: boolean;
@@ -254,6 +258,7 @@ export function SavedLetterCard({
   onResumeStudio,
   onEdit,
   onSaved,
+  onMarkFinal,
   canMail = false,
   mailDisabled = false,
   pdfDisabled = false,
@@ -267,6 +272,8 @@ export function SavedLetterCard({
   const meta = typeMeta(letter.type);
   const face = deckAccentFace(deckAccent);
   const hasPdf = Boolean(letter.pdfBlobRef);
+  const draftBadge = letterDraftBadgeLabel(letter);
+  const isDraft = isLetterDraft(letter);
   const canOpenContent = hasPdf || Boolean(letter.body);
   const bureau =
     letter.meta && typeof letter.meta === 'object' && 'bureau' in letter.meta
@@ -391,8 +398,17 @@ export function SavedLetterCard({
             </div>
 
             <div className="flex flex-wrap items-center gap-1">
+              {isDraft ? (
+                <span className="rounded-md border-2 border-amber-400/70 bg-amber-500/25 px-2 py-0.5 text-[10px] font-black uppercase tracking-[0.16em] text-amber-50 shadow-[0_0_12px_-2px_rgba(245,158,11,0.65)]">
+                  {draftBadge}
+                </span>
+              ) : (
+                <span className="rounded-md border border-emerald-400/35 bg-emerald-500/15 px-1.5 py-0.5 text-[9px] font-black uppercase text-emerald-100">
+                  {draftBadge}
+                </span>
+              )}
               <span className="rounded-md border border-emerald-400/20 bg-emerald-500/10 px-1.5 py-0.5 text-[9px] font-black uppercase text-emerald-100">
-                {hasPdf ? 'PDF ready' : 'Draft'}
+                {hasPdf ? 'PDF ready' : 'Text only'}
               </span>
               <span className={finelyOsStatusChip(toneChip)}>{statusLabel(letter.status)}</span>
             </div>
@@ -438,6 +454,15 @@ export function SavedLetterCard({
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-1.5">
                     <span className={finelyOsMicroStat(meta.accent)}>{meta.label}</span>
+                    {isDraft ? (
+                      <span className="rounded-md border-2 border-amber-400/70 bg-amber-500/25 px-2 py-0.5 text-[10px] font-black uppercase tracking-[0.16em] text-amber-50">
+                        DRAFT
+                      </span>
+                    ) : (
+                      <span className="rounded-md border border-emerald-400/35 bg-emerald-500/15 px-2 py-0.5 text-[10px] font-black uppercase text-emerald-100">
+                        FINAL
+                      </span>
+                    )}
                     <span className={finelyOsStatusChip(toneChip)}>{statusLabel(letter.status)}</span>
                   </div>
                   <h3 className="mt-2 text-lg sm:text-xl font-black leading-tight text-white/95">{letter.title}</h3>
@@ -558,6 +583,19 @@ export function SavedLetterCard({
                 {(onEdit || letter.body || !hasPdf) ? (
                   <button type="button" onClick={startEdit} className={`${FINELY_OS_SECONDARY_BTN} !py-2.5 !px-4 !text-sm`}>
                     <FileText size={16} /> Edit
+                  </button>
+                ) : null}
+                {isDraft && onMarkFinal ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setDetailOpen(false);
+                      setTextOpen(false);
+                      onMarkFinal();
+                    }}
+                    className={`${FINELY_OS_PRIMARY_BTN} !py-2.5 !px-4 !text-sm !bg-emerald-600/90`}
+                  >
+                    <CheckCircle2 size={16} /> Mark as final
                   </button>
                 ) : null}
                 {canMail && onMail ? (

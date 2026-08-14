@@ -35,7 +35,7 @@ export function LetterEmailPartnerToggle({
       <span className="font-semibold">{label}</span>
       {hint ? <span className={`${FINELY_OS_ENTITY_SUBLABEL} normal-case tracking-normal hidden sm:inline`}>{hint}</span> : null}
       {!hint ? (
-        <span className={`${FINELY_OS_ENTITY_BODY} text-xs hidden md:inline`}>Notify on generate / save / mail</span>
+        <span className={`${FINELY_OS_ENTITY_BODY} text-xs hidden md:inline`}>Notify when marked final / mailed</span>
       ) : null}
     </label>
   );

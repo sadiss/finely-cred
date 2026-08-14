@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { PageShell } from '../../components/layout/PageShell';
-import WorkPartnerProjectsHub from '../../features/work/views/WorkPartnerProjectsHub';
+import WorkTasksProjectsHub from '../../features/work/views/WorkTasksProjectsHub';
 import { FinelyUnifiedHubLayout } from '../../features/unified/FinelyUnifiedHubLayout';
 import { useNavigate } from 'react-router-dom';
 import { usePartnerSession } from '../../auth/PartnerSessionContext';
@@ -13,9 +13,12 @@ import { FinelyNowDoThisStrip } from '../../components/tours/FinelyNowDoThisStri
 import { FinelyNoticedStrip } from '../../components/tours/FinelyNoticedStrip';
 import { buildPortalWorkNoticedItems } from '../../lib/finelyProactiveSignals';
 
+type HubTab = 'projects' | 'tasks';
+
 export default function PartnerProjectsPage() {
   const navigate = useNavigate();
   const { partner } = usePartnerSession();
+  const [tab, setTab] = useState<HubTab>('projects');
   const projects = useMemo(
     () => (partner ? listPartnerPortalProjects(listProjectsByPartner(partner.id)) : []),
     [partner],
@@ -28,7 +31,7 @@ export default function PartnerProjectsPage() {
   const overdueTasks = openTasks.filter((t) => t.dueAt && Date.parse(t.dueAt) < Date.now());
 
   return (
-    <PageShell badge="Partner Portal" title="Your projects" subtitle="Work OS — open any project for tasks, progress, and AI playbook help.">
+    <PageShell badge="Partner Portal" title="Your projects" subtitle="Work OS — kanban, calendar, and draggable task boards.">
       <div className={FINELY_OS_PAGE}>
         <FinelyNoticedStrip
           items={buildPortalWorkNoticedItems({
@@ -37,24 +40,40 @@ export default function PartnerProjectsPage() {
             projectsCount: projects.length,
           })}
         />
-        <FinelyNowDoThisStrip currentIndex={overdueTasks.length > 0 ? 1 : 0} />
+        <FinelyNowDoThisStrip currentIndex={tab === 'tasks' && overdueTasks.length > 0 ? 1 : 0} />
+
         <FinelyUnifiedHubLayout
           eyebrow="Work OS"
-          title="Projects & delivery"
-          subtitle="Personal and business credit projects — tap a card for the full workspace."
+          title="Projects & tasks"
+          subtitle="Personal and business credit — drag tasks between columns or switch to calendar view."
           accent="violet"
           kpis={[
             { label: 'Projects', value: String(projects.length), hint: 'Active lanes', accent: 'violet' },
             { label: 'Open tasks', value: String(openTasks.length), hint: 'Needs action', accent: 'amber' },
-            { label: 'Completed', value: String(tasks.filter((t) => t.status === 'completed').length), hint: 'Done', accent: 'emerald' },
+            { label: 'Overdue', value: String(overdueTasks.length), hint: 'Due past', accent: 'rose' },
             { label: 'Scope', value: 'Personal + biz', hint: 'Filter below', accent: 'sky' },
           ]}
-          tabs={[{ id: 'projects', label: 'Projects' }]}
-          activeTab="projects"
+          tabs={[
+            { id: 'projects', label: 'Projects', badge: projects.length || undefined },
+            { id: 'tasks', label: 'Tasks', badge: openTasks.length || undefined },
+          ]}
+          activeTab={tab}
+          onTabChange={(id) => setTab(id as HubTab)}
           primaryAction={{ label: 'My tasks', onClick: () => navigate('/portal/my-tasks') }}
           secondaryAction={{ label: 'Dashboard', onClick: () => navigate('/portal/dashboard') }}
         >
-          <WorkPartnerProjectsHub />
+          {partner ? (
+            <WorkTasksProjectsHub
+              role="partner"
+              partnerId={partner.id}
+              partner={partner}
+              partnerById={new Map([[partner.id, partner]])}
+              controlledTab={tab}
+              onTabChange={setTab}
+              workspaceBasePath="/portal/projects"
+              compactHero
+            />
+          ) : null}
         </FinelyUnifiedHubLayout>
         <FinelyOsPageFooter />
       </div>

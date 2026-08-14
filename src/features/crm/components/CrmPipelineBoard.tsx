@@ -1,16 +1,19 @@
 import React, { useCallback, useMemo } from 'react';
-import { GripVertical } from 'lucide-react';
+import { ChevronLeft, ChevronRight, GripVertical } from 'lucide-react';
 import type { CrmRecord, CrmRecordStage } from '../../../domain/crmRecords';
 import { formatForecastCents } from '../forecast/buildPipelineForecast';
 import { crmRecordDisplayName } from '../../../domain/crmRecords';
 import { CRM_PIPELINES } from '../pipelines';
 import { scoreCrmRecord } from '../../../lib/crmDealScoring';
+import { buildConversionLikelihoodContext, computeConversionLikelihood } from '../../../lib/agentAttributionEngine';
 import { getFinelyBridgeBadges } from '../../../lib/finelyBridgeCreditProgram';
 import { listPartnersLocal } from '../../../data/partnersRepo';
-import { FINELY_OS_DRAG_HINT, FINELY_OS_ENTITY_BODY, FINELY_OS_ENTITY_INPUT, FINELY_OS_ENTITY_VALUE, finelyOsColumnThemeByColor, finelyOsStatusChip } from '../../os/finelyOsLightUi';
+import { FINELY_OS_DRAG_HINT, FINELY_OS_ENTITY_BODY, FINELY_OS_ENTITY_VALUE, finelyOsColumnThemeByColor, finelyOsStatusChip } from '../../os/finelyOsLightUi';
 import { useBoardDragDrop } from '../../os/useBoardDragDrop';
 
 export { CrmRecordPanel } from './CrmRecordDrawer';
+
+const CONVERSION_LIKELIHOOD_CHIP_TONE = { low: 'blocked', medium: 'warn', high: 'ok' } as const;
 
 function stageCardTone(stage: CrmRecordStage) {
   if (stage === 'converted' || stage === 'won' || stage === 'active_client') return 'border-emerald-500/35 bg-emerald-500/10 ring-1 ring-emerald-400/20';
@@ -36,6 +39,8 @@ export function CrmPipelineBoard({
     for (const p of listPartnersLocal()) map.set(p.id, p);
     return map;
   }, [records]);
+  // G4a — internal-only conversion-likelihood signal, built once per board render (not per card).
+  const conversionLikelihoodContext = useMemo(() => buildConversionLikelihoodContext(), [records]);
   const byStage = useMemo(() => {
     const map = new Map<CrmRecordStage, CrmRecord[]>();
     for (const s of pipeline.stages) map.set(s.id, []);
@@ -59,7 +64,7 @@ export function CrmPipelineBoard({
   return (
     <div>
       <p className={FINELY_OS_DRAG_HINT}>
-        <GripVertical size={12} /> Drag cards between columns to change stage — or use the dropdown
+        <GripVertical size={12} /> Drag cards between columns to change stage — or use the arrows on each card
       </p>
       <div className="flex gap-2 overflow-x-auto pb-2 md:hidden snap-x snap-mandatory -mx-1 px-1">
         {pipeline.stages.map((stage) => {
@@ -133,6 +138,19 @@ export function CrmPipelineBoard({
                             </div>
                           );
                         })()}
+                        {(() => {
+                          const signal = computeConversionLikelihood(record, conversionLikelihoodContext);
+                          if (record.stage === 'lost' || record.stage === 'disqualified') return null;
+                          if (['converted', 'won', 'active_client'].includes(record.stage)) return null;
+                          return (
+                            <div
+                              className={`mt-2 ml-1 inline-flex ${finelyOsStatusChip(CONVERSION_LIKELIHOOD_CHIP_TONE[signal.bucket])}`}
+                              title={`Agent signal (internal): ${signal.factors.join(' · ')}`}
+                            >
+                              Agent signal: {signal.bucket}
+                            </div>
+                          );
+                        })()}
                         {record.workSignals?.riskLevel === 'high' || record.workSignals?.riskLevel === 'medium' ? (
                           <div
                             className={`mt-2 inline-flex ${finelyOsStatusChip(record.workSignals.riskLevel === 'high' ? 'blocked' : 'warn')}`}
@@ -158,17 +176,33 @@ export function CrmPipelineBoard({
                             </div>
                           );
                         })()}
-                        <select
-                          {...stopDragOnControl}
-                          value={record.stage}
-                          onClick={(e) => e.stopPropagation()}
-                          onChange={(e) => onStageChange(record.id, e.target.value as CrmRecordStage)}
-                          className={`mt-2 w-full ${FINELY_OS_ENTITY_INPUT.replace('mt-2 ', '')} !text-[10px] !py-1`}
-                        >
-                          {pipeline.stages.map((s) => (
-                            <option key={s.id} value={s.id}>{s.label}</option>
-                          ))}
-                        </select>
+                        {(() => {
+                          const idx = pipeline.stages.findIndex((s) => s.id === record.stage);
+                          const prevStage = idx > 0 ? pipeline.stages[idx - 1] : null;
+                          const nextStage = idx >= 0 && idx < pipeline.stages.length - 1 ? pipeline.stages[idx + 1] : null;
+                          return (
+                            <div {...stopDragOnControl} className="mt-2 flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                              <button
+                                type="button"
+                                disabled={!prevStage}
+                                onClick={() => prevStage && onStageChange(record.id, prevStage.id)}
+                                title={prevStage ? `Move back to ${prevStage.label}` : undefined}
+                                className="p-1 rounded-lg border border-white/10 bg-white/[0.04] text-white/60 hover:text-white hover:border-white/25 disabled:opacity-25 disabled:pointer-events-none"
+                              >
+                                <ChevronLeft size={12} />
+                              </button>
+                              <button
+                                type="button"
+                                disabled={!nextStage}
+                                onClick={() => nextStage && onStageChange(record.id, nextStage.id)}
+                                title={nextStage ? `Move to ${nextStage.label}` : undefined}
+                                className="flex-1 inline-flex items-center justify-center gap-1 rounded-lg border border-violet-400/25 bg-violet-500/10 px-2 py-1 text-[10px] font-bold text-violet-200 hover:bg-violet-500/20 disabled:opacity-25 disabled:pointer-events-none"
+                              >
+                                {nextStage ? nextStage.label : 'Final stage'} <ChevronRight size={12} />
+                              </button>
+                            </div>
+                          );
+                        })()}
                       </div>
                     );
                   })

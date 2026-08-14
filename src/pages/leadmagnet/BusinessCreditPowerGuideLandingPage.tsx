@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import {
   BarChart3,
@@ -12,6 +12,7 @@ import {
   FileText,
   Gauge,
   Lock,
+  Phone,
   ShieldCheck,
   Star,
   Target,
@@ -26,12 +27,23 @@ import { BUSINESS_FUNNEL } from '../../domain/leadMagnetFunnels';
 import { usePublicSeoMeta } from '../../hooks/usePublicSeoMeta';
 import { PremiumLeadMagnetCaptureForm } from '../../components/leadmagnet/PremiumLeadMagnetCaptureForm';
 import { LandingTypewriterTitle } from '../../components/landing/LandingTypewriterTitle';
+import { loadSettings } from '../../data/settingsRepo';
+import { buildTelHref, DEFAULT_SUPPORT_PHONE_DISPLAY } from '../../lib/telLink';
 import { BC_GUIDE_CHAPTERS, BC_GUIDE_META, BC_GUIDE_READ_PATH } from './businessCreditPowerGuideContent';
+import {
+  assignFunnelVariant,
+  ensureDefaultExperiments,
+  getExperimentForFunnel,
+  recordFunnelConversion,
+} from '../../data/funnelExperimentsRepo';
 import '../../components/leadmagnet/premiumLeadMagnetShared.css';
 import '../../components/leadmagnet/leadMagnetLuxuryStage.css';
 import './businessCreditPowerGuideLanding.css';
 
 const BUSINESS_THEME = getLeadMagnetVisualTheme(BUSINESS_FUNNEL);
+
+const SUPPORT_PHONE_DISPLAY = loadSettings().site.supportPhone || DEFAULT_SUPPORT_PHONE_DISPLAY;
+const SUPPORT_TEL_HREF = buildTelHref(SUPPORT_PHONE_DISPLAY);
 
 /** Approved center-standup dual-book mockup (landscape) — do not regenerate */
 const EGUIDE_MOCKUP_SRC = '/images/lead-magnets/business-credit-power-guide-mockup.png';
@@ -108,7 +120,15 @@ function WhyKpiCard({
 const BCPG_BUTTON =
   'lm-lux-btn lm-lux-cta-sheen bcpg-cta relative h-[3.25rem] w-full overflow-hidden rounded-lg text-[11px] font-black uppercase tracking-[0.2em] text-black transition disabled:opacity-60';
 
-function BusinessCaptureForm({ compact = false }: { compact?: boolean }) {
+function BusinessCaptureForm({
+  compact = false,
+  ctaOverride,
+  onConverted,
+}: {
+  compact?: boolean;
+  ctaOverride?: string;
+  onConverted?: () => void;
+}) {
   return (
     <div>
       {!compact ? (
@@ -125,17 +145,21 @@ function BusinessCaptureForm({ compact = false }: { compact?: boolean }) {
       <PremiumLeadMagnetCaptureForm
         funnelConfig={BUSINESS_FUNNEL}
         showBusinessName={!compact}
-        submitLabel={compact ? 'Yes — Send Me The Free Guide' : 'Download My Free Guide'}
+        submitLabel={ctaOverride ?? (compact ? 'Yes — Send Me The Free Guide' : 'Download My Free Guide')}
         buttonClass={BCPG_BUTTON}
         accentClass="focus:border-[#d4a447]/55 focus:ring-[#95e000]/15"
+        onCaptured={onConverted}
       />
       <p className="bcpg-compliance mt-3 text-center">
         Results vary · not legal advice · funding subject to underwriting
       </p>
-      <div className="mt-2 text-center">
+      <div className="mt-2 flex flex-wrap items-center justify-center gap-x-4 gap-y-1">
         <Link to={BUSINESS_FUNNEL.bookingPath ?? '/enlightenment-session'} className="lm-secondary-book-link">
           <Calendar size={14} /> Book a session
         </Link>
+        <a href={SUPPORT_TEL_HREF} className="lm-secondary-book-link">
+          <Phone size={14} /> Call {SUPPORT_PHONE_DISPLAY}
+        </a>
       </div>
     </div>
   );
@@ -179,6 +203,15 @@ export default function BusinessCreditPowerGuideLandingPage() {
       'Fundability sequencing for partners: entity pillars, stage gates, vendor depth, and OS scorecard habits — premium business credit education from Finely Cred. Results vary · funding subject to underwriting.',
     path: BUSINESS_FUNNEL.path,
   });
+
+  useEffect(() => {
+    ensureDefaultExperiments();
+  }, []);
+  const abVariant = useMemo(() => assignFunnelVariant(BUSINESS_FUNNEL.funnelId), []);
+  const experiment = useMemo(() => getExperimentForFunnel(BUSINESS_FUNNEL.funnelId), []);
+  const headlineOverride = experiment?.headlines?.[abVariant];
+  const ctaOverride = experiment?.ctaLabels?.[abVariant];
+  const onGuideCaptured = () => recordFunnelConversion(BUSINESS_FUNNEL.funnelId, abVariant);
 
   const scrollToDownload = () => document.getElementById('download')?.scrollIntoView({ behavior: 'smooth' });
 
@@ -277,22 +310,35 @@ export default function BusinessCreditPowerGuideLandingPage() {
             <div className="bcpg-hero-copy">
               <p className="text-[11px] font-bold uppercase tracking-[0.28em] text-[#95e000]">Free E-Guide</p>
               <h1 className="bcpg-serif bcpg-hero-title lm-lux-display mt-4 text-white">
-                <LandingTypewriterTitle
-                  as="span"
-                  text="Business Credit"
-                  className="block"
-                  speedMs={40}
-                  delayMs={100}
-                  caret
-                />
-                <LandingTypewriterTitle
-                  as="span"
-                  text="Power Guide"
-                  className="bcpg-hero-title-gold mt-1 block"
-                  speedMs={44}
-                  delayMs={780}
-                  caret
-                />
+                {headlineOverride ? (
+                  <LandingTypewriterTitle
+                    as="span"
+                    text={headlineOverride}
+                    className="bcpg-hero-title-gold block"
+                    speedMs={40}
+                    delayMs={100}
+                    caret
+                  />
+                ) : (
+                  <>
+                    <LandingTypewriterTitle
+                      as="span"
+                      text="Business Credit"
+                      className="block"
+                      speedMs={40}
+                      delayMs={100}
+                      caret
+                    />
+                    <LandingTypewriterTitle
+                      as="span"
+                      text="Power Guide"
+                      className="bcpg-hero-title-gold mt-1 block"
+                      speedMs={44}
+                      delayMs={780}
+                      caret
+                    />
+                  </>
+                )}
               </h1>
               <div className="lm-lux-rule--short lm-lux-rule--draw mt-5" aria-hidden />
               <p className="lm-lux-lede mt-6 max-w-md text-white/82">
@@ -324,6 +370,12 @@ export default function BusinessCreditPowerGuideLandingPage() {
                 >
                   Book a session →
                 </Link>
+                <a
+                  href={SUPPORT_TEL_HREF}
+                  className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.14em] text-white/50 hover:text-[#95e000]"
+                >
+                  <Phone size={13} /> Call {SUPPORT_PHONE_DISPLAY}
+                </a>
                 <div className="inline-flex items-center gap-2 rounded-xl border border-[#d4a447]/28 bg-black/35 px-3 py-2 backdrop-blur-sm">
                   <Lock size={14} className="text-[#d4a447]" />
                   <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#d4a447]">Free · no card</p>
@@ -339,7 +391,7 @@ export default function BusinessCreditPowerGuideLandingPage() {
           {/* Soft capture + preview — still first scroll, not a second full-screen wall */}
           <div className="mt-10 grid gap-6 lg:mt-12 lg:grid-cols-2 lg:items-stretch xl:gap-8">
             <div id="download" className="bcpg-form-panel lm-lux-panel relative z-10 rounded-2xl p-5 md:p-6">
-              <BusinessCaptureForm />
+              <BusinessCaptureForm ctaOverride={ctaOverride} onConverted={onGuideCaptured} />
             </div>
             <div id="bcpg-preview" className="bcpg-hero-video flex min-h-[260px] flex-col scroll-mt-28">
               <LeadMagnetFunnelHeroVideo
@@ -564,7 +616,7 @@ export default function BusinessCreditPowerGuideLandingPage() {
             </p>
           </div>
           <div className="bcpg-form-panel lm-lux-panel w-full max-w-xl rounded-2xl p-5 md:p-6">
-            <BusinessCaptureForm compact />
+            <BusinessCaptureForm compact ctaOverride={ctaOverride} onConverted={onGuideCaptured} />
           </div>
         </div>
       </section>
@@ -585,6 +637,14 @@ export default function BusinessCreditPowerGuideLandingPage() {
           </div>
         </div>
       </footer>
+
+      {/* Mobile-only click-to-call bar (B7) — high-intent partners often prefer calling from a phone */}
+      <a
+        href={SUPPORT_TEL_HREF}
+        className="fixed inset-x-3 bottom-3 z-40 flex sm:hidden items-center justify-center gap-2 rounded-xl border border-[#95e000]/45 bg-[linear-gradient(135deg,#0f3d0a_0%,#2f7a1e_45%,#95e000_100%)] px-4 py-3 text-[11px] font-black uppercase tracking-[0.14em] text-black shadow-[0_16px_40px_rgba(149,224,0,0.35)]"
+      >
+        <Phone size={16} /> Call now — {SUPPORT_PHONE_DISPLAY}
+      </a>
     </main>
   );
 }

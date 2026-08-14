@@ -11,8 +11,10 @@ export type NotificationPrefs = {
   emailDigest: boolean;
   /** Instant email when staff posts to team/support chat (separate from digest mute). */
   emailInstantMessages: boolean;
-  /** Email partner when letters are generated / saved / ready to mail (mailed always offers notify). */
+  /** Email partner when letters are ready to mail or mailed (not on every draft save). */
   emailLetterLifecycle: boolean;
+  /** Email for confirmed bookings and upcoming session reminders. */
+  emailMeetingReminders: boolean;
   smsAlerts: boolean;
   pushEnabled: boolean;
   /** Categories to mute (e.g. letters, support, task, nurture_education) */
@@ -24,6 +26,7 @@ export const DEFAULT_NOTIFICATION_PREFS: Omit<NotificationPrefs, 'updatedAt'> = 
   emailDigest: true,
   emailInstantMessages: true,
   emailLetterLifecycle: true,
+  emailMeetingReminders: true,
   smsAlerts: false,
   pushEnabled: true,
   mutedKinds: [],
