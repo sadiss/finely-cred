@@ -30,6 +30,7 @@ import { FinelyOsPaginatedStack } from '../../features/os/FinelyOsPaginatedStack
 import { FinelyOsDataErrorBanner } from '../../features/os/FinelyOsDataErrorBanner';
 import { partnerNoteToTimelineItem } from '../../components/partner/PartnerActivityTimeline';
 import { PartnerOverviewTab } from '../../features/partner/PartnerOverviewTab';
+import { PartnerPortalHubLauncherSection } from '../../components/partner/PartnerPortalHubLauncherSection';
 import { ensurePartnerOnboardingTasks } from '../../lib/partnerOnboardingEngine';
 import '../../features/partner/partnerPortalVisual.css';
 import {
@@ -367,6 +368,8 @@ export default function PartnerDashboardPage() {
               </div>
             </div>
           ) : null}
+
+          <PartnerPortalHubLauncherSection partner={partner} refresh={refresh} />
 
           <div className="fc-admin-dark-glass-surface rounded-2xl border border-white/10 p-1 sm:p-2">
             <PartnerOverviewTab
