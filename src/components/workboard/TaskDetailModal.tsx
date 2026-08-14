@@ -1,15 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { CheckCircle2, ListChecks, Save, X } from 'lucide-react';
+import { CheckCircle2, ListChecks, Save} from 'lucide-react';
 import type { TaskItem, TaskKind, TaskPriority, TaskStage, TaskStatus } from '../../domain/tasks';
 import { upsertTask } from '../../data/tasksRepo';
 import {
   finelyOsCatalogCard,
   FINELY_OS_ENTITY_SUBLABEL,
   FINELY_OS_ENTITY_VALUE,  FINELY_OS_NOTICE_SUCCESS,
+  FINELY_OS_MODAL_HEADER,
   FINELY_OS_PRIMARY_BTN,
   FINELY_OS_SECONDARY_BTN,
 } from '../../features/os/finelyOsLightUi';
+import { FinelyOsModalCloseButton } from '../../features/os/FinelyOsModalCloseButton';
 
 function toDateInput(iso?: string) {
   if (!iso) return '';
@@ -92,7 +94,7 @@ export function TaskDetailModal({
     <div className="fixed inset-0 z-[241]">
       <div className="absolute inset-0 bg-black/75 backdrop-blur-[2px]" onClick={onClose} />
       <div className={`absolute inset-x-0 top-[7vh] mx-auto w-[min(820px,calc(100vw-20px))] max-h-[86vh] ${finelyOsCatalogCard('violet')} !p-0 flex flex-col overflow-hidden shadow-2xl backdrop-blur-xl`}>
-        <div className="shrink-0 p-6 border-b border-white/[0.08] flex flex-wrap items-start justify-between gap-4">
+        <div className={`${FINELY_OS_MODAL_HEADER} sm:px-6 sm:py-5`}>
           <div>
             <div className={FINELY_OS_ENTITY_SUBLABEL}>Task details</div>
             <div className={`mt-1 text-lg ${FINELY_OS_ENTITY_VALUE}`}>{task.title}</div>
@@ -100,9 +102,7 @@ export function TaskDetailModal({
               {projectTitle || 'Project'} • {task.id}
             </div>
           </div>
-          <button type="button" onClick={onClose} className={FINELY_OS_SECONDARY_BTN}>
-            <X size={16} />
-          </button>
+          <FinelyOsModalCloseButton onClick={onClose} />
         </div>
 
         <div className="flex-1 overflow-y-auto p-6 space-y-5">

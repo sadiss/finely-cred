@@ -1,5 +1,39 @@
 /* Partner portal — full width, zero blur overlays, visible glow tiles + map */
 
+.fc-portal-sticky-tabs__strip {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 0.5rem !important;
+  align-items: stretch;
+  width: 100%;
+  max-width: 100%;
+}
+
+.fc-portal-sticky-tabs__strip > button,
+.fc-portal-sticky-tabs__strip > details > summary {
+  flex: 0 1 auto;
+  min-height: 2.75rem;
+}
+
+.fc-portal-nav-structured,
+.fc-portal-simple-nav {
+  min-width: 0;
+}
+
+.fc-portal-simple-nav__more summary {
+  list-style: none;
+}
+
+.fc-portal-simple-nav__more summary::-webkit-details-marker {
+  display: none;
+}
+
+[data-fc-portal-nav='full'] .fc-view-tabs,
+[data-fc-portal-nav='structured'] .fc-view-tabs {
+  overflow: visible;
+  max-width: 100%;
+}
+
 .fc-container--portal-full {
   max-width: none !important;
   width: 100% !important;

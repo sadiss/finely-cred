@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { CheckCircle2, Paperclip, Target, X } from 'lucide-react';
+import { CheckCircle2, Paperclip, Target} from 'lucide-react';
 import type { TaskItem } from '../../../domain/tasks';
 import { listEvidenceByPartner } from '../../../data/evidenceRepo';
 import { listLettersByPartner } from '../../../data/lettersRepo';
@@ -16,6 +16,7 @@ import {
   FINELY_OS_SUCCESS_BTN,
   finelyOsGlassShell,
 } from '../../os/finelyOsLightUi';
+import { FinelyOsModalCloseButton } from '../../os/FinelyOsModalCloseButton';
 
 export function TaskCompleteModal({
   task,
@@ -105,9 +106,7 @@ export function TaskCompleteModal({
             </div>
             <h3 className={`mt-1 text-lg font-semibold ${FINELY_OS_ENTITY_VALUE}`}>{task.title}</h3>
           </div>
-          <button type="button" onClick={onClose} className={FINELY_OS_SECONDARY_BTN} aria-label="Close">
-            <X size={14} />
-          </button>
+          <FinelyOsModalCloseButton onClick={onClose} iconSize={16} />
         </div>
 
         {task.successCriteria ? (

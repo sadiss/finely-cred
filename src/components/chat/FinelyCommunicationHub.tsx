@@ -181,10 +181,10 @@ export function FinelyCommunicationHub({
           <div className="flex items-center gap-1 shrink-0">
             <button
               type="button"
-              onClick={() => navigate(PORTAL_COMMS_PATHS.calendar)}
+              onClick={() => navigate(adminMode ? '/admin/calendar' : PORTAL_COMMS_PATHS.calendar)}
               className="p-2 rounded-xl border border-sky-500/25 bg-sky-500/10 text-sky-200 hover:bg-sky-500/20"
-              title="Open calendar & video meetings"
-              aria-label="Open calendar and video meetings"
+              title={adminMode ? 'Open admin calendar' : 'Open calendar & video meetings'}
+              aria-label={adminMode ? 'Open admin calendar' : 'Open calendar and video meetings'}
             >
               <Calendar size={14} />
             </button>
@@ -260,7 +260,12 @@ export function FinelyCommunicationHub({
           )
         )}
         {tab === 'meetings' && (
-          <HubMeetingsPanel partnerId={effectivePartnerId} partnerDisplayName={effectivePartnerName} compact={!expanded && mode === 'floating'} />
+          <HubMeetingsPanel
+            partnerId={effectivePartnerId}
+            partnerDisplayName={effectivePartnerName}
+            compact={!expanded && mode === 'floating'}
+            adminMode={adminMode}
+          />
         )}
         {tab === 'guide' && <HubGuidePanel compact={!expanded && mode === 'floating'} onSwitchTab={switchTab} partnerId={effectivePartnerId} />}
       </div>

@@ -1,10 +1,13 @@
 import React, { useMemo, useState } from 'react';
-import { CalendarClock, Cloud, Plus, RotateCcw, Save, X } from 'lucide-react';
-import type { CalendarBlockedWindow, CalendarBookingSettings, SlotDuration } from '../../domain/calendar';
+import { CalendarClock, Cloud, Eye, Plus, RotateCcw, Save, Users, X } from 'lucide-react';
+import type { CalendarBlockedWindow, CalendarBookingSettings, CalendarStaffAssignee, SlotDuration } from '../../domain/calendar';
 import { resetCalendarBookingSettings, saveCalendarBookingSettings } from '../../data/calendarSettingsRepo';
 import { isFeatureEnabled } from '../../data/settingsRepo';
 import { getCalendarExternalSyncPreviewStatus } from '../../lib/calendarProviderSync';
+import { resetRoundRobinCursor } from '../../lib/calendarStaffRotation';
 import { newId } from '../../utils/ids';
+import { PublicSessionSlotPicker } from './PublicSessionSlotPicker';
+import type { BookableSlot } from '../../lib/calendarSlots';
 import {FINELY_OS_ENTITY_BODY,
   FINELY_OS_ENTITY_INPUT,
   FINELY_OS_ENTITY_LABEL,
@@ -39,9 +42,13 @@ export function CalendarSettingsPanel({
 }) {
   const [draft, setDraft] = useState(settings);
   const [notice, setNotice] = useState<string | null>(null);
+  const [previewDay, setPreviewDay] = useState<string | null>(null);
+  const [previewSlot, setPreviewSlot] = useState<BookableSlot | null>(null);
+  const [previewDuration, setPreviewDuration] = useState<SlotDuration>(settings.defaultDuration);
 
   React.useEffect(() => {
     setDraft(settings);
+    setPreviewDuration(settings.defaultDuration);
   }, [settings]);
 
   const blockedSummary = useMemo(() => {
@@ -222,7 +229,157 @@ export function CalendarSettingsPanel({
           </div>
         </div>
 
+        <div className={`space-y-3 p-3 ${finelyOsCatalogCard('violet')} !p-4 fc-surface-harmony`}>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="inline-flex items-center gap-2 text-violet-300">
+              <Users size={14} />
+              <span className={FINELY_OS_ENTITY_LABEL}>Staff rotation (round-robin)</span>
+            </div>
+            <label className="inline-flex items-center gap-2 text-xs text-white/70 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={Boolean(draft.roundRobinEnabled)}
+                onChange={(e) => setDraft((p) => ({ ...p, roundRobinEnabled: e.target.checked }))}
+                className="rounded border-violet-400/40"
+              />
+              Auto-assign hosts
+            </label>
+          </div>
+          <p className={`${FINELY_OS_ENTITY_BODY} text-xs`}>
+            When enabled, new public bookings rotate across enabled staff — same idea as Calendly round-robin. Host name on the invite updates automatically.
+          </p>
+          <div className="space-y-2">
+            {(draft.staffAssignees ?? []).map((staff) => (
+              <div key={staff.id} className={`flex flex-wrap items-center gap-2 p-2 ${finelyOsInlineListItem()}`}>
+                <input
+                  type="checkbox"
+                  checked={staff.enabled}
+                  onChange={(e) =>
+                    setDraft((p) => ({
+                      ...p,
+                      staffAssignees: (p.staffAssignees ?? []).map((s) =>
+                        s.id === staff.id ? { ...s, enabled: e.target.checked } : s,
+                      ),
+                    }))
+                  }
+                  title="Include in rotation"
+                />
+                <input
+                  value={staff.displayName}
+                  onChange={(e) =>
+                    setDraft((p) => ({
+                      ...p,
+                      staffAssignees: (p.staffAssignees ?? []).map((s) =>
+                        s.id === staff.id ? { ...s, displayName: e.target.value } : s,
+                      ),
+                    }))
+                  }
+                  placeholder="Display name"
+                  className={`flex-1 min-w-[120px] ${FINELY_OS_ENTITY_INPUT.replace('mt-2 ', '')}`}
+                />
+                <input
+                  value={staff.email}
+                  onChange={(e) =>
+                    setDraft((p) => ({
+                      ...p,
+                      staffAssignees: (p.staffAssignees ?? []).map((s) =>
+                        s.id === staff.id ? { ...s, email: e.target.value } : s,
+                      ),
+                    }))
+                  }
+                  placeholder="email@finelycred.com"
+                  className={`flex-1 min-w-[160px] ${FINELY_OS_ENTITY_INPUT.replace('mt-2 ', '')}`}
+                />
+                <input
+                  value={staff.roleLabel ?? ''}
+                  onChange={(e) =>
+                    setDraft((p) => ({
+                      ...p,
+                      staffAssignees: (p.staffAssignees ?? []).map((s) =>
+                        s.id === staff.id ? { ...s, roleLabel: e.target.value } : s,
+                      ),
+                    }))
+                  }
+                  placeholder="Role on invite"
+                  className={`w-36 ${FINELY_OS_ENTITY_INPUT.replace('mt-2 ', '')}`}
+                />
+                <button
+                  type="button"
+                  onClick={() =>
+                    setDraft((p) => ({
+                      ...p,
+                      staffAssignees: (p.staffAssignees ?? []).filter((s) => s.id !== staff.id),
+                    }))
+                  }
+                  className={FINELY_OS_DANGER_BTN}
+                >
+                  <X size={12} />
+                </button>
+              </div>
+            ))}
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                const next: CalendarStaffAssignee = {
+                  id: newId('host'),
+                  displayName: 'New host',
+                  email: '',
+                  enabled: true,
+                  roleLabel: 'Specialist',
+                };
+                setDraft((p) => ({ ...p, staffAssignees: [...(p.staffAssignees ?? []), next] }));
+              }}
+              className={FINELY_OS_SECONDARY_BTN}
+            >
+              <Plus size={13} /> Add staff
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                resetRoundRobinCursor();
+                setNotice('Round-robin cursor reset — next booking goes to first enabled host.');
+                setTimeout(() => setNotice(null), 2200);
+              }}
+              className={FINELY_OS_SECONDARY_BTN}
+            >
+              <RotateCcw size={13} /> Reset rotation
+            </button>
+          </div>
+          {draft.roundRobinEnabled ? (
+            <div className={`text-[10px] ${FINELY_OS_ENTITY_BODY}`}>
+              Active pool:{' '}
+              {(draft.staffAssignees ?? []).filter((s) => s.enabled && s.email.includes('@')).length || 'none — add at least one enabled email'}
+            </div>
+          ) : null}
+        </div>
+
         <ExternalCalendarSyncTeaser />
+
+        <div className={`space-y-3 p-3 ${finelyOsCatalogCard('emerald')} !p-4 fc-surface-harmony`}>
+          <div className="inline-flex items-center gap-2 text-emerald-300">
+            <Eye size={14} />
+            <span className={FINELY_OS_ENTITY_LABEL}>Booking preview</span>
+          </div>
+          <p className={`${FINELY_OS_ENTITY_BODY} text-xs`}>
+            Same date + time picker partners and public visitors see. Adjust settings above, then pick a day and time chip to verify open slots.
+          </p>
+          <PublicSessionSlotPicker
+            durationMinutes={previewDuration}
+            onDurationChange={(d) => {
+              setPreviewDuration(d);
+              setPreviewSlot(null);
+              setDraft((p) => ({ ...p, defaultDuration: d }));
+            }}
+            selectedDay={previewDay}
+            onDayChange={setPreviewDay}
+            selectedSlot={previewSlot}
+            onSlotChange={setPreviewSlot}
+            allowedDurations={draft.allowedDurations}
+            settingsOverride={draft}
+          />
+        </div>
 
         <div className="flex flex-wrap justify-end gap-2 pt-2">
           <button type="button" onClick={reset} className={FINELY_OS_SECONDARY_BTN}>

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Globe, MessageSquare, Send, X } from 'lucide-react';
+import { Globe, MessageSquare, Send } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { isFeatureEnabled } from '../../data/settingsRepo';
 import { callAiGateway } from '../../lib/aiClient';
@@ -15,11 +15,13 @@ import {
   FINELY_OS_ENTITY_SUBLABEL,
   FINELY_OS_ENTITY_VALUE,
   FINELY_OS_FIXED_OVERLAY,
+  FINELY_OS_MODAL_HEADER,
   FINELY_OS_MODAL_SHELL,
   FINELY_OS_SECONDARY_BTN,
   finelyOsGlowTextarea,
   type FinelyOsGlowAccent,
 } from '../../features/os/finelyOsLightUi';
+import { FinelyOsModalCloseButton } from '../../features/os/FinelyOsModalCloseButton';
 import { DebtCoachMessage, LegalResourceStrip } from './DebtCoachMessage';
 import { FinelyOsOnPageCoachShell, type FinelyOsCoachChip } from '../../features/os/FinelyOsOnPageCoachShell';
 
@@ -276,7 +278,7 @@ Write like a sharp human coach — warm, direct, no legalese walls. Use numbered
                   aria-labelledby="debt-coach-modal-title"
                   onClick={(e) => e.stopPropagation()}
                 >
-                  <div className="flex items-start justify-between gap-3 border-b border-white/10 px-4 py-4">
+                  <div className={FINELY_OS_MODAL_HEADER}>
                     <div className="min-w-0 flex items-start gap-2">
                       {icon}
                       <div>
@@ -286,14 +288,7 @@ Write like a sharp human coach — warm, direct, no legalese walls. Use numbered
                         </div>
                       </div>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => setModalOpen(false)}
-                      className={`${FINELY_OS_SECONDARY_BTN} !p-2`}
-                      aria-label="Close"
-                    >
-                      <X size={16} />
-                    </button>
+                    <FinelyOsModalCloseButton onClick={() => setModalOpen(false)} />
                   </div>
                   <div className="p-4 max-h-[72vh] overflow-y-auto">{coachBody}</div>
                 </div>

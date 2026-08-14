@@ -29,6 +29,7 @@ import { markSignedOutAndGoHome } from '../../components/navigation/BackToSiteBu
 import { clearOnboardingProgress } from '../../lib/onboardingProgressStorage';
 import { finelyCtaNavigate } from '../../lib/finelyCtaIntent';
 import { CommsWorkspaceActions } from '../../components/comms/CommsWorkspaceActions';
+import { MfaEnrollmentPanel } from '../../components/auth/MfaEnrollmentPanel';
 import { FinelyOsPageFooter } from '../../features/os/FinelyOsPageFooter';
 import {
   FINELY_OS_DANGER_BTN,
@@ -417,24 +418,28 @@ export default function AccountSettingsPage() {
         )}
 
         {tab === 'security' && (
-          <section className={`scroll-mt-32 ${finelyOsCatalogCard('violet')} !p-5 space-y-4`}>
+          <section className={`scroll-mt-32 ${finelyOsCatalogCard('violet')} !p-5 space-y-6`}>
             {auth.isDevAuthEnabled ? (
               <div className={FINELY_OS_ENTITY_BODY}>Password changes are available on the live site after Supabase sign-in.</div>
             ) : (
               <>
-                <div className="grid md:grid-cols-2 gap-4">
-                  <label>
-                    <span className={formLabel}>New password</span>
-                    <PasswordInput value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className={formInput} autoComplete="new-password" />
-                  </label>
-                  <label>
-                    <span className={formLabel}>Confirm password</span>
-                    <PasswordInput value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className={formInput} autoComplete="new-password" />
-                  </label>
+                <div className="space-y-4 border-b border-white/10 pb-6">
+                  <div className={FINELY_OS_ENTITY_SUBLABEL}>Password</div>
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <label>
+                      <span className={formLabel}>New password</span>
+                      <PasswordInput value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className={formInput} autoComplete="new-password" />
+                    </label>
+                    <label>
+                      <span className={formLabel}>Confirm password</span>
+                      <PasswordInput value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className={formInput} autoComplete="new-password" />
+                    </label>
+                  </div>
+                  <button type="button" disabled={busy || !newPassword} onClick={() => void savePassword()} className={FINELY_OS_SECONDARY_BTN}>
+                    Update password
+                  </button>
                 </div>
-                <button type="button" disabled={busy || !newPassword} onClick={() => void savePassword()} className={FINELY_OS_SECONDARY_BTN}>
-                  Update password
-                </button>
+                <MfaEnrollmentPanel emphasizeSensitiveData={Boolean(partner)} />
               </>
             )}
           </section>

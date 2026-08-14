@@ -25,6 +25,11 @@ const DEFAULT_SETTINGS: CalendarBookingSettings = {
     { id: 'wed-casework', label: 'Casework block', dayOfWeek: 3, startTime: '15:00', endTime: '17:00' },
     { id: 'fri-fulfillment', label: 'Fulfillment block', dayOfWeek: 5, startTime: '13:00', endTime: '15:00' },
   ],
+  roundRobinEnabled: false,
+  staffAssignees: [
+    { id: 'host-alex', displayName: 'Alex Rivera', email: 'alex@finelycred.com', enabled: true, roleLabel: 'Session Coordinator' },
+    { id: 'host-sanz', displayName: 'Sanz St. Louis', email: 'sanz@finelycred.com', enabled: true, roleLabel: 'Founder / Specialist' },
+  ],
 };
 
 function normalize(settings: Partial<CalendarBookingSettings> | null | undefined): CalendarBookingSettings {
@@ -51,6 +56,10 @@ function normalize(settings: Partial<CalendarBookingSettings> | null | undefined
     maxAdvanceDays: Math.max(1, Math.min(365, Math.round(settings?.maxAdvanceDays ?? DEFAULT_SETTINGS.maxAdvanceDays))),
     meetingTypes: Array.isArray(settings?.meetingTypes) && settings!.meetingTypes.length ? settings!.meetingTypes : DEFAULT_SETTINGS.meetingTypes,
     blockedWindows: Array.isArray(settings?.blockedWindows) ? settings!.blockedWindows : DEFAULT_SETTINGS.blockedWindows,
+    roundRobinEnabled: Boolean(settings?.roundRobinEnabled),
+    staffAssignees: Array.isArray(settings?.staffAssignees) && settings!.staffAssignees.length
+      ? settings!.staffAssignees
+      : DEFAULT_SETTINGS.staffAssignees,
   };
 }
 

@@ -546,3 +546,15 @@ export function sendUpcomingReminders(args?: { withinHours?: number; now?: Date 
   return changed;
 }
 
+/** Mark email/SMS reminder sent for a confirmed event (separate from in-app reminderSentAt). */
+export function markEventEmailReminderSent(id: string): CalendarEvent | null {
+  const store = loadStore();
+  const idx = store.events.findIndex((e) => e.id === id);
+  if (idx < 0) return null;
+  const next = { ...store.events[idx]!, emailReminderSentAt: nowIso(), updatedAt: nowIso() };
+  store.events[idx] = next;
+  saveStore(store);
+  void syncCalendarEventToSupabase(next);
+  return next;
+}
+

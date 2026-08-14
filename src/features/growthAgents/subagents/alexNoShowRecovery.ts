@@ -17,7 +17,9 @@ import {
 import { sendMeetingInviteEmail } from '../../../lib/meetingInviteEmailSend';
 import { getPublicSiteOrigin } from '../../../lib/funnelPublicLinks';
 import { isFeatureEnabled } from '../../../data/settingsRepo';
-import { checkSuppression } from '../../../data/commsSuppressionRepo';
+import { getPartnerSync } from '../../../data/partnersRepo';
+import { isInternalStaffEmail } from '../../../lib/meetingEmailGuards';
+import { checkSuppression, isOverFrequencyCap, recordSendForFrequencyCap, resolveFrequencyCapKey } from '../../../data/commsSuppressionRepo';
 import { logAgentAction } from '../../../lib/agentAuditLog';
 import { createMarketingTask, findOpenMarketingTask } from '../../marketingDesk/marketingDeskTasks';
 import { loadJson, saveJson } from '../../../data/localJsonStore';
@@ -82,22 +84,30 @@ export async function runAlexNoShowRecoverySweep(): Promise<NoShowRecoveryResult
     const rebookUrl = `${origin}${buildBookingInvitePath(invite.token)}`;
 
     let emailOk = false;
-    if (isFeatureEnabled('commsDelivery') && ev.partnerId) {
+    const partner = ev.partnerId && !ev.partnerId.startsWith('public:') ? getPartnerSync(ev.partnerId) : null;
+    const recoveryEmail = partner?.profile.email?.trim();
+    if (isFeatureEnabled('commsDelivery') && recoveryEmail && !isInternalStaffEmail(recoveryEmail)) {
       try {
-        const suppression = checkSuppression({ email: ev.partnerId, channel: 'email' });
-        if (!suppression.suppressed) {
+        const suppression = checkSuppression({ email: recoveryEmail, channel: 'email' });
+        const frequencyCapKey = await resolveFrequencyCapKey({ email: recoveryEmail, crmRecordId: ev.partnerId });
+        if (!suppression.suppressed && !isOverFrequencyCap(frequencyCapKey, 48, 1)) {
           const res = await sendMeetingInviteEmail({
             partnerId: ev.partnerId,
-            toEmail: ev.partnerId,
+            toEmail: recoveryEmail,
+            toName: partner?.profile.fullName,
             title: `We missed you — let's reschedule "${ev.title}"`,
             joinUrl: rebookUrl,
             hostName: 'Alex Rivera',
             hostRoleLabel: 'Appointment Setter',
             agenda: 'No pressure — pick a new time that works better. Link below.',
             scheduleUrl: rebookUrl,
+            intent: 'outreach',
           });
           emailOk = res.ok;
-          if (res.ok) result.emailsSent += 1;
+          if (res.ok) {
+            result.emailsSent += 1;
+            recordSendForFrequencyCap(frequencyCapKey);
+          }
         }
       } catch (e) {
         result.errors.push((e as Error)?.message || 'Recovery email failed');

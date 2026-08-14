@@ -10,7 +10,7 @@
  * marketing/sequence send today. `resolveFrequencyCapKey` (commsSuppressionRepo.ts)
  * is available if this decision is ever revisited.
  */
-import { listCalendarEvents, sendUpcomingReminders } from '../data/calendarRepo';
+import { listCalendarEvents, markEventEmailReminderSent, sendUpcomingReminders } from '../data/calendarRepo';
 import { isFeatureEnabled } from '../data/settingsRepo';
 import { isSupabaseConfigured } from './supabaseClient';
 import { sendMeetingInviteEmail } from './meetingInviteEmailSend';
@@ -19,6 +19,9 @@ import { getPartnerSync } from '../data/partnersRepo';
 import { buildGuestMeetingJoinPath } from './meetingUrls';
 import { getPublicSiteOrigin } from './funnelPublicLinks';
 import { loadJson, saveJson } from '../data/localJsonStore';
+import { isInternalStaffEmail } from './meetingEmailGuards';
+import { getNotificationPrefs } from '../data/notificationPrefsRepo';
+import { checkSuppression } from '../data/commsSuppressionRepo';
 
 const SMS_SENT_KEY = 'finely.meeting_sms_reminders.v1';
 
@@ -36,6 +39,12 @@ function markSmsSent(eventId: string) {
 function extractPhoneFromDescription(desc?: string): string | undefined {
   if (!desc) return undefined;
   const m = desc.match(/Phone:\s*([+\d()\-\s]{10,})/i);
+  return m?.[1]?.trim();
+}
+
+function extractEmailFromDescription(desc?: string): string | undefined {
+  if (!desc) return undefined;
+  const m = desc.match(/Email:\s*(\S+@\S+)/i);
   return m?.[1]?.trim();
 }
 
@@ -87,9 +96,9 @@ export async function runMeetingReminderAutomation(args?: {
     const isPublicGuest = ev.partnerId.startsWith('public:');
     const email =
       partner?.profile.email ||
-      (isPublicGuest ? ev.description?.match(/Email:\s*(\S+@\S+)/i)?.[1] : undefined);
+      (isPublicGuest ? extractEmailFromDescription(ev.description) : undefined);
     const phone = partner?.profile.phone || extractPhoneFromDescription(ev.description);
-    const name = partner?.profile.fullName || 'Partner';
+    const name = partner?.profile.fullName || extractEmailFromDescription(ev.description)?.split('@')[0] || 'Partner';
     const joinUrl = `${origin}${buildGuestMeetingJoinPath(ev.id)}`;
 
     if (!email && !phone) {
@@ -97,24 +106,34 @@ export async function runMeetingReminderAutomation(args?: {
       continue;
     }
 
-    if (email && !ev.reminderSentAt) {
-      try {
-        const res = await sendMeetingInviteEmail({
-          partnerId: ev.partnerId,
-          toEmail: email,
-          toName: name,
-          title: `Reminder: ${ev.title}`,
-          joinUrl,
-          startAt: ev.startAt,
-          endAt: ev.endAt,
-          hostName: 'Finely Cred',
-          hostRoleLabel: 'Session Coordinator',
-          agenda: 'Your session is coming up — tap Join meeting (audio-first room).',
-        });
-        if (res.ok) result.emailsSent++;
-        else result.errors.push(res.error || 'Email failed');
-      } catch (e: unknown) {
-        result.errors.push((e as Error)?.message || 'Email failed');
+    if (email && !ev.emailReminderSentAt && !isInternalStaffEmail(email)) {
+      const suppression = checkSuppression({ email, channel: 'email' });
+      const meetingPrefsOff =
+        partner && !ev.partnerId.startsWith('public:') && getNotificationPrefs({ partnerId: ev.partnerId }).emailMeetingReminders === false;
+      if (!suppression.suppressed && !meetingPrefsOff) {
+        try {
+          const res = await sendMeetingInviteEmail({
+            partnerId: ev.partnerId,
+            toEmail: email,
+            toName: name,
+            title: `Reminder: ${ev.title}`,
+            joinUrl,
+            startAt: ev.startAt,
+            endAt: ev.endAt,
+            hostName: 'Finely Cred',
+            hostRoleLabel: 'Session Coordinator',
+            agenda: 'Your session is coming up — tap Join meeting (audio-first room).',
+            intent: 'reminder',
+          });
+          if (res.ok) {
+            result.emailsSent++;
+            markEventEmailReminderSent(ev.id);
+          } else result.errors.push(res.error || 'Email failed');
+        } catch (e: unknown) {
+          result.errors.push((e as Error)?.message || 'Email failed');
+        }
+      } else {
+        result.skipped++;
       }
     }
 

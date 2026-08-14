@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { ArrowRight, Calendar, CheckCircle2, FolderOpen, ListChecks, Sparkles, User, X } from 'lucide-react';
+import { ArrowRight, Calendar, CheckCircle2, FolderOpen, ListChecks, Sparkles, User} from 'lucide-react';
 import type { Partner } from '../../domain/partners';
 import type { Project, ProjectHealth, ProjectPriority, ProjectStage, ProjectStatus } from '../../domain/projects';
 import { upsertProject } from '../../data/projectsRepo';
@@ -17,9 +17,11 @@ import {
   FINELY_OS_ENTITY_SUBLABEL,
   FINELY_OS_ENTITY_VALUE,  FINELY_OS_NOTICE_ERROR,
   FINELY_OS_NOTICE_SUCCESS,
+  FINELY_OS_MODAL_HEADER,
   FINELY_OS_PRIMARY_BTN,
   FINELY_OS_SECONDARY_BTN,
 } from '../../features/os/finelyOsLightUi';
+import { FinelyOsModalCloseButton } from '../../features/os/FinelyOsModalCloseButton';
 
 function fmtWhen(iso?: string) {
   if (!iso) return '—';
@@ -189,7 +191,7 @@ export function ProjectDetailModal({
     <div className="fixed inset-0 z-[240]">
       <div className="absolute inset-0 bg-black/75 backdrop-blur-[2px]" onClick={onClose} />
       <div className={`absolute inset-x-0 top-[6vh] mx-auto w-[min(960px,calc(100vw-20px))] max-h-[88vh] ${finelyOsCatalogCard('violet')} !p-0 flex flex-col overflow-hidden shadow-2xl backdrop-blur-xl`}>
-        <div className="shrink-0 p-6 border-b border-white/[0.08] flex flex-wrap items-start justify-between gap-4">
+        <div className={`${FINELY_OS_MODAL_HEADER} sm:px-6 sm:py-5`}>
           <div className="min-w-0">
             <div className={FINELY_OS_ENTITY_SUBLABEL}>Project details</div>
             <div className={`mt-1 text-lg truncate ${FINELY_OS_ENTITY_VALUE}`}>{project.title}</div>
@@ -197,9 +199,7 @@ export function ProjectDetailModal({
               {project.id} • created {fmtWhen(project.createdAt)}
             </div>
           </div>
-          <button type="button" onClick={onClose} className={FINELY_OS_SECONDARY_BTN}>
-            <X size={16} />
-          </button>
+          <FinelyOsModalCloseButton onClick={onClose} />
         </div>
 
         <div className="shrink-0 flex border-b border-white/[0.08] px-4 bg-white/[0.07]">

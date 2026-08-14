@@ -54,7 +54,7 @@ export const FC_ADMIN_PAGE = 'space-y-4';
  * rose    = risk, danger, blockers
  */
 
-export type FcAdminTone = 'neutral' | 'emerald' | 'gold' | 'sky' | 'navy' | 'teal' | 'rose';
+export type FcAdminTone = 'neutral' | 'emerald' | 'gold' | 'sky' | 'navy' | 'teal' | 'rose' | 'violet';
 
 const FC_ADMIN_TONE_VARS: Record<Exclude<FcAdminTone, 'neutral'>, { solid: string; ink: string }> = {
   emerald: { solid: '--fc-admin-tone-emerald', ink: '--fc-admin-tone-emerald-ink' },
@@ -63,6 +63,7 @@ const FC_ADMIN_TONE_VARS: Record<Exclude<FcAdminTone, 'neutral'>, { solid: strin
   navy: { solid: '--fc-admin-tone-navy', ink: '--fc-admin-tone-navy-ink' },
   teal: { solid: '--fc-admin-tone-teal', ink: '--fc-admin-tone-teal-ink' },
   rose: { solid: '--fc-admin-tone-rose', ink: '--fc-admin-tone-rose-ink' },
+  violet: { solid: '--fc-admin-tone-violet', ink: '--fc-admin-tone-violet-ink' },
 };
 
 /**
@@ -228,6 +229,34 @@ export function fcAdminStatusChip(tone: 'ok' | 'warn' | 'blocked') {
     blocked: 'border-[var(--fc-admin-tone-rose)] bg-[var(--fc-admin-tone-rose)] text-white',
   } as any;
   return `inline-flex items-center px-2.5 py-1 rounded-lg border text-[10px] font-bold uppercase tracking-widest shadow-sm ${styles[tone]}`;
+}
+
+/** Single-family accent chip — one solid tone, no mixed ok/warn palette inside a status panel. */
+export function fcAdminAccentStatusChip(tone: Exclude<FcAdminTone, 'neutral' | 'teal' | 'navy'>) {
+  const styles: Record<typeof tone, string> = {
+    emerald: 'fc-admin-solid-emerald text-white',
+    gold: 'fc-admin-solid-gold text-[var(--fc-ink-on-gold)]',
+    sky: 'fc-admin-solid-sky text-white',
+    violet: 'fc-admin-solid-violet text-white',
+    rose: 'fc-admin-solid-rose text-white',
+  };
+  return `inline-flex items-center gap-2 rounded-xl border px-3 py-1.5 text-[11px] font-bold uppercase tracking-wide shadow-sm ${styles[tone]}`;
+}
+
+/** Signup activity panel fill — stage maps to one accent family for the whole box. */
+export function fcAdminSignupPanelTone(stage: string): FcAdminTone {
+  switch (stage) {
+    case 'active':
+    case 'signup_complete':
+    case 'invite_sent':
+      return 'emerald';
+    case 'awaiting_confirmation':
+      return 'gold';
+    case 'not_started':
+      return 'rose';
+    default:
+      return 'sky';
+  }
 }
 
 /* ─── Buttons — three pop colors (emerald/gold/black), never a faint outline

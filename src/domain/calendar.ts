@@ -23,6 +23,16 @@ export type CalendarBlockedWindow = {
   endTime: string; // HH:mm
 };
 
+/** Staff member in round-robin scheduling (Calendly-style rotation). */
+export type CalendarStaffAssignee = {
+  id: string;
+  displayName: string;
+  email: string;
+  /** When false, skipped in rotation. */
+  enabled: boolean;
+  roleLabel?: string;
+};
+
 export type CalendarBookingSettings = {
   timezone?: string;
   startHour: number;
@@ -38,6 +48,9 @@ export type CalendarBookingSettings = {
   maxAdvanceDays: number;
   meetingTypes: Array<{ id: string; label: string; durationMinutes: SlotDuration; description?: string }>;
   blockedWindows: CalendarBlockedWindow[];
+  /** Distribute new bookings across enabled staff (round-robin). */
+  roundRobinEnabled?: boolean;
+  staffAssignees?: CalendarStaffAssignee[];
 };
 
 export type ConsultationRequest = {
@@ -85,7 +98,10 @@ export type CalendarEvent = {
   meetingUrl?: string;
   location?: string;
   sourceRequestId?: string;
+  /** In-app reminder notification sent (portal/admin calendar load). */
   reminderSentAt?: string;
+  /** Email/SMS reminder sent for this confirmed event. */
+  emailReminderSentAt?: string;
   /** Post-meeting notes (admin enters after call) */
   meetingNotes?: string;
   createdAt: string;

@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { AlertTriangle, Camera, ExternalLink, Paperclip, Trash2, X } from 'lucide-react';
+import { AlertTriangle, Camera, ExternalLink, Paperclip, Trash2 } from 'lucide-react';
 import type { Bureau, ParsedTradeline } from '../../domain/creditReports';
 import type { EvidenceItem } from '../../domain/evidence';
 import { openBlobRefInNewTab } from '../../lib/openBlobRef';
@@ -7,6 +7,8 @@ import { captureTradelineEvidenceScreenshot } from '../../lib/captureTradelineEv
 import { bureauFullName } from '../../utils/bureaus';
 import { EvidenceUploader } from './EvidenceUploader';
 import { FinelyOsTypedDeleteDialog } from '../../features/os/FinelyOsTypedDeleteDialog';
+import { FINELY_OS_MODAL_HEADER } from '../../features/os/finelyOsLightUi';
+import { FinelyOsModalCloseButton } from '../../features/os/FinelyOsModalCloseButton';
 import {
   EVIDENCE_MATCH_ATTACH_MIN,
   describeEvidenceMismatch,
@@ -220,7 +222,7 @@ export function EvidencePickerModal({
   };
 
   return (
-    <div className="fixed inset-0 z-[120] flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-[120] flex items-center justify-center p-3 sm:p-4 md:p-6">
       <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={onClose} />
       <div
         className="relative w-full max-w-5xl rounded-3xl border border-white/[0.08] bg-fc-shell shadow-2xl overflow-hidden"
@@ -228,7 +230,7 @@ export function EvidencePickerModal({
         aria-modal="true"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="p-6 border-b border-white/[0.08] flex items-start justify-between gap-4">
+        <div className={`${FINELY_OS_MODAL_HEADER} sm:px-6 sm:py-5`}>
           <div className="min-w-0">
             <div className="text-[10px] uppercase tracking-widest text-white/40">Evidence picker</div>
             <div className="mt-2 text-2xl font-light text-white truncate">{title}</div>
@@ -255,14 +257,7 @@ export function EvidencePickerModal({
                 <ExternalLink size={14} /> Full vault
               </button>
             ) : null}
-            <button
-              type="button"
-              onClick={onClose}
-              className="p-2 rounded-xl bg-white/5 border border-white/[0.08] text-white/60 hover:text-white hover:bg-white/10 transition-all"
-              title="Close"
-            >
-              <X size={16} />
-            </button>
+            <FinelyOsModalCloseButton onClick={onClose} />
           </div>
         </div>
 

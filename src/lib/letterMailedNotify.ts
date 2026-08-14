@@ -11,7 +11,7 @@ import { sendEmail } from './commsDeliveryClient';
 import { buildLetterMailedNotifyEmail } from '../comms/letterMailedNotifyEmail';
 import { getNotificationPrefs } from '../data/notificationPrefsRepo';
 import { addAuditEvent } from '../data/auditRepo';
-import { isAdminEmail } from '../auth/admin';
+import { emailDedupeKey, isEmailRecentlySent, markEmailRecentlySent } from './emailSendDedupe';
 
 const MAIL_RECEIPT_KEY = 'finely.mail.receipts.v1';
 
@@ -62,7 +62,7 @@ export async function notifyLetterMailed(args: {
   expectedDeliveryDate?: string;
   actorEmail?: string;
   actorRole?: 'partner' | 'admin';
-}): Promise<{ sent: boolean; reason?: string; adminSent?: boolean }> {
+}): Promise<{ sent: boolean; reason?: string }> {
   if (!isFeatureEnabled('commsDelivery') || !isSupabaseConfigured) {
     return { sent: false, reason: 'comms_not_configured' };
   }
@@ -76,6 +76,14 @@ export async function notifyLetterMailed(args: {
   const prefs = getNotificationPrefs({ partnerId: partner.id });
   if ((prefs.mutedKinds ?? []).includes('letters')) {
     return { sent: false, reason: 'letters_muted' };
+  }
+  if (prefs.emailLetterLifecycle === false) {
+    return { sent: false, reason: 'letter_lifecycle_disabled' };
+  }
+
+  const dedupeKey = emailDedupeKey('letter-mailed', partner.id, ...args.letterIds.sort());
+  if (isEmailRecentlySent(dedupeKey, 24)) {
+    return { sent: false, reason: 'recent_duplicate' };
   }
 
   const origin = typeof window !== 'undefined' ? window.location.origin : '';
@@ -109,6 +117,7 @@ export async function notifyLetterMailed(args: {
         text: payload.text,
         html: payload.html,
       });
+      markEmailRecentlySent(dedupeKey);
       sent = true;
       addAuditEvent({
         partnerId: partner.id,
@@ -130,33 +139,7 @@ export async function notifyLetterMailed(args: {
     reason = 'missing_email';
   }
 
-  // Also notify the admin actor when they mailed on behalf of a partner (and email differs).
-  let adminSent = false;
-  const adminEmail = (args.actorEmail || '').trim().toLowerCase();
-  if (args.actorRole === 'admin' && adminEmail && isAdminEmail(adminEmail) && adminEmail !== toEmail.toLowerCase()) {
-    try {
-      const adminPayload = buildLetterMailedNotifyEmail({
-        partner,
-        letterTitles: args.letterTitles,
-        providerIds: args.providerIds,
-        to: args.to,
-        expectedDeliveryDate: args.expectedDeliveryDate,
-        mailedAtIso: new Date().toISOString(),
-        actorLabel: 'admin (copy)',
-        vaultUrl: origin ? `${origin}/admin/partners/${partner.id}?tab=letters` : `/admin/partners/${partner.id}?tab=letters`,
-      });
-      await sendEmail({
-        toEmail: adminEmail,
-        toName: 'Finely Cred Admin',
-        subject: `[Admin copy] ${adminPayload.subject}`,
-        text: adminPayload.text,
-        html: adminPayload.html,
-      });
-      adminSent = true;
-    } catch {
-      /* non-blocking */
-    }
-  }
+  // Admin copies removed — audit trail + in-app notifications are sufficient.
 
   persistMailReceipt({
     id: `mail_rcpt_${Date.now()}`,
@@ -170,5 +153,5 @@ export async function notifyLetterMailed(args: {
     emailSent: sent,
   });
 
-  return { sent, reason: sent ? undefined : reason, adminSent };
+  return { sent, reason: sent ? undefined : reason };
 }

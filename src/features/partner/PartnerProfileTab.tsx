@@ -13,15 +13,18 @@ import {
   FC_ADMIN_INK_TITLE,
   FC_ADMIN_INK_VALUE,
   FC_ADMIN_LABEL,
+  fcAdminCard,
   fcAdminOnSolidBody,
+  fcAdminOnSolidSecondaryBtn,
   fcAdminOnSolidSublabel,
   fcAdminOnSolidText,
+  fcAdminOnSolidValue,
   fcAdminScoreCell,
-  fcAdminStatusChip,
   fcAdminToneText,
   type FcAdminTone,
 } from '../os/finelyOsAdminSurface';
-import { FINELY_OS_FIXED_OVERLAY, FINELY_OS_MODAL_SHELL, finelyOsGlowField } from '../os/finelyOsLightUi';
+import { FINELY_OS_FIXED_OVERLAY, FINELY_OS_MODAL_HEADER, FINELY_OS_MODAL_SHELL, finelyOsGlowField } from '../os/finelyOsLightUi';
+import { FinelyOsModalCloseButton } from '../os/FinelyOsModalCloseButton';
 
 const FINELY_OS_DANGER_BTN = FC_ADMIN_DANGER_BTN;
 const FINELY_OS_DANGER_PANEL = `${FC_ADMIN_DANGER_PANEL} space-y-2`;
@@ -42,17 +45,25 @@ const FINELY_OS_DARK_SECONDARY_BTN =
 
 type ProfileGlassTone = 'emerald' | 'gold' | 'sky' | 'violet' | 'rose';
 
+function profileLaunchTone(accent: ProfileGlassTone): FcAdminTone {
+  return accent;
+}
+
 function profileDarkGlassCard(tone: FcAdminTone | ProfileGlassTone = 'neutral') {
   const tint = tone === 'neutral' ? '' : ` fc-admin-dark-glass-tint-${tone}`;
   return `fc-admin-dark-glass-card${tint} rounded-2xl border p-4 text-white`;
 }
 
 function profileDarkGlassHero(tone: FcAdminTone = 'gold') {
-  return `fc-admin-dark-glass-hero fc-admin-dark-glass-tint-${tone} rounded-2xl border p-4 text-white`;
+  return `fc-admin-solid-${tone} rounded-2xl border p-4 sm:p-5`;
 }
 
 function profileDarkGlassCta(tone: ProfileGlassTone) {
   return `fc-admin-dark-glass-cta fc-admin-dark-glass-cta--${tone} px-3.5 py-2 text-xs font-semibold`;
+}
+
+function profileHeroChip(tone: 'gold' | 'emerald' | 'sky') {
+  return `fc-admin-solid-${tone} rounded-xl border p-3 min-w-0`;
 }
 
 function profilePopupShell(tone: FcAdminTone) {
@@ -60,20 +71,9 @@ function profilePopupShell(tone: FcAdminTone) {
   return `fc-admin-ink-panel fc-admin-dark-glass-tint-${tint} fc-partner-profile-popup rounded-2xl border text-white`;
 }
 
-function finelyOsStatusChip(tone: 'ok' | 'warn' | 'blocked') {
-  return fcAdminStatusChip(tone);
-}
-
 type ScoreRow = { model: string; exp?: number | null; eqf?: number | null; tuc?: number | null };
 type ProfilePanel = 'contact' | 'scores' | 'financial' | 'fields' | 'danger';
 type ProfileActionAccent = ProfileGlassTone;
-
-function statusChipTone(status: string): 'ok' | 'warn' | 'blocked' {
-  const normalized = status.trim().toLowerCase();
-  if (['active', 'enrolled', 'complete'].includes(normalized)) return 'ok';
-  if (['inactive', 'blocked', 'archived', 'suspended'].includes(normalized)) return 'blocked';
-  return 'warn';
-}
 
 function PartnerProfileLaunchCard(props: {
   accent: ProfileActionAccent;
@@ -82,13 +82,17 @@ function PartnerProfileLaunchCard(props: {
   buttonLabel: string;
   onClick: () => void;
 }) {
+  const tone = profileLaunchTone(props.accent);
+  const SUBLABEL = fcAdminOnSolidSublabel(tone);
+  const BODY = fcAdminOnSolidBody(tone);
+  const BTN = fcAdminOnSolidSecondaryBtn(tone);
   return (
-    <section className={`${profileDarkGlassCard(props.accent)} flex min-w-0 flex-col justify-between`}>
+    <section className={`${fcAdminCard('p-4', tone, 'solid')} flex min-w-0 flex-col justify-between`}>
       <div>
-        <p className={FINELY_OS_DARK_GLASS_SUBLABEL}>{props.title}</p>
-        <p className={`mt-1 ${FINELY_OS_DARK_GLASS_BODY}`}>{props.description}</p>
+        <p className={SUBLABEL}>{props.title}</p>
+        <p className={`mt-1 ${BODY}`}>{props.description}</p>
       </div>
-      <button type="button" className={`${profileDarkGlassCta(props.accent)} mt-3 self-start`} onClick={props.onClick}>
+      <button type="button" className={`${BTN} mt-3 self-start`} onClick={props.onClick}>
         {props.buttonLabel}
         <ChevronRight size={15} aria-hidden="true" />
       </button>
@@ -121,7 +125,7 @@ function PartnerProfilePopup(props: {
         aria-modal="true"
         aria-labelledby={props.id}
       >
-        <header className="flex items-start justify-between gap-3 border-b border-white/10 px-4 py-3 sm:px-5">
+        <header className={FINELY_OS_MODAL_HEADER}>
           <div className="min-w-0">
             <p className={FINELY_OS_DARK_GLASS_SUBLABEL}>{props.eyebrow}</p>
             <h2 id={props.id} className={`mt-1 ${FINELY_OS_DARK_GLASS_TITLE}`}>
@@ -129,15 +133,7 @@ function PartnerProfilePopup(props: {
             </h2>
             <p className={`mt-1 ${FINELY_OS_DARK_GLASS_BODY}`}>{props.description}</p>
           </div>
-          <button
-            type="button"
-            className="shrink-0 rounded-lg border border-white/20 bg-black/25 p-2 text-white/75 hover:bg-white/10 hover:text-white transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
-            onClick={props.onClose}
-            aria-label={`Close ${props.title}`}
-            autoFocus
-          >
-            <X size={18} aria-hidden="true" />
-          </button>
+          <FinelyOsModalCloseButton onClick={props.onClose} aria-label={`Close ${props.title}`} />
         </header>
         <div className="max-h-[72vh] overflow-y-auto px-4 py-4 sm:px-5">{props.children}</div>
         <footer className="flex justify-end border-t border-white/10 px-4 py-3 sm:px-5">
@@ -254,12 +250,12 @@ export function PartnerProfileTab(args: {
 
   return (
     <div className={`fc-admin-workspace fc-partner-profile-tab rounded-3xl border p-3 sm:p-4 ${FINELY_OS_PAGE}`}>
-      <section className={`${profileDarkGlassHero('gold')} w-full`}>
+      <section className={`${profileDarkGlassHero('gold')} w-full ${fcAdminOnSolidText('gold')}`}>
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="min-w-0">
-            <p className={FINELY_OS_DARK_GLASS_SUBLABEL}>Partner profile</p>
-            <h2 className={`mt-1 truncate ${FINELY_OS_DARK_GLASS_TITLE}`}>{profileName}</h2>
-            <p className={`mt-1 ${FINELY_OS_DARK_GLASS_BODY}`}>
+            <p className={fcAdminOnSolidSublabel('gold')}>Partner profile</p>
+            <h2 className={`mt-1 truncate ${fcAdminOnSolidValue('gold')}`}>{profileName}</h2>
+            <p className={`mt-1 ${fcAdminOnSolidBody('gold')}`}>
               {profileDraft.email.trim() || 'Email not on file'} · {profileDraft.phone.trim() || 'Phone not on file'}
             </p>
           </div>
@@ -270,22 +266,22 @@ export function PartnerProfileTab(args: {
         </div>
 
         <dl className="mt-3 grid gap-2 sm:grid-cols-3">
-          <div className="fc-admin-dark-glass-chip fc-admin-dark-glass-tint-gold rounded-xl border p-3">
-            <dt className={FINELY_OS_DARK_GLASS_SUBLABEL}>Mailing</dt>
-            <dd className={`mt-1 truncate text-sm ${FINELY_OS_DARK_GLASS_VALUE}`} title={mailingSummary || undefined}>
+          <div className={profileHeroChip('gold')}>
+            <dt className={fcAdminOnSolidSublabel('gold')}>Mailing</dt>
+            <dd className={`mt-1 truncate text-sm ${fcAdminOnSolidValue('gold')}`} title={mailingSummary || undefined}>
               {mailingSummary || 'No mailing address on file'}
             </dd>
           </div>
-          <div className="fc-admin-dark-glass-chip fc-admin-dark-glass-tint-emerald rounded-xl border p-3">
-            <dt className={FINELY_OS_DARK_GLASS_SUBLABEL}>Partner status</dt>
+          <div className={profileHeroChip('emerald')}>
+            <dt className={fcAdminOnSolidSublabel('emerald')}>Partner status</dt>
             <dd className="mt-1 flex flex-wrap items-center gap-2">
-              <span className={finelyOsStatusChip(statusChipTone(partnerStatus))}>{partnerStatus}</span>
-              <span className={`text-xs ${FINELY_OS_DARK_GLASS_BODY}`}>{activeCount} portal modules active</span>
+              <span className={`text-sm font-bold uppercase tracking-wide ${fcAdminOnSolidValue('emerald')}`}>{partnerStatus}</span>
+              <span className={`text-xs ${fcAdminOnSolidBody('emerald')}`}>{activeCount} portal modules active</span>
             </dd>
           </div>
-          <div className="fc-admin-dark-glass-chip fc-admin-dark-glass-tint-sky rounded-xl border p-3">
-            <dt className={FINELY_OS_DARK_GLASS_SUBLABEL}>Credit snapshot</dt>
-            <dd className={`mt-1 text-sm ${FINELY_OS_DARK_GLASS_VALUE}`}>{scoreSummary}</dd>
+          <div className={profileHeroChip('sky')}>
+            <dt className={fcAdminOnSolidSublabel('sky')}>Credit snapshot</dt>
+            <dd className={`mt-1 text-sm ${fcAdminOnSolidValue('sky')}`}>{scoreSummary}</dd>
           </div>
         </dl>
       </section>

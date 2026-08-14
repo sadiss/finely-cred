@@ -25,6 +25,7 @@ import {
   resolveFrequencyCapKey,
 } from '../../data/commsSuppressionRepo';
 import { logAgentAction } from '../../lib/agentAuditLog';
+import { isInternalStaffEmail } from '../../lib/meetingEmailGuards';
 
 const AUTO_KEY = 'finely.alex.appointment_autopilot.v1';
 const OUTREACH_KEY = 'finely.alex.outreach_sent.v1';
@@ -72,7 +73,7 @@ function isSameLocalDay(iso: string): boolean {
 
 export function isAlexAppointmentAutopilotEnabled(): boolean {
   const raw = loadJson<{ enabled?: boolean }>(AUTO_KEY, {}, 1);
-  if (raw.enabled === undefined) return true;
+  if (raw.enabled === undefined) return false;
   return Boolean(raw.enabled);
 }
 
@@ -157,6 +158,10 @@ export async function runAlexAppointmentOutreach(args?: {
 
     const name = crmRecordDisplayName(record);
     const email = record.contact.email!.trim();
+    if (isInternalStaffEmail(email)) {
+      result.skipped++;
+      continue;
+    }
     const leadId = record.sourceRef?.type === 'lead' ? record.sourceRef.id : undefined;
 
     const existingInvite = listBookingInvites().find(
@@ -207,6 +212,7 @@ export async function runAlexAppointmentOutreach(args?: {
           hostRoleLabel: 'Appointment Setter',
           agenda: `${reason}. Pick a time that works — audio-first video room included.`,
           scheduleUrl: bookUrl,
+          intent: 'outreach',
         });
         emailOk = res.ok;
         if (res.ok) {

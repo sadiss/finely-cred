@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { CheckCircle2, ChevronRight, ExternalLink, X, Send, AlertTriangle, MapPin, Package } from 'lucide-react';
+import { CheckCircle2, ChevronRight, ExternalLink, Send, AlertTriangle, MapPin, Package } from 'lucide-react';
 import type { LetterRecord } from '../../domain/letters';
 import type { EvidenceItem } from '../../domain/evidence';
 import { businessBureauDisputeAddress, consumerBureauDisputeAddress } from '../../letters/bureauAddresses';
@@ -22,7 +22,8 @@ import { MailProviderStatusBanner } from '../mailing/MailProviderStatusBanner';
 import { LetterAgentChainStrip } from './LetterAgentChainStrip';
 import { LetterEmailPartnerToggle } from './LetterEmailPartnerToggle';
 import { appendAiActionAudit } from '../../data/aiActionAuditLog';
-import { FINELY_OS_PRIMARY_BTN, FINELY_OS_SECONDARY_BTN, FINELY_OS_ENTITY_BODY } from '../../features/os/finelyOsLightUi';
+import { FINELY_OS_PRIMARY_BTN, FINELY_OS_SECONDARY_BTN, FINELY_OS_ENTITY_BODY, FINELY_OS_MODAL_HEADER } from '../../features/os/finelyOsLightUi';
+import { FinelyOsModalCloseButton } from '../../features/os/FinelyOsModalCloseButton';
 import {
   enrichRecipientAddress,
   enrichRecipientAddressSync,
@@ -668,7 +669,7 @@ export function MailLetterModal({
   ];
 
   return (
-    <div className="fixed inset-0 z-[9600] flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-[9600] flex items-center justify-center p-3 sm:p-4 md:p-6">
       <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => (busy || step === 'track' ? null : onClose())} />
       <div
         className="relative w-full max-w-4xl rounded-3xl border border-white/[0.08] bg-fc-shell shadow-2xl overflow-hidden"
@@ -676,7 +677,7 @@ export function MailLetterModal({
         aria-modal="true"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="p-4 border-b border-white/[0.08] flex items-start justify-between gap-4">
+        <div className={FINELY_OS_MODAL_HEADER}>
           <div className="min-w-0">
             <div className="text-[10px] uppercase tracking-widest text-white/40">{FINELY_MAIL_COPY.serviceName}</div>
             <div className="mt-1 text-xl font-light text-white truncate">{effectiveLetter.title}</div>
@@ -684,15 +685,7 @@ export function MailLetterModal({
               First-timer path: Confirm address → Mail → Track. One clear action per step.
             </p>
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            disabled={busy}
-            className="p-2 rounded-xl border border-white/[0.08] bg-white/5 hover:bg-white/10 text-white/70 disabled:opacity-60"
-            title="Close"
-          >
-            <X size={16} />
-          </button>
+          <FinelyOsModalCloseButton onClick={onClose} disabled={busy} />
         </div>
 
         <div className="px-4 pt-3 flex flex-wrap items-center gap-1.5">

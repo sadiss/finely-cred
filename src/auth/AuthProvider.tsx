@@ -3,6 +3,7 @@ import type { Session, User } from '@supabase/supabase-js';
 import { isSupabaseConfigured, supabase } from '../lib/supabaseClient';
 import { isAdminEmail } from './admin';
 import { sendPasswordResetEmail } from '../lib/passwordResetEmail';
+import { mfaVerificationRequired } from '../lib/mfaAuth';
 import { claimInvitedMembershipForUser, ensureFinelyPlatformAdminMembership } from '../data/tenantsRepo';
 
 export type UserProfileUpdate = {
@@ -39,11 +40,11 @@ type AuthContextValue = {
   session: Session | null;
   user: User | null;
   signUpWithEmail: (args: { email: string; password: string; metadata?: Record<string, any> }) => Promise<{ error?: string; user?: User | null }>;
-  signInWithEmail: (args: { email: string; password: string }) => Promise<{ error?: string; user?: User | null }>;
+  signInWithEmail: (args: { email: string; password: string }) => Promise<{ error?: string; user?: User | null; mfaRequired?: boolean }>;
   signOut: () => Promise<void>;
   updateUserProfile: (patch: UserProfileUpdate) => Promise<{ error?: string }>;
   updatePassword: (password: string) => Promise<{ error?: string }>;
-  requestPasswordReset: (args: { email: string; redirectTo?: string; userId?: string }) => Promise<{ error?: string }>;
+  requestPasswordReset: (args: { email: string; redirectTo?: string; userId?: string }) => Promise<{ error?: string; sent?: boolean; noAccount?: boolean }>;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -237,7 +238,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const { data, error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) return { error: error.message };
         if (data.session) setSession(data.session);
-        return { user: data.user ?? data.session?.user ?? null };
+        const user = data.user ?? data.session?.user ?? null;
+        try {
+          const needsMfa = await mfaVerificationRequired();
+          if (needsMfa) return { user, mfaRequired: true };
+        } catch {
+          // MFA check unavailable — allow sign-in
+        }
+        return { user };
       },
       signOut: async () => {
         try {
@@ -307,8 +315,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         const viaComms = await sendPasswordResetEmail({ email: trimmed, redirectTo: redirect, userId });
         // ok:true covers both sent:true (email dispatched) and sent:false (no matching account —
-        // we never reveal whether the address is registered). Only ok:false is a real server error.
-        if (viaComms.ok) return {};
+        // we never reveal whether the address is registered on public flows). Only ok:false is a real server error.
+        if (viaComms.ok) {
+          return {
+            sent: viaComms.sent === true,
+            noAccount: viaComms.noAccount === true,
+          };
+        }
         return {
           error: viaComms.error || 'Could not send password reset email. Check SMTP secrets and edge function deployment.',
         };

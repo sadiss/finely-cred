@@ -1,4 +1,11 @@
-import { supabase, isSupabaseConfigured } from './supabaseClient';
+import { invokePublicEdgeFunction, isSupabaseConfigured } from './supabaseClient';
+
+export type PasswordResetResult = {
+  ok: boolean;
+  sent?: boolean;
+  noAccount?: boolean;
+  error?: string;
+};
 
 /** Request a password reset email via the send-password-reset edge function (all roles). */
 export async function sendPasswordResetEmail(args: {
@@ -6,15 +13,23 @@ export async function sendPasswordResetEmail(args: {
   redirectTo?: string;
   /** Auth user id — resolves canonical login email when profile email differs. */
   userId?: string;
-}): Promise<{ ok: boolean; sent?: boolean; error?: string }> {
+}): Promise<PasswordResetResult> {
   const email = (args.email || '').trim();
   if (!email) return { ok: false, sent: false, error: 'Email is required.' };
   if (!isSupabaseConfigured) return { ok: false, sent: false, error: 'Supabase is not configured.' };
 
   const redirectTo = args.redirectTo || `${window.location.origin}/reset-password`;
 
-  const { data, error } = await supabase.functions.invoke('send-password-reset', {
-    body: { email, redirectTo, userId: args.userId || undefined },
+  // Always call as anonymous — stale/expired session tokens must not block forgot-password.
+  const { data, error } = await invokePublicEdgeFunction<{
+    ok?: boolean;
+    sent?: boolean;
+    reason?: string;
+    error?: string;
+  }>('send-password-reset', {
+    email,
+    redirectTo,
+    userId: args.userId || undefined,
   });
 
   if (error) {
@@ -34,5 +49,6 @@ export async function sendPasswordResetEmail(args: {
     return { ok: false, sent: false, error: String(data.error || 'Password reset email could not be sent.') };
   }
 
-  return { ok: true, sent: data?.sent === true };
+  const noAccount = data?.reason === 'no_auth_account' || data?.sent === false;
+  return { ok: true, sent: data?.sent === true, noAccount };
 }

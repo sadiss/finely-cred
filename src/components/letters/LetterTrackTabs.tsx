@@ -61,8 +61,9 @@ export function LetterTrackTabs({
   'aria-label'?: string;
 }) {
   return (
+    <div className="-mx-1 overflow-x-auto pb-1 [scrollbar-width:thin]">
     <div
-      className={`flex flex-wrap gap-2 p-1 rounded-2xl border border-white/10 bg-black/30 ${className}`}
+      className={`flex flex-wrap sm:flex-nowrap gap-2 p-1 rounded-2xl border border-white/10 bg-black/30 min-w-max sm:min-w-0 ${className}`}
       role="tablist"
       aria-label={ariaLabel}
     >
@@ -75,13 +76,14 @@ export function LetterTrackTabs({
             role="tab"
             aria-selected={selected}
             onClick={() => onTabChange(t.id)}
-            className={`${LETTER_TRACK_TAB} ${selected ? LETTER_TRACK_TAB_ACTIVE : LETTER_TRACK_TAB_IDLE}`}
+            className={`${LETTER_TRACK_TAB} shrink-0 ${selected ? LETTER_TRACK_TAB_ACTIVE : LETTER_TRACK_TAB_IDLE}`}
           >
             {t.icon}
             {t.label}
           </button>
         );
       })}
+    </div>
     </div>
   );
 }

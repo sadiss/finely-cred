@@ -14,7 +14,8 @@ type Props = {
   selectedId: string | null;
   onSelect: (id: string) => void;
   onOpenProject?: (id: string) => void;
-  onCreateProject: () => void;
+  onCreateProject?: () => void;
+  showCreateButton?: boolean;
   stageLabelById: Map<string, string>;
   taskCountByProject?: Map<string, { open: number; done: number }>;
 };
@@ -25,6 +26,7 @@ export function ProjectsTasksMasterPanel({
   onSelect,
   onOpenProject,
   onCreateProject,
+  showCreateButton = Boolean(onCreateProject),
   stageLabelById,
   taskCountByProject,
 }: Props) {
@@ -39,14 +41,16 @@ export function ProjectsTasksMasterPanel({
         <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-white/50">
           <FolderKanban size={14} className="text-amber-400" /> Projects
         </div>
-        <button
-          type="button"
-          onClick={onCreateProject}
-          className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-amber-500 text-black text-[9px] font-black uppercase tracking-widest hover:brightness-110"
-          title="New project"
-        >
-          <Plus size={12} /> New
-        </button>
+        {showCreateButton && onCreateProject ? (
+          <button
+            type="button"
+            onClick={onCreateProject}
+            className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-amber-500 text-black text-[9px] font-black uppercase tracking-widest hover:brightness-110"
+            title="New project"
+          >
+            <Plus size={12} /> New
+          </button>
+        ) : null}
       </div>
       <div className="p-2">
         <FinelyOsPaginatedStack

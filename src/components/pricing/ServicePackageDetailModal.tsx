@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { CheckCircle2, X } from 'lucide-react';
+import { CheckCircle2 } from 'lucide-react';
 import {
   formatPrice,
   getPackageDisplayDetails,
@@ -12,10 +12,12 @@ import {
   FINELY_OS_ENTITY_SUBLABEL,
   FINELY_OS_ENTITY_VALUE,
   FINELY_OS_FIXED_OVERLAY,
+  FINELY_OS_MODAL_HEADER,
   FINELY_OS_PRIMARY_BTN,
   FINELY_OS_SECONDARY_BTN,
   finelyOsCatalogCard,
 } from '../../features/os/finelyOsLightUi';
+import { FinelyOsModalCloseButton } from '../../features/os/FinelyOsModalCloseButton';
 import { BusinessCapitalOutlookBlock } from './BusinessCapitalOutlookBlock';
 
 type Props = {
@@ -55,7 +57,7 @@ export function ServicePackageDetailModal({ pkg, rail, onClose, onSelect, select
           aria-modal="true"
           aria-labelledby="pkg-detail-title"
         >
-          <div className="p-6 border-b border-white/[0.08] flex items-start justify-between gap-4">
+          <div className={`${FINELY_OS_MODAL_HEADER} sm:px-6 sm:py-5`}>
             <div className="min-w-0">
               <div className={`${FINELY_OS_ENTITY_SUBLABEL} text-emerald-300 font-bold`}>What&apos;s included</div>
               <h2 id="pkg-detail-title" className={`mt-2 text-xl sm:text-2xl font-bold ${FINELY_OS_ENTITY_VALUE}`}>
@@ -76,9 +78,7 @@ export function ServicePackageDetailModal({ pkg, rail, onClose, onSelect, select
                 ) : null}
               </div>
             </div>
-            <button type="button" onClick={onClose} className={FINELY_OS_SECONDARY_BTN} title="Close" aria-label="Close">
-              <X size={18} />
-            </button>
+            <FinelyOsModalCloseButton onClick={onClose} />
           </div>
 
           <div className="p-6 space-y-6">

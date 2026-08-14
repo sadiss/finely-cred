@@ -431,7 +431,7 @@ export const FINELY_OS_BACK_LINK = 'inline-flex items-center gap-2 text-sm text-
 export const FINELY_OS_PRIMARY_BTN = 'fc-button-brand';
 
 export const FINELY_OS_SUCCESS_BTN =
-  'inline-flex items-center justify-center gap-2 min-w-0 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-3 sm:px-4 py-2 text-[10px] font-black uppercase tracking-wide whitespace-normal text-center leading-snug text-white shadow-md ring-1 ring-emerald-400/30 hover:brightness-110 transition-all disabled:opacity-60';
+  'inline-flex items-center justify-center gap-2 min-w-0 min-h-[44px] rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-3 sm:px-4 py-2 text-[10px] font-black uppercase tracking-wide whitespace-normal text-center leading-snug text-white shadow-md ring-1 ring-emerald-400/30 hover:brightness-110 transition-all disabled:opacity-60';
 
 /** Soft gold/emerald glow CTA — pricing “What’s included” / browse solutions (noticeable, not neon). */
 export const FINELY_OS_GLOW_INCLUDES_BTN =
@@ -761,6 +761,12 @@ export const FINELY_OS_PLATINUM_BTN = 'fc-button-platinum';
 export const FINELY_OS_FIXED_OVERLAY = 'fixed inset-0 z-50 bg-black/80 backdrop-blur-sm';
 export const FINELY_OS_MODAL_OVERLAY = 'absolute inset-0 bg-black/80 backdrop-blur-sm';
 export const FINELY_OS_MODAL_SHELL = `${FINELY_OS_ENTITY_PANEL} !p-0 overflow-hidden shadow-2xl flex flex-col max-h-[min(92vh,900px)]`;
+/** Sticky modal header — keeps title + close visible while body scrolls. */
+export const FINELY_OS_MODAL_HEADER =
+  'sticky top-0 z-10 shrink-0 flex items-start justify-between gap-3 border-b border-white/20 bg-[#0a0d12]/92 backdrop-blur-xl px-4 py-3 sm:px-5 sm:py-4 shadow-[0_8px_24px_-12px_rgba(0,0,0,0.85)]';
+/** High-contrast modal close control — 44px touch target, visible on dark + light glass headers. */
+export const FINELY_OS_MODAL_CLOSE =
+  'inline-flex items-center justify-center shrink-0 w-11 h-11 min-w-[44px] min-h-[44px] rounded-xl border-2 border-white/45 bg-[#0f141c]/90 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.22),0_4px_14px_rgba(0,0,0,0.55)] hover:bg-white/18 hover:border-white/70 hover:text-white hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.28),0_6px_18px_rgba(0,0,0,0.6)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/70 active:scale-[0.97] transition-all disabled:opacity-50 disabled:pointer-events-none [&_svg]:drop-shadow-[0_1px_1px_rgba(0,0,0,0.65)]';
 
 /** AI draft button styling (Letter Studio). */
 export const FINELY_OS_AI_DRAFT_BTN =

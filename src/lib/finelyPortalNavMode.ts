@@ -9,7 +9,7 @@ export function readPortalNavMode(): FinelyPortalNavMode {
   } catch {
     // ignore
   }
-  return 'simple';
+  return 'full';
 }
 
 export function persistPortalNavMode(mode: FinelyPortalNavMode) {

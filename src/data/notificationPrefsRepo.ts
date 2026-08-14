@@ -24,6 +24,7 @@ export function getNotificationPrefs(args: { partnerId?: string; userId?: string
       ...hit,
       emailInstantMessages: hit.emailInstantMessages ?? DEFAULT_NOTIFICATION_PREFS.emailInstantMessages,
       emailLetterLifecycle: hit.emailLetterLifecycle ?? DEFAULT_NOTIFICATION_PREFS.emailLetterLifecycle,
+      emailMeetingReminders: hit.emailMeetingReminders ?? DEFAULT_NOTIFICATION_PREFS.emailMeetingReminders,
     };
   }
   return {

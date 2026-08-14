@@ -7,8 +7,10 @@ import {
   adminUpsertPartner,
   findPartnerByClaimedUserId,
   findPartnerByEmail,
+  rowToPartner,
   upsertPartner,
 } from '../data/partnersRepo';
+import { isSupabaseConfigured, supabase } from './supabaseClient';
 
 export type PartnerAuthActivity = {
   inviteSentAt?: string;
@@ -52,61 +54,205 @@ export type PartnerSignupStage =
   | 'signup_complete'
   | 'active';
 
-export function derivePartnerSignupStatus(partner: Partner): {
+/** Live access state — combines stored activity + optional Supabase auth snapshot. */
+export type PartnerAccessState =
+  | 'invited'
+  | 'pending_signup'
+  | 'email_unverified'
+  | 'active'
+  | 'last_seen';
+
+export type LiveAuthSnapshot = {
+  userId: string;
+  email?: string;
+  emailConfirmedAt?: string;
+  lastSignInAt?: string;
+  createdAt?: string;
+};
+
+export type PartnerAccessResolution = {
+  state: PartnerAccessState;
+  label: string;
+  tone: 'amber' | 'emerald' | 'violet' | 'sky' | 'rose';
+  detail: string;
+  hasAuthAccount: boolean;
+  hasSignedIn: boolean;
+  emailConfirmed: boolean;
+  lastSeenAt?: string;
+};
+
+const FUNCTIONS_URL = (() => {
+  try {
+    const url = (import.meta as any).env?.VITE_SUPABASE_URL as string | undefined;
+    return url ? `${url.replace('/rest/v1', '').replace(/\/+$/, '')}/functions/v1` : null;
+  } catch {
+    return null;
+  }
+})();
+
+function mergedAuthTimestamps(partner: Partner, liveAuth?: LiveAuthSnapshot | null) {
+  const activity = readPartnerAuthActivity(partner);
+  return {
+    emailConfirmedAt: liveAuth?.emailConfirmedAt || activity.emailConfirmedAt,
+    lastSignInAt: liveAuth?.lastSignInAt || activity.lastLoginAt || activity.firstLoginAt,
+    signupAt: liveAuth?.createdAt || activity.signupCompletedAt,
+  };
+}
+
+/** Resolve partner invite/signup state from stored record + optional live Supabase auth. */
+export function resolvePartnerAccessState(
+  partner: Partner,
+  liveAuth?: LiveAuthSnapshot | null,
+): PartnerAccessResolution {
+  const activity = readPartnerAuthActivity(partner);
+  const claimed = Boolean(partner.claimedUserId || liveAuth?.userId);
+  const ts = mergedAuthTimestamps(partner, liveAuth);
+  const hasAuthAccount = Boolean(
+    liveAuth?.userId || partner.claimedUserId || activity.signupCompletedAt || activity.passwordSetAt,
+  );
+  const emailConfirmed = Boolean(ts.emailConfirmedAt);
+  const hasSignedIn = Boolean(ts.lastSignInAt);
+  const lastSeenAt = ts.lastSignInAt;
+
+  if (hasSignedIn || (claimed && partner.status === 'active' && emailConfirmed)) {
+    return {
+      state: 'active',
+      label: 'Active partner',
+      tone: 'emerald',
+      detail: lastSeenAt
+        ? `Signed in — last seen ${formatAuthWhen(lastSeenAt)}.`
+        : 'Account linked and active.',
+      hasAuthAccount,
+      hasSignedIn,
+      emailConfirmed,
+      lastSeenAt,
+    };
+  }
+
+  if (hasAuthAccount && !emailConfirmed) {
+    return {
+      state: 'email_unverified',
+      label: 'Awaiting email confirm',
+      tone: 'amber',
+      detail: 'Auth account exists — waiting for email confirmation.',
+      hasAuthAccount,
+      hasSignedIn,
+      emailConfirmed,
+      lastSeenAt,
+    };
+  }
+
+  if (hasAuthAccount && (claimed || activity.signupCompletedAt) && !hasSignedIn) {
+    return {
+      state: 'last_seen',
+      label: 'Awaiting first login',
+      tone: 'sky',
+      detail: 'Signed up and linked — they have not signed in yet.',
+      hasAuthAccount,
+      hasSignedIn,
+      emailConfirmed,
+      lastSeenAt,
+    };
+  }
+
+  if (hasAuthAccount && !claimed) {
+    return {
+      state: 'pending_signup',
+      label: 'Signed up',
+      tone: 'sky',
+      detail: 'Auth account exists — finishing profile link.',
+      hasAuthAccount,
+      hasSignedIn,
+      emailConfirmed,
+      lastSeenAt,
+    };
+  }
+
+  if (activity.inviteSentAt) {
+    return {
+      state: 'invited',
+      label: 'Invite sent',
+      tone: 'violet',
+      detail: 'Waiting for them to open the invite and create their account.',
+      hasAuthAccount,
+      hasSignedIn,
+      emailConfirmed,
+      lastSeenAt,
+    };
+  }
+
+  return {
+    state: 'pending_signup',
+    label: partner.status === 'active' ? 'Active (legacy)' : 'Pending signup',
+    tone: partner.status === 'active' ? 'emerald' : 'rose',
+    detail:
+      partner.status === 'active'
+        ? 'Legacy import marked active — sync auth to confirm login.'
+        : 'No invite sent yet — send invite or share the signup link.',
+    hasAuthAccount,
+    hasSignedIn,
+    emailConfirmed,
+    lastSeenAt,
+  };
+}
+
+export function derivePartnerSignupStatus(
+  partner: Partner,
+  liveAuth?: LiveAuthSnapshot | null,
+): {
   stage: PartnerSignupStage;
   label: string;
   tone: 'amber' | 'emerald' | 'violet' | 'sky' | 'rose';
   detail: string;
 } {
-  const activity = readPartnerAuthActivity(partner);
-  const claimed = Boolean(partner.claimedUserId);
-
-  if (claimed && (activity.lastLoginAt || activity.firstLoginAt || partner.status === 'active')) {
-    return {
-      stage: 'active',
-      label: 'Joined · Active',
-      tone: 'emerald',
-      detail: 'Signup finished — account linked and active.',
-    };
+  const resolved = resolvePartnerAccessState(partner, liveAuth);
+  switch (resolved.state) {
+    case 'active':
+      return {
+        stage: 'active',
+        label: resolved.label,
+        tone: resolved.tone,
+        detail: resolved.detail,
+      };
+    case 'last_seen':
+    case 'pending_signup':
+      if (resolved.hasAuthAccount) {
+        return {
+          stage: 'signup_complete',
+          label: resolved.label,
+          tone: resolved.tone,
+          detail: resolved.detail,
+        };
+      }
+      if (readPartnerAuthActivity(partner).inviteSentAt) {
+        return {
+          stage: 'invite_sent',
+          label: resolved.label,
+          tone: resolved.tone,
+          detail: resolved.detail,
+        };
+      }
+      return {
+        stage: 'not_started',
+        label: resolved.label,
+        tone: resolved.tone,
+        detail: resolved.detail,
+      };
+    case 'email_unverified':
+      return {
+        stage: 'awaiting_confirmation',
+        label: resolved.label,
+        tone: resolved.tone,
+        detail: resolved.detail,
+      };
+    case 'invited':
+      return {
+        stage: 'invite_sent',
+        label: resolved.label,
+        tone: resolved.tone,
+        detail: resolved.detail,
+      };
   }
-  if (claimed) {
-    return {
-      stage: 'signup_complete',
-      label: 'Joined',
-      tone: 'emerald',
-      detail: 'Password set and profile claimed — they finished registration.',
-    };
-  }
-  if (activity.signupPendingEmailConfirmationAt || (activity.signupCompletedAt && !activity.emailConfirmedAt)) {
-    return {
-      stage: 'awaiting_confirmation',
-      label: 'Awaiting email confirm',
-      tone: 'amber',
-      detail: 'They created an account — waiting for email confirmation.',
-    };
-  }
-  if (activity.signupCompletedAt) {
-    return {
-      stage: 'signup_complete',
-      label: 'Signed up',
-      tone: 'sky',
-      detail: 'Account created — finishing profile link.',
-    };
-  }
-  if (activity.inviteSentAt) {
-    return {
-      stage: 'invite_sent',
-      label: 'Invite sent',
-      tone: 'violet',
-      detail: 'Waiting for them to open the invite and set a password.',
-    };
-  }
-  return {
-    stage: 'not_started',
-    label: 'Not invited',
-    tone: 'rose',
-    detail: 'No invite sent yet — send invite or share the signup link.',
-  };
 }
 
 export function signupStatusChipTone(
@@ -140,8 +286,8 @@ export function buildAuthActivityTimeline(partner: Partner): Array<{
     tone: 'emerald' | 'amber' | 'violet' | 'sky' | 'rose' | 'fuchsia';
   }> = [];
 
-  if (a.inviteSentAt) items.push({ id: 'invite', label: 'Invite email sent', at: a.inviteSentAt, tone: 'violet' });
-  if (a.inviteResentAt) items.push({ id: 'invite_resend', label: 'Invite resent', at: a.inviteResentAt, tone: 'violet' });
+  if (a.inviteSentAt) items.push({ id: 'invite', label: 'Invite email sent', at: a.inviteSentAt, tone: 'emerald' });
+  if (a.inviteResentAt) items.push({ id: 'invite_resend', label: 'Invite resent', at: a.inviteResentAt, tone: 'emerald' });
   if (a.signupCompletedAt) {
     items.push({ id: 'signup', label: 'Account created & password set', at: a.signupCompletedAt, tone: 'sky' });
   }
@@ -267,6 +413,187 @@ export async function recordPartnerAuthActivity(args: {
   return saved;
 }
 
+/** Apply a live Supabase auth snapshot onto a partner record (in-memory; does not persist). */
+export function applyLiveAuthSnapshotToPartner(
+  partner: Partner,
+  auth: LiveAuthSnapshot,
+): { partner: Partner; changed: boolean } {
+  const activity = readPartnerAuthActivity(partner);
+  const now = new Date().toISOString();
+  let next: Partner = { ...partner };
+  let changed = false;
+
+  if (!next.claimedUserId && auth.userId) {
+    next = {
+      ...next,
+      claimedUserId: auth.userId,
+      claimedAt: next.claimedAt || auth.createdAt || now,
+    };
+    changed = true;
+  }
+
+  if (next.status === 'lead' && (auth.lastSignInAt || auth.emailConfirmedAt || next.claimedUserId)) {
+    next = { ...next, status: 'active' };
+    changed = true;
+  }
+
+  const patch: Partial<PartnerAuthActivity> = {};
+  if (!activity.signupCompletedAt && auth.createdAt) patch.signupCompletedAt = auth.createdAt;
+  if (!activity.passwordSetAt && auth.createdAt) patch.passwordSetAt = auth.createdAt;
+  if (!activity.emailConfirmedAt && auth.emailConfirmedAt) {
+    patch.emailConfirmedAt = auth.emailConfirmedAt;
+    patch.signupPendingEmailConfirmationAt = undefined;
+  }
+  if (!activity.accountClaimedAt && next.claimedUserId) {
+    patch.accountClaimedAt = next.claimedAt || now;
+  }
+  if (!activity.firstLoginAt && auth.lastSignInAt) patch.firstLoginAt = auth.lastSignInAt;
+  if (auth.lastSignInAt && activity.lastLoginAt !== auth.lastSignInAt) {
+    patch.lastLoginAt = auth.lastSignInAt;
+  }
+  if (activity.signupPendingEmailConfirmationAt && auth.emailConfirmedAt) {
+    patch.signupPendingEmailConfirmationAt = undefined;
+  }
+
+  if (Object.keys(patch).length) {
+    next = patchPartnerAuthActivity(next, patch);
+    changed = true;
+  }
+
+  return { partner: next, changed };
+}
+
+function parseLiveAuthSnapshot(raw: unknown): LiveAuthSnapshot | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const o = raw as Record<string, unknown>;
+  const userId = String(o.userId ?? o.user_id ?? '').trim();
+  if (!userId) return null;
+  return {
+    userId,
+    email: typeof o.email === 'string' ? o.email : undefined,
+    emailConfirmedAt:
+      typeof o.emailConfirmedAt === 'string'
+        ? o.emailConfirmedAt
+        : typeof o.email_confirmed_at === 'string'
+          ? o.email_confirmed_at
+          : undefined,
+    lastSignInAt:
+      typeof o.lastSignInAt === 'string'
+        ? o.lastSignInAt
+        : typeof o.last_sign_in_at === 'string'
+          ? o.last_sign_in_at
+          : undefined,
+    createdAt:
+      typeof o.createdAt === 'string'
+        ? o.createdAt
+        : typeof o.created_at === 'string'
+          ? o.created_at
+          : undefined,
+  };
+}
+
+/** Fetch live auth from admin edge function and optionally persist claim + activity. */
+export async function syncPartnerAuthStateFromLive(args: {
+  partner: Partner;
+  persist?: boolean;
+}): Promise<{
+  partner: Partner;
+  auth: LiveAuthSnapshot | null;
+  resolution: PartnerAccessResolution;
+  changed: boolean;
+}> {
+  const persist = args.persist !== false;
+  let partner = args.partner;
+  let auth: LiveAuthSnapshot | null = null;
+  let changed = false;
+
+  if (isSupabaseConfigured && FUNCTIONS_URL) {
+    try {
+      const session = await supabase.auth.getSession();
+      const token = session.data.session?.access_token;
+      if (token) {
+        const res = await fetch(`${FUNCTIONS_URL}/admin-partner-auth-sync`, {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ partnerId: partner.id, persist }),
+        });
+        if (res.ok) {
+          const body = await res.json();
+          auth = parseLiveAuthSnapshot(body.auth);
+          if (body.partner) partner = rowToPartner(body.partner);
+          changed = Boolean(body.changed);
+        }
+      }
+    } catch (err) {
+      console.warn('[syncPartnerAuthStateFromLive]', partner.id, err);
+    }
+  }
+
+  if (!changed && auth) {
+    const applied = applyLiveAuthSnapshotToPartner(partner, auth);
+    if (applied.changed && persist) {
+      try {
+        partner = await adminUpsertPartner(applied.partner);
+        changed = true;
+      } catch (err) {
+        console.warn('[syncPartnerAuthStateFromLive] local apply persist failed', partner.id, err);
+        partner = applied.partner;
+        changed = true;
+      }
+    } else if (applied.changed) {
+      partner = applied.partner;
+      changed = true;
+    }
+  }
+
+  const resolution = resolvePartnerAccessState(partner, auth);
+  return { partner, auth, resolution, changed };
+}
+
+/** Batch sync for partner list loads — throttled to avoid hammering edge. */
+export async function syncPartnersAuthStateBatch(partners: Partner[]): Promise<{
+  partners: Partner[];
+  syncedCount: number;
+}> {
+  const MAX_BATCH_SYNC = 25;
+  const out: Partner[] = [];
+  let syncedCount = 0;
+  const candidateIds = new Set(
+    partners
+      .filter((p) => {
+        const activity = readPartnerAuthActivity(p);
+        const resolution = resolvePartnerAccessState(p);
+        return (
+          resolution.state !== 'active' ||
+          p.status === 'lead' ||
+          !p.claimedUserId ||
+          !activity.lastLoginAt
+        );
+      })
+      .slice(0, MAX_BATCH_SYNC)
+      .map((p) => p.id),
+  );
+
+  for (const partner of partners) {
+    if (!candidateIds.has(partner.id)) {
+      out.push(partner);
+      continue;
+    }
+    try {
+      const synced = await syncPartnerAuthStateFromLive({ partner, persist: true });
+      out.push(synced.partner);
+      if (synced.changed) syncedCount += 1;
+    } catch {
+      out.push(partner);
+    }
+  }
+
+  return { partners: out, syncedCount };
+}
+
 /**
  * Heal partners who finished signup/claim but are still stuck as lifecycle `lead`
  * (admin list showed "Pending"). Runs via admin upsert (service role).
@@ -275,11 +602,12 @@ export async function healClaimedPartnersStuckPending(partners: Partner[]): Prom
   partners: Partner[];
   healedCount: number;
 }> {
+  const synced = await syncPartnersAuthStateBatch(partners);
   const now = new Date().toISOString();
-  let healedCount = 0;
+  let healedCount = synced.syncedCount;
   const out: Partner[] = [];
 
-  for (const partner of partners) {
+  for (const partner of synced.partners) {
     const activity = readPartnerAuthActivity(partner);
     const claimed = Boolean(partner.claimedUserId);
     const needsHeal =
@@ -312,7 +640,6 @@ export async function healClaimedPartnersStuckPending(partners: Partner[]): Prom
       healedCount += 1;
     } catch (err) {
       console.warn('[healClaimedPartnersStuckPending]', partner.id, err);
-      // Still show corrected status in UI even if persist fails this pass.
       out.push({
         ...partner,
         status: partner.status === 'paused' ? 'paused' : 'active',
@@ -448,7 +775,7 @@ export async function trackPartnerEmailConfirmed(args: { partner: Partner; confi
 }
 
 export async function trackPartnerSignIn(user: User): Promise<void> {
-  const partner = await findPartnerForAuthUser(user);
+  let partner = await findPartnerForAuthUser(user);
   if (!partner) return;
 
   const activity = readPartnerAuthActivity(partner);
@@ -458,17 +785,38 @@ export async function trackPartnerSignIn(user: User): Promise<void> {
     typeof (user as { email_confirmed_at?: string }).email_confirmed_at === 'string'
       ? (user as { email_confirmed_at: string }).email_confirmed_at
       : undefined;
+  const lastSignInAt =
+    typeof (user as { last_sign_in_at?: string }).last_sign_in_at === 'string'
+      ? (user as { last_sign_in_at: string }).last_sign_in_at
+      : now;
+
+  const liveAuth: LiveAuthSnapshot = {
+    userId: user.id,
+    email: user.email ?? undefined,
+    emailConfirmedAt,
+    lastSignInAt,
+    createdAt: typeof user.created_at === 'string' ? user.created_at : undefined,
+  };
+
+  let working = applyLiveAuthSnapshotToPartner(partner, liveAuth).partner;
+  if (!partner.claimedUserId) {
+    try {
+      working = await trackPartnerAccountClaimed({ partner: working, userId: user.id, asAdmin: true });
+    } catch {
+      /* non-blocking — sign-in timestamps still recorded below */
+    }
+  }
 
   const promoted: Partner = {
-    ...partner,
-    status: partner.status === 'paused' ? 'paused' : partner.claimedUserId ? 'active' : partner.status,
+    ...working,
+    status: working.status === 'paused' ? 'paused' : 'active',
   };
   await recordPartnerAuthActivity({
     partner: promoted,
     asAdmin: true,
     patch: {
-      firstLoginAt: activity.firstLoginAt ?? now,
-      lastLoginAt: now,
+      firstLoginAt: activity.firstLoginAt ?? lastSignInAt,
+      lastLoginAt: lastSignInAt,
       ...(emailConfirmedAt && !activity.emailConfirmedAt ? { emailConfirmedAt, signupPendingEmailConfirmationAt: undefined } : {}),
     },
     notify: isFirst ? 'signed_in' : undefined,

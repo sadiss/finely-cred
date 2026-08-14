@@ -127,6 +127,16 @@ export function slotDurationOptions(): SlotDuration[] {
   return DEFAULT_DURATIONS;
 }
 
+/** True when `generateDaySlots` would return at least one bookable time for this day. */
+export function dayHasBookableSlots(args: {
+  dayKey: string;
+  durationMinutes?: SlotDuration;
+  existingEvents?: CalendarEvent[];
+  settings?: CalendarBookingSettings;
+}): boolean {
+  return generateDaySlots(args).length > 0;
+}
+
 export type Daypart = 'morning' | 'afternoon' | 'evening';
 
 export const DAYPART_LABELS: Record<Daypart, string> = {
@@ -197,6 +207,46 @@ export function formatSlotRange(startAt: string, endAt: string) {
   } catch {
     return startAt;
   }
+}
+
+export type DayAvailability = 'open' | 'closed_weekday' | 'past' | 'too_far' | 'fully_booked' | 'today_closed';
+
+/** Why a calendar day has no bookable slots — drives color + copy in the picker. */
+export function getDayAvailability(args: {
+  dayKey: string;
+  durationMinutes?: SlotDuration;
+  existingEvents?: CalendarEvent[];
+  settings?: CalendarBookingSettings;
+}): { state: DayAvailability; hasSlots: boolean; slotCount: number } {
+  const todayKey = isoDayKey(new Date());
+  const day = parseDayKey(args.dayKey);
+  if (!day) return { state: 'fully_booked', hasSlots: false, slotCount: 0 };
+
+  const past = day < new Date(new Date().toDateString());
+  if (past) return { state: 'past', hasSlots: false, slotCount: 0 };
+
+  const settings = args.settings;
+  const dow = day.getDay();
+  const allowedWeekdays = settings?.allowedWeekdays ?? [1, 2, 3, 4, 5];
+  if (!allowedWeekdays.includes(dow)) {
+    return { state: 'closed_weekday', hasSlots: false, slotCount: 0 };
+  }
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const dayStart = new Date(day);
+  dayStart.setHours(0, 0, 0, 0);
+  const daysOut = Math.round((dayStart.getTime() - today.getTime()) / (24 * 60 * 60 * 1000));
+  if (settings?.maxAdvanceDays != null && daysOut > settings.maxAdvanceDays) {
+    return { state: 'too_far', hasSlots: false, slotCount: 0 };
+  }
+
+  const slots = generateDaySlots(args);
+  const slotCount = slots.length;
+  if (slotCount > 0) return { state: 'open', hasSlots: true, slotCount };
+
+  if (args.dayKey === todayKey) return { state: 'today_closed', hasSlots: false, slotCount: 0 };
+  return { state: 'fully_booked', hasSlots: false, slotCount: 0 };
 }
 
 export { isoDayKey, parseDayKey };

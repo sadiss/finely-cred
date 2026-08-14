@@ -1,4 +1,5 @@
 import type { LetterRecord } from '../domain/letters';
+import { isLetterDraft, LETTER_DRAFT_STATUS, LETTER_FINAL_STATUS } from '../lib/letterDraftLifecycle';
 import { loadJson, saveJson } from './localJsonStore';
 import { createNotification } from './notificationsRepo';
 import { isSupabaseConfigured, supabase } from '../lib/supabaseClient';
@@ -47,15 +48,17 @@ export function upsertLetter(letter: LetterRecord): LetterRecord {
     store.letters[idx] = letter;
   } else {
     store.letters.push(letter);
-    createNotification({
-      partnerId: letter.partnerId,
-      audience: 'both',
-      kind: 'letter_generated',
-      title: 'Letter saved — mail when ready',
-      body: `${letter.title} is in your vault. Review, print, and send with your evidence packet when ready.`,
-      href: '/portal/letters/vault',
-      meta: { letterId: letter.id, type: letter.type, status: letter.status ?? 'generated' },
-    });
+    if (!isLetterDraft(letter)) {
+      createNotification({
+        partnerId: letter.partnerId,
+        audience: 'both',
+        kind: 'letter_generated',
+        title: 'Letter ready — mail when ready',
+        body: `${letter.title} is in your vault. Review, print, and send with your evidence packet when ready.`,
+        href: '/portal/letters/vault',
+        meta: { letterId: letter.id, type: letter.type, status: letter.status ?? LETTER_FINAL_STATUS },
+      });
+    }
   }
   saveStore(store);
 
@@ -94,6 +97,14 @@ export function upsertLetter(letter: LetterRecord): LetterRecord {
   }
 
   return letter;
+}
+
+export function markLetterFinal(letter: LetterRecord): LetterRecord {
+  return upsertLetter({ ...letter, status: LETTER_FINAL_STATUS });
+}
+
+export function saveLetterDraft(letter: LetterRecord): LetterRecord {
+  return upsertLetter({ ...letter, status: LETTER_DRAFT_STATUS });
 }
 
 export function setLetterArchived(args: { letterId: string; archived: boolean }): LetterRecord | null {

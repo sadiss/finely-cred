@@ -13,7 +13,7 @@ import { getCalendarBookingSettings } from '../data/calendarSettingsRepo';
 import { confirmPublicSlotBooking } from '../lib/confirmPublicSlotBooking';
 import { getPublicSiteOrigin } from '../lib/funnelPublicLinks';
 import { draftBookingAgenda } from '../lib/aiDraftAgenda';
-import { isoDayKey, type BookableSlot } from '../lib/calendarSlots';
+import { type BookableSlot } from '../lib/calendarSlots';
 import type { SlotDuration } from '../domain/calendar';
 import { buildGuestMeetingJoinPath } from '../lib/meetingUrls';
 import {
@@ -41,7 +41,7 @@ export default function PublicSelfBookInvitePage() {
   const [phone, setPhone] = useState('');
   const [agenda, setAgenda] = useState('');
   const [aiDrafting, setAiDrafting] = useState(false);
-  const [dayKey, setDayKey] = useState<string | null>(isoDayKey(new Date()));
+  const [dayKey, setDayKey] = useState<string | null>(null);
   const [selectedSlot, setSelectedSlot] = useState<BookableSlot | null>(null);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);

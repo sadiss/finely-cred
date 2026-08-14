@@ -4,10 +4,12 @@ import {
 } from '../data/calendarRepo';
 import type { CalendarEvent, ConsultationTopic, SlotDuration } from '../domain/calendar';
 import { formatSlotRange, type BookableSlot } from './calendarSlots';
+import { assertSlotBookable } from './meetingEmailGuards';
 import { buildGuestMeetingJoinPath } from './meetingUrls';
 import { getPublicSiteOrigin } from './funnelPublicLinks';
 import { sendMeetingInviteEmail } from './meetingInviteEmailSend';
 import { isFeatureEnabled } from '../data/settingsRepo';
+import { pickRoundRobinAssignee } from './calendarStaffRotation';
 
 export type ConfirmPublicSlotBookingResult = {
   requestId: string;
@@ -41,6 +43,7 @@ export async function confirmPublicSlotBooking(args: {
   scheduleUrl?: string;
   emailPartnerId?: string;
 }): Promise<ConfirmPublicSlotBookingResult> {
+  assertSlotBookable(args.selectedSlot, args.durationMinutes);
   const tz = args.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone;
 
   const req = createPublicAppointmentRequest({
@@ -109,6 +112,9 @@ export async function confirmScheduledEventForRequest(args: {
   const joinPath = buildGuestMeetingJoinPath(ev.id);
   const confirmedLabel = formatSlotRange(args.startAt, args.endAt);
   const tz = args.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const roundRobinHost = pickRoundRobinAssignee();
+  const resolvedHostName = args.hostName || roundRobinHost?.displayName || 'Alex Rivera';
+  const resolvedHostRole = args.hostRoleLabel || roundRobinHost?.roleLabel || 'Session Coordinator';
 
   if (isFeatureEnabled('commsDelivery')) {
     try {
@@ -123,9 +129,10 @@ export async function confirmScheduledEventForRequest(args: {
         endAt: ev.endAt,
         timezone: tz,
         agenda: args.agenda?.trim() || undefined,
-        hostName: args.hostName || 'Alex Rivera',
-        hostRoleLabel: args.hostRoleLabel || 'Session Coordinator',
+        hostName: resolvedHostName,
+        hostRoleLabel: resolvedHostRole,
         scheduleUrl: args.scheduleUrl,
+        intent: 'booking_confirm',
       });
     } catch {
       // Best-effort — the booking is already confirmed regardless of email delivery.

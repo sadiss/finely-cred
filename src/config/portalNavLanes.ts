@@ -135,6 +135,32 @@ export const PORTAL_NAV_LANES: PortalNavLaneDef[] = [
   },
 ];
 
+/** Primary portal tabs — matches admin partner overview rhythm (Overview first). */
+export const PORTAL_STICKY_TABS: Array<{
+  path: string;
+  label: string;
+  accent: 'emerald' | 'violet' | 'sky' | 'amber';
+}> = [
+  { path: '/portal/dashboard', label: 'Overview', accent: 'emerald' },
+  { path: '/portal/reports', label: 'Reports', accent: 'sky' },
+  { path: '/portal/documents', label: 'Documents', accent: 'sky' },
+  { path: '/portal/disputes', label: 'Disputes', accent: 'violet' },
+  { path: '/portal/projects', label: 'Tasks', accent: 'emerald' },
+  { path: '/portal/calendar', label: 'Calendar', accent: 'sky' },
+];
+
+/** Secondary destinations — letter station, connect, grow (de-emphasized in main nav). */
+export const PORTAL_SECONDARY_LINKS: PortalNavLinkDef[] = [
+  { path: '/portal/letters', label: 'Credit Letters', icon: Gavel },
+  { path: '/portal/debt', label: 'Debt Letters', icon: Scale },
+  { path: '/portal/templates', label: 'Letter templates', icon: BookOpen },
+  { path: '/portal/messages', label: 'Messages', icon: MessageSquare },
+  { path: '/portal/build', label: 'Credit Building', icon: TrendingUp },
+  { path: '/portal/education', label: 'Education', icon: BookOpen },
+  { path: '/portal/billing', label: 'Billing', icon: CreditCard },
+  { path: '/account/settings', label: 'Account', icon: Settings },
+];
+
 export function resolvePortalNavLaneId(pathname: string): string {
   for (const lane of PORTAL_NAV_LANES) {
     if (lane.links.some((link) => isPortalNavPathActive(pathname, link.path))) {

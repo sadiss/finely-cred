@@ -11,7 +11,6 @@ import {
   isAlexAppointmentAutopilotEnabled,
   listAlexOutreachRecent,
   listWarmLeadsForBooking,
-  runAlexAppointmentAutopilotIfDue,
   runAlexAppointmentOutreach,
   setAlexAppointmentAutopilotEnabled,
 } from './alexAppointmentAutomation';
@@ -38,11 +37,7 @@ export function GrowthAgentAlexWorkspace() {
     return () => window.removeEventListener('finely:store', onStore as EventListener);
   }, []);
 
-  useEffect(() => {
-    void runAlexAppointmentAutopilotIfDue().then((r) => {
-      if (r) setLastRun(`Auto: ${r.invitesCreated} invite(s), ${r.emailsSent} email(s)`);
-    });
-  }, []);
+  // Autopilot outreach runs from Growth autopilot tick — not on every workspace mount.
 
   const maturity = useMemo(() => {
     void tick;
