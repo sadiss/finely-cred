@@ -70,6 +70,125 @@ export const PUBLIC_SEO_CATALOG: PublicSeoRoute[] = [
     hasSchema: true,
   },
   {
+    path: '/resources/which-program-fits',
+    title: 'Which program fits your situation? — Free outcome wizard',
+    description:
+      'Answer a few questions about your debt balance, situation, and starting credit score to see which Finely Cred program fits and a real, sample-sized outcome range from documented case studies.',
+    hasSchema: true,
+  },
+  {
+    path: '/resources/diy-vs-traditional-vs-finely',
+    title: 'DIY vs. Done-For-You vs. Traditional Credit Repair — An Honest Comparison',
+    description:
+      'A factual, feature-based comparison of pure self-directed DIY dispute work, Finely Cred\u2019s done-for-you programs, and the traditional credit-repair-agency category — price, who does the work, legal grounding, and real documented outcomes.',
+    hasSchema: true,
+  },
+  // ── C1 doctrine articles (debt-litigation, business-credit, non-citizen/international) ──
+  // Each of these carries a `ComplianceReviewRecord` (see complianceReviewRepo.ts) that must be
+  // flipped to `approved` before the route is considered publish-ready per the C0 compliance gate.
+  {
+    path: '/resources/debt-defense-validation-letters',
+    title: 'Debt Validation Letters & Cease-Communication Rights',
+    description:
+      'How to demand written debt validation and send a cease-communication letter before a collector sues — by debt type, with the real FDCPA/FCRA citations behind each right.',
+    hasSchema: true,
+  },
+  {
+    path: '/resources/debt-defense-summons-answer',
+    title: 'Answering a Debt Collection Lawsuit — Deadlines & Affirmative Defenses',
+    description:
+      'What to do when you are served a summons for credit card, medical, auto, mortgage, student loan, or other debt — answer deadlines, affirmative defenses, and default-judgment risk.',
+    hasSchema: true,
+  },
+  {
+    path: '/resources/debt-defense-discovery-demands',
+    title: 'Discovery Demands Against a Debt Buyer — Forcing Proof of the Debt',
+    description:
+      'What to request in discovery once an answer is filed — the original agreement, the full chain of assignment, and account records — and why many debt buyers cannot produce them.',
+    hasSchema: true,
+  },
+  {
+    path: '/resources/debt-defense-post-judgment',
+    title: 'Post-Judgment Emergencies — Wage Garnishment & Bank Levy Exemptions',
+    description:
+      'A creditor won a judgment and is moving to garnish wages or levy a bank account — what federal and state law protects, how to claim an exemption, and the deadlines that matter.',
+    hasSchema: true,
+  },
+  {
+    path: '/resources/fdcpa-collector-violations',
+    title: 'FDCPA Counter-Suits — When the Debt Collector Breaks the Law',
+    description:
+      'Repeated calls after a cease-and-desist, false statements about a debt, or unfair collection tactics can give you an independent FDCPA claim — how it works and what evidence it needs.',
+    hasSchema: true,
+  },
+  {
+    path: '/resources/business-credit-tier-matrix',
+    title: 'Business Credit Tier Matrix — The 5-Tier Path From Vendor Credit to Institutional Lines',
+    description:
+      'Tier 1 no-PG vendor accounts through Tier 5 institutional unsecured lines — real vendor names, Paydex/Intelliscore targets, personal-guarantee release strategy, and common mistakes at each tier.',
+    hasSchema: true,
+  },
+  {
+    path: '/resources/business-credit-funding-instruments',
+    title: 'Business Funding Instruments — SBA Loans, Lines of Credit, Equipment Financing & More',
+    description:
+      'Nine business-funding instruments compared: SBA 7(a)/504, lines of credit, equipment financing, invoice factoring, merchant cash advances, term loans, commercial real estate, and card stacking.',
+    hasSchema: true,
+  },
+  {
+    path: '/resources/business-credit-building-mistakes',
+    title: 'Common Business Credit-Building Mistakes That Trigger Denials',
+    description:
+      'The mistakes that most often sink a business-credit file at every tier — from over-applying to Tier 1 vendors to carrying high utilization on a new store card — organized by tier.',
+    hasSchema: true,
+  },
+  {
+    path: '/resources/non-citizen-business-credit',
+    title: 'Non-Citizen & International Business Credit — Funding Paths by Applicant Type',
+    description:
+      'Business funding paths for ITIN holders, E-2/EB-5 investors, non-resident LLC owners, DACA recipients, and green card holders — underwriting optics, SSN/ITIN requirements, and proof documents.',
+    hasSchema: true,
+  },
+  {
+    path: '/resources/international-credit-systems-guide',
+    title: 'How Credit Reporting Works Abroad — Canada, UK, Germany & the EU Compared to the U.S.',
+    description:
+      'Score scales, major bureaus, data-protection regimes, and dispute rights in Canada, the UK, Germany, and the EU generally — compared point-by-point to the U.S. FCRA/FICO system.',
+    hasSchema: true,
+  },
+  // ── C4 state-specific debt-defense landing pages — highest compliance scrutiny in the plan (C0.3).
+  // Each carries a `state_landing_page` ComplianceReviewRecord with `highestScrutiny: true` and a
+  // 3-month re-verification cadence (vs. 6 months for the C1 articles above); left `needs_review`.
+  {
+    path: '/resources/debt-defense-texas',
+    title: 'Debt Defense in Texas — Federal Rights, Wage Garnishment, and What Actually Varies by State',
+    description:
+      'Debt collection defense for Texas residents: federal FDCPA and CCPA garnishment-cap protections, the one Texas-specific wage-garnishment note in our doctrine repository, and what still requires a Texas attorney to confirm.',
+    hasSchema: true,
+  },
+  {
+    path: '/resources/debt-defense-new-york',
+    title: 'Debt Defense in New York — Confession-of-Judgment Protections & Federal Rights',
+    description:
+      'New York is one of the few states with a documented, specific civil-procedure protection against confessions of judgment (N.Y. C.P.L.R. § 3218) — plus the federal rights every state shares.',
+    hasSchema: true,
+  },
+  {
+    path: '/resources/debt-defense-pennsylvania',
+    title: 'Debt Defense in Pennsylvania — Federal Rights, Wage Garnishment, and What Actually Varies by State',
+    description:
+      'Debt collection defense for Pennsylvania residents: federal FDCPA and CCPA garnishment-cap protections, the one Pennsylvania-specific wage-garnishment note in our doctrine repository, and what still requires a Pennsylvania attorney to confirm.',
+    hasSchema: true,
+  },
+  // ── C2 public before/after proof gallery — visual companion to /results (Phase B1). ──
+  {
+    path: '/results/before-after',
+    title: 'Before & after — visual proof gallery',
+    description:
+      'Real credit-score before/after graphics generated directly from our documented case studies — visual, at-a-glance proof, sourced from the same numbers on our results page.',
+    hasSchema: true,
+  },
+  {
     path: '/bookstore',
     title: 'Finely Cred bookstore',
     description: 'Bundles, courses, and credit mastery books.',

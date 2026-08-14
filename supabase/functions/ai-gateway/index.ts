@@ -16,8 +16,16 @@
 
 import { corsHeaders } from '../_shared/cors.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.1';
+import { logEdgeEvent, rateLimit } from '../_shared/edgeGuard.ts';
 
 type ChatMsg = { role: 'system' | 'user' | 'assistant'; content: string };
+/** Anthropic tool definition (native tool-calling) — passed through verbatim. */
+type AnthropicToolDef = {
+  name: string;
+  description?: string;
+  input_schema: Record<string, unknown>;
+};
+type AnthropicToolUse = { id: string; name: string; input: Record<string, unknown> };
 type ReqBody = {
   taskType: string;
   messages: ChatMsg[];
@@ -27,6 +35,8 @@ type ReqBody = {
   safetyLevel?: 'normal' | 'strict';
   providerHint?: 'openai' | 'gemini' | 'anthropic';
   responseFormat?: 'text' | 'json';
+  /** Native Anthropic tool-calling (Phase 5) — only honored for the anthropic provider. */
+  tools?: AnthropicToolDef[];
 };
 
 function json(body: unknown, init?: ResponseInit) {
@@ -97,8 +107,25 @@ function compactMessages(messages: ChatMsg[], taskType: string) {
 
 function temperatureForTask(taskType: string): number {
   const t = (taskType || '').toLowerCase();
-  if (t.includes('coowner') || t.includes('ops.coowner')) return 0.1;
+  // Raised from 0.1 (Phase 5) — the hard-locked 5-part output contract was loosened
+  // to be conditional on query complexity, so a slightly higher temperature keeps
+  // direct/simple answers from sounding identical turn to turn without hurting
+  // groundedness on real ops data.
+  if (t.includes('coowner') || t.includes('ops.coowner')) return 0.35;
   return 0.2;
+}
+
+/** Soft daily call-budget ceiling per task type (Phase 5 cost rail). Reuses the same
+ * Deno KV-backed rate limiter edge functions already use for IP/route limits. */
+function dailyBudgetForTask(taskType: string): number {
+  const t = (taskType || '').toLowerCase();
+  if (t.includes('coowner') || t.includes('ops.coowner')) {
+    return Number(Deno.env.get('AI_GATEWAY_COOWNER_DAILY_BUDGET') || 400);
+  }
+  if (t.includes('public_chat') || t.includes('public_concierge') || t.includes('lead_intel_public')) {
+    return Number(Deno.env.get('AI_GATEWAY_PUBLIC_DAILY_BUDGET') || 3000);
+  }
+  return Number(Deno.env.get('AI_GATEWAY_DEFAULT_DAILY_BUDGET') || 1500);
 }
 
 async function callOpenAI(args: { apiKey: string; model: string; messages: ChatMsg[]; responseFormat: 'text' | 'json' }) {
@@ -136,6 +163,7 @@ async function callAnthropic(args: {
   responseFormat: 'text' | 'json';
   maxTokens?: number;
   temperature?: number;
+  tools?: AnthropicToolDef[];
 }) {
   const sys = args.messages.find((m) => m.role === 'system')?.content ?? '';
   const contentMessages = args.messages
@@ -153,6 +181,14 @@ async function callAnthropic(args: {
     // Anthropic doesn't have a strict JSON mode; we enforce via instruction.
     body.system = `${(body.system || '').trim()}\n\nReturn ONLY valid JSON. No markdown. No prose.`;
   }
+  // Native tool-calling (Phase 5). Model may reply with tool_use blocks instead of
+  // (or alongside) text — caller falls back to fenced-markdown-block parsing when
+  // no tool_use blocks come back, so nothing regresses on providers/models that
+  // ignore tools.
+  if (args.tools?.length) {
+    body.tools = args.tools;
+    body.tool_choice = { type: 'auto' };
+  }
 
   const res = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
@@ -165,8 +201,12 @@ async function callAnthropic(args: {
   });
   if (!res.ok) throw new Error(`Anthropic error: ${res.status} ${await res.text()}`);
   const jsonRes = await res.json();
-  const text = (jsonRes?.content ?? []).map((c: any) => c?.text ?? '').join('');
-  return { provider: 'anthropic' as const, model: args.model, text, raw: jsonRes };
+  const blocks: any[] = jsonRes?.content ?? [];
+  const text = blocks.filter((c) => c?.type === 'text' || (!c?.type && typeof c?.text === 'string')).map((c) => c?.text ?? '').join('');
+  const toolUses: AnthropicToolUse[] = blocks
+    .filter((c) => c?.type === 'tool_use')
+    .map((c) => ({ id: String(c.id ?? ''), name: String(c.name ?? ''), input: (c.input ?? {}) as Record<string, unknown> }));
+  return { provider: 'anthropic' as const, model: args.model, text, raw: jsonRes, toolUses };
 }
 
 function parseDataUrl(dataUrl: string): { mimeType: string; base64: string } | null {
@@ -282,8 +322,31 @@ Deno.serve(async (req) => {
 
   const provider = pickProvider({ taskType, hint: body.providerHint });
 
+  // Cost rail (Phase 5): soft per-taskType daily call budget. Fails open if KV is
+  // unavailable (rateLimit already does this internally) so this never blocks
+  // legitimate traffic on a KV outage — it only trims runaway spend.
+  const dailyLimit = dailyBudgetForTask(taskType);
+  const budget = await rateLimit({ key: `ai_gateway_daily:${taskType}`, limit: dailyLimit, windowSeconds: 24 * 60 * 60 });
+  if (!budget.ok) {
+    await logEdgeEvent({
+      namespace: 'ai-gateway',
+      level: 'warn',
+      event: 'daily_budget_exceeded',
+      meta: { taskType, dailyLimit, provider },
+    });
+    return json({
+      ok: true,
+      taskType,
+      provider: 'none',
+      model: 'budget-fallback',
+      text: "I've hit today's AI usage cap for this task — falling back to a short reply. Please try again in a bit, or ask an admin to raise the daily budget.",
+      toolUses: [],
+      budgetExceeded: true,
+    });
+  }
+
   try {
-    let out: { provider: string; model: string; text: string; raw: unknown };
+    let out: { provider: string; model: string; text: string; raw: unknown; toolUses?: AnthropicToolUse[] };
     if (provider === 'openai') {
       const key = Deno.env.get('OPENAI_API_KEY') || '';
       const model = resolveOpenAiModel(taskType);
@@ -300,6 +363,7 @@ Deno.serve(async (req) => {
         responseFormat,
         maxTokens: maxTokensForTask(taskType),
         temperature: temperatureForTask(taskType),
+        tools: body.tools,
       });
     } else {
       const key = Deno.env.get('GEMINI_API_KEY') || '';
@@ -327,6 +391,7 @@ Deno.serve(async (req) => {
       provider: out.provider,
       model: out.model,
       text: out.text,
+      toolUses: out.toolUses ?? [],
       // raw returned for diagnostics; disable this client-side if you prefer.
       raw: out.raw,
     });

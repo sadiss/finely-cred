@@ -160,6 +160,14 @@ export default function AdminFunnelExperimentsPage() {
                       value={active.ctaLabels?.[v] ?? ''}
                       onChange={(e) => patchActive({ ctaLabels: { ...active.ctaLabels, [v]: e.target.value } })}
                     />
+                    <input
+                      className={`${FINELY_OS_ENTITY_INPUT} w-full text-sm`}
+                      placeholder="CTA destination path (e.g. /pricing/business-credit) — optional, for destination tests"
+                      value={active.ctaDestinations?.[v] ?? ''}
+                      onChange={(e) =>
+                        patchActive({ ctaDestinations: { ...active.ctaDestinations, [v]: e.target.value } })
+                      }
+                    />
                   </div>
                 );
               })}

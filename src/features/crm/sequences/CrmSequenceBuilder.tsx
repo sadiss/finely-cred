@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { ArrowDown, ArrowRight, ArrowUp, GripVertical, Mail, Plus, Trash2, UserCheck, Workflow } from 'lucide-react';
+import { ArrowDown, ArrowRight, ArrowUp, FlaskConical, GripVertical, Mail, Plus, Trash2, UserCheck, Workflow } from 'lucide-react';
 import type { CrmSequence, CrmSequenceStep, CrmSequenceStepType } from '../../../domain/crmSequences';
+import { crmSequenceStepHasVariants } from '../../../domain/crmSequences';
 import {
   addCrmSequenceStep,
   createCrmSequence,
@@ -62,12 +63,54 @@ function StepEditor({ step, onChange }: { step: CrmSequenceStep; onChange: (s: C
         />
       ) : null}
       {step.type === 'email' ? (
-        <input
-          value={step.emailSubject ?? ''}
-          onChange={(e) => onChange({ ...step, emailSubject: e.target.value })}
-          className={`${FINELY_OS_ENTITY_INPUT.replace('mt-2 ', '')} sm:col-span-2`}
-          placeholder="Email subject"
-        />
+        <>
+          <input
+            value={step.emailSubject ?? ''}
+            onChange={(e) => onChange({ ...step, emailSubject: e.target.value })}
+            className={`${FINELY_OS_ENTITY_INPUT.replace('mt-2 ', '')} sm:col-span-2`}
+            placeholder="Email subject (control)"
+          />
+          <textarea
+            value={step.emailBody ?? ''}
+            onChange={(e) => onChange({ ...step, emailBody: e.target.value })}
+            rows={2}
+            className={`${FINELY_OS_ENTITY_INPUT.replace('mt-2 ', '')} sm:col-span-2 resize-y`}
+            placeholder="Email body (control) — sent for real when Comms Delivery is on (Feature Flags). Leave blank for a plain default."
+          />
+
+          <label className="sm:col-span-2 inline-flex items-center gap-2 text-[11px] font-semibold text-fuchsia-200">
+            <input
+              type="checkbox"
+              checked={!!step.variants?.variant_a}
+              onChange={(e) =>
+                onChange({
+                  ...step,
+                  variants: e.target.checked
+                    ? { variant_a: { emailSubject: step.variants?.variant_a?.emailSubject ?? '', emailBody: step.variants?.variant_a?.emailBody ?? '' } }
+                    : undefined,
+                })
+              }
+            />
+            <FlaskConical size={12} /> A/B test a second subject/body — 50/50 split, sticky per enrollment
+          </label>
+          {step.variants?.variant_a ? (
+            <>
+              <input
+                value={step.variants?.variant_a?.emailSubject ?? ''}
+                onChange={(e) => onChange({ ...step, variants: { ...step.variants, variant_a: { ...step.variants?.variant_a, emailSubject: e.target.value } } })}
+                className={`${FINELY_OS_ENTITY_INPUT.replace('mt-2 ', '')} sm:col-span-2`}
+                placeholder="Variant A subject"
+              />
+              <textarea
+                value={step.variants?.variant_a?.emailBody ?? ''}
+                onChange={(e) => onChange({ ...step, variants: { ...step.variants, variant_a: { ...step.variants?.variant_a, emailBody: e.target.value } } })}
+                rows={2}
+                className={`${FINELY_OS_ENTITY_INPUT.replace('mt-2 ', '')} sm:col-span-2 resize-y`}
+                placeholder="Variant A body"
+              />
+            </>
+          ) : null}
+        </>
       ) : null}
       {step.type === 'task' ? (
         <input
@@ -212,18 +255,31 @@ export function CrmSequenceBuilder() {
                 }}
                 className={`${FINELY_OS_ENTITY_INPUT.replace('mt-2 ', '')} font-semibold min-w-[180px] flex-1`}
               />
-              <select
-                value={selected.target}
-                onChange={(e) => {
-                  upsertCrmSequence({ ...selected, target: e.target.value as ProspectTarget });
-                  setVersion((v) => v + 1);
-                }}
-                className={FINELY_OS_ENTITY_INPUT.replace('mt-2 ', '')}
-              >
-                <option value="clients">Customers</option>
-                <option value="affiliates">Affiliates</option>
-                <option value="agents">Agents</option>
-              </select>
+              <div className="flex flex-wrap gap-1.5" role="radiogroup" aria-label="Sequence target">
+                {([
+                  { value: 'clients', label: 'Customers' },
+                  { value: 'affiliates', label: 'Affiliates' },
+                  { value: 'agents', label: 'Agents' },
+                ] as Array<{ value: ProspectTarget; label: string }>).map((opt) => (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    role="radio"
+                    aria-checked={selected.target === opt.value}
+                    onClick={() => {
+                      upsertCrmSequence({ ...selected, target: opt.value });
+                      setVersion((v) => v + 1);
+                    }}
+                    className={`rounded-full px-3 py-1.5 text-[11px] font-bold border transition-all ${
+                      selected.target === opt.value
+                        ? 'border-violet-400/50 bg-violet-500/20 text-violet-100'
+                        : 'border-white/10 bg-white/5 text-white/60 hover:bg-white/10'
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
               <label className={`inline-flex items-center gap-2 text-sm ${FINELY_OS_ENTITY_BODY}`}>
                 <input
                   type="checkbox"
@@ -267,7 +323,14 @@ export function CrmSequenceBuilder() {
                           <div className={`${FINELY_OS_ENTITY_SUBLABEL} text-violet-300`}>
                             Step {idx + 1} • {step.type.replace('_', ' ')}
                           </div>
-                          <div className={FINELY_OS_ENTITY_VALUE}>{step.label}</div>
+                          <div className={`flex items-center gap-1.5 ${FINELY_OS_ENTITY_VALUE}`}>
+                            {step.label}
+                            {crmSequenceStepHasVariants(step) ? (
+                              <span className="inline-flex items-center gap-1 rounded-full border border-fuchsia-500/30 bg-fuchsia-500/10 px-1.5 py-0.5 text-[9px] font-bold uppercase text-fuchsia-200">
+                                <FlaskConical size={9} /> A/B
+                              </span>
+                            ) : null}
+                          </div>
                         </div>
                       </div>
                       <div className="flex items-center gap-1 shrink-0">

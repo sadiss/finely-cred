@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { ArrowLeft, Bot, ClipboardCheck, RefreshCw, Sparkles, Crown } from 'lucide-react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { ArrowLeft, Bot, ClipboardCheck, RefreshCw, Sparkles, Crown, AlertTriangle, Check, X } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { PageShell } from '../../components/layout/PageShell';
 import { isFeatureEnabled } from '../../data/settingsRepo';
@@ -44,6 +44,7 @@ import {
   CO_OWNER_ACTION_PROMPT_APPEND,
   executeCoOwnerStaffAction,
   parseCoOwnerActionsFromAssistant,
+  getCoOwnerStaffSnapshot,
 } from '../../lib/coOwnerStaffActions';
 import {
   CO_OWNER_DEV_PROMPT_APPEND,
@@ -53,6 +54,17 @@ import {
 import { CoOwnerDevStudioPanel } from '../../components/coOwner/CoOwnerDevStudioPanel';
 import { CoOwnerStaffOperationsPanel } from '../../components/coOwner/CoOwnerStaffOperationsPanel';
 import { RuthLeadEngineBrief } from '../../components/coOwner/RuthLeadEngineBrief';
+import { getExecutiveOrgStats } from '../../domain/coOwnerExecutiveStructure';
+import { getLaunchFinalReadiness } from '../../lib/launchFinalReadinessOps';
+import { listOpenValidationClocks } from '../../lib/validationLetterEngine';
+import {
+  buildCoOwnerAgentTools,
+  describePendingToolAction,
+  isHighRiskCoOwnerTool,
+  runCoOwnerToolCall,
+  CO_OWNER_TOOL_PROMPT_APPEND,
+  type CoOwnerToolCall,
+} from '../../lib/coOwnerAgentTools';
 
 type AgentMessage = { role: 'user' | 'assistant'; content: string; createdAt: string };
 
@@ -93,6 +105,7 @@ export default function AdminOpsAgentPage() {
   const [error, setError] = useState<string | null>(null);
   const [laneTab, setLaneTab] = useState<'command' | 'staff' | 'archives' | 'dev'>('command');
   const [actionLog, setActionLog] = useState<string[]>([]);
+  const [pendingToolCalls, setPendingToolCalls] = useState<CoOwnerToolCall[]>([]);
   const stats = getCoOwnerCatalogStats();
   const persona = getAgentPersona('finely_coowner');
 
@@ -161,12 +174,14 @@ export default function AdminOpsAgentPage() {
       const intelligenceBrief = buildCoOwnerIntelligenceBrief(snapshot ?? undefined, {
         query: p,
         route: location.pathname,
+        recentMessages: history.slice(-6).map((m) => m.content),
       });
 
       const res = await callAiGateway({
         taskType: CO_OWNER_AI_TIER.taskType,
         providerHint: CO_OWNER_AI_TIER.primaryProvider,
         responseFormat: 'text',
+        tools: buildCoOwnerAgentTools(),
         context: {
           snapshot,
           intelligenceBrief,
@@ -184,27 +199,53 @@ export default function AdminOpsAgentPage() {
                 snapshot,
                 route: '/admin/ops-agent',
                 intelligenceBrief,
-              }) + CO_OWNER_ACTION_PROMPT_APPEND + '\n\n' + CO_OWNER_DEV_PROMPT_APPEND,
+                query: p,
+              }) + CO_OWNER_TOOL_PROMPT_APPEND + '\n\n' + CO_OWNER_ACTION_PROMPT_APPEND + '\n\n' + CO_OWNER_DEV_PROMPT_APPEND,
           },
           ...nextHistory.map((m) => ({ role: m.role, content: m.content })) as any,
         ],
       });
 
       const text = String(res.text ?? '').trim() || '(no response)';
-      const actions = parseCoOwnerActionsFromAssistant(text);
-      const devActions = parseCoOwnerDevActionsFromAssistant(text);
       const actionResults: string[] = [];
-      for (const action of actions) {
-        const r = executeCoOwnerStaffAction(action);
+
+      // Primary path (Phase 5): native Anthropic tool-calling. High-risk tools
+      // (billing automations, staff deactivation, broadcast/mass-send) are queued
+      // for an explicit human confirmation click instead of executing immediately.
+      const toolUses = Array.isArray(res.toolUses) ? res.toolUses : [];
+      const toConfirm: CoOwnerToolCall[] = [];
+      for (const call of toolUses) {
+        if (isHighRiskCoOwnerTool(call)) {
+          toConfirm.push(call);
+          continue;
+        }
+        const r = runCoOwnerToolCall(call);
         actionResults.push(r.message);
+        if (r.navigateTo) navigate(r.navigateTo);
       }
-      for (const action of devActions) {
-        const r = executeCoOwnerDevAction(action);
-        actionResults.push(r.message);
+      if (toConfirm.length) setPendingToolCalls((prev) => [...prev, ...toConfirm]);
+
+      // Fallback path: fenced coowner-action / coowner-dev markdown blocks — kept for
+      // providers/model turns that don't emit native tool_use.
+      if (!toolUses.length) {
+        const actions = parseCoOwnerActionsFromAssistant(text);
+        const devActions = parseCoOwnerDevActionsFromAssistant(text);
+        for (const action of actions) {
+          const r = executeCoOwnerStaffAction(action);
+          actionResults.push(r.message);
+        }
+        for (const action of devActions) {
+          const r = executeCoOwnerDevAction(action);
+          actionResults.push(r.message);
+        }
       }
+
+      const pendingNote = toConfirm.length
+        ? ` · ${toConfirm.length} action(s) awaiting your confirmation below.`
+        : '';
       const display =
-        actionResults.length > 0
-          ? `${text}\n\n— Executed: ${actionResults.join(' · ')}`
+        actionResults.length > 0 || toConfirm.length
+          ? `${text}\n\n— Executed: ${actionResults.length ? actionResults.join(' · ') : 'none yet'}${pendingNote}`
           : text;
       setHistory((h) => [...h, { role: 'assistant', content: display, createdAt: nowIso() }]);
       if (actionResults.length) setActionLog((log) => [...actionResults, ...log].slice(0, 12));
@@ -224,6 +265,120 @@ export default function AdminOpsAgentPage() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const confirmPendingTool = (call: CoOwnerToolCall) => {
+    const r = runCoOwnerToolCall(call);
+    setActionLog((log) => [r.message, ...log].slice(0, 12));
+    setHistory((h) => [...h, { role: 'assistant', content: `Confirmed — ${r.message}`, createdAt: nowIso() }]);
+    if (r.navigateTo) navigate(r.navigateTo);
+    setPendingToolCalls((prev) => prev.filter((c) => c.id !== call.id));
+  };
+
+  const cancelPendingTool = (call: CoOwnerToolCall) => {
+    setHistory((h) => [...h, { role: 'assistant', content: `Cancelled — "${call.name}" was not executed.`, createdAt: nowIso() }]);
+    setPendingToolCalls((prev) => prev.filter((c) => c.id !== call.id));
+  };
+
+  // Quick prompts: a few high-signal chips vary with live state (leads, coverage
+  // gaps, executive vacancies, validation clocks, launch blockers) instead of
+  // rendering the same 7 chips every visit; a fixed tail fills remaining slots.
+  const dynamicQuickPrompts = useMemo(() => {
+    const chips: { label: string; prompt: string }[] = [];
+    const leadCount = snapshot?.recentLeads?.length ?? 0;
+    if (leadCount > 0) {
+      chips.push({
+        label: `${leadCount} lead${leadCount === 1 ? '' : 's'} need a decision`,
+        prompt: `Review the ${leadCount} most recent lead(s) in the snapshot and tell me exactly what to do with each — route, call, nurture, or disqualify.`,
+      });
+    }
+    try {
+      const staffSnap = getCoOwnerStaffSnapshot();
+      if (staffSnap.coverageGaps.length > 0) {
+        chips.push({
+          label: `Fill ${staffSnap.coverageGaps.length} coverage gap${staffSnap.coverageGaps.length === 1 ? '' : 's'}`,
+          prompt: 'Fill our open role coverage gaps now — hire directly with executable action blocks or native tools.',
+        });
+      }
+    } catch {
+      /* ignore */
+    }
+    try {
+      const exec = getExecutiveOrgStats();
+      if (exec.vacant > 0) {
+        chips.push({
+          label: `${exec.vacant} executive hat${exec.vacant === 1 ? '' : 's'} vacant`,
+          prompt: 'Map vacant executive hats and hire the highest-priority C-suite or director role right now.',
+        });
+      }
+    } catch {
+      /* ignore */
+    }
+    try {
+      const clocks = listOpenValidationClocks();
+      if (clocks.length > 0) {
+        chips.push({
+          label: `${clocks.length} validation deadline${clocks.length === 1 ? '' : 's'} due`,
+          prompt: 'List every open validation clock and FDCPA deadline requiring action in the next 7 days.',
+        });
+      }
+    } catch {
+      /* ignore */
+    }
+    try {
+      const readiness = getLaunchFinalReadiness();
+      if (readiness.blockedCount > 0) {
+        chips.push({
+          label: `${readiness.blockedCount} launch blocker${readiness.blockedCount === 1 ? '' : 's'}`,
+          prompt: 'Run a strict launch-readiness audit focused only on the currently blocked zones — give a punchlist ordered by impact.',
+        });
+      }
+    } catch {
+      /* ignore */
+    }
+
+    const fixedTail = [
+      {
+        label: 'Deep daily ops',
+        prompt:
+          'Run a 5× deep daily ops review. TESTING MODE — low counts expected. Nine-lens synthesis: headline verdict, deep read, top 5 priorities with verify steps, people/automations, stewardship close.',
+      },
+      {
+        label: 'Launch audit',
+        prompt:
+          'Run a strict launch-readiness audit: identify what is missing, broken, inconsistent, or confusing. Give a punchlist ordered by impact.',
+      },
+      {
+        label: 'Validation doctrine',
+        prompt:
+          'Summarize our validation-first debt strategy for partners — challenge before pay, affidavits for summons, law per negative.',
+      },
+      {
+        label: 'Dev Studio',
+        prompt:
+          'Dev Studio session: write a complete, purposeful site feature for Finely Cred and save it via coowner-dev block. Include full code.',
+      },
+      {
+        label: 'Superhuman sweep',
+        prompt:
+          'Run superhuman automation sweep — validation clocks, phone SLA, social, hiring, ops health. Nine-lens synthesis with execute moves.',
+      },
+      {
+        label: 'Site map',
+        prompt:
+          'Scan the full site map — every admin, portal, and public surface. Report knowledge gaps and top 5 wiring fixes.',
+      },
+      {
+        label: 'Psychology check',
+        prompt:
+          'I feel overwhelmed running this business. Coach me with one human/psychology frame and three practical ops priorities.',
+      },
+    ];
+    for (const chip of fixedTail) {
+      if (chips.length >= 7) break;
+      chips.push(chip);
+    }
+    return chips.slice(0, 7);
+  }, [snapshot]);
 
   const runDailyOpsReview = () =>
     send(
@@ -255,6 +410,27 @@ export default function AdminOpsAgentPage() {
         <div className="mt-4">
           <RuthLeadEngineBrief />
         </div>
+
+        {pendingToolCalls.length ? (
+          <div className={`${finelyOsCatalogCard('fuchsia')} !p-4 mt-4 space-y-3`} data-fc-accent="fuchsia">
+            <div className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-fuchsia-300">
+              <AlertTriangle size={14} /> Confirm before {CO_OWNER_IDENTITY.name} executes
+            </div>
+            {pendingToolCalls.map((call) => (
+              <div key={call.id} className="rounded-xl border border-fuchsia-500/25 bg-black/25 p-3 flex flex-wrap items-center justify-between gap-3">
+                <p className={`${FINELY_OS_ENTITY_BODY} text-sm`}>{describePendingToolAction(call)}</p>
+                <div className="flex gap-2">
+                  <button type="button" onClick={() => confirmPendingTool(call)} className={FINELY_OS_SUCCESS_BTN}>
+                    <Check size={14} /> Confirm
+                  </button>
+                  <button type="button" onClick={() => cancelPendingTool(call)} className={FINELY_OS_SECONDARY_BTN}>
+                    <X size={14} /> Cancel
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : null}
 
         {isCoOwnerTestingMode() ? (
           <div className={`${FINELY_OS_BANNER} mt-4 border-emerald-500/30 bg-emerald-500/10`}>
@@ -417,43 +593,7 @@ export default function AdminOpsAgentPage() {
                   error={error}
                   placeholder={`Ask ${CO_OWNER_IDENTITY.name}…`}
                   emptyMessage={`Start with "Daily ops" or ask: "What should I prioritize for launch and validation-first partner outcomes?"`}
-                  quickPrompts={[
-                    {
-                      label: 'Deep daily ops',
-                      prompt:
-                        'Run a 5× deep daily ops review. TESTING MODE — low counts expected. Nine-lens synthesis: headline verdict, deep read, top 5 priorities with verify steps, people/automations, stewardship close.',
-                    },
-                    {
-                      label: 'Launch audit',
-                      prompt:
-                        'Run a strict launch-readiness audit: identify what is missing, broken, inconsistent, or confusing. Give a punchlist ordered by impact.',
-                    },
-                    {
-                      label: 'Validation doctrine',
-                      prompt:
-                        'Summarize our validation-first debt strategy for partners — challenge before pay, affidavits for summons, law per negative.',
-                    },
-                    {
-                      label: 'Dev Studio',
-                      prompt:
-                        'Dev Studio session: write a complete, purposeful site feature for Finely Cred and save it via coowner-dev block. Include full code.',
-                    },
-                    {
-                      label: 'Superhuman sweep',
-                      prompt:
-                        'Run superhuman automation sweep — validation clocks, phone SLA, social, hiring, ops health. Nine-lens synthesis with execute moves.',
-                    },
-                    {
-                      label: 'Site map',
-                      prompt:
-                        'Scan the full site map — every admin, portal, and public surface. Report knowledge gaps and top 5 wiring fixes.',
-                    },
-                    {
-                      label: 'Psychology check',
-                      prompt:
-                        'I feel overwhelmed running this business. Coach me with one human/psychology frame and three practical ops priorities.',
-                    },
-                  ]}
+                  quickPrompts={dynamicQuickPrompts}
                   onQuickPrompt={(prompt) => void send(prompt)}
                   footerHint={`${CO_OWNER_IDENTITY.name} · ${CO_OWNER_AI_TIER.intelligenceMultiplier}× tier · ${CO_OWNER_AI_TIER.maxOutputTokens.toLocaleString()} tokens · ${isCoOwnerTestingMode() ? 'testing mode' : getCoOwnerEnvironmentMode()}`}
                 />

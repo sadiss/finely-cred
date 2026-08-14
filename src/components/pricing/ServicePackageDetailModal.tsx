@@ -39,8 +39,9 @@ export function ServicePackageDetailModal({ pkg, rail, onClose, onSelect, select
   if (!pkg) return null;
 
   const details = getPackageDisplayDetails(pkg, rail);
-  const priceLabel =
-    pkg.priceAmount === 0
+  const priceLabel = pkg.isCustomQuote
+    ? 'Custom quote'
+    : pkg.priceAmount === 0
       ? 'Free'
       : `${formatPrice(pkg.priceAmount)}${pkg.interval === 'month' ? '/mo' : ''}`;
 

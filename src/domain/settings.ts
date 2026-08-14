@@ -195,6 +195,39 @@ export interface FeatureFlags {
   apiAccess: boolean;
   /** When true, light theme appears in public theme toggles. Admins can always preview light. */
   lightThemePublic: boolean;
+  /**
+   * Phase H1 — opt-in Supabase pgvector retrieval path (`searchFinelyKnowledgeVector()`
+   * in `finelyKnowledgeIndex.ts`), additive alongside the existing synchronous
+   * keyword index. Off by default: flipping this off always restores today's
+   * synchronous-only behavior with zero code-path changes elsewhere. Requires the
+   * `knowledge_chunks` table + `knowledge-search` edge function to be deployed and
+   * the ETL script (`scripts/export-knowledge-chunks.mjs`) to have been run at
+   * least once — do not enable before both exist in the target environment.
+   */
+  knowledgeVectorSearch: boolean;
+  /**
+   * Phase J3 — missed-call text-back. When a call to the support line goes
+   * unanswered/to voicemail, `twilio-webhook` fires an immediate SMS
+   * acknowledgment (with a real booking link) and queues a `work_tasks`
+   * follow-up for a human. Off by default: this is a real-Twilio-required
+   * capability (needs `TWILIO_ACCOUNT_SID`/`TWILIO_AUTH_TOKEN`/`TWILIO_FROM_PHONE`
+   * plus the server-side `MISSED_CALL_TEXTBACK_ENABLED=true` secret) and should
+   * only be flipped on once a real support number is wired to the webhook —
+   * see `supabase/functions/_shared/missedCallTextBack.ts`.
+   */
+  missedCallTextBack: boolean;
+  /**
+   * Phase J1 — opt-in external calendar sync groundwork (Google Calendar /
+   * Outlook), additive alongside today's in-app-only calendar
+   * (`calendarRepo.ts` / `calendarServerSync.ts`). Off by default: flipping
+   * this off always restores today's behavior with zero code-path changes
+   * elsewhere. No OAuth app is registered with Google/Microsoft yet — this
+   * flag only reveals the "coming soon" affordance in
+   * `CalendarSettingsPanel.tsx`; its stub adapter
+   * (`src/lib/calendarProviderSync.ts`) fails closed either way. Do not
+   * enable expecting live sync until a real adapter replaces the stub.
+   */
+  calendarExternalSync: boolean;
 }
 
 /**
@@ -365,6 +398,9 @@ export const DEFAULT_SETTINGS: PlatformSettings = {
     wealthPaths: false,
     apiAccess: false,
     lightThemePublic: false,
+    knowledgeVectorSearch: false,
+    missedCallTextBack: false,
+    calendarExternalSync: false,
   },
   pricing: {
     tradelineAuMarkupPct: 0,

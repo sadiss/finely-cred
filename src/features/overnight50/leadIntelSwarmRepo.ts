@@ -4,7 +4,14 @@ import { isSupabaseConfigured, supabase } from '../../lib/supabaseClient';
 import { buildQueryPool } from './queryExpander';
 import { getDailyMetroShardPack, metroShardSummaryLine } from '../marketingDesk/usMetroShardMap';
 import { LEAD_INTEL_SOURCE_ADAPTERS, getLeadIntelSourceRuntimeMode, getPriorityLiveSourceAdapters } from './sourceAdapters';
-import type { LeadIntelJob, LeadIntelLiveFeedEvent, OvernightAttribution, OvernightCity, SwarmSession, SyntheticStaffAgent } from './types';
+import { LIVE_FETCH_CAPABLE_SOURCE_IDS, runLiveFetchForSource } from './liveLeadFetchers';
+import type { LeadIntelJob, LeadIntelLiveFeedEvent, LeadIntelSourceId, OvernightAttribution, OvernightCity, SwarmSession, SyntheticStaffAgent } from './types';
+// Real internal-source signals (Phase 5a task 4) — read-only imports, these repos are
+// not modified by this feature.
+import { listCrmRecords } from '../../data/crmRecordsRepo';
+import { listAffiliatesLocalSync, listAffiliateEventsLocalSync } from '../../data/affiliateRepo';
+import { listLeadCaptures } from '../../data/leadsRepo';
+import { FINELY_TENANT_ID } from '../../domain/tenants';
 
 const KEY = 'finely.overnight50.v1';
 
@@ -160,16 +167,97 @@ function stableMod(s: string) {
   return Math.abs(h);
 }
 
-function advanceDeepJob(job: LeadIntelJob): LeadIntelJob {
+type LiveJobDelta = { discovered: number; enriched: number; note?: string } | null;
+
+const TERMINAL_CRM_STAGES = new Set(['converted', 'disqualified', 'won', 'lost']);
+const REVIVAL_STALE_MS = 21 * 24 * 60 * 60 * 1000;
+const AFFILIATE_RECENT_MS = 30 * 24 * 60 * 60 * 1000;
+const SEO_INBOUND_RECENT_MS = 7 * 24 * 60 * 60 * 1000;
+const ORGANIC_INBOUND_SOURCES = new Set(['resources', 'lead_magnet', 'contact']);
+
+/**
+ * Real internal-source signal (Phase 5a task 4) for the `internal`-method sources that
+ * have a genuine, already-existing repo to back them. Read-only against those repos —
+ * this feature never writes to them. Returns `null` when there's no real signal to
+ * report (falls back to the pre-existing simulated bump).
+ */
+function computeInternalRealSignal(sourceId: LeadIntelSourceId): { total: number; note: string } | null {
+  try {
+    if (sourceId === ('dead_lead_revival' as LeadIntelSourceId)) {
+      const stale = listCrmRecords().filter((r) => {
+        if (TERMINAL_CRM_STAGES.has(String(r.stage))) return false;
+        return Date.now() - new Date(r.updatedAt).getTime() > REVIVAL_STALE_MS;
+      });
+      return { total: stale.length, note: `${stale.length} real stale CRM record(s) eligible for revival` };
+    }
+    if (sourceId === ('affiliate_referral_loop' as LeadIntelSourceId)) {
+      const affiliates = listAffiliatesLocalSync(FINELY_TENANT_ID);
+      const recentEvents = listAffiliateEventsLocalSync().filter(
+        (e) => Date.now() - new Date(e.createdAt).getTime() < AFFILIATE_RECENT_MS,
+      );
+      return {
+        total: affiliates.length + recentEvents.length,
+        note: `${affiliates.length} real affiliate(s), ${recentEvents.length} recent attribution event(s)`,
+      };
+    }
+    if (sourceId === ('seo_inbound_forms' as LeadIntelSourceId)) {
+      const leads = listLeadCaptures().filter(
+        (l) => ORGANIC_INBOUND_SOURCES.has(l.source) && Date.now() - new Date(l.createdAt).getTime() < SEO_INBOUND_RECENT_MS,
+      );
+      return { total: leads.length, note: `${leads.length} real organic inbound form submission(s) (last 7d)` };
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+/** Trickles a real internal count into a job's discovered/enriched instead of a random bump. */
+function internalLiveDelta(job: LeadIntelJob): LiveJobDelta {
+  const real = computeInternalRealSignal(job.sourceId);
+  if (!real) return null;
+  const remaining = Math.max(0, real.total - job.discovered);
+  if (remaining <= 0) return { discovered: 0, enriched: 0, note: real.note };
+  return { discovered: 1, enriched: job.progress > 28 ? 1 : 0, note: real.note };
+}
+
+/**
+ * Attempts a genuine network fetch for sources with a real fetcher wired (see
+ * liveLeadFetchers.ts). Returns `null` (fall back to simulated bump) when the source
+ * isn't fetch-capable, isn't marked live, or the job lacks city/query context to build
+ * a real request from.
+ */
+async function tryLiveFetchDelta(job: LeadIntelJob): Promise<LiveJobDelta> {
+  if (getLeadIntelSourceRuntimeMode(job.sourceId) !== 'live') return null;
+  if (!LIVE_FETCH_CAPABLE_SOURCE_IDS.has(job.sourceId)) return null;
+  if (!job.city || !job.query) return null;
+  try {
+    const outcome = await runLiveFetchForSource(job.sourceId, { city: String(job.city), query: job.query });
+    if (!outcome.attempted || !outcome.ok) return null;
+    return { discovered: outcome.discovered, enriched: outcome.enriched, note: outcome.note };
+  } catch {
+    return null;
+  }
+}
+
+/** Resolves a real-data delta for a job (live fetch, then internal repo signal), or `null` for the old simulated path. */
+async function resolveLiveDelta(job: LeadIntelJob): Promise<LiveJobDelta> {
+  const fetched = await tryLiveFetchDelta(job).catch(() => null);
+  if (fetched) return fetched;
+  return internalLiveDelta(job);
+}
+
+function advanceDeepJob(job: LeadIntelJob, liveDelta?: LiveJobDelta): LeadIntelJob {
   const budget = job.tickBudget ?? 60;
   const spent = (job.ticksSpent ?? 0) + 1;
   const progress = Math.min(100, Math.round((spent / budget) * 100));
   const phase = phaseForProgress(progress);
-  const discovered = job.discovered + (spent % 4 === 0 ? 1 : 0);
-  const enriched = job.enriched + (progress > 28 && spent % 5 === 0 ? 1 : 0);
+  const discovered = job.discovered + (liveDelta ? liveDelta.discovered : (spent % 4 === 0 ? 1 : 0));
+  const enriched = job.enriched + (liveDelta ? liveDelta.enriched : (progress > 28 && spent % 5 === 0 ? 1 : 0));
   const hot = job.hot + (progress > 58 && spent % 7 === 0 && job.priority > 60 ? 1 : 0);
   const imported = job.imported + (progress >= 100 && job.priority > 75 ? 1 : 0);
   const status = progress >= 100 ? 'done' as const : 'running' as const;
+  const baseMessage = phaseMessage({ ...job, phase, progress });
   const next: LeadIntelJob = {
     ...job,
     status,
@@ -181,13 +269,13 @@ function advanceDeepJob(job: LeadIntelJob): LeadIntelJob {
     enriched,
     hot,
     imported,
-    message: phaseMessage({ ...job, phase, progress }),
+    message: liveDelta?.note ? `${baseMessage} — ${liveDelta.note}` : baseMessage,
     updatedAt: nowIso(),
   };
   return next;
 }
 
-export function runLocalSwarmTick(maxJobs = DEEP_JOBS_PER_TICK) {
+export async function runLocalSwarmTick(maxJobs = DEEP_JOBS_PER_TICK) {
   const s = loadStore();
   if (!s.swarmEnabled) return { processed: 0, message: 'Swarm paused.' };
   const deep = s.swarmSession?.mode !== 'fast';
@@ -197,8 +285,14 @@ export function runLocalSwarmTick(maxJobs = DEEP_JOBS_PER_TICK) {
     .sort((a, b) => b.priority - a.priority || (a.ticksSpent ?? 0) - (b.ticksSpent ?? 0))
     .slice(0, cap);
 
-  for (const job of jobs) {
-    const next = deep ? advanceDeepJob(job) : advanceFastJob(job);
+  // Real fetch/repo signals are resolved in parallel up front so a slow/timed-out
+  // network call for one job doesn't stall the others in this tick.
+  const liveDeltas = await Promise.all(jobs.map((job) => resolveLiveDelta(job)));
+
+  for (let i = 0; i < jobs.length; i += 1) {
+    const job = jobs[i]!;
+    const liveDelta = liveDeltas[i] ?? null;
+    const next = deep ? advanceDeepJob(job, liveDelta) : advanceFastJob(job, liveDelta);
     const idx = s.jobs.findIndex((j) => j.id === job.id);
     if (idx >= 0) s.jobs[idx] = next;
     if (next.attempt % (deep ? 6 : 2) === 0 || next.status === 'done') {
@@ -220,20 +314,21 @@ export function runLocalSwarmTick(maxJobs = DEEP_JOBS_PER_TICK) {
   return { processed: jobs.length, message: `Advanced ${jobs.length} deep scan jobs (compliant cadence).` };
 }
 
-function advanceFastJob(job: LeadIntelJob): LeadIntelJob {
+function advanceFastJob(job: LeadIntelJob, liveDelta?: LiveJobDelta): LeadIntelJob {
   const bump = 8 + (job.query.length % 17);
   const progress = Math.min(100, job.progress + bump);
   const status = progress >= 100 ? 'done' as const : 'running' as const;
+  const baseMessage = status === 'done' ? `Finished ${job.sourceId} scan for ${job.city}.` : `Scanning ${job.city}: ${job.query}`;
   return {
     ...job,
     status,
     progress,
     attempt: job.attempt + 1,
-    discovered: job.discovered + 1 + (job.priority % 4),
-    enriched: job.enriched + (progress > 25 ? 1 : 0),
+    discovered: job.discovered + (liveDelta ? liveDelta.discovered : 1 + (job.priority % 4)),
+    enriched: job.enriched + (liveDelta ? liveDelta.enriched : (progress > 25 ? 1 : 0)),
     hot: job.hot + (progress > 50 && job.priority > 70 ? 1 : 0),
     imported: job.imported + (progress > 80 && job.priority > 80 ? 1 : 0),
-    message: status === 'done' ? `Finished ${job.sourceId} scan for ${job.city}.` : `Scanning ${job.city}: ${job.query}`,
+    message: liveDelta?.note ? `${baseMessage} — ${liveDelta.note}` : baseMessage,
     updatedAt: nowIso(),
   };
 }

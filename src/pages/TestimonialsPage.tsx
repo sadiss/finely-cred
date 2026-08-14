@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { ArrowRight, Trophy, Video } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { ArrowRight, ChevronDown, ChevronUp, DollarSign, TrendingUp, Trophy, Video } from 'lucide-react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { PageShell } from '../components/layout/PageShell';
 import { usePublicSeoMeta } from '../hooks/usePublicSeoMeta';
 import { TestimonialDossier } from '../components/landing';
@@ -9,7 +9,10 @@ import { getActiveTenantId } from '../tenancy/activeTenant';
 import { listPublishedTestimonialsByTenant } from '../data/testimonialsRepo';
 import type { TextTestimonial, VideoTestimonial } from '../domain/testimonials';
 import { getBlobUrl } from '../storage/getBlobUrl';
+import { getAllCaseStudies, type CaseStudy } from '../data/caseStudiesRepo';
+import { categoryLabels } from '../config/pricingCatalog';
 import { FinelyOsOverviewStatTile } from '../features/os/FinelyOsOverviewStatTile';
+import { FinelyOsComplianceStrip } from '../features/os/FinelyOsComplianceStrip';
 import { MarketingStaffChatStrip } from '../components/marketing/MarketingStaffChatStrip';
 import { FinelyOsPageFooter } from '../features/os/FinelyOsPageFooter';
 import { FinelyOsPaginatedStack } from '../features/os/FinelyOsPaginatedStack';
@@ -21,8 +24,11 @@ import {
   FINELY_OS_ENTITY_SUBLABEL,
   FINELY_OS_ENTITY_BODY,
   FINELY_OS_ENTITY_VALUE,
+  FINELY_OS_VIEW_TABS,
   finelyOsCatalogCard,
   finelyOsLeadMagnetPanel,
+  finelyOsViewTab,
+  type FinelyOsPublicAccent,
 } from '../features/os/finelyOsLightUi';
 
 function withStart(embedUrl: string, startAtSeconds?: number) {
@@ -33,8 +39,115 @@ function withStart(embedUrl: string, startAtSeconds?: number) {
   return base.includes('?') ? `${base}&start=${s}` : `${base}?start=${s}`;
 }
 
+type CaseStudyCategoryFilter = CaseStudy['category'] | 'all';
+
+const CASE_STUDY_CATEGORY_LABELS: Record<CaseStudy['category'], string> = {
+  ...categoryLabels,
+  heta_society: 'HETA Society',
+};
+
+const CASE_STUDY_FILTERS: Array<{ id: CaseStudyCategoryFilter; label: string; accent: FinelyOsPublicAccent }> = [
+  { id: 'all', label: 'All', accent: 'violet' },
+  { id: 'personal_credit', label: categoryLabels.personal_credit, accent: 'emerald' },
+  { id: 'business_credit', label: categoryLabels.business_credit, accent: 'sky' },
+  { id: 'debt_legal', label: categoryLabels.debt_legal, accent: 'rose' },
+  { id: 'wealth_builder', label: categoryLabels.wealth_builder, accent: 'amber' },
+  { id: 'privacy_id', label: categoryLabels.privacy_id, accent: 'fuchsia' },
+  { id: 'tradeline_promo', label: categoryLabels.tradeline_promo, accent: 'violet' },
+  { id: 'heta_society', label: 'HETA Society', accent: 'emerald' },
+];
+
+const CASE_STUDY_CARD_ACCENTS: FinelyOsPublicAccent[] = ['amber', 'emerald', 'violet', 'sky', 'fuchsia', 'rose'];
+
+function parseFundingSecuredAmount(value?: string): number {
+  if (!value) return 0;
+  const n = Number(value.replace(/[^0-9.]/g, ''));
+  return Number.isFinite(n) ? n : 0;
+}
+
+function CaseStudyResultCard({
+  caseStudy,
+  accent,
+  expanded,
+  onToggle,
+}: {
+  caseStudy: CaseStudy;
+  accent: FinelyOsPublicAccent;
+  expanded: boolean;
+  onToggle: () => void;
+}) {
+  const stat = caseStudy.fundingSecured
+    ? { label: 'Funding secured', value: caseStudy.fundingSecured }
+    : caseStudy.startingScore != null && caseStudy.endingScore != null
+    ? { label: 'Score lift', value: `${caseStudy.startingScore} → ${caseStudy.endingScore}` }
+    : null;
+
+  return (
+    <div className={`space-y-3 ${finelyOsCatalogCard(accent)} !p-5`} data-fc-accent={accent}>
+      <div className="flex items-start justify-between gap-2">
+        <span className="text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-full border border-white/20 bg-white/10 text-white/70 whitespace-nowrap">
+          {CASE_STUDY_CATEGORY_LABELS[caseStudy.category] ?? 'Case study'}
+        </span>
+        {stat ? (
+          <span className="text-xs font-bold text-emerald-300 text-right shrink-0">
+            {stat.label}
+            <br />
+            {stat.value}
+          </span>
+        ) : null}
+      </div>
+      <div>
+        <div className={`${FINELY_OS_ENTITY_VALUE} font-semibold`}>{caseStudy.partnerAlias}</div>
+        <p className={`mt-1 text-sm ${FINELY_OS_ENTITY_BODY}`}>{caseStudy.summary}</p>
+      </div>
+      <button
+        type="button"
+        onClick={onToggle}
+        className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-amber-300 hover:text-amber-100 transition-colors"
+      >
+        {expanded ? 'Hide the details' : 'Challenge, strategy & outcomes'}
+        {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+      </button>
+      {expanded ? (
+        <div className="space-y-3 pt-2 border-t border-white/10">
+          <div>
+            <div className={FINELY_OS_ENTITY_SUBLABEL}>Challenge</div>
+            <p className={`mt-1 text-sm ${FINELY_OS_ENTITY_BODY}`}>{caseStudy.challenge}</p>
+          </div>
+          <div>
+            <div className={FINELY_OS_ENTITY_SUBLABEL}>Strategy applied</div>
+            <p className={`mt-1 text-sm ${FINELY_OS_ENTITY_BODY}`}>{caseStudy.strategyApplied}</p>
+          </div>
+          <div>
+            <div className={FINELY_OS_ENTITY_SUBLABEL}>Outcomes</div>
+            <ul className="mt-1 space-y-1">
+              {caseStudy.outcomes.map((outcome) => (
+                <li key={outcome} className={`text-sm ${FINELY_OS_ENTITY_BODY}`}>
+                  • {outcome}
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div className="flex flex-wrap gap-1.5">
+            {caseStudy.statutoryBasis.map((basis) => (
+              <span
+                key={basis}
+                className="text-[9px] px-2 py-0.5 rounded-full border border-white/15 bg-white/[0.06] text-white/55"
+              >
+                {basis.split('(')[0].trim()}
+              </span>
+            ))}
+          </div>
+          <p className="text-[10px] italic text-white/40">{caseStudy.disclaimer}</p>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 export default function TestimonialsPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   usePublicSeoMeta({
     title: 'Partner success stories',
     description: 'Real stories from Finely Cred partners — credit restore, funding readiness, and results-driven workflows.',
@@ -49,8 +162,35 @@ export default function TestimonialsPage() {
     [videos, blobVideoUrls],
   );
   const texts = published.filter((t) => t.kind === 'text') as TextTestimonial[];
-  const [tab, setTab] = useState<'videos' | 'stories'>('videos');
+  const initialTab = searchParams.get('tab');
+  const [tab, setTab] = useState<'videos' | 'stories' | 'case_studies'>(
+    initialTab === 'case_studies' || initialTab === 'stories' ? initialTab : 'videos',
+  );
   const blobRefs = useMemo(() => videos.filter((v) => Boolean(v.blobRef)).map((v) => ({ id: v.id, blobRef: v.blobRef!, mime: v.blobMimeType })), [videos]);
+
+  const allCaseStudies = useMemo(() => getAllCaseStudies(), []);
+  const initialCategory = searchParams.get('category') as CaseStudyCategoryFilter | null;
+  const [caseStudyCategory, setCaseStudyCategory] = useState<CaseStudyCategoryFilter>(
+    initialCategory && allCaseStudies.some((cs) => cs.category === initialCategory) ? initialCategory : 'all',
+  );
+  const [expandedCaseStudyId, setExpandedCaseStudyId] = useState<string | null>(null);
+  const filteredCaseStudies = useMemo(
+    () =>
+      caseStudyCategory === 'all'
+        ? allCaseStudies
+        : allCaseStudies.filter((cs) => cs.category === caseStudyCategory),
+    [allCaseStudies, caseStudyCategory],
+  );
+  const caseStudyStats = useMemo(() => {
+    const scoreLifts = filteredCaseStudies
+      .filter((cs) => cs.startingScore != null && cs.endingScore != null)
+      .map((cs) => (cs.endingScore as number) - (cs.startingScore as number));
+    const avgScoreLift = scoreLifts.length
+      ? Math.round(scoreLifts.reduce((sum, n) => sum + n, 0) / scoreLifts.length)
+      : null;
+    const totalFunding = filteredCaseStudies.reduce((sum, cs) => sum + parseFundingSecuredAmount(cs.fundingSecured), 0);
+    return { avgScoreLift, totalFunding };
+  }, [filteredCaseStudies]);
 
   useEffect(() => {
     let cancelled = false;
@@ -104,9 +244,10 @@ export default function TestimonialsPage() {
           tabs={[
             { id: 'videos', label: 'Video stories' },
             { id: 'stories', label: 'Written wins' },
+            { id: 'case_studies', label: 'Case studies', badge: allCaseStudies.length },
           ]}
           activeTab={tab}
-          onTabChange={(id) => setTab(id as 'videos' | 'stories')}
+          onTabChange={(id) => setTab(id as 'videos' | 'stories' | 'case_studies')}
           primaryAction={{ label: 'Free guide + session', onClick: () => navigate('/resources') }}
           secondaryAction={{ label: 'Contact team', onClick: () => navigate('/contact') }}
         >
@@ -172,6 +313,71 @@ export default function TestimonialsPage() {
               )}
             />
           )
+        )}
+
+        {tab === 'case_studies' && (
+          <>
+            <div className={`space-y-4 ${finelyOsCatalogCard('emerald')} !p-6`} data-fc-accent="emerald">
+              <p className={`text-sm max-w-3xl ${FINELY_OS_ENTITY_BODY}`}>
+                Every documented case study, with the challenge, strategy, and statutory basis behind each result. Filter by
+                category to find a partner story closest to your own file.
+              </p>
+              <div className={`${FINELY_OS_VIEW_TABS} flex-wrap`}>
+                {CASE_STUDY_FILTERS.map((f) => (
+                  <button
+                    key={f.id}
+                    type="button"
+                    onClick={() => setCaseStudyCategory(f.id)}
+                    className={finelyOsViewTab(caseStudyCategory === f.id, f.accent)}
+                  >
+                    {f.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="grid sm:grid-cols-3 gap-3">
+              <FinelyOsOverviewStatTile
+                icon={Trophy}
+                label="Case studies"
+                value={String(filteredCaseStudies.length)}
+                accent="emerald"
+              />
+              <FinelyOsOverviewStatTile
+                icon={TrendingUp}
+                label="Avg score lift"
+                value={caseStudyStats.avgScoreLift != null ? `+${caseStudyStats.avgScoreLift}` : '—'}
+                accent="violet"
+              />
+              <FinelyOsOverviewStatTile
+                icon={DollarSign}
+                label="Funding secured"
+                value={caseStudyStats.totalFunding > 0 ? `$${caseStudyStats.totalFunding.toLocaleString('en-US')}` : '—'}
+                accent="amber"
+              />
+            </div>
+            <FinelyOsComplianceStrip>Results vary · not legal advice · funding subject to underwriting</FinelyOsComplianceStrip>
+
+            {filteredCaseStudies.length === 0 ? (
+              <div className={FINELY_OS_LUXURY_EMPTY}>No case studies in this category yet. Try "All".</div>
+            ) : (
+              <FinelyOsPaginatedStack
+                key={caseStudyCategory}
+                items={filteredCaseStudies}
+                pageSize={12}
+                itemSpacingClassName="grid sm:grid-cols-2 lg:grid-cols-3 gap-4"
+                renderItem={(cs, idx) => (
+                  <CaseStudyResultCard
+                    key={cs.id}
+                    caseStudy={cs}
+                    accent={CASE_STUDY_CARD_ACCENTS[idx % CASE_STUDY_CARD_ACCENTS.length]}
+                    expanded={expandedCaseStudyId === cs.id}
+                    onToggle={() => setExpandedCaseStudyId((current) => (current === cs.id ? null : cs.id))}
+                  />
+                )}
+              />
+            )}
+          </>
         )}
         </FinelyUnifiedHubLayout>
 

@@ -207,3 +207,72 @@ ${gcal ? buildSecondaryCtaLink({ label: 'Add to Google Calendar', href: gcal }) 
 
   return { subject, text, html, previewText: preview };
 }
+
+export type BookingInviteEmailArgs = {
+  /** Recipient display name — falls back to a neutral greeting. */
+  guestName?: string;
+  hostName?: string;
+  topicLabel: string;
+  durationMinutes: number;
+  /** Absolute or path self-book link (`/book/i/:token`). */
+  bookingUrl: string;
+  /** Internal note shown to the recipient (e.g. why they were invited). */
+  label?: string;
+  audience?: 'partner' | 'guest' | 'internal';
+  previewText?: string;
+};
+
+/** "Pick a time" self-book invite email — no fixed start time yet, recipient chooses a slot. */
+export function buildBookingInviteEmail(args: BookingInviteEmailArgs): {
+  subject: string;
+  text: string;
+  html: string;
+  previewText: string;
+} {
+  const origin = getPublicSiteOrigin();
+  const bookingUrl = absolutizeUrl(args.bookingUrl, origin);
+  const isInternal = args.audience === 'internal';
+  const name = (args.guestName || '').trim() || 'there';
+  const host = (args.hostName || '').trim() || (isInternal ? 'Your teammate' : 'Your Finely Cred care team');
+  const topic = args.topicLabel.trim() || 'session';
+  const duration = Math.max(5, Math.round(args.durationMinutes || 30));
+
+  const subject = isInternal
+    ? `Pick a time: ${topic} (${duration} min)`
+    : `You're invited — pick a time for your ${topic}`;
+  const preview =
+    args.previewText || `${host} sent you a scheduling link. Choose a time that works — takes under a minute.`;
+
+  const bodyHtml = `
+<p style="margin:0 0 16px;">Hi ${esc(name)},</p>
+<p style="margin:0 0 16px;"><strong>${esc(host)}</strong> invited you to pick a time for <strong>${esc(topic)}</strong>${isInternal ? '' : ' with Finely Cred'} — ${duration} minutes.</p>
+${args.label ? `<p style="margin:0 0 16px;font-size:14px;color:${FINELY_EMAIL.slate600};">${esc(args.label)}</p>` : ''}
+${buildPrimaryCtaButton({ label: 'Choose a time', href: bookingUrl, color: '#f59e0b' })}
+<p style="margin:20px 0 0;font-size:13px;color:${FINELY_EMAIL.slate500};">No login needed — pick whatever slot works best for you. If the button does not work, copy this link:<br/><a href="${esc(bookingUrl)}" style="color:${FINELY_EMAIL.violet};word-break:break-all;">${esc(bookingUrl)}</a></p>
+${isInternal ? '' : `<p style="margin:16px 0 0;font-size:12px;color:${FINELY_EMAIL.slate500};">Educational guidance · not legal advice · results vary</p>`}
+`;
+
+  const html = wrapFinelyEmailHtml({
+    preheader: preview,
+    headline: isInternal ? 'Pick a time' : "You're invited to book a session",
+    subheadline: `${topic} · ${duration} min`,
+    bodyHtml,
+    headerTheme: 'gold',
+    origin,
+  });
+
+  const text = [
+    `Hi ${name},`,
+    '',
+    `${host} invited you to pick a time for ${topic} (${duration} min).`,
+    args.label || '',
+    '',
+    `Choose a time: ${bookingUrl}`,
+    '',
+    isInternal ? '' : 'Educational · not legal advice · results vary',
+  ]
+    .filter(Boolean)
+    .join('\n');
+
+  return { subject, text, html, previewText: preview };
+}

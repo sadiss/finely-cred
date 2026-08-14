@@ -39,9 +39,13 @@ import {
   FINELY_OS_ENTITY_BODY,
   FINELY_OS_ENTITY_SUBLABEL,
   FINELY_OS_ENTITY_TITLE,
+  FINELY_OS_FIXED_OVERLAY,
+  FINELY_OS_MODAL_SHELL,
   FINELY_OS_SECONDARY_BTN,
   finelyOsCatalogCardCompact,
 } from '../os/finelyOsLightUi';
+import { BeforeAfterScoreGraphicPanel } from './BeforeAfterScoreGraphicPanel';
+import { MediaTechniqueLibraryPanel } from './MediaTechniqueLibraryPanel';
 import { VoiceSoundLibraryPanel } from './VoiceSoundLibraryPanel';
 import { CourseVideoBatchWorkroom } from './CourseVideoBatchWorkroom';
 import { SiteNavigationVideoWorkroom } from './SiteNavigationVideoWorkroom';
@@ -303,6 +307,8 @@ export function ContentStudioDepartmentPage() {
   });
   const [copilotBrief, setCopilotBrief] = useState<Partial<VideoCommandRequest> | null>(null);
   const [copilotPreset, setCopilotPreset] = useState<VideoCreateWizardPresetId | undefined>();
+  const [proofGraphicOpen, setProofGraphicOpen] = useState(false);
+  const [techniqueLibraryOpen, setTechniqueLibraryOpen] = useState(false);
 
   const jobs = useMemo(() => listContentStudioJobs(), [version]);
   const assets = useMemo(() => listContentStudioAssets(), [version]);
@@ -1038,6 +1044,11 @@ export function ContentStudioDepartmentPage() {
           title={activeJob.title}
           right={
             <div className="flex flex-wrap gap-2">
+              {activeWorkroom === 'script' || activeWorkroom === 'design' ? (
+                <button type="button" className="fc-button-soft" onClick={() => setTechniqueLibraryOpen(true)}>
+                  <BookOpen size={14} /> Technique & framework library
+                </button>
+              ) : null}
               <button type="button" className="fc-button-soft" onClick={() => markForReview(activeJob)}><ShieldCheck size={14} /> Send to review</button>
               <button type="button" className="fc-button-soft" onClick={() => approveJob(activeJob)}><CheckCircle2 size={14} /> Approve</button>
             </div>
@@ -1145,7 +1156,15 @@ export function ContentStudioDepartmentPage() {
       ) : null}
 
       {activeWorkroom === 'assets' ? (
-        <StudioSection eyebrow="asset registry" title="Reusable Content Studio assets">
+        <StudioSection
+          eyebrow="asset registry"
+          title="Reusable Content Studio assets"
+          right={
+            <button type="button" className="fc-button-soft" onClick={() => setProofGraphicOpen(true)}>
+              <Sparkles size={14} /> Before/after proof graphic
+            </button>
+          }
+        >
           <div className="rounded-[2rem] border border-white/10 bg-black/30 p-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div>
               <div className="text-white font-black">Publish bridge controls</div>
@@ -1303,6 +1322,42 @@ export function ContentStudioDepartmentPage() {
         promoteVideoId={promoteVideoIdFromUrl}
         onExported={() => setVersion((v) => v + 1)}
       />
+
+      {proofGraphicOpen ? (
+        <div className={FINELY_OS_FIXED_OVERLAY} onClick={() => setProofGraphicOpen(false)}>
+          <div className="min-h-screen flex items-center justify-center p-4" onClick={(e) => e.stopPropagation()}>
+            <div className={`${FINELY_OS_MODAL_SHELL} max-w-2xl w-full`}>
+              <div className="p-4 border-b border-white/10 flex items-center justify-between shrink-0">
+                <div className="text-white font-black">Before/after proof graphic</div>
+                <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => setProofGraphicOpen(false)}>
+                  Close
+                </button>
+              </div>
+              <div className="p-4 overflow-y-auto max-h-[72vh]">
+                <BeforeAfterScoreGraphicPanel onSaved={() => setVersion((v) => v + 1)} />
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {techniqueLibraryOpen ? (
+        <div className={FINELY_OS_FIXED_OVERLAY} onClick={() => setTechniqueLibraryOpen(false)}>
+          <div className="min-h-screen flex items-center justify-center p-4" onClick={(e) => e.stopPropagation()}>
+            <div className={`${FINELY_OS_MODAL_SHELL} max-w-3xl w-full`}>
+              <div className="p-4 border-b border-white/10 flex items-center justify-between shrink-0">
+                <div className="text-white font-black">Technique & framework library</div>
+                <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => setTechniqueLibraryOpen(false)}>
+                  Close
+                </button>
+              </div>
+              <div className="p-4 overflow-y-auto max-h-[72vh]">
+                <MediaTechniqueLibraryPanel />
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

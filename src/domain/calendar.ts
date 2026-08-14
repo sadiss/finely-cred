@@ -34,6 +34,8 @@ export type CalendarBookingSettings = {
   allowedWeekdays: number[];
   allowedDurations: SlotDuration[];
   defaultDuration: SlotDuration;
+  /** Calendly-style booking horizon — how many days out slots are offered. */
+  maxAdvanceDays: number;
   meetingTypes: Array<{ id: string; label: string; durationMinutes: SlotDuration; description?: string }>;
   blockedWindows: CalendarBlockedWindow[];
 };
@@ -64,7 +66,7 @@ export type ConsultationRequest = {
 };
 
 export type CalendarEventType = 'consultation' | 'follow_up' | 'ops';
-export type CalendarEventStatus = 'tentative' | 'confirmed' | 'completed' | 'cancelled';
+export type CalendarEventStatus = 'tentative' | 'confirmed' | 'completed' | 'cancelled' | 'no_show';
 
 export type CalendarEvent = {
   id: string;
@@ -122,6 +124,11 @@ export type PublicAppointmentRequest = {
 /** Admin-issued self-book link — `/book/i/:token` */
 export type BookingInviteStatus = 'active' | 'expired' | 'revoked';
 
+/** Who this invite was created for — shapes email copy and internal reporting. */
+export type BookingInviteAudience = 'partner' | 'guest' | 'internal';
+
+export type BookingInviteEmailStatus = 'not_sent' | 'sending' | 'sent' | 'failed';
+
 export type BookingInvite = {
   id: string;
   /** URL-safe token (not the internal id) */
@@ -136,6 +143,11 @@ export type BookingInvite = {
   guestName?: string;
   guestEmail?: string;
   guestPhone?: string;
+  /** Existing partner vs new/guest contact vs internal team invite. */
+  audience?: BookingInviteAudience;
+  emailStatus?: BookingInviteEmailStatus;
+  emailSentAt?: string;
+  emailError?: string;
   expiresAt?: string;
   maxUses: number;
   useCount: number;

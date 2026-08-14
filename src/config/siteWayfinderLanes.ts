@@ -276,6 +276,7 @@ export const PUBLIC_RESOURCES_SECTIONS: PublicNavSection[] = [
     title: 'Community',
     links: [
       { id: 'events', label: 'Events', path: '/events', hint: 'Live sessions', accent: 'sky' },
+      { id: 'results', label: 'Case studies & results', path: '/results', hint: 'Real numbers by category', badge: 'Proof', accent: 'emerald' },
       { id: 'testimonials', label: 'Partner stories', path: '/testimonials', hint: 'Wins & walkthroughs', accent: 'emerald' },
       { id: 'start-here', label: 'Start here', path: '/start-here', hint: 'Pick your lane', accent: 'amber' },
       { id: 'resources-hub', label: 'Resource hub', path: '/resources', hint: 'Curated overview', accent: 'violet' },
@@ -339,6 +340,7 @@ export function matchResourcesPath(p: string): boolean {
     p.startsWith('/bookstore') ||
     p.startsWith('/events') ||
     p.startsWith('/testimonials') ||
+    p.startsWith('/results') ||
     p === '/start-here'
   );
 }

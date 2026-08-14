@@ -1,21 +1,25 @@
 import React, { useMemo, useState } from 'react';
-import { Calendar, CheckCircle2, Loader2 } from 'lucide-react';
+import { Calendar, CheckCircle2, Loader2, Sparkles } from 'lucide-react';
 import { PublicSessionSlotPicker } from '../calendar/PublicSessionSlotPicker';
-import { createPublicAppointmentRequest, getPublicEnlightenmentSessionQuote } from '../../data/calendarRepo';
+import { VoiceTranscriptField } from '../calendar/VoiceTranscriptField';
+import { getPublicEnlightenmentSessionQuote } from '../../data/calendarRepo';
 import { addLeadNote } from '../../data/leadOpsRepo';
 import { syncInboundLeadSessionBooked } from '../../lib/crmLeadSync';
 import { getLeadCaptureById } from '../../data/leadsRepo';
 import { resolveStaffOnDuty } from '../../data/staffRoster';
+import { confirmPublicSlotBooking } from '../../lib/confirmPublicSlotBooking';
+import { draftBookingAgenda } from '../../lib/aiDraftAgenda';
 import { formatSlotRange, type BookableSlot } from '../../lib/calendarSlots';
 import { emitPlatformEvent } from '../../domain/platformEvents';
 import type { SlotDuration } from '../../domain/calendar';
 import type { LeadMagnetFunnelConfig } from '../../domain/leadMagnetFunnels';
 import { StaffPortraitImg } from '../staff/StaffPortraitImg';
-import {FINELY_OS_ENTITY_BODY,
-  FINELY_OS_ENTITY_PANEL,
+import {
+  FINELY_OS_ENTITY_BODY,
   FINELY_OS_NOTICE_SUCCESS,
   FINELY_OS_PRIMARY_BTN,
-  finelyOsCatalogCard,} from '../../features/os/finelyOsLightUi';
+  finelyOsCatalogCard,
+} from '../../features/os/finelyOsLightUi';
 
 type FocusLane =
   | 'In‑House Financing (Primary Tradeline)'
@@ -41,53 +45,73 @@ type Props = {
   phone?: string;
 };
 
-/** Phase 11 — inline enlightenment session booking on funnel success (no page hop). */
+/** Phase 4 — instant-confirm inline enlightenment session booking on funnel success (no page hop, no "team will follow up"). */
 export function FunnelInlineSessionBook({ config, leadId, fullName, email, phone }: Props) {
   const focus = focusForFunnel(config);
   const [durationMinutes, setDurationMinutes] = useState<SlotDuration>(30);
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
   const [selectedSlot, setSelectedSlot] = useState<BookableSlot | null>(null);
+  const [agenda, setAgenda] = useState('');
+  const [aiDrafting, setAiDrafting] = useState(false);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [done, setDone] = useState(false);
+  const [confirmedLabel, setConfirmedLabel] = useState<string | null>(null);
+  const [joinPath, setJoinPath] = useState<string | null>(null);
 
   const quote = useMemo(() => getPublicEnlightenmentSessionQuote(email), [email]);
   const assignedStaff = useMemo(() => resolveStaffOnDuty(config.agentPersonaId), [config.agentPersonaId]);
   const agentLabel = assignedStaff ? `${assignedStaff.firstName} ${assignedStaff.lastName}` : config.agentDisplayName;
   const canBook = fullName.trim().length > 1 && email.includes('@') && Boolean(selectedSlot) && !busy && !done;
 
+  const aiDraftAgenda = async () => {
+    if (aiDrafting) return;
+    setAiDrafting(true);
+    try {
+      const lead = getLeadCaptureById(leadId);
+      const res = await draftBookingAgenda({
+        focusLabel: focus,
+        goalText: agenda || `${config.heroHighlight}`,
+        crmNotes: lead ? [lead.interest ?? '', lead.offer ?? ''].filter(Boolean) : undefined,
+      });
+      setAgenda(res.text);
+    } finally {
+      setAiDrafting(false);
+    }
+  };
+
   const book = async () => {
     if (!canBook || !selectedSlot) return;
     setBusy(true);
     setErr(null);
     try {
-      const pubReq = createPublicAppointmentRequest({
+      const finalAgenda = agenda.trim() || `Funnel follow-up — ${config.heroHighlight.trim()} guide`;
+      const { event, joinPath: guestJoinPath, confirmedLabel: label } = await confirmPublicSlotBooking({
         topic: 'enlightenment',
         fullName: fullName.trim(),
         email: email.trim(),
         phone: phone?.trim() || undefined,
-        preferredSlotMinutes: durationMinutes,
-        availabilityNotes: `Preferred slot: ${formatSlotRange(selectedSlot.startAt, selectedSlot.endAt)}`,
-        selectedSlotStartAt: selectedSlot.startAt,
-        selectedSlotEndAt: selectedSlot.endAt,
+        agenda: finalAgenda,
+        notes: [`Focus: ${focus}`, `Funnel: ${config.funnelId}`, `Lead: ${leadId}`].join('\n'),
+        selectedSlot,
+        durationMinutes,
         freeSessionApplied: quote.freeSessionApplied,
         sessionPriceCents: quote.sessionPriceCents,
         paymentRequired: quote.paymentRequired,
-        meetingAgenda: `Funnel follow-up — ${config.heroHighlight.trim()} guide`,
-        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-        notes: [`Focus: ${focus}`, `Funnel: ${config.funnelId}`, `Lead: ${leadId}`].join('\n'),
+        hostName: agentLabel,
+        hostRoleLabel: config.agentRole,
       });
-      window.dispatchEvent(new Event('finely:store'));
+
       const lead = getLeadCaptureById(leadId);
       if (lead) syncInboundLeadSessionBooked(lead, config.funnelId);
       addLeadNote(
         leadId,
         [
-          'Inline strategy call booked from funnel success',
+          'Inline strategy call confirmed instantly from funnel success',
           `Focus: ${focus}`,
-          `Slot: ${formatSlotRange(selectedSlot.startAt, selectedSlot.endAt)}`,
-          `Request: ${pubReq.id}`,
-          quote.paymentRequired ? 'Payment required before confirmation' : 'Free session applied',
+          `Slot: ${label}`,
+          `Event: ${event.id}`,
+          quote.paymentRequired ? 'Payment required — follow up before call' : 'Free session applied',
         ].join('\n'),
       );
       emitPlatformEvent({
@@ -99,7 +123,7 @@ export function FunnelInlineSessionBook({ config, leadId, fullName, email, phone
         payload: {
           kind: 'funnel_session_booked',
           funnelId: config.funnelId,
-          requestId: pubReq.id,
+          requestId: event.sourceRequestId ?? '',
           focus,
           slotLabel: formatSlotRange(selectedSlot.startAt, selectedSlot.endAt),
           fullName: fullName.trim(),
@@ -108,9 +132,11 @@ export function FunnelInlineSessionBook({ config, leadId, fullName, email, phone
           agentPersonaId: config.agentPersonaId,
         },
       });
+      setConfirmedLabel(label);
+      setJoinPath(guestJoinPath);
       setDone(true);
     } catch (e: unknown) {
-      setErr((e as Error)?.message ?? 'Could not book session. Try the full booking page.');
+      setErr((e as Error)?.message ?? 'Could not confirm session. Try the full booking page.');
     } finally {
       setBusy(false);
     }
@@ -121,11 +147,16 @@ export function FunnelInlineSessionBook({ config, leadId, fullName, email, phone
       <div className={`${FINELY_OS_NOTICE_SUCCESS} flex items-start gap-3`}>
         <CheckCircle2 size={18} className="shrink-0 mt-0.5" />
         <div>
-          <div className="font-semibold">Session request sent</div>
+          <div className="font-semibold">Confirmed{confirmedLabel ? ` — ${confirmedLabel}` : ''}</div>
           <p className={`${FINELY_OS_ENTITY_BODY} mt-1`}>
-            We received your preferred time. {agentLabel} will confirm by email
-            {quote.paymentRequired ? ' after payment is completed' : ''}.
+            {agentLabel} is on your calendar
+            {quote.paymentRequired ? ' — a payment link will follow before the call.' : '.'}
           </p>
+          {joinPath ? (
+            <a href={joinPath} className="mt-2 inline-block underline text-emerald-200 text-sm">
+              Open audio-first join room
+            </a>
+          ) : null}
         </div>
       </div>
     );
@@ -147,7 +178,7 @@ export function FunnelInlineSessionBook({ config, leadId, fullName, email, phone
         </div>
       </div>
       <p className={`${FINELY_OS_ENTITY_BODY} text-sm`}>
-        Pick a time now — {agentLabel} will follow up to confirm.
+        Pick a time — it's confirmed instantly, no waiting on a callback.
         {quote.freeSessionApplied ? ' Your first session is free.' : ''}
       </p>
       <PublicSessionSlotPicker
@@ -158,10 +189,28 @@ export function FunnelInlineSessionBook({ config, leadId, fullName, email, phone
         selectedSlot={selectedSlot}
         onSlotChange={setSelectedSlot}
       />
+      <VoiceTranscriptField
+        label="What should we cover? (optional)"
+        value={agenda}
+        onChange={setAgenda}
+        rows={2}
+        accent="violet"
+        placeholder={`e.g. ${config.heroHighlight}`}
+        rightSlot={
+          <button
+            type="button"
+            onClick={() => void aiDraftAgenda()}
+            disabled={aiDrafting}
+            className="inline-flex items-center gap-1 rounded-lg border border-amber-400/40 bg-amber-500/10 px-2 py-1 text-[9px] font-black uppercase tracking-widest text-amber-200 hover:bg-amber-500/15 disabled:opacity-50"
+          >
+            <Sparkles size={11} /> {aiDrafting ? 'Drafting…' : 'AI-draft'}
+          </button>
+        }
+      />
       {err ? <p className="text-sm text-rose-200">{err}</p> : null}
       <button type="button" disabled={!canBook} onClick={() => void book()} className={`${FINELY_OS_PRIMARY_BTN} w-full justify-center`}>
         {busy ? <Loader2 size={16} className="animate-spin" /> : null}
-        {busy ? 'Sending request…' : 'Request this time slot'}
+        {busy ? 'Confirming…' : 'Confirm this time'}
       </button>
     </div>
   );

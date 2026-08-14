@@ -16,7 +16,38 @@ import {FINELY_OS_DANGER_BTN,
   FINELY_OS_NOTICE_INFO,
   FINELY_OS_PRIMARY_BTN,
   finelyOsGlassShell,
-  finelyOsCatalogCard,} from '../../os/finelyOsLightUi';
+  finelyOsCatalogCard,
+  finelyOsGlowTile,} from '../../os/finelyOsLightUi';
+
+function ChipPicker<T extends string>({
+  value,
+  options,
+  onChange,
+  accent = 'sky',
+}: {
+  value: T;
+  options: Array<{ value: T; label: string }>;
+  onChange: (v: T) => void;
+  accent?: 'sky' | 'violet' | 'amber' | 'fuchsia' | 'emerald' | 'rose';
+}) {
+  return (
+    <div className="flex flex-wrap gap-1.5">
+      {options.map((o) => {
+        const active = o.value === value;
+        return (
+          <button
+            key={o.value || '__any__'}
+            type="button"
+            onClick={() => onChange(o.value)}
+            className={`px-2 py-1 text-[10px] font-bold ${finelyOsGlowTile(active ? accent : 'sky', active)} ${active ? 'text-white' : 'text-white/60'}`}
+          >
+            {o.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
 
 export function CrmRoutingRulesPanel() {
   const [version, setVersion] = useState(0);
@@ -96,43 +127,46 @@ export function CrmRoutingRulesPanel() {
             <div className="grid sm:grid-cols-2 gap-3 text-sm">
               <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony space-y-2`}>
                 <div className={FINELY_OS_ENTITY_SUBLABEL}>When</div>
-                <select
+                <ChipPicker
                   value={rule.when.kind ?? ''}
-                  onChange={(e) => save({ ...rule, when: { ...rule.when, kind: (e.target.value || undefined) as CrmRoutingRule['when']['kind'] } })}
-                  className={`w-full ${FINELY_OS_ENTITY_INPUT.replace('mt-2 ', '')}`}
-                >
-                  <option value="">Any kind</option>
-                  <option value="inbound_lead">Inbound lead</option>
-                  <option value="prospect">Prospect</option>
-                </select>
+                  accent="violet"
+                  options={[
+                    { value: '', label: 'Any kind' },
+                    { value: 'inbound_lead', label: 'Inbound lead' },
+                    { value: 'prospect', label: 'Prospect' },
+                  ]}
+                  onChange={(v) => save({ ...rule, when: { ...rule.when, kind: (v || undefined) as CrmRoutingRule['when']['kind'] } })}
+                />
                 <input
                   placeholder="Interest contains…"
                   value={rule.when.interestContains ?? ''}
                   onChange={(e) => save({ ...rule, when: { ...rule.when, interestContains: e.target.value || undefined } })}
                   className={`w-full ${FINELY_OS_ENTITY_INPUT.replace('mt-2 ', '')}`}
                 />
-                <select
+                <ChipPicker
                   value={rule.when.referralCode ?? ''}
-                  onChange={(e) => save({ ...rule, when: { ...rule.when, referralCode: e.target.value || undefined } })}
-                  className={`w-full ${FINELY_OS_ENTITY_INPUT.replace('mt-2 ', '')}`}
-                >
-                  <option value="">Referral: any</option>
-                  <option value="*">Has referral code</option>
-                </select>
+                  accent="violet"
+                  options={[
+                    { value: '', label: 'Referral: any' },
+                    { value: '*', label: 'Has referral code' },
+                  ]}
+                  onChange={(v) => save({ ...rule, when: { ...rule.when, referralCode: v || undefined } })}
+                />
               </div>
               <div className={`${FINELY_OS_NOTICE_INFO} p-3 space-y-2`}>
                 <div className={`${FINELY_OS_ENTITY_SUBLABEL} text-fuchsia-300`}>Then</div>
-                <select
+                <ChipPicker
                   value={rule.then.moveStage ?? ''}
-                  onChange={(e) => save({ ...rule, then: { ...rule.then, moveStage: (e.target.value || undefined) as CrmRoutingRule['then']['moveStage'] } })}
-                  className={`w-full ${FINELY_OS_ENTITY_INPUT.replace('mt-2 ', '')}`}
-                >
-                  <option value="">Keep stage</option>
-                  <option value="new">New</option>
-                  <option value="contacted">Contacted</option>
-                  <option value="booked">Booked</option>
-                  <option value="converted">Converted</option>
-                </select>
+                  accent="fuchsia"
+                  options={[
+                    { value: '', label: 'Keep stage' },
+                    { value: 'new', label: 'New' },
+                    { value: 'contacted', label: 'Contacted' },
+                    { value: 'booked', label: 'Booked' },
+                    { value: 'converted', label: 'Converted' },
+                  ]}
+                  onChange={(v) => save({ ...rule, then: { ...rule.then, moveStage: (v || undefined) as CrmRoutingRule['then']['moveStage'] } })}
+                />
                 <input
                   placeholder="Tags (comma-separated)"
                   value={(rule.then.addTags ?? []).join(', ')}

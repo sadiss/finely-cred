@@ -358,6 +358,10 @@ export function getAgentMaturity(agent: GrowthAgentDef): GrowthMaturityReport {
   if (agent.id === 'media') return getJordanMaturity();
   if (agent.id === 'partnerships') return getBenjaminMaturity();
   if (agent.id === 'specialist-recruit') return getRebeccaMaturity();
+  // Unreachable for the current roster — every id/wave combination above already has its
+  // own branch. If this fires, a new agent was added without a matching maturity branch;
+  // warn loudly instead of silently showing a generic "Coming soon" fallback.
+  console.warn('[growthAgentMaturity] No maturity branch for agent', agent.id);
   return {
     percent: agent.wave > 2 ? 15 : 35,
     label: agent.wave > 2 ? 'Coming soon' : 'Wave 1 — opening tools',

@@ -41,6 +41,7 @@ function adminToneForPackage(pkg: PricingPackage): FcAdminTone {
   if (id === 'personal_restore_5000') return 'gold';
   if (id === 'personal_restore_7000') return 'emerald';
   if (id === 'personal_restore_10000') return 'sky';
+  if (id === 'personal_restore_custom' || id === 'debt_kill_custom') return 'gold';
   if (id.includes('restore')) return 'navy';
   return ADMIN_FALLBACK_TONES[Math.abs(id.length) % ADMIN_FALLBACK_TONES.length];
 }
@@ -105,16 +106,18 @@ export function personalCreditCompareMeta(pkg: PricingPackage): string[] {
   if (pkg.id.startsWith('letters_pack_')) {
     return ['Specialty disputes', 'Letter templates', 'One-time unlock', deliveryMetaLabel(pkg.delivery)].filter(Boolean);
   }
-  const rounds =
-    pkg.id === 'personal_starter'
+  const rounds = pkg.isCustomQuote
+    ? 'Disputes: scoped after intake'
+    : pkg.id === 'personal_starter'
       ? 'Disputes: templates only'
       : pkg.id === 'personal_free'
         ? 'Disputes: not included'
         : pkg.id.includes('restore') || pkg.id === 'personal_platinum' || pkg.id === 'personal_core'
           ? 'Disputes: unlimited'
           : 'Disputes: program plan';
-  const access =
-    pkg.id === 'personal_starter'
+  const access = pkg.isCustomQuote
+    ? 'Access: program window (custom)'
+    : pkg.id === 'personal_starter'
       ? 'Access: 30 days'
       : pkg.id === 'personal_restore' || pkg.id.includes('restore_starter')
         ? 'Access: 90 days'
@@ -165,8 +168,9 @@ export function pricingPackageToCatalogItem(
   pkg: PricingPackage,
   opts?: { includePersonalCompare?: boolean },
 ): FinelyOsCatalogItem {
-  const priceLabel =
-    pkg.priceAmount === 0
+  const priceLabel = pkg.isCustomQuote
+    ? 'Custom quote'
+    : pkg.priceAmount === 0
       ? 'Free'
       : `${formatPrice(pkg.priceAmount)}${pkg.interval === 'month' ? '/mo' : ''}`;
 

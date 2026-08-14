@@ -25,6 +25,20 @@ function saveStore(store: Store) {
   saveJson(KEY, store, 1);
 }
 
+/**
+ * Synchronous local-store snapshot for co-owner ops summaries (Ruth automations that
+ * cannot await a Supabase round-trip mid-response). Supabase-authoritative reads for
+ * UI/portal flows should keep using the async listAffiliatesByTenant.
+ */
+export function listAffiliatesLocalSync(tenantId: string): Affiliate[] {
+  return loadStore().affiliates.filter((a) => a.tenantId === tenantId);
+}
+
+/** Sync local-store attribution events across all affiliates — see listAffiliatesLocalSync note. */
+export function listAffiliateEventsLocalSync(): AffiliateAttributionEvent[] {
+  return loadStore().events;
+}
+
 export async function listAffiliatesByTenant(tenantId: string): Promise<Affiliate[]> {
   if (isSupabaseConfigured) {
     const remote = await supabaseListAffiliatesByTenant(tenantId);

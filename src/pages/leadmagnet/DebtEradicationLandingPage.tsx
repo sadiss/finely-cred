@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import {
   BadgeCheck,
@@ -9,6 +9,7 @@ import {
   Gavel,
   Home,
   Lock,
+  Phone,
   Scale,
   ShieldCheck,
   Sparkles,
@@ -23,7 +24,15 @@ import { DEBT_FUNNEL } from '../../domain/leadMagnetFunnels';
 import { usePublicSeoMeta } from '../../hooks/usePublicSeoMeta';
 import { PremiumLeadMagnetCaptureForm } from '../../components/leadmagnet/PremiumLeadMagnetCaptureForm';
 import { LandingTypewriterTitle } from '../../components/landing/LandingTypewriterTitle';
+import { loadSettings } from '../../data/settingsRepo';
+import { buildTelHref, DEFAULT_SUPPORT_PHONE_DISPLAY } from '../../lib/telLink';
 import { DEBT_GUIDE_CHAPTERS, DEBT_GUIDE_META, DEBT_GUIDE_READ_PATH } from './debtEradicationGuideContent';
+import {
+  assignFunnelVariant,
+  ensureDefaultExperiments,
+  getExperimentForFunnel,
+  recordFunnelConversion,
+} from '../../data/funnelExperimentsRepo';
 import '../../components/leadmagnet/premiumLeadMagnetShared.css';
 import '../../components/leadmagnet/leadMagnetLuxuryStage.css';
 import './debtEradicationLanding.css';
@@ -215,6 +224,18 @@ export default function DebtEradicationLandingPage() {
     path: DEBT_FUNNEL.path,
   });
 
+  const supportPhone = loadSettings().site.supportPhone || DEFAULT_SUPPORT_PHONE_DISPLAY;
+  const telHref = buildTelHref(supportPhone);
+
+  useEffect(() => {
+    ensureDefaultExperiments();
+  }, []);
+  const abVariant = useMemo(() => assignFunnelVariant(DEBT_FUNNEL.funnelId), []);
+  const experiment = useMemo(() => getExperimentForFunnel(DEBT_FUNNEL.funnelId), []);
+  const headlineOverride = experiment?.headlines?.[abVariant];
+  const ctaOverride = experiment?.ctaLabels?.[abVariant];
+  const onGuideCaptured = () => recordFunnelConversion(DEBT_FUNNEL.funnelId, abVariant);
+
   const scrollToDownload = () => document.getElementById('download')?.scrollIntoView({ behavior: 'smooth' });
 
   const freeToolkit = DEBT_FUNNEL.valueStack.map((item) => ({ label: item.label, value: item.value }));
@@ -271,24 +292,38 @@ export default function DebtEradicationLandingPage() {
               Free debt &amp; summons guide
             </p>
             <h1 className="del-hero-title del-serif lm-lux-display del-hero-title--typewriter mt-3 md:mt-4">
-              <LandingTypewriterTitle
-                as="span"
-                text="Annihilate Your Debt."
-                className="del-hero-title-line del-hero-title-line--navy block"
-                speedMs={40}
-                delayMs={120}
-                caret
-                immediate
-              />
-              <LandingTypewriterTitle
-                as="span"
-                text="Take Back Control."
-                className="del-hero-title-line del-hero-title-line--gold block"
-                speedMs={42}
-                delayMs={980}
-                caret
-                immediate
-              />
+              {headlineOverride ? (
+                <LandingTypewriterTitle
+                  as="span"
+                  text={headlineOverride}
+                  className="del-hero-title-line del-hero-title-line--gold block"
+                  speedMs={40}
+                  delayMs={120}
+                  caret
+                  immediate
+                />
+              ) : (
+                <>
+                  <LandingTypewriterTitle
+                    as="span"
+                    text="Annihilate Your Debt."
+                    className="del-hero-title-line del-hero-title-line--navy block"
+                    speedMs={40}
+                    delayMs={120}
+                    caret
+                    immediate
+                  />
+                  <LandingTypewriterTitle
+                    as="span"
+                    text="Take Back Control."
+                    className="del-hero-title-line del-hero-title-line--gold block"
+                    speedMs={42}
+                    delayMs={980}
+                    caret
+                    immediate
+                  />
+                </>
+              )}
             </h1>
             <div className="del-hero-title-rule lm-lux-rule--draw mx-auto" aria-hidden />
             <p className="del-hero-lede mx-auto mt-5 max-w-2xl md:mt-6">
@@ -312,6 +347,8 @@ export default function DebtEradicationLandingPage() {
                 <PremiumLeadMagnetCaptureForm
                   funnelConfig={DEBT_FUNNEL}
                   accentClass="focus:border-[#ffd993] focus:ring-[#e0b24a]/15"
+                  submitLabel={ctaOverride}
+                  onCaptured={onGuideCaptured}
                 />
                 <p className="del-compliance mt-3">
                   Results vary · not legal advice · educational guide only
@@ -325,11 +362,22 @@ export default function DebtEradicationLandingPage() {
                 <Link to={DEBT_FUNNEL.bookingPath ?? '/enlightenment-session'} className="lm-secondary-book-link">
                   <Calendar size={14} /> Book a session
                 </Link>
+                <a href={telHref} className="lm-secondary-book-link">
+                  <Phone size={14} /> Call {supportPhone}
+                </a>
               </div>
             </div>
           </div>
         </div>
       </section>
+
+      {/* Mobile-only click-to-call bar (B7) — high-intent partners often prefer calling from a phone */}
+      <a
+        href={telHref}
+        className="del-mobile-call-bar fixed inset-x-3 bottom-3 z-40 flex sm:hidden items-center justify-center gap-2 rounded-xl border border-[#ffe7b0]/55 bg-[linear-gradient(135deg,#c4803d_0%,#e0b24a_42%,#ffe7b0_68%,#d19d45_100%)] px-4 py-3 text-[11px] font-black uppercase tracking-[0.14em] text-[#040a36] shadow-[0_16px_40px_rgba(224,178,74,0.4)]"
+      >
+        <Phone size={16} /> Call now — {supportPhone}
+      </a>
 
       <section className="del-video-section relative z-10 border-b border-[#e0b24a]/20">
         <div className="del-video-grid mx-auto grid gap-14 px-5 md:px-8 lg:grid-cols-2 lg:items-center lg:gap-20 xl:gap-32">
@@ -542,6 +590,8 @@ export default function DebtEradicationLandingPage() {
                 <PremiumLeadMagnetCaptureForm
                   funnelConfig={DEBT_FUNNEL}
                   accentClass="focus:border-[#c4803d] focus:ring-[#e0b24a]/20"
+                  submitLabel={ctaOverride}
+                  onCaptured={onGuideCaptured}
                 />
               </div>
               <p className="del-compliance mt-3">

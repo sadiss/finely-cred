@@ -236,7 +236,7 @@ export default function AdminCalendarPage() {
           </p>
         </div>
 
-        <BookingInvitePanel />
+        <BookingInvitePanel partners={partners} />
 
         {schedulePublicReq && (
           <div className={`${FINELY_OS_NOTICE_SUCCESS} space-y-4`}>

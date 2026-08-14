@@ -148,9 +148,22 @@ export function routeKnowledgeForQuery(args: {
     categoryBoost,
   });
 
+  // Phase 5: public/lead surfaces also pull from the deepened, public-safe
+  // finelyKnowledgeIndex (letters/Letter Studio, validation doctrine, funding
+  // readiness, affiliate payouts, CRM/pricing) — merged alongside the original
+  // scripted-article KB rather than replacing it, so answers go beyond a shallow
+  // welcome + basic Q&A. Compliance guard downstream in conversationalAi.ts is untouched.
+  const deepHits = searchFinelyKnowledgePublic(args.query, {
+    limit: Math.min(6, (args.limit ?? 5) + 1),
+    contextRoute: args.contextRoute,
+  });
+  const deepChunks = publicHitsToChunks(deepHits);
+  const mergedChunks = [...chunks, ...deepChunks];
+  const deepBlock = formatFinelyKnowledgeForPrompt(deepHits);
+
   return {
-    chunks,
-    promptBlock: formatKnowledgeForPrompt(chunks),
-    followUps: suggestFollowUps(chunks),
+    chunks: mergedChunks,
+    promptBlock: [formatKnowledgeForPrompt(chunks), deepBlock].filter(Boolean).join('\n\n'),
+    followUps: suggestFollowUps(mergedChunks),
   };
 }

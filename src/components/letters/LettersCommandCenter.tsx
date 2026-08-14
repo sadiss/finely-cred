@@ -63,6 +63,12 @@ import { letterTrackFamily } from '../../lib/letterProductLabels';
 import { LetterEditorShell } from './LetterEditorShell';
 import { SmartProofUploader } from '../evidence/SmartProofUploader';
 import { DEBT_LETTER_SPECS, SCENARIO_RECOMMENDATIONS, recommendScenarioFromDebt, getLetterBody } from '../../legal/debtLetterTemplates';
+import { getAllAuthorityCitations, type AuthorityCitation } from '../../data/authorityCitationsRepo';
+import {
+  ensureValidation30DayBlockInBody,
+  replaceValidationIntroInBody,
+  VALIDATION_INTRO_VARIANT_COUNT,
+} from '../../legal/validationLetterClauses';
 import type { DebtLetterType, DebtScenario } from '../../domain/debtLegal';
 import { EntitlementGate } from '../billing/EntitlementGate';
 import { generateTextPdfToVault } from '../../letters/generateTextPdf';
@@ -158,6 +164,8 @@ import {
   FINELY_OS_ENTITY_BODY,
   FINELY_OS_ENTITY_CHIP,
   finelyOsCatalogCard,
+  finelyOsCatalogCardCompact,
+  finelyOsGlowTile,
   FINELY_OS_ENTITY_SUBLABEL,
   FINELY_OS_ENTITY_VALUE,  FINELY_OS_PRIMARY_BTN,
   FINELY_OS_SECONDARY_BTN,
@@ -177,6 +185,39 @@ const LCC_AI_DRAFT_BTN_SM =
   'inline-flex items-center gap-2 rounded-xl border border-fuchsia-500/30 bg-fuchsia-500/10 px-3 py-2 text-[10px] font-black uppercase tracking-widest text-fuchsia-100 hover:bg-fuchsia-500/15 transition-all disabled:opacity-60';
 
 const LCC_MODAL_SHELL = `${finelyOsCatalogCard('violet')} !p-0 overflow-hidden shadow-2xl flex flex-col`;
+
+/**
+ * Loose keyword match between a debt letter spec's `legalBasis` cites/short names and the
+ * statutory-authority citation pack — good enough for a reference panel, not exhaustive.
+ */
+function relevantAuthorityCitationsForSpec(
+  spec: { legalBasis?: { cite: string; shortName: string }[] } | null | undefined,
+): AuthorityCitation[] {
+  if (!spec?.legalBasis?.length) return [];
+  const keywords = new Set<string>();
+  for (const basis of spec.legalBasis) {
+    const cite = String(basis.cite || '').toLowerCase();
+    const shortName = String(basis.shortName || '').toLowerCase();
+    // Pull statute/section-like tokens (e.g. "1692g", "1681s-2", "3-308").
+    (cite.match(/\d{3,4}[a-z]?(-\d+)?/g) || []).forEach((tok) => keywords.add(tok));
+    for (const word of shortName.split(/[^a-z0-9]+/)) {
+      if (word.length >= 4 && !['fdcpa', 'fcra'].includes(word)) keywords.add(word);
+    }
+  }
+  if (!keywords.size) return [];
+  const all = getAllAuthorityCitations();
+  const seen = new Set<string>();
+  const matches: AuthorityCitation[] = [];
+  for (const citation of all) {
+    const haystack = `${citation.statuteOrRegulation} ${citation.topic}`.toLowerCase();
+    const isMatch = Array.from(keywords).some((kw) => haystack.includes(kw));
+    if (isMatch && !seen.has(citation.id)) {
+      seen.add(citation.id);
+      matches.push(citation);
+    }
+  }
+  return matches.slice(0, 8);
+}
 
 export type LettersStudioTab = 'dispute' | 'validation' | 'court' | 'foreclosure' | 'repossession' | 'bankruptcy' | 'templates';
 type TabKey = LettersStudioTab;
@@ -3126,7 +3167,10 @@ useEffect(() => {
       stateNote: (debt?.stateJurisdiction || summonsAffidavitContext.jurisdictionState)
         ? ` In ${debt?.stateJurisdiction || summonsAffidavitContext.jurisdictionState}, the applicable SOL may apply.`
         : undefined,
-      // Always merge scrape/case court fields so validation + affidavits get amount/court/counsel too.
+      introVariantIndex:
+        draft?.specId === 'validation_request' || draft?.catalogId === 'validation_initial_fdcpa'
+          ? draft?.introVariantIndex ?? 0
+          : undefined,
       summonsContext: {
         courtName: summonsAffidavitContext.courtName || debt?.courtName,
         courtDivision: summonsAffidavitContext.courtDivision,
@@ -3166,6 +3210,10 @@ useEffect(() => {
     previewKey?: string;
     /** Vault letter id created on Generate — Save updates the same record */
     letterId?: string;
+    /** validation_request intro opener variant (0-based) */
+    introVariantIndex?: number;
+    /** Previous html before intro swap — revert target */
+    introRevertHtml?: string;
   }>(null);
   const [generateBusy, setGenerateBusy] = useState(false);
   const [draftBusy, setDraftBusy] = useState(false);
@@ -3175,6 +3223,20 @@ useEffect(() => {
   const [draftNotice, setDraftNotice] = useState<string | null>(null);
   /** Optional PartnerNote body attached on Save PDF (debt + credit studios) */
   const [letterPartnerNote, setLetterPartnerNote] = useState('');
+
+  /** Last html persisted to the vault for the open draft — used to detect unsaved edits so Close never silently discards them. */
+  const draftSyncedHtmlRef = React.useRef<string>('');
+  const draftHasUnsavedEdits = Boolean(draft) && ensureHtmlDraft(draft?.html || '') !== draftSyncedHtmlRef.current;
+
+  /** Active debt/court letter spec for the open draft — drives the Legal authority panel below. */
+  const activeDebtLetterSpec = useMemo(
+    () => DEBT_LETTER_SPECS.find((s) => s.id === draft?.specId) ?? null,
+    [draft?.specId],
+  );
+  const relevantAuthorityCitations = useMemo(
+    () => relevantAuthorityCitationsForSpec(activeDebtLetterSpec),
+    [activeDebtLetterSpec],
+  );
 
   useEffect(() => {
     if (draft) {
@@ -3189,8 +3251,14 @@ useEffect(() => {
     });
   }, [draft]);
 
-  const closeDebtDraftModal = () => {
+  const closeDebtDraftModal = async () => {
     if (draftBusy) return;
+    // Never silently discard edits: if the draft body changed since the last save, persist the text
+    // to the vault record before closing so re-opening/editing later shows the latest content.
+    if (draftHasUnsavedEdits && draft?.letterId) {
+      const ok = await saveDebtDraftText();
+      if (!ok) return; // keep the modal open — draftErr already shows the failure reason
+    }
     setDraftErr(null);
     setDraft((current) => {
       if (current?.letterId) {
@@ -3198,6 +3266,48 @@ useEffect(() => {
       }
       return null;
     });
+  };
+
+  const isValidationIntroDraft =
+    draft?.type === 'validation' &&
+    (draft.specId === 'validation_request' || draft.catalogId === 'validation_initial_fdcpa');
+
+  const cycleValidationIntroVariant = () => {
+    if (!draft || !isValidationIntroDraft) return;
+    const plain = stripLetterVendorBranding(htmlToPlainText(draft.html || ''));
+    const nextIdx = ((draft.introVariantIndex ?? 0) + 1) % VALIDATION_INTRO_VARIANT_COUNT;
+    const replaced = replaceValidationIntroInBody(plain, nextIdx);
+    if (!replaced) {
+      setDraftErr('Could not swap the intro — the letter may have been edited. Restore structure or regenerate.');
+      return;
+    }
+    setDraftErr(null);
+    setDraft((prev) =>
+      prev
+        ? {
+            ...prev,
+            introRevertHtml: prev.html,
+            introVariantIndex: nextIdx,
+            html: stripLetterVendorBrandingHtml(plainTextToHtml(replaced)),
+            previewKey: `${prev.previewKey || prev.specId}:intro:${nextIdx}`,
+          }
+        : prev,
+    );
+  };
+
+  const revertValidationIntroVariant = () => {
+    if (!draft?.introRevertHtml) return;
+    setDraftErr(null);
+    setDraft((prev) =>
+      prev
+        ? {
+            ...prev,
+            html: prev.introRevertHtml!,
+            introRevertHtml: undefined,
+            previewKey: `${prev.previewKey || prev.specId}:revert:${Date.now()}`,
+          }
+        : prev,
+    );
   };
 
   const bumpVaultStore = () => setStoreVersion((v) => v + 1);
@@ -3837,6 +3947,7 @@ useEffect(() => {
         letterTitles: [title],
       });
       setStoreVersion((v) => v + 1);
+      draftSyncedHtmlRef.current = bodyHtml;
       setDraft((prev) => (prev ? { ...prev, letterId: saved.id, html: bodyHtml } : prev));
       setDraftNotice('Draft text saved to Letters Vault — add a PDF anytime with Save & generate letter.');
       return true;
@@ -3936,6 +4047,7 @@ useEffect(() => {
       }
 
       setStoreVersion((v) => v + 1);
+      draftSyncedHtmlRef.current = bodyHtml;
       setVaultHighlightLetterId(saved.id);
       setDraftSavedPreviewLetter(saved);
       setDraft(null);
@@ -3965,7 +4077,11 @@ useEffect(() => {
       setDraftErr('Sign in as a partner to save validation letters.');
       return;
     }
-    const plain = stripLetterVendorBranding(String(args.bodyText || '').trim());
+    const plainRaw = stripLetterVendorBranding(String(args.bodyText || '').trim());
+    const plain =
+      args.specId === 'validation_request' || args.catalogId === 'validation_initial_fdcpa'
+        ? ensureValidation30DayBlockInBody(plainRaw)
+        : plainRaw;
     if (!plain) {
       setDraftErr('Letter generation returned an empty body. Confirm case fields and try Generate letter again.');
       return;
@@ -4030,6 +4146,7 @@ useEffect(() => {
     } catch (e: any) {
       setDraftNotice(e?.message || 'Draft opened, but vault save failed — use Save to Letters Vault.');
     }
+    draftSyncedHtmlRef.current = ensureHtmlDraft(bodyHtml);
     setDraft({
       specId: args.specId,
       catalogId: args.catalogId,
@@ -4039,6 +4156,9 @@ useEffect(() => {
       preferPreview: true,
       previewKey,
       letterId,
+      ...(args.specId === 'validation_request' || args.catalogId === 'validation_initial_fdcpa'
+        ? { introVariantIndex: 0, introRevertHtml: undefined }
+        : {}),
     });
     // Ensure the modal paper preview is in view after Generate (never silent success).
     window.setTimeout(() => {
@@ -4661,7 +4781,18 @@ useEffect(() => {
                       })}
                   </div>
                   {draft.letterId ? (
-                    <p className="mt-0.5 text-[11px] text-emerald-200/85">Saved to Letters Vault as a draft — edit below, then update PDF when ready.</p>
+                    <p className="mt-0.5 text-[11px] text-emerald-200/85 flex items-center gap-1.5 flex-wrap">
+                      <span>Saved to Letters Vault as a draft — edit below, then update PDF when ready.</span>
+                      {draftHasUnsavedEdits ? (
+                        <span className="inline-flex items-center gap-1 rounded-md border border-amber-400/40 bg-amber-500/15 px-1.5 py-0.5 text-[9px] font-black uppercase tracking-widest text-amber-100">
+                          <span className="h-1.5 w-1.5 rounded-full bg-amber-300 animate-pulse" /> Unsaved edits
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 rounded-md border border-emerald-400/25 bg-emerald-500/10 px-1.5 py-0.5 text-[9px] font-black uppercase tracking-widest text-emerald-200/80">
+                          All changes saved
+                        </span>
+                      )}
+                    </p>
                   ) : null}
                 </div>
                 <div className="flex items-center gap-1.5 flex-wrap justify-end">
@@ -4782,6 +4913,36 @@ useEffect(() => {
                       </p>
                     </div>
                   ) : null}
+                  {isValidationIntroDraft ? (
+                    <div className="rounded-xl border border-emerald-400/35 bg-emerald-500/10 px-3 py-2.5 space-y-2">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <div className="text-xs font-semibold text-emerald-50/95">
+                          Intro version {(draft.introVariantIndex ?? 0) + 1} of {VALIDATION_INTRO_VARIANT_COUNT}
+                          <span className="text-emerald-100/70 font-normal"> · opening wording only — legal demands unchanged</span>
+                        </div>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={cycleValidationIntroVariant}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-emerald-400/40 bg-emerald-500/15 hover:bg-emerald-500/25 text-[10px] font-black uppercase tracking-widest text-emerald-50 transition-all"
+                            title="Cycle to the next intro opener — same legal body and 30-day closing block"
+                          >
+                            Choose different version
+                          </button>
+                          {draft.introRevertHtml ? (
+                            <button
+                              type="button"
+                              onClick={revertValidationIntroVariant}
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-white/15 bg-white/5 hover:bg-white/10 text-[10px] font-black uppercase tracking-widest text-white/75 transition-all"
+                              title="Restore the intro from before your last version change"
+                            >
+                              Revert to previous version
+                            </button>
+                          ) : null}
+                        </div>
+                      </div>
+                    </div>
+                  ) : null}
                   <LetterEditorShell
                     html={ensureHtmlDraft(draft.html || '')}
                     onChangeHtml={(html) => setDraft((prev) => (prev ? { ...prev, html } : prev))}
@@ -4792,6 +4953,41 @@ useEffect(() => {
                     previewResetKey={draft.previewKey || `${draft.specId}:${draft.catalogId || ''}`}
                     showAddressChrome={false}
                   />
+
+                  {activeDebtLetterSpec ? (
+                    <details className={`${finelyOsCatalogCardCompact('sky')} group`}>
+                      <summary className="cursor-pointer select-none flex items-center justify-between gap-2 text-sm font-semibold text-white/90">
+                        <span className="inline-flex items-center gap-1.5">
+                          <Scale size={14} className="text-sky-300 shrink-0" />
+                          Legal authority
+                          {relevantAuthorityCitations.length ? (
+                            <span className="text-[10px] font-normal text-sky-200/70">({relevantAuthorityCitations.length})</span>
+                          ) : null}
+                        </span>
+                        <span className="text-[9px] font-black uppercase tracking-widest text-sky-200/60 group-open:hidden">Show cites</span>
+                      </summary>
+                      <div className="mt-2 space-y-1.5">
+                        {relevantAuthorityCitations.length === 0 ? (
+                          <p className="text-[11px] text-white/50">No matched statutory citations for this letter type yet.</p>
+                        ) : (
+                          relevantAuthorityCitations.map((c) => (
+                            <details key={c.id} className={`${finelyOsGlowTile('sky')} !p-2.5`}>
+                              <summary className="cursor-pointer select-none text-[11px] font-semibold text-sky-100/90">
+                                {c.statuteOrRegulation} — {c.topic}
+                              </summary>
+                              <div className="mt-1.5 space-y-1 text-[11px] leading-relaxed">
+                                <p className="text-white/60 italic">{c.marketingSafeSummary}</p>
+                                <p className="text-white/70">{c.footnoteText}</p>
+                                {c.casePrecedent ? <p className="text-white/45">Case: {c.casePrecedent}</p> : null}
+                                {c.agencyGuidance ? <p className="text-white/45">Guidance: {c.agencyGuidance}</p> : null}
+                              </div>
+                            </details>
+                          ))
+                        )}
+                        <p className="text-[10px] text-white/35 pt-0.5">Reference only — not legal advice. Verify current statute text before filing.</p>
+                      </div>
+                    </details>
+                  ) : null}
 
                   <details className="rounded-xl border border-white/10 bg-black/25 !p-3">
                     <summary className="cursor-pointer select-none text-sm font-semibold text-white">

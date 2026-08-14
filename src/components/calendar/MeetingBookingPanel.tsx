@@ -4,7 +4,9 @@ import type { CalendarBookingSettings, ConsultationTopic, SlotDuration } from '.
 import { bookPartnerConsultationSlot, createConsultationRequest, listCalendarEvents } from '../../data/calendarRepo';
 import { BookingTimeSlotPicker } from './BookingTimeSlotPicker';
 import { VoiceNoteRecorder } from './VoiceNoteRecorder';
+import { VoiceTranscriptField } from './VoiceTranscriptField';
 import { isoDayKey, type BookableSlot, slotDurationOptions, formatSlotRange } from '../../lib/calendarSlots';
+import { finelyOsGlowTile } from '../../features/os/finelyOsLightUi';
 
 const TOPICS: Array<{ id: ConsultationTopic; label: string; desc: string }> = [
   { id: 'enlightenment', label: 'Strategy call', desc: 'Free 60-minute call — map your next moves.' },
@@ -214,35 +216,43 @@ export function MeetingBookingPanel({ partnerId, settings, onBooked }: Props) {
           <div className="grid sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-[10px] uppercase tracking-widest text-white/50 mb-1">Topic</label>
-              <select
-                value={topic}
-                onChange={(e) => setTopic(e.target.value as ConsultationTopic)}
-                className="w-full bg-fc-input border border-white/[0.08] rounded-xl px-3 py-2 text-white text-sm"
-              >
-                {TOPICS.map((t) => (
-                  <option key={t.id} value={t.id}>
-                    {t.label}
-                  </option>
-                ))}
-              </select>
+              <div className="flex flex-wrap gap-1.5">
+                {TOPICS.map((t) => {
+                  const active = t.id === topic;
+                  return (
+                    <button
+                      key={t.id}
+                      type="button"
+                      onClick={() => setTopic(t.id)}
+                      className={`px-2.5 py-1.5 text-[10px] font-bold ${finelyOsGlowTile(active ? 'violet' : 'sky', active)} ${active ? 'text-violet-100' : 'text-white/70'}`}
+                    >
+                      {t.label}
+                    </button>
+                  );
+                })}
+              </div>
               <div className="mt-1 text-white/50 text-xs">{TOPICS.find((t) => t.id === topic)?.desc}</div>
             </div>
             <div>
               <label className="block text-[10px] uppercase tracking-widest text-white/50 mb-1">Duration</label>
-              <select
-                value={duration}
-                onChange={(e) => {
-                  setDuration(Number(e.target.value) as SlotDuration);
-                  setSelectedSlot(null);
-                }}
-                className="w-full bg-fc-input border border-white/[0.08] rounded-xl px-3 py-2 text-white text-sm"
-              >
-                {durations.map((d) => (
-                  <option key={d} value={d}>
-                    {d} minutes
-                  </option>
-                ))}
-              </select>
+              <div className="flex flex-wrap gap-1.5">
+                {durations.map((d) => {
+                  const active = d === duration;
+                  return (
+                    <button
+                      key={d}
+                      type="button"
+                      onClick={() => {
+                        setDuration(d);
+                        setSelectedSlot(null);
+                      }}
+                      className={`px-3 py-1.5 text-[10px] font-bold ${finelyOsGlowTile(active ? 'amber' : 'sky', active)} ${active ? 'text-amber-100' : 'text-white/70'}`}
+                    >
+                      {d} min
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           </div>
 
@@ -251,18 +261,14 @@ export function MeetingBookingPanel({ partnerId, settings, onBooked }: Props) {
             working hours {settings.startHour}:00–{settings.endHour}:00, and blocked internal slots are hidden automatically.
           </div>
 
-          <div>
-            <label className="block text-[10px] uppercase tracking-widest text-white/50 mb-1">
-              Meeting agenda {mode === 'instant' ? '(required)' : ''}
-            </label>
-            <textarea
-              value={meetingAgenda}
-              onChange={(e) => setMeetingAgenda(e.target.value)}
-              rows={3}
-              placeholder="What should we cover? Dispute round, funding readiness, documents review…"
-              className="w-full bg-fc-input border border-white/[0.08] rounded-xl px-3 py-2 text-white text-sm placeholder:text-white/30 resize-y"
-            />
-          </div>
+          <VoiceTranscriptField
+            label={`Meeting agenda ${mode === 'instant' ? '(required)' : ''}`}
+            value={meetingAgenda}
+            onChange={setMeetingAgenda}
+            rows={3}
+            accent="violet"
+            placeholder="What should we cover? Dispute round, funding readiness, documents review…"
+          />
 
           <div>
             <label className="block text-[10px] uppercase tracking-widest text-white/50 mb-1">More details</label>

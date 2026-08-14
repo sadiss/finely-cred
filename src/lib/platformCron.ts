@@ -2,6 +2,7 @@
 
 import { processDueNurtureSteps } from './nurtureEngine';
 import { runDueAutomations } from '../automation/agentRunner';
+import { runDueAutomationGraphEnrollments } from '../features/automation/graphEngine';
 import { processTrialExpiryTick } from './trialExpiryEngine';
 import { processBillingDunningTick } from './billingDunningEngine';
 import { processInvoiceReminderTick } from './invoiceEngine';
@@ -41,6 +42,7 @@ export type PlatformCronResult = {
   nurture: Awaited<ReturnType<typeof processDueNurtureSteps>>;
   partnerBirthday: BirthdayNurtureTickResult;
   automations: Awaited<ReturnType<typeof runDueAutomations>>;
+  automationGraph: Awaited<ReturnType<typeof runDueAutomationGraphEnrollments>>;
   trialExpiry: Awaited<ReturnType<typeof processTrialExpiryTick>>;
   billingDunning: ReturnType<typeof processBillingDunningTick>;
   invoiceReminders: Awaited<ReturnType<typeof processInvoiceReminderTick>>;
@@ -71,6 +73,7 @@ export async function runPlatformCronTick(opts?: {
   const nurture = await processDueNurtureSteps({ dryRun: nurtureDryRun });
   const partnerBirthday = await processPartnerBirthdayNurtureTick({ dryRun: automationsDryRun });
   const automations = await runDueAutomations(mode);
+  const automationGraph = await runDueAutomationGraphEnrollments({ maxPerRun: 40 });
   const trialExpiry = await processTrialExpiryTick({ dryRun: automationsDryRun });
   const billingDunning = processBillingDunningTick({ dryRun: automationsDryRun });
   const invoiceReminders = await processInvoiceReminderTick({ dryRun: automationsDryRun });
@@ -135,6 +138,7 @@ export async function runPlatformCronTick(opts?: {
     nurture,
     partnerBirthday,
     automations,
+    automationGraph,
     trialExpiry,
     billingDunning,
     invoiceReminders,

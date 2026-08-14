@@ -64,6 +64,9 @@ import { FinelyOsPaginatedStack } from '../../features/os/FinelyOsPaginatedStack
 import { FinelyOsDataErrorBanner } from '../../features/os/FinelyOsDataErrorBanner';
 import { FinelyNoticedStrip } from '../../components/tours/FinelyNoticedStrip';
 import { PartnerActivityTimeline, partnerNoteToTimelineItem } from '../../components/partner/PartnerActivityTimeline';
+import { CaseTeamActivityTimeline } from '../../components/partner/CaseTeamActivityTimeline';
+import { PartnerReferralPanel } from '../../components/partner/PartnerReferralPanel';
+import { PartnerNextRungPanel } from '../../components/partner/PartnerNextRungPanel';
 import { PartnerHubLauncherGrid } from '../../components/partner/PartnerHubLauncherTile';
 import { PartnerHubWorkModal } from '../../components/partner/PartnerHubWorkModal';
 import { usePartnerHubLauncher } from '../../components/partner/usePartnerHubLauncher';
@@ -538,6 +541,23 @@ export default function PartnerDashboardPage() {
             openCasesCount={openCases.length}
             negativesCount={openCases.length}
           />
+          {/*
+            Wave 2 file-ownership chain on this page: B4 (this card) → L1 → L2.
+            New cards from that chain (referral panel, next-rung panel, etc.) should be
+            added directly below this one, in their own compact card — do not compete
+            with PartnerCreditRestoreCommandStrip/PartnerHubLauncherGrid above/below.
+            L1 landed: PartnerReferralPanel is mounted directly below this card.
+            L2 landed: PartnerNextRungPanel is mounted directly below PartnerReferralPanel
+            (renders nothing when no honest next-rung recommendation applies).
+          */}
+          <CaseTeamActivityTimeline partnerId={partner.id} />
+          <PartnerReferralPanel
+            partnerId={partner.id}
+            partnerEmail={partner.profile.email}
+            partnerFullName={partner.profile.fullName}
+            highlightGraduationAsk={Boolean(overallScore && overallScore.overall >= 80)}
+          />
+          <PartnerNextRungPanel partnerId={partner.id} />
           {primaryDashboardAlert ? (
             <div className="space-y-3">
               <FinelyOsAlertBanner tone={primaryDashboardAlert.tone} message={primaryDashboardAlert.message} />

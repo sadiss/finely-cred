@@ -213,6 +213,8 @@ export function MailLetterModal({
     expectedDeliveryDate?: string;
     cost?: number;
   } | null>(null);
+  /** Set when the physical mail succeeded but the internal credits ledger charge failed — never conflate with a failed send. */
+  const [ledgerWarning, setLedgerWarning] = useState<string | null>(null);
 
   const [to, setTo] = useState<MailAddress>({
     name: '',
@@ -266,6 +268,7 @@ export function MailLetterModal({
     setStep('confirm');
     setErr(null);
     setMailedMeta(null);
+    setLedgerWarning(null);
     setVerifyRes(null);
     setVerifiedHash(null);
     setAddressHint(null);
@@ -591,7 +594,17 @@ export function MailLetterModal({
         typeof res.cost === 'number' && Number.isFinite(res.cost)
           ? Math.round(res.cost * (res.cost < 20 ? 100 : 1))
           : undefined;
-      chargeMailSend({ letterId: effectiveLetter.id, partnerId, costCents });
+      // The physical letter is already mailed at this point (provider call above succeeded) — a
+      // ledger charge failure (e.g. balance drifted below the live cost) must never be reported as
+      // a failed mailing. Surface it as a secondary reconciliation warning instead.
+      try {
+        chargeMailSend({ letterId: effectiveLetter.id, partnerId, costCents });
+      } catch (chargeError: any) {
+        setLedgerWarning(
+          chargeError?.message ||
+            'Mail credits could not be charged for this send. Contact an admin to reconcile the mail ledger.',
+        );
+      }
       setMailedMeta({
         providerId: res.providerId,
         expectedDeliveryDate: res.expectedDeliveryDate,
@@ -919,6 +932,12 @@ export function MailLetterModal({
               <p className={`text-sm ${FINELY_OS_ENTITY_BODY}`}>
                 Status is saved on the letter. Watch the Letters Vault for mail_pending → mailed updates.
               </p>
+              {ledgerWarning ? (
+                <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-amber-100 text-sm flex items-start gap-2">
+                  <AlertTriangle size={14} className="mt-0.5 shrink-0" />
+                  <span>{ledgerWarning}</span>
+                </div>
+              ) : null}
               <div className="flex flex-wrap gap-2">
                 {trackHref ? (
                   <a href={trackHref} className={FINELY_OS_PRIMARY_BTN}>

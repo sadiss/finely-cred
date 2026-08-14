@@ -2676,6 +2676,7 @@ function PartnerDetailPageInner() {
                         id={`letter-${l.id}`}
                         letter={l}
                         highlighted={highlightLetterId === l.id}
+                        evidence={evidence}
                         canMail={isFeatureEnabled('letterMailing')}
                         onOpenPdf={() => {
                           const ref = (l as any).pdfBlobRef as string | undefined;

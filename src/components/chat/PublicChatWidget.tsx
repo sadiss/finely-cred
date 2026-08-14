@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { LayoutGrid, Loader2, Paperclip, Send, Smile, Sparkles, ShieldCheck, X } from 'lucide-react';
+import { LayoutGrid, Loader2, Paperclip, Send, Smile, Sparkles, ShieldCheck, ThumbsDown, ThumbsUp, X } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { submitLeadCapture } from '../../data/leadsRepo';
 import { converseWithFinelyAi } from '../../lib/conversationalAi';
@@ -57,6 +57,8 @@ import {
   finelyPublicAnswer,
   shouldUseFinelyPublicAnswer,
 } from '../../lib/finelyBrain/finelyPublicAnswer';
+import { recordFinelyPublicAnswerRoute } from '../../lib/finelyBrain/finelyPublicAnswerMetrics';
+import { recordKnowledgeFeedback } from '../../data/knowledgeFeedbackRepo';
 import {
   FINELY_OS_ENTITY_CHIP,
   FINELY_OS_ENTITY_INPUT,
@@ -75,6 +77,11 @@ type ChatMsg = {
   source?: 'gateway' | 'knowledge_local';
   personaId?: AgentPersonaId;
   kbRefs?: string[];
+  /** RAG chunk ids surfaced for this reply (J4 feedback signal) — not shown, used for thumbs up/down. */
+  kbChunkIds?: string[];
+  /** Visitor query that produced this reply — stored alongside the chunk ids for feedback similarity matching. */
+  kbQuery?: string;
+  feedbackGiven?: 'up' | 'down';
   attachments?: PublicChatDocAnalysis[];
 };
 
@@ -360,11 +367,30 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
     return () => window.removeEventListener(OPEN_PUBLIC_CHAT_EVENT, handler as EventListener);
   }, [persona.id]);
 
-  const pushBot = (text: string, personaId: AgentPersonaId, source?: ChatMsg['source'], kbRefs?: string[]) => {
+  const pushBot = (
+    text: string,
+    personaId: AgentPersonaId,
+    source?: ChatMsg['source'],
+    kbRefs?: string[],
+    kbChunkIds?: string[],
+    kbQuery?: string,
+  ) => {
     setMessages((prev) => [
       ...prev,
-      { id: newId(), role: 'bot', text: enrichPublicChatReply(text, goal), source, personaId, kbRefs },
+      { id: newId(), role: 'bot', text: enrichPublicChatReply(text, goal), source, personaId, kbRefs, kbChunkIds, kbQuery },
     ]);
+  };
+
+  const submitKnowledgeFeedback = (msg: ChatMsg, helpful: boolean) => {
+    if (!msg.kbChunkIds?.length || msg.feedbackGiven) return;
+    recordKnowledgeFeedback({
+      chunkIds: msg.kbChunkIds,
+      query: msg.kbQuery ?? '',
+      helpful,
+      surface: 'public_chat',
+      route: pathname,
+    });
+    setMessages((prev) => prev.map((m) => (m.id === msg.id ? { ...m, feedbackGiven: helpful ? 'up' : 'down' } : m)));
   };
 
   const insertEmojiAtCursor = (emoji: string) => {
@@ -480,8 +506,17 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
           channel: 'chat',
           seniorMode: easyReadMode,
         });
+        recordFinelyPublicAnswerRoute('canned');
         const kbRefs = result.citations.slice(0, 2).map((c) => c.title);
-        pushBot(enrichPublicChatReply(result.reply, goal), result.personaId, 'knowledge_local', kbRefs.length ? kbRefs : undefined);
+        const kbChunkIds = result.citations.map((c) => c.id);
+        pushBot(
+          enrichPublicChatReply(result.reply, goal),
+          result.personaId,
+          'knowledge_local',
+          kbRefs.length ? kbRefs : undefined,
+          kbChunkIds.length ? kbChunkIds : undefined,
+          trimmed,
+        );
         setAiHistory((prev) => [
           ...prev,
           { role: 'user', content: aiText },
@@ -577,6 +612,7 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
         },
       });
 
+      recordFinelyPublicAnswerRoute(result.source === 'gateway' ? 'llm' : 'canned');
       const trusted = matchTrustedResources(aiText);
       let replyText = result.text;
       if (trusted.length && !replyText.includes('http') && !replyText.includes('/free-')) {
@@ -585,7 +621,15 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
       }
 
       const kbRefs = result.knowledgeUsed.slice(0, 2).map((c) => c.article.title);
-      pushBot(replyText, activePersonaId, result.source, kbRefs.length ? kbRefs : undefined);
+      const kbChunkIds = result.knowledgeUsed.map((c) => c.article.id);
+      pushBot(
+        replyText,
+        activePersonaId,
+        result.source,
+        kbRefs.length ? kbRefs : undefined,
+        kbChunkIds.length ? kbChunkIds : undefined,
+        aiText,
+      );
       setFollowUps(result.followUps);
       setAiHistory((prev) => [
         ...prev,
@@ -638,7 +682,15 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
       channel: 'chat',
       seniorMode: easyReadMode,
     });
-    pushBot(enrichPublicChatReply(result.reply, goal), result.personaId, 'knowledge_local');
+    const kbChunkIds = result.citations.map((c) => c.id);
+    pushBot(
+      enrichPublicChatReply(result.reply, goal),
+      result.personaId,
+      'knowledge_local',
+      undefined,
+      kbChunkIds.length ? kbChunkIds : undefined,
+      prompt,
+    );
   };
 
   const pickGoal = (g: Goal) => {
@@ -918,6 +970,37 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
                           </span>
                         ))}
                       </div>
+                      {m.kbChunkIds?.length ? (
+                        <div className="flex items-center gap-1.5 px-0.5">
+                          {m.feedbackGiven ? (
+                            <span className="text-[9px] text-white/35">
+                              {m.feedbackGiven === 'up' ? 'Thanks — glad that helped!' : 'Thanks — we\'ll improve this.'}
+                            </span>
+                          ) : (
+                            <>
+                              <span className="text-[9px] text-white/35">Helpful?</span>
+                              <button
+                                type="button"
+                                onClick={() => submitKnowledgeFeedback(m, true)}
+                                className="inline-flex items-center justify-center w-5 h-5 rounded-full border border-emerald-400/25 bg-emerald-500/10 text-emerald-200/80 hover:bg-emerald-500/20 hover:text-emerald-100"
+                                aria-label="Mark this answer helpful"
+                                title="Helpful"
+                              >
+                                <ThumbsUp size={10} />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => submitKnowledgeFeedback(m, false)}
+                                className="inline-flex items-center justify-center w-5 h-5 rounded-full border border-rose-400/25 bg-rose-500/10 text-rose-200/80 hover:bg-rose-500/20 hover:text-rose-100"
+                                aria-label="Mark this answer not helpful"
+                                title="Not helpful"
+                              >
+                                <ThumbsDown size={10} />
+                              </button>
+                            </>
+                          )}
+                        </div>
+                      ) : null}
                     </div>
                   </div>
                 );

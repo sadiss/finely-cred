@@ -12,6 +12,7 @@ const DEFAULT_SETTINGS: CalendarBookingSettings = {
   allowedWeekdays: [1, 2, 3, 4, 5],
   allowedDurations: [20, 30, 60, 90],
   defaultDuration: 30,
+  maxAdvanceDays: 30,
   meetingTypes: [
     { id: 'enlightenment', label: 'Strategy call', durationMinutes: 30, description: 'Free call — map your next steps.' },
     { id: 'file_review', label: 'File review', durationMinutes: 60, description: 'Reports, evidence, and dispute round.' },
@@ -47,6 +48,7 @@ function normalize(settings: Partial<CalendarBookingSettings> | null | undefined
       : DEFAULT_SETTINGS.allowedWeekdays,
     allowedDurations,
     defaultDuration,
+    maxAdvanceDays: Math.max(1, Math.min(365, Math.round(settings?.maxAdvanceDays ?? DEFAULT_SETTINGS.maxAdvanceDays))),
     meetingTypes: Array.isArray(settings?.meetingTypes) && settings!.meetingTypes.length ? settings!.meetingTypes : DEFAULT_SETTINGS.meetingTypes,
     blockedWindows: Array.isArray(settings?.blockedWindows) ? settings!.blockedWindows : DEFAULT_SETTINGS.blockedWindows,
   };

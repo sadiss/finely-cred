@@ -1,6 +1,14 @@
 /**
  * Meeting reminder hooks — email + SMS when Comms Delivery is on.
  * Runs on calendar page load (local-first); mirrors server cron later.
+ *
+ * Frequency-cap decision (A5): reminder SMS intentionally stays on its own
+ * `SMS_SENT_KEY`/`eventId` de-dupe below and does NOT call the shared
+ * `isOverFrequencyCap`/`recordSendForFrequencyCap` marketing-cadence cap — a
+ * meeting reminder is time-bound to one confirmed event, not discretionary
+ * outreach, so it must still fire even if the same partner already received a
+ * marketing/sequence send today. `resolveFrequencyCapKey` (commsSuppressionRepo.ts)
+ * is available if this decision is ever revisited.
  */
 import { listCalendarEvents, sendUpcomingReminders } from '../data/calendarRepo';
 import { isFeatureEnabled } from '../data/settingsRepo';

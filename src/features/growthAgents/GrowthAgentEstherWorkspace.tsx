@@ -17,11 +17,11 @@ import { getVideoCommandRecord, listVideoCommandRecords } from '../../data/video
 import {
   FINELY_OS_ENTITY_BODY,
   FINELY_OS_ENTITY_INPUT,
-  FINELY_OS_ENTITY_SELECT,
   FINELY_OS_ENTITY_SUBLABEL,
   FINELY_OS_PRIMARY_BTN,
   FINELY_OS_SECONDARY_BTN,
   finelyOsCatalogCardCompact,
+  finelyOsGlowTile,
   finelyOsMicroStat,
   finelyOsStatusChip,
 } from '../os/finelyOsLightUi';
@@ -148,20 +148,24 @@ export function GrowthAgentEstherWorkspace() {
         </p>
 
         <label className={`mt-3 block text-xs ${FINELY_OS_ENTITY_BODY}`}>Lane</label>
-        <select
-          className={`${FINELY_OS_ENTITY_SELECT} mt-1 max-w-md`}
-          value={focus.lane}
-          onChange={(e) => {
-            setGrowthWeekFocus({ lane: e.target.value as LeadEngineLane });
-            setTick((t) => t + 1);
-          }}
-        >
-          {HUNT_LANE_PRESETS.map((p) => (
-            <option key={p.id} value={p.id}>
-              {p.label}
-            </option>
-          ))}
-        </select>
+        <div className="mt-1 flex flex-wrap gap-1.5">
+          {HUNT_LANE_PRESETS.map((p) => {
+            const active = p.id === focus.lane;
+            return (
+              <button
+                key={p.id}
+                type="button"
+                onClick={() => {
+                  setGrowthWeekFocus({ lane: p.id as LeadEngineLane });
+                  setTick((t) => t + 1);
+                }}
+                className={`px-2.5 py-1.5 text-[10px] font-bold ${finelyOsGlowTile(active ? 'violet' : 'sky', active)} ${active ? 'text-violet-100' : 'text-white/70'}`}
+              >
+                {p.label}
+              </button>
+            );
+          })}
+        </div>
 
         <label className={`mt-3 block text-xs ${FINELY_OS_ENTITY_BODY}`}>Target city</label>
         <input
@@ -181,23 +185,24 @@ export function GrowthAgentEstherWorkspace() {
         </div>
 
         <label className={`mt-3 block text-xs ${FINELY_OS_ENTITY_BODY}`}>Book CTA path</label>
-        <select
-          className={`${FINELY_OS_ENTITY_SELECT} mt-1 max-w-md`}
-          value={focus.ctaPath}
-          onChange={(e) => {
-            setGrowthWeekFocus({ ctaPath: e.target.value });
-            setTick((t) => t + 1);
-          }}
-        >
-          {CTA_PRESETS.map((c) => (
-            <option key={c.path} value={c.path}>
-              {c.label}
-            </option>
-          ))}
-          {!CTA_PRESETS.some((c) => c.path === focus.ctaPath) ? (
-            <option value={focus.ctaPath}>{focus.ctaPath}</option>
-          ) : null}
-        </select>
+        <div className="mt-1 flex flex-wrap gap-1.5">
+          {CTA_PRESETS.map((c) => {
+            const active = c.path === focus.ctaPath;
+            return (
+              <button
+                key={c.path}
+                type="button"
+                onClick={() => {
+                  setGrowthWeekFocus({ ctaPath: c.path });
+                  setTick((t) => t + 1);
+                }}
+                className={`px-2.5 py-1.5 text-[10px] font-bold ${finelyOsGlowTile(active ? 'amber' : 'sky', active)} ${active ? 'text-amber-100' : 'text-white/70'}`}
+              >
+                {c.label}
+              </button>
+            );
+          })}
+        </div>
         <input
           className={`${FINELY_OS_ENTITY_INPUT} mt-2 max-w-md`}
           placeholder="Custom CTA path"

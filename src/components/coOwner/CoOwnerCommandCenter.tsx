@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { ArrowRight, Bot, Play, Sparkles, Zap, BookOpen, Users } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -44,8 +44,18 @@ export function CoOwnerCommandCenter({ onRunPrompt, onActionExecuted, onNavigate
   const archive = getKnowledgeArchiveStats();
   const exec = getExecutiveOrgStats();
   const vacantCsuite = listVacantExecutiveHats('c_suite').slice(0, 6);
-  const suggestions = useMemo(() => suggestCoOwnerActions(), []);
   const [busyId, setBusyId] = useState<string | null>(null);
+
+  // Recompute suggestions when underlying state changes (recent hires, open
+  // approvals, launch gate status) instead of freezing them at mount — every
+  // local-store mutation in this codebase dispatches `finely:store`.
+  const [version, setVersion] = useState(0);
+  useEffect(() => {
+    const onStore = () => setVersion((v) => v + 1);
+    window.addEventListener('finely:store', onStore as EventListener);
+    return () => window.removeEventListener('finely:store', onStore as EventListener);
+  }, []);
+  const suggestions = useMemo(() => suggestCoOwnerActions(), [version]);
 
   const runSuggestion = async (s: CoOwnerSuggestedAction) => {
     setBusyId(s.id);

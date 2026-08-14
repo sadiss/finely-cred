@@ -42,6 +42,8 @@ export function LetterBodyEditorModal({
   const [footerHtml, setFooterHtml] = useState('<p></p>');
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  /** Snapshot of the loaded content — used to warn before Cancel/close discards unsaved edits. */
+  const initialSnapshotRef = React.useRef({ bodyHtml: '<p></p>', introHtml: '<p></p>', footerHtml: '<p></p>' });
 
   const isDispute = letter.type === 'dispute' && isDisputeMeta(letter.meta);
   const hasPdf = Boolean(letter.pdfBlobRef);
@@ -49,15 +51,30 @@ export function LetterBodyEditorModal({
   useEffect(() => {
     if (!open) return;
     const rawBody = letter.body?.trim() || '';
-    setBodyHtml(rawBody ? ensureHtmlDraft(rawBody) : '<p></p>');
+    const nextBodyHtml = rawBody ? ensureHtmlDraft(rawBody) : '<p></p>';
+    setBodyHtml(nextBodyHtml);
 
     const meta = letter.meta as DisputeLetterMeta | undefined;
-    setIntroHtml(ensureHtmlDraft(meta?.introOverride || ''));
-    setFooterHtml(ensureHtmlDraft(meta?.footerOverride || ''));
+    const nextIntroHtml = ensureHtmlDraft(meta?.introOverride || '');
+    const nextFooterHtml = ensureHtmlDraft(meta?.footerOverride || '');
+    setIntroHtml(nextIntroHtml);
+    setFooterHtml(nextFooterHtml);
     setErr(null);
+    initialSnapshotRef.current = { bodyHtml: nextBodyHtml, introHtml: nextIntroHtml, footerHtml: nextFooterHtml };
   }, [open, letter.id, letter.body, letter.meta]);
 
   if (!open) return null;
+
+  const hasUnsavedEdits =
+    bodyHtml !== initialSnapshotRef.current.bodyHtml ||
+    introHtml !== initialSnapshotRef.current.introHtml ||
+    footerHtml !== initialSnapshotRef.current.footerHtml;
+
+  const requestClose = () => {
+    if (busy) return;
+    if (hasUnsavedEdits && !window.confirm('Discard your unsaved edits to this letter?')) return;
+    onClose();
+  };
 
   const save = async () => {
     setBusy(true);
@@ -121,7 +138,7 @@ export function LetterBodyEditorModal({
 
   return createPortal(
     <div className={`${FINELY_OS_FIXED_OVERLAY} z-[9100] flex items-center justify-center p-3 sm:p-4`}>
-      <div className="absolute inset-0 bg-black/85 backdrop-blur-md" onClick={busy ? undefined : onClose} aria-hidden />
+      <div className="absolute inset-0 bg-black/85 backdrop-blur-md" onClick={busy ? undefined : requestClose} aria-hidden />
       <div
         className={`${FINELY_OS_MODAL_SHELL} relative z-[1] w-full ${
           isDispute ? 'max-w-6xl' : 'max-w-5xl'
@@ -137,9 +154,16 @@ export function LetterBodyEditorModal({
                 : 'Rich editor with live paper preview — PDF refreshes automatically when one is on file.'}
             </p>
           </div>
-          <button type="button" onClick={onClose} disabled={busy} className={`${FINELY_OS_SECONDARY_BTN} !p-2`}>
-            <X size={16} />
-          </button>
+          <div className="flex items-center gap-1.5 shrink-0">
+            {hasUnsavedEdits ? (
+              <span className="inline-flex items-center gap-1 rounded-md border border-amber-400/40 bg-amber-500/15 px-1.5 py-0.5 text-[9px] font-black uppercase tracking-widest text-amber-100">
+                <span className="h-1.5 w-1.5 rounded-full bg-amber-300 animate-pulse" /> Unsaved
+              </span>
+            ) : null}
+            <button type="button" onClick={requestClose} disabled={busy} className={`${FINELY_OS_SECONDARY_BTN} !p-2`}>
+              <X size={16} />
+            </button>
+          </div>
         </div>
 
         <div className="flex-1 overflow-y-auto p-4 space-y-4 min-h-0">
@@ -187,7 +211,7 @@ export function LetterBodyEditorModal({
           <button type="button" className={FINELY_OS_PRIMARY_BTN} disabled={busy} onClick={() => void save()}>
             <Save size={14} /> {busy ? 'Saving…' : hasPdf ? 'Save & refresh PDF' : 'Save letter'}
           </button>
-          <button type="button" className={FINELY_OS_SECONDARY_BTN} disabled={busy} onClick={onClose}>
+          <button type="button" className={FINELY_OS_SECONDARY_BTN} disabled={busy} onClick={requestClose}>
             Cancel
           </button>
         </div>

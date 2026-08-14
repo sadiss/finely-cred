@@ -10,6 +10,7 @@ import { authorizeCronOrService } from '../_shared/cronAuth.ts';
 import { processDueNurtureEnrollments } from '../_shared/processDueNurtureEnrollments.ts';
 import { processAutomationRulesFromDb } from '../_shared/processAutomationRulesFromDb.ts';
 import { processServerAutomationQueue } from '../_shared/processServerAutomationQueue.ts';
+import { executeDispatchActions, type DispatchAction } from '../_shared/executeAutomationAction.ts';
 
 type ReqBody = {
   action?: 'ping' | 'dispatch' | 'list_hooks' | 'cron_sweep';
@@ -17,6 +18,8 @@ type ReqBody = {
   payload?: Record<string, unknown>;
   ruleId?: string;
   dryRun?: boolean;
+  /** Real actions to execute for this dispatch — see _shared/executeAutomationAction.ts. Optional: legacy callers only match SERVER_HOOKS and log. */
+  actions?: DispatchAction[];
 };
 
 const SERVER_HOOKS: Array<{ eventType: string; ruleId: string; name: string; actions: string[] }> = [
@@ -168,6 +171,17 @@ Deno.serve(async (req) => {
           });
       const mode = body.dryRun === false ? 'live' : 'dry_run';
 
+      // Real execution: when the caller sends structured `actions` (send email/SMS, move CRM
+      // stage, add CRM tag, create task, post webhook), run them for real when mode is live.
+      // Simulation stays the default — a caller omitting `dryRun:false` never sends/writes.
+      let executed: Awaited<ReturnType<typeof executeDispatchActions>> = [];
+      if (Array.isArray(body.actions) && body.actions.length) {
+        const supabaseUrl = requireEnv('SUPABASE_URL');
+        const serviceRoleKey = requireEnv('SUPABASE_SERVICE_ROLE_KEY');
+        const admin = createClient(supabaseUrl, serviceRoleKey, { auth: { persistSession: false } });
+        executed = await executeDispatchActions({ admin, actions: body.actions, dryRun: mode !== 'live', tenantId: TENANT_ID });
+      }
+
       await logEdgeEvent({
         namespace: 'automation-runner',
         level: 'info',
@@ -178,6 +192,7 @@ Deno.serve(async (req) => {
           matched: matched.map((m) => m.ruleId),
           mode,
           userId: auth.user.id,
+          executed,
         },
       });
 
@@ -187,10 +202,13 @@ Deno.serve(async (req) => {
           mode,
           eventType,
           matched,
+          executed,
           message:
             mode === 'live'
-              ? 'Server hooks acknowledged — pair with client automation bridge (automationEventOps) for draft_dispute_letter and staff tasks.'
-              : 'Dry run — hooks matched without side effects.',
+              ? executed.length
+                ? `Live dispatch — executed ${executed.filter((r) => r.ok).length}/${executed.length} action(s).`
+                : 'Server hooks acknowledged — pass `actions` in the request body to execute real sends/CRM/task/webhook side effects.'
+              : 'Dry run — hooks matched and actions previewed without side effects.',
           payload,
         },
         { headers: corsHeaders },

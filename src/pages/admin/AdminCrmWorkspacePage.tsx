@@ -17,6 +17,7 @@ import { setCrmRecordStage } from '../../data/crmRecordsRepo';
 import { UserPlus, Gift, FileSpreadsheet } from 'lucide-react';
 import { CrmBulkDataPanel } from '../../features/crm/components/CrmBulkDataPanel';
 import { CrmSmartListsPanel } from '../../features/crm/components/CrmSmartListsPanel';
+import { AgentAttributionPanel } from '../../features/crm/attribution/AgentAttributionPanel';
 import {
   FINELY_OS_PAGE,
   FINELY_OS_TOOLBAR,
@@ -35,8 +36,9 @@ import { FinelyNowDoThisStrip } from '../../components/tours/FinelyNowDoThisStri
 import { FinelyNoticedStrip } from '../../components/tours/FinelyNoticedStrip';
 import { buildCrmNoticedItems } from '../../lib/finelyProactiveSignals';
 import { applyCrmRoutingRules } from '../../features/crm/routing/applyCrmRoutingRules';
+import { runCrmServerBackfillOnce } from '../../data/crmServerSync';
 
-type CrmHubTab = 'pipeline' | 'forecast';
+type CrmHubTab = 'pipeline' | 'forecast' | 'attribution';
 
 export default function AdminCrmWorkspacePage() {
   const navigate = useNavigate();
@@ -58,7 +60,7 @@ export default function AdminCrmWorkspacePage() {
     const smart = params.get('smartList');
     if (smart) setSmartListId(smart);
     const hub = searchParams.get('tab');
-    if (hub === 'pipeline' || hub === 'forecast') setHubTab(hub);
+    if (hub === 'pipeline' || hub === 'forecast' || hub === 'attribution') setHubTab(hub);
   }, [searchParams]);
 
   const selectHubTab = (id: CrmHubTab) => {
@@ -70,6 +72,12 @@ export default function AdminCrmWorkspacePage() {
     const onStore = () => setVersion((v) => v + 1);
     window.addEventListener('finely:store', onStore as EventListener);
     return () => window.removeEventListener('finely:store', onStore as EventListener);
+  }, []);
+
+  useEffect(() => {
+    // One-time server backfill of existing local prospects/records — guarded
+    // by a localStorage flag inside runCrmServerBackfillOnce so it only runs once.
+    void runCrmServerBackfillOnce();
   }, []);
 
   const pipeline = CRM_PIPELINES.find((p) => p.id === pipelineId) ?? CRM_PIPELINES[0];
@@ -116,6 +124,7 @@ export default function AdminCrmWorkspacePage() {
           tabs={[
             { id: 'pipeline', label: 'Pipeline board', badge: records.length || undefined },
             { id: 'forecast', label: 'Forecast & AI' },
+            { id: 'attribution', label: 'Agent attribution' },
           ]}
           activeTab={hubTab}
           onTabChange={(id) => selectHubTab(id as CrmHubTab)}
@@ -185,7 +194,7 @@ export default function AdminCrmWorkspacePage() {
                 ) : null}
               </div>
             </div>
-          ) : (
+          ) : hubTab === 'forecast' ? (
             <div className="space-y-4">
               <CrmForecastPanel forecast={forecast} />
               {selected ? (
@@ -196,6 +205,8 @@ export default function AdminCrmWorkspacePage() {
                 </div>
               )}
             </div>
+          ) : (
+            <AgentAttributionPanel />
           )}
         </FinelyUnifiedHubLayout>
 

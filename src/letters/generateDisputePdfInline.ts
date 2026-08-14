@@ -87,19 +87,28 @@ export async function downloadInlineDisputeLetterPdf(args: {
         lines.push('');
         continue;
       }
-      const words = p.split(/\s+/);
+      if (useFont.widthOfTextAtSize(p, useFontSize) <= maxW) {
+        lines.push(p);
+        continue;
+      }
+      const words = p.split(' ');
       let line = '';
       for (const w of words) {
-        const next = line ? `${line} ${w}` : w;
+        if (w === '') {
+          if (line.endsWith(' ')) continue;
+          line += ' ';
+          continue;
+        }
+        const next = line ? `${line}${line.endsWith(' ') ? '' : ' '}${w}` : w;
         const width = useFont.widthOfTextAtSize(next, useFontSize);
         if (width <= maxW) {
           line = next;
         } else {
-          if (line) lines.push(line);
+          if (line.trim()) lines.push(line);
           line = w;
         }
       }
-      if (line) lines.push(line);
+      if (line.trim()) lines.push(line);
     }
     return lines;
   };
@@ -124,7 +133,20 @@ export async function downloadInlineDisputeLetterPdf(args: {
     const lines = wrap(text, maxWidth, useFont, useSize);
     for (const line of lines) {
       ensureSpace(lineHeight);
-      page.drawText(line, { x: margin, y, size: useSize, font: useFont, color: useColor });
+      if (!line.trim()) {
+        y -= lineHeight;
+        continue;
+      }
+      const leadingSpaces = line.length - line.trimStart().length;
+      const spaceWidth = useFont.widthOfTextAtSize(' ', useSize);
+      const ink = line.trimStart() || line;
+      page.drawText(ink, {
+        x: margin + leadingSpaces * spaceWidth,
+        y,
+        size: useSize,
+        font: useFont,
+        color: useColor,
+      });
       y -= lineHeight;
     }
   };
