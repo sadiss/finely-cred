@@ -17,6 +17,7 @@ import { json, logEdgeEvent, rateLimit, requireAllowlistedEmail, requireAuth, re
 import {
   buildLetterStreamDocId,
   buildLetterStreamJobName,
+  estimatePdfPageCount,
   getLetterStreamCredentials,
   isLetterStreamConfigured,
   letterStreamAuthPing,
@@ -427,6 +428,7 @@ Deno.serve(async (req) => {
     return json({ error: downloadErr?.message || 'Could not download PDF' }, { status: 500 });
   }
   const pdfBytes = new Uint8Array(await blob.arrayBuffer());
+  const detectedPages = estimatePdfPageCount(pdfBytes);
 
   try {
     if (provider === 'letterstream') {
@@ -463,6 +465,8 @@ Deno.serve(async (req) => {
             provider: publicProvider,
             code: summary.code,
             error: summary.message,
+            detectedPages,
+            declaredPages: body.options?.pages ?? detectedPages,
           },
         });
         return json({
@@ -488,6 +492,7 @@ Deno.serve(async (req) => {
           docId: summary.docId ?? docId,
           cost: summary.cost ?? null,
           code: summary.code,
+          detectedPages,
         },
       });
 
