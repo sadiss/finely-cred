@@ -6,9 +6,14 @@
 export const VALIDATION_30_DAY_RECEIPT_BLOCK = `You have thirty (30) days from receipt of this letter to provide this validation. Until you do:
 
 You must cease all collection activity on this account, including phone calls, letters, and any attempt to collect.
+
 You may not report, or continue reporting, this account to any credit bureau under 15 U.S.C. § 1681s-2(a)(3).
+
 You may not sell, transfer, or place this account with another agency or attorney.
-If validation is not provided within this 30-day window, you are required by law to cease all further collection efforts and, if reported, must request deletion of this account from all consumer reporting agencies. Continued collection activity or credit reporting without proper validation will be treated as a violation of the FDCPA and FCRA, and I reserve the right to pursue all available remedies, including filing complaints with the CFPB and my state Attorney General, and pursuing statutory damages.`;
+
+If validation is not provided within this 30-day window, you are required by law to cease all further collection efforts and, if reported, must request deletion of this account from all consumer reporting agencies.
+
+Continued collection activity or credit reporting without proper validation will be treated as a violation of the FDCPA and FCRA, and I reserve the right to pursue all available remedies, including filing complaints with the CFPB and my state Attorney General, and pursuing statutory damages.`;
 
 /** Stable legal tail — identical across intro variants. */
 const VALIDATION_INTRO_LEGAL_TAIL =

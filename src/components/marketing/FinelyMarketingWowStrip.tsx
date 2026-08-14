@@ -1,7 +1,9 @@
 import React from 'react';
 import { ArrowRight, Sparkles } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../auth/AuthProvider';
 import { FINELY_WOW_CHIPS, type FinelyWowChip } from '../../config/finelyMarketingDifferentiators';
+import { finelyCtaNavigate, resolveFinelyCtaPath } from '../../lib/finelyCtaIntent';
 import {
   FINELY_OS_ENTITY_BODY,
   FINELY_OS_ENTITY_SUBLABEL,
@@ -26,6 +28,14 @@ export function FinelyMarketingWowStrip({
   className = '',
 }: Props) {
   const navigate = useNavigate();
+  const auth = useAuth();
+
+  const resolveChipPath = (chip: FinelyWowChip) => {
+    if (chip.path === '/free-guide') {
+      return resolveFinelyCtaPath('personal_free_trial', { isAuthed: Boolean(auth.user) });
+    }
+    return chip.path;
+  };
 
   return (
     <section className={`${finelyOsCatalogCardCompact('emerald')} space-y-3 ${className}`} data-fc-accent="emerald">
@@ -45,7 +55,7 @@ export function FinelyMarketingWowStrip({
             type="button"
             className={`text-left ${finelyOsMicroStat(chip.accent)} max-w-xs`}
             title={chip.hint}
-            onClick={() => chip.path && navigate(chip.path)}
+            onClick={() => chip.path && navigate(resolveChipPath(chip)!)}
           >
             <span className={FINELY_OS_ENTITY_SUBLABEL}>{chip.label}</span>
             <span className={`block mt-0.5 text-[11px] font-normal normal-case tracking-normal ${FINELY_OS_ENTITY_BODY}`}>
@@ -55,8 +65,8 @@ export function FinelyMarketingWowStrip({
         ))}
       </div>
       {!compact ? (
-        <button type="button" className="fc-wayfinder-secondary inline-flex items-center gap-2 text-xs font-semibold" onClick={() => navigate('/free-guide')}>
-          Start free guide <ArrowRight size={12} />
+        <button type="button" className="fc-wayfinder-secondary inline-flex items-center gap-2 text-xs font-semibold" onClick={() => finelyCtaNavigate(navigate, 'personal_free_trial', { isAuthed: Boolean(auth.user) })}>
+          Start free trial <ArrowRight size={12} />
         </button>
       ) : null}
     </section>

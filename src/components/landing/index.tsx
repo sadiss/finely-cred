@@ -11,6 +11,7 @@ import { loadSettings, getPricingControls, isFeatureEnabled } from '../../data/s
 import { listApprovedMarketplaceListingsAsync, type ApprovedMarketplaceListing } from '../../data/auSellerRepo';
 import { getActiveTenant, getActiveTenantId } from '../../tenancy/activeTenant';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../auth/AuthProvider';
 import { finelyOsCatalogCard, finelyOsLandingContrastSection, finelyOsLightMeshSection, finelyOsLandingPlatinumSection, type FinelyOsPublicAccent } from '../../features/os/finelyOsLightUi';
 import { FinelyOsComplianceStrip } from '../../features/os/FinelyOsComplianceStrip';
 import { finelyCtaNavigate } from '../../lib/finelyCtaIntent';
@@ -377,6 +378,7 @@ interface HeroSectionProps {
 
 export function HeroSection({ onGetStarted }: HeroSectionProps) {
   const navigate = useNavigate();
+  const auth = useAuth();
   const tenant = useMemo(() => getActiveTenant(), []);
   const brand = (tenant.settings.brandName || tenant.name || 'Finely Cred').trim();
   const heroKicker = (tenant.settings.content?.landingHeroKicker || 'Private Wealth · Credit Division').trim();
@@ -468,8 +470,8 @@ export function HeroSection({ onGetStarted }: HeroSectionProps) {
                 <Button variant="platinum" onClick={() => navigate('/pricing')} size="lg">
                   See all solutions
                 </Button>
-                <Button variant="emerald" onClick={() => navigate('/free-guide')} size="lg">
-                  Start free guide <ArrowRight size={18} />
+                <Button variant="emerald" onClick={() => finelyCtaNavigate(navigate, 'personal_free_trial', { isAuthed: Boolean(auth.user) })} size="lg">
+                  Start free trial <ArrowRight size={18} />
                 </Button>
               </div>
               <p className="mt-3 text-sm text-white/45 max-w-xl mx-auto lg:mx-0 font-light">

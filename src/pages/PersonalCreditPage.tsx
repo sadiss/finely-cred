@@ -25,11 +25,9 @@ import { DedicatedSheetLinkStrip } from '../components/resources/DedicatedSheetL
 import { resolveStaffOnDuty } from '../data/staffRoster';
 import { usePublicSeoMeta } from '../hooks/usePublicSeoMeta';
 import { FINELY_OS_ENTITY_TITLE, FINELY_OS_PAGE } from '../features/os/finelyOsLightUi';
-import { FinelyNowDoThisStrip } from '../components/tours/FinelyNowDoThisStrip';
 import { personalCreditPackages, formatPrice, type PricingPackage } from '../config/pricingCatalog';
 import { PricingPackageCatalog } from '../components/pricing/PricingPackageCatalog';
 import {
-  PersonalCreditCommandStrip,
   PersonalCreditHeroShell,
   PersonalCreditPathSwitcher,
   PersonalCreditRestoreSpectrum,
@@ -118,8 +116,8 @@ const OS_ICON_ACCENT: Record<
 const OS_TILES = [
   { icon: UploadCloud, title: 'Report Upload + Parsing', desc: 'Upload bureau exports (HTML/PDF). Parse tradelines for clean targeting.', href: resolveFinelyCtaPath('personal_intake') },
   { icon: ShieldCheck, title: 'Evidence Vault', desc: 'Store proof packs and label everything for disciplined follow-ups.', href: '/resources/videos' },
-  { icon: Gavel, title: 'Dispute Center', desc: 'Track items, rounds, deadlines, and follow-up windows by bureau.', href: '/free-guide/read' },
-  { icon: FileText, title: 'Letter Generator', desc: 'Generate printable letters and keep PDFs in your vault.', href: '/free-guide' },
+  { icon: Gavel, title: 'Dispute Center', desc: 'Track items, rounds, deadlines, and follow-up windows by bureau.', href: resolveFinelyCtaPath('personal_intake') },
+  { icon: FileText, title: 'Letter Generator', desc: 'Generate printable letters and keep PDFs in your vault.', href: resolveFinelyCtaPath('personal_intake') },
   { icon: Sparkles, title: 'AI Suggestions (scoped)', desc: 'Education-first next actions from parsed report signals.', href: '/resources/videos' },
   { icon: Target, title: 'Milestones + tracking', desc: 'Stabilization → dispute rounds → documented follow-through.', href: resolveFinelyCtaPath('personal_intake') },
 ];
@@ -187,7 +185,7 @@ function featuredCardsForPath(path: PersonalCreditRestorePath): FeaturedCard[] {
     cards.push({ pkg: starter, accent: 'fuchsia', cta: 'Start DIY', btn: btnForAccent('fuchsia'), rail: 'stripe' });
   }
   if (free) {
-    cards.push({ pkg: free, accent: 'sky', badge: 'Free tier', cta: 'Open free tools', btn: btnForAccent('sky') });
+    cards.push({ pkg: free, accent: 'sky', badge: 'Free tier', cta: 'Start free trial', btn: btnForAccent('sky') });
   }
   if (letterPack) {
     cards.push({
@@ -266,6 +264,10 @@ export default function PersonalCreditPage() {
       finelyCtaNavigate(navigate, 'personal_intake');
       return;
     }
+    if (pkgId === 'personal_free' && !auth.user) {
+      finelyCtaNavigate(navigate, 'personal_free_trial', { isAuthed: false });
+      return;
+    }
     navigate(
       resolvePackageSelectPath({
         packageId: pkgId,
@@ -290,20 +292,11 @@ export default function PersonalCreditPage() {
         data-fc-ivory-wealthy="1"
       >
         <PersonalCreditHeroShell
-          onStartFreeGuide={() => finelyCtaNavigate(navigate, 'personal_free_guide')}
+          onStartFreeTrial={() => finelyCtaNavigate(navigate, 'personal_free_trial', { isAuthed: Boolean(auth.user) })}
           onBookSession={() => finelyCtaNavigate(navigate, 'consultation', { consultationLane: 'Personal Credit' })}
         />
 
         <PersonalCreditRestoreSpectrum />
-
-        <PersonalCreditCommandStrip
-          onComparePackages={() => {
-            document.getElementById('pc-packages')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-          }}
-          onStartFreeGuide={() => finelyCtaNavigate(navigate, 'personal_free_guide')}
-        />
-
-        <FinelyNowDoThisStrip surface="light" currentIndex={0} className="pc-restore-now-strip" title="Your next move" />
 
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           {STATS.map((s) => (
@@ -388,16 +381,11 @@ export default function PersonalCreditPage() {
         </section>
 
         <section className="fc-ivory-glass-panel fc-restore-dark-panel rounded-[1rem] p-4 space-y-4" id="pc-platform">
-          <div className="flex flex-wrap items-end justify-between gap-4">
-            <div>
-              <h2 className="text-xl font-bold text-white tracking-tight">The Finely Cred OS</h2>
-              <p className="mt-1 text-sm text-white/75">
-                Uploads, evidence, disputes, letters, and tracking — not a static brochure.
-              </p>
-            </div>
-            <button type="button" onClick={() => finelyCtaNavigate(navigate, 'personal_intake')} className={PC_RESTORE_BTN.sky}>
-              Start intake <ArrowRight size={14} />
-            </button>
+          <div>
+            <h2 className="text-xl font-bold text-white tracking-tight">The Finely Cred OS</h2>
+            <p className="mt-1 text-sm text-white/75">
+              Uploads, evidence, disputes, letters, and tracking — not a static brochure.
+            </p>
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
             {OS_TILES.map((x, i) => {
@@ -471,33 +459,6 @@ export default function PersonalCreditPage() {
             heading="Prefer to start on your own? Take the sheets."
             subline="Free PDFs · honest page counts · no signup"
           />
-
-          <section
-            className={`fc-ivory-glass-panel fc-ivory-pop-tile ${POP_ACCENT.violet} !p-8 text-center space-y-4`}
-          >
-            <p className="pc-restore-kicker pc-restore-kicker--on-pop">Take the first step</p>
-            <h2 className="fc-ivory-section-title fc-ivory-section-title--on-dark text-2xl md:text-3xl lg:text-4xl">
-              Ready to move your file forward?
-            </h2>
-            <p className="fc-ivory-body-text max-w-xl mx-auto text-base sm:text-lg">
-              Quick intake — see which package fits. No commitment required.
-            </p>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-              <button type="button" onClick={() => finelyCtaNavigate(navigate, 'personal_intake')} className={`${PC_RESTORE_BTN.emerald} !px-8 !py-3`}>
-                Start intake <ArrowRight size={16} />
-              </button>
-              <button
-                type="button"
-                onClick={() => finelyCtaNavigate(navigate, 'consultation', { consultationLane: 'Personal Credit' })}
-                className={`${PC_RESTORE_BTN.ghostLight} !px-8 !py-3`}
-              >
-                Book a session <ArrowRight size={16} />
-              </button>
-            </div>
-            <p className="text-xs text-white/55 leading-relaxed">
-              Results vary · not legal advice · funding subject to underwriting
-            </p>
-          </section>
 
           <FinelyOsPageFooter />
         </div>

@@ -8,6 +8,8 @@ import { FinelyNowDoThisStrip } from '../components/tours/FinelyNowDoThisStrip';
 import { FinelyNoticedStrip } from '../components/tours/FinelyNoticedStrip';
 import { buildStartHereNoticedItems } from '../lib/finelyProactiveSignals';
 import { reconcileCtaBridgeConversion } from '../lib/funnelCtaBridge';
+import { finelyCtaNavigate } from '../lib/finelyCtaIntent';
+import { useAuth } from '../auth/AuthProvider';
 import {
   FINELY_OS_ENTITY_BODY,
   FINELY_OS_ENTITY_VALUE,
@@ -24,7 +26,7 @@ const PATHS = [
     desc: 'Start the free restore guide — disputes, utilization, and your next clear step.',
     icon: Wrench,
     accent: 'emerald' as const,
-    primary: { label: 'Start free guide', to: '/free-guide' },
+    primary: { label: 'Start free trial', intent: 'personal_free_trial' as const },
     secondary: { label: 'See pricing', to: '/pricing' },
   },
   {
@@ -74,6 +76,7 @@ const MORE_LANES = [
 
 export default function StartHerePage() {
   const navigate = useNavigate();
+  const auth = useAuth();
   usePublicSeoMeta({
     title: 'Start here',
     description:
@@ -117,7 +120,11 @@ export default function StartHerePage() {
                       // Picking a lane from this neutral "start here" page is the
                       // meaningful conversion event for that variant.
                       reconcileCtaBridgeConversion('homepage_hero');
-                      navigate(path.primary.to);
+                      if ('intent' in path.primary) {
+                        finelyCtaNavigate(navigate, path.primary.intent, { isAuthed: Boolean(auth.user) });
+                      } else {
+                        navigate(path.primary.to);
+                      }
                     }}
                   >
                     {path.primary.label} <ArrowRight size={15} />

@@ -1,3 +1,5 @@
+import { normalizeLetterBlockSpacing } from '../lib/letterBodySafety';
+
 export function isProbablyHtml(s: string): boolean {
   const v = (s || '').trim();
   if (!v) return false;
@@ -25,7 +27,7 @@ export function ensureHtmlDraft(s: string): string {
 
 /** Convert plain text (with newlines) into simple paragraph HTML. */
 export function plainTextToHtml(text: string): string {
-  const raw = (text || '').replaceAll('\r\n', '\n');
+  const raw = normalizeLetterBlockSpacing((text || '').replaceAll('\r\n', '\n'));
   const blocks = raw.split(/\n{2,}/g);
   const html = blocks
     .map((b) => {
@@ -147,12 +149,13 @@ export function htmlToPlainText(html: string): string {
 
     for (const child of Array.from(doc.body.childNodes)) convert(child);
 
-    return parts
+    const joined = parts
       .join('')
       .replace(/\r\n/g, '\n')
       .replace(/[ \t]+\n/g, '\n')
       .replace(/\n{4,}/g, '\n\n\n')
       .trim();
+    return normalizeLetterBlockSpacing(joined);
   } catch {
     return (html || '').replaceAll('\r\n', '\n').trim();
   }

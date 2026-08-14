@@ -60,9 +60,9 @@ export function resolvePromoteVideoIdFromSearch(search: string): string | undefi
 const LANE_CTA_INTENT: Partial<
   Record<string, { intent: FinelyCtaIntentId; options?: FinelyCtaIntentOptions }>
 > = {
-  credit_restore: { intent: 'personal_free_guide' },
+  credit_restore: { intent: 'personal_free_trial' },
   score_roadmap: { intent: 'score_roadmap_intake' },
-  debt_relief: { intent: 'personal_free_guide' },
+  debt_relief: { intent: 'debt_intake' },
   business_credit: { intent: 'business_intake' },
   tradeline_au: { intent: 'tradeline_intake' },
   agency_white_label: { intent: 'business_intake' },
