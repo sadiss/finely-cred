@@ -428,6 +428,7 @@ export function CreditIntelTabs({
   onOpenEvidenceVault,
   onOpenTasks,
   onReparseRequest,
+  reparseBlockedReason,
   initialTab,
   initialScrollToAccount,
 }: {
@@ -447,6 +448,8 @@ export function CreditIntelTabs({
   onOpenTasks?: () => void;
   /** When provided, offers a one-click re-parse when the stored parse holds no creditor addresses. */
   onReparseRequest?: () => void;
+  /** When re-parse is blocked (legacy pending blob, missing file), show this instead of a vague hint. */
+  reparseBlockedReason?: string;
   /** Optional deep-link behavior when arriving from Letters. */
   initialTab?: TabKey | 'accounts';
   /** Optional deep-link auto-scroll target (uses ParsedReportViewer scrollToCreditorName). */
@@ -2223,6 +2226,8 @@ export function CreditIntelTabs({
                     <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => onReparseRequest()}>
                       Re-parse for contacts
                     </button>
+                  ) : reparseBlockedReason ? (
+                    <p className={`${FINELY_OS_ENTITY_BODY} text-amber-200/90`}>{reparseBlockedReason}</p>
                   ) : (
                     <p className={FINELY_OS_ENTITY_SUBLABEL}>Use Re-parse on this report.</p>
                   )}

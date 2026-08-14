@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FolderKanban, ListChecks, Plus } from 'lucide-react';
+import { CalendarDays, FolderKanban, ListChecks, Plus, Shield, UserRound } from 'lucide-react';
 import type { Partner } from '../../../domain/partners';
 import type { Project } from '../../../domain/projects';
 import type { TaskItem, TaskStatus } from '../../../domain/tasks';
@@ -11,6 +11,7 @@ import {
   AdminOpsWorkHubPanel,
   PartnerWorkHubPanel,
   ProjectsTasksMasterPanel,
+  PROJECT_PROGRESS_STAGES,
   TASK_PROGRESS_STAGES,
   TaskDetailModal,
   WorkBoardShell,
@@ -22,7 +23,7 @@ import {
 } from '../../../components/workboard';
 import { WorkProjectJourneyBoard, WorkProjectsListTable } from './WorkProjectJourneyBoard';
 import { WorkItemCreateModal } from '../../../components/workboard/WorkItemCreateModal';
-import { tasksToBoardItems } from '../../../lib/workBoardItems';
+import { projectsToBoardItems, tasksToBoardItems } from '../../../lib/workBoardItems';
 import type { AdminVisibilityFilter } from '../../../lib/workVisibility';
 import {
   filterProjectsForAdminView,
@@ -33,17 +34,19 @@ import {
 import { listAllSlaBreaches } from '../sla/listSlaBreaches';
 import {
   FINELY_OS_BOARD_SHELL,
+  FINELY_OS_COMPACT_PAGE,
   FINELY_OS_ENTITY_BODY,
   FINELY_OS_ENTITY_INPUT,
   FINELY_OS_PRIMARY_BTN,
   FINELY_OS_VIEW_TABS,
-  finelyOsCatalogCard,
+  finelyOsCatalogCardCompact,
   finelyOsViewTab,
 } from '../../os/finelyOsLightUi';
 
 export type WorkHubRole = 'partner' | 'admin';
 export type WorkHubTab = 'projects' | 'tasks';
 export type WorkHubScope = 'personal' | 'business' | 'all';
+export type WorkProjectViewMode = 'journey' | 'list' | 'calendar';
 
 type Props = {
   role: WorkHubRole;
@@ -74,6 +77,12 @@ function taskCountsByProject(tasks: TaskItem[]) {
   return map;
 }
 
+function partnerLabelById(partnerById: Map<string, Partner>) {
+  return new Map(
+    Array.from(partnerById.entries()).map(([id, p]) => [id, p.profile.fullName || p.profile.email || id]),
+  );
+}
+
 export function WorkTasksProjectsHub({
   role,
   partnerId,
@@ -95,7 +104,7 @@ export function WorkTasksProjectsHub({
     else setInternalTab(next);
   };
   const [taskView, setTaskView] = useState<WorkViewMode>('kanban');
-  const [projectView, setProjectView] = useState<'journey' | 'list'>('journey');
+  const [projectView, setProjectView] = useState<WorkProjectViewMode>('journey');
   const [scope, setScope] = useState<WorkHubScope>(role === 'partner' ? 'personal' : 'all');
   const [visibilityFilter, setVisibilityFilter] = useState<AdminVisibilityFilter>('all');
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
@@ -115,6 +124,7 @@ export function WorkTasksProjectsHub({
   const enabledProjectStages = useMemo(() => projectStageDefs.filter((s) => !s.disabled), [projectStageDefs]);
   const taskStageLabelById = useMemo(() => new Map(taskStageDefs.map((s) => [s.id, s.label])), [taskStageDefs]);
   const projectStageLabelById = useMemo(() => new Map(projectStageDefs.map((s) => [s.id, s.label])), [projectStageDefs]);
+  const partnerLabels = useMemo(() => partnerLabelById(partnerById), [partnerById]);
 
   const allProjects = useMemo(() => {
     if (role === 'partner' && partnerId) {
@@ -161,10 +171,20 @@ export function WorkTasksProjectsHub({
     () =>
       tasksToBoardItems(scopedTasks, {
         projectTitleById,
+        partnerLabelById: role === 'admin' ? partnerLabels : undefined,
         stageLabelById: taskStageLabelById,
         categoryFilter: taskCategoryFilter,
       }),
-    [scopedTasks, projectTitleById, taskStageLabelById, taskCategoryFilter],
+    [scopedTasks, projectTitleById, partnerLabels, taskStageLabelById, taskCategoryFilter, role],
+  );
+
+  const projectBoardItems = useMemo(
+    () =>
+      projectsToBoardItems(scopedProjects, {
+        partnerLabelById: role === 'admin' ? partnerLabels : undefined,
+        stageLabelById: projectStageLabelById,
+      }),
+    [scopedProjects, partnerLabels, projectStageLabelById, role],
   );
 
   const taskStats = useMemo(() => {
@@ -220,7 +240,11 @@ export function WorkTasksProjectsHub({
     setDetailTaskId(id);
   };
 
-  const tabClass = (active: boolean, accent: 'emerald' | 'violet' = 'emerald') => finelyOsViewTab(active, accent);
+  const handleOpenProject = (id: string) => {
+    navigate(`${workspaceBasePath}/${id}`);
+  };
+
+  const tabClass = (active: boolean, accent: 'emerald' | 'violet' | 'sky' = 'emerald') => finelyOsViewTab(active, accent);
 
   const partnerOptions =
     role === 'admin'
@@ -232,8 +256,19 @@ export function WorkTasksProjectsHub({
         ? [{ id: partner.id, label: partner.profile.fullName || partner.profile.email || partner.id }]
         : [];
 
+  const roleBadge =
+    role === 'admin' ? (
+      <span className="inline-flex items-center gap-1.5 rounded-lg border border-violet-500/30 bg-violet-500/10 px-2.5 py-1 text-[10px] font-black uppercase tracking-widest text-violet-200">
+        <Shield size={12} /> All partners
+      </span>
+    ) : (
+      <span className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-[10px] font-black uppercase tracking-widest text-emerald-200">
+        <UserRound size={12} /> Your items
+      </span>
+    );
+
   return (
-    <div className="space-y-4">
+    <div className={FINELY_OS_COMPACT_PAGE}>
       {!compactHero ? (
         role === 'partner' ? (
           <PartnerWorkHubPanel
@@ -255,7 +290,7 @@ export function WorkTasksProjectsHub({
         )
       ) : null}
 
-      <div className="flex flex-wrap items-center gap-3">
+      <div className={`${finelyOsCatalogCardCompact('sky')} flex flex-wrap items-center gap-3 !py-3`}>
         {!controlledTab ? (
           <div className={FINELY_OS_VIEW_TABS}>
             <button type="button" onClick={() => setTab('projects')} className={tabClass(tab === 'projects', 'violet')}>
@@ -266,6 +301,8 @@ export function WorkTasksProjectsHub({
             </button>
           </div>
         ) : null}
+
+        {roleBadge}
 
         <select
           value={scope}
@@ -281,6 +318,7 @@ export function WorkTasksProjectsHub({
         {tab === 'tasks' ? (
           <span className={`text-xs ${FINELY_OS_ENTITY_BODY}`}>
             {openTasks.length} open · {scopedTasks.length} total
+            {selectedProjectId ? ' · filtered' : ''}
           </span>
         ) : (
           <span className={`text-xs ${FINELY_OS_ENTITY_BODY}`}>
@@ -296,31 +334,51 @@ export function WorkTasksProjectsHub({
       </div>
 
       {tab === 'projects' ? (
-        <div className="space-y-4">
-          {role === 'admin' ? (
-            <div className={FINELY_OS_VIEW_TABS}>
-              <button type="button" onClick={() => setProjectView('journey')} className={tabClass(projectView === 'journey', 'emerald')}>
-                Journey board
-              </button>
+        <div className="space-y-3">
+          <div className={FINELY_OS_VIEW_TABS}>
+            <button type="button" onClick={() => setProjectView('journey')} className={tabClass(projectView === 'journey', 'emerald')}>
+              Journey board
+            </button>
+            {role === 'admin' ? (
               <button type="button" onClick={() => setProjectView('list')} className={tabClass(projectView === 'list', 'violet')}>
                 List
               </button>
-            </div>
-          ) : null}
+            ) : null}
+            <button type="button" onClick={() => setProjectView('calendar')} className={tabClass(projectView === 'calendar', 'sky')}>
+              <CalendarDays size={14} /> Calendar
+            </button>
+          </div>
 
           <div className={FINELY_OS_BOARD_SHELL}>
             {scopedProjects.length === 0 ? (
-              <div className={`${finelyOsCatalogCard('violet')} !p-6 text-center ${FINELY_OS_ENTITY_BODY}`}>
+              <div className={`${finelyOsCatalogCardCompact('violet')} text-center ${FINELY_OS_ENTITY_BODY}`}>
                 No projects in this scope yet.
+                {role === 'partner' ? ' Your coach will add restoration projects here.' : ' Create one to get started.'}
               </div>
-            ) : projectView === 'journey' || role === 'partner' ? (
+            ) : projectView === 'journey' ? (
               <WorkProjectJourneyBoard
                 projects={scopedProjects}
                 partnerById={partnerById}
                 taskStats={taskStats}
                 enabledStages={enabledProjectStages}
                 slaByProject={slaByProject}
-                onOpenProject={(id) => navigate(`${workspaceBasePath}/${id}`)}
+                onOpenProject={handleOpenProject}
+                onProjectStageChange={(id, st) => {
+                  setProjectStage(id, st);
+                  bump();
+                }}
+                onProjectStatusChange={(id, st) => {
+                  setProjectStatus(id, st);
+                  bump();
+                }}
+              />
+            ) : projectView === 'list' ? (
+              <WorkProjectsListTable
+                projects={scopedProjects}
+                partnerById={partnerById}
+                taskStats={taskStats}
+                enabledStages={enabledProjectStages}
+                onOpenProject={handleOpenProject}
                 onProjectStageChange={(id, st) => {
                   setProjectStage(id, st);
                   bump();
@@ -331,38 +389,31 @@ export function WorkTasksProjectsHub({
                 }}
               />
             ) : (
-              <WorkProjectsListTable
-                projects={scopedProjects}
-                partnerById={partnerById}
-                taskStats={taskStats}
-                enabledStages={enabledProjectStages}
-                onOpenProject={(id) => navigate(`${workspaceBasePath}/${id}`)}
-                onProjectStageChange={(id, st) => {
-                  setProjectStage(id, st);
-                  bump();
-                }}
-                onProjectStatusChange={(id, st) => {
-                  setProjectStatus(id, st);
-                  bump();
-                }}
+              <WorkCalendarView
+                items={projectBoardItems}
+                stageColorById={Object.fromEntries(
+                  PROJECT_PROGRESS_STAGES.map((s) => [s.id, String((s as { color?: string }).color || '')]),
+                )}
+                dateForItem={(it) => it.dueAt || it.updatedAt}
+                emptyHint="Calendar uses target close dates for projects, else last updated."
               />
             )}
           </div>
         </div>
       ) : (
-        <div className="flex flex-col lg:flex-row gap-4">
+        <div className="flex flex-col lg:flex-row gap-3">
           <ProjectsTasksMasterPanel
             projects={scopedProjects}
             selectedId={selectedProjectId}
             onSelect={setSelectedProjectId}
-            onOpenProject={(id) => navigate(`${workspaceBasePath}/${id}`)}
+            onOpenProject={handleOpenProject}
             onCreateProject={role === 'admin' ? () => setCreateOpen(true) : undefined}
             showCreateButton={role === 'admin'}
             stageLabelById={projectStageLabelById}
             taskCountByProject={taskCountByProject}
           />
 
-          <div className={`flex-1 min-w-0 ${finelyOsCatalogCard('emerald')} !p-4 space-y-4`}>
+          <div className={`flex-1 min-w-0 ${finelyOsCatalogCardCompact('emerald')} space-y-3`}>
             <WorkBoardShell
               view={taskView}
               onViewChange={setTaskView}
@@ -370,11 +421,11 @@ export function WorkTasksProjectsHub({
               stageFilter={taskCategoryFilter}
               onStageFilterChange={setTaskCategoryFilter}
               stageFilterStages={enabledTaskStages}
-              allowedViews={role === 'partner' ? ['kanban', 'calendar', 'list'] : ['kanban', 'list', 'calendar']}
+              allowedViews={['kanban', 'list', 'calendar']}
             />
 
             {scopedTasks.length === 0 ? (
-              <div className={`${FINELY_OS_ENTITY_BODY} text-sm py-8 text-center`}>
+              <div className={`${FINELY_OS_ENTITY_BODY} text-sm py-6 text-center`}>
                 No tasks yet{selectedProjectId ? ' for this project' : ''}.{' '}
                 {role === 'partner' ? 'Your coach will add action items here.' : 'Create one or generate from Letters.'}
               </div>
@@ -384,6 +435,7 @@ export function WorkTasksProjectsHub({
                 items={taskItems}
                 onStageChange={handleTaskStageChange}
                 onOpenItem={handleOpenTask}
+                enableDnd
               />
             ) : taskView === 'list' ? (
               <WorkListView
@@ -395,7 +447,9 @@ export function WorkTasksProjectsHub({
             ) : (
               <WorkCalendarView
                 items={taskItems}
-                stageColorById={Object.fromEntries(TASK_PROGRESS_STAGES.map((s) => [s.id, String((s as { color?: string }).color || '')]))}
+                stageColorById={Object.fromEntries(
+                  TASK_PROGRESS_STAGES.map((s) => [s.id, String((s as { color?: string }).color || '')]),
+                )}
                 dateForItem={(it) => it.dueAt || it.updatedAt}
                 emptyHint="Calendar uses due dates for tasks, else updatedAt."
               />

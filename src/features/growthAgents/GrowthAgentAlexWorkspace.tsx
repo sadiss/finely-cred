@@ -14,6 +14,7 @@ import {
   runAlexAppointmentOutreach,
   setAlexAppointmentAutopilotEnabled,
 } from './alexAppointmentAutomation';
+import { describeStaffRotationStatus } from '../../lib/calendarStaffRotation';
 import {
   FINELY_OS_ENTITY_BODY,
   FINELY_OS_ENTITY_SUBLABEL,
@@ -67,6 +68,11 @@ export function GrowthAgentAlexWorkspace() {
   const autopilotOn = useMemo(() => {
     void tick;
     return isAlexAppointmentAutopilotEnabled();
+  }, [tick]);
+
+  const rotationStatus = useMemo(() => {
+    void tick;
+    return describeStaffRotationStatus();
   }, [tick]);
 
   const runNow = async () => {
@@ -143,6 +149,35 @@ export function GrowthAgentAlexWorkspace() {
           <div className={FINELY_OS_ENTITY_SUBLABEL}>Autopilot</div>
           <div className="text-lg font-black text-white">{autopilotOn ? 'On' : 'Off'}</div>
         </div>
+      </div>
+
+      <div className={finelyOsCatalogCardCompact('violet')}>
+        <div className={`inline-flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL} text-violet-200`}>
+          <Calendar size={14} /> Calendar host rotation
+        </div>
+        <p className={`mt-2 text-xs ${FINELY_OS_ENTITY_BODY}`}>
+          Round-robin: {rotationStatus.roundRobinEnabled ? 'On' : 'Off'} ·{' '}
+          {rotationStatus.onDutyCount} on duty · {rotationStatus.enabledCount} in pool
+        </p>
+        {rotationStatus.nextHost ? (
+          <p className="mt-1 text-xs text-white/80">
+            Next booking host: <strong className="text-white">{rotationStatus.nextHost.displayName}</strong>
+            {rotationStatus.nextHost.growthAgentId === 'appointment-setter' ? ' (Alex)' : ''}
+            {rotationStatus.nextHost.growthAgentId === 'lead-discovery' ? ' (Caleb)' : ''}
+          </p>
+        ) : null}
+        {rotationStatus.onDuty.length ? (
+          <ul className="mt-2 space-y-1 text-[11px] text-white/60">
+            {rotationStatus.onDuty.map((h) => (
+              <li key={h.staffAssigneeId ?? h.displayName}>
+                On shift: {h.displayName}
+                {h.growthAgentId ? ` · ${h.growthAgentId}` : ''}
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="mt-2 text-xs text-amber-200/90">No hosts on duty right now — off-shift assignees are skipped until their shift starts.</p>
+        )}
       </div>
 
       <BookingInvitePanel compact />

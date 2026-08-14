@@ -4,7 +4,7 @@ import type { CalendarBlockedWindow, CalendarBookingSettings, CalendarStaffAssig
 import { resetCalendarBookingSettings, saveCalendarBookingSettings } from '../../data/calendarSettingsRepo';
 import { isFeatureEnabled } from '../../data/settingsRepo';
 import { getCalendarExternalSyncPreviewStatus } from '../../lib/calendarProviderSync';
-import { resetRoundRobinCursor } from '../../lib/calendarStaffRotation';
+import { resetRoundRobinCursor, isAssigneeOnDuty, GROWTH_AGENT_BOOKING_PROFILES } from '../../lib/calendarStaffRotation';
 import { newId } from '../../utils/ids';
 import { PublicSessionSlotPicker } from './PublicSessionSlotPicker';
 import type { BookableSlot } from '../../lib/calendarSlots';
@@ -303,6 +303,32 @@ export function CalendarSettingsPanel({
                   placeholder="Role on invite"
                   className={`w-36 ${FINELY_OS_ENTITY_INPUT.replace('mt-2 ', '')}`}
                 />
+                <select
+                  value={staff.growthAgentId ?? ''}
+                  onChange={(e) =>
+                    setDraft((p) => ({
+                      ...p,
+                      staffAssignees: (p.staffAssignees ?? []).map((s) =>
+                        s.id === staff.id ? { ...s, growthAgentId: e.target.value || undefined } : s,
+                      ),
+                    }))
+                  }
+                  className={`w-40 ${FINELY_OS_ENTITY_INPUT.replace('mt-2 ', '')}`}
+                  title="Growth agent identity"
+                >
+                  <option value="">No agent link</option>
+                  {GROWTH_AGENT_BOOKING_PROFILES.map((p) => (
+                    <option key={p.growthAgentId} value={p.growthAgentId}>
+                      {p.displayName}
+                    </option>
+                  ))}
+                </select>
+                <span
+                  className={finelyOsStatusChip(isAssigneeOnDuty(staff) ? 'ok' : 'warn')}
+                  title="On-duty for rotation right now"
+                >
+                  {isAssigneeOnDuty(staff) ? 'On duty' : 'Off shift'}
+                </span>
                 <button
                   type="button"
                   onClick={() =>

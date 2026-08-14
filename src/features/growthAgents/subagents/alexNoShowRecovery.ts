@@ -21,6 +21,7 @@ import { getPartnerSync } from '../../../data/partnersRepo';
 import { isInternalStaffEmail } from '../../../lib/meetingEmailGuards';
 import { checkSuppression, isOverFrequencyCap, recordSendForFrequencyCap, resolveFrequencyCapKey } from '../../../data/commsSuppressionRepo';
 import { logAgentAction } from '../../../lib/agentAuditLog';
+import { resolveHostFromEvent } from '../../../lib/calendarStaffRotation';
 import { createMarketingTask, findOpenMarketingTask } from '../../marketingDesk/marketingDeskTasks';
 import { loadJson, saveJson } from '../../../data/localJsonStore';
 
@@ -83,6 +84,7 @@ export async function runAlexNoShowRecoverySweep(): Promise<NoShowRecoveryResult
     const origin = getPublicSiteOrigin();
     const rebookUrl = `${origin}${buildBookingInvitePath(invite.token)}`;
 
+    const host = resolveHostFromEvent(ev);
     let emailOk = false;
     const partner = ev.partnerId && !ev.partnerId.startsWith('public:') ? getPartnerSync(ev.partnerId) : null;
     const recoveryEmail = partner?.profile.email?.trim();
@@ -97,8 +99,8 @@ export async function runAlexNoShowRecoverySweep(): Promise<NoShowRecoveryResult
             toName: partner?.profile.fullName,
             title: `We missed you — let's reschedule "${ev.title}"`,
             joinUrl: rebookUrl,
-            hostName: 'Alex Rivera',
-            hostRoleLabel: 'Appointment Setter',
+            hostName: host.displayName,
+            hostRoleLabel: host.roleLabel ?? 'Appointment Setter',
             agenda: 'No pressure — pick a new time that works better. Link below.',
             scheduleUrl: rebookUrl,
             intent: 'outreach',

@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { ArrowLeft, ArrowRight, Calendar, CheckCircle2, Clock, Link as LinkIcon, Plus, Send, X } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Calendar, CheckCircle2, Clock, Link as LinkIcon, Plus, Send, Sparkles, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { PageShell } from '../../components/layout/PageShell';
 import { getPartner, listPartnersByTenant } from '../../data/partnersRepo';
@@ -11,11 +11,16 @@ import {
   scheduleEventFromRequest,
   scheduleEventFromPublicRequest,
   setEventStatus,
-  setEventMeetingNotes,
+  setEventPostMeetingIntel,
+  completeCalendarEvent,
+  isCalendarEventPast,
+  listPastCalendarEvents,
   setRequestStatus,
   setPublicRequestStatus,
   waivePublicSessionPayment,
+  getConsultationRequest,
 } from '../../data/calendarRepo';
+import { createTask } from '../../data/tasksRepo';
 import { getActiveTenantId } from '../../tenancy/activeTenant';
 import { useAuth } from '../../auth/AuthProvider';
 import { getAccessiblePartnerIdsForAdmin } from '../../tenancy/adminPartnerScope';
@@ -24,7 +29,14 @@ import { FinelyOsPageFooter } from '../../features/os/FinelyOsPageFooter';
 import { FinelyOsOverviewStatTile } from '../../features/os/FinelyOsOverviewStatTile';
 import { BookingInvitePanel } from '../../components/calendar/BookingInvitePanel';
 import { AdminMeetingComposer } from '../../components/calendar/AdminMeetingComposer';
+import { MeetingNotesEditor } from '../../components/calendar/MeetingNotesEditor';
 import { runMeetingReminderAutomation } from '../../lib/meetingReminderAutomation';
+import {
+  buildFollowUpTaskFromMeeting,
+  suggestMeetingNextSteps,
+  summarizeMeetingNotes,
+} from '../../lib/meetingPostCallIntelligence';
+import type { CalendarEvent } from '../../domain/calendar';
 import {
   FINELY_OS_PAGE,
   FINELY_OS_BACK_LINK,
@@ -128,6 +140,72 @@ export default function AdminCalendarPage() {
 
   const [editingNotesFor, setEditingNotesFor] = useState<string | null>(null);
   const [notesDraft, setNotesDraft] = useState('');
+  const [postCallFor, setPostCallFor] = useState<string | null>(null);
+  const [postCallNotes, setPostCallNotes] = useState('');
+  const [postCallSummary, setPostCallSummary] = useState('');
+  const [postCallSteps, setPostCallSteps] = useState<string[]>([]);
+  const [postCallNotice, setPostCallNotice] = useState<string | null>(null);
+
+  const pastEvents = useMemo(
+    () => listPastCalendarEvents({ partnerIds: partnerIds, limit: 12 }),
+    [partnerIds, version],
+  );
+
+  const eventTopic = useCallback((e: CalendarEvent) => {
+    if (!e.sourceRequestId) return undefined;
+    return getConsultationRequest(e.sourceRequestId)?.topic;
+  }, []);
+
+  const openPostCall = useCallback((e: CalendarEvent) => {
+    setPostCallFor(e.id);
+    setPostCallNotes(e.meetingNotes || '');
+    setPostCallSummary(e.postMeetingSummary || '');
+    setPostCallSteps(
+      e.postMeetingNextSteps?.length
+        ? e.postMeetingNextSteps
+        : suggestMeetingNextSteps({
+            notes: e.meetingNotes || '',
+            topic: eventTopic(e),
+            partnerName: partnerById.get(e.partnerId)?.profile.fullName,
+            eventTitle: e.title,
+          }),
+    );
+    setPostCallNotice(null);
+  }, [eventTopic, partnerById]);
+
+  const savePostCallIntel = useCallback(
+    (eventId: string, args: { complete?: boolean; notes: string; summary?: string; steps?: string[] }) => {
+      const fn = args.complete ? completeCalendarEvent : setEventPostMeetingIntel;
+      fn(eventId, {
+        meetingNotes: args.notes,
+        postMeetingSummary: args.summary,
+        postMeetingNextSteps: args.steps,
+      });
+      window.dispatchEvent(new Event('finely:store'));
+    },
+    [],
+  );
+
+  const createFollowUpFromEvent = useCallback(
+    (e: CalendarEvent, nextStepLabel?: string) => {
+      if (e.partnerId.startsWith('public:')) {
+        setPostCallNotice('Public visitor sessions — create a CRM task manually from the request email.');
+        return;
+      }
+      const task = buildFollowUpTaskFromMeeting({
+        event: e,
+        notes: postCallNotes,
+        summary: postCallSummary,
+        nextStepLabel,
+      });
+      createTask(task);
+      setPostCallNotice(`Follow-up task created: ${task.title}`);
+      window.dispatchEvent(new Event('finely:store'));
+    },
+    [postCallNotes, postCallSummary],
+  );
+
+  const postCallEvent = postCallFor ? events.find((e) => e.id === postCallFor) ?? null : null;
 
   const openSchedule = (id: string) => {
     setErr(null);
@@ -690,57 +768,51 @@ export default function AdminCalendarPage() {
                           <LinkIcon size={14} /> Open link
                         </button>
                       ) : null}
-                      <details className="mt-2">
-                        <summary className={`cursor-pointer select-none ${FINELY_OS_ENTITY_SUBLABEL} hover:text-violet-700`}>
-                          Meeting notes
-                        </summary>
-                        <div className="mt-2 space-y-2">
-                          {editingNotesFor === e.id ? (
-                            <>
-                              <textarea
-                                value={notesDraft}
-                                onChange={(ev) => setNotesDraft(ev.target.value)}
-                                placeholder="Add post-meeting notes..."
-                                className={`${FINELY_OS_ENTITY_INPUT} min-h-[80px] resize-y`}
-                              />
-                              <div className="flex gap-2">
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    setEventMeetingNotes(e.id, notesDraft);
-                                    setEditingNotesFor(null);
-                                    setNotesDraft('');
-                                    window.dispatchEvent(new Event('finely:store'));
-                                  }}
-                                  className={FINELY_OS_SUCCESS_BTN}
-                                >
-                                  Save
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => { setEditingNotesFor(null); setNotesDraft(''); }}
-                                  className={FINELY_OS_SECONDARY_BTN}
-                                >
-                                  Cancel
-                                </button>
-                              </div>
-                            </>
-                          ) : (
-                            <>
-                              <div className={`${FINELY_OS_ENTITY_BODY} whitespace-pre-wrap min-h-[24px]`}>
-                                {e.meetingNotes || <span className={`${FINELY_OS_ENTITY_SUBLABEL} italic`}>No notes yet.</span>}
-                              </div>
-                              <button
-                                type="button"
-                                onClick={() => { setEditingNotesFor(e.id); setNotesDraft(e.meetingNotes || ''); }}
-                                className={FINELY_OS_SECONDARY_BTN}
-                              >
-                                {e.meetingNotes ? 'Edit' : 'Add'} notes
-                              </button>
-                            </>
-                          )}
+                      {Date.parse(e.startAt) <= Date.now() && !isCalendarEventPast(e) ? (
+                        <div className={`${FINELY_OS_NOTICE_WARN} !p-3 space-y-2`}>
+                          <div className={`${FINELY_OS_ENTITY_SUBLABEL} text-amber-200`}>In session — capture live notes</div>
+                          <MeetingNotesEditor
+                            value={editingNotesFor === e.id ? notesDraft : e.meetingNotes || ''}
+                            onChange={(v) => {
+                              setEditingNotesFor(e.id);
+                              setNotesDraft(v);
+                            }}
+                            rows={3}
+                            compact
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const notes = editingNotesFor === e.id ? notesDraft : e.meetingNotes || '';
+                              setEventPostMeetingIntel(e.id, { meetingNotes: notes });
+                              setEditingNotesFor(null);
+                              setNotesDraft('');
+                              window.dispatchEvent(new Event('finely:store'));
+                            }}
+                            className={FINELY_OS_SECONDARY_BTN}
+                          >
+                            Save live notes
+                          </button>
                         </div>
-                      </details>
+                      ) : null}
+                      {isCalendarEventPast(e) ? (
+                        <button
+                          type="button"
+                          onClick={() => openPostCall(e)}
+                          className={FINELY_OS_PRIMARY_BTN}
+                        >
+                          <Sparkles size={14} /> Post-call wrap-up
+                        </button>
+                      ) : (
+                        <details className="mt-2">
+                          <summary className={`cursor-pointer select-none ${FINELY_OS_ENTITY_SUBLABEL} hover:text-violet-700`}>
+                            Pre-call prep notes
+                          </summary>
+                          <div className={`mt-2 ${FINELY_OS_ENTITY_BODY} text-xs italic`}>
+                            Live and post-meeting notes open after the session starts or from Post-call wrap-up.
+                          </div>
+                        </details>
+                      )}
                       <div className="flex flex-wrap gap-2">
                         <button
                           type="button"
@@ -764,6 +836,158 @@ export default function AdminCalendarPage() {
             )}
           </div>
         </div>
+
+        {postCallEvent ? (
+          <div className={`${finelyOsCatalogCard('emerald')} !p-5 space-y-4`}>
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <div className={`inline-flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL} text-emerald-300`}>
+                  <Sparkles size={16} /> Post-call intelligence
+                </div>
+                <div className={`mt-1 ${FINELY_OS_ENTITY_VALUE}`}>{postCallEvent.title}</div>
+                <div className={`${FINELY_OS_ENTITY_BODY} text-xs`}>
+                  {partnerById.get(postCallEvent.partnerId)?.profile.fullName ?? postCallEvent.partnerId} • {fmtWhen(postCallEvent.endAt)}
+                </div>
+              </div>
+              <button type="button" onClick={() => setPostCallFor(null)} className={`${FINELY_OS_SECONDARY_BTN} p-2`}>
+                <X size={16} />
+              </button>
+            </div>
+
+            {postCallNotice ? <div className={FINELY_OS_NOTICE_SUCCESS}>{postCallNotice}</div> : null}
+
+            <MeetingNotesEditor
+              value={postCallNotes}
+              onChange={setPostCallNotes}
+              placeholder="What happened on the call? Action items, blockers, partner goals…"
+              rows={4}
+            />
+
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  const summary = summarizeMeetingNotes(postCallNotes);
+                  setPostCallSummary(summary);
+                  const steps = suggestMeetingNextSteps({
+                    notes: postCallNotes,
+                    topic: eventTopic(postCallEvent),
+                    partnerName: partnerById.get(postCallEvent.partnerId)?.profile.fullName,
+                    eventTitle: postCallEvent.title,
+                  });
+                  setPostCallSteps(steps);
+                  setPostCallNotice(summary ? 'Summary and next steps updated from your notes.' : 'Add notes first, then summarize.');
+                }}
+                className={FINELY_OS_SECONDARY_BTN}
+              >
+                <Sparkles size={14} /> Summarize notes
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  savePostCallIntel(postCallEvent.id, {
+                    complete: true,
+                    notes: postCallNotes,
+                    summary: postCallSummary,
+                    steps: postCallSteps,
+                  });
+                  setPostCallNotice('Session marked complete and notes saved.');
+                }}
+                className={FINELY_OS_SUCCESS_BTN}
+              >
+                <CheckCircle2 size={14} /> Mark complete
+              </button>
+              <button
+                type="button"
+                onClick={() => createFollowUpFromEvent(postCallEvent)}
+                className={FINELY_OS_PRIMARY_BTN}
+              >
+                <Plus size={14} /> Create follow-up task
+              </button>
+            </div>
+
+            {postCallSummary ? (
+              <div className={`${finelyOsCatalogCard('sky')} !p-3`}>
+                <div className={FINELY_OS_ENTITY_SUBLABEL}>Summary</div>
+                <p className={`mt-1 ${FINELY_OS_ENTITY_BODY}`}>{postCallSummary}</p>
+              </div>
+            ) : null}
+
+            <div className="space-y-2">
+              <div className={FINELY_OS_ENTITY_SUBLABEL}>Suggested next steps</div>
+              <div className="flex flex-wrap gap-2">
+                {postCallSteps.map((step) => (
+                  <button
+                    key={step}
+                    type="button"
+                    onClick={() => {
+                      setPostCallNotes((prev) => (prev.trim() ? `${prev.trim()}\n- ${step}` : `- ${step}`));
+                      createFollowUpFromEvent(postCallEvent, step);
+                    }}
+                    className={finelyOsStatusChip('ok')}
+                  >
+                    {step}
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  onClick={() => {
+                    const steps = suggestMeetingNextSteps({
+                      notes: postCallNotes,
+                      topic: eventTopic(postCallEvent),
+                      partnerName: partnerById.get(postCallEvent.partnerId)?.profile.fullName,
+                      eventTitle: postCallEvent.title,
+                    });
+                    setPostCallSteps(steps);
+                  }}
+                  className={FINELY_OS_SECONDARY_BTN}
+                >
+                  Refresh chips
+                </button>
+              </div>
+            </div>
+          </div>
+        ) : null}
+
+        {pastEvents.length > 0 ? (
+          <div className={`${finelyOsCatalogCard('emerald')} !p-5 space-y-4`}>
+            <div className="flex items-center justify-between gap-3">
+              <div className="inline-flex items-center gap-2 text-emerald-700">
+                <CheckCircle2 size={18} />
+                <span className={FINELY_OS_ENTITY_SUBLABEL}>Recent sessions — post-call wrap-up</span>
+              </div>
+              <div className={`${FINELY_OS_ENTITY_SUBLABEL} font-mono`}>{pastEvents.length} past</div>
+            </div>
+            <FinelyOsPaginatedStack
+              items={pastEvents}
+              pageSize={6}
+              emptyMessage="No past sessions."
+              renderItem={(e) => {
+                const p = partnerById.get(e.partnerId);
+                const needsWrapUp = e.status !== 'completed' || !e.meetingNotes;
+                return (
+                  <div key={e.id} className={`${finelyOsInlineListItem()} p-4 space-y-2`}>
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <div className={`${FINELY_OS_ENTITY_VALUE} truncate`}>{e.title}</div>
+                        <div className={`${FINELY_OS_ENTITY_SUBLABEL} font-mono`}>
+                          {p?.profile.fullName ?? e.partnerId} • {e.status} • {fmtWhen(e.endAt)}
+                        </div>
+                      </div>
+                      {needsWrapUp ? finelyOsStatusChip('warn') : finelyOsStatusChip('ok')}
+                    </div>
+                    {e.postMeetingSummary ? (
+                      <p className={`${FINELY_OS_ENTITY_BODY} text-xs line-clamp-2`}>{e.postMeetingSummary}</p>
+                    ) : null}
+                    <button type="button" onClick={() => openPostCall(e)} className={FINELY_OS_SECONDARY_BTN}>
+                      <Sparkles size={14} /> {needsWrapUp ? 'Wrap up' : 'Review notes'}
+                    </button>
+                  </div>
+                );
+              }}
+            />
+          </div>
+        ) : null}
 
         <div className={`${FINELY_OS_BOARD_SHELL} space-y-4`}>
           <div className="flex flex-wrap items-center justify-between gap-3">

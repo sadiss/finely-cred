@@ -612,6 +612,16 @@ function PartnerDetailPageInner() {
     !isLegacyPendingReportBlob(selectedReport.rawBlobRef) &&
     canAccessReportBlob(selectedReport.rawBlobRef),
   );
+  const selectedReportReparseBlockedReason = useMemo(() => {
+    if (!selectedReport) return undefined;
+    if (isLegacyPendingReportBlob(selectedReport.rawBlobRef)) {
+      return 'Re-parse is unavailable — this report was migrated without the original file. Re-upload the HTML export above, or restore files from the legacy server ZIP on Admin → Partner Import.';
+    }
+    if (!canAccessReportBlob(selectedReport.rawBlobRef)) {
+      return 'Re-parse is unavailable — no stored file is accessible. Re-upload the original HTML or PDF export.';
+    }
+    return undefined;
+  }, [selectedReport]);
 
   const evidence = useMemo(() => (partner ? listEvidenceByPartner(partner.id) : []), [partner, notesVersion]);
   const letters = useMemo(() => (partner ? listLettersByPartner(partner.id) : []), [partner, notesVersion]);
@@ -2294,6 +2304,7 @@ function PartnerDetailPageInner() {
                       isLegacyPendingReportBlob(selectedReport.rawBlobRef) ||
                       !canAccessReportBlob(selectedReport.rawBlobRef)
                     }
+                    title={selectedReportReparseBlockedReason ?? undefined}
                     onClick={() => handleReparseReport(selectedReport)}
                   >
                     <RefreshCcw size={14} className="text-fuchsia-300" /> {reparseReportId === selectedReport.id ? 'Re-parsing…' : 'Re-parse'}
@@ -2360,6 +2371,7 @@ function PartnerDetailPageInner() {
                       onOpenEvidenceVault={() => setEvidencePicker({})}
                       onOpenTasks={() => setTabAndUrl('tasks')}
                       onReparseRequest={canReparseSelectedReport ? () => handleReparseReport(selectedReport) : undefined}
+reparseBlockedReason={selectedReportReparseBlockedReason}
                     />
                   </>
                 ) : null}
@@ -2381,6 +2393,7 @@ function PartnerDetailPageInner() {
                   onOpenEvidenceVault={() => setEvidencePicker({})}
                   onOpenTasks={() => setTabAndUrl('tasks')}
                   onReparseRequest={canReparseSelectedReport ? () => handleReparseReport(selectedReport) : undefined}
+reparseBlockedReason={selectedReportReparseBlockedReason}
                 />
               </div>
             ) : selectedReport ? (

@@ -9,7 +9,11 @@ import { buildGuestMeetingJoinPath } from './meetingUrls';
 import { getPublicSiteOrigin } from './funnelPublicLinks';
 import { sendMeetingInviteEmail } from './meetingInviteEmailSend';
 import { isFeatureEnabled } from '../data/settingsRepo';
-import { pickRoundRobinAssignee } from './calendarStaffRotation';
+import {
+  calendarHostFieldsFromBookingHost,
+  resolveBookingHost,
+} from './calendarStaffRotation';
+import { logAgentAction } from './agentAuditLog';
 
 export type ConfirmPublicSlotBookingResult = {
   requestId: string;
@@ -40,6 +44,8 @@ export async function confirmPublicSlotBooking(args: {
   paymentRequired?: boolean;
   hostName?: string;
   hostRoleLabel?: string;
+  hostEmail?: string;
+  staffAssigneeId?: string;
   scheduleUrl?: string;
   emailPartnerId?: string;
 }): Promise<ConfirmPublicSlotBookingResult> {
@@ -74,6 +80,9 @@ export async function confirmPublicSlotBooking(args: {
     timezone: tz,
     hostName: args.hostName,
     hostRoleLabel: args.hostRoleLabel,
+    hostEmail: args.hostEmail,
+    staffAssigneeId: args.staffAssigneeId,
+    topic: args.topic,
     scheduleUrl: args.scheduleUrl,
     emailPartnerId: args.emailPartnerId,
   });
@@ -97,24 +106,46 @@ export async function confirmScheduledEventForRequest(args: {
   timezone?: string;
   hostName?: string;
   hostRoleLabel?: string;
+  hostEmail?: string;
+  staffAssigneeId?: string;
+  topic?: ConsultationTopic;
   scheduleUrl?: string;
   emailPartnerId?: string;
 }): Promise<{ event: CalendarEvent; joinPath: string; confirmedLabel: string }> {
+  const slotAt = new Date(args.startAt);
+  const host = resolveBookingHost({
+    hostName: args.hostName,
+    hostRoleLabel: args.hostRoleLabel,
+    hostEmail: args.hostEmail,
+    staffAssigneeId: args.staffAssigneeId,
+    at: slotAt,
+    topic: args.topic,
+  });
+
   const ev = scheduleEventFromPublicRequest({
     requestId: args.requestId,
     startAt: args.startAt,
     endAt: args.endAt,
     slotDurationMinutes: args.durationMinutes,
     confirm: true,
+    ...calendarHostFieldsFromBookingHost(host),
   });
   if (!ev) throw new Error('Could not confirm that slot — it may no longer be available. Pick another time.');
+
+  if (host.growthAgentId) {
+    logAgentAction({
+      agentId: host.growthAgentId,
+      action: 'booking.host_assigned',
+      entityType: 'calendar_event',
+      entityId: ev.id,
+      reasoning: `Round-robin host ${host.displayName} assigned for ${args.startAt}`,
+      meta: { staffAssigneeId: host.staffAssigneeId, hostEmail: host.email },
+    });
+  }
 
   const joinPath = buildGuestMeetingJoinPath(ev.id);
   const confirmedLabel = formatSlotRange(args.startAt, args.endAt);
   const tz = args.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone;
-  const roundRobinHost = pickRoundRobinAssignee();
-  const resolvedHostName = args.hostName || roundRobinHost?.displayName || 'Alex Rivera';
-  const resolvedHostRole = args.hostRoleLabel || roundRobinHost?.roleLabel || 'Session Coordinator';
 
   if (isFeatureEnabled('commsDelivery')) {
     try {
@@ -129,8 +160,8 @@ export async function confirmScheduledEventForRequest(args: {
         endAt: ev.endAt,
         timezone: tz,
         agenda: args.agenda?.trim() || undefined,
-        hostName: resolvedHostName,
-        hostRoleLabel: resolvedHostRole,
+        hostName: host.displayName,
+        hostRoleLabel: host.roleLabel ?? 'Session Coordinator',
         scheduleUrl: args.scheduleUrl,
         intent: 'booking_confirm',
       });
