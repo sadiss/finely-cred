@@ -87,19 +87,28 @@ export async function downloadInlineDisputeLetterPdf(args: {
         lines.push('');
         continue;
       }
-      const words = p.split(/\s+/);
+      if (useFont.widthOfTextAtSize(p, useFontSize) <= maxW) {
+        lines.push(p);
+        continue;
+      }
+      const words = p.split(' ');
       let line = '';
       for (const w of words) {
-        const next = line ? `${line} ${w}` : w;
+        if (w === '') {
+          if (line.endsWith(' ')) continue;
+          line += ' ';
+          continue;
+        }
+        const next = line ? `${line}${line.endsWith(' ') ? '' : ' '}${w}` : w;
         const width = useFont.widthOfTextAtSize(next, useFontSize);
         if (width <= maxW) {
           line = next;
         } else {
-          if (line) lines.push(line);
+          if (line.trim()) lines.push(line);
           line = w;
         }
       }
-      if (line) lines.push(line);
+      if (line.trim()) lines.push(line);
     }
     return lines;
   };
@@ -124,7 +133,20 @@ export async function downloadInlineDisputeLetterPdf(args: {
     const lines = wrap(text, maxWidth, useFont, useSize);
     for (const line of lines) {
       ensureSpace(lineHeight);
-      page.drawText(line, { x: margin, y, size: useSize, font: useFont, color: useColor });
+      if (!line.trim()) {
+        y -= lineHeight;
+        continue;
+      }
+      const leadingSpaces = line.length - line.trimStart().length;
+      const spaceWidth = useFont.widthOfTextAtSize(' ', useSize);
+      const ink = line.trimStart() || line;
+      page.drawText(ink, {
+        x: margin + leadingSpaces * spaceWidth,
+        y,
+        size: useSize,
+        font: useFont,
+        color: useColor,
+      });
       y -= lineHeight;
     }
   };
@@ -369,10 +391,7 @@ export async function downloadInlineDisputeLetterPdf(args: {
   y -= 14;
   drawWrapped(`Sincerely,\n\n${senderName}\n`, { bold: false });
 
-  // useObjectStreams: false keeps page dictionaries as plain text in the PDF bytes —
-  // the mailer edge function estimates page count via a text scan for "/Type /Page",
-  // which can't see markers hidden inside compressed object streams.
-  const pdfBytes = await pdfDoc.save({ useObjectStreams: false });
+  const pdfBytes = await pdfDoc.save();
   const copy = Uint8Array.from(pdfBytes);
   const blob = new Blob([copy], { type: 'application/pdf' });
   const filename =

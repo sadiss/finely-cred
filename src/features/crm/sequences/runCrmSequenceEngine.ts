@@ -1,4 +1,5 @@
 import type { CrmSequence, CrmSequenceEnrollment, CrmSequenceStep } from '../../../domain/crmSequences';
+import { crmSequenceStepHasVariants, resolveCrmSequenceEnrollmentVariant, resolveCrmSequenceStepEmailContent } from '../../../domain/crmSequences';
 import type { CrmRecord } from '../../../domain/crmRecords';
 import { crmRecordDisplayName } from '../../../domain/crmRecords';
 import { addProspectNote } from '../../../data/crmProspectsRepo';
@@ -7,12 +8,23 @@ import { getCrmRecord, setCrmRecordStage } from '../../../data/crmRecordsRepo';
 import {
   advanceCrmSequenceEnrollmentStep,
   completeCrmSequenceEnrollment,
+  ensureCrmSequenceEnrollmentVariant,
   getCrmSequence,
   listCrmSequenceEnrollments,
   listCrmSequences,
 } from '../../../data/crmSequencesRepo';
 import { createTask } from '../../../data/tasksRepo';
 import { applyCrmRoutingRules } from '../routing/applyCrmRoutingRules';
+import {
+  checkSuppression,
+  isOverFrequencyCap,
+  isWithinQuietHours,
+  recordSendForFrequencyCap,
+  resolveFrequencyCapKey,
+} from '../../../data/commsSuppressionRepo';
+import { sendEmail } from '../../../lib/commsDeliveryClient';
+import { isFeatureEnabled } from '../../../data/settingsRepo';
+import { logAgentAction } from '../../../lib/agentAuditLog';
 
 export function findNextActionStepIndex(sequence: CrmSequence, lastCompletedStepIndex: number): number {
   for (let i = lastCompletedStepIndex + 1; i < sequence.steps.length; i += 1) {
@@ -72,12 +84,98 @@ function logSequenceActivity(record: CrmRecord, label: string) {
   }
 }
 
-export function executeCrmSequenceStep(args: {
+/**
+ * Actually sends the sequence email (was previously a log-only no-op). Checks the
+ * unified suppression list and cross-agent frequency cap before sending, and
+ * attributes the send to the CRM Sequence Engine in the agent audit trail so it
+ * shows up in the same verifiable trail as growth-agent sends.
+ */
+async function sendCrmSequenceEmail(
+  record: CrmRecord,
+  step: CrmSequenceStep,
+  sequence: CrmSequence,
+  enrollment: CrmSequenceEnrollment,
+): Promise<void> {
+  // G3 — resolve (and, if this is the first time this enrollment hits a
+  // variant-bearing step, persist) the sticky per-enrollment A/B bucket
+  // before picking which content to send. Deterministic from the enrollment
+  // id, so this always agrees with whatever processDueCrmSequenceSteps.ts
+  // (server-side) would compute for the same enrollment.
+  const variantKey = crmSequenceStepHasVariants(step) ? resolveCrmSequenceEnrollmentVariant(enrollment) : undefined;
+  if (variantKey && !enrollment.assignedVariant) {
+    ensureCrmSequenceEnrollmentVariant(enrollment.id);
+  }
+  const content = resolveCrmSequenceStepEmailContent(step, variantKey);
+
+  const subject = content.emailSubject?.trim() || step.label || 'A note from Finely Cred';
+  const who = crmRecordDisplayName(record);
+  const email = record.contact.email?.trim();
+
+  if (!email) {
+    logSequenceActivity(record, `Email skipped — no email on file: ${subject}`);
+    return;
+  }
+
+  const suppression = checkSuppression({ email, channel: 'email' });
+  if (suppression.suppressed) {
+    logSequenceActivity(record, `Email suppressed (${suppression.reason}) — ${subject}`);
+    logAgentAction({
+      agentId: 'crm-sequence-engine',
+      action: 'sequence.email.suppressed',
+      entityType: 'crm_record',
+      entityId: record.id,
+      reasoning: `Suppressed: ${suppression.reason}`,
+      meta: { sequenceId: sequence.id, stepId: step.id, variant: variantKey },
+    });
+    return;
+  }
+
+  const frequencyCapKey = await resolveFrequencyCapKey({ email, crmRecordId: record.id });
+  if (isOverFrequencyCap(frequencyCapKey)) {
+    logSequenceActivity(record, `Email deferred — already contacted within frequency window: ${subject}`);
+    return;
+  }
+
+  if (!isWithinQuietHours()) {
+    logSequenceActivity(record, `Email deferred — outside quiet hours: ${subject}`);
+    return;
+  }
+
+  const body = content.emailBody?.trim() || `Hi ${record.contact.fullName || 'there'},\n\n${step.label}\n\n— Finely Cred`;
+
+  if (!isFeatureEnabled('commsDelivery')) {
+    logSequenceActivity(record, `Email queued (comms delivery off — enable in Feature Flags): ${subject}`);
+    return;
+  }
+
+  try {
+    await sendEmail({
+      toEmail: email,
+      toName: record.contact.fullName,
+      subject,
+      text: body,
+    });
+    recordSendForFrequencyCap(frequencyCapKey);
+    logSequenceActivity(record, `Email sent: ${subject}`);
+    logAgentAction({
+      agentId: 'crm-sequence-engine',
+      action: 'sequence.email.sent',
+      entityType: 'crm_record',
+      entityId: record.id,
+      reasoning: `Sequence "${sequence.name}" step "${step.label}" due for ${who}`,
+      meta: { sequenceId: sequence.id, stepId: step.id, subject, variant: variantKey },
+    });
+  } catch (err) {
+    logSequenceActivity(record, `Email failed to send (${(err as Error)?.message || 'unknown error'}): ${subject}`);
+  }
+}
+
+export async function executeCrmSequenceStep(args: {
   enrollment: CrmSequenceEnrollment;
   sequence: CrmSequence;
   stepIndex: number;
   dryRun?: boolean;
-}): { ok: boolean; message: string } {
+}): Promise<{ ok: boolean; message: string }> {
   const step = args.sequence.steps[args.stepIndex];
   if (!step || step.type === 'wait') return { ok: false, message: 'Invalid step' };
 
@@ -90,7 +188,7 @@ export function executeCrmSequenceStep(args: {
   }
 
   if (step.type === 'email') {
-    logSequenceActivity(record, `Email queued: ${step.emailSubject || step.label}`);
+    await sendCrmSequenceEmail(record, step, args.sequence, args.enrollment);
   } else if (step.type === 'task') {
     const title = step.taskTitle?.trim() || step.label || 'CRM sequence task';
     if (record.partnerId) {
@@ -123,13 +221,13 @@ export function executeCrmSequenceStep(args: {
   return { ok: true, message: `Ran ${step.type} for ${who}: ${step.label}` };
 }
 
-export function runDueCrmSequenceSteps(args?: { dryRun?: boolean; maxPerRun?: number }): Array<{ ok: boolean; message: string }> {
+export async function runDueCrmSequenceSteps(args?: { dryRun?: boolean; maxPerRun?: number }): Promise<Array<{ ok: boolean; message: string }>> {
   const max = Math.max(1, args?.maxPerRun ?? 25);
   const due = dueCrmSequenceSteps();
   const results: Array<{ ok: boolean; message: string }> = [];
   for (const item of due.slice(0, max)) {
     results.push(
-      executeCrmSequenceStep({
+      await executeCrmSequenceStep({
         enrollment: item.enrollment,
         sequence: item.sequence,
         stepIndex: item.stepIndex,

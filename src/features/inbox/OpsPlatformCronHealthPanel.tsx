@@ -1,8 +1,13 @@
 /** Ops Inbox — pg_cron + platform-cron heartbeat health (Part AS). */
 import React, { useEffect, useMemo, useState } from 'react';
-import { Clock, RefreshCw, Server } from 'lucide-react';
+import { AlertTriangle, Clock, RefreshCw, Server } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { fetchLatestPlatformCronHeartbeat } from '../../data/platformCronHeartbeatRepo';
+import {
+  fetchLatestPlatformCronHeartbeat,
+  fetchSendRetryQueueCounts,
+  fetchSendRetryQueueItems,
+  type SendRetryQueueItem,
+} from '../../data/platformCronHeartbeatRepo';
 import { buildPgCronScheduleSql, fetchPlatformCronSchedule } from '../../data/platformCronScheduleRepo';
 import { countPendingServerAutomationQueue } from '../../data/serverAutomationQueueRepo';
 import {
@@ -13,6 +18,15 @@ import {
   finelyOsStatusChip,
 } from '../os/finelyOsLightUi';
 
+const SOURCE_PROCESSOR_LABELS: Record<string, string> = {
+  meeting_reminders: 'Meeting reminder',
+  no_show_recovery: 'No-show recovery',
+  crm_sequences: 'CRM sequence',
+  billing_dunning: 'Billing dunning',
+  win_back: 'Win-back',
+  nurture: 'Nurture',
+};
+
 const STALE_MS = 45 * 60 * 1000;
 
 export function OpsPlatformCronHealthPanel() {
@@ -20,19 +34,26 @@ export function OpsPlatformCronHealthPanel() {
   const [heartbeat, setHeartbeat] = useState<Awaited<ReturnType<typeof fetchLatestPlatformCronHeartbeat>>>(null);
   const [schedule, setSchedule] = useState<Awaited<ReturnType<typeof fetchPlatformCronSchedule>>>(null);
   const [queuePending, setQueuePending] = useState(0);
+  const [retryCounts, setRetryCounts] = useState<{ pending: number; failed: number }>({ pending: 0, failed: 0 });
+  const [retryItems, setRetryItems] = useState<SendRetryQueueItem[]>([]);
+  const [showRetryDetail, setShowRetryDetail] = useState(false);
   const [busy, setBusy] = useState(false);
 
   const refresh = async () => {
     setBusy(true);
     try {
-      const [hb, sched, pending] = await Promise.all([
+      const [hb, sched, pending, retryCountsResult, retryItemsResult] = await Promise.all([
         fetchLatestPlatformCronHeartbeat(),
         fetchPlatformCronSchedule(),
         countPendingServerAutomationQueue(),
+        fetchSendRetryQueueCounts(),
+        fetchSendRetryQueueItems(10),
       ]);
       setHeartbeat(hb);
       setSchedule(sched);
       setQueuePending(pending);
+      setRetryCounts(retryCountsResult);
+      setRetryItems(retryItemsResult);
     } finally {
       setBusy(false);
     }
@@ -74,13 +95,23 @@ export function OpsPlatformCronHealthPanel() {
           {queuePending > 0 ? (
             <span className={finelyOsStatusChip('warn')}>{queuePending} queued rule(s)</span>
           ) : null}
+          {retryCounts.pending > 0 ? (
+            <button type="button" onClick={() => setShowRetryDetail((v) => !v)} className={finelyOsStatusChip('warn')}>
+              {retryCounts.pending} send{retryCounts.pending === 1 ? '' : 's'} pending retry
+            </button>
+          ) : null}
+          {retryCounts.failed > 0 ? (
+            <button type="button" onClick={() => setShowRetryDetail((v) => !v)} className={finelyOsStatusChip('blocked')}>
+              {retryCounts.failed} failed permanently
+            </button>
+          ) : null}
           <button type="button" onClick={() => void refresh()} disabled={busy} className={FINELY_OS_SECONDARY_BTN}>
             <RefreshCw size={12} className={busy ? 'animate-spin' : ''} /> Refresh
           </button>
         </div>
       </div>
 
-      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-2 text-xs">
+      <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-2 text-xs">
         {[
           {
             label: 'Nurture',
@@ -104,6 +135,13 @@ export function OpsPlatformCronHealthPanel() {
             label: 'Queue',
             value: queuePending ? `${queuePending} pending local drain` : 'Clear',
           },
+          {
+            label: 'Retry queue',
+            value:
+              retryCounts.pending || retryCounts.failed
+                ? `${retryCounts.pending} pending · ${retryCounts.failed} failed`
+                : 'Clear',
+          },
         ].map((m) => (
           <div key={m.label} className="fc-light-glass-panel fc-light-chrome-panel rounded-xl px-3 py-2">
             <div className={FINELY_OS_ENTITY_SUBLABEL}>{m.label}</div>
@@ -116,6 +154,30 @@ export function OpsPlatformCronHealthPanel() {
         <p className={`text-xs text-amber-200/90 flex items-center gap-2`}>
           <Clock size={12} /> No tick in 45+ minutes — verify pg_cron schedule in Deploy panel.
         </p>
+      ) : null}
+
+      {showRetryDetail && retryItems.length > 0 ? (
+        <div className="rounded-xl border border-amber-500/25 bg-black/25 p-3 space-y-2">
+          <p className={`text-xs flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL}`}>
+            <AlertTriangle size={12} className="text-amber-300" /> Failed sends pending retry
+          </p>
+          <div className="space-y-1.5 max-h-56 overflow-y-auto">
+            {retryItems.map((item) => (
+              <div key={item.id} className="flex items-center justify-between gap-3 text-xs px-2 py-1.5 rounded-lg bg-black/20">
+                <div className="min-w-0">
+                  <span className="text-white/80 font-medium">
+                    {SOURCE_PROCESSOR_LABELS[item.sourceProcessor] ?? item.sourceProcessor}
+                  </span>
+                  <span className="text-white/50"> · {item.channel === 'sms' ? item.toPhone : item.toEmail}</span>
+                  {item.lastError ? <div className="text-white/40 truncate">{item.lastError}</div> : null}
+                </div>
+                <span className={finelyOsStatusChip(item.status === 'failed' ? 'blocked' : 'warn')}>
+                  {item.status === 'failed' ? 'Gave up' : `Attempt ${item.attempts}/${item.maxAttempts}`}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
       ) : null}
 
       <div className="flex flex-wrap gap-2">

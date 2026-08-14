@@ -66,6 +66,20 @@ function recordImpression(experimentId: string, variant: FunnelExperimentVariant
   saveStore(store);
 }
 
+/**
+ * Resolves the destination route for a CTA-destination experiment (e.g. the
+ * homepage hero). Assigns/reuses the sticky per-session variant (recording an
+ * impression on first call, same as `assignFunnelVariant`) and looks up that
+ * variant's `ctaDestinations` entry, falling back to `fallback` when no
+ * experiment is configured/enabled or the variant has no destination set.
+ */
+export function getAssignedCtaDestination(funnelId: string, fallback: string): string {
+  const exp = getExperimentForFunnel(funnelId);
+  if (!exp) return fallback;
+  const variant = assignFunnelVariant(funnelId);
+  return exp.ctaDestinations?.[variant] ?? fallback;
+}
+
 export function recordFunnelConversion(funnelId: string, variant: FunnelExperimentVariant) {
   const store = loadStore();
   const idx = store.experiments.findIndex((e) => e.funnelId === funnelId);
@@ -78,10 +92,14 @@ export function recordFunnelConversion(funnelId: string, variant: FunnelExperime
   saveStore(store);
 }
 
-export function ensureDefaultExperiments() {
-  const store = loadStore();
-  if (store.experiments.length) return;
-  const defaults: FunnelExperiment[] = [
+/**
+ * Default experiment definitions, keyed by `funnelId`. Additive: any
+ * funnelId not already present in the store gets seeded, so shipping a new
+ * default here (e.g. `homepage_hero`) reaches existing installs too, not
+ * just brand-new ones — unlike the old "only seed if store is empty" logic.
+ */
+function buildDefaultExperiments(): FunnelExperiment[] {
+  return [
     {
       id: newId('exp'),
       funnelId: 'credit_dispute',
@@ -96,7 +114,65 @@ export function ensureDefaultExperiments() {
       stats: {},
       updatedAt: new Date().toISOString(),
     },
+    {
+      id: newId('exp'),
+      funnelId: 'homepage_hero',
+      name: 'Homepage hero CTA destination test',
+      enabled: true,
+      headlines: {},
+      ctaLabels: {},
+      ctaDestinations: {
+        control: '/pricing/business-credit',
+        variant_a: '/pricing/personal-credit-restore',
+        variant_b: '/start-here',
+      },
+      stats: {},
+      updatedAt: new Date().toISOString(),
+    },
+    {
+      id: newId('exp'),
+      funnelId: 'debt_freedom',
+      name: 'Free debt guide headline test',
+      enabled: true,
+      headlines: {
+        control: 'Annihilate Your Debt. Take Back Control.',
+        variant_a: 'Stop the Collection Calls — Starting Today',
+        variant_b: 'Your Fight-Back Validation Playbook Is Ready',
+      },
+      ctaLabels: {
+        control: 'Get the free guide',
+        variant_a: 'Send me the playbook',
+        variant_b: 'Unlock my validation kit',
+      },
+      stats: {},
+      updatedAt: new Date().toISOString(),
+    },
+    {
+      id: newId('exp'),
+      funnelId: 'business_credit',
+      name: 'Free business guide headline test',
+      enabled: true,
+      headlines: {
+        control: 'Business Credit Power Guide',
+        variant_a: 'Build Business Credit Funders Respect',
+        variant_b: 'The Fundability Sequencing Blueprint — Free',
+      },
+      ctaLabels: {
+        control: 'Download Free Guide',
+        variant_a: 'Send me the guide',
+        variant_b: 'Get my fundability blueprint',
+      },
+      stats: {},
+      updatedAt: new Date().toISOString(),
+    },
   ];
-  store.experiments = defaults;
+}
+
+export function ensureDefaultExperiments() {
+  const store = loadStore();
+  const existingFunnelIds = new Set(store.experiments.map((e) => e.funnelId));
+  const missing = buildDefaultExperiments().filter((exp) => !existingFunnelIds.has(exp.funnelId));
+  if (!missing.length) return;
+  store.experiments = [...store.experiments, ...missing];
   saveStore(store);
 }

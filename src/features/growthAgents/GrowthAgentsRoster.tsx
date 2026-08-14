@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Moon, Zap } from 'lucide-react';
+import { Moon, Zap, Sparkles, CheckCircle2, XCircle } from 'lucide-react';
 import {
   FINELY_OS_COMPACT_PAGE,
   FINELY_OS_ENTITY_BODY,
@@ -11,8 +11,9 @@ import {
   finelyOsCatalogCardCompact,
   finelyOsDeckTile,
   finelyOsMicroStat,
+  finelyOsStatusChip,
 } from '../os/finelyOsLightUi';
-import { listGrowthAgentsByWave, type GrowthAgentDef } from './growthAgentRegistry';
+import { listGrowthAgentsByWave, AGENT_ARCHITECT, type GrowthAgentDef } from './growthAgentRegistry';
 import { getAgentMaturity } from './growthAgentMaturity';
 import { AgentStatusChip } from './GrowthAgentWorkspaceShell';
 import { getCalebMaturity } from './growthAgentMaturity';
@@ -24,6 +25,11 @@ import {
   runGrowthAutopilotTick,
   setGrowthAutopilotEnabled,
 } from '../../lib/finelyAutomationOrchestrator';
+import { getAgentConfidence } from './growthAgentLearningLoop';
+import { buildAgentArchitectBrief } from './growthAgentArchitectBrief';
+import { AgentTeamTrailFeed } from './AgentTrailTimeline';
+import { listPendingGrowthApprovals, resolveGrowthApproval } from '../../data/growthAgentApprovalQueueRepo';
+import { resolveAgentDisplayName } from '../../lib/agentAuditLog';
 
 function agentReadyState(agent: GrowthAgentDef): 'ready' | 'setup' | 'soon' {
   if (agent.wave > 2) return 'soon';
@@ -72,6 +78,16 @@ export function GrowthAgentsRoster() {
   const exceptions = useMemo(() => {
     void tick;
     return countAutomationExceptions();
+  }, [tick]);
+
+  const architectBrief = useMemo(() => {
+    void tick;
+    return buildAgentArchitectBrief();
+  }, [tick]);
+
+  const pendingApprovals = useMemo(() => {
+    void tick;
+    return listPendingGrowthApprovals();
   }, [tick]);
 
   return (
@@ -163,27 +179,98 @@ export function GrowthAgentsRoster() {
         </section>
       )}
 
+      <section className={`${finelyOsDeckTile('violet')} !p-4 space-y-2`}>
+        <div className="flex flex-wrap items-start justify-between gap-2">
+          <div className="min-w-0">
+            <div className={`${FINELY_OS_ENTITY_SUBLABEL} inline-flex items-center gap-1.5`}>
+              <Sparkles size={12} />
+              {AGENT_ARCHITECT.name} — chief of staff brief
+            </div>
+            <p className="text-sm font-semibold text-white">{architectBrief.headline}</p>
+            <ul className={`mt-1 space-y-0.5 text-[11px] ${FINELY_OS_ENTITY_BODY}`}>
+              {architectBrief.briefLines.slice(0, 3).map((line) => (
+                <li key={line}>· {line}</li>
+              ))}
+            </ul>
+          </div>
+        </div>
+        {pendingApprovals.length > 0 ? (
+          <div className="space-y-1.5 border-t border-white/10 pt-2">
+            <div className={FINELY_OS_ENTITY_SUBLABEL}>Needs your OK</div>
+            {pendingApprovals.slice(0, 5).map((item) => (
+              <div key={item.id} className="flex flex-wrap items-center justify-between gap-2 text-xs">
+                <span className={FINELY_OS_ENTITY_BODY}>
+                  <strong className="text-white">{resolveAgentDisplayName(item.agentId)}</strong> wants to {item.action.replace(/_/g, ' ')} — {item.reasoning}
+                </span>
+                <span className="flex gap-1 shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      resolveGrowthApproval(item.id, true);
+                      setTick((t) => t + 1);
+                    }}
+                    className="p-1 rounded hover:bg-emerald-500/15 text-emerald-300"
+                    title="Approve"
+                  >
+                    <CheckCircle2 size={14} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      resolveGrowthApproval(item.id, false);
+                      setTick((t) => t + 1);
+                    }}
+                    className="p-1 rounded hover:bg-rose-500/15 text-rose-300"
+                    title="Reject"
+                  >
+                    <XCircle size={14} />
+                  </button>
+                </span>
+              </div>
+            ))}
+          </div>
+        ) : null}
+      </section>
+
       <FinelyCapabilityScorecard variant="full" />
 
       <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-3">
-        {cards.map(({ agent, maturity, ready }) => (
-          <button
-            key={agent.id}
-            type="button"
-            onClick={() => navigate(`/admin/growth-agents/${agent.id}`)}
-            className={`${finelyOsCatalogCardCompact(agent.accent)} text-left hover:brightness-110 transition`}
-          >
-            <div className="flex items-center justify-between gap-2">
-              <AgentStatusChip ready={ready} />
-              <span className="text-xs text-white/50">Wave {agent.wave}</span>
-            </div>
-            <div className="mt-2 text-lg font-black text-white">{agent.name}</div>
-            <div className="text-xs font-semibold text-white/70">{agent.roleTitle}</div>
-            <p className={`mt-2 text-sm line-clamp-2 ${FINELY_OS_ENTITY_BODY}`}>{agent.mission}</p>
-            <p className="mt-2 text-xs text-white/50">{maturity.percent}% ready · {maturity.label}</p>
-          </button>
-        ))}
+        {cards.map(({ agent, maturity, ready }) => {
+          const confidence = getAgentConfidence(agent.id);
+          return (
+            <button
+              key={agent.id}
+              type="button"
+              onClick={() => navigate(`/admin/growth-agents/${agent.id}`)}
+              className={`${finelyOsCatalogCardCompact(agent.accent)} text-left hover:brightness-110 transition`}
+            >
+              <div className="flex items-center justify-between gap-2">
+                <AgentStatusChip ready={ready} />
+                <span className="text-xs text-white/50">Wave {agent.wave}</span>
+              </div>
+              <div className="mt-2 text-lg font-black text-white">{agent.name}</div>
+              <div className="text-xs font-semibold text-white/70">{agent.roleTitle}</div>
+              {agent.position ? (
+                <div className="text-[10px] text-white/40 mt-0.5">
+                  {agent.position === 'team_lead' ? 'Team lead' : agent.position === 'chief_of_staff' ? 'Chief of staff' : 'Reports to'}
+                  {agent.reportsTo ? ` · reports to ${agent.reportsTo}` : ''}
+                </div>
+              ) : null}
+              <p className={`mt-2 text-sm line-clamp-2 ${FINELY_OS_ENTITY_BODY}`}>{agent.mission}</p>
+              <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                <span className="text-xs text-white/50">{maturity.percent}% ready · {maturity.label}</span>
+                {confidence.sampleSize > 0 ? (
+                  <span className={finelyOsStatusChip(confidence.label === 'highly confident' || confidence.label === 'confident' ? 'ok' : 'warn')}>
+                    {confidence.label} · {Math.round(confidence.decisiveRate * 100)}%{confidence.trendDelta > 0.02 ? ' ↑' : confidence.trendDelta < -0.02 ? ' ↓' : ''}
+                  </span>
+                ) : null}
+              </div>
+            </button>
+          );
+        })}
       </div>
+
+      <AgentTeamTrailFeed limit={10} />
 
       <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => navigate('/admin/marketing-desk')}>
         Caleb&apos;s workroom (Marketing Desk)

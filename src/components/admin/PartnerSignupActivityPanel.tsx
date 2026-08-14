@@ -6,12 +6,18 @@ import {
   derivePartnerSignupStatus,
   formatAuthWhen,
   readPartnerAuthActivity,
+  resolvePartnerAccessState,
 } from '../../lib/partnerAuthActivity';
-import { fcAdminCard, fcAdminOnSolidBody, fcAdminOnSolidSublabel, fcAdminOnSolidValue } from '../../features/os/finelyOsAdminSurface';
-
-const FINELY_OS_ENTITY_SUBLABEL = fcAdminOnSolidSublabel('emerald');
-const FINELY_OS_ENTITY_BODY = fcAdminOnSolidBody('emerald');
-const FINELY_OS_ENTITY_VALUE = fcAdminOnSolidValue('emerald');
+import {
+  fcAdminAccentStatusChip,
+  fcAdminCard,
+  fcAdminOnSolidBody,
+  fcAdminOnSolidInnerTile,
+  fcAdminOnSolidSublabel,
+  fcAdminOnSolidValue,
+  fcAdminSignupPanelTone,
+  type FcAdminTone,
+} from '../../features/os/finelyOsAdminSurface';
 
 type Props = {
   partner: Partner;
@@ -25,11 +31,29 @@ function stageIcon(stage: ReturnType<typeof derivePartnerSignupStatus>['stage'])
   return UserPlus;
 }
 
+function statusChipTone(
+  stage: ReturnType<typeof derivePartnerSignupStatus>['stage'],
+  panelTone: FcAdminTone,
+): 'emerald' | 'gold' | 'sky' | 'violet' | 'rose' {
+  if (panelTone === 'gold') return 'gold';
+  if (panelTone === 'rose') return 'rose';
+  if (panelTone === 'sky') return 'sky';
+  return 'emerald';
+}
+
 export function PartnerSignupActivityPanel({ partner }: Props) {
+  const access = useMemo(() => resolvePartnerAccessState(partner), [partner]);
   const status = useMemo(() => derivePartnerSignupStatus(partner), [partner]);
   const activity = useMemo(() => readPartnerAuthActivity(partner), [partner]);
   const timeline = useMemo(() => buildAuthActivityTimeline(partner), [partner]);
   const StageIcon = stageIcon(status.stage);
+  const panelTone = fcAdminSignupPanelTone(status.stage);
+
+  const SUBLABEL = fcAdminOnSolidSublabel(panelTone);
+  const BODY = fcAdminOnSolidBody(panelTone);
+  const VALUE = fcAdminOnSolidValue(panelTone);
+  const INNER = fcAdminOnSolidInnerTile('p-4', panelTone);
+  const chipTone = statusChipTone(status.stage, panelTone);
 
   const checkpoints = [
     { label: 'Invite sent', done: Boolean(activity.inviteSentAt), at: activity.inviteSentAt },
@@ -41,70 +65,60 @@ export function PartnerSignupActivityPanel({ partner }: Props) {
   ];
 
   return (
-    <div className={`${fcAdminCard('p-5', 'emerald', 'solid')} space-y-5`}>
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div className="space-y-2">
-          <p className={FINELY_OS_ENTITY_SUBLABEL}>Signup & access activity</p>
-          <div className="flex flex-wrap items-center gap-3">
-            <div
-              className={
-                status.stage === 'active' || status.stage === 'signup_complete'
-                  ? 'inline-flex items-center gap-2.5 rounded-2xl border border-white/40 bg-white px-5 py-2.5 text-[var(--fc-admin-tone-emerald-ink)] shadow-sm'
-                  : 'inline-flex items-center gap-2 rounded-2xl border border-white/30 bg-white/15 px-4 py-2 text-white'
-              }
-            >
-              <StageIcon size={status.stage === 'active' || status.stage === 'signup_complete' ? 18 : 14} />
-              <span className="text-base font-black uppercase tracking-wide">{status.label}</span>
+    <div className={`${fcAdminCard('p-4 sm:p-5', panelTone, 'solid')} space-y-4 sm:space-y-5`}>
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+        <div className="min-w-0 space-y-2">
+          <p className={SUBLABEL}>Signup & access activity</p>
+          <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:gap-3">
+            <div className={fcAdminAccentStatusChip(chipTone)}>
+              <StageIcon size={16} aria-hidden="true" />
+              <span>{status.label}</span>
             </div>
-            <p className={`text-sm ${FINELY_OS_ENTITY_BODY}`}>{status.detail}</p>
+            <p className={`text-sm ${BODY}`}>{status.detail}</p>
           </div>
         </div>
-        <div className="rounded-2xl border border-white/25 bg-white/10 px-4 py-3 min-w-[220px]">
-          <div className={`flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL}`}>
-            <ShieldCheck size={14} />
+        <div className={`${INNER} w-full min-w-0 sm:min-w-[220px] lg:max-w-xs shrink-0`}>
+          <div className={`flex items-center gap-2 ${SUBLABEL}`}>
+            <ShieldCheck size={14} aria-hidden="true" />
             Quick read
           </div>
-          <p className={`mt-2 text-sm ${FINELY_OS_ENTITY_BODY}`}>
-            Last sign-in: <span className={FINELY_OS_ENTITY_VALUE}>{formatAuthWhen(activity.lastLoginAt)}</span>
+          <p className={`mt-2 text-sm ${BODY}`}>
+            Last sign-in: <span className={VALUE}>{formatAuthWhen(activity.lastLoginAt)}</span>
           </p>
-          <p className={`mt-1 text-sm ${FINELY_OS_ENTITY_BODY}`}>
-            Password set: <span className={FINELY_OS_ENTITY_VALUE}>{formatAuthWhen(activity.passwordSetAt)}</span>
+          <p className={`mt-1 text-sm ${BODY}`}>
+            Password set: <span className={VALUE}>{formatAuthWhen(activity.passwordSetAt)}</span>
+          </p>
+          <p className={`mt-1 text-sm ${BODY}`}>
+            Live access: <span className={VALUE}>{access.label}</span>
           </p>
         </div>
       </div>
 
-      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3">
         {checkpoints.map((step) => (
           <div
             key={step.label}
-            className={
-              'rounded-2xl border px-4 py-3 ' +
-              (step.done
-                ? 'border-white/40 bg-white/20'
-                : 'border-white/15 bg-black/15')
-            }
+            className={`${INNER} !p-3 ${step.done ? 'opacity-100' : 'opacity-80'}`}
           >
-            <div className={`text-[11px] uppercase tracking-widest ${FINELY_OS_ENTITY_SUBLABEL}`}>{step.label}</div>
-            <div className={`mt-1 text-sm font-semibold ${step.done ? 'text-white' : FINELY_OS_ENTITY_BODY}`}>
-              {step.done ? 'Complete' : 'Pending'}
-            </div>
-            {step.at ? <div className={`mt-1 text-xs ${FINELY_OS_ENTITY_BODY}`}>{formatAuthWhen(step.at)}</div> : null}
+            <div className={SUBLABEL}>{step.label}</div>
+            <div className={`mt-1 text-sm font-semibold ${VALUE}`}>{step.done ? 'Complete' : 'Pending'}</div>
+            {step.at ? <div className={`mt-1 text-xs ${BODY}`}>{formatAuthWhen(step.at)}</div> : null}
           </div>
         ))}
       </div>
 
       {timeline.length ? (
-        <div className="rounded-2xl border border-white/20 bg-black/15 px-4 py-3 space-y-2">
-          <div className={FINELY_OS_ENTITY_SUBLABEL}>Recent signup activity</div>
+        <div className={`${INNER} space-y-2`}>
+          <div className={SUBLABEL}>Recent signup activity</div>
           {timeline.slice(0, 8).map((item) => (
-            <div key={item.id} className="flex items-start justify-between gap-3 text-sm">
-              <span className={FINELY_OS_ENTITY_VALUE}>{item.label}</span>
-              <span className={`shrink-0 ${FINELY_OS_ENTITY_BODY}`}>{formatAuthWhen(item.at)}</span>
+            <div key={item.id} className="flex flex-col gap-0.5 sm:flex-row sm:items-start sm:justify-between sm:gap-3 text-sm">
+              <span className={VALUE}>{item.label}</span>
+              <span className={`shrink-0 ${BODY}`}>{formatAuthWhen(item.at)}</span>
             </div>
           ))}
         </div>
       ) : (
-        <div className={`rounded-2xl border border-white/20 bg-black/15 px-4 py-3 text-sm ${FINELY_OS_ENTITY_BODY}`}>
+        <div className={`${INNER} text-sm ${BODY}`}>
           No signup activity recorded yet. Send an invite to start tracking their setup progress here.
         </div>
       )}

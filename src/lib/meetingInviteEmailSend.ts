@@ -16,6 +16,9 @@ import { addAuditEvent } from '../data/auditRepo';
 import { loadJson, saveJson } from '../data/localJsonStore';
 import { newId } from '../utils/ids';
 import { getPublicSiteOrigin } from './funnelPublicLinks';
+import { guardAutomatedMeetingEmail, type MeetingInviteIntent } from './meetingEmailGuards';
+import { getNotificationPrefs } from '../data/notificationPrefsRepo';
+import { emailDedupeKey, isEmailRecentlySent, markEmailRecentlySent } from './emailSendDedupe';
 
 const KEY = 'finely.meeting_invites.v1';
 
@@ -66,17 +69,53 @@ export async function sendMeetingInviteEmail(args: {
   hostName?: string;
   hostRoleLabel?: string;
   scheduleUrl?: string;
+  /** Why this email is being sent — drives automated-send guards. */
+  intent?: MeetingInviteIntent;
 }): Promise<{ ok: boolean; error?: string; inviteId?: string; joinUrl?: string }> {
   if (!isFeatureEnabled('commsDelivery')) {
     return { ok: false, error: 'Turn on Comms Delivery (Feature Flags) to send meeting emails.' };
   }
 
+  const intent: MeetingInviteIntent = args.intent ?? (args.startAt ? 'booking_confirm' : 'outreach');
+  const guard = guardAutomatedMeetingEmail({
+    intent,
+    toEmail: args.toEmail,
+    partnerId: args.partnerId,
+    startAt: args.startAt,
+    endAt: args.endAt,
+    joinUrl: args.joinUrl,
+  });
+  if (!guard.ok) {
+    return { ok: false, error: guard.reason };
+  }
+
   const partner =
     args.partner ?? getPartnerSync(args.partnerId) ?? (await getPartner(args.partnerId));
-  const toEmail = (args.toEmail || partner?.profile.email || '').trim().toLowerCase();
+  const toEmail = (
+    (args.toEmail?.includes('@') ? args.toEmail : undefined) ||
+    partner?.profile.email ||
+    ''
+  ).trim().toLowerCase();
   if (!toEmail || !toEmail.includes('@')) {
     return { ok: false, error: 'Partner (or recipient) email is missing.' };
   }
+
+  const isPartnerScoped =
+    args.partnerId && !args.partnerId.startsWith('public:') && !args.partnerId.startsWith('admin');
+  if (isPartnerScoped && (intent === 'booking_confirm' || intent === 'reminder')) {
+    const prefs = getNotificationPrefs({ partnerId: args.partnerId });
+    if (prefs.emailMeetingReminders === false) {
+      return { ok: false, error: 'Partner has meeting reminder emails disabled.' };
+    }
+  }
+
+  if (intent === 'booking_confirm' || intent === 'reminder') {
+    const dedupeKey = emailDedupeKey('meeting-invite', intent, toEmail, args.startAt);
+    if (isEmailRecentlySent(dedupeKey, 48)) {
+      return { ok: false, error: 'Meeting email already sent for this slot.' };
+    }
+  }
+
   if (!isSupabaseConfigured) {
     return { ok: false, error: 'Supabase is not configured — cannot send email.' };
   }
@@ -118,6 +157,10 @@ export async function sendMeetingInviteEmail(args: {
       text: ics ? `${content.text}\n\n--- Calendar (ICS) ---\n${ics}` : content.text,
       html: content.html,
     });
+
+    if (intent === 'booking_confirm' || intent === 'reminder') {
+      markEmailRecentlySent(emailDedupeKey('meeting-invite', intent, toEmail, args.startAt));
+    }
 
     saveInvite({
       id: inviteId,

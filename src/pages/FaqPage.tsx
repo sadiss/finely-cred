@@ -288,6 +288,232 @@ export default function FaqPage() {
         ),
       },
       {
+        id: 'debt-summons-answer',
+        q: 'I was served with a debt collection lawsuit (summons) — what do I do first?',
+        searchText:
+          'summons lawsuit debt collector sued answer deadline default judgment affirmative defenses statute of limitations chain of assignment debt buyer',
+        a: (
+          <div className="space-y-2">
+            <p>
+              The single most important step is filing a timely written <strong>answer</strong> with the court — missing the
+              deadline on the summons commonly results in an automatic default judgment, which is far harder to undo than
+              answering on time. Calendar the exact deadline from the date you were served (not the date you opened the
+              mail).
+            </p>
+            <p>
+              A properly drafted answer generally responds to each numbered allegation and raises applicable affirmative
+              defenses — most commonly the <strong>statute of limitations</strong>, <strong>lack of standing</strong> from a
+              broken chain of assignment (common with third-party debt buyers), and failure to properly itemize the amount
+              claimed.
+            </p>
+            <p className={muted}>
+              This is general legal education, not legal advice — debt-collection and civil-procedure rules vary by state.
+              If a deadline is close, contact the court clerk or a licensed consumer-law attorney right away.
+            </p>
+          </div>
+        ),
+      },
+      {
+        id: 'debt-validation-rights',
+        q: 'Can I dispute a debt before I\u2019m sued? What are my validation rights?',
+        searchText:
+          'debt validation dispute before lawsuit fdcpa cease communication 30 days written demand collector',
+        a: (
+          <div className="space-y-2">
+            <p>
+              Yes. Under the Fair Debt Collection Practices Act (FDCPA, 15 U.S.C. § 1692g), you generally have the right to
+              send a written request within 30 days of first contact demanding the collector verify the debt before
+              continuing collection. You can also send a written cease-communication demand under § 1692c(c).
+            </p>
+            <ul className="list-disc pl-4 space-y-1">
+              <li>Send requests in writing (certified mail with return receipt is common practice for a paper trail).</li>
+              <li>
+                Before responding, try to pin down the last-payment or default date — many states have a 3–6 year statute of
+                limitations on old debts, though this varies and should be researched for your state.
+              </li>
+              <li>
+                Avoid making a payment or a written/verbal promise on an old debt before confirming its status — that can
+                restart (re-age) the statute-of-limitations clock in many states.
+              </li>
+            </ul>
+            <p className={muted}>
+              A validation request pauses collection but does not erase the debt or prevent a future lawsuit — never ignore
+              a later summons because validation was requested. General legal education only, not legal advice.
+            </p>
+          </div>
+        ),
+      },
+      {
+        id: 'debt-garnishment-levy',
+        q: 'What if my wages are already being garnished or my bank account was levied?',
+        searchText:
+          'wage garnishment bank levy exemption post judgment motion to vacate default judgment collections emergency',
+        a: (
+          <div className="space-y-2">
+            <p>
+              Both wage garnishment and bank levies are post-judgment collection actions — meaning a court judgment already
+              exists. Depending on your state, certain funds and a portion of wages may be exempt from garnishment (for
+              example, some federal benefit deposits or a statutory minimum-income threshold), and it's often possible to
+              file a claim of exemption or a motion to quash a levy.
+            </p>
+            <p>
+              If a default judgment was entered without you being properly served or responding, you may be able to file a
+              <strong> motion to vacate</strong> — but these motions typically have strict, short deadlines once you learn of
+              the judgment, so time matters.
+            </p>
+            <p className={muted}>
+              Exemption categories and filing deadlines vary significantly by state and are time-sensitive — this is general
+              education, not legal advice. Speak with a licensed attorney in your state as soon as possible.
+            </p>
+          </div>
+        ),
+      },
+      {
+        id: 'noncitizen-no-ssn-funding',
+        q: 'I don\u2019t have an SSN — can I still build business credit or get funding in the U.S.?',
+        searchText:
+          'no ssn itin holder business credit funding ein non resident llc foreign national',
+        a: (
+          <div className="space-y-2">
+            <p>
+              Often yes, if the funding is underwritten against a U.S.-registered business entity (LLC or corporation) with
+              its own EIN rather than your personal SSN. ITIN holders commonly have realistic paths through equipment
+              financing (collateral-backed, generally the most accessible), merchant cash advances (receivables-based,
+              faster but higher cost), and business lines of credit once there is 6–12 months of consistent U.S. business
+              deposit history.
+            </p>
+            <p>
+              Non-resident-owned LLCs (owners who never enter the U.S.) face more friction — approval usually hinges almost
+              entirely on demonstrated U.S. bank deposit history, so the realistic first step is often establishing a
+              fintech-friendly business bank account and building a clean deposit record.
+            </p>
+            <p className={muted}>
+              SBA 7(a) loans are the exception: SBA generally requires 51%+ ownership by a U.S. citizen or lawful permanent
+              resident, which an ITIN-only or non-resident owner typically cannot satisfy alone. General educational
+              guidance only — not legal, immigration, or lending advice; confirm current requirements with a qualified
+              immigration attorney and the specific lender.
+            </p>
+          </div>
+        ),
+      },
+      {
+        id: 'noncitizen-daca-greencard-sba',
+        q: 'Can DACA recipients or green card holders qualify for SBA loans?',
+        searchText:
+          'daca green card lawful permanent resident sba 7a eligibility ownership citizenship',
+        a: (
+          <div className="space-y-2">
+            <p>
+              <strong>Green card holders (lawful permanent residents)</strong> generally satisfy SBA's citizenship/LPR
+              ownership requirement the same way a U.S. citizen owner would, and are typically evaluated on standard SBA
+              criteria (creditworthiness, cash flow, collateral) with immigration status as a documentation step, not a risk
+              factor.
+            </p>
+            <p>
+              <strong>DACA recipients</strong> present a genuinely unsettled area — DACA status is neither U.S. citizenship
+              nor lawful permanent residency, so eligibility for SBA's 51%+ ownership test has been inconsistently applied
+              and has shifted with agency guidance and litigation over time. Outside of SBA-guaranteed products, most
+              conventional and fintech lenders process a DACA recipient's SSN-based application like any other applicant's.
+            </p>
+            <p className={muted}>
+              Because SBA policy in this area changes, current eligibility should always be confirmed directly with an
+              SBA-approved lender and, where useful, an immigration attorney. General educational guidance only — not legal
+              or immigration advice.
+            </p>
+          </div>
+        ),
+      },
+      {
+        id: 'noncitizen-foreign-credit-history',
+        q: 'I have credit history from Canada, the UK, or Germany — does it transfer to a U.S. credit score?',
+        searchText:
+          'foreign credit history transfer canada uk germany schufa equifax canada experian uk score does not transfer',
+        a: (
+          <div className="space-y-2">
+            <p>
+              No — credit history does not transfer across borders. Canada, the UK, Germany, and the rest of the EU each run
+              separate bureau systems (e.g., Equifax Canada/TransUnion Canada on a 300–900 scale; Experian/Equifax/TransUnion
+              UK on three different proprietary scales; Germany's SCHUFA as a percentage-based probability score) with their
+              own reporting rules — none of it feeds into a U.S. FICO/VantageScore file.
+            </p>
+            <p>
+              This means a newcomer to the U.S. typically starts with a thin or non-existent U.S. credit file regardless of
+              how strong their credit history was abroad, and needs to build U.S.-specific history from scratch (e.g., a
+              secured card, an EIN-based business credit line, or becoming an authorized user).
+            </p>
+            <p className={muted}>
+              General educational guidance only — not legal or financial advice; consumer-reporting and dispute-rights rules
+              differ meaningfully by country (e.g., GDPR-based rights in the EU vs. FCRA in the U.S.).
+            </p>
+          </div>
+        ),
+      },
+      {
+        id: 'wealth-builder-what-is-it',
+        q: 'What is the Wealth Builder program and how is it different from credit repair?',
+        searchText:
+          'wealth builder program what is it different from credit repair business credit funding readiness capital',
+        a: (
+          <div className="space-y-2">
+            <p>
+              Wealth Builder is the next step after credit stability: a guided program that transitions you from personal
+              credit repair into business structure, business credit building, and funding-readiness milestones — with the
+              goal of qualifying for real capital (business lines of credit, equipment financing, SBA products, etc.)
+              instead of stopping once your personal score improves.
+            </p>
+            <p>
+              Where credit repair focuses on cleaning up your personal file, Wealth Builder focuses on building something
+              new: an EIN-based business entity, vendor/trade payment history, and a funding-readiness scorecard that lenders
+              actually look at.
+            </p>
+            <p className={muted}>
+              Shortcut: see current tiers at{' '}
+              <code className={codeChip}>/pricing?tab=wealth_builder</code>. Results vary; funding is subject to underwriting.
+            </p>
+          </div>
+        ),
+      },
+      {
+        id: 'wealth-builder-diy-vs-dfy',
+        q: 'What\u2019s the difference between Wealth Builder DIY and the Advanced (done-for-you) tiers?',
+        searchText:
+          'wealth builder diy vs dfy advanced starter growth pro prime elite superior price difference',
+        a: (
+          <div className="space-y-2">
+            <p>
+              <strong>Wealth Builder DIY</strong> is a self-guided program: business credit foundation roadmap, a funding
+              readiness scorecard/checklist, transition playbooks, and a resource library you execute yourself.
+            </p>
+            <p>
+              The <strong>Advanced Wealth Builder</strong> tiers (Starter → Growth → Pro → Prime → Elite → Superior) are
+              done-for-you: guided/managed execution windows, help registering your entity, hands-on business credit
+              sequencing, a weekly strategy call cadence, and Wealth Paths lane unlocks — scaling up in support depth and
+              target funding pathway from roughly $100K–$150K at Starter to $400K+ at the flagship Superior tier.
+            </p>
+            <p className={muted}>
+              See exact current pricing and inclusions per tier at <code className={codeChip}>/pricing?tab=wealth_builder</code>.
+            </p>
+          </div>
+        ),
+      },
+      {
+        id: 'wealth-builder-funding-guarantee',
+        q: 'Do you guarantee I\u2019ll get the funding amount listed for each Wealth Builder tier?',
+        searchText:
+          'wealth builder funding guarantee target amount underwriting lenders decision no guarantee',
+        a: (
+          <div className="space-y-2">
+            <p>
+              No. The dollar ranges shown for each Advanced Wealth Builder tier (e.g., "$100K–$150K funding pathway") describe
+              a <strong>target milestone we build toward</strong>, not a guaranteed outcome. Every funding decision is made
+              independently by the lender based on your business's financials, time in business, credit profile, and their
+              own underwriting criteria at the time you apply.
+            </p>
+            <p className={muted}>Results vary · not legal or financial advice · funding subject to underwriting.</p>
+          </div>
+        ),
+      },
+      {
         id: 'privacy-security',
         q: 'How do you handle privacy and sensitive documents?',
         searchText: 'privacy security pii documents storage encryption access',

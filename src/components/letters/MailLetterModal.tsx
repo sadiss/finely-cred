@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { CheckCircle2, ChevronRight, ExternalLink, X, Send, AlertTriangle, MapPin, Package } from 'lucide-react';
+import { CheckCircle2, ChevronRight, ExternalLink, Send, AlertTriangle, MapPin, Package } from 'lucide-react';
 import type { LetterRecord } from '../../domain/letters';
 import type { EvidenceItem } from '../../domain/evidence';
 import { businessBureauDisputeAddress, consumerBureauDisputeAddress } from '../../letters/bureauAddresses';
@@ -22,7 +22,8 @@ import { MailProviderStatusBanner } from '../mailing/MailProviderStatusBanner';
 import { LetterAgentChainStrip } from './LetterAgentChainStrip';
 import { LetterEmailPartnerToggle } from './LetterEmailPartnerToggle';
 import { appendAiActionAudit } from '../../data/aiActionAuditLog';
-import { FINELY_OS_PRIMARY_BTN, FINELY_OS_SECONDARY_BTN, FINELY_OS_ENTITY_BODY } from '../../features/os/finelyOsLightUi';
+import { FINELY_OS_PRIMARY_BTN, FINELY_OS_SECONDARY_BTN, FINELY_OS_ENTITY_BODY, FINELY_OS_MODAL_HEADER } from '../../features/os/finelyOsLightUi';
+import { FinelyOsModalCloseButton } from '../../features/os/FinelyOsModalCloseButton';
 import {
   enrichRecipientAddress,
   enrichRecipientAddressSync,
@@ -213,6 +214,8 @@ export function MailLetterModal({
     expectedDeliveryDate?: string;
     cost?: number;
   } | null>(null);
+  /** Set when the physical mail succeeded but the internal credits ledger charge failed — never conflate with a failed send. */
+  const [ledgerWarning, setLedgerWarning] = useState<string | null>(null);
 
   const [to, setTo] = useState<MailAddress>({
     name: '',
@@ -266,6 +269,7 @@ export function MailLetterModal({
     setStep('confirm');
     setErr(null);
     setMailedMeta(null);
+    setLedgerWarning(null);
     setVerifyRes(null);
     setVerifiedHash(null);
     setAddressHint(null);
@@ -591,7 +595,17 @@ export function MailLetterModal({
         typeof res.cost === 'number' && Number.isFinite(res.cost)
           ? Math.round(res.cost * (res.cost < 20 ? 100 : 1))
           : undefined;
-      chargeMailSend({ letterId: effectiveLetter.id, partnerId, costCents });
+      // The physical letter is already mailed at this point (provider call above succeeded) — a
+      // ledger charge failure (e.g. balance drifted below the live cost) must never be reported as
+      // a failed mailing. Surface it as a secondary reconciliation warning instead.
+      try {
+        chargeMailSend({ letterId: effectiveLetter.id, partnerId, costCents });
+      } catch (chargeError: any) {
+        setLedgerWarning(
+          chargeError?.message ||
+            'Mail credits could not be charged for this send. Contact an admin to reconcile the mail ledger.',
+        );
+      }
       setMailedMeta({
         providerId: res.providerId,
         expectedDeliveryDate: res.expectedDeliveryDate,
@@ -655,7 +669,7 @@ export function MailLetterModal({
   ];
 
   return (
-    <div className="fixed inset-0 z-[9600] flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-[9600] flex items-center justify-center p-3 sm:p-4 md:p-6">
       <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => (busy || step === 'track' ? null : onClose())} />
       <div
         className="relative w-full max-w-4xl rounded-3xl border border-white/[0.08] bg-fc-shell shadow-2xl overflow-hidden"
@@ -663,7 +677,7 @@ export function MailLetterModal({
         aria-modal="true"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="p-4 border-b border-white/[0.08] flex items-start justify-between gap-4">
+        <div className={FINELY_OS_MODAL_HEADER}>
           <div className="min-w-0">
             <div className="text-[10px] uppercase tracking-widest text-white/40">{FINELY_MAIL_COPY.serviceName}</div>
             <div className="mt-1 text-xl font-light text-white truncate">{effectiveLetter.title}</div>
@@ -671,15 +685,7 @@ export function MailLetterModal({
               First-timer path: Confirm address → Mail → Track. One clear action per step.
             </p>
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            disabled={busy}
-            className="p-2 rounded-xl border border-white/[0.08] bg-white/5 hover:bg-white/10 text-white/70 disabled:opacity-60"
-            title="Close"
-          >
-            <X size={16} />
-          </button>
+          <FinelyOsModalCloseButton onClick={onClose} disabled={busy} />
         </div>
 
         <div className="px-4 pt-3 flex flex-wrap items-center gap-1.5">
@@ -919,6 +925,12 @@ export function MailLetterModal({
               <p className={`text-sm ${FINELY_OS_ENTITY_BODY}`}>
                 Status is saved on the letter. Watch the Letters Vault for mail_pending → mailed updates.
               </p>
+              {ledgerWarning ? (
+                <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-amber-100 text-sm flex items-start gap-2">
+                  <AlertTriangle size={14} className="mt-0.5 shrink-0" />
+                  <span>{ledgerWarning}</span>
+                </div>
+              ) : null}
               <div className="flex flex-wrap gap-2">
                 {trackHref ? (
                   <a href={trackHref} className={FINELY_OS_PRIMARY_BTN}>

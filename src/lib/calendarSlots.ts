@@ -58,6 +58,16 @@ export function generateDaySlots(args: {
   const allowedWeekdays = settings?.allowedWeekdays ?? [1, 2, 3, 4, 5];
   if (!allowedWeekdays.includes(dow)) return [];
 
+  const maxAdvanceDays = settings?.maxAdvanceDays;
+  if (maxAdvanceDays != null) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const dayStart = new Date(day);
+    dayStart.setHours(0, 0, 0, 0);
+    const daysOut = Math.round((dayStart.getTime() - today.getTime()) / (24 * 60 * 60 * 1000));
+    if (daysOut > maxAdvanceDays) return [];
+  }
+
   const duration = args.durationMinutes ?? settings?.defaultDuration ?? 30;
   const interval = args.slotIntervalMinutes ?? settings?.slotIntervalMinutes ?? 30;
   const startHour = args.startHour ?? settings?.startHour ?? 8;
@@ -117,6 +127,76 @@ export function slotDurationOptions(): SlotDuration[] {
   return DEFAULT_DURATIONS;
 }
 
+/** True when `generateDaySlots` would return at least one bookable time for this day. */
+export function dayHasBookableSlots(args: {
+  dayKey: string;
+  durationMinutes?: SlotDuration;
+  existingEvents?: CalendarEvent[];
+  settings?: CalendarBookingSettings;
+}): boolean {
+  return generateDaySlots(args).length > 0;
+}
+
+export type Daypart = 'morning' | 'afternoon' | 'evening';
+
+export const DAYPART_LABELS: Record<Daypart, string> = {
+  morning: 'Morning',
+  afternoon: 'Afternoon',
+  evening: 'Evening',
+};
+
+/** Morning < 12pm, afternoon 12–5pm, evening 5pm+ (local slot time). */
+export function daypartForSlot(slot: BookableSlot): Daypart {
+  const hour = new Date(slot.startAt).getHours();
+  if (hour < 12) return 'morning';
+  if (hour < 17) return 'afternoon';
+  return 'evening';
+}
+
+export function groupSlotsByDaypart(slots: BookableSlot[]): Array<{ daypart: Daypart; slots: BookableSlot[] }> {
+  const order: Daypart[] = ['morning', 'afternoon', 'evening'];
+  const buckets: Record<Daypart, BookableSlot[]> = { morning: [], afternoon: [], evening: [] };
+  for (const slot of slots) buckets[daypartForSlot(slot)].push(slot);
+  return order.filter((d) => buckets[d].length > 0).map((daypart) => ({ daypart, slots: buckets[daypart] }));
+}
+
+/** Detect the visitor's timezone label for display next to the slot picker. */
+export function detectTimezoneLabel(): string {
+  try {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone || 'Local time';
+  } catch {
+    return 'Local time';
+  }
+}
+
+/**
+ * Scan forward from `fromDayKey` (inclusive) for the first day with open slots — the
+ * "First available" shortcut. Respects `maxAdvanceDays` via `generateDaySlots`.
+ */
+export function findFirstAvailableDay(args: {
+  fromDayKey?: string;
+  durationMinutes?: SlotDuration;
+  existingEvents?: CalendarEvent[];
+  settings?: CalendarBookingSettings;
+  maxDaysToScan?: number;
+}): { dayKey: string; slots: BookableSlot[] } | null {
+  const start = args.fromDayKey ? parseDayKey(args.fromDayKey) ?? new Date() : new Date();
+  const maxScan = args.maxDaysToScan ?? Math.min(args.settings?.maxAdvanceDays ?? 60, 90);
+  for (let i = 0; i <= maxScan; i++) {
+    const d = new Date(start);
+    d.setDate(start.getDate() + i);
+    const dayKey = isoDayKey(d);
+    const slots = generateDaySlots({
+      dayKey,
+      durationMinutes: args.durationMinutes,
+      existingEvents: args.existingEvents,
+      settings: args.settings,
+    });
+    if (slots.length > 0) return { dayKey, slots };
+  }
+  return null;
+}
+
 export function formatSlotRange(startAt: string, endAt: string) {
   try {
     const s = new Date(startAt);
@@ -127,6 +207,46 @@ export function formatSlotRange(startAt: string, endAt: string) {
   } catch {
     return startAt;
   }
+}
+
+export type DayAvailability = 'open' | 'closed_weekday' | 'past' | 'too_far' | 'fully_booked' | 'today_closed';
+
+/** Why a calendar day has no bookable slots — drives color + copy in the picker. */
+export function getDayAvailability(args: {
+  dayKey: string;
+  durationMinutes?: SlotDuration;
+  existingEvents?: CalendarEvent[];
+  settings?: CalendarBookingSettings;
+}): { state: DayAvailability; hasSlots: boolean; slotCount: number } {
+  const todayKey = isoDayKey(new Date());
+  const day = parseDayKey(args.dayKey);
+  if (!day) return { state: 'fully_booked', hasSlots: false, slotCount: 0 };
+
+  const past = day < new Date(new Date().toDateString());
+  if (past) return { state: 'past', hasSlots: false, slotCount: 0 };
+
+  const settings = args.settings;
+  const dow = day.getDay();
+  const allowedWeekdays = settings?.allowedWeekdays ?? [1, 2, 3, 4, 5];
+  if (!allowedWeekdays.includes(dow)) {
+    return { state: 'closed_weekday', hasSlots: false, slotCount: 0 };
+  }
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const dayStart = new Date(day);
+  dayStart.setHours(0, 0, 0, 0);
+  const daysOut = Math.round((dayStart.getTime() - today.getTime()) / (24 * 60 * 60 * 1000));
+  if (settings?.maxAdvanceDays != null && daysOut > settings.maxAdvanceDays) {
+    return { state: 'too_far', hasSlots: false, slotCount: 0 };
+  }
+
+  const slots = generateDaySlots(args);
+  const slotCount = slots.length;
+  if (slotCount > 0) return { state: 'open', hasSlots: true, slotCount };
+
+  if (args.dayKey === todayKey) return { state: 'today_closed', hasSlots: false, slotCount: 0 };
+  return { state: 'fully_booked', hasSlots: false, slotCount: 0 };
 }
 
 export { isoDayKey, parseDayKey };

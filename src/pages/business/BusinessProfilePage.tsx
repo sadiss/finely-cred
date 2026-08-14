@@ -1,6 +1,6 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { ArrowLeft, ArrowRight, Building2, FileText, LayoutGrid, Target, Users, Crown, BookOpen, AlertTriangle } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { ArrowLeft, ArrowRight, Building2, FileText, LayoutGrid, Target, Users, Crown, BookOpen, AlertTriangle, ChevronDown, Globe } from 'lucide-react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { EntityDetailShell } from '../../components/layout/EntityDetailShell';
 import { usePartnerSession } from '../../auth/PartnerSessionContext';
 import { upsertPartner } from '../../data/partnersRepo';
@@ -28,11 +28,22 @@ import {
   FINELY_OS_ENTITY_INPUT,
   FINELY_OS_ENTITY_LABEL,
   FINELY_OS_ENTITY_SUBLABEL,
+  FINELY_OS_ENTITY_VALUE,
   FINELY_OS_NOTICE,
   FINELY_OS_NOTICE_WARN,
   FINELY_OS_PRIMARY_BTN,
   FINELY_OS_SECONDARY_BTN,
+  finelyOsCatalogCardCompact,
+  finelyOsGlowPanel,
+  finelyOsGlowTile,
+  finelyOsStatusChip,
 } from '../../features/os/finelyOsLightUi';
+import {
+  getFundingRulesForApplicantType,
+  getInternationalCreditSystem,
+  type InternationalCreditSystem,
+  type NonCitizenFundingRule,
+} from '../../data/internationalAndNonCitizenCreditRepo';
 
 const BUSINESS_SHORTCUTS = [
   { path: '/business/vendors', label: 'Vendors', icon: Users },
@@ -43,10 +54,40 @@ const BUSINESS_SHORTCUTS = [
   { path: '/business/billion-path', label: 'Billion path', icon: Crown },
 ] as const;
 
+/** Deep-link anchor for the non-citizen/international credit panel (linked from /business/funding — B3). */
+export const NON_CITIZEN_PANEL_ANCHOR_ID = 'non-citizen-international-credit';
+
+const NON_CITIZEN_APPLICANT_TYPE_OPTIONS: { id: NonCitizenFundingRule['applicantType']; label: string }[] = [
+  { id: 'itin_holder', label: 'ITIN holder' },
+  { id: 'foreign_national_e2_eb5', label: 'E-2 / EB-5 foreign national' },
+  { id: 'non_resident_llc', label: 'Non-resident LLC' },
+  { id: 'daca_recipient', label: 'DACA recipient' },
+  { id: 'green_card_holder', label: 'Green card holder' },
+];
+
+const NON_CITIZEN_LOAN_TYPE_LABELS: Record<NonCitizenFundingRule['loanType'], string> = {
+  business_line_of_credit: 'Business line of credit',
+  equipment_financing: 'Equipment financing',
+  sba_7a: 'SBA 7(a)',
+  merchant_cash_advance: 'Merchant cash advance',
+  business_term_loan: 'Business term loan',
+  commercial_real_estate: 'Commercial real estate',
+};
+
+const INTERNATIONAL_COUNTRY_OPTIONS: { id: InternationalCreditSystem['countryCode']; label: string }[] = [
+  { id: 'CA', label: 'Canada' },
+  { id: 'UK', label: 'United Kingdom' },
+  { id: 'DE', label: 'Germany' },
+  { id: 'EU_GENERAL', label: 'EU general' },
+];
+
 export default function BusinessProfilePage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { partner } = usePartnerSession();
   const hubLauncher = usePartnerHubLauncher<BusinessProfileLauncherId>();
+  const nonCitizenPanelRef = useRef<HTMLDetailsElement | null>(null);
+  const [nonCitizenPanelOpen, setNonCitizenPanelOpen] = useState(false);
 
   const business = useMemo(() => {
     const r: any = partner?.routes?.business_build ?? {};
@@ -60,6 +101,18 @@ export default function BusinessProfilePage() {
   const [domainEmail, setDomainEmail] = useState<string>(business.domainEmail || '');
   const [website, setWebsite] = useState<string>(business.website || '');
 
+  const [selectedApplicantType, setSelectedApplicantType] = useState<NonCitizenFundingRule['applicantType'] | null>(null);
+  const [selectedCountryCode, setSelectedCountryCode] = useState<InternationalCreditSystem['countryCode'] | null>(null);
+
+  const matchedFundingRules = useMemo(
+    () => (selectedApplicantType ? getFundingRulesForApplicantType(selectedApplicantType) : []),
+    [selectedApplicantType],
+  );
+  const matchedCountrySystem = useMemo(
+    () => (selectedCountryCode ? getInternationalCreditSystem(selectedCountryCode) : null),
+    [selectedCountryCode],
+  );
+
   const tenantId = (partner?.tenantId || '').trim() || FINELY_TENANT_ID;
   const fieldDefs = useMemo(() => listCustomFieldDefinitionsByScope('partners', tenantId), [tenantId]);
   const fieldLayout = useMemo(() => getFieldLayout({ tenantId, scope: 'partners' }), [tenantId]);
@@ -69,6 +122,16 @@ export default function BusinessProfilePage() {
   useEffect(() => {
     setValues(valuesRecord?.values ?? {});
   }, [valuesRecord?.updatedAt, partner?.id]);
+
+  // Deep-link support for /business/funding's non-citizen doctrine link (B3): ?panel=non-citizen
+  useEffect(() => {
+    if (searchParams.get('panel') !== 'non-citizen') return;
+    setNonCitizenPanelOpen(true);
+    const t = window.setTimeout(() => {
+      nonCitizenPanelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 80);
+    return () => window.clearTimeout(t);
+  }, [searchParams]);
 
   useEffect(() => {
     setBusinessName(business.businessName || '');
@@ -154,6 +217,144 @@ export default function BusinessProfilePage() {
       >
         {null}
       </FinelyUnifiedHubLayout>
+
+      <details
+        id={NON_CITIZEN_PANEL_ANCHOR_ID}
+        ref={nonCitizenPanelRef}
+        open={nonCitizenPanelOpen}
+        onToggle={(e) => setNonCitizenPanelOpen((e.target as HTMLDetailsElement).open)}
+        className={`${finelyOsCatalogCardCompact('sky')} group scroll-mt-24`}
+        data-fc-accent="sky"
+      >
+        <summary className="cursor-pointer select-none flex items-center justify-between gap-3">
+          <span className="flex items-center gap-2">
+            <Globe size={14} className="text-sky-300" />
+            <span className={FINELY_OS_ENTITY_VALUE}>Non-citizen &amp; international credit</span>
+          </span>
+          <ChevronDown size={16} className="text-white/40 transition-transform group-open:rotate-180" />
+        </summary>
+
+        <div className="mt-3 space-y-4">
+          <p className="text-xs leading-relaxed text-white/50">
+            General educational guidance only — not legal, immigration, or lending advice. Funding eligibility,
+            documentation, underwriting appetite, and credit-reporting rules vary by lender/bureau policy, visa or
+            immigration status, and country, and they change over time. Always confirm current requirements with a
+            qualified immigration attorney, accountant, and the specific lender or bureau before relying on this for
+            a real application.
+          </p>
+
+          <div>
+            <div className={FINELY_OS_ENTITY_LABEL}>Non-citizen applicant type</div>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {NON_CITIZEN_APPLICANT_TYPE_OPTIONS.map((opt) => {
+                const active = selectedApplicantType === opt.id;
+                return (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    onClick={() => setSelectedApplicantType(active ? null : opt.id)}
+                    className={`px-3 py-1.5 text-xs font-semibold text-white/80 ${finelyOsGlowTile('violet', active)}`}
+                  >
+                    {opt.label}
+                  </button>
+                );
+              })}
+            </div>
+
+            {selectedApplicantType ? (
+              <div className="mt-3 space-y-3">
+                {matchedFundingRules.map((rule) => (
+                  <div key={rule.id} className={`${finelyOsGlowPanel('violet')} p-3`}>
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <span className="text-sm font-semibold text-white/90">{NON_CITIZEN_LOAN_TYPE_LABELS[rule.loanType]}</span>
+                      <div className="flex flex-wrap gap-1.5">
+                        <span className={finelyOsStatusChip(rule.ssnRequired ? 'blocked' : 'ok')}>
+                          {rule.ssnRequired ? 'SSN required' : 'No SSN required'}
+                        </span>
+                        <span className={finelyOsStatusChip(rule.itinAccepted ? 'ok' : 'blocked')}>
+                          {rule.itinAccepted ? 'ITIN accepted' : 'ITIN not accepted'}
+                        </span>
+                      </div>
+                    </div>
+                    <ul className="mt-2 list-disc pl-4 text-xs text-white/70 space-y-1">
+                      {rule.keyRequirements.map((req) => (
+                        <li key={req}>{req}</li>
+                      ))}
+                    </ul>
+                    <p className="mt-2 text-xs text-white/60">
+                      <span className="font-semibold text-white/75">Lender underwriting optics: </span>
+                      {rule.lenderUnderwritingOptics}
+                    </p>
+                    <div className="mt-2 flex flex-wrap gap-1.5">
+                      {rule.alternativeProofDocs.map((doc) => (
+                        <span key={doc} className="px-2 py-0.5 rounded-full border border-white/10 bg-white/[0.04] text-[10px] text-white/55">
+                          {doc}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="mt-2 text-xs text-white/45">Pick an applicant type to see matched loan types, documentation, and lender optics.</p>
+            )}
+          </div>
+
+          <div>
+            <div className={FINELY_OS_ENTITY_LABEL}>International credit system</div>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {INTERNATIONAL_COUNTRY_OPTIONS.map((opt) => {
+                const active = selectedCountryCode === opt.id;
+                return (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    onClick={() => setSelectedCountryCode(active ? null : opt.id)}
+                    className={`px-3 py-1.5 text-xs font-semibold text-white/80 ${finelyOsGlowTile('sky', active)}`}
+                  >
+                    {opt.label}
+                  </button>
+                );
+              })}
+            </div>
+
+            {matchedCountrySystem ? (
+              <div className={`mt-3 ${finelyOsGlowPanel('sky')} p-3`}>
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <span className="text-sm font-semibold text-white/90">{matchedCountrySystem.countryName}</span>
+                  <span className="text-[10px] uppercase tracking-widest text-white/45">
+                    {matchedCountrySystem.reportingWindowYears}-yr reporting window
+                  </span>
+                </div>
+                <p className="mt-1 text-xs text-white/60">
+                  <span className="font-semibold text-white/75">Bureaus: </span>
+                  {matchedCountrySystem.majorBureaus.join(', ')}
+                </p>
+                <p className="mt-1 text-xs text-white/60">
+                  <span className="font-semibold text-white/75">Score range: </span>
+                  {matchedCountrySystem.scoreRangeLabel}
+                </p>
+                <p className="mt-2 text-xs text-white/65">{matchedCountrySystem.scoringModelNotes}</p>
+                <div className="mt-2">
+                  <div className="text-[10px] font-bold uppercase tracking-wide text-white/50">Key differences from U.S. FCRA system</div>
+                  <ul className="mt-1 list-disc pl-4 text-xs text-white/65 space-y-1">
+                    {matchedCountrySystem.keyDifferencesFromUS.map((d) => (
+                      <li key={d}>{d}</li>
+                    ))}
+                  </ul>
+                </div>
+                <p className="mt-2 text-xs text-white/60">
+                  <span className="font-semibold text-white/75">Dispute rights: </span>
+                  {matchedCountrySystem.disputeRightsSummary}
+                </p>
+                <p className="mt-1 text-[10px] text-white/40">Data protection regime: {matchedCountrySystem.dataProtectionRegime}</p>
+              </div>
+            ) : (
+              <p className="mt-2 text-xs text-white/45">Pick a country to see bureaus, score range, and dispute rights.</p>
+            )}
+          </div>
+        </div>
+      </details>
 
       <PartnerHubWorkModal
         open={hubLauncher.isOpen('entity')}

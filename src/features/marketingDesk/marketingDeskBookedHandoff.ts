@@ -1,5 +1,6 @@
 /**
- * Board → Booked: pause cold/nurture, confirm mail, meeting invite, handoff + partner seed.
+ * Board → Booked: pause cold/nurture, confirm mail, handoff + partner seed.
+ * Calendar invites send only from instant booking — not from CRM stage moves.
  * Dedupe-safe — moving to Booked twice does not spam handoff tasks.
  */
 import {
@@ -15,15 +16,12 @@ import type { CrmRecordStage } from '../../domain/crmRecords';
 import { crmRecordDisplayName } from '../../domain/crmRecords';
 import { createNotification } from '../../data/notificationsRepo';
 import { upsertTask } from '../../data/tasksRepo';
-import { sendMeetingInviteEmail } from '../../lib/meetingInviteEmailSend';
-import { getPublicSiteOrigin } from '../../lib/funnelPublicLinks';
 import { createMarketingTask, findOpenMarketingTask } from './marketingDeskTasks';
 import {
   enrollBookedConfirmMail,
   pauseMarketingSequencesForLead,
   resolveEmailForRecord,
 } from './marketingDeskMail';
-import { getMarketingMailStatus } from './marketingDeskMailStatus';
 import { ensureMarketingPipelineProject } from './marketingDeskProjects';
 
 export type BookedHandoffResult = {
@@ -31,8 +29,6 @@ export type BookedHandoffResult = {
   name: string;
   sequencesPaused: number;
   confirmEnrolled: boolean;
-  inviteOk?: boolean;
-  inviteError?: string;
   handoffTaskId?: string;
   convertTaskId?: string;
   partnerId?: string;
@@ -252,26 +248,6 @@ export async function runBookedHandoff(
     recordId,
   });
 
-  let inviteOk: boolean | undefined;
-  let inviteError: string | undefined;
-  const mail = getMarketingMailStatus();
-  if (email && mail.status === 'ready') {
-    const origin = getPublicSiteOrigin();
-    const invite = await sendMeetingInviteEmail({
-      partnerId: seed.partnerId || record.partnerId || 'admin_growth',
-      toEmail: email,
-      toName: fullName || name,
-      title: `Finely Cred strategy session — ${name}`,
-      joinUrl: `${origin}/enlightenment-session`,
-      scheduleUrl: `${origin}/enlightenment-session`,
-      hostName: 'Finely Cred',
-      hostRoleLabel: 'Credit Specialist',
-      agenda: 'Strategy session prep — goals, report, next steps.',
-    });
-    inviteOk = invite.ok;
-    inviteError = invite.error;
-  }
-
   const handoff = createMarketingTask({
     kind: 'handoff',
     title: `New booked session — ${name}`,
@@ -284,11 +260,7 @@ export async function runBookedHandoff(
       confirm.enrolled
         ? 'Booked confirm sequence enrolled.'
         : 'Confirm mail not enrolled (Needs setup or no email).',
-      inviteOk === false
-        ? `Invite: ${inviteError || 'failed'}`
-        : inviteOk
-          ? 'Meeting invite sent.'
-          : 'Meeting invite skipped.',
+      'Calendar invite sends only after a confirmed slot is booked.',
       'Specialist: prepare session; portal access follows entitlements.',
     ].join('\n'),
     recordId,
@@ -329,8 +301,6 @@ export async function runBookedHandoff(
     name,
     sequencesPaused,
     confirmEnrolled: confirm.enrolled,
-    inviteOk,
-    inviteError,
     handoffTaskId: handoff.id,
     convertTaskId: seed.convertTaskId,
     partnerId: seed.partnerId,

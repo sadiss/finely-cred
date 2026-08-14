@@ -19,8 +19,52 @@ import { autoEnrollCrmRecordInDefaultSequence } from '../features/crm/sequences/
 import { runLeadCapturePipeline } from '../lib/leadCapturePipeline';
 import { isLeadTrashed } from '../features/studioCommandOs/leadTrashRepo';
 import { leadOfferLabel } from '../lib/leadOfferLabels';
+import { loadJson, saveJson } from './localJsonStore';
 
 const DEAL_VALUE_TAG_PREFIX = 'deal_value_cents:';
+
+// ─────────────────────────────────────────────────────────────────────────
+// Server-pull fallback cache (Phase F4). `CrmRecord` is normally a computed
+// view over `crmProspectsRepo.ts` (prospects) + `leadsRepo.ts`/`leadOpsRepo.ts`
+// (inbound leads) — there is no independent "CrmRecord store" to merge into.
+// `kind: 'prospect'` rows are fully recomputable once prospects are restored
+// via `mergeProspectsFromServer()`, so only non-prospect rows (inbound leads
+// whose underlying `LeadCapture` may not exist in this browser) are cached
+// here as a read-only fallback for `listCrmRecords()`/`getCrmRecord()`.
+// ─────────────────────────────────────────────────────────────────────────
+const SERVER_CACHE_KEY = 'finely.crm.records.serverCache.v1';
+type ServerCacheStore = { records: CrmRecord[] };
+
+function loadServerCache(): ServerCacheStore {
+  return loadJson<ServerCacheStore>(SERVER_CACHE_KEY, { records: [] }, 1);
+}
+
+function saveServerCache(store: ServerCacheStore) {
+  saveJson(SERVER_CACHE_KEY, store, 1);
+}
+
+/** Merge CRM records pulled from Supabase into the local fallback cache — see note above. */
+export function mergeCrmRecordsFromServer(serverRecords: CrmRecord[]): { cached: number } {
+  const cache = loadServerCache();
+  const incoming = serverRecords.filter((r) => r.kind !== 'prospect');
+  for (const r of incoming) {
+    const idx = cache.records.findIndex((x) => x.id === r.id);
+    if (idx < 0) cache.records.push(r);
+    else if (r.updatedAt > cache.records[idx].updatedAt) cache.records[idx] = r;
+  }
+  if (incoming.length) saveServerCache(cache);
+  return { cached: incoming.length };
+}
+
+function serverCachedRecords(): CrmRecord[] {
+  return loadServerCache().records;
+}
+
+/** Best-effort server mirror — never blocks or throws on the local write path. */
+function syncRecordServerSide(record: CrmRecord | null) {
+  if (!record) return;
+  void import('./crmServerSync').then((m) => m.syncCrmRecordToSupabase(record));
+}
 
 export function dealValueFromTags(tags: string[] | undefined): number | undefined {
   const tag = (tags ?? []).find((t) => t.startsWith(DEAL_VALUE_TAG_PREFIX));
@@ -163,6 +207,21 @@ export function listCrmRecords(filters?: {
   if (filters?.kind === 'prospect') rows = prospects;
   if (filters?.kind === 'inbound_lead') rows = leads;
 
+  // Server-pull fallback (Phase F4): surface cached records restored via
+  // pullCrmSnapshotFromSupabase() whose underlying local source (a
+  // LeadCapture) doesn't exist in this browser yet.
+  if (!filters?.kind || filters.kind !== 'prospect') {
+    const liveIds = new Set(rows.map((r) => r.id));
+    const cachedFallback = serverCachedRecords().filter((r) => {
+      if (liveIds.has(r.id)) return false;
+      if (filters?.kind && r.kind !== filters.kind) return false;
+      if (filters?.target && r.target !== filters.target) return false;
+      if (filters?.stage && r.stage !== filters.stage) return false;
+      return true;
+    });
+    rows = [...rows, ...cachedFallback];
+  }
+
   // Cleanup (trash) removes cards from Board immediately — Put back restores visibility.
   rows = rows.filter((r) => {
     const sourceId = r.sourceRef?.id;
@@ -182,9 +241,11 @@ export function getCrmRecord(id: string): CrmRecord | null {
   if (id.startsWith('crm_lead_')) {
     const leadId = id.replace('crm_lead_', '');
     const lead = listLeadCaptures().find((l) => l.id === leadId);
-    return lead ? enrichWork(enrichRecordDealValue(leadToRecord(lead, getLeadOp(leadId)))) : null;
+    if (lead) return enrichWork(enrichRecordDealValue(leadToRecord(lead, getLeadOp(leadId))));
   }
-  return null;
+  // Server-pull fallback (Phase F4) — restores a record synced from another
+  // browser session whose underlying local source isn't present here yet.
+  return serverCachedRecords().find((r) => r.id === id) ?? null;
 }
 
 function enrichWork(r: CrmRecord): CrmRecord {
@@ -212,6 +273,7 @@ export function setCrmRecordStage(recordId: string, stage: CrmRecordStage): CrmR
       score: updated.score ?? undefined,
     });
   }
+  syncRecordServerSide(updated);
   return updated;
 }
 
@@ -227,7 +289,9 @@ export function patchCrmRecordDealValue(recordId: string, dealValueCents: number
     const op = getLeadOp(record.sourceRef.id);
     upsertLeadOp({ ...op, tags: withDealValueTag(op.tags, cents) });
   }
-  return getCrmRecord(recordId);
+  const updated = getCrmRecord(recordId);
+  syncRecordServerSide(updated);
+  return updated;
 }
 
 export async function convertCrmRecordToPartner(args: {
@@ -299,6 +363,7 @@ export async function convertCrmRecordToPartner(args: {
     // non-blocking
   }
 
+  syncRecordServerSide(getCrmRecord(args.recordId));
   return { partnerId: partner.id, projectId };
 }
 
@@ -344,7 +409,9 @@ export function createCrmInboundLead(args: {
   });
   void runLeadCapturePipeline({ lead, guideTitle: args.interest ?? 'your inquiry' }).catch(() => {});
   const base = enrichWork(enrichRecordDealValue(leadToRecord(lead, getLeadOp(lead.id))));
-  return applyCrmRoutingRules(base.id) ?? base;
+  const result = applyCrmRoutingRules(base.id) ?? base;
+  syncRecordServerSide(result);
+  return result;
 }
 
 export function updateCrmRecordConsent(
@@ -354,6 +421,8 @@ export function updateCrmRecordConsent(
   const record = getCrmRecord(recordId);
   if (!record?.sourceRef || record.sourceRef.type !== 'lead') return null;
   patchLeadCapture(record.sourceRef.id, consent);
-  return getCrmRecord(recordId);
+  const updated = getCrmRecord(recordId);
+  syncRecordServerSide(updated);
+  return updated;
 }
 

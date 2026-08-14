@@ -3,6 +3,7 @@ import { emitLeadMagnetDownload, emitLeadCreated } from '../domain/platformEvent
 import { resolveSequenceForLead } from '../domain/nurtureSequences';
 import { enrollLeadInNurtureSequence } from './nurtureEngine';
 import { sendImmediateWelcomeEmail } from './funnelEmail';
+import { sendImmediateWelcomeSms } from './instantLeadAck';
 import { startLeadMagnetTrial } from './leadMagnetTrial';
 import { syncLeadToCrmProspect } from './crmLeadSync';
 import { recordAffiliateLeadAttribution } from './affiliateLeadAttribution';
@@ -124,6 +125,8 @@ export async function runLeadCapturePipeline(args: LeadCapturePipelineArgs): Pro
     guideTitle: args.guideTitle,
     downloadUrl: lead.funnelPath ? buildFunnelDownloadUrl(lead.funnelPath) : undefined,
   });
+
+  void sendImmediateWelcomeSms({ lead });
 
   void import('../features/marketingDesk/marketingDeskMail').then(({ autoEnrollMarketingInboundLead }) =>
     autoEnrollMarketingInboundLead({

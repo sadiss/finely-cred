@@ -60,6 +60,12 @@ export interface PricingPackage {
   stripePriceId?: string;
   /** Is this shown publicly? */
   isPublic: boolean;
+  /**
+   * Retired-but-resolvable pseudo-tier: routes to intake instead of checkout,
+   * shows "Custom quote" instead of a sticker price, and priceAmount is 0
+   * as a placeholder (never charged directly).
+   */
+  isCustomQuote?: boolean;
   /** Sort order within category */
   sortOrder: number;
   /** Badge to show (e.g., "Most Popular", "Best Value") */
@@ -392,6 +398,10 @@ export const personalCreditPackages: PricingPackage[] = [
     entitlementKeys: ['personal_starter', 'personal_restore', 'personal_platinum'],
   },
   {
+    // RETIRED (D1, Round 3 pricing simplification): no longer shown on the public
+    // "Restore" tab — collapsed into the 'personal_restore_custom' quote tier below.
+    // isPublic:false only (never delete): existing partners' entitlement chains and
+    // checkout/webhook lookups still resolve this id via getPackageById().
     id: 'personal_restore_5000',
     category: 'personal_credit',
     name: 'Advanced Credit Restore — Supreme',
@@ -408,12 +418,13 @@ export const personalCreditPackages: PricingPackage[] = [
     interval: 'one_time',
     rail: 'both',
     delivery: 'DFY',
-    isPublic: true,
+    isPublic: false,
     sortOrder: 4.2,
     badge: 'Supreme',
     entitlementKeys: ['personal_starter', 'personal_restore', 'personal_platinum', 'personal_restore_5000'],
   },
   {
+    // RETIRED (D1) — see note on 'personal_restore_5000' above. isPublic:false only.
     id: 'personal_restore_7000',
     category: 'personal_credit',
     name: 'Advanced Credit Restore — Apex',
@@ -425,12 +436,13 @@ export const personalCreditPackages: PricingPackage[] = [
     interval: 'one_time',
     rail: 'both',
     delivery: 'DFY',
-    isPublic: true,
+    isPublic: false,
     sortOrder: 4.3,
     badge: 'Apex',
     entitlementKeys: ['personal_starter', 'personal_restore', 'personal_platinum', 'personal_restore_5000', 'personal_restore_7000'],
   },
   {
+    // RETIRED (D1) — see note on 'personal_restore_5000' above. isPublic:false only.
     id: 'personal_restore_10000',
     category: 'personal_credit',
     name: 'Advanced Credit Restore — Dynasty',
@@ -442,7 +454,7 @@ export const personalCreditPackages: PricingPackage[] = [
     interval: 'one_time',
     rail: 'both',
     delivery: 'DFY',
-    isPublic: true,
+    isPublic: false,
     sortOrder: 4.4,
     badge: 'Dynasty',
     entitlementKeys: [
@@ -453,6 +465,37 @@ export const personalCreditPackages: PricingPackage[] = [
       'personal_restore_7000',
       'personal_restore_10000',
     ],
+  },
+  {
+    // NEW (D1): headline "4th tier" for the collapsed Restore tab — Starter/Pro/Elite are
+    // sticker-priced; anything heavier than Elite now routes to a scoped quote instead of
+    // presenting Supreme/Apex/Dynasty as three more undifferentiated checkout buttons.
+    id: 'personal_restore_custom',
+    category: 'personal_credit',
+    name: 'Advanced Credit Restore — Custom',
+    tagline: 'For complex, multi-account files beyond Elite',
+    description:
+      'For files heavier than Elite — many tradelines, multiple collections, or aggressive furnishers — we scope a custom restore plan and price after a quick intake call so pricing matches your file, not a generic sticker.',
+    highlights: [
+      'Everything in Elite',
+      'Custom sequencing for heavier, multi-account files',
+      'Scoped after a short intake call — no guesswork pricing',
+      'Same escalation-readiness + priority handling as our top tiers',
+    ],
+    scopeBullets: [
+      'Negative load: heavier, multi-account files that outgrow Elite.',
+      'Pricing: confirmed after intake — matched to your file, not a fixed sticker.',
+      'Program access: scoped to match execution depth required.',
+    ],
+    priceAmount: 0,
+    interval: 'one_time',
+    rail: 'both',
+    delivery: 'DFY',
+    isPublic: true,
+    sortOrder: 4.5,
+    badge: 'Custom quote',
+    entitlementKeys: [],
+    isCustomQuote: true,
   },
   {
     id: 'personal_build_starter',
@@ -888,6 +931,11 @@ export const debtLegalPackages: PricingPackage[] = [
     debtBalanceGuidance: { minCents: 1_000_000, maxCents: 2_500_000, label: '~$10k–$25k mid complexity' },
   },
   {
+    // RETIRED (D2, Round 3 pricing simplification): no longer shown on the public
+    // Debt & Legal tab — its balance band ($25k–$60k) now falls inside the collapsed
+    // 'debt_kill_high_balance' headline tier's ($25k–$100k) band below.
+    // isPublic:false only (never delete): existing partners' entitlement chains and
+    // checkout/webhook lookups still resolve this id via getPackageById().
     id: 'debt_kill_plus',
     category: 'debt_legal',
     name: 'Debt Kill Plus',
@@ -905,12 +953,12 @@ export const debtLegalPackages: PricingPackage[] = [
     interval: 'one_time',
     rail: 'stripe',
     delivery: 'DFY',
-    isPublic: true,
+    isPublic: false,
     sortOrder: 4,
     entitlementKeys: ['debt_kill_diy', 'debt_kill_starter_dfy', 'debt_kill_pro', 'debt_kill_plus'],
-    debtBalanceGuidance: { minCents: 2_500_000, maxCents: 6_000_000, label: 'Multi-account / aggressive collectors' },
   },
   {
+    // RETIRED (D2) — see note on 'debt_kill_plus' above. isPublic:false only.
     id: 'debt_kill_premium',
     category: 'debt_legal',
     name: 'Debt Kill Premium',
@@ -928,7 +976,7 @@ export const debtLegalPackages: PricingPackage[] = [
     interval: 'one_time',
     rail: 'stripe',
     delivery: 'DFY',
-    isPublic: true,
+    isPublic: false,
     sortOrder: 5,
     entitlementKeys: [
       'debt_kill_diy',
@@ -937,9 +985,11 @@ export const debtLegalPackages: PricingPackage[] = [
       'debt_kill_plus',
       'debt_kill_premium',
     ],
-    debtBalanceGuidance: { minCents: 6_000_000, maxCents: 25_000_000, label: 'Complex file pre high-balance' },
   },
   {
+    // HEADLINE TIER (D2): top of the collapsed public ladder. debtBalanceGuidance
+    // corrected here — was previously off by 10x (25_000_000/100_000_000 cents = $250k/$1M,
+    // which contradicted this tier's own "$25k-$100k" tagline/scopeBullets). Now matches.
     id: 'debt_kill_high_balance',
     category: 'debt_legal',
     name: 'High-Balance Debt Kill',
@@ -970,9 +1020,10 @@ export const debtLegalPackages: PricingPackage[] = [
       'debt_kill_premium',
       'debt_kill_high_balance',
     ],
-    debtBalanceGuidance: { minCents: 25_000_000, maxCents: 100_000_000, label: '$25k–$100k' },
+    debtBalanceGuidance: { minCents: 2_500_000, maxCents: 10_000_000, label: '$25k–$100k' },
   },
   {
+    // RETIRED (D2) — collapsed into 'debt_kill_custom' below. isPublic:false only.
     id: 'debt_kill_institutional',
     category: 'debt_legal',
     name: 'Debt Kill Institutional',
@@ -991,7 +1042,7 @@ export const debtLegalPackages: PricingPackage[] = [
     interval: 'one_time',
     rail: 'stripe',
     delivery: 'DFY',
-    isPublic: true,
+    isPublic: false,
     sortOrder: 7,
     badge: 'Institutional',
     entitlementKeys: [
@@ -1003,9 +1054,9 @@ export const debtLegalPackages: PricingPackage[] = [
       'debt_kill_high_balance',
       'debt_kill_institutional',
     ],
-    debtBalanceGuidance: { minCents: 60_000_000, maxCents: 100_000_000, label: '$60k–$100k' },
   },
   {
+    // RETIRED (D2) — collapsed into 'debt_kill_custom' below. isPublic:false only.
     id: 'debt_kill_enterprise',
     category: 'debt_legal',
     name: 'Debt Kill Enterprise',
@@ -1024,7 +1075,7 @@ export const debtLegalPackages: PricingPackage[] = [
     interval: 'one_time',
     rail: 'stripe',
     delivery: 'DFY',
-    isPublic: true,
+    isPublic: false,
     sortOrder: 8,
     badge: 'Enterprise',
     entitlementKeys: [
@@ -1037,7 +1088,37 @@ export const debtLegalPackages: PricingPackage[] = [
       'debt_kill_institutional',
       'debt_kill_enterprise',
     ],
-    debtBalanceGuidance: { minCents: 100_000_000, maxCents: null, label: '$100k+' },
+  },
+  {
+    // NEW (D2): headline top tier for the collapsed ladder — $100k+ / multi-case files
+    // now route to a scoped quote instead of presenting Institutional + Enterprise as two
+    // more undifferentiated checkout buttons above High-Balance.
+    id: 'debt_kill_custom',
+    category: 'debt_legal',
+    name: 'Debt Kill — Custom',
+    tagline: 'For $100k+ balances or multi-case strategy',
+    description:
+      'For $100k+ balances, multi-case files, or dedicated-ops-level complexity, we scope a custom Debt Kill program and price after a quick intake call so pricing matches your file, not a generic sticker.',
+    highlights: [
+      'Everything in High-Balance Debt Kill',
+      'Dedicated ops + escalation coordination for $100k+ or multi-case files',
+      'Scoped after a short intake call — no guesswork pricing',
+      'Premium reporting + strategy review cadence when warranted',
+    ],
+    scopeBullets: [
+      'Debt lane: $100k+ and/or multi-case strategy.',
+      'Pricing: confirmed after intake — matched to your file, not a fixed sticker.',
+    ],
+    priceAmount: 0,
+    interval: 'one_time',
+    rail: 'stripe',
+    delivery: 'DFY',
+    isPublic: true,
+    sortOrder: 6.5,
+    badge: 'Custom quote',
+    entitlementKeys: [],
+    isCustomQuote: true,
+    debtBalanceGuidance: { minCents: 10_000_000, maxCents: null, label: '$100k+' },
   },
 ];
 
@@ -2115,10 +2196,17 @@ function inferPackageScopeBullets(pkg: PricingPackage): string[] {
   return bullets;
 }
 
-/** Illustrative debt-balance → package match (sticker prices unchanged). */
+/**
+ * Illustrative debt-balance → package match (sticker prices unchanged).
+ *
+ * Excludes the DIY kit: its band is intentionally "any balance" (self-serve regardless
+ * of size), which — since it also has the lowest sortOrder — would otherwise match every
+ * balance first and make this function always return the DIY kit. Only the DFY headline
+ * ladder (public + retired-but-still-priced) participates in balance-based ranking.
+ */
 export function getDebtPackageGuidanceForBalance(amountCents: number): PricingPackage | undefined {
   const ranked = debtLegalPackages
-    .filter((p) => p.debtBalanceGuidance)
+    .filter((p) => p.debtBalanceGuidance && p.delivery !== 'DIY')
     .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
   for (const p of ranked) {
     const g = p.debtBalanceGuidance!;

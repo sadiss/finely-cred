@@ -23,6 +23,7 @@ import { FinelyOsPaginatedStack } from '../../features/os/FinelyOsPaginatedStack
 import { FinelyOsPageFooter } from '../../features/os/FinelyOsPageFooter';
 import { FinelyOsOverviewStatTile } from '../../features/os/FinelyOsOverviewStatTile';
 import { BookingInvitePanel } from '../../components/calendar/BookingInvitePanel';
+import { AdminMeetingComposer } from '../../components/calendar/AdminMeetingComposer';
 import { runMeetingReminderAutomation } from '../../lib/meetingReminderAutomation';
 import {
   FINELY_OS_PAGE,
@@ -236,7 +237,9 @@ export default function AdminCalendarPage() {
           </p>
         </div>
 
-        <BookingInvitePanel />
+        <AdminMeetingComposer onScheduled={() => window.dispatchEvent(new Event('finely:store'))} />
+
+        <BookingInvitePanel partners={partners} />
 
         {schedulePublicReq && (
           <div className={`${FINELY_OS_NOTICE_SUCCESS} space-y-4`}>

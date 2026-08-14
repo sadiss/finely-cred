@@ -6,9 +6,35 @@
 // - Voice webhook URL → this function URL (POST)
 //
 // Secrets: TWILIO_AUTH_TOKEN, TWILIO_FROM_PHONE (optional)
+//
+// Phase J3 — missed-call text-back: on a missed-call status callback
+// ('no-answer'/'busy'/'failed'/'canceled') or a completed voicemail
+// (TranscriptionText/RecordingUrl present), this reuses the existing,
+// already-Twilio-configured webhook above to fire an immediate SMS
+// acknowledgment + booking link + human follow-up task, instead of
+// standing up a second Twilio voice webhook for the same support number.
+// See `_shared/missedCallTextBack.ts` for the send logic and gating.
+// Requires SUPABASE_SERVICE_ROLE_KEY + SUPABASE_URL only when the feature
+// is actually enabled (MISSED_CALL_TEXTBACK_ENABLED=true) — every other
+// code path in this function is unchanged and needs no Supabase admin client.
 
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.1';
 import { corsHeaders } from '../_shared/cors.ts';
 import { json, logEdgeEvent } from '../_shared/edgeGuard.ts';
+import { isMissedCallTextBackEnabled, sendMissedCallTextBack } from '../_shared/missedCallTextBack.ts';
+
+// deno-lint-ignore no-explicit-any
+type AdminClient = any;
+
+let _admin: AdminClient | null = null;
+function adminClient(): AdminClient | null {
+  if (_admin) return _admin;
+  const url = (Deno.env.get('SUPABASE_URL') || '').trim();
+  const serviceKey = (Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '').trim();
+  if (!url || !serviceKey) return null;
+  _admin = createClient(url, serviceKey, { auth: { persistSession: false } });
+  return _admin;
+}
 
 function base64FromBuffer(buf: ArrayBuffer): string {
   const bytes = new Uint8Array(buf);
@@ -142,7 +168,8 @@ Deno.serve(async (req) => {
         });
       }
 
-      if (transcription || recordingUrl) {
+      const hasVoicemail = Boolean(transcription || recordingUrl);
+      if (hasVoicemail) {
         await logEdgeEvent({
           namespace: 'twilio-webhook',
           level: 'info',
@@ -155,6 +182,31 @@ Deno.serve(async (req) => {
             recordingUrl,
           },
         });
+      }
+
+      if ((missed || hasVoicemail) && from && isMissedCallTextBackEnabled()) {
+        const admin = adminClient();
+        if (admin) {
+          const textBack = await sendMissedCallTextBack(admin, {
+            callerPhone: from,
+            callSid,
+            isVoicemail: hasVoicemail,
+            transcription: transcription || undefined,
+          });
+          await logEdgeEvent({
+            namespace: 'twilio-webhook',
+            level: textBack.smsSent ? 'info' : 'warn',
+            event: 'missed_call_textback_result',
+            meta: { sid: callSid, from, smsSent: textBack.smsSent, followUpTaskCreated: textBack.followUpTaskCreated, reason: textBack.reason ?? null },
+          });
+        } else {
+          await logEdgeEvent({
+            namespace: 'twilio-webhook',
+            level: 'warn',
+            event: 'missed_call_textback_skipped',
+            meta: { sid: callSid, reason: 'supabase_admin_client_unavailable' },
+          });
+        }
       }
 
       return new Response('<Response></Response>', {

@@ -17,12 +17,12 @@ import { MarketingConsentChip } from '../marketingDesk/MarketingConsentChip';
 import {
   FINELY_OS_ENTITY_BODY,
   FINELY_OS_ENTITY_INPUT,
-  FINELY_OS_ENTITY_SELECT,
   FINELY_OS_ENTITY_SUBLABEL,
   FINELY_OS_PRIMARY_BTN,
   FINELY_OS_SECONDARY_BTN,
   FINELY_OS_SUCCESS_BTN,
   finelyOsCatalogCardCompact,
+  finelyOsGlowTile,
   finelyOsMicroStat,
   finelyOsStatusChip,
 } from '../os/finelyOsLightUi';
@@ -152,17 +152,21 @@ export function GrowthAgentBenjaminWorkspace() {
         <p className={`mt-1 text-xs ${FINELY_OS_ENTITY_BODY}`}>
           Affiliate toolkit, program signup, and agency white-label — tracked for partnership outreach.
         </p>
-        <select
-          className={`${FINELY_OS_ENTITY_SELECT} mt-2 max-w-md`}
-          value={laneId}
-          onChange={(e) => setLaneId(e.target.value)}
-        >
-          {referralLanes.map((l) => (
-            <option key={l.id} value={l.id}>
-              {l.label}
-            </option>
-          ))}
-        </select>
+        <div className="mt-2 flex flex-wrap gap-1.5">
+          {referralLanes.map((l) => {
+            const active = l.id === laneId;
+            return (
+              <button
+                key={l.id}
+                type="button"
+                onClick={() => setLaneId(l.id)}
+                className={`px-2.5 py-1.5 text-[10px] font-bold ${finelyOsGlowTile(active ? 'amber' : 'sky', active)} ${active ? 'text-amber-100' : 'text-white/70'}`}
+              >
+                {l.label}
+              </button>
+            );
+          })}
+        </div>
         <label className={`mt-3 block text-xs ${FINELY_OS_ENTITY_BODY}`}>Referral code</label>
         <input
           className={`${FINELY_OS_ENTITY_INPUT} mt-1 max-w-md`}

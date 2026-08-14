@@ -1,24 +1,21 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { ArrowLeft, Calendar, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, Calendar, CheckCircle2, Sparkles } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { PageShell } from '../components/layout/PageShell';
 import { PublicSessionSlotPicker } from '../components/calendar/PublicSessionSlotPicker';
-import {
-  createPublicAppointmentRequest,
-  scheduleEventFromPublicRequest,
-} from '../data/calendarRepo';
+import { VoiceTranscriptField } from '../components/calendar/VoiceTranscriptField';
 import {
   buildBookingInvitePath,
   getBookingInviteByToken,
   markBookingInviteUsed,
 } from '../data/bookingInviteRepo';
 import { getCalendarBookingSettings } from '../data/calendarSettingsRepo';
-import { formatSlotRange, isoDayKey, type BookableSlot } from '../lib/calendarSlots';
+import { confirmPublicSlotBooking } from '../lib/confirmPublicSlotBooking';
+import { getPublicSiteOrigin } from '../lib/funnelPublicLinks';
+import { draftBookingAgenda } from '../lib/aiDraftAgenda';
+import { type BookableSlot } from '../lib/calendarSlots';
 import type { SlotDuration } from '../domain/calendar';
 import { buildGuestMeetingJoinPath } from '../lib/meetingUrls';
-import { getPublicSiteOrigin } from '../lib/funnelPublicLinks';
-import { sendMeetingInviteEmail } from '../lib/meetingInviteEmailSend';
-import { isFeatureEnabled } from '../data/settingsRepo';
 import {
   FINELY_OS_BACK_LINK,
   FINELY_OS_BANNER,
@@ -29,11 +26,12 @@ import {
   FINELY_OS_NOTICE_ERROR,
   FINELY_OS_NOTICE_SUCCESS,
   FINELY_OS_PAGE,
+  FINELY_OS_SECONDARY_BTN,
   FINELY_OS_SUCCESS_BTN,
   finelyOsCatalogCard,
 } from '../features/os/finelyOsLightUi';
 
-/** Public self-schedule via admin invite token — `/book/i/:token` */
+/** Public self-schedule via admin invite token — `/book/i/:token` — instant confirm. */
 export default function PublicSelfBookInvitePage() {
   const { token } = useParams<{ token: string }>();
   const navigate = useNavigate();
@@ -42,7 +40,8 @@ export default function PublicSelfBookInvitePage() {
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [agenda, setAgenda] = useState('');
-  const [dayKey, setDayKey] = useState<string | null>(isoDayKey(new Date()));
+  const [aiDrafting, setAiDrafting] = useState(false);
+  const [dayKey, setDayKey] = useState<string | null>(null);
   const [selectedSlot, setSelectedSlot] = useState<BookableSlot | null>(null);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -68,6 +67,17 @@ export default function PublicSelfBookInvitePage() {
     document.title = invite?.label ? `${invite.label} — Book session` : 'Book your session';
   }, [invite?.label]);
 
+  const aiDraftAgenda = async () => {
+    if (aiDrafting) return;
+    setAiDrafting(true);
+    try {
+      const res = await draftBookingAgenda({ focusLabel: invite?.label, goalText: agenda });
+      setAgenda(res.text);
+    } finally {
+      setAiDrafting(false);
+    }
+  };
+
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!invite || busy) return;
@@ -90,52 +100,22 @@ export default function PublicSelfBookInvitePage() {
 
     setBusy(true);
     try {
-      const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-      const req = createPublicAppointmentRequest({
+      const { event, joinPath: guestJoin, confirmedLabel } = await confirmPublicSlotBooking({
         topic: invite.topic,
         fullName: fullName.trim(),
         email: email.trim(),
         phone: phone.trim() || undefined,
-        preferredSlotMinutes: duration,
-        availabilityNotes: `Self-book invite ${invite.token.slice(0, 8)}`,
-        selectedSlotStartAt: selectedSlot.startAt,
-        selectedSlotEndAt: selectedSlot.endAt,
-        timezone: tz,
-        meetingAgenda: agenda.trim() || undefined,
+        agenda: agenda.trim() || undefined,
         notes: invite.label ? `Invite: ${invite.label}` : undefined,
+        selectedSlot,
+        durationMinutes: duration,
+        emailPartnerId: invite.partnerId || undefined,
+        scheduleUrl: `${getPublicSiteOrigin()}${buildBookingInvitePath(invite.token)}`,
       });
 
-      const ev = scheduleEventFromPublicRequest({
-        requestId: req.id,
-        startAt: selectedSlot.startAt,
-        endAt: selectedSlot.endAt,
-        slotDurationMinutes: duration,
-        confirm: true,
-      });
-      if (!ev) throw new Error('Could not confirm that slot.');
-
-      markBookingInviteUsed({ inviteId: invite.id, eventId: ev.id });
-      const guestJoin = buildGuestMeetingJoinPath(ev.id);
+      markBookingInviteUsed({ inviteId: invite.id, eventId: event.id });
       setJoinPath(guestJoin);
-      setOk(`Confirmed — ${formatSlotRange(selectedSlot.startAt, selectedSlot.endAt)}`);
-
-      if (isFeatureEnabled('commsDelivery')) {
-        const origin = getPublicSiteOrigin();
-        await sendMeetingInviteEmail({
-          partnerId: invite.partnerId || 'admin_growth',
-          toEmail: email.trim(),
-          toName: fullName.trim(),
-          title: ev.title,
-          joinUrl: `${origin}${guestJoin}?name=${encodeURIComponent(fullName.trim())}`,
-          startAt: ev.startAt,
-          endAt: ev.endAt,
-          timezone: tz,
-          agenda: agenda.trim() || undefined,
-          hostName: 'Alex Rivera',
-          hostRoleLabel: 'Session Coordinator',
-          scheduleUrl: `${origin}${buildBookingInvitePath(invite.token)}`,
-        });
-      }
+      setOk(`Confirmed — ${confirmedLabel}`);
       setVersion((v) => v + 1);
     } catch (ex: unknown) {
       setErr((ex as Error)?.message || 'Booking failed.');
@@ -218,16 +198,33 @@ export default function PublicSelfBookInvitePage() {
                   <span className={FINELY_OS_ENTITY_LABEL}>Phone (optional)</span>
                   <input className={FINELY_OS_ENTITY_INPUT} value={phone} onChange={(e) => setPhone(e.target.value)} />
                 </label>
-                <label className="block sm:col-span-2">
-                  <span className={FINELY_OS_ENTITY_LABEL}>What should we cover?</span>
-                  <textarea rows={2} className={FINELY_OS_ENTITY_INPUT} value={agenda} onChange={(e) => setAgenda(e.target.value)} placeholder="Goals, report status, timeline" />
-                </label>
+                <div className="sm:col-span-2">
+                  <VoiceTranscriptField
+                    label="What should we cover?"
+                    value={agenda}
+                    onChange={setAgenda}
+                    rows={2}
+                    accent="sky"
+                    placeholder="Goals, report status, timeline"
+                    rightSlot={
+                      <button
+                        type="button"
+                        onClick={() => void aiDraftAgenda()}
+                        disabled={aiDrafting}
+                        className="inline-flex items-center gap-1 rounded-lg border border-amber-400/40 bg-amber-500/10 px-2 py-1 text-[9px] font-black uppercase tracking-widest text-amber-200 hover:bg-amber-500/15 disabled:opacity-50"
+                      >
+                        <Sparkles size={11} /> {aiDrafting ? 'Drafting…' : 'AI-draft'}
+                      </button>
+                    }
+                  />
+                </div>
               </div>
             </div>
 
             <PublicSessionSlotPicker
               durationMinutes={duration}
               onDurationChange={() => {}}
+              allowedDurations={[duration]}
               selectedDay={dayKey}
               onDayChange={setDayKey}
               selectedSlot={selectedSlot}

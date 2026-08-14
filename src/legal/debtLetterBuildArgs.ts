@@ -11,6 +11,8 @@ export type DebtLetterBuildArgs = {
   debtorPostalCode?: string;
   debtorPhone?: string;
   debtorEmail?: string;
+  /** validation_request intro opener variant (0-based). */
+  introVariantIndex?: number;
   recipientName?: string;
   recipientAddress?: string;
   originalCreditorName?: string;

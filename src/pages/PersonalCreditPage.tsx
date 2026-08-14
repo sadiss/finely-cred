@@ -17,6 +17,7 @@ import { PageShell } from '../components/layout/PageShell';
 import { useAuth } from '../auth/AuthProvider';
 import { resolvePackageSelectPath } from '../lib/packageCheckoutRouting';
 import { finelyCtaNavigate, resolveFinelyCtaPath } from '../lib/finelyCtaIntent';
+import { reconcileCtaBridgeConversion } from '../lib/funnelCtaBridge';
 import { FinelyOsPageFooter } from '../features/os/FinelyOsPageFooter';
 import { StaffPortraitImg } from '../components/staff/StaffPortraitImg';
 import { MarketingStaffChatStrip } from '../components/marketing/MarketingStaffChatStrip';
@@ -126,6 +127,7 @@ const OS_TILES = [
 /** Restore lane only — exclude building, maintenance, and unrelated hybrid programs. */
 function filterPersonalPackagesByPath(path: PersonalCreditRestorePath): PricingPackage[] {
   return personalCreditPackages.filter((p) => {
+    if (!p.isPublic) return false;
     if (p.category !== 'personal_credit') return false;
     if (p.id.startsWith('personal_build')) return false;
     if (p.id.startsWith('personal_maintenance')) return false;
@@ -256,6 +258,14 @@ export default function PersonalCreditPage() {
   });
 
   const goToCheckout = (pkgId: string, rail?: 'stripe' | 'in_house') => {
+    // Reconciles the homepage hero CTA-destination A/B test (D3) — a no-op unless
+    // this visitor arrived here via the hero's CTA click.
+    reconcileCtaBridgeConversion('homepage_hero');
+    const pkg = personalCreditPackages.find((p) => p.id === pkgId);
+    if (pkg?.isCustomQuote) {
+      finelyCtaNavigate(navigate, 'personal_intake');
+      return;
+    }
     navigate(
       resolvePackageSelectPath({
         packageId: pkgId,

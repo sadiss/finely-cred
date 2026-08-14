@@ -4,6 +4,8 @@ import { AlertCircle, ArrowRight, Gift } from 'lucide-react';
 import { PageShell } from '../components/layout/PageShell';
 import { useAuth } from '../auth/AuthProvider';
 import { resolvePackageSelectPath } from '../lib/packageCheckoutRouting';
+import { finelyCtaNavigate } from '../lib/finelyCtaIntent';
+import { reconcileCtaBridgeConversion } from '../lib/funnelCtaBridge';
 import {
   personalCreditPackages,
   businessCreditPackages,
@@ -202,6 +204,9 @@ export default function PricingServicePage() {
   });
 
   const goToCheckout = (pkgId: string, rail: 'stripe' | 'in_house') => {
+    // Reconciles the homepage hero CTA-destination A/B test (D3) — a no-op unless
+    // this visitor arrived here via the hero's "Build business credit"/etc. click.
+    reconcileCtaBridgeConversion('homepage_hero');
     navigate(
       resolvePackageSelectPath({
         packageId: pkgId,
@@ -457,7 +462,7 @@ export default function PricingServicePage() {
                     </tr>
                   </thead>
                   <tbody className="text-white/75">
-                    {debtLegalPackages.filter((p) => p.debtBalanceGuidance).map((p) => (
+                    {debtLegalPackages.filter((p) => p.debtBalanceGuidance && p.isPublic).map((p) => (
                       <tr key={p.id} className="border-b border-white/5">
                         <td className="py-2 pr-3">{p.debtBalanceGuidance?.label}</td>
                         <td className="py-2">
@@ -556,6 +561,10 @@ export default function PricingServicePage() {
             selectLabel="Select package"
             onSelect={(pkgId) => {
               const pkg = visible.find((p) => p.id === pkgId);
+              if (pkg?.isCustomQuote) {
+                finelyCtaNavigate(navigate, pkg.category === 'debt_legal' ? 'debt_intake' : 'personal_intake');
+                return;
+              }
               const rail = pkg?.rail === 'in_house' ? 'in_house' : 'stripe';
               goToCheckout(pkgId, rail);
             }}

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Loader2, MessageSquare, X } from 'lucide-react';
+import { Loader2, MessageSquare } from 'lucide-react';
 import { isFeatureEnabled } from '../../data/settingsRepo';
 import { converseWithFinelyAi } from '../../lib/conversationalAi';
 import { openCommunicationHub } from '../chat/communicationHubModel';
@@ -10,10 +10,12 @@ import {
   FINELY_OS_ENTITY_INPUT,
   FINELY_OS_ENTITY_SUBLABEL,
   FINELY_OS_FIXED_OVERLAY,
+  FINELY_OS_MODAL_HEADER,
   FINELY_OS_MODAL_SHELL,
   FINELY_OS_SECONDARY_BTN,
   finelyOsMessageBubble,
 } from '../../features/os/finelyOsLightUi';
+import { FinelyOsModalCloseButton } from '../../features/os/FinelyOsModalCloseButton';
 import { FinelyOsOnPageCoachShell, type FinelyOsCoachChip } from '../../features/os/FinelyOsOnPageCoachShell';
 
 const DISPUTE_SUGGESTIONS = [
@@ -160,16 +162,14 @@ export function LetterDisputeCoachStrip({
                 aria-labelledby="letter-dispute-coach-title"
                 onClick={(e) => e.stopPropagation()}
               >
-                <div className="flex items-start justify-between gap-3 border-b border-white/10 px-4 py-4">
+                <div className={FINELY_OS_MODAL_HEADER}>
                   <div className="min-w-0">
                     <div className={FINELY_OS_ENTITY_SUBLABEL}>Letter studio</div>
                     <div id="letter-dispute-coach-title" className="text-lg font-bold text-white">
                       Dispute letter coach
                     </div>
                   </div>
-                  <button type="button" onClick={() => setOpen(false)} className={`${FINELY_OS_SECONDARY_BTN} !p-2`} aria-label="Close">
-                    <X size={16} />
-                  </button>
+                  <FinelyOsModalCloseButton onClick={() => setOpen(false)} />
                 </div>
                 <div className="p-4 max-h-[72vh] overflow-y-auto">{coachBody}</div>
               </div>

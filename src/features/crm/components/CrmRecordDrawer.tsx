@@ -5,12 +5,16 @@ import type { CrmRecord } from '../../../domain/crmRecords';
 import { formatForecastCents } from '../forecast/buildPipelineForecast';
 import { crmRecordDisplayName } from '../../../domain/crmRecords';
 import { patchCrmRecordDealValue } from '../../../data/crmRecordsRepo';
+import { computeConversionLikelihood } from '../../../lib/agentAttributionEngine';
 import { CrmCallTimeOptimizerPanel } from './CrmCallTimeOptimizerPanel';
 import { CrmRecordSequencePanel } from './CrmRecordSequencePanel';
+import { AgentTrailForEntity } from '../../growthAgents/AgentTrailTimeline';
 import { FinelyOsPaginatedStack } from '../../os/FinelyOsPaginatedStack';
 import { FinelyOsSidePanel } from '../../os/FinelyOsSidePanel';
 import {FINELY_OS_ENTITY_INPUT, FINELY_OS_ENTITY_PANEL, FINELY_OS_ENTITY_SUBLABEL, FINELY_OS_ENTITY_VALUE, FINELY_OS_ENTITY_BODY, FINELY_OS_ENTITY_ACCENT_LINK, FINELY_OS_KPI_ACCENTS, FINELY_OS_PRIMARY_BTN, FINELY_OS_SUCCESS_BTN, finelyOsStatusChip,
   finelyOsCatalogCard,} from '../../os/finelyOsLightUi';
+
+const CONVERSION_LIKELIHOOD_TONE = { low: 'blocked', medium: 'warn', high: 'ok' } as const;
 
 export function CrmRecordPanel({
   record,
@@ -29,6 +33,9 @@ export function CrmRecordPanel({
     () => (record?.timeline ?? []).slice().sort((a, b) => b.createdAt.localeCompare(a.createdAt)),
     [record?.timeline],
   );
+
+  // G4a — internal-only conversion-likelihood signal (staff triage; never shown to partners).
+  const conversionSignal = useMemo(() => (record ? computeConversionLikelihood(record) : null), [record]);
 
   React.useEffect(() => {
     if (!record) return;
@@ -70,6 +77,19 @@ export function CrmRecordPanel({
         <div><span className={FINELY_OS_ENTITY_SUBLABEL}>Email</span><div className={`${FINELY_OS_ENTITY_VALUE} truncate`}>{record.contact.email || '—'}</div></div>
         <div><span className={FINELY_OS_ENTITY_SUBLABEL}>Phone</span><div className={FINELY_OS_ENTITY_VALUE}>{record.contact.phone || '—'}</div></div>
         <div className="col-span-2"><span className={FINELY_OS_ENTITY_SUBLABEL}>Deal value</span><div className={FINELY_OS_ENTITY_VALUE}>{record.dealValueCents ? formatForecastCents(record.dealValueCents) : '—'}</div></div>
+        {conversionSignal ? (
+          <div className="col-span-2">
+            <span className={FINELY_OS_ENTITY_SUBLABEL}>Conversion signal (internal)</span>
+            <div className="mt-1 flex items-center gap-2">
+              <span className={finelyOsStatusChip(CONVERSION_LIKELIHOOD_TONE[conversionSignal.bucket])}>
+                {conversionSignal.bucket} · {conversionSignal.score}
+              </span>
+              <span className={`text-xs ${FINELY_OS_ENTITY_BODY}`} title={conversionSignal.factors.join(' · ')}>
+                {conversionSignal.reasoning}
+              </span>
+            </div>
+          </div>
+        ) : null}
       </div>
 
       <div className={`${finelyOsCatalogCard('violet')} !p-5 text-sm space-y-2`}>
@@ -137,6 +157,7 @@ export function CrmRecordPanel({
       <CrmCallTimeOptimizerPanel record={record} />
 
       <CrmRecordSequencePanel record={record} onUpdated={onUpdated} />
+      <AgentTrailForEntity entityId={record.id} />
 
       <div>
         <div className={`${FINELY_OS_ENTITY_SUBLABEL} mb-2`}>Timeline</div>

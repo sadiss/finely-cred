@@ -1,6 +1,8 @@
-import type { CrmSequence, CrmSequenceEnrollment, CrmSequenceStep } from '../domain/crmSequences';
-import { nowIso } from '../domain/crmSequences';
+import type { CrmSequence, CrmSequenceEnrollment, CrmSequenceStep, CrmSequenceVariantKey } from '../domain/crmSequences';
+import { assignCrmSequenceVariantForSeed, crmSequenceStepHasVariants, nowIso } from '../domain/crmSequences';
+import type { CrmRecordStage } from '../domain/crmRecords';
 import { loadJson, saveJson } from './localJsonStore';
+import { syncCrmSequenceEnrollmentToSupabase, syncCrmSequenceToSupabase } from './crmSequencesServerSync';
 
 const KEY = 'finely.crm_sequences.v1';
 const VERSION = 1;
@@ -21,6 +23,13 @@ function newId(prefix: string) {
   return `${prefix}_${Math.random().toString(36).slice(2, 10)}`;
 }
 
+/**
+ * Default escalating multi-touch cadence per target — every qualified lead gets
+ * enrolled into one of these instead of a single one-time outreach (Phase 3
+ * "persistent escalating cadence" rail). Previously only 'clients' had a default
+ * sequence, so prospects/affiliates/agents discovered by Caleb/Benjamin/Rebecca
+ * silently got zero follow-up cadence once their first touch was sent.
+ */
 const DEFAULT_SEQUENCES: CrmSequence[] = [
   {
     id: 'seq_inbound_nurture',
@@ -33,6 +42,38 @@ const DEFAULT_SEQUENCES: CrmSequence[] = [
       { id: 's3', type: 'wait', label: 'Wait 2 days', waitDays: 2 },
       { id: 's4', type: 'task', label: 'Ops follow-up call', taskTitle: 'CRM sequence — follow-up call' },
       { id: 's5', type: 'stage_move', label: 'Move to contacted', targetStage: 'contacted' },
+    ],
+    createdAt: nowIso(),
+    updatedAt: nowIso(),
+  },
+  {
+    id: 'seq_affiliate_escalating',
+    name: 'Affiliate prospect escalating cadence',
+    target: 'affiliates',
+    enabled: true,
+    steps: [
+      { id: 'a1', type: 'wait', label: 'Wait 1 day', waitDays: 1 },
+      { id: 'a2', type: 'email', label: 'Intro + program overview', emailSubject: 'Partner with Finely Cred — affiliate program' },
+      { id: 'a3', type: 'wait', label: 'Wait 3 days', waitDays: 3 },
+      { id: 'a4', type: 'email', label: 'Follow-up + payout structure', emailSubject: 'Quick follow-up — affiliate payouts' },
+      { id: 'a5', type: 'wait', label: 'Wait 4 days', waitDays: 4 },
+      { id: 'a6', type: 'task', label: 'Ops follow-up call', taskTitle: 'Affiliate cadence — follow-up call' },
+    ],
+    createdAt: nowIso(),
+    updatedAt: nowIso(),
+  },
+  {
+    id: 'seq_agents_escalating',
+    name: 'Agent/specialist recruiting escalating cadence',
+    target: 'agents',
+    enabled: true,
+    steps: [
+      { id: 'g1', type: 'wait', label: 'Wait 1 day', waitDays: 1 },
+      { id: 'g2', type: 'email', label: 'Intro + role overview', emailSubject: 'Become a Finely Cred credit specialist' },
+      { id: 'g3', type: 'wait', label: 'Wait 3 days', waitDays: 3 },
+      { id: 'g4', type: 'email', label: 'Follow-up + apply link', emailSubject: 'Still interested? Here is the apply link' },
+      { id: 'g5', type: 'wait', label: 'Wait 5 days', waitDays: 5 },
+      { id: 'g6', type: 'task', label: 'Recruiter follow-up call', taskTitle: 'Recruiting cadence — follow-up call' },
     ],
     createdAt: nowIso(),
     updatedAt: nowIso(),
@@ -59,6 +100,7 @@ export function upsertCrmSequence(seq: CrmSequence): CrmSequence {
   if (idx >= 0) store.sequences[idx] = next;
   else store.sequences.push(next);
   saveStore(store);
+  void syncCrmSequenceToSupabase(next);
   return next;
 }
 
@@ -101,23 +143,60 @@ export function getCrmSequenceEnrollment(id: string): CrmSequenceEnrollment | nu
   return loadStore().enrollments.find((e) => e.id === id) ?? null;
 }
 
-export function enrollCrmRecordInSequence(args: { recordId: string; sequenceId: string }): CrmSequenceEnrollment {
+export function enrollCrmRecordInSequence(args: {
+  recordId: string;
+  sequenceId: string;
+  /** Record's current CRM stage at enroll time — the baseline for G3's "did it advance?" outcome proxy. Optional so existing call sites keep compiling. */
+  currentStage?: CrmRecordStage;
+}): CrmSequenceEnrollment {
+  // Resolved (and, on first-ever call, default-seeded + persisted) BEFORE
+  // loadStore() below so the enrollment write doesn't stomp on sequences
+  // getCrmSequence()/listCrmSequences() may have just seeded.
+  const sequence = getCrmSequence(args.sequenceId);
+  const hasVariantStep = sequence?.steps.some(crmSequenceStepHasVariants) ?? false;
+
   const store = loadStore();
   const existing = store.enrollments.find(
     (e) => e.recordId === args.recordId && e.sequenceId === args.sequenceId && !e.completedAt,
   );
   if (existing) return existing;
   const now = nowIso();
+  const id = newId('crm_enroll');
   const next: CrmSequenceEnrollment = {
-    id: newId('crm_enroll'),
+    id,
     sequenceId: args.sequenceId,
     recordId: args.recordId,
     enrolledAt: now,
     updatedAt: now,
     lastCompletedStepIndex: -1,
+    assignedVariant: hasVariantStep ? assignCrmSequenceVariantForSeed(id) : undefined,
+    stageAtEnrollment: args.currentStage,
   };
   store.enrollments.push(next);
   saveStore(store);
+  void syncCrmSequenceEnrollmentToSupabase(next);
+  return next;
+}
+
+/**
+ * G3 — lazily assigns (and persists) a variant bucket for an enrollment that
+ * doesn't have one yet, e.g. because variants were added to a step after the
+ * enrollment already existed. No-ops (returns the existing enrollment
+ * unchanged) if a bucket is already assigned — first assignment wins, and
+ * since the bucket is deterministic from the enrollment id, a "late" call
+ * from the other engine would compute the identical value anyway.
+ */
+export function ensureCrmSequenceEnrollmentVariant(id: string): CrmSequenceEnrollment | null {
+  const store = loadStore();
+  const idx = store.enrollments.findIndex((e) => e.id === id);
+  if (idx < 0) return null;
+  const cur = store.enrollments[idx]!;
+  if (cur.assignedVariant) return cur;
+  const variant: CrmSequenceVariantKey = assignCrmSequenceVariantForSeed(cur.id);
+  const next: CrmSequenceEnrollment = { ...cur, assignedVariant: variant, updatedAt: nowIso() };
+  store.enrollments[idx] = next;
+  saveStore(store);
+  void syncCrmSequenceEnrollmentToSupabase(next);
   return next;
 }
 
@@ -130,6 +209,7 @@ export function pauseCrmSequenceEnrollment(id: string, paused: boolean): CrmSequ
   const next: CrmSequenceEnrollment = { ...cur, pausedAt: paused ? now : undefined, updatedAt: now };
   store.enrollments[idx] = next;
   saveStore(store);
+  void syncCrmSequenceEnrollmentToSupabase(next);
   return next;
 }
 
@@ -146,6 +226,7 @@ export function advanceCrmSequenceEnrollmentStep(args: { enrollmentId: string; s
   };
   store.enrollments[idx] = next;
   saveStore(store);
+  void syncCrmSequenceEnrollmentToSupabase(next);
   return next;
 }
 
@@ -158,6 +239,7 @@ export function completeCrmSequenceEnrollment(id: string): CrmSequenceEnrollment
   const next: CrmSequenceEnrollment = { ...cur, completedAt: now, updatedAt: now };
   store.enrollments[idx] = next;
   saveStore(store);
+  void syncCrmSequenceEnrollmentToSupabase(next);
   return next;
 }
 

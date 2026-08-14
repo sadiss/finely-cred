@@ -11,14 +11,13 @@ import {
 import { FinelyOsPaginatedStack } from '../../os/FinelyOsPaginatedStack';
 import {FINELY_OS_ENTITY_BODY,
   FINELY_OS_ENTITY_PANEL,
-  FINELY_OS_ENTITY_SELECT,
   FINELY_OS_ENTITY_SUBLABEL,
   FINELY_OS_ENTITY_VALUE,
   FINELY_OS_KPI_ACCENTS,
   FINELY_OS_LUXURY_PAGINATION_BTN,
-  FINELY_OS_PRIMARY_BTN,
   FINELY_OS_SUCCESS_BTN,
-  finelyOsCatalogCard,} from '../../os/finelyOsLightUi';
+  finelyOsCatalogCard,
+  finelyOsGlowTile,} from '../../os/finelyOsLightUi';
 import {
   dueCrmSequenceSteps,
   executeCrmSequenceStep,
@@ -28,7 +27,6 @@ import {
 
 export function CrmRecordSequencePanel({ record, onUpdated }: { record: CrmRecord; onUpdated?: () => void }) {
   const [version, setVersion] = useState(0);
-  const [pickId, setPickId] = useState('');
 
   useEffect(() => {
     const onStore = () => setVersion((v) => v + 1);
@@ -37,6 +35,7 @@ export function CrmRecordSequencePanel({ record, onUpdated }: { record: CrmRecor
   }, []);
 
   const enrollments = useMemo(() => listCrmEnrollmentsByRecord(record.id), [record.id, version]);
+  const enrolledSequenceIds = useMemo(() => new Set(enrollments.filter((e) => !e.completedAt).map((e) => e.sequenceId)), [enrollments]);
   const sequences = useMemo(
     () => listCrmSequences().filter((s) => s.enabled && s.target === record.target),
     [record.target, version],
@@ -59,33 +58,30 @@ export function CrmRecordSequencePanel({ record, onUpdated }: { record: CrmRecor
         <span className={FINELY_OS_ENTITY_SUBLABEL}>Follow-up sequences</span>
       </div>
 
-      <div className="flex flex-wrap items-center gap-2">
-        <select
-          value={pickId}
-          onChange={(e) => setPickId(e.target.value)}
-          className={`flex-1 min-w-[140px] ${FINELY_OS_ENTITY_SELECT} text-xs py-2`}
-        >
-          <option value="">Enroll in sequence…</option>
-          {sequences.map((s) => (
-            <option key={s.id} value={s.id}>
-              {s.name}
-            </option>
-          ))}
-        </select>
-        <button
-          type="button"
-          disabled={!pickId}
-          onClick={() => {
-            if (!pickId) return;
-            enrollCrmRecordInSequence({ recordId: record.id, sequenceId: pickId });
-            setPickId('');
-            bump();
-          }}
-          className={`${FINELY_OS_PRIMARY_BTN} !text-[10px] !py-1.5 !px-2.5`}
-        >
-          <Plus size={12} /> Enroll
-        </button>
-      </div>
+      {sequences.length > 0 ? (
+        <div className="space-y-1">
+          <span className={FINELY_OS_ENTITY_SUBLABEL}>Enroll in sequence</span>
+          <div className="flex flex-wrap gap-1.5">
+            {sequences.map((s) => {
+              const active = enrolledSequenceIds.has(s.id);
+              return (
+                <button
+                  key={s.id}
+                  type="button"
+                  disabled={active}
+                  onClick={() => {
+                    enrollCrmRecordInSequence({ recordId: record.id, sequenceId: s.id, currentStage: record.stage });
+                    bump();
+                  }}
+                  className={`inline-flex items-center gap-1 px-2.5 py-1.5 text-[10px] font-bold ${finelyOsGlowTile(active ? 'emerald' : 'violet', active)} ${active ? 'text-emerald-100' : 'text-white/70'} disabled:opacity-70`}
+                >
+                  {active ? null : <Plus size={11} />} {s.name}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      ) : null}
 
       <FinelyOsPaginatedStack
         items={enrollments}
@@ -122,8 +118,8 @@ export function CrmRecordSequencePanel({ record, onUpdated }: { record: CrmRecor
                     <button
                       type="button"
                       title="Run due step"
-                      onClick={() => {
-                        executeCrmSequenceStep({ enrollment, sequence: seq, stepIndex: nextIdx });
+                      onClick={async () => {
+                        await executeCrmSequenceStep({ enrollment, sequence: seq, stepIndex: nextIdx });
                         bump();
                       }}
                       className={`${FINELY_OS_SUCCESS_BTN} !p-1`}

@@ -34,6 +34,11 @@ import { buildOpsHealthSnapshot } from './opsHealthDashboard';
 import { summarizeExecutionRegistryForCoOwner } from './coOwnerExecutionRegistry';
 import { summarizeCoOwnerSuperhumanForCoOwner } from './coOwnerSuperhumanOps';
 import { summarizeGrowthForCoOwner } from './growthCoOwnerBrief';
+import { listAgreementsByTenant, listEntitlementsByTenant } from '../data/billingRepo';
+import { listAffiliatesLocalSync, listAffiliateEventsLocalSync } from '../data/affiliateRepo';
+import { listSuppressions } from '../data/commsSuppressionRepo';
+import { listAllCourses, listPublishedCourses } from '../data/coursesRepo';
+import { FINELY_TENANT_ID } from '../domain/tenants';
 
 export type CoOwnerAutomationExecResult = {
   ok: boolean;
@@ -128,13 +133,86 @@ export function executeCoOwnerAutomationNow(executeKey: string): CoOwnerAutomati
         navigateTo: '/admin/ops-agent',
         prompt: withSnapshot(summarizeExecutiveStructureForCoOwner(), PROMPTS.executive_org),
       };
-    case 'billing_dunning':
+    case 'billing_dunning': {
+      const agreements = listAgreementsByTenant(FINELY_TENANT_ID);
+      const pastDue = agreements.filter((a) => a.status === 'past_due');
+      const active = agreements.filter((a) => a.status === 'active');
+      const entitlements = listEntitlementsByTenant(FINELY_TENANT_ID);
+      const revoked = entitlements.filter((e) => e.status === 'revoked' || e.status === 'expired');
+      const prefix = [
+        `Active agreements: ${active.length}`,
+        `Past-due agreements: ${pastDue.length}`,
+        `Entitlements: ${entitlements.length} total · ${revoked.length} revoked/expired`,
+        pastDue.length
+          ? `Past-due partner ids (sample): ${pastDue.slice(0, 10).map((a) => a.partnerId).join(', ')}`
+          : 'No past-due agreements — dunning queue is clear.',
+      ].join('\n');
       return {
         ok: true,
-        message: 'Opening billing ops.',
+        message: pastDue.length
+          ? `${pastDue.length} past-due agreement(s) need dunning follow-up.`
+          : 'Billing dunning clear — no past-due agreements.',
         navigateTo: '/admin/billing',
-        prompt: PROMPTS.billing_dunning,
+        prompt: withSnapshot(prefix, PROMPTS.billing_dunning),
       };
+    }
+    case 'affiliate_residual': {
+      const affiliates = listAffiliatesLocalSync(FINELY_TENANT_ID);
+      const active = affiliates.filter((a) => a.status === 'active');
+      const events = listAffiliateEventsLocalSync();
+      const earnedCents = events.filter((e) => e.eventType === 'conversion').reduce((s, e) => s + (e.amountCents ?? 0), 0);
+      const paidCents = events.filter((e) => e.eventType === 'payout').reduce((s, e) => s + (e.amountCents ?? 0), 0);
+      const pendingCents = Math.max(0, earnedCents - paidCents);
+      const prefix = [
+        `Affiliates: ${affiliates.length} total · ${active.length} active`,
+        `Attribution events logged: ${events.length}`,
+        `Estimated pending payout: $${(pendingCents / 100).toFixed(2)}`,
+        'Default split: 20% first-purchase commission · 15% recurring · 8% Denefits in-house share.',
+      ].join('\n');
+      return {
+        ok: true,
+        message: `${active.length} active affiliate(s) · est. pending payout $${(pendingCents / 100).toFixed(2)}.`,
+        navigateTo: '/admin/affiliates',
+        prompt: withSnapshot(prefix, PROMPTS.affiliate_residual),
+      };
+    }
+    case 'route_comms': {
+      const suppressions = listSuppressions();
+      const byReason: Record<string, number> = {};
+      for (const s of suppressions) byReason[s.reason] = (byReason[s.reason] ?? 0) + 1;
+      const prefix = [
+        `Suppression list: ${suppressions.length} entr${suppressions.length === 1 ? 'y' : 'ies'}`,
+        Object.keys(byReason).length
+          ? `By reason: ${Object.entries(byReason).map(([k, v]) => `${k}=${v}`).join(', ')}`
+          : 'No suppressions recorded.',
+        'Routing doctrine: complaints/compliance → team chat review; process questions → AI coach; account-specific asks → specialist.',
+      ].join('\n');
+      return {
+        ok: true,
+        message: `${suppressions.length} comms suppression(s) on file — routing audit ready.`,
+        navigateTo: '/admin/comms',
+        prompt: withSnapshot(prefix, PROMPTS.route_comms),
+      };
+    }
+    case 'course_build': {
+      const all = listAllCourses();
+      const published = listPublishedCourses();
+      const lessonCount = all.reduce(
+        (s, c) => s + (c.modules ?? []).reduce((ss, m) => ss + (m.lessons?.length ?? 0), 0),
+        0,
+      );
+      const prefix = [
+        `Courses: ${all.length} total · ${published.length} published`,
+        `Total lessons across catalog: ${lessonCount}`,
+        all.length ? `Titles: ${all.map((c) => c.title).join(', ')}` : 'No courses yet — catalog is empty.',
+      ].join('\n');
+      return {
+        ok: true,
+        message: `${published.length}/${all.length} course(s) published — proposing next module for the weakest lane.`,
+        navigateTo: '/admin/training-academy',
+        prompt: withSnapshot(prefix, PROMPTS.course_build),
+      };
+    }
     case 'it_health':
       return {
         ok: true,

@@ -8,7 +8,6 @@ import {
   Palette,
   Scissors,
   Sparkles,
-  X,
   Zap,
 } from 'lucide-react';
 import type { MediaTransitionType } from '../../domain/mediaStudio';
@@ -17,12 +16,14 @@ import type { VideoScenePlan } from './types';
 import {
   FINELY_OS_ENTITY_BODY,
   FINELY_OS_ENTITY_SUBLABEL,
+  FINELY_OS_MODAL_HEADER,
   FINELY_OS_MODAL_OVERLAY,
   FINELY_OS_MODAL_SHELL,
   FINELY_OS_SECONDARY_BTN,
   finelyOsDeckTile,
   finelyOsMicroStat,
 } from '../os/finelyOsLightUi';
+import { FinelyOsModalCloseButton } from '../os/FinelyOsModalCloseButton';
 
 export type VideoTimelineEditorProps = {
   scenes: VideoScenePlan[];
@@ -200,15 +201,13 @@ export function VideoTimelineEditor({
             className={`${FINELY_OS_MODAL_SHELL} relative mx-auto mt-[min(8vh,4rem)] max-w-lg w-[calc(100%-2rem)] !p-4`}
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-start justify-between gap-3 border-b border-white/10 pb-3">
+            <div className={FINELY_OS_MODAL_HEADER}>
               <div>
                 <p className={FINELY_OS_ENTITY_SUBLABEL}>Edit scene</p>
                 <h3 className="text-lg font-bold text-white">{editing.beat}</h3>
                 <p className={`mt-1 text-xs ${FINELY_OS_ENTITY_BODY}`}>{trimHint(editing.durationSec)}</p>
               </div>
-              <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => setEditId(null)} aria-label="Close">
-                <X size={16} />
-              </button>
+              <FinelyOsModalCloseButton onClick={() => setEditId(null)} />
             </div>
             <div className="mt-3 space-y-3 max-h-[60vh] overflow-y-auto">
               <label className="block">

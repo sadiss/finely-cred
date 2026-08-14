@@ -25,7 +25,6 @@ import { SensitiveActionCodeGate } from './SensitiveActionCodeGate';
 import { LetterStreamStatusCard } from '../letters/LetterStreamStatusCard';
 import {
   FC_ADMIN_GOLD_BTN,
-  FC_ADMIN_PRIMARY_BTN,
   fcAdminCard,
   fcAdminOnSolidBody,
   fcAdminOnSolidInnerTile,
@@ -38,6 +37,7 @@ import {
   trackPartnerInviteSent,
   trackPartnerPasswordResetSent,
   trackPartnerWelcomeSent,
+  resolvePartnerAccessState,
 } from '../../lib/partnerAuthActivity';
 
 /** Access & authority (navy) — login/claim/service identity, grant panel, admin approval toggles. */
@@ -54,9 +54,10 @@ const GOLD_VALUE = fcAdminOnSolidValue('gold');
 const GOLD_SECONDARY_BTN = fcAdminOnSolidSecondaryBtn('gold');
 const GOLD_INNER = fcAdminOnSolidInnerTile('p-4', 'gold');
 const NOTICE_SUCCESS_ON_GOLD =
-  'rounded-xl border border-black/20 bg-black/10 p-4 text-sm flex items-start gap-3 text-[var(--fc-ink-on-gold)]';
+  'rounded-xl border border-[#7c4a0f]/25 bg-[#7c4a0f]/12 p-4 text-sm flex items-start gap-3 text-[var(--fc-ink-on-gold)]';
 const NOTICE_WARN_ON_GOLD =
-  'rounded-xl border border-black/25 bg-black/15 p-4 text-sm text-[var(--fc-ink-on-gold)]';
+  'rounded-xl border border-[#7c4a0f]/30 bg-[#7c4a0f]/16 p-4 text-sm text-[var(--fc-ink-on-gold)]';
+const ERR_ON_GOLD = 'text-[13px] font-semibold text-[#5c1710]';
 
 type Props = {
   partner: Partner;
@@ -168,6 +169,7 @@ export function AdminPartnerAccessPanel({ partner, userRole, onUpdated }: Props)
   const canSendComms = staffCaps.canSendPartnerComms(partner);
   const signupInviteLink = useMemo(() => (email ? signupInviteUrl(partner, email) : ''), [partner, email]);
   const claimed = Boolean(partner.claimedUserId);
+  const accessState = useMemo(() => resolvePartnerAccessState(partner), [partner]);
   const canSendInviteEmail = inviteOn && Boolean(email) && canSendComms;
   const canResendWelcome = commsOn && Boolean(email) && canSendComms;
   const canSendAccountSetup = !claimed && inviteOn && Boolean(email) && canSendComms;
@@ -294,6 +296,16 @@ export function AdminPartnerAccessPanel({ partner, userRole, onUpdated }: Props)
         redirectTo: `${window.location.origin}/reset-password`,
       });
       if (res.error) throw new Error(res.error);
+      if (res.noAccount) {
+        setNotice(
+          `No login account exists for ${email}. Use "Resend invite" or "Copy signup link" so they can create credentials first.`,
+        );
+        return;
+      }
+      if (!res.sent) {
+        setNotice(`Reset request accepted for ${email}. If delivery fails, verify SMTP secrets on send-password-reset.`);
+        return;
+      }
       recordAdminDelivery(partner.id, 'password_reset');
       setDeliveryTick((t) => t + 1);
       await trackPartnerPasswordResetSent({
@@ -415,7 +427,13 @@ export function AdminPartnerAccessPanel({ partner, userRole, onUpdated }: Props)
           </div>
           <div>
             <div className={NAVY_SUBLABEL}>Account claimed</div>
-            <div className={`mt-1 ${NAVY_VALUE}`}>{partner.claimedUserId ? 'Yes — linked to auth user' : 'No — admin-created or pending claim'}</div>
+            <div className={`mt-1 ${NAVY_VALUE}`}>
+              {partner.claimedUserId ? 'Yes — linked to auth user' : accessState.hasAuthAccount ? 'Auth account exists — linking…' : 'No — admin-created or pending claim'}
+            </div>
+          </div>
+          <div>
+            <div className={NAVY_SUBLABEL}>Signup status</div>
+            <div className={`mt-1 ${NAVY_VALUE}`}>{accessState.label}</div>
           </div>
           <div>
             <div className={NAVY_SUBLABEL}>Service lane</div>
@@ -629,7 +647,7 @@ export function AdminPartnerAccessPanel({ partner, userRole, onUpdated }: Props)
           <div className={GOLD_SUBLABEL}>Invite setup fields for this role/lane</div>
           <div className="grid md:grid-cols-2 gap-3">
             {roleFields.map((field) => (
-              <div key={field.label} className="rounded-xl border border-black/15 bg-black/[0.05] p-3">
+              <div key={field.label} className={`${GOLD_INNER} !p-3`}>
                 <div className={`text-sm font-semibold ${GOLD_VALUE}`}>{field.label}</div>
                 <div className={`mt-1 text-xs leading-relaxed ${GOLD_BODY}`}>{field.detail}</div>
               </div>
@@ -661,7 +679,7 @@ export function AdminPartnerAccessPanel({ partner, userRole, onUpdated }: Props)
         ) : null}
 
         {notice ? <div className={NOTICE_SUCCESS_ON_GOLD}>{notice}</div> : null}
-        {err ? <div className="text-[13px] font-semibold text-[#5c1710]">{err}</div> : null}
+        {err ? <div className={ERR_ON_GOLD}>{err}</div> : null}
 
         {(inviteState.sentAt || resetState.sentAt || welcomeState.sentAt) ? (
           <div className={`${GOLD_INNER} text-xs space-y-1`}>
@@ -719,7 +737,7 @@ export function AdminPartnerAccessPanel({ partner, userRole, onUpdated }: Props)
             type="button"
             onClick={() => void sendReset()}
             disabled={!email || busy !== null || (resetState.isRepeat && !resetState.canSend)}
-            className={FC_ADMIN_PRIMARY_BTN}
+            className={GOLD_SECONDARY_BTN}
             title={resetState.isRepeat && !resetState.canSend ? `Wait ${resetState.waitSeconds}s` : undefined}
           >
             <KeyRound size={14} />{' '}

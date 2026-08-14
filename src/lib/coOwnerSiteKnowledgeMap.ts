@@ -89,7 +89,7 @@ export function summarizeSiteKnowledgeMapForCoOwner(): string {
 
   return [
     `SITE MAP: ${surfaces.length} surfaces (${adminCount} admin · ${portalCount} portal · ${PUBLIC_SURFACES.length} public)`,
-    `KNOWLEDGE INDEX: ${index.total} chunks (SOP ${index.bySource.sop} · tour ${index.bySource.tour} · module ${index.bySource.module} · article ${index.bySource.article})`,
+    `KNOWLEDGE INDEX: ${index.total} chunks (SOP ${index.bySource.sop} · tour ${index.bySource.tour} · module ${index.bySource.module} · article ${index.bySource.article} · eguide ${index.bySource.eguide} · reference ${index.bySource.reference})`,
     `MODULE PLAYBOOKS: ${MODULE_PLAYBOOKS.length}`,
     `EXECUTION: ${superpowers} superpowers · ${automations} automations · ${executable} with real handlers`,
     `EXECUTIVE ORG: ${exec.totalHats} hats · ${exec.vacant} vacant`,
@@ -98,10 +98,46 @@ export function summarizeSiteKnowledgeMapForCoOwner(): string {
   ].join('\n');
 }
 
-export function buildCoOwnerSiteKnowledgeContext(query: string, route?: string): string {
+/** Route → topic keywords, so an empty/ambiguous query still retrieves relevant chunks
+ * instead of falling back to one fixed phrase for every admin surface. */
+const ROUTE_TOPIC_HINTS: Array<{ test: RegExp; topic: string }> = [
+  { test: /^\/admin\/billing/, topic: 'billing invoices payments dunning past due entitlements agreements' },
+  { test: /^\/admin\/affiliates?/, topic: 'affiliate commission payout referral tracking campaigns' },
+  { test: /^\/admin\/social-hub/, topic: 'social content compliance autopilot posting' },
+  { test: /^\/admin\/phone-hub/, topic: 'phone queue voicemail sla missed calls' },
+  { test: /^\/admin\/comms/, topic: 'comms routing nurture sequences messaging' },
+  { test: /^\/admin\/dispute-collaboration|^\/portal\/letters|^\/portal\/disputes/, topic: 'dispute letters validation credit bureaus letter studio' },
+  { test: /^\/admin\/workflow/, topic: 'validation clocks case deadlines tasks' },
+  { test: /^\/admin\/staff-roles|^\/admin\/staff/, topic: 'staff roster hiring executive roles coverage' },
+  { test: /^\/admin\/training-academy|^\/admin\/courses/, topic: 'training academy courses curriculum' },
+  { test: /^\/admin\/launch-os/, topic: 'launch readiness gates go live' },
+  { test: /^\/admin\/monitoring/, topic: 'platform health engineering dev triage' },
+  { test: /^\/admin\/crm/, topic: 'crm pipeline leads prospects stages' },
+  { test: /^\/portal\/wealth-paths|^\/admin\/nora-capital/, topic: 'funding underwriting business credit readiness' },
+  { test: /^\/pricing/, topic: 'pricing packages personal business debt bundles' },
+];
+
+/** Derive a topic-aware fallback query from recent conversation turns or the active
+ * admin route, instead of always defaulting to one static phrase. */
+function deriveFallbackKnowledgeQuery(route?: string, recentMessages?: string[]): string {
+  const fromMessages = (recentMessages ?? [])
+    .map((m) => (m || '').trim())
+    .filter(Boolean)
+    .slice(-4)
+    .join(' ');
+  if (fromMessages.length > 8) return fromMessages.slice(-500);
+  if (route) {
+    const hit = ROUTE_TOPIC_HINTS.find((r) => r.test.test(route));
+    if (hit) return hit.topic;
+  }
+  return 'operations launch credit dispute';
+}
+
+export function buildCoOwnerSiteKnowledgeContext(query: string, route?: string, recentMessages?: string[]): string {
   const map = summarizeSiteKnowledgeMapForCoOwner();
-  const hits = searchFinelyKnowledge(query || 'operations launch credit dispute', {
-    limit: 8,
+  const effectiveQuery = (query || '').trim() || deriveFallbackKnowledgeQuery(route, recentMessages);
+  const hits = searchFinelyKnowledge(effectiveQuery, {
+    limit: 16,
     contextRoute: route,
   });
   const rag = formatFinelyKnowledgeForPrompt(hits);

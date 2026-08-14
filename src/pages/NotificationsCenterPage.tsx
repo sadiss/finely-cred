@@ -191,6 +191,19 @@ export default function NotificationsCenterPage({ surface }: { surface: Surface 
               >
                 Letter lifecycle emails
               </button>
+              <button
+                type="button"
+                onClick={() => {
+                  upsertNotificationPrefs({
+                    ...prefs,
+                    emailMeetingReminders: !prefs.emailMeetingReminders,
+                  });
+                  setVersion((v) => v + 1);
+                }}
+                className={`${FINELY_OS_ENTITY_CHIP} ${prefs.emailMeetingReminders !== false ? '' : 'opacity-50 line-through'}`}
+              >
+                Meeting reminder emails
+              </button>
             </div>
             <div className="flex flex-wrap gap-2">
               {(

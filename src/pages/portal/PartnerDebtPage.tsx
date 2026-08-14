@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { ArrowLeft, ArrowRight, Scale, FileWarning, Plus } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Scale, FileWarning, Plus, Gavel, AlertTriangle, ChevronDown, ChevronUp, BookOpen } from 'lucide-react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { PageShell } from '../../components/layout/PageShell';
 import { listDebtByPartner, createDebtCase } from '../../data/debtRepo';
@@ -19,12 +19,24 @@ import { PartnerSuccessExperiencePanel } from '../../components/partner/PartnerS
 import { SmartProofUploader } from '../../components/evidence/SmartProofUploader';
 import { LettersCommandCenter, type LettersStudioTab } from '../../components/letters/LettersCommandCenter';
 import {
+  getAllDebtLitigationPlaybooks,
+  getPlaybook,
+  getPlaybooksByDebtType,
+  type DebtLitigationPlaybook,
+} from '../../data/debtLitigationDoctrineRepo';
+import { FinelyOsOverviewStatTile } from '../../features/os/FinelyOsOverviewStatTile';
+import {
   FINELY_OS_PAGE,
   FINELY_OS_BACK_LINK,
   FINELY_OS_ENTITY_BODY,
+  FINELY_OS_ENTITY_CHIP,
+  FINELY_OS_ENTITY_EMPTY,
   FINELY_OS_ENTITY_INPUT,
   FINELY_OS_ENTITY_LABEL,
+  finelyOsAlertBanner,
   finelyOsCatalogCard,
+  finelyOsCatalogCardCompact,
+  finelyOsGlowTile,
   FINELY_OS_ENTITY_SELECT,
   FINELY_OS_ENTITY_SUBLABEL,
   FINELY_OS_ENTITY_TITLE,
@@ -34,6 +46,242 @@ import {
   FINELY_OS_SECONDARY_BTN,
   FINELY_OS_SUCCESS_BTN,
 } from '../../features/os/finelyOsLightUi';
+
+const DEBT_DEFENSE_TYPE_OPTIONS: { id: DebtLitigationPlaybook['debtType']; label: string }[] = [
+  { id: 'credit_card', label: 'Credit card' },
+  { id: 'medical', label: 'Medical debt' },
+  { id: 'auto_repossession', label: 'Auto repossession' },
+  { id: 'mortgage_foreclosure', label: 'Mortgage / foreclosure' },
+  { id: 'student_loan', label: 'Student loan' },
+  { id: 'bank_overdraft', label: 'Bank overdraft' },
+  { id: 'personal_loan', label: 'Personal loan' },
+  { id: 'tax_lien', label: 'Tax lien' },
+  { id: 'merchant_cash_advance', label: 'Merchant cash advance' },
+  { id: 'payday_loan', label: 'Payday loan' },
+  { id: 'timeshare', label: 'Timeshare' },
+];
+
+const DEBT_DEFENSE_PHASE_OPTIONS: { id: DebtLitigationPlaybook['phase']; label: string }[] = [
+  { id: 'pre_suit_validation', label: 'Pre-suit validation' },
+  { id: 'summons_answer', label: 'Summons & answer' },
+  { id: 'discovery_motion', label: 'Discovery & motions' },
+  { id: 'post_judgment_emergency', label: 'Post-judgment emergency' },
+  { id: 'counter_suit', label: 'Counter-suit' },
+];
+
+const DEBT_DEFENSE_REMEDY_LABELS: Record<DebtLitigationPlaybook['remedyAction']['actionType'], string> = {
+  wage_garnishment_exemption: 'Wage garnishment exemption',
+  bank_levy_quash: 'Bank levy quash',
+  motion_to_vacate: 'Motion to vacate',
+  fdcpa_counter_suit: 'FDCPA counter-suit',
+  cfpb_ag_complaint: 'CFPB / AG complaint',
+  answer_and_affirmative_defenses: 'Answer & affirmative defenses',
+  discovery_demand: 'Discovery demand',
+  statute_of_limitations_defense: 'Statute of limitations defense',
+};
+
+/** Compact chip-driven explorer over the debt-litigation doctrine repo — no dropdowns. */
+function DebtDefensePlaybookExplorer() {
+  const [debtType, setDebtType] = useState<DebtLitigationPlaybook['debtType'] | null>(null);
+  const [phase, setPhase] = useState<DebtLitigationPlaybook['phase'] | null>(null);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+
+  const allPlaybooks = useMemo(() => getAllDebtLitigationPlaybooks(), []);
+  const debtTypesCovered = useMemo(() => new Set(allPlaybooks.map((p) => p.debtType)).size, [allPlaybooks]);
+  const phasesCovered = useMemo(() => new Set(allPlaybooks.map((p) => p.phase)).size, [allPlaybooks]);
+
+  const availablePhases = useMemo(() => {
+    if (!debtType) return [];
+    const phaseSet = new Set(getPlaybooksByDebtType(debtType).map((p) => p.phase));
+    return DEBT_DEFENSE_PHASE_OPTIONS.filter((p) => phaseSet.has(p.id));
+  }, [debtType]);
+
+  const matchingPlaybook = useMemo(() => {
+    if (!debtType || !phase) return undefined;
+    return getPlaybook(debtType, phase);
+  }, [debtType, phase]);
+
+  const handleSelectDebtType = (id: DebtLitigationPlaybook['debtType']) => {
+    setDebtType((prev) => (prev === id ? null : id));
+    setPhase(null);
+    setExpandedId(null);
+  };
+
+  const handleSelectPhase = (id: DebtLitigationPlaybook['phase']) => {
+    setPhase((prev) => (prev === id ? null : id));
+    setExpandedId(null);
+  };
+
+  return (
+    <div className="space-y-3">
+      <div className="grid sm:grid-cols-3 gap-3">
+        <FinelyOsOverviewStatTile
+          icon={BookOpen}
+          label="Playbooks available"
+          value={String(allPlaybooks.length)}
+          accent="violet"
+          hint="Debt defense scenarios"
+        />
+        <FinelyOsOverviewStatTile
+          icon={FileWarning}
+          label="Debt types covered"
+          value={String(debtTypesCovered)}
+          accent="fuchsia"
+          hint="Credit card to timeshare"
+        />
+        <FinelyOsOverviewStatTile
+          icon={Gavel}
+          label="Litigation phases"
+          value={String(phasesCovered)}
+          accent="amber"
+          hint="Pre-suit to counter-suit"
+        />
+      </div>
+
+      <div className={`${finelyOsCatalogCardCompact('violet')} space-y-3`}>
+        <div>
+          <div className={FINELY_OS_ENTITY_SUBLABEL}>1. What kind of debt is this?</div>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {DEBT_DEFENSE_TYPE_OPTIONS.map((opt) => {
+              const active = debtType === opt.id;
+              return (
+                <button
+                  key={opt.id}
+                  type="button"
+                  onClick={() => handleSelectDebtType(opt.id)}
+                  className={`px-3 py-1.5 text-[11px] font-bold ${finelyOsGlowTile(active ? 'violet' : 'sky', active)} ${
+                    active ? 'text-violet-100' : 'text-white/70'
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {debtType ? (
+          <div>
+            <div className={FINELY_OS_ENTITY_SUBLABEL}>2. What phase is this at?</div>
+            {availablePhases.length === 0 ? (
+              <p className={`mt-2 text-xs ${FINELY_OS_ENTITY_BODY}`}>No playbook is available yet for this debt type.</p>
+            ) : (
+              <div className="mt-2 flex flex-wrap gap-2">
+                {availablePhases.map((opt) => {
+                  const active = phase === opt.id;
+                  return (
+                    <button
+                      key={opt.id}
+                      type="button"
+                      onClick={() => handleSelectPhase(opt.id)}
+                      className={`px-3 py-1.5 text-[11px] font-bold ${finelyOsGlowTile(active ? 'amber' : 'sky', active)} ${
+                        active ? 'text-amber-100' : 'text-white/70'
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        ) : null}
+      </div>
+
+      {debtType && phase ? (
+        matchingPlaybook ? (
+          <div className={`${finelyOsCatalogCardCompact('emerald')} space-y-3`}>
+            <button
+              type="button"
+              onClick={() => setExpandedId((prev) => (prev === matchingPlaybook.id ? null : matchingPlaybook.id))}
+              className="w-full flex items-start justify-between gap-3 text-left"
+            >
+              <div>
+                <div className={`${FINELY_OS_ENTITY_VALUE} text-sm font-semibold`}>{matchingPlaybook.title}</div>
+                <p className={`mt-1 text-xs ${FINELY_OS_ENTITY_BODY}`}>{matchingPlaybook.overview}</p>
+              </div>
+              {expandedId === matchingPlaybook.id ? (
+                <ChevronUp size={16} className="text-white/50 shrink-0 mt-1" />
+              ) : (
+                <ChevronDown size={16} className="text-white/50 shrink-0 mt-1" />
+              )}
+            </button>
+
+            {expandedId === matchingPlaybook.id ? (
+              <div className="space-y-3 pt-2 border-t border-white/10">
+                <div>
+                  <div className={FINELY_OS_ENTITY_SUBLABEL}>Statutory basis</div>
+                  <div className="mt-1.5 flex flex-wrap gap-1.5">
+                    {matchingPlaybook.statutoryBasis.map((s) => (
+                      <span key={s} className={FINELY_OS_ENTITY_CHIP}>
+                        {s}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                {matchingPlaybook.caseLawPrecedents.length > 0 ? (
+                  <div>
+                    <div className={FINELY_OS_ENTITY_SUBLABEL}>Case law</div>
+                    <ul className={`mt-1.5 space-y-1 text-xs ${FINELY_OS_ENTITY_BODY} list-disc pl-4`}>
+                      {matchingPlaybook.caseLawPrecedents.map((c) => (
+                        <li key={c}>{c}</li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : null}
+
+                <div>
+                  <div className={FINELY_OS_ENTITY_SUBLABEL}>
+                    Remedy action — {DEBT_DEFENSE_REMEDY_LABELS[matchingPlaybook.remedyAction.actionType]}
+                  </div>
+                  <ul className={`mt-1.5 space-y-1 text-xs ${FINELY_OS_ENTITY_BODY} list-disc pl-4`}>
+                    {matchingPlaybook.remedyAction.legalRequirements.map((r) => (
+                      <li key={r}>{r}</li>
+                    ))}
+                  </ul>
+                  {matchingPlaybook.remedyAction.exemptFundTypes?.length ? (
+                    <div className="mt-2">
+                      <div className="text-[10px] font-bold uppercase tracking-wide text-emerald-300/70">Exempt fund types</div>
+                      <div className="mt-1 flex flex-wrap gap-1.5">
+                        {matchingPlaybook.remedyAction.exemptFundTypes.map((f) => (
+                          <span key={f} className={FINELY_OS_ENTITY_CHIP}>
+                            {f}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  ) : null}
+                  <div className="mt-2">
+                    <div className="text-[10px] font-bold uppercase tracking-wide text-white/45">Execution steps</div>
+                    <ol className="mt-1 space-y-1 text-xs text-white/75 list-decimal pl-4">
+                      {matchingPlaybook.remedyAction.executionSteps.map((step, i) => (
+                        <li key={i}>{step}</li>
+                      ))}
+                    </ol>
+                  </div>
+                </div>
+
+                <div className={`${finelyOsAlertBanner('warning')} flex items-start gap-3`}>
+                  <AlertTriangle size={16} className="mt-0.5 shrink-0 opacity-90" />
+                  <ul className="space-y-1 list-disc pl-4">
+                    {matchingPlaybook.practicalWarnings.map((w) => (
+                      <li key={w}>{w}</li>
+                    ))}
+                  </ul>
+                </div>
+
+                <p className="text-[10px] text-white/40 leading-relaxed">{matchingPlaybook.disclaimer}</p>
+              </div>
+            ) : null}
+          </div>
+        ) : (
+          <div className={FINELY_OS_ENTITY_EMPTY}>No playbook found for this debt type + phase combination yet.</div>
+        )
+      ) : null}
+    </div>
+  );
+}
 
 function AddCaseForm({
   addType,
@@ -353,6 +601,7 @@ export default function PartnerDebtPage() {
                 { id: 'repossession', label: 'Repossession' },
                 { id: 'bankruptcy', label: 'Bankruptcy' },
                 { id: 'cases', label: 'Cases', badge: cases.length || undefined },
+                { id: 'guides', label: 'Defense Playbook' },
               ]}
               activeTab={tab === 'court' ? 'litigation' : tab}
               onTabChange={(id) => handleTabChange(id as DebtTab)}
@@ -541,6 +790,8 @@ export default function PartnerDebtPage() {
                   )}
                 </div>
               )}
+
+              {tab === 'guides' && <DebtDefensePlaybookExplorer />}
             </FinelyUnifiedHubLayout>
 
             <PartnerRestoreWorkspaceDock variant="portal" className="mt-6 sticky bottom-3 z-20" />

@@ -4,7 +4,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { PageShell } from '../../components/layout/PageShell';
 import { useAuth } from '../../auth/AuthProvider';
 import { usePartnerSession } from '../../auth/PartnerSessionContext';
-import { deleteLetter, listLettersByPartner, setLetterArchived, upsertLetter } from '../../data/lettersRepo';
+import { deleteLetter, listLettersByPartner, markLetterFinal, setLetterArchived, upsertLetter } from '../../data/lettersRepo';
 import { backfillPartnerLettersMailTo } from '../../lib/letterMailToBackfill';
 import { listEvidenceByPartner } from '../../data/evidenceRepo';
 import { openBlobRefInNewTab } from '../../lib/openBlobRef';
@@ -16,6 +16,8 @@ import { SavedLetterCard } from '../../components/letters/SavedLetterCard';
 import { MailProviderStatusBanner } from '../../components/mailing/MailProviderStatusBanner';
 import { notifyLetterMailed } from '../../lib/letterMailedNotify';
 import { notifyLetterLifecycle } from '../../lib/letterLifecycleNotify';
+import { isLetterDraft } from '../../lib/letterDraftLifecycle';
+import { MarkLetterFinalModal } from '../../components/letters/MarkLetterFinalModal';
 import { loadLettersCommandCenterDraft } from '../../data/lettersCommandCenterDraftRepo';
 import { letterStudioResumeUrl } from '../../lib/letterStudioResume';
 import { bureauFullName } from '../../utils/bureaus';
@@ -50,7 +52,8 @@ import {
 
 const STATUS: { value: LetterStatus | 'all'; label: string }[] = [
   { value: 'all', label: 'All' },
-  { value: 'generated', label: 'Generated' },
+  { value: 'draft', label: 'Draft' },
+  { value: 'generated', label: 'Final / generated' },
   { value: 'mail_pending', label: 'Mail pending' },
   { value: 'mail_failed', label: 'Mail failed' },
   { value: 'mailed', label: 'Mailed' },
@@ -87,6 +90,9 @@ export default function PartnerLettersVaultPage() {
   const [view, setView] = useState<'active' | 'archived'>('active');
   const [mailGateErr, setMailGateErr] = useState<string | null>(null);
   const [openErr, setOpenErr] = useState<string | null>(null);
+  const [markFinalLetter, setMarkFinalLetter] = useState<LetterRecord | null>(null);
+  const [markFinalBusy, setMarkFinalBusy] = useState(false);
+  const [markFinalEmail, setMarkFinalEmail] = useState(true);
   const evidence = useMemo(() => (partner ? listEvidenceByPartner(partner.id) : []), [partner]);
 
   const studioDraftResume = useMemo(() => {
@@ -134,6 +140,16 @@ export default function PartnerLettersVaultPage() {
     return base.filter((l) => (l.status ?? 'generated') === status);
   }, [letters, status, view]);
 
+  const draftLetters = useMemo(
+    () => letters.filter((l) => !l.archivedAt && isLetterDraft(l)),
+    [letters],
+  );
+
+  const vaultLetters = useMemo(
+    () => filtered.filter((l) => !isLetterDraft(l)),
+    [filtered],
+  );
+
   const counts = useMemo(() => {
     const active = letters.filter((l) => !l.archivedAt);
     const archived = letters.filter((l) => Boolean(l.archivedAt));
@@ -155,11 +171,11 @@ export default function PartnerLettersVaultPage() {
       const meta = (l.meta ?? {}) as Record<string, unknown>;
       return meta.context === 'bankruptcy' || meta.templateCategory === 'bankruptcy';
     };
-    const byType = (t: LetterRecord['type']) => filtered.filter((l) => l.type === t && !isBankruptcy(l));
+    const byType = (t: LetterRecord['type']) => vaultLetters.filter((l) => l.type === t && !isBankruptcy(l));
     const dispute = byType('dispute');
     const validation = byType('validation');
     const court = byType('court');
-    const bankruptcy = filtered.filter(isBankruptcy);
+    const bankruptcy = vaultLetters.filter(isBankruptcy);
     const disputeByBureau = dispute.reduce(
       (m, l) => {
         const bureau = l.meta && 'bureau' in (l.meta as any) ? String((l.meta as any).bureau || 'Unknown') : 'Unknown';
@@ -175,7 +191,40 @@ export default function PartnerLettersVaultPage() {
       { id: 'court', label: 'Court / Affidavit', letters: court },
       { id: 'bankruptcy', label: 'Bankruptcy', letters: bankruptcy },
     ] as const;
-  }, [filtered]);
+  }, [vaultLetters]);
+
+  const confirmMarkLetterFinal = async () => {
+    if (!markFinalLetter || !partner) return;
+    setMarkFinalBusy(true);
+    try {
+      const updated = markLetterFinal(markFinalLetter);
+      addAuditEvent({
+        partnerId: partner.id,
+        actorType: 'partner',
+        actorEmail: email || undefined,
+        action: 'letter.marked_final',
+        entityType: 'letter',
+        entityId: updated.id,
+        meta: { type: updated.type, title: updated.title },
+      });
+      if (markFinalEmail) {
+        void notifyLetterLifecycle({
+          partnerId: partner.id,
+          partner,
+          event: 'ready_to_mail',
+          letterIds: [updated.id],
+          letterTitles: [updated.title],
+          emailPartner: true,
+          actorEmail: email || undefined,
+          actorRole: 'partner',
+        });
+      }
+      setMarkFinalLetter(null);
+      setLettersVersion((v) => v + 1);
+    } finally {
+      setMarkFinalBusy(false);
+    }
+  };
 
   const vaultKpis = useMemo(
     () => [
@@ -209,7 +258,7 @@ export default function PartnerLettersVaultPage() {
 
   const canMail = isFeatureEnabled('letterMailing');
   const pdfReadyActive = useMemo(
-    () => letters.filter((l) => !l.archivedAt && Boolean(l.pdfBlobRef)),
+    () => letters.filter((l) => !l.archivedAt && Boolean(l.pdfBlobRef) && !isLetterDraft(l)),
     [letters],
   );
 
@@ -309,10 +358,10 @@ export default function PartnerLettersVaultPage() {
         highlighted={highlightId === l.id}
         autoOpenPreview={autoPreviewId === l.id}
         evidence={evidence}
-        canMail={canMail}
+        canMail={canMail && !isLetterDraft(l)}
         onOpenPdf={() => void openPdf(l)}
         onMail={() => {
-          if (!l.pdfBlobRef) return;
+          if (!l.pdfBlobRef || isLetterDraft(l)) return;
           setMailGateErr(null);
           if (l.type === 'dispute') {
             const idGate = checkIdentityVaultGate(evidence);
@@ -333,7 +382,7 @@ export default function PartnerLettersVaultPage() {
         }}
         onArchive={() => toggleArchive(l)}
         pdfDisabled={!l.pdfBlobRef}
-        mailDisabled={!l.pdfBlobRef}
+        mailDisabled={!l.pdfBlobRef || isLetterDraft(l)}
         onResumeStudio={
           l.type === 'dispute' && !l.pdfBlobRef && studioDraftResume
             ? () => navigate(studioDraftResume)
@@ -353,6 +402,7 @@ export default function PartnerLettersVaultPage() {
           });
           navigate(0);
         }}
+        onMarkFinal={isLetterDraft(l) ? () => setMarkFinalLetter(l) : undefined}
       />
     </div>
   );
@@ -491,6 +541,19 @@ export default function PartnerLettersVaultPage() {
               onComplete={applyBatchResults}
             />
           ) : null}
+          {markFinalLetter ? (
+            <MarkLetterFinalModal
+              open={Boolean(markFinalLetter)}
+              title={markFinalLetter.title}
+              withPdf={Boolean(markFinalLetter.pdfBlobRef)}
+              emailPartner={markFinalEmail}
+              onEmailPartnerChange={setMarkFinalEmail}
+              emailHint="Sends one email when you mark this letter final — not on every edit."
+              busy={markFinalBusy}
+              onClose={() => setMarkFinalLetter(null)}
+              onConfirm={() => void confirmMarkLetterFinal()}
+            />
+          ) : null}
           <button type="button" onClick={() => navigate('/portal/letters')} className={FINELY_OS_BACK_LINK} title="Back to Letter Studio">
             <ArrowLeft size={16} /> Letter Studio
           </button>
@@ -532,6 +595,26 @@ export default function PartnerLettersVaultPage() {
               <button type="button" className={FINELY_OS_PRIMARY_BTN} onClick={() => navigate(studioDraftResume)}>
                 Resume Letter Studio
               </button>
+            </div>
+          ) : null}
+
+          {draftLetters.length > 0 && view === 'active' && status !== 'generated' ? (
+            <div className={`${finelyOsCatalogCard('amber')} !p-4 space-y-3 border-2 border-amber-400/40`}>
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <div className="text-sm font-black uppercase tracking-[0.14em] text-amber-100">Drafts box</div>
+                  <p className={`${FINELY_OS_ENTITY_BODY} text-sm mt-1`}>
+                    {draftLetters.length} work-in-progress letter{draftLetters.length === 1 ? '' : 's'} — edit freely, then mark as final when ready to send.
+                  </p>
+                </div>
+              </div>
+              <FinelyOsPaginatedStack
+                items={status === 'draft' ? filtered : draftLetters}
+                pageSize={6}
+                itemSpacingClassName="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3"
+                emptyMessage="No draft letters."
+                renderItem={(l) => renderVaultLetter(l)}
+              />
             </div>
           ) : null}
 
@@ -609,8 +692,12 @@ export default function PartnerLettersVaultPage() {
             </div>
 
             <div className="mt-5 space-y-4">
-              {filtered.length === 0 ? (
-                <div className={FINELY_OS_ENTITY_BODY}>No letters in this view yet.</div>
+              {status === 'draft' ? (
+                filtered.length === 0 ? (
+                  <div className={FINELY_OS_ENTITY_BODY}>No draft letters in this view yet.</div>
+                ) : null
+              ) : vaultLetters.length === 0 ? (
+                <div className={FINELY_OS_ENTITY_BODY}>No final letters in this view yet.</div>
               ) : (
                 groups.map((g) => (
                   <details key={g.id} className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony overflow-hidden`} open>

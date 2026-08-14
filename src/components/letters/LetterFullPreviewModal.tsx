@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { ExternalLink, FileText, X, Download } from 'lucide-react';
+import { ExternalLink, FileText, Download } from 'lucide-react';
 import type { LetterRecord, DisputeLetterMeta } from '../../domain/letters';
 import { bureauShortCode } from '../../utils/bureaus';
 import type { Bureau } from '../../domain/creditReports';
@@ -13,9 +13,11 @@ import {
   FINELY_OS_ENTITY_BODY,
   FINELY_OS_ENTITY_SUBLABEL,
   FINELY_OS_ENTITY_VALUE,
+  FINELY_OS_MODAL_HEADER,
   FINELY_OS_PRIMARY_BTN,
   FINELY_OS_SECONDARY_BTN,
 } from '../../features/os/finelyOsLightUi';
+import { FinelyOsModalCloseButton } from '../../features/os/FinelyOsModalCloseButton';
 
 export function LetterFullPreviewModal({
   letter,
@@ -84,10 +86,10 @@ export function LetterFullPreviewModal({
   };
 
   return createPortal(
-    <div className="fixed inset-0 z-[9000] isolate flex flex-col sm:flex-row sm:items-center sm:justify-center p-0 sm:p-4">
+    <div className="fixed inset-0 z-[9000] isolate flex flex-col sm:flex-row sm:items-center sm:justify-center p-3 sm:p-4 md:p-6">
       <div className="absolute inset-0 bg-black/90 backdrop-blur-md" onClick={onClose} />
       <div className="relative z-[1] flex w-full sm:max-w-6xl max-h-[100dvh] sm:max-h-[94vh] flex-col overflow-hidden rounded-none sm:rounded-[1.75rem] border-0 sm:border border-fuchsia-400/20 bg-[#070b10] shadow-[0_40px_120px_-40px_rgba(0,0,0,0.95)]">
-        <div className="shrink-0 border-b border-white/10 px-4 py-3 sm:px-6 sm:py-4 flex items-start justify-between gap-3 bg-[radial-gradient(900px_360px_at_5%_0%,rgba(217,70,239,0.15),transparent_60%),linear-gradient(180deg,#120a18_0%,#070b10_100%)]">
+        <div className={`${FINELY_OS_MODAL_HEADER} sm:px-6 sm:py-4 bg-[radial-gradient(900px_360px_at_5%_0%,rgba(217,70,239,0.15),transparent_60%),linear-gradient(180deg,#120a18_0%,#070b10_100%)]`}>
           <div className="min-w-0 flex-1">
             <div className={FINELY_OS_ENTITY_SUBLABEL}>{hasPdf ? 'View PDF — full letter' : 'Letter preview'}</div>
             <div className={`text-base sm:text-xl font-black truncate ${FINELY_OS_ENTITY_VALUE}`}>{letter.title}</div>
@@ -98,9 +100,7 @@ export function LetterFullPreviewModal({
               </div>
             ) : null}
           </div>
-          <button type="button" onClick={onClose} className={`${FINELY_OS_SECONDARY_BTN} !py-2 shrink-0`} aria-label="Close">
-            <X size={16} />
-          </button>
+          <FinelyOsModalCloseButton onClick={onClose} />
         </div>
 
         <div className="flex-1 overflow-hidden p-3 sm:p-6 min-h-0">

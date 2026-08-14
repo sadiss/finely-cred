@@ -10,7 +10,6 @@ import {
   Sparkles,
   Scale,
   Users,
-  X,
   type LucideIcon,
 } from 'lucide-react';
 import {
@@ -23,11 +22,13 @@ import {
   FINELY_OS_ENTITY_SUBLABEL,
   FINELY_OS_ENTITY_VALUE,
   FINELY_OS_FIXED_OVERLAY,
+  FINELY_OS_MODAL_HEADER,
   FINELY_OS_MODAL_SHELL,
   FINELY_OS_SECONDARY_BTN,
   finelyOsCatalogCardCompact,
   type FinelyOsPublicAccent,
 } from '../../features/os/finelyOsLightUi';
+import { FinelyOsModalCloseButton } from '../../features/os/FinelyOsModalCloseButton';
 
 const LINK_ICONS: Record<string, LucideIcon> = {
   'personal-restore': Sparkles,
@@ -107,7 +108,7 @@ export function ServicesChooserModal({ open, onClose, activePath }: Props) {
           aria-modal="true"
           aria-labelledby="services-chooser-title"
         >
-          <div className="p-5 sm:p-6 border-b border-white/[0.08] flex items-start justify-between gap-4">
+          <div className={`${FINELY_OS_MODAL_HEADER} sm:px-6 sm:py-5`}>
             <div className="min-w-0">
               <p className={`${FINELY_OS_ENTITY_SUBLABEL} tracking-[0.28em] text-fuchsia-300`}>Browse solutions</p>
               <h2 id="services-chooser-title" className={`mt-2 text-xl sm:text-2xl font-semibold ${FINELY_OS_ENTITY_VALUE}`}>
@@ -117,9 +118,7 @@ export function ServicesChooserModal({ open, onClose, activePath }: Props) {
                 Pick a solution — packages and DIY / DFY options open on that page.
               </p>
             </div>
-            <button type="button" onClick={onClose} className={FINELY_OS_SECONDARY_BTN} aria-label="Close">
-              <X size={18} />
-            </button>
+            <FinelyOsModalCloseButton onClick={onClose} />
           </div>
 
           <div className="p-5 sm:p-6 space-y-6">

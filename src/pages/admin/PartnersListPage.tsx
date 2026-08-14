@@ -28,6 +28,7 @@ import { ensureMaxJeanBaptistePartnerAsync } from '../../data/maxJeanBaptistePar
 import {
   derivePartnerSignupStatus,
   healClaimedPartnersStuckPending,
+  resolvePartnerAccessState,
   signupStatusChipTone,
 } from '../../lib/partnerAuthActivity';
 import {
@@ -181,8 +182,14 @@ export default function PartnersListPage() {
   };
 
   const getPartnerDisplayBadges = (p: Partner) => {
+    const access = resolvePartnerAccessState(p);
     const signup = derivePartnerSignupStatus(p);
-    const joined = Boolean(p.claimedUserId) || signup.stage === 'active' || signup.stage === 'signup_complete';
+    const joined =
+      access.state === 'active' ||
+      access.state === 'last_seen' ||
+      Boolean(p.claimedUserId) ||
+      signup.stage === 'active' ||
+      signup.stage === 'signup_complete';
 
     // Joined/claimed partners must not show lifecycle "Pending" as the primary badge.
     if (joined) {
@@ -190,7 +197,7 @@ export default function PartnersListPage() {
         primary: {
           chip:
             'inline-flex items-center px-3.5 py-1.5 rounded-xl border border-emerald-300/80 bg-gradient-to-b from-emerald-100 to-white text-[12px] font-black uppercase tracking-widest text-emerald-900 shadow-sm',
-          label: signup.stage === 'active' ? 'Joined · Active' : 'Joined',
+          label: access.state === 'active' ? 'Active partner' : signup.label,
         },
         secondary: null as null | { chip: string; label: string },
       };
@@ -227,7 +234,7 @@ export default function PartnersListPage() {
     return {
       primary: {
         chip: `${finelyOsStatusChip('warn')} px-3.5 py-1.5 text-[12px]`,
-        label: signup.stage === 'invite_sent' ? 'Invite pending' : 'Pending',
+        label: access.state === 'invited' ? 'Invite pending' : access.label,
       },
       secondary: {
         chip: `${finelyOsStatusChip(signupStatusChipTone(signup.tone))} text-[11px]`,

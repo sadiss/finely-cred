@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { ArrowRight, BookOpen, CheckCircle2, Circle, ExternalLink, HelpCircle, Target, TrendingUp, X } from 'lucide-react';
+import { ArrowRight, BookOpen, CheckCircle2, Circle, ExternalLink, HelpCircle, Target, TrendingUp } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { ensureBusinessCreditLadderTasks, BUSINESS_LADDER_TASKS } from '../../business/businessCreditLadder';
 import { listTasksByPartner } from '../../data/tasksRepo';
@@ -10,6 +10,7 @@ import {
   FINELY_OS_ENTITY_SUBLABEL,
   FINELY_OS_ENTITY_VALUE,
   FINELY_OS_FIXED_OVERLAY,
+  FINELY_OS_MODAL_HEADER,
   FINELY_OS_MODAL_SHELL,
   FINELY_OS_PRIMARY_BTN,
   FINELY_OS_SECONDARY_BTN,
@@ -17,6 +18,7 @@ import {
   finelyOsGlassShell,
   type FinelyOsPublicAccent,
 } from '../../features/os/finelyOsLightUi';
+import { FinelyOsModalCloseButton } from '../../features/os/FinelyOsModalCloseButton';
 
 const AZ_ACCENTS: FinelyOsPublicAccent[] = ['amber', 'emerald', 'sky', 'violet', 'fuchsia'];
 
@@ -97,7 +99,7 @@ function BusinessCreditAzModal({ open, onClose }: { open: boolean; onClose: () =
   if (!open) return null;
 
   return createPortal(
-    <div className={`${FINELY_OS_FIXED_OVERLAY} flex items-center justify-center p-4`} onClick={onClose}>
+    <div className={`${FINELY_OS_FIXED_OVERLAY} flex items-center justify-center p-3 sm:p-4 md:p-6`} onClick={onClose}>
       <div
         className={`${FINELY_OS_MODAL_SHELL} relative z-[1] w-full max-w-2xl border-amber-400/25`}
         onClick={(e) => e.stopPropagation()}
@@ -105,7 +107,7 @@ function BusinessCreditAzModal({ open, onClose }: { open: boolean; onClose: () =
         aria-labelledby="bc-az-title"
       >
         <div className={`${finelyOsCatalogCardCompact('amber')} !p-0 flex flex-col max-h-[min(92vh,720px)]`} data-fc-accent="amber">
-          <div className="flex items-start justify-between gap-3 border-b border-white/10 px-4 py-3">
+          <div className={FINELY_OS_MODAL_HEADER}>
             <div>
               <div className={FINELY_OS_ENTITY_SUBLABEL}>Beginner path</div>
               <h2 id="bc-az-title" className={`mt-1 ${FINELY_OS_ENTITY_VALUE}`}>
@@ -115,9 +117,7 @@ function BusinessCreditAzModal({ open, onClose }: { open: boolean; onClose: () =
                 Ten plain-English steps — entity hygiene first, vendors second, capital last. Results vary · not legal advice.
               </p>
             </div>
-            <button type="button" onClick={onClose} className={FINELY_OS_SECONDARY_BTN} aria-label="Close">
-              <X size={14} />
-            </button>
+            <FinelyOsModalCloseButton onClick={onClose} />
           </div>
           <div className="overflow-y-auto px-4 py-3 space-y-2">
             {BUSINESS_CREDIT_AZ_STEPS.map((step, idx) => {

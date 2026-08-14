@@ -85,6 +85,7 @@ export const ADMIN_NAV_GROUPS: AdminNavGroupDef[] = [
     items: [
       { path: '/admin/comms', label: 'Comms Studio', icon: Mail, hint: 'Templates + delivery' },
       { path: '/admin/resources', label: 'Resources', icon: Library, hint: 'Public guides' },
+      { path: '/admin/compliance-review', label: 'Compliance review', icon: Scale, hint: 'Approve doctrine-derived content' },
       { path: '/admin/tour-studio', label: 'Tour Studio', icon: ListChecks, hint: 'Walkthrough factory' },
       { path: '/admin/launch-os', label: 'Launch OS', icon: BookOpen, hint: 'SOP help center' },
       { path: '/admin/courses', label: 'Courses', icon: GraduationCap, hint: 'Course builder' },
@@ -96,6 +97,8 @@ export const ADMIN_NAV_GROUPS: AdminNavGroupDef[] = [
     label: 'Automation & AI',
     items: [
       { path: '/admin/automations', label: 'Automation Studio', icon: Bot, hint: 'Run automations' },
+      { path: '/admin/growth-automation', label: 'Growth Autopilot', icon: Sparkles, hint: 'Scheduler · daily find · week sync ticks' },
+      { path: '/admin/cmo', label: 'CMO Command', icon: TrendingUp, hint: 'Site watch · experiments · budget allocator' },
       { path: '/admin/lead-acquisition', label: 'Lead acquisition', icon: Globe, hint: 'Syndication feeds + webhook posting' },
       { path: '/admin/ops-agent', label: 'Ruth · Co-Owner', icon: Crown, hint: 'AI co-owner command' },
       { path: '/admin/phone-hub', label: 'Phone Hub', icon: Phone, hint: 'Calls & SMS' },

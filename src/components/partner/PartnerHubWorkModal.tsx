@@ -1,12 +1,12 @@
 import React, { useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { X } from 'lucide-react';
 import {
   FINELY_OS_ENTITY_BODY,
   FINELY_OS_ENTITY_SUBLABEL,
   FINELY_OS_ENTITY_TITLE,
-  FINELY_OS_SECONDARY_BTN,
+  FINELY_OS_MODAL_HEADER,
 } from '../../features/os/finelyOsLightUi';
+import { FinelyOsModalCloseButton } from '../../features/os/FinelyOsModalCloseButton';
 
 type Props = {
   open: boolean;
@@ -72,7 +72,7 @@ export function PartnerHubWorkModal({
         data-fc-accent={accent}
         data-fc-partner-hub-modal="1"
       >
-        <div className="shrink-0 flex items-start justify-between gap-3 border-b border-white/10 p-4 sm:p-5">
+        <div className={`${FINELY_OS_MODAL_HEADER} sm:px-5 sm:py-5`}>
           <div className="min-w-0">
             <div className={FINELY_OS_ENTITY_SUBLABEL}>Partner hub</div>
             <h2 id="partner-hub-work-modal-title" className={`mt-1 ${FINELY_OS_ENTITY_TITLE}`}>
@@ -80,9 +80,7 @@ export function PartnerHubWorkModal({
             </h2>
             {subtitle ? <p className={`mt-1 text-sm ${FINELY_OS_ENTITY_BODY}`}>{subtitle}</p> : null}
           </div>
-          <button type="button" onClick={onClose} className={`${FINELY_OS_SECONDARY_BTN} !py-2 shrink-0`} aria-label="Close">
-            <X size={16} />
-          </button>
+          <FinelyOsModalCloseButton onClick={onClose} />
         </div>
 
         <div className="min-h-0 flex-1 space-y-4 overflow-y-auto p-4 sm:p-5 lg:p-6">{children}</div>

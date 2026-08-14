@@ -81,3 +81,29 @@ export function buildReferralGrowthSnapshot() {
     topCodes,
   };
 }
+
+/**
+ * Partner-scoped growth snapshot (Wave 4 / L1) — same 30-day click/conversion math as
+ * `buildReferralGrowthSnapshot()`, filtered to a single referral code so a partner-facing
+ * panel can show its own numbers without needing access to every other affiliate's data.
+ * Additive only — `buildReferralGrowthSnapshot()`'s signature/behavior is unchanged.
+ */
+export function buildReferralGrowthSnapshotForCode(code: string) {
+  const normalized = code.trim().toUpperCase();
+  if (!normalized) {
+    return { code: normalized, clicks30d: 0, conversions30d: 0, overallConversionRate: 0 };
+  }
+  const cutoff = Date.now() - 30 * 24 * 60 * 60 * 1000;
+  const clicks = listReferralClicks(2000).filter(
+    (c) => c.code === normalized && Date.parse(c.createdAt) >= cutoff,
+  ).length;
+  const conversions = listReferralConversions(2000).filter(
+    (c) => c.code === normalized && Date.parse(c.createdAt) >= cutoff,
+  ).length;
+  return {
+    code: normalized,
+    clicks30d: clicks,
+    conversions30d: conversions,
+    overallConversionRate: clicks ? conversions / clicks : 0,
+  };
+}

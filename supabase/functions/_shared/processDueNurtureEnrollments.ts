@@ -1,7 +1,26 @@
-/** Process due nurture enrollments — dispatch email + advance steps (server cron). */
+/**
+ * Process due nurture enrollments — dispatch email + advance steps (server cron).
+ *
+ * Phase F2 reconciliation fix: this processor previously called NO suppression,
+ * quiet-hours, or frequency-cap check at all before sending — a confirmed gap
+ * found during Round 3 planning, sitting directly next to the same guards F2
+ * added for the new CRM-sequence processor. Now calls the same three
+ * server-side checks (checkSuppressionServerSide, isWithinQuietHoursServerSide,
+ * isOverFrequencyCapServerSide/recordSendForFrequencyCapServerSide) as
+ * processDueCrmSequenceSteps.ts, against the SAME shared comms_frequency_log
+ * table — see that file's header comment for the full two-systems
+ * reconciliation design (kept as separate tables/processors, unified only by
+ * this shared per-recipient send-log).
+ */
 import { isEmailDeliveryConfigured, sendServiceEmail } from './commsSendEmail.ts';
 import { getNurtureSequenceCatalog } from './nurtureSequencesCatalog.ts';
 import { buildNurtureStepEmail } from './nurtureStepEmailCopy.ts';
+import {
+  checkSuppressionServerSide,
+  isOverFrequencyCapServerSide,
+  isWithinQuietHoursServerSide,
+  recordSendForFrequencyCapServerSide,
+} from './commsSuppressionCheck.ts';
 
 type AdminClient = {
   from: (table: string) => {
@@ -84,15 +103,26 @@ export async function processDueNurtureEnrollments(args: {
       } else if (args.dryRun) {
         emailsSkipped += 1;
       } else {
-        const copy = buildNurtureStepEmail({ step, sequence, context });
-        const sent = await sendServiceEmail({
-          toEmail,
-          toName: String(context.fullName ?? context.name ?? '').trim() || undefined,
-          subject: copy.subject,
-          text: copy.text,
-        });
-        if (sent.ok) emailsSent += 1;
-        else emailsSkipped += 1;
+        const suppression = await checkSuppressionServerSide(args.admin, { email: toEmail, channel: 'email', tenantId });
+        const frequencyCapKey = toEmail.toLowerCase();
+        const overCap = !suppression.suppressed && (await isOverFrequencyCapServerSide(args.admin, frequencyCapKey, { tenantId }));
+        if (suppression.suppressed || overCap || !isWithinQuietHoursServerSide()) {
+          emailsSkipped += 1;
+        } else {
+          const copy = buildNurtureStepEmail({ step, sequence, context });
+          const sent = await sendServiceEmail({
+            toEmail,
+            toName: String(context.fullName ?? context.name ?? '').trim() || undefined,
+            subject: copy.subject,
+            text: copy.text,
+          });
+          if (sent.ok) {
+            emailsSent += 1;
+            await recordSendForFrequencyCapServerSide(args.admin, frequencyCapKey, tenantId);
+          } else {
+            emailsSkipped += 1;
+          }
+        }
       }
     } else if (step.channel === 'portal') {
       portalSteps += 1;

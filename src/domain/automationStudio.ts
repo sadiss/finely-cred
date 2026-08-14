@@ -272,7 +272,7 @@ export type AutomationFlowGraph = {
   viewport?: { x: number; y: number; zoom: number };
 };
 
-export type AutomationEnrollmentStatus = 'active' | 'paused' | 'completed' | 'cancelled';
+export type AutomationEnrollmentStatus = 'active' | 'paused' | 'completed' | 'cancelled' | 'stalled';
 
 export type AutomationEnrollment = {
   id: string;
@@ -282,6 +282,12 @@ export type AutomationEnrollment = {
   crmRecordId?: string;
   leadCaptureId?: string;
   currentNodeId?: string;
+  /** Node the enrollment is waiting on becomes due at this time (wait nodes). */
+  nextRunAt?: string;
+  /** Consecutive node execution failures — reliability rail (graphEngine.ts). */
+  attempts?: number;
+  /** Set when status becomes 'stalled' (dead-letter) — last thrown error message. */
+  lastError?: string;
   enrolledAt: string;
   updatedAt: string;
   meta?: Record<string, unknown>;

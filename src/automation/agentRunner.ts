@@ -328,7 +328,7 @@ export async function runAutomationRule(rule: AutomationRule, mode: AgentMode): 
     if (a.type === 'crm_sequence_tick') {
       const maxPerRun = safeNum((a as any).maxPerRun, 25);
       if (mode === 'live') {
-        const results = runDueCrmSequenceSteps({ maxPerRun });
+        const results = await runDueCrmSequenceSteps({ maxPerRun });
         for (const r of results) {
           actions.push({ type: 'info', message: r.message, meta: { ok: r.ok } });
         }

@@ -7,6 +7,7 @@ import { FinelyOsPageFooter } from '../features/os/FinelyOsPageFooter';
 import { FinelyNowDoThisStrip } from '../components/tours/FinelyNowDoThisStrip';
 import { FinelyNoticedStrip } from '../components/tours/FinelyNoticedStrip';
 import { buildStartHereNoticedItems } from '../lib/finelyProactiveSignals';
+import { reconcileCtaBridgeConversion } from '../lib/funnelCtaBridge';
 import {
   FINELY_OS_ENTITY_BODY,
   FINELY_OS_ENTITY_VALUE,
@@ -110,7 +111,14 @@ export default function StartHerePage() {
                   <button
                     type="button"
                     className={`${FINELY_OS_PRIMARY_BTN} !py-3 !text-sm justify-center`}
-                    onClick={() => navigate(path.primary.to)}
+                    onClick={() => {
+                      // Reconciles the homepage hero CTA-destination A/B test (D3) — a
+                      // no-op unless this visitor arrived here via the hero's CTA click.
+                      // Picking a lane from this neutral "start here" page is the
+                      // meaningful conversion event for that variant.
+                      reconcileCtaBridgeConversion('homepage_hero');
+                      navigate(path.primary.to);
+                    }}
                   >
                     {path.primary.label} <ArrowRight size={15} />
                   </button>

@@ -16,6 +16,7 @@ import {
 } from './litigation';
 import { applyRooseveltCourtDemoIfNeeded } from './litigation/rooseveltCourtDemoArgs';
 import type { DebtLetterBuildArgs } from './debtLetterBuildArgs';
+import { validationIntroParagraph, VALIDATION_30_DAY_RECEIPT_BLOCK } from './validationLetterClauses';
 import { getAffidavitOfDisputeBody, getSummonsResponseAffidavitBody } from './debtAffidavitBodies';
 import {
   getCourtroomPretrialProofNoticeBody,
@@ -449,27 +450,15 @@ Date: ${args.date}
 ${recipient}`;
 }
 
-export function getValidationRequestBody(args: {
-  creditorName: string;
-  debtorName: string;
-  date: string;
-  debtorAddress1?: string;
-  debtorAddress2?: string;
-  debtorCity?: string;
-  debtorState?: string;
-  debtorPostalCode?: string;
-  debtorPhone?: string;
-  debtorEmail?: string;
-  recipientName?: string;
-  recipientAddress?: string;
-}): string {
+export function getValidationRequestBody(args: DebtLetterBuildArgs): string {
+  const intro = validationIntroParagraph(args.introVariantIndex ?? 0);
   return `${formatPreamble(args)}
 
 RE: Demand for Validation, Proof of Authority, Itemized Accounting, and State Collection Compliance — 15 U.S.C. § 1692g
 
 To Whom It May Concern:
 
-I am writing in response to your communication regarding an alleged debt. Please refrain from contacting me by any form of communication unless and until you provide complete proof and a proper written response to every question stated below, as required by the laws cited for the alleged debt you say I owe. Under 15 U.S.C. § 1692g(a)-(b), I am exercising my right to request validation, and I request that you cease collection activity until you mail proper validation.
+${intro}
 
 This request is not a refusal to pay a proven, legally enforceable obligation. It is a demand that you prove the account, the amount, the ownership/servicing authority, and your legal capacity to collect before continuing collection, reporting, selling, assigning, or litigation activity.
 
@@ -508,6 +497,8 @@ Please provide the following validation and answer each numbered request in writ
 If you cannot provide the requested validation, accounting, licensing proof, chain of title, and authority to collect, then you must cease collection activity and close or return this matter. If you are furnishing this alleged account to any consumer reporting agency without adequate validation, I dispute the accuracy, completeness, ownership, balance, and collectability of that reporting.
 
 Please preserve all records, communications, call notes, collection notes, account-level purchase records, placement records, assignment documents, payment history, ledger entries, and credit reporting records related to this alleged account.
+
+${VALIDATION_30_DAY_RECEIPT_BLOCK}
 
 Sincerely,
 
