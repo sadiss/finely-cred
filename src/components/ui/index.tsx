@@ -863,6 +863,19 @@ export function MobileNav({ isOpen, onClose, onNavigate, showThemeToggle = false
                 {link.label}
               </button>
             ))}
+            {PUBLIC_CORE_NAV.filter((link) => link.id === 'enlightenment-session').map((link) => (
+              <button
+                key={link.id}
+                type="button"
+                onClick={() => {
+                  onNavigate(link.path);
+                  onClose();
+                }}
+                className={`w-full text-left fc-nav-pill-compact mb-1 ${link.match(location.pathname) ? 'fc-nav-pill-active' : ''}`}
+              >
+                {link.label}
+              </button>
+            ))}
           </div>
 
           <div className="fc-mobile-nav-section fc-public-nav-panel--luxury !p-3">

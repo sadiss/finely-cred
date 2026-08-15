@@ -20,7 +20,7 @@ type Tile = {
 const PRIMARY_TILES: Tile[] = [
   { id: 'trial', label: 'Start free trial', hint: 'Credit restore signup — portal + Letter Studio', path: '__personal_free_trial__', accent: 'emerald', icon: BookOpen },
   { id: 'pricing', label: 'See pricing', hint: 'DIY, DFY, and wealth paths', path: '/pricing', accent: 'amber', icon: DollarSign },
-  { id: 'session', label: 'Book a strategy call', hint: 'Free 60-minute call', path: '/enlightenment-session', accent: 'violet', icon: Calendar },
+  { id: 'session', label: 'Book an Enlightenment session', hint: 'Free 15-minute session · pick a time', path: '/enlightenment-session', accent: 'violet', icon: Calendar },
   { id: 'specialists', label: 'Credit specialists', hint: 'Done-for-you partner program', path: '/credit-specialist', accent: 'sky', icon: Users },
 ];
 

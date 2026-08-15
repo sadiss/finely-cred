@@ -1374,6 +1374,19 @@ function AppInner() {
                         </button>
                       );
                     })}
+                    {PUBLIC_CORE_NAV.filter((item) => item.id === 'enlightenment-session').map((item) => {
+                      const active = item.match(location.pathname);
+                      return (
+                        <button
+                          key={item.id}
+                          type="button"
+                          onClick={() => handleNavigate(item.path)}
+                          className={active ? 'fc-nav-pill-compact fc-nav-pill-active' : 'fc-nav-pill-compact'}
+                        >
+                          {item.label}
+                        </button>
+                      );
+                    })}
                     <span className="fc-nav-rail-divider" aria-hidden />
                     <FinelyPublicNavResourcesMenu pathname={location.pathname} onNavigate={(path) => handleNavigate(path)} />
                     <FinelyPublicNavCareerMenu pathname={location.pathname} onNavigate={(path) => handleNavigate(path)} />

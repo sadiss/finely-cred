@@ -68,6 +68,12 @@ export const PUBLIC_CORE_NAV: { id: string; label: string; path: string; match: 
     path: '/free-guide',
     match: (p) => p === '/free-guide' || p.startsWith('/free-guide/'),
   },
+  {
+    id: 'enlightenment-session',
+    label: 'Enlightenment session',
+    path: '/enlightenment-session',
+    match: (p) => p.startsWith('/enlightenment-session') || p.startsWith('/consultation'),
+  },
 ];
 
 /** Solutions dropdown — pricing lanes + specialist path. */
@@ -287,7 +293,7 @@ export const PUBLIC_RESOURCES_SECTIONS: PublicNavSection[] = [
 export const PUBLIC_CONTACT_LINKS: PublicNavLink[] = [
   { id: 'contact', label: 'Contact us', path: '/contact', hint: 'Message the team', accent: 'sky' },
   { id: 'help', label: 'Help center', path: '/help-center', hint: 'Plain-English playbooks', accent: 'emerald' },
-  { id: 'session', label: 'Book a strategy call', path: '/enlightenment-session', hint: 'Talk with a specialist', accent: 'amber' },
+  { id: 'session', label: 'Enlightenment session', path: '/enlightenment-session', hint: 'Book a session with a specialist', accent: 'amber' },
   { id: 'about', label: 'About Finely', path: '/about', accent: 'violet' },
   { id: 'faq', label: 'FAQ', path: '/faq', accent: 'sky' },
 ];

@@ -464,6 +464,9 @@ export function HeroSection({ onGetStarted }: HeroSectionProps) {
 
             <Reveal delay={450}>
               <div className="flex flex-wrap justify-center lg:justify-start gap-4">
+                <Button variant="gold" onClick={() => navigate('/enlightenment-session')} size="lg">
+                  Book an Enlightenment session <ArrowRight size={18} />
+                </Button>
                 <Button variant="gold" onClick={onGetStarted} size="lg">
                   Build business credit <ArrowRight size={18} />
                 </Button>

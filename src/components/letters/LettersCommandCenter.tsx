@@ -152,13 +152,14 @@ import { backfillPartnerLettersMailTo } from '../../lib/letterMailToBackfill';
 import {
   enrichRecipientAddress,
   enrichmentToDebtPatch,
+  parseMailingAddress,
   type AddressEnrichmentResult,
 } from '../../lib/recipientAddressEnrichment';
 import { notifyLetterLifecycle } from '../../lib/letterLifecycleNotify';
 import { LetterEmailPartnerToggle } from './LetterEmailPartnerToggle';
 import { PostGenerateLetterModal, type PostGenerateLetterAction } from './PostGenerateLetterModal';
 import { MailLetterModal } from './MailLetterModal';
-import { canOpenMailModal } from '../../lib/letterMailState';
+import { canOpenMailModal, isLetterMailInFlight, isLetterPhysicallyMailed } from '../../lib/letterMailState';
 import { LetterFullPreviewModal } from './LetterFullPreviewModal';
 import type { LetterRecord } from '../../domain/letters';
 import { notifyLetterMailed } from '../../lib/letterMailedNotify';
@@ -3015,17 +3016,41 @@ useEffect(() => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [canonicalIdentity.fullName, canonicalIdentity.address1, canonicalIdentity.address2, canonicalIdentity.addressLine1, canonicalIdentity.cityStateZip, partner.profile.fullName]);
 
+  const resolveDebtLetterSenderFields = () => {
+    const name = senderName || canonicalIdentity.fullName || '';
+    const addressLine1 = senderAddressLine1 || canonicalIdentity.address1 || canonicalIdentity.addressLine1 || '';
+    const addressLine2 = senderAddressLine2 || canonicalIdentity.address2 || '';
+    let city = canonicalIdentity.city || '';
+    let state = canonicalIdentity.state || '';
+    let postalCode = canonicalIdentity.postalCode || '';
+    const cityStateZip = resolveCityStateZip({
+      cityStateZip: senderCityStateZip || canonicalIdentity.cityStateZip,
+      city,
+      state,
+      postalCode,
+    });
+    if ((!city || !state || !postalCode) && senderCityStateZip.trim()) {
+      const parsed = parseMailingAddress(senderCityStateZip.trim());
+      if (parsed?.city) city = parsed.city;
+      if (parsed?.state) state = parsed.state;
+      if (parsed?.zip) postalCode = parsed.zip;
+    }
+    return { name, addressLine1, addressLine2, city, state, postalCode, cityStateZip };
+  };
+
   const senderMailingComplete = useMemo(
-    () =>
-      hasCompleteLetterMailingAddress({
-        name: senderName || canonicalIdentity.fullName,
-        addressLine1: senderAddressLine1 || canonicalIdentity.address1 || canonicalIdentity.addressLine1,
-        addressLine2: senderAddressLine2 || canonicalIdentity.address2,
-        cityStateZip: senderCityStateZip || canonicalIdentity.cityStateZip,
-        city: canonicalIdentity.city,
-        state: canonicalIdentity.state,
-        postalCode: canonicalIdentity.postalCode,
-      }),
+    () => {
+      const sender = resolveDebtLetterSenderFields();
+      return hasCompleteLetterMailingAddress({
+        name: sender.name,
+        addressLine1: sender.addressLine1,
+        addressLine2: sender.addressLine2,
+        cityStateZip: sender.cityStateZip,
+        city: sender.city,
+        state: sender.state,
+        postalCode: sender.postalCode,
+      });
+    },
     [
       senderName,
       senderAddressLine1,
@@ -3076,13 +3101,14 @@ useEffect(() => {
 
   const persistDebtSenderSnapshot = () => {
     if (!debt) return;
+    const sender = resolveDebtLetterSenderFields();
     const snap = captureSenderSnapshot({
-      fullName: senderName || canonicalIdentity.fullName || '',
-      address1: senderAddressLine1 || canonicalIdentity.address1 || canonicalIdentity.addressLine1,
-      address2: senderAddressLine2 || canonicalIdentity.address2,
-      city: canonicalIdentity.city,
-      state: canonicalIdentity.state,
-      postalCode: canonicalIdentity.postalCode,
+      fullName: sender.name,
+      address1: sender.addressLine1,
+      address2: sender.addressLine2,
+      city: sender.city,
+      state: sender.state,
+      postalCode: sender.postalCode,
       phone: canonicalIdentity.phone,
       // Do not snapshot partner login email onto letter sender blocks.
       email: undefined,
@@ -3090,8 +3116,19 @@ useEffect(() => {
     handleDebtIntelChange({ ...debt, senderSnapshot: snap });
   };
 
-  const buildDebtLetterArgs = () => {
-    const isCourtDraft = draft?.type === 'court';
+  const resolveDebtDraftSaveLetterId = (currentId?: string): string => {
+    if (!currentId || !partner?.id) return newId('letter');
+    const existing = listLettersByPartner(partner.id).find((l) => l.id === currentId);
+    if (!existing) return currentId;
+    if (isLetterPhysicallyMailed(existing) || isLetterMailInFlight(existing)) return newId('letter');
+    // Never overwrite a finalized vault record — start a new letter instead.
+    if (existing.status === LETTER_FINAL_STATUS && existing.pdfBlobRef) return newId('letter');
+    return currentId;
+  };
+
+  const buildDebtLetterArgs = (opts?: { preferCounsel?: boolean }) => {
+    const sender = resolveDebtLetterSenderFields();
+    const isCourtDraft = opts?.preferCounsel ?? draft?.type === 'court';
     const firm = isCourtDraft
       ? debt?.plaintiffLawFirm || debt?.collectorName || debtPartyInfo?.collectorName || debtPartyInfo?.recipientName
       : debt?.plaintiffLawFirm;
@@ -3117,10 +3154,10 @@ useEffect(() => {
       debtName: debt?.name,
       originalCreditorName: debt?.originalCreditor || debtPartyInfo?.originalCreditor,
       plaintiffAttorneyName: debt?.plaintiffAttorneyName,
-      senderName: canonicalIdentity.fullName,
-      senderAddress1: canonicalIdentity.address1 ?? canonicalIdentity.addressLine1,
-      senderCity: canonicalIdentity.city,
-      senderPostalCode: canonicalIdentity.postalCode,
+      senderName: sender.name,
+      senderAddress1: sender.addressLine1,
+      senderCity: sender.city,
+      senderPostalCode: sender.postalCode,
     });
     // Persist directory / report-contact TO onto the case when empty (never partner address).
     // Validation: recipient only. Court: may also seed counsel.
@@ -3154,13 +3191,13 @@ useEffect(() => {
     }
     return {
       creditorName: mailTo.name,
-      debtorName: canonicalIdentity.fullName,
+      debtorName: sender.name,
       date: letterDate,
-      debtorAddress1: canonicalIdentity.address1 ?? canonicalIdentity.addressLine1,
-      debtorAddress2: canonicalIdentity.address2,
-      debtorCity: canonicalIdentity.city,
-      debtorState: canonicalIdentity.state,
-      debtorPostalCode: canonicalIdentity.postalCode,
+      debtorAddress1: sender.addressLine1,
+      debtorAddress2: sender.addressLine2,
+      debtorCity: sender.city,
+      debtorState: sender.state,
+      debtorPostalCode: sender.postalCode,
       debtorPhone: canonicalIdentity.phone,
       // Default: no email on letter paper (mailing address + name only).
       debtorEmail: undefined,
@@ -3232,6 +3269,11 @@ useEffect(() => {
     /** Previous html before intro swap — revert target */
     introRevertHtml?: string;
   }>(null);
+  /** Vault letter id for the active debt case — survives closing the draft modal after PDF save. */
+  const [debtVaultLetterId, setDebtVaultLetterId] = useState<string | null>(null);
+  useEffect(() => {
+    setDebtVaultLetterId(null);
+  }, [debtId]);
   const [generateBusy, setGenerateBusy] = useState(false);
   const [draftBusy, setDraftBusy] = useState(false);
   const [draftErr, setDraftErr] = useState<string | null>(null);
@@ -3909,6 +3951,12 @@ useEffect(() => {
 
   const saveDebtDraftText = async (): Promise<boolean> => {
     if (!draft || !partner?.id) return false;
+    if (!senderMailingComplete) {
+      setDraftErr(
+        'Your mailing address is incomplete. Add your name, street, and city/state/ZIP in the sender block before saving.',
+      );
+      return false;
+    }
     const bodyHtml = stripLetterVendorBrandingHtml(ensureHtmlDraft(draft.html || ''));
     const plain = stripLetterVendorBranding(htmlToPlainText(bodyHtml));
     if (!plain.trim()) {
@@ -3935,7 +3983,7 @@ useEffect(() => {
         return name && address ? { name, address } : undefined;
       })();
       const saved = upsertLetter({
-        id: draft.letterId || newId('letter'),
+        id: resolveDebtDraftSaveLetterId(draft.letterId),
         partnerId: partner.id,
         type: letterTypeForDebtDraft(draft.type),
         title,
@@ -3955,6 +4003,7 @@ useEffect(() => {
         meta: { kind: draft.type, source: 'save_text', debtId: debt?.id ?? null, draft: true },
       });
       setStoreVersion((v) => v + 1);
+      setDebtVaultLetterId(saved.id);
       draftSyncedHtmlRef.current = bodyHtml;
       setDraft((prev) => (prev ? { ...prev, letterId: saved.id, html: bodyHtml } : prev));
       if (draft.type === 'validation') {
@@ -3972,6 +4021,12 @@ useEffect(() => {
 
   const saveDebtDraftPdf = async (opts?: { download?: boolean; asFinal?: boolean }) => {
     if (!draft || !partner?.id) return false;
+    if (!senderMailingComplete) {
+      setDraftErr(
+        'Your mailing address is incomplete. Add your name, street, and city/state/ZIP in the sender block before saving.',
+      );
+      return false;
+    }
     if (!canUseLetters) {
       setDraftErr('Letters is locked on your current plan. Open Billing to unlock Letters.');
       return false;
@@ -4011,7 +4066,7 @@ useEffect(() => {
         return name && address ? { name, address } : undefined;
       })();
       const saved = upsertLetter({
-        id: draft.letterId || newId('letter'),
+        id: resolveDebtDraftSaveLetterId(draft.letterId),
         partnerId: partner.id,
         type: letterTypeForDebtDraft(draft.type),
         title,
@@ -4062,6 +4117,7 @@ useEffect(() => {
       }
 
       setStoreVersion((v) => v + 1);
+      setDebtVaultLetterId(saved.id);
       draftSyncedHtmlRef.current = bodyHtml;
       setVaultHighlightLetterId(saved.id);
       setDraftSavedPreviewLetter(saved);
@@ -4086,6 +4142,14 @@ useEffect(() => {
     if (!draft) return;
     setMarkFinalPending({ kind: 'debt', download: opts?.download });
     setMarkFinalOpen(true);
+  };
+
+  const DEBT_RECIPIENT_ADDRESS_MISSING_ERR =
+    'Recipient mailing address is missing. Confirm the firm / collector TO address on the case, then Generate letter again.';
+
+  const isDebtRecipientAddressMissing = (address?: string | null): boolean => {
+    const trimmed = String(address || '').trim();
+    return !trimmed || /\[CREDITOR \/ LAW FIRM MAILING ADDRESS/i.test(trimmed);
   };
 
   const openGeneratedDebtDraft = (args: {
@@ -4120,6 +4184,8 @@ useEffect(() => {
       debtName: debt?.name,
     });
     draftSyncedHtmlRef.current = ensureHtmlDraft(bodyHtml);
+    // New generated draft — never reuse a vault id (especially after a mailed letter).
+    setDebtVaultLetterId(null);
     setDraft({
       specId: args.specId,
       catalogId: args.catalogId,
@@ -4128,6 +4194,7 @@ useEffect(() => {
       html: bodyHtml,
       preferPreview: true,
       previewKey,
+      letterId: undefined,
       ...(args.specId === 'validation_request' || args.catalogId === 'validation_initial_fdcpa'
         ? { introVariantIndex: 0, introRevertHtml: undefined }
         : {}),
@@ -4145,7 +4212,11 @@ useEffect(() => {
       persistDebtSenderSnapshot();
       if (specId === 'courtroom_day_kit') {
         // Never fail silently — generate the court answer letter instead of a kit PDF.
-        const mergeArgs = buildDebtLetterArgs();
+        const mergeArgs = buildDebtLetterArgs({ preferCounsel: true });
+        if (isDebtRecipientAddressMissing(mergeArgs.recipientAddress)) {
+          setDraftErr(DEBT_RECIPIENT_ADDRESS_MISSING_ERR);
+          return;
+        }
         const baseText = getLetterBody('courtroom_written_answer', mergeArgs);
         openGeneratedDebtDraft({
           track: 'court',
@@ -4162,11 +4233,10 @@ useEffect(() => {
         setDraftErr('Debt letter generation is locked. Grant Debt or Letters access, then click Generate letter.');
         return;
       }
-      const mergeArgs = buildDebtLetterArgs();
-      if (!mergeArgs.recipientAddress?.trim() && !mergeArgs.plaintiffLawFirmAddress?.trim()) {
-        setDraftErr(
-          'Recipient mailing address is missing. Confirm the firm / collector TO address on the case, then Generate letter again.',
-        );
+      const mergeArgs = buildDebtLetterArgs({ preferCounsel: isCourt });
+      if (isDebtRecipientAddressMissing(mergeArgs.recipientAddress)) {
+        setDraftErr(DEBT_RECIPIENT_ADDRESS_MISSING_ERR);
+        return;
       }
       const baseText = getLetterBody(specId, mergeArgs);
       openGeneratedDebtDraft({
@@ -4202,13 +4272,6 @@ useEffect(() => {
         setDraftErr('Debt letter generation is locked. Grant Debt or Letters access, then click Generate letter.');
         return;
       }
-      const mergeArgs = buildDebtLetterArgs();
-      if (!mergeArgs.recipientAddress?.trim() && !mergeArgs.plaintiffLawFirmAddress?.trim()) {
-        setDraftErr(
-          'Recipient mailing address is missing. Confirm the firm / collector TO address on the case, then Generate letter again.',
-        );
-      }
-      let baseText = '';
       const entry = catalogEntryById(resolvedCatalogId);
       const resolvedSpecId = (entry?.letterType || resolvedCatalogId) as string;
       // Track comes from the catalog entry — the open tab is only a fallback.
@@ -4217,6 +4280,12 @@ useEffect(() => {
         specId: resolvedSpecId,
         fallback: tabTrack,
       });
+      const mergeArgs = buildDebtLetterArgs({ preferCounsel: track === 'court' });
+      if (isDebtRecipientAddressMissing(mergeArgs.recipientAddress)) {
+        setDraftErr(DEBT_RECIPIENT_ADDRESS_MISSING_ERR);
+        return;
+      }
+      let baseText = '';
       try {
         baseText = generateCatalogLetterBody(resolvedCatalogId, mergeArgs);
       } catch (inner: any) {
@@ -4241,17 +4310,20 @@ useEffect(() => {
     }
   };
 
-  const debtCenterSenderFields = {
-    fullName: senderName || canonicalIdentity.fullName || '',
-    address1: senderAddressLine1 || canonicalIdentity.address1 || canonicalIdentity.addressLine1 || '',
-    address2: senderAddressLine2 || canonicalIdentity.address2 || '',
-    city: canonicalIdentity.city || '',
-    state: canonicalIdentity.state || '',
-    postalCode: canonicalIdentity.postalCode || '',
-    phone: canonicalIdentity.phone || '',
-    // Letter sender UI: mailing identity only — never auto-fill login email onto paper.
-    email: '',
-  };
+  const debtCenterSenderFields = (() => {
+    const sender = resolveDebtLetterSenderFields();
+    return {
+      fullName: sender.name,
+      address1: sender.addressLine1,
+      address2: sender.addressLine2,
+      city: sender.city,
+      state: sender.state,
+      postalCode: sender.postalCode,
+      phone: canonicalIdentity.phone || '',
+      // Letter sender UI: mailing identity only — never auto-fill login email onto paper.
+      email: '',
+    };
+  })();
 
   const debtCenterSharedProps = {
     debt,
@@ -4311,12 +4383,12 @@ useEffect(() => {
         proofCount: debtProofCount,
         hasChosenLetter: Boolean(draft),
         hasDraftBody: Boolean(draft?.html?.trim()),
-        savedToVault: Boolean(draft?.letterId),
+        savedToVault: Boolean(draft?.letterId || debtVaultLetterId),
         mailedCount: debtMailedCount,
         postCourtPlan: debtPostCourtPlan,
         postCourtDecided: debtPostCourtDecided,
       }),
-    [debtTrack, debtId, debtProofCount, draft, debtMailedCount, debtPostCourtPlan, debtPostCourtDecided],
+    [debtTrack, debtId, debtProofCount, draft, debtVaultLetterId, debtMailedCount, debtPostCourtPlan, debtPostCourtDecided],
   );
 
   const runDebtLetterBuildStep = (id: DebtLetterStepId) => {
@@ -5045,42 +5117,34 @@ useEffect(() => {
                       enrichmentHint={addressEnrichMeta?.hint}
                       lookupBusy={addressLookupBusy}
                       onLookupAddress={() => void fillDebtRecipientAddress()}
-                      value={{
-                        fromName: senderName,
-                        fromLine1: senderAddressLine1,
-                        fromLine2: senderAddressLine2,
-                        fromCityStateZip:
-                          senderCityStateZip ||
-                          resolveCityStateZip({
-                            cityStateZip: senderCityStateZip,
-                            city: canonicalIdentity.city,
-                            state: canonicalIdentity.state,
-                            postalCode: canonicalIdentity.postalCode,
-                          }),
-                        ...(() => {
-                          const mailTo = resolveLetterMailRecipient({
-                            preferCounsel: draft?.type === 'court',
-                            plaintiffLawFirm: debt?.plaintiffLawFirm,
-                            plaintiffLawFirmAddress: debt?.plaintiffLawFirmAddress,
-                            recipientName: debt?.recipientName || debtPartyInfo?.recipientName || debt?.name,
-                            recipientAddress: debt?.recipientAddress || debtPartyInfo?.recipientAddress,
-                            debtCollectorName: debt?.collectorName || debtPartyInfo?.collectorName,
-                            collectorName: debt?.collectorName,
-                            creditorName: debt?.name,
-                            originalCreditorName: debt?.originalCreditor || debtPartyInfo?.originalCreditor,
-                            plaintiffAttorneyName: debt?.plaintiffAttorneyName,
-                            senderName: canonicalIdentity.fullName,
-                            senderAddress1: canonicalIdentity.address1 ?? canonicalIdentity.addressLine1,
-                            senderCity: canonicalIdentity.city,
-                            senderPostalCode: canonicalIdentity.postalCode,
-                          });
-                          return {
-                            toName: mailTo.name,
-                            toLinesText: mailTo.missing ? '' : mailTo.address,
-                          };
-                        })(),
-                        subject: `Re: ${debt?.name || 'debt matter'}`,
-                      }}
+                      value={(() => {
+                        const sender = resolveDebtLetterSenderFields();
+                        const mailTo = resolveLetterMailRecipient({
+                          preferCounsel: draft?.type === 'court',
+                          plaintiffLawFirm: debt?.plaintiffLawFirm,
+                          plaintiffLawFirmAddress: debt?.plaintiffLawFirmAddress,
+                          recipientName: debt?.recipientName || debtPartyInfo?.recipientName || debt?.name,
+                          recipientAddress: debt?.recipientAddress || debtPartyInfo?.recipientAddress,
+                          debtCollectorName: debt?.collectorName || debtPartyInfo?.collectorName,
+                          collectorName: debt?.collectorName,
+                          creditorName: debt?.name,
+                          originalCreditorName: debt?.originalCreditor || debtPartyInfo?.originalCreditor,
+                          plaintiffAttorneyName: debt?.plaintiffAttorneyName,
+                          senderName: sender.name,
+                          senderAddress1: sender.addressLine1,
+                          senderCity: sender.city,
+                          senderPostalCode: sender.postalCode,
+                        });
+                        return {
+                          fromName: sender.name,
+                          fromLine1: sender.addressLine1,
+                          fromLine2: sender.addressLine2,
+                          fromCityStateZip: sender.cityStateZip,
+                          toName: mailTo.name,
+                          toLinesText: mailTo.missing ? '' : mailTo.address,
+                          subject: `Re: ${debt?.name || 'debt matter'}`,
+                        };
+                      })()}
                       onChange={(patch) => {
                         if (patch.fromName !== undefined) setSenderName(patch.fromName);
                         if (patch.fromLine1 !== undefined) setSenderAddressLine1(patch.fromLine1);
@@ -5280,6 +5344,9 @@ useEffect(() => {
               meta: { provider: 'finely', providerId, expectedDeliveryDate: expectedDeliveryDate ?? null },
             });
             setDebtMailLetter(updated);
+            setDraft((prev) =>
+              prev?.letterId === updated.id ? { ...prev, letterId: undefined } : prev,
+            );
             setStoreVersion((v) => v + 1);
           }}
           onNotifyMailed={({ providerId, expectedDeliveryDate, to, from }) =>
