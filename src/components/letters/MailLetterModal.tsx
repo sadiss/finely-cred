@@ -249,6 +249,10 @@ export function MailLetterModal({
   const [emailPartner, setEmailPartner] = useState(emailPartnerDefault);
   const [partnerNote, setPartnerNote] = useState('');
   const [addressHint, setAddressHint] = useState<string | null>(null);
+  // Fresh per mail attempt (regenerated whenever the modal opens) so a retry after a
+  // failed send never reuses the same LetterStream job/batch id — LetterStream rejects
+  // resends with a previously-used batch id ("Batch Id is not unique", code -925).
+  const [attemptNonce, setAttemptNonce] = useState(() => Date.now().toString(36).slice(-4));
 
   const currentHash = useMemo(() => {
     const pick = (a: MailAddress) => ({
@@ -267,9 +271,9 @@ export function MailLetterModal({
       buildLetterStreamJobNaming({
         partnerDisplayName: defaultFromName,
         letter: effectiveLetter,
-        disambiguator: effectiveLetter.id.slice(-4),
+        disambiguator: attemptNonce,
       }),
-    [defaultFromName, effectiveLetter],
+    [defaultFromName, effectiveLetter, attemptNonce],
   );
 
   const letterStreamJobPreview = useMemo(() => previewLetterStreamJobName(jobNaming), [jobNaming]);
@@ -294,6 +298,7 @@ export function MailLetterModal({
     setEmailPartner(emailPartnerDefault);
     setPartnerNote('');
     setMailType(defaultMailTypeForLetter(backfilled));
+    setAttemptNonce(Date.now().toString(36).slice(-4));
     const disputeTo = mailDefaultsForDisputeRecipient(backfilled);
     const meta: any = (backfilled as any)?.meta ?? null;
     const linkedDebt =

@@ -158,6 +158,11 @@ export function BatchMailWizard({
     try {
       const toClean: MailAddress = { ...to, state: sanitizeState(to.state), zip: zipOnly(to.zip) };
       const fromClean: MailAddress = { ...from, state: sanitizeState(from.state), zip: zipOnly(from.zip) };
+      // Changes on every send click so a retry after a failed batch never reuses a
+      // LetterStream job/batch id — LetterStream rejects resends with a previously-used
+      // batch id ("Batch Id is not unique", code -925). Letter id suffix keeps letters
+      // within the same batch distinct from each other.
+      const attemptSeed = Date.now().toString(36).slice(-2);
       const batch = await mailLettersBatchViaProvider({
         partnerId,
         from: fromClean,
@@ -181,7 +186,7 @@ export function BatchMailWizard({
             jobNaming: buildLetterStreamJobNaming({
               partnerDisplayName: defaultFromName,
               letter: enriched,
-              disambiguator: enriched.id.slice(-4),
+              disambiguator: `${attemptSeed}${enriched.id.slice(-2)}`,
             }),
           };
         }),
