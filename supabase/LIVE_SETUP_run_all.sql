@@ -1,7 +1,7 @@
 -- =====================================================================
 -- Finely Cred - LIVE database setup (run ONCE, in order)
 -- HOW: Supabase Dashboard -> SQL Editor -> New query -> paste ALL -> Run
--- Safe to re-run (idempotent). Auto-generated from supabase/migrations (40 files).
+-- Safe to re-run (idempotent). Auto-generated from supabase/migrations (52 files).
 -- Regenerate: node scripts/rebuild-live-setup.mjs
 -- After running, see docs/PRODUCTION_DEPLOY.md for env vars, secrets, deploy:functions.
 -- =====================================================================
@@ -2987,4 +2987,730 @@ create policy cases_delete_own on public.cases
 for delete
 to authenticated
 using (public.is_partner_owner(partner_id) or public.is_admin());
+
+
+-- ============================================================
+-- SECTION: 202608131900_growth_agent_handoffs.sql
+-- ============================================================
+
+-- Growth agent handoff ledger — explicit, attributable, verifiable agent-to-agent
+-- transitions (Phase 3). Replaces "two agents happen to read the same localStorage
+-- key" with a real timestamped, queryable record of who handed what to whom, why,
+-- and whether it was acknowledged/completed.
+create table if not exists public.growth_agent_handoffs (
+  id text primary key,
+  tenant_id text not null default 'finely_cred',
+  from_agent_id text not null,
+  to_agent_id text not null,
+  entity_type text not null default 'crm_record',
+  entity_id text,
+  action text not null,
+  status text not null default 'pending', -- pending | acked | completed | stalled
+  reasoning text,
+  meta jsonb not null default '{}'::jsonb,
+  created_at timestamptz not null default now(),
+  acked_at timestamptz,
+  completed_at timestamptz
+);
+
+create index if not exists growth_agent_handoffs_recent_idx
+  on public.growth_agent_handoffs (tenant_id, created_at desc);
+create index if not exists growth_agent_handoffs_entity_idx
+  on public.growth_agent_handoffs (entity_type, entity_id, created_at desc);
+create index if not exists growth_agent_handoffs_status_idx
+  on public.growth_agent_handoffs (tenant_id, status, created_at desc);
+
+alter table public.growth_agent_handoffs enable row level security;
+
+drop policy if exists growth_agent_handoffs_admin on public.growth_agent_handoffs;
+create policy growth_agent_handoffs_admin on public.growth_agent_handoffs
+for all to authenticated
+using (public.is_admin())
+with check (public.is_admin());
+
+
+-- ============================================================
+-- SECTION: 20260813200000_crm_server_sync_and_suppression.sql
+-- ============================================================
+
+-- Phase 2 — real server-side execution engine: CRM server-backed tables +
+-- unified comms suppression list shared by client (commsSuppressionRepo.ts)
+-- and server (automation-runner edge function). Best-effort dual-write only —
+-- localStorage stays the source of truth on the client if these calls fail.
+--
+-- Note: this repo has two tenant_id conventions in the wild
+-- ('tenant_finely_primary' via src/domain/tenants.ts FINELY_TENANT_ID, and the
+-- literal 'finely_cred' used by nurture_enrollments/automation_rules + all
+-- Edge Functions). These new tables intentionally standardize on 'finely_cred'
+-- (matching automation-runner/platform-cron/meta-webhook) so the new
+-- comms_suppression table is a genuine single source of truth read/written by
+-- both the client repo and the server dispatch path.
+
+create table if not exists public.crm_prospects (
+  id text primary key,
+  tenant_id text not null default 'finely_cred',
+  target text not null,
+  stage text not null default 'new',
+  source text not null default 'manual',
+  score integer not null default 0,
+  tags jsonb not null default '[]'::jsonb,
+  company jsonb not null default '{}'::jsonb,
+  contact jsonb not null default '{}'::jsonb,
+  intel jsonb not null default '{}'::jsonb,
+  notes jsonb not null default '[]'::jsonb,
+  touches jsonb not null default '[]'::jsonb,
+  assigned_to jsonb,
+  next_action jsonb,
+  consent_basis text,
+  lead_type text,
+  email_marketing_allowed boolean,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create index if not exists crm_prospects_tenant_stage_idx
+  on public.crm_prospects (tenant_id, stage, updated_at desc);
+
+-- Materialized CRM record read-model (mirrors src/domain/crmRecords.ts CrmRecord,
+-- the merged prospect+lead view already computed client-side). Gives server
+-- functions (automation-runner) a single table to read/write CRM stage + tags
+-- without re-implementing the prospect/lead merge logic.
+create table if not exists public.crm_records (
+  id text primary key,
+  tenant_id text not null default 'finely_cred',
+  kind text not null,
+  target text not null,
+  stage text not null,
+  source text not null,
+  score integer,
+  tags jsonb not null default '[]'::jsonb,
+  contact jsonb not null default '{}'::jsonb,
+  partner_id text,
+  project_ids jsonb not null default '[]'::jsonb,
+  package_interest text,
+  deal_value_cents integer,
+  assigned_to jsonb,
+  next_action jsonb,
+  attribution jsonb,
+  category_ids jsonb,
+  source_ref jsonb,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create index if not exists crm_records_tenant_stage_idx
+  on public.crm_records (tenant_id, stage, updated_at desc);
+create index if not exists crm_records_partner_idx
+  on public.crm_records (tenant_id, partner_id);
+
+create table if not exists public.comms_suppression (
+  id text primary key,
+  tenant_id text not null default 'finely_cred',
+  email text,
+  phone text,
+  channel text not null default 'all',
+  reason text not null default 'manual_dnc',
+  note text,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists comms_suppression_email_idx on public.comms_suppression (tenant_id, email);
+create index if not exists comms_suppression_phone_idx on public.comms_suppression (tenant_id, phone);
+
+alter table public.crm_prospects enable row level security;
+alter table public.crm_records enable row level security;
+alter table public.comms_suppression enable row level security;
+
+drop policy if exists crm_prospects_admin on public.crm_prospects;
+create policy crm_prospects_admin on public.crm_prospects
+for all to authenticated
+using (public.is_admin())
+with check (public.is_admin());
+
+drop policy if exists crm_records_admin on public.crm_records;
+create policy crm_records_admin on public.crm_records
+for all to authenticated
+using (public.is_admin())
+with check (public.is_admin());
+
+drop policy if exists comms_suppression_admin on public.comms_suppression;
+create policy comms_suppression_admin on public.comms_suppression
+for all to authenticated
+using (public.is_admin())
+with check (public.is_admin());
+
+
+-- ============================================================
+-- SECTION: 20260813210000_lead_captures_first_touch_ack.sql
+-- ============================================================
+
+-- Phase N1 — Instant Lead Acknowledgment: first-touch tracking columns.
+--
+-- Both the client-side instant-ack senders (sendImmediateWelcomeEmail in
+-- funnelEmail.ts, sendImmediateWelcomeSms in instantLeadAck.ts) and the
+-- server-side sender for leads that never touch the client pipeline
+-- (sendInstantLeadAckServerSide, called from meta-webhook/index.ts) write
+-- these columns best-effort on the first successful send. This avoids
+-- duplicate acknowledgment sends across the two paths and gives N2's
+-- time-to-first-touch KPI real data to read.
+alter table if exists public.lead_captures
+  add column if not exists first_touch_at timestamptz null,
+  add column if not exists first_touch_channel text null;
+
+comment on column public.lead_captures.first_touch_at is
+  'Timestamp of the first instant acknowledgment send (email or SMS) to this lead. Null = never acknowledged yet.';
+comment on column public.lead_captures.first_touch_channel is
+  'Channel of the first acknowledgment send: ''email'' or ''sms''. Null = never acknowledged yet.';
+
+create index if not exists lead_captures_first_touch_idx on public.lead_captures(first_touch_at);
+
+
+-- ============================================================
+-- SECTION: 20260814020000_agent_call_traces.sql
+-- ============================================================
+
+-- Phase H2 — structured, replayable per-agent-LLM-call trace records.
+-- Best-effort dual-write only (see src/data/agentCallTraceRepo.ts):
+-- localStorage stays the source of truth on the client if these calls fail.
+-- Internal ops/audit data only — no partner-facing read path, same
+-- data-sensitivity class as the existing agent_audit_events data.
+
+create table if not exists public.agent_call_traces (
+  id text primary key,
+  tenant_id text not null default 'finely_cred',
+  agent_id text not null,
+  task_type text not null,
+  provider text,
+  model text,
+  prompt_tokens_est integer,
+  completion_tokens_est integer,
+  latency_ms integer not null default 0,
+  cost_usd_est numeric,
+  input text not null default '',
+  output text not null default '',
+  linked_entity_type text,
+  linked_entity_id text,
+  outcome_at_capture text,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists agent_call_traces_tenant_agent_idx
+  on public.agent_call_traces (tenant_id, agent_id, created_at desc);
+create index if not exists agent_call_traces_tenant_created_idx
+  on public.agent_call_traces (tenant_id, created_at desc);
+
+alter table public.agent_call_traces enable row level security;
+
+drop policy if exists agent_call_traces_admin on public.agent_call_traces;
+create policy agent_call_traces_admin on public.agent_call_traces
+for all to authenticated
+using (public.is_admin())
+with check (public.is_admin());
+
+
+-- ============================================================
+-- SECTION: 20260814030000_knowledge_chunks_pgvector.sql
+-- ============================================================
+
+-- Phase H1 — pgvector-backed knowledge_chunks table (evaluation/scaffold pass).
+--
+-- This is an ADDITIVE, opt-in retrieval path alongside the existing in-browser
+-- synchronous keyword index in src/lib/finelyKnowledgeIndex.ts. Nothing reads
+-- from this table today — it is populated by scripts/export-knowledge-chunks.mjs
+-- and queried only by the (not-yet-wired-into-any-live-caller)
+-- searchFinelyKnowledgeVector() function via the knowledge-search edge function,
+-- itself gated behind the `knowledgeVectorSearch` feature flag (default OFF).
+--
+-- Row-level security note (Round 3 H1 acceptance criteria): this table is NOT
+-- given a public/authenticated direct-SELECT policy. The public/internal split
+-- that `isPublicSafeKnowledgeChunk()` enforces client-side is non-trivial to
+-- reproduce as a single RLS predicate (it branches on source + several tag
+-- sets), so instead of re-deriving that logic in SQL (and risking drift), the
+-- ETL script computes `public_safe` directly by calling the real
+-- `isPublicSafeKnowledgeChunk()` TS function per chunk before upsert — the
+-- single source of truth stays in TypeScript. The `match_knowledge_chunks` RPC
+-- below is the only sanctioned non-admin read path, and it always filters on
+-- `public_safe` unless the caller explicitly requests `internal` mode (which
+-- the knowledge-search edge function only honors for authenticated, non-anon
+-- callers — see supabase/functions/knowledge-search/index.ts).
+
+create extension if not exists vector;
+
+create table if not exists public.knowledge_chunks (
+  id text primary key,
+  source_tag text not null,
+  title text not null default '',
+  tags text[] not null default '{}',
+  route text,
+  content text not null default '',
+  -- true when isPublicSafeKnowledgeChunk() (finelyKnowledgeIndex.ts) allowed this
+  -- chunk through for public/partner-facing retrieval at ETL time.
+  public_safe boolean not null default false,
+  -- text-embedding-3-small (OpenAI) — 1536 dimensions. If the embedding model
+  -- changes, this column and every stored row must be rebuilt (see ETL script
+  -- header comment for the "any embedding-model change requires a full
+  -- re-embed" note).
+  embedding vector(1536),
+  updated_at timestamptz not null default now()
+);
+
+create index if not exists knowledge_chunks_source_tag_idx
+  on public.knowledge_chunks (source_tag);
+create index if not exists knowledge_chunks_tags_gin_idx
+  on public.knowledge_chunks using gin (tags);
+create index if not exists knowledge_chunks_public_safe_idx
+  on public.knowledge_chunks (public_safe);
+
+-- Approximate nearest-neighbor index for cosine similarity search. `lists` is
+-- tuned small (this corpus is expected to be low-thousands of chunks, not
+-- millions) — re-tune (and re-ANALYZE) if the corpus grows an order of
+-- magnitude. Requires at least one row to build cleanly on some PG versions;
+-- safe to run before any data is loaded (falls back to a not-yet-optimized
+-- index that self-corrects after the first bulk ETL run + ANALYZE).
+create index if not exists knowledge_chunks_embedding_ivfflat_idx
+  on public.knowledge_chunks using ivfflat (embedding vector_cosine_ops)
+  with (lists = 100);
+
+alter table public.knowledge_chunks enable row level security;
+
+-- Admins may read directly (debugging/ops only). No anon/authenticated
+-- direct-SELECT policy is granted — see header comment above.
+drop policy if exists knowledge_chunks_admin_select on public.knowledge_chunks;
+create policy knowledge_chunks_admin_select on public.knowledge_chunks
+for select to authenticated
+using (public.is_admin());
+
+-- Writes (ETL upserts) happen via the service-role key from
+-- scripts/export-knowledge-chunks.mjs, which bypasses RLS — no
+-- authenticated/anon write policy is granted here on purpose.
+drop policy if exists knowledge_chunks_admin_write on public.knowledge_chunks;
+create policy knowledge_chunks_admin_write on public.knowledge_chunks
+for all to authenticated
+using (public.is_admin())
+with check (public.is_admin());
+
+-- Cosine-similarity top-K RPC used by supabase/functions/knowledge-search.
+-- SECURITY DEFINER + explicit EXECUTE grants below let it serve anon/public
+-- callers (Ask Finely strip/chat/voice) without granting them table SELECT —
+-- this function is the only non-admin read path into knowledge_chunks.
+create or replace function public.match_knowledge_chunks(
+  query_embedding vector(1536),
+  match_count int default 6,
+  only_public_safe boolean default true
+)
+returns table (
+  id text,
+  source_tag text,
+  title text,
+  tags text[],
+  route text,
+  content text,
+  similarity float
+)
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select
+    k.id,
+    k.source_tag,
+    k.title,
+    k.tags,
+    k.route,
+    k.content,
+    1 - (k.embedding <=> query_embedding) as similarity
+  from public.knowledge_chunks k
+  where k.embedding is not null
+    and (only_public_safe = false or k.public_safe = true)
+  order by k.embedding <=> query_embedding
+  limit greatest(1, least(match_count, 50));
+$$;
+
+revoke all on function public.match_knowledge_chunks(vector, int, boolean) from public;
+grant execute on function public.match_knowledge_chunks(vector, int, boolean) to anon, authenticated;
+
+
+-- ============================================================
+-- SECTION: 20260814100000_calendar_events_server.sql
+-- ============================================================
+
+-- Phase F1 — Meeting reminders + no-show detection ported to platform-cron.
+--
+-- Confirmed before this migration: src/data/calendarRepo.ts stored every
+-- ConsultationRequest/CalendarEvent/PublicAppointmentRequest 100% in
+-- localStorage ('finely.calendar.v1') — zero server table existed, so a
+-- confirmed meeting could only get a reminder or no-show recovery if an
+-- admin/partner browser tab happened to be open with the calendar page
+-- loaded. This table mirrors the CalendarEvent shape (src/domain/calendar.ts)
+-- so a server cron tick (platform-cron) can read due events and send
+-- reminders / detect no-shows without any browser open.
+--
+-- Tenant id uses the literal 'finely_cred' (matching crm_prospects/crm_records/
+-- comms_suppression/nurture_enrollments and all platform-cron/automation-runner
+-- edge functions), NOT the FINELY_TENANT_ID app constant ('tenant_finely_primary')
+-- used by partners/agreements/entitlements — see crmServerSync.ts's header
+-- comment for the same pre-existing dual-convention note in this codebase.
+create table if not exists public.calendar_events (
+  id text primary key,
+  tenant_id text not null default 'finely_cred',
+  partner_id text not null,
+  type text not null check (type in ('consultation', 'follow_up', 'ops')),
+  status text not null check (status in ('tentative', 'confirmed', 'completed', 'cancelled', 'no_show')),
+  title text not null,
+  description text,
+  meeting_agenda text,
+  start_at timestamptz not null,
+  end_at timestamptz not null,
+  slot_duration_minutes int,
+  timezone text,
+  meeting_url text,
+  location text,
+  source_request_id text,
+  -- Server-owned send-dedupe columns — replace the client's separate
+  -- SMS_SENT_KEY / RECOVERED_KEY local-only dedupe logs so a server tick and
+  -- an admin-browser tick can never double-send the same reminder/recovery.
+  reminder_sent_at timestamptz,
+  sms_reminder_sent_at timestamptz,
+  no_show_recovery_sent_at timestamptz,
+  meeting_notes text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+-- Due-scan indexes for the two new cron processors.
+create index if not exists calendar_events_reminder_due_idx
+  on public.calendar_events (tenant_id, status, start_at);
+create index if not exists calendar_events_no_show_due_idx
+  on public.calendar_events (tenant_id, status, end_at);
+create index if not exists calendar_events_partner_idx
+  on public.calendar_events (tenant_id, partner_id, start_at desc);
+
+alter table public.calendar_events enable row level security;
+
+-- Admin/service-role: full read+write (server cron + admin calendar tools).
+drop policy if exists calendar_events_admin on public.calendar_events;
+create policy calendar_events_admin on public.calendar_events
+for all to authenticated
+using (public.is_admin())
+with check (public.is_admin());
+
+-- Partner: read-only visibility into their own scheduled meetings, matching
+-- the agreements_select_own / work_tasks_partner_read pattern.
+drop policy if exists calendar_events_partner_read on public.calendar_events;
+create policy calendar_events_partner_read on public.calendar_events
+for select to authenticated
+using (
+  public.is_admin()
+  or exists (
+    select 1 from public.partners p
+    where p.id = calendar_events.partner_id
+      and p.claimed_user_id = auth.uid()
+  )
+);
+
+
+-- ============================================================
+-- SECTION: 20260814110000_crm_sequences_server.sql
+-- ============================================================
+
+-- Phase F2 — Port the CRM sequence engine (src/features/crm/sequences/runCrmSequenceEngine.ts)
+-- to platform-cron. Confirmed before this migration: src/data/crmSequencesRepo.ts
+-- (sequences + enrollments) was 100% localStorage, so a due wait/email/task/
+-- stage_move step only advanced when an admin had a CRM page open. These two
+-- tables give platform-cron's new processDueCrmSequenceSteps.ts a durable,
+-- server-readable cadence state.
+create table if not exists public.crm_sequences (
+  id text primary key,
+  tenant_id text not null default 'finely_cred',
+  name text not null,
+  target text not null,
+  enabled boolean not null default true,
+  steps jsonb not null default '[]'::jsonb,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create index if not exists crm_sequences_tenant_enabled_idx
+  on public.crm_sequences (tenant_id, enabled, updated_at desc);
+
+-- record_id is NOT a hard FK to crm_records: crmServerSync.ts's sync is
+-- best-effort, so a hard FK could cause silent enrollment-sync failures if a
+-- record hasn't synced yet when its enrollment does.
+create table if not exists public.crm_sequence_enrollments (
+  id text primary key,
+  tenant_id text not null default 'finely_cred',
+  sequence_id text not null references public.crm_sequences(id) on delete cascade,
+  record_id text not null,
+  enrolled_at timestamptz not null,
+  updated_at timestamptz not null default now(),
+  last_completed_step_index integer not null default -1,
+  completed_at timestamptz,
+  paused_at timestamptz
+);
+
+create index if not exists crm_sequence_enrollments_due_idx
+  on public.crm_sequence_enrollments (tenant_id, completed_at, paused_at);
+create index if not exists crm_sequence_enrollments_record_idx
+  on public.crm_sequence_enrollments (tenant_id, record_id);
+
+-- Phase F2 server-side equivalent of the client's FREQUENCY_KEY localStorage
+-- log (commsSuppressionRepo.ts's isOverFrequencyCap/recordSendForFrequencyCap).
+-- Shared by processDueCrmSequenceSteps.ts, the processDueNurtureEnrollments.ts
+-- reconciliation fix, and F3's dunning/win-back one-time-per-threshold sends.
+create table if not exists public.comms_frequency_log (
+  id bigserial primary key,
+  tenant_id text not null default 'finely_cred',
+  recipient_key text not null,
+  sent_at timestamptz not null default now()
+);
+
+create index if not exists comms_frequency_log_lookup_idx
+  on public.comms_frequency_log (tenant_id, recipient_key, sent_at desc);
+
+alter table public.crm_sequences enable row level security;
+alter table public.crm_sequence_enrollments enable row level security;
+alter table public.comms_frequency_log enable row level security;
+
+-- Internal ops data — no partner-select policy needed (unlike calendar_events).
+drop policy if exists crm_sequences_admin on public.crm_sequences;
+create policy crm_sequences_admin on public.crm_sequences
+for all to authenticated
+using (public.is_admin())
+with check (public.is_admin());
+
+drop policy if exists crm_sequence_enrollments_admin on public.crm_sequence_enrollments;
+create policy crm_sequence_enrollments_admin on public.crm_sequence_enrollments
+for all to authenticated
+using (public.is_admin())
+with check (public.is_admin());
+
+drop policy if exists comms_frequency_log_admin on public.comms_frequency_log;
+create policy comms_frequency_log_admin on public.comms_frequency_log
+for all to authenticated
+using (public.is_admin())
+with check (public.is_admin());
+
+
+-- ============================================================
+-- SECTION: 20260814120000_send_retry_queue.sql
+-- ============================================================
+
+-- Phase F5 — Retry queue for failed sequence/nurture/reminder/billing sends.
+--
+-- Confirmed before this migration: every server-side send processor
+-- (processDueMeetingReminders.ts, processDueNoShowRecovery.ts,
+-- processDueCrmSequenceSteps.ts, processDueBillingDunning.ts,
+-- processDueWinBack.ts, processDueNurtureEnrollments.ts) logs a failed
+-- provider send (network error, provider rejection, etc.) into its own
+-- result.errors array and drops it — no automatic retry exists anywhere.
+-- This table gives _shared/sendRetryQueue.ts's enqueueRetry()/
+-- processDueRetries() durable, server-readable state to retry those sends
+-- with exponential backoff instead of losing them outright.
+--
+-- Tenant id uses the literal 'finely_cred' — matching crm_prospects/
+-- crm_records/comms_suppression/comms_frequency_log/nurture_enrollments and
+-- every other table the same processors already read/write (see
+-- crmServerSync.ts's header comment for this codebase's pre-existing
+-- dual-tenant-id convention).
+create table if not exists public.send_retry_queue (
+  id text primary key,
+  tenant_id text not null default 'finely_cred',
+  channel text not null check (channel in ('email', 'sms')),
+  to_email text,
+  to_phone text,
+  to_name text,
+  subject text,
+  body text not null,
+  html text,
+  source_processor text not null check (
+    source_processor in (
+      'meeting_reminders',
+      'no_show_recovery',
+      'crm_sequences',
+      'billing_dunning',
+      'win_back',
+      'nurture'
+    )
+  ),
+  reference_id text,
+  attempts integer not null default 0,
+  max_attempts integer not null default 3,
+  next_retry_at timestamptz not null default now(),
+  last_error text,
+  status text not null default 'pending' check (status in ('pending', 'sent', 'failed')),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  sent_at timestamptz
+);
+
+-- Due-scan index for processDueRetries(); admin-panel pending-count index.
+create index if not exists send_retry_queue_due_idx
+  on public.send_retry_queue (tenant_id, status, next_retry_at);
+create index if not exists send_retry_queue_source_idx
+  on public.send_retry_queue (tenant_id, source_processor, status);
+
+alter table public.send_retry_queue enable row level security;
+
+-- Internal ops data — no partner-select policy needed (same as
+-- crm_sequences/crm_sequence_enrollments/comms_frequency_log).
+drop policy if exists send_retry_queue_admin on public.send_retry_queue;
+create policy send_retry_queue_admin on public.send_retry_queue
+for all to authenticated
+using (public.is_admin())
+with check (public.is_admin());
+
+
+-- ============================================================
+-- SECTION: 20260814130000_crm_sequence_step_variants.sql
+-- ============================================================
+
+-- G3 — real A/B variant-testing primitive for the CRM sequence send path
+-- (src/features/crm/sequences/runCrmSequenceEngine.ts client engine +
+-- supabase/functions/_shared/processDueCrmSequenceSteps.ts server engine,
+-- Phase F2's cron-side port). Additive-only:
+--
+-- - crm_sequences.steps is already jsonb (20260814110000_crm_sequences_server.sql)
+--   so a step's new optional `variants: { variant_a: { emailSubject, emailBody } }`
+--   field needs no schema change — old rows without it are unaffected.
+-- - crm_sequence_enrollments gets two new nullable columns: which variant
+--   ('control' | 'variant_a') this enrollment was deterministically assigned
+--   to (assigned via a hash of the enrollment id — see
+--   assignCrmSequenceVariantForSeed in src/domain/crmSequences.ts, duplicated
+--   verbatim in the edge function so both engines always agree), and the CRM
+--   stage the record was in at enroll time (the baseline for the "did it
+--   advance within N days" outcome proxy the results view uses).
+alter table public.crm_sequence_enrollments
+  add column if not exists assigned_variant text,
+  add column if not exists stage_at_enrollment text;
+
+
+-- ============================================================
+-- SECTION: 20260814140000_calendar_provider_connections.sql
+-- ============================================================
+
+-- Phase J1 — Google Calendar / Outlook sync groundwork (evaluation deliverable).
+--
+-- No OAuth app is registered with Google or Microsoft yet — this table is
+-- schema-only groundwork so a future OAuth callback edge function (mirroring
+-- the existing `meta-oauth` function that already writes to
+-- `meta_connections`, see 20260615000000_meta_connections.sql) has somewhere
+-- real to persist tokens without another migration pass. Tokens are
+-- server-side only; the client only ever reads the non-token columns via
+-- `CalendarProviderConnectionSummary` (src/domain/calendarProviderConnection.ts).
+--
+-- Tenant id uses the literal 'finely_cred', matching calendar_events / crm_* /
+-- comms_* (see calendarServerSync.ts's header comment for this codebase's
+-- pre-existing dual-tenant-id convention) — this table exists to reconcile
+-- against calendar_events (20260814100000_calendar_events_server.sql), which
+-- already uses the same tenant_id literal.
+create table if not exists public.calendar_provider_connections (
+  id uuid primary key default gen_random_uuid(),
+  tenant_id text not null default 'finely_cred',
+  -- 'admin' for a staff/admin-connected calendar (e.g. the booking calendar
+  -- CalendarSettingsPanel.tsx configures), 'partner' for a partner's own
+  -- external calendar, once partner self-connect ships.
+  owner_kind text not null check (owner_kind in ('admin', 'partner')),
+  owner_id text not null,
+  provider text not null check (provider in ('google', 'microsoft')),
+  status text not null default 'not_connected' check (status in ('not_connected', 'connected', 'expired', 'error')),
+  external_account_email text,
+  access_token text,
+  refresh_token text,
+  scope text,
+  token_expires_at timestamptz,
+  last_synced_at timestamptz,
+  last_sync_error text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  unique (tenant_id, owner_kind, owner_id, provider)
+);
+
+create index if not exists calendar_provider_connections_owner_idx
+  on public.calendar_provider_connections (tenant_id, owner_kind, owner_id);
+
+alter table public.calendar_provider_connections enable row level security;
+
+-- Admin-only for now (mirrors meta_connections_admin) — this table carries
+-- OAuth token material, so even read access is restricted to admins/service
+-- role until a token-redacted status view is built for partner self-connect.
+drop policy if exists calendar_provider_connections_admin on public.calendar_provider_connections;
+create policy calendar_provider_connections_admin on public.calendar_provider_connections
+for all to authenticated
+using (public.is_admin())
+with check (public.is_admin());
+
+
+-- ============================================================
+-- SECTION: 20260814140001_send_retry_queue_missed_call.sql
+-- ============================================================
+
+-- Phase J3 — missed-call text-back. Adds 'missed_call_textback' to
+-- send_retry_queue.source_processor's allowed values so a failed
+-- text-back SMS (see _shared/missedCallTextBack.ts) can be retried by the
+-- same processDueRetries() sweep as every other send processor, instead of
+-- silently dropping on provider failure.
+alter table public.send_retry_queue drop constraint if exists send_retry_queue_source_processor_check;
+
+alter table public.send_retry_queue add constraint send_retry_queue_source_processor_check
+  check (
+    source_processor in (
+      'meeting_reminders',
+      'no_show_recovery',
+      'crm_sequences',
+      'billing_dunning',
+      'win_back',
+      'nurture',
+      'missed_call_textback'
+    )
+  );
+
+
+-- ============================================================
+-- SECTION: 20260814140002_admin_lookup_auth_user.sql
+-- ============================================================
+
+-- Admin-only auth user lookup for partner invite/signup status sync.
+-- Called from admin-partner-auth-sync edge function (service role).
+
+create or replace function public.admin_lookup_auth_user(
+  p_email text default null,
+  p_user_id uuid default null
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public, auth
+as $$
+declare
+  r auth.users%rowtype;
+begin
+  if p_user_id is not null then
+    select * into r from auth.users where id = p_user_id;
+  elsif p_email is not null and trim(p_email) <> '' then
+    select * into r
+    from auth.users
+    where lower(email) = lower(trim(p_email))
+    order by created_at desc
+    limit 1;
+  else
+    return null;
+  end if;
+
+  if not found then
+    return null;
+  end if;
+
+  return jsonb_build_object(
+    'userId', r.id,
+    'email', r.email,
+    'emailConfirmedAt', r.email_confirmed_at,
+    'lastSignInAt', r.last_sign_in_at,
+    'createdAt', r.created_at
+  );
+end;
+$$;
+
+revoke all on function public.admin_lookup_auth_user(text, uuid) from public;
+grant execute on function public.admin_lookup_auth_user(text, uuid) to service_role;
 
