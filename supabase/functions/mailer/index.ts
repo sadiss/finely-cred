@@ -13,9 +13,12 @@
 
 import { corsHeaders } from '../_shared/cors.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.1';
-import { json, logEdgeEvent, rateLimit, requireAllowlistedEmail, requireAuth, requireIdempotency } from '../_shared/edgeGuard.ts';
+import { json, logEdgeEvent, rateLimit, requireAuth, requireIdempotency } from '../_shared/edgeGuard.ts';
+import { requireStaffAllowlistedEmail, type StaffTier } from '../_shared/actorAuth.ts';
+import { developerLiveMailBlocked } from '../_shared/commsSandbox.ts';
 import {
   buildLetterStreamDocId,
+  buildLetterStreamHumanJobName,
   buildLetterStreamJobName,
   estimatePdfPageCount,
   getLetterStreamCredentials,
@@ -39,6 +42,15 @@ type ReqBody = {
   /** Defaults to 'send' when omitted. */
   op?: 'send' | 'verify' | 'ping' | 'status' | 'quote';
   mailTypes?: Array<'firstclass' | 'certified' | 'certnoerr' | 'flat'>;
+  /** Live LetterStream quote runs for this class only; others use static estimates. */
+  selectedMailType?: 'firstclass' | 'certified' | 'certnoerr' | 'flat';
+  /** Idempotency for quote preauth — prevents duplicate LetterStream jobs on modal re-render. */
+  quoteIdempotencyKey?: string;
+  jobNaming?: {
+    partnerFirstName?: string;
+    recipientLabel?: string;
+    disambiguator?: string;
+  };
   partnerId?: string;
   letterId?: string;
   pdfBlobRef?: string;
@@ -55,6 +67,20 @@ type ReqBody = {
   /** Optional: prevents accidental duplicate sends. */
   idempotencyKey?: string;
 };
+
+function staticMailQuoteEstimate(mailType: string): number {
+  if (mailType === 'firstclass') return 3.5;
+  if (mailType === 'certnoerr') return 6.5;
+  if (mailType === 'flat') return 9;
+  return 8;
+}
+
+function resolveEdgeJobName(body: ReqBody, letterId: string): string {
+  if (body.jobNaming?.partnerFirstName || body.jobNaming?.recipientLabel) {
+    return buildLetterStreamHumanJobName(body.jobNaming);
+  }
+  return buildLetterStreamJobName(letterId);
+}
 
 /** LetterStream TEST / debug mode — never silent in product UI. */
 function resolveMailLiveMode(): boolean {
@@ -208,9 +234,10 @@ Deno.serve(async (req) => {
   const publicProvider = publicMailProvider();
 
   let ctx: Awaited<ReturnType<typeof requireAuth>>;
+  let staffTier: StaffTier;
   try {
     ctx = await requireAuth(req);
-    requireAllowlistedEmail(ctx);
+    staffTier = requireStaffAllowlistedEmail(ctx);
   } catch (e) {
     return json({ error: (e as Error)?.message || 'Unauthorized' }, { status: 401 });
   }
@@ -308,20 +335,44 @@ Deno.serve(async (req) => {
         return json({ error: downloadErr?.message || 'Could not download PDF for quote' }, { status: 500 });
       }
       const pdfBytes = new Uint8Array(await blob.arrayBuffer());
-      const mailTypes = body.mailTypes?.length
+      const allTypes = (body.mailTypes?.length
         ? body.mailTypes
-        : (['firstclass', 'certified', 'certnoerr'] as const);
+        : (['firstclass', 'certified', 'certnoerr'] as const)) as Array<'firstclass' | 'certified' | 'certnoerr' | 'flat'>;
+      const liveType =
+        body.selectedMailType && allTypes.includes(body.selectedMailType)
+          ? body.selectedMailType
+          : allTypes[0]!;
       const docId = buildLetterStreamDocId(body.letterId || 'quote');
-      const jobName = buildLetterStreamJobName(body.letterId || 'quote');
-      const quotes: Array<{ mailType: string; costUsd: number | null; code: number; message: string }> = [];
+      const jobName = resolveEdgeJobName(body, body.letterId || 'quote');
+      const quotes: Array<{ mailType: string; costUsd: number | null; code: number; message: string; estimated?: boolean }> = [];
 
-      for (const mailType of mailTypes) {
+      const quoteIdemKey =
+        body.quoteIdempotencyKey ||
+        `${body.letterId || 'quote'}:${String(body.pdfBlobRef).slice(-48)}:${liveType}`;
+      const quoteFresh = await requireIdempotency({
+        namespace: 'mailer:quote',
+        key: `${ctx.user.id}:${quoteIdemKey}`,
+        ttlSeconds: 10 * 60,
+      });
+
+      for (const mailType of allTypes) {
+        if (mailType !== liveType || !quoteFresh) {
+          quotes.push({
+            mailType,
+            costUsd: staticMailQuoteEstimate(mailType),
+            code: -200,
+            message: quoteFresh ? 'Estimated — select class for live quote' : 'Estimated — quote deduped',
+            estimated: true,
+          });
+          continue;
+        }
+
         const parsed = await letterStreamSendSingleFile({
           to: body.to!,
           from: body.from!,
           pdfBytes,
-          jobName: `${jobName.slice(0, 14)}_${mailType.slice(0, 4)}`.slice(0, 20),
-          docId: `${docId.slice(0, 14)}_${mailType.slice(0, 4)}`.slice(0, 20),
+          jobName,
+          docId: `${docId.slice(0, 16)}`.slice(0, 20),
           options: {
             color: body.options?.color ?? true,
             doubleSided: body.options?.doubleSided ?? true,
@@ -336,11 +387,7 @@ Deno.serve(async (req) => {
         const costUsd =
           typeof summary.cost === 'number' && Number.isFinite(summary.cost)
             ? summary.cost
-            : mailType === 'firstclass'
-              ? 3.5
-              : mailType === 'certnoerr'
-                ? 6.5
-                : 8;
+            : staticMailQuoteEstimate(mailType);
         quotes.push({
           mailType,
           costUsd,
@@ -349,7 +396,7 @@ Deno.serve(async (req) => {
         });
       }
 
-      return json({ ok: true, provider: publicProvider, quotes });
+      return json({ ok: true, provider: publicProvider, quotes, quoteDeduped: !quoteFresh });
     } catch (e) {
       return json({
         ok: false,
@@ -405,6 +452,19 @@ Deno.serve(async (req) => {
   if (toErr) return json({ error: `To address invalid: ${toErr}` }, { status: 400 });
   if (fromErr) return json({ error: `From address invalid: ${fromErr}` }, { status: 400 });
 
+  const mailTestMode = resolveMailTestMode();
+  const mailLiveMode = resolveMailLiveMode();
+  if (developerLiveMailBlocked({ tier: staffTier, liveMode: mailLiveMode, testMode: mailTestMode })) {
+    return json(
+      {
+        ok: false,
+        error:
+          'Developer accounts cannot send live physical mail. Enable MAIL_TEST_MODE on the mailer function or use an admin account.',
+      },
+      { status: 403 },
+    );
+  }
+
   try {
     const { path } = parseSupabaseRef(body.pdfBlobRef);
     // Stored paths are "partners/{partnerId}/..." (no leading slash — see
@@ -435,7 +495,7 @@ Deno.serve(async (req) => {
   try {
     if (provider === 'letterstream') {
       const docId = buildLetterStreamDocId(body.letterId);
-      const jobName = buildLetterStreamJobName(body.letterId);
+      const jobName = resolveEdgeJobName(body, body.letterId);
       const parsed = await letterStreamSendSingleFile({
         to: body.to,
         from: body.from,

@@ -26,6 +26,7 @@ import {
 } from '../../features/os/finelyOsLightUi';
 import { FINELY_MAIL_COPY } from '../../lib/mailWhiteLabel';
 import { notifyLetterMailed } from '../../lib/letterMailedNotify';
+import { backfillPartnerLettersMailTo } from '../../lib/letterMailToBackfill';
 import { useAuth } from '../../auth/AuthProvider';
 
 /**
@@ -83,6 +84,7 @@ export default function AdminMailLettersPage() {
       setMailedDone(false);
       return;
     }
+    backfillPartnerLettersMailTo(partner.id);
     setSelectedIds(new Set(pdfReady.map((l) => l.id)));
     setMailedDone(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps

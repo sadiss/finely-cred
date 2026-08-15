@@ -133,6 +133,38 @@ export function buildLetterStreamJobName(seed: string): string {
   return job;
 }
 
+function sanitizeLetterStreamNamePart(value: string, maxLen: number): string {
+  const clean = value.replace(/[^a-zA-Z0-9_-]/g, '').slice(0, maxLen);
+  return clean || '';
+}
+
+/** Human-readable LetterStream job name — 8–20 chars, [a-zA-Z0-9_-]. Example: Yoli_TransUnion */
+export function buildLetterStreamHumanJobName(args: {
+  partnerFirstName?: string;
+  recipientLabel?: string;
+  disambiguator?: string;
+}): string {
+  const partner = sanitizeLetterStreamNamePart(args.partnerFirstName || 'Partner', 8) || 'Partner';
+  const recipient = sanitizeLetterStreamNamePart(args.recipientLabel || 'Letter', 10) || 'Letter';
+  let base = `${partner}_${recipient}`.slice(0, 20);
+  const dis = sanitizeLetterStreamNamePart(args.disambiguator || '', 4);
+  if (dis && base.length + dis.length + 1 <= 20) base = `${base}_${dis}`.slice(0, 20);
+  if (base.length < 8) {
+    base = `${base}_${Date.now().toString(36).slice(-4)}`.slice(0, 20);
+  }
+  while (base.length < 8) base += '0';
+  return base.slice(0, 20);
+}
+
+/** True when LetterStream already created a batch/job/doc — skip duplicate POST on -904 retry. */
+export function letterStreamJobMaterialized(parsed: LetterStreamResponse): boolean {
+  const msg = parsed.messages[0];
+  if (!msg) return false;
+  if (msg.batch && String(msg.batch).trim()) return true;
+  if (msg.docs?.some((d) => Boolean(d.job?.trim()) || Boolean(d.id?.trim()))) return true;
+  return false;
+}
+
 /**
  * Read page count from PDF `/Type /Pages` `/Count` entries.
  * Uses the minimum Count when multiple Page trees exist (avoids phantom over-counts).
@@ -348,8 +380,12 @@ export async function letterStreamSendSingleFile(args: {
   let form = buildLetterStreamSendForm({ ...baseArgs, pages: declaredPages });
   let parsed = await postLetterStreamForm(form);
 
-  // -904: declared pages ≠ PDF — retry letting LetterStream read the file directly.
-  if (letterStreamResponseCode(parsed) === -904 && declaredPages != null) {
+  // -904: declared pages ≠ PDF — retry only when no job materialized (avoid triple-send).
+  if (
+    letterStreamResponseCode(parsed) === -904 &&
+    declaredPages != null &&
+    !letterStreamJobMaterialized(parsed)
+  ) {
     form = buildLetterStreamSendForm({ ...baseArgs, pages: undefined });
     parsed = await postLetterStreamForm(form);
   }

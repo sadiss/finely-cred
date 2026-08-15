@@ -40,6 +40,7 @@ import { listHosAccessCodes } from '../../lib/hetaSocietyAccessCodes';
 import { StaffSocialPresenceStrip } from '../../features/staffCommandCenter/StaffSocialPresenceStrip';
 import { listCommsSends, listCommsTemplates } from '../../data/commsRepo';
 import { listCommsSequences } from '../../data/commsSequencesRepo';
+import { AdminDeveloperQaEntry } from '../../components/admin/AdminDeveloperQaEntry';
 import { isFinelyAdminTestMode, setFinelyAdminTestMode } from '../../lib/finelyAdminTestMode';
 
 type AdminDashSection = 'overview' | 'ops' | 'modules';
@@ -626,6 +627,7 @@ export default function AdminDashboardPage() {
         >
           <section id="admin-overview" className="fc-scroll-section space-y-6">
               <h2 className="fc-launch-lane-header">Overview</h2>
+              <AdminDeveloperQaEntry />
               <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <KpiCard
                   label="Partners"

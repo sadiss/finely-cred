@@ -978,6 +978,42 @@ Lets admins open the partner portal as a specific partner without logging out.
 
 **Rule:** Amber view-as banner must stay visible while impersonating. **`PartnerDetailPage.tsx`** — patch scripts only (`scripts/_patch-partner-detail-*.mjs`), never direct StrReplace.
 
+Developers on `VITE_DEVELOPER_EMAILS` / `EDGE_DEVELOPER_EMAILS` can also view-as (banner shows for any staff email). Full QA role plan: [`docs/plans/developer-qa-role.md`](plans/developer-qa-role.md).
+
+| Piece | File |
+|-------|------|
+| Client allowlist | `src/auth/developer.ts` — `VITE_DEVELOPER_EMAILS` |
+| Staff tier | `src/auth/staffIdentity.ts` |
+| QA hub | `/developer` — `DeveloperQaHubPage.tsx` |
+| Sandbox banner | `DeveloperSandboxBanner.tsx` |
+| Edge staff auth | `_shared/actorAuth.ts` — `EDGE_DEVELOPER_EMAILS` |
+| Comms sandbox | `_shared/commsSandbox.ts` — `EDGE_SANDBOX_EMAIL`, `EDGE_SANDBOX_SMS` |
+
+**Mail QA:** Quote uses **one** live LetterStream preauth per selected class; job names like `Yoli_TransUnion` via `src/lib/letterStreamJobName.ts`. Live mail blocked for developer tier when `MAIL_LIVE_MODE` without test mode.
+
+### 15.5.1 Developer login (Sadiss)
+
+| Field | Value |
+|-------|--------|
+| Email | `sadiss.ansaari@gmail.com` |
+| Initial password | `FinelyDev2026!` |
+| Post-login home | `/developer` |
+| Password reset | `/account/settings?tab=security` or Supabase forgot-password on `/onboarding` |
+
+**Owner setup:** Create the Supabase Auth user with the email/password above (or invite + first login). Set secrets:
+
+```
+VITE_DEVELOPER_EMAILS=sadiss.ansaari@gmail.com
+EDGE_DEVELOPER_EMAILS=sadiss.ansaari@gmail.com
+EDGE_SANDBOX_EMAIL=<qa-inbox>
+EDGE_SANDBOX_SMS=<qa-phone>
+MAIL_TEST_MODE=1
+```
+
+**Admin preview:** Admin Overview → **Developer QA** card, or Platform nav → **Developer QA**, or `/developer` directly.
+
+The on-site guide (large-type steps, checklist, AI copilot) lives on `/developer` — not plain docs text.
+
 ### 15.6 Partner hub launchers (role dashboards)
 
 Each role hub shows a tile grid → modal work surfaces (compact luxury density).

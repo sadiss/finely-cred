@@ -68,6 +68,15 @@ export function backfillLetterMailToMeta(letter: LetterRecord): { letter: Letter
 
   const target = resolveTargetMailBlock(letter, parsed);
   if (!target?.name || !target.address) {
+    const metaOnlyName =
+      clean(meta.collectorName) || clean(meta.creditorName) || clean(meta.recipientName) || clean(meta.mailToName);
+    if (metaOnlyName && (!mailToName || !mailToAddress)) {
+      const nextMeta = { ...meta, mailToName: metaOnlyName, recipientName: metaOnlyName };
+      return {
+        letter: { ...letter, meta: nextMeta as LetterMeta },
+        changed: true,
+      };
+    }
     return { letter, changed: false };
   }
 

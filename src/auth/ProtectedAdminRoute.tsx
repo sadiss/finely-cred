@@ -2,6 +2,8 @@ import React from 'react';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from './AuthProvider';
 import { isAdminEmail } from './admin';
+import { isDeveloperEmail } from './developer';
+import { DeveloperSandboxBanner } from '../components/developer/DeveloperSandboxBanner';
 import { PageShell } from '../components/layout/PageShell';
 import { FINELY_TENANT_ID } from '../domain/tenants';
 import { canAccessAdminArea, canManageTeam, canViewAllClients, getMembershipByUserAndTenant, isPlatformAdmin } from '../data/tenantsRepo';
@@ -46,6 +48,7 @@ export function ProtectedAdminRoute({ children }: { children: React.ReactNode })
         : 'none';
 
   const isAllowlisted = isAdminEmail(email);
+  const isDeveloperAllowlisted = isDeveloperEmail(email);
 
   if (isAllowlisted) {
     // Demo-mode: bootstrap an actual membership record for platform admins.
@@ -55,6 +58,15 @@ export function ProtectedAdminRoute({ children }: { children: React.ReactNode })
       // ignore
     }
     return <>{children}</>;
+  }
+
+  if (isDeveloperAllowlisted) {
+    return (
+      <>
+        <DeveloperSandboxBanner />
+        {children}
+      </>
+    );
   }
 
   if (!allowByMembership) {

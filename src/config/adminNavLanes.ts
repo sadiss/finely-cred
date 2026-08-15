@@ -124,6 +124,7 @@ export const ADMIN_NAV_GROUPS: AdminNavGroupDef[] = [
       { path: '/admin/finely-bridge-ops', label: 'Bridge ops', icon: Sparkles, hint: 'Finely ↔ Bridge' },
       { path: '/admin/vault', label: 'Vault', icon: Lock, hint: 'Restricted' },
       { path: '/admin/parsing-lab', label: 'Parsing Lab', icon: FlaskConical, hint: 'Regression harness' },
+      { path: '/developer', label: 'Developer QA', icon: FlaskConical, hint: 'Sadiss launch test bench' },
       { path: '/admin/settings?tab=appearance', label: 'Appearance', icon: Settings, hint: 'Light theme admin preview' },
       { path: '/admin/preview', label: 'Layout previews', icon: Eye, hint: 'Structure preview — live theme unchanged' },
       { path: '/admin/settings', label: 'Settings', icon: Settings, hint: 'System settings' },

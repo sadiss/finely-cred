@@ -133,14 +133,20 @@ export async function getMailProviderStatus(): Promise<MailProviderStatus> {
   return coerceStatus(data as Record<string, unknown> | null);
 }
 
-/** Live LetterStream preauth quotes per mail class for a specific letter PDF. */
+/** Live LetterStream preauth quotes — one live class + static estimates for others. */
 export async function quoteMailOptionsViaProvider(args: {
   letterId: string;
   pdfBlobRef: string;
   to: MailAddress;
   from: MailAddress;
-  mailTypes?: Array<'firstclass' | 'certified' | 'certnoerr'>;
-}): Promise<{ ok: boolean; quotes: MailQuoteOption[]; error?: string }> {
+  selectedMailType?: 'firstclass' | 'certified' | 'certnoerr';
+  quoteIdempotencyKey?: string;
+  jobNaming?: {
+    partnerFirstName?: string;
+    recipientLabel?: string;
+    disambiguator?: string;
+  };
+}): Promise<{ ok: boolean; quotes: MailQuoteOption[]; error?: string; quoteDeduped?: boolean }> {
   if (!isFeatureEnabled('letterMailing')) {
     throw new Error('Letter mailing is disabled (Feature Flags).');
   }
@@ -155,7 +161,9 @@ export async function quoteMailOptionsViaProvider(args: {
       pdfBlobRef: args.pdfBlobRef,
       to: args.to,
       from: args.from,
-      mailTypes: args.mailTypes ?? ['firstclass', 'certified', 'certnoerr'],
+      selectedMailType: args.selectedMailType ?? 'certified',
+      quoteIdempotencyKey: args.quoteIdempotencyKey,
+      jobNaming: args.jobNaming,
       options: { color: true, doubleSided: true, coverSheet: true },
     },
   });
@@ -175,7 +183,7 @@ export async function quoteMailOptionsViaProvider(args: {
         message: typeof q.message === 'string' ? q.message : undefined,
       }))
     : [];
-  return { ok: true, quotes };
+  return { ok: true, quotes, quoteDeduped: Boolean(raw.quoteDeduped) };
 }
 
 export async function verifyMailAddressesViaProvider(args: {
@@ -214,6 +222,11 @@ export async function mailLetterViaProvider(args: {
   pdfBlobRef: string;
   to: MailAddress;
   from: MailAddress;
+  jobNaming?: {
+    partnerFirstName?: string;
+    recipientLabel?: string;
+    disambiguator?: string;
+  };
   options?: {
     color?: boolean;
     doubleSided?: boolean;
@@ -237,6 +250,7 @@ export async function mailLetterViaProvider(args: {
       pdfBlobRef: args.pdfBlobRef,
       to: args.to,
       from: args.from,
+      jobNaming: args.jobNaming,
       options: args.options ?? {},
       idempotencyKey: `${args.partnerId}:${args.letterId}:${String(args.pdfBlobRef).slice(-64)}`,
     },
@@ -262,7 +276,16 @@ export async function mailLetterViaProvider(args: {
 export async function mailLettersBatchViaProvider(args: {
   partnerId: string;
   from: MailAddress;
-  items: Array<{ letterId: string; pdfBlobRef: string; to: MailAddress }>;
+  items: Array<{
+    letterId: string;
+    pdfBlobRef: string;
+    to: MailAddress;
+    jobNaming?: {
+      partnerFirstName?: string;
+      recipientLabel?: string;
+      disambiguator?: string;
+    };
+  }>;
   options?: {
     color?: boolean;
     doubleSided?: boolean;
@@ -279,6 +302,7 @@ export async function mailLettersBatchViaProvider(args: {
         pdfBlobRef: item.pdfBlobRef,
         to: item.to,
         from: args.from,
+        jobNaming: item.jobNaming,
         options: args.options ?? { color: true, doubleSided: true },
       });
       out.push({ letterId: item.letterId, ok: true, result });

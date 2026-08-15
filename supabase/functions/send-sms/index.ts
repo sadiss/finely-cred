@@ -10,7 +10,9 @@
 // - SMS_REST_SEND_URL (optional override, default VatanSMS 1toN endpoint)
 
 import { corsHeaders } from '../_shared/cors.ts';
-import { json, logEdgeEvent, rateLimit, requireAllowlistedEmail, requireAuth, requireIdempotency } from '../_shared/edgeGuard.ts';
+import { json, logEdgeEvent, rateLimit, requireAuth, requireIdempotency } from '../_shared/edgeGuard.ts';
+import { requireStaffAllowlistedEmail } from '../_shared/actorAuth.ts';
+import { applySmsSandbox } from '../_shared/commsSandbox.ts';
 import { getSmsProvider } from '../_shared/commsCredentials.ts';
 import { sendServiceSms } from '../_shared/commsSendSms.ts';
 
@@ -27,9 +29,10 @@ Deno.serve(async (req) => {
   if (req.method !== 'POST') return json({ error: 'Method not allowed' }, { status: 405 });
 
   let ctx: Awaited<ReturnType<typeof requireAuth>>;
+  let staffTier: Awaited<ReturnType<typeof requireStaffAllowlistedEmail>>;
   try {
     ctx = await requireAuth(req);
-    requireAllowlistedEmail(ctx);
+    staffTier = requireStaffAllowlistedEmail(ctx);
   } catch (e) {
     return json({ error: (e as Error)?.message || 'Unauthorized' }, { status: 401 });
   }
@@ -61,8 +64,20 @@ Deno.serve(async (req) => {
     if (!ok) return json({ ok: true, deduped: true });
   }
 
+  let sandboxed = false;
+  let originalTo: string | undefined;
+  let deliverTo = to;
+  try {
+    const sandbox = applySmsSandbox({ tier: staffTier, originalTo: to });
+    sandboxed = sandbox.sandboxed;
+    originalTo = sandbox.originalTo;
+    deliverTo = sandbox.to;
+  } catch (e) {
+    return json({ error: (e as Error)?.message || 'Sandbox misconfigured' }, { status: 500 });
+  }
+
   const provider = getSmsProvider();
-  const sent = await sendServiceSms({ to, body: msg, from: body.from });
+  const sent = await sendServiceSms({ to: deliverTo, body: msg, from: body.from });
 
   if (!sent.ok) {
     await logEdgeEvent({
@@ -81,12 +96,14 @@ Deno.serve(async (req) => {
     meta: {
       userId: ctx.user.id,
       ip: ctx.ip,
-      to,
+      to: deliverTo,
+      originalTo: originalTo ?? null,
+      sandboxed,
       provider: sent.provider,
       sid: sent.sid ?? null,
       status: sent.status ?? null,
       bodyLen: msg.length,
     },
   });
-  return json({ ok: true, provider: sent.provider, sid: sent.sid ?? null, status: sent.status ?? null });
+  return json({ ok: true, provider: sent.provider, sid: sent.sid ?? null, status: sent.status ?? null, sandboxed, originalTo: sandboxed ? originalTo : undefined });
 });

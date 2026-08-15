@@ -1,5 +1,6 @@
 import type { User } from '@supabase/supabase-js';
 import { isAdminEmail } from '../auth/admin';
+import { isDeveloperEmail } from '../auth/developer';
 import { getUserEmail, getUserProfileMeta } from '../auth/userProfile';
 import { AU_SELLER } from '../config/auSellerProgram';
 import { CS } from '../config/creditSpecialistProgram';
@@ -23,6 +24,7 @@ function readOnboardingDraft(): { role?: string; interest?: string; promoType?: 
 export function resolvePostAuthHomePath(user: User | null | undefined): string {
   const email = getUserEmail(user);
   if (email && isAdminEmail(email)) return '/admin';
+  if (email && isDeveloperEmail(email)) return '/developer';
 
   const draft = readOnboardingDraft();
   const meta = getUserProfileMeta(user) as { role?: string; interest?: string; promoType?: string };

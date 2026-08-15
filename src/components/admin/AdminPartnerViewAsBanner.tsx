@@ -2,7 +2,7 @@ import React, { useSyncExternalStore } from 'react';
 import { ShieldAlert, X } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../auth/AuthProvider';
-import { isAdminEmail } from '../../auth/admin';
+import { isStaffEmail } from '../../auth/staffIdentity';
 import { usePartnerSession } from '../../auth/PartnerSessionContext';
 import {
   clearAdminPartnerOverrideId,
@@ -30,9 +30,9 @@ export function AdminPartnerViewAsBanner() {
   const overrideId = useSyncExternalStore(subscribeAdminPartnerOverride, getOverrideSnapshot, () => '');
 
   const email = (auth.user?.email || '').trim();
-  const isAdmin = email ? isAdminEmail(email) : false;
+  const isStaff = email ? isStaffEmail(email) : false;
 
-  if (!isAdmin || !overrideId) return null;
+  if (!isStaff || !overrideId) return null;
   if (!location.pathname.startsWith('/portal') || location.pathname.startsWith('/portal/select-partner')) {
     return null;
   }

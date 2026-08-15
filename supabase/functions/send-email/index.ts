@@ -9,7 +9,9 @@
 // - SMTP_SECURE    (optional, set "true" for port 465 implicit TLS)
 
 import { corsHeaders } from '../_shared/cors.ts';
-import { json, logEdgeEvent, rateLimit, requireAllowlistedEmail, requireAuth, requireIdempotency } from '../_shared/edgeGuard.ts';
+import { json, logEdgeEvent, rateLimit, requireAuth, requireIdempotency } from '../_shared/edgeGuard.ts';
+import { requireStaffAllowlistedEmail } from '../_shared/actorAuth.ts';
+import { applyEmailSandbox } from '../_shared/commsSandbox.ts';
 import { sendServiceEmail } from '../_shared/commsSendEmail.ts';
 
 type ReqBody = {
@@ -28,9 +30,10 @@ Deno.serve(async (req) => {
   if (req.method !== 'POST') return json({ error: 'Method not allowed' }, { status: 405 });
 
   let ctx: Awaited<ReturnType<typeof requireAuth>>;
+  let staffTier: Awaited<ReturnType<typeof requireStaffAllowlistedEmail>>;
   try {
     ctx = await requireAuth(req);
-    requireAllowlistedEmail(ctx);
+    staffTier = requireStaffAllowlistedEmail(ctx);
   } catch (e) {
     return json({ error: (e as Error)?.message || 'Unauthorized' }, { status: 401 });
   }
@@ -65,7 +68,19 @@ Deno.serve(async (req) => {
     if (!ok) return json({ ok: true, deduped: true });
   }
 
-  const sent = await sendServiceEmail({ toEmail, toName: body.to?.name, subject, text, html: html || undefined });
+  let sandboxed = false;
+  let originalTo: string | undefined;
+  let deliverTo = toEmail;
+  try {
+    const sandbox = applyEmailSandbox({ tier: staffTier, originalTo: toEmail });
+    sandboxed = sandbox.sandboxed;
+    originalTo = sandbox.originalTo;
+    deliverTo = sandbox.to;
+  } catch (e) {
+    return json({ error: (e as Error)?.message || 'Sandbox misconfigured' }, { status: 500 });
+  }
+
+  const sent = await sendServiceEmail({ toEmail: deliverTo, toName: body.to?.name, subject, text, html: html || undefined });
 
   if (!sent.ok) {
     await logEdgeEvent({
@@ -81,8 +96,8 @@ Deno.serve(async (req) => {
     namespace: 'send-email',
     level: 'info',
     event: 'sent',
-    meta: { userId: ctx.user.id, ip: ctx.ip, toEmail, subject: subject.slice(0, 120), textLen: text.length },
+    meta: { userId: ctx.user.id, ip: ctx.ip, toEmail: deliverTo, originalTo: originalTo ?? null, sandboxed, subject: subject.slice(0, 120), textLen: text.length },
   });
-  return json({ ok: true });
+  return json({ ok: true, sandboxed, originalTo: sandboxed ? originalTo : undefined });
 });
 

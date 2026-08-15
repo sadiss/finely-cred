@@ -121,6 +121,8 @@ const PartnerCoursePage = lazyWithRetry(() => import('./pages/portal/PartnerCour
 const PartnerBarterPage = lazyWithRetry(() => import('./pages/portal/PartnerBarterPage'));
 const PortalPartnerSelectPage = lazyWithRetry(() => import('./pages/portal/PortalPartnerSelectPage'));
 
+const DeveloperQaHubPage = lazyWithRetry(() => import('./pages/developer/DeveloperQaHubPage'));
+
 const PartnersListPage = lazyWithRetry(() => import('./pages/admin/PartnersListPage'));
 const PartnerDetailPage = lazyWithRetry(() => import('./pages/admin/PartnerDetailPage'));
 const AdminPartnerImportPage = lazyWithRetry(() => import('./pages/admin/AdminPartnerImportPage'));
@@ -2117,6 +2119,16 @@ function AppInner() {
           element={
             <ProtectedRoute>
               <AuOrdersPage />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Developer QA */}
+        <Route
+          path="/developer"
+          element={
+            <ProtectedRoute>
+              <DeveloperQaHubPage />
             </ProtectedRoute>
           }
         />

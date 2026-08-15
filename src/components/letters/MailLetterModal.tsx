@@ -36,6 +36,7 @@ import { upsertLetter } from '../../data/lettersRepo';
 import { LetterPartnerNoteField } from './LetterPartnerNoteField';
 import { recordLetterPartnerNote } from '../../lib/letterPartnerNotes';
 import { markValidationLetterMailed } from '../../lib/validationAccountState';
+import { buildLetterStreamJobNaming, previewLetterStreamJobName } from '../../lib/letterStreamJobName';
 
 type WizardStep = 'confirm' | 'mail' | 'track';
 
@@ -261,6 +262,23 @@ export function MailLetterModal({
     return JSON.stringify({ to: pick(to), from: pick(from) });
   }, [to, from]);
 
+  const jobNaming = useMemo(
+    () =>
+      buildLetterStreamJobNaming({
+        partnerDisplayName: defaultFromName,
+        letter: effectiveLetter,
+        disambiguator: effectiveLetter.id.slice(-4),
+      }),
+    [defaultFromName, effectiveLetter],
+  );
+
+  const letterStreamJobPreview = useMemo(() => previewLetterStreamJobName(jobNaming), [jobNaming]);
+
+  const quoteIdempotencyKey = useMemo(
+    () => `${effectiveLetter.id}:${currentHash}:${mailType}`,
+    [effectiveLetter.id, currentHash, mailType],
+  );
+
   useEffect(() => {
     if (!open) return;
     const { letter: backfilled, changed } = backfillLetterMailToMeta(letter);
@@ -428,6 +446,9 @@ export function MailLetterModal({
             pdfBlobRef: effectiveLetter.pdfBlobRef!,
             to: { ...to, state: sanitizeState(to.state), zip: zipOnly(to.zip) },
             from: { ...from, state: sanitizeState(from.state), zip: zipOnly(from.zip) },
+            selectedMailType: mailType,
+            quoteIdempotencyKey,
+            jobNaming,
           });
           if (!res.ok) {
             setQuoteErr(res.error || 'Live pricing unavailable');
@@ -454,7 +475,7 @@ export function MailLetterModal({
       })();
     }, 500);
     return () => window.clearTimeout(handle);
-  }, [open, step, effectiveLetter.id, effectiveLetter.pdfBlobRef, currentHash, mailType, to, from]);
+  }, [open, step, effectiveLetter.id, effectiveLetter.pdfBlobRef, currentHash, mailType, to, from, quoteIdempotencyKey, jobNaming]);
 
   useEffect(() => {
     if (!open) return;
@@ -589,6 +610,7 @@ export function MailLetterModal({
         pdfBlobRef: effectiveLetter.pdfBlobRef,
         to: toClean,
         from: fromClean,
+        jobNaming,
         options: { color: true, doubleSided: true, mailType },
       });
       const costCents =
@@ -730,6 +752,8 @@ export function MailLetterModal({
                       ? `Live quote: ${formatMailCreditsUsd(selectedCostCents)} for ${mailClassChoice(mailType).shortLabel}`
                       : `Est. ${formatMailCreditsUsd(selectedCostCents)} for ${mailClassChoice(mailType).shortLabel} (complete addresses for live quote).`}
                 </div>
+                <div className="text-[10px] uppercase tracking-widest text-white/40 pt-2">LetterStream job name</div>
+                <div className="text-sm font-mono text-sky-200">{letterStreamJobPreview}</div>
               </div>
 
               <div className="fc-light-glass-panel fc-light-chrome-panel p-4 space-y-2">

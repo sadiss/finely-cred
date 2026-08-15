@@ -23,6 +23,9 @@ import {
   FINELY_OS_ENTITY_INPUT,
   FINELY_OS_ENTITY_SUBLABEL,
 } from '../../features/os/finelyOsLightUi';
+import { backfillLetterMailToMeta } from '../../lib/letterMailToBackfill';
+import { resolveMailModalToAddress } from '../../lib/letterMailingAddress';
+import { buildLetterStreamJobNaming } from '../../lib/letterStreamJobName';
 
 type Step = 'select' | 'confirm' | 'mail' | 'track';
 
@@ -158,11 +161,30 @@ export function BatchMailWizard({
       const batch = await mailLettersBatchViaProvider({
         partnerId,
         from: fromClean,
-        items: selectedLetters.map((l) => ({
-          letterId: l.id,
-          pdfBlobRef: l.pdfBlobRef!,
-          to: toClean,
-        })),
+        items: selectedLetters.map((l) => {
+          const { letter: enriched } = backfillLetterMailToMeta(l);
+          const resolved = resolveMailModalToAddress({ letter: enriched });
+          const toForLetter: MailAddress = resolved
+            ? {
+                name: resolved.name,
+                addressLine1: resolved.addressLine1,
+                addressLine2: resolved.addressLine2,
+                city: resolved.city,
+                state: sanitizeState(resolved.state),
+                zip: zipOnly(resolved.zip),
+              }
+            : toClean;
+          return {
+            letterId: enriched.id,
+            pdfBlobRef: enriched.pdfBlobRef!,
+            to: toForLetter,
+            jobNaming: buildLetterStreamJobNaming({
+              partnerDisplayName: defaultFromName,
+              letter: enriched,
+              disambiguator: enriched.id.slice(-4),
+            }),
+          };
+        }),
         options: { color: true, doubleSided: true, mailType },
       });
       const mapped: BatchMailItemResult[] = batch.map((r) => {

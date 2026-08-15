@@ -1,0 +1,202 @@
+import type { LucideIcon } from 'lucide-react';
+import {
+  Bot,
+  FlaskConical,
+  Mail,
+  Megaphone,
+  MessageSquare,
+  Scale,
+  Send,
+  Sparkles,
+  Users,
+  FileText,
+  Film,
+  Target,
+  Brain,
+  Settings,
+  Package,
+} from 'lucide-react';
+
+export type DeveloperQaLane = {
+  id: string;
+  title: string;
+  detail: string;
+  href: string;
+  icon: LucideIcon;
+  accent: 'emerald' | 'violet' | 'sky' | 'rose' | 'navy';
+  category: 'core' | 'comms' | 'ai' | 'marketing' | 'ops';
+  qaCheckId?: string;
+};
+
+export const DEVELOPER_QA_LANES: DeveloperQaLane[] = [
+  {
+    id: 'partners',
+    title: 'Partners',
+    detail: 'Create, import, view-as, and delete QA seed partners. Full partner file editing.',
+    href: '/admin/partners',
+    icon: Users,
+    accent: 'emerald',
+    category: 'core',
+    qaCheckId: 'partners',
+  },
+  {
+    id: 'mail',
+    title: 'Mail letters',
+    detail: 'LetterStream jobs named Partner_Bureau — single preauth quote, batch + single send.',
+    href: '/admin/mail',
+    icon: Mail,
+    accent: 'violet',
+    category: 'core',
+    qaCheckId: 'mail',
+  },
+  {
+    id: 'cases',
+    title: 'Cases & debt',
+    detail: 'Validation, court, foreclosure tracks — letters, PDF, mail modal end-to-end.',
+    href: '/admin/cases',
+    icon: Scale,
+    accent: 'sky',
+    category: 'core',
+    qaCheckId: 'cases',
+  },
+  {
+    id: 'disputes',
+    title: 'Dispute hub',
+    detail: 'Escalations, regulatory inbox, collaboration threads.',
+    href: '/admin/dispute-collaboration',
+    icon: Send,
+    accent: 'rose',
+    category: 'core',
+  },
+  {
+    id: 'comms',
+    title: 'Comms studio',
+    detail: 'Email + SMS templates — sandbox redirects to EDGE_SANDBOX_* inboxes.',
+    href: '/admin/comms',
+    icon: MessageSquare,
+    accent: 'violet',
+    category: 'comms',
+    qaCheckId: 'comms',
+  },
+  {
+    id: 'messages',
+    title: 'Messages inbox',
+    detail: 'Partner threads, internal notes, notification paths.',
+    href: '/admin/messages',
+    icon: MessageSquare,
+    accent: 'sky',
+    category: 'comms',
+  },
+  {
+    id: 'growth',
+    title: 'Growth command',
+    detail: 'Promote, nurture, communicate — full marketing ops stack.',
+    href: '/admin/growth-command',
+    icon: Megaphone,
+    accent: 'emerald',
+    category: 'marketing',
+    qaCheckId: 'marketing',
+  },
+  {
+    id: 'agents',
+    title: 'Growth agents',
+    detail: 'Caleb, Hannah, specialist agents — live AI copy and campaigns.',
+    href: '/admin/growth-agents',
+    icon: Sparkles,
+    accent: 'violet',
+    category: 'ai',
+  },
+  {
+    id: 'marketing-desk',
+    title: 'Marketing desk',
+    detail: 'Daily marketing workroom — find, board, publish flows.',
+    href: '/admin/marketing-desk',
+    icon: Target,
+    accent: 'rose',
+    category: 'marketing',
+  },
+  {
+    id: 'content',
+    title: 'Content studio',
+    detail: 'Video spot wizard, content dept, creative assets.',
+    href: '/admin/content-studio',
+    icon: Film,
+    accent: 'navy',
+    category: 'marketing',
+  },
+  {
+    id: 'ops-agent',
+    title: 'AI ops co-pilot',
+    detail: 'Co-owner agent — credit, debt, funding, launch reasoning.',
+    href: '/admin/ops-agent',
+    icon: Brain,
+    accent: 'violet',
+    category: 'ai',
+    qaCheckId: 'ai',
+  },
+  {
+    id: 'crm',
+    title: 'Leads & CRM',
+    detail: 'Pipeline, prospects, inbound lead intel.',
+    href: '/admin/crm',
+    icon: Target,
+    accent: 'sky',
+    category: 'marketing',
+  },
+  {
+    id: 'templates',
+    title: 'Letter templates',
+    detail: 'Template library, validation clauses, court tracks.',
+    href: '/admin/templates',
+    icon: FileText,
+    accent: 'emerald',
+    category: 'core',
+  },
+  {
+    id: 'parsing',
+    title: 'Parsing lab',
+    detail: 'Credit report parse QA, bureau coverage diagnostics.',
+    href: '/admin/parsing-lab',
+    icon: FlaskConical,
+    accent: 'sky',
+    category: 'ops',
+  },
+  {
+    id: 'settings',
+    title: 'Admin settings',
+    detail: 'Feature flags, mail test mode, provider connectivity.',
+    href: '/admin/settings',
+    icon: Settings,
+    accent: 'navy',
+    category: 'ops',
+  },
+  {
+    id: 'workflow',
+    title: 'Ops command center',
+    detail: 'Alerts, SLA triage, workflow queue.',
+    href: '/admin/workflow',
+    icon: Package,
+    accent: 'rose',
+    category: 'ops',
+  },
+];
+
+export const DEVELOPER_QA_AI_PROMPTS = [
+  { label: 'Launch QA plan', prompt: 'Give me a prioritized QA checklist for Finely Cred launch — partners, letters, mail, email sandbox, and dispute flows.' },
+  { label: 'Mail smoke test', prompt: 'Walk me step-by-step through testing LetterStream mail: job naming, single quote, send, and tracking — as a developer in sandbox mode.' },
+  { label: 'Letter pipeline', prompt: 'Explain the full letter pipeline from draft → PDF → mail modal → LetterStream job name → partner notification.' },
+  { label: 'Sandbox comms', prompt: 'How do developer sandbox redirects work for email and SMS? What env vars must be set?' },
+  { label: 'Partner view-as', prompt: 'How do I view-as a partner and test portal disputes without hitting their real inbox?' },
+  { label: 'Debug -904 mail', prompt: 'LetterStream returned -904 page count mismatch. What should I check and how do I fix it?' },
+];
+
+export const DEVELOPER_QA_CHECKLIST = [
+  { id: 'partners', label: 'Create or pick a QA partner', hint: 'Partners → View as partner' },
+  { id: 'reports', label: 'Upload credit report + parse', hint: 'Portal → Reports' },
+  { id: 'letters', label: 'Generate dispute / validation letter + PDF', hint: 'Portal → Letters' },
+  { id: 'mail', label: 'Mail letter — confirm job name Partner_Bureau', hint: 'Mail modal or Admin mail' },
+  { id: 'comms', label: 'Send test email — lands in sandbox inbox', hint: 'Comms studio' },
+  { id: 'ai', label: 'Run AI draft on a letter', hint: 'Letter studio → AI draft' },
+  { id: 'marketing', label: 'Open growth command / agents', hint: 'Growth lanes' },
+  { id: 'profile', label: 'Partner profile scores visible at top', hint: 'Portal dashboard overview' },
+];

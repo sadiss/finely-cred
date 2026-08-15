@@ -369,8 +369,6 @@ export default function PartnerDashboardPage() {
             </div>
           ) : null}
 
-          <PartnerPortalHubLauncherSection partner={partner} refresh={refresh} />
-
           <div className="fc-admin-dark-glass-surface rounded-2xl border border-white/10 p-1 sm:p-2">
             <PartnerOverviewTab
               variant="portal"
@@ -396,6 +394,8 @@ export default function PartnerDashboardPage() {
               }
             />
           </div>
+
+          <PartnerPortalHubLauncherSection partner={partner} refresh={refresh} />
 
           <div className="flex flex-wrap items-center justify-between gap-4">
             <button type="button" onClick={() => navigate('/dashboard')} className={FINELY_OS_BACK_LINK} title="Back to Finely Cred Dashboard">
