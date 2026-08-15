@@ -76,6 +76,7 @@ import {
   finelyOsLandingPlatinumSection,
 } from './features/os/finelyOsLightUi';
 import { FinelyOsComplianceStrip } from './features/os/FinelyOsComplianceStrip';
+import { FinelyOsPublicCommandStrip } from './features/os/FinelyOsPublicCommandStrip';
 import { isFeatureEnabled } from './data/settingsRepo';
 import { usePublicSeoMeta } from './hooks/usePublicSeoMeta';
 import { FinelyCredLogo } from './components/brand/FinelyCredLogo';
@@ -493,6 +494,8 @@ function LandingRoute({ onGetStarted, onViewTradelines, onNavigate, addToCart, o
         <HeroSection onGetStarted={handleHeroGetStarted} onViewTradelines={onViewTradelines} />
       </div>
 
+      <FinelyOsPublicCommandStrip />
+
       {/* 1b. Condensed proof/trust strip — directly beneath the hero (was buried at section #10) */}
       <HomeHeroProofStrip />
 
@@ -767,7 +770,7 @@ function TradelinesRoute({ addToCart, onNavigate }: { addToCart: (item: any) => 
               <div className="text-[10px] uppercase tracking-[0.28em] text-emerald-300 font-black">Primary Tradeline</div>
               <div className="mt-2 text-2xl font-medium text-white">In‑House Financing (Education‑First)</div>
               <div className="mt-2 text-white/55 text-sm leading-relaxed">
-                Built for credit‑building programs. We confirm fit in a free strategy call so it supports your long-term plan (not a debt swap).
+                Built for credit‑building programs. We confirm fit in a free Enlightenment session so it supports your long-term plan (not a debt swap).
               </div>
               <div className="mt-6 inline-flex items-center gap-2 text-emerald-400 font-medium">
                 See how it works <ArrowRight size={16} />
@@ -791,7 +794,7 @@ function TradelinesRoute({ addToCart, onNavigate }: { addToCart: (item: any) => 
               </div>
               <div className="flex flex-col sm:flex-row gap-3">
                 <Button onClick={() => onNavigate('consultation')} size="md">
-                  Book a free strategy call <ArrowRight size={16} />
+                  Book an Enlightenment session <ArrowRight size={16} />
                 </Button>
                 <Button variant="outline" onClick={() => onNavigate('pricing')} size="md">
                   View pricing options
@@ -889,7 +892,7 @@ function AboutRoute({ onNavigate }: { onNavigate: (view: NavView) => void }) {
                   onClick={() => onNavigate('consultation')}
                   className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-amber-500 text-black font-black uppercase tracking-widest text-[10px] hover:brightness-110 transition-all"
                 >
-                  Book a free strategy call <ArrowRight size={14} />
+                  Book an Enlightenment session <ArrowRight size={14} />
                 </button>
                 <button onClick={() => onNavigate('pricing')} className="fc-button-platinum">
                   Explore pricing <ArrowRight size={14} />
@@ -988,7 +991,7 @@ function AboutRoute({ onNavigate }: { onNavigate: (view: NavView) => void }) {
                     Build credit like an operator — with systems, evidence, and execution.
                   </h2>
                   <p className="mt-3 text-white/60 text-sm md:text-base leading-relaxed">
-                    If you’re ready to move from “fixing” to building real lending readiness, start intake or book a free strategy call.
+                    If you’re ready to move from “fixing” to building real lending readiness, start intake or book a free Enlightenment session.
                   </p>
                 </div>
 
@@ -997,7 +1000,7 @@ function AboutRoute({ onNavigate }: { onNavigate: (view: NavView) => void }) {
                     Start intake <ArrowRight size={18} />
                   </Button>
                   <Button variant="platinum" size="lg" onClick={() => onNavigate('consultation')}>
-                    Book free session <ArrowRight size={18} />
+                    Book an Enlightenment session <ArrowRight size={18} />
                   </Button>
                 </div>
               </div>

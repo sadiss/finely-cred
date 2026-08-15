@@ -293,7 +293,7 @@ export const PUBLIC_RESOURCES_SECTIONS: PublicNavSection[] = [
 export const PUBLIC_CONTACT_LINKS: PublicNavLink[] = [
   { id: 'contact', label: 'Contact us', path: '/contact', hint: 'Message the team', accent: 'sky' },
   { id: 'help', label: 'Help center', path: '/help-center', hint: 'Plain-English playbooks', accent: 'emerald' },
-  { id: 'session', label: 'Enlightenment session', path: '/enlightenment-session', hint: 'Book a session with a specialist', accent: 'amber' },
+  { id: 'session', label: 'Enlightenment session', path: '/enlightenment-session', hint: 'Book an Enlightenment session with a specialist', accent: 'amber' },
   { id: 'about', label: 'About Finely', path: '/about', accent: 'violet' },
   { id: 'faq', label: 'FAQ', path: '/faq', accent: 'sky' },
 ];

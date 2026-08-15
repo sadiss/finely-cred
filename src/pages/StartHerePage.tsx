@@ -36,7 +36,7 @@ const PATHS = [
     icon: Scale,
     accent: 'fuchsia' as const,
     primary: { label: 'Get debt guide', to: '/free-debt-guide' },
-    secondary: { label: 'Book a session', to: '/enlightenment-session' },
+    secondary: { label: 'Book an Enlightenment session', to: '/enlightenment-session' },
   },
   {
     id: 'business-credit',
@@ -45,7 +45,7 @@ const PATHS = [
     icon: Building2,
     accent: 'violet' as const,
     primary: { label: 'Get business guide', to: '/free-business-guide' },
-    secondary: { label: 'Book a session', to: '/enlightenment-session' },
+    secondary: { label: 'Book an Enlightenment session', to: '/enlightenment-session' },
   },
   {
     id: 'earn',

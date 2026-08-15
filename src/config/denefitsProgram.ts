@@ -39,7 +39,7 @@ export const FINANCING_PREAPPROVAL_PUBLIC = {
     'Pairs with restore, tradelines, and funding paths',
   ],
   primaryCta: 'Check financing pre-approval',
-  secondaryCta: 'Book a session',
+  secondaryCta: 'Book an Enlightenment session',
   tertiaryCta: 'See pricing',
   compliance: 'Results vary · financing subject to underwriting · not a credit guarantee',
   interestTag: 'financing_preapproval',

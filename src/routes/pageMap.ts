@@ -60,7 +60,7 @@ export const PUBLIC_ROUTES: RouteSpec[] = [
   { path: '/agents', title: 'Credit Specialist Program', badge: 'Public' },
   { path: '/events', title: 'Events & Webinars', badge: 'Public' },
   { path: '/contact', title: 'Contact', badge: 'Public' },
-  { path: '/enlightenment-session', title: 'Book a strategy call', badge: 'Public' },
+  { path: '/enlightenment-session', title: 'Book an Enlightenment session', badge: 'Public' },
   { path: '/owners-guide', title: "Owner's Guide", badge: 'Reference' },
   { path: '/free-guide', title: 'Free Credit Dispute Letter Guide', badge: 'Free Guide' },
   { path: '/g/:code', title: 'Partner Referral Link', badge: 'Signup' },

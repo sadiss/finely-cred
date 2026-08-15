@@ -68,7 +68,7 @@ export function LandingDebtEradicationBand() {
                       onClick={() => navigate('/enlightenment-session')}
                       className="fc-sell-cta-ghost w-full sm:w-auto"
                     >
-                      Book a session
+                      Book an Enlightenment session
                     </button>
                   </div>
                   <p className="fc-sell-compliance mt-5">Results vary · not legal advice · not outcome guarantees</p>

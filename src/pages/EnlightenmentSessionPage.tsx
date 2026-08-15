@@ -415,15 +415,20 @@ export default function EnlightenmentSessionPage() {
               <input value={phone} onChange={(e) => setPhone(e.target.value)} className={formInput} placeholder="(555) 555-5555" maxLength={40} />
             </div>
 
-            <PublicSessionSlotPicker
-              durationMinutes={preferredSlotMinutes}
-              onDurationChange={setPreferredSlotMinutes}
-              selectedDay={selectedDay}
-              onDayChange={setSelectedDay}
-              selectedSlot={selectedSlot}
-              onSlotChange={setSelectedSlot}
-              urgencySignal={urgencySignal}
-            />
+            <div>
+              <div className={`${formLabel} flex items-center gap-2`}>
+                Pick date &amp; time
+              </div>
+              <PublicSessionSlotPicker
+                durationMinutes={preferredSlotMinutes}
+                onDurationChange={setPreferredSlotMinutes}
+                selectedDay={selectedDay}
+                onDayChange={setSelectedDay}
+                selectedSlot={selectedSlot}
+                onSlotChange={setSelectedSlot}
+                urgencySignal={urgencySignal}
+              />
+            </div>
 
             {selectedSlot ? (
               <div className={FINELY_OS_NOTICE_SUCCESS}>

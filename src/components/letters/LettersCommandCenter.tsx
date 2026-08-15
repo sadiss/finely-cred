@@ -1891,6 +1891,7 @@ WRITING STANDARD:
     if (!draft) return;
     setDraftErr(null);
     setDraftNotice(null);
+    clearStaleDebtDraftVaultLink();
 
     if (!aiGatewayEnabled) {
       setDraftErr('AI drafting is currently disabled in Settings (Feature Flags â†’ AI Gateway).');
@@ -1936,7 +1937,22 @@ WRITING STANDARD:
 
       const text = String(ai.text || '').trim();
       if (!text) throw new Error('AI returned empty output.');
-      setDraft((prev) => (prev ? { ...prev, html: ensureHtmlDraft(text) } : prev));
+      setDraft((prev) => {
+        if (!prev) return prev;
+        let letterId = prev.letterId;
+        if (letterId && partner?.id) {
+          const existing = listLettersByPartner(partner.id).find((l) => l.id === letterId);
+          if (
+            existing &&
+            (isLetterPhysicallyMailed(existing) ||
+              isLetterMailInFlight(existing) ||
+              (existing.status === LETTER_FINAL_STATUS && existing.pdfBlobRef))
+          ) {
+            letterId = undefined;
+          }
+        }
+        return { ...prev, html: ensureHtmlDraft(text), letterId };
+      });
       setDraftNotice('AI drafted this letter. Review and edit before saving.');
     } catch (e: any) {
       setDraftErr(e?.message || 'AI draft failed.');
@@ -3117,13 +3133,33 @@ useEffect(() => {
   };
 
   const resolveDebtDraftSaveLetterId = (currentId?: string): string => {
-    if (!currentId || !partner?.id) return newId('letter');
-    const existing = listLettersByPartner(partner.id).find((l) => l.id === currentId);
-    if (!existing) return currentId;
+    if (!partner?.id) return newId('letter');
+    const id = String(currentId || '').trim();
+    if (!id) return newId('letter');
+    const existing = listLettersByPartner(partner.id).find((l) => l.id === id);
+    if (!existing) return id;
     if (isLetterPhysicallyMailed(existing) || isLetterMailInFlight(existing)) return newId('letter');
     // Never overwrite a finalized vault record — start a new letter instead.
     if (existing.status === LETTER_FINAL_STATUS && existing.pdfBlobRef) return newId('letter');
-    return currentId;
+    return id;
+  };
+
+  const clearStaleDebtDraftVaultLink = () => {
+    setDebtVaultLetterId(null);
+    validationHandoffDoneRef.current = null;
+    setDraft((prev) => {
+      if (!prev?.letterId || !partner?.id) return prev;
+      const existing = listLettersByPartner(partner.id).find((l) => l.id === prev.letterId);
+      if (!existing) return { ...prev, letterId: undefined };
+      if (
+        isLetterPhysicallyMailed(existing) ||
+        isLetterMailInFlight(existing) ||
+        (existing.status === LETTER_FINAL_STATUS && existing.pdfBlobRef)
+      ) {
+        return { ...prev, letterId: undefined };
+      }
+      return prev;
+    });
   };
 
   const buildDebtLetterArgs = (opts?: { preferCounsel?: boolean }) => {
@@ -4121,6 +4157,9 @@ useEffect(() => {
       draftSyncedHtmlRef.current = bodyHtml;
       setVaultHighlightLetterId(saved.id);
       setDraftSavedPreviewLetter(saved);
+      if (draftTrack === 'validation') {
+        completeValidationCreditHandoff(saved.id, draftTrack);
+      }
       setDraft(null);
       if (debtCenterMode && draftTrack === 'validation') {
         window.setTimeout(() => {
@@ -4186,6 +4225,9 @@ useEffect(() => {
     draftSyncedHtmlRef.current = ensureHtmlDraft(bodyHtml);
     // New generated draft — never reuse a vault id (especially after a mailed letter).
     setDebtVaultLetterId(null);
+    validationHandoffDoneRef.current = null;
+    setDraftErr(null);
+    setDraftNotice(null);
     setDraft({
       specId: args.specId,
       catalogId: args.catalogId,
@@ -4208,6 +4250,7 @@ useEffect(() => {
   const buildDebtCenterDraft = (specId: DebtLetterType, isCourt: boolean) => {
     setGenerateBusy(true);
     setDraftErr(null);
+    setDraftNotice(null);
     try {
       persistDebtSenderSnapshot();
       if (specId === 'courtroom_day_kit') {
@@ -4215,6 +4258,7 @@ useEffect(() => {
         const mergeArgs = buildDebtLetterArgs({ preferCounsel: true });
         if (isDebtRecipientAddressMissing(mergeArgs.recipientAddress)) {
           setDraftErr(DEBT_RECIPIENT_ADDRESS_MISSING_ERR);
+          clearStaleDebtDraftVaultLink();
           return;
         }
         const baseText = getLetterBody('courtroom_written_answer', mergeArgs);
@@ -4236,6 +4280,7 @@ useEffect(() => {
       const mergeArgs = buildDebtLetterArgs({ preferCounsel: isCourt });
       if (isDebtRecipientAddressMissing(mergeArgs.recipientAddress)) {
         setDraftErr(DEBT_RECIPIENT_ADDRESS_MISSING_ERR);
+        clearStaleDebtDraftVaultLink();
         return;
       }
       const baseText = getLetterBody(specId, mergeArgs);
@@ -4256,6 +4301,7 @@ useEffect(() => {
   const buildCatalogDraft = (catalogId: string, tabTrack: DebtDraftTrack) => {
     setGenerateBusy(true);
     setDraftErr(null);
+    setDraftNotice(null);
     try {
       persistDebtSenderSnapshot();
       // Kit IDs must not block Generate — fall through to court answer letter.
@@ -4283,6 +4329,7 @@ useEffect(() => {
       const mergeArgs = buildDebtLetterArgs({ preferCounsel: track === 'court' });
       if (isDebtRecipientAddressMissing(mergeArgs.recipientAddress)) {
         setDraftErr(DEBT_RECIPIENT_ADDRESS_MISSING_ERR);
+        clearStaleDebtDraftVaultLink();
         return;
       }
       let baseText = '';
@@ -4383,7 +4430,7 @@ useEffect(() => {
         proofCount: debtProofCount,
         hasChosenLetter: Boolean(draft),
         hasDraftBody: Boolean(draft?.html?.trim()),
-        savedToVault: Boolean(draft?.letterId || debtVaultLetterId),
+        savedToVault: Boolean(draft?.letterId || (!draft && debtVaultLetterId)),
         mailedCount: debtMailedCount,
         postCourtPlan: debtPostCourtPlan,
         postCourtDecided: debtPostCourtDecided,
@@ -5347,6 +5394,7 @@ useEffect(() => {
             setDraft((prev) =>
               prev?.letterId === updated.id ? { ...prev, letterId: undefined } : prev,
             );
+            setDebtVaultLetterId((prev) => (prev === updated.id ? null : prev));
             setStoreVersion((v) => v + 1);
           }}
           onNotifyMailed={({ providerId, expectedDeliveryDate, to, from }) =>

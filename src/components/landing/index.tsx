@@ -822,7 +822,7 @@ export function TradelineDualSection({
             </div>
             <div className="flex flex-wrap gap-3">
               <Button onClick={() => onNavigate('consultation')} size="sm">
-                Book a free strategy call <ArrowRight size={16} />
+                Book an Enlightenment session <ArrowRight size={16} />
               </Button>
               <Button variant="outline" onClick={() => onNavigate('tradelines_primary')} size="sm">
                 Explore primary options

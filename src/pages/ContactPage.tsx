@@ -118,7 +118,7 @@ export default function ContactPage() {
           ]}
           activeTab={contactTab}
           onTabChange={(id) => setContactTab(id as 'inquiry' | 'links')}
-          primaryAction={{ label: 'Book strategy call', onClick: () => navigate('/consultation') }}
+          primaryAction={{ label: 'Book an Enlightenment session', onClick: () => navigate('/enlightenment-session') }}
           secondaryAction={{ label: 'FAQ', onClick: () => navigate('/faq') }}
         >
         {contactTab === 'inquiry' ? (

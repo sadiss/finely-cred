@@ -215,13 +215,13 @@ export const FINELY_KNOWLEDGE_BASE: KnowledgeArticle[] = [
   },
   {
     id: 'onboarding-session',
-    title: 'Strategy call and onboarding',
+    title: 'Enlightenment session and onboarding',
     category: 'onboarding',
-    tags: ['session', 'onboarding', 'consult', 'strategy call'],
+    tags: ['session', 'onboarding', 'consult', 'enlightenment session'],
     content:
-      'New partners can book a free strategy call or complete onboarding to set lane (personal restore, business, debt). Onboarding connects you to dashboard, checklist, and Communication Hub.',
+      'New partners can book a free Enlightenment session or complete onboarding to set lane (personal restore, business, debt). Onboarding connects you to dashboard, checklist, and Communication Hub.',
     links: [
-      { label: 'Book a strategy call', path: '/enlightenment-session' },
+      { label: 'Book an Enlightenment session', path: '/enlightenment-session' },
       { label: 'Onboarding', path: '/onboarding' },
     ],
   },

@@ -1293,7 +1293,7 @@ export function PublicChatWidget({ defaultOpen = false }: { defaultOpen?: boolea
                         <summary className="cursor-pointer list-none p-3 flex flex-wrap items-center justify-between gap-2 [&::-webkit-details-marker]:hidden">
                           <div className="text-xs text-white/70 inline-flex items-center gap-2">
                             <ShieldCheck size={14} className="text-emerald-300 shrink-0" />
-                            Free strategy call{handoffComplete ? ` with ${presentation.firstName}'s team` : ' with our specialists'}
+                            Free Enlightenment session{handoffComplete ? ` with ${presentation.firstName}'s team` : ' with our specialists'}
                           </div>
                           <span className="text-[10px] font-black uppercase tracking-widest text-emerald-300 group-open:hidden">Reserve →</span>
                           <span className="text-[10px] font-black uppercase tracking-widest text-white/40 hidden group-open:inline">Collapse</span>
