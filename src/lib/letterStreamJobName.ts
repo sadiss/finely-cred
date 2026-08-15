@@ -63,9 +63,12 @@ export function previewLetterStreamJobName(naming: {
 }): string {
   const partner = (naming.partnerFirstName || 'Partner').replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 8) || 'Partner';
   const recipient = (naming.recipientLabel || 'Letter').replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 10) || 'Letter';
-  let base = `${partner}_${recipient}`.slice(0, 20);
   const dis = (naming.disambiguator || '').replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 4);
-  if (dis && base.length + dis.length + 1 <= 20) base = `${base}_${dis}`.slice(0, 20);
+  // Reserve room for "_" + disambiguator up front — see buildLetterStreamHumanJobName
+  // in supabase/functions/_shared/letterStreamClient.ts for why this must never drop it.
+  const maxBaseLen = dis ? 20 - (dis.length + 1) : 20;
+  let base = `${partner}_${recipient}`.slice(0, maxBaseLen);
+  if (dis) base = `${base}_${dis}`;
   while (base.length < 8) base += '0';
   return base.slice(0, 20);
 }

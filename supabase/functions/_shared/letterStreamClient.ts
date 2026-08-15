@@ -146,9 +146,14 @@ export function buildLetterStreamHumanJobName(args: {
 }): string {
   const partner = sanitizeLetterStreamNamePart(args.partnerFirstName || 'Partner', 8) || 'Partner';
   const recipient = sanitizeLetterStreamNamePart(args.recipientLabel || 'Letter', 10) || 'Letter';
-  let base = `${partner}_${recipient}`.slice(0, 20);
   const dis = sanitizeLetterStreamNamePart(args.disambiguator || '', 4);
-  if (dis && base.length + dis.length + 1 <= 20) base = `${base}_${dis}`.slice(0, 20);
+  // Reserve room for "_" + disambiguator up front — appending it only if it happens to
+  // fit let it get silently dropped whenever partner+recipient was already long (e.g.
+  // "Yolie_LENDINGPOI"), which meant every attempt for that pair reused the same job
+  // name and LetterStream rejected it as a duplicate batch id (code -925).
+  const maxBaseLen = dis ? 20 - (dis.length + 1) : 20;
+  let base = `${partner}_${recipient}`.slice(0, maxBaseLen);
+  if (dis) base = `${base}_${dis}`;
   if (base.length < 8) {
     base = `${base}_${Date.now().toString(36).slice(-4)}`.slice(0, 20);
   }
