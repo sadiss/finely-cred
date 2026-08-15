@@ -13,7 +13,7 @@ export type ConsultationTopic =
 
 export type ConsultationRequestStatus = 'new' | 'triaged' | 'scheduled' | 'closed';
 
-export type SlotDuration = 20 | 30 | 60 | 90;
+export type SlotDuration = 15 | 30 | 60 | 90;
 
 export type CalendarBlockedWindow = {
   id: string;
@@ -61,6 +61,8 @@ export type CalendarBookingSettings = {
   endHour: number;
   slotIntervalMinutes: number;
   minNoticeHours: number;
+  /** Minimum full calendar days from today before a date opens (3 = block today + next 2 days). */
+  minAdvanceDays: number;
   /** If it is after this hour, next-day booking is closed. */
   cutoffHourPreviousDay: number;
   allowedWeekdays: number[];
@@ -114,7 +116,7 @@ export type CalendarEvent = {
   meetingAgenda?: string;
   startAt: string; // ISO
   endAt: string; // ISO
-  /** Slot duration in minutes (20, 30, 60, 90) */
+  /** Slot duration in minutes (15, 30, 60, 90) */
   slotDurationMinutes?: SlotDuration;
   timezone?: string;
   meetingUrl?: string;

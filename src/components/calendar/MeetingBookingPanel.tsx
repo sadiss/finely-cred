@@ -200,7 +200,7 @@ export function MeetingBookingPanel({ partnerId, settings, onBooked }: Props) {
         </div>
 
         <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-xs text-emerald-100 leading-relaxed">
-          Booking rules: {settings.minNoticeHours}h minimum notice, no next-day booking after {settings.cutoffHourPreviousDay}:00,
+          Booking rules: {settings.minNoticeHours}h minimum notice, {settings.minAdvanceDays} day minimum advance, no next-day booking after {settings.cutoffHourPreviousDay}:00,
           working hours {settings.startHour}:00–{settings.endHour}:00, and blocked internal slots are hidden automatically.
         </div>
 

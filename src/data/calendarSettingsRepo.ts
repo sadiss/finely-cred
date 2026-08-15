@@ -8,15 +8,16 @@ const DEFAULT_SETTINGS: CalendarBookingSettings = {
   endHour: 18,
   slotIntervalMinutes: 30,
   minNoticeHours: 24,
+  minAdvanceDays: 3,
   cutoffHourPreviousDay: 17,
   allowedWeekdays: [1, 2, 3, 4, 5],
-  allowedDurations: [20, 30, 60, 90],
+  allowedDurations: [15, 30, 60, 90],
   defaultDuration: 30,
   maxAdvanceDays: 30,
   meetingTypes: [
     { id: 'enlightenment', label: 'Strategy call', durationMinutes: 30, description: 'Free call — map your next steps.' },
     { id: 'file_review', label: 'File review', durationMinutes: 60, description: 'Reports, evidence, and dispute round.' },
-    { id: 'quick_checkin', label: 'Quick check-in', durationMinutes: 20, description: 'Fast status call.' },
+    { id: 'quick_checkin', label: 'Quick check-in', durationMinutes: 15, description: 'Fast status call.' },
     { id: 'funding_strategy', label: 'Funding strategy', durationMinutes: 90, description: 'Business credit and capital plan.' },
   ],
   blockedWindows: [
@@ -62,13 +63,31 @@ const DEFAULT_SETTINGS: CalendarBookingSettings = {
   ],
 };
 
+function coerceSlotDuration(value: unknown): SlotDuration | null {
+  const n = Number(value);
+  if (n === 20) return 15;
+  if (n === 15 || n === 30 || n === 60 || n === 90) return n;
+  return null;
+}
+
 function normalize(settings: Partial<CalendarBookingSettings> | null | undefined): CalendarBookingSettings {
-  const allowedDurations = Array.isArray(settings?.allowedDurations) && settings!.allowedDurations.length
-    ? settings!.allowedDurations
+  const rawDurations = Array.isArray(settings?.allowedDurations) && settings!.allowedDurations.length
+    ? settings!.allowedDurations.map(coerceSlotDuration).filter((d): d is SlotDuration => d != null)
     : DEFAULT_SETTINGS.allowedDurations;
-  const defaultDuration = allowedDurations.includes(settings?.defaultDuration as SlotDuration)
-    ? (settings!.defaultDuration as SlotDuration)
-    : allowedDurations[0] ?? DEFAULT_SETTINGS.defaultDuration;
+  const allowedDurations = rawDurations.length ? [...new Set(rawDurations)].sort((a, b) => a - b) : DEFAULT_SETTINGS.allowedDurations;
+  const coercedDefault = coerceSlotDuration(settings?.defaultDuration);
+  const defaultDuration = coercedDefault && allowedDurations.includes(coercedDefault)
+    ? coercedDefault
+    : allowedDurations.includes(DEFAULT_SETTINGS.defaultDuration)
+      ? DEFAULT_SETTINGS.defaultDuration
+      : allowedDurations[0] ?? DEFAULT_SETTINGS.defaultDuration;
+
+  const meetingTypes = Array.isArray(settings?.meetingTypes) && settings!.meetingTypes.length
+    ? settings!.meetingTypes.map((mt) => ({
+        ...mt,
+        durationMinutes: coerceSlotDuration(mt.durationMinutes) ?? DEFAULT_SETTINGS.defaultDuration,
+      }))
+    : DEFAULT_SETTINGS.meetingTypes;
 
   return {
     ...DEFAULT_SETTINGS,
@@ -77,6 +96,7 @@ function normalize(settings: Partial<CalendarBookingSettings> | null | undefined
     endHour: Math.max(1, Math.min(24, Math.round(settings?.endHour ?? DEFAULT_SETTINGS.endHour))),
     slotIntervalMinutes: Math.max(10, Math.min(120, Math.round(settings?.slotIntervalMinutes ?? DEFAULT_SETTINGS.slotIntervalMinutes))),
     minNoticeHours: Math.max(0, Math.min(240, Math.round(settings?.minNoticeHours ?? DEFAULT_SETTINGS.minNoticeHours))),
+    minAdvanceDays: Math.max(1, Math.min(30, Math.round(settings?.minAdvanceDays ?? DEFAULT_SETTINGS.minAdvanceDays))),
     cutoffHourPreviousDay: Math.max(0, Math.min(23, Math.round(settings?.cutoffHourPreviousDay ?? DEFAULT_SETTINGS.cutoffHourPreviousDay))),
     allowedWeekdays: Array.isArray(settings?.allowedWeekdays) && settings!.allowedWeekdays.length
       ? settings!.allowedWeekdays.map((d) => Math.max(0, Math.min(6, Math.round(d)))).filter((d, i, arr) => arr.indexOf(d) === i)
@@ -84,7 +104,7 @@ function normalize(settings: Partial<CalendarBookingSettings> | null | undefined
     allowedDurations,
     defaultDuration,
     maxAdvanceDays: Math.max(1, Math.min(365, Math.round(settings?.maxAdvanceDays ?? DEFAULT_SETTINGS.maxAdvanceDays))),
-    meetingTypes: Array.isArray(settings?.meetingTypes) && settings!.meetingTypes.length ? settings!.meetingTypes : DEFAULT_SETTINGS.meetingTypes,
+    meetingTypes,
     blockedWindows: Array.isArray(settings?.blockedWindows) ? settings!.blockedWindows : DEFAULT_SETTINGS.blockedWindows,
     roundRobinEnabled: Boolean(settings?.roundRobinEnabled),
     staffAssignees: Array.isArray(settings?.staffAssignees) && settings!.staffAssignees.length

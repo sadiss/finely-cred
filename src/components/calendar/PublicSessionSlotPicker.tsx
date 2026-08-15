@@ -22,7 +22,7 @@ import {
   finelyOsGlowTile,
 } from '../../features/os/finelyOsLightUi';
 
-const DURATION_OPTIONS: SlotDuration[] = [20, 30, 60, 90];
+const DURATION_OPTIONS: SlotDuration[] = [15, 30, 60, 90];
 
 type Props = {
   durationMinutes: SlotDuration;
@@ -161,7 +161,7 @@ export function PublicSessionSlotPicker({
       </div>
 
       <p className={`text-[11px] ${FINELY_OS_ENTITY_BODY}`}>
-        Pick a specific time (e.g. 5:00 PM). Same-day booking is not offered — at least {settings.minNoticeHours}h lead time.
+        Pick a specific time (e.g. 5:00 PM). Same-day and next-two-day booking are not offered — earliest dates open {settings.minAdvanceDays} calendar days out, with at least {settings.minNoticeHours}h notice.
       </p>
 
       {showDurationPicker && durations.length > 1 ? (

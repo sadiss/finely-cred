@@ -22,7 +22,7 @@ import {
   finelyOsStatusChip,
 } from '../../features/os/finelyOsLightUi';
 
-const DURATIONS: SlotDuration[] = [20, 30, 60, 90];
+const DURATIONS: SlotDuration[] = [15, 30, 60, 90];
 
 const TOPICS: Array<{ id: ConsultationTopic; label: string }> = [
   { id: 'enlightenment', label: 'Strategy call' },

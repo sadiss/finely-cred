@@ -25,7 +25,7 @@ import {FINELY_OS_ENTITY_BODY,
   finelyOsStatusChip,} from '../../features/os/finelyOsLightUi';
 
 const DAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-const DURATION_OPTIONS: SlotDuration[] = [20, 30, 60, 90];
+const DURATION_OPTIONS: SlotDuration[] = [15, 30, 60, 90];
 
 function seg(active: boolean) {
   return `px-3 py-2 rounded-xl border text-[10px] font-black uppercase tracking-widest transition-all ${
@@ -123,6 +123,10 @@ export function CalendarSettingsPanel({
           <label className="space-y-2">
             <span className={FINELY_OS_ENTITY_LABEL}>Min notice hours</span>
             <input type="number" min={0} value={draft.minNoticeHours} onChange={(e) => setDraft((p) => ({ ...p, minNoticeHours: Number(e.target.value) }))} className={`${FINELY_OS_ENTITY_INPUT.replace('mt-2 ', '')} w-full`} />
+          </label>
+          <label className="space-y-2">
+            <span className={FINELY_OS_ENTITY_LABEL}>Min advance days</span>
+            <input type="number" min={1} max={30} value={draft.minAdvanceDays} onChange={(e) => setDraft((p) => ({ ...p, minAdvanceDays: Number(e.target.value) }))} className={`${FINELY_OS_ENTITY_INPUT.replace('mt-2 ', '')} w-full`} />
           </label>
           <label className="space-y-2">
             <span className={FINELY_OS_ENTITY_LABEL}>Day-before cutoff</span>

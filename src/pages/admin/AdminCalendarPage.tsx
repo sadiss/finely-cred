@@ -263,7 +263,7 @@ export default function AdminCalendarPage() {
       endAt: endIso,
       meetingUrl: meetingUrl.trim() || undefined,
       location: location.trim() || undefined,
-      slotDurationMinutes: dur as 20 | 30 | 60 | 90,
+      slotDurationMinutes: dur as 15 | 30 | 60 | 90,
       confirm,
     });
     setSchedulePublicFor(null);

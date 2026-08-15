@@ -61,7 +61,9 @@ export function BookingTimeSlotPicker({
     const reason =
       availability.state === 'closed_weekday'
         ? 'This weekday is closed for booking.'
-        : availability.state === 'today_closed'
+        : availability.state === 'too_soon'
+          ? `Booking opens ${settings?.minAdvanceDays ?? 3} calendar days out — pick a later date.`
+          : availability.state === 'today_closed'
           ? 'Today has no open times — we need at least 24h notice.'
           : availability.state === 'past'
             ? 'This date has passed.'

@@ -8,7 +8,24 @@ export type BookableSlot = {
   dayKey: string;
 };
 
-const DEFAULT_DURATIONS: SlotDuration[] = [20, 30, 60];
+const DEFAULT_DURATIONS: SlotDuration[] = [15, 30, 60];
+
+function daysOutFromToday(dayKey: string): number | null {
+  const day = parseDayKey(dayKey);
+  if (!day) return null;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const dayStart = new Date(day);
+  dayStart.setHours(0, 0, 0, 0);
+  return Math.round((dayStart.getTime() - today.getTime()) / (24 * 60 * 60 * 1000));
+}
+
+function isBeforeMinAdvanceDay(dayKey: string, settings?: CalendarBookingSettings): boolean {
+  const minAdvanceDays = settings?.minAdvanceDays ?? 3;
+  const daysOut = daysOutFromToday(dayKey);
+  if (daysOut == null) return true;
+  return daysOut < minAdvanceDays;
+}
 
 function isoDayKey(d: Date) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
@@ -60,13 +77,11 @@ export function generateDaySlots(args: {
 
   const maxAdvanceDays = settings?.maxAdvanceDays;
   if (maxAdvanceDays != null) {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const dayStart = new Date(day);
-    dayStart.setHours(0, 0, 0, 0);
-    const daysOut = Math.round((dayStart.getTime() - today.getTime()) / (24 * 60 * 60 * 1000));
-    if (daysOut > maxAdvanceDays) return [];
+    const daysOut = daysOutFromToday(args.dayKey);
+    if (daysOut != null && daysOut > maxAdvanceDays) return [];
   }
+
+  if (isBeforeMinAdvanceDay(args.dayKey, settings)) return [];
 
   const duration = args.durationMinutes ?? settings?.defaultDuration ?? 30;
   const interval = args.slotIntervalMinutes ?? settings?.slotIntervalMinutes ?? 30;
@@ -209,7 +224,7 @@ export function formatSlotRange(startAt: string, endAt: string) {
   }
 }
 
-export type DayAvailability = 'open' | 'closed_weekday' | 'past' | 'too_far' | 'fully_booked' | 'today_closed';
+export type DayAvailability = 'open' | 'closed_weekday' | 'past' | 'too_far' | 'too_soon' | 'fully_booked' | 'today_closed';
 
 /** Why a calendar day has no bookable slots — drives color + copy in the picker. */
 export function getDayAvailability(args: {
@@ -232,13 +247,13 @@ export function getDayAvailability(args: {
     return { state: 'closed_weekday', hasSlots: false, slotCount: 0 };
   }
 
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const dayStart = new Date(day);
-  dayStart.setHours(0, 0, 0, 0);
-  const daysOut = Math.round((dayStart.getTime() - today.getTime()) / (24 * 60 * 60 * 1000));
-  if (settings?.maxAdvanceDays != null && daysOut > settings.maxAdvanceDays) {
+  const daysOut = daysOutFromToday(args.dayKey);
+  if (daysOut != null && settings?.maxAdvanceDays != null && daysOut > settings.maxAdvanceDays) {
     return { state: 'too_far', hasSlots: false, slotCount: 0 };
+  }
+
+  if (isBeforeMinAdvanceDay(args.dayKey, settings)) {
+    return { state: 'too_soon', hasSlots: false, slotCount: 0 };
   }
 
   const slots = generateDaySlots(args);
