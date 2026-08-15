@@ -47,7 +47,7 @@ function extractPhoneFromDescription(desc?: string | null): string | undefined {
 
 /**
  * `partners` rows use the FINELY_TENANT_ID convention ('tenant_finely_primary'),
- * not the 'finely_cred' literal calendar_events/crm_*/comms_* tables use — see
+ * not the 'finely_cred' literal calendar_events/crm_ and comms_ tables use — see
  * crmServerSync.ts's header comment for this codebase's pre-existing
  * dual-tenant-id convention. Intentionally does not filter partners by
  * tenant_id (this deployment has exactly one real tenant either way; a
