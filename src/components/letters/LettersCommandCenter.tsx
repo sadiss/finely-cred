@@ -158,6 +158,7 @@ import { notifyLetterLifecycle } from '../../lib/letterLifecycleNotify';
 import { LetterEmailPartnerToggle } from './LetterEmailPartnerToggle';
 import { PostGenerateLetterModal, type PostGenerateLetterAction } from './PostGenerateLetterModal';
 import { MailLetterModal } from './MailLetterModal';
+import { canOpenMailModal } from '../../lib/letterMailState';
 import { LetterFullPreviewModal } from './LetterFullPreviewModal';
 import type { LetterRecord } from '../../domain/letters';
 import { notifyLetterMailed } from '../../lib/letterMailedNotify';
@@ -1296,8 +1297,9 @@ export function LettersCommandCenter({
   const canMailLetters = useMemo(() => isFeatureEnabled('letterMailing'), [storeVersion]);
 
   const requestMailLetter = (letter: LetterRecord) => {
-    if (!letter.pdfBlobRef) {
-      setDraftNotice('Save a PDF to this letter before mailing.');
+    const gate = canOpenMailModal(letter);
+    if (!gate.ok) {
+      setDraftNotice(gate.reason || 'This letter cannot be mailed.');
       return;
     }
     if (letter.type === 'dispute') {
@@ -3843,11 +3845,9 @@ useEffect(() => {
         setDraftNotice('Letter record missing — generate again.');
         return;
       }
-      if (!letter.pdfBlobRef) {
-        setDraftNotice('Save PDF first — Finely Mail needs a vault PDF on this letter.');
-        window.setTimeout(() => {
-          document.getElementById('fc-debt-step-generate')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }, 80);
+      const gate = canOpenMailModal(letter);
+      if (!gate.ok) {
+        setDraftNotice(gate.reason || 'This letter cannot be mailed again.');
         return;
       }
       setDebtMailLetter(letter);

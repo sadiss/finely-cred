@@ -26,6 +26,7 @@ import {
 import { backfillLetterMailToMeta } from '../../lib/letterMailToBackfill';
 import { resolveMailModalToAddress } from '../../lib/letterMailingAddress';
 import { buildLetterStreamJobNaming } from '../../lib/letterStreamJobName';
+import { isLetterPhysicallyMailed } from '../../lib/letterMailState';
 
 type Step = 'select' | 'confirm' | 'mail' | 'track';
 
@@ -68,7 +69,10 @@ export function BatchMailWizard({
   onClose: () => void;
   onComplete: (results: BatchMailItemResult[]) => void;
 }) {
-  const mailReady = useMemo(() => letters.filter((l) => Boolean(l.pdfBlobRef)), [letters]);
+  const mailReady = useMemo(
+    () => letters.filter((l) => Boolean(l.pdfBlobRef) && !isLetterPhysicallyMailed(l)),
+    [letters],
+  );
   const [step, setStep] = useState<Step>('select');
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [busy, setBusy] = useState(false);
@@ -144,6 +148,11 @@ export function BatchMailWizard({
 
   const runMail = async () => {
     if (!selectedLetters.length || !fromOk || !toOk || busy) return;
+    const blocked = selectedLetters.filter((l) => isLetterPhysicallyMailed(l));
+    if (blocked.length) {
+      setErr(`${blocked.length} selected letter(s) are already mailed — deselect them to continue.`);
+      return;
+    }
     const afford = canAffordMailSend();
     const need = selectedLetters.length * afford.costCents;
     if (afford.balanceCents < need) {

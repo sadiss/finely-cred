@@ -37,6 +37,7 @@ import { LetterPartnerNoteField } from './LetterPartnerNoteField';
 import { recordLetterPartnerNote } from '../../lib/letterPartnerNotes';
 import { markValidationLetterMailed } from '../../lib/validationAccountState';
 import { buildLetterStreamJobNaming, previewLetterStreamJobName } from '../../lib/letterStreamJobName';
+import { canOpenMailModal, isLetterPhysicallyMailed } from '../../lib/letterMailState';
 
 type WizardStep = 'confirm' | 'mail' | 'track';
 
@@ -206,7 +207,9 @@ export function MailLetterModal({
   noteAuthorEmail?: string;
 }) {
   const [effectiveLetter, setEffectiveLetter] = useState(letter);
-  const canMail = Boolean(effectiveLetter.pdfBlobRef);
+  const mailGate = useMemo(() => canOpenMailModal(effectiveLetter), [effectiveLetter]);
+  const canMail = mailGate.ok;
+  const mailBlockedReason = mailGate.reason;
   const [step, setStep] = useState<WizardStep>('confirm');
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -214,6 +217,8 @@ export function MailLetterModal({
     providerId: string;
     expectedDeliveryDate?: string;
     cost?: number;
+    reconciled?: boolean;
+    deduped?: boolean;
   } | null>(null);
   /** Set when the physical mail succeeded but the internal credits ledger charge failed — never conflate with a failed send. */
   const [ledgerWarning, setLedgerWarning] = useState<string | null>(null);
@@ -579,6 +584,10 @@ export function MailLetterModal({
   const submit = async () => {
     if (!effectiveLetter.pdfBlobRef) return;
     if (invalid || busy) return;
+    if (isLetterPhysicallyMailed(effectiveLetter)) {
+      setErr(mailBlockedReason || 'This letter was already mailed — duplicate sends are blocked.');
+      return;
+    }
     if (!agentChain.readyToMail) {
       setErr(agentChain.blockingMessage ?? 'Complete the review steps before mailing.');
       appendAiActionAudit({
@@ -637,11 +646,13 @@ export function MailLetterModal({
         providerId: res.providerId,
         expectedDeliveryDate: res.expectedDeliveryDate,
         cost: res.cost,
+        reconciled: res.reconciled,
+        deduped: res.deduped,
       });
       onMailed({
         providerId: res.providerId,
         expectedDeliveryDate: res.expectedDeliveryDate,
-        status: res.status,
+        status: res.status || 'submitted',
         to: toClean,
         from: fromClean,
         cost: res.cost,
@@ -737,7 +748,7 @@ export function MailLetterModal({
 
           {!canMail ? (
             <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-3 text-red-100 text-sm">
-              This letter has no stored PDF. Generate and save it to the vault before mailing.
+              {mailBlockedReason || 'This letter has no stored PDF. Generate and save it to the vault before mailing.'}
             </div>
           ) : null}
           {err ? <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-3 text-red-100 text-sm">{err}</div> : null}
@@ -752,10 +763,10 @@ export function MailLetterModal({
                 <div className="text-sm text-white/75">{from.name.trim() ? formatMailAddressOneLine(from) : 'Fill the From address below'}</div>
                 <div className={`text-xs ${FINELY_OS_ENTITY_BODY}`}>
                   {quoteBusy
-                    ? 'Fetching live LetterStream pricing…'
+                    ? 'Loading mail-class estimates…'
                     : quoteByType[mailType] != null
-                      ? `Live quote: ${formatMailCreditsUsd(selectedCostCents)} for ${mailClassChoice(mailType).shortLabel}`
-                      : `Est. ${formatMailCreditsUsd(selectedCostCents)} for ${mailClassChoice(mailType).shortLabel} (complete addresses for live quote).`}
+                      ? `Est. ${formatMailCreditsUsd(selectedCostCents)} for ${mailClassChoice(mailType).shortLabel} — live price confirmed at Send`
+                      : `Est. ${formatMailCreditsUsd(selectedCostCents)} for ${mailClassChoice(mailType).shortLabel}.`}
                 </div>
                 <div className="text-[10px] uppercase tracking-widest text-white/40 pt-2">LetterStream job name</div>
                 <div className="text-sm font-mono text-sky-200">{letterStreamJobPreview}</div>
@@ -765,7 +776,7 @@ export function MailLetterModal({
                 <div className="text-white font-semibold text-sm">Mail class</div>
                 <p className={`text-xs ${FINELY_OS_ENTITY_BODY}`}>
                   Default selected for this letter: <span className="text-amber-100">{mailClassChoice(mailType).shortLabel}</span>.{' '}
-                  {mailClassChoice(mailType).speedNote} Prices below come from LetterStream preauth when addresses are complete.
+                  {mailClassChoice(mailType).speedNote} Estimates below — LetterStream charges only when you tap Send.
                 </p>
                 {quoteErr ? <p className="text-xs text-amber-100/90">{quoteErr}</p> : null}
                 <div className="grid gap-2">
@@ -928,7 +939,7 @@ export function MailLetterModal({
                 <button
                   type="button"
                   onClick={() => void submit()}
-                  disabled={busy || invalid || !verifiedOk}
+                  disabled={busy || invalid || !verifiedOk || !canMail}
                   className={`${FINELY_OS_PRIMARY_BTN} !text-sm disabled:opacity-60`}
                 >
                   <Send size={16} /> {busy ? 'Mailing…' : 'Mail this letter'}
@@ -953,6 +964,8 @@ export function MailLetterModal({
               </p>
               <p className={`text-sm ${FINELY_OS_ENTITY_BODY}`}>
                 Status is saved on the letter. Watch the Letters Vault for mail_pending → mailed updates.
+                {mailedMeta.deduped ? ' This send matched a prior provider receipt — no duplicate mail was created.' : null}
+                {mailedMeta.reconciled ? ' Provider confirmed the job after a delayed response.' : null}
               </p>
               {ledgerWarning ? (
                 <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-amber-100 text-sm flex items-start gap-2">

@@ -13,7 +13,7 @@
 
 import { corsHeaders } from '../_shared/cors.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.1';
-import { json, logEdgeEvent, rateLimit, requireAuth, requireIdempotency } from '../_shared/edgeGuard.ts';
+import { json, logEdgeEvent, rateLimit, requireAuth } from '../_shared/edgeGuard.ts';
 import { requireStaffAllowlistedEmail, type StaffTier } from '../_shared/actorAuth.ts';
 import { developerLiveMailBlocked } from '../_shared/commsSandbox.ts';
 import {
@@ -23,10 +23,14 @@ import {
   estimatePdfPageCount,
   getLetterStreamCredentials,
   isLetterStreamConfigured,
+  isLetterStreamDuplicateBatchCode,
+  isLetterStreamReleasedCode,
   letterStreamAuthPing,
-  letterStreamSendSingleFile,
+  letterStreamErrorLabel,
+  letterStreamSendReleased,
   summarizeLetterStreamResponse,
 } from '../_shared/letterStreamClient.ts';
+import { claimMailSendIdempotency, saveMailSendReceipt } from '../_shared/mailSendReceipt.ts';
 import { publicMailProvider, sanitizeMailUserMessage } from '../_shared/mailWhiteLabel.ts';
 
 type MailAddress = {
@@ -42,9 +46,9 @@ type ReqBody = {
   /** Defaults to 'send' when omitted. */
   op?: 'send' | 'verify' | 'ping' | 'status' | 'quote';
   mailTypes?: Array<'firstclass' | 'certified' | 'certnoerr' | 'flat'>;
-  /** Live LetterStream quote runs for this class only; others use static estimates. */
+  /** Preferred mail class for UI highlight — quotes remain static-only. */
   selectedMailType?: 'firstclass' | 'certified' | 'certnoerr' | 'flat';
-  /** Idempotency for quote preauth — prevents duplicate LetterStream jobs on modal re-render. */
+  /** Legacy client field — ignored; quotes never POST to LetterStream. */
   quoteIdempotencyKey?: string;
   jobNaming?: {
     partnerFirstName?: string;
@@ -320,89 +324,26 @@ Deno.serve(async (req) => {
         provider: publicProvider,
         quotes: (body.mailTypes?.length ? body.mailTypes : ['firstclass', 'certified', 'certnoerr']).map((mailType) => ({
           mailType,
-          costUsd: mailType === 'certified' ? 8 : mailType === 'certnoerr' ? 6.5 : 3.5,
+          costUsd: staticMailQuoteEstimate(String(mailType)),
           code: -200,
           message: 'Estimated — connect LetterStream for live quotes',
+          estimated: true,
         })),
       });
     }
 
-    try {
-      const { bucket, path } = parseSupabaseRef(body.pdfBlobRef);
-      const supabase = createClient(ctx.supabaseUrl, serviceKey);
-      const { data: blob, error: downloadErr } = await supabase.storage.from(bucket).download(path);
-      if (downloadErr || !blob) {
-        return json({ error: downloadErr?.message || 'Could not download PDF for quote' }, { status: 500 });
-      }
-      const pdfBytes = new Uint8Array(await blob.arrayBuffer());
-      const allTypes = (body.mailTypes?.length
-        ? body.mailTypes
-        : (['firstclass', 'certified', 'certnoerr'] as const)) as Array<'firstclass' | 'certified' | 'certnoerr' | 'flat'>;
-      const liveType =
-        body.selectedMailType && allTypes.includes(body.selectedMailType)
-          ? body.selectedMailType
-          : allTypes[0]!;
-      const docId = buildLetterStreamDocId(body.letterId || 'quote');
-      const jobName = resolveEdgeJobName(body, body.letterId || 'quote');
-      const quotes: Array<{ mailType: string; costUsd: number | null; code: number; message: string; estimated?: boolean }> = [];
-
-      const quoteIdemKey =
-        body.quoteIdempotencyKey ||
-        `${body.letterId || 'quote'}:${String(body.pdfBlobRef).slice(-48)}:${liveType}`;
-      const quoteFresh = await requireIdempotency({
-        namespace: 'mailer:quote',
-        key: `${ctx.user.id}:${quoteIdemKey}`,
-        ttlSeconds: 10 * 60,
-      });
-
-      for (const mailType of allTypes) {
-        if (mailType !== liveType || !quoteFresh) {
-          quotes.push({
-            mailType,
-            costUsd: staticMailQuoteEstimate(mailType),
-            code: -200,
-            message: quoteFresh ? 'Estimated — select class for live quote' : 'Estimated — quote deduped',
-            estimated: true,
-          });
-          continue;
-        }
-
-        const parsed = await letterStreamSendSingleFile({
-          to: body.to!,
-          from: body.from!,
-          pdfBytes,
-          jobName,
-          docId: `${docId.slice(0, 16)}`.slice(0, 20),
-          options: {
-            color: body.options?.color ?? true,
-            doubleSided: body.options?.doubleSided ?? true,
-            mailType,
-            coverSheet: body.options?.coverSheet ?? true,
-            pages: body.options?.pages,
-            preauth: true,
-            debug: resolveMailDebugLevel(),
-          },
-        });
-        const summary = summarizeLetterStreamResponse(parsed);
-        const costUsd =
-          typeof summary.cost === 'number' && Number.isFinite(summary.cost)
-            ? summary.cost
-            : staticMailQuoteEstimate(mailType);
-        quotes.push({
-          mailType,
-          costUsd,
-          code: summary.code,
-          message: sanitizeMailUserMessage(summary.message),
-        });
-      }
-
-      return json({ ok: true, provider: publicProvider, quotes, quoteDeduped: !quoteFresh });
-    } catch (e) {
-      return json({
-        ok: false,
-        error: sanitizeMailUserMessage((e as Error)?.message || 'Quote failed'),
-      }, { status: 500 });
-    }
+    // Strict: quotes never hit LetterStream — no phantom jobs from pricing UI.
+    const allTypes = (body.mailTypes?.length
+      ? body.mailTypes
+      : (['firstclass', 'certified', 'certnoerr'] as const)) as Array<'firstclass' | 'certified' | 'certnoerr' | 'flat'>;
+    const quotes = allTypes.map((mailType) => ({
+      mailType,
+      costUsd: staticMailQuoteEstimate(mailType),
+      code: -200,
+      message: 'Estimated — live price confirmed only when you tap Send',
+      estimated: true,
+    }));
+    return json({ ok: true, provider: publicProvider, quotes, quoteMode: 'static' });
   }
 
   if (op === 'verify') {
@@ -479,8 +420,32 @@ Deno.serve(async (req) => {
   {
     const idemKey =
       body.idempotencyKey || `${body.partnerId}:${body.letterId}:${String(body.pdfBlobRef).slice(-64)}`;
-    const ok = await requireIdempotency({ namespace: 'mailer', key: `${ctx.user.id}:${idemKey}`, ttlSeconds: 60 * 60 * 6 });
-    if (!ok) return json({ ok: true, deduped: true, provider: publicProvider });
+    const claim = await claimMailSendIdempotency({
+      idemKey: `${ctx.user.id}:${idemKey}`,
+      ttlSeconds: 60 * 60 * 24 * 30,
+    });
+    if (!claim.fresh && claim.receipt) {
+      return json({
+        ok: true,
+        deduped: true,
+        provider: publicProvider,
+        providerId: claim.receipt.providerId,
+        batch: claim.receipt.batch ?? undefined,
+        job: claim.receipt.job ?? undefined,
+        cost: claim.receipt.cost ?? undefined,
+        status: claim.receipt.status,
+        code: claim.receipt.code,
+        reconciled: claim.receipt.reconciled ?? false,
+        message: 'Already mailed — returning saved provider receipt.',
+      });
+    }
+    if (!claim.fresh) {
+      return json({
+        ok: false,
+        error: 'Duplicate mail request — this letter may already be sending. Check vault status before retrying.',
+        code: -957,
+      }, { status: 409 });
+    }
   }
 
   const supabase = createClient(ctx.supabaseUrl, serviceKey);
@@ -496,7 +461,9 @@ Deno.serve(async (req) => {
     if (provider === 'letterstream') {
       const docId = buildLetterStreamDocId(body.letterId);
       const jobName = resolveEdgeJobName(body, body.letterId);
-      const parsed = await letterStreamSendSingleFile({
+      const idemKey =
+        body.idempotencyKey || `${body.partnerId}:${body.letterId}:${String(body.pdfBlobRef).slice(-64)}`;
+      const sendResult = await letterStreamSendReleased({
         to: body.to,
         from: body.from,
         pdfBytes,
@@ -507,37 +474,84 @@ Deno.serve(async (req) => {
           doubleSided: body.options?.doubleSided ?? true,
           mailType: body.options?.mailType ?? 'firstclass',
           coverSheet: body.options?.coverSheet ?? true,
-          pages: body.options?.pages,
-          preauth: body.options?.preauth ?? false,
+          pages: detectedPages,
           debug: resolveMailDebugLevel(),
         },
       });
-      const summary = summarizeLetterStreamResponse(parsed);
 
-      if (!summary.ok) {
+      if (!sendResult.ok) {
+        const dupBatch = isLetterStreamDuplicateBatchCode(sendResult.code);
         await logEdgeEvent({
           namespace: 'mailer',
           level: 'error',
-          event: 'send_failed',
+          event: dupBatch ? 'send_duplicate_batch' : 'send_failed',
           meta: {
             userId: ctx.user.id,
             ip: ctx.ip,
             partnerId: body.partnerId,
             letterId: body.letterId,
             provider: publicProvider,
-            code: summary.code,
-            error: summary.message,
+            code: sendResult.code,
+            error: sendResult.message,
             detectedPages,
-            declaredPages: body.options?.pages ?? detectedPages,
+            materialized: Boolean(sendResult.job || sendResult.docId),
           },
         });
         return json({
           ok: false,
           provider: publicProvider,
-          code: summary.code,
-          error: sanitizeMailUserMessage(summary.message),
+          code: sendResult.code,
+          error: sanitizeMailUserMessage(
+            dupBatch ? letterStreamErrorLabel(sendResult.code) : sendResult.message,
+          ),
+        }, { status: dupBatch ? 409 : 500 });
+      }
+
+      if (!sendResult.reconciled && !isLetterStreamReleasedCode(sendResult.code)) {
+        await logEdgeEvent({
+          namespace: 'mailer',
+          level: 'error',
+          event: 'send_not_released',
+          meta: {
+            userId: ctx.user.id,
+            ip: ctx.ip,
+            partnerId: body.partnerId,
+            letterId: body.letterId,
+            provider: publicProvider,
+            code: sendResult.code,
+            error: sendResult.message,
+            detectedPages,
+          },
+        });
+        return json({
+          ok: false,
+          provider: publicProvider,
+          code: sendResult.code,
+          error: sanitizeMailUserMessage(
+            sendResult.code === -200
+              ? 'Mail provider returned a price quote only — letter was not released. Tap Send again.'
+              : sendResult.message || 'Mail provider did not confirm release.',
+          ),
         }, { status: 500 });
       }
+
+      const providerId = sendResult.docId || sendResult.job || docId;
+      const releaseStatus = 'submitted';
+      const receipt = {
+        providerId,
+        batch: sendResult.batch ?? null,
+        job: sendResult.job ?? null,
+        cost: sendResult.cost ?? null,
+        status: releaseStatus,
+        code: sendResult.code,
+        sentAt: new Date().toISOString(),
+        reconciled: sendResult.reconciled ?? false,
+      };
+      await saveMailSendReceipt({
+        idemKey: `${ctx.user.id}:${idemKey}`,
+        receipt,
+        ttlSeconds: 60 * 60 * 24 * 30,
+      });
 
       await logEdgeEvent({
         namespace: 'mailer',
@@ -549,25 +563,27 @@ Deno.serve(async (req) => {
           partnerId: body.partnerId,
           letterId: body.letterId,
           provider: publicProvider,
-          batch: summary.batch ?? null,
-          job: summary.job ?? null,
-          docId: summary.docId ?? docId,
-          cost: summary.cost ?? null,
-          code: summary.code,
+          batch: sendResult.batch ?? null,
+          job: sendResult.job ?? null,
+          docId: providerId,
+          cost: sendResult.cost ?? null,
+          code: sendResult.code,
           detectedPages,
+          reconciled: sendResult.reconciled ?? false,
         },
       });
 
       return json({
         ok: true,
         provider: publicProvider,
-        providerId: summary.docId || summary.job || docId,
-        batch: summary.batch,
-        job: summary.job,
-        cost: summary.cost,
-        status: summary.code === -200 ? 'preauth' : 'submitted',
-        authcode: summary.authcode,
-        message: sanitizeMailUserMessage(summary.message),
+        providerId,
+        batch: sendResult.batch,
+        job: sendResult.job,
+        cost: sendResult.cost,
+        status: releaseStatus,
+        code: sendResult.code,
+        reconciled: sendResult.reconciled ?? false,
+        message: sanitizeMailUserMessage(sendResult.message),
       });
     }
 

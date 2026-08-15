@@ -26,6 +26,7 @@ import { addAuditEvent } from '../../data/auditRepo';
 import { checkDisputeLetterEvidenceGate } from '../../lib/evidenceGates';
 import { checkIdentityVaultGate } from '../../lib/documentVaultGates';
 import { onDisputeLetterMailed } from '../../lib/disputeRoundEngine';
+import { canOpenMailModal, isLetterPhysicallyMailed } from '../../lib/letterMailState';
 import { EntitlementGate } from '../../components/billing/EntitlementGate';
 import { ENTITLEMENT_KEYS } from '../../billing/entitlements';
 import { FinelyOsPageFooter } from '../../features/os/FinelyOsPageFooter';
@@ -258,7 +259,10 @@ export default function PartnerLettersVaultPage() {
 
   const canMail = isFeatureEnabled('letterMailing');
   const pdfReadyActive = useMemo(
-    () => letters.filter((l) => !l.archivedAt && Boolean(l.pdfBlobRef) && !isLetterDraft(l)),
+    () =>
+      letters.filter(
+        (l) => !l.archivedAt && Boolean(l.pdfBlobRef) && !isLetterDraft(l) && !isLetterPhysicallyMailed(l),
+      ),
     [letters],
   );
 
@@ -280,19 +284,32 @@ export default function PartnerLettersVaultPage() {
         to: r.to || letter.mailing?.to || { name: '', addressLine1: '', city: '', state: '', zip: '' },
         from: r.from || letter.mailing?.from || { name: '', addressLine1: '', city: '', state: '', zip: '' },
       };
-      if (r.ok) {
+      if (r.ok && r.providerId) {
         const updated = upsertLetter({
           ...letter,
           status: 'mailed',
           mailing: {
             provider: 'finely',
-            providerId: r.providerId || letter.mailing?.providerId || 'batch',
+            providerId: r.providerId,
             createdAt: new Date().toISOString(),
             status: 'mailed',
             ...addr,
           },
         });
         onDisputeLetterMailed({ letter: updated, actor: 'partner' });
+      } else if (r.ok) {
+        upsertLetter({
+          ...letter,
+          status: 'mail_failed',
+          mailing: {
+            provider: 'finely',
+            providerId: letter.mailing?.providerId,
+            createdAt: letter.mailing?.createdAt ?? new Date().toISOString(),
+            status: 'failed',
+            lastError: 'Mail provider did not return a job reference — do not resend until status is confirmed.',
+            ...addr,
+          },
+        });
       } else {
         upsertLetter({
           ...letter,
@@ -346,7 +363,7 @@ export default function PartnerLettersVaultPage() {
 
   const renderVaultLetter = (l: LetterRecord) => (
     <div key={l.id} className="relative">
-      {canMail && l.pdfBlobRef && view === 'active' ? (
+      {canMail && l.pdfBlobRef && view === 'active' && !isLetterPhysicallyMailed(l) ? (
         <label className="absolute top-3 left-3 z-10 inline-flex items-center gap-1.5 rounded-lg border border-white/15 bg-black/70 px-2 py-1 text-[10px] uppercase tracking-widest text-white/70">
           <input type="checkbox" checked={selectedIds.has(l.id)} onChange={() => toggleSelect(l.id)} />
           Select
@@ -362,6 +379,11 @@ export default function PartnerLettersVaultPage() {
         onOpenPdf={() => void openPdf(l)}
         onMail={() => {
           if (!l.pdfBlobRef || isLetterDraft(l)) return;
+          const gate = canOpenMailModal(l);
+          if (!gate.ok) {
+            setMailGateErr(gate.reason || 'This letter cannot be mailed again.');
+            return;
+          }
           setMailGateErr(null);
           if (l.type === 'dispute') {
             const idGate = checkIdentityVaultGate(evidence);
@@ -382,7 +404,7 @@ export default function PartnerLettersVaultPage() {
         }}
         onArchive={() => toggleArchive(l)}
         pdfDisabled={!l.pdfBlobRef}
-        mailDisabled={!l.pdfBlobRef || isLetterDraft(l)}
+        mailDisabled={!l.pdfBlobRef || isLetterDraft(l) || isLetterPhysicallyMailed(l)}
         onResumeStudio={
           l.type === 'dispute' && !l.pdfBlobRef && studioDraftResume
             ? () => navigate(studioDraftResume)

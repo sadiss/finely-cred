@@ -28,6 +28,7 @@ import { FINELY_MAIL_COPY } from '../../lib/mailWhiteLabel';
 import { notifyLetterMailed } from '../../lib/letterMailedNotify';
 import { backfillPartnerLettersMailTo } from '../../lib/letterMailToBackfill';
 import { useAuth } from '../../auth/AuthProvider';
+import { isLetterPhysicallyMailed } from '../../lib/letterMailState';
 
 /**
  * Admin-as-mailer: Pick partner → Confirm letters → Mail → Email notify.
@@ -76,7 +77,10 @@ export default function AdminMailLettersPage() {
     () => (partner ? listLettersByPartner(partner.id).filter((l) => !l.archivedAt) : []),
     [partner],
   );
-  const pdfReady = useMemo(() => letters.filter((l) => Boolean(l.pdfBlobRef)), [letters]);
+  const pdfReady = useMemo(
+    () => letters.filter((l) => Boolean(l.pdfBlobRef) && !isLetterPhysicallyMailed(l)),
+    [letters],
+  );
 
   useEffect(() => {
     if (!partner) {
@@ -119,16 +123,30 @@ export default function AdminMailLettersPage() {
         to: r.to || letter.mailing?.to || { name: '', addressLine1: '', city: '', state: '', zip: '' },
         from: r.from || letter.mailing?.from || { name: '', addressLine1: '', city: '', state: '', zip: '' },
       };
-      if (r.ok) {
+      if (r.ok && r.providerId) {
         okN += 1;
         upsertLetter({
           ...letter,
           status: 'mailed',
           mailing: {
             provider: 'finely',
-            providerId: r.providerId || letter.mailing?.providerId || 'batch',
+            providerId: r.providerId,
             createdAt: new Date().toISOString(),
             status: 'mailed',
+            ...addr,
+          },
+        });
+      } else if (r.ok) {
+        failN += 1;
+        upsertLetter({
+          ...letter,
+          status: 'mail_failed',
+          mailing: {
+            provider: 'finely',
+            providerId: letter.mailing?.providerId,
+            createdAt: letter.mailing?.createdAt ?? new Date().toISOString(),
+            status: 'failed',
+            lastError: 'Mail provider did not return a job reference — do not resend until status is confirmed.',
             ...addr,
           },
         });

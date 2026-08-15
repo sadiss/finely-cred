@@ -40,6 +40,7 @@ import {
   formatDebtLetterStatLine,
 } from '../../lib/debtLetterCardFacts';
 import { isLetterDraft, letterDraftBadgeLabel } from '../../lib/letterDraftLifecycle';
+import { isLetterPhysicallyMailed } from '../../lib/letterMailState';
 
 function fmtWhen(iso: string) {
   try {
@@ -292,6 +293,8 @@ export function SavedLetterCard({
   const steps = workflowSteps(letter.status, hasPdf);
   const delivery = fmtDate(letter.mailing?.expectedDeliveryDate);
   const toneChip = statusTone(letter.status);
+  const alreadyMailed = isLetterPhysicallyMailed(letter);
+  const mailRef = (letter.mailing?.providerId || '').trim();
 
   const openViewPdf = () => {
     if (hasPdf && onOpenPdf) {
@@ -411,6 +414,11 @@ export function SavedLetterCard({
                 {hasPdf ? 'PDF ready' : 'Text only'}
               </span>
               <span className={finelyOsStatusChip(toneChip)}>{statusLabel(letter.status)}</span>
+              {alreadyMailed ? (
+                <span className="rounded-md border border-sky-400/35 bg-sky-500/15 px-1.5 py-0.5 text-[9px] font-black uppercase text-sky-100">
+                  Mailed{mailRef ? ` · ${mailRef.slice(0, 12)}` : ''}
+                </span>
+              ) : null}
             </div>
 
               <div className="flex flex-wrap gap-2 pt-1">
@@ -598,7 +606,7 @@ export function SavedLetterCard({
                     <CheckCircle2 size={16} /> Mark as final
                   </button>
                 ) : null}
-                {canMail && onMail ? (
+                {canMail && onMail && !alreadyMailed ? (
                   <button
                     type="button"
                     onClick={() => {
@@ -611,6 +619,10 @@ export function SavedLetterCard({
                   >
                     <Send size={16} /> Mail letter
                   </button>
+                ) : alreadyMailed ? (
+                  <span className="inline-flex items-center gap-2 rounded-xl border border-sky-400/25 bg-sky-500/10 px-3 py-2 text-xs text-sky-100">
+                    <Truck size={14} /> Mailed{mailRef ? ` · ref ${mailRef}` : ''} — remail blocked
+                  </span>
                 ) : null}
                 {onResumeStudio && !hasPdf ? (
                   <button type="button" onClick={onResumeStudio} className={`${FINELY_OS_SECONDARY_BTN} !py-2.5 !px-4 !text-sm`}>

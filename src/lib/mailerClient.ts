@@ -2,6 +2,7 @@ import { supabase, isSupabaseConfigured } from './supabaseClient';
 import { isFeatureEnabled } from '../data/settingsRepo';
 import { FINELY_MAIL_PROVIDER, type FinelyMailProvider, normalizeMailProvider } from './mailWhiteLabel';
 import { mailClassEstCostUsd } from './mailClassOptions';
+import { assertMailSendReleased, isLetterStreamReleaseCode } from './letterMailState';
 
 export type MailProvider = FinelyMailProvider;
 
@@ -30,6 +31,9 @@ export type MailLetterResult = {
   cost?: number;
   authcode?: string;
   message?: string;
+  code?: number;
+  reconciled?: boolean;
+  deduped?: boolean;
 };
 
 export type MailProviderStatus = {
@@ -62,6 +66,12 @@ function parseMailEdgeError(error: unknown, data: Record<string, unknown> | null
     const code = typeof data.code === 'number' ? data.code : null;
     if (code === -904) {
       return `${data.error.trim()} If this persists, regenerate the letter PDF and mail again.`;
+    }
+    if (code === -925) {
+      return `${data.error.trim()} Change the job disambiguator (e.g. bureau suffix) and send again.`;
+    }
+    if (code === -200) {
+      return 'Mail provider returned a price quote only — letter was not released. Tap Send again.';
     }
     return data.error.trim();
   }
@@ -133,7 +143,7 @@ export async function getMailProviderStatus(): Promise<MailProviderStatus> {
   return coerceStatus(data as Record<string, unknown> | null);
 }
 
-/** Live LetterStream preauth quotes — one live class + static estimates for others. */
+/** Static mail-class estimates — no LetterStream calls until Send. */
 export async function quoteMailOptionsViaProvider(args: {
   letterId: string;
   pdfBlobRef: string;
@@ -259,16 +269,38 @@ export async function mailLetterViaProvider(args: {
   if (error) throw new Error(parseMailEdgeError(error, data as Record<string, unknown> | null));
   if (!data?.ok) throw new Error(data?.error || data?.message || 'Mailing failed.');
 
+  const raw = data as Record<string, unknown>;
+  const code = typeof raw.code === 'number' ? raw.code : undefined;
+  const reconciled = Boolean(raw.reconciled);
+  const deduped = Boolean(raw.deduped);
+  const preauth = raw.status === 'preauth' || code === -200;
+  if (!deduped && !reconciled && code != null && !isLetterStreamReleaseCode(code) && code < 0) {
+    throw new Error(parseMailEdgeError(null, raw));
+  }
+  const release = assertMailSendReleased({
+    providerId: typeof raw.providerId === 'string' ? raw.providerId : undefined,
+    job: typeof raw.job === 'string' ? raw.job : undefined,
+    batch: typeof raw.batch === 'string' ? raw.batch : undefined,
+    status: typeof raw.status === 'string' ? raw.status : undefined,
+    code,
+    preauth,
+    deduped,
+    reconciled,
+  });
+
   return {
-    provider: normalizeMailProvider(data.provider),
-    providerId: data.providerId,
-    expectedDeliveryDate: data.expectedDeliveryDate ?? undefined,
-    status: data.status ?? undefined,
-    batch: data.batch ?? undefined,
-    job: data.job ?? undefined,
-    cost: data.cost ?? undefined,
-    authcode: data.authcode ?? undefined,
-    message: data.message ?? undefined,
+    provider: normalizeMailProvider(raw.provider as string | undefined),
+    providerId: release.providerId,
+    expectedDeliveryDate: typeof raw.expectedDeliveryDate === 'string' ? raw.expectedDeliveryDate : undefined,
+    status: release.releaseStatus,
+    batch: typeof raw.batch === 'string' ? raw.batch : undefined,
+    job: typeof raw.job === 'string' ? raw.job : undefined,
+    cost: typeof raw.cost === 'number' ? raw.cost : undefined,
+    authcode: typeof raw.authcode === 'string' ? raw.authcode : undefined,
+    message: typeof raw.message === 'string' ? raw.message : undefined,
+    code: typeof raw.code === 'number' ? raw.code : undefined,
+    reconciled: Boolean(raw.reconciled),
+    deduped: Boolean(raw.deduped),
   };
 }
 

@@ -327,6 +327,7 @@ export function letterStreamErrorLabel(code: number): string {
     [-910]: 'Missing document file',
     [-916]: 'Could not read PDF',
     [-904]: 'PDF page count mismatch — regenerate the letter PDF and try again',
+    [-925]: 'Duplicate job name at mail provider — use a different disambiguator and send again',
     [-980]: 'Mail service maintenance — try again later',
     [-997]: 'Rate limit exceeded',
   };
@@ -335,6 +336,44 @@ export function letterStreamErrorLabel(code: number): string {
 
 export function isLetterStreamSuccessCode(code: number): boolean {
   return [-100, -103, -104, -110, -150, -199, -200].includes(code);
+}
+
+/** LetterStream rejected the job/batch id as already used. */
+export function isLetterStreamDuplicateBatchCode(code: number): boolean {
+  return code === -925;
+}
+
+/** Success for an actual send (preauth:false) — excludes quote-only -200. */
+export function isLetterStreamReleasedCode(code: number): boolean {
+  return [-100, -103, -104, -110, -150, -199].includes(code);
+}
+
+export function extractMaterializedSummary(parsed: LetterStreamResponse): {
+  ok: boolean;
+  code: number;
+  message: string;
+  batch?: string;
+  job?: string;
+  docId?: string;
+  cost?: number;
+  authcode?: string;
+  reconciled: boolean;
+} {
+  const base = summarizeLetterStreamResponse(parsed);
+  const msg = parsed.messages[0];
+  return {
+    ...base,
+    ok: true,
+    message: sanitizeMailUserMessage(
+      `Mail job materialized at provider (${base.job || base.docId || 'ref pending'}) — reconciled after provider response.`,
+    ),
+    batch: base.batch ?? msg?.batch,
+    job: base.job ?? msg?.docs?.[0]?.job,
+    docId: base.docId ?? msg?.docs?.[0]?.id,
+    cost: base.cost ?? msg?.cost ?? msg?.docs?.[0]?.cost,
+    authcode: base.authcode ?? msg?.authcode,
+    reconciled: true,
+  };
 }
 
 export async function letterStreamAuthPing(args?: { debug?: 1 | 2 | 3 }): Promise<LetterStreamResponse> {
@@ -415,7 +454,10 @@ export async function letterStreamAuthorizePreauth(authcode: string): Promise<Le
   return parseLetterStreamResponse(raw);
 }
 
-export function summarizeLetterStreamResponse(parsed: LetterStreamResponse): {
+export function summarizeLetterStreamResponse(
+  parsed: LetterStreamResponse,
+  opts?: { mode?: 'quote' | 'send' },
+): {
   ok: boolean;
   code: number;
   message: string;
@@ -424,11 +466,17 @@ export function summarizeLetterStreamResponse(parsed: LetterStreamResponse): {
   docId?: string;
   cost?: number;
   authcode?: string;
+  preauth?: boolean;
 } {
   const msg = parsed.messages[0];
   if (!msg) return { ok: false, code: -999, message: 'Empty mail service response' };
 
-  const ok = isLetterStreamSuccessCode(msg.code);
+  const mode = opts?.mode ?? 'quote';
+  const preauthQuote = msg.code === -200;
+  const ok =
+    mode === 'send'
+      ? isLetterStreamReleasedCode(msg.code)
+      : isLetterStreamSuccessCode(msg.code);
   const label = letterStreamErrorLabel(msg.code);
   const message = sanitizeMailUserMessage(msg.details || label);
   const doc = msg.docs?.[0];
@@ -442,5 +490,110 @@ export function summarizeLetterStreamResponse(parsed: LetterStreamResponse): {
     docId: doc?.id,
     cost: msg.cost ?? doc?.cost,
     authcode: msg.authcode,
+    preauth: preauthQuote && mode === 'send',
+  };
+}
+
+/** Full send pipeline: submit → optional doauth → reconcile materialized jobs. */
+export async function letterStreamSendReleased(args: {
+  to: LetterStreamMailAddress;
+  from: LetterStreamMailAddress;
+  pdfBytes: Uint8Array;
+  jobName: string;
+  docId: string;
+  options?: Omit<LetterStreamSendOptions, 'preauth'>;
+}): Promise<{
+  ok: boolean;
+  code: number;
+  message: string;
+  batch?: string;
+  job?: string;
+  docId?: string;
+  cost?: number;
+  reconciled?: boolean;
+  raw: LetterStreamResponse;
+}> {
+  const pages = args.options?.pages ?? estimatePdfPageCount(args.pdfBytes);
+  let parsed = await letterStreamSendSingleFile({
+    ...args,
+    options: { ...args.options, preauth: false, pages },
+  });
+
+  let summary = summarizeLetterStreamResponse(parsed, { mode: 'send' });
+
+  if (isLetterStreamDuplicateBatchCode(summary.code)) {
+    return {
+      ok: false,
+      code: summary.code,
+      message: letterStreamErrorLabel(summary.code),
+      batch: summary.batch,
+      job: summary.job,
+      docId: summary.docId,
+      cost: summary.cost,
+      reconciled: false,
+      raw: parsed,
+    };
+  }
+
+  if (summary.preauth && summary.authcode) {
+    parsed = await letterStreamAuthorizePreauth(summary.authcode);
+    summary = summarizeLetterStreamResponse(parsed, { mode: 'send' });
+    if (isLetterStreamDuplicateBatchCode(summary.code)) {
+      return {
+        ok: false,
+        code: summary.code,
+        message: letterStreamErrorLabel(summary.code),
+        batch: summary.batch,
+        job: summary.job,
+        docId: summary.docId,
+        cost: summary.cost,
+        reconciled: false,
+        raw: parsed,
+      };
+    }
+  }
+
+  if (!summary.ok && letterStreamJobMaterialized(parsed)) {
+    const reconciled = extractMaterializedSummary(parsed);
+    return {
+      ok: true,
+      code: reconciled.code,
+      message: reconciled.message,
+      batch: reconciled.batch,
+      job: reconciled.job,
+      docId: reconciled.docId,
+      cost: reconciled.cost,
+      reconciled: true,
+      raw: parsed,
+    };
+  }
+
+  if (summary.code === -200 && !summary.ok) {
+    return {
+      ok: false,
+      code: summary.code,
+      message: sanitizeMailUserMessage(
+        summary.message ||
+          'Mail provider returned a price quote only — letter was not released. Tap Send again or contact admin.',
+      ),
+      batch: summary.batch,
+      job: summary.job,
+      docId: summary.docId,
+      cost: summary.cost,
+      reconciled: false,
+      raw: parsed,
+    };
+  }
+
+  return {
+    ok: summary.ok,
+    code: summary.code,
+    message: summary.message,
+    batch: summary.batch,
+    job: summary.job,
+    docId: summary.docId,
+    cost: summary.cost,
+    reconciled: false,
+    raw: parsed,
   };
 }
