@@ -22,7 +22,7 @@ interface CMOSiteWatchPanelProps {
 }
 
 export function CMOSiteWatchPanel({ route, autoWatch = true, onSignal }: CMOSiteWatchPanelProps) {
-  const resolvedRoute = route ?? (typeof window !== 'undefined' ? window.location.pathname : '/admin/marketing-agent');
+  const resolvedRoute = route ?? (typeof window !== 'undefined' ? window.location.pathname : '/admin/marketing?tab=team');
   const [signal, setSignal] = useState<CmoPageSignal | undefined>();
   const [audit, setAudit] = useState<CmoLayoutAudit | undefined>();
   const [changes, setChanges] = useState<CmoSiteChange[]>([]);

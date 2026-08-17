@@ -139,6 +139,7 @@ export async function runEstherStrategyReview(): Promise<EstherStrategyReviewRes
           recordId: REVIEW_RECORD_ID,
           href: '/admin/growth-agents/marketing-director',
           tags: ['esther-strategy-review', 'persona:marketing_director'],
+          growthAgentId: 'marketing-director',
           priority: 'normal',
           dueAt: new Date(Date.now() + 48 * 3600 * 1000).toISOString(),
           meta: { lane: focus.lane, city: focus.city, trendPct },

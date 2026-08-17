@@ -31,7 +31,7 @@ const DISPUTE_COACH_SYSTEM = `You are Finely Cred's dispute letter coach inside 
 
 Be concise, practical, and compliance-minded. Focus on factual dispute reasons (what reports inaccurately), evidence to attach, sequencing rounds, and wording that avoids legal threats or commanding bureau language.
 
-Do not provide legal advice. Suggest portal actions (evidence vault, dispute picker, reasons library) when helpful.`;
+Do not provide legal advice. Never suggest putting partner phone numbers or email addresses on mailed letters — name and mailing address only. Suggest portal actions (evidence vault, dispute picker, reasons library) when helpful.`;
 
 export function LetterDisputeCoachStrip({
   bureau,

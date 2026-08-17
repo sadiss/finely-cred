@@ -4,16 +4,17 @@
  * furnisher under § 623) — not a UCC / RESPA institution demand letter.
  */
 import type { DebtLetterBuildArgs } from '../debtLetterBuildArgs';
+import { formatLetterSenderBlock } from '../../lib/letterSenderBlock';
 
 function debtorBlock(args: DebtLetterBuildArgs): string {
-  const lines = [
-    args.debtorName,
-    args.debtorAddress1,
-    args.debtorAddress2,
-    [args.debtorCity, args.debtorState, args.debtorPostalCode].filter(Boolean).join(', '),
-    args.debtorPhone ? `Phone: ${args.debtorPhone}` : '',
-  ].filter(Boolean);
-  return lines.join('\n') || '[YOUR FULL NAME AND MAILING ADDRESS]';
+  return formatLetterSenderBlock({
+    name: args.debtorName,
+    address1: args.debtorAddress1,
+    address2: args.debtorAddress2,
+    city: args.debtorCity,
+    state: args.debtorState,
+    postalCode: args.debtorPostalCode,
+  });
 }
 
 function bureauRecipient(args: DebtLetterBuildArgs, specialtyFallback: string): string {

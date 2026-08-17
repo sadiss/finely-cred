@@ -277,8 +277,8 @@ export default function AdminTemplatesPage() {
       partner: {
         id: partner.id,
         fullName: canonical.fullName,
-        email: partner.profile.email,
-        phone: canonical.phone,
+        email: undefined,
+        phone: undefined,
         address1: canonical.address1 ?? canonical.addressLine1,
         address2: canonical.address2,
         city: canonical.city,

@@ -14,6 +14,7 @@ import type { ProspectTarget } from '../domain/crmProspects';
 import type { LeadSource } from '../domain/leads';
 import { enrichCrmRecordWithWorkSignals } from '../features/crm/sync/workIdleSignals';
 import { emitCrmStageChanged } from '../lib/crmLifecycleBridge';
+import { handleMarketingLifecycleOnCrmStageChange } from '../features/marketingDepartment/marketingLifecycleAutomations';
 import { applyCrmRoutingRules } from '../features/crm/routing/applyCrmRoutingRules';
 import { autoEnrollCrmRecordInDefaultSequence } from '../features/crm/sequences/autoEnrollCrmRecord';
 import { runLeadCapturePipeline } from '../lib/leadCapturePipeline';
@@ -272,6 +273,7 @@ export function setCrmRecordStage(recordId: string, stage: CrmRecordStage): CrmR
       leadId: record.sourceRef.type === 'lead' ? record.sourceRef.id : undefined,
       score: updated.score ?? undefined,
     });
+    handleMarketingLifecycleOnCrmStageChange(recordId, previousStage, stage);
   }
   syncRecordServerSide(updated);
   return updated;

@@ -27,7 +27,7 @@ export function CmoExecutiveBrief({ compact = false }: { compact?: boolean }) {
       <div className="relative flex flex-wrap items-start justify-between gap-4">
         <div>
           <div className="inline-flex items-center gap-2 rounded-full border border-amber-400/20 bg-amber-400/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.28em] text-amber-200">
-            <Crown size={14} /> CMO Prime Brief
+            <Crown size={14} /> Marketing executive brief
           </div>
           <h2 className="mt-3 text-2xl font-black tracking-tight text-white">Growth OS is watching the money paths.</h2>
           <p className="mt-2 max-w-3xl text-sm text-white/62">

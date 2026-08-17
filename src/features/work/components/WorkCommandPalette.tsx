@@ -5,6 +5,9 @@ import { usePartnerSession } from '../../../auth/PartnerSessionContext';
 import { listProjects, listProjectsByPartner } from '../../../data/projectsRepo';
 import { listCrmRecords } from '../../../data/crmRecordsRepo';
 import { crmRecordDisplayName } from '../../../domain/crmRecords';
+import { countMarketingStagingPending } from '../../marketingDesk/marketingDeskHunt';
+import { countMarketingDeskOpenTasks } from '../../marketingDesk/marketingDeskMyWork';
+import { getDailyQuotaProgress } from '../../growthAgents/growthDailyQuota';
 import {
   FINELY_OS_ENTITY_BODY,
   FINELY_OS_ENTITY_SUBLABEL,
@@ -25,17 +28,22 @@ type CommandItem = {
 type PaletteScope = 'admin' | 'portal';
 
 const ADMIN_NAV_COMMANDS: CommandItem[] = [
+  { id: 'nav_marketing', label: 'Marketing Department', hint: 'Get leads · content · follow up', href: '/admin/marketing', group: 'Navigate' },
+  { id: 'nav_marketing_find', label: 'Find new people', hint: 'Caleb · live search', href: '/admin/marketing?tab=desk&helper=find', group: 'Marketing' },
+  { id: 'nav_marketing_desk', label: 'Marketing daily desk', hint: 'Board · mail · clean', href: '/admin/marketing?tab=desk', group: 'Marketing' },
+  { id: 'nav_marketing_content', label: 'Content Studio', hint: 'Video · scripts · publish', href: '/admin/marketing?tab=content', group: 'Marketing' },
+  { id: 'nav_marketing_team', label: 'Marketing team', hint: 'Specialists + workers', href: '/admin/marketing?tab=team', group: 'Marketing' },
+  { id: 'nav_marketing_leads', label: 'Leads & CRM (hub)', hint: 'Pipeline + inbound', href: '/admin/marketing?tab=leads', group: 'Marketing' },
   { id: 'nav_my_tasks', label: 'My tasks', href: '/admin/my-tasks', group: 'Navigate' },
   { id: 'nav_inbox', label: 'Ops Inbox', hint: 'Daily triage', href: '/admin/workflow', group: 'Navigate' },
   { id: 'nav_projects', label: 'Projects & Tasks', href: '/admin/projects', group: 'Navigate' },
   { id: 'nav_workload', label: 'Workload view', href: '/admin/workload', group: 'Navigate' },
   { id: 'nav_crm', label: 'CRM workspace', href: '/admin/crm', group: 'Navigate' },
   { id: 'nav_staff', label: 'Staff Command Center', hint: 'AI + human team', href: '/admin/staff', group: 'Navigate' },
-  { id: 'nav_content_studio', label: 'Content Studio', hint: 'Super video + content', href: '/admin/content-studio', group: 'Navigate' },
   { id: 'nav_crm_risk', label: 'CRM — Work at risk', hint: 'Idle + SLA', href: '/admin/crm?smartList=work_at_risk', group: 'Navigate' },
   { id: 'nav_crm_referrals', label: 'CRM — Referrals', hint: 'Attribution analytics', href: '/admin/crm/referrals', group: 'Navigate' },
   { id: 'nav_crm_routing', label: 'CRM — Routing rules', hint: 'Auto-assign leads', href: '/admin/crm/routing', group: 'Navigate' },
-  { id: 'nav_playbooks', label: 'Playbook library', href: '/admin/playbooks', group: 'Navigate' },
+  { id: 'nav_checklists', label: 'Service delivery checklists', href: '/admin/marketing?tab=checklists', group: 'Navigate' },
   { id: 'nav_templates', label: 'Project templates', href: '/admin/projects/templates', group: 'Navigate' },
   { id: 'nav_portfolio', label: 'Portfolio dashboard', href: '/admin/projects/portfolio', group: 'Navigate' },
   { id: 'nav_crm_seq', label: 'CRM sequences', href: '/admin/crm/sequences', group: 'Navigate' },
@@ -58,6 +66,7 @@ const PORTAL_NAV_COMMANDS: CommandItem[] = [
 ];
 
 const ADMIN_SHORTCUTS: Array<{ key: string; href: string }> = [
+  { key: 'm', href: '/admin/marketing' },
   { key: 'o', href: '/admin/workflow' },
   { key: 'p', href: '/admin/projects' },
   { key: 'c', href: '/admin/crm' },
@@ -125,6 +134,34 @@ export function WorkCommandPalette({
       });
     }
     if (!isPortal) {
+      const review = countMarketingStagingPending();
+      const deskOpen = countMarketingDeskOpenTasks();
+      const quota = getDailyQuotaProgress();
+      if (review > 0) {
+        dynamic.push({
+          id: 'mkt_review',
+          label: `Review ${review} people`,
+          hint: 'Caleb find queue',
+          href: '/admin/marketing?tab=desk&helper=find#exceptions',
+          group: 'Marketing',
+        });
+      }
+      if (deskOpen > 0) {
+        dynamic.push({
+          id: 'mkt_desk_tasks',
+          label: `${deskOpen} desk task(s)`,
+          hint: 'Marketing pipeline',
+          href: '/admin/marketing?tab=desk',
+          group: 'Marketing',
+        });
+      }
+      dynamic.push({
+        id: 'mkt_quota',
+        label: `Pipeline ${quota.totalCount}/${quota.totalCap}`,
+        hint: 'Daily quota',
+        href: '/admin/growth-agents/lead-discovery',
+        group: 'Marketing',
+      });
       for (const r of listCrmRecords().slice(0, 10)) {
         dynamic.push({
           id: r.id,

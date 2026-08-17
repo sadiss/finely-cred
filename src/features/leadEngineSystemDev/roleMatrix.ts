@@ -3,7 +3,7 @@ import type { LeadAssignment, LeadEngineFunnel, LeadOwnerRole } from './types';
 export const LEAD_ENGINE_ROLE_MATRIX: Record<LeadOwnerRole, Omit<LeadAssignment, 'role'>> = {
   lead_intel: {
     label: 'Lead Intel',
-    ownerName: 'Scout Supreme',
+    ownerName: 'Sienna Roy',
     responsibility: 'Find, enrich, dedupe, and score new opportunities before anyone touches them.',
     slaMinutes: 60,
   },
@@ -57,7 +57,7 @@ export const LEAD_ENGINE_ROLE_MATRIX: Record<LeadOwnerRole, Omit<LeadAssignment,
   },
   cmo: {
     label: 'CMO',
-    ownerName: 'CMO Prime',
+    ownerName: 'Esther Hayes',
     responsibility: 'Prioritize offers, city focus, creative angles, and channel budgets.',
     slaMinutes: 60,
   },

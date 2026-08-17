@@ -6,7 +6,6 @@ import {
   Check,
   FileSearch,
   MapPin,
-  Phone,
   Scale,
   User,
   Wand2,
@@ -40,6 +39,7 @@ import {
   enrichmentToDebtPatch,
   type AddressEnrichmentResult,
 } from '../../lib/recipientAddressEnrichment';
+import { lettersForSignal } from '../../lib/debtCaseLetterLinkage';
 import {
   FINELY_OS_ENTITY_BODY,
   FINELY_OS_ENTITY_INPUT,
@@ -80,6 +80,7 @@ export function DebtCreditorIntelPanel({
   onSummonsDocChange,
   compact = false,
   adminPartnerId,
+  letterStoreVersion = 0,
 }: {
   partnerId: string;
   adminPartnerId?: string;
@@ -103,6 +104,8 @@ export function DebtCreditorIntelPanel({
   selectedSummonsDocId?: string;
   onSummonsDocChange?: (docId: string | null) => void;
   compact?: boolean;
+  /** Bumps when vault letters change — refreshes debt tile lock overlays. */
+  letterStoreVersion?: number;
 }) {
   const nav = (href: string) => adminEmbeddedNavHref(adminPartnerId, href);
   const signals = useMemo(() => extractReportDebtSignals(reports), [reports]);
@@ -126,7 +129,7 @@ export function DebtCreditorIntelPanel({
   }, [reports]);
 
   // Recover Creditor Contacts addresses from sections onto cached parses so
-  // Validation fields + letters see name/address/phone without a manual re-parse.
+  // Validation fields + letters see name/address only — never phone or email on paper.
   useEffect(() => {
     let changed = false;
     for (const r of reports) {
@@ -574,6 +577,9 @@ export function DebtCreditorIntelPanel({
           <div className={`grid sm:grid-cols-2 gap-3 ${compact ? 'max-h-[280px]' : 'max-h-[min(520px,60vh)]'} overflow-y-auto pr-1`}>
             {topSignals.map((s) => {
               const active = activeSignalId === s.signalId || (debt?.reportId === s.reportId && debt?.tradelineIndex === s.tradelineIndex);
+              void letterStoreVersion;
+              const caseLetters = partnerId ? lettersForSignal(partnerId, s, debt) : [];
+              const letterLocked = caseLetters.length > 0;
               const balance =
                 typeof s.balanceCents === 'number' && s.balanceCents > 0
                   ? (s.balanceCents / 100).toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 })
@@ -584,9 +590,24 @@ export function DebtCreditorIntelPanel({
                 <button
                   key={s.signalId}
                   type="button"
-                  onClick={() => applySignal(s)}
-                  className={`${finelyOsGlowTile(glowAccent, active)} p-4 text-left flex flex-col min-h-[8.5rem]`}
+                  disabled={letterLocked}
+                  aria-disabled={letterLocked}
+                  onClick={() => {
+                    if (letterLocked) return;
+                    applySignal(s);
+                  }}
+                  className={`${finelyOsGlowTile(glowAccent, active && !letterLocked)} p-4 text-left flex flex-col min-h-[8.5rem] relative ${
+                    letterLocked ? 'fc-debt-tile-locked opacity-95' : ''
+                  }`}
                 >
+                  {letterLocked ? (
+                    <div className="fc-debt-tile-lock-overlay" aria-hidden>
+                      <div className="fc-debt-tile-lock-overlay__title">Letter on file</div>
+                      <div className="fc-debt-tile-lock-overlay__hint">
+                        {caseLetters.length} saved letter{caseLetters.length === 1 ? '' : 's'} for this debt — delete from vault below to pick another
+                      </div>
+                    </div>
+                  ) : null}
                   <div className={`text-sm font-semibold ${FINELY_OS_ENTITY_VALUE} line-clamp-2 leading-snug`}>{s.creditorName}</div>
                   <div className={`mt-3 text-lg font-black ${glowAccent === 'emerald' ? 'text-emerald-300' : glowAccent === 'fuchsia' ? 'text-fuchsia-300' : 'text-amber-300'}`}>
                     {balance}
@@ -604,7 +625,7 @@ export function DebtCreditorIntelPanel({
                   <div className={`text-[10px] mt-1 ${s.address ? 'text-emerald-300/80' : 'text-amber-200/80'}`}>
                     {s.address ? 'Mailing address found' : 'No mailing address yet'}
                   </div>
-                  {active ? (
+                  {active && !letterLocked ? (
                     <div className={`mt-2 inline-flex items-center gap-1 text-[10px] ${glowAccent === 'emerald' ? 'text-emerald-300' : 'text-fuchsia-300'}`}>
                       <Check size={12} /> Selected
                     </div>
@@ -632,7 +653,6 @@ export function DebtCreditorIntelPanel({
         <div className={`${finelyOsCatalogCardCompact('emerald')} !p-3 space-y-1`}>
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div className={`inline-flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL}`}>
-              <Scale size={13} className="text-emerald-300" />
               Letter goes to
             </div>
             <span className={finelyOsStatusChip(hasAutoMatch ? 'ok' : 'warn')}>
@@ -656,7 +676,6 @@ export function DebtCreditorIntelPanel({
         <div className={`${finelyOsCatalogCard('emerald')} !p-5 space-y-3`}>
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className={`inline-flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL}`}>
-              <Scale size={14} className="text-emerald-300" />
               Intelligence match
             </div>
             <span className={finelyOsStatusChip(hasAutoMatch ? 'ok' : 'warn')}>
@@ -964,11 +983,7 @@ export function DebtCreditorIntelPanel({
             <div className="mt-1 whitespace-pre-wrap">
               {[senderFields.address1, senderFields.address2, [senderFields.city, senderFields.state, senderFields.postalCode].filter(Boolean).join(', ')].filter(Boolean).join('\n') || 'Add your mailing address in the sender block below the draft editor.'}
             </div>
-            {senderFields.phone ? (
-              <div className="mt-2 inline-flex items-center gap-1">
-                <Phone size={12} /> {senderFields.phone}
-              </div>
-            ) : null}
+            <div className="text-xs text-white/45 pt-2">Mailed letters use name + address only (no phone or email).</div>
           </div>
           <div className={`rounded-xl border border-white/10 bg-black/20 p-4 space-y-2 ${FINELY_OS_ENTITY_BODY}`}>
             <div className={`inline-flex items-center gap-2 ${FINELY_OS_ENTITY_SUBLABEL}`}>
@@ -976,7 +991,7 @@ export function DebtCreditorIntelPanel({
             </div>
             <div className={FINELY_OS_ENTITY_VALUE}>{recipientName || '—'}</div>
             <div className="whitespace-pre-wrap">{recipientAddress || 'Add collector mailing address before sending.'}</div>
-            <div className="text-xs text-white/45 pt-1">Mailed letters use name + address only (no email).</div>
+            <div className="text-xs text-white/45 pt-1">Mailed letters use name + address only (no phone or email).</div>
           </div>
         </div>
       </div>

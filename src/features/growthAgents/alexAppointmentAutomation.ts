@@ -260,6 +260,7 @@ export async function runAlexAppointmentOutreach(args?: {
         leadId,
         href: `/admin/crm?record=${record.id}`,
         tags: ['alex-appointment', 'persona:appointment_setter'],
+        growthAgentId: 'appointment-setter',
         priority: 'high',
         dueAt: new Date(Date.now() + 48 * 3600 * 1000).toISOString(),
         meta: { inviteId: invite.id, bookUrl },

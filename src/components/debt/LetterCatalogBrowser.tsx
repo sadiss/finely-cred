@@ -10,19 +10,18 @@ import { LIBERATION_LAW_ANCHORS } from '../../legal/consumerLiberationLaws';
 import {
   FINELY_OS_ENTITY_BODY,
   FINELY_OS_ENTITY_SUBLABEL,
-  FINELY_OS_ENTITY_TITLE,
-  FINELY_OS_ENTITY_INPUT,
-  FINELY_OS_PRIMARY_BTN,
-  finelyOsCatalogCardCompact,
   finelyOsGlowField,
-  finelyOsMicroStat,
   type FinelyOsGlowAccent,
 } from '../../features/os/finelyOsLightUi';
-import '../debt/validationDebtLayout.css';
 import {
   debtLetterCardFactsFromCatalogEntry,
   debtLetterWhenToUseSnippet,
 } from '../../lib/debtLetterCardFacts';
+import {
+  LETTER_TEMPLATE_CATALOG_GRID,
+  LETTER_TEMPLATE_CATALOG_SHELL,
+  LetterTemplateCatalogCard,
+} from './LetterTemplateCatalogCard';
 
 const CATEGORY_LABELS: Record<LetterCatalogCategory, string> = {
   validation: 'Validation',
@@ -44,7 +43,6 @@ export function LetterCatalogBrowser({
   compactHeader,
   letterHub,
   filterEntry,
-  generateHeroMatch,
 }: {
   category: LetterCatalogCategory;
   accent: FinelyOsGlowAccent;
@@ -59,8 +57,6 @@ export function LetterCatalogBrowser({
   letterHub?: LetterCatalogHub;
   /** Track guard — e.g. Validation blocks affidavits / court answers. Must match the caller's KPI count. */
   filterEntry?: (entry: DebtLetterCatalogEntry) => boolean;
-  /** Match amber generate-hero styling from IntelligentLetterSuggestionsPanel */
-  generateHeroMatch?: boolean;
 }) {
   const [q, setQ] = useState('');
   const [sub, setSub] = useState<LetterCatalogCategory | 'all'>('all');
@@ -113,25 +109,33 @@ export function LetterCatalogBrowser({
     return LIBERATION_LAW_ANCHORS.filter((l) => l.consumerUse.some((u) => tags.has(u))).slice(0, 4);
   }, [category]);
 
+  const libraryTitle =
+    category === 'validation' && !compactHeader
+      ? 'Full validation letter library'
+      : `${CATEGORY_LABELS[category]} letter library`;
+
   return (
-    <div className={generateHeroMatch ? 'fc-validation-catalog-shell rounded-2xl p-3 space-y-3' : 'space-y-3'}>
+    <div className={LETTER_TEMPLATE_CATALOG_SHELL}>
       {!compactHeader ? (
-        <div className={generateHeroMatch ? 'fc-validation-generate-card rounded-xl !p-3' : finelyOsCatalogCardCompact(accent)}>
-          <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
-            <span className={generateHeroMatch ? 'text-[10px] font-black uppercase tracking-widest text-amber-200' : finelyOsMicroStat(accent)}>
-              {generateHeroMatch ? 'Full validation letter library' : `${CATEGORY_LABELS[category]} letter library`}
+        <div className="fc-validation-generate-card rounded-xl !p-3 space-y-2">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <span className="text-[10px] font-black uppercase tracking-widest text-amber-200">{libraryTitle}</span>
+            <span className="text-[10px] text-white/50">
+              {pool.length} letters · {filtered.length} shown
             </span>
-            <span className="text-[10px] text-white/50">{pool.length} letters · {filtered.length} shown</span>
           </div>
           <p className={`text-xs ${FINELY_OS_ENTITY_BODY}`}>
-            {generateHeroMatch
-              ? 'Browse every validation-stage letter — same generate styling as the recommendation above.'
-              : 'Pick a scenario — each letter lists the laws it uses and generates a draft you can edit. Educational only; verify local rules.'}
+            Pick a scenario — each letter lists the laws it uses and generates a draft you can edit. Educational only;
+            verify local rules.
           </p>
           {lawHints.length ? (
-            <div className="mt-3 flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2">
               {lawHints.map((l) => (
-                <span key={l.id} className="text-[9px] px-2 py-1 rounded-full border border-white/10 bg-black/30 text-white/60" title={l.plainEnglish}>
+                <span
+                  key={l.id}
+                  className="text-[9px] px-2 py-1 rounded-full border border-white/10 bg-black/30 text-white/60"
+                  title={l.plainEnglish}
+                >
                   {l.shortName}
                 </span>
               ))}
@@ -140,10 +144,10 @@ export function LetterCatalogBrowser({
         </div>
       ) : (
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <span className={generateHeroMatch ? 'text-[10px] font-black uppercase tracking-widest text-amber-200' : finelyOsMicroStat(accent)}>
-            {generateHeroMatch ? 'Letter library' : 'Letter picks for this stage'}
+          <span className="text-[10px] font-black uppercase tracking-widest text-amber-200">Letter library</span>
+          <span className="text-[10px] text-white/50">
+            {filtered.length} of {pool.length}
           </span>
-          <span className="text-[10px] text-white/50">{filtered.length} of {pool.length}</span>
         </div>
       )}
 
@@ -173,37 +177,25 @@ export function LetterCatalogBrowser({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 max-h-[min(70vh,640px)] overflow-y-auto pr-1">
+      <div className={`${LETTER_TEMPLATE_CATALOG_GRID} max-h-[min(70vh,640px)] overflow-y-auto pr-1`}>
         {filtered.map((e) => {
           const facts = debtLetterCardFactsFromCatalogEntry(e);
           const whenSnippet = debtLetterWhenToUseSnippet(facts);
           return (
-          <div key={e.id} className={`${generateHeroMatch ? 'fc-validation-catalog-card rounded-xl' : finelyOsCatalogCardCompact(accent)} !p-3 flex flex-col gap-2 min-h-[7.5rem]`}>
-            {e.id.startsWith('courtroom_') ? (
-              <span className="text-[9px] font-black uppercase tracking-widest text-fuchsia-300/90">Courtroom pack</span>
-            ) : null}
-            <div className={`${FINELY_OS_ENTITY_TITLE} text-xs leading-snug line-clamp-2`}>{e.title}</div>
-            {facts.keyPrinciple ? (
-              <p className={`text-[11px] font-semibold leading-snug line-clamp-2 flex-1 ${FINELY_OS_ENTITY_BODY} text-white/85`}>
-                {facts.keyPrinciple}
-              </p>
-            ) : null}
-            {whenSnippet ? (
-              <p className={`text-[10px] line-clamp-2 ${FINELY_OS_ENTITY_BODY} text-white/60`}>
-                When: {whenSnippet}
-              </p>
-            ) : (
-              <p className={`text-sm line-clamp-2 flex-1 ${FINELY_OS_ENTITY_BODY} text-white/75`}>{e.shortDescription}</p>
-            )}
-            <div className="text-[9px] text-white/45 line-clamp-1">{facts.laws.slice(0, 2).join(' · ')}</div>
-            <button
-              type="button"
-              onClick={() => onBuild(e.id, e)}
-              className={`${generateHeroMatch ? 'fc-generate-cta fc-validation-generate-hero !bg-amber-400 !text-black hover:!brightness-110 ' : ''}${FINELY_OS_PRIMARY_BTN} self-stretch justify-center text-[10px] !py-2`}
-            >
-              {e.tier === 'full' ? 'Generate letter' : 'Generate letter'}
-            </button>
-          </div>
+            <LetterTemplateCatalogCard
+              key={e.id}
+              title={e.title}
+              keyPrinciple={facts.keyPrinciple}
+              whenSnippet={whenSnippet}
+              description={e.shortDescription}
+              lawsLine={facts.laws.slice(0, 2).join(' · ')}
+              topBadge={
+                e.id.startsWith('courtroom_') ? (
+                  <span className="text-[9px] font-black uppercase tracking-widest text-fuchsia-300/90">Courtroom pack</span>
+                ) : undefined
+              }
+              onGenerate={() => onBuild(e.id, e)}
+            />
           );
         })}
       </div>

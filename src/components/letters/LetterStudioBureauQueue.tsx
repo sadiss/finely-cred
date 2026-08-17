@@ -1,30 +1,23 @@
 import React from 'react';
 import type { Bureau } from '../../domain/creditReports';
-import { bureauFullName, bureauShortCode } from '../../utils/bureaus';
+import { bureauFullName } from '../../utils/bureaus';
+import '../debt/validationDebtLayout.css';
 
 const BUREAUS: Bureau[] = ['EXP', 'EQF', 'TUC'];
 
-function bureauPanelStyles(b: Bureau, active: boolean, hasItems: boolean) {
-  const base =
-    'flex flex-col justify-between min-h-[8.5rem] sm:min-h-[9.5rem] rounded-2xl border-2 px-5 py-5 sm:py-6 text-left transition-all ' +
-    (hasItems ? 'hover:scale-[1.02] active:scale-[0.99] cursor-pointer' : 'opacity-35 cursor-not-allowed');
+const BUREAU_STUDIO_CLASS: Record<Bureau, string> = {
+  EXP: 'fc-bureau-studio-card--sky',
+  EQF: 'fc-bureau-studio-card--rose',
+  TUC: 'fc-bureau-studio-card--emerald',
+};
 
-  if (b === 'EXP') {
-    return active
-      ? `${base} border-sky-300 bg-sky-600/90 text-white shadow-[0_0_36px_-8px_rgba(56,189,248,0.7)] ring-2 ring-sky-200/60`
-      : `${base} border-sky-500/50 bg-sky-950/70 text-sky-50 hover:border-sky-400`;
-  }
-  if (b === 'EQF') {
-    return active
-      ? `${base} border-rose-300 bg-rose-600/90 text-white shadow-[0_0_36px_-8px_rgba(244,63,94,0.65)] ring-2 ring-rose-200/60`
-      : `${base} border-rose-500/50 bg-rose-950/70 text-rose-50 hover:border-rose-400`;
-  }
-  return active
-    ? `${base} border-emerald-300 bg-emerald-600/90 text-white shadow-[0_0_36px_-8px_rgba(52,211,153,0.65)] ring-2 ring-emerald-200/60`
-    : `${base} border-emerald-500/50 bg-emerald-950/70 text-emerald-50 hover:border-emerald-400`;
+function bureauNextStep(args: { active: boolean; hasItems: boolean; count: number }): string {
+  if (!args.hasItems) return 'Select disputes in the picker first';
+  if (args.active) return 'Finish reasons → generate PDF → save to Overview vault';
+  return 'Tap to switch studio and work this bureau letter';
 }
 
-/** Full-width three-column bureau letter switcher — below the letter you are working on. */
+/** Full-width three-column bureau letter switcher — distinct from saved letter vault cards. */
 export function LetterStudioBureauSwitcher({
   active,
   countsByBureau,
@@ -38,63 +31,109 @@ export function LetterStudioBureauSwitcher({
   trailingActions?: React.ReactNode;
 }) {
   const withItems = BUREAUS.filter((b) => (countsByBureau[b] ?? 0) > 0);
+  const activeName = bureauFullName(active);
+  const activeCount = countsByBureau[active] ?? 0;
+
   if (withItems.length < 2 && !trailingActions) return null;
 
   return (
     <section
       id="fc-bureau-letter-switcher"
-      className="w-full mt-6 pt-6 border-t-2 border-white/20 space-y-4 scroll-mt-6"
+      className="fc-bureau-studio-shell w-full mt-6 pt-6 border-t-2 border-white/20 space-y-4 scroll-mt-6"
       data-fc-bureau-switcher="1"
     >
+      <style>{`
+        @keyframes fcBureauActivePulse {
+          0%, 100% { box-shadow: 0 0 0 1px rgba(255,255,255,0.35), 0 0 28px rgba(251,191,36,0.35), inset 0 1px 0 rgba(255,255,255,0.2); }
+          50% { box-shadow: 0 0 0 2px rgba(253,230,138,0.75), 0 0 44px rgba(251,191,36,0.55), inset 0 1px 0 rgba(255,255,255,0.28); }
+        }
+        @keyframes fcBureauTypewriterCaret {
+          0%, 49% { opacity: 1; }
+          50%, 100% { opacity: 0; }
+        }
+        .fc-bureau-studio-card--active {
+          animation: fcBureauActivePulse 2.6s ease-in-out infinite;
+        }
+        .fc-bureau-studio-card__active-label {
+          display: inline-block;
+          font-size: 11px;
+          font-weight: 900;
+          letter-spacing: 0.2em;
+          text-transform: uppercase;
+          color: #fde68a;
+          text-shadow: 0 0 18px rgba(251, 191, 36, 0.65);
+        }
+        .fc-bureau-studio-card__active-label::after {
+          content: '|';
+          margin-left: 2px;
+          animation: fcBureauTypewriterCaret 1s step-end infinite;
+          color: rgba(253, 230, 138, 0.9);
+        }
+      `}</style>
+
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div className="min-w-0">
-          <h3 className="text-base sm:text-lg font-black text-white tracking-tight">
-            {withItems.length >= 2 ? 'Work on another bureau letter' : 'Bureau letter studio'}
+          <div className="text-[10px] font-black uppercase tracking-[0.18em] text-amber-200/90">Bureau letter studios</div>
+          <h3 className="text-lg sm:text-xl font-black text-white tracking-tight mt-1">
+            Working on: <span className="text-amber-100">{activeName}</span>
           </h3>
-          <p className="mt-1 text-sm text-white/65 max-w-3xl">
+          <p className="mt-1 text-sm text-white/70 max-w-3xl">
             {withItems.length >= 2
-              ? 'One letter per bureau. Each block is a full studio — click to switch. Blue = Experian, Red = Equifax, Green = TransUnion.'
-              : 'Attach bureau proof for this letter, then save PDF when you mail.'}
+              ? `Active studio: ${activeName} (${activeCount} negative${activeCount === 1 ? '' : 's'}). Tap another bureau to switch — each gets its own letter. Saved PDFs live under Overview.`
+              : 'Attach bureau proof for this letter, then save PDF to Overview when you mail.'}
           </p>
         </div>
         {trailingActions ? <div className="flex flex-wrap items-center gap-2 shrink-0">{trailingActions}</div> : null}
       </div>
+
       {withItems.length >= 2 ? (
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full">
-        {BUREAUS.map((b) => {
-          const n = countsByBureau[b] ?? 0;
-          const hasItems = n > 0;
-          const on = b === active;
-          return (
-            <button
-              key={b}
-              type="button"
-              disabled={!hasItems}
-              onClick={() => {
-                if (!hasItems) return;
-                onSelect(b);
-                requestAnimationFrame(() => {
-                  document.getElementById('fc-focused-item')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                });
-              }}
-              className={bureauPanelStyles(b, on, hasItems)}
-            >
-              <div>
-                <div className="text-[11px] font-black uppercase tracking-[0.2em] opacity-90">
-                  {on ? 'You are here' : hasItems ? 'Open letter studio' : 'No items'}
+        <div className="fc-bureau-studio-grid grid grid-cols-1 sm:grid-cols-3 gap-4 w-full">
+          {BUREAUS.map((b) => {
+            const n = countsByBureau[b] ?? 0;
+            const hasItems = n > 0;
+            const on = b === active;
+            return (
+              <button
+                key={b}
+                type="button"
+                disabled={!hasItems}
+                onClick={() => {
+                  if (!hasItems) return;
+                  onSelect(b);
+                  requestAnimationFrame(() => {
+                    document.getElementById('fc-focused-item')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  });
+                }}
+                aria-current={on ? 'true' : undefined}
+                className={`fc-bureau-studio-card ${BUREAU_STUDIO_CLASS[b]} text-left ${on ? 'fc-bureau-studio-card--active' : ''} ${!hasItems ? 'opacity-35 cursor-not-allowed' : ''}`}
+              >
+                <div className="fc-bureau-studio-card__inner">
+                  {on ? (
+                    <div className="fc-bureau-studio-card__active-label">Active studio</div>
+                  ) : (
+                    <div className="text-[10px] font-black uppercase tracking-[0.16em] text-white/55">
+                      {hasItems ? 'Switch studio' : 'No items yet'}
+                    </div>
+                  )}
+                  <div className={`font-black mt-1 leading-tight text-white ${on ? 'text-2xl sm:text-3xl' : 'text-xl sm:text-2xl'}`}>
+                    {bureauFullName(b)}
+                  </div>
+                  <div className={`font-semibold mt-2 ${on ? 'text-sm text-amber-50/95' : 'text-sm text-white/80'}`}>
+                    {hasItems ? `${n} negative${n === 1 ? '' : 's'} in this letter` : 'Select disputes first'}
+                  </div>
+                  <div
+                    className={`mt-auto pt-3 text-[10px] font-black uppercase tracking-wider ${on ? 'text-amber-200/90' : 'text-white/55'}`}
+                  >
+                    {on ? 'You are here · keep building' : hasItems ? 'Tap to switch' : '—'}
+                  </div>
+                  <p className="mt-2 text-[11px] leading-snug text-white/65">
+                    {bureauNextStep({ active: on, hasItems, count: n })}
+                  </p>
                 </div>
-                <div className="text-xl sm:text-2xl font-black mt-2 leading-tight">{bureauFullName(b)}</div>
-                <div className="text-sm font-semibold mt-2 opacity-90">
-                  {hasItems ? `${n} negative${n === 1 ? '' : 's'}` : '—'} · {bureauShortCode(b)}
-                </div>
-              </div>
-              <div className="mt-4 text-[11px] font-black uppercase tracking-wider">
-                {on ? '● Active studio' : hasItems ? 'Tap to switch →' : 'Select disputes first'}
-              </div>
-            </button>
-          );
-        })}
-      </div>
+              </button>
+            );
+          })}
+        </div>
       ) : null}
     </section>
   );

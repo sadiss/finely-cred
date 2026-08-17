@@ -1,8 +1,10 @@
+import { stripContactLinesFromLetterBody } from './letterSenderBlock';
+
 /**
  * Letter body safety — keep mailed/PDF letter content free of:
  * - Spoken educational disclaimers ("not legal advice", "results vary", …)
  * - Coach / admin / journey instructions ("Step 1", "Ask Finely", "Build this", …)
- * - Partner email / Finely-branded emails / login emails
+ * - Partner phone / email / Finely-branded contact info
  * - SSN, DOB, driver's license, bank account, passwords
  *
  * UI chrome may still show compliance footnotes and guided steps outside the letter paper.
@@ -21,6 +23,10 @@ const RESULTS_VARY_LINE_RE = /^\s*.*\bresults\s+vary\b.*$/gim;
 
 const EMAIL_LINE_RE =
   /^\s*(?:E-?mail(?:\s+Address)?|Email)\s*[:=]\s*\S+@\S+\s*$/gim;
+
+/** Partner/staff phone lines must never appear on mailed letter paper. */
+const PHONE_LINE_RE =
+  /^\s*(?:Phone|Tel(?:ephone)?|Mobile|Cell)\s*[:=]\s*.+\s*$/gim;
 
 const ANY_EMAIL_RE = /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/gi;
 
@@ -323,7 +329,8 @@ export function scrubLetterBodyForMail(text: string): string {
 
   out = scrubCoachAndMetaProse(out);
 
-  // Never print email / sensitive IDs on the letter page
+  // Never print partner phone / email / sensitive IDs on the letter page
+  out = out.replace(PHONE_LINE_RE, '');
   out = out.replace(EMAIL_LINE_RE, '');
   out = out.replace(/^\s*Email Address:\s*.*$/gim, '');
   out = out.replace(FINELY_EMAIL_RE, '');
@@ -334,6 +341,7 @@ export function scrubLetterBodyForMail(text: string): string {
   out = out.replace(DL_RE, '[REDACTED]');
   out = out.replace(BANK_ACCT_RE, '[REDACTED]');
   out = out.replace(PASSWORD_RE, '[REDACTED]');
+  out = stripContactLinesFromLetterBody(out);
 
   // Collapse excess blank lines from removals
   out = out.replace(/\n{3,}/g, '\n\n').trim();
@@ -353,6 +361,9 @@ export function scrubLetterHtmlForMail(html: string): string {
   out = out.replace(ANY_EMAIL_RE, '');
   out = out.replace(DISCLAIMER_PHRASE_RE, '');
   out = out.replace(FINELY_BRAND_INLINE_RE, '');
+  out = out.replace(/Phone:\s*[^<\n]+/gi, '');
+  out = out.replace(/Tel(?:ephone)?:\s*[^<\n]+/gi, '');
+  out = out.replace(/Mobile:\s*[^<\n]+/gi, '');
   out = out.replace(/Email:\s*[^<\n]+/gi, '');
   out = out.replace(/Email Address:\s*[^<\n]+/gi, '');
   void plainish;

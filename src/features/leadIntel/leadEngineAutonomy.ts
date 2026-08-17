@@ -321,7 +321,7 @@ export function buildLeadAutonomySnapshot(): LeadAutonomySnapshot {
     lastRun,
     recentActivity: loadLeadActivity().slice(0, 8),
     deepSwarmNote:
-      'SIMULATION ONLY: Deep Swarm / Overnight50 counters are ops cadence — NOT live Serper imports. Live path = Run lead hunt / Daily pack.',
+      'SIMULATION ONLY: Practice mode / Overnight50 counters are ops cadence — NOT live Serper imports. Live path = Run lead hunt / Daily pack.',
   };
 }
 

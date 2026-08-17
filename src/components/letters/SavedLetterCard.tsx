@@ -8,12 +8,10 @@ import {
   Download,
   Eye,
   FileText,
-  Gavel,
-  Scale,
   Send,
-  ShieldCheck,
   Trash2,
   Truck,
+  RefreshCw,
   X,
 } from 'lucide-react';
 import type { LetterRecord, LetterStatus, LetterType, DisputeLetterMeta } from '../../domain/letters';
@@ -39,8 +37,11 @@ import {
   debtLetterCardFactsFromLetter,
   formatDebtLetterStatLine,
 } from '../../lib/debtLetterCardFacts';
-import { isLetterDraft, letterDraftBadgeLabel } from '../../lib/letterDraftLifecycle';
+import { isLetterDraft } from '../../lib/letterDraftLifecycle';
 import { isLetterPhysicallyMailed } from '../../lib/letterMailState';
+import { letterVaultPrimaryStatus } from '../../lib/letterVaultStatus';
+import { canRefreshLetterFromCatalog, refreshLabelForLetter } from '../../lib/rehydrateSavedLetterFromCatalog';
+import '../debt/validationDebtLayout.css';
 
 function fmtWhen(iso: string) {
   try {
@@ -65,22 +66,27 @@ function fmtDate(iso?: string) {
   }
 }
 
-function statusTone(status: LetterStatus | string | undefined): 'ok' | 'warn' | 'blocked' {
-  const s = String(status || 'generated').toLowerCase();
-  if (s === 'mailed' || s === 'completed') return 'ok';
-  if (s === 'mail_failed') return 'blocked';
-  return 'warn';
+function vaultCardAccentClass(accent: FinelyOsDeckAccent): string {
+  const map: Record<FinelyOsDeckAccent, string> = {
+    emerald: 'fc-letter-vault-card--emerald',
+    sky: 'fc-letter-vault-card--sky',
+    violet: 'fc-letter-vault-card--violet',
+    amber: 'fc-letter-vault-card--amber',
+    fuchsia: 'fc-letter-vault-card--fuchsia',
+    rose: 'fc-letter-vault-card--rose',
+  };
+  return map[accent] ?? 'fc-letter-vault-card--violet';
 }
 
-function statusLabel(status: LetterStatus | string | undefined) {
-  const s = String(status || 'generated').toLowerCase();
-  if (s === 'draft') return 'Draft';
-  return s.replaceAll('_', ' ');
+function statusToneChip(tone: ReturnType<typeof letterVaultPrimaryStatus>['tone']) {
+  if (tone === 'mailed') return finelyOsStatusChip('ok');
+  if (tone === 'blocked') return finelyOsStatusChip('blocked');
+  if (tone === 'draft') return finelyOsStatusChip('warn');
+  return finelyOsStatusChip('ok');
 }
 
 function typeMeta(type: LetterType): {
   label: string;
-  icon: typeof Gavel;
   accent: FinelyOsDeckAccent;
   chip: string;
   seal: string;
@@ -88,7 +94,6 @@ function typeMeta(type: LetterType): {
   if (type === 'dispute') {
     return {
       label: 'Dispute',
-      icon: Gavel,
       accent: 'fuchsia',
       chip: 'border-fuchsia-400/30 bg-fuchsia-500/15 text-fuchsia-100',
       seal: 'bg-fuchsia-500/20 text-fuchsia-200 border-fuchsia-400/35',
@@ -97,7 +102,6 @@ function typeMeta(type: LetterType): {
   if (type === 'validation') {
     return {
       label: 'Validation',
-      icon: ShieldCheck,
       accent: 'amber',
       chip: 'border-amber-400/30 bg-amber-500/15 text-amber-100',
       seal: 'bg-amber-500/20 text-amber-200 border-amber-400/35',
@@ -105,7 +109,6 @@ function typeMeta(type: LetterType): {
   }
   return {
     label: 'Affidavit',
-    icon: Scale,
     accent: 'rose',
     chip: 'border-rose-400/30 bg-rose-500/15 text-rose-100',
     seal: 'bg-rose-500/20 text-rose-200 border-rose-400/35',
@@ -133,91 +136,6 @@ function workflowSteps(status: LetterStatus | string | undefined, hasPdf: boolea
 
 export const SAVED_LETTER_DECK_ACCENTS: FinelyOsDeckAccent[] = ['emerald', 'sky', 'violet', 'amber', 'fuchsia', 'rose'];
 
-function deckAccentFace(accent: FinelyOsDeckAccent) {
-  const map: Record<
-    FinelyOsDeckAccent,
-    {
-      hover: string;
-      highlight: string;
-      bar: string;
-      orb: string;
-      paper: string;
-      paperBar: string;
-      openText: string;
-      roundChip: string;
-      iconShadow: string;
-    }
-  > = {
-    emerald: {
-      hover: 'hover:border-emerald-400/50',
-      highlight: 'ring-2 ring-emerald-400/60 scale-[1.02] border-emerald-300/65',
-      bar: 'bg-gradient-to-b from-emerald-300 via-emerald-500 to-teal-500',
-      orb: 'bg-emerald-500/14',
-      paper: 'border-emerald-400/50 shadow-[0_0_14px_-2px_rgba(16,185,129,0.55)]',
-      paperBar: 'from-emerald-500/50 via-teal-400/40 to-emerald-500/30',
-      openText: 'text-emerald-200',
-      roundChip: 'border-emerald-400/35 bg-emerald-500/18 text-emerald-100',
-      iconShadow: 'shadow-[0_0_14px_-4px_rgba(16,185,129,0.55)]',
-    },
-    sky: {
-      hover: 'hover:border-sky-400/50',
-      highlight: 'ring-2 ring-sky-400/60 scale-[1.02] border-sky-300/65',
-      bar: 'bg-gradient-to-b from-sky-300 via-sky-500 to-cyan-500',
-      orb: 'bg-sky-500/14',
-      paper: 'border-sky-400/50 shadow-[0_0_14px_-2px_rgba(14,165,233,0.55)]',
-      paperBar: 'from-sky-500/50 via-cyan-400/40 to-sky-500/30',
-      openText: 'text-sky-200',
-      roundChip: 'border-sky-400/35 bg-sky-500/18 text-sky-100',
-      iconShadow: 'shadow-[0_0_14px_-4px_rgba(14,165,233,0.55)]',
-    },
-    violet: {
-      hover: 'hover:border-violet-400/50',
-      highlight: 'ring-2 ring-violet-400/60 scale-[1.02] border-violet-300/65',
-      bar: 'bg-gradient-to-b from-violet-300 via-violet-500 to-purple-500',
-      orb: 'bg-violet-500/14',
-      paper: 'border-violet-400/50 shadow-[0_0_14px_-2px_rgba(139,92,246,0.55)]',
-      paperBar: 'from-violet-500/50 via-purple-400/40 to-violet-500/30',
-      openText: 'text-violet-200',
-      roundChip: 'border-violet-400/35 bg-violet-500/18 text-violet-100',
-      iconShadow: 'shadow-[0_0_14px_-4px_rgba(139,92,246,0.55)]',
-    },
-    amber: {
-      hover: 'hover:border-amber-400/50',
-      highlight: 'ring-2 ring-amber-400/60 scale-[1.02] border-amber-300/65',
-      bar: 'bg-gradient-to-b from-amber-300 via-amber-500 to-orange-500',
-      orb: 'bg-amber-500/14',
-      paper: 'border-amber-400/50 shadow-[0_0_14px_-2px_rgba(245,158,11,0.55)]',
-      paperBar: 'from-amber-500/50 via-orange-400/40 to-amber-500/30',
-      openText: 'text-amber-200',
-      roundChip: 'border-amber-400/35 bg-amber-500/18 text-amber-100',
-      iconShadow: 'shadow-[0_0_14px_-4px_rgba(245,158,11,0.55)]',
-    },
-    fuchsia: {
-      hover: 'hover:border-fuchsia-400/50',
-      highlight: 'ring-2 ring-fuchsia-400/60 scale-[1.02] border-fuchsia-300/65',
-      bar: 'bg-gradient-to-b from-fuchsia-300 via-fuchsia-500 to-violet-500',
-      orb: 'bg-fuchsia-500/14',
-      paper: 'border-fuchsia-400/50 shadow-[0_0_14px_-2px_rgba(217,70,239,0.55)]',
-      paperBar: 'from-fuchsia-500/50 via-violet-400/40 to-fuchsia-500/30',
-      openText: 'text-fuchsia-200',
-      roundChip: 'border-fuchsia-400/35 bg-fuchsia-500/18 text-fuchsia-100',
-      iconShadow: 'shadow-[0_0_14px_-4px_rgba(217,70,239,0.55)]',
-    },
-    rose: {
-      hover: 'hover:border-rose-400/50',
-      highlight: 'ring-2 ring-rose-400/60 scale-[1.02] border-rose-300/65',
-      bar: 'bg-gradient-to-b from-rose-300 via-rose-500 to-pink-500',
-      orb: 'bg-rose-500/14',
-      paper: 'border-rose-400/50 shadow-[0_0_14px_-2px_rgba(244,63,94,0.55)]',
-      paperBar: 'from-rose-500/50 via-pink-400/40 to-rose-500/30',
-      openText: 'text-rose-200',
-      roundChip: 'border-rose-400/35 bg-rose-500/18 text-rose-100',
-      iconShadow: 'shadow-[0_0_14px_-4px_rgba(244,63,94,0.55)]',
-    },
-  };
-  return map[accent];
-}
-
 export type SavedLetterCardProps = {
   letter: LetterRecord;
   id?: string;
@@ -237,6 +155,7 @@ export type SavedLetterCardProps = {
   onEdit?: () => void;
   onSaved?: () => void;
   onMarkFinal?: () => void;
+  onRefreshTemplate?: () => void;
   canMail?: boolean;
   mailDisabled?: boolean;
   pdfDisabled?: boolean;
@@ -260,6 +179,7 @@ export function SavedLetterCard({
   onEdit,
   onSaved,
   onMarkFinal,
+  onRefreshTemplate,
   canMail = false,
   mailDisabled = false,
   pdfDisabled = false,
@@ -271,9 +191,7 @@ export function SavedLetterCard({
   const [downloadBusy, setDownloadBusy] = useState(false);
   const [downloadErr, setDownloadErr] = useState<string | null>(null);
   const meta = typeMeta(letter.type);
-  const face = deckAccentFace(deckAccent);
   const hasPdf = Boolean(letter.pdfBlobRef);
-  const draftBadge = letterDraftBadgeLabel(letter);
   const isDraft = isLetterDraft(letter);
   const canOpenContent = hasPdf || Boolean(letter.body);
   const bureau =
@@ -292,7 +210,7 @@ export function SavedLetterCard({
   const debtFacts = debtLetterCardFactsFromLetter(letter);
   const steps = workflowSteps(letter.status, hasPdf);
   const delivery = fmtDate(letter.mailing?.expectedDeliveryDate);
-  const toneChip = statusTone(letter.status);
+  const vaultStatus = letterVaultPrimaryStatus(letter);
   const alreadyMailed = isLetterPhysicallyMailed(letter);
   const mailRef = (letter.mailing?.providerId || '').trim();
 
@@ -364,7 +282,7 @@ export function SavedLetterCard({
 
   return (
     <>
-      <div className="group relative">
+      <div className={`group relative fc-letter-vault-card ${vaultCardAccentClass(deckAccent)} ${highlighted ? 'ring-2 ring-white/40 scale-[1.01]' : ''}`}>
         {onDelete ? (
           <button
             type="button"
@@ -372,80 +290,69 @@ export function SavedLetterCard({
               e.stopPropagation();
               setDeleteOpen(true);
             }}
-            className="absolute top-2 right-2 z-10 inline-flex h-7 w-7 items-center justify-center rounded-lg border border-red-500/25 bg-black/70 text-red-200/90 opacity-0 transition-all hover:bg-red-500/15 group-hover:opacity-100 focus:opacity-100"
+            className="absolute top-2 right-2 z-20 inline-flex h-7 w-7 items-center justify-center rounded-lg border border-red-500/35 bg-black/60 text-red-100 opacity-0 transition-all hover:bg-red-500/20 group-hover:opacity-100 focus:opacity-100"
             aria-label="Delete letter"
             title="Delete letter"
           >
             <Trash2 size={13} />
           </button>
         ) : null}
-        <button
-          id={id}
-          type="button"
-          onClick={() => setDetailOpen(true)}
-          className={`group relative min-h-[88px] w-full overflow-hidden rounded-2xl border border-white/22 bg-[#121820] text-left shadow-[0_8px_28px_-10px_rgba(0,0,0,0.7),inset_0_1px_0_rgba(255,255,255,0.06)] transition-all hover:scale-[1.01] ${face.hover} ${
-            highlighted ? face.highlight : ''
-          }`}
-        >
-        <div className={`absolute inset-y-0 left-0 w-1 ${face.bar}`} />
-        <div className="relative flex h-full items-stretch gap-2.5 p-3 pl-4">
-          <div className="min-w-0 flex-1 flex flex-col justify-between gap-1.5">
-            <div className="min-w-0">
-              <div className={`truncate text-[10px] font-black uppercase tracking-[0.14em] ${FINELY_OS_ENTITY_SUBLABEL}`}>
-                {meta.label}
-                {bureau ? ` · ${bureauFullName(bureau as Bureau)}` : ''}
-                {round ? ` · ${round}` : ''}
-              </div>
-              <div className="truncate text-[12px] font-black leading-tight text-white/95">{letter.title}</div>
-              <div className={`truncate text-[9px] normal-case ${FINELY_OS_ENTITY_BODY}`}>{fmtWhen(letter.createdAt)}</div>
+        <div id={id} className="fc-letter-vault-card__inner">
+          <div className="min-w-0">
+            <div className={`truncate text-[10px] font-black uppercase tracking-[0.14em] ${FINELY_OS_ENTITY_SUBLABEL}`}>
+              {meta.label}
+              {bureau ? ` · ${bureauFullName(bureau as Bureau)}` : ''}
+              {round ? ` · ${round}` : ''}
             </div>
+            <div className="truncate text-sm font-black leading-tight text-white/95 mt-0.5">{letter.title}</div>
+            <div className={`truncate text-[9px] normal-case mt-0.5 ${FINELY_OS_ENTITY_BODY}`}>{fmtWhen(letter.createdAt)}</div>
+          </div>
 
-            <div className="flex flex-wrap items-center gap-1">
-              {isDraft ? (
-                <span className="rounded-md border-2 border-amber-400/70 bg-amber-500/25 px-2 py-0.5 text-[10px] font-black uppercase tracking-[0.16em] text-amber-50 shadow-[0_0_12px_-2px_rgba(245,158,11,0.65)]">
-                  {draftBadge}
-                </span>
-              ) : (
-                <span className="rounded-md border border-emerald-400/35 bg-emerald-500/15 px-1.5 py-0.5 text-[9px] font-black uppercase text-emerald-100">
-                  {draftBadge}
-                </span>
-              )}
-              <span className="rounded-md border border-emerald-400/20 bg-emerald-500/10 px-1.5 py-0.5 text-[9px] font-black uppercase text-emerald-100">
-                {hasPdf ? 'PDF ready' : 'Text only'}
-              </span>
-              <span className={finelyOsStatusChip(toneChip)}>{statusLabel(letter.status)}</span>
-              {alreadyMailed ? (
-                <span className="rounded-md border border-sky-400/35 bg-sky-500/15 px-1.5 py-0.5 text-[9px] font-black uppercase text-sky-100">
-                  Mailed{mailRef ? ` · ${mailRef.slice(0, 12)}` : ''}
-                </span>
-              ) : null}
-            </div>
+          <div className="space-y-1">
+            <span className={statusToneChip(vaultStatus.tone)}>{vaultStatus.label}</span>
+            {vaultStatus.detail ? (
+              <p className={`text-[10px] leading-snug ${FINELY_OS_ENTITY_BODY} text-white/75`}>{vaultStatus.detail}</p>
+            ) : null}
+          </div>
 
-              <div className="flex flex-wrap gap-2 pt-1">
-                {hasPdf ? (
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      void runDownload();
-                    }}
-                    disabled={downloadBusy}
-                    className="inline-flex items-center gap-1 rounded-md border border-white/20 bg-white/10 px-2 py-1 text-[9px] font-black uppercase tracking-widest text-white/85 hover:bg-white/15 disabled:opacity-50"
-                  >
-                    <Download size={11} /> {downloadBusy ? '…' : 'Download'}
-                  </button>
-                ) : null}
-              </div>
+          <p className={`text-[10px] leading-snug line-clamp-2 ${FINELY_OS_ENTITY_BODY} text-white/80`}>{statLine}</p>
 
-              <div className="flex items-center justify-between gap-2">
-              <span className={`truncate text-[9px] ${FINELY_OS_ENTITY_BODY}`}>{statLine}</span>
-              <span className={`inline-flex shrink-0 items-center gap-0.5 text-[9px] font-black uppercase tracking-widest ${face.openText}`}>
-                <Eye size={11} /> Open letter
-              </span>
-            </div>
+          <div className="fc-letter-vault-card__actions">
+            <button
+              type="button"
+              onClick={() => setDetailOpen(true)}
+              className="inline-flex items-center gap-1 rounded-md border border-white/25 bg-white/10 px-2 py-1 text-[9px] font-black uppercase tracking-widest text-white/90 hover:bg-white/16"
+            >
+              <Eye size={11} /> Open letter
+            </button>
+            {hasPdf ? (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  void runDownload();
+                }}
+                disabled={downloadBusy}
+                className="inline-flex items-center gap-1 rounded-md border border-white/25 bg-white/10 px-2 py-1 text-[9px] font-black uppercase tracking-widest text-white/90 hover:bg-white/16 disabled:opacity-50"
+              >
+                <Download size={11} /> {downloadBusy ? '…' : 'Download'}
+              </button>
+            ) : null}
+            {canMail && onMail && !alreadyMailed && hasPdf ? (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onMail();
+                }}
+                disabled={mailDisabled}
+                className="inline-flex items-center gap-1 rounded-md border border-amber-400/45 bg-amber-400/90 px-2 py-1 text-[9px] font-black uppercase tracking-widest text-black hover:brightness-110 disabled:opacity-50"
+              >
+                <Send size={11} /> Mail
+              </button>
+            ) : null}
           </div>
         </div>
-        </button>
       </div>
 
       {detailOpen
@@ -471,7 +378,7 @@ export function SavedLetterCard({
                         FINAL
                       </span>
                     )}
-                    <span className={finelyOsStatusChip(toneChip)}>{statusLabel(letter.status)}</span>
+                    <span className={statusToneChip(vaultStatus.tone)}>{vaultStatus.label}</span>
                   </div>
                   <h3 className="mt-2 text-lg sm:text-xl font-black leading-tight text-white/95">{letter.title}</h3>
                   <p className={`mt-1 text-xs ${FINELY_OS_ENTITY_BODY}`}>
@@ -591,6 +498,20 @@ export function SavedLetterCard({
                 {(onEdit || letter.body || !hasPdf) ? (
                   <button type="button" onClick={startEdit} className={`${FINELY_OS_SECONDARY_BTN} !py-2.5 !px-4 !text-sm`}>
                     <FileText size={16} /> Edit
+                  </button>
+                ) : null}
+                {onRefreshTemplate && canRefreshLetterFromCatalog(letter) ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setDetailOpen(false);
+                      setTextOpen(false);
+                      onRefreshTemplate();
+                    }}
+                    className={`${FINELY_OS_PRIMARY_BTN} !py-2.5 !px-4 !text-sm !bg-amber-400 !text-black hover:!brightness-110`}
+                    title="Pull the latest template wording and case fields into this saved letter"
+                  >
+                    <RefreshCw size={16} /> {refreshLabelForLetter(letter)}
                   </button>
                 ) : null}
                 {isDraft && onMarkFinal ? (

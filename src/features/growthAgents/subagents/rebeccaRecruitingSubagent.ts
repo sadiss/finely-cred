@@ -76,6 +76,7 @@ export async function runRebeccaRecruitingReview(): Promise<RebeccaRecruitingRes
             recordId: record.id,
             href: `/admin/crm?record=${record.id}`,
             tags: ['rebecca-recruiting', 'persona:specialist_recruit'],
+            growthAgentId: 'specialist-recruit',
             priority: daysOld >= 3 ? 'high' : 'normal',
             dueAt: new Date(Date.now() + 24 * 3600 * 1000).toISOString(),
             meta: { recordId: record.id, daysOld, stage: record.stage },

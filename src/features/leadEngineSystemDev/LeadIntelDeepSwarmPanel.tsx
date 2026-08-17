@@ -18,9 +18,12 @@ export function LeadIntelDeepSwarmPanel() {
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <div className="inline-flex items-center gap-2 text-amber-300 text-[10px] uppercase tracking-widest font-black">
-            <Activity size={16} /> Continuous Lead Intel Swarm
+            <Activity size={16} /> Lead Intel practice mode
           </div>
-          <h2 className="mt-2 text-2xl font-black text-white">Start the real background search engine</h2>
+          <span className="ml-2 rounded-full border border-amber-400/30 bg-amber-500/15 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest text-amber-200">
+            Simulation
+          </span>
+          <h2 className="mt-2 text-2xl font-black text-white">Start the background discovery queue</h2>
           <p className="mt-2 max-w-3xl text-sm text-white/60">
             This is the dev-side replacement for the quick one-shot search. It creates a rotating job queue across cities, sources, funnels, and query variants, then feeds the Action Center.
           </p>
@@ -30,12 +33,12 @@ export function LeadIntelDeepSwarmPanel() {
             type="button"
             onClick={() => {
               const jobs = startContinuousSwarm({ maxPerCity: 80 });
-              setNotice(`Queued ${jobs.length} continuous swarm jobs. Run ticks locally or deploy Supabase worker tick.`);
+              setNotice(`Queued ${jobs.length} continuous discovery jobs. Run ticks locally or deploy Supabase worker tick.`);
               refresh();
             }}
             className="inline-flex items-center gap-2 rounded-xl bg-amber-500 px-4 py-3 text-[10px] font-black uppercase tracking-widest text-black hover:brightness-110"
           >
-            <Play size={14} /> Start Swarm
+            <Play size={14} /> Start practice queue
           </button>
           <button
             type="button"

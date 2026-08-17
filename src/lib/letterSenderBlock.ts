@@ -10,6 +10,60 @@ export type LetterSenderFields = {
   cityStateZip?: string;
 };
 
+function cleanLine(v?: string | null): string {
+  return String(v ?? '').trim();
+}
+
+/**
+ * Letter paper sender block — name + mailing address only.
+ * Finely Cred policy: never print partner phone or email on mailed/generated letters.
+ */
+export function formatLetterSenderBlock(args: {
+  name?: string;
+  address1?: string;
+  address2?: string;
+  city?: string;
+  state?: string;
+  postalCode?: string;
+  /** @deprecated Ignored — phone must not appear on letters */
+  phone?: string;
+  /** @deprecated Ignored — email must not appear on letters */
+  email?: string;
+}): string {
+  const lines: string[] = [];
+  const name = cleanLine(args.name);
+  if (name) lines.push(name);
+  const a1 = cleanLine(args.address1);
+  const a2 = cleanLine(args.address2);
+  if (a1) lines.push(a1);
+  if (a2) lines.push(a2);
+  const city = cleanLine(args.city);
+  const state = cleanLine(args.state);
+  const zip = cleanLine(args.postalCode);
+  const cityStateZip = [city, state].filter(Boolean).join(', ') + (zip ? ` ${zip}` : '');
+  if (cityStateZip.trim()) lines.push(cityStateZip.trim());
+  if (lines.length <= 1 && !lines[0]) return '[Your Name and Mailing Address]';
+  if (lines.length <= 1) return '[Your Name and Mailing Address]';
+  return lines.join('\n');
+}
+
+/** Strip phone/email lines if they were pasted into legacy letter drafts. */
+export function stripContactLinesFromLetterBody(body: string): string {
+  if (!body?.trim()) return body;
+  return body
+    .split('\n')
+    .filter((line) => {
+      const t = line.trim();
+      if (!t) return true;
+      if (/^phone\s*:/i.test(t)) return false;
+      if (/^email\s*:/i.test(t)) return false;
+      if (/^tel\s*:/i.test(t)) return false;
+      if (/^telephone\s*:/i.test(t)) return false;
+      return true;
+    })
+    .join('\n');
+}
+
 export function resolveCityStateZip(fields: LetterSenderFields): string {
   const fromCombined = String(fields.cityStateZip || '').trim();
   if (fromCombined) return fromCombined;

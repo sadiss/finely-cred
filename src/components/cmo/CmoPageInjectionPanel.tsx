@@ -5,7 +5,7 @@ import { auditCurrentPageForCmo, type CmoPageAudit } from '../../lib/cmoPhase2/c
 export function CmoPageInjectionPanel({ label = 'Current page' }: { label?: string }) {
   const [audit, setAudit] = useState<CmoPageAudit | null>(null);
   const summary = useMemo(() => {
-    if (!audit) return 'Run a scan to let CMO Prime judge this page with love, math, and mild disrespect for weak CTAs.';
+    if (!audit) return 'Run a scan to let marketing review this page with love, math, and mild disrespect for weak CTAs.';
     if (audit.problems.length) return `${audit.problems.length} issue${audit.problems.length === 1 ? '' : 's'} found. Score ${audit.score}/150.`;
     return `Clean scan. Score ${audit.score}/150.`;
   }, [audit]);

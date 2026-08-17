@@ -9,7 +9,7 @@ export function CmoForecastPanel() {
       <div>
         <p className="text-xs uppercase tracking-[0.28em] text-amber-200/70">Lead math</p>
         <h2 className="text-2xl font-semibold text-white">Forecast History</h2>
-        <p className="mt-1 text-sm text-slate-300">CMO Prime should not guess. It should show the math and tell you where the bottleneck lives.</p>
+        <p className="mt-1 text-sm text-slate-300">Marketing should not guess. It should show the math and tell you where the bottleneck lives.</p>
       </div>
       <div className="grid gap-3">
         {forecasts.map((forecast) => (

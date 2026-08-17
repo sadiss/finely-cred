@@ -1520,7 +1520,7 @@ function PartnerDetailPageInner() {
             setDeletePhrase={setDeletePhrase}
             onSaveProfile={async () => {
               const name = profileDraft.fullName.trim();
-              if (!name) return;
+              if (!name) throw new Error('Full name is required before saving contact details.');
               const email = profileDraft.email.trim().toLowerCase();
               const phone = profileDraft.phone.trim();
               const next = await adminUpsertPartner({
@@ -1541,6 +1541,7 @@ function PartnerDetailPageInner() {
                   },
                 } as any,
               });
+              setPartner(next);
               addAuditEvent({
                 partnerId: partner.id,
                 actorType: 'admin',
@@ -1552,6 +1553,7 @@ function PartnerDetailPageInner() {
               });
               setPartnerVersion((v) => v + 1);
               setNotesVersion((v) => v + 1);
+              return true;
             }}
             onResetProfileDraft={() => {
               setProfileDraft({

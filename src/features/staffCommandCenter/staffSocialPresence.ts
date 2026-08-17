@@ -31,7 +31,7 @@ export type StaffSocialPresence = {
 export const STAFF_SOCIAL_PRESENCE: StaffSocialPresence[] = [
   {
     staffId: 'scout_supreme',
-    displayName: 'Scout Supreme',
+    displayName: 'Sienna Roy',
     title: 'Lead Discovery Director',
     mission: 'nurture',
     platforms: {

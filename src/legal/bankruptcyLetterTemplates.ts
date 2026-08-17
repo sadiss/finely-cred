@@ -1,4 +1,5 @@
 import type { BankruptcyLetterType, BankruptcyLetterSpec } from '../domain/bankruptcyLegal';
+import { formatLetterSenderBlock } from '../lib/letterSenderBlock';
 
 export type BankruptcyLetterArgs = {
   debtorName: string;
@@ -29,10 +30,14 @@ export type BankruptcyLetterArgs = {
 };
 
 function addr(a: BankruptcyLetterArgs) {
-  // Name + mailing address (+ optional phone). Never auto-print email on letter paper.
-  return [a.debtorName, a.address1, a.address2, [a.city, a.state, a.postalCode].filter(Boolean).join(', '), a.phone]
-    .filter(Boolean)
-    .join('\n');
+  return formatLetterSenderBlock({
+    name: a.debtorName,
+    address1: a.address1,
+    address2: a.address2,
+    city: a.city,
+    state: a.state,
+    postalCode: a.postalCode,
+  });
 }
 
 export const BANKRUPTCY_LETTER_SPECS: BankruptcyLetterSpec[] = [
@@ -201,7 +206,6 @@ Enclosed please find business debt schedules, creditor matrix, and supporting do
 
 Business entity: ${a.businessName || '[BUSINESS NAME]'}
 Contact: ${a.debtorName}
-Phone: ${a.phone || '[PHONE]'}
 
 Request: review liabilities, secured vs unsecured classification, and recommend filing strategy for business and personal guaranties.
 

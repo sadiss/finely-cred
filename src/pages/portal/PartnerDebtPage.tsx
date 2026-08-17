@@ -424,6 +424,12 @@ export default function PartnerDebtPage() {
         : tab
       : null;
 
+  const [letterStudioTab, setLetterStudioTab] = useState<LettersStudioTab>('validation');
+
+  useEffect(() => {
+    if (workstationTab) setLetterStudioTab(workstationTab);
+  }, [workstationTab]);
+
   const coachLaneForTab = (t: DebtTab): string => {
     if (t === 'validation') return 'validation';
     if (t === 'court' || t === 'litigation') return 'court';
@@ -726,9 +732,11 @@ export default function PartnerDebtPage() {
                   partner={partner}
                   layout="embedded"
                   unifiedShell
-                  activeTab={workstationTab as LettersStudioTab}
+                  activeTab={letterStudioTab}
                   debtCenterMode
                   onTabChange={(next) => {
+                    setLetterStudioTab(next);
+                    if (next === 'overview') return;
                     if (
                       next === 'validation' ||
                       next === 'court' ||

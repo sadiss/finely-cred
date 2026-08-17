@@ -35,6 +35,12 @@ import { stripLetterVendorBranding } from '../../lib/letterBodySafety';
 import { getCanonicalPartnerIdentity } from '../../utils/canonicalPartnerIdentity';
 import { getCustomFieldValues } from '../../data/customFieldValuesRepo';
 import { FINELY_TENANT_ID } from '../../domain/tenants';
+import { resolveDebtLetterCardFacts, debtLetterWhenToUseSnippet } from '../../lib/debtLetterCardFacts';
+import {
+  LETTER_TEMPLATE_CATALOG_GRID,
+  LETTER_TEMPLATE_CATALOG_SHELL,
+  LetterTemplateCatalogCard,
+} from '../../components/debt/LetterTemplateCatalogCard';
 import { FinelyOsPageFooter } from '../../features/os/FinelyOsPageFooter';
 import { FinelyUnifiedHubLayout } from '../../features/unified/FinelyUnifiedHubLayout';
 import { ValidationAdvisorChat } from '../../components/debt/ValidationAdvisorChat';
@@ -91,7 +97,6 @@ export default function PartnerDebtDetailPage() {
   const [courtOutcome, setCourtOutcome] = useState(() => (id ? getCourtOutcomeByDebtCase(id) : null));
 
   const [scenarioOverride, setScenarioOverride] = useState<DebtScenario | null>(null);
-  const [expandedLetter, setExpandedLetter] = useState<string | null>(null);
   const [expandedLegal, setExpandedLegal] = useState<string | null>(null);
   const [draft, setDraft] = useState<null | { specId: DebtLetterType; type: 'validation' | 'court'; text: string; evidenceId?: string }>(null);
   const [draftBusy, setDraftBusy] = useState(false);
@@ -162,8 +167,8 @@ export default function PartnerDebtDetailPage() {
       debtorCity: canonicalIdentity?.city,
       debtorState: canonicalIdentity?.state,
       debtorPostalCode: canonicalIdentity?.postalCode,
-      debtorPhone: canonicalIdentity?.phone,
-      debtorEmail: partner!.profile.email,
+      debtorPhone: undefined,
+      debtorEmail: undefined,
       recipientName,
       recipientAddress: d.recipientAddress || debtPartyInfo?.recipientAddress,
       caseNumber: d.courtCaseNumber,
@@ -269,14 +274,7 @@ export default function PartnerDebtDetailPage() {
   const isSummons = isSummonsCase;
 
   const caseAccent = isSummons ? 'fuchsia' : 'emerald';
-  const accentIconClass = isSummons ? 'text-fuchsia-300' : 'text-emerald-300';
-  const recCardClass = isSummons
-    ? 'border-fuchsia-500/35 bg-[radial-gradient(900px_320px_at_15%_0%,rgba(217,70,239,0.14)_0%,transparent_60%)] ring-1 ring-fuchsia-400/20'
-    : 'border-emerald-500/35 bg-[radial-gradient(900px_320px_at_15%_0%,rgba(16,185,129,0.14)_0%,transparent_60%)] ring-1 ring-emerald-400/20';
   const citeClass = isSummons ? 'text-fuchsia-300' : 'text-emerald-300';
-  const buildBtnClass = isSummons
-    ? 'inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-fuchsia-500 text-white font-black uppercase tracking-widest text-[10px] hover:brightness-110'
-    : 'inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500 text-black font-black uppercase tracking-widest text-[10px] hover:brightness-110';
 
   return (
     <PageShell
@@ -751,113 +749,47 @@ export default function PartnerDebtDetailPage() {
 
           <FdcpaPowerChips debt={debt} />
 
-          <div className="space-y-3">
-            {letterIdsForCase.map((letterId) => {
-              const spec = letterSpecsByType.get(letterId);
-              if (!spec) return null;
-              const isRec = scenarioRec?.recommendedLetterTypes?.includes(letterId);
-              const isExpanded = expandedLetter === spec.id;
-              return (
-                <div
-                  key={spec.id}
-                  className={`rounded-2xl border overflow-hidden border-l-4 ${
-                    isSummons ? 'border-l-fuchsia-400' : 'border-l-emerald-400'
-                  } ${isRec ? recCardClass : `${finelyOsInlineListItem()} !p-0`}`}
-                >
-                  <button
-                    type="button"
-                    onClick={() => setExpandedLetter(isExpanded ? null : spec.id)}
-                    className="w-full text-left p-5 flex items-center justify-between gap-4"
-                  >
-                    <div className="flex items-center gap-3 min-w-0">
-                      <span className={accentIconClass}>{isExpanded ? <ChevronDown size={18} /> : <ChevronRight size={18} />}</span>
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className={FINELY_OS_ENTITY_VALUE}>{spec.title}</span>
-                          {isRec ? <span className={finelyOsStatusChip(isSummons ? 'warn' : 'ok')}>Recommended</span> : null}
+          <div className={LETTER_TEMPLATE_CATALOG_SHELL}>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <span className="text-[10px] font-black uppercase tracking-widest text-amber-200">Letter library</span>
+              <span className="text-[10px] text-white/50">
+                {letterIdsForCase.length} letter pick{letterIdsForCase.length === 1 ? '' : 's'}
+              </span>
+            </div>
+            <div className={LETTER_TEMPLATE_CATALOG_GRID}>
+              {letterIdsForCase.map((letterId) => {
+                const spec = letterSpecsByType.get(letterId);
+                if (!spec) return null;
+                const isRec = scenarioRec?.recommendedLetterTypes?.includes(letterId);
+                const facts = resolveDebtLetterCardFacts({ letterSpecId: spec.id });
+                const whenSnippet = facts ? debtLetterWhenToUseSnippet(facts) : null;
+                const isCourt = isCourtLetterId(spec.id);
+                return (
+                  <LetterTemplateCatalogCard
+                    key={spec.id}
+                    title={spec.title}
+                    keyPrinciple={facts?.keyPrinciple || spec.keyPrinciple}
+                    whenSnippet={whenSnippet}
+                    description={spec.shortDescription}
+                    lawsLine={(facts?.laws ?? spec.legalBasis.map((b) => b.shortName || b.cite)).slice(0, 2).join(' · ')}
+                    metaRow={
+                      isRec ? (
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          <span className={finelyOsStatusChip(isSummons ? 'warn' : 'ok')}>Recommended</span>
                         </div>
-                        <p className={`${FINELY_OS_ENTITY_BODY} mt-0.5`}>{spec.shortDescription}</p>
-                      </div>
-                    </div>
-                  </button>
-                  {isExpanded && (
-                    <div className="px-5 pb-5 pt-5 space-y-4 border-t border-white/[0.08]">
-                      <div>
-                        <div className={`${FINELY_OS_ENTITY_SUBLABEL} mb-2`}>When to use</div>
-                        <ul className={`list-disc list-inside ${FINELY_OS_ENTITY_BODY} space-y-1`}>
-                          {spec.whenToUse.map((w, i) => (
-                            <li key={i}>{w}</li>
-                          ))}
-                        </ul>
-                      </div>
-                      <div>
-                        <div className={`${FINELY_OS_ENTITY_SUBLABEL} mb-2`}>Legal basis</div>
-                        <div className="space-y-2">
-                          {spec.legalBasis.map((b) => (
-                            <div key={b.cite} className={`${finelyOsCatalogCard(isSummons ? 'violet' : 'emerald')} !p-4 fc-surface-harmony`}>
-                              <div className={`font-mono text-xs ${citeClass}`}>{b.shortName}</div>
-                              <div className={`${FINELY_OS_ENTITY_BODY} mt-1`}>{b.description}</div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                      {spec.contractLawAngle && (
-                        <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony`}>
-                          <div className={FINELY_OS_ENTITY_SUBLABEL}>Contract law</div>
-                          <p className={`${FINELY_OS_ENTITY_BODY} mt-1`}>{spec.contractLawAngle}</p>
-                        </div>
-                      )}
-                      {spec.bankingLawAngle && (
-                        <div className={`${finelyOsCatalogCard('sky')} !p-4 fc-surface-harmony`}>
-                          <div className={FINELY_OS_ENTITY_SUBLABEL}>Banking / UCC</div>
-                          <p className={`${FINELY_OS_ENTITY_BODY} mt-1`}>{spec.bankingLawAngle}</p>
-                        </div>
-                      )}
-                      <div className={`${FINELY_OS_NOTICE_WARN} p-3`}>
-                        <div className={FINELY_OS_ENTITY_SUBLABEL}>Key principle</div>
-                        <p className={`${FINELY_OS_ENTITY_BODY} mt-1`}>{spec.keyPrinciple}</p>
-                      </div>
-                      <div className={`${finelyOsCatalogCard(isSummons ? 'fuchsia' : 'sky')} !p-4 fc-surface-harmony space-y-3`}>
-                        <div className="flex flex-wrap items-center justify-between gap-3">
-                          <div className={FINELY_OS_ENTITY_SUBLABEL}>Draft (personalize and send)</div>
-                          <div className="flex flex-wrap items-center gap-2">
-                            <button
-                              type="button"
-                              className={buildBtnClass}
-                              onClick={() => {
-                                // Tag by what the letter IS, not by the case type.
-                                const isCourt = isCourtLetterId(spec.id);
-                                const baseText = hasTemplateAccess
-                                  ? getLetterBody(spec.id, buildDebtLetterArgs(isCourt || isSummons))
-                                  : `DATE: ${today}\n\nTO WHOM IT MAY CONCERN,\n\nI am writing regarding ${debt.name}.\n\n[Write your request here.]\n\nSincerely,\n${debtorName}\n`;
-                                setDraft({ specId: spec.id, type: isCourt ? 'court' : 'validation', text: baseText });
-                              }}
-                              title="Build an editable draft and save it to your Letters Vault"
-                            >
-                              {isCourtLetterId(spec.id) ? 'Build court draft' : 'Build validation draft'}
-                            </button>
-                            <button
-                              type="button"
-                              className={FINELY_OS_SECONDARY_BTN}
-                              onClick={() => navigate('/portal/letters/vault')}
-                              title="Open your Letters Vault"
-                            >
-                              Letters Vault
-                            </button>
-                          </div>
-                        </div>
-
-                        <EntitlementGate partnerId={partner.id} requiredKeys={[ENTITLEMENT_KEYS.templates]}>
-                          <pre className={`${FINELY_OS_ENTITY_BODY} text-xs whitespace-pre-wrap font-sans overflow-x-auto`}>
-                            {getLetterBody(spec.id, buildDebtLetterArgs(isCourtLetterId(spec.id) || isSummons))}
-                          </pre>
-                        </EntitlementGate>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
+                      ) : undefined
+                    }
+                    ctaLabel={isCourt ? 'Generate court letter' : 'Generate letter'}
+                    onGenerate={() => {
+                      const baseText = hasTemplateAccess
+                        ? getLetterBody(spec.id, buildDebtLetterArgs(isCourt || isSummons))
+                        : `DATE: ${today}\n\nTO WHOM IT MAY CONCERN,\n\nI am writing regarding ${debt.name}.\n\n[Write your request here.]\n\nSincerely,\n${debtorName}\n`;
+                      setDraft({ specId: spec.id, type: isCourt ? 'court' : 'validation', text: baseText });
+                    }}
+                  />
+                );
+              })}
+            </div>
           </div>
         </div>
         )}

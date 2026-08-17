@@ -163,8 +163,8 @@ export function TemplateLibraryHub({
       partner: {
         id: partner.id,
         fullName: identity.fullName,
-        email: partner.profile.email,
-        phone: identity.phone,
+        email: undefined,
+        phone: undefined,
         address1: identity.address1 ?? identity.addressLine1,
         address2: identity.address2,
         city: identity.city,

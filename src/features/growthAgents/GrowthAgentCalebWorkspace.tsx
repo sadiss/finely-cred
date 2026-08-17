@@ -45,6 +45,7 @@ import {
   setCalebAutoFindEnabled,
   setColdOutboundAutopilotEnabled,
 } from './calebAutoFind';
+import { buildCalebFindDiagnostics } from './calebFindDiagnostics';
 import { MarketingConsentChip } from '../marketingDesk/MarketingConsentChip';
 import { getDailyQuotaProgress, GROWTH_DAILY_QUOTA_TOTAL } from './growthDailyQuota';
 import { calebTodaysMissionPreview, runCalebTodaysMission } from './calebQuotaMission';
@@ -101,7 +102,7 @@ export function GrowthAgentCalebWorkspace() {
     if (!isCalebAutoFindEnabled()) return;
     let cancelled = false;
     setAutoBusy(true);
-    void runCalebAutoFindIfDue(focus.city)
+    void runCalebAutoFindIfDue(focus.city, { force: false })
       .then((r) => {
         if (cancelled || !r) return;
         if (r.error && r.found === 0) setFindMsg(r.error);
@@ -127,7 +128,7 @@ export function GrowthAgentCalebWorkspace() {
     setCalebAutoFindEnabled(next, focus.city);
     if (next) {
       setAutoBusy(true);
-      void runCalebAutoFindIfDue(focus.city)
+      void runCalebAutoFindIfDue(focus.city, { force: false })
         .then((r) => {
           if (r?.error && r.found === 0) setFindMsg(r.error);
           else if (r)
@@ -160,6 +161,11 @@ export function GrowthAgentCalebWorkspace() {
     return getTodaysContactQueue(10);
   }, [tick]);
 
+  const findDiagnostic = useMemo(() => {
+    void tick;
+    return buildCalebFindDiagnostics();
+  }, [tick]);
+
   const pending = useMemo(() => {
     void tick;
     return countMarketingStagingPending();
@@ -187,7 +193,7 @@ export function GrowthAgentCalebWorkspace() {
     if (!pillarHuntRecord || !pillarHuntPreview) return;
     setMarketingFindGeo(focus.city);
     setMarketingFindSuggestedQuery(pillarHuntPreview);
-    navigate('/admin/marketing-desk?helper=find');
+    navigate('/admin/marketing?tab=desk&helper=find');
   };
 
   const importedIntelCount = useMemo(() => {
@@ -274,7 +280,7 @@ export function GrowthAgentCalebWorkspace() {
         pending > 0
           ? {
               label: `Review ${pending} people`,
-              onClick: () => navigate('/admin/marketing-desk?helper=find'),
+              onClick: () => navigate('/admin/marketing?tab=desk&helper=find'),
             }
           : undefined
       }
@@ -313,6 +319,28 @@ export function GrowthAgentCalebWorkspace() {
         </ul>
       }
     >
+      {findDiagnostic ? (
+        <div
+          className={`rounded-xl border px-4 py-3 text-sm ${
+            findDiagnostic.tone === 'error'
+              ? 'border-rose-500/45 bg-rose-500/15 text-rose-100'
+              : findDiagnostic.tone === 'warning'
+                ? 'border-amber-500/40 bg-amber-500/10 text-amber-100'
+                : 'border-sky-500/35 bg-sky-500/10 text-sky-100'
+          }`}
+        >
+          <p className="font-semibold text-white">{findDiagnostic.headline}</p>
+          <p className="mt-1 text-white/80">{findDiagnostic.detail}</p>
+          {findDiagnostic.fixSteps.length > 0 ? (
+            <ol className="mt-2 list-decimal list-inside text-xs text-white/70 space-y-0.5">
+              {findDiagnostic.fixSteps.map((step) => (
+                <li key={step}>{step}</li>
+              ))}
+            </ol>
+          ) : null}
+        </div>
+      ) : null}
+
       <div className={finelyOsCatalogCardCompact('sky')}>
         <div className={FINELY_OS_ENTITY_SUBLABEL}>Daily mission · {GROWTH_DAILY_QUOTA_TOTAL}/day balanced</div>
         <p className={`mt-1 text-sm font-semibold text-white`}>
@@ -490,7 +518,7 @@ export function GrowthAgentCalebWorkspace() {
         <div className="mt-3 border-t border-white/10 pt-3">
           <div className={FINELY_OS_ENTITY_SUBLABEL}>Lead Intelligence Director</div>
           <p className={`mt-1 text-xs ${FINELY_OS_ENTITY_BODY}`}>
-            Chat only — live imports come from auto-find. Swarm counters are simulation unless the live worker flag is on.
+            Chat only — live imports come from auto-find. Practice mode counters are simulation unless the live worker flag is on.
           </p>
           <div className="mt-3">
             <LeadIntelCopilot
@@ -525,10 +553,10 @@ export function GrowthAgentCalebWorkspace() {
       </details>
 
       <div className="flex flex-wrap gap-2">
-        <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => navigate('/admin/marketing-desk?helper=find')}>
+        <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => navigate('/admin/marketing?tab=desk&helper=find')}>
           Review people
         </button>
-        <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => navigate('/admin/marketing-desk?helper=board')}>
+        <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => navigate('/admin/marketing?tab=desk&helper=board')}>
           Open Board
         </button>
         <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => navigate('/admin/growth-agents/capture-links')}>

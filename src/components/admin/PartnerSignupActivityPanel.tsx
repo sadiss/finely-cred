@@ -54,6 +54,10 @@ export function PartnerSignupActivityPanel({ partner }: Props) {
   const VALUE = fcAdminOnSolidValue(panelTone);
   const INNER = fcAdminOnSolidInnerTile('p-4', panelTone);
   const chipTone = statusChipTone(status.stage, panelTone);
+  const quickTone: FcAdminTone = panelTone === 'emerald' ? 'violet' : panelTone === 'gold' ? 'sky' : 'emerald';
+  const QUICK_SUB = fcAdminOnSolidSublabel(quickTone);
+  const QUICK_BODY = fcAdminOnSolidBody(quickTone);
+  const QUICK_VALUE = fcAdminOnSolidValue(quickTone);
 
   const checkpoints = [
     { label: 'Invite sent', done: Boolean(activity.inviteSentAt), at: activity.inviteSentAt },
@@ -77,34 +81,42 @@ export function PartnerSignupActivityPanel({ partner }: Props) {
             <p className={`text-sm ${BODY}`}>{status.detail}</p>
           </div>
         </div>
-        <div className={`${INNER} w-full min-w-0 sm:min-w-[220px] lg:max-w-xs shrink-0`}>
-          <div className={`flex items-center gap-2 ${SUBLABEL}`}>
+        <div className={fcAdminOnSolidInnerTile('w-full min-w-0 sm:min-w-[220px] lg:max-w-xs shrink-0', quickTone)}>
+          <div className={`flex items-center gap-2 ${QUICK_SUB}`}>
             <ShieldCheck size={14} aria-hidden="true" />
             Quick read
           </div>
-          <p className={`mt-2 text-sm ${BODY}`}>
-            Last sign-in: <span className={VALUE}>{formatAuthWhen(activity.lastLoginAt)}</span>
+          <p className={`mt-2 text-sm ${QUICK_BODY}`}>
+            Last sign-in: <span className={QUICK_VALUE}>{formatAuthWhen(activity.lastLoginAt)}</span>
           </p>
-          <p className={`mt-1 text-sm ${BODY}`}>
-            Password set: <span className={VALUE}>{formatAuthWhen(activity.passwordSetAt)}</span>
+          <p className={`mt-1 text-sm ${QUICK_BODY}`}>
+            Password set: <span className={QUICK_VALUE}>{formatAuthWhen(activity.passwordSetAt)}</span>
           </p>
-          <p className={`mt-1 text-sm ${BODY}`}>
-            Live access: <span className={VALUE}>{access.label}</span>
+          <p className={`mt-1 text-sm ${QUICK_BODY}`}>
+            Live access: <span className={QUICK_VALUE}>{access.label}</span>
           </p>
         </div>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3">
-        {checkpoints.map((step) => (
+        {checkpoints.map((step, index) => {
+          const stepTones: FcAdminTone[] = ['sky', 'violet', 'emerald', 'gold', 'rose', 'navy'];
+          const stepTone = stepTones[index % stepTones.length];
+          const stepInner = fcAdminOnSolidInnerTile('!p-3', stepTone);
+          const stepSublabel = fcAdminOnSolidSublabel(stepTone);
+          const stepValue = fcAdminOnSolidValue(stepTone);
+          const stepBody = fcAdminOnSolidBody(stepTone);
+          return (
           <div
             key={step.label}
-            className={`${INNER} !p-3 ${step.done ? 'opacity-100' : 'opacity-80'}`}
+            className={`${stepInner} ${step.done ? 'opacity-100' : 'opacity-85'}`}
           >
-            <div className={SUBLABEL}>{step.label}</div>
-            <div className={`mt-1 text-sm font-semibold ${VALUE}`}>{step.done ? 'Complete' : 'Pending'}</div>
-            {step.at ? <div className={`mt-1 text-xs ${BODY}`}>{formatAuthWhen(step.at)}</div> : null}
+            <div className={stepSublabel}>{step.label}</div>
+            <div className={`mt-1 text-sm font-semibold ${stepValue}`}>{step.done ? 'Complete' : 'Pending'}</div>
+            {step.at ? <div className={`mt-1 text-xs ${stepBody}`}>{formatAuthWhen(step.at)}</div> : null}
           </div>
-        ))}
+          );
+        })}
       </div>
 
       {timeline.length ? (

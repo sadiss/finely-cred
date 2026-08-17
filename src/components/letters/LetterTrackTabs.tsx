@@ -1,5 +1,5 @@
 import React from 'react';
-import { Gavel, Scale, FileText, Landmark } from 'lucide-react';
+import { Gavel, Scale, FileText, Landmark, LayoutDashboard } from 'lucide-react';
 import type { LettersStudioTab } from './LettersCommandCenter';
 import {
   LETTER_TRACK_TAB,
@@ -27,6 +27,7 @@ export function buildLetterStudioTrackTabs(options: {
 }): LetterTrackTabItem[] {
   if (options.mode === 'debt') {
     return [
+      { id: 'overview', label: 'Overview', icon: <LayoutDashboard size={16} aria-hidden /> },
       { id: 'validation', label: 'Validation', icon: <Scale size={16} aria-hidden /> },
       { id: 'court', label: 'Litigation', icon: <Scale size={16} aria-hidden /> },
       { id: 'foreclosure', label: 'Foreclosure', icon: <Landmark size={16} aria-hidden /> },
@@ -36,6 +37,7 @@ export function buildLetterStudioTrackTabs(options: {
   }
 
   const tabs: LetterTrackTabItem[] = [
+    { id: 'overview', label: 'Overview', icon: <LayoutDashboard size={16} aria-hidden /> },
     { id: 'dispute', label: 'Bureaus', icon: <Gavel size={16} aria-hidden /> },
     { id: 'foreclosure', label: 'Foreclosure', icon: <Landmark size={16} aria-hidden /> },
     { id: 'repossession', label: 'Repossession', icon: <Landmark size={16} aria-hidden /> },

@@ -1,9 +1,9 @@
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { ScrollText } from 'lucide-react';
 import type { LetterRecord, LetterType } from '../../domain/letters';
 import type { EvidenceItem } from '../../domain/evidence';
 import { listLettersByPartner } from '../../data/lettersRepo';
-import { deleteLetter } from '../../data/lettersRepo';
+import { deleteLetter, upsertLetter } from '../../data/lettersRepo';
 import { SavedLetterCard, SAVED_LETTER_DECK_ACCENTS } from './SavedLetterCard';
 import type { Bureau } from '../../domain/creditReports';
 import { bureauFullName } from '../../utils/bureaus';
@@ -15,6 +15,9 @@ import {
   FINELY_OS_SECONDARY_BTN,
   finelyOsCatalogCardCompact,
 } from '../../features/os/finelyOsLightUi';
+import { backfillPartnerLetterMeta } from '../../lib/letterVaultIntel';
+import { rehydrateLetterBodyFromCatalog } from '../../lib/rehydrateSavedLetterFromCatalog';
+import { regenerateSavedLetterPdf } from '../../lib/regenerateSavedLetterPdf';
 
 export function LetterStudioSavedVaultStrip({
   partnerId,
@@ -54,6 +57,34 @@ export function LetterStudioSavedVaultStrip({
   const [refresh, setRefresh] = useState(0);
   const draftPreviewOpeners = useRef(new Map<string, () => void>());
   const canMail = canMailProp ?? isFeatureEnabled('letterMailing');
+
+  useEffect(() => {
+    backfillPartnerLetterMeta(partnerId);
+  }, [partnerId, storeVersion]);
+
+  const refreshFromCatalog = async (letter: LetterRecord) => {
+    setOpenErr(null);
+    const result = rehydrateLetterBodyFromCatalog({ letter, partnerId });
+    if (!result) {
+      setOpenErr('Could not refresh — link this letter to a debt case with a known template, or edit manually.');
+      return;
+    }
+    let updated: LetterRecord = { ...result.hydrated, body: result.body };
+    upsertLetter(updated);
+    if (updated.pdfBlobRef) {
+      try {
+        const regen = await regenerateSavedLetterPdf({ letter: updated, evidence });
+        if (regen?.pdfBlobRef) {
+          updated = { ...updated, pdfBlobRef: regen.pdfBlobRef, pdfFilename: regen.filename };
+          upsertLetter(updated);
+        }
+      } catch {
+        // body updated even if PDF regen fails
+      }
+    }
+    setRefresh((v) => v + 1);
+    onLetterSaved?.();
+  };
 
   const letters = useMemo(() => {
     void storeVersion;
@@ -138,6 +169,7 @@ export function LetterStudioSavedVaultStrip({
         setRefresh((v) => v + 1);
         onLetterSaved?.();
       }}
+      onRefreshTemplate={() => void refreshFromCatalog(l)}
     />
   );
 

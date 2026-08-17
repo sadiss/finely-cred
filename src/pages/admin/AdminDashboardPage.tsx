@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { ArrowLeft, Brain, Gavel, KeyRound, Settings, Users, BarChart3, FileText, Layout, Package, CreditCard, FlaskConical, MessageSquareText, MessageCircle, Bell, Calendar, FolderKanban, BookOpen, Bot, Mail, Library, Crown, UserCog, Globe, BadgeCheck, ListChecks, GraduationCap, Lock, PiggyBank, Trophy, Activity, Target, Sparkles, Film, BriefcaseBusiness, Shield } from 'lucide-react';
+import { ArrowLeft, Brain, Gavel, KeyRound, Settings, Users, BarChart3, FileText, Layout, Package, CreditCard, FlaskConical, MessageSquareText, MessageCircle, Bell, Calendar, FolderKanban, BookOpen, Bot, Mail, Library, Crown, UserCog, Globe, BadgeCheck, ListChecks, GraduationCap, Lock, PiggyBank, Trophy, Activity, Target, Sparkles, Film, BriefcaseBusiness, Shield, TrendingUp } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { PageShell } from '../../components/layout/PageShell';
 import { fetchAllPartnersAsAdmin } from '../../data/partnersRepo';
@@ -150,6 +150,13 @@ export default function AdminDashboardPage() {
   }, [auth.user]);
 
   const cards = [
+    {
+      title: 'Marketing Department',
+      description: 'Get leads, create content, follow up — one hub with Copilot, daily desk, and marketing team.',
+      path: '/admin/marketing',
+      icon: TrendingUp,
+      stat: `${commsOps.sendsWeek} sends · ${stats.leadsCount} leads`,
+    },
     {
       title: 'Head of Society keys',
       description: 'Generate invite-only HOS access keys � members enter on /head-of-society.',
@@ -329,7 +336,7 @@ export default function AdminDashboardPage() {
     {
       title: 'Content Studio',
       description: 'Super video generator, research, scripts, design, voice, e-books, and publish bridges.',
-      path: '/admin/content-studio',
+      path: '/admin/marketing?tab=content',
       icon: Film,
       stat: 'Studio',
     },
@@ -472,9 +479,10 @@ export default function AdminDashboardPage() {
         subtitle: 'The daily control center (workflow, customers, cases, projects).',
         defaultOpen: true,
         cards: take([
+          '/admin/marketing',
           '/admin/workflow',
           '/admin/staff',
-          '/admin/content-studio',
+          '/admin/marketing?tab=content',
           '/admin/partners',
           '/admin/cases',
           '/admin/tasks/new',
@@ -668,11 +676,18 @@ export default function AdminDashboardPage() {
                   onClick={() => navigate('/admin/staff')}
                 />
                 <KpiCard
+                  label="Marketing"
+                  value={String(commsOps.sendsWeek)}
+                  hint="Sends this week — open department hub"
+                  tone="emerald"
+                  onClick={() => navigate('/admin/marketing')}
+                />
+                <KpiCard
                   label="Content Studio"
                   value="Open"
                   hint="Super video + e-book production"
                   tone="violet"
-                  onClick={() => navigate('/admin/content-studio')}
+                  onClick={() => navigate('/admin/marketing?tab=content')}
                 />
               </div>
 

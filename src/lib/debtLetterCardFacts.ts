@@ -97,10 +97,28 @@ export function debtLetterCardFactsFromCatalogEntry(entry: DebtLetterCatalogEntr
 export function debtLetterCardFactsFromLetter(letter: LetterRecord): DebtLetterCardFacts | null {
   if (letter.type !== 'validation' && letter.type !== 'court') return null;
   if (!isDebtSavedMeta(letter.meta)) return null;
+  const meta = hydrateDebtLetterMeta(letter.meta);
   return resolveDebtLetterCardFacts({
-    catalogId: letter.meta.catalogId,
-    letterSpecId: letter.meta.letterSpecId,
+    catalogId: meta.catalogId,
+    letterSpecId: meta.letterSpecId,
   });
+}
+
+/** Backfill catalogId on older saves so deploy-time catalog updates resolve on read. */
+export function hydrateDebtLetterMeta(meta: DebtSavedMeta): DebtSavedMeta {
+  if (meta.catalogId?.trim()) return meta;
+  const letterSpecId = String(meta.letterSpecId || '').trim();
+  if (!letterSpecId) return meta;
+  const resolved = resolveDebtLetterCatalogEntry({ letterSpecId });
+  if (!resolved.resolvedCatalogId) return meta;
+  return { ...meta, catalogId: resolved.resolvedCatalogId };
+}
+
+export function hydrateStoredLetterMeta(letter: LetterRecord): LetterRecord {
+  if (!isDebtSavedMeta(letter.meta)) return letter;
+  const meta = hydrateDebtLetterMeta(letter.meta);
+  if (meta === letter.meta) return letter;
+  return { ...letter, meta };
 }
 
 export function formatDebtLetterStatLine(facts: DebtLetterCardFacts): string {

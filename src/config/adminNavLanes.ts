@@ -64,16 +64,12 @@ export const ADMIN_NAV_GROUPS: AdminNavGroupDef[] = [
     label: 'Core',
     items: [
       { path: '/admin', label: 'Overview', icon: Shield, hint: 'Admin dashboard' },
-      { path: '/admin/growth-command', label: 'Growth Command', icon: TrendingUp, hint: 'Promote · nurture · communicate' },
+      { path: '/admin/marketing', label: 'Marketing Department', icon: TrendingUp, hint: 'Get leads · content · follow up' },
       { path: '/admin/workflow', label: 'Ops command center', icon: Inbox, hint: 'Alerts + SLA triage' },
       { path: '/admin/staff', label: 'Staff Command Center', icon: Users, hint: 'AI + human + partner team' },
-      { path: '/admin/content-studio', label: 'Content Studio', icon: Film, hint: 'Video dept · 30s spot wizard + content' },
       { path: '/admin/crm', label: 'Leads & CRM', icon: Target, hint: 'Pipeline + prospects + inbound' },
-      { path: '/admin/growth-agents', label: 'Growth Agents', icon: Sparkles, hint: 'Results · Caleb · Hannah · specialists' },
-      { path: '/admin/marketing-desk', label: 'Marketing Desk', icon: Sparkles, hint: 'Caleb\'s daily workroom · Find · Board' },
       { path: '/admin/projects', label: 'Projects & Tasks', icon: FolderKanban, hint: 'Master projects + child tasks' },
       { path: '/admin/workload', label: 'Workload', icon: ListChecks, hint: 'Open tasks by assignee' },
-      { path: '/admin/playbooks', label: 'Playbooks', icon: BookOpen, hint: 'Service delivery task templates' },
       { path: '/admin/partners', label: 'Partners', icon: Users, hint: 'Customer management' },
       { path: '/admin/mail', label: 'Mail letters', icon: Mail, hint: 'Finely Mail · pick partner → mail' },
       { path: '/admin/cases', label: 'Cases', icon: Gavel, hint: 'Case management' },
@@ -172,10 +168,33 @@ export function isAdminNavPathActive(pathname: string, path: string): boolean {
   const base = path.split('?')[0] || path;
   if (pathname === base) return true;
   if (base === '/admin') return pathname === '/admin' || pathname === '/admin/';
+  if (base === '/admin/marketing') {
+    return (
+      pathname === '/admin/marketing' ||
+      pathname.startsWith('/admin/growth-agents') ||
+      pathname.startsWith('/admin/marketing-desk') ||
+      pathname.startsWith('/admin/content-studio') ||
+      pathname.startsWith('/admin/growth-command') ||
+      pathname.startsWith('/admin/playbooks')
+    );
+  }
   return pathname.startsWith(`${base}/`);
 }
 
 export function resolveAdminNavLaneId(pathname: string): string {
+  const marketingPrefixes = [
+    '/admin/marketing',
+    '/admin/growth-agents',
+    '/admin/marketing-desk',
+    '/admin/content-studio',
+    '/admin/growth-command',
+    '/admin/playbooks',
+    '/admin/leads',
+    '/admin/lead-intel',
+  ];
+  if (marketingPrefixes.some((p) => pathname === p || pathname.startsWith(`${p}/`))) {
+    return 'core';
+  }
   for (const lane of ADMIN_NAV_LANES) {
     if (lane.items.some((item) => isAdminNavPathActive(pathname, item.path))) {
       return lane.id;

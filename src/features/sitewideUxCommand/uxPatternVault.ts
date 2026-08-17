@@ -70,7 +70,7 @@ export const SITEWIDE_UX_MISSIONS: SitewideUxMission[] = [
   {
     id: 'mission-public-funnels',
     title: 'Public funnels: premium conversion flow',
-    owner: 'CMO Prime',
+    owner: 'Esther Hayes',
     pages: ['ResourcesPage', 'PricingPage', 'PricingServicePage', 'PersonalCreditPage', 'AffiliatePage', 'AgentsPage', 'AgencySignupPage', 'ConsultationPage'],
     expectedOutcome: 'Public pages look premium, explain value fast, and route to tracked lead capture or booking.',
     acceptanceChecks: ['Lead magnet CTA visible', 'Tracked link path defined', 'Proof/FAQ/objection blocks included', 'No guarantee language'],

@@ -14,7 +14,7 @@ export function CmoStaffRoom() {
   const [input, setInput] = useState('Build the next 200-leads/day campaign safely and tell me what needs approval.');
   const [busy, setBusy] = useState(false);
   const [log, setLog] = useState<Array<{ role: 'admin' | 'cmo'; text: string }>>([
-    { role: 'cmo', text: 'CMO Prime online. Give me the business goal. I will turn it into campaigns, assets, lead routing, and approved execution steps. Also, I will bully weak CTAs. Professionally.' },
+    { role: 'cmo', text: 'Marketing lead online. Give me the business goal. I will turn it into campaigns, assets, lead routing, and approved execution steps. Also, I will bully weak CTAs. Professionally.' },
   ]);
   const [version, setVersion] = useState(0);
   const [execSteps, setExecSteps] = useState<GrowthExecutionStep[]>([]);
@@ -91,7 +91,7 @@ export function CmoStaffRoom() {
               <Crown size={14} /> CMO Staff Room
             </div>
             <h3 className="mt-3 text-xl font-black text-white">Talk to the CMO like staff.</h3>
-            <p className="mt-1 text-sm text-white/55">Answers with full playbook knowledge — then executes or delegates (swarm, playbooks, Comms, geo).</p>
+            <p className="mt-1 text-sm text-white/55">Answers with full playbook knowledge — then executes or delegates (Find, playbooks, Comms, geo).</p>
           </div>
           <button type="button" className="fc-button-soft text-xs" onClick={() => { updateCmoSettings({ approvalMode: settings.approvalMode === 'safe_auto_execute' ? 'approve_then_execute' : 'safe_auto_execute' }); setVersion((v) => v + 1); }}>
             Mode: {settings.approvalMode.replace(/_/g, ' ')}
@@ -110,7 +110,7 @@ export function CmoStaffRoom() {
         </div>
 
         <div className="mt-4 flex gap-2">
-          <textarea value={input} onChange={(e) => setInput(e.target.value)} className="fc-input min-h-[76px] flex-1 resize-none text-sm" placeholder="Tell CMO Prime what to build, scale, audit, or execute..." />
+          <textarea value={input} onChange={(e) => setInput(e.target.value)} className="fc-input min-h-[76px] flex-1 resize-none text-sm" placeholder="Tell marketing what to build, scale, audit, or execute..." />
           <div className="flex w-44 flex-col gap-2">
             <button type="button" disabled={busy || execBusy} onClick={() => void submit(false)} className="fc-button-brand text-xs disabled:opacity-50"><Send size={14} /> Ask CMO</button>
             <button type="button" disabled={busy || execBusy} onClick={() => void submit(true)} className="fc-button-soft text-xs disabled:opacity-50"><Zap size={14} /> Ask + execute</button>

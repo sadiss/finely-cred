@@ -427,7 +427,7 @@ export const personalCreditPackages: PricingPackage[] = [
     // RETIRED (D1) — see note on 'personal_restore_5000' above. isPublic:false only.
     id: 'personal_restore_7000',
     category: 'personal_credit',
-    name: 'Advanced Credit Restore — Apex',
+    name: 'Advanced Credit Restore — Premier',
     tagline: 'Enterprise-level restore execution',
     description:
       'An enterprise restore tier designed for maximum attention and stronger operational support through multiple rounds and timelines.',
@@ -438,7 +438,7 @@ export const personalCreditPackages: PricingPackage[] = [
     delivery: 'DFY',
     isPublic: false,
     sortOrder: 4.3,
-    badge: 'Apex',
+    badge: 'Premier',
     entitlementKeys: ['personal_starter', 'personal_restore', 'personal_platinum', 'personal_restore_5000', 'personal_restore_7000'],
   },
   {
@@ -449,7 +449,7 @@ export const personalCreditPackages: PricingPackage[] = [
     tagline: 'Maximum support + maximum execution',
     description:
       'Top-tier restore program for partners who want the maximum support window, deeper execution, and the most structured cadence.',
-    highlights: ['Everything in Apex', 'Maximum support window', 'Highest-touch operations + escalation readiness', 'Priority handling'],
+    highlights: ['Everything in Premier', 'Maximum support window', 'Highest-touch operations + escalation readiness', 'Priority handling'],
     priceAmount: 1000000, // $10,000
     interval: 'one_time',
     rail: 'both',

@@ -63,7 +63,7 @@ const OWNER_TILES: Array<{
   { id: 'distribution', title: 'Distribution', blurb: 'Link library → campaigns → channels.', accent: 'amber' },
   { id: 'social', title: 'Social Leads', blurb: 'Meta Lead Ads + Messenger / IG.', accent: 'sky' },
   { id: 'routing', title: 'Routing', blurb: 'Round-robin and territory rules.', accent: 'emerald' },
-  { id: 'intel', title: 'Intel labs', blurb: 'Practice mode & Owner-only labs.', accent: 'fuchsia' },
+  { id: 'intel', title: 'Lead hunt preview', blurb: 'Owner simulation — practice counters only.', accent: 'fuchsia' },
 ];
 
 const DESK_TILES: Array<{
@@ -72,10 +72,10 @@ const DESK_TILES: Array<{
   href: string;
   accent: 'emerald' | 'violet' | 'rose' | 'sky';
 }> = [
-  { title: 'Find new people', blurb: 'One-tap Find · Daily pack · Review.', href: '/admin/marketing-desk?helper=find', accent: 'emerald' },
-  { title: 'Board', blurb: 'New → Talking → Booked → Won/No.', href: '/admin/marketing-desk?helper=board', accent: 'violet' },
-  { title: 'Clean out junk', blurb: 'Hide from Board. Put back anytime.', href: '/admin/marketing-desk?helper=clean', accent: 'rose' },
-  { title: 'Mail on autopilot', blurb: 'Ready / Needs setup / Paused.', href: '/admin/marketing-desk?helper=mail', accent: 'sky' },
+  { title: 'Find new people', blurb: 'One-tap Find · Daily pack · Review.', href: '/admin/marketing?tab=desk&helper=find', accent: 'emerald' },
+  { title: 'Board', blurb: 'New → Talking → Booked → Won/No.', href: '/admin/marketing?tab=desk&helper=board', accent: 'violet' },
+  { title: 'Clean out junk', blurb: 'Hide from Board. Put back anytime.', href: '/admin/marketing?tab=desk&helper=clean', accent: 'rose' },
+  { title: 'Mail on autopilot', blurb: 'Ready / Needs setup / Paused.', href: '/admin/marketing?tab=desk&helper=mail', accent: 'sky' },
 ];
 
 function tabFromParams(params: URLSearchParams): PageMode {
@@ -84,7 +84,13 @@ function tabFromParams(params: URLSearchParams): PageMode {
   return 'launcher';
 }
 
-export default function AdminLeadsOsPage() {
+export default function AdminLeadsOsPage({
+  embedded = false,
+  initialTab,
+}: {
+  embedded?: boolean;
+  initialTab?: string | null;
+}) {
   const navigate = useNavigate();
   const [params, setParams] = useSearchParams();
   const mode = tabFromParams(params);
@@ -94,6 +100,14 @@ export default function AdminLeadsOsPage() {
   const [inboundView, setInboundView] = useState<InboundView>('pipeline');
   const [intelSourceHint, setIntelSourceHint] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (embedded && initialTab && OWNER_TILES.some((t) => t.id === initialTab)) {
+      setMode(initialTab as LeadsTab);
+      return;
+    }
+    if (embedded && mode === 'launcher') setMode('inbound');
+  }, [embedded, mode, initialTab]);
 
   const pipeline = CRM_PIPELINES.find((p) => p.id === 'inbound') ?? CRM_PIPELINES[0];
   const inboundRecords = useMemo(
@@ -165,19 +179,21 @@ export default function AdminLeadsOsPage() {
     setVersion((v) => v + 1);
   };
 
-  return (
-    <PageShell badge="Admin" title="Owner Leads Ops" subtitle="Power tools for inbound, labs, social, and routing — daily marketing lives on Marketing Desk.">
+  const body = (
       <div className={FINELY_OS_PAGE}>
+        {!embedded ? (
         <div className={`${FINELY_OS_VIEW_TABS} flex flex-wrap gap-1 mb-3`}>
-          <button type="button" className={finelyOsViewTab(tab === 'launcher')} onClick={() => setMode('launcher')}>
+          <button type="button" className={finelyOsViewTab(mode === 'launcher')} onClick={() => setMode('launcher')}>
             Launcher
           </button>
           {OWNER_TILES.map((t) => (
-            <button key={t.id} type="button" className={finelyOsViewTab(tab === t.id)} onClick={() => setMode(t.id)}>
+            <button key={t.id} type="button" className={finelyOsViewTab(mode === t.id)} onClick={() => setMode(t.id)}>
               {t.title}
             </button>
           ))}
         </div>
+        ) : null}
+        {!embedded ? (
         <div className="flex flex-wrap items-center justify-between gap-3">
           <button type="button" onClick={() => navigate('/admin')} className={FINELY_OS_BACK_LINK}>
             <ArrowLeft size={16} /> Admin Dashboard
@@ -191,11 +207,12 @@ export default function AdminLeadsOsPage() {
             >
               Layout previews
             </button>
-            <button type="button" onClick={() => navigate('/admin/marketing-desk')} className={FINELY_OS_PRIMARY_BTN}>
+            <button type="button" onClick={() => navigate('/admin/marketing?tab=desk')} className={FINELY_OS_PRIMARY_BTN}>
               Open Marketing Desk
             </button>
           </div>
         </div>
+        ) : null}
 
         {notice ? (
           <div className="rounded-xl border border-emerald-500/25 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-100">{notice}</div>
@@ -207,7 +224,7 @@ export default function AdminLeadsOsPage() {
               <div className={`text-[10px] font-black uppercase tracking-[0.18em] text-amber-200/80`}>Owner Leads Ops</div>
               <h1 className={`mt-1 text-xl font-bold ${FINELY_OS_ENTITY_VALUE}`}>Daily work is on Marketing Desk</h1>
               <p className={`mt-1 text-sm ${FINELY_OS_ENTITY_BODY}`}>
-                Open Find, Board, Clean, or Mail below. Owner power tools stay here — Swarm and adapters live under Advanced labs.
+                Open Find, Board, Clean, or Mail below. Owner power tools stay here — practice mode and adapters live under Advanced labs.
               </p>
               <div className="mt-3 flex flex-wrap gap-2 text-xs">
                 <span className={`${FINELY_OS_ENTITY_SUBLABEL}`}>Inbound CRM {inboundRecords.length}</span>
@@ -255,7 +272,7 @@ export default function AdminLeadsOsPage() {
 
             <details className="rounded-2xl border border-white/10 bg-black/25 !p-4">
               <summary className="cursor-pointer select-none text-white font-semibold">
-                Advanced labs · Swarm / adapters / Overnight
+                Advanced labs · Practice mode / adapters / Overnight
               </summary>
               <div className="mt-4 space-y-4">
                 <p className={`text-sm ${FINELY_OS_ENTITY_BODY}`}>
@@ -285,7 +302,7 @@ export default function AdminLeadsOsPage() {
               </button>
               {/* Intel room has its own Find CTA — avoid a second identical Desk button here */}
               {mode !== 'intel' ? (
-                <button type="button" onClick={() => navigate('/admin/marketing-desk')} className={FINELY_OS_SECONDARY_BTN}>
+                <button type="button" onClick={() => navigate('/admin/marketing?tab=desk')} className={FINELY_OS_SECONDARY_BTN}>
                   Marketing Desk home
                 </button>
               ) : null}
@@ -399,13 +416,13 @@ export default function AdminLeadsOsPage() {
                   <button
                     type="button"
                     className={FINELY_OS_PRIMARY_BTN}
-                    onClick={() => navigate('/admin/marketing-desk?helper=find')}
+                    onClick={() => navigate('/admin/marketing?tab=desk&helper=find')}
                   >
                     Open Marketing Desk Find
                   </button>
                 </div>
                 <details className="rounded-2xl border border-white/10 bg-black/25 !p-4" open>
-                  <summary className="cursor-pointer select-none text-white font-semibold">Advanced labs · practice mode & swarm</summary>
+                  <summary className="cursor-pointer select-none text-white font-semibold">Advanced labs · practice mode & adapters</summary>
                   <div className="mt-4 space-y-4">
                     <Overnight50AdminNav compact />
                     <LeadIntelSwarmDashboard />
@@ -517,7 +534,7 @@ export default function AdminLeadsOsPage() {
             {mode === 'cmo' ? (
               <div className="space-y-4">
                 <details className="rounded-2xl border border-white/10 bg-black/25 !p-4">
-                  <summary className="cursor-pointer select-none text-white font-semibold">Advanced labs · Overnight / Swarm</summary>
+                  <summary className="cursor-pointer select-none text-white font-semibold">Advanced labs · Overnight / practice mode</summary>
                   <div className="mt-4">
                     <Overnight50AdminNav compact />
                   </div>
@@ -533,8 +550,15 @@ export default function AdminLeadsOsPage() {
           </div>
         ) : null}
 
-        <FinelyOsPageFooter />
+        {!embedded ? <FinelyOsPageFooter /> : null}
       </div>
+  );
+
+  if (embedded) return body;
+
+  return (
+    <PageShell badge="Admin" title="Owner Leads Ops" subtitle="Power tools for inbound, labs, social, and routing — daily marketing lives on Marketing Desk.">
+      {body}
     </PageShell>
   );
 }

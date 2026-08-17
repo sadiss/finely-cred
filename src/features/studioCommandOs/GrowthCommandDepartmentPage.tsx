@@ -22,9 +22,9 @@ const LANE_TOOLS: Record<
   promote: [
     { title: 'Lead Magnets', detail: 'Funnels, heroes, capture forms', href: '/admin/lead-magnets', accent: 'amber' },
     { title: 'Social Hub', detail: 'Meta scheduling, inbox, autopilot', href: '/admin/social-hub', accent: 'sky' },
-    { title: 'Content Studio', detail: 'Video, e-books, publish bridges', href: '/admin/content-studio', accent: 'violet' },
+    { title: 'Content Studio', detail: 'Video, e-books, publish bridges', href: '/admin/marketing?tab=content', accent: 'violet' },
     { title: 'CMO Command', detail: 'Campaigns, angles, channel mix', href: '/admin/cmo', accent: 'fuchsia' },
-    { title: 'Lead Intel', detail: 'Swarm discovery + scoring', href: '/admin/lead-intel', accent: 'emerald' },
+    { title: 'Lead hunt preview', detail: 'Live search + scoring (Find room)', href: '/admin/marketing?tab=desk&helper=find', accent: 'emerald' },
   ],
   nurture: [
     { title: 'Comms Studio', detail: 'Inbox, compose, 300+ templates, sequences', href: '/admin/comms?room=sequences', accent: 'fuchsia' },
@@ -79,7 +79,7 @@ export function GrowthCommandDepartmentPage() {
 
   return (
     <FinelyUnifiedHubLayout
-      eyebrow="Growth command"
+      eyebrow="Marketing plan"
       title="Promote · Nurture · Communicate"
       subtitle="One operating surface — full-depth tools behind each lane (never a downgrade to a card gallery only)."
       accent="emerald"
@@ -92,7 +92,7 @@ export function GrowthCommandDepartmentPage() {
       activeTab={lane}
       onTabChange={(id) => setLane(id as Lane)}
       primaryAction={{ label: 'Open Comms Studio', onClick: () => navigate('/admin/comms') }}
-      secondaryAction={{ label: 'Leads OS', onClick: () => navigate('/admin/leads-os') }}
+      secondaryAction={{ label: 'Leads & CRM', onClick: () => navigate('/admin/marketing?tab=leads') }}
       contentVariant="flush"
     >
       <p className={`text-sm mb-4 ${FINELY_OS_ENTITY_BODY}`}>

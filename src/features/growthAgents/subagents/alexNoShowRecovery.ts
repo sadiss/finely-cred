@@ -129,6 +129,7 @@ export async function runAlexNoShowRecoverySweep(): Promise<NoShowRecoveryResult
         recordId: ev.id,
         href: '/admin/calendar',
         tags: ['alex-no-show-recovery', 'persona:appointment_setter'],
+        growthAgentId: 'appointment-setter',
         priority: 'high',
         dueAt: new Date(Date.now() + 24 * 3600 * 1000).toISOString(),
         meta: { eventId: ev.id, rebookUrl },

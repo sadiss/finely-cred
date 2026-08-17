@@ -272,7 +272,7 @@ export function GrowthAgentsRoster() {
 
       <AgentTeamTrailFeed limit={10} />
 
-      <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => navigate('/admin/marketing-desk')}>
+      <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => navigate('/admin/marketing?tab=desk')}>
         Caleb&apos;s workroom (Marketing Desk)
       </button>
     </div>

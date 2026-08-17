@@ -55,7 +55,7 @@ export const AUTOMATION_BLUEPRINTS: AutomationBlueprint[] = [
     category: 'recruiting',
     summary: 'From lead magnet or career interest into screening, interview, and onboarding task sequence.',
     bestFor: ['agents page', 'career guide', 'indeed-style applicant capture'],
-    owner: 'Partner Recruiter + Professor Apex',
+    owner: 'Partner Recruiter + Ezra Hayes',
     expectedOutcome: 'Applicants are sorted by fit, readiness, and follow-through.',
     nodes: [
       node('trigger', 'trigger', 'Career interest captured', 'Agents/recruiting funnel', 'Capture why they applied and preferred role.'),

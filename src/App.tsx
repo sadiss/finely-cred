@@ -185,7 +185,8 @@ const AdminFinanceAllocatorPage = lazyWithRetry(() => import('./pages/admin/Admi
 const AdminMonitoringPage = lazyWithRetry(() => import('./pages/admin/AdminMonitoringPage'));
 const AdminLeadIntelPage = lazyWithRetry(() => import('./pages/admin/AdminLeadIntelPage'));
 const AdminSignupOpsPage = lazyWithRetry(() => import('./pages/admin/AdminSignupOpsPage'));
-const AdminLeadsOsPage = lazyWithRetry(() => import('./pages/admin/AdminLeadsOsPage'));
+const AdminLeadsRoutePage = lazyWithRetry(() => import('./pages/admin/AdminLeadsRoutePage'));
+const AdminMarketingDepartmentPage = lazyWithRetry(() => import('./pages/admin/AdminMarketingDepartmentPage'));
 const AdminMarketingDeskPage = lazyWithRetry(() => import('./pages/admin/AdminMarketingDeskPage'));
 const AdminGrowthAgentsPage = lazyWithRetry(() => import('./pages/admin/AdminGrowthAgentsPage'));
 const AdminGrowthAutomationPage = lazyWithRetry(() => import('./pages/admin/AdminGrowthAutomationPage'));
@@ -2296,10 +2297,56 @@ function AppInner() {
           }
         />
         <Route
-          path="/admin/playbooks"
+          path="/admin/marketing"
+          element={
+            <ProtectedAdminRoute>
+              <AdminMarketingDepartmentPage />
+            </ProtectedAdminRoute>
+          }
+        />
+        <Route path="/admin/marketing-agent" element={<Navigate to="/admin/marketing?tab=team" replace />} />
+        <Route path="/admin/growth-command" element={<Navigate to="/admin/marketing?tab=plan" replace />} />
+        <Route path="/admin/marketing-desk" element={<Navigate to="/admin/marketing?tab=desk" replace />} />
+        <Route path="/admin/content-studio" element={<Navigate to="/admin/marketing?tab=content" replace />} />
+        <Route path="/admin/playbooks" element={<Navigate to="/admin/marketing?tab=checklists" replace />} />
+        <Route path="/admin/growth-agents" element={<Navigate to="/admin/marketing?tab=team" replace />} />
+        <Route
+          path="/admin/growth-agents/:agentId"
+          element={
+            <ProtectedAdminRoute>
+              <AdminGrowthAgentsPage />
+            </ProtectedAdminRoute>
+          }
+        />
+        <Route
+          path="/admin/marketing-desk/full"
+          element={
+            <ProtectedAdminRoute>
+              <AdminMarketingDeskPage />
+            </ProtectedAdminRoute>
+          }
+        />
+        <Route
+          path="/admin/content-studio/full"
+          element={
+            <ProtectedAdminRoute>
+              <AdminMediaStudioPage />
+            </ProtectedAdminRoute>
+          }
+        />
+        <Route
+          path="/admin/playbooks/full"
           element={
             <ProtectedAdminRoute>
               <AdminPlaybooksPage />
+            </ProtectedAdminRoute>
+          }
+        />
+        <Route
+          path="/admin/growth-command/full"
+          element={
+            <ProtectedAdminRoute>
+              <AdminGrowthCommandPage />
             </ProtectedAdminRoute>
           }
         />
@@ -2336,16 +2383,8 @@ function AppInner() {
             </ProtectedAdminRoute>
           }
         />
-        <Route
-          path="/admin/content-studio"
-          element={
-            <ProtectedAdminRoute>
-              <AdminMediaStudioPage />
-            </ProtectedAdminRoute>
-          }
-        />
-        <Route path="/admin/media-studio" element={<Navigate to="/admin/content-studio" replace />} />
-        <Route path="/admin/media-studio/*" element={<Navigate to="/admin/content-studio" replace />} />
+        <Route path="/admin/media-studio" element={<Navigate to="/admin/marketing?tab=content" replace />} />
+        <Route path="/admin/media-studio/*" element={<Navigate to="/admin/marketing?tab=content" replace />} />
         <Route
           path="/admin/voice-studio"
           element={
@@ -2431,40 +2470,16 @@ function AppInner() {
           path="/admin/leads"
           element={
             <ProtectedAdminRoute>
-              <AdminLeadsOsPage />
+              <AdminLeadsRoutePage />
             </ProtectedAdminRoute>
           }
         />
-        <Route path="/admin/leads-os" element={<Navigate to="/admin/leads" replace />} />
-        <Route
-          path="/admin/growth-agents"
-          element={
-            <ProtectedAdminRoute>
-              <AdminGrowthAgentsPage />
-            </ProtectedAdminRoute>
-          }
-        />
+        <Route path="/admin/leads-os" element={<Navigate to="/admin/marketing?tab=leads" replace />} />
         <Route
           path="/admin/growth-automation"
           element={
             <ProtectedAdminRoute>
               <AdminGrowthAutomationPage />
-            </ProtectedAdminRoute>
-          }
-        />
-        <Route
-          path="/admin/growth-agents/:agentId"
-          element={
-            <ProtectedAdminRoute>
-              <AdminGrowthAgentsPage />
-            </ProtectedAdminRoute>
-          }
-        />
-        <Route
-          path="/admin/marketing-desk"
-          element={
-            <ProtectedAdminRoute>
-              <AdminMarketingDeskPage />
             </ProtectedAdminRoute>
           }
         />
@@ -2606,14 +2621,6 @@ function AppInner() {
           element={
             <ProtectedAdminRoute>
               <AdminAuSellersPage />
-            </ProtectedAdminRoute>
-          }
-        />
-        <Route
-          path="/admin/growth-command"
-          element={
-            <ProtectedAdminRoute>
-              <AdminGrowthCommandPage />
             </ProtectedAdminRoute>
           }
         />

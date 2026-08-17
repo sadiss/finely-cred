@@ -17,7 +17,7 @@ import {
 } from './staffCommandUi';
 
 const missionOptions: Array<{ id: StaffMissionType; label: string; plain: string }> = [
-  { id: 'deep_swarm', label: 'Deep Swarm', plain: 'Continuous Lead Intel discovery across cities/sources.' },
+  { id: 'deep_swarm', label: 'Lead discovery', plain: 'Continuous Lead Intel discovery across cities/sources.' },
   { id: 'lead_action_review', label: 'Action Center', plain: 'Turn found leads into message + short link + owner.' },
   { id: 'city_growth_sprint', label: 'City Growth Sprint', plain: 'Make a city more usable and better routed.' },
   { id: 'appointment_blitz', label: 'Appointment Blitz', plain: 'Turn hot leads into booked calls.' },
@@ -30,7 +30,7 @@ const missionOptions: Array<{ id: StaffMissionType; label: string; plain: string
   { id: 'geo_page_push', label: 'Geo Page Push', plain: 'Prepare local lead magnet/page asset.' },
   { id: 'analytics_diagnosis', label: 'Analytics Diagnosis', plain: 'Find bottleneck and next best action.' },
   { id: 'compliance_review', label: 'Compliance Review', plain: 'Approve/rewrite/block risky copy.' },
-  { id: 'overnight_run', label: 'Overnight Run', plain: 'Coordinate overnight swarm, content, brief.' },
+  { id: 'overnight_run', label: 'Overnight Run', plain: 'Coordinate overnight discovery, content, brief.' },
 ];
 
 export function StaffMissionBuilder({ selectedIds, onChanged }: { selectedIds: string[]; onChanged: () => void }) {

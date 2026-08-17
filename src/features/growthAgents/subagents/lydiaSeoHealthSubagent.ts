@@ -70,6 +70,7 @@ export async function runLydiaSeoHealthCheck(): Promise<LydiaSeoHealthResult> {
           recordId: REVIEW_RECORD_ID,
           href: '/admin/access',
           tags: ['lydia-seo-health', 'persona:seo_local'],
+          growthAgentId: 'seo-local',
           priority: summary.routesWithIssues >= 5 ? 'high' : 'normal',
           dueAt: new Date(Date.now() + 72 * 3600 * 1000).toISOString(),
           meta: { routesWithIssues: summary.routesWithIssues, issueCount: summary.issueCount },

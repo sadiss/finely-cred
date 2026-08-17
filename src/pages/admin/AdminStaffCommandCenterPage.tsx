@@ -220,7 +220,7 @@ export default function AdminStaffCommandCenterPage() {
                   <li><strong className="text-violet-200">Company roster</strong> — AI operators (violet badge) vs human team (amber badge).</li>
                   <li><strong className="text-amber-200">Partner team</strong> — human specialists clients see in chat & portal.</li>
                   <li><strong className="text-violet-200">Talk / Inbox</strong> — conversations and handoffs with selected staff.</li>
-                  <li><strong className="text-violet-200">Lead Intel</strong> — swarm uses the same company roster (not a duplicate list).</li>
+                  <li><strong className="text-violet-200">Lead Intel</strong> — discovery uses the same company roster (not a duplicate list).</li>
                 </ul>
               </div>
               <StaffSocialPresenceStrip />

@@ -2,7 +2,15 @@ import React from 'react';
 import { PageShell } from '../../components/layout/PageShell';
 import { ContentStudioDepartmentPage } from './ContentStudioDepartmentPage';
 
-export function MediaStudioPremiumPage() {
+type MediaStudioPremiumPageProps = {
+  /** When true, skip outer PageShell (embedded in Marketing Department hub). */
+  embedded?: boolean;
+};
+
+export function MediaStudioPremiumPage({ embedded = false }: MediaStudioPremiumPageProps) {
+  if (embedded) {
+    return <ContentStudioDepartmentPage />;
+  }
   return (
     <PageShell
       badge="Admin"

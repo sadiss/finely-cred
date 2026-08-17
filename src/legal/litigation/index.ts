@@ -53,8 +53,8 @@ export function toLitigationLetterArgs(args: {
     debtorCity: args.debtorCity,
     debtorState: args.debtorState,
     debtorPostalCode: args.debtorPostalCode,
-    debtorPhone: args.debtorPhone,
-    // Never map partner email onto litigation letter merge fields by default.
+    // Never map partner phone/email onto litigation letter merge fields.
+    debtorPhone: undefined,
     debtorEmail: undefined,
     plaintiffName: args.recipientName || args.creditorName,
     // Prefer firm/counsel mailing address for TO: — never leave firm address unused.

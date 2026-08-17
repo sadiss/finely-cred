@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { dispatchGrowthAgentRun } from './growthAgentRunDispatcher';
 import { GrowthAgentWorkspaceShell } from './GrowthAgentWorkspaceShell';
 import { getGrowthAgent, type GrowthAgentDef, buildGrowthContentStudioPromoteUrl, GROWTH_AGENT_WAVE0_LANE } from './growthAgentRegistry';
 import { getAgentMaturity } from './growthAgentMaturity';
@@ -225,36 +226,113 @@ function GenericAgentWorkspace({ agent }: { agent: GrowthAgentDef }) {
 }
 
 export function GrowthAgentWorkspaceView({ agentId }: { agentId: string }) {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [runMsg, setRunMsg] = useState<string | null>(null);
   const agent = getGrowthAgent(agentId);
+
+  useEffect(() => {
+    const run = searchParams.get('run');
+    if (!run || !agent) return;
+    let cancelled = false;
+    void dispatchGrowthAgentRun(agent.id, run).then((r) => {
+      if (cancelled || !r) return;
+      setRunMsg(r.message);
+      const next = new URLSearchParams(searchParams);
+      next.delete('run');
+      setSearchParams(next, { replace: true });
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [agent, searchParams, setSearchParams]);
+
   if (!agent) {
     return <p className="text-white/70">Specialist not found.</p>;
   }
+
+  const runBanner =
+    runMsg ? (
+      <p className="mb-3 rounded-lg border border-emerald-400/30 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-100">
+        {runMsg}
+      </p>
+    ) : null;
+
   if (agent.id === 'lead-discovery') {
-    return <GrowthAgentCalebWorkspace />;
+    return (
+      <>
+        {runBanner}
+        <GrowthAgentCalebWorkspace />
+      </>
+    );
   }
   if (agent.id === 'capture-links') {
-    return <GrowthAgentHannahWorkspace />;
+    return (
+      <>
+        {runBanner}
+        <GrowthAgentHannahWorkspace />
+      </>
+    );
   }
   if (agent.id === 'marketing-director') {
-    return <GrowthAgentEstherWorkspace />;
+    return (
+      <>
+        {runBanner}
+        <GrowthAgentEstherWorkspace />
+      </>
+    );
   }
   if (agent.id === 'seo-local') {
-    return <GrowthAgentLydiaWorkspace />;
+    return (
+      <>
+        {runBanner}
+        <GrowthAgentLydiaWorkspace />
+      </>
+    );
   }
   if (agent.id === 'social') {
-    return <GrowthAgentMiriamWorkspace />;
+    return (
+      <>
+        {runBanner}
+        <GrowthAgentMiriamWorkspace />
+      </>
+    );
   }
   if (agent.id === 'media') {
-    return <GrowthAgentJordanWorkspace />;
+    return (
+      <>
+        {runBanner}
+        <GrowthAgentJordanWorkspace />
+      </>
+    );
   }
   if (agent.id === 'partnerships') {
-    return <GrowthAgentBenjaminWorkspace />;
+    return (
+      <>
+        {runBanner}
+        <GrowthAgentBenjaminWorkspace />
+      </>
+    );
   }
   if (agent.id === 'specialist-recruit') {
-    return <GrowthAgentRebeccaWorkspace />;
+    return (
+      <>
+        {runBanner}
+        <GrowthAgentRebeccaWorkspace />
+      </>
+    );
   }
   if (agent.id === 'appointment-setter') {
-    return <GrowthAgentAlexWorkspace />;
+    return (
+      <>
+        {runBanner}
+        <GrowthAgentAlexWorkspace />
+      </>
+    );
   }
-  return <GenericAgentWorkspace agent={agent} />;
+  return (
+    <>
+      {runBanner}
+      <GenericAgentWorkspace agent={agent} />
+    </>
+  );
 }

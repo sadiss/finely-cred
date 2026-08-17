@@ -123,7 +123,7 @@ export function CMOStaffConsole({ currentSignal, compact = false }: CMOStaffCons
         <textarea
           value={input}
           onChange={(event) => setInput(event.target.value)}
-          placeholder="Talk to CMO Prime like staff: audit the page, build campaigns, fix CTAs, plan interviews, grow Shorts, route leads..."
+          placeholder="Talk to marketing like staff: audit the page, build campaigns, fix CTAs, plan interviews, grow Shorts, route leads..."
           className="min-h-20 flex-1 resize-none rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-sm text-white outline-none placeholder:text-slate-500 focus:border-amber-300/50"
         />
         <button type="button" onClick={send} className="fc-button-brand inline-flex items-center justify-center gap-2 rounded-2xl px-5 py-3 font-bold">

@@ -104,8 +104,8 @@ export const LONG_LIST_REPLACEMENT_RULES = [
 
 export const PRIMARY_ADMIN_ACTIONS = [
   { surface: 'media_studio', action: 'Generate video from prompt', owner: 'Content Director + Goldframe', output: '28-sec storyboard + scene visuals + render plan' },
-  { surface: 'comms_studio', action: 'Build campaign from scenario', owner: 'Liora Lifecycle + CMO Prime', output: 'Email/SMS/portal draft deck' },
+  { surface: 'comms_studio', action: 'Build campaign from scenario', owner: 'Liora Lifecycle + Marketing lead', output: 'Email/SMS/portal draft deck' },
   { surface: 'automation_studio', action: 'Install automation blueprint', owner: 'Switchboard + Velvet Hammer', output: 'Draft automation rule set with approval gates' },
-  { surface: 'lead_intel', action: 'Start swarm mission', owner: 'Scout Supreme + Pipeline Titan', output: 'Action-center candidates with short links' },
+  { surface: 'lead_intel', action: 'Start lead discovery mission', owner: 'Sienna Roy + Caleb Brooks', output: 'Action-center candidates with short links' },
   { surface: 'leads_crm', action: 'Triage pipeline', owner: 'Revenue Captain + Appointment Architect', output: 'Stage, convert, trash, restore, follow-up' },
 ] as const;

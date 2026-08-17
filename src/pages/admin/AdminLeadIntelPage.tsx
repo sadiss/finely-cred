@@ -1,12 +1,9 @@
 import React from 'react';
 import { Navigate, useLocation, useSearchParams } from 'react-router-dom';
-import { isFeatureEnabled } from '../../data/settingsRepo';
 
 /**
- * Hire / daily hunt path → Marketing Desk Find.
- * Classic / advanced labs only via ?view=classic|#classic|#advanced → Owner Leads Ops intel.
- * Note: #lead-hunt is NOT classic — many CTAs still deep-link that hash for the live hunt.
- * When marketingDesk flag is off, fall through to Owner Leads Ops.
+ * Legacy lead-intel hire path → Marketing Department Find room.
+ * Classic labs via ?view=classic|#classic|#advanced → Owner Leads Ops intel tab.
  */
 export default function AdminLeadIntelPage() {
   const location = useLocation();
@@ -15,11 +12,10 @@ export default function AdminLeadIntelPage() {
     searchParams.get('view') === 'classic' ||
     location.hash === '#advanced' ||
     location.hash === '#classic';
-  const deskOn = isFeatureEnabled('marketingDesk');
 
-  if (wantClassic || !deskOn) {
+  if (wantClassic) {
     return <Navigate to="/admin/leads?tab=intel" replace />;
   }
 
-  return <Navigate to="/admin/growth-agents/lead-discovery" replace />;
+  return <Navigate to="/admin/marketing?tab=desk&helper=find" replace />;
 }

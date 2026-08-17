@@ -17,11 +17,8 @@ import { crmRecordDisplayName } from '../../domain/crmRecords';
 import { createNotification } from '../../data/notificationsRepo';
 import { upsertTask } from '../../data/tasksRepo';
 import { createMarketingTask, findOpenMarketingTask } from './marketingDeskTasks';
-import {
-  enrollBookedConfirmMail,
-  pauseMarketingSequencesForLead,
-  resolveEmailForRecord,
-} from './marketingDeskMail';
+import { enrollBookedConfirmMail, pauseMarketingSequencesForLead, resolveEmailForRecord } from './marketingDeskMail';
+import { scheduleReviewRequestAfterBooked } from '../marketingDepartment/marketingLifecycleAutomations';
 import { ensureMarketingPipelineProject } from './marketingDeskProjects';
 
 export type BookedHandoffResult = {
@@ -295,6 +292,8 @@ export async function runBookedHandoff(
   } catch {
     /* non-blocking */
   }
+
+  scheduleReviewRequestAfterBooked(recordId);
 
   return {
     ok: true,

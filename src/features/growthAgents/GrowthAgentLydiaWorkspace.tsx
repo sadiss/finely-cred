@@ -86,11 +86,11 @@ export function GrowthAgentLydiaWorkspace() {
       alertTone={summary.issueCount > 0 ? 'warning' : 'info'}
       primaryAction={{
         label: 'Marketing Desk · Board',
-        onClick: () => navigate('/admin/marketing-desk?helper=board'),
+        onClick: () => navigate('/admin/marketing?tab=desk&helper=board'),
       }}
       secondaryAction={{
         label: 'Content Studio',
-        onClick: () => navigate('/admin/content-studio?room=video'),
+        onClick: () => navigate('/admin/marketing?tab=content?room=video'),
       }}
       nextStep={results.todaySentence}
       setupBlock={
@@ -193,10 +193,10 @@ export function GrowthAgentLydiaWorkspace() {
       </div>
 
       <div className="flex flex-wrap gap-2">
-        <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => navigate('/admin/marketing-desk?helper=board')}>
+        <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => navigate('/admin/marketing?tab=desk&helper=board')}>
           Desk · Board
         </button>
-        <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => navigate('/admin/content-studio?room=video')}>
+        <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => navigate('/admin/marketing?tab=content?room=video')}>
           Content Studio
         </button>
         <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => navigate('/admin/growth-agents/marketing-director')}>

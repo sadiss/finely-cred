@@ -42,9 +42,9 @@ export const STAFF_ROSTER_PROFILES: Record<string, StaffRosterProfileSeed> = {
     },
   },
   professor_apex: {
-    firstName: 'Marcus',
-    lastName: 'Chen',
-    codename: 'Professor Apex',
+    firstName: 'Ezra',
+    lastName: 'Hayes',
+    codename: 'Team Coordinator',
     portraitIndex: 32,
     portraitGender: 'masculine',
     personality: {
@@ -57,9 +57,9 @@ export const STAFF_ROSTER_PROFILES: Record<string, StaffRosterProfileSeed> = {
     },
   },
   cmo_prime: {
-    firstName: 'Elena',
-    lastName: 'Voss',
-    codename: 'CMO Prime',
+    firstName: 'Esther',
+    lastName: 'Hayes',
+    codename: 'Marketing Director',
     portraitIndex: 31,
     portraitGender: 'feminine',
     personality: {
@@ -72,9 +72,9 @@ export const STAFF_ROSTER_PROFILES: Record<string, StaffRosterProfileSeed> = {
     },
   },
   pipeline_titan: {
-    firstName: 'Derek',
-    lastName: 'Ford',
-    codename: 'Pipeline Titan',
+    firstName: 'Caleb',
+    lastName: 'Brooks',
+    codename: 'Lead Discovery',
     portraitIndex: 88,
     portraitGender: 'masculine',
     personality: {
@@ -119,7 +119,7 @@ export const STAFF_ROSTER_PROFILES: Record<string, StaffRosterProfileSeed> = {
   scout_supreme: {
     firstName: 'Sienna',
     lastName: 'Roy',
-    codename: 'Scout Supreme',
+    codename: 'Lead Research Lead',
     portraitIndex: 36,
     portraitGender: 'feminine',
     personality: {

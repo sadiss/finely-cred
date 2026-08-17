@@ -27,6 +27,8 @@ export type CreateMarketingTaskArgs = {
   href?: string;
   tags?: string[];
   meta?: Record<string, unknown>;
+  /** Growth agent that created/owns this task (e.g. social, appointment-setter). */
+  growthAgentId?: string;
   /** When true (default), reuse open task with same kind + prospect/record/lead. */
   dedupe?: boolean;
 };
@@ -150,6 +152,7 @@ export function createMarketingTask(args: CreateMarketingTaskArgs): TaskItem {
       recordId: args.recordId,
       lane: args.lane,
       href: args.href,
+      growthAgentId: args.growthAgentId,
       ...(args.meta ?? {}),
     },
   });

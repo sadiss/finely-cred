@@ -11,7 +11,7 @@ function newId(prefix: string) {
 }
 
 const missionLabels: Record<StaffMissionType, string> = {
-  deep_swarm: 'Deep Swarm Intelligence Mission',
+  deep_swarm: 'Lead discovery mission',
   city_growth_sprint: 'City Growth Sprint',
   lead_action_review: 'Lead Action Center Review',
   appointment_blitz: 'Appointment Setting Blitz',
@@ -202,7 +202,7 @@ export function buildStaffMissionPlan(request: StaffMissionRequest): StaffMissio
 function firstStepsForMission(type: StaffMissionType, cityIds: string[], staff: StaffMember[]) {
   const cityText = cityIds.length ? cityIds.join(', ') : 'active city list';
   const names = staff.slice(0, 3).map((s) => s.name).join(' + ');
-  const common = `Confirm owners: ${names || 'Professor Apex + owning department'}.`;
+  const common = `Confirm owners: ${names || 'team coordinator + owning department'}.`;
   const map: Record<StaffMissionType, string[]> = {
     deep_swarm: [common, `Queue continuous Lead Intel jobs for ${cityText}; do not stop at one quick batch.`, 'Send hot candidates into the Action Center with a suggested funnel and tracked link.'],
     city_growth_sprint: [common, `Review source mix and active funnels for ${cityText}.`, 'Pick the next city-specific page, short link, source, or recruiting lane.'],
@@ -217,7 +217,7 @@ function firstStepsForMission(type: StaffMissionType, cityIds: string[], staff: 
     geo_page_push: [common, `Pick approved city/funnel page for ${cityText}.`, 'Generate page brief and tracking plan; hold for approval before publish.'],
     compliance_review: [common, 'Scan claims, consent, CTA, and destination.', 'Return approve/rewrite/block verdict.'],
     analytics_diagnosis: [common, 'Read city/source/funnel performance.', 'Return the single biggest blocker and the next move.'],
-    overnight_run: [common, 'Split work into swarm, revival, geo/content, and morning brief lanes.', 'Run only safe/internal automation unless approvals and integrations are healthy.'],
+    overnight_run: [common, 'Split work into discovery, revival, geo/content, and morning brief lanes.', 'Run only safe/internal automation unless approvals and integrations are healthy.'],
   };
   return map[type];
 }

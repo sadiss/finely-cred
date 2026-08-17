@@ -196,11 +196,16 @@ export function ensureCalebFeatureFlags(): boolean {
   return true;
 }
 
-function alreadyRanFindToday(): boolean {
+/** Blocks auto re-runs only — empty daily_pack no longer blocks manual retries. */
+function alreadyRanAutoFindToday(): boolean {
   const last = getMarketingFindLastRun();
   if (!last?.at || !isSameLocalDay(last.at)) return false;
   if (last.errors?.[0]) return false;
-  return last.found > 0 || last.autoSaved > 0 || last.mode === 'daily_pack' || last.mode === 'scheduled';
+  if (last.found > 0 || last.autoSaved > 0 || (last.review ?? 0) > 0) return true;
+  if (last.mode === 'scheduled') return true;
+  // Empty daily_pack: allow auto retry later same day (Serper may have been down).
+  if (last.mode === 'daily_pack' && last.found === 0 && (last.autoSaved ?? 0) === 0) return false;
+  return last.mode === 'daily_pack';
 }
 
 let bootstrapInFlight: Promise<void> | null = null;
@@ -218,7 +223,7 @@ export async function bootstrapCalebAutoSession(): Promise<void> {
     const readiness = getMarketingFindReadiness();
     if (!readiness.ready) return;
     void runGrowthWorkerTickTest();
-    if (!alreadyRanFindToday()) {
+    if (!alreadyRanAutoFindToday()) {
       await runGrowthFindTestSearch();
     }
     sessionStorage.setItem(sessionKey, '1');
@@ -229,14 +234,22 @@ export async function bootstrapCalebAutoSession(): Promise<void> {
   return bootstrapInFlight;
 }
 
-/** Daily pack when auto on and not yet run today. */
-export async function runCalebAutoFindIfDue(city: string): Promise<MarketingFindResult | null> {
+export type CalebAutoFindOptions = {
+  /** Skip the once-per-day auto gate (manual Run / toggle-on). */
+  force?: boolean;
+};
+
+/** Daily pack when auto on and not yet run today (unless force). */
+export async function runCalebAutoFindIfDue(
+  city: string,
+  opts?: CalebAutoFindOptions,
+): Promise<MarketingFindResult | null> {
   if (!isCalebAutoFindEnabled()) return null;
   ensureCalebFeatureFlags();
   await bootstrapCalebAutoSession();
   const readiness = getMarketingFindReadiness();
   if (!readiness.ready) return null;
-  if (alreadyRanFindToday()) return null;
+  if (!opts?.force && alreadyRanAutoFindToday()) return null;
   const location = resolveMarketingHuntLocation(city);
   setMarketingFindGeo(location);
   setMarketingFindSchedule(true, location);
@@ -252,7 +265,11 @@ export function calebAutoStatusLine(): string {
   const meta = getMetroShardRotationMeta();
   const shard = meta.citiesToday.map((c) => c.split(',')[0]).slice(0, 3).join(', ');
   if (!readiness.ready) return 'Auto-find is on — finishing one-time setup (flags + Supabase).';
-  if (alreadyRanFindToday()) {
+  if (alreadyRanAutoFindToday()) {
+    const last = getMarketingFindLastRun();
+    if (last && last.found === 0 && !last.errors?.[0]) {
+      return `Auto-find is on — today's pack found 0 (${shard}…). Use Find once now or Test search to retry.`;
+    }
     return `Auto-find is on — today's pack ran (${shard}…). Review people or wait until tomorrow.`;
   }
   return `Auto-find is on — Caleb rotates ${meta.poolSize} metros (today: ${shard}…). Geo Scanner → Qualifier → Enricher → Handoff.`;

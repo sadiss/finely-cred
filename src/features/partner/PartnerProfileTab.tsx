@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { ChevronRight, X } from 'lucide-react';
+import { CheckCircle2, ChevronRight, X } from 'lucide-react';
 import type { CustomFieldDefinition } from '../../domain/customFields';
 import type { FieldLayout } from '../../domain/fieldLayouts';
 import type { EntitlementKey } from '../../billing/entitlements';
@@ -54,15 +54,15 @@ function profileDarkGlassCard(tone: FcAdminTone | ProfileGlassTone = 'neutral') 
   return `fc-admin-dark-glass-card${tint} rounded-2xl border p-4 text-white`;
 }
 
-function profileDarkGlassHero(tone: FcAdminTone = 'gold') {
-  return `fc-admin-solid-${tone} rounded-2xl border p-4 sm:p-5`;
+function profileDarkGlassHero() {
+  return 'fc-admin-dark-glass-hero rounded-2xl border p-4 sm:p-5 text-white';
 }
 
 function profileDarkGlassCta(tone: ProfileGlassTone) {
   return `fc-admin-dark-glass-cta fc-admin-dark-glass-cta--${tone} px-3.5 py-2 text-xs font-semibold`;
 }
 
-function profileHeroChip(tone: 'gold' | 'emerald' | 'sky') {
+function profileHeroChip(tone: 'gold' | 'emerald' | 'sky' | 'violet') {
   return `fc-admin-solid-${tone} rounded-xl border p-3 min-w-0`;
 }
 
@@ -194,7 +194,7 @@ export function PartnerProfileTab(args: {
   setDeleteOpen: (v: boolean) => void;
   deletePhrase: string;
   setDeletePhrase: (v: string) => void;
-  onSaveProfile: () => void | Promise<void>;
+  onSaveProfile: () => void | Promise<void | boolean>;
   onResetProfileDraft: () => void;
   onDeletePartner: () => void | Promise<void>;
   onSaveFinancial: () => void | Promise<void>;
@@ -208,6 +208,9 @@ export function PartnerProfileTab(args: {
   const { partner, profileDraft, setProfileDraft } = args;
   const activeCount = Array.from(args.activeEntitlementKeys).length;
   const [activePanel, setActivePanel] = useState<ProfilePanel | null>(null);
+  const [contactSaveBusy, setContactSaveBusy] = useState(false);
+  const [contactSaveError, setContactSaveError] = useState<string | null>(null);
+  const [contactSaveNotice, setContactSaveNotice] = useState<string | null>(null);
   const partnerStatus = String(partner.status || 'lead');
   const profileName = profileDraft.fullName.trim() || partner.profile.fullName || 'Partner profile';
   const mailingSummary = [profileDraft.address1, profileDraft.address2, profileDraft.city, profileDraft.state, profileDraft.postalCode]
@@ -217,12 +220,46 @@ export function PartnerProfileTab(args: {
   const scoreSummary = args.latestScoresRows.length
     ? `${args.latestScoresRows.length} score model${args.latestScoresRows.length === 1 ? '' : 's'} available`
     : 'No score values on file';
+  const identityValues = args.customFieldDraft || {};
+  const ssnLast4 = String(identityValues.ssn_last4 || '').trim();
+  const dob = String(identityValues.dob || '').trim();
+  const monitorProvider = String(identityValues.credit_monitor_provider || '').trim();
+  const identitySummary =
+    ssnLast4 || dob
+      ? [dob ? `DOB ${dob}` : null, ssnLast4 ? `SSN •••${ssnLast4.slice(-4)}` : null].filter(Boolean).join(' · ')
+      : 'Identity fields not on file';
+  const monitoringSummary = monitorProvider || 'No monitoring provider on file';
 
   const closePopup = useCallback(() => {
     setActivePanel(null);
+    setContactSaveBusy(false);
+    setContactSaveError(null);
+    setContactSaveNotice(null);
     args.setDeleteOpen(false);
     args.setDeletePhrase('');
   }, [args.setDeleteOpen, args.setDeletePhrase]);
+
+  const handleSaveContact = useCallback(async () => {
+    if (!profileDraft.fullName.trim()) {
+      setContactSaveError('Full name is required before saving contact details.');
+      setContactSaveNotice(null);
+      return;
+    }
+    setContactSaveBusy(true);
+    setContactSaveError(null);
+    setContactSaveNotice(null);
+    try {
+      const result = await args.onSaveProfile();
+      if (result === false) {
+        throw new Error('Could not save contact details. Check the form and try again.');
+      }
+      setContactSaveNotice('Contact and mailing address saved.');
+    } catch (error) {
+      setContactSaveError((error as Error)?.message || 'Could not save contact details.');
+    } finally {
+      setContactSaveBusy(false);
+    }
+  }, [args.onSaveProfile, profileDraft.fullName]);
 
   useEffect(() => {
     if (!activePanel) return;
@@ -250,12 +287,12 @@ export function PartnerProfileTab(args: {
 
   return (
     <div className={`fc-admin-workspace fc-partner-profile-tab rounded-3xl border p-3 sm:p-4 ${FINELY_OS_PAGE}`}>
-      <section className={`${profileDarkGlassHero('gold')} w-full ${fcAdminOnSolidText('gold')}`}>
+      <section className={`${profileDarkGlassHero()} w-full`}>
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="min-w-0">
-            <p className={fcAdminOnSolidSublabel('gold')}>Partner profile</p>
-            <h2 className={`mt-1 truncate ${fcAdminOnSolidValue('gold')}`}>{profileName}</h2>
-            <p className={`mt-1 ${fcAdminOnSolidBody('gold')}`}>
+            <p className={FINELY_OS_DARK_GLASS_SUBLABEL}>Partner profile</p>
+            <h2 className={`mt-1 truncate ${FINELY_OS_DARK_GLASS_TITLE}`}>{profileName}</h2>
+            <p className={`mt-1 ${FINELY_OS_DARK_GLASS_BODY}`}>
               {profileDraft.email.trim() || 'Email not on file'} · {profileDraft.phone.trim() || 'Phone not on file'}
             </p>
           </div>
@@ -265,7 +302,7 @@ export function PartnerProfileTab(args: {
           </button>
         </div>
 
-        <dl className="mt-3 grid gap-2 sm:grid-cols-3">
+        <dl className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
           <div className={profileHeroChip('gold')}>
             <dt className={fcAdminOnSolidSublabel('gold')}>Mailing</dt>
             <dd className={`mt-1 truncate text-sm ${fcAdminOnSolidValue('gold')}`} title={mailingSummary || undefined}>
@@ -283,7 +320,23 @@ export function PartnerProfileTab(args: {
             <dt className={fcAdminOnSolidSublabel('sky')}>Credit snapshot</dt>
             <dd className={`mt-1 text-sm ${fcAdminOnSolidValue('sky')}`}>{scoreSummary}</dd>
           </div>
+          <div className={profileHeroChip('violet')}>
+            <dt className={fcAdminOnSolidSublabel('violet')}>Identity</dt>
+            <dd className={`mt-1 text-sm ${fcAdminOnSolidValue('violet')}`} title={identitySummary}>
+              {identitySummary}
+            </dd>
+          </div>
+          <div className={profileHeroChip('sky')}>
+            <dt className={fcAdminOnSolidSublabel('sky')}>Credit monitoring</dt>
+            <dd className={`mt-1 text-sm ${fcAdminOnSolidValue('sky')}`}>{monitoringSummary}</dd>
+          </div>
         </dl>
+        <div className="mt-2 flex flex-wrap gap-2">
+          <button type="button" className={profileDarkGlassCta('violet')} onClick={() => setActivePanel('fields')}>
+            Identity & monitoring fields
+            <ChevronRight size={15} aria-hidden="true" />
+          </button>
+        </div>
       </section>
 
       <div className="grid gap-3 md:grid-cols-2">
@@ -307,13 +360,6 @@ export function PartnerProfileTab(args: {
           description={`${activeCount} active portal modules · ${args.missingEntitlementKeys.length} missing. Grants and invites live in Access & authority below.`}
           buttonLabel="Open access panel"
           onClick={openAccessPanel}
-        />
-        <PartnerProfileLaunchCard
-          accent="violet"
-          title="Custom profile data"
-          description={`${args.customDefs.length} configured field definitions across the partner profile.`}
-          buttonLabel="Manage profile fields"
-          onClick={() => setActivePanel('fields')}
         />
         {args.isAdmin ? (
           <PartnerProfileLaunchCard
@@ -339,6 +385,17 @@ export function PartnerProfileTab(args: {
           description="Keep the partner’s identity, contact information, and mailing address current."
           onClose={closePopup}
         >
+          {contactSaveNotice ? (
+            <div className="mb-3 flex items-center gap-2 rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-100">
+              <CheckCircle2 size={16} className="shrink-0" aria-hidden="true" />
+              {contactSaveNotice}
+            </div>
+          ) : null}
+          {contactSaveError ? (
+            <div className="mb-3 rounded-xl border border-rose-400/30 bg-rose-500/10 px-3 py-2 text-sm text-rose-100" role="alert">
+              {contactSaveError}
+            </div>
+          ) : null}
           <div className="grid gap-3 sm:grid-cols-2">
             <div className="sm:col-span-2">
               <label className={FINELY_OS_ENTITY_LABEL}>Full name</label>
@@ -416,10 +473,15 @@ export function PartnerProfileTab(args: {
             </div>
           </div>
           <div className="mt-4 flex flex-wrap items-center gap-2">
-            <button type="button" className={profileDarkGlassCta('gold')} onClick={() => void args.onSaveProfile()}>
-              Save contact & mailing
+            <button
+              type="button"
+              className={profileDarkGlassCta('gold')}
+              disabled={contactSaveBusy}
+              onClick={() => void handleSaveContact()}
+            >
+              {contactSaveBusy ? 'Saving…' : 'Save contact & mailing'}
             </button>
-            <button type="button" className={FINELY_OS_DARK_SECONDARY_BTN} onClick={args.onResetProfileDraft}>
+            <button type="button" className={FINELY_OS_DARK_SECONDARY_BTN} disabled={contactSaveBusy} onClick={args.onResetProfileDraft}>
               Reset
             </button>
           </div>

@@ -220,7 +220,7 @@ export function buildLeadEngineReport(windowLabel = 'Today'): LeadEngineReport {
   const jobsRunning = store.jobs.filter((j) => j.status === 'running').length;
   const hotCandidates = store.candidates.filter((c) => c.score >= 60).length;
   const bottlenecks: string[] = [];
-  if (jobsQueued === 0 && jobsRunning === 0) bottlenecks.push('No active swarm jobs. Start or schedule continuous swarm.');
+  if (jobsQueued === 0 && jobsRunning === 0) bottlenecks.push('No active discovery jobs. Start or schedule continuous lead search.');
   if (store.actions.filter((a) => a.approvalStatus === 'draft').length > 25) bottlenecks.push('Action approvals are backing up. Review the Action Center.');
   if (store.shortLinks.length === 0) bottlenecks.push('No tracked short links created yet. Build action recommendations.');
   if (store.handoffs.length === 0) bottlenecks.push('No nurture handoffs. Connect high-score candidates to sequences.');
@@ -240,7 +240,7 @@ export function buildLeadEngineReport(windowLabel = 'Today'): LeadEngineReport {
     },
     bottlenecks,
     nextMoves: [
-      'Keep swarm running on the highest-priority cities first.',
+      'Keep discovery running on the highest-priority cities first.',
       'Approve safe action-center messages with tracked links.',
       'Deploy lead magnet pages and connect captures back to short links.',
       'Turn on nurture only when consent or manual outreach basis is clear.',

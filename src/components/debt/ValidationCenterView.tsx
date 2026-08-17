@@ -29,6 +29,7 @@ import { extractReportDebtSignals } from '../../lib/debtCreditorIntel';
 import { adminEmbeddedNavHref } from '../../lib/adminPartnerRoutes';
 import { isValidationTrackLetter } from '../../lib/letterProductLabels';
 import { buildIntelligentLetterSuggestions } from '../../lib/intelligentLetterSuggestions';
+import { debtVaultIntel } from '../../lib/letterVaultIntel';
 import { IntelligentLetterSuggestionsPanel } from '../letters/IntelligentLetterSuggestionsPanel';
 import { LetterStudioSavedVaultStrip } from '../letters/LetterStudioSavedVaultStrip';
 import { FinelyOsKpiGrid } from '../os/FinelyOsKpiGrid';
@@ -157,6 +158,11 @@ export function ValidationCenterView({
     [validationEntryFilter],
   );
 
+  const vaultIntel = React.useMemo(
+    () => (partner?.id && debt?.id ? debtVaultIntel(partner.id, debt.id) : null),
+    [partner?.id, debt?.id, storeVersion],
+  );
+
   const letterSuggestions = React.useMemo(
     () =>
       buildIntelligentLetterSuggestions({
@@ -164,8 +170,9 @@ export function ValidationCenterView({
         debt,
         partner,
         recommendedScenario,
+        savedVaultKeys: vaultIntel?.savedKeys,
       }),
-    [debt, partner, recommendedScenario],
+    [debt, partner, recommendedScenario, vaultIntel?.savedKeys],
   );
   const totalBalanceCents = signals.reduce((sum, s) => sum + (s.balanceCents ?? 0), 0);
   const totalBalanceLabel =
@@ -264,19 +271,6 @@ export function ValidationCenterView({
         />
       </div>
 
-      <DebtCreditorIntelPanel
-        partnerId={debt?.partnerId || partner?.id || debtCases[0]?.partnerId || ''}
-        adminPartnerId={adminPartnerId}
-        debt={debt}
-        reports={reports}
-        processedDocuments={processedDocuments}
-        mode="validation"
-        senderFields={senderFields}
-        onDebtChange={onDebtChange}
-        onSenderPersist={onSenderPersist}
-        compact
-      />
-
       <div id="fc-debt-step-choose" className="scroll-mt-3 space-y-3">
         {letterSuggestions.crossLink?.track === 'litigation' ? (
           <div className="rounded-2xl border border-fuchsia-400/35 bg-fuchsia-500/10 px-3 py-2.5 flex flex-wrap items-start justify-between gap-3">
@@ -304,38 +298,52 @@ export function ValidationCenterView({
             )}
           </div>
         ) : null}
-        <IntelligentLetterSuggestionsPanel
-          suggestions={letterSuggestions}
-          accent="sky"
-          busy={generateBusy}
-          error={generateError}
-          onBuild={({ letterType, catalogId }) => {
-            if (catalogId && onBuildCatalogDraft) onBuildCatalogDraft(catalogId);
-            else if (letterType) onBuildDraft(letterType);
-          }}
-        />
-        {partner ? (
-          <LetterStudioSavedVaultStrip
-            partnerId={partner.id}
-            types={['validation']}
-            storeVersion={storeVersion}
-            evidence={vaultEvidence}
-            accent="amber"
-            title="Your validation letters (vault)"
-            subtitle="Saved as soon as you generate — draft or PDF. Preview, mail, or delete here; full archive opens separately."
-            onOpenFullVault={onOpenLettersVault}
-            highlightLetterId={vaultHighlightLetterId}
-            suppressAutoPreview={suppressVaultAutoPreview}
-            onLetterSaved={onVaultLetterSaved}
-            canMail={canMailLetters}
-            onMailLetter={onMailLetter}
+        <div className="fc-debt-letter-workbench">
+          <DebtCreditorIntelPanel
+            partnerId={debt?.partnerId || partner?.id || debtCases[0]?.partnerId || ''}
+            adminPartnerId={adminPartnerId}
+            debt={debt}
+            reports={reports}
+            processedDocuments={processedDocuments}
+            mode="validation"
+            senderFields={senderFields}
+            onDebtChange={onDebtChange}
+            onSenderPersist={onSenderPersist}
+            letterStoreVersion={storeVersion}
+            compact
           />
-        ) : null}
+          <IntelligentLetterSuggestionsPanel
+            suggestions={letterSuggestions}
+            accent="sky"
+            busy={generateBusy}
+            error={generateError}
+            onBuild={({ letterType, catalogId }) => {
+              if (catalogId && onBuildCatalogDraft) onBuildCatalogDraft(catalogId);
+              else if (letterType) onBuildDraft(letterType);
+            }}
+          />
+          {partner ? (
+            <LetterStudioSavedVaultStrip
+              partnerId={partner.id}
+              types={['validation']}
+              storeVersion={storeVersion}
+              evidence={vaultEvidence}
+              accent="emerald"
+              title="Your validation letters (vault)"
+              subtitle="Saved as soon as you generate — preview, mail, or delete here."
+              onOpenFullVault={onOpenLettersVault}
+              highlightLetterId={vaultHighlightLetterId}
+              suppressAutoPreview={suppressVaultAutoPreview}
+              onLetterSaved={onVaultLetterSaved}
+              canMail={canMailLetters}
+              onMailLetter={onMailLetter}
+            />
+          ) : null}
+        </div>
         <LetterCatalogBrowser
           category="validation"
           accent="emerald"
           compactHeader
-          generateHeroMatch
           extraCategories={VALIDATION_EXTRA_CATEGORIES}
           letterHub="debt"
           filterEntry={validationEntryFilter}

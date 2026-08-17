@@ -22,6 +22,7 @@ import {
   getCourtroomPretrialProofNoticeBody,
   getCourtroomWrittenAnswerBody,
 } from './courtroomPackBodies';
+import { formatLetterSenderBlock } from '../lib/letterSenderBlock';
 import { stripLetterVendorBranding } from '../lib/letterBodySafety';
 import { formatLetterRecipientBlock, resolveLetterMailRecipient } from '../lib/letterMailingAddress';
 
@@ -375,24 +376,14 @@ function formatDebtorBlock(args: {
   debtorPhone?: string;
   debtorEmail?: string;
 }) {
-  const lines: string[] = [];
-  const name = safeText(args.debtorName);
-  if (name) lines.push(name);
-  const a1 = safeText(args.debtorAddress1);
-  const a2 = safeText(args.debtorAddress2);
-  if (a1) lines.push(a1);
-  if (a2) lines.push(a2);
-  const city = safeText(args.debtorCity);
-  const state = safeText(args.debtorState);
-  const zip = safeText(args.debtorPostalCode);
-  const cityStateZip = [city, state].filter(Boolean).join(', ') + (zip ? ` ${zip}` : '');
-  if (cityStateZip.trim()) lines.push(cityStateZip.trim());
-  // Name + mailing address only by default. Never auto-print email on letters
-  // (partner login / Finely emails must not appear on mailed PDF content).
-  const phone = safeText(args.debtorPhone);
-  if (phone) lines.push(phone);
-  if (lines.length <= 1) return `[Your Name and Address]`;
-  return lines.join('\n');
+  return formatLetterSenderBlock({
+    name: args.debtorName,
+    address1: args.debtorAddress1,
+    address2: args.debtorAddress2,
+    city: args.debtorCity,
+    state: args.debtorState,
+    postalCode: args.debtorPostalCode,
+  });
 }
 
 function formatRecipientBlock(args: {
@@ -762,8 +753,8 @@ export function getLetterBody(
   letterType: import('../domain/debtLegal').DebtLetterType,
   args: DebtLetterBuildArgs,
 ): string {
-  // Never inject partner/login email onto mailed letter paper by default.
-  const safeArgs: DebtLetterBuildArgs = { ...args, debtorEmail: undefined };
+  // Never inject partner phone/email onto mailed letter paper by default.
+  const safeArgs: DebtLetterBuildArgs = { ...args, debtorEmail: undefined, debtorPhone: undefined };
   const baseLitigation = toLitigationLetterArgs(safeArgs);
   // Roosevelt Midland–Citi demo merge only when partner/debt match (never stamps other partners).
   const litigation = applyRooseveltCourtDemoIfNeeded({

@@ -181,7 +181,7 @@ export function GrowthAgentCalebCommandGuide({ tick = 0 }: { tick?: number }) {
               <div className={FINELY_OS_ENTITY_SUBLABEL}>Overnight</div>
               <p className={`mt-2 text-sm ${FINELY_OS_ENTITY_BODY}`}>
                 With deploy + optional live worker: about <strong className="text-white">one pack per night</strong> when
-                sleep mode is On — same caps as manual Daily pack. Swarm / Overnight50 dashboards are ops simulation unless
+                sleep mode is On — same caps as manual Daily pack. Practice mode / Overnight50 dashboards are ops simulation unless
                 worker is live.
               </p>
             </div>

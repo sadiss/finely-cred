@@ -7,6 +7,7 @@ import { getSecuritizationAnswerBody } from './specialized/securitizationBodies'
 import { getCounterclaimOutlineBody } from './specialized/counterclaimBodies';
 import { getCreditCollateralBureauBody } from './specialized/creditCollateralBureauBodies';
 import { isCourtDayKitId, stripLetterVendorBranding } from '../lib/letterBodySafety';
+import { formatLetterSenderBlock } from '../lib/letterSenderBlock';
 import { formatLetterRecipientBlock, resolveLetterMailRecipient } from '../lib/letterMailingAddress';
 
 export const COURT_DAY_KIT_UI_ONLY_ERROR =
@@ -38,13 +39,16 @@ const OUTLINE_SECTIONS: Record<string, (e: DebtLetterCatalogEntry, a: DebtLetter
  * Catalog metadata (whenToUse / keyPrinciple) stays in UI suggestion cards, never on paper.
  */
 function genericOutline(e: DebtLetterCatalogEntry, args: DebtLetterBuildArgs): string {
-  const senderLines = [
-    args.debtorName,
-    args.debtorAddress1,
-    args.debtorAddress2,
-    [args.debtorCity, args.debtorState, args.debtorPostalCode].filter(Boolean).join(', '),
-    args.debtorPhone ? `Phone: ${args.debtorPhone}` : '',
-  ].filter(Boolean);
+  const senderLines = formatLetterSenderBlock({
+    name: args.debtorName,
+    address1: args.debtorAddress1,
+    address2: args.debtorAddress2,
+    city: args.debtorCity,
+    state: args.debtorState,
+    postalCode: args.debtorPostalCode,
+  })
+    .split('\n')
+    .filter(Boolean);
   const recipient = formatLetterRecipientBlock(
     resolveLetterMailRecipient({
       recipientName: args.recipientName,
@@ -104,7 +108,7 @@ export function generateCatalogLetterBody(catalogId: string, args: DebtLetterBui
     throw new Error(COURT_DAY_KIT_UI_ONLY_ERROR);
   }
 
-  const safeArgs: DebtLetterBuildArgs = { ...args, debtorEmail: undefined };
+  const safeArgs: DebtLetterBuildArgs = { ...args, debtorEmail: undefined, debtorPhone: undefined };
   const entry = catalogEntryById(catalogId);
   let body = '';
   if (!entry) {

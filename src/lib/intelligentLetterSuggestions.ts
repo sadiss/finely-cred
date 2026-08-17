@@ -151,6 +151,8 @@ export function buildIntelligentLetterSuggestions(args: {
     writtenOrderOnFile?: boolean;
     plan?: { monthlyCents?: number; termMonths?: number } | null;
   } | null;
+  /** catalogId / letterSpecId keys already in vault for this case — skip when ranking next letter */
+  savedVaultKeys?: string[];
 }): IntelligentLetterSuggestions {
   const debt = args.debt ?? null;
   const hearingIso = (debt?.hearingDate || '').slice(0, 10);
@@ -414,6 +416,13 @@ export function buildIntelligentLetterSuggestions(args: {
   }
 
   // Guarantee at least one suggestion
+  if (args.savedVaultKeys?.length) {
+    const saved = new Set(args.savedVaultKeys);
+    for (const key of [...bag.keys()]) {
+      if (saved.has(key)) bag.delete(key);
+    }
+  }
+
   if (bag.size === 0) {
     push({
       letterType: 'validation_request',

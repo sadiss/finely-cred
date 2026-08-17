@@ -20,7 +20,7 @@ export function StaffOrgChartPanel({ onSelectDepartment }: { onSelectDepartment?
         </div>
         <h2 className={`mt-2 ${STAFF_CMD_TITLE}`}>One company floor — departments stack vertically</h2>
         <p className={`mt-2 max-w-4xl text-sm ${STAFF_CMD_BODY}`}>
-          Lead Intel is a department inside Staff Command. Scout, Night Owl, Pipeline Titan, and Switchboard own the swarm — not a separate mystery agent list.
+          Lead Intel is a department inside Staff Command. Lead Research, overnight discovery, Lead Discovery, and Switchboard own lead search tools — not a separate mystery agent list.
         </p>
       </div>
 

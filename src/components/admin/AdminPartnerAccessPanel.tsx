@@ -31,7 +31,9 @@ import {
   fcAdminOnSolidSecondaryBtn,
   fcAdminOnSolidSublabel,
   fcAdminOnSolidValue,
+  type FcAdminTone,
 } from '../../features/os/finelyOsAdminSurface';
+import { adminPanelAccentAt } from '../../lib/adminPanelAccentRotation';
 import { PartnerSignupActivityPanel } from './PartnerSignupActivityPanel';
 import {
   trackPartnerInviteSent,
@@ -58,6 +60,15 @@ const NOTICE_SUCCESS_ON_GOLD =
 const NOTICE_WARN_ON_GOLD =
   'rounded-xl border border-[#7c4a0f]/30 bg-[#7c4a0f]/16 p-4 text-sm text-[var(--fc-ink-on-gold)]';
 const ERR_ON_GOLD = 'text-[13px] font-semibold text-[#5c1710]';
+
+function accessMetaCell(tone: FcAdminTone, label: string, value: React.ReactNode) {
+  return (
+    <div className={fcAdminOnSolidInnerTile('!p-3', tone)}>
+      <div className={fcAdminOnSolidSublabel(tone)}>{label}</div>
+      <div className={`mt-1 ${fcAdminOnSolidValue(tone)}`}>{value}</div>
+    </div>
+  );
+}
 
 type Props = {
   partner: Partner;
@@ -420,37 +431,22 @@ export function AdminPartnerAccessPanel({ partner, userRole, onUpdated }: Props)
           </div>
         )}
 
-        <div className="grid md:grid-cols-2 gap-4 text-sm">
-          <div>
-            <div className={NAVY_SUBLABEL}>Login email</div>
-            <div className={`mt-1 font-mono ${NAVY_VALUE}`}>{email || '—'}</div>
-          </div>
-          <div>
-            <div className={NAVY_SUBLABEL}>Account claimed</div>
-            <div className={`mt-1 ${NAVY_VALUE}`}>
-              {partner.claimedUserId ? 'Yes — linked to auth user' : accessState.hasAuthAccount ? 'Auth account exists — linking…' : 'No — admin-created or pending claim'}
-            </div>
-          </div>
-          <div>
-            <div className={NAVY_SUBLABEL}>Signup status</div>
-            <div className={`mt-1 ${NAVY_VALUE}`}>{accessState.label}</div>
-          </div>
-          <div>
-            <div className={NAVY_SUBLABEL}>Service lane</div>
-            <div className={`mt-1 ${NAVY_VALUE}`}>{serviceLabel}</div>
-          </div>
-          <div>
-            <div className={NAVY_SUBLABEL}>Post-login landing</div>
-            <div className={`mt-1 font-mono ${NAVY_VALUE}`}>{landing}</div>
-          </div>
-          <div>
-            <div className={NAVY_SUBLABEL}>Welcome email (comms delivery)</div>
-            <div className={`mt-1 ${NAVY_VALUE}`}>{commsOn ? 'Enabled — can send/resend' : 'Disabled in feature flags'}</div>
-          </div>
-          <div>
-            <div className={NAVY_SUBLABEL}>Invite delivery</div>
-            <div className={`mt-1 ${NAVY_VALUE}`}>{inviteOn ? 'Enabled — can send/resend signup invites' : 'Disabled in feature flags'}</div>
-          </div>
+        <div className="grid md:grid-cols-2 gap-3 text-sm">
+          {accessMetaCell('sky', 'Login email', <span className="font-mono">{email || '—'}</span>)}
+          {accessMetaCell(
+            'violet',
+            'Account claimed',
+            partner.claimedUserId
+              ? 'Yes — linked to auth user'
+              : accessState.hasAuthAccount
+                ? 'Auth account exists — linking…'
+                : 'No — admin-created or pending claim',
+          )}
+          {accessMetaCell('emerald', 'Signup status', accessState.label)}
+          {accessMetaCell('gold', 'Service lane', serviceLabel)}
+          {accessMetaCell('rose', 'Post-login landing', <span className="font-mono">{landing}</span>)}
+          {accessMetaCell('navy', 'Welcome email (comms delivery)', commsOn ? 'Enabled — can send/resend' : 'Disabled in feature flags')}
+          {accessMetaCell('sky', 'Invite delivery', inviteOn ? 'Enabled — can send/resend signup invites' : 'Disabled in feature flags')}
         </div>
 
         {!partner.claimedUserId ? null : (
@@ -596,9 +592,9 @@ export function AdminPartnerAccessPanel({ partner, userRole, onUpdated }: Props)
           <div className={GOLD_VALUE}>Invite setups & signup outreach</div>
         </div>
 
-        <div className={`${GOLD_INNER} space-y-2`}>
-          <div className={`font-semibold ${GOLD_VALUE}`}>Stuck signup? Use this playbook</div>
-          <ul className={`list-disc pl-4 space-y-1 ${GOLD_BODY}`}>
+        <div className={`${fcAdminOnSolidInnerTile('space-y-2', 'sky')} `}>
+          <div className={`font-semibold ${fcAdminOnSolidValue('sky')}`}>Stuck signup? Use this playbook</div>
+          <ul className={`list-disc pl-4 space-y-1 ${fcAdminOnSolidBody('sky')}`}>
             {!claimed ? (
               <>
                 <li>
@@ -643,22 +639,25 @@ export function AdminPartnerAccessPanel({ partner, userRole, onUpdated }: Props)
           </details>
         ) : null}
 
-        <div className={`${GOLD_INNER} space-y-3`}>
-          <div className={GOLD_SUBLABEL}>Invite setup fields for this role/lane</div>
+        <div className={`${fcAdminOnSolidInnerTile('space-y-3', 'violet')}`}>
+          <div className={fcAdminOnSolidSublabel('violet')}>Invite setup fields for this role/lane</div>
           <div className="grid md:grid-cols-2 gap-3">
-            {roleFields.map((field) => (
-              <div key={field.label} className={`${GOLD_INNER} !p-3`}>
-                <div className={`text-sm font-semibold ${GOLD_VALUE}`}>{field.label}</div>
-                <div className={`mt-1 text-xs leading-relaxed ${GOLD_BODY}`}>{field.detail}</div>
+            {roleFields.map((field, i) => {
+              const tileTone = adminPanelAccentAt(i, ['emerald', 'sky', 'navy', 'rose']);
+              return (
+              <div key={field.label} className={fcAdminOnSolidInnerTile('!p-3', tileTone)}>
+                <div className={`text-sm font-semibold ${fcAdminOnSolidValue(tileTone)}`}>{field.label}</div>
+                <div className={`mt-1 text-xs leading-relaxed ${fcAdminOnSolidBody(tileTone)}`}>{field.detail}</div>
               </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 
         {!partner.claimedUserId && signupInviteLink ? (
-          <div className={`${GOLD_INNER} space-y-3`}>
-            <div className={GOLD_SUBLABEL}>Signup invite link (share anytime)</div>
-            <div className={`text-xs ${GOLD_BODY}`}>
+          <div className={`${fcAdminOnSolidInnerTile('space-y-3', 'emerald')}`}>
+            <div className={fcAdminOnSolidSublabel('emerald')}>Signup invite link (share anytime)</div>
+            <div className={`text-xs ${fcAdminOnSolidBody('emerald')}`}>
               Pre-fills their email and role. Works even if email delivery failed — copy and send via text or any channel.
             </div>
             <div className="flex flex-wrap gap-2">
@@ -682,16 +681,16 @@ export function AdminPartnerAccessPanel({ partner, userRole, onUpdated }: Props)
         {err ? <div className={ERR_ON_GOLD}>{err}</div> : null}
 
         {(inviteState.sentAt || resetState.sentAt || welcomeState.sentAt) ? (
-          <div className={`${GOLD_INNER} text-xs space-y-1`}>
-            <div className={GOLD_SUBLABEL}>Recent outbound notifications</div>
+          <div className={`${fcAdminOnSolidInnerTile('text-xs space-y-1', 'navy')}`}>
+            <div className={fcAdminOnSolidSublabel('navy')}>Recent outbound notifications</div>
             {inviteState.sentAt ? (
-              <div className={GOLD_BODY}>Invite email — {formatAdminDeliveryWhen(inviteState.sentAt)}</div>
+              <div className={fcAdminOnSolidBody('navy')}>Invite email — {formatAdminDeliveryWhen(inviteState.sentAt)}</div>
             ) : null}
             {resetState.sentAt ? (
-              <div className={GOLD_BODY}>Password reset — {formatAdminDeliveryWhen(resetState.sentAt)}</div>
+              <div className={fcAdminOnSolidBody('navy')}>Password reset — {formatAdminDeliveryWhen(resetState.sentAt)}</div>
             ) : null}
             {welcomeState.sentAt ? (
-              <div className={GOLD_BODY}>Welcome email — {formatAdminDeliveryWhen(welcomeState.sentAt)}</div>
+              <div className={fcAdminOnSolidBody('navy')}>Welcome email — {formatAdminDeliveryWhen(welcomeState.sentAt)}</div>
             ) : null}
           </div>
         ) : null}

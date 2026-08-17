@@ -22,8 +22,8 @@ const cityOptions = ['dallas', 'houston', 'atlanta', 'phoenix', 'charlotte', 'mi
 
 export function HumanStaffMissionControlPanel({ selectedIds, onChanged }: { selectedIds: HumanStaffAgentId[]; onChanged: () => void }) {
   const [missionType, setMissionType] = useState('deep_swarm');
-  const [title, setTitle] = useState('Deep Swarm clarity and action cards');
-  const [objective, setObjective] = useState('Make Start Swarm easy to understand, staff-owned, and connected to lead action cards.');
+  const [title, setTitle] = useState('Lead discovery clarity and action cards');
+  const [objective, setObjective] = useState('Make lead discovery easy to understand, staff-owned, and connected to lead action cards.');
   const [cityIds, setCityIds] = useState<string[]>(['dallas', 'houston']);
   const [riskLevel, setRiskLevel] = useState<'low' | 'medium' | 'high'>('medium');
   const recommendation = useMemo(() => explainWhoShouldRun(missionType), [missionType]);

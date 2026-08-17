@@ -12,6 +12,13 @@ import {
   FINELY_OS_MODAL_HEADER,
   finelyOsCatalogCard,
 } from '../os/finelyOsLightUi';
+import {
+  fcAdminCard,
+  fcAdminOnSolidBody,
+  fcAdminOnSolidSublabel,
+  fcAdminOnSolidValue,
+} from '../os/finelyOsAdminSurface';
+import { adminPanelSectionTone } from '../../lib/adminPanelAccentRotation';
 import { FinelyOsModalCloseButton } from '../os/FinelyOsModalCloseButton';
 
 const SECTION_HINTS: Record<string, string> = {
@@ -74,32 +81,28 @@ export function PartnerProfileFieldSections(args: {
   return (
     <>
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-2">
-        {sections.map((s) => {
+        {sections.map((s, index) => {
           const filled = sectionHasData(s.fieldDefs, args.values);
+          const tone = adminPanelSectionTone(s.id, index);
           return (
             <button
               key={s.id}
               type="button"
               onClick={() => setOpenSectionId(s.id)}
-              className={
-                'text-left rounded-xl border px-4 py-3 transition-all hover:scale-[1.01] ' +
-                (filled
-                  ? 'border-[var(--fc-admin-status-ok)]/35 bg-[var(--fc-admin-status-ok)]/[0.06] hover:border-[var(--fc-admin-status-ok)]/55'
-                  : 'border-[var(--fc-admin-border)] bg-[var(--fc-admin-surface-sunken)] hover:border-[var(--fc-admin-border-strong)]')
-              }
+              className={`text-left transition-all hover:scale-[1.01] ${fcAdminCard('px-4 py-3', tone, 'solid')}`}
             >
               <div className="flex items-center gap-2">
                 {filled ? (
-                  <Check size={14} className="text-[var(--fc-admin-status-ok)] shrink-0" />
+                  <Check size={14} className={`${fcAdminOnSolidValue(tone)} shrink-0`} />
                 ) : (
-                  <Plus size={14} className="text-[var(--fc-admin-accent)] shrink-0" />
+                  <Plus size={14} className={`${fcAdminOnSolidValue(tone)} shrink-0 opacity-80`} />
                 )}
-                <span className="text-sm font-semibold tracking-tight text-[var(--fc-admin-ink)]">{s.title}</span>
+                <span className={`text-sm font-semibold tracking-tight ${fcAdminOnSolidValue(tone)}`}>{s.title}</span>
               </div>
-              <p className="mt-1.5 text-xs leading-snug text-[var(--fc-admin-ink-muted)]">
+              <p className={`mt-1.5 text-xs leading-snug ${fcAdminOnSolidBody(tone)}`}>
                 {SECTION_HINTS[s.id] ?? 'Tap to open and fill out'}
               </p>
-              <p className="mt-1 text-[10px] uppercase tracking-wider text-[var(--fc-admin-ink-faint)]">
+              <p className={`mt-1 text-[10px] uppercase tracking-wider ${fcAdminOnSolidSublabel(tone)}`}>
                 {filled ? 'Edit section' : 'Add info'}
               </p>
             </button>

@@ -110,10 +110,15 @@ export function LeadIntelSwarmDashboard() {
       <div className={`${finelyOsCatalogCardCompact('emerald')} relative overflow-hidden`}>
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="max-w-3xl">
-            <div className="inline-flex items-center gap-2 text-emerald-300 text-xs font-black uppercase tracking-[0.2em]">
-              <Radar size={14} /> Lead Intel Deep Swarm
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="inline-flex items-center gap-2 text-emerald-300 text-xs font-black uppercase tracking-[0.2em]">
+                <Radar size={14} /> Lead Intel practice mode
+              </div>
+              <span className="rounded-full border border-amber-400/30 bg-amber-500/15 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest text-amber-200">
+                Simulation
+              </span>
             </div>
-            <h2 className="mt-2 text-xl font-black text-white">Deep swarm + live Serper bridge</h2>
+            <h2 className="mt-2 text-xl font-black text-white">Practice queue + live Serper bridge</h2>
             <p className="mt-2 text-white/65 text-sm">
               Local ticks train ops cadence. Real partner leads land in{' '}
               <strong className="text-emerald-200">Marketing Desk → Find</strong> or Caleb when Serper is wired.
@@ -129,7 +134,7 @@ export function LeadIntelSwarmDashboard() {
           </div>
           <div className="flex flex-wrap gap-2">
             <button type="button" onClick={start} disabled={busy} className={FINELY_OS_SECONDARY_BTN}>
-              <Play size={14} /> {busy ? 'Queuing…' : 'Start swarm'}
+              <Play size={14} /> {busy ? 'Queuing…' : 'Start practice queue'}
             </button>
             <button type="button" onClick={() => { setSwarmEnabled(!enabled); setEnabled(!enabled); }} className={FINELY_OS_SECONDARY_BTN}>
               {enabled ? <Pause size={14} /> : <Play size={14} />} {enabled ? 'Pause' : 'Resume'}
@@ -181,7 +186,7 @@ export function LeadIntelSwarmDashboard() {
           </div>
         </div>
         {liveMsg ? <p className="text-xs text-sky-200/90">{liveMsg}</p> : null}
-        <a href="/admin/marketing-desk?helper=find" className="inline-flex items-center gap-1 text-xs text-amber-200 hover:text-amber-100">
+        <a href="/admin/marketing?tab=desk&helper=find" className="inline-flex items-center gap-1 text-xs text-amber-200 hover:text-amber-100">
           Open Find for live imports <ArrowRight size={12} />
         </a>
       </div>
@@ -229,7 +234,7 @@ export function LeadIntelSwarmDashboard() {
         <div className="rounded-2xl border border-white/10 bg-black/30 p-4">
           <div className="flex items-center justify-between gap-3"><h3 className="text-white font-black text-sm">Ops feed</h3><span className="inline-flex items-center gap-2 text-amber-200/90 text-xs"><Activity size={14} /> {enabled ? 'sim + live bridge' : 'paused'}</span></div>
           <div className="mt-3 space-y-2 max-h-[420px] overflow-y-auto pr-1">
-            {feed.length === 0 ? <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4 text-white/55 text-sm">Start deep swarm or run Live bridge to see feed events.</div> : feed.map((f) => (
+            {feed.length === 0 ? <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4 text-white/55 text-sm">Start the practice queue or run Live bridge to see feed events.</div> : feed.map((f) => (
               <div key={f.id} className="rounded-xl border border-white/10 bg-white/[0.025] p-3">
                 <div className="flex items-start justify-between gap-3"><div className="text-white/80 text-sm"><span className="text-amber-200 font-bold">{staffFeedAgentLabel(f.agent)}</span> • {f.city}</div><span className="text-[10px] uppercase tracking-widest text-white/35">{f.severity}</span></div>
                 <div className="mt-1 text-white/65 text-sm">{f.message}</div>

@@ -35,7 +35,7 @@ export type GrowthExecutionStep = {
 };
 
 const DELEGATE_LABEL: Record<GrowthDelegate, string> = {
-  cmo_prime: 'CMO Prime',
+  cmo_prime: 'Marketing lead',
   night_owl_intel: 'Night Owl Intel',
   geo_commander: 'Geo Commander',
   nurture_concierge: 'Nurture Concierge',
@@ -58,15 +58,15 @@ export function planGrowthExecution(message: string, surface: 'cmo' | 'lead_inte
 
   const swarmLabel =
     surface === 'lead_intel'
-      ? 'Queue simulation deep-swarm jobs (Overnight50 cadence — not live Serper)'
-      : 'Start deep Lead Intel swarm (multi-hour discovery)';
+      ? 'Queue simulation discovery jobs (Overnight50 cadence — not live Serper)'
+      : 'Start continuous Lead Intel discovery (multi-hour)';
   const geoLabel =
     surface === 'lead_intel'
-      ? 'Queue simulation geo-scoped swarm jobs (ops cadence)'
+      ? 'Queue simulation geo-scoped discovery jobs (ops cadence)'
       : 'Rotate geo queries across priority cities';
   const bgIntelLabel =
     surface === 'lead_intel'
-      ? 'Queue simulation background swarm (use Caleb Find for live search)'
+      ? 'Queue simulation background discovery (use Caleb Find for live search)'
       : 'Start background intel discovery';
 
   if (/\b(swarm|scrape|scraper|discover|prospect|intel|search everywhere|all day|overnight)\b/.test(lower)) {
@@ -96,7 +96,7 @@ export function planGrowthExecution(message: string, surface: 'cmo' | 'lead_inte
   }
 
   if (/\b(execute|run it|do it|automate|hands?.off|make it happen)\b/.test(lower) && steps.length === 0) {
-    add(surface === 'lead_intel' ? swarmLabel : 'Start deep Lead Intel swarm', 'night_owl_intel', 'start_deep_swarm');
+    add(surface === 'lead_intel' ? swarmLabel : 'Start continuous Lead Intel discovery', 'night_owl_intel', 'start_deep_swarm');
     add('Stage default growth playbook', 'cmo_prime', 'stage_playbook');
   }
 
@@ -128,8 +128,8 @@ export async function runGrowthExecutionStep(
         });
         const result =
           surface === 'lead_intel'
-            ? `Queued ${jobs.length} simulation swarm jobs. ${simSwarmNote}`
-            : `Deep swarm queued ${jobs.length} jobs. Discovery runs for hours — check Live feed.`;
+            ? `Queued ${jobs.length} simulation discovery jobs. ${simSwarmNote}`
+            : `Discovery queue started — ${jobs.length} jobs. Runs for hours — check Live feed.`;
         return { ...next, status: 'done', result };
       }
       case 'geo_scan': {
@@ -177,7 +177,7 @@ export async function runGrowthExecutionStep(
           updatedAt: cmoNowIso(),
           role: 'cmo_prime',
           title: 'Morning growth brief',
-          body: 'Review Overnight50 ledger, swarm stats, and top channel movers.',
+          body: 'Review Overnight50 ledger, practice-mode stats, and top channel movers.',
           priority: 'high',
           status: 'needs_review',
           actions: [],
@@ -211,15 +211,15 @@ export function buildExecutionAwareSystemPrompt(surface: 'cmo' | 'lead_intel') {
   const capabilities =
     surface === 'lead_intel'
       ? [
-          'Live prospect search via Caleb Find (Marketing Desk) and lead-intel edge (Serper) — not via fake swarm counters',
-          'Queue simulation deep-swarm / Overnight50 jobs for ops cadence only — label them simulation',
+          'Live prospect search via Caleb Find (Marketing Desk) and lead-intel edge (Serper) — not via practice-mode counters',
+          'Queue simulation discovery / Overnight50 jobs for ops cadence only — label them simulation',
           'Background worker lead-intel-worker-tick: simulation unless GROWTH_WORKER_LIVE=true',
           'Stage CMO playbooks → campaigns → Comms/Media/scheduler drafts',
           'Score and route hot prospects (import needs admin confirm in staging)',
           'Never auto-publish external or send without approval when risk is medium+',
         ]
       : [
-          'Start deep Lead Intel swarm (hours-long multi-source discovery)',
+          'Start continuous Lead Intel discovery (hours-long multi-source)',
           'Enqueue geo scans for Dallas, Houston, Atlanta, Phoenix, Charlotte',
           'Stage CMO playbooks → campaigns → Comms/Media/scheduler drafts',
           'Delegate to Night Owl Intel, Geo Commander, Nurture Concierge, Content Director, Compliance Officer',
@@ -228,13 +228,13 @@ export function buildExecutionAwareSystemPrompt(surface: 'cmo' | 'lead_intel') {
         ];
   const leadIntelTruth =
     surface === 'lead_intel'
-      ? '\nLead Intel truth: Overnight50/deep-swarm UI counters are simulation unless explicitly live. Always steer owners to Caleb Find for real imports.'
+      ? '\nLead Intel truth: Overnight50/practice-mode UI counters are simulation unless explicitly live. Always steer owners to Caleb Find for real imports.'
       : '';
-  return `You are Finely Cred ${surface === 'cmo' ? 'CMO Prime' : 'Lead Intelligence Director'}. You ALREADY KNOW the full execution playbook. When asked a question:
+  return `You are Finely Cred ${surface === 'cmo' ? 'Marketing lead' : 'Lead Intelligence Director'}. You ALREADY KNOW the full execution playbook. When asked a question:
 1) Answer directly with strategy
 2) List what you will execute now vs what needs approval
 3) Name which delegate owns each step
-You can execute internally: ${surface === 'lead_intel' ? 'simulation swarm queues, playbooks, drafts' : 'swarm, playbooks, drafts, geo queues'}. You cannot bypass compliance.${leadIntelTruth}
+You can execute internally: ${surface === 'lead_intel' ? 'simulation discovery queues, playbooks, drafts' : 'discovery queues, playbooks, drafts, geo queues'}. You cannot bypass compliance.${leadIntelTruth}
 
 Capabilities you control:
 ${capabilities.map((c) => `- ${c}`).join('\n')}

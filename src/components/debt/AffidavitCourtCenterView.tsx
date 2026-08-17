@@ -38,6 +38,7 @@ import {
 import { PartnerCourtOutcomePanel } from './PartnerCourtOutcomePanel';
 import { getDebtBuyerCaseIntel } from '../../legal/litigation/debtBuyerCaseIntelligence';
 import { buildIntelligentLetterSuggestions } from '../../lib/intelligentLetterSuggestions';
+import { debtVaultIntel } from '../../lib/letterVaultIntel';
 import { isCourtTrackLetter, letterGenerateCtaLabel } from '../../lib/letterProductLabels';
 import type { DebtLetterCatalogEntry, LetterCatalogCategory } from '../../legal/debtLetterCatalog';
 import { IntelligentLetterSuggestionsPanel } from '../letters/IntelligentLetterSuggestionsPanel';
@@ -223,6 +224,16 @@ export function AffidavitCourtCenterView({
   const [appliedOnce, setAppliedOnce] = useState(false);
   const [builtAnswer, setBuiltAnswer] = useState(false);
   const [builtAffidavit, setBuiltAffidavit] = useState(false);
+  const vaultIntel = useMemo(
+    () => (partner?.id && debtId ? debtVaultIntel(partner.id, debtId) : null),
+    [partner?.id, debtId, storeVersion],
+  );
+
+  useEffect(() => {
+    if (!vaultIntel) return;
+    if (vaultIntel.hasAnswerDraft) setBuiltAnswer(true);
+    if (vaultIntel.hasAffidavitDraft) setBuiltAffidavit(true);
+  }, [vaultIntel?.hasAnswerDraft, vaultIntel?.hasAffidavitDraft]);
   const [hearingKitOpen, setHearingKitOpen] = useState(false);
 
   // Once a matter ends in a payment plan, the plan — not the pipeline — is the main event.
@@ -324,12 +335,14 @@ export function AffidavitCourtCenterView({
         partner,
         recommendedScenario,
         hasSummonsDoc,
-        hasAnswerDraft: builtAnswer,
-        hasAffidavitDraft: builtAffidavit,
+        hasAnswerDraft: builtAnswer || Boolean(vaultIntel?.hasAnswerDraft),
+        hasAffidavitDraft: builtAffidavit || Boolean(vaultIntel?.hasAffidavitDraft),
+        hasDiscoveryDraft: Boolean(vaultIntel?.hasDiscoveryDraft),
+        savedVaultKeys: vaultIntel?.savedKeys,
         // Decided matter → plan-compliance next steps, never "answer the lawsuit".
         courtOutcome,
       }),
-    [debt, partner, recommendedScenario, hasSummonsDoc, builtAnswer, builtAffidavit, courtOutcome],
+    [debt, partner, recommendedScenario, hasSummonsDoc, builtAnswer, builtAffidavit, courtOutcome, vaultIntel],
   );
 
   /** Court lane renders court products only — validation demands stay on the Validation lane. */

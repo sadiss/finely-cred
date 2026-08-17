@@ -160,6 +160,7 @@ export async function runBenjaminPartnershipReview(): Promise<BenjaminPartnershi
             recordId: affiliate.id,
             href: '/admin/lead-acquisition',
             tags: ['benjamin-partnership', 'persona:partnerships'],
+            growthAgentId: 'partnerships',
             priority: 'normal',
             dueAt: new Date(Date.now() + 72 * 3600 * 1000).toISOString(),
             meta: { affiliateId: affiliate.id, reason },

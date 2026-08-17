@@ -30,10 +30,10 @@ export function LeadIntelStaffRosterPanel({ compact = false }: { compact?: boole
             <Users size={16} /> Lead Intel staff (from Command Center)
           </div>
           <h2 className={`mt-2 ${STAFF_CMD_TITLE}`}>
-            {compact ? 'Your swarm operators' : 'One roster — Lead Intel pulls from Staff Command Center'}
+            {compact ? 'Your lead discovery operators' : 'One roster — Lead Intel pulls from Staff Command Center'}
           </h2>
           <p className={`mt-2 text-sm ${STAFF_CMD_BODY}`}>
-            Deep Swarm is the system process. These named staff own discovery, pipeline, overnight runs, geo routing,
+            Continuous discovery is a system process. These named staff own discovery, pipeline, overnight runs, geo routing,
             automation queues, and compliance gates. Edit their profiles in Staff Command Center → Roster.
           </p>
         </div>

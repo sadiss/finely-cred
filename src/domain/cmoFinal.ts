@@ -241,7 +241,7 @@ export interface CmoOpportunity {
 }
 
 export const DEFAULT_CMO_PERSONALITY_SETTINGS: CmoPersonalitySettings = {
-  name: 'CMO Prime',
+  name: 'Esther Hayes',
   staffTitle: 'Chief Marketing Officer + Growth Operator',
   humorMode: 'executive_witty',
   toneMode: 'luxury',

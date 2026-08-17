@@ -1,14 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { ArrowRight, Eye, FileText, Loader2, Sparkles } from 'lucide-react';
+import { Eye, Sparkles } from 'lucide-react';
 import type { DebtLetterType } from '../../domain/debtLegal';
 import type { IntelligentLetterSuggestions, RankedLetterSuggestion } from '../../lib/intelligentLetterSuggestions';
+import { FINELY_OS_ENTITY_BODY, finelyOsStatusChip } from '../../features/os/finelyOsLightUi';
 import {
-  FINELY_OS_ENTITY_BODY,
-  FINELY_OS_PRIMARY_BTN,
-  FINELY_OS_SECONDARY_BTN,
-  finelyOsGlowTile,
-  finelyOsStatusChip,
-} from '../../features/os/finelyOsLightUi';
+  LETTER_TEMPLATE_CATALOG_GRID,
+  LETTER_TEMPLATE_CATALOG_SHELL,
+  LetterTemplateCatalogCard,
+} from '../debt/LetterTemplateCatalogCard';
 import '../debt/validationDebtLayout.css';
 
 export const LETTER_SUGGEST_PANEL_ID = 'fc-letter-suggest-panel';
@@ -21,11 +20,26 @@ function urgencyChip(u: RankedLetterSuggestion['urgency']) {
   return finelyOsStatusChip('ok');
 }
 
+function suggestionMetaRow(s: RankedLetterSuggestion, primary = false) {
+  return (
+    <div className="flex flex-wrap items-center justify-between gap-1.5">
+      <div className="flex flex-wrap items-center gap-1.5">
+        {primary ? (
+          <span className={finelyOsStatusChip('ok')}>Primary</span>
+        ) : (
+          <span className="text-[9px] font-black uppercase tracking-widest text-white/55">Alt #{s.rank}</span>
+        )}
+        <span className={finelyOsStatusChip(s.uiOnly ? 'warn' : 'ok')}>{s.productBadge}</span>
+      </div>
+      <span className={urgencyChip(s.urgency)}>{s.urgency}</span>
+    </div>
+  );
+}
+
 export function IntelligentLetterSuggestionsPanel({
   suggestions,
   onBuild,
   onOpenHearingKit,
-  accent = 'fuchsia',
   busy = false,
   error = null,
 }: {
@@ -54,15 +68,12 @@ export function IntelligentLetterSuggestionsPanel({
     el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     el?.classList.add('fc-suggest-hit');
     window.setTimeout(() => el?.classList.remove('fc-suggest-hit'), 1600);
-    // Hearing kit is UI-only — never call the letter generator for it.
     if (s.uiOnly || s.productKind === 'hearing_kit_ui') {
       if (onOpenHearingKit) {
         onOpenHearingKit();
         return;
       }
-      // No kit handler (e.g. Validation track) — generate the next real letter instead.
-      const letterAlt =
-        suggestions.all.find((x) => !x.uiOnly && x.productKind !== 'hearing_kit_ui') || null;
+      const letterAlt = suggestions.all.find((x) => !x.uiOnly && x.productKind !== 'hearing_kit_ui') || null;
       if (letterAlt) {
         onBuild({ letterType: letterAlt.letterType, catalogId: letterAlt.catalogId });
         return;
@@ -75,10 +86,7 @@ export function IntelligentLetterSuggestionsPanel({
     });
   };
 
-  const altAccent = (i: number): 'violet' | 'sky' | 'fuchsia' => {
-    const accents: Array<'violet' | 'sky' | 'fuchsia'> = ['violet', 'sky', 'fuchsia'];
-    return accents[i % accents.length] ?? 'violet';
-  };
+  const primaryCta = primary.uiOnly ? 'Open hearing kit' : primary.generateLabel || 'Generate letter';
 
   return (
     <section
@@ -91,27 +99,13 @@ export function IntelligentLetterSuggestionsPanel({
           0%, 100% { opacity: 0.35; transform: scale(1); }
           50% { opacity: 0.95; transform: scale(1.08); }
         }
-        @keyframes fcSuggestBorder {
-          0%, 100% { box-shadow: 0 0 0 1px rgba(251,191,36,0.45), 0 0 32px rgba(251,191,36,0.35); }
-          50% { box-shadow: 0 0 0 3px rgba(251,191,36,0.85), 0 0 52px rgba(251,191,36,0.55); }
-        }
         @keyframes fcGenerateGlow {
           0%, 100% { box-shadow: 0 0 0 1px rgba(251,191,36,0.4), 0 0 16px rgba(251,191,36,0.28); }
           50% { box-shadow: 0 0 0 2px rgba(253,230,138,0.7), 0 0 22px rgba(251,191,36,0.4); }
         }
-        .fc-suggest-orb {
-          animation: fcSuggestPulse 2.8s ease-in-out infinite;
-        }
-        .fc-suggest-primary {
-          animation: fcSuggestBorder 2.4s ease-in-out infinite;
-        }
-        .fc-generate-cta {
-          animation: fcGenerateGlow 2.4s ease-in-out infinite;
-        }
-        .fc-suggest-hit {
-          outline: 2px solid rgba(251,191,36,0.95);
-          outline-offset: 3px;
-        }
+        .fc-suggest-orb { animation: fcSuggestPulse 2.8s ease-in-out infinite; }
+        .fc-generate-cta { animation: fcGenerateGlow 2.4s ease-in-out infinite; }
+        .fc-suggest-hit { outline: 2px solid rgba(251,191,36,0.95); outline-offset: 3px; }
       `}</style>
 
       <div
@@ -139,37 +133,41 @@ export function IntelligentLetterSuggestionsPanel({
         <span className={urgencyChip(primary.urgency)}>{primary.urgency}</span>
       </div>
 
-      <div
-        id={LETTER_SUGGEST_PRIMARY_ID}
-        className={`fc-validation-generate-card fc-validation-generate-hero relative w-full rounded-xl px-3 py-3 space-y-3 ${finelyOsGlowTile(
-          'amber',
-          true,
-        )}`}
-      >
-        <div className="flex flex-wrap items-center gap-2">
-          <FileText size={18} className="text-amber-200 shrink-0 drop-shadow-[0_0_10px_rgba(251,191,36,0.8)]" />
-          <div className="text-lg font-black text-white tracking-tight">{primary.title}</div>
-          <span className={finelyOsStatusChip('ok')}>Primary</span>
-          <span className={finelyOsStatusChip(primary.uiOnly ? 'warn' : 'ok')}>{primary.productBadge}</span>
+      <div id={LETTER_SUGGEST_PRIMARY_ID} className={`relative ${LETTER_TEMPLATE_CATALOG_SHELL} fc-suggest-hit-target`}>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <span className="text-[10px] font-black uppercase tracking-widest text-amber-200">Recommended next</span>
+          <span className="text-[10px] text-white/50">
+            {1 + alts.length} letter pick{1 + alts.length === 1 ? '' : 's'}
+          </span>
         </div>
-        <p className="text-sm leading-snug text-amber-50/95">
-          <span className="font-black text-amber-200 uppercase tracking-wider text-[10px] mr-1.5">Why now</span>
-          {primary.why}
-        </p>
 
-        <button
-          type="button"
-          id={LETTER_SUGGEST_GENERATE_ID}
-          disabled={busy}
-          className={`fc-generate-cta fc-validation-generate-hero ${FINELY_OS_PRIMARY_BTN} w-full sm:w-auto justify-center gap-1.5 !bg-amber-400 !text-black hover:!brightness-110 disabled:opacity-60 disabled:cursor-not-allowed`}
-          onClick={() => focusAndAct(primary)}
-          aria-label={primary.generateLabel}
-        >
-          {busy ? <Loader2 size={14} className="animate-spin" /> : <FileText size={14} />}
-          {busy ? 'Generating…' : primary.generateLabel}
-          {!busy ? <ArrowRight size={14} /> : null}
-        </button>
-        <p className="text-[11px] text-amber-100/80 flex flex-wrap items-center gap-1.5 justify-center text-center">
+        <div className={LETTER_TEMPLATE_CATALOG_GRID}>
+          <LetterTemplateCatalogCard
+            className="sm:col-span-2 lg:col-span-2"
+            title={primary.title}
+            keyPrinciple={primary.why}
+            metaRow={suggestionMetaRow(primary, true)}
+            ctaLabel={primaryCta}
+            busy={busy}
+            disabled={busy}
+            generateButtonId={LETTER_SUGGEST_GENERATE_ID}
+            onGenerate={() => focusAndAct(primary)}
+          />
+          {alts.map((s) => (
+            <LetterTemplateCatalogCard
+              key={`${s.rank}-${s.catalogId || s.letterType}`}
+              title={s.title}
+              keyPrinciple={s.why}
+              metaRow={suggestionMetaRow(s)}
+              ctaLabel={s.uiOnly ? 'Open hearing kit' : 'Generate letter'}
+              busy={busy}
+              disabled={busy}
+              onGenerate={() => focusAndAct(s)}
+            />
+          ))}
+        </div>
+
+        <p className="text-[11px] text-amber-100/80 flex flex-wrap items-center gap-1.5">
           <Eye size={12} /> {primary.generateHint}
         </p>
       </div>
@@ -181,48 +179,6 @@ export function IntelligentLetterSuggestionsPanel({
         >
           <div className="font-bold text-rose-100">Could not generate letter</div>
           <p className="mt-0.5 text-rose-50/90">{error}</p>
-        </div>
-      ) : null}
-
-      {alts.length > 0 ? (
-        <div className="relative space-y-3">
-          <div className="text-[10px] font-black uppercase tracking-widest text-sky-200/90">Also recommended</div>
-          <div className="fc-validation-alt-grid">
-            {alts.map((s, i) => {
-              const accent = altAccent(i);
-              return (
-                <article
-                  key={`${s.rank}-${s.catalogId || s.letterType}`}
-                  className={`fc-validation-alt-card fc-validation-alt-card--${accent}`}
-                >
-                  <div className="fc-validation-alt-card__head">
-                    <div className="fc-validation-alt-card__icon" aria-hidden>
-                      <FileText size={16} />
-                    </div>
-                    <div className="flex flex-wrap items-center justify-end gap-1.5">
-                      <span className="fc-validation-alt-card__rank">Alt #{s.rank}</span>
-                      <span className={urgencyChip(s.urgency)}>{s.urgency}</span>
-                    </div>
-                  </div>
-                  <div className="fc-validation-alt-card__body">
-                    <h4 className="text-sm font-bold text-white leading-snug line-clamp-2">{s.title}</h4>
-                    <p className="text-[10px] font-semibold text-white/85">{s.productBadge}</p>
-                    <p className={`text-[11px] leading-snug line-clamp-3 ${FINELY_OS_ENTITY_BODY} text-white/88`}>
-                      {s.why}
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    disabled={busy}
-                    className={`fc-validation-alt-card__cta ${FINELY_OS_SECONDARY_BTN} disabled:opacity-60`}
-                    onClick={() => focusAndAct(s)}
-                  >
-                    {s.uiOnly ? 'Open hearing kit' : s.generateLabel.replace(/^Generate /i, 'Generate ')}
-                  </button>
-                </article>
-              );
-            })}
-          </div>
         </div>
       ) : null}
     </section>

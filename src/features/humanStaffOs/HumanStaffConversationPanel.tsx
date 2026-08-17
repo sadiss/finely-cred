@@ -21,7 +21,7 @@ export function HumanStaffConversationPanel({ selectedIds, onChanged }: { select
   const store = useMemo(() => loadHumanStaffStore(), [storeVersion]);
   const [activeThreadId, setActiveThreadId] = useState(store.threads[0]?.id ?? '');
   const activeThread = store.threads.find((thread) => thread.id === activeThreadId) ?? store.threads[0];
-  const [prompt, setPrompt] = useState('Explain who should run Deep Swarm and what they do next.');
+  const [prompt, setPrompt] = useState('Explain who should run lead discovery and what they do next.');
   const [agentId, setAgentId] = useState<HumanStaffAgentId>(selectedIds[0] ?? 'professor_apex');
   const selectedAgents = (selectedIds.length ? selectedIds : recommendAgentsForMission(activeThread?.missionType ?? 'staff command')).slice(0, 3) as HumanStaffAgentId[];
 

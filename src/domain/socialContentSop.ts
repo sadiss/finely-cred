@@ -284,7 +284,7 @@ export const SOCIAL_SOP_LIBRARY: SocialSopTemplate[] = [
     assignedStaffId: 'scout_supreme',
     hookFormula: 'Why structured lead nurture beats random DMs:',
     bodyOutline: [
-      'Scout Supreme explains qualification + city intent without hard selling.',
+      'Sienna Roy explains qualification + city intent without hard selling.',
       'Educational credit intel only — results vary.',
       'Invite to free roadmap or strategy session.',
     ],

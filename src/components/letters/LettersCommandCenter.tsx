@@ -99,6 +99,7 @@ import { createTemplateVaultItem, defaultRequiredEntitlementsForCategory, getTem
 import { readActiveTemplateIdFromSession } from '../templates/TemplateLibraryHub';
 import { LetterDisputeCoachStrip } from './LetterDisputeCoachStrip';
 import { LetterStudioBureauSwitcher } from './LetterStudioBureauQueue';
+import { LetterStudioOverviewPanel } from './LetterStudioOverviewPanel';
 import { LetterStudioSavedVaultStrip } from './LetterStudioSavedVaultStrip';
 import {
   FinelyOsStudioWorkstationLauncherRow,
@@ -110,7 +111,6 @@ import { bureauDisputeAddress, SUBJECT_LINE } from '../../letters/disputeLetterT
 import { getBlobUrl } from '../../storage/getBlobUrl';
 import { openBlobRefInNewTab } from '../../lib/openBlobRef';
 import { isLegacyPendingReportBlob } from '../../lib/legacyPendingReport';
-import { PartnerCreditWorkloadStrip } from '../partner/PartnerCreditWorkloadStrip';
 import { LetterPartnerNoteField } from './LetterPartnerNoteField';
 import { recordLetterPartnerNote } from '../../lib/letterPartnerNotes';
 import { downloadBlob, downloadText, openUrlInNewTab, triggerBrowserDownload } from '../../utils/download';
@@ -230,7 +230,15 @@ function relevantAuthorityCitationsForSpec(
   return matches.slice(0, 8);
 }
 
-export type LettersStudioTab = 'dispute' | 'validation' | 'court' | 'foreclosure' | 'repossession' | 'bankruptcy' | 'templates';
+export type LettersStudioTab =
+  | 'overview'
+  | 'dispute'
+  | 'validation'
+  | 'court'
+  | 'foreclosure'
+  | 'repossession'
+  | 'bankruptcy'
+  | 'templates';
 type TabKey = LettersStudioTab;
 type LetterTone = 'formal' | 'neutral' | 'conversational';
 type LetterRound = DisputeRoundLabel;
@@ -1819,6 +1827,7 @@ WRITING STANDARD:
 - Round ${round}: if Round 2+, note prior dispute and that the same inaccurate fields still report â€” still as factual statements, not demands.
 - Each item narrative: 4-8 sentences listing the specific negatives and contradictions on the file for this account.
 - intro: 2-4 first-person paragraphs matching TONE. No step headings or guide framework language.
+- Never include partner phone numbers or email addresses in intro or narratives — letters use mailing address only.
 - questions: only genuine gaps that would strengthen factual findings.`;
 
       const user = `DRAFT A BUREAU DISPUTE LETTER.\n\nBUREAU: ${b}\nROUND: ${round}\nTONE: ${tone}\nCONSUMER_NAME: ${partnerName}\nSTATE: ${state || '[STATE]'}\n\nDISPUTE_ITEMS (keyed):\n${payloadItems
@@ -1921,7 +1930,7 @@ WRITING STANDARD:
 
       const legalBasis = spec?.legalBasis?.map((c) => `${c.shortName} (${c.cite}): ${c.description}`).join('\n') ?? '';
 
-      const system = `You draft print-ready consumer debt/legal letters. Return ONLY the letter body text (no JSON, no markdown).\n\nRules:\n- Do not invent facts (amounts, dates, account numbers, court deadlines). If missing, use placeholders like [DATE], [ACCOUNT_REF], [CASE_NUMBER], [STATE], [AMOUNT], [LAST_PAYMENT_DATE].\n- Keep it firm and professional. Avoid giving legal advice.\n- If citations are provided below, you may reference them, but do not add new citations that are not provided.\n- When SUMMONS_AND_EVIDENCE is provided, tailor defenses and factual paragraphs to those extracted facts â€” do not contradict uploaded document details.\n`;
+      const system = `You draft print-ready consumer debt/legal letters. Return ONLY the letter body text (no JSON, no markdown).\n\nRules:\n- Do not invent facts (amounts, dates, account numbers, court deadlines). If missing, use placeholders like [DATE], [ACCOUNT_REF], [CASE_NUMBER], [STATE], [AMOUNT], [LAST_PAYMENT_DATE].\n- Keep it firm and professional. Avoid giving legal advice.\n- Never include partner phone numbers or email addresses — sender blocks are name + mailing address only.\n- If citations are provided below, you may reference them, but do not add new citations that are not provided.\n- When SUMMONS_AND_EVIDENCE is provided, tailor defenses and factual paragraphs to those extracted facts â€” do not contradict uploaded document details.\n`;
 
       const user = `DRAFT A LETTER.\n\nLETTER_TYPE: ${draft.type}\nSPEC: ${spec?.title || draft.specId}\nSCENARIO: ${String(recommendedScenario || 'unknown')}\nDEBT_CASE_NAME: ${debtName}\nSTATE: ${jurisdictionState || '[STATE]'}\nCASE_NUMBER: ${caseNumber || '[CASE_NUMBER]'}\nDEBT_TYPE: ${String((debt as any)?.type || '')}\n\nRECIPIENT_AND_ACCOUNT:\n${recipientBlock || '(not provided)'}\n\n${summonsBlock ? `SUMMONS_AND_EVIDENCE:\n${summonsBlock}\n\n` : ''}KEY_PRINCIPLE:\n${spec?.keyPrinciple || ''}\n\nWHEN_TO_USE:\n${(spec?.whenToUse || []).map((x) => `- ${x}`).join('\n')}\n\nLEGAL_BASIS:\n${legalBasis || '(none provided)'}\n\nOUTPUT:\n- Provide the body text only.\n- Include a short section that lists what documents youâ€™re requesting (if applicable).\n- If this is a court/affidavit draft, keep it structured and include placeholders for jurisdiction-specific filings.`;
 
@@ -3125,8 +3134,8 @@ useEffect(() => {
       city: sender.city,
       state: sender.state,
       postalCode: sender.postalCode,
-      phone: canonicalIdentity.phone,
-      // Do not snapshot partner login email onto letter sender blocks.
+      // Letters use name + mailing address only — never snapshot phone/email on paper.
+      phone: undefined,
       email: undefined,
     });
     handleDebtIntelChange({ ...debt, senderSnapshot: snap });
@@ -3234,8 +3243,8 @@ useEffect(() => {
       debtorCity: sender.city,
       debtorState: sender.state,
       debtorPostalCode: sender.postalCode,
-      debtorPhone: canonicalIdentity.phone,
-      // Default: no email on letter paper (mailing address + name only).
+      // Default: no phone or email on letter paper (mailing address + name only).
+      debtorPhone: undefined,
       debtorEmail: undefined,
       recipientName: mailTo.name,
       recipientAddress: mailTo.address,
@@ -3515,7 +3524,7 @@ useEffect(() => {
         id: partner.id,
         fullName: canonicalIdentity.fullName,
         email: undefined,
-        phone: canonicalIdentity.phone,
+        phone: undefined,
         address1: canonicalIdentity.address1 ?? canonicalIdentity.addressLine1,
         address2: canonicalIdentity.address2,
         city: canonicalIdentity.city,
@@ -4366,8 +4375,8 @@ useEffect(() => {
       city: sender.city,
       state: sender.state,
       postalCode: sender.postalCode,
-      phone: canonicalIdentity.phone || '',
-      // Letter sender UI: mailing identity only — never auto-fill login email onto paper.
+      phone: '',
+      // Letter sender UI: mailing identity only — never auto-fill phone or email onto paper.
       email: '',
     };
   })();
@@ -5536,6 +5545,21 @@ useEffect(() => {
           </div>
         ) : null}
 
+        {tab === 'overview' ? (
+          <LetterStudioOverviewPanel
+            partner={partner}
+            mode={debtCenterMode ? 'debt' : 'credit'}
+            storeVersion={storeVersion}
+            evidence={evidence}
+            onOpenFullVault={unifiedShell ? undefined : () => openVault()}
+            vaultHighlightLetterId={vaultHighlightLetterId}
+            suppressVaultAutoPreview={suppressVaultAutoPreview}
+            onVaultLetterSaved={bumpVaultStore}
+            canMailLetters={canMailLetters}
+            onMailLetter={requestMailLetter}
+          />
+        ) : null}
+
         {tab === 'dispute' ? (
           <details open className="fc-light-glass-panel fc-light-chrome-panel !p-4">
             <summary className="cursor-pointer list-none flex flex-wrap items-center justify-between gap-3 [&::-webkit-details-marker]:hidden">
@@ -5755,14 +5779,6 @@ useEffect(() => {
               work={
             <div className="space-y-3 w-full">
               <div className="rounded-2xl border border-white/[0.08] bg-black/30 !p-4 space-y-3 w-full">
-                <PartnerCreditWorkloadStrip
-                  partnerId={partner.id}
-                  selectedDisputes={selectedDisputes}
-                  evidenceByCandidateId={evidenceByCandidateId as Record<string, string>}
-                  reasonsByCandidateId={reasonsByCandidateId}
-                  compact
-                />
-
                 {validationHandoffConfirm ? (
                   <ValidationCreditHandoffStrip
                     debtName={validationHandoffConfirm.debtName}
@@ -5818,9 +5834,6 @@ useEffect(() => {
                             }
                           >
                             <span className="truncate">{s.candidate.account}</span>
-                            <span className={isTargeted ? 'text-black/60 text-[10px]' : 'opacity-60 text-[10px]'}>
-                              {bureauShortCode(s.candidate.bureau)}
-                            </span>
                           </button>
                         );
                       })}
@@ -6805,7 +6818,7 @@ useEffect(() => {
                 evidence={evidence}
                 accent="emerald"
                 title="Saved bureau letters"
-                subtitle="Saved dispute PDFs from this studio — grouped by bureau. Preview, mail, or delete here."
+                subtitle="Letters you generated on this Bureaus tab — preview, mail, or delete here."
                 onOpenFullVault={unifiedShell ? undefined : () => openVault()}
                 groupByBureau
                 highlightLetterId={vaultHighlightLetterId}

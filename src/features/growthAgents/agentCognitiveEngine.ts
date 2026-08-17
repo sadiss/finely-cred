@@ -31,8 +31,21 @@ export function buildPsychologyAwareSystemPromptFragment(personaId: string): str
       parts.push(`If the situation reads frustrated or anxious: ${profile.deEscalationProtocol[0]}`);
     }
 
-    return `Psychology profile (${profile.displayName}): ${parts.join(' ')}`;
+    const dr = buildMarketingDirectResponseRules();
+    return `Psychology profile (${profile.displayName}): ${parts.join(' ')} ${dr}`;
   } catch {
-    return '';
+    return buildMarketingDirectResponseRules();
   }
+}
+
+/** Direct-response copy rules for growth/marketing agents (AIDA + reciprocity + one CTA). */
+export function buildMarketingDirectResponseRules(): string {
+  return [
+    'Marketing copy rules:',
+    'Answer one clear question in the first sentence (hook-first).',
+    'Give specific, factual proof — never guaranteed credit outcomes.',
+    'Reciprocity before ask (free value, then soft CTA).',
+    'One obvious next step only — guide link, book session, or reply.',
+    'Sound human; avoid procedural command language.',
+  ].join(' ');
 }

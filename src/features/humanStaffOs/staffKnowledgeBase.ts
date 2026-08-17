@@ -3,21 +3,21 @@ import type { HumanStaffKnowledgeCard } from './types';
 export const HUMAN_STAFF_KNOWLEDGE_BASE: HumanStaffKnowledgeCard[] = [
   {
     id: 'deep-swarm-ownership',
-    title: 'Deep Swarm ownership map',
+    title: 'Lead search tools ownership map',
     departmentId: 'lead_intel',
     agentIds: ['pipeline_titan', 'scout_supreme', 'night_owl_intel', 'switchboard'],
     level: 'expert',
-    summary: 'Deep Swarm is a lead-intel department process with multiple staff owners. It is not a single agent pressing a button.',
+    summary: 'Lead search tools are a lead-intel department process with multiple staff owners. It is not a single agent pressing a button.',
     rules: [
-      'Pipeline Titan owns the lead target and throughput quality.',
-      'Scout Supreme owns source plans, query variation, and discovery quality.',
+      'Caleb Brooks (Lead Discovery) owns the lead target and throughput quality.',
+      'Lead Research lead owns source plans, query variation, and discovery quality.',
       'Night Owl Intel owns overnight queue progress and morning handoff.',
       'Switchboard owns queue/function reliability and blocked integration reporting.',
       'The system may run the queue, but staff own the interpretation and handoff.',
     ],
     examples: [
-      'If a user clicks Start Swarm, show active owners and what each one is doing.',
-      'If a worker is blocked, notify Switchboard and Pipeline Titan, not every staff member.',
+      'If a user starts practice mode, show active owners and what each one is doing.',
+      'If a worker is blocked, notify Switchboard and Caleb Brooks, not every staff member.',
       'If a hot lead appears, notify Appointment Architect or Revenue Captain depending on intent.',
     ],
     handoffTriggers: ['new_hot_lead', 'swarm_stuck', 'worker_blocked', 'city_source_thin', 'overnight_summary_ready'],
@@ -58,7 +58,7 @@ export const HUMAN_STAFF_KNOWLEDGE_BASE: HumanStaffKnowledgeCard[] = [
       'External customer messages stay professional Finely Cred brand, not playful staff banter.',
     ],
     examples: [
-      'Pipeline Titan: "We have discovery, but not enough action-ready cards yet. I am putting Scout on source depth and Appointment on hot handoffs."',
+      'Caleb Brooks: "We have discovery, but not enough action-ready cards yet. I am putting Lead Research on source depth and Appointment on hot handoffs."',
       'Liora: "I will rewrite the follow-up so it sounds like it came from context, not a template."',
       'Switchboard: "The workflow is blocked by missing function deployment, not by strategy. Fix path: deploy, test tick, verify log."',
     ],
@@ -100,7 +100,7 @@ export const HUMAN_STAFF_KNOWLEDGE_BASE: HumanStaffKnowledgeCard[] = [
       'The user should be able to select one, two, or three staff members for a mission.',
     ],
     examples: [
-      'Deep Swarm -> Pipeline Titan leads, Scout Supreme discovers, Switchboard watches queue.',
+      'Lead search tools -> Caleb Brooks leads, Lead Research discovers, Switchboard watches queue.',
       'Appointment Blitz -> Appointment Architect leads, Liora writes, Revenue Captain prepares sales notes.',
       'Recruiting Drive -> Partner Recruiter leads, Affiliate Wrangler activates, Velvet Hammer checks claims.',
     ],
@@ -121,8 +121,8 @@ export const HUMAN_STAFF_KNOWLEDGE_BASE: HumanStaffKnowledgeCard[] = [
       'Hot lead handoffs notify the next owner: appointment, sales, recruiting, or PR.',
     ],
     examples: [
-      'Scout -> Pipeline: "Dallas search found 12 warm business funding signals."',
-      'Pipeline -> Appointment: "Two leads need booking messages with /consultation short link."',
+      'Lead Research -> Caleb Brooks: "Dallas search found 12 warm business funding signals."',
+      'Caleb Brooks -> Appointment Architect: "Two leads need booking messages with /consultation short link."',
       'Liora -> Velvet Hammer: "Review reactivation message before send."',
     ],
     handoffTriggers: ['handoff_created', 'risk_detected', 'approval_needed', 'worker_failed', 'hot_lead_ready'],
@@ -163,7 +163,7 @@ export const HUMAN_STAFF_KNOWLEDGE_BASE: HumanStaffKnowledgeCard[] = [
       'Keep credit/funding language qualified and safe.',
     ],
     examples: [
-      'Internal: "Pipeline Titan says Dallas is getting spicy."',
+      'Internal: "Caleb Brooks says Dallas is getting spicy."',
       'External: "Finely Cred noticed your interest in business credit resources. Here is a guide that may help."',
       'Unsafe: "I personally saw your post and wanted to help delete your bad credit."',
     ],

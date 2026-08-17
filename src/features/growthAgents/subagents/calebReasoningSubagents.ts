@@ -11,6 +11,7 @@ import { getCrmRecord } from '../../../data/crmRecordsRepo';
 import { runAgentBrainStep } from '../growthAgentBrain';
 import { createGrowthHandoff } from '../../../data/growthHandoffLedgerRepo';
 import { logAgentAction } from '../../../lib/agentAuditLog';
+import { runAlexAppointmentOutreach } from '../alexAppointmentAutomation';
 import {
   getPlaybook,
   getPlaybooksByDebtType,
@@ -170,6 +171,16 @@ export async function runCalebHandoffRouterForProspects(prospectIds: string[]): 
     });
     results.push({ routedToAlex: false, reasoning: heldReasoning });
   }
+
+  const routedCount = results.filter((r) => r.routedToAlex).length;
+  if (routedCount > 0) {
+    try {
+      await runAlexAppointmentOutreach({ limit: Math.min(routedCount, 3), force: false });
+    } catch {
+      // non-blocking — Alex outreach failure should not undo Caleb handoff ledger
+    }
+  }
+
   return results;
 }
 

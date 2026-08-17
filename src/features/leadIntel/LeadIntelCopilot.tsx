@@ -19,7 +19,7 @@ function msgId() {
   return `li_${Math.random().toString(16).slice(2)}_${Date.now()}`;
 }
 
-const CALEB_FIND_HREF = '/admin/marketing-desk?helper=find';
+const CALEB_FIND_HREF = '/admin/marketing?tab=desk&helper=find';
 const WORKER_TICK_FN = 'lead-intel-worker-tick';
 
 const GREETING =

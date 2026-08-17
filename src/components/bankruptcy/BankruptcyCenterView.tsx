@@ -145,7 +145,7 @@ export function BankruptcyCenterView({
       {canSeeTemplates ? (
         <DebtLetterChipGrid
           specs={specs.map((s) => ({ id: s.id as any, title: s.title, shortDescription: s.shortDescription }))}
-          glowAccent="sky"
+          subtitle="Bankruptcy letter templates — same library styling as validation and court tracks."
           onBuild={(id) => onBuildDraft(id as BankruptcyLetterType, getBankruptcyLetterBody(id as BankruptcyLetterType, letterArgs))}
         />
       ) : null}

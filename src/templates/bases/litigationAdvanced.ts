@@ -21,8 +21,6 @@ function partnerAddressBlock(ctx: TemplateRenderContext) {
     esc(ctx.partner.address1 || ''),
     ctx.partner.address2 ? esc(ctx.partner.address2) : null,
     [ctx.partner.city, ctx.partner.state, ctx.partner.postalCode].filter(Boolean).join(', '),
-    ctx.partner.phone ? `Phone: ${esc(ctx.partner.phone)}` : null,
-    ctx.partner.email ? `Email: ${esc(ctx.partner.email)}` : null,
   ]);
 }
 

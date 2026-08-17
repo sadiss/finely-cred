@@ -308,7 +308,7 @@ export function generateCmoCapabilityMatrix(): CmoFeatureCapability[] {
     'product launches',
   ];
   const verbs = ['detect', 'score', 'rewrite', 'route', 'prioritize', 'forecast', 'test', 'launch', 'audit', 'optimize', 'summarize', 'protect'];
-  const modules = ['Growth OS', 'Lead Intel', 'CRM', 'Comms Studio', 'Media Studio', 'Scheduler', 'Inbox', 'Analytics', 'CMO Prime'];
+  const modules = ['Growth OS', 'Lead Intel', 'CRM', 'Comms Studio', 'Media Studio', 'Scheduler', 'Inbox', 'Analytics', 'Marketing Director'];
   const features: CmoFeatureCapability[] = [];
   for (const category of categories) {
     for (const verb of verbs) {
@@ -317,7 +317,7 @@ export function generateCmoCapabilityMatrix(): CmoFeatureCapability[] {
           id: `cmo_${category.replace(/\s+/g, '_')}_${verb}_${i}`,
           category,
           title: `${capitalize(verb)} ${category} signal ${i}`,
-          description: `CMO Prime can ${verb} ${category} opportunities, turn them into staff-style directives, and connect the next action across Finely Cred modules.`,
+          description: `Marketing Director can ${verb} ${category} opportunities, turn them into staff-style directives, and connect the next action across Finely Cred modules.`,
           requiredData: ['campaign data', 'site signals', 'growth events', 'approved brand rules'],
           connectedModules: modules.slice((i - 1) % modules.length, ((i - 1) % modules.length) + 4),
           automationLevel: i % 3 === 0 ? 'approve_then_execute' : 'draft_only',
@@ -345,7 +345,7 @@ export function buildStaffReply(input: string, settings: CmoPersonalitySettings,
       dueWindow: 'today' as const,
       expectedImpact: 'Clarifies the daily channel quotas needed to hit lead volume without sloppy outreach.',
       nextStep: 'Create channel quotas, lead magnets, follow-up sequences, and tracked CTAs.',
-      linkedRoute: '/admin/marketing-agent',
+      linkedRoute: '/admin/marketing?tab=team',
       createdAt: cmoNow(),
     });
   }

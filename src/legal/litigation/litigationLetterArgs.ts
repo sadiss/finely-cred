@@ -1,3 +1,4 @@
+import { formatLetterSenderBlock } from '../../lib/letterSenderBlock';
 import { formatDebtorReLine, resolveLetterMailRecipient } from '../../lib/letterMailingAddress';
 
 /** Shared placeholder args for litigation letters (validation, discovery, affidavits). */
@@ -39,15 +40,14 @@ export type LitigationLetterArgs = {
 };
 
 export function litigationAddrBlock(args: LitigationLetterArgs): string {
-  // Name + mailing address (+ optional phone). Never inject email onto letter paper.
-  const lines = [
-    args.debtorName,
-    args.debtorAddress1,
-    args.debtorAddress2,
-    [args.debtorCity, args.debtorState, args.debtorPostalCode].filter(Boolean).join(', '),
-    args.debtorPhone,
-  ].filter(Boolean);
-  return lines.join('\n');
+  return formatLetterSenderBlock({
+    name: args.debtorName,
+    address1: args.debtorAddress1,
+    address2: args.debtorAddress2,
+    city: args.debtorCity,
+    state: args.debtorState,
+    postalCode: args.debtorPostalCode,
+  });
 }
 
 /** Counsel / firm / creditor TO block — never the partner home address. */

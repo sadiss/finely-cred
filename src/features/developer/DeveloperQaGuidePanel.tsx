@@ -197,7 +197,7 @@ export function DeveloperQaGuidePanel() {
             ['Mail letters', '/admin/mail'],
             ['Cases & debt', '/admin/cases'],
             ['Comms & email', '/admin/comms'],
-            ['Growth & marketing', '/admin/growth-command'],
+            ['Growth & marketing', '/admin/marketing?tab=plan'],
             ['AI co-owner', '/admin/ops-agent'],
             ['Letter templates', '/admin/templates'],
             ['Feature flags', '/admin/settings'],

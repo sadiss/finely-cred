@@ -31,8 +31,8 @@ export default function PartnerLettersPage() {
     const t = searchParams.get('tab');
     // Credit Letters: no validation / affidavits (those live under Debt Letters).
     if (t === 'validation' || t === 'court') return 'dispute';
-    if (t === 'foreclosure' || t === 'repossession' || t === 'bankruptcy' || t === 'templates' || t === 'dispute') return t;
-    return 'dispute';
+    if (t === 'foreclosure' || t === 'repossession' || t === 'bankruptcy' || t === 'templates' || t === 'dispute' || t === 'overview') return t;
+    return 'overview';
   });
   useEffect(() => {
     const t = searchParams.get('tab');
@@ -48,7 +48,7 @@ export default function PartnerLettersPage() {
       }, 0);
       return;
     }
-    if (t === 'foreclosure' || t === 'repossession' || t === 'bankruptcy' || t === 'templates' || t === 'dispute') {
+    if (t === 'foreclosure' || t === 'repossession' || t === 'bankruptcy' || t === 'templates' || t === 'dispute' || t === 'overview') {
       setStudioTab(t);
     }
   }, [searchParams, navigate]);

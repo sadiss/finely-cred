@@ -38,6 +38,7 @@ export function DebtTrackEasyFlow({
   /** Omit the bottom escalation section entirely (validation workstation opens ladder above). */
   suppressEscalationSection = false,
   inlineStudioVault = false,
+  onGoToStudioVault,
   onOpenFullVault,
   adminPartnerId,
 }: {
@@ -52,6 +53,7 @@ export function DebtTrackEasyFlow({
   hideEscalationLadder?: boolean;
   suppressEscalationSection?: boolean;
   inlineStudioVault?: boolean;
+  onGoToStudioVault?: () => void;
   onOpenFullVault?: () => void;
   adminPartnerId?: string;
 }) {
@@ -98,7 +100,9 @@ export function DebtTrackEasyFlow({
                 type="button"
                 className={FINELY_OS_SECONDARY_BTN}
                 onClick={() =>
-                  document.getElementById('fc-letter-studio-vault')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                  onGoToStudioVault
+                    ? onGoToStudioVault()
+                    : document.getElementById('fc-letter-studio-vault')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
                 }
               >
                 Studio vault

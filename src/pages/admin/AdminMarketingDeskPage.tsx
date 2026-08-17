@@ -58,7 +58,7 @@ export default function AdminMarketingDeskPage() {
         <div className="flex flex-wrap items-center justify-between gap-2">
           <button
             type="button"
-            onClick={() => (helper ? closeHelper() : navigate('/admin'))}
+            onClick={() => (helper ? closeHelper() : navigate('/admin/marketing?tab=desk'))}
             className={FINELY_OS_BACK_LINK}
           >
             <ArrowLeft size={16} /> {helper ? 'Marketing Desk home' : 'Admin Dashboard'}

@@ -36,8 +36,6 @@ function partnerAddressBlock(ctx: TemplateRenderContext) {
     esc(ctx.partner.address1 || ''),
     ctx.partner.address2 ? esc(ctx.partner.address2) : null,
     [ctx.partner.city, ctx.partner.state, ctx.partner.postalCode].filter(Boolean).join(', '),
-    ctx.partner.phone ? `Phone: ${esc(ctx.partner.phone)}` : null,
-    ctx.partner.email ? `Email: ${esc(ctx.partner.email)}` : null,
   ]);
 }
 
@@ -1060,7 +1058,7 @@ ${version === 2 ? '<br/><br/>Data handling: partner must follow privacy/security
 <div style="margin-top:6px;font-size:12px;opacity:0.8;">Partner: ${esc(ctx.partner.fullName)} • Date: ${esc(fmtDateLong(ctx.nowIso))}</div>
 
 <div style="margin-top:14px;font-weight:700;">Contact</div>
-<div style="margin-top:8px;">Email: ${esc(ctx.partner.email || '')}<br/>Phone: ${esc(ctx.partner.phone || '')}</div>
+<div style="margin-top:8px;">Partner name: ${esc(ctx.partner.fullName || '')}<br/>Contact details are kept in the portal profile — not printed on mailed letters.</div>
 
 <div style="margin-top:14px;font-weight:700;">Goals</div>
 <div style="margin-top:8px;">Funding goal: [AMOUNT] • Timeline: [TIMELINE] • Primary focus: personal / business / debt / identity theft</div>
