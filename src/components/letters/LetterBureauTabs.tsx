@@ -1,6 +1,6 @@
 import React from 'react';
 import type { Bureau } from '../../domain/creditReports';
-import { bureauFullName } from '../../utils/bureaus';
+import { bureauFullName, bureauShortCode } from '../../utils/bureaus';
 import {
   LETTER_L4_BUREAU_META,
   LETTER_L4_BUREAU_NAME,
@@ -26,7 +26,7 @@ const BUREAU_ACCENTS: Record<
     badge: 'bg-violet-500/25 text-violet-100 border-violet-400/30',
   },
   TUC: {
-    code: 'TUC',
+    code: 'Trans',
     selected: 'border-fuchsia-400/55 bg-fuchsia-500/20 text-white shadow-[0_0_24px_-8px_rgba(232,121,249,0.7)]',
     idle: 'border-fuchsia-400/25 bg-fuchsia-500/10 text-fuchsia-50 hover:border-fuchsia-400/40',
     muted: 'border-white/10 bg-black/20 text-white/40',
@@ -72,7 +72,7 @@ export function LetterBureauTabs({
           >
             <div className="flex items-center gap-2">
               <span className={`inline-flex rounded-md border px-1.5 py-0.5 text-[10px] font-black tracking-widest ${accent.badge}`}>
-                {accent.code}
+                {bureauShortCode(b)}
               </span>
               <div className={LETTER_L4_BUREAU_NAME}>{bureauFullName(b)}</div>
             </div>

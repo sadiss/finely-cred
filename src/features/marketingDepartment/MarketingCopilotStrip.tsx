@@ -6,8 +6,8 @@ import {
   FINELY_OS_ENTITY_SUBLABEL,
   FINELY_OS_ENTITY_TITLE,
   FINELY_OS_PRIMARY_BTN,
-  finelyOsCatalogCard,
 } from '../os/finelyOsLightUi';
+import { MARKETING_HUB_CONTENT_SHELL } from './marketingHubUi';
 import { getMarketingCopilotRecommendation } from './marketingCopilotRecommendations';
 
 export function MarketingCopilotStrip() {
@@ -21,7 +21,7 @@ export function MarketingCopilotStrip() {
   const rec = useMemo(() => getMarketingCopilotRecommendation(), [version]);
 
   return (
-    <div className={`${finelyOsCatalogCard('violet')} !p-4 flex flex-col sm:flex-row sm:items-center gap-3`}>
+    <div className={`${MARKETING_HUB_CONTENT_SHELL} flex flex-col sm:flex-row sm:items-center gap-3 border-violet-400/25`}>
       <div className="flex items-start gap-3 min-w-0 flex-1">
         <div className="shrink-0 rounded-xl border border-violet-400/35 bg-violet-500/15 p-2 text-violet-200">
           <Sparkles size={18} />

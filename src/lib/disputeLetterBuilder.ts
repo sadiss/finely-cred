@@ -1,6 +1,7 @@
 import type { DisputeCandidate, ParsedCreditReport } from '../domain/creditReports';
 import type { DisputeReasonSuggestion } from '../domain/disputeReasons';
 import type { EvidenceItem } from '../domain/evidence';
+import { bureauShortCode } from '../utils/bureaus';
 import {
   deriveTradelineContradictions,
   suggestDisputeReasons,
@@ -204,7 +205,7 @@ export function buildCaseContextBlock(args: {
   const contradictions = tl ? deriveTradelineContradictions(tl as any, args.candidate.bureau).map((r) => r.text) : [];
   const factual = filterFactualDisputeReasons(args.reasons);
   return [
-    `BUREAU: ${args.bureau}`,
+    `BUREAU: ${bureauShortCode(args.candidate.bureau)}`,
     `ROUND: ${args.round}`,
     `ACCOUNT: ${args.candidate.account}`,
     `NEGATIVE_TYPE: ${negativeType}`,

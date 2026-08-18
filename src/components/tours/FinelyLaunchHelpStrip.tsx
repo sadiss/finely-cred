@@ -30,7 +30,15 @@ function topicAccent(topic: FinelyPublicTopic | 'general'): string {
   }
 }
 
-function FinelyStripAnswer({ reply, topic }: { reply: string; topic: FinelyPublicTopic | 'general' }) {
+function FinelyStripAnswer({
+  reply,
+  topic,
+  ivory = false,
+}: {
+  reply: string;
+  topic: FinelyPublicTopic | 'general';
+  ivory?: boolean;
+}) {
   const accent = topicAccent(topic);
   const accentBorder =
     accent === 'emerald'
@@ -73,16 +81,24 @@ function FinelyStripAnswer({ reply, topic }: { reply: string; topic: FinelyPubli
 
   return (
     <div
-      className={`fc-launch-help-answer mt-3 overflow-hidden rounded-xl border ${accentBorder} bg-gradient-to-br ${accentGlow} to-black/40`}
+      className={`fc-launch-help-answer mt-3 overflow-hidden rounded-xl border ${
+        ivory
+          ? 'border-[#0a1628]/10 bg-[#f8fafc]'
+          : `${accentBorder} bg-gradient-to-br ${accentGlow} to-black/40`
+      }`}
       role="status"
       aria-live="polite"
     >
-      <div className="border-b border-white/[0.06] px-3 py-2">
-        <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/45">Finely&apos;s reply</p>
+      <div className={`border-b px-3 py-2 ${ivory ? 'border-[#0a1628]/8' : 'border-white/[0.06]'}`}>
+        <p className={`text-[10px] font-bold uppercase tracking-[0.2em] ${ivory ? 'text-[#0a1628]/45' : 'text-white/45'}`}>
+          Finely&apos;s reply
+        </p>
       </div>
       <div className="space-y-2.5 px-3.5 py-3">
         {lead ? (
-          <p className="text-[15px] font-semibold leading-snug text-white/95 tracking-tight">{lead}</p>
+          <p className={`text-[15px] font-semibold leading-snug tracking-tight ${ivory ? 'text-[#0a1628]' : 'text-white/95'}`}>
+            {lead}
+          </p>
         ) : null}
         {body.map((block, i) => {
           const isStep = /^\d+\.\s/.test(block);
@@ -91,8 +107,12 @@ function FinelyStripAnswer({ reply, topic }: { reply: string; topic: FinelyPubli
               key={i}
               className={
                 isStep
-                  ? 'rounded-lg border border-white/[0.06] bg-black/25 px-2.5 py-2 text-[13px] leading-relaxed text-white/82'
-                  : 'text-[13px] leading-[1.65] text-white/78'
+                  ? ivory
+                    ? 'rounded-lg border border-[#0a1628]/10 bg-white px-2.5 py-2 text-[13px] leading-relaxed text-[#0a1628]/80'
+                    : 'rounded-lg border border-white/[0.06] bg-black/25 px-2.5 py-2 text-[13px] leading-relaxed text-white/82'
+                  : ivory
+                    ? 'text-[13px] leading-[1.65] text-[#0a1628]/72'
+                    : 'text-[13px] leading-[1.65] text-white/78'
               }
             >
               {block}
@@ -100,7 +120,9 @@ function FinelyStripAnswer({ reply, topic }: { reply: string; topic: FinelyPubli
           );
         })}
         {compliance ? (
-          <p className="border-t border-white/[0.06] pt-2 text-[11px] italic leading-relaxed text-white/42">{compliance}</p>
+          <p className={`border-t pt-2 text-[11px] italic leading-relaxed ${ivory ? 'border-[#0a1628]/8 text-[#0a1628]/50' : 'border-white/[0.06] text-white/42'}`}>
+            {compliance}
+          </p>
         ) : null}
       </div>
     </div>
@@ -108,7 +130,16 @@ function FinelyStripAnswer({ reply, topic }: { reply: string; topic: FinelyPubli
 }
 
 /** Compact Ask Finely strip mounted from PageShell on public and portal routes — text only. */
-export function FinelyLaunchHelpStrip() {
+export function FinelyLaunchHelpStrip({
+  tone = 'dark',
+  className = '',
+  showWatchHow = true,
+}: {
+  tone?: 'dark' | 'ivory';
+  className?: string;
+  /** Hide Watch how CTA (e.g. restore page places strip mid-page). */
+  showWatchHow?: boolean;
+}) {
   const location = useLocation();
   const navigate = useNavigate();
   const [reply, setReply] = useState('');
@@ -136,23 +167,34 @@ export function FinelyLaunchHelpStrip() {
     [location.pathname],
   );
 
+  const isIvory = tone === 'ivory';
+
   return (
     <div
-      className="fc-senior-simple fc-senior-tap-target mb-3 rounded-2xl border border-white/[0.08] bg-black/30 p-3"
+      className={`fc-senior-simple fc-senior-tap-target mb-3 rounded-2xl p-3 ${
+        isIvory
+          ? 'border border-[#0a1628]/10 bg-white shadow-[0_12px_36px_-24px_rgba(0,0,0,0.12)]'
+          : 'border border-white/[0.08] bg-black/30'
+      } ${className}`.trim()}
       data-fc-launch-help-strip="1"
+      data-fc-launch-help-tone={tone}
     >
       <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
-        <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-white/90">
-          <Sparkles size={14} className="text-amber-300/90" aria-hidden />
+        <span
+          className={`inline-flex items-center gap-1.5 text-sm font-semibold ${
+            isIvory ? 'text-[#0a1628]' : 'text-white/90'
+          }`}
+        >
+          <Sparkles size={14} className={isIvory ? 'text-emerald-600' : 'text-amber-300/90'} aria-hidden />
           Ask Finely
         </span>
       </div>
-      <p className="mt-1 max-w-xl text-xs leading-relaxed text-white/62">
-        Tap a prompt below for a plain-English answer about this page — no voice, just clear text.
+      <p className={`mt-1 max-w-xl text-xs leading-relaxed ${isIvory ? 'text-[#0a1628]/65' : 'text-white/62'}`}>
+        Tap a prompt below for a plain-English answer about restore packages and next steps.
       </p>
 
-      <div className="mt-2.5 flex flex-wrap items-center gap-2">
-        {PUBLIC_DEMO_VIDEOS_ENABLED ? (
+      {showWatchHow && PUBLIC_DEMO_VIDEOS_ENABLED ? (
+        <div className="mt-2.5 flex flex-wrap items-center gap-2">
           <button
             type="button"
             className={`${FINELY_OS_SECONDARY_BTN} !text-xs !py-1.5 !px-3 opacity-80`}
@@ -160,16 +202,22 @@ export function FinelyLaunchHelpStrip() {
           >
             Watch how
           </button>
-        ) : null}
-      </div>
+        </div>
+      ) : null}
 
       <div className="mt-2 flex flex-wrap items-center gap-1.5">
-        <span className="text-[10px] font-semibold uppercase tracking-wider text-white/35">Try</span>
+        <span className={`text-[10px] font-semibold uppercase tracking-wider ${isIvory ? 'text-[#0a1628]/40' : 'text-white/35'}`}>
+          Try
+        </span>
         {TEXT_PROMPTS.map((item) => (
           <button
             key={item.label}
             type="button"
-            className="rounded-full border border-white/[0.08] bg-white/[0.04] px-2 py-0.5 text-[11px] font-medium text-white/55 transition-colors hover:border-amber-400/25 hover:bg-amber-500/[0.06] hover:text-white/85 disabled:opacity-40"
+            className={
+              isIvory
+                ? 'rounded-full border border-[#0a1628]/12 bg-[#f8fafc] px-2 py-0.5 text-[11px] font-medium text-[#0a1628]/70 transition-colors hover:border-emerald-400/35 hover:bg-emerald-50 hover:text-[#0a1628] disabled:opacity-40'
+                : 'rounded-full border border-white/[0.08] bg-white/[0.04] px-2 py-0.5 text-[11px] font-medium text-white/55 transition-colors hover:border-amber-400/25 hover:bg-amber-500/[0.06] hover:text-white/85 disabled:opacity-40'
+            }
             disabled={busy}
             onClick={() => ask(item.prompt)}
           >
@@ -179,9 +227,11 @@ export function FinelyLaunchHelpStrip() {
       </div>
 
       {busy ? (
-        <p className="mt-2.5 text-[11px] tracking-wide text-amber-200/50">One moment…</p>
+        <p className={`mt-2.5 text-[11px] tracking-wide ${isIvory ? 'text-emerald-700/60' : 'text-amber-200/50'}`}>
+          One moment…
+        </p>
       ) : null}
-      {reply && !busy ? <FinelyStripAnswer reply={reply} topic={topic} /> : null}
+      {reply && !busy ? <FinelyStripAnswer reply={reply} topic={topic} ivory={isIvory} /> : null}
     </div>
   );
 }

@@ -49,6 +49,8 @@ type Props = {
   contentVariant?: 'card' | 'flush';
   /** Wider, readable tab buttons */
   tabDensity?: 'default' | 'comfortable';
+  /** Marketing hub — frosted strip + per-tab accent rotation */
+  tabStripVariant?: 'default' | 'marketing';
   /** Light ivory marketing shell (personal credit lane) */
   variant?: 'default' | 'ivoryMarketing' | 'darkDeskLightSheets';
   primaryActionClassName?: string;
@@ -95,6 +97,7 @@ export function FinelyUnifiedHubLayout({
   detailLabel = 'More detail',
   contentVariant = 'card',
   tabDensity = 'default',
+  tabStripVariant = 'default',
   variant = 'default',
   primaryActionClassName,
   secondaryActionClassName,
@@ -202,31 +205,54 @@ export function FinelyUnifiedHubLayout({
 
       {!launcherSlot && tabs?.length && onTabChange ? (
         <div className="-mx-1 overflow-x-auto pb-1 [scrollbar-width:thin]">
-          <div className={`${FINELY_OS_VIEW_TABS} ${tabDensity === 'comfortable' ? 'gap-2.5' : ''} min-w-max`} role="tablist">
-            {tabs.map((t) => (
-              <button
-                key={t.id}
-                type="button"
-                role="tab"
-                aria-selected={tabId === t.id}
-                data-fc-hub-tab={t.id}
-                onClick={() => onTabChange(t.id)}
-                className={
-                  tabDensity === 'comfortable'
-                    ? finelyOsHubTab(tabId === t.id, accent ?? 'emerald')
-                    : `${finelyOsViewTab(tabId === t.id, accent === 'rose' ? 'fuchsia' : accent)} shrink-0`
-                }
-              >
-                {t.label}
-                {t.badge != null && t.badge !== '' ? ` (${t.badge})` : ''}
-              </button>
-            ))}
+          <div
+            className={
+              tabStripVariant === 'marketing'
+                ? 'rounded-2xl border border-white/20 bg-white/[0.09] backdrop-blur-md p-2 sm:p-2.5 inline-flex flex-wrap gap-2 min-w-max'
+                : `${FINELY_OS_VIEW_TABS} ${tabDensity === 'comfortable' ? 'gap-2.5' : ''} min-w-max`
+            }
+            role="tablist"
+          >
+            {tabs.map((t, i) => {
+              const tabAccents = ['emerald', 'sky', 'violet', 'fuchsia', 'amber', 'emerald', 'sky', 'rose'] as const;
+              const tabAccent = tabAccents[i % tabAccents.length];
+              const mappedAccent = tabAccent === 'rose' ? 'fuchsia' : tabAccent;
+              const activeMarketing =
+                tabId === t.id && tabStripVariant === 'marketing'
+                  ? ' fc-mkt-tab-active fc-mkt-glow-on scale-[1.02]'
+                  : '';
+              return (
+                <button
+                  key={t.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={tabId === t.id}
+                  data-fc-hub-tab={t.id}
+                  onClick={() => onTabChange(t.id)}
+                  className={
+                    tabStripVariant === 'marketing' || tabDensity === 'comfortable'
+                      ? `${finelyOsHubTab(tabId === t.id, tabStripVariant === 'marketing' ? mappedAccent : accent ?? 'emerald')}${activeMarketing} fc-mkt-hover-lift`
+                      : `${finelyOsViewTab(tabId === t.id, accent === 'rose' ? 'fuchsia' : accent)} shrink-0`
+                  }
+                >
+                  {t.label}
+                  {t.badge != null && t.badge !== '' ? ` (${t.badge})` : ''}
+                </button>
+              );
+            })}
           </div>
         </div>
       ) : null}
 
       {!launcherSlot && (contentVariant === 'flush' ? (
-        <div className="fc-unified-hub-content fc-light-readable min-w-0 overflow-x-clip" data-fc-accent={accent}>
+        <div
+          className={
+            tabStripVariant === 'marketing'
+              ? 'fc-unified-hub-content fc-light-readable min-w-0 overflow-x-clip rounded-2xl border border-white/18 bg-white/[0.07] backdrop-blur-md p-4 sm:p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]'
+              : 'fc-unified-hub-content fc-light-readable min-w-0 overflow-x-clip'
+          }
+          data-fc-accent={accent}
+        >
           {children}
         </div>
       ) : (

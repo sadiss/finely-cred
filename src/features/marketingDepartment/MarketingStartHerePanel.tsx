@@ -1,12 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Film, Mail, Target } from 'lucide-react';
-import {
-  FINELY_OS_ENTITY_BODY,
-  FINELY_OS_ENTITY_SUBLABEL,
-  FINELY_OS_ENTITY_TITLE,
-  finelyOsDeckTile,
-} from '../os/finelyOsLightUi';
+import { MARKETING_HUB_CONTENT_SHELL, MarketingSectionHeader, MarketingVividActionTile } from './marketingHubUi';
 
 const START_JOBS = [
   {
@@ -17,6 +12,7 @@ const START_JOBS = [
     accent: 'emerald' as const,
     href: '/admin/marketing?tab=desk&helper=find',
     cta: 'Find new people',
+    helpId: 'marketing_domain',
   },
   {
     id: 'content',
@@ -26,6 +22,7 @@ const START_JOBS = [
     accent: 'violet' as const,
     href: '/admin/marketing?tab=content',
     cta: 'Open Content Studio',
+    helpId: 'video_wizard',
   },
   {
     id: 'followup',
@@ -35,6 +32,7 @@ const START_JOBS = [
     accent: 'fuchsia' as const,
     href: '/admin/marketing?tab=leads',
     cta: 'Open leads & CRM',
+    helpId: 'nurture_lane',
   },
 ] as const;
 
@@ -42,29 +40,24 @@ export function MarketingStartHerePanel() {
   const navigate = useNavigate();
 
   return (
-    <div className="space-y-3">
-      <div>
-        <p className={FINELY_OS_ENTITY_SUBLABEL}>Start here</p>
-        <h2 className={FINELY_OS_ENTITY_TITLE}>Three jobs that move the week</h2>
-        <p className={`mt-1 text-sm ${FINELY_OS_ENTITY_BODY}`}>
-          Pick one — each opens the full workspace behind it, not a simplified substitute.
-        </p>
-      </div>
+    <div className={`${MARKETING_HUB_CONTENT_SHELL} space-y-3`}>
+      <MarketingSectionHeader
+        eyebrow="Start here"
+        title="Three jobs that move the week"
+        subtitle="Each tile is a full workspace — not a shortcut to a empty page."
+        helpId="weekly_focus"
+      />
       <div className="grid sm:grid-cols-3 gap-3">
         {START_JOBS.map((job) => (
-          <button
+          <MarketingVividActionTile
             key={job.id}
-            type="button"
+            accent={job.accent}
+            eyebrow="This week"
+            title={job.title}
+            detail={job.blurb}
+            helpId={job.helpId}
             onClick={() => navigate(job.href)}
-            className={`${finelyOsDeckTile(job.accent)} text-left !p-4`}
-          >
-            <job.icon size={20} className="mb-2 opacity-80" />
-            <div className="font-bold text-white">{job.title}</div>
-            <p className={`mt-1 text-xs ${FINELY_OS_ENTITY_BODY}`}>{job.blurb}</p>
-            <span className="mt-3 inline-block text-[11px] font-bold uppercase tracking-widest text-emerald-300/90">
-              {job.cta} →
-            </span>
-          </button>
+          />
         ))}
       </div>
     </div>

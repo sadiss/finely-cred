@@ -143,7 +143,7 @@ export function LetterStudioDisputeRail({
               }
               title={bureauFullName(b)}
             >
-              {bureauShortCode(b).slice(0, 1)}
+              {bureauShortCode(b)}
             </button>
           ))}
           <ChevronRight size={12} className="text-white/25 mt-auto" />

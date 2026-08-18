@@ -33,6 +33,7 @@ import {
   PersonalCreditRestoreSpectrum,
   type PersonalCreditRestorePath,
 } from '../features/personalCredit/PersonalCreditHeroShell';
+import { FinelyLaunchHelpStrip } from '../components/tours/FinelyLaunchHelpStrip';
 import { PC_RESTORE_BTN } from '../features/personalCredit/personalCreditRestoreButtons';
 import '../features/personalCredit/personalCreditRestoreVisual.css';
 
@@ -280,7 +281,14 @@ export default function PersonalCreditPage() {
   return (
     <PageShell
       hideHero
+      hideLaunchHelpStrip
       surface="ivory"
+      laneHero={
+        <PersonalCreditHeroShell
+          onStartFreeTrial={() => finelyCtaNavigate(navigate, 'personal_free_trial', { isAuthed: Boolean(auth.user) })}
+          onBookSession={() => finelyCtaNavigate(navigate, 'consultation', { consultationLane: 'Personal Credit' })}
+        />
+      }
       badge="Personal Credit"
       title="Restore Your Credit. Reclaim Your Future."
       subtitle="We handle dispute letters and tracking — you focus on your goals."
@@ -291,11 +299,7 @@ export default function PersonalCreditPage() {
         data-fc-restore-pricing="1"
         data-fc-ivory-wealthy="1"
       >
-        <PersonalCreditHeroShell
-          onStartFreeTrial={() => finelyCtaNavigate(navigate, 'personal_free_trial', { isAuthed: Boolean(auth.user) })}
-          onBookSession={() => finelyCtaNavigate(navigate, 'consultation', { consultationLane: 'Personal Credit' })}
-        />
-
+        <div className="pc-restore-contained space-y-4">
         <PersonalCreditRestoreSpectrum />
 
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
@@ -311,6 +315,7 @@ export default function PersonalCreditPage() {
         </div>
 
         <section className="space-y-4" id="pc-packages">
+          <FinelyLaunchHelpStrip tone="ivory" showWatchHow={false} className="pc-restore-ask-finely" />
           <PersonalCreditPathSwitcher value={restorePath} onChange={setRestorePath} />
 
           <div>
@@ -361,7 +366,7 @@ export default function PersonalCreditPage() {
         </section>
 
         <section className="space-y-4" id="pc-process">
-          <div className="text-center space-y-2 max-w-2xl mx-auto">
+          <div className="text-center space-y-2 pc-restore-section-intro">
             <p className="pc-restore-kicker">How it works</p>
             <h2 className={`${FINELY_OS_ENTITY_TITLE} text-[#0a1628] text-2xl sm:text-3xl font-bold`}>Our process</h2>
             <p className="pc-restore-hub-sub text-sm">Four disciplined steps — evidence-first and bureau-aware.</p>
@@ -461,6 +466,7 @@ export default function PersonalCreditPage() {
           />
 
           <FinelyOsPageFooter />
+        </div>
         </div>
       </div>
     </PageShell>

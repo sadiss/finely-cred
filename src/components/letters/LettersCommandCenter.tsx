@@ -1830,7 +1830,7 @@ WRITING STANDARD:
 - Never include partner phone numbers or email addresses in intro or narratives — letters use mailing address only.
 - questions: only genuine gaps that would strengthen factual findings.`;
 
-      const user = `DRAFT A BUREAU DISPUTE LETTER.\n\nBUREAU: ${b}\nROUND: ${round}\nTONE: ${tone}\nCONSUMER_NAME: ${partnerName}\nSTATE: ${state || '[STATE]'}\n\nDISPUTE_ITEMS (keyed):\n${payloadItems
+      const user = `DRAFT A BUREAU DISPUTE LETTER.\n\nBUREAU: ${bureauFullName(b)}\nROUND: ${round}\nTONE: ${tone}\nCONSUMER_NAME: ${partnerName}\nSTATE: ${state || '[STATE]'}\n\nDISPUTE_ITEMS (keyed):\n${payloadItems
         .map((it) => {
           const reasons = it.reasons.length ? it.reasons.map((r) => `- ${r}`).join('\n') : '- (none selected)';
           const issues = it.contradictions.length ? it.contradictions.map((r) => `- ${r}`).join('\n') : '- (none auto-detected)';

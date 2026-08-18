@@ -7,9 +7,10 @@ import { MarketingCopilotStrip } from '../../features/marketingDepartment/Market
 import { MarketingStartHerePanel } from '../../features/marketingDepartment/MarketingStartHerePanel';
 import { MarketingTeamHierarchy } from '../../features/marketingDepartment/MarketingTeamHierarchy';
 import { MarketingAutopilotStrip } from '../../features/marketingDepartment/MarketingAutopilotStrip';
-import { SmsTwilioStatusPanel } from '../../features/marketingDepartment/SmsTwilioStatusPanel';
-import { CommunityListenCopilotPanel } from '../../features/marketingDepartment/CommunityListenCopilotPanel';
-import { ZeroCostChannelsPanel } from '../../features/marketingDepartment/ZeroCostChannelsPanel';
+import { MarketingNavGuide } from '../../features/marketingDepartment/MarketingNavGuide';
+import '../../features/marketingDepartment/marketingHub.css';
+import { MarketingWeekFocusHero } from '../../features/marketingDepartment/MarketingWeekFocusHero';
+import { MarketingChannelsHub } from '../../features/marketingDepartment/MarketingChannelsHub';
 import { buildMarketingHubQueueMetrics } from '../../features/marketingDepartment/agentLiveStatus';
 import { AgentTeamTrailFeed } from '../../features/growthAgents/AgentTrailTimeline';
 import { buildAgentArchitectBrief } from '../../features/growthAgents/growthAgentArchitectBrief';
@@ -26,9 +27,8 @@ import {
   FINELY_OS_ENTITY_TITLE,
   FINELY_OS_SECONDARY_BTN,
   finelyOsCatalogCard,
-  finelyOsViewTab,
-  FINELY_OS_VIEW_TABS,
 } from '../../features/os/finelyOsLightUi';
+import { MarketingColorLegend } from '../../features/marketingDepartment/MarketingColorLegend';
 import { MarketingWatchHowStrip } from '../../features/marketingDepartment/MarketingWatchHowStrip';
 import { MarketingDeskEmbeddedPanel } from '../../features/marketingDepartment/MarketingDeskEmbeddedPanel';
 import { isFeatureEnabled } from '../../data/settingsRepo';
@@ -76,7 +76,7 @@ export default function AdminMarketingDepartmentPage() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const tab = parseTab(searchParams.get('tab'));
-  const [simpleMode, setSimpleMode] = useState(true);
+  const [simpleMode, setSimpleMode] = useState(false);
   const [version, setVersion] = useState(0);
 
   const metrics = useMemo(() => {
@@ -103,8 +103,14 @@ export default function AdminMarketingDepartmentPage() {
   useEffect(() => {
     const mode = searchParams.get('mode');
     if (mode === 'advanced') setSimpleMode(false);
-    if (mode === 'simple') setSimpleMode(true);
-  }, [searchParams]);
+    else if (mode === 'simple') setSimpleMode(true);
+    else if (!mode) {
+      const next = new URLSearchParams(searchParams);
+      next.set('mode', 'advanced');
+      setSearchParams(next, { replace: true });
+      setSimpleMode(false);
+    }
+  }, [searchParams, setSearchParams]);
 
   const setTab = (id: HubTab) => {
     const next = new URLSearchParams(searchParams);
@@ -142,10 +148,9 @@ export default function AdminMarketingDepartmentPage() {
       case 'start':
         return (
           <div className="space-y-4">
+            <MarketingWeekFocusHero />
             <MarketingStartHerePanel />
-            <ZeroCostChannelsPanel />
-            <CommunityListenCopilotPanel />
-            <SmsTwilioStatusPanel />
+            <MarketingChannelsHub />
             <MarketingWatchHowStrip />
           </div>
         );
@@ -162,10 +167,14 @@ export default function AdminMarketingDepartmentPage() {
         return (
           <div className="space-y-3">
             <MarketingTeamHierarchy />
-            <AgentTeamTrailFeed limit={5} />
-            <p className={`text-sm ${FINELY_OS_ENTITY_BODY}`}>
-              {buildAgentArchitectBrief().headline}
-            </p>
+            <div className="rounded-2xl border border-white/18 bg-white/[0.07] backdrop-blur-md p-4 space-y-3">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-white/55">Agent trail</p>
+              <AgentTeamTrailFeed limit={5} />
+              <div className="rounded-xl border border-violet-400/25 bg-violet-500/10 px-4 py-3">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-violet-200/80">Architect brief</p>
+                <p className={`mt-1 text-sm font-medium text-white`}>{buildAgentArchitectBrief().headline}</p>
+              </div>
+            </div>
           </div>
         );
       case 'leads':
@@ -217,6 +226,7 @@ export default function AdminMarketingDepartmentPage() {
       subtitle="Get leads · create content · follow up — one hub for the whole team."
     >
       <div className={FINELY_OS_COMPACT_PAGE}>
+        <MarketingNavGuide />
         <MarketingCopilotStrip />
         <MarketingAutopilotStrip />
 
@@ -229,6 +239,8 @@ export default function AdminMarketingDepartmentPage() {
           tabs={visibleTabs}
           activeTab={tab}
           onTabChange={(id) => setTab(id as HubTab)}
+          tabDensity="comfortable"
+          tabStripVariant="marketing"
           primaryAction={{ label: 'Find new people', onClick: () => navigate('/admin/marketing?tab=desk&helper=find') }}
           secondaryAction={{ label: simpleMode ? 'Show all tabs' : 'Simple mode', onClick: toggleMode }}
           contentVariant="flush"
@@ -265,12 +277,7 @@ export default function AdminMarketingDepartmentPage() {
           {renderTab()}
         </FinelyUnifiedHubLayout>
 
-        <div className={`${FINELY_OS_VIEW_TABS} mt-3`}>
-          <span className={`text-xs ${FINELY_OS_ENTITY_BODY}`}>Glossary:</span>
-          <span className={finelyOsViewTab(false, 'emerald')}>Find = live search</span>
-          <span className={finelyOsViewTab(false, 'violet')}>Checklists ≠ automations</span>
-          <span className={finelyOsViewTab(false, 'sky')}>Lead hunt preview = simulation</span>
-        </div>
+        <MarketingColorLegend />
 
         <FinelyOsPageFooter />
       </div>

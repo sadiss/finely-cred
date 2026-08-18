@@ -485,7 +485,7 @@ function extensionBureauGrid(vm: PremiumSpreadViewModel, ctx?: SpreadPageContext
     z('Category', 0.11, y + 0.032, 8, { color: 'greenDark', bold: true, maxWidth: 0.2 }),
     z('EQF', 0.35, y + 0.032, 8, { color: 'amber', bold: true, align: 'center' }),
     z('EXP', 0.43, y + 0.032, 8, { color: 'amber', bold: true, align: 'center' }),
-    z('TUC', 0.51, y + 0.032, 8, { color: 'amber', bold: true, align: 'center' }),
+    z('Trans', 0.51, y + 0.032, 8, { color: 'amber', bold: true, align: 'center' }),
   );
   y += 0.064;
   for (const [cat, counts] of Object.entries(vm.bureauGrid)) {

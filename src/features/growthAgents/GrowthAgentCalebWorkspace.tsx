@@ -49,6 +49,7 @@ import { buildCalebFindDiagnostics } from './calebFindDiagnostics';
 import { MarketingConsentChip } from '../marketingDesk/MarketingConsentChip';
 import { getDailyQuotaProgress, GROWTH_DAILY_QUOTA_TOTAL } from './growthDailyQuota';
 import { calebTodaysMissionPreview, runCalebTodaysMission } from './calebQuotaMission';
+import { MarketingChecklistTile, MarketingKpiChip } from '../marketingDepartment/marketingHubUi';
 
 export function GrowthAgentCalebWorkspace() {
   const navigate = useNavigate();
@@ -286,18 +287,16 @@ export function GrowthAgentCalebWorkspace() {
       }
       nextStep={autoEnabled ? calebAutoStatusLine() : results.todaySentence}
       setupBlock={
-        <ul className="space-y-1">
+        <div className="grid sm:grid-cols-2 gap-2">
           {maturity.items.map((i) => (
-            <li key={i.id} className={i.done ? 'text-emerald-300/90' : 'text-amber-200/90'}>
-              {i.done ? '✓' : '○'} {i.label}
-            </li>
+            <MarketingChecklistTile key={i.id} done={i.done} label={i.label} />
           ))}
-          <li className="pt-2">
+          <div className="sm:col-span-2 pt-1">
             <button type="button" className={FINELY_OS_SECONDARY_BTN} onClick={() => navigate('/admin/settings')}>
               Open settings
             </button>
-          </li>
-        </ul>
+          </div>
+        </div>
       }
       lastRunBlock={
         <div>
@@ -311,12 +310,18 @@ export function GrowthAgentCalebWorkspace() {
         </div>
       }
       statusBlock={
-        <ul className="space-y-1">
-          <li>Week focus: {results.weekFocusLabel}</li>
-          <li>Review queue: {pending}</li>
-          <li>Search: {readiness.ready ? 'ready to run' : 'needs setup'}</li>
+        <div className="space-y-2">
+          <div className="flex flex-wrap gap-2">
+            <MarketingKpiChip label="Week focus" value={results.weekFocusLabel} accent="violet" />
+            <MarketingKpiChip label="Review queue" value={String(pending)} accent="amber" />
+            <MarketingKpiChip
+              label="Search"
+              value={readiness.ready ? 'Ready' : 'Setup'}
+              accent={readiness.ready ? 'emerald' : 'rose'}
+            />
+          </div>
           <GrowthAgentInfraStrip compactWorkerLine />
-        </ul>
+        </div>
       }
     >
       {findDiagnostic ? (
