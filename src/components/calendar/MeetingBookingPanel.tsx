@@ -138,24 +138,48 @@ export function MeetingBookingPanel({ partnerId, settings, onBooked }: Props) {
         <div className="rounded-2xl border border-fuchsia-500/25 bg-fuchsia-500/10 p-4 text-fuchsia-100 text-sm">{err}</div>
       ) : null}
 
-      {mode === 'instant' ? (
-        <PublicSessionSlotPicker
-          durationMinutes={duration}
-          onDurationChange={(d) => {
-            setDuration(d);
-            setSelectedSlot(null);
-          }}
-          selectedDay={dayKey}
-          onDayChange={setDayKey}
-          selectedSlot={selectedSlot}
-          onSlotChange={setSelectedSlot}
-          allowedDurations={durations}
-          settingsOverride={settings}
-          showDurationPicker={false}
-        />
-      ) : null}
+      <div className="grid lg:grid-cols-12 gap-6 items-start min-w-0">
+        <div className="lg:col-span-5 min-w-0 space-y-4">
+          {mode === 'instant' ? (
+            <PublicSessionSlotPicker
+              durationMinutes={duration}
+              onDurationChange={(d) => {
+                setDuration(d);
+                setSelectedSlot(null);
+              }}
+              selectedDay={dayKey}
+              onDayChange={setDayKey}
+              selectedSlot={selectedSlot}
+              onSlotChange={setSelectedSlot}
+              allowedDurations={durations}
+              settingsOverride={settings}
+              showDurationPicker={false}
+            />
+          ) : (
+            <div className="fc-light-glass-panel fc-light-chrome-panel p-4 sm:p-5 space-y-3 min-w-0">
+              <div className="text-[10px] font-black uppercase tracking-widest text-white/50">Preferred date</div>
+              <p className="text-xs text-white/60 leading-relaxed">
+                Optional: pick a day on the calendar. Describe your availability on the right — your case team will confirm the exact time.
+              </p>
+              <PublicSessionSlotPicker
+                durationMinutes={duration}
+                onDurationChange={(d) => {
+                  setDuration(d);
+                  setSelectedSlot(null);
+                }}
+                selectedDay={dayKey}
+                onDayChange={setDayKey}
+                selectedSlot={selectedSlot}
+                onSlotChange={setSelectedSlot}
+                allowedDurations={durations}
+                settingsOverride={settings}
+                showDurationPicker={false}
+              />
+            </div>
+          )}
+        </div>
 
-      <div className="fc-light-glass-panel fc-light-chrome-panel p-4 sm:p-6 space-y-4 min-w-0 overflow-x-clip">
+        <div className="lg:col-span-7 fc-light-glass-panel fc-light-chrome-panel p-4 sm:p-6 space-y-4 min-w-0 overflow-x-clip">
         <div className="grid sm:grid-cols-2 gap-4">
           <div>
             <label className="block text-[10px] uppercase tracking-widest text-white/50 mb-1">Topic</label>
@@ -257,6 +281,7 @@ export function MeetingBookingPanel({ partnerId, settings, onBooked }: Props) {
         >
           {mode === 'instant' ? 'Confirm session' : 'Submit request'} <ArrowRight size={14} />
         </button>
+        </div>
       </div>
     </form>
   );

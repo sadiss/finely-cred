@@ -379,7 +379,7 @@ export default function EnlightenmentSessionPage() {
           </p>
         </div>
 
-        <div className={`${finelyOsCatalogCard('emerald')} !p-4 sm:!p-5 space-y-4 max-w-3xl`} data-fc-accent="emerald">
+        <div className={`${finelyOsCatalogCard('emerald')} !p-4 sm:!p-5 space-y-4 max-w-6xl`} data-fc-accent="emerald">
           {statusMsg ? (
             <div
               className={`flex items-start gap-3 ${
@@ -399,119 +399,123 @@ export default function EnlightenmentSessionPage() {
           ) : null}
 
           <form onSubmit={onSubmit} className="space-y-4">
-            <div className="grid sm:grid-cols-2 gap-3">
-              <div>
-                <label className={formLabel}>Full name</label>
-                <input value={fullName} onChange={(e) => setFullName(e.target.value)} className={formInput} placeholder="Your name" maxLength={120} required />
-              </div>
-              <div>
-                <label className={formLabel}>Email</label>
-                <input value={email} onChange={(e) => setEmail(e.target.value)} className={formInput} placeholder="you@email.com" maxLength={180} required />
-              </div>
-            </div>
-
-            <div>
-              <label className={formLabel}>Phone (optional)</label>
-              <input value={phone} onChange={(e) => setPhone(e.target.value)} className={formInput} placeholder="(555) 555-5555" maxLength={40} />
-            </div>
-
-            <div>
-              <div className={`${formLabel} flex items-center gap-2`}>
-                Pick date &amp; time
-              </div>
-              <PublicSessionSlotPicker
-                durationMinutes={preferredSlotMinutes}
-                onDurationChange={setPreferredSlotMinutes}
-                selectedDay={selectedDay}
-                onDayChange={setSelectedDay}
-                selectedSlot={selectedSlot}
-                onSlotChange={setSelectedSlot}
-                urgencySignal={urgencySignal}
-              />
-            </div>
-
-            {selectedSlot ? (
-              <div className={FINELY_OS_NOTICE_SUCCESS}>
-                Your session: <strong>{formatSlotRange(selectedSlot.startAt, selectedSlot.endAt)}</strong>
-              </div>
-            ) : selectedDay ? (
-              <div className={FINELY_OS_NOTICE_WARN}>Select a time above before confirming.</div>
-            ) : null}
-
-            <VoiceDictationChooser
-              agenda={meetingAgenda}
-              details={moreDetails}
-              onAgendaChange={setMeetingAgenda}
-              onDetailsChange={setMoreDetails}
-              agendaRightSlot={
-                <button
-                  type="button"
-                  onClick={() => void aiDraftAgenda()}
-                  disabled={aiDrafting}
-                  className="inline-flex items-center gap-1 rounded-lg border border-violet-400/40 bg-violet-500/10 px-2 py-1 text-[9px] font-black uppercase tracking-widest text-violet-100 hover:bg-violet-500/15 disabled:opacity-50"
-                >
-                  <Sparkles size={11} /> {aiDrafting ? 'Drafting…' : 'AI-draft'}
-                </button>
-              }
-            />
-
-            <div className={sessionQuote.paymentRequired ? FINELY_OS_NOTICE_WARN : FINELY_OS_NOTICE_SUCCESS}>
-              {sessionQuote.paymentRequired
-                ? 'This email already used the free Enlightenment session. Additional sessions are $100 — confirmed when payment clears.'
-                : 'Eligible for one free Enlightenment session — confirmed the instant you submit.'}
-            </div>
-
-            <label className={`flex items-start gap-3 ${FINELY_OS_ENTITY_BODY} cursor-pointer`}>
-              <input type="checkbox" className="mt-1" checked={consent} onChange={(e) => setConsent(e.target.checked)} />
-              <span>
-                I consent to be contacted about this request. Educational workflow support only — not legal or financial advice.
-              </span>
-            </label>
-
-            <details className="group" open={moreOpen} onToggle={(e) => setMoreOpen((e.target as HTMLDetailsElement).open)}>
-              <summary className={`flex cursor-pointer list-none items-center gap-1.5 ${FINELY_OS_ENTITY_SUBLABEL} text-white/55 hover:text-white/80 select-none`}>
-                <ChevronDown size={13} className="transition-transform group-open:rotate-180" />
-                Focus, timeline &amp; goals (optional)
-              </summary>
-              <div className="mt-3 space-y-3 border-t border-white/10 pt-3">
-                <div className="space-y-1.5">
-                  <span className={FINELY_OS_ENTITY_LABEL}>Session focus</span>
-                  <div className="flex flex-wrap gap-1.5">
-                    {FOCUS_LANES.map((l) => {
-                      const active = l === focus;
-                      return (
-                        <button
-                          key={l}
-                          type="button"
-                          onClick={() => setFocus(l)}
-                          className={`px-2.5 py-1.5 text-[10px] font-bold ${finelyOsGlowTile(active ? 'violet' : 'sky', active)}`}
-                        >
-                          {l}
-                        </button>
-                      );
-                    })}
+            <div className="grid lg:grid-cols-12 gap-6 items-start">
+              <div className="lg:col-span-5 space-y-4 min-w-0">
+                <div className="grid sm:grid-cols-2 lg:grid-cols-1 gap-3">
+                  <div>
+                    <label className={formLabel}>Full name</label>
+                    <input value={fullName} onChange={(e) => setFullName(e.target.value)} className={formInput} placeholder="Your name" maxLength={120} required />
+                  </div>
+                  <div>
+                    <label className={formLabel}>Email</label>
+                    <input value={email} onChange={(e) => setEmail(e.target.value)} className={formInput} placeholder="you@email.com" maxLength={180} required />
                   </div>
                 </div>
-                <div>
-                  <label className={formLabel}>Timeline</label>
-                  <input value={timeline} onChange={(e) => setTimeline(e.target.value)} className={formInput} placeholder="ASAP, 30 days…" maxLength={80} />
-                </div>
-                <div>
-                  <label className={formLabel}>Goal (optional)</label>
-                  <textarea value={goal} onChange={(e) => setGoal(e.target.value)} rows={3} className={`${formInput} resize-y`} placeholder="What are you trying to accomplish?" />
-                </div>
-                <MarketingConsentBlock value={marketingConsent} onChange={setMarketingConsent} phone={phone} />
-              </div>
-            </details>
 
-            <div className="flex flex-col sm:flex-row flex-wrap gap-3 pt-1">
-              <button type="submit" disabled={!canSend} className={`${FINELY_OS_SUCCESS_BTN} min-h-[44px] disabled:opacity-60`}>
-                {status === 'sending' ? 'Confirming…' : sessionQuote.paymentRequired ? 'Continue to $100 payment' : 'Book an Enlightenment session'}{' '}
-                <ArrowRight size={14} />
-              </button>
-              <button type="button" onClick={() => navigate('/contact')} className={`${FINELY_OS_SECONDARY_BTN} min-h-[44px]`}>
-                Contact instead
-              </button>
+                <div>
+                  <label className={formLabel}>Phone (optional)</label>
+                  <input value={phone} onChange={(e) => setPhone(e.target.value)} className={formInput} placeholder="(555) 555-5555" maxLength={40} />
+                </div>
+
+                <div>
+                  <div className={`${formLabel} flex items-center gap-2`}>Pick date &amp; time</div>
+                  <PublicSessionSlotPicker
+                    durationMinutes={preferredSlotMinutes}
+                    onDurationChange={setPreferredSlotMinutes}
+                    selectedDay={selectedDay}
+                    onDayChange={setSelectedDay}
+                    selectedSlot={selectedSlot}
+                    onSlotChange={setSelectedSlot}
+                    urgencySignal={urgencySignal}
+                  />
+                </div>
+
+                {selectedSlot ? (
+                  <div className={FINELY_OS_NOTICE_SUCCESS}>
+                    Your session: <strong>{formatSlotRange(selectedSlot.startAt, selectedSlot.endAt)}</strong>
+                  </div>
+                ) : selectedDay ? (
+                  <div className={FINELY_OS_NOTICE_WARN}>Select a time above before confirming.</div>
+                ) : null}
+              </div>
+
+              <div className="lg:col-span-7 space-y-4 min-w-0">
+                <VoiceDictationChooser
+                  agenda={meetingAgenda}
+                  details={moreDetails}
+                  onAgendaChange={setMeetingAgenda}
+                  onDetailsChange={setMoreDetails}
+                  agendaRightSlot={
+                    <button
+                      type="button"
+                      onClick={() => void aiDraftAgenda()}
+                      disabled={aiDrafting}
+                      className="inline-flex items-center gap-1 rounded-lg border border-violet-400/40 bg-violet-500/10 px-2 py-1 text-[9px] font-black uppercase tracking-widest text-violet-100 hover:bg-violet-500/15 disabled:opacity-50"
+                    >
+                      <Sparkles size={11} /> {aiDrafting ? 'Drafting…' : 'AI-draft'}
+                    </button>
+                  }
+                />
+
+                <div className={sessionQuote.paymentRequired ? FINELY_OS_NOTICE_WARN : FINELY_OS_NOTICE_SUCCESS}>
+                  {sessionQuote.paymentRequired
+                    ? 'This email already used the free Enlightenment session. Additional sessions are $100 — confirmed when payment clears.'
+                    : 'Eligible for one free Enlightenment session — confirmed the instant you submit.'}
+                </div>
+
+                <label className={`flex items-start gap-3 ${FINELY_OS_ENTITY_BODY} cursor-pointer`}>
+                  <input type="checkbox" className="mt-1" checked={consent} onChange={(e) => setConsent(e.target.checked)} />
+                  <span>
+                    I consent to be contacted about this request. Educational workflow support only — not legal or financial advice.
+                  </span>
+                </label>
+
+                <details className="group" open={moreOpen} onToggle={(e) => setMoreOpen((e.target as HTMLDetailsElement).open)}>
+                  <summary className={`flex cursor-pointer list-none items-center gap-1.5 ${FINELY_OS_ENTITY_SUBLABEL} text-white/55 hover:text-white/80 select-none`}>
+                    <ChevronDown size={13} className="transition-transform group-open:rotate-180" />
+                    Focus, timeline &amp; goals (optional)
+                  </summary>
+                  <div className="mt-3 space-y-3 border-t border-white/10 pt-3">
+                    <div className="space-y-1.5">
+                      <span className={FINELY_OS_ENTITY_LABEL}>Session focus</span>
+                      <div className="flex flex-wrap gap-1.5">
+                        {FOCUS_LANES.map((l) => {
+                          const active = l === focus;
+                          return (
+                            <button
+                              key={l}
+                              type="button"
+                              onClick={() => setFocus(l)}
+                              className={`px-2.5 py-1.5 text-[10px] font-bold ${finelyOsGlowTile(active ? 'violet' : 'sky', active)}`}
+                            >
+                              {l}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                    <div>
+                      <label className={formLabel}>Timeline</label>
+                      <input value={timeline} onChange={(e) => setTimeline(e.target.value)} className={formInput} placeholder="ASAP, 30 days…" maxLength={80} />
+                    </div>
+                    <div>
+                      <label className={formLabel}>Goal (optional)</label>
+                      <textarea value={goal} onChange={(e) => setGoal(e.target.value)} rows={3} className={`${formInput} resize-y`} placeholder="What are you trying to accomplish?" />
+                    </div>
+                    <MarketingConsentBlock value={marketingConsent} onChange={setMarketingConsent} phone={phone} />
+                  </div>
+                </details>
+
+                <div className="flex flex-col sm:flex-row flex-wrap gap-3 pt-1">
+                  <button type="submit" disabled={!canSend} className={`${FINELY_OS_SUCCESS_BTN} min-h-[44px] disabled:opacity-60`}>
+                    {status === 'sending' ? 'Confirming…' : sessionQuote.paymentRequired ? 'Continue to $100 payment' : 'Book an Enlightenment session'}{' '}
+                    <ArrowRight size={14} />
+                  </button>
+                  <button type="button" onClick={() => navigate('/contact')} className={`${FINELY_OS_SECONDARY_BTN} min-h-[44px]`}>
+                    Contact instead
+                  </button>
+                </div>
+              </div>
             </div>
           </form>
 

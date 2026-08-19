@@ -258,7 +258,7 @@ const BookstorePage = lazyWithRetry(() => import('./pages/BookstorePage'));
 const BookstoreProductPage = lazyWithRetry(() => import('./pages/BookstoreProductPage'));
 const PricingPage = lazyWithRetry(() => import('./pages/PricingPage'));
 const PricingServicePage = lazyWithRetry(() => import('./pages/PricingServicePage'));
-const PersonalCreditPage = lazyWithRetry(() => import('./pages/PersonalCreditPage'));
+const PersonalCreditRestorePreviewPage = lazyWithRetry(() => import('./pages/preview/PersonalCreditRestorePreviewPage'));
 const FundabilityReadinessPage = lazyWithRetry(() => import('./pages/FundabilityReadinessPage'));
 const TestimonialsPage = lazyWithRetry(() => import('./pages/TestimonialsPage'));
 const ResultsPage = lazyWithRetry(() => import('./pages/ResultsPage'));
@@ -1538,8 +1538,8 @@ function AppInner() {
         <Route path="/services/:service" element={<PricingServicePage />} />
         <Route path="/pricing" element={<PricingPage />} />
         <Route path="/pricing/tradelines" element={<Navigate to="/tradelines" replace />} />
-        <Route path="/pricing/personal-credit-restore" element={<PersonalCreditPage />} />
-        <Route path="/personal-credit" element={<PersonalCreditPage />} />
+        <Route path="/pricing/personal-credit-restore" element={<PersonalCreditRestorePreviewPage />} />
+        <Route path="/personal-credit" element={<PersonalCreditRestorePreviewPage />} />
         <Route path="/pricing/:service" element={<PricingServicePage />} />
         {/* Legacy marketing slugs (resolve to real pricing/service views) */}
         <Route path="/fix-my-credit" element={<Navigate to="/pricing/personal-credit-restore" replace />} />
@@ -2897,6 +2897,7 @@ function AppInner() {
             </ProtectedRoute>
           }
         />
+        <Route path="/preview/personal-credit-restore" element={<PersonalCreditRestorePreviewPage />} />
         <Route path="/preview/business-credit-power-guide" element={<Navigate to="/free-business-guide" replace />} />
         <Route path="/preview/debt-eradication-guide" element={<Navigate to="/free-debt-guide" replace />} />
         <Route path="/preview/tradeline-advantage-guide" element={<Navigate to="/free-tradeline-guide" replace />} />
