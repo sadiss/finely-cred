@@ -39,7 +39,7 @@ type AuthContextValue = {
   isLoading: boolean;
   session: Session | null;
   user: User | null;
-  signUpWithEmail: (args: { email: string; password: string; metadata?: Record<string, any> }) => Promise<{ error?: string; user?: User | null }>;
+  signUpWithEmail: (args: { email: string; password: string; metadata?: Record<string, any> }) => Promise<{ error?: string; user?: User | null; needsEmailConfirmation?: boolean }>;
   signInWithEmail: (args: { email: string; password: string }) => Promise<{ error?: string; user?: User | null; mfaRequired?: boolean }>;
   signOut: () => Promise<void>;
   updateUserProfile: (patch: UserProfileUpdate) => Promise<{ error?: string }>;
@@ -193,7 +193,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         });
         if (error) return { error: error.message };
         if (data.session) setSession(data.session);
-        return { user: data.user ?? data.session?.user ?? null };
+        // No session means email confirmation is pending — the client has no JWT yet,
+        // so any RLS-protected read/write (e.g. partner record creation) would be
+        // blocked with 42501. Callers must defer that work until the user confirms
+        // and actually signs in.
+        return { user: data.user ?? data.session?.user ?? null, needsEmailConfirmation: !data.session };
       },
       signInWithEmail: async ({ email, password }) => {
         if (!isSupabaseConfigured) {

@@ -2,6 +2,7 @@
 import type { PortraitGender, StaffMember } from '../domain/staffMember';
 import { clampStaffShiftBlocks } from '../domain/staffMember';
 import { isSupabaseConfigured, supabase } from '../lib/supabaseClient';
+import { isAdminEmail } from '../auth/admin';
 import { FINELY_TENANT_ID } from '../domain/tenants';
 import {
   forceStaffShiftPolicyResync,
@@ -102,17 +103,25 @@ export async function ensureStaffRosterSyncedOnce() {
   const legacy = migrateLegacyLocalRoster();
   if (legacy?.length) {
     seedStaffRoster(legacy);
-    if (isSupabaseConfigured) await syncStaffRosterToSupabase({ members: legacy });
   } else if (!loadStaffRoster().length) {
     seedStaffRoster(STAFF_ROSTER_SEED);
   }
 
   if (!isSupabaseConfigured) return;
 
+  // Writing to staff_members is admin-only per RLS — skip sync writes for
+  // non-admin sessions so we don't fire requests guaranteed to be rejected.
+  const { data } = await supabase.auth.getUser();
+  const canWrite = isAdminEmail(data?.user?.email);
+
+  if (legacy?.length && canWrite) {
+    await syncStaffRosterToSupabase({ members: legacy });
+  }
+
   const remote = await syncStaffRosterFromSupabase();
   if (remote.ok && remote.count > 0) return;
 
-  if (remote.ok && remote.count === 0) {
+  if (remote.ok && remote.count === 0 && canWrite) {
     await syncStaffRosterToSupabase({ members: loadStaffRoster().length ? loadStaffRoster() : STAFF_ROSTER_SEED });
   }
 }
