@@ -1511,8 +1511,10 @@ export function SovereignPortal({ isOpen, onClose, onComplete }: SovereignPortal
         return;
       }
 
-      // If email confirmations are enabled, the session may not be available immediately.
-      const signedInUser = res.user ?? auth.user;
+      // If email confirmations are enabled, the session may not be available immediately —
+      // signUp() still returns a user object in that case, so check needsEmailConfirmation
+      // (not just user presence) or any partner read/write below will hit RLS 42501.
+      const signedInUser = res.needsEmailConfirmation ? null : (res.user ?? auth.user);
       if (!signedInUser) {
         setAuthNotice(null);
         if (userData.invitePartnerId) {
